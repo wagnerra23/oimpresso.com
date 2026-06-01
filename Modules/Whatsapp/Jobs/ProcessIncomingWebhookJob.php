@@ -219,6 +219,10 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
         $convId = $conversation?->id;
         $now = now();
+        // Hora real da mensagem no fuso do business — NÃO now() (este job roda na
+        // fila, fora do middleware Timezone, então now() seria Europe/London = +3h
+        // vs SP → msg no horário/dia errado). Fallback seguro pra now() embutido.
+        $sentAt = $this->resolveSentAt($msg['sent_at'] ?? null, $this->businessTimezone());
         if ($convId === null) {
             $convData = [
                 'business_id' => $this->businessId,
@@ -228,8 +232,8 @@ class ProcessIncomingWebhookJob implements ShouldQueue
                 'contact_name' => $contactName,
                 'status' => 'open',
                 'unread_count' => $fromMe ? 0 : 1, // outbound não conta como não-lida
-                'last_inbound_at' => $fromMe ? null : $now,
-                'last_message_at' => $now,
+                'last_inbound_at' => $fromMe ? null : $sentAt,
+                'last_message_at' => $sentAt,
                 'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
                 'last_message_direction' => $direction,
                 'created_at' => $now,
@@ -239,7 +243,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             // byte-idêntico ao original (não introduz coluna nova no fluxo que
             // os testes legados de inbound já cobrem).
             if ($fromMe) {
-                $convData['last_outbound_at'] = $now;
+                $convData['last_outbound_at'] = $sentAt;
             }
             $convId = \DB::table('conversations')->insertGetId($convData);
         }
@@ -265,8 +269,8 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             'media_mime' => $msg['media_mime'] ?? null,
             'media_size_bytes' => $msg['media_size_bytes'] ?? null,
             'media_filename' => $msg['media_filename'] ?? null,
-            'created_at' => $now,
-            'updated_at' => $now,
+            'created_at' => $sentAt,
+            'updated_at' => $sentAt,
         ]);
 
         // Realtime Centrifugo — publica evento "message.received" no canal
@@ -310,7 +314,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
         if ($conversation !== null) {
             $convUpdate = [
-                'last_message_at' => $now,
+                'last_message_at' => $sentAt,
                 'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
                 'last_message_direction' => $direction,
                 'updated_at' => $now,
@@ -318,11 +322,11 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             if ($fromMe) {
                 // outbound: marca saída, NÃO incrementa unread, NÃO toca
                 // last_inbound_at nem contact_name (preserva nome do cliente).
-                $convUpdate['last_outbound_at'] = $now;
+                $convUpdate['last_outbound_at'] = $sentAt;
             } else {
                 // inbound: idêntico ao original (não introduz coluna nova).
                 $convUpdate['unread_count'] = ($conversation->unread_count ?? 0) + 1;
-                $convUpdate['last_inbound_at'] = $now;
+                $convUpdate['last_inbound_at'] = $sentAt;
                 $convUpdate['contact_name'] = $contactName;
             }
             \DB::table('conversations')->where('id', $convId)->update($convUpdate);
@@ -334,6 +338,47 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             'conversation_id' => $convId,
             'provider_message_id' => $providerMessageId,
         ]);
+    }
+
+    /**
+     * Hora REAL da mensagem (do provider) no fuso do business.
+     *
+     * Por que NÃO `now()`: este job roda na fila (queue worker), que não passa
+     * pelo middleware HTTP `App\Http\Middleware\Timezone`. Logo `now()` cairia no
+     * default `config('app.timezone')` (Europe/London) e gravaria a msg +3h
+     * adiantada vs America/Sao_Paulo — "pulando de dia" perto da meia-noite.
+     *
+     * Robusto aos 2 formatos que o whatsmeow emite (time.Time do Go):
+     *   - string RFC3339 com offset ("2026-05-28T22:00:00-03:00") → respeita o offset
+     *   - epoch numérico (UTC) → createFromTimestamp
+     *
+     * Fallback seguro: sem timestamp → `now()` (mantém o comportamento anterior).
+     */
+    private function resolveSentAt(mixed $raw, string $tz): \Illuminate\Support\Carbon
+    {
+        if ($raw === null || $raw === '') {
+            return now();
+        }
+
+        try {
+            $c = is_numeric($raw)
+                ? \Illuminate\Support\Carbon::createFromTimestamp((int) $raw) // epoch é UTC
+                : \Illuminate\Support\Carbon::parse((string) $raw);           // RFC3339: offset embutido
+            return $c->setTimezone($tz); // storage UPos é local ao business, não UTC
+        } catch (\Throwable) {
+            return now(); // formato inesperado → fallback seguro
+        }
+    }
+
+    /**
+     * Fuso do business — mesmo valor que o middleware HTTP `Timezone` aplicaria
+     * num request autenticado. Sem business/time_zone → default do app (não quebra).
+     */
+    private function businessTimezone(): string
+    {
+        $tz = optional(\App\Business::find($this->businessId))->time_zone;
+
+        return is_string($tz) && $tz !== '' ? $tz : (string) config('app.timezone');
     }
 
     /**
@@ -435,6 +480,9 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             // PushName em evento fromMe é o nome do operador — NÃO usar como
             // contact_name do cliente. Passa null pra preservar o nome existente.
             'push_name' => $fromMe ? null : ($info['PushName'] ?? null),
+            // Hora REAL do evento (whatsmeow serializa time.Time → RFC3339 c/ offset
+            // OU epoch). Usada no created_at em vez de now() — ver resolveSentAt().
+            'sent_at' => $info['Timestamp'] ?? null,
             'raw' => $payload,
         ]];
 
