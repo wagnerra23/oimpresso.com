@@ -227,8 +227,8 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
                   <span
                     className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium border ${
                       l.origem === 'api'
-                        ? 'bg-sky-50 text-sky-700 border-sky-200'
-                        : 'bg-violet-50 text-violet-700 border-violet-200'
+                        ? 'bg-accent text-accent-foreground border-transparent'
+                        : 'bg-transparent text-muted-foreground border-border'
                     }`}
                     title={l.origem === 'api' ? 'Sincronizado via API do banco' : 'Importado de arquivo OFX'}
                   >
