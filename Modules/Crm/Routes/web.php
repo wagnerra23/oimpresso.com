@@ -133,6 +133,25 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
             ->whereNumber('id')
             ->name('autosave.papeis');
 
+        // US-CRM-078 -- multiplos enderecos do contato (matriz/filial/casa/obra).
+        // Tab Endereco do drawer 760 vira LISTA (add/editar/remover/marcar padrao).
+        // Multi-tenant Tier 0 (ADR 0093): endereco escopado por business_id + contact_id.
+        Route::get('{id}/enderecos', [\Modules\Crm\Http\Controllers\ContactAddressController::class, 'index'])
+            ->whereNumber('id')
+            ->name('enderecos.index');
+        Route::post('{id}/enderecos', [\Modules\Crm\Http\Controllers\ContactAddressController::class, 'store'])
+            ->whereNumber('id')
+            ->name('enderecos.store');
+        Route::patch('{id}/enderecos/{addressId}', [\Modules\Crm\Http\Controllers\ContactAddressController::class, 'update'])
+            ->whereNumber('id')->whereNumber('addressId')
+            ->name('enderecos.update');
+        Route::delete('{id}/enderecos/{addressId}', [\Modules\Crm\Http\Controllers\ContactAddressController::class, 'destroy'])
+            ->whereNumber('id')->whereNumber('addressId')
+            ->name('enderecos.destroy');
+        Route::patch('{id}/enderecos/{addressId}/padrao', [\Modules\Crm\Http\Controllers\ContactAddressController::class, 'setDefault'])
+            ->whereNumber('id')->whereNumber('addressId')
+            ->name('enderecos.padrao');
+
         // Wagner 2026-05-27 -- sub-tab "Placas" do OssTab drawer 760 (read-only).
         // Daniela @ Martinho cadastrou Heinig + pediu ver caminhoes basculantes
         // direto no drawer Cliente sem abrir /oficina-auto/veiculos separado.
