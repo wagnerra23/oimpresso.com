@@ -144,3 +144,22 @@ Detalhes: ADR 0242 e evolucao/aplicacao de 0079/0094/0238/0241 (nao reescrita). 
 
 ### FICA [W]
 - #1 G4: PR Tier 0 aguarda merge [W]. #4 auditoria aguarda go.
+
+---
+
+## 2026-06-01 [CL] → [W] — Handoff `metricas.html` (Cowork→Code): regras de design no git
+
+### Origem: bundle Cowork "oimpresso-erp-comunicação-visual" (chat33 · `metricas.html`). [W]: "implemente os aspectos relevantes do design".
+### Status: Regras 1+2 traduzidas · Regra 3 N/A (justificado) · **aguarda merge [W]** (Tier 0)
+### Diff: branch `docs/design-no-dup-trilha` → PR
+
+**Passo 0 (vs `origin/main` fresco):** bundle estava stale — Jana Pro `#2069` e o prep dos 3 Tier 0 de IA `#2073` JÁ em `main` (o bundle dizia "⏸️ não disparar"). Cada item batido contra o `main` antes de agir (L-09).
+
+- **Regra 1 — no-duplicação de design (L-21) → ✅** bullet em `CLAUDE_DESIGN_BRIEFING §7.1`, referenciando o pai em `proibicoes.md` (não duplica).
+- **Regra 2 — trilha do tempo / lápide (L-22) → ✅** bullet em `§7.1` + 1 forward-ref em `proibicoes.md` (Memória/governança).
+- **Regra 3 — rename shell `Oimpresso ERP - Chat.html` → `oimpresso.com.html` → ⏭️ N/A.** Não há shell vivo no repo: esse HTML só existe em pastas-snapshot (`_arquivo/`, `cowork-2026-05-26-…/`) — o repo guarda bundles Cowork como snapshots datados, não 1 HTML vivo. `metricas.html` é Cowork-local (não vai pro repo, por decisão sua no chat33). Nada a renomear.
+
+### Adaptação §10.4 (não copiei literal): o bullet usa "layout único do shell" em vez de citar `Oimpresso ERP - Chat.html` (inexistente no repo).
+
+### FICA [W]
+- Proibição/design = Tier 0 = **seu merge**. Não auto-mergeei.
