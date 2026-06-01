@@ -1,6 +1,6 @@
 ---
 name: Testes rodam no CT 100 (container staging), NUNCA na máquina local / Hostinger
-description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack + DB de staging isolado. Roda contra o MySQL real do staging (`oimpresso-staging-db`, anonimizado + isolado de prod) via `-e DB_CONNECTION=mysql` — NÃO sqlite (sqlite mascara `businesses`→`business`, CSRF, FK). CI Actions usa sqlite `:memory:` só como gate rápido de merge.
+description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack + DB de staging isolado. Roda contra o MySQL real do staging (`oimpresso-staging-db`, anonimizado + isolado de prod) via `-e DB_CONNECTION=mysql` — MySQL real do staging, anonimizado e isolado de prod.
 date_captured: 2026-06-01
 captured_in_session: T1.b OTel modernization (rodei testes local, Wagner corrigiu)
 applies_to: TODA validação de teste antes de push/PR (Pest, suites de módulo, smoke)
@@ -45,8 +45,8 @@ docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=A
 
 - Rodar contra o **MySQL real do staging** (`oimpresso-staging-db`) com
   `-e DB_CONNECTION=mysql` — dados **anonimizados** (LGPD) e **isolados de prod**
-  (Hostinger é outro host). MySQL real pega o que o sqlite mascara
-  (`businesses`→`business` UPos, CSRF 419, FK sintética) — "dogfooding biz=1".
+  (Hostinger é outro host). MySQL real (biz=1 dogfooding) pega bugs reais de
+  schema/integração (`businesses`→`business` UPos, CSRF 419, FK sintética).
 - Usar **`oimpresso-staging`**, não `oimpresso-mcp` (este é o MCP server LIVE que o
   time consome — não carregar com test runs).
 
@@ -60,4 +60,4 @@ certo: validar no CT 100 staging, sempre.
 
 - ADR 0062 (separação runtime Hostinger ≠ CT 100)
 - `docker exec oimpresso-staging` (CT 100 = `100.99.207.66`, Tailscale)
-- `phpunit.xml` (sqlite :memory: — isolamento de DB)
+- `oimpresso-staging-db` — MySQL real do staging (anonimizado, isolado de prod)
