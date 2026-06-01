@@ -1528,6 +1528,116 @@ class ContactController extends Controller
     }
 
     /**
+     * Wagner 2026-06-01 — upload de anexo do cliente (drawer Operações → Documentos).
+     * Cria 1 document-note + anexa o arquivo (media) ao contato. Habilita o
+     * "anexar" que estava read-only (botão oculto + endpoint legado /post-document-upload
+     * não persistia o vínculo). Pareado com GET (listar) e DELETE (excluir).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): contato resolvido DENTRO do
+     * business; o document-note herda business_id; Media::uploadMedia grava com
+     * o mesmo scope.
+     *
+     * POST /cliente/{id}/anexos  (campo `file`)
+     */
+    public function storeAnexo(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|file|max:25600', // 25 MB
+        ]);
+
+        $business_id = request()->session()->get('user.business_id');
+        $user_id = request()->session()->get('user.id');
+
+        $contact = \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $file = $request->file('file');
+        $heading = $file instanceof \Illuminate\Http\UploadedFile
+            ? $file->getClientOriginalName()
+            : 'anexo';
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            $note = $contact->documentsAndnote()->create([
+                'business_id' => $business_id,
+                'created_by' => $user_id,
+                'heading' => $heading,
+            ]);
+
+            \App\Media::uploadMedia($business_id, $note, $request, 'file', true);
+
+            \Illuminate\Support\Facades\DB::commit();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Log::error('storeAnexo cliente '.$id.': '.$e->getMessage());
+
+            return response()->json(['message' => __('messages.something_went_wrong')], 500);
+        }
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->where('model_id', $note->id)
+            ->orderByDesc('id')
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'document' => $media ? [
+                'id' => (int) $media->id,
+                'file_name' => $media->file_name,
+                'display_name' => $media->display_name,
+                'description' => $media->description,
+                'file_size' => null,
+                'mime_type' => null,
+                'uploaded_by_name' => null,
+                'created_at' => optional($media->created_at)->toISOString(),
+                'download_url' => $media->display_url,
+            ] : null,
+        ], 201);
+    }
+
+    /**
+     * Wagner 2026-06-01 — exclui um anexo (media) do cliente. Valida que o media
+     * pertence a um document-note DESTE contato (Tier 0 business_id scope) antes
+     * de excluir. Remove o document-note se ficar órfão (sem media e sem texto).
+     *
+     * DELETE /cliente/{id}/anexos/{mediaId}
+     */
+    public function destroyAnexo($id, $mediaId)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $noteIds = \App\DocumentAndNote::where('business_id', $business_id)
+            ->where('notable_type', \App\Contact::class)
+            ->where('notable_id', $id)
+            ->pluck('id');
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->whereIn('model_id', $noteIds)
+            ->where('id', $mediaId)
+            ->firstOrFail();
+
+        $noteId = $media->model_id;
+        $media->delete();
+
+        // Remove o document-note se ficou órfão (sem outras medias e sem texto).
+        $remaining = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->where('model_id', $noteId)
+            ->count();
+        if ($remaining === 0) {
+            \App\DocumentAndNote::where('business_id', $business_id)
+                ->where('id', $noteId)
+                ->whereNull('description')
+                ->delete();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * Slice 7 — type-hint StoreContactRequest wira App\Rules\BR\CpfCnpj +

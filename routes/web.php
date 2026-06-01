@@ -267,6 +267,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // Tier 0 multi-tenant: scope business_id no controller (ContactController::anexos).
     Route::get('/cliente/{id}/anexos', [ContactController::class, 'anexos'])
         ->name('cliente.anexos.index')->whereNumber('id');
+    Route::post('/cliente/{id}/anexos', [ContactController::class, 'storeAnexo'])
+        ->name('cliente.anexos.store')->whereNumber('id');
+    Route::delete('/cliente/{id}/anexos/{mediaId}', [ContactController::class, 'destroyAnexo'])
+        ->name('cliente.anexos.destroy')->whereNumber('id')->whereNumber('mediaId');
 
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
     Route::resource('taxonomies', TaxonomyController::class);
