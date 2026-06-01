@@ -120,6 +120,15 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-test-fora-ct100.ps1"
+          }
+        ]
       }
     ],
     "PostToolUse": [
