@@ -1476,6 +1476,58 @@ class ContactController extends Controller
     }
 
     /**
+     * Wagner 2026-06-01 — anexos do cliente pro drawer (Operações → Documentos).
+     * Lista os arquivos (media) anexados aos document-notes do contato como JSON,
+     * fechando o gap Wave D (o painel não carregava os anexos existentes — só
+     * mostrava "Anexos (0)" até subir um arquivo na sessão). Mesma fonte do
+     * contador `documents_count` do header (media via document_and_notes).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): scope business_id em TODAS as
+     * queries (contato, notas e media). Sem relação/has() — larastan-clean igual
+     * documentsCountMap: 2 queries simples + accessors do Media pro download.
+     *
+     * GET /cliente/{id}/anexos → { documents: DocumentItem[] }
+     */
+    public function anexos($id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        // 404 cross-tenant: o contato precisa existir DENTRO do business.
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $noteIds = \App\DocumentAndNote::where('business_id', $business_id)
+            ->where('notable_type', \App\Contact::class)
+            ->where('notable_id', $id)
+            ->pluck('id');
+
+        if ($noteIds->isEmpty()) {
+            return response()->json(['documents' => []]);
+        }
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->whereIn('model_id', $noteIds)
+            ->orderByDesc('id')
+            ->get();
+
+        $documents = $media->map(function ($m) {
+            return [
+                'id' => (int) $m->id,
+                'file_name' => $m->file_name,
+                'display_name' => $m->display_name,
+                'description' => $m->description,
+                'file_size' => null,
+                'mime_type' => null,
+                'uploaded_by_name' => null,
+                'created_at' => optional($m->created_at)->toISOString(),
+                'download_url' => $m->display_url,
+            ];
+        })->all();
+
+        return response()->json(['documents' => $documents]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * Slice 7 — type-hint StoreContactRequest wira App\Rules\BR\CpfCnpj +
