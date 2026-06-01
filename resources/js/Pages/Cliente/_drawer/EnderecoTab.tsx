@@ -1,31 +1,22 @@
-// Wave C-FE — EnderecoTab.tsx
+// US-CRM-078 — EnderecoTab vira LISTA de endereços (matriz/filial/casa/obra).
 //
-// Tab 3 do drawer 760px Cliente. CEP + ViaCEP autopreenche + endereço completo.
-// Refs: ADR 0179 · Charter Index.charter.md v3 · HANDOFF_CLIENTES.md §2.3
-// Cowork blueprint: prototipo-ui/prototipos/clientes/clientes-drawer.jsx::SectionEndereco
+// Tab 3 do drawer 760px Cliente. Lista os endereços do contato + adicionar /
+// editar / remover / marcar padrão. Reusa o lookup ViaCEP server-side.
+// O endereço `is_default` é espelhado pelo backend nos campos inline de
+// `contacts` (compat UPOS/NFe/Sells) — ver ContactAddressController.
 //
-// Contrato:
-//   PATCH /cliente/{id}/endereco
-//     body canon: { zip_code, address_line_1, address_line_2, numero, neighborhood, city, state }
-//   GET   /cliente/lookup/cep/{cep} → { logradouro, bairro, cidade, uf } (PT-BR ViaCEP)
+// Refs: ADR 0179 · ADR 0093 (Tier 0) · memory/requisitos/Cliente/SPEC.md §US-CRM-078
 //
-// Bug fix 2026-05-22 — naming canon:
-//   - Antes: body usava PT-BR (cep/endereco/numero/complemento/bairro/cidade/uf).
-//     Backend valida só canon EN (whitelist), descartava tudo silenciosamente.
-//     Autosave mostrava "Salvo" mas nada persistia no DB.
-//   - Agora: state + PATCH body usam canon do schema. Labels visuais PT-BR
-//     preservados (UX BR não muda).
-//   - `numero` BR canon restaurado pela migration 2026_05_22_120000_add_numero_to_contacts
-//     (regressão UPOS 6.7 — mesma situação de ADR 0178 pros campos fiscais).
-//
-// Pegadinhas:
-//  - Autosave on blur (debounce 800ms) + optimistic UI + rollback 4xx/5xx
-//  - "Buscar CEP" é loader inline (anti-padrão T-AP-15 modal aninhado)
-//  - ViaCEP server-side proxy obrigatório (ADR 0179 — biz=4 Larissa rate limit)
-//  - UF: select 27 valores oficiais BR
+// Contrato (Modules/Crm/Http/Controllers/ContactAddressController):
+//   GET    /cliente/{id}/enderecos                 → { addresses: ContactAddressRow[] }
+//   POST   /cliente/{id}/enderecos                 → { addresses }   (cria)
+//   PATCH  /cliente/{id}/enderecos/{addressId}     → { addresses }   (edita)
+//   DELETE /cliente/{id}/enderecos/{addressId}     → { addresses }   (remove)
+//   PATCH  /cliente/{id}/enderecos/{addressId}/padrao → { addresses } (marca padrão)
+//   GET    /cliente/lookup/cep/{cep} → { logradouro, complemento, bairro, cidade, uf }
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, Search, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Loader2, Search, CheckCircle2, AlertCircle, Plus, Star, Truck, Pencil, Trash2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
@@ -39,51 +30,55 @@ import {
 import { maskCEP, onlyDigits } from '@/Lib/br-mask';
 import { validateCEP } from '@/Lib/br-validate';
 
-export interface ContactInfo {
+export interface ContactAddressRow {
   id: number;
-  // Canon UPOS (preferido — vem do backend autosave response).
+  label?: string | null;
   zip_code?: string | null;
   address_line_1?: string | null;
-  address_line_2?: string | null;
   numero?: string | null;
+  address_line_2?: string | null;
   neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
-  // Aliases PT-BR (legado — listagem em /cliente emite assim hoje).
-  cep?: string | null;
-  endereco?: string | null;
-  complemento?: string | null;
-  bairro?: string | null;
-  cidade?: string | null;
-  uf?: string | null;
+  city_code?: string | null;
+  is_default: boolean;
+  is_shipping: boolean;
+  one_line?: string | null;
 }
 
 export interface EnderecoTabProps {
-  contact: ContactInfo;
-  onSaved?: (field: string, value: unknown) => void;
+  contact: { id: number };
+  disabled?: boolean;
   /**
-   * Wagner 2026-05-27 — chamado apos lookup CEP persistir campos novos no
-   * banco. Pai (ClienteSheet) atualiza `draftContact` ou row no parent state
-   * DIRETAMENTE pra evitar cache stale Inertia (rows.find retornaria snapshot
-   * pre-lookup). Padrao alinhado ao `IdentificacaoTab.onContactUpdated`.
-   *
-   * Sintoma sem este callback: user clica Buscar CEP → 5 PATCHes 200 OK →
-   * fecha drawer → reabre → campos voltam aos VELHOS (rows nao atualizou).
+   * Drawer host (Index.tsx) — sincroniza o endereço principal no parent
+   * (draftContact/row) após mudança na lista, evitando inline stale.
    */
   onContactUpdated?: (patched: Record<string, unknown>) => void;
-  disabled?: boolean;
 }
+
+type FormState = {
+  label: string;
+  zip_code: string;
+  address_line_1: string;
+  numero: string;
+  address_line_2: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+};
 
 type CepLookupState = 'idle' | 'loading' | 'ok' | 'error';
 
-const DEBOUNCE_MS = 800;
-
-// 27 UFs BR oficiais (IBGE)
 const UF_OPTIONS = [
   'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO',
   'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR',
   'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO',
 ];
+
+const EMPTY_FORM: FormState = {
+  label: '', zip_code: '', address_line_1: '', numero: '',
+  address_line_2: '', neighborhood: '', city: '', state: '',
+};
 
 function getCsrfToken(): string {
   return (
@@ -91,493 +86,382 @@ function getCsrfToken(): string {
   );
 }
 
-export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabled = false }: EnderecoTabProps) {
-  // Inicialização — preferir canon UPOS, fallback PT-BR legado pra graceful com
-  // a listagem (Index.tsx ainda emite cidade/uf PT-BR no payload da tabela).
-  const [zipCode, setZipCode] = useState<string>(maskCEP(contact.zip_code ?? contact.cep ?? ''));
-  const [addressLine1, setAddressLine1] = useState<string>(contact.address_line_1 ?? contact.endereco ?? '');
-  const [numero, setNumero] = useState<string>(contact.numero ?? '');
-  const [addressLine2, setAddressLine2] = useState<string>(contact.address_line_2 ?? contact.complemento ?? '');
-  const [neighborhood, setNeighborhood] = useState<string>(contact.neighborhood ?? contact.bairro ?? '');
-  const [city, setCity] = useState<string>(contact.city ?? contact.cidade ?? '');
-  const [stateUf, setStateUf] = useState<string>(contact.state ?? contact.uf ?? '');
+function rowToForm(a: ContactAddressRow): FormState {
+  return {
+    label: a.label ?? '',
+    zip_code: maskCEP(a.zip_code ?? ''),
+    address_line_1: a.address_line_1 ?? '',
+    numero: a.numero ?? '',
+    address_line_2: a.address_line_2 ?? '',
+    neighborhood: a.neighborhood ?? '',
+    city: a.city ?? '',
+    state: a.state ?? '',
+  };
+}
 
-  const [savingField, setSavingField] = useState<string | null>(null);
-  const [savedField, setSavedField] = useState<string | null>(null);
-  const [errorField, setErrorField] = useState<{ field: string; message: string } | null>(null);
+export default function EnderecoTab({ contact, disabled = false, onContactUpdated }: EnderecoTabProps) {
+  const [addresses, setAddresses] = useState<ContactAddressRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  // null = só lista; 'new' = formulário de novo; number = editando aquele id.
+  const [editing, setEditing] = useState<'new' | number | null>(null);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [cepLookup, setCepLookup] = useState<CepLookupState>('idle');
-  const [cepLookupMsg, setCepLookupMsg] = useState<string | null>(null);
 
-  const debounceTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  const previousValuesRef = useRef<Record<string, unknown>>({});
+  const headers = useCallback(
+    () => ({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-CSRF-TOKEN': getCsrfToken(),
+      'X-Requested-With': 'XMLHttpRequest',
+    }),
+    []
+  );
 
-  useEffect(() => {
-    // Fix Wagner 2026-05-27 — deps reduzidas pra `[contact.id]` APENAS
-    // (alinha com ContatoTab/IdentificacaoTab/ComercialTab). Antes deps expandidas
-    // `[contact.zip_code, contact.address_line_1, ...]` disparavam re-sync toda vez
-    // que o parent recebia update do `contact` (router.reload, onContactUpdated)
-    // → sobrescrevia state local que o user tinha digitado em outra aba e voltado
-    // ("trocou as outras abas apaga tudo"). Agora useEffect só roda na mount
-    // inicial (drawer abre) ou se drawer abrir cliente diferente.
-    //
-    // Trade-off: pós CNPJ lookup, o EnderecoTab NÃO auto-atualiza state local
-    // (user precisa ver via key remount controlado pelo pai via `key={enderecoVersion}`
-    // em ClienteSheet — disparado por onCnpjEnderecoPersisted).
-    setZipCode(maskCEP((contact.zip_code ?? contact.cep ?? '') as string));
-    setAddressLine1((contact.address_line_1 ?? contact.endereco ?? '') as string);
-    setNumero((contact.numero ?? '') as string);
-    setAddressLine2((contact.address_line_2 ?? contact.complemento ?? '') as string);
-    setNeighborhood((contact.neighborhood ?? contact.bairro ?? '') as string);
-    setCity((contact.city ?? contact.cidade ?? '') as string);
-    setStateUf((contact.state ?? contact.uf ?? '') as string);
-    setErrorField(null);
-    setSavedField(null);
-    setCepLookup('idle');
-    setCepLookupMsg(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadList = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch(`/cliente/${contact.id}/enderecos`, {
+        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+      });
+      if (!r.ok) throw new Error(`Erro ${r.status}`);
+      const j = await r.json();
+      setAddresses((j.addresses ?? []) as ContactAddressRow[]);
+    } catch (err) {
+      setError('Não foi possível carregar os endereços.');
+      // eslint-disable-next-line no-console
+      console.error('[EnderecoTab] load', err);
+    } finally {
+      setLoading(false);
+    }
   }, [contact.id]);
 
-  const cepError = useMemo<string | null>(() => {
-    const v = validateCEP(zipCode);
-    if (v === false) return 'CEP precisa ter 8 dígitos.';
-    return null;
-  }, [zipCode]);
-
-  // Field key = nome canon do schema (zip_code, address_line_1, ...).
-  // Setter por field pra rollback em caso de 4xx/5xx.
-  const rollbackField = useCallback((field: string, prev: unknown) => {
-    const s = (prev as string) ?? '';
-    if (field === 'zip_code') setZipCode(s);
-    else if (field === 'address_line_1') setAddressLine1(s);
-    else if (field === 'address_line_2') setAddressLine2(s);
-    else if (field === 'numero') setNumero(s);
-    else if (field === 'neighborhood') setNeighborhood(s);
-    else if (field === 'city') setCity(s);
-    else if (field === 'state') setStateUf(s);
-  }, []);
-
-  const performSave = useCallback(
-    async (field: string, value: unknown, prev: unknown) => {
-      if (disabled) return;
-      setSavingField(field);
-      setErrorField(null);
-      try {
-        const r = await fetch(`/cliente/${contact.id}/endereco`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            'X-CSRF-TOKEN': getCsrfToken(),
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: JSON.stringify({ [field]: value }),
-        });
-        if (!r.ok) {
-          rollbackField(field, prev);
-          let msg = `Erro ${r.status} ao salvar.`;
-          if (r.status === 422) {
-            const j = await r.json().catch(() => ({}));
-            msg = j?.errors?.[field]?.[0] ?? j?.message ?? msg;
-          } else if (r.status === 403) msg = 'Sem permissão.';
-          else if (r.status === 404) msg = 'Cliente não encontrado.';
-          setErrorField({ field, message: msg });
-          // eslint-disable-next-line no-console
-          console.error(`[EnderecoTab] autosave ${field} falhou`, { status: r.status });
-          return;
-        }
-        setSavedField(field);
-        setTimeout(() => setSavedField((c) => (c === field ? null : c)), 1800);
-        onSaved?.(field, value);
-      } catch (err) {
-        rollbackField(field, prev);
-        setErrorField({ field, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
-        console.error(`[EnderecoTab] autosave ${field} network`, err);
-      } finally {
-        setSavingField((c) => (c === field ? null : c));
-      }
-    },
-    [contact.id, disabled, onSaved, rollbackField]
-  );
-
-  const scheduleAutosave = useCallback(
-    (field: string, value: unknown, prev: unknown) => {
-      if (debounceTimersRef.current[field]) clearTimeout(debounceTimersRef.current[field]);
-      previousValuesRef.current[field] = prev;
-      debounceTimersRef.current[field] = setTimeout(() => {
-        performSave(field, value, previousValuesRef.current[field]);
-      }, DEBOUNCE_MS);
-    },
-    [performSave]
-  );
-
   useEffect(() => {
-    return () => {
-      Object.values(debounceTimersRef.current).forEach((t) => clearTimeout(t));
-    };
-  }, []);
+    void loadList();
+    setEditing(null);
+  }, [loadList]);
 
-  const handleBlur = useCallback(
-    (field: string, value: unknown) => {
-      if (field === 'zip_code' && cepError) return;
-      const prev = previousValuesRef.current[field];
-      if (debounceTimersRef.current[field]) {
-        clearTimeout(debounceTimersRef.current[field]);
-        delete debounceTimersRef.current[field];
-      }
-      performSave(field, value, prev);
-    },
-    [cepError, performSave]
-  );
+  // Sincroniza o endereço principal (is_default) no parent (draftContact/row)
+  // sempre que a lista muda — espelha o que o backend gravou nos campos inline
+  // de `contacts`, evitando inline stale na listagem sem reabrir o drawer.
+  useEffect(() => {
+    const def = addresses.find((a) => a.is_default);
+    if (def) {
+      onContactUpdated?.({
+        zip_code: def.zip_code,
+        address_line_1: def.address_line_1,
+        numero: def.numero,
+        address_line_2: def.address_line_2,
+        neighborhood: def.neighborhood,
+        city: def.city,
+        state: def.state,
+        city_code: def.city_code,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addresses]);
 
-  // ── Lookup CEP — loader inline ───────────────────────────────────────
+  const openNew = () => {
+    setForm(EMPTY_FORM);
+    setEditing('new');
+    setError(null);
+    setCepLookup('idle');
+  };
+  const openEdit = (a: ContactAddressRow) => {
+    setForm(rowToForm(a));
+    setEditing(a.id);
+    setError(null);
+    setCepLookup('idle');
+  };
+  const cancel = () => {
+    setEditing(null);
+    setForm(EMPTY_FORM);
+    setError(null);
+  };
+
+  const cepError = validateCEP(form.zip_code) === false ? 'CEP precisa ter 8 dígitos.' : null;
+
   const handleCepLookup = useCallback(async () => {
-    const digits = onlyDigits(zipCode);
+    const digits = onlyDigits(form.zip_code);
     if (digits.length !== 8) return;
     setCepLookup('loading');
-    setCepLookupMsg(null);
     try {
       const r = await fetch(`/cliente/lookup/cep/${digits}`, {
-        method: 'GET',
         headers: { Accept: 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
       });
       if (!r.ok) {
         setCepLookup('error');
-        setCepLookupMsg(r.status === 404 ? 'CEP não encontrado.' : `Erro ${r.status}.`);
         return;
       }
-      const json = await r.json();
-      // ViaCEP retorna PT-BR (logradouro/complemento/bairro/cidade/uf).
-      // Mapeamos pra canon do schema (PR #1422). `complemento` adicionado
-      // 2026-05-23 (PR #1419) — fecha gap 80% → 100% aderência ViaCEP.
-      const novoLogr = (json?.logradouro as string) ?? '';
-      const novoComplemento = (json?.complemento as string) ?? '';
-      const novoBairro = (json?.bairro as string) ?? '';
-      const novaCidade = (json?.cidade as string) ?? '';
-      const novaUf = (json?.uf as string) ?? '';
-
-      // Wagner 2026-05-27 — acumula campos preenchidos pra emitir 1 callback batch
-      // ao final ao parent (ClienteSheet) atualizar draftContact/rows direto
-      // sem depender de router.reload (que nao pega Inertia::defer cache).
-      const contactPatch: Record<string, unknown> = {};
-
-      if (novoLogr) {
-        setAddressLine1(novoLogr);
-        performSave('address_line_1', novoLogr, addressLine1);
-        contactPatch.address_line_1 = novoLogr;
-      }
-      // Complemento ViaCEP (ex "lado impar 612 a 1510" SP) — SOBRESCREVE
-      // (política feedback-lookup-cnpj-sobrescreve-dados: dado oficial público).
-      if (novoComplemento) {
-        setAddressLine2(novoComplemento);
-        performSave('address_line_2', novoComplemento, addressLine2);
-        contactPatch.address_line_2 = novoComplemento;
-      }
-      if (novoBairro) {
-        setNeighborhood(novoBairro);
-        performSave('neighborhood', novoBairro, neighborhood);
-        contactPatch.neighborhood = novoBairro;
-      }
-      if (novaCidade) {
-        setCity(novaCidade);
-        performSave('city', novaCidade, city);
-        contactPatch.city = novaCidade;
-      }
-      if (novaUf) {
-        setStateUf(novaUf);
-        performSave('state', novaUf, stateUf);
-        contactPatch.state = novaUf;
-      }
-      // Notifica parent pra atualizar draftContact/row -- evita cache stale
-      // Inertia ao fechar+reabrir drawer pos lookup (bug Wagner 2026-05-27).
-      if (Object.keys(contactPatch).length > 0) {
-        onContactUpdated?.(contactPatch);
-      }
+      const j = await r.json();
+      setForm((f) => ({
+        ...f,
+        address_line_1: (j?.logradouro as string) || f.address_line_1,
+        address_line_2: (j?.complemento as string) || f.address_line_2,
+        neighborhood: (j?.bairro as string) || f.neighborhood,
+        city: (j?.cidade as string) || f.city,
+        state: (j?.uf as string) || f.state,
+      }));
       setCepLookup('ok');
-      setCepLookupMsg('Endereço preenchido pelo ViaCEP.');
-      setTimeout(() => {
-        setCepLookup('idle');
-        setCepLookupMsg(null);
-      }, 2800);
-    } catch (err) {
+      setTimeout(() => setCepLookup('idle'), 2500);
+    } catch {
       setCepLookup('error');
-      setCepLookupMsg('Falha ao consultar ViaCEP.');
-      // eslint-disable-next-line no-console
-      console.error('[EnderecoTab] cep lookup failed', err);
     }
-  }, [zipCode, addressLine1, addressLine2, neighborhood, city, stateUf, performSave, onContactUpdated]);
+  }, [form.zip_code]);
 
-  const handleUfChange = useCallback(
-    (v: string) => {
-      const prev = stateUf;
-      if (prev === v) return;
-      setStateUf(v);
-      performSave('state', v, prev);
+  const save = useCallback(async () => {
+    if (disabled || cepError) return;
+    setSaving(true);
+    setError(null);
+    const isNew = editing === 'new';
+    const url = isNew
+      ? `/cliente/${contact.id}/enderecos`
+      : `/cliente/${contact.id}/enderecos/${editing as number}`;
+    try {
+      const r = await fetch(url, {
+        method: isNew ? 'POST' : 'PATCH',
+        headers: headers(),
+        body: JSON.stringify({ ...form, zip_code: onlyDigits(form.zip_code) }),
+      });
+      if (!r.ok) {
+        if (r.status === 422) {
+          const j = await r.json().catch(() => ({}));
+          const first = j?.errors ? (Object.values(j.errors)[0] as string[])?.[0] : null;
+          setError(first ?? 'Dados inválidos.');
+        } else {
+          setError(`Erro ${r.status} ao salvar.`);
+        }
+        return;
+      }
+      const j = await r.json();
+      setAddresses((j.addresses ?? []) as ContactAddressRow[]);
+      cancel();
+    } catch (err) {
+      setError('Falha de rede. Tente de novo.');
+      // eslint-disable-next-line no-console
+      console.error('[EnderecoTab] save', err);
+    } finally {
+      setSaving(false);
+    }
+  }, [disabled, cepError, editing, contact.id, form, headers]);
+
+  const remove = useCallback(
+    async (id: number) => {
+      if (disabled) return;
+      if (!window.confirm('Remover este endereço?')) return;
+      try {
+        const r = await fetch(`/cliente/${contact.id}/enderecos/${id}`, {
+          method: 'DELETE',
+          headers: headers(),
+        });
+        if (!r.ok) {
+          setError(`Erro ${r.status} ao remover.`);
+          return;
+        }
+        const j = await r.json();
+        setAddresses((j.addresses ?? []) as ContactAddressRow[]);
+      } catch {
+        setError('Falha ao remover.');
+      }
     },
-    [stateUf, performSave]
+    [disabled, contact.id, headers]
   );
 
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <Label htmlFor="ed-cep" className="cw-label">
-            CEP
-          </Label>
-          <div className="flex gap-2">
+  const setDefault = useCallback(
+    async (id: number) => {
+      if (disabled) return;
+      try {
+        const r = await fetch(`/cliente/${contact.id}/enderecos/${id}/padrao`, {
+          method: 'PATCH',
+          headers: headers(),
+          body: JSON.stringify({ is_shipping: true }),
+        });
+        if (!r.ok) {
+          setError(`Erro ${r.status} ao marcar padrão.`);
+          return;
+        }
+        const j = await r.json();
+        setAddresses((j.addresses ?? []) as ContactAddressRow[]);
+      } catch {
+        setError('Falha ao marcar padrão.');
+      }
+    },
+    [disabled, contact.id, headers]
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+        <Loader2 size={16} className="animate-spin" /> Carregando endereços…
+      </div>
+    );
+  }
+
+  // ── Formulário (novo ou edição) ───────────────────────────────────────
+  if (editing !== null) {
+    const set = (k: keyof FormState, v: string) => setForm((f) => ({ ...f, [k]: v }));
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">
+            {editing === 'new' ? 'Novo endereço' : 'Editar endereço'}
+          </h3>
+        </div>
+
+        {error && (
+          <p className="inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+            <AlertCircle size={12} aria-hidden /> {error}
+          </p>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <Label htmlFor="ed-label" className="cw-label">Rótulo</Label>
             <Input
-              variant="cowork"
-              id="ed-cep"
-              value={zipCode}
-              placeholder="00000-000"
-              disabled={disabled}
-              inputMode="numeric"
-              aria-invalid={!!cepError}
-              aria-describedby={cepError ? 'ed-cep-error' : undefined}
-              onChange={(e) => {
-                const prev = zipCode;
-                const v = maskCEP(e.target.value);
-                setZipCode(v);
-                scheduleAutosave('zip_code', v, prev);
-              }}
-              onBlur={(e) => {
-                handleBlur('zip_code', e.target.value);
-                if (onlyDigits(e.target.value).length === 8) {
-                  handleCepLookup();
-                }
-              }}
-              /* aria-invalid já dispara `.cw-input[aria-invalid="true"]` no CSS (border error) — não precisa className condicional duplicado */
+              variant="cowork" id="ed-label" value={form.label} placeholder="Matriz, Filial, Casa, Obra…"
+              disabled={disabled} onChange={(e) => set('label', e.target.value)}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={disabled || cepLookup === 'loading' || onlyDigits(zipCode).length !== 8}
-              onClick={handleCepLookup}
-              className="shrink-0"
-              aria-label="Buscar CEP no ViaCEP"
-            >
-              {cepLookup === 'loading' ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" /> Buscando…
-                </>
-              ) : cepLookup === 'ok' ? (
-                <>
-                  <CheckCircle2 size={14} className="text-emerald-600" /> Encontrado
-                </>
-              ) : (
-                <>
-                  <Search size={14} /> Buscar CEP
-                </>
-              )}
-            </Button>
           </div>
-          {cepLookupMsg && (
-            <p
-              className={`mt-1 text-xs ${cepLookup === 'error' ? 'text-rose-600' : 'text-emerald-600'}`}
-              role="status"
-              aria-live="polite"
-            >
-              {cepLookupMsg}
-            </p>
-          )}
-          <FieldStatus
-            error={cepError}
-            errorId="ed-cep-error"
-            saving={savingField === 'zip_code'}
-            saved={savedField === 'zip_code'}
-            backendError={errorField?.field === 'zip_code' ? errorField.message : null}
-          />
+
+          <div>
+            <Label htmlFor="ed-cep" className="cw-label">CEP</Label>
+            <div className="flex gap-2">
+              <Input
+                variant="cowork" id="ed-cep" value={form.zip_code} placeholder="00000-000"
+                disabled={disabled} inputMode="numeric" aria-invalid={!!cepError}
+                onChange={(e) => set('zip_code', maskCEP(e.target.value))}
+                onBlur={() => { if (onlyDigits(form.zip_code).length === 8) void handleCepLookup(); }}
+              />
+              <Button
+                type="button" variant="outline" size="sm"
+                disabled={disabled || cepLookup === 'loading' || onlyDigits(form.zip_code).length !== 8}
+                onClick={() => void handleCepLookup()} className="shrink-0" aria-label="Buscar CEP no ViaCEP"
+              >
+                {cepLookup === 'loading' ? (<><Loader2 size={14} className="animate-spin" /> Buscando…</>)
+                  : cepLookup === 'ok' ? (<><CheckCircle2 size={14} className="text-emerald-600" /> Ok</>)
+                  : (<><Search size={14} /> Buscar</>)}
+              </Button>
+            </div>
+            {cepError && <p className="mt-1 text-xs text-rose-600">{cepError}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="ed-numero" className="cw-label">Número</Label>
+            <Input variant="cowork" id="ed-numero" value={form.numero} placeholder="123"
+              disabled={disabled} onChange={(e) => set('numero', e.target.value)} />
+          </div>
+
+          <div className="md:col-span-2">
+            <Label htmlFor="ed-endereco" className="cw-label">Endereço</Label>
+            <Input variant="cowork" id="ed-endereco" value={form.address_line_1}
+              placeholder="Rua, avenida, alameda…" disabled={disabled}
+              onChange={(e) => set('address_line_1', e.target.value)} />
+          </div>
+
+          <div className="md:col-span-2">
+            <Label htmlFor="ed-complemento" className="cw-label">
+              Complemento <span className="text-muted-foreground font-normal">(opcional)</span>
+            </Label>
+            <Input variant="cowork" id="ed-complemento" value={form.address_line_2}
+              placeholder="Apto, conjunto, sala…" disabled={disabled}
+              onChange={(e) => set('address_line_2', e.target.value)} />
+          </div>
+
+          <div>
+            <Label htmlFor="ed-bairro" className="cw-label">Bairro</Label>
+            <Input variant="cowork" id="ed-bairro" value={form.neighborhood} disabled={disabled}
+              onChange={(e) => set('neighborhood', e.target.value)} />
+          </div>
+
+          <div>
+            <Label htmlFor="ed-cidade" className="cw-label">Cidade</Label>
+            <Input variant="cowork" id="ed-cidade" value={form.city} disabled={disabled}
+              onChange={(e) => set('city', e.target.value)} />
+          </div>
+
+          <div>
+            <Label htmlFor="ed-uf" className="cw-label">UF</Label>
+            <Select value={form.state} onValueChange={(v) => set('state', v)} disabled={disabled}>
+              <SelectTrigger id="ed-uf" variant="cowork" className="w-full">
+                <SelectValue placeholder="UF" />
+              </SelectTrigger>
+              <SelectContent>
+                {UF_OPTIONS.map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div>
-          <Label htmlFor="ed-numero" className="cw-label">
-            Número
-          </Label>
-          <Input
-            variant="cowork"
-            id="ed-numero"
-            value={numero}
-            placeholder="123"
-            disabled={disabled}
-            onChange={(e) => {
-              const prev = numero;
-              const v = e.target.value;
-              setNumero(v);
-              scheduleAutosave('numero', v, prev);
-            }}
-            onBlur={(e) => handleBlur('numero', e.target.value)}
-          />
-          <FieldStatus
-            saving={savingField === 'numero'}
-            saved={savedField === 'numero'}
-            backendError={errorField?.field === 'numero' ? errorField.message : null}
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <Label htmlFor="ed-endereco" className="cw-label">
-            Endereço
-          </Label>
-          <Input
-            variant="cowork"
-            id="ed-endereco"
-            value={addressLine1}
-            placeholder="Rua, avenida, alameda…"
-            disabled={disabled}
-            onChange={(e) => {
-              const prev = addressLine1;
-              const v = e.target.value;
-              setAddressLine1(v);
-              scheduleAutosave('address_line_1', v, prev);
-            }}
-            onBlur={(e) => handleBlur('address_line_1', e.target.value)}
-          />
-          <FieldStatus
-            saving={savingField === 'address_line_1'}
-            saved={savedField === 'address_line_1'}
-            backendError={errorField?.field === 'address_line_1' ? errorField.message : null}
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <Label htmlFor="ed-complemento" className="cw-label">
-            Complemento <span className="text-muted-foreground font-normal">(opcional)</span>
-          </Label>
-          <Input
-            variant="cowork"
-            id="ed-complemento"
-            value={addressLine2}
-            placeholder="Apto, conjunto, sala…"
-            disabled={disabled}
-            onChange={(e) => {
-              const prev = addressLine2;
-              const v = e.target.value;
-              setAddressLine2(v);
-              scheduleAutosave('address_line_2', v, prev);
-            }}
-            onBlur={(e) => handleBlur('address_line_2', e.target.value)}
-          />
-          <FieldStatus
-            saving={savingField === 'address_line_2'}
-            saved={savedField === 'address_line_2'}
-            backendError={errorField?.field === 'address_line_2' ? errorField.message : null}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="ed-bairro" className="cw-label">
-            Bairro
-          </Label>
-          <Input
-            variant="cowork"
-            id="ed-bairro"
-            value={neighborhood}
-            placeholder=""
-            disabled={disabled}
-            onChange={(e) => {
-              const prev = neighborhood;
-              const v = e.target.value;
-              setNeighborhood(v);
-              scheduleAutosave('neighborhood', v, prev);
-            }}
-            onBlur={(e) => handleBlur('neighborhood', e.target.value)}
-          />
-          <FieldStatus
-            saving={savingField === 'neighborhood'}
-            saved={savedField === 'neighborhood'}
-            backendError={errorField?.field === 'neighborhood' ? errorField.message : null}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="ed-cidade" className="cw-label">
-            Cidade
-          </Label>
-          <Input
-            variant="cowork"
-            id="ed-cidade"
-            value={city}
-            placeholder=""
-            disabled={disabled}
-            onChange={(e) => {
-              const prev = city;
-              const v = e.target.value;
-              setCity(v);
-              scheduleAutosave('city', v, prev);
-            }}
-            onBlur={(e) => handleBlur('city', e.target.value)}
-          />
-          <FieldStatus
-            saving={savingField === 'city'}
-            saved={savedField === 'city'}
-            backendError={errorField?.field === 'city' ? errorField.message : null}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="ed-uf" className="cw-label">
-            UF
-          </Label>
-          <Select value={stateUf} onValueChange={handleUfChange} disabled={disabled}>
-            <SelectTrigger id="ed-uf" variant="cowork" className="w-full">
-              <SelectValue placeholder="UF" />
-            </SelectTrigger>
-            <SelectContent>
-              {UF_OPTIONS.map((u) => (
-                <SelectItem key={u} value={u}>
-                  {u}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FieldStatus
-            saving={savingField === 'state'}
-            saved={savedField === 'state'}
-            backendError={errorField?.field === 'state' ? errorField.message : null}
-          />
+        <div className="flex gap-2">
+          <Button type="button" onClick={() => void save()} disabled={disabled || saving || !!cepError}>
+            {saving ? (<><Loader2 size={14} className="animate-spin" /> Salvando…</>) : 'Salvar endereço'}
+          </Button>
+          <Button type="button" variant="outline" onClick={cancel} disabled={saving}>Cancelar</Button>
         </div>
       </div>
+    );
+  }
+
+  // ── Lista ─────────────────────────────────────────────────────────────
+  return (
+    <div className="space-y-4">
+      {error && (
+        <p className="inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+          <AlertCircle size={12} aria-hidden /> {error}
+        </p>
+      )}
+
+      {addresses.length === 0 ? (
+        <p className="py-6 text-sm text-muted-foreground">Nenhum endereço cadastrado.</p>
+      ) : (
+        <ul className="space-y-2">
+          {addresses.map((a) => (
+            <li key={a.id} className="rounded-md border border-border p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-sm font-medium text-foreground">{a.label || 'Endereço'}</span>
+                    {a.is_default && (
+                      <span className="inline-flex items-center gap-0.5 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                        <Star size={11} /> Padrão
+                      </span>
+                    )}
+                    {a.is_shipping && (
+                      <span className="inline-flex items-center gap-0.5 rounded bg-sky-50 px-1.5 py-0.5 text-[11px] font-medium text-sky-700">
+                        <Truck size={11} /> Entrega
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{a.one_line || '—'}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  {!a.is_default && (
+                    <Button type="button" variant="ghost" size="sm" disabled={disabled}
+                      onClick={() => void setDefault(a.id)} aria-label="Marcar como padrão">
+                      <Star size={14} />
+                    </Button>
+                  )}
+                  <Button type="button" variant="ghost" size="sm" disabled={disabled}
+                    onClick={() => openEdit(a)} aria-label="Editar endereço">
+                    <Pencil size={14} />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" disabled={disabled}
+                    onClick={() => void remove(a.id)} aria-label="Remover endereço"
+                    className="text-rose-600 hover:text-rose-700">
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <Button type="button" variant="outline" onClick={openNew} disabled={disabled}>
+        <Plus size={14} /> Adicionar endereço
+      </Button>
     </div>
   );
-}
-
-interface FieldStatusProps {
-  error?: string | null;
-  errorId?: string;
-  saving?: boolean;
-  saved?: boolean;
-  backendError?: string | null;
-}
-
-function FieldStatus({ error, errorId, saving, saved, backendError }: FieldStatusProps) {
-  if (error) {
-    return (
-      <p id={errorId} className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
-        <AlertCircle size={11} aria-hidden /> {error}
-      </p>
-    );
-  }
-  if (backendError) {
-    return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
-        <AlertCircle size={11} aria-hidden /> {backendError}
-      </p>
-    );
-  }
-  if (saving) {
-    return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground" aria-live="polite">
-        <Loader2 size={11} className="animate-spin" aria-hidden /> Salvando…
-      </p>
-    );
-  }
-  if (saved) {
-    return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600" aria-live="polite">
-        <CheckCircle2 size={11} aria-hidden /> Salvo
-      </p>
-    );
-  }
-  return null;
 }
