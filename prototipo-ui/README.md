@@ -1,5 +1,26 @@
 # prototipo-ui/ — loop Claude Design ↔ Claude Code
 
+<!-- HANDOFF-ENTRY -->
+## 🤖 Claude Code ([CL]) — COMECE AQUI (não pule, antes de qualquer código)
+
+> Você recebeu este projeto via **Handoff to Claude Code**. O arquivo "aberto" no comando do handoff (ex.: o `.html` que abriu) é só o **ponto de entrada** — **NÃO é a sua tarefa**. Sua lista de tarefas vive em **`COWORK_NOTES.md` → seção "📥 Pendentes"**.
+
+**Ordem de leitura obrigatória:**
+1. **[`COWORK_NOTES.md`](COWORK_NOTES.md) → "📥 Pendentes"** — sua **LISTA DE TAREFAS**. Processe de cima pra baixo; cada item diz o quê · o destino no repo · a natureza (§10.4 / Tier 0).
+2. **[`PROTOCOL.md`](PROTOCOL.md)** — o protocolo (6 papéis × 7 fases · §10.4 · **Passo 0**: `git fetch` + ancorar em `origin/main` fresco antes de validar).
+3. **[`CLAUDE_CODE_BRIEFING.md`](CLAUDE_CODE_BRIEFING.md)** — briefing do papel [CL].
+4. **Charters de papel** — `CHARTER_GOVERNANCA_W.md` ([W] soberano) + `CHARTER_CHAMPION_AGENTES.md` ([CC]/[CL]/[CD]/[CA]), formalizados na ADR 0242: o que cada papel faz / não faz.
+
+**Como agir em cada pendente:**
+- **Valide contra `origin/main` sozinho (§10.4)** — não escale pra [W] o que o git já responde; só o subjetivo.
+- **Tier 0** (ADR · constituição · multi-tenant · segredo · tooling/lint · produto) → abre **PR e espera [W]**. **Aditivo / não-Tier-0** → loop autônomo (CI verde → merge).
+- **Ao terminar:** marque `[PROCESSADO AAAA-MM-DD]` na `COWORK_NOTES.md` **e** escreva o retorno em [`CODE_NOTES.md`](CODE_NOTES.md).
+
+> ⚠️ **Preservar este marcador `<!-- HANDOFF-ENTRY -->` em qualquer regeneração futura do README** (L-18 · `jana:health-check → readme_handoff_block_missing`).
+<!-- /HANDOFF-ENTRY -->
+
+---
+
 Diretório que orquestra o loop entre **Claude Design** (no Cowork, faz protótipo visual rápido) e **Claude Code** (neste repo, traduz pra Inertia/React real).
 
 **Documento mãe:** [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md).
