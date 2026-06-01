@@ -48,6 +48,9 @@ export interface DocumentsTabProps {
     delete_document: boolean;
     edit_note: boolean;
   };
+  /** Wagner 2026-06-01 — reporta a contagem VIVA de anexos (após load/upload/delete)
+   * pro header (chip "📎 N anexos"), que senão fica no valor estático do payload. */
+  onCountChange?: (count: number) => void;
 }
 
 const formatBytes = (bytes: number | null) => {
@@ -80,6 +83,7 @@ export default function DocumentsTab({
   notes: notesProp,
   notableType = 'App\\Contact',
   permissions = { upload: true, delete_document: true, edit_note: true },
+  onCountChange,
 }: DocumentsTabProps) {
   const [documents, setDocuments] = useState<DocumentItem[]>(docsProp ?? []);
   // notes list não é renderizada inteira (UI mostra só primary note); mantido pra futura grid.
@@ -100,11 +104,15 @@ export default function DocumentsTab({
     try {
       const res = await fetch(`/cliente/${contactId}/anexos`, {
         credentials: 'same-origin',
+        cache: 'no-store', // pós-upload precisa do estado fresco, nunca cache do GET
         headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (Array.isArray(data?.documents)) setDocuments(data.documents as DocumentItem[]);
+      if (Array.isArray(data?.documents)) {
+        setDocuments(data.documents as DocumentItem[]);
+        onCountChange?.(data.documents.length); // sincroniza o chip do header
+      }
     } catch {
       // silencioso: painel permanece com o estado atual (mesmo fallback de antes).
     }
@@ -216,7 +224,9 @@ export default function DocumentsTab({
         },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      const next = documents.filter((d) => d.id !== docId);
+      setDocuments(next);
+      onCountChange?.(next.length); // decrementa o chip do header
     } catch {
       // eslint-disable-next-line no-alert
       alert('Erro ao excluir anexo.');
