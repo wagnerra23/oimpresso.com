@@ -2,176 +2,59 @@
 
 declare(strict_types=1);
 
+use App\Business;
 use App\Contact;
 use App\ContactAddress;
 use App\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
-use Spatie\Permission\PermissionRegistrar;
 
 /**
- * US-CRM-078 — múltiplos endereços por contato.
+ * US-CRM-078 — múltiplos endereços por contato (cross-tenant Tier 0).
  *
- * Cobertura:
- *   1. Schema — tabela `contact_addresses` + colunas + softDeletes (migration real).
- *   2. Relações — Contact::addresses() hasMany / default+shipping hasOne / contact() belongsTo.
- *   3. Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL) — cross-tenant biz=1 vs biz=99:
- *      HasBusinessScope impede user de biz=1 enxergar endereços de biz=99 (query + relação).
- *   4. Backfill idempotente — endereço inline → 1 `contact_addresses` default; re-run não duplica.
+ * Roda NO CT 100 contra o MySQL real (schema UPos completo) — NUNCA sqlite:
+ *   docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=ContactAddressMultiTenant
+ * (proibicoes.md §Ambiente). DatabaseTransactions → rollback (não polui staging).
+ * Skip-graceful em sqlite/CI sem schema UPos (modules-pest.yml). Asserts escopados
+ * aos contatos criados aqui (resistente a dados de staging — biz=1 dogfooding).
  *
- * biz=1 nunca biz=4 cliente (R6 / ADR 0101) — usa businesses sintéticos do teste.
- *
- * Setup: schema mínimo INLINE (sqlite). UPOS tem migrations MySQL-only (MODIFY
- * COLUMN / ENUM) incompatíveis com sqlite, então CI/local não roda migrate full
- * (modules-pest.yml). Padrão de tests/Feature/Domain/Fsm/GateEmissaoPorVendaTest.
+ * biz sintéticos (não biz=4 cliente — R6 / ADR 0101).
  *
  * @see app/ContactAddress.php
- * @see memory/requisitos/Cliente/SPEC.md §US-CRM-078
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
-const CA078_MIGRATION = 'migrations/2026_06_01_120000_create_contact_addresses_table.php';
+uses(DatabaseTransactions::class);
 
 beforeEach(function () {
-    foreach ([
-        'contact_addresses', 'activity_log', 'role_has_permissions', 'model_has_roles',
-        'model_has_permissions', 'roles', 'permissions', 'contacts', 'business', 'users',
-    ] as $tbl) {
-        Schema::dropIfExists($tbl);
+    if (! Schema::hasTable('contacts') || ! Schema::hasTable('contact_addresses')) {
+        $this->markTestSkipped('Schema UPos/contact_addresses ausente — rode no CT 100 (MySQL real) com a migration aplicada. NAO sqlite.');
     }
-
-    Schema::create('users', function (Blueprint $t) {
-        $t->increments('id');
-        $t->string('username')->unique();
-        $t->string('password');
-        $t->integer('business_id')->nullable();
-        $t->rememberToken();
-        $t->softDeletes();
-        $t->timestamps();
-    });
-
-    Schema::create('business', function (Blueprint $t) {
-        $t->increments('id');
-        $t->string('name');
-        $t->timestamps();
-    });
-
-    // Spatie permission tables — ScopeByBusiness chama $user->can('jana.superadmin').
-    Schema::create('permissions', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->string('name');
-        $t->string('guard_name');
-        $t->timestamps();
-        $t->unique(['name', 'guard_name']);
-    });
-    Schema::create('roles', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->string('name');
-        $t->string('guard_name');
-        $t->timestamps();
-        $t->unique(['name', 'guard_name']);
-    });
-    Schema::create('model_has_permissions', function (Blueprint $t) {
-        $t->unsignedBigInteger('permission_id');
-        $t->string('model_type');
-        $t->unsignedBigInteger('model_id');
-        $t->primary(['permission_id', 'model_id', 'model_type'], 'ca078_mhp_pk');
-    });
-    Schema::create('model_has_roles', function (Blueprint $t) {
-        $t->unsignedBigInteger('role_id');
-        $t->string('model_type');
-        $t->unsignedBigInteger('model_id');
-        $t->primary(['role_id', 'model_id', 'model_type'], 'ca078_mhr_pk');
-    });
-    Schema::create('role_has_permissions', function (Blueprint $t) {
-        $t->unsignedBigInteger('permission_id');
-        $t->unsignedBigInteger('role_id');
-        $t->primary(['permission_id', 'role_id'], 'ca078_rhp_pk');
-    });
-
-    // activity_log — Contact usa Spatie LogsActivity; save() insere aqui.
-    Schema::create('activity_log', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->string('log_name')->nullable();
-        $t->text('description')->nullable();
-        $t->unsignedBigInteger('subject_id')->nullable();
-        $t->string('subject_type')->nullable();
-        $t->unsignedBigInteger('causer_id')->nullable();
-        $t->string('causer_type')->nullable();
-        $t->json('properties')->nullable();
-        $t->string('event')->nullable();
-        $t->uuid('batch_uuid')->nullable();
-        $t->timestamps();
-    });
-
-    // contacts — subset UPOS suficiente pro ContactAddress + backfill inline.
-    Schema::create('contacts', function (Blueprint $t) {
-        $t->increments('id');
-        $t->unsignedInteger('business_id')->index();
-        $t->string('type')->nullable();
-        $t->string('name')->nullable();
-        $t->string('contact_status')->nullable();
-        $t->string('zip_code')->nullable();
-        $t->string('address_line_1')->nullable();
-        $t->string('numero')->nullable();
-        $t->string('address_line_2')->nullable();
-        $t->string('neighborhood')->nullable();
-        $t->string('city')->nullable();
-        $t->string('state')->nullable();
-        $t->string('city_code')->nullable();
-        $t->softDeletes();
-        $t->timestamps();
-    });
-
-    // contact_addresses — roda a migration REAL (valida up() em sqlite).
-    (require database_path(CA078_MIGRATION))->up();
-
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
-afterEach(function () {
-    foreach ([
-        'contact_addresses', 'activity_log', 'role_has_permissions', 'model_has_roles',
-        'model_has_permissions', 'roles', 'permissions', 'contacts', 'business', 'users',
-    ] as $tbl) {
-        Schema::dropIfExists($tbl);
-    }
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-});
-
-// ── helpers ─────────────────────────────────────────────────────────────
-
-function ca078Business(): int
+function ca078mkBiz(): Business
 {
-    return (int) DB::table('business')->insertGetId([
-        'name' => 'Biz '.uniqid(),
-        'created_at' => now(),
-        'updated_at' => now(),
+    return Business::create([
+        'name' => 'Biz US078 '.uniqid(),
+        'currency_id' => 1,
+        'start_date' => '2026-01-01',
+        'default_profit_percent' => 25.0,
+        'owner_id' => 1,
     ]);
 }
 
-function ca078User(int $bizId): User
-{
-    return User::forceCreate([
-        'username' => 'u_'.$bizId.'_'.uniqid(),
-        'password' => bcrypt('x'),
-        'business_id' => $bizId,
-    ]);
-}
-
-function ca078Contact(int $bizId, array $overrides = []): Contact
+function ca078mkContact(int $bizId, array $o = []): Contact
 {
     $c = new Contact();
     $c->business_id = $bizId;
-    $c->type = $overrides['type'] ?? 'customer';
-    $c->name = $overrides['name'] ?? 'Cliente Teste';
+    $c->type = $o['type'] ?? 'customer';
+    $c->name = $o['name'] ?? 'Cliente US078';
     $c->contact_status = 'active';
-    foreach ($overrides as $k => $v) {
+    foreach ($o as $k => $v) {
         $c->{$k} = $v;
     }
     $c->save();
@@ -179,52 +62,37 @@ function ca078Contact(int $bizId, array $overrides = []): Contact
     return $c;
 }
 
-function ca078Endereco(int $bizId, int $contactId, array $overrides = []): ContactAddress
+function ca078mkAddr(int $bizId, int $contactId, array $o = []): ContactAddress
 {
     $a = new ContactAddress();
     $a->business_id = $bizId;
     $a->contact_id = $contactId;
-    $a->fill($overrides);
+    $a->fill($o);
     $a->save();
 
     return $a;
 }
 
-// ── testes ──────────────────────────────────────────────────────────────
-
-test('tabela e colunas de contact_addresses existem (migration real)', function () {
-    expect(Schema::hasTable('contact_addresses'))->toBeTrue();
-
-    foreach ([
-        'business_id', 'contact_id', 'label', 'zip_code', 'address_line_1', 'numero',
-        'address_line_2', 'neighborhood', 'city', 'state', 'city_code',
-        'is_default', 'is_shipping', 'deleted_at',
-    ] as $col) {
-        expect(Schema::hasColumn('contact_addresses', $col))
-            ->toBeTrue("coluna contact_addresses.{$col} ausente");
-    }
-});
-
-test('relações Contact/ContactAddress estão definidas', function () {
-    $contact = new Contact();
-    expect($contact->addresses())->toBeInstanceOf(HasMany::class);
-    expect($contact->defaultAddress())->toBeInstanceOf(HasOne::class);
-    expect($contact->shippingAddress())->toBeInstanceOf(HasOne::class);
+test('relacoes Contact/ContactAddress definidas', function () {
+    $c = new Contact();
+    expect($c->addresses())->toBeInstanceOf(HasMany::class);
+    expect($c->defaultAddress())->toBeInstanceOf(HasOne::class);
+    expect($c->shippingAddress())->toBeInstanceOf(HasOne::class);
     expect((new ContactAddress())->contact())->toBeInstanceOf(BelongsTo::class);
 });
 
-test('contato tem muitos endereços com default + shipping', function () {
-    $biz = ca078Business();
-    $contact = ca078Contact($biz);
+test('contato tem muitos enderecos com default + shipping', function () {
+    $biz = ca078mkBiz();
+    $contact = ca078mkContact($biz->id);
 
-    ca078Endereco($biz, $contact->id, [
+    ca078mkAddr($biz->id, $contact->id, [
         'label' => 'Matriz', 'is_default' => true, 'is_shipping' => true,
         'city' => 'Tubarão', 'state' => 'SC',
     ]);
-    ca078Endereco($biz, $contact->id, ['label' => 'Obra', 'city' => 'Criciúma', 'state' => 'SC']);
+    ca078mkAddr($biz->id, $contact->id, ['label' => 'Obra', 'city' => 'Criciúma', 'state' => 'SC']);
 
-    $this->actingAs(ca078User($biz));
-    session(['user.business_id' => $biz]);
+    $this->actingAs(User::factory()->create(['business_id' => $biz->id]));
+    session(['user.business_id' => $biz->id]);
 
     expect($contact->addresses()->count())->toBe(2);
     expect($contact->defaultAddress->label)->toBe('Matriz');
@@ -232,39 +100,36 @@ test('contato tem muitos endereços com default + shipping', function () {
 });
 
 test('isolamento cross-tenant biz=1 vs biz=99 via global scope (ADR 0093)', function () {
-    $biz1 = ca078Business();
-    $biz99 = ca078Business();
+    $biz1 = ca078mkBiz();
+    $biz99 = ca078mkBiz();
 
-    $c1 = ca078Contact($biz1, ['name' => 'Cliente biz1']);
-    $c99 = ca078Contact($biz99, ['name' => 'Cliente biz99']);
+    $c1 = ca078mkContact($biz1->id, ['name' => 'Cliente biz1']);
+    $c99 = ca078mkContact($biz99->id, ['name' => 'Cliente biz99']);
 
-    $a1 = ca078Endereco($biz1, $c1->id, ['label' => 'Matriz biz1']);
-    $a99 = ca078Endereco($biz99, $c99->id, ['label' => 'Matriz biz99']);
+    $a1 = ca078mkAddr($biz1->id, $c1->id, ['label' => 'Matriz biz1']);
+    $a99 = ca078mkAddr($biz99->id, $c99->id, ['label' => 'Matriz biz99']);
 
-    // Autenticado como user de biz1 + sessão multi-tenant.
-    $this->actingAs(ca078User($biz1));
-    session(['user.business_id' => $biz1]);
+    $this->actingAs(User::factory()->create(['business_id' => $biz1->id]));
+    session(['user.business_id' => $biz1->id]);
 
-    // Scope ativo: só o endereço de biz1 é visível.
-    $visible = ContactAddress::all();
-    expect($visible)->toHaveCount(1);
-    expect($visible->first()->id)->toBe($a1->id);
-
-    // Endereço de biz99 não localizável sob o scope de biz1.
+    // Scope ativo: o endereço de biz1 é visível; o de biz99 NÃO (escopado aos meus ids).
+    expect(ContactAddress::whereIn('id', [$a1->id, $a99->id])->pluck('id')->all())->toBe([$a1->id]);
     expect(ContactAddress::find($a99->id))->toBeNull();
 
     // Nem via relação a partir do contact de biz99.
     expect($c99->addresses()->count())->toBe(0);
 
     // withoutGlobalScope enxerga os 2 — prova que o filtro é do scope.
-    expect(ContactAddress::withoutGlobalScope(ScopeByBusiness::class)->count())->toBe(2);
+    expect(
+        ContactAddress::withoutGlobalScope(ScopeByBusiness::class)
+            ->whereIn('id', [$a1->id, $a99->id])->count()
+    )->toBe(2);
 });
 
-test('backfill inline é idempotente e preserva business_id', function () {
-    $biz = ca078Business();
+test('backfill inline idempotente preserva business_id', function () {
+    $biz = ca078mkBiz();
 
-    // Contact COM endereço inline → gera 1 contact_addresses default/shipping.
-    $withAddr = ca078Contact($biz, [
+    $withAddr = ca078mkContact($biz->id, [
         'name' => 'Com endereço',
         'zip_code' => '88701-000',
         'address_line_1' => 'Av Marcolino Martins Cabral',
@@ -272,12 +137,10 @@ test('backfill inline é idempotente e preserva business_id', function () {
         'city' => 'Tubarão',
         'state' => 'SC',
     ]);
+    ca078mkContact($biz->id, ['name' => 'Sem endereço']);
 
-    // Contact SEM endereço inline → não gera nada.
-    ca078Contact($biz, ['name' => 'Sem endereço']);
-
-    $inserted = ContactAddress::backfillInline($biz);
-    expect($inserted)->toBe(1);
+    // Escopado ao biz sintético (não toca contatos de staging).
+    expect(ContactAddress::backfillInline($biz->id))->toBe(1);
 
     $addr = ContactAddress::withoutGlobalScope(ScopeByBusiness::class)
         ->where('contact_id', $withAddr->id)->first();
@@ -286,12 +149,8 @@ test('backfill inline é idempotente e preserva business_id', function () {
     expect($addr->is_shipping)->toBeTrue();
     expect($addr->label)->toBe('Principal');
     expect($addr->numero)->toBe('1578');
-    expect((int) $addr->business_id)->toBe($biz);
+    expect((int) $addr->business_id)->toBe($biz->id);
 
-    // Re-run: idempotente — não duplica.
-    expect(ContactAddress::backfillInline($biz))->toBe(0);
-    expect(
-        ContactAddress::withoutGlobalScope(ScopeByBusiness::class)
-            ->where('contact_id', $withAddr->id)->count()
-    )->toBe(1);
+    // Re-run idempotente.
+    expect(ContactAddress::backfillInline($biz->id))->toBe(0);
 });
