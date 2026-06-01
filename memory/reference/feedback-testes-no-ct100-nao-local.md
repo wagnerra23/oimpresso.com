@@ -1,6 +1,6 @@
 ---
 name: Testes rodam no CT 100 (container staging), NUNCA na máquina local / Hostinger
-description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack + DB de staging isolado. phpunit.xml força sqlite :memory: → testes nunca tocam o DB de prod.
+description: Suíte Pest (e qualquer teste pesado / que precise do stack completo — OTel SDK, Meilisearch, serviços) roda no CT 100 via `docker exec oimpresso-staging php artisan test`. A máquina local do Wagner e o Hostinger NÃO têm recursos pra isso. CT 100 (Proxmox docker-host) é o lugar correto — tem CPU/RAM + o stack + DB de staging isolado. Roda contra o MySQL real do staging (`oimpresso-staging-db`, anonimizado + isolado de prod) via `-e DB_CONNECTION=mysql` — NÃO sqlite (sqlite mascara `businesses`→`business`, CSRF, FK). CI Actions usa sqlite `:memory:` só como gate rápido de merge.
 date_captured: 2026-06-01
 captured_in_session: T1.b OTel modernization (rodei testes local, Wagner corrigiu)
 applies_to: TODA validação de teste antes de push/PR (Pest, suites de módulo, smoke)
@@ -37,14 +37,16 @@ cd /opt/oimpresso-staging/code
 git fetch origin && git checkout origin/main -- <arquivos>   # ou git pull
 
 # 2. rodar o teste DENTRO do container (recursos + stack completo):
-docker exec oimpresso-staging php artisan test tests/Feature/Otel/OtelServiceProviderTest.php
-docker exec oimpresso-staging php artisan test --filter=AlgumFiltro
+docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test tests/Feature/Otel/OtelServiceProviderTest.php
+docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=AlgumFiltro
 ```
 
 ## Segurança (por que é OK rodar no CT 100)
 
-- `phpunit.xml` força `DB_CONNECTION=sqlite` + `DB_DATABASE=:memory:` → os testes
-  **nunca tocam o MySQL de prod** (Hostinger). Rodar no container é DB-isolado.
+- Rodar contra o **MySQL real do staging** (`oimpresso-staging-db`) com
+  `-e DB_CONNECTION=mysql` — dados **anonimizados** (LGPD) e **isolados de prod**
+  (Hostinger é outro host). MySQL real pega o que o sqlite mascara
+  (`businesses`→`business` UPos, CSRF 419, FK sintética) — "dogfooding biz=1".
 - Usar **`oimpresso-staging`**, não `oimpresso-mcp` (este é o MCP server LIVE que o
   time consome — não carregar com test runs).
 
