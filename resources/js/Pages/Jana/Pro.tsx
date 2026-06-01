@@ -374,7 +374,7 @@ function ProPage({ plan, pricing, proof }: Props) {
           aria-live="polite"
           className={
             state === 'done'
-              ? 'inline-flex items-center gap-2 rounded-md border border-emerald-500 bg-emerald-500 px-5 py-2.5 text-sm font-medium text-white'
+              ? 'inline-flex items-center gap-2 rounded-md border border-success bg-success px-5 py-2.5 text-sm font-medium text-success-foreground'
               : 'inline-flex items-center gap-2 rounded-md border border-primary bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-[0.85]'
           }
         >
