@@ -263,6 +263,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         return $c->show($id);
     })->name('cliente.show')->whereNumber('id');
 
+    // Wagner 2026-06-01 — anexos do cliente (drawer Operações → Documentos). JSON.
+    // Tier 0 multi-tenant: scope business_id no controller (ContactController::anexos).
+    Route::get('/cliente/{id}/anexos', [ContactController::class, 'anexos'])
+        ->name('cliente.anexos.index')->whereNumber('id');
+
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
     Route::resource('taxonomies', TaxonomyController::class);
 
