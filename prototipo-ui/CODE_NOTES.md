@@ -122,3 +122,25 @@ Wagner trouxe o bundle Cowork `ZxcA47…` ("implementar o Diagnóstico"). O Diag
 ### FICA [W]/[CC]
 - README handoff-entry marker (conteúdo [CC]).
 - Item 4 (auditoria read-only → `design-report.json`) — aguarda go.
+
+---
+
+## 2026-06-01 — fila Cowork "Diagnostico de Projeto" (handoff P6u6) · #2 + #3
+
+Wagner reenviou o bundle Cowork (open-file `Diagnostico de Projeto - CC.html`). Pelo `project/README.md`: **o open-file e ponto de entrada, NAO a tarefa** — a fila vive em `COWORK_NOTES -> 📥 Pendentes`. Processei pelo §10.4 (base estava -71 vs origin/main -> worktree isolado off origin/main fresco).
+
+| Item | Veredito | Acao [CL] |
+|---|---|---|
+| #2 Charters de papel | NOVO (nao no main) | ✅ **PR #2061 MERGED** ([W] 01:33) — ADR 0242 + CHARTER_GOVERNANCA_W + CHARTER_CHAMPION_AGENTES (prototipo-ui/). Tier 0. |
+| #3 README HANDOFF-ENTRY | gap real (readme_handoff_block_missing) | ✅ **PR #2062 MERGED** (autonomo, nao-Tier-0). |
+| #1 G4 retorno automatico | em andamento | PR Tier 0 (design_return_skipped + workflow pos-merge). |
+| #4 auditoria read-only | aguarda go | — |
+
+Detalhes: ADR 0242 e evolucao/aplicacao de 0079/0094/0238/0241 (nao reescrita). Charters em prototipo-ui/ (nao `_DesignSystem/` -> evita design-index-gate "orfao"). Tela de diagnostico construida e **descartada** (era ponto-de-entrada, nao tarefa — confirma o CODE_NOTES anterior "o Diagnostico e relatorio, nao tela").
+
+### Gotchas (new_design_memories)
+- `persona: [CC] ...` em frontmatter = YAML invalido (`[CC]` vira flow-seq) -> quotar.
+- charter-gate so valida `resources/js/Pages/**/*.charter.md`; design-index-gate so `_DesignSystem/**` -> `CHARTER_*.md` em prototipo-ui/ passa livre.
+
+### FICA [W]
+- #1 G4: PR Tier 0 aguarda merge [W]. #4 auditoria aguarda go.
