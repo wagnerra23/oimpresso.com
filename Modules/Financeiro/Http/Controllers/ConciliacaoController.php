@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Models\BankStatementLine;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
@@ -27,7 +28,13 @@ use Modules\Financeiro\Services\FinanceiroAuditLogger;
  * Parser OFX simples (regex). NÃO usa biblioteca externa (mantém deps enxutas).
  * Para CNAB / formatos complexos: Onda 22 com `OfxImporter` dedicated service.
  *
- * Tier 0: business_id global scope (BankStatementLine model usa BusinessScope).
+ * Tier 0 (re-impl #2045): a origem OFX (`fin_bank_statement_lines`) é acessada pela
+ * Model BankStatementLine (BusinessScope global scope + SoftDeletes) — defesa em
+ * profundidade multi-tenant. O `where('business_id', …)` explícito é mantido como
+ * segunda camada. A origem API (`fin_extrato_lancamentos`) segue via `DB::table`
+ * (tabela/schema distintos — fora do escopo da Model OFX); lá o filtro business_id
+ * continua 100% explícito. O bulk upload (insert/dedupe) também fica em `DB::table`
+ * de propósito (caminho de ingestão, não é a superfície de query Tier 0 crítica).
  *
  * Fase 1 da ADR 0236 (2026-05-31): a conciliação passou a enxergar TAMBÉM o
  * extrato sincronizado via API do banco (`fin_extrato_lancamentos`, origem
@@ -55,12 +62,17 @@ class ConciliacaoController extends Controller
             : ['pendente', 'sugerido'];
 
         // OFX (upload manual): pendentes/sugeridas (+ resolvidas se o toggle ligado).
-        $linhas = DB::table('fin_bank_statement_lines')
-            ->where('business_id', $businessId)
+        // Tier 0 (re-impl #2045): roteado pela Model BankStatementLine — BusinessScope
+        // (business_id) + SoftDeletes (deleted_at) são aplicados pelos global scopes;
+        // mantemos o where('business_id', …) EXPLÍCITO como defesa em profundidade.
+        // `->toBase()->get()` devolve stdClass: payload Inertia byte-for-byte idêntico
+        // ao DB::table anterior (casts da Model NÃO reformatam datas/decimais no wire);
+        // os scopes são aplicados antes do toBase() (Eloquent\Builder::toBase() chama applyScopes()).
+        $linhas = BankStatementLine::where('business_id', $businessId)
             ->whereIn('status', $statusFiltro)
-            ->whereNull('deleted_at')
             ->orderBy('data_movimento', 'desc')
             ->limit(200)
+            ->toBase()
             ->get()
             ->map(fn ($l) => $this->normalizeOfx($l));
 
@@ -150,8 +162,9 @@ class ConciliacaoController extends Controller
     /** Stats consolidados das duas origens (API status NULL conta como pendente). */
     private function statsConsolidados(int $businessId): array
     {
-        $ofxBase = fn () => DB::table('fin_bank_statement_lines')
-            ->where('business_id', $businessId)->whereNull('deleted_at');
+        // OFX via Model (BusinessScope + SoftDeletes aplicam business_id/deleted_at);
+        // where('business_id', …) explícito mantido como defesa em profundidade.
+        $ofxBase = fn () => BankStatementLine::where('business_id', $businessId);
 
         $stats = [
             'pendentes'   => (clone $ofxBase())->where('status', 'pendente')->count(),
@@ -337,9 +350,17 @@ class ConciliacaoController extends Controller
     }
 
     /**
-     * Query builder da tabela certa por origem (Tier 0: o filtro business_id
-     * é aplicado por quem chama). `api` exige a migration Fase 1; cai pra OFX
-     * se ainda não rodou (degradação segura).
+     * Query builder da tabela certa por origem. `api` exige a migration Fase 1;
+     * cai pra OFX se ainda não rodou (degradação segura).
+     *
+     * Tier 0 (re-impl #2045): a origem OFX retorna `BankStatementLine::query()->toBase()`
+     * — o `toBase()` já aplicou o BusinessScope (where business_id = sessão) e o
+     * SoftDeletes (whereNull deleted_at), então o filtro de tenant fica EMBUTIDO no
+     * builder (NET de defesa em profundidade) mesmo que um caller futuro esqueça o
+     * where('business_id', …). Continua sendo um Query\Builder — mesmo contrato e
+     * stdClass dos callers (match/ignorar/reabrir/sugerirParaLinha). A origem API
+     * segue via `DB::table` (`fin_extrato_lancamentos`, fora do escopo da Model OFX);
+     * lá o filtro business_id continua 100% explícito no caller.
      */
     private function conciliacaoTable(string $origem): \Illuminate\Database\Query\Builder
     {
@@ -347,7 +368,7 @@ class ConciliacaoController extends Controller
             return DB::table('fin_extrato_lancamentos');
         }
 
-        return DB::table('fin_bank_statement_lines');
+        return BankStatementLine::query()->toBase();
     }
 
     /**
@@ -434,14 +455,15 @@ class ConciliacaoController extends Controller
      */
     private function sugerirMatches(int $businessId): void
     {
-        // OFX — data em `data_movimento`, valor já com sinal.
-        $ofx = DB::table('fin_bank_statement_lines')
-            ->where('business_id', $businessId)
+        // OFX — data em `data_movimento`, valor já com sinal. Tier 0 (re-impl #2045):
+        // candidatas roteadas pela Model (BusinessScope + SoftDeletes); `->toBase()->get()`
+        // devolve stdClass com os valores crus (data/decimais idênticos ao DB::table).
+        $ofx = BankStatementLine::where('business_id', $businessId)
             ->where('status', 'pendente')
-            ->whereNull('deleted_at')
+            ->toBase()
             ->get();
         foreach ($ofx as $linha) {
-            $this->sugerirParaLinha($businessId, 'fin_bank_statement_lines', $linha->id, $linha->valor, $linha->data_movimento);
+            $this->sugerirParaLinha($businessId, 'ofx', $linha->id, $linha->valor, $linha->data_movimento);
         }
 
         // API — data em `data`, valor positivo (abs já é aplicado no matcher).
@@ -451,13 +473,17 @@ class ConciliacaoController extends Controller
                 ->whereNull('status')
                 ->get();
             foreach ($api as $linha) {
-                $this->sugerirParaLinha($businessId, 'fin_extrato_lancamentos', $linha->id, $linha->valor, $linha->data);
+                $this->sugerirParaLinha($businessId, 'api', $linha->id, $linha->valor, $linha->data);
             }
         }
     }
 
-    /** Casa UMA linha de extrato (qualquer origem) com um Titulo aberto e marca sugerido. */
-    private function sugerirParaLinha(int $businessId, string $table, int $id, $valor, string $data): void
+    /**
+     * Casa UMA linha de extrato (qualquer origem) com um Titulo aberto e marca sugerido.
+     * `$origem` (ofx|api) resolve a tabela via conciliacaoTable() — na origem OFX o
+     * UPDATE passa pela Model (BusinessScope embutido); na API segue via DB::table.
+     */
+    private function sugerirParaLinha(int $businessId, string $origem, int $id, $valor, string $data): void
     {
         $valorAbs = abs((float) $valor);
         $candidato = Titulo::where('business_id', $businessId)
@@ -471,7 +497,7 @@ class ConciliacaoController extends Controller
             ->first();
 
         if ($candidato) {
-            DB::table($table)
+            $this->conciliacaoTable($origem)
                 ->where('id', $id)
                 ->where('business_id', $businessId) // Tier 0 reforçado no UPDATE.
                 ->update([
