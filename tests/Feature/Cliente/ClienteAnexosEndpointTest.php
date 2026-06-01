@@ -70,3 +70,58 @@ test('GUARD 4 — GET /cliente/{id}/anexos nao vaza anexos sem auth', function (
     // (vazaria anexos sem sessao) nem 500 (erro de codigo).
     expect(in_array($response->status(), [302, 401, 403, 404], true))->toBeTrue();
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// Wagner 2026-06-01 — habilita ENVIAR/EXCLUIR anexos no drawer (era read-only:
+// botoes ocultos + endpoint legado /post-document-upload nao persistia).
+// ════════════════════════════════════════════════════════════════════════
+
+// ─── GUARD 5: rotas POST + DELETE registradas ─────────────────────────────
+
+test('GUARD 5 — routes/web.php registra POST + DELETE /cliente/{id}/anexos', function () {
+    $path = __DIR__ . '/../../../routes/web.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain("Route::post('/cliente/{id}/anexos', [ContactController::class, 'storeAnexo'])")
+        ->toContain("->name('cliente.anexos.store')")
+        ->toContain("Route::delete('/cliente/{id}/anexos/{mediaId}', [ContactController::class, 'destroyAnexo'])")
+        ->toContain("->name('cliente.anexos.destroy')");
+});
+
+// ─── GUARD 6: storeAnexo/destroyAnexo — tenant scope + persiste ───────────
+
+test('GUARD 6 — storeAnexo/destroyAnexo com business_id scope + persistencia', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain('public function storeAnexo(Request $request, $id)')
+        ->toContain('public function destroyAnexo($id, $mediaId)')
+        // Tier 0: contato resolvido DENTRO do business nos dois metodos.
+        ->toContain("Contact::where('business_id', \$business_id)->findOrFail(\$id)")
+        // Upload persiste: cria document-note + anexa media (helper canon).
+        ->toContain('$contact->documentsAndnote()->create(')
+        ->toContain("Media::uploadMedia(\$business_id, \$note, \$request, 'file', true)")
+        // Delete valida que o media pertence a um note DESTE contato (scope).
+        ->toContain("->where('model_type', \\App\\DocumentAndNote::class)")
+        ->toContain('->firstOrFail()');
+});
+
+// ─── GUARD 7: frontend usa endpoints novos + permissoes habilitadas ───────
+
+test('GUARD 7 — DocumentsTab usa endpoints novos + Index habilita permissoes', function () {
+    $docTab = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/_show/DocumentsTab.tsx');
+    $index = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx');
+
+    expect($docTab)
+        // Upload/delete pelos endpoints dedicados (recarrega do backend).
+        ->toContain('await loadDocuments()')
+        ->toContain('/cliente/${contactId}/anexos/${docId}')
+        // Endpoint legado quebrado NAO e mais usado.
+        ->not->toContain('/post-document-upload');
+
+    // Index passa permissoes pro OssTab (senao botoes ficam ocultos no drawer).
+    expect($index)
+        ->toContain('permissions={{ upload: true, delete_document: true, edit_note: true }}');
+});
