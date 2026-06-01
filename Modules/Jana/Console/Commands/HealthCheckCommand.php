@@ -7,6 +7,7 @@ namespace Modules\Jana\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\CharterHealthChecker;
 
 /**
  * Sentinela operacional da Jana + Constituição v2.
@@ -26,6 +27,11 @@ use Illuminate\Support\Facades\Log;
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
+ *  10-14. Charter health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
+ *      charter_missing, charter_stale (>90d), charter_refs_broken,
+ *      charter_method_missing, readme_handoff_block_missing (L-18).
+ *      Reportam mas NÃO falham o exit code nem o ALERT de cron (viram
+ *      ratchet depois que o baseline de charters existir).
  *
  * Uso:
  *   php artisan jana:health-check
@@ -38,7 +44,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (7 checks SQL)';
+    protected $description = 'Health check diário Jana + Constituição v2 (9 checks SQL + 5 charter advisory)';
 
     public function handle(): int
     {
@@ -52,9 +58,13 @@ class HealthCheckCommand extends Command
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
             $this->checkMcpWebhookHealth2h(),
+            // Charter health (advisory — não falha exit/cron). PROTOCOL §6.
+            ...CharterHealthChecker::fromApp()->checks(),
         ];
 
-        $allOk = collect($checks)->every(fn ($c) => $c['ok']);
+        // Advisory checks (charter) reportam mas não derrubam o exit code:
+        // contam como "ok" pro gate enquanto não viram ratchet.
+        $allOk = collect($checks)->every(fn ($c) => $c['ok'] || ($c['advisory'] ?? false));
 
         if ($this->option('json')) {
             $this->line(json_encode([
@@ -79,7 +89,10 @@ class HealthCheckCommand extends Command
         ]);
 
         if ($this->option('notify') && ! $allOk) {
-            $failed = collect($checks)->where('ok', false)->pluck('name')->implode(', ');
+            // Só falha DURA (não-advisory) dispara o ALERT de cron.
+            $failed = collect($checks)
+                ->filter(fn ($c) => ! $c['ok'] && ! ($c['advisory'] ?? false))
+                ->pluck('name')->implode(', ');
             Log::channel('single')->error("jana:health-check ALERT — falhou: {$failed}");
         }
 
@@ -567,7 +580,7 @@ class HealthCheckCommand extends Command
         $this->newLine();
 
         $rows = collect($checks)->map(fn ($c) => [
-            $c['ok'] ? '✓' : '✗',
+            $c['ok'] ? '✓' : (($c['advisory'] ?? false) ? '⚠' : '✗'),
             $c['name'],
             $c['value'] !== null ? (string) $c['value'] : '—',
             (string) ($c['threshold'] ?? '—'),
@@ -577,11 +590,18 @@ class HealthCheckCommand extends Command
         $this->table(['', 'Check', 'Valor', 'Alvo', 'Status'], $rows);
 
         $this->newLine();
+        $advisoryWarn = collect($checks)->filter(fn ($c) => ! $c['ok'] && ($c['advisory'] ?? false))->count();
         if ($allOk) {
-            $this->info('✓ Todos os 9 checks passaram. Sistema saudável.');
+            $total = count($checks);
+            $msg = "✓ {$total} checks sem falha dura. Sistema saudável.";
+            if ($advisoryWarn > 0) {
+                $msg .= " ⚠ {$advisoryWarn} advisory (charter) pra revisar.";
+            }
+            $this->info($msg);
         } else {
-            $failed = collect($checks)->where('ok', false)->count();
-            $this->error("✗ {$failed} check(s) falharam — investigar acima.");
+            $failed = collect($checks)->filter(fn ($c) => ! $c['ok'] && ! ($c['advisory'] ?? false))->count();
+            $this->error("✗ {$failed} check(s) falharam — investigar acima."
+                . ($advisoryWarn > 0 ? " (+{$advisoryWarn} advisory ⚠)" : ''));
         }
         $this->newLine();
     }
