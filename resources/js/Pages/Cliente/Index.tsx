@@ -1801,11 +1801,16 @@ function ClienteSheet({
   // pra o chip header "📎 N anexos" cair direto em Documentos. Reset p/ 'ledger'
   // quando entra na tab Operações pelo caminho normal (tab bar).
   const [opsSubTab, setOpsSubTab] = useState<OssSubTabKey>('ledger');
+  // Wagner 2026-06-01 — contagem VIVA de anexos pro chip "📎 N anexos". null =
+  // usa o valor estático do payload (documents_count); quando o painel Documentos
+  // carrega/sobe/exclui, o OssTab reporta o número real e o chip passa a refletir.
+  const [liveAnexosCount, setLiveAnexosCount] = useState<number | null>(null);
 
   // Reset tab ao abrir contact diferente. Drawer abre default em "Identificação".
   useEffect(() => {
     if (open && contactId) {
       setActiveTab('identificacao');
+      setLiveAnexosCount(null); // novo contact → count do payload até o painel carregar
     }
   }, [open, contactId]);
 
@@ -1958,7 +1963,7 @@ function ClienteSheet({
               title="Ver anexos do cliente (comprovantes, contratos, fotos)"
             >
               <Paperclip size={11} aria-hidden />
-              <span>{contact?.documents_count ?? 0}</span>
+              <span>{liveAnexosCount ?? contact?.documents_count ?? 0}</span>
               <span>anexos</span>
             </button>
             <button
@@ -2081,6 +2086,8 @@ function ClienteSheet({
                      Legado concede view/create/delete de documentos a quem vê o
                      contato (DocumentAndNoteController::__getPermission p/ App\Contact). */
                   permissions={{ upload: true, delete_document: true, edit_note: true }}
+                  /* chip "📎 N anexos" reflete a contagem viva após load/upload/delete */
+                  onDocumentsCountChange={setLiveAnexosCount}
                 />
               )}
               {activeTab === 'placas' && oficinaAutoEnabled && (

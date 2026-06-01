@@ -125,3 +125,27 @@ test('GUARD 7 — DocumentsTab usa endpoints novos + Index habilita permissoes',
     expect($index)
         ->toContain('permissions={{ upload: true, delete_document: true, edit_note: true }}');
 });
+
+// ─── GUARD 8: chip do header reflete contagem VIVA (Wagner: "nao somou") ───
+
+test('GUARD 8 — chip anexos sincroniza contagem viva apos upload/delete', function () {
+    $docTab = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/_show/DocumentsTab.tsx');
+    $ossTab = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/OssTab.tsx');
+    $index = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx');
+
+    // DocumentsTab reporta a contagem viva + GET sem cache (pos-upload fresco).
+    expect($docTab)
+        ->toContain('onCountChange?: (count: number) => void')
+        ->toContain('onCountChange?.(data.documents.length)')
+        ->toContain("cache: 'no-store'");
+
+    // OssTab repassa o callback pro DocumentsTab.
+    expect($ossTab)
+        ->toContain('onDocumentsCountChange')
+        ->toContain('onCountChange={onDocumentsCountChange}');
+
+    // Index: chip usa o count vivo (cai pro payload quando ausente) + wiring.
+    expect($index)
+        ->toContain('liveAnexosCount ?? contact?.documents_count ?? 0')
+        ->toContain('onDocumentsCountChange={setLiveAnexosCount}');
+});

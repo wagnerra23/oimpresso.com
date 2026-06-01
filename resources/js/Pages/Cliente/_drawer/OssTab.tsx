@@ -62,6 +62,8 @@ export interface OssTabProps {
   activeSubTab?: OssSubTabKey;
   /** Reporta troca de sub-aba (clique interno) pro pai manter sync — highlight do chip. */
   onSubTabChange?: (key: OssSubTabKey) => void;
+  /** Wagner 2026-06-01 — repassa a contagem viva de anexos pro header (chip "📎 N anexos"). */
+  onDocumentsCountChange?: (count: number) => void;
   /**
    * Permissoes injetadas pelo Index.tsx (Wave futura pode estender ContactController::index).
    * Por ora todas default false — sub-tabs operam em modo read-only.
@@ -90,6 +92,7 @@ export default function OssTab({
   contact,
   activeSubTab,
   onSubTabChange,
+  onDocumentsCountChange,
   permissions = {},
   locations = [],
 }: OssTabProps) {
@@ -178,6 +181,7 @@ export default function OssTab({
               delete_document: permissions.delete_document ?? false,
               edit_note: permissions.edit_note ?? false,
             }}
+            onCountChange={onDocumentsCountChange}
           />
         )}
         {/* Wagner 2026-05-27 iteracao 2: `placas` virou tab principal acessada
