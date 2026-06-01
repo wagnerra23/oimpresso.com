@@ -3,6 +3,31 @@
 > Mudanças significativas no Módulo KB Unificado. Entries por Wave/PR. Wave mais recente no topo.
 > Para detalhes técnicos, ver `memory/sessions/YYYY-MM-DD-*.md` e ADRs canônicas.
 
+## [Ativação /kb/v2 + Charter Governance] — 2026-06-01
+
+**Tema:** ligar a tela tri-pane ao banco real (fim do modo MOCK) + governança de charters.
+
+### Mudado
+
+- **`/kb/v2` (= `/sops`, "Procedimentos Operacionais Padrão") ATIVADA lendo banco REAL.** `KbController@indexV2` ([Modules/KB/Http/Controllers/KbController.php](../../../Modules/KB/Http/Controllers/KbController.php)) passou a enviar `kb_nodes` articles (`editable()->active()`, paginado 40) + categorias/subcategorias + paths publicados + pinned + KPIs reais + tags_top.
+  - **Modo MOCK eliminado em runtime:** o fallback `MOCK_NODES` em `Index.v2.tsx` virou rede de segurança DORMENTE — como o controller sempre envia `props.nodes`, `usingMock` é sempre `false` em prod.
+  - Smoke com **3 SOPs reais seedados** em staging CT 100.
+  - Charter `Index.v2.charter.md` `status: draft → active` (gate visual screenshot Wagner p/ cutover `live` segue PENDENTE — ADR 0114).
+  - NOTA: `indexV2` carrega props eager (sem `Inertia::defer`) — o `index()` V0 fez ROLLBACK de defer (Wave L/W7 PR #963).
+
+### Adicionado
+
+- **`/kb/charters` (Charter Governance)** — `KbCharterController` ([Modules/KB/Http/Controllers/KbCharterController.php](../../../Modules/KB/Http/Controllers/KbCharterController.php)) varre `resources/js/Pages/**/*.charter.md` do disco (read-only; núcleo imutável vem do git, ADR 0061) + preview/KPIs por módulo.
+- **F1 governança de charters** — tabela `kb_charter_suggestions` ([migration 2026_06_01_120000](../../../Modules/KB/Database/Migrations/2026_06_01_120000_create_kb_charter_suggestions_table.php)): fluxo sugestão (`proposed`) → aprovação/rejeição (`accepted`/`rejected`/`under_review`) com comentário obrigatório. Promoção da sugestão aprovada pro `.charter.md` (git) fica pra F3 (US-CHTR-020).
+- Docs canônicos: SPEC-CHARTER-GOVERNANCE.md, CONCEITO-CHARTER-GOVERNANCE-V1.md, INTERFACE-CHARTER-KB.md, SCHEMA-CHARTER-GOVERNANCE-DELTA.md, README-CHARTER-GOVERNANCE.md.
+- **ADR mãe:** 0243 — ACEITA por Wagner 2026-06-01 (gate F0). Arquivo ainda em `memory/decisions/proposals/0243-charter-governance-kb.md` (migra pra `memory/decisions/` no PR de F1, padrão do projeto).
+
+### Branch
+
+- `feat/staging-ct100`.
+
+---
+
 ## [Wave 25] — 2026-05-16
 
 **Tema:** saturação dim D9 (observabilidade) + D3 (docs) + D7 (privacidade).

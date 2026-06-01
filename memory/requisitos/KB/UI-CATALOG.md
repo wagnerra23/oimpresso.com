@@ -1,13 +1,13 @@
 # KB — UI Catalog (auto-gerado bulk W31-10)
 
-> **Ultima atualizacao:** 2026-05-17 (W31-10)
+> **Ultima atualizacao:** 2026-06-01 (correção manual do auditor — gerador NÃO re-rodado; re-gerar quando possível)
 > **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
 > Pages dir: `resources/js/Pages/kb/`
 
 ## Resumo
 
-- Telas Inertia tsx: **3**
-- Charters `.charter.md`: **6** (cobertura: 200%)
+- Telas Inertia tsx: **4** (era 3 — +`Charters/Index.tsx` em 2026-06-01)
+- Charters `.charter.md`: **7** (Graph, Index, Index.v2, Node, Paths, Troubleshooter, Charters/Index)
 - Blade legacy do modulo (Modules/<X>/Resources/views): **0**
 
 ## Telas Inertia tsx
@@ -15,8 +15,9 @@
 | Tela | Charter | review.md | Status | Round | Smoke pendente |
 |---|:---:|:---:|---|---:|:---:|
 | `Graph.tsx` | OK | - | awaiting-smoke-browser | 1 | sim |
-| `Index.tsx` | OK | - | awaiting-smoke-browser | 1 | sim |
-| `Index.v2.tsx` | OK | - | awaiting-smoke-browser | 1 | sim |
+| `Index.tsx` | OK | OK | active (V3 browser docs MCP, PR #934) | 1 | sim |
+| `Index.v2.tsx` | OK | OK | active (= /sops; banco REAL via indexV2, smoke staging CT100) | 1 | nao (smoke staging 3 SOPs) |
+| `Charters/Index.tsx` | OK | - | active (Charter Governance, 2026-06-01) | 1 | sim |
 
 
 ## Blade legacy restantes

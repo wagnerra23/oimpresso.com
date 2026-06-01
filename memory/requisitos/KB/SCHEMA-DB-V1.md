@@ -1,12 +1,12 @@
 # KB Unificado — Schema DB V1 (contrato técnico)
 
-> **Status:** contrato firme. Mudanças exigem ADR amendment a [0149](../../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md).
-> **Audiência:** agents implement-expert + Wagner. Este doc é o que os agents paralelos consomem como CONTRATO.
+> **Status:** contrato firme — **ENTREGUE 2026-05-16 (PR #934)**: as tabelas `kb_*` e Models existem em prod; a tela `/kb/v2` (=/sops) lê o banco real desde 2026-06-01. Mudanças exigem ADR amendment a [ADR 0150](../../decisions/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md) (ACEITA — era proposta 0149/0150; a mãe canônica é a **0150**).
+> **Audiência:** agents implement-expert + Wagner. Este doc é o que os agents paralelos consumiram como CONTRATO (já implementado).
 > **Princípio:** **kb_nodes é o grafo. mcp_memory_documents continua read-only fotografia git.** Bridge nullable FK.
 
 ---
 
-## 1. Resumo das 9 tabelas + 0 alterações em existentes
+## 1. Resumo das 11 tabelas novas (+ `kb_bridge_state` = 12 ao todo) + 0 alterações em existentes
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
@@ -413,10 +413,14 @@ $state->update(['last_bridge_at' => now()]);
 
 Estado do bridge persistido em `kb_bridge_state (business_id, last_bridge_at)`.
 
-## 11. Endpoints REST + Inertia (contrato pra Agent 3 e Agent 4)
+## 11. Endpoints REST + Inertia (contrato — ENTREGUE PR #934, ver `Modules/KB/Http/routes.php`)
+
+> **Atualização 2026-06-01:** endpoints abaixo implementados. Correção de rota: `/kb` (=`kb.index`) é o **browser dos docs canônicos MCP (V3)**, NÃO o tri-pane. O tri-pane port-Cowork é `/kb/v2` (=`kb.v2`, alias `/sops`), servido por `KbController@indexV2` lendo `kb_nodes` reais. Adicionada também a tela `/kb/charters` (`KbCharterController`, ADR 0243 ACEITA 2026-06-01 — arquivo ainda em `proposals/`, migra pra `decisions/` no PR de F1).
 
 ```
-GET    /kb                                Inertia kb/Index — tri-pane
+GET    /kb                                Inertia kb/Index — browser docs canônicos MCP (V3)
+GET    /kb/v2  (= /sops)                  Inertia kb/Index.v2 — tri-pane SOPs (kb_nodes reais) — ENTREGUE 2026-06-01
+GET    /kb/charters                       Inertia kb/Charters/Index — Charter Governance (ADR 0243 ACEITA 2026-06-01)
 GET    /kb/graph                          Inertia kb/Graph — visualização-grafo
 GET    /kb/nodes                          JSON paginado de kb_nodes (?type, ?category, ?q, ?cursor)
 GET    /kb/nodes/{slug}                   JSON detalhe + body (com JOIN mcp se bridge)

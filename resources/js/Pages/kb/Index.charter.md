@@ -2,14 +2,15 @@
 page: kb/Index
 controller: Modules\KB\Http\Controllers\KbController@index
 route: kb.index
-status: draft
+status: active
+status_history: "draft (2026-05-15) → active (2026-06-01: /kb V3 LIVE como browser dos ~352 docs canônicos MCP — ADRs/sessions/charters/runbooks. Backend KbController@index entregue PR #934, lê mcp_memory_documents real). NOTA: a Mission abaixo descreve a VISÃO tri-pane/grafo do KB unificado; o /kb V3 ATUAL é o browser de docs canônicos. O tri-pane port-Cowork vive em /kb/v2 (Index.v2.charter.md)."
 owner: [W] Wagner
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1.0
 charter_at: 2026-05-15
 related_adrs:
-  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (ACEITA 2026-05-16)
   - 0039-ui-chat-cockpit-padrao
   - 0104-processo-mwart-canonico-unico-caminho
   - 0114-prototipo-ui-cowork-loop-formalizado
@@ -110,3 +111,4 @@ A tela emite eventos via tela mãe ou pode disparar:
 | Versão | Data | Mudança |
 |---|---|---|
 | 1.0 | 2026-05-15 | Draft inicial — ONDA 0 fundação. Aguarda port F3 da ONDA 2. |
+| 1.1 | 2026-06-01 | `status: draft → active`. Backend entregue (PR #934); `/kb` V3 LIVE como browser dos ~352 docs canônicos MCP (`KbController@index` lê `mcp_memory_documents`). ADR 0150 marcada ACEITA (era "proposta"). Esclarecido que a Mission tri-pane/grafo é a visão do KB unificado; o port-Cowork tri-pane está em `/kb/v2` (ver Index.v2.charter.md). |

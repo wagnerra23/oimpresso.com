@@ -1,15 +1,17 @@
 ---
 page: kb/Index.v2
 controller: Modules\KB\Http\Controllers\KbController@indexV2
-route: kb.v2
-status: draft
+route: kb.v2 (+ alias sops.index → /sops)
+status: active
+status_history: "draft (2026-05-16 Wave J) → active (2026-06-01: indexV2 lê banco REAL kb_nodes; /kb/v2 = /sops ativada; smoke 3 SOPs staging CT 100). Gate visual screenshot Wagner p/ promover a `live`/cutover Index.tsx ainda PENDENTE (ADR 0114)."
 owner: [W] Wagner
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1.0
 charter_at: 2026-05-16
 related_adrs:
-  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (ACEITA 2026-05-16)
+  - 0243-charter-governance-kb (ACEITA 2026-06-01 gate F0 — F1 governança de charters; arquivo ainda em proposals/)
   - 0039-ui-chat-cockpit-padrao
   - 0104-processo-mwart-canonico-unico-caminho
   - 0107-emendation-0104-visual-comparison-gate-f3
@@ -19,14 +21,16 @@ related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
 related_prototipo: ../../../prototipo-ui/prototipos/kb/
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/prototipos/kb/kb-page.jsx
-  blueprint_screenshot_approval: pendente (gate F1.5)
+  blueprint_screenshot_approval: pendente (gate F1.5 / cutover ADR 0114 — backend já entregue, falta aprovação visual Wagner)
   derived_screens: [Index.v2]
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
 ---
 
-# Charter — `resources/js/Pages/kb/Index.v2.tsx` (DRAFT)
+# Charter — `resources/js/Pages/kb/Index.v2.tsx`
 
-> Coexiste com `Index.tsx` (V3 atual) durante gate visual ADR 0114. Rota `/kb/v2` paralela até Wagner aprovar SCREENSHOT pro cutover.
+> **Atualização 2026-06-01:** backend `KbController@indexV2` ENTREGUE (PR #934 + ativação 2026-06-01). A tela `/kb/v2` (= `/sops`, "Procedimentos Operacionais Padrão") agora lê o banco REAL (`kb_nodes` articles + categorias + KPIs + tags) — `props.nodes` sempre populado, então o fallback `MOCK_NODES` interno virou rede de segurança DORMENTE (nunca dispara em prod). Smoke com 3 SOPs reais seedados em staging CT 100.
+>
+> Coexiste com `Index.tsx` (V3 atual = browser dos docs canônicos MCP) durante gate visual ADR 0114. Rota `/kb/v2` paralela até Wagner aprovar SCREENSHOT pro cutover (gate visual ainda PENDENTE).
 
 ## Mission
 
@@ -35,12 +39,12 @@ Port do protótipo Cowork `prototipo-ui/prototipos/kb/kb-page.jsx` pra Inertia R
 ## Goals (faz)
 
 1. Tri-pane responsivo 1280px (Larissa balcão) sem scroll horizontal
-2. CategorySidebar com contagem por categoria/subcategoria (fallback MOCK quando backend ausente)
+2. CategorySidebar com contagem por categoria/subcategoria (dados reais via `props.categories`/`subcategories`; MOCK só como fallback dormente)
 3. NodeList ordenada por `pinned` + `updated_at` desc, click abre NodeReader sem reload
 4. NodeReader render markdown com cross-link `#kb-XXX` + anchors + blocos de imagem
 5. CommandPalette ⌘K fuzzy local (200 primeiros nós) + fallback IA
 6. PathsDialog + TroubleshooterDialog + HealthPanel acionáveis pela header
-7. Fallback MOCK_NODES quando rotas backend ausentes (ONDA 1 pendente)
+7. ~~Fallback MOCK_NODES quando rotas backend ausentes (ONDA 1 pendente)~~ — SUPERADO 2026-06-01: backend `indexV2` entregue e sempre envia `props.nodes` reais. O fallback `MOCK_NODES` permanece no código apenas como rede de segurança (não dispara com backend ligado).
 8. Persistência localStorage prefix `oimpresso.kb.v2.*`
 
 ## Non-Goals (NÃO faz)
@@ -72,12 +76,12 @@ Port do protótipo Cowork `prototipo-ui/prototipos/kb/kb-page.jsx` pra Inertia R
 
 ## Automation Hooks
 
-- `GET /kb/v2` — `KbController@indexV2` (rota pendente Agent A ONDA 1)
-- `GET /kb/nodes` — `KbNodeController@index` (paginação cursor)
-- `GET /kb/nodes/{slug}` — `KbNodeController@show` (incrementa reads_count atomic)
-- `GET /kb/paths` — `KbPathController@index`
-- `GET /kb/decision-trees` — `KbDecisionTreeController@index`
-- `Inertia::defer` em props pesadas (nodes, paths, trees) — RUNBOOK-inertia-defer-pattern
+- `GET /kb/v2` (+ alias `GET /sops`) — `KbController@indexV2` (ENTREGUE 2026-06-01; envia categories/subcategories/paths/pinned/nodes paginado(40)/kpis/tags_top reais)
+- `GET /kb/nodes` — `KbNodeController@index` (ENTREGUE — PR #934)
+- `GET /kb/nodes/{slug}` — `KbNodeController@show` (ENTREGUE — incrementa reads_count atomic)
+- `GET /kb/paths` — `KbPathController@index` (ENTREGUE)
+- `GET /kb/decision-trees` — `KbDecisionTreeController@index` (ENTREGUE)
+- ~~`Inertia::defer` em props pesadas~~ — NOTA 2026-06-01: `indexV2` carrega as props eager (sem `Inertia::defer`). O `index()` V0 tentou defer e fez ROLLBACK (Wave L/W7 PR #963 — defer quebrava initial render). Re-avaliar defer em `indexV2` se a lista crescer (RUNBOOK-inertia-defer-pattern).
 
 ## Automation Anti-hooks
 
@@ -99,7 +103,7 @@ it('does not mutate state on GET')
 it('isolates nodes by business_id (biz=1 vs biz=99)')
 it('renders at 1280px without horizontal scroll')
 it('uses localStorage prefix oimpresso.kb.v2.* (never sessionStorage)')
-it('falls back to MOCK_NODES when backend route missing')
+it('renders real kb_nodes from indexV2 (props.nodes populated, not MOCK)') // 2026-06-01: backend ligado — antes era "falls back to MOCK_NODES when backend route missing"
 it('keyboard ⌘K opens CommandPalette / opens search')
 ```
 
@@ -117,10 +121,11 @@ it('keyboard ⌘K opens CommandPalette / opens search')
 - [ADR 0110 — Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0114 — Loop Cowork formalizado](../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [SCHEMA-DB-V1 §11](../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- Backend: `Modules/KB/Http/Controllers/KbController.php` (indexV2 pendente)
+- Backend: `Modules/KB/Http/Controllers/KbController.php` → `indexV2()` (ENTREGUE 2026-06-01)
 
 ## Histórico
 
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft criado pra Index.v2.tsx (port Cowork). Pendente aprovação Wagner em Non-Goals + Anti-hooks pra `status: live`. |
+| 2026-06-01 | Auditor de consistência | `status: draft → active`. Backend `KbController@indexV2` entregue: `/kb/v2` (= `/sops`) lê banco REAL (kb_nodes articles + categorias + KPIs + tags), `props.nodes` sempre populado → fallback MOCK_NODES virou rede dormente. Smoke 3 SOPs staging CT 100. ADR 0150 marcada ACEITA (era "proposta"). Adicionada ADR 0243 (ACEITA 2026-06-01 gate F0; arquivo ainda em proposals/) — F1 governança charters. Gate visual screenshot Wagner p/ cutover `live` ainda PENDENTE (ADR 0114). |

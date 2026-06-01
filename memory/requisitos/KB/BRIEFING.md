@@ -1,11 +1,14 @@
 # KB Unificado — BRIEFING (estado consolidado 1 página)
 
-**Última atualização:** 2026-05-16 — Wave 25 saturação D9 (KbHealthCommand + OTel spans expandidos)
+**Última atualização:** 2026-06-01 — Tela `/kb/v2` (=/sops) ligada ao banco REAL + Charter Governance (`/kb/charters` + F1)
 **Owner:** [W] Wagner · **Persona-piloto:** Wagner governança (ONDAS 1-5) → Larissa operacional gráfica (ONDA 6+)
 **Status:**
-- ✅ **ONDA 0+1+2+4+5(parcial) LIVE no main** (PR #934 mergeado 2026-05-16 00:32 UTC, 132 arquivos, +25.465 LOC, 7 agents)
-- ⏳ **ONDA 3 + 5(restante) + 6(parcial) em execução** (sessão 2026-05-16, 4 agents H/I/J/K paralelos background)
+- ✅ **ONDA 0+1+2+4+5(parcial) LIVE no main** (PR #934 mergeado 2026-05-16 00:32 UTC, 132 arquivos, +25.465 LOC, 7 agents) — 12 tabelas `kb_*` + 11 controllers (`KbNodeController`, `KbEdgeController`, `KbPathController`, `KbDecisionTreeController`, `KbCommentController`, `KbFavoriteController`, `KbVersionController`, `KbAiController`, etc.)
+- 🆕 **2026-06-01 — `/kb/v2` (= `/sops`, "Procedimentos Operacionais Padrão") ATIVADA lendo banco REAL.** `KbController@indexV2` envia `kb_nodes` articles + categorias/subcategorias + paths + pinned + KPIs + tags reais (paginado 40). **Modo MOCK eliminado em runtime** (o fallback `MOCK_NODES` no .tsx virou rede dormente — controller sempre envia `props.nodes`). Smoke com 3 SOPs reais seedados em staging CT 100. Charter `Index.v2.charter.md` `status: draft → active`.
+- 🆕 **2026-06-01 — `/kb/charters` (Charter Governance) criada + F1 governança.** `KbCharterController` varre `resources/js/Pages/**/*.charter.md` do disco (read-only, núcleo imutável vem do git) + tabela `kb_charter_suggestions` (fluxo sugestão `proposed` → `accepted`/`rejected`/`under_review`, comentário obrigatório). Promoção da sugestão aprovada pro `.charter.md` (git) fica pra F3. Branch `feat/staging-ct100`. ADR mãe: **0243 ACEITA por Wagner 2026-06-01 (gate F0)** — arquivo ainda fisicamente em `memory/decisions/proposals/0243-charter-governance-kb.md` (migra pra `memory/decisions/` no PR de F1, padrão do projeto).
+- ⏳ **ONDA 3 + 5(restante) + 6(parcial) em execução**
 - 📋 **ADR 0150:** **ACEITA** ([decided_at 2026-05-16](../../decisions/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md))
+- 📋 **ADR 0149** (`memory/decisions/0149-mwart-screen-pattern-reuse-cowork.md`) — aceita, MAS é "MWART screen pattern reuse Cowork", NÃO a proposta do KB unificado (várias refs antigas neste módulo citam "ADR 0149 proposal" pro KB — a mãe do KB é a **0150**).
 - 🆕 **Wave 25 (2026-05-16):** `kb:health-check` artisan (4 checks RAG saudáveis) + OTel spans em `KbArticleService::paginate` + `KbBridgeStateService::markRun` (D9.a expandido); +10 Pest tests health command (multi-tenant Tier 0 cross-tenant biz=1 vs biz=99 cobertos)
 
 **Critério de sucesso:** Wagner consegue (a) ver grafo navegável dos 143 ADRs + sessions + charters com edges de dependência; (b) perguntar IA "qual ADR rege X?" e receber resposta com citações; (c) usar trilha didática "Como funciona Multi-tenant Tier 0 aqui".
@@ -98,8 +101,8 @@ ONDA 6 (3-5d, escopo aberto)
 
 ## Pré-requisitos pendentes
 
-- ⏳ Aceite Wagner da ADR 0150 (promover de proposals → memory/decisions/)
-- ⏳ Spawn dos agents paralelos (ONDA 1+)
+- ✅ ~~Aceite Wagner da ADR 0150~~ — FEITO 2026-05-16 (já em `memory/decisions/0150-...`)
+- ✅ ~~Spawn dos agents paralelos (ONDA 1+)~~ — FEITO (PR #934, 7 agents)
 - ⏳ Decisão sobre roles Spatie: criar role `kb-author` por business? ou reusar `Admin#{biz}` mais wide?
 - ⏳ Decisão sobre persona-handler do MCP server: o servidor MCP `mcp.oimpresso.com` deve EXPOR tool `kb-search` e `kb-graph-query` pro Copiloto/Jana? (recomendação: sim, ONDA 4)
 

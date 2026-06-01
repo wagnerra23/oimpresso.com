@@ -157,9 +157,11 @@ PME brasileira (~1M empresas endereçáveis — [ADR 0121](../../decisions/0121-
 
 Detalhes completos do dossier em [`memory/sessions/2026-05-15-agent-d-estado-arte-kb-ia-2026.md`](../../sessions/2026-05-15-agent-d-estado-arte-kb-ia-2026.md) — 5 dimensões novas pro Bench v3 (ACL-aware, content gap, voice, ambient, personal graph), 5 gaps remanescentes P0-P2 com esforço/recomendação.
 
-## 6. Backlog de US (proposta — gerado via skill `/comparativo` após aceite ADR 0149)
+## 6. Backlog de US (proposta original — gerado via skill `/comparativo`; ADR mãe = **0150** ACEITA)
 
-**ONDA 1 (backend):**
+> ⚠️ **Atualização 2026-06-01:** o backlog abaixo era a PROPOSTA inicial (escrito quando a ADR ainda era proposal 0149/0150). **ONDA 1-5 já foi ENTREGUE (PR #934, 2026-05-16)** — migrations/Models/Controllers/Services/RAG/grafo/frontend tri-pane existem em prod; `/kb/v2` (=/sops) lê banco real desde 2026-06-01. Os "Bloqueadores" de ONDA 1 (kb_edges/kb_paths/kb_favorites/kb_node_versions populados) estão RESOLVIDOS. Tratar as US abaixo como histórico de planejamento, não como pendências. Estado vivo em [BRIEFING.md](BRIEFING.md) + [CHANGELOG.md](CHANGELOG.md).
+
+**ONDA 1 (backend) — ✅ ENTREGUE:**
 - US-KB-001 Migrations kb_* (11 tabelas) — P0, ~6h
 - US-KB-002 Models + global scope business_id + observers — P0, ~4h
 - US-KB-003 KbBridgeFromMcpJob (assíncrono + state) — P0, ~6h

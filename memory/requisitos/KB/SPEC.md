@@ -3,6 +3,8 @@
 > Especificação técnica do **Módulo IA Central** `Modules/KB/`.
 > Owner: [W] Wagner · Status: ONDA 0+1+2+4+5(parcial) LIVE prod (PR #934 2026-05-16) · ONDA 3+5(restante)+6 em execução.
 >
+> **Atualização 2026-06-01:** tela `/kb/v2` (= `/sops`, "Procedimentos Operacionais Padrão") ATIVADA lendo banco REAL (`KbController@indexV2` → `kb_nodes` articles + categorias + KPIs); modo MOCK eliminado em runtime; smoke 3 SOPs staging CT 100. Criada tela `/kb/charters` (Charter Governance) + F1 governança (`kb_charter_suggestions`, sugestão→aprovação) — SPEC própria em [SPEC-CHARTER-GOVERNANCE.md](SPEC-CHARTER-GOVERNANCE.md), ADR 0243 (ACEITA 2026-06-01, gate F0; arquivo ainda em `proposals/`).
+>
 > Decisão arquitetural mãe: **[ADR 0150](../../decisions/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md)** (ACEITA 2026-05-16).
 > Schema técnico: **[SCHEMA-DB-V1.md](SCHEMA-DB-V1.md)**.
 > Estado consolidado 1-pager: **[BRIEFING.md](BRIEFING.md)**.
@@ -26,7 +28,7 @@ Critérios:
 - Idempotente: re-run não duplica nós nem arestas (UNIQUE business_id+source_doc_id)
 - Multi-tenant Tier 0: cada business vê seus próprios ADRs (business_id global scope)
 
-### US-KB-002 — Artigo editável (Larissa Cowork, ONDA 3 parcial)
+### US-KB-002 — Artigo editável (Larissa Cowork, ONDA 3 parcial; listagem read LIVE via /kb/v2 2026-06-01)
 **Como** Larissa operadora gráfica,
 **quero** criar artigo "Como trocar tinta Roland VS-540" com blocks (h1/p/img/code),
 **para** consolidar SOP do balcão sem depender de Wagner editar manualmente git.
@@ -171,4 +173,4 @@ Ver [BRIEFING.md §"Plano em 6 ondas"](BRIEFING.md).
 - [IA-MATURITY-FICHA.md](IA-MATURITY-FICHA.md) — Maturity IA
 
 ---
-**Última atualização:** 2026-05-17 — Wave 26 saturação (D1.a markers + Smoke/Scaffold tests + SPEC canônico + retention mirror).
+**Última atualização:** 2026-06-01 — `/kb/v2` (=/sops) ativada lendo banco real (indexV2, MOCK eliminado em runtime) + `/kb/charters` (Charter Governance F1). Anterior: 2026-05-17 — Wave 26 saturação (D1.a markers + Smoke/Scaffold tests + SPEC canônico + retention mirror).

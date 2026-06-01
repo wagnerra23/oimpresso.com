@@ -5,6 +5,13 @@
 **Persona:** Wagner (governança ADRs/sessions/charters) → Larissa (SOPs operacionais gráfica).
 **Status base:** ADR 0150 ACEITA · ONDA 0+1+2+4+5(parcial) LIVE main (PR #934) · ONDA 3+6 em execução.
 
+> ⚠️ **ERRATA 2026-06-01 (gaps já fechados após esta foto Wave 22).** Esta ficha é um snapshot da Wave 22 (2026-05-16). Os gaps G1/G2/G4 foram fechados na Wave 23 (2026-05-15+) e NÃO refletem o código atual — a nota 56,3/100 abaixo está **defasada pra baixo**:
+> - **C3 — Reranker BGE: NÃO é mais GAP.** `Modules/KB/Services/KbBgeRerankerService.php` existe (+ `KbBgeRerankerServiceTest.php` e `...ProdTest.php`); SPEC US-KB-003 cita o reranker no fluxo. Score real C3 ≫ 3,0.
+> - **C12 — RAGAS eval: NÃO é mais GAP.** `Modules/KB/Tests/Feature/KbRagasEvalTest.php` existe (port do pattern Jana). Score real C12 ≫ 2,0.
+> - **G4 — Drift detector: ENTREGUE.** `KbDriftDetectorCommand` + `KbDriftDetectorCommandTest.php`/`...ScheduleTest.php` (Wave 23, `kb:drift-detector`).
+> - Gaps que SEGUEM abertos (não verificados como fechados): C5 multi-modal, C7 memory-ops, C8 temporal reasoning, C9 mock-mode RAG (a confirmar).
+> A tabela e o cálculo originais abaixo ficam preservados como registro histórico da Wave 22. Re-rodar a auditoria pra obter a nota atual (estimada bem acima de 56,3 dado G1/G2/G4 fechados).
+
 ---
 
 ## 1. Capacidades P0 IA — auto-avaliação
