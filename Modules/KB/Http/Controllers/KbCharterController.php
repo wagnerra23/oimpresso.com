@@ -5,9 +5,11 @@ namespace Modules\KB\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\KB\Entities\KbCharterSuggestion;
 
 /**
  * KbCharterController — tela /kb/charters (interface do Charter Governance, ADR 0243).
@@ -80,6 +82,74 @@ class KbCharterController extends Controller
             'github_url' => 'https://github.com/'.self::REPO.'/blob/main/'.$path,
             'title'      => $this->frontmatter(File::get($full))['page'] ?? $path,
         ]);
+    }
+
+    // ── Governança (F1, ADR 0243): sugestão supervisionada + aprovação ───
+
+    /** GET /kb/charters/suggestions?path=... — sugestões do charter (business scope). */
+    public function suggestions(Request $request): JsonResponse
+    {
+        $path = (string) $request->get('path', '');
+        if ($this->safeCharterPath($path) === null) {
+            return response()->json(['error' => 'path inválido'], 422);
+        }
+
+        $rows = KbCharterSuggestion::query()
+            ->forCharter($path)
+            ->orderByDesc('id')
+            ->get(['id', 'anchor', 'kind', 'text', 'status', 'author_user_id',
+                   'resolved_by_user_id', 'resolution_note', 'created_at']);
+
+        return response()->json(['suggestions' => $rows]);
+    }
+
+    /** POST /kb/charters/suggestions — propõe sugestão (NÃO edita o núcleo). */
+    public function suggest(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'path'   => ['required', 'string'],
+            'kind'   => ['nullable', 'in:'.implode(',', KbCharterSuggestion::KINDS)],
+            'anchor' => ['nullable', 'string', 'max:255'],
+            'text'   => ['required', 'string', 'min:3', 'max:5000'],
+        ]);
+
+        if ($this->safeCharterPath($data['path']) === null) {
+            return response()->json(['error' => 'charter inexistente'], 404);
+        }
+
+        $s = KbCharterSuggestion::create([
+            'charter_path'   => $data['path'],
+            'anchor'         => $data['anchor'] ?? null,
+            'kind'           => $data['kind'] ?? 'suggestion',
+            'text'           => $data['text'],
+            'status'         => 'proposed',
+            'author_user_id' => Auth::id(),
+        ]);
+
+        return response()->json(['suggestion' => $s], 201);
+    }
+
+    /**
+     * PATCH /kb/charters/suggestions/{id} — owner aprova/rejeita (comentário obrigatório).
+     * F1 para em accepted/rejected; promoção pro git (.charter.md) é F3 (US-CHTR-020).
+     */
+    public function resolve(Request $request, int $id): JsonResponse
+    {
+        $data = $request->validate([
+            'status'          => ['required', 'in:accepted,rejected,under_review'],
+            'resolution_note' => ['required_if:status,accepted,rejected', 'nullable', 'string', 'max:500'],
+        ]);
+
+        $s = KbCharterSuggestion::query()->findOrFail($id); // global scope = só do business
+
+        $s->update([
+            'status'              => $data['status'],
+            'resolution_note'     => $data['resolution_note'] ?? null,
+            'resolved_by_user_id' => in_array($data['status'], ['accepted', 'rejected'], true)
+                ? Auth::id() : $s->resolved_by_user_id,
+        ]);
+
+        return response()->json(['suggestion' => $s->fresh()]);
     }
 
     // ─────────────────────────────────────────────────────────────────────

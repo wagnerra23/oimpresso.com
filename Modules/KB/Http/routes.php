@@ -65,6 +65,11 @@ Route::group(
         // Registrada ANTES de /{slug}/show pra nao colidir com o matcher dinamico.
         Route::get('/charters',      'KbCharterController@index')->name('kb.charters');
         Route::get('/charters/show', 'KbCharterController@show')->name('kb.charters.show');
+        // Governança F1 (ADR 0243): sugestão supervisionada + aprovação.
+        Route::get('/charters/suggestions',         'KbCharterController@suggestions')->name('kb.charters.suggestions');
+        Route::post('/charters/suggestions',        'KbCharterController@suggest')->name('kb.charters.suggest');
+        Route::patch('/charters/suggestions/{id}',  'KbCharterController@resolve')
+            ->where('id', '[0-9]+')->name('kb.charters.resolve');
 
         // ---- LEGACY (V0) — KB browser dos docs MCP. Continua respondendo /kb/{slug}/show etc.
         Route::get('/{slug}/show',       'KbController@show')
