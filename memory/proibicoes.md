@@ -160,6 +160,7 @@
 - ⛔ **Tasks NÃO em markdown.** Estado vivo via tools MCP (`cycles-active`, `tasks-list`) — CURRENT.md/TASKS.md REMOVIDOS ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md))
 - ⛔ **NUNCA pular `brief-fetch` no início de sessão** — Tier A bloqueador via skill `brief-first` (custo trivial ~3k tokens, cache 5min, economiza ~27k tokens de exploração). Sintoma de degradação clássico: Claude começa a trabalhar via `my-work`/`tasks-list`/Read sem ter chamado brief antes → opera com dados parciais → gera plano duplicado. Catalogado sessão 2026-05-13 (Claude gerou plano de paralelização de backlog que duplicava ROADMAP existente porque não tinha brief). Auditável: se hoje você (Claude) não chamou `brief-fetch` antes de outra tool MCP/Read no início, é violação.
 - ⛔ **NUNCA criar arquivo em `memory/` sem `Glob`/`Grep` antes** pra checar duplicação. Especialmente: session logs (`memory/sessions/YYYY-MM-DD-*.md`), planos por módulo (`memory/requisitos/<Mod>/*.md`), ADRs (`memory/decisions/*.md`). Se já existe similar, EDITA o existente — não cria novo. Catalogado sessão 2026-05-13.
+- ⛔ **Artefato de DESIGN** (`.html`/protótipo/relatório *meta* do Cowork) **segue as mesmas duas regras acima** — não-duplicação (1 tema = 1 doc; edita o existente, nunca `vN.html`) + append-only/trilha-do-tempo (rodapé de evolução + lápide ao arquivar). Versão escopada + exemplos em [`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md §7.1`](../prototipo-ui/CLAUDE_DESIGN_BRIEFING.md). Origem: Cowork 2026-06-01 (L-21/L-22).
 
 ## Comportamento Claude (sessão)
 

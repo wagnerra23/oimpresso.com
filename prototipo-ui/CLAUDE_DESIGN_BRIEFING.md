@@ -146,6 +146,13 @@ Referências canon:
 - ❌ **Emoji em UI productiva** — só lucide-react icons
 - ❌ **Texto explicativo verbose** ("Bem-vindo! Aqui você pode...") — direto ao ponto
 
+### 7.1 Estrutura & evolução (artefato de design)
+
+> Espelha pra **design** as duas regras canônicas de [`memory/proibicoes.md`](../memory/proibicoes.md) — referencia, **não duplica**: *não-duplicação* ("NUNCA criar arquivo … sem `Glob`/`Grep` … edita o existente") e *append-only* ("ADRs CANON são append-only"). Origem: 2 HTMLs de governança duplicados no Cowork (2026-06-01).
+
+- ❌ **Criar `.html`/artefato de design novo sem checar duplicação antes** (`Glob`/grep do tema). Tela/módulo/**variação** de ERP = rota ou Tweak (`useTweaks`) no **layout único do shell**, nunca arquivo novo. Relatório/avaliação *meta* = **1 tema = 1 doc**; se já existe irmão, **edita o existente** — **nunca `vN.html`**. _(L-21.)_
+- ❌ **Mover/consolidar artefato sem deixar trilha.** Todo artefato vivo (HTML de app/relatório, doc canônico) carrega **no fim** um bloco `Trilha do tempo` **append-only** (`data · o que mudou · o que supersedeu · → pra onde o anterior foi arquivado`); ao mover, deixa **lápide** na origem ou em `_arquivo/<pasta>/INDEX.md` (origem→destino + substituto). Nada some sem rastro legível. _(Concretiza L-07 · L-22.)_
+
 ## 8. Output esperado por fase
 
 ### F1 (você produz protótipo)
