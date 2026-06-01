@@ -25,8 +25,9 @@
 - ✅ Os 3 canais de retorno (§10.2) **foram reancorados em 2026-05-30** e estão **vivos** (SYNC_LOG/HANDOFF/CODE_NOTES correntes hoje). A dívida do G4 ("[W] carteiro / HANDOFF 15d stale") **era real em 30/05 e foi consertada no mesmo dia** — não é estado atual.
 - ✅ O loop virou **0-humano** em 2026-05-31 00:45 (gates CI no lugar de [W2], merge autônomo `--admin`) + **ADR 0241**. Isso **leapfrogga o G3** (7→4 hops): já é ~0 hop humano.
 - ✅ Os itens hops/§10.4/lint da fila Cowork já foram adjudicados às ~07:00 (CODE_NOTES).
+- ✅ **G5-`.css` (Stylelint) FECHADO 2026-05-31 23:55 — [PR #2054](https://github.com/wagnerra23/oimpresso.com/pull/2054) mergeado em `main` (`2cded870a`).** `stylelint.config.mjs` (4 regras de drift: `color-no-hex` · `no-duplicate-selectors` · `declaration-no-important` · `no-duplicate-at-import-rules`) + `scripts/stylelint-baseline.mjs` (ratchet via **API**, gêmeo do `eslint-baseline.mjs`) + `.github/workflows/stylelint-gate.yml` + baseline congelado em **1095** (color-no-hex 750 · !important 183 · dup-selectors 161 · +1 CssSyntaxError). `stylelint-gate` passou no CI. Optou-se por ir **direto ao executável** (config+ratchet+gate) em vez de escrever `REGRAS_STYLELINT_CSS.md` primeiro — a justificativa de cada regra vive inline no config.
 
-→ **Sobra como trabalho real:** **G1/G2/G6** (consolidar os 6 motores) + a **metade `.css` do G5** (Stylelint — inexistente). E o G1 **já aconteceu de fato na Camada B** — o gap não é skill `design-score` nova; é **religar a Camada A como aprofundamento sob demanda da Camada B**.
+→ **Sobra como trabalho real (atualizado 23:55):** **G1/G2/G6** (consolidar os 6 motores) — o **G5 agora está 100% DONE** (ESLint `ds/*` + Stylelint `.css`). E o G1 **já aconteceu de fato na Camada B** — o gap não é skill `design-score` nova; é **religar a Camada A como aprofundamento sob demanda da Camada B**.
 
 ---
 
@@ -85,7 +86,7 @@ Regra de ouro §10.4: onde a checagem tem resposta no git, [CL] decide e age —
 |---|---|---|
 | `ds:report`/`ds-report.mjs` "já existe — não recriar" | ✅ **existe** (`scripts/ds-report.mjs` + `package.json` `ds:report`/`ds:report:write`, criado 05-30) | ✅ **CONFIRMADO — não recriar.** (a v1 desta auditoria, feita em branch stale −46, errou aqui — corrigido) |
 | `REGRAS_DS_LINT.md` + ESLint `ds/*` "já existe" | ✅ existem (`eslint.config.js:114-160`, ratchet ADR 0209) | ✅ **metade ESLint do G5 já DONE — não recriar** |
-| `REGRAS_STYLELINT_CSS.md` "spec pronta" | ❌ **não existe** (repo-wide = 0; sem stylelint config) | 🔴 **afirmação FALSA.** Metade `.css` do G5 = **trabalho novo** (spec + config) |
+| `REGRAS_STYLELINT_CSS.md` "spec pronta" | ⚠️ doc-spec não escrito, mas o **Stylelint ratchet `.css` está LIGADO** (PR #2054: config + `stylelint-gate.yml`) | ✅ **G5-`.css` DONE 31/05 23:55** — fui direto ao executável; regras documentadas inline no config |
 | G1: "não duplicar skill que já faz o score" | `mwart-comparative` + `design-deep-analysis` + `module:grade` + `screen-grade` + `ds/*` = **6 motores** | ✅ **risco CONFIRMADO — NÃO cunhar `design-score` do zero.** Consolidar no que existe |
 | §10.2 "canais stale / [W] carteiro" (premissa do G4) | canais **reancorados 05-30** + 0-humano 05-31; correntes hoje | 🟡 **premissa histórica, já consertada.** G4 essencialmente DONE |
 | "não cunhar número de ADR (soberania [W], ADR 0238)" | — | ✅ **RESPEITADO.** ADR de evolução nasce rascunho mãe 0114, sem número, NÃO mergeia |
@@ -101,7 +102,7 @@ Regra de ouro §10.4: onde a checagem tem resposta no git, [CL] decide e age —
 - **G2 (um schema):** `screen-grades-baseline-*.json` **já é** a fonte machine-readable por tela; `DS_ADOCAO_INDICE` cobre `ds/*`. `design-report.json` deve **agregar** esses dois (+ a11y quando a Camada A rodar), não criar 3ª fonte.
 - **G3 (auto-check):** **superado** — loop já 0-humano (ADR 0241). Resta só o auto-check numérico do produtor (destravado pelo G1).
 - **G4 (retorno automático):** **essencialmente DONE** — `ds-report` existe + loop 0-humano escreve os 3 canais. Falta só o hook pós-merge formal (opcional).
-- **G5 (ratchet):** **metade DONE** (ESLint `ds/*` 0209 + screen-grade ratchet 0236 + `module-grades-gate` CI). Falta **só Stylelint `.css`** — e **sua spec `REGRAS_STYLELINT_CSS.md` ainda não existe** (escrever antes de "ligar").
+- **G5 (ratchet):** ✅ **DONE** (ESLint `ds/*` 0209 + screen-grade ratchet 0236 + `module-grades-gate` CI + **Stylelint `.css` PR #2054 mergeado 31/05 23:55**, baseline 1095). A metade `.css` que faltava foi ligada (config + ratchet API + CI gate); a spec-doc `REGRAS_STYLELINT_CSS.md` foi pulada — regras documentadas inline no `stylelint.config.mjs`.
 - **G6 (não regenerar):** o `screen-grade` baseline + ratchet 0236 já fazem "nota só sobe / só ataca o ☐" por tela; falta estender o princípio às rotinas da Camada A (depende do schema único do G2).
 
 ---
