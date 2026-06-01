@@ -27,9 +27,10 @@ use Modules\Jana\Services\CharterHealthChecker;
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
- *  10-14. Charter health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
+ *  10-15. Charter/loop health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
  *      charter_missing, charter_stale (>90d), charter_refs_broken,
- *      charter_method_missing, readme_handoff_block_missing (L-18).
+ *      charter_method_missing, readme_handoff_block_missing (L-18),
+ *      design_return_skipped (retorno §10.2 atrás do SYNC_LOG · G4).
  *      Reportam mas NÃO falham o exit code nem o ALERT de cron (viram
  *      ratchet depois que o baseline de charters existir).
  *
@@ -44,7 +45,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (9 checks SQL + 5 charter advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (9 checks SQL + 6 charter/loop advisory)';
 
     public function handle(): int
     {

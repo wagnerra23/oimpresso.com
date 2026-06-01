@@ -26,6 +26,7 @@ namespace Modules\Jana\Services;
  *   - charter_refs_broken      — refs (component/runbook/parent_capterra + links) inexistentes
  *   - charter_method_missing   — charter tier A sem referência a método/bench (leve)
  *   - readme_handoff_block_missing — prototipo-ui/README.md sem `<!-- HANDOFF-ENTRY -->` (L-18)
+ *   - design_return_skipped    — HANDOFF.md atrás do último merge no SYNC_LOG (retorno §10.2 pulou o canal HANDOFF · G4 / COWORK_NOTES #1)
  */
 class CharterHealthChecker
 {
@@ -52,6 +53,7 @@ class CharterHealthChecker
             $this->charterRefsBroken($charters),
             $this->charterMethodMissing($charters),
             $this->readmeHandoffBlockMissing(),
+            $this->designReturnSkipped(),
         ];
     }
 
@@ -220,7 +222,63 @@ class CharterHealthChecker
         );
     }
 
+    /**
+     * design_return_skipped — o retorno §10.2 ([CL]→[CC]) pulou o canal HANDOFF.
+     *
+     * Sinal filesystem-only e determinístico (sem git por-arquivo, flaky em CI/clone
+     * raso — mesma escolha do charter_stale): o HANDOFF.md ("sobrescreve" a cada
+     * retorno) deve refletir data ≥ a do último merge logado no SYNC_LOG.md ("append").
+     * Se HANDOFF < último SYNC_LOG, o canal HANDOFF ficou pra trás → retorno parcial
+     * (origem do incidente "HANDOFF 15d stale", PROTOCOL §10). Gêmeo do workflow
+     * design-return-gate.yml (pós-merge, pega o skip TOTAL via git diff do merge).
+     */
+    private function designReturnSkipped(): array
+    {
+        $handoff = $this->basePath . '/prototipo-ui/HANDOFF.md';
+        $syncLog = $this->basePath . '/prototipo-ui/SYNC_LOG.md';
+
+        if (! is_file($handoff) || ! is_file($syncLog)) {
+            return $this->row('design_return_skipped', true, 'n/a',
+                'Canais §10.2 (HANDOFF/SYNC_LOG) ausentes — n/a', 'sincronizado');
+        }
+
+        $syncDate = $this->maxLineLeadingIsoDate((string) @file_get_contents($syncLog));
+        preg_match('/Estado atual:\s*(\d{4}-\d{2}-\d{2})/u',
+            (string) @file_get_contents($handoff), $hm);
+        $handoffDate = $hm[1] ?? null;
+
+        if ($syncDate === null || $handoffDate === null) {
+            return $this->row('design_return_skipped', true, 'n/a',
+                'Sem data ISO parseável em HANDOFF/SYNC_LOG — n/a', 'sincronizado');
+        }
+
+        // ISO YYYY-MM-DD: comparação lexicográfica == cronológica.
+        $skipped = $handoffDate < $syncDate;
+
+        return $this->row(
+            'design_return_skipped',
+            ! $skipped,
+            $skipped ? "HANDOFF {$handoffDate} < SYNC_LOG {$syncDate}" : 'sincronizado',
+            $skipped
+                ? "ALERTA §10.2: HANDOFF.md ({$handoffDate}) atrás do último SYNC_LOG ({$syncDate}) — retorno [CL]→[CC] pulou o canal HANDOFF"
+                : "HANDOFF.md ({$handoffDate}) em dia com o SYNC_LOG ({$syncDate})",
+            'sincronizado',
+        );
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
+
+    /** Maior data ISO (YYYY-MM-DD) em início de linha; null se nenhuma. */
+    private function maxLineLeadingIsoDate(string $text): ?string
+    {
+        if (! preg_match_all('/^(\d{4}-\d{2}-\d{2})\b/m', $text, $m)) {
+            return null;
+        }
+        $dates = $m[1];
+        sort($dates);
+
+        return end($dates) ?: null;
+    }
 
     private function pagesDir(): string
     {
