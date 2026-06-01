@@ -92,6 +92,34 @@ export default function DocumentsTab({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const noteTimeoutRef = useRef<number | null>(null);
 
+  // Wagner 2026-06-01 — carrega anexos existentes do backend ao montar (fecha o
+  // gap Wave D: antes o painel mostrava "Anexos (0)" mesmo com arquivos salvos,
+  // divergindo do contador "📎 N anexos" do header). Só busca quando `documents`
+  // NÃO veio por prop (preserva usos prop-driven/SSR). GET /cliente/{id}/anexos.
+  useEffect(() => {
+    if (docsProp !== undefined) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/cliente/${contactId}/anexos`, {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data?.documents)) {
+          setDocuments(data.documents as DocumentItem[]);
+        }
+      } catch {
+        // silencioso: painel permanece vazio (mesmo fallback de antes).
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contactId]);
+
   // Autosave debounced 1500ms na nota primária (primeira nota; senão cria)
   useEffect(() => {
     if (primaryNote === (notesProp?.[0]?.description ?? '') && noteHeading === (notesProp?.[0]?.heading ?? '')) {
