@@ -2077,6 +2077,10 @@ function ClienteSheet({
                   contact={{ id: contact.id, name: contact.name }}
                   activeSubTab={opsSubTab}
                   onSubTabChange={setOpsSubTab}
+                  /* Wagner 2026-06-01 — habilita anexar/excluir/notas no drawer.
+                     Legado concede view/create/delete de documentos a quem vê o
+                     contato (DocumentAndNoteController::__getPermission p/ App\Contact). */
+                  permissions={{ upload: true, delete_document: true, edit_note: true }}
                 />
               )}
               {activeTab === 'placas' && oficinaAutoEnabled && (
