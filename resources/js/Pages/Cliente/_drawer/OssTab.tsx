@@ -43,7 +43,7 @@ import type { ContactInfo } from './IdentificacaoTab';
 // Wagner 2026-05-27 -- iteracao 2: removido sub-tab `placas` (promovido pra
 // tab principal acessado via botao header) + removido sub-tab `activities`
 // (duplicava tab principal `Auditoria` -- mesma fonte `activity_log` Spatie).
-type OssSubTabKey =
+export type OssSubTabKey =
   | 'ledger'
   | 'sales'
   | 'payments'
@@ -54,6 +54,14 @@ type OssSubTabKey =
 
 export interface OssTabProps {
   contact: ContactInfo;
+  /**
+   * Sub-aba controlada de fora (Wagner 2026-06-01): o chip "📎 N anexos" do
+   * header do drawer (Index.tsx) passa `activeSubTab='documents'` pra cair
+   * direto nos anexos. Se ausente, OssTab usa estado interno (default 'ledger').
+   */
+  activeSubTab?: OssSubTabKey;
+  /** Reporta troca de sub-aba (clique interno) pro pai manter sync — highlight do chip. */
+  onSubTabChange?: (key: OssSubTabKey) => void;
   /**
    * Permissoes injetadas pelo Index.tsx (Wave futura pode estender ContactController::index).
    * Por ora todas default false — sub-tabs operam em modo read-only.
@@ -78,8 +86,22 @@ const SUB_TABS: Array<{ key: OssSubTabKey; label: string; icon: LucideIcon }> = 
   { key: 'rewards', label: 'Pontos', icon: Gift },
 ];
 
-export default function OssTab({ contact, permissions = {}, locations = [] }: OssTabProps) {
-  const [active, setActive] = useState<OssSubTabKey>('ledger');
+export default function OssTab({
+  contact,
+  activeSubTab,
+  onSubTabChange,
+  permissions = {},
+  locations = [],
+}: OssTabProps) {
+  // Estado interno = fallback quando OssTab roda sem controle externo. Quando o
+  // pai passa `activeSubTab` (Index.tsx via chip header), ELE manda na renderização.
+  const [internalActive, setInternalActive] = useState<OssSubTabKey>('ledger');
+  const active = activeSubTab ?? internalActive;
+
+  const selectSubTab = (key: OssSubTabKey) => {
+    setInternalActive(key);
+    onSubTabChange?.(key);
+  };
 
   return (
     <div
@@ -103,7 +125,7 @@ export default function OssTab({ contact, permissions = {}, locations = [] }: Os
               key={t.key}
               type="button"
               role="tab"
-              onClick={() => setActive(t.key)}
+              onClick={() => selectSubTab(t.key)}
               aria-selected={isActive}
               aria-controls={`oss-subpanel-${t.key}`}
               data-testid={`oss-subtab-${t.key}`}
