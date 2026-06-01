@@ -58,6 +58,21 @@ tailscale ssh root@ct100-mcp '
 - **Embedder = `qwen3_local`** (qwen3-embedding:0.6b, 1024d, via `ollama-embedder`). NÃO usar `nomic` (inútil em PT-BR — cosine ~0.97 pra tudo; eval Sprint 9: nomic 0.158 vs FULLTEXT 0.700). **`COPILOTO_MEMORIA_EMBEDDER=qwen3_local`** no .env (DEVE casar com o embedder do índice — se divergir, "Cannot find embedder X").
 - ⚙️ **Config-as-code (não setar manual!):** o embedder vive em `config copiloto.meilisearch_indexes` e é aplicado por **`php artisan jana:meilisearch-setup`** (idempotente). Era manual via curl (Sprint 9b) e SE PERDEU 2× → agora codificado. Após mudar embedder: Meilisearch re-embeda; `scout:import` força reindex.
 
+## Staging web — onde se TESTA tela/feature (NÃO local · ADR 0235)
+
+> ⛔ **Validar feature/tela = AQUI, no CT 100. NÃO no PC local.** Wagner 2026-06-01: *"não use rotinas locais"*. O `.env` local (`oimpresso.test`/Herd) **não** é ambiente de validação.
+
+- **URL:** `https://staging.oimpresso.com` · login: **username** real (ex `administrador`, `larissa-04`) + senha `staging2026` (por username, não e-mail).
+- **É:** clone anonimizado da prod no CT 100 (containers `oimpresso-staging` + `oimpresso-staging-db` MariaDB 11). FrankenPHP **clássico** (sem Octane). Código em `/opt/oimpresso-staging/code` (branch própria).
+- **Deploy de código (atualizar a tela):**
+  ```bash
+  tailscale ssh root@ct100-mcp 'cd /opt/oimpresso-staging/code && bash docker/oimpresso-staging/deploy.sh <branch>'
+  ```
+- **⚠️ 2 pegadinhas que QUEBRAM o deploy (2026-06-01):**
+  1. **`php` não existe no host** (só no container) → `build:inertia` morre em `@laravel/vite-plugin-wayfinder` (`php: not found`). Fix: shim `printf '#!/bin/sh\nexec docker exec oimpresso-staging php "$@"\n' > /usr/local/bin/php && chmod +x /usr/local/bin/php`.
+  2. **Código novo não aparece sem restart** (opcache FrankenPHP) → rota nova dá **405** mesmo com `route:list` ok. Fix: `docker exec oimpresso-staging php artisan route:clear && docker restart oimpresso-staging`.
+- **Re-seed anonimizado:** `seed-from-prod.sh`. Detalhe + pegadinhas: [RUNBOOK-staging-ct100](../requisitos/Infra/RUNBOOK-staging-ct100.md).
+
 ## DNS (Hostinger API)
 `developers.hostinger.com/api/dns/v1/zones/oimpresso.com` (PUT `overwrite:false`). Token no Vaultwarden (`hostinger-api-token`). A-records de serviço → **`177.74.67.30`** (IP público CT 100). Detalhe: [ADR 0045](../decisions/0045-hostinger-dns-api-endpoint-canonico.md) + [hostinger.md](hostinger.md).
 

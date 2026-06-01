@@ -1,11 +1,13 @@
 # Herd Windows — setup PHP 8.4 dev oimpresso
 
+> ⛔ **NÃO É O AMBIENTE DE TESTE/HOMOLOGAÇÃO.** Pra **testar/ver/validar feature** (telas, fluxos) → **staging no CT 100** (`https://staging.oimpresso.com`, [ADR 0235](../decisions/0235-staging-ct100-clone-anonimizado.md) · [RUNBOOK](../requisitos/Infra/RUNBOOK-staging-ct100.md) · acesso em [INFRA-ACESSO-CANON](INFRA-ACESSO-CANON.md)). **NUNCA rodar o app local (`php artisan serve`/`vite`/`curl oimpresso.test`) pra testar feature** — Wagner 2026-06-01: *"não use rotinas locais"*. O `.env` local (`APP_URL=oimpresso.test`) **não** é ambiente de validação; Herd serve só pra dev pontual de extensão/CLI.
+
 > Lifecycle: active · Owner: [W] · Tags: [herd, php, windows, dev-env, opentelemetry, observability]
-> Última atualização: 2026-05-25 (US-GOV-011 — extension OTel)
+> Última atualização: 2026-06-01 (banner CT100-first — Wagner "não use rotinas locais")
 
 ## Visão geral
 
-Laravel Herd ([herd.laravel.com](https://herd.laravel.com)) é o ambiente Wagner dev local (Windows 11 Home). Substitui XAMPP/WAMP/Laragon. Gerencia múltiplas versões PHP isoladamente.
+Laravel Herd ([herd.laravel.com](https://herd.laravel.com)) é o ambiente PHP **dev pontual** do Wagner (Windows 11 Home) — instalar extensão, CLI/artisan rápido. **Não** é onde se testa feature/tela (isso é o CT 100 staging). Substitui XAMPP/WAMP/Laragon. Gerencia múltiplas versões PHP isoladamente.
 
 ## Layout filesystem (referência)
 

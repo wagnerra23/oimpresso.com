@@ -107,6 +107,9 @@ curl -s -o /dev/null -w '%{http_code} ssl:%{ssl_verify_result}' https://staging.
 9. **Healthcheck que depende de DB impede o Traefik rotear** — `/login` dá 500 com banco vazio → container nunca fica `healthy` → 404 no Traefik. Usar healthcheck que aceita 2xx-4xx (`curl ... / | grep -qE '^[234]'`).
 10. **Credenciais (`rb_boleto_credentials`, `nfe_certificados`, tokens) são criptografadas com a APP_KEY de PROD** → inúteis no staging (APP_KEY nova) e perigosas → o `anonymize.sql` **TRUNCA** todas (trava de segurança: staging não cobra/emite/conecta de verdade).
 
+11. **`php` NÃO existe no host do CT** (vive só no container) → o `build:inertia` quebra em `@laravel/vite-plugin-wayfinder` (`php artisan wayfinder:generate` → `/bin/sh: php: not found` → `✗ Build failed, 0 modules transformed`). Como o build roda Node **no host**, o plugin não acha o php. **Fix:** shim que delega pro container — `printf '#!/bin/sh\nexec docker exec oimpresso-staging php "$@"\n' > /usr/local/bin/php && chmod +x /usr/local/bin/php`. O container monta o code em `/var/www/html`, então o `wayfinder:generate` gera os arquivos no lugar certo. **TODO:** mover o shim pro `deploy.sh` (criar no início se ausente).
+12. **Deploy de código NÃO aparece sem restart do container** — o FrankenPHP clássico mantém **opcache** em memória e serve o `.php` antigo (o `artisan` roda processo fresco e enxerga o novo, dando falsa sensação de ok). Sintoma clássico: **rota nova → 405 com `Allow: <método-errado>`** (a URL cai no matcher `{slug}`) mesmo com `php artisan route:list` mostrando a rota. **Fix:** após `git pull`, `docker exec oimpresso-staging php artisan route:clear` **+ `docker restart oimpresso-staging`** (limpa opcache). **TODO:** `deploy.sh` deve terminar com `route:clear` + restart.
+
 ## Repetir / re-seedar
 
 ```bash
