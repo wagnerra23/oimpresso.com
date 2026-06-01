@@ -1528,6 +1528,126 @@ class ContactController extends Controller
     }
 
     /**
+     * Wagner 2026-06-01 — UPLOAD de anexo do cliente pro drawer (Operações → Documentos).
+     * Fecha o gap do PR #2086: o GET (anexos) já lista, mas o upload estava quebrado.
+     * O endpoint legado /post-document-upload (DocumentAndNoteController::postMedia) só
+     * rodava Media::uploadFile() — gravava o arquivo em disco e devolvia { file_name },
+     * SEM criar o DocumentAndNote nem vincular o media ao contato (arquivo órfão) e sem
+     * devolver o `document` que o React espera. Aqui criamos 1 DocumentAndNote + media
+     * via Media::uploadMedia (espelhando o store() canônico) e devolvemos o DocumentItem
+     * (mesmo shape do GET) pro React inserir na lista sem refetch.
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): contato + nota + media TODOS scoped em
+     * business_id. O legado DocumentAndNoteController::__getPermission concede
+     * view/create/delete a quem vê o contato (App\Contact) — e o drawer só abre pra
+     * contatos da listagem (já gated). Sem relação/has() — larastan-clean igual ao GET.
+     *
+     * POST /cliente/{id}/anexos (campo `file`) → { document: DocumentItem }
+     */
+    public function anexosStore(Request $request, $id)
+    {
+        $business_id = $request->session()->get('user.business_id');
+
+        // 404 cross-tenant: o contato precisa existir DENTRO do business.
+        $contact = \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $request->validate([
+            'file' => ['required', 'file'],
+        ]);
+
+        // 1 upload = 1 DocumentAndNote (espelha store() legacy: business_id + created_by
+        // + morph notable apontando pro contato). is_private=false explícito evita NOT NULL.
+        $note = new \App\DocumentAndNote();
+        $note->business_id = $business_id;
+        $note->notable_id = $contact->id;
+        $note->notable_type = \App\Contact::class;
+        $note->created_by = $request->session()->get('user.id');
+        $note->is_private = false;
+        $note->save();
+
+        // Anexa o arquivo do campo `file` ao note (is_single=true). uploadFile engole
+        // silenciosamente arquivos acima de constants.document_size_limit (retorna null).
+        \App\Media::uploadMedia($business_id, $note, $request, 'file', true);
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->where('model_id', $note->id)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($media === null) {
+            // Upload não persistiu (ex: arquivo grande demais) → remove a nota vazia
+            // pra não deixar lixo e devolve erro explícito (React mostra alerta).
+            $note->delete();
+
+            return response()->json(['message' => __('messages.something_went_wrong')], 422);
+        }
+
+        return response()->json([
+            'document' => [
+                'id' => (int) $media->id,
+                'file_name' => $media->file_name,
+                'display_name' => $media->display_name,
+                'description' => $media->description,
+                'file_size' => null,
+                'mime_type' => null,
+                'uploaded_by_name' => null,
+                'created_at' => optional($media->created_at)->toISOString(),
+                'download_url' => $media->display_url,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Wagner 2026-06-01 — EXCLUSÃO de anexo do cliente (drawer Operações → Documentos).
+     * Recebe o ID do MEDIA (não da nota): corrige a semântica errada do handleDelete
+     * antigo, que mandava o media id pra DELETE /note-documents/{noteId}. Valida que o
+     * media é de um document-note DESTE contato + business antes de excluir (Tier 0).
+     * Remove também a nota dona se ela ficar órfã (no fluxo de upload do drawer cada
+     * nota carrega 1 anexo e nenhum texto).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): contato + media + nota dona TODOS
+     * scoped em business_id; o media só some se a nota dona for deste contato. Sem
+     * relação/has() — larastan-clean igual ao GET (reusa Media::deleteMedia canônico).
+     *
+     * DELETE /cliente/{id}/anexos/{mediaId} → { success: true }
+     */
+    public function anexosDestroy(Request $request, $id, $mediaId)
+    {
+        $business_id = $request->session()->get('user.business_id');
+
+        // 404 cross-tenant: o contato precisa existir DENTRO do business.
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        // O media precisa ser de um document-note (model_type) e do business.
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->findOrFail($mediaId);
+
+        // A nota dona precisa ser um document-note DESTE contato (Tier 0 + escopo).
+        $note = \App\DocumentAndNote::where('business_id', $business_id)
+            ->where('notable_type', \App\Contact::class)
+            ->where('notable_id', $id)
+            ->where('id', $media->model_id)
+            ->firstOrFail();
+
+        // Reusa o helper canônico (apaga arquivo do disco + linha, scoped business_id).
+        \App\Media::deleteMedia($business_id, $media->id);
+
+        // Remove a nota se ficou sem anexos nem texto (fluxo upload do drawer = 1:1).
+        $stillHasMedia = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->where('model_id', $note->id)
+            ->exists();
+
+        if (! $stillHasMedia && blank($note->description) && blank($note->heading)) {
+            $note->delete();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * Slice 7 — type-hint StoreContactRequest wira App\Rules\BR\CpfCnpj +

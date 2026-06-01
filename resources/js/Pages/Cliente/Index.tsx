@@ -2077,6 +2077,17 @@ function ClienteSheet({
                   contact={{ id: contact.id, name: contact.name }}
                   activeSubTab={opsSubTab}
                   onSubTabChange={setOpsSubTab}
+                  permissions={{
+                    // Documentos (anexos + notas): o legado DocumentAndNoteController::
+                    // __getPermission concede view/create/delete pra App\Contact a quem
+                    // VÊ o contato — e o drawer só abre pra contatos da listagem (já
+                    // gated). Sem essas flags o botão "Enviar", o excluir e a textarea
+                    // de Notas ficavam inativos (default false do OssTab). O backend
+                    // re-valida tudo com scope business_id (Tier 0 · ADR 0093).
+                    upload: true,
+                    delete_document: true,
+                    edit_note: true,
+                  }}
                 />
               )}
               {activeTab === 'placas' && oficinaAutoEnabled && (

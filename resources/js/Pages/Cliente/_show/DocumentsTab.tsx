@@ -1,14 +1,15 @@
 // Wave D — US-CRM-066 Tab Documents & Note (MWART F3 paridade /contacts/{id} tab documents_and_notes)
-// Restrições Tier 0 (ADR 0093): backend DocumentAndNoteController filtra business_id global scope.
-// Backend endpoints existentes (routes/web.php linhas 599-601):
-//   POST /post-document-upload (DocumentAndNoteController::postMedia)
-//   GET  /note-documents (index, datatable)
-//   GET  /note-documents/{id} (show)
-//   POST /note-documents (store — notes)
-//   PUT  /note-documents/{id} (update)
-//   DELETE /note-documents/{id} (destroy)
+// Restrições Tier 0 (ADR 0093): backend filtra business_id em TODAS as queries.
+// Backend endpoints:
+//   ANEXOS (drawer Cliente · ContactController · scope business_id Tier 0):
+//     GET    /cliente/{id}/anexos           → lista media dos document-notes do contato (#2086)
+//     POST   /cliente/{id}/anexos (campo file) → cria DocumentAndNote + media, devolve { document }
+//     DELETE /cliente/{id}/anexos/{mediaId} → valida media do contato (Tier 0) + exclui
+//   NOTAS (DocumentAndNoteController · autosave da nota primária):
+//     POST /note-documents (store) · PUT /note-documents/{id} (update)
 //
-// Modelo polimórfico: notable_id={contact.id}, notable_type='App\Contact'
+// Modelo polimórfico: DocumentAndNote.notable_id={contact.id}, notable_type='App\Contact';
+//   Media.model_id={note.id}, model_type='App\DocumentAndNote' (1 anexo = 1 note no drawer).
 //
 // Pattern reuse: Essentials/Documents/Index.tsx (upload + list) + textarea autosave debounced 1.5s.
 
@@ -167,6 +168,11 @@ export default function DocumentsTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryNote, noteHeading]);
 
+  // Wagner 2026-06-01 — upload via POST /cliente/{id}/anexos (ContactController::
+  // anexosStore), que cria o DocumentAndNote + media e devolve { document } no shape
+  // DocumentItem. Substitui o endpoint legado postMedia (que só gravava arquivo
+  // órfão, sem nota nem vínculo, e nunca devolvia `document`). 1 arquivo por request
+  // (loop); cada resposta traz o DocumentItem canônico, inserimos direto sem refetch.
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -174,11 +180,9 @@ export default function DocumentsTab({
     try {
       for (const file of Array.from(files)) {
         const fd = new FormData();
-        fd.append('notable_id', String(contactId));
-        fd.append('notable_type', notableType);
-        fd.append('document', file);
+        fd.append('file', file);
 
-        const res = await fetch('/post-document-upload', {
+        const res = await fetch(`/cliente/${contactId}/anexos`, {
           method: 'POST',
           body: fd,
           credentials: 'same-origin',
@@ -191,7 +195,7 @@ export default function DocumentsTab({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json().catch(() => null);
         if (data?.document) {
-          setDocuments((prev) => [data.document, ...prev]);
+          setDocuments((prev) => [data.document as DocumentItem, ...prev]);
         }
       }
     } catch (err) {
@@ -203,17 +207,16 @@ export default function DocumentsTab({
     }
   };
 
-  const handleDelete = async (docId: number) => {
+  // Wagner 2026-06-01 — exclusão via DELETE /cliente/{id}/anexos/{mediaId}
+  // (ContactController::anexosDestroy). `mediaId` é o id do MEDIA (o que o GET devolve
+  // em DocumentItem.id), corrigindo a semântica antiga que mandava o media id pra
+  // DELETE /note-documents/{noteId}. Backend valida que o media pertence a um
+  // document-note deste contato (Tier 0) antes de excluir. Remoção otimista da lista.
+  const handleDelete = async (mediaId: number) => {
     if (!confirm('Excluir este anexo?')) return;
     try {
-      const fd = new FormData();
-      fd.append('_method', 'DELETE');
-      fd.append('notable_id', String(contactId));
-      fd.append('notable_type', notableType);
-
-      const res = await fetch(`/note-documents/${docId}`, {
-        method: 'POST',
-        body: fd,
+      const res = await fetch(`/cliente/${contactId}/anexos/${mediaId}`, {
+        method: 'DELETE',
         credentials: 'same-origin',
         headers: {
           'X-CSRF-TOKEN': getCsrf(),
@@ -222,7 +225,7 @@ export default function DocumentsTab({
         },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      setDocuments((prev) => prev.filter((d) => d.id !== mediaId));
     } catch {
       // eslint-disable-next-line no-alert
       alert('Erro ao excluir anexo.');
