@@ -54,6 +54,7 @@ function ca078mkContact(int $bizId, array $o = []): Contact
     $c->type = $o['type'] ?? 'customer';
     $c->name = $o['name'] ?? 'Cliente US078';
     $c->contact_status = 'active';
+    $c->created_by = 1; // NOT NULL no MySQL real (sqlite mascarava) — user 1 existe
     foreach ($o as $k => $v) {
         $c->{$k} = $v;
     }
