@@ -1193,3 +1193,39 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ---
 
 **Última atualização:** 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
+
+### US-COPI-118 · Tokenizar cores cruas do card-de-prova Pro.tsx (fix ui:lint R1 pré-existente)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** sessão 2026-06-01 (design:review #2078). O gate `ui:lint · ratchet` está **vermelho** em `resources/js/Pages/Jana/Pro.tsx · R1 · 0 → 2` — cor crua (`oklch(...)` literal no card-de-prova dark + `linear-gradient(135deg, oklch…)` na linha 183, o trope que R5/AP5 proíbe). **Pré-existente do #2069** (Pro.tsx mergeado sem entrada em `config/ui-lint-baseline.json`), não do #2078. Jamma a CI verde de QUALQUER PR derivado do main.
+
+**Aceite:**
+- [ ] Substituir os `oklch(...)` crus de `Pro.tsx` por tokens DS (provável criar **tokens de superfície-dark** novos — decisão de design, alinhar com Cowork/BRIEFING §tokens).
+- [ ] Remover/tokenizar o `linear-gradient(135deg…)` (AP5).
+- [ ] `php artisan ui:lint` → `Pro.tsx` R1 = 0 (ou baseline atualizado se intencional).
+- [ ] CI `UI Lint · ratchet` verde.
+
+**Refs:** PR #2078 · `Jana/Pro.review.md` (P0 R1 registrado) · GOLDEN-REFERENCE R1/R5 · ADR 0190/0235.
+
+---
+
+### US-COPI-119 · design:review Fase 2 — juiz LLM (R5/R8/R10 + nota holística + best_of_class)
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** sessão 2026-06-01 (design:review #2078 MERGED). A Fase 1 (mecanizada, `score-mechanized.mjs` + `review-gen.mjs`) entrega o backlog por tela, mas as 3 regras JULGADAS (R5 gradient · R8 PT-BR · R10 overflow-chain) + nota holística + `top_gaps.best_of_class` ficam pendentes do juiz LLM. Hoje a nota é **teto provisório** (só conformidade-DS), mascarável.
+
+**Aceite:**
+- [ ] Estender `review-gen.mjs`/pipeline com Fase 2 (agente LLM read-only) que preenche R5/R8/R10 + nota holística + `best_of_class`/`fix`/`esforco` no `<Tela>.review.md` (round N append-only).
+- [ ] Cadência **real-mode** na régua que [W] paga (espelha gate RAGAS). Ratchet: nota só sobe (ADR 0236).
+- [ ] Hardenizar `design_review_stale` (advisory→HARD) conforme reviews regenerados com sha.
+- [ ] 1ª execução piloto = `Jana/Pro` (já tem round 1 mecanizado nota 88).
+
+**Custo/infra = Tier 0 → espera decisão [W].** Refs: proposta `memory/decisions/proposals/design-review-por-tela-charter-page.md` · `prototipo-ui/audit/` · PROTOCOL §6.
+
+---
+
+**Última atualização:** 2026-06-01 — US-COPI-118 + US-COPI-119 apendadas (follow-ups do design:review #2078 MERGED: fix ui:lint Pro.tsx + Fase 2 juiz-LLM). Criadas via `tasks-create` MCP (US-COPI-118/119); este apend sincroniza pro DB via webhook no push.
