@@ -1,0 +1,28 @@
+{
+  "_doc": "Ratchet de frescor de review por tela (espelha config/eslint-baseline.json · ADR 0209). Dívida HERDADA de reviews ausentes em telas `status: live`. O gate (review-freshness.mjs / DesignReviewFreshnessTest) só FALHA por uma tela live NOVA fora desta lista. A lista só ENCOLHE: ao gerar o review (review-gen.mjs), rode --write-baseline pra podar. NUNCA adicionar tela à mão.",
+  "generated_against_sha": "43c9ce563",
+  "missing": [
+    "Admin/ScreenReviewDashboard",
+    "Cliente/Index",
+    "Financeiro/Caixa/Index",
+    "Financeiro/Cobranca/Index",
+    "Financeiro/Conciliacao/Index",
+    "Financeiro/Dre/Index",
+    "Home/Index",
+    "RecurringBilling/Configuracoes/Index",
+    "RecurringBilling/Faturas/Index",
+    "RecurringBilling/Index",
+    "RecurringBilling/Planos/Create",
+    "RecurringBilling/Planos/Edit",
+    "RecurringBilling/Planos/Index",
+    "Settings/PaymentGateways/Index",
+    "Whatsapp/Settings",
+    "governance/Audit",
+    "governance/Dashboard",
+    "governance/DriftAlerts",
+    "governance/ModuleGrades/Index",
+    "governance/ModuleGrades/Show",
+    "governance/Policies"
+  ],
+  "stale_advisory_count": 36
+}
