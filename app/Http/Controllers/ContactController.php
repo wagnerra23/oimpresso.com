@@ -628,6 +628,35 @@ class ContactController extends Controller
                 ->toArray();
         }
 
+        // Wagner 2026-06-01 — header drawer botao contador "📎 N anexos". Conta
+        // arquivos (media) anexados aos document-notes do contato. business_id
+        // scope (Tier 0 ADR 0093) nas DUAS queries. 2 passos (sem has()/relacao,
+        // larastan-clean igual vehiclesCountMap): mapa note=>contato, depois media
+        // por nota. model_type guarda a classe cheia (sem morphMap no projeto).
+        $documentsCountMap = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('document_and_notes') && ! empty($contactIds)) {
+            $noteToContact = \App\DocumentAndNote::where('business_id', $business_id)
+                ->where('notable_type', \App\Contact::class)
+                ->whereIn('notable_id', $contactIds)
+                ->pluck('notable_id', 'id');
+
+            if ($noteToContact->isNotEmpty()) {
+                $mediaPerNote = \App\Media::where('business_id', $business_id)
+                    ->where('model_type', \App\DocumentAndNote::class)
+                    ->whereIn('model_id', $noteToContact->keys())
+                    ->selectRaw('model_id, COUNT(*) as cnt')
+                    ->groupBy('model_id')
+                    ->pluck('cnt', 'model_id');
+
+                foreach ($mediaPerNote as $noteId => $cnt) {
+                    $cid = $noteToContact[$noteId] ?? null;
+                    if ($cid !== null) {
+                        $documentsCountMap[$cid] = ($documentsCountMap[$cid] ?? 0) + (int) $cnt;
+                    }
+                }
+            }
+        }
+
         $stats = Transaction::where('transactions.business_id', $business_id)
             ->whereIn('transactions.contact_id', $contactIds)
             ->where('transactions.type', 'sell')
@@ -648,7 +677,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap, $documentsCountMap) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -801,6 +830,9 @@ class ContactController extends Controller
 
             // ── Wagner 2026-05-27: contador de veiculos pro header drawer (botao "🚛 N placas")
             $payload['vehicles_count'] = (int) ($vehiclesCountMap[$contact->id] ?? 0);
+
+            // ── Wagner 2026-06-01: contador de anexos pro header drawer (botao "📎 N anexos")
+            $payload['documents_count'] = (int) ($documentsCountMap[$contact->id] ?? 0);
 
             return $payload;
         })->all();
