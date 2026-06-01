@@ -5,7 +5,17 @@
 
 ---
 
-## Estado atual: 2026-05-31 — DS adoção · Onda 1 MERGED · autonomia ativada
+## Estado atual: 2026-06-01 — `design:review` por tela MERGED (#2078)
+
+**Charter page viva entregue** (fila COWORK #2 · PR #2078 · main `98566bfb4`): `npm run design:review <tela>` gera `<Tela>.review.md` (Fase 1 mecanizada, do `score-mechanized.mjs`) ao lado do `.charter.md`, ancorado por `measured_against_sha`. Gate de frescor `review-freshness.mjs` (`npm run design:review:check`) + Pest `DesignReviewFreshnessTest` + `PROTOCOL §6` (`design_review_missing`/`_stale`) + ratchet `review-freshness-baseline.json` (espelha `eslint-baseline`). 1ª exec = `Jana/Pro.review.md` (nota 88). ADR = **proposta sem número** (`memory/decisions/proposals/design-review-por-tela-charter-page.md`, [W] cunha). **Fase 2 (juiz-LLM)** = custo [W].
+
+> ⚠️ `ui:lint` vermelho **pré-existente** (não do #2078): `Pro.tsx` (#2069) tem 2 R1 cor-crua fora do `ui-lint-baseline.json` → fix = PR separado (tokens dark), já no backlog do `Pro.review.md`.
+
+**Fila Tier 0 restante:** #1 Método Migration→Tela · #3 ADR peer-review + override ≥98% · #4 IA ENABLE (custo/infra).
+
+---
+
+## Estado anterior: 2026-05-31 — DS adoção · Onda 1 MERGED · autonomia ativada
 
 **Onda 1 entregue e mergeada em `main`** (autônomo · gates CI = [W2]):
 - **Onda G / Fase C — badge variants** (PR #2025 · main `f3001f0e0`): +5 variants soft (`success/warning/danger/info/neutral`) no `badge.tsx` + story `_Showcase 3b`. Destrava o lote-badge (Fase D).
