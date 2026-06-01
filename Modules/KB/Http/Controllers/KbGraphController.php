@@ -7,101 +7,131 @@ namespace Modules\KB\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\KB\Entities\KbEdge;
 use Modules\KB\Entities\KbNode;
 
 /**
  * KbGraphController — backend do GRAFO de conhecimento (ONDA 6, ADR 0150).
  *
- * Substitui o placeholder closure de /kb/graph/data (que devolvia
- * {nodes:[], edges:[], kpis:null} e fazia o frontend cair no mockGraphData.ts).
+ * Dois consumidores, MESMO payload (buildGraph):
+ *   GET /kb/graph       → page()  → Inertia::render('kb/Graph', {nodes,edges,kpis})
+ *   GET /kb/graph/data  → data()  → JSON {nodes,edges,kpis}
  *
- * Endpoint:
- *   GET /kb/graph/data → {nodes, edges, kpis} no formato consumido pelo
- *   ReactFlow/Cytoscape (resources/js/Pages/kb/Graph.tsx).
+ * O payload segue EXATAMENTE o contrato TS em resources/js/Pages/kb/_lib/graphTypes.ts
+ * (KbGraphNode/KbGraphEdge/KbGraphKpis) — id no formato "<type>-<id>", data{} aninhado,
+ * kpis com total_nodes/total_edges/by_type/by_edge_type/outdated_count/draft_count/
+ * last_bridge_at. Quando props.nodes vem populado, Graph.tsx larga o MOCK e mostra real.
  *
- * Multi-tenant Tier 0 (ADR 0093): KbNode e KbEdge usam BelongsToBusinessTrait,
- * que aplica o global scope `business_id` automaticamente a partir da sessão
- * (session('user.business_id') ?? session('business.id')). NÃO filtramos
- * business_id manualmente — o scope garante que biz=1 nunca enxergue biz=99.
+ * Multi-tenant Tier 0 (ADR 0093): KbNode/KbEdge usam BelongsToBusinessTrait, que aplica
+ * o global scope `business_id` (session('user.business_id') ?? session('business.id')).
+ * NÃO filtramos business_id manualmente — o scope garante que biz=1 nunca veja biz=99.
  *
- * @see memory/requisitos/KB/SCHEMA-DB-V1.md §3 (kb_nodes) + §4 (kb_edges)
- * @see Modules/KB/Entities/Concerns/BelongsToBusinessTrait.php
+ * @see memory/requisitos/KB/SCHEMA-DB-V1.md §3 (kb_nodes) + §4 (kb_edges) + §11
+ * @see resources/js/Pages/kb/_lib/graphTypes.ts
  */
 class KbGraphController extends Controller
 {
     /**
-     * Teto de nós devolvidos pro grafo. Acima disso o ReactFlow/Cytoscape
-     * fica ilegível e o payload pesa — clamp defensivo (ONDA 6).
+     * Teto de nós devolvidos. Acima disso o canvas fica ilegível e o payload pesa.
+     * Pegamos os mais recentes (orderByDesc updated_at) — clamp defensivo.
      */
     private const NODE_LIMIT = 300;
 
     public function __construct()
     {
         $this->middleware('auth');
-        // Dívida técnica: mesma permissão canônica do KbController (rename pra
-        // kb.graph.view em PR separado — SCHEMA §12).
+        // Dívida técnica: mesma permission canônica do KbController (rename pra
+        // kb.graph.view em PR Spatie separado — SCHEMA §12).
         $this->middleware('can:copiloto.mcp.memory.manage');
     }
 
-    /**
-     * GET /kb/graph/data — payload do grafo (nós + arestas + KPIs).
-     *
-     * Contrato (ReactFlow/Cytoscape):
-     *   nodes: [{id, label, type, category_id, group}]
-     *   edges: [{id, from, to, type, weight}]
-     *   kpis:  {nodes, edges, por_tipo: {<type>: count}}
-     *
-     * As arestas só apontam pros nós devolvidos: quando há mais de NODE_LIMIT
-     * nós, filtramos edges cujos dois extremos estão no conjunto retornado pra
-     * não gerar arestas "soltas" (dangling) no canvas. Ambos os models são
-     * tenant-scoped via global scope, então o filtro nunca cruza business.
-     */
+    /** GET /kb/graph — página Inertia do grafo com dados reais (sai do MOCK). */
+    public function page(Request $request): InertiaResponse
+    {
+        return Inertia::render('kb/Graph', $this->buildGraph());
+    }
+
+    /** GET /kb/graph/data — mesmo payload em JSON (ReactFlow/embeds externos). */
     public function data(Request $request): JsonResponse
+    {
+        return response()->json($this->buildGraph());
+    }
+
+    /**
+     * Monta {nodes, edges, kpis} no contrato KbGraphPageProps.
+     *
+     * Edges são filtradas pros nós retornados (ambos extremos no top-N) pra não
+     * gerar arestas soltas no canvas — o filtro roda dentro do tenant scope.
+     *
+     * @return array{nodes: list<array<string,mixed>>, edges: list<array<string,mixed>>, kpis: array<string,mixed>}
+     */
+    protected function buildGraph(): array
     {
         $nodes = KbNode::query()
             ->orderByDesc('updated_at')
             ->limit(self::NODE_LIMIT)
-            ->get(['id', 'title', 'type', 'category_id']);
+            ->get([
+                'id', 'type', 'slug', 'title', 'excerpt', 'status', 'pinned', 'tags',
+                'reads_count', 'helpful_count', 'outdated_votes', 'last_verified_at', 'updated_at',
+            ]);
 
-        $nodeIds = $nodes->pluck('id')->all();
+        // db-int id → string id "<type>-<id>" (contrato KbGraphNode.id)
+        $strIdByDb = [];
+        foreach ($nodes as $n) {
+            $strIdByDb[$n->id] = $n->type . '-' . $n->id;
+        }
+        $nodeIds = array_keys($strIdByDb);
 
         $edges = KbEdge::query()
-            ->when(
-                $nodes->count() >= self::NODE_LIMIT,
-                fn ($q) => $q->whereIn('from_node_id', $nodeIds)
-                    ->whereIn('to_node_id', $nodeIds)
-            )
-            ->get(['id', 'from_node_id', 'to_node_id', 'edge_type', 'weight']);
+            ->whereIn('from_node_id', $nodeIds)
+            ->whereIn('to_node_id', $nodeIds)
+            ->get(['id', 'from_node_id', 'to_node_id', 'edge_type', 'weight', 'generated_by']);
 
-        return response()->json([
-            'nodes' => $nodes->map(fn (KbNode $n) => [
-                'id'          => $n->id,
-                'label'       => $n->title,
-                'type'        => $n->type,
-                'category_id' => $n->category_id,
-                'group'       => $n->type,
-            ])->all(),
+        return [
+            'nodes' => $nodes->map(fn (KbNode $n): array => [
+                'id'   => $strIdByDb[$n->id],
+                'type' => $n->type,
+                'data' => [
+                    'label'            => $n->title,
+                    'slug'             => $n->slug,
+                    'excerpt'          => $n->excerpt,
+                    'status'           => $n->status,
+                    'pinned'           => (bool) $n->pinned,
+                    'tags'             => $n->tags,
+                    'reads_count'      => (int) $n->reads_count,
+                    'helpful_count'    => (int) $n->helpful_count,
+                    'outdated_votes'   => (int) $n->outdated_votes,
+                    'last_verified_at' => optional($n->last_verified_at)->toIso8601String(),
+                    'updated_at'       => optional($n->updated_at)->toIso8601String(),
+                ],
+            ])->values()->all(),
 
-            'edges' => $edges->map(fn (KbEdge $e) => [
-                'id'     => $e->id,
-                'from'   => $e->from_node_id,
-                'to'     => $e->to_node_id,
-                'type'   => $e->edge_type,
-                // weight é cast decimal:3 (string) — devolve float pro canvas.
-                'weight' => (float) $e->weight,
-            ])->all(),
+            'edges' => $edges->map(fn (KbEdge $e): array => [
+                'id'           => 'edge-' . $e->from_node_id . '-' . $e->to_node_id . '-' . $e->edge_type,
+                'source'       => $strIdByDb[$e->from_node_id],
+                'target'       => $strIdByDb[$e->to_node_id],
+                'edge_type'    => $e->edge_type,
+                'weight'       => $e->weight !== null ? (float) $e->weight : null,
+                'generated_by' => $e->generated_by,
+            ])->values()->all(),
 
             'kpis' => [
-                'nodes'    => KbNode::query()->count(),
-                'edges'    => KbEdge::query()->count(),
-                'por_tipo' => KbNode::query()
-                    ->select('type')
-                    ->selectRaw('COUNT(*) as c')
-                    ->groupBy('type')
-                    ->pluck('c', 'type')
-                    ->all(),
+                'total_nodes'    => KbNode::query()->count(),
+                'total_edges'    => KbEdge::query()->count(),
+                'by_type'        => KbNode::query()
+                    ->select('type')->selectRaw('COUNT(*) as c')
+                    ->groupBy('type')->pluck('c', 'type')->all(),
+                'by_edge_type'   => KbEdge::query()
+                    ->select('edge_type')->selectRaw('COUNT(*) as c')
+                    ->groupBy('edge_type')->pluck('c', 'edge_type')->all(),
+                'outdated_count' => KbNode::query()->where('status', 'outdated')->count(),
+                'draft_count'    => KbNode::query()->where('status', 'draft')->count(),
+                'last_bridge_at' => optional(KbNode::query()->max('updated_at'))
+                    ? (string) KbNode::query()->max('updated_at')
+                    : null,
             ],
-        ]);
+        ];
     }
 }

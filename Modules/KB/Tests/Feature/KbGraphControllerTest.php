@@ -13,16 +13,15 @@ use Modules\KB\Http\Controllers\KbGraphController;
  *
  * Cobertura:
  *   - smoke: contrato {nodes, edges, kpis} + shapes internos
- *   - kpis: contagem + por_tipo agregado
+ *   - kpis: total_nodes/total_edges + by_type agregado
  *   - cross-tenant Tier 0 (ADR 0093): user biz=1 NÃO vê nós/arestas de biz=99
  *   - auth: rota exige autenticação
  *
- * NOTA (handoff): a rota /kb/graph/data ainda é um closure placeholder no
- * momento desta escrita (Wagner pluga `KbGraphController@data`). Por isso os
- * asserts de CONTEÚDO instanciam o controller direto (`->data($req)`), o que
- * exercita o código real + o global scope (que lê session()) sem depender do
- * wiring da rota. O smoke HTTP valida só a estrutura que tanto o placeholder
- * quanto o controller satisfazem, e a verificação de auth/registro de rota.
+ * NOTA: os asserts de CONTEÚDO instanciam o controller direto (`->data($req)`),
+ * exercitando o buildGraph() real + o global scope (que lê session()) sem passar
+ * por middleware. O smoke HTTP + auth + registro-de-rota cobrem o wiring. Hoje
+ * /kb/graph/data → KbGraphController@data e /kb/graph → @page; ambos reusam o
+ * mesmo buildGraph(), então o shape testado aqui vale pros dois consumidores.
  *
  * Tier 0: tests biz=1 OR biz=99 — NUNCA biz=4 (ROTA LIVRE prod). ADR 0101.
  */
@@ -69,22 +68,23 @@ it('GET /kb/graph/data responde {nodes, edges, kpis}', function () {
         ->assertJsonStructure(['nodes', 'edges', 'kpis']);
 });
 
-it('data() devolve nodes no shape ReactFlow {id, label, type, category_id, group}', function () {
+it('data() devolve nodes no shape KbGraphNode {id, type, data{label,slug}}', function () {
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage']);
 
-    kbGraphSeedNode(1, 'sop-impressao', 'article', 'Como imprimir banner');
+    $id = kbGraphSeedNode(1, 'sop-impressao', 'article', 'Como imprimir banner');
 
     $payload = (new KbGraphController())->data(Request::create('/kb/graph/data'))->getData(true);
 
     expect($payload['nodes'])->toHaveCount(1);
     $node = $payload['nodes'][0];
-    expect($node)->toHaveKeys(['id', 'label', 'type', 'category_id', 'group'])
-        ->and($node['label'])->toBe('Como imprimir banner')   // label = title
+    expect($node)->toHaveKeys(['id', 'type', 'data'])
+        ->and($node['id'])->toBe('article-' . $id)                  // id = "<type>-<id>"
         ->and($node['type'])->toBe('article')
-        ->and($node['group'])->toBe('article');                // group = type
+        ->and($node['data']['label'])->toBe('Como imprimir banner') // label dentro de data{}
+        ->and($node['data']['slug'])->toBe('sop-impressao');
 });
 
-it('data() devolve edges no shape {id, from, to, type, weight}', function () {
+it('data() devolve edges no shape KbGraphEdge {id, source, target, edge_type, weight}', function () {
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage']);
 
     $a = kbGraphSeedNode(1, 'no-a', 'article', 'A');
@@ -105,14 +105,14 @@ it('data() devolve edges no shape {id, from, to, type, weight}', function () {
 
     expect($payload['edges'])->toHaveCount(1);
     $edge = $payload['edges'][0];
-    expect($edge)->toHaveKeys(['id', 'from', 'to', 'type', 'weight'])
-        ->and($edge['from'])->toBe($a)            // from = from_node_id
-        ->and($edge['to'])->toBe($b)              // to = to_node_id
-        ->and($edge['type'])->toBe('cross-link')  // type = edge_type
-        ->and($edge['weight'])->toBe(0.75);       // float, não string decimal
+    expect($edge)->toHaveKeys(['id', 'source', 'target', 'edge_type', 'weight'])
+        ->and($edge['source'])->toBe('article-' . $a)  // source = "<type>-<from_node_id>"
+        ->and($edge['target'])->toBe('article-' . $b)  // target = "<type>-<to_node_id>"
+        ->and($edge['edge_type'])->toBe('cross-link')
+        ->and($edge['weight'])->toBe(0.75);            // float, não string decimal
 });
 
-it('kpis traz contagem total + por_tipo agregado', function () {
+it('kpis traz total_nodes/total_edges + by_type agregado', function () {
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage']);
 
     kbGraphSeedNode(1, 'art-1', 'article', 'Art 1');
@@ -129,9 +129,9 @@ it('kpis traz contagem total + por_tipo agregado', function () {
 
     $payload = (new KbGraphController())->data(Request::create('/kb/graph/data'))->getData(true);
 
-    expect($payload['kpis']['nodes'])->toBe(3)
-        ->and($payload['kpis']['edges'])->toBe(1)
-        ->and($payload['kpis']['por_tipo'])->toMatchArray(['article' => 2, 'adr' => 1]);
+    expect($payload['kpis']['total_nodes'])->toBe(3)
+        ->and($payload['kpis']['total_edges'])->toBe(1)
+        ->and($payload['kpis']['by_type'])->toMatchArray(['article' => 2, 'adr' => 1]);
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -157,10 +157,10 @@ it('cross-tenant: user biz=1 nao ve nodes/edges de biz=99', function () {
 
     // Só o nó de biz=1, zero arestas de biz=99.
     expect($payload['nodes'])->toHaveCount(1)
-        ->and($payload['nodes'][0]['label'])->toBe('Meu nó biz 1')
+        ->and($payload['nodes'][0]['data']['label'])->toBe('Meu nó biz 1')
         ->and($payload['edges'])->toHaveCount(0)
-        ->and($payload['kpis']['nodes'])->toBe(1)
-        ->and($payload['kpis']['edges'])->toBe(0);
+        ->and($payload['kpis']['total_nodes'])->toBe(1)
+        ->and($payload['kpis']['total_edges'])->toBe(0);
 
     // E o conteúdo de biz=99 NÃO aparece em lugar nenhum do payload.
     expect(json_encode($payload))->not->toContain('Secreto X')
@@ -176,8 +176,8 @@ it('cross-tenant: user biz=99 ve apenas seus proprios nodes', function () {
     $payload = (new KbGraphController())->data(Request::create('/kb/graph/data'))->getData(true);
 
     expect($payload['nodes'])->toHaveCount(1)
-        ->and($payload['nodes'][0]['label'])->toBe('Biz 99 node')
-        ->and($payload['kpis']['nodes'])->toBe(1);
+        ->and($payload['nodes'][0]['data']['label'])->toBe('Biz 99 node')
+        ->and($payload['kpis']['total_nodes'])->toBe(1);
 });
 
 // ─────────────────────────────────────────────────────────────────────────

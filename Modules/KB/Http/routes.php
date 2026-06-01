@@ -46,9 +46,7 @@ Route::group(
         // Page Inertia com mock 50 nodes / 64 edges quando /kb/graph/data não
         // está populado ainda. Coração da promessa "visualização sobre meus
         // dados e arquivos importantes".
-        Route::get('/graph', function () {
-            return \Inertia\Inertia::render('kb/Graph');
-        })->name('kb.graph.page');
+        Route::get('/graph', 'KbGraphController@page')->name('kb.graph.page');
 
         // /kb/graph/data — endpoint JSON pro Reactflow (ONDA 6, Agent A · ADR 0150).
         // Retorna {nodes, edges, kpis} já no shape ReactFlow/Cytoscape, scoped por
