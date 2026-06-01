@@ -132,6 +132,47 @@ Botão "Buscar" ao lado do campo CNPJ chama `https://brasilapi.com.br/api/cnpj/v
 **Prioridade:** P0
 `StoreContactRequest` + `UpdateContactRequest` aplicam `Rule\BR\CpfCnpj` no `rules()`. Validação mod-11 server-side obrigatória (defesa em profundidade — não confiar no client).
 
+### US-CRM-078 — Múltiplos endereços por contato + seletor de endereço na venda
+
+**Status:** PR1 backend em andamento (2026-06-01) · PR2/PR3 UI atrás de gate visual R2/R7
+**Prioridade:** P1 — pedido Wagner 2026-06-01 (cliente cadastra matriz/filial/casa/obra e escolhe na entrega)
+
+**Problema:** hoje o cadastro tem **1 endereço só**, inline em `contacts`
+(`zip_code/address_line_1/numero/address_line_2/neighborhood/city/state/city_code`).
+Na venda, o `shipping_address` (UltimatePOS) é digitado livre — não escolhido de uma
+lista salva. O cliente quer cadastrar vários endereços rotulados e **escolher na hora
+da entrega**.
+
+**Decisão de modelagem:** tabela ADITIVA `contact_addresses` (1 Contact hasMany N).
+Os campos inline de `contacts` **permanecem** (compat UPOS / NFe enderDest / Sells
+shipping_address) e viram o endereço "principal", espelhados no endereço
+`is_default = true`. Distinto da rede matriz/filial em nível de **contato**
+(`parent_contact_id`, ADR 0197): aqui é um catálogo de endereços de entrega de UM
+contato (CNPJ único), não hierarquia societária com tax entities separadas.
+
+**Slice 1 (PR1) — backend foundation:**
+- Migration aditiva idempotente `2026_06_01_120000_create_contact_addresses_table`
+  (`business_id`+FK+index · `contact_id`+FK · `label` · endereço completo ·
+  `is_default` · `is_shipping` · `softDeletes` · `down()`).
+- `App\ContactAddress` (HasBusinessScope + SoftDeletes + `$fillable` explícito —
+  business_id/contact_id setados server-side) + `Contact::addresses()` hasMany +
+  `defaultAddress()`/`shippingAddress()` hasOne + accessor `one_line` + `toInlineArray()`.
+- Backfill idempotente `ContactAddress::backfillInline()` — endereço inline → 1ª linha
+  `is_default=true is_shipping=true label "Principal"`, preservando business_id.
+- Pest cross-tenant biz=1 vs biz=99 (ADR 0093) + relações + backfill idempotente.
+
+**Slice 2 (PR2) — UI cadastro (gate visual R2/R7):**
+- `EnderecoTab.tsx` vira **lista** (adicionar/editar/remover/marcar padrão) reusando o
+  lookup ViaCEP. Endpoints CRUD multi-tenant. Espelha o `is_default` de volta nos campos
+  inline de `contacts`. Segue MWART + drawer 760 (ADR 0179).
+
+**Slice 3 (PR3) — seletor na venda (gate visual R2/R7):**
+- `Sells/Create.tsx` + `_components/SaleSheet.tsx`: dropdown "Endereço de entrega" lista
+  os endereços do cliente selecionado + opção "Outro (digitar)" → grava em `shipping_address`.
+
+**DoD multi-tenant Tier 0:** `contact_addresses` SEMPRE com `business_id` + FK + scope;
+Pest cross-tenant antes/depois. **PR ≤300 linhas** (faseado PR1/PR2/PR3).
+
 ## §4 — Não-objetivos
 
 - Não substitui `Modules/Crm/` (CRM avançado: leads, deals, marketplace, pipeline FSM)
@@ -146,6 +187,7 @@ Botão "Buscar" ao lado do campo CNPJ chama `https://brasilapi.com.br/api/cnpj/v
 |---|---|---|---|
 | US-CRM-075 | BrasilAPI lookup CNPJ | P1 | 2h |
 | US-CRM-076 | FormRequest Rule\BR\CpfCnpj | P0 | 2h |
+| US-CRM-078 | Múltiplos endereços + seletor na venda | P1 | PR1 2h · PR2 4h · PR3 3h |
 | (futura) | ViaCEP lookup automático | P2 | 3h |
 | (futura) | Tab Atividades (activity log inline) | P1 | 6h |
 | (futura) | Contact picker no header Show (trocar sem voltar) | P2 | 4h |
@@ -168,6 +210,7 @@ Botão "Buscar" ao lado do campo CNPJ chama `https://brasilapi.com.br/api/cnpj/v
 | 2026-05-21 | #1316 | W | Slices 2+3 UI BR Create/Edit + bloco fiscal Show (US-CRM-073) |
 | 2026-05-21 | #1319 | W | Slice 4 comando backfill cpf_cnpj (US-CRM-074) |
 | 2026-05-21 | TBD | W | **Slice 6 — RUNBOOK + visual-comparison + SPEC docs governance** (este PR) |
+| 2026-06-01 | TBD | W+Claude | **US-CRM-078 PR1 — migration `contact_addresses` + `ContactAddress` model + Pest cross-tenant** |
 
 ## §7 — Referências
 
