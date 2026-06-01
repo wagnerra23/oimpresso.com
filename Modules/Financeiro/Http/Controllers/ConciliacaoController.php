@@ -361,9 +361,45 @@ class ConciliacaoController extends Controller
                 ->update([
                     'status'      => 'sugerido',
                     'titulo_id'   => $candidato->id,
-                    'match_score' => 0.85,
+                    'match_score' => $this->calcularMatchScore(
+                        $valorAbs,
+                        (float) $candidato->getAttribute('valor_total'),
+                        $data,
+                        CarbonImmutable::parse((string) $candidato->getAttribute('vencimento'))->toDateString(),
+                    ),
                     'updated_at'  => now(),
                 ]);
         }
+    }
+
+    /**
+     * Score real do match — substitui o constante 0.85 fake (bug B1, ADR 0236).
+     * Peso 0.7 valor + 0.3 proximidade-de-data; arredondado a 2 casas, clamp [0,1].
+     *  - valor_score: 1.0 quando os valores batem; decai com a diferença relativa
+     *    ao valor da linha (a janela de candidatos já garante diff ≤ R$0,01 ≈ 1.0).
+     *  - data_score: 1.0 no mesmo dia; decai linear até ~0 na borda da janela ±3 dias.
+     */
+    private function calcularMatchScore(
+        float $valorLinha,
+        float $valorTitulo,
+        string $dataLinha,
+        string $vencimentoTitulo,
+    ): float {
+        // valor_score — decaimento proporcional à diferença relativa.
+        $escalaValor = max(abs($valorLinha), 0.01);
+        $valorScore = 1.0 - (abs($valorLinha - abs($valorTitulo)) / $escalaValor);
+        $valorScore = max(0.0, min(1.0, $valorScore));
+
+        // data_score — decaimento linear na janela ±3 dias.
+        $diasDiff = abs(
+            CarbonImmutable::parse($dataLinha)
+                ->diffInDays(CarbonImmutable::parse($vencimentoTitulo))
+        );
+        $dataScore = 1.0 - ($diasDiff / 4.0);
+        $dataScore = max(0.0, min(1.0, $dataScore));
+
+        $score = (0.7 * $valorScore) + (0.3 * $dataScore);
+
+        return round(max(0.0, min(1.0, $score)), 2);
     }
 }
