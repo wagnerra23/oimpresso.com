@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -25,6 +26,14 @@ use Modules\Financeiro\Models\Titulo;
  * Para CNAB / formatos complexos: Onda 22 com `OfxImporter` dedicated service.
  *
  * Tier 0: business_id global scope (BankStatementLine model usa BusinessScope).
+ *
+ * Fase 1 da ADR 0236 (2026-05-31): a conciliação passou a enxergar TAMBÉM o
+ * extrato sincronizado via API do banco (`fin_extrato_lancamentos`, origem
+ * `api`), além do upload OFX (`fin_bank_statement_lines`, origem `ofx`). A
+ * leitura é normalizada pra um shape único e cada linha carrega `origem` +
+ * `uid` ("ofx:123" / "api:456"); match/ignorar resolvem a tabela certa pela
+ * `origem`. NÃO há migração de dado — só leitura unificada + status na linha API.
+ * @see memory/decisions/0236-extrato-conciliacao-modelo-unificado.md
  */
 class ConciliacaoController extends Controller
 {
@@ -32,22 +41,31 @@ class ConciliacaoController extends Controller
     {
         $businessId = (int) session('user.business_id');
 
-        // Linhas pendentes/sugeridas ordenadas por data desc.
+        // OFX (upload manual): pendentes + sugeridas.
         $linhas = DB::table('fin_bank_statement_lines')
             ->where('business_id', $businessId)
             ->whereIn('status', ['pendente', 'sugerido'])
             ->whereNull('deleted_at')
             ->orderBy('data_movimento', 'desc')
             ->limit(200)
-            ->get();
+            ->get()
+            ->map(fn ($l) => $this->normalizeOfx($l));
 
-        // Stats.
-        $stats = [
-            'pendentes'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'pendente')->whereNull('deleted_at')->count(),
-            'sugeridos'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'sugerido')->whereNull('deleted_at')->count(),
-            'conciliados' => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'conciliado')->whereNull('deleted_at')->count(),
-            'ignorados'   => DB::table('fin_bank_statement_lines')->where('business_id', $businessId)->where('status', 'ignorado')->whereNull('deleted_at')->count(),
-        ];
+        // API (sync banco): linhas nunca avaliadas (status NULL) + sugeridas.
+        // Guard hasColumn: degrada pra OFX-only enquanto a migration Fase 1 não rodou.
+        if ($this->apiConciliavel()) {
+            $api = DB::table('fin_extrato_lancamentos')
+                ->where('business_id', $businessId)
+                ->where(fn ($q) => $q->whereNull('status')->orWhere('status', 'sugerido'))
+                ->orderBy('data', 'desc')
+                ->limit(200)
+                ->get()
+                ->map(fn ($l) => $this->normalizeApi($l));
+
+            $linhas = $linhas->concat($api)->sortByDesc('data_movimento')->values();
+        }
+
+        $stats = $this->statsConsolidados($businessId);
 
         // ContaBancaria.nome é accessor que lê de Account.name (eager load needed)
         $contas = ContaBancaria::where('business_id', $businessId)
@@ -60,6 +78,76 @@ class ConciliacaoController extends Controller
             'stats' => $stats,
             'contas' => $contas,
         ]);
+    }
+
+    /** Fase 1 ADR 0236: extrato API só é conciliável após a migration que adiciona `status`. */
+    private function apiConciliavel(): bool
+    {
+        return Schema::hasTable('fin_extrato_lancamentos')
+            && Schema::hasColumn('fin_extrato_lancamentos', 'status');
+    }
+
+    /** Normaliza linha OFX (`fin_bank_statement_lines`) pro shape único da tela. */
+    private function normalizeOfx(object $l): array
+    {
+        return [
+            'uid'            => 'ofx:' . $l->id,
+            'origem'         => 'ofx',
+            'id'             => (int) $l->id,
+            'data_movimento' => $l->data_movimento,
+            'descricao'      => $l->descricao,
+            'valor'          => (float) $l->valor, // OFX já guarda valor com sinal.
+            'tipo'           => $l->tipo,
+            'status'         => $l->status,
+            'titulo_id'      => $l->titulo_id !== null ? (int) $l->titulo_id : null,
+            'match_score'    => $l->match_score !== null ? (float) $l->match_score : null,
+            'source_file'    => $l->source_file,
+        ];
+    }
+
+    /** Normaliza linha API (`fin_extrato_lancamentos`) pro mesmo shape. */
+    private function normalizeApi(object $l): array
+    {
+        // API guarda valor positivo + tipo C/D separado → converte pra valor com sinal.
+        $signed = $l->tipo === 'D' ? -abs((float) $l->valor) : abs((float) $l->valor);
+
+        return [
+            'uid'            => 'api:' . $l->id,
+            'origem'         => 'api',
+            'id'             => (int) $l->id,
+            'data_movimento' => $l->data,
+            'descricao'      => $l->descricao,
+            'valor'          => $signed,
+            'tipo'           => $l->tipo === 'C' ? 'credit' : 'debit',
+            'status'         => $l->status ?? 'pendente', // NULL = nunca avaliada → exibe "pendente".
+            'titulo_id'      => isset($l->titulo_id) ? (int) $l->titulo_id : null,
+            'match_score'    => isset($l->match_score) ? (float) $l->match_score : null,
+            'source_file'    => null, // API não tem arquivo; front mostra chip "Banco".
+        ];
+    }
+
+    /** Stats consolidados das duas origens (API status NULL conta como pendente). */
+    private function statsConsolidados(int $businessId): array
+    {
+        $ofxBase = fn () => DB::table('fin_bank_statement_lines')
+            ->where('business_id', $businessId)->whereNull('deleted_at');
+
+        $stats = [
+            'pendentes'   => (clone $ofxBase())->where('status', 'pendente')->count(),
+            'sugeridos'   => (clone $ofxBase())->where('status', 'sugerido')->count(),
+            'conciliados' => (clone $ofxBase())->where('status', 'conciliado')->count(),
+            'ignorados'   => (clone $ofxBase())->where('status', 'ignorado')->count(),
+        ];
+
+        if ($this->apiConciliavel()) {
+            $apiBase = fn () => DB::table('fin_extrato_lancamentos')->where('business_id', $businessId);
+            $stats['pendentes']   += (clone $apiBase())->where(fn ($q) => $q->whereNull('status')->orWhere('status', 'pendente'))->count();
+            $stats['sugeridos']   += (clone $apiBase())->where('status', 'sugerido')->count();
+            $stats['conciliados'] += (clone $apiBase())->where('status', 'conciliado')->count();
+            $stats['ignorados']   += (clone $apiBase())->where('status', 'ignorado')->count();
+        }
+
+        return $stats;
     }
 
     /**
@@ -114,18 +202,36 @@ class ConciliacaoController extends Controller
             return back()->with('error', 'Nenhuma transação encontrada no arquivo OFX. Verifique formato.');
         }
 
-        // Insert ignorando duplicados (unique fitid + business_id).
-        $count = 0;
-        foreach ($transacoes as $t) {
-            $exists = DB::table('fin_bank_statement_lines')
+        // Insert idempotente — insertOrIgnore é atômico no banco: pula linhas que
+        // violam o unique (business_id, fitid). Dois uploads concorrentes do mesmo
+        // arquivo (double-click / retry) NÃO causam mais QueryException/500 — antes,
+        // o check-then-insert (exists() + insert()) tinha uma janela de corrida onde
+        // ambos passavam no exists() e o segundo insert estourava o constraint.
+        // É insertOrIgnore (e não upsert) de propósito: a semântica é PULAR
+        // duplicados, nunca sobrescrever — uma linha já conciliada/sugerida não pode
+        // ser revertida por um reimport do mesmo extrato.
+        $fitids = array_column($transacoes, 'fitid');
+
+        // fitids que já existiam ANTES do insert. Sem filtro de deleted_at de
+        // propósito: o unique constraint não distingue soft-deletes, então o
+        // comportamento bate com o exists() original (que também não filtrava).
+        $jaExistentes = [];
+        foreach (array_chunk(array_unique($fitids), 1000) as $chunk) {
+            $jaExistentes = array_merge($jaExistentes, DB::table('fin_bank_statement_lines')
                 ->where('business_id', $businessId)
-                ->where('fitid', $t['fitid'])
-                ->exists();
-            if (! $exists) {
-                DB::table('fin_bank_statement_lines')->insert($t);
-                $count++;
-            }
+                ->whereIn('fitid', $chunk)
+                ->pluck('fitid')
+                ->all());
         }
+
+        // insertOrIgnore em lotes (evita estourar bind vars / max_allowed_packet
+        // em arquivos OFX grandes — o loop anterior inseria 1 linha por vez).
+        foreach (array_chunk($transacoes, 500) as $lote) {
+            DB::table('fin_bank_statement_lines')->insertOrIgnore($lote);
+        }
+
+        // Conta só os fitids realmente novos (distintos, menos os já existentes).
+        $count = count(array_diff(array_unique($fitids), $jaExistentes));
 
         // Sugestão automática de match (fuzzy: valor + data ±3 dias).
         $this->sugerirMatches($businessId);
@@ -135,22 +241,28 @@ class ConciliacaoController extends Controller
 
     /**
      * Confirma match com Titulo.
-     * POST /financeiro/conciliacao/{lineId}/match com {titulo_id}.
+     * POST /financeiro/conciliacao/{lineId}/match com {titulo_id, origem?}.
+     *
+     * Fase 1 ADR 0236: `origem` (ofx|api) decide a tabela. Default `ofx` —
+     * retrocompat com chamadas antigas que só mandavam {titulo_id}.
      */
     public function match(Request $request, int $lineId): RedirectResponse
     {
-        $request->validate(['titulo_id' => 'required|integer']);
+        $request->validate([
+            'titulo_id' => 'required|integer',
+            'origem'    => 'nullable|in:ofx,api',
+        ]);
         $businessId = (int) session('user.business_id');
 
-        DB::table('fin_bank_statement_lines')
+        $this->conciliacaoTable($request->input('origem', 'ofx'))
             ->where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
-                'status' => 'conciliado',
-                'titulo_id' => $request->integer('titulo_id'),
+                'status'        => 'conciliado',
+                'titulo_id'     => $request->integer('titulo_id'),
                 'conciliado_by' => $request->user()?->id,
                 'conciliado_at' => now(),
-                'updated_at' => now(),
+                'updated_at'    => now(),
             ]);
 
         return back()->with('success', 'Conciliação confirmada.');
@@ -158,17 +270,32 @@ class ConciliacaoController extends Controller
 
     public function ignorar(Request $request, int $lineId): RedirectResponse
     {
+        $request->validate(['origem' => 'nullable|in:ofx,api']);
         $businessId = (int) session('user.business_id');
 
-        DB::table('fin_bank_statement_lines')
+        $this->conciliacaoTable($request->input('origem', 'ofx'))
             ->where('id', $lineId)
             ->where('business_id', $businessId)
             ->update([
-                'status' => 'ignorado',
+                'status'     => 'ignorado',
                 'updated_at' => now(),
             ]);
 
         return back()->with('success', 'Linha marcada como ignorada.');
+    }
+
+    /**
+     * Query builder da tabela certa por origem (Tier 0: o filtro business_id
+     * é aplicado por quem chama). `api` exige a migration Fase 1; cai pra OFX
+     * se ainda não rodou (degradação segura).
+     */
+    private function conciliacaoTable(string $origem): \Illuminate\Database\Query\Builder
+    {
+        if ($origem === 'api' && $this->apiConciliavel()) {
+            return DB::table('fin_extrato_lancamentos');
+        }
+
+        return DB::table('fin_bank_statement_lines');
     }
 
     /** OFX TRNTYPE → enum interno */
@@ -184,37 +311,59 @@ class ConciliacaoController extends Controller
     /**
      * Fuzzy match: pra cada linha pendente, busca Titulo aberto com valor ≈ e data ±3d.
      * Score = (valor_match * 0.7) + (data_proximity * 0.3).
+     *
+     * Fase 1 ADR 0236: roda nas DUAS origens — OFX (`fin_bank_statement_lines`,
+     * status='pendente') e API (`fin_extrato_lancamentos`, status NULL = nunca
+     * avaliada). Mesmo algoritmo MVP; grava `status=sugerido` na tabela de origem.
      */
     private function sugerirMatches(int $businessId): void
     {
-        $pendentes = DB::table('fin_bank_statement_lines')
+        // OFX — data em `data_movimento`, valor já com sinal.
+        $ofx = DB::table('fin_bank_statement_lines')
             ->where('business_id', $businessId)
             ->where('status', 'pendente')
             ->whereNull('deleted_at')
             ->get();
+        foreach ($ofx as $linha) {
+            $this->sugerirParaLinha($businessId, 'fin_bank_statement_lines', $linha->id, $linha->valor, $linha->data_movimento);
+        }
 
-        foreach ($pendentes as $linha) {
-            $valorAbs = abs((float) $linha->valor);
-            $candidato = Titulo::where('business_id', $businessId)
-                ->whereIn('status', ['aberto', 'parcial'])
-                ->whereRaw('ABS(valor_total - ?) < 0.01', [$valorAbs])
-                ->whereBetween('vencimento', [
-                    CarbonImmutable::parse($linha->data_movimento)->subDays(3)->toDateString(),
-                    CarbonImmutable::parse($linha->data_movimento)->addDays(3)->toDateString(),
-                ])
-                ->orderByRaw('ABS(DATEDIFF(vencimento, ?))', [$linha->data_movimento])
-                ->first();
-
-            if ($candidato) {
-                DB::table('fin_bank_statement_lines')
-                    ->where('id', $linha->id)
-                    ->update([
-                        'status' => 'sugerido',
-                        'titulo_id' => $candidato->id,
-                        'match_score' => 0.85,
-                        'updated_at' => now(),
-                    ]);
+        // API — data em `data`, valor positivo (abs já é aplicado no matcher).
+        if ($this->apiConciliavel()) {
+            $api = DB::table('fin_extrato_lancamentos')
+                ->where('business_id', $businessId)
+                ->whereNull('status')
+                ->get();
+            foreach ($api as $linha) {
+                $this->sugerirParaLinha($businessId, 'fin_extrato_lancamentos', $linha->id, $linha->valor, $linha->data);
             }
+        }
+    }
+
+    /** Casa UMA linha de extrato (qualquer origem) com um Titulo aberto e marca sugerido. */
+    private function sugerirParaLinha(int $businessId, string $table, int $id, $valor, string $data): void
+    {
+        $valorAbs = abs((float) $valor);
+        $candidato = Titulo::where('business_id', $businessId)
+            ->whereIn('status', ['aberto', 'parcial'])
+            ->whereRaw('ABS(valor_total - ?) < 0.01', [$valorAbs])
+            ->whereBetween('vencimento', [
+                CarbonImmutable::parse($data)->subDays(3)->toDateString(),
+                CarbonImmutable::parse($data)->addDays(3)->toDateString(),
+            ])
+            ->orderByRaw('ABS(DATEDIFF(vencimento, ?))', [$data])
+            ->first();
+
+        if ($candidato) {
+            DB::table($table)
+                ->where('id', $id)
+                ->where('business_id', $businessId) // Tier 0 reforçado no UPDATE.
+                ->update([
+                    'status'      => 'sugerido',
+                    'titulo_id'   => $candidato->id,
+                    'match_score' => 0.85,
+                    'updated_at'  => now(),
+                ]);
         }
     }
 }
