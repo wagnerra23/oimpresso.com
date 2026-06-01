@@ -37,6 +37,9 @@ Provisionar token do `grokwr2` (collaborator ≠ autor) → Action auto-approve+
 ### Side-thread: mapa rotinas de design (F0 · 2026-05-31) — NÃO muda a fila acima
 Processei a proposta [CC] "otimizar rotinas de design" (§10.4): F0 em [AUDITORIA_ROTINAS_DESIGN.md](AUDITORIA_ROTINAS_DESIGN.md). Achado: **6 motores de score em 2 camadas** — a cara (LLM `design:*`: mwart-comparative dormante 05-17, design-deep-analysis 0 disparos, F1.5/F3.5) morreu de custo; a barata (`screen-grade`/`module:grade`/`ds/*`) escalou e o PROTOCOL não a menciona. Gate §10.4: G4 já existe (`ds:report`), G3 superado (0-humano), G5-ESLint feito — **sobra G1/G2/G6 + Stylelint `.css`**. Fila operacional (Fase A RecurringBilling) **inalterada**.
 
+### Side-thread: fila Cowork "Diagnóstico de Projeto" (handoff P6u6 · 2026-06-01) — NÃO muda a fila acima
+Handoff Cowork (open-file `Diagnóstico de Projeto - CC.html` = **ponto de entrada, não tarefa** — `project/README.md`). Fila `COWORK_NOTES → 📥 Pendentes`: **#2 charters de papel** (ADR 0242 + CHARTER_GOVERNANCA_W + CHARTER_CHAMPION_AGENTES) MERGED (#2061, Tier 0 [W]) · **#3 README HANDOFF-ENTRY** MERGED (#2062, autônomo) · **#1 G4 retorno automático** em andamento (`design_return_skipped` check + workflow pós-merge) · **#4 auditoria read-only** aguarda go. Tela de diagnóstico construída e descartada (era ponto-de-entrada). Fila operacional (Fase A RecurringBilling) **inalterada**.
+
 ### Workstreams parados (ponteiro)
 - **Jana** (`Chat.tsx`/`Cockpit.tsx`) — congelado até Wagner reabrir.
 - **Financeiro** Fluxo/Plano-contas/DRE/Conciliação — bloqueados por ADRs arq + migrations.
