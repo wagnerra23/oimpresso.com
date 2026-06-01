@@ -65,7 +65,7 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
             'banco_codigo'              => '077',
             'agencia'                   => '0001',
             'carteira'                  => '112',
-            'beneficiario_documento'    => '12.345.678/0001-99',
+            'beneficiario_documento'    => '00.000.000/0000-00', // pii-allowlist — CNPJ fixture de teste (nao-PII real)
             'beneficiario_razao_social' => 'Teste F1',
             'created_at'                => now(),
             'updated_at'                => now(),
@@ -223,7 +223,7 @@ class ConciliacaoLeExtratoApiTest extends FinanceiroTestCase
         $contaB = DB::table('fin_contas_bancarias')->insertGetId([
             'business_id' => $bizB->id, 'account_id' => $accountB,
             'banco_codigo' => '077', 'agencia' => '0001', 'carteira' => '112',
-            'beneficiario_documento' => '00.000.000/0000-00', 'beneficiario_razao_social' => 'B',
+            'beneficiario_documento' => '00.000.000/0000-00', 'beneficiario_razao_social' => 'B', // pii-allowlist — CNPJ fixture de teste
             'created_at' => now(), 'updated_at' => now(),
         ]);
         $apiB = DB::table('fin_extrato_lancamentos')->insertGetId([
