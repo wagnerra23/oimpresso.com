@@ -36,9 +36,11 @@ test('--json output tem shape canonico', function () {
         ->toHaveKey('checked_at')
         ->toHaveKey('checks');
 
-    // 8 checks: multi_tenant, brief_uptime, custo_brain_b, pii_leak,
-    // profile_drift, procedure_drift, spec_id_drift, whatsapp_media_pending_1h.
-    expect($json['checks'])->toBeArray()->toHaveCount(8);
+    // ≥10 checks duros (SQL/operacionais) + N charter/loop advisory (dinâmico via
+    // CharterHealthChecker). Não cravamos count exato porque os advisory variam —
+    // a presença dos duros é garantida no teste abaixo.
+    expect($json['checks'])->toBeArray();
+    expect(count($json['checks']))->toBeGreaterThanOrEqual(10);
 });
 
 test('cada check tem campos canonicos', function () {
@@ -46,7 +48,10 @@ test('cada check tem campos canonicos', function () {
     $output = \Illuminate\Support\Facades\Artisan::output();
     $json = json_decode(substr($output, strpos($output, '{')), true);
 
-    $namesEsperados = [
+    // Checks DUROS obrigatórios (operacionais). Os charter/loop advisory entram
+    // a mais (dinâmico via CharterHealthChecker), por isso checamos presença
+    // (subset), não igualdade exata.
+    $duros = [
         'multi_tenant_isolation',
         'brief_uptime_24h',
         'custo_brain_b_24h',
@@ -55,10 +60,12 @@ test('cada check tem campos canonicos', function () {
         'procedure_drift',
         'spec_id_drift',
         'whatsapp_media_pending_1h',
+        'mcp_webhook_5xx_2h',
+        'memoria_recall_backend',
     ];
 
     $namesReais = array_column($json['checks'], 'name');
-    expect($namesReais)->toEqualCanonicalizing($namesEsperados);
+    expect(array_diff($duros, $namesReais))->toBe([]);
 
     foreach ($json['checks'] as $check) {
         expect($check)
