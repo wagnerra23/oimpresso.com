@@ -132,3 +132,77 @@ test('GUARD 7 — PlacasMainTab.tsx existe + endpoint canon mantido', function (
     $oldDir = __DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/oss';
     expect(is_dir($oldDir))->toBeFalse();
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// Wagner 2026-06-01 — chip "📎 N anexos" no header, ao lado de placas.
+// Clique abre Operações → Documentos. Count server-side: document-notes COM
+// media (anexos reais). Universal (sem gate OficinaAuto — anexos valem p/ todo
+// cliente). GUARDs estruturais (file_get_contents, sem DB) — mesmo bar do
+// vehicles_count (GUARD 1).
+// ════════════════════════════════════════════════════════════════════════
+
+// ─── GUARD 8: Backend payload tem documents_count (business_id scope) ─────
+
+test('GUARD 8 — ContactController retorna documents_count com gate hasTable + business_id scope', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        // Gate hasTable (graceful se tabela ausente).
+        ->toContain("Schema::hasTable('document_and_notes')")
+        // Tier 0 (ADR 0093 IRREVOGAVEL): scope business_id obrigatorio nas DUAS queries.
+        ->toContain("DocumentAndNote::where('business_id', \$business_id)")
+        ->toContain("->where('notable_type', \\App\\Contact::class)")
+        ->toContain("->whereIn('notable_id', \$contactIds)")
+        ->toContain("Media::where('business_id', \$business_id)")
+        // So anexos reais (media anexada aos document-notes), via model_type cheio.
+        ->toContain("->where('model_type', \\App\\DocumentAndNote::class)")
+        ->toContain("->groupBy('model_id')")
+        // Payload com chave canon EN snake_case.
+        ->toMatch("/\\\$payload\\['documents_count'\\]\\s*=\\s*\\(int\\)/");
+});
+
+// ─── GUARD 9: ClienteRow interface declara documents_count ───────────────
+
+test('GUARD 9 — Cliente/Index.tsx ClienteRow declara documents_count', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain('documents_count?: number | null');
+});
+
+// ─── GUARD 10: chip Anexos no header (universal, sem gate OficinaAuto) ────
+
+test('GUARD 10 — drawer header tem chip Anexos abrindo Operações → Documentos', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        // aria-pressed composto: tab operacoes + sub-aba documents.
+        ->toContain("aria-pressed={activeTab === 'operacoes' && opsSubTab === 'documents'}")
+        // Contador usa documents_count.
+        ->toContain('contact?.documents_count ?? 0')
+        // Icone clipe (lucide Paperclip) importado e usado.
+        ->toContain('Paperclip,')
+        ->toContain('<Paperclip size={11}')
+        // Clique leva pra Operacoes na sub-aba Documentos.
+        ->toContain("setOpsSubTab('documents')")
+        // OssTab controlado pelo header (single source of truth da sub-aba).
+        ->toContain('activeSubTab={opsSubTab}')
+        ->toContain('onSubTabChange={setOpsSubTab}');
+});
+
+// ─── GUARD 11: OssTab aceita controle externo da sub-aba ──────────────────
+
+test('GUARD 11 — OssTab.tsx expõe activeSubTab/onSubTabChange (controlado pelo header)', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/OssTab.tsx';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain('export type OssSubTabKey')
+        ->toContain('activeSubTab?: OssSubTabKey')
+        ->toContain('onSubTabChange?: (key: OssSubTabKey) => void')
+        // active derivado: controle externo tem prioridade sobre estado interno.
+        ->toContain('const active = activeSubTab ?? internalActive');
+});
