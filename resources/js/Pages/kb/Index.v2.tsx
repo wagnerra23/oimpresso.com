@@ -39,6 +39,8 @@ import PathsDialog from './_components/PathsDialog';
 import TroubleshooterDialog from './_components/TroubleshooterDialog';
 import HealthPanel from './_components/HealthPanel';
 import KbComposer from './_components/KbComposer';
+import KbAiDialog from './_components/KbAiDialog';
+import KbHistoryDialog from './_components/KbHistoryDialog';
 
 import {
   computeMockKpis,
@@ -63,6 +65,23 @@ import { useKbKeyboardNav } from './_lib/useKbKeyboardNav';
 import '../../../css/kb.css';
 
 type SortOption = 'recent' | 'popular' | 'helpful' | 'outdated';
+
+// ── fetch helper (POST JSON + CSRF) pras ações reais do reader ──
+function csrf(): string {
+  return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+}
+async function kbPost(url: string, body?: unknown): Promise<Response> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', Accept: 'application/json',
+      'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw res;
+  return res;
+}
 
 // ──────────────────────────────────────────────────────────────────
 // Página
@@ -115,7 +134,9 @@ function KbIndexV2(props: KbIndexProps) {
   const [pathsOpen, setPathsOpen] = React.useState(false);
   const [troubleOpen, setTroubleOpen] = React.useState(false);
   const [healthOpen, setHealthOpen] = React.useState(false);
-  const [aiOpen, setAiOpen] = React.useState(false); // TODO[CL]: ONDA 4 — AI dialog
+  const [aiOpen, setAiOpen] = React.useState(false);
+  const [aiQuery, setAiQuery] = React.useState('');
+  const [historyOpen, setHistoryOpen] = React.useState(false);
   const [composerOpen, setComposerOpen] = React.useState(false);
   const [editingNode, setEditingNode] = React.useState<KbNode | null>(null);
 
@@ -237,12 +258,18 @@ function KbIndexV2(props: KbIndexProps) {
     searchInputRef.current?.select();
   }, []);
 
+  const openAi = React.useCallback((q = '') => {
+    setAiQuery(q);
+    setAiOpen(true);
+  }, []);
+
   const closeAllOverlays = React.useCallback(() => {
     setPaletteOpen(false);
     setPathsOpen(false);
     setTroubleOpen(false);
     setHealthOpen(false);
     setAiOpen(false);
+    setHistoryOpen(false);
     setComposerOpen(false);
   }, []);
 
@@ -281,7 +308,7 @@ function KbIndexV2(props: KbIndexProps) {
     onOpenPalette: () => setPaletteOpen(true),
     onFocusSearch: focusSearchInput,
     onCloseAll: () => {
-      if (paletteOpen || troubleOpen || aiOpen || pathsOpen || healthOpen || composerOpen) {
+      if (paletteOpen || troubleOpen || aiOpen || pathsOpen || healthOpen || composerOpen || historyOpen) {
         closeAllOverlays();
       } else if (activeNode) {
         closeNode();
@@ -303,7 +330,7 @@ function KbIndexV2(props: KbIndexProps) {
       if (!activeNode && filteredNodes[0]) openNode(filteredNodes[0].id);
     },
     onNewArticle: () => { setEditingNode(null); setComposerOpen(true); },
-    onOpenAI: () => setAiOpen(true),
+    onOpenAI: () => openAi(),
     onToggleFav: () => {
       if (activeNode) {
         toggleFav(activeNode.id);
@@ -321,24 +348,36 @@ function KbIndexV2(props: KbIndexProps) {
 
   // ── Ações com toast (V1 mock; ONDA 1 vira fetch real) ─────────
   const voteHelpful = (id: number) => {
-    // TODO[CL]: ONDA 1 — POST /kb/nodes/{id}/vote {kind:'helpful'}
-    toast.success('Voto registrado — obrigado!');
+    const n = baseNodes.find((x) => x.id === id);
+    if (!n) return;
+    kbPost(`/kb/nodes/${n.slug}/vote`, { kind: 'helpful' })
+      .then(() => toast.success('Voto registrado — obrigado!'))
+      .catch(() => toast.error('Falha ao registrar voto.'));
   };
   const voteOutdated = (id: number) => {
-    // TODO[CL]: ONDA 1 — POST /kb/nodes/{id}/vote {kind:'outdated'}
-    toast.success('Marcado como possivelmente desatualizado');
+    const n = baseNodes.find((x) => x.id === id);
+    if (!n) return;
+    kbPost(`/kb/nodes/${n.slug}/vote`, { kind: 'outdated' })
+      .then(() => toast.success('Marcado como possivelmente desatualizado'))
+      .catch(() => toast.error('Falha ao registrar voto.'));
   };
   const reverify = (id: number) => {
-    // TODO[CL]: ONDA 1 — POST /kb/nodes/{slug}/reverify (requer kb.write)
-    toast.success('Artigo re-verificado e marcado como fresco');
+    const n = baseNodes.find((x) => x.id === id);
+    if (!n) return;
+    kbPost(`/kb/nodes/${n.slug}/reverify`)
+      .then(() => {
+        toast.success('Artigo re-verificado e marcado como fresco');
+        router.reload({ only: ['nodes'] });
+      })
+      .catch(() => toast.error('Falha ao re-verificar.'));
   };
   const attachToOS = (id: number) => {
     // TODO[CL]: ONDA 6 — POST /kb/nodes/{slug}/attach-to-current-os
     toast.success('Artigo anexado à OS ativa');
   };
   const summarizeAI = (id: number) => {
-    // TODO[CL]: ONDA 4 — POST /kb/ai/summarize/{slug}
-    toast.info('Resumo IA — em breve (ONDA 4)');
+    const n = baseNodes.find((x) => x.id === id);
+    openAi(`Resuma em tópicos o procedimento "${n?.title ?? ''}".`);
   };
   const onPresent = () => {
     // TODO[CL]: ONDA 5 — KBPresenter slides
@@ -348,10 +387,7 @@ function KbIndexV2(props: KbIndexProps) {
     // TODO[CL]: ONDA 5 — KBPrintSOP modal
     toast.info('Imprimir SOP — em breve (ONDA 5)');
   };
-  const onHistory = () => {
-    // TODO[CL]: ONDA 3 — GET /kb/nodes/{slug}/versions + restore
-    toast.info('Histórico de versões — em breve (ONDA 3)');
-  };
+  const onHistory = () => setHistoryOpen(true);
   const onEdit = () => {
     setEditingNode(baseNodes.find((n) => n.id === activeNodeId) ?? null);
     setComposerOpen(true);
@@ -384,7 +420,7 @@ function KbIndexV2(props: KbIndexProps) {
                 variant="ghost"
                 size="sm"
                 className="h-8 text-xs text-primary"
-                onClick={() => setAiOpen(true)}
+                onClick={() => openAi()}
               >
                 <Sparkles size={13} className="mr-1.5" />
                 Perguntar ao KB
@@ -413,10 +449,7 @@ function KbIndexV2(props: KbIndexProps) {
                 variant="ghost"
                 size="sm"
                 className="h-8 text-xs"
-                onClick={() => {
-                  // TODO[CL]: ONDA 5 — router.visit('/kb/graph')
-                  toast.info('Visualização-grafo — ONDA 5');
-                }}
+                onClick={() => router.visit('/kb/graph')}
               >
                 <Network size={13} className="mr-1.5" />
                 Grafo
@@ -561,15 +594,7 @@ function KbIndexV2(props: KbIndexProps) {
         nodes={baseNodes}
         categories={categories}
         onPickNode={openNode}
-        onAskAI={
-          can.ai_ask
-            ? (q) => {
-                // TODO[CL]: ONDA 4 — passar query pra AI Dialog
-                setAiOpen(true);
-                toast.info(`Perguntando à IA: "${q}" (ONDA 4)`);
-              }
-            : undefined
-        }
+        onAskAI={can.ai_ask ? (q) => openAi(q) : undefined}
       />
 
       <PathsDialog
@@ -585,7 +610,7 @@ function KbIndexV2(props: KbIndexProps) {
         onOpenChange={setTroubleOpen}
         troubleshooters={troubleshooters}
         onPickByRef={pickByRef}
-        onAskAI={can.ai_ask ? () => setAiOpen(true) : undefined}
+        onAskAI={can.ai_ask ? () => openAi() : undefined}
       />
 
       <HealthPanel
@@ -595,7 +620,13 @@ function KbIndexV2(props: KbIndexProps) {
         onPickNode={openNode}
       />
 
-      {/* TODO[CL]: ONDA 4 — AI Dialog (Perguntar ao KB com citações) */}
+      <KbAiDialog open={aiOpen} onOpenChange={setAiOpen} initialQuery={aiQuery} />
+
+      <KbHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        node={activeNode}
+      />
 
       <KbComposer
         open={composerOpen}

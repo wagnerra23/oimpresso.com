@@ -177,4 +177,29 @@ class KbNodeController extends Controller
 
         return response()->json(['ok' => true, 'last_verified_at' => $node->last_verified_at]);
     }
+
+    /**
+     * POST /kb/nodes/{slug}/vote — voto "útil" / "desatualizado".
+     *
+     * body: { kind: 'helpful' | 'outdated' }
+     * Incrementa o contador correspondente (helpful_count / outdated_votes).
+     * Atômico via increment() — não muda body, não dispara version snapshot.
+     * Multi-tenant Tier 0: o where(slug) roda dentro do global scope business_id.
+     */
+    public function vote(Request $request, string $slug): JsonResponse
+    {
+        $validated = $request->validate([
+            'kind' => ['required', 'string', 'in:helpful,outdated'],
+        ]);
+
+        $node   = KbNode::query()->where('slug', $slug)->firstOrFail();
+        $column = $validated['kind'] === 'helpful' ? 'helpful_count' : 'outdated_votes';
+        $node->increment($column);
+
+        return response()->json([
+            'ok'             => true,
+            'helpful_count'  => $node->helpful_count,
+            'outdated_votes' => $node->outdated_votes,
+        ]);
+    }
 }

@@ -50,13 +50,10 @@ Route::group(
             return \Inertia\Inertia::render('kb/Graph');
         })->name('kb.graph.page');
 
-        // /kb/graph/data — endpoint JSON pro Reactflow.
-        // V1 placeholder: retorna estrutura vazia; frontend cai automaticamente
-        // pra mockGraphData.ts (badge "modo mock" visível). Agent A substitui
-        // por KbGraphController@vis real (Inertia::defer business_id scope).
-        Route::get('/graph/data', function () {
-            return response()->json(['nodes' => [], 'edges' => [], 'kpis' => null]);
-        })->name('kb.graph.data');
+        // /kb/graph/data — endpoint JSON pro Reactflow (ONDA 6, Agent A · ADR 0150).
+        // Retorna {nodes, edges, kpis} já no shape ReactFlow/Cytoscape, scoped por
+        // business_id (BelongsToBusinessTrait). Frontend cai pro mock só se 404.
+        Route::get('/graph/data', 'KbGraphController@data')->name('kb.graph.data');
 
         // ---- Charters (ADR 0243) — interface do Charter Governance ----
         // Lista os *.charter.md (sincronizados em mcp_memory_documents) reusando
@@ -100,6 +97,8 @@ Route::group(
             ->where('slug', '[A-Za-z0-9\-_]+')->name('kb.nodes.restore');
         Route::post('/nodes/{slug}/reverify',             'KbNodeController@reverify')
             ->where('slug', '[A-Za-z0-9\-_]+')->name('kb.nodes.reverify');
+        Route::post('/nodes/{slug}/vote',                 'KbNodeController@vote')
+            ->where('slug', '[A-Za-z0-9\-_]+')->name('kb.nodes.vote');
 
         // Versões.
         Route::get('/nodes/{slug}/versions',              'KbVersionController@index')

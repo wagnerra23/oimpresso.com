@@ -168,17 +168,11 @@ class KbOperacionalSeeder extends Seeder
         );
 
         if ($tree->wasRecentlyCreated || $tree->steps()->count() === 0) {
-            // Step 1: tinta?
-            $s1 = KbDecisionTreeStep::withoutGlobalScopes()->create([
-                'business_id' => $businessId,
-                'tree_id'     => $tree->id,
-                'position'    => 1,
-                'question'    => 'O painel da Roland mostra alerta de tinta baixa?',
-                // SIM → fix imediato
-                'yes_fix'     => 'Troque o cartucho de tinta da cor sinalizada. Aguarde a Roland reconhecer (~30s) e tente reimprimir.',
-                // NÃO → próximo step
-                // (linkamos no segundo passe)
-            ]);
+            // Step 2 criado ANTES do step 1: o observer valida no `saving` que
+            // cada branch tenha EXATAMENTE UM de (next_step_id, fix). Criar s2
+            // primeiro deixa o id disponível pra s1 já nascer com no_next_step_id
+            // preenchido (em vez de salvar s1 com branch 'no' vazio e linkar depois,
+            // que estourava DomainException em tree=N pos=1).
 
             // Step 2: cabeça?
             $s2 = KbDecisionTreeStep::withoutGlobalScopes()->create([
@@ -190,10 +184,18 @@ class KbOperacionalSeeder extends Seeder
                 'no_fix'      => 'Verifique a conexão VersaWorks ↔ Roland (USB ou rede). Se OK, reinicie o computador e Roland. Se persistir, abra OS de manutenção.',
             ]);
 
-            // Link s1.no_next_step_id → s2
-            $s1->no_next_step_id = $s2->id;
-            $s1->no_fix = null;
-            $s1->save();
+            // Step 1: tinta? (root) — branch SIM com fix imediato, branch NÃO
+            // encadeia pro step 2 já no create (invariante do observer satisfeita).
+            $s1 = KbDecisionTreeStep::withoutGlobalScopes()->create([
+                'business_id'      => $businessId,
+                'tree_id'          => $tree->id,
+                'position'         => 1,
+                'question'         => 'O painel da Roland mostra alerta de tinta baixa?',
+                // SIM → fix imediato
+                'yes_fix'          => 'Troque o cartucho de tinta da cor sinalizada. Aguarde a Roland reconhecer (~30s) e tente reimprimir.',
+                // NÃO → próximo step (test pattern de cabeça)
+                'no_next_step_id'  => $s2->id,
+            ]);
 
             // Root step.
             $tree->root_step_id = $s1->id;
