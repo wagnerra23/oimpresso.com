@@ -17,6 +17,8 @@ import {
 } from '@/Components/ui/select';
 
 interface Linha {
+  uid: string;                  // "ofx:123" | "api:456" — chave estável (2 origens)
+  origem: 'ofx' | 'api';        // OFX upload manual | extrato sync API (ADR 0236 Fase 1)
   id: number;
   data_movimento: string;
   descricao: string;
@@ -73,14 +75,14 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
     });
   };
 
-  const confirmarMatch = (lineId: number, tituloId: number) => {
-    router.post(`/financeiro/conciliacao/${lineId}/match`, { titulo_id: tituloId }, {
+  const confirmarMatch = (lineId: number, tituloId: number, origem: Linha['origem']) => {
+    router.post(`/financeiro/conciliacao/${lineId}/match`, { titulo_id: tituloId, origem }, {
       preserveScroll: true,
     });
   };
 
-  const ignorar = (lineId: number) => {
-    router.post(`/financeiro/conciliacao/${lineId}/ignorar`, {}, { preserveScroll: true });
+  const ignorar = (lineId: number, origem: Linha['origem']) => {
+    router.post(`/financeiro/conciliacao/${lineId}/ignorar`, { origem }, { preserveScroll: true });
   };
 
   const filtradas = linhas.filter((l) =>
@@ -200,6 +202,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <thead>
             <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
               <th className="px-3 py-2 text-left font-medium w-[100px]">Data</th>
+              <th className="px-3 py-2 text-center font-medium w-[80px]">Origem</th>
               <th className="px-3 py-2 text-left font-medium">Descrição</th>
               <th className="px-3 py-2 text-right font-medium w-[120px]">Valor</th>
               <th className="px-3 py-2 text-center font-medium w-[100px]">Tipo</th>
@@ -210,7 +213,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <tbody>
             {filtradas.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-stone-500">
+                <td colSpan={7} className="py-12 text-center text-stone-500">
                   {linhas.length === 0
                     ? 'Nenhuma linha importada. Faça upload de um arquivo OFX acima pra começar.'
                     : 'Nenhuma linha encontrada com filtros atuais.'}
@@ -218,8 +221,20 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
               </tr>
             )}
             {filtradas.map((l) => (
-              <tr key={l.id} className="border-b border-stone-100 hover:bg-stone-50/50">
+              <tr key={l.uid} className="border-b border-stone-100 hover:bg-stone-50/50">
                 <td className="px-3 py-2 font-mono text-[12px] text-stone-600">{l.data_movimento.slice(0, 10)}</td>
+                <td className="px-3 py-2 text-center">
+                  <span
+                    className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                      l.origem === 'api'
+                        ? 'bg-accent text-accent-foreground border-transparent'
+                        : 'bg-transparent text-muted-foreground border-border'
+                    }`}
+                    title={l.origem === 'api' ? 'Sincronizado via API do banco' : 'Importado de arquivo OFX'}
+                  >
+                    {l.origem === 'api' ? 'Banco' : 'OFX'}
+                  </span>
+                </td>
                 <td className="px-3 py-2">
                   <div className="truncate max-w-[400px]">{l.descricao}</div>
                   {l.source_file && (
@@ -244,7 +259,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
                       type="button"
                       className="os-btn ghost fin-btn-trilha"
                       style={{ padding: '4px 8px', fontSize: 11 }}
-                      onClick={() => confirmarMatch(l.id, l.titulo_id!)}
+                      onClick={() => confirmarMatch(l.id, l.titulo_id!, l.origem)}
                       title="Confirmar match"
                     >
                       <Check size={11} /> Confirmar
@@ -255,7 +270,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
                       type="button"
                       className="os-btn ghost"
                       style={{ padding: '4px 8px', fontSize: 11, color: 'oklch(0.55 0.10 25)' }}
-                      onClick={() => ignorar(l.id)}
+                      onClick={() => ignorar(l.id, l.origem)}
                       title="Ignorar linha"
                     >
                       <X size={11} /> Ignorar
