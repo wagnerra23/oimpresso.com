@@ -9,9 +9,10 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
-import { Upload, Check, X, Search, Inbox } from 'lucide-react';
+import { Upload, Check, X, Search, Inbox, RotateCcw } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
+import { Checkbox } from '@/Components/ui/checkbox';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
@@ -41,6 +42,7 @@ interface Props {
   linhas: Linha[];
   stats: Stats;
   contas: { id: number; nome: string }[];
+  filters: { incluir_resolvidos: boolean };
 }
 
 const brl = (v: number) =>
@@ -53,7 +55,7 @@ const STATUS_CLR: Record<Linha['status'], string> = {
   ignorado:   'bg-stone-100 text-stone-400 border-stone-200',
 };
 
-function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
+function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
   const [busca, setBusca] = useState('');
 
   const uploadForm = useForm<{ arquivo: File | null; conta_bancaria_id: string }>({
@@ -83,6 +85,21 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
 
   const ignorar = (lineId: number, origem: Linha['origem']) => {
     router.post(`/financeiro/conciliacao/${lineId}/ignorar`, { origem }, { preserveScroll: true });
+  };
+
+  // Reabrir (undo): volta linha conciliada/ignorada pra pendente.
+  const reabrir = (lineId: number, origem: Linha['origem']) => {
+    router.post(`/financeiro/conciliacao/${lineId}/reabrir`, { origem }, { preserveScroll: true });
+  };
+
+  // Toggle "ver conciliados/ignorados" — recarrega o index com/sem o query param.
+  // GET só dos dados de `linhas`+`filters` (preserva scroll/estado de form).
+  const toggleResolvidos = () => {
+    router.get(
+      '/financeiro/conciliacao',
+      filters.incluir_resolvidos ? {} : { incluir_resolvidos: 1 },
+      { preserveScroll: true, preserveState: true, only: ['linhas', 'filters'] },
+    );
   };
 
   const filtradas = linhas.filter((l) =>
@@ -184,15 +201,25 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
         </p>
       </div>
 
-      {/* Filtro busca */}
+      {/* Filtro busca + toggle "ver conciliados/ignorados" */}
       {linhas.length > 0 && (
-        <div className="mt-4 fin-search-wrap" style={{ maxWidth: 400 }}>
-          <Search size={13} aria-hidden="true" />
-          <input
-            placeholder="Buscar por descrição…"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="fin-search-wrap" style={{ maxWidth: 400, flex: 1 }}>
+            <Search size={13} aria-hidden="true" />
+            <input
+              placeholder="Buscar por descrição…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
+          <label htmlFor="conc-incluir-resolvidos" className="flex items-center gap-1.5 text-[12px] text-stone-600 cursor-pointer select-none">
+            <Checkbox
+              id="conc-incluir-resolvidos"
+              checked={filters.incluir_resolvidos}
+              onCheckedChange={() => toggleResolvidos()}
+            />
+            Ver conciliados/ignorados
+          </label>
         </div>
       )}
 
@@ -274,6 +301,17 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
                       title="Ignorar linha"
                     >
                       <X size={11} /> Ignorar
+                    </button>
+                  )}
+                  {(l.status === 'conciliado' || l.status === 'ignorado') && (
+                    <button
+                      type="button"
+                      className="os-btn ghost"
+                      style={{ padding: '4px 8px', fontSize: 11 }}
+                      onClick={() => reabrir(l.id, l.origem)}
+                      title="Reabrir — volta para pendente"
+                    >
+                      <RotateCcw size={11} /> Reabrir
                     </button>
                   )}
                 </td>
