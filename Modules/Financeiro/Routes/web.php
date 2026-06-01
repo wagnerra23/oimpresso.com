@@ -174,6 +174,8 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->name('contas-bancarias.upsert');
 
         // Extrato bancário — leitura via Banking API (US-RB-046)
+        // Entrada sem id (sidebar/topnav) → resolve pra 1ª conta do business (bug B4).
+        Route::get('/extrato', [ExtratoController::class, 'selecionar'])->name('extrato.selecionar');
         Route::get('/extrato/{contaBancariaId}', [ExtratoController::class, 'index'])
             ->whereNumber('contaBancariaId')
             ->name('extrato.index');
