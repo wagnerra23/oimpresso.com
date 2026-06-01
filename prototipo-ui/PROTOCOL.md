@@ -98,8 +98,12 @@ A adicionar em `php artisan jana:health-check`:
 | `design_critique_skipped` | conta `prototipos/*/critique-score.json` ausentes | ≥1 protótipo sem critique |
 | `design_a11y_skipped` | conta merges sem `a11y-report.md` no path | ≥1 merge sem a11y |
 | `design_loop_active_count` | conta entradas `HANDOFF.md` em fase ≠ done | informativo |
+| `design_review_missing` | tela charter `status: live` sem `<Tela>.review.md` **fora** do `review-freshness-baseline.json` (ratchet) — `node prototipo-ui/audit/review-freshness.mjs` | ≥1 (tela nova nasceu sem review) |
+| `design_review_stale` | `<Tela>.review.md` cujo `measured_against_sha` ≠ sha do último commit que tocou o `.tsx` | informativo na v1 (advisory) · vira ≥1 ao hardenizar o ratchet |
 
 Falha → ALERT em `storage/logs/laravel.log`.
+
+> Os 2 checks `design_review_*` (charter page viva — o `<Tela>.review.md` é o relatório de tarefas por tela ao lado do `.charter.md`) são gerados por `prototipo-ui/audit/review-gen.mjs` (`npm run design:review <Mod/Tela>`) e auditados por `review-freshness.mjs` (`npm run design:review:check`) + `tests/Feature/Design/DesignReviewFreshnessTest.php`. Ratchet = `review-freshness-baseline.json` (espelha `config/eslint-baseline.json`, ADR 0209): só FALHA por tela live nova fora do baseline; o baseline só encolhe. Ver proposta `memory/decisions/proposals/design-review-por-tela-charter-page.md` (evolução do loop · mãe 0114/0236/0239).
 
 ## 7. Como lidar com batch (várias telas relacionadas)
 
