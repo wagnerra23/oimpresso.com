@@ -5,7 +5,7 @@
 > **Escopo:** migrar as linhas de `fin_bank_statement_lines` (OFX) PARA
 > `fin_extrato_lancamentos` (canônica), unificando a chave de dedupe, e reapontar
 > o `upload()` OFX pra gravar na tabela canônica. A tabela antiga vira read-only.
-> **Status:** PLANO — aguarda gate Wagner. NÃO implementar sem aprovação + sinal.
+> **Status:** CODIGO IMPLEMENTADO (2026-06-01) — Wagner deu o sinal (ADR 0105). Migrations + command financeiro:backfill-extrato-ofx + Pest (8 passed) prontos. O backfill em PRODUCAO ainda e gate humano (canary biz=1 -> biz=4). Fundacao codavel entregue.
 
 ---
 
