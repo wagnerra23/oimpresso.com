@@ -39,9 +39,8 @@ Route::group(
         // Page Inertia tri-pane portada do Cowork. Tem fallback mock interno —
         // Wagner abre /kb/v2 e vê 18 nós seed pra aprovar screenshot ADR 0114
         // ANTES de cutover Index.tsx V3 → Index.v2.tsx (Wagner decide).
-        Route::get('/v2', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('kb.v2');
+        // /kb/v2 = Procedimentos Operacionais Padrão (SOPs) — banco REAL (ADR 0149/0150 ONDA 1).
+        Route::get('/v2', 'KbController@indexV2')->name('kb.v2');
 
         // ---- Grafo (ONDA 5, Agent E) — vis-grafo Reactflow ----
         // Page Inertia com mock 50 nodes / 64 edges quando /kb/graph/data não
@@ -181,9 +180,7 @@ Route::group(
         'prefix'     => 'sops',
     ],
     function () {
-        Route::get('/', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('sops.index');
+        Route::get('/', [\Modules\KB\Http\Controllers\KbController::class, 'indexV2'])->name('sops.index');
     }
 );
 

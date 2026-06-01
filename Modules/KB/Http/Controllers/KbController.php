@@ -8,6 +8,10 @@ use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\KB\Entities\KbCategory;
+use Modules\KB\Entities\KbNode;
+use Modules\KB\Entities\KbPath;
+use Modules\KB\Entities\KbSubcategory;
 
 /**
  * KbController — Knowledge Base browser dos documentos servidos via MCP server.
@@ -211,5 +215,107 @@ class KbController extends Controller
             ],
             'versions' => $rows,
         ]);
+    }
+
+    // ── ONDA 1 (ADR 0149/0150): /kb/v2 = /sops — Procedimentos Operacionais Padrão ──
+    // Liga a tela Index.v2 (tri-pane Cowork) ao banco REAL (kb_nodes articles),
+    // tirando o modo MOCK. A tela usa `props.nodes` pra decidir real vs mock.
+
+    public function indexV2(Request $request): Response
+    {
+        $filters = [
+            'q'           => trim((string) $request->get('q', '')),
+            'category'    => $request->get('category'),
+            'subcategory' => $request->get('subcategory'),
+            'tag'         => $request->get('tag'),
+            'sort'        => (string) $request->get('sort', 'recent'),
+        ];
+
+        return Inertia::render('kb/Index.v2', [
+            'filters'       => $filters,
+            'github_repo'   => 'wagnerra23/oimpresso.com',
+            'categories'    => KbCategory::query()->orderBy('sort_order')->orderBy('label')->get(),
+            'subcategories' => KbSubcategory::query()->get(),
+            'paths'         => KbPath::query()->where('status', 'published')->get(),
+            'pinned'        => KbNode::query()->editable()->where('pinned', true)
+                                ->orderByDesc('updated_at')->limit(10)->get(),
+            'nodes'         => $this->buildV2Nodes($filters),
+            'kpis'          => $this->buildV2Kpis(),
+            'tags_top'      => $this->buildV2TagsTop(),
+            'can'           => [
+                'write' => true, 'publish_path' => true, 'publish_troubleshoot' => true,
+                'ai_ask' => true, 'graph_view' => true, 'favorite' => true, 'comment' => true,
+            ],
+        ]);
+    }
+
+    /** kb_nodes operacionais (articles = SOPs) filtrados + ordenados + paginados. */
+    protected function buildV2Nodes(array $filters)
+    {
+        $q = KbNode::query()->editable()->active();
+
+        if ($filters['q'] !== '') {
+            $q->search($filters['q']);
+        }
+        if (! empty($filters['category']) && $filters['category'] !== 'all') {
+            $catId = KbCategory::query()->where('slug', $filters['category'])->value('id');
+            if ($catId) {
+                $q->where('category_id', $catId);
+            }
+        }
+        if (! empty($filters['subcategory'])) {
+            $subId = KbSubcategory::query()->where('slug', $filters['subcategory'])->value('id');
+            if ($subId) {
+                $q->where('subcategory_id', $subId);
+            }
+        }
+        if (! empty($filters['tag'])) {
+            $q->whereJsonContains('tags', $filters['tag']);
+        }
+
+        $sortCol = match ($filters['sort']) {
+            'popular'  => 'reads_count',
+            'helpful'  => 'helpful_count',
+            'outdated' => 'outdated_votes',
+            default    => 'updated_at',
+        };
+
+        return $q->orderByDesc('pinned')->orderByDesc($sortCol)
+            ->select(['id', 'business_id', 'type', 'slug', 'title', 'excerpt', 'is_editable',
+                      'status', 'pinned', 'category_id', 'subcategory_id', 'nivel', 'equip', 'tags',
+                      'reads_count', 'helpful_count', 'outdated_votes', 'os_linked_count',
+                      'author_user_id', 'read_time_min', 'last_verified_at', 'updated_at'])
+            ->paginate(40)
+            ->withQueryString();
+    }
+
+    /** @return array<string, mixed> */
+    protected function buildV2Kpis(): array
+    {
+        return [
+            'total'           => KbNode::query()->editable()->count(),
+            'outdated'        => KbNode::query()->editable()
+                                    ->where(fn ($w) => $w->where('status', 'outdated')->orWhere('outdated_votes', '>', 0))->count(),
+            'fresh_last_14d'  => KbNode::query()->editable()->where('updated_at', '>=', now()->subDays(14))->count(),
+            'total_reads'     => (int) KbNode::query()->editable()->sum('reads_count'),
+            'total_os_linked' => (int) KbNode::query()->editable()->sum('os_linked_count'),
+            'most_read'       => KbNode::query()->editable()->orderByDesc('reads_count')->first(['id', 'title', 'reads_count']),
+            'pinned_count'    => KbNode::query()->editable()->where('pinned', true)->count(),
+            'ultimo_sync'     => KbNode::query()->editable()->max('updated_at'),
+        ];
+    }
+
+    /** @return array<int, array{tag:string, count:int}> */
+    protected function buildV2TagsTop(): array
+    {
+        $counts = [];
+        KbNode::query()->editable()->whereNotNull('tags')->pluck('tags')->each(function ($tags) use (&$counts) {
+            foreach ((array) $tags as $t) {
+                $counts[$t] = ($counts[$t] ?? 0) + 1;
+            }
+        });
+        arsort($counts);
+
+        return collect($counts)->take(16)->map(fn ($c, $t) => ['tag' => $t, 'count' => $c])->values()->all();
     }
 }
