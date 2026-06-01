@@ -27,7 +27,10 @@ use Modules\Jana\Services\CharterHealthChecker;
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
- *  10-15. Charter/loop health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
+ *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
+ *      reachable; alerta ANTES da degradação silenciosa (chat responde sem
+ *      recall, NÃO estoura 500). McpMemoriaDriver já degrada gracioso.
+ *  11-16. Charter/loop health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
  *      charter_missing, charter_stale (>90d), charter_refs_broken,
  *      charter_method_missing, readme_handoff_block_missing (L-18),
  *      design_return_skipped (retorno §10.2 atrás do SYNC_LOG · G4).
@@ -45,7 +48,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (9 checks SQL + 6 charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (10 checks SQL + 6 charter/loop advisory)';
 
     public function handle(): int
     {
@@ -59,6 +62,7 @@ class HealthCheckCommand extends Command
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
             $this->checkMcpWebhookHealth2h(),
+            $this->checkMemoriaRecallBackend(),
             // Charter health (advisory — não falha exit/cron). PROTOCOL §6.
             ...CharterHealthChecker::fromApp()->checks(),
         ];
@@ -568,6 +572,75 @@ class HealthCheckCommand extends Command
                 'value' => null,
                 'threshold' => 0,
                 'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Check 10 — Memoria recall backend (resiliência Meilisearch, ponto único de falha).
+     *
+     * O recall (tool `memoria-search`) é servido pelo MCP server CT 100 que consulta
+     * Meilisearch. Se Meilisearch/MCP cai, o McpMemoriaDriver degrada SILENCIOSAMENTE
+     * (retorna [] → chat responde sem memória, NÃO estoura 500). Bom pro usuário,
+     * cego pro ops. Este check é o alarme: prova reachability 1×/dia e alerta ANTES
+     * de alguém perceber "a Jana esqueceu tudo". Check DURO (não-advisory): recall
+     * down derruba o exit code e dispara o ALERT de cron.
+     *
+     * Skip silencioso em dev/CI (sem COPILOTO_MCP_SYSTEM_TOKEN → fallback local,
+     * não há backend remoto pra checar).
+     *
+     * @see Modules/Jana/Services/Memoria/McpMemoriaDriver.php (degradação graciosa)
+     */
+    protected function checkMemoriaRecallBackend(): array
+    {
+        $name = 'memoria_recall_backend';
+        $url = (string) config('copiloto.mcp.url', 'https://mcp.oimpresso.com/api/mcp');
+        $token = (string) config('copiloto.mcp.system_token', env('COPILOTO_MCP_SYSTEM_TOKEN', ''));
+
+        // Sem token = ambiente sem recall remoto (dev/CI). Não é falha — pula.
+        if ($url === '' || $token === '') {
+            return [
+                'name' => $name,
+                'ok' => true,
+                'value' => 'n/a',
+                'threshold' => 'reachable',
+                'message' => 'Skipped (recall MCP não configurado — dev/CI usa fallback local)',
+            ];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($token, 'Bearer')
+                ->withHeaders(['Content-Type' => 'application/json', 'Accept' => 'application/json'])
+                ->timeout((int) config('copiloto.mcp.timeout_seconds', 5))
+                ->post($url, [
+                    'jsonrpc' => '2.0',
+                    'id' => 1,
+                    'method' => 'tools/call',
+                    'params' => [
+                        'name' => 'memoria-search',
+                        'arguments' => ['query' => 'health', 'business_id' => 1, 'limit' => 1],
+                    ],
+                ]);
+
+            $ok = $response->ok();
+
+            return [
+                'name' => $name,
+                'ok' => $ok,
+                'value' => $ok ? 'up' : (string) $response->status(),
+                'threshold' => 'reachable',
+                'message' => $ok
+                    ? 'Recall backend (MCP/Meilisearch) respondendo — memória ativa'
+                    : "ALERTA: recall backend não-OK ({$response->status()}) — chat degrada SEM memória (não estoura 500). Checar MCP server + Meilisearch CT 100.",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => 'down',
+                'threshold' => 'reachable',
+                'message' => 'ALERTA: recall backend inacessível (' . mb_substr($e->getMessage(), 0, 80)
+                    . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
         }
     }
