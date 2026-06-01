@@ -1,6 +1,9 @@
 ---
 module: Crm
-purpose: "UltimatePOS herdado (CRM core)."
+# ⚠️ Crm É o módulo de CLIENTE / contatos do cliente. UltimatePOS herdou o nome
+# "Crm" — NÃO existe Modules/Cliente. Requisitos canônicos: memory/requisitos/Crm/
+# (memory/requisitos/Cliente/ é legado/stale). Ver memory/reference/crm-e-o-modulo-de-cliente.md
+purpose: "Módulo de CLIENTE / contatos do cliente (UPOS herdou o nome 'Crm'; NÃO existe Modules/Cliente): cadastro, drawer 760px com aba Endereço, múltiplos endereços (US-CRM-078)."
 contains:
   - "CallLogController"
   - "CampaignController"
