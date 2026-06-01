@@ -2,7 +2,7 @@
 tela: /financeiro/conciliacao
 component: resources/js/Pages/Financeiro/Conciliacao/Index.tsx
 charter: resources/js/Pages/Financeiro/Conciliacao/Index.charter.md
-status: aprovado
+status: approved
 related_adrs: [0093, 0104, 0107, 0236]
 data: 2026-05-31
 ---
