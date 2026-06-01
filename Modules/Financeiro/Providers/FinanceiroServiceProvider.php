@@ -115,6 +115,10 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // tipo expense (core UltimatePOS) → fin_titulos AP (Financeiro).
                 // Idempotente via UNIQUE(business_id, origem, origem_id, parcela_numero).
                 \Modules\Financeiro\Console\Commands\BridgeExpenseToTitulosCommand::class,
+                // Fase 2 ADR 0236 — backfill OFX (fin_bank_statement_lines) →
+                // fin_extrato_lancamentos (canônica). Idempotente, --business
+                // obrigatório (Tier 0), --dry default-seguro. Unifica external_id.
+                \Modules\Financeiro\Console\Commands\BackfillExtratoOfxCommand::class,
             ]);
         }
     }
