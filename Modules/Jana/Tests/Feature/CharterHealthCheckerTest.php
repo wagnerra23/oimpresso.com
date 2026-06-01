@@ -219,3 +219,45 @@ it('repo real (fromApp): roda os 5 checks advisory sem quebrar', function () {
         expect($c['advisory'])->toBeTrue();
     }
 });
+
+// ── design_return_skipped (G4 / COWORK_NOTES #1 — retorno §10.2) ──────────────
+
+it('design_return_skipped OK quando HANDOFF >= ultimo SYNC_LOG', function () {
+    $tmp = charterHcTmp([
+        'prototipo-ui/HANDOFF.md' => "# HANDOFF\n\n## Estado atual: 2026-06-01 — x\n",
+        'prototipo-ui/SYNC_LOG.md' => "2026-05-30 ~10:00 [CL] a merged PR #1\n2026-06-01 ~01:00 [CL] b merged PR #2\n",
+    ]);
+
+    $row = charterHcRow((new CharterHealthChecker($tmp))->checks(), 'design_return_skipped');
+
+    expect($row['ok'])->toBeTrue()->and($row['advisory'])->toBeTrue();
+
+    charterHcRmrf($tmp);
+});
+
+it('design_return_skipped FLAG quando HANDOFF atras do ultimo SYNC_LOG', function () {
+    $tmp = charterHcTmp([
+        'prototipo-ui/HANDOFF.md' => "## Estado atual: 2026-05-29 — x\n",
+        'prototipo-ui/SYNC_LOG.md' => "2026-05-20 ~10:00 [CL] a merged PR #1\n2026-06-01 ~01:00 [CL] b merged PR #2\n",
+    ]);
+
+    $row = charterHcRow((new CharterHealthChecker($tmp))->checks(), 'design_return_skipped');
+
+    expect($row['ok'])->toBeFalse()
+        ->and($row['advisory'])->toBeTrue()
+        ->and($row['value'])->toContain('2026-05-29');
+
+    charterHcRmrf($tmp);
+});
+
+it('design_return_skipped n/a quando canais §10.2 ausentes', function () {
+    $tmp = charterHcTmp([
+        'resources/js/Pages/Demo/Index.tsx' => 'x',  // base existe, sem prototipo-ui/
+    ]);
+
+    $row = charterHcRow((new CharterHealthChecker($tmp))->checks(), 'design_return_skipped');
+
+    expect($row['ok'])->toBeTrue()->and($row['value'])->toBe('n/a');
+
+    charterHcRmrf($tmp);
+});
