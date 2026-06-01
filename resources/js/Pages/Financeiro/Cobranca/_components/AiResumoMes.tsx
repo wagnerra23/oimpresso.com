@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Btn } from './atoms';
-import { brl, cn, DRIVERS, type Cobranca, type CobrancaKpis, type GatewayKey } from '../_lib/cobranca-shared';
+import { brl, cn, copiar, DRIVERS, type Cobranca, type CobrancaKpis, type GatewayKey } from '../_lib/cobranca-shared';
 
 interface Props {
   kpis: CobrancaKpis;
@@ -28,6 +28,25 @@ export default function AiResumoMes({ kpis, cobs, onClose }: Props) {
   const sortedGws = Object.entries(porGateway).sort((a, b) => b[1] - a[1]);
   const topGw = sortedGws[0];
   const mandatosCount = cobs.filter(c => c.tipo === 'pix_recv').length;
+
+  // B6 "botões honestos" (2026-05-31): monta texto plain pra "Copiar resumo"
+  // (formato WhatsApp/email) a partir dos mesmos dados que o painel renderiza.
+  const resumoTexto = (): string => {
+    const linhas: string[] = [`*Resumo Cobrança · ${monthLabel()}*`, ''];
+    linhas.push(`• ${kpis.pago_mes.qtd} cobranças liquidadas — ${brl(kpis.pago_mes.valor)}`);
+    if (kpis.aberto.qtd > 0) linhas.push(`• Em aberto: ${brl(kpis.aberto.valor)} (${kpis.aberto.qtd} títulos)`);
+    if (kpis.vencido.qtd > 0) linhas.push(`• ⚠ Vencidas: ${kpis.vencido.qtd} — ${brl(kpis.vencido.valor)} · inadimplência ${inadimplencia}%`);
+    if (sortedGws.length > 0) {
+      linhas.push('', 'Por gateway:');
+      sortedGws.forEach(([gw, vl]) => {
+        const d = DRIVERS[gw as GatewayKey];
+        if (d) linhas.push(`  - ${d.nome}: ${brl(vl)}`);
+      });
+    }
+    if (mandatosCount > 0) linhas.push('', `• PIX Automático ativo em ${mandatosCount} mandato(s)`);
+    if (kpis.mrr_pago > 0) linhas.push(`• MRR SaaS cobrado: ${brl(kpis.mrr_pago)}`);
+    return linhas.join('\n');
+  };
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end" onClick={onClose} role="dialog" aria-modal="true" aria-label="Resumo IA do mês">
@@ -101,7 +120,7 @@ export default function AiResumoMes({ kpis, cobs, onClose }: Props) {
         <div className="border-t border-stone-200 p-3 bg-stone-50/60 flex items-center gap-2">
           <span className="text-[10.5px] text-stone-500">IA · gerado agora</span>
           <div className="flex-1" />
-          <Btn variant="outline" size="sm">Copiar resumo</Btn>
+          <Btn variant="outline" size="sm" onClick={() => copiar(resumoTexto(), 'Resumo copiado')}>Copiar resumo</Btn>
         </div>
       </div>
     </div>
