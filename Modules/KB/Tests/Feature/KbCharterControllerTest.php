@@ -7,11 +7,11 @@ use Inertia\Testing\AssertableInertia as Assert;
 /**
  * Smoke da tela /kb/charters — Charter Governance (ADR 0243).
  *
- * Valida: rota registrada, index lista os *.charter.md de mcp_memory_documents
- * (reuso do tri-pane), derivação módulo/tela do git_path, robustez do baseQuery
- * (type=charter OU git_path .charter.md) e gate de autenticação.
+ * Fonte = filesystem: o controller varre resources/js/Pages/**\/*.charter.md
+ * (charters são código, não memory/). Valida: rotas registradas, index lista os
+ * charters reais do repo, show devolve o conteúdo, anti path-traversal e auth.
  *
- * Tier 0: biz=1 (NUNCA biz=4 ROTA LIVRE). Reusa Modules/KB/Tests/Helpers.php.
+ * Tier 0: biz=1 (NUNCA biz=4). Reusa Modules/KB/Tests/Helpers.php só p/ auth.
  */
 
 beforeEach(function () {
@@ -23,58 +23,42 @@ afterEach(function () {
     kbTeardownSchema();
 });
 
-it('registra a rota nomeada kb.charters', function () {
+it('registra as rotas kb.charters e kb.charters.show', function () {
     expect(\Illuminate\Support\Facades\Route::has('kb.charters'))->toBeTrue();
+    expect(\Illuminate\Support\Facades\Route::has('kb.charters.show'))->toBeTrue();
 });
 
-it('lista charters e deriva módulo/tela do git_path', function () {
-    kbCreateMcpDoc(1, 'charter', [
-        'slug'       => 'cliente-index-charter',
-        'title'      => 'Page Charter — /cliente',
-        'content_md' => "# Mission\nListagem de clientes.",
-        'git_path'   => 'resources/js/Pages/Cliente/Index.charter.md',
-        'admin_only' => 0,
-    ]);
-
+it('lista charters varrendo resources/js/Pages', function () {
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage']);
 
     $this->get('/kb/charters')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('kb/Charters/Index')
-            ->has('charters', 1)
-            ->where('charters.0.module', 'Cliente')
-            ->where('charters.0.screen', 'Index')
-            ->where('kpis.total', 1)
+            ->has('charters')
+            ->where('kpis.total', fn ($t) => $t >= 1)
         );
 });
 
-it('pega charter por git_path mesmo quando type != charter (robustez baseQuery)', function () {
-    kbCreateMcpDoc(1, 'reference', [
-        'slug'       => 'sells-create-charter',
-        'title'      => 'Charter Sells/Create',
-        'git_path'   => 'resources/js/Pages/Sells/Create.charter.md',
-        'admin_only' => 0,
-    ]);
-
+it('devolve o conteúdo de um charter válido', function () {
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage']);
 
-    $this->get('/kb/charters')
+    // o próprio charter desta tela existe no repo
+    $path = 'resources/js/Pages/kb/Charters/Index.charter.md';
+
+    $this->getJson('/kb/charters/show?path='.urlencode($path))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->has('charters', 1));
+        ->assertJsonPath('path', $path)
+        ->assertJsonStructure(['path', 'content_md', 'github_url']);
 });
 
-it('não lista docs que não são charter', function () {
-    kbCreateMcpDoc(1, 'adr', [
-        'slug'     => '0093-multi-tenant',
-        'git_path' => 'memory/decisions/0093-multi-tenant-isolation-tier-0.md',
-    ]);
-
+it('bloqueia path traversal e arquivos fora de Pages (404)', function () {
     kbActAsUser(bizId: 1, permissions: ['copiloto.mcp.memory.manage']);
 
-    $this->get('/kb/charters')
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->has('charters', 0)->where('kpis.total', 0));
+    $this->getJson('/kb/charters/show?path='.urlencode('resources/js/Pages/../../.env'))
+        ->assertStatus(404);
+    $this->getJson('/kb/charters/show?path='.urlencode('config/app.php'))
+        ->assertStatus(404); // não termina em .charter.md / fora de Pages
 });
 
 it('exige autenticação', function () {

@@ -2,8 +2,9 @@
 //   tela: /kb/charters
 //   module: KB
 //   Reusa o tri-pane do kb/Index.tsx (AppShellV2 + PageHeader + KpiGrid + lista
-//   master + preview markdown + atalhos j/k/Enter/Esc//). Read-only: o núcleo do
-//   charter vem do git (ADR 0061). Governança (sugestão→aprovação) = F1 (US-CHTR-001..003).
+//   master + preview markdown + atalhos j/k/Enter/Esc//). Fonte = filesystem
+//   (KbCharterController varre resources/js/Pages/**/*.charter.md). Read-only:
+//   o núcleo do charter vem do git (ADR 0061). Governança (sugestão→aprovação) = F1.
 //   Spec: memory/requisitos/KB/INTERFACE-CHARTER-KB.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -28,15 +29,15 @@ import KpiCard from '@/Components/shared/KpiCard';
 import { toast } from 'sonner';
 
 interface CharterRow {
-  slug: string;
+  path: string;
   title: string;
   module: string | null;
   screen: string | null;
   level: 'page' | 'module';
-  git_path: string;
-  git_sha: string | null;
+  status: string | null;
+  tier: string | null;
+  owner: string | null;
   size_chars: number;
-  updated_at: string | null;
 }
 
 interface Props {
@@ -47,12 +48,10 @@ interface Props {
 }
 
 interface CharterDetail {
-  slug: string;
+  path: string;
   title: string;
   content_md: string;
-  git_path: string | null;
   github_url: string | null;
-  updated_at: string | null;
 }
 
 function fmtSize(chars: number): string {
@@ -61,10 +60,16 @@ function fmtSize(chars: number): string {
   return `${(chars / 1024).toFixed(1)}k`;
 }
 
+const STATUS_TONE: Record<string, string> = {
+  live: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+  wip: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  sunsetting: 'border-muted bg-muted text-muted-foreground',
+};
+
 export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
   const [moduleFilter, setModuleFilter] = useState<string>('__all__');
   const [search, setSearch] = useState('');
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [detail, setDetail] = useState<CharterDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const searchRef = useRef<HTMLInputElement | null>(null);
@@ -78,19 +83,19 @@ export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
     const term = search.trim().toLowerCase();
     return charters.filter((c) => {
       if (moduleFilter !== '__all__' && c.module !== moduleFilter) return false;
-      if (term && !`${c.title} ${c.git_path}`.toLowerCase().includes(term)) return false;
+      if (term && !`${c.title} ${c.path}`.toLowerCase().includes(term)) return false;
       return true;
     });
   }, [charters, moduleFilter, search]);
 
-  function openCharter(slug: string) {
-    setSelectedSlug(slug);
+  function openCharter(path: string) {
+    setSelectedPath(path);
     setDetail(null);
     setLoading(true);
-    fetch(`/kb/${slug}/show`, {
+    fetch(`/kb/charters/show?path=${encodeURIComponent(path)}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
     })
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
       .then((d: CharterDetail) => setDetail(d))
       .catch(() => toast.error('Erro ao carregar o charter'))
       .finally(() => setLoading(false));
@@ -102,21 +107,21 @@ export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
       const tag = (e.target as HTMLElement)?.tagName;
       const typing = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable;
       if (e.key === '/' && !typing) { e.preventDefault(); searchRef.current?.focus(); return; }
-      if (e.key === 'Escape' && selectedSlug) { setSelectedSlug(null); setDetail(null); return; }
+      if (e.key === 'Escape' && selectedPath) { setSelectedPath(null); setDetail(null); return; }
       if (typing || visible.length === 0) return;
       if (e.key === 'j' || e.key === 'k') {
         e.preventDefault();
-        const idx = selectedSlug ? visible.findIndex((c) => c.slug === selectedSlug) : -1;
+        const idx = selectedPath ? visible.findIndex((c) => c.path === selectedPath) : -1;
         let next = idx;
         if (e.key === 'j') next = Math.min(visible.length - 1, idx + 1);
         if (e.key === 'k') next = Math.max(0, idx === -1 ? 0 : idx - 1);
-        if (next !== idx) openCharter(visible[next].slug);
+        if (next !== idx) openCharter(visible[next].path);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, selectedSlug]);
+  }, [visible, selectedPath]);
 
   return (
     <AppShellV2>
@@ -170,11 +175,11 @@ export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
                 </div>
               )}
               {visible.map((c) => {
-                const active = c.slug === selectedSlug;
+                const active = c.path === selectedPath;
                 return (
                   <button
-                    key={c.slug}
-                    onClick={() => openCharter(c.slug)}
+                    key={c.path}
+                    onClick={() => openCharter(c.path)}
                     className={`flex w-full flex-col items-start gap-1 px-3 py-2.5 text-left transition-colors ${
                       active ? 'bg-primary/10' : 'hover:bg-muted/50'
                     }`}
@@ -189,6 +194,11 @@ export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
                         {c.level === 'module' ? 'Módulo' : 'Tela'}
                       </Badge>
                       <span className="truncate text-sm font-medium">{c.module ?? '—'}</span>
+                      {c.status && (
+                        <Badge variant="outline" className={`text-[10px] ${STATUS_TONE[c.status] ?? 'text-muted-foreground'}`}>
+                          {c.status}
+                        </Badge>
+                      )}
                       <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">{fmtSize(c.size_chars)}</span>
                     </div>
                     <span className="truncate text-xs text-muted-foreground">{c.screen}</span>
@@ -200,7 +210,7 @@ export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
 
           {/* Preview */}
           <Card className="h-[calc(100vh-320px)] overflow-hidden">
-            {!selectedSlug ? (
+            {!selectedPath ? (
               <CardContent className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
                 <FileText size={28} className="text-muted-foreground/50" />
                 Selecione um charter para ver o contrato.
@@ -213,7 +223,7 @@ export default function ChartersIndex({ charters, kpis, github_repo }: Props) {
                   <Lock size={13} />
                   <span>Núcleo vem do git — para mudar, proponha uma sugestão (vira PR). Edição livre desabilitada.</span>
                   <button
-                    onClick={() => { setSelectedSlug(null); setDetail(null); }}
+                    onClick={() => { setSelectedPath(null); setDetail(null); }}
                     className="ml-auto rounded p-0.5 hover:bg-primary/10"
                     aria-label="Fechar preview"
                   >

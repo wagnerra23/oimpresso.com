@@ -63,7 +63,8 @@ Route::group(
         // Lista os *.charter.md (sincronizados em mcp_memory_documents) reusando
         // o tri-pane. Read-only (nucleo vem do git). Preview reusa /kb/{slug}/show.
         // Registrada ANTES de /{slug}/show pra nao colidir com o matcher dinamico.
-        Route::get('/charters', 'KbCharterController@index')->name('kb.charters');
+        Route::get('/charters',      'KbCharterController@index')->name('kb.charters');
+        Route::get('/charters/show', 'KbCharterController@show')->name('kb.charters.show');
 
         // ---- LEGACY (V0) — KB browser dos docs MCP. Continua respondendo /kb/{slug}/show etc.
         Route::get('/{slug}/show',       'KbController@show')
