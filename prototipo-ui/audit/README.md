@@ -64,6 +64,31 @@ NÃO escreva mais nada. NÃO consolide. 1 arquivo por tela.
 | [`example.design-report.json`](example.design-report.json) | 1 exemplo versionado (amostra do schema) |
 | [`consolidate.mjs`](consolidate.mjs) | Determinístico: lê `reports/` → `CONSOLIDADO.md` + `CONSOLIDADO.json` |
 | `CONSOLIDADO.md` | Placar único versionado (gerado — Cowork lê daqui; nunca editado à mão) |
+| [`review-gen.mjs`](review-gen.mjs) | **`design:review <tela>`** — renderiza o `design-report.json` (Fase 1) num `<Tela>.review.md` append-only ao lado do `<Tela>.charter.md` (charter page viva), ancorado por `measured_against_sha` |
+| [`review-freshness.mjs`](review-freshness.mjs) | Gate de **frescor** (missing/stale/fresh) + ratchet `--write-baseline`. Espelha o Pest `DesignReviewFreshnessTest` |
+| `review-freshness-baseline.json` | Ratchet (espelha `config/eslint-baseline.json`) — dívida herdada de telas live sem review; **só encolhe** |
+
+## Review por tela (charter page viva) — `design:review`
+
+A Fase 1 cospe `reports/*.design-report.json` (gitignored, regenerável). Pra virar **relatório de
+tarefas versionado por tela**, o `review-gen.mjs` renderiza esse report num `<Tela>.review.md`
+append-only **ao lado do `<Tela>.charter.md`** (= charter page viva: spec + nota viva + backlog).
+
+```bash
+npm run design:review Jana/Pro        # gera/append round N em resources/js/Pages/Jana/Pro.review.md
+npm run design:review:check           # gate: tela live sem review (fora do baseline) = falha
+npm run design:review:baseline        # (re)grava o ratchet review-freshness-baseline.json
+```
+
+**Frescor (anti-stale):** cada `<Tela>.review.md` carrega `measured_against_sha` = sha do último
+commit que tocou o `.tsx`. `review-freshness.mjs` compara e classifica `fresh`/`stale`/`missing`.
+Ratchet (espelha `config/eslint-baseline.json`, ADR 0209): só falha por tela live **nova** fora do
+baseline; o baseline **só encolhe** (ao gerar o review, rode `--write-baseline` pra podar).
+
+`stale` é **advisory na v1** (reviews legados de 2026-05-17 não têm `measured_against_sha`); vira
+HARD quando regenerados. PROTOCOL §6 ganha `design_review_missing` + `design_review_stale`. A
+**Fase 2 (juiz LLM)** preenche R5/R8/R10 + nota holística + `best_of_class` — cadência paga [W].
+Proposta: [`memory/decisions/proposals/design-review-por-tela-charter-page.md`](../../memory/decisions/proposals/design-review-por-tela-charter-page.md).
 
 ## Calibração & honestidade (v1, 2026-05-31)
 
