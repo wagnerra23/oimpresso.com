@@ -1,9 +1,17 @@
 ---
-date: 2026-06-01
-hour: 09:47 BRT
-topic: Handoff Cowork→Code metricas.html — 2 proibições de design no canon
-duration: ~1h
-authors: [CL]
+date: "2026-06-01"
+time: "09:47 BRT"
+slug: "metricas-handoff-regras-design"
+topic: "Handoff Cowork→Code metricas.html — 2 proibições de design no canon (#2075)"
+duration: "~1h"
+authors: [claude-code, wagner]
+prs: [2075]
+tldr: "Bundle Cowork metricas.html processado: NÃO é port React (hub Cowork não-canon, fica Cowork-local). Tarefa real = COWORK_NOTES Pendentes (3 regras). Regras 1+2 (no-dup L-21 + trilha-do-tempo L-22) normalizadas em CLAUDE_DESIGN_BRIEFING §7.1 + proibicoes.md, mergeadas no #2075. Regra 3 (rename shell) = N/A. Passo 0 pegou bundle stale (#2069/#2073 já em main)."
+us: []
+next_steps:
+  - "Loop Cowork: Wagner transporta CODE_NOTES.md 1× (carteiro §10.2) → [CC] marca as 3 regras [PROCESSADO]"
+  - "Separado/disponível: 3 IA champion-makers (purge LGPD / OTel collector / gate RAGAS / Meilisearch) — prep já em #2073, go Tier 0 [W]"
+related_adrs: []
 ---
 
 # `metricas.html` handoff → 2 proibições de design no git (#2075)
