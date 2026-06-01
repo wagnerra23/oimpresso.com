@@ -19,6 +19,7 @@ import PageHeader from '@/Components/shared/PageHeader';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import * as React from 'react';
+import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import {
   Sparkles,
@@ -37,6 +38,7 @@ import CommandPalette from './_components/CommandPalette';
 import PathsDialog from './_components/PathsDialog';
 import TroubleshooterDialog from './_components/TroubleshooterDialog';
 import HealthPanel from './_components/HealthPanel';
+import KbComposer from './_components/KbComposer';
 
 import {
   computeMockKpis,
@@ -114,7 +116,8 @@ function KbIndexV2(props: KbIndexProps) {
   const [troubleOpen, setTroubleOpen] = React.useState(false);
   const [healthOpen, setHealthOpen] = React.useState(false);
   const [aiOpen, setAiOpen] = React.useState(false); // TODO[CL]: ONDA 4 — AI dialog
-  const [composerOpen, setComposerOpen] = React.useState(false); // TODO[CL]: ONDA 3 — composer
+  const [composerOpen, setComposerOpen] = React.useState(false);
+  const [editingNode, setEditingNode] = React.useState<KbNode | null>(null);
 
   // Mobile pane (cats | list | reader)
   const [mobileView, setMobileView] = React.useState<'cats' | 'list' | 'reader'>(
@@ -299,7 +302,7 @@ function KbIndexV2(props: KbIndexProps) {
     onEnter: () => {
       if (!activeNode && filteredNodes[0]) openNode(filteredNodes[0].id);
     },
-    onNewArticle: () => setComposerOpen(true),
+    onNewArticle: () => { setEditingNode(null); setComposerOpen(true); },
     onOpenAI: () => setAiOpen(true),
     onToggleFav: () => {
       if (activeNode) {
@@ -350,9 +353,8 @@ function KbIndexV2(props: KbIndexProps) {
     toast.info('Histórico de versões — em breve (ONDA 3)');
   };
   const onEdit = () => {
-    // TODO[CL]: ONDA 3 — composer
+    setEditingNode(baseNodes.find((n) => n.id === activeNodeId) ?? null);
     setComposerOpen(true);
-    toast.info('Composer — em breve (ONDA 3)');
   };
 
   // ──────────────────────────────────────────────────────────────
@@ -434,7 +436,7 @@ function KbIndexV2(props: KbIndexProps) {
                 variant="default"
                 size="sm"
                 className="h-8 text-xs"
-                onClick={() => setComposerOpen(true)}
+                onClick={() => { setEditingNode(null); setComposerOpen(true); }}
               >
                 <Plus size={13} className="mr-1" />
                 Novo SOP
@@ -594,7 +596,15 @@ function KbIndexV2(props: KbIndexProps) {
       />
 
       {/* TODO[CL]: ONDA 4 — AI Dialog (Perguntar ao KB com citações) */}
-      {/* TODO[CL]: ONDA 3 — Composer modal */}
+
+      <KbComposer
+        open={composerOpen}
+        onOpenChange={setComposerOpen}
+        node={editingNode}
+        categories={categories}
+        subcategories={subcategories}
+        onSaved={() => router.reload({ only: ['nodes', 'kpis'] })}
+      />
     </div>
   );
 }
