@@ -96,6 +96,13 @@ function kbBootstrapSchema(): void
         $t->longText('content_md')->nullable();
         $t->json('metadata')->nullable();
         $t->string('git_sha', 64)->nullable();
+        // Colunas usadas por KbController/KbCharterController (refletem schema real prod).
+        $t->string('module', 80)->nullable();
+        $t->string('scope_required', 80)->nullable();
+        $t->boolean('admin_only')->default(false);
+        $t->string('git_path', 255)->nullable();
+        $t->unsignedInteger('pii_redactions_count')->default(0);
+        $t->timestamp('indexed_at')->nullable();
         $t->timestamp('deleted_at')->nullable();
         $t->timestamps();
     });

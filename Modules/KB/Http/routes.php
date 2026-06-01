@@ -59,6 +59,12 @@ Route::group(
             return response()->json(['nodes' => [], 'edges' => [], 'kpis' => null]);
         })->name('kb.graph.data');
 
+        // ---- Charters (ADR 0243) — interface do Charter Governance ----
+        // Lista os *.charter.md (sincronizados em mcp_memory_documents) reusando
+        // o tri-pane. Read-only (nucleo vem do git). Preview reusa /kb/{slug}/show.
+        // Registrada ANTES de /{slug}/show pra nao colidir com o matcher dinamico.
+        Route::get('/charters', 'KbCharterController@index')->name('kb.charters');
+
         // ---- LEGACY (V0) — KB browser dos docs MCP. Continua respondendo /kb/{slug}/show etc.
         Route::get('/{slug}/show',       'KbController@show')
             ->where('slug', '[A-Za-z0-9\-_]+')
