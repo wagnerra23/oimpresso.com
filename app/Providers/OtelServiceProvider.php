@@ -59,9 +59,43 @@ class OtelServiceProvider extends ServiceProvider
 
     private function bootTracerProvider(): void
     {
+        $tracerProvider = $this->buildTracerProvider();
+
+        // `registerInitializer` mudou de assinatura: recebe um Configurator e
+        // devolve o Configurator com o TracerProvider setado (não mais `fn () => $tp`).
+        // É ISTO que liga o tracer GLOBAL que o OtelHelper::span consome — o boot
+        // antigo registrava um closure inválido e o global nunca era configurado.
+        \OpenTelemetry\API\Globals::registerInitializer(
+            fn (\OpenTelemetry\API\Instrumentation\Configurator $configurator) => $configurator->withTracerProvider($tracerProvider)
+        );
+    }
+
+    /**
+     * Constrói o TracerProvider SDK (resource + processor + sampler + exporter).
+     *
+     * Exporter injetável (default OTLP HTTP pro endpoint configurado) pra que o
+     * Pest possa provar o pipeline com InMemoryExporter sem rede.
+     *
+     * Compat de API do SDK (2026-06-01 T1.b — o boot quebrava silenciosamente):
+     *   - `ResourceAttributes::DEPLOYMENT_ENVIRONMENT` foi REMOVIDA no sem-conv
+     *     >=1.27 (renomeada p/ deployment.environment.name). Usar a chave literal
+     *     estável `deployment.environment` evita o "Undefined constant".
+     *   - `BatchSpanProcessor::__construct` passou a exigir um clock (2º arg).
+     *     `::builder($exporter)->build()` encapsula o default — version-stable.
+     */
+    public function buildTracerProvider(
+        ?\OpenTelemetry\SDK\Trace\SpanExporterInterface $exporter = null
+    ): \OpenTelemetry\SDK\Trace\TracerProviderInterface {
         // Endpoint compat: nova chave `otel.endpoint` + legacy US-WA-083 `otel.exporter.endpoint`.
-        $endpoint = (string) (config('otel.endpoint')
-            ?? config('otel.exporter.endpoint', 'http://mcp.oimpresso.com:4318/v1/traces'));
+        if ($exporter === null) {
+            $endpoint = (string) (config('otel.endpoint')
+                ?? config('otel.exporter.endpoint', 'http://mcp.oimpresso.com:4318/v1/traces'));
+
+            $transport = (new \OpenTelemetry\Contrib\Otlp\OtlpHttpTransportFactory())
+                ->create($endpoint, 'application/x-protobuf');
+
+            $exporter = new \OpenTelemetry\Contrib\Otlp\SpanExporter($transport);
+        }
 
         // Sample rate compat: novo `otel.sample_rate` + legacy `otel.sampling.local_sampler_ratio`.
         $sampleRate = (float) (config('otel.sample_rate')
@@ -71,33 +105,24 @@ class OtelServiceProvider extends ServiceProvider
         $serviceName = (string) (config('otel.service_name')
             ?? config('otel.service.name', 'oimpresso'));
 
-        $transport = (new \OpenTelemetry\Contrib\Otlp\OtlpHttpTransportFactory())
-            ->create($endpoint, 'application/x-protobuf');
-
-        $exporter = new \OpenTelemetry\Contrib\Otlp\SpanExporter($transport);
-
         $resource = \OpenTelemetry\SDK\Resource\ResourceInfo::create(
             \OpenTelemetry\SDK\Common\Attribute\Attributes::create([
                 \OpenTelemetry\SemConv\ResourceAttributes::SERVICE_NAME => $serviceName,
                 \OpenTelemetry\SemConv\ResourceAttributes::SERVICE_VERSION => (string) (config('otel.service.version') ?? '1.0.0'),
-                \OpenTelemetry\SemConv\ResourceAttributes::DEPLOYMENT_ENVIRONMENT => (string) config('app.env', 'production'),
+                'deployment.environment' => (string) config('app.env', 'production'),
                 'oimpresso.runtime' => $this->detectRuntime(),
             ])
         );
 
-        $tracerProvider = \OpenTelemetry\SDK\Trace\TracerProvider::builder()
+        return \OpenTelemetry\SDK\Trace\TracerProvider::builder()
             ->addSpanProcessor(
-                new \OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor($exporter)
+                \OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor::builder($exporter)->build()
             )
             ->setSampler(
                 new \OpenTelemetry\SDK\Trace\Sampler\TraceIdRatioBasedSampler($sampleRate)
             )
             ->setResource($resource)
             ->build();
-
-        \OpenTelemetry\API\Globals::registerInitializer(
-            fn () => $tracerProvider
-        );
     }
 
     /**
