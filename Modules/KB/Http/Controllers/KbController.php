@@ -281,7 +281,7 @@ class KbController extends Controller
         };
 
         return $q->orderByDesc('pinned')->orderByDesc($sortCol)
-            ->select(['id', 'business_id', 'type', 'slug', 'title', 'excerpt', 'is_editable',
+            ->select(['id', 'business_id', 'type', 'slug', 'title', 'excerpt', 'body_blocks', 'is_editable',
                       'status', 'pinned', 'category_id', 'subcategory_id', 'nivel', 'equip', 'tags',
                       'reads_count', 'helpful_count', 'outdated_votes', 'os_linked_count',
                       'author_user_id', 'read_time_min', 'last_verified_at', 'updated_at'])
