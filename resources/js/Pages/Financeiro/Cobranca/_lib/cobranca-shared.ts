@@ -1,6 +1,8 @@
 // cobranca-shared.ts — types + helpers + tokens (port de pg-shared.jsx Cowork F1)
 // Tokens canon DRIVERS/TIPOS/STATUS/ORIGENS + helpers brl/fmtDate/piiMask.
 
+import { toast } from 'sonner';
+
 export type CobrancaTipo = 'boleto' | 'pix_cob' | 'pix_cobv' | 'pix_recv' | 'card';
 export type CobrancaStatus = 'emitida' | 'paga' | 'vencida' | 'cancelada' | 'erro' | 'pending';
 export type OrigemType = 'sale' | 'invoice' | 'subscription_license';
@@ -470,5 +472,39 @@ export function lsSet(key: string, value: unknown): void {
     localStorage.setItem(LS_PREFIX + key, JSON.stringify(value));
   } catch {
     /* noop */
+  }
+}
+
+/**
+ * Copia texto pro clipboard + toast PT-BR de feedback (B6 "botões honestos").
+ *
+ * Usa navigator.clipboard (contexto seguro HTTPS) com fallback execCommand pra
+ * ambientes legados/sem permissão. Toast via sonner (mesmo mecanismo das outras
+ * telas Financeiro). No-op silencioso só se `texto` for vazio/null (mostra erro).
+ */
+export async function copiar(
+  texto: string | null | undefined,
+  label = 'Copiado para a área de transferência',
+): Promise<void> {
+  if (!texto) {
+    toast.error('Nada para copiar');
+    return;
+  }
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(texto);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    toast.success(label);
+  } catch {
+    toast.error('Não foi possível copiar');
   }
 }
