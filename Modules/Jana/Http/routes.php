@@ -67,6 +67,13 @@ Route::group(
         // ---- Dashboard -----------------------------------------------------
         Route::get('/dashboard',                           'DashboardController@index')->name('jana.dashboard.index');
 
+        // ---- JANA Pro — paywall/upgrade cliente-facing (ADR 0140) ----------
+        // Tela de ativação do plano Pro. Qualquer usuário auth do business (o
+        // grupo /ia já exige auth). Distinta de Admin\JanaProController (preview
+        // JSON superadmin). Tradução F3 do design aprovado `Jana Pro - Paywall CC`.
+        // Billing real (Asaas) = Sprint JANA-B; esta tela hoje ativa estado mock.
+        Route::get('/pro',                                 'ProController@index')->name('jana.pro.index');
+
         // ---- Metas CRUD ----------------------------------------------------
         Route::resource('/metas',                          'MetasController', ['names' => [
             'index'   => 'jana.metas.index',
