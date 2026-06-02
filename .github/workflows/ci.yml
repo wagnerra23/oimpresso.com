@@ -75,10 +75,18 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (suite Financeiro + Form shim)
+      - name: Run Pest (Form shim + FeatureFlagService offline-safe)
         # ModuleUtil::isModuleInstalled e getModuleVersionInfo agora sao
         # graceful (try/catch) — boot da app funciona sem migrate completo.
-        run: vendor/bin/pest tests/Feature/Form --no-coverage
+        #
+        # FeatureFlagServiceTest e DB-less (sem RefreshDatabase): so usa Http::fake
+        # + Cache array, entao roda em sqlite :memory:. Damos cobertura a esse
+        # contrato (fallback offline-safe) que antes ficava dormente — nenhum
+        # workflow rodava tests/Feature/Services/.
+        # NAO incluir o diretorio inteiro: GrowthBookAdminServiceTest usa
+        # RefreshDatabase e esbarra na migration MySQL-only (ALTER TABLE
+        # transactions MODIFY COLUMN type ENUM) — fica pra um setup MySQL em CI.
+        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php --no-coverage
 
   frontend:
     name: Frontend / Vite build
