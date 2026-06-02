@@ -169,6 +169,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md) | Evolução da doc de design — append-only + índice fonte-única + ratchet + freshness + reprocesso |
 | [ADR 0238](../../decisions/0238-soberania-constituicao-wagner.md) | Soberania de [W] sobre a constituição (memória/numeração) |
 | [ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md) | Governança do DS — git SSOT · Cowork→Code · regressão-IA · 1 spec vigente na raiz |
+| [ADR 0243](../../decisions/0243-processo-memoria-evolucao-design-cowork.md) | Processo de memória/evolução de design do Cowork — loop medido/auto-corretivo (3 planos · anéis · DS-GUARD · bateria · benchmark · gatilho); método em `prototipo-ui/PROCESSO_MEMORIA_CC.md` |
 
 ### Changelog
 | Data | Gatilho | Mudança |
@@ -176,3 +177,4 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | 2026-05-30 | G3 (inicial) | Índice criado: 88 docs revisados, regra de ouro, conflitos reconciliados, positivo+negativo. |
 | 2026-05-30 | G1 | Ledger de pedidos **file-based** (scaffold `governance/design-requests/`) + correção canon "Claude Design = só arquivos, nunca MCP" ([feedback](../../reference/feedback-claude-design-so-arquivos.md)). |
 | 2026-05-30 | G1 | **Regras de governança do DS** (0235/0236/0238/0239) referenciadas + invariante (c) no `DesignIndexSingleSourceTest` — "toda regra de design mora no índice" (ADR 0239 R5). |
+| 2026-06-02 | G1 | **ADR 0243** (processo de memória/evolução de design do Cowork) referenciado — ratifica `PROCESSO_MEMORIA_CC.md` como método canônico (handoff `ALwoVssQOY` · PR #2106). |
