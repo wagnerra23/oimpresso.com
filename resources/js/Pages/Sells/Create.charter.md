@@ -3,9 +3,9 @@ page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner
 status: live
-last_validated: 2026-06-01
+last_validated: "2026-06-01"
 parent_module: Sells
-related_adrs: [0110, 0107, 0104, 0093]
+related_adrs: [110, 107, 104, 93]
 tier: A
 charter_version: 2
 ---

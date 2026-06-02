@@ -1536,10 +1536,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 />
               </div>
 
-              {/* Hint de MDF-e — cor de status (mesma convenção dos KPIs de pagamento:
-                  amber = atenção fiscal). Gatilho real fica no NfeService (PR3). */}
+              {/* Hint de MDF-e — token semântico de atenção (text-warning), sem cor crua
+                  pra não regredir o ui:lint ratchet. Gatilho fiscal real fica no NfeService (PR3). */}
               {mdfeHint && (
-                <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                <div className="flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm text-warning">
                   <Truck className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>
                     Entrega em{' '}
