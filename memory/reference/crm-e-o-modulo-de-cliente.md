@@ -12,11 +12,11 @@ No oimpresso, **"Cliente" / "contatos do cliente" = `Modules/Crm`**. O UltimateP
 
 ## Onde está o conhecimento canônico
 
-| Tema | Canônico | Evitar |
+| Tema | Canônico | Nota |
 |---|---|---|
-| Requisitos do Cliente | **`memory/requisitos/Crm/`** (BRIEFING, ARCHITECTURE, RUNBOOK-cliente-*, adr/) | `memory/requisitos/Cliente/` (**legado/stale** — RUNBOOKs do Show full-page pré-drawer) |
-| Módulo (código) | `Modules/Crm/` | — |
-| Modelo de dados | `app/Contact.php`, `app/ContactAddress.php` | — |
+| Requisitos do Cliente | **`memory/requisitos/Crm/`** — tudo aqui: BRIEFING, ARCHITECTURE, RUNBOOK-cliente-*, adr/, `SPEC.md` (US 001–062), `SPEC-us-063-078.md` (US 063–078, incl. multi-endereço 078), `UI-CATALOG.md`, `_legado-fullpage/` | a duplicata `memory/requisitos/Cliente/` foi **consolidada aqui e removida** (2026-06-01) |
+| Módulo (código) | `Modules/Crm/` | não existe `Modules/Cliente` |
+| Modelo de dados | `app/Contact.php`, `app/ContactAddress.php` | core `App\`, não um módulo |
 
 ## Por que confunde (e como falar)
 
