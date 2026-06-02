@@ -225,3 +225,34 @@ Só docs, mas mexe na família de governança do loop (`prototipo-ui/*` + `memor
 - **Conteúdo:** R1–R8 (always-read · 3 planos · anéis fonte-única · charter+register irmãos · defesa-que-dispara · medir+gatilho · LICOES append-only · soberania [W]). Consolida 0114/0236/0238/0239/0241/0242 + UI-0013; `supersedes: []`.
 - **Índice (ADR 0239 R5):** adicionei 0243 em `INDEX-DESIGN-MEMORIAS.md` (tabela de governança + changelog) — link relativo resolve, `DesignIndexSingleSourceTest` segue verde.
 - **Soberania respeitada:** numerei só porque [W] deu o OK explícito (ADR 0238). Continua **sem merge** — ratificação = seu merge da PR #2106.
+
+---
+
+## 2026-06-02 17:16 [CL] → [W]/[CD]
+
+### Tela: shell global (AppShellV2 + cockpit) + 4 telas-núcleo
+### Status: handoff Cowork PROCESSADO → main
+### Diff: PR #2119 (`5407072ed`) + PR #2121 (`9ba9d8944`) — ambos MERGED `--admin`
+### Build: passou (14/14 + 12/12 CI verde)
+### Charter atualizado: charters Vendas/Compras mirrorados em `prototipo-ui/prototipos/`
+
+### O que landou (prompts v3 `REFORCO-APPSHELL-TESTES` + `SESSAO-2026-06-02`):
+- **A2** accent default **220 azul → 295 roxo canon** — `AppShellV2` escrevia `--accent` inline (de `accentHue=220`) vencendo o cascade sobre `cockpit.css` (ADR 0190); `Sidebar.vibeAccent('workspace')` idem. Guard `CockpitAccentCanonTest`.
+- **A1** gate "toda tela Inertia usa AppShellV2" — ground-truth `Inertia::render`→tsx; 224 alvos → 0 violação (allowlist `Site/*` + `AprovacaoPublica`).
+- **B** smoke — `CoreScreensIntegrityTest` (roda sempre) + `tests/Browser/CoreScreens` (skip-guarded, CI chromium): Financeiro/Unificado, Compras, Cliente, OficinaAuto/ServiceOrders.
+- **C1** CSS — `background:#fff`→`var(--surface)` 30× no `cowork-financeiro-bundle.css` (ratchet stylelint −30; subset seguro só-background).
+- **docs** — charters Vendas/Compras + `INVENTARIO_CLASSES.md` mirrorados.
+- **CI** — `ui-architecture-gate.yml` + `multi-tenant-gate.yml` (os gates novos rodam de verdade; `ci.yml` antes só rodava `tests/Feature/Form`).
+- **guard business_id** recalibrado (#2121) — exempta `=== 0` (no-tenant), biz=1 SaaS → `config('app.saas_owner_business_id')`.
+
+### NÃO feito (de propósito):
+- **ADR _PROPOSTA-0245 NÃO mirrorado** — numeração de ADR = soberania [W] (ADR 0238). Cowork numera no git quando [W] aprovar.
+- **COMPAT de tokens em `app.css` / `@media`→`@container` em `fin-cowork.css`** — alvos que o próprio Cowork retratou (repo já roxo+warm; `app.css` = manifesto vazio).
+- **de-drift `os-*` do `styles.css` Cowork** — shell de protótipo, não existe no repo.
+- **CRM** — ainda Blade legado (sem Inertia page), L-26. Migração = programa MWART Tier 0.
+- **C1 só o subset seguro** — restam ~158 hex (semânticos/chart/texto) que precisam regressão visual.
+
+### Pendências (pro Cowork/[W]):
+- [ ] Numerar ADR _PROPOSTA-0245 no git (soberania [W]).
+- [ ] Decidir migração CRM Blade→Inertia (cliente-como-sinal).
+- [ ] Fase 2 `os-*` dedup + restante do hex drift (com regressão visual).
