@@ -42,7 +42,7 @@ Cherry-pick falhou 3× no Financeiro ([PR #1085](https://github.com/wagnerra23/o
 
 - ✅ **Ler como referência** quando adaptar pra `.tsx` Inertia (`Pages/Financeiro/Unificado/Index.tsx`, etc)
 - ✅ **Copiar JSX inline** pro `.tsx` correspondente + adicionar type annotations
-- ✅ **Cross-check com `cowork-financeiro-bundle.css`** — classes referenciadas aqui devem casar com CSS
+- ✅ **Cross-check com `cowork-canon-financeiro-bundle.css`** — classes referenciadas aqui devem casar com CSS
 - ✅ **Próximo bundle Cowork v3** (quando Wagner mandar): substitui esta pasta inteira
 
 ## Roadmap de adaptação `.jsx` → `.tsx` Inertia
@@ -81,7 +81,7 @@ Detalhes em `memory/proibicoes.md` §"Multi-tenant Tier 0 IRREVOGÁVEL".
 
 - `memory/reference/feedback-cowork-bundle-aplicar-inteiro.md` — regra Tier 0
 - `memory/proibicoes.md` §"Design System / Pacote Cowork novo" — proibições
-- `resources/css/cowork-financeiro-bundle.css` — CSS partner deste bundle (9054 LOC)
+- `resources/css/cowork-canon-financeiro-bundle.css` — CSS partner deste bundle (bundle antigo `cowork-financeiro-bundle.css` removido 2026-06-02, paridade canon validada)
 - `memory/decisions/0104-processo-mwart-canonico-unico-caminho.md` — processo MWART obrigatório pra mudança em `Pages/<Mod>/<Tela>.tsx`
 
 ---
