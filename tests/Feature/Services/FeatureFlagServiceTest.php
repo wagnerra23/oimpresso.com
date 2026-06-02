@@ -30,7 +30,11 @@ it('retorna fallback default quando GROWTHBOOK_SDK_KEY ausente no .env', functio
 
     $service = new FeatureFlagService();
 
-    expect($service->isOn('useV2SellsCreate'))->toBeFalse();
+    // useV2SellsCreate tem fallback default TRUE (flip Wagner 2026-05-27, pós-cadeia
+    // de hotfixes — ver FeatureFlagService::$fallbackDefaults). Sem GrowthBook
+    // configurado, isOn() cai no fallback e retorna esse default.
+    expect($service->isOn('useV2SellsCreate'))->toBeTrue();
+    // flagInexistente não está em $fallbackDefaults → false conservador.
     expect($service->isOn('flagInexistente'))->toBeFalse();
 });
 
