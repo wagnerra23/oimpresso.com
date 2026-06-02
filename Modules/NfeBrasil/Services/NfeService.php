@@ -500,7 +500,35 @@ class NfeService
             $xmlSigned = $tools->signNFe($xml);
 
             $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
-            $response = $tools->sefazEnviaLote([$xmlSigned], $idLote, 1);
+
+            // Retry-with-backoff em erro de TRANSPORTE transitório (connection reset,
+            // recv failure, timeout, SSL) — SEFAZ (SVRS homolog/prod) às vezes fecha o
+            // socket sem processar. Reenvio é idempotente: idLote/chave são
+            // determinísticos → SEFAZ deduplica (cStat 204/539 duplicidade tratado em
+            // processarRetorno). NÃO retenta rejeição por cStat — essa volta em
+            // $response (não vira exception), seguindo direto pro processamento.
+            $maxTentativas = 3;
+            for ($tentativa = 1; ; $tentativa++) {
+                try {
+                    $response = $tools->sefazEnviaLote([$xmlSigned], $idLote, 1);
+                    break;
+                } catch (\Throwable $envioErro) {
+                    $transitorio = (bool) preg_match(
+                        '/connection reset|recv failure|broken pipe|timed?\s*out|timeout|could not resolve|ssl|curl|comunica/i',
+                        $envioErro->getMessage()
+                    );
+                    if (! $transitorio || $tentativa >= $maxTentativas) {
+                        throw $envioErro;
+                    }
+                    Log::warning('NfeService: erro transitório SEFAZ — retry de envio', [
+                        'business_id' => $businessId,
+                        'emissao_id'  => $emissao->id,
+                        'tentativa'   => $tentativa,
+                        'error'       => substr($envioErro->getMessage(), 0, 200),
+                    ]);
+                    usleep(1_500_000 * $tentativa); // backoff progressivo: 1.5s, 3s
+                }
+            }
         } catch (\Throwable $e) {
             $emissao->update([
                 'status' => 'erro_envio',
