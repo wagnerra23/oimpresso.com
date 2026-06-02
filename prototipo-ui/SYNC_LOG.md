@@ -169,3 +169,4 @@
 2026-06-02 17:16 [CL] docs charters Vendas/Compras + INVENTARIO mirrorados (ADR _PROPOSTA-0245 NAO: soberania [W])
 2026-06-02 17:16 [CL] guard business_id recalibrado (exempta ===0; biz=1->config) + multi-tenant-gate.yml (#2121)
 2026-06-02 17:35 [CL] ADR _PROPOSTA-0245 numerada 0244 (DS v5 canon + Oficina padrao + Inbox 9.75 regua) + MERGED #2123 -- pendencia "numerar ADR" do CODE_NOTES 2026-06-02 RESOLVIDA
+2026-06-02 18:05 [CL] dedupe bundle duplo Financeiro: git rm cowork-financeiro-bundle.css (-327KB) + remove @import inertia.css + rebaseline stylelint 1065->820. Paridade validada por [CL] (2309 identicas, 0 seletor real so-no-antigo, 29+rec-paper = var(--surface)->#fff no-op pq dark-theme nunca ativa). MERGED #2127 --admin. PROMPT_PARA_CODE_DEDUPE-FINANCEIRO-BUNDLE PROCESSADO. Fase 2: portar var(--surface) pro CANON (C1 17:16 foi no bundle deletado)
