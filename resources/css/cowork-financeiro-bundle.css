@@ -4075,7 +4075,7 @@
 .fin-cowork .vendas-page .vd-total { font-weight:600; font-variant-numeric:tabular-nums; font-size:13px; }
 .fin-cowork .vendas-page .vd-os-pill { display:inline-block; padding:1px 6px; border-radius:4px; background:oklch(0.95 0.01 250); font-family:var(--font-mono); font-size:10px; margin-right:3px; color:oklch(0.40 0.04 250); }
 .fin-cowork .vendas-page .vd-no-os { font-size:11px; color:oklch(0.55 0.02 250); font-style:italic; }
-.fin-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:9px; color:oklch(0.40 0.04 250); background:#fff; }
+.fin-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:9px; color:oklch(0.40 0.04 250); background:var(--surface); }
 /* Drawer venda */
 .fin-cowork .vd-section { padding:14px 20px; border-bottom:1px solid oklch(0.95 0.01 250); }
 .fin-cowork .vd-section:last-child { border-bottom:none; }
@@ -4091,7 +4091,7 @@
 /* Stepper */
 .fin-cowork .vd-stepper { display:flex; align-items:center; gap:6px; padding:10px 20px; background:oklch(0.98 0.01 250); border-bottom:1px solid oklch(0.92 0.01 250); overflow-x:auto; }
 .fin-cowork .vd-step { display:flex; align-items:center; gap:6px; padding:6px 10px; background:transparent; border:none; cursor:pointer; font-size:12px; color:oklch(0.50 0.02 250); border-radius:4px; }
-.fin-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+.fin-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,0.04); }
 .fin-cowork .vd-step.done { color:oklch(0.45 0.12 145); }
 .fin-cowork .vd-step-num { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:oklch(0.92 0.01 250); font-size:11px; font-weight:600; }
 .fin-cowork .vd-step.active .vd-step-num { background:oklch(0.55 0.14 240); color:#fff; }
@@ -4099,13 +4099,13 @@
 .fin-cowork .vd-step-sep { color:oklch(0.75 0.01 250); margin:0 2px; }
 /* Create body */
 .fin-cowork .vd-create-body { padding:0; }
-.fin-cowork .vd-search-wrap { display:flex; align-items:center; gap:8px; padding:8px 12px; background:#fff; border:1px solid oklch(0.88 0.01 250); border-radius:6px; }
+.fin-cowork .vd-search-wrap { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border:1px solid oklch(0.88 0.01 250); border-radius:6px; }
 .fin-cowork .vd-search-wrap input { flex:1; border:none; outline:none; font-size:13px; }
 .fin-cowork .vd-search-wrap input:focus { outline:none; }
 .fin-cowork .vd-walkin { background:oklch(0.92 0.04 240); color:oklch(0.30 0.10 240); border:none; padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer; }
 .fin-cowork .vd-walkin:hover { background:oklch(0.88 0.05 240); }
 .fin-cowork .vd-client-list { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
-.fin-cowork .vd-client-card { text-align:left; padding:10px 12px; border:1px solid oklch(0.92 0.01 250); border-radius:6px; background:#fff; cursor:pointer; }
+.fin-cowork .vd-client-card { text-align:left; padding:10px 12px; border:1px solid oklch(0.92 0.01 250); border-radius:6px; background:var(--surface); cursor:pointer; }
 .fin-cowork .vd-client-card:hover { border-color:oklch(0.55 0.14 240); background:oklch(0.98 0.02 240); }
 .fin-cowork .vd-client-card-name { font-weight:600; font-size:13px; }
 .fin-cowork .vd-client-card-meta { font-size:11px; color:oklch(0.50 0.02 250); margin-top:2px; }
@@ -4114,7 +4114,7 @@
 .fin-cowork .vd-fields label { display:flex; flex-direction:column; gap:4px; font-size:11px; color:oklch(0.45 0.02 250); }
 .fin-cowork .vd-fields input, .fin-cowork .vd-fields select { padding:6px 8px; border:1px solid oklch(0.88 0.01 250); border-radius:4px; font-size:13px; }
 /* Itens */
-.fin-cowork .vd-prod-suggest { margin-top:6px; background:#fff; border:1px solid oklch(0.92 0.01 250); border-radius:6px; max-height:240px; overflow:auto; }
+.fin-cowork .vd-prod-suggest { margin-top:6px; background:var(--surface); border:1px solid oklch(0.92 0.01 250); border-radius:6px; max-height:240px; overflow:auto; }
 .fin-cowork .vd-prod-row { display:flex; justify-content:space-between; align-items:center; width:100%; padding:8px 12px; border:none; background:transparent; cursor:pointer; font-size:13px; text-align:left; border-bottom:1px solid oklch(0.96 0.01 250); }
 .fin-cowork .vd-prod-row:hover { background:oklch(0.97 0.01 250); }
 .fin-cowork .vd-prod-row:last-child { border-bottom:none; }
@@ -4131,7 +4131,7 @@
 .fin-cowork .vd-foot-r { text-align:right; padding-top:10px !important; font-weight:700; font-size:14px; }
 /* Pagamento */
 .fin-cowork .vd-pay-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
-.fin-cowork .vd-pay-card { display:flex; flex-direction:column; gap:2px; align-items:flex-start; padding:12px; border:1px solid oklch(0.92 0.01 250); border-radius:6px; background:#fff; cursor:pointer; text-align:left; }
+.fin-cowork .vd-pay-card { display:flex; flex-direction:column; gap:2px; align-items:flex-start; padding:12px; border:1px solid oklch(0.92 0.01 250); border-radius:6px; background:var(--surface); cursor:pointer; text-align:left; }
 .fin-cowork .vd-pay-card.active { border-color:oklch(0.55 0.14 240); background:oklch(0.97 0.03 240); box-shadow:0 0 0 2px oklch(0.55 0.14 240 / 0.15); }
 .fin-cowork .vd-pay-icon { font-size:18px; }
 .fin-cowork .vd-pay-label { font-weight:600; font-size:13px; }
@@ -4159,7 +4159,7 @@
 .fin-cowork .vm-subnav {
   display:flex; align-items:center; justify-content:space-between;
   padding:0 20px; border-bottom:1px solid oklch(0.93 0.01 250);
-  background:#fff; flex-shrink:0;
+  background:var(--surface); flex-shrink:0;
 }
 .fin-cowork .vm-subnav-tabs { display:flex; gap:0; }
 .fin-cowork .vm-subtab {
@@ -4173,7 +4173,7 @@
 .fin-cowork .vm-pdv-btn {
   display:inline-flex; align-items:center; gap:8px;
   padding:6px 12px; border:1px solid oklch(0.85 0.02 250);
-  border-radius:6px; background:#fff; cursor:pointer;
+  border-radius:6px; background:var(--surface); cursor:pointer;
   font-size:12px; color:oklch(0.30 0.02 250); font-weight:500;
 }
 .fin-cowork .vm-pdv-btn:hover { background:oklch(0.97 0.01 250); }
@@ -4194,7 +4194,7 @@
 }
 .fin-cowork .vc-grid > .vc-card:nth-child(3) { grid-column: 1 / -1; }
 .fin-cowork .vc-card {
-  background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px;
+  background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px;
   overflow:hidden;
 }
 .fin-cowork .vc-card-h {
@@ -4244,7 +4244,7 @@
 }
 .fin-cowork .vc-move-add input, .fin-cowork .vc-move-add select {
   padding:6px 10px; border:1px solid oklch(0.88 0.01 250);
-  border-radius:5px; font-size:12px; background:#fff;
+  border-radius:5px; font-size:12px; background:var(--surface);
 }
 .fin-cowork .vc-counter {
   display:grid; grid-template-columns:1fr 1.2fr 1fr; gap:24px;
@@ -4253,7 +4253,7 @@
 .fin-cowork .vc-counter label { display:flex; flex-direction:column; gap:6px; font-size:11px; color:oklch(0.50 0.02 250); text-transform:uppercase; letter-spacing:0.04em; }
 .fin-cowork .vc-counter input {
   padding:8px 12px; border:1px solid oklch(0.88 0.01 250); border-radius:6px;
-  font-size:14px; font-variant-numeric:tabular-nums; background:#fff;
+  font-size:14px; font-variant-numeric:tabular-nums; background:var(--surface);
 }
 .fin-cowork .vc-counter-big { font-size:22px !important; font-weight:600; padding:12px !important; }
 .fin-cowork .vc-counter-summary { margin:0; display:grid; grid-template-columns:1fr auto; gap:6px 12px; font-size:12px; }
@@ -4273,15 +4273,15 @@
 .fin-cowork .vdv-match:hover { background:oklch(0.93 0.02 250); }
 .fin-cowork .vdv-selected { display:flex; align-items:center; gap:14px; padding:12px; background:oklch(0.96 0.02 145); border-radius:6px; }
 .fin-cowork .vdv-reasons { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
-.fin-cowork .vdv-reason-btn { padding:6px 12px; border:1px solid oklch(0.85 0.02 250); border-radius:20px; background:#fff; cursor:pointer; font-size:12px; }
+.fin-cowork .vdv-reason-btn { padding:6px 12px; border:1px solid oklch(0.85 0.02 250); border-radius:20px; background:var(--surface); cursor:pointer; font-size:12px; }
 .fin-cowork .vdv-reason-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 .fin-cowork .vdv-textarea { width:100%; min-height:60px; padding:8px 12px; border:1px solid oklch(0.85 0.02 250); border-radius:6px; font-family:inherit; font-size:12px; resize:vertical; }
 /* ──── COMISSÕES ──── */
 .fin-cowork .vco-period { display:inline-flex; border:1px solid oklch(0.85 0.02 250); border-radius:6px; overflow:hidden; }
-.fin-cowork .vco-period button { padding:6px 12px; border:none; background:#fff; cursor:pointer; font-size:12px; color:oklch(0.40 0.02 250); }
+.fin-cowork .vco-period button { padding:6px 12px; border:none; background:var(--surface); cursor:pointer; font-size:12px; color:oklch(0.40 0.02 250); }
 .fin-cowork .vco-period button.active { background:var(--accent); color:#fff; }
 .fin-cowork .vco-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:14px; padding:0 20px 14px; }
-.fin-cowork .vco-card { background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px; padding:16px; position:relative; }
+.fin-cowork .vco-card { background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px; padding:16px; position:relative; }
 .fin-cowork .vco-card header { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; margin-bottom:14px; }
 .fin-cowork .vco-card header h3 { margin:0 0 2px; font-size:14px; }
 .fin-cowork .vco-card header span { font-size:11px; color:oklch(0.55 0.02 250); }
@@ -4305,26 +4305,26 @@
 .fin-cowork .vco-mix { display:flex; flex-wrap:wrap; gap:4px; }
 .fin-cowork .vco-chip { padding:2px 8px; background:oklch(0.96 0.01 250); border-radius:10px; font-size:10px; color:oklch(0.40 0.02 250); }
 .fin-cowork .vco-chip em { font-style:normal; font-weight:600; color:var(--accent); margin-left:2px; }
-.fin-cowork .vco-table-card { margin:0 20px 20px; padding:16px; background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px; }
+.fin-cowork .vco-table-card { margin:0 20px 20px; padding:16px; background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px; }
 .fin-cowork .vco-table-card h3 { margin:0 0 12px; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.30 0.02 250); }
 .fin-cowork .vco-rules { width:100%; border-collapse:collapse; font-size:13px; }
 .fin-cowork .vco-rules th, .fin-cowork .vco-rules td { padding:8px 12px; text-align:left; border-bottom:1px solid oklch(0.96 0.01 250); }
 .fin-cowork .vco-rules th { font-size:11px; color:oklch(0.50 0.02 250); font-weight:500; }
 /* ──── RELATÓRIOS ──── */
 .fin-cowork .vrep-tabs { display:flex; gap:6px; padding:0 20px 12px; }
-.fin-cowork .vrep-tabs button { padding:6px 14px; border:1px solid oklch(0.88 0.01 250); border-radius:20px; background:#fff; cursor:pointer; font-size:12px; }
+.fin-cowork .vrep-tabs button { padding:6px 14px; border:1px solid oklch(0.88 0.01 250); border-radius:20px; background:var(--surface); cursor:pointer; font-size:12px; }
 .fin-cowork .vrep-tabs button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 .fin-cowork .vrep-summary {
   display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;
   padding:0 20px 14px;
 }
 .fin-cowork .vrep-summary > div {
-  background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px;
+  background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px;
   padding:12px 14px; display:flex; flex-direction:column; gap:4px;
 }
 .fin-cowork .vrep-summary span { font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.50 0.02 250); }
 .fin-cowork .vrep-summary strong { font-size:18px; font-variant-numeric:tabular-nums; }
-.fin-cowork .vrep-card { margin:0 20px 14px; padding:16px; background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px; }
+.fin-cowork .vrep-card { margin:0 20px 14px; padding:16px; background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px; }
 .fin-cowork .vrep-card h3 { margin:0 0 14px; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:oklch(0.30 0.02 250); }
 .fin-cowork .vrep-bars {
   display:flex; align-items:flex-end; gap:14px;
@@ -4362,7 +4362,7 @@
   position:relative;
 }
 .fin-cowork .vrep-donut::after {
-  content:""; position:absolute; inset:25px; background:#fff; border-radius:50%;
+  content:""; position:absolute; inset:25px; background:var(--surface); border-radius:50%;
 }
 .fin-cowork .vrep-donut > * { position:relative; z-index:1; }
 .fin-cowork .vrep-donut span { font-size:24px; font-weight:600; }
@@ -4409,7 +4409,7 @@
 .fin-cowork .pdv-suggest {
   position:absolute; top:100%; left:0; right:0; z-index:10;
   margin:4px 0 0; padding:0; list-style:none;
-  background:#fff; border-radius:8px; overflow:hidden;
+  background:var(--surface); border-radius:8px; overflow:hidden;
   box-shadow:0 8px 24px rgba(0,0,0,0.4);
 }
 .fin-cowork .pdv-suggest li {
@@ -4425,7 +4425,7 @@
 .fin-cowork .pdv-items th { padding:12px 14px; background:oklch(0.92 0.01 250); text-align:left; font-size:11px; color:oklch(0.40 0.02 250); text-transform:uppercase; letter-spacing:0.04em; }
 .fin-cowork .pdv-items td { padding:12px 14px; border-bottom:1px solid oklch(0.92 0.01 250); }
 .fin-cowork .pdv-qty { display:inline-flex; align-items:center; gap:6px; }
-.fin-cowork .pdv-qty button { width:24px; height:24px; border-radius:4px; border:1px solid oklch(0.85 0.02 250); background:#fff; cursor:pointer; font-weight:600; }
+.fin-cowork .pdv-qty button { width:24px; height:24px; border-radius:4px; border:1px solid oklch(0.85 0.02 250); background:var(--surface); cursor:pointer; font-weight:600; }
 .fin-cowork .pdv-qty span { min-width:24px; text-align:center; font-weight:600; }
 .fin-cowork .pdv-prod { font-weight:500; }
 .fin-cowork .pdv-num { text-align:right; font-variant-numeric:tabular-nums; }
@@ -4477,7 +4477,7 @@
 .fin-cowork .rec-layout { display:inline-flex; border:1px solid oklch(0.40 0.02 250); border-radius:6px; overflow:hidden; }
 .fin-cowork .rec-layout button { padding:6px 12px; border:none; background:transparent; color:oklch(0.85 0.02 250); cursor:pointer; font-size:12px; }
 .fin-cowork .rec-layout button.active { background:var(--accent); color:#fff; }
-.fin-cowork .rec-paper { background:#fff; color:#222; padding:20px; }
+.fin-cowork .rec-paper { background:var(--surface); color:#222; padding:20px; }
 .fin-cowork .rec-termica {
   width:300px; font-family:var(--font-mono);
   font-size:12px; line-height:1.4;
@@ -4519,7 +4519,7 @@
 .fin-cowork .nfe-cfop { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:14px; }
 .fin-cowork .nfe-cfop-btn, .fin-cowork .nfe-transp-btn {
   padding:12px; border:1.5px solid oklch(0.88 0.01 250); border-radius:8px;
-  background:#fff; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:3px;
+  background:var(--surface); cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:3px;
 }
 .fin-cowork .nfe-cfop-btn.active, .fin-cowork .nfe-transp-btn.active { border-color:var(--accent); background:oklch(0.97 0.04 var(--accent-h, 220)); }
 .fin-cowork .nfe-cfop-btn strong { font-size:13px; }
@@ -4543,7 +4543,7 @@
 }
 @media print {
 .fin-cowork body > * { display:none !important; }
-.fin-cowork .pdv-overlay { position:static; background:#fff; color:#000; }
+.fin-cowork .pdv-overlay { position:static; background:var(--surface); color:#000; }
 .fin-cowork .pdv-head, .fin-cowork .rec-layout, .fin-cowork .pdv-close, .fin-cowork .os-btn { display:none !important; }
 .fin-cowork .rec-stage { padding:0; }
 .fin-cowork .rec-paper { box-shadow:none; }
@@ -4561,7 +4561,7 @@
   gap:10px; padding:0 24px 14px;
 }
 .fin-cowork .os-kpi {
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border, oklch(0.93 0.01 250));
   border-radius:8px; padding:12px 14px;
   display:flex; flex-direction:column; gap:4px;
 }
@@ -4592,13 +4592,13 @@
 .fin-cowork .os-search {
   display:inline-flex; align-items:center; gap:6px;
   padding:5px 10px; border:1px solid var(--border, oklch(0.85 0.02 250));
-  border-radius:6px; background:#fff;
+  border-radius:6px; background:var(--surface);
 }
 .fin-cowork .os-search input { border:none; outline:none; background:transparent; font-size:12px; min-width:200px; }
 .fin-cowork .os-table-wrap { padding:14px 24px 20px; overflow:auto; }
 .fin-cowork .os-table {
   width:100%; border-collapse:collapse;
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border, oklch(0.93 0.01 250));
   border-radius:8px; overflow:hidden;
 }
 .fin-cowork .os-table thead th {
@@ -4621,7 +4621,7 @@
 .fin-cowork .os-drawer-head {
   display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px; padding:18px 20px; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
-  background:#fff;
+  background:var(--surface);
 }
 .fin-cowork .os-drawer-head-l { flex:1; min-width:0; }
 .fin-cowork .os-drawer-id { font-family:var(--font-mono); font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; }
@@ -4729,7 +4729,7 @@
   flex: 1;
   width: 100%;
   border: 0;
-  background: #fff;
+  background: var(--surface);
   display: block;
 }
 /* ────────────────── Sidebar lean ────────────────── */
@@ -5809,7 +5809,7 @@
 .fin-cowork .vendas-aplus .vd-plate {
   display: inline-flex; flex-direction: column; align-items: stretch;
   width: 78px; flex-shrink: 0;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid oklch(0.30 0 0); border-radius: 3px;
   overflow: hidden;
   font-family: var(--font-mono);
