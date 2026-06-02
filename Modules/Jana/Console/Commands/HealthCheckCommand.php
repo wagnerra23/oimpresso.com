@@ -30,7 +30,10 @@ use Modules\Jana\Services\CharterHealthChecker;
  *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
  *      reachable; alerta ANTES da degradação silenciosa (chat responde sem
  *      recall, NÃO estoura 500). McpMemoriaDriver já degrada gracioso.
- *  11-16. Charter/loop health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
+ *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
+ *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
+ *      acende amarelo se há entrada malformada ou `status:pendente`.
+ *  12-17. Charter/loop health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
  *      charter_missing, charter_stale (>90d), charter_refs_broken,
  *      charter_method_missing, readme_handoff_block_missing (L-18),
  *      design_return_skipped (retorno §10.2 atrás do SYNC_LOG · G4).
@@ -48,7 +51,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (10 checks SQL + 6 charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (10 checks SQL + ledger de lições + charter/loop advisory)';
 
     public function handle(): int
     {
@@ -63,6 +66,7 @@ class HealthCheckCommand extends Command
             $this->checkWhatsappMediaPending1h(),
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
+            $this->checkLessonLedgerGraduation(),
             // Charter health (advisory — não falha exit/cron). PROTOCOL §6.
             ...CharterHealthChecker::fromApp()->checks(),
         ];
@@ -643,6 +647,114 @@ class HealthCheckCommand extends Command
                     . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
         }
+    }
+
+    /**
+     * Check 11 — Ledger de lições de operação (Reflexion runtime · advisory).
+     *
+     * Lê Modules/Jana/LICOES-OPERACAO.md e valida o LOOP DE GRADUAÇÃO: toda lição
+     * de operação registrada precisa nascer graduada (MEC → vira check · JULG → vira
+     * regra sempre-lida). Acende amarelo (advisory, não derruba cron) se alguma entrada
+     * está malformada ou ainda `status:pendente` — fechando o loop por métrica
+     * (Constituição v2 §4) sem construir mecanismo novo: é só mais um check.
+     *
+     * Advisory de propósito: drift de processo de governança não deve paginar à noite
+     * nem falhar o exit/cron; reporta e fica visível no scorecard.
+     *
+     * Skip silencioso se o ledger ainda não existe (ambiente sem o doc / pré-merge).
+     *
+     * @see Modules/Jana/LICOES-OPERACAO.md
+     * @see memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md
+     */
+    protected function checkLessonLedgerGraduation(): array
+    {
+        $name = 'jana_lesson_ledger_graduation';
+        $path = base_path('Modules/Jana/LICOES-OPERACAO.md');
+
+        if (! is_file($path)) {
+            return [
+                'name' => $name,
+                'ok' => true,
+                'advisory' => true,
+                'value' => 'n/a',
+                'threshold' => 0,
+                'message' => 'Skipped (ledger LICOES-OPERACAO.md ausente — pré-merge/dev)',
+            ];
+        }
+
+        $r = self::parseLessonLedger((string) file_get_contents($path));
+        $problemas = array_merge(
+            array_map(fn ($id) => "{$id} (malformada)", $r['malformed']),
+            array_map(fn ($id) => "{$id} (pendente)", $r['overdue']),
+        );
+        $count = count($problemas);
+
+        return [
+            'name' => $name,
+            'ok' => $count === 0,
+            'advisory' => true,
+            'value' => $count,
+            'threshold' => 0,
+            'message' => $count === 0
+                ? "{$r['total']} lição(ões) de operação — todas graduadas (MEC→check / JULG→regra)"
+                : 'Loop de graduação aberto: ' . implode(' · ', array_slice($problemas, 0, 6))
+                    . ($count > 6 ? ' (+' . ($count - 6) . ' mais)' : ''),
+        ];
+    }
+
+    /**
+     * Parser determinístico do ledger de lições de operação.
+     *
+     * Contrato (ver Modules/Jana/LICOES-OPERACAO.md → "Formato canônico"):
+     *   - cada lição = bloco iniciado por `### L-OP-NNN`
+     *   - linha `- **Graduação:** <MEC|JULG> · <check:`x`|regra:`y`> · status:<done|pendente>`
+     *
+     * Regras de validação:
+     *   - sem linha Graduação OU tipo ∉ {MEC,JULG} → malformed
+     *   - MEC com status done sem `check:` → malformed
+     *   - JULG com status done sem `regra:` → malformed
+     *   - status pendente (qualquer tipo) → overdue (loop ainda aberto)
+     *
+     * Público + estático pra ser testável sem tocar o filesystem real.
+     *
+     * @return array{total:int, overdue:list<string>, malformed:list<string>}
+     */
+    public static function parseLessonLedger(string $content): array
+    {
+        $overdue = [];
+        $malformed = [];
+
+        // Quebra em blocos por header de lição (### L-OP-NNN ...).
+        $blocos = preg_split('/^###\s+(L-OP-\d+)\b/m', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        // $blocos = [prefixo, id1, corpo1, id2, corpo2, ...]
+        $total = 0;
+        for ($i = 1; $i < count($blocos); $i += 2) {
+            $id = $blocos[$i];
+            $corpo = $blocos[$i + 1] ?? '';
+            $total++;
+
+            if (! preg_match('/\*\*Gradua[çc][ãa]o:\*\*\s*(MEC|JULG)\b(.*)$/mu', $corpo, $m)) {
+                $malformed[] = $id;
+                continue;
+            }
+            $tipo = $m[1];
+            $resto = $m[2];
+
+            $pendente = (bool) preg_match('/status:\s*pendente/iu', $resto);
+            if ($pendente) {
+                $overdue[] = $id;
+                continue;
+            }
+
+            // status:done (default) — exige o binding do tipo.
+            if ($tipo === 'MEC' && ! preg_match('/check:\s*`?[\w-]+`?/u', $resto)) {
+                $malformed[] = $id;
+            } elseif ($tipo === 'JULG' && ! preg_match('/regra:\s*`?[^`·\s][^`·]*`?/u', $resto)) {
+                $malformed[] = $id;
+            }
+        }
+
+        return ['total' => $total, 'overdue' => $overdue, 'malformed' => $malformed];
     }
 
     protected function renderTable(array $checks, bool $allOk): void

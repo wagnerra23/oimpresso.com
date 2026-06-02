@@ -289,3 +289,38 @@ Só docs, mas mexe na família de governança do loop (`prototipo-ui/*` + `memor
 - **golden**: dedupe bundle duplo Financeiro (−327KB; paridade validada por [CL]: 2309 idênticas, 0 seletor real só-no-antigo, 30 OLD→CANON + `.rec-paper` eram todos `var(--surface)`→`#fff` no-op porque dark-theme nunca ativa).
 - **conflito**: 2 bundles Financeiro ~327KB ambos `@import`, antigo vence cascade — resolver adotando canon (feito #2127).
 - **lição**: token-discipline ratchet (C1) num bundle slated-for-delete vira trabalho perdido — mirar sempre o canon.
+
+---
+
+## 2026-06-02 (c) [CL] → [W]/[CC] — Jana ganha ledger de auto-reflexão de erros de OPERAÇÃO (Reflexion runtime)
+
+### Handoff: `PROMPT_PARA_CODE_JANA-LICOES-REFLEXION.md` (Cowork→Code) · racional `rep-cc-vs-jana` do `metricas.html`
+### Natureza: peer-review (L-17) · **Tier 0** (governança de módulo) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/jana-ledger-licoes-operacao` · base `main` fresco (`de72198ae`)
+
+### Veredito do peer-review: **procede** (aditivo, ROI alto, espelha 5ª camada já aceita pro [CC])
+A Jana já pega erro de **saída** (golden 30Q + RAGAS + drift sentinel) mas não tinha o ledger dos próprios erros de **operação** que **gradua** cada um — lacuna #1 (Aprendizado ~6.5 vs [CC] ~9.0). Não é mecanismo novo: `jana:health-check` já é o harness; é só +1 check.
+
+### Passo 0 contra `origin/main` (não dupliquei nada):
+- `LICOES_CC`/`APRENDER-COM-ERRO` **não estão no canon** (só em `_BACKUP-NAO-USAR`, design/[CC]) → ledger da Jana é o **gêmeo runtime**, novo.
+- `proibicoes.md` = proibição global, não lição de operação → não toquei.
+- `incident-done-checklist` + `feedback-capture` + `jana:health-check` **estendidos**, não recriados.
+- **Achado que ancora**: `mcp_webhook_5xx_2h` e `profile_distiller_drift` **já são checks** em `main` → viraram seed (L-OP-001/002) → ledger nasce verde.
+
+### O que entrou (tudo aditivo):
+- `Modules/Jana/LICOES-OPERACAO.md` — ledger append-only · formato `### L-OP-NNN` · Erro·Sintoma·Regra·Ref·**Graduação** (MEC→check / JULG→regra) · 3 lições seed reais.
+- `jana:health-check` → check **advisory** `jana_lesson_ledger_graduation` (parser `parseLessonLedger()` puro/estático) — acende amarelo se lição malformada/`pendente`; não derruba cron.
+- Pest: 4 testes do parser (verde local, incl. ledger canônico) + presença no smoke. `php -l` limpo. Parser validado isolado: **ALL GREEN**.
+- `Modules/Jana/SCOPE.md` (+2 linhas) · `incident-done-checklist` **Bloco D** (gatilho) · `feedback-capture` nota de fronteira.
+- Proposta §10.4: `memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md`.
+
+### Tier 0 respeitado:
+- **Não cunhei nº de ADR** (soberania [W], 0238) — é proposal slug-only. [W] numera se promover.
+- **Não mergeei** (publication-policy). PR espera [W].
+
+### Decisão aberta pra [W]:
+- [ ] Aprovar o ledger como mecanismo canônico da Jana (vira canon ao mergear) ou ajustar o home.
+- [ ] Numerar ADR se quiser elevar proposal → decisão.
+- [ ] Confirmar check **advisory** (recomendo sim — drift de processo não pagina à noite).
+
+### NÃO reprocessei (a comparação só confirma): guard higiene Cowork L-07/11/21/22 · collector CT100/OTel/LGPD #2073 · `design:review` #2078.

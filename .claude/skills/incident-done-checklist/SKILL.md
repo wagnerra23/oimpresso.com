@@ -1,6 +1,6 @@
 ---
 name: incident-done-checklist
-description: BLOQUEADOR — ATIVAR antes de declarar "incident fechado" / "está pronto" / "feature funcionando" / encerrar sessão de fix em prod. Skill carrega a Definition of Done canônica (DoD-v1) que EXIGE smoke real prod end-to-end pra cada fix antes de marcar pronto. Funciona como gate procedural — sem TODOS os checks ✅, status fica `awaiting-smoke` no commit/PR/handoff, NÃO `done`. Aprende incident 2026-05-28 onde declarei "10 PRs fechados" com 3 fixes (M1/M2/M3 mídia) NUNCA validados por smoke real → 10.144 mídias ainda órfãs prod descoberto pelo Wagner depois. Operacional Tier A — DEVE ativar SEMPRE que agente escreve "está pronto", "fechado", "completou", "deployed", "validado" em mensagem ao Wagner. Refs PATTERN-INCIDENT-RESPONSE-VELOCITY.md passo 4, ADR 0093, skill commit-discipline.
+description: BLOQUEADOR — ATIVAR antes de declarar "incident fechado" / "está pronto" / "feature funcionando" / encerrar sessão de fix em prod. Skill carrega a Definition of Done canônica (DoD-v1) que EXIGE smoke real prod end-to-end pra cada fix antes de marcar pronto. Funciona como gate procedural — sem TODOS os checks ✅, status fica `awaiting-smoke` no commit/PR/handoff, NÃO `done`. Aprende incident 2026-05-28 onde declarei "10 PRs fechados" com 3 fixes (M1/M2/M3 mídia) NUNCA validados por smoke real → 10.144 mídias ainda órfãs prod descoberto pelo Wagner depois. Operacional Tier A — DEVE ativar SEMPRE que agente escreve "está pronto", "fechado", "completou", "deployed", "validado" em mensagem ao Wagner. Bloco D (Reflexion runtime): quando o incidente foi erro de OPERAÇÃO da Jana (≠ saída do LLM), registrar a lição em Modules/Jana/LICOES-OPERACAO.md + graduar (MEC→check jana:health-check / JULG→regra). Refs PATTERN-INCIDENT-RESPONSE-VELOCITY.md passo 4, ADR 0093, skill commit-discipline.
 ---
 
 # Incident Done Checklist — Definition of Done bloqueante (DoD-v1)
@@ -46,12 +46,21 @@ Sem skill bloqueante, isso repete.
 
 - [ ] **C1** Wagner confirmou explicitamente no celular (msg WhatsApp chegou) OU na tela (preview/thumb visível)
 
+### Bloco D — Reflexão (só quando o incidente foi erro de OPERAÇÃO da Jana)
+
+> Aplica-se quando o que quebrou foi **comportamento/operação da Jana** (job que parou, config stale, sync silencioso, declarar done sem evidência) — **NÃO** quando foi erro de **saída** do LLM (alucinação/relevância), que o golden 30Q + RAGAS gate já cobrem. Reflexion runtime: o incidente vira lição append-only + graduada.
+
+- [ ] **D1** Append da lição em [`Modules/Jana/LICOES-OPERACAO.md`](../../../Modules/Jana/LICOES-OPERACAO.md) no formato canônico (`### L-OP-NNN` · Erro · Sintoma · Regra · Ref)
+- [ ] **D2** Atribuir `Graduação:` — **MEC** (mecanizável → vira `check:` no `jana:health-check`, igual `profile_distiller_drift`) **ou** **JULG** (julgamento → vira `regra:` sempre-lida no SCOPE/BRIEFING da Jana ou numa skill)
+- [ ] **D3** Se MEC e o check ainda não existe, criar o check (ou deixar `status:pendente` — o check advisory `jana_lesson_ledger_graduation` acende amarelo até fechar)
+
 ## Regras de fail
 
 - **Qualquer item ❌ em B** → status ≠ `done`. Use `awaiting-smoke` ou `partial-fix-deployed`.
 - **B3 fail (DB não bate)** → fix NÃO está realmente aplicado. Voltar pro passo 1 do DRFV (PATTERN-INCIDENT-RESPONSE-VELOCITY).
 - **B6 latência fora do alvo** → bug parcial. Catalogar como follow-up + abrir nova investigação.
 - **C1 sem confirmação Wagner em 24h** → status fica `pending-customer-validation`. Não encerra sessão.
+- **D ignorado** quando o incidente foi erro de operação da Jana → a lição se perde e o erro repete na próxima sessão. Sem append no ledger, não é Reflexion — é só apagar incêndio.
 
 ## Anti-padrões formais (NUNCA fazer)
 
