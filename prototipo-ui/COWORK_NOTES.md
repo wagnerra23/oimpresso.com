@@ -6,6 +6,8 @@
 
 > ⚠️ **LEITURA OBRIGATÓRIA antes de qualquer F3:** [`LICOES_F3_FINANCEIRO_REJEITADO.md`](LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos + pré-flight checklist + tabela convenções pt-BR. Sessão 2026-05-09 batch Financeiro rejeitado pré-merge. Aplicar literalmente em Estoque/Vendas/RH/Suprimentos/Crédito.
 
+> 🌱 **RAIZ DO MÉTODO (anti-regressão · always-read):** [`PROCESSO_MEMORIA_CC.md`](PROCESSO_MEMORIA_CC.md) — como a memória de design evolui sem regredir (3 planos · anéis 🔍Avaliar→🧪Testar→✅Adotar→⛔Descartar · §5 REGRESSÕES PROIBIDAS · DS-GUARD §8 · Bateria §9 · Benchmark §11). Ler no início de todo chat junto com `STATUS.md` + [`memory/LICOES_CC.md`](../memory/LICOES_CC.md) (L-01..L-25). Guards rodáveis: `node prototipo-ui/ds-guard.mjs <arquivos tocados>` · `node prototipo-ui/integrity-check.mjs`. _REGRESSÃO É INACEITÁVEL._
+
 ---
 
 ## 2026-05-09 — Setup inicial: 3 perguntas pra Claude Design responder
