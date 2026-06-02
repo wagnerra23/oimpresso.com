@@ -473,6 +473,10 @@ class ContactController extends Controller
             'contacts.zip_code',
             'contacts.address_line_1',
             'contacts.address_line_2',
+            // Endereço de entrega (shipping_address) — coluna UPOS desde 2020.
+            // Sem isso, o drawer EnderecoTab reabre com o campo vazio mesmo salvo
+            // (mesma classe de bug do zip_code/address_line acima). Wagner 2026-06-02.
+            'contacts.shipping_address',
         ];
         // `neighborhood` e `numero` (BR canon) — migrations aditivas recentes
         // (2026_05_22_120000 e 2026_05_22_180000). hasColumn graceful pra
@@ -682,6 +686,7 @@ class ContactController extends Controller
                 'numero' => $contact->numero ?? null,
                 'city' => $contact->city,
                 'state' => $contact->state,
+                'shipping_address' => $contact->shipping_address,
             ];
 
             // Wave G — campos opcionais quando migration Wave B rodou.
@@ -1906,6 +1911,7 @@ class ContactController extends Controller
                     'city' => $contact->city ?? null,
                     'state' => $contact->state ?? null,
                     'zip_code' => $contact->zip_code ?? null,
+                    'shipping_address' => $contact->shipping_address ?? null,
                     'customer_group_id' => $contact->customer_group_id ?? null,
                     'credit_limit' => $contact->credit_limit ?? null,
                     // Dados Fiscais BR (migration 2026_05_21_140000). Diferente do Show()

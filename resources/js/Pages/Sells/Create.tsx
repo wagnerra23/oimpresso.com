@@ -913,7 +913,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <Label htmlFor="contact_id">Cliente</Label>
             <CustomerSearchAutocomplete
               defaultName={props.walkInCustomer.name}
-              onSelect={(c) => setData('contact_id', c.id)}
+              onSelect={(c) => {
+                setData('contact_id', c.id);
+                // Fase 2 (Wagner 2026-06-02) — auto-preenche o endereço de entrega
+                // da venda com o do cadastro do cliente, SEM sobrescrever o que o
+                // vendedor já digitou. Continua editável no campo "Entrega / Frete".
+                if (c.shipping_address && !data.shipping.address.trim()) {
+                  setData('shipping', { ...data.shipping, address: c.shipping_address });
+                }
+              }}
               onClear={() => setData('contact_id', props.walkInCustomer.id)}
               forcedValue={forcedCustomer}
             />

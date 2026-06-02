@@ -308,6 +308,12 @@ class ClienteAutosaveController extends Controller
             'state' => ['nullable', 'string', 'in:' . implode(',', self::UFS)],
             // city_code IBGE (7 digitos numericos) -- Wagner 2026-05-22.
             'city_code' => ['nullable', 'string', 'max:7'],
+            // Endereco de entrega (shipping_address) -- texto livre opcional.
+            // Wagner 2026-06-02: cliente cadastra endereco de entrega distinto do
+            // principal; a venda puxa daqui (Fase 2). Coluna existe desde 2020
+            // (migration add_shipping_address_to_contacts). Mesma regra de
+            // StoreContactRequest/UpdateContactRequest (nullable string).
+            'shipping_address' => ['nullable', 'string'],
         ], $this->messages());
 
         // Validacao customizada CEP 8 digitos quando preenchido.
@@ -575,6 +581,9 @@ class ClienteAutosaveController extends Controller
             'neighborhood' => $contact->neighborhood ?? null,
             'city' => $contact->city ?? null,
             'state' => $contact->state ?? null,
+            // Endereço de entrega (shipping_address) — devolvido na response do
+            // autosave pro EnderecoTab confirmar o valor canônico. Wagner 2026-06-02.
+            'shipping_address' => $contact->shipping_address ?? null,
             'credit_limit' => $contact->credit_limit !== null ? (float) $contact->credit_limit : null,
             'pay_term_number' => $contact->pay_term_number !== null ? (int) $contact->pay_term_number : null,
             'tabela_preco_padrao' => $contact->tabela_preco_padrao ?? null,

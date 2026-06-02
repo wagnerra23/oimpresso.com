@@ -7,6 +7,7 @@ import { useForm } from '@inertiajs/react';
 import { type ReactNode, type FormEvent } from 'react';
 import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import DadosFiscaisBRSection, {
@@ -42,6 +43,7 @@ type ClienteFormData = DadosFiscaisBRData & {
   city: string;
   state: string;
   zip_code: string;
+  shipping_address: string;
   customer_group_id: string;
   opening_balance: string;
   credit_limit: string;
@@ -64,6 +66,7 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
     city: '',
     state: '',
     zip_code: '',
+    shipping_address: '',
     customer_group_id: '',
     opening_balance: '0',
     credit_limit: '',
@@ -275,6 +278,14 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
                   value={data.zip_code}
                   onChange={(e) => setData('zip_code', e.target.value)}
                   placeholder="00000-000"
+                />
+              </Field>
+              <Field label="Endereço de entrega" error={errors.shipping_address} colSpan={2}>
+                <Textarea
+                  value={data.shipping_address}
+                  onChange={(e) => setData('shipping_address', e.target.value)}
+                  placeholder="Preencha se a entrega for em endereço diferente do cadastro acima."
+                  rows={2}
                 />
               </Field>
             </div>

@@ -7,6 +7,7 @@ import { useForm } from '@inertiajs/react';
 import { type ReactNode, type FormEvent } from 'react';
 import { ChevronLeft, Save, User2 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import DadosFiscaisBRSection, {
@@ -33,6 +34,7 @@ interface ContactInfo {
   city: string | null;
   state: string | null;
   zip_code: string | null;
+  shipping_address: string | null;
   customer_group_id: number | null;
   credit_limit: string | null;
   // Campos BR (migration 2026_05_21_140000). Backend pode mandar null em legacy.
@@ -70,6 +72,7 @@ type ClienteFormData = DadosFiscaisBRData & {
   city: string;
   state: string;
   zip_code: string;
+  shipping_address: string;
   customer_group_id: string;
   opening_balance: string;
   credit_limit: string;
@@ -92,6 +95,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
     city: c.city ?? '',
     state: c.state ?? '',
     zip_code: c.zip_code ?? '',
+    shipping_address: c.shipping_address ?? '',
     customer_group_id: c.customer_group_id ? String(c.customer_group_id) : '',
     opening_balance: props.opening_balance ?? '0',
     credit_limit: c.credit_limit ?? '',
@@ -244,6 +248,14 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
               </Field>
               <Field label="CEP" error={errors.zip_code}>
                 <Input value={data.zip_code} onChange={(e) => setData('zip_code', e.target.value)} />
+              </Field>
+              <Field label="Endereço de entrega" error={errors.shipping_address} colSpan={2}>
+                <Textarea
+                  value={data.shipping_address}
+                  onChange={(e) => setData('shipping_address', e.target.value)}
+                  placeholder="Preencha se a entrega for em endereço diferente do cadastro acima."
+                  rows={2}
+                />
               </Field>
             </div>
           </Section>

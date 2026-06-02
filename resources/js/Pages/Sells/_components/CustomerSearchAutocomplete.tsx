@@ -21,6 +21,8 @@ export interface CustomerSearchResult {
   text: string;
   mobile?: string | null;
   city?: string | null;
+  /** Endereço de entrega cadastrado do cliente (shipping_address) — auto-preenche a venda. */
+  shipping_address?: string | null;
   /** Saldo devedor cliente (R$). >0 = devedor — exibe badge vermelho. */
   balance?: number | string | null;
 }
