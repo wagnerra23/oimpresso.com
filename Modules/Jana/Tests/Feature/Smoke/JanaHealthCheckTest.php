@@ -62,6 +62,7 @@ test('cada check tem campos canonicos', function () {
         'whatsapp_media_pending_1h',
         'mcp_webhook_5xx_2h',
         'memoria_recall_backend',
+        'jana_lesson_ledger_graduation',
     ];
 
     $namesReais = array_column($json['checks'], 'name');
@@ -84,4 +85,59 @@ test('comando nao crasha mesmo se tabelas degraded', function () {
 
     expect($exit1)->toBeIn([0, 1]);
     expect($exit2)->toBeIn([0, 1]);
+});
+
+/**
+ * Loop de graduação do ledger de lições de operação (Reflexion runtime).
+ * Parser determinístico — testável sem tocar o filesystem real.
+ *
+ * @see Modules/Jana/Console/Commands/HealthCheckCommand::parseLessonLedger
+ * @see Modules/Jana/LICOES-OPERACAO.md
+ */
+use Modules\Jana\Console\Commands\HealthCheckCommand;
+
+test('parser do ledger: lição MEC e JULG bem-formadas passam', function () {
+    $md = <<<'MD'
+    ### L-OP-001 · check existente
+    - **Graduação:** MEC · check:`mcp_webhook_5xx_2h` · status:done
+
+    ### L-OP-002 · regra existente
+    - **Graduação:** JULG · regra:`.claude/skills/incident-done-checklist/SKILL.md` · status:done
+    MD;
+
+    $r = HealthCheckCommand::parseLessonLedger($md);
+    expect($r['total'])->toBe(2);
+    expect($r['overdue'])->toBe([]);
+    expect($r['malformed'])->toBe([]);
+});
+
+test('parser do ledger: status pendente vira overdue (loop aberto)', function () {
+    $md = "### L-OP-003 · ainda não graduada\n- **Graduação:** MEC · check:`x` · status:pendente";
+    $r = HealthCheckCommand::parseLessonLedger($md);
+    expect($r['overdue'])->toBe(['L-OP-003']);
+    expect($r['malformed'])->toBe([]);
+});
+
+test('parser do ledger: MEC sem check e bloco sem graduação são malformados', function () {
+    $md = <<<'MD'
+    ### L-OP-004 · MEC sem binding
+    - **Graduação:** MEC · status:done
+
+    ### L-OP-005 · sem linha de graduação
+    - **Erro:** algo
+    MD;
+
+    $r = HealthCheckCommand::parseLessonLedger($md);
+    expect($r['malformed'])->toBe(['L-OP-004', 'L-OP-005']);
+    expect($r['overdue'])->toBe([]);
+});
+
+test('ledger canônico Modules/Jana/LICOES-OPERACAO.md está todo graduado', function () {
+    $path = base_path('Modules/Jana/LICOES-OPERACAO.md');
+    expect(is_file($path))->toBeTrue('Ledger canônico ausente');
+
+    $r = HealthCheckCommand::parseLessonLedger((string) file_get_contents($path));
+    expect($r['total'])->toBeGreaterThanOrEqual(3);
+    expect($r['overdue'])->toBe([]);
+    expect($r['malformed'])->toBe([]);
 });
