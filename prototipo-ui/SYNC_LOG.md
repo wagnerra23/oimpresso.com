@@ -168,3 +168,4 @@
 2026-06-02 17:16 [CL] C1 #fff->var(--surface) 30x cowork-financeiro-bundle.css (ratchet stylelint -30)
 2026-06-02 17:16 [CL] docs charters Vendas/Compras + INVENTARIO mirrorados (ADR _PROPOSTA-0245 NAO: soberania [W])
 2026-06-02 17:16 [CL] guard business_id recalibrado (exempta ===0; biz=1->config) + multi-tenant-gate.yml (#2121)
+2026-06-02 17:35 [CL] ADR _PROPOSTA-0245 numerada 0244 (DS v5 canon + Oficina padrao + Inbox 9.75 regua) + MERGED #2123 -- pendencia "numerar ADR" do CODE_NOTES 2026-06-02 RESOLVIDA
