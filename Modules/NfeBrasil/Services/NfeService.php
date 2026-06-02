@@ -437,7 +437,21 @@ class NfeService
                     'motivo_anterior'  => $existente->motivo,
                     'numero'           => $existente->numero,
                 ]);
-                $existente->update(['status' => 'inutilizada']);
+                // BUG FIX 2026-06-02: liberar a UNIQUE (business_id, transaction_id)
+                // setando transaction_id=null — MySQL trata NULL como distinto em
+                // UNIQUE. Sem isso, o NfeEmissao::create() abaixo (mesma transaction)
+                // viola `nfe_emissoes_biz_tx_unique` no retry pós-falha. Mesma técnica
+                // canônica do retransmitirInterno() (CONFAZ Art. 14 — nunca hard-delete;
+                // metadata.original_transaction_id preserva o vínculo pra audit).
+                $existente->update([
+                    'status' => 'inutilizada',
+                    'transaction_id' => null,
+                    'metadata' => array_merge((array) ($existente->metadata ?? []), [
+                        'original_transaction_id'   => $transactionId,
+                        'inutilizada_em'            => now()->toIso8601String(),
+                        'status_antes_inutilizacao' => $existente->status,
+                    ]),
+                ]);
             }
         }
 
