@@ -38,6 +38,7 @@ const NFE_IDEMP_TX_AUTORIZADA = 999777001;
 const NFE_IDEMP_TX_PENDENTE = 999777002;
 const NFE_IDEMP_TX_CANCELADA = 999777003;
 const NFE_IDEMP_TX_REJEITADA = 999777004;
+const NFE_IDEMP_TX_ERRO_ENVIO = 999777005;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
@@ -63,6 +64,7 @@ afterEach(function () {
                 NFE_IDEMP_TX_PENDENTE,
                 NFE_IDEMP_TX_CANCELADA,
                 NFE_IDEMP_TX_REJEITADA,
+                NFE_IDEMP_TX_ERRO_ENVIO,
             ])
             ->forceDelete();
     } catch (\Throwable) {
@@ -279,4 +281,76 @@ it('idempotência scoped por business_id — biz=1 NÃO reusa emissao de biz=99'
 
     // Cleanup defensivo extra biz=99 deste teste
     NfeEmissao::withoutGlobalScopes()->where('business_id', 99)->where('numero', 555099)->forceDelete();
+});
+
+// ------------------------------------------------------------------
+// BUG FIX 2026-06-02: retry pós-falha NÃO pode violar nfe_emissoes_biz_tx_unique
+// ------------------------------------------------------------------
+// Regressão real (prod homologação 2026-06-02): 1ª emissão falhou no SOAP
+// (connection reset), deixando registro status=erro_envio. O retry chamava
+// emitirInterno() → guarda marcava `inutilizada` MAS mantinha o transaction_id →
+// o NfeEmissao::create() seguinte (mesma transaction) violava a UNIQUE
+// (business_id, transaction_id). Fix: setar transaction_id=null na inutilização
+// (MySQL trata NULL como distinto), igual ao retransmitirInterno(). Aqui invocamos
+// emitirInterno() DE VERDADE — a guarda roda antes do cert/SEFAZ, então o efeito
+// colateral do fix acontece mesmo o fluxo parando depois por falta de certificado.
+
+it('retry pós erro_envio inutiliza com transaction_id=null (libera a UNIQUE biz+tx)', function () {
+    $emissaoId = DB::table('nfe_emissoes')->insertGetId([
+        'business_id'    => NFE_IDEMP_BIZ,
+        'transaction_id' => NFE_IDEMP_TX_ERRO_ENVIO,
+        'modelo'         => '65',
+        'serie'          => '1',
+        'numero'         => 555005,
+        'status'         => 'erro_envio',
+        'motivo'         => 'Recv failure: Connection reset by peer (SOAP)',
+        'valor_total'    => 90.00,
+        'created_at'     => now()->subMinutes(5),
+        'updated_at'     => now()->subMinutes(5),
+    ]);
+
+    session(['business.id' => NFE_IDEMP_BIZ]);
+
+    $service = new NfeService();
+    $reflection = new ReflectionClass(NfeService::class);
+    $method = $reflection->getMethod('emitirInterno');
+    $method->setAccessible(true);
+
+    // A guarda de idempotência (nosso fix) roda ANTES do cert. O fluxo segue pra
+    // cert/SEFAZ e lança (sem certificado no ambiente de teste) — mas o efeito
+    // colateral do fix já ocorreu.
+    try {
+        $method->invoke(
+            $service,
+            NFE_IDEMP_BIZ,
+            ['valor_total' => 90.00, 'modelo' => '65'],
+            '65',
+            NFE_IDEMP_TX_ERRO_ENVIO
+        );
+    } catch (\Throwable) {
+        // esperado: para no cert/SEFAZ (sem certificado no teste)
+    }
+
+    $antiga = NfeEmissao::withoutGlobalScopes()->find($emissaoId);
+    expect($antiga)->not->toBeNull();                       // CONFAZ Art. 14 — nunca hard-delete
+    expect($antiga->status)->toBe('inutilizada');
+    expect($antiga->transaction_id)->toBeNull();            // ← o FIX: libera a UNIQUE
+    expect((int) $antiga->numero)->toBe(555005);            // sequencial preservado (audit)
+    expect((array) $antiga->metadata)->toHaveKey('original_transaction_id');
+    expect((int) $antiga->metadata['original_transaction_id'])->toBe(NFE_IDEMP_TX_ERRO_ENVIO);
+
+    // Prova concreta: novo registro com a MESMA transaction_id agora insere sem
+    // violar nfe_emissoes_biz_tx_unique (o antigo está com transaction_id=null).
+    $novoId = DB::table('nfe_emissoes')->insertGetId([
+        'business_id'    => NFE_IDEMP_BIZ,
+        'transaction_id' => NFE_IDEMP_TX_ERRO_ENVIO,
+        'modelo'         => '65',
+        'serie'          => '1',
+        'numero'         => 555006,
+        'status'         => 'enviando',
+        'valor_total'    => 90.00,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+    expect((int) $novoId)->toBeGreaterThan(0);
 });
