@@ -39,12 +39,21 @@ const PROJECT_ROOT = __DIR__ . '/../../..';
  * Foco em comparações IDENTITY (===, !==) ou equality (==, !=) com número
  * literal de business_id. Variáveis cobertas: $business_id, $businessId,
  * $bizId, $current_biz.
+ *
+ * EXEMÇÃO `=== 0`: business_id 0 NÃO é um tenant — é o sentinela "sem contexto
+ * de tenant" (CLI/superadmin/sessão vazia). O padrão `if ($businessId === 0)`
+ * é o guard de no-tenant que o skill multi-tenant-patterns ENDOSSA, não o
+ * anti-padrão. Por isso os patterns casam só `[1-9]\d*` (tenant real ≥ 1).
+ *
+ * O id do business dono-da-plataforma (SaaS dogfooding) também NÃO pode ser
+ * literal aqui — usar `config('app.saas_owner_business_id')` (fonte única). Um
+ * `=== 1` cru continua banido de propósito pra forçar o config.
  */
 const PATTERNS_BANIDOS = [
-    '/\$business_id\s*[!=]==?\s*\d+/',
-    '/\$businessId\s*[!=]==?\s*\d+/',
-    '/\$bizId\s*[!=]==?\s*\d+/',
-    '/\$current_biz\s*[!=]==?\s*\d+/',
+    '/\$business_id\s*[!=]==?\s*[1-9]\d*/',
+    '/\$businessId\s*[!=]==?\s*[1-9]\d*/',
+    '/\$bizId\s*[!=]==?\s*[1-9]\d*/',
+    '/\$current_biz\s*[!=]==?\s*[1-9]\d*/',
     // Variantes especiais de nomes que apareceram no incidente original
     '/\$piloto_rotalivre/',
     '/\$piloto_biz/',
