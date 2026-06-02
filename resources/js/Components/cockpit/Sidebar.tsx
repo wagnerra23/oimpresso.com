@@ -1147,7 +1147,7 @@ function VibesSubpanel({
 /** Cor visual do dot por vibe — usa oklch idêntico ao cockpit.css */
 function vibeAccent(vibe: Vibe): string {
   switch (vibe) {
-    case 'workspace': return 'oklch(0.58 0.09 220)'; // accent default azul
+    case 'workspace': return 'oklch(0.55 0.15 295)'; // accent default roxo canon (ADR 0190 — era 220 azul)
     case 'daylight':  return 'oklch(0.72 0.13 60)';  // âmbar quente
     case 'focus':     return 'oklch(0.45 0.02 240)'; // cinza-azul dessaturado
   }
