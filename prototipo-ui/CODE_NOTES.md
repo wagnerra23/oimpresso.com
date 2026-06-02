@@ -183,3 +183,45 @@ Gerador `design:review` (fila COWORK #2) MERGED:
 - Fase 2 (juiz-LLM R5/R8/R10 + nota holistica + best_of_class) = custo/cadencia real-mode → espera [W].
 - `ui:lint` vermelho **PRE-EXISTENTE** (nao do #2078): `Pro.tsx` (#2069) 2 R1 cor-crua fora do `ui-lint-baseline.json`. Fix = PR separado tokenizando o card dark (decisao de tokens dark). Ja no backlog do `Pro.review.md`.
 - Fila restante (Tier 0, top→down): #1 Metodo Migration→Tela · #3 ADR peer-review · #4 IA ENABLE.
+
+---
+
+## 2026-06-02 [CL] → [W] — Arquitetura de Memória/Evolução [CC] formalizada (handoff `ALwoVssQOY…`)
+
+### Origem: bundle Cowork (Share→Handoff) · prompt `prototipo-ui-patch/PROMPT_PARA_CODE_ARQUITETURA-MEMORIA-CC.md` (PROPOSTA §10.4)
+### Status: 4 arquivos transportados **verbatim** · **aguarda merge [W]** (docs podem mergear; ratificação ADR é separada)
+### Diff: branch `docs/arquitetura-memoria-cc` (base `origin/main` `1e4bb33c4`) → **PR #2106**
+
+**Passo 0 §10.4 (ancorei em `origin/main` FRESCO):** worktree novo off `origin/main`. O `git-base-freshness-guard` se confirmou na prática — minha 1ª checada de cross-refs rodou contra o working tree `feat/staging-ct100` (parado em ADR 0236) e marcou ADR 0238/0239 como "phantom". **Errado.** Contra `origin/main` (até 0242) ambos EXISTEM e batem com o texto. Exatamente o modo-de-falha que o §10.4 Passo 0 descreve — pego pelo gate, não por sorte.
+
+### Paths finais (todos net-new vs `main` — nenhum sobrescrito)
+| Artefato | Path no repo | Ação |
+|---|---|---|
+| Método/raiz do processo | `prototipo-ui/PROCESSO_MEMORIA_CC.md` | criado (vizinho de `PROTOCOL.md`/`CLAUDE_DESIGN_BRIEFING.md`) |
+| Charter Produção/Oficina | `prototipo-ui/prototipos/producao-oficina/charter.md` | criado (convenção pasta-por-tela, ex `clientes/`) |
+| Register Produção/Oficina | `prototipo-ui/prototipos/producao-oficina/decisoes.md` | criado (irmão do charter → IT2 do PROCESSO passa) |
+| Lições [CC] | `memory/LICOES_CC.md` | criado (1ª vez versionado no `main`) |
+
+### Validação §10.4 (passei sozinho, sem [W])
+- **Não cunhei número.** PROCESSO referencia ADR **0238** (`soberania-constituicao-wagner`) + **0239** (`governanca-design-system-git-ssot-regressao-ia`) — **verificados reais em `origin/main`**, não inventados aqui. PROTOCOL §10.3/§10.4 reais. Charter referencia ADR 0194/0129/0143 — reais.
+- **Nenhum arquivo divergente sobrescrito** — os 4 são net-new (não existiam em `origin/main`).
+- **`LICOES_CC` append-only:** não havia base em `main` → commitei o arquivo inteiro (L-01…L-23). **Contíguo, sem buraco/duplicata → o próprio IT4 do PROCESSO passa.** O único erro novo desta sessão Cowork é o **L-23** ("construí a tela de venda FORA do sistema" — reincidência L-02 paleta inventada + L-21 `.html` na raiz).
+- **Baseline intacto:** só `.md`, sem código/css/tsx → lint/Pest/stylelint-baseline não mexem.
+
+### Follow-up Tier 0 (NÃO fiz, de propósito)
+`PROCESSO_MEMORIA_CC` é **método que governa [CC]**. Ratificação formal = vira ADR → **[W] cunha o próximo número livre (0243) sob seu OK**; não cunho. Docs mergeiam antes; a ratificação é separada e não bloqueia.
+
+### Nada mergeado
+Só docs, mas mexe na família de governança do loop (`prototipo-ui/*` + `memory/LICOES_CC`) → **não auto-mergeei**; seu merge.
+
+---
+
+## 2026-06-02 (b) [CL] → [W] — ADR 0243 cunhado (ratificação, sob OK "pode fazer")
+
+[W] autorizou ("pode fazer") → minei **ADR 0243** `memory/decisions/0243-processo-memoria-evolucao-design-cowork.md` na mesma PR #2106 (a ADR ratifica o `PROCESSO_MEMORIA_CC` que vive nela — evita forward-dependency).
+
+- **Número:** 0243 (próximo livre vs `origin/main`, que ia até 0242). Confirmei contra `origin/main`, não o working tree stale.
+- **Schema:** valida contra `scripts/memory-schemas/adr.schema.json` (gray-matter + Ajv 2020, mesmo validador do `memory-schema-gate`) — ✅ passa. `status: aceito` + `decided_by: [W]`, padrão dos irmãos 0238/0239/0242 (merge de [W] = ratificação formal).
+- **Conteúdo:** R1–R8 (always-read · 3 planos · anéis fonte-única · charter+register irmãos · defesa-que-dispara · medir+gatilho · LICOES append-only · soberania [W]). Consolida 0114/0236/0238/0239/0241/0242 + UI-0013; `supersedes: []`.
+- **Índice (ADR 0239 R5):** adicionei 0243 em `INDEX-DESIGN-MEMORIAS.md` (tabela de governança + changelog) — link relativo resolve, `DesignIndexSingleSourceTest` segue verde.
+- **Soberania respeitada:** numerei só porque [W] deu o OK explícito (ADR 0238). Continua **sem merge** — ratificação = seu merge da PR #2106.
