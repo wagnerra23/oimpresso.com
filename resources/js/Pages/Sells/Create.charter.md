@@ -3,11 +3,11 @@ page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-01"
+last_validated: 2026-05-08
 parent_module: Sells
-related_adrs: [110, 107, 104, 93]
+related_adrs: [0110, 0107, 0104, 0093]
 tier: A
-charter_version: 2
+charter_version: 1
 ---
 
 # Page Charter — /sells/create
@@ -25,13 +25,12 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 ## Goals — Features (faz)
 
 - AppShellV2 + topnav inline com breadcrumb
-- Header sticky no topo: h1 "Adicionar venda" + subtitle + 6 filter pills `rounded-full` (Dados / Produtos / Entrega / Pagamento / Resumo / Mais opções)
-- Pills com ícones lucide (FileText / Package / Truck / CreditCard / Receipt / Settings2) + counter Produtos quando > 0
+- Header sticky no topo: h1 "Adicionar venda" + subtitle + 5 filter pills `rounded-full` (Dados / Produtos / Pagamento / Resumo / Mais opções)
+- Pills com ícones lucide (FileText / Package / CreditCard / Receipt / Settings2) + counter Produtos quando > 0
 - Click pill faz `scrollToSection(id)` smooth scroll + scroll-spy via IntersectionObserver marca pill ativa
 - 4 KPIs gigantes (Itens / Total venda / Pago / Status pgto) com tone semântico rose/emerald/amber
 - 8 campos sempre visíveis: Cliente / Data / Status / Local + Produtos + Pagamentos + Desconto + Notas
-- Campos avançados colapsáveis em `<details>` "Mais opções" (fatura / nº fatura / imposto / prazo / comissão / grupo de preço) com persist localStorage `oimpresso.sells.create.advanced.open`
-- **Seção Entrega de 1ª classe** (`sec-entrega`, US-CRM-078 PR2 · ADR 0093): toggle Retirada/Entrega; seletor lê o catálogo `contact.addresses[]` do cliente — **Destinatário** (cadastro `is_default`) ↔ **Local de entrega** (`is_shipping`) — + opção "Outro endereço" avulso estruturado (CEP/logradouro/nº/compl/bairro/cidade/UF); hint de **MDF-e** quando a cidade de entrega ≠ cidade da loja. Persiste one-line em `shipping_address` (compat). Gatilho fiscal real (`<entrega>`/cMun via `city_code`) fica no `NfeService` — **PR3** follow-up.
+- 10 campos colapsáveis em `<details>` "Mais opções" com persist localStorage `oimpresso.sells.create.advanced.open`
 - ProductSearchAutocomplete (debounce + min query) + tabela editável produtos (5 cols)
 - PaymentRow split de pagamento + indicador saldo (falta/troco/exato)
 - Footer sticky no bottom: Cancelar + Salvar venda (sempre visíveis em form longo)
