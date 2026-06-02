@@ -149,31 +149,21 @@ class Contact extends Authenticatable
      * entrega na venda (Sells) escolhe dele ou digita um avulso ("Outro").
      *
      * @see app/ContactAddress.php
-     * @see memory/requisitos/Crm/SPEC-us-063-078.md §US-CRM-078
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<ContactAddress, $this>
+     * @see memory/requisitos/Cliente/SPEC.md §US-CRM-078
      */
-    public function addresses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function addresses()
     {
         return $this->hasMany(ContactAddress::class, 'contact_id');
     }
 
-    /**
-     * Endereço marcado como principal/cobrança (espelha os campos inline).
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ContactAddress, $this>
-     */
-    public function defaultAddress(): \Illuminate\Database\Eloquent\Relations\HasOne
+    /** Endereço marcado como principal/cobrança (espelha os campos inline). */
+    public function defaultAddress()
     {
         return $this->hasOne(ContactAddress::class, 'contact_id')->where('is_default', true);
     }
 
-    /**
-     * Endereço default de entrega (pré-seleção do shipping_address na venda).
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ContactAddress, $this>
-     */
-    public function shippingAddress(): \Illuminate\Database\Eloquent\Relations\HasOne
+    /** Endereço default de entrega (pré-seleção do shipping_address na venda). */
+    public function shippingAddress()
     {
         return $this->hasOne(ContactAddress::class, 'contact_id')->where('is_shipping', true);
     }
