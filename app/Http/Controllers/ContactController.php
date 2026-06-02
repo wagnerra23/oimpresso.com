@@ -2400,6 +2400,20 @@ class ContactController extends Controller
             if (request()->session()->get('business.enable_rp') == 1) {
                 $contacts->addSelect('total_rp');
             }
+
+            // US-CRM-078 PR2 — catálogo de endereços do cliente p/ o seletor de
+            // entrega na venda (Sells/Create). HasBusinessScope no model
+            // App\ContactAddress garante Tier 0 (ADR 0093): só endereços do mesmo
+            // business. city_code (IBGE/cMun) alimenta destinatário ↔ local de
+            // entrega + gatilho MDF-e na NF-e. Ordena: entrega > default > resto.
+            $contacts->with(['addresses' => function ($query) {
+                $query->select([
+                    'id', 'contact_id', 'label', 'zip_code', 'address_line_1',
+                    'numero', 'address_line_2', 'neighborhood', 'city', 'state',
+                    'city_code', 'is_default', 'is_shipping',
+                ])->orderByDesc('is_shipping')->orderByDesc('is_default');
+            }]);
+
             $contacts = $contacts->get();
 
             return json_encode($contacts);

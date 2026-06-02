@@ -155,3 +155,51 @@ test('backfill inline idempotente preserva business_id', function () {
     // Re-run idempotente.
     expect(ContactAddress::backfillInline($biz->id))->toBe(0);
 });
+
+test('getCustomers eager-load: addresses escopadas, ordenadas e com city_code (US-CRM-078 PR2)', function () {
+    $biz = ca078mkBiz();
+    $other = ca078mkBiz();
+
+    $contact = ca078mkContact($biz->id, ['name' => 'Gráfica Cliente PR2']);
+    ca078mkAddr($biz->id, $contact->id, [
+        'label' => 'Obra', 'is_default' => false, 'is_shipping' => false,
+        'city' => 'Criciúma', 'state' => 'SC', 'city_code' => '4204608',
+    ]);
+    ca078mkAddr($biz->id, $contact->id, [
+        'label' => 'Matriz', 'is_default' => true, 'is_shipping' => true,
+        'city' => 'Tubarão', 'state' => 'SC', 'city_code' => '4218707',
+    ]);
+
+    // Contato de outro tenant — não deve aparecer na query do meu business.
+    $otherContact = ca078mkContact($other->id, ['name' => 'Outro Tenant']);
+    ca078mkAddr($other->id, $otherContact->id, ['label' => 'X', 'city' => 'Florianópolis', 'state' => 'SC']);
+
+    $this->actingAs(User::factory()->create(['business_id' => $biz->id]));
+    session(['user.business_id' => $biz->id]);
+
+    // Mesma query que ContactController@getCustomers monta (eager-load `addresses`).
+    $rows = Contact::where('contacts.business_id', $biz->id)
+        ->with(['addresses' => function ($q) {
+            $q->select([
+                'id', 'contact_id', 'label', 'zip_code', 'address_line_1', 'numero',
+                'address_line_2', 'neighborhood', 'city', 'state', 'city_code',
+                'is_default', 'is_shipping',
+            ])->orderByDesc('is_shipping')->orderByDesc('is_default');
+        }])
+        ->get();
+
+    $mine = $rows->firstWhere('id', $contact->id);
+    expect($mine)->not->toBeNull();
+    expect($mine->addresses)->toHaveCount(2);
+    // Ordenação is_shipping > is_default: Matriz (entrega padrão) primeiro.
+    expect($mine->addresses->first()->label)->toBe('Matriz');
+    expect($mine->addresses->first()->city_code)->toBe('4218707');
+
+    // Serializa igual ao payload JSON do autocomplete — `addresses` presente + campos.
+    $json = json_decode((string) json_encode($mine), true);
+    expect($json)->toHaveKey('addresses');
+    expect($json['addresses'][0])->toHaveKeys(['id', 'label', 'city', 'state', 'city_code', 'is_default', 'is_shipping']);
+
+    // Tier 0: contato do outro tenant nem aparece (scope no business_id da query).
+    expect($rows->firstWhere('id', $otherContact->id))->toBeNull();
+});

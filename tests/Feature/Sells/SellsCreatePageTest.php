@@ -104,7 +104,7 @@ it('Page tem os 8 campos sempre visíveis (location, contact, date, status, prod
     expect($source)->toContain('id="notes"');
 });
 
-it('Page tem <details> "Mais opções" colapsável (10 campos restantes)', function () {
+it('Page tem <details> "Mais opções" colapsável (campos avançados — frete saiu p/ seção Entrega)', function () {
     $source = readPage();
     expect($source)->toContain('Mais opções');
     expect($source)->toMatch('/<details[^>]*open=\\{advancedOpen\\}/');
@@ -123,13 +123,34 @@ it('Page renderiza price_group e commission_agent CONDICIONAL (só se aplicável
     expect($source)->toContain('hasCommissionAgent');
 });
 
-it('Page tem bloco frete colapsável dentro de "Mais opções" (5 campos juntos)', function () {
+it('Page tem seção Entrega de 1ª classe (sec-entrega) — frete saiu de "Mais opções"', function () {
     $source = readPage();
+    // US-CRM-078 PR2 — endereço de entrega promovido a seção própria + pill.
+    expect($source)->toContain('id="sec-entrega"');
+    expect($source)->toContain("label: 'Entrega'");
+    // Toggle retirada × entrega.
+    expect($source)->toContain("setDeliveryMode('retirada')");
+    expect($source)->toContain("setDeliveryMode('entrega')");
+    // Campos de logística preservados.
     expect($source)->toContain('id="shipping_details"');
-    expect($source)->toContain('id="shipping_address"');
     expect($source)->toContain('id="shipping_cost"');
     expect($source)->toContain('id="shipping_status"');
     expect($source)->toContain('id="shipping_deliver_to"');
+    // Form estruturado "Outro" endereço (espelha contact_addresses).
+    expect($source)->toContain('id="shipping_address_line_1"');
+    expect($source)->toContain('id="shipping_city"');
+    expect($source)->toContain('id="shipping_state"');
+});
+
+it('Page consome o catálogo de endereços do cliente (contact.addresses[]) no seletor de entrega', function () {
+    $source = readPage();
+    expect($source)->toContain('customerAddresses');
+    // Pré-seleciona endereço de entrega (is_shipping) > default (is_default).
+    expect($source)->toContain('is_shipping');
+    expect($source)->toContain('selectSavedAddress');
+    // Hint de MDF-e quando a entrega sai do município da loja.
+    expect($source)->toContain('mdfeHint');
+    expect($source)->toContain('MDF-e');
 });
 
 it('Page importa shadcn primitives (R-DS-001 reutilização)', function () {
