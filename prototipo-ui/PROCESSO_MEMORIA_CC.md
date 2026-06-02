@@ -6,6 +6,28 @@
 
 ---
 
+## ★ NÚCLEO — se ler só isto, já obedece (13 invariantes)
+
+> Síntese estado-da-arte. O resto do arquivo é **detalhe sob demanda**. Isto é o always-read.
+
+1. **Espinha sempre lida:** STATUS + este NÚCLEO + LICOES + o `charter` da tela em foco — antes de propor/mexer.
+2. **3 planos:** Sistema (DS/tokens) ⊃ Tela (`charter` lei · `decisoes` debate · `casos` contrato) ⊃ Processo. Camada de cima herda e **nunca contradiz**.
+3. **Anéis, fonte única:** 🔍Avaliar→🧪Testar→✅Adotar→⛔Descartar. Adotar→`charter`+`casos`; Descartar→anti-pattern+L-NN. Cada decisão num lugar autoritativo só.
+4. **Casos = contrato de não-regressão.** Mudou a tela → roda os casos. Quebrou um ✅ → **PARA, revisa o pensamento, não força** (conserto silencioso proibido).
+5. **Defesa que dispara > regra que se lê.** DS-GUARD + casos→CI + testes de integridade. Falhou 2× → sobe de tier (mecaniza), nunca desce.
+6. **Reuse-first / DS é piso:** componente do DS; cor só `.<tela>-scope{--accent}`; **nunca** paleta inventada (`--x-*`), **nunca** `.html` de tela na raiz, **nunca** vocabulário paralelo. (L-02/L-21/L-23)
+7. **Locator resiliente:** role/`data-testid`, nunca classe CSS (anti quebra-em-silêncio · L-24 · 0244).
+8. **Medir é inegociável:** benchmark por sessão (recidiva→0, escapes→0). Sem medição → "não-verificado". Gatilho de reestruturação: recidiva>30% / 2 escapes / lição reincide / confiança<7 → para e conserta.
+9. **LICOES append-only:** erro novo → +1 L-NN **e** +1 teste. Nunca deleta/reescreve lição.
+10. **Soberania [W]:** constituição/ADR/token/Tier-0 (estética·estratégia·dinheiro·lei) = só [W]. [CC] **propõe**; git = SSOT. Adotar só com OK de [W].
+11. **Git:** não afirmo commit; gero ponte zero-toque; **não duplico canal/arquivo** (uso `COWORK_NOTES`). (L-06/L-11/L-15)
+12. **Anti-entropia:** doc não-lido → arquiva com lápide (nunca hard-delete). O processo **cabe na leitura ou se mata** (§13.5).
+13. **Age, não pergunta:** ação clara+reversível+não-Tier-0 → faço direto. "A ou B?" só no genuinamente subjetivo/Tier-0. (L-25)
+
+> Detalhe de cada um: seções abaixo. Lei formal: **ADR 0243** (R1–R8) + **METODO_TELA_ANTI-REGRESSAO** + **_PROPOSTA-0244**.
+
+---
+
 ## 0. Arquitetura (fundamentada)
 
 > Por que esta forma e não outra. O sistema é um **loop de evolução medido e auto-corretivo**, montado sobre padrões maduros — não inventado do zero.
@@ -198,6 +220,7 @@ Log de tendência (append por sessão — NUNCA reescreve):
 | Data | Recidiva | Escapes [W] | Defesa-forte | Confiança | Nota |
 |---|---|---|---|---|---|
 | 2026-06-02 | **75%** (E1=L-02, E2=L-21, E3=L-05) | 1 (detour venda) | 70% | 7.5 | baseline vermelho — o spike disparou a reestruturação desta sessão |
+| 2026-06-02 (b) | — (erro novo L-24, não recidiva) | **1** (casos sumiram, pego por [W]) | 70% | 7.5 | runner generalizado regrediu Oficina; corrigido. Decisão: teste estado-da-arte (Playwright+Storybook+data-testid) → `_PROPOSTA-0244`. Escape confirma: defesa atual não pega quebra de wiring. |
 
 ## 12. Gatilho de Reestruturação — "quando errar muito, me arrumo com minhas regras"
 
