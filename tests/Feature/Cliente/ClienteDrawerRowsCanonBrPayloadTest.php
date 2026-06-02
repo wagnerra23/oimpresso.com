@@ -173,3 +173,29 @@ test('GUARD 8 — payload[status] ainda eh late|active|idle derivado OS (Frescor
         ->toContain("\$status = \$atrasadas > 0 ? 'late' : (\$abertas > 0 ? 'active' : 'idle')")
         ->toMatch("/'status'\\s*=>\\s*\\\$status/");
 });
+
+// ─── GUARD 9: shipping_address (endereço de entrega) — Wagner 2026-06-02 ────
+// Sem o campo no select + payload, o drawer EnderecoTab reabre vazio mesmo com
+// dado salvo no DB (mesma classe do bug zip_code/address_line). A venda (Fase 2)
+// puxa o endereço de entrega daqui.
+
+test('GUARD 9 — buildClienteIndexCustomers select + payload incluem shipping_address', function () {
+    $path = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        ->toContain("'contacts.shipping_address'")
+        ->toContain("'shipping_address' => \$contact->shipping_address");
+});
+
+test('GUARD 9b — EnderecoTab.tsx declara shipping_address + autosave on blur', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/EnderecoTab.tsx';
+    expect($path)->toBeReadableFile();
+
+    $contents = file_get_contents($path);
+    expect($contents)
+        ->toContain('shipping_address?: string | null')
+        ->toContain("useState<string>(contact.shipping_address ??")
+        ->toContain("scheduleAutosave('shipping_address'")
+        ->toContain("handleBlur('shipping_address'");
+});
