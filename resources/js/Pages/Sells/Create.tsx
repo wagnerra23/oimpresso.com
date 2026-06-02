@@ -215,6 +215,38 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   // Persistir <details> open state em localStorage (DESIGN.md §12)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false);
+
+  // US-CRM-078 — endereços salvos do cliente selecionado (dropdown na seção
+  // Entrega). Busca read-only de /cliente/{id}/enderecos; selecionar preenche
+  // o campo de endereço de entrega (snapshot string — mesmo fluxo da venda).
+  // Mínimo de risco vs PR2 revertido (#2104): NÃO toca getCustomers (causa do
+  // 500), NÃO mexe no save (string snapshot intacto), NÃO altera o toggle.
+  type SavedAddress = {
+    id: number;
+    label: string | null;
+    one_line: string;
+    is_default: boolean;
+    is_shipping: boolean;
+  };
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+
+  const loadContactAddresses = async (contactId: number) => {
+    try {
+      const res = await fetch(`/cliente/${contactId}/enderecos`, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        setSavedAddresses([]);
+        return;
+      }
+      const json = (await res.json()) as { addresses?: SavedAddress[] };
+      setSavedAddresses(Array.isArray(json.addresses) ? json.addresses : []);
+    } catch {
+      setSavedAddresses([]);
+    }
+  };
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem(ADVANCED_OPEN_KEY);
@@ -430,6 +462,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // shipping_address vive em data.shipping.address (nested) — setData usa dot path.
   const handleCustomerSelect = (c: CustomerSearchResult) => {
     setData('contact_id', c.id);
+    void loadContactAddresses(c.id);
     if (c.pay_term_number !== null && c.pay_term_number !== undefined && c.pay_term_number !== '') {
       setData('pay_term_number', String(c.pay_term_number));
     }
@@ -451,6 +484,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // R8 — reset ao limpar cliente. Volta pros defaults (walk-in + props default).
   const handleCustomerClear = () => {
     setData('contact_id', props.walkInCustomer.id);
+    setSavedAddresses([]);
     setData('pay_term_number', '');
     setData('pay_term_type', 'days');
     // shipping fica como user editou — não auto-limpa (pode ser endereço manual)
@@ -1515,6 +1549,32 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           {/* Bloco frete colapsável dentro de Mais opções (5 campos juntos) */}
           <div className="rounded-md border border-border p-4 space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Entrega / Frete</h3>
+            {savedAddresses.length > 0 && (
+              <div className="space-y-1.5">
+                <Label htmlFor="saved_address">Endereços salvos do cliente</Label>
+                <Select
+                  value=""
+                  onValueChange={(v) => {
+                    const addr = savedAddresses.find((a) => String(a.id) === v);
+                    if (addr) {
+                      setData('shipping', { ...data.shipping, address: addr.one_line });
+                    }
+                  }}
+                >
+                  <SelectTrigger id="saved_address">
+                    <SelectValue placeholder="Escolher um endereço salvo…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {savedAddresses.map((a) => (
+                      <SelectItem key={a.id} value={String(a.id)}>
+                        {(a.label ? `${a.label} — ` : '') + a.one_line}
+                        {a.is_shipping ? ' (entrega)' : a.is_default ? ' (principal)' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="shipping_details">Detalhes de envio</Label>
