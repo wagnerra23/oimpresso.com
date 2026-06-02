@@ -450,7 +450,6 @@ class NfeService
                         'original_transaction_id'   => $transactionId,
                         'inutilizada_em'            => now()->toIso8601String(),
                         'status_antes_inutilizacao' => $existente->status,
-                        'cstat_antes_inutilizacao'  => $existente->cstat,
                     ]),
                 ]);
             }
