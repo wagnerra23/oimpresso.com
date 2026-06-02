@@ -190,7 +190,7 @@ Gerador `design:review` (fila COWORK #2) MERGED:
 
 ### Origem: bundle Cowork (Share→Handoff) · prompt `prototipo-ui-patch/PROMPT_PARA_CODE_ARQUITETURA-MEMORIA-CC.md` (PROPOSTA §10.4)
 ### Status: 4 arquivos transportados **verbatim** · **aguarda merge [W]** (docs podem mergear; ratificação ADR é separada)
-### Diff: branch `docs/arquitetura-memoria-cc` (base `origin/main` `1e4bb33c4`) → PR #____ (preenchido pós-criação)
+### Diff: branch `docs/arquitetura-memoria-cc` (base `origin/main` `1e4bb33c4`) → **PR #2106**
 
 **Passo 0 §10.4 (ancorei em `origin/main` FRESCO):** worktree novo off `origin/main`. O `git-base-freshness-guard` se confirmou na prática — minha 1ª checada de cross-refs rodou contra o working tree `feat/staging-ct100` (parado em ADR 0236) e marcou ADR 0238/0239 como "phantom". **Errado.** Contra `origin/main` (até 0242) ambos EXISTEM e batem com o texto. Exatamente o modo-de-falha que o §10.4 Passo 0 descreve — pego pelo gate, não por sorte.
 
