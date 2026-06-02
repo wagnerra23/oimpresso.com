@@ -29,6 +29,7 @@ interface ContactInfo {
   city: string | null;
   state: string | null;
   zip_code: string | null;
+  shipping_address: string | null;
   customer_group_id: number | null;
   credit_limit: string | null;
   cpf_cnpj?: string | null;
@@ -67,6 +68,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
     city: c.city ?? '',
     state: c.state ?? '',
     zip_code: c.zip_code ?? '',
+    shipping_address: c.shipping_address ?? '',
     customer_group_id: c.customer_group_id ? String(c.customer_group_id) : '',
     opening_balance: props.opening_balance ?? '0',
     credit_limit: c.credit_limit ?? '',

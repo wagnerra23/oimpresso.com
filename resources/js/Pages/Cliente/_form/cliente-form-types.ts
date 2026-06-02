@@ -20,6 +20,7 @@ export type ClienteFormShared = DadosFiscaisBRData & {
   city: string
   state: string
   zip_code: string
+  shipping_address: string
   customer_group_id: string
   opening_balance: string
   credit_limit: string

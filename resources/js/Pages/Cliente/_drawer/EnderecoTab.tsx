@@ -27,6 +27,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Search, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import { Textarea } from '@/Components/ui/textarea';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import {
@@ -49,6 +50,8 @@ export interface ContactInfo {
   neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
+  // Endereço de entrega (shipping_address) — opcional, texto livre.
+  shipping_address?: string | null;
   // Aliases PT-BR (legado — listagem em /cliente emite assim hoje).
   cep?: string | null;
   endereco?: string | null;
@@ -101,6 +104,7 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
   const [neighborhood, setNeighborhood] = useState<string>(contact.neighborhood ?? contact.bairro ?? '');
   const [city, setCity] = useState<string>(contact.city ?? contact.cidade ?? '');
   const [stateUf, setStateUf] = useState<string>(contact.state ?? contact.uf ?? '');
+  const [shippingAddress, setShippingAddress] = useState<string>(contact.shipping_address ?? '');
 
   const [savingField, setSavingField] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
@@ -130,6 +134,7 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
     setNeighborhood((contact.neighborhood ?? contact.bairro ?? '') as string);
     setCity((contact.city ?? contact.cidade ?? '') as string);
     setStateUf((contact.state ?? contact.uf ?? '') as string);
+    setShippingAddress((contact.shipping_address ?? '') as string);
     setErrorField(null);
     setSavedField(null);
     setCepLookup('idle');
@@ -154,6 +159,7 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
     else if (field === 'neighborhood') setNeighborhood(s);
     else if (field === 'city') setCity(s);
     else if (field === 'state') setStateUf(s);
+    else if (field === 'shipping_address') setShippingAddress(s);
   }, []);
 
   const performSave = useCallback(
@@ -535,6 +541,32 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
             saving={savingField === 'state'}
             saved={savedField === 'state'}
             backendError={errorField?.field === 'state' ? errorField.message : null}
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label htmlFor="ed-shipping" className="cw-label">
+            Endereço de entrega{' '}
+            <span className="text-muted-foreground font-normal">(opcional — se diferente do acima)</span>
+          </Label>
+          <Textarea
+            id="ed-shipping"
+            value={shippingAddress}
+            placeholder="Endereço completo onde a mercadoria será entregue, se diferente do cadastro."
+            rows={2}
+            disabled={disabled}
+            onChange={(e) => {
+              const prev = shippingAddress;
+              const v = e.target.value;
+              setShippingAddress(v);
+              scheduleAutosave('shipping_address', v, prev);
+            }}
+            onBlur={(e) => handleBlur('shipping_address', e.target.value)}
+          />
+          <FieldStatus
+            saving={savingField === 'shipping_address'}
+            saved={savedField === 'shipping_address'}
+            backendError={errorField?.field === 'shipping_address' ? errorField.message : null}
           />
         </div>
       </div>
