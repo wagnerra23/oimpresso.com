@@ -37310,3 +37310,9 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Financeiro/Models/Concerns/BusinessScope.php

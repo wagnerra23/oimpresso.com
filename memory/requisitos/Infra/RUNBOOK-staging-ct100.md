@@ -107,6 +107,36 @@ curl -s -o /dev/null -w '%{http_code} ssl:%{ssl_verify_result}' https://staging.
 9. **Healthcheck que depende de DB impede o Traefik rotear** — `/login` dá 500 com banco vazio → container nunca fica `healthy` → 404 no Traefik. Usar healthcheck que aceita 2xx-4xx (`curl ... / | grep -qE '^[234]'`).
 10. **Credenciais (`rb_boleto_credentials`, `nfe_certificados`, tokens) são criptografadas com a APP_KEY de PROD** → inúteis no staging (APP_KEY nova) e perigosas → o `anonymize.sql` **TRUNCA** todas (trava de segurança: staging não cobra/emite/conecta de verdade).
 
+## Rodar Pest/PHPStan de um branch (sem mexer no staging vivo)
+
+O staging vivo (`/opt/oimpresso-staging/code`) fica num branch só (ex `feat/staging-ct100`) e pode ter WIP. Pra testar OUTRO branch (ex um PR) **sem trocar o branch do staging nem rebuildar assets**, use um **git worktree descartável** + container one-off reaproveitando `vendor`/`storage`/DB do staging (validado 2026-06-01, re-impl #2045):
+
+```bash
+CODE=/opt/oimpresso-staging/code
+git -C $CODE fetch origin <branch>
+git -C $CODE worktree add --detach /tmp/wt origin/<branch>
+cp $CODE/.env /tmp/wt/.env
+mkdir -p /tmp/wt-cache && chmod 777 /tmp/wt-cache          # Gotcha C
+cp -r $CODE/public/build-inertia /tmp/wt/public/build-inertia   # Gotcha B (só pra testes Inertia GET)
+docker run --rm --network docker-host_default \
+  -v /tmp/wt:/var/www/html \
+  -v $CODE/vendor:/var/www/html/vendor \
+  -v /opt/oimpresso-staging/storage:/var/www/html/storage \
+  -v /tmp/wt-cache:/var/www/html/bootstrap/cache \
+  -e DB_CONNECTION=mysql -e DB_HOST=oimpresso-staging-db -e DB_PORT=3306 -e DB_DATABASE=oimpresso_staging \
+  -w /var/www/html --entrypoint php oimpresso/mcp:latest \
+  artisan test <arquivo>      # ou: vendor/bin/phpstan analyse -c phpstan.neon.dist --no-progress
+# limpar: git -C $CODE worktree remove --force /tmp/wt && rm -rf /tmp/wt-cache
+```
+
+Alternativa leve (rodar 1 arquivo de teste novo sem worktree): `git -C $CODE show origin/<branch>:<path> > $CODE/<path>` (fica untracked, **não** muda o branch do staging), rode no container **vivo** (`docker exec -e DB_DATABASE=oimpresso_staging oimpresso-staging php artisan test <path>`) e `rm` depois.
+
+**Gotchas (cada um custou tempo):**
+- **A. NÃO passe `-e APP_ENV=staging`.** O `phpunit.xml` só força `APP_ENV=testing` se a env não vier setada; com `staging` os middlewares ligam → **CSRF 419** nos POST e **409** nos GET. Passe só as vars de DB.
+- **B. Copie `public/build-inertia/manifest.json`** pro worktree. Sem ele, `HandleInertiaRequests::version()` cai no mix-manifest legado enquanto o helper `inertiaGet` manda `'1'` → **version mismatch 409** em todo teste Inertia GET (`assertOk` falha antes da asserção real).
+- **C. Monte `bootstrap/cache` gravável** (dir vazio `chmod 777`). Sem isso, o boot do larastan/artisan estoura `Error: Please provide a valid cache path`.
+- **D. Adversário cross-tenant é `business_id=99`** (ADR 0101). Mas tabelas com **FK `business_id → business`** **não** aceitam INSERT em biz=99 (não existe no clone). Pra provar isolamento: insira no **biz=1** e **flipe a sessão** (`session(['user.business_id' => 99])`) — valor de sessão não precisa de row.
+
 ## Repetir / re-seedar
 
 ```bash
