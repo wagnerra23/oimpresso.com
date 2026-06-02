@@ -234,4 +234,19 @@ return [
         'Menu' => App\Facades\Menu::class,
         'Pesapal' => App\Vendor\Pesapal\Facades\Pesapal::class,
     ])->toArray(),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SaaS owner business
+    |--------------------------------------------------------------------------
+    |
+    | Id do business "dono da plataforma" (dogfooding oimpresso). Distingue a
+    | conta-mãe SaaS dos tenants-cliente em features de dogfooding (ex.: origem
+    | subscription_license na Cobrança, listener Onda 5). NÃO confundir com
+    | visibilidade de módulo por cliente — isso é subscription package (Tier 0
+    | IRREVOGÁVEL, ver tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest).
+    | Fonte única pra não espalhar o literal `=== 1`.
+    |
+    */
+    'saas_owner_business_id' => (int) env('SAAS_OWNER_BUSINESS_ID', 1),
 ];
