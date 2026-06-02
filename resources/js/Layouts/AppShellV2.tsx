@@ -326,10 +326,11 @@ export default function AppShellV2({
     const v = Number(localStorage.getItem(LS.TW_DENSITY));
     return isFinite(v) && v > 0 ? v : 50;
   });
+  // Default = roxo canon hue 295 (ADR 0190). Era 220 (azul) — re-azulava o cockpit.css via style inline.
   const [accentHue, setAccentHue] = useState<number>(() => {
-    if (typeof window === 'undefined') return 220;
+    if (typeof window === 'undefined') return 295;
     const v = Number(localStorage.getItem(LS.TW_HUE));
-    return isFinite(v) && v > 0 ? v : 220;
+    return isFinite(v) && v > 0 ? v : 295;
   });
 
   // ── Persistência localStorage
@@ -347,10 +348,11 @@ export default function AppShellV2({
   const cockpitStyle: React.CSSProperties = {
     ['--row-h' as never]: `${26 + (density / 100) * 16}px`,
     ['--card-pad' as never]: `${8 + (density / 100) * 8}px`,
-    ['--accent' as never]: `oklch(0.58 0.12 ${accentHue})`,
-    ['--accent-2' as never]: `oklch(0.66 0.12 ${accentHue})`,
-    ['--accent-soft' as never]: `oklch(0.94 0.04 ${accentHue})`,
-    ['--bubble-me' as never]: `oklch(0.58 0.12 ${accentHue})`,
+    // L/C alinhados ao canon cockpit.css .cockpit{} (ADR 0190): no hue default (295) o resting state bate exato.
+    ['--accent' as never]: `oklch(0.55 0.15 ${accentHue})`,
+    ['--accent-2' as never]: `oklch(0.62 0.15 ${accentHue})`,
+    ['--accent-soft' as never]: `oklch(0.95 0.04 ${accentHue})`,
+    ['--bubble-me' as never]: `oklch(0.55 0.15 ${accentHue})`,
   };
   const densityLabel = density < 30 ? 'skim' : density > 70 ? 'briefing' : 'normal';
 
