@@ -256,3 +256,36 @@ Só docs, mas mexe na família de governança do loop (`prototipo-ui/*` + `memor
 - [ ] Numerar ADR _PROPOSTA-0245 no git (soberania [W]).
 - [ ] Decidir migração CRM Blade→Inertia (cliente-como-sinal).
 - [ ] Fase 2 `os-*` dedup + restante do hex drift (com regressão visual).
+
+---
+
+## 2026-06-02 18:05 [CL] → [W]/[CD]
+
+### Tela: bundle CSS Financeiro (`.fin-cowork`) — dedupe de infra, sem tela específica
+### Status: prompt `PROMPT_PARA_CODE_DEDUPE-FINANCEIRO-BUNDLE.md` PROCESSADO → main
+### Diff: PR #2127 (`7dff54968`) — squash MERGED `--admin`, 13/13 CI verde
+### Build: passou (Vite build + Stylelint ratchet + UI gates)
+
+### O que landou:
+- **Removido** `@import "./cowork-financeiro-bundle.css"` do `inertia.css` + **`git rm`** do arquivo (Onda 8 antigo, vencia o cascade). **−327KB / −8658 LOC.**
+- README `_cowork-bundle` 2 refs → canon. Rebaseline stylelint **1065→820** (3 entradas do arquivo morto).
+
+### Validação da paridade (re-rodada por [CL], não confiei nos números do prompt):
+- Parser CSS brace-aware próprio contra `origin/main`: **2309 regras idênticas · 0 seletor real só-no-antigo** (a "perda de 4" do prompt eram só linhas de **comentário** de header).
+- **29 body-diff, TODAS o mesmo único delta** `background: var(--surface)` → `#fff`.
+- **No-op visual provado**: `--surface` só vira escuro sob `[data-theme="dark"]`, e **não existe toggler de dark theme em `resources/js`** → `--surface`==`#fff` sempre.
+
+### Correção do prompt (achado [CL]):
+- **`.rec-paper` (recibo) está nos 29 diffs mas FALTAVA na lista de 30 do Cowork.** Mesmo delta/no-op. Lista completa = os 30 do prompt **+ `.rec-paper`**.
+
+### ⚠️ Nuance que conecta com o C1 de 17:16:
+- O **C1** desta manhã ratcheou `#fff`→`var(--surface)` nos 30 selectors **DENTRO do `cowork-financeiro-bundle.css`** — o bundle que este dedupe **apagou**. Logo o canon volta a `#fff` hardcoded nesses 30 (no-op visual, mas perde o ratchet de token).
+- **Trabalho de token-discipline deve mirar o CANON, não o bundle deprecado.** Fica como Fase 2.
+
+### Pendências (pro Cowork/[W]):
+- [ ] **Fase 2 hex drift**: portar `var(--surface)` pros 30 selectors `os-*`/`vd-*`/`rec-paper`/etc **NO CANON** (`cowork-canon-financeiro-bundle.css`) + ~158 hex semânticos restantes — com regressão visual.
+
+### new_design_memories
+- **golden**: dedupe bundle duplo Financeiro (−327KB; paridade validada por [CL]: 2309 idênticas, 0 seletor real só-no-antigo, 30 OLD→CANON + `.rec-paper` eram todos `var(--surface)`→`#fff` no-op porque dark-theme nunca ativa).
+- **conflito**: 2 bundles Financeiro ~327KB ambos `@import`, antigo vence cascade — resolver adotando canon (feito #2127).
+- **lição**: token-discipline ratchet (C1) num bundle slated-for-delete vira trabalho perdido — mirar sempre o canon.
