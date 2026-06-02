@@ -14,6 +14,7 @@ contains:
   - "ClienteLookupController"      # Drawer 760 endpoint lookup CEP/CNPJ (Wave A-G refinada #1382)
   - "ClienteOssDataController"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760 (ADR 0179, #1886)
   - "ClienteVeiculosController"    # Drawer 760 sub-tab Placas (Daniela @ Martinho #1776 2026-05-27)
+  - "ContactAddressController"     # US-CRM-078 — múltiplos endereços do cliente (PR1, drift do check-scope)
   - "ContactBookingController"
   - "ContactLoginController"
   - "CrmDashboardController"
