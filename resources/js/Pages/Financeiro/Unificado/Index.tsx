@@ -1264,19 +1264,21 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             <option value="pagamento">Pagamento</option>
             <option value="competencia">Competência</option>
           </select>
+          {/* date inputs: classe própria fin-date-input (pill igual aos selects,
+              sem o chevron do fin-filter-select que não cabe num input de data). */}
           <input
             type="date"
-            className="fin-filter-select"
+            className="fin-date-input"
             value={filters.data_inicio}
             max={filters.data_fim || undefined}
             onChange={(e) => aplicar({ data_inicio: e.target.value })}
             aria-label="Data inicial"
             title="Data inicial (vazio = período do mês)"
           />
-          <span aria-hidden="true" style={{ opacity: 0.5 }}>–</span>
+          <span className="fin-date-sep" aria-hidden="true">–</span>
           <input
             type="date"
-            className="fin-filter-select"
+            className="fin-date-input"
             value={filters.data_fim}
             min={filters.data_inicio || undefined}
             onChange={(e) => aplicar({ data_fim: e.target.value })}
@@ -1286,7 +1288,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           {(filters.data_inicio !== '' || filters.data_fim !== '') && (
             <button
               type="button"
-              className="fin-filter-cb"
+              className="fin-date-clear"
               onClick={() => aplicar({ data_inicio: '', data_fim: '' })}
               title="Limpar intervalo de datas"
               aria-label="Limpar intervalo de datas"
