@@ -1355,6 +1355,19 @@ Delta #5 do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O mecâ
 - [x] Pest (status→orcamento + job disparado · OS aprovada não reenvia)
 - ℹ️ "Reenviar link" (job idempotência 7d) fica pra US futura
 
+### US-OFICINA-042 · Painel fiscal NF-e/NFS-e na OS
+
+> owner: — · priority: p3 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacional** que separa os itens da OS por natureza fiscal: peças = mercadoria → **NF-e 55**, mão de obra/serviço → **NFS-e**, com valores. Computado de `order.items` (já no payload) — a emissão real sai pela Transaction derivada (Observer ADR 0192). Converge com o componente único `FiscalStatusBadge` (NfeBrasil) quando a OS carregar status de doc emitido.
+
+**DoD:**
+- [x] `FiscalSplitCard` (Show) — split peças (NF-e 55) / mão de obra (NFS-e) + nota de garantia 90 dias
+- [x] Frontend-only (sem backend/migration) — usa `order.items` existente; tokens semânticos
+- [x] Renderiza só quando há itens
+- ℹ️ Status fiscal LIVE (badge reativo) quando OS expor transaction fiscal — US futura (converge `FiscalStatusBadge`)
+
 ---
 
-**Última atualização:** 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
