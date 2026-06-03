@@ -324,3 +324,30 @@ A Jana já pega erro de **saída** (golden 30Q + RAGAS + drift sentinel) mas nã
 - [ ] Confirmar check **advisory** (recomendo sim — drift de processo não pagina à noite).
 
 ### NÃO reprocessei (a comparação só confirma): guard higiene Cowork L-07/11/21/22 · collector CT100/OTel/LGPD #2073 · `design:review` #2078.
+
+---
+
+## 2026-06-02 (d) [CL] → [W] — TRAVA-SEGUNDA Martinho (biz=164) · Onda 1: net de smoke do núcleo-6
+
+### Handoff: `PROMPT_PARA_CODE_TRAVA-SEGUNDA-MARTINHO.md` (canário Delphi→nuvem · deadline segunda · retenção Kamila)
+### Natureza: **Tier 0** (cliente real) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/trava-segunda-martinho` · base `origin/main` fresco (`2e9f5881e`)
+
+### Passo 0 §10.4 (confirmadíssimo): **as 6 do núcleo JÁ existem e estão maduras em `origin/main`.** O loop **CU-3→4→5 já encadeia no backend e está testado** (Observer `TransactionObserver`→`TituloAutoService` cria título receber +30d idempotente; emissão NF-e/NFS-e via `NfeEmissaoController`/`NfseController` aceitam `transaction_id`, homolog default, SEFAZ stubável). Job real = **estender + wire-up + estabilizar**, não construir.
+
+### Esta PR (Onda 1 — net de segurança, zero código de produção):
+Estende o canon de smoke do núcleo (criado ontem em PR #2119 §B) das **4 telas** pro **núcleo-6 de retenção**:
+- `tests/Feature/Architecture/CoreScreensIntegrityTest.php` (Tier 1, roda **sempre**, sem DB/chromium) → +Produto, +Sells (Index+Create), +Fiscal (Cockpit/NF-e/NFS-e). **Verificado local: PASS** (1 assertion, todas as 6 têm `.tsx`+`AppShellV2`+charter). É o net "falha alto" #6 + no-regression #4 do worklist.
+- `tests/Browser/CoreScreens/SmokeTest.php` (Tier 2, opt-in chromium) → mesmas telas, âncoras = substrings reais do PageHeader, slug best-effort (CI-tunável, idioma já existente do arquivo).
+
+### Discrepância de dado importante (FICA [W]): "já migrado" vale só pra **Oficina** (91 veículos+SO, biz=164, ADR 0171). O tracker `_pipeline-migracao-legacy.md` diz **clientes/produtos/preços/títulos da Martinho ainda PENDENTES**. Por isso os smokes do loop **semeiam fixture determinística** (canon Pest = DB dev real, padrão `TransactionObserverIntegrationTest`); validação com dados reais biz=164 = passo de prod/staging seu.
+
+### Onda 2 (próxima PR, **gated na sua decisão**):
+1. **CU-4 wire-up frontend** — `Sells/Show.tsx` modais `VdNfeEmitModal`/`VdNfseEmitModal` hoje são stub `setTimeout`; backend real existe. Wire pros endpoints (emite em **homologação**). Era marcado "próximo PR" por decisão anterior (KB-9.75) → **preciso do seu OK** pra reativar a partir da venda, ou deixo só backend+smoke.
+2. **CU-6 demo seeder** — OficinaAuto idempotente (1 veículo+OS+FSM) p/ demo limpa sem depender de prod.
+3. **CU-3→4→5 chain E2E** — 1 teste do encadeamento venda→título→emite NF-e+NFS-e (SEFAZ stub), o "1 teste E2E" do worklist.
+4. **1 build limpo** — `npm run build` verificado (parto de origin/main já limpo).
+
+### Congelado (roadmap, NÃO entra segunda): auto-boleto-on-finalize · estoque avançado · BOM · comissão · manifestação entrada · MDF-e/NFC-e · migração real venda/fin Martinho (depende de fonte Firebird).
+
+### Tier 0 respeitado: não cunhei ADR (worklist proíbe 0238/já-tomado); **não mergeei** (publication-policy); base off `origin/main` (não a branch suja).
