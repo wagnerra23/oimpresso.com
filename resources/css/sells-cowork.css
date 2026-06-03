@@ -5416,9 +5416,11 @@
   letter-spacing: 0.02em;
   position: relative; cursor: help;
 }
-.sells-cowork .vendas-aplus .vd-fb-ok { background: var(--vd-ok-soft);     color: oklch(0.36 0.10 145); }
-.sells-cowork .vendas-aplus .vd-fb-wait { background: var(--vd-warn-soft);   color: oklch(0.42 0.12 60); }
-.sells-cowork .vendas-aplus .vd-fb-bad { background: var(--vd-bad-soft);    color: oklch(0.42 0.13 20); }
+/* DS v6 (PR3 slice 5) — fiscal badges: fg cru → token canônico, espelha o fbadge
+   do gabarito (--pos/--warn/--neg sobre o -soft). bg já era token (slice 2). */
+.sells-cowork .vendas-aplus .vd-fb-ok { background: var(--vd-ok-soft);     color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-fb-wait { background: var(--vd-warn-soft);   color: var(--warn); }
+.sells-cowork .vendas-aplus .vd-fb-bad { background: var(--vd-bad-soft);    color: var(--neg); }
 .sells-cowork .vendas-aplus .vd-fb-canc { background: var(--vd-neutral-soft);color: var(--text-mute); }
 .sells-cowork .vendas-aplus .vd-fb-na { background: transparent; color: var(--text-mute); padding: 2px 4px; }
 .sells-cowork .vendas-aplus .vd-fb-ic { font-size: 9px; }
