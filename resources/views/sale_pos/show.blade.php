@@ -415,6 +415,14 @@
     @can('print_invoice')
       <a href="#" class="print-invoice tw-dw-btn tw-dw-btn-primary tw-text-white" data-href="{{route('sell.printInvoice', [$sell->id])}}"><i class="fa fa-print" aria-hidden="true"></i> @lang("lang_v1.print_invoice")</a>
     @endcan
+    @if(($sell->is_direct_sale == 0 && auth()->user()->can('sell.delete')) ||
+        ($sell->type == 'sales_order' && auth()->user()->can('so.delete')) ||
+        ($sell->is_direct_sale == 1 && $sell->type != 'sales_order' && auth()->user()->can('direct_sell.delete')))
+      <a href="{{ action([\App\Http\Controllers\SellPosController::class, 'destroy'], [$sell->id]) }}"
+         class="tw-dw-btn tw-dw-btn-error tw-text-white delete-sale no-print">
+        <i class="fas fa-trash"></i> @lang('messages.delete')
+      </a>
+    @endif
       <button type="button" class="tw-dw-btn tw-dw-btn-neutral tw-text-white no-print" data-dismiss="modal">@lang( 'messages.close' )</button>
     </div>
   </div>
