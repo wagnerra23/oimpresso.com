@@ -309,14 +309,15 @@ class ServiceOrderController extends Controller
             $cardsByStage[$s->key] = [];
         }
         foreach ($orders as $order) {
-            $stageKey = $order->current_stage_id !== null
-                ? ($stageKeyById[$order->current_stage_id] ?? null)
+            $currentStageId = $order->getAttribute('current_stage_id');
+            $stageKey = $currentStageId !== null
+                ? ($stageKeyById[$currentStageId] ?? null)
                 : $initialStageKey;
             // Stage fora do board (terminal ou de outro processo) — ignora no quadro.
             if ($stageKey === null || ! array_key_exists($stageKey, $cardsByStage)) {
                 continue;
             }
-            $cardsByStage[$stageKey][] = $this->shapeBoardCard($order, $order->current_stage_id !== null);
+            $cardsByStage[$stageKey][] = $this->shapeBoardCard($order, $currentStageId !== null);
         }
 
         $columns = $boardStages->map(fn ($s) => [
@@ -356,8 +357,9 @@ class ServiceOrderController extends Controller
         $thumbUrl = null;
         foreach ($dvi as $item) {
             $arquivo = $item->arquivos->first();
-            if ($arquivo && $arquivo->display_url) {
-                $thumbUrl = (string) $arquivo->display_url;
+            $arquivoUrl = $arquivo?->getAttribute('display_url');
+            if ($arquivoUrl) {
+                $thumbUrl = (string) $arquivoUrl;
                 break;
             }
             if ($item->photo_url) {
@@ -383,9 +385,9 @@ class ServiceOrderController extends Controller
             'id'                => (int) $order->id,
             'number'            => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
             'in_pipeline'       => $inPipeline,
-            'plate'             => $order->vehicle?->plate,
-            'vehicle_type'      => $order->vehicle?->vehicle_type,
-            'cliente_nome'      => $order->contact?->name,
+            'plate'             => $order->vehicle?->getAttribute('plate'),
+            'vehicle_type'      => $order->vehicle?->getAttribute('vehicle_type'),
+            'cliente_nome'      => $order->contact?->getAttribute('name'),
             'thumb_url'         => $thumbUrl,
             'dvi_done'          => $dviDone,
             'dvi_total'         => $dviTotal,

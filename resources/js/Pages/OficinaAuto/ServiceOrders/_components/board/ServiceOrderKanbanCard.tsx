@@ -97,13 +97,13 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
       {...(card.in_pipeline ? attributes : {})}
       {...(card.in_pipeline ? listeners : {})}
       className={
-        'relative rounded border border-t-2 border-slate-200 ' + topBorderClass + ' '
+        'relative rounded border border-t-2 border-border ' + topBorderClass + ' '
         + 'bg-white p-2.5 transition-colors '
         + (isDragging
           ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
           : card.in_pipeline
-            ? 'cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-slate-400'
-            : 'cursor-pointer hover:border-slate-300')
+            ? 'cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-muted-foreground/40'
+            : 'cursor-pointer hover:border-muted-foreground/30')
       }
       onClick={(e) => {
         if (isDragging) { e.preventDefault(); return; }
@@ -122,7 +122,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
     >
       {/* Linha 1: OS# + valor + overdue */}
       <div className="flex items-center justify-between gap-2 mb-1.5">
-        <span className="font-mono text-[11px] text-slate-500 font-medium">{card.number}</span>
+        <span className="font-mono text-[11px] text-muted-foreground font-medium">{card.number}</span>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {card.valor > 0 && (
             <span className="text-[11px] font-semibold tabular-nums text-success whitespace-nowrap" title="Total de peças + mão de obra">
@@ -130,7 +130,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
             </span>
           )}
           {card.is_overdue && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-destructive bg-rose-50 border border-rose-200 rounded px-1 py-0.5" title="Prazo de entrega vencido">
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-destructive bg-destructive/10 border border-destructive/30 rounded px-1 py-0.5" title="Prazo de entrega vencido">
               <AlertTriangle size={10} /> atrasada
             </span>
           )}
@@ -139,7 +139,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
 
       {/* [W] mod #1 — foto REAL (sem placeholder de texto). Sem foto → não renderiza. */}
       {card.thumb_url ? (
-        <div className="mb-2 rounded overflow-hidden border border-slate-100 bg-slate-50">
+        <div className="mb-2 rounded overflow-hidden border border-border bg-muted/40">
           <img
             src={card.thumb_url}
             alt={`Foto da OS ${card.number}`}
@@ -153,18 +153,18 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
       <div className="flex items-center gap-2 mb-1.5">
         {card.plate ? <MercosulPlate plate={card.plate} size="sm" /> : null}
         <div className="flex flex-col gap-0 min-w-0 flex-1">
-          <span className="text-[12.5px] font-medium text-slate-900 truncate" title={card.vehicle_type ?? undefined}>
+          <span className="text-[12.5px] font-medium text-foreground truncate" title={card.vehicle_type ?? undefined}>
             {card.vehicle_type ?? 'Veículo'}
           </span>
           {card.cliente_nome ? (
-            <span className="text-[10.5px] text-slate-500 truncate">{card.cliente_nome}</span>
+            <span className="text-[10.5px] text-muted-foreground truncate">{card.cliente_nome}</span>
           ) : null}
         </div>
       </div>
 
       {/* Defeito / observação */}
       {card.notes ? (
-        <p className="text-[12px] text-slate-700 leading-snug mb-2 line-clamp-2" title={card.notes}>
+        <p className="text-[12px] text-foreground leading-snug mb-2 line-clamp-2" title={card.notes}>
           {card.notes}
         </p>
       ) : null}
@@ -178,21 +178,21 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
               className={
                 'inline-flex items-center gap-1 text-[10.5px] font-medium rounded px-1.5 py-0.5 border tabular-nums '
                 + (card.dvi_critico > 0
-                  ? 'text-destructive bg-rose-50 border-rose-200'
-                  : 'text-slate-600 bg-slate-50 border-slate-200')
+                  ? 'text-destructive bg-destructive/10 border-destructive/30'
+                  : 'text-muted-foreground bg-muted/40 border-border')
               }
               title={dviTooltip}
             >
               <ClipboardCheck size={11} aria-hidden />
               DVI {card.dvi_done}/{card.dvi_total}
               {card.dvi_critico > 0 ? (
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500" aria-hidden />
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/100" aria-hidden />
               ) : null}
             </span>
           )}
           {card.mechanic_initials ? (
-            <span className="inline-flex items-center gap-1 text-[10.5px] text-slate-600 min-w-0" title={card.mechanic_name ?? undefined}>
-              <span className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-slate-200 text-slate-700 text-[9px] font-semibold flex-shrink-0">
+            <span className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground min-w-0" title={card.mechanic_name ?? undefined}>
+              <span className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-muted text-foreground text-[9px] font-semibold flex-shrink-0">
                 {card.mechanic_initials}
               </span>
               <span className="truncate max-w-[80px]">{card.mechanic_name}</span>
@@ -200,7 +200,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
           ) : null}
         </div>
         {entered ? (
-          <span className="text-[10px] text-slate-400 whitespace-nowrap inline-flex items-center gap-0.5">
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap inline-flex items-center gap-0.5">
             <Clock size={9} /> {entered}
           </span>
         ) : null}
@@ -208,7 +208,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
 
       {/* OS sem pipeline iniciado — dica discreta */}
       {!card.in_pipeline && (
-        <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center gap-1 text-[10.5px] text-amber-700">
+        <div className="mt-2 pt-1.5 border-t border-border flex items-center gap-1 text-[10.5px] text-warning-foreground">
           <Wrench size={10} /> clique pra iniciar o pipeline
         </div>
       )}
@@ -219,7 +219,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
       )}
       {/* Ícone câmera sutil no canto quando NÃO há foto (sinaliza ação, não placeholder textual) */}
       {!card.thumb_url && (
-        <Camera size={12} className="absolute top-2 right-2 text-slate-300" aria-hidden />
+        <Camera size={12} className="absolute top-2 right-2 text-muted-foreground" aria-hidden />
       )}
     </div>
   );

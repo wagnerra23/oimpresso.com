@@ -10,7 +10,7 @@
 import { memo, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import ServiceOrderKanbanCard, { type ServiceOrderCardData } from './ServiceOrderKanbanCard';
-import { toneForColor } from './boardTone';
+import { toneForColor, emphasisClass } from './boardTone';
 
 interface Props {
   stageKey: string;
@@ -33,12 +33,7 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
   const tone = toneForColor(color);
 
   // [W] mod #4 — destaque distinto pras duas colunas de espera (peça física × OK do cliente).
-  const emphasisBg =
-    emphasis === 'aprovacao'
-      ? 'bg-amber-50/40 border-amber-200'
-      : emphasis === 'pecas'
-        ? 'bg-violet-50/30 border-violet-200'
-        : 'bg-white border-slate-200';
+  const emphasisBg = emphasisClass(emphasis ?? null);
 
   const overClasses = isOver ? 'ring-2 ring-primary/60 ring-offset-2 bg-primary/5' : '';
 
@@ -50,10 +45,10 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
       aria-dropeffect="move"
       data-testid={`board-column-${stageKey}`}
     >
-      <header className="px-3 py-2.5 border-b border-slate-200 flex items-center justify-between gap-2">
+      <header className="px-3 py-2.5 border-b border-border flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${tone.dot}`} />
-          <h3 className="text-sm font-semibold text-slate-900 truncate">{name}</h3>
+          <h3 className="text-sm font-semibold text-foreground truncate">{name}</h3>
         </div>
         <span
           className={'text-xs px-1.5 py-0.5 rounded tabular-nums flex-shrink-0 font-semibold ' + tone.badge}
@@ -66,7 +61,7 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
 
       <div className="p-2 space-y-2 max-h-[calc(100vh-260px)] overflow-y-auto @[1280px]/board:max-h-[calc(100vh-300px)]" style={{ scrollbarWidth: 'thin' }}>
         {cards.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-400 italic">nenhuma OS</div>
+          <div className="text-center py-8 text-xs text-muted-foreground italic">nenhuma OS</div>
         ) : (
           cards.map((c) => (
             <ServiceOrderKanbanCard
