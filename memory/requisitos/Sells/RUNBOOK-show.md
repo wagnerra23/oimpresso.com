@@ -231,7 +231,7 @@ interface ShowProps {
 
 ## 11. Cutover plan (parent agent executa)
 
-- Smoke biz=1 ROTA LIVRE manual em `/sells/1` — confirma visual + dados
+- Smoke biz=1 (Wagner WR2) manual em `/sells/1` — NUNCA biz=4 ROTA LIVRE em smoke (ADR 0101); ROTA LIVRE entra na fase de canary 7d depois
 - Canary 7d antes de remover Blade legacy `resources/views/sale_pos/show.blade.php`
 - Comunicação Larissa via WhatsApp pré-cutover
 - Rollback <30s via feature flag `useV2SellsShow` (a registrar em US-SELL-Wave1)
