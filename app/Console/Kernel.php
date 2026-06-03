@@ -48,6 +48,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // PaymentGateway — import diário de recebimentos Inter pro Financeiro
+        // (US-PG-008). WR2 (biz=1) emite boletos no legado mas recebe no Inter;
+        // este cron puxa os boletos pagos no Inter (GET /cobranca/v3/cobrancas
+        // RECEBIDO) e cria título recebido + baixa na conta Inter (id=12).
+        // Idempotente (dedup por metadata->inter_ref) — janela 15d cobre runs
+        // perdidos sem duplicar. 07h BRT (antes do dia operacional).
+        $schedule->command('paymentgateway:inter-importar-recebimentos --business=1 --conta=12 --days=15')
+            ->dailyAt('07:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule paymentgateway:inter-importar-recebimentos FALHOU — recebimentos Inter podem não entrar no Financeiro'
+                );
+            });
+
         // SRS — sincroniza memória Claude pra dentro do repo todo dia 23:00.
         // Histórico de renames: docvault:sync-memories → memcofre:sync-memories
         // (2026-04-24, DocVault → MemCofre) → Modules/MemCofre → Modules/SRS
