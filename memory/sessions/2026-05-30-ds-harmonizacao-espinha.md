@@ -23,8 +23,8 @@
 - **Ponte zero-toque** (`PROMPT_PARA_CODE_MEMORIA.md`) pro [CL] commitar a memória no git.
 
 ## Decisões registradas
-- **ADR 0236** (proposto no Cowork como 0200) — DS é piso não teto · identidade por token · PT-03 · escopo v4.2 (D-01 firme; D-02/D-03/D-04 = propostas F0).
-- **ADR 0237** (proposto no Cowork como 0201) — `CARTA_DESIGN_CC.md` subordinada ao protocolo do git (substitui a "constituição suprema" retirada).
+- **ADR 0246** (proposto no Cowork como 0200) — DS é piso não teto · identidade por token · PT-03 · escopo v4.2 (D-01 firme; D-02/D-03/D-04 = propostas F0).
+- **ADR 0247** (proposto no Cowork como 0201) — `CARTA_DESIGN_CC.md` subordinada ao protocolo do git (substitui a "constituição suprema" retirada).
 
 ## Erros cometidos e correção (ver LICOES_CC.md)
 - Criei "constituição acima dos ADRs" → **retirada**; a lei é do git (PROTOCOL/BRIEFING).
@@ -38,7 +38,7 @@
 - 🟡 Wagner colar `PROMPT_PARA_CODE_MEMORIA.md` no [CL] (1ª sync da espinha).
 
 ## Refs
-- ADR 0236 (ex-0200), 0237 (ex-0201) · `CARTA_DESIGN_CC.md` · `STATUS.md` · `memory/INDEX_TEMATICO.md`
+- ADR 0246 (ex-0200), 0247 (ex-0201) · `CARTA_DESIGN_CC.md` · `STATUS.md` · `memory/INDEX_TEMATICO.md`
 - Lei do git: `prototipo-ui/PROTOCOL.md`, `prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`, ADR 0114/0110/0107/0104
 - Memória git: `memory/INDEX.md`, `memory/proibicoes.md`, `memory/decisions/`
 

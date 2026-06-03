@@ -96,8 +96,8 @@
 | ADR 0231 | Processo de Trabalho Canônico (especialista por área) | git | aceita |
 | ADR 0233 | Ativação de memória no momento-decisão | git | aceita |
 | ADR 0234 | Registry de Automações no MCP (hooks/crons/rotinas) | git | aceita |
-| **ADR 0236** | **Harmonização DS sem perder qualidade + v4.2** (ex-`0200` Cowork) | cowork→git | aceita (esta sessão) |
-| **ADR 0237** | **Carta de Design [CC] subordinada ao protocolo do git** (ex-`0201` Cowork) | cowork→git | aceita (esta sessão) |
+| **ADR 0246** | **Harmonização DS sem perder qualidade + v4.2** (ex-`0200` Cowork) | cowork→git | aceita (esta sessão) |
+| **ADR 0247** | **Carta de Design [CC] subordinada ao protocolo do git** (ex-`0201` Cowork) | cowork→git | aceita (esta sessão) |
 | **CARTA_DESIGN_CC.md** | **Como [CC] obedece o git (subordinada · NÃO é lei)** | cowork→git | canon subordinado |
 | PROTOCOL.md · CLAUDE_DESIGN_BRIEFING.md | **Constituição real do design (lei suprema)** | git | canon |
 | STATUS.md | Espinha viva do Cowork (estado atual, lido 1º) | cowork | canon |
@@ -133,7 +133,7 @@
 | ADR 0190 | Primary button interno = roxo médio universal | git | aceita |
 | ADR 0195 | Tabs com autosave/state user-editável ficam mount-sempre `(colisão)` | git | aceita |
 | ADR 0235 | DS v4: design system roxo universal + Claude Design owner UI `(colisão)` | git | aceita |
-| **ADR 0236** | DS é piso · identidade via `--accent` · PT-03 cadastro · v4.2 (ex-`0200`) | cowork→git | aceita |
+| **ADR 0246** | DS é piso · identidade via `--accent` · PT-03 cadastro · v4.2 (ex-`0200`) | cowork→git | aceita |
 | CODE_DESIGN_CONTRACT.md | Contrato visual [CC]↔[CL] | cowork | canon |
 | Design System v4.2 - Evolucao.html | Spec v4.2 (cockpit/fiscal/readiness/shortcut) | cowork | canon |
 | Painel Cowork - Estado Atual.html | Espelho visual da espinha | cowork | canon |
@@ -331,7 +331,7 @@
 ---
 
 ## 🔧 Manutenção
-- **Cobertura:** ADRs **0001–0237** classificados (backfill 0042–0235 feito pelo Claude Code a partir dos títulos
+- **Cobertura:** ADRs **0001–0247** classificados (backfill 0042–0235 feito pelo Claude Code a partir dos títulos
   reais do git; seed Cowork cobria 0001–0041 + 0114/0190 + as duas ADRs da sessão).
 - **Lacunas conhecidas no git** (números sem arquivo): 0012, 0082–0083, 0138–0139, 0176, 0181, 0193, 0196, 0227–0228.
 - **Colisões de número** (2+ arquivos): 0101, 0102, 0119, 0125/0126, 0141, 0170 (×3), 0178, 0180, 0195, 0216, 0235 —

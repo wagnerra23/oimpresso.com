@@ -4,7 +4,7 @@
 > **ADR 0094 (Constituição Oimpresso V2 · 8 princípios)** + **ADR UI-0013 (Constituição UI v2)** +
 > `prototipo-ui/PROTOCOL.md` + `prototipo-ui/CLAUDE_DESIGN_BRIEFING.md` + os ADRs em `memory/decisions/`.
 > Esta carta só descreve **como [CC] obedece**. Onde divergir do git, **o git vence**.
-> Ratificação: rebaixa a antiga "Constituição" (overstep) — ver §7. Registrada em ADR 0237 (proposta no Cowork como 0201; renumerada por colisão).
+> Ratificação: rebaixa a antiga "Constituição" (overstep) — ver §7. Registrada em ADR 0247 (proposta no Cowork como 0201; renumerada por colisão).
 
 ## §0 — Hierarquia (quem manda)
 0. **Constituição suprema:** **ADR 0094 (Oimpresso V2)** + **ADR UI-0013 (UI v2)** — já existem no git, acima de tudo.

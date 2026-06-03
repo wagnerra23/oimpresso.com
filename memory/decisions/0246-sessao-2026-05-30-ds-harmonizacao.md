@@ -1,10 +1,10 @@
-# ADR 0236 — Harmonização DS sem perder qualidade + caminho v4.2
+# ADR 0246 — Harmonização DS sem perder qualidade + caminho v4.2
 
 - **Data:** 2026-05-30
 - **Sessão:** Cowork [CC] ↔ Wagner
 - **Status:** aceito (D-01..D-04, D-07) · proposto (D-05, D-06)
 - **Supersede:** nada. Estende ADR 0039 (cockpit) e 0114 (cowork loop).
-- **Renumeração:** proposto como `0200` no Cowork; renumerado p/ **0236** (próximo nº livre) por colisão com a ADR 0200 já existente no git (*contacts* canon sync bidirecional). Regra ADR 0028 (numeração monotônica). Companheira: ADR 0237 (era `0201`).
+- **Renumeração:** proposto como `0200` no Cowork → renumerado p/ `0236` → **renumerado p/ 0246** (próximo nº livre em 2026-06-03) por nova colisão: a `main` já tinha três `0236-*` (extrato-conciliacao, governanca-evolucao, scorecard-universal). Regra ADR 0028 (numeração monotônica). Companheira: ADR 0247 (era `0201`/`0237`).
 
 ## Contexto
 Wagner queria aplicar o novo DS aos protótipos mas com **receio de perder a qualidade**
