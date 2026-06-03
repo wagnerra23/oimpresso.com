@@ -99,6 +99,8 @@ class ProximaPerguntaAgent implements Agent, HasStructuredOutput
 
     public function schema(JsonSchema $schema): array
     {
+        // TODAS as chaves `required()` — OpenAI strict mode (senão 400 "'required' is required").
+        // Honestidade preservada no VALOR: persona sem sinal → tem_pergunta=false + perguntas=[].
         return [
             'blocos' => $schema->array()->items(
                 $schema->object([
@@ -110,7 +112,7 @@ class ProximaPerguntaAgent implements Agent, HasStructuredOutput
                             'porque' => $schema->string()->required(),
                             'resposta_curta' => $schema->string()->required(),
                         ])
-                    ),
+                    )->description('Vazio quando tem_pergunta=false.')->required(),
                 ])
             )->required(),
         ];
