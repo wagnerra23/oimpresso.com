@@ -106,8 +106,18 @@ if [ ! -f "$CODE/.env" ]; then
     exit 1
 fi
 
-echo "==> 5/5  Sobe container"
+echo "==> 5/5  Sobe + recarrega container"
 docker compose -f "$COMPOSE" up -d
+
+# `up -d` NÃO recria o container quando imagem/config não mudam (caso comum: só o
+# código git mudou). Resultado: o PHP fica em cache (opcache + processo vivo) e
+# mudanças de Controller/Service NÃO entram — só o frontend (assets estáticos) e
+# colunas de DB aparecem. Por isso o restart + clear são obrigatórios no deploy.
+echo "    restart + optimize:clear (recarrega PHP — senão controller fica em cache)"
+docker compose -f "$COMPOSE" restart
+sleep 3
+docker exec oimpresso-staging php artisan optimize:clear || true
+
 echo ""
 echo "OK. HEAD $(git -C "$CODE" rev-parse --short HEAD). Smoke:  curl -I https://staging.oimpresso.com/login"
 echo "Logs:       docker logs -f oimpresso-staging"
