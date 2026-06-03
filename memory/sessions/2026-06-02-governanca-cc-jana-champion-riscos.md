@@ -1,5 +1,5 @@
 ---
-date: 2026-06-02
+date: "2026-06-02"
 topic: "Governança [CC] × Jana × Champion + Riscos — conclusões da análise Cowork (metricas.html fica Cowork-local)"
 authors: ["C", "W"]
 related_adrs:
