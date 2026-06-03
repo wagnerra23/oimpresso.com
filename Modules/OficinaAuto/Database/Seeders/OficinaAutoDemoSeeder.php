@@ -25,8 +25,9 @@ use Modules\OficinaAuto\Entities\Vehicle;
  *
  * Idempotente (firstOrCreate por placa demo) — re-rodar não duplica.
  *
- * Business alvo: env `OFICINA_DEMO_BUSINESS_ID` (ex 164 p/ Martinho) OU o primeiro
- * business do banco (dev). Multi-tenant Tier 0: tudo carimbado com business_id (ADR 0093).
+ * Business alvo: propriedade pública `$businessId` (ex 164 p/ Martinho, setável via
+ * tinker) OU o primeiro business do banco (dev). Multi-tenant Tier 0: tudo carimbado
+ * com business_id (ADR 0093).
  *
  * @see memory/decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
@@ -35,6 +36,9 @@ class OficinaAutoDemoSeeder extends Seeder
 {
     /** Placa demo reconhecível (Mercosul) — chave de idempotência. */
     public const DEMO_PLATE = 'DEM0A11';
+
+    /** Business alvo (setável via tinker; ex 164 Martinho). Null = 1º business do banco. */
+    public ?int $businessId = null;
 
     public function run(): void
     {
@@ -99,14 +103,15 @@ class OficinaAutoDemoSeeder extends Seeder
         $this->command?->info("[OficinaAutoDemo] OK · business_id={$businessId} · OS #{$os->id} (veículo {$vehicle->plate}) pronta pra demo check-in→DVI→aprovação→execução.");
     }
 
-    /** Business alvo: env explícito (ex 164 Martinho) ou o primeiro do banco. */
+    /** Business alvo: propriedade explícita (ex 164 Martinho) ou o primeiro do banco. */
     private function resolveBusinessId(): ?int
     {
-        $fromEnv = env('OFICINA_DEMO_BUSINESS_ID');
-        if (! empty($fromEnv)) {
-            return (int) $fromEnv;
+        if ($this->businessId !== null) {
+            return $this->businessId;
         }
 
-        return Business::query()->orderBy('id')->value('id');
+        $id = Business::query()->orderBy('id')->value('id');
+
+        return $id !== null ? (int) $id : null;
     }
 }

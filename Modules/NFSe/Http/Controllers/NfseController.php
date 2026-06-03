@@ -152,8 +152,7 @@ class NfseController extends Controller
             return response()->json(['error' => 'no_business_context'], 400);
         }
 
-        $transaction = Transaction::with('contact')
-            ->where('business_id', $businessId)
+        $transaction = Transaction::where('business_id', $businessId)
             ->where('type', 'sell')
             ->find($tx);
         if (! $transaction) {
@@ -168,16 +167,19 @@ class NfseController extends Controller
             ], 422);
         }
 
-        $taxRaw    = $transaction->contact?->tax_number ?? $transaction->contact?->cpf_cnpj ?? '';
-        $taxDigits = preg_replace('/\D/', '', (string) $taxRaw);
+        // Tomador via query builder (contact_id → contacts) — evita a relação
+        // dinâmica que o Larastan não enxerga no legado App\Transaction.
+        $tomador   = \Illuminate\Support\Facades\DB::table('contacts')->where('id', $transaction->contact_id)->first();
+        $taxRaw    = $tomador?->tax_number ?? $tomador?->cpf_cnpj ?? '';
+        $taxDigits = preg_replace('/\D/', '', (string) $taxRaw) ?? '';
 
         // Payload no MESMO formato validado do StoreNfseRequest — venda + defaults config.
         $data = [
             'competencia'    => optional($transaction->transaction_date)->format('Y-m') ?? now()->format('Y-m'),
-            'tomador_nome'   => $transaction->contact?->name ?? $transaction->contact?->supplier_business_name ?? 'Consumidor',
+            'tomador_nome'   => $tomador?->name ?? $tomador?->supplier_business_name ?? 'Consumidor',
             'tomador_cnpj'   => strlen($taxDigits) === 14 ? $taxRaw : null,
             'tomador_cpf'    => strlen($taxDigits) === 11 ? $taxRaw : null,
-            'tomador_email'  => $transaction->contact?->email,
+            'tomador_email'  => $tomador?->email,
             'descricao'      => $request->input('descricao') ?: 'Serviços referentes à venda '.$transaction->invoice_no,
             'lc116_codigo'   => $request->input('lc116_codigo') ?: ($config->lc116_codigo_default ?? '1.01'),
             'valor_servicos' => (float) ($request->input('valor_servicos') ?: $transaction->final_total),
