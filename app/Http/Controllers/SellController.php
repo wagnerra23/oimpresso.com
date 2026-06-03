@@ -2483,7 +2483,12 @@ class SellController extends Controller
                 'detail' => Inertia::defer($detailPayload),
                 'permissions' => [
                     'edit' => auth()->user()->can('direct_sell.update') || auth()->user()->can('so.update'),
-                    'delete' => auth()->user()->can('direct_sell.delete') || auth()->user()->can('sell.delete'),
+                    // Paridade com sale_pos/show.blade.php:418-420 — gate por tipo de venda.
+                    // sell.delete (venda normal) | so.delete (pedido) | direct_sell.delete (PDV).
+                    // Sem o ramo so.delete o botão sumia pra perfis que só tinham essa permissão.
+                    'delete' => ($sell->is_direct_sale == 0 && auth()->user()->can('sell.delete'))
+                        || ($sell->type == 'sales_order' && auth()->user()->can('so.delete'))
+                        || ($sell->is_direct_sale == 1 && $sell->type != 'sales_order' && auth()->user()->can('direct_sell.delete')),
                     'print' => true,
                 ],
                 'urls' => [
