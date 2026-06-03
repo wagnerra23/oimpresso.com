@@ -143,6 +143,12 @@ interface Filters {
   conta: string;
   categoria: string;
   periodo: string;
+  // Paridade filtros WR (2026-06-03) — campo de data + intervalo explícito.
+  // Espelha o WR Comercial (Emissão/Vencimento/Pagamento/Competência). Aplica
+  // na TABELA. NF/Vendas do WR exigem link título→transaction (pendente).
+  data_campo: 'vencimento' | 'emissao' | 'pagamento' | 'competencia';
+  data_inicio: string; // YYYY-MM-DD; vazio = usa período preset
+  data_fim: string;    // YYYY-MM-DD; vazio = usa período preset
   // Onda 12.6 (2026-05-19) — Wagner: removed 'spacious' (não tinha uso real).
   densidade: 'compact' | 'comfortable';
   // Onda 8 (2026-05-20): sort por coluna via click no thead.
@@ -1233,6 +1239,64 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             <span className="fin-filter-sep" />
           </>
         )}
+
+        {/* Paridade filtros WR (2026-06-03) — filtro por CAMPO de data + intervalo.
+            Espelha os filtros de data do WR Comercial (Emissão/Vencimento/Pagamento/
+            Competência). O campo escolhido + intervalo aplicam na TABELA **e** nos
+            CARDS de KPI (kpisCore segue o mesmo data_campo) — totais consistentes
+            com o grid filtrado. Intervalo vazio = usa o período preset do header.
+            NF/Vendas do WR exigem link título→transaction (origem_id), ainda
+            pendente. */}
+        <div className="fin-filter-group" role="group" aria-label="Filtro por data">
+          {/* native <select> consistente com o select de Plano de Contas logo abaixo
+              (mesma classe fin-filter-select). Migração toolbar-wide pro <Select> do DS
+              é escopo separado — não converto só este pra não destoar do vizinho. */}
+          {/* eslint-disable-next-line no-restricted-syntax -- ds/no-native-select: paridade visual com select adjacente (fin-filter-select) */}
+          <select
+            className="fin-filter-select"
+            value={filters.data_campo}
+            onChange={(e) => aplicar({ data_campo: e.target.value as Filters['data_campo'] })}
+            aria-label="Campo de data"
+            title="Qual data filtrar (igual ao WR Comercial)"
+          >
+            <option value="vencimento">Vencimento</option>
+            <option value="emissao">Emissão</option>
+            <option value="pagamento">Pagamento</option>
+            <option value="competencia">Competência</option>
+          </select>
+          <input
+            type="date"
+            className="fin-filter-select"
+            value={filters.data_inicio}
+            max={filters.data_fim || undefined}
+            onChange={(e) => aplicar({ data_inicio: e.target.value })}
+            aria-label="Data inicial"
+            title="Data inicial (vazio = período do mês)"
+          />
+          <span aria-hidden="true" style={{ opacity: 0.5 }}>–</span>
+          <input
+            type="date"
+            className="fin-filter-select"
+            value={filters.data_fim}
+            min={filters.data_inicio || undefined}
+            onChange={(e) => aplicar({ data_fim: e.target.value })}
+            aria-label="Data final"
+            title="Data final (vazio = período do mês)"
+          />
+          {(filters.data_inicio !== '' || filters.data_fim !== '') && (
+            <button
+              type="button"
+              className="fin-filter-cb"
+              onClick={() => aplicar({ data_inicio: '', data_fim: '' })}
+              title="Limpar intervalo de datas"
+              aria-label="Limpar intervalo de datas"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        <span className="fin-filter-sep" />
 
         {/* Onda 7 (2026-05-20): multi-select de contas via Popover + Checkbox.
             Backend aceita CSV "1,3,5" via filters.conta. Frontend mostra label
