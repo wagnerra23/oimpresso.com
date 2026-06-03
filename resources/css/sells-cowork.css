@@ -7403,12 +7403,15 @@
    stripe + .vd-kpi-breakdown (KPI hero quando foco=faturamento).
    ────────────────────────────────────────────────────────────── */
 .sells-cowork .vendas-aplus {
-  --vd-src-balcao:       oklch(0.50 0.13 155);
-  --vd-src-balcao-soft:  oklch(0.94 0.06 155);
-  --vd-src-oficina:      oklch(0.50 0.13 230);
-  --vd-src-oficina-soft: oklch(0.94 0.06 230);
-  --vd-src-online:       oklch(0.58 0.15 50);
-  --vd-src-online-soft:  oklch(0.94 0.07 50);
+  /* DS v6 (PR3 slice 3) — origem da venda redireciona pros tokens canônicos
+     --origin-* (cockpit.css), espelhando o c-org do gabarito:
+     balcão→CRM (azul) · oficina→OS (âmbar) · online→FIN (verde). Flip dark de fábrica. */
+  --vd-src-balcao:       var(--origin-CRM-fg);
+  --vd-src-balcao-soft:  var(--origin-CRM-bg);
+  --vd-src-oficina:      var(--origin-OS-fg);
+  --vd-src-oficina-soft: var(--origin-OS-bg);
+  --vd-src-online:       var(--origin-FIN-fg);
+  --vd-src-online-soft:  var(--origin-FIN-bg);
 }
 
 /* Source pill — célula Origem */
