@@ -67,6 +67,7 @@ class HealthCheckCommand extends Command
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
             $this->checkLessonLedgerGraduation(),
+            $this->checkGovernancaGraduationRatio(),
             // Charter health (advisory — não falha exit/cron). PROTOCOL §6.
             ...CharterHealthChecker::fromApp()->checks(),
         ];
@@ -703,6 +704,105 @@ class HealthCheckCommand extends Command
     }
 
     /**
+     * Os DOIS ledgers de lições que a governança mecaniza (camada [CC]×Jana).
+     * `path` relativo ao base_path; `header` = regex de header (grupo 1 = ID).
+     *
+     * @var array<string, array{path:string, header:string}>
+     */
+    public const GOVERNANCA_LEDGERS = [
+        'operacao' => ['path' => 'Modules/Jana/LICOES-OPERACAO.md', 'header' => '/^###\s+(L-OP-\d+)\b/m'],
+        'cc'       => ['path' => 'memory/LICOES_CC.md',             'header' => '/^##\s+(L-\d+)\b/m'],
+    ];
+
+    /**
+     * Estatística de graduação de UM ledger (reusa parseLessonLedger).
+     *
+     * `graduadas` = lições com Graduação válida + status:done · `pendentes` = resto
+     * (status:pendente, malformada OU sem linha de Graduação). `graduation_ratio` =
+     * graduadas / total (ledger vazio = 1.0, vacuosamente "fechado").
+     *
+     * @return array{total:int, graduadas:int, pendentes:int, pendentes_ids:list<string>, graduation_ratio:float}|null  null se o arquivo não existe
+     */
+    public static function ledgerGraduationStats(string $absPath, string $headerPattern): ?array
+    {
+        if (! is_file($absPath)) {
+            return null;
+        }
+
+        $r = self::parseLessonLedger((string) file_get_contents($absPath), $headerPattern);
+        $pendentesIds = array_values(array_unique(array_merge($r['overdue'], $r['malformed'])));
+        $graduadas = max(0, $r['total'] - count($pendentesIds));
+        $ratio = $r['total'] > 0 ? round($graduadas / $r['total'], 4) : 1.0;
+
+        return [
+            'total'            => $r['total'],
+            'graduadas'        => $graduadas,
+            'pendentes'        => count($pendentesIds),
+            'pendentes_ids'    => $pendentesIds,
+            'graduation_ratio' => $ratio,
+        ];
+    }
+
+    /**
+     * Check governanca_graduation_ratio (ADVISORY · camada 3 do placar [CC]×Jana).
+     *
+     * Espelha `jana_lesson_ledger_graduation` mas pros DOIS ledgers (operação + [CC]).
+     * Acende amarelo se algum ledger tem `graduation_ratio < 1.0` ou lição pendente —
+     * é a métrica contável da meta 9.7 (placar que regenera sozinho, não prosa digitada).
+     * Advisory de propósito: drift de governança não derruba cron nem exit code.
+     *
+     * @see governanca:scorecard (Modules/Governance — agrega isto num JSON pro report [CC])
+     */
+    protected function checkGovernancaGraduationRatio(): array
+    {
+        $name = 'governanca_graduation_ratio';
+
+        $partes = [];
+        $algumProblema = false;
+        $algumPresente = false;
+
+        foreach (self::GOVERNANCA_LEDGERS as $key => $cfg) {
+            $stats = self::ledgerGraduationStats(base_path($cfg['path']), $cfg['header']);
+            if ($stats === null) {
+                continue;
+            }
+            $algumPresente = true;
+            $partes[] = sprintf(
+                '%s %d/%d (%d%%)',
+                $key,
+                $stats['graduadas'],
+                $stats['total'],
+                (int) round($stats['graduation_ratio'] * 100)
+            );
+            if ($stats['graduation_ratio'] < 1.0 || $stats['pendentes'] > 0) {
+                $algumProblema = true;
+            }
+        }
+
+        if (! $algumPresente) {
+            return [
+                'name' => $name,
+                'ok' => true,
+                'advisory' => true,
+                'value' => 'n/a',
+                'threshold' => '100%',
+                'message' => 'Skipped (nenhum ledger de lições presente — pré-merge/dev)',
+            ];
+        }
+
+        return [
+            'name' => $name,
+            'ok' => ! $algumProblema,
+            'advisory' => true,
+            'value' => implode(' · ', $partes),
+            'threshold' => '100%',
+            'message' => $algumProblema
+                ? 'Graduação incompleta (meta 9.7 = ambos 100%): ' . implode(' · ', $partes)
+                : 'Ambos ledgers 100% graduados — ' . implode(' · ', $partes),
+        ];
+    }
+
+    /**
      * Parser determinístico do ledger de lições de operação.
      *
      * Contrato (ver Modules/Jana/LICOES-OPERACAO.md → "Formato canônico"):
@@ -717,15 +817,20 @@ class HealthCheckCommand extends Command
      *
      * Público + estático pra ser testável sem tocar o filesystem real.
      *
+     * Generalizado (W28 governanca:scorecard) pra rodar nos DOIS ledgers via
+     * `$headerPattern`: default = ledger de operação (`### L-OP-NNN`). O ledger [CC]
+     * (`memory/LICOES_CC.md`) usa `## L-NN` — passa o pattern correspondente. O grupo
+     * de captura 1 do regex tem que ser o ID da lição.
+     *
      * @return array{total:int, overdue:list<string>, malformed:list<string>}
      */
-    public static function parseLessonLedger(string $content): array
+    public static function parseLessonLedger(string $content, string $headerPattern = '/^###\s+(L-OP-\d+)\b/m'): array
     {
         $overdue = [];
         $malformed = [];
 
-        // Quebra em blocos por header de lição (### L-OP-NNN ...).
-        $blocos = preg_split('/^###\s+(L-OP-\d+)\b/m', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        // Quebra em blocos por header de lição (### L-OP-NNN | ## L-NN ...).
+        $blocos = preg_split($headerPattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
         // $blocos = [prefixo, id1, corpo1, id2, corpo2, ...]
         $total = 0;
         for ($i = 1; $i < count($blocos); $i += 2) {
