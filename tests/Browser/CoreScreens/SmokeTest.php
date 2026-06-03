@@ -40,12 +40,24 @@ $browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class);
 /**
  * Telas-núcleo: rota + um texto-âncora que prova que a tela (não um erro) montou.
  * Permissão mínima exigida pelo controller pra não cair em 403.
+ *
+ * Ampliado 2026-06-02 (worklist TRAVA-SEGUNDA Martinho) pro núcleo-6 de retenção
+ * (Cliente · Produto/Preço · Venda · Fiscal NF-e/NFS-e · Financeiro · Oficina).
+ * Âncoras = substrings reais do título/PageHeader de cada Page (não classe CSS).
+ * Slug de permissão é best-effort (try/catch) — se 403 em CI, ajustar o slug.
  */
 $screens = [
-    'Financeiro/Unificado' => ['/financeiro/unificado',      'financeiro.unificado.access', 'Financeiro'],
-    'Compras'              => ['/compras',                    'compras.view',               'Compras'],
-    'Clientes'             => ['/cliente',                    'customer.view',              'Cliente'],
-    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',   'Ordens'],
+    // — núcleo-6 retenção —
+    'Clientes'             => ['/cliente',                    'customer.view',               'Cliente'],       // CU-1
+    'Produto'              => ['/produto',                    'product.view',                'Produto'],       // CU-2
+    'Venda'                => ['/sells',                      'sell.view',                   'Vendas'],        // CU-3
+    'Fiscal/Cockpit'       => ['/fiscal',                     'fiscal.cockpit.access',       'Notas Fiscais'], // CU-4
+    'Fiscal/NF-e'          => ['/fiscal/nfe',                 'fiscal.nfe.access',           'NF-e'],          // CU-4
+    'Fiscal/NFS-e'         => ['/fiscal/nfse',                'fiscal.nfse.access',          'NFS-e'],         // CU-4
+    'Financeiro/Unificado' => ['/financeiro/unificado',      'financeiro.unificado.access', 'Financeiro'],   // CU-5
+    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',   'Ordens'],       // CU-6
+    // — cobertura herdada (handoff Cowork 2026-06-02 §B) —
+    'Compras'              => ['/compras',                    'compras.view',                'Compras'],
 ];
 
 foreach ($screens as $nome => [$rota, $permissao, $ancora]) {
