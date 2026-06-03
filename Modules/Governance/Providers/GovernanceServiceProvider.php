@@ -66,6 +66,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\ScorecardInitiativeSyncCommand::class, // Wave 28 Agent 1 — Initiatives Cortex-style
                 \Modules\Governance\Console\Commands\GovernanceAuditCommand::class,        // ADR 0216 — DriftChecker orchestrator
                 \Modules\Governance\Console\Commands\GovernancaScorecardCommand::class,    // W28 — placar [CC]×Jana mecanizado (graduação de lições)
+                \Modules\Governance\Console\Commands\CicloDiarioGovernancaCommand::class,  // ciclo diário — orquestra estado+frescor+inbox+digest (advisory)
             ]);
         }
     }
