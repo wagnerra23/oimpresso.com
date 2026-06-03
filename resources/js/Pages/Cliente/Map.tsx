@@ -124,7 +124,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
             </div>
           </aside>
 
-          <main className="md:col-span-2">
+          <div className="md:col-span-2">
             <div className="rounded-lg border border-border bg-background overflow-hidden h-[calc(100vh-12rem)]">
               <div className="h-full flex flex-col">
                 <div className="px-4 py-3 border-b border-border bg-muted/30">
@@ -176,7 +176,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                 )}
               </div>
             </div>
-          </main>
+          </div>
         </div>
       </div>
     </div>

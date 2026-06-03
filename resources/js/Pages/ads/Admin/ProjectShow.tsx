@@ -12,7 +12,7 @@ import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
-import { ArrowLeft, Zap, ArrowRight } from 'lucide-react'
+import { ArrowLeft, Zap, ArrowRight, Wallet } from 'lucide-react'
 
 interface Part {
   id: number
@@ -193,7 +193,7 @@ const ProjectShow: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
 
                       <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                         {part.estimativa_horas && <span>⏱ {part.estimativa_horas}h</span>}
-                        {part.valor_estimado_brl && <span>💰 {brl(part.valor_estimado_brl)}</span>}
+                        {part.valor_estimado_brl && <span className="inline-flex items-center"><Wallet className="h-3 w-3 mr-1" /> {brl(part.valor_estimado_brl)}</span>}
                         {part.dependencias.length > 0 && (
                           <span>↳ depende de: {part.dependencias.join(', ')}</span>
                         )}

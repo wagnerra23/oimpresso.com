@@ -110,7 +110,10 @@ class Titulo extends Model
             return 'em_dia';
         }
 
-        $dias = (int) now()->diffInDays($this->vencimento);
+        // Carbon 3: diffInDays() é signed por padrão — o flag `true` força absoluto.
+        // vencimento está no passado aqui (isVencido); sem o flag o diff vem negativo
+        // e o match(true) colapsaria TODO título vencido em '<30'.
+        $dias = (int) now()->diffInDays($this->vencimento, true);
 
         return match (true) {
             $dias < 30 => '<30',

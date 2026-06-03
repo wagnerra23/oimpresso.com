@@ -73,3 +73,17 @@ Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado
 - [RUNBOOK-show.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-show.md)
 - [ADR 0143 FSM pipeline LIVE prod](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
 - [ADR 0129 FSM canônica tabular](../../../../../memory/decisions/0129-state-machine-canonica-fsm-rbac.md)
+
+## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
+
+> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ presente+travado (some o elemento = build vermelho) · 🟡 gap (acende no `protocol_freshness`, advisory).
+
+- ✅ **UC-03** (`uc-03`) — vistoria digital (DVI) por item com foto + mapeamento achado→item de orçamento (`DviBudgetSection`).
+- ✅ **UC-05** (`uc-05`) — gate de aprovação: aprovação item a item, recusados, parcial, estado "Aprovada" (`ApprovalGateCard`).
+- ✅ **UC-09** (`uc-09`) — split fiscal: soma peças = NF-e, soma serviços = NFS-e (a tela prepara; emissão é listener) (`FiscalSplitCard`).
+- 🟡 **UC-04** — estado explícito "Orçamento enviado" + agrupar itens por seção + envio com registro. _(sem cobertura)_
+- 🟡 **UC-06** — ciclo de peça (necessária→cotada→pedida→recebida), reserva e baixa de estoque vinculada à OS. _(sem cobertura)_
+- 🟡 **UC-07** — apontamento de tempo, checklist de roteiro, pausa com motivo. _(sem cobertura)_
+- 🟡 **UC-08** — etapa/checklist de qualidade entre execução e pronto. _(sem cobertura)_
+- 🟡 **UC-10** — histórico do veículo (passagens anteriores), retorno de garantia, gatilho de lembrete. _(sem cobertura)_

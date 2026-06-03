@@ -59,6 +59,9 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 
         // CRUD ServiceOrder (status livre V0; FSM em US-OFICINA-003)
         Route::get('ordens-servico',                [ServiceOrderController::class, 'index'])->name('oficinaauto.orders.index');
+        // Board (Kanban) das OS de mecânica — fluxo real do carro ([W] 2026-06-02).
+        // ANTES de {order} pra 'board' não ser capturado como parâmetro.
+        Route::get('ordens-servico/board',          [ServiceOrderController::class, 'board'])->name('oficinaauto.orders.board');
         Route::get('ordens-servico/create',         [ServiceOrderController::class, 'create'])->name('oficinaauto.orders.create');
         Route::post('ordens-servico',               [ServiceOrderController::class, 'store'])
             ->middleware('throttle:60,1')
@@ -71,6 +74,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::delete('ordens-servico/{order}',     [ServiceOrderController::class, 'destroy'])
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.destroy');
+
+        // US-OFICINA-041 — Gate de aprovação: envia orçamento pro cliente (status → orcamento,
+        // Observer dispara WhatsApp link+PIN). Delta protótipo Cowork "Nova OS".
+        Route::post('ordens-servico/{order}/enviar-aprovacao',
+            [ServiceOrderController::class, 'enviarAprovacao'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.enviar-aprovacao');
 
         // ─────────────────────────────────────────────────────────────────────
         // Gap 3 — Imprimir OS PDF profissional A4 (US-OFICINA-037).
@@ -163,6 +173,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [DviInspectionController::class, 'destroy'])
             ->middleware('throttle:60,1')
             ->name('oficinaauto.orders.dvi.destroy');
+
+        // US-OFICINA-040 — Converte item DVI reprovado/atenção em linha de orçamento
+        // (delta protótipo Cowork "Nova OS" · botão "+ orçamento"). Cria ServiceOrderItem.
+        Route::post('ordens-servico/{order}/dvi/{item}/to-orcamento',
+            [DviInspectionController::class, 'toOrcamento'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.to-orcamento');
 
         // ─────────────────────────────────────────────────────────────────────
         // Gap 1 (2026-05-26) — Upload foto/laudo item DVI via Modules/Arquivos.

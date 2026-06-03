@@ -3,6 +3,7 @@ import { Banknote, Contact2, MapPin, Save, User2 } from "lucide-react"
 
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
+import { Textarea } from "@/Components/ui/textarea"
 import { Segmented } from "@/Components/ui/segmented"
 import { FormSection, FormGrid } from "@/Components/ui/form-section"
 import {
@@ -201,6 +202,15 @@ export function ClienteForm<T extends ClienteFormShared>({
                 value={data.zip_code}
                 onChange={(e) => set("zip_code", e.target.value)}
                 placeholder="00000-000"
+              />
+            </Field>
+            <Field label="Endereço de entrega" error={err.shipping_address} fullRow>
+              <Textarea
+                variant="cowork"
+                value={data.shipping_address}
+                onChange={(e) => set("shipping_address", e.target.value)}
+                placeholder="Preencha se a entrega for em endereço diferente do cadastro acima."
+                rows={2}
               />
             </Field>
           </FormGrid>

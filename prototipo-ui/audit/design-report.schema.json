@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://oimpresso.com/prototipo-ui/audit/design-report.schema.json",
+  "title": "design-report (1 por tela)",
+  "description": "Relatório read-only de 1 tela contra a GOLDEN-REFERENCE (10 regras) + ds/*. Escrito por 1 agente-scorer. Zero colisão: 1 tela = 1 arquivo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["screen", "file", "measured_against_sha", "scored_by", "rules", "nota", "nivel"],
+  "properties": {
+    "screen": { "type": "string", "description": "Caminho lógico da tela, ex 'NfeBrasil/Transactions/NfceStatus'." },
+    "file": { "type": "string", "description": "Path do .tsx relativo à raiz do repo." },
+    "measured_against_sha": { "type": "string", "description": "git rev-parse --short HEAD no momento da medição (anti-stale)." },
+    "scored_by": { "type": "string", "description": "Id do agente/lote que pontuou (proveniência zero-colisão)." },
+    "scored_at": { "type": "string", "description": "Data ISO da medição." },
+    "archetype": { "type": "string", "enum": ["list", "form", "detail", "dashboard", "config", "chat", "kanban", "other"] },
+    "persona": { "type": "string", "description": "larissa | eliana | wagner | tecnico | misto." },
+    "nota": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "nivel": { "type": "string", "enum": ["Champion", "Leader", "Advanced", "Developing", "Beginner"] },
+    "rules": {
+      "type": "array",
+      "description": "As 10 regras da GOLDEN-REFERENCE, na ordem R1..R10.",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "mechanized"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^R([1-9]|10)$" },
+          "status": { "type": "string", "enum": ["pass", "fail", "n/a"] },
+          "mechanized": { "type": "boolean", "description": "true = evidência reproduzível (regex/AST/ESLint); false = julgamento do agente (cita trecho)." },
+          "evidence": { "type": "string", "description": "Trecho exato que prova o status. Obrigatório quando status=fail." }
+        }
+      }
+    },
+    "ds_violations": {
+      "type": "object",
+      "description": "Contagem ds/* do módulo (config/eslint-baseline.json). Evidência mais dura.",
+      "additionalProperties": false,
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "by_rule": { "type": "object", "additionalProperties": { "type": "integer" } }
+      }
+    },
+    "top_gaps": {
+      "type": "array",
+      "description": "Compatível com o board: dim + best_of_class + fix + esforco.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dim": { "type": "string" },
+          "best_of_class": { "type": "string" },
+          "fix": { "type": "string" },
+          "esforco": { "type": "string", "enum": ["S", "M", "L"] }
+        }
+      }
+    },
+    "resumo": { "type": "string" },
+    "evidence_links": { "type": "array", "items": { "type": "string" }, "description": "Pest run id, screenshot/golden, PR — pra fechamento por evidência." }
+  }
+}

@@ -42,8 +42,8 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
 {
     public function handle(CobrancaPaga $event): void
     {
-        if ($event->businessId !== 1) {
-            return; // Onda 5 dogfooding processa só Wagner
+        if ($event->businessId !== (int) config('app.saas_owner_business_id')) {
+            return; // Onda 5 dogfooding processa só o business dono (SaaS)
         }
 
         $cobranca = Cobranca::withoutGlobalScopes()->find($event->cobrancaId);

@@ -11,6 +11,7 @@ contains:
   # Custos / Qualidade
   - "Admin/CustosController — dashboard custos LLM"
   - "Admin/JanaProController — brief diário invocável (US-COPI-203)"
+  - "ProController — paywall Jana Pro (/ia/pro), tela de conversão F3 design (#2069)"
   - "Admin/QualidadeController — qualidade RAG/memória (RAGAS)"
   - "Admin/RoadmapController — timeline Gantt do cycle ativo (Onda 5 V1)"
   # Metas / Períodos
@@ -25,6 +26,9 @@ contains:
   - "DataController — sidebar/permissions"
   - "InstallController — install/uninstall hooks"
   - "SuperadminController — superadmin package"
+  # Aprendizado com erro / Reflexion runtime
+  - "LICOES-OPERACAO.md — ledger append-only dos erros de OPERAÇÃO da Jana (≠ saída, que golden/RAGAS cobrem); cada lição gradua MEC→check no jana:health-check ou JULG→regra sempre-lida. Proposta §10.4 (aguarda [W])"
+  - "Console/Commands/HealthCheckCommand — check jana_lesson_ledger_graduation valida o loop de graduação do ledger (advisory)"
 not_contains:
   - "MemoriaController (browser KB) → Modules/KB"
   - "FontesController (knowledge sources) → Modules/KB"

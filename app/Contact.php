@@ -141,6 +141,34 @@ class Contact extends Authenticatable
     }
 
     /**
+     * US-CRM-078 — múltiplos endereços do contato (matriz/filial/casa/obra).
+     *
+     * O endereço inline de `contacts` (zip_code/address_line_1/...) permanece
+     * como o "principal" (compat UPOS/NFe/Sells) e é espelhado no endereço
+     * `is_default = true`. `addresses` é o catálogo completo; o seletor de
+     * entrega na venda (Sells) escolhe dele ou digita um avulso ("Outro").
+     *
+     * @see app/ContactAddress.php
+     * @see memory/requisitos/Cliente/SPEC.md §US-CRM-078
+     */
+    public function addresses()
+    {
+        return $this->hasMany(ContactAddress::class, 'contact_id');
+    }
+
+    /** Endereço marcado como principal/cobrança (espelha os campos inline). */
+    public function defaultAddress()
+    {
+        return $this->hasOne(ContactAddress::class, 'contact_id')->where('is_default', true);
+    }
+
+    /** Endereço default de entrega (pré-seleção do shipping_address na venda). */
+    public function shippingAddress()
+    {
+        return $this->hasOne(ContactAddress::class, 'contact_id')->where('is_shipping', true);
+    }
+
+    /**
      * LGPD — Pode receber notificação WhatsApp?
      *
      * Semântica conservadora (back-compat ROTA LIVRE biz=4):

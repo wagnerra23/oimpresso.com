@@ -7,6 +7,7 @@ namespace Modules\Jana\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\CharterHealthChecker;
 
 /**
  * Sentinela operacional da Jana + Constituição v2.
@@ -26,6 +27,22 @@ use Illuminate\Support\Facades\Log;
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
+ *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
+ *      reachable; alerta ANTES da degradação silenciosa (chat responde sem
+ *      recall, NÃO estoura 500). McpMemoriaDriver já degrada gracioso.
+ *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
+ *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
+ *      acende amarelo se há entrada malformada ou `status:pendente`.
+ *  11b. governanca_graduation_ratio (ADVISORY) — espelha (11) pros 2 ledgers.
+ *  11c. protocol_freshness (ADVISORY · espelha review-freshness #2078) — UC das
+ *      telas canon (uc-registry.json) amarrado a GUARD Pest `uc-<id>`; acende UC
+ *      sem cobertura / GUARD sumido / charter ausente / UC morto. Ratchet baseline.
+ *  12-17. Charter/loop health (ADVISORY · CharterHealthChecker, PROTOCOL §6) —
+ *      charter_missing, charter_stale (>90d), charter_refs_broken,
+ *      charter_method_missing, readme_handoff_block_missing (L-18),
+ *      design_return_skipped (retorno §10.2 atrás do SYNC_LOG · G4).
+ *      Reportam mas NÃO falham o exit code nem o ALERT de cron (viram
+ *      ratchet depois que o baseline de charters existir).
  *
  * Uso:
  *   php artisan jana:health-check
@@ -38,7 +55,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (7 checks SQL)';
+    protected $description = 'Health check diário Jana + Constituição v2 (10 checks SQL + ledger de lições + charter/loop advisory)';
 
     public function handle(): int
     {
@@ -52,9 +69,17 @@ class HealthCheckCommand extends Command
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
             $this->checkMcpWebhookHealth2h(),
+            $this->checkMemoriaRecallBackend(),
+            $this->checkLessonLedgerGraduation(),
+            $this->checkGovernancaGraduationRatio(),
+            $this->checkProtocolFreshness(),
+            // Charter health (advisory — não falha exit/cron). PROTOCOL §6.
+            ...CharterHealthChecker::fromApp()->checks(),
         ];
 
-        $allOk = collect($checks)->every(fn ($c) => $c['ok']);
+        // Advisory checks (charter) reportam mas não derrubam o exit code:
+        // contam como "ok" pro gate enquanto não viram ratchet.
+        $allOk = collect($checks)->every(fn ($c) => $c['ok'] || ($c['advisory'] ?? false));
 
         if ($this->option('json')) {
             $this->line(json_encode([
@@ -79,7 +104,10 @@ class HealthCheckCommand extends Command
         ]);
 
         if ($this->option('notify') && ! $allOk) {
-            $failed = collect($checks)->where('ok', false)->pluck('name')->implode(', ');
+            // Só falha DURA (não-advisory) dispara o ALERT de cron.
+            $failed = collect($checks)
+                ->filter(fn ($c) => ! $c['ok'] && ! ($c['advisory'] ?? false))
+                ->pluck('name')->implode(', ');
             Log::channel('single')->error("jana:health-check ALERT — falhou: {$failed}");
         }
 
@@ -558,6 +586,424 @@ class HealthCheckCommand extends Command
         }
     }
 
+    /**
+     * Check 10 — Memoria recall backend (resiliência Meilisearch, ponto único de falha).
+     *
+     * O recall (tool `memoria-search`) é servido pelo MCP server CT 100 que consulta
+     * Meilisearch. Se Meilisearch/MCP cai, o McpMemoriaDriver degrada SILENCIOSAMENTE
+     * (retorna [] → chat responde sem memória, NÃO estoura 500). Bom pro usuário,
+     * cego pro ops. Este check é o alarme: prova reachability 1×/dia e alerta ANTES
+     * de alguém perceber "a Jana esqueceu tudo". Check DURO (não-advisory): recall
+     * down derruba o exit code e dispara o ALERT de cron.
+     *
+     * Skip silencioso em dev/CI (sem COPILOTO_MCP_SYSTEM_TOKEN → fallback local,
+     * não há backend remoto pra checar).
+     *
+     * @see Modules/Jana/Services/Memoria/McpMemoriaDriver.php (degradação graciosa)
+     */
+    protected function checkMemoriaRecallBackend(): array
+    {
+        $name = 'memoria_recall_backend';
+        $url = (string) config('copiloto.mcp.url', 'https://mcp.oimpresso.com/api/mcp');
+        $token = (string) config('copiloto.mcp.system_token', env('COPILOTO_MCP_SYSTEM_TOKEN', ''));
+
+        // Sem token = ambiente sem recall remoto (dev/CI). Não é falha — pula.
+        if ($url === '' || $token === '') {
+            return [
+                'name' => $name,
+                'ok' => true,
+                'value' => 'n/a',
+                'threshold' => 'reachable',
+                'message' => 'Skipped (recall MCP não configurado — dev/CI usa fallback local)',
+            ];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withToken($token, 'Bearer')
+                ->withHeaders(['Content-Type' => 'application/json', 'Accept' => 'application/json'])
+                ->timeout((int) config('copiloto.mcp.timeout_seconds', 5))
+                ->post($url, [
+                    'jsonrpc' => '2.0',
+                    'id' => 1,
+                    'method' => 'tools/call',
+                    'params' => [
+                        'name' => 'memoria-search',
+                        'arguments' => ['query' => 'health', 'business_id' => 1, 'limit' => 1],
+                    ],
+                ]);
+
+            $ok = $response->ok();
+
+            return [
+                'name' => $name,
+                'ok' => $ok,
+                'value' => $ok ? 'up' : (string) $response->status(),
+                'threshold' => 'reachable',
+                'message' => $ok
+                    ? 'Recall backend (MCP/Meilisearch) respondendo — memória ativa'
+                    : "ALERTA: recall backend não-OK ({$response->status()}) — chat degrada SEM memória (não estoura 500). Checar MCP server + Meilisearch CT 100.",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => 'down',
+                'threshold' => 'reachable',
+                'message' => 'ALERTA: recall backend inacessível (' . mb_substr($e->getMessage(), 0, 80)
+                    . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
+            ];
+        }
+    }
+
+    /**
+     * Check 11 — Ledger de lições de operação (Reflexion runtime · advisory).
+     *
+     * Lê Modules/Jana/LICOES-OPERACAO.md e valida o LOOP DE GRADUAÇÃO: toda lição
+     * de operação registrada precisa nascer graduada (MEC → vira check · JULG → vira
+     * regra sempre-lida). Acende amarelo (advisory, não derruba cron) se alguma entrada
+     * está malformada ou ainda `status:pendente` — fechando o loop por métrica
+     * (Constituição v2 §4) sem construir mecanismo novo: é só mais um check.
+     *
+     * Advisory de propósito: drift de processo de governança não deve paginar à noite
+     * nem falhar o exit/cron; reporta e fica visível no scorecard.
+     *
+     * Skip silencioso se o ledger ainda não existe (ambiente sem o doc / pré-merge).
+     *
+     * @see Modules/Jana/LICOES-OPERACAO.md
+     * @see memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md
+     */
+    protected function checkLessonLedgerGraduation(): array
+    {
+        $name = 'jana_lesson_ledger_graduation';
+        $path = base_path('Modules/Jana/LICOES-OPERACAO.md');
+
+        if (! is_file($path)) {
+            return [
+                'name' => $name,
+                'ok' => true,
+                'advisory' => true,
+                'value' => 'n/a',
+                'threshold' => 0,
+                'message' => 'Skipped (ledger LICOES-OPERACAO.md ausente — pré-merge/dev)',
+            ];
+        }
+
+        $r = self::parseLessonLedger((string) file_get_contents($path));
+        $problemas = array_merge(
+            array_map(fn ($id) => "{$id} (malformada)", $r['malformed']),
+            array_map(fn ($id) => "{$id} (pendente)", $r['overdue']),
+        );
+        $count = count($problemas);
+
+        return [
+            'name' => $name,
+            'ok' => $count === 0,
+            'advisory' => true,
+            'value' => $count,
+            'threshold' => 0,
+            'message' => $count === 0
+                ? "{$r['total']} lição(ões) de operação — todas graduadas (MEC→check / JULG→regra)"
+                : 'Loop de graduação aberto: ' . implode(' · ', array_slice($problemas, 0, 6))
+                    . ($count > 6 ? ' (+' . ($count - 6) . ' mais)' : ''),
+        ];
+    }
+
+    /**
+     * Os DOIS ledgers de lições que a governança mecaniza (camada [CC]×Jana).
+     * `path` relativo ao base_path; `header` = regex de header (grupo 1 = ID).
+     *
+     * @var array<string, array{path:string, header:string}>
+     */
+    public const GOVERNANCA_LEDGERS = [
+        'operacao' => ['path' => 'Modules/Jana/LICOES-OPERACAO.md', 'header' => '/^###\s+(L-OP-\d+)\b/m'],
+        'cc'       => ['path' => 'memory/LICOES_CC.md',             'header' => '/^##\s+(L-\d+)\b/m'],
+    ];
+
+    /**
+     * Estatística de graduação de UM ledger (reusa parseLessonLedger).
+     *
+     * `graduadas` = lições com Graduação válida + status:done · `pendentes` = resto
+     * (status:pendente, malformada OU sem linha de Graduação). `graduation_ratio` =
+     * graduadas / total (ledger vazio = 1.0, vacuosamente "fechado").
+     *
+     * @return array{total:int, graduadas:int, pendentes:int, pendentes_ids:list<string>, graduation_ratio:float}|null  null se o arquivo não existe
+     */
+    public static function ledgerGraduationStats(string $absPath, string $headerPattern): ?array
+    {
+        if (! is_file($absPath)) {
+            return null;
+        }
+
+        $r = self::parseLessonLedger((string) file_get_contents($absPath), $headerPattern);
+        $pendentesIds = array_values(array_unique(array_merge($r['overdue'], $r['malformed'])));
+        $graduadas = max(0, $r['total'] - count($pendentesIds));
+        $ratio = $r['total'] > 0 ? round($graduadas / $r['total'], 4) : 1.0;
+
+        return [
+            'total'            => $r['total'],
+            'graduadas'        => $graduadas,
+            'pendentes'        => count($pendentesIds),
+            'pendentes_ids'    => $pendentesIds,
+            'graduation_ratio' => $ratio,
+        ];
+    }
+
+    /**
+     * Check governanca_graduation_ratio (ADVISORY · camada 3 do placar [CC]×Jana).
+     *
+     * Espelha `jana_lesson_ledger_graduation` mas pros DOIS ledgers (operação + [CC]).
+     * Acende amarelo se algum ledger tem `graduation_ratio < 1.0` ou lição pendente —
+     * é a métrica contável da meta 9.7 (placar que regenera sozinho, não prosa digitada).
+     * Advisory de propósito: drift de governança não derruba cron nem exit code.
+     *
+     * @see governanca:scorecard (Modules/Governance — agrega isto num JSON pro report [CC])
+     */
+    protected function checkGovernancaGraduationRatio(): array
+    {
+        $name = 'governanca_graduation_ratio';
+
+        $partes = [];
+        $algumProblema = false;
+        $algumPresente = false;
+
+        foreach (self::GOVERNANCA_LEDGERS as $key => $cfg) {
+            $stats = self::ledgerGraduationStats(base_path($cfg['path']), $cfg['header']);
+            if ($stats === null) {
+                continue;
+            }
+            $algumPresente = true;
+            $partes[] = sprintf(
+                '%s %d/%d (%d%%)',
+                $key,
+                $stats['graduadas'],
+                $stats['total'],
+                (int) round($stats['graduation_ratio'] * 100)
+            );
+            if ($stats['graduation_ratio'] < 1.0 || $stats['pendentes'] > 0) {
+                $algumProblema = true;
+            }
+        }
+
+        if (! $algumPresente) {
+            return [
+                'name' => $name,
+                'ok' => true,
+                'advisory' => true,
+                'value' => 'n/a',
+                'threshold' => '100%',
+                'message' => 'Skipped (nenhum ledger de lições presente — pré-merge/dev)',
+            ];
+        }
+
+        return [
+            'name' => $name,
+            'ok' => ! $algumProblema,
+            'advisory' => true,
+            'value' => implode(' · ', $partes),
+            'threshold' => '100%',
+            'message' => $algumProblema
+                ? 'Graduação incompleta (meta 9.7 = ambos 100%): ' . implode(' · ', $partes)
+                : 'Ambos ledgers 100% graduados — ' . implode(' · ', $partes),
+        ];
+    }
+
+    /**
+     * Check protocol_freshness (ADVISORY · frescor do protocolo UC→charter→GUARD).
+     *
+     * Espelha em PHP o `prototipo-ui/audit/protocol-freshness.mjs` (que espelha o
+     * molde `review-freshness.mjs` #2078). Acende amarelo quando:
+     *   (a) UC com `guard:true` no registro sem GUARD linkado nos testes (regressão);
+     *   (b) tela canon sem charter;
+     *   (c) charter cita UC que não existe mais no registro (UC morto);
+     *   + lista (advisory, ratchet via baseline) os UCs sem cobertura (gaps).
+     *
+     * A LEI (PROTOCOL/charter) continua de [W]; o check só ACENDE e o [CL] propõe
+     * a reconciliação (§10.4). Emite storage/reports/protocol-freshness.json pro
+     * ciclo diário (governanca:ciclo-diario) ler. Advisory: não derruba cron.
+     *
+     * @see prototipo-ui/audit/uc-registry.json  (fonte única UC→tela→GUARD)
+     */
+    protected function checkProtocolFreshness(): array
+    {
+        $name = 'protocol_freshness';
+        $registryPath = base_path('prototipo-ui/audit/uc-registry.json');
+
+        if (! is_file($registryPath)) {
+            return [
+                'name' => $name, 'ok' => true, 'advisory' => true, 'value' => 'n/a',
+                'threshold' => '0 regressão', 'message' => 'Skipped (uc-registry.json ausente — ponte UC-guards não landada)',
+            ];
+        }
+
+        $registry = json_decode((string) file_get_contents($registryPath), true);
+        $baseline = is_file($b = base_path('prototipo-ui/audit/protocol-freshness-baseline.json'))
+            ? (json_decode((string) file_get_contents($b), true)['sem_cobertura'] ?? [])
+            : [];
+        $baseSem = array_flip(is_array($baseline) ? $baseline : []);
+
+        $testsText = $this->concatTestsText();
+        $geradorWired = str_contains($testsText, 'uc-registry.json');
+
+        $cobertos = $semCobertura = $guardQuebrado = $charterAusente = $ucMorto = [];
+        $idsRegistro = [];
+        foreach (($registry['screens'] ?? []) as $s) {
+            foreach (($s['ucs'] ?? []) as $uc) {
+                $idsRegistro[$uc['uc']] = true;
+            }
+        }
+
+        foreach (($registry['screens'] ?? []) as $s) {
+            $charterAbs = base_path($s['charter']);
+            if (! is_file($charterAbs)) {
+                $charterAusente[] = "{$s['id']}:{$s['charter']}";
+            } else {
+                preg_match_all('/UC-[A-Z0-9]+/', (string) file_get_contents($charterAbs), $m);
+                foreach (array_unique($m[0] ?? []) as $cit) {
+                    if (! isset($idsRegistro[$cit])) {
+                        $ucMorto[] = "{$s['id']}:{$cit}";
+                    }
+                }
+            }
+            foreach (($s['ucs'] ?? []) as $uc) {
+                $tag = 'uc-' . strtolower((string) preg_replace('/^UC-/', '', $uc['uc']));
+                if ($uc['guard'] ?? false) {
+                    if ($geradorWired || str_contains($testsText, "'{$tag}'") || str_contains($testsText, "\"{$tag}\"")) {
+                        $cobertos[] = "{$s['id']}:{$uc['uc']}";
+                    } else {
+                        $guardQuebrado[] = "{$s['id']}:{$uc['uc']}";
+                    }
+                } else {
+                    $semCobertura[] = "{$s['id']}:{$uc['uc']}";
+                }
+            }
+        }
+
+        $novoSem = array_values(array_filter($semCobertura, fn ($x) => ! isset($baseSem[$x])));
+        $acende = array_merge(
+            array_map(fn ($x) => ['tipo' => 'sem_cobertura', 'ref' => $x], $semCobertura),
+            array_map(fn ($x) => ['tipo' => 'guard_quebrado', 'ref' => $x], $guardQuebrado),
+            array_map(fn ($x) => ['tipo' => 'charter_ausente', 'ref' => $x], $charterAusente),
+            array_map(fn ($x) => ['tipo' => 'uc_morto', 'ref' => $x], $ucMorto),
+        );
+        $regressao = array_merge($guardQuebrado, $charterAusente, $ucMorto, $novoSem);
+
+        $this->emitProtocolReport([
+            'generated_against_sha' => null,
+            'cobertos' => $cobertos,
+            'acende' => $acende,
+            'regressao_count' => count($regressao),
+            'baseline_sem_cobertura' => array_keys($baseSem),
+        ]);
+
+        $value = sprintf('%d cobertos · %d gaps · %d regressão', count($cobertos), count($semCobertura), count($regressao));
+
+        return [
+            'name' => $name,
+            'ok' => $regressao === [],
+            'advisory' => true,
+            'value' => $value,
+            'threshold' => '0 regressão (gaps ⊆ baseline)',
+            'message' => $regressao === []
+                ? "Protocolo fresco — {$value} (gaps conhecidos no baseline)"
+                : 'Regressão de protocolo (GUARD/charter/UC): ' . implode(' · ', array_slice($regressao, 0, 6)),
+        ];
+    }
+
+    /** Concatena o texto dos testes Pest (procura wiring do gerador + tags uc-<id>). */
+    private function concatTestsText(): string
+    {
+        $dir = base_path('tests');
+        if (! is_dir($dir)) {
+            return '';
+        }
+        $buf = '';
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $f) {
+            if ($f->isFile() && $f->getExtension() === 'php') {
+                $buf .= (string) file_get_contents($f->getPathname()) . "\n";
+            }
+        }
+
+        return $buf;
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function emitProtocolReport(array $payload): void
+    {
+        try {
+            $dir = storage_path('reports');
+            if (! is_dir($dir)) {
+                mkdir($dir, 0775, true);
+            }
+            file_put_contents(
+                $dir . '/protocol-freshness.json',
+                json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"
+            );
+        } catch (\Throwable) {
+            // advisory — falha ao escrever o report não derruba o check.
+        }
+    }
+
+    /**
+     * Parser determinístico do ledger de lições de operação.
+     *
+     * Contrato (ver Modules/Jana/LICOES-OPERACAO.md → "Formato canônico"):
+     *   - cada lição = bloco iniciado por `### L-OP-NNN`
+     *   - linha `- **Graduação:** <MEC|JULG> · <check:`x`|regra:`y`> · status:<done|pendente>`
+     *
+     * Regras de validação:
+     *   - sem linha Graduação OU tipo ∉ {MEC,JULG} → malformed
+     *   - MEC com status done sem `check:` → malformed
+     *   - JULG com status done sem `regra:` → malformed
+     *   - status pendente (qualquer tipo) → overdue (loop ainda aberto)
+     *
+     * Público + estático pra ser testável sem tocar o filesystem real.
+     *
+     * Generalizado (W28 governanca:scorecard) pra rodar nos DOIS ledgers via
+     * `$headerPattern`: default = ledger de operação (`### L-OP-NNN`). O ledger [CC]
+     * (`memory/LICOES_CC.md`) usa `## L-NN` — passa o pattern correspondente. O grupo
+     * de captura 1 do regex tem que ser o ID da lição.
+     *
+     * @return array{total:int, overdue:list<string>, malformed:list<string>}
+     */
+    public static function parseLessonLedger(string $content, string $headerPattern = '/^###\s+(L-OP-\d+)\b/m'): array
+    {
+        $overdue = [];
+        $malformed = [];
+
+        // Quebra em blocos por header de lição (### L-OP-NNN | ## L-NN ...).
+        $blocos = preg_split($headerPattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        // $blocos = [prefixo, id1, corpo1, id2, corpo2, ...]
+        $total = 0;
+        for ($i = 1; $i < count($blocos); $i += 2) {
+            $id = $blocos[$i];
+            $corpo = $blocos[$i + 1] ?? '';
+            $total++;
+
+            if (! preg_match('/\*\*Gradua[çc][ãa]o:\*\*\s*(MEC|JULG)\b(.*)$/mu', $corpo, $m)) {
+                $malformed[] = $id;
+                continue;
+            }
+            $tipo = $m[1];
+            $resto = $m[2];
+
+            $pendente = (bool) preg_match('/status:\s*pendente/iu', $resto);
+            if ($pendente) {
+                $overdue[] = $id;
+                continue;
+            }
+
+            // status:done (default) — exige o binding do tipo.
+            if ($tipo === 'MEC' && ! preg_match('/check:\s*`?[\w-]+`?/u', $resto)) {
+                $malformed[] = $id;
+            } elseif ($tipo === 'JULG' && ! preg_match('/regra:\s*`?[^`·\s][^`·]*`?/u', $resto)) {
+                $malformed[] = $id;
+            }
+        }
+
+        return ['total' => $total, 'overdue' => $overdue, 'malformed' => $malformed];
+    }
+
     protected function renderTable(array $checks, bool $allOk): void
     {
         $this->newLine();
@@ -567,7 +1013,7 @@ class HealthCheckCommand extends Command
         $this->newLine();
 
         $rows = collect($checks)->map(fn ($c) => [
-            $c['ok'] ? '✓' : '✗',
+            $c['ok'] ? '✓' : (($c['advisory'] ?? false) ? '⚠' : '✗'),
             $c['name'],
             $c['value'] !== null ? (string) $c['value'] : '—',
             (string) ($c['threshold'] ?? '—'),
@@ -577,11 +1023,18 @@ class HealthCheckCommand extends Command
         $this->table(['', 'Check', 'Valor', 'Alvo', 'Status'], $rows);
 
         $this->newLine();
+        $advisoryWarn = collect($checks)->filter(fn ($c) => ! $c['ok'] && ($c['advisory'] ?? false))->count();
         if ($allOk) {
-            $this->info('✓ Todos os 9 checks passaram. Sistema saudável.');
+            $total = count($checks);
+            $msg = "✓ {$total} checks sem falha dura. Sistema saudável.";
+            if ($advisoryWarn > 0) {
+                $msg .= " ⚠ {$advisoryWarn} advisory (charter) pra revisar.";
+            }
+            $this->info($msg);
         } else {
-            $failed = collect($checks)->where('ok', false)->count();
-            $this->error("✗ {$failed} check(s) falharam — investigar acima.");
+            $failed = collect($checks)->filter(fn ($c) => ! $c['ok'] && ! ($c['advisory'] ?? false))->count();
+            $this->error("✗ {$failed} check(s) falharam — investigar acima."
+                . ($advisoryWarn > 0 ? " (+{$advisoryWarn} advisory ⚠)" : ''));
         }
         $this->newLine();
     }

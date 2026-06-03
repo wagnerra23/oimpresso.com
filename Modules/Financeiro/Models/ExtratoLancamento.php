@@ -33,7 +33,9 @@ class ExtratoLancamento extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['conta_bancaria_id', 'data', 'valor', 'tipo', 'idempotency_key'])
+            // Fase 1 ADR 0236: status/titulo_id auditados (conciliação muda fato
+            // tributário — quem conciliou o quê precisa de trilha, igual valor/data).
+            ->logOnly(['conta_bancaria_id', 'data', 'valor', 'tipo', 'idempotency_key', 'status', 'titulo_id'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('financeiro.extrato_lancamento');
@@ -52,12 +54,20 @@ class ExtratoLancamento extends Model
         'contraparte_nome',
         'idempotency_key',
         'raw_payload',
+        // Fase 1 ADR 0236 — workflow de conciliação na própria linha de extrato.
+        'status',
+        'titulo_id',
+        'match_score',
+        'conciliado_by',
+        'conciliado_at',
     ];
 
     protected $casts = [
-        'data'        => 'date',
-        'valor'       => 'float',
-        'raw_payload' => 'array',
+        'data'          => 'date',
+        'valor'         => 'float',
+        'raw_payload'   => 'array',
+        'match_score'   => 'float',
+        'conciliado_at' => 'datetime',
     ];
 
     public function contaBancaria(): BelongsTo

@@ -32,6 +32,7 @@ import {
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 // Mesma fonte canônica de SaleSheet + QuickPaymentDialog (UltimatePOS
 // armazena chaves curtas custom_pay_1=PIX/custom_pay_2=Boleto — labels PT-BR
@@ -174,16 +175,16 @@ export default function QuickPaymentPopover({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="qpp-method" className="text-xs">Forma</Label>
-              <select
-                id="qpp-method"
-                value={draft.method}
-                onChange={(e) => setDraft({ ...draft, method: e.target.value })}
-                className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
-              >
-                {PAYMENT_METHODS_OPTIONS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
+              <Select value={draft.method} onValueChange={(v) => setDraft({ ...draft, method: v })}>
+                <SelectTrigger id="qpp-method" size="sm" aria-label="Forma de pagamento" className="h-8 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS_OPTIONS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="space-y-1.5">

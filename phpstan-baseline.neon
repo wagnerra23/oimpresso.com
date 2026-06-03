@@ -1431,8 +1431,48 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: Modules/Brief/Services/BriefGeneratorService.php
+
+		-
+			message: '#^Constant Modules\\Governance\\Services\\Checkers\\RoutesZombieChecker\:\:DEFAULT_ZOMBIE_GRACE_DAYS is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
+
+		-
+			message: '#^Offset ''title'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: Modules/Governance/Services/Checkers/NpmAuditChecker.php
+
+		-
+			identifier: oimpresso.silentFallback
+			path: Modules/Governance/Services/Checkers/DesignDocsFreshnessChecker.php
+
+		-
+			message: '#^Method Modules\\Brief\\Services\\BriefGeneratorService\:\:targetTokens\(\) is unused\.$#'
+			identifier: method.unused
 			count: 1
 			path: Modules/Brief/Services/BriefGeneratorService.php
+
+		-
+			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PublishesDriftToCentrifugo is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Governance/Services/Concerns/PublishesDriftToCentrifugo.php
+
+		-
+			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PersistsDriftAlert is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Governance/Services/Concerns/PersistsDriftAlert.php
+
+		-
+			message: '#^Argument of an invalid type Illuminate\\Routing\\RouteCollectionInterface supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -9238,7 +9278,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 3
+			count: 5
 			path: Modules/Governance/Config/config.php
 
 		-
@@ -9460,7 +9500,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 68
+			count: 79
 			path: Modules/Jana/Config/config.php
 
 		-
@@ -33650,7 +33690,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
+			count: 3
 			path: app/Services/GrowthBookAdminService.php
 
 		-
@@ -37270,3 +37310,9 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Financeiro/Models/Concerns/BusinessScope.php

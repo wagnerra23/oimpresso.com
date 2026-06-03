@@ -41,6 +41,7 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
     city: '',
     state: '',
     zip_code: '',
+    shipping_address: '',
     customer_group_id: '',
     opening_balance: '0',
     credit_limit: '',

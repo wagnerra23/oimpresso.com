@@ -19,6 +19,7 @@ NÃO ativar pra:
 - Wagner próprio feedback dele (= não é cliente — usar TaskCreate direto)
 - Reflexão estratégica sem feedback concreto de cliente real
 - Feedback de prospect frio sem persona criada (rodar `cliente-discovery` antes)
+- **Erro de OPERAÇÃO da Jana/sistema** (job parou, config stale, sync silencioso, declarar done sem smoke) — isso é Reflexion runtime, vai pro ledger `Modules/Jana/LICOES-OPERACAO.md` via `incident-done-checklist` Bloco D, **não** é fricção de cliente. feedback-capture é só fricção de **saída/UX** reportada por cliente real.
 
 ## Workflow
 
@@ -174,3 +175,4 @@ Retorna ID da task pra preencher campo `task_mcp_id` do YAML.
 - `feedback-dashboard` — agregado/relatório/RICE ranking
 - `design-deep-analysis` — usa fricoes_conhecidas no carregamento
 - `personas-resolve` — Tier A que carrega persona em Edit/Write
+- `incident-done-checklist` (Bloco D) — gêmeo runtime: erro de OPERAÇÃO da Jana → ledger `Modules/Jana/LICOES-OPERACAO.md` (não este skill)

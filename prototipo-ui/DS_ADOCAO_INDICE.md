@@ -1,5 +1,29 @@
 # DS — Adoção & Anti-Drift · ÍNDICE
 
+<!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
+## Status da fila — placar de execução (auto)
+
+> Gerado por `npm run ds:report -- --write` · 2026-05-31 01:26 UTC · **total `ds/*` = 533** · fila 0/10 ✅.
+> Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
+
+| # | Módulo (fila) | `ds/*` | Status |
+|---|---|---:|---|
+| 1 | Sells | 17 | ☐ pendente |
+| 2 | RecurringBilling | 58 | ☐ pendente |
+| 3 | OficinaAuto | 44 | ☐ pendente |
+| 4 | Repair | 14 | ☐ pendente |
+| 5 | Purchase | 19 | ☐ pendente |
+| 6 | Admin | 23 | ☐ pendente |
+| 7 | Whatsapp | 21 | ☐ pendente |
+| 8 | Settings | 18 | ☐ pendente |
+| 9 | Financeiro | 84 | ☐ pendente |
+| 10 | Cliente | 62 | ☐ pendente |
+
+**Fora da fila (pendentes · ordem por contagem):** Atendimento (19) · Ponto (17) · ProjectMgmt (17) · Fiscal (14) · Produto (13) · ads (12) · Jana (10) · governance (10) · StockAdjustment (9) · StockTransfer (9) · kb (7) · MemCofre (6) · NfeBrasil (5) · Site (5) · Home (4) · team-mcp (4) · Compras (3) · TransactionPayment (3) · Modules (2) · ConsultaOs (1) · Nfse (1) · Vestuario (1) · superadmin (1)
+
+**Próximo da fila:** Sells (17)
+<!-- ds:worklist:end -->
+
 > **Origem:** Cowork [CC] · 2026-05-29 · disparado pelo diagnóstico KB-9.75 do cadastro de Contacts
 > **Problema:** a DS cresce mais rápido do que o repo adota. Prova: `Cliente/Create.tsx` hand-rolou `<input type="radio">` **mesmo existindo `@/Components/ui/radio-group.tsx`**. Não foi falta de componente — foi falta de *guard*.
 > **Meta:** fechar o gap DS↔repo **e travar** pra não reabrir — sem comissionar auditoria pra sempre.

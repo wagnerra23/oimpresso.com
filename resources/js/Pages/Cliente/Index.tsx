@@ -34,6 +34,7 @@ import {
   List,
   Loader2,
   MoreVertical,
+  Paperclip,
   Phone,
   Plus,
   Search,
@@ -71,7 +72,7 @@ import EnderecoTab from './_drawer/EnderecoTab';
 import ComercialTab, { type PriceGroupOption } from './_drawer/ComercialTab';
 import ClassificacaoTab from './_drawer/ClassificacaoTab';
 // Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
-import OssTab from './_drawer/OssTab';
+import OssTab, { type OssSubTabKey } from './_drawer/OssTab';
 import IATab from './_drawer/IATab';
 import AuditoriaTab from './_drawer/AuditoriaTab';
 // Wagner 2026-05-27 iteracao 2: Placas promovido pra tab principal (botao header).
@@ -163,6 +164,9 @@ interface ClienteRow {
   // Wagner 2026-05-27 iteracao 2 — contador veiculos pro botao header drawer.
   // Lazy: count so existe se modulo OficinaAuto instalado (gate hasTable).
   vehicles_count?: number | null;
+  // Wagner 2026-06-01 — contador de anexos (document-notes com media) pro chip
+  // "📎 N anexos" no header do drawer. Count server-side em ContactController.
+  documents_count?: number | null;
 }
 
 interface ListMeta {
@@ -1793,11 +1797,20 @@ function ClienteSheet({
   // o EnderecoTab continuaria mostrando state local antigo. Incrementar key
   // descarta state local e re-monta com novo `contact.zip_code/address_line_1/...`.
   const [enderecoVersion, setEnderecoVersion] = useState(0);
+  // Wagner 2026-06-01 — sub-aba ativa da tab Operações (OssTab). Controlada aqui
+  // pra o chip header "📎 N anexos" cair direto em Documentos. Reset p/ 'ledger'
+  // quando entra na tab Operações pelo caminho normal (tab bar).
+  const [opsSubTab, setOpsSubTab] = useState<OssSubTabKey>('ledger');
+  // Wagner 2026-06-01 — contagem VIVA de anexos pro chip "📎 N anexos". null =
+  // usa o valor estático do payload (documents_count); quando o painel Documentos
+  // carrega/sobe/exclui, o OssTab reporta o número real e o chip passa a refletir.
+  const [liveAnexosCount, setLiveAnexosCount] = useState<number | null>(null);
 
   // Reset tab ao abrir contact diferente. Drawer abre default em "Identificação".
   useEffect(() => {
     if (open && contactId) {
       setActiveTab('identificacao');
+      setLiveAnexosCount(null); // novo contact → count do payload até o painel carregar
     }
   }, [open, contactId]);
 
@@ -1931,6 +1944,28 @@ function ClienteSheet({
                 <span>placas</span>
               </button>
             )}
+            {/* Wagner 2026-06-01 — chip "anexos" ao lado de placas: acesso 1-clique
+                aos documentos (abre Operações → Documentos). Universal (sem gate):
+                anexos valem pra todo cliente, não só OficinaAuto. */}
+            <button
+              type="button"
+              onClick={() => {
+                setOpsSubTab('documents');
+                setActiveTab('operacoes');
+              }}
+              className={
+                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
+                (activeTab === 'operacoes' && opsSubTab === 'documents'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
+              }
+              aria-pressed={activeTab === 'operacoes' && opsSubTab === 'documents'}
+              title="Ver anexos do cliente (comprovantes, contratos, fotos)"
+            >
+              <Paperclip size={11} aria-hidden />
+              <span>{liveAnexosCount ?? contact?.documents_count ?? 0}</span>
+              <span>anexos</span>
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('auditoria')}
@@ -1978,7 +2013,12 @@ function ClienteSheet({
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setActiveTab(t.key)}
+                onClick={() => {
+                  setActiveTab(t.key);
+                  // Entrar em Operações pela tab bar começa no Extrato (não herda
+                  // 'documents' deixado por um clique anterior no chip de anexos).
+                  if (t.key === 'operacoes') setOpsSubTab('ledger');
+                }}
                 className={
                   'inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ' +
                   (isActive
@@ -2038,7 +2078,17 @@ function ClienteSheet({
                 <ClassificacaoTab contact={contact} />
               </div>
               {activeTab === 'operacoes' && (
-                <OssTab contact={{ id: contact.id, name: contact.name }} />
+                <OssTab
+                  contact={{ id: contact.id, name: contact.name }}
+                  activeSubTab={opsSubTab}
+                  onSubTabChange={setOpsSubTab}
+                  /* Wagner 2026-06-01 — habilita anexar/excluir/notas no drawer.
+                     Legado concede view/create/delete de documentos a quem vê o
+                     contato (DocumentAndNoteController::__getPermission p/ App\Contact). */
+                  permissions={{ upload: true, delete_document: true, edit_note: true }}
+                  /* chip "📎 N anexos" reflete a contagem viva após load/upload/delete */
+                  onDocumentsCountChange={setLiveAnexosCount}
+                />
               )}
               {activeTab === 'placas' && oficinaAutoEnabled && (
                 <PlacasMainTab contactId={contact.id} />

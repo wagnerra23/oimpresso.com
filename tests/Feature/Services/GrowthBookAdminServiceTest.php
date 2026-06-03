@@ -33,6 +33,7 @@ beforeEach(function () {
 afterEach(function () {
     putenv('GROWTHBOOK_ADMIN_API_TOKEN=');
     putenv('GROWTHBOOK_ADMIN_API_HOST=');
+    putenv('GROWTHBOOK_API_HOST=');
 });
 
 it('isConfigured reflete presença do token', function () {
@@ -40,6 +41,41 @@ it('isConfigured reflete presença do token', function () {
 
     putenv('GROWTHBOOK_ADMIN_API_TOKEN=');
     expect((new GrowthBookAdminService())->isConfigured())->toBeFalse();
+});
+
+it('deriva o host admin de GROWTHBOOK_API_HOST + /api/v1 quando ADMIN_API_HOST ausente', function () {
+    // Fresh install / CT 100 / staging: só o token foi setado, sem GROWTHBOOK_ADMIN_API_HOST.
+    putenv('GROWTHBOOK_ADMIN_API_HOST');  // unset de verdade (≠ '=' que setaria string vazia)
+    putenv('GROWTHBOOK_API_HOST=https://growthbook-api.test.local');
+
+    Http::fake([
+        'growthbook-api.test.local/api/v1/features*' => Http::response(['features' => []], 200),
+    ]);
+
+    expect((new GrowthBookAdminService())->listFeatures())->toBe([]);
+
+    Http::assertSent(fn ($request) => str_starts_with(
+        $request->url(),
+        'https://growthbook-api.test.local/api/v1/features'
+    ));
+});
+
+it('cai no fallback growthbook-api.oimpresso.com/api/v1 (backend REST) quando nenhum host no .env', function () {
+    // Garante que o default aponta pro BACKEND da REST API, não pro frontend Next.js
+    // (growthbook.oimpresso.com) que devolve 404 (HTML da SPA) em /api/v1/*.
+    putenv('GROWTHBOOK_ADMIN_API_HOST');
+    putenv('GROWTHBOOK_API_HOST');
+
+    Http::fake([
+        '*' => Http::response(['features' => []], 200),
+    ]);
+
+    expect((new GrowthBookAdminService())->listFeatures())->toBe([]);
+
+    Http::assertSent(fn ($request) => str_starts_with(
+        $request->url(),
+        'https://growthbook-api.oimpresso.com/api/v1/features'
+    ));
 });
 
 it('listFeatures retorna array vazio quando GrowthBook responde sem features', function () {

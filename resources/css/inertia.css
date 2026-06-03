@@ -90,9 +90,12 @@
    PRIMEIRO no import order pra ter base canon + overrides locais por cima. */
 @import "./cowork-canon-financeiro-bundle.css";
 
-/* Bundle Cowork antigo (Onda 8) — mantém pra preservar regras escopadas que
-   já validamos visualmente. Will be deprecated após validar paridade canon. */
-@import "./cowork-financeiro-bundle.css";
+/* Onda 12.4 (2026-06-02) — bundle Cowork antigo (Onda 8) DEPRECADO e removido.
+   Paridade canon validada programaticamente (scripts/scope-fin-cowork-css comparativo):
+   2309 regras idênticas, 0 seletor real só-no-antigo, e os 29 com body diferente
+   eram TODOS `background: var(--surface)` → `#fff` — no-op em produção porque
+   `data-theme="dark"` não é ativado em nenhuma tela (—surface == #fff sempre).
+   Economia: −327KB e elimina override do antigo vencendo o cascade. */
 @import "./fin-curadoria.css";
 @import "./fin-ia.css";
 @import "./fin-output.css";

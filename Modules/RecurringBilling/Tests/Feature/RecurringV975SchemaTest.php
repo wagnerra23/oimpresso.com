@@ -21,6 +21,7 @@ beforeEach(function () {
     foreach ([
         'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
         'rb_subscriptions', 'rb_plans', 'users', 'contacts',
+        'model_has_roles', 'model_has_permissions', 'role_has_permissions', 'roles', 'permissions',
     ] as $t) {
         Schema::dropIfExists($t);
     }
@@ -28,11 +29,33 @@ beforeEach(function () {
     Schema::create('contacts', function ($t) {
         $t->increments('id');
         $t->unsignedInteger('business_id')->index();
+        $t->softDeletes();
         $t->timestamps();
+    });
+    // Auth scaffold mínimo — ScopeByBusiness (ADR 0093) só filtra com auth()->check()
+    // true; o Gate::before chama $user->can(...) → Spatie lê estas tabelas (vazias = user comum).
+    Schema::create('permissions', function ($t) {
+        $t->bigIncrements('id'); $t->string('name'); $t->string('guard_name')->default('web'); $t->timestamps();
+    });
+    Schema::create('roles', function ($t) {
+        $t->bigIncrements('id'); $t->string('name'); $t->string('guard_name')->default('web'); $t->timestamps();
+    });
+    Schema::create('role_has_permissions', function ($t) {
+        $t->unsignedBigInteger('permission_id'); $t->unsignedBigInteger('role_id');
+    });
+    Schema::create('model_has_permissions', function ($t) {
+        $t->unsignedBigInteger('permission_id'); $t->string('model_type'); $t->unsignedBigInteger('model_id');
+    });
+    Schema::create('model_has_roles', function ($t) {
+        $t->unsignedBigInteger('role_id'); $t->string('model_type'); $t->unsignedBigInteger('model_id');
     });
     Schema::create('users', function ($t) {
         $t->increments('id');
+        $t->unsignedInteger('business_id')->nullable();
+        $t->string('email', 100)->nullable();
         $t->string('username')->nullable();
+        $t->string('password')->nullable();
+        $t->softDeletes();
         $t->timestamps();
     });
     Schema::create('rb_plans', function ($t) {
@@ -121,7 +144,7 @@ afterEach(function () {
     }
 });
 
-function makeSub(int $bizId = 1, string $method = null): Subscription
+function makeV975Sub(int $bizId = 1, ?string $method = null): Subscription
 {
     $plan = Plan::create([
         'business_id' => $bizId, 'name' => 'P', 'slug' => "p-{$bizId}",
@@ -154,7 +177,7 @@ it('Plan aceita campos fiscais v9,75 (fiscal_type + cfop + servico)', function (
 });
 
 it('Subscription aceita payment_method + paused_until + churn_reason + cached cols', function () {
-    $sub = makeSub(1, 'pix');
+    $sub = makeV975Sub(1, 'pix');
     $sub->total_paid_cached = 14;
     $sub->failed_count_cached = 0;
     $sub->total_revenue_cached = 6720;
@@ -172,7 +195,7 @@ it('Subscription aceita payment_method + paused_until + churn_reason + cached co
 });
 
 it('SubscriptionNote cria + is_pinned cast bool + scope pinned()', function () {
-    $sub = makeSub();
+    $sub = makeV975Sub();
     SubscriptionNote::create([
         'business_id' => 1, 'subscription_id' => $sub->id, 'user_id' => 1,
         'body' => 'Nota normal', 'is_pinned' => false,
@@ -188,7 +211,7 @@ it('SubscriptionNote cria + is_pinned cast bool + scope pinned()', function () {
 });
 
 it('SubscriptionFavorite UNIQUE(user_id, subscription_id) impede duplicação', function () {
-    $sub = makeSub();
+    $sub = makeV975Sub();
     SubscriptionFavorite::create(['business_id' => 1, 'subscription_id' => $sub->id, 'user_id' => 1]);
 
     expect(fn () => SubscriptionFavorite::create([
@@ -197,7 +220,7 @@ it('SubscriptionFavorite UNIQUE(user_id, subscription_id) impede duplicação', 
 });
 
 it('SubscriptionEvent registra kind canônico + ordena por occurred_at desc (scope recent)', function () {
-    $sub = makeSub();
+    $sub = makeV975Sub();
     SubscriptionEvent::create([
         'business_id' => 1, 'subscription_id' => $sub->id,
         'kind' => SubscriptionEvent::KIND_CREATE, 'by_actor' => 'sistema',
@@ -216,8 +239,8 @@ it('SubscriptionEvent registra kind canônico + ordena por occurred_at desc (sco
 });
 
 it('multi-tenant: biz=99 não enxerga notes/favorites/events de biz=1 via HasBusinessScope', function () {
-    $subA = makeSub(1);
-    $subB = makeSub(99);
+    $subA = makeV975Sub(1);
+    $subB = makeV975Sub(99);
 
     SubscriptionNote::create(['business_id' => 1, 'subscription_id' => $subA->id, 'user_id' => 1, 'body' => 'a']);
     SubscriptionNote::create(['business_id' => 99, 'subscription_id' => $subB->id, 'user_id' => 1, 'body' => 'b']);
@@ -226,7 +249,10 @@ it('multi-tenant: biz=99 não enxerga notes/favorites/events de biz=1 via HasBus
     SubscriptionEvent::create(['business_id' => 1, 'subscription_id' => $subA->id, 'kind' => 'note', 'by_actor' => 'x', 'body' => 'a', 'occurred_at' => now()]);
     SubscriptionEvent::create(['business_id' => 99, 'subscription_id' => $subB->id, 'kind' => 'note', 'by_actor' => 'x', 'body' => 'b', 'occurred_at' => now()]);
 
-    session(['business' => ['id' => 1]]);
+    // Engaja ScopeByBusiness (ADR 0093): precisa auth()->check() + session('user.business_id').
+    $user = \App\User::create(['business_id' => 1, 'email' => 'biz1@rb.test', 'username' => 'biz1-rb']);
+    $this->actingAs($user);
+    session(['user' => ['business_id' => 1]]);
 
     expect(SubscriptionNote::count())->toBe(1)
         ->and(SubscriptionFavorite::count())->toBe(1)
