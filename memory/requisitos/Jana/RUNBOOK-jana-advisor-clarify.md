@@ -2,13 +2,15 @@
 title: "Jana Advisor (Modo Consultor) — Metade A: Clarify reativo"
 module: Jana
 owner: W
-status: rascunho
+status: ativo
 last_validated: "2026-06-02"
+related_adrs:
+  - 0245-jana-advisor-modo-consultor-clarify
 preconditions:
-  - "copiloto.clarify.enabled=true (default OFF — via config runtime/published)"
-  - "copiloto.clarify.model = modelo frontier"
+  - "JANA_CLARIFY_ENABLED=true (default OFF; ligado em homolog via .env.staging)"
+  - "JANA_CLARIFY_MODEL = modelo frontier (default gpt-4o)"
 steps:
-  - "Ligar a flag em homolog"
+  - "Ligar a flag em homolog (.env.staging JANA_CLARIFY_ENABLED=true)"
   - "Disparar mensagens cinza e claras no chat da Jana"
   - "Medir clarify_event no log copiloto-ai (gray-hit, taxa de clarify, false-clarify)"
   - "Validar fail-open e anti-loop"
@@ -51,25 +53,23 @@ erros nº1 dos LLMs (INTENT-SIM, NAACL 2025 + Active Task Disambiguation, ICLR 2
 - Novos: `ClarificadorAgent` (5º agente, ao lado de ChatCopiloto/BriefDiario/Sugestoes/Briefing),
   `ClarifyCascadeService`, `ClarifyResult`. Recall (`MemoriaContrato`) e brief **intactos**.
 
-## Como ligar (homolog)
+## Como ligar (homolog) — ADR 0245
 
-Os knobs vivem em `Modules/Jana/Config/config.php` (bloco `clarify`, merged como
-`copiloto.clarify.*`). **Valores diretos, sem `env()`** — Larastan barra `env()` fora de
-`config/` raiz (mesma razão do bloco `peso_real`). Pra ligar em homolog, Wagner seta via
-**config runtime** (ex. num ServiceProvider/published config):
+O flag/modelo/provider são **env-driven** (controle por ambiente: homolog liga, prod espera).
+Em homolog já vem ligado via `docker/oimpresso-staging/.env.staging.example`:
 
-```php
-config(['copiloto.clarify.enabled' => true]);   // default false
-// opcionais:
-config(['copiloto.clarify.model' => 'gpt-4o']);          // frontier (vs gpt-4o-mini do chat)
-config(['copiloto.clarify.provider' => 'anthropic']);    // null = config('ai.default')
-config(['copiloto.clarify.min_confianca' => 0.6]);       // anti false-clarify
-config(['copiloto.clarify.gray_max_words' => 8]);        // limites do "cinza" (heurística 1a)
-config(['copiloto.clarify.anti_loop_ttl_segundos' => 600]);
+```env
+JANA_CLARIFY_ENABLED=true
+JANA_CLARIFY_MODEL=gpt-4o          # frontier seletivo (vs gpt-4o-mini do chat); só dispara no cinza
+# JANA_CLARIFY_PROVIDER=anthropic  # opcional; vazio = config('ai.default') (openai, provider do chat)
 ```
 
-Com `enabled=false` (default) o pipeline de chat é **byte-idêntico** ao legado (mesma
-postura de `contextual_retrieval` / `peso_real`).
+As constantes de tuning (`min_confianca`, `gray_max_words/chars`, `historico_turnos`,
+`anti_loop_ttl_segundos`) ficam diretas no bloco `clarify` de `Modules/Jana/Config/config.php`
+(merged como `copiloto.clarify.*`) — ajuste lá se precisar.
+
+Com `JANA_CLARIFY_ENABLED=false` (default em prod) o pipeline de chat é **byte-idêntico** ao
+legado (mesma postura de `contextual_retrieval` / `peso_real`).
 
 ## Como medir (senão é fé, não engenharia)
 

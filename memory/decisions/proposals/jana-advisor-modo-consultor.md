@@ -1,6 +1,6 @@
 # Jana "Modo Consultor" (Advisor) — Metade A: clarify reativo — 2026-06-02
 
-> **Status:** PROPOSAL §10.4 · **não-canon, não-ADR** · número de ADR **não cunhado** (soberania [W], ADR 0238 — [W] numera se promover).
+> **Status:** ✅ PROMOVIDO → **[ADR 0245](../0245-jana-advisor-modo-consultor-clarify.md)** (aceito por [W] em 2026-06-02, pós-merge PR #2134). Este proposal vira registro histórico da origem §10.4; a decisão canônica vive na ADR 0245.
 > **Tipo:** evolução de produto (Modules/Jana — chat/raciocínio) · **Tier 0** (produto + custo) → PR aberto, **espera [W]**.
 > **Autor:** [CL] Claude Code · **Origem:** peer-review (L-17) do pedido [CC] `PROMPT_PARA_CODE_JANA-ADVISOR-MODE.md` (sessão 2026-06-02). Insight [W]: *"as melhores respostas vêm quando eu pergunto que pergunta eu deveria fazer, porque nem eu sei o que é melhor."*
 > **Natureza:** peer-review, não ordem — [CL] avaliou se procede e onde mora melhor.
