@@ -9,7 +9,7 @@ lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-06-02"
 proposed_at: "2026-06-02"
-module: Jana
+module: jana
 quarter: 2026-Q2
 supersedes: []
 related:
