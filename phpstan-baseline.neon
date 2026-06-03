@@ -37316,3 +37316,13 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: Modules/Financeiro/Models/Concerns/BusinessScope.php
+		-
+			message: '#^Access to an undefined property Modules\\Financeiro\\Models\\Titulo\:\:\$forma_pagamento\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$meio_pagamento\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
