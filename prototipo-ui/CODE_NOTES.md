@@ -490,3 +490,36 @@ O prompt dizia "4 implementações" — só **2** procedem; corrijo as outras 2 
 - **doc-novo**: o Kanban do carro (wow) virou tela real em `ServiceOrders/Board` reusando DnD/MercosulPlate/DviPhotoGrid/RichSheet; roda no processo FSM novo `oficina_mecanica_os`. `ProducaoOficina`=caçamba (vertical legado — não confundir).
 - **anti-padrao**: thumbnail placeholder de TEXTO ("frente/painel/OBD" listrado) lê "inacabado" na frente do cliente → usar foto real (Arquivos) ou esconder o thumb.
 - **golden**: board de FSM = colunas data-driven das etapas reais (não hardcode) + drag dispara `ExecuteStageActionService` (nunca UPDATE direto) + reusar o provider DnD canon generalizado (renderPreview/subjectLabel) em vez de forkar.
+
+---
+
+## 2026-06-03 [CL] → [W] — LIGAR FISCAL REAL Martinho (biz=164): Passo 0 + fix per-business (MERGED #2147)
+
+Resposta ao export design `PROMPT_PARA_CODE_LIGAR-FISCAL-REAL-MARTINHO.md`. **NÃO flipei nada, NÃO emiti nota, NÃO toquei `.env` de prod.** Fiz Passo 0 + um fix de prep que é **pré-requisito de segurança** do cutover.
+
+### Passo 0 — ambiente/credenciais são por-business (não global)?
+| Documento | Ambiente (homolog/prod) | Per-business? | Flip biz=164 vaza p/ ROTA LIVRE? |
+|---|---|---|---|
+| **NF-e 55** | coluna `business.ambiente` → `tpAmb` em `NfeService::criarTools` | ✅ Sim | ✅ Não vaza |
+| **NFS-e** | era **GLOBAL** `env('NFSE_AMBIENTE')` no bind do `SnNfseAdapter` | ❌ Era global | ❌ **Vazaria** → corrigido |
+
+O furo (exatamente o que o "não assumir" pega): o NFS-e resolvia ambiente pelo bind global `config('nfse.ambiente')`; o campo per-business `nfse_provider_configs.ambiente` existia mas estava **morto** (só na UI). Flipar NFS-e pra prod = mudar `.env` global = emitir nota real de TODOS os tenants.
+
+### Fix (PR #2147 MERGED, merge `77ced51`, 13 checks verdes)
+- `NfseEmissaoService::montarPayload` popula `ambiente`/`municipioIbge` do tenant; fail-safe → `homologacao`.
+- `SnNfseAdapter::emitir/buildDps` derivam endpoint+`tpAmb` de `$payload->ambiente` (per-call), não do bind global.
+- `AmbientePorBusinessTest` (4 testes DB-free) provando isolamento.
+- Fix de ciclo: PHPStan ratchet pediu `@property` no `NfseProviderConfig` (Larastan não via as colunas) → resolvido.
+
+### Pendências
+- [ ] **[W]** subir **certificado A1** da Martinho (sem stub: até homologação bate na SEFAZ real e exige o cert).
+- [ ] **[W]** regime/CRT + tributação + série/numeração NF-e + município SN-NFSe/ISS (biz=164).
+- [ ] **[W]** flip `business.ambiente=1` + `nfse_provider_configs.ambiente='producao'` **só biz=164** (irreversível).
+- [ ] **[W]** checkpoint da 1ª nota real no portal SEFAZ → só então abrir gate `auto_emission_enabled` biz=164.
+- [ ] Follow-up rastreado: **US-NFSE-015** (eliana, p2) — per-business em `consultar()`/`cancelar()` (escopo "PR separado").
+
+⚠️ **ZERO fiscal real tocado.** Continua 100% homologação até [W] executar o checklist acima. Emissão manual da nota-teste tem que ir com `modelo:'55'` (default do endpoint é `'65'`/NFC-e, sem CSC, fora de escopo).
+
+### new_design_memories
+- **golden**: emissão fiscal de produção = cutover controlado **por-business** (homolog → 1 nota teste → checkpoint [W] no portal SEFAZ → abre gate), nunca flip global; credenciais + flip prod = humano (irreversível).
+- **anti-padrao**: resolver ambiente fiscal por bind global de container (`config()`/`env()`) num app multi-tenant — vaza emissão real cross-tenant. Ambiente fiscal SEMPRE per-business (coluna do tenant no payload), igual `business.ambiente` do NF-e.

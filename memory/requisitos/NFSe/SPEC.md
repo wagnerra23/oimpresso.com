@@ -215,6 +215,26 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ---
 
+### US-NFSE-015 · Ambiente per-business em consultar()/cancelar() do SnNfseAdapter
+
+> owner: eliana · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Follow-up do cutover fiscal Martinho (biz=164, PR #2147 merge `77ced51`).
+
+A EMISSÃO NFS-e já resolve ambiente per-business (`$payload->ambiente` ← `NfseProviderConfig.ambiente`). Falta alinhar `SnNfseAdapter::consultar()` e `cancelar()`, que ainda usam o ambiente do **bind global** (`config('nfse.ambiente')`) porque recebem só strings (`$protocolo`/`$numero`), sem contexto de business.
+
+**Risco:** depois que um business vai pra produção, um cancelamento/consulta cai no endpoint errado (homolog) e falha. Hoje NÃO é regressão (já eram globais), mas vira bug quando biz=164 estiver em prod.
+
+**Aceite:**
+- `NfseProviderInterface::consultar/cancelar` recebem o ambiente do tenant (via param ou resolvendo `NfseProviderConfig` por `business_id` da `NfseEmissao`).
+- `NfseEmissaoService::cancelar(NfseEmissao $emissao)` passa o ambiente correto.
+- Teste Pest cobrindo cancelar em prod vs homolog (Http::fake, igual `AmbientePorBusinessTest`).
+
+Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `prototipo-ui/CODE_NOTES.md` (2026-06-03). Escopo "PR separado" conforme prompt do cutover.
+
+---
+
 ## Total estimado
 
 | Sprint | Dias úteis efetivos | Calendário (2-4h/dia) |
