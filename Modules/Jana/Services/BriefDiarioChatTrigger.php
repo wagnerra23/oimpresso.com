@@ -100,6 +100,15 @@ class BriefDiarioChatTrigger
                     ."ou pede pra ver alguma fonte específica (vendas, oportunidades, etc).";
             }
 
+            // JANA ADVISOR Metade B (ADR 0245) — anexa as perguntas proativas por persona
+            // ("próxima-melhor-pergunta"). Flag-gated: retorna null quando OFF/vazio/erro,
+            // então o brief sai idêntico. Estende o brief, não o recria.
+            $perguntas = app(\Modules\Jana\Services\Advisor\ProximaPerguntaService::class)
+                ->gerarBloco((int) $conversa->getAttribute('business_id'), $businessName);
+            if ($perguntas !== null) {
+                $markdown .= "\n\n---\n\n" . $perguntas;
+            }
+
             return $markdown;
         } catch (Throwable $e) {
             // Log estruturado pra observability (não vaza PII no chat)
