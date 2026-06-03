@@ -56,16 +56,22 @@ class ReconciliarCobrancaService
 
         $this->marcarTitulosQuitados($businessId, (int) $cobranca->id);
 
+        // getAttribute() em vez de propriedade mágica: o Larastan não conhece
+        // as colunas do Eloquent e o ratchet PHPStan barra acesso direto novo.
+        $payerCpfCnpj = $cobranca->getAttribute('payer_cpf_cnpj');
+        $origemType = $cobranca->getAttribute('origem_type');
+        $origemId = $cobranca->getAttribute('origem_id');
+
         event(new CobrancaPaga(
             cobrancaId: (int) $cobranca->id,
-            businessId: (int) $cobranca->business_id,
+            businessId: $businessId,
             valorPagoCentavos: $valorPagoCentavos,
             pagaEm: $pagaEm,
             formaPagamento: $formaPagamento,
             occurredAt: new \DateTimeImmutable(),
-            payerCpfCnpj: $cobranca->payer_cpf_cnpj,
-            origemType: $cobranca->origem_type,
-            origemId: $cobranca->origem_id,
+            payerCpfCnpj: $payerCpfCnpj !== null ? (string) $payerCpfCnpj : null,
+            origemType: $origemType !== null ? (string) $origemType : null,
+            origemId: $origemId !== null ? (int) $origemId : null,
         ));
     }
 

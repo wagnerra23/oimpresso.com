@@ -25,22 +25,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * declarado em module.json.lgpd_compliance, retention 5y, redactor habilitado.
  *
  * ADR 0170 Onda 2.
- *
- * @property int $id
- * @property int $business_id
- * @property int $payment_gateway_credential_id
- * @property string|null $gateway_external_id
- * @property string|null $tipo
- * @property string $status
- * @property int $valor_centavos
- * @property int|null $valor_pago_centavos
- * @property \Illuminate\Support\Carbon|null $vencimento
- * @property \Illuminate\Support\Carbon|null $paga_em
- * @property string|null $forma_pagamento
- * @property string|null $payer_cpf_cnpj
- * @property string|null $origem_type
- * @property int|null $origem_id
- * @property array|null $payload_gateway
  */
 class Cobranca extends Model
 {

@@ -119,7 +119,7 @@ class InterReconcilePixCommand extends Command
                     $this->warn(sprintf('  cobrança #%d (txid=%s): consultar falhou — %s', $cobranca->id, $cobranca->gateway_external_id, $e->getMessage()));
                     Log::warning('paymentgateway.inter.reconcile.consultar_falhou', [
                         'cobranca_id'   => $cobranca->id,
-                        'business_id'   => $cobranca->business_id,
+                        'business_id'   => $cred->business_id,
                         'credential_id' => $cred->id,
                         'error'         => substr($e->getMessage(), 0, 200),
                     ]);
@@ -135,7 +135,7 @@ class InterReconcilePixCommand extends Command
 
                 if ($dryRun) {
                     $paid++;
-                    $this->line(sprintf('  [dry-run] cobrança #%d biz=%d → WOULD marcar paga (R$ %s)', $cobranca->id, $cobranca->business_id, number_format($valorPago / 100, 2, ',', '.')));
+                    $this->line(sprintf('  [dry-run] cobrança #%d biz=%d → WOULD marcar paga (R$ %s)', $cobranca->id, $cred->business_id, number_format($valorPago / 100, 2, ',', '.')));
                     continue;
                 }
 
@@ -150,10 +150,10 @@ class InterReconcilePixCommand extends Command
                 });
 
                 $paid++;
-                $this->info(sprintf('  ✓ cobrança #%d biz=%d marcada paga (R$ %s)', $cobranca->id, $cobranca->business_id, number_format($valorPago / 100, 2, ',', '.')));
+                $this->info(sprintf('  ✓ cobrança #%d biz=%d marcada paga (R$ %s)', $cobranca->id, $cred->business_id, number_format($valorPago / 100, 2, ',', '.')));
                 Log::info('paymentgateway.inter.reconcile.paga', [
                     'cobranca_id'   => $cobranca->id,
-                    'business_id'   => $cobranca->business_id,
+                    'business_id'   => $cred->business_id,
                     'credential_id' => $cred->id,
                     'valor_centavos' => $valorPago,
                 ]);
