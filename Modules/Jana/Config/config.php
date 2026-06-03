@@ -477,16 +477,16 @@ return [
     | Medição: log channel copiloto-ai → evento `clarify_event` (gray-hit, taxa de
     | clarify, false-clarify proxy). Sem isso é fé, não engenharia.
     |
-    | VALORES DIRETOS, SEM env() — Larastan barra env() fora de config/ raiz (mesma
-    | razão do bloco peso_real). Default OFF. Pra LIGAR em homolog, Wagner seta via
-    | config() runtime (`config(['copiloto.clarify.enabled' => true])`) ou registra
-    | override no published config/copiloto.php. O `model` aponta um frontier (gpt-4o,
-    | mais forte que o gpt-4o-mini do chat); trocável pelo mesmo caminho.
+    | CONTROLE POR AMBIENTE: o flag/modelo/provider são env-driven (homolog liga, prod
+    | espera) — ADR 0245. As 3 chaves env() entram na contagem baselined do Larastan
+    | (noEnvCallsOutsideOfConfig) deste arquivo, igual reranker/freshness. As demais são
+    | constantes de tuning (valores diretos). Default OFF: com a flag OFF o pipeline de
+    | chat é byte-idêntico ao legado.
     */
     'clarify' => [
-        'enabled'  => false,            // default OFF — Wagner liga em homolog (config runtime/published)
-        'provider' => null,             // null → config('ai.default') (mesmo provider do chat)
-        'model'    => 'gpt-4o',         // roteamento seletivo difícil → frontier (vs gpt-4o-mini do chat)
+        'enabled'  => (bool) env('JANA_CLARIFY_ENABLED', false),   // homolog liga; prod espera (ADR 0245)
+        'provider' => env('JANA_CLARIFY_PROVIDER'),                // null → config('ai.default') (provider do chat)
+        'model'    => env('JANA_CLARIFY_MODEL', 'gpt-4o'),         // frontier seletivo (vs gpt-4o-mini do chat)
         // Confiança mínima do disambiguador p/ realmente perguntar (anti false-clarify).
         'min_confianca'          => 0.6,
         // Heurística 1a (zero-custo) — limites do "cinza".
