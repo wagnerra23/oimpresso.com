@@ -75,6 +75,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.destroy');
 
+        // US-OFICINA-041 — Gate de aprovação: envia orçamento pro cliente (status → orcamento,
+        // Observer dispara WhatsApp link+PIN). Delta protótipo Cowork "Nova OS".
+        Route::post('ordens-servico/{order}/enviar-aprovacao',
+            [ServiceOrderController::class, 'enviarAprovacao'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.enviar-aprovacao');
+
         // ─────────────────────────────────────────────────────────────────────
         // Gap 3 — Imprimir OS PDF profissional A4 (US-OFICINA-037).
         // AJAX-only endpoint que retorna {success, receipt:{html_content,print_title}}.
@@ -166,6 +173,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [DviInspectionController::class, 'destroy'])
             ->middleware('throttle:60,1')
             ->name('oficinaauto.orders.dvi.destroy');
+
+        // US-OFICINA-040 — Converte item DVI reprovado/atenção em linha de orçamento
+        // (delta protótipo Cowork "Nova OS" · botão "+ orçamento"). Cria ServiceOrderItem.
+        Route::post('ordens-servico/{order}/dvi/{item}/to-orcamento',
+            [DviInspectionController::class, 'toOrcamento'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.to-orcamento');
 
         // ─────────────────────────────────────────────────────────────────────
         // Gap 1 (2026-05-26) — Upload foto/laudo item DVI via Modules/Arquivos.

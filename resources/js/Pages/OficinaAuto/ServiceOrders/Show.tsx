@@ -17,6 +17,9 @@ import ServiceOrderItemRow, {
   type ServiceOrderItemDto,
 } from './_components/ServiceOrderItemRow';
 import ServiceOrderItemFormSheet from './_components/ServiceOrderItemFormSheet';
+import DviBudgetSection, { type DviItemDto } from './_components/DviBudgetSection';
+import ApprovalGateCard from './_components/ApprovalGateCard';
+import FiscalSplitCard from './_components/FiscalSplitCard';
 
 interface ServiceOrder {
   id: number;
@@ -37,6 +40,7 @@ interface ServiceOrder {
     vehicle_type: string;
   } | null;
   items?: ServiceOrderItemDto[];
+  dvi_items?: DviItemDto[];
 }
 
 interface Props {
@@ -274,6 +278,16 @@ export default function ServiceOrdersShow({ order }: Props) {
           )}
         </div>
 
+        {/* Gate de aprovação do cliente (US-OFICINA-041) — execução travada até aprovar */}
+        <ApprovalGateCard serviceOrderId={order.id} status={order.status} />
+
+        {/* Vistoria DVI → orçamento (US-OFICINA-040) — item reprovado vira linha de orçamento */}
+        <DviBudgetSection
+          serviceOrderId={order.id}
+          dviItems={order.dvi_items ?? []}
+          onItemAdded={handleSaved}
+        />
+
         {/* ──────────────────────────────────────────────────────────────────
             Seção "Itens da OS" — Wave 5 US-OFICINA-005-bis (2026-05-26).
             Lista peças/mão-de-obra/terceiros lançados via Controller PR #1624.
@@ -333,6 +347,9 @@ export default function ServiceOrdersShow({ order }: Props) {
             </div>
           )}
         </section>
+
+        {/* Painel fiscal — split NF-e 55 (peças) / NFS-e (mão de obra) · US-OFICINA-042 */}
+        <FiscalSplitCard items={items} />
 
         <ServiceOrderItemFormSheet
           serviceOrderId={order.id}

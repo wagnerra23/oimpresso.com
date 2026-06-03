@@ -124,15 +124,20 @@ class ClarificadorAgent implements Agent, HasStructuredOutput
     }
 
     /**
-     * Schema do veredito. `pergunta` e `intencoes` são opcionais (honestidade: vazio é válido).
+     * Schema do veredito.
+     *
+     * TODAS as chaves são `required()` — OpenAI structured output (strict mode) exige que
+     * cada property esteja em `required` (senão 400 "Invalid schema ... 'required' is required").
+     * A honestidade ("vazio é válido") é preservada no VALOR: `pergunta` vem string vazia e
+     * `intencoes` array vazio quando não há ambiguidade — o ClarifyCascadeService trata isso.
      */
     public function schema(JsonSchema $schema): array
     {
         return [
             'tipo' => $schema->string()->enum(['claro', 'falta_dado', 'ambiguo'])->required(),
             'confianca' => $schema->number()->description('0..1 — confiança na classificação')->required(),
-            'pergunta' => $schema->string()->description('Pergunta de maior ganho de info. Vazia se não for ambiguo OU se não houver pergunta de alto valor.'),
-            'intencoes' => $schema->array()->items($schema->string())->description('Leituras candidatas que você enxergou (2-4). Vazio se claro.'),
+            'pergunta' => $schema->string()->description('Pergunta de maior ganho de info. STRING VAZIA se não for ambiguo OU se não houver pergunta de alto valor.')->required(),
+            'intencoes' => $schema->array()->items($schema->string())->description('Leituras candidatas que você enxergou (2-4). ARRAY VAZIO se claro.')->required(),
         ];
     }
 

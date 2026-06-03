@@ -477,16 +477,20 @@ return [
     | Medição: log channel copiloto-ai → evento `clarify_event` (gray-hit, taxa de
     | clarify, false-clarify proxy). Sem isso é fé, não engenharia.
     |
-    | VALORES DIRETOS, SEM env() — Larastan barra env() fora de config/ raiz (mesma
-    | razão do bloco peso_real). Default OFF. Pra LIGAR em homolog, Wagner seta via
-    | config() runtime (`config(['copiloto.clarify.enabled' => true])`) ou registra
-    | override no published config/copiloto.php. O `model` aponta um frontier (gpt-4o,
-    | mais forte que o gpt-4o-mini do chat); trocável pelo mesmo caminho.
+    | CONTROLE POR AMBIENTE: o flag/modelo/provider são env-driven (homolog liga, prod
+    | espera) — ADR 0245. As 3 chaves env() entram na contagem baselined do Larastan
+    | (noEnvCallsOutsideOfConfig) deste arquivo, igual reranker/freshness. As demais são
+    | constantes de tuning (valores diretos). Default OFF: com a flag OFF o pipeline de
+    | chat é byte-idêntico ao legado.
     */
     'clarify' => [
-        'enabled'  => false,            // default OFF — Wagner liga em homolog (config runtime/published)
-        'provider' => null,             // null → config('ai.default') (mesmo provider do chat)
-        'model'    => 'gpt-4o',         // roteamento seletivo difícil → frontier (vs gpt-4o-mini do chat)
+        'enabled'  => (bool) env('JANA_CLARIFY_ENABLED', false),   // homolog liga; prod espera (ADR 0245)
+        'provider' => env('JANA_CLARIFY_PROVIDER'),                // null → config('ai.default') (provider do chat)
+        // Default gpt-4o-mini: é o ÚNICO modelo a que o projeto OpenAI atual tem acesso
+        // (gpt-4o → 403 "does not have access"; validado E2E no staging CT 100). Pra subir pro
+        // frontier de verdade: conceder gpt-4o ao projeto OU provider=anthropic (claude-sonnet) —
+        // ambos via env JANA_CLARIFY_MODEL/JANA_CLARIFY_PROVIDER, sem code change.
+        'model'    => env('JANA_CLARIFY_MODEL', 'gpt-4o-mini'),
         // Confiança mínima do disambiguador p/ realmente perguntar (anti false-clarify).
         'min_confianca'          => 0.6,
         // Heurística 1a (zero-custo) — limites do "cinza".
@@ -496,6 +500,35 @@ return [
         'historico_turnos'       => 4,
         // Anti-loop: TTL (s) do marcador "turno anterior foi clarify" (não pergunta 2x seguidas).
         'anti_loop_ttl_segundos' => 600,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | JANA ADVISOR — Metade B: Próxima-melhor-pergunta proativa (ADR 0245)
+    |--------------------------------------------------------------------------
+    | A Jana surfa, por persona, as perguntas que [W]/a equipe deveriam estar
+    | fazendo AGORA — já com a resposta. Estende o brief diário (o snapshot do
+    | BriefDiarioService é o gancho). Salto "ferramenta que responde" → "consultor
+    | que pauta". Active Task Disambiguation (ICLR 2025): pergunta de maior ganho.
+    |
+    | VALORES DIRETOS, SEM env() — Larastan barra env() fora de config/ raiz (mesma
+    | razão do bloco peso_real). Default OFF (Wagner liga depois de validar via config
+    | runtime). Roda 1×/dia por business (junto do brief) → custo frontier trivial.
+    |
+    | Medição: log copiloto-ai → `advisor_questions_event`.
+    */
+    'advisor_questions' => [
+        'enabled'  => false,            // default OFF — Wagner liga via config runtime após validar
+        'provider' => null,             // null → config('ai.default') (provider do chat)
+        'model'    => 'gpt-4o-mini',    // projeto OpenAI atual só tem gpt-4o-mini (gpt-4o → 403); subir via config quando houver acesso frontier
+        'max_por_persona' => 2,         // menos é mais — só a(s) de maior valor
+        // Cada persona recebe a pergunta do TRABALHO dela (ADR UI-0016 personas reais).
+        'personas' => [
+            ['key' => 'larissa', 'label' => 'Balcão / velocidade de venda', 'foco' => 'vendas, atendimento (tickets)'],
+            ['key' => 'eliana',  'label' => 'Fiscal / financeiro',          'foco' => 'inadimplência, NF-e/rejeições'],
+            ['key' => 'tecnico', 'label' => 'Operação / oficina',           'foco' => 'oportunidades, reativação'],
+            ['key' => 'gestor',  'label' => 'Gestão',                       'foco' => 'visão geral: receita, risco, oportunidade'],
+        ],
     ],
 
     /*
