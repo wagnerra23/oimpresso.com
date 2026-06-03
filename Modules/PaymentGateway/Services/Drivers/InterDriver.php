@@ -6,6 +6,7 @@ namespace Modules\PaymentGateway\Services\Drivers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
@@ -352,7 +353,7 @@ class InterDriver implements PaymentDriverContract
                 ->timeout(10)
                 ->post($this->baseUrl($cred) . '/oauth/v2/token', [
                     'client_id'     => $config['client_id'] ?? '',
-                    'client_secret' => $config['client_secret'] ?? '',
+                    'client_secret' => $this->maybeDecrypt((string) ($config['client_secret'] ?? '')),
                     'scope'         => 'boleto-cobranca.read boleto-cobranca.write',
                     'grant_type'    => 'client_credentials',
                 ]);
@@ -489,19 +490,113 @@ class InterDriver implements PaymentDriverContract
     }
 
     /**
-     * mTLS — em prod usa cert files; em test (Http::fake) mTLS é bypass.
+     * Arquivos de certificado temporários materializados a partir de base64
+     * inline. Keyed por hash do PEM (reuso entre chamadas). Limpos em __destruct.
+     *
+     * @var array<string, string>
+     */
+    private array $tempCertFiles = [];
+
+    /**
+     * mTLS — suporta DUAS formas de armazenar o certificado:
+     *
+     *   1. **Caminho de arquivo** (`certificado_crt` / `certificado_key`) — usado
+     *      quando o cert já está no disco do servidor.
+     *   2. **Base64 inline** (`certificado_crt_b64` / `certificado_key_b64`) —
+     *      formato gravado pelo `scripts/inter-credentials/install-biz.py` em
+     *      `rb_boleto_credentials` e migrado pra cá. Pode vir Crypt-encriptado
+     *      por-campo (a key vem). Materializa em arquivo temp na hora da chamada.
+     *
+     * Em test (Http::fake) o mTLS é bypass — os arquivos só importam pro Guzzle real.
      */
     private function mtlsOptions(array $config): array
     {
         $opts = [];
-        if (! empty($config['certificado_crt']) && is_file($config['certificado_crt'])) {
-            $opts['cert'] = $config['certificado_crt'];
+
+        $crt = $this->resolveCertFile($config['certificado_crt'] ?? null, $config['certificado_crt_b64'] ?? null);
+        if ($crt !== null) {
+            $opts['cert'] = $crt;
         }
-        if (! empty($config['certificado_key']) && is_file($config['certificado_key'])) {
-            $opts['ssl_key'] = $config['certificado_key'];
+
+        $key = $this->resolveCertFile($config['certificado_key'] ?? null, $config['certificado_key_b64'] ?? null);
+        if ($key !== null) {
+            $opts['ssl_key'] = $key;
         }
 
         return $opts;
+    }
+
+    /**
+     * Resolve um arquivo de cert utilizável: caminho existente OU materializa
+     * o PEM a partir do base64 inline (cacheado por hash do conteúdo).
+     */
+    private function resolveCertFile(?string $path, ?string $b64): ?string
+    {
+        if (! empty($path) && is_file($path)) {
+            return $path;
+        }
+        if (empty($b64)) {
+            return null;
+        }
+
+        $pem = $this->decodePem((string) $b64);
+        if ($pem === null) {
+            return null;
+        }
+
+        $hash = md5($pem);
+        if (isset($this->tempCertFiles[$hash]) && is_file($this->tempCertFiles[$hash])) {
+            return $this->tempCertFiles[$hash];
+        }
+
+        $file = tempnam(sys_get_temp_dir(), 'inter_cert_');
+        file_put_contents($file, $pem);
+        @chmod($file, 0600);
+
+        return $this->tempCertFiles[$hash] = $file;
+    }
+
+    /**
+     * Normaliza um valor de cert que pode ser: PEM cru, base64(PEM), ou
+     * Crypt::encryptString(base64(PEM) | PEM). Retorna o PEM cru ou null.
+     */
+    private function decodePem(string $value): ?string
+    {
+        $v = $this->maybeDecrypt($value);
+        if (str_contains($v, '-----BEGIN')) {
+            return $v;
+        }
+        $decoded = base64_decode($v, true);
+        if ($decoded !== false && str_contains($decoded, '-----BEGIN')) {
+            return $decoded;
+        }
+
+        return null;
+    }
+
+    /**
+     * Tenta Crypt::decryptString (campo cifrado por-campo pelo install-biz.py);
+     * se não for payload Laravel-encriptado, devolve o valor original (já plano).
+     */
+    private function maybeDecrypt(string $value): string
+    {
+        if ($value === '') {
+            return $value;
+        }
+        try {
+            return Crypt::decryptString($value);
+        } catch (\Throwable) {
+            return $value;
+        }
+    }
+
+    public function __destruct()
+    {
+        foreach ($this->tempCertFiles as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        }
     }
 
     /**
@@ -524,7 +619,7 @@ class InterDriver implements PaymentDriverContract
             ->timeout(10)
             ->post($this->baseUrl($cred) . '/oauth/v2/token', [
                 'client_id'     => $config['client_id'] ?? '',
-                'client_secret' => $config['client_secret'] ?? '',
+                'client_secret' => $this->maybeDecrypt((string) ($config['client_secret'] ?? '')),
                 'scope'         => 'boleto-cobranca.read boleto-cobranca.write',
                 'grant_type'    => 'client_credentials',
             ]);
