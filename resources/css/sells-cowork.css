@@ -5394,10 +5394,12 @@
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--border); transition: all .15s;
 }
-.sells-cowork .vendas-aplus .vd-stp-dot.done { background: var(--vd-green); }
+/* DS v6 (PR3 slice 4) — pipeline FSM dots usam a escala canônica --stage-*
+   (cockpit.css), espelhando o .fsm do gabarito: done→emerald · atual→green+anel. */
+.sells-cowork .vendas-aplus .vd-stp-dot.done { background: var(--stage-emerald); }
 .sells-cowork .vendas-aplus .vd-stp-dot.current {
-  background: var(--vd-green);
-  box-shadow: 0 0 0 2px var(--vd-green-soft);
+  background: var(--stage-green);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--stage-green) 24%, transparent);
   transform: scale(1.3);
 }
 .sells-cowork .vendas-aplus .vd-stp-lbl {
