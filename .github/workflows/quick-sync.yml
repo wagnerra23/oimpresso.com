@@ -120,10 +120,17 @@ jobs:
         # Build sempre roda — 52s aceitável e garante manifest.json determinístico.
         # Saída em public/build-inertia/ (gitignored). Vite gera hashes novos a
         # cada build, mas o manifest.json mapeia consistente com source atual.
+        # RAYON_NUM_THREADS=1: Tailwind v4/lightningcss/oxide usam rayon (Rust) que
+        # tenta criar um thread pool grande; no shared hosting Hostinger isso estoura
+        # o limite de threads/processos → `ThreadPoolBuildError: Resource temporarily
+        # unavailable`, o build falha E esvazia public/build-inertia/ (emptyOutDir)
+        # → site 500 (manifest.json some). Single-thread evita o estouro. Catalogado
+        # 2026-06-03: incident 500 + builds quick-sync falhando. (~35s single-thread.)
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            export RAYON_NUM_THREADS=1 &&
             npm run build:inertia 2>&1 | tail -10
           "
 
@@ -139,6 +146,7 @@ jobs:
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            export RAYON_NUM_THREADS=1 &&
             npm run build 2>&1 | tail -10
           "
 
