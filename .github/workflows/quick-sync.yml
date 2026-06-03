@@ -58,7 +58,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          # `|| true`: ssh-keyscan falha intermitente (rede runner→Hostinger) NÃO pode
+          # matar o deploy sob `bash -e`. A verificação de host key já é coberta por
+          # StrictHostKeyChecking=accept-new no ssh_exec helper. Catalogado 2026-06-03:
+          # quick-sync do #2159 morreu aqui em 7s sem nem chegar no build.
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: SSH helper
         run: |
@@ -136,6 +140,21 @@ jobs:
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
             npm run build 2>&1 | tail -10
+          "
+
+      - name: Composer dump-autoload (registra classes novas)
+        # CAUSA RAIZ catalogada 2026-06-03: quick-sync faz `git reset --hard` mas NÃO
+        # regenera o autoload do Composer. Quando um PR adiciona CLASSE NOVA (ex.
+        # comando artisan do PaymentGateway, Service, Observer), o autoload de prod
+        # não a conhece → o `php artisan ...` do step seguinte crasha com
+        # `BindingResolutionException: Target class [...] does not exist` → deploy
+        # vermelho + caches NÃO limpos. `--no-scripts` evita rodar post-autoload
+        # scripts (package:discover etc) que dependeriam de bootar o app. É barato
+        # (~2-3s) e idempotente — rodar sempre é seguro.
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            composer dump-autoload --no-scripts --no-interaction 2>&1 | tail -3
           "
 
       - name: Clear view + config + route + cache (force PHP DataController reload)
