@@ -20,3 +20,5 @@ gh pr merge <NUM> --auto --squash --delete-branch
 - `--squash --delete-branch` é o estilo canônico do projeto (histórico limpo)
 
 **Não confundir com:** mergear sem aprovação. A aprovação ainda vem do Wagner; o auto-merge só substitui o "espera CI verde + clica botão" por "GitHub faz quando puder".
+
+> **Atualização 2026-06-03:** pra PRs **verdes em módulos não-críticos**, Wagner delegou a própria **aprovação** ao Claude — ver [[feedback-claude-aprova-merge-verde-criticos-nao]]. Este doc continua valendo pra a *mecânica* (`--auto --squash --delete-branch`) e pros módulos críticos (onde a aprovação ainda é do Wagner).
