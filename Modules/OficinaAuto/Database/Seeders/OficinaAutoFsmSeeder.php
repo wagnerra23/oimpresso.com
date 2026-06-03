@@ -35,6 +35,21 @@ use Spatie\Permission\Models\Role;
  *                 lateral: cancelada (terminal)
  *     Actions (3): iniciar_servico | concluir | cancelar
  *
+ *  3) oficina_mecanica_os — fluxo REAL da oficina de mecânica pesada do Martinho
+ *     (caminhão entra pra manutenção/troca de peça — NÃO é locação de caçamba).
+ *     Confirmado por [W] 2026-06-02 (sessão port do Kanban do carro). Nome correto
+ *     SEM "caçamba" (o legado cacamba_* foi equívoco corrigido pela ADR 0194).
+ *     Stages (6 board + 3 terminais): recepcao (initial) → em_diagnostico →
+ *                 aguardando_aprovacao → aguardando_pecas → em_execucao →
+ *                 pronto_retirada → entregue (terminal)
+ *                 laterais terminais: cancelado, garantia_acionada
+ *     Actions: iniciar_diagnostico | enviar_orcamento | aprovar_pedir_pecas |
+ *              aprovar_executar | recusar_orcamento | pecas_chegaram |
+ *              concluir_servico | entregar | acionar_garantia | cancelar_os
+ *     NÃO usa side-effects (sem módulo de estoque na OficinaAuto ainda) — transições
+ *     puras de stage + audit em sale_stage_history. Quando catálogo de peça
+ *     hidráulica (US-OFICINA-027) integrar estoque, anexar Reservar/ConsumirEstoque.
+ *
  * Roles per-business sufixo #{biz} (UltimatePOS Spatie schema — proibições FSM):
  *  - mecanico, gerente
  *
@@ -94,6 +109,34 @@ class OficinaAutoFsmSeeder extends Seeder
         'cancelada'  => ['order' => 3, 'color' => 'rose',    'terminal' => true],
     ];
 
+    // ----- Processo 3: oficina_mecanica_os (fluxo REAL do carro · [W] 2026-06-02) -----
+
+    /** @var array<string, string> stage_key → label PT-BR (fluxo de reparo de caminhão) */
+    private const MECANICA_STAGES = [
+        'recepcao'             => 'Recepção',
+        'em_diagnostico'       => 'Diagnóstico',
+        'aguardando_aprovacao' => 'Aguardando aprovação',
+        'aguardando_pecas'     => 'Aguardando peças',
+        'em_execucao'          => 'Em execução',
+        'pronto_retirada'      => 'Pronto p/ retirar',
+        'entregue'             => 'Entregue',
+        'cancelado'            => 'Cancelado',
+        'garantia_acionada'    => 'Garantia acionada',
+    ];
+
+    /** @var array<string, array{order:int, terminal?:bool, color:string, initial?:bool}> */
+    private const MECANICA_STAGE_META = [
+        'recepcao'             => ['order' => 0, 'color' => 'gray',    'initial' => true],
+        'em_diagnostico'       => ['order' => 1, 'color' => 'blue'],
+        'aguardando_aprovacao' => ['order' => 2, 'color' => 'amber'],
+        'aguardando_pecas'     => ['order' => 3, 'color' => 'violet'],
+        'em_execucao'          => ['order' => 4, 'color' => 'indigo'],
+        'pronto_retirada'      => ['order' => 5, 'color' => 'emerald'],
+        'entregue'             => ['order' => 6, 'color' => 'green',   'terminal' => true],
+        'cancelado'            => ['order' => 7, 'color' => 'rose',    'terminal' => true],
+        'garantia_acionada'    => ['order' => 8, 'color' => 'orange',  'terminal' => true],
+    ];
+
     public function run(): void
     {
         $businessIds = \DB::table('business')->pluck('id');
@@ -107,6 +150,7 @@ class OficinaAutoFsmSeeder extends Seeder
         $roleMap = $this->ensureRoles($businessId);
         $this->seedLocacaoProcess($businessId, $roleMap);
         $this->seedManutencaoProcess($businessId, $roleMap);
+        $this->seedMecanicaOsProcess($businessId, $roleMap);
     }
 
     // ------------------------------------------------------------------
@@ -207,6 +251,69 @@ class OficinaAutoFsmSeeder extends Seeder
             // cancelar disponível em qualquer stage não-terminal
             ['aberta',     'cancelar',        'Cancelar serviço', 'cancelada',  ['gerente'],             true,  'App\\Domain\\Fsm\\SideEffects\\CancelarServicoCacamba'],
             ['em_servico', 'cancelar',        'Cancelar serviço', 'cancelada',  ['gerente'],             true,  'App\\Domain\\Fsm\\SideEffects\\CancelarServicoCacamba'],
+        ];
+
+        $this->ensureActions($stages, $defs, $roleMap);
+    }
+
+    // ------------------------------------------------------------------
+    // Processo 3: oficina_mecanica_os (fluxo REAL do carro — [W] 2026-06-02)
+    // ------------------------------------------------------------------
+
+    /**
+     * Fluxo de reparo de caminhão pesado (Martinho) — confirmado por [W]:
+     *   Recepção → Diagnóstico → Aguardando aprovação → Aguardando peças →
+     *   Em execução → Pronto p/ retirar → Entregue. Laterais: Cancelado, Garantia.
+     *
+     * Transições puras (side_effect null) — sem módulo de estoque na OficinaAuto.
+     * RBAC: actions críticas (aprovação/conclusão/cancelamento) exigem role
+     * (fail-secure US-SELL-031), por isso TODAS recebem mecanico e/ou gerente.
+     *
+     * @param array<string, string> $roleMap
+     */
+    private function seedMecanicaOsProcess(int $businessId, array $roleMap): void
+    {
+        $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->where('key', 'oficina_mecanica_os')
+            ->first();
+
+        if (! $process) {
+            $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->create([
+                'business_id'              => $businessId,
+                'key'                      => 'oficina_mecanica_os',
+                'name'                     => 'Oficina — OS de Mecânica',
+                'description'              => 'Pipeline FSM real da oficina de mecânica pesada (caminhão entra pra manutenção/troca de peça). Recepção → Diagnóstico → Aprovação → Peças → Execução → Pronto p/ retirar → Entregue (ADR 0194 · confirmado [W] 2026-06-02).',
+                'default_for_contact_type' => 'any',
+                'active'                   => true,
+            ]);
+        }
+
+        $stages = $this->ensureStages($process, self::MECANICA_STAGES, self::MECANICA_STAGE_META);
+
+        // [stage_origem, key, label, target, roles[], is_critical, side_effect(null)]
+        $defs = [
+            // Linha principal do reparo
+            ['recepcao',             'iniciar_diagnostico', 'Iniciar diagnóstico',                 'em_diagnostico',       ['mecanico', 'gerente'], false, null],
+            ['em_diagnostico',       'enviar_orcamento',    'Enviar orçamento pra aprovação',      'aguardando_aprovacao', ['mecanico', 'gerente'], false, null],
+            // Aprovação do cliente — crítica (decisão comercial)
+            ['aguardando_aprovacao', 'aprovar_pedir_pecas', 'Cliente aprovou — pedir peças',       'aguardando_pecas',     ['gerente', 'mecanico'], true,  null],
+            ['aguardando_aprovacao', 'aprovar_executar',    'Cliente aprovou — já executar',       'em_execucao',          ['gerente', 'mecanico'], true,  null],
+            ['aguardando_aprovacao', 'recusar_orcamento',   'Cliente recusou orçamento',           'cancelado',            ['gerente'],             true,  null],
+            // Peças → execução
+            ['aguardando_pecas',     'pecas_chegaram',      'Peças chegaram — iniciar execução',   'em_execucao',          ['mecanico', 'gerente'], false, null],
+            // Conclusão técnica — crítica
+            ['em_execucao',          'concluir_servico',    'Concluir serviço',                    'pronto_retirada',      ['mecanico', 'gerente'], true,  null],
+            // Entrega ao cliente
+            ['pronto_retirada',      'entregar',            'Entregar ao cliente',                 'entregue',             ['mecanico', 'gerente'], false, null],
+            // Garantia (lateral, pré-entrega defeito reaberto) — crítica
+            ['pronto_retirada',      'acionar_garantia',    'Acionar garantia',                    'garantia_acionada',    ['gerente'],             true,  null],
+            // Cancelamento — gerente, de qualquer stage de board não-terminal
+            ['recepcao',             'cancelar_os',         'Cancelar OS',                         'cancelado',            ['gerente'],             true,  null],
+            ['em_diagnostico',       'cancelar_os',         'Cancelar OS',                         'cancelado',            ['gerente'],             true,  null],
+            ['aguardando_pecas',     'cancelar_os',         'Cancelar OS',                         'cancelado',            ['gerente'],             true,  null],
+            ['em_execucao',          'cancelar_os',         'Cancelar OS',                         'cancelado',            ['gerente'],             true,  null],
+            ['pronto_retirada',      'cancelar_os',         'Cancelar OS',                         'cancelado',            ['gerente'],             true,  null],
         ];
 
         $this->ensureActions($stages, $defs, $roleMap);

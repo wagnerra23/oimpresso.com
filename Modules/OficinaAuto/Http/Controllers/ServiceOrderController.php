@@ -228,6 +228,218 @@ class ServiceOrderController extends Controller
     }
 
     /**
+     * Board (Kanban) das OS de mecânica — port do protótipo Cowork do carro ([W] 2026-06-02).
+     *
+     * Renderiza um quadro data-driven a partir das etapas REAIS do processo FSM
+     * `oficina_mecanica_os` (Recepção → Diagnóstico → Aguardando aprovação →
+     * Aguardando peças → Em execução → Pronto p/ retirar). NÃO é o Kanban de caçamba
+     * (ProducaoOficina) — aquele é vertical legado/equívoco (ADR 0194).
+     *
+     * Colunas = stages não-terminais do processo, ordenadas por sort_order (o quadro
+     * se adapta sozinho se o seeder mudar — sem hardcode de coluna). O drag entre
+     * colunas dispara FSM via ServiceOrderFsmActionController@execute (canon — nunca
+     * UPDATE direto em current_stage_id).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): ServiceOrder global scope + SaleProcess filtrado
+     * por business_id. Frontend só lê.
+     *
+     * @see resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
+     * @see Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php (oficina_mecanica_os)
+     */
+    public function board(Request $request): Response
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.service_order.view'),
+            403
+        );
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+        $q = $request->string('q')->toString();
+
+        // Stages do processo real do carro, ordenados (multi-tenant via business_id).
+        $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
+            ->whereHas('process', function ($p) use ($businessId) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->where('key', 'oficina_mecanica_os');
+            })
+            ->orderBy('sort_order')
+            ->get(['id', 'key', 'name', 'color', 'sort_order', 'is_initial', 'is_terminal']);
+
+        $boardStages = $stages->where('is_terminal', false)->values();
+        $initialStageKey = optional($stages->firstWhere('is_initial', true))->key
+            ?? optional($boardStages->first())->key;
+        $stageKeyById = $stages->pluck('key', 'id');
+        $boardStageIds = $boardStages->pluck('id');
+
+        // OS do carro: em pipeline (stage de board) OU recém-criadas sem pipeline
+        // (order_type=mecanica, current_stage_id null) — estas caem na coluna inicial
+        // com in_pipeline=false (drag desabilitado até abrir a OS e iniciar o pipeline).
+        $orders = ServiceOrder::query()
+            ->with([
+                'vehicle:id,plate,vehicle_type',
+                'contact:id,name',
+                'assignedUser:id,first_name,last_name,surname',
+                'dviInspectionItems',
+                'dviInspectionItems.arquivos',
+            ])
+            ->where(function ($w) use ($boardStageIds) {
+                $w->whereIn('current_stage_id', $boardStageIds)
+                    ->orWhere(function ($w2) {
+                        $w2->where('order_type', 'mecanica')->whereNull('current_stage_id');
+                    });
+            })
+            ->when($q !== '', function ($qb) use ($q) {
+                $like = '%' . $q . '%';
+                $qb->where(function ($w) use ($like, $q) {
+                    if (ctype_digit($q)) {
+                        $w->orWhere('id', (int) $q);
+                    }
+                    $w->orWhereHas('vehicle', fn ($v) => $v->where('plate', 'like', $like))
+                        ->orWhereHas('contact', fn ($c) => $c->where('name', 'like', $like));
+                });
+            })
+            ->orderByDesc('id')
+            ->limit(300)
+            ->get();
+
+        // Agrupa cards por stage_key (null → coluna inicial).
+        $cardsByStage = [];
+        foreach ($boardStages as $s) {
+            $cardsByStage[$s->key] = [];
+        }
+        foreach ($orders as $order) {
+            $currentStageId = $order->getAttribute('current_stage_id');
+            $stageKey = $currentStageId !== null
+                ? ($stageKeyById[$currentStageId] ?? null)
+                : $initialStageKey;
+            // Stage fora do board (terminal ou de outro processo) — ignora no quadro.
+            if ($stageKey === null || ! array_key_exists($stageKey, $cardsByStage)) {
+                continue;
+            }
+            $cardsByStage[$stageKey][] = $this->shapeBoardCard($order, $currentStageId !== null);
+        }
+
+        $columns = $boardStages->map(fn ($s) => [
+            'key'   => $s->key,
+            'name'  => $s->name,
+            'color' => $s->color,
+            'cards' => $cardsByStage[$s->key] ?? [],
+            'count' => count($cardsByStage[$s->key] ?? []),
+        ])->all();
+
+        return Inertia::render('OficinaAuto/ServiceOrders/Board', [
+            'columns'      => $columns,
+            'kpis'         => $this->buildBoardKpis($columns),
+            'process_seeded' => $boardStages->isNotEmpty(),
+            'filters'      => ['q' => $q],
+        ]);
+    }
+
+    /**
+     * Shape de um card do board (1 OS). Aplica as modificações [W]-aceitas:
+     *  - foto REAL (1ª foto de item DVI) ou null (frontend esconde o thumb);
+     *  - contador DVI x/y (itens decididos pelo cliente / total) + nº de críticos;
+     *  - dados de placa/cliente/mecânico/prazo pro card denso.
+     *
+     * @return array<string, mixed>
+     */
+    private function shapeBoardCard(ServiceOrder $order, bool $inPipeline): array
+    {
+        $dvi = $order->dviInspectionItems;
+        $dviTotal = $dvi->count();
+        // x/y = itens já decididos pelo cliente (aprovado/rejeitado) sobre o total.
+        $dviDone = $dvi->whereIn('client_decision', ['approved', 'rejected'])->count();
+        $dviCritico = $dvi->where('severity', 'critico')->count();
+
+        // Foto REAL: 1º arquivo anexado a qualquer item DVI; fallback photo_url legado.
+        // Nunca placeholder de texto ([W] mod #1) — null deixa o frontend esconder o thumb.
+        $thumbUrl = null;
+        foreach ($dvi as $item) {
+            $arquivo = $item->arquivos->first();
+            $arquivoUrl = $arquivo?->getAttribute('display_url');
+            if ($arquivoUrl) {
+                $thumbUrl = (string) $arquivoUrl;
+                break;
+            }
+            if ($item->photo_url) {
+                $thumbUrl = (string) $item->photo_url;
+                break;
+            }
+        }
+
+        $mechanic = $order->assignedUser;
+        $mechanicName = $mechanic
+            ? trim(($mechanic->first_name ?? '') . ' ' . ($mechanic->last_name ?? ($mechanic->surname ?? '')))
+            : null;
+        $mechanicInitials = $mechanicName !== null && $mechanicName !== ''
+            ? mb_strtoupper(mb_substr($mechanicName, 0, 1) . (mb_strpos($mechanicName, ' ') !== false ? mb_substr(mb_strrchr($mechanicName, ' ') ?: '', 1, 1) : ''))
+            : null;
+
+        $expected = $order->expected_completion;
+        $isOverdue = $expected !== null
+            && ! in_array($order->status, ['concluida', 'cancelada', 'entregue'], true)
+            && $expected->isPast();
+
+        return [
+            'id'                => (int) $order->id,
+            'number'            => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
+            'in_pipeline'       => $inPipeline,
+            'plate'             => $order->vehicle?->getAttribute('plate'),
+            'vehicle_type'      => $order->vehicle?->getAttribute('vehicle_type'),
+            'cliente_nome'      => $order->contact?->getAttribute('name'),
+            'thumb_url'         => $thumbUrl,
+            'dvi_done'          => $dviDone,
+            'dvi_total'         => $dviTotal,
+            'dvi_critico'       => $dviCritico,
+            'valor'             => (float) $order->total_items,
+            'mechanic_name'     => $mechanicName ?: null,
+            'mechanic_initials' => $mechanicInitials ?: null,
+            'entered_at'        => $order->entered_at?->toIso8601String(),
+            'expected_completion' => $expected?->toIso8601String(),
+            'is_overdue'        => $isOverdue,
+            'notes'             => $order->notes,
+            'urls'              => [
+                'show' => '/oficina-auto/ordens-servico/' . $order->id,
+                'edit' => '/oficina-auto/ordens-servico/' . $order->id . '/edit',
+            ],
+        ];
+    }
+
+    /**
+     * KPIs compactos do board (densidade @1280 — [W] mod #3). Derivados das colunas
+     * já montadas (zero query extra).
+     *
+     * @param  array<int, array{key:string, count:int, cards:array<int,array<string,mixed>>}>  $columns
+     * @return array<string, int>
+     */
+    private function buildBoardKpis(array $columns): array
+    {
+        $byKey = [];
+        $total = 0;
+        $atrasadas = 0;
+        foreach ($columns as $col) {
+            $byKey[$col['key']] = $col['count'];
+            $total += $col['count'];
+            foreach ($col['cards'] as $card) {
+                if (! empty($card['is_overdue'])) {
+                    $atrasadas++;
+                }
+            }
+        }
+
+        return [
+            'total'                => $total,
+            'aguardando_aprovacao' => $byKey['aguardando_aprovacao'] ?? 0,
+            'aguardando_pecas'     => $byKey['aguardando_pecas'] ?? 0,
+            'em_execucao'          => $byKey['em_execucao'] ?? 0,
+            'pronto_retirada'      => $byKey['pronto_retirada'] ?? 0,
+            'atrasadas'            => $atrasadas,
+        ];
+    }
+
+    /**
      * Stages payload pros chips de filtro (Gap #3 estado-da-arte FSM screen).
      *
      * Retorna lista de stages dos processos cacamba_locacao + cacamba_manutencao
