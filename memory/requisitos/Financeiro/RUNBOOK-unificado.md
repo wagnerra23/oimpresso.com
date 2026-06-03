@@ -131,6 +131,9 @@ Drawer Sheet abre via botão "Editar" no drawer detalhe. Campos editáveis:
 | `plano_conta_id` | **Sim (Onda 24)** | exists fin_planos_conta scoped business + ativo + aceita_lancamento + coerência tipo↔plano |
 | `vencimento` | Sim | date required |
 | `valor_total` | **Só se status aberto/parcial** (fin-tech/0002) | min 0.01, max 9999999999.99 |
+| `forma_pagamento` | **Só se NÃO-realizada** (sem baixa) | nullable, enum `Titulo::FORMAS_PAGAMENTO` |
+
+**Forma de pagamento (2026-06-03, charter v11):** coluna `fin_titulos.forma_pagamento` guarda a forma **prevista** (enum espelha `fin_titulo_baixas.meio_pagamento`). `shapeTitulo()` expõe `forma_pagamento` (exibida) + `forma_pagamento_realizada` (flag). Regra: forma **realizada** (`baixa.meio_pagamento`) tem prioridade e é read-only; senão a **prevista** (editável em aberto); senão `null` → "—". UI: coluna **Forma** na tabela + campo no drawer Detalhes + select no FinEditPanel/TituloCreateSheet. Helper `_lib/forma-pagamento.ts`. GUARD `UnificadoFormaPagamentoGuardTest` (5 casos).
 
 **Imutáveis (anti-corrupção contábil):** `tipo`, `origem`, `origem_id`, `status`, `emissao`, `competencia_mes`, `business_id`. Alterar requer cancelar+criar novo.
 
