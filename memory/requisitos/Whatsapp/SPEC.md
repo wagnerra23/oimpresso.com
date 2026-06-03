@@ -1491,12 +1491,12 @@ cp Modules/Whatsapp/.env.canary.example Modules/Whatsapp/.env.canary
 php artisan test --filter=MetaCloudDriverStub
 
 # 4. Wagner flipa META_CANARY_ENABLED=true APENAS após sign-off
-#    business_id=99 sandbox (NUNCA biz=1 ROTA LIVRE)
+#    business_id=99 sandbox (NUNCA biz=4 ROTA LIVRE prod)
 ```
 
 ### Tier 0 — restrições canary
 
-- ⛔ **business_id=99 sandbox** — NUNCA tocar biz=1 prod (99% volume ROTA LIVRE)
+- ⛔ **business_id=99 sandbox** — NUNCA tocar biz=4 prod (99% volume ROTA LIVRE Larissa)
 - ⛔ **Token Meta NUNCA em commit/log/PR** — apenas `.env.canary` local (gitignored)
 - ⛔ **Rate limit 50 msg/dia** evita ban Meta por abuso de teste
 - ⛔ **Driver `meta_cloud` NÃO bane** (provedor oficial), mas conta abusada perde acesso developer
