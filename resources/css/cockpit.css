@@ -50,6 +50,14 @@
   --origin-PNT-bg: oklch(0.93 0.06 295);  --origin-PNT-fg: oklch(0.40 0.10 295);
   --origin-MFG-bg: oklch(0.93 0.05 30);   --origin-MFG-fg: oklch(0.40 0.10 30);
 
+  /* Pipeline / etapas — escala categórica (Recepção→Pronto). Aditivo, reusável
+     por qualquer kanban/FSM. Roxo canon (--accent 295) intocado. (DS v6 · [W] 2026-06-03) */
+  --stage-slate:   oklch(0.58 0.025 250);
+  --stage-indigo:  oklch(0.55 0.16 270);
+  --stage-rose:    oklch(0.62 0.16 20);
+  --stage-emerald: oklch(0.60 0.13 155);
+  --stage-green:   oklch(0.66 0.15 145);
+
   --radius:       8px;
   --radius-sm:    6px;
   --radius-lg:    12px;
@@ -97,6 +105,13 @@
   --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
   --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
   --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
+
+  /* Pipeline / etapas — variante dark (DS v6 · [W] 2026-06-03) */
+  --stage-slate:   oklch(0.66 0.03 250);
+  --stage-indigo:  oklch(0.66 0.16 270);
+  --stage-rose:    oklch(0.68 0.16 20);
+  --stage-emerald: oklch(0.68 0.14 155);
+  --stage-green:   oklch(0.74 0.15 145);
 }
 
 .cockpit *{ box-sizing: border-box; }
