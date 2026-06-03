@@ -336,6 +336,7 @@ class UnificadoController extends Controller
                 'origem_id'         => null,
                 'categoria_id'      => $request->input('categoria_id') ?: null,
                 'plano_conta_id'    => $request->input('plano_conta_id') ?: null,
+                'forma_pagamento'   => $request->input('forma_pagamento') ?: null,
                 'observacoes'       => $request->input('observacoes'),
                 'created_by'        => $userId,
                 'updated_by'        => $userId,
@@ -371,6 +372,7 @@ class UnificadoController extends Controller
             'observacoes' => $request->input('observacoes'),
             'categoria_id' => $request->input('categoria_id') ?: null,
             'plano_conta_id' => $request->input('plano_conta_id') ?: null,
+            'forma_pagamento' => $request->input('forma_pagamento') ?: null,
             'vencimento' => $request->date('vencimento')->toDateString(),
             'updated_by' => $request->user()->id,
         ];
@@ -1163,6 +1165,10 @@ class UnificadoController extends Controller
             'plano_conta_codigo' => $t->planoConta?->codigo,
             'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
+            // Forma de pagamento: a REALIZADA (última baixa) manda quando existe
+            // e é read-only; senão a PREVISTA (titulo.forma_pagamento), editável.
+            'forma_pagamento' => $ultimaBaixa?->meio_pagamento ?? $t->forma_pagamento,
+            'forma_pagamento_realizada' => $ultimaBaixa?->meio_pagamento !== null,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
             'liquidacao' => $ultimaBaixa?->data_baixa?->locale('pt_BR')->isoFormat('DD MMM'),

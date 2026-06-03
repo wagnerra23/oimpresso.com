@@ -16,6 +16,7 @@ import { useEffect } from 'react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
+import { FORMA_PAGAMENTO_OPCOES, formaPagamentoLabel } from '../_lib/forma-pagamento';
 
 interface Lancamento {
   id: number;
@@ -29,6 +30,9 @@ interface Lancamento {
   descricao: string;
   observacao: string | null;
   valor_mutavel: boolean;
+  // 2026-06-03 — forma de pagamento prevista (editável só se não-realizada).
+  forma_pagamento: string | null;
+  forma_pagamento_realizada: boolean;
 }
 
 interface Categoria {
@@ -53,6 +57,7 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
     categoria_id: lancamento.categoria_id !== null ? String(lancamento.categoria_id) : '',
     vencimento: lancamento.vencimento,
     valor_total: lancamento.valor,
+    forma_pagamento: lancamento.forma_pagamento ?? '',
   });
 
   // Reset on row change
@@ -63,6 +68,7 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
       categoria_id: lancamento.categoria_id !== null ? String(lancamento.categoria_id) : '',
       vencimento: lancamento.vencimento,
       valor_total: lancamento.valor,
+      forma_pagamento: lancamento.forma_pagamento ?? '',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lancamento.id]);
@@ -78,6 +84,11 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
     if (lancamento.valor_mutavel) {
       data.valor_total = form.data.valor_total;
     }
+    // Forma de pagamento só é editável quando NÃO-realizada (sem baixa). Quando
+    // realizada, a forma vem da baixa (read-only) e não vai no payload.
+    if (!lancamento.forma_pagamento_realizada) {
+      data.forma_pagamento = form.data.forma_pagamento || null;
+    }
     form.put(`/financeiro/unificado/${lancamento.id}`, {
       ...({ data } as Record<string, unknown>),
       preserveScroll: true,
@@ -90,7 +101,8 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
     form.data.observacoes !== (lancamento.observacao ?? '') ||
     form.data.categoria_id !== (lancamento.categoria_id !== null ? String(lancamento.categoria_id) : '') ||
     form.data.vencimento !== lancamento.vencimento ||
-    (lancamento.valor_mutavel && form.data.valor_total !== lancamento.valor);
+    (lancamento.valor_mutavel && form.data.valor_total !== lancamento.valor) ||
+    (!lancamento.forma_pagamento_realizada && form.data.forma_pagamento !== (lancamento.forma_pagamento ?? ''));
 
   return (
     // Onda 15 (2026-05-19) — adiciona classes canon os-drawer-* sem remover fin-edit-*
@@ -154,6 +166,40 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
               ))}
             </SelectContent>
           </Select>
+        </label>
+
+        {/* 2026-06-03 — Forma de pagamento. Editável só quando não-realizada;
+            quando há baixa, mostra read-only o que realmente foi pago. */}
+        <label htmlFor="fin-edit-forma">
+          <span>Forma de pagamento</span>
+          {lancamento.forma_pagamento_realizada ? (
+            <input
+              type="text"
+              value={formaPagamentoLabel(lancamento.forma_pagamento)}
+              disabled
+              aria-label="Forma de pagamento (da baixa)"
+            />
+          ) : (
+            <Select
+              value={form.data.forma_pagamento || '__none__'}
+              onValueChange={(v) => form.setData('forma_pagamento', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger id="fin-edit-forma" aria-label="Forma de pagamento">
+                <SelectValue placeholder="— a definir —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— a definir —</SelectItem>
+                {FORMA_PAGAMENTO_OPCOES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {lancamento.forma_pagamento_realizada && (
+            <small style={{ color: 'oklch(0.50 0 0)', fontSize: 10 }}>da baixa (read-only)</small>
+          )}
         </label>
 
         <label className="fin-edit-wide">

@@ -68,6 +68,8 @@ import { TituloCreateSheet } from './_components/TituloCreateSheet';
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
 // US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
 import { FinOcrBoletoSheet } from './_components/FinOcrBoletoSheet';
+// 2026-06-03 — forma de pagamento (rótulo + ícone) compartilhada.
+import { formaPagamentoLabel, formaPagamentoIcon, type MeioPagamento } from './_lib/forma-pagamento';
 
 // ---------- Tipos ----------
 
@@ -87,6 +89,11 @@ interface Lancamento {
   plano_conta_codigo: string | null;
   plano_conta_nome: string | null;
   conta_bancaria: string;
+  // 2026-06-03 — forma de pagamento. `forma_pagamento` = exibida (baixa realizada
+  // tem prioridade, senão a prevista do título). `forma_pagamento_realizada` =
+  // true quando veio da baixa → read-only (espelha valor_mutavel).
+  forma_pagamento: MeioPagamento | null;
+  forma_pagamento_realizada: boolean;
   vencimento: string;            // ISO yyyy-mm-dd
   vencimento_label: string;      // "qua, 14 mai"
   liquidacao: string | null;
@@ -815,6 +822,19 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           {row.categoria}
         </span>
       </td>
+      {/* 2026-06-03: forma de pagamento (ícone + rótulo compacto). */}
+      <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
+        {(() => {
+          const Icon = formaPagamentoIcon(row.forma_pagamento);
+          if (!Icon) return <span className="text-stone-300">—</span>;
+          return (
+            <span className="inline-flex items-center gap-1" title={formaPagamentoLabel(row.forma_pagamento)}>
+              <Icon className="h-3.5 w-3.5 text-stone-400" aria-hidden />
+              <span className="truncate max-w-[96px]">{formaPagamentoLabel(row.forma_pagamento)}</span>
+            </span>
+          );
+        })()}
+      </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
@@ -1382,6 +1402,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <SortableHeader k="lancamento" label="Lançamento" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <SortableHeader k="contraparte" label="Contraparte" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <th className="px-2 py-2 text-left font-medium">Categoria</th>
+                <th className="px-2 py-2 text-left font-medium">Forma</th>
                 <SortableHeader k="status" label="Status" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <SortableHeader k="valor" label="Valor" filters={filters} aplicar={aplicar} className="px-2 py-2 text-right font-medium" alignRight />
                 <th className="pl-2 pr-4 py-2 w-[110px] text-right font-medium"></th>
@@ -1397,7 +1418,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 return (
                   <React.Fragment key={key}>
                     {showGroupHeader && (
-                      <tr><td colSpan={9} className="bg-stone-50/70 border-b border-stone-200">
+                      <tr><td colSpan={10} className="bg-stone-50/70 border-b border-stone-200">
                         <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
                           <span>{label}</span>
                           <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
@@ -1421,7 +1442,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={9} className="py-16">
+                <tr><td colSpan={10} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
@@ -1646,6 +1667,20 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Documento</div>
                       <div className="mt-0.5 text-stone-700 font-mono text-[12px]">{selected.nfe_numero || '—'}</div>
+                    </div>
+                    {/* 2026-06-03: forma de pagamento. Realizada (baixa) vem com hint read-only. */}
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Forma de pagamento</div>
+                      <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
+                        {(() => {
+                          const Icon = formaPagamentoIcon(selected.forma_pagamento);
+                          return Icon ? <Icon className="h-4 w-4 text-stone-400" aria-hidden /> : null;
+                        })()}
+                        <span>{formaPagamentoLabel(selected.forma_pagamento)}</span>
+                        {selected.forma_pagamento_realizada && (
+                          <span className="text-[10px] text-stone-400">· da baixa</span>
+                        )}
+                      </div>
                     </div>
                     <div className="col-span-2">
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>

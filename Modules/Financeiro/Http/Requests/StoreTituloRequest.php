@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\PlanoConta;
+use Modules\Financeiro\Models\Titulo;
 
 /**
  * Validação do Insert manual de título financeiro (Onda 25, 2026-05-25, US-FIN-021).
@@ -62,6 +63,7 @@ class StoreTituloRequest extends FormRequest
                     ->where('aceita_lancamento', true)
                     ->whereNull('deleted_at'),
             ],
+            'forma_pagamento' => ['nullable', Rule::in(Titulo::FORMAS_PAGAMENTO)],
         ];
     }
 
@@ -75,6 +77,7 @@ class StoreTituloRequest extends FormRequest
             'vencimento.required' => 'Vencimento obrigatório.',
             'categoria_id.exists' => 'Categoria não pertence a este negócio.',
             'plano_conta_id.exists' => 'Plano de contas inválido (inexistente, inativo ou sintético).',
+            'forma_pagamento.in' => 'Forma de pagamento inválida.',
         ];
     }
 

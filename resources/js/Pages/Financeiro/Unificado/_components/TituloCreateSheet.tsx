@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
 import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
+import { FORMA_PAGAMENTO_OPCOES } from '../_lib/forma-pagamento';
 
 // PR I (2026-05-25) G5 — sugestão de valor último/médio por contraparte.
 interface ValorSugerido {
@@ -57,6 +58,7 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
     plano_conta_id: null as number | null,
     vencimento: hojeIso(),
     valor_total: 0,
+    forma_pagamento: '' as string,
   });
 
   // Reset quando trocar tipo (usuário fechou drawer e abriu outro).
@@ -69,6 +71,7 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
       plano_conta_id: null as number | null,
       vencimento: hojeIso(),
       valor_total: 0,
+      forma_pagamento: '' as string,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipo, open]);
@@ -83,6 +86,7 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
       plano_conta_id: form.data.plano_conta_id ?? null,
       vencimento: form.data.vencimento,
       valor_total: form.data.valor_total,
+      forma_pagamento: form.data.forma_pagamento || null,
     };
     form.post('/financeiro/unificado', {
       ...({ data } as any),
@@ -211,6 +215,29 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
             </Select>
             {form.errors.categoria_id && (
               <p className="text-[11px] text-destructive">{form.errors.categoria_id}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="cr-forma" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+              Forma de pagamento
+            </label>
+            <Select
+              value={form.data.forma_pagamento || '__none__'}
+              onValueChange={(v) => form.setData('forma_pagamento', v === '__none__' ? '' : v)}
+            >
+              <SelectTrigger id="cr-forma" aria-label="Forma de pagamento">
+                <SelectValue placeholder="— a definir —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— a definir —</SelectItem>
+                {FORMA_PAGAMENTO_OPCOES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.errors.forma_pagamento && (
+              <p className="text-[11px] text-destructive">{form.errors.forma_pagamento}</p>
             )}
           </div>
 
