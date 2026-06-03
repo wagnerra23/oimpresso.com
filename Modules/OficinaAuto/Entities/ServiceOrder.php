@@ -178,6 +178,8 @@ class ServiceOrder extends Model
      *
      * Global scope multi-tenant em OaInspectionItem garante isolamento Tier 0.
      * Eager-load em show JSON quando UI Wave 3b consumir.
+     *
+     * @return HasMany<OaInspectionItem, $this>
      */
     public function dviInspectionItems(): HasMany
     {
