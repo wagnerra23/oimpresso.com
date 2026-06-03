@@ -1,3 +1,19 @@
+---
+title: "Jana Advisor (Modo Consultor) — Metade A: Clarify reativo"
+module: Jana
+owner: W
+status: rascunho
+last_validated: 2026-06-02
+preconditions:
+  - "JANA_CLARIFY_ENABLED=true (default OFF)"
+  - "Provider/modelo frontier configurado (JANA_CLARIFY_MODEL)"
+steps:
+  - "Ligar a flag em homolog"
+  - "Disparar mensagens cinza e claras no chat da Jana"
+  - "Medir clarify_event no log copiloto-ai (gray-hit, taxa de clarify, false-clarify)"
+  - "Validar fail-open e anti-loop"
+---
+
 # RUNBOOK — Jana Advisor (Modo Consultor) · Metade A: Clarify reativo
 
 > **Status:** proposta §10.4 · **Tier 0** (produto + custo) · peer-review (L-17), não ordem.
