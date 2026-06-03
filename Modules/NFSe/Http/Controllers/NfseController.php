@@ -133,6 +133,70 @@ class NfseController extends Controller
             ]);
     }
 
+    /**
+     * TRAVA-SEGUNDA CU-4 — emissão NFS-e a partir de uma venda (JSON), simétrico ao
+     * NfeEmissaoController::emitir. Chamado pelo botão "Emitir NFS-e" da tela de venda
+     * (VdNfseEmitModal). Monta o payload a partir da Transaction + defaults do
+     * NfseProviderConfig (mesmos campos do StoreNfseRequest), reusa o serviço real
+     * (montarPayload + despacharEmissaoAsync) — emite em homologação por config.
+     *
+     * POST /nfse/transactions/{tx}/emitir
+     * Body opcional: descricao, lc116_codigo, valor_servicos, aliquota_iss, iss_retido.
+     */
+    public function emitirParaTransaction(Request $request, int $tx)
+    {
+        $this->authorize('nfse.emit');
+
+        $businessId = (int) session('user.business_id');
+        if ($businessId === 0) {
+            return response()->json(['error' => 'no_business_context'], 400);
+        }
+
+        $transaction = Transaction::with('contact')
+            ->where('business_id', $businessId)
+            ->where('type', 'sell')
+            ->find($tx);
+        if (! $transaction) {
+            return response()->json(['error' => 'transaction_not_found'], 404);
+        }
+
+        $config = NfseProviderConfig::where('business_id', $businessId)->first();
+        if (! $config) {
+            return response()->json([
+                'error'   => 'nfse_nao_configurada',
+                'message' => 'Configure o provedor NFS-e antes de emitir.',
+            ], 422);
+        }
+
+        $taxRaw    = $transaction->contact?->tax_number ?? $transaction->contact?->cpf_cnpj ?? '';
+        $taxDigits = preg_replace('/\D/', '', (string) $taxRaw);
+
+        // Payload no MESMO formato validado do StoreNfseRequest — venda + defaults config.
+        $data = [
+            'competencia'    => optional($transaction->transaction_date)->format('Y-m') ?? now()->format('Y-m'),
+            'tomador_nome'   => $transaction->contact?->name ?? $transaction->contact?->supplier_business_name ?? 'Consumidor',
+            'tomador_cnpj'   => strlen($taxDigits) === 14 ? $taxRaw : null,
+            'tomador_cpf'    => strlen($taxDigits) === 11 ? $taxRaw : null,
+            'tomador_email'  => $transaction->contact?->email,
+            'descricao'      => $request->input('descricao') ?: 'Serviços referentes à venda '.$transaction->invoice_no,
+            'lc116_codigo'   => $request->input('lc116_codigo') ?: ($config->lc116_codigo_default ?? '1.01'),
+            'valor_servicos' => (float) ($request->input('valor_servicos') ?: $transaction->final_total),
+            'aliquota_iss'   => (float) ($request->input('aliquota_iss') ?: ($config->aliquota_iss ?? 0.05)),
+            'iss_retido'     => (bool) $request->input('iss_retido', false),
+            'transaction_id' => $transaction->id,
+        ];
+
+        $payload = $this->service->montarPayload($data, $businessId);
+        $this->service->despacharEmissaoAsync($payload);
+
+        return response()->json([
+            'status'         => 'processando',
+            'message'        => 'NFS-e enviada para processamento. Acompanhe o status na listagem.',
+            'rps'            => $payload->rpsNumero,
+            'transaction_id' => $transaction->id,
+        ], 202);
+    }
+
     // US-NFSE-006: detalhe + status em tempo real
     public function show(NfseEmissao $nfse)
     {

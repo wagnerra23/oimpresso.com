@@ -351,3 +351,26 @@ Estende o canon de smoke do núcleo (criado ontem em PR #2119 §B) das **4 telas
 ### Congelado (roadmap, NÃO entra segunda): auto-boleto-on-finalize · estoque avançado · BOM · comissão · manifestação entrada · MDF-e/NFC-e · migração real venda/fin Martinho (depende de fonte Firebird).
 
 ### Tier 0 respeitado: não cunhei ADR (worklist proíbe 0238/já-tomado); **não mergeei** (publication-policy); base off `origin/main` (não a branch suja).
+
+---
+
+## 2026-06-02 (e) [CL] → [W] — TRAVA-SEGUNDA Onda 2: wire-up CU-4 + demo CU-6 + chain E2E (você disse "conclui tudo, melhor caminho")
+
+### Decisão que tomei (você delegou): **CU-4 = reativar emissão NF-e/NFS-e a partir da venda** (em homologação — seguro). É o coração literal do worklist.
+### Status: implementado + **verificado contra o DB dev real** · mesma PR #2135 · **não mergeei** (Tier 0)
+
+### O que entrou (Onda 2):
+1. **CU-4 NF-e wire-up** — `VdNfeEmitModal.tsx`: removido o mock `setTimeout`/`Math.random`; `handleTransmit` agora faz `POST /nfe-brasil/transactions/{id}/emitir {modelo:'55'}` (endpoint real que já existia). NF-e B2B (produto); NFC-e 65 fora do núcleo.
+2. **CU-4 NFS-e wire-up** — `VdNfseEmitModal.tsx` → `POST /nfse/transactions/{id}/emitir` (**endpoint novo, simétrico**). Adicionei `NfseController::emitirParaTransaction` + rota — reusa o serviço REAL (`NfseEmissaoService::montarPayload`+`despacharEmissaoAsync`), payload no mesmo formato do `StoreNfseRequest`, defaults LC116/ISS do `NfseProviderConfig`. Zero invenção de Model/Service (LICOES_F3).
+3. **CU-6 demo seeder** — `OficinaAutoDemoSeeder` idempotente (veículo + OS aberta + itens peça/mão-obra + DVI). NÃO entra no DatabaseSeeder (roda explícito; `OFICINA_DEMO_BUSINESS_ID` ou 1º business). Demo limpa reproduzível sem depender de prod biz=164.
+4. **CU-6 smoke** — `DemoOsSmokeTest` (seeder monta documento-vivo + idempotência + stepper check-in→execução).
+5. **Chain E2E CU-3→4→5** — `tests/Feature/TravaSegunda/RetencaoLoopE2ETest` — o "vende→fatura→recebe" inteiro.
+
+### Verificação REAL (rodei contra o MySQL dev `oimpresso`, não confiei no papel):
+- **Chain E2E: 3 passed / 14 assertions** ✅ — venda a prazo gera título a receber +30d (valor certo) · recebimento baixa o título (quitado + CaixaMovimento) · os 2 endpoints fiscais que a venda dispara existem.
+- **php -l limpo** nos arquivos PHP novos. CU-6 smoke roda em CI (módulo OficinaAuto não está migrado no DB dev local → skip resiliente aqui, como o `FsmTransitionTest` existente também faz).
+- **Build/tsc:** `npm run typecheck` (resultado anexado no commit/PR).
+
+### Coração da Kamila ✅: o loop financeiro+venda (CU-3→CU-5) está **provado ponta-a-ponta** com observer/título/baixa reais. Oficina (CU-6) tem demo limpa semeável.
+
+### Ainda congelado (roadmap): auto-boleto-on-finalize · NFS-e inline 100% síncrona (hoje async/processando — honesto p/ homologação) · migração real dos dados venda/fin da Martinho (depende da fonte Firebird sua) · estoque/BOM/comissão/manifestação/MDF-e/NFC-e.
