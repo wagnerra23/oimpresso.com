@@ -2,10 +2,10 @@
 page: /sells/{id}
 component: resources/js/Pages/Sells/Show.tsx
 owner: wagner
-status: wave1-draft
-last_validated: 2026-05-15
+status: draft
+last_validated: "2026-05-15"
 parent_module: Sells
-related_adrs: [0104, 0107, 0110, 0143, 0149, 0093]
+related_adrs: [104, 107, 110, 143, 149, 93]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
