@@ -7,7 +7,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Wrench, Plus, Search } from 'lucide-react';
+import { Wrench, Plus, Search, LayoutGrid } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -235,12 +235,21 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
           subtitle={subtitle}
           icon={<Wrench className="size-5" />}
           actions={
-            <Link href="/oficina-auto/ordens-servico/create">
-              <Button>
-                <Plus className="size-4 mr-1" />
-                Nova OS
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              {/* Quadro (Kanban) das OS de mecânica — fluxo real do carro ([W] 2026-06-02) */}
+              <Link href="/oficina-auto/ordens-servico/board">
+                <Button variant="outline">
+                  <LayoutGrid className="size-4 mr-1" />
+                  Quadro
+                </Button>
+              </Link>
+              <Link href="/oficina-auto/ordens-servico/create">
+                <Button>
+                  <Plus className="size-4 mr-1" />
+                  Nova OS
+                </Button>
+              </Link>
+            </div>
           }
         />
 

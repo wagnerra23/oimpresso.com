@@ -45,6 +45,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/Components/ui/sheet';
+import EntryCheckinFields from './_components/EntryCheckinFields';
 
 interface Vehicle {
   id: number;
@@ -70,8 +71,13 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
 
   const { data, setData, post, processing, errors } = useForm({
     vehicle_id: '',
+    // Tipo de OS — 'mecanica' é o fluxo real de reparo de caminhão (ADR 0194),
+    // default pra oficina do Martinho. Roda no pipeline FSM oficina_mecanica_os.
+    order_type: 'mecanica',
     transaction_id: '',
     mileage_at_service: '',
+    fuel_level_at_entry: '',
+    entry_damages: [] as string[],
     status: 'aberta',
     entered_at: '',
     expected_completion: '',
@@ -199,6 +205,29 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
               )}
             </div>
 
+            <div data-field="order_type">
+              <Label htmlFor="order_type">Tipo de OS *</Label>
+              <Select
+                value={data.order_type}
+                onValueChange={(value) => setData('order_type', value)}
+              >
+                <SelectTrigger id="order_type" aria-invalid={!!errors.order_type}>
+                  <SelectValue placeholder="Selecione o tipo…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mecanica">Mecânica / Reparo (caminhão)</SelectItem>
+                  <SelectItem value="manutencao">Manutenção simples</SelectItem>
+                  <SelectItem value="locacao">Locação</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.order_type && (
+                <p className="text-sm text-destructive mt-1">{errors.order_type}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Mecânica usa o quadro de etapas (Recepção → Pronto p/ retirar).
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div data-field="status">
                 <Label htmlFor="status">Status *</Label>
@@ -280,6 +309,14 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
                 <p className="text-sm text-destructive mt-1">{errors.notes}</p>
               )}
             </div>
+
+            <EntryCheckinFields
+              fuelLevel={data.fuel_level_at_entry}
+              damages={data.entry_damages}
+              onFuelChange={(v) => setData('fuel_level_at_entry', v)}
+              onDamagesChange={(v) => setData('entry_damages', v)}
+              fuelError={errors.fuel_level_at_entry}
+            />
 
             <div className="flex justify-end gap-2 pt-4 border-t sticky bottom-0 bg-background -mx-1 px-1 pb-2">
               <Button variant="outline" type="button" onClick={handleClose}>

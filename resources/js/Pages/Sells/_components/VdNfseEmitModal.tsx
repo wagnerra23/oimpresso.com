@@ -7,9 +7,11 @@
 //   - SEM CFOP/NCM/CST (impostos NFS-e são via código serviço + ISS)
 //   - código serviço (LC 116/2003 Lista de Serviços)
 //   - alíquota ISS 2-5% (LC 116/2003 art. 8º-A)
-//   - prefeitura webservice (não SEFAZ) — mock idêntico pra demo
+//   - prefeitura webservice (não SEFAZ)
 //
-// **UI stub** — mock prefeitura via setTimeout. Demo-ready.
+// Wire-up real (TRAVA-SEGUNDA CU-4, 2026-06-02): transmite via backend real
+// `POST /nfse/transactions/{id}/emitir` (reusa NfseEmissaoService; defaults LC116/
+// ISS vêm do NfseProviderConfig). Emissão é assíncrona (job) — homologação default.
 
 import { useState } from 'react';
 import { X, AlertCircle, CheckCircle2, FileText, Send, Loader2 } from 'lucide-react';
@@ -124,25 +126,39 @@ export default function VdNfseEmitModal({ open, venda, onClose, onSuccess }: Pro
   const allValid = items.every((it) => it.issValidation.ok);
   const xml = buildPreviewRps(venda, items);
 
-  const handleTransmit = () => {
+  const handleTransmit = async () => {
     setStatus('transmitting');
-    setTimeout(() => {
-      const roll = Math.random();
-      if (roll < 0.85) {
-        const rpsNum = `RPS-${Math.floor(Math.random() * 1_000_000_000).toString().padStart(9, '0')}`;
+    try {
+      const csrf =
+        document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+      const res = await fetch(`/nfse/transactions/${venda.id}/emitir`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({}), // defaults (LC116/ISS) vêm do NfseProviderConfig
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const rpsNum = json?.rps || 'enviado';
         setRps(rpsNum);
         setStatus('authorized');
-        toast.success(`NFS-e autorizada · RPS ${rpsNum}`);
+        toast.success(`NFS-e enviada à Prefeitura · RPS ${rpsNum}`);
         dispatchEmittedNfse(venda.id, rpsNum);
         onSuccess?.(rpsNum);
-      } else if (roll < 0.95) {
-        setStatus('rejected');
-        toast.error('NFS-e rejeitada · verifique código serviço/ISS');
       } else {
-        setStatus('contingency');
-        toast.info('Prefeitura indisponível · contingência ativa');
+        setStatus('rejected');
+        toast.error(json?.message || json?.error || 'NFS-e rejeitada pela Prefeitura');
       }
-    }, 1800);
+    } catch {
+      setStatus('contingency');
+      toast.info('Falha de comunicação com a Prefeitura · tente novamente');
+    }
   };
 
   const close = () => {

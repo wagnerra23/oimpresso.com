@@ -33,6 +33,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('/emitir', [NfseController::class, 'create'])->name('create');
         Route::post('/emitir', [NfseController::class, 'store'])->name('store');
 
+        // TRAVA-SEGUNDA CU-4: emissão NFS-e a partir da venda (JSON) — botão da tela de venda.
+        Route::post('transactions/{tx}/emitir', [NfseController::class, 'emitirParaTransaction'])
+            ->whereNumber('tx')
+            ->name('transactions.emitir');
+
         // US-NFSE-006: detalhe + cancelar + PDF
         Route::get('/{nfse}', [NfseController::class, 'show'])->name('show');
         Route::post('/{nfse}/cancelar', [NfseController::class, 'cancelar'])->name('cancelar');

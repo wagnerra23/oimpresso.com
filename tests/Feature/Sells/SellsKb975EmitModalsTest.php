@@ -197,3 +197,37 @@ it('Show.tsx renderiza VdNfeEmitModal + VdNfseEmitModal no fim do return', funct
     expect($source)->toContain("emitModalKind === 'nfe'");
     expect($source)->toContain("emitModalKind === 'nfse'");
 });
+
+// ─────────────────────────────────────────────────────────────
+// CTA "Enviar pra faturamento" source-agnostic (Passo-0 Dani 2026-06-03)
+// Fecha o gap do balcão: venda final sem NF, fora do pipeline FSM, mostra
+// a mesma porta de emissão que o caminho de produção usa no gate fiscal.
+// ─────────────────────────────────────────────────────────────
+
+it('VdNextActionPanel declara props saleStatus + fiscalStatus', function () {
+    $source = file_get_contents(base_path(KB975_NEXTACTION));
+    expect($source)->toContain('saleStatus?:');
+    expect($source)->toContain('fiscalStatus?:');
+});
+
+it('VdNextActionPanel mostra CTA "Enviar pra faturamento" pra venda final sem NF fora do pipeline', function () {
+    $source = file_get_contents(base_path(KB975_NEXTACTION));
+    expect($source)->toContain('Enviar pra faturamento');
+    // Gate: só venda final + sem fiscal_status (não rascunho, não já-faturada)
+    expect($source)->toContain("saleStatus === 'final' && !fiscalStatus");
+    // Reusa a porta de emissão existente (onOpenEmit), não cria fluxo novo
+    expect($source)->toContain("onOpenEmit('nfe')");
+    expect($source)->toContain("onOpenEmit('nfse')");
+});
+
+it('Show.tsx passa saleStatus + fiscalStatus pro VdNextActionPanel', function () {
+    $source = file_get_contents(base_path(KB975_SHOW_PAGE));
+    expect($source)->toContain('saleStatus={headline.status}');
+    expect($source)->toContain('fiscalStatus={headline.fiscal_status}');
+});
+
+it('SellController show() inclui fiscal_status + source no headline (Inertia)', function () {
+    $source = file_get_contents(base_path('app/Http/Controllers/SellController.php'));
+    expect($source)->toContain("'fiscal_status' => \$fiscalStatus");
+    expect($source)->toContain("'source' => (string) (\$sell->source ?? 'balcao')");
+});

@@ -2390,6 +2390,18 @@ class SellController extends Controller
         // Detail (8 with()-pesados + activities + line_taxes) vai DEFERRED — RUNBOOK-show §3.1.
         if (request()->header('X-Inertia')) {
             $totalPaid = (float) collect($sell->payment_lines ?? [])->sum('amount');
+
+            // US-NFE-MANUAL (espelha index linha 1265): fiscal_status da emissão mais
+            // recente desta TX. Usado pelo CTA "Enviar pra faturamento" (VdNextActionPanel)
+            // pra esconder o botão quando a venda já tem NF. Null = ainda não faturada.
+            $fiscalStatus = null;
+            if (class_exists(\Modules\NfeBrasil\Models\NfeEmissao::class)) {
+                $fiscalStatus = \Modules\NfeBrasil\Models\NfeEmissao::where('business_id', $business_id)
+                    ->where('transaction_id', $sell->id)
+                    ->orderByDesc('id')
+                    ->value('status');
+            }
+
             $headline = [
                 'id' => (int) $sell->id,
                 'invoice_no' => (string) $sell->invoice_no,
@@ -2398,6 +2410,9 @@ class SellController extends Controller
                 'total_paid' => $totalPaid,
                 'payment_status' => (string) $sell->payment_status,
                 'status' => (string) $sell->status,
+                // source-agnostic: balcao (default) | oficina (OS) | online — direciona o CTA de faturamento.
+                'source' => (string) ($sell->source ?? 'balcao'),
+                'fiscal_status' => $fiscalStatus,
                 'current_stage_key' => null,  // FSM ADR 0143 — lazy preencher se relation existir
                 'customer' => $sell->contact ? [
                     'id' => (int) $sell->contact->id,
@@ -3381,7 +3396,7 @@ class SellController extends Controller
 
         try {
             $input = $request->only([
-                'shipping_details', 'shipping_address',
+                'shipping_details', 'shipping_address', 'shipping_address_id',
                 'shipping_status', 'delivered_to', 'delivery_person', 'shipping_custom_field_1', 'shipping_custom_field_2', 'shipping_custom_field_3', 'shipping_custom_field_4', 'shipping_custom_field_5',
             ]);
 

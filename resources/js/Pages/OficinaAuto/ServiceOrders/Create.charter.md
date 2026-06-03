@@ -68,3 +68,10 @@ Permitir abertura rápida de OS pelo atendente em ≤ 30s — escolher vehicle (
 - [SPEC.md US-OFICINA-001](../../../../../memory/requisitos/OficinaAuto/SPEC.md)
 - [RUNBOOK-create.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-create.md)
 - [ADR 0137 §"Escopo arquitetural V0"](../../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
+
+## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
+
+> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ presente+travado (some o elemento = build vermelho) · 🟡 gap (acende no `protocol_freshness`).
+
+- ✅ **UC-01** (`uc-01`) — check-in do veículo: busca por placa, chassi/renavam/hodômetro/combustível, fotos de entrada + relato do diagnóstico (`EntryCheckinFields`).
