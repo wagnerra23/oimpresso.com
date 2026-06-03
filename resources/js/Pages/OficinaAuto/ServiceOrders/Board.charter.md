@@ -63,3 +63,10 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 - Nunca hardcodar colunas: ler do payload `columns` (etapas reais do processo).
 - Nunca exibir vocabulário de caçamba/locação (m³, diária, recolhimento) — é carro.
 - Nunca cor de status crua `text-rose/emerald-700` — usar `text-destructive`/`text-success`.
+
+## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
+
+> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ presente+travado (some o elemento = build vermelho) · 🟡 gap (acende no `protocol_freshness`).
+
+- ✅ **UC-02** (`uc-02`) — triar a fila + alocar mecânico/box: visão de ocupação do pátio, fila ordenável, atribuição por arraste (drag-drop).
