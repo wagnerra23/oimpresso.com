@@ -37,6 +37,7 @@
 | **`REGISTRY_DS_COMPONENTES.md`** | Fonte da verdade: cada componente de `@/Components/ui` + Onda F, e *o anti-pattern que ele substitui* | **100%** (finito) |
 | **`REGRAS_DS_LINT.md`** | Spec das regras `ds/*` (`no-restricted-syntax`) pro Code colar no `eslint.config.js` | **todos os 745 arquivos** (a máquina varre) |
 | **`MATRIZ_MIGRACAO_DS.md`** | Por arquivo: antes → depois migrado | **P0 detalhado** (Create·Index·Sells); resto = contagem do baseline |
+| **`ds-v6/`** (kit DS v6) | A **régua visual** aprovada [W] (2026-06-03): [`showcase.html`](ds-v6/showcase.html) (11 componentes em token, claro/escuro) · [`receita.html`](ds-v6/receita.html) (montar tela em 6 passos) · [`gabarito-vendas.html`](ds-v6/gabarito-vendas.html) (kit aplicado) · [`REUSE_MAPPING.md`](ds-v6/REUSE_MAPPING.md) (kit `c-*` → React no repo) | **8/11 reusam** o REGISTRY; 3 são buraco do DS (Tier-0) |
 
 ---
 
