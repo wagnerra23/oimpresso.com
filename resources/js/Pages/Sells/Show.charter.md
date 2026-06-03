@@ -113,3 +113,13 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 - [show-visual-comparison.md](../../../../memory/requisitos/Sells/show-visual-comparison.md)
 - Blueprint Cowork: `prototipo-ui/prototipos/vendas-cockpit/`
 - Parent visual: `resources/js/Pages/Sells/Index.charter.md`
+
+## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
+
+> Casos de Uso ("A tela precisa:") amarrados a GUARD Pest `uc-<id>` via [`prototipo-ui/audit/uc-registry.json`](../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ presente+travado · 🟡 gap (acende no `protocol_freshness`). Show é `wave1-draft` — os UCs de gestão pós-venda ainda são gaps.
+
+- 🟡 **UC-V04** — estado "Aguardando aprovação" visível + registro da aprovação do cliente. _(sem cobertura)_
+- 🟡 **UC-V05** — campo de transportadora/rastreio, foto de entrega, confirmação de recebimento, tentativas frustradas. _(sem cobertura)_
+- 🟡 **UC-V06** — seleção de tipo de NF, forma de pagamento c/ parcelas, integração fiscal, baixa de estoque/insumos. _(sem cobertura)_
+- 🟡 **UC-V07** — histórico de pedidos no perfil, filtro por período/estado/tipo, repetir pedido, ticket médio/frequência. _(sem cobertura)_
