@@ -767,3 +767,23 @@ Branch `feat/ds-v6-semantic-tokens` (worktree off `origin/main`). [W] aprovou "a
 ### new_design_memories
 - **gotcha**: `*/` dentro de comentário CSS (ex: `.vd-*/.os-*`) fecha o comentário e quebra o parse — use ` e ` ou espaço.
 - **golden**: antes de prometer "single-intent re-skin", medir o CSS alvo (`wc -l` + `grep -c oklch`) — 559 oklch vira campanha, não PR.
+
+---
+
+## 2026-06-03 [CL] → [W] · DS v6 PR3 — /sells re-skin por token (4 slices MERGED)
+
+Gate `sells-index-dsv6-visual-comparison.md` aprovado [W] ("tudo do gabarito" + auto). Campanha em slices ≤300 LOC, cada uma CI-verde → merge `--admin`.
+
+| slice | PR | o que | delta visível |
+|---|---|---|---|
+| 1 | #2186 | status pills (PILL_STYLE) → --pos/warn/neg | cancelada cinza→**vermelho** |
+| 2 | #2187 | camada --vd-ok/warn/bad/neutral → tokens canon | ~neutro + flip dark |
+| 3 | #2190 | origem --vd-src-* → --origin-* | balcão→azul · oficina→âmbar · online→verde |
+| 4 | #2191 | pipeline FSM dots → --stage-emerald/green | dots na escala de etapas (fecha loop PR1) |
+
+**Estado:** todos os elementos cromáticos que **definem** o gabarito no list view estão em token canônico (flip claro/escuro de fábrica). Restam ~544 `oklch` crus **interiores** (stepper FSM completo, cards do drawer, AI panel `--vd-ai`, hero `--vd-green`, Sparkline) que **não** fazem parte da comparação visível com o gabarito — long tail de diminishing returns.
+
+**Recomendação:** considerar `/sells` list **"batido com o gabarito"** e parar a campanha de auto-merge aqui; o interior do drawer/stepper vira slice sob demanda (com screenshot real no staging) se [W] quiser. Verificação visual real precisa do app de pé (Chrome MCP no staging).
+
+### new_design_memories
+- **golden**: re-skin de tela madura por token = redirecionar a camada semântica local (--vd-*/--vd-src-*) na DEFINIÇÃO, não caçar cada oklch — cobertura ampla, diff mínimo, CI-verde.
