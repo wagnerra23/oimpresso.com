@@ -31,6 +31,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 
 ## Goals — Features (faz)
 
+- **Paridade filtros de data WR** (2026-06-03, US-FIN-030): seletor de **campo de data** (Vencimento default · Emissão · Pagamento · Competência) + **intervalo explícito** `data_inicio`/`data_fim` na toolbar, espelhando o WR Comercial. Backend `parseFilters()` + `aplicarFiltroData()` (vencimento/emissao via coluna; pagamento via `baixas.data_baixa`; competencia via `competencia_mes` YYYY-MM); intervalo sobrepõe o período preset. **O `data_campo` aplica na tabela E nos cards de KPI** (`kpisCore` segue o mesmo campo — totais consistentes com o grid filtrado; `recebido`/`pago` por `data_baixa` quando campo=pagamento, senão por título que casa o campo). Cobertura `UnificadoDataCampoTest`. Pendente: filtros 'Nota Fiscal'/'Vendas' do WR exigem link título→transaction (`origem_id`).
+
 - **PR C — GUARD + RUNBOOK** (2026-05-25, charter v9, US-FIN-027 parcial + G1/G3 auditoria):
   - **`UnificadoPlanoContaGuardTest`** — 7 GUARDs Tier 0 anti-regressão pra `plano_conta_id`: prop Inertia `planosConta`, shape 3 campos (`plano_conta_id` + `_codigo` + `_nome`), eager-load preserva (anti N+1), Update persiste, coerência tipo↔plano (Edit), Store persiste, cross-tenant rejeitado em ambos. Cada Δ = CI quebra.
   - **`RUNBOOK-unificado.md`** — doc canon Cockpit (ADR 0039) 12 seções (quando usar, permissões, rotas, componentes, filtros, atalhos, edit/insert, plano de contas, multi-tenant, pegadinhas, troubleshoot, refs).
