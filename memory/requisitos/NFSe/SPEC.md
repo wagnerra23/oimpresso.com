@@ -10,6 +10,8 @@ related_adrs: [0093, 0094, 0105, 0153, 0154, 0156]
 na_justified:
   D5: "Cliente único biz=1 oimpresso interno (empresa Wagner em Tubarão-SC) — NÃO ROTA LIVRE/Larissa biz=4. Módulo standalone single-tenant intencional [adr/arq/0001-cliente-oimpresso-modulo-standalone.md](adr/arq/0001-cliente-oimpresso-modulo-standalone.md) — sem cliente externo qualificado [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)."
 pii: false
+version: "1.0.0"
+last_updated: "2026-06-03"
 updated_at: 2026-05-16
 ---
 
@@ -45,7 +47,7 @@ Permitir que a empresa **oimpresso** emita NFSe da **prefeitura de Tubarão-SC**
 
 ---
 
-## Lista de tasks Eliana (US-NFSE-NNN)
+## US ativas — tasks Eliana (US-NFSE-NNN)
 
 Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não calendário).
 
