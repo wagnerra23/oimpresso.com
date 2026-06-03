@@ -74,7 +74,6 @@ class UnificadoController extends Controller
         $q = Titulo::query()
             ->where('business_id', $businessId)
             ->whereNull('deleted_at')
-            ->whereIn('status', ['aberto', 'parcial', 'quitado'])
             ->with([
                 'categoria:id,nome',
                 'planoConta:id,codigo,nome,tipo',
@@ -82,13 +81,26 @@ class UnificadoController extends Controller
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
             ]);
+
+        // Filtro "Arquivados" (Wagner 2026-06-03): por padrão a lista mostra só
+        // lançamentos ATIVOS (aberto/parcial/quitado) — cancelados/inativos ficam
+        // ESCONDIDOS (não somam, não confundem). Com arquivados=true, mostra SÓ os
+        // cancelados (arquivados). Os filtros de ativos (lifecycle/overdue/aging/tab)
+        // são conceitos de ativos → só aplicam quando NÃO arquivado ($arq abaixo).
+        $arq = ! empty($filters['arquivados']);
+        if ($arq) {
+            $q->where('status', 'cancelado');
+        } else {
+            $q->whereIn('status', ['aberto', 'parcial', 'quitado']);
+        }
+
         // Filtro por campo de data (default vencimento = comportamento anterior preservado).
         $this->aplicarFiltroData($q, $filters['data_campo'], $start->toDateString(), $end->toDateString());
 
         // Onda Polish 2026-05-18 — lifecycle multi-select + toggle overdue independente.
         // Lifecycle items combinam via OR (union); overdue é AND multiplicativo.
         // Back-compat: se vazio + tab legacy presente, fallback pro mapping antigo.
-        if (! empty($filters['lifecycle'])) {
+        if (! $arq && ! empty($filters['lifecycle'])) {
             $q->where(function ($qq) use ($filters) {
                 foreach ($filters['lifecycle'] as $lc) {
                     $qq->orWhere(function ($qqq) use ($lc) {
@@ -102,7 +114,7 @@ class UnificadoController extends Controller
                     });
                 }
             });
-        } else {
+        } elseif (! $arq) {
             // Back-compat tab legacy (bookmarks/links antigos).
             match ($filters['tab']) {
                 'open' => $q->whereIn('status', ['aberto', 'parcial']),
@@ -130,7 +142,7 @@ class UnificadoController extends Controller
         }
 
         // Toggle "Só atrasados" — AND multiplicativo (combina com lifecycle).
-        if (! empty($filters['overdue'])) {
+        if (! $arq && ! empty($filters['overdue'])) {
             $q->whereIn('status', ['aberto', 'parcial'])
               ->where('vencimento', '<', $hoje);
         }
@@ -138,7 +150,7 @@ class UnificadoController extends Controller
         // PR E (2026-05-25) US-FIN-022 — Aging buckets multi-select. AND com lifecycle.
         // Buckets canon BR financeiro: lt30 / 30-60 / 60-90 / gt90 / gt180 dias vencidos.
         // Cada bucket vira range de vencimento absoluto (data hoje - N dias).
-        if (! empty($filters['aging'])) {
+        if (! $arq && ! empty($filters['aging'])) {
             $today = now();
             $q->whereIn('status', ['aberto', 'parcial'])
               ->where('vencimento', '<', $hoje)
@@ -822,6 +834,7 @@ class UnificadoController extends Controller
         $rows = DB::table('fin_titulo_baixas as tb')
             ->join('fin_titulos as t', 't.id', '=', 'tb.titulo_id')
             ->where('tb.business_id', $businessId)
+            ->where('t.status', '!=', 'cancelado') // não conta baixas de títulos cancelados (Wagner 2026-06-03)
             ->whereNull('tb.estorno_de_id')
             ->whereBetween('tb.data_baixa', [$inicioStr, $hojeStr])
             ->groupBy('tb.data_baixa', 't.tipo')
@@ -937,6 +950,8 @@ class UnificadoController extends Controller
             'aprovacao_status' => $aprovacao,
             'aging' => $aging,
             'overdue' => $request->boolean('overdue'),
+            // Filtro "Arquivados" (Wagner 2026-06-03): mostra só cancelados/inativos.
+            'arquivados' => $request->boolean('arquivados'),
             'busca' => trim($request->string('busca', '')->toString()),
             'conta' => $request->string('conta', '')->toString(),
             'categoria' => $request->string('categoria', '')->toString(),
@@ -1065,14 +1080,17 @@ class UnificadoController extends Controller
         //  - campo 'pagamento': data_baixa É a data relevante → filtra direto (exato).
         //  - demais campos: filtra as baixas cujos TÍTULOS casam o campo escolhido,
         //    mantendo os cards consistentes com a lista filtrada.
+        // Wagner 2026-06-03: baixas de títulos CANCELADOS (status='cancelado')
+        // NÃO podem somar em RECEBIDO/PAGO — um título cancelado não é um
+        // recebimento/pagamento válido (pareia com a lista, que esconde cancelado).
         $aplicarBaixa = function ($q, string $tipo) use ($campo, $sd, $ed) {
             $q->whereNull('estorno_de_id');
             if ($campo === 'pagamento') {
                 $q->whereBetween('data_baixa', [$sd, $ed])
-                  ->whereHas('titulo', fn ($t) => $t->where('tipo', $tipo));
+                  ->whereHas('titulo', fn ($t) => $t->where('tipo', $tipo)->where('status', '!=', 'cancelado'));
             } else {
                 $q->whereHas('titulo', function ($t) use ($tipo, $campo, $sd, $ed) {
-                    $t->where('tipo', $tipo);
+                    $t->where('tipo', $tipo)->where('status', '!=', 'cancelado');
                     $this->aplicarFiltroData($t, $campo, $sd, $ed);
                 });
             }
