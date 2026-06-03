@@ -59,6 +59,9 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 
         // CRUD ServiceOrder (status livre V0; FSM em US-OFICINA-003)
         Route::get('ordens-servico',                [ServiceOrderController::class, 'index'])->name('oficinaauto.orders.index');
+        // Board (Kanban) das OS de mecânica — fluxo real do carro ([W] 2026-06-02).
+        // ANTES de {order} pra 'board' não ser capturado como parâmetro.
+        Route::get('ordens-servico/board',          [ServiceOrderController::class, 'board'])->name('oficinaauto.orders.board');
         Route::get('ordens-servico/create',         [ServiceOrderController::class, 'create'])->name('oficinaauto.orders.create');
         Route::post('ordens-servico',               [ServiceOrderController::class, 'store'])
             ->middleware('throttle:60,1')
