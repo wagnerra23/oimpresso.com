@@ -1,72 +1,57 @@
 # CODEOWNERS — oimpresso ERP
-# Mapeia módulos/pastas para reviewers obrigatórios no GitHub.
+# Mapeia SÓ os paths SENSÍVEIS para reviewer obrigatório no GitHub.
 # Sintaxe: path @github-user1 @github-user2
-# Referência: TEAM.md §3 — matriz de quem-pode-fazer-o-quê
+# Referência: TEAM.md §3 + memory/reference/feedback-claude-aprova-merge-verde-criticos-nao.md
 #
-# ⚠️ ENFORCEMENT (ativado 2026-05-28): branch protection da `main` está com
-# require_code_owner_reviews=true. Este arquivo AGORA vale de verdade.
+# ⚠️ POLÍTICA (2026-06-03): NÃO existe mais catch-all `*`. Só os paths abaixo
+# exigem review de code owner. Todo o resto = sem owner obrigatório → PR verde
+# (CI passando) é mergeável sem aprovação manual do Wagner — delegado ao Claude.
+# Ver feedback-claude-aprova-merge-verde-criticos-nao.md ("merge verde, críticos não").
 #
-# ⚠️ TIME AINDA NÃO É COLABORADOR DO REPO (2026-05-28). Só @wagnerra23 é dono
-# válido hoje. GitHub IGNORA code owner que não tem acesso de escrita ao repo.
-# Para Eliana/Felipe/Maiara virarem donos funcionais: (1) Wagner adiciona cada
-# um como collaborator (push) em Settings→Collaborators; (2) troca o `# TODO`
-# pelo @handle real. Até lá, @wagnerra23 é o único reviewer que satisfaz.
+# ⚠️ ENFORCEMENT: branch protection da `main` está com require_code_owner_reviews=true.
+# Este arquivo vale de verdade.
+#
+# ⚠️ TIME AINDA NÃO É COLABORADOR DO REPO. Só @wagnerra23 é dono válido hoje.
+# GitHub IGNORA code owner sem acesso de escrita. Para Eliana/Felipe/Maiara
+# virarem donos: (1) Wagner adiciona como collaborator; (2) troca `# TODO` pelo @handle.
 
 # ──────────────────────────────────────────────
-# DEFAULT — Wagner aprova qualquer coisa não mapeada
+# 💰 DINHEIRO / FISCAL / RECORRÊNCIA — Wagner (Eliana futura)
 # ──────────────────────────────────────────────
-*                               @wagnerra23
+Modules/Financeiro/                 @wagnerra23   # TODO: + @<handle Eliana>
+Modules/NfeBrasil/                  @wagnerra23   # TODO: + @<handle Eliana>
+Modules/RecurringBilling/           @wagnerra23   # TODO: + @<handle Eliana>
+memory/requisitos/Financeiro/       @wagnerra23
+memory/requisitos/NfeBrasil/        @wagnerra23
+memory/requisitos/RecurringBilling/ @wagnerra23
+memory/requisitos/Boleto.md         @wagnerra23
 
 # ──────────────────────────────────────────────
-# FINANCEIRO / FISCAL / RECORRÊNCIA — Eliana owner
-# PR precisa de Eliana OU Wagner (Wagner como fallback)
+# 🔒 LGPD / DADOS PESSOAIS — Wagner (Felipe futuro)
 # ──────────────────────────────────────────────
-Modules/Financeiro/             @wagnerra23   # TODO: + @<handle Eliana> quando virar colaboradora
-Modules/NfeBrasil/              @wagnerra23   # TODO: + @<handle Eliana>
-Modules/RecurringBilling/       @wagnerra23   # TODO: + @<handle Eliana>
-memory/requisitos/Financeiro/   @wagnerra23   # TODO: + @<handle Eliana>
-memory/requisitos/NfeBrasil/    @wagnerra23   # TODO: + @<handle Eliana>
-memory/requisitos/RecurringBilling/ @wagnerra23   # TODO: + @<handle Eliana>
-memory/requisitos/Boleto.md     @wagnerra23   # TODO: + @<handle Eliana>
+Modules/Copiloto/                   @wagnerra23   # TODO: + @<handle Felipe>
+memory/requisitos/Copiloto/         @wagnerra23
+memory/requisitos/EvolutionAgent/   @wagnerra23
+Modules/PontoWr2/                   @wagnerra23   # ponto eletrônico = dado pessoal de funcionário
+memory/requisitos/PontoWr2/         @wagnerra23
 
 # ──────────────────────────────────────────────
-# COPILOTO — Wagner + Felipe (LGPD-crítico, Eliana ❌)
+# 🗝️ SEGREDOS / COFRE — Wagner
 # ──────────────────────────────────────────────
-Modules/Copiloto/               @wagnerra23   # TODO: + @<handle Felipe>
-memory/requisitos/Copiloto/     @wagnerra23   # TODO: + @<handle Felipe>
-memory/requisitos/EvolutionAgent/ @wagnerra23   # TODO: + @<handle Felipe>
+Modules/MemCofre/                   @wagnerra23   # TODO: + @<handle Maiara> @<handle Felipe>
 
 # ──────────────────────────────────────────────
-# PONTO WR2 — Wagner + Felipe
+# 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
 # ──────────────────────────────────────────────
-Modules/PontoWr2/               @wagnerra23   # TODO: + @<handle Felipe>
-memory/requisitos/PontoWr2/     @wagnerra23   # TODO: + @<handle Felipe>
+.github/                            @wagnerra23   # workflows + este próprio CODEOWNERS
+INFRA.md                            @wagnerra23
+docker-compose*.yml                 @wagnerra23
+memory/decisions/                   @wagnerra23   # ADR canon
+CLAUDE.md                           @wagnerra23
+TEAM.md                             @wagnerra23
 
 # ──────────────────────────────────────────────
-# INFRA / CI / DEPLOY — Wagner (ninguém mergeia sem ele)
+# LIVRE (sem owner obrigatório) — PR verde mergeável sem Wagner:
+#   resources/js/ (frontend) · Modules/Cms (landing) · demais Modules/ ·
+#   memory/sessions/ · memory/handoffs/ · memory/requisitos não-críticos · etc.
 # ──────────────────────────────────────────────
-.github/workflows/              @wagnerra23
-INFRA.md                        @wagnerra23
-docker-compose*.yml             @wagnerra23
-
-# ──────────────────────────────────────────────
-# ADRs / MEMÓRIA — Wagner aprova, Felipe pode propor
-# ──────────────────────────────────────────────
-memory/decisions/               @wagnerra23
-CLAUDE.md                       @wagnerra23
-TEAM.md                         @wagnerra23
-
-# ──────────────────────────────────────────────
-# CMS / LANDING — Maiara owner, Wagner fallback
-# ──────────────────────────────────────────────
-Modules/Cms/                    @wagnerra23   # TODO: + @<handle Maiara>
-
-# ──────────────────────────────────────────────
-# MEMCOFRE — Maiara + Felipe, Wagner fallback
-# ──────────────────────────────────────────────
-Modules/MemCofre/               @wagnerra23   # TODO: + @<handle Maiara> @<handle Felipe>
-
-# ──────────────────────────────────────────────
-# FRONTEND COMPARTILHADO — Maiara + Felipe
-# ──────────────────────────────────────────────
-resources/js/                   @wagnerra23   # TODO: + @<handle Maiara> @<handle Felipe>
