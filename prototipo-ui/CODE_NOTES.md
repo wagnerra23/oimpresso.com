@@ -537,3 +537,41 @@ O furo (exatamente o que o "não assumir" pega): o NFS-e resolvia ambiente pelo 
 ### new_design_memories
 - **golden**: export de governança da Cowork (conclusão/raciocínio, não só o número do scorecard) vai pro git **verbatim** como charter irmão, cortado de `origin/main` fresco — durabilidade + re-derivação por sessão futura ([CL]/[CC]).
 - **anti-padrao**: commitar doc de governança numa branch poluída (WIP de outro intent) — fura commit-discipline (1 PR = 1 intent). Worktree novo de `origin/main` isola o arquivo.
+
+---
+
+## 2026-06-03 [CL] → [W] — W28 importer Firebird + reconciliação domínio "Caçamba"→caminhão (Martinho biz=164)
+
+### Tarefa: §10.4 PROPOSTA (Tarefa A do prompt `W28-FIREBIRD-DOMINIO-MARTINHO`)
+### Status: traduzido · branch `feat/oficina-w28-firebird-dominio` · PR aberto · **NÃO mergeado (Tier 0 = [W])**
+### Validação vs `origin/main` (74bc2ea77 · worktree off origin/main, não o working tree):
+- `ImportFirebirdMartinhoCommand` confirmado **ESQUELETO W27** (mapping fino não existia) — não duplicquei, completei.
+- `scripts/firebird/export-martinho-os.py` **não existia** — criado do zero (template `export-customers.py`).
+- Achado que ancora confirmado @main: o importer hardcodava `'vehicle_type' => 'cacamba'` — e **`cacamba` nem é valor válido** do enum `vehicles.vehicle_type` (whitelist real: `caminhao, cavalo, semi_reboque, cacamba_estacionaria, cacamba_avulsa, cacamba_caminhao, recapagem, automovel, motocicleta, outros, outro`). Rodar como estava etiquetava os caminhões da Martinho como caçamba (drift pré-ADR 0194).
+
+### Decisões de tradução:
+- **vehicle_type default `cacamba` → `caminhao`** (ADR 0194 · valor canônico de caminhão na whitelist real). `normalizeVehicleType()` mapeia sinônimos de basculante (`cacamba`/`basculante`/`caminhao_basculante`/`cacamba_basculante`) → `caminhao`; valor já-whitelisted é preservado; default `caminhao`. **NÃO inventei** valor fora do enum (o `caminhao_basculante` do docblock e `cacamba_basculante` do README/E2E **não** estão no enum — só funcionavam em SQLite de test).
+- **status legacy→FSM** (`normalizeStatus`, accent-fold PT): ABERTA/orçamento→`aberta`, andamento/execução/serviço→`em_servico`, finalizada/fechado/concluída→`concluida`, cancel*→`cancelada`; histórico vazio→`concluida`.
+- **order_type** (`normalizeOrderType`): default `manutencao` (bucket do legado — migration `2026_06_02_000001` "novo processo mecanica não mexe no legado"); respeita `mecanica`/`locacao` se vier do JSON.
+- **item tipo** → `peca|mao_obra|servico_terceiro`. Idempotência `FB_LEGACY_ID` preservada.
+- **Dry-run virou o PADRÃO**: grava só com `--commit` (`--dry-run` vence por segurança se vier junto). "Commit real só com diff aprovado" passou a ser enforced por default, não por disciplina.
+- **Docs curados** (append, não reescreve história · L-22): `CHANGELOG.md` ganhou entrada W28 + lápide ADR 0194 ("Caçambas" = nome comercial preservado; *domínio* reclassificado p/ mecânica de caminhão); `README.md` journey passo 2 `cacamba_basculante`→`caminhao` (valor válido).
+
+### Build / Tests:
+- `ImportFirebirdMartinhoW28Test` — **7 passed (41 assertions)**, reflection-only (pattern Wave 25/27 do módulo, zero-DB): cobre todos os mappings + contrato "default caminhao, nunca cacamba" + source-grep anti-regressão.
+- `php -l` ok nos 2 PHP; `python -m ast` ok no `.py`.
+- ⚠️ **Não rodei o caminho DB-real local**: o dev DB local não tem as tabelas OficinaAuto e o suite de migration completo não re-roda do zero localmente (migration pré-existente `ALTER TABLE transactions MODIFY ...` quebra em SQLite; e FK `fin_contas_bancarias→rb_boleto_credentials` fora de ordem em MySQL fresco). Não é do meu diff — roda em CI/MySQL.
+
+### Tarefa B (preflight de cutover observável): **PULADA** (escopo · 1 PR = 1 intent). Reportada como follow-up [W].
+
+### Pendências / fica de [W]:
+- [ ] **[W]** decidir se OS históricas devem entrar como `order_type='mecanica'` (domínio real ADR 0194) em vez de `manutencao` (default conservador atual). É decisão de domínio.
+- [ ] **[W]** rodar `oficina:migration-report {biz} --detail` + `oficina:sanity-check` no fixture/staging pós-import (prova: vendas órfãs / OS sem NFe / pendentes) — exige DB migrado (CI/staging).
+- [ ] **[W]** ajustar o SCHEMA MAP do `export-martinho-os.py` aos nomes REAIS das tabelas do FDB (rodar `--dump-schema` no Windows + Firebird local) antes do export de verdade.
+- [ ] **[W]** drift residual a decidir: README/E2E ainda têm `cacamba_basculante` (não-whitelisted, passa só em SQLite) + docblock do Vehicle recomenda `caminhao_basculante` (não-whitelisted) — opção [W]: adicionar valor de enum dedicado via migration OU consolidar tudo em `caminhao`/`cacamba_caminhao`. Não inventei migration de schema.
+- [ ] **[W]** import real só contra staging/prod biz=164 (NÃO toquei dado real; fixture/dry-run only).
+- [ ] **[W]** mergear (Tier 0 = soberania [W]).
+
+### new_design_memories
+- **anti-padrao**: default `vehicle_type='cacamba'` + docs "Caçambas" eram pré-ADR-0194 (domínio = mecânica pesada de caminhão basculante). Pior: `cacamba` nem era valor do enum — rodar o import etiquetava caminhão errado. Reconciliado no W28 (default `caminhao` + normalização contra a whitelist real).
+- **golden**: cutover/import irreversível-ish = **dry-run por padrão, grava só com `--commit`** ("interceptar a ação", não confiar na disciplina de lembrar `--dry-run`).

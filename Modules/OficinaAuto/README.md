@@ -24,7 +24,7 @@ Candidatos secundários: Vargas (recapagem complexa fluxo 5 estados).
 | Passo | Onde | Resultado esperado |
 |-------|------|-------------------|
 | 1. Login biz=1 + entrar `/oficina-auto/veiculos` | `VehicleController@index` | Lista veículos com KPIs (disponivel/locada/manutencao/atrasada) |
-| 2. Criar veículo placa `WAG0001`, tipo `cacamba_basculante` | `POST /oficina-auto/veiculos` | Veículo persistido com `business_id=1` |
+| 2. Criar veículo placa `WAG0001`, tipo `caminhao` (basculante — ADR 0194; `cacamba_basculante` **não** é valor do enum) | `POST /oficina-auto/veiculos` | Veículo persistido com `business_id=1` |
 | 3. Abrir OS de manutenção pra `WAG0001` | `POST /oficina-auto/ordens-servico` | OS criada status `aberta` |
 | 4. Transição FSM → `em_servico` → `concluida` | `ExecuteStageActionService` (US-OFICINA-003) | Audit log em `sale_stage_history` |
 | 5. Gerar link WhatsApp aprovação (OS orçamento) | `AprovacaoOsService::gerarTokenAprovacao` | Token HMAC + PIN 4 dígitos no cache 7d |
