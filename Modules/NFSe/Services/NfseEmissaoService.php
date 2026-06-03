@@ -73,6 +73,12 @@ class NfseEmissaoService
             issRetido: (bool) ($data['iss_retido'] ?? false),
             certPfxBase64: $certPfxBase64,
             certSenha: $certSenha,
+            // Ambiente POR-BUSINESS (cutover fiscal): vem de nfse_provider_configs.ambiente
+            // do tenant — NÃO do bind global config('nfse.ambiente'). Ligar produção pra
+            // um business (ex: biz=164) não pode afetar outros tenants (ROTA LIVRE etc).
+            // Fail-safe: ausência de config → 'homologacao' (nunca emite real por acidente).
+            ambiente: $config?->ambiente ?? 'homologacao',
+            municipioIbge: $config?->municipio_codigo_ibge ?? config('nfse.municipio_ibge_default', '4218707'),
             prestadorCnpj: $config?->prestador_cnpj,
             prestadorIm: $config?->prestador_im,
             transactionId: !empty($data['transaction_id']) ? (int) $data['transaction_id'] : null,

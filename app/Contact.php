@@ -175,6 +175,44 @@ class Contact extends Authenticatable
         return $this->belongsTo(\App\Business::class);
     }
 
+    /**
+     * US-CRM-080 -- enderecos de entrega do contato (1:N).
+     */
+    public function addresses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\ContactAddress::class, 'contact_id');
+    }
+
+    /**
+     * US-CRM-080 -- endereco de entrega default (1 por contato).
+     */
+    public function addressDefault(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\ContactAddress::class, 'contact_id')
+            ->where('is_default', true);
+    }
+
+    /**
+     * Accessor compat -- mantem Connector/Woocommerce e leitores de
+     * contact->shipping_address funcionando apos a migracao 1:N.
+     * Prioridade: default da tabela nova; fallback coluna plana legada. NAO loga (PII).
+     */
+    public function getShippingAddressAttribute($value): ?string
+    {
+        $default = $this->relationLoaded('addressDefault')
+            ? $this->addressDefault
+            : $this->addressDefault()->first();
+
+        if ($default !== null) {
+            $flat = $default->toFlatString();
+            if ($flat !== '') {
+                return $flat;
+            }
+        }
+
+        return $value; // coluna plana legada (raw)
+    }
+
     public function scopeActive($query)
     {
         return $query->where('contacts.contact_status', 'active');
