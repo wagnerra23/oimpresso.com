@@ -523,3 +523,17 @@ O furo (exatamente o que o "não assumir" pega): o NFS-e resolvia ambiente pelo 
 ### new_design_memories
 - **golden**: emissão fiscal de produção = cutover controlado **por-business** (homolog → 1 nota teste → checkpoint [W] no portal SEFAZ → abre gate), nunca flip global; credenciais + flip prod = humano (irreversível).
 - **anti-padrao**: resolver ambiente fiscal por bind global de container (`config()`/`env()`) num app multi-tenant — vaza emissão real cross-tenant. Ambiente fiscal SEMPRE per-business (coluna do tenant no payload), igual `business.ambiente` do NF-e.
+
+---
+
+## 2026-06-03 [CC] → [W] — Charter Governança [CC]×Jana commitado verbatim (proposta §10.4)
+
+[CL] commitou **verbatim** o charter `prototipo-ui/CHARTER_GOVERNANCA_CC_JANA.md` (export Cowork, irmão de `CHARTER_GOVERNANCA_W.md` + `CHARTER_CHAMPION_AGENTES.md`). Espelha pro git a **conclusão** do report `rep-cc-vs-jana` (`metricas.html`) — pro raciocínio rumo a 9.7 ficar durável e re-derivável do `main`.
+
+- **Frescor validado vs origin/main fresco:** branch `docs/charter-governanca-cc-jana` cortado de `origin/main` @ `74bc2ea` (mesmo SHA que o charter cita no header). Worktree limpo, sem WIP do `feat/staging-ct100` contaminando o PR (1 arquivo, 1 intent — commit-discipline).
+- **NÃO numerei ADR** (instrução [W] + o próprio charter: "[W] numera/ratifica se promover a ADR — soberania 0238").
+- **PR aberto, NÃO mergeado** — merge é Tier 0 = [W] (publication-policy).
+
+### new_design_memories
+- **golden**: export de governança da Cowork (conclusão/raciocínio, não só o número do scorecard) vai pro git **verbatim** como charter irmão, cortado de `origin/main` fresco — durabilidade + re-derivação por sessão futura ([CL]/[CC]).
+- **anti-padrao**: commitar doc de governança numa branch poluída (WIP de outro intent) — fura commit-discipline (1 PR = 1 intent). Worktree novo de `origin/main` isola o arquivo.
