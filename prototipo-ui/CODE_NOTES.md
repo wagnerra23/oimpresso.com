@@ -628,3 +628,48 @@ O furo (exatamente o que o "não assumir" pega): o NFS-e resolvia ambiente pelo 
 ### new_design_memories
 - **golden**: placar de governança [CC]×Jana deixa de ser prosa digitada e vira saída de check (`governanca_graduation_ratio`) + comando que escreve JSON que o report LÊ — frescor por mecanismo (o ProfileDistiller da governança).
 - **regra**: métrica do 9.7 = lições graduadas em check rodável ÷ total, nos dois ledgers; 9.7 exige ambos 100% + pipe único. Hoje: operação 1.0, CC 0.0.
+
+---
+
+## 2026-06-03 [CL] → [W] · Lote design [CC] §10.4 (3 tarefas) — validação vs `origin/main` fresco + entregas
+
+Worktrees off `origin/main` (@ `7a60eddbb`). Validei cada tarefa ANTES de codar (não duplicar). Não numerei ADR (soberania [W], 0238). Não mergeei nada (Tier 0 = [W]). Ordem de merge importa: **1 → 2 → 3**.
+
+### Tarefa 1 — `governanca:scorecard` → **JÁ EM `main` (#2151)**. NÃO dupliquei.
+A ponte inteira já landou (é a própria tip do `main`): `GovernancaScorecardCommand` + check `governanca_graduation_ratio` + `parseLessonLedger`/`ledgerGraduationStats` generalizados pros 2 ledgers. Revalidei os números pela **lógica pura do comando** contra os ledgers reais do `main`:
+- **`operacao` (LICOES-OPERACAO.md): graduation_ratio = 1.0** (3/3).
+- **`cc` (LICOES_CC.md): graduation_ratio = 0.0** (0/25 — as L-01…L-25 usam o formato antigo `Erro·Sintoma·Regra·Ref`, sem linha `**Graduação:**`).
+- `enforcement_score` = **5.0/10** (ratio médio 0.5) · `condicao_9_7.atingido` = **false**.
+→ Sem PR novo (já mergeado). O número que move o 9.7 segue: graduar as 25 lições do `LICOES_CC.md`.
+
+### Tarefa 2 — `governanca:ciclo-diario` → **PR #2152** (branch `feat/governanca-ciclo-diario`)
+Orquestrador diário advisory (06:50 BRT, após health-check/grade/audit/smoke). Regenera estado (reusa scorecard #2151) → `storage/reports/governanca-state.json`; roda frescor (graduation_ratio + charter coverage + review-freshness baseline + protocol_freshness se presente); gradua o inbox `COWORK_NOTES.md`; emite 1 digest/dia. Cron sem `--notify`/ALERT; append a CODE_NOTES só via `--code-notes` (manual, idempotente) — cron não suja arquivo git.
+
+**1º digest real do `main` hoje** (lógica pura do comando · boot Laravel local bloqueado pelo autoload do vendor pinado a worktree removido — Pest roda no CI/CT100, #2076):
+```
+# Governança — Digest diário (2026-06-03)
+> measured_against_sha: 7a60eddbb · enforcement_score: 5/10
+- Graduou: operacao 3/3 (100%) · cc 0/25 (0%)
+- Acendeu (advisory): graduacao:cc 0% · review-freshness: 21 missing (baseline) · protocol_freshness: ponte pendente (vira "12 gaps" após #2153)
+- Inbox [W]: 0 graduada(s) · 5 pendente(s) sem `Graduação:`  (entradas [W]→[CC]: 16:45 2026-05-09, Amendment #316 avatar, Amendment #316 block-renderer, Amendment Cockpit V2.1, F0 PaymentGateway)
+- Espera [W] (Tier 0): nada
+```
+
+### Tarefa 3 — UC-guards + `protocol_freshness` → **PR #2153** (branch `feat/uc-guards-protocol-freshness`)
+Dos 2 docs de Casos de Uso (Vendas UC-V/R/C · Oficina UC-01..10) gerei, **só nas telas canon**, `PRECISA TER` na charter + GUARD Pest `uc-<id>` + check `protocol_freshness` (advisory no health-check, espelha `review-freshness` #2078, ratchet baseline). Fonte única: `prototipo-ui/audit/uc-registry.json`.
+
+**Números reais do `main` hoje** (`node protocol-freshness.mjs` + simulação das asserções Pest):
+- **8 UC cobertos** (GUARD verde, todos PASS): UC-V01, UC-V02, UC-V03 (Sells/Create) · UC-01 (Oficina/Create) · UC-03, UC-05, UC-09 (Oficina/Show) · UC-02 (Oficina/Board).
+- **12 sem cobertura** (gaps → baseline, acendem advisory): UC-V04, UC-R01, UC-C01, UC-V04S, UC-V05, UC-V06, UC-V07 · UC-04, UC-06, UC-07, UC-08, UC-10.
+- **0** guard quebrado · **0** charter ausente · **0** UC morto · **0 regressão**.
+- Markers usam **nome de componente** (CustomerSearchAutocomplete, EntryCheckinFields, DviBudgetSection, ApprovalGateCard, FiscalSplitCard, drag) — `data-testid` é esparso no canon; componente é mais estável que i18n.
+
+### Fica de [W] (Tier 0):
+- [ ] mergear na ordem **#2151 (já) → #2152 → #2153** (Tier 0 = soberania [W]).
+- [ ] graduar as 25 lições do `LICOES_CC.md` (move o 9.7 de 0.5 → 1.0 no lado [CC]).
+- [ ] cobrir os 12 gaps de UC (vira `guard:true` no registro + GUARD `uc-<id>` + `--write-baseline`).
+- [ ] promover ADR (slug-only até lá) se quiser canonizar ciclo-diário/protocol_freshness.
+
+### new_design_memories
+- **golden**: a governança se mantém por um **ciclo diário** que regenera estado + roda frescor + gradua o inbox de [W] + emite 1 digest — tira [W] **e** [CL] do caminho recorrente.
+- **golden**: cada UC ("A tela precisa:") vira PRECISA TER (o porquê) + GUARD Pest `uc-<id>` (a trava) — some o elemento = build vermelho; o doc de casos para de defasar (amarrado ao teste, `protocol_freshness` acende o que falta).
