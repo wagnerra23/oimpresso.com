@@ -12,7 +12,7 @@ related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (a
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 11
+charter_version: 12
 ---
 
 # Page Charter — /financeiro/unificado
@@ -30,6 +30,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Diálogo de baixa + coluna Conta** (2026-06-03, charter v12, pedido [W]): o botão **Recebi/Paguei** agora abre **`FinBaixaSheet`** pra escolher **valor** (suporta baixa **parcial**), **conta bancária** de destino, **forma de pagamento** e **plano de contas** — antes era baixa instantânea (1ª conta, valor cheio, meio fixo). Backend `baixar()` aceita os campos (valida `conta_bancaria_id` no business — anti cross-tenant — e enum do meio) com defaults legacy preservados (body vazio = baixa rápida; espaço/bulk seguem instantâneos). Nova **coluna "Conta"** na tabela. `shapeTitulo` expõe `valor_aberto`. Cobertura `UnificadoBaixaDialogGuardTest` (5 GUARDs: valor_aberto, escolhas, parcial, cross-tenant, legacy).
 
 - **Forma de pagamento no lançamento** (2026-06-03, charter v11, pedido [W]): coluna **Forma** na tabela + campo no drawer (aba Detalhes) + edição (FinEditPanel) e criação (TituloCreateSheet). Nova coluna `fin_titulos.forma_pagamento` (enum espelha `fin_titulo_baixas.meio_pagamento`). Regra de exibição: a forma **realizada** (`baixa.meio_pagamento`) tem prioridade e é **read-only** (espelha `valor_mutavel` / ADR fin-tech/0002); senão a **prevista** (`titulo.forma_pagamento`), editável em aberto; senão "—". Helper compartilhado `_lib/forma-pagamento.ts` (rótulo PT-BR + ícone). Cobertura `UnificadoFormaPagamentoGuardTest` (5 GUARDs). Títulos criados por cobrança paga (`OnCobrancaPagaCreateFinanceiroTitulo`) já exibem a forma realizada via baixa.
 

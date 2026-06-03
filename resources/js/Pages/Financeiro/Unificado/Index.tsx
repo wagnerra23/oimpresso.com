@@ -64,6 +64,8 @@ import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
 import { TituloCreateSheet } from './_components/TituloCreateSheet';
+// 2026-06-03 — diálogo de baixa (escolher valor/conta/forma/plano ao receber/pagar).
+import { FinBaixaSheet } from './_components/FinBaixaSheet';
 // US-FIN-026 (Onda 22) — painel completo de anexos no drawer (GET + upload + download + delete).
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
 // US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
@@ -98,6 +100,7 @@ interface Lancamento {
   vencimento_label: string;      // "qua, 14 mai"
   liquidacao: string | null;
   valor: number;
+  valor_aberto: number;
   nfe_numero: string | null;
   canal: string | null;
   observacao: string | null;
@@ -836,6 +839,17 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           );
         })()}
       </td>
+      {/* 2026-06-03: conta bancária (da baixa) — compacta com ícone banco. */}
+      <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
+        {row.conta_bancaria && row.conta_bancaria !== '—' ? (
+          <span className="inline-flex items-center gap-1" title={row.conta_bancaria}>
+            <Landmark className="h-3.5 w-3.5 text-stone-400" aria-hidden />
+            <span className="truncate max-w-[120px]">{row.conta_bancaria}</span>
+          </span>
+        ) : (
+          <span className="text-stone-300">—</span>
+        )}
+      </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
@@ -932,6 +946,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
   const [createTipo, setCreateTipo] = useState<'receber' | 'pagar' | null>(null);
   // US-FIN-029 (Onda 23) — Sheet OCR boleto.
   const [ocrSheetOpen, setOcrSheetOpen] = useState(false);
+  // 2026-06-03 — diálogo de baixa (escolher valor/conta/forma/plano). Botões
+  // "Recebi/Paguei" abrem este sheet; espaço/bulk seguem baixa instantânea.
+  const [baixaId, setBaixaId] = useState<number | null>(null);
+  const openBaixa = useCallback((id: number) => setBaixaId(id), []);
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
@@ -1417,6 +1435,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <SortableHeader k="contraparte" label="Contraparte" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <th className="px-2 py-2 text-left font-medium">Categoria</th>
                 <th className="px-2 py-2 text-left font-medium">Forma</th>
+                <th className="px-2 py-2 text-left font-medium">Conta</th>
                 <SortableHeader k="status" label="Status" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <SortableHeader k="valor" label="Valor" filters={filters} aplicar={aplicar} className="px-2 py-2 text-right font-medium" alignRight />
                 <th className="pl-2 pr-4 py-2 w-[110px] text-right font-medium"></th>
@@ -1432,7 +1451,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 return (
                   <React.Fragment key={key}>
                     {showGroupHeader && (
-                      <tr><td colSpan={10} className="bg-stone-50/70 border-b border-stone-200">
+                      <tr><td colSpan={11} className="bg-stone-50/70 border-b border-stone-200">
                         <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
                           <span>{label}</span>
                           <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
@@ -1444,7 +1463,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         key={r.id} row={r} dens={dens}
                         selected={selectedId === r.id}
                         onSelect={() => setSelectedId(r.id)}
-                        onBaixar={() => onBaixar(r.id)}
+                        onBaixar={() => openBaixa(r.id)}
                         conferido={conferido}
                         comments={comments}
                         isFav={favs.has(r.id)}
@@ -1456,7 +1475,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={10} className="py-16">
+                <tr><td colSpan={11} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
@@ -1845,7 +1864,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     </Button>
                   )}
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                    <Button onClick={() => onBaixar(selected.id)} className="fin-foot-mark-btn">
+                    <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn">
                       <span aria-hidden>✓</span>
                       <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
                     </Button>
@@ -2112,6 +2131,27 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           planos={planosConta}
         />
       )}
+
+      {/* 2026-06-03 — Diálogo de baixa (escolher valor/conta/forma/plano ao receber/pagar) */}
+      {(() => {
+        const baixaLanc = baixaId !== null ? (lancamentos.find((l) => l.id === baixaId) ?? null) : null;
+        return baixaLanc ? (
+          <FinBaixaSheet
+            open={true}
+            onClose={() => setBaixaId(null)}
+            lancamento={{
+              id: baixaLanc.id,
+              kind: baixaLanc.kind,
+              contraparte: baixaLanc.contraparte,
+              valor: baixaLanc.valor,
+              valor_aberto: baixaLanc.valor_aberto,
+              plano_conta_id: baixaLanc.plano_conta_id,
+            }}
+            contas={contas}
+            planos={planosConta}
+          />
+        ) : null;
+      })()}
 
       {/* Onda 25 (2026-05-25) US-FIN-021 — Sheet Insert manual (substitui stub /unificado/novo) */}
       {createTipo && (

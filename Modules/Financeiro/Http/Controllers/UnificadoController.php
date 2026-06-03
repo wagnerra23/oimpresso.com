@@ -492,35 +492,78 @@ class UnificadoController extends Controller
             return back()->with('error', 'Titulo ja '.$titulo->status.'. Nao pode receber baixa.');
         }
 
-        $conta = ContaBancaria::where('business_id', $businessId)
-            ->where('ativo_para_boleto', true)
-            ->orderBy('id')
-            ->first()
-            ?: ContaBancaria::where('business_id', $businessId)->orderBy('id')->first();
+        // Conta de destino: escolhida pelo usuário (validada no business — anti
+        // cross-tenant) OU auto-pick legacy (default quando baixa rápida sem body).
+        if ($request->filled('conta_bancaria_id')) {
+            $conta = ContaBancaria::where('business_id', $businessId)
+                ->find((int) $request->input('conta_bancaria_id'));
+            if (! $conta) {
+                return back()->with('error', 'Conta bancária inválida (não pertence a este negócio).');
+            }
+        } else {
+            $conta = ContaBancaria::where('business_id', $businessId)
+                ->where('ativo_para_boleto', true)
+                ->orderBy('id')
+                ->first()
+                ?: ContaBancaria::where('business_id', $businessId)->orderBy('id')->first();
+        }
 
         if (! $conta) {
             return back()->with('error', 'Sem conta bancária cadastrada. Cadastre em /financeiro/contas-bancarias.');
         }
 
-        $valor = (float) $titulo->valor_aberto;
+        // Valor: escolhido (suporta baixa PARCIAL) OU valor aberto cheio (default).
+        // Clamp 0.01..valor_aberto pra nunca baixar mais que o devido.
+        $aberto = (float) $titulo->valor_aberto;
+        $valor = $request->filled('valor_baixa') ? (float) $request->input('valor_baixa') : $aberto;
+        $valor = max(0.01, min($valor, $aberto));
 
-        TituloBaixa::create([
-            'business_id' => $businessId,
-            'titulo_id' => $titulo->id,
-            'conta_bancaria_id' => $conta->id,
-            'valor_baixa' => $valor,
-            'data_baixa' => now()->toDateString(),
-            'meio_pagamento' => 'transferencia',
-            'idempotency_key' => (string) Str::uuid(),
-            'observacoes' => 'Baixa rápida via Visão Unificada',
-            'created_by' => $request->user()->id,
-        ]);
+        // Forma de pagamento: escolhida (valida enum canônico) OU 'transferencia' (default legacy).
+        $meio = (string) $request->input('meio_pagamento', 'transferencia');
+        if (! in_array($meio, Titulo::FORMAS_PAGAMENTO, true)) {
+            $meio = 'transferencia';
+        }
 
-        $titulo->valor_aberto = 0;
-        $titulo->status = 'quitado';
-        $titulo->save();
+        $dataBaixa = $request->filled('data_baixa')
+            ? $request->date('data_baixa')->toDateString()
+            : now()->toDateString();
 
-        $msg = $titulo->tipo === 'receber' ? 'Recebimento confirmado' : 'Pagamento confirmado';
+        // Plano de contas escolhido na hora de receber (opcional) — valida business + grava no título.
+        if ($request->filled('plano_conta_id')) {
+            $plano = PlanoConta::where('business_id', $businessId)->find((int) $request->input('plano_conta_id'));
+            if ($plano) {
+                $titulo->plano_conta_id = $plano->id;
+            }
+        }
+
+        DB::transaction(function () use ($businessId, $titulo, $conta, $valor, $meio, $dataBaixa, $request, $aberto) {
+            TituloBaixa::create([
+                'business_id' => $businessId,
+                'titulo_id' => $titulo->id,
+                'conta_bancaria_id' => $conta->id,
+                'valor_baixa' => $valor,
+                'data_baixa' => $dataBaixa,
+                'meio_pagamento' => $meio,
+                'idempotency_key' => (string) Str::uuid(),
+                'observacoes' => 'Baixa via Visão Unificada',
+                'created_by' => $request->user()->id,
+            ]);
+
+            // Baixa parcial: reduz valor_aberto e marca 'parcial'; senão quita.
+            $novoAberto = round($aberto - $valor, 2);
+            if ($novoAberto > 0.001) {
+                $titulo->valor_aberto = $novoAberto;
+                $titulo->status = 'parcial';
+            } else {
+                $titulo->valor_aberto = 0;
+                $titulo->status = 'quitado';
+            }
+            $titulo->save();
+        });
+
+        $parcial = $titulo->status === 'parcial';
+        $base = $titulo->tipo === 'receber' ? 'Recebimento' : 'Pagamento';
+        $msg = $parcial ? "{$base} parcial registrado (resta R$ ".number_format((float) $titulo->valor_aberto, 2, ',', '.').')' : "{$base} confirmado";
 
         return back()->with('success', $msg);
     }
@@ -1191,6 +1234,7 @@ class UnificadoController extends Controller
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
             'liquidacao' => $ultimaBaixa?->data_baixa?->locale('pt_BR')->isoFormat('DD MMM'),
             'valor' => (float) $t->valor_total,
+            'valor_aberto' => (float) $t->valor_aberto,
             'nfe_numero' => $nfeNumero,
             'canal' => $canal,
             // Onda 3 (2026-05-20): strip prefix de tag interno (SEEDER_DEMO :: , etc)
