@@ -500,6 +500,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | JANA ADVISOR — Metade B: Próxima-melhor-pergunta proativa (ADR 0245)
+    |--------------------------------------------------------------------------
+    | A Jana surfa, por persona, as perguntas que [W]/a equipe deveriam estar
+    | fazendo AGORA — já com a resposta. Estende o brief diário (o snapshot do
+    | BriefDiarioService é o gancho). Salto "ferramenta que responde" → "consultor
+    | que pauta". Active Task Disambiguation (ICLR 2025): pergunta de maior ganho.
+    |
+    | VALORES DIRETOS, SEM env() — Larastan barra env() fora de config/ raiz (mesma
+    | razão do bloco peso_real). Default OFF (Wagner liga depois de validar via config
+    | runtime). Roda 1×/dia por business (junto do brief) → custo frontier trivial.
+    |
+    | Medição: log copiloto-ai → `advisor_questions_event`.
+    */
+    'advisor_questions' => [
+        'enabled'  => false,            // default OFF — Wagner liga via config runtime após validar
+        'provider' => null,             // null → config('ai.default') (provider do chat)
+        'model'    => 'gpt-4o',         // pautar é difícil → frontier (1×/dia, custo trivial)
+        'max_por_persona' => 2,         // menos é mais — só a(s) de maior valor
+        // Cada persona recebe a pergunta do TRABALHO dela (ADR UI-0016 personas reais).
+        'personas' => [
+            ['key' => 'larissa', 'label' => 'Balcão / velocidade de venda', 'foco' => 'vendas, atendimento (tickets)'],
+            ['key' => 'eliana',  'label' => 'Fiscal / financeiro',          'foco' => 'inadimplência, NF-e/rejeições'],
+            ['key' => 'tecnico', 'label' => 'Operação / oficina',           'foco' => 'oportunidades, reativação'],
+            ['key' => 'gestor',  'label' => 'Gestão',                       'foco' => 'visão geral: receita, risco, oportunidade'],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Onda 5 — A1 Auto-summary docs longos (dossier 2026-05-13 §6)
     |--------------------------------------------------------------------------
     | AutoSummarizerService (Modules/Jana/Services/Summarizer/) comprime
