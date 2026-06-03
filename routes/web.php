@@ -154,6 +154,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->middleware('superadmin')
         ->name('showcase.components');
 
+    // Norte — Fluxo do Caminhão (North Star / peça de visão: o ERP como fluxo,
+    // não 7 telas). Handoff do Claude Design, recriado em _Showcase/Norte.tsx.
+    Route::get('/showcase/norte', fn () => inertia('_Showcase/Norte'))
+        ->middleware('superadmin')
+        ->name('showcase.norte');
+
     // Tarefas — inbox unificada cross-módulo (UI-0011, 2026-05-05).
     // Stub que renderiza Page placeholder até Fase 4 do plano de migração ADR 0039
     // (TaskProvider interface + TaskRegistry agregando providers de cada módulo).
