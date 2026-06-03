@@ -7,7 +7,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Wrench, Plus, Search, LayoutGrid } from 'lucide-react';
+import { Wrench, Plus, Search, LayoutGrid, List, PanelLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -16,7 +16,17 @@ import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import ServiceOrderStatusBadge from './_components/ServiceOrderStatusBadge';
 import ServiceOrderSheet from './_components/ServiceOrderSheet';
+import ServiceOrderFila from './_components/ServiceOrderFila';
 import { cn } from '@/Lib/utils';
+
+// View in-page da listagem: tabela densa ou fila master-detail (handoff Cowork
+// 2026-06-03). Reflete em `?view=` (querystring, canon do charter — sem sessionStorage).
+type ListView = 'lista' | 'fila';
+
+function initialView(): ListView {
+  if (typeof window === 'undefined') return 'lista';
+  return new URLSearchParams(window.location.search).get('view') === 'fila' ? 'fila' : 'lista';
+}
 
 // ──────── Types ────────
 type OrderType = 'locacao' | 'manutencao' | null;
@@ -185,6 +195,19 @@ const STAGE_CHIP_COLOR_MAP: Record<string, { idle: string; active: string }> = {
 // ──────── Component ────────
 export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS, stages, schemaFlags }: Props) {
   const [q, setQ] = useState(filters.q ?? '');
+  const [view, setView] = useState<ListView>(initialView);
+
+  // Troca de view reflete em `?view=` sem roundtrip ao servidor (shareable; canon
+  // do charter = querystring, não sessionStorage). History API só altera a search
+  // string da mesma página, sem desincronizar o Inertia.
+  const changeView = useCallback((next: ListView) => {
+    setView(next);
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (next === 'fila') url.searchParams.set('view', 'fila');
+    else url.searchParams.delete('view');
+    window.history.replaceState(window.history.state, '', url.toString());
+  }, []);
 
   // Drawer ServiceOrder state — clicar row abre OS no drawer (US-OFICINA-OS-DRAWER).
   const [openOsId, setOpenOsId] = useState<number | null>(null);
@@ -347,6 +370,34 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
               <Search className="size-4" />
             </Button>
           </form>
+
+          {/* Toggle de view in-page: Lista (tabela densa) ↔ Fila (master-detail) */}
+          <div className="inline-flex overflow-hidden rounded-md border border-border" role="group" aria-label="Modo de visualização">
+            <button
+              type="button"
+              onClick={() => changeView('lista')}
+              aria-pressed={view === 'lista'}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors',
+                view === 'lista' ? 'bg-muted font-medium text-foreground' : 'bg-background text-muted-foreground hover:bg-muted/50',
+              )}
+            >
+              <List className="size-4" />
+              Lista
+            </button>
+            <button
+              type="button"
+              onClick={() => changeView('fila')}
+              aria-pressed={view === 'fila'}
+              className={cn(
+                'inline-flex items-center gap-1.5 border-l border-border px-3 py-1.5 text-sm transition-colors',
+                view === 'fila' ? 'bg-muted font-medium text-foreground' : 'bg-background text-muted-foreground hover:bg-muted/50',
+              )}
+            >
+              <PanelLeft className="size-4" />
+              Fila
+            </button>
+          </div>
         </div>
 
         {/* Gap #3 — chips de stage FSM estilo Linear (Wave 7-D). */}
@@ -415,6 +466,15 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                 </Button>
               </Link>
             }
+          />
+        ) : view === 'fila' ? (
+          <ServiceOrderFila
+            orders={orders.data}
+            isOverdue={(o) => isOverdueClient(o, schemaFlags)}
+            formatBRDate={formatBRDate}
+            formatBRL={formatBRL}
+            hasReturnDate={schemaFlags.has_return_date}
+            onOpenFull={setOpenOsId}
           />
         ) : (
           <div className="rounded-lg border bg-card overflow-hidden">
