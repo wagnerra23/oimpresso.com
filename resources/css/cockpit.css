@@ -34,6 +34,13 @@
   --accent-soft:  oklch(0.95 0.04 295);
   --accent-fg:    #ffffff;
 
+  /* DS v6 — cores semânticas (positivo/negativo/aviso) + variante -soft. Aditivo:
+     o app hardcodava oklch escopado (classes .vd- e .os-); estas tornam canônico o modelo
+     do gabarito DS v6, com flip claro/escuro de fábrica. (DS v6 · [W] 2026-06-03) */
+  --pos:       oklch(0.50 0.12 150);  --pos-soft:  oklch(0.95 0.075 150);
+  --neg:       oklch(0.55 0.18 25);   --neg-soft:  oklch(0.955 0.055 25);
+  --warn:      oklch(0.58 0.12 70);   --warn-soft: oklch(0.955 0.072 75);
+
   --bubble-me:    var(--accent);
   --bubble-me-fg: #ffffff;
   --bubble-them:  oklch(0.96 0.003 90);
@@ -85,6 +92,12 @@
   --text-mute: oklch(0.58 0.005 90);
   --bubble-them: oklch(0.28 0.008 240);
   --accent-soft: oklch(0.32 0.06 295);
+
+  /* DS v6 — cores semânticas (variante dark) */
+  --pos:       oklch(0.74 0.14 150);  --pos-soft:  oklch(0.30 0.085 150);
+  --neg:       oklch(0.72 0.16 25);   --neg-soft:  oklch(0.32 0.09 25);
+  --warn:      oklch(0.80 0.13 75);   --warn-soft: oklch(0.32 0.085 70);
+
   --thread-bg-from: oklch(0.20 0.008 240 / 0.35);
   --thread-bg-to:   oklch(0.20 0.008 240 / 0.20);
 
