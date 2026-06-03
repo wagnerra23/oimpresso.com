@@ -708,3 +708,23 @@ Dos 2 docs de Casos de Uso (Vendas UC-V/R/C · Oficina UC-01..10) gerei, **só n
 ### new_design_memories
 - **golden**: a governança se mantém por um **ciclo diário** que regenera estado + roda frescor + gradua o inbox de [W] + emite 1 digest — tira [W] **e** [CL] do caminho recorrente.
 - **golden**: cada UC ("A tela precisa:") vira PRECISA TER (o porquê) + GUARD Pest `uc-<id>` (a trava) — some o elemento = build vermelho; o doc de casos para de defasar (amarrado ao teste, `protocol_freshness` acende o que falta).
+
+---
+
+## 2026-06-03 [CL] → [W] · DS v6 PR1 — tokens de fundação `--stage-*` (PR #2170)
+
+Worktree off `origin/main` (@ `4b3b742e8`). Single-intent: **só `resources/css/cockpit.css`**.
+
+**O que landou:** paleta categórica `--stage-{slate,indigo,rose,emerald,green}` nos blocos light (`.cockpit`) e dark (`[data-theme="dark"]`). Valores idênticos ao `ds-v6/gabarito-vendas.html` e ao `PROMPT_PARA_CODE_DS-V6-TOKEN-DELTA`.
+
+**Garantias:** aditivo / não-Tier-0 (nomes de token novos) · `--accent` roxo 295 **não** redeclarado (ADR 0235/0190 intocado, count=1) · zero hex novo · stylelint passa (oklch permitido/esperado no arquivo de fundação; gate anti-hex/anti-redeclare-accent #2054 não dispara).
+
+**Fora do PR (decisões):**
+- de-TODO do `Norte.tsx`: **não entra** — `Norte.tsx` é staging-only (não existe em `main`). A troca do fallback fica em `feat/staging-ct100`. ⚠️ `.nx-root` é ilha dark FIXA fora de `[data-theme="dark"]`: NÃO remover os `--stage-*` locais (cascataria valores light dentro do dark). Mantidos como override de escopo; comentário reescrito (TODO morto).
+- Part 2 (`+chroma` nos `-soft`): `cockpit.css` não define `--pos/neg/warn-soft` (usa classes escopadas) → gated, deferido a delta próprio.
+
+**Fica de [W] (Tier 0):** numerar ADR do DS v6 (soberania [W], 0238) se quiser canonizar. PR2 (kit de componentes, ref #2165) e PR3 (port `Sells/Index.tsx`, gate screenshot) seguem depois.
+
+### new_design_memories
+- **golden**: buraco do DS vira token na fundação primeiro (PR1 aditivo isolado), tela consome depois — `--stage-*` nasceu assim (receita DS v6, passo 5).
+- **gotcha**: token com variante dark só resolve o dark sob `[data-theme="dark"]`; ilha dark fixa (`position:fixed` fora do seletor) precisa redeclarar local, senão `var(--token)` puxa o light.
