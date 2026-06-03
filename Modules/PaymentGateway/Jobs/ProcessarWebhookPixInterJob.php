@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\PaymentGateway\Jobs;
 
-use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -12,10 +11,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Financeiro\Models\Titulo;
-use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\InterWebhookLog;
+use Modules\PaymentGateway\Services\ReconciliarCobrancaService;
 
 /**
  * US-FIN-032 (Onda 26) — Worker que processa webhook PIX Inter recebido.
@@ -66,7 +64,7 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
     ) {
     }
 
-    public function handle(): void
+    public function handle(ReconciliarCobrancaService $reconciliador): void
     {
         $log = InterWebhookLog::withoutGlobalScopes()
             ->where('id', $this->interWebhookLogId)
@@ -99,41 +97,24 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
                 return;
             }
 
-            DB::transaction(function () use ($log, $cobranca): void {
-                // 1. Atualiza Cobranca status='paga'
+            DB::transaction(function () use ($log, $cobranca, $reconciliador): void {
                 $valorPagoCentavos = $log->valor_centavos ?? $cobranca->valor_centavos;
                 $pagaEm = $log->data_pagamento
                     ? \DateTimeImmutable::createFromMutable($log->data_pagamento->toDateTime())
                     : new \DateTimeImmutable();
 
-                if ($cobranca->status !== 'paga') {
-                    $cobranca->update([
-                        'status'              => 'paga',
-                        'valor_pago_centavos' => $valorPagoCentavos,
-                        'paga_em'             => $pagaEm,
-                        'forma_pagamento'     => 'pix',
-                    ]);
-                }
-
-                // 2. Atualiza titulos JÁ existentes vinculados a essa cobranca
-                //    (origem='manual' + origem_id=cobranca.id — listener cria assim)
-                $this->marcarTitulosQuitados((int) $cobranca->id, $valorPagoCentavos, $pagaEm);
-
-                // 3. Dispara evento — listener OnCobrancaPagaCreateFinanceiroTitulo
-                //    cria Titulo + TituloBaixa pra biz=1 (idempotente)
-                event(new CobrancaPaga(
-                    cobrancaId: (int) $cobranca->id,
-                    businessId: (int) $cobranca->business_id,
+                // Reconciliação canônica (mesma usada pelo polling de fallback):
+                // marca Cobranca paga + quita títulos vinculados + dispara CobrancaPaga
+                // (listener OnCobrancaPagaCreateFinanceiroTitulo cria Titulo + Baixa biz=1).
+                $reconciliador->marcarPaga(
+                    cobranca: $cobranca,
+                    businessId: $this->businessId,
                     valorPagoCentavos: $valorPagoCentavos,
                     pagaEm: $pagaEm,
                     formaPagamento: 'pix',
-                    occurredAt: new \DateTimeImmutable(),
-                    payerCpfCnpj: $cobranca->payer_cpf_cnpj,
-                    origemType: $cobranca->origem_type,
-                    origemId: $cobranca->origem_id,
-                ));
+                );
 
-                // 4. Marca log processado
+                // Marca log processado
                 $log->update([
                     'cobranca_id'  => $cobranca->id,
                     'status'       => 'processed',
@@ -177,37 +158,5 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
         // 200 OK pro Inter (NÃO erro — Wagner reconcilia depois).
         // Listener OnCobrancaPagaCreateFinanceiroTitulo NÃO dispara
         // (sem Cobranca ainda — pode ter chegado antes da emissão registrar).
-    }
-
-    /**
-     * Marca titulo(s) vinculado(s) à cobranca como quitado.
-     *
-     * Estado atual (Onda 26): Titulo NÃO usa trait GuardsFsmTransitions
-     * (FSM Pipeline ainda escopo Sells/Repair — ADR 0143). Update direto OK.
-     *
-     * Quando Titulo entrar no FSM Pipeline (Onda futura), trocar `update()`
-     * por `ExecuteStageActionService::execute($titulo, 'quitar_titulo', ...)`.
-     * O FsmAuthorizationFlag::mark() abaixo é defensivo — garante que
-     * mesmo se trait for adicionada antes do worker ser refatorado,
-     * a transição PRIMEIRA não barra.
-     */
-    private function marcarTitulosQuitados(int $cobrancaId, int $valorPagoCentavos, \DateTimeImmutable $pagaEm): void
-    {
-        $titulos = Titulo::withoutGlobalScopes()
-            ->where('business_id', $this->businessId)
-            ->where('origem', 'manual')
-            ->where('origem_id', $cobrancaId)
-            ->whereIn('status', ['aberto', 'parcial'])
-            ->get();
-
-        foreach ($titulos as $titulo) {
-            // Marca flag FSM defensivamente (não-op se trait não exists)
-            FsmAuthorizationFlag::mark(Titulo::class, $titulo->id);
-
-            $titulo->update([
-                'status'       => 'quitado',
-                'valor_aberto' => 0,
-            ]);
-        }
     }
 }

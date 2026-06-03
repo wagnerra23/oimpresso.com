@@ -279,6 +279,67 @@ class InterDriver implements PaymentDriverContract
         );
     }
 
+    /**
+     * Consulta status de uma cobrança PIX (cob/cobv) via API Pix v2.
+     *
+     * Usado pelo polling de reconciliação (`InterReconcilePixCommand`) — o
+     * fallback de quando o webhook não chegou (ou nem foi cadastrado no Inter).
+     *
+     *   - pix_cob  → GET /pix/v2/cob/{txid}
+     *   - pix_cobv → GET /pix/v2/cobv/{txid}
+     *
+     * Resposta BCB Pix tem `status` (ATIVA/CONCLUIDA/REMOVIDA_*) + array `pix[]`
+     * com os recebimentos (valor + horário). Quando CONCLUIDA, soma os valores
+     * recebidos e pega o horário do primeiro PIX como data de pagamento.
+     *
+     * NOTA: difere de `consultar()` (que usa a API Cobrança v3 de boleto —
+     * /cobranca/v3/cobrancas/{nossoNumero}). PIX e boleto têm APIs distintas.
+     */
+    public function consultarPixCob(object $cobranca, object $cred): CobrancaStatus
+    {
+        $this->assertCredential($cred);
+        $txid = (string) ($cobranca->gateway_external_id ?? '');
+        if ($txid === '') {
+            throw new InvalidPayerException('Cobranca sem gateway_external_id (txid) pra consultar PIX no Inter');
+        }
+
+        $tipo = (string) ($cobranca->tipo ?? 'pix_cob');
+        $path = $tipo === 'pix_cobv' ? "/pix/v2/cobv/{$txid}" : "/pix/v2/cob/{$txid}";
+
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get($path));
+
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "Inter consultar PIX falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+
+        $data = $response->json() ?? [];
+        $situacao = (string) ($data['status'] ?? 'ATIVA');
+
+        $valorPago = null;
+        $pagaEm = null;
+        $pixList = $data['pix'] ?? [];
+        if (is_array($pixList) && $pixList !== []) {
+            $somaCentavos = 0;
+            foreach ($pixList as $pix) {
+                $somaCentavos += (int) round(((float) ($pix['valor'] ?? 0)) * 100);
+            }
+            $valorPago = $somaCentavos > 0 ? $somaCentavos : null;
+
+            $horario = $pixList[0]['horario'] ?? null;
+            $pagaEm = $horario ? new \DateTimeImmutable((string) $horario) : null;
+        }
+
+        return new CobrancaStatus(
+            status: $this->mapPixStatus($situacao),
+            pagaEm: $pagaEm,
+            valorPagoCentavos: $valorPago,
+            formaPagamento: $valorPago !== null ? 'pix' : null,
+            payloadGateway: $data,
+        );
+    }
+
     public function healthCheck(object $cred): DriverHealth
     {
         $this->assertCredential($cred);
@@ -518,6 +579,23 @@ class InterDriver implements PaymentDriverContract
             'pago_direto', 'pago_fora'                    => 'PAGODIRETOAOCLIENTE',
             'substituicao', 'substituido'                 => 'SUBSTITUICAO',
             default                                       => 'ACERTOS',
+        };
+    }
+
+    /**
+     * Mapeia `status` da cobrança PIX v2 (cob/cobv) pro status interno.
+     *
+     * Valores BCB: ATIVA (aguardando) | CONCLUIDA (paga) |
+     * REMOVIDA_PELO_USUARIO_RECEBEDOR | REMOVIDA_PELO_PSP (cancelada).
+     */
+    private function mapPixStatus(string $pixStatus): string
+    {
+        return match (strtoupper($pixStatus)) {
+            'CONCLUIDA'                       => 'paga',
+            'ATIVA'                           => 'emitida',
+            'REMOVIDA_PELO_USUARIO_RECEBEDOR',
+            'REMOVIDA_PELO_PSP'               => 'cancelada',
+            default                           => 'pending',
         };
     }
 

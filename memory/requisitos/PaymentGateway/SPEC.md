@@ -121,6 +121,47 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 **Refs:** Audit dossier inline 2026-05-25 §PR-0 Doc-1/2/3
 
+### US-PG-005 · Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
+
+> owner: eliana · priority: p2 · status: todo · type: story
+> blocked_by: US-PG-006, US-PG-007
+
+**Contexto:** o webhook PIX Inter (`InterPixWebhookController`, US-FIN-032) está pronto pra RECEBER, mas ninguém cadastra a URL de callback no Inter — por isso o Inter nunca chama. Hoje a confirmação roda por polling (`paymentgateway:inter-reconcile-pix`, commit fa22d5313), que é o fallback canônico. Esta task adiciona o webhook como otimização de latência.
+
+**Aceite:**
+- Comando/serviço que chama `PUT /pix/v2/webhook/{chave}` na API Pix do Inter com a URL `/webhooks/inter/{credentialId}` (escopo OAuth `webhook.write`).
+- Botão/step no wizard `/settings/payment-gateways` pra (re)cadastrar + consultar (`GET /pix/v2/webhook/{chave}`) + remover.
+- Idempotente; loga sucesso/falha; multi-tenant Tier 0 (credencial por business).
+- Smoke no sandbox Inter validando que o callback chega.
+
+### US-PG-006 · Corrigir autenticação do webhook Inter (mTLS em vez de HMAC x-inter-signature)
+
+> owner: eliana · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Bug latente (P0 quando o webhook entrar):** `InterPixWebhookController::validateSignature()` e `WebhookProcessor::validateInterHmac()` exigem header `x-inter-signature` (HMAC-SHA256) e são *fail-secure* (sem header → 401). Mas a doc oficial do Inter diz que o webhook PIX é autenticado por **mTLS** (certificado mútuo), NÃO por header HMAC. Do jeito atual, **todo webhook real do Inter seria rejeitado com 401**.
+
+**Aceite:**
+- Confirmar o mecanismo real contra a doc/sandbox do Inter (developers.inter.co/references/pix).
+- Validar o webhook por mTLS (fingerprint do cert do Inter no proxy/Caddy → `SSL_CLIENT_CERT`, espelhando o pattern `validateBcbPixMtls` já existente) OU pelo mecanismo que o Inter realmente usar.
+- Não quebrar os testes existentes (`InterWebhookTest`) — ajustar expectativas.
+- Documentar no SCOPE/CONTRACTS qual é o mecanismo canônico do Inter.
+
+**Nota:** enquanto não resolvido, manter o polling como caminho primário de confirmação.
+
+### US-PG-007 · Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
+
+> owner: eliana · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** o Inter só entrega webhook em endpoint HTTPS público com TLS válido, e retenta 4x (20/30/60/120min) se falhar. Hoje `/webhooks/inter/{credentialId}` existe nas rotas mas precisa estar acessível da internet no ambiente de runtime correto.
+
+**Aceite:**
+- Definir e expor a URL pública (respeitando separação Hostinger ≠ CT100, ADR 0062 — Centrifugo/FrankenPHP no CT100).
+- TLS válido + roteamento do proxy/Caddy pra `/webhooks/inter/{credentialId}`.
+- Confirmar reachability externa (curl de fora) e considerar mTLS no handshake (ver US-PG-006).
+- Documentar a URL final no RUNBOOK do PaymentGateway pra cadastrar no Inter (US-PG-005).
+
 ## Referências
 
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
