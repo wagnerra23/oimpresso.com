@@ -113,7 +113,9 @@ gh run list --workflow=quick-sync.yml --limit 5
 
 **Disparo:** PR mergeado, `quick-sync.yml` rodou success, mas rotas do módulo afetado retornam **500 Server Error**. Outras rotas funcionam normalmente.
 
-**Causa raiz:** `quick-sync.yml` **NÃO roda** `composer install` nem `php artisan migrate` — só faz `git pull` + `npm run build:inertia` + `optimize:clear`. Quando PR adiciona método novo em Controller existente, classe nova, ou novo binding de FQCN, o **composer autoload** de prod fica desatualizado → Laravel não consegue resolver classes → ServiceProvider crash → 500 cascateando em todo módulo.
+**Causa raiz:** `quick-sync.yml` **NÃO roda** `composer install` (deps) nem `php artisan migrate`. Quando PR adiciona método novo em Controller existente, classe nova, ou novo binding de FQCN, o **composer autoload** de prod fica desatualizado → Laravel não consegue resolver classes → ServiceProvider crash → 500 cascateando em todo módulo.
+
+> **⚠️ Atualização 2026-06-03 (PR #2162 — supera parte do que está abaixo):** o `quick-sync.yml` passou a rodar **`composer dump-autoload --no-scripts`** após o `git reset --hard`. Isso **regenera o autoload de classe/método novo** — então o sintoma "classe nova → 500" descrito aqui **deixou de exigir o Deploy completo**. O `Deploy to Hostinger` (full) **só** é obrigatório agora pra (a) **nova dependency** em `composer.json`/`.lock` (`composer install`) ou (b) **migration nova** (`artisan migrate`). A matriz abaixo foi ajustada.
 
 **Sintomas catalogados (Wave 7-C 2026-05-20):**
 - `oimpresso.com/oficina-auto/ordens-servico` → 500
@@ -138,7 +140,7 @@ gh run watch $run --interval 20
 |---|---|---|
 | Só `.tsx`/`.ts`/`.css` frontend | ✅ Sim | npm run build:inertia regenera bundles |
 | `.blade.php` view edit | ✅ Sim | view:clear no quick-sync |
-| Controller — método novo OU classe nova OU trait composition | ❌ **Não** — usar Deploy | composer autoload precisa regenerar |
+| Controller — método novo OU classe nova OU trait composition | ✅ **Sim** (após PR #2162) | quick-sync agora roda `composer dump-autoload` → regenera autoload de classe nova. (Antes exigia Deploy.) |
 | Adicionar dependency em `composer.json` | ❌ **Não** — usar Deploy | composer install obrigatório |
 | Migration nova (`*_create_*.php` em Database/Migrations) | ❌ **Não** — usar Deploy | artisan migrate obrigatório |
 | ServiceProvider/binding/Module.json alteração | ❌ **Não** — usar Deploy | package:discover + composer dump-autoload |
@@ -153,6 +155,48 @@ gh run watch $run --interval 20
 - Mesmo após chore-vite quick-sync subsequente "limpar" o estado git, autoload Composer ficou stale
 - Todo `Modules/OficinaAuto/*` 500 até `Deploy to Hostinger` rodar composer install + migrate + cache rebuild
 - Skill `smoke-prod-evidence` detectou via browser MCP — sem ela, falha silenciosa porque quick-sync workflow reportava success
+
+### 2.3 Build do quick-sync falha + ESVAZIA build-inertia → site 500 (estouro de threads Hostinger)
+
+**Disparo:** PR mergeado, quick-sync roda, mas `/login` (e tudo) retorna **500**. `public/build-inertia/` ficou **vazio** e `manifest.json` **sumiu**.
+
+**Causa raiz (incident 2026-06-03):** o step de build (`npm run build:inertia`) usa Tailwind v4 / lightningcss / oxide — todos **rayon (Rust)** que tenta criar um thread pool grande. No **shared hosting** o limite de threads/processos estoura:
+```
+ThreadPoolBuildError { kind: IOError(... code: 11 ... "Resource temporarily unavailable") }
+fatal runtime error: failed to initiate panic
+```
+Vite roda `emptyOutDir` **antes** de buildar → quando o build morre, `public/build-inertia/` fica vazio → `@vite`/PHP não acha o `manifest.json` → **500 em todo o app** (não só Inertia). Pior que stale: é **outage**.
+
+**Fix imediato (restaura o site):** rebuild **single-thread**:
+```bash
+for i in 1 2 3 4 5; do curl -s -o /dev/null --max-time 15 https://oimpresso.com/login; done   # warm-up
+ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  'cd ~/domains/oimpresso.com/public_html && \
+   export NVM_DIR=~/.nvm && . "$NVM_DIR/nvm.sh" && \
+   export RAYON_NUM_THREADS=1 && \
+   npm run build:inertia && php artisan optimize:clear'
+```
+`RAYON_NUM_THREADS=1` força single-thread → não estoura. Custo ~35s (vs ~50s). Validado 2026-06-03: build que falhava com erro de thread passou limpo.
+
+**Fix permanente:** `quick-sync.yml` exporta `RAYON_NUM_THREADS=1` antes dos 2 `npm run build*` — **PR #2183**.
+
+### 2.4 Recuperação manual canônica do quick-sync (consolidado 2026-06-03)
+
+Quando o `quick-sync` falha (qualquer um dos 3 modos: Setup SSH flaky §2 · classe nova sem autoload §2.2 · estouro de threads §2.3), a recuperação manual completa e idempotente é:
+```bash
+for i in 1 2 3 4 5; do curl -s -o /dev/null --max-time 15 https://oimpresso.com/login; done   # warm-up SSH flaky
+ssh -4 -o ConnectTimeout=900 -o ServerAliveInterval=3 -o ServerAliveCountMax=200 -o ConnectionAttempts=5 \
+  -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 \
+  'cd ~/domains/oimpresso.com/public_html && \
+   export NVM_DIR=~/.nvm && . "$NVM_DIR/nvm.sh" && export RAYON_NUM_THREADS=1 && \
+   git fetch origin && git reset --hard origin/main && \
+   composer dump-autoload --no-scripts && \
+   npm run build:inertia && \
+   php artisan optimize:clear'
+```
+Ordem importa: `dump-autoload` ANTES dos `php artisan` (senão classe nova → BindingResolutionException, §2.2). Depois confirmar no disco (não via HTTP, que tem cache LiteSpeed): `grep -rl "<string nova>" public/build-inertia/assets/*.js` + `ls -la public/build-inertia/manifest.json`. **PHP lê o manifest do disco** ao renderizar — o `manifest.json` servido por HTTP pode estar cacheado e enganar.
+
+> **Hardening do quick-sync.yml (PRs):** `composer dump-autoload` + `ssh-keyscan ... || true` (**#2162**) · `RAYON_NUM_THREADS=1` no build (**#2183**). Após esses merges os 3 modos de falha do auto-deploy ficam cobertos.
 
 ## 3. Tela branca Inertia pós optimize:clear = cache stale do bundle
 
