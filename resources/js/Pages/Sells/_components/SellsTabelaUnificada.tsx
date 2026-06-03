@@ -130,10 +130,12 @@ const fmtTime = (iso: string | null) => {
 
 const PILL_STYLE: Record<PillKey, { bg: string; fg: string; label: string }> = {
   todas: { bg: 'var(--vd-neutral-soft)', fg: 'var(--vd-neutral)', label: '—' },
-  paga: { bg: 'var(--vd-ok-soft)', fg: 'var(--vd-ok)', label: 'Paga' },
-  pendente: { bg: 'var(--vd-warn-soft)', fg: 'var(--vd-warn)', label: 'Pendente' },
+  // DS v6 (PR3 slice 1) — status pills consomem tokens semânticos canônicos
+  // (cockpit.css: --pos/--warn/--neg + -soft), espelham gabarito-vendas c-pill.
+  paga: { bg: 'var(--pos-soft)', fg: 'var(--pos)', label: 'Paga' },
+  pendente: { bg: 'var(--warn-soft)', fg: 'var(--warn)', label: 'Pendente' },
   faturada: { bg: 'var(--accent-soft)', fg: 'var(--accent)', label: 'Faturada' },
-  cancelada: { bg: 'var(--bg-2)', fg: 'var(--text-mute)', label: 'Cancelada' },
+  cancelada: { bg: 'var(--neg-soft)', fg: 'var(--neg)', label: 'Cancelada' },
 };
 
 // ──────────────────────────────────────────────────────────────
