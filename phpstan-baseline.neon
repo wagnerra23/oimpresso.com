@@ -1431,8 +1431,48 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: Modules/Brief/Services/BriefGeneratorService.php
+
+		-
+			message: '#^Constant Modules\\Governance\\Services\\Checkers\\RoutesZombieChecker\:\:DEFAULT_ZOMBIE_GRACE_DAYS is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
+
+		-
+			message: '#^Offset ''title'' on non\-empty\-array\<mixed\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: Modules/Governance/Services/Checkers/NpmAuditChecker.php
+
+		-
+			identifier: oimpresso.silentFallback
+			path: Modules/Governance/Services/Checkers/DesignDocsFreshnessChecker.php
+
+		-
+			message: '#^Method Modules\\Brief\\Services\\BriefGeneratorService\:\:targetTokens\(\) is unused\.$#'
+			identifier: method.unused
 			count: 1
 			path: Modules/Brief/Services/BriefGeneratorService.php
+
+		-
+			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PublishesDriftToCentrifugo is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Governance/Services/Concerns/PublishesDriftToCentrifugo.php
+
+		-
+			message: '#^Trait Modules\\Governance\\Services\\Concerns\\PersistsDriftAlert is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: Modules/Governance/Services/Concerns/PersistsDriftAlert.php
+
+		-
+			message: '#^Argument of an invalid type Illuminate\\Routing\\RouteCollectionInterface supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: Modules/Governance/Services/Checkers/RoutesZombieChecker.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
@@ -9238,7 +9278,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 3
+			count: 5
 			path: Modules/Governance/Config/config.php
 
 		-
@@ -9460,7 +9500,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 68
+			count: 79
 			path: Modules/Jana/Config/config.php
 
 		-
@@ -33650,7 +33690,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
+			count: 3
 			path: app/Services/GrowthBookAdminService.php
 
 		-
@@ -37144,3 +37184,135 @@ parameters:
 			identifier: property.phpDocType
 			count: 1
 			path: app/Warranty.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$actor_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$body\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$read_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$task_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\InboxController\:\:markAllRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Método `Modules\\ProjectMgmt\\Http\\Controllers\\InboxController\:\:markRead\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
+			identifier: oimpresso.missingTenantScope
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Modules\\Jana\\Entities\\Mcp\\McpInboxNotification\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/InboxController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$cycle_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$due_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$epic_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$identifier\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$module\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$owner\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$priority\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$task_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Modules\\Jana\\Entities\\Mcp\\McpTask\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/ProjectMgmt/Http/Controllers/TriageController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Financeiro/Models/Concerns/BusinessScope.php

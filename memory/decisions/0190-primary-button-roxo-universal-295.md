@@ -3,9 +3,9 @@ slug: 0190-primary-button-roxo-universal-295
 number: 190
 title: "Primary button interno = roxo médio universal oklch(0.55 0.15 295) — hue per grupo APENAS pra agrupamento visual sidebar"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: "2026-05-25"
 accepted_at: "2026-05-25"
@@ -20,7 +20,8 @@ supersedes_partially:
 amends:
   - "0182-pageheadertabs-canon-pattern-telas"
   - "0189-pageheader-canon-v3-1-cadastro-roxo"
-superseded_by: []
+superseded_by:
+  - "0235-ds-v4-accent-roxo-universal"
 related:
   - "0094-constituicao-v2-7-camadas-8-principios"
   - "0104-processo-mwart-canonico-unico-caminho"
@@ -36,6 +37,8 @@ review_triggers:
 ---
 
 # ADR 0190 — Primary button interno = roxo médio universal · hue per grupo APENAS pra agrupamento visual sidebar
+
+> ⚠️ **SUPERSEDED em 2026-05-29** — substituída por [ADR 0235](0235-ds-v4-accent-roxo-universal.md) (DS v4 — roxo universal). Decisão do Wagner: *"rebaixe o 190, não vou usar mais, estou trocando o design; quem vai cuidar da interface será o Claude Design."* A regra de primary roxo + hue-per-grupo da sidebar deixa de ser autoridade; o DS v4 assume. O conteúdo abaixo fica como registro histórico.
 
 ## Contexto
 

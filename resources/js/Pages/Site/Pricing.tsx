@@ -3,6 +3,7 @@ import SiteLayout from '@/Layouts/SiteLayout';
 import { Button } from '@/Components/ui/button';
 import PricingTiers from '@/Components/Site/PricingTiers';
 import PricingFaq from '@/Components/Site/PricingFaq';
+import { Lock } from 'lucide-react';
 
 interface SitePricingProps {
   packages?: any[] | null;
@@ -69,7 +70,7 @@ function SitePricing({ packages }: SitePricingProps) {
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-4 text-center sm:grid-cols-3 sm:px-6 lg:px-8">
           {[
             { icon: '🇧🇷', title: 'Suporte humano', desc: 'Em português, do mesmo fuso.' },
-            { icon: '🔒', title: 'Seus dados, seus', desc: 'Backup diário. LGPD compliant.' },
+            { icon: <Lock className="mx-auto h-7 w-7" strokeWidth={1.75} />, title: 'Seus dados, seus', desc: 'Backup diário. LGPD compliant.' },
             { icon: '↩️', title: 'Cancela quando quiser', desc: 'Sem multa, sem fidelidade.' },
           ].map((item) => (
             <div key={item.title}>

@@ -17,13 +17,16 @@ import {
   useCallback, useEffect, useMemo, useRef, useState, type ReactNode,
 } from 'react';
 import {
-  Search, Plus, Download, Upload, Copy, MoreHorizontal, Settings, Webhook,
+  Search, Plus, Upload, Copy, Settings, Webhook,
   Check, AlertCircle, Receipt, Zap, Building,
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip, KpiCard} from './_components/atoms';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 import FunnelStrip from './_components/FunnelStrip';
 import DrawerCobranca from './_components/DrawerCobranca';
 import SheetNovaCobranca from './_components/SheetNovaCobranca';
@@ -31,7 +34,7 @@ import SheetRemessaRetorno from './_components/SheetRemessaRetorno';
 import CheatSheet from './_components/CheatSheet';
 import AiResumoMes from './_components/AiResumoMes';
 import {
-  brl, brlNoSign, cn, fmtDate, fmtDateRel, piiMask, lsGet, lsSet,
+  brl, brlNoSign, cn, fmtDate, fmtDateRel, piiMask, lsGet, lsSet, copiar,
   DRIVERS, TIPOS, ORIGENS,
   type Cobranca, type Account, type Gateway, type CobrancaKpis, type CobrancaFunil,
   type CobrancaFiltros, type OrigemType,
@@ -270,7 +273,9 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
             aria-label="Buscar cobranças" />
           <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[9.5px] font-mono text-stone-400 px-1 border border-stone-200 rounded">/</kbd>
         </div>
-        <Btn variant="ghost"><Download className="h-3 w-3" />Exportar</Btn>
+        {/* B6 "botões honestos" (2026-05-31): "Exportar" REMOVIDO — não existe
+            rota de export de cobranças no CobrancaController/web.php. Reentra
+            quando houver endpoint real (ex GET /financeiro/cobranca/export-csv). */}
       </div>
 
       {/* FILTROS linha 2 */}
@@ -293,19 +298,25 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
 
         <div className="w-px h-5 bg-stone-200 mx-1" />
 
-        <select value={gatewayFilter} onChange={e => setGatewayFilterLs(e.target.value)}
-          className="h-6 text-[11.5px] bg-white border border-stone-300 rounded px-2 text-stone-700 focus-visible:ring-2 focus-visible:ring-stone-400"
-          aria-label="Filtrar por gateway">
-          <option value="all">Todos gateways</option>
-          {Object.values(DRIVERS).filter(d => !d.deprecated).map(d => <option key={d.key} value={d.key}>{d.nome}</option>)}
-        </select>
+        <Select value={gatewayFilter} onValueChange={v => setGatewayFilterLs(v)}>
+          <SelectTrigger variant="shadcn" size="sm" className="text-[11.5px]" aria-label="Filtrar por gateway">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos gateways</SelectItem>
+            {Object.values(DRIVERS).filter(d => !d.deprecated).map(d => <SelectItem key={d.key} value={d.key}>{d.nome}</SelectItem>)}
+          </SelectContent>
+        </Select>
 
-        <select value={accountFilter} onChange={e => setAccountFilterLs(e.target.value)}
-          className="h-6 text-[11.5px] bg-white border border-stone-300 rounded px-2 text-stone-700"
-          aria-label="Filtrar por conta destino">
-          <option value="all">Todas contas destino</option>
-          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
+        <Select value={accountFilter} onValueChange={v => setAccountFilterLs(v)}>
+          <SelectTrigger variant="shadcn" size="sm" className="text-[11.5px]" aria-label="Filtrar por conta destino">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas contas destino</SelectItem>
+            {accounts.map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
 
         <div className="w-px h-5 bg-stone-200 mx-1" />
 
@@ -351,7 +362,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
                   return (
                     <tr key={c.id} onClick={() => setDrawer(c)} className={cn(
                       'border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer',
-                      isFocus && 'bg-blue-50/40 ring-1 ring-inset ring-blue-300',
+                      isFocus && 'bg-primary/5 ring-1 ring-inset ring-primary/30',
                     )}>
                       <td className="pl-5 pr-2 py-2.5 text-stone-700">
                         <div className="font-medium">{fmtDate(c.vencimento)}</div>
@@ -390,9 +401,21 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
                       </td>
                       <td className="pl-2 pr-5 py-2.5 text-right" onClick={e => e.stopPropagation()}>
                         <div className="pg-row-actions inline-flex items-center gap-0.5">
-                          <button title="Copiar identificador" className="pg-action-btn" aria-label="Copiar"><Copy className="h-3 w-3" /></button>
-                          {c.tipo === 'boleto' && <button title="Baixar PDF" className="pg-action-btn" aria-label="Baixar PDF"><Download className="h-3 w-3" /></button>}
-                          <button title="Mais ações" className="pg-action-btn" aria-label="Mais"><MoreHorizontal className="h-3 w-3" /></button>
+                          {/* B6 "botões honestos" (2026-05-31): só "Copiar identificador"
+                              fica (ação real via clipboard). "Baixar PDF" e "Mais ações"
+                              REMOVIDOS — não há rota de PDF nem menu de ações backed. */}
+                          <button
+                            type="button"
+                            title="Copiar identificador"
+                            className="pg-action-btn"
+                            aria-label="Copiar identificador"
+                            onClick={() => copiar(
+                              c.nosso_numero || c.linha_digitavel || c.pix_emv,
+                              'Identificador copiado',
+                            )}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </button>
                         </div>
                       </td>
                     </tr>

@@ -23,6 +23,8 @@ import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { cn } from '@/Lib/utils';
 
 import Avatar from './Avatar';
 import { LS, lsSet, relativeTime, type ListConversation } from './helpers';
@@ -340,45 +342,55 @@ export default function ConversationList({
             />
             {/* Aging dropdown — botão compacto que abre native select */}
             <div className="relative">
-              <select
-                value={inboundAging ?? ''}
-                onChange={(e) => setInboundAging((e.target.value || null) as InboundAging)}
-                aria-label="Esperando resposta há mais de"
-                className={`text-[11px] h-6 px-1.5 pr-5 rounded border bg-card cursor-pointer hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none ${
-                  inboundAging ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground'
-                }`}
+              <Select
+                value={inboundAging ?? '__none__'}
+                onValueChange={(v) => setInboundAging((v === '__none__' ? null : v) as InboundAging)}
               >
-                <option value="">Esperando há…</option>
-                <option value="6h">&gt; 6h</option>
-                <option value="12h">&gt; 12h</option>
-                <option value="24h">&gt; 24h</option>
-                <option value="48h">&gt; 48h</option>
-                <option value="7d">&gt; 7 dias</option>
-              </select>
-              <Clock
-                size={10}
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                aria-hidden
-              />
+                <SelectTrigger
+                  variant="shadcn"
+                  size="sm"
+                  aria-label="Esperando resposta há mais de"
+                  className={cn(
+                    'text-[11px] gap-1 w-fit',
+                    inboundAging ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground',
+                  )}
+                >
+                  <Clock className="size-3 shrink-0" aria-hidden />
+                  <SelectValue placeholder="Esperando há…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Esperando há…</SelectItem>
+                  <SelectItem value="6h">&gt; 6h</SelectItem>
+                  <SelectItem value="12h">&gt; 12h</SelectItem>
+                  <SelectItem value="24h">&gt; 24h</SelectItem>
+                  <SelectItem value="48h">&gt; 48h</SelectItem>
+                  <SelectItem value="7d">&gt; 7 dias</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {/* Ordenação — dropdown */}
             <div className="relative">
-              <select
+              <Select
                 value={orderBy ?? 'last_message'}
-                onChange={(e) => setOrderBy(e.target.value as OrderBy)}
-                aria-label="Ordenar por"
-                className={`text-[11px] h-6 px-1.5 pr-5 rounded border bg-card cursor-pointer hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring appearance-none ${
-                  orderBy === 'inbound' ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground'
-                }`}
+                onValueChange={(v) => setOrderBy(v as OrderBy)}
               >
-                <option value="last_message">Ordenar: última msg</option>
-                <option value="inbound">Ordenar: última do cliente</option>
-              </select>
-              <ArrowDownUp
-                size={10}
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                aria-hidden
-              />
+                <SelectTrigger
+                  variant="shadcn"
+                  size="sm"
+                  aria-label="Ordenar por"
+                  className={cn(
+                    'text-[11px] gap-1 w-fit',
+                    orderBy === 'inbound' ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground',
+                  )}
+                >
+                  <ArrowDownUp className="size-3 shrink-0" aria-hidden />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="last_message">Ordenar: última msg</SelectItem>
+                  <SelectItem value="inbound">Ordenar: última do cliente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {activeFiltersCount > 0 && (
               <button

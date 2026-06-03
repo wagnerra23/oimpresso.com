@@ -18,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -913,7 +912,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
       {/* KPI cards — 4 cards GIGANTES, value text-3xl, label uppercase tracking-widest. Estado da arte. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Itens
           </div>
@@ -921,7 +920,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {itensCount}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Total venda
           </div>
@@ -929,7 +928,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalGeral)}
           </div>
         </div>
-        <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             Pago
           </div>
@@ -937,9 +936,17 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {formatBRL(totalPago)}
           </div>
         </div>
+        {/*
+          G1 (tela-venda-arte 2026-05-31) — board flagou "cor crua" aqui, mas
+          AVALIADO e MANTIDO de propósito: amber/blue/emerald é SEMÂNTICA DE STATUS
+          de pagamento (falta / troco / exato). O projeto mantém cores de status
+          intocadas por convenção (resources/css/cowork-payment-gateway-bundle.css:12)
+          e o charter lista "tone semântico" como Goal. Tokenizar (--success/--warning)
+          é decisão de fundações DS-v3 (ADR), não cleanup desta tela.
+        */}
         <div
           className={
-            'rounded-xl border p-6 shadow-sm ' +
+            'rounded-lg border p-6 shadow-sm ' +
             (totalGeral === 0
               ? 'border-border bg-background'
               : pagamentoStatus === 'falta'

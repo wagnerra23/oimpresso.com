@@ -139,7 +139,7 @@ function ProdutoShow(props: ProdutoShowPageProps) {
           </nav>
         </header>
 
-        <main className="pb-16 px-6 mt-4 max-w-5xl">
+        <div className="pb-16 px-6 mt-4 max-w-5xl">
           {activeTab === 'resumo' && <ResumoTab product={product} />}
           {activeTab === 'variacoes' && (
             <Deferred data="variations" fallback={<TabSkeleton />}>
@@ -151,7 +151,7 @@ function ProdutoShow(props: ProdutoShowPageProps) {
               <EstoqueTab rackDetails={props.rackDetails ?? []} />
             </Deferred>
           )}
-        </main>
+        </div>
       </div>
     </>
   );

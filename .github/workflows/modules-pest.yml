@@ -7,7 +7,9 @@ name: Modules Pest
 # ENUM syntax) incompativeis com SQLite. Tests que precisam de DB real usam
 # markTestSkipped defensivo (skip gracioso quando tabela ausente).
 # Tests pure-logic (service classes, value objects, command logic) rodam normalmente.
-# Para rodar suite completa com DB real: vendor/bin/pest localmente com MySQL.
+# Para validacao fiel (DB real): roda NO CT 100, NUNCA local —
+# docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test (proibicoes.md §Ambiente).
+# sqlite (CI/local) mascara bugs que so o MySQL real pega (businesses->business, CSRF, FK).
 
 on:
   pull_request:

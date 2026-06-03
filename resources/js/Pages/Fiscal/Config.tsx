@@ -11,7 +11,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
-import { Archive, CheckCircle2, FileText, KeyRound, Loader2, PlugZap, Settings, Shield, Upload, XCircle } from 'lucide-react';
+import { Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, PlugZap, Settings, Shield, Upload, XCircle } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -479,7 +479,7 @@ export default function Config({ certificado, config, painel, seriesMock = [] }:
             <dt>Próximo número</dt>
             <dd className="fx-mono">{painel.proximoNumero}</dd>
             <dt>Emissão auto</dt>
-            <dd>{config?.autoEmissionEnabled ? '✅ Habilitada' : '🔒 Manual'}</dd>
+            <dd>{config?.autoEmissionEnabled ? '✅ Habilitada' : <><Lock className="h-3.5 w-3.5 mr-1 inline align-text-bottom" />Manual</>}</dd>
             <dt>Tributação default</dt>
             <dd>
               {config && Object.keys(config.tributacaoDefault).length > 0

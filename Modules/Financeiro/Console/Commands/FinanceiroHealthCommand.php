@@ -385,7 +385,9 @@ class FinanceiroHealthCommand extends Command
         }
 
         $lastDate = (clone $q)->max('created_at');
-        $daysSince = $lastDate ? now()->diffInDays($lastDate) : 999;
+        // Carbon 3: diffInDays() é signed por padrão — $lastDate é sempre no passado,
+        // então sem o flag `true` o resultado vem negativo e o WARN `> 7` nunca dispara.
+        $daysSince = $lastDate ? (int) now()->diffInDays($lastDate, true) : 999;
 
         if ($daysSince > 7) {
             return $this->makeCheck(

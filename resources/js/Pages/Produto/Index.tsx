@@ -167,7 +167,7 @@ function ProdutoIndex(props: ProdutoIndexPageProps) {
           </div>
         </header>
 
-        <main className="pb-16">
+        <div className="pb-16">
           {/* KPI strip */}
           <section className="mx-6 mt-4 rounded-md bg-white border border-stone-200 shadow-sm">
             <Deferred data="kpis" fallback={<KpisSkeleton />}>
@@ -215,7 +215,7 @@ function ProdutoIndex(props: ProdutoIndexPageProps) {
               <ProdutoCards rows={filterRows(props.rows)} permissions={permissions} />
             </Deferred>
           </section>
-        </main>
+        </div>
       </div>
     </>
   );

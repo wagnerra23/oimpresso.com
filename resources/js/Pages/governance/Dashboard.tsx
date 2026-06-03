@@ -11,6 +11,19 @@ import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
+import {
+  ClipboardList,
+  BarChart3,
+  Bot,
+  AlertTriangle,
+  History,
+  KeyRound,
+  Construction,
+  Users,
+  Shield,
+  Ruler,
+  BookOpen,
+} from 'lucide-react'
 
 interface Adr {
   slug: string
@@ -219,10 +232,10 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <span className="text-amber-600">📋</span>
+                <ClipboardList className="h-4 w-4 text-amber-600" />
                 ADRs aguardando você ({pending_adrs.length})
               </h3>
-              <Link href="/copiloto/admin/memoria?type=adr" className="text-sm text-blue-600 hover:underline">
+              <Link href="/copiloto/admin/memoria?type=adr" className="text-sm text-primary hover:underline">
                 ver todos →
               </Link>
             </div>
@@ -235,7 +248,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                   <li key={adr.slug} className="flex items-start gap-2 text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0">
                     <Link
                       href={`/copiloto/admin/memoria/${adr.slug}`}
-                      className="font-mono text-xs text-blue-600 hover:underline shrink-0"
+                      className="font-mono text-xs text-primary hover:underline shrink-0"
                     >
                       {adr.slug.split('-')[0]}
                     </Link>
@@ -253,10 +266,10 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <span className="text-zinc-700 dark:text-zinc-300">📊</span>
+                <BarChart3 className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
                 Audit Highlights 24h ({audit_highlights.length})
               </h3>
-              <Link href="/governance/audit" className="text-sm text-blue-600 hover:underline">
+              <Link href="/governance/audit" className="text-sm text-primary hover:underline">
                 drill-down →
               </Link>
             </div>
@@ -294,10 +307,10 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <span className="text-zinc-700 dark:text-zinc-300">🤖</span>
+                <Bot className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
                 Narrativas Brain A 24h ({narratives.length})
               </h3>
-              <Link href="/copiloto/admin/memoria?type=narrative" className="text-sm text-blue-600 hover:underline">
+              <Link href="/copiloto/admin/memoria?type=narrative" className="text-sm text-primary hover:underline">
                 histórico →
               </Link>
             </div>
@@ -338,19 +351,19 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               href="/governance/audit"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              📊 Audit log
+              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Audit log
             </Link>
             <Link
               href="/governance/drift"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              🚨 Drift alerts
+              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift alerts
             </Link>
             <Link
               href="/copiloto/admin/memoria?type=adr&status=proposto"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              📋 ADRs proposto
+              <ClipboardList className="h-3.5 w-3.5 mr-1 inline-block" /> ADRs proposto
             </Link>
           </div>
         </CardContent>
@@ -361,14 +374,14 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         <CardContent className="p-4">
           <h3 className="text-lg font-semibold mb-3">Documentos canônicos</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/CONSTITUTION.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">📜 Constituição v1.1.0</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/TRUST-TIERS.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">🔐 Trust Tiers</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ARCHITECTURE.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">🏗️ Architecture</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/IDENTITY-MESH.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">👥 Identity Mesh</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ENFORCEMENT.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">🛡️ Enforcement (8 mecanismos)</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">📐 Drift Migration Plan</a>
-            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/audit-2026-05-05-v1.1.md" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">📋 Audit cascata v1.1</a>
-            <Link href="/copiloto/admin/memoria" className="text-blue-600 hover:underline">📚 KB completo →</Link>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/CONSTITUTION.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><History className="h-3.5 w-3.5 mr-1 inline-block" /> Constituição v1.1.0</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/TRUST-TIERS.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><KeyRound className="h-3.5 w-3.5 mr-1 inline-block" /> Trust Tiers</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ARCHITECTURE.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><Construction className="h-3.5 w-3.5 mr-1 inline-block" /> Architecture</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/IDENTITY-MESH.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><Users className="h-3.5 w-3.5 mr-1 inline-block" /> Identity Mesh</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/ENFORCEMENT.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><Shield className="h-3.5 w-3.5 mr-1 inline-block" /> Enforcement (8 mecanismos)</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/MODULE-DRIFT-MIGRATION-PLAN.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><Ruler className="h-3.5 w-3.5 mr-1 inline-block" /> Drift Migration Plan</a>
+            <a href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/governance/audit-2026-05-05-v1.1.md" target="_blank" rel="noreferrer" className="text-primary hover:underline"><ClipboardList className="h-3.5 w-3.5 mr-1 inline-block" /> Audit cascata v1.1</a>
+            <Link href="/copiloto/admin/memoria" className="text-primary hover:underline"><BookOpen className="h-3.5 w-3.5 mr-1 inline-block" /> KB completo →</Link>
           </div>
         </CardContent>
       </Card>

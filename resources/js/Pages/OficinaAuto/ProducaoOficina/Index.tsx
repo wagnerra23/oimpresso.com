@@ -598,7 +598,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         </div>
 
         {/* ─── Kanban 5 colunas (drag-drop entre colunas) ─── */}
-        <main className="p-6">
+        <div className="p-6">
           <KanbanDndProvider onMove={handleDragMove}>
             <div className="grid grid-cols-5 gap-4">
               {columnsData.map((col) => (
@@ -612,7 +612,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
               ))}
             </div>
           </KanbanDndProvider>
-        </main>
+        </div>
       </div>
 
       {/* Drawer rico polimórfico (locação CNAE 4581 + manutenção CNAE 4520) — Wave 2.2 US-OFICINA-027

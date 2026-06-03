@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * ClienteAutosaveController -- 5 endpoints PATCH cadastrais inline Wave C
@@ -308,6 +309,12 @@ class ClienteAutosaveController extends Controller
             'state' => ['nullable', 'string', 'in:' . implode(',', self::UFS)],
             // city_code IBGE (7 digitos numericos) -- Wagner 2026-05-22.
             'city_code' => ['nullable', 'string', 'max:7'],
+            // Endereco de entrega (shipping_address) -- texto livre opcional.
+            // Wagner 2026-06-02: cliente cadastra endereco de entrega distinto do
+            // principal; a venda puxa daqui (fase 2). Coluna existe desde 2020
+            // (migration add_shipping_address_to_contacts). Mesma regra de
+            // StoreContactRequest/UpdateContactRequest (nullable string).
+            'shipping_address' => ['nullable', 'string'],
         ], $this->messages());
 
         // Validacao customizada CEP 8 digitos quando preenchido.
@@ -339,7 +346,20 @@ class ClienteAutosaveController extends Controller
     /**
      * PATCH /cliente/{id}/comercial
      *
-     * Campos: credit_limit, pay_term_number, tabela_preco_padrao, pgto_padrao, obs_comercial.
+     * Campos: credit_limit, pay_term_number, customer_group_id, tabela_preco_padrao,
+     *         pgto_padrao, mensagem_venda, obs_comercial.
+     *
+     * `customer_group_id` é a tabela de preço REAL (UPOS canon — FK pra
+     * `customer_groups`, que aponta pra `selling_price_groups`). Substitui o
+     * antigo dropdown `tabela_preco_padrao` (enum hardcoded fake) no drawer.
+     * Validado contra `customer_groups` do MESMO business (multi-tenant Tier 0
+     * ADR 0093 — NUNCA aceitar id de outro tenant → 422).
+     *
+     * `mensagem_venda` (TEXT) é exibido como alerta ao vendedor no POS quando o
+     * cliente é selecionado (migrado de PESSOAS.MENSAGEM_PARA_VENDA Delphi).
+     *
+     * `tabela_preco_padrao` permanece aceito por compat (cadastros pré-wire),
+     * mas o drawer agora grava `customer_group_id`.
      */
     public function comercial(Request $request, int $id): JsonResponse
     {
@@ -348,11 +368,24 @@ class ClienteAutosaveController extends Controller
             return $contact;
         }
 
+        // Multi-tenant Tier 0 (ADR 0093): customer_group_id DEVE existir em
+        // customer_groups WHERE business_id = sessão. NUNCA cross-tenant.
+        $businessId = (int) $request->session()->get('user.business_id');
+
         $validator = Validator::make($request->all(), [
             'credit_limit' => ['nullable', 'numeric', 'min:0', 'max:999999999.99'],
             'pay_term_number' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            // Tabela de preço REAL — FK customer_groups (scoped ao business da sessão).
+            'customer_group_id' => [
+                'nullable', 'integer',
+                Rule::exists('customer_groups', 'id')->where(
+                    fn ($q) => $q->where('business_id', $businessId)
+                ),
+            ],
             'tabela_preco_padrao' => ['nullable', 'string', 'in:' . implode(',', self::TABELAS_PRECO)],
             'pgto_padrao' => ['nullable', 'string', 'in:' . implode(',', self::PGTOS)],
+            // Mensagem exibida como alerta ao vendedor no POS.
+            'mensagem_venda' => ['nullable', 'string', 'max:5000'],
             'obs_comercial' => ['nullable', 'string', 'max:5000'],
         ], $this->messages());
 
@@ -575,10 +608,16 @@ class ClienteAutosaveController extends Controller
             'neighborhood' => $contact->neighborhood ?? null,
             'city' => $contact->city ?? null,
             'state' => $contact->state ?? null,
+            // Endereço de entrega (shipping_address) — devolvido na response do
+            // autosave pro EnderecoTab confirmar o valor canônico. Wagner 2026-06-02.
+            'shipping_address' => $contact->shipping_address ?? null,
             'credit_limit' => $contact->credit_limit !== null ? (float) $contact->credit_limit : null,
             'pay_term_number' => $contact->pay_term_number !== null ? (int) $contact->pay_term_number : null,
+            // Tabela de preço REAL (FK customer_groups) — fonte de verdade do drawer.
+            'customer_group_id' => $contact->customer_group_id !== null ? (int) $contact->customer_group_id : null,
             'tabela_preco_padrao' => $contact->tabela_preco_padrao ?? null,
             'pgto_padrao' => $contact->pgto_padrao ?? null,
+            'mensagem_venda' => $contact->mensagem_venda ?? null,
             'obs_comercial' => $contact->obs_comercial ?? null,
             'segmento' => $contact->segmento ?? null,
             'tags' => $this->decodeTags($contact->tags ?? null),

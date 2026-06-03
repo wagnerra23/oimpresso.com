@@ -298,6 +298,25 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Reconcilers — jana:reconcile loop único (ADR 0237)
+    |--------------------------------------------------------------------------
+    | Cada Reconciler garante sincronia de UMA faceta (git == índice == MCP ==
+    | settings == deploy). `jana:reconcile` itera esta lista — padrão idêntico ao
+    | `governance.drift_checkers` do ADR 0216. O orquestrador usa class_exists-guard
+    | (tolera reconciler ainda-não-criado). Filtra via `--only=index,settings`.
+    | Este config é merged como `copiloto.*` (JanaServiceProvider) → o orquestrador
+    | lê via config('copiloto.reconcilers').
+    */
+    'reconcilers' => [
+        \Modules\Jana\Services\Reconcile\Reconcilers\IndexReconciler::class,    // cura poluição dos índices (ADR 0237 P0)
+        \Modules\Jana\Services\Reconcile\Reconcilers\SettingsReconciler::class, // embedder Meilisearch (perdido 2×)
+        \Modules\Jana\Services\Reconcile\Reconcilers\ContentReconciler::class,  // git→DB mcp_memory_documents
+        \Modules\Jana\Services\Reconcile\Reconcilers\DeployReconciler::class,   // SHA deployado vs main
+        \Modules\Jana\Services\Reconcile\Reconcilers\EvalReconciler::class,     // RAGAS pass-rate threshold
+    ],
+
     'reranker' => [
         'enabled' => env('JANA_RERANKER_ENABLED', env('COPILOTO_RERANKER_ENABLED', true)),
         'driver'  => env('JANA_RERANKER_DRIVER', env('COPILOTO_RERANKER_DRIVER', 'rrf')),
@@ -431,6 +450,85 @@ return [
         'enabled'           => env('COPILOTO_SUMMARIZER_ENABLED', true),
         'threshold_turnos'  => env('COPILOTO_SUMMARIZER_THRESHOLD', 15),
         'msgs_recentes'     => env('COPILOTO_SUMMARIZER_RECENT', 8),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | JANA ADVISOR — Metade A: Clarify reativo (Modo Consultor, proposta §10.4)
+    |--------------------------------------------------------------------------
+    | Cascata Decidir → Clarificar → Responder no chat. Decoupla AMBIGUIDADE-DE-
+    | INTENÇÃO (perguntar) de FALTA-DE-DADO (buscar) — INTENT-SIM (NAACL 2025) +
+    | Active Task Disambiguation (ICLR 2025): "fazer perguntas melhores, não só
+    | dar respostas melhores".
+    |
+    | Cascata por latência:
+    |   1a. heurística local (zero LLM) resolve ~80% direto → responde.
+    |   1b. disambiguador FRONTIER (só no ~20% cinza) decide e gera a pergunta de
+    |       maior ganho de informação.
+    |
+    | DEFAULT OFF (toca o coração do chat — mesma postura de contextual_retrieval /
+    | peso_real): com a flag OFF o pipeline é byte-idêntico ao legado. Wagner liga
+    | em homolog após validação ([W] soberania ADR 0238).
+    |
+    | Roteamento de modelo (custo-consciente): raciocínio difícil → frontier. Default
+    | gpt-4o (mais forte que o gpt-4o-mini do chat), mas só dispara no cinza. Wagner
+    | pode trocar p/ um modelo de raciocínio estendido via JANA_CLARIFY_MODEL.
+    |
+    | Medição: log channel copiloto-ai → evento `clarify_event` (gray-hit, taxa de
+    | clarify, false-clarify proxy). Sem isso é fé, não engenharia.
+    |
+    | CONTROLE POR AMBIENTE: o flag/modelo/provider são env-driven (homolog liga, prod
+    | espera) — ADR 0245. As 3 chaves env() entram na contagem baselined do Larastan
+    | (noEnvCallsOutsideOfConfig) deste arquivo, igual reranker/freshness. As demais são
+    | constantes de tuning (valores diretos). Default OFF: com a flag OFF o pipeline de
+    | chat é byte-idêntico ao legado.
+    */
+    'clarify' => [
+        'enabled'  => (bool) env('JANA_CLARIFY_ENABLED', false),   // homolog liga; prod espera (ADR 0245)
+        'provider' => env('JANA_CLARIFY_PROVIDER'),                // null → config('ai.default') (provider do chat)
+        // Default gpt-4o-mini: é o ÚNICO modelo a que o projeto OpenAI atual tem acesso
+        // (gpt-4o → 403 "does not have access"; validado E2E no staging CT 100). Pra subir pro
+        // frontier de verdade: conceder gpt-4o ao projeto OU provider=anthropic (claude-sonnet) —
+        // ambos via env JANA_CLARIFY_MODEL/JANA_CLARIFY_PROVIDER, sem code change.
+        'model'    => env('JANA_CLARIFY_MODEL', 'gpt-4o-mini'),
+        // Confiança mínima do disambiguador p/ realmente perguntar (anti false-clarify).
+        'min_confianca'          => 0.6,
+        // Heurística 1a (zero-custo) — limites do "cinza".
+        'gray_max_chars'         => 140,
+        'gray_max_words'         => 8,
+        // Quantos turnos recentes (PII-redigidos) alimentam o disambiguador.
+        'historico_turnos'       => 4,
+        // Anti-loop: TTL (s) do marcador "turno anterior foi clarify" (não pergunta 2x seguidas).
+        'anti_loop_ttl_segundos' => 600,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | JANA ADVISOR — Metade B: Próxima-melhor-pergunta proativa (ADR 0245)
+    |--------------------------------------------------------------------------
+    | A Jana surfa, por persona, as perguntas que [W]/a equipe deveriam estar
+    | fazendo AGORA — já com a resposta. Estende o brief diário (o snapshot do
+    | BriefDiarioService é o gancho). Salto "ferramenta que responde" → "consultor
+    | que pauta". Active Task Disambiguation (ICLR 2025): pergunta de maior ganho.
+    |
+    | VALORES DIRETOS, SEM env() — Larastan barra env() fora de config/ raiz (mesma
+    | razão do bloco peso_real). Default OFF (Wagner liga depois de validar via config
+    | runtime). Roda 1×/dia por business (junto do brief) → custo frontier trivial.
+    |
+    | Medição: log copiloto-ai → `advisor_questions_event`.
+    */
+    'advisor_questions' => [
+        'enabled'  => false,            // default OFF — Wagner liga via config runtime após validar
+        'provider' => null,             // null → config('ai.default') (provider do chat)
+        'model'    => 'gpt-4o-mini',    // projeto OpenAI atual só tem gpt-4o-mini (gpt-4o → 403); subir via config quando houver acesso frontier
+        'max_por_persona' => 2,         // menos é mais — só a(s) de maior valor
+        // Cada persona recebe a pergunta do TRABALHO dela (ADR UI-0016 personas reais).
+        'personas' => [
+            ['key' => 'larissa', 'label' => 'Balcão / velocidade de venda', 'foco' => 'vendas, atendimento (tickets)'],
+            ['key' => 'eliana',  'label' => 'Fiscal / financeiro',          'foco' => 'inadimplência, NF-e/rejeições'],
+            ['key' => 'tecnico', 'label' => 'Operação / oficina',           'foco' => 'oportunidades, reativação'],
+            ['key' => 'gestor',  'label' => 'Gestão',                       'foco' => 'visão geral: receita, risco, oportunidade'],
+        ],
     ],
 
     /*

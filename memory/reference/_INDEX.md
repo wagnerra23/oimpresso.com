@@ -6,6 +6,7 @@
 
 ## Cliente & domínio
 
+- [crm-e-o-modulo-de-cliente.md](crm-e-o-modulo-de-cliente.md) — **`Modules/Crm` É o módulo de Cliente/contatos do cliente** (UPOS legacy naming; NÃO existe Modules/Cliente). `requisitos/Crm` é o único folder (a duplicata `requisitos/Cliente` foi consolidada nele 2026-06-01). Desambiguação pra parar a confusão CRM↔Cliente
 - [cliente-rotalivre.md](cliente-rotalivre.md) — ROTA LIVRE (biz=4) Larissa loja vestuário Termas do Gravatal/SC; sensibilidades operacionais; histórico incidentes
 - [cliente-martinho-cacambas.md](cliente-martinho-cacambas.md) — MARTINHO CAÇAMBAS (biz=164) prospect com HiSoft competitor; **migração WR2 Firebird → oimpresso CONCLUÍDA 2026-05-16** (91 caçambas + 9.988 contatos + 44k vendas + 83k títulos); **aging real R$391k vs R$3,6M fóssil pré-2020**
 - [clientes-ativos.md](clientes-ativos.md) — 56 businesses, só 7 com vendas; ROTA LIVRE 99% do volume

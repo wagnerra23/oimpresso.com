@@ -14,6 +14,7 @@ use Modules\OficinaAuto\Http\Requests\StoreDviRequest;
 use Modules\OficinaAuto\Http\Requests\UpdateDviRequest;
 use Modules\OficinaAuto\Http\Requests\UploadDviPhotoRequest;
 use Modules\OficinaAuto\Services\DviInspectionService;
+use Modules\OficinaAuto\Services\ServiceOrderItemService;
 
 /**
  * DviInspectionController — CRUD HTTP de itens DVI (Vistoria Digital).
@@ -38,7 +39,74 @@ class DviInspectionController extends Controller
     public function __construct(
         private DviInspectionService $service,
         private ArquivosService $arquivos,
+        private ServiceOrderItemService $serviceOrderItems,
     ) {
+    }
+
+    /**
+     * US-OFICINA-040 — Converte um item DVI reprovado/atenção em linha de orçamento.
+     *
+     * Delta do protótipo Cowork "Nova OS" (oficina-os-page.jsx · botão "+ orçamento"):
+     * o mecânico marca um item da vistoria como reprovado e, com 1 clique, ele vira
+     * um ServiceOrderItem (mão de obra) no orçamento da OS — a recomendação (valor
+     * sugerido) entra como valor unitário.
+     *
+     * Idempotência: grava `metadata.budget_item_id` no item DVI pra UI persistir o
+     * estado "no orçamento" entre reloads e evitar duplicar. Re-converter o mesmo
+     * item retorna 409.
+     *
+     * Defesa em profundidade: Policy update(ServiceOrder) + cross-OS guard.
+     */
+    public function toOrcamento(ServiceOrder $order, OaInspectionItem $item): JsonResponse
+    {
+        $this->authorize('update', $order);
+
+        abort_unless((int) $item->service_order_id === (int) $order->id, 404);
+
+        // Já convertido? (idempotência via metadata) → 409 com o item existente.
+        if (is_array($item->metadata) && ! empty($item->metadata['budget_item_id'])) {
+            return response()->json([
+                'message'         => 'Item da vistoria já está no orçamento.',
+                'budget_item_id'  => (int) $item->metadata['budget_item_id'],
+            ], 409);
+        }
+
+        $descricao = 'Vistoria: ' . $item->descricao;
+        if (! empty($item->recomendacao)) {
+            $descricao .= ' — ' . $item->recomendacao;
+        }
+
+        $serviceItem = $this->serviceOrderItems->addItem(
+            (int) $order->business_id,
+            (int) $order->id,
+            [
+                'tipo'           => 'mao_obra',
+                'descricao'      => mb_substr($descricao, 0, 255),
+                'quantidade'     => 1,
+                'valor_unitario' => $item->valor_recomendado !== null ? (float) $item->valor_recomendado : 0.0,
+            ]
+        );
+
+        // Marca o item DVI como já orçado (decisão da oficina, distinta da
+        // client_decision que é a decisão do CLIENTE na aprovação).
+        $item->metadata = array_merge($item->metadata ?? [], [
+            'budget_item_id' => (int) $serviceItem->id,
+        ]);
+        $item->save();
+
+        return response()->json([
+            'inspection_item_id' => (int) $item->id,
+            'item' => [
+                'id'             => (int) $serviceItem->id,
+                'tipo'           => $serviceItem->tipo,
+                'descricao'      => $serviceItem->descricao,
+                'quantidade'     => (float) $serviceItem->quantidade,
+                'valor_unitario' => (float) $serviceItem->valor_unitario,
+                'valor_total'    => (float) $serviceItem->valor_total,
+                'product_id'     => $serviceItem->product_id,
+                'notes'          => $serviceItem->notes,
+            ],
+        ], 201);
     }
 
     /**

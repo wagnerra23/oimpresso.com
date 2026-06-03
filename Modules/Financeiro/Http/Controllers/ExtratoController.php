@@ -6,7 +6,9 @@ namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
@@ -28,13 +30,41 @@ class ExtratoController extends Controller
 {
     use RendersMockCowork;
 
+    /**
+     * Ponto de entrada SEM id: /financeiro/extrato.
+     * O sidebar/topnav apontam pra /financeiro/extrato (sem contaBancariaId), mas a
+     * tela de detalhe exige id numérico (extrato.index com whereNumber) → 404 (bug B4).
+     * Resolve pra primeira conta do business e redireciona; se não há conta, manda
+     * cadastrar (com flash) — sem fallback silencioso (Log::warning antes do redirect).
+     */
+    public function selecionar(Request $request): RedirectResponse
+    {
+        $businessId = (int) $request->session()->get('user.business_id');
+
+        $conta = ContaBancaria::where('business_id', $businessId)
+            ->orderBy('id')
+            ->first();
+
+        if ($conta === null) {
+            Log::warning('Financeiro/Extrato: business sem conta bancária ao abrir /financeiro/extrato', [
+                'business_id' => $businessId,
+            ]);
+
+            return redirect('/financeiro/contas-bancarias')
+                ->with('warning', 'Cadastre uma conta bancária para visualizar o extrato.');
+        }
+
+        return redirect('/financeiro/extrato/' . $conta->id);
+    }
+
     public function index(Request $request, int $contaBancariaId): Response|\Illuminate\Http\Response
     {
         if ($mock = $this->tryRenderMockCowork()) {
             return $mock;
         }
 
-        $businessId = (int) $request->session()->get('business.id');
+        // Session key canônica UPOS `user.business_id` (B5 — padroniza com o resto do módulo).
+        $businessId = (int) $request->session()->get('user.business_id');
 
         // Conta header é cheap (firstOrFail single row) — fica eager.
         $conta = ContaBancaria::where('business_id', $businessId)

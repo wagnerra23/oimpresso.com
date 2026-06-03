@@ -9,11 +9,17 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
-import { Upload, Check, X, Search } from 'lucide-react';
+import { Upload, Check, X, Search, Inbox, RotateCcw } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
+import { Checkbox } from '@/Components/ui/checkbox';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 
 interface Linha {
+  uid: string;                  // "ofx:123" | "api:456" — chave estável (2 origens)
+  origem: 'ofx' | 'api';        // OFX upload manual | extrato sync API (ADR 0236 Fase 1)
   id: number;
   data_movimento: string;
   descricao: string;
@@ -36,6 +42,7 @@ interface Props {
   linhas: Linha[];
   stats: Stats;
   contas: { id: number; nome: string }[];
+  filters: { incluir_resolvidos: boolean };
 }
 
 const brl = (v: number) =>
@@ -48,7 +55,7 @@ const STATUS_CLR: Record<Linha['status'], string> = {
   ignorado:   'bg-stone-100 text-stone-400 border-stone-200',
 };
 
-function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
+function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
   const [busca, setBusca] = useState('');
 
   const uploadForm = useForm<{ arquivo: File | null; conta_bancaria_id: string }>({
@@ -70,14 +77,29 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
     });
   };
 
-  const confirmarMatch = (lineId: number, tituloId: number) => {
-    router.post(`/financeiro/conciliacao/${lineId}/match`, { titulo_id: tituloId }, {
+  const confirmarMatch = (lineId: number, tituloId: number, origem: Linha['origem']) => {
+    router.post(`/financeiro/conciliacao/${lineId}/match`, { titulo_id: tituloId, origem }, {
       preserveScroll: true,
     });
   };
 
-  const ignorar = (lineId: number) => {
-    router.post(`/financeiro/conciliacao/${lineId}/ignorar`, {}, { preserveScroll: true });
+  const ignorar = (lineId: number, origem: Linha['origem']) => {
+    router.post(`/financeiro/conciliacao/${lineId}/ignorar`, { origem }, { preserveScroll: true });
+  };
+
+  // Reabrir (undo): volta linha conciliada/ignorada pra pendente.
+  const reabrir = (lineId: number, origem: Linha['origem']) => {
+    router.post(`/financeiro/conciliacao/${lineId}/reabrir`, { origem }, { preserveScroll: true });
+  };
+
+  // Toggle "ver conciliados/ignorados" — recarrega o index com/sem o query param.
+  // GET só dos dados de `linhas`+`filters` (preserva scroll/estado de form).
+  const toggleResolvidos = () => {
+    router.get(
+      '/financeiro/conciliacao',
+      filters.incluir_resolvidos ? {} : { incluir_resolvidos: 1 },
+      { preserveScroll: true, preserveState: true, only: ['linhas', 'filters'] },
+    );
   };
 
   const filtradas = linhas.filter((l) =>
@@ -149,24 +171,26 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
               <label htmlFor="conta_id" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium block mb-1">
                 Conta bancária (opcional)
               </label>
-              <select
-                id="conta_id"
-                value={uploadForm.data.conta_bancaria_id}
-                onChange={(e) => uploadForm.setData('conta_bancaria_id', e.target.value)}
-                className="h-8 px-2 rounded-md border border-stone-300 text-[13px] bg-white w-full"
+              <Select
+                value={uploadForm.data.conta_bancaria_id || '__none__'}
+                onValueChange={(v) => uploadForm.setData('conta_bancaria_id', v === '__none__' ? '' : v)}
               >
-                <option value="">Detectar do arquivo</option>
-                {contas.map((c) => (
-                  <option key={c.id} value={c.id}>{c.nome}</option>
-                ))}
-              </select>
+                <SelectTrigger id="conta_id" className="w-full" aria-label="Conta bancária">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Detectar do arquivo</SelectItem>
+                  {contas.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
           <button
             type="submit"
             className="os-btn primary"
             disabled={!uploadForm.data.arquivo || uploadForm.processing}
-            style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
           >
             <Upload size={13} />
             {uploadForm.processing ? 'Processando…' : 'Importar OFX'}
@@ -177,15 +201,25 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
         </p>
       </div>
 
-      {/* Filtro busca */}
+      {/* Filtro busca + toggle "ver conciliados/ignorados" */}
       {linhas.length > 0 && (
-        <div className="mt-4 fin-search-wrap" style={{ maxWidth: 400 }}>
-          <Search size={13} aria-hidden="true" />
-          <input
-            placeholder="Buscar por descrição…"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="fin-search-wrap" style={{ maxWidth: 400, flex: 1 }}>
+            <Search size={13} aria-hidden="true" />
+            <input
+              placeholder="Buscar por descrição…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
+          <label htmlFor="conc-incluir-resolvidos" className="flex items-center gap-1.5 text-[12px] text-stone-600 cursor-pointer select-none">
+            <Checkbox
+              id="conc-incluir-resolvidos"
+              checked={filters.incluir_resolvidos}
+              onCheckedChange={() => toggleResolvidos()}
+            />
+            Ver conciliados/ignorados
+          </label>
         </div>
       )}
 
@@ -195,6 +229,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <thead>
             <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
               <th className="px-3 py-2 text-left font-medium w-[100px]">Data</th>
+              <th className="px-3 py-2 text-center font-medium w-[80px]">Origem</th>
               <th className="px-3 py-2 text-left font-medium">Descrição</th>
               <th className="px-3 py-2 text-right font-medium w-[120px]">Valor</th>
               <th className="px-3 py-2 text-center font-medium w-[100px]">Tipo</th>
@@ -205,7 +240,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <tbody>
             {filtradas.length === 0 && (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-stone-500">
+                <td colSpan={7} className="py-12 text-center text-stone-500">
                   {linhas.length === 0
                     ? 'Nenhuma linha importada. Faça upload de um arquivo OFX acima pra começar.'
                     : 'Nenhuma linha encontrada com filtros atuais.'}
@@ -213,8 +248,20 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
               </tr>
             )}
             {filtradas.map((l) => (
-              <tr key={l.id} className="border-b border-stone-100 hover:bg-stone-50/50">
+              <tr key={l.uid} className="border-b border-stone-100 hover:bg-stone-50/50">
                 <td className="px-3 py-2 font-mono text-[12px] text-stone-600">{l.data_movimento.slice(0, 10)}</td>
+                <td className="px-3 py-2 text-center">
+                  <span
+                    className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                      l.origem === 'api'
+                        ? 'bg-accent text-accent-foreground border-transparent'
+                        : 'bg-transparent text-muted-foreground border-border'
+                    }`}
+                    title={l.origem === 'api' ? 'Sincronizado via API do banco' : 'Importado de arquivo OFX'}
+                  >
+                    {l.origem === 'api' ? 'Banco' : 'OFX'}
+                  </span>
+                </td>
                 <td className="px-3 py-2">
                   <div className="truncate max-w-[400px]">{l.descricao}</div>
                   {l.source_file && (
@@ -239,7 +286,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
                       type="button"
                       className="os-btn ghost fin-btn-trilha"
                       style={{ padding: '4px 8px', fontSize: 11 }}
-                      onClick={() => confirmarMatch(l.id, l.titulo_id!)}
+                      onClick={() => confirmarMatch(l.id, l.titulo_id!, l.origem)}
                       title="Confirmar match"
                     >
                       <Check size={11} /> Confirmar
@@ -250,10 +297,21 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
                       type="button"
                       className="os-btn ghost"
                       style={{ padding: '4px 8px', fontSize: 11, color: 'oklch(0.55 0.10 25)' }}
-                      onClick={() => ignorar(l.id)}
+                      onClick={() => ignorar(l.id, l.origem)}
                       title="Ignorar linha"
                     >
                       <X size={11} /> Ignorar
+                    </button>
+                  )}
+                  {(l.status === 'conciliado' || l.status === 'ignorado') && (
+                    <button
+                      type="button"
+                      className="os-btn ghost"
+                      style={{ padding: '4px 8px', fontSize: 11 }}
+                      onClick={() => reabrir(l.id, l.origem)}
+                      title="Reabrir — volta para pendente"
+                    >
+                      <RotateCcw size={11} /> Reabrir
                     </button>
                   )}
                 </td>
@@ -275,7 +333,7 @@ function FinanceiroConciliacao({ linhas, stats, contas }: Props) {
           <b className="fin-num-pos">{stats.conciliados}</b> conciliados
         </span>
         <span className="spacer" />
-        <span>📥 Parser OFX simples · próxima Onda: CNAB + Open Banking API</span>
+        <span className="inline-flex items-center gap-1"><Inbox className="h-3.5 w-3.5" /> Parser OFX simples · próxima Onda: CNAB + Open Banking API</span>
       </div>
     </div>
   );

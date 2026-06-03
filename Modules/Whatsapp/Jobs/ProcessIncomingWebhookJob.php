@@ -190,6 +190,11 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         $externalId = (string) ($msg['external_id'] ?? '');
         $contactName = (string) ($msg['push_name'] ?? '') ?: $phoneE164;
 
+        // Direção — fromMe (resposta da equipe pelo WhatsApp oficial OU eco do
+        // nosso próprio composer) entra como outbound/sent/human; senão inbound.
+        $fromMe = (bool) ($msg['from_me'] ?? false);
+        $direction = $fromMe ? 'outbound' : 'inbound';
+
         // Defense-in-depth — customer_external_id é NOT NULL no schema, parte da
         // UNIQUE conv_biz_ch_ext_uniq (business_id, channel_id, customer_external_id).
         // Se chegar vazio (extractor não capturou Chat/Sender), NÃO crie row lixo.
@@ -214,22 +219,33 @@ class ProcessIncomingWebhookJob implements ShouldQueue
 
         $convId = $conversation?->id;
         $now = now();
+        // Hora real da mensagem no fuso do business — NÃO now() (este job roda na
+        // fila, fora do middleware Timezone, então now() seria Europe/London = +3h
+        // vs SP → msg no horário/dia errado). Fallback seguro pra now() embutido.
+        $sentAt = $this->resolveSentAt($msg['sent_at'] ?? null, $this->businessTimezone());
         if ($convId === null) {
-            $convId = \DB::table('conversations')->insertGetId([
+            $convData = [
                 'business_id' => $this->businessId,
                 'channel_id' => $channel->id,
                 'customer_external_id' => $externalId,
                 'phone_e164' => $phoneE164,
                 'contact_name' => $contactName,
                 'status' => 'open',
-                'unread_count' => 1,
-                'last_inbound_at' => $now,
-                'last_message_at' => $now,
+                'unread_count' => $fromMe ? 0 : 1, // outbound não conta como não-lida
+                'last_inbound_at' => $fromMe ? null : $sentAt,
+                'last_message_at' => $sentAt,
                 'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
-                'last_message_direction' => 'inbound',
+                'last_message_direction' => $direction,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ]);
+            ];
+            // last_outbound_at só no caminho outbound — mantém o INSERT inbound
+            // byte-idêntico ao original (não introduz coluna nova no fluxo que
+            // os testes legados de inbound já cobrem).
+            if ($fromMe) {
+                $convData['last_outbound_at'] = $sentAt;
+            }
+            $convId = \DB::table('conversations')->insertGetId($convData);
         }
 
         // Schema 2026-05-27: messages table não tem channel_id direto;
@@ -239,18 +255,22 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         \DB::table('messages')->insert([
             'business_id' => $this->businessId,
             'conversation_id' => $convId,
-            'direction' => 'inbound',
+            'direction' => $direction,
             'provider' => 'whatsmeow',
             'provider_message_id' => $providerMessageId,
             'type' => $msg['type'] ?? 'text',
             'body' => $msg['body'] ?? null,
             'payload' => json_encode($msg['raw'] ?? null),
-            'status' => 'received',
+            'status' => $fromMe ? 'sent' : 'received',
+            // NOTA: sender_kind/sender_user_id ficam NULL aqui — a captura via
+            // daemon não sabe QUAL atendente respondeu pelo WhatsApp oficial.
+            // Enriquecer (human vs bot, autor) é follow-up junto do outbound
+            // pelo composer do oimpresso (que conhece o user logado).
             'media_mime' => $msg['media_mime'] ?? null,
             'media_size_bytes' => $msg['media_size_bytes'] ?? null,
             'media_filename' => $msg['media_filename'] ?? null,
-            'created_at' => $now,
-            'updated_at' => $now,
+            'created_at' => $sentAt,
+            'updated_at' => $sentAt,
         ]);
 
         // Realtime Centrifugo — publica evento "message.received" no canal
@@ -263,11 +283,14 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         // Resultado: msgs persistiam OK no DB mas WebSocket NUNCA entregava → tela
         // só atualizava via polling 5s (que pausa em tab inativa) → latência percebida ~60s.
         // Fix: publicar no canal omnichannel canon (ADR 0135) com chave `type` esperada.
+        // Frontend (CaixaUnificada/Index.tsx) escuta message.received E message.sent;
+        // ambos só disparam router.reload() (direção vem do DB recarregado).
+        $eventType = $fromMe ? 'message.sent' : 'message.received';
         try {
             app(\Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher::class)->publish(
                 "omnichannel:business:{$this->businessId}",
                 [
-                    'type' => 'message.received',
+                    'type' => $eventType,
                     'channel_id' => $channel->id,
                     'conversation_id' => $convId,
                     'phone_e164' => $phoneE164,
@@ -279,7 +302,7 @@ class ProcessIncomingWebhookJob implements ShouldQueue
                 'business_id' => $this->businessId,
                 'channel_centrifugo' => "omnichannel:business:{$this->businessId}",
                 'conversation_id' => $convId,
-                'event_type' => 'message.received',
+                'event_type' => $eventType,
             ]);
         } catch (\Throwable $e) {
             Log::warning('whatsmeow.centrifugo.publish_failed', [
@@ -290,15 +313,23 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         }
 
         if ($conversation !== null) {
-            \DB::table('conversations')->where('id', $convId)->update([
-                'unread_count' => ($conversation->unread_count ?? 0) + 1,
-                'last_inbound_at' => $now,
-                'last_message_at' => $now,
+            $convUpdate = [
+                'last_message_at' => $sentAt,
                 'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
-                'last_message_direction' => 'inbound',
-                'contact_name' => $contactName,
+                'last_message_direction' => $direction,
                 'updated_at' => $now,
-            ]);
+            ];
+            if ($fromMe) {
+                // outbound: marca saída, NÃO incrementa unread, NÃO toca
+                // last_inbound_at nem contact_name (preserva nome do cliente).
+                $convUpdate['last_outbound_at'] = $sentAt;
+            } else {
+                // inbound: idêntico ao original (não introduz coluna nova).
+                $convUpdate['unread_count'] = ($conversation->unread_count ?? 0) + 1;
+                $convUpdate['last_inbound_at'] = $sentAt;
+                $convUpdate['contact_name'] = $contactName;
+            }
+            \DB::table('conversations')->where('id', $convId)->update($convUpdate);
         }
 
         Log::info('whatsapp.webhook.whatsmeow.message_persisted', [
@@ -307,6 +338,47 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             'conversation_id' => $convId,
             'provider_message_id' => $providerMessageId,
         ]);
+    }
+
+    /**
+     * Hora REAL da mensagem (do provider) no fuso do business.
+     *
+     * Por que NÃO `now()`: este job roda na fila (queue worker), que não passa
+     * pelo middleware HTTP `App\Http\Middleware\Timezone`. Logo `now()` cairia no
+     * default `config('app.timezone')` (Europe/London) e gravaria a msg +3h
+     * adiantada vs America/Sao_Paulo — "pulando de dia" perto da meia-noite.
+     *
+     * Robusto aos 2 formatos que o whatsmeow emite (time.Time do Go):
+     *   - string RFC3339 com offset ("2026-05-28T22:00:00-03:00") → respeita o offset
+     *   - epoch numérico (UTC) → createFromTimestamp
+     *
+     * Fallback seguro: sem timestamp → `now()` (mantém o comportamento anterior).
+     */
+    private function resolveSentAt(mixed $raw, string $tz): \Illuminate\Support\Carbon
+    {
+        if ($raw === null || $raw === '') {
+            return now();
+        }
+
+        try {
+            $c = is_numeric($raw)
+                ? \Illuminate\Support\Carbon::createFromTimestamp((int) $raw) // epoch é UTC
+                : \Illuminate\Support\Carbon::parse((string) $raw);           // RFC3339: offset embutido
+            return $c->setTimezone($tz); // storage UPos é local ao business, não UTC
+        } catch (\Throwable) {
+            return now(); // formato inesperado → fallback seguro
+        }
+    }
+
+    /**
+     * Fuso do business — mesmo valor que o middleware HTTP `Timezone` aplicaria
+     * num request autenticado. Sem business/time_zone → default do app (não quebra).
+     */
+    private function businessTimezone(): string
+    {
+        $tz = optional(\App\Business::find($this->businessId))->time_zone;
+
+        return is_string($tz) && $tz !== '' ? $tz : (string) config('app.timezone');
     }
 
     /**
@@ -333,13 +405,23 @@ class ProcessIncomingWebhookJob implements ShouldQueue
         $info = $event['Info'] ?? [];
         $message = $event['Message'] ?? [];
 
-        // SenderAlt tem o número E.164 real (Chat/Sender vem @lid em multi-device).
-        // Fallback Chat se SenderAlt vazio (grupos / casos exóticos).
-        $senderJid = (string) ($info['SenderAlt'] ?? $info['Chat'] ?? '');
-        $phone = '+' . preg_replace('/\D/', '', explode('@', $senderJid)[0]);
+        // fromMe = mensagem enviada pela PRÓPRIA equipe — seja pelo composer do
+        // oimpresso, seja pelo WhatsApp oficial (Web/celular) no mesmo número
+        // pareado. Multi-device replica esses envios pra sessão do daemon com
+        // IsFromMe=true. NÃO descartamos mais (ver bloco de persistência abaixo).
+        $fromMe = ($info['IsFromMe'] ?? false) === true;
 
-        // customer_external_id — JID original do contato (Chat em 1:1).
+        // customer_external_id — JID do OUTRO lado (cliente) em 1:1. Igual pra
+        // inbound e outbound: o Chat sempre identifica o contato, não o remetente.
         $externalId = (string) ($info['Chat'] ?? $info['Sender'] ?? '');
+
+        // Telefone E.164 do CLIENTE. Inbound: SenderAlt traz o phone real do
+        // cliente (Chat/Sender podem vir @lid em multi-device). Outbound (fromMe):
+        // Sender/SenderAlt é o NOSSO número → o cliente é o Chat (destinatário).
+        $contactJid = $fromMe
+            ? $externalId
+            : (string) ($info['SenderAlt'] ?? $info['Chat'] ?? '');
+        $phone = '+' . preg_replace('/\D/', '', explode('@', $contactJid)[0]);
 
         // Mídia inbound — incident 2026-05-28 M1: ANTES NUNCA preenchia
         // media_mime/url/size/filename → 45.819 msgs presas type='' body='[media]'
@@ -382,17 +464,25 @@ class ProcessIncomingWebhookJob implements ShouldQueue
             default => '[' . $detectedType . ']',
         };
 
-        if (($info['IsFromMe'] ?? false) === true) {
-            return []; // outbound enviado por nós mesmo — ignora
-        }
-
+        // R-WA-WHATSMEOW-FROMME (2026-05-30): NÃO descartar fromMe. Antes
+        // `if (IsFromMe) return [];` jogava fora toda resposta que a equipe
+        // mandava pelo WhatsApp oficial (Web/celular) → caixa unificada cega do
+        // lado de saída. Agora persistimos como outbound/sent/human; o eco dos
+        // envios feitos pelo próprio oimpresso é deduplicado pela UNIQUE
+        // provider_message_id (idempotência), espelhando o fix Baileys PR #688.
         $out = [[
             'provider_message_id' => $info['ID'] ?? null,
             'external_id' => $externalId,
             'from' => $phone,
+            'from_me' => $fromMe,
             'body' => $body,
             'type' => $detectedType,
-            'push_name' => $info['PushName'] ?? null,
+            // PushName em evento fromMe é o nome do operador — NÃO usar como
+            // contact_name do cliente. Passa null pra preservar o nome existente.
+            'push_name' => $fromMe ? null : ($info['PushName'] ?? null),
+            // Hora REAL do evento (whatsmeow serializa time.Time → RFC3339 c/ offset
+            // OU epoch). Usada no created_at em vez de now() — ver resolveSentAt().
+            'sent_at' => $info['Timestamp'] ?? null,
             'raw' => $payload,
         ]];
 

@@ -43,7 +43,7 @@ import type { ContactInfo } from './IdentificacaoTab';
 // Wagner 2026-05-27 -- iteracao 2: removido sub-tab `placas` (promovido pra
 // tab principal acessado via botao header) + removido sub-tab `activities`
 // (duplicava tab principal `Auditoria` -- mesma fonte `activity_log` Spatie).
-type OssSubTabKey =
+export type OssSubTabKey =
   | 'ledger'
   | 'sales'
   | 'payments'
@@ -54,6 +54,16 @@ type OssSubTabKey =
 
 export interface OssTabProps {
   contact: ContactInfo;
+  /**
+   * Sub-aba controlada de fora (Wagner 2026-06-01): o chip "📎 N anexos" do
+   * header do drawer (Index.tsx) passa `activeSubTab='documents'` pra cair
+   * direto nos anexos. Se ausente, OssTab usa estado interno (default 'ledger').
+   */
+  activeSubTab?: OssSubTabKey;
+  /** Reporta troca de sub-aba (clique interno) pro pai manter sync — highlight do chip. */
+  onSubTabChange?: (key: OssSubTabKey) => void;
+  /** Wagner 2026-06-01 — repassa a contagem viva de anexos pro header (chip "📎 N anexos"). */
+  onDocumentsCountChange?: (count: number) => void;
   /**
    * Permissoes injetadas pelo Index.tsx (Wave futura pode estender ContactController::index).
    * Por ora todas default false — sub-tabs operam em modo read-only.
@@ -78,8 +88,23 @@ const SUB_TABS: Array<{ key: OssSubTabKey; label: string; icon: LucideIcon }> = 
   { key: 'rewards', label: 'Pontos', icon: Gift },
 ];
 
-export default function OssTab({ contact, permissions = {}, locations = [] }: OssTabProps) {
-  const [active, setActive] = useState<OssSubTabKey>('ledger');
+export default function OssTab({
+  contact,
+  activeSubTab,
+  onSubTabChange,
+  onDocumentsCountChange,
+  permissions = {},
+  locations = [],
+}: OssTabProps) {
+  // Estado interno = fallback quando OssTab roda sem controle externo. Quando o
+  // pai passa `activeSubTab` (Index.tsx via chip header), ELE manda na renderização.
+  const [internalActive, setInternalActive] = useState<OssSubTabKey>('ledger');
+  const active = activeSubTab ?? internalActive;
+
+  const selectSubTab = (key: OssSubTabKey) => {
+    setInternalActive(key);
+    onSubTabChange?.(key);
+  };
 
   return (
     <div
@@ -103,14 +128,14 @@ export default function OssTab({ contact, permissions = {}, locations = [] }: Os
               key={t.key}
               type="button"
               role="tab"
-              onClick={() => setActive(t.key)}
+              onClick={() => selectSubTab(t.key)}
               aria-selected={isActive}
               aria-controls={`oss-subpanel-${t.key}`}
               data-testid={`oss-subtab-${t.key}`}
               className={
                 'w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors text-left ' +
                 (isActive
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground')
               }
             >
@@ -156,6 +181,7 @@ export default function OssTab({ contact, permissions = {}, locations = [] }: Os
               delete_document: permissions.delete_document ?? false,
               edit_note: permissions.edit_note ?? false,
             }}
+            onCountChange={onDocumentsCountChange}
           />
         )}
         {/* Wagner 2026-05-27 iteracao 2: `placas` virou tab principal acessada

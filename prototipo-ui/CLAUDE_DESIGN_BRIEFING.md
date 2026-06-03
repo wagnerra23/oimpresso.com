@@ -1,5 +1,12 @@
 # CLAUDE_DESIGN_BRIEFING.md — pra Claude Design (Cowork ou plugin local)
 
+> ## ⚠️ CANON ATUAL (2026-05-30) — corrige §2/§4/§12 abaixo
+> Onde divergir, vence isto:
+> 1. **Entrada única:** **[`memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md`](../memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)** — índice mestre + regra de ouro + goldens PT-01..PT-05.
+> 2. **Cor = roxo** `primary` `oklch(0.55 0.15 295)` (ADR 0235). O §4 abaixo (shadcn genérico/stone-50, sem roxo) está defasado — **zero `blue-*` de marca**.
+> 3. **Posicionamento:** ERP **multi-vertical** (ADR 0121); **Larissa = vestuário**, não gráfica/comunicação visual. O §2 abaixo ("setor de comunicação visual") está errado.
+> 4. **Crie DENTRO do que existe:** copie o golden do arquétipo + rode o PRE-FLIGHT; nunca invente paleta/persona/componente (M-AP-6) nem repita anti-padrão F3.
+
 > Este arquivo te dá o contexto do oimpresso pra você produzir protótipo + crítica que **não invente paleta nem persona**.
 
 ## 1. Quem você é neste loop
@@ -138,6 +145,13 @@ Referências canon:
 - ❌ **Densidade Bootstrap-default** (muito espaço entre coisas) — Larissa precisa ver muito de uma vez
 - ❌ **Emoji em UI productiva** — só lucide-react icons
 - ❌ **Texto explicativo verbose** ("Bem-vindo! Aqui você pode...") — direto ao ponto
+
+### 7.1 Estrutura & evolução (artefato de design)
+
+> Espelha pra **design** as duas regras canônicas de [`memory/proibicoes.md`](../memory/proibicoes.md) — referencia, **não duplica**: *não-duplicação* ("NUNCA criar arquivo … sem `Glob`/`Grep` … edita o existente") e *append-only* ("ADRs CANON são append-only"). Origem: 2 HTMLs de governança duplicados no Cowork (2026-06-01).
+
+- ❌ **Criar `.html`/artefato de design novo sem checar duplicação antes** (`Glob`/grep do tema). Tela/módulo/**variação** de ERP = rota ou Tweak (`useTweaks`) no **layout único do shell**, nunca arquivo novo. Relatório/avaliação *meta* = **1 tema = 1 doc**; se já existe irmão, **edita o existente** — **nunca `vN.html`**. _(L-21.)_
+- ❌ **Mover/consolidar artefato sem deixar trilha.** Todo artefato vivo (HTML de app/relatório, doc canônico) carrega **no fim** um bloco `Trilha do tempo` **append-only** (`data · o que mudou · o que supersedeu · → pra onde o anterior foi arquivado`); ao mover, deixa **lápide** na origem ou em `_arquivo/<pasta>/INDEX.md` (origem→destino + substituto). Nada some sem rastro legível. _(Concretiza L-07 · L-22.)_
 
 ## 8. Output esperado por fase
 

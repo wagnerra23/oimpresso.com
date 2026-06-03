@@ -1,11 +1,11 @@
 // DrawerCobranca.tsx — drawer detalhe condicional por tipo (boleto/pix/pix_recv/card) + Timeline
 import { useEffect, useRef } from 'react';
 import {
-  X, Copy, Download, Link2, RotateCcw, RefreshCw, ShieldCheck, AlertCircle,
+  X, Copy, ShieldCheck, AlertCircle,
 } from 'lucide-react';
 import { Btn, StatusBadge, GatewayTipoChip, OrigemChip } from './atoms';
 import {
-  brl, cn, fmtDate, fmtDateRel, piiMask, DRIVERS, ORIGENS,
+  brl, cn, copiar, fmtDate, fmtDateRel, piiMask, DRIVERS, ORIGENS,
   type Cobranca, type Account,
 } from '../_lib/cobranca-shared';
 
@@ -20,8 +20,6 @@ export default function DrawerCobranca({ cob, accounts, today, onClose }: Props)
   const drawerRef = useRef<HTMLDivElement>(null);
   const drv = DRIVERS[cob.gateway];
   const acct = accounts.find(a => a.id === cob.account_id);
-  const refundDisponivel = cob.status === 'paga' && drv && ['asaas', 'inter', 'pesapal'].includes(drv.key);
-  const refundLabel = drv?.key === 'bcb_pix' ? 'Não disponível pra PIX Automático' : null;
 
   // WCAG 2.1: ESC + scroll lock + focus trap
   useEffect(() => {
@@ -105,7 +103,9 @@ export default function DrawerCobranca({ cob, accounts, today, onClose }: Props)
               <div className="bg-rose-50 border border-rose-200 rounded px-3 py-2 text-[11.5px] text-rose-900 font-mono">
                 {cob.erro_msg}
               </div>
-              <Btn variant="outline" size="xs" className="mt-2"><RefreshCw className="h-3 w-3" />Tentar reemitir</Btn>
+              {/* B6 "botões honestos" (2026-05-31): "Tentar reemitir" REMOVIDO —
+                  não há rota de reemissão (POST /cobranca/emitir é pra nova
+                  cobrança, não retry de uma falha existente). */}
             </div>
           )}
 
@@ -115,15 +115,19 @@ export default function DrawerCobranca({ cob, accounts, today, onClose }: Props)
           </div>
         </div>
 
-        <div className="border-t border-stone-200 p-3 flex items-center gap-2 bg-white">
-          {cob.tipo === 'boleto' && <Btn variant="outline"><Download className="h-3 w-3" />Baixar PDF</Btn>}
-          {cob.tipo === 'boleto' && <Btn variant="outline"><Link2 className="h-3 w-3" />Link 2ª via</Btn>}
-          {cob.tipo?.startsWith('pix') && cob.tipo !== 'pix_recv' && <Btn variant="outline"><Copy className="h-3 w-3" />Copiar BR Code</Btn>}
-          <div className="flex-1" />
-          {refundDisponivel && <Btn variant="outline" className="text-amber-700 hover:bg-amber-50"><RotateCcw className="h-3 w-3" />Estornar</Btn>}
-          {refundLabel && cob.status === 'paga' && <span className="text-[10.5px] text-stone-400" title={refundLabel}>refund indisp.</span>}
-          {!['paga', 'cancelada', 'erro'].includes(cob.status) && <Btn variant="danger"><X className="h-3 w-3" />Cancelar</Btn>}
-        </div>
+        {/* B6 "botões honestos" (2026-05-31): footer só mostra ação real AGORA.
+            "Copiar BR Code" (PIX) → clipboard via copiar(). REMOVIDOS por falta
+            de rota backend: "Baixar PDF" + "Link 2ª via" (sem endpoint boleto-pdf
+            no CobrancaController), "Estornar" (sem rota refund) e "Cancelar"
+            (POST /boletos/{id}/cancelar é pro model legacy BoletoRemessa, não pra
+            PaymentGateway\Cobranca desta tela). Reentram quando o endpoint existir. */}
+        {cob.tipo?.startsWith('pix') && cob.tipo !== 'pix_recv' && cob.pix_emv && (
+          <div className="border-t border-stone-200 p-3 flex items-center gap-2 bg-white">
+            <Btn variant="outline" onClick={() => copiar(cob.pix_emv, 'BR Code copiado')}>
+              <Copy className="h-3 w-3" />Copiar BR Code
+            </Btn>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -153,7 +157,7 @@ function SectionBoleto({ cob }: { cob: Cobranca }) {
           <div className="text-[10px] uppercase tracking-widest text-stone-500 mb-1 font-medium">Linha digitável</div>
           <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded px-2.5 py-2">
             <div className="font-mono text-[11.5px] flex-1 break-all">{cob.linha_digitavel}</div>
-            <Btn variant="outline" size="xs"><Copy className="h-3 w-3" /></Btn>
+            <Btn variant="outline" size="xs" aria-label="Copiar linha digitável" onClick={() => copiar(cob.linha_digitavel, 'Linha digitável copiada')}><Copy className="h-3 w-3" /></Btn>
           </div>
         </div>
       )}
@@ -186,7 +190,9 @@ function SectionPix({ cob }: { cob: Cobranca }) {
           ) : (
             <div className="text-[11px] text-stone-400 italic">BR Code não disponível</div>
           )}
-          <Btn variant="outline" size="xs" className="mt-2"><Copy className="h-3 w-3" />Copiar BR Code</Btn>
+          {cob.pix_emv && (
+            <Btn variant="outline" size="xs" className="mt-2" onClick={() => copiar(cob.pix_emv, 'BR Code copiado')}><Copy className="h-3 w-3" />Copiar BR Code</Btn>
+          )}
         </div>
       </div>
     </div>

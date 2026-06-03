@@ -309,6 +309,15 @@ class ContactController extends Controller
                     'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
                     'import' => auth()->user()->can('customer.create'),
                 ],
+                // Tabela de preço REAL pro drawer Comercial (ADR 0093 scope).
+                // [{id,name}] das customer_groups do business — substitui o
+                // dropdown fake hardcoded (padrao/varejo/atacado/parceiro).
+                // biz=164 Martinho: MECÂNICA / FABRICANTE / FINAL.
+                'priceGroups' => CustomerGroup::where('business_id', $business_id)
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                    ->map(fn ($g) => ['id' => (int) $g->id, 'name' => (string) $g->name])
+                    ->all(),
                 // Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer.
                 // Daniela @ Martinho: ve placas no drawer apenas se OficinaAuto
                 // ativo. biz=4 Larissa vestuario nao ve (graceful default false).
@@ -465,6 +474,9 @@ class ContactController extends Controller
             'contacts.balance',
             'contacts.credit_limit',
             'contacts.pay_term_number',
+            // Tabela de preço REAL (FK customer_groups) — canon UPOS, sempre presente.
+            // Drawer ComercialTab lê pra popular o dropdown de tabela de preço.
+            'contacts.customer_group_id',
             'contacts.contact_status',
             'contacts.created_at',
             // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
@@ -473,6 +485,10 @@ class ContactController extends Controller
             'contacts.zip_code',
             'contacts.address_line_1',
             'contacts.address_line_2',
+            // Endereço de entrega (shipping_address) — coluna UPOS desde 2020.
+            // Sem isso, o drawer EnderecoTab reabre com o campo vazio mesmo salvo
+            // (mesma classe de bug do zip_code/address_line acima). Wagner 2026-06-02.
+            'contacts.shipping_address',
         ];
         // `neighborhood` e `numero` (BR canon) — migrations aditivas recentes
         // (2026_05_22_120000 e 2026_05_22_180000). hasColumn graceful pra
@@ -542,6 +558,13 @@ class ContactController extends Controller
         if ($hasContatoCol) {
             $selectCols[] = 'contacts.contato';
         }
+        // `mensagem_venda` (TEXT) — migrado de PESSOAS.MENSAGEM_PARA_VENDA Delphi.
+        // Exibido como alerta ao vendedor no POS + editavel no drawer Comercial.
+        // Migration 2026_05_29_120000_add_mensagem_venda_to_contacts.
+        $hasMensagemVendaCol = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'mensagem_venda');
+        if ($hasMensagemVendaCol) {
+            $selectCols[] = 'contacts.mensagem_venda';
+        }
         if ($hasWaveBCols) {
             $selectCols = array_merge($selectCols, [
                 'contacts.tipo',
@@ -609,6 +632,35 @@ class ContactController extends Controller
                 ->toArray();
         }
 
+        // Wagner 2026-06-01 — header drawer botao contador "📎 N anexos". Conta
+        // arquivos (media) anexados aos document-notes do contato. business_id
+        // scope (Tier 0 ADR 0093) nas DUAS queries. 2 passos (sem has()/relacao,
+        // larastan-clean igual vehiclesCountMap): mapa note=>contato, depois media
+        // por nota. model_type guarda a classe cheia (sem morphMap no projeto).
+        $documentsCountMap = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('document_and_notes') && ! empty($contactIds)) {
+            $noteToContact = \App\DocumentAndNote::where('business_id', $business_id)
+                ->where('notable_type', \App\Contact::class)
+                ->whereIn('notable_id', $contactIds)
+                ->pluck('notable_id', 'id');
+
+            if ($noteToContact->isNotEmpty()) {
+                $mediaPerNote = \App\Media::where('business_id', $business_id)
+                    ->where('model_type', \App\DocumentAndNote::class)
+                    ->whereIn('model_id', $noteToContact->keys())
+                    ->selectRaw('model_id, COUNT(*) as cnt')
+                    ->groupBy('model_id')
+                    ->pluck('cnt', 'model_id');
+
+                foreach ($mediaPerNote as $noteId => $cnt) {
+                    $cid = $noteToContact[$noteId] ?? null;
+                    if ($cid !== null) {
+                        $documentsCountMap[$cid] = ($documentsCountMap[$cid] ?? 0) + (int) $cnt;
+                    }
+                }
+            }
+        }
+
         $stats = Transaction::where('transactions.business_id', $business_id)
             ->whereIn('transactions.contact_id', $contactIds)
             ->where('transactions.type', 'sell')
@@ -629,7 +681,7 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $vehiclesCountMap) {
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap, $documentsCountMap) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -682,6 +734,7 @@ class ContactController extends Controller
                 'numero' => $contact->numero ?? null,
                 'city' => $contact->city,
                 'state' => $contact->state,
+                'shipping_address' => $contact->shipping_address,
             ];
 
             // Wave G — campos opcionais quando migration Wave B rodou.
@@ -746,8 +799,14 @@ class ContactController extends Controller
             $payload['limite_credito'] = $payload['credit_limit'];
             $payload['pay_term_number'] = $contact->pay_term_number !== null ? (int) $contact->pay_term_number : null;
             $payload['prazo_padrao_dias'] = $payload['pay_term_number'];
+            // Tabela de preço REAL (FK customer_groups) — canon UPOS. Drawer
+            // ComercialTab popula o dropdown com priceGroups e grava aqui.
+            $payload['customer_group_id'] = $contact->customer_group_id !== null
+                ? (int) $contact->customer_group_id : null;
             $payload['tabela_preco_padrao'] = $hasDrawerCols ? ($contact->tabela_preco_padrao ?? null) : null;
             $payload['pgto_padrao'] = $hasDrawerCols ? ($contact->pgto_padrao ?? null) : null;
+            // mensagem_venda (alerta ao vendedor no POS · editavel no drawer).
+            $payload['mensagem_venda'] = $hasMensagemVendaCol ? ($contact->mensagem_venda ?? null) : null;
             $payload['obs_comercial'] = $hasDrawerCols ? ($contact->obs_comercial ?? null) : null;
 
             // ── ClassificacaoTab: contact_status enum UPOS ───────────────────
@@ -776,6 +835,9 @@ class ContactController extends Controller
 
             // ── Wagner 2026-05-27: contador de veiculos pro header drawer (botao "🚛 N placas")
             $payload['vehicles_count'] = (int) ($vehiclesCountMap[$contact->id] ?? 0);
+
+            // ── Wagner 2026-06-01: contador de anexos pro header drawer (botao "📎 N anexos")
+            $payload['documents_count'] = (int) ($documentsCountMap[$contact->id] ?? 0);
 
             return $payload;
         })->all();
@@ -1419,6 +1481,168 @@ class ContactController extends Controller
     }
 
     /**
+     * Wagner 2026-06-01 — anexos do cliente pro drawer (Operações → Documentos).
+     * Lista os arquivos (media) anexados aos document-notes do contato como JSON,
+     * fechando o gap Wave D (o painel não carregava os anexos existentes — só
+     * mostrava "Anexos (0)" até subir um arquivo na sessão). Mesma fonte do
+     * contador `documents_count` do header (media via document_and_notes).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): scope business_id em TODAS as
+     * queries (contato, notas e media). Sem relação/has() — larastan-clean igual
+     * documentsCountMap: 2 queries simples + accessors do Media pro download.
+     *
+     * GET /cliente/{id}/anexos → { documents: DocumentItem[] }
+     */
+    public function anexos($id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        // 404 cross-tenant: o contato precisa existir DENTRO do business.
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $noteIds = \App\DocumentAndNote::where('business_id', $business_id)
+            ->where('notable_type', \App\Contact::class)
+            ->where('notable_id', $id)
+            ->pluck('id');
+
+        if ($noteIds->isEmpty()) {
+            return response()->json(['documents' => []]);
+        }
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->whereIn('model_id', $noteIds)
+            ->orderByDesc('id')
+            ->get();
+
+        $documents = $media->map(function ($m) {
+            return [
+                'id' => (int) $m->id,
+                'file_name' => $m->file_name,
+                'display_name' => $m->display_name,
+                'description' => $m->description,
+                'file_size' => null,
+                'mime_type' => null,
+                'uploaded_by_name' => null,
+                'created_at' => optional($m->created_at)->toISOString(),
+                'download_url' => $m->display_url,
+            ];
+        })->all();
+
+        return response()->json(['documents' => $documents]);
+    }
+
+    /**
+     * Wagner 2026-06-01 — upload de anexo do cliente (drawer Operações → Documentos).
+     * Cria 1 document-note + anexa o arquivo (media) ao contato. Habilita o
+     * "anexar" que estava read-only (botão oculto + endpoint legado /post-document-upload
+     * não persistia o vínculo). Pareado com GET (listar) e DELETE (excluir).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): contato resolvido DENTRO do
+     * business; o document-note herda business_id; Media::uploadMedia grava com
+     * o mesmo scope.
+     *
+     * POST /cliente/{id}/anexos  (campo `file`)
+     */
+    public function storeAnexo(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|file|max:25600', // 25 MB
+        ]);
+
+        $business_id = request()->session()->get('user.business_id');
+        $user_id = request()->session()->get('user.id');
+
+        $contact = \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $file = $request->file('file');
+        $heading = $file instanceof \Illuminate\Http\UploadedFile
+            ? $file->getClientOriginalName()
+            : 'anexo';
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            $note = $contact->documentsAndnote()->create([
+                'business_id' => $business_id,
+                'created_by' => $user_id,
+                'heading' => $heading,
+            ]);
+
+            \App\Media::uploadMedia($business_id, $note, $request, 'file', true);
+
+            \Illuminate\Support\Facades\DB::commit();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Log::error('storeAnexo cliente '.$id.': '.$e->getMessage());
+
+            return response()->json(['message' => __('messages.something_went_wrong')], 500);
+        }
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->where('model_id', $note->id)
+            ->orderByDesc('id')
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'document' => $media ? [
+                'id' => (int) $media->id,
+                'file_name' => $media->file_name,
+                'display_name' => $media->display_name,
+                'description' => $media->description,
+                'file_size' => null,
+                'mime_type' => null,
+                'uploaded_by_name' => null,
+                'created_at' => optional($media->created_at)->toISOString(),
+                'download_url' => $media->display_url,
+            ] : null,
+        ], 201);
+    }
+
+    /**
+     * Wagner 2026-06-01 — exclui um anexo (media) do cliente. Valida que o media
+     * pertence a um document-note DESTE contato (Tier 0 business_id scope) antes
+     * de excluir. Remove o document-note se ficar órfão (sem media e sem texto).
+     *
+     * DELETE /cliente/{id}/anexos/{mediaId}
+     */
+    public function destroyAnexo($id, $mediaId)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $noteIds = \App\DocumentAndNote::where('business_id', $business_id)
+            ->where('notable_type', \App\Contact::class)
+            ->where('notable_id', $id)
+            ->pluck('id');
+
+        $media = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->whereIn('model_id', $noteIds)
+            ->where('id', $mediaId)
+            ->firstOrFail();
+
+        $noteId = $media->model_id;
+        $media->delete();
+
+        // Remove o document-note se ficou órfão (sem outras medias e sem texto).
+        $remaining = \App\Media::where('business_id', $business_id)
+            ->where('model_type', \App\DocumentAndNote::class)
+            ->where('model_id', $noteId)
+            ->count();
+        if ($remaining === 0) {
+            \App\DocumentAndNote::where('business_id', $business_id)
+                ->where('id', $noteId)
+                ->whereNull('description')
+                ->delete();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * Slice 7 — type-hint StoreContactRequest wira App\Rules\BR\CpfCnpj +
@@ -1906,6 +2130,7 @@ class ContactController extends Controller
                     'city' => $contact->city ?? null,
                     'state' => $contact->state ?? null,
                     'zip_code' => $contact->zip_code ?? null,
+                    'shipping_address' => $contact->shipping_address ?? null,
                     'customer_group_id' => $contact->customer_group_id ?? null,
                     'credit_limit' => $contact->credit_limit ?? null,
                     // Dados Fiscais BR (migration 2026_05_21_140000). Diferente do Show()
@@ -2162,6 +2387,9 @@ class ContactController extends Controller
                 'pay_term_type',
                 'balance',
                 'supplier_business_name',
+                // mensagem_venda — alerta ao vendedor no POS quando o cliente é
+                // selecionado (migrado de PESSOAS.MENSAGEM_PARA_VENDA Delphi).
+                'contacts.mensagem_venda',
                 'cg.amount as discount_percent',
                 'cg.price_calculation_type',
                 'cg.selling_price_group_id',

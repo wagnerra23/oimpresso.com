@@ -46,7 +46,7 @@ const Edit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
 
   return (
     <div className="mx-auto max-w-5xl p-6 space-y-4">
-      <Link href={`/ads/admin/skills/${skill.slug}`} className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
+      <Link href={`/ads/admin/skills/${skill.slug}`} className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
         <ArrowLeft className="w-4 h-4" /> Voltar pro detalhe
       </Link>
 

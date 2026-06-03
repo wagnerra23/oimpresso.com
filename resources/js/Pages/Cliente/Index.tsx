@@ -34,6 +34,7 @@ import {
   List,
   Loader2,
   MoreVertical,
+  Paperclip,
   Phone,
   Plus,
   Search,
@@ -48,6 +49,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import {
   DropdownMenu,
@@ -67,10 +69,10 @@ import {
 import IdentificacaoTab from './_drawer/IdentificacaoTab';
 import ContatoTab from './_drawer/ContatoTab';
 import EnderecoTab from './_drawer/EnderecoTab';
-import ComercialTab from './_drawer/ComercialTab';
+import ComercialTab, { type PriceGroupOption } from './_drawer/ComercialTab';
 import ClassificacaoTab from './_drawer/ClassificacaoTab';
 // Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
-import OssTab from './_drawer/OssTab';
+import OssTab, { type OssSubTabKey } from './_drawer/OssTab';
 import IATab from './_drawer/IATab';
 import AuditoriaTab from './_drawer/AuditoriaTab';
 // Wagner 2026-05-27 iteracao 2: Placas promovido pra tab principal (botao header).
@@ -137,8 +139,12 @@ interface ClienteRow {
   state?: string | null;
   limite_credito?: number | null;
   prazo_padrao_dias?: number | null;
+  // Tabela de preço REAL (FK customer_groups). Substitui o fake tabela_preco_padrao.
+  customer_group_id?: number | null;
   tabela_preco_padrao?: string | null;
   pgto_padrao?: string | null;
+  // Mensagem exibida como alerta ao vendedor no POS (migrado do Delphi).
+  mensagem_venda?: string | null;
   obs_comercial?: string | null;
   segmento?: string | null;
   tags?: string[] | null;
@@ -158,6 +164,9 @@ interface ClienteRow {
   // Wagner 2026-05-27 iteracao 2 — contador veiculos pro botao header drawer.
   // Lazy: count so existe se modulo OficinaAuto instalado (gate hasTable).
   vehicles_count?: number | null;
+  // Wagner 2026-06-01 — contador de anexos (document-notes com media) pro chip
+  // "📎 N anexos" no header do drawer. Count server-side em ContactController.
+  documents_count?: number | null;
 }
 
 interface ListMeta {
@@ -225,6 +234,12 @@ export interface ClienteIndexPageProps {
     view: boolean;
     import: boolean;
   };
+  /**
+   * Tabelas de preço REAIS do business (customer_groups id+name). Server-side
+   * em ContactController::index (scope business_id). Alimenta o dropdown de
+   * tabela de preço no drawer ComercialTab — substitui o enum fake hardcoded.
+   */
+  priceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer. true se modulo
    *  OficinaAuto ativo no business. Default false (biz=4 Larissa vestuario). */
   oficinaauto_enabled?: boolean;
@@ -1143,9 +1158,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           className={
                             'border-b border-border cursor-pointer transition-colors ' +
                             (isOpen
-                              ? 'bg-blue-50/60 dark:bg-blue-950/30'
+                              ? 'bg-primary/10'
                               : isFocused
-                                ? 'bg-blue-50/30 dark:bg-blue-950/20 ring-2 ring-inset ring-blue-300 dark:ring-blue-700'
+                                ? 'bg-primary/5 ring-2 ring-inset ring-primary/40'
                                 : 'hover:bg-muted/40')
                           }
                           onClick={() => {
@@ -1281,6 +1296,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         open={openContactId !== null}
         rows={rows}
         draftContact={draftContact}
+        priceGroups={props.priceGroups ?? []}
         oficinaAutoEnabled={props.oficinaauto_enabled ?? false}
         onOpenChange={(open) => {
           if (!open) setDraftContact(null);
@@ -1338,7 +1354,7 @@ function KpiSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="rounded-xl border border-border bg-background p-5 shadow-sm h-28 animate-pulse" />
+        <div key={i} className="rounded-lg border border-border bg-background p-5 shadow-sm h-28 animate-pulse" />
       ))}
     </div>
   );
@@ -1422,7 +1438,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
         className={
           'inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ' +
           (hasSel
-            ? 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+            ? 'border-primary/40 bg-primary/10 text-primary'
             : 'border-transparent bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground')
         }
         aria-haspopup="listbox"
@@ -1476,7 +1492,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
                 className={
                   'w-full text-left rounded px-2 py-1.5 text-xs flex items-center gap-2 transition-colors ' +
                   (isOn
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                    ? 'bg-primary/10 text-primary'
                     : 'text-foreground hover:bg-muted')
                 }
               >
@@ -1485,7 +1501,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
                     className={
                       'inline-flex h-3.5 w-3.5 items-center justify-center rounded border ' +
                       (isOn
-                        ? 'border-blue-500 bg-blue-500 text-white'
+                        ? 'border-primary bg-primary text-primary-foreground'
                         : 'border-border bg-background')
                     }
                   >
@@ -1493,7 +1509,7 @@ function FilterDropdown({ label, value, options, onChange, multi = false }: Filt
                   </span>
                 )}
                 <span className="flex-1">{opt.label}</span>
-                {!multi && isOn && <Check size={11} className="text-blue-600" />}
+                {!multi && isOn && <Check size={11} className="text-primary" />}
               </button>
             );
           })}
@@ -1520,7 +1536,7 @@ function KpiCard({
   return (
     <div
       className={
-        'rounded-xl border p-5 shadow-sm ' +
+        'rounded-lg border p-5 shadow-sm ' +
         (danger
           ? 'border-rose-200 bg-rose-50/50 dark:border-rose-900/40 dark:bg-rose-950/30'
           : 'border-border bg-background')
@@ -1742,6 +1758,7 @@ function ClienteSheet({
   open,
   rows,
   draftContact,
+  priceGroups = [],
   oficinaAutoEnabled = false,
   onOpenChange,
   onContactUpdated,
@@ -1753,6 +1770,8 @@ function ClienteSheet({
    * via state Index.tsx pra não depender do `rows.find()` (que falha porque
    * draft recém-criado pode estar fora da página paginada da listagem). */
   draftContact?: ClienteRow | null;
+  /** Tabelas de preço REAIS (customer_groups) pro dropdown do ComercialTab. */
+  priceGroups?: PriceGroupOption[];
   /** Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab. */
   oficinaAutoEnabled?: boolean;
   onOpenChange: (open: boolean) => void;
@@ -1778,11 +1797,20 @@ function ClienteSheet({
   // o EnderecoTab continuaria mostrando state local antigo. Incrementar key
   // descarta state local e re-monta com novo `contact.zip_code/address_line_1/...`.
   const [enderecoVersion, setEnderecoVersion] = useState(0);
+  // Wagner 2026-06-01 — sub-aba ativa da tab Operações (OssTab). Controlada aqui
+  // pra o chip header "📎 N anexos" cair direto em Documentos. Reset p/ 'ledger'
+  // quando entra na tab Operações pelo caminho normal (tab bar).
+  const [opsSubTab, setOpsSubTab] = useState<OssSubTabKey>('ledger');
+  // Wagner 2026-06-01 — contagem VIVA de anexos pro chip "📎 N anexos". null =
+  // usa o valor estático do payload (documents_count); quando o painel Documentos
+  // carrega/sobe/exclui, o OssTab reporta o número real e o chip passa a refletir.
+  const [liveAnexosCount, setLiveAnexosCount] = useState<number | null>(null);
 
   // Reset tab ao abrir contact diferente. Drawer abre default em "Identificação".
   useEffect(() => {
     if (open && contactId) {
       setActiveTab('identificacao');
+      setLiveAnexosCount(null); // novo contact → count do payload até o painel carregar
     }
   }, [open, contactId]);
 
@@ -1916,6 +1944,28 @@ function ClienteSheet({
                 <span>placas</span>
               </button>
             )}
+            {/* Wagner 2026-06-01 — chip "anexos" ao lado de placas: acesso 1-clique
+                aos documentos (abre Operações → Documentos). Universal (sem gate):
+                anexos valem pra todo cliente, não só OficinaAuto. */}
+            <button
+              type="button"
+              onClick={() => {
+                setOpsSubTab('documents');
+                setActiveTab('operacoes');
+              }}
+              className={
+                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
+                (activeTab === 'operacoes' && opsSubTab === 'documents'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
+              }
+              aria-pressed={activeTab === 'operacoes' && opsSubTab === 'documents'}
+              title="Ver anexos do cliente (comprovantes, contratos, fotos)"
+            >
+              <Paperclip size={11} aria-hidden />
+              <span>{liveAnexosCount ?? contact?.documents_count ?? 0}</span>
+              <span>anexos</span>
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('auditoria')}
@@ -1963,11 +2013,16 @@ function ClienteSheet({
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setActiveTab(t.key)}
+                onClick={() => {
+                  setActiveTab(t.key);
+                  // Entrar em Operações pela tab bar começa no Extrato (não herda
+                  // 'documents' deixado por um clique anterior no chip de anexos).
+                  if (t.key === 'operacoes') setOpsSubTab('ledger');
+                }}
                 className={
                   'inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ' +
                   (isActive
-                    ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-400'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground')
                 }
               >
@@ -2017,13 +2072,23 @@ function ClienteSheet({
                 />
               </div>
               <div hidden={activeTab !== 'comercial'}>
-                <ComercialTab contact={contact} />
+                <ComercialTab contact={contact} priceGroups={priceGroups} />
               </div>
               <div hidden={activeTab !== 'classificacao'}>
                 <ClassificacaoTab contact={contact} />
               </div>
               {activeTab === 'operacoes' && (
-                <OssTab contact={{ id: contact.id, name: contact.name }} />
+                <OssTab
+                  contact={{ id: contact.id, name: contact.name }}
+                  activeSubTab={opsSubTab}
+                  onSubTabChange={setOpsSubTab}
+                  /* Wagner 2026-06-01 — habilita anexar/excluir/notas no drawer.
+                     Legado concede view/create/delete de documentos a quem vê o
+                     contato (DocumentAndNoteController::__getPermission p/ App\Contact). */
+                  permissions={{ upload: true, delete_document: true, edit_note: true }}
+                  /* chip "📎 N anexos" reflete a contagem viva após load/upload/delete */
+                  onDocumentsCountChange={setLiveAnexosCount}
+                />
               )}
               {activeTab === 'placas' && oficinaAutoEnabled && (
                 <PlacasMainTab contactId={contact.id} />
@@ -2133,18 +2198,18 @@ function Pagination({
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Por página</span>
-          <select
-            value={perPage}
-            onChange={(e) => onPerPageChange(Number(e.target.value))}
-            className="h-7 rounded border border-border bg-background px-2 text-xs text-foreground"
-            aria-label="Itens por página"
-          >
-            {PER_PAGE_OPTIONS.map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
+          <Select value={String(perPage)} onValueChange={(v) => onPerPageChange(Number(v))}>
+            <SelectTrigger variant="shadcn" size="sm" className="h-7 w-fit text-xs" aria-label="Itens por página">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PER_PAGE_OPTIONS.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-1">
           <PageBtn onClick={() => onPageChange(1)} disabled={!canPrev} aria-label="Primeira página">
@@ -2284,7 +2349,7 @@ function CommandPalette({
       aria-label="Busca rápida"
     >
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl rounded-xl border border-border bg-background shadow-2xl mx-4">
+      <div className="relative w-full max-w-2xl rounded-lg border border-border bg-background shadow-2xl mx-4">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <Search size={16} className="text-muted-foreground" aria-hidden="true" />
           <input
@@ -2428,7 +2493,7 @@ function CheatSheet({ onClose }: { onClose: () => void }) {
       aria-label="Atalhos de teclado"
     >
       <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-md rounded-xl border border-border bg-background shadow-2xl mx-4">
+      <div className="relative w-full max-w-md rounded-lg border border-border bg-background shadow-2xl mx-4">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <Keyboard size={16} className="text-muted-foreground" />

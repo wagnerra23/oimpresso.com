@@ -9,7 +9,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { type ReactNode, useMemo, useState } from 'react';
-import { Lock, FileText, Search } from 'lucide-react';
+import { Lock, FileText, Search, BookOpen } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
@@ -114,20 +114,23 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
 
       {/* Filtros */}
       <div className="fin-toolbar mt-4">
-        <div className="fin-filter-group" role="group" aria-label="Filtrar por tipo">
+        <div className="fin-filter-group" role="radiogroup" aria-label="Filtrar por tipo">
           {(['all', 'receita', 'despesa', 'ativo', 'passivo', 'patrimonio', 'custo'] as const).map((t) => (
-            <label
+            <button
               key={t}
+              type="button"
+              role="radio"
+              aria-checked={tipoFilter === t}
               className={'fin-filter-cb' + (tipoFilter === t ? ' on' : '')}
               style={{ ['--cb-hue' as string]: t === 'receita' ? 145 : t === 'despesa' ? 25 : t === 'ativo' ? 145 : t === 'passivo' ? 25 : 240 } as React.CSSProperties}
+              onClick={() => setTipoFilter(t)}
             >
-              <input type="radio" name="tipo" checked={tipoFilter === t} onChange={() => setTipoFilter(t)} />
               <span className="fin-filter-cb-box" />
               <span>{t === 'all' ? 'Todos' : t.charAt(0).toUpperCase() + t.slice(1)}</span>
               <span className="fin-filter-ct">
                 {t === 'all' ? stats.total : (stats as unknown as Record<string, number>)[t] ?? 0}
               </span>
-            </label>
+            </button>
           ))}
         </div>
 
@@ -208,7 +211,7 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
           <b className="fin-num-neg">{stats.despesa}</b> despesa
         </span>
         <span className="spacer" />
-        <span>📖 Hierarquia BR · Receita Federal DCASP simplificado</span>
+        <span className="inline-flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /> Hierarquia BR · Receita Federal DCASP simplificado</span>
       </div>
     </div>
   );

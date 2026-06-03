@@ -3,13 +3,15 @@
 //   - prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/vendas-flow.jsx:294 (canon)
 //   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md gap #2
 //
-// **UI stub** — mock SEFAZ via setTimeout. Wire backend real (Modules/NfeBrasil)
-// fica pro próximo PR. Demo-ready pra mostrar fluxo guiado 3-step.
+// Wire-up real (TRAVA-SEGUNDA CU-4, 2026-06-02): a transmissão chama o backend
+// real `POST /nfe-brasil/transactions/{id}/emitir` (modelo 55 NF-e B2B; NFC-e 65
+// está fora do núcleo). Emite no ambiente configurado do business (homologação
+// default). Steps 1-2 seguem client-side (revisão + preview).
 //
 // Steps:
 //   1. Review fiscal (CFOP/NCM/CST validações inline + impostos calculados)
-//   2. Preview XML (mock RPS XML formatado)
-//   3. Transmissão (loader → autorizada/rejeitada/contingência aleatório controlado pra demo)
+//   2. Preview XML (formatado client-side — o XML real é montado no servidor)
+//   3. Transmissão (POST real → autorizada/pendente/rejeitada conforme SEFAZ)
 
 import { useState } from 'react';
 import { X, AlertCircle, CheckCircle2, FileText, Send, Loader2 } from 'lucide-react';
@@ -145,28 +147,43 @@ export default function VdNfeEmitModal({ open, venda, onClose, onSuccess }: Prop
 
   const xml = buildPreviewXml(venda, items);
 
-  const handleTransmit = () => {
+  const handleTransmit = async () => {
     setStatus('transmitting');
-    // Mock SEFAZ — 85% autorizada, 10% rejeitada, 5% contingência (demo-friendly)
-    setTimeout(() => {
-      const roll = Math.random();
-      if (roll < 0.85) {
-        const prot = `35260100000${Math.floor(Math.random() * 1_000_000_000)
-          .toString()
-          .padStart(9, '0')}`;
+    try {
+      const csrf =
+        document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+      const res = await fetch(`/nfe-brasil/transactions/${venda.id}/emitir`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({ modelo: '55' }), // NF-e B2B (produto); NFC-e 65 fora do núcleo
+      });
+      const json = await res.json().catch(() => ({}));
+      const em = json?.emissao;
+
+      if (res.ok && em?.status === 'autorizada') {
+        const prot = em.chave_44 || em.numero || String(em.id);
         setProtocolo(prot);
         setStatus('authorized');
-        toast.success(`NF-e autorizada · protocolo ${prot}`);
+        toast.success(`NF-e autorizada · ${em.numero ? 'nº ' + em.numero : prot}`);
         dispatchEmitted(venda.id, prot);
         onSuccess?.(prot);
-      } else if (roll < 0.95) {
-        setStatus('rejected');
-        toast.error('NF-e rejeitada · verifique CFOP/NCM');
-      } else {
+      } else if (res.ok && em?.status === 'pendente') {
         setStatus('contingency');
-        toast.info('SEFAZ indisponível · contingência ativa');
+        toast.info('NF-e transmitida · aguardando autorização da SEFAZ');
+      } else {
+        setStatus('rejected');
+        toast.error(json?.message || json?.error || 'NF-e rejeitada pela SEFAZ');
       }
-    }, 1800);
+    } catch {
+      setStatus('contingency');
+      toast.info('Falha de comunicação com a SEFAZ · tente novamente');
+    }
   };
 
   const close = () => {

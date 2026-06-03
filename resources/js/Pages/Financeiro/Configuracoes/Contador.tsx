@@ -1,10 +1,32 @@
 // @memcofre tela=/financeiro/configuracoes/contador module=Financeiro
 // Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor contadores parceiros (Fase 1 MVP).
-// Charter Onda 32: visual-comparison.md + charter.md pendentes (MWART F0 stub).
+// Wave 4 (2026-05-31): migrado pra DS canon — PageHeader (shared) + FinanceiroSubNav +
+// Input/Label/Button/Card/Alert/AlertDialog @/Components/ui. Removidos inputs hand-rolled,
+// flash bg-blue cru e window.confirm nativo. Consent LGPD preservado (Art. 7º, II).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router, usePage } from '@inertiajs/react';
 import { useState, FormEvent, ReactNode } from 'react';
+import { UserPlus } from 'lucide-react';
+
+import PageHeader from '@/Components/shared/PageHeader';
+import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 
 interface AccessRow {
   id: number;
@@ -29,10 +51,11 @@ interface FlashShape {
   info?: string;
 }
 
-function Contador({ accesses, breadcrumbs }: Props) {
+function Contador({ accesses }: Props) {
   const { props } = usePage<{ flash?: FlashShape }>();
   const flash = props.flash ?? {};
   const [showForm, setShowForm] = useState(false);
+  const [revokeTarget, setRevokeTarget] = useState<AccessRow | null>(null);
 
   const form = useForm({
     cnpj_contador: '',
@@ -55,156 +78,182 @@ function Contador({ accesses, breadcrumbs }: Props) {
     });
   };
 
-  const revoke = (accessId: number, nome: string | null) => {
-    if (!confirm(`Revogar acesso de ${nome ?? 'contador'}? Ele perderá acesso imediatamente.`)) return;
-    router.delete(`/financeiro/configuracoes/contador/${accessId}`, {
+  const confirmRevoke = () => {
+    if (!revokeTarget) return;
+    router.delete(`/financeiro/configuracoes/contador/${revokeTarget.id}`, {
       preserveScroll: true,
+      onFinish: () => setRevokeTarget(null),
     });
   };
 
   return (
     <div className="fin-curadoria p-6 max-w-5xl mx-auto space-y-6">
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>Contador Parceiro <span className="fin-hero-title-sub">· Acesso somente leitura ao Financeiro</span></h1>
-          <p>
-            Adicione o contador da sua empresa pra ele acompanhar relatórios e visão unificada
-            num portal próprio. Zero credenciais compartilhadas. Revogue a qualquer momento.
-          </p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          {!showForm && (
-            <button type="button" className="os-btn primary" onClick={() => setShowForm(true)}>
-              + Adicionar contador
-            </button>
-          )}
-        </div>
-      </header>
+      <PageHeader
+        icon="user-cog"
+        title="Contador Parceiro"
+        description="Adicione o contador da sua empresa pra ele acompanhar relatórios e visão unificada num portal próprio. Zero credenciais compartilhadas. Revogue a qualquer momento."
+        action={
+          <div className="flex items-center gap-1.5">
+            <FinanceiroSubNav active="contador" hidePrimary />
+            {!showForm && (
+              <Button onClick={() => setShowForm(true)}>
+                <UserPlus className="h-4 w-4" />
+                Adicionar contador
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {flash.success && (
-        <div className="rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {flash.success}
-        </div>
-      )}
-      {flash.error && (
-        <div className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
-          {flash.error}
-        </div>
+        <Alert>
+          <AlertDescription>{flash.success}</AlertDescription>
+        </Alert>
       )}
       {flash.info && (
-        <div className="rounded-md border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-          {flash.info}
-        </div>
+        <Alert>
+          <AlertDescription>{flash.info}</AlertDescription>
+        </Alert>
+      )}
+      {flash.error && (
+        <Alert variant="destructive">
+          <AlertDescription>{flash.error}</AlertDescription>
+        </Alert>
       )}
 
       {showForm && (
-        <form onSubmit={submit} className="rounded-md border bg-white p-5 space-y-4">
-          <h2 className="text-base font-semibold">Conceder novo acesso</h2>
+        <Card>
+          <CardContent>
+            <form onSubmit={submit} className="space-y-4">
+              <h2 className="text-base font-semibold">Conceder novo acesso</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className="space-y-1">
-              <span className="text-sm font-medium">CNPJ do contador (14 dígitos)</span>
-              <input
-                type="text"
-                className="w-full rounded border px-3 py-2 text-sm"
-                value={form.data.cnpj_contador}
-                onChange={(e) => form.setData('cnpj_contador', e.target.value.replace(/\D/g, '').slice(0, 14))}
-                placeholder="00000000000000"
-                maxLength={14}
-                required
-              />
-              {form.errors.cnpj_contador && <span className="text-xs text-red-600">{form.errors.cnpj_contador}</span>}
-            </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="cnpj_contador">CNPJ do contador (14 dígitos)</Label>
+                  <Input
+                    id="cnpj_contador"
+                    type="text"
+                    value={form.data.cnpj_contador}
+                    onChange={(e) =>
+                      form.setData('cnpj_contador', e.target.value.replace(/\D/g, '').slice(0, 14))
+                    }
+                    placeholder="00000000000000"
+                    maxLength={14}
+                    aria-invalid={!!form.errors.cnpj_contador}
+                    required
+                  />
+                  {form.errors.cnpj_contador && (
+                    <p className="text-xs text-destructive">{form.errors.cnpj_contador}</p>
+                  )}
+                </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium">Email</span>
-              <input
-                type="email"
-                className="w-full rounded border px-3 py-2 text-sm"
-                value={form.data.email}
-                onChange={(e) => form.setData('email', e.target.value)}
-                required
-              />
-              {form.errors.email && <span className="text-xs text-red-600">{form.errors.email}</span>}
-            </label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.data.email}
+                    onChange={(e) => form.setData('email', e.target.value)}
+                    aria-invalid={!!form.errors.email}
+                    required
+                  />
+                  {form.errors.email && (
+                    <p className="text-xs text-destructive">{form.errors.email}</p>
+                  )}
+                </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium">Nome completo</span>
-              <input
-                type="text"
-                className="w-full rounded border px-3 py-2 text-sm"
-                value={form.data.nome}
-                onChange={(e) => form.setData('nome', e.target.value)}
-                required
-              />
-              {form.errors.nome && <span className="text-xs text-red-600">{form.errors.nome}</span>}
-            </label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="nome">Nome completo</Label>
+                  <Input
+                    id="nome"
+                    type="text"
+                    value={form.data.nome}
+                    onChange={(e) => form.setData('nome', e.target.value)}
+                    aria-invalid={!!form.errors.nome}
+                    required
+                  />
+                  {form.errors.nome && (
+                    <p className="text-xs text-destructive">{form.errors.nome}</p>
+                  )}
+                </div>
 
-            <label className="space-y-1">
-              <span className="text-sm font-medium">Telefone (opcional)</span>
-              <input
-                type="tel"
-                className="w-full rounded border px-3 py-2 text-sm"
-                value={form.data.telefone}
-                onChange={(e) => form.setData('telefone', e.target.value)}
-                placeholder="(00) 00000-0000"
-              />
-            </label>
-          </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="telefone">Telefone (opcional)</Label>
+                  <Input
+                    id="telefone"
+                    type="tel"
+                    value={form.data.telefone}
+                    onChange={(e) => form.setData('telefone', e.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+              </div>
 
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Escopo de acesso</legend>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.data.can_view_unificado}
-                onChange={(e) => form.setData('can_view_unificado', e.target.checked)}
-              />
-              Pode ver Visão Unificada
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.data.can_view_reports}
-                onChange={(e) => form.setData('can_view_reports', e.target.checked)}
-              />
-              Pode ver Relatórios (DRE / Fluxo)
-            </label>
-          </fieldset>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">Escopo de acesso</legend>
+                <div className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    id="can_view_unificado"
+                    checked={form.data.can_view_unificado}
+                    onCheckedChange={(v) => form.setData('can_view_unificado', v === true)}
+                  />
+                  <Label htmlFor="can_view_unificado" variant="shadcn" className="font-normal cursor-pointer">
+                    Pode ver Visão Unificada
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    id="can_view_reports"
+                    checked={form.data.can_view_reports}
+                    onCheckedChange={(v) => form.setData('can_view_reports', v === true)}
+                  />
+                  <Label htmlFor="can_view_reports" variant="shadcn" className="font-normal cursor-pointer">
+                    Pode ver Relatórios (DRE / Fluxo)
+                  </Label>
+                </div>
+              </fieldset>
 
-          <label className="flex items-start gap-2 text-sm border-t pt-4">
-            <input
-              type="checkbox"
-              checked={form.data.consent_lgpd}
-              onChange={(e) => form.setData('consent_lgpd', e.target.checked)}
-              required
-            />
-            <span>
-              <strong>Consentimento LGPD:</strong> declaro estar ciente que estou compartilhando
-              dados financeiros desta empresa com o contador acima, exclusivamente para fins
-              contábeis. O acesso é somente leitura, revogável a qualquer momento, e a ação fica
-              registrada em log de auditoria. (LGPD Art. 7º, II.)
-            </span>
-          </label>
-          {form.errors.consent_lgpd && <p className="text-xs text-red-600">{form.errors.consent_lgpd}</p>}
+              <div className="flex items-start gap-2 text-sm border-t pt-4">
+                <Checkbox
+                  id="consent_lgpd"
+                  className="mt-0.5"
+                  checked={form.data.consent_lgpd}
+                  onCheckedChange={(v) => form.setData('consent_lgpd', v === true)}
+                  required
+                />
+                <label htmlFor="consent_lgpd" className="cursor-pointer">
+                  <strong>Consentimento LGPD:</strong> declaro estar ciente que estou compartilhando
+                  dados financeiros desta empresa com o contador acima, exclusivamente para fins
+                  contábeis. O acesso é somente leitura, revogável a qualquer momento, e a ação fica
+                  registrada em log de auditoria. (LGPD Art. 7º, II.)
+                </label>
+              </div>
+              {form.errors.consent_lgpd && (
+                <p className="text-xs text-destructive">{form.errors.consent_lgpd}</p>
+              )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              className="os-btn ghost"
-              onClick={() => { form.reset(); setShowForm(false); }}
-              disabled={form.processing}
-            >
-              Cancelar
-            </button>
-            <button type="submit" className="os-btn primary" disabled={form.processing}>
-              {form.processing ? 'Concedendo...' : 'Conceder acesso'}
-            </button>
-          </div>
-        </form>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    form.reset();
+                    setShowForm(false);
+                  }}
+                  disabled={form.processing}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={form.processing}>
+                  {form.processing ? 'Concedendo...' : 'Conceder acesso'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      <section className="rounded-md border bg-white">
+      <Card className="py-0 gap-0 overflow-hidden">
         <header className="border-b px-5 py-3">
           <h2 className="text-base font-semibold">Acessos ativos ({accesses.length})</h2>
         </header>
@@ -232,25 +281,58 @@ function Contador({ accesses, breadcrumbs }: Props) {
                   <td className="px-4 py-3 font-mono text-xs">{a.advisor_cnpj_mascarado ?? '—'}</td>
                   <td className="px-4 py-3">{a.granted_at_label ?? '—'}</td>
                   <td className="px-4 py-3 text-xs">
-                    {a.can_view_unificado && <span className="mr-1 inline-block rounded bg-emerald-100 px-2 py-0.5 text-emerald-900">Unificado</span>}
-                    {a.can_view_reports && <span className="mr-1 inline-block rounded bg-blue-100 px-2 py-0.5 text-blue-900">Relatórios</span>}
-                    {!a.has_consent && <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-amber-900">Sem consent</span>}
+                    {a.can_view_unificado && (
+                      <span className="mr-1 inline-block rounded bg-emerald-100 px-2 py-0.5 text-emerald-900">
+                        Unificado
+                      </span>
+                    )}
+                    {a.can_view_reports && (
+                      <span className="mr-1 inline-block rounded bg-muted px-2 py-0.5 text-foreground">
+                        Relatórios
+                      </span>
+                    )}
+                    {!a.has_consent && (
+                      <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-amber-900">
+                        Sem consent
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
+                    <Button
                       type="button"
-                      className="text-xs text-red-600 hover:underline"
-                      onClick={() => revoke(a.id, a.advisor_nome)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setRevokeTarget(a)}
                     >
                       Revogar
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </section>
+      </Card>
+
+      <AlertDialog open={revokeTarget !== null} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revogar acesso do contador?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {revokeTarget?.advisor_nome ?? 'O contador'} perderá acesso a este negócio
+              imediatamente. A ação fica registrada em log de auditoria (LGPD) e pode ser
+              concedida novamente depois.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmRevoke}>
+              Revogar acesso
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -264,7 +346,7 @@ Contador.layout = (page: ReactNode) => (
       { label: 'Contador' },
     ]}
   >
-    {page}
+    <div className="fin-cowork">{page}</div>
   </AppShellV2>
 );
 
