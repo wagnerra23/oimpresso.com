@@ -1196,8 +1196,11 @@ class UnificadoController extends Controller
             'condicao_pagamento' => $metadata['delphi_condicaopagto'] ?? null,
             'desconto' => (float) ($metadata['delphi_desconto'] ?? 0),
             'juros' => (float) ($metadata['delphi_juros'] ?? 0),
-            // Documento = CODPEDIDO do WR (Wagner 2026-06-03); fallback nº NF se houver.
-            'documento' => $metadata['delphi_codpedido'] ?? $nfeNumero ?? null,
+            // Documento = campo DOCUMENTO real do WR (NÃO o codpedido — Wagner 2026-06-03).
+            // O DOCUMENTO foi redactado na migração → valor real só vem na Fase 2 (re-import
+            // sem redact), junto com a Nota Fiscal. Por ora exibe nfe_numero quando houver
+            // (nativos) ou "—" (migrados, pendente Fase 2).
+            'documento' => $nfeNumero ?? null,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
             'liquidacao' => $ultimaBaixa?->data_baixa?->locale('pt_BR')->isoFormat('DD MMM'),
