@@ -2,7 +2,13 @@
 
 > Fonte da verdade do que existe pra consumir. **Se está aqui, não hand-rola.**
 > Superfície única de import: **`@/Components/ui`** (shadcn + Radix + CVA, bridge visual via `cowork-fields.css` + variantes `cowork-*`).
-> Última atualização: 2026-05-29 (Cowork [CC]) · base: leitura de `resources/js/Components/ui/*` @ main.
+> Última atualização: 2026-06-03 (Cowork [CC] + [CL]) · base: leitura de `resources/js/Components/ui/*` @ main.
+
+> 🎨 **Kit DS v6 (régua visual):** os 11 componentes canônicos desenhados (em token, claro/escuro de
+> fábrica) vivem em [`ds-v6/showcase.html`](ds-v6/showcase.html). O **reuse-mapping** "kit `c-*` → componente
+> React no repo" está em [`ds-v6/REUSE_MAPPING.md`](ds-v6/REUSE_MAPPING.md) — 8/11 já reusam o que está
+> abaixo; 3 (`c-id` ficha-360 · `c-tl` unificada · `c-nba`) são buraco do DS (Tier-0, nascem na 1ª tela que
+> os consome). A **receita** de como montar tela do kit: [`ds-v6/receita.html`](ds-v6/receita.html).
 
 ## Como ler
 
