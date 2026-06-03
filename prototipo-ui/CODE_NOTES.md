@@ -575,3 +575,56 @@ O furo (exatamente o que o "não assumir" pega): o NFS-e resolvia ambiente pelo 
 ### new_design_memories
 - **anti-padrao**: default `vehicle_type='cacamba'` + docs "Caçambas" eram pré-ADR-0194 (domínio = mecânica pesada de caminhão basculante). Pior: `cacamba` nem era valor do enum — rodar o import etiquetava caminhão errado. Reconciliado no W28 (default `caminhao` + normalização contra a whitelist real).
 - **golden**: cutover/import irreversível-ish = **dry-run por padrão, grava só com `--commit`** ("interceptar a ação", não confiar na disciplina de lembrar `--dry-run`).
+
+---
+
+## 2026-06-03 [CC] → [W] — Charter Governança [CC]×Jana commitado verbatim (proposta §10.4)
+
+[CL] commitou **verbatim** o charter `prototipo-ui/CHARTER_GOVERNANCA_CC_JANA.md` (export Cowork, irmão de `CHARTER_GOVERNANCA_W.md` + `CHARTER_CHAMPION_AGENTES.md`). Espelha pro git a **conclusão** do report `rep-cc-vs-jana` (`metricas.html`) — pro raciocínio rumo a 9.7 ficar durável e re-derivável do `main`.
+
+- **Frescor validado vs origin/main fresco:** branch `docs/charter-governanca-cc-jana` cortado de `origin/main` @ `74bc2ea` (mesmo SHA que o charter cita no header). Worktree limpo, sem WIP do `feat/staging-ct100` contaminando o PR (1 arquivo, 1 intent — commit-discipline).
+- **NÃO numerei ADR** (instrução [W] + o próprio charter: "[W] numera/ratifica se promover a ADR — soberania 0238").
+- **PR aberto, NÃO mergeado** — merge é Tier 0 = [W] (publication-policy).
+
+### new_design_memories
+- **golden**: export de governança da Cowork (conclusão/raciocínio, não só o número do scorecard) vai pro git **verbatim** como charter irmão, cortado de `origin/main` fresco — durabilidade + re-derivação por sessão futura ([CL]/[CC]).
+- **anti-padrao**: commitar doc de governança numa branch poluída (WIP de outro intent) — fura commit-discipline (1 PR = 1 intent). Worktree novo de `origin/main` isola o arquivo.
+
+---
+
+## 2026-06-03 [CL] → [W] — `governanca:scorecard` (camada 3) · placar [CC]×Jana mecanizado
+
+### Tarefa: §10.4 PROPOSTA (prompt `GOVERNANCA-SCORECARD`)
+### Status: traduzido · branch `feat/governanca-scorecard` · PR aberto · **NÃO mergeado (Tier 0 = [W])**
+### Validação vs `origin/main` (74bc2ea77 · worktree off origin/main):
+- `HealthCheckCommand::parseLessonLedger()` + check `jana_lesson_ledger_graduation` confirmados @main — **reusei o parser** (não escrevi outro).
+- Os dois ledgers existem: `Modules/Jana/LICOES-OPERACAO.md` + `memory/LICOES_CC.md` (#2106).
+- `governanca:scorecard` **não existia** (os arquivos `*scorecard*` no repo são o motor Governance scoped — engine diferente; **não recriei** 7º motor, agreguei · anti-G1).
+
+### Decisões de tradução:
+- **`parseLessonLedger($content, $headerPattern)`** — generalizado com 2º arg = regex de header (default `### L-OP-NNN` → backward-compat; ledger [CC] usa `## L-NN`). Grupo 1 = ID.
+- **`HealthCheckCommand::ledgerGraduationStats($abs, $header)`** (helper público estático) — `graduadas` (Graduação válida + status:done) / `pendentes` (resto: pendente, malformada OU sem linha de graduação) / `graduation_ratio` (vazio = 1.0).
+- **Check `governanca_graduation_ratio`** (ADVISORY) adicionado ao `jana:health-check` — espelha `jana_lesson_ledger_graduation` pros DOIS ledgers; amarelo se algum ratio < 1.0. **Não derruba cron/exit** (drift de processo não pagina à noite).
+- **`php artisan governanca:scorecard {--json}`** (Modules/Governance, registrado no provider) escreve `storage/reports/governanca-scorecard.json`: por-ledger total/graduadas/pendentes/ratio + `enforcement_score` (derivado da razão, não digitado) + `health_checks_count` (reflection) + baselines + `measured_against_sha` + timestamp + `condicao_9_7`.
+- **Honestidade de escopo**: eixos subjetivos (Tiering de risco etc.) marcados `source: "estimativa [CC]"` no JSON — não finjo objetividade onde não há.
+
+### Build / Tests:
+- `GovernancaScorecardCommandTest` — **7 passed (31 assertions)** (parser nos 2 headers + ratio + comando escreve JSON + condição 9.7).
+- `JanaHealthCheckTest` (existente) — **8 passed (114 assertions)**, sem regressão (parser default intacto, +1 check, `>=10` mantido).
+
+### 📊 Números REAIS do `main` hoje (74bc2ea77):
+- **`operacao` (LICOES-OPERACAO.md): graduation_ratio = 1.0** (3/3 graduadas, 0 pendentes).
+- **`cc` (LICOES_CC.md): graduation_ratio = 0.0** (0/25 graduadas — L-01…L-25, nenhuma tem linha `Graduação: …status:done` canônica; L-23 usa `**MEC**` sem binding `check:`/`status:done` → conta pendente).
+- `enforcement_score` derivado = **5.0/10** (ratio médio 0.5) · `health_checks_count` = 12 · `condicao_9_7.atingido` = **false** (cc não está 100% + pipe único não setado).
+- JSON de exemplo em `storage/reports/governanca-scorecard.json` (gitignored — artefato runtime, não commitado).
+
+### Pendências / fica de [W]:
+- [ ] **[W]** o número que move o 9.7 está claro: graduar as 25 lições do `LICOES_CC.md` (formato `- **Graduação:** MEC|JULG · check:\`x\`|regra:\`y\` · status:done`). Hoje 0/25.
+- [ ] **[W]** flag `--pipe-unico` é manual por enquanto (pipe único [CC]+Jana). Quando o pipe existir de fato, virar detecção automática.
+- [ ] **[W]** promover ADR (slug-only até lá · soberania [W], 0238) se quiser canonizar o scorecard como mecanismo.
+- [ ] **[W]** (opcional) `metricas.html` do Cowork passar a LER `storage/reports/governanca-scorecard.json` no re-sync (fecha o loop de frescor sem digitar).
+- [ ] **[W]** mergear (Tier 0 = soberania [W]).
+
+### new_design_memories
+- **golden**: placar de governança [CC]×Jana deixa de ser prosa digitada e vira saída de check (`governanca_graduation_ratio`) + comando que escreve JSON que o report LÊ — frescor por mecanismo (o ProfileDistiller da governança).
+- **regra**: métrica do 9.7 = lições graduadas em check rodável ÷ total, nos dois ledgers; 9.7 exige ambos 100% + pipe único. Hoje: operação 1.0, CC 0.0.
