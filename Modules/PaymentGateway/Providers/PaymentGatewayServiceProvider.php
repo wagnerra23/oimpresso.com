@@ -35,6 +35,7 @@ class PaymentGatewayServiceProvider extends ServiceProvider
                 \Modules\PaymentGateway\Console\Commands\RewrapCredentialsCommand::class,
                 \Modules\PaymentGateway\Console\Commands\RegisterInterWebhookCommand::class,
                 \Modules\PaymentGateway\Console\Commands\InterReconcilePixCommand::class,
+                \Modules\PaymentGateway\Console\Commands\InterImportarRecebimentosCommand::class,
             ]);
         }
     }
