@@ -169,6 +169,18 @@
 - **Graduação:** **MEC** — estende o guard de higiene Cowork proposto em L-21/L-22 (`no-new-root-html`) com `no-raw-oklch-in-page-css` + `no-parallel-DS-vocab` (espelha eslint `ds/*` / stylelint hex do repo, mas Cowork-side). Enquanto não existe, vive na **Regra de Ouro gate 1** (always-read) + ponteiro DS no STATUS.
 - **Ref:** L-02 (paleta), L-05 (reler a lei), L-21 (.html raiz), L-22 (lápide); `_PROPOSTA-ds-harmonizacao.md` ("DS é piso, não teto"); `ds-v5/components.css`; `REGISTRY_DS_COMPONENTES.md`; `PROCESSO_MEMORIA_CC.md` TESTE-04 (elo fraco = disciplina de leitura); CLAUDE.md "ARQUIVO PRINCIPAL ÚNICO".
 
+## L-24 — Generalizei componente sem varrer call-sites (casos "sumiram") + runner DOM-grep não é estado da arte
+- **Erro (2026-06-02):** (a) generalizei `CasosRunner` com prop nova `casos`, mas o render da Oficina ficou no formato antigo (sem passar `casos`) → painel **vazio** ("sumiram os casos"). (b) Mais fundo: runner in-app com **seletor CSS frágil** (`.prod-col`) + registry na mão **não é estado da arte** — quebra em silêncio no refactor e dá **falsa confiança** (presença ≠ correção).
+- **Sintoma:** regressão **pega por [W], não por mecanismo** → escape no benchmark (§11). DS-GUARD/static não pegam (não é paleta/`.html`; o grep achava o componente "presente").
+- **Regra:** (1) refactor que muda **assinatura** de componente → grepar **TODOS os call-sites** + **self-guard** que falha alto se montar vazio. (2) Teste durável = **estado da arte**: **locators resilientes** (`getByRole`/`data-testid`, nunca classe CSS) · **Playwright** (E2E/CI, auto-wait) · **Storybook play-functions** (mesma interação on-demand **e** CI, fonte única) · **`casos.md`** spec BDD. Runner DOM-grep = **ponte 80/20**, não destino.
+- **Ref:** `OficinaProducao.decisoes.md` D-09; ADR 0243 R5; `memory/decisions/_PROPOSTA-0244-estrategia-teste-estado-arte.md`; benchmark §11 escape 2026-06-02.
+
+## L-25 — Oferecer "A ou B?" em ação de melhor-óbvio = fricção + risco de [W] responder errado
+- **Erro (2026-06-02):** fechei vários turnos com "quer que eu faça X?" sendo que X era a **melhor ação clara** (self-guard, etc.). [W]: *"por que está me perguntando, faça o melhor; se eu responder errado pode gerar problema — isso não deveria ter opção de resposta."*
+- **Sintoma:** decisão de no-brainer empurrada pra [W] → fricção (zero-toque), e abre porta pra resposta errada que cria problema. Viola L-15/CLAUDE.md ("executo direto, não pergunto A/B").
+- **Regra:** quando a melhor ação é **clara, reversível e não-Tier-0**, **faço direto** e reporto — sem opção. Só pergunto quando é genuinamente **subjetivo/Tier-0** (estética, estratégia, prioridade, dinheiro, lei) **ou** ambíguo de verdade. "Quer que eu…?" em ação óbvia = erro meu.
+- **Ref:** L-15 (auto-gerar ponte sem perguntar); CLAUDE.md zero-touch; ADR 0243 R8 (Tier-0 = [W]; resto [CC] age).
+
 > 1ª aplicação do loop da camada 5. Cada lição classificada: **MEC** (vira check) ou **JULG** (vira regra-carregada) + destino + status. Achado: **a maioria já se graduou** sem o loop ser nomeado; o valor agora é fechar as **pendentes** e comprimir o resto.
 
 | L | Classe | Destino da graduação | Status |
