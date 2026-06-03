@@ -102,6 +102,11 @@ const ADRS_LEGACY_SKIP = [
     // com 0122-0128 + 0172-0173 em Wave 30+.
     '0170-onda5-simplificada',
     '0170-bancos-nativos-top5-drivers-separados',
+    // Pre-existentes em main (PR #1990, 2026-05-30) · estilo prosa antigo, sem bloco
+    // YAML `---` (campos em markdown bold: **Data:**/**Status:**). Append-only Tier 0 —
+    // não editar. Backlog migração de frontmatter junto com 0122-0128 + 0172-0173 em Wave 30+.
+    '0246-sessao-2026-05-30-ds-harmonizacao',
+    '0247-ratificacao-constituicao-design',
 ];
 
 /**
