@@ -593,7 +593,7 @@ class InterDriver implements PaymentDriverContract
     public function __destruct()
     {
         foreach ($this->tempCertFiles as $file) {
-            if (is_string($file) && is_file($file)) {
+            if (is_file($file)) {
                 @unlink($file);
             }
         }
