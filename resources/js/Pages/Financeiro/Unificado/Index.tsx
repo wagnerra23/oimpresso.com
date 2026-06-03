@@ -1071,10 +1071,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               (Receber/Pagar/OCR boleto) em vez de levar pra form genérico ambíguo. */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
+              {/* ADR 0235 (DS v4) — primary usa o token --accent (roxo 295 universal),
+                  não cor hardcoded. O inline verde 145 (era ADR 0182, superseded) foi
+                  removido; `.os-btn.primary` já resolve `background: var(--accent)`. */}
               <button
                 type="button"
                 className="os-btn primary"
-                style={{ backgroundColor: 'oklch(0.55 0.15 145)', color: 'oklch(0.99 0 0)' }}
               >
                 <Plus size={13} /> Novo título <ChevronDown size={11} />
               </button>

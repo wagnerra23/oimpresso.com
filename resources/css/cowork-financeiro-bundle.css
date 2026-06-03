@@ -7293,7 +7293,9 @@
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 10px; border-radius: 5px;
   border: 1px solid var(--border); background: var(--surface);
-  font-size: 12px; font-weight: 500; color: var(--text-dim);
+  /* font: inherit — chip virou <button> no #1982; sem isso o UA stylesheet
+     aplica fonte/line-height próprios do button e desalinha vs resto da toolbar. */
+  font: inherit; font-size: 12px; font-weight: 500; color: var(--text-dim);
   cursor: pointer; user-select: none; transition: all .12s;
   position: relative;
 }
@@ -8411,7 +8413,8 @@
   display: inline-flex; align-items: center; gap: 5px;
   padding: 5px 10px; border-radius: 5px;
   border: 1px dashed var(--border); background: var(--surface);
-  font-size: 12px; font-weight: 500; color: var(--text-dim);
+  /* font: inherit — toggle virou <button> no #1982 (vd .fin-filter-cb). */
+  font: inherit; font-size: 12px; font-weight: 500; color: var(--text-dim);
   cursor: pointer; user-select: none; transition: all .12s;
 }
 .fin-cowork .fin-toolbar .fin-filter-toggle:hover {
