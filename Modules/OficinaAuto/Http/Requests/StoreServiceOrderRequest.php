@@ -37,6 +37,9 @@ class StoreServiceOrderRequest extends FormRequest
     {
         return [
             'vehicle_id'          => ['required', 'integer', 'exists:vehicles,id'],
+            // Tipo de OS — nullable preserva forms antigos (DB default 'manutencao').
+            // 'mecanica' = fluxo real reparo caminhão (ADR 0194 · oficina_mecanica_os).
+            'order_type'          => ['nullable', 'string', 'in:locacao,manutencao,mecanica'],
             'transaction_id'      => ['nullable', 'integer'],
             'mileage_at_service'  => ['nullable', 'integer', 'min:0'],
             // Check-in de entrada (US-OFICINA-038/039) — delta protótipo Cowork Nova OS

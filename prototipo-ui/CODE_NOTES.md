@@ -446,3 +446,47 @@ O prompt dizia "4 implementações" — só **2** procedem; corrijo as outras 2 
 - **golden**: status fiscal = 1 componente `FiscalStatusBadge` (NFC-e/NF-e/NFS-e · 7 kinds · banner+pill · oklch único); NfceStatusBadge vira wrapper de polling que delega; FiscalSection consome o pill.
 - **conflito (corrigido)**: o achado "4 implementações iguais" era ~50% — Oficina não tem badge fiscal e NotaDrawer V1 é o funcional (não legado). Só NfceStatusBadge(órfão)+FiscalSection eram a duplicata real do MODELO de polling.
 - **lição**: "deletar o legado" sem ler quem-está-wired pode apagar o funcional — V1 tinha as ações reais; V2 era o protótipo bonito-porém-mock.
+
+---
+
+## 2026-06-02 [CL] → [W]
+
+### Tela: OficinaAuto/ServiceOrders/Board (Quadro Kanban de OS de Mecânica)
+### Status: traduzido (build reversível autônomo — CI verde; deploy prod + fiscal real aguardam [W])
+### Diff: branch `feat/oficina-kanban-carro-board` (worktree oficina-kanban-carro, base origin/main 84e8cb1a3)
+### Build: passou — `tsc` (arquivos novos sem erro), `eslint` (0 erro/0 warning nos novos), `lint:baseline:check` delta −60 (sem regressão), `php -l` ok em todos os PHP.
+### Charter atualizado: sim — `Board.charter.md` (schema-compliant) + `Board.review.md` + RUNBOOK.
+
+### Contexto (correção de domínio confirmada por [W] nesta sessão):
+- Martinho NÃO é locação de caçamba — é **oficina de mecânica pesada de caminhão** (entra pra reparo/troca de peça). O "caçamba" dos nomes legados (`cacamba_*`, `ProducaoOficina`) é equívoco já corrigido pela ADR 0194. Este port é o **fluxo real do carro**, distinto do board de caçamba.
+- [W] confirmou o fluxo de 6 etapas + ancorar num **processo FSM novo** `oficina_mecanica_os` (sem "caçamba"), sem mexer no legado.
+
+### O que foi feito (estender, não recriar — §10.4):
+- **Backend**: 3º processo FSM `oficina_mecanica_os` no `OficinaAutoFsmSeeder` (Recepção→Diagnóstico→Aguardando aprovação→Aguardando peças→Em execução→Pronto p/ retirar + terminais Entregue/Cancelado/Garantia). Transições puras (side_effect null — sem estoque ainda). `order_type='mecanica'` mapeado pro processo no `ServiceOrderFsmActionController`. Migration **reversível/idempotente** estende o enum `service_orders.order_type` (não remapeia OS legadas).
+- **Controller**: `ServiceOrderController@board` agrupa OS por etapa real do FSM em colunas data-driven (+ KPIs derivados, zero query extra) + rota `/oficina-auto/ordens-servico/board`.
+- **Frontend**: `Board.tsx` REUSA `KanbanDndProvider` (generalizado backward-compat com `renderPreview`), `DragConfirmDialog` (+`subjectLabel`), `ServiceOrderRichSheet`, `MercosulPlate`. Card novo `ServiceOrderKanbanCard` (mods [W]). Toggle Quadro|Lista na Index. Create oferece tipo "Mecânica".
+- **Drag canon (GUARD)**: arrastar → confirmar → `POST /fsm/execute` → `ExecuteStageActionService` (grava `sale_stage_history`). NUNCA UPDATE direto em `current_stage_id`.
+
+### Modificações [W]-aceitas aplicadas (a crítica [CC]):
+1. **Foto REAL no card** (1ª foto de item DVI via Arquivos) — sem foto **esconde o thumb** (ícone câmera discreto; sem placeholder de texto "inacabado").
+2. **Contador DVI x/y** com ícone de **checklist** (não cadeado) + tooltip ("x de y itens decididos pelo cliente · N críticos").
+3. **Densidade @1280** via **@container** (Tailwind v4 nativo) — KPIs compactos como base, expandem em telas largas. NÃO @media (lição Financeiro F3).
+4. **"N OS"** (não "boxes") + colunas **Aguardando aprovação** (âmbar · OK do cliente) distinta de **Aguardando peças** (violeta · peça física).
+
+### Decisões de tradução:
+- Colunas NÃO hardcoded — vêm das etapas reais do processo (board se adapta ao seeder).
+- Etapas terminais (Entregue/Cancelado/Garantia) saem pelo drawer (FsmActionPanel), não pelo drag.
+- OS 'mecanica' sem pipeline cai na coluna Recepção com `in_pipeline=false` (drag off) → abrir card e iniciar pipeline.
+- Cores de status via tokens DS (`text-destructive`/`text-success`), não rose/emerald cru (DS-GUARD).
+
+### Pendências (follow-ups — NÃO bloqueiam o build):
+- [ ] **[W] aprovar SCREENSHOT** do quadro antes do merge (gate visual F3 · ADR 0107).
+- [ ] **Deploy prod + emissão fiscal real** — aguardam [W] (build é reversível/autônomo).
+- [ ] P2: derivar `STAGE_TRANSITIONS` de `/fsm/actions` (hoje espelha o seeder, mesma estratégia do Kanban de caçamba).
+- [ ] P2: avaliar trait `GuardsFsmTransitions` no `ServiceOrder` (enforcement defense-in-depth do GUARD) — toca model LIVE, decisão [W].
+- [ ] P3: smoke browser (Claude in Chrome) usando data-testid `so-card-*`/`board-column-*` pós-deploy.
+
+### new_design_memories
+- **doc-novo**: o Kanban do carro (wow) virou tela real em `ServiceOrders/Board` reusando DnD/MercosulPlate/DviPhotoGrid/RichSheet; roda no processo FSM novo `oficina_mecanica_os`. `ProducaoOficina`=caçamba (vertical legado — não confundir).
+- **anti-padrao**: thumbnail placeholder de TEXTO ("frente/painel/OBD" listrado) lê "inacabado" na frente do cliente → usar foto real (Arquivos) ou esconder o thumb.
+- **golden**: board de FSM = colunas data-driven das etapas reais (não hardcode) + drag dispara `ExecuteStageActionService` (nunca UPDATE direto) + reusar o provider DnD canon generalizado (renderPreview/subjectLabel) em vez de forkar.
