@@ -1,5 +1,19 @@
 # OficinaAuto — Changelog
 
+## [W28 — 2026-06-03] Importer Firebird fino + reconciliação de domínio (ADR 0194)
+
+### G4 Importer Firebird Martinho — mapping fino (sai do esqueleto W27)
+- `ImportFirebirdMartinhoCommand` completo: mapping fino ORDEM_SERVICO + ORDEM_ITENS → ServiceOrder + ServiceOrderItem.
+  - `vehicle_type` default **`cacamba` → `caminhao`** (`cacamba` nem era valor válido do enum `vehicles.vehicle_type`). Normalização via whitelist real + sinônimos de basculante → `caminhao`.
+  - Status legacy (WR Sistemas, PT livre) → FSM `manutencao` (aberta/em_servico/concluida/cancelada); histórico fechado default `concluida`.
+  - `order_type` normalizado {locacao|manutencao|mecanica}; legado default `manutencao` (migration `2026_06_02_000001`: "novo processo mecanica não mexe no legado").
+  - Tipo de item → `peca|mao_obra|servico_terceiro`.
+  - **Dry-run virou o padrão**: grava no DB só com `--commit` (`--dry-run` vence por segurança). Idempotência `FB_LEGACY_ID` preservada.
+- `scripts/firebird/export-martinho-os.py` — export local (Windows + firebird-driver) com `--dump-schema` pra mapear os nomes reais do FDB.
+
+### 🪦 Lápide de domínio (ADR 0194 · 2026-05-26 — append, não reescreve história · L-22)
+- Entradas anteriores deste changelog citam **"Martinho Caçambas"** / **"Journey Martinho Caçambas"**: "Caçambas" é o **nome comercial** da empresa, preservado. O **domínio operacional**, porém, foi reclassificado de "locação de caçamba container" → **mecânica pesada de caminhão basculante (CNAE 4520-0/01)** pela [ADR 0194](../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md). Onde o texto legado sugerir "locação de caçamba" como *fluxo de negócio*, leia "mecânica de caminhão".
+
 ## [Wave 27 POLISH — 2026-05-17] Polish final 77-88 → ≥90
 
 ### D2 Pest novo
