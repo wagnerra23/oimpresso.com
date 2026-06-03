@@ -62,11 +62,17 @@ class UnificadoController extends Controller
 
         $filters = $this->parseFilters($request);
         [$start, $end] = $this->parsePeriodo($filters['periodo']);
+        // Paridade filtros WR (2026-06-03): intervalo explícito sobrepõe o período preset.
+        if ($filters['data_inicio'] !== '' && $filters['data_fim'] !== '') {
+            try {
+                $start = Carbon::parse($filters['data_inicio'])->startOfDay();
+                $end = Carbon::parse($filters['data_fim'])->endOfDay();
+            } catch (\Throwable $e) { /* intervalo inválido — mantém período */ }
+        }
 
         // ───────────────── Tabela ─────────────────
         $q = Titulo::query()
             ->where('business_id', $businessId)
-            ->whereBetween('vencimento', [$start->toDateString(), $end->toDateString()])
             ->whereNull('deleted_at')
             ->whereIn('status', ['aberto', 'parcial', 'quitado'])
             ->with([
@@ -76,6 +82,8 @@ class UnificadoController extends Controller
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
             ]);
+        // Filtro por campo de data (default vencimento = comportamento anterior preservado).
+        $this->aplicarFiltroData($q, $filters['data_campo'], $start->toDateString(), $end->toDateString());
 
         // Onda Polish 2026-05-18 — lifecycle multi-select + toggle overdue independente.
         // Lifecycle items combinam via OR (union); overdue é AND multiplicativo.
@@ -215,7 +223,10 @@ class UnificadoController extends Controller
         ];
 
         // ───────────────── KPIs ─────────────────
-        $kpis = $this->kpis($businessId, $start, $end);
+        // Paridade filtros WR (2026-06-03): cards usam o MESMO data_campo da tabela
+        // (antes vencimento fixo) — RECEBIDO/A RECEBER/PAGO/A PAGAR ficam consistentes
+        // com a lista filtrada.
+        $kpis = $this->kpis($businessId, $start, $end, $filters['data_campo']);
 
         // ───────────────── Listas pra filtros ─────────────────
         $contas = ContaBancaria::where('business_id', $businessId)
@@ -929,6 +940,13 @@ class UnificadoController extends Controller
             'categoria' => $request->string('categoria', '')->toString(),
             'periodo' => in_array($request->string('periodo')->toString(), $periodosValidos, true)
                 ? $request->string('periodo')->toString() : 'mes_atual',
+            // Paridade filtros WR (2026-06-03): campo de data (4 dos 6 do WR).
+            // emissao | vencimento(default) | pagamento(via baixa) | competencia.
+            // NF/Vendas do WR exigem link titulo->transaction (origem_id) — pendente.
+            'data_campo' => in_array($request->string('data_campo')->toString(), ['vencimento', 'emissao', 'pagamento', 'competencia'], true)
+                ? $request->string('data_campo')->toString() : 'vencimento',
+            'data_inicio' => $request->string('data_inicio', '')->toString(),
+            'data_fim' => $request->string('data_fim', '')->toString(),
             'densidade' => in_array($request->string('densidade')->toString(), $densidadesValidas, true)
                 ? $request->string('densidade')->toString() : 'compact',
             // Onda 8 (2026-05-20): sort + dir. Whitelist forçada na query (não confia
@@ -950,6 +968,21 @@ class UnificadoController extends Controller
             '30d' => [now()->subDays(30)->startOfDay(), now()->endOfDay()],
             '90d' => [now()->subDays(90)->startOfDay(), now()->endOfDay()],
             default => [now()->startOfMonth(), now()->endOfMonth()],
+        };
+    }
+
+    /**
+     * Filtro por campo de data — paridade com os filtros do WR Comercial (2026-06-03).
+     * vencimento (default, back-compat) | emissao | pagamento (via baixa) | competencia (YYYY-MM).
+     * NF/Vendas do WR exigem link título→transaction (origem_id), ainda pendente.
+     */
+    private function aplicarFiltroData($q, string $campo, string $sd, string $ed): void
+    {
+        match ($campo) {
+            'emissao' => $q->whereBetween('emissao', [$sd, $ed]),
+            'competencia' => $q->whereBetween('competencia_mes', [substr($sd, 0, 7), substr($ed, 0, 7)]),
+            'pagamento' => $q->whereHas('baixas', fn ($b) => $b->whereBetween('data_baixa', [$sd, $ed])),
+            default => $q->whereBetween('vencimento', [$sd, $ed]),
         };
     }
 
@@ -984,16 +1017,16 @@ class UnificadoController extends Controller
         ];
     }
 
-    private function kpis(int $businessId, Carbon $start, Carbon $end): array
+    private function kpis(int $businessId, Carbon $start, Carbon $end, string $campo = 'vencimento'): array
     {
-        $atual = $this->kpisCore($businessId, $start, $end);
+        $atual = $this->kpisCore($businessId, $start, $end, $campo);
 
         // PR H (2026-05-25) US-FIN-023 — delta_pct vs mês anterior.
         // Calcula KPIs do período equivalente do mês anterior pra comparativo
         // visual ("Recebido R$ 45.300 ↑+12%" — Eliana vê tendência).
         $startPrior = (clone $start)->subMonth();
         $endPrior = (clone $end)->subMonth();
-        $anterior = $this->kpisCore($businessId, $startPrior, $endPrior);
+        $anterior = $this->kpisCore($businessId, $startPrior, $endPrior, $campo);
 
         $atual['delta_pct'] = [
             'saldo_previsto' => $this->deltaPct($anterior['saldo_previsto'], $atual['saldo_previsto']),
@@ -1010,10 +1043,15 @@ class UnificadoController extends Controller
      * PR H (2026-05-25) — core dos KPIs (sem delta_pct).
      * Extraído pra reuso: `kpis()` chama 2x (atual + anterior) pra delta_pct.
      */
-    private function kpisCore(int $businessId, Carbon $start, Carbon $end): array
+    private function kpisCore(int $businessId, Carbon $start, Carbon $end, string $campo = 'vencimento'): array
     {
-        $base = Titulo::where('business_id', $businessId)
-            ->whereBetween('vencimento', [$start->toDateString(), $end->toDateString()]);
+        $sd = $start->toDateString();
+        $ed = $end->toDateString();
+
+        // Paridade filtros WR (2026-06-03): A receber / A pagar filtram pelo mesmo
+        // campo de data escolhido (default vencimento = comportamento anterior).
+        $base = Titulo::where('business_id', $businessId);
+        $this->aplicarFiltroData($base, $campo, $sd, $ed);
 
         $rec = (clone $base)->where('tipo', 'receber');
         $pay = (clone $base)->where('tipo', 'pagar');
@@ -1021,15 +1059,27 @@ class UnificadoController extends Controller
         $aReceber = (clone $rec)->whereIn('status', ['aberto', 'parcial']);
         $aPagar = (clone $pay)->whereIn('status', ['aberto', 'parcial']);
 
-        $recebido = TituloBaixa::where('business_id', $businessId)
-            ->whereBetween('data_baixa', [$start->toDateString(), $end->toDateString()])
-            ->whereNull('estorno_de_id')
-            ->whereHas('titulo', fn ($q) => $q->where('tipo', 'receber'));
+        // Recebido / Pago = baixas (dinheiro que entrou/saiu).
+        //  - campo 'pagamento': data_baixa É a data relevante → filtra direto (exato).
+        //  - demais campos: filtra as baixas cujos TÍTULOS casam o campo escolhido,
+        //    mantendo os cards consistentes com a lista filtrada.
+        $aplicarBaixa = function ($q, string $tipo) use ($campo, $sd, $ed) {
+            $q->whereNull('estorno_de_id');
+            if ($campo === 'pagamento') {
+                $q->whereBetween('data_baixa', [$sd, $ed])
+                  ->whereHas('titulo', fn ($t) => $t->where('tipo', $tipo));
+            } else {
+                $q->whereHas('titulo', function ($t) use ($tipo, $campo, $sd, $ed) {
+                    $t->where('tipo', $tipo);
+                    $this->aplicarFiltroData($t, $campo, $sd, $ed);
+                });
+            }
 
-        $pago = TituloBaixa::where('business_id', $businessId)
-            ->whereBetween('data_baixa', [$start->toDateString(), $end->toDateString()])
-            ->whereNull('estorno_de_id')
-            ->whereHas('titulo', fn ($q) => $q->where('tipo', 'pagar'));
+            return $q;
+        };
+
+        $recebido = $aplicarBaixa(TituloBaixa::where('business_id', $businessId), 'receber');
+        $pago = $aplicarBaixa(TituloBaixa::where('business_id', $businessId), 'pagar');
 
         $saldoAtual = (float) ContaBancaria::where('business_id', $businessId)->sum('saldo_cached');
         $saldoPrevisto = $saldoAtual

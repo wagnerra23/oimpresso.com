@@ -9,7 +9,8 @@
 //   - Impressão / Rótulos / Reembolso → seguem Blade legacy (não migrados)
 
 import { router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Eye, Printer, Trash2, Tag, Wallet } from 'lucide-react';
 
 export interface AcaoVisibility {
   canEdit: boolean;
@@ -31,7 +32,7 @@ interface AcoesDropdownProps {
 interface ActionItem {
   id: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   onClick: () => void;
   divider?: 'before' | 'after';
   variant?: 'default' | 'danger';
@@ -97,7 +98,7 @@ export default function AcoesDropdown({
     {
       id: 'ver',
       label: 'Ver',
-      icon: '👁',
+      icon: <Eye className="h-4 w-4" />,
       onClick: () => {
         onOpenDrawer(compraId, 'resumo');
         setOpen(false);
@@ -106,7 +107,7 @@ export default function AcoesDropdown({
     {
       id: 'impressao',
       label: 'Impressão',
-      icon: '🖨',
+      icon: <Printer className="h-4 w-4" />,
       onClick: () => openBladeNewTab(`/purchases/print/${compraId}`),
     },
     {
@@ -124,7 +125,7 @@ export default function AcoesDropdown({
     {
       id: 'excluir',
       label: 'Excluir',
-      icon: '🗑',
+      icon: <Trash2 className="h-4 w-4" />,
       variant: 'danger',
       hidden: !visibility.canDelete,
       onClick: handleDelete,
@@ -132,14 +133,14 @@ export default function AcoesDropdown({
     {
       id: 'rotulos',
       label: 'Rótulos',
-      icon: '🏷',
+      icon: <Tag className="h-4 w-4" />,
       divider: 'after',
       onClick: () => openBladeNewTab(`/labels/show?purchase_id=${compraId}`),
     },
     {
       id: 'pagamentos',
       label: 'Ver pagamentos',
-      icon: '💰',
+      icon: <Wallet className="h-4 w-4" />,
       onClick: () => {
         onOpenDrawer(compraId, 'pagamentos');
         setOpen(false);

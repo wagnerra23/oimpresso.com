@@ -6,6 +6,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, usePage } from '@inertiajs/react';
 import { ReactNode, useMemo } from 'react';
+import { Lightbulb } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 
@@ -273,7 +274,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
       </section>
 
       <div className="text-xs text-stone-500">
-        💡 Para fechar um caixa aberto, clique no botão "Fechar caixa registradora" na header da{' '}
+        <Lightbulb className="h-3.5 w-3.5 mr-1 inline align-text-bottom" /> Para fechar um caixa aberto, clique no botão "Fechar caixa registradora" na header da{' '}
         <a href={links.pos_create} className="underline">
           tela POS
         </a>

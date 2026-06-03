@@ -28,20 +28,26 @@ import {
 import { useCallback, useState, type ReactNode } from 'react';
 import type { CacambaCardData, CacambaStatus } from './CacambaCard';
 
-interface DraggedData {
+// Genérico (2026-06-02 · port Kanban do carro): o provider DnD canon é reusado por
+// múltiplas verticais (caçamba ProducaoOficina + OS de mecânica ServiceOrders/Board).
+// Generics com default = tipos da caçamba → call sites legados compilam SEM mudança.
+// O ServiceOrders/Board passa `renderPreview` próprio (sem a palavra "Caçamba").
+interface DraggedData<T, C extends string> {
   cacambaId: number;
-  currentColumn: CacambaStatus;
-  cacamba: CacambaCardData;
+  currentColumn: C;
+  cacamba: T;
 }
 
-interface KanbanDndProviderProps {
+interface KanbanDndProviderProps<T, C extends string> {
   children: ReactNode;
   onMove: (
     cacambaId: number,
-    fromColumn: CacambaStatus,
-    toColumn: CacambaStatus,
-    cacamba: CacambaCardData,
+    fromColumn: C,
+    toColumn: C,
+    cacamba: T,
   ) => void;
+  /** Preview flutuante durante o drag. Default = preview da caçamba (compat). */
+  renderPreview?: (cacamba: T) => ReactNode;
 }
 
 /**
@@ -76,11 +82,15 @@ function CardDragPreview({ cacamba }: { cacamba: CacambaCardData }) {
   );
 }
 
-export default function KanbanDndProvider({
+export default function KanbanDndProvider<
+  T = CacambaCardData,
+  C extends string = CacambaStatus,
+>({
   children,
   onMove,
-}: KanbanDndProviderProps) {
-  const [activeData, setActiveData] = useState<DraggedData | null>(null);
+  renderPreview,
+}: KanbanDndProviderProps<T, C>) {
+  const [activeData, setActiveData] = useState<DraggedData<T, C> | null>(null);
 
   // Sensors — PointerSensor com distance:8 evita drag acidental em click-pra-abrir
   const sensors = useSensors(
@@ -91,7 +101,7 @@ export default function KanbanDndProvider({
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    const data = event.active.data.current as DraggedData | undefined;
+    const data = event.active.data.current as DraggedData<T, C> | undefined;
     if (data && typeof data.cacambaId === 'number') {
       setActiveData(data);
     }
@@ -109,8 +119,8 @@ export default function KanbanDndProvider({
 
       if (!over) return; // Drop fora de qualquer coluna
 
-      const dragData = active.data.current as DraggedData | undefined;
-      const overColumn = over.data.current as { columnStatus?: CacambaStatus } | undefined;
+      const dragData = active.data.current as DraggedData<T, C> | undefined;
+      const overColumn = over.data.current as { columnStatus?: C } | undefined;
 
       if (!dragData || !overColumn?.columnStatus) return;
 
@@ -141,7 +151,11 @@ export default function KanbanDndProvider({
     >
       {children}
       <DragOverlay dropAnimation={null}>
-        {activeData ? <CardDragPreview cacamba={activeData.cacamba} /> : null}
+        {activeData
+          ? renderPreview
+            ? renderPreview(activeData.cacamba)
+            : <CardDragPreview cacamba={activeData.cacamba as unknown as CacambaCardData} />
+          : null}
       </DragOverlay>
     </DndContext>
   );

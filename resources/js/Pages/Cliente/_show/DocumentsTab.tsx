@@ -1,16 +1,16 @@
 // Wave D — US-CRM-066 Tab Documents & Note (MWART F3 paridade /contacts/{id} tab documents_and_notes)
-// Restrições Tier 0 (ADR 0093): backend DocumentAndNoteController filtra business_id global scope.
-// Backend endpoints existentes (routes/web.php linhas 599-601):
-//   POST /post-document-upload (DocumentAndNoteController::postMedia)
-//   GET  /note-documents (index, datatable)
-//   GET  /note-documents/{id} (show)
-//   POST /note-documents (store — notes)
-//   PUT  /note-documents/{id} (update)
-//   DELETE /note-documents/{id} (destroy)
+// Restrições Tier 0 (ADR 0093): backend filtra business_id global scope em todas as queries.
+//
+// Anexos (Wagner 2026-06-01) — endpoints dedicados ContactController, business_id scope:
+//   GET    /cliente/{id}/anexos           (listar — mesma fonte do contador "N anexos" do header)
+//   POST   /cliente/{id}/anexos           (enviar — cria document-note + anexa media ao contato)
+//   DELETE /cliente/{id}/anexos/{mediaId} (excluir — valida posse no contato antes)
+// Notas (texto) seguem no DocumentAndNoteController:
+//   POST /note-documents (store) · PUT /note-documents/{id} (update)
 //
 // Modelo polimórfico: notable_id={contact.id}, notable_type='App\Contact'
 //
-// Pattern reuse: Essentials/Documents/Index.tsx (upload + list) + textarea autosave debounced 1.5s.
+// Pattern: textarea autosave debounced 1.5s + lista de anexos recarregada do backend.
 
 import { useEffect, useRef, useState } from 'react';
 import { Download, FileText, Loader2, Paperclip, StickyNote, Trash2, Upload } from 'lucide-react';
@@ -48,6 +48,9 @@ export interface DocumentsTabProps {
     delete_document: boolean;
     edit_note: boolean;
   };
+  /** Wagner 2026-06-01 — reporta a contagem VIVA de anexos (após load/upload/delete)
+   * pro header (chip "📎 N anexos"), que senão fica no valor estático do payload. */
+  onCountChange?: (count: number) => void;
 }
 
 const formatBytes = (bytes: number | null) => {
@@ -80,6 +83,7 @@ export default function DocumentsTab({
   notes: notesProp,
   notableType = 'App\\Contact',
   permissions = { upload: true, delete_document: true, edit_note: true },
+  onCountChange,
 }: DocumentsTabProps) {
   const [documents, setDocuments] = useState<DocumentItem[]>(docsProp ?? []);
   // notes list não é renderizada inteira (UI mostra só primary note); mantido pra futura grid.
@@ -91,6 +95,33 @@ export default function DocumentsTab({
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const fileRef = useRef<HTMLInputElement | null>(null);
   const noteTimeoutRef = useRef<number | null>(null);
+
+  // Wagner 2026-06-01 — carrega anexos do backend. Reutilizado no mount E após
+  // upload/exclusão (backend é a fonte da verdade). Só quando `documents` NÃO
+  // veio por prop (preserva usos prop-driven/SSR). GET /cliente/{id}/anexos.
+  const loadDocuments = async () => {
+    if (docsProp !== undefined) return;
+    try {
+      const res = await fetch(`/cliente/${contactId}/anexos`, {
+        credentials: 'same-origin',
+        cache: 'no-store', // pós-upload precisa do estado fresco, nunca cache do GET
+        headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (Array.isArray(data?.documents)) {
+        setDocuments(data.documents as DocumentItem[]);
+        onCountChange?.(data.documents.length); // sincroniza o chip do header
+      }
+    } catch {
+      // silencioso: painel permanece com o estado atual (mesmo fallback de antes).
+    }
+  };
+
+  useEffect(() => {
+    void loadDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contactId]);
 
   // Autosave debounced 1500ms na nota primária (primeira nota; senão cria)
   useEffect(() => {
@@ -146,11 +177,12 @@ export default function DocumentsTab({
     try {
       for (const file of Array.from(files)) {
         const fd = new FormData();
-        fd.append('notable_id', String(contactId));
-        fd.append('notable_type', notableType);
-        fd.append('document', file);
+        fd.append('file', file);
 
-        const res = await fetch('/post-document-upload', {
+        // Wagner 2026-06-01 — endpoint dedicado que PERSISTE (cria document-note
+        // + anexa media ao contato), business_id scope. Substitui o endpoint
+        // legado (postMedia) que só subia o arquivo sem persistir o vínculo.
+        const res = await fetch(`/cliente/${contactId}/anexos`, {
           method: 'POST',
           body: fd,
           credentials: 'same-origin',
@@ -161,11 +193,9 @@ export default function DocumentsTab({
           },
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json().catch(() => null);
-        if (data?.document) {
-          setDocuments((prev) => [data.document, ...prev]);
-        }
       }
+      // Recarrega do backend (fonte da verdade) — reflete o que persistiu.
+      await loadDocuments();
     } catch (err) {
       // eslint-disable-next-line no-alert
       alert('Erro ao enviar arquivo. Tente novamente.');
@@ -179,11 +209,11 @@ export default function DocumentsTab({
     if (!confirm('Excluir este anexo?')) return;
     try {
       const fd = new FormData();
-      fd.append('_method', 'DELETE');
-      fd.append('notable_id', String(contactId));
-      fd.append('notable_type', notableType);
+      fd.append('_method', 'DELETE'); // Laravel honra _method via POST
 
-      const res = await fetch(`/note-documents/${docId}`, {
+      // docId = id do media (DocumentItem.id). Endpoint valida que pertence a um
+      // document-note DESTE contato (business_id scope) antes de excluir.
+      const res = await fetch(`/cliente/${contactId}/anexos/${docId}`, {
         method: 'POST',
         body: fd,
         credentials: 'same-origin',
@@ -194,7 +224,9 @@ export default function DocumentsTab({
         },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      const next = documents.filter((d) => d.id !== docId);
+      setDocuments(next);
+      onCountChange?.(next.length); // decrementa o chip do header
     } catch {
       // eslint-disable-next-line no-alert
       alert('Erro ao excluir anexo.');

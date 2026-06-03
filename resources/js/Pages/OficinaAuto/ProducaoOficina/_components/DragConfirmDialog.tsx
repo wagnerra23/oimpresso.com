@@ -40,6 +40,8 @@ export interface PendingTransition {
   cliente_nome?: string | null;
   valor_receber?: number | null;
   dias_locacao?: number | null;
+  /** Rótulo do campo da placa (default 'Caçamba'; carro usa 'Veículo'). 2026-06-02 */
+  subjectLabel?: string;
 }
 
 interface Props {
@@ -88,7 +90,7 @@ export default function DragConfirmDialog({
           <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 space-y-1">
             {pending.plate ? (
               <div className="flex justify-between gap-3">
-                <span className="text-slate-500">Caçamba</span>
+                <span className="text-slate-500">{pending.subjectLabel ?? 'Caçamba'}</span>
                 <span className="font-mono font-medium text-slate-900">
                   {pending.plate}
                 </span>

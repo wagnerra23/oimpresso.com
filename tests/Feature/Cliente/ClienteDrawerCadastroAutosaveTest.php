@@ -249,6 +249,18 @@ test('PATCH /endereco field-a-field -- state persiste no DB', function () {
     $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'state' => 'SP']);
 });
 
+// Wagner 2026-06-02 — endereço de entrega (shipping_address) cadastrável no
+// drawer Cliente. Coluna UPOS desde 2020; antes não havia UI nem aceite no
+// autosave. A venda puxa daqui (Fase 2). Texto livre (aceita multi-linha).
+test('PATCH /endereco field-a-field -- shipping_address (endereço de entrega) persiste no DB + retorna na response', function () {
+    $endereco = "Rua da Entrega, 500 - Galpao 3\nGuarulhos/SP - aos cuidados do Joao";
+    $response = $this->patchJson("/cliente/{$this->contactId}/endereco", [
+        'shipping_address' => $endereco,
+    ]);
+    $response->assertStatus(200)->assertJsonPath('contact.shipping_address', $endereco);
+    $this->assertDatabaseHas('contacts', ['id' => $this->contactId, 'shipping_address' => $endereco]);
+});
+
 test('PATCH /endereco -- naming PT-BR (cep, endereco, bairro, cidade, uf) e descartado silenciosamente (regression)', function () {
     // Documenta o bug original — frontend antigo enviava nomes PT-BR. Backend
     // valida apenas canon (whitelist), entao Validator::validated() retorna

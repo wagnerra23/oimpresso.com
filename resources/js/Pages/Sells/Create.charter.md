@@ -3,9 +3,9 @@ page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-08
+last_validated: "2026-05-08"
 parent_module: Sells
-related_adrs: [0110, 0107, 0104, 0093]
+related_adrs: [110, 107, 104, 93]
 tier: A
 charter_version: 1
 ---
@@ -88,3 +88,16 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 - [Design.md §16 Cockpit V2](../../../../Design.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - PR #257, #258, #259, #261 — sequência migração visual
+
+## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
+
+> Cada item vem de um Caso de Uso ("A tela precisa:") amarrado a um GUARD Pest `uc-<id>`
+> (`tests/Feature/Guards/UcGuardsTest.php`) via [`prototipo-ui/audit/uc-registry.json`](../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ = elemento presente + travado (some o elemento = build vermelho). 🟡 = gap conhecido (acende no `protocol_freshness`, advisory).
+
+- ✅ **UC-V01** (`uc-v01`) — busca rápida de cliente/produto, tabela de preços automática, condições (prazo/pagamento/endereço), rascunho × pedido confirmado.
+- ✅ **UC-V02** (`uc-v02`) — busca de produto com estoque/prazo visível, desconto com limite, observação por item.
+- ✅ **UC-V03** (`uc-v03`) — seletor de tabela de preços, desconto com limite visível, aprovação de desconto.
+- 🟡 **UC-V04** — botão de envio com registro de canal+data, estado "Aguardando aprovação", registro da aprovação, histórico de versões. _(sem cobertura)_
+- 🟡 **UC-R01** — busca de kits distinta, expansão dos filhos, subtotal do kit, substituir filho, reserva de estoque dos filhos. _(sem cobertura)_
+- 🟡 **UC-C01** — formulário de item personalizado (dimensão/material/acabamento/arte), preço em tempo real, observações de produção. _(sem cobertura)_

@@ -6,7 +6,6 @@ import { useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
-  Clock,
   Download,
   ExternalLink,
   FileText,
@@ -16,30 +15,13 @@ import {
   Send,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import { useEmissoesPorTransaction, type Emissao, type EmissaoStatus } from '@/Hooks/useEmissoesPorTransaction';
+import { FiscalStatusBadge } from '@/Components/NfeBrasil/FiscalStatusBadge';
+import { useEmissoesPorTransaction, type Emissao } from '@/Hooks/useEmissoesPorTransaction';
 
 interface Props {
   saleId: number;
   enabled?: boolean;
 }
-
-const STATUS_LABEL: Record<EmissaoStatus, string> = {
-  pendente: 'Processando',
-  autorizada: 'Autorizada',
-  rejeitada: 'Rejeitada',
-  denegada: 'Denegada',
-  cancelada: 'Cancelada',
-  inutilizada: 'Inutilizada',
-};
-
-const STATUS_STYLE: Record<EmissaoStatus, string> = {
-  autorizada: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
-  pendente: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
-  rejeitada: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
-  denegada: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
-  cancelada: 'bg-muted text-muted-foreground border-border',
-  inutilizada: 'bg-muted text-muted-foreground border-border',
-};
 
 export default function FiscalSection({ saleId, enabled = true }: Props) {
   const { emissoes, loading, error, isPolling, refetch } = useEmissoesPorTransaction(saleId, { enabled });
@@ -200,7 +182,15 @@ function EmissaoRow({
             <span className="text-xs text-muted-foreground tabular-nums">
               {em.serie}-{em.numero}
             </span>
-            <StatusBadge status={em.status} />
+            <FiscalStatusBadge
+              variant="pill"
+              model={em.modelo}
+              status={em.status}
+              numero={em.numero}
+              chave={em.chave_44}
+              cstat={em.cstat}
+              motivo={em.motivo}
+            />
           </div>
           {em.chave_44 && (
             <div className="font-mono text-[10px] text-muted-foreground break-all leading-tight">
@@ -241,14 +231,3 @@ function EmissaoRow({
   );
 }
 
-function StatusBadge({ status }: { status: EmissaoStatus }) {
-  const cls = STATUS_STYLE[status];
-  const label = STATUS_LABEL[status];
-  const Icon = status === 'autorizada' ? CheckCircle2 : status === 'pendente' ? Clock : AlertTriangle;
-  return (
-    <span className={'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ' + cls}>
-      <Icon size={10} />
-      {label}
-    </span>
-  );
-}

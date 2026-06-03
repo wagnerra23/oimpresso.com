@@ -17,14 +17,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import {
-  Search,
-  Sparkles,
-  CheckSquare,
-  Play,
-  Download,
-  Plus,
-} from 'lucide-react';
+import { Download } from 'lucide-react';
 import { BalancoView, type BalancoData } from './_components/BalancoView';
 import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
@@ -203,11 +196,22 @@ function FinanceiroDre({
             active="dre"
             hidePrimary
             extraOverflowItems={[
-              { key: 'buscar',     label: 'Buscar (⌘K)', icon: <Search size={13} />,     onClick: () => { /* stub F1 — Cmd palette compartilhada vira F2 */ } },
-              { key: 'resumir',    label: 'Resumir mês', icon: <Sparkles size={13} />,   onClick: () => { /* stub F1 — narrativa DRE vira F2 */ },                title: 'Resumo executivo do mês (narrativa DRE compute-based)' },
-              { key: 'fechamento', label: 'Fechamento',  icon: <CheckSquare size={13} />, onClick: () => { /* stub F1 — checklist fechamento vira F2 */ },        title: 'Trilha de 12 passos do fechamento mensal' },
-              { key: 'apresentar', label: 'Apresentar',  icon: <Play size={13} />,        onClick: () => { /* stub F1 — modo apresentação vira F2 */ },           title: 'Modo apresentação fullscreen (Esc fecha)' },
-              { key: 'exportar',   label: 'Exportar',    icon: <Download size={13} />,    onClick: () => { /* stub F1 */ },                                       title: 'Exportar DRE (XLSX / PDF)' },
+              // B6 "botões honestos" (2026-05-31): só permanece a ação que tem
+              // capacidade real AGORA. Os stubs F1 (Buscar ⌘K / Resumir mês /
+              // Fechamento / Apresentar) foram REMOVIDOS do render — não há
+              // backend/handler ainda (roadmap vive no charter, não em botão
+              // morto). Reentram quando a capacidade existir.
+              {
+                key: 'exportar-csv',
+                label: 'Exportar CSV',
+                icon: <Download size={13} />,
+                onClick: () => {
+                  // Rota real GET /financeiro/dre/export-csv (DreController::exportCsv,
+                  // StreamedResponse BOM UTF-8). PDF + Excel já têm âncoras inline no card.
+                  window.location.href = '/financeiro/dre/export-csv';
+                },
+                title: 'Baixar DRE em CSV (Excel BR)',
+              },
             ]}
           />
           <FinanceiroPrimaryButton onClick={() => router.visit('/financeiro/unificado/novo')}>

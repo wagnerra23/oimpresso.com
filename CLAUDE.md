@@ -21,6 +21,7 @@
 2. `my-work` → minhas tasks ativas
 3. (S4+) `charter-fetch <page-id>` antes de editar `.tsx` que tenha `.charter.md` ao lado
 4. **Antes de tocar UI** (Pages/Components/css): ler [Constituição UI v2 · ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [PT aplicável](memory/requisitos/_DesignSystem/padroes-tela/) + rodar [PRE-MERGE-UI](memory/requisitos/_DesignSystem/PRE-MERGE-UI.md)
+4b. **Antes de tocar design-memory** (`prototipo-ui/**` · charters · `*.casos.md` · build visual): ler [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](prototipo-ui/PROCESSO_MEMORIA_CC.md) (raiz do método anti-regressão — §5 REGRESSÕES PROIBIDAS + NÚCLEO 13 invariantes) + [`memory/LICOES_CC.md`](memory/LICOES_CC.md) (L-01..L-25). No fim da build, rodar `node prototipo-ui/ds-guard.mjs <arquivos tocados>` (§8) e, ao formalizar, `node prototipo-ui/integrity-check.mjs` (§15). _REGRESSÃO É INACEITÁVEL._
 5. Trabalhar (ler código, edit, test)
 6. (S5+) `decide(domain, intent, payload)` se mudança custosa
 7. Commit conventional + `Refs: SPRINT-N PASSO M` (skill `commit-discipline` Tier A)
@@ -101,6 +102,8 @@ Se algum falhar → investigar `storage/logs/laravel.log` ALERT entries.
 - Reportar bug: https://github.com/anthropics/claude-code/issues
 
 ---
-**Última atualização:** 2026-05-24 — Constituição UI v2 ([ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) aceita. Adicionado passo 4 protocolo UI + seção Hierarquia UI.
+**Última atualização:** 2026-06-02 — Passo **4b** always-read de design-memory: [`prototipo-ui/PROCESSO_MEMORIA_CC.md`](prototipo-ui/PROCESSO_MEMORIA_CC.md) + [`memory/LICOES_CC.md`](memory/LICOES_CC.md) (método anti-regressão do loop Cowork; defesas mecânicas DS-GUARD §8 + integrity-check §15). Landeado via handoff Cowork, autorizado por Wagner.
+
+**2026-05-24** — Constituição UI v2 ([ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) aceita. Adicionado passo 4 protocolo UI + seção Hierarquia UI.
 
 **2026-05-06** — Constituição v2 ([ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)) aceita. CLAUDE.md reescrito de 289 → ~85 linhas (Anthropic 2026 best-practice).

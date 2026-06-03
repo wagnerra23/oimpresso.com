@@ -307,12 +307,22 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
             </div>
           </div>
 
-          <Link href="/ia">
-            <Button variant="outline" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Conversar com a Jana
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Entry-point pro paywall Jana Pro (ADR 0140). Upsell discreto —
+                a ação primária da Dashboard continua sendo "Conversar". */}
+            <Link href="/ia/pro">
+              <Button variant="outline" className="gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Jana Pro
+              </Button>
+            </Link>
+            <Link href="/ia">
+              <Button variant="outline" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Conversar com a Jana
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <JanaKpiStrip />

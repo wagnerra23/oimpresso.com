@@ -14,6 +14,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
+import { Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import VendaDerivadaCard, {
   type VendaDerivada,
@@ -543,7 +544,7 @@ function JobDrawer({ card, labelOverrides, onClose }: { card: Card; labelOverrid
                 key={label}
                 className="aspect-square rounded bg-slate-200 grid place-items-center text-slate-400 text-[10px]"
               >
-                📷 {label}
+                <span className="inline-flex items-center gap-1"><Camera className="h-3 w-3" /> {label}</span>
               </div>
             ))}
           </div>

@@ -43,7 +43,18 @@ class GrowthBookAdminService
 
     public function __construct()
     {
-        $this->apiHost = rtrim((string) env('GROWTHBOOK_ADMIN_API_HOST', 'https://growthbook.oimpresso.com/api/v1'), '/');
+        // A REST API admin do GrowthBook vive no MESMO host do SDK read
+        // (GROWTHBOOK_API_HOST), sob /api/v1. O default antigo
+        // (growthbook.oimpresso.com/api/v1) apontava pro frontend Next.js, que
+        // responde HTTP 404 (HTML da SPA) em rotas /api/v1/* — quebrava
+        // flag:list / flag:set / flag:env-toggle quando só o token estava no .env.
+        // Derivar de GROWTHBOOK_API_HOST mantém consistência com FeatureFlagService
+        // (leitura) e evita divergência de host. Override explícito via
+        // GROWTHBOOK_ADMIN_API_HOST continua respeitado.
+        $this->apiHost = rtrim((string) env(
+            'GROWTHBOOK_ADMIN_API_HOST',
+            rtrim((string) env('GROWTHBOOK_API_HOST', 'https://growthbook-api.oimpresso.com'), '/') . '/api/v1'
+        ), '/');
         $this->apiToken = (string) env('GROWTHBOOK_ADMIN_API_TOKEN', '');
     }
 
@@ -257,8 +268,9 @@ class GrowthBookAdminService
         if (! $this->isConfigured()) {
             throw new RuntimeException(
                 'GrowthBookAdminService não configurado. Defina GROWTHBOOK_ADMIN_API_TOKEN '
-                . '+ GROWTHBOOK_ADMIN_API_HOST no .env (token gerado em '
-                . 'https://growthbook.oimpresso.com → Settings → Personal Access Tokens).'
+                . 'no .env (token gerado em https://growthbook.oimpresso.com → Settings → '
+                . 'Personal Access Tokens). O host da REST API é derivado de GROWTHBOOK_API_HOST '
+                . '(+ /api/v1); só defina GROWTHBOOK_ADMIN_API_HOST pra sobrescrever.'
             );
         }
     }

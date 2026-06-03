@@ -93,3 +93,583 @@ Chegou OUTRA proposta [CC] (amendment `otimizar-rotinas-design`, URL diferente d
 ### FICA pra você [W]
 - **Único bloqueador:** ordem de consolidação. Sobra real = **G1/G2/G6** (motores) + **G5-`.css`** (Stylelint). Minha leitura: G5-css e G2 (agregar `screen-grades-baseline.json` + `DS_ADOCAO_INDICE` num `design-report.json`) têm o melhor ROI; G1 é o mais estratégico (mata 3 dicionários de dimensão duplicados).
 - **Nada de código mergeado.** Este PR é **só docs** (`prototipo-ui/*.md`) — você autorizou o merge enxuto. ADR de evolução do loop (se quiser) nasce rascunho mãe 0114, sem número.
+
+---
+
+## 2026-05-31 ~21:15 [CL] → [W]/[CC] — Handoff "implementar o Diagnóstico" processado: item 3 (já-canon) + item 2 (health-check de charter) MERGED
+
+Wagner trouxe o bundle Cowork `ZxcA47…` ("implementar o Diagnóstico"). O Diagnóstico é **relatório de saúde** (placar 6.7/10), não tela. Apliquei o gate §10.4 contra `main` na fila COWORK_NOTES (4 itens):
+
+| Item | Veredito vs `main` | Ação [CL] |
+|---|---|---|
+| #1 ADR peer-review + override ≥98% | **já-canon** (ADR 0238/0241) | NÃO fiz (regressão) |
+| #2 health-check de charter (tooling) | **novo** | ✅ **PR #2055 MERGED** |
+| #3 oficializar `Financeiro.charter.md` | **stale/já-canon** — tela real = `Unificado/Index.tsx` charter **v9 live**; `Financeiro/Index.tsx` não existe | ✅ dobrei só o feedback novo → **PR #2053 MERGED** |
+| #4 auditoria read-only → `design-report.json` | infra pronta no main | não feito (aguarda go) |
+
+### O que mergeou
+- **PR #2053** — `Unificado/Index.charter.md` **v9→v10**: +4 anti-patterns de densidade do header (05-31: "7 botões apertado" · sub-páginas→sidebar · "não foi fiel ao domínio" · mock-como-pronto) + **US-FIN-029** (direção "3 lentes + ··· + sidebar" como **intenção PENDENTE**, não-live — registrada assim de propósito pra não cometer o anti-pattern "mock como pronto"). A charter Cowork `Financeiro.charter.md` v1 fica **superada** por este v10 canônico.
+- **PR #2055** — `jana:health-check` ganhou 5 checks **advisory** de charter (`CharterHealthChecker`): charter_missing · charter_stale (>90d) · charter_refs_broken · charter_method_missing · readme_handoff_block_missing. 9 testes Pest.
+
+### Achado pro [CC] (o check já se provou na 1ª execução)
+`readme_handoff_block_missing` flag um **gap real**: o `prototipo-ui/README.md` canônico **não tem** o marcador `<!-- HANDOFF-ENTRY -->` que o STATUS.md (L-18) exige. Sem ele, um Share→Handoff entrega o projeto mas o Code não acha a fila. **Fix é conteúdo do loop [CC]** — sugiro [CC] regenerar o README preservando o bloco "🤖 Claude Code — COMECE AQUI" + o marcador.
+
+### new_design_memories (CARTA §6.2)
+- tipo: doc-novo · ref: `resources/js/Pages/Financeiro/Unificado/Index.charter.md` v10 · resumo: feedback header-densidade 05-31 dobrado na charter canônica (charter Cowork v1 superada).
+- tipo: tooling · ref: `Modules/Jana/Services/CharterHealthChecker.php` · resumo: jana:health-check passa a cobrar charter (missing/stale/refs/method/readme-handoff), advisory.
+- tipo: anti-padrao · ref: gotcha charter frontmatter · resumo: tocar `.charter.md` acorda o memory-schema-gate — `last_validated` quoted string, `related_adrs` integer/slug (sem `ui/`/`arq/` namespaced).
+
+### FICA [W]/[CC]
+- README handoff-entry marker (conteúdo [CC]).
+- Item 4 (auditoria read-only → `design-report.json`) — aguarda go.
+
+---
+
+## 2026-06-01 — fila Cowork "Diagnostico de Projeto" (handoff P6u6) · #2 + #3
+
+Wagner reenviou o bundle Cowork (open-file `Diagnostico de Projeto - CC.html`). Pelo `project/README.md`: **o open-file e ponto de entrada, NAO a tarefa** — a fila vive em `COWORK_NOTES -> 📥 Pendentes`. Processei pelo §10.4 (base estava -71 vs origin/main -> worktree isolado off origin/main fresco).
+
+| Item | Veredito | Acao [CL] |
+|---|---|---|
+| #2 Charters de papel | NOVO (nao no main) | ✅ **PR #2061 MERGED** ([W] 01:33) — ADR 0242 + CHARTER_GOVERNANCA_W + CHARTER_CHAMPION_AGENTES (prototipo-ui/). Tier 0. |
+| #3 README HANDOFF-ENTRY | gap real (readme_handoff_block_missing) | ✅ **PR #2062 MERGED** (autonomo, nao-Tier-0). |
+| #1 G4 retorno automatico | em andamento | PR Tier 0 (design_return_skipped + workflow pos-merge). |
+| #4 auditoria read-only | aguarda go | — |
+
+Detalhes: ADR 0242 e evolucao/aplicacao de 0079/0094/0238/0241 (nao reescrita). Charters em prototipo-ui/ (nao `_DesignSystem/` -> evita design-index-gate "orfao"). Tela de diagnostico construida e **descartada** (era ponto-de-entrada, nao tarefa — confirma o CODE_NOTES anterior "o Diagnostico e relatorio, nao tela").
+
+### Gotchas (new_design_memories)
+- `persona: [CC] ...` em frontmatter = YAML invalido (`[CC]` vira flow-seq) -> quotar.
+- charter-gate so valida `resources/js/Pages/**/*.charter.md`; design-index-gate so `_DesignSystem/**` -> `CHARTER_*.md` em prototipo-ui/ passa livre.
+
+### FICA [W]
+- #1 G4: PR Tier 0 aguarda merge [W]. #4 auditoria aguarda go.
+
+---
+
+## 2026-06-01 [CL] → [W] — Handoff `metricas.html` (Cowork→Code): regras de design no git
+
+### Origem: bundle Cowork "oimpresso-erp-comunicação-visual" (chat33 · `metricas.html`). [W]: "implemente os aspectos relevantes do design".
+### Status: Regras 1+2 traduzidas · Regra 3 N/A (justificado) · **aguarda merge [W]** (Tier 0)
+### Diff: branch `docs/design-no-dup-trilha` → PR
+
+**Passo 0 (vs `origin/main` fresco):** bundle estava stale — Jana Pro `#2069` e o prep dos 3 Tier 0 de IA `#2073` JÁ em `main` (o bundle dizia "⏸️ não disparar"). Cada item batido contra o `main` antes de agir (L-09).
+
+- **Regra 1 — no-duplicação de design (L-21) → ✅** bullet em `CLAUDE_DESIGN_BRIEFING §7.1`, referenciando o pai em `proibicoes.md` (não duplica).
+- **Regra 2 — trilha do tempo / lápide (L-22) → ✅** bullet em `§7.1` + 1 forward-ref em `proibicoes.md` (Memória/governança).
+- **Regra 3 — rename shell `Oimpresso ERP - Chat.html` → `oimpresso.com.html` → ⏭️ N/A.** Não há shell vivo no repo: esse HTML só existe em pastas-snapshot (`_arquivo/`, `cowork-2026-05-26-…/`) — o repo guarda bundles Cowork como snapshots datados, não 1 HTML vivo. `metricas.html` é Cowork-local (não vai pro repo, por decisão sua no chat33). Nada a renomear.
+
+### Adaptação §10.4 (não copiei literal): o bullet usa "layout único do shell" em vez de citar `Oimpresso ERP - Chat.html` (inexistente no repo).
+
+### FICA [W]
+- Proibição/design = Tier 0 = **seu merge**. Não auto-mergeei.
+
+---
+
+## 2026-06-01 10:45 [CL] → [W]
+
+### Tela: Jana/Pro (+ infra de review por tela)
+### Status: traduzido (MERGED)
+### Diff: PR #2078 (squash · main 98566bfb4)
+### Build: passou (Pest 1m55s · 21/22 CI verde)
+### Charter atualizado: n/a (review novo ao lado do charter existente)
+
+Gerador `design:review` (fila COWORK #2) MERGED:
+- `review-gen.mjs` (`npm run design:review <tela>`) → `<Tela>.review.md` append-only ancorado por `measured_against_sha`; `review-freshness.mjs` + `review-freshness-baseline.json` (ratchet, espelha eslint-baseline) + Pest `DesignReviewFreshnessTest` + `PROTOCOL §6` (+2 checks).
+- 1a exec = `Jana/Pro.review.md` (nota 88) — fecha o gap do #2069 (tela sem review).
+- ADR = **proposta sem numero** (`proposals/design-review-por-tela-charter-page.md`) — [W] cunha pra promover a canon (soberania, ADR 0238).
+
+### FICA [W] / proximo
+- Fase 2 (juiz-LLM R5/R8/R10 + nota holistica + best_of_class) = custo/cadencia real-mode → espera [W].
+- `ui:lint` vermelho **PRE-EXISTENTE** (nao do #2078): `Pro.tsx` (#2069) 2 R1 cor-crua fora do `ui-lint-baseline.json`. Fix = PR separado tokenizando o card dark (decisao de tokens dark). Ja no backlog do `Pro.review.md`.
+- Fila restante (Tier 0, top→down): #1 Metodo Migration→Tela · #3 ADR peer-review · #4 IA ENABLE.
+
+---
+
+## 2026-06-02 [CL] → [W] — Arquitetura de Memória/Evolução [CC] formalizada (handoff `ALwoVssQOY…`)
+
+### Origem: bundle Cowork (Share→Handoff) · prompt `prototipo-ui-patch/PROMPT_PARA_CODE_ARQUITETURA-MEMORIA-CC.md` (PROPOSTA §10.4)
+### Status: 4 arquivos transportados **verbatim** · **aguarda merge [W]** (docs podem mergear; ratificação ADR é separada)
+### Diff: branch `docs/arquitetura-memoria-cc` (base `origin/main` `1e4bb33c4`) → **PR #2106**
+
+**Passo 0 §10.4 (ancorei em `origin/main` FRESCO):** worktree novo off `origin/main`. O `git-base-freshness-guard` se confirmou na prática — minha 1ª checada de cross-refs rodou contra o working tree `feat/staging-ct100` (parado em ADR 0236) e marcou ADR 0238/0239 como "phantom". **Errado.** Contra `origin/main` (até 0242) ambos EXISTEM e batem com o texto. Exatamente o modo-de-falha que o §10.4 Passo 0 descreve — pego pelo gate, não por sorte.
+
+### Paths finais (todos net-new vs `main` — nenhum sobrescrito)
+| Artefato | Path no repo | Ação |
+|---|---|---|
+| Método/raiz do processo | `prototipo-ui/PROCESSO_MEMORIA_CC.md` | criado (vizinho de `PROTOCOL.md`/`CLAUDE_DESIGN_BRIEFING.md`) |
+| Charter Produção/Oficina | `prototipo-ui/prototipos/producao-oficina/charter.md` | criado (convenção pasta-por-tela, ex `clientes/`) |
+| Register Produção/Oficina | `prototipo-ui/prototipos/producao-oficina/decisoes.md` | criado (irmão do charter → IT2 do PROCESSO passa) |
+| Lições [CC] | `memory/LICOES_CC.md` | criado (1ª vez versionado no `main`) |
+
+### Validação §10.4 (passei sozinho, sem [W])
+- **Não cunhei número.** PROCESSO referencia ADR **0238** (`soberania-constituicao-wagner`) + **0239** (`governanca-design-system-git-ssot-regressao-ia`) — **verificados reais em `origin/main`**, não inventados aqui. PROTOCOL §10.3/§10.4 reais. Charter referencia ADR 0194/0129/0143 — reais.
+- **Nenhum arquivo divergente sobrescrito** — os 4 são net-new (não existiam em `origin/main`).
+- **`LICOES_CC` append-only:** não havia base em `main` → commitei o arquivo inteiro (L-01…L-23). **Contíguo, sem buraco/duplicata → o próprio IT4 do PROCESSO passa.** O único erro novo desta sessão Cowork é o **L-23** ("construí a tela de venda FORA do sistema" — reincidência L-02 paleta inventada + L-21 `.html` na raiz).
+- **Baseline intacto:** só `.md`, sem código/css/tsx → lint/Pest/stylelint-baseline não mexem.
+
+### Follow-up Tier 0 (NÃO fiz, de propósito)
+`PROCESSO_MEMORIA_CC` é **método que governa [CC]**. Ratificação formal = vira ADR → **[W] cunha o próximo número livre (0243) sob seu OK**; não cunho. Docs mergeiam antes; a ratificação é separada e não bloqueia.
+
+### Nada mergeado
+Só docs, mas mexe na família de governança do loop (`prototipo-ui/*` + `memory/LICOES_CC`) → **não auto-mergeei**; seu merge.
+
+---
+
+## 2026-06-02 (b) [CL] → [W] — ADR 0243 cunhado (ratificação, sob OK "pode fazer")
+
+[W] autorizou ("pode fazer") → minei **ADR 0243** `memory/decisions/0243-processo-memoria-evolucao-design-cowork.md` na mesma PR #2106 (a ADR ratifica o `PROCESSO_MEMORIA_CC` que vive nela — evita forward-dependency).
+
+- **Número:** 0243 (próximo livre vs `origin/main`, que ia até 0242). Confirmei contra `origin/main`, não o working tree stale.
+- **Schema:** valida contra `scripts/memory-schemas/adr.schema.json` (gray-matter + Ajv 2020, mesmo validador do `memory-schema-gate`) — ✅ passa. `status: aceito` + `decided_by: [W]`, padrão dos irmãos 0238/0239/0242 (merge de [W] = ratificação formal).
+- **Conteúdo:** R1–R8 (always-read · 3 planos · anéis fonte-única · charter+register irmãos · defesa-que-dispara · medir+gatilho · LICOES append-only · soberania [W]). Consolida 0114/0236/0238/0239/0241/0242 + UI-0013; `supersedes: []`.
+- **Índice (ADR 0239 R5):** adicionei 0243 em `INDEX-DESIGN-MEMORIAS.md` (tabela de governança + changelog) — link relativo resolve, `DesignIndexSingleSourceTest` segue verde.
+- **Soberania respeitada:** numerei só porque [W] deu o OK explícito (ADR 0238). Continua **sem merge** — ratificação = seu merge da PR #2106.
+
+---
+
+## 2026-06-02 17:16 [CL] → [W]/[CD]
+
+### Tela: shell global (AppShellV2 + cockpit) + 4 telas-núcleo
+### Status: handoff Cowork PROCESSADO → main
+### Diff: PR #2119 (`5407072ed`) + PR #2121 (`9ba9d8944`) — ambos MERGED `--admin`
+### Build: passou (14/14 + 12/12 CI verde)
+### Charter atualizado: charters Vendas/Compras mirrorados em `prototipo-ui/prototipos/`
+
+### O que landou (prompts v3 `REFORCO-APPSHELL-TESTES` + `SESSAO-2026-06-02`):
+- **A2** accent default **220 azul → 295 roxo canon** — `AppShellV2` escrevia `--accent` inline (de `accentHue=220`) vencendo o cascade sobre `cockpit.css` (ADR 0190); `Sidebar.vibeAccent('workspace')` idem. Guard `CockpitAccentCanonTest`.
+- **A1** gate "toda tela Inertia usa AppShellV2" — ground-truth `Inertia::render`→tsx; 224 alvos → 0 violação (allowlist `Site/*` + `AprovacaoPublica`).
+- **B** smoke — `CoreScreensIntegrityTest` (roda sempre) + `tests/Browser/CoreScreens` (skip-guarded, CI chromium): Financeiro/Unificado, Compras, Cliente, OficinaAuto/ServiceOrders.
+- **C1** CSS — `background:#fff`→`var(--surface)` 30× no `cowork-financeiro-bundle.css` (ratchet stylelint −30; subset seguro só-background).
+- **docs** — charters Vendas/Compras + `INVENTARIO_CLASSES.md` mirrorados.
+- **CI** — `ui-architecture-gate.yml` + `multi-tenant-gate.yml` (os gates novos rodam de verdade; `ci.yml` antes só rodava `tests/Feature/Form`).
+- **guard business_id** recalibrado (#2121) — exempta `=== 0` (no-tenant), biz=1 SaaS → `config('app.saas_owner_business_id')`.
+
+### NÃO feito (de propósito):
+- **ADR _PROPOSTA-0245 NÃO mirrorado** — numeração de ADR = soberania [W] (ADR 0238). Cowork numera no git quando [W] aprovar.
+- **COMPAT de tokens em `app.css` / `@media`→`@container` em `fin-cowork.css`** — alvos que o próprio Cowork retratou (repo já roxo+warm; `app.css` = manifesto vazio).
+- **de-drift `os-*` do `styles.css` Cowork** — shell de protótipo, não existe no repo.
+- **CRM** — ainda Blade legado (sem Inertia page), L-26. Migração = programa MWART Tier 0.
+- **C1 só o subset seguro** — restam ~158 hex (semânticos/chart/texto) que precisam regressão visual.
+
+### Pendências (pro Cowork/[W]):
+- [ ] Numerar ADR _PROPOSTA-0245 no git (soberania [W]).
+- [ ] Decidir migração CRM Blade→Inertia (cliente-como-sinal).
+- [ ] Fase 2 `os-*` dedup + restante do hex drift (com regressão visual).
+
+---
+
+## 2026-06-02 18:05 [CL] → [W]/[CD]
+
+### Tela: bundle CSS Financeiro (`.fin-cowork`) — dedupe de infra, sem tela específica
+### Status: prompt `PROMPT_PARA_CODE_DEDUPE-FINANCEIRO-BUNDLE.md` PROCESSADO → main
+### Diff: PR #2127 (`7dff54968`) — squash MERGED `--admin`, 13/13 CI verde
+### Build: passou (Vite build + Stylelint ratchet + UI gates)
+
+### O que landou:
+- **Removido** `@import "./cowork-financeiro-bundle.css"` do `inertia.css` + **`git rm`** do arquivo (Onda 8 antigo, vencia o cascade). **−327KB / −8658 LOC.**
+- README `_cowork-bundle` 2 refs → canon. Rebaseline stylelint **1065→820** (3 entradas do arquivo morto).
+
+### Validação da paridade (re-rodada por [CL], não confiei nos números do prompt):
+- Parser CSS brace-aware próprio contra `origin/main`: **2309 regras idênticas · 0 seletor real só-no-antigo** (a "perda de 4" do prompt eram só linhas de **comentário** de header).
+- **29 body-diff, TODAS o mesmo único delta** `background: var(--surface)` → `#fff`.
+- **No-op visual provado**: `--surface` só vira escuro sob `[data-theme="dark"]`, e **não existe toggler de dark theme em `resources/js`** → `--surface`==`#fff` sempre.
+
+### Correção do prompt (achado [CL]):
+- **`.rec-paper` (recibo) está nos 29 diffs mas FALTAVA na lista de 30 do Cowork.** Mesmo delta/no-op. Lista completa = os 30 do prompt **+ `.rec-paper`**.
+
+### ⚠️ Nuance que conecta com o C1 de 17:16:
+- O **C1** desta manhã ratcheou `#fff`→`var(--surface)` nos 30 selectors **DENTRO do `cowork-financeiro-bundle.css`** — o bundle que este dedupe **apagou**. Logo o canon volta a `#fff` hardcoded nesses 30 (no-op visual, mas perde o ratchet de token).
+- **Trabalho de token-discipline deve mirar o CANON, não o bundle deprecado.** Fica como Fase 2.
+
+### Pendências (pro Cowork/[W]):
+- [ ] **Fase 2 hex drift**: portar `var(--surface)` pros 30 selectors `os-*`/`vd-*`/`rec-paper`/etc **NO CANON** (`cowork-canon-financeiro-bundle.css`) + ~158 hex semânticos restantes — com regressão visual.
+
+### new_design_memories
+- **golden**: dedupe bundle duplo Financeiro (−327KB; paridade validada por [CL]: 2309 idênticas, 0 seletor real só-no-antigo, 30 OLD→CANON + `.rec-paper` eram todos `var(--surface)`→`#fff` no-op porque dark-theme nunca ativa).
+- **conflito**: 2 bundles Financeiro ~327KB ambos `@import`, antigo vence cascade — resolver adotando canon (feito #2127).
+- **lição**: token-discipline ratchet (C1) num bundle slated-for-delete vira trabalho perdido — mirar sempre o canon.
+
+---
+
+## 2026-06-02 (c) [CL] → [W]/[CC] — Jana ganha ledger de auto-reflexão de erros de OPERAÇÃO (Reflexion runtime)
+
+### Handoff: `PROMPT_PARA_CODE_JANA-LICOES-REFLEXION.md` (Cowork→Code) · racional `rep-cc-vs-jana` do `metricas.html`
+### Natureza: peer-review (L-17) · **Tier 0** (governança de módulo) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/jana-ledger-licoes-operacao` · base `main` fresco (`de72198ae`)
+
+### Veredito do peer-review: **procede** (aditivo, ROI alto, espelha 5ª camada já aceita pro [CC])
+A Jana já pega erro de **saída** (golden 30Q + RAGAS + drift sentinel) mas não tinha o ledger dos próprios erros de **operação** que **gradua** cada um — lacuna #1 (Aprendizado ~6.5 vs [CC] ~9.0). Não é mecanismo novo: `jana:health-check` já é o harness; é só +1 check.
+
+### Passo 0 contra `origin/main` (não dupliquei nada):
+- `LICOES_CC`/`APRENDER-COM-ERRO` **não estão no canon** (só em `_BACKUP-NAO-USAR`, design/[CC]) → ledger da Jana é o **gêmeo runtime**, novo.
+- `proibicoes.md` = proibição global, não lição de operação → não toquei.
+- `incident-done-checklist` + `feedback-capture` + `jana:health-check` **estendidos**, não recriados.
+- **Achado que ancora**: `mcp_webhook_5xx_2h` e `profile_distiller_drift` **já são checks** em `main` → viraram seed (L-OP-001/002) → ledger nasce verde.
+
+### O que entrou (tudo aditivo):
+- `Modules/Jana/LICOES-OPERACAO.md` — ledger append-only · formato `### L-OP-NNN` · Erro·Sintoma·Regra·Ref·**Graduação** (MEC→check / JULG→regra) · 3 lições seed reais.
+- `jana:health-check` → check **advisory** `jana_lesson_ledger_graduation` (parser `parseLessonLedger()` puro/estático) — acende amarelo se lição malformada/`pendente`; não derruba cron.
+- Pest: 4 testes do parser (verde local, incl. ledger canônico) + presença no smoke. `php -l` limpo. Parser validado isolado: **ALL GREEN**.
+- `Modules/Jana/SCOPE.md` (+2 linhas) · `incident-done-checklist` **Bloco D** (gatilho) · `feedback-capture` nota de fronteira.
+- Proposta §10.4: `memory/decisions/proposals/jana-ledger-licoes-operacao-reflexion.md`.
+
+### Tier 0 respeitado:
+- **Não cunhei nº de ADR** (soberania [W], 0238) — é proposal slug-only. [W] numera se promover.
+- **Não mergeei** (publication-policy). PR espera [W].
+
+### Decisão aberta pra [W]:
+- [ ] Aprovar o ledger como mecanismo canônico da Jana (vira canon ao mergear) ou ajustar o home.
+- [ ] Numerar ADR se quiser elevar proposal → decisão.
+- [ ] Confirmar check **advisory** (recomendo sim — drift de processo não pagina à noite).
+
+### NÃO reprocessei (a comparação só confirma): guard higiene Cowork L-07/11/21/22 · collector CT100/OTel/LGPD #2073 · `design:review` #2078.
+
+---
+
+## 2026-06-02 (d) [CL] → [W] — TRAVA-SEGUNDA Martinho (biz=164) · Onda 1: net de smoke do núcleo-6
+
+### Handoff: `PROMPT_PARA_CODE_TRAVA-SEGUNDA-MARTINHO.md` (canário Delphi→nuvem · deadline segunda · retenção Kamila)
+### Natureza: **Tier 0** (cliente real) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/trava-segunda-martinho` · base `origin/main` fresco (`2e9f5881e`)
+
+### Passo 0 §10.4 (confirmadíssimo): **as 6 do núcleo JÁ existem e estão maduras em `origin/main`.** O loop **CU-3→4→5 já encadeia no backend e está testado** (Observer `TransactionObserver`→`TituloAutoService` cria título receber +30d idempotente; emissão NF-e/NFS-e via `NfeEmissaoController`/`NfseController` aceitam `transaction_id`, homolog default, SEFAZ stubável). Job real = **estender + wire-up + estabilizar**, não construir.
+
+### Esta PR (Onda 1 — net de segurança, zero código de produção):
+Estende o canon de smoke do núcleo (criado ontem em PR #2119 §B) das **4 telas** pro **núcleo-6 de retenção**:
+- `tests/Feature/Architecture/CoreScreensIntegrityTest.php` (Tier 1, roda **sempre**, sem DB/chromium) → +Produto, +Sells (Index+Create), +Fiscal (Cockpit/NF-e/NFS-e). **Verificado local: PASS** (1 assertion, todas as 6 têm `.tsx`+`AppShellV2`+charter). É o net "falha alto" #6 + no-regression #4 do worklist.
+- `tests/Browser/CoreScreens/SmokeTest.php` (Tier 2, opt-in chromium) → mesmas telas, âncoras = substrings reais do PageHeader, slug best-effort (CI-tunável, idioma já existente do arquivo).
+
+### Discrepância de dado importante (FICA [W]): "já migrado" vale só pra **Oficina** (91 veículos+SO, biz=164, ADR 0171). O tracker `_pipeline-migracao-legacy.md` diz **clientes/produtos/preços/títulos da Martinho ainda PENDENTES**. Por isso os smokes do loop **semeiam fixture determinística** (canon Pest = DB dev real, padrão `TransactionObserverIntegrationTest`); validação com dados reais biz=164 = passo de prod/staging seu.
+
+### Onda 2 (próxima PR, **gated na sua decisão**):
+1. **CU-4 wire-up frontend** — `Sells/Show.tsx` modais `VdNfeEmitModal`/`VdNfseEmitModal` hoje são stub `setTimeout`; backend real existe. Wire pros endpoints (emite em **homologação**). Era marcado "próximo PR" por decisão anterior (KB-9.75) → **preciso do seu OK** pra reativar a partir da venda, ou deixo só backend+smoke.
+2. **CU-6 demo seeder** — OficinaAuto idempotente (1 veículo+OS+FSM) p/ demo limpa sem depender de prod.
+3. **CU-3→4→5 chain E2E** — 1 teste do encadeamento venda→título→emite NF-e+NFS-e (SEFAZ stub), o "1 teste E2E" do worklist.
+4. **1 build limpo** — `npm run build` verificado (parto de origin/main já limpo).
+
+### Congelado (roadmap, NÃO entra segunda): auto-boleto-on-finalize · estoque avançado · BOM · comissão · manifestação entrada · MDF-e/NFC-e · migração real venda/fin Martinho (depende de fonte Firebird).
+
+### Tier 0 respeitado: não cunhei ADR (worklist proíbe 0238/já-tomado); **não mergeei** (publication-policy); base off `origin/main` (não a branch suja).
+
+---
+
+## 2026-06-02 (e) [CL] → [W] — TRAVA-SEGUNDA Onda 2: wire-up CU-4 + demo CU-6 + chain E2E (você disse "conclui tudo, melhor caminho")
+
+### Decisão que tomei (você delegou): **CU-4 = reativar emissão NF-e/NFS-e a partir da venda** (em homologação — seguro). É o coração literal do worklist.
+### Status: implementado + **verificado contra o DB dev real** · mesma PR #2135 · **não mergeei** (Tier 0)
+
+### O que entrou (Onda 2):
+1. **CU-4 NF-e wire-up** — `VdNfeEmitModal.tsx`: removido o mock `setTimeout`/`Math.random`; `handleTransmit` agora faz `POST /nfe-brasil/transactions/{id}/emitir {modelo:'55'}` (endpoint real que já existia). NF-e B2B (produto); NFC-e 65 fora do núcleo.
+2. **CU-4 NFS-e wire-up** — `VdNfseEmitModal.tsx` → `POST /nfse/transactions/{id}/emitir` (**endpoint novo, simétrico**). Adicionei `NfseController::emitirParaTransaction` + rota — reusa o serviço REAL (`NfseEmissaoService::montarPayload`+`despacharEmissaoAsync`), payload no mesmo formato do `StoreNfseRequest`, defaults LC116/ISS do `NfseProviderConfig`. Zero invenção de Model/Service (LICOES_F3).
+3. **CU-6 demo seeder** — `OficinaAutoDemoSeeder` idempotente (veículo + OS aberta + itens peça/mão-obra + DVI). NÃO entra no DatabaseSeeder (roda explícito; `OFICINA_DEMO_BUSINESS_ID` ou 1º business). Demo limpa reproduzível sem depender de prod biz=164.
+4. **CU-6 smoke** — `DemoOsSmokeTest` (seeder monta documento-vivo + idempotência + stepper check-in→execução).
+5. **Chain E2E CU-3→4→5** — `tests/Feature/TravaSegunda/RetencaoLoopE2ETest` — o "vende→fatura→recebe" inteiro.
+
+### Verificação REAL (rodei contra o MySQL dev `oimpresso`, não confiei no papel):
+- **Chain E2E: 3 passed / 14 assertions** ✅ — venda a prazo gera título a receber +30d (valor certo) · recebimento baixa o título (quitado + CaixaMovimento) · os 2 endpoints fiscais que a venda dispara existem.
+- **php -l limpo** nos arquivos PHP novos. CU-6 smoke roda em CI (módulo OficinaAuto não está migrado no DB dev local → skip resiliente aqui, como o `FsmTransitionTest` existente também faz).
+- **Build/tsc:** `npm run typecheck` (resultado anexado no commit/PR).
+
+### Coração da Kamila ✅: o loop financeiro+venda (CU-3→CU-5) está **provado ponta-a-ponta** com observer/título/baixa reais. Oficina (CU-6) tem demo limpa semeável.
+
+### Ainda congelado (roadmap): auto-boleto-on-finalize · NFS-e inline 100% síncrona (hoje async/processando — honesto p/ homologação) · migração real dos dados venda/fin da Martinho (depende da fonte Firebird sua) · estoque/BOM/comissão/manifestação/MDF-e/NFC-e.
+
+---
+
+## 2026-06-02 — [CL] → [W]: Jana "Modo Consultor" (Advisor) — Metade A (clarify reativo)
+
+### Handoff: `PROMPT_PARA_CODE_JANA-ADVISOR-MODE.md` (Cowork→Code) · insight [W]: *"as melhores respostas vêm quando eu pergunto que pergunta eu deveria fazer"*
+### Natureza: peer-review (L-17) · **Tier 0** (produto + custo) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/jana-advisor-clarify` · base `origin/main` fresco (`2e9f5881e`)
+
+### Veredito do peer-review: **procede** (andaime de raciocínio, não troca de modelo)
+Bate com o estado-da-arte: Active Task Disambiguation (ICLR 2025 Spotlight) + INTENT-SIM (NAACL 2025 — decoupla ambiguidade-de-intenção de falta-de-dado). A Jana hoje **chuta** quando é ambíguo e **pergunta** quando é só falta de dado — o erro nº1. Esta capacidade conserta o pior hábito primeiro (Metade A, a mais barata), como você pediu.
+
+### §10.4 Passo 0 contra `origin/main` (estendi, NÃO recriei):
+- Chat resolve hoje: `ChatController::send/sendStream` → `LaravelAiSdkDriver::responderChat[Stream]` → `recallMemoria`(MemoriaContrato) + `snapshotContexto`(ContextoNegocio) → `ChatCopilotoAgent` (laravel/ai).
+- Precedente de interceptação: `BriefDiarioChatTrigger` já pré-empta o chat por intent — a cascata clarify pluga na MESMA forma, antes do recall/LLM.
+- Os 4 Agents (ChatCopiloto/BriefDiario/Sugestoes/Briefing), o brief diário (ADR 0091), a `MemoriaContrato` e o roteamento `laravel/ai` ficaram **intactos**. `ContextoNegocio` é **reusado** (snapshot único serve cascata E chat — zero consulta a mais).
+
+### O que entrou (tudo aditivo, default-OFF):
+- **`ClarificadorAgent`** (5º agente) — disambiguador `HasStructuredOutput` que decide `claro|falta_dado|ambiguo` e, se ambíguo, dá a **pergunta de maior ganho de informação**. Roteamento de modelo seletivo via `provider()`/`model()` (config) — **difícil → frontier** (default `gpt-4o` vs `gpt-4o-mini` do chat), mas só dispara no ~20% cinza.
+- **`ClarifyCascadeService`** — cascata por latência: **1a heurística local (zero LLM)** resolve ~80% direto; **1b disambiguador frontier** só no cinza. Honestidade (não inventa pergunta), **fail-open** (qualquer erro → responde), **anti-loop** (não pergunta 2× seguidas), **medição** (`clarify_event` no log `copiloto-ai`).
+- **`ClarifyResult`** (DTO) + guard `talvezClarificar()` em `LaravelAiSdkDriver` (blocking + stream).
+- **Config** `copiloto.clarify.*` (flag `JANA_CLARIFY_ENABLED` default-OFF — mesma postura de `contextual_retrieval`/`peso_real`; com OFF o pipeline é byte-idêntico ao legado).
+- **RUNBOOK** `memory/requisitos/Jana/RUNBOOK-jana-advisor-clarify.md` (como ligar/medir).
+- Proposta §10.4: `memory/decisions/proposals/jana-advisor-modo-consultor.md`.
+
+### Build / testes:
+- **14/14 Pest verdes** (54 assertions): `ClarifyCascadeServiceTest` (9 — heurística, flag-off no-op, curto-circuito, clarifica, honestidade ×2, anti false-clarify, anti-loop, fail-open) + `ClarificadorAgentTest` (5 — routing frontier, instructions INTENT-SIM, grounding não-PII, messages). `php -l` limpo nos 7 arquivos.
+- Regressão: suite `Jana/Tests/Feature/Ai` + brief trigger = **50 passaram** com o driver editado. As 2 falhas restantes são **pré-existentes** (`BriefDiarioChatTriggerTest` sem `activity_log` em run isolado — gap do `tests/Pest.php`, não coberto pra Jana), **não-relacionadas** a este PR.
+
+### Tier 0 respeitado:
+- **Não cunhei nº de ADR** (soberania [W], 0238) — proposal slug-only. [W] numera se promover.
+- **Não mergeei** (publication-policy). PR espera [W].
+- Histórico/contexto vão **PII-redigidos** pro disambiguador (defense-in-depth, reusa `PiiRedactor`).
+
+### Decisão aberta pra [W]:
+- [ ] Aprovar a Metade A como caminho (vira canon ao mergear) ou ajustar.
+- [ ] Numerar ADR se quiser elevar proposal → decisão.
+- [ ] Ligar em homolog (`JANA_CLARIFY_ENABLED=true` + escolher o modelo frontier) p/ medir `clarify_event` antes de prod.
+- [ ] **Metade B** (próxima-melhor-pergunta proativa, estende o brief por persona) — próxima na fila, spec à parte, como você sequenciou.
+
+---
+
+## 2026-06-02 20:15 [CL] → [W]
+
+### Tela: Fiscal — status unificado (NFC-e/NF-e/NFS-e) · handoff `PROMPT_PARA_CODE_FISCAL-STATUS-UNIFICADO.md`
+### Status: traduzido (branch `feat/fiscal-status-unificado`, PR aberto — NÃO mergeado, aguarda F2 [W])
+### Diff: branch `feat/fiscal-status-unificado` (off `origin/main` fresco · §10.4 Passo 0)
+### Build: vitest 7/7 verde · eslint baseline Δ−60 (sem regressão) · tsc sem erro nos arquivos tocados
+### Charter atualizado: n/a (mudança de Componente, não de Page)
+
+### O que landou (reuse-first, só APRESENTAÇÃO — backend SEFAZ intocado):
+- **NOVO** `Components/NfeBrasil/FiscalStatusBadge.tsx` — componente ÚNICO de status fiscal. Cobre os 3 documentos (NFC-e 65 · NF-e 55 · NFS-e), 7 estados semânticos (emitting/waiting/authorized/rejected/denied/cancelled/inutilized), 2 variantes (`banner` card + `pill` chip). Fonte única das cores oklch de status (R-DS-002).
+- **NOVO** `Components/NfeBrasil/fiscalStatus.ts` — modelo de domínio + helpers (`docLabel`, `emissaoStatusToKind`) separados do .tsx (react-refresh).
+- **REFACTOR** `NfceStatusBadge.tsx` → vira wrapper reativo fino: mantém o polling `useNfceStatus` + a nuance "aguardando SEFAZ" (hasGivenUp) e DELEGA a renderização pro FiscalStatusBadge. Backward-compatible (mesma API).
+- **WIRE** `Sells/_components/FiscalSection.tsx` → o `StatusBadge` local (emerald/amber/rose Tailwind cru) foi DELETADO; cada linha de emissão agora usa `<FiscalStatusBadge variant="pill">`. Larissa vê o MESMO status do mesmo jeito.
+- **TEST** `tests/fiscal-status-badge.test.tsx` (7 casos: helpers + 3 docs autorizada + rejeição + pill + override).
+
+### ⚠️ Correção do achado [CC] (validado contra `main` NESTA sessão — §10.4, não confiei no prompt):
+O prompt dizia "4 implementações" — só **2** procedem; corrijo as outras 2 pra não causar regressão:
+1. ✅ **`NfceStatusBadge`** era o "bom padrão" — MAS estava **órfão** (importado em lugar nenhum, grep). Agora é a base do componente único.
+2. ✅ **Vendas `FiscalSection`** rolava status próprio — REAL duplicata, agora consome o componente. (Os modais `VdNfeEmitModal`/`VdNfseEmitModal` são wizards de EMISSÃO mock — fora de escopo, como o próprio prompt diz.)
+3. ❌ **Oficina `ServiceOrderRichSheet`** — NÃO tem badge fiscal NF-e/NFS-e. O `StatusBadge` dele (linha 647) é o status da ORDEM DE SERVIÇO (locação/order_type). Nada a unificar lá.
+4. ❌ **NotaDrawer V1 vs V2 — NÃO deletei "o legado".** É o OPOSTO do prompt: **V1 (`Nfe.tsx`) é o FUNCIONAL** (router.post real p/ cancelar/cce/retransmitir); **V2 (`Cockpit.tsx`) é o protótipo** (todos botões `disabled title="Em breve"`, dados mock). Deletar V1 = REGRESSÃO (some cancelar/CC-e/retransmitir reais). Além disso os drawers usam outro paradigma de apresentação (`fx-sefaz` CSS + cstat numérico), não o badge de polling — unificar isso é refactor separado e arriscado.
+
+### Pendências (pro Cowork/[W] decidir — NÃO fiz por serem outro intent/risco):
+- [ ] **NotaDrawer V1↔V2:** a resolução correta é MERGER as ações reais do V1 dentro do shell mais rico do V2 (ou migrar `Nfe.tsx`→V2 só depois de portar as 3 ações), não deletar. Precisa decisão de [W] (toca tela fiscal viva).
+- [ ] Higiene repo (fora do escopo, achado de passagem): há **arquivos com colisão de caixa** no git que quebram no Windows — `RecurringBilling/.../pt-BR` vs `pt-br/recurringbilling.php` e `Fiscal/Nfe-` vs `nfe-visual-comparison.md`.
+
+### new_design_memories
+- **golden**: status fiscal = 1 componente `FiscalStatusBadge` (NFC-e/NF-e/NFS-e · 7 kinds · banner+pill · oklch único); NfceStatusBadge vira wrapper de polling que delega; FiscalSection consome o pill.
+- **conflito (corrigido)**: o achado "4 implementações iguais" era ~50% — Oficina não tem badge fiscal e NotaDrawer V1 é o funcional (não legado). Só NfceStatusBadge(órfão)+FiscalSection eram a duplicata real do MODELO de polling.
+- **lição**: "deletar o legado" sem ler quem-está-wired pode apagar o funcional — V1 tinha as ações reais; V2 era o protótipo bonito-porém-mock.
+
+---
+
+## 2026-06-02 [CL] → [W]
+
+### Tela: OficinaAuto/ServiceOrders/Board (Quadro Kanban de OS de Mecânica)
+### Status: traduzido (build reversível autônomo — CI verde; deploy prod + fiscal real aguardam [W])
+### Diff: branch `feat/oficina-kanban-carro-board` (worktree oficina-kanban-carro, base origin/main 84e8cb1a3)
+### Build: passou — `tsc` (arquivos novos sem erro), `eslint` (0 erro/0 warning nos novos), `lint:baseline:check` delta −60 (sem regressão), `php -l` ok em todos os PHP.
+### Charter atualizado: sim — `Board.charter.md` (schema-compliant) + `Board.review.md` + RUNBOOK.
+
+### Contexto (correção de domínio confirmada por [W] nesta sessão):
+- Martinho NÃO é locação de caçamba — é **oficina de mecânica pesada de caminhão** (entra pra reparo/troca de peça). O "caçamba" dos nomes legados (`cacamba_*`, `ProducaoOficina`) é equívoco já corrigido pela ADR 0194. Este port é o **fluxo real do carro**, distinto do board de caçamba.
+- [W] confirmou o fluxo de 6 etapas + ancorar num **processo FSM novo** `oficina_mecanica_os` (sem "caçamba"), sem mexer no legado.
+
+### O que foi feito (estender, não recriar — §10.4):
+- **Backend**: 3º processo FSM `oficina_mecanica_os` no `OficinaAutoFsmSeeder` (Recepção→Diagnóstico→Aguardando aprovação→Aguardando peças→Em execução→Pronto p/ retirar + terminais Entregue/Cancelado/Garantia). Transições puras (side_effect null — sem estoque ainda). `order_type='mecanica'` mapeado pro processo no `ServiceOrderFsmActionController`. Migration **reversível/idempotente** estende o enum `service_orders.order_type` (não remapeia OS legadas).
+- **Controller**: `ServiceOrderController@board` agrupa OS por etapa real do FSM em colunas data-driven (+ KPIs derivados, zero query extra) + rota `/oficina-auto/ordens-servico/board`.
+- **Frontend**: `Board.tsx` REUSA `KanbanDndProvider` (generalizado backward-compat com `renderPreview`), `DragConfirmDialog` (+`subjectLabel`), `ServiceOrderRichSheet`, `MercosulPlate`. Card novo `ServiceOrderKanbanCard` (mods [W]). Toggle Quadro|Lista na Index. Create oferece tipo "Mecânica".
+- **Drag canon (GUARD)**: arrastar → confirmar → `POST /fsm/execute` → `ExecuteStageActionService` (grava `sale_stage_history`). NUNCA UPDATE direto em `current_stage_id`.
+
+### Modificações [W]-aceitas aplicadas (a crítica [CC]):
+1. **Foto REAL no card** (1ª foto de item DVI via Arquivos) — sem foto **esconde o thumb** (ícone câmera discreto; sem placeholder de texto "inacabado").
+2. **Contador DVI x/y** com ícone de **checklist** (não cadeado) + tooltip ("x de y itens decididos pelo cliente · N críticos").
+3. **Densidade @1280** via **@container** (Tailwind v4 nativo) — KPIs compactos como base, expandem em telas largas. NÃO @media (lição Financeiro F3).
+4. **"N OS"** (não "boxes") + colunas **Aguardando aprovação** (âmbar · OK do cliente) distinta de **Aguardando peças** (violeta · peça física).
+
+### Decisões de tradução:
+- Colunas NÃO hardcoded — vêm das etapas reais do processo (board se adapta ao seeder).
+- Etapas terminais (Entregue/Cancelado/Garantia) saem pelo drawer (FsmActionPanel), não pelo drag.
+- OS 'mecanica' sem pipeline cai na coluna Recepção com `in_pipeline=false` (drag off) → abrir card e iniciar pipeline.
+- Cores de status via tokens DS (`text-destructive`/`text-success`), não rose/emerald cru (DS-GUARD).
+
+### Pendências (follow-ups — NÃO bloqueiam o build):
+- [ ] **[W] aprovar SCREENSHOT** do quadro antes do merge (gate visual F3 · ADR 0107).
+- [ ] **Deploy prod + emissão fiscal real** — aguardam [W] (build é reversível/autônomo).
+- [ ] P2: derivar `STAGE_TRANSITIONS` de `/fsm/actions` (hoje espelha o seeder, mesma estratégia do Kanban de caçamba).
+- [ ] P2: avaliar trait `GuardsFsmTransitions` no `ServiceOrder` (enforcement defense-in-depth do GUARD) — toca model LIVE, decisão [W].
+- [ ] P3: smoke browser (Claude in Chrome) usando data-testid `so-card-*`/`board-column-*` pós-deploy.
+
+### new_design_memories
+- **doc-novo**: o Kanban do carro (wow) virou tela real em `ServiceOrders/Board` reusando DnD/MercosulPlate/DviPhotoGrid/RichSheet; roda no processo FSM novo `oficina_mecanica_os`. `ProducaoOficina`=caçamba (vertical legado — não confundir).
+- **anti-padrao**: thumbnail placeholder de TEXTO ("frente/painel/OBD" listrado) lê "inacabado" na frente do cliente → usar foto real (Arquivos) ou esconder o thumb.
+- **golden**: board de FSM = colunas data-driven das etapas reais (não hardcode) + drag dispara `ExecuteStageActionService` (nunca UPDATE direto) + reusar o provider DnD canon generalizado (renderPreview/subjectLabel) em vez de forkar.
+
+---
+
+## 2026-06-03 [CL] → [W] — LIGAR FISCAL REAL Martinho (biz=164): Passo 0 + fix per-business (MERGED #2147)
+
+Resposta ao export design `PROMPT_PARA_CODE_LIGAR-FISCAL-REAL-MARTINHO.md`. **NÃO flipei nada, NÃO emiti nota, NÃO toquei `.env` de prod.** Fiz Passo 0 + um fix de prep que é **pré-requisito de segurança** do cutover.
+
+### Passo 0 — ambiente/credenciais são por-business (não global)?
+| Documento | Ambiente (homolog/prod) | Per-business? | Flip biz=164 vaza p/ ROTA LIVRE? |
+|---|---|---|---|
+| **NF-e 55** | coluna `business.ambiente` → `tpAmb` em `NfeService::criarTools` | ✅ Sim | ✅ Não vaza |
+| **NFS-e** | era **GLOBAL** `env('NFSE_AMBIENTE')` no bind do `SnNfseAdapter` | ❌ Era global | ❌ **Vazaria** → corrigido |
+
+O furo (exatamente o que o "não assumir" pega): o NFS-e resolvia ambiente pelo bind global `config('nfse.ambiente')`; o campo per-business `nfse_provider_configs.ambiente` existia mas estava **morto** (só na UI). Flipar NFS-e pra prod = mudar `.env` global = emitir nota real de TODOS os tenants.
+
+### Fix (PR #2147 MERGED, merge `77ced51`, 13 checks verdes)
+- `NfseEmissaoService::montarPayload` popula `ambiente`/`municipioIbge` do tenant; fail-safe → `homologacao`.
+- `SnNfseAdapter::emitir/buildDps` derivam endpoint+`tpAmb` de `$payload->ambiente` (per-call), não do bind global.
+- `AmbientePorBusinessTest` (4 testes DB-free) provando isolamento.
+- Fix de ciclo: PHPStan ratchet pediu `@property` no `NfseProviderConfig` (Larastan não via as colunas) → resolvido.
+
+### Pendências
+- [ ] **[W]** subir **certificado A1** da Martinho (sem stub: até homologação bate na SEFAZ real e exige o cert).
+- [ ] **[W]** regime/CRT + tributação + série/numeração NF-e + município SN-NFSe/ISS (biz=164).
+- [ ] **[W]** flip `business.ambiente=1` + `nfse_provider_configs.ambiente='producao'` **só biz=164** (irreversível).
+- [ ] **[W]** checkpoint da 1ª nota real no portal SEFAZ → só então abrir gate `auto_emission_enabled` biz=164.
+- [ ] Follow-up rastreado: **US-NFSE-015** (eliana, p2) — per-business em `consultar()`/`cancelar()` (escopo "PR separado").
+
+⚠️ **ZERO fiscal real tocado.** Continua 100% homologação até [W] executar o checklist acima. Emissão manual da nota-teste tem que ir com `modelo:'55'` (default do endpoint é `'65'`/NFC-e, sem CSC, fora de escopo).
+
+### new_design_memories
+- **golden**: emissão fiscal de produção = cutover controlado **por-business** (homolog → 1 nota teste → checkpoint [W] no portal SEFAZ → abre gate), nunca flip global; credenciais + flip prod = humano (irreversível).
+- **anti-padrao**: resolver ambiente fiscal por bind global de container (`config()`/`env()`) num app multi-tenant — vaza emissão real cross-tenant. Ambiente fiscal SEMPRE per-business (coluna do tenant no payload), igual `business.ambiente` do NF-e.
+
+---
+
+## 2026-06-03 [CC] → [W] — Charter Governança [CC]×Jana commitado verbatim (proposta §10.4)
+
+[CL] commitou **verbatim** o charter `prototipo-ui/CHARTER_GOVERNANCA_CC_JANA.md` (export Cowork, irmão de `CHARTER_GOVERNANCA_W.md` + `CHARTER_CHAMPION_AGENTES.md`). Espelha pro git a **conclusão** do report `rep-cc-vs-jana` (`metricas.html`) — pro raciocínio rumo a 9.7 ficar durável e re-derivável do `main`.
+
+- **Frescor validado vs origin/main fresco:** branch `docs/charter-governanca-cc-jana` cortado de `origin/main` @ `74bc2ea` (mesmo SHA que o charter cita no header). Worktree limpo, sem WIP do `feat/staging-ct100` contaminando o PR (1 arquivo, 1 intent — commit-discipline).
+- **NÃO numerei ADR** (instrução [W] + o próprio charter: "[W] numera/ratifica se promover a ADR — soberania 0238").
+- **PR aberto, NÃO mergeado** — merge é Tier 0 = [W] (publication-policy).
+
+### new_design_memories
+- **golden**: export de governança da Cowork (conclusão/raciocínio, não só o número do scorecard) vai pro git **verbatim** como charter irmão, cortado de `origin/main` fresco — durabilidade + re-derivação por sessão futura ([CL]/[CC]).
+- **anti-padrao**: commitar doc de governança numa branch poluída (WIP de outro intent) — fura commit-discipline (1 PR = 1 intent). Worktree novo de `origin/main` isola o arquivo.
+
+---
+
+## 2026-06-03 [CL] → [W] — W28 importer Firebird + reconciliação domínio "Caçamba"→caminhão (Martinho biz=164)
+
+### Tarefa: §10.4 PROPOSTA (Tarefa A do prompt `W28-FIREBIRD-DOMINIO-MARTINHO`)
+### Status: traduzido · branch `feat/oficina-w28-firebird-dominio` · PR aberto · **NÃO mergeado (Tier 0 = [W])**
+### Validação vs `origin/main` (74bc2ea77 · worktree off origin/main, não o working tree):
+- `ImportFirebirdMartinhoCommand` confirmado **ESQUELETO W27** (mapping fino não existia) — não duplicquei, completei.
+- `scripts/firebird/export-martinho-os.py` **não existia** — criado do zero (template `export-customers.py`).
+- Achado que ancora confirmado @main: o importer hardcodava `'vehicle_type' => 'cacamba'` — e **`cacamba` nem é valor válido** do enum `vehicles.vehicle_type` (whitelist real: `caminhao, cavalo, semi_reboque, cacamba_estacionaria, cacamba_avulsa, cacamba_caminhao, recapagem, automovel, motocicleta, outros, outro`). Rodar como estava etiquetava os caminhões da Martinho como caçamba (drift pré-ADR 0194).
+
+### Decisões de tradução:
+- **vehicle_type default `cacamba` → `caminhao`** (ADR 0194 · valor canônico de caminhão na whitelist real). `normalizeVehicleType()` mapeia sinônimos de basculante (`cacamba`/`basculante`/`caminhao_basculante`/`cacamba_basculante`) → `caminhao`; valor já-whitelisted é preservado; default `caminhao`. **NÃO inventei** valor fora do enum (o `caminhao_basculante` do docblock e `cacamba_basculante` do README/E2E **não** estão no enum — só funcionavam em SQLite de test).
+- **status legacy→FSM** (`normalizeStatus`, accent-fold PT): ABERTA/orçamento→`aberta`, andamento/execução/serviço→`em_servico`, finalizada/fechado/concluída→`concluida`, cancel*→`cancelada`; histórico vazio→`concluida`.
+- **order_type** (`normalizeOrderType`): default `manutencao` (bucket do legado — migration `2026_06_02_000001` "novo processo mecanica não mexe no legado"); respeita `mecanica`/`locacao` se vier do JSON.
+- **item tipo** → `peca|mao_obra|servico_terceiro`. Idempotência `FB_LEGACY_ID` preservada.
+- **Dry-run virou o PADRÃO**: grava só com `--commit` (`--dry-run` vence por segurança se vier junto). "Commit real só com diff aprovado" passou a ser enforced por default, não por disciplina.
+- **Docs curados** (append, não reescreve história · L-22): `CHANGELOG.md` ganhou entrada W28 + lápide ADR 0194 ("Caçambas" = nome comercial preservado; *domínio* reclassificado p/ mecânica de caminhão); `README.md` journey passo 2 `cacamba_basculante`→`caminhao` (valor válido).
+
+### Build / Tests:
+- `ImportFirebirdMartinhoW28Test` — **7 passed (41 assertions)**, reflection-only (pattern Wave 25/27 do módulo, zero-DB): cobre todos os mappings + contrato "default caminhao, nunca cacamba" + source-grep anti-regressão.
+- `php -l` ok nos 2 PHP; `python -m ast` ok no `.py`.
+- ⚠️ **Não rodei o caminho DB-real local**: o dev DB local não tem as tabelas OficinaAuto e o suite de migration completo não re-roda do zero localmente (migration pré-existente `ALTER TABLE transactions MODIFY ...` quebra em SQLite; e FK `fin_contas_bancarias→rb_boleto_credentials` fora de ordem em MySQL fresco). Não é do meu diff — roda em CI/MySQL.
+
+### Tarefa B (preflight de cutover observável): **PULADA** (escopo · 1 PR = 1 intent). Reportada como follow-up [W].
+
+### Pendências / fica de [W]:
+- [ ] **[W]** decidir se OS históricas devem entrar como `order_type='mecanica'` (domínio real ADR 0194) em vez de `manutencao` (default conservador atual). É decisão de domínio.
+- [ ] **[W]** rodar `oficina:migration-report {biz} --detail` + `oficina:sanity-check` no fixture/staging pós-import (prova: vendas órfãs / OS sem NFe / pendentes) — exige DB migrado (CI/staging).
+- [ ] **[W]** ajustar o SCHEMA MAP do `export-martinho-os.py` aos nomes REAIS das tabelas do FDB (rodar `--dump-schema` no Windows + Firebird local) antes do export de verdade.
+- [ ] **[W]** drift residual a decidir: README/E2E ainda têm `cacamba_basculante` (não-whitelisted, passa só em SQLite) + docblock do Vehicle recomenda `caminhao_basculante` (não-whitelisted) — opção [W]: adicionar valor de enum dedicado via migration OU consolidar tudo em `caminhao`/`cacamba_caminhao`. Não inventei migration de schema.
+- [ ] **[W]** import real só contra staging/prod biz=164 (NÃO toquei dado real; fixture/dry-run only).
+- [ ] **[W]** mergear (Tier 0 = soberania [W]).
+
+### new_design_memories
+- **anti-padrao**: default `vehicle_type='cacamba'` + docs "Caçambas" eram pré-ADR-0194 (domínio = mecânica pesada de caminhão basculante). Pior: `cacamba` nem era valor do enum — rodar o import etiquetava caminhão errado. Reconciliado no W28 (default `caminhao` + normalização contra a whitelist real).
+- **golden**: cutover/import irreversível-ish = **dry-run por padrão, grava só com `--commit`** ("interceptar a ação", não confiar na disciplina de lembrar `--dry-run`).
+
+---
+
+## 2026-06-03 [CC] → [W] — Charter Governança [CC]×Jana commitado verbatim (proposta §10.4)
+
+[CL] commitou **verbatim** o charter `prototipo-ui/CHARTER_GOVERNANCA_CC_JANA.md` (export Cowork, irmão de `CHARTER_GOVERNANCA_W.md` + `CHARTER_CHAMPION_AGENTES.md`). Espelha pro git a **conclusão** do report `rep-cc-vs-jana` (`metricas.html`) — pro raciocínio rumo a 9.7 ficar durável e re-derivável do `main`.
+
+- **Frescor validado vs origin/main fresco:** branch `docs/charter-governanca-cc-jana` cortado de `origin/main` @ `74bc2ea` (mesmo SHA que o charter cita no header). Worktree limpo, sem WIP do `feat/staging-ct100` contaminando o PR (1 arquivo, 1 intent — commit-discipline).
+- **NÃO numerei ADR** (instrução [W] + o próprio charter: "[W] numera/ratifica se promover a ADR — soberania 0238").
+- **PR aberto, NÃO mergeado** — merge é Tier 0 = [W] (publication-policy).
+
+### new_design_memories
+- **golden**: export de governança da Cowork (conclusão/raciocínio, não só o número do scorecard) vai pro git **verbatim** como charter irmão, cortado de `origin/main` fresco — durabilidade + re-derivação por sessão futura ([CL]/[CC]).
+- **anti-padrao**: commitar doc de governança numa branch poluída (WIP de outro intent) — fura commit-discipline (1 PR = 1 intent). Worktree novo de `origin/main` isola o arquivo.
+
+---
+
+## 2026-06-03 [CL] → [W] — `governanca:scorecard` (camada 3) · placar [CC]×Jana mecanizado
+
+### Tarefa: §10.4 PROPOSTA (prompt `GOVERNANCA-SCORECARD`)
+### Status: traduzido · branch `feat/governanca-scorecard` · PR aberto · **NÃO mergeado (Tier 0 = [W])**
+### Validação vs `origin/main` (74bc2ea77 · worktree off origin/main):
+- `HealthCheckCommand::parseLessonLedger()` + check `jana_lesson_ledger_graduation` confirmados @main — **reusei o parser** (não escrevi outro).
+- Os dois ledgers existem: `Modules/Jana/LICOES-OPERACAO.md` + `memory/LICOES_CC.md` (#2106).
+- `governanca:scorecard` **não existia** (os arquivos `*scorecard*` no repo são o motor Governance scoped — engine diferente; **não recriei** 7º motor, agreguei · anti-G1).
+
+### Decisões de tradução:
+- **`parseLessonLedger($content, $headerPattern)`** — generalizado com 2º arg = regex de header (default `### L-OP-NNN` → backward-compat; ledger [CC] usa `## L-NN`). Grupo 1 = ID.
+- **`HealthCheckCommand::ledgerGraduationStats($abs, $header)`** (helper público estático) — `graduadas` (Graduação válida + status:done) / `pendentes` (resto: pendente, malformada OU sem linha de graduação) / `graduation_ratio` (vazio = 1.0).
+- **Check `governanca_graduation_ratio`** (ADVISORY) adicionado ao `jana:health-check` — espelha `jana_lesson_ledger_graduation` pros DOIS ledgers; amarelo se algum ratio < 1.0. **Não derruba cron/exit** (drift de processo não pagina à noite).
+- **`php artisan governanca:scorecard {--json}`** (Modules/Governance, registrado no provider) escreve `storage/reports/governanca-scorecard.json`: por-ledger total/graduadas/pendentes/ratio + `enforcement_score` (derivado da razão, não digitado) + `health_checks_count` (reflection) + baselines + `measured_against_sha` + timestamp + `condicao_9_7`.
+- **Honestidade de escopo**: eixos subjetivos (Tiering de risco etc.) marcados `source: "estimativa [CC]"` no JSON — não finjo objetividade onde não há.
+
+### Build / Tests:
+- `GovernancaScorecardCommandTest` — **7 passed (31 assertions)** (parser nos 2 headers + ratio + comando escreve JSON + condição 9.7).
+- `JanaHealthCheckTest` (existente) — **8 passed (114 assertions)**, sem regressão (parser default intacto, +1 check, `>=10` mantido).
+
+### 📊 Números REAIS do `main` hoje (74bc2ea77):
+- **`operacao` (LICOES-OPERACAO.md): graduation_ratio = 1.0** (3/3 graduadas, 0 pendentes).
+- **`cc` (LICOES_CC.md): graduation_ratio = 0.0** (0/25 graduadas — L-01…L-25, nenhuma tem linha `Graduação: …status:done` canônica; L-23 usa `**MEC**` sem binding `check:`/`status:done` → conta pendente).
+- `enforcement_score` derivado = **5.0/10** (ratio médio 0.5) · `health_checks_count` = 12 · `condicao_9_7.atingido` = **false** (cc não está 100% + pipe único não setado).
+- JSON de exemplo em `storage/reports/governanca-scorecard.json` (gitignored — artefato runtime, não commitado).
+
+### Pendências / fica de [W]:
+- [ ] **[W]** o número que move o 9.7 está claro: graduar as 25 lições do `LICOES_CC.md` (formato `- **Graduação:** MEC|JULG · check:\`x\`|regra:\`y\` · status:done`). Hoje 0/25.
+- [ ] **[W]** flag `--pipe-unico` é manual por enquanto (pipe único [CC]+Jana). Quando o pipe existir de fato, virar detecção automática.
+- [ ] **[W]** promover ADR (slug-only até lá · soberania [W], 0238) se quiser canonizar o scorecard como mecanismo.
+- [ ] **[W]** (opcional) `metricas.html` do Cowork passar a LER `storage/reports/governanca-scorecard.json` no re-sync (fecha o loop de frescor sem digitar).
+- [ ] **[W]** mergear (Tier 0 = soberania [W]).
+
+### new_design_memories
+- **golden**: placar de governança [CC]×Jana deixa de ser prosa digitada e vira saída de check (`governanca_graduation_ratio`) + comando que escreve JSON que o report LÊ — frescor por mecanismo (o ProfileDistiller da governança).
+- **regra**: métrica do 9.7 = lições graduadas em check rodável ÷ total, nos dois ledgers; 9.7 exige ambos 100% + pipe único. Hoje: operação 1.0, CC 0.0.
+
+---
+
+## 2026-06-03 [CL] → [W] · Lote design [CC] §10.4 (3 tarefas) — validação vs `origin/main` fresco + entregas
+
+Worktrees off `origin/main` (@ `7a60eddbb`). Validei cada tarefa ANTES de codar (não duplicar). Não numerei ADR (soberania [W], 0238). Não mergeei nada (Tier 0 = [W]). Ordem de merge importa: **1 → 2 → 3**.
+
+### Tarefa 1 — `governanca:scorecard` → **JÁ EM `main` (#2151)**. NÃO dupliquei.
+A ponte inteira já landou (é a própria tip do `main`): `GovernancaScorecardCommand` + check `governanca_graduation_ratio` + `parseLessonLedger`/`ledgerGraduationStats` generalizados pros 2 ledgers. Revalidei os números pela **lógica pura do comando** contra os ledgers reais do `main`:
+- **`operacao` (LICOES-OPERACAO.md): graduation_ratio = 1.0** (3/3).
+- **`cc` (LICOES_CC.md): graduation_ratio = 0.0** (0/25 — as L-01…L-25 usam o formato antigo `Erro·Sintoma·Regra·Ref`, sem linha `**Graduação:**`).
+- `enforcement_score` = **5.0/10** (ratio médio 0.5) · `condicao_9_7.atingido` = **false**.
+→ Sem PR novo (já mergeado). O número que move o 9.7 segue: graduar as 25 lições do `LICOES_CC.md`.
+
+### Tarefa 2 — `governanca:ciclo-diario` → **PR #2152** (branch `feat/governanca-ciclo-diario`)
+Orquestrador diário advisory (06:50 BRT, após health-check/grade/audit/smoke). Regenera estado (reusa scorecard #2151) → `storage/reports/governanca-state.json`; roda frescor (graduation_ratio + charter coverage + review-freshness baseline + protocol_freshness se presente); gradua o inbox `COWORK_NOTES.md`; emite 1 digest/dia. Cron sem `--notify`/ALERT; append a CODE_NOTES só via `--code-notes` (manual, idempotente) — cron não suja arquivo git.
+
+**1º digest real do `main` hoje** (lógica pura do comando · boot Laravel local bloqueado pelo autoload do vendor pinado a worktree removido — Pest roda no CI/CT100, #2076):
+```
+# Governança — Digest diário (2026-06-03)
+> measured_against_sha: 7a60eddbb · enforcement_score: 5/10
+- Graduou: operacao 3/3 (100%) · cc 0/25 (0%)
+- Acendeu (advisory): graduacao:cc 0% · review-freshness: 21 missing (baseline) · protocol_freshness: ponte pendente (vira "12 gaps" após #2153)
+- Inbox [W]: 0 graduada(s) · 5 pendente(s) sem `Graduação:`  (entradas [W]→[CC]: 16:45 2026-05-09, Amendment #316 avatar, Amendment #316 block-renderer, Amendment Cockpit V2.1, F0 PaymentGateway)
+- Espera [W] (Tier 0): nada
+```
+
+### Tarefa 3 — UC-guards + `protocol_freshness` → **PR #2153** (branch `feat/uc-guards-protocol-freshness`)
+Dos 2 docs de Casos de Uso (Vendas UC-V/R/C · Oficina UC-01..10) gerei, **só nas telas canon**, `PRECISA TER` na charter + GUARD Pest `uc-<id>` + check `protocol_freshness` (advisory no health-check, espelha `review-freshness` #2078, ratchet baseline). Fonte única: `prototipo-ui/audit/uc-registry.json`.
+
+**Números reais do `main` hoje** (`node protocol-freshness.mjs` + simulação das asserções Pest):
+- **8 UC cobertos** (GUARD verde, todos PASS): UC-V01, UC-V02, UC-V03 (Sells/Create) · UC-01 (Oficina/Create) · UC-03, UC-05, UC-09 (Oficina/Show) · UC-02 (Oficina/Board).
+- **12 sem cobertura** (gaps → baseline, acendem advisory): UC-V04, UC-R01, UC-C01, UC-V04S, UC-V05, UC-V06, UC-V07 · UC-04, UC-06, UC-07, UC-08, UC-10.
+- **0** guard quebrado · **0** charter ausente · **0** UC morto · **0 regressão**.
+- Markers usam **nome de componente** (CustomerSearchAutocomplete, EntryCheckinFields, DviBudgetSection, ApprovalGateCard, FiscalSplitCard, drag) — `data-testid` é esparso no canon; componente é mais estável que i18n.
+
+### Fica de [W] (Tier 0):
+- [ ] mergear na ordem **#2151 (já) → #2152 → #2153** (Tier 0 = soberania [W]).
+- [ ] graduar as 25 lições do `LICOES_CC.md` (move o 9.7 de 0.5 → 1.0 no lado [CC]).
+- [ ] cobrir os 12 gaps de UC (vira `guard:true` no registro + GUARD `uc-<id>` + `--write-baseline`).
+- [ ] promover ADR (slug-only até lá) se quiser canonizar ciclo-diário/protocol_freshness.
+
+### new_design_memories
+- **golden**: a governança se mantém por um **ciclo diário** que regenera estado + roda frescor + gradua o inbox de [W] + emite 1 digest — tira [W] **e** [CL] do caminho recorrente.
+- **golden**: cada UC ("A tela precisa:") vira PRECISA TER (o porquê) + GUARD Pest `uc-<id>` (a trava) — some o elemento = build vermelho; o doc de casos para de defasar (amarrado ao teste, `protocol_freshness` acende o que falta).
