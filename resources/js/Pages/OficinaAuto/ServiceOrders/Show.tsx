@@ -7,7 +7,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
-import { Wrench, ArrowLeft, Edit, Package, Printer } from 'lucide-react';
+import { Wrench, ArrowLeft, Edit, Package, Printer, Fuel } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -26,6 +26,8 @@ interface ServiceOrder {
   completed_at: string | null;
   delivered_at: string | null;
   mileage_at_service: number | null;
+  fuel_level_at_entry: number | null;
+  entry_damages: string[] | null;
   transaction_id: number | null;
   notes: string | null;
   vehicle: {
@@ -226,6 +228,48 @@ export default function ServiceOrdersShow({ order }: Props) {
             <div className="mt-4 pt-4 border-t">
               <p className="text-sm font-medium mb-1">Observações</p>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{order.notes}</p>
+            </div>
+          )}
+
+          {/* Check-in de entrada — US-OFICINA-038/039 (delta protótipo Cowork Nova OS) */}
+          {(order.fuel_level_at_entry !== null ||
+            (order.entry_damages?.length ?? 0) > 0) && (
+            <div className="mt-4 pt-4 border-t space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Check-in de entrada
+              </p>
+              {order.fuel_level_at_entry !== null && (
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Fuel className="size-3.5" />
+                    Combustível
+                  </span>
+                  <div className="flex-1 max-w-xs h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary"
+                      style={{ width: `${Math.max(0, Math.min(100, order.fuel_level_at_entry))}%` }}
+                    />
+                  </div>
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {order.fuel_level_at_entry}%
+                  </span>
+                </div>
+              )}
+              {(order.entry_damages?.length ?? 0) > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Avarias na entrada</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {order.entry_damages!.map((d, i) => (
+                      <span
+                        key={`${d}-${i}`}
+                        className="rounded-full bg-secondary text-secondary-foreground text-xs px-2 py-0.5"
+                      >
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
