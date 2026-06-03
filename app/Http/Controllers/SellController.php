@@ -2488,6 +2488,7 @@ class SellController extends Controller
                 ],
                 'urls' => [
                     'edit' => action([\App\Http\Controllers\SellController::class, 'edit'], [$id]),
+                    'destroy' => action([\App\Http\Controllers\SellPosController::class, 'destroy'], [$id]),
                     'print' => '/sells/' . $id . '/print',
                     'sheet_data' => '/sells/' . $id . '/sheet-data',
                     'back' => '/sells',
