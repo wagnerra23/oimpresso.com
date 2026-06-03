@@ -146,6 +146,7 @@ interface Filters {
   aprovacao_status: ApprovalStatusId[]; // US-FIN-027 (Onda 22).
   aging: AgingBucketId[];  // PR E US-FIN-022 — vencidos por bucket
   overdue: boolean;        // Toggle "Só atrasados" independente.
+  arquivados: boolean;     // Toggle "Arquivados" — mostra só cancelados/inativos (Wagner 2026-06-03).
   busca: string;
   conta: string;
   categoria: string;
@@ -1183,6 +1184,19 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         >
           <span>Só atrasados</span>
           <span className="fin-filter-ct">{countOverdue(lancamentos)}</span>
+        </button>
+
+        {/* Wagner 2026-06-03 — Toggle "Arquivados": por padrão lançamentos cancelados/
+            inativos ficam ESCONDIDOS (não somam). Ligado, mostra SÓ os arquivados.
+            Mutuamente claro com a lista de ativos — backend troca o status filtrado. */}
+        <button
+          type="button"
+          aria-pressed={filters.arquivados}
+          className={'fin-filter-toggle' + (filters.arquivados ? ' on' : '')}
+          title="Mostrar lançamentos arquivados (cancelados/inativos). Por padrão ficam escondidos e não somam no caixa."
+          onClick={() => aplicar({ arquivados: !filters.arquivados })}
+        >
+          <span>🗄 Arquivados</span>
         </button>
 
         <span className="fin-filter-sep" />
