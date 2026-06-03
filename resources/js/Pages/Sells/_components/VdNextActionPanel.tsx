@@ -11,6 +11,7 @@
 // can_execute=true como "próxima ação" prominent + mostra gate quando bloqueado.
 
 import { useCallback, useEffect, useState } from 'react';
+import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FsmStageMeta {
@@ -41,6 +42,10 @@ interface Props {
   saleId: number;
   /** payment_status do headline — pra detectar ciclo concluído sem stage_key terminal */
   paymentStatus?: string | null;
+  /** status da venda (final/draft/quotation) — gateia o CTA "Enviar pra faturamento" (só final) */
+  saleStatus?: string | null;
+  /** status da NF mais recente (null = ainda não faturada) — esconde o CTA quando já tem nota */
+  fiscalStatus?: string | null;
   /** Stage atual key — fallback se /fsm-actions não responde */
   currentStageKey?: string | null;
   /** Callback após transition bem-sucedida — Show refresh sheet-data + history */
@@ -93,6 +98,8 @@ async function getCsrfToken(): Promise<string> {
 export default function VdNextActionPanel({
   saleId,
   paymentStatus,
+  saleStatus,
+  fiscalStatus,
   currentStageKey,
   onTransition,
   onOpenEmit,
@@ -182,8 +189,58 @@ export default function VdNextActionPanel({
     );
   }
 
-  // Sem pipeline FSM ou sem dados — não renderiza (FsmActionPanel mostra empty state)
+  // Sem pipeline FSM ou sem dados.
+  // CTA "Enviar pra faturamento" (source-agnostic) — fecha o gap do balcão: venda
+  // finalizada que ainda não foi faturada (sem NF) não entra em ready_for_invoice via
+  // produção, então o hero "Faturar" do FSM não aparece. Aqui mostramos a MESMA porta de
+  // emissão (onOpenEmit → VdNfeEmitModal/VdNfseEmitModal) que o caminho de produção usa no
+  // gate fiscal. Só pra venda final + sem NF; rascunho/orçamento ou já-faturada não mostra.
   if (!data || !data.in_pipeline) {
+    const needsBilling = saleStatus === 'final' && !fiscalStatus;
+    if (needsBilling && onOpenEmit) {
+      return (
+        <div className="sells-cowork">
+          <div className="vendas-aplus">
+            <div className="vd-next vd-next-indigo">
+              <div className="vd-next-h">
+                <span className="vd-next-now">
+                  <small>Faturamento</small>
+                  <b>Pronta pra faturar</b>
+                </span>
+                <span className="vd-next-arr" aria-hidden="true">→</span>
+                <span className="vd-next-cta">
+                  <small>Próxima ação</small>
+                  <b className="vd-next-gate-lbl">
+                    <FileText className="vd-next-ic" size={14} aria-hidden="true" />
+                    Enviar pra faturamento
+                  </b>
+                </span>
+              </div>
+              <div className="vd-next-gate">
+                <span className="vd-next-gate-msg">
+                  Emita a nota pra lançar o título no contas a receber.
+                </span>
+                <button
+                  type="button"
+                  className="vd-next-gate-cta"
+                  onClick={() => onOpenEmit('nfe')}
+                >
+                  <FileText size={13} aria-hidden="true" /> Emitir NF-e →
+                </button>
+                <button
+                  type="button"
+                  className="vd-next-gate-cta"
+                  onClick={() => onOpenEmit('nfse')}
+                  style={{ marginLeft: 6 }}
+                >
+                  <FileText size={13} aria-hidden="true" /> Emitir NFS-e →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return null;
   }
 
