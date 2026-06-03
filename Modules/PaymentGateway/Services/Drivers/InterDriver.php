@@ -341,6 +341,59 @@ class InterDriver implements PaymentDriverContract
         );
     }
 
+    /**
+     * Lista cobranças (boletos) RECEBIDAS num período — GET /cobranca/v3/cobrancas
+     * (paginado, filtrarDataPor=PAGAMENTO). Usado pelo import de recebimentos
+     * pro Financeiro (US-PG-008): puxa os boletos pagos no Inter mesmo quando
+     * foram emitidos por fora (sistema legado WR).
+     *
+     * Escopo OAuth: boleto-cobranca.read (que o app WR2 já tem).
+     *
+     * @return array<int, array<string, mixed>> itens brutos da API (cada um com
+     *         `cobranca` {codigoSolicitacao, seuNumero, situacao, valorNominal,
+     *         dataSituacao, pagador} + `boleto` {nossoNumero} + `pix`)
+     */
+    public function listarCobrancasPagas(object $cred, \DateTimeImmutable $ini, \DateTimeImmutable $fim): array
+    {
+        $this->assertCredential($cred);
+
+        $out = [];
+        $pagina = 0;
+        $maxPaginas = 50; // teto defensivo
+
+        do {
+            $query = http_build_query([
+                'dataInicial'    => $ini->format('Y-m-d'),
+                'dataFinal'      => $fim->format('Y-m-d'),
+                'filtrarDataPor' => 'PAGAMENTO',
+                'situacao'       => 'RECEBIDO',
+                'itensPorPagina' => 100,
+                'paginaAtual'    => $pagina,
+            ]);
+
+            $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/cobranca/v3/cobrancas?{$query}"));
+
+            if ($response->failed()) {
+                throw new GatewayUnavailableException(
+                    "Inter listar cobranças falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+                );
+            }
+
+            $data = $response->json() ?? [];
+            $itens = $data['cobrancas'] ?? $data['content'] ?? [];
+            if (is_array($itens)) {
+                foreach ($itens as $item) {
+                    $out[] = $item;
+                }
+            }
+
+            $totalPaginas = (int) ($data['totalPaginas'] ?? 1);
+            $pagina++;
+        } while ($pagina < $totalPaginas && $pagina < $maxPaginas);
+
+        return $out;
+    }
+
     public function healthCheck(object $cred): DriverHealth
     {
         $this->assertCredential($cred);
