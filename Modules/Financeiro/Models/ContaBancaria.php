@@ -34,13 +34,19 @@ class ContaBancaria extends Model
         'beneficiario_documento', 'beneficiario_razao_social',
         'beneficiario_logradouro', 'beneficiario_bairro',
         'beneficiario_cidade', 'beneficiario_uf', 'beneficiario_cep',
-        'certificado_path', 'certificado_password_encrypted',
+        'certificado_path', 'certificado_chave_path', 'certificado_password_encrypted',
+        'inter_client_id_encrypted', 'inter_client_secret_encrypted',
+        'webhook_token', 'webhook_registered_at',
         'ativo_para_boleto', 'metadata',
     ];
 
     protected $casts = [
         'ativo_para_boleto' => 'boolean',
         'metadata' => 'array',
+        'inter_client_id_encrypted' => 'encrypted',
+        'inter_client_secret_encrypted' => 'encrypted',
+        'certificado_password_encrypted' => 'encrypted',
+        'webhook_registered_at' => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions

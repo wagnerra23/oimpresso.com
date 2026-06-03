@@ -44,12 +44,12 @@ class FinanceiroServiceProvider extends ServiceProvider
     {
         $this->app->register(RouteServiceProvider::class);
 
-        // Default BoletoStrategy: CnabDirectStrategy via lib eduardokum/laravel-boleto.
-        // Sobrescrever via container binding em testes ou para usar GatewayStrategy
-        // (futura — ADR ARQ-0003).
+        // BoletoStrategy → Resolver: delega por ContaBancaria pra
+        // InterApiStrategy (banco 077 + credenciais) ou CnabDirectStrategy
+        // (offline mock). Ver ADR ARQ-0003 + memory/requisitos/Financeiro/adr/tech/0004.
         $this->app->bind(
             \Modules\Financeiro\Contracts\BoletoStrategy::class,
-            \Modules\Financeiro\Strategies\CnabDirectStrategy::class
+            \Modules\Financeiro\Strategies\BoletoStrategyResolver::class
         );
     }
 
@@ -61,6 +61,8 @@ class FinanceiroServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Financeiro\Console\Commands\InstallCommand::class,
+                \Modules\Financeiro\Console\Commands\ConfigurarContaInterCommand::class,
+                \Modules\Financeiro\Console\Commands\RegistrarWebhookInterCommand::class,
             ]);
         }
     }

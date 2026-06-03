@@ -8,6 +8,7 @@ use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\InstallController;
+use Modules\Financeiro\Http\Controllers\InterWebhookController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 
 /*
@@ -79,3 +80,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
             ->whereNumber('id')
             ->name('categorias.toggle');
     });
+
+// Webhook Inter — público, sem auth, sem CSRF (path '/webhook/*' já está
+// no $except do VerifyCsrfToken). Segredo é o {token} de 64 chars no path,
+// resolvido contra fin_contas_bancarias.webhook_token.
+// Pra registrar a URL no Inter: php artisan financeiro:inter:registrar-webhook
+Route::post('/webhook/inter/{token}', [InterWebhookController::class, 'receive'])
+    ->where('token', '[A-Za-z0-9]{32,64}')
+    ->middleware(['throttle:60,1'])
+    ->name('financeiro.webhook.inter');
