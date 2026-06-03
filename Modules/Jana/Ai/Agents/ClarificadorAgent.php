@@ -155,8 +155,8 @@ class ClarificadorAgent implements Agent, HasStructuredOutput
     {
         $msgs = [];
         foreach ($this->historicoRecente as $m) {
-            $role = ($m['role'] ?? 'user') === 'assistant' ? 'assistant' : 'user';
-            $content = (string) ($m['content'] ?? '');
+            $role = $m['role'] === 'assistant' ? 'assistant' : 'user';
+            $content = $m['content'];
             if ($content !== '') {
                 $msgs[] = new Message($role, $content);
             }
@@ -181,8 +181,8 @@ class ClarificadorAgent implements Agent, HasStructuredOutput
             // Cópia local — `end()` é by-ref e ContextoNegocio::$faturamento90d é readonly.
             $fat = $ctx->faturamento90d;
             $ultimo = end($fat);
-            $bruto = (float) ($ultimo['bruto'] ?? $ultimo['valor'] ?? 0);
-            $linhas[] = sprintf('Faturamento mês recente (%s): R$ %s', $ultimo['mes'] ?? '?', number_format($bruto, 2, ',', '.'));
+            $bruto = (float) $ultimo['bruto'];
+            $linhas[] = sprintf('Faturamento mês recente (%s): R$ %s', $ultimo['mes'], number_format($bruto, 2, ',', '.'));
         }
 
         if (! empty($ctx->metasAtivas)) {

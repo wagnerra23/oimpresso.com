@@ -476,21 +476,26 @@ return [
     |
     | Medição: log channel copiloto-ai → evento `clarify_event` (gray-hit, taxa de
     | clarify, false-clarify proxy). Sem isso é fé, não engenharia.
+    |
+    | VALORES DIRETOS, SEM env() — Larastan barra env() fora de config/ raiz (mesma
+    | razão do bloco peso_real). Default OFF. Pra LIGAR em homolog, Wagner seta via
+    | config() runtime (`config(['copiloto.clarify.enabled' => true])`) ou registra
+    | override no published config/copiloto.php. O `model` aponta um frontier (gpt-4o,
+    | mais forte que o gpt-4o-mini do chat); trocável pelo mesmo caminho.
     */
     'clarify' => [
-        'enabled'      => (bool) env('JANA_CLARIFY_ENABLED', false),
-        // Roteamento de modelo seletivo (difícil → frontier). null = default do provider.
-        'provider'     => env('JANA_CLARIFY_PROVIDER'),                 // null → config('ai.default')
-        'model'        => env('JANA_CLARIFY_MODEL', 'gpt-4o'),          // frontier (vs gpt-4o-mini do chat)
+        'enabled'  => false,            // default OFF — Wagner liga em homolog (config runtime/published)
+        'provider' => null,             // null → config('ai.default') (mesmo provider do chat)
+        'model'    => 'gpt-4o',         // roteamento seletivo difícil → frontier (vs gpt-4o-mini do chat)
         // Confiança mínima do disambiguador p/ realmente perguntar (anti false-clarify).
-        'min_confianca'         => (float) env('JANA_CLARIFY_MIN_CONFIANCA', 0.6),
+        'min_confianca'          => 0.6,
         // Heurística 1a (zero-custo) — limites do "cinza".
-        'gray_max_chars'        => (int) env('JANA_CLARIFY_GRAY_MAX_CHARS', 140),
-        'gray_max_words'        => (int) env('JANA_CLARIFY_GRAY_MAX_WORDS', 8),
+        'gray_max_chars'         => 140,
+        'gray_max_words'         => 8,
         // Quantos turnos recentes (PII-redigidos) alimentam o disambiguador.
-        'historico_turnos'      => (int) env('JANA_CLARIFY_HISTORICO_TURNOS', 4),
-        // Anti-loop: TTL do marcador "turno anterior foi clarify" (não pergunta 2x seguidas).
-        'anti_loop_ttl_segundos' => (int) env('JANA_CLARIFY_ANTI_LOOP_TTL', 600),
+        'historico_turnos'       => 4,
+        // Anti-loop: TTL (s) do marcador "turno anterior foi clarify" (não pergunta 2x seguidas).
+        'anti_loop_ttl_segundos' => 600,
     ],
 
     /*

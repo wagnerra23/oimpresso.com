@@ -56,8 +56,8 @@ class ClarifyCascadeService
 
         try {
             return OtelHelper::span('jana.clarify.decidir', [
-                'business_id' => $conv->business_id,
-                'conversa_id' => $conv->id,
+                'business_id' => $conv->getAttribute('business_id'),
+                'conversa_id' => $conv->getAttribute('id'),
             ], fn () => $this->decidirInternal($conv, $original, $redigida, $ctx));
         } catch (Throwable $e) {
             // FAIL-OPEN absoluto — clarify nunca derruba o chat.
@@ -228,8 +228,8 @@ class ClarifyCascadeService
                 ->get(['role', 'content'])
                 ->reverse()
                 ->map(fn ($m) => [
-                    'role' => (string) $m->role,
-                    'content' => $this->pii->redact((string) $m->content),
+                    'role' => (string) $m->getAttribute('role'),
+                    'content' => $this->pii->redact((string) $m->getAttribute('content')),
                 ])
                 ->values()
                 ->all();
@@ -268,9 +268,10 @@ class ClarifyCascadeService
     protected function logEvento(Conversa $conv, string $original, ClarifyResult $r): void
     {
         try {
+            $bizId = $conv->getAttribute('business_id');
             Log::channel('copiloto-ai')->info('clarify_event', [
-                'business_id' => $conv->business_id !== null ? (int) $conv->business_id : null,
-                'conversa_id' => (int) $conv->id,
+                'business_id' => $bizId !== null ? (int) $bizId : null,
+                'conversa_id' => (int) $conv->getAttribute('id'),
                 'acao' => $r->acao,
                 'tipo' => $r->tipo,
                 'motivo' => $r->motivo,
