@@ -189,7 +189,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
               </Select>
             )}
             {form.errors.forma_pagamento && (
-              <p className="text-[11px] text-rose-600">{form.errors.forma_pagamento}</p>
+              <p className="text-[11px] text-destructive">{form.errors.forma_pagamento}</p>
             )}
           </div>
 
