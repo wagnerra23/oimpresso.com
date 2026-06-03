@@ -2483,11 +2483,17 @@ class SellController extends Controller
                 'detail' => Inertia::defer($detailPayload),
                 'permissions' => [
                     'edit' => auth()->user()->can('direct_sell.update') || auth()->user()->can('so.update'),
-                    'delete' => auth()->user()->can('direct_sell.delete') || auth()->user()->can('sell.delete'),
+                    // Espelha a autorização real do servidor em SellPosController::destroy:1608
+                    // (sell.delete || direct_sell.delete || so.delete). Sem o ramo so.delete o
+                    // botão sumia pra perfis que só tinham essa permissão (bug "não aparece").
+                    'delete' => auth()->user()->can('sell.delete')
+                        || auth()->user()->can('direct_sell.delete')
+                        || auth()->user()->can('so.delete'),
                     'print' => true,
                 ],
                 'urls' => [
                     'edit' => action([\App\Http\Controllers\SellController::class, 'edit'], [$id]),
+                    'destroy' => action([\App\Http\Controllers\SellPosController::class, 'destroy'], [$id]),
                     'print' => '/sells/' . $id . '/print',
                     'sheet_data' => '/sells/' . $id . '/sheet-data',
                     'back' => '/sells',
