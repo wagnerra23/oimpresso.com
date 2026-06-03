@@ -18,7 +18,7 @@
 **Origem do feedback:** sessão maratona WhatsApp 2026-05-14/15. Wagner re-pareou canal Baileys 6.7.9, viveu incident cross-contact 81 msgs caindo no contato errado, fez 5 PRs com Claude endurecendo Baileys 6.7.9 (#854-858). Decidiu migrar pra 7.x como saída estrutural. Claude continuou citando "rc.9 quebrado" em 3 turnos consecutivos como contra-argumento — Wagner cortou em tom severo.
 
 **Contexto de negócio:**
-- Cliente piloto biz=1 ROTA LIVRE (99% volume) já sofreu 1 incident grave por bugs Baileys 6.7.9
+- Cliente piloto biz=4 ROTA LIVRE / Larissa (99% volume) já sofreu 1 incident grave por bugs Baileys 6.7.9
 - Schema 3-identifiers (PR #855) prepara migração — não fechar o circuito é desperdiçar trabalho feito
 - Skill `baileys-update-procedure` Tier B documenta processo de upgrade — já existe runbook
 - "Permanecer em 6.x" significa carregar dívida técnica acumulada (cross-contact patches, observer backfill, workarounds LidPhoneMap) sem fim claro
