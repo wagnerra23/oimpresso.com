@@ -33,6 +33,21 @@ class Kernel extends ConsoleKernel
 
         }
 
+        // PaymentGateway — polling de reconciliação PIX Inter (fallback do webhook).
+        // O Inter não empurra confirmação sozinho; este cron PERGUNTA ao Inter
+        // quais cobranças PIX emitidas já foram pagas e reconcilia (marca paga +
+        // quita título + dispara CobrancaPaga). Roda em local+live pra permitir
+        // teste no sandbox. withoutOverlapping evita sobreposição se um tick demorar.
+        $schedule->command('paymentgateway:inter-reconcile-pix')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->environments(['local', 'live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule paymentgateway:inter-reconcile-pix FALHOU — cobranças PIX podem ficar não-reconciliadas'
+                );
+            });
+
         // SRS — sincroniza memória Claude pra dentro do repo todo dia 23:00.
         // Histórico de renames: docvault:sync-memories → memcofre:sync-memories
         // (2026-04-24, DocVault → MemCofre) → Modules/MemCofre → Modules/SRS
