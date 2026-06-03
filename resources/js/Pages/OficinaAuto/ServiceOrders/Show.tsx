@@ -17,6 +17,7 @@ import ServiceOrderItemRow, {
   type ServiceOrderItemDto,
 } from './_components/ServiceOrderItemRow';
 import ServiceOrderItemFormSheet from './_components/ServiceOrderItemFormSheet';
+import DviBudgetSection, { type DviItemDto } from './_components/DviBudgetSection';
 
 interface ServiceOrder {
   id: number;
@@ -37,6 +38,7 @@ interface ServiceOrder {
     vehicle_type: string;
   } | null;
   items?: ServiceOrderItemDto[];
+  dvi_items?: DviItemDto[];
 }
 
 interface Props {
@@ -273,6 +275,13 @@ export default function ServiceOrdersShow({ order }: Props) {
             </div>
           )}
         </div>
+
+        {/* Vistoria DVI → orçamento (US-OFICINA-040) — item reprovado vira linha de orçamento */}
+        <DviBudgetSection
+          serviceOrderId={order.id}
+          dviItems={order.dvi_items ?? []}
+          onItemAdded={handleSaved}
+        />
 
         {/* ──────────────────────────────────────────────────────────────────
             Seção "Itens da OS" — Wave 5 US-OFICINA-005-bis (2026-05-26).

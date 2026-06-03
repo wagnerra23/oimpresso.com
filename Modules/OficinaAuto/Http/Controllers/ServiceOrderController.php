@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Services\Privacy\PiiRedactor;
+use Modules\OficinaAuto\Entities\OaInspectionItem;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
 use Modules\OficinaAuto\Http\Requests\StoreServiceOrderRequest;
@@ -389,6 +390,8 @@ class ServiceOrderController extends Controller
             'items',
             // Wave 2.1 US-OFICINA-027 — drawer KV grid modo manutenção (Mecânico)
             'assignedUser:id,first_name,last_name,surname',
+            // US-OFICINA-040 — itens DVI pra seção "Vistoria → orçamento" no Show
+            'dviInspectionItems',
         ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
@@ -482,9 +485,22 @@ class ServiceOrderController extends Controller
             'notes'          => $item->notes,
         ])->values()->all();
 
+        // US-OFICINA-040 — itens da vistoria DVI pra seção "Vistoria → orçamento".
+        // `budget_item_id` (em metadata) sinaliza item já convertido em linha de orçamento.
+        $dviPayload = $order->dviInspectionItems->map(fn (OaInspectionItem $dvi) => [
+            'id'                => (int) $dvi->id,
+            'categoria'         => (string) $dvi->categoria,
+            'descricao'         => (string) $dvi->descricao,
+            'severity'          => (string) $dvi->severity,
+            'recomendacao'      => $dvi->recomendacao,
+            'valor_recomendado' => $dvi->valor_recomendado !== null ? (float) $dvi->valor_recomendado : null,
+            'budget_item_id'    => is_array($dvi->metadata) ? ($dvi->metadata['budget_item_id'] ?? null) : null,
+        ])->values()->all();
+
         return Inertia::render('OficinaAuto/ServiceOrders/Show', [
             'order' => array_merge($order->toArray(), [
-                'items' => $itemsPayload,
+                'items'     => $itemsPayload,
+                'dvi_items' => $dviPayload,
             ]),
         ]);
     }
