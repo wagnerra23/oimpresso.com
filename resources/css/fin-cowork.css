@@ -576,7 +576,10 @@
    --text-dim) que .fin-filter-select pra paridade exata. */
 .fin-cowork .fin-toolbar .fin-date-input {
   display: inline-flex; align-items: center;
-  height: 26px; padding: 4px 8px;
+  /* Mesma caixa do fin-filter-select vizinho (vertical 5px, left 10px, altura
+     natural) — antes era height:26px/padding:4px que deixava o campo mais baixo
+     e apertado que os selects, destoando na toolbar. */
+  padding: 5px 10px;
   border-radius: 5px;
   border: 1px solid var(--border); background: var(--surface);
   font-size: 12px; font-weight: 500; color: var(--text-dim);
