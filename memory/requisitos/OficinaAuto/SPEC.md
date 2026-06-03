@@ -1,7 +1,7 @@
 ---
 module: OficinaAuto
-version: 0.1.0
-last_updated: "2026-05-26"
+version: 0.2.0
+last_updated: "2026-06-02"
 status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
@@ -1296,6 +1296,36 @@ Fechar 1º cliente pagante Modules/OficinaAuto (goal #1 CYCLE-06 — sinal quali
 - [ ] Se aceito: cycle dedicado ativar OficinaAuto (Sprint 0 com US-OFICINA-001..005 P0)
 - **Estimate:** 8h humano-limitado (call + análise + decisão) — relógio mundo real, não fator 10x
 
+### US-OFICINA-038 · Check-in de entrada — avarias na entrada da OS
+
+> owner: — · priority: p1 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta do protótipo Cowork "Nova OS" embarcado — ver [oficina-os-nova-prototipo-visual-comparison.md](oficina-os-nova-prototipo-visual-comparison.md) (delta #8). O protótipo abre a OS registrando o estado de entrada do veículo, que protege oficina e cliente. Hoje só temos `notes` (= relato). Esta US adiciona as **avarias na entrada** (chips).
+
+**DoD:**
+- [x] Coluna `entry_damages` (json nullable) em `service_orders` — migration idempotente `2026_06_02_000010`
+- [x] `ServiceOrder` fillable + cast `array` + activitylog `logOnly`
+- [x] `StoreServiceOrderRequest` + `UpdateServiceOrderRequest` rules (`array` + `*` string max:80)
+- [x] Componente compartilhado `EntryCheckinFields` (chips + presets) usado por Create + Edit
+- [x] Show.tsx exibe avarias read-only
+- [x] Pest (roundtrip array + validação)
+- [ ] **Fotos de entrada** ficam pra US futura (reusa HasArquivos backbone — ADR 0123)
+
+### US-OFICINA-039 · Check-in de entrada — nível de combustível
+
+> owner: — · priority: p1 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #7 do protótipo Cowork "Nova OS" — barra de combustível no hero do veículo. Pareada com US-OFICINA-038 no mesmo PR (mesma migration de check-in).
+
+**DoD:**
+- [x] Coluna `fuel_level_at_entry` (unsignedTinyInteger nullable 0–100) em `service_orders` — migration `2026_06_02_000010`
+- [x] `ServiceOrder` fillable + cast `integer` + activitylog `logOnly`
+- [x] Requests rules (`integer` min:0 max:100)
+- [x] `EntryCheckinFields` input + barra; Show.tsx barra read-only
+- [x] Pest (persiste 35; valida >100 e <0 falham)
+
 ---
 
-**Última atualização:** 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
