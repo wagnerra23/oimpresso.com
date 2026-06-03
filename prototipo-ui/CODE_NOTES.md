@@ -747,3 +747,23 @@ Branch `feat/ds-v6-kit-reuse-map` (base PR1 `2520c8a56`). Single-intent: **só d
 ### new_design_memories
 - **golden**: o reuse-map é o filtro anti-recriação — a maioria do "kit novo" já existe sob outro nome (shadcn/CVA/bespoke); a régua valida, não duplica.
 - **gotcha**: componente que vira padrão visual do app é Tier-0 mesmo sendo "só um card" — não nasce solto; nasce amarrado à 1ª tela real, via MWART + gate + [W].
+
+---
+
+## 2026-06-03 [CL] → [W] · DS v6 PR3 kickoff — tokens semânticas + gate /sells (PR #2184)
+
+Branch `feat/ds-v6-semantic-tokens` (worktree off `origin/main`). [W] aprovou "abre o PR3" via AskUserQuestion.
+
+**Entregue (aditivo/não-Tier-0):**
+1. `cockpit.css` — `--pos/--neg/--warn` (+`-soft`) light+dark, valores do gabarito DS v6. É a "Part 2" que o PR #2170 adiou; pré-requisito pra `/sells` consumir cor por token em vez de `oklch` escopado. `--accent` 295 intocado; stylelint = baseline 54 (zero delta).
+2. `sells-index-dsv6-visual-comparison.md` — gate visual **aprovado [W]** (15 dim, status approved).
+
+**ACHADO DE ESCOPO (importante):** o port real de `/sells` é **campanha multi-slice**, não single-PR. `sells-cowork.css` = **7530 linhas / 559 oklch crus** (muitos com par light+dark manual). Meu comparativo dizia "single-intent, baixo-médio" — **subestimou**. Correção registrada: cada slice (status pills · FSM/stage · KPIs · toolbar · drawer · ageing) entra sozinha, ≤300 LOC, **screenshot-gated** (ADR 0107/0114). `.vd-*`/`.os-*` são escolha deliberada do charter (UX Targets) — migração é cuidadosa, não blast.
+
+**Gotcha CSS:** comentário com `.vd-*/.os-*` contém `*/` → fecha o comentário → `CssSyntaxError`. Corrigido pra `classes .vd- e .os-`. (Lição: nunca por `*/` literal em comentário CSS.)
+
+**Fica de [W]:** decidir ordem/ritmo das slices da tela e dar OK no screenshot de cada uma pós-impl. Os 3 componentes Tier-0 (c-id/c-tl/c-nba) não aparecem em `/sells`.
+
+### new_design_memories
+- **gotcha**: `*/` dentro de comentário CSS (ex: `.vd-*/.os-*`) fecha o comentário e quebra o parse — use ` e ` ou espaço.
+- **golden**: antes de prometer "single-intent re-skin", medir o CSS alvo (`wc -l` + `grep -c oklch`) — 559 oklch vira campanha, não PR.
