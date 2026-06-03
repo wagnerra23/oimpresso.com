@@ -5195,14 +5195,17 @@
   --vd-green-hero-2:oklch(0.27 0.03 155);
   --vd-green-fg:    oklch(0.78 0.05 155);
 
-  --vd-ok:    oklch(0.55 0.13 145);
-  --vd-ok-soft: oklch(0.94 0.06 145);
-  --vd-warn:  oklch(0.62 0.13 70);
-  --vd-warn-soft: oklch(0.94 0.06 70);
-  --vd-bad:   oklch(0.55 0.18 25);
-  --vd-bad-soft: oklch(0.94 0.06 25);
-  --vd-neutral: oklch(0.55 0.01 80);
-  --vd-neutral-soft: oklch(0.94 0.005 80);
+  /* DS v6 (PR3 slice 2) — camada semântica local da tela redireciona pros tokens
+     canônicos (cockpit.css: --pos/--warn/--neg + -soft), espelhando o gabarito.
+     Bônus: passam a flipar claro/escuro de fábrica (antes eram só light). */
+  --vd-ok:    var(--pos);
+  --vd-ok-soft: var(--pos-soft);
+  --vd-warn:  var(--warn);
+  --vd-warn-soft: var(--warn-soft);
+  --vd-bad:   var(--neg);
+  --vd-bad-soft: var(--neg-soft);
+  --vd-neutral: var(--text-mute);
+  --vd-neutral-soft: var(--bg-2);
 }
 /* ── HEADER: ⌘K button no centro do .os-head ── */
 .sells-cowork .vendas-aplus .os-head { align-items:center; gap:12px; }
