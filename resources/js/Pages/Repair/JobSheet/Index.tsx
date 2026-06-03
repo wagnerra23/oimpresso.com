@@ -1,16 +1,23 @@
 // @memcofre tela=/repair/job-sheet module=Repair
 // Sprint 2.5 / MWART-0002 — port Job Sheet Repair Blade → Inertia/React.
-// Lista filtrada por status/cliente/staff/location. Tabela puxa via DataTables AJAX legacy.
-// Create/Edit/Print/Upload mantêm rotas Blade — apenas o shell vira React.
+// Score-up 2026-05-31 (board 52 "stub: placeholder DataTables + cards só contam"):
+//   placeholder → tabela real. Mantém o contrato REAL do controller
+//   (filters/flags/datatable_url) e busca a lista no MESMO endpoint DataTables
+//   AJAX (request()->ajax() em JobSheetController@index) — sem inventar prop.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import PageHeader from '@/Components/shared/PageHeader';
+import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Icon } from '@/Components/Icon';
-import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
 
 interface DropdownOption {
   [key: string]: string;
@@ -31,115 +38,205 @@ interface PageProps {
   datatable_url: string;
 }
 
+// Shape de cada linha do endpoint DataTables (subset do SELECT do controller).
+interface JobSheetRow {
+  id: number;
+  job_sheet_no: string | null;
+  customer: string | null;
+  device: string | null;
+  device_model: string | null;
+  brand: string | null;
+  status: string | null;
+  status_color: string | null;
+  technecian: string | null;
+  location: string | null;
+  created_at: string | null;
+}
+
+const ALL = '__all__';
+
 export default function JobSheetIndex({ filters, flags, datatable_url }: PageProps) {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [rows, setRows] = useState<JobSheetRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [loc, setLoc] = useState<string>(ALL);
+  const [status, setStatus] = useState<string>(ALL);
+  const [customer, setCustomer] = useState<string>(ALL);
 
-  // Embed Blade datatable via iframe-like fetch (mantém compat com pipeline AJAX existente).
-  // Em iteração futura, migrar pra TanStack Table com fetch direto.
   useEffect(() => {
-    if (!tableContainerRef.current) return;
-    const msg = document.createElement('div');
-    msg.className = 'p-8 text-center text-muted-foreground text-sm';
-    // textContent + DOM API — evita XSS com datatable_url (R-OWASP).
-    const p1 = document.createElement('p');
-    p1.className = 'mb-2';
-    p1.append('Listagem ainda usa DataTables AJAX legacy via ');
-    const code = document.createElement('code');
-    code.textContent = datatable_url;
-    p1.append(code);
-    p1.append('.');
-    const p2 = document.createElement('p');
-    p2.className = 'text-xs';
-    p2.textContent = 'Próxima iteração migra pra TanStack Table com fetch direto. Por ora, paridade visual mantida pelo Blade.';
-    msg.append(p1, p2);
-    tableContainerRef.current.replaceChildren(msg);
-  }, [datatable_url]);
+    let alive = true;
+    setLoading(true);
+    setError(false);
+    const params = new URLSearchParams({ draw: '1', start: '0', length: '200' });
+    if (loc !== ALL) params.set('location_id', loc);
+    if (status !== ALL) params.set('status_id', status);
+    if (customer !== ALL) params.set('contact_id', customer);
 
-  const filterCount = (
-    Object.values(filters.business_locations).length +
-    Object.values(filters.customers).length +
-    Object.values(filters.status_dropdown).length +
-    Object.values(filters.service_staffs).length
-  );
+    fetch(`${datatable_url}?${params.toString()}`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((json) => {
+        if (!alive) return;
+        setRows(Array.isArray(json?.data) ? json.data : []);
+      })
+      .catch(() => alive && setError(true))
+      .finally(() => alive && setLoading(false));
+
+    return () => {
+      alive = false;
+    };
+  }, [datatable_url, loc, status, customer]);
+
+  const hasFilters = loc !== ALL || status !== ALL || customer !== ALL;
+  const locOpts = useMemo(() => Object.entries(filters.business_locations), [filters]);
+  const statusOpts = useMemo(() => Object.entries(filters.status_dropdown), [filters]);
+  const customerOpts = useMemo(() => Object.entries(filters.customers), [filters]);
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto space-y-5 p-4">
       <PageHeader
         icon="clipboard-list"
-        title="Ordens de Serviço (Job Sheet)"
-        description="Gestão de OS por status, cliente, equipe e local"
+        title="Ordens de serviço"
+        description="Gestão de OS de reparo por status, cliente, equipe e local."
         action={
-          <Button variant="outline" asChild>
-            <Link href="/repair/job-sheet/create">
-              <Icon name="file-text" className="mr-2 h-4 w-4" />
-              Nova OS
-            </Link>
+          <Button asChild>
+            <Link href="/repair/job-sheet/create">Nova OS</Link>
           </Button>
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Icon name="clipboard-list" className="h-4 w-4" />
-              Filtros disponíveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-1">
-            <p>Locations: {Object.keys(filters.business_locations).length}</p>
-            <p>Clientes: {Object.keys(filters.customers).length}</p>
-            <p>Status: {Object.keys(filters.status_dropdown).length}</p>
-            <p>Staff: {Object.keys(filters.service_staffs).length}</p>
-            <p className="font-medium pt-2 border-t mt-2">Total opções: {filterCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Permissões</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            {flags.is_user_service_staff ? (
-              <p className="text-amber-700 dark:text-amber-400">Service staff — vê só OS atribuídas a você.</p>
-            ) : (
-              <p className="text-muted-foreground">Acesso total — vê todas OS do business.</p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm space-y-1.5">
-            <FlagRow label="Serial no" enabled={flags.show_serial_no} />
-            <FlagRow label="Brand" enabled={flags.enable_brand_in_job_sheet} />
-          </CardContent>
-        </Card>
+      {/* Filtros — usam os dropdowns reais que o controller já manda */}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3">
+        <FilterSelect label="Local" value={loc} onChange={setLoc} options={locOpts} allLabel="Todos os locais" />
+        <FilterSelect label="Status" value={status} onChange={setStatus} options={statusOpts} allLabel="Todos os status" />
+        <FilterSelect label="Cliente" value={customer} onChange={setCustomer} options={customerOpts} allLabel="Todos os clientes" />
+        {hasFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setLoc(ALL);
+              setStatus(ALL);
+              setCustomer(ALL);
+            }}
+          >
+            Limpar
+          </Button>
+        )}
+        {flags.is_user_service_staff && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            Você vê apenas as OS atribuídas a você.
+          </span>
+        )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de OS</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div ref={tableContainerRef} />
-        </CardContent>
-      </Card>
+      <div className="overflow-hidden rounded-xl border border-border">
+        {loading ? (
+          <div className="space-y-2 p-4" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-9 animate-pulse rounded bg-muted/60" />
+            ))}
+          </div>
+        ) : error ? (
+          <EmptyState
+            icon="alert-circle"
+            variant="error"
+            title="Não foi possível carregar as OS"
+            description="Tente novamente em instantes."
+          />
+        ) : rows.length === 0 ? (
+          <EmptyState
+            icon="wrench"
+            variant={hasFilters ? 'search' : 'default'}
+            title={hasFilters ? 'Nenhuma OS no filtro' : 'Nenhuma ordem de serviço'}
+            description={
+              hasFilters
+                ? 'Ajuste os filtros para ver mais resultados.'
+                : 'As OS de reparo criadas aparecerão aqui.'
+            }
+          />
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3">OS</th>
+                <th className="px-4 py-3">Cliente</th>
+                <th className="px-4 py-3">Aparelho</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Técnico</th>
+                <th className="px-4 py-3">Local</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const device = r.device || [r.brand, r.device_model].filter(Boolean).join(' ') || '—';
+                return (
+                  <tr key={r.id} className="border-t border-border hover:bg-muted/30">
+                    <td className="px-4 py-3 font-mono text-xs">
+                      <Link href={`/repair/job-sheet/${r.id}`} className="text-primary hover:underline">
+                        {r.job_sheet_no ?? `#${r.id}`}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">{r.customer ?? '—'}</td>
+                    <td className="px-4 py-3">{device}</td>
+                    <td className="px-4 py-3">
+                      {r.status ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+                          {r.status}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.technecian?.trim() || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{r.location ?? '—'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {!loading && !error && rows.length > 0 && (
+        <p className="text-xs text-muted-foreground">{rows.length} OS exibida(s).</p>
+      )}
     </div>
   );
 }
 
-JobSheetIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
-
-function FlagRow({ label, enabled }: { label: string; enabled: boolean }) {
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  allLabel,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: Array<[string, string]>;
+  allLabel: string;
+}) {
+  if (options.length === 0) return null;
   return (
-    <p className="flex items-center gap-2">
-      {enabled ? (
-        <Icon name="check-circle-2" className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-      ) : (
-        <Icon name="circle-minus" className="h-3.5 w-3.5 text-muted-foreground" />
-      )}
-      <span>{label}: <span className={enabled ? 'text-foreground' : 'text-muted-foreground'}>{enabled ? 'visível' : 'oculto'}</span></span>
-    </p>
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="h-9 w-[180px]" aria-label={label}>
+        <SelectValue placeholder={allLabel} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={ALL}>{allLabel}</SelectItem>
+        {options.map(([id, name]) => (
+          <SelectItem key={id} value={id}>
+            {name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
+
+JobSheetIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;

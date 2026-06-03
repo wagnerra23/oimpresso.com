@@ -54,6 +54,11 @@ class ServiceOrderFsmActionController extends Controller
     private const ORDER_TYPE_TO_PROCESS = [
         'locacao'    => 'cacamba_locacao',
         'manutencao' => 'cacamba_manutencao',
+        // Fluxo REAL da oficina de mecânica pesada do carro (Martinho) — confirmado [W]
+        // 2026-06-02. OS de carro NOVAS usam order_type='mecanica' → 6 etapas
+        // (recepcao→…→pronto_retirada). Não remapeia OS 'manutencao' legadas
+        // (preservam cacamba_manutencao, sem orfanar current_stage_id).
+        'mecanica'   => 'oficina_mecanica_os',
     ];
 
     /**

@@ -1,0 +1,79 @@
+name: Multi-tenant gate
+
+# Tier 0 IRREVOGÁVEL — bloqueia hardcode de business_id (visibilidade de módulo
+# por cliente) em controllers/middleware canônicos. Antes este teste existia mas
+# NÃO rodava em CI (ci.yml roda só tests/Feature/Form) — ficava dormente. Este
+# workflow o ativa. Recalibrado 2026-06-02: exemta `=== 0` (no-tenant guard) e
+# força `config('app.saas_owner_business_id')` em vez de `=== 1` cru.
+#
+# Regra: visibilidade per-business = subscription package (Modules/Superadmin),
+# NUNCA `if ($business_id === N)`. Ver memory/proibicoes.md + ADR 0093.
+# Teste: tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/**/Http/Controllers/**'
+      - 'app/Http/Middleware/AdminSidebarMenu.php'
+      - 'app/Http/Middleware/HandleInertiaRequests.php'
+      - 'tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php'
+      - '.github/workflows/multi-tenant-gate.yml'
+  pull_request:
+    paths:
+      - 'Modules/**/Http/Controllers/**'
+      - 'app/Http/Middleware/AdminSidebarMenu.php'
+      - 'app/Http/Middleware/HandleInertiaRequests.php'
+      - 'tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php'
+      - '.github/workflows/multi-tenant-gate.yml'
+
+concurrency:
+  group: multi-tenant-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: No hardcode business_id (Tier 0)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-mtgate-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-mtgate-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare storage dirs + .env mínimo
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-mt-gate
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          EOF
+          php artisan key:generate
+
+      - name: Pest — anti-hardcode business_id
+        run: vendor/bin/pest tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php --no-coverage

@@ -4,9 +4,20 @@ title: "CLAUDE.md primer Cowork — sincronizado com main 2026-05-09"
 type: cowork-primer
 status: ativo
 last_sync: '2026-05-09'
+canon_refresh: '2026-05-30'
 ---
 
 # CLAUDE.md — primer Cowork pra oimpresso (sincronizado com `main`)
+
+> ## ⚠️ CANON ATUAL (2026-05-30) — LEIA ANTES DE TUDO
+>
+> O corpo abaixo é de **2026-05-09** e está parcialmente defasado. **Onde divergir, vence o que está aqui:**
+>
+> 1. **Ponto de entrada único:** antes de qualquer tela, leia **[`memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md`](../memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)** — índice mestre de TODAS as memórias de design (positivas + negativas) já reconciliadas + a **regra de ouro**.
+> 2. **Fluxo por tela:** **PRE-FLIGHT-TELA.md** (monta contexto) → **GOLDEN-REFERENCE.md** (copia a tela-ouro do arquétipo + 10 regras binárias) → **REGISTRY** (componentes reais; Onda F ainda NÃO existe) → **LICOES_F3** (não repetir 21 anti-padrões) → **SCREEN-GRADE-METODO.md** (como será notado).
+> 3. **Cor = roxo.** Token `primary` `oklch(0.55 0.15 295)` (DS v4, ADR 0235). **Zero `blue-*` de marca** — azul só semântico (status). O §4/§12 abaixo (shadcn genérico/stone-50) está defasado.
+> 4. **Posicionamento correto:** oimpresso é **ERP modular multi-vertical** (ADR 0121). A **Larissa/ROTA LIVRE é VESTUÁRIO** (não gráfica). O §2 abaixo ("só comunicação visual") está errado.
+> 5. **Regra-mestre:** crie DENTRO do que existe — nunca invente componente/Model/paleta (M-AP-6, T-AP-1), nunca repita anti-padrão catalogado. Em dúvida, pergunte (UI-0013).
 
 > **Como Wagner usa este arquivo:** copia 100% do conteúdo abaixo e cola no `CLAUDE.md` do projeto Cowork "Oimpresso ERP Comunicação Visual" (claude.ai/projects). Cowork lê em todo chat novo via GitHub connector + esse arquivo colado.
 >

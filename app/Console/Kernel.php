@@ -33,6 +33,21 @@ class Kernel extends ConsoleKernel
 
         }
 
+        // PaymentGateway — polling de reconciliação PIX Inter (fallback do webhook).
+        // O Inter não empurra confirmação sozinho; este cron PERGUNTA ao Inter
+        // quais cobranças PIX emitidas já foram pagas e reconcilia (marca paga +
+        // quita título + dispara CobrancaPaga). Roda em local+live pra permitir
+        // teste no sandbox. withoutOverlapping evita sobreposição se um tick demorar.
+        $schedule->command('paymentgateway:inter-reconcile-pix')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->environments(['local', 'live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule paymentgateway:inter-reconcile-pix FALHOU — cobranças PIX podem ficar não-reconciliadas'
+                );
+            });
+
         // SRS — sincroniza memória Claude pra dentro do repo todo dia 23:00.
         // Histórico de renames: docvault:sync-memories → memcofre:sync-memories
         // (2026-04-24, DocVault → MemCofre) → Modules/MemCofre → Modules/SRS
@@ -138,6 +153,22 @@ class Kernel extends ConsoleKernel
                     'Schedule sells:smoke-daily FALHOU — investigar Cowork drift'
                 );
             });
+
+        // Ciclo diário de governança [CC]×Jana (ADVISORY — orquestra checks que já
+        // existem; não cria daemon, não numera ADR, não auto-mergeia Tier 0).
+        // Regenera o estado (governanca:scorecard) + frescor (graduation_ratio,
+        // charter coverage, review/protocol-freshness) + gradua o inbox [W]
+        // (COWORK_NOTES) + emite 1 digest/dia em storage/reports/governanca-digest.md.
+        // 06:50 BRT — DEPOIS de health-check (06:00) + grade-snapshot (06:05) +
+        // system-audit (06:15) + smoke (06:30), sobre o estado já fresco do dia.
+        // SEM --notify e SEM onFailure ALERT: drift de processo não pagina à noite.
+        // SEM --code-notes no cron: o append a CODE_NOTES.md (versionado) é manual
+        // pro marco; o cron grava só o storage/digest (não suja arquivo git diário).
+        $schedule->command('governanca:ciclo-diario')
+            ->dailyAt('06:50')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live']);
 
         // ADR 0153/0155 — Module Grades snapshot diário pra sparkline 7d.
         // Persiste 1 row/módulo em mcp_module_grades_history (~34 módulos × 1KB).

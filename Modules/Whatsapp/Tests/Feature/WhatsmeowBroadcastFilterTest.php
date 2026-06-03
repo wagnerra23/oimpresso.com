@@ -110,6 +110,10 @@ beforeEach(function () {
         $table->text('body')->nullable();
         $table->json('payload')->nullable();
         $table->string('status', 20);
+        $table->string('sender_kind', 20)->nullable();
+        $table->string('media_mime', 100)->nullable();
+        $table->unsignedBigInteger('media_size_bytes')->nullable();
+        $table->string('media_filename', 255)->nullable();
         $table->timestamps();
         $table->unique('provider_message_id', 'msgs_provider_msg_uniq');
     });

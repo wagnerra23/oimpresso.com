@@ -20,6 +20,14 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tier-a-banner.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/loop-fechar-check.ps1"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/git-base-freshness-guard.mjs"
           }
         ]
       }
@@ -112,6 +120,15 @@
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
           }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-test-fora-ct100.ps1"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -160,6 +177,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/force-r12-closing-signal.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/design-handoff-reprocess.mjs"
           }
         ]
       }

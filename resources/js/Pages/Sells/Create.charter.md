@@ -3,11 +3,11 @@ page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-08
+last_validated: "2026-06-02"
 parent_module: Sells
-related_adrs: [0110, 0107, 0104, 0093]
+related_adrs: [110, 107, 104, 93, 105]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /sells/create
@@ -77,9 +77,12 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 
 ## Tests anti-regressão
 
-- [tests/Feature/Sells/SellsCreatePageTest.php](../../tests/Feature/Sells/SellsCreatePageTest.php) — 39+ testes estruturais
+**Casos de uso (spec executável):** [`memory/requisitos/Sells/CASOS-USO-CREATE-VENDA.md`](../../../../memory/requisitos/Sells/CASOS-USO-CREATE-VENDA.md) — 15 CU em Given/When/Then + paridade Blade↔V2 + mapa CU→Pest. **Regra de cutover:** religar a flag `useV2SellsCreate` só quando todo CU `must` estiver 🟢 + smoke biz=4 (PRE-MERGE-UI Camada 4).
+
+- [tests/Feature/Sells/SellsCreatePageTest.php](../../tests/Feature/Sells/SellsCreatePageTest.php) — ~49 testes estruturais
 - [tests/Feature/Sells/SellPosControllerCreateTest.php](../../tests/Feature/Sells/SellPosControllerCreateTest.php) — backend dual response
 - [tests/Feature/Design/CockpitPatternConformanceTest.php](../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico
+- + suites: CustomerAutoApplyOnSelect · QuickAddCustomerSheet · ProductSearchAutocomplete(Race/ConfigurableFields) · ProductLineCardComponent · CommissionSplitEditor · CriarOsPorVenda · MultiTenantSqlGuard
 
 ---
 
@@ -88,3 +91,16 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 - [Design.md §16 Cockpit V2](../../../../Design.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - PR #257, #258, #259, #261 — sequência migração visual
+
+## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
+
+> Cada item vem de um Caso de Uso ("A tela precisa:") amarrado a um GUARD Pest `uc-<id>`
+> (`tests/Feature/Guards/UcGuardsTest.php`) via [`prototipo-ui/audit/uc-registry.json`](../../../../prototipo-ui/audit/uc-registry.json).
+> ✅ = elemento presente + travado (some o elemento = build vermelho). 🟡 = gap conhecido (acende no `protocol_freshness`, advisory).
+
+- ✅ **UC-V01** (`uc-v01`) — busca rápida de cliente/produto, tabela de preços automática, condições (prazo/pagamento/endereço), rascunho × pedido confirmado.
+- ✅ **UC-V02** (`uc-v02`) — busca de produto com estoque/prazo visível, desconto com limite, observação por item.
+- ✅ **UC-V03** (`uc-v03`) — seletor de tabela de preços, desconto com limite visível, aprovação de desconto.
+- 🟡 **UC-V04** — botão de envio com registro de canal+data, estado "Aguardando aprovação", registro da aprovação, histórico de versões. _(sem cobertura)_
+- 🟡 **UC-R01** — busca de kits distinta, expansão dos filhos, subtotal do kit, substituir filho, reserva de estoque dos filhos. _(sem cobertura)_
+- 🟡 **UC-C01** — formulário de item personalizado (dimensão/material/acabamento/arte), preço em tempo real, observações de produção. _(sem cobertura)_

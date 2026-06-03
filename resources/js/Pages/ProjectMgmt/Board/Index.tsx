@@ -71,9 +71,15 @@ interface Props {
   kanban: Record<string, BoardTask[]>;
   kpis: Kpis;
   columns: Status[];
-  epics: EpicOption[];
-  cycles: CycleOption[];
-  owners: string[];
+  // epics/cycles/owners chegam via Inertia::defer (BoardController:109-111) →
+  // `undefined` no 1º paint. Tipados opcionais + default-guard no destructuring
+  // pra NÃO crashar React antes do defer chegar (skill inertia-defer-default,
+  // Opção B; espelha OficinaAuto/ServiceOrders/Index.tsx). Sintoma do bug:
+  // cycles.map() sobre undefined → tela branca. kanban/kpis/columns/cycle ficam
+  // eager (rollback PR #963 — atalhos J/K exigem cards já no initial render).
+  epics?: EpicOption[];
+  cycles?: CycleOption[];
+  owners?: string[];
   filters: {
     project: string | null;
     cycle: number | null;
@@ -92,7 +98,7 @@ const LS = {
 
 const ALL = '__all__';
 
-function BoardIndex({ project, cycle, kanban, kpis, columns, epics, cycles, owners, filters }: Props) {
+function BoardIndex({ project, cycle, kanban, kpis, columns, epics = [], cycles = [], owners = [], filters }: Props) {
   // ── Filtros (controlled, com fallback pro localStorage)
   const [cycleId, setCycleId] = useState<string>(() => {
     if (filters.cycle) return String(filters.cycle);

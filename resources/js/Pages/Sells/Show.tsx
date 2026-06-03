@@ -57,6 +57,10 @@ interface Headline {
   total_paid: number;
   payment_status: 'paid' | 'due' | 'partial' | string;
   status: 'final' | 'draft' | 'quotation' | 'proforma' | string;
+  /** Origem da venda — balcao (default) | oficina (OS) | online. Source-agnostic. */
+  source?: 'balcao' | 'oficina' | 'online' | string | null;
+  /** Status da NF mais recente (null = ainda não faturada) — gateia o CTA "Enviar pra faturamento". */
+  fiscal_status?: string | null;
   current_stage_key: string | null;
   customer: Customer | null;
   location: { id: number; name: string } | null;
@@ -337,7 +341,7 @@ export default function SellsShow(props: SellsShowPageProps) {
             icon="file-text"
             tone={totalFalta > 0 ? 'warning' : 'default'}
           />
-          <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-2 shadow-sm">
+          <div className="rounded-lg border border-border bg-card p-4 flex flex-col gap-2 shadow-sm">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
               Status pgto
             </span>
@@ -400,6 +404,8 @@ export default function SellsShow(props: SellsShowPageProps) {
             <VdNextActionPanel
               saleId={headline.id}
               paymentStatus={headline.payment_status}
+              saleStatus={headline.status}
+              fiscalStatus={headline.fiscal_status}
               currentStageKey={headline.current_stage_key}
               onTransition={() => {
                 // Refresh sheet — Inertia partial reload do detail

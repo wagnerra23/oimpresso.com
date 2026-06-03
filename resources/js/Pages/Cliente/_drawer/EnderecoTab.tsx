@@ -27,6 +27,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Search, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
+import EnderecosEntregaList from './EnderecosEntregaList';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import {
@@ -49,6 +50,8 @@ export interface ContactInfo {
   neighborhood?: string | null;
   city?: string | null;
   state?: string | null;
+  // Endereço de entrega (shipping_address) — opcional, texto livre.
+  shipping_address?: string | null;
   // Aliases PT-BR (legado — listagem em /cliente emite assim hoje).
   cep?: string | null;
   endereco?: string | null;
@@ -537,6 +540,11 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
             backendError={errorField?.field === 'state' ? errorField.message : null}
           />
         </div>
+
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <EnderecosEntregaList contactId={contact.id} disabled={disabled} />
       </div>
     </div>
   );

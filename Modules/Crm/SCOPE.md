@@ -1,6 +1,10 @@
 ---
 module: Crm
-purpose: "UltimatePOS herdado (CRM core)."
+# ⚠️ Crm É o módulo de CLIENTE / contatos do cliente. UltimatePOS herdou o nome
+# "Crm" — NÃO existe Modules/Cliente. Requisitos canônicos: memory/requisitos/Crm/
+# (a antiga memory/requisitos/Cliente/ foi consolidada aqui em 2026-06-01).
+# Ver memory/reference/crm-e-o-modulo-de-cliente.md
+purpose: "Módulo de CLIENTE / contatos do cliente (UPOS herdou o nome 'Crm'; NÃO existe Modules/Cliente): cadastro, drawer 760px com aba Endereço, múltiplos endereços (US-CRM-078)."
 contains:
   - "CallLogController"
   - "CampaignController"
@@ -8,7 +12,9 @@ contains:
   - "ClienteAutosaveController"    # Drawer 760 autosave draft (Wave A-G refinada #1382)
   - "ClienteIaController"          # Wave E IA cards (#1344 merged 2026-05-21)
   - "ClienteLookupController"      # Drawer 760 endpoint lookup CEP/CNPJ (Wave A-G refinada #1382)
+  - "ClienteOssDataController"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760 (ADR 0179, #1886)
   - "ClienteVeiculosController"    # Drawer 760 sub-tab Placas (Daniela @ Martinho #1776 2026-05-27)
+  - "ContactAddressController"     # US-CRM-078 — múltiplos endereços do cliente (PR1, drift do check-scope)
   - "ContactBookingController"
   - "ContactLoginController"
   - "CrmDashboardController"

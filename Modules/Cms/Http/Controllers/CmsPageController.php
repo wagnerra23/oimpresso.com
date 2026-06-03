@@ -31,10 +31,13 @@ class CmsPageController extends Controller
      * @param  ProductUtils  $product
      * @return void
      */
-    public function __construct(Util $commonUtil, PiiRedactor $piiRedactor)
+    protected \Modules\Cms\Services\SiteContentService $siteContent;
+
+    public function __construct(Util $commonUtil, PiiRedactor $piiRedactor, \Modules\Cms\Services\SiteContentService $siteContent)
     {
         $this->commonUtil = $commonUtil;
         $this->piiRedactor = $piiRedactor;
+        $this->siteContent = $siteContent;
     }
 
     /**
@@ -159,9 +162,19 @@ class CmsPageController extends Controller
     private function buildPagePayload(string $title)
     {
         return OtelHelper::spanBiz('cms.page.render', function () use ($title) {
-            return CmsPage::with(['pageMeta'])
+            $page = CmsPage::with(['pageMeta'])
                         ->where('title', $title)
                         ->first();
+
+            if ($page === null) {
+                return null;
+            }
+
+            // XSS: sanitiza o HTML in-place (Site/Page usa dangerouslySetInnerHTML).
+            // getAttribute: coluna `content` é magic property Eloquent (PHPStan).
+            $page->setAttribute('content', $this->siteContent->sanitizeHtml($page->getAttribute('content')));
+
+            return $page;
         }, ['page_title' => $title]);
     }
 

@@ -168,7 +168,11 @@ def map_venda_to_contact(
         return None  # sem CNPJ não dá pra dedup → skip
 
     razao = normalize_str(row.get("RAZAOSOCIAL"))
+    contato = normalize_str(row.get("CONTATO"))
     contact_type = derive_contact_type(row.get("RESPONSAVEL_TIPO"))
+    # Anti-fantasma: name NUNCA pode ficar vazio. Cadeia: RAZAOSOCIAL → CONTATO → CNPJ.
+    # (incidente HEINIG id=30525: contact criado com name='' por RAZAOSOCIAL vazio)
+    nome_final = razao or contato or f"Legacy CNPJ {cnpj[:6]}..."
 
     # Schema contacts UltimatePOS: varchar tamanhos justos — truncar pra evitar overflow.
     # cpf_cnpj(20), ie_rg(18), rua(80), numero(10), bairro(40), zip_code(20),
@@ -177,7 +181,7 @@ def map_venda_to_contact(
         "business_id": business_id,
         "type": "customer",  # cliente (não fornecedor) — Martinho oficina/locação
         "contact_type": contact_type,
-        "name": normalize_str(razao, 191) or f"Legacy CNPJ {cnpj[:6]}...",
+        "name": normalize_str(nome_final, 191),
         "supplier_business_name": normalize_str(razao, 191),
         "cpf_cnpj": cnpj[:20],
         "tax_number": cnpj[:20],

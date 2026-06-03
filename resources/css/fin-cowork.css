@@ -71,11 +71,11 @@
 .fin-cowork .fin-curadoria .fin-btn:hover { background: var(--fin-bg-soft); border-color: oklch(0.85 0.005 240); }
 .fin-cowork .fin-curadoria .fin-btn.on { background: oklch(0.95 0.04 240); border-color: oklch(0.55 0.13 240); color: oklch(0.36 0.13 240); }
 .fin-cowork .fin-curadoria .fin-btn.primary {
-  background: oklch(0.36 0.13 240);
+  background: var(--accent);
   color: white;
   border-color: transparent;
 }
-.fin-cowork .fin-curadoria .fin-btn.primary:hover { background: oklch(0.30 0.13 240); }
+.fin-cowork .fin-curadoria .fin-btn.primary:hover { background: var(--accent-2); }
 .fin-cowork .fin-curadoria .fin-btn kbd {
   font-family: ui-monospace, monospace;
   font-size: 10px;
@@ -191,6 +191,28 @@
 }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark:hover {
   opacity: 1;
+}
+/* ── Onda 27 (2026-06-02 · mirror Cowork fin-boletos.css R5 golden-reference) ──
+   Reflow do KPI strip por CONTAINER, não viewport. 5-col
+   (minmax(260px,1.6fr) repeat(4,1fr)) refluia por @media de viewport; com
+   sidebar ~240px, a Larissa (viewport 1280 → conteúdo ~1040px) caía num ponto
+   morto onde o media-query não disparava e os 5 KPIs tabulares colidiam. Com
+   `container: finbody / inline-size` no .fin-curadoria, o reflow passa a seguir
+   a largura REAL do conteúdo (pós-sidebar): ≤1100px hero full-width no topo +
+   4 KPIs folgados abaixo (Larissa cai aqui, limpa); ≤600px 2×2. Robusto também
+   com sidebar colapsada. */
+@container finbody (max-width: 1100px) {
+  .fin-cowork .fin-curadoria .fin-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .fin-cowork .fin-curadoria .fin-stats .fin-stat-hero {
+    grid-column: 1 / -1;
+  }
+}
+@container finbody (max-width: 600px) {
+  .fin-cowork .fin-curadoria .fin-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 /* ─────────────────────────────────────────────────────────────
  * Toolbar (filter chips + density + search)
@@ -485,6 +507,12 @@
 .fin-cowork .fin-curadoria {
   padding-left: 20px;
   padding-right: 20px;
+  /* Onda 27 (2026-06-02 · mirror Cowork fin-boletos.css:96) — query container
+     do KPI strip (.fin-stats). Reflow agora segue a largura real do conteúdo
+     pós-sidebar via @container (ver bloco @container finbody acima). Seguro:
+     nenhum overlay position:fixed é filho de .fin-curadoria (Sheet/CmdK via
+     portal no body = irmãos; containment não os captura). */
+  container: finbody / inline-size;
 }
 
 /* Onda 23 (2026-05-20) — alinhar glyphs Unicode (✦ ✎) com texto nos tabs.
@@ -518,9 +546,9 @@
   --text-dim:     oklch(0.50 0.01 80);
   --text-mute:    oklch(0.65 0.01 80);
 
-  --accent:       oklch(0.58 0.09 220);
-  --accent-2:     oklch(0.66 0.09 220);
-  --accent-soft:  oklch(0.94 0.025 220);
+  --accent:       oklch(0.55 0.15 295);
+  --accent-2:     oklch(0.62 0.15 295);
+  --accent-soft:  oklch(0.95 0.04 295);
   --accent-fg:    #ffffff;
 
   --radius:       8px;
@@ -537,3 +565,44 @@
   color: var(--text);
 }
 .fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }
+
+/* ─── Filtro por campo de data (paridade WR · 2026-06-03) ──────────────────
+   O <select> "Vencimento ▾" usa fin-filter-select (igual ao Plano de Contas).
+   Os <input type="date"> NÃO podem usar fin-filter-select: aquela classe injeta
+   um chevron de dropdown + padding-right de 26px que não cabem num campo de data
+   (que já tem o ícone nativo de calendário) — ficava "cru"/desalinhado.
+   Esta classe replica o MESMO pill (borda/raio/altura/tipografia/tokens) dos
+   selects vizinhos, sem o chevron. Mesma família de tokens (--border/--surface/
+   --text-dim) que .fin-filter-select pra paridade exata. */
+.fin-cowork .fin-toolbar .fin-date-input {
+  display: inline-flex; align-items: center;
+  height: 26px; padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 12px; font-weight: 500; color: var(--text-dim);
+  font-family: inherit; line-height: 1.4;
+  cursor: pointer; transition: all .12s; box-sizing: border-box;
+}
+.fin-cowork .fin-toolbar .fin-date-input:hover {
+  border-color: var(--text-mute); color: var(--text);
+}
+.fin-cowork .fin-toolbar .fin-date-input:focus-visible {
+  outline: 2px solid oklch(0.55 0.15 295); outline-offset: 1px;
+}
+.fin-cowork .fin-toolbar .fin-date-input::-webkit-calendar-picker-indicator {
+  opacity: .5; cursor: pointer; margin-left: 2px;
+}
+.fin-cowork .fin-toolbar .fin-date-input:hover::-webkit-calendar-picker-indicator { opacity: .8; }
+.fin-cowork .fin-toolbar .fin-date-sep {
+  color: var(--text-mute); font-size: 12px; padding: 0 1px; user-select: none;
+}
+.fin-cowork .fin-toolbar .fin-date-clear {
+  display: inline-grid; place-items: center;
+  width: 24px; height: 26px; padding: 0;
+  border-radius: 5px; border: 1px solid transparent; background: transparent;
+  color: var(--text-mute); font-size: 15px; line-height: 1;
+  cursor: pointer; transition: all .12s;
+}
+.fin-cowork .fin-toolbar .fin-date-clear:hover {
+  background: var(--surface); border-color: var(--border); color: var(--text);
+}

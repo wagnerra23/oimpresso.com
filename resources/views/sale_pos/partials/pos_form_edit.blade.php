@@ -21,6 +21,7 @@
 				</span>
 			</div>
 			<small class="text-danger @if(empty($customer_due)) hide @endif contact_due_text"><strong>@lang('account.customer_due'):</strong> <span>{{$customer_due ?? ''}}</span></small>
+			<small class="text-warning hide contact_mensagem_venda_text"><strong>Mensagem:</strong> <span></span></small>
 		</div>
 	</div>
 	<div class="col-md-8">

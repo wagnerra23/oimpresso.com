@@ -23,9 +23,56 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-049
  */
 beforeEach(function () {
-    foreach (['macro_variants', 'macros'] as $t) {
+    foreach ([
+        'macro_variants', 'macros',
+        'model_has_permissions', 'model_has_roles', 'role_has_permissions',
+        'permissions', 'roles', 'users',
+    ] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // ─── Auth scaffold (Tier 0 — CRUD-003) ──────────────────────────────────
+    // O global scope ScopeByBusiness só engaja com `auth()->check()` true
+    // (ADR 0093). CRUD-003 autentica um \App\User real; pra `$user->can(
+    // 'jana.superadmin')` não quebrar, o Gate::before (AuthServiceProvider) roda
+    // `$user->hasRole(...)` e o Spatie lê `permissions` — então as tabelas
+    // mínimas Spatie + users precisam existir. Mesmo scaffold de
+    // AutoLinkContactTest. Tabelas vazias = user comum (não superadmin).
+    Schema::create('permissions', function ($table) {
+        $table->bigIncrements('id');
+        $table->string('name');
+        $table->string('guard_name')->default('web');
+        $table->timestamps();
+    });
+    Schema::create('roles', function ($table) {
+        $table->bigIncrements('id');
+        $table->string('name');
+        $table->string('guard_name')->default('web');
+        $table->timestamps();
+    });
+    Schema::create('role_has_permissions', function ($table) {
+        $table->unsignedBigInteger('permission_id');
+        $table->unsignedBigInteger('role_id');
+    });
+    Schema::create('model_has_permissions', function ($table) {
+        $table->unsignedBigInteger('permission_id');
+        $table->string('model_type');
+        $table->unsignedBigInteger('model_id');
+    });
+    Schema::create('model_has_roles', function ($table) {
+        $table->unsignedBigInteger('role_id');
+        $table->string('model_type');
+        $table->unsignedBigInteger('model_id');
+    });
+    Schema::create('users', function ($table) {
+        $table->increments('id');
+        $table->unsignedInteger('business_id')->nullable();
+        $table->string('email', 100)->nullable();
+        $table->string('username', 100)->nullable();
+        $table->string('password')->nullable();
+        $table->softDeletes();
+        $table->timestamps();
+    });
 
     Schema::create('macros', function ($table) {
         $table->bigIncrements('id');
@@ -155,10 +202,20 @@ it('R-WA-049-CRUD-003 — Tier 0 (ADR 0093): biz=1 não acessa variante de biz=9
     ]);
     $variantAlien->save();
 
-    // Autenticado em biz=1
+    // Autenticado em biz=1 — actingAs com User real engaja o global scope
+    // ScopeByBusiness, que faz `if (! auth()->check()) return;` no topo
+    // (ScopeByBusiness.php). Sem user autenticado o scope NÃO filtra e a row
+    // biz=99 vazaria no count() sem WHERE explícito — exatamente o vazamento
+    // Tier 0 que este teste guarda (ADR 0093).
+    $user = \App\User::create([
+        'business_id' => 1,
+        'email' => 'biz1@macrovariants.test',
+        'username' => 'biz1-mv',
+    ]);
+    $this->actingAs($user);
     session()->put('user.business_id', 1);
 
-    // Listar não enxerga variante alheia
+    // Listar não enxerga variante alheia (global scope filtra business_id=1)
     $count = MacroVariant::query()->count();
     expect($count)->toBe(0);
 

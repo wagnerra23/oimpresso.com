@@ -217,8 +217,11 @@ const SIDEBAR_GROUPS: Array<{ key: string; label: string; items: string[] }> = [
     label: 'PRODUÇÃO',
     // Wagner 2026-05-22: Fabricação/Manufacturing/Produção MOVIDOS pra CADASTRO
     // (Wagner direção pm). Grupo PRODUÇÃO mantém só verticais OS + restaurant.
+    // Wagner 2026-05-25: 'Oficina Auto' MOVIDO pra COMERCIAL — dedup 2026-05-31
+    // (entry duplicada aqui era dead code; findGroupKey já resolvia p/ COMERCIAL
+    // por vir antes na ordem canon). Removida da whitelist PRODUÇÃO.
     items: ['Reservas', 'Cocina', 'Cozinha', 'Pedidos',
-            'Comunicação Visual', 'Oficina Auto', 'Reparar',
+            'Comunicação Visual', 'Reparar',
             'Ordens de Serviço'],
   },
   {
@@ -1144,7 +1147,7 @@ function VibesSubpanel({
 /** Cor visual do dot por vibe — usa oklch idêntico ao cockpit.css */
 function vibeAccent(vibe: Vibe): string {
   switch (vibe) {
-    case 'workspace': return 'oklch(0.58 0.09 220)'; // accent default azul
+    case 'workspace': return 'oklch(0.55 0.15 295)'; // accent default roxo canon (ADR 0190 — era 220 azul)
     case 'daylight':  return 'oklch(0.72 0.13 60)';  // âmbar quente
     case 'focus':     return 'oklch(0.45 0.02 240)'; // cinza-azul dessaturado
   }

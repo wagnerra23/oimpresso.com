@@ -36,6 +36,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property \Illuminate\Support\Carbon|null $expected_return_date
  * @property string|null  $daily_rate
  * @property int|null     $mileage_at_service
+ * @property int|null     $fuel_level_at_entry  Nível combustível na entrada 0–100% (US-OFICINA-039)
+ * @property array|null   $entry_damages        Avarias marcadas no check-in (US-OFICINA-038)
  * @property string       $status
  * @property \Illuminate\Support\Carbon|null $entered_at
  * @property \Illuminate\Support\Carbon|null $expected_completion
@@ -66,6 +68,8 @@ class ServiceOrder extends Model
         'expected_return_date',
         'daily_rate',
         'mileage_at_service',
+        'fuel_level_at_entry', // US-OFICINA-039 — nível combustível na entrada (0–100%)
+        'entry_damages',       // US-OFICINA-038 — avarias marcadas no check-in (array JSON)
         'box_label',           // Wave 2.1 US-OFICINA-027 — texto livre "Elevador 1"
         'assigned_user_id',    // Wave 2.1 US-OFICINA-027 — mecânico responsável (FK lógica)
         'status',
@@ -81,6 +85,8 @@ class ServiceOrder extends Model
         'transaction_id'        => 'integer',
         'vehicle_id'            => 'integer',
         'mileage_at_service'    => 'integer',
+        'fuel_level_at_entry'   => 'integer',  // US-OFICINA-039 (0–100)
+        'entry_damages'         => 'array',    // US-OFICINA-038 (avarias de entrada)
         'assigned_user_id'      => 'integer',  // Wave 2.1 US-OFICINA-027
         'daily_rate'            => 'decimal:2',
         'expected_return_date'  => 'date',
@@ -172,6 +178,8 @@ class ServiceOrder extends Model
      *
      * Global scope multi-tenant em OaInspectionItem garante isolamento Tier 0.
      * Eager-load em show JSON quando UI Wave 3b consumir.
+     *
+     * @return HasMany<OaInspectionItem, $this>
      */
     public function dviInspectionItems(): HasMany
     {
@@ -293,6 +301,8 @@ class ServiceOrder extends Model
                 'delivery_address',
                 'expected_return_date',
                 'daily_rate',
+                'fuel_level_at_entry',
+                'entry_damages',
                 'completed_at',
             ])
             ->logOnlyDirty()

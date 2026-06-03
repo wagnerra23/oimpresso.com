@@ -157,6 +157,11 @@ class IndexRegenCommand extends Command
      */
     private function resolver(string $base, string $rel): string
     {
+        // Normaliza separadores: em Windows base_path() retorna backslash
+        // (D:\oimpresso.com\memory). Sem normalizar, explode('/') deixa o path
+        // inteiro como UM segmento e o `..` popa a raiz toda em vez de subir 1 dir.
+        $base = str_replace('\\', '/', $base);
+        $rel = str_replace('\\', '/', $rel);
         $rel = rtrim($rel, '/');
         $partes = explode('/', $base.'/'.$rel);
         $pilha = [];
@@ -260,7 +265,7 @@ class IndexRegenCommand extends Command
         $sess = $drift['sessions'][1] ?? 0;
 
         $conteudo = preg_replace('/(navegável\s+\(~?)[\d.]+(\s+docs\))/', '${1}'.$this->aprox($docs).'$2', $conteudo) ?? $conteudo;
-        $conteudo = preg_replace('/(\(~?)\d+(\s+ADRs\))/', '${1}~'.$adrs.'$2', $conteudo) ?? $conteudo;
+        $conteudo = preg_replace('/(\()~?\d+(\s+ADRs\))/', '${1}~'.$adrs.'$2', $conteudo) ?? $conteudo;
         $conteudo = preg_replace('/~?\d+(\s+handoffs)/', '~'.$hand.'$1', $conteudo) ?? $conteudo;
         $conteudo = preg_replace('/~?\d+(\s+session logs)/', '~'.$sess.'$1', $conteudo) ?? $conteudo;
 

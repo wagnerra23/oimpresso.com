@@ -72,8 +72,10 @@ class CobrancaController extends Controller
             'busca' => $request->string('busca')->toString() ?: null,
         ];
 
-        // Wagner SaaS dogfooding: biz=1 vê origem subscription_license; demais não.
-        $isSaasBusiness = $businessId === 1;
+        // Wagner SaaS dogfooding: o business dono da plataforma vê origem
+        // subscription_license; demais não. Id centralizado em config (não magic
+        // number — ver NoHardcodeBusinessIdInModulesTest).
+        $isSaasBusiness = $businessId === (int) config('app.saas_owner_business_id');
 
         return Inertia::render('Financeiro/Cobranca/Index', [
             'today' => $hoje->toDateString(),

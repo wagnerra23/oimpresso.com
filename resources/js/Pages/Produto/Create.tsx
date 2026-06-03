@@ -157,7 +157,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
           </div>
         </header>
 
-        <main className="pb-16 px-6 mt-4 max-w-5xl">
+        <div className="pb-16 px-6 mt-4 max-w-5xl">
           <form id="produto-create-form" onSubmit={handleSubmit} className="space-y-6">
             {/* Identificação */}
             <Card>
@@ -439,7 +439,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
               </div>
             </details>
           </form>
-        </main>
+        </div>
       </div>
     </>
   );

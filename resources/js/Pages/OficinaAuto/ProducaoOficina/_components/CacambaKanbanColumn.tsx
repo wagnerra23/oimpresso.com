@@ -59,7 +59,7 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
 
   // Visual feedback quando algo está sendo arrastado sobre a coluna
   const overClasses = isOver
-    ? 'ring-2 ring-blue-400 ring-offset-2 bg-blue-50/40'
+    ? 'ring-2 ring-primary/60 ring-offset-2 bg-primary/5'
     : '';
 
   return (

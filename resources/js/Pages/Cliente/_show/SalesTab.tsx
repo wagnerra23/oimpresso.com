@@ -11,6 +11,7 @@ import { useState, useMemo } from 'react';
 import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, ExternalLink, Filter, Search, ShoppingCart, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Input } from '@/Components/ui/input';
 
 export interface SaleRow {
@@ -155,18 +156,18 @@ export default function SalesTab({
           </div>
           <div className="flex-1 min-w-[160px]">
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Status pagamento</label>
-            <select
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
-              className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-              data-testid="sales-payment-status"
-            >
-              <option value="">Todos</option>
-              <option value="paid">Pago</option>
-              <option value="due">A receber</option>
-              <option value="partial">Parcial</option>
-              <option value="overdue">Vencido</option>
-            </select>
+            <Select value={paymentStatus || '__none__'} onValueChange={(v) => setPaymentStatus(v === '__none__' ? '' : v)}>
+              <SelectTrigger className="w-full" aria-label="Status pagamento" data-testid="sales-payment-status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Todos</SelectItem>
+                <SelectItem value="paid">Pago</SelectItem>
+                <SelectItem value="due">A receber</SelectItem>
+                <SelectItem value="partial">Parcial</SelectItem>
+                <SelectItem value="overdue">Vencido</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex-1 min-w-[180px]">
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Buscar</label>

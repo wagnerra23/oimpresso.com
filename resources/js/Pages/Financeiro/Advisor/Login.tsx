@@ -1,9 +1,17 @@
 // @memcofre tela=/advisor/login module=Financeiro
 // Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor login isolado.
 // NÃO usa AppShellV2 — advisor é entidade global, não tem sidebar POS UltimatePOS.
+// Charter: Login.charter.md (status draft).
 
-import { useForm, usePage } from '@inertiajs/react';
 import { FormEvent } from 'react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 
 interface FlashShape {
   success?: string;
@@ -29,87 +37,119 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">Portal do Contador</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Acesso somente leitura aos clientes que te concederam permissão
-          </p>
-        </div>
+    <>
+      <Head title="Portal do Contador" />
 
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-          {flash.success && (
-            <div className="rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-              {flash.success}
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-3">
+              <svg
+                className="w-7 h-7 text-primary-foreground"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
             </div>
-          )}
-          {flash.error && (
-            <div className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900">
-              {flash.error}
-            </div>
-          )}
-
-          <form onSubmit={submit} className="space-y-4">
-            <label className="block space-y-1">
-              <span className="text-sm font-medium">Email</span>
-              <input
-                type="email"
-                className="w-full rounded border px-3 py-2 text-sm"
-                value={form.data.email}
-                onChange={(e) => form.setData('email', e.target.value)}
-                autoFocus
-                required
-              />
-              {form.errors.email && <span className="text-xs text-red-600">{form.errors.email}</span>}
-            </label>
-
-            <label className="block space-y-1">
-              <span className="text-sm font-medium">Senha</span>
-              <input
-                type="password"
-                className="w-full rounded border px-3 py-2 text-sm"
-                value={form.data.password}
-                onChange={(e) => form.setData('password', e.target.value)}
-                required
-              />
-              {form.errors.password && <span className="text-xs text-red-600">{form.errors.password}</span>}
-            </label>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.data.remember}
-                onChange={(e) => form.setData('remember', e.target.checked)}
-              />
-              Lembrar de mim
-            </label>
-
-            <button
-              type="submit"
-              className="w-full os-btn primary"
-              disabled={form.processing}
-            >
-              {form.processing ? 'Entrando...' : 'Entrar'}
-            </button>
-          </form>
-
-          <div className="border-t pt-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              Não tem acesso ainda? Peça ao seu cliente para te adicionar em
-              <br />
-              <code className="text-xs">Financeiro → Configurações → Contador</code>
+            <h1 className="text-2xl font-bold text-foreground">Portal do Contador</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Acesso somente leitura aos clientes que te concederam permissão
             </p>
           </div>
-        </div>
 
-        <div className="text-center mt-6">
-          <a href="/" className="text-xs text-muted-foreground hover:underline">
-            Voltar ao oimpresso
-          </a>
+          <Card>
+            <CardContent className="space-y-4">
+              {flash.success && (
+                <Alert>
+                  <AlertDescription>{flash.success}</AlertDescription>
+                </Alert>
+              )}
+              {flash.error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{flash.error}</AlertDescription>
+                </Alert>
+              )}
+
+              <form onSubmit={submit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" variant="shadcn">
+                    E-mail
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="username"
+                    value={form.data.email}
+                    onChange={(e) => form.setData('email', e.target.value)}
+                    aria-invalid={!!form.errors.email}
+                    autoFocus
+                    required
+                  />
+                  {form.errors.email && (
+                    <p className="text-xs text-destructive">{form.errors.email}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" variant="shadcn">
+                    Senha
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={form.data.password}
+                    onChange={(e) => form.setData('password', e.target.value)}
+                    aria-invalid={!!form.errors.password}
+                    required
+                  />
+                  {form.errors.password && (
+                    <p className="text-xs text-destructive">{form.errors.password}</p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="remember"
+                    checked={form.data.remember}
+                    onCheckedChange={(v) => form.setData('remember', v === true)}
+                  />
+                  <Label htmlFor="remember" variant="shadcn" className="font-normal cursor-pointer">
+                    Lembrar de mim
+                  </Label>
+                </div>
+
+                <Button type="submit" className="w-full" disabled={form.processing}>
+                  {form.processing ? 'Entrando...' : 'Entrar'}
+                </Button>
+              </form>
+
+              <div className="border-t border-border pt-4 text-center">
+                <p className="text-xs text-muted-foreground">
+                  Não tem acesso ainda? Peça ao seu cliente para te adicionar em
+                  <br />
+                  <code className="text-xs text-foreground">Financeiro → Configurações → Contador</code>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="text-center mt-6">
+            <a href="/" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
+              Voltar ao oimpresso
+            </a>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

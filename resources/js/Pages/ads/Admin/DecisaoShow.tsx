@@ -10,7 +10,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
 import StatusBadge from '@/Components/shared/StatusBadge'
-import { ArrowLeft, CheckCircle2, XCircle, Archive, ShieldAlert } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Archive, ShieldAlert, Workflow } from 'lucide-react'
 
 interface Instruction {
   title?: string
@@ -252,7 +252,7 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
           <ChainBlock title="Decisão pai" icon="↑">
             <Link
               href={`/ads/admin/decisoes/${chain.parent.id}`}
-              className="text-sm font-medium text-blue-600 hover:underline"
+              className="text-sm font-medium text-primary hover:underline"
             >
               #{String(chain.parent.id).padStart(4, '0')} — {chain.parent.event_type}
             </Link>
@@ -268,7 +268,7 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
             <ul className="space-y-1">
               {chain.children.map(c => (
                 <li key={c.id} className="text-sm flex items-center gap-2 flex-wrap">
-                  <Link href={`/ads/admin/decisoes/${c.id}`} className="text-blue-600 hover:underline font-mono text-xs">
+                  <Link href={`/ads/admin/decisoes/${c.id}`} className="text-primary hover:underline font-mono text-xs">
                     #{String(c.id).padStart(4, '0')}
                   </Link>
                   <code className="text-xs">{c.event_type}</code>
@@ -289,7 +289,7 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
         {hasSkill && chain.skill && (
           <ChainBlock title="Skill aprendido (mcp_decision_patterns)" icon="⚡">
             <div className="text-sm">
-              <Link href="/ads/admin/skills" className="text-blue-600 hover:underline font-medium">
+              <Link href="/ads/admin/skills" className="text-primary hover:underline font-medium">
                 {chain.skill.description}
               </Link>
               <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
@@ -304,11 +304,11 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
 
         {/* Meta-skills aplicáveis */}
         {hasMeta && (
-          <ChainBlock title={`Meta-skills aplicáveis (${chain.meta_skills.length})`} icon="🧬">
+          <ChainBlock title={`Meta-skills aplicáveis (${chain.meta_skills.length})`} icon={<Workflow className="h-3 w-3" />}>
             <ul className="space-y-1.5">
               {chain.meta_skills.map(m => (
                 <li key={m.id} className="text-sm">
-                  <Link href="/ads/admin/meta-skills" className="text-blue-600 hover:underline font-medium">
+                  <Link href="/ads/admin/meta-skills" className="text-primary hover:underline font-medium">
                     {m.name}
                   </Link>
                   <div className="text-xs text-muted-foreground">
@@ -374,7 +374,7 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
   )
 }
 
-function ChainBlock({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
+function ChainBlock({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="border-l-2 border-blue-300 pl-3 py-1">
       <div className="text-xs uppercase font-semibold text-blue-700 mb-1.5 flex items-center gap-1">

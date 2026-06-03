@@ -3,22 +3,23 @@ page: /financeiro/unificado
 component: resources/js/Pages/Financeiro/Unificado/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-20
+last_validated: "2026-05-31"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
-related_adrs: [arq/0005, ui/0002, ui/0114, 0093, 0094]
+related_adrs: [93, 94]
 related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 9
+charter_version: 10
 ---
 
 # Page Charter — /financeiro/unificado
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v10 (2026-05-31):** integrado o feedback de [W] da sessão Cowork (handoff de design) — anti-patterns de densidade do header + direção "3 lentes" registrada como intenção **pendente** (ainda **não** aplicada ao live; ver Backlog US-FIN-029). Origem: charter Cowork `Financeiro.charter.md` v1 (superada por este v10 canônico).
 
 ---
 
@@ -29,6 +30,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Paridade filtros de data WR** (2026-06-03, US-FIN-030): seletor de **campo de data** (Vencimento default · Emissão · Pagamento · Competência) + **intervalo explícito** `data_inicio`/`data_fim` na toolbar, espelhando o WR Comercial. Backend `parseFilters()` + `aplicarFiltroData()` (vencimento/emissao via coluna; pagamento via `baixas.data_baixa`; competencia via `competencia_mes` YYYY-MM); intervalo sobrepõe o período preset. **O `data_campo` aplica na tabela E nos cards de KPI** (`kpisCore` segue o mesmo campo — totais consistentes com o grid filtrado; `recebido`/`pago` por `data_baixa` quando campo=pagamento, senão por título que casa o campo). Cobertura `UnificadoDataCampoTest`. Pendente: filtros 'Nota Fiscal'/'Vendas' do WR exigem link título→transaction (`origem_id`).
 
 - **PR C — GUARD + RUNBOOK** (2026-05-25, charter v9, US-FIN-027 parcial + G1/G3 auditoria):
   - **`UnificadoPlanoContaGuardTest`** — 7 GUARDs Tier 0 anti-regressão pra `plano_conta_id`: prop Inertia `planosConta`, shape 3 campos (`plano_conta_id` + `_codigo` + `_nome`), eager-load preserva (anti N+1), Update persiste, coerência tipo↔plano (Edit), Store persiste, cross-tenant rejeitado em ambos. Cada Δ = CI quebra.
@@ -149,6 +152,12 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - ❌ Cores berrantes — paleta restrita (emerald entrada / rose saída / amber vencendo / stone neutro)
 - ❌ Animações decorativas — só transições em hover/drawer
 
+**Densidade do header ([W] 2026-05-31, sessão Cowork — REPROVADO):**
+- ❌ **Fileira de ~7 botões inline no header** (Resumir · Fechamento · Apresentar · Conciliar · Plano de contas · Exportar · Novo) — [W]: *"está muito apertado"*; esmaga o título abaixo de ~1100px. Direção aprovada = 3 lentes + menu `···` (ver Backlog US-FIN-029).
+- ❌ **Sub-páginas (Conciliação, Plano de contas, DRE, Fluxo) como botões no header** — [W] quer no **sidebar** (`FinSubNav`), não no header.
+- ❌ **Mexer na estrutura sem ler o domínio primeiro** — [W]: *"não foi fiel ao projeto"*. Ler este charter + `RUNBOOK-unificado.md` ANTES de tocar a tela.
+- ❌ **Apresentar profundidade mock como pronta** — conciliação/cobrança/fiscal ainda são casca; não declarar "feito" o que é stub.
+
 ---
 
 ## Automation Hooks
@@ -190,3 +199,11 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - **US-FIN-026** — Pagination 25/100 quando volume passar 500 títulos
 - **US-FIN-027** — Pest GUARD: Tier 0 isolation + KPIs corretos + filtro tab querystring
 - **US-FIN-028** — visual-comparison.md retroativo (ADR ui/0114 / mwart-comparative V4)
+- **US-FIN-029** — Header "3 lentes" (Caixa · A receber · A pagar, segmented) dirigindo o filtro + menu `···` (Buscar/Resumir mês/Fechamento/Apresentar/Imprimir/Exportar) + sub-páginas no sidebar. Direção **aprovada por [W] 2026-05-31** (sessão Cowork / handoff design). Hoje o live usa filter chips (Todas/Aberto/Receber/Pagar/Recebidas/Pagas/Atraso) + `FinSubNav` — mudança requer **MWART + gate visual F1.5** (não é doc-only).
+
+---
+
+## Refs ADR
+
+- **`related_adrs` (frontmatter):** `0093` (multi-tenant Tier 0) · `0094` (Constituição V2).
+- **ADRs namespaced** (fora do `related_adrs` — o schema canônico `scripts/memory-schemas/charter.schema.json` só aceita ADR top-level integer/slug): [arq/0005 — Financeiro vs Accounting paralelo](../../../../memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md) · [ui/0002 — dashboard unificado 4 estados](../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) · ui/0114 — gate visual F1.5 / mwart-comparative.

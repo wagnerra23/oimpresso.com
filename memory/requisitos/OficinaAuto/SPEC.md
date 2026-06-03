@@ -1,7 +1,7 @@
 ---
 module: OficinaAuto
-version: 0.1.0
-last_updated: "2026-05-26"
+version: 0.2.0
+last_updated: "2026-06-02"
 status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
@@ -1296,6 +1296,78 @@ Fechar 1º cliente pagante Modules/OficinaAuto (goal #1 CYCLE-06 — sinal quali
 - [ ] Se aceito: cycle dedicado ativar OficinaAuto (Sprint 0 com US-OFICINA-001..005 P0)
 - **Estimate:** 8h humano-limitado (call + análise + decisão) — relógio mundo real, não fator 10x
 
+### US-OFICINA-038 · Check-in de entrada — avarias na entrada da OS
+
+> owner: — · priority: p1 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta do protótipo Cowork "Nova OS" embarcado — ver [oficina-os-nova-prototipo-visual-comparison.md](oficina-os-nova-prototipo-visual-comparison.md) (delta #8). O protótipo abre a OS registrando o estado de entrada do veículo, que protege oficina e cliente. Hoje só temos `notes` (= relato). Esta US adiciona as **avarias na entrada** (chips).
+
+**DoD:**
+- [x] Coluna `entry_damages` (json nullable) em `service_orders` — migration idempotente `2026_06_02_000010`
+- [x] `ServiceOrder` fillable + cast `array` + activitylog `logOnly`
+- [x] `StoreServiceOrderRequest` + `UpdateServiceOrderRequest` rules (`array` + `*` string max:80)
+- [x] Componente compartilhado `EntryCheckinFields` (chips + presets) usado por Create + Edit
+- [x] Show.tsx exibe avarias read-only
+- [x] Pest (roundtrip array + validação)
+- [ ] **Fotos de entrada** ficam pra US futura (reusa HasArquivos backbone — ADR 0123)
+
+### US-OFICINA-039 · Check-in de entrada — nível de combustível
+
+> owner: — · priority: p1 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #7 do protótipo Cowork "Nova OS" — barra de combustível no hero do veículo. Pareada com US-OFICINA-038 no mesmo PR (mesma migration de check-in).
+
+**DoD:**
+- [x] Coluna `fuel_level_at_entry` (unsignedTinyInteger nullable 0–100) em `service_orders` — migration `2026_06_02_000010`
+- [x] `ServiceOrder` fillable + cast `integer` + activitylog `logOnly`
+- [x] Requests rules (`integer` min:0 max:100)
+- [x] `EntryCheckinFields` input + barra; Show.tsx barra read-only
+- [x] Pest (persiste 35; valida >100 e <0 falham)
+
+### US-OFICINA-040 · Vistoria DVI → orçamento na OS
+
+> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #4 do protótipo Cowork "Nova OS" — botão **"+ orçamento"** na inspeção. Item DVI reprovado/atenção vira `ServiceOrderItem` (mão-de-obra) com 1 clique; o valor recomendado entra como valor unitário. Backend DVI (`oa_inspection_items` + `DviInspectionService`) já existia (US-OFICINA-035) — esta US faz o **wire-up de UI** (Wave 3b pendente) no fluxo Show.
+
+**DoD:**
+- [x] `DviInspectionController::toOrcamento` cria `ServiceOrderItem` via `ServiceOrderItemService` + Policy `update` + cross-OS guard
+- [x] Idempotência via `metadata.budget_item_id` (reconverter → 409)
+- [x] Rota `POST ordens-servico/{order}/dvi/{item}/to-orcamento` (throttle 60,1)
+- [x] `ServiceOrderController::show` inclui `dvi_items` no payload (com flag de já-orçado)
+- [x] `DviBudgetSection` (Show) — lista vistoria + botão "+orçamento" optimistic
+- [x] Pest (conversão 201 + idempotência 409 + cross-OS 404)
+
+### US-OFICINA-041 · Gate de aprovação do cliente in-screen
+
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #5 do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O mecânico envia o orçamento pro cliente aprovar com 1 clique; a execução não inicia até aprovar. **Reusa o pipeline automático existente** (US-OFICINA-014): transicionar status → `orcamento` faz o `ServiceOrderObserver` despachar o `EnviarLinkAprovacaoWhatsappJob` (link público + PIN). O gate visual no Show reflete aguardando→aprovado.
+
+**DoD:**
+- [x] `ServiceOrderController::enviarAprovacao` — status → orcamento (dispara Observer WhatsApp); Policy update; rejeita estados terminais
+- [x] Rota `POST ordens-servico/{order}/enviar-aprovacao` (throttle 30,1)
+- [x] `ApprovalGateCard` (Show) — 3 estados (pré/aguardando/aprovado), tokens semânticos success/warning
+- [x] Pest (status→orcamento + job disparado · OS aprovada não reenvia)
+- ℹ️ "Reenviar link" (job idempotência 7d) fica pra US futura
+
+### US-OFICINA-042 · Painel fiscal NF-e/NFS-e na OS
+
+> owner: — · priority: p3 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacional** que separa os itens da OS por natureza fiscal: peças = mercadoria → **NF-e 55**, mão de obra/serviço → **NFS-e**, com valores. Computado de `order.items` (já no payload) — a emissão real sai pela Transaction derivada (Observer ADR 0192). Converge com o componente único `FiscalStatusBadge` (NfeBrasil) quando a OS carregar status de doc emitido.
+
+**DoD:**
+- [x] `FiscalSplitCard` (Show) — split peças (NF-e 55) / mão de obra (NFS-e) + nota de garantia 90 dias
+- [x] Frontend-only (sem backend/migration) — usa `order.items` existente; tokens semânticos
+- [x] Renderiza só quando há itens
+- ℹ️ Status fiscal LIVE (badge reativo) quando OS expor transaction fiscal — US futura (converge `FiscalStatusBadge`)
+
 ---
 
-**Última atualização:** 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).

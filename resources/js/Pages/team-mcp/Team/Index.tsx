@@ -28,6 +28,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Badge } from '@/Components/ui/badge';
+import { BarChart3, ClipboardList, Package, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -251,7 +252,7 @@ function TeamIndex(props: Props) {
         action={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={exportarCsv}>
-              📊 Export CSV
+              <BarChart3 className="h-3.5 w-3.5 mr-1" /> Export CSV
             </Button>
           </div>
         }
@@ -365,7 +366,7 @@ function TeamIndex(props: Props) {
                         </span>
                       ) : (
                         <button
-                          className="text-xs text-blue-600 hover:underline"
+                          className="text-xs text-primary hover:underline"
                           onClick={() => setEditQuotaUser(m)}
                         >
                           definir
@@ -379,7 +380,7 @@ function TeamIndex(props: Props) {
                         </span>
                       ) : (
                         <button
-                          className="text-xs text-blue-600 hover:underline"
+                          className="text-xs text-primary hover:underline"
                           onClick={() => setEditQuotaUser(m)}
                         >
                           definir
@@ -402,7 +403,7 @@ function TeamIndex(props: Props) {
                           className="text-xs"
                           title="Gera token + arquivo .dxt pro Claude Desktop"
                         >
-                          📦 + DXT
+                          <Package className="h-3.5 w-3.5 mr-1" /> + DXT
                         </Button>
                         <Button
                           variant="outline" size="sm"
@@ -465,7 +466,7 @@ function TeamIndex(props: Props) {
                 toast.success('Copiado pro clipboard');
               }
             }}>
-              📋 Copiar
+              <ClipboardList className="h-4 w-4 mr-1" /> Copiar
             </Button>
             <Button variant="outline" onClick={() => setTokenGerado(null)}>Fechar</Button>
           </DialogFooter>
@@ -677,7 +678,7 @@ function TokensListDialog({
                           title={isInactive ? 'Já inativo' : `Revogar token ${t.name}`}
                           className="text-xs"
                         >
-                          🗑 Revogar
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Revogar
                         </Button>
                       </td>
                     </tr>

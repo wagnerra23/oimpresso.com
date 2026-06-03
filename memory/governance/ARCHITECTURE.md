@@ -66,7 +66,43 @@ Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo ap
 
 ---
 
-## §2. Os 30 módulos atuais — estado e destino
+## §1-bis. Vista de runtime (C4-Container — onde roda + fluxo)
+
+```mermaid
+C4Container
+    title Oimpresso ERP — Container view (runtime + fluxo de conhecimento)
+    Person(dev, "Time dev", "Wagner/Felipe/Maiara via Claude Code")
+    Person(cliente, "Cliente", "Larissa biz=4 etc")
+    System_Ext(github, "GitHub origin/main", "fonte de verdade do código + memory/")
+
+    System_Boundary(hostinger, "Hostinger — ERP web (sem daemons, ADR 0062)") {
+      Container(erp, "ERP Laravel 13.6", "PHP 8.4 + Inertia/React", "36 módulos · multi-tenant business_id Tier 0")
+      ContainerDb(mysql, "MySQL u906587222", "MySQL", "dados de negócio + mcp_*")
+    }
+    System_Boundary(ct100, "CT 100 — daemons/IA (tailscale)") {
+      Container(mcp, "MCP server", "FrankenPHP+Octane", "decisions-search · kb-answer · memoria-search")
+      Container(meili, "Meilisearch", "hybrid + embedder qwen3_local")
+      Container(ollama, "ollama-embedder", "qwen3-embedding:0.6b")
+      Container(daemons, "Centrifugo · WhatsApp · Langfuse · BGE", "daemons")
+    }
+
+    Rel(cliente, erp, "usa ERP + Jana chat")
+    Rel(dev, mcp, "consulta conhecimento (MCP tools)")
+    Rel(github, mcp, "webhook push → sync memory/ + grava SHA de main")
+    Rel(github, hostinger, "deploy manual (git pull)")
+    Rel(mcp, meili, "hybrid retrieval")
+    Rel(meili, ollama, "embeddings")
+    Rel(mcp, mysql, "DB compartilhado")
+    Rel(erp, mysql, "")
+```
+
+> Detalhe de acesso/deploy: [reference/INFRA-ACESSO-CANON.md](../reference/INFRA-ACESSO-CANON.md). Reconcile/drift do estado: `governance:audit` (DriftCheckers).
+
+---
+
+## §2. Módulos — estado e destino
+
+> **Contagem/lista VIVA (não duplicar aqui = não apodrece):** o nº de módulos vive em [modulos/INDEX.md](../modulos/INDEX.md) (auto-gerado por `php artisan module:specs`; hoje **44 detectados / 36 ativos**, não os "30" do mapa histórico abaixo). Responsabilidade de cada um: `Modules/<X>/SCOPE.md`. A tabela abaixo é o mapa curado de estado→destino.
 
 | Módulo | Estado | Categoria | Trust-alvo | Decisão |
 |---|---|---|---|---|
