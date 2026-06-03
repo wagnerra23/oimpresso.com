@@ -574,28 +574,40 @@
    Esta classe replica o MESMO pill (borda/raio/altura/tipografia/tokens) dos
    selects vizinhos, sem o chevron. Mesma família de tokens (--border/--surface/
    --text-dim) que .fin-filter-select pra paridade exata. */
-.fin-cowork .fin-toolbar .fin-date-input {
+/* Caixa ROBUSTA pro date-input (2026-06-03 — fix borda invisível).
+   Diagnóstico: a regra anterior (.fin-cowork .fin-toolbar .fin-date-input com
+   var(--border)) não pintava borda no <input type=date> nativo. Esta versão é
+   auto-contida pra não depender de fatores incertos (chunk de CSS, var, cascade):
+   - pega o input por TIPO (input[type=date]) E pela classe → casa de qualquer jeito;
+   - specificity alta via .fin-curadoria .fin-toolbar .fin-filter-group (vence sem !important);
+   - appearance:none → vira box plano que HONRA border/padding (input date nativo
+     do Chrome não honrava do mesmo jeito que o <select> adjacente que usa appearance:none);
+   - cores LITERAIS (oklch, sem var, sem hex) → borda sempre visível. */
+.fin-curadoria .fin-toolbar .fin-filter-group input[type="date"],
+.fin-curadoria .fin-toolbar input.fin-date-input,
+.fin-cowork .fin-toolbar input.fin-date-input {
+  -webkit-appearance: none; appearance: none;
   display: inline-flex; align-items: center;
-  /* Mesma caixa do fin-filter-select vizinho (vertical 5px, left 10px, altura
-     natural) — antes era height:26px/padding:4px que deixava o campo mais baixo
-     e apertado que os selects, destoando na toolbar. */
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid var(--border); background: var(--surface);
-  font-size: 12px; font-weight: 500; color: var(--text-dim);
-  font-family: inherit; line-height: 1.4;
-  cursor: pointer; transition: all .12s; box-sizing: border-box;
+  height: 28px; padding: 4px 9px;
+  border: 1px solid oklch(0.84 0.006 80);
+  border-radius: 6px;
+  background: oklch(1 0 0);
+  color: oklch(0.40 0.01 80);
+  font-size: 12px; font-weight: 500; font-family: inherit; line-height: 1.4;
+  box-sizing: border-box; cursor: pointer; transition: border-color .12s;
 }
-.fin-cowork .fin-toolbar .fin-date-input:hover {
-  border-color: var(--text-mute); color: var(--text);
+.fin-curadoria .fin-toolbar .fin-filter-group input[type="date"]:hover,
+.fin-curadoria .fin-toolbar input.fin-date-input:hover {
+  border-color: oklch(0.70 0.01 80);
 }
-.fin-cowork .fin-toolbar .fin-date-input:focus-visible {
+.fin-curadoria .fin-toolbar .fin-filter-group input[type="date"]:focus-visible,
+.fin-curadoria .fin-toolbar input.fin-date-input:focus-visible {
   outline: 2px solid oklch(0.55 0.15 295); outline-offset: 1px;
 }
-.fin-cowork .fin-toolbar .fin-date-input::-webkit-calendar-picker-indicator {
+.fin-curadoria .fin-toolbar .fin-filter-group input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: .5; cursor: pointer; margin-left: 2px;
 }
-.fin-cowork .fin-toolbar .fin-date-input:hover::-webkit-calendar-picker-indicator { opacity: .8; }
+.fin-curadoria .fin-toolbar .fin-filter-group input[type="date"]:hover::-webkit-calendar-picker-indicator { opacity: .85; }
 .fin-cowork .fin-toolbar .fin-date-sep {
   color: var(--text-mute); font-size: 12px; padding: 0 1px; user-select: none;
 }
