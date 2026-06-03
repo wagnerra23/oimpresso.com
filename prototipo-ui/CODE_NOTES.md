@@ -374,3 +374,75 @@ Estende o canon de smoke do núcleo (criado ontem em PR #2119 §B) das **4 telas
 ### Coração da Kamila ✅: o loop financeiro+venda (CU-3→CU-5) está **provado ponta-a-ponta** com observer/título/baixa reais. Oficina (CU-6) tem demo limpa semeável.
 
 ### Ainda congelado (roadmap): auto-boleto-on-finalize · NFS-e inline 100% síncrona (hoje async/processando — honesto p/ homologação) · migração real dos dados venda/fin da Martinho (depende da fonte Firebird sua) · estoque/BOM/comissão/manifestação/MDF-e/NFC-e.
+
+---
+
+## 2026-06-02 — [CL] → [W]: Jana "Modo Consultor" (Advisor) — Metade A (clarify reativo)
+
+### Handoff: `PROMPT_PARA_CODE_JANA-ADVISOR-MODE.md` (Cowork→Code) · insight [W]: *"as melhores respostas vêm quando eu pergunto que pergunta eu deveria fazer"*
+### Natureza: peer-review (L-17) · **Tier 0** (produto + custo) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/jana-advisor-clarify` · base `origin/main` fresco (`2e9f5881e`)
+
+### Veredito do peer-review: **procede** (andaime de raciocínio, não troca de modelo)
+Bate com o estado-da-arte: Active Task Disambiguation (ICLR 2025 Spotlight) + INTENT-SIM (NAACL 2025 — decoupla ambiguidade-de-intenção de falta-de-dado). A Jana hoje **chuta** quando é ambíguo e **pergunta** quando é só falta de dado — o erro nº1. Esta capacidade conserta o pior hábito primeiro (Metade A, a mais barata), como você pediu.
+
+### §10.4 Passo 0 contra `origin/main` (estendi, NÃO recriei):
+- Chat resolve hoje: `ChatController::send/sendStream` → `LaravelAiSdkDriver::responderChat[Stream]` → `recallMemoria`(MemoriaContrato) + `snapshotContexto`(ContextoNegocio) → `ChatCopilotoAgent` (laravel/ai).
+- Precedente de interceptação: `BriefDiarioChatTrigger` já pré-empta o chat por intent — a cascata clarify pluga na MESMA forma, antes do recall/LLM.
+- Os 4 Agents (ChatCopiloto/BriefDiario/Sugestoes/Briefing), o brief diário (ADR 0091), a `MemoriaContrato` e o roteamento `laravel/ai` ficaram **intactos**. `ContextoNegocio` é **reusado** (snapshot único serve cascata E chat — zero consulta a mais).
+
+### O que entrou (tudo aditivo, default-OFF):
+- **`ClarificadorAgent`** (5º agente) — disambiguador `HasStructuredOutput` que decide `claro|falta_dado|ambiguo` e, se ambíguo, dá a **pergunta de maior ganho de informação**. Roteamento de modelo seletivo via `provider()`/`model()` (config) — **difícil → frontier** (default `gpt-4o` vs `gpt-4o-mini` do chat), mas só dispara no ~20% cinza.
+- **`ClarifyCascadeService`** — cascata por latência: **1a heurística local (zero LLM)** resolve ~80% direto; **1b disambiguador frontier** só no cinza. Honestidade (não inventa pergunta), **fail-open** (qualquer erro → responde), **anti-loop** (não pergunta 2× seguidas), **medição** (`clarify_event` no log `copiloto-ai`).
+- **`ClarifyResult`** (DTO) + guard `talvezClarificar()` em `LaravelAiSdkDriver` (blocking + stream).
+- **Config** `copiloto.clarify.*` (flag `JANA_CLARIFY_ENABLED` default-OFF — mesma postura de `contextual_retrieval`/`peso_real`; com OFF o pipeline é byte-idêntico ao legado).
+- **RUNBOOK** `memory/requisitos/Jana/RUNBOOK-jana-advisor-clarify.md` (como ligar/medir).
+- Proposta §10.4: `memory/decisions/proposals/jana-advisor-modo-consultor.md`.
+
+### Build / testes:
+- **14/14 Pest verdes** (54 assertions): `ClarifyCascadeServiceTest` (9 — heurística, flag-off no-op, curto-circuito, clarifica, honestidade ×2, anti false-clarify, anti-loop, fail-open) + `ClarificadorAgentTest` (5 — routing frontier, instructions INTENT-SIM, grounding não-PII, messages). `php -l` limpo nos 7 arquivos.
+- Regressão: suite `Jana/Tests/Feature/Ai` + brief trigger = **50 passaram** com o driver editado. As 2 falhas restantes são **pré-existentes** (`BriefDiarioChatTriggerTest` sem `activity_log` em run isolado — gap do `tests/Pest.php`, não coberto pra Jana), **não-relacionadas** a este PR.
+
+### Tier 0 respeitado:
+- **Não cunhei nº de ADR** (soberania [W], 0238) — proposal slug-only. [W] numera se promover.
+- **Não mergeei** (publication-policy). PR espera [W].
+- Histórico/contexto vão **PII-redigidos** pro disambiguador (defense-in-depth, reusa `PiiRedactor`).
+
+### Decisão aberta pra [W]:
+- [ ] Aprovar a Metade A como caminho (vira canon ao mergear) ou ajustar.
+- [ ] Numerar ADR se quiser elevar proposal → decisão.
+- [ ] Ligar em homolog (`JANA_CLARIFY_ENABLED=true` + escolher o modelo frontier) p/ medir `clarify_event` antes de prod.
+- [ ] **Metade B** (próxima-melhor-pergunta proativa, estende o brief por persona) — próxima na fila, spec à parte, como você sequenciou.
+
+---
+
+## 2026-06-02 20:15 [CL] → [W]
+
+### Tela: Fiscal — status unificado (NFC-e/NF-e/NFS-e) · handoff `PROMPT_PARA_CODE_FISCAL-STATUS-UNIFICADO.md`
+### Status: traduzido (branch `feat/fiscal-status-unificado`, PR aberto — NÃO mergeado, aguarda F2 [W])
+### Diff: branch `feat/fiscal-status-unificado` (off `origin/main` fresco · §10.4 Passo 0)
+### Build: vitest 7/7 verde · eslint baseline Δ−60 (sem regressão) · tsc sem erro nos arquivos tocados
+### Charter atualizado: n/a (mudança de Componente, não de Page)
+
+### O que landou (reuse-first, só APRESENTAÇÃO — backend SEFAZ intocado):
+- **NOVO** `Components/NfeBrasil/FiscalStatusBadge.tsx` — componente ÚNICO de status fiscal. Cobre os 3 documentos (NFC-e 65 · NF-e 55 · NFS-e), 7 estados semânticos (emitting/waiting/authorized/rejected/denied/cancelled/inutilized), 2 variantes (`banner` card + `pill` chip). Fonte única das cores oklch de status (R-DS-002).
+- **NOVO** `Components/NfeBrasil/fiscalStatus.ts` — modelo de domínio + helpers (`docLabel`, `emissaoStatusToKind`) separados do .tsx (react-refresh).
+- **REFACTOR** `NfceStatusBadge.tsx` → vira wrapper reativo fino: mantém o polling `useNfceStatus` + a nuance "aguardando SEFAZ" (hasGivenUp) e DELEGA a renderização pro FiscalStatusBadge. Backward-compatible (mesma API).
+- **WIRE** `Sells/_components/FiscalSection.tsx` → o `StatusBadge` local (emerald/amber/rose Tailwind cru) foi DELETADO; cada linha de emissão agora usa `<FiscalStatusBadge variant="pill">`. Larissa vê o MESMO status do mesmo jeito.
+- **TEST** `tests/fiscal-status-badge.test.tsx` (7 casos: helpers + 3 docs autorizada + rejeição + pill + override).
+
+### ⚠️ Correção do achado [CC] (validado contra `main` NESTA sessão — §10.4, não confiei no prompt):
+O prompt dizia "4 implementações" — só **2** procedem; corrijo as outras 2 pra não causar regressão:
+1. ✅ **`NfceStatusBadge`** era o "bom padrão" — MAS estava **órfão** (importado em lugar nenhum, grep). Agora é a base do componente único.
+2. ✅ **Vendas `FiscalSection`** rolava status próprio — REAL duplicata, agora consome o componente. (Os modais `VdNfeEmitModal`/`VdNfseEmitModal` são wizards de EMISSÃO mock — fora de escopo, como o próprio prompt diz.)
+3. ❌ **Oficina `ServiceOrderRichSheet`** — NÃO tem badge fiscal NF-e/NFS-e. O `StatusBadge` dele (linha 647) é o status da ORDEM DE SERVIÇO (locação/order_type). Nada a unificar lá.
+4. ❌ **NotaDrawer V1 vs V2 — NÃO deletei "o legado".** É o OPOSTO do prompt: **V1 (`Nfe.tsx`) é o FUNCIONAL** (router.post real p/ cancelar/cce/retransmitir); **V2 (`Cockpit.tsx`) é o protótipo** (todos botões `disabled title="Em breve"`, dados mock). Deletar V1 = REGRESSÃO (some cancelar/CC-e/retransmitir reais). Além disso os drawers usam outro paradigma de apresentação (`fx-sefaz` CSS + cstat numérico), não o badge de polling — unificar isso é refactor separado e arriscado.
+
+### Pendências (pro Cowork/[W] decidir — NÃO fiz por serem outro intent/risco):
+- [ ] **NotaDrawer V1↔V2:** a resolução correta é MERGER as ações reais do V1 dentro do shell mais rico do V2 (ou migrar `Nfe.tsx`→V2 só depois de portar as 3 ações), não deletar. Precisa decisão de [W] (toca tela fiscal viva).
+- [ ] Higiene repo (fora do escopo, achado de passagem): há **arquivos com colisão de caixa** no git que quebram no Windows — `RecurringBilling/.../pt-BR` vs `pt-br/recurringbilling.php` e `Fiscal/Nfe-` vs `nfe-visual-comparison.md`.
+
+### new_design_memories
+- **golden**: status fiscal = 1 componente `FiscalStatusBadge` (NFC-e/NF-e/NFS-e · 7 kinds · banner+pill · oklch único); NfceStatusBadge vira wrapper de polling que delega; FiscalSection consome o pill.
+- **conflito (corrigido)**: o achado "4 implementações iguais" era ~50% — Oficina não tem badge fiscal e NotaDrawer V1 é o funcional (não legado). Só NfceStatusBadge(órfão)+FiscalSection eram a duplicata real do MODELO de polling.
+- **lição**: "deletar o legado" sem ler quem-está-wired pode apagar o funcional — V1 tinha as ações reais; V2 era o protótipo bonito-porém-mock.

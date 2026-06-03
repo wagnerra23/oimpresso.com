@@ -152,20 +152,31 @@ class LaravelAiSdkDriver implements AiAdapter
             }
         }
 
+        // COPI-43 (LGPD): redacta PII BR antes de enviar pro LLM externo (vide responderChat).
+        $mensagemPraLlm = $this->mascararDocumentos($mensagem);
+
+        // MEM-HOT-2 — snapshot de contexto (reusado pela cascata clarify E pelo chat).
+        $ctx = $this->snapshotContexto($conv);
+
+        // JANA ADVISOR (Metade A — clarify reativo, proposta §10.4). Cascata
+        // Decidir→Clarificar→Responder ANTES do recall/LLM: se a entrada é AMBÍGUA de
+        // intenção, a Jana devolve a pergunta de maior ganho em vez de chutar. Flag
+        // default-OFF; fail-open → segue normal. A pergunta vai como 1 chunk e termina.
+        if ($pergunta = $this->talvezClarificar($conv, $mensagem, $mensagemPraLlm, $ctx)) {
+            yield $pergunta;
+            return;
+        }
+
         // Mesma pipeline do responderChat() blocking — DRY.
         $recall = $this->recallMemoria($conv, $mensagem);
         $memoriaContexto = $recall['texto'];
         $memoriaIds = $recall['ids'];
-        $ctx = $this->snapshotContexto($conv);
         $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
 
         $startedAt = microtime(true);
         $tokensIn = 0;
         $tokensOut = 0;
         $textoCompleto = '';
-
-        // COPI-43 (LGPD): redacta PII BR antes de enviar pro LLM externo (vide responderChat).
-        $mensagemPraLlm = $this->mascararDocumentos($mensagem);
 
         try {
             // laravel/ai Agent::stream() — retorna StreamableAgentResponse iterável.
@@ -283,26 +294,35 @@ class LaravelAiSdkDriver implements AiAdapter
             }
         }
 
-        // Sprint 5 (ADR 0036) — recall de memória semântica antes de chamar LLM.
-        $recall = $this->recallMemoria($conv, $mensagem);
-        $memoriaContexto = $recall['texto'];
-        $memoriaIds = $recall['ids'];
-
         // MEM-HOT-2 (ADR 0047, Caminho A do ADR 0046) — snapshot de contexto de
         // negócio (faturamento/clientes/metas reais) injetado no system prompt.
         // Cache 10min em ContextSnapshotService; degradação silenciosa em erro.
+        // Subido p/ ANTES do recall: reusado pela cascata clarify E pelo chat.
         $ctx = $this->snapshotContexto($conv);
-
-        $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
-
-        // MEM-OTEL-1 (ADR 0051) — clock pra medir gen_ai.response.duration_ms
-        $startedAt = microtime(true);
 
         // COPI-43 (LGPD): redacta PII BR antes de enviar pro LLM externo.
         // Mensagem original já persistida em jana_mensagens pelo controller — NÃO afeta
         // visualização do user no chat (que vê dado real). Recall memória usa $mensagem
         // original (busca interna, não sai pra rede). Aqui apenas o que vai pra OpenAI.
         $mensagemPraLlm = $this->mascararDocumentos($mensagem);
+
+        // JANA ADVISOR (Metade A — clarify reativo, proposta §10.4). Cascata
+        // Decidir→Clarificar→Responder ANTES do recall/LLM: se a entrada é AMBÍGUA de
+        // intenção, devolve a pergunta de maior ganho em vez de chutar. Flag default-OFF;
+        // fail-open → segue normal. Sai sem gravar cache nem extrair fatos (não houve resposta).
+        if ($pergunta = $this->talvezClarificar($conv, $mensagem, $mensagemPraLlm, $ctx)) {
+            return $pergunta;
+        }
+
+        // Sprint 5 (ADR 0036) — recall de memória semântica antes de chamar LLM.
+        $recall = $this->recallMemoria($conv, $mensagem);
+        $memoriaContexto = $recall['texto'];
+        $memoriaIds = $recall['ids'];
+
+        $agent = new ChatCopilotoAgent($conv, $memoriaContexto, $ctx);
+
+        // MEM-OTEL-1 (ADR 0051) — clock pra medir gen_ai.response.duration_ms
+        $startedAt = microtime(true);
 
         try {
             $response = $agent->prompt($mensagemPraLlm);
@@ -619,6 +639,45 @@ class LaravelAiSdkDriver implements AiAdapter
                 'business_id' => $conv->business_id,
                 'error' => $e->getMessage(),
             ]);
+            return null;
+        }
+    }
+
+    /**
+     * JANA ADVISOR (Metade A — clarify reativo, proposta §10.4).
+     *
+     * Roda a cascata Decidir→Clarificar→Responder via ClarifyCascadeService. Retorna a
+     * PERGUNTA de maior ganho de informação quando a entrada é ambígua de intenção, ou
+     * `null` quando o chat deve seguir e responder normalmente.
+     *
+     * Contrato de segurança:
+     *   - Flag `copiloto.clarify.enabled` default-OFF → retorna null sem custo (no-op).
+     *   - FAIL-OPEN: o service captura tudo internamente; aqui ainda há try/catch de
+     *     defense-in-depth pra NUNCA quebrar o chat por causa do advisor.
+     *
+     * `$ctx` é reusado (já snapshotado/sanitizado) pra não duplicar consulta.
+     */
+    protected function talvezClarificar(
+        Conversa $conv,
+        string $mensagemOriginal,
+        string $mensagemRedigida,
+        ?ContextoNegocio $ctx,
+    ): ?string {
+        if (! (bool) config('copiloto.clarify.enabled', false)) {
+            return null;
+        }
+
+        try {
+            $resultado = app(\Modules\Jana\Services\Ai\Clarify\ClarifyCascadeService::class)
+                ->decidir($conv, $mensagemOriginal, $mensagemRedigida, $ctx);
+
+            return $resultado->deveClarificar() ? $resultado->pergunta : null;
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('talvezClarificar fail-open (segue resposta)', [
+                'conversa_id' => $conv->id,
+                'error' => $this->redactErrorMessage($e),
+            ]);
+
             return null;
         }
     }

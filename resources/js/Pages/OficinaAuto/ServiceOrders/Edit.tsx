@@ -25,6 +25,7 @@ import ServiceOrderItemRow, {
   type ServiceOrderItemDto,
 } from './_components/ServiceOrderItemRow';
 import ServiceOrderItemFormSheet from './_components/ServiceOrderItemFormSheet';
+import EntryCheckinFields from './_components/EntryCheckinFields';
 
 interface ServiceOrder {
   id: number;
@@ -32,6 +33,8 @@ interface ServiceOrder {
   transaction_id: number | null;
   status: string;
   mileage_at_service: number | null;
+  fuel_level_at_entry: number | null;
+  entry_damages: string[] | null;
   entered_at: string | null;
   expected_completion: string | null;
   completed_at: string | null;
@@ -81,6 +84,8 @@ export default function ServiceOrdersEdit({ order, vehicles, statuses }: Props) 
     vehicle_id: String(order.vehicle_id),
     transaction_id: order.transaction_id ? String(order.transaction_id) : '',
     mileage_at_service: order.mileage_at_service?.toString() ?? '',
+    fuel_level_at_entry: order.fuel_level_at_entry?.toString() ?? '',
+    entry_damages: order.entry_damages ?? [],
     status: order.status,
     entered_at: toLocalInput(order.entered_at),
     expected_completion: toLocalInput(order.expected_completion),
@@ -295,6 +300,14 @@ export default function ServiceOrdersEdit({ order, vehicles, statuses }: Props) 
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm"
               />
             </div>
+
+            <EntryCheckinFields
+              fuelLevel={data.fuel_level_at_entry}
+              damages={data.entry_damages}
+              onFuelChange={(v) => setData('fuel_level_at_entry', v)}
+              onDamagesChange={(v) => setData('entry_damages', v)}
+              fuelError={errors.fuel_level_at_entry}
+            />
 
             {/* ───── Section inline "Itens da OS" (Wave 5 US-OFICINA-005-bis) ───── */}
             <section className="pt-2">
