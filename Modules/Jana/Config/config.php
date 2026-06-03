@@ -486,7 +486,11 @@ return [
     'clarify' => [
         'enabled'  => (bool) env('JANA_CLARIFY_ENABLED', false),   // homolog liga; prod espera (ADR 0245)
         'provider' => env('JANA_CLARIFY_PROVIDER'),                // null → config('ai.default') (provider do chat)
-        'model'    => env('JANA_CLARIFY_MODEL', 'gpt-4o'),         // frontier seletivo (vs gpt-4o-mini do chat)
+        // Default gpt-4o-mini: é o ÚNICO modelo a que o projeto OpenAI atual tem acesso
+        // (gpt-4o → 403 "does not have access"; validado E2E no staging CT 100). Pra subir pro
+        // frontier de verdade: conceder gpt-4o ao projeto OU provider=anthropic (claude-sonnet) —
+        // ambos via env JANA_CLARIFY_MODEL/JANA_CLARIFY_PROVIDER, sem code change.
+        'model'    => env('JANA_CLARIFY_MODEL', 'gpt-4o-mini'),
         // Confiança mínima do disambiguador p/ realmente perguntar (anti false-clarify).
         'min_confianca'          => 0.6,
         // Heurística 1a (zero-custo) — limites do "cinza".
@@ -516,7 +520,7 @@ return [
     'advisor_questions' => [
         'enabled'  => false,            // default OFF — Wagner liga via config runtime após validar
         'provider' => null,             // null → config('ai.default') (provider do chat)
-        'model'    => 'gpt-4o',         // pautar é difícil → frontier (1×/dia, custo trivial)
+        'model'    => 'gpt-4o-mini',    // projeto OpenAI atual só tem gpt-4o-mini (gpt-4o → 403); subir via config quando houver acesso frontier
         'max_por_persona' => 2,         // menos é mais — só a(s) de maior valor
         // Cada persona recebe a pergunta do TRABALHO dela (ADR UI-0016 personas reais).
         'personas' => [
