@@ -239,5 +239,13 @@ class InterApiStrategy implements BoletoStrategy
                 "InterApiStrategy só atende banco 077; conta {$conta->id} tem banco {$conta->banco_codigo}."
             );
         }
+
+        $operacao = $conta->metadata['operacao'] ?? null;
+        if (! $operacao) {
+            throw new \DomainException(
+                "ContaBancaria {$conta->id}: metadata->operacao é obrigatório (7 dígitos do código de operação Inter). ".
+                'A lib Boleto\\Banco\\Inter exige esse campo mesmo pra API v3.'
+            );
+        }
     }
 }

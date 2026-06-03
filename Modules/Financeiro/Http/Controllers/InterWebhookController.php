@@ -162,10 +162,14 @@ class InterWebhookController extends Controller
                 } elseif ($situacao === InterWebhookEvent::SITUACAO_EXPIRADO) {
                     $remessa->status = BoletoRemessa::STATUS_VENCIDO;
                     $remessa->save();
+                } else {
+                    $event->processed_status = InterWebhookEvent::STATUS_IGNORADO;
                 }
 
                 $event->processed_at = now();
-                $event->processed_status = InterWebhookEvent::STATUS_OK;
+                if ($event->processed_status === null) {
+                    $event->processed_status = InterWebhookEvent::STATUS_OK;
+                }
                 $event->save();
             });
         } catch (\Throwable $e) {
