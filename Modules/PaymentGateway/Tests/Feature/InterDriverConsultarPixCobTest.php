@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Dto\CobrancaStatus;
 use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
@@ -214,4 +215,87 @@ it('SEM certificado configurado: mtlsOptions vazio (não quebra)', function () {
 
     $opts = $ref->invoke($driver, ['client_id' => 'x', 'client_secret' => 'y']);
     expect($opts)->toBe([]);
+});
+
+it('certificado via base64 inline (crt_b64/key_b64) materializa arquivos temp com o PEM', function () {
+    $crtPem = "-----BEGIN CERTIFICATE-----\nMIIBcrtFake\n-----END CERTIFICATE-----";
+    $keyPem = "-----BEGIN PRIVATE KEY-----\nMIIBkeyFake\n-----END PRIVATE KEY-----";
+
+    $driver = new InterDriver();
+    $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
+    $ref->setAccessible(true);
+
+    $opts = $ref->invoke($driver, [
+        'client_id'           => 'x',
+        'client_secret'       => 'y',
+        'certificado_crt_b64' => base64_encode($crtPem),
+        'certificado_key_b64' => base64_encode($keyPem),
+    ]);
+
+    expect($opts['cert'] ?? null)->not->toBeNull();
+    expect($opts['ssl_key'] ?? null)->not->toBeNull();
+    expect(is_file($opts['cert']))->toBeTrue();
+    expect(is_file($opts['ssl_key']))->toBeTrue();
+    expect(file_get_contents($opts['cert']))->toBe($crtPem);
+    expect(file_get_contents($opts['ssl_key']))->toBe($keyPem);
+});
+
+it('certificado_key_b64 cifrado por-campo (Crypt, como install-biz.py grava) é decifrado e materializado', function () {
+    $keyPem = "-----BEGIN PRIVATE KEY-----\nMIIBkeyCrypt\n-----END PRIVATE KEY-----";
+
+    $driver = new InterDriver();
+    $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
+    $ref->setAccessible(true);
+
+    $opts = $ref->invoke($driver, [
+        'client_id'           => 'x',
+        'client_secret'       => 'y',
+        'certificado_key_b64' => Crypt::encryptString(base64_encode($keyPem)),
+    ]);
+
+    expect($opts['ssl_key'] ?? null)->not->toBeNull();
+    expect(file_get_contents($opts['ssl_key']))->toBe($keyPem);
+});
+
+it('caminho de arquivo tem prioridade sobre base64 quando ambos presentes', function () {
+    $pathPem = "-----BEGIN CERTIFICATE-----\nDoArquivo\n-----END CERTIFICATE-----";
+    $crtFile = tempnam(sys_get_temp_dir(), 'prio_crt_');
+    file_put_contents($crtFile, $pathPem);
+
+    try {
+        $driver = new InterDriver();
+        $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
+        $ref->setAccessible(true);
+
+        $opts = $ref->invoke($driver, [
+            'certificado_crt'     => $crtFile,
+            'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nDoB64\n-----END CERTIFICATE-----"),
+        ]);
+
+        expect($opts['cert'])->toBe($crtFile);
+    } finally {
+        @unlink($crtFile);
+    }
+});
+
+it('decodePem aceita PEM cru, base64(PEM) e Crypt(base64(PEM)); rejeita lixo', function () {
+    $pem = "-----BEGIN CERTIFICATE-----\nABC\n-----END CERTIFICATE-----";
+    $driver = new InterDriver();
+    $ref = new ReflectionMethod(InterDriver::class, 'decodePem');
+    $ref->setAccessible(true);
+
+    expect($ref->invoke($driver, $pem))->toBe($pem);
+    expect($ref->invoke($driver, base64_encode($pem)))->toBe($pem);
+    expect($ref->invoke($driver, Crypt::encryptString(base64_encode($pem))))->toBe($pem);
+    expect($ref->invoke($driver, 'lixo-que-nao-eh-pem'))->toBeNull();
+});
+
+it('maybeDecrypt decifra Crypt e passa valor plano direto', function () {
+    $driver = new InterDriver();
+    $ref = new ReflectionMethod(InterDriver::class, 'maybeDecrypt');
+    $ref->setAccessible(true);
+
+    expect($ref->invoke($driver, Crypt::encryptString('segredo')))->toBe('segredo');
+    expect($ref->invoke($driver, 'ja-plano'))->toBe('ja-plano');
+    expect($ref->invoke($driver, ''))->toBe('');
 });
