@@ -550,6 +550,40 @@ class ServiceOrderController extends Controller
             ->with('status', ['success' => 1, 'msg' => 'OS atualizada.']);
     }
 
+    /**
+     * US-OFICINA-041 — Enviar orçamento pro cliente aprovar (gate de aprovação).
+     *
+     * Delta do protótipo Cowork "Nova OS" (card "Aprovação do cliente"): o mecânico
+     * dispara o pedido de aprovação com 1 clique. Reusa o pipeline AUTOMÁTICO já
+     * existente — transicionar status → `orcamento` faz o `ServiceOrderObserver`
+     * despachar o `EnviarLinkAprovacaoWhatsappJob` (link público + PIN, US-OFICINA-014).
+     *
+     * A execução não inicia até o cliente aprovar (status vira `aprovada` via
+     * AprovacaoOsController público). Gate visual no Show reflete o estado.
+     *
+     * Defesa em profundidade: Policy update(ServiceOrder) (sameTenant ADR 0093).
+     */
+    public function enviarAprovacao(ServiceOrder $order): RedirectResponse
+    {
+        $this->authorize('update', $order);
+
+        // Estados terminais/já-aprovados não reenviam aprovação.
+        if (in_array($order->status, ['aprovada', 'concluida', 'entregue', 'cancelada'], true)) {
+            return back()->with('status', [
+                'success' => 0,
+                'msg'     => 'OS já está aprovada ou finalizada.',
+            ]);
+        }
+
+        // status → orcamento dispara o Observer (WhatsApp link + PIN ao cliente).
+        $order->update(['status' => 'orcamento']);
+
+        return back()->with('status', [
+            'success' => 1,
+            'msg'     => 'Orçamento enviado ao cliente para aprovação (WhatsApp).',
+        ]);
+    }
+
     public function destroy(ServiceOrder $order): RedirectResponse
     {
         // D8 Security Wave 15: Policy multi-tenant sameTenant guard.
