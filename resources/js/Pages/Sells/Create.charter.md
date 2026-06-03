@@ -3,11 +3,11 @@ page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-08"
+last_validated: "2026-06-02"
 parent_module: Sells
-related_adrs: [110, 107, 104, 93]
+related_adrs: [110, 107, 104, 93, 105]
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /sells/create
@@ -77,9 +77,12 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 
 ## Tests anti-regressão
 
-- [tests/Feature/Sells/SellsCreatePageTest.php](../../tests/Feature/Sells/SellsCreatePageTest.php) — 39+ testes estruturais
+**Casos de uso (spec executável):** [`memory/requisitos/Sells/CASOS-USO-CREATE-VENDA.md`](../../../../memory/requisitos/Sells/CASOS-USO-CREATE-VENDA.md) — 15 CU em Given/When/Then + paridade Blade↔V2 + mapa CU→Pest. **Regra de cutover:** religar a flag `useV2SellsCreate` só quando todo CU `must` estiver 🟢 + smoke biz=4 (PRE-MERGE-UI Camada 4).
+
+- [tests/Feature/Sells/SellsCreatePageTest.php](../../tests/Feature/Sells/SellsCreatePageTest.php) — ~49 testes estruturais
 - [tests/Feature/Sells/SellPosControllerCreateTest.php](../../tests/Feature/Sells/SellPosControllerCreateTest.php) — backend dual response
 - [tests/Feature/Design/CockpitPatternConformanceTest.php](../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico
+- + suites: CustomerAutoApplyOnSelect · QuickAddCustomerSheet · ProductSearchAutocomplete(Race/ConfigurableFields) · ProductLineCardComponent · CommissionSplitEditor · CriarOsPorVenda · MultiTenantSqlGuard
 
 ---
 
