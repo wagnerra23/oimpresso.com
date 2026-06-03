@@ -19,6 +19,7 @@ import ServiceOrderItemRow, {
 import ServiceOrderItemFormSheet from './_components/ServiceOrderItemFormSheet';
 import DviBudgetSection, { type DviItemDto } from './_components/DviBudgetSection';
 import ApprovalGateCard from './_components/ApprovalGateCard';
+import FiscalSplitCard from './_components/FiscalSplitCard';
 
 interface ServiceOrder {
   id: number;
@@ -346,6 +347,9 @@ export default function ServiceOrdersShow({ order }: Props) {
             </div>
           )}
         </section>
+
+        {/* Painel fiscal — split NF-e 55 (peças) / NFS-e (mão de obra) · US-OFICINA-042 */}
+        <FiscalSplitCard items={items} />
 
         <ServiceOrderItemFormSheet
           serviceOrderId={order.id}
