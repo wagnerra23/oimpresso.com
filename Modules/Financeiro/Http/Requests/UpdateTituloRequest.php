@@ -56,6 +56,7 @@ class UpdateTituloRequest extends FormRequest
             ],
             'vencimento' => ['required', 'date'],
             'valor_total' => ['sometimes', 'numeric', 'min:0.01', 'max:9999999999.99'],
+            'forma_pagamento' => ['nullable', Rule::in(Titulo::FORMAS_PAGAMENTO)],
         ];
     }
 
@@ -66,6 +67,7 @@ class UpdateTituloRequest extends FormRequest
             'plano_conta_id.exists' => 'Plano de contas inválido (inexistente, inativo ou sintético).',
             'vencimento.required' => 'Vencimento obrigatório.',
             'valor_total.min' => 'Valor deve ser positivo.',
+            'forma_pagamento.in' => 'Forma de pagamento inválida.',
         ];
     }
 

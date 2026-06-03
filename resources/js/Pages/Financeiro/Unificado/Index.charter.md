@@ -12,7 +12,7 @@ related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (a
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 10
+charter_version: 11
 ---
 
 # Page Charter — /financeiro/unificado
@@ -30,6 +30,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Forma de pagamento no lançamento** (2026-06-03, charter v11, pedido [W]): coluna **Forma** na tabela + campo no drawer (aba Detalhes) + edição (FinEditPanel) e criação (TituloCreateSheet). Nova coluna `fin_titulos.forma_pagamento` (enum espelha `fin_titulo_baixas.meio_pagamento`). Regra de exibição: a forma **realizada** (`baixa.meio_pagamento`) tem prioridade e é **read-only** (espelha `valor_mutavel` / ADR fin-tech/0002); senão a **prevista** (`titulo.forma_pagamento`), editável em aberto; senão "—". Helper compartilhado `_lib/forma-pagamento.ts` (rótulo PT-BR + ícone). Cobertura `UnificadoFormaPagamentoGuardTest` (5 GUARDs). Títulos criados por cobrança paga (`OnCobrancaPagaCreateFinanceiroTitulo`) já exibem a forma realizada via baixa.
 
 - **Paridade filtros de data WR** (2026-06-03, US-FIN-030): seletor de **campo de data** (Vencimento default · Emissão · Pagamento · Competência) + **intervalo explícito** `data_inicio`/`data_fim` na toolbar, espelhando o WR Comercial. Backend `parseFilters()` + `aplicarFiltroData()` (vencimento/emissao via coluna; pagamento via `baixas.data_baixa`; competencia via `competencia_mes` YYYY-MM); intervalo sobrepõe o período preset. **O `data_campo` aplica na tabela E nos cards de KPI** (`kpisCore` segue o mesmo campo — totais consistentes com o grid filtrado; `recebido`/`pago` por `data_baixa` quando campo=pagamento, senão por título que casa o campo). Cobertura `UnificadoDataCampoTest`. Pendente: filtros 'Nota Fiscal'/'Vendas' do WR exigem link título→transaction (`origem_id`).
 
