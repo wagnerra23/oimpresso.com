@@ -342,6 +342,42 @@ class InterDriver implements PaymentDriverContract
         ];
     }
 
+    /**
+     * Registra a URL pública do webhook de cobrança no Inter via API.
+     *
+     * Inter v3 não expõe esse cadastro no portal — só PUT /cobranca/v3/cobrancas/webhook
+     * com body {webhookUrl: "..."}. Sem isso, o Inter não notifica /paymentgateway/webhooks/inter/{businessId}.
+     *
+     * Idempotente — chamar de novo sobrescreve a URL anterior.
+     */
+    public function registerWebhook(object $cred, string $url): bool
+    {
+        $this->assertCredential($cred);
+
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->put('/cobranca/v3/cobrancas/webhook', ['webhookUrl' => $url]));
+
+        return $response->successful();
+    }
+
+    /**
+     * Consulta a URL atualmente registrada (pra healthcheck / UI).
+     * Retorna null se Inter responder erro ou ainda não tiver webhook registrado.
+     */
+    public function consultarWebhook(object $cred): ?string
+    {
+        $this->assertCredential($cred);
+
+        $response = HttpClientFactory::send(fn () => $this->client($cred)
+            ->get('/cobranca/v3/cobrancas/webhook'));
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        return (string) ($response->json('webhookUrl') ?? '') ?: null;
+    }
+
     // ─── helpers ─────────────────────────────────────────────────────────
 
     private function assertCredential(object $cred): void
