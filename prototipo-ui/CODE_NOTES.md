@@ -324,3 +324,42 @@ A Jana já pega erro de **saída** (golden 30Q + RAGAS + drift sentinel) mas nã
 - [ ] Confirmar check **advisory** (recomendo sim — drift de processo não pagina à noite).
 
 ### NÃO reprocessei (a comparação só confirma): guard higiene Cowork L-07/11/21/22 · collector CT100/OTel/LGPD #2073 · `design:review` #2078.
+
+---
+
+## 2026-06-02 — [CL] → [W]: Jana "Modo Consultor" (Advisor) — Metade A (clarify reativo)
+
+### Handoff: `PROMPT_PARA_CODE_JANA-ADVISOR-MODE.md` (Cowork→Code) · insight [W]: *"as melhores respostas vêm quando eu pergunto que pergunta eu deveria fazer"*
+### Natureza: peer-review (L-17) · **Tier 0** (produto + custo) → PR aberto, **NÃO mergeei**, espera [W]
+### Status: PR aberto · branch `feat/jana-advisor-clarify` · base `origin/main` fresco (`2e9f5881e`)
+
+### Veredito do peer-review: **procede** (andaime de raciocínio, não troca de modelo)
+Bate com o estado-da-arte: Active Task Disambiguation (ICLR 2025 Spotlight) + INTENT-SIM (NAACL 2025 — decoupla ambiguidade-de-intenção de falta-de-dado). A Jana hoje **chuta** quando é ambíguo e **pergunta** quando é só falta de dado — o erro nº1. Esta capacidade conserta o pior hábito primeiro (Metade A, a mais barata), como você pediu.
+
+### §10.4 Passo 0 contra `origin/main` (estendi, NÃO recriei):
+- Chat resolve hoje: `ChatController::send/sendStream` → `LaravelAiSdkDriver::responderChat[Stream]` → `recallMemoria`(MemoriaContrato) + `snapshotContexto`(ContextoNegocio) → `ChatCopilotoAgent` (laravel/ai).
+- Precedente de interceptação: `BriefDiarioChatTrigger` já pré-empta o chat por intent — a cascata clarify pluga na MESMA forma, antes do recall/LLM.
+- Os 4 Agents (ChatCopiloto/BriefDiario/Sugestoes/Briefing), o brief diário (ADR 0091), a `MemoriaContrato` e o roteamento `laravel/ai` ficaram **intactos**. `ContextoNegocio` é **reusado** (snapshot único serve cascata E chat — zero consulta a mais).
+
+### O que entrou (tudo aditivo, default-OFF):
+- **`ClarificadorAgent`** (5º agente) — disambiguador `HasStructuredOutput` que decide `claro|falta_dado|ambiguo` e, se ambíguo, dá a **pergunta de maior ganho de informação**. Roteamento de modelo seletivo via `provider()`/`model()` (config) — **difícil → frontier** (default `gpt-4o` vs `gpt-4o-mini` do chat), mas só dispara no ~20% cinza.
+- **`ClarifyCascadeService`** — cascata por latência: **1a heurística local (zero LLM)** resolve ~80% direto; **1b disambiguador frontier** só no cinza. Honestidade (não inventa pergunta), **fail-open** (qualquer erro → responde), **anti-loop** (não pergunta 2× seguidas), **medição** (`clarify_event` no log `copiloto-ai`).
+- **`ClarifyResult`** (DTO) + guard `talvezClarificar()` em `LaravelAiSdkDriver` (blocking + stream).
+- **Config** `copiloto.clarify.*` (flag `JANA_CLARIFY_ENABLED` default-OFF — mesma postura de `contextual_retrieval`/`peso_real`; com OFF o pipeline é byte-idêntico ao legado).
+- **RUNBOOK** `memory/requisitos/Jana/RUNBOOK-jana-advisor-clarify.md` (como ligar/medir).
+- Proposta §10.4: `memory/decisions/proposals/jana-advisor-modo-consultor.md`.
+
+### Build / testes:
+- **14/14 Pest verdes** (54 assertions): `ClarifyCascadeServiceTest` (9 — heurística, flag-off no-op, curto-circuito, clarifica, honestidade ×2, anti false-clarify, anti-loop, fail-open) + `ClarificadorAgentTest` (5 — routing frontier, instructions INTENT-SIM, grounding não-PII, messages). `php -l` limpo nos 7 arquivos.
+- Regressão: suite `Jana/Tests/Feature/Ai` + brief trigger = **50 passaram** com o driver editado. As 2 falhas restantes são **pré-existentes** (`BriefDiarioChatTriggerTest` sem `activity_log` em run isolado — gap do `tests/Pest.php`, não coberto pra Jana), **não-relacionadas** a este PR.
+
+### Tier 0 respeitado:
+- **Não cunhei nº de ADR** (soberania [W], 0238) — proposal slug-only. [W] numera se promover.
+- **Não mergeei** (publication-policy). PR espera [W].
+- Histórico/contexto vão **PII-redigidos** pro disambiguador (defense-in-depth, reusa `PiiRedactor`).
+
+### Decisão aberta pra [W]:
+- [ ] Aprovar a Metade A como caminho (vira canon ao mergear) ou ajustar.
+- [ ] Numerar ADR se quiser elevar proposal → decisão.
+- [ ] Ligar em homolog (`JANA_CLARIFY_ENABLED=true` + escolher o modelo frontier) p/ medir `clarify_event` antes de prod.
+- [ ] **Metade B** (próxima-melhor-pergunta proativa, estende o brief por persona) — próxima na fila, spec à parte, como você sequenciou.

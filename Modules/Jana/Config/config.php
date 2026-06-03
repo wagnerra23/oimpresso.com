@@ -454,6 +454,47 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | JANA ADVISOR — Metade A: Clarify reativo (Modo Consultor, proposta §10.4)
+    |--------------------------------------------------------------------------
+    | Cascata Decidir → Clarificar → Responder no chat. Decoupla AMBIGUIDADE-DE-
+    | INTENÇÃO (perguntar) de FALTA-DE-DADO (buscar) — INTENT-SIM (NAACL 2025) +
+    | Active Task Disambiguation (ICLR 2025): "fazer perguntas melhores, não só
+    | dar respostas melhores".
+    |
+    | Cascata por latência:
+    |   1a. heurística local (zero LLM) resolve ~80% direto → responde.
+    |   1b. disambiguador FRONTIER (só no ~20% cinza) decide e gera a pergunta de
+    |       maior ganho de informação.
+    |
+    | DEFAULT OFF (toca o coração do chat — mesma postura de contextual_retrieval /
+    | peso_real): com a flag OFF o pipeline é byte-idêntico ao legado. Wagner liga
+    | em homolog após validação ([W] soberania ADR 0238).
+    |
+    | Roteamento de modelo (custo-consciente): raciocínio difícil → frontier. Default
+    | gpt-4o (mais forte que o gpt-4o-mini do chat), mas só dispara no cinza. Wagner
+    | pode trocar p/ um modelo de raciocínio estendido via JANA_CLARIFY_MODEL.
+    |
+    | Medição: log channel copiloto-ai → evento `clarify_event` (gray-hit, taxa de
+    | clarify, false-clarify proxy). Sem isso é fé, não engenharia.
+    */
+    'clarify' => [
+        'enabled'      => (bool) env('JANA_CLARIFY_ENABLED', false),
+        // Roteamento de modelo seletivo (difícil → frontier). null = default do provider.
+        'provider'     => env('JANA_CLARIFY_PROVIDER'),                 // null → config('ai.default')
+        'model'        => env('JANA_CLARIFY_MODEL', 'gpt-4o'),          // frontier (vs gpt-4o-mini do chat)
+        // Confiança mínima do disambiguador p/ realmente perguntar (anti false-clarify).
+        'min_confianca'         => (float) env('JANA_CLARIFY_MIN_CONFIANCA', 0.6),
+        // Heurística 1a (zero-custo) — limites do "cinza".
+        'gray_max_chars'        => (int) env('JANA_CLARIFY_GRAY_MAX_CHARS', 140),
+        'gray_max_words'        => (int) env('JANA_CLARIFY_GRAY_MAX_WORDS', 8),
+        // Quantos turnos recentes (PII-redigidos) alimentam o disambiguador.
+        'historico_turnos'      => (int) env('JANA_CLARIFY_HISTORICO_TURNOS', 4),
+        // Anti-loop: TTL do marcador "turno anterior foi clarify" (não pergunta 2x seguidas).
+        'anti_loop_ttl_segundos' => (int) env('JANA_CLARIFY_ANTI_LOOP_TTL', 600),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Onda 5 — A1 Auto-summary docs longos (dossier 2026-05-13 §6)
     |--------------------------------------------------------------------------
     | AutoSummarizerService (Modules/Jana/Services/Summarizer/) comprime
