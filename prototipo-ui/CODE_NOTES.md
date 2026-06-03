@@ -324,3 +324,33 @@ A Jana já pega erro de **saída** (golden 30Q + RAGAS + drift sentinel) mas nã
 - [ ] Confirmar check **advisory** (recomendo sim — drift de processo não pagina à noite).
 
 ### NÃO reprocessei (a comparação só confirma): guard higiene Cowork L-07/11/21/22 · collector CT100/OTel/LGPD #2073 · `design:review` #2078.
+## 2026-06-02 20:15 [CL] → [W]
+
+### Tela: Fiscal — status unificado (NFC-e/NF-e/NFS-e) · handoff `PROMPT_PARA_CODE_FISCAL-STATUS-UNIFICADO.md`
+### Status: traduzido (branch `feat/fiscal-status-unificado`, PR aberto — NÃO mergeado, aguarda F2 [W])
+### Diff: branch `feat/fiscal-status-unificado` (off `origin/main` fresco · §10.4 Passo 0)
+### Build: vitest 7/7 verde · eslint baseline Δ−60 (sem regressão) · tsc sem erro nos arquivos tocados
+### Charter atualizado: n/a (mudança de Componente, não de Page)
+
+### O que landou (reuse-first, só APRESENTAÇÃO — backend SEFAZ intocado):
+- **NOVO** `Components/NfeBrasil/FiscalStatusBadge.tsx` — componente ÚNICO de status fiscal. Cobre os 3 documentos (NFC-e 65 · NF-e 55 · NFS-e), 7 estados semânticos (emitting/waiting/authorized/rejected/denied/cancelled/inutilized), 2 variantes (`banner` card + `pill` chip). Fonte única das cores oklch de status (R-DS-002).
+- **NOVO** `Components/NfeBrasil/fiscalStatus.ts` — modelo de domínio + helpers (`docLabel`, `emissaoStatusToKind`) separados do .tsx (react-refresh).
+- **REFACTOR** `NfceStatusBadge.tsx` → vira wrapper reativo fino: mantém o polling `useNfceStatus` + a nuance "aguardando SEFAZ" (hasGivenUp) e DELEGA a renderização pro FiscalStatusBadge. Backward-compatible (mesma API).
+- **WIRE** `Sells/_components/FiscalSection.tsx` → o `StatusBadge` local (emerald/amber/rose Tailwind cru) foi DELETADO; cada linha de emissão agora usa `<FiscalStatusBadge variant="pill">`. Larissa vê o MESMO status do mesmo jeito.
+- **TEST** `tests/fiscal-status-badge.test.tsx` (7 casos: helpers + 3 docs autorizada + rejeição + pill + override).
+
+### ⚠️ Correção do achado [CC] (validado contra `main` NESTA sessão — §10.4, não confiei no prompt):
+O prompt dizia "4 implementações" — só **2** procedem; corrijo as outras 2 pra não causar regressão:
+1. ✅ **`NfceStatusBadge`** era o "bom padrão" — MAS estava **órfão** (importado em lugar nenhum, grep). Agora é a base do componente único.
+2. ✅ **Vendas `FiscalSection`** rolava status próprio — REAL duplicata, agora consome o componente. (Os modais `VdNfeEmitModal`/`VdNfseEmitModal` são wizards de EMISSÃO mock — fora de escopo, como o próprio prompt diz.)
+3. ❌ **Oficina `ServiceOrderRichSheet`** — NÃO tem badge fiscal NF-e/NFS-e. O `StatusBadge` dele (linha 647) é o status da ORDEM DE SERVIÇO (locação/order_type). Nada a unificar lá.
+4. ❌ **NotaDrawer V1 vs V2 — NÃO deletei "o legado".** É o OPOSTO do prompt: **V1 (`Nfe.tsx`) é o FUNCIONAL** (router.post real p/ cancelar/cce/retransmitir); **V2 (`Cockpit.tsx`) é o protótipo** (todos botões `disabled title="Em breve"`, dados mock). Deletar V1 = REGRESSÃO (some cancelar/CC-e/retransmitir reais). Além disso os drawers usam outro paradigma de apresentação (`fx-sefaz` CSS + cstat numérico), não o badge de polling — unificar isso é refactor separado e arriscado.
+
+### Pendências (pro Cowork/[W] decidir — NÃO fiz por serem outro intent/risco):
+- [ ] **NotaDrawer V1↔V2:** a resolução correta é MERGER as ações reais do V1 dentro do shell mais rico do V2 (ou migrar `Nfe.tsx`→V2 só depois de portar as 3 ações), não deletar. Precisa decisão de [W] (toca tela fiscal viva).
+- [ ] Higiene repo (fora do escopo, achado de passagem): há **arquivos com colisão de caixa** no git que quebram no Windows — `RecurringBilling/.../pt-BR` vs `pt-br/recurringbilling.php` e `Fiscal/Nfe-` vs `nfe-visual-comparison.md`.
+
+### new_design_memories
+- **golden**: status fiscal = 1 componente `FiscalStatusBadge` (NFC-e/NF-e/NFS-e · 7 kinds · banner+pill · oklch único); NfceStatusBadge vira wrapper de polling que delega; FiscalSection consome o pill.
+- **conflito (corrigido)**: o achado "4 implementações iguais" era ~50% — Oficina não tem badge fiscal e NotaDrawer V1 é o funcional (não legado). Só NfceStatusBadge(órfão)+FiscalSection eram a duplicata real do MODELO de polling.
+- **lição**: "deletar o legado" sem ler quem-está-wired pode apagar o funcional — V1 tinha as ações reais; V2 era o protótipo bonito-porém-mock.
