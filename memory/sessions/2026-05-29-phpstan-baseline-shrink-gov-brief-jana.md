@@ -1,5 +1,7 @@
 ---
-date: 2026-05-29
+date: "2026-05-29"
+type: session
+tldr: "Dívida reversa do PR #1939 — consertar no código os 15 erros PHPStan level-5 (9 itens, Gov + Brief + Jana) que vazaram pra main sem ratchet e REMOVER as entradas do baseline (baseline encolhe)."
 topic: "PHPStan baseline shrink — 15 erros level-5 que vazaram pra main sem ratchet (Gov + Brief + Jana)"
 status: pronto pra PR
 branch: fix/phpstan-baseline-shrink-gov-brief-jana
@@ -7,6 +9,10 @@ base: origin/main e14f8ac11
 ---
 
 # RUNBOOK — PHPStan baseline shrink (Governance + Brief + Jana)
+
+## TL;DR
+
+15 erros level-5 (NpmAuditChecker, Meilisearch/DriftChecker config-as-code, RoutesZombieChecker) vazaram pra `main` porque o ratchet PHPStan só roda em PR. Este PR conserta os 9 itens no código e **encolhe** o `phpstan-baseline.neon` removendo as entradas absorvidas no PR #1939.
 
 ## Por que existe
 
