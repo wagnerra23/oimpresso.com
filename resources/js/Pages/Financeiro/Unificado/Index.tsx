@@ -1728,13 +1728,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     {selected.desconto > 0 && (
                       <div>
                         <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Desconto</div>
-                        <div className="mt-0.5 text-emerald-700 tabular-nums">{brl(selected.desconto)}</div>
+                        <div className="mt-0.5 fin-num-pos tabular-nums">{brl(selected.desconto)}</div>
                       </div>
                     )}
                     {selected.juros > 0 && (
                       <div>
                         <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Juros / Multa</div>
-                        <div className="mt-0.5 text-rose-700 tabular-nums">{brl(selected.juros)}</div>
+                        <div className="mt-0.5 fin-num-neg tabular-nums">{brl(selected.juros)}</div>
                       </div>
                     )}
                   </div>
