@@ -1341,6 +1341,20 @@ Delta #4 do protótipo Cowork "Nova OS" — botão **"+ orçamento"** na inspeç
 - [x] `DviBudgetSection` (Show) — lista vistoria + botão "+orçamento" optimistic
 - [x] Pest (conversão 201 + idempotência 409 + cross-OS 404)
 
+### US-OFICINA-041 · Gate de aprovação do cliente in-screen
+
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> blocked_by: —
+
+Delta #5 do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O mecânico envia o orçamento pro cliente aprovar com 1 clique; a execução não inicia até aprovar. **Reusa o pipeline automático existente** (US-OFICINA-014): transicionar status → `orcamento` faz o `ServiceOrderObserver` despachar o `EnviarLinkAprovacaoWhatsappJob` (link público + PIN). O gate visual no Show reflete aguardando→aprovado.
+
+**DoD:**
+- [x] `ServiceOrderController::enviarAprovacao` — status → orcamento (dispara Observer WhatsApp); Policy update; rejeita estados terminais
+- [x] Rota `POST ordens-servico/{order}/enviar-aprovacao` (throttle 30,1)
+- [x] `ApprovalGateCard` (Show) — 3 estados (pré/aguardando/aprovado), tokens semânticos success/warning
+- [x] Pest (status→orcamento + job disparado · OS aprovada não reenvia)
+- ℹ️ "Reenviar link" (job idempotência 7d) fica pra US futura
+
 ---
 
-**Última atualização:** 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
