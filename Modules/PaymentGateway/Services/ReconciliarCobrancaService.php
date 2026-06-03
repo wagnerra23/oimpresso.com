@@ -45,7 +45,7 @@ class ReconciliarCobrancaService
         \DateTimeImmutable $pagaEm,
         string $formaPagamento = 'pix',
     ): void {
-        if ($cobranca->status !== 'paga') {
+        if ($cobranca->getAttribute('status') !== 'paga') {
             $cobranca->update([
                 'status'              => 'paga',
                 'valor_pago_centavos' => $valorPagoCentavos,
