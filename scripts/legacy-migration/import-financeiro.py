@@ -152,11 +152,20 @@ def map_tipo(raw: str) -> str:
 
 
 def map_status(raw_status, datapagto, kind) -> str:
-    """FINANCEIRO.STATUS + DATAPAGTO + kind → fin_titulos.status enum."""
+    """FINANCEIRO.STATUS + DATAPAGTO + kind → fin_titulos.status enum.
+
+    Regra Wagner 2026-06-03: STATUS que começa com "INATIVO" = lançamento
+    NÃO-VÁLIDO → 'cancelado' (escondido do financeiro; só visível no filtro
+    "Arquivados"). Tem PRECEDÊNCIA sobre DATAPAGTO — um título cancelado que
+    tinha data de pagamento (pago e depois cancelado no WR) NÃO é um recebimento
+    válido e não pode somar no caixa. Bug catalogado: 2.683 títulos "INATIVO
+    CANCELADA" de biz=164 (Martinho) vinham como 'quitado' (~R$ [redacted Tier 0]M indevidos).
+    """
+    s = (raw_status or "").upper().strip()
+    if s.startswith("INATIVO") or kind == "real_cancelado":
+        return "cancelado"
     if datapagto is not None:
         return "quitado"
-    if kind == "real_cancelado":
-        return "cancelado"
     return "aberto"
 
 
