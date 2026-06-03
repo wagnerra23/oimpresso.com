@@ -3,13 +3,21 @@ slug: modules-nfse-spec
 title: "Modules/NFSe — SPEC"
 type: spec
 module: NFSe
-status: in_progress
+status: ativo
 authority: canonical
 owner: "[E] Eliana"
-related_adrs: [0093, 0094, 0105, 0153, 0154, 0156]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0153-module-grade-rubrica-v1
+  - 0154-module-grade-v2-na-justificado
+  - 0156-module-grade-v3-errata-otel-helper-na-justified
 na_justified:
   D5: "Cliente único biz=1 oimpresso interno (empresa Wagner em Tubarão-SC) — NÃO ROTA LIVRE/Larissa biz=4. Módulo standalone single-tenant intencional [adr/arq/0001-cliente-oimpresso-modulo-standalone.md](adr/arq/0001-cliente-oimpresso-modulo-standalone.md) — sem cliente externo qualificado [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)."
 pii: false
+version: "1.0.0"
+last_updated: "2026-06-03"
 updated_at: 2026-05-16
 ---
 
@@ -45,7 +53,7 @@ Permitir que a empresa **oimpresso** emita NFSe da **prefeitura de Tubarão-SC**
 
 ---
 
-## Lista de tasks Eliana (US-NFSE-NNN)
+## US ativas — tasks Eliana (US-NFSE-NNN)
 
 Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não calendário).
 
@@ -212,6 +220,26 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 - [ ] Tela de configuração `/nfse/config` (provider + cert + dados fiscais por business)
 - [ ] Permission gating (só superadmin oimpresso libera)
 - [ ] **ROTA LIVRE permanece OFF** (config flag `nfse_habilitado=false` no business 4)
+
+---
+
+### US-NFSE-015 · Ambiente per-business em consultar()/cancelar() do SnNfseAdapter
+
+> owner: eliana · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Follow-up do cutover fiscal Martinho (biz=164, PR #2147 merge `77ced51`).
+
+A EMISSÃO NFS-e já resolve ambiente per-business (`$payload->ambiente` ← `NfseProviderConfig.ambiente`). Falta alinhar `SnNfseAdapter::consultar()` e `cancelar()`, que ainda usam o ambiente do **bind global** (`config('nfse.ambiente')`) porque recebem só strings (`$protocolo`/`$numero`), sem contexto de business.
+
+**Risco:** depois que um business vai pra produção, um cancelamento/consulta cai no endpoint errado (homolog) e falha. Hoje NÃO é regressão (já eram globais), mas vira bug quando biz=164 estiver em prod.
+
+**Aceite:**
+- `NfseProviderInterface::consultar/cancelar` recebem o ambiente do tenant (via param ou resolvendo `NfseProviderConfig` por `business_id` da `NfseEmissao`).
+- `NfseEmissaoService::cancelar(NfseEmissao $emissao)` passa o ambiente correto.
+- Teste Pest cobrindo cancelar em prod vs homolog (Http::fake, igual `AmbientePorBusinessTest`).
+
+Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `prototipo-ui/CODE_NOTES.md` (2026-06-03). Escopo "PR separado" conforme prompt do cutover.
 
 ---
 
