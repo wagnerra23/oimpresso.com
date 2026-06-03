@@ -1,4 +1,8 @@
 ---
+module: ProjectMgmt
+owner: wagner
+version: "2.0.0"
+last_updated: "2026-05-08"
 project: PMG
 default_component: UI
 na_justified:
