@@ -483,6 +483,9 @@
             "R1": 12,
             "R3": 5
         },
+        "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinBaixaSheet.tsx": {
+            "R1": 1
+        },
         "resources\/js\/Pages\/Financeiro\/Unificado\/_components\/FinChecklistFechamento.tsx": {
             "R3": 1
         },

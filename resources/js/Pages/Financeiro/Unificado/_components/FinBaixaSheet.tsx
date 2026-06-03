@@ -9,7 +9,7 @@
 // body vazio = comportamento legacy preservado).
 
 import { useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, type FormEvent } from 'react';
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -74,7 +74,7 @@ export function FinBaixaSheet({ open, onClose, lancamento, contas, planos }: Fin
 
   const parcial = form.data.valor_baixa > 0 && form.data.valor_baixa < aberto - 0.001;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     const data: Record<string, unknown> = {
       valor_baixa: form.data.valor_baixa,
