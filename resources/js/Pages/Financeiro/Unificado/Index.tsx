@@ -94,6 +94,14 @@ interface Lancamento {
   // true quando veio da baixa → read-only (espelha valor_mutavel).
   forma_pagamento: MeioPagamento | null;
   forma_pagamento_realizada: boolean;
+  // Paridade campos lançamento WR (Fase 1 — 2026-06-03). Dado já disponível
+  // (coluna ou metadata.delphi_* dos migrados). null/0 quando ausente.
+  emissao: string | null;          // ISO yyyy-mm-dd (dt lançamento/emissão)
+  competencia_mes: string | null;  // "YYYY-MM"
+  condicao_pagamento: string | null;
+  desconto: number;
+  juros: number;
+  documento: string | null;        // = CODPEDIDO do WR (fallback nº NF)
   vencimento: string;            // ISO yyyy-mm-dd
   vencimento_label: string;      // "qua, 14 mai"
   liquidacao: string | null;
@@ -1680,7 +1688,20 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     </div>
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Documento</div>
-                      <div className="mt-0.5 text-stone-700 font-mono text-[12px]">{selected.nfe_numero || '—'}</div>
+                      <div className="mt-0.5 text-stone-700 font-mono text-[12px]">{selected.documento || '—'}</div>
+                    </div>
+                    {/* Paridade campos lançamento WR (Fase 1 — 2026-06-03) */}
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Emissão</div>
+                      <div className="mt-0.5 text-stone-700">{selected.emissao ? selected.emissao.split('-').reverse().join('/') : '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Competência</div>
+                      <div className="mt-0.5 text-stone-700">{selected.competencia_mes ? selected.competencia_mes.split('-').reverse().join('/') : '—'}</div>
+                    </div>
+                    <div className="col-span-2">
+                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Condição de pagamento</div>
+                      <div className="mt-0.5 text-stone-700">{selected.condicao_pagamento || '—'}</div>
                     </div>
                     {/* 2026-06-03: forma de pagamento. Realizada (baixa) vem com hint read-only. */}
                     <div>
@@ -1703,6 +1724,19 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         <span>{selected.conta_bancaria || '—'}</span>
                       </div>
                     </div>
+                    {/* Desconto / Juros — só aparecem quando há valor (Fase 1 WR) */}
+                    {selected.desconto > 0 && (
+                      <div>
+                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Desconto</div>
+                        <div className="mt-0.5 text-emerald-700 tabular-nums">{brl(selected.desconto)}</div>
+                      </div>
+                    )}
+                    {selected.juros > 0 && (
+                      <div>
+                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Juros / Multa</div>
+                        <div className="mt-0.5 text-rose-700 tabular-nums">{brl(selected.juros)}</div>
+                      </div>
+                    )}
                   </div>
 
                   {selected.observacao && (

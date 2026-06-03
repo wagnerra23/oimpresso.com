@@ -1185,8 +1185,19 @@ class UnificadoController extends Controller
             'conta_bancaria' => $contaBancariaNome,
             // Forma de pagamento: a REALIZADA (última baixa) manda quando existe
             // e é read-only; senão a PREVISTA (titulo.forma_pagamento), editável.
-            'forma_pagamento' => $ultimaBaixa?->meio_pagamento ?? $t->forma_pagamento,
+            // Fallback `delphi_tipopagto` (metadata) pros títulos migrados do WR.
+            'forma_pagamento' => $ultimaBaixa?->meio_pagamento ?? $t->forma_pagamento ?? ($metadata['delphi_tipopagto'] ?? null),
             'forma_pagamento_realizada' => $ultimaBaixa?->meio_pagamento !== null,
+            // Paridade campos lançamento WR (Fase 1 — 2026-06-03): dado já disponível
+            // (coluna ou metadata.delphi_* dos migrados). Fase 2 (doc/NF real, conta,
+            // plano de contas, usuário WR, cheque, dt NF) exige re-import.
+            'emissao' => $t->emissao?->toDateString(),
+            'competencia_mes' => $t->competencia_mes,
+            'condicao_pagamento' => $metadata['delphi_condicaopagto'] ?? null,
+            'desconto' => (float) ($metadata['delphi_desconto'] ?? 0),
+            'juros' => (float) ($metadata['delphi_juros'] ?? 0),
+            // Documento = CODPEDIDO do WR (Wagner 2026-06-03); fallback nº NF se houver.
+            'documento' => $metadata['delphi_codpedido'] ?? $nfeNumero ?? null,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
             'liquidacao' => $ultimaBaixa?->data_baixa?->locale('pt_BR')->isoFormat('DD MMM'),
