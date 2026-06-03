@@ -21,6 +21,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
 import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
+import { FORMA_PAGAMENTO_OPCOES, formaPagamentoLabel } from '../_lib/forma-pagamento';
 
 interface Categoria {
   id: number;
@@ -42,6 +43,9 @@ interface Lancamento {
   observacao: string | null;
   valor_mutavel: boolean;
   status: string;
+  // 2026-06-03 — forma de pagamento. Editável só se não-realizada (sem baixa).
+  forma_pagamento: string | null;
+  forma_pagamento_realizada: boolean;
 }
 
 interface TituloEditSheetProps {
@@ -60,6 +64,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
     plano_conta_id: lancamento.plano_conta_id as number | null,
     vencimento: lancamento.vencimento,
     valor_total: lancamento.valor,
+    forma_pagamento: lancamento.forma_pagamento ?? '',
   });
 
   // Reset form quando trocar de lançamento sem fechar.
@@ -71,6 +76,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
       plano_conta_id: lancamento.plano_conta_id as number | null,
       vencimento: lancamento.vencimento,
       valor_total: lancamento.valor,
+      forma_pagamento: lancamento.forma_pagamento ?? '',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lancamento.id]);
@@ -87,6 +93,10 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
     };
     if (lancamento.valor_mutavel) {
       data.valor_total = form.data.valor_total;
+    }
+    // Forma só editável quando NÃO-realizada (sem baixa). Realizada vem da baixa (read-only).
+    if (!lancamento.forma_pagamento_realizada) {
+      data.forma_pagamento = form.data.forma_pagamento || null;
     }
     form.put(`/financeiro/unificado/${lancamento.id}`, {
       ...({ data } as any),
@@ -148,6 +158,38 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
             </Select>
             {form.errors.categoria_id && (
               <p className="text-[11px] text-rose-600">{form.errors.categoria_id}</p>
+            )}
+          </div>
+
+          {/* 2026-06-03 — Forma de pagamento. Editável só se não-realizada (sem baixa);
+              quando pago, mostra read-only a forma que veio da baixa. */}
+          <div className="space-y-1.5">
+            <label htmlFor="ed-forma" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+              Forma de pagamento
+              {lancamento.forma_pagamento_realizada && (
+                <span className="ml-2 normal-case text-[10px] text-stone-500">· da baixa (read-only)</span>
+              )}
+            </label>
+            {lancamento.forma_pagamento_realizada ? (
+              <Input value={formaPagamentoLabel(lancamento.forma_pagamento)} disabled className="bg-stone-100 cursor-not-allowed" />
+            ) : (
+              <Select
+                value={form.data.forma_pagamento || '__none__'}
+                onValueChange={(v) => form.setData('forma_pagamento', v === '__none__' ? '' : v)}
+              >
+                <SelectTrigger id="ed-forma" aria-label="Forma de pagamento">
+                  <SelectValue placeholder="— a definir —" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">— a definir —</SelectItem>
+                  {FORMA_PAGAMENTO_OPCOES.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {form.errors.forma_pagamento && (
+              <p className="text-[11px] text-destructive">{form.errors.forma_pagamento}</p>
             )}
           </div>
 
