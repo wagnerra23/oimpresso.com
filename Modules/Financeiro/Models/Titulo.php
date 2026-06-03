@@ -20,6 +20,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *     → parcial (0 < valor_aberto < valor_total)
  *     → quitado (valor_aberto = 0)
  *     → cancelado (em qualquer momento via ContractCanceled / TransactionCancelled)
+ *
+ * @property \Illuminate\Support\Carbon|null $emissao
+ * @property string|null $competencia_mes
  */
 class Titulo extends Model
 {
