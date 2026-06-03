@@ -1248,6 +1248,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             NF/Vendas do WR exigem link título→transaction (origem_id), ainda
             pendente. */}
         <div className="fin-filter-group" role="group" aria-label="Filtro por data">
+          {/* native <select> consistente com o select de Plano de Contas logo abaixo
+              (mesma classe fin-filter-select). Migração toolbar-wide pro <Select> do DS
+              é escopo separado — não converto só este pra não destoar do vizinho. */}
+          {/* eslint-disable-next-line no-restricted-syntax -- ds/no-native-select: paridade visual com select adjacente (fin-filter-select) */}
           <select
             className="fin-filter-select"
             value={filters.data_campo}
