@@ -164,6 +164,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->middleware('throttle:60,1')
             ->name('oficinaauto.orders.dvi.destroy');
 
+        // US-OFICINA-040 — Converte item DVI reprovado/atenção em linha de orçamento
+        // (delta protótipo Cowork "Nova OS" · botão "+ orçamento"). Cria ServiceOrderItem.
+        Route::post('ordens-servico/{order}/dvi/{item}/to-orcamento',
+            [DviInspectionController::class, 'toOrcamento'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.dvi.to-orcamento');
+
         // ─────────────────────────────────────────────────────────────────────
         // Gap 1 (2026-05-26) — Upload foto/laudo item DVI via Modules/Arquivos.
         // Substitui placeholder V2 FOTOS no drawer ServiceOrderRichSheet.
