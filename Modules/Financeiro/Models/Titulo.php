@@ -25,6 +25,23 @@ class Titulo extends Model
 {
     use HasFactory, SoftDeletes, BusinessScope, LogsActivity;
 
+    /**
+     * Formas de pagamento canônicas — espelha o enum de
+     * fin_titulo_baixas.meio_pagamento. Reutilizado nas Requests (validação)
+     * e na migration que cria a coluna forma_pagamento. Fonte única da verdade.
+     */
+    public const FORMAS_PAGAMENTO = [
+        'dinheiro',
+        'pix',
+        'boleto',
+        'cartao_credito',
+        'cartao_debito',
+        'transferencia',
+        'cheque',
+        'compensacao',
+        'outro',
+    ];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -43,6 +60,7 @@ class Titulo extends Model
         'emissao', 'vencimento', 'competencia_mes',
         'origem', 'origem_id', 'parcela_numero', 'parcela_total', 'titulo_pai_id',
         'plano_conta_id', 'categoria_id',
+        'forma_pagamento',
         'observacoes', 'metadata',
         'created_by', 'updated_by',
         'conferido_by', 'conferido_at',
