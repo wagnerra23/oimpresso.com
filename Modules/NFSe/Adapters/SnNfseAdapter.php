@@ -27,17 +27,36 @@ class SnNfseAdapter implements NfseProviderInterface
 
     public function __construct(private readonly string $ambiente = 'homologacao')
     {
-        $this->baseUrl = $ambiente === 'producao'
+        // Fallback global usado APENAS por consultar()/cancelar() (sem contexto de
+        // payload por-business). A EMISSÃO resolve o ambiente POR-BUSINESS via
+        // $payload->ambiente — ver emitir()/resolveBaseUrl().
+        $this->baseUrl = $this->resolveBaseUrl($ambiente);
+    }
+
+    /**
+     * Resolve o endpoint SN-NFSe a partir do ambiente.
+     *
+     * Cutover fiscal por-business: o ambiente da EMISSÃO vem do payload
+     * (nfse_provider_configs.ambiente do tenant), NÃO do bind global
+     * config('nfse.ambiente'). Ligar produção pra um business (ex: biz=164)
+     * NÃO pode afetar outros tenants (ROTA LIVRE etc).
+     */
+    private function resolveBaseUrl(string $ambiente): string
+    {
+        return $ambiente === 'producao'
             ? config('nfse.endpoints.producao', 'https://sefin.nfse.gov.br/sefinnacional')
             : config('nfse.endpoints.homologacao', 'https://sefin.producaorestrita.nfse.gov.br/sefinnacional');
     }
 
     public function emitir(NfseEmissaoPayload $payload): NfseResultado
     {
+        // Ambiente POR-BUSINESS: endpoint e tpAmb derivam do payload do tenant,
+        // não do bind global. Isola o cutover de produção a 1 business.
+        $baseUrl = $this->resolveBaseUrl($payload->ambiente);
         try {
             $response = Http::timeout(30)
                 ->withOptions(['cert' => $this->certPath($payload)])
-                ->post("{$this->baseUrl}/nfse", $this->buildDps($payload));
+                ->post("{$baseUrl}/nfse", $this->buildDps($payload));
 
             if ($response->serverError() || $response->clientError()) {
                 $this->parseErro($response->json());
@@ -88,7 +107,8 @@ class SnNfseAdapter implements NfseProviderInterface
     {
         return [
             'infDps' => [
-                'tpAmb'    => $this->ambiente === 'producao' ? 1 : 2,
+                // tpAmb POR-BUSINESS (1=produção, 2=homologação) — do payload do tenant.
+                'tpAmb'    => $payload->ambiente === 'producao' ? 1 : 2,
                 'serie'    => 'RPS',
                 'nDPS'     => $payload->rpsNumero,
                 'dhEmi'    => now()->toIso8601String(),
