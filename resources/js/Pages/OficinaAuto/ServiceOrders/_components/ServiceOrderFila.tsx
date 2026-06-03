@@ -241,7 +241,7 @@ function OsDetailInline({
           )}
           <div>
             <dt className="text-xs text-muted-foreground">A receber</dt>
-            <dd className={cn('tabular-nums', Number(o.valor_receber ?? 0) > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-foreground')}>
+            <dd className={cn('tabular-nums', Number(o.valor_receber ?? 0) > 0 ? 'text-warning' : 'text-foreground')}>
               {formatBRL(o.valor_receber)}
             </dd>
           </div>
