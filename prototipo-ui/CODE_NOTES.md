@@ -728,3 +728,22 @@ Worktree off `origin/main` (@ `4b3b742e8`). Single-intent: **só `resources/css/
 ### new_design_memories
 - **golden**: buraco do DS vira token na fundação primeiro (PR1 aditivo isolado), tela consome depois — `--stage-*` nasceu assim (receita DS v6, passo 5).
 - **gotcha**: token com variante dark só resolve o dark sob `[data-theme="dark"]`; ilha dark fixa (`position:fixed` fora do seletor) precisa redeclarar local, senão `var(--token)` puxa o light.
+
+---
+
+## 2026-06-03 [CL] → [W] · DS v6 PR2 — reuse-mapping do kit `c-*` (PR #2181)
+
+Branch `feat/ds-v6-kit-reuse-map` (base PR1 `2520c8a56`). Single-intent: **só docs** (`REUSE_MAPPING.md` novo + ponteiros em `REGISTRY_DS_COMPONENTES.md` e `DS_ADOCAO_INDICE.md`).
+
+**Passo 0 reuse-first concluído:** mapeei os 11 `c-*` do `showcase.html` → React no repo.
+- **8/11 reusam** (Button cowork-primary · Badge/StatusBadge · OsStageBadge · KpiCard · Segmented · MercosulPlate · LinkedApps · +DviPhotoGrid). Régua valida o existente; **nada recriado**.
+- **3 gaps = Tier-0, NÃO criados:** `c-id` (ficha 360), `c-tl` (timeline unificada cross-módulo), `c-nba` (próxima-melhor-ação Jana). Catalogados como buraco do DS — nascem na 1ª tela que os consome via MWART (0104) + gate visual (0107/0114) + [W] aprova screenshot. `c-asset` genérico deferido (composição já existe nos Kanbans).
+- **Dívida catalogada (não deste PR):** `MercosulPlate.tsx` usa `oklch` cru pro azul Mercosul (cor institucional, não semântica) → tokenizar/exceção = decisão [W] futura.
+
+**Processo:** o trabalho de análise foi feito por um agente background que **travou ~1h15 pós-análise sem commitar**. [W] mandou "assumir e mergear" → finalizei e abri PR. **Não cunhei ADR** (soberania [W], 0238).
+
+**Fica de [W] (Tier 0):** criar (quando portar a 1ª tela de ficha/CRM 360) os 3 componentes `c-id`/`c-tl`-unificada/`c-nba` no `@/Components/ui` consumindo só token, e registrá-los (Onda nova no REGISTRY). PR3 (port `Sells/Index.tsx`) segue separado, com teu screenshot.
+
+### new_design_memories
+- **golden**: o reuse-map é o filtro anti-recriação — a maioria do "kit novo" já existe sob outro nome (shadcn/CVA/bespoke); a régua valida, não duplica.
+- **gotcha**: componente que vira padrão visual do app é Tier-0 mesmo sendo "só um card" — não nasce solto; nasce amarrado à 1ª tela real, via MWART + gate + [W].
