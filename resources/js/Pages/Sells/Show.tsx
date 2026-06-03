@@ -18,8 +18,10 @@ import {
   Package,
   Phone,
   Printer,
+  Trash2,
   User as UserIcon,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -111,7 +113,7 @@ export interface SellsShowPageProps {
   headline: Headline;
   detail?: ShowDetail;  // deferred
   permissions: { edit: boolean; delete: boolean; print: boolean };
-  urls: { edit: string; print: string; sheet_data: string; back: string };
+  urls: { edit: string; destroy: string; print: string; sheet_data: string; back: string };
 }
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
@@ -151,6 +153,11 @@ function formatDateTime(input: string): string {
   }).format(d);
 }
 
+function getCsrfToken(): string {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta?.getAttribute('content') ?? '';
+}
+
 function DetailSkeleton() {
   return (
     <div className="space-y-4">
@@ -164,6 +171,7 @@ function DetailSkeleton() {
 export default function SellsShow(props: SellsShowPageProps) {
   const { headline, urls, permissions } = props;
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   // KB-9.75 P0 gaps #2/#3 — emit modals abertos via VdNextActionPanel gate.
   const [emitModalKind, setEmitModalKind] = useState<'nfe' | 'nfse' | null>(null);
   // KB-9.75 P2 gaps #8/#9 — printMode controla render dos overlays Cowork (Recibo 80mm + Orçamento A4)
@@ -215,6 +223,40 @@ export default function SellsShow(props: SellsShowPageProps) {
   }, [permissions.print]);
 
   const handleCoworkPrintClose = useCallback(() => setPrintMode(null), []);
+
+  // Excluir venda — endpoint legacy SellPosController::destroy (JSON, exige request()->ajax()).
+  // Mesmo padrão fetch+CSRF de FsmActionPanel. On success volta pra listagem (/sells).
+  const handleDelete = useCallback(async () => {
+    if (!permissions.delete || isDeleting) return;
+    const ok = window.confirm(
+      `Excluir a venda #${headline.invoice_no}? Esta ação não pode ser desfeita.`,
+    );
+    if (!ok) return;
+    setIsDeleting(true);
+    try {
+      const csrf = getCsrfToken();
+      const res = await fetch(urls.destroy, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        toast.error(json?.msg ?? `Falha ao excluir (HTTP ${res.status})`);
+        return;
+      }
+      toast.success(json?.msg ?? 'Venda excluída.');
+      router.visit(urls.back);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao excluir a venda.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [permissions.delete, isDeleting, headline.invoice_no, urls.destroy, urls.back]);
 
   // Atalhos teclado E (edit) + P (print) + ? (cheat-sheet KB-9.75 gap #12) + Esc (back/close).
   // Quando cheatOpen, todos os outros atalhos ficam suprimidos — o próprio
@@ -316,6 +358,17 @@ export default function SellsShow(props: SellsShowPageProps) {
                   <Edit className="h-4 w-4 mr-2" />
                   Editar
                 </Link>
+              </Button>
+            )}
+            {permissions.delete && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isDeleting ? 'Excluindo…' : 'Excluir'}
               </Button>
             )}
           </div>
