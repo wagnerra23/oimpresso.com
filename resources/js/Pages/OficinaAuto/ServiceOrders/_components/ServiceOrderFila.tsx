@@ -102,7 +102,7 @@ function FilaItem({
     >
       <div className="flex items-center justify-between gap-2">
         <ServiceOrderStatusBadge status={o.status} orderType={o.order_type} isOverdue={overdue} />
-        <span className={cn('text-[11px] tabular-nums', overdue ? 'font-medium text-rose-600' : 'text-muted-foreground')}>
+        <span className={cn('text-[11px] tabular-nums', overdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>
           {formatBRDate(prazo)}
         </span>
       </div>
@@ -228,7 +228,7 @@ function OsDetailInline({
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">Prazo</dt>
-            <dd className={cn('tabular-nums', overdue ? 'font-medium text-rose-600' : 'text-foreground')}>
+            <dd className={cn('tabular-nums', overdue ? 'font-medium text-destructive' : 'text-foreground')}>
               {formatBRDate(prazo)}
               {overdue && ' ⚠'}
             </dd>
@@ -300,7 +300,7 @@ function AppsRail({
           </div>
           <div className="flex justify-between gap-2">
             <dt className="text-muted-foreground">Prazo</dt>
-            <dd className={cn('tabular-nums', overdue ? 'font-medium text-rose-600' : 'text-foreground')}>{formatBRDate(prazo)}</dd>
+            <dd className={cn('tabular-nums', overdue ? 'font-medium text-destructive' : 'text-foreground')}>{formatBRDate(prazo)}</dd>
           </div>
           <div className="flex justify-between gap-2">
             <dt className="text-muted-foreground">A receber</dt>
