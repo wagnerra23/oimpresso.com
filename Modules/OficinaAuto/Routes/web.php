@@ -72,6 +72,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.destroy');
 
+        // US-OFICINA-041 — Gate de aprovação: envia orçamento pro cliente (status → orcamento,
+        // Observer dispara WhatsApp link+PIN). Delta protótipo Cowork "Nova OS".
+        Route::post('ordens-servico/{order}/enviar-aprovacao',
+            [ServiceOrderController::class, 'enviarAprovacao'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.enviar-aprovacao');
+
         // ─────────────────────────────────────────────────────────────────────
         // Gap 3 — Imprimir OS PDF profissional A4 (US-OFICINA-037).
         // AJAX-only endpoint que retorna {success, receipt:{html_content,print_title}}.

@@ -18,6 +18,7 @@ import ServiceOrderItemRow, {
 } from './_components/ServiceOrderItemRow';
 import ServiceOrderItemFormSheet from './_components/ServiceOrderItemFormSheet';
 import DviBudgetSection, { type DviItemDto } from './_components/DviBudgetSection';
+import ApprovalGateCard from './_components/ApprovalGateCard';
 
 interface ServiceOrder {
   id: number;
@@ -275,6 +276,9 @@ export default function ServiceOrdersShow({ order }: Props) {
             </div>
           )}
         </div>
+
+        {/* Gate de aprovação do cliente (US-OFICINA-041) — execução travada até aprovar */}
+        <ApprovalGateCard serviceOrderId={order.id} status={order.status} />
 
         {/* Vistoria DVI → orçamento (US-OFICINA-040) — item reprovado vira linha de orçamento */}
         <DviBudgetSection
