@@ -447,19 +447,37 @@ class SellPosController extends Controller
                     ]);
                     $input['transaction_date'] = \Carbon::now();
                 } else {
-                    // 2026-06-04 (Wagner) — uf_date pode devolver vazio/inválido se o valor
-                    // vier num formato que não bate com o date_format do business (bug do
-                    // campo "Data da venda" vazio no /sells/create). Sem isso, a venda grava
-                    // com transaction_date nulo/0000 e SOME da consulta (filtra por data).
-                    try {
-                        $parsedDate = $this->productUtil->uf_date($request->input('transaction_date'), true);
-                    } catch (\Throwable $e) {
-                        $parsedDate = null;
+                    // 2026-06-04 (Wagner) — a venda gravava com transaction_date inválido e
+                    // SUMIA da consulta (que filtra por data). Causa: o form Inertia
+                    // (/sells/create) envia SEMPRE "d/m/Y H:i" (guard R9), mas uf_date()
+                    // parseia com o date_format do business — se o business usa OUTRO
+                    // formato (ex: Martinho), o uf_date mis-parseia / devolve vazio e a
+                    // data grava nula/0000.
+                    // Fix: quando o valor bate o padrão d/m/Y H:i do Inertia, parsear
+                    // explícito com Carbon (independente do date_format). Só cai no uf_date
+                    // legacy (POS Blade) quando NÃO é o formato do Inertia.
+                    $rawDate = (string) $request->input('transaction_date');
+                    $parsedDate = null;
+                    if (preg_match('#^(\d{2})/(\d{2})/(\d{4})\s+(\d{2}):(\d{2})#', $rawDate, $m)) {
+                        try {
+                            $parsedDate = \Carbon::createFromFormat(
+                                'd/m/Y H:i',
+                                "{$m[1]}/{$m[2]}/{$m[3]} {$m[4]}:{$m[5]}"
+                            );
+                        } catch (\Throwable $e) {
+                            $parsedDate = null;
+                        }
+                    } else {
+                        try {
+                            $parsedDate = $this->productUtil->uf_date($rawDate, true);
+                        } catch (\Throwable $e) {
+                            $parsedDate = null;
+                        }
                     }
                     if (empty($parsedDate) || strtotime((string) $parsedDate) === false) {
                         \Log::warning('SellPosController@store transaction_date não-parseável — fallback Carbon::now()', [
                             'business_id' => $business_id ?? null,
-                            'raw_value' => json_encode($request->input('transaction_date')),
+                            'raw_value' => json_encode($rawDate),
                         ]);
                         $parsedDate = \Carbon::now();
                     }
