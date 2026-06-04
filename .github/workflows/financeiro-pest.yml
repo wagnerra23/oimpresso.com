@@ -180,4 +180,5 @@ jobs:
             Modules/Financeiro/Tests/Feature/PluggyIntegrationTest.php \
             Modules/Financeiro/Tests/Feature/TituloRepositoryWave18Test.php \
             Modules/Financeiro/Tests/Feature/Wave27PolishTest.php \
-            Modules/Financeiro/Tests/Feature/Wave28PolishTest.php
+            Modules/Financeiro/Tests/Feature/Wave28PolishTest.php \
+            Modules/Financeiro/Tests/Feature/MultiTenantComprehensiveTest.php
