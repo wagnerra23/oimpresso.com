@@ -1,0 +1,74 @@
+// Tailscale ACL — oimpresso (tailnet wagnerra@gmail.com / controlplane.tailscale.com)
+// FONTE DE VERDADE VERSIONADA. Alterações: editar aqui + aplicar no painel
+// (Access Controls) ou via API. Histórico de versões fica também no painel.
+//
+// Modelo: least-privilege por grupo + tag.
+//  - group:admin  (Wagner) = acesso total (mantém o comportamento antigo).
+//  - group:suporte (Maiara/Felipe, L2) = SOMENTE CT 100, SOMENTE SSH, como
+//    usuário próprio NÃO-root, via Tailscale SSH em modo `check` (re-autentica).
+// Substitui o antigo grant catch-all {"src":["*"],"dst":["*"],"ip":["*"]} que
+// dava a TODO device acesso a TODA máquina/porta (o vazamento real).
+// Ref: memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md
+{
+	"groups": {
+		"group:admin":   ["wagnerra@gmail.com"],
+		// Maiara usa a conta wr2backup@gmail.com ("WR2 Sistema"); Felipe felipewr2@gmail.com.
+		"group:suporte": ["wr2backup@gmail.com", "felipewr2@gmail.com"],
+	},
+
+	// CT 100 precisa receber a tag tag:ct100 no painel (Machines → ct100-mcp →
+	// Edit ACL tags). Sem isso as regras abaixo não casam com ele.
+	"tagOwners": {
+		"tag:ct100": ["group:admin"],
+		// Nó tsrecorder (container no CT 100) que grava as sessões SSH da suporte.
+		"tag:session-recorder": ["group:admin"],
+	},
+
+	"grants": [
+		// Admin (Wagner): acesso total — preserva tudo que já existia.
+		{"src": ["group:admin"], "dst": ["*"], "ip": ["*"]},
+
+		// Suporte: SOMENTE o CT 100, SOMENTE a porta SSH (nada de Proxmox,
+		// nada de outras máquinas, nada de outras portas).
+		{"src": ["group:suporte"], "dst": ["tag:ct100"], "ip": ["tcp:22"]},
+	],
+
+	"ssh": [
+		// Admin (dono do tailnet) entra no CT 100 como root. `accept` (não
+		// `check`) pra não quebrar automação non-interactive do Wagner/Claude.
+		{
+			"action": "accept",
+			"src":    ["group:admin"],
+			"dst":    ["tag:ct100"],
+			"users":  ["autogroup:nonroot", "root"],
+		},
+
+		// Maiara (conta wr2backup@gmail.com / "WR2 Sistema") -> unix `maiara`, nunca root.
+		{
+			"action": "check",
+			"src":    ["wr2backup@gmail.com"],
+			"dst":    ["tag:ct100"],
+			"users":  ["maiara"],
+			"recorder": ["tag:session-recorder"],
+			"enforceRecorder": false, // false: hiccup do recorder não bloqueia o acesso
+		},
+
+		// Felipe entra no CT 100 SOMENTE como usuário `felipe` (nunca root).
+		{
+			"action": "check",
+			"src":    ["felipewr2@gmail.com"],
+			"dst":    ["tag:ct100"],
+			"users":  ["felipe"],
+			"recorder": ["tag:session-recorder"],
+			"enforceRecorder": false,
+		},
+
+		// Demais máquinas (não-tagueadas): cada um no que é seu (default).
+		{
+			"action": "check",
+			"src":    ["autogroup:member"],
+			"dst":    ["autogroup:self"],
+			"users":  ["autogroup:nonroot", "root"],
+		},
+	],
+}
