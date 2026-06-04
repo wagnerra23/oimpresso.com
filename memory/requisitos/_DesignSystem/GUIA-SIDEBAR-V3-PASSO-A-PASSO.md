@@ -2,6 +2,15 @@
 
 > **Pra quem está se perguntando "como faço pra arrumar a bagunça do sidebar?"** — este guia é seu roteiro executável. Passo a passo, com comandos prontos pra copiar, ordem de execução, e validação visual a cada onda.
 
+> ⚠️ **ERRATA (2026-06-04) — valide os HUES contra o código antes de seguir.** Os valores de hue
+> por grupo deste guia **divergem do canon vivo**, que é o código `cockpit/shared.ts` →
+> `SIDEBAR_GROUP_HUE` (reconciliado em [`INDEX-DESIGN-MEMORIAS §4`](INDEX-DESIGN-MEMORIAS.md), R3).
+> Regra de ouro: **código real > documento**. Cor de marca = roxo `oklch(0.55 0.15 295)`
+> ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md)); nome do DS = **DS v6**
+> ([ADR 0249](../../decisions/0249-ds-v6-naming-amends-0235.md)); **sidebar LIGHT** por padrão
+> (UI-0009 + UI-0014). A **estrutura/ordem de passos** deste guia segue útil; só **não copie hue
+> daqui** — pegue do `shared.ts`.
+
 **Última atualização:** 2026-05-21 · Wagner solicitou guia executável pós-sessão Financeiro
 
 ---
