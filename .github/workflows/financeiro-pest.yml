@@ -159,6 +159,20 @@ jobs:
             } else { echo 'conta ja existe'; }
           " || true
 
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        # O GET /financeiro/unificado renderiza a view Inertia (layouts/inertia.blade
+        # com @vite([inertia.css, app.tsx], 'build-inertia')) → exige o manifest.
+        # assertInertia só lê o data-page do HTML, não os assets reais — então um
+        # manifest stub destrava sem buildar o front inteiro (rápido).
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
       - name: Run Pest (Financeiro guards · MySQL)
         # phpunit.xml força DB_CONNECTION=sqlite :memory: (sem force=) — se não
         # sobrescrever, o Pest roda em sqlite VAZIO e os testes (Business::first())
