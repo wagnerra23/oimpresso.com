@@ -36,7 +36,7 @@ function MercosulPlateImpl({ plate, size = 'sm', className = '' }: Props) {
   const s = SIZES[size];
   return (
     <span
-      className={`inline-flex flex-col rounded border-[1.5px] border-[#334155] overflow-hidden bg-white ${s.wrapper} ${className}`}
+      className={`inline-flex flex-col rounded border-[1.5px] border-[var(--plate-frame)] overflow-hidden bg-white ${s.wrapper} ${className}`}
       style={{ fontFamily: 'ui-monospace, "Cascadia Code", Menlo, monospace', lineHeight: 1 }}
       role="img"
       aria-label={`Placa ${plate}`}
@@ -48,7 +48,7 @@ function MercosulPlateImpl({ plate, size = 'sm', className = '' }: Props) {
         BR · MERCOSUL
       </span>
       <span
-        className={`text-center font-bold text-[#0f172a] ${s.num}`}
+        className={`text-center font-bold text-[var(--plate-ink)] ${s.num}`}
         style={{ letterSpacing: '0.04em' }}
       >
         {plate}
