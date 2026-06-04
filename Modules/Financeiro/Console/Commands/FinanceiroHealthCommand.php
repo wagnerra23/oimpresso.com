@@ -366,7 +366,10 @@ class FinanceiroHealthCommand extends Command
             return $this->makeCheck('caixa_movimento_freshness', 'WARN', null, '<=7d', 'fin_caixa_movimentos ausente', 'Rode migrate.');
         }
 
-        $q = DB::table('fin_caixa_movimentos')->whereNull('deleted_at');
+        // Ledger append-only: fin_caixa_movimentos NÃO tem deleted_at (sem SoftDeletes,
+        // só created_at — ver migration 2026_04_24_140006). Filtrar por coluna inexistente
+        // crashava o command inteiro (SQLSTATE 42S22) onde a tabela existe (prod/CI).
+        $q = DB::table('fin_caixa_movimentos');
         if ($businessId !== null) {
             $q->where('business_id', $businessId);
         }

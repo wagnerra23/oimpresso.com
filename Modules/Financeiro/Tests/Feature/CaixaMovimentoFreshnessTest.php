@@ -3,11 +3,15 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+// US-FIN-053: DatabaseTransactions (rollback por teste, sem re-migrate). RefreshDatabase
+// roda migrate:fresh — dropa FK + limpa o biz=1 seedado, envenenando a lane MySQL
+// compartilhada. skip-guard quando schema/biz não presentes (lanes sem migrate).
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Regressao do check caixa_movimento_freshness (FinanceiroHealthCommand Wave 25 D9 #10).
@@ -19,7 +23,12 @@ uses(Tests\TestCase::class, RefreshDatabase::class);
  *
  * @see Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php (checkCaixaMovimentoFreshness)
  */
-beforeEach(fn () => Carbon::setTestNow(Carbon::create(2026, 5, 31, 12, 0, 0)));
+beforeEach(function () {
+    if (! Schema::hasTable('fin_caixa_movimentos') || ! DB::table('business')->where('id', 1)->exists()) {
+        test()->markTestSkipped('Precisa schema MySQL + biz=1 seedado (lane Financeiro · MySQL).');
+    }
+    Carbon::setTestNow(Carbon::create(2026, 5, 31, 12, 0, 0));
+});
 afterEach(fn () => Carbon::setTestNow());
 
 function finCaixaFreshnessSeed(int $daysAgo): void
