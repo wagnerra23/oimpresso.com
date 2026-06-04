@@ -48,7 +48,11 @@ it('retorna fallback default quando GrowthBook API responde 5xx', function () {
 
     $service = new FeatureFlagService();
 
-    expect($service->isOn('useV2SellsCreate'))->toBeFalse();
+    // 2026-06-04 — GrowthBook inacessível (5xx) DEVE cair no fallback default
+    // (offline-safe). useV2SellsCreate=true. Antes este teste afirmava false,
+    // encodando o bug que derrubava a tela React de venda pro Blade quando o
+    // GrowthBook do CT 100 caía. Ver FeatureFlagService::isOn (array_key_exists).
+    expect($service->isOn('useV2SellsCreate'))->toBeTrue();
 });
 
 it('retorna ON quando GrowthBook fornece flag habilitada', function () {
@@ -124,6 +128,6 @@ it('flag ausente nos features retornados retorna fallback', function () {
 
     $service = new FeatureFlagService();
 
-    expect($service->isOn('useV2SellsCreate'))->toBeFalse(); // fallback default
+    expect($service->isOn('useV2SellsCreate'))->toBeTrue(); // flag ausente nos features → fallback default TRUE
     expect($service->isOn('flagDesconhecida'))->toBeFalse(); // sem fallback explícito → false
 });
