@@ -49,7 +49,9 @@ return new class extends Migration
         Schema::create('nfse_eventos_cancelamento', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('business_id')->index();
-            $table->unsignedBigInteger('nfse_emissao_id');
+            // nfse_emissoes.id é `increments` (unsigned INT) — a coluna FK precisa
+            // ser unsignedInteger pra casar o tipo (senão erro 3780 no migrate fresh).
+            $table->unsignedInteger('nfse_emissao_id');
             $table->string('driver_key', 32)
                 ->comment('ABRASF_V1, ABRASF_V2.04, GINFES, IPM, TIPLAN, NFSE_GOV_BR');
             $table->text('motivo')
