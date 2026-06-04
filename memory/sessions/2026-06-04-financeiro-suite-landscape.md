@@ -4,7 +4,7 @@ hour: "20:30 UTC"
 topic: "Diagnóstico landscape da suíte Pest Financeiro contra schema baseline + catraca allowlist (follow-up US-FIN-052)"
 authors: [C]
 us: [US-FIN-052]
-related_adrs: [0249-qa-de-tela-sustentavel-screen-grade-e2e-catraca]
+related_adrs: [0250-screen-qa-specialist-sustentavel]
 ---
 
 # Financeiro — landscape da suíte Pest contra o baseline (follow-up #2240)
