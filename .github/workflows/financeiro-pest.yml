@@ -115,8 +115,31 @@ jobs:
           php artisan key:generate --force
           php artisan package:discover --ansi
 
-      - name: Migrate (MySQL, FK checks off)
-        run: php artisan migrate --force
+      - name: Migrate (MySQL, tolerante a fresh-install)
+        # As migrations legacy/módulos NÃO foram validadas pra migrate do-zero
+        # (FK ordering 1824, type-mismatch 3780, ->after() em coluna ainda não
+        # criada 1054). No dogfood incremental nunca apareceram. Aqui pulamos a
+        # migration de MÓDULO IRRELEVANTE que quebra (NFSe/Whatsapp/etc não tocam
+        # as tabelas fin_* que os testes precisam), registrando-a como aplicada e
+        # seguindo. As migrations fin_* (bem-formadas) aplicam normalmente.
+        # Solução definitiva = schema:dump baseline (US-FIN-052) — precisa CT100.
+        run: |
+          set +e
+          for i in $(seq 1 60); do
+            OUT="$(php artisan migrate --force 2>&1)"
+            RC=$?
+            echo "$OUT" | tail -6
+            if [ $RC -eq 0 ]; then echo ">>> MIGRATE COMPLETO"; exit 0; fi
+            FAIL="$(printf '%s' "$OUT" | grep -oE '[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]+_[a-zA-Z0-9_]+' | tail -1)"
+            if [ -z "$FAIL" ]; then echo ">>> falha não-migration — aborta"; exit 1; fi
+            case "$FAIL" in
+              *fin_*|*financeiro*) echo ">>> migration Financeiro falhou ($FAIL) — NÃO pula, aborta"; exit 1;;
+            esac
+            echo ">>> pula migration de módulo irrelevante que quebra no fresh-install: $FAIL"
+            mysql -h127.0.0.1 -uroot -proot oimpresso_test \
+              -e "INSERT INTO migrations (migration, batch) VALUES ('$FAIL', 99);"
+          done
+          echo ">>> excedeu 60 skips — aborta"; exit 1
 
       - name: Seed mínimo (biz=1 + users + conta bancária)
         run: |
