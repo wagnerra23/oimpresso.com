@@ -113,26 +113,32 @@ jobs:
         # só as migrations posteriores ao dump. Sem replay fresh-install.
         run: php artisan migrate --force
 
-      - name: Seed mínimo (biz=1 + users + conta bancária)
+      - name: Seed mínimo (biz=1 + user + conta bancária)
+        # DummyBusinessSeeder é stale (insere colunas removidas do schema real, ex
+        # contacts.first_name). Em vez dele, semeamos o MÍNIMO que os testes precisam
+        # (Business::first() + um user + uma conta), com as colunas NOT NULL atuais do
+        # schema baseline, resolvendo o FK circular business.owner_id ↔ users.business_id.
         run: |
           php artisan db:seed --class="Database\\Seeders\\CurrenciesTableSeeder" --force || true
           php artisan db:seed --class="Database\\Seeders\\PermissionsTableSeeder" --force || true
-          # DummyBusinessSeeder é stale: insere contacts.first_name (coluna removida
-          # do schema real). Ele cria business+users ANTES de chegar em contacts, então
-          # || true deixa o essencial (biz=1 + users) persistir e segue. Os testes só
-          # precisam de Business::first()+User+conta, não de contacts/brands/categories.
-          php artisan db:seed --class="Database\\Seeders\\DummyBusinessSeeder" --force || true
           php artisan tinker --execute="
-            \$c = \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',1)->first();
-            if (! \$c) {
+            use Illuminate\\Support\\Facades\\DB;
+            \$curId = optional(DB::table('currencies')->first())->id ?? 1;
+            if (! DB::table('business')->where('id', 1)->exists()) {
+              \$uid = DB::table('users')->insertGetId(['first_name'=>'CI','username'=>'ci_admin','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+              \$bid = DB::table('business')->insertGetId(['name'=>'CI Biz','currency_id'=>\$curId,'owner_id'=>\$uid,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+              DB::table('users')->where('id', \$uid)->update(['business_id'=>\$bid]);
+              echo 'seed biz='.\$bid.' user='.\$uid.PHP_EOL;
+            }
+            \$bizId = optional(DB::table('business')->first())->id;
+            if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {
               \Modules\Financeiro\Models\ContaBancaria::create([
-                'business_id' => 1, 'account_id' => 999001, 'agencia' => '0001',
-                'carteira' => '0', 'beneficiario_documento' => '00000000000000',
-                'beneficiario_razao_social' => 'CI Test', 'saldo_cached' => 0,
+                'business_id'=>\$bizId,'account_id'=>999001,'agencia'=>'0001','carteira'=>'0',
+                'beneficiario_documento'=>'00000000000000','beneficiario_razao_social'=>'CI Test','saldo_cached'=>0,
               ]);
-              echo 'conta criada';
-            } else { echo 'conta ja existe'; }
-          " || true
+              echo 'conta criada biz='.\$bizId.PHP_EOL;
+            }
+          "
 
       - name: Stub Vite manifest (Inertia root view sem build do front)
         run: |
