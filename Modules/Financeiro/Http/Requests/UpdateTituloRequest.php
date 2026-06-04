@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Modules\Financeiro\Models\Categoria;
+use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\PlanoConta;
 use Modules\Financeiro\Models\Titulo;
 
@@ -57,6 +58,10 @@ class UpdateTituloRequest extends FormRequest
             'vencimento' => ['required', 'date'],
             'valor_total' => ['sometimes', 'numeric', 'min:0.01', 'max:9999999999.99'],
             'forma_pagamento' => ['nullable', Rule::in(Titulo::FORMAS_PAGAMENTO)],
+            'conta_bancaria_id' => [
+                'nullable', 'integer',
+                Rule::exists((new ContaBancaria)->getTable(), 'id')->where('business_id', $businessId),
+            ],
         ];
     }
 
