@@ -130,6 +130,7 @@ jobs:
               DB::table('users')->where('id', \$uid)->update(['business_id'=>\$bid]);
               echo 'seed biz='.\$bid.' user='.\$uid.PHP_EOL;
             }
+            DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
             \$bizId = optional(DB::table('business')->first())->id;
             if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {
               \Modules\Financeiro\Models\ContaBancaria::create([
