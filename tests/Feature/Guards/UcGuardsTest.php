@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-use Tests\TestCase;
-
-uses(TestCase::class);
-
 /**
  * GUARDs de Caso de Uso — telas canon (Vendas + Oficina).
  *
