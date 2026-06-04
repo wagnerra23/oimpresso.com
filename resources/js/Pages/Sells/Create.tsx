@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
+import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -658,7 +658,21 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         }
       },
       onError: (errs) => {
-        // Rola pro topo da primeira seção com erro pra Wagner ver feedback.
+        // Venda BLOQUEADA pelo store (limite de crédito, estoque/compra, etc).
+        // O backend retorna back()->withErrors(['venda' => msg]) em vez de
+        // redirecionar pra lista — assim o carrinho fica intacto e o operador
+        // corrige sem perder a venda. Mostramos o motivo em toast (8s).
+        if (errs.venda) {
+          toast.error(errs.venda, { duration: 8000 });
+        }
+        // Erro POR ITEM (estoque/compra: chave 'item.{variation_id}') → rola
+        // pra seção de Produtos, onde a linha já fica contornada em vermelho.
+        const hasItemError = Object.keys(errs).some((k) => k.startsWith('item.'));
+        if (hasItemError) {
+          document.getElementById('sec-produtos')?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+        // Senão, rola pro topo da primeira seção com erro pra Wagner ver feedback.
         const firstErrorKey = Object.keys(errs)[0];
         if (firstErrorKey) {
           const sectionMap: Record<string, string> = {
@@ -766,6 +780,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // achou estranho — UI inconsistente). Mantém mesma semântica: OK→recupera, Cancelar→descarta.
   const recoveredRef = useRef(false);
   const [draftRecover, setDraftRecover] = useState<{ data: typeof data; savedAt: number; time: string } | null>(null);
+  // 2026-06-04 (Wagner) — Cancelar com confirmação: se há venda montada
+  // (produtos ou notas), pede confirmação antes de sair pra não perder tudo
+  // num clique acidental. Carrinho vazio sai direto (sem fricção).
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   useEffect(() => {
     if (!draftKey || recoveredRef.current) return;
     recoveredRef.current = true;
@@ -803,6 +821,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
     }
     setDraftRecover(null);
+  };
+
+  // Cancelar: confirma se há trabalho a perder (produtos ou notas), senão sai direto.
+  const handleCancelClick = () => {
+    if (data.products.length > 0 || (data.notes ?? '').trim() !== '') {
+      setCancelConfirm(true);
+      return;
+    }
+    router.visit('/sells');
   };
 
   // Auto-save debounced 500ms quando data mudar (após mount).
@@ -1114,14 +1141,35 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                       p.quantity * p.unit_price - p.discount,
                       0,
                     );
+                    // Erro POR ITEM vindo do backend (estoque/compra insuficiente):
+                    // contorna a linha exata + mostra o motivo embaixo do produto,
+                    // em vez de só um aviso genérico no topo. 2026-06-04 (Wagner).
+                    const itemError =
+                      p.variation_id != null
+                        ? (errors as Record<string, string>)['item.' + p.variation_id]
+                        : undefined;
                     return (
-                      <tr key={`${p.product_id}-${p.variation_id}-${idx}`}>
-                        <td className="px-3 py-2 align-top">
+                      <tr
+                        key={`${p.product_id}-${p.variation_id}-${idx}`}
+                        className={itemError ? 'bg-destructive/5' : undefined}
+                      >
+                        <td
+                          className={
+                            'px-3 py-2 align-top' +
+                            (itemError ? ' border-l-2 border-destructive' : '')
+                          }
+                        >
                           <div className="font-medium text-foreground">
                             {p.name}
                             {p.variation && <> — <span className="text-muted-foreground">{p.variation}</span></>}
                           </div>
                           <div className="text-xs text-muted-foreground">SKU {p.sku}</div>
+                          {itemError && (
+                            <div className="mt-1 flex items-start gap-1 text-xs font-medium text-destructive">
+                              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />
+                              <span>{itemError}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-3 py-2">
                           {/* NumericInputPtBR — paridade Blade __read_number/__write_number.
@@ -1626,7 +1674,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" onClick={() => router.visit('/sells')}>
+            <Button variant="outline" onClick={handleCancelClick}>
               Cancelar
             </Button>
             <Button variant="outline" onClick={() => handleSubmit(true)} disabled={!canSubmit}>
@@ -1657,6 +1705,27 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDraftDiscard}>Descartar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDraftRecover}>Recuperar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-06-04 (Wagner) — confirmar Cancelar quando há venda montada, pra
+          o operador não perder tudo num clique acidental (autosave cobre F5,
+          não navegação forçada). */}
+      <AlertDialog open={cancelConfirm} onOpenChange={setCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar esta venda?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você montou produtos/observações nesta venda. Se sair agora, perde o
+              que foi preenchido. Deseja realmente descartar e voltar pra lista?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { router.visit('/sells'); }}>
+              Descartar e sair
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
