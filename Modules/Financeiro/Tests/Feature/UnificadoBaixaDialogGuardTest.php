@@ -4,12 +4,23 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
+
+/**
+ * Cleanup via DB raw: Titulo::forceDelete() é bloqueado por DomainException
+ * (fin_titulos não permite delete). US-FIN-053 Batch 6.
+ */
+function bxCleanup(Titulo $t): void
+{
+    DB::table('fin_titulo_baixas')->where('titulo_id', $t->id)->delete();
+    DB::table('fin_titulos')->where('id', $t->id)->delete();
+}
 
 /**
  * 2026-06-03 — GUARD do diálogo de baixa (escolher valor/conta/forma/plano).
@@ -87,7 +98,7 @@ it('GUARD G1: shapeTitulo expõe valor_aberto', function () {
 
     $response = $this->actingAs($user)->get('/financeiro/unificado');
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        bxCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -100,7 +111,7 @@ it('GUARD G1: shapeTitulo expõe valor_aberto', function () {
         }
     });
 
-    $titulo->forceDelete();
+    bxCleanup($titulo);
 });
 
 // G2 — baixar() aceita conta + valor + meio escolhidos
@@ -119,7 +130,7 @@ it('GUARD G2: baixar persiste conta/valor/meio escolhidos e quita', function () 
         'data_baixa'        => now()->toDateString(),
     ]);
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        bxCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -131,8 +142,8 @@ it('GUARD G2: baixar persiste conta/valor/meio escolhidos e quita', function () 
     expect($baixa->meio_pagamento)->toBe('pix');
     expect((float) $baixa->valor_baixa)->toBe(100.0);
 
-    $baixa->forceDelete();
-    $titulo->forceDelete();
+    DB::table('fin_titulo_baixas')->where('id', $baixa->id)->delete();
+    bxCleanup($titulo);
 });
 
 // G3 — baixa parcial
@@ -150,7 +161,7 @@ it('GUARD G3: baixa parcial reduz valor_aberto e marca parcial', function () {
         'meio_pagamento'    => 'dinheiro',
     ]);
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        bxCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -167,9 +178,9 @@ it('GUARD G3: baixa parcial reduz valor_aberto e marca parcial', function () {
     expect($filho->status)->toBe('quitado');
 
     TituloBaixa::where('titulo_id', $filho->id)->forceDelete();
-    $filho->forceDelete();
+    bxCleanup($filho);
     TituloBaixa::where('titulo_id', $titulo->id)->forceDelete();
-    $titulo->forceDelete();
+    bxCleanup($titulo);
 });
 
 // G4 — conta cross-tenant/inexistente rejeitada
@@ -183,7 +194,7 @@ it('GUARD G4: conta inexistente/cross-tenant é rejeitada (não cria baixa)', fu
         'meio_pagamento'    => 'pix',
     ]);
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        bxCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -191,7 +202,7 @@ it('GUARD G4: conta inexistente/cross-tenant é rejeitada (não cria baixa)', fu
     expect($titulo->status)->toBe('aberto', 'Conta inválida não deveria ter quitado o título');
     expect(TituloBaixa::where('titulo_id', $titulo->id)->exists())->toBeFalse();
 
-    $titulo->forceDelete();
+    bxCleanup($titulo);
 });
 
 // G5 — body vazio = legacy preservado
@@ -205,7 +216,7 @@ it('GUARD G5: body vazio mantém baixa instantânea legacy', function () {
 
     $response = $this->actingAs($user)->post("/financeiro/unificado/{$titulo->id}/baixar", []);
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        bxCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -213,5 +224,5 @@ it('GUARD G5: body vazio mantém baixa instantânea legacy', function () {
     expect($titulo->status)->toBe('quitado');
 
     TituloBaixa::where('titulo_id', $titulo->id)->forceDelete();
-    $titulo->forceDelete();
+    bxCleanup($titulo);
 });
