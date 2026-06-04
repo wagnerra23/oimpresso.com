@@ -1765,7 +1765,6 @@ class SellController extends Controller
 
         $hoje = now()->toDateString();
         $isOverdue = $cob->status === 'emitida'
-            && $cob->vencimento
             && $cob->vencimento->toDateString() < $hoje;
 
         $kind = match (true) {
