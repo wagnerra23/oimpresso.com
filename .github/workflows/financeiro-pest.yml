@@ -169,22 +169,20 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        continue-on-error: true
         run: |
-          : > storage/pest-b4.log
-          for f in $(find Modules/Financeiro/Tests/Feature -name '*Test.php' | sort); do
-            case "$f" in
-              *CaixaMovimentoFreshnessTest.php|*CashRegisterBridgeFinanceiroTest.php) continue ;;
-            esac
-            echo "########## $f" >> storage/pest-b4.log
-            vendor/bin/pest "$f" --no-coverage --colors=never >> storage/pest-b4.log 2>&1 || echo "@@@ exit em $f" >> storage/pest-b4.log
-            echo "" >> storage/pest-b4.log
-          done
-
-      - name: Upload pest-b4 log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pest-b4-log
-          path: storage/pest-b4.log
-          if-no-files-found: warn
+          vendor/bin/pest --no-coverage --colors=always \
+            Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php \
+            Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php \
+            Modules/Financeiro/Tests/Feature/AccountsLegacyMapMultiTenantTest.php \
+            Modules/Financeiro/Tests/Feature/BankStatementLineModelTest.php \
+            Modules/Financeiro/Tests/Feature/Onda10Canon100PercentTest.php \
+            Modules/Financeiro/Tests/Feature/Onda8cSparklineRealTest.php \
+            Modules/Financeiro/Tests/Feature/PluggyIntegrationTest.php \
+            Modules/Financeiro/Tests/Feature/TituloRepositoryWave18Test.php \
+            Modules/Financeiro/Tests/Feature/Wave27PolishTest.php \
+            Modules/Financeiro/Tests/Feature/Wave28PolishTest.php \
+            Modules/Financeiro/Tests/Feature/MultiTenantComprehensiveTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoFormaPagamentoGuardTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoBaixaDialogGuardTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoEditPlanoContaTest.php
