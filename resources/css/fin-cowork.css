@@ -167,6 +167,17 @@
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.01 80); opacity: 0.85; }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.78 0.14 25); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: oklch(0.78 0.14 145); }
+/* DARK-BACKFILL (2026-06-04 · DARK-BACKFILL-SWEEP #1) — o hero charcoal
+   `oklch(0.22 0.01 80)` (warm "documento contábil") tem a MESMA luminosidade do
+   page-bg dark (`oklch(0.22 …)`), então no escuro o card SOME (perde a borda e
+   funde no fundo). Eleva pra uma superfície warm-raised distinta + borda sutil,
+   preservando a identidade quente e o texto branco. Escopo `.dark` (classe no
+   <html>, ADR foundations) porque o hero renderiza tanto in-page quanto no Sheet
+   portalizado fora de `.cockpit`. ADITIVO: o claro fica 100% intocado (L-28). */
+.dark .fin-cowork .fin-curadoria .fin-stat-hero {
+  background: oklch(0.30 0.012 80);
+  border: 1px solid oklch(0.40 0.012 80);
+}
 .fin-cowork .fin-curadoria .fin-spark {
   margin-top: 8px;
   width: 100%;
