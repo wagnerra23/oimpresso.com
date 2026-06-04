@@ -344,6 +344,8 @@ class ContactController extends Controller
             'supplier' => 'is_supplier',
             'employee' => 'is_employee',
             'representative' => 'is_representative',
+            // ADR 0246 (2026-06-03) — categoria "Outros" canônica
+            'other' => 'is_other',
         ];
 
         if ($type === 'all') {
@@ -436,7 +438,8 @@ class ContactController extends Controller
             'all' => (int) (clone $base)->count(),
         ];
 
-        foreach (['customer', 'supplier', 'employee', 'representative'] as $tipo) {
+        // ADR 0246 — inclui 'other' (5º papel) nos counters da subnav.
+        foreach (['customer', 'supplier', 'employee', 'representative', 'other'] as $tipo) {
             $q = clone $base;
             $counts[$tipo] = (int) $this->applyContactTypeFilter($q, $tipo)->count();
         }
@@ -575,7 +578,7 @@ class ContactController extends Controller
             ]);
         }
 
-        // ADR 0188 Onda 4 — incluir flags multi-papel se a migration rodou.
+        // ADR 0188 Onda 4 + ADR 0246 — incluir flags multi-papel se a migration rodou.
         // Graceful degradation: hasColumn check evita erro SQL em ambiente
         // pre-migration. Front recebe null/false → Drawer trata como unchecked.
         $hasOnda4Cols = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'is_customer');
@@ -586,6 +589,10 @@ class ContactController extends Controller
                 'contacts.is_employee',
                 'contacts.is_representative',
             ]);
+            // ADR 0246 — flag is_other adicionada em migration separada (2026_06_03).
+            if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'is_other')) {
+                $selectCols[] = 'contacts.is_other';
+            }
         }
 
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
@@ -754,12 +761,14 @@ class ContactController extends Controller
                 $payload['vip'] = false;
             }
 
-            // ADR 0188 Onda 4 — flags multi-papel pro Drawer 760 seção "Papéis".
+            // ADR 0188 Onda 4 + ADR 0246 — 5 flags multi-papel pro Drawer 760 seção "Papéis".
             // Bool no payload (front cast direto · MySQL int 0/1 → React bool).
             $payload['is_customer'] = (bool) ($contact->is_customer ?? false);
             $payload['is_supplier'] = (bool) ($contact->is_supplier ?? false);
             $payload['is_employee'] = (bool) ($contact->is_employee ?? false);
             $payload['is_representative'] = (bool) ($contact->is_representative ?? false);
+            // ADR 0246 — 5ª flag "Outros" (categoria default pra cadastros sem papel comercial).
+            $payload['is_other'] = (bool) ($contact->is_other ?? false);
 
             // Canon BR (Wave 2026-05-21 ADR 0178) — campos que IdentificacaoTab
             // do drawer espera. Fallback `cpf_cnpj` → `tax_number` cobre legacy

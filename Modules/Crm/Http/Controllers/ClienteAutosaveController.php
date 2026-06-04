@@ -439,24 +439,25 @@ class ClienteAutosaveController extends Controller
     }
 
     /**
-     * Onda 4 (ADR 0188 §Plano-8) -- Drawer 760 secao "Papeis" com 4 checkboxes
-     * is_customer / is_supplier / is_employee / is_representative.
+     * Onda 4 (ADR 0188 §Plano-8) + ADR 0246 (2026-06-03) -- Drawer 760 secao
+     * "Papeis" com 5 checkboxes is_customer / is_supplier / is_employee /
+     * is_representative / is_other.
      *
      * Permite que 1 contato tenha N papeis simultaneos (Wagner Rocha pode ser
-     * cliente E representante = mesma row · sem duplicacao).
+     * cliente E representante = mesma row · sem duplicacao). Tipo "other"
+     * permite cadastro sem CPF/CNPJ obrigatorio (prospects, leads, contatos
+     * avulsos, migracao legacy WR Comercial PESSOAS TIPO='O').
      *
      * Body: JSON com 1+ flags bool (atomic update per-checkbox · sem debounce
      * porque toggle e discreto, nao digitacao).
      *
-     * Invariante (ADR 0188 §Invariantes #4-5):
+     * Invariante (ADR 0188 §Invariantes #4-5 + ADR 0246):
      *  - Flags aditivas, NUNCA exclusivas (pode setar varios true)
-     *  - >=1 papel ativo final (anti soft-delete acidental)
+     *  - >=1 papel ativo final (anti soft-delete acidental · 5 papeis agora)
      *  - `type` enum permanece authoritative pra UPOS Sells/Compras/Folha legacy
      *
-     * Hotfix #1503 (PR original mergeou sem este metodo devido a linter
-     * revert intermitente · re-adicionado em hotfix dedicado).
-     *
      * @see memory/decisions/0188-contacts-multi-type-flag-aditiva.md
+     * @see memory/decisions/0246-tipo-outros-default-migracoes-legacy.md
      */
     public function papeis(Request $request, int $id): JsonResponse
     {
@@ -470,6 +471,8 @@ class ClienteAutosaveController extends Controller
             'is_supplier' => ['nullable', 'boolean'],
             'is_employee' => ['nullable', 'boolean'],
             'is_representative' => ['nullable', 'boolean'],
+            // ADR 0246 — 5ª flag "Outros" (categoria default pra cadastros sem papel comercial).
+            'is_other' => ['nullable', 'boolean'],
         ], $this->messages());
 
         if ($validator->fails()) {
@@ -479,13 +482,13 @@ class ClienteAutosaveController extends Controller
         $data = $validator->validated();
 
         // Cast bool consistente (front pode mandar 0/1/true/false · normalize).
-        foreach (['is_customer', 'is_supplier', 'is_employee', 'is_representative'] as $f) {
+        foreach (['is_customer', 'is_supplier', 'is_employee', 'is_representative', 'is_other'] as $f) {
             if (array_key_exists($f, $data)) {
                 $data[$f] = (int) (bool) $data[$f];
             }
         }
 
-        // Invariante: contato precisa ter pelo menos 1 papel ativo.
+        // Invariante: contato precisa ter pelo menos 1 papel ativo (5 papeis agora · ADR 0246).
         // Calcula estado FINAL (merge entre $data parcial + $contact atual)
         // antes de validar -- se update remover ultimo flag, bloqueia.
         $finalFlags = [
@@ -493,12 +496,13 @@ class ClienteAutosaveController extends Controller
             'is_supplier' => $data['is_supplier'] ?? (int) ($contact->is_supplier ?? 0),
             'is_employee' => $data['is_employee'] ?? (int) ($contact->is_employee ?? 0),
             'is_representative' => $data['is_representative'] ?? (int) ($contact->is_representative ?? 0),
+            'is_other' => $data['is_other'] ?? (int) ($contact->is_other ?? 0),
         ];
 
         if (array_sum($finalFlags) === 0) {
             return response()->json([
                 'errors' => [
-                    'is_customer' => ['Contato precisa ter pelo menos 1 papel ativo (Cliente, Fornecedor, Funcionario ou Representante).'],
+                    'is_customer' => ['Contato precisa ter pelo menos 1 papel ativo (Cliente, Fornecedor, Funcionario, Representante ou Outros).'],
                 ],
             ], 422);
         }

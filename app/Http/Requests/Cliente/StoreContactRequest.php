@@ -66,6 +66,15 @@ class StoreContactRequest extends FormRequest
             'regime' => ['nullable', 'string', 'in:simples,presumido,real,mei'],
             'suframa' => ['nullable', 'string', 'max:20'],
 
+            // ADR 0188 + ADR 0246 — flags multi-papel aditivas. Cadastro inicial
+            // pode incluir 1 ou mais flags (UI default pre-seleciona conforme aba).
+            // CPF/CNPJ permanece nullable (linha 58) → "Outros" funciona sem documento.
+            'is_customer' => ['nullable', 'boolean'],
+            'is_supplier' => ['nullable', 'boolean'],
+            'is_employee' => ['nullable', 'boolean'],
+            'is_representative' => ['nullable', 'boolean'],
+            'is_other' => ['nullable', 'boolean'],
+
             // Campos UPOS upstream — manter compat com $request->only() do controller.
             // Validação suave (nullable) — sem regressão pra fluxos legacy.
             'type' => ['nullable', 'string', 'in:customer,supplier,both,lead'],
