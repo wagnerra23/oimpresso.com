@@ -30996,7 +30996,7 @@ parameters:
 		-
 			message: '#^Method App\\Http\\Controllers\\SellPosController\:\:store\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
-			count: 9
+			count: 10
 			path: app/Http/Controllers/SellPosController.php
 
 		-
