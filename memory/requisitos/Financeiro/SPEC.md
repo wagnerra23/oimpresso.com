@@ -1605,3 +1605,10 @@ Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débi
 **Já entregue no PR #2211:** 5 guards `UnificadoCanceladoArquivadosKpiTest` (C1 cancelado-não-soma · A1/A2 Arquivados · D1 KPI-segue-data_campo · S1 shape WR) + guard FK RB (#1 acima) + linha de referência no charter. Os testes estão escritos e corretos; falta só este lane pra serem executados em CI (hoje só rodam no CT100 manual).
 
 **Alternativa descartada:** corrigir migration-a-migration (whack-a-mole, perde FKs em fresh-install, não iterável sem MySQL local).
+
+**Retrato empírico da suíte inteira (2026-06-04, lane com migrate-tolerante + FK off + DB_CONNECTION=mysql + stub Vite manifest):** rodando `Modules/Financeiro/Tests` completo → **243 passed · 138 failed · 227 skipped** (876 assertions). Confirma que os testes Financeiro de fato têm cobertura real (243 passam contra MySQL+seed) — antes 100% skipavam (falsa cobertura via phpunit.xml sqlite). Decomposição dos 138 fails:
+- **~62 `ErrorException`** — testes leem arquivos de design ausentes no checkout do CI (`public/cowork-preview/*.js`, `resources/css/cowork-financeiro-bundle.css`) — gitignored/build. Não são bugs de lógica; precisam dos arquivos presentes OU skip gracioso quando ausente.
+- **~21 `SQLSTATE[42S02]` base table not found** — **auto-infligido** pelo migrate-tolerante (skip-loop dropa as tabelas dos módulos pulados; os testes desses módulos quebram). Sumiriam com `schema:dump` baseline (todas as tabelas presentes).
+- **~9 `Failed asserting` + 403/404/500/419** — bugs reais nunca-rodados (ex.: cleanup `forceDelete()` → `Titulo::delete()` DomainException, mesmo padrão já corrigido nos 5 guards).
+
+**Conclusão:** suíte inteira VERDE em CI **exige o `schema:dump` baseline** (resolve os 21 table-not-found + remove o skip-loop) + presença dos arquivos de design (ou skip gracioso) + correção dos cleanups legados. O migrate-tolerante é suficiente só pros testes que tocam apenas `fin_*` (os 5 guards). O lane no #2211 fica escopado aos 5 guards (verde); a expansão pra suíte inteira é esta US, destravada pelo `schema:dump` no CT100 (1 comando).
