@@ -1,0 +1,49 @@
+name: Diag — read laravel.log (one-shot)
+
+# Workflow de DIAGNÓSTICO temporário. Dispara em push pra branch diag/read-log.
+# Só conecta no Hostinger e imprime as últimas linhas de erro do laravel.log
+# pra investigar a falha silenciosa do store de vendas (SellPosController@store).
+# NÃO altera nada no servidor (read-only). Remover após diagnóstico.
+
+on:
+  push:
+    branches:
+      - diag/read-log
+  workflow_dispatch:
+
+jobs:
+  read-log:
+    name: Tail laravel.log
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: SSH helper
+        run: |
+          cat > /tmp/ssh_exec.sh <<'EOF'
+          #!/bin/bash
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=25 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "$@"
+          EOF
+          chmod +x /tmp/ssh_exec.sh
+
+      - name: Tail and grep laravel.log
+        run: |
+          /tmp/ssh_exec.sh "
+            cd ~/domains/oimpresso.com/public_html/storage/logs &&
+            LOG=\$(ls -t laravel*.log 2>/dev/null | head -1) &&
+            echo '=== arquivo de log mais recente: '\$LOG' ===' &&
+            echo '=== ULTIMOS ERROS (ERROR/CRITICAL) ===' &&
+            tail -n 6000 \"\$LOG\" | grep -nE 'production\.(ERROR|CRITICAL)' | tail -30 &&
+            echo '=== CONTEXTO Sell/stock/stage/FSM (com stack) ===' &&
+            tail -n 6000 \"\$LOG\" | grep -niA22 -E 'SellPosController|insufficient|estoque|current_stage|UnauthorizedAction|GuardsFsm|stage_id|Stock' | tail -200
+          "
