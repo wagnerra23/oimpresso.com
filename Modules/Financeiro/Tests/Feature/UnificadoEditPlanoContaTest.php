@@ -24,6 +24,16 @@ uses(Tests\TestCase::class);
  * subscription gate bloqueia financeiro_module no env atual.
  */
 
+/**
+ * Cleanup via DB raw: Titulo::forceDelete() é bloqueado por DomainException
+ * (fin_titulos não permite delete). US-FIN-053 Batch 6.
+ */
+function epcCleanup(Titulo $t): void
+{
+    DB::table('fin_titulo_baixas')->where('titulo_id', $t->id)->delete();
+    DB::table('fin_titulos')->where('id', $t->id)->delete();
+}
+
 function planoContaBootstrap(): array
 {
     try {
@@ -110,7 +120,7 @@ it('update salva plano_conta_id quando válido', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        epcCleanup($titulo);
         $plano->forceDelete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
@@ -119,7 +129,7 @@ it('update salva plano_conta_id quando válido', function () {
     $titulo->refresh();
     expect($titulo->plano_conta_id)->toBe($plano->id);
 
-    $titulo->forceDelete();
+    epcCleanup($titulo);
     $plano->forceDelete();
 });
 
@@ -139,7 +149,7 @@ it('update com plano_conta_id null limpa o campo', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        epcCleanup($titulo);
         $plano->forceDelete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
@@ -148,7 +158,7 @@ it('update com plano_conta_id null limpa o campo', function () {
     $titulo->refresh();
     expect($titulo->plano_conta_id)->toBeNull();
 
-    $titulo->forceDelete();
+    epcCleanup($titulo);
     $plano->forceDelete();
 });
 
@@ -178,7 +188,7 @@ it('rejeita plano de outro business (Tier 0 ADR 0093)', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        epcCleanup($titulo);
         $planoCrossTenant->forceDelete();
         DB::table('business')->where('id', $otherBizId)->delete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
@@ -189,7 +199,7 @@ it('rejeita plano de outro business (Tier 0 ADR 0093)', function () {
     $titulo->refresh();
     expect($titulo->plano_conta_id)->toBeNull();
 
-    $titulo->forceDelete();
+    epcCleanup($titulo);
     $planoCrossTenant->forceDelete();
     DB::table('business')->where('id', $otherBizId)->delete();
 });
@@ -209,7 +219,7 @@ it('rejeita plano de tipo incompatível (receber + despesa)', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        epcCleanup($titulo);
         $planoDespesa->forceDelete();
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
@@ -218,6 +228,6 @@ it('rejeita plano de tipo incompatível (receber + despesa)', function () {
     $titulo->refresh();
     expect($titulo->plano_conta_id)->toBeNull();
 
-    $titulo->forceDelete();
+    epcCleanup($titulo);
     $planoDespesa->forceDelete();
 });
