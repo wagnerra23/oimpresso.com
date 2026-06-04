@@ -1579,3 +1579,29 @@ Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débi
 - US-FIN-044 origem do bug
 - Modules/NfeBrasil/Services/CertificadoService.php canon a reusar
 - Sicoob docs: TecnoSpeed/SoftenSistemas/ACBr confirmam ICP-Brasil A1 (busca Wagner 2026-05-27)
+
+---
+
+### US-FIN-052 · CI lane MySQL pra suíte Financeiro via schema:dump baseline (cobertura real)
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Problema (falsa cobertura):** nenhum job de CI roda `Modules/Financeiro/Tests`. `ci.yml` ("Pest (Unit)") roda só `tests/Feature/Form` + 1 arquivo em SQLite `:memory:` sem migrate; `modules-pest.yml` (matrix Arquivos/ComVis/Fiscal/NfeBrasil/Repair/Vestuario — Financeiro fora) idem SQLite-sem-migrate. Os ~40 testes Feature do Financeiro dependem de schema completo + business semeado (`Business::first()`) → dariam **skip** nesses jobs. Resultado: a suíte existe no repo mas o CI nunca executa (anti-padrão "Modules/X/Tests sem rodar").
+
+**Evidência empírica (2026-06-04, lane experimental financeiro-pest.yml):** `migrate --force` do-zero no MySQL roda centenas de migrations mas **as migrations NUNCA foram validadas pra fresh-install no MySQL** — só funcionam no DB dogfood incremental. Falha em cadeia:
+- (1) FK `fin_contas_bancarias → rb_boleto_credentials` criado antes da tabela alvo (ordenação cross-módulo, mesmo timestamp). **JÁ CORRIGIDO** com guard `Schema::hasTable` (PR #2211).
+- (2) FK `nfse_eventos_cancelamento → nfse_emissoes` com **tipos de coluna incompatíveis** (erro 3780). Pendente.
+- (3+) provavelmente mais (whack-a-mole — cada fix revela o próximo; não iterável local sem MySQL).
+
+**Solução definitiva (recomendada): `php artisan schema:dump`** num DB com schema OK (CT100 staging `oimpresso-staging-db` / dogfood) → commitar `database/schema/mysql-schema.sql`. O `migrate` passa a carregar o schema final num passo só (sem replay de migration ordenada) → zero erros de ordenação/tipo. Daí o lane MySQL roda a suíte de verdade. **Bônus:** destrava CI test real pra TODOS os módulos (não só Financeiro) + remove o INFRA-ONLY mode do `visual-regression.yml`.
+
+**Passos:**
+1. CT100: `docker exec oimpresso-staging php artisan schema:dump --database=mysql` → gera `database/schema/mysql-schema.sql`.
+2. Commitar o dump (+ revisar PII/segredos — schema-only, sem dados).
+3. Recriar lane `financeiro-pest.yml` (MySQL service + migrate[carrega dump] + DummyBusinessSeeder + seed conta bancária mínima pra C1/S1 não skiparem + `pest Modules/Financeiro/Tests`).
+4. Verde → expandir matrix de cobertura módulo a módulo.
+
+**Já entregue no PR #2211:** 5 guards `UnificadoCanceladoArquivadosKpiTest` (C1 cancelado-não-soma · A1/A2 Arquivados · D1 KPI-segue-data_campo · S1 shape WR) + guard FK RB (#1 acima) + linha de referência no charter. Os testes estão escritos e corretos; falta só este lane pra serem executados em CI (hoje só rodam no CT100 manual).
+
+**Alternativa descartada:** corrigir migration-a-migration (whack-a-mole, perde FKs em fresh-install, não iterável sem MySQL local).
