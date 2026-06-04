@@ -17,6 +17,7 @@ name: Financeiro · Pest (MySQL)
 # Não toca prod nem os arquivos de migration.
 
 on:
+  workflow_dispatch: {}
   pull_request:
     branches: [main]
     paths:
