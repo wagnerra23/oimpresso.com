@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\BoletoRemessa;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Services\TituloService;
@@ -34,7 +33,6 @@ use Modules\Financeiro\Services\TituloService;
  */
 class BoletoController extends Controller
 {
-    use RendersMockCowork;
 
     public function __construct()
     {
@@ -44,9 +42,6 @@ class BoletoController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
 
         $businessId = (int) $request->session()->get('business.id');
         $hoje = CarbonImmutable::today();
