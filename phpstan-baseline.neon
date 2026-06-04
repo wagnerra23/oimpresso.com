@@ -37356,3 +37356,31 @@ parameters:
 			message: '#^Negated boolean expression is always false\.$#'
 			count: 1
 			path: Modules/Financeiro/Http/Controllers/RelatoriosController.php
+		# === Debito ADR 0208 — typing pre-existente exposto pela remocao do trait RendersMockCowork (#2261); main ja vermelha ===
+		# ExtratoController: falso-positivo de invariancia Collection<array{...}> no callback @template OtelHelper::spanBiz.
+		# BoletoController: ternario sempre-true (vencimento non-null) + name:mixed (account.name) em listarContas.
+		# Fix de codigo rastreado como tech-debt; baseline desbloqueia o ratchet (gate falhava em TODO PR que toca .php).
+		-
+			message: '#^Method Modules\\Financeiro\\Http\\Controllers\\BoletoController\:\:listarContas\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, name\: string, banco_codigo\: string\|null, banco_short\: string\|null\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, name\: mixed, banco_codigo\: string, banco_short\: string\|null\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/BoletoController.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/BoletoController.php
+
+		-
+			message: '#^Anonymous function should return Illuminate\\Support\\Collection\<int, array\{id\: int, data\: string, valor\: float, tipo\: string, descricao\: string, contraparte_documento\: string\|null, contraparte_nome\: string\|null\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, data\: string, valor\: float, tipo\: string, descricao\: string, contraparte_documento\: string\|null, contraparte_nome\: string\|null\}\>\.$#'
+			identifier: return.type
+			count: 2
+			path: Modules/Financeiro/Http/Controllers/ExtratoController.php
+
+		-
+			message: '#^Parameter \#2 \$callback of static method App\\Util\\OtelHelper\:\:spanBiz\(\) expects callable\(\)\: Illuminate\\Support\\Collection\<int, array\{id\: int, data\: string, valor\: float, tipo\: string, descricao\: string, contraparte_documento\: string\|null, contraparte_nome\: string\|null\}\>, Closure\(\)\: Illuminate\\Support\\Collection\<int, array\{id\: int, data\: string, valor\: float, tipo\: string, descricao\: string, contraparte_documento\: string\|null, contraparte_nome\: string\|null\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/ExtratoController.php
+
