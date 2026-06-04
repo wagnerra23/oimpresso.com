@@ -80,17 +80,17 @@ function CardDragPreview({ cacamba }: { cacamba: CacambaCardData }) {
       aria-hidden="true"
     >
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[11px] bg-slate-900 text-white px-1.5 py-0.5 rounded">
+        <span className="font-mono text-[11px] bg-foreground text-background px-1.5 py-0.5 rounded">
           {cacamba.plate}
         </span>
         <div className="flex flex-col min-w-0">
-          <span className="text-[12.5px] font-medium text-slate-900 truncate">
+          <span className="text-[12.5px] font-medium text-foreground truncate">
             {cacamba.capacity_m3 != null
               ? `Caçamba ${Number(cacamba.capacity_m3)}m³`
               : 'Caçamba'}
           </span>
           {cacamba.cliente_nome ? (
-            <span className="text-[10.5px] text-slate-500 truncate">
+            <span className="text-[10.5px] text-muted-foreground truncate">
               {cacamba.cliente_nome}
             </span>
           ) : null}

@@ -73,29 +73,29 @@ const formatBRL = (value: number | null | undefined) =>
 
 /** Borda topo colorida por coluna — espelha .prod-col-{slate,blue,rose,violet,emerald}. */
 const TOP_BORDER_COLOR: Record<CacambaStatus, string> = {
-  disponivel: 'border-t-slate-400',
-  locada:     'border-t-blue-400',
-  aguardando: 'border-t-rose-400',
-  manutencao: 'border-t-violet-400',
-  pronta:     'border-t-emerald-400',
+  disponivel: 'border-t-[var(--stage-slate)]',
+  locada:     'border-t-[var(--stage-blue)]',
+  aguardando: 'border-t-[var(--stage-rose)]',
+  manutencao: 'border-t-[var(--stage-violet)]',
+  pronta:     'border-t-[var(--stage-emerald)]',
 };
 
 /** Cor da progress bar por etapa. */
 const PROGRESS_BAR_COLOR: Record<CacambaStatus, string> = {
-  disponivel: 'bg-slate-400',
-  locada:     'bg-blue-500',
-  aguardando: 'bg-rose-500',
-  manutencao: 'bg-violet-500',
-  pronta:     'bg-emerald-500',
+  disponivel: 'bg-[var(--stage-slate)]',
+  locada:     'bg-[var(--stage-blue)]',
+  aguardando: 'bg-[var(--stage-rose)]',
+  manutencao: 'bg-[var(--stage-violet)]',
+  pronta:     'bg-[var(--stage-emerald)]',
 };
 
 /** Cor do BG da progress track (mais clara). */
 const PROGRESS_TRACK_COLOR: Record<CacambaStatus, string> = {
-  disponivel: 'bg-slate-100',
-  locada:     'bg-blue-100',
-  aguardando: 'bg-rose-100',
-  manutencao: 'bg-violet-100',
-  pronta:     'bg-emerald-100',
+  disponivel: 'bg-[var(--stage-slate)]/15',
+  locada:     'bg-[var(--stage-blue)]/15',
+  aguardando: 'bg-[var(--stage-rose)]/15',
+  manutencao: 'bg-[var(--stage-violet)]/15',
+  pronta:     'bg-[var(--stage-emerald)]/15',
 };
 
 /** "vence dd/mm" derivado de expected_return — espelha .ofc-eta-row "prazo Sex 17h". */
@@ -187,13 +187,13 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
   // Borda highlighted variando por coluna quando urgente — fix #12
   const cardBaseBorder =
     isAprovacao
-      ? 'border-rose-300 hover:border-rose-500'
-      : 'border-slate-200 hover:border-slate-400';
+      ? 'border-destructive/40 hover:border-destructive'
+      : 'border-border hover:border-muted-foreground/40';
 
   const cardBg = isAprovacao
-    ? 'bg-amber-50/60'
+    ? 'bg-warning/10'
     : isPronta
-      ? 'bg-emerald-50/40'
+      ? 'bg-[var(--stage-emerald)]/8'
       : 'bg-white';
 
   const opacityClass = isPronta ? 'opacity-95' : '';
@@ -201,8 +201,8 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
   const osLabel = cacamba.os_number ? `OS #${cacamba.os_number}` : null;
   const venceLabel = formatVence(cacamba.expected_return);
   const progressPct = computeProgressPct(cacamba.entered_at, cacamba.expected_return);
-  const progressColor = isAprovacao ? 'bg-rose-500' : PROGRESS_BAR_COLOR[variant];
-  const trackColor = isAprovacao ? 'bg-rose-100' : PROGRESS_TRACK_COLOR[variant];
+  const progressColor = isAprovacao ? 'bg-[var(--stage-rose)]' : PROGRESS_BAR_COLOR[variant];
+  const trackColor = isAprovacao ? 'bg-[var(--stage-rose)]/15' : PROGRESS_TRACK_COLOR[variant];
   const actionLabel = actionLabelFor(variant);
 
   // Valor superior direito apenas quando ativa (espelha canon: valor no topo)
@@ -249,15 +249,15 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
     >
       {/* ─── Linha 1: OS# esquerda · capacidade badge + valor direita ─── */}
       <div className="flex items-center justify-between mb-2 gap-2">
-        <span className="font-mono text-[11px] text-slate-500 font-medium">
-          {osLabel ?? <span className="text-slate-400 italic">sem OS</span>}
+        <span className="font-mono text-[11px] text-muted-foreground font-medium">
+          {osLabel ?? <span className="text-muted-foreground/60 italic">sem OS</span>}
         </span>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {showValorTop && (
             <span
               className={
                 'text-[11px] font-semibold tabular-nums whitespace-nowrap ' +
-                (isAprovacao ? 'text-rose-700' : 'text-emerald-700')
+                (isAprovacao ? 'text-destructive' : 'text-success')
               }
               title="Valor a receber"
             >
@@ -269,12 +269,12 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
               className={
                 'text-[10.5px] px-1.5 py-0.5 rounded font-mono font-medium border whitespace-nowrap ' +
                 (variant === 'locada'
-                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  ? 'bg-[var(--stage-blue)]/10 text-[var(--stage-blue)] border-[var(--stage-blue)]/30'
                   : variant === 'aguardando'
-                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    ? 'bg-[var(--stage-rose)]/10 text-[var(--stage-rose)] border-[var(--stage-rose)]/30'
                     : variant === 'manutencao'
-                      ? 'bg-violet-50 text-violet-700 border-violet-200'
-                      : 'bg-slate-50 text-slate-600 border-slate-200')
+                      ? 'bg-[var(--stage-violet)]/10 text-[var(--stage-violet)] border-[var(--stage-violet)]/30'
+                      : 'bg-muted text-muted-foreground border-border')
               }
               title={`Capacidade ${Number(cacamba.capacity_m3)}m³`}
             >
@@ -282,7 +282,7 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
             </span>
           ) : null}
           {isPronta && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-medium">
+            <span className="inline-flex items-center gap-1 text-[11px] text-success font-medium">
               <CheckCircle2 size={12} />
               disponível
             </span>
@@ -294,22 +294,22 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
       <div className="flex items-center gap-2 mb-2">
         <MercosulPlate plate={cacamba.plate} size="sm" />
         <div className="flex flex-col gap-0 min-w-0 flex-1">
-          <span className="text-[12.5px] font-medium text-slate-900 truncate" title={cacambaTitle}>
+          <span className="text-[12.5px] font-medium text-foreground truncate" title={cacambaTitle}>
             {cacambaTitle}
           </span>
-          <span className="text-[10.5px] text-slate-500 truncate font-mono tabular-nums">
+          <span className="text-[10.5px] text-muted-foreground truncate font-mono tabular-nums">
             {cacamba.vehicle_number && cacamba.vehicle_number !== cacamba.plate
               ? cacamba.vehicle_number
               : cacamba.plate}
-            {cacamba.cliente_nome ? <> · <span className="font-sans not-italic text-slate-700">{truncate(cacamba.cliente_nome, 24)}</span></> : null}
+            {cacamba.cliente_nome ? <> · <span className="font-sans not-italic text-foreground">{truncate(cacamba.cliente_nome, 24)}</span></> : null}
           </span>
         </div>
       </div>
 
       {/* ─── Linha 3: endereço delivery (com pin icon) ─── */}
       {cacamba.delivery_address ? (
-        <div className="flex items-start gap-1 text-[11px] text-slate-500 mb-1.5">
-          <MapPin size={10} className="mt-0.5 flex-shrink-0 text-slate-400" />
+        <div className="flex items-start gap-1 text-[11px] text-muted-foreground mb-1.5">
+          <MapPin size={10} className="mt-0.5 flex-shrink-0 text-muted-foreground/60" />
           <span className="truncate" title={cacamba.delivery_address}>
             {truncate(cacamba.delivery_address, 40)}
           </span>
@@ -319,18 +319,18 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
       {/* ─── Linha 4: observação LEGÍVEL (NÃO italic) — fix #4 espelha .ofc-symptom ─── */}
       {cacamba.rental_notes ? (
         <p
-          className="text-[12px] text-slate-700 leading-snug mb-2 line-clamp-2"
+          className="text-[12px] text-foreground leading-snug mb-2 line-clamp-2"
           title={cacamba.rental_notes}
         >
           {cacamba.rental_notes}
         </p>
       ) : !hasRentalContext && variant === 'manutencao' ? (
-        <p className="text-[12px] text-slate-600 leading-snug mb-2">
+        <p className="text-[12px] text-muted-foreground leading-snug mb-2">
           Caçamba em diagnóstico
-          {cacamba.entered_at ? <span className="text-slate-400"> · {relativeDays(cacamba.entered_at)}</span> : null}
+          {cacamba.entered_at ? <span className="text-muted-foreground/60"> · {relativeDays(cacamba.entered_at)}</span> : null}
         </p>
       ) : !hasRentalContext && variant === 'disponivel' ? (
-        <p className="text-[12px] text-slate-500 leading-snug mb-2 italic">
+        <p className="text-[12px] text-muted-foreground leading-snug mb-2 italic">
           No pátio · pronta pra locar
         </p>
       ) : null}
@@ -354,9 +354,9 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
 
       {/* ─── Linha 6: avatar atendente + nome em LINHA SEPARADA — fix #7 espelha MechAv ─── */}
       {isAtiva && (cacamba.atendente_nome || cacamba.atendente_iniciais) ? (
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 mt-1.5">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1.5">
           <span
-            className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-slate-200 text-slate-700 text-[9px] font-semibold flex-shrink-0"
+            className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full bg-muted text-foreground text-[9px] font-semibold flex-shrink-0"
             title={cacamba.atendente_nome ?? ''}
             aria-label={`Atendente ${cacamba.atendente_nome ?? ''}`}
           >
@@ -365,26 +365,26 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
           <span className="truncate">{cacamba.atendente_nome ?? '—'}</span>
         </div>
       ) : isAtiva ? (
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 italic mt-1.5">
-          <Wrench size={11} className="text-slate-400" />
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 italic mt-1.5">
+          <Wrench size={11} className="text-muted-foreground/60" />
           sem atendente
         </div>
       ) : null}
 
       {/* ─── Linha 7: ETA "há N dias · N diárias" esquerda + "vence dd/mm" direita — fix #8 espelha .ofc-eta-row ─── */}
       {isAtiva && cacamba.dias_locacao != null ? (
-        <div className="flex items-center justify-between text-[10.5px] text-slate-500 mt-1.5 tabular-nums">
+        <div className="flex items-center justify-between text-[10.5px] text-muted-foreground mt-1.5 tabular-nums">
           <span>
-            <span className={isAprovacao ? 'font-semibold text-rose-700' : 'font-medium text-slate-700'}>
+            <span className={isAprovacao ? 'font-semibold text-destructive' : 'font-medium text-foreground'}>
               há {cacamba.dias_locacao} {cacamba.dias_locacao === 1 ? 'dia' : 'dias'}
             </span>
-            <span className="text-slate-300 mx-1">·</span>
+            <span className="text-muted-foreground/60 mx-1">·</span>
             <span>
               {cacamba.dias_locacao} {cacamba.dias_locacao === 1 ? 'diária' : 'diárias'}
             </span>
           </span>
           {venceLabel && (
-            <span className={isAprovacao ? 'font-semibold text-rose-700' : 'text-slate-500'}>
+            <span className={isAprovacao ? 'font-semibold text-destructive' : 'text-muted-foreground'}>
               {venceLabel}
             </span>
           )}
@@ -393,46 +393,46 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
 
       {/* ─── Banner status colorido — fix #9 espelha .ofc-parts/.ofc-approval ─── */}
       {isAprovacao && (
-        <div className="mt-2 px-2 py-1.5 bg-rose-100 border border-rose-200 rounded text-[11px] text-rose-800 flex items-start gap-1.5">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 flex-shrink-0 animate-pulse" />
+        <div className="mt-2 px-2 py-1.5 bg-destructive/10 border border-destructive/30 rounded text-[11px] text-destructive flex items-start gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive mt-1 flex-shrink-0 animate-pulse" />
           <div className="flex-1 leading-snug">
             <b className="font-semibold">Atrasada</b> · cobrar cliente · agendar recolhimento imediato
           </div>
         </div>
       )}
       {variant === 'manutencao' && (
-        <div className="mt-2 px-2 py-1.5 bg-violet-50 border border-violet-200 rounded text-[11px] text-violet-800 flex items-start gap-1.5">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-violet-500 mt-1 flex-shrink-0" />
+        <div className="mt-2 px-2 py-1.5 bg-[var(--stage-violet)]/10 border border-[var(--stage-violet)]/30 rounded text-[11px] text-[var(--stage-violet)] flex items-start gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--stage-violet)] mt-1 flex-shrink-0" />
           <div className="flex-1 leading-snug">
             <b className="font-semibold">Em oficina</b> · diagnóstico em andamento
           </div>
         </div>
       )}
       {variant === 'pronta' && (
-        <div className="mt-2 px-2 py-1.5 bg-emerald-50 border border-emerald-200 rounded text-[11px] text-emerald-800 flex items-start gap-1.5">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0" />
+        <div className="mt-2 px-2 py-1.5 bg-success/10 border border-success/30 rounded text-[11px] text-success flex items-start gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-success mt-1 flex-shrink-0" />
           <div className="flex-1 leading-snug">
             <b className="font-semibold">Caçamba pronta</b> · agendar entrega
-            {cacamba.entered_at ? <span className="text-emerald-600"> · concluído {relativeDays(cacamba.entered_at)}</span> : null}
+            {cacamba.entered_at ? <span className="text-success"> · concluído {relativeDays(cacamba.entered_at)}</span> : null}
           </div>
         </div>
       )}
 
       {/* ─── Rodapé Pronta: valor + botão Entregar — fix #11 espelha CardPronto ─── */}
       {variant === 'pronta' && (
-        <div className="mt-2 pt-2 border-t border-emerald-100 flex items-center justify-between gap-2">
-          <span className="text-[11px] text-slate-600">
-            <Clock size={10} className="inline mr-1 text-slate-400" />
+        <div className="mt-2 pt-2 border-t border-success/20 flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">
+            <Clock size={10} className="inline mr-1 text-muted-foreground/60" />
             no pátio
           </span>
           {cacamba.valor_receber != null && cacamba.valor_receber > 0 ? (
-            <span className="font-semibold text-[11px] tabular-nums text-emerald-700 whitespace-nowrap">
+            <span className="font-semibold text-[11px] tabular-nums text-success whitespace-nowrap">
               {formatBRL(cacamba.valor_receber)}
             </span>
           ) : null}
           <button
             type="button"
-            className="text-[10.5px] px-2 py-1 bg-slate-900 text-white rounded font-medium hover:bg-slate-700 inline-flex items-center gap-1 transition-colors"
+            className="text-[10.5px] px-2 py-1 bg-foreground text-background rounded font-medium hover:bg-foreground/90 inline-flex items-center gap-1 transition-colors"
             onClick={triggerAction}
             aria-label="Entregar caçamba"
           >
@@ -444,16 +444,16 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
 
       {/* ─── Botão de ação por estado (quando NÃO Pronta) — fix #10 ─── */}
       {variant !== 'pronta' && actionLabel && (
-        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-end">
+        <div className="mt-2 pt-2 border-t border-border flex items-center justify-end">
           <button
             type="button"
             className={
               'text-[10.5px] px-2 py-1 rounded font-medium inline-flex items-center gap-1 transition-colors ' +
               (isAprovacao
-                ? 'bg-rose-600 text-white hover:bg-rose-700'
+                ? 'bg-destructive text-white hover:bg-destructive/90'
                 : variant === 'disponivel'
-                  ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                  : 'bg-slate-900 text-white hover:bg-slate-700')
+                  ? 'bg-muted text-foreground hover:bg-muted/80 border border-border'
+                  : 'bg-foreground text-background hover:bg-foreground/90')
             }
             onClick={triggerAction}
             aria-label={actionLabel}
