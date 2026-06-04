@@ -3,10 +3,21 @@ page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.client
 component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-06-03
+last_validated: '2026-06-03'
 charter_version: 8
 parent_module: Cliente / Crm
-related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0179, 0187, 0188, 0246]
+related_adrs:
+  - '0093-multi-tenant-isolation-tier-0'
+  - '0094-constituicao-v2-7-camadas-8-principios'
+  - '0104-processo-mwart-canonico-unico-caminho'
+  - '0107-emendation-0104-visual-comparison-gate-f3'
+  - '0110-cockpit-pattern-v2-canon-list-detail'
+  - '0114-prototipo-ui-cowork-loop-formalizado'
+  - '0149-mwart-screen-pattern-reuse-cowork'
+  - '0179-cliente-drawer-760px-substitui-show-fullpage'
+  - '0187-constituicao-ui-v2-ponteiro-canon'
+  - '0188-contacts-multi-type-flag-aditiva'
+  - '0246-tipo-outros-default-migracoes-legacy'
 supersedes: [Pages/Cliente/Show.charter.md v2]
 tier: A
 

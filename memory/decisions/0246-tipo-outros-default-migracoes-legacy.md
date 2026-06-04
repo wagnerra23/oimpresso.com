@@ -16,9 +16,9 @@ tags:
   - contacts
   - canon-pattern
 related:
-  - '0021'
-  - '0197'
-  - '0203'
+  - '0021-officeimpresso-contrato-api-delphi'
+  - '0197-extend-contacts-absorcao-pessoas-legacy'
+  - '0203-legacy-migration-pipeline-firebird-oimpresso-w29'
 pii: false
 ---
 
