@@ -74,6 +74,13 @@ use Illuminate\Support\Facades\Route;
 
 include_once 'install_r.php';
 
+// US-GOV-013 Fase A — probe público do gate visual (ADR 0108). Só fora de produção
+// (testing/local): rota trivial 200 sem deps, usada pelo Pest Browser pra provar o
+// pipeline end-to-end. NÃO existe em produção (app()->isProduction()).
+if (! app()->isProduction()) {
+    Route::get('/_smoke-probe', fn () => view('_smoke-probe'))->name('smoke.probe');
+}
+
 Route::middleware(['setData'])->group(function () {
     Route::get('/', function () {
         return view('welcome');
