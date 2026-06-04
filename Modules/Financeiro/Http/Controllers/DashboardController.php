@@ -24,6 +24,7 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class DashboardController extends Controller
 {
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -32,6 +33,7 @@ class DashboardController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $businessId = (int) session('user.business_id');
         $hoje = now()->toDateString();
         $inicioMes = now()->startOfMonth()->toDateString();

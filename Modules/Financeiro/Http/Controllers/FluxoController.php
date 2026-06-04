@@ -34,6 +34,7 @@ use Modules\Financeiro\Services\FluxoRealizadoService;
  */
 class FluxoController extends Controller
 {
+
     public function __construct(
         private FluxoCaixaService $service,
         private FluxoRealizadoService $realizadoService,
@@ -44,6 +45,7 @@ class FluxoController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $businessId = (int) session('user.business_id');
         $tab = $this->resolveTab($request);
         $dias = $this->resolveDias($request);

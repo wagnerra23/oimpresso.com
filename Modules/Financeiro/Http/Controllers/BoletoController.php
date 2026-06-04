@@ -33,6 +33,7 @@ use Modules\Financeiro\Services\TituloService;
  */
 class BoletoController extends Controller
 {
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -41,6 +42,7 @@ class BoletoController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $businessId = (int) $request->session()->get('business.id');
         $hoje = CarbonImmutable::today();
 

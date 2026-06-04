@@ -17,8 +17,10 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class ContaPagarController extends Controller
 {
+
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $businessId = $request->session()->get('business.id');
 
         $titulos = Titulo::where('business_id', $businessId)

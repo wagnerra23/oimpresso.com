@@ -28,6 +28,7 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class RelatoriosController extends Controller
 {
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -36,6 +37,7 @@ class RelatoriosController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $businessId = (int) session('user.business_id');
         $filters = $this->parseFilters($request);
 

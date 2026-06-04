@@ -42,6 +42,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class DreController extends Controller
 {
+
     public function __construct(private DreService $service)
     {
         $this->middleware('auth');
@@ -50,6 +51,7 @@ class DreController extends Controller
 
     public function index(Request $request): Response|IlluminateResponse
     {
+
         $businessId = (int) session('user.business_id');
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
         $aba = $this->resolveAba($request);

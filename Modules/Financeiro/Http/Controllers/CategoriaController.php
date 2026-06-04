@@ -25,8 +25,10 @@ use Modules\Financeiro\Models\PlanoConta;
  */
 class CategoriaController extends Controller
 {
+
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $categorias = Categoria::query()
             ->orderBy('ativo', 'desc')
             ->orderBy('nome')

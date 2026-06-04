@@ -27,6 +27,7 @@ use Modules\Financeiro\Models\ExtratoLancamento;
  */
 class ExtratoController extends Controller
 {
+
     /**
      * Ponto de entrada SEM id: /financeiro/extrato.
      * O sidebar/topnav apontam pra /financeiro/extrato (sem contaBancariaId), mas a
@@ -56,6 +57,7 @@ class ExtratoController extends Controller
 
     public function index(Request $request, int $contaBancariaId): Response|\Illuminate\Http\Response
     {
+
         // Session key canônica UPOS `user.business_id` (B5 — padroniza com o resto do módulo).
         $businessId = (int) $request->session()->get('user.business_id');
 

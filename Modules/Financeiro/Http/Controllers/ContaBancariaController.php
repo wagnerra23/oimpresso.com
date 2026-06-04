@@ -26,6 +26,7 @@ use Modules\Financeiro\Strategies\CnabDirectStrategy;
  */
 class ContaBancariaController extends Controller
 {
+
     // Bancos gateway-only (sem CNAB tradicional). Asaas continua selecionável
     // como conta destino aqui — a credencial é cadastrada em
     // /settings/payment-gateways e referencia esta conta via FK
@@ -34,6 +35,7 @@ class ContaBancariaController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
+
         $businessId = $request->session()->get('business.id');
 
         $accounts = Account::where('accounts.business_id', $businessId)
