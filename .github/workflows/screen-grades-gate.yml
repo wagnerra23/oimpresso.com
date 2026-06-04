@@ -1,0 +1,44 @@
+name: Screen Grades Gate (catraca anti-regressão)
+
+# Catraca da nota por tela (método screen-grade · SCREEN-GRADE-METODO.md).
+# Espelha o module-grades-gate (ADR 0155): bloqueia merge se a nota de QUALQUER
+# tela cair vs origin/main. Leve (Node puro — sem PHP/composer).
+#
+# Override (Wagner aprova regressão consciente): label no PR
+#   'screen-grades-allowed-regression'  → seta SCREEN_RATCHET_ALLOW_REGRESSION=1.
+#
+# Dispara só quando um scorecard de tela muda (é quando a nota poderia cair).
+# A nota em si é LLM-as-judge (agente screen-qa); este gate só protege o piso.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    paths:
+      - 'memory/governance/scorecards/screens/**'
+      - 'scripts/qa/screen-grades-ratchet.mjs'
+      - '.github/workflows/screen-grades-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  screen-grades-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch origin/main (baseline da catraca)
+        run: git fetch origin main:refs/remotes/origin/main || git fetch origin main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Catraca screen-grade (nota por tela só sobe)
+        env:
+          # Label 'screen-grades-allowed-regression' libera regressão consciente.
+          SCREEN_RATCHET_ALLOW_REGRESSION: ${{ contains(github.event.pull_request.labels.*.name, 'screen-grades-allowed-regression') && '1' || '0' }}
+        run: node scripts/qa/screen-grades-ratchet.mjs
