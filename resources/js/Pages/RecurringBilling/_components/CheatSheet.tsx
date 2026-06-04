@@ -32,29 +32,29 @@ export default function CheatSheet({ onClose }: Props) {
       role="dialog"
       aria-modal="true"
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200"
+        className="w-full max-w-sm rounded-lg bg-white shadow-xl ring-1 ring-stone-200"
       >
-        <header className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3">
-          <Keyboard size={14} className="text-zinc-600" />
-          <b className="flex-1 text-sm text-zinc-900">Atalhos · Cobrança recorrente</b>
-          <button type="button" onClick={onClose} aria-label="Fechar" className="rounded p-1 hover:bg-zinc-100">
-            <X size={14} className="text-zinc-500" />
+        <header className="flex items-center gap-2 border-b border-stone-100 px-4 py-3">
+          <Keyboard size={14} className="text-stone-600" />
+          <b className="flex-1 text-sm text-stone-900">Atalhos · Cobrança recorrente</b>
+          <button type="button" onClick={onClose} aria-label="Fechar" className="rounded p-1 hover:bg-stone-100">
+            <X size={14} className="text-stone-500" />
           </button>
         </header>
-        <ul className="grid grid-cols-1 divide-y divide-zinc-100">
+        <ul className="grid grid-cols-1 divide-y divide-stone-100">
           {SHORTCUTS.map(([k, l]) => (
             <li key={k} className="flex items-center justify-between px-4 py-2 text-xs">
-              <kbd className="rounded bg-zinc-100 px-2 py-0.5 font-mono text-[11px] text-zinc-700 ring-1 ring-zinc-200">{k}</kbd>
-              <span className="text-zinc-700">{l}</span>
+              <kbd className="rounded bg-stone-100 px-2 py-0.5 font-mono text-[11px] text-stone-700 ring-1 ring-stone-200">{k}</kbd>
+              <span className="text-stone-700">{l}</span>
             </li>
           ))}
         </ul>
-        <footer className="border-t border-zinc-100 px-4 py-2 text-center text-[10px] text-zinc-400">
-          Pressione <kbd className="rounded bg-zinc-100 px-1 ring-1 ring-zinc-200">?</kbd> para abrir · <kbd className="rounded bg-zinc-100 px-1 ring-1 ring-zinc-200">Esc</kbd> para fechar
+        <footer className="border-t border-stone-100 px-4 py-2 text-center text-[10px] text-stone-400">
+          Pressione <kbd className="rounded bg-stone-100 px-1 ring-1 ring-stone-200">?</kbd> para abrir · <kbd className="rounded bg-stone-100 px-1 ring-1 ring-stone-200">Esc</kbd> para fechar
         </footer>
       </div>
     </div>
