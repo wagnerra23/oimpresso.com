@@ -1241,6 +1241,7 @@ class UnificadoController extends Controller
         $status = $this->deriveStatus($t, $hoje, $vencendoLimite);
 
         $ultimaBaixa = $t->relationLoaded('baixas') ? $t->baixas->first() : null;
+        $dataBaixa = $ultimaBaixa?->data_baixa; // acesso único (Larastan ratchet: 1× data_baixa)
         // Conta exibida: a REALIZADA (baixa) tem prioridade; senão a PREVISTA (título); senão "—".
         $contaBancariaNome = $ultimaBaixa?->contaBancaria?->nome
             ?? $ultimaBaixa?->contaBancaria?->account?->name
@@ -1296,9 +1297,20 @@ class UnificadoController extends Controller
             // sem redact), junto com a Nota Fiscal. Por ora exibe nfe_numero quando houver
             // (nativos) ou "—" (migrados, pendente Fase 2).
             'documento' => $nfeNumero ?? null,
+            // Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe) — dado disponível.
+            'numero' => $t->getAttribute('numero'),
+            'parcela' => (function () use ($t) {
+                $pn = $t->getAttribute('parcela_numero');
+                $pt = $t->getAttribute('parcela_total');
+
+                return $pn ? ($pt ? "{$pn}/{$pt}" : (string) $pn) : null;
+            })(),
+            'pedido' => $metadata['delphi_codpedido'] ?? null,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
-            'liquidacao' => $ultimaBaixa?->data_baixa?->locale('pt_BR')->isoFormat('DD MMM'),
+            'liquidacao' => $dataBaixa?->locale('pt_BR')->isoFormat('DD MMM'),
+            // Data de pagamento (data cheia da baixa). Hora completa virá no re-import (Fase 2).
+            'data_pagamento' => $dataBaixa?->toDateString(),
             'valor' => (float) $t->valor_total,
             'valor_aberto' => (float) $t->valor_aberto,
             'nfe_numero' => $nfeNumero,
