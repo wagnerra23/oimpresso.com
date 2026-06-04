@@ -213,6 +213,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     discount_type: 'percentage' as 'percentage' | 'fixed',
     discount_amount: 0,
     notes: '',
+    /** Documento anexo (file upload Blade legacy sell_document). Paridade Edit. */
+    sell_document: null as File | null,
     shipping: {
       details: '',
       address: '',
@@ -606,6 +608,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       price_group: d.price_group_id,
       sale_note: d.notes,
       additional_notes: d.notes,
+      // Paridade Edit — documento anexo. Inertia auto-detecta File e usa
+      // FormData só quando há anexo (caminho JSON comum intacto sem documento).
+      // Backend: SellPosController@store:586 uploadFile($request,'sell_document').
+      sell_document: d.sell_document,
       // Flatten shipping object pra campos top-level
       shipping_details: d.shipping.details,
       shipping_address: d.shipping.address,
@@ -812,7 +818,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [draftKey]);
 
   const handleDraftRecover = () => {
-    if (draftRecover) setData(draftRecover.data);
+    // Draft não guarda File — restaura preservando sell_document=null.
+    if (draftRecover) setData({ ...draftRecover.data, sell_document: null });
     setDraftRecover(null);
   };
 
@@ -837,7 +844,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (!draftKey || !recoveredRef.current) return;
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(draftKey, JSON.stringify({ data, savedAt: Date.now() }));
+        // File (sell_document) não serializa em JSON — exclui do draft.
+        const { sell_document: _file, ...draftData } = data;
+        localStorage.setItem(draftKey, JSON.stringify({ data: draftData, savedAt: Date.now() }));
       } catch {
         // localStorage quota / incognito — silencioso.
       }
@@ -1572,6 +1581,34 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   </SelectContent>
                 </Select>
               </div>
+            )}
+          </div>
+
+          {/* Paridade Edit — Anexar documento (Blade legacy sell_document upload) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="sell_document">Anexar documento (opcional)</Label>
+            <input
+              id="sell_document"
+              type="file"
+              accept=".pdf,.csv,.zip,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (file && file.size > 5 * 1024 * 1024) {
+                  alert('Arquivo maior que 5MB. Tente comprimir antes de enviar.');
+                  e.target.value = '';
+                  return;
+                }
+                setData('sell_document', file);
+              }}
+              className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-input file:bg-background file:text-foreground file:text-xs hover:file:bg-muted"
+            />
+            <p className="text-xs text-muted-foreground">
+              Aceita .pdf, .csv, .zip, .doc, .docx, .jpg, .png — máx 5MB.
+            </p>
+            {data.sell_document && (
+              <p className="text-xs text-emerald-600">
+                Arquivo selecionado: <span className="font-medium">{data.sell_document.name}</span>
+              </p>
             )}
           </div>
 
