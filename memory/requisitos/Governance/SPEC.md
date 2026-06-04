@@ -260,3 +260,28 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 - [ ] Pest cobre: SATURATION marker reconhecido em ≥3 Models
 
 **Refs:** Jana/AUDIT-SENIOR-2026-05-25.md (Reconciliação §1.1), ADR 0155 (module-grade-v3)
+
+### US-GOV-013 · Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Contexto (descoberto 2026-06-04, sessão re-skin RecurringBilling #2212):** o gate de pixel `visual-regression.yml` (ADR 0108, Pest 4 Browser) está em **STUB / infra-only mode** — `continue-on-error: true` em Setup Laravel + Run Pest Browser, travado pela **migration-order legacy do UltimatePOS** (ex: `ALTER TABLE contacts ADD regime AFTER contribuinte` falha porque `contribuinte` é adicionado por migration posterior). Consequência: **0 testes browser fora de Sells, 0 baselines `.png`, artifact `screenshots-diff` sobe vazio.** O comentário "Visual Regression Detected" é sinal estrutural (step `failure()`), NÃO diff de pixel real.
+
+**Correção de premissa (importante):** "os gates pegam regressão" vale pro lado **semântico/lint** (ESLint, Stylelint, Module-Grades, **UI-Judge LLM** — reais, rodam verdes), mas **NÃO pro pixel**. Hoje a rede real de mudança visual = UI-Judge + olho/staging.
+
+**Por que importa (keystone do Pilar 6 lado visual — "a máquina cobra, não o Wagner"):**
+- Desbloqueia o `foundations.css` (font IBM Plex global, blast radius = toda tela Inertia) com segurança — hoje deferido por falta de rede automática.
+- Torna a aprovação das ~44 telas **automatizável** (vs Wagner olhando tela a tela).
+- Fecha o Pilar 6 de verdade (semântico já ligado via UI-Judge; falta o pixel).
+
+**Acceptance:**
+- [ ] Resolver migration-order legacy em PR dedicado (ou seedar DB de teste por snapshot/sqldump em vez de `migrate` sequencial) → remover `continue-on-error` do Setup Laravel + Run Pest Browser.
+- [ ] Pest Browser renderiza telas reais + captura screenshots; baseline `.png` versionado (LFS) por tela-chave.
+- [ ] Artifact `screenshots-diff` (actual vs expected) sobe baixável em diff real.
+- [ ] Controle-negativo: bug visual injetado → CI vermelho (prova que o gate vê).
+- [ ] Cobertura inicial: telas DS-canon (Sells/Index, Financeiro/Unificado, RecurringBilling/Index) + as do batch 44.
+
+**NÃO é bloqueador de agora** — Wagner não está exposto no meio-tempo (UI-Judge cobre o net semântico). ~6-8h, pode virar toca-de-coelho (migration-order). Priorizar quando quiser investir.
+
+**Refs:** ADR 0108 (regressão visual Pest Browser Tier 2) · `.github/workflows/visual-regression.yml` (linhas 100-164, notas INFRA-ONLY) · UI-0013 (Constituição UI v2) · sessão 2026-06-04 (PRs #2209/#2210/#2212/#2216).
