@@ -658,6 +658,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         }
       },
       onError: (errs) => {
+        // Venda BLOQUEADA pelo store (limite de crédito, estoque/compra, etc).
+        // O backend retorna back()->withErrors(['venda' => msg]) em vez de
+        // redirecionar pra lista — assim o carrinho fica intacto e o operador
+        // corrige sem perder a venda. Mostramos o motivo em toast (8s).
+        if (errs.venda) {
+          toast.error(errs.venda, { duration: 8000 });
+        }
         // Rola pro topo da primeira seção com erro pra Wagner ver feedback.
         const firstErrorKey = Object.keys(errs)[0];
         if (firstErrorKey) {
