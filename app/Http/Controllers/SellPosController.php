@@ -407,8 +407,11 @@ class SellPosController extends Controller
                 if (!$is_direct_sale) {
                     return $output;
                 } else {
-                    return redirect()
-                        ->action([\App\Http\Controllers\SellController::class, 'index'])
+                    // Venda BLOQUEADA (limite de crédito): voltar pra tela de
+                    // criação preservando o que o operador fez, em vez de jogar
+                    // ele pra lista e perder a venda. Ver bloco final do store.
+                    return back()
+                        ->withErrors(['venda' => $output['msg']])
                         ->with('status', $output);
                 }
             }
@@ -748,22 +751,50 @@ class SellPosController extends Controller
             DB::rollBack();
             \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
             $msg = trans('messages.something_went_wrong');
+            $itemVariationId = null;
 
-            if (get_class($e) == \App\Exceptions\PurchaseSellMismatch::class) {
+            if ($e instanceof \App\Exceptions\PurchaseSellMismatch) {
                 $msg = $e->getMessage();
+                // Variação do produto que falhou → o frontend contorna a linha.
+                $itemVariationId = $e->variationId;
             }
-            if (get_class($e) == \App\Exceptions\AdvanceBalanceNotAvailable::class) {
+            if ($e instanceof \App\Exceptions\AdvanceBalanceNotAvailable) {
                 $msg = $e->getMessage();
             }
 
             $output = ['success' => 0,
                 'msg' => $msg,
             ];
+            if ($itemVariationId !== null) {
+                $output['item_variation_id'] = $itemVariationId;
+            }
         }
 
         if (!$is_direct_sale) {
             return $output;
         } else {
+            // 2026-06-04 (Wagner) — venda BLOQUEADA (success:0): voltar pra tela
+            // de criação preservando o carrinho. O Inertia preserva o estado do
+            // form em resposta de erro (withErrors) e dispara onError → toast
+            // com o motivo — assim o operador corrige (crédito/pagamento/estoque)
+            // e salva de novo SEM perder a venda. Antes redirecionava pra lista
+            // e perdia tudo. with('status') mantém a msg pro form Blade legado.
+            if ($output['success'] === 0) {
+                // 'venda' = erro geral (toast). 'item.{variation_id}' = erro NO
+                // produto específico → o frontend contorna a linha exata do
+                // carrinho (estoque/compra insuficiente). Ver Sells/Create.tsx.
+                $errors = ['venda' => $output['msg']];
+                $itemVarId = $output['item_variation_id'] ?? null;
+                if ($itemVarId) {
+                    // Mensagem CONCISA na linha (o produto/SKU já aparece ali);
+                    // o detalhe completo vai no toast geral ('venda').
+                    $errors['item.' . $itemVarId] = 'Estoque/compra insuficiente para a quantidade vendida.';
+                }
+
+                return back()
+                    ->withErrors($errors)
+                    ->with('status', $output);
+            }
             if ($input['status'] == 'draft') {
                 if (isset($input['is_quotation']) && $input['is_quotation'] == 1) {
                     return redirect()

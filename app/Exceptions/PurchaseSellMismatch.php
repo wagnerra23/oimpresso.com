@@ -7,13 +7,13 @@ use Exception;
 class PurchaseSellMismatch extends Exception
 {
     /**
-     * Create a new authentication exception.
-     *
      * @param  string  $message
-     * @param  array  $guards
-     * @return void
+     * @param  int|null  $variationId  ID da variação do produto que causou o
+     *                   mismatch (estoque/compra insuficiente). Permite o
+     *                   frontend CONTORNAR a linha exata do carrinho com erro,
+     *                   em vez de só mostrar um aviso genérico. 2026-06-04.
      */
-    public function __construct($message)
+    public function __construct($message, public ?int $variationId = null)
     {
         parent::__construct($message);
     }
