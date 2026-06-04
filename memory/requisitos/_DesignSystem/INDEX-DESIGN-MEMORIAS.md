@@ -137,8 +137,8 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | Doc | Problema | Ação |
 |---|---|---|
 | `CLAUDE_COWORK_PRIMER.md` | `last_sync 2026-05-09` — não conhece DS v4/GOLDEN/PRE-FLIGHT | **header canon adicionado 2026-05-30** (aponta pra este índice) |
-| `CLAUDE_DESIGN_BRIEFING.md` | §2 "só comunicação visual" (errado) · §4 tokens azul/shadcn genérico | refresh: posicionamento multi-vertical + token roxo |
-| `CODE_DESIGN_CONTRACT.md` | versão para em DS v3.1, cita "Design System.html" | bump v4 + apontar `Design System v4.html` |
+| `CLAUDE_DESIGN_BRIEFING.md` ✅ reconciliado 2026-06-04 | §2 "só comunicação visual" + §4 azul/shadcn — errata "CANON ATUAL" no topo (roxo 295 + multi-vertical + DS v6/ADR 0249) | feito |
+| `CODE_DESIGN_CONTRACT.md` ✅ reconciliado 2026-06-04 | citava "DS v3.1"/"Design System.html" como SoT — errata no topo: DS v6 (ADR 0249) + fonte `tokens.css` git (ADR 0239); regra-única segue válida | feito |
 | `PROTOCOL.md` | v1.0, F3 "1 linha" (já estendido por PROTOCOL-F3) | costurar GOLDEN/PRE-FLIGHT como gate |
 | `HANDOFF.md` | congelado 2026-05-15 | regenerar |
 | `GLOSSARY.md` | `[M]=Manus` diverge de `[M]=Maiara` (canon) | reconciliar tabela de pessoas |
@@ -147,7 +147,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | `CATALOGO_ACABAMENTOS.md` ✅ reconciliado 2026-06-04 | snapshot 2026-04-27 (hue 220) — errata no topo: paleta defasada, cor via ADR 0235; tipografia/estrutura seguem | feito |
 | `BRIEFING_PROXIMA_SESSAO.md` ✅ reconciliado 2026-06-04 | briefing de sessão antiga (azul 220 + sidebar dark) — errata no topo → roxo 295 + sidebar light | feito |
 | `SPEC.md` (R-DS-002) + `ARCHITECTURE.md` + `AUTOMATION-ROADMAP.md` | exemplos `bg-blue-500` | trocar exemplo p/ roxo (confunde com primary) |
-| `GUIA-SIDEBAR-V3` + `sidebar-rail-mode` | hues divergem de `shared.ts` | validar estado real antes de seguir |
+| `GUIA-SIDEBAR-V3-PASSO-A-PASSO.md` ✅ reconciliado 2026-06-04 | hues divergem de `shared.ts` — errata no topo: código real > doc, não copiar hue daqui (pegar do `SIDEBAR_GROUP_HUE`); estrutura segue útil. `sidebar-rail-mode` idem | feito |
 
 ---
 
