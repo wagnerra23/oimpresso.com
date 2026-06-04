@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -119,6 +120,18 @@ function uniGet(User $user, string $qs = '')
     return $response;
 }
 
+// Limpeza via DB raw: Titulo::delete()/forceDelete() é bloqueado por DomainException
+// (fin_titulos não permite delete — usa cancelar()/status=cancelado). Pra limpar o
+// lixo do teste sem disparar o guard, deletamos direto na tabela (baixas antes).
+function uniCleanup(int ...$tituloIds): void
+{
+    if (empty($tituloIds)) {
+        return;
+    }
+    DB::table('fin_titulo_baixas')->whereIn('titulo_id', $tituloIds)->delete();
+    DB::table('fin_titulos')->whereIn('id', $tituloIds)->delete();
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // C1 — baixa de título CANCELADO não soma em Recebido (o bug central).
 // ─────────────────────────────────────────────────────────────────────────
@@ -147,10 +160,7 @@ it('C1: baixa de título cancelado NÃO soma em kpis.recebido', function () {
             expect((int) $kpis['recebido']['qtd'])->toBe(1);
         });
     } finally {
-        TituloBaixa::where('titulo_id', $valido->id)->forceDelete();
-        TituloBaixa::where('titulo_id', $cancelado->id)->forceDelete();
-        $valido->forceDelete();
-        $cancelado->forceDelete();
+        uniCleanup($valido->id, $cancelado->id);
     }
 });
 
@@ -170,8 +180,7 @@ it('A1: lista default esconde cancelado e mostra ativo', function () {
             expect($ids)->toContain($ativo->id);
         });
     } finally {
-        $cancelado->forceDelete();
-        $ativo->forceDelete();
+        uniCleanup($cancelado->id, $ativo->id);
     }
 });
 
@@ -188,8 +197,7 @@ it('A2: ?arquivados=1 mostra SÓ cancelado (ativo some)', function () {
             expect($ids)->not->toContain($ativo->id);
         });
     } finally {
-        $cancelado->forceDelete();
-        $ativo->forceDelete();
+        uniCleanup($cancelado->id, $ativo->id);
     }
 });
 
@@ -222,7 +230,7 @@ it('D1: kpis.a_receber segue o data_campo (vencimento × emissao)', function () 
             expect((float) $kpis['a_receber']['valor'])->toEqualWithDelta(0.0, 0.01);
         });
     } finally {
-        $titulo->forceDelete();
+        uniCleanup($titulo->id);
     }
 });
 
@@ -275,7 +283,6 @@ it('S1: shapeTitulo expõe os campos de paridade WR', function () {
             expect($row['data_pagamento'])->toBe(UNI_DIA);
         });
     } finally {
-        TituloBaixa::where('titulo_id', $titulo->id)->forceDelete();
-        $titulo->forceDelete();
+        uniCleanup($titulo->id);
     }
 });

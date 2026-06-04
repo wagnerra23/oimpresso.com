@@ -20,6 +20,7 @@ import { useAuth, useBusiness } from '@/Hooks/usePageProps';
 import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
@@ -215,6 +216,14 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     discount_type: 'percentage' as 'percentage' | 'fixed',
     discount_amount: 0,
     notes: '',
+    /** Nota interna pra equipe (separada de notes/additional_notes). Backend: TransactionUtil staff_note. */
+    staff_note: '',
+    /** Assinatura recorrente (Blade legacy is_recurring). Paridade com Edit.tsx. */
+    is_recurring: 0 as 0 | 1,
+    /** Endereço cobrança ≠ entrega (Blade legacy customer_secondary_address). Paridade Edit. */
+    customer_secondary_address: '',
+    /** Documento anexo (file upload Blade legacy sell_document). Paridade Edit. */
+    sell_document: null as File | null,
     shipping: {
       details: '',
       address: '',
@@ -621,6 +630,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       price_group: d.price_group_id,
       sale_note: d.notes,
       additional_notes: d.notes,
+      // Paridade Edit — nota interna equipe + assinatura recorrente (Blade legacy).
+      staff_note: d.staff_note,
+      is_recurring: d.is_recurring ? 1 : 0,
+      // Paridade Edit — endereço de cobrança ≠ entrega (Blade legacy).
+      customer_secondary_address: d.customer_secondary_address,
+      // Paridade Edit — documento anexo. Inertia auto-detecta File e usa
+      // FormData só quando há anexo (caminho JSON comum intacto sem documento).
+      // Backend: SellPosController@store:586 uploadFile($request,'sell_document').
+      sell_document: d.sell_document,
       // Flatten shipping object pra campos top-level
       shipping_details: d.shipping.details,
       shipping_address: d.shipping.address,
@@ -827,7 +845,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [draftKey]);
 
   const handleDraftRecover = () => {
-    if (draftRecover) setData(draftRecover.data);
+    // Draft não guarda File — restaura preservando sell_document=null.
+    if (draftRecover) setData({ ...draftRecover.data, sell_document: null });
     setDraftRecover(null);
   };
 
@@ -852,7 +871,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (!draftKey || !recoveredRef.current) return;
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(draftKey, JSON.stringify({ data, savedAt: Date.now() }));
+        // File (sell_document) não serializa em JSON — exclui do draft.
+        const { sell_document: _file, ...draftData } = data;
+        localStorage.setItem(draftKey, JSON.stringify({ data: draftData, savedAt: Date.now() }));
       } catch {
         // localStorage quota / incognito — silencioso.
       }
@@ -1609,6 +1630,81 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   </SelectContent>
                 </Select>
               </div>
+            )}
+          </div>
+
+          {/* Paridade Edit — Nota interna (equipe) + Assinatura recorrente */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="staff_note">Nota interna (equipe)</Label>
+              <Textarea
+                id="staff_note"
+                value={data.staff_note}
+                onChange={(e) => setData('staff_note', e.target.value)}
+                placeholder="Observação visível só pra equipe — não aparece no recibo."
+                rows={2}
+              />
+            </div>
+            <div className="flex items-start gap-2 pt-7">
+              <Checkbox
+                id="is_recurring"
+                checked={data.is_recurring === 1}
+                onCheckedChange={(c) => setData('is_recurring', c === true ? 1 : 0)}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <Label htmlFor="is_recurring" className="cursor-pointer">
+                  Assinatura recorrente
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Marca esta venda como recorrente (gera próxima fatura automática).
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Paridade Edit — endereço de cobrança ≠ entrega (NF-e faturamento separado) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="customer_secondary_address">
+              Endereço de cobrança (se diferente de entrega)
+            </Label>
+            <Textarea
+              id="customer_secondary_address"
+              value={data.customer_secondary_address}
+              onChange={(e) => setData('customer_secondary_address', e.target.value)}
+              rows={2}
+              placeholder="Deixe em branco se cobrança = entrega."
+            />
+            <p className="text-xs text-muted-foreground">
+              Usado pra NF-e quando cliente solicita faturamento em endereço diferente.
+            </p>
+          </div>
+
+          {/* Paridade Edit — Anexar documento (Blade legacy sell_document upload) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="sell_document">Anexar documento (opcional)</Label>
+            <input
+              id="sell_document"
+              type="file"
+              accept=".pdf,.csv,.zip,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (file && file.size > 5 * 1024 * 1024) {
+                  toast.error('Arquivo maior que 5MB. Tente comprimir antes de enviar.');
+                  e.target.value = '';
+                  return;
+                }
+                setData('sell_document', file);
+              }}
+              className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-input file:bg-background file:text-foreground file:text-xs hover:file:bg-muted"
+            />
+            <p className="text-xs text-muted-foreground">
+              Aceita .pdf, .csv, .zip, .doc, .docx, .jpg, .png — máx 5MB.
+            </p>
+            {data.sell_document && (
+              <p className="text-xs text-muted-foreground">
+                Arquivo selecionado: <span className="font-medium text-foreground">{data.sell_document.name}</span>
+              </p>
             )}
           </div>
 
