@@ -157,9 +157,6 @@ class RelatoriosController extends Controller
             ->get(['tipo', 'vencimento', 'valor_aberto']);
 
         foreach ($proj as $t) {
-            if (! $t->vencimento) {
-                continue;
-            }
             $weekKey = $t->vencimento->copy()->startOfWeek()->toDateString();
             if (! isset($semanas[$weekKey])) {
                 continue;
