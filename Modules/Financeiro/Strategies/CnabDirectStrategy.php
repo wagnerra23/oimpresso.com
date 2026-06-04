@@ -186,7 +186,7 @@ class CnabDirectStrategy implements BoletoStrategy
 
         // Campos especificos por banco vem do metadata (ex: Inter requer 'operacao',
         // Rendimento requer 'modalidadeCarteira'). Espalhamos por cima.
-        if (! empty($conta->metadata) && is_array($conta->metadata)) {
+        if (! empty($conta->metadata)) {
             foreach ($conta->metadata as $key => $value) {
                 if ($value !== null && $value !== '') {
                     $params[$key] = $value;

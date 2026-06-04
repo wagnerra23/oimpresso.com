@@ -1336,11 +1336,11 @@ class UnificadoController extends Controller
             return $t->tipo === 'receber' ? 'recebido' : 'pago';
         }
 
-        $venc = $t->vencimento?->toDateString();
-        if ($venc !== null && $venc < $hoje) {
+        $venc = $t->vencimento->toDateString();
+        if ($venc < $hoje) {
             return 'atrasado';
         }
-        if ($venc !== null && $venc <= $vencendoLimite) {
+        if ($venc <= $vencendoLimite) {
             return 'vencendo';
         }
 

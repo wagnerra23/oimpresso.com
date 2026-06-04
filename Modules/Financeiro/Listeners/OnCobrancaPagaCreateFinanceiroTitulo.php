@@ -84,7 +84,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 'valor_aberto'       => $contaBancariaId ? 0 : $valor,
                 'moeda'              => 'BRL',
                 'emissao'            => $cobranca->created_at?->toDateString() ?? $pagaEm->format('Y-m-d'),
-                'vencimento'         => $cobranca->vencimento?->toDateString() ?? $pagaEm->format('Y-m-d'),
+                'vencimento'         => $cobranca->vencimento->toDateString(),
                 'competencia_mes'    => $pagaEm->format('Y-m'),
                 'origem'             => 'manual',
                 'origem_id'          => $event->cobrancaId,
