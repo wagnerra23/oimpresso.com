@@ -4602,15 +4602,15 @@
   gap:10px; padding:0 24px 14px;
 }
 .sells-cowork .os-kpi {
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border);
   border-radius:8px; padding:12px 14px;
   display:flex; flex-direction:column; gap:4px;
 }
-.sells-cowork .os-kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:600; }
+.sells-cowork .os-kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim); font-weight:600; }
 .sells-cowork .os-kpi-value { font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); }
-.sells-cowork .os-kpi-sub { font-size:11px; color:var(--text-dim, oklch(0.55 0.02 250)); }
-.sells-cowork .os-kpi-alert { border-color:oklch(0.75 0.14 70); background:oklch(0.985 0.02 70); }
-.sells-cowork .os-kpi-alert .os-kpi-value { color:oklch(0.50 0.14 70); }
+.sells-cowork .os-kpi-sub { font-size:11px; color:var(--text-dim); }
+.sells-cowork .os-kpi-alert { border-color:var(--warn); background:var(--warn-soft); }
+.sells-cowork .os-kpi-alert .os-kpi-value { color:var(--warn); }
 .sells-cowork .os-tabs {
   display:flex; align-items:center; gap:4px; flex-wrap:wrap;
   padding:8px 24px 0; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
@@ -5188,21 +5188,25 @@
    Namespace: .vendas-aplus  (escopo da Index Vendas)
    ════════════════════════════════════════════════════════════════ */
 .sells-cowork .vendas-aplus {
-  --vd-green:       oklch(0.45 0.11 155);
-  --vd-green-2:     oklch(0.55 0.11 155);
-  --vd-green-soft:  oklch(0.95 0.04 155);
-  --vd-green-hero:  oklch(0.21 0.025 155);
-  --vd-green-hero-2:oklch(0.27 0.03 155);
-  --vd-green-fg:    oklch(0.78 0.05 155);
+  /* DS v6 re-skin (PR3 · gabarito-vendas) — os --vd-* deixam de carregar cor crua
+     e viram ALIAS dos tokens canônicos do cockpit. Identidade = roxo --accent
+     (ADR 0190 universal); o verde-155 (proposta D-02 não aprovada) sai. Tudo
+     flipa claro/escuro de graça porque os tokens-fonte já são dark-aware. */
+  --vd-green:       var(--accent);
+  --vd-green-2:     var(--accent-2);
+  --vd-green-soft:  var(--accent-soft);
+  --vd-green-hero:  var(--accent);
+  --vd-green-hero-2:var(--accent-2);
+  --vd-green-fg:    var(--accent-fg);
 
-  --vd-ok:    oklch(0.55 0.13 145);
-  --vd-ok-soft: oklch(0.94 0.06 145);
-  --vd-warn:  oklch(0.62 0.13 70);
-  --vd-warn-soft: oklch(0.94 0.06 70);
-  --vd-bad:   oklch(0.55 0.18 25);
-  --vd-bad-soft: oklch(0.94 0.06 25);
-  --vd-neutral: oklch(0.55 0.01 80);
-  --vd-neutral-soft: oklch(0.94 0.005 80);
+  --vd-ok:    var(--pos);
+  --vd-ok-soft: var(--pos-soft);
+  --vd-warn:  var(--warn);
+  --vd-warn-soft: var(--warn-soft);
+  --vd-bad:   var(--neg);
+  --vd-bad-soft: var(--neg-soft);
+  --vd-neutral: var(--text-3);
+  --vd-neutral-soft: var(--sunken);
 }
 /* ── HEADER: ⌘K button no centro do .os-head ── */
 .sells-cowork .vendas-aplus .os-head { align-items:center; gap:12px; }
@@ -5273,17 +5277,17 @@
 /* ── KPIs ── */
 .sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .sells-cowork .vendas-aplus .vd-kpi-hero {
-  background: var(--vd-green-hero); color: oklch(0.92 0.01 155);
+  background: var(--vd-green-hero); color: var(--accent-fg);
   border-color: var(--vd-green-hero);
 }
 .sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-label { color: var(--vd-green-fg); }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: oklch(0.95 0.01 155); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: var(--accent-fg); }
 .sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-sub { color: var(--vd-green-fg); }
-.sells-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; }
+.sells-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; color: var(--accent-fg); }
 .sells-cowork .vendas-aplus .vd-delta-up { color: var(--vd-ok) !important; display: inline-flex; align-items: center; gap: 4px; }
-.sells-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: oklch(0.78 0.10 155) !important; }
+.sells-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: var(--accent-fg) !important; }
 .sells-cowork .vendas-aplus .os-kpi-value small { font-size: 13px; color: var(--text-mute); font-weight: 500; margin-left: 2px; }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: oklch(0.65 0.04 155); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: var(--accent-fg); }
 /* ageing 3 bars */
 .sells-cowork .vendas-aplus .vd-ageing {
   margin-top: 10px;
@@ -5913,9 +5917,9 @@
   letter-spacing: 0.01em; white-space: nowrap;
 }
 .sells-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: 9px; line-height: 1; }
-.sells-cowork .vendas-aplus .vd-sla-fresh { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
-.sells-cowork .vendas-aplus .vd-sla-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60); }
-.sells-cowork .vendas-aplus .vd-sla-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25); }
+.sells-cowork .vendas-aplus .vd-sla-fresh { background: var(--pos-soft); color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-sla-warning { background: var(--warn-soft);  color: var(--warn); }
+.sells-cowork .vendas-aplus .vd-sla-overdue { background: var(--neg-soft);  color: var(--neg); }
 .sells-cowork .vendas-aplus .vd-sla-paid { background: var(--bg-2); color: var(--text-mute); }
 /* SLA mini-pills no KPI A receber */
 .sells-cowork .vendas-aplus .vd-sla-counts {
@@ -5928,9 +5932,9 @@
   padding: 0; line-height: 1.5;
 }
 .sells-cowork .vendas-aplus .vd-sla-mini .ic { font-size: 8px; line-height: 1; margin-right: 4px; }
-.sells-cowork .vendas-aplus .vd-sla-mini.fresh { color: oklch(0.45 0.13 145); }
-.sells-cowork .vendas-aplus .vd-sla-mini.warning { color: oklch(0.50 0.13 60); }
-.sells-cowork .vendas-aplus .vd-sla-mini.overdue { color: oklch(0.55 0.18 25); }
+.sells-cowork .vendas-aplus .vd-sla-mini.fresh { color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-sla-mini.warning { color: var(--warn); }
+.sells-cowork .vendas-aplus .vd-sla-mini.overdue { color: var(--neg); }
 .sells-cowork .vendas-aplus .vd-sla-mini + .vd-sla-mini::before {
   content: "·"; margin-right: 2px; color: var(--text-mute); font-weight: 400;
 }
@@ -6124,10 +6128,11 @@
    ✦ accent roxo · 3 blocos IA · palette empty-state IA
    ═══════════════════════════════════════════════════════════════════ */
 .sells-cowork {
-  --vd-ai: oklch(0.52 0.20 295);
-  --vd-ai-soft: oklch(0.96 0.04 295);
-  --vd-ai-border: oklch(0.86 0.10 295);
-  --vd-ai-text: oklch(0.32 0.18 295);
+  /* IA = mesmo roxo canônico (--accent 295). Alias dos tokens-fonte (dark-aware). */
+  --vd-ai: var(--accent);
+  --vd-ai-soft: var(--accent-soft);
+  --vd-ai-border: var(--accent-line);
+  --vd-ai-text: var(--accent);
 }
 /* ── Tab IA no drawer ── */
 .sells-cowork .vd-drawer-aplus .vd-drawer-tab.vd-tab-ai {
@@ -7355,9 +7360,9 @@
   width: 7px; height: 7px; border-radius: 50%;
   font-size: 0;
 }
-.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-fresh   .vd-sla-ic { background: oklch(0.55 0.13 145); }
-.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-warning .vd-sla-ic { background: oklch(0.62 0.13 60); }
-.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-overdue .vd-sla-ic { background: var(--vd-bad); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-fresh   .vd-sla-ic { background: var(--pos); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-warning .vd-sla-ic { background: var(--warn); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-overdue .vd-sla-ic { background: var(--neg); }
 .sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-lbl {
   color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
 }
@@ -7379,18 +7384,13 @@
 .sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-fresh)::after { background: var(--vd-ok); opacity: 1; }
 .sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-warning)::after { background: var(--vd-warn); opacity: 1; }
 .sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-overdue)::after { background: var(--vd-bad); opacity: 1; }
-/* Paleta accent */
-.sells-cowork .vendas-aplus[data-vd-palette="indigo"] {
-  --vd-green: oklch(0.45 0.18 270);
-  --vd-green-soft: oklch(0.95 0.05 270);
-}
-.sells-cowork .vendas-aplus[data-vd-palette="slate"] {
-  --vd-green: oklch(0.42 0.04 240);
-  --vd-green-soft: oklch(0.94 0.005 240);
-}
+/* Paleta accent — DS v6: identidade é roxo canônico universal (ADR 0190/0235).
+   Os overrides de paleta deixam de tintar a identidade (gabarito = um só roxo). */
+.sells-cowork .vendas-aplus[data-vd-palette="indigo"],
+.sells-cowork .vendas-aplus[data-vd-palette="slate"],
 .sells-cowork .vendas-aplus[data-vd-palette="amber"] {
-  --vd-green: oklch(0.52 0.14 60);
-  --vd-green-soft: oklch(0.95 0.06 60);
+  --vd-green: var(--accent);
+  --vd-green-soft: var(--accent-soft);
 }
 
 /* ──────────────────────────────────────────────────────────────

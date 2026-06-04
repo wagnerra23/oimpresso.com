@@ -50,6 +50,29 @@
   --origin-PNT-bg: oklch(0.93 0.06 295);  --origin-PNT-fg: oklch(0.40 0.10 295);
   --origin-MFG-bg: oklch(0.93 0.05 30);   --origin-MFG-fg: oklch(0.40 0.10 30);
 
+  /* Pipeline / etapas — escala categórica (Recepção→Pronto). Aditivo, reusável
+     por qualquer kanban/FSM. Roxo canon (--accent 295) intocado. (DS v6 · [W] 2026-06-03) */
+  --stage-slate:   oklch(0.58 0.025 250);
+  --stage-indigo:  oklch(0.55 0.16 270);
+  --stage-rose:    oklch(0.62 0.16 20);
+  --stage-emerald: oklch(0.60 0.13 155);
+  --stage-green:   oklch(0.66 0.15 145);
+
+  /* DS v6 foundation (gabarito-vendas · [W] 2026-06-03) — superfícies, escala de
+     texto e semântica que o re-skin do /sells consome. Aditivo; roxo 295 intocado. */
+  --sunken:       oklch(0.965 0.004 90);
+  --raised:       oklch(1 0 0);
+  --text-2:       oklch(0.46 0.01 80);
+  --text-3:       oklch(0.63 0.008 80);
+  --text-4:       oklch(0.74 0.006 80);
+  --accent-line:  oklch(0.86 0.05 295);
+  --pos:          oklch(0.50 0.12 150);
+  --pos-soft:     oklch(0.95 0.075 150);
+  --neg:          oklch(0.55 0.18 25);
+  --neg-soft:     oklch(0.955 0.055 25);
+  --warn:         oklch(0.58 0.12 70);
+  --warn-soft:    oklch(0.955 0.072 75);
+
   --radius:       8px;
   --radius-sm:    6px;
   --radius-lg:    12px;
@@ -97,6 +120,27 @@
   --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
   --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
   --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
+
+  /* Pipeline / etapas — variante dark (DS v6 · [W] 2026-06-03) */
+  --stage-slate:   oklch(0.66 0.03 250);
+  --stage-indigo:  oklch(0.66 0.16 270);
+  --stage-rose:    oklch(0.68 0.16 20);
+  --stage-emerald: oklch(0.68 0.14 155);
+  --stage-green:   oklch(0.74 0.15 145);
+
+  /* DS v6 foundation — variante dark (gabarito-vendas · [W] 2026-06-03) */
+  --sunken:       oklch(0.19 0.006 240);
+  --raised:       oklch(0.30 0.009 240);
+  --text-2:       oklch(0.74 0.008 90);
+  --text-3:       oklch(0.58 0.008 90);
+  --text-4:       oklch(0.47 0.008 90);
+  --accent-line:  oklch(0.42 0.10 295);
+  --pos:          oklch(0.74 0.14 150);
+  --pos-soft:     oklch(0.30 0.085 150);
+  --neg:          oklch(0.72 0.16 25);
+  --neg-soft:     oklch(0.32 0.09 25);
+  --warn:         oklch(0.80 0.13 75);
+  --warn-soft:    oklch(0.32 0.085 70);
 }
 
 .cockpit *{ box-sizing: border-box; }
