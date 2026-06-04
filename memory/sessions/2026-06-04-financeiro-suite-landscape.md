@@ -54,6 +54,15 @@ arquivo state-independent OU com cleanup/isolamento provado.
 1. **Batch 1 (#2247 ✅ merged):** lane vira allowlist verde — cobertura 1 → 10 arquivos (87 testes). Zero risco.
 2. **Batch 2 (#2248 ✅ merged):** Categoria B — fix do guard bugado do `MultiTenantComprehensiveTest` (beforeEach + afterEach) que dropava o schema baseline no MySQL. Lane 10 → 11 (MultiTenant skipa limpo). Conversão `RefreshDatabase`→`DatabaseTransactions` do CaixaMov **adiada** (drift `deleted_at` no baseline — task separada).
 3. **Batch 3 (este PR):** Categoria C — Wagner decidiu **deprecar**. Deletados 3 arquivos de teste 100% prototype-era (assets `_oimpresso-bridge-*.js` apagados no #1214): `MockOndaSidebarWrapTest`, `MockOndaConferidoBridgeTest`, `MockOndaEditBridgeTest` (~46 testes stale). **Follow-up:** auditar remoção do trait `RendersMockCowork` + triar os 2 mistos (`OndaCommentsAuditBridgeTest` tem Tier 0 real a preservar; `MockCoworkModeTest` 12/13 verde).
-4. **Batch 4+:** A (CacheManager binding), D, E por-caso.
+4. **Batch 4 (este PR):** Categoria D/E — **BUG REAL de produção** achado pela suíte: `UnificadoController` eager-load `'contaBancaria:id,nome'`, mas `nome` é accessor (`account->name`), não coluna → `select id, nome from fin_contas_bancarias` → **SQLSTATE 42S22 → 500 no `/unificado`** sempre que um título tem `conta_bancaria_id` preenchido. Latente em prod (títulos da Larissa têm conta NULL — o "Conta indefinida"). Fix: `'contaBancaria:id,account_id'` + `'contaBancaria.account:id,name'`. Verificado: a QueryException sumiu (vira DomainException de cleanup, abaixo).
+5. **Batch 5 (planejado):** greenar a família Unificado (PlanoContaGuard 7, FormaPagamentoGuard 5, BaixaDialogGuard 5, EditPlanoConta 4) — todas falhavam (a) no bug `nome` (✅ Batch 4) e (b) cleanup `$titulo->forceDelete()` → `DomainException: fin_titulos não permite delete` (mesmo padrão #2240 → trocar por `DB::table(...)->delete()` raw). + 1 `AssertionFailedError` real no PlanoConta a investigar. Esses testes SÃO a regressão do bug do Batch 4 → entram na allowlist quando verdes.
+6. **Batch 6+:** A (CobrancaController — `BindingResolutionException [$app] in CacheManager`, 15), restante D/E por-caso.
 
 Cada batch adiciona/limpa arquivos da allowlist da lane (ratchet) — a lane nunca regride.
+
+## Diagnóstico limpo Batch 4 (2026-06-04, loop por-arquivo s/ wipers)
+
+Após Batch 1-3, estado real dos arquivos com falha (intrínseco, sem o veneno MultiTenant):
+maioria tem mix pass+fail. Causas dominantes: **bug `nome`** (família Unificado, ✅ Batch 4),
+**cleanup `forceDelete` DomainException** (família Unificado + outros → Batch 5),
+**CacheManager binding** (CobrancaController 15 → Batch 6), e asserts de shape Inertia (Cowork/Onda/Drawer/Dre/Fluxo → por-caso).
