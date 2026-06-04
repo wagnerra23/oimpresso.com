@@ -766,6 +766,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // achou estranho — UI inconsistente). Mantém mesma semântica: OK→recupera, Cancelar→descarta.
   const recoveredRef = useRef(false);
   const [draftRecover, setDraftRecover] = useState<{ data: typeof data; savedAt: number; time: string } | null>(null);
+  // 2026-06-04 (Wagner) — Cancelar com confirmação: se há venda montada
+  // (produtos ou notas), pede confirmação antes de sair pra não perder tudo
+  // num clique acidental. Carrinho vazio sai direto (sem fricção).
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   useEffect(() => {
     if (!draftKey || recoveredRef.current) return;
     recoveredRef.current = true;
@@ -803,6 +807,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
     }
     setDraftRecover(null);
+  };
+
+  // Cancelar: confirma se há trabalho a perder (produtos ou notas), senão sai direto.
+  const handleCancelClick = () => {
+    if (data.products.length > 0 || (data.notes ?? '').trim() !== '') {
+      setCancelConfirm(true);
+      return;
+    }
+    router.visit('/sells');
   };
 
   // Auto-save debounced 500ms quando data mudar (após mount).
@@ -1626,7 +1639,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" onClick={() => router.visit('/sells')}>
+            <Button variant="outline" onClick={handleCancelClick}>
               Cancelar
             </Button>
             <Button variant="outline" onClick={() => handleSubmit(true)} disabled={!canSubmit}>
@@ -1657,6 +1670,27 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDraftDiscard}>Descartar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDraftRecover}>Recuperar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-06-04 (Wagner) — confirmar Cancelar quando há venda montada, pra
+          o operador não perder tudo num clique acidental (autosave cobre F5,
+          não navegação forçada). */}
+      <AlertDialog open={cancelConfirm} onOpenChange={setCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar esta venda?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você montou produtos/observações nesta venda. Se sair agora, perde o
+              que foi preenchido. Deseja realmente descartar e voltar pra lista?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { router.visit('/sells'); }}>
+              Descartar e sair
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
