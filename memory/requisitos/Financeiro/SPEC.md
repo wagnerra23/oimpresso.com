@@ -1605,3 +1605,13 @@ Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débi
 **Já entregue no PR #2211:** 5 guards `UnificadoCanceladoArquivadosKpiTest` (C1 cancelado-não-soma · A1/A2 Arquivados · D1 KPI-segue-data_campo · S1 shape WR) + guard FK RB (#1 acima) + linha de referência no charter. Os testes estão escritos e corretos; falta só este lane pra serem executados em CI (hoje só rodam no CT100 manual).
 
 **Alternativa descartada:** corrigir migration-a-migration (whack-a-mole, perde FKs em fresh-install, não iterável sem MySQL local).
+
+**RESOLVIDO (2026-06-04) — lane verde end-to-end.** Caminho que funcionou:
+1. **Schema baseline** `database/schema/mysql-schema.sql` regenerado via `schema:dump` da **prod (Hostinger MariaDB)** — agora com as **820 migrations registradas** (o anterior na main tinha só 1 → CI rodava tudo do zero e batia nos bugs fresh-install). MySQL 8 do CI carrega o dump MariaDB sem problema (`/*M!*/` é ignorado pelo MySQL).
+2. **migrate limpo** — carrega o baseline + roda só as migrations posteriores. Zero skip-loop, zero FK-off no migrate.
+3. **Seed mínimo correto** — `DummyBusinessSeeder` é stale (insere `contacts.first_name`/colunas removidas do schema real). Substituído por seed inline: currency → user → business (resolvendo FK circular `business.owner_id ↔ users.business_id`) + 1 `ContaBancaria` (FK `account_id` relaxada na sessão do seed, pois usa account fake).
+4. **Pest no MySQL real** — `DB_CONNECTION=mysql` exportado no step sobrepõe o `DB_CONNECTION=sqlite` que o `phpunit.xml` força (a raiz da falsa cobertura — sem isso os testes SKIPam em sqlite vazio). + stub Vite manifest pro render Inertia.
+
+**Prova:** `Tests: 5 passed (67 assertions)` contra MySQL real semeado (run CI 2026-06-04). Lane `financeiro-pest.yml` roda em todo PR que toca `Modules/Financeiro/**` ou o baseline.
+
+**Próximo (expandir cobertura):** rodar a suíte Financeiro inteira no lane exige corrigir o mesmo padrão de cleanup (`forceDelete`→DB raw) nos ~40 testes legados que nunca rodaram (243 passam / 138 falham hoje — ver retrato acima). E os seeders stale (`DummyBusinessSeeder`) merecem atualização vs schema atual.
