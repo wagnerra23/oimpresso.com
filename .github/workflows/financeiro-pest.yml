@@ -165,4 +165,12 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: vendor/bin/pest Modules/Financeiro/Tests/Feature --no-coverage --colors=never 2>&1 | tail -400
+        run: vendor/bin/pest Modules/Financeiro/Tests/Feature --no-coverage --colors=never --log-junit storage/junit-financeiro.xml || true
+
+      - name: Upload JUnit (diagnóstico landscape)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-financeiro
+          path: storage/junit-financeiro.xml
+          if-no-files-found: warn
