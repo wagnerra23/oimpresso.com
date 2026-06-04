@@ -165,7 +165,15 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: vendor/bin/pest Modules/Financeiro/Tests/Feature --no-coverage --colors=never > storage/pest-full.log 2>&1 || true
+        run: |
+          : > storage/pest-full.log
+          for f in $(find Modules/Financeiro/Tests/Feature -name '*Test.php' | sort); do
+            echo "########## $f" >> storage/pest-full.log
+            vendor/bin/pest "$f" --no-coverage --colors=never >> storage/pest-full.log 2>&1 || echo "@@@ pest exit=$? em $f" >> storage/pest-full.log
+            echo "" >> storage/pest-full.log
+          done
+          echo "===== RESUMO POR ARQUIVO =====" >> storage/pest-full.log
+          grep -E "^##########|Tests:" storage/pest-full.log >> storage/pest-full.log || true
 
       - name: Upload full Pest output (diagnóstico landscape)
         if: always()
