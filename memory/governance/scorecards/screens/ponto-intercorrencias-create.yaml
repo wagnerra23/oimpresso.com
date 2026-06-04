@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Ponto/Intercorrencias/Create
+path: resources/js/Pages/Ponto/Intercorrencias/Create.tsx
+archetype: form
+persona: tecnico
+nota: 83
+nivel: "Advanced"
+baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Form rico com classificacao IA (texto livre->preenche campos), bom estado loading/erro; perde em checkbox nativo + header canon orfao."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Header canon estilizado"
+    fix: "os-page-h orfao sem scope ponto; checkboxes hand-rolled (input nativo) em vez de @/Components/ui/checkbox"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear usa cor de marca (roxo) p/ acento de IA"
+    fix: "Bloco de sucesso IA usa emerald cru (border-emerald-500/bg-emerald-500); preferir token"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe associa contador de chars via aria-describedby"
+    fix: "Contador 'x/2000' e dica IA sem aria-describedby no textarea"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

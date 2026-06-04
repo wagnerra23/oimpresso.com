@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Ponto/Importacoes/Create
+path: resources/js/Pages/Ponto/Importacoes/Create.tsx
+archetype: form
+persona: tecnico
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Form de upload AFD enxuto, DS v4 + toast, mas header canon nao estilizado (os-page-h orfao) e sem charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe/Linear scoped tokens render reliably"
+    fix: "Header usa classe os-page-h que so existe sob .fin-cowork/.sells-cowork; sem wrapper ponto fica sem estilo canon — envolver em scope ou migrar p/ PageHeader component"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Shopify mostra erro de upload por campo + retry inline"
+    fix: "Falta estado de erro de servidor visivel alem do toast (ex arquivo duplicado SHA-256) e drag-and-drop"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear barra progresso com aria-valuenow"
+    fix: "Barra de progresso sem role=progressbar/aria-valuenow"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

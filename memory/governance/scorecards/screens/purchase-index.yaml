@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Purchase/Index
+path: resources/js/Pages/Purchase/Index.tsx
+archetype: list
+persona: misto
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista densa com filtros sticky, pills de status/pagamento e empty state bom; pena o azul cru no pill 'ordered' e ausência de defer/paginação."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 — zero azul cru, status via token roxo/neutro"
+    fix: "STATUS_PILL.ordered usa bg-blue-50/text-blue-700; trocar por token DS (amber/stone/violet) — viola regra anti-blue"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Linear — defer + skeleton da tabela; paginação server"
+    fix: "rows vêm eager sem Inertia::defer nem paginação; envolver tabela em <Deferred> + skeleton e paginar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Bling — busca server-side + atalho '/'"
+    fix: "Busca é só client-side sobre rows carregadas; ligar ao filtro server e atalho '/' p/ foco"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

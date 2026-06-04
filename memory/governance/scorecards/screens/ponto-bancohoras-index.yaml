@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Ponto/BancoHoras/Index
+path: resources/js/Pages/Ponto/BancoHoras/Index.tsx
+archetype: list
+persona: tecnico
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Ledger limpo com KPIs e saldo colorido; falta busca/sort, reflow mobile e tokens no lugar de emerald/destructive crus."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe tokens"
+    fix: "text-emerald-600/text-destructive cru no saldo -> token success/danger; criar charter.md"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Bling (filtro+busca)"
+    fix: "Sem busca/filtro por colaborador nem ordenacao de coluna; add search debounced + sort saldo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Linear cards"
+    fix: "So overflow-x; em touch reflow tabela->cards p/ tecnico"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

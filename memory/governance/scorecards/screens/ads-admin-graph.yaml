@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/Graph
+path: resources/js/Pages/ads/Admin/Graph.tsx
+archetype: other
+persona: wagner
+nota: 60
+nivel: "Developing"
+baseline_anterior: 60   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Knowledge-graph ReactFlow util mas e o pior em Pre-Flight: HEX cru em inline-style, canvas fixo nao-responsivo, zero a11y."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo"
+    fix: "nodeStyle/MiniMap/Legend cravam HEX cru (#3b82f6,#fef3c7,#ef4444...) em inline style — violacao dura AP hex; extrair pra tokens CSS vars"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Miro"
+    fix: "canvas fixo height:700 + layout absoluto cx600/cy350 nao responsivo; sem fallback lista <md"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "ReactFlow a11y"
+    fix: "grafo so-visual sem alternativa textual/tabela equivalente; nodes nao focaveis por teclado"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

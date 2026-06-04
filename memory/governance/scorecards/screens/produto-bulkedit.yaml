@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Produto/BulkEdit
+path: resources/js/Pages/Produto/BulkEdit.tsx
+archetype: form
+persona: larissa
+nota: 81
+nivel: "Advanced"
+baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Edicao em massa com banner destrutivo + confirm 2-passos e charter; perde em paleta crua e ausencia de preview/diff de mudancas."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo + tokens"
+    fix: "Paleta stone/rose/amber crua + header proprio (nao AppShellV2 PageHeader/os canon); botao confirm bg-rose-700 em vez de token destructive"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Linear bulk com diff/preview do que muda + undo"
+    fix: "Confirma via 2-clique no botao mas sem preview de quais campos mudaram; aviso diz 'sem desfazer'"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Density"
+    best_of_class: "Notion bulk sticky header + col fixa"
+    fix: "Tabela larga sem sticky thead/coluna produto fixa em scroll horizontal"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

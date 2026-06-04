@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Painel
+path: resources/js/Pages/Jana/Painel.tsx
+archetype: dashboard
+persona: misto
+nota: 55
+nivel: "Developing"
+baseline_anterior: 55   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Esqueleto Onda A1 com placeholders '[kind] sub-component virá', classes .jc-* cruas e zero @/Components/ui — HTML cru declarado."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe"
+    fix: "Substituir markup .jc-* hand-rolled por @/Components/ui + tokens v4"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear"
+    fix: "Cards de análise mostram placeholder textual; implementar sub-components reais"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Notion"
+    fix: "Duplica conceito do Cockpit.tsx com outra implementação; unificar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
