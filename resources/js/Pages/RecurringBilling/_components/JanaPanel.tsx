@@ -54,9 +54,9 @@ export default function JanaPanel({ sub }: Props) {
   if (sub.status === 'cancelada') return null;
 
   return (
-    <div className="rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-3">
+    <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/10 to-white p-3">
       <header className="mb-2 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded bg-violet-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-800">
+        <span className="inline-flex items-center gap-1 rounded bg-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
           <Sparkles size={10} /> Jana · IA
         </span>
         <nav className="flex gap-1">
@@ -66,7 +66,7 @@ export default function JanaPanel({ sub }: Props) {
               type="button"
               onClick={() => setTab(t)}
               className={`rounded px-2 py-0.5 text-[11px] font-medium transition ${
-                tab === t ? 'bg-violet-600 text-white' : 'text-violet-700 hover:bg-violet-100'
+                tab === t ? 'bg-primary text-white' : 'text-primary hover:bg-primary/10'
               }`}
             >
               {t === 'sugerir' && isCritical && '⚠ '}
@@ -78,8 +78,8 @@ export default function JanaPanel({ sub }: Props) {
 
       {tab === 'sugerir' && (
         <div>
-          <div className="text-xs text-zinc-700">{clientDiagnostic(sub)}</div>
-          <button type="button" disabled title="Em breve" className="mt-2 rounded-lg bg-zinc-200 px-2 py-1 text-[11px] text-zinc-500">
+          <div className="text-xs text-stone-700">{clientDiagnostic(sub)}</div>
+          <button type="button" disabled title="Em breve" className="mt-2 rounded-lg bg-stone-200 px-2 py-1 text-[11px] text-stone-500">
             Aplicar sugestão (em breve)
           </button>
         </div>
@@ -87,7 +87,7 @@ export default function JanaPanel({ sub }: Props) {
 
       {tab === 'resumir' && (
         <div>
-          <pre className="whitespace-pre-wrap rounded bg-white p-2 text-[11px] text-zinc-700 ring-1 ring-zinc-200">{clientSummary(sub)}</pre>
+          <pre className="whitespace-pre-wrap rounded bg-white p-2 text-[11px] text-stone-700 ring-1 ring-stone-200">{clientSummary(sub)}</pre>
         </div>
       )}
 
@@ -100,19 +100,19 @@ export default function JanaPanel({ sub }: Props) {
               onChange={(e) => setIaQ(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') ask(); }}
               placeholder="Pergunte sobre esta assinatura…"
-              className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-violet-400"
+              className="flex-1 rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-primary"
             />
             <button
               type="button"
               onClick={ask}
               disabled={iaLoading || !iaQ.trim()}
-              className="rounded-lg bg-violet-600 px-3 py-1 text-xs font-medium text-white hover:bg-violet-700 disabled:bg-zinc-300"
+              className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-white hover:opacity-90 disabled:bg-stone-300"
             >
               {iaLoading ? '…' : 'Enviar'}
             </button>
           </div>
           {iaResp && (
-            <div className="mt-2 whitespace-pre-wrap rounded bg-white p-2 text-xs text-zinc-700 ring-1 ring-violet-200">{iaResp}</div>
+            <div className="mt-2 whitespace-pre-wrap rounded bg-white p-2 text-xs text-stone-700 ring-1 ring-primary/30">{iaResp}</div>
           )}
         </div>
       )}

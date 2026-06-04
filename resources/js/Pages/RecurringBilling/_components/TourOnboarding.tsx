@@ -38,36 +38,36 @@ export default function TourOnboarding({ onClose }: Props) {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/30 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-zinc-200">
-        <header className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <span className="rounded bg-violet-100 px-2 py-0.5 font-semibold text-violet-700">{step + 1}/{STEPS.length}</span>
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/30 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-lg bg-white shadow-2xl ring-1 ring-stone-200">
+        <header className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
+          <div className="flex items-center gap-2 text-xs text-stone-500">
+            <span className="rounded bg-primary/10 px-2 py-0.5 font-semibold text-primary">{step + 1}/{STEPS.length}</span>
             <span>Tour rápido</span>
           </div>
-          <button type="button" onClick={() => close(false)} aria-label="Fechar" className="rounded p-1 hover:bg-zinc-100">
-            <X size={14} className="text-zinc-500" />
+          <button type="button" onClick={() => close(false)} aria-label="Fechar" className="rounded p-1 hover:bg-stone-100">
+            <X size={14} className="text-stone-500" />
           </button>
         </header>
         <div className="px-6 py-6">
-          <h3 className="text-lg font-bold text-zinc-900">{cur.title}</h3>
-          <p className="mt-2 text-sm text-zinc-600">{cur.body}</p>
+          <h3 className="text-lg font-bold text-stone-900">{cur.title}</h3>
+          <p className="mt-2 text-sm text-stone-600">{cur.body}</p>
         </div>
-        <footer className="flex items-center justify-between gap-2 border-t border-zinc-100 px-4 py-3">
-          <button type="button" onClick={() => close(true)} className="text-xs text-zinc-500 hover:text-zinc-700">
+        <footer className="flex items-center justify-between gap-2 border-t border-stone-100 px-4 py-3">
+          <button type="button" onClick={() => close(true)} className="text-xs text-stone-500 hover:text-stone-700">
             Não mostrar mais
           </button>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="inline-flex items-center gap-1 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs text-zinc-700 hover:bg-zinc-50 disabled:opacity-40">
+            <button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 disabled:opacity-40">
               <ChevronLeft size={12} /> Anterior
             </button>
             {!isLast && (
-              <button type="button" onClick={() => setStep(step + 1)} className="inline-flex items-center gap-1 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700">
+              <button type="button" onClick={() => setStep(step + 1)} className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90">
                 Próximo <ChevronRight size={12} />
               </button>
             )}
             {isLast && (
-              <button type="button" onClick={() => close(true)} className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700">
+              <button type="button" onClick={() => close(true)} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:opacity-90">
                 Começar
               </button>
             )}

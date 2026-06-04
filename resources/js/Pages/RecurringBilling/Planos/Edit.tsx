@@ -106,22 +106,22 @@ export default function PlanosEdit({ plan }: PageProps) {
     <>
       <Head title={`Editar ${plan.name} · Planos`} />
 
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-6">
+      <div className="min-h-screen bg-stone-50 p-4 md:p-6">
         {/* HEADER */}
         <header className="mb-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <Link
                 href="/recurring-billing/planos"
-                className="inline-flex items-center gap-1 text-xs font-medium text-violet-700 hover:text-violet-900"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary"
               >
                 <ArrowLeft size={12} />
                 Voltar pra Planos
               </Link>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-stone-900">
                 Editar plano
               </h1>
-              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
+              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
                 {plan.name} · #{plan.id}
               </div>
             </div>
@@ -135,8 +135,8 @@ export default function PlanosEdit({ plan }: PageProps) {
           className="space-y-4"
         >
           {/* Card 1 — Identificação */}
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-200">
-            <h2 className="mb-3 text-sm font-semibold text-zinc-900">Identificação</h2>
+          <section className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-stone-200">
+            <h2 className="mb-3 text-sm font-semibold text-stone-900">Identificação</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Field
                 label="Nome do plano"
@@ -147,7 +147,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   type="text"
                   value={form.data.name}
                   onChange={(e) => form.setData('name', e.target.value)}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                   maxLength={150}
                 />
@@ -169,7 +169,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   className={`w-full rounded-lg border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 ${
                     slugChanged
                       ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500'
-                      : 'border-zinc-300 focus:border-violet-500 focus:ring-violet-500'
+                      : 'border-stone-300 focus:border-primary focus:ring-primary'
                   }`}
                   maxLength={80}
                 />
@@ -183,7 +183,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   type="text"
                   value={form.data.descricao_curta}
                   onChange={(e) => form.setData('descricao_curta', e.target.value)}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   maxLength={200}
                 />
               </Field>
@@ -196,7 +196,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   value={form.data.description}
                   onChange={(e) => form.setData('description', e.target.value)}
                   rows={2}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   maxLength={2000}
                 />
               </Field>
@@ -204,8 +204,8 @@ export default function PlanosEdit({ plan }: PageProps) {
           </section>
 
           {/* Card 2 — Cobrança */}
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-200">
-            <h2 className="mb-3 text-sm font-semibold text-zinc-900">Cobrança</h2>
+          <section className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-stone-200">
+            <h2 className="mb-3 text-sm font-semibold text-stone-900">Cobrança</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Field
                 label="Valor (R$)"
@@ -218,7 +218,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   min="0"
                   value={form.data.valor}
                   onChange={(e) => form.setData('valor', parseFloat(e.target.value) || 0)}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   required
                 />
               </Field>
@@ -256,7 +256,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                     max="365"
                     value={form.data.ciclo_dias}
                     onChange={(e) => form.setData('ciclo_dias', parseInt(e.target.value, 10) || 0)}
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </Field>
               )}
@@ -272,7 +272,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   max="90"
                   value={form.data.trial_days}
                   onChange={(e) => form.setData('trial_days', parseInt(e.target.value, 10) || 0)}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </Field>
             </div>
@@ -284,7 +284,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                   checked={form.data.ativo}
                   onCheckedChange={(c) => form.setData('ativo', c === true)}
                 />
-                <Label htmlFor="ativo" className="cursor-pointer text-sm text-zinc-700">
+                <Label htmlFor="ativo" className="cursor-pointer text-sm text-stone-700">
                   Plano ativo (disponível pra novas assinaturas)
                 </Label>
               </div>
@@ -292,8 +292,8 @@ export default function PlanosEdit({ plan }: PageProps) {
           </section>
 
           {/* Card 3 — Fiscal */}
-          <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-200">
-            <h2 className="mb-3 text-sm font-semibold text-zinc-900">Emissão fiscal</h2>
+          <section className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-stone-200">
+            <h2 className="mb-3 text-sm font-semibold text-stone-900">Emissão fiscal</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Field
                 label="Tipo"
@@ -325,7 +325,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                     type="text"
                     value={form.data.fiscal_cfop}
                     onChange={(e) => form.setData('fiscal_cfop', e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     maxLength={8}
                   />
                 </Field>
@@ -342,7 +342,7 @@ export default function PlanosEdit({ plan }: PageProps) {
                     type="text"
                     value={form.data.fiscal_servico}
                     onChange={(e) => form.setData('fiscal_servico', e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm tabular-nums focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     maxLength={8}
                   />
                 </Field>
@@ -354,19 +354,19 @@ export default function PlanosEdit({ plan }: PageProps) {
           <div className="flex items-center justify-end gap-2 pt-2">
             <Link
               href="/recurring-billing/planos"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm ring-1 ring-stone-200 hover:bg-stone-50"
             >
               Cancelar
-              <kbd className="rounded bg-zinc-100 px-1 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">Esc</kbd>
+              <kbd className="rounded bg-stone-100 px-1 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">Esc</kbd>
             </Link>
             <button
               type="submit"
               disabled={form.processing}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-violet-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary disabled:opacity-50"
             >
               <Save size={14} />
               {form.processing ? 'Salvando…' : 'Salvar alterações'}
-              <kbd className="ml-1 rounded bg-violet-700 px-1 text-[10px] font-mono">⌘↵</kbd>
+              <kbd className="ml-1 rounded bg-primary px-1 text-[10px] font-mono">⌘↵</kbd>
             </button>
           </div>
         </form>
@@ -394,11 +394,11 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-zinc-700">
+      <label className="mb-1 block text-xs font-medium text-stone-700">
         {label} {required && <span className="text-rose-600">*</span>}
       </label>
       {children}
-      {hint && !error && <div className="mt-1 text-[11px] text-zinc-500">{hint}</div>}
+      {hint && !error && <div className="mt-1 text-[11px] text-stone-500">{hint}</div>}
       {error && <div className="mt-1 text-[11px] font-medium text-rose-600">{error}</div>}
     </div>
   );
