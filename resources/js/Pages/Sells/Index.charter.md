@@ -6,6 +6,8 @@ owner: wagner
 status: live
 last_validated: "2026-05-26"
 charter_version: 6
+ds: v6
+regua: memory/requisitos/Sells/sells-index-dsv6-visual-comparison.md
 parent_module: Sells
 tier: A
 related_adrs:

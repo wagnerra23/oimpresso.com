@@ -69,7 +69,7 @@
 }
 .sells-cowork [data-density="compact"] { --row-h: 26px; }
 .sells-cowork [data-density="comfy"] {   --row-h: 34px; }
-.sells-cowork [data-theme="dark"] {
+.cockpit[data-theme="dark"] .sells-cowork {
   --bg:        oklch(0.16 0.003 240);
   --bg-2:      oklch(0.14 0.003 240);
   --surface:   oklch(0.19 0.003 240);
@@ -663,11 +663,11 @@
   border-color: oklch(0.85 0.08 25);
 }
 .sells-cowork .tk-kpi.warn b { color: oklch(0.50 0.18 25); }
-.sells-cowork [data-theme="dark"] .tk-kpi.warn {
+.cockpit[data-theme="dark"] .sells-cowork .tk-kpi.warn {
   background: oklch(0.26 0.06 25);
   border-color: oklch(0.40 0.10 25);
 }
-.sells-cowork [data-theme="dark"] .tk-kpi.warn b { color: oklch(0.78 0.16 25); }
+.cockpit[data-theme="dark"] .sells-cowork .tk-kpi.warn b { color: oklch(0.78 0.16 25); }
 .sells-cowork .tk-kpi.muted b { color: var(--text-dim); }
 .sells-cowork .tk-search {
   display: flex; align-items: center; gap: 6px;
@@ -754,7 +754,7 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
-.sells-cowork [data-theme="dark"] .tk-card.active { background: oklch(0.22 0.005 240); }
+.cockpit[data-theme="dark"] .sells-cowork .tk-card.active { background: oklch(0.22 0.005 240); }
 .sells-cowork .tk-card.urgent {
   border-left: 3px solid oklch(0.62 0.18 25);
   padding-left: 10px;
@@ -826,7 +826,7 @@
   background: oklch(0.92 0.10 145);
   color: oklch(0.40 0.16 145);
 }
-.sells-cowork [data-theme="dark"] .tk-empty-ico.ok {
+.cockpit[data-theme="dark"] .sells-cowork .tk-empty-ico.ok {
   background: oklch(0.32 0.10 145);
   color: oklch(0.85 0.16 145);
 }
@@ -955,7 +955,7 @@
   background: linear-gradient(135deg, var(--accent-soft), oklch(0.96 0.02 145));
   border-color: var(--accent-soft);
 }
-.sells-cowork [data-theme="dark"] .vw-card.hi {
+.cockpit[data-theme="dark"] .sells-cowork .vw-card.hi {
   background: linear-gradient(135deg, oklch(0.26 0.06 220), oklch(0.24 0.04 145));
 }
 .sells-cowork .vw-card h3 {
@@ -1141,7 +1141,7 @@
   border-style: dashed;
 }
 .sells-cowork .vw-pnt-cell.miss b { color: var(--neg); }
-.sells-cowork [data-theme="dark"] .vw-pnt-cell.miss {
+.cockpit[data-theme="dark"] .sells-cowork .vw-pnt-cell.miss {
   background: oklch(0.26 0.06 25);
   border-color: oklch(0.45 0.10 25);
 }
@@ -1221,7 +1221,7 @@
     radial-gradient(1200px 600px at 100% 0%, var(--accent-soft) 0%, transparent 60%),
     var(--bg);
 }
-.sells-cowork [data-theme="dark"] .mod-stub {
+.cockpit[data-theme="dark"] .sells-cowork .mod-stub {
   background:
     radial-gradient(1200px 600px at 100% 0%, oklch(0.26 0.06 var(--hue, 220)) 0%, transparent 60%),
     var(--bg);
@@ -1295,8 +1295,8 @@
 .sells-cowork .mod-stub-status.queue { background: var(--surface); color: var(--text); border-color: var(--border); }
 .sells-cowork .mod-stub-status.queue .dot { background: var(--text-dim); }
 .sells-cowork .mod-stub-status.muted { color: var(--text-mute); }
-.sells-cowork [data-theme="dark"] .mod-stub-status.ok { background: oklch(0.30 0.07 145); color: oklch(0.85 0.10 145); }
-.sells-cowork [data-theme="dark"] .mod-stub-status.partial { background: oklch(0.30 0.07 75); color: oklch(0.85 0.10 75); }
+.cockpit[data-theme="dark"] .sells-cowork .mod-stub-status.ok { background: oklch(0.30 0.07 145); color: oklch(0.85 0.10 145); }
+.cockpit[data-theme="dark"] .sells-cowork .mod-stub-status.partial { background: oklch(0.30 0.07 75); color: oklch(0.85 0.10 75); }
 .sells-cowork .mod-stub-grid {
   padding: 28px 32px;
   display: grid;
@@ -1390,8 +1390,8 @@
 .sells-cowork .mod-stub-roadmap li.done .step { background: oklch(0.62 0.16 145); border-color: oklch(0.62 0.16 145); color: #fff; }
 .sells-cowork .mod-stub-roadmap li.current { opacity: 1; background: var(--accent-soft); border-color: var(--accent); }
 .sells-cowork .mod-stub-roadmap li.current .step { background: var(--accent); border-color: var(--accent); color: #fff; }
-.sells-cowork [data-theme="dark"] .mod-stub-roadmap li.done { background: oklch(0.28 0.05 145); border-color: oklch(0.45 0.10 145); }
-.sells-cowork [data-theme="dark"] .mod-stub-roadmap li.current { background: oklch(0.28 0.06 220); }
+.cockpit[data-theme="dark"] .sells-cowork .mod-stub-roadmap li.done { background: oklch(0.28 0.05 145); border-color: oklch(0.45 0.10 145); }
+.cockpit[data-theme="dark"] .sells-cowork .mod-stub-roadmap li.current { background: oklch(0.28 0.06 220); }
 .sells-cowork .mod-stub-foot {
   padding: 16px 32px 28px;
   display: flex; align-items: center; gap: 8px;
@@ -1566,7 +1566,7 @@
   border: 1px dashed oklch(0.80 0.08 80);
   font-size: 12.5px;
 }
-.sells-cowork [data-theme="dark"] .bubble.note {
+.cockpit[data-theme="dark"] .sells-cowork .bubble.note {
   background: oklch(0.26 0.04 80);
   color: oklch(0.88 0.05 80);
   border-color: oklch(0.38 0.06 80);
@@ -1998,7 +1998,7 @@
   border-style: dashed;
 }
 .sells-cowork .lpunch-row.missing b { color: var(--neg); }
-.sells-cowork [data-theme="dark"] .lpunch-row.missing {
+.cockpit[data-theme="dark"] .sells-cowork .lpunch-row.missing {
   background: oklch(0.26 0.05 25);
   border-color: oklch(0.45 0.08 25);
 }
@@ -2095,11 +2095,11 @@
   border-color: oklch(0.85 0.08 25);
 }
 .sells-cowork .os-stat.warn b { color: oklch(0.50 0.18 25); }
-.sells-cowork [data-theme="dark"] .os-stat.warn {
+.cockpit[data-theme="dark"] .sells-cowork .os-stat.warn {
   background: oklch(0.26 0.06 25);
   border-color: oklch(0.40 0.10 25);
 }
-.sells-cowork [data-theme="dark"] .os-stat.warn b { color: oklch(0.78 0.16 25); }
+.cockpit[data-theme="dark"] .sells-cowork .os-stat.warn b { color: oklch(0.78 0.16 25); }
 .sells-cowork .os-stat.muted b { color: var(--text-dim); font-size: 18px; }
 /* Toolbar */
 .sells-cowork .os-toolbar {
@@ -2353,13 +2353,13 @@
 .sells-cowork .os-stage.cyan {    background: oklch(0.94 0.06 200); color: oklch(0.42 0.10 200); }
 .sells-cowork .os-stage.green {   background: oklch(0.94 0.06 145); color: oklch(0.40 0.12 145); }
 .sells-cowork .os-stage.red {     background: oklch(0.95 0.05 25);  color: oklch(0.50 0.16 25);  }
-.sells-cowork [data-theme="dark"] .os-stage.muted {   background: oklch(0.30 0 0);     color: oklch(0.78 0 0); }
-.sells-cowork [data-theme="dark"] .os-stage.blue {    background: oklch(0.30 0.07 240); color: oklch(0.85 0.10 240); }
-.sells-cowork [data-theme="dark"] .os-stage.amber {   background: oklch(0.30 0.07 75);  color: oklch(0.85 0.10 75);  }
-.sells-cowork [data-theme="dark"] .os-stage.violet {  background: oklch(0.30 0.07 295); color: oklch(0.85 0.10 295); }
-.sells-cowork [data-theme="dark"] .os-stage.cyan {    background: oklch(0.30 0.07 200); color: oklch(0.85 0.10 200); }
-.sells-cowork [data-theme="dark"] .os-stage.green {   background: oklch(0.30 0.07 145); color: oklch(0.85 0.10 145); }
-.sells-cowork [data-theme="dark"] .os-stage.red {     background: oklch(0.30 0.07 25);  color: oklch(0.85 0.16 25);  }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.muted {   background: oklch(0.30 0 0);     color: oklch(0.78 0 0); }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.blue {    background: oklch(0.30 0.07 240); color: oklch(0.85 0.10 240); }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.amber {   background: oklch(0.30 0.07 75);  color: oklch(0.85 0.10 75);  }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.violet {  background: oklch(0.30 0.07 295); color: oklch(0.85 0.10 295); }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.cyan {    background: oklch(0.30 0.07 200); color: oklch(0.85 0.10 200); }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.green {   background: oklch(0.30 0.07 145); color: oklch(0.85 0.10 145); }
+.cockpit[data-theme="dark"] .sells-cowork .os-stage.red {     background: oklch(0.30 0.07 25);  color: oklch(0.85 0.16 25);  }
 /* ════════════════════════ OS DETAIL DRAWER ════════════════════════ */
 .sells-cowork .os-drawer-back {
   position: absolute;
@@ -2368,7 +2368,7 @@
   z-index: 8;
   animation: fadein .15s ease-out;
 }
-.sells-cowork [data-theme="dark"] .os-drawer-back { background: rgba(0,0,0,.45); }
+.cockpit[data-theme="dark"] .sells-cowork .os-drawer-back { background: rgba(0,0,0,.45); }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 .sells-cowork .os-drawer {
   position: absolute;
@@ -2382,7 +2382,7 @@
   box-shadow: -8px 0 32px rgba(0,0,0,.08);
   animation: slidein .2s cubic-bezier(.2,.8,.2,1);
 }
-.sells-cowork [data-theme="dark"] .os-drawer { box-shadow: -8px 0 32px rgba(0,0,0,.4); }
+.cockpit[data-theme="dark"] .sells-cowork .os-drawer { box-shadow: -8px 0 32px rgba(0,0,0,.4); }
 @keyframes slidein { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 .sells-cowork .os-drawer-h {
   padding: 16px 20px;
@@ -2918,7 +2918,7 @@
   z-index: 90;
   animation: fadein .15s ease-out;
 }
-.sells-cowork [data-theme="dark"] .os-modal-back { background: rgba(0,0,0,.6); }
+.cockpit[data-theme="dark"] .sells-cowork .os-modal-back { background: rgba(0,0,0,.6); }
 .sells-cowork .os-modal {
   position: absolute;
   top: 50%; left: 50%;
@@ -2934,7 +2934,7 @@
   animation: modalin .2s cubic-bezier(.2,.8,.2,1);
   overflow: hidden;
 }
-.sells-cowork [data-theme="dark"] .os-modal { box-shadow: 0 24px 80px rgba(0,0,0,.6); }
+.cockpit[data-theme="dark"] .sells-cowork .os-modal { box-shadow: 0 24px 80px rgba(0,0,0,.6); }
 @keyframes modalin {
   from { transform: translate(-50%, -48%); opacity: 0; }
   to   { transform: translate(-50%, -50%); opacity: 1; }
@@ -3016,7 +3016,7 @@
   padding: 2px 6px;
   border-radius: 3px;
 }
-.sells-cowork [data-theme="dark"] .os-version-tag {
+.cockpit[data-theme="dark"] .sells-cowork .os-version-tag {
   color: oklch(0.85 0.18 145);
   background: oklch(0.30 0.08 145);
 }
@@ -3070,7 +3070,7 @@
   position: relative;
   overflow: hidden;
 }
-.sells-cowork [data-theme="dark"] .os-art-frame {
+.cockpit[data-theme="dark"] .sells-cowork .os-art-frame {
   background: oklch(0.96 0.01 240);
   box-shadow: 0 6px 24px rgba(0,0,0,.4);
 }
@@ -3149,7 +3149,7 @@
   border-color: oklch(0.55 0.16 145);
   background: oklch(0.96 0.04 145);
 }
-.sells-cowork [data-theme="dark"] .os-decision.approve.active {
+.cockpit[data-theme="dark"] .sells-cowork .os-decision.approve.active {
   background: oklch(0.28 0.06 145);
 }
 .sells-cowork .os-decision.approve.active svg { color: oklch(0.45 0.16 145); opacity: 1; }
@@ -3157,7 +3157,7 @@
   border-color: oklch(0.62 0.14 75);
   background: oklch(0.96 0.04 75);
 }
-.sells-cowork [data-theme="dark"] .os-decision.adjust.active {
+.cockpit[data-theme="dark"] .sells-cowork .os-decision.adjust.active {
   background: oklch(0.30 0.06 75);
 }
 .sells-cowork .os-decision.adjust.active svg { color: oklch(0.55 0.16 75); opacity: 1; }
@@ -3165,7 +3165,7 @@
   border-color: var(--neg);
   background: oklch(0.96 0.04 25);
 }
-.sells-cowork [data-theme="dark"] .os-decision.reject.active {
+.cockpit[data-theme="dark"] .sells-cowork .os-decision.reject.active {
   background: oklch(0.30 0.06 25);
 }
 .sells-cowork .os-decision.reject.active svg { color: var(--neg); opacity: 1; }
@@ -3195,7 +3195,7 @@
   font-size: 12.5px;
   color: oklch(0.30 0.10 145);
 }
-.sells-cowork [data-theme="dark"] .os-decision-confirm {
+.cockpit[data-theme="dark"] .sells-cowork .os-decision-confirm {
   background: oklch(0.26 0.05 145);
   color: oklch(0.85 0.10 145);
   border-color: oklch(0.55 0.10 145 / 0.5);
@@ -4602,15 +4602,15 @@
   gap:10px; padding:0 24px 14px;
 }
 .sells-cowork .os-kpi {
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border);
   border-radius:8px; padding:12px 14px;
   display:flex; flex-direction:column; gap:4px;
 }
-.sells-cowork .os-kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:600; }
+.sells-cowork .os-kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim); font-weight:600; }
 .sells-cowork .os-kpi-value { font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); }
-.sells-cowork .os-kpi-sub { font-size:11px; color:var(--text-dim, oklch(0.55 0.02 250)); }
-.sells-cowork .os-kpi-alert { border-color:oklch(0.75 0.14 70); background:oklch(0.985 0.02 70); }
-.sells-cowork .os-kpi-alert .os-kpi-value { color:oklch(0.50 0.14 70); }
+.sells-cowork .os-kpi-sub { font-size:11px; color:var(--text-dim); }
+.sells-cowork .os-kpi-alert { border-color:var(--warn); background:var(--warn-soft); }
+.sells-cowork .os-kpi-alert .os-kpi-value { color:var(--warn); }
 .sells-cowork .os-tabs {
   display:flex; align-items:center; gap:4px; flex-wrap:wrap;
   padding:8px 24px 0; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
@@ -5188,12 +5188,14 @@
    Namespace: .vendas-aplus  (escopo da Index Vendas)
    ════════════════════════════════════════════════════════════════ */
 .sells-cowork .vendas-aplus {
-  --vd-green:       oklch(0.45 0.11 155);
-  --vd-green-2:     oklch(0.55 0.11 155);
-  --vd-green-soft:  oklch(0.95 0.04 155);
-  --vd-green-hero:  oklch(0.21 0.025 155);
-  --vd-green-hero-2:oklch(0.27 0.03 155);
-  --vd-green-fg:    oklch(0.78 0.05 155);
+  /* DS v6 (PR3) — identidade verde-155 (proposta D-02 NÃO aprovada) → roxo --accent
+     canônico (ADR 0190 universal / 0235). Alias dark-aware; gabarito = um só roxo. */
+  --vd-green:       var(--accent);
+  --vd-green-2:     var(--accent-2);
+  --vd-green-soft:  var(--accent-soft);
+  --vd-green-hero:  var(--accent);
+  --vd-green-hero-2:var(--accent-2);
+  --vd-green-fg:    var(--accent-fg);
 
   /* DS v6 (PR3 slice 2) — camada semântica local da tela redireciona pros tokens
      canônicos (cockpit.css: --pos/--warn/--neg + -soft), espelhando o gabarito.
@@ -5276,17 +5278,17 @@
 /* ── KPIs ── */
 .sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .sells-cowork .vendas-aplus .vd-kpi-hero {
-  background: var(--vd-green-hero); color: oklch(0.92 0.01 155);
+  background: var(--vd-green-hero); color: var(--accent-fg);
   border-color: var(--vd-green-hero);
 }
 .sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-label { color: var(--vd-green-fg); }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: oklch(0.95 0.01 155); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: var(--accent-fg); }
 .sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-sub { color: var(--vd-green-fg); }
-.sells-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; }
+.sells-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; color: var(--accent-fg); }
 .sells-cowork .vendas-aplus .vd-delta-up { color: var(--vd-ok) !important; display: inline-flex; align-items: center; gap: 4px; }
-.sells-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: oklch(0.78 0.10 155) !important; }
+.sells-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: var(--accent-fg) !important; }
 .sells-cowork .vendas-aplus .os-kpi-value small { font-size: 13px; color: var(--text-mute); font-weight: 500; margin-left: 2px; }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: oklch(0.65 0.04 155); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: var(--accent-fg); }
 /* ageing 3 bars */
 .sells-cowork .vendas-aplus .vd-ageing {
   margin-top: 10px;
@@ -5920,9 +5922,9 @@
   letter-spacing: 0.01em; white-space: nowrap;
 }
 .sells-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: 9px; line-height: 1; }
-.sells-cowork .vendas-aplus .vd-sla-fresh { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
-.sells-cowork .vendas-aplus .vd-sla-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60); }
-.sells-cowork .vendas-aplus .vd-sla-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25); }
+.sells-cowork .vendas-aplus .vd-sla-fresh { background: var(--pos-soft); color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-sla-warning { background: var(--warn-soft);  color: var(--warn); }
+.sells-cowork .vendas-aplus .vd-sla-overdue { background: var(--neg-soft);  color: var(--neg); }
 .sells-cowork .vendas-aplus .vd-sla-paid { background: var(--bg-2); color: var(--text-mute); }
 /* SLA mini-pills no KPI A receber */
 .sells-cowork .vendas-aplus .vd-sla-counts {
@@ -5935,8 +5937,8 @@
   padding: 0; line-height: 1.5;
 }
 .sells-cowork .vendas-aplus .vd-sla-mini .ic { font-size: 8px; line-height: 1; margin-right: 4px; }
-.sells-cowork .vendas-aplus .vd-sla-mini.fresh { color: oklch(0.45 0.13 145); }
-.sells-cowork .vendas-aplus .vd-sla-mini.warning { color: oklch(0.50 0.13 60); }
+.sells-cowork .vendas-aplus .vd-sla-mini.fresh { color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-sla-mini.warning { color: var(--warn); }
 .sells-cowork .vendas-aplus .vd-sla-mini.overdue { color: var(--neg); }
 .sells-cowork .vendas-aplus .vd-sla-mini + .vd-sla-mini::before {
   content: "·"; margin-right: 2px; color: var(--text-mute); font-weight: 400;
@@ -6131,10 +6133,11 @@
    ✦ accent roxo · 3 blocos IA · palette empty-state IA
    ═══════════════════════════════════════════════════════════════════ */
 .sells-cowork {
-  --vd-ai: oklch(0.52 0.20 295);
-  --vd-ai-soft: oklch(0.96 0.04 295);
-  --vd-ai-border: oklch(0.86 0.10 295);
-  --vd-ai-text: oklch(0.32 0.18 295);
+  /* IA = mesmo roxo canônico (--accent 295). Alias dos tokens-fonte (dark-aware). */
+  --vd-ai: var(--accent);
+  --vd-ai-soft: var(--accent-soft);
+  --vd-ai-border: var(--accent-line);
+  --vd-ai-text: var(--accent);
 }
 /* ── Tab IA no drawer ── */
 .sells-cowork .vd-drawer-aplus .vd-drawer-tab.vd-tab-ai {
@@ -7362,9 +7365,9 @@
   width: 7px; height: 7px; border-radius: 50%;
   font-size: 0;
 }
-.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-fresh   .vd-sla-ic { background: oklch(0.55 0.13 145); }
-.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-warning .vd-sla-ic { background: oklch(0.62 0.13 60); }
-.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-overdue .vd-sla-ic { background: var(--vd-bad); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-fresh   .vd-sla-ic { background: var(--pos); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-warning .vd-sla-ic { background: var(--warn); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-overdue .vd-sla-ic { background: var(--neg); }
 .sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-lbl {
   color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
 }
@@ -7386,18 +7389,13 @@
 .sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-fresh)::after { background: var(--vd-ok); opacity: 1; }
 .sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-warning)::after { background: var(--vd-warn); opacity: 1; }
 .sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-overdue)::after { background: var(--vd-bad); opacity: 1; }
-/* Paleta accent */
-.sells-cowork .vendas-aplus[data-vd-palette="indigo"] {
-  --vd-green: oklch(0.45 0.18 270);
-  --vd-green-soft: oklch(0.95 0.05 270);
-}
-.sells-cowork .vendas-aplus[data-vd-palette="slate"] {
-  --vd-green: oklch(0.42 0.04 240);
-  --vd-green-soft: oklch(0.94 0.005 240);
-}
+/* Paleta accent — DS v6: identidade é roxo canônico universal (ADR 0190/0235).
+   Os overrides de paleta deixam de tintar a identidade (gabarito = um só roxo). */
+.sells-cowork .vendas-aplus[data-vd-palette="indigo"],
+.sells-cowork .vendas-aplus[data-vd-palette="slate"],
 .sells-cowork .vendas-aplus[data-vd-palette="amber"] {
-  --vd-green: oklch(0.52 0.14 60);
-  --vd-green-soft: oklch(0.95 0.06 60);
+  --vd-green: var(--accent);
+  --vd-green-soft: var(--accent-soft);
 }
 
 /* ──────────────────────────────────────────────────────────────

@@ -65,6 +65,16 @@
   --stage-emerald: oklch(0.60 0.13 155);
   --stage-green:   oklch(0.66 0.15 145);
 
+  /* DS v6 foundation (gabarito-vendas · [W] 2026-06-03) — superfícies + escala de
+     texto + linha de accent que o re-skin do /sells consome. Aditivo; roxo 295 e
+     os semânticos --pos/--neg/--warn (definidos acima) intocados. */
+  --sunken:       oklch(0.965 0.004 90);
+  --raised:       oklch(1 0 0);
+  --text-2:       oklch(0.46 0.01 80);
+  --text-3:       oklch(0.63 0.008 80);
+  --text-4:       oklch(0.74 0.006 80);
+  --accent-line:  oklch(0.86 0.05 295);
+
   --radius:       8px;
   --radius-sm:    6px;
   --radius-lg:    12px;
@@ -125,6 +135,14 @@
   --stage-rose:    oklch(0.68 0.16 20);
   --stage-emerald: oklch(0.68 0.14 155);
   --stage-green:   oklch(0.74 0.15 145);
+
+  /* DS v6 foundation — variante dark (gabarito-vendas · [W] 2026-06-03) */
+  --sunken:       oklch(0.19 0.006 240);
+  --raised:       oklch(0.30 0.009 240);
+  --text-2:       oklch(0.74 0.008 90);
+  --text-3:       oklch(0.58 0.008 90);
+  --text-4:       oklch(0.47 0.008 90);
+  --accent-line:  oklch(0.42 0.10 295);
 }
 
 .cockpit *{ box-sizing: border-box; }

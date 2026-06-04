@@ -1326,7 +1326,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               </div>
             )}
             <div className="vd-spark">
-              <Sparkline data={sparkData} color="oklch(0.72 0.10 155)" />
+              {/* cor via currentColor → CSS .vd-spark{color:var(--accent-fg)} (token, dark-aware;
+                  var() não resolve em atributo SVG fill/stroke, só herdando currentColor) */}
+              <Sparkline data={sparkData} color="currentColor" />
             </div>
           </div>
 

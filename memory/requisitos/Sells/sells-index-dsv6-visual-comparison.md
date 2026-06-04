@@ -97,3 +97,25 @@ refs_prs:
 3. Algum ajuste nas decisões acima (ex: manter alguma cor específica, ou incluir os `-soft` chroma)?
 
 Após teu OK eu: atualizo `status: approved` + assino, abro PR3 (worktree off main, single-intent CSS-token), rodo CI + screenshot real, e só mergeio com teu de-novo-OK no screenshot pós-impl (F3 design-critique ≥80).
+
+---
+
+## ✅ Implementação PR3 — consolidada **off `main`** (2026-06-03)
+
+> **Fonte única = `main`** (lição: 2 linhagens anteriores saíram do `staging` defasado — fechadas/superseded). Este delta é **só o que `main` ainda não tinha** (main já trazia `--pos/--neg/--warn/--stage-*` no `cockpit.css` + `--vd-ok/warn/bad`→token no `sells-cowork.css`).
+
+**Delta aplicado:**
+- **`cockpit.css`** — fundação DS v6 faltante (claro+dark): `--sunken` · `--raised` · `--text-2/3/4` · `--accent-line`. Os semânticos `--pos/--neg/--warn` (+soft) e `--stage-*` **já eram canon no main — não duplicados**. Roxo 295 intocado (ADR 0235).
+- **`sells-cowork.css`** —
+  - Identidade **verde-155 → roxo `--accent`** (`--vd-green*`, proposta D-02 não aprovada; ADR 0190).
+  - `--vd-ai*` → `--accent*`/`--accent-line` · `[data-vd-palette]` indigo/slate/amber → roxo único.
+  - `.os-kpi` `#fff` → `var(--surface)` (corrige card branco no dark; −1 hex) · `.os-kpi-alert`→`--warn(+soft)`.
+  - `.vd-kpi-hero` value/sub/delta/spark → `--accent-fg` (hero roxo, legível 2 temas).
+  - SLA pills/mini/dot raw `oklch` → `--pos/--warn/--neg(+soft)`.
+  - **Dark-flip (33×):** `.sells-cowork [data-theme="dark"]` → `.cockpit[data-theme="dark"] .sells-cowork` — `data-theme` vive no ancestral `.cockpit` (AppShellV2), selector descendente nunca casava → dark morto. Agora flipa. (Continuação do fix do agente irmão, consolidado aqui.)
+- **`Index.tsx`** — Sparkline `oklch` → `currentColor` (cor via `.vd-spark{color:var(--accent-fg)}`; `var()` não resolve em atributo SVG).
+- **`Index.charter.md`** — `ds: v6` + `regua:` (fonte única da tela).
+
+**Deferido (alvo mínimo / L-28):** `--vd-src-*` (origem, compartilhado c/ Caixa) · barra `.os-*` toolbar/search (`#fff`/`oklch` fallback, dimensão "paridade") · gradiente decorativo `--vd-ai` (1 `oklch` stop) · transcript A4 + overlay apresentação (intencional).
+
+**Gate pós-impl F3 (ADR 0107) = [W]:** screenshot `/sells` nos 2 temas + design-critique ≥80 antes do merge. Não-renderizável local (node_modules vazio) → gates rodam no CI.
