@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Regras/Index
+path: resources/js/Pages/Jana/Regras/Index.tsx
+archetype: other
+persona: wagner
+nota: 52
+nivel: "Developing"
+baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Stub 'UI em construção' apontando pra Governança; correto e a11y básica ok, mas sem conteúdo e cor oklch azul/violet cruas."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Speed-to-task"
+    best_of_class: "Notion"
+    fix: "Listar policies do PolicyEngine (4 outcomes) read-only em vez de só redirecionar"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe"
+    fix: "oklch(0.62 0.13 220) + violet-500 inline fora do primary roxo v4"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Linear"
+    fix: "Sem preview de regras; agregar contagem/estado das políticas ativas"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

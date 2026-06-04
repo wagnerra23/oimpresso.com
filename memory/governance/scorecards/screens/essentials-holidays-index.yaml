@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Essentials/Holidays/Index
+path: resources/js/Pages/Essentials/Holidays/Index.tsx
+archetype: list
+persona: misto
+nota: 84
+nivel: "Developing"
+baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista de feriados solida: filtros por localidade/data, dialog create/edit, badge de dias, empty state, full DS."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Mobile-fit"
+    best_of_class: "Linear converte tabela em cards no mobile"
+    fix: "Colapsar tabela em cards <640px em vez de overflow horizontal"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Density"
+    best_of_class: "Bling lista feriados em calendario"
+    fix: "Oferecer toggle visao calendario/lista pra leitura rapida do mes"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Microcopy"
+    best_of_class: "Stripe explica escopo do filtro"
+    fix: "Hint de que feriado sem localidade vale pra todas as lojas"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ProjectMgmt/Burndown/Index
+path: resources/js/Pages/ProjectMgmt/Burndown/Index.tsx
+archetype: dashboard
+persona: wagner
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Burndown SVG ideal-vs-real hand-rolled com KPIs de pace/forecast e empty-state sem-cycle; usa stroke-blue-500 cru e não tem charter nem tooltip/hover no gráfico."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe charts usam tokens do tema"
+    fix: "Trocar stroke-blue-500/fill-blue-500 por token (primary roxo)"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Linear cycle chart: hover mostra valor do dia (tooltip)"
+    fix: "Adicionar tooltip por ponto (data, ideal, real) no SVG"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "charter por tela"
+    fix: "Criar Burndown/Index.charter.md"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

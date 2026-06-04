@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: OficinaAuto/ServiceOrders/Edit
+path: resources/js/Pages/OficinaAuto/ServiceOrders/Edit.tsx
+archetype: form
+persona: tecnico
+nota: 73
+nivel: "Advanced"
+baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Edit com secao Itens inline (optimistic+toast+roxo) supera Create, mas mantem selects nativos e window.confirm fora do DS."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "@/Components/ui"
+    fix: "select/textarea nativos (vs Input/Label do DS); padronizar com Select/Textarea shadcn"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Notion"
+    fix: "delete de item usa window.confirm() nativo — trocar por AlertDialog do DS (consistente com optimistic toast)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Cognitive-load"
+    best_of_class: "Linear"
+    fix: "4 campos datetime-local lado a lado (entrada/previsao/concluida/entregue) sem agrupamento visual — agrupar em fieldset 'Datas'"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

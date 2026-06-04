@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: MemCofre/Inbox
+path: resources/js/Pages/MemCofre/Inbox.tsx
+archetype: list
+persona: wagner
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Inbox de triagem solido com shadcn/ui, busca debounce+Scout, tabs por status, dialog editar e AlertDialog deletar; perde por cores raw e sem charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear (tokens semanticos unicos, zero charter-less ship)"
+    fix: "Trocar tones amber/sky/emerald hard nos statusTabs por tokens v4 e criar Inbox.charter.md."
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe (tablist com roles ARIA + foco visivel)"
+    fix: "Adicionar role=tablist/tab/aria-selected nas tabs de status (hoje sao <button> nus)."
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Notion (densidade de badges controlada)"
+    fix: "Reduzir empilhamento de badges [10px] na linha; agrupar meta secundaria sob disclosure."
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
