@@ -2415,6 +2415,28 @@ class ContactController extends Controller
             if (request()->session()->get('business.enable_rp') == 1) {
                 $contacts->addSelect('total_rp');
             }
+
+            // US-CRM-078 PR2 (re-do) — catálogo de endereços do cliente p/ o seletor
+            // de entrega na venda (Sells/Create). HasBusinessScope no model
+            // App\ContactAddress garante Tier 0 (ADR 0093): só endereços do mesmo
+            // business. city_code (IBGE/cMun) alimenta destinatário ↔ local de
+            // entrega + gatilho MDF-e na NF-e. Ordena: entrega > default > resto.
+            //
+            // BLINDAGEM (lição do revert #2107): este endpoint é COMPARTILHADO com o
+            // Blade legado. Se a migration `contact_addresses` (US-CRM-078 PR1) ainda
+            // não rodou no ambiente, eager-load cego dá 500 e derruba a busca de
+            // cliente do POS inteiro. Guard Schema::hasTable degrada gracioso (sem
+            // catálogo, o seletor cai no fallback one-line) em vez de quebrar.
+            if (\Illuminate\Support\Facades\Schema::hasTable('contact_addresses')) {
+                $contacts->with(['addresses' => function ($query) {
+                    $query->select([
+                        'id', 'contact_id', 'label', 'zip_code', 'address_line_1',
+                        'numero', 'address_line_2', 'neighborhood', 'city', 'state',
+                        'city_code', 'is_default', 'is_shipping',
+                    ])->orderByDesc('is_shipping')->orderByDesc('is_default');
+                }]);
+            }
+
             $contacts = $contacts->get();
 
             return json_encode($contacts);

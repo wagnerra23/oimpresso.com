@@ -30,7 +30,7 @@ updated: "2026-06-02"
 | CU-08 | Status da venda (final/rascunho/cotação/proforma) | must | ✅ | `SellsCreatePageTest` (8 campos + status) | 🟢 |
 | CU-09 | Prazo de pagamento + comissionista | should | ✅ | `SellsCreatePageTest` (condicional) · `CommissionSplitEditorTest` | 🟢 |
 | CU-10 | Esquema/nº fatura + imposto do pedido | should | ✅ | `SellsCreatePageTest` ("Mais opções") | 🟢 |
-| CU-11 | Frete/entrega (endereço + custo + status remessa) | must | ⚠️ básico | `SellsCreatePageTest` (bloco frete) | 🟡 |
+| CU-11 | Frete/entrega (endereço 1ª classe + custo + status remessa) | must | ✅ | `SellsCreatePageTest` (sec-entrega + catálogo) | 🟢 |
 | CU-12 | Notas + despesas adicionais | should | ✅ | `SellsCreatePageTest` | 🟢 |
 | CU-13 | Salvar / Salvar e imprimir + **auto-save draft** (biz.user) | must | ✅ | `SellsCreatePageTest` (useForm + draft localStorage) | 🟢 |
 | CU-14 | Criar OS a partir da venda (comvis/oficina) | should | ✅ | `CriarOsPorVendaTest` | 🟢 |
@@ -38,10 +38,10 @@ updated: "2026-06-02"
 | CU-G1 | Venda recorrente / assinatura | — | ❌ | — | ⚪ Non-Goal (tela `Sells/Subscriptions`) |
 | CU-G2 | Resgate de pontos (reward) | could | ❌ | — | ⚪ gap (Blade-only) |
 | CU-G3 | Anexar documento à venda | could | ❌ | — | ⚪ gap (Blade-only) |
-| CU-G4 | Tipos de serviço (multi-select) | should | ⚠️ | — | 🔴 gap a avaliar |
+| CU-G4 | Tipo de serviço (`types_of_service_id`, select único) | should | ✅ | `SellsCreatePageTest` (select condicional) | 🟢 |
 | CU-G5 | Devolução (esquema Venda/Devolução + fluxo) | — | ❌ | — | ⚪ Non-Goal (fluxo separado) |
 
-**Veredito de paridade:** núcleo da venda ✅ coberto + testado. Pendências reais: **CU-11** (frete estruturado de 1ª classe — era o PR2 revertido #2104, **re-fazer com smoke**) e **CU-G4** (tipos de serviço). O resto dos gaps é Non-Goal documentado.
+**Veredito de paridade:** núcleo da venda ✅ coberto + testado. **CU-11** (frete estruturado de 1ª classe) e **CU-G4** (tipo de serviço) re-feitos em 2026-06-04 (re-do do PR2 revertido #2104, agora com a migration `contact_addresses` já em main + blindagem `Schema::hasTable` no `getCustomers` compartilhado — causa raiz do revert). Pendente apenas o **smoke visual CT 100** antes do merge. O resto dos gaps é Non-Goal documentado.
 
 ---
 
@@ -98,13 +98,14 @@ updated: "2026-06-02"
 **Then** payload reflete o status (cotação/proforma → FSM stage inicial)
 - **V2:** `status` select · **Pest:** `SellsCreatePageTest.php`
 
-## CU-11 · Frete / entrega · `must` · 🟡 parcial
+## CU-11 · Frete / entrega · `must` · ✅ (re-do 2026-06-04)
 **Given** venda com entrega
-**When** preenche endereço de entrega + custo + status da remessa + entregue a
-**Then** persiste em `transactions.shipping_*`
-- **V2 (atual):** bloco frete free-text dentro de "Mais opções" — ✅ funcional, ⚠️ **não estruturado**
-- **Pendente (PR2 #2104, revertido):** endereço de **1ª classe** lendo `contact.addresses[]` (Destinatário ↔ Local de entrega) + gatilho MDF-e por `city_code`. **Re-fazer com smoke biz=4 antes de religar.** Ver US-SELL-044 (PR3 fiscal).
-- **Pest:** `SellsCreatePageTest.php` (bloco frete)
+**When** escolhe modo Entrega → seleciona endereço do catálogo do cliente (Destinatário ↔ Local de entrega) ou "Outro" + custo + status da remessa + entregue a
+**Then** persiste o one-line derivado em `transactions.shipping_address` (compat UPOS/NFe) + `shipping_*`
+- **V2 (atual):** seção própria `sec-entrega` de **1ª classe** (entre Produtos e Pagamento) — toggle Retirada × Entrega, consome `contact.addresses[]` (eager-load `getCustomers`), pré-seleciona `is_shipping > is_default > 1º`, "Outro" estruturado, hint MDF-e por divergência de cidade. Frete saiu de "Mais opções".
+- **Causa raiz do revert #2107 corrigida:** PR2 fazia `->with(['addresses'])` cego no endpoint **compartilhado** com Blade → 500 quando a migration não estava em prod. Re-do guarda com `Schema::hasTable('contact_addresses')` (degrada gracioso pro fallback one-line). Dependência PR1 (`efc31745a`) já em main.
+- **Gatilho fiscal real** (`<entrega>`/cMun via `city_code` no NfeService) fica pro PR3 — US-SELL-044.
+- **Pest:** `SellsCreatePageTest.php` (sec-entrega + catálogo + MDF-e hint)
 
 ## CU-13 · Salvar + auto-save draft · `must`
 **Given** venda em preenchimento
@@ -128,7 +129,7 @@ updated: "2026-06-02"
 | CU-G1 | Assinatura/recorrência | ⚪ Non-Goal | Vive na tela `Sells/Subscriptions` (separada) |
 | CU-G2 | Resgate de pontos | ⚪ gap | UPOS legado; sem sinal de cliente (ADR 0105) |
 | CU-G3 | Anexar documento à venda | ⚪ gap | Idem — avaliar se algum cliente usa |
-| CU-G4 | Tipos de serviço (multi-select) | 🔴 a avaliar | Prop existe (`typesOfService`), sem UI na V2 — confirmar se comvis/oficina precisa |
+| CU-G4 | Tipo de serviço (`types_of_service_id`) | ✅ feito 2026-06-04 | Select único na sec-dados, gated por `hasTypesOfService` (some em vestuário). Era impreciso chamar de "multi-select" — UPOS usa FK único |
 | CU-G5 | Devolução (Venda/Devolução) | ⚪ Non-Goal | Fluxo de retorno é separado, não o "adicionar venda" |
 
 > Marcar um item como Non-Goal aqui é **decisão de produto** (Wagner) — o teste não cobra, e ninguém chama de "regressão". Se um cliente reclamar de um destes, vira US com sinal qualificado (ADR 0105).

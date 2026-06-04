@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
+import { AlertTriangle, Building2, CreditCard, FileText, Loader2, MapPin, Package, Plus, Printer, Receipt, Search, Settings2, Store, Trash2, Truck } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -30,6 +30,7 @@ import ProductSearchAutocomplete, {
 } from './_components/ProductSearchAutocomplete';
 import CustomerSearchAutocomplete, {
   type CustomerSearchResult,
+  type ContactAddressOption,
 } from './_components/CustomerSearchAutocomplete';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from './_components/NumericInputPtBR';
@@ -61,6 +62,10 @@ interface Location {
   id: number;
   name: string;
   selling_price_group_id: number | null;
+  // US-CRM-078 PR2 — cidade da loja (origem). Origem do comparativo de município
+  // que sugere MDF-e quando a entrega sai pra outra cidade. defaultLocation já vem
+  // como model BusinessLocation completo do controller (inclui city).
+  city?: string | null;
 }
 
 interface Contact {
@@ -117,6 +122,9 @@ const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 // US-SELL-010 — campos dentro do <details> "Mais opções". Se erro cair em algum
 // destes, o details abre automaticamente pra Larissa achar o campo (gap UX
 // detectado pelo design-arte agent 2026-05-13).
+// US-CRM-078 PR2 — frete/entrega SAIU de "Mais opções" pra seção própria
+// `sec-entrega` (endereço de 1ª classe). Por isso as chaves shipping_* não
+// estão mais aqui: erro de shipping abre/rola a seção Entrega, não o <details>.
 const COLLAPSED_FIELD_KEYS = [
   'invoice_scheme_id',
   'invoice_no',
@@ -126,12 +134,69 @@ const COLLAPSED_FIELD_KEYS = [
   'price_group_id',
   'commission_agent_id',
   'tax_rate_id',
-  'shipping_details',
-  'shipping_address',
-  'shipping_charges',
-  'shipping_status',
-  'delivered_to',
 ];
+
+// US-CRM-078 PR2 — campos estruturados de um endereço de entrega "Outro" (avulso),
+// espelhando o schema `contact_addresses`. Mesmos nomes do model pra 1 helper só.
+interface DeliveryAddressFields {
+  zip_code: string;
+  address_line_1: string;
+  numero: string;
+  address_line_2: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  city_code: string;
+}
+
+const EMPTY_DELIVERY_ADDRESS: DeliveryAddressFields = {
+  zip_code: '',
+  address_line_1: '',
+  numero: '',
+  address_line_2: '',
+  neighborhood: '',
+  city: '',
+  state: '',
+  city_code: '',
+};
+
+// Endereço em 1 linha — espelha App\ContactAddress::getOneLineAttribute (PHP) pra
+// o texto persistir igual no `transactions.shipping_address` (compat UPOS/NFe).
+// Ex.: "Av. Paulista, 1578 — Bela Vista — São Paulo/SP · 01310-100".
+function buildAddressOneLine(a: {
+  address_line_1?: string | null;
+  numero?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+}): string {
+  let rua = (a.address_line_1 ?? '').trim();
+  const numero = (a.numero ?? '').trim();
+  if (numero !== '') rua = rua !== '' ? `${rua}, ${numero}` : numero;
+
+  const city = (a.city ?? '').trim();
+  const state = (a.state ?? '').trim();
+  const cidadeUf = city && state ? `${city}/${state}` : city || state;
+
+  const line = [rua, (a.neighborhood ?? '').trim(), cidadeUf]
+    .filter((p) => p !== '')
+    .join(' — ');
+
+  const zip = (a.zip_code ?? '').trim();
+  if (zip) return line !== '' ? `${line} · ${zip}` : zip;
+  return line;
+}
+
+// Normaliza nome de cidade pra comparar origem (loja) × destino (entrega) sem
+// falso-positivo por acento/caixa. Base do hint de MDF-e (gatilho real fica no
+// NfeService via city_code — PR3).
+const normalizeCity = (c?: string | null): string =>
+  (c ?? '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .trim()
+    .toLowerCase();
 
 // FieldError — exibe erro de validação por campo. Inline (canon: componente
 // reusável só ao 2º uso; aqui é local). role="alert" pra screen reader.
@@ -189,6 +254,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     price_group_id: props.defaultPriceGroupId,
     commission_agent_id: null as number | null,
     tax_rate_id: null as number | null,
+    // CU-G4 — Tipo de serviço (FK único transactions.types_of_service_id). Só
+    // relevante quando o módulo `types_of_service` está habilitado pro business
+    // (oficina/comunicação visual). '' = nenhum (vira null no TransactionUtil).
+    types_of_service_id: '' as string,
     products: [] as Array<{
       product_id: number;
       variation_id: number | null;
@@ -226,7 +295,14 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     customer_secondary_address: '',
     /** Documento anexo (file upload Blade legacy sell_document). Paridade Edit. */
     sell_document: null as File | null,
+    // US-CRM-078 PR2 — entrega de 1ª classe. `mode` retirada|entrega, `address_id`
+    // = endereço escolhido do catálogo do cliente (null = "Outro" avulso). Campos
+    // estruturados espelham `contact_addresses`; `address` (one-line) é DERIVADO no
+    // submit e persiste em `transactions.shipping_address` (compat UPOS/NFe).
     shipping: {
+      mode: 'retirada' as 'retirada' | 'entrega',
+      address_id: null as number | null,
+      ...EMPTY_DELIVERY_ADDRESS,
       details: '',
       address: '',
       cost: 0,
@@ -240,6 +316,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       { key: '', value: 0 },
     ] as Array<{ key: string; value: number }>,
   });
+
+  // US-CRM-078 PR2 — endereços do cliente selecionado (opções do seletor de
+  // entrega). Vêm do payload /contacts/customers (getCustomers eager-load
+  // `addresses`). NÃO entram no draft (dados de referência do cadastro): no
+  // recover o endereço escolhido sobrevive via data.shipping.* já persistido.
+  const [customerAddresses, setCustomerAddresses] = useState<ContactAddressOption[]>([]);
 
   // Persistir <details> open state em localStorage (DESIGN.md §12)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false);
@@ -304,6 +386,48 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   const formatBRL = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // Hint de MDF-e: entrega sai pra município diferente do da loja (origem).
+  // Gatilho fiscal real (cMun via city_code) fica no NfeService — PR3. Aqui é só UX.
+  const originCity = props.defaultLocation?.city ?? null;
+  const mdfeHint = useMemo(() => {
+    if (data.shipping.mode !== 'entrega') return false;
+    const dest = normalizeCity(data.shipping.city);
+    const orig = normalizeCity(originCity);
+    if (!dest || !orig) return false;
+    return dest !== orig;
+  }, [data.shipping.mode, data.shipping.city, originCity]);
+
+  // US-CRM-078 PR2 — Destinatário fiscal = endereço de cadastro (is_default) do
+  // cliente. Mostrado como contexto; o "Local de entrega" pode diferir dele.
+  const destinatarioAddr = customerAddresses.find((a) => a.is_default) ?? customerAddresses[0] ?? null;
+  const isRealCustomer = data.contact_id !== props.walkInCustomer.id;
+
+  // Handlers do seletor de entrega.
+  const setDeliveryMode = (mode: 'retirada' | 'entrega') =>
+    setData('shipping', { ...data.shipping, mode });
+
+  const selectSavedAddress = (a: ContactAddressOption) =>
+    setData('shipping', {
+      ...data.shipping,
+      address_id: a.id,
+      zip_code: a.zip_code ?? '',
+      address_line_1: a.address_line_1 ?? '',
+      numero: a.numero ?? '',
+      address_line_2: a.address_line_2 ?? '',
+      neighborhood: a.neighborhood ?? '',
+      city: a.city ?? '',
+      state: a.state ?? '',
+      city_code: a.city_code ?? '',
+      address: buildAddressOneLine(a),
+    });
+
+  // "Outro endereço" — solta o vínculo com o catálogo e zera os campos pra digitar.
+  const selectOutroAddress = () =>
+    setData('shipping', { ...data.shipping, address_id: null, ...EMPTY_DELIVERY_ADDRESS, address: '' });
+
+  const setOutroField = (field: keyof DeliveryAddressFields, value: string) =>
+    setData('shipping', { ...data.shipping, [field]: value, address_id: null });
 
   const validateDiscount = (type: string, amount: number) => {
     if (maxDiscount == null || maxDiscount <= 0) { setDiscountError(null); return; }
@@ -471,11 +595,33 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (c.pay_term_type === 'days' || c.pay_term_type === 'months') {
       setData('pay_term_type', c.pay_term_type);
     }
-    // Shipping address — `data.shipping.address` é nested. Usa spread pra preservar
-    // outros campos (details, cost, status, deliver_to) que user pode ter editado.
-    if (c.shipping_address && c.shipping_address !== '') {
-      setData('shipping', { ...data.shipping, address: c.shipping_address });
+    // US-CRM-078 PR2 — catálogo de endereços do cliente alimenta o seletor de
+    // entrega. Pré-seleciona o de entrega (is_shipping) > default > 1º, mas NÃO
+    // liga o modo "entrega" sozinho (Larissa decide retirada vs entrega).
+    const addrs = c.addresses ?? [];
+    setCustomerAddresses(addrs);
+    const preferred =
+      addrs.find((a) => a.is_shipping) ?? addrs.find((a) => a.is_default) ?? addrs[0] ?? null;
+    if (preferred) {
+      setData('shipping', {
+        ...data.shipping,
+        address_id: preferred.id,
+        zip_code: preferred.zip_code ?? '',
+        address_line_1: preferred.address_line_1 ?? '',
+        numero: preferred.numero ?? '',
+        address_line_2: preferred.address_line_2 ?? '',
+        neighborhood: preferred.neighborhood ?? '',
+        city: preferred.city ?? '',
+        state: preferred.state ?? '',
+        city_code: preferred.city_code ?? '',
+        address: buildAddressOneLine(preferred),
+      });
+    } else if (c.shipping_address && c.shipping_address !== '') {
+      // Fallback legacy: cliente sem catálogo estruturado (pré-backfill) — mantém
+      // o one-line do cadastro como endereço de entrega "Outro".
+      setData('shipping', { ...data.shipping, address_id: null, address: c.shipping_address });
     }
+
     // Grupo de preço — `handlePriceGroupChange` já existe (R3) e recalcula linhas.
     // null/undefined → não muda (preserva default já aplicado).
     if (c.selling_price_group_id !== null && c.selling_price_group_id !== undefined) {
@@ -488,6 +634,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     setData('contact_id', props.walkInCustomer.id);
     setData('pay_term_number', '');
     setData('pay_term_type', 'days');
+    // US-CRM-078 PR2 — sem cliente, não há catálogo de endereços. Limpa as opções
+    // e solta o vínculo (address_id) — o que estiver digitado vira "Outro" avulso.
+    setCustomerAddresses([]);
+    setData('shipping', { ...data.shipping, address_id: null });
     // shipping fica como user editou — não auto-limpa (pode ser endereço manual)
     // price_group volta ao default do business
     if (props.defaultPriceGroupId !== data.price_group_id) {
@@ -642,12 +792,14 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       // FormData só quando há anexo (caminho JSON comum intacto sem documento).
       // Backend: SellPosController@store:586 uploadFile($request,'sell_document').
       sell_document: d.sell_document,
-      // Flatten shipping object pra campos top-level
-      shipping_details: d.shipping.details,
-      shipping_address: d.shipping.address,
-      shipping_charges: d.shipping.cost,
-      shipping_status: d.shipping.status,
-      delivered_to: d.shipping.deliver_to,
+      // Flatten shipping object pra campos top-level. US-CRM-078 PR2 — shipping_address
+      // é o endereço estruturado em 1 linha quando há entrega; vazio em retirada.
+      // Recalcula de `d` (não do useMemo) por defesa contra race do setData/post.
+      shipping_details: d.shipping.mode === 'entrega' ? d.shipping.details : '',
+      shipping_address: d.shipping.mode === 'entrega' ? buildAddressOneLine(d.shipping) : '',
+      shipping_charges: d.shipping.mode === 'entrega' ? d.shipping.cost : 0,
+      shipping_status: d.shipping.mode === 'entrega' ? d.shipping.status : '',
+      delivered_to: d.shipping.mode === 'entrega' ? d.shipping.deliver_to : '',
       // Despesas adicionais (Blade: additional_expense_key_N + additional_expense_value_N)
       additional_expense_key_1: d.additional_expenses[0]?.key ?? '',
       additional_expense_value_1: d.additional_expenses[0]?.value ?? '',
@@ -719,6 +871,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             transaction_date: 'sec-dados',
             products: 'sec-produtos',
             payments: 'sec-pagamento',
+            shipping_address: 'sec-entrega',
+            shipping_charges: 'sec-entrega',
             invoice_no: 'sec-mais-opcoes',
           };
           const section = sectionMap[firstErrorKey] ?? 'sec-dados';
@@ -850,8 +1004,17 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [draftKey]);
 
   const handleDraftRecover = () => {
-    // Draft não guarda File — restaura preservando sell_document=null.
-    if (draftRecover) setData({ ...draftRecover.data, sell_document: null });
+    if (draftRecover) {
+      // Draft não guarda File — restaura preservando sell_document=null.
+      // US-CRM-078 PR2 — drafts antigos (pré-feature) não têm os campos novos de
+      // shipping (mode/address_id/estruturados). Mescla com a forma atual pra não
+      // deixar undefined e quebrar o seletor de entrega.
+      setData({
+        ...draftRecover.data,
+        sell_document: null,
+        shipping: { ...data.shipping, ...draftRecover.data.shipping },
+      });
+    }
     setDraftRecover(null);
   };
 
@@ -907,7 +1070,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   // Scroll-spy: detecta qual aba está visível e marca como ativa (pattern Cockpit canon).
   // Ref: Pages/ProjectMgmt/Board/DetailSheet.tsx — abas com border-b-2 border-primary -mb-px no estado ativo.
-  const sectionIds = ['sec-dados', 'sec-produtos', 'sec-pagamento', 'sec-resumo', 'sec-mais-opcoes'];
+  const sectionIds = ['sec-dados', 'sec-produtos', 'sec-entrega', 'sec-pagamento', 'sec-resumo', 'sec-mais-opcoes'];
   const [activeSection, setActiveSection] = useState<string>('sec-dados');
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -956,6 +1119,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {[
               { id: 'sec-dados', label: 'Dados', icon: FileText, count: undefined as number | undefined },
               { id: 'sec-produtos', label: 'Produtos', icon: Package, count: itensCount > 0 ? itensCount : undefined },
+              { id: 'sec-entrega', label: 'Entrega', icon: Truck, count: undefined },
               { id: 'sec-pagamento', label: 'Pagamento', icon: CreditCard, count: undefined },
               { id: 'sec-resumo', label: 'Resumo', icon: Receipt, count: undefined },
               { id: 'sec-mais-opcoes', label: 'Mais opções', icon: Settings2, count: undefined },
@@ -1136,6 +1300,31 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             </Select>
             <FieldError message={errors.location_id as string | undefined} />
           </div>
+
+          {/* CU-G4 — Tipo de serviço. Só aparece quando o módulo types_of_service
+              está habilitado pro business (oficina/comunicação visual). Em vestuário
+              (ROTA LIVRE) a prop vem vazia → seção some, zero ruído. FK único. */}
+          {hasTypesOfService && (
+            <div className="space-y-1.5">
+              <Label htmlFor="types_of_service_id">Tipo de serviço</Label>
+              <Select
+                value={data.types_of_service_id || ''}
+                onValueChange={(v) => setData('types_of_service_id', v)}
+              >
+                <SelectTrigger id="types_of_service_id">
+                  <SelectValue placeholder="Selecionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dropdownEntries(props.typesOfService).map(([id, name]) => (
+                    <SelectItem key={id} value={id}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldError message={errors.types_of_service_id as string | undefined} />
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -1309,6 +1498,285 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   </tr>
                 </tfoot>
               </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* US-CRM-078 PR2 — Entrega de 1ª classe: destinatário (cadastro) ↔ local de
+          entrega (catálogo do cliente ou "Outro" avulso). Saiu de "Mais opções". */}
+      <Card id="sec-entrega" className="shadow-sm bg-background border-border scroll-mt-32">
+        <CardHeader>
+          <CardTitle className="text-base">Entrega</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Retirada na loja ou entrega num endereço do cliente — entrega pra outra
+            cidade sugere emissão de MDF-e.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Modo: retirada × entrega */}
+          <div
+            role="radiogroup"
+            aria-label="Modo de entrega"
+            className="grid grid-cols-2 gap-2 max-w-md"
+          >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={data.shipping.mode === 'retirada'}
+              onClick={() => setDeliveryMode('retirada')}
+              className={
+                'flex items-start gap-2 rounded-md border p-3 text-left text-sm transition-colors ' +
+                (data.shipping.mode === 'retirada'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'border-border hover:bg-muted/50')
+              }
+            >
+              <Store className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <span>
+                <span className="block font-medium text-foreground">Retirada na loja</span>
+                <span className="block text-xs text-muted-foreground">Cliente busca · sem frete</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={data.shipping.mode === 'entrega'}
+              onClick={() => setDeliveryMode('entrega')}
+              className={
+                'flex items-start gap-2 rounded-md border p-3 text-left text-sm transition-colors ' +
+                (data.shipping.mode === 'entrega'
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'border-border hover:bg-muted/50')
+              }
+            >
+              <Truck className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <span>
+                <span className="block font-medium text-foreground">Entrega</span>
+                <span className="block text-xs text-muted-foreground">Endereço do cliente · frete</span>
+              </span>
+            </button>
+          </div>
+
+          {data.shipping.mode === 'entrega' && (
+            <div className="space-y-4">
+              {/* Destinatário fiscal (cadastro is_default) — contexto read-only */}
+              {isRealCustomer && destinatarioAddr && (
+                <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 p-3 text-sm">
+                  <Building2 className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Destinatário (cadastro)
+                    </div>
+                    <div className="text-foreground">{buildAddressOneLine(destinatarioAddr)}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Local de entrega — catálogo do cliente + "Outro" */}
+              <div className="space-y-2">
+                <Label>Local de entrega</Label>
+
+                {customerAddresses.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {customerAddresses.map((a) => {
+                      const selected = data.shipping.address_id === a.id;
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => selectSavedAddress(a)}
+                          aria-pressed={selected}
+                          className={
+                            'flex flex-col items-start gap-0.5 rounded-md border p-3 text-left text-sm transition-colors ' +
+                            (selected
+                              ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                              : 'border-border hover:bg-muted/50')
+                          }
+                        >
+                          <span className="flex items-center gap-1.5 font-medium text-foreground">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                            {a.label || 'Endereço'}
+                            {a.is_shipping && (
+                              <span className="rounded bg-muted px-1 text-[10px] font-normal text-muted-foreground">
+                                padrão entrega
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{buildAddressOneLine(a)}</span>
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={selectOutroAddress}
+                      aria-pressed={data.shipping.address_id === null}
+                      className={
+                        'flex items-center gap-1.5 rounded-md border border-dashed p-3 text-left text-sm transition-colors ' +
+                        (data.shipping.address_id === null
+                          ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary'
+                          : 'border-border text-muted-foreground hover:bg-muted/50')
+                      }
+                    >
+                      <Plus className="h-4 w-4" />
+                      Outro endereço
+                    </button>
+                  </div>
+                ) : (
+                  isRealCustomer && (
+                    <p className="text-xs text-muted-foreground">
+                      Cliente sem endereço cadastrado — informe o endereço de entrega abaixo.
+                    </p>
+                  )
+                )}
+
+                {/* Form estruturado "Outro"/avulso (quando nenhum endereço salvo está escolhido) */}
+                {data.shipping.address_id === null && (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-6 pt-1">
+                    <div className="space-y-1.5 col-span-1 sm:col-span-2">
+                      <Label htmlFor="shipping_zip_code">CEP</Label>
+                      <Input
+                        id="shipping_zip_code"
+                        value={data.shipping.zip_code}
+                        onChange={(e) => setOutroField('zip_code', e.target.value)}
+                        placeholder="00000-000"
+                      />
+                    </div>
+                    <div className="space-y-1.5 col-span-2 sm:col-span-3">
+                      <Label htmlFor="shipping_address_line_1">Logradouro</Label>
+                      <Input
+                        id="shipping_address_line_1"
+                        value={data.shipping.address_line_1}
+                        onChange={(e) => setOutroField('address_line_1', e.target.value)}
+                        placeholder="Rua / Avenida"
+                      />
+                    </div>
+                    <div className="space-y-1.5 col-span-1">
+                      <Label htmlFor="shipping_numero">Número</Label>
+                      <Input
+                        id="shipping_numero"
+                        value={data.shipping.numero}
+                        onChange={(e) => setOutroField('numero', e.target.value)}
+                        placeholder="nº"
+                      />
+                    </div>
+                    <div className="space-y-1.5 col-span-2">
+                      <Label htmlFor="shipping_address_line_2">Complemento</Label>
+                      <Input
+                        id="shipping_address_line_2"
+                        value={data.shipping.address_line_2}
+                        onChange={(e) => setOutroField('address_line_2', e.target.value)}
+                        placeholder="Sala, bloco…"
+                      />
+                    </div>
+                    <div className="space-y-1.5 col-span-2">
+                      <Label htmlFor="shipping_neighborhood">Bairro</Label>
+                      <Input
+                        id="shipping_neighborhood"
+                        value={data.shipping.neighborhood}
+                        onChange={(e) => setOutroField('neighborhood', e.target.value)}
+                        placeholder="Bairro"
+                      />
+                    </div>
+                    <div className="space-y-1.5 col-span-1">
+                      <Label htmlFor="shipping_city">Cidade</Label>
+                      <Input
+                        id="shipping_city"
+                        value={data.shipping.city}
+                        onChange={(e) => setOutroField('city', e.target.value)}
+                        placeholder="Cidade"
+                      />
+                    </div>
+                    <div className="space-y-1.5 col-span-1">
+                      <Label htmlFor="shipping_state">UF</Label>
+                      <Input
+                        id="shipping_state"
+                        maxLength={2}
+                        value={data.shipping.state}
+                        onChange={(e) => setOutroField('state', e.target.value.toUpperCase())}
+                        placeholder="UF"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <FieldError
+                  message={(errors as Record<string, string | undefined>).shipping_address}
+                />
+              </div>
+
+              {/* Hint de MDF-e — token semântico de atenção (text-warning), sem cor crua
+                  pra não regredir o ui:lint ratchet. Gatilho fiscal real fica no NfeService (PR3). */}
+              {mdfeHint && (
+                <div className="flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm text-warning">
+                  <Truck className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>
+                    Entrega em{' '}
+                    <strong>
+                      {data.shipping.city}
+                      {data.shipping.state ? `/${data.shipping.state}` : ''}
+                    </strong>{' '}
+                    — município diferente da loja{originCity ? ` (${originCity})` : ''}. Sugere emissão de{' '}
+                    <strong>MDF-e</strong> no faturamento.
+                  </span>
+                </div>
+              )}
+
+              {/* Logística: frete, status, entregar a, detalhes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="shipping_cost">Valor do frete</Label>
+                  <Input
+                    id="shipping_cost"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    value={data.shipping.cost}
+                    onChange={(e) =>
+                      setData('shipping', { ...data.shipping, cost: Number(e.target.value) })
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="shipping_status">Status da remessa</Label>
+                  <Select
+                    value={data.shipping.status}
+                    onValueChange={(v) => setData('shipping', { ...data.shipping, status: v })}
+                  >
+                    <SelectTrigger id="shipping_status">
+                      <SelectValue placeholder="Selecionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownEntries(props.shippingStatuses).map(([k, label]) => (
+                        <SelectItem key={k} value={k}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="shipping_deliver_to">Entregar a / transportadora</Label>
+                  <Input
+                    id="shipping_deliver_to"
+                    value={data.shipping.deliver_to}
+                    onChange={(e) =>
+                      setData('shipping', { ...data.shipping, deliver_to: e.target.value })
+                    }
+                    placeholder="Nome de quem recebe ou transportadora"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="shipping_details">Detalhes de envio</Label>
+                  <Input
+                    id="shipping_details"
+                    value={data.shipping.details}
+                    onChange={(e) =>
+                      setData('shipping', { ...data.shipping, details: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
@@ -1521,7 +1989,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         className="rounded-lg border border-border bg-card scroll-mt-32"
       >
         <summary className="cursor-pointer px-6 py-4 font-medium text-foreground hover:bg-muted/50 select-none">
-          Mais opções (frete, fatura, comissão, prazo, imposto)
+          Mais opções (fatura, comissão, prazo, imposto)
         </summary>
         <div className="px-6 pb-6 space-y-6 border-t border-border pt-4">
           {/* Linha colapsável 1: invoice + faturamento */}
@@ -1726,73 +2194,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             )}
           </div>
 
-          {/* Bloco frete colapsável dentro de Mais opções (5 campos juntos) */}
-          <div className="rounded-md border border-border p-4 space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Entrega / Frete</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="shipping_details">Detalhes de envio</Label>
-                <Input
-                  id="shipping_details"
-                  value={data.shipping.details}
-                  onChange={(e) =>
-                    setData('shipping', { ...data.shipping, details: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="shipping_address">Endereço de entrega</Label>
-                <Input
-                  id="shipping_address"
-                  value={data.shipping.address}
-                  onChange={(e) =>
-                    setData('shipping', { ...data.shipping, address: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="shipping_cost">Custo de envio</Label>
-                <Input
-                  id="shipping_cost"
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  value={data.shipping.cost}
-                  onChange={(e) =>
-                    setData('shipping', { ...data.shipping, cost: Number(e.target.value) })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="shipping_status">Status da remessa</Label>
-                <Select
-                  value={data.shipping.status}
-                  onValueChange={(v) => setData('shipping', { ...data.shipping, status: v })}
-                >
-                  <SelectTrigger id="shipping_status">
-                    <SelectValue placeholder="Selecionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dropdownEntries(props.shippingStatuses).map(([k, label]) => (
-                      <SelectItem key={k} value={k}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5 md:col-span-2">
-                <Label htmlFor="shipping_deliver_to">Entregar a</Label>
-                <Input
-                  id="shipping_deliver_to"
-                  value={data.shipping.deliver_to}
-                  onChange={(e) =>
-                    setData('shipping', { ...data.shipping, deliver_to: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-          </div>
+          {/* US-CRM-078 PR2 — o bloco "Entrega / Frete" SAIU daqui pra a seção
+              de 1ª classe `sec-entrega` (acima, entre Produtos e Pagamento). */}
         </div>
       </details>
 

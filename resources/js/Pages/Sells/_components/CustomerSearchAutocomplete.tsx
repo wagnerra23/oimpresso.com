@@ -17,6 +17,26 @@ import { Search, Loader2, X, UserPlus } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import QuickAddCustomerSheet from './QuickAddCustomerSheet';
 
+/**
+ * US-CRM-078 — endereço estruturado do catálogo do cliente (`contact_addresses`).
+ * Alimenta o seletor de entrega na venda (destinatário ↔ local de entrega).
+ */
+export interface ContactAddressOption {
+  id: number;
+  label?: string | null;
+  zip_code?: string | null;
+  address_line_1?: string | null;
+  numero?: string | null;
+  address_line_2?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  /** Código IBGE do município (cMun NF-e) — gatilho MDF-e quando difere da origem. */
+  city_code?: string | null;
+  is_default?: boolean;
+  is_shipping?: boolean;
+}
+
 export interface CustomerSearchResult {
   id: number;
   text: string;
@@ -34,8 +54,10 @@ export interface CustomerSearchResult {
   pay_term_number?: number | string | null;
   /** Tipo prazo — 'days' | 'months'. */
   pay_term_type?: 'days' | 'months' | string | null;
-  /** Endereço entrega — pré-fill no campo shipping. */
+  /** Endereço entrega (legacy one-line) — pré-fill/fallback do campo shipping. */
   shipping_address?: string | null;
+  /** US-CRM-078 — catálogo de endereços estruturados do cliente (seletor de entrega). */
+  addresses?: ContactAddressOption[] | null;
 }
 
 /**
