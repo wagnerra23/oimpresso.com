@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-use Tests\TestCase;
-
-uses(TestCase::class);
+// TestCase já é aplicado por tests/Pest.php via `uses(TestCase::class)->in('Feature')`.
+// Repetir aqui quebra o bootstrap do Pest ("already uses the test case").
 
 /**
  * GUARDs de Caso de Uso — telas canon (Vendas + Oficina).
