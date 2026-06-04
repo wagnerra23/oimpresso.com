@@ -201,6 +201,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       quantity: number;
       unit_price: number;
       discount: number;
+      // Paridade Edit — desconto per-line R$ (fixed) ou % (percentage).
+      discount_type: 'fixed' | 'percentage';
     }>,
     payments: [
       {
@@ -263,10 +265,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   // Cálculos de produtos
   const productSearchRef = useRef<HTMLDivElement>(null);
+  // Paridade Edit — desconto % calcula sobre o bruto da linha; R$ é valor direto.
+  const lineDiscountValue = (p: { quantity: number; unit_price: number; discount: number; discount_type: 'fixed' | 'percentage' }) =>
+    p.discount_type === 'percentage'
+      ? (p.quantity * p.unit_price * p.discount) / 100
+      : p.discount;
   const subtotalProdutos = useMemo(
     () =>
       data.products.reduce((acc, p) => {
-        const lineSubtotal = p.quantity * p.unit_price - p.discount;
+        const lineSubtotal = p.quantity * p.unit_price - lineDiscountValue(p);
         return acc + Math.max(lineSubtotal, 0);
       }, 0),
     [data.products],
@@ -353,6 +360,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         quantity: 1,
         unit_price: Number(p.selling_price ?? 0),
         discount: 0,
+        discount_type: 'fixed' as const,
       },
     ]);
   };
@@ -491,6 +499,13 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   ) => {
     const next = [...data.products];
     next[idx] = { ...next[idx], [field]: value };
+    setData('products', next);
+  };
+
+  // Paridade Edit — toggle R$/% por linha (discount_type é union, não number).
+  const handleProductDiscountType = (idx: number, type: 'fixed' | 'percentage') => {
+    const next = [...data.products];
+    next[idx] = { ...next[idx], discount_type: type };
     setData('products', next);
   };
 
@@ -651,7 +666,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         unit_price_inc_tax: p.unit_price, // sem tax separado por linha (tax via tax_rate_id pedido)
         item_tax: 0,
         tax_id: null,
-        line_discount_type: 'fixed',
+        line_discount_type: p.discount_type ?? 'fixed',
         line_discount_amount: p.discount,
         // SellPosController:581 acessa $product['enable_stock'] direto. Se faltar,
         // Undefined array key. Defaults seguros: stock-managed e single-type.
@@ -1159,7 +1174,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 <tbody className="divide-y divide-border">
                   {data.products.map((p, idx) => {
                     const lineSubtotal = Math.max(
-                      p.quantity * p.unit_price - p.discount,
+                      p.quantity * p.unit_price - lineDiscountValue(p),
                       0,
                     );
                     // Erro POR ITEM vindo do backend (estoque/compra insuficiente):
@@ -1214,14 +1229,36 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                           />
                         </td>
                         <td className="px-3 py-2">
-                          <NumericInputPtBR
-                            value={p.discount}
-                            onChange={(n) => handleProductChange(idx, 'discount', n)}
-                            precision={2}
-                            disabled={!props.permissions.editDiscount}
-                            aria-label={`Desconto em ${p.name}`}
-                            className="h-8 tabular-nums"
-                          />
+                          {/* Paridade Edit — input desconto + toggle R$/% per-line. */}
+                          <div className="flex items-center gap-1">
+                            <NumericInputPtBR
+                              value={p.discount}
+                              onChange={(n) => handleProductChange(idx, 'discount', n)}
+                              precision={2}
+                              disabled={!props.permissions.editDiscount}
+                              aria-label={`Desconto em ${p.name}`}
+                              className="h-8 tabular-nums"
+                            />
+                            <Select
+                              value={p.discount_type}
+                              onValueChange={(v) =>
+                                handleProductDiscountType(idx, v as 'fixed' | 'percentage')
+                              }
+                              disabled={!props.permissions.editDiscount}
+                            >
+                              <SelectTrigger
+                                size="sm"
+                                aria-label={`Tipo de desconto de ${p.name}: R$ ou %`}
+                                className="h-8 w-14 text-xs"
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="fixed">R$</SelectItem>
+                                <SelectItem value="percentage">%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums font-medium text-foreground align-middle">
                           {formatBRL(lineSubtotal)}
