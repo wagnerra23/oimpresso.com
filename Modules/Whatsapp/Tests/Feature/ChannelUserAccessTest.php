@@ -98,7 +98,7 @@ function cuaSetBiz(int $businessId): void
     app()->forgetInstance(ScopeByBusiness::class);
 }
 
-function makeChannel(int $businessId, string $label = 'Suporte', string $uuid = null): Channel
+function cuaMakeChannel(int $businessId, string $label = 'Suporte', ?string $uuid = null): Channel
 {
     return Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => $businessId,
@@ -119,8 +119,8 @@ it('R-WA-068-001 — Schema da tabela channel_user_access existe com colunas esp
 });
 
 it('R-WA-068-002 — ChannelUserAccess respeita BusinessIdScope (biz=1 não vê biz=99)', function () {
-    $ch1 = makeChannel(1, 'Vendas biz1');
-    $ch99 = makeChannel(99, 'Vendas biz99');
+    $ch1 = cuaMakeChannel(1, 'Vendas biz1');
+    $ch99 = cuaMakeChannel(99, 'Vendas biz99');
 
     ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1,
@@ -147,7 +147,7 @@ it('R-WA-068-002 — ChannelUserAccess respeita BusinessIdScope (biz=1 não vê 
 
 it('R-WA-068-003 — Scope active() filtra revoked_at IS NULL', function () {
     cuaSetBiz(1);
-    $ch = makeChannel(1);
+    $ch = cuaMakeChannel(1);
 
     // Grant ativo
     ChannelUserAccess::create([
@@ -168,7 +168,7 @@ it('R-WA-068-003 — Scope active() filtra revoked_at IS NULL', function () {
 
 it('R-WA-068-004 — Re-grant após revoke funciona (UNIQUE inclui revoked_at)', function () {
     cuaSetBiz(1);
-    $ch = makeChannel(1);
+    $ch = cuaMakeChannel(1);
 
     // 1º grant
     $first = ChannelUserAccess::create([
@@ -194,7 +194,7 @@ it('R-WA-068-004 — Re-grant após revoke funciona (UNIQUE inclui revoked_at)',
 
 it('R-WA-068-005 — Grant duplicado ATIVO (mesma combinação channel+user+revoked=NULL) viola UNIQUE', function () {
     cuaSetBiz(1);
-    $ch = makeChannel(1);
+    $ch = cuaMakeChannel(1);
 
     ChannelUserAccess::create([
         'business_id' => 1, 'channel_id' => $ch->id, 'user_id' => 10,
@@ -210,7 +210,7 @@ it('R-WA-068-005 — Grant duplicado ATIVO (mesma combinação channel+user+revo
 
 it('R-WA-068-006 — Múltiplos revokes podem coexistir (history preservation)', function () {
     cuaSetBiz(1);
-    $ch = makeChannel(1);
+    $ch = cuaMakeChannel(1);
 
     // 3 ciclos grant→revoke do mesmo user no mesmo canal
     foreach ([3, 2, 1] as $daysAgo) {
@@ -238,7 +238,7 @@ it('R-WA-068-006 — Múltiplos revokes podem coexistir (history preservation)',
 
 it('R-WA-068-007 — Channel relation funciona (BelongsTo channel)', function () {
     cuaSetBiz(1);
-    $ch = makeChannel(1, 'Suporte X');
+    $ch = cuaMakeChannel(1, 'Suporte X');
 
     $access = ChannelUserAccess::create([
         'business_id' => 1, 'channel_id' => $ch->id, 'user_id' => 10,
@@ -264,7 +264,7 @@ it('R-WA-068-008 — Migration idempotente: Schema::hasTable guard previne re-cr
 
 it('R-WA-068-009 — granted_at e revoked_at são castados pra Carbon', function () {
     cuaSetBiz(1);
-    $ch = makeChannel(1);
+    $ch = cuaMakeChannel(1);
 
     $access = ChannelUserAccess::create([
         'business_id' => 1, 'channel_id' => $ch->id, 'user_id' => 10,
@@ -280,8 +280,8 @@ it('R-WA-068-009 — granted_at e revoked_at são castados pra Carbon', function
 });
 
 it('R-WA-068-010 — withoutGlobalScopes permite query cross-tenant (superadmin scenario)', function () {
-    $ch1 = makeChannel(1);
-    $ch99 = makeChannel(99);
+    $ch1 = cuaMakeChannel(1);
+    $ch99 = cuaMakeChannel(99);
 
     ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => 1, 'channel_id' => $ch1->id, 'user_id' => 10,
