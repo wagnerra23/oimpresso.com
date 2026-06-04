@@ -213,6 +213,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     discount_type: 'percentage' as 'percentage' | 'fixed',
     discount_amount: 0,
     notes: '',
+    /** Endereço cobrança ≠ entrega (Blade legacy customer_secondary_address). Paridade Edit. */
+    customer_secondary_address: '',
     shipping: {
       details: '',
       address: '',
@@ -606,6 +608,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       price_group: d.price_group_id,
       sale_note: d.notes,
       additional_notes: d.notes,
+      // Paridade Edit — endereço de cobrança ≠ entrega (Blade legacy).
+      customer_secondary_address: d.customer_secondary_address,
       // Flatten shipping object pra campos top-level
       shipping_details: d.shipping.details,
       shipping_address: d.shipping.address,
@@ -1573,6 +1577,23 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 </Select>
               </div>
             )}
+          </div>
+
+          {/* Paridade Edit — endereço de cobrança ≠ entrega (NF-e faturamento separado) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="customer_secondary_address">
+              Endereço de cobrança (se diferente de entrega)
+            </Label>
+            <Textarea
+              id="customer_secondary_address"
+              value={data.customer_secondary_address}
+              onChange={(e) => setData('customer_secondary_address', e.target.value)}
+              rows={2}
+              placeholder="Deixe em branco se cobrança = entrega."
+            />
+            <p className="text-xs text-muted-foreground">
+              Usado pra NF-e quando cliente solicita faturamento em endereço diferente.
+            </p>
           </div>
 
           {/* Bloco frete colapsável dentro de Mais opções (5 campos juntos) */}
