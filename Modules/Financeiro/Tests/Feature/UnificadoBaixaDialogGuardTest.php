@@ -142,7 +142,7 @@ it('GUARD G2: baixar persiste conta/valor/meio escolhidos e quita', function () 
     expect($baixa->meio_pagamento)->toBe('pix');
     expect((float) $baixa->valor_baixa)->toBe(100.0);
 
-    $baixa->forceDelete();
+    DB::table('fin_titulo_baixas')->where('id', $baixa->id)->delete();
     bxCleanup($titulo);
 });
 

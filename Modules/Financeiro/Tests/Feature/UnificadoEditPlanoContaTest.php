@@ -167,11 +167,17 @@ it('rejeita plano de outro business (Tier 0 ADR 0093)', function () {
 
     // Cria business B falso (id absurdo evita colisão com seeders).
     $otherBizId = (int) (DB::table('business')->max('id') ?? 0) + 99999;
+    // owner_id NOT NULL FK→users + colunas NOT NULL do baseline (espelha seed da lane).
     DB::table('business')->insert([
         'id'         => $otherBizId,
         'name'       => 'TEST-OTHER-BIZ',
         'currency_id' => 1,
+        'owner_id'   => $user->id,
         'start_date' => now()->toDateString(),
+        'stop_selling_before'             => 0,
+        'weighing_scale_setting'          => '',
+        'certificado'                     => '',
+        'officeimpresso_numerodemaquinas' => 0,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
