@@ -37326,3 +37326,27 @@ parameters:
 			identifier: property.notFound
 			count: 2
 			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
+		-
+			message: '#^Right side of && is always true\.$#'
+			count: 1
+			path: app/Http/Controllers/SellController.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			count: 1
+			path: Modules/Financeiro/Strategies/CnabDirectStrategy.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			count: 1
+			path: Modules/Financeiro/Listeners/OnCobrancaPagaCreateFinanceiroTitulo.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
+			count: 2
+			path: Modules/Financeiro/Http/Controllers/UnificadoController.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			count: 1
+			path: Modules/Financeiro/Http/Controllers/RelatoriosController.php
