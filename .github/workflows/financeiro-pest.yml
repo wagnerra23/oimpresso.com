@@ -174,7 +174,6 @@ jobs:
             Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php \
             Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php \
             Modules/Financeiro/Tests/Feature/AccountsLegacyMapMultiTenantTest.php \
-            Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php \
             Modules/Financeiro/Tests/Feature/BankStatementLineModelTest.php \
             Modules/Financeiro/Tests/Feature/Onda10Canon100PercentTest.php \
             Modules/Financeiro/Tests/Feature/Onda8cSparklineRealTest.php \
