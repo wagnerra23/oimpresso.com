@@ -218,6 +218,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     staff_note: '',
     /** Assinatura recorrente (Blade legacy is_recurring). Paridade com Edit.tsx. */
     is_recurring: 0 as 0 | 1,
+    /** Endereço cobrança ≠ entrega (Blade legacy customer_secondary_address). Paridade Edit. */
+    customer_secondary_address: '',
     shipping: {
       details: '',
       address: '',
@@ -614,6 +616,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       // Paridade Edit — nota interna equipe + assinatura recorrente (Blade legacy).
       staff_note: d.staff_note,
       is_recurring: d.is_recurring ? 1 : 0,
+      // Paridade Edit — endereço de cobrança ≠ entrega (Blade legacy).
+      customer_secondary_address: d.customer_secondary_address,
       // Flatten shipping object pra campos top-level
       shipping_details: d.shipping.details,
       shipping_address: d.shipping.address,
@@ -1611,6 +1615,23 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Paridade Edit — endereço de cobrança ≠ entrega (NF-e faturamento separado) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="customer_secondary_address">
+              Endereço de cobrança (se diferente de entrega)
+            </Label>
+            <Textarea
+              id="customer_secondary_address"
+              value={data.customer_secondary_address}
+              onChange={(e) => setData('customer_secondary_address', e.target.value)}
+              rows={2}
+              placeholder="Deixe em branco se cobrança = entrega."
+            />
+            <p className="text-xs text-muted-foreground">
+              Usado pra NF-e quando cliente solicita faturamento em endereço diferente.
+            </p>
           </div>
 
           {/* Bloco frete colapsável dentro de Mais opções (5 campos juntos) */}
