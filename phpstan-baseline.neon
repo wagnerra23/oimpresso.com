@@ -35626,6 +35626,12 @@ parameters:
 			path: app/Utils/TransactionUtil.php
 
 		-
+			message: '#^Parameter \#2 \$string of function explode expects string, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Utils/TransactionUtil.php
+
+		-
 			message: '#^Access to an undefined property App\\Transaction\:\:\$business\.$#'
 			identifier: property.notFound
 			count: 1

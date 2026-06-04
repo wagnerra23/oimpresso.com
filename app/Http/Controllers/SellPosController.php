@@ -784,10 +784,11 @@ class SellPosController extends Controller
                 // produto específico → o frontend contorna a linha exata do
                 // carrinho (estoque/compra insuficiente). Ver Sells/Create.tsx.
                 $errors = ['venda' => $output['msg']];
-                if (! empty($output['item_variation_id'])) {
+                $itemVarId = $output['item_variation_id'] ?? null;
+                if ($itemVarId) {
                     // Mensagem CONCISA na linha (o produto/SKU já aparece ali);
                     // o detalhe completo vai no toast geral ('venda').
-                    $errors['item.' . $output['item_variation_id']] = 'Estoque/compra insuficiente para a quantidade vendida.';
+                    $errors['item.' . $itemVarId] = 'Estoque/compra insuficiente para a quantidade vendida.';
                 }
 
                 return back()
