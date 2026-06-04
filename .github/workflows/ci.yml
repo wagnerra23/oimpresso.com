@@ -95,5 +95,10 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
+      - name: Conformance gate — Camada META (controle-negativo do gate de cor-crua)
+        # Prova que o gate DISCRIMINA (sensibilidade + especificidade). Gate nunca-visto-vermelho
+        # não vale (METODO_TELA_ANTI-REGRESSAO §controle-negativo). Determinístico, zero-flake.
+        run: npm run test:conformance
+
       - name: Build production bundle (Inertia/React pipeline)
         run: npm run build:inertia

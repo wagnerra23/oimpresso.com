@@ -19,7 +19,11 @@
     "lint:baseline:check": "node scripts/eslint-baseline.mjs",
     "stylelint": "stylelint \"resources/css/**/*.css\"",
     "stylelint:baseline:write": "node scripts/stylelint-baseline.mjs --write",
-    "stylelint:baseline:check": "node scripts/stylelint-baseline.mjs"
+    "stylelint:baseline:check": "node scripts/stylelint-baseline.mjs",
+    "conformance:check": "node scripts/conformance-gate.mjs --all",
+    "conformance:baseline:write": "node scripts/conformance-gate.mjs --all --update",
+    "test:unit": "vitest run",
+    "test:conformance": "vitest run tests/conformanceGate.spec.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
