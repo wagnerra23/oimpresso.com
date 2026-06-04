@@ -1,0 +1,37 @@
+name: Screen Coverage Gate (catraca de cobertura)
+
+# Catraca de cobertura de QA-de-tela (ADR 0249, anel 2). Bloqueia merge se a
+# cobertura agregada (charter / E2E / a11y / scorecard) cair vs o baseline
+# commitado memory/governance/screen-coverage-baseline.json.
+# Leve (Node puro). Telas cobertas só sobem.
+#
+# Pra subir o piso conscientemente: rode `node scripts/qa/screen-coverage-map.mjs --json`
+# e commite o baseline atualizado junto.
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'tests/Browser/**/*.php'
+      - 'memory/governance/scorecards/screens/**'
+      - 'memory/governance/screen-coverage-baseline.json'
+      - 'scripts/qa/screen-coverage-map.mjs'
+      - '.github/workflows/screen-coverage-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  screen-coverage-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Catraca de cobertura (telas cobertas só sobem)
+        run: node scripts/qa/screen-coverage-map.mjs --check
