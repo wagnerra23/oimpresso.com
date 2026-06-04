@@ -98,21 +98,17 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Setup Laravel
-        # ⚠️ INFRA-ONLY MODE (ADR 0108 + handoff "Setup MySQL+migrate full em CI fica
-        # pra PR separado") — `continue-on-error: true` permite job verde mesmo se
-        # migrate quebrar por ordem de migration UltimatePOS legacy (ex: ALTER TABLE
-        # contacts ADD regime AFTER contribuinte falha porque contribuinte é
-        # adicionado por migration posterior).
-        #
-        # Workflow valida infra (composer + npm + playwright + MySQL service + .env
-        # + Blade cache + Telescope skip), mas NÃO executa Pest Browser tests reais
-        # até issue de migration order ser resolvida em PR dedicado.
-        # Quando fixarem: remover `continue-on-error: true` deste step + do "Run Pest".
-        continue-on-error: true
+        # SCHEMA-SQUASH MODE (US-GOV-013, supersede INFRA-ONLY): `migrate` carrega
+        # `database/schema/mysql-schema.sql` (squash do staging saudável, anonimizado)
+        # ANTES de replayar — bypassa a podridão histórica de fresh-migrate (view×table
+        # copiloto_metas, FK INT×BIGINT nfse etc) que quebrava o setup. Só migrations
+        # NOVAS (pós-staging) rodam por cima. `continue-on-error` REMOVIDO — agora o
+        # migrate tem que passar de verdade (gate real). Regenerar schema: RUNBOOK US-GOV-013.
         run: |
           mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache
           cat > .env <<'EOF'
           APP_NAME=oimpresso-visreg
+          APP_KEY=
           APP_ENV=testing
           APP_DEBUG=true
           APP_URL=http://localhost
@@ -134,6 +130,8 @@ jobs:
           php artisan key:generate --force
           php artisan package:discover --ansi
           php artisan migrate --force
+          echo "=== schema-squash check: tabelas criadas ==="
+          php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
