@@ -93,7 +93,18 @@ jobs:
             for i in 1 2 3; do
               git fetch origin && break || (echo \"fetch try \$i failed, sleeping 3s\"; sleep 3);
             done &&
-            git reset --hard origin/main &&
+            # Reset --hard com AUTO-HEAL de índice corrompido — catalogado
+            # 2026-06-04: um reset anterior interrompido (SSH drop no meio do
+            # checkout) deixa o índice inconsistente; git passa a tratar todo
+            # arquivo rastreado como 'novo' e o checkout aborta com
+            # 'error: unable to create file X: File exists' (exit 128),
+            # travando TODOS os deploys seguintes (#2208/#2209/#2213 ficaram
+            # presos). Recovery seguro: após o reset falho o índice JÁ aponta
+            # pra origin/main, então 'git checkout-index -f -a' força a
+            # sobrescrita dos arquivos rastreados (O_TRUNC, não O_EXCL) e o
+            # segundo reset finaliza limpo. NÃO toca .env/vendor/storage/
+            # node_modules (gitignored → fora do index → intocados).
+            ( git reset --hard origin/main || ( echo \"reset falhou (índice corrompido?) — auto-heal via checkout-index -f -a\"; git checkout-index -f -a && git reset --hard origin/main ) ) &&
             git log --oneline -3
           "
 
