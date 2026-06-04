@@ -12,8 +12,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { rawColorHits } from '../scripts/conformance-gate.mjs';
+import { rawColorHits, accentHueViolations } from '../scripts/conformance-gate.mjs';
 
 describe('conformance-gate — SENSIBILIDADE (injeta bug → conta sobe)', () => {
   it('cor crua oklch(<hue numérico>) NOVA em regra de tela é contada', () => {
@@ -54,10 +53,32 @@ describe('conformance-gate — ESPECIFICIDADE (não acusa inocente)', () => {
 
 describe('conformance-gate — está VIVO (não passa vacuamente em 0)', () => {
   it('o sells-cowork.css real do repo tem cor crua > 0 (senão o gate seria fajuto)', () => {
-    const css = readFileSync(
-      fileURLToPath(new URL('../resources/css/sells-cowork.css', import.meta.url)),
-      'utf8',
-    );
+    // Path relativo à raiz do repo (vitest roda de lá) — cross-platform, sem fileURLToPath
+    // (que quebra no Windows: "The URL must be of scheme file"). Bug pego no run real 2026-06-03.
+    const css = readFileSync('resources/css/sells-cowork.css', 'utf8');
     expect(rawColorHits(css).length).toBeGreaterThan(100);
+  });
+});
+
+// Invariante do TOKEN de marca (a metade do verde×roxo que o ratchet de cor-crua NÃO pega:
+// redefinição do --accent em :root pra um oklch verde). Determinístico, sem browser → fecha UC-V09 no CSS.
+describe('accent-hue guard — SENSIBILIDADE (token verde é pego)', () => {
+  it('--accent redefinido pra verde-155 é violação', () => {
+    expect(accentHueViolations(`:root { --accent: oklch(0.72 0.18 155); }`).length).toBe(1);
+  });
+  it('--accent-soft/-line verde também são pegos', () => {
+    expect(accentHueViolations(`:root { --accent-line: oklch(0.86 0.05 140); }`).length).toBe(1);
+  });
+});
+
+describe('accent-hue guard — ESPECIFICIDADE (roxo canônico não acusa)', () => {
+  it('--accent roxo 295 canônico = 0 violações', () => {
+    expect(accentHueViolations(`:root { --accent: oklch(0.55 0.15 295); --accent-soft: oklch(0.95 0.04 295); }`).length).toBe(0);
+  });
+  it('oklch(from var(--accent) ...) (sem hue numérico) NÃO é avaliado', () => {
+    expect(accentHueViolations(`.x { background: oklch(from var(--accent) l c h / 0.12); }`).length).toBe(0);
+  });
+  it('o cockpit.css real (token canônico) está em roxo — 0 violações', () => {
+    expect(accentHueViolations(readFileSync('resources/css/cockpit.css', 'utf8')).length).toBe(0);
   });
 });

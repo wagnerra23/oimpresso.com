@@ -17,13 +17,17 @@ on:
   push:
     branches: [main, 6.7-react]
     paths:
-      - 'resources/css/sells-cowork*.css'
+      # Cor-crua (ratchet) escopa sells-cowork*; o invariante --accent varre TODO resources/css/*.css
+      # (token de marca vive em cockpit.css/fin-cowork.css/cowork-*-bundle.css) — gatilho cobre os dois.
+      - 'resources/css/**/*.css'
       - 'scripts/conformance-gate.mjs'
       - '.conformance-baseline.json'
       - '.github/workflows/conformance-gate.yml'
   pull_request:
     paths:
-      - 'resources/css/sells-cowork*.css'
+      # Cor-crua (ratchet) escopa sells-cowork*; o invariante --accent varre TODO resources/css/*.css
+      # (token de marca vive em cockpit.css/fin-cowork.css/cowork-*-bundle.css) — gatilho cobre os dois.
+      - 'resources/css/**/*.css'
       - 'scripts/conformance-gate.mjs'
       - '.conformance-baseline.json'
       - '.github/workflows/conformance-gate.yml'

@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /* conformance-gate.mjs — GATE de cor-crua (anti-regressão de contrato DS · Camada 1).
  * Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local.
- * Regra: ratchet — cor crua em REGRAS DE TELA só pode CAIR. Adicionou cor crua = 🔴.
- * Cobre a classe UC-V10 (cor fora de token). NÃO cobre accent/computed-style (= teste de browser, Camada 2 Pest).
+ * DUAS checagens determinísticas (zero browser):
+ *   (1) ratchet cor-crua — cor crua em REGRAS DE TELA só pode CAIR. Adicionou = 🔴. Cobre UC-V10.
+ *   (2) invariante --accent — todo --accent* em resources/css/*.css é roxo (hue 250–330). Fora = 🔴.
+ *       Fecha a metade do verde×roxo (UC-V09) no nível do TOKEN, que o ratchet (isenta :root) não pega.
+ * NÃO cobre só o que exige runtime: surface dark / computed cascade (= Camada 2 browser Pest, tier local).
  *
  * Por que existe ALÉM do stylelint #2054 (ADR 0209):
  *   - stylelint `color-no-hex` já congela #hex GLOBAL e barra hex novo (ratchet config/stylelint-baseline.json).
@@ -23,9 +26,41 @@
  *
  * Refs: PROMPT_PARA_CODE_CONFORMANCE-GATE.md · ADR 0209 (ratchet gêmeo) · ADR 0235/0190 (roxo 295) · ADR 0238 (soberania).
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 
 const BASELINE_FILE = ".conformance-baseline.json";
+
+// ── Invariante ABSOLUTO do token de marca (NÃO ratchet) ─────────────────────────────────────
+// O hue do `--accent` (e variantes --accent-soft/-line/-fg) é SEMPRE roxo (ADR 0235/0190 ·
+// oklch 0.55 0.15 295). Cor de marca não "drifta devagar" — ou é roxo, ou é bug. Fecha a metade
+// do verde×roxo que o ratchet de cor-crua NÃO pega: redefinição do TOKEN em :root (isento na
+// Camada 1) pra um oklch verde. Sem browser, determinístico. Cobre a classe UC-V09 no nível CSS.
+const ACCENT_HUE_OK = [250, 330];
+const CSS_DIR = "resources/css";
+
+// Acha `--accent[...]: oklch(L C H ...)` com 3 números crus; ignora oklch(from var(...)) (sem hue numérico).
+export function accentHueViolations(css, file = "") {
+  const out = [];
+  const re = /(--accent[\w-]*)\s*:\s*oklch\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)/g;
+  let m;
+  while ((m = re.exec(css))) {
+    const hue = parseFloat(m[2]);
+    if (hue < ACCENT_HUE_OK[0] || hue > ACCENT_HUE_OK[1]) {
+      out.push(`${file} ${m[1]} hue=${hue}° (fora de roxo ${ACCENT_HUE_OK[0]}–${ACCENT_HUE_OK[1]} — drift verde×roxo no TOKEN · ADR 0235/0190)`);
+    }
+  }
+  return out;
+}
+
+// Varre todo resources/css/*.css pelo invariante do accent. Determinístico, sem baseline.
+function accentSweep() {
+  const hits = [];
+  for (const f of readdirSync(CSS_DIR).filter((n) => n.endsWith(".css"))) {
+    const path = `${CSS_DIR}/${f}`;
+    hits.push(...accentHueViolations(readFileSync(path, "utf8"), path));
+  }
+  return hits;
+}
 
 // Seletores onde cor crua é PERMITIDA (defs de token + exceções declaradas).
 const TOKEN_DEF  = /:root|\[data-theme/;
@@ -86,9 +121,17 @@ function main() {
       process.exit(0);
     }
     const failed = files.filter((f) => !checkOne(f, baseline));
+    // Invariante absoluto do token de marca (verde×roxo no nível do TOKEN — o que o ratchet não pega).
+    const accentBad = accentSweep();
+    if (accentBad.length) {
+      console.error(`\n🔴 token --accent fora do roxo canônico (${accentBad.length}):`);
+      for (const v of accentBad) console.error(`   ${v}`);
+    } else {
+      console.log(`[conformance-gate] --accent: todos os ${CSS_DIR}/*.css em roxo ${ACCENT_HUE_OK[0]}–${ACCENT_HUE_OK[1]} ✅`);
+    }
     if (failed.length) console.error(`\n🔴 ${failed.length}/${files.length} arquivo(s) com cor crua nova — merge bloqueado.`);
-    else console.log(`\n✅ ${files.length} arquivo(s) conformes (sem cor crua nova).`);
-    process.exit(failed.length ? 1 : 0);
+    if (!failed.length && !accentBad.length) console.log(`\n✅ ${files.length} arquivo(s) conformes (cor crua + token de marca).`);
+    process.exit(failed.length || accentBad.length ? 1 : 0);
   }
 
   if (!file) { console.error("uso: node scripts/conformance-gate.mjs <arquivo.css> [--update]  |  --all (modo CI)"); process.exit(2); }
