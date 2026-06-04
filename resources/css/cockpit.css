@@ -69,6 +69,12 @@
   --stage-emerald: oklch(0.60 0.13 155);
   --stage-green:   oklch(0.66 0.15 145);
 
+  /* Placa Mercosul — skeuomórfico: SEMPRE escuro-sobre-branco em ambos os temas
+     (não inverte no dark, por isso definido só aqui e não no .cockpit[data-theme=dark]).
+     Token nomeado em vez de hex cru pra satisfazer AP1 (Constituição UI v2). */
+  --plate-frame:  #334155;  /* moldura ≈ slate-700 */
+  --plate-ink:    #0f172a;  /* número ≈ slate-900 */
+
   --radius:       8px;
   --radius-sm:    6px;
   --radius-lg:    12px;
