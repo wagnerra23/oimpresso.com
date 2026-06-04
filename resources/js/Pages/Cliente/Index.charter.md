@@ -3,10 +3,21 @@ page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.client
 component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-24
-charter_version: 7
+last_validated: '2026-06-03'
+charter_version: 8
 parent_module: Cliente / Crm
-related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0179, 0187]
+related_adrs:
+  - '0093-multi-tenant-isolation-tier-0'
+  - '0094-constituicao-v2-7-camadas-8-principios'
+  - '0104-processo-mwart-canonico-unico-caminho'
+  - '0107-emendation-0104-visual-comparison-gate-f3'
+  - '0110-cockpit-pattern-v2-canon-list-detail'
+  - '0114-prototipo-ui-cowork-loop-formalizado'
+  - '0149-mwart-screen-pattern-reuse-cowork'
+  - '0179-cliente-drawer-760px-substitui-show-fullpage'
+  - '0187-constituicao-ui-v2-ponteiro-canon'
+  - '0188-contacts-multi-type-flag-aditiva'
+  - '0246-tipo-outros-default-migracoes-legacy'
 supersedes: [Pages/Cliente/Show.charter.md v2]
 tier: A
 
@@ -187,3 +198,51 @@ CREATE INDEX idx_contacts_biz_customer ON contacts(business_id, is_customer);
 - [ADR 0040 · ModuleTopNav sub-tabs ghost](../../../memory/decisions/0040-moduletopnav-subtabs-ghost.md)
 - Delphi WR Comercial · flags bool por papel (pattern legacy 15 anos)
 - HANDOFF_CLIENTES.md (Cowork chat1 + validação produção Wagner 2026-05-24)
+
+---
+
+## v8 · 2026-06-03 · ADR 0246 — 5ª categoria "Outros" (append-only)
+
+**Trigger:** Wagner 2026-06-03, conversa migração WR Comercial Delphi → oimpresso. Análise da tabela `PESSOAS` legacy revelou **12.233 de 13.703 cadastros com `TIPO='O'`** sem CPF/CNPJ obrigatório. Wagner aprovou usar a aba **Classificação existente** (não criar tela nova de conversão) — `ContactRoleType` ganha 5º valor `'other'`, `PAPEL_OPTIONS` em `ClassificacaoTab.tsx` ganha 5º chip clicável, `SLOT2_TABS` em `Index.tsx` ganha 6ª aba `Outros`. Conversão `Outros ↔ Cliente/Fornecedor/Equipe/Representante` é nativa via toggle dos chips — sem botão dedicado.
+
+### Goals novos (append-only · v7 preservados)
+
+- **6ª aba "Outros"** em `SLOT2_TABS` (após "Repr.") · ícone `Layers` · `href: /cliente?type=other`
+- **5º chip "Outros"** em `PAPEL_OPTIONS` na aba Classificação · pattern toggle idêntico aos 4 existentes
+- **Title H1 + CTA "Novo outros"** quando `?type=other` ativo · `ROLE_TITLE.other` adicionado
+- **Counters tab subnav** estende pra 6 valores (`all/customer/supplier/employee/representative/other`)
+- **CPF/CNPJ permanece nullable** em `StoreContactRequest.rules['cpf_cnpj']` (já era) → tipo Outros funciona sem documento sem mudar validation
+- **Endpoint `/cliente/{id}/papeis`** estendido pra aceitar `is_other` no whitelist · invariante "≥1 papel ativo" passa de 4 pra 5 papéis
+
+### Schema novo (ADR 0246)
+
+Migration aditiva `2026_06_03_120000_add_is_other_flag_to_contacts.php`:
+
+```sql
+ALTER TABLE contacts ADD is_other TINYINT(1) NOT NULL DEFAULT 0 AFTER is_representative;
+CREATE INDEX idx_contacts_biz_other ON contacts(business_id, is_other);
+```
+
+Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importer WR2) seta `is_other=1` pros legacy que não casam com customer/supplier/employee/representative.
+
+### Invariantes (Tier 0 IRREVOGÁVEL — ADR 0246)
+
+1. `type` enum **permanece** (UPOS legacy)
+2. Flags **aditivas, nunca exclusivas** — `is_customer=1 AND is_other=1` permitido (prospect promovido a cliente mantém histórico)
+3. Índice composto `(business_id, is_other)` — multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+4. Slot 2 `?type=other` é leitura agregada · CTA "Novo outros" cadastra com `is_other=1` default
+5. Conversão `Outros → Cliente/Fornecedor/etc` é toggle chip (não tela dedicada)
+
+### Non-Goals v8
+
+- ❌ **Botão "Converter para..." dedicado** (Wagner 2026-06-03: chips Classificação já cobrem)
+- ❌ **Service `ContactTypeConversionService`** novo (reusa endpoint `/papeis` existente)
+- ❌ **Validação `required_unless`** pra CPF/CNPJ (regra já era nullable em StoreContactRequest)
+- ❌ **Sub-tipos "Outros"** (prospect/lead/feira) — Onda futura se demanda aparecer
+
+### Refs v8
+
+- [ADR 0246 · Tipo "Outros" como categoria default em migrações legacy](../../../memory/decisions/0246-tipo-outros-default-migracoes-legacy.md)
+- [Migration `2026_06_03_120000_add_is_other_flag_to_contacts.php`](../../../database/migrations/2026_06_03_120000_add_is_other_flag_to_contacts.php)
+- [memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md](../../../memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md) — profile WR2 motivador
+- Conversa Wagner 2026-06-03: insight "aba Classificação já tem isso pronto, só falta o chip Outros"

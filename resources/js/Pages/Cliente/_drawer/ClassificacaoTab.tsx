@@ -41,18 +41,28 @@ export interface ContactInfo {
   is_supplier?: boolean | null;
   is_employee?: boolean | null;
   is_representative?: boolean | null;
+  // ADR 0246 (2026-06-03) — 5ª flag pra categoria "Outros" (prospects, leads,
+  // contatos avulsos sem CPF/CNPJ obrigatório). Canônica default pra cadastros
+  // legacy (WR Comercial PESSOAS TIPO='O').
+  is_other?: boolean | null;
   // ADR 0195 Bucket A — flag `bloqueado` (separada de `contact_status` enum).
   // Sells/Financeiro consultam pra impedir checkout/cobrança mesmo se ativo.
   bloqueado?: boolean | null;
 }
 
-/** 4 papéis canônicos ADR 0188. Ordem visual estável (Cliente primeiro · papel
- *  mais comum em PME ROTA LIVRE biz=4). */
-const PAPEL_OPTIONS: Array<{ flag: 'is_customer' | 'is_supplier' | 'is_employee' | 'is_representative'; label: string }> = [
+/** 5 papéis canônicos ADR 0188 + ADR 0246. Ordem visual estável (Cliente primeiro ·
+ *  papel mais comum em PME ROTA LIVRE biz=4 · "Outros" por último — fallback
+ *  pra cadastros sem papel comercial claro). */
+type PapelFlag = 'is_customer' | 'is_supplier' | 'is_employee' | 'is_representative' | 'is_other';
+
+const PAPEL_OPTIONS: Array<{ flag: PapelFlag; label: string }> = [
   { flag: 'is_customer',       label: 'Cliente' },
   { flag: 'is_supplier',       label: 'Fornecedor' },
   { flag: 'is_employee',       label: 'Funcionário' },
   { flag: 'is_representative', label: 'Representante' },
+  // ADR 0246 — categoria "Outros" pra cadastros sem CPF/CNPJ obrigatório
+  // (prospects, leads, contatos avulsos, migração legacy).
+  { flag: 'is_other',          label: 'Outros' },
 ];
 
 export interface ClassificacaoTabProps {
@@ -119,11 +129,13 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     normalizeStatus(contact.contact_status ?? contact.status) || 'active'
   );
   const [vip, setVip] = useState<boolean>(!!contact.vip);
-  // ADR 0188 Onda 4 — 4 flags multi-papel (Wagner 2026-05-25 UX refactor).
+  // ADR 0188 Onda 4 + ADR 0246 — 5 flags multi-papel (Wagner 2026-05-25 + 2026-06-03).
   const [isCustomer, setIsCustomer] = useState<boolean>(Boolean(contact.is_customer));
   const [isSupplier, setIsSupplier] = useState<boolean>(Boolean(contact.is_supplier));
   const [isEmployee, setIsEmployee] = useState<boolean>(Boolean(contact.is_employee));
   const [isRepresentative, setIsRepresentative] = useState<boolean>(Boolean(contact.is_representative));
+  // ADR 0246 — 5ª flag "Outros" (categoria default pra cadastros sem papel comercial claro).
+  const [isOther, setIsOther] = useState<boolean>(Boolean(contact.is_other));
   // ADR 0195 Bucket A — `bloqueado` flag (separada de `status` enum).
   const [bloqueado, setBloqueado] = useState<boolean>(Boolean(contact.bloqueado));
 
@@ -142,6 +154,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     setIsSupplier(Boolean(contact.is_supplier));
     setIsEmployee(Boolean(contact.is_employee));
     setIsRepresentative(Boolean(contact.is_representative));
+    setIsOther(Boolean(contact.is_other));
     setBloqueado(Boolean(contact.bloqueado));
     setErrorField(null);
     setSavedField(null);
@@ -258,26 +271,26 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
     [bloqueado, performSave]
   );
 
-  // ADR 0188 Onda 4 — toggle papel via endpoint /papeis separado (não
+  // ADR 0188 Onda 4 + ADR 0246 — toggle papel via endpoint /papeis separado (não
   // /classificacao) pra isolar invariante ">=1 papel ativo" no backend.
   // Optimistic UI: troca state imediato + PATCH paralelo. Rollback no 4xx/5xx.
   const handlePapelToggle = useCallback(
-    async (
-      flag: 'is_customer' | 'is_supplier' | 'is_employee' | 'is_representative',
-    ) => {
+    async (flag: PapelFlag) => {
       if (disabled) return;
 
-      const setters = {
+      const setters: Record<PapelFlag, (v: boolean) => void> = {
         is_customer: setIsCustomer,
         is_supplier: setIsSupplier,
         is_employee: setIsEmployee,
         is_representative: setIsRepresentative,
+        is_other: setIsOther,
       };
-      const currentValues = {
+      const currentValues: Record<PapelFlag, boolean> = {
         is_customer: isCustomer,
         is_supplier: isSupplier,
         is_employee: isEmployee,
         is_representative: isRepresentative,
+        is_other: isOther,
       };
       const newValue = !currentValues[flag];
 
@@ -324,15 +337,16 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
         setSavingField((c) => (c === flag ? null : c));
       }
     },
-    [contact.id, disabled, isCustomer, isSupplier, isEmployee, isRepresentative, onSaved],
+    [contact.id, disabled, isCustomer, isSupplier, isEmployee, isRepresentative, isOther, onSaved],
   );
 
   // Helper pra map flag → state local (usado no JSX dos chips).
-  const papelValue = (flag: typeof PAPEL_OPTIONS[number]['flag']): boolean => {
+  const papelValue = (flag: PapelFlag): boolean => {
     if (flag === 'is_customer') return isCustomer;
     if (flag === 'is_supplier') return isSupplier;
     if (flag === 'is_employee') return isEmployee;
-    return isRepresentative;
+    if (flag === 'is_representative') return isRepresentative;
+    return isOther;
   };
 
   return (
@@ -372,8 +386,8 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
             })}
           </div>
           <FieldStatus
-            saving={['is_customer', 'is_supplier', 'is_employee', 'is_representative'].includes(savingField ?? '')}
-            saved={['is_customer', 'is_supplier', 'is_employee', 'is_representative'].includes(savedField ?? '')}
+            saving={['is_customer', 'is_supplier', 'is_employee', 'is_representative', 'is_other'].includes(savingField ?? '')}
+            saved={['is_customer', 'is_supplier', 'is_employee', 'is_representative', 'is_other'].includes(savedField ?? '')}
             backendError={
               errorField?.field?.startsWith('is_') ? errorField.message : null
             }
