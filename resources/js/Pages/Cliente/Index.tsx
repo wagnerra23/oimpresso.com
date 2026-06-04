@@ -180,8 +180,8 @@ interface ListMeta {
   dir: SortDir;
 }
 
-/** ADR 0188 — Slot 2 PT-01 multi-type. 5 valores aceitos. Default `'customer'`. */
-export type ContactRoleType = 'customer' | 'supplier' | 'employee' | 'representative' | 'all';
+/** ADR 0188 + ADR 0246 — Slot 2 PT-01 multi-type. 6 valores aceitos. Default `'customer'`. */
+export type ContactRoleType = 'customer' | 'supplier' | 'employee' | 'representative' | 'other' | 'all';
 
 /**
  * ADR 0188 — Slot 2 PT-01 ModuleTopNav (sub-tabs ghost).
@@ -204,6 +204,9 @@ const SLOT2_TABS: Array<{
   { key: 'supplier',       label: 'Fornecedores',   shortLabel: 'Fornec.',  href: '/cliente?type=supplier',       Icon: Truck },
   { key: 'employee',       label: 'Funcionários',   shortLabel: 'Equipe',   href: '/cliente?type=employee',       Icon: Briefcase },
   { key: 'representative', label: 'Representantes', shortLabel: 'Repr.',    href: '/cliente?type=representative', Icon: UserCheck },
+  // ADR 0246 (2026-06-03) — categoria "Outros" pra cadastros sem CPF/CNPJ
+  // obrigatório (prospects, leads, contatos avulsos, migração legacy WR Comercial).
+  { key: 'other',          label: 'Outros',         shortLabel: 'Outros',   href: '/cliente?type=other',          Icon: Layers },
 ];
 
 const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
@@ -211,6 +214,8 @@ const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; col
   supplier:       { title: 'Fornecedores',   singular: 'fornecedor',    collective: 'cadastrados' },
   employee:       { title: 'Funcionários',   singular: 'funcionário',   collective: 'cadastrados' },
   representative: { title: 'Representantes', singular: 'representante', collective: 'cadastrados' },
+  // ADR 0246 — singular "outros" minúsculo (botão "+ Novo outros" mostra label canon).
+  other:          { title: 'Outros',         singular: 'outros',        collective: 'cadastrados' },
   all:            { title: 'Contatos',       singular: 'contato',       collective: 'cadastros'   },
 };
 
