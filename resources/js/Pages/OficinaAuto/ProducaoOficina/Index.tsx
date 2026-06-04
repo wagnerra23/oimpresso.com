@@ -515,26 +515,26 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
   return (
     <>
       <Head title="Produção · Oficina — Mecânica Pesada" />
-      <div className="-m-6 bg-slate-50 min-h-[calc(100vh-3rem)]">
+      <div className="-m-6 bg-muted min-h-[calc(100vh-3rem)]">
         {/* ─── Topbar header — h1 + sub + ações ─── */}
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
+        <header className="bg-white border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-slate-900">
+            <h1 className="text-lg font-semibold text-foreground">
               Produção · Oficina — Mecânica Pesada
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               OS em execução · mecânica e manutenção de caminhão basculante
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
             {/* Toggle Kanban|Lista — Lista navega pra /veiculos por enquanto */}
             <div
-              className="inline-flex rounded border border-slate-200 bg-white overflow-hidden"
+              className="inline-flex rounded border border-border bg-white overflow-hidden"
               role="group"
               aria-label="Visualização"
             >
               <button
-                className="px-2.5 py-1 text-xs font-medium bg-slate-900 text-white inline-flex items-center gap-1"
+                className="px-2.5 py-1 text-xs font-medium bg-foreground text-background inline-flex items-center gap-1"
                 disabled
                 aria-pressed="true"
               >
@@ -543,7 +543,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
               </button>
               <Link
                 href="/oficina-auto/veiculos"
-                className="px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 inline-flex items-center gap-1"
+                className="px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted inline-flex items-center gap-1"
               >
                 <ListIcon size={12} />
                 Lista
@@ -563,7 +563,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         </header>
 
         {/* ─── 6 KPI cards (grid-cols-6 — espelha visual-source.html) ─── */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="bg-white border-b border-border px-6 py-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {kpiCards.map((kpi) => (
               <KpiCard key={kpi.key} {...kpi} />
@@ -572,9 +572,9 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         </div>
 
         {/* ─── Filter bar sticky — pills capacidade + busca + KPI inline ─── */}
-        <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-6 sticky top-0 z-10 flex-wrap">
+        <div className="bg-white border-b border-border px-6 py-3 flex items-center gap-6 sticky top-0 z-10 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-wide text-slate-500 font-medium">
+            <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
               Capacidade
             </span>
             <div className="flex gap-1" role="group" aria-label="Filtro por capacidade">
@@ -592,8 +592,8 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
                     className={
                       'px-2.5 py-1 text-sm rounded transition-colors ' +
                       (isActive
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200')
+                        ? 'bg-foreground text-background'
+                        : 'bg-muted text-foreground hover:bg-muted/80')
                     }
                     aria-pressed={isActive}
                   >
@@ -604,32 +604,32 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
             </div>
           </div>
 
-          <div className="w-px h-6 bg-slate-200" />
+          <div className="w-px h-6 bg-border" />
 
           <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md">
-            <Search size={14} className="text-slate-400 flex-shrink-0" />
+            <Search size={14} className="text-muted-foreground/60 flex-shrink-0" />
             <Input
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar OS, veículo ou cliente…"
-              className="h-8 border-slate-200"
+              className="h-8 border-border"
               aria-label="Buscar OS, veículo ou cliente"
             />
           </div>
 
           {/* KPI inline (à direita) */}
-          <div className="ml-auto text-sm text-slate-500" aria-live="polite">
+          <div className="ml-auto text-sm text-muted-foreground" aria-live="polite">
             {kpiSummary.map((part, i) => (
               <span key={part}>
-                {i > 0 && <span className="mx-1.5 text-slate-300">·</span>}
+                {i > 0 && <span className="mx-1.5 text-muted-foreground/60">·</span>}
                 <span
                   className={
                     part.includes('atrasada')
-                      ? 'font-medium text-rose-700'
+                      ? 'font-medium text-destructive'
                       : part.includes('aguardando')
-                        ? 'font-medium text-amber-700'
-                        : 'font-medium text-slate-900'
+                        ? 'font-medium text-warning-foreground'
+                        : 'font-medium text-foreground'
                   }
                 >
                   {part}
@@ -692,28 +692,28 @@ interface KpiCardProps {
 function KpiCard({ label, value, sub, tone }: KpiCardProps) {
   const toneClasses = {
     default: {
-      wrapper: 'bg-white border-slate-200',
-      label: 'text-slate-500',
-      value: 'text-slate-900',
-      sub: 'text-slate-400',
+      wrapper: 'bg-white border-border',
+      label: 'text-muted-foreground',
+      value: 'text-foreground',
+      sub: 'text-muted-foreground/60',
     },
     amber: {
-      wrapper: 'bg-amber-50 border-amber-200',
-      label: 'text-amber-700',
-      value: 'text-amber-900',
-      sub: 'text-amber-600',
+      wrapper: 'bg-warning/10 border-warning/30',
+      label: 'text-warning-foreground',
+      value: 'text-warning-foreground',
+      sub: 'text-warning',
     },
     rose: {
-      wrapper: 'bg-rose-50 border-rose-200',
-      label: 'text-rose-700',
-      value: 'text-rose-900',
-      sub: 'text-rose-600',
+      wrapper: 'bg-destructive/10 border-destructive/30',
+      label: 'text-destructive',
+      value: 'text-destructive',
+      sub: 'text-destructive',
     },
     emerald: {
-      wrapper: 'bg-emerald-50 border-emerald-200',
-      label: 'text-emerald-700',
-      value: 'text-emerald-900',
-      sub: 'text-emerald-600',
+      wrapper: 'bg-success/10 border-success/30',
+      label: 'text-success',
+      value: 'text-success',
+      sub: 'text-success',
     },
   }[tone];
 

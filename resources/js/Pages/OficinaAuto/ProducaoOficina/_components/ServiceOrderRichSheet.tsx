@@ -245,7 +245,7 @@ export default function ServiceOrderRichSheet({
         {error && !loading && (
           <div className="flex-1 flex items-center justify-center p-6 text-center">
             <div>
-              <AlertTriangle className="h-8 w-8 text-rose-500 mx-auto mb-2" />
+              <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
               <p className="text-sm text-foreground font-medium">
                 Não foi possível carregar a caçamba
               </p>
@@ -264,7 +264,7 @@ export default function ServiceOrderRichSheet({
                 </span>
                 <StatusBadge status={data.status} orderType={data.order_type} />
                 {data.is_overdue && (
-                  <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-medium text-rose-700">
+                  <span className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-[11px] font-medium text-destructive">
                     <AlertTriangle size={10} className="mr-0.5" />
                     Atrasada
                   </span>
@@ -317,7 +317,7 @@ export default function ServiceOrderRichSheet({
                   - manutenção (Martinho sub-vertical 4 CNAE 4520): KM / Box / Mecânico / Valor (items_total)
                   - locação    (sub-vertical 3 hipotético CNAE 4581): Cliente / Capacidade / Endereço / Diárias / Valor */}
               {data.vehicle && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 grid grid-cols-[auto_1fr] gap-3">
+                <div className="rounded-lg border border-border bg-muted p-3 grid grid-cols-[auto_1fr] gap-3">
                   <MercosulPlate plate={data.vehicle.plate} size="md" />
                   <dl className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 text-[11.5px] self-end">
                     {data.order_type === 'manutencao' ? (
@@ -343,7 +343,7 @@ export default function ServiceOrderRichSheet({
                           </>
                         )}
                         <dt className="text-muted-foreground">Valor</dt>
-                        <dd className="tabular-nums font-semibold text-emerald-700">
+                        <dd className="tabular-nums font-semibold text-success">
                           {formatBRL(data.items_total ?? 0)}
                         </dd>
                       </>
@@ -382,7 +382,7 @@ export default function ServiceOrderRichSheet({
                         <dd
                           className={
                             'tabular-nums font-semibold ' +
-                            (data.is_overdue ? 'text-rose-700' : 'text-emerald-700')
+                            (data.is_overdue ? 'text-destructive' : 'text-success')
                           }
                         >
                           {formatBRL(data.valor_receber)}
@@ -407,14 +407,14 @@ export default function ServiceOrderRichSheet({
                   className={
                     'rounded-md border p-2.5 ' +
                     (data.is_overdue
-                      ? 'border-rose-200 bg-rose-50/60'
+                      ? 'border-destructive/30 bg-destructive/10'
                       : 'border-border bg-muted/30')
                   }
                 >
                   <div
                     className={
                       'text-[10px] font-semibold uppercase tracking-wider ' +
-                      (data.is_overdue ? 'text-rose-700' : 'text-muted-foreground')
+                      (data.is_overdue ? 'text-destructive' : 'text-muted-foreground')
                     }
                   >
                     Prazo
@@ -422,7 +422,7 @@ export default function ServiceOrderRichSheet({
                   <div
                     className={
                       'text-sm font-medium tabular-nums mt-0.5 ' +
-                      (data.is_overdue ? 'text-rose-700' : 'text-foreground')
+                      (data.is_overdue ? 'text-destructive' : 'text-foreground')
                     }
                   >
                     {formatDateOnly(data.expected_return_date ?? data.expected_completion)}
@@ -481,7 +481,7 @@ export default function ServiceOrderRichSheet({
               <Section title="Peças & Mão de obra" icon={Package}>
                 {data.items && data.items.length > 0 ? (
                   <>
-                    <ul className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden bg-white">
+                    <ul className="divide-y divide-border border border-border rounded-md overflow-hidden bg-white">
                       {data.items.map((item) => {
                         const Icon = ITEM_TIPO_ICON[item.tipo];
                         const qtd = toFloat(item.quantidade);
@@ -514,7 +514,7 @@ export default function ServiceOrderRichSheet({
                       <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
                         Total OS
                       </span>
-                      <span className="text-sm tabular-nums font-semibold text-emerald-700">
+                      <span className="text-sm tabular-nums font-semibold text-success">
                         {formatBRL(data.items_total ?? 0)}
                       </span>
                     </div>
@@ -647,7 +647,7 @@ function Section({
 function PhotoPlaceholder({ label }: { label: string }) {
   return (
     <div
-      className="aspect-square rounded border border-slate-200 grid place-items-center text-center font-mono text-[9px] text-slate-400 leading-tight p-2"
+      className="aspect-square rounded border border-border grid place-items-center text-center font-mono text-[9px] text-muted-foreground/60 leading-tight p-2"
       style={{
         background:
           'repeating-linear-gradient(45deg, oklch(0.92 0.005 90) 0 8px, oklch(0.95 0.005 90) 8px 16px)',
@@ -670,8 +670,8 @@ function StatusBadge({
 }) {
   const isLocacao = orderType === 'locacao';
   const cls = isLocacao
-    ? 'border-blue-200 bg-blue-50 text-blue-700'
-    : 'border-amber-200 bg-amber-50 text-amber-700';
+    ? 'border-[var(--stage-blue)]/30 bg-[var(--stage-blue)]/10 text-[var(--stage-blue)]'
+    : 'border-warning/30 bg-warning/10 text-warning-foreground';
   return (
     <span
       className={
@@ -743,21 +743,21 @@ function TimelineSkeleton({
 
   return (
     <div className="relative pl-4 space-y-0">
-      <span className="absolute top-1.5 bottom-1.5 left-1 w-px bg-slate-200" aria-hidden="true" />
+      <span className="absolute top-1.5 bottom-1.5 left-1 w-px bg-border" aria-hidden="true" />
       {items.map((item, i) => (
         <div key={i} className="relative pl-2 pb-3 text-[11.5px]">
           <span
             className={
               'absolute -left-[10px] top-[5px] w-[7px] h-[7px] rounded-full border-[1.5px] ' +
               (item.state === 'done'
-                ? 'bg-emerald-500 border-emerald-600'
+                ? 'bg-success border-success'
                 : item.state === 'now'
-                  ? 'bg-rose-500 border-rose-600 ring-2 ring-rose-100'
-                  : 'bg-white border-slate-300')
+                  ? 'bg-destructive border-destructive ring-2 ring-destructive/20'
+                  : 'bg-white border-border')
             }
             aria-hidden="true"
           />
-          <div className="text-slate-400 text-[10.5px] tabular-nums">{item.when}</div>
+          <div className="text-muted-foreground/60 text-[10.5px] tabular-nums">{item.when}</div>
           <div
             className={
               item.state === 'now' ? 'text-foreground font-medium' : 'text-foreground'

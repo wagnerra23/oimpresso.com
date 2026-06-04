@@ -29,20 +29,20 @@ interface Props {
 }
 
 const dotColorMap: Record<CacambaStatus, string> = {
-  disponivel: 'bg-slate-400',
-  locada: 'bg-blue-400',
-  aguardando: 'bg-rose-400',
-  manutencao: 'bg-violet-400',
-  pronta: 'bg-emerald-400',
+  disponivel: 'bg-[var(--stage-slate)]',
+  locada: 'bg-[var(--stage-blue)]',
+  aguardando: 'bg-[var(--stage-rose)]',
+  manutencao: 'bg-[var(--stage-violet)]',
+  pronta: 'bg-[var(--stage-emerald)]',
 };
 
 // V3 — borda topo 2px colorida (espelha canon .prod-col-{slate,blue,rose,violet,emerald})
 const topBorderMap: Record<CacambaStatus, string> = {
-  disponivel: 'border-t-slate-400',
-  locada:     'border-t-blue-400',
-  aguardando: 'border-t-rose-400',
-  manutencao: 'border-t-violet-400',
-  pronta:     'border-t-emerald-400',
+  disponivel: 'border-t-[var(--stage-slate)]',
+  locada:     'border-t-[var(--stage-blue)]',
+  aguardando: 'border-t-[var(--stage-rose)]',
+  manutencao: 'border-t-[var(--stage-violet)]',
+  pronta:     'border-t-[var(--stage-emerald)]',
 };
 
 function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdvance }: Props) {
@@ -96,24 +96,24 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdva
         'rounded-lg border border-t-2 transition-all ' +
         topBorderMap[status] + ' ' +
         (isAguardando
-          ? 'bg-amber-50/30 border-amber-200'
-          : 'bg-white border-slate-200') + ' ' +
+          ? 'bg-warning/10 border-warning/30'
+          : 'bg-white border-border') + ' ' +
         overClasses
       }
       aria-label={`Coluna ${label}`}
       aria-dropeffect="move"
     >
-      <header className="px-3 py-2.5 border-b border-slate-200 flex items-center justify-between">
+      <header className="px-3 py-2.5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColorMap[status]}`} />
-          <h3 className="text-sm font-semibold text-slate-900 truncate">{label}</h3>
+          <h3 className="text-sm font-semibold text-foreground truncate">{label}</h3>
         </div>
         <span
           className={
             'text-xs px-1.5 py-0.5 rounded tabular-nums flex-shrink-0 ' +
             (isAguardando
-              ? 'bg-amber-100 text-amber-800 font-semibold'
-              : 'bg-slate-100 text-slate-600')
+              ? 'bg-warning/15 text-warning-foreground font-semibold'
+              : 'bg-muted text-muted-foreground')
           }
           aria-label={`${cards.length} caçambas`}
         >
@@ -145,7 +145,7 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdva
         style={{ scrollbarWidth: 'thin' }}
       >
         {cards.length === 0 ? (
-          <div className="text-center py-8 text-xs text-slate-400 italic">
+          <div className="text-center py-8 text-xs text-muted-foreground/60 italic">
             nenhuma caçamba
           </div>
         ) : (

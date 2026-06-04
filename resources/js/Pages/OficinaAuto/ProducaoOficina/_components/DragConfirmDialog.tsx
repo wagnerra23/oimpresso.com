@@ -75,9 +75,9 @@ export default function DragConfirmDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             {pending?.isCritical ? (
-              <AlertTriangle size={18} className="text-amber-600" />
+              <AlertTriangle size={18} className="text-warning" />
             ) : (
-              <ArrowRight size={18} className="text-slate-600" />
+              <ArrowRight size={18} className="text-muted-foreground" />
             )}
             {pending?.title ?? 'Confirmar transição'}
           </AlertDialogTitle>
@@ -87,42 +87,42 @@ export default function DragConfirmDialog({
         </AlertDialogHeader>
 
         {pending && (
-          <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 space-y-1">
+          <div className="rounded-md border border-border bg-muted px-3 py-2.5 text-xs text-foreground space-y-1">
             {pending.plate ? (
               <div className="flex justify-between gap-3">
-                <span className="text-slate-500">{pending.subjectLabel ?? 'Caçamba'}</span>
-                <span className="font-mono font-medium text-slate-900">
+                <span className="text-muted-foreground">{pending.subjectLabel ?? 'Caçamba'}</span>
+                <span className="font-mono font-medium text-foreground">
                   {pending.plate}
                 </span>
               </div>
             ) : null}
             {pending.cliente_nome ? (
               <div className="flex justify-between gap-3">
-                <span className="text-slate-500">Cliente</span>
-                <span className="font-medium text-slate-900 truncate max-w-[60%]">
+                <span className="text-muted-foreground">Cliente</span>
+                <span className="font-medium text-foreground truncate max-w-[60%]">
                   {pending.cliente_nome}
                 </span>
               </div>
             ) : null}
             {pending.dias_locacao != null ? (
               <div className="flex justify-between gap-3">
-                <span className="text-slate-500">Diárias</span>
-                <span className="font-medium text-slate-900 tabular-nums">
+                <span className="text-muted-foreground">Diárias</span>
+                <span className="font-medium text-foreground tabular-nums">
                   {pending.dias_locacao}
                 </span>
               </div>
             ) : null}
             {pending.valor_receber != null && pending.valor_receber > 0 ? (
               <div className="flex justify-between gap-3">
-                <span className="text-slate-500">Valor</span>
-                <span className="font-semibold tabular-nums text-emerald-700">
+                <span className="text-muted-foreground">Valor</span>
+                <span className="font-semibold tabular-nums text-success">
                   {formatBRL(pending.valor_receber)}
                 </span>
               </div>
             ) : null}
-            <div className="flex justify-between gap-3 pt-1 border-t border-slate-200">
-              <span className="text-slate-500">Ação FSM</span>
-              <span className="font-mono text-[11px] text-slate-700">
+            <div className="flex justify-between gap-3 pt-1 border-t border-border">
+              <span className="text-muted-foreground">Ação FSM</span>
+              <span className="font-mono text-[11px] text-foreground">
                 {pending.actionLabel}
               </span>
             </div>
@@ -130,7 +130,7 @@ export default function DragConfirmDialog({
         )}
 
         {pending?.isCritical && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 flex items-start gap-2">
+          <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground flex items-start gap-2">
             <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />
             <span>
               <b>Esta ação é irreversível</b> — o histórico FSM registra
