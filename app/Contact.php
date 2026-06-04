@@ -150,20 +150,34 @@ class Contact extends Authenticatable
      *
      * @see app/ContactAddress.php
      * @see memory/requisitos/Cliente/SPEC.md §US-CRM-078
+     *
+     * Return types tipados: o eager-load `Contact::with(['addresses' => ...])` no
+     * getCustomers (Sells/Create CU-11) exige que o Larastan resolva a relação —
+     * sem o hint dá "Relation 'addresses' is not found" (regressão pega no revert #2107).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<ContactAddress, $this>
      */
-    public function addresses()
+    public function addresses(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ContactAddress::class, 'contact_id');
     }
 
-    /** Endereço marcado como principal/cobrança (espelha os campos inline). */
-    public function defaultAddress()
+    /**
+     * Endereço marcado como principal/cobrança (espelha os campos inline).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ContactAddress, $this>
+     */
+    public function defaultAddress(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(ContactAddress::class, 'contact_id')->where('is_default', true);
     }
 
-    /** Endereço default de entrega (pré-seleção do shipping_address na venda). */
-    public function shippingAddress()
+    /**
+     * Endereço default de entrega (pré-seleção do shipping_address na venda).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ContactAddress, $this>
+     */
+    public function shippingAddress(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(ContactAddress::class, 'contact_id')->where('is_shipping', true);
     }
