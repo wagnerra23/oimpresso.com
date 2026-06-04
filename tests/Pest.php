@@ -4,6 +4,13 @@ use Tests\TestCase;
 
 uses(TestCase::class)->in('Feature');
 
+// Browser (Pest 4) — boota o app Laravel pros testes em tests/Browser/. Sem isto,
+// `config`/factory/visit rodam sem container → BindingResolutionException [config]
+// (US-GOV-013 Fase A). DB trait NÃO entra aqui: browser test usa server real em
+// subprocesso, então dado precisa estar COMMITADO (transação de RefreshDatabase não
+// cruza). Telas autenticadas (Fase B) trarão seed commitado + actingAs cross-process.
+uses(TestCase::class)->in('Browser');
+
 // Pest 3.x descobre `Pest.php` somente em `tests/` (Bootstrappers\BootFiles),
 // então o `uses(...)->in()` de módulos com test suites próprios precisa ficar
 // AQUI mesmo. `realpath` resolve worktrees / junctions.
