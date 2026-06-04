@@ -145,15 +145,17 @@ export function FinCommentsThread({ rowId, comments, author = 'Eliana' }: FinCom
           ))}
         </ul>
       )}
-      <div className="fin-comment-new">
+      {/* 2026-06-04 — campo full-width (antes ficava curto/colado à esquerda). */}
+      <div className="fin-comment-new" style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
         <textarea
           value={text}
-          rows={2}
+          rows={3}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder='Ex: "Conferi com Bruna, valor correto" · "Anexar comprovante" · ⌘↵ envia'
+          style={{ width: '100%', minHeight: 68, resize: 'vertical', boxSizing: 'border-box' }}
         />
-        <button type="button" onClick={submit} disabled={!text.trim()}>
+        <button type="button" onClick={submit} disabled={!text.trim()} style={{ alignSelf: 'flex-end' }}>
           Comentar
         </button>
       </div>
