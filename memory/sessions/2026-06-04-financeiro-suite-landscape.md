@@ -14,7 +14,7 @@ INTEIRA no CI. Estado: **172 failed · 270 passed · 133 skipped** (1197 asserts
 A maioria das falhas NÃO é regressão de negócio — é (a) testes `RefreshDatabase`/`migrate:fresh`
 que dropam o schema e **envenenam** os demais, (b) asserts em assets estáticos ausentes no CI,
 (c) env/container (CacheManager binding). Plano: **catraca allowlist** — a lane roda só o
-verde-comprovado e cresce por lote. Batch 1 sobe a cobertura de 1 → 12 arquivos.
+verde-comprovado e cresce por lote. Batch 1 sobe a cobertura de 1 → 10 arquivos (87 testes, 348 asserts, verde).
 
 ## Como foi medido
 
@@ -36,12 +36,18 @@ verde-comprovado e cresce por lote. Batch 1 sobe a cobertura de 1 → 12 arquivo
 | D | Asserts Inertia/shape (negócio) | CoworkBundleIntegral (9), OndaCommentsAuditBridge (17), Drawer/Onda5-9 (~25), Wave23/25 (3) | ~54 | shape canon / prop Inertia / dados — precisa investigação por-caso (alguns reais, alguns stale) | Per-caso |
 | E | Misc | Bridge (4), CaixaController (1), OnCobrancaPaga (2), Onda26InterWebhook (2), MultiTenantIsolation (1) | ~10 | variados | Per-caso |
 
-## Verde-robusto (passou COM passes reais, base da catraca)
+## Verde-robusto JUNTO (allowlist Batch 1 — 10 arquivos, 87 passed verde)
 
 Advisor/Onda31AdvisorPortal · BankStatementLineModel · Onda10Canon100Percent ·
-Onda23OcrBoleto · Onda8cSparklineReal · PluggyIntegration · TituloRepositoryWave18 ·
-Wave27Polish · Wave28Polish · BackfillExtratoOfx (DatabaseTransactions) ·
-AccountsLegacyMapMultiTenant · UnificadoCanceladoArquivadosKpi (guard #2240).
+Onda8cSparklineReal · PluggyIntegration · TituloRepositoryWave18 ·
+Wave27Polish · Wave28Polish · AccountsLegacyMapMultiTenant ·
+UnificadoCanceladoArquivadosKpi (guard #2240).
+
+**Verde sozinho mas NÃO-junto** (inserem dados → colidem no DB compartilhado;
+entram em batch futuro com isolamento): Onda23OcrBoleto (UniqueConstraint boletos),
+BackfillExtratoOfx (colide com conta seedada committed mesmo com DatabaseTransactions).
+Lição: rodar tudo numa invocação só = DB + estado compartilhado; allowlist só aceita
+arquivo state-independent OU com cleanup/isolamento provado.
 
 ## Plano catraca (US-FIN-053)
 
