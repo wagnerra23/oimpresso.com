@@ -159,12 +159,27 @@ function fromDatetimeLocal(val: string): string {
   return `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}`;
 }
 
+// 2026-06-04 (Wagner) — agora local em ISO "YYYY-MM-DDTHH:mm" pro datetime-local.
+function nowLocalIso(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// Default robusto da data da venda: usa o defaultDatetime do backend SE ele
+// parsear pro formato esperado; senão cai pra HOJE. Antes, quando o date_format
+// do business não era d/m/Y, o toDatetimeLocal retornava '' → campo vazio → venda
+// salva sem data → sumia da consulta (que filtra por data). Pedido Wagner.
+function defaultTransactionDate(backendDefault: string): string {
+  return toDatetimeLocal(backendDefault) ? backendDefault : fromDatetimeLocal(nowLocalIso());
+}
+
 export default function SellsCreate(props: SellsCreatePageProps) {
-  // Defaults conservadores ROTA LIVRE: status=final, transaction_date=format_now_local
+  // Defaults conservadores ROTA LIVRE: status=final, transaction_date=HOJE (robusto).
   const { data, setData, post, processing, errors, transform } = useForm({
     location_id: props.defaultLocation?.id ?? null,
     contact_id: props.walkInCustomer.id,
-    transaction_date: props.defaultDatetime,
+    transaction_date: defaultTransactionDate(props.defaultDatetime),
     status: 'final' as 'final' | 'quotation' | 'draft' | 'proforma',
     invoice_scheme_id: props.defaultInvoiceScheme?.id ?? null,
     invoice_no: '',
@@ -1010,7 +1025,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <Input
               id="transaction_date"
               type="datetime-local"
-              value={toDatetimeLocal(data.transaction_date)}
+              value={toDatetimeLocal(data.transaction_date) || nowLocalIso()}
               onChange={(e) => setData('transaction_date', fromDatetimeLocal(e.target.value))}
             />
             <FieldError message={errors.transaction_date as string | undefined} />
