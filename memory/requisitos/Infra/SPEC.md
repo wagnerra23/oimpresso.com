@@ -683,11 +683,11 @@ Refs: ADR 0213 Mecanismo 5
 
 **Acceptance (a decidir na investigação):**
 - [ ] Definir estratégia canônica de DB de teste no CT 100: banco de teste dedicado com migrations frescas + `RefreshDatabase`/transações, OU `:memory:` sqlite no container, OU schema de teste MySQL separado — em vez de apontar `phpunit.xml` pro `oimpresso_staging` (clone de prod).
-- [ ] Tests não devem fazer `Schema::dropIfExists`/`create` cru em tabelas compartilhadas; migrar pro RefreshDatabase ou schema isolado.
+- [ ] Tests não devem fazer `Schema::dropIfExists`/`create` cru em tabelas compartilhadas. ⚠️ **Cuidado com `RefreshDatabase`:** ele roda `migrate:fresh` (dropa todas as tabelas) — **destrutivo contra o clone compartilhado** (apagaria o `oimpresso_staging` anonimizado) e envenena lanes MySQL compartilhadas (dropa FK + limpa seed). Só é seguro com DB de teste dedicado/efêmero. Contra DB pré-seedado/clone, o padrão validado é `DatabaseTransactions` (rollback por teste, sem re-migrate) + skip-guard quando schema/biz ausente.
 - [ ] Auditar asserts que dependem de semântica SQLite (UNIQUE+NULL) e torná-los DB-agnostic ou skip-on-mysql explícito.
 - [ ] Meta: `sudo staging-test` (suíte cheia ou por módulo) verde ou com falhas conhecidas catalogadas — não 493 ruidosas.
 
-**Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251.
+**Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251 · **US-FIN-053 / PR #2253** (precedente trabalhado: a lane `financeiro-pest.yml` resolveu esta mesma classe — `CaixaMovimentoFreshnessTest` migrado de `RefreshDatabase` → `DatabaseTransactions` + skip-guard contra MySQL real; o mesmo PR corrigiu 2 bugs de schema-drift `deleted_at`/`valor_baixa` no `FinanceiroHealthCommand`, instância do padrão #2 "schema drift").
 
 ---
 

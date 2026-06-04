@@ -31,6 +31,10 @@
 		// Suporte: SOMENTE o CT 100, SOMENTE a porta SSH (nada de Proxmox,
 		// nada de outras máquinas, nada de outras portas).
 		{"src": ["group:suporte"], "dst": ["tag:ct100"], "ip": ["tcp:22"]},
+
+		// O nó SSH (CT 100) precisa alcançar o recorder pra ENVIAR as gravações
+		// das sessões. Sem isso, gravação falha silenciosa (enforceRecorder:false).
+		{"src": ["tag:ct100"], "dst": ["tag:session-recorder"], "ip": ["tcp:443"]},
 	],
 
 	"ssh": [
