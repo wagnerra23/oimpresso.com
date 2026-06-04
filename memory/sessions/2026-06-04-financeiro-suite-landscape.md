@@ -4,7 +4,7 @@ hour: "20:30 UTC"
 topic: "Diagnóstico landscape da suíte Pest Financeiro contra schema baseline + catraca allowlist (follow-up US-FIN-052)"
 authors: [C]
 us: [US-FIN-052]
-related_adrs: [0249-qa-de-tela-sustentavel-screen-grade-e2e-catraca]
+related_adrs: [0250-screen-qa-specialist-sustentavel]
 ---
 
 # Financeiro — landscape da suíte Pest contra o baseline (follow-up #2240)
@@ -51,9 +51,9 @@ arquivo state-independent OU com cleanup/isolamento provado.
 
 ## Plano catraca (US-FIN-053)
 
-1. **Batch 1 (este PR):** lane vira allowlist verde — cobertura 1 → 12 arquivos. Zero risco.
-2. **Batch 2:** Categoria B — converter `RefreshDatabase` → `DatabaseTransactions`, remover o envenenamento. Destrava ver o estado real do resto.
-3. **Batch 3:** Categoria C — decisão Wagner: deprecar vs skip-when-absent vs versionar asset Cowork-mock.
-4. **Batch 4+:** A, D, E por-caso.
+1. **Batch 1 (#2247 ✅ merged):** lane vira allowlist verde — cobertura 1 → 10 arquivos (87 testes). Zero risco.
+2. **Batch 2 (#2248 ✅ merged):** Categoria B — fix do guard bugado do `MultiTenantComprehensiveTest` (beforeEach + afterEach) que dropava o schema baseline no MySQL. Lane 10 → 11 (MultiTenant skipa limpo). Conversão `RefreshDatabase`→`DatabaseTransactions` do CaixaMov **adiada** (drift `deleted_at` no baseline — task separada).
+3. **Batch 3 (este PR):** Categoria C — Wagner decidiu **deprecar**. Deletados 3 arquivos de teste 100% prototype-era (assets `_oimpresso-bridge-*.js` apagados no #1214): `MockOndaSidebarWrapTest`, `MockOndaConferidoBridgeTest`, `MockOndaEditBridgeTest` (~46 testes stale). **Follow-up:** auditar remoção do trait `RendersMockCowork` + triar os 2 mistos (`OndaCommentsAuditBridgeTest` tem Tier 0 real a preservar; `MockCoworkModeTest` 12/13 verde).
+4. **Batch 4+:** A (CacheManager binding), D, E por-caso.
 
-Cada batch adiciona arquivos à allowlist da lane (ratchet) — a lane nunca regride.
+Cada batch adiciona/limpa arquivos da allowlist da lane (ratchet) — a lane nunca regride.
