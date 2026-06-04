@@ -85,6 +85,34 @@ sudo staging-test --filter=NomeDoTeste
 > Eles **não** editam código no servidor — código sempre via git (`staging-sync`).
 > Só `oimpresso-staging`, **nunca** `oimpresso-mcp` (MCP server LIVE do time).
 
+## Parte D — Session recording (tsrecorder) — ✅ FEITO 2026-06-04
+
+As sessões SSH da suporte são **gravadas** por um container `tsrecorder` no CT 100.
+
+1. ACL: `tag:session-recorder` em `tagOwners` + `"recorder": ["tag:session-recorder"]`
+   e `"enforceRecorder": false` nas regras ssh de Maiara/Felipe (`false` = um hiccup
+   do recorder **não** bloqueia o acesso; troca pra `true` se quiser gravação obrigatória).
+2. Auth key tagueada `tag:session-recorder` (painel → Settings → Keys → Generate,
+   Tags ON, single-use, não-ephemeral). **Segredo → Vaultwarden**, nunca git.
+3. Container (CT 100):
+
+```bash
+mkdir -p /opt/tsrecorder
+chown -R 65532:65532 /opt/tsrecorder   # PEGADINHA: imagem roda como uid nonroot 65532
+docker run -d --name tsrecorder --restart unless-stopped \
+  -e TS_AUTHKEY="$TS_AUTHKEY" \
+  -v /opt/tsrecorder:/data \
+  tailscale/tsrecorder:stable \
+  /tsrecorder --dst=/data/recordings --statedir=/data/state
+```
+
+- **Sem `--ui`** de propósito: `--ui` exige HTTPS habilitado no tailnet (DNS →
+  Enable HTTPS). Pra playback no browser depois, ligar HTTPS + readicionar `--ui`.
+- Gravações ficam em `/opt/tsrecorder/recordings` (arquivos `.cast`, pequenos).
+- Node aparece no tailnet como `recorder` com tag `tag:session-recorder`.
+- ⚠️ **Retenção:** tsrecorder não faz prune automático em disco local — CT 100 estava
+  83% cheio. Adicionar limpeza periódica (cron) ou mover pra S3 (follow-up).
+
 ## Revogar acesso
 
 - **Imediato:** painel Tailscale → Users → remover do tailnet (ou tirar de
@@ -93,9 +121,11 @@ sudo staging-test --filter=NomeDoTeste
 
 ## Pendências / follow-up
 
-- [ ] **Session recording** (Tailscale SSH) — requer container `tsrecorder` no
-  CT 100 + `recorder:["tag:recorder"]` nas regras ssh. Hoje a auditoria é via
-  journald (`_SYSTEMD_USER=maiara/felipe`) + logs de conexão Tailscale.
+- [x] **Session recording** (Tailscale SSH) — ✅ feito (Parte D). Container
+  `tsrecorder` gravando em `/opt/tsrecorder/recordings`.
+- [ ] **Retenção das gravações** — tsrecorder não prune sozinho; agendar limpeza
+  (cron) ou mover storage pra S3. CT 100 a 83% de disco.
+- [ ] **Playback web** — opcional: ligar HTTPS no tailnet + readicionar `--ui`.
 - [ ] **Bug pré-existente na suíte:** `Cannot redeclare function makeChannel()`
   (colisão `Modules/Whatsapp/Tests/Feature/ChannelUserAccessTest.php` ×
   `LidCrossContactIncidentP0Test.php`) trava `php artisan test` cheio. Corrigir

@@ -20,6 +20,8 @@
 	// Edit ACL tags). Sem isso as regras abaixo não casam com ele.
 	"tagOwners": {
 		"tag:ct100": ["group:admin"],
+		// Nó tsrecorder (container no CT 100) que grava as sessões SSH da suporte.
+		"tag:session-recorder": ["group:admin"],
 	},
 
 	"grants": [
@@ -47,6 +49,8 @@
 			"src":    ["wr2backup@gmail.com"],
 			"dst":    ["tag:ct100"],
 			"users":  ["maiara"],
+			"recorder": ["tag:session-recorder"],
+			"enforceRecorder": false, // false: hiccup do recorder não bloqueia o acesso
 		},
 
 		// Felipe entra no CT 100 SOMENTE como usuário `felipe` (nunca root).
@@ -55,6 +59,8 @@
 			"src":    ["felipewr2@gmail.com"],
 			"dst":    ["tag:ct100"],
 			"users":  ["felipe"],
+			"recorder": ["tag:session-recorder"],
+			"enforceRecorder": false,
 		},
 
 		// Demais máquinas (não-tagueadas): cada um no que é seu (default).
