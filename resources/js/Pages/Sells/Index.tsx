@@ -434,6 +434,25 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
   const ls = useBizStorage();
 
+  // 2026-06-04 — avisa o operador quando o backend BLOQUEIA ou confirma a venda
+  // via flash (ex: venda recusada por estoque/compra — PurchaseSellMismatch).
+  // É aqui que o /pos redireciona após salvar. Antes a msg do store não chegava
+  // ao front (HandleInertiaRequests lia status.error, store usa status.msg) e a
+  // venda "sumia" SEM AVISO. Sonner já está montado no AppShellV2.
+  const flash = usePage<{
+    flash?: { success?: string | number | null; error?: string | null; info?: string | null };
+  }>().props.flash;
+  useEffect(() => {
+    if (flash?.error) {
+      toast.error(flash.error, { duration: 8000 });
+    } else if (flash?.success && typeof flash.success === 'string') {
+      toast.success(flash.success);
+    } else if (flash?.info) {
+      toast.info(flash.info);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flash?.error, flash?.success, flash?.info]);
+
   // FOCO segmented control (vista) — Caixa / Faturamento / Comissão (afeta 4º KPI).
   const [foco, setFoco] = useState<FocoKey>(() => {
     const v = ls.get('foco', 'caixa');

@@ -90,8 +90,28 @@ class HandleInertiaRequests extends Middleware
                 'geracao_justificativa'        => (bool) env('AI_GERACAO_JUSTIFICATIVA', false),
             ],
             'flash' => [
-                'success' => fn () => $session->get('status.success') ?? $session->get('success'),
-                'error'   => fn () => $session->get('status.error')   ?? $session->get('error'),
+                // UltimatePOS retorna ->with('status', ['success'=>0|1, 'msg'=>...]).
+                // A mensagem (de sucesso E de erro) vai SEMPRE em 'status.msg'.
+                // Sem tratar isso, uma venda bloqueada (PurchaseSellMismatch /
+                // estoque) falhava em SILÊNCIO: flash.error lia 'status.error'
+                // (key inexistente) → null → o React não avisava nada e a venda
+                // "sumia". Catalogado 2026-06-04 (vendas Martinho/ROTA LIVRE
+                // bloqueadas sem aviso). Agora a msg do store chega ao frontend.
+                'success' => function () use ($session) {
+                    $status = $session->get('status');
+                    if (is_array($status) && ! empty($status['success']) && ! empty($status['msg'])) {
+                        return $status['msg'];
+                    }
+                    return $session->get('status.success') ?? $session->get('success');
+                },
+                'error' => function () use ($session) {
+                    $status = $session->get('status');
+                    if (is_array($status) && array_key_exists('success', $status)
+                        && empty($status['success']) && ! empty($status['msg'])) {
+                        return $status['msg'];
+                    }
+                    return $session->get('status.error') ?? $session->get('error');
+                },
                 'info'    => fn () => $session->get('status.info')    ?? $session->get('info'),
                 // US-WA-074 (ADR 0142): payload de slash command em notas internas.
                 // Shape: {kind: 'success'|'error', badge?, link_url?, error_message?,
