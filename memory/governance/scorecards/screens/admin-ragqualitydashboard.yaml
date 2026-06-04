@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Admin/RagQualityDashboard
+path: resources/js/Pages/Admin/RagQualityDashboard.tsx
+archetype: dashboard
+persona: wagner
+nota: 69
+nivel: "Developing"
+baseline_anterior: 69   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Observability RAG com 3 sparklines p99, nDCG/recall e Deferred bem aplicado; perde por cores cruas zinc/emerald/indigo, sem charter e thresholds hardcoded sem token."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 com escala de cor semantica + charter ao lado"
+    fix: "Tokenizar text-emerald/amber/red de p99Color/pctColor; criar RagQualityDashboard.charter.md"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Grafana sparkline com eixo/tooltip de valor no hover"
+    fix: "Adicionar tooltip/ultimo-ponto destacado no Sparkline SVG"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Reusar 1 Sparkline compartilhado (GovernanceV4Dashboard tem copia)"
+    fix: "Extrair Sparkline pra @/Components/shared e dedupe"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

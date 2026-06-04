@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Cliente/Edit
+path: resources/js/Pages/Cliente/Edit.tsx
+archetype: form
+persona: larissa
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Espelho do Create (ClienteForm reuso, useForm put), mesma qualidade — falta header canon roxo, Link SPA e dirty-guard."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "PageHeader canon modo FOCO roxo"
+    fix: "Header h1 cru sem PageHeader/primary roxo canon; alinhar c/ ADR 0190"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Inertia SPA (Link)"
+    fix: "Voltar <a href> full-reload; usar <Link>"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Notion (aviso de alteracoes nao salvas ao sair)"
+    fix: "Sem dirty-guard; sair perde edicoes silenciosamente — add confirm on unsaved"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Site/Pricing
+path: resources/js/Pages/Site/Pricing.tsx
+archetype: other
+persona: misto
+nota: 84
+nivel: "Advanced"
+baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Landing de preços convincente: billing toggle, tiers/FAQ extraidos, confidence row, CTA final roxo; falha em token success cru e a11y do toggle."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "Stripe pricing"
+    fix: "Toggle mensal/anual sem role=tablist/aria-pressed; desconto −20% em bg-green-500/20 cru em vez de token success"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "i18n-PT-BR"
+    best_of_class: "DS tokens"
+    fix: "Emojis 🇧🇷🔒↩️ como icones (sem fallback semantico/aria-hidden ok mas fragil) — preferir lucide"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4"
+    fix: "packages:any[] (sem tipo); green-500 hardcoded fora do token set; sem charter"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

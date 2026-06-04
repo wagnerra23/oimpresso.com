@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Atendimento/Csat/Index
+path: resources/js/Pages/Atendimento/Csat/Index.tsx
+archetype: dashboard
+persona: larissa
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "CSAT limpo: KpiGrid 4 cards tonalizados, distribuicao em barras, tabela com Deferred, EmptyState e StarRow a11y; perde por cores cruas emerald/amber, prop 'actions' fora do padrao e sem charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "PageHeader canon usa prop 'action' (singular) como nas outras telas"
+    fix: "Alinhar prop actions->action do PageHeader; criar charter CSAT"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 escala semantica de cor nas barras de distribuicao"
+    fix: "Tokenizar bg-emerald-500/amber-500 das barras e thresholds de tone"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Zendesk CSAT permite filtrar por canal/atendente alem do range"
+    fix: "Adicionar filtros canal/atendente ao lado do range selector"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

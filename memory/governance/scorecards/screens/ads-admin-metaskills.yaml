@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/MetaSkills
+path: resources/js/Pages/ads/Admin/MetaSkills.tsx
+archetype: config
+persona: wagner
+nota: 72
+nivel: "Advanced"
+baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Editor de regras SOFT robusto (condition-builder, validate-against-data, versao, switch); select nativo, JSON cru e cores cruas limitam."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo"
+    fix: "<select> HTML cru (categoria/condition builder) em vez de @/Components/ui/select; bg-zinc-50/blue-600 cru; padronizar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe rules"
+    fix: "Action e JSON cru em Textarea com try/catch silencioso — erro de parse some sem feedback; add validacao visivel"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Zapier editor"
+    fix: "condition-builder bom mas action so JSON raw; oferecer dropdown de tipos + params guiados"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

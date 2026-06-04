@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/Dashboard/Index
+path: resources/js/Pages/Financeiro/Dashboard/Index.tsx
+archetype: dashboard
+persona: eliana
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Defer+skeletons com aria em todos os blocos, KPI clicaveis pra filtrar; forte, mas cores bg-blue/purple/green cruas, dangerouslySetInnerHTML na paginacao e 'Novo titulo' no-op."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "PlanoContas (fin tokens)"
+    fix: "Badges conta usam bg-blue-100/bg-purple-100/bg-green-100 cruas; consolidar em tokens semanticos roxo/stone"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Stripe (CTA real)"
+    fix: "Botao primary 'Novo titulo' sem onClick (no-op); ou liga em /unificado/novo ou remove"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear (markup seguro)"
+    fix: "Paginacao via dangerouslySetInnerHTML(link.label); render texto direto evita XSS e melhora SR"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
