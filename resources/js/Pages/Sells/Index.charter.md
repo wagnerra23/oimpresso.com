@@ -8,6 +8,37 @@ last_validated: "2026-05-26"
 charter_version: 6
 ds: v6
 regua: memory/requisitos/Sells/sells-index-dsv6-visual-comparison.md
+# contrato_layout — FONTE ÚNICA legível-por-máquina do gate de conformância DS (§0 PROMPT_PARA_CODE).
+# Os testes de conformância (Camada 1 estática + Camada 2 browser) são DERIVADOS daqui, não mantidos à mão.
+# Mudança de contrato visual = só Wagner edita este bloco (charter = contrato). ADR 0235/0190 · 0238 (sem ADR).
+# derivado: tests/Browser/Sells/IndexConformanceTest.php (Camada 2) + scripts/conformance-gate.mjs (Camada 1).
+contrato_layout:
+  kpis: 4            # 1-linha hero row: Faturado hoje · Ticket médio · A receber · 4º vista-dependente
+  uc:
+    UC-V09:          # accent do primary "Nova venda" == token roxo (NÃO verde) — pega o drift verde×roxo
+      alvo: primary-nova-venda
+      locator: '.os-btn.primary'   # bg=var(--accent) · sells-cowork.css:2211
+      assert: accent-token
+      hue_ok: [250, 330]     # roxo 295 canônico — oklch(0.55 0.15 295)
+      hue_proibido: [90, 165] # faixa verde-155 (D-02)
+    UC-V10:          # cor fora de token (Camada 1 estática — gate cor-crua, ratchet only-down)
+      assert: cor-crua-zero
+      gate: scripts/conformance-gate.mjs
+      escopo: ['.sells-cowork', '.vd-', '.os-', '.vendas-aplus', '.vendas-page']
+      excecao: ['.vd-trans', '.vd-pres']  # papel A4 / apresentação dark própria (cor fixa proposital)
+    UC-V11:          # detalhe abre DRAWER lateral role=dialog (NÃO modal central)
+      alvo: sale-sheet-drawer
+      locator: '[role=dialog].os-drawer'   # SaleSheet (shadcn Sheet side=right sm:max-w-xl ~576) · NÃO .vd-pal palette
+      assert: drawer-lateral
+      role: dialog
+      largura_faixa_px: [380, 600]
+      status: todo   # IndexConformanceTest UC-V11 = ->todo() (precisa venda semeada + locator do drawer)
+    UC-V12:          # 2 temas: card KPI NÃO quase-branco no dark (dívida --surface)
+      alvo: kpi-card
+      locator: '.os-kpi'
+      assert: surface-dark
+      temas: [light, dark]
+      kpi_surface_dark_L_max: 0.85   # OKLab L do bg no dark < 0.85 (card escuro legítimo vs branco vazado)
 parent_module: Sells
 tier: A
 related_adrs:
@@ -168,6 +199,7 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 
 ## v5 → v6 changelog (append-only)
 
+- v6.1 (2026-06-03 · aditivo) — `contrato_layout` (UC-V09/V10/V11/V12 + KPI 1-linha) no frontmatter = fonte única legível-por-máquina do gate de conformância DS (§0 PROMPT_PARA_CODE · ADR 0238 sem-ADR). Camada 1 (estática cor-crua) + Camada 2 (browser accent/drawer/2-temas) DERIVAM deste bloco. Sem mudança de Goals/Non-Goals — só formaliza o que já era contrato.
 - v6 (2026-05-26 · este) — backfill MWART Tier A completo · pareado com RUNBOOK-index.md (PR #1649) · consolida onda KB-9.75 P0/P1: Emit modais (#1644) + BulkActionBar fix (#1648) + VdNextActionPanel emoji override (#1641) + validações fiscais BR (#1641) + saved view "Aguardando faturamento" (#1644) · frontmatter canon strict (datas aspas, slugs literais, tier letras) · review_trigger 2026-06-15
 - v5 (2026-05-25) — Integração Vendas × Oficina (ADR 0192 Ondas 3-4) · coluna Origem + saved tree "Por origem ▾" + KPI hero breakdown + listener cross-módulo (PR #1506)
 - v4 (2026-05-21) — Unificação tabs Visão (ADR 0178 supersede ADR 0136) · `viewMode` → `visao` operacional/financeira/produção
