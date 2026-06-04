@@ -7,7 +7,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\UpsertCategoriaRequest;
 use Modules\Financeiro\Models\Categoria;
 use Modules\Financeiro\Models\PlanoConta;
@@ -26,14 +25,8 @@ use Modules\Financeiro\Models\PlanoConta;
  */
 class CategoriaController extends Controller
 {
-    use RendersMockCowork;
-
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
-
         $categorias = Categoria::query()
             ->orderBy('ativo', 'desc')
             ->orderBy('nome')
