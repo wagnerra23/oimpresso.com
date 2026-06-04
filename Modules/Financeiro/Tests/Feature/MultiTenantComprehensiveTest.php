@@ -29,8 +29,15 @@ beforeEach(function () {
     config()->set('otel.enabled', false);
     config()->set('activitylog.enabled', false);
 
-    if (config('database.default') !== 'sqlite' && ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
-        $this->markTestSkipped('MultiTenantComprehensive rodado apenas em SQLite in-memory.');
+    // US-FIN-053 Batch 2: guard anterior tinha lógica AND invertida — como
+    // sqlite.database é ':memory:' por default, NUNCA skipava, e rodava
+    // Schema::dropIfExists no MySQL → SQLSTATE 3730 (drop fin_titulos com FK) +
+    // limpava o schema baseline (veneno). Este teste é SQLite-in-memory only
+    // (cria as próprias tabelas) — skipa em qualquer outra conexão.
+    $isSqliteMemory = config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:');
+    if (! $isSqliteMemory) {
+        $this->markTestSkipped('MultiTenantComprehensive roda apenas em SQLite in-memory.');
     }
 
     Schema::dropIfExists('fin_titulo_baixas');
