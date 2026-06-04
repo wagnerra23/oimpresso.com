@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/Skills/Test
+path: resources/js/Pages/ads/Admin/Skills/Test.tsx
+archetype: form
+persona: wagner
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Tela de teste completa (manual vs conversas reais, PII, dry-run badge, runs com metricas), mas mistura inputs nativos hand-rolled e a11y de label fraca."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear segmented"
+    fix: "source toggle usa <button> hand-rolled (bg-foreground/background) + inputs number/text nativos com border cru -> usar Tabs/ToggleGroup + Input @/Components/ui"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe"
+    fix: "labels nao associados (htmlFor) nos inputs number/text; segmented sem role=tablist/aria-selected"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Linear async run"
+    fix: "rodar teste real (latencia/API) sem skeleton/progress alem de 'Rodando...' -> estado de loading no painel de runs"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

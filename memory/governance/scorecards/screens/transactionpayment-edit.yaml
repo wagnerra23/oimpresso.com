@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: TransactionPayment/Edit
+path: resources/js/Pages/TransactionPayment/Edit.tsx
+archetype: form
+persona: eliana
+nota: 85
+nivel: "Leader"
+baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Edit token-puro forte: Select DS, campos condicionais por metodo, toast validation+onError, contexto da transacao; falha em mask de cartao e red-600 cru."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe"
+    fix: "Validacao client via toast (bom) mas amount<=0/method dup com server; sem aria-live no toast p/ leitor de tela"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "PCI/WCAG"
+    fix: "card_number/cheque em Input texto puro sem mask/inputmode; erros usam text-red-600 cru em vez de destructive"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4"
+    fix: "Header h1 hand-roll em vez de PageHeader; PUT reusa /payments legacy (acoplamento controlado mas fragil)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

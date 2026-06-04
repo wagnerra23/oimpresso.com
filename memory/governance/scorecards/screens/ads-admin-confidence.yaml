@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/Confidence
+path: resources/js/Pages/ads/Admin/Confidence.tsx
+archetype: dashboard
+persona: wagner
+nota: 69
+nivel: "Developing"
+baseline_anterior: 69   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Tabela score×HiTL limpa com KpiGrid e EmptyState pedagogico, mas cor crua como unico sinal e zero charter puxam pra Developing."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo"
+    fix: "scoreColor/hitlBadge hardcodam emerald/blue/amber/red/zinc cru; migrar pra tokens semanticos + primary roxo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe Dashboard"
+    fix: "<table> sem <caption>/scope=col; cor unica como sinal de score (falha daltonismo) — add icone/label"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Notion"
+    fix: "tabela 7 colunas so com overflow-x; em mobile vira scroll horizontal cego — considerar card-stack <md"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

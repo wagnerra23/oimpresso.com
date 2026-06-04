@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Settings/PaymentGateways/Index
+path: resources/js/Pages/Settings/PaymentGateways/Index.tsx
+archetype: config
+persona: wagner
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Console de gateways (charter, Cowork F1.5 93/100, persona Wagner): KPIs+tabela deferred, J/K, cheat-sheet, drawer; desvia do DS v4 (paleta stone + atoms locais)."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 primary roxo + tokens"
+    fix: "bg-stone-50/text-stone-* e emerald/amber/rose hardcoded em toda tela; primary roxo so num ring. Migrar pra tokens v4"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "componentes shared canon"
+    fix: "Btn/KpiCard/PageHeader importados de Financeiro/Cobranca/_components/atoms (DS local) em vez de @/Components/ui shared"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Stripe: acoes-linha rotuladas"
+    fix: "Botoes RefreshCw/MoreHorizontal por linha sem handler/menu real (so o Settings abre drawer); wirar ou remover"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: MemCofre/Chat
+path: resources/js/Pages/MemCofre/Chat.tsx
+archetype: chat
+persona: wagner
+nota: 72
+nivel: "Advanced"
+baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Chat do Cofre sólido com reuso DS (Card/Textarea/Button/Badge), envio otimista, estado de erro e sessões recentes, mas select nativo, sem charter e a11y de inputs fraca."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear"
+    fix: "<select> nativo de escopo — trocar por Select do DS; sem charter ao lado"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe"
+    fix: "Erro de fetch genérico sem retry; adicionar ação de reenviar + toast"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Notion"
+    fix: "Select/Textarea sem label associado; aria-live na resposta streaming"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

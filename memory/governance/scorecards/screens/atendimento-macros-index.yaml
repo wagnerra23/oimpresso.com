@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Atendimento/Macros/Index
+path: resources/js/Pages/Atendimento/Macros/Index.tsx
+archetype: list
+persona: misto
+nota: 79
+nivel: "Advanced"
+baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista de macros completa (Deferred+skeleton+empty+a11y labels), mas table hand-rolled, confirm() nativo e vermelho cru."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Linear (modal de confirmacao com undo, nao window.confirm)"
+    fix: "destroy() usa confirm() nativo; trocar por AlertDialog de @/Components/ui"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 (tokens semanticos destrutivos)"
+    fix: "text-red-600/red-700 cru no botao excluir; usar token destructive"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Shopify (DataTable unica reutilizada)"
+    fix: "Tabela hand-rolled <table> em vez de componente lista compartilhado; alinhar c/ pattern PT-01"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

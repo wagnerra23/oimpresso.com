@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Settings/PaymentGateways/CnabRetorno
+path: resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx
+archetype: config
+persona: wagner
+nota: 58
+nivel: "Developing"
+baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Fundacao tecnica de upload CNAB retorno (sem charter, declarado): form file + tabela deferred funcional mas plano, paleta stone fora do DS v4."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "tokens v4 + charter"
+    fix: "Sem charter (assumido), paleta stone/emerald/rose/amber crua, PageHeader importado de Financeiro/atoms (nao canon shared)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Stripe/Shopify: dropzone drag&drop"
+    fix: "Input file nativo cru; adicionar dropzone + preview nome/tamanho antes de enviar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear: empty/erro ricos"
+    fix: "Empty e erros de upload minimalistas (icone+texto inline); usar EmptyState canon + lista de erros expandivel"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

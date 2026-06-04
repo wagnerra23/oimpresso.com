@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/Decisoes
+path: resources/js/Pages/ads/Admin/Decisoes.tsx
+archetype: list
+persona: wagner
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Inbox operacional forte: KPIs-como-filtro, live-polling cortes, rows densas, empty por aba; cor crua e window.prompt limitam."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo"
+    fix: "toggle Live e KPI selected usam emerald/zinc cru; badge Brain-B blue/5 cru; mapear tokens + primary roxo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Linear"
+    fix: "reject via window.prompt nativo; substituir por modal DS com motivo obrigatorio opcional"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Notion"
+    fix: "auto-refresh 10s sem aria-live region anunciando atualizacao; KPI-filtro clicavel ok mas sem role/aria-pressed"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

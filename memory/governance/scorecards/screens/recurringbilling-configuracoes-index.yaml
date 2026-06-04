@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: RecurringBilling/Configuracoes/Index
+path: resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx
+archetype: config
+persona: eliana
+nota: 83
+nivel: "Advanced"
+baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Config rica (gateways/dunning/NFe/webhooks com copiar+docs+tour) mas majoritariamente read-only/'em breve' e fora do shell canon."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 — shell PageHeader/AppShellV2 + @/Components/ui"
+    fix: "Header e cards hand-roll com bg-sky/orange (badges banco); padronizar com SectionCard do DS e remover sky/orange crus"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Stripe — toggle NFe e régua editáveis in-place"
+    fix: "NFe-auto é toggle decorativo 'em breve' e régua é read-only; tornar régua/NFe editáveis (PUT) ou marcar claramente disabled"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Notion — gateway gerido aqui, não em outra rota"
+    fix: "Adicionar gateway redireciona pra /contas-bancarias ('em breve aqui'); fechar o loop no próprio config"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

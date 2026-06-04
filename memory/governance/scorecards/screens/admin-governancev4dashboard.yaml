@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Admin/GovernanceV4Dashboard
+path: resources/js/Pages/Admin/GovernanceV4Dashboard.tsx
+archetype: dashboard
+persona: wagner
+nota: 70
+nivel: "Advanced"
+baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Dashboard intra-bucket com sparkline SVG, drift banner e Deferred; cores cruas zinc/emerald e hex inline (#dc2626) + filtros bg-zinc-900 fora do primary roxo derrubam Pre-Flight."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 primary roxo pra chip ativo, zero hex literal"
+    fix: "Trocar bg-zinc-900 dos filtros por primary; remover style borderLeftColor #dc2626/#059669 por classe token"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "GovernanceV4 (irma) ja usa KpiCard+filter chips DS"
+    fix: "Alinhar filtros e cards com os _components do GovernanceV4 tri-pane"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe da aria-pressed nos toggles de filtro e foco visivel"
+    fix: "Adicionar aria-pressed/role nos botoes de bucket/status e label no checkbox drift"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

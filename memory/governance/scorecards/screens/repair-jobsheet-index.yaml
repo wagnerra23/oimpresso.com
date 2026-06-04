@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Repair/JobSheet/Index
+path: resources/js/Pages/Repair/JobSheet/Index.tsx
+archetype: list
+persona: tecnico
+nota: 52
+nivel: "Developing"
+baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Shell React limpo mas e stub — lista real e placeholder de DataTables legacy e cards so contam filtros."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Speed-to-task"
+    best_of_class: "Linear"
+    fix: "Tabela e placeholder (div explicando DataTables legacy); migrar pra TanStack/tabela real com dados"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Bling"
+    fix: "Cards mostram CONTAGEM de filtros, nao a lista de OS; substituir por tabela acionavel"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Shopify filters"
+    fix: "Filtros existem so como numeros; expor selects funcionais que filtram a lista"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
