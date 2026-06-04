@@ -25,11 +25,12 @@ declare(strict_types=1);
 // workflow visual-regression invoca explicitamente (chromium garantido). O guard
 // `class_exists(\Pest\Browser\Bootstrap::class)` dos outros testes estava ERRADO
 // (classe não existe em runtime → skip silencioso eterno = stub). Aqui ele roda.
-it('/login (público) renderiza o formulário de login', function () {
-    // Âncora estrutural locale-free: o form + campos montaram (não é 500/branco).
-    // assertNoJavascriptErrors deixado pra Fase B — o login Blade legacy carrega
-    // assets UltimatePOS que podem não buildar no CI e dar falso-positivo.
-    visit('/login')
+it('/login/old (público) renderiza o formulário de login Blade', function () {
+    // Mira /login/old (Blade legacy UltimatePOS, markup #login-form verificado em
+    // resources/views/auth/login.blade.php). O /login canônico renderiza outra view
+    // (sem #login-form). Âncora estrutural locale-free: form + campos montaram (não
+    // é 500/branco). assertNoJavascriptErrors fica pra Fase B (assets legacy no CI).
+    visit('/login/old')
         ->assertVisible('#login-form')
         ->assertVisible('#username')
         ->assertVisible('#password');
