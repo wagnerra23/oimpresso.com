@@ -19,7 +19,7 @@
 // Lição PR #717 — useMemo/useCallback nos handlers descendentes pra evitar re-render loop
 // quando hierarquia profunda (Index → Coluna → Card × N).
 
-import { memo, type CSSProperties } from 'react';
+import { memo, type CSSProperties, type MouseEvent } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -59,6 +59,13 @@ interface Props {
   cacamba: CacambaCardData;
   variant: CacambaStatus;
   onClick: (cacamba: CacambaCardData) => void;
+  /**
+   * D-02 — "avançar etapa direto no card". Quando presente, o botão de ação dos
+   * estados de avanço (Iniciar/Recolher/Concluir/Entregar) dispara a MESMA porta do
+   * arrasto (gate-guardada · resolveDragMapping no Index) em vez de só abrir o drawer.
+   * "Acompanhar" (locada) segue abrindo o drawer (é ver, não avançar).
+   */
+  onAdvance?: (cacamba: CacambaCardData) => void;
 }
 
 const formatBRL = (value: number | null | undefined) =>
@@ -145,7 +152,18 @@ function actionLabelFor(variant: CacambaStatus): string | null {
   }
 }
 
-function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
+function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
+  // D-02 — estados de avanço usam a porta gate-guardada (onAdvance); "Acompanhar"
+  // (locada) é ver, não avançar → segue abrindo o drawer (onClick).
+  const canAdvance = onAdvance != null && variant !== 'locada';
+  const triggerAction = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (canAdvance) {
+      onAdvance!(cacamba);
+    } else {
+      onClick(cacamba);
+    }
+  };
   // Drag handle — distance:8 no PointerSensor (KanbanDndProvider) evita drag acidental
   // em onClick "abrir drawer". Card inteiro é o drag handle (UX padrão Kanban).
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -415,10 +433,7 @@ function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
           <button
             type="button"
             className="text-[10.5px] px-2 py-1 bg-slate-900 text-white rounded font-medium hover:bg-slate-700 inline-flex items-center gap-1 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick(cacamba);
-            }}
+            onClick={triggerAction}
             aria-label="Entregar caçamba"
           >
             Entregar
@@ -440,10 +455,7 @@ function CacambaCardImpl({ cacamba, variant, onClick }: Props) {
                   ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                   : 'bg-slate-900 text-white hover:bg-slate-700')
             }
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick(cacamba);
-            }}
+            onClick={triggerAction}
             aria-label={actionLabel}
           >
             {actionLabel}
