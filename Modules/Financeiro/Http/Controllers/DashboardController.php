@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
@@ -25,7 +24,6 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class DashboardController extends Controller
 {
-    use RendersMockCowork;
 
     public function __construct()
     {
@@ -35,9 +33,6 @@ class DashboardController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
 
         $businessId = (int) session('user.business_id');
         $hoje = now()->toDateString();

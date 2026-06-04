@@ -7,7 +7,6 @@ use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Services\FluxoCaixaService;
 use Modules\Financeiro\Services\FluxoRealizadoService;
 
@@ -35,7 +34,6 @@ use Modules\Financeiro\Services\FluxoRealizadoService;
  */
 class FluxoController extends Controller
 {
-    use RendersMockCowork;
 
     public function __construct(
         private FluxoCaixaService $service,
@@ -47,9 +45,6 @@ class FluxoController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
 
         $businessId = (int) session('user.business_id');
         $tab = $this->resolveTab($request);

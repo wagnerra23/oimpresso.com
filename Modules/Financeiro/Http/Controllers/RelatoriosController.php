@@ -8,7 +8,6 @@ use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 
@@ -29,7 +28,6 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class RelatoriosController extends Controller
 {
-    use RendersMockCowork;
 
     public function __construct()
     {
@@ -39,9 +37,6 @@ class RelatoriosController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
 
         $businessId = (int) session('user.business_id');
         $filters = $this->parseFilters($request);
