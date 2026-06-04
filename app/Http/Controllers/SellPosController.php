@@ -775,7 +775,7 @@ class SellPosController extends Controller
             // e perdia tudo. with('status') mantém a msg pro form Blade legado.
             if (empty($output['success'])) {
                 return back()
-                    ->withErrors(['venda' => $output['msg'] ?? __('messages.something_went_wrong')])
+                    ->withErrors(['venda' => $output['msg']])
                     ->with('status', $output);
             }
             if ($input['status'] == 'draft') {
