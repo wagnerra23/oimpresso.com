@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\UpsertContaBancariaRequest;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Strategies\CnabDirectStrategy;
@@ -27,7 +26,6 @@ use Modules\Financeiro\Strategies\CnabDirectStrategy;
  */
 class ContaBancariaController extends Controller
 {
-    use RendersMockCowork;
 
     // Bancos gateway-only (sem CNAB tradicional). Asaas continua selecionável
     // como conta destino aqui — a credencial é cadastrada em
@@ -37,9 +35,6 @@ class ContaBancariaController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
 
         $businessId = $request->session()->get('business.id');
 
