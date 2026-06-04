@@ -200,6 +200,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       quantity: number;
       unit_price: number;
       discount: number;
+      // Paridade Edit — IMEI/serial opcional por linha (Blade legacy).
+      imei_number?: string;
     }>,
     payments: [
       {
@@ -344,6 +346,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         quantity: 1,
         unit_price: Number(p.selling_price ?? 0),
         discount: 0,
+        imei_number: '',
       },
     ]);
   };
@@ -635,6 +638,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         tax_id: null,
         line_discount_type: 'fixed',
         line_discount_amount: p.discount,
+        // Paridade Edit — IMEI/serial opcional por linha (Blade legacy).
+        imei_number: p.imei_number ?? '',
         // SellPosController:581 acessa $product['enable_stock'] direto. Se faltar,
         // Undefined array key. Defaults seguros: stock-managed e single-type.
         // Idealmente search API retornaria isso por produto — TODO US-SELL-PRODUCT-META.
@@ -1164,6 +1169,19 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                             {p.variation && <> — <span className="text-muted-foreground">{p.variation}</span></>}
                           </div>
                           <div className="text-xs text-muted-foreground">SKU {p.sku}</div>
+                          {/* Paridade Edit — IMEI/serial inline opcional por linha. */}
+                          <Input
+                            type="text"
+                            value={p.imei_number ?? ''}
+                            onChange={(e) => {
+                              const next = [...data.products];
+                              next[idx] = { ...next[idx], imei_number: e.target.value };
+                              setData('products', next);
+                            }}
+                            placeholder="IMEI / nº série (opcional)"
+                            className="mt-1 h-7 text-xs"
+                            aria-label={`IMEI ou número de série de ${p.name}`}
+                          />
                           {itemError && (
                             <div className="mt-1 flex items-start gap-1 text-xs font-medium text-destructive">
                               <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />
