@@ -447,7 +447,23 @@ class SellPosController extends Controller
                     ]);
                     $input['transaction_date'] = \Carbon::now();
                 } else {
-                    $input['transaction_date'] = $this->productUtil->uf_date($request->input('transaction_date'), true);
+                    // 2026-06-04 (Wagner) — uf_date pode devolver vazio/inválido se o valor
+                    // vier num formato que não bate com o date_format do business (bug do
+                    // campo "Data da venda" vazio no /sells/create). Sem isso, a venda grava
+                    // com transaction_date nulo/0000 e SOME da consulta (filtra por data).
+                    try {
+                        $parsedDate = $this->productUtil->uf_date($request->input('transaction_date'), true);
+                    } catch (\Throwable $e) {
+                        $parsedDate = null;
+                    }
+                    if (empty($parsedDate) || strtotime((string) $parsedDate) === false) {
+                        \Log::warning('SellPosController@store transaction_date não-parseável — fallback Carbon::now()', [
+                            'business_id' => $business_id ?? null,
+                            'raw_value' => json_encode($request->input('transaction_date')),
+                        ]);
+                        $parsedDate = \Carbon::now();
+                    }
+                    $input['transaction_date'] = $parsedDate;
                 }
                 if ($is_direct_sale) {
                     $input['is_direct_sale'] = 1;
