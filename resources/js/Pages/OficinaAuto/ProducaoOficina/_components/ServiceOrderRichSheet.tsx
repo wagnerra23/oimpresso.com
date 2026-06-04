@@ -49,6 +49,7 @@ import {
 import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
+import VendaDerivadaCard, { type VendaDerivada } from '@/Components/shared/VendaDerivadaCard';
 import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
 import { printServiceOrder } from '@/Lib/printServiceOrder';
@@ -116,6 +117,10 @@ interface ServiceOrderDetail {
   // Wave 2.3 US-OFICINA-027 — items lançados (peças + mão-de-obra + terceiros)
   items?: ServiceOrderItemRel[];
   items_total?: number | string;
+  // D-09 (charter §2 TRAVADO) — venda derivada da OS (origem oficina · ADR 0192).
+  // Backend ServiceOrderController::show() popula via shapeVendaDerivada() só quando
+  // a OS já gerou Transaction (transição → concluída/pronto). null no resto.
+  venda_derivada?: VendaDerivada | null;
   urls?: {
     edit?: string | null;
     show?: string | null;
@@ -293,10 +298,22 @@ export default function ServiceOrderRichSheet({
               </SheetDescription>
             </SheetHeader>
 
-            {/* Conteúdo scroll — 5 sections empilhadas */}
+            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11) */}
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
-              {/* ─── SEÇÃO 1: Veículo + KV grid polimórfico (Wave 2.2 US-OFICINA-027) ───
+              {/* ─── SEÇÃO 2 (TRAVADA): Card Vendas×Oficina (D-09) ───
+                  Acende só quando a OS gerou venda (etapa pronto/concluída + Transaction
+                  derivada · ADR 0192). Reusa o componente shared VendaDerivadaCard (Total ·
+                  Data · breakdown peças/serviços · badge fiscal NF-e · CTAs Abrir/Imprimir/
+                  Compartilhar). -mx-6 cancela o px-6 do scroll pra a margem mx-5 própria do
+                  card render como desenhado. "Seções acendem por contexto" (regra travada). */}
+              {data.venda_derivada && (
+                <div className="-mx-6">
+                  <VendaDerivadaCard venda={data.venda_derivada} />
+                </div>
+              )}
+
+              {/* ─── SEÇÃO 3 (Hero): Veículo + KV grid polimórfico (Wave 2.2 US-OFICINA-027) ───
                   - manutenção (Martinho sub-vertical 4 CNAE 4520): KM / Box / Mecânico / Valor (items_total)
                   - locação    (sub-vertical 3 hipotético CNAE 4581): Cliente / Capacidade / Endereço / Diárias / Valor */}
               {data.vehicle && (
