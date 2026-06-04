@@ -299,7 +299,7 @@ class FinanceiroHealthCommand extends Command
         $q = DB::table('fin_titulos as t')
             ->leftJoinSub(
                 DB::table('fin_titulo_baixas')
-                    ->selectRaw('titulo_id, SUM(valor) as total_baixado')
+                    ->selectRaw('titulo_id, SUM(valor_baixa) as total_baixado')
                     ->groupBy('titulo_id'),
                 'b',
                 't.id', '=', 'b.titulo_id'
