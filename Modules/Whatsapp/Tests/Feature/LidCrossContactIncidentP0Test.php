@@ -119,7 +119,7 @@ beforeEach(function () {
     });
 });
 
-function makeChannel(int $bizId, string $uuidSuffix = '000'): Channel
+function lidMakeChannel(int $bizId, string $uuidSuffix = '000'): Channel
 {
     return Channel::query()->create([
         'business_id' => $bizId,
@@ -150,7 +150,7 @@ it('R-WA-INCIDENT-2026-05-14-P0-1 — Linker NÃO faz cross-contact via tail4 co
         'type' => 'customer', 'contact_id' => 'CO_WAGNER',
     ]);
 
-    $channel = makeChannel(1, '101');
+    $channel = lidMakeChannel(1, '101');
     $conv = Conversation::query()->create([
         'business_id' => 1, 'channel_id' => $channel->id,
         'customer_external_id' => '+5548999872822',
@@ -171,7 +171,7 @@ it('R-WA-INCIDENT-2026-05-14-P0-1b — Linker mantém match exact E.164 sem ambi
         'mobile' => '+5548999872822',
         'type' => 'customer', 'contact_id' => 'CO_EXATO',
     ]);
-    $channel = makeChannel(1, '102');
+    $channel = lidMakeChannel(1, '102');
     $conv = Conversation::query()->create([
         'business_id' => 1, 'channel_id' => $channel->id,
         'customer_external_id' => '+5548999872822',
@@ -234,7 +234,7 @@ it('R-WA-INCIDENT-2026-05-14-P0-3 — MessagePersister history-sync resolve LID 
         LidPhoneMap::SOURCE_WEBHOOK_SENDER_PN,
     );
 
-    $channel = makeChannel(1, '301');
+    $channel = lidMakeChannel(1, '301');
 
     $persister = new MessagePersister($channel);
     $result = $persister->persist([
@@ -255,7 +255,7 @@ it('R-WA-INCIDENT-2026-05-14-P0-3 — MessagePersister history-sync resolve LID 
 });
 
 it('R-WA-INCIDENT-2026-05-14-P0-3b — history-sync sem cache REGISTRA LID com phone=NULL pra rastreio', function () {
-    $channel = makeChannel(1, '302');
+    $channel = lidMakeChannel(1, '302');
     $persister = new MessagePersister($channel);
 
     $persister->persist([
