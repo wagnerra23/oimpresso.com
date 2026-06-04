@@ -10,7 +10,7 @@
 Quando duas memórias divergem, vence nesta ordem:
 
 1. **ADR canon mais recente com `supersedes`** (memórias são append-only — o aposentado vira histórico, NÃO se usa).
-2. **DS v4 roxo (ADR 0235) > DS v3 > v2.** Cor canon = `primary` roxo `oklch(0.55 0.15 295)`. Azul em tela = **débito a migrar**, nunca padrão novo.
+2. **DS v6 (nome canônico — ADR 0249) sobre o roxo do ADR 0235 > DS v3 > v2.** Cor canon = `primary` roxo `oklch(0.55 0.15 295)` (0235, âncora de cor); "DS v6" é o nome único da camada de tokens semânticos (`--pos/--neg/--warn/--stage-*/--origin-*`). Azul em tela = **débito a migrar**, nunca padrão novo. *(v4/v4.2/v5 = nomes antigos da mesma coisa — usar só "DS v6".)*
 3. **Código real > documento.** Se a doc diz "tela X tem drift Y" e o código não tem mais, o código vence (a MATRIZ_MIGRACAO_DS tem falsos-positivos confirmados — ver §4).
 4. **Constituição UI v2 (ADR UI-0013):** Fundações → Shell → Padrão de Tela → Módulo. Camada superior herda e **nunca contradiz** a inferior.
 5. **Data mais recente** vence em docs operacionais (briefings, handoffs, notes).
@@ -128,7 +128,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 
 ## 5 · HIERARQUIA CANÔNICA HOJE (estado final)
 
-**Fundações** (tokens DS v3, accent **roxo 295** via DS v4/ADR 0235) → **Shell** (AppShellV2/Cockpit, sidebar **light** single-pane) → **Padrão de Tela** (PT-01 Lista / Cockpit Pattern V2 / `os-page.jsx`) → **Módulo**. Owner da UI = **Claude Design plugin** (ADR 0235 §3), dentro do loop MWART (0104→0114) + persona (UI-0016).
+**Fundações** (tokens DS v3 + camada semântica **DS v6**/ADR 0249, accent **roxo 295** via ADR 0235) → **Shell** (AppShellV2/Cockpit, sidebar **light** single-pane) → **Padrão de Tela** (PT-01 Lista / Cockpit Pattern V2 / `os-page.jsx`) → **Módulo**. Owner da UI = **Claude Design plugin** (ADR 0235 §3), dentro do loop MWART (0104→0114) + persona (UI-0016).
 
 ---
 
@@ -166,7 +166,8 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 
 | ADR | Regra |
 |---|---|
-| [ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md) | DS v4 — tokens + `primary` roxo `oklch(0.55 0.15 295)` universal; Claude Design plugin dono da interface |
+| [ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md) | Cor canon — tokens + `primary` roxo `oklch(0.55 0.15 295)` universal; Claude Design plugin dono da interface (âncora de cor do DS v6) |
+| [ADR 0249](../../decisions/0249-ds-v6-naming-amends-0235.md) | **DS v6** — nome canônico único da camada de tokens semânticos; amends 0235 (roxo permanece); resolve divergência v4×v5×v6 |
 | [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md) | Evolução da doc de design — append-only + índice fonte-única + ratchet + freshness + reprocesso |
 | [ADR 0238](../../decisions/0238-soberania-constituicao-wagner.md) | Soberania de [W] sobre a constituição (memória/numeração) |
 | [ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md) | Governança do DS — git SSOT · Cowork→Code · regressão-IA · 1 spec vigente na raiz |
