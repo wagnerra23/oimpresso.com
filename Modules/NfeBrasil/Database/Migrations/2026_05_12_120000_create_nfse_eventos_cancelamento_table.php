@@ -49,7 +49,13 @@ return new class extends Migration
         Schema::create('nfse_eventos_cancelamento', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('business_id')->index();
-            $table->unsignedBigInteger('nfse_emissao_id');
+            // FK type-match (US-GOV-013): `nfse_emissoes` é criada pelo módulo NFSe
+            // (2026_05_01_000003) com `increments('id')` = INT UNSIGNED, que roda ANTES
+            // (a migration NfeBrasil 2026_05_11 pula via hasTable guard). FK BIGINT←INT
+            // dava SQLSTATE 3780 (incompatible) e derrubava o migrate:fresh do CI visual.
+            // unsignedInteger casa o tipo real. (Conflito cross-módulo NFSe/NfeBrasil
+            // sobre nfse_emissoes.id fica pra ADR — aqui só destrava o fresh.)
+            $table->unsignedInteger('nfse_emissao_id');
             $table->string('driver_key', 32)
                 ->comment('ABRASF_V1, ABRASF_V2.04, GINFES, IPM, TIPLAN, NFSE_GOV_BR');
             $table->text('motivo')
