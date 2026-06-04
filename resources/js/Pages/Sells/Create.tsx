@@ -220,6 +220,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     is_recurring: 0 as 0 | 1,
     /** Endereço cobrança ≠ entrega (Blade legacy customer_secondary_address). Paridade Edit. */
     customer_secondary_address: '',
+    /** Documento anexo (file upload Blade legacy sell_document). Paridade Edit. */
+    sell_document: null as File | null,
     shipping: {
       details: '',
       address: '',
@@ -618,6 +620,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       is_recurring: d.is_recurring ? 1 : 0,
       // Paridade Edit — endereço de cobrança ≠ entrega (Blade legacy).
       customer_secondary_address: d.customer_secondary_address,
+      // Paridade Edit — documento anexo. Inertia auto-detecta File e usa
+      // FormData só quando há anexo (caminho JSON comum intacto sem documento).
+      // Backend: SellPosController@store:586 uploadFile($request,'sell_document').
+      sell_document: d.sell_document,
       // Flatten shipping object pra campos top-level
       shipping_details: d.shipping.details,
       shipping_address: d.shipping.address,
@@ -824,7 +830,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, [draftKey]);
 
   const handleDraftRecover = () => {
-    if (draftRecover) setData(draftRecover.data);
+    // Draft não guarda File — restaura preservando sell_document=null.
+    if (draftRecover) setData({ ...draftRecover.data, sell_document: null });
     setDraftRecover(null);
   };
 
@@ -849,7 +856,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (!draftKey || !recoveredRef.current) return;
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(draftKey, JSON.stringify({ data, savedAt: Date.now() }));
+        // File (sell_document) não serializa em JSON — exclui do draft.
+        const { sell_document: _file, ...draftData } = data;
+        localStorage.setItem(draftKey, JSON.stringify({ data: draftData, savedAt: Date.now() }));
       } catch {
         // localStorage quota / incognito — silencioso.
       }
@@ -1632,6 +1641,34 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             <p className="text-xs text-muted-foreground">
               Usado pra NF-e quando cliente solicita faturamento em endereço diferente.
             </p>
+          </div>
+
+          {/* Paridade Edit — Anexar documento (Blade legacy sell_document upload) */}
+          <div className="space-y-1.5">
+            <Label htmlFor="sell_document">Anexar documento (opcional)</Label>
+            <input
+              id="sell_document"
+              type="file"
+              accept=".pdf,.csv,.zip,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (file && file.size > 5 * 1024 * 1024) {
+                  toast.error('Arquivo maior que 5MB. Tente comprimir antes de enviar.');
+                  e.target.value = '';
+                  return;
+                }
+                setData('sell_document', file);
+              }}
+              className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-input file:bg-background file:text-foreground file:text-xs hover:file:bg-muted"
+            />
+            <p className="text-xs text-muted-foreground">
+              Aceita .pdf, .csv, .zip, .doc, .docx, .jpg, .png — máx 5MB.
+            </p>
+            {data.sell_document && (
+              <p className="text-xs text-muted-foreground">
+                Arquivo selecionado: <span className="font-medium text-foreground">{data.sell_document.name}</span>
+              </p>
+            )}
           </div>
 
           {/* Bloco frete colapsável dentro de Mais opções (5 campos juntos) */}
