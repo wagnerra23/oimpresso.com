@@ -439,9 +439,12 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // É aqui que o /pos redireciona após salvar. Antes a msg do store não chegava
   // ao front (HandleInertiaRequests lia status.error, store usa status.msg) e a
   // venda "sumia" SEM AVISO. Sonner já está montado no AppShellV2.
-  const flash = usePage<{
-    flash?: { success?: string | number | null; error?: string | null; info?: string | null };
-  }>().props.flash;
+  const flashPage = usePage();
+  const flash = (
+    flashPage.props as {
+      flash?: { success?: string | number | null; error?: string | null; info?: string | null };
+    }
+  ).flash;
   useEffect(() => {
     if (flash?.error) {
       toast.error(flash.error, { duration: 8000 });
