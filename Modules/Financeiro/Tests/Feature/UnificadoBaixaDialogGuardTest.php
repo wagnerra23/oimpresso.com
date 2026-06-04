@@ -154,10 +154,20 @@ it('GUARD G3: baixa parcial reduz valor_aberto e marca parcial', function () {
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
+    // 2026-06-04 — baixa parcial agora faz SPLIT: original reduz pro restante
+    // (segue aberto), e um lançamento FILHO quitado é criado com o valor recebido.
     $titulo->refresh();
-    expect($titulo->status)->toBe('parcial');
+    expect($titulo->status)->not->toBe('quitado');
     expect((float) $titulo->valor_aberto)->toBe(60.0);
+    expect((float) $titulo->valor_total)->toBe(60.0);
 
+    $filho = Titulo::where('titulo_pai_id', $titulo->id)->latest('id')->first();
+    expect($filho)->not->toBeNull('split não criou o lançamento filho');
+    expect((float) $filho->valor_total)->toBe(40.0);
+    expect($filho->status)->toBe('quitado');
+
+    TituloBaixa::where('titulo_id', $filho->id)->forceDelete();
+    $filho->forceDelete();
     TituloBaixa::where('titulo_id', $titulo->id)->forceDelete();
     $titulo->forceDelete();
 });

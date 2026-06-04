@@ -77,6 +77,7 @@ class UnificadoController extends Controller
             ->with([
                 'categoria:id,nome',
                 'planoConta:id,codigo,nome,tipo',
+                'contaBancaria:id,nome',
                 'conferidoPor:id,first_name,last_name,username',
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
@@ -385,6 +386,7 @@ class UnificadoController extends Controller
             'categoria_id' => $request->input('categoria_id') ?: null,
             'plano_conta_id' => $request->input('plano_conta_id') ?: null,
             'forma_pagamento' => $request->input('forma_pagamento') ?: null,
+            'conta_bancaria_id' => $request->input('conta_bancaria_id') ?: null,
             'vencimento' => $request->date('vencimento')->toDateString(),
             'updated_by' => $request->user()->id,
         ];
@@ -536,34 +538,86 @@ class UnificadoController extends Controller
             }
         }
 
-        DB::transaction(function () use ($businessId, $titulo, $conta, $valor, $meio, $dataBaixa, $request, $aberto) {
-            TituloBaixa::create([
-                'business_id' => $businessId,
-                'titulo_id' => $titulo->id,
-                'conta_bancaria_id' => $conta->id,
-                'valor_baixa' => $valor,
-                'data_baixa' => $dataBaixa,
-                'meio_pagamento' => $meio,
-                'idempotency_key' => (string) Str::uuid(),
-                'observacoes' => 'Baixa via Visão Unificada',
-                'created_by' => $request->user()->id,
-            ]);
+        $restante = round($aberto - $valor, 2);
+        $parcial = $restante > 0.001;
 
-            // Baixa parcial: reduz valor_aberto e marca 'parcial'; senão quita.
-            $novoAberto = round($aberto - $valor, 2);
-            if ($novoAberto > 0.001) {
-                $titulo->valor_aberto = $novoAberto;
-                $titulo->status = 'parcial';
+        DB::transaction(function () use ($businessId, $titulo, $conta, $valor, $meio, $dataBaixa, $request, $parcial, $restante) {
+            if ($parcial) {
+                // BAIXA PARCIAL → SPLIT (Wagner 2026-06-04): cria um lançamento FILHO
+                // quitado com o valor recebido + reduz o ORIGINAL pro restante (que
+                // segue "a receber"/"a pagar"). NÃO usa mais status 'parcial'.
+                $prefixo = $titulo->tipo === 'receber' ? 'R' : 'P';
+                $proximo = (int) Titulo::where('business_id', $businessId)
+                    ->where('numero', 'like', "{$prefixo}-%")
+                    ->lockForUpdate()
+                    ->selectRaw("MAX(CAST(SUBSTRING(numero, 3) AS UNSIGNED)) as max_n")
+                    ->value('max_n');
+                $numero = sprintf('%s-%05d', $prefixo, max(1, $proximo + 1));
+
+                $filho = Titulo::create([
+                    'business_id'       => $businessId,
+                    'numero'            => $numero,
+                    'tipo'              => $titulo->tipo,
+                    'status'            => 'quitado',
+                    'cliente_id'        => $titulo->cliente_id,
+                    'cliente_descricao' => $titulo->cliente_descricao,
+                    'valor_total'       => $valor,
+                    'valor_aberto'      => 0,
+                    'moeda'             => $titulo->moeda,
+                    'emissao'           => $titulo->emissao?->toDateString() ?? now()->toDateString(),
+                    'vencimento'        => $titulo->vencimento->toDateString(),
+                    'competencia_mes'   => $titulo->competencia_mes,
+                    'origem'            => 'manual', // derivado do split (origem_id null evita colisão UNIQUE)
+                    'origem_id'         => null,
+                    'titulo_pai_id'     => $titulo->id,
+                    'plano_conta_id'    => $titulo->plano_conta_id,
+                    'categoria_id'      => $titulo->categoria_id,
+                    'forma_pagamento'   => $meio,
+                    'conta_bancaria_id' => $conta->id,
+                    'observacoes'       => "Baixa parcial de {$titulo->numero}",
+                    'created_by'        => $request->user()->id,
+                    'updated_by'        => $request->user()->id,
+                ]);
+
+                TituloBaixa::create([
+                    'business_id'       => $businessId,
+                    'titulo_id'         => $filho->id,
+                    'conta_bancaria_id' => $conta->id,
+                    'valor_baixa'       => $valor,
+                    'data_baixa'        => $dataBaixa,
+                    'meio_pagamento'    => $meio,
+                    'idempotency_key'   => (string) Str::uuid(),
+                    'observacoes'       => "Baixa parcial de {$titulo->numero}",
+                    'created_by'        => $request->user()->id,
+                ]);
+
+                // Reduz o original pro restante.
+                $titulo->valor_total = $restante;
+                $titulo->valor_aberto = $restante;
+                $titulo->save();
             } else {
+                // Quitação total: baixa no próprio título.
+                TituloBaixa::create([
+                    'business_id'       => $businessId,
+                    'titulo_id'         => $titulo->id,
+                    'conta_bancaria_id' => $conta->id,
+                    'valor_baixa'       => $valor,
+                    'data_baixa'        => $dataBaixa,
+                    'meio_pagamento'    => $meio,
+                    'idempotency_key'   => (string) Str::uuid(),
+                    'observacoes'       => 'Baixa via Visão Unificada',
+                    'created_by'        => $request->user()->id,
+                ]);
                 $titulo->valor_aberto = 0;
                 $titulo->status = 'quitado';
+                $titulo->save();
             }
-            $titulo->save();
         });
 
-        $parcial = $titulo->status === 'parcial';
         $base = $titulo->tipo === 'receber' ? 'Recebimento' : 'Pagamento';
-        $msg = $parcial ? "{$base} parcial registrado (resta R$ ".number_format((float) $titulo->valor_aberto, 2, ',', '.').')' : "{$base} confirmado";
+        $msg = $parcial
+            ? "{$base} parcial de R$ ".number_format($valor, 2, ',', '.')." — {$titulo->numero} segue com R$ ".number_format($restante, 2, ',', '.')
+            : "{$base} confirmado";
 
         return back()->with('success', $msg);
     }
@@ -1192,8 +1246,10 @@ class UnificadoController extends Controller
         $status = $this->deriveStatus($t, $hoje, $vencendoLimite);
 
         $ultimaBaixa = $t->relationLoaded('baixas') ? $t->baixas->first() : null;
+        // Conta exibida: a REALIZADA (baixa) tem prioridade; senão a PREVISTA (título); senão "—".
         $contaBancariaNome = $ultimaBaixa?->contaBancaria?->nome
             ?? $ultimaBaixa?->contaBancaria?->account?->name
+            ?? $t->contaBancaria?->nome
             ?? '—';
 
         $metadata = $t->metadata ?? [];
@@ -1226,6 +1282,7 @@ class UnificadoController extends Controller
             'plano_conta_codigo' => $t->planoConta?->codigo,
             'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
+            'conta_bancaria_id' => $t->conta_bancaria_id,
             // Forma de pagamento: a REALIZADA (última baixa) manda quando existe
             // e é read-only; senão a PREVISTA (titulo.forma_pagamento), editável.
             // Fallback `delphi_tipopagto` (metadata) pros títulos migrados do WR.

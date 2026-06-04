@@ -91,6 +91,7 @@ interface Lancamento {
   plano_conta_codigo: string | null;
   plano_conta_nome: string | null;
   conta_bancaria: string;
+  conta_bancaria_id: number | null;
   // 2026-06-03 — forma de pagamento. `forma_pagamento` = exibida (baixa realizada
   // tem prioridade, senão a prevista do título). `forma_pagamento_realizada` =
   // true quando veio da baixa → read-only (espelha valor_mutavel).
@@ -858,14 +859,18 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           <span className="text-stone-300">—</span>
         )}
       </td>
+      {/* 2026-06-04: data da baixa (liquidação) — pedido Wagner. */}
+      <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
+        {row.liquidacao ? row.liquidacao : <span className="text-stone-300">—</span>}
+      </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
-      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-stone-900'}`}>
+      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-destructive'}`}>
         <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
       <td className="pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
         {!settled ? (
           <Button size="sm" variant="outline" className="h-7 px-2 text-[11.5px]" onClick={onBaixar}>
-            {isIn ? '✓ Recebi' : '✓ Paguei'}
+            {isIn ? 'Receber' : 'Pagar'}
           </Button>
         ) : (
           <span className="text-[11px] text-stone-400">{row.liquidacao}</span>
@@ -1444,6 +1449,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <th className="px-2 py-2 text-left font-medium">Categoria</th>
                 <th className="px-2 py-2 text-left font-medium">Forma</th>
                 <th className="px-2 py-2 text-left font-medium">Conta</th>
+                <th className="px-2 py-2 text-left font-medium">Baixa</th>
                 <SortableHeader k="status" label="Status" filters={filters} aplicar={aplicar} className="px-2 py-2 text-left font-medium" />
                 <SortableHeader k="valor" label="Valor" filters={filters} aplicar={aplicar} className="px-2 py-2 text-right font-medium" alignRight />
                 <th className="pl-2 pr-4 py-2 w-[110px] text-right font-medium"></th>
@@ -1459,7 +1465,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 return (
                   <React.Fragment key={key}>
                     {showGroupHeader && (
-                      <tr><td colSpan={11} className="bg-stone-50/70 border-b border-stone-200">
+                      <tr><td colSpan={12} className="bg-stone-50/70 border-b border-stone-200">
                         <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
                           <span>{label}</span>
                           <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
@@ -1483,7 +1489,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 );
               })}
               {grupos.length === 0 && (
-                <tr><td colSpan={11} className="py-16">
+                <tr><td colSpan={12} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
                     <div className="text-sm text-stone-600">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
@@ -1639,11 +1645,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={drawerTab === 'editar'}
-                  className={'fin-drawer-tab fin-drawer-tab-edit' + (drawerTab === 'editar' ? ' on' : '')}
-                  onClick={() => setDrawerTab('editar')}
-                  disabled={!selected.valor_mutavel}
-                  title={!selected.valor_mutavel ? 'Valor não-mutável após baixa (ADR fin-tech/0002)' : 'Editar inline'}
+                  aria-selected={false}
+                  className="fin-drawer-tab fin-drawer-tab-edit"
+                  onClick={() => setEditOpen(true)}
+                  title="Editar lançamento"
                 >
                   <span className="fin-drawer-tab-glyph" aria-hidden>✎</span>
                   <span>Editar</span>
@@ -1676,7 +1681,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                           </div>
                         </div>
                         <div className="mt-3 flex items-baseline gap-2 flex-wrap">
-                          <div className={`text-[34px] font-semibold tracking-tight tabular-nums ${selected.kind === 'receivable' ? 'text-emerald-700' : 'text-stone-900'}`}>
+                          <div className={`text-[34px] font-semibold tracking-tight tabular-nums ${selected.kind === 'receivable' ? 'text-emerald-700' : 'text-destructive'}`}>
                             {selected.kind === 'receivable' ? '+ ' : '− '}{brl(selected.valor)}
                           </div>
                           <StatusPill s={selected.status} />
@@ -1900,7 +1905,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
                     <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn">
                       <span aria-hidden>✓</span>
-                      <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
+                      <span className="ml-1">{selected.kind === 'receivable' ? 'Receber' : 'Pagar'}</span>
                     </Button>
                   )}
                   <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
@@ -2163,6 +2168,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           lancamento={selected}
           categorias={categorias}
           planos={planosConta}
+          contas={contas}
         />
       )}
 
