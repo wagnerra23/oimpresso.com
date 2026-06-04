@@ -105,6 +105,10 @@ interface Lancamento {
   desconto: number;
   juros: number;
   documento: string | null;        // = CODPEDIDO do WR (fallback nº NF)
+  numero: string | null;           // nº do título (R-/P-NNNNN)
+  parcela: string | null;          // "1/3" ou "1"
+  pedido: string | null;           // codpedido WR
+  data_pagamento: string | null;   // ISO yyyy-mm-dd (baixa) — hora vem na Fase 2
   vencimento: string;            // ISO yyyy-mm-dd
   vencimento_label: string;      // "qua, 14 mai"
   liquidacao: string | null;
@@ -1748,19 +1752,42 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         <span>{selected.conta_bancaria || '—'}</span>
                       </div>
                     </div>
-                    {/* Desconto / Juros — só aparecem quando há valor (Fase 1 WR) */}
-                    {selected.desconto > 0 && (
-                      <div>
-                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Desconto</div>
-                        <div className="mt-0.5 fin-num-pos tabular-nums">{brl(selected.desconto)}</div>
-                      </div>
-                    )}
-                    {selected.juros > 0 && (
-                      <div>
-                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Juros / Multa</div>
-                        <div className="mt-0.5 fin-num-neg tabular-nums">{brl(selected.juros)}</div>
-                      </div>
-                    )}
+                    {/* Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe). Tokens
+                        semânticos (text-muted-foreground/text-foreground) p/ não disparar R1.
+                        Datas em formato data — HORA completa virá no re-import (Fase 2). */}
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Vencimento</div>
+                      <div className="mt-0.5 text-foreground">{selected.vencimento ? selected.vencimento.split('-').reverse().join('/') : '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Data de pagamento</div>
+                      <div className="mt-0.5 text-foreground">{selected.data_pagamento ? selected.data_pagamento.split('-').reverse().join('/') : '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Número do título</div>
+                      <div className="mt-0.5 text-foreground font-mono text-[12px]">{selected.numero || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Valor em aberto</div>
+                      <div className="mt-0.5 text-foreground tabular-nums">{brl(selected.valor_aberto)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Parcela</div>
+                      <div className="mt-0.5 text-foreground">{selected.parcela || '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Pedido</div>
+                      <div className="mt-0.5 text-foreground">{selected.pedido || '—'}</div>
+                    </div>
+                    {/* Desconto / Juros — SEMPRE visíveis (pedido Wagner; antes só >0) */}
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Desconto</div>
+                      <div className="mt-0.5 fin-num-pos tabular-nums">{brl(selected.desconto)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Juros / Multa</div>
+                      <div className="mt-0.5 fin-num-neg tabular-nums">{brl(selected.juros)}</div>
+                    </div>
                   </div>
 
                   {selected.observacao && (

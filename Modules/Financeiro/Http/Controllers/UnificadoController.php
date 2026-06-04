@@ -1296,9 +1296,17 @@ class UnificadoController extends Controller
             // sem redact), junto com a Nota Fiscal. Por ora exibe nfe_numero quando houver
             // (nativos) ou "—" (migrados, pendente Fase 2).
             'documento' => $nfeNumero ?? null,
+            // Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe) — dado disponível.
+            'numero' => $t->numero,
+            'parcela' => $t->parcela_numero
+                ? ($t->parcela_total ? "{$t->parcela_numero}/{$t->parcela_total}" : (string) $t->parcela_numero)
+                : null,
+            'pedido' => $metadata['delphi_codpedido'] ?? null,
             'vencimento' => $t->vencimento?->toDateString(),
             'vencimento_label' => $t->vencimento?->locale('pt_BR')->isoFormat('ddd, DD MMM'),
             'liquidacao' => $ultimaBaixa?->data_baixa?->locale('pt_BR')->isoFormat('DD MMM'),
+            // Data de pagamento (data cheia da baixa). Hora completa virá no re-import (Fase 2).
+            'data_pagamento' => $ultimaBaixa?->data_baixa?->toDateString(),
             'valor' => (float) $t->valor_total,
             'valor_aberto' => (float) $t->valor_aberto,
             'nfe_numero' => $nfeNumero,
