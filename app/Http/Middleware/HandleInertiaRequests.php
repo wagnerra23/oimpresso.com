@@ -98,17 +98,17 @@ class HandleInertiaRequests extends Middleware
                 // "sumia". Catalogado 2026-06-04 (vendas Martinho/ROTA LIVRE
                 // bloqueadas sem aviso). Agora a msg do store chega ao frontend.
                 'success' => function () use ($session) {
-                    $status = $session->get('status');
-                    if (is_array($status) && ! empty($status['success']) && ! empty($status['msg'])) {
-                        return $status['msg'];
+                    $msg = $session->get('status.msg');
+                    if ($msg !== null && $session->get('status.success')) {
+                        return $msg; // UltimatePOS: ['success'=>1,'msg'=>...]
                     }
                     return $session->get('status.success') ?? $session->get('success');
                 },
                 'error' => function () use ($session) {
-                    $status = $session->get('status');
-                    if (is_array($status) && array_key_exists('success', $status)
-                        && empty($status['success']) && ! empty($status['msg'])) {
-                        return $status['msg'];
+                    $msg = $session->get('status.msg');
+                    // status presente + success falsy (0/''/false) + msg → erro a exibir.
+                    if ($msg !== null && $session->has('status') && ! $session->get('status.success')) {
+                        return $msg;
                     }
                     return $session->get('status.error') ?? $session->get('error');
                 },
