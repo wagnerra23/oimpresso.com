@@ -668,6 +668,31 @@ Refs: ADR 0213 Mecanismo 5
 
 ---
 
+### US-INFRA-033 · Suíte Pest no staging falha em massa por testes fazerem Schema::create/dropIfExists cru em tabelas compartilhadas (vs clone MySQL)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** após resolver as colisões de símbolo global (US-INFRA-031, PR #2251 makeChannel), o `php artisan test` escopado ao módulo Whatsapp finalmente roda no CT 100 staging (`oimpresso-staging`) — mas dá **~493 falhas** (318 deprecated, 1071 assertions, 249s). As falhas NÃO são regressão de feature; são incompatibilidade entre o design dos testes e o banco real do staging.
+
+**Causa raiz (2 padrões):**
+1. **Teardown FK:** muitos testes fazem `Schema::dropIfExists('contacts'|'channels'|...)` no `beforeEach` em tabelas compartilhadas. No clone MySQL anonimizado da prod (ADR 0235) existem FK constraints reais → `SQLSTATE[23000]: 1451 Cannot delete or update a parent row` (ex: `LidCrossContactIncidentP0Test:30`). Em SQLite `:memory:` isso passava.
+2. **Semântica MySQL vs SQLite:** índices UNIQUE com coluna nullable (ex: `channel_user_access` UNIQUE inclui `revoked_at`). MySQL trata `NULL` como distinto → grant duplicado ativo NÃO viola UNIQUE → teste que `->toThrow(QueryException)` falha (ex: `ChannelUserAccessTest` R-WA-068-005). Mesma classe atinge schema drift (`ConversationSchemaIdentitiesTest` → `Column not found: customer_external_id in whatsapp_conversations`).
+
+**Por que importa (sinal qualificado):** o RUNBOOK-acesso-ct100-testes-time prevê Maiara[M]/Felipe[F] rodando `sudo staging-test` no CT 100. Do jeito atual a suíte é inutilizável pra eles (mar de vermelho mascara falhas reais).
+
+**Acceptance (a decidir na investigação):**
+- [ ] Definir estratégia canônica de DB de teste no CT 100: banco de teste dedicado com migrations frescas + `RefreshDatabase`/transações, OU `:memory:` sqlite no container, OU schema de teste MySQL separado — em vez de apontar `phpunit.xml` pro `oimpresso_staging` (clone de prod).
+- [ ] Tests não devem fazer `Schema::dropIfExists`/`create` cru em tabelas compartilhadas; migrar pro RefreshDatabase ou schema isolado.
+- [ ] Auditar asserts que dependem de semântica SQLite (UNIQUE+NULL) e torná-los DB-agnostic ou skip-on-mysql explícito.
+- [ ] Meta: `sudo staging-test` (suíte cheia ou por módulo) verde ou com falhas conhecidas catalogadas — não 493 ruidosas.
+
+**Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251.
+
+---
+
+**Última atualização (US-INFRA-033):** 2026-06-04 — follow-up do PR #2251 (fix makeChannel): com as colisões globais resolvidas pro Whatsapp, a suíte roda no staging mas expõe ~493 falhas por testes fazerem Schema cru em tabelas compartilhadas vs clone MySQL. Item de harness de teste no CT 100.
+
 **Última atualização (US-INFRA-031..032):** 2026-05-29 — 2 follow-ups do fix Pest double-binding (PR #1943): colisão de símbolos globais em tests/Feature (bloqueia suíte completa) + triagem dos 11 hardcodes business_id que o guard Tier 0 (agora ativo) flagou.
 
 **Última atualização (US-INFRA-014..030):** 2026-05-28 — adicionadas 17 tasks Onda prevenção bugs MWART (ADRs 0208-0213 propostos no PR #1837). Atacam R7/R8/R9/R10-class via enforcement passivo (Larastan, Wayfinder, Zod, hooks audit-to-backlog).
