@@ -5,14 +5,14 @@ type: spec
 module: Infra
 status: ativo
 owner: wagner
-version: "1.1"
-last_updated: 2026-05-20
+version: "1.2"
+last_updated: "2026-06-04"
 na_justified:
   D5: "Infra é loop de governança fechado (META → SINAL → DESVIO → RECÁLCULO — ADR 0105) servindo o projeto inteiro, NÃO módulo de features cliente. Não há biz=4 ROTA LIVRE consumindo GrowthBook/APM/MCP server diretamente — são fundações da plataforma. D5 cliente real não aplica por design."
   D4.b: "Infra não tem state machine FSM (ADR 0143). Concentra runbooks operacionais (deploy Centrifugo, Hostinger, CT 100, GrowthBook) e SPECs de infra — sem Eloquent Models com transições. D4.b FSM canônica N/A."
 na_justified_v3:
   D6.a: "Infra é orquestração de runbooks + ADRs operacionais — sem Controllers Inertia::render. Inertia::defer N/A por ausência de telas geradas pelo módulo (US-INFRA-* viram features em outros módulos como Governance/Brief/Admin)."
-related_adrs: [0105, 0106, 0153, 0154, 0155, 0156]
+related_adrs: ["0105", "0106", "0153", "0154", "0155", "0156"]
 ---
 
 # Especificação funcional — Infra (loop de governança fechado)
