@@ -1594,7 +1594,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               onChange={(e) => {
                 const file = e.target.files?.[0] ?? null;
                 if (file && file.size > 5 * 1024 * 1024) {
-                  alert('Arquivo maior que 5MB. Tente comprimir antes de enviar.');
+                  toast.error('Arquivo maior que 5MB. Tente comprimir antes de enviar.');
                   e.target.value = '';
                   return;
                 }
@@ -1606,8 +1606,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               Aceita .pdf, .csv, .zip, .doc, .docx, .jpg, .png — máx 5MB.
             </p>
             {data.sell_document && (
-              <p className="text-xs text-emerald-600">
-                Arquivo selecionado: <span className="font-medium">{data.sell_document.name}</span>
+              <p className="text-xs text-muted-foreground">
+                Arquivo selecionado: <span className="font-medium text-foreground">{data.sell_document.name}</span>
               </p>
             )}
           </div>
