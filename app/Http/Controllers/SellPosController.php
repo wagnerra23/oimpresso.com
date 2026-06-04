@@ -779,7 +779,7 @@ class SellPosController extends Controller
             // com o motivo — assim o operador corrige (crédito/pagamento/estoque)
             // e salva de novo SEM perder a venda. Antes redirecionava pra lista
             // e perdia tudo. with('status') mantém a msg pro form Blade legado.
-            if (empty($output['success'])) {
+            if ($output['success'] === 0) {
                 // 'venda' = erro geral (toast). 'item.{variation_id}' = erro NO
                 // produto específico → o frontend contorna a linha exata do
                 // carrinho (estoque/compra insuficiente). Ver Sells/Create.tsx.
