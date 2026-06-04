@@ -177,7 +177,6 @@ jobs:
             Modules/Financeiro/Tests/Feature/BackfillExtratoOfxTest.php \
             Modules/Financeiro/Tests/Feature/BankStatementLineModelTest.php \
             Modules/Financeiro/Tests/Feature/Onda10Canon100PercentTest.php \
-            Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php \
             Modules/Financeiro/Tests/Feature/Onda8cSparklineRealTest.php \
             Modules/Financeiro/Tests/Feature/PluggyIntegrationTest.php \
             Modules/Financeiro/Tests/Feature/TituloRepositoryWave18Test.php \
