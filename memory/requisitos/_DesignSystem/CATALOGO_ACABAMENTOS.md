@@ -4,6 +4,13 @@
 >
 > Toda alteração visual deve **referenciar este catálogo** ou abrir ADR justificando divergência.
 >
+> ⚠️ **SNAPSHOT HISTÓRICO (2026-04-27) — paleta DEFASADA · reconciliado 2026-06-04.** Este catálogo
+> retrata o `/copiloto/cockpit` quando o accent era **azul hue 220°**. A cor canon hoje é **roxo 295**
+> `oklch(0.55 0.15 295)` ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md); fonte única =
+> `tokens.css` no git, [ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md)).
+> **Tipografia, espaçamento, sombras e estrutura seguem referência válida; a paleta (220°) NÃO** —
+> não reintroduza azul de marca (azul só semântico de status/origin-badge).
+>
 > **Última atualização**: 2026-04-27 (snapshot do PR #49 / branch `feat/copiloto-cockpit-piloto`)
 >
 > **Fonte canônica**: `resources/css/cockpit.css` no commit que essa versão do catálogo referencia. Valores cruzados com `getComputedStyle()` rodando em `https://oimpresso.com/copiloto/cockpit`.

@@ -164,7 +164,7 @@ Pra cada módulo, Claude Design entrega **um arquivo HTML auto-contido** + **um 
 
 HTML único auto-contido (estilo do `Oimpresso ERP - Chat.html`) usando React via CDN + Babel. Mostra a tela do módulo **dentro do Cockpit** — sidebar com Menu ativo no item correspondente, main column renderizando o template UI-0006 (PageHeader + KpiGrid + Table) ou um custom (Dashboard, gráfico), e Apps Vinculados específicos do contexto.
 
-**Reaproveita** a base do Cockpit já existente (sidebar dark, vibe workspace, accent hue 220). Não redesenha — só **encaixa** o conteúdo do módulo.
+**Reaproveita** a base do Cockpit já existente (sidebar **light** · UI-0014, vibe workspace, accent **roxo 295** · ADR 0235). Não redesenha — só **encaixa** o conteúdo do módulo.
 
 ---
 
