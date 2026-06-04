@@ -141,16 +141,13 @@ jobs:
 
       - name: Run Pest Browser tests
         id: pest-browser
-        # INFRA-ONLY MODE — bloqueado por migration order legacy. Quando issue
-        # for resolvida em PR dedicado, remover continue-on-error daqui + do
-        # "Setup Laravel" pra workflow validar tests reais.
-        continue-on-error: true
-        run: |
-          if [ -d tests/Browser ]; then
-            ./vendor/bin/pest tests/Browser/ --parallel || echo "fail=1" >> "$GITHUB_OUTPUT"
-          else
-            echo "Sem tests/Browser/ — skipped"
-          fi
+        # GATE REAL — Fase A (US-GOV-013): roda só tests/Browser/Public/ (rotas SEM
+        # auth), que JÁ passam end-to-end (boot via schema-squash #2221 + render +
+        # asserção). `continue-on-error` REMOVIDO + sem o `|| echo fail=1` que mascarava
+        # falha → agora o pixel/render morde de verdade nessas telas. Fase B amplia o
+        # path pras autenticadas (tests/Browser/CoreScreens, tests/Browser/Sells) quando
+        # o harness de auth cross-process + seed estiver pronto.
+        run: ./vendor/bin/pest tests/Browser/Public/
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
