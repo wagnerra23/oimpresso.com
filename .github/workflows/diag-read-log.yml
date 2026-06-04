@@ -43,8 +43,8 @@ jobs:
             echo '=== arquivos de log (mtime) ===' &&
             ls -lat *.log 2>/dev/null | head -10 &&
             LOG=\$(ls -t laravel*.log 2>/dev/null | head -1) &&
-            echo '=== TAIL CRU 90 linhas de '\$LOG' ===' &&
-            tail -n 90 \"\$LOG\" &&
-            echo '=== ERROR/WARNING/exception nas ultimas 8000 linhas ===' &&
-            tail -n 8000 \"\$LOG\" | grep -niE 'ERROR|WARNING|exception|SellPos|stock|estoque|stage|debit|credit|saldo|insufficient' | tail -40
+            echo '=== EMERGENCY recentes (ultimos 8MB do log) ===' &&
+            tail -c 8000000 \"\$LOG\" | grep -aiE 'EMERGENCY' | tail -30 &&
+            echo '=== ultimas linhas com timestamp 1[4-7]h ===' &&
+            tail -c 8000000 \"\$LOG\" | grep -aE '2026-06-04 1[4-7]:' | grep -aivE 'whatsapp|whatsmeow|woocommerce|channels-reconcile|sla-scan|sla\.scan|ads\.|reminders|cleanup|webhook' | tail -30
           "
