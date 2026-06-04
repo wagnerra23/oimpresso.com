@@ -58,9 +58,13 @@
   --origin-MFG-bg: oklch(0.93 0.05 30);   --origin-MFG-fg: oklch(0.40 0.10 30);
 
   /* Pipeline / etapas — escala categórica (Recepção→Pronto). Aditivo, reusável
-     por qualquer kanban/FSM. Roxo canon (--accent 295) intocado. (DS v6 · [W] 2026-06-03) */
+     por qualquer kanban/FSM. Roxo canon (--accent 295) intocado. (DS v6 · [W] 2026-06-03)
+     +blue/violet: kanban caçamba (Oficina) precisa 5 matizes distintos simultâneos —
+     blue=locada, violet=manutenção; calibrados à paleta calma, longe do roxo marca. (2026-06-04) */
   --stage-slate:   oklch(0.58 0.025 250);
+  --stage-blue:    oklch(0.58 0.13 252);
   --stage-indigo:  oklch(0.55 0.16 270);
+  --stage-violet:  oklch(0.54 0.15 288);
   --stage-rose:    oklch(0.62 0.16 20);
   --stage-emerald: oklch(0.60 0.13 155);
   --stage-green:   oklch(0.66 0.15 145);
@@ -119,9 +123,11 @@
   --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
   --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
 
-  /* Pipeline / etapas — variante dark (DS v6 · [W] 2026-06-03) */
+  /* Pipeline / etapas — variante dark (DS v6 · [W] 2026-06-03 · +blue/violet 2026-06-04) */
   --stage-slate:   oklch(0.66 0.03 250);
+  --stage-blue:    oklch(0.68 0.13 252);
   --stage-indigo:  oklch(0.66 0.16 270);
+  --stage-violet:  oklch(0.66 0.15 288);
   --stage-rose:    oklch(0.68 0.16 20);
   --stage-emerald: oklch(0.68 0.14 155);
   --stage-green:   oklch(0.74 0.15 145);
