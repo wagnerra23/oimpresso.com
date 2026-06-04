@@ -1,4 +1,4 @@
-# Sessão 2026-06-04 — QA-de-tela sustentável (ADR 0249 + enforcement)
+# Sessão 2026-06-04 — QA-de-tela sustentável (ADR 0250 + enforcement)
 
 **Origem:** Wagner pediu "Tester e QA como implementar" → garantir cobertura de 100% das telas com especialista Full Tester+QA, comparado aos melhores, com notas, **que sobreviva no tempo**.
 
@@ -7,13 +7,13 @@
 | PR | Entrega | Estado |
 |---|---|---|
 | #2218 | hotfix FK NFSe (`nfse_emissao_id` INT casa com `increments`) — destravou suíte MySQL (erro 3780) | ✅ merged |
-| #2215 | fundação: agente-autor `screen-qa-specialist` + `screen-coverage-map.mjs` + **ADR 0249 aceita** | ✅ merged |
+| #2215 | fundação: agente-autor `screen-qa-specialist` + `screen-coverage-map.mjs` + **ADR 0250 aceita** | ✅ merged |
 | #2223 | enforcement: `screen-grade-seed.mjs` (222 scorecards) + `screen-grades-ratchet.mjs` + `screen-grades-gate.yml` | ✅ merged |
 | #2225 | Onda 2: `screen-coverage-gate.yml` (catraca de cobertura) + baseline scorecard 0→222 | 🟡 aberto |
 
 ## A trajetória (o valor foi a reavaliação, não a 1ª ideia)
 
-O caminho mudou 3× conforme estudei as rotinas internas — registrado na ADR 0249:
+O caminho mudou 3× conforme estudei as rotinas internas — registrado na ADR 0250:
 1. "implementar QA do zero" → **80% já existia** (método `SCREEN-GRADE-METODO.md` + baseline 222 telas de 30/mai).
 2. "`screen:grade` determinístico espelhando `module:grade`" → a nota é **LLM-as-judge** (16 dims subjetivas vs Stripe/Linear/Bling); computar seria **inventar heurística** (anti-padrão Tier 0).
 3. Virou **"ligar o enforcement determinístico"** — seed + catraca, espelhando o `module-grades-gate` (ADR 0155) que o time já confia.
@@ -28,7 +28,7 @@ QA-de-tela geral **40/100** (Developing). Padrão: etapas "de governança" (cont
 
 275 telas · charter 132 (48%) · **E2E 3 (1,1%)** · **a11y 0** · scorecard **0→222** (pós-seed).
 
-## Estado dos 4 anéis de sobrevivência (ADR 0249)
+## Estado dos 4 anéis de sobrevivência (ADR 0250)
 
 1. Catraca de nota → ✅ no ar (`screen-grades-gate`, #2223)
 2. Catraca de cobertura → ✅ #2225 (aberto)
