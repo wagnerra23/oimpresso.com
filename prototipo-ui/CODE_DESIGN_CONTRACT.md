@@ -1,5 +1,12 @@
 # CODE_DESIGN_CONTRACT.md
 
+> ## ⚠️ CANON ATUAL (2026-06-04) — corrige a referência de versão abaixo
+> Onde divergir, vence isto:
+> 1. **Entrada única:** **[`memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md`](../memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)** — índice mestre + regra de ouro.
+> 2. **Nome do DS = "DS v6"** ([ADR 0249](../memory/decisions/0249-ds-v6-naming-amends-0235.md)). Onde o corpo citar "DS v3.1" / "Design System.html" como source-of-truth, está **defasado** — a fonte é `tokens.css` no git ([ADR 0239](../memory/decisions/0239-governanca-design-system-git-ssot-regressao-ia.md)).
+> 3. **Cor = roxo** `primary` `oklch(0.55 0.15 295)` ([ADR 0235](../memory/decisions/0235-ds-v4-accent-roxo-universal.md)) — zero `blue-*` de marca.
+> 4. **A "regra única" abaixo (Code PARA e atualiza o DS primeiro) permanece VÁLIDA** — só a referência de versão/arquivo é que envelheceu.
+
 > Contrato visual entre **Cowork [CC]** e **Claude Code [CL]**.
 > Vigente desde: **2026-05-27**.
 > Source of truth: **`Design System.html`** (na raiz do projeto Cowork) + `tokens.css` / `design-system.css` no repo.
