@@ -25,8 +25,20 @@ import {
   type DragEndEvent,
   type DragOverEvent,
 } from '@dnd-kit/core';
-import { useCallback, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { CacambaCardData, CacambaStatus } from './CacambaCard';
+// D-01 — context/hook/tipos do feedback preditivo moram em módulo sem componente
+// (Fast Refresh feliz: este arquivo exporta só o componente default).
+import {
+  KanbanDragContext,
+  type DropVerdict,
+  type KanbanDragState,
+} from './kanbanDrag';
 
 // Genérico (2026-06-02 · port Kanban do carro): o provider DnD canon é reusado por
 // múltiplas verticais (caçamba ProducaoOficina + OS de mecânica ServiceOrders/Board).
@@ -48,6 +60,12 @@ interface KanbanDndProviderProps<T, C extends string> {
   ) => void;
   /** Preview flutuante durante o drag. Default = preview da caçamba (compat). */
   renderPreview?: (cacamba: T) => ReactNode;
+  /**
+   * D-01 — avalia (puro/síncrono) o desfecho de soltar `cacamba` de `from` em `to`.
+   * Reusa a máquina de mapping do consumidor (ex.: resolveDragMapping do Index) pra
+   * pintar verde/âmbar nas colunas. Opcional: sem ele o feedback preditivo desliga.
+   */
+  evaluateDrop?: (from: C, to: C, cacamba: T) => DropVerdict;
 }
 
 /**
@@ -89,8 +107,10 @@ export default function KanbanDndProvider<
   children,
   onMove,
   renderPreview,
+  evaluateDrop,
 }: KanbanDndProviderProps<T, C>) {
   const [activeData, setActiveData] = useState<DraggedData<T, C> | null>(null);
+  const [overColumn, setOverColumn] = useState<C | null>(null);
 
   // Sensors — PointerSensor com distance:8 evita drag acidental em click-pra-abrir
   const sensors = useSensors(
@@ -107,30 +127,32 @@ export default function KanbanDndProvider<
     }
   }, []);
 
-  const handleDragOver = useCallback((_event: DragOverEvent) => {
-    // No-op por ora — visual feedback de "sobre coluna" fica em CacambaKanbanColumn
-    // via useDroppable.isOver (já implementado lá)
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    // D-01 — rastreia coluna sob o cursor pro feedback preditivo das colunas.
+    const over = event.over?.data.current as { columnStatus?: C } | undefined;
+    setOverColumn(over?.columnStatus ?? null);
   }, []);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
       setActiveData(null);
+      setOverColumn(null);
 
       if (!over) return; // Drop fora de qualquer coluna
 
       const dragData = active.data.current as DraggedData<T, C> | undefined;
-      const overColumn = over.data.current as { columnStatus?: C } | undefined;
+      const overData = over.data.current as { columnStatus?: C } | undefined;
 
-      if (!dragData || !overColumn?.columnStatus) return;
+      if (!dragData || !overData?.columnStatus) return;
 
       // Drop na mesma coluna — no-op
-      if (dragData.currentColumn === overColumn.columnStatus) return;
+      if (dragData.currentColumn === overData.columnStatus) return;
 
       onMove(
         dragData.cacambaId,
         dragData.currentColumn,
-        overColumn.columnStatus,
+        overData.columnStatus,
         dragData.cacamba,
       );
     },
@@ -139,7 +161,22 @@ export default function KanbanDndProvider<
 
   const handleDragCancel = useCallback(() => {
     setActiveData(null);
+    setOverColumn(null);
   }, []);
+
+  // D-01 — estado de arrasto exposto às colunas via context (feedback preditivo).
+  const dragState = useMemo<KanbanDragState>(() => {
+    const activeFromColumn = activeData?.currentColumn ?? null;
+    return {
+      activeFromColumn,
+      overColumn,
+      verdictFor: (to: string) => {
+        if (!activeData || !evaluateDrop) return null;
+        if (activeData.currentColumn === to) return null; // origem = destino
+        return evaluateDrop(activeData.currentColumn, to as C, activeData.cacamba);
+      },
+    };
+  }, [activeData, overColumn, evaluateDrop]);
 
   return (
     <DndContext
@@ -149,7 +186,9 @@ export default function KanbanDndProvider<
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      {children}
+      <KanbanDragContext.Provider value={dragState}>
+        {children}
+      </KanbanDragContext.Provider>
       <DragOverlay dropAnimation={null}>
         {activeData
           ? renderPreview
