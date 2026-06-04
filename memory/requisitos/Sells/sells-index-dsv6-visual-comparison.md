@@ -122,3 +122,41 @@ Pré-gate de aprovação do gabarito já satisfeito (`status: approved`). Implem
 **Deferido (fora do núcleo PR3, alvo mínimo / L-28):** `--vd-src-*` (origem, `oklch` compartilhado com Caixa) · fallbacks `var(--border, oklch(…))`/`#fff` da barra `.os-*` (toolbar/search = dimensão 1/8 "paridade", dívida shell-wide DARK-BACKFILL já bridada) · transcript A4 + overlay apresentação (`oklch` **intencional**, não tokenizar).
 
 **Pendente [W] (gate pós-impl F3 · ADR 0107):** abrir `/sells` nos 2 temas, conferir screenshot vs gabarito, design-critique ≥80 → só então merge. Não commitei junto (working tree tem Norte/cockpit não-relacionados — commit-discipline 1 PR = 1 intent).
+
+---
+
+## 🔎 Verificação pós-impl (2026-06-03 · re-fetch do handoff Cowork `oimpresso.com.html`)
+
+> Auditoria de conformância **código-nível** (app Inertia não roda nesta máquina — `node_modules`
+> vazio; per README do handoff "read the HTML/CSS directly"). Confronto do commit `e8d75576b`
+> contra `ds-v6/gabarito-vendas.html` (= `_preview/gabarito.html`, 24.849 B idêntico).
+
+### ✅ Conforma (tema CLARO — modo da Larissa)
+- **Tokens semânticos = gabarito VERBATIM** em `cockpit.css` (claro+dark): `--pos 0.50/0.12/150` · `--pos-soft` · `--neg 0.55/0.18/25` · `--neg-soft` · `--warn 0.58/0.12/70` · `--warn-soft` · `--accent-line 0.86/0.05/295` · `--stage-*` (todos). Match exato.
+- **Sparkline tokenizado** ✓ — `Index.tsx` tem **0** `oklch` cru; cor via `currentColor` → `.vd-spark{color:var(--accent-fg)}` (sells-cowork.css:5286).
+- **Roxo 295** (`--accent`) intocado (ADR 0190/0235). Identidade verde-155 morta.
+- **Neutros** (`--sunken/--raised/--text-2/3/4`): cockpit usa hue **quente 80/90** vs gabarito **frio 95/282** — divergência **intencional** (harmoniza com o creme do shell); não é drift, é decisão de identidade do shell. Sells não fica pixel-igual ao gabarito *standalone* nas superfícies neutras, mas fica coerente com o resto do app.
+
+### ❌ Drift real — a tela **NÃO flipa pra DARK** (persona-priority #1 do doc, não atingida)
+Causa-raiz (cascata, provada sem rodar):
+1. `AppShellV2.tsx:439` põe `data-theme` no elemento **`.cockpit`**; `Sells/Index.tsx:1043` renderiza `.sells-cowork` **descendente** de `.cockpit` (sem `data-theme` próprio).
+2. `sells-cowork.css:21` (`.sells-cowork{}`, sempre-on) **fixa surfaces/texto CLAROS** (`--bg 0.985` · `--surface #fff` · `--text 0.22`) — idênticos ao claro do cockpit, logo redundantes no claro e **bloqueiam herança** do dark do cockpit.
+3. As variantes dark de Sells usam selector **`.sells-cowork [data-theme="dark"]`** (combinador **descendente**) — exige o attr DENTRO de `.sells-cowork`, mas ele está no **ancestral** `.cockpit`. **Nunca casa.** São **33 regras mortas** em `sells-cowork.css` (que escopa Index/Caixa/Show/NBA); **0** usavam o pattern correto. (Os `sells-cowork-show.css`/`-edit.css` usam outro pattern — `.sells-cowork-show[data-theme]` *self*, telas Show/Edit, fora do escopo /sells Index.)
+
+**Efeito no dark:** superfície branca + texto quase-preto (não flipam), enquanto os tokens semânticos migrados (`--pos/--neg/--warn/--stage-*`, que NÃO são redefinidos em `.sells-cowork`) herdam o **dark** do cockpit → pills desenhadas pra dark sobre card branco = meio-flip quebrado. O mesmo pattern morto existe em `.fin-cowork` (project-wide; pré-existente ao PR3 — herdado do "copiado verbatim" do protótipo, onde `data-theme` ficava noutro nó).
+
+**Por que passou no gate:** aprovação foi **claro-only** — `_preview/compare.html` diz textual *"tema claro, como a tela da Larissa"*. O dark nunca teve screenshot (é o "Pendente [W]" acima).
+
+### ✅ Fix APLICADO (2026-06-03) — opção mínima, zero-impacto-no-claro
+Trocado em `resources/css/sells-cowork.css` (33 ocorrências, `replace_all`):
+`.sells-cowork [data-theme="dark"]` → `.cockpit[data-theme="dark"] .sells-cowork`.
+- Ativa o tema dark **completo que o autor já escreveu** (base surfaces/texto + 33 regras de componente `.tk-*`/`.vw-*`/`.os-*`). Especificidade nova 0,3,0 > `.sells-cowork{}` base (0,1,0) → sobrescreve corretamente no dark.
+- **Risco-claro = 0:** nenhum dos dois selectors casa no claro; o `.sells-cowork{}` claro segue intacto. Só pode **melhorar** o dark hoje-quebrado (não há como piorar um estado já não-flipante).
+- Integridade verificada: 0 leftover do pattern morto · 33 novo pattern · chaves balanceadas (2096/2096).
+- **Por que NÃO fui mais longe (opção b · re-tokenizar 33 raw oklch→`--pos/--neg/--warn`):** exigiria remapear cor por cor às cegas (sem render local) — exatamente a armadilha de regressão dos chats 40-41. Fica como refino a fazer **com o screenshot dark em mãos**.
+
+### ⛔ Gate obrigatório antes do merge (ADR 0107 · "Pendente [W]")
+Não-renderizável local (`node_modules` vazio nesta máquina). Exige **screenshot `/sells` nos 2 temas** via CI/staging + design-critique ≥80 antes do merge. Lema chats 40-41: mudança de tema/cor não-merge-blind, [W] vê staging. **Não mergeado.**
+
+### Refino futuro (com screenshot dark)
+Superfícies dark de Sells são a paleta própria do autor (hue 240) vs gabarito (hue 282). Coerente, mas não pixel-igual ao gabarito-dark. Alinhar via herança dos tokens canônicos DS v6 do cockpit é o passo de conformância fina — fazer só vendo o dark renderizado.
