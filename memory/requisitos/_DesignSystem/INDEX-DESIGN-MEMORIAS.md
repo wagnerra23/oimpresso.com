@@ -143,8 +143,9 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | `HANDOFF.md` | congelado 2026-05-15 | regenerar |
 | `GLOSSARY.md` | `[M]=Manus` diverge de `[M]=Maiara` (canon) | reconciliar tabela de pessoas |
 | `MATRIZ_MIGRACAO_DS.md` §P0-3 | 3 falsos-positivos Cliente/Index | corrigir (Cliente já migrado) |
-| **`BRIEFING_CLAUDE_DESIGN.md`** ⚠️ URGENTE | doc-âncora do Claude Design, mas 2026-04-27: "sidebar dark" + accent hue 220 | reconciliar p/ sidebar light + roxo 295 + PT-01 + UI-0013 |
-| `CATALOGO_ACABAMENTOS.md` | snapshot 2026-04-27, accent hue 220 | tipografia/estrutura úteis; cor via ADR 0235 |
+| **`BRIEFING_CLAUDE_DESIGN.md`** ✅ reconciliado 2026-06-04 | doc-âncora do Claude Design; corpo "sidebar dark + hue 220" corrigido → sidebar light + roxo 295 (errata topo + linha 167) | feito |
+| `CATALOGO_ACABAMENTOS.md` ✅ reconciliado 2026-06-04 | snapshot 2026-04-27 (hue 220) — errata no topo: paleta defasada, cor via ADR 0235; tipografia/estrutura seguem | feito |
+| `BRIEFING_PROXIMA_SESSAO.md` ✅ reconciliado 2026-06-04 | briefing de sessão antiga (azul 220 + sidebar dark) — errata no topo → roxo 295 + sidebar light | feito |
 | `SPEC.md` (R-DS-002) + `ARCHITECTURE.md` + `AUTOMATION-ROADMAP.md` | exemplos `bg-blue-500` | trocar exemplo p/ roxo (confunde com primary) |
 | `GUIA-SIDEBAR-V3` + `sidebar-rail-mode` | hues divergem de `shared.ts` | validar estado real antes de seguir |
 
