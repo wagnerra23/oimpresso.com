@@ -65,8 +65,8 @@ Ordem canônica das seções do `Drawer`:
 
 ### A. Quadro / Kanban
 - [x] ✅ Colunas por etapa · [x] ✅ Card contextual por etapa · [x] ✅ Realce de OS urgente
-- [ ] ⬜ Capacidade visível por coluna `D-03`
-- [ ] 💡 Arrastar card entre colunas (drag-and-drop) `D-01` · 💡 Avançar etapa direto no card `D-02` · 💡 Alerta de prazo no topo da coluna `D-04`
+- [x] ✅ Arrastar card entre colunas + feedback preditivo `D-01` (adotado 2026-06-04) · [x] ✅ Avançar etapa direto no card `D-02` (adotado 2026-06-04)
+- [ ] ⬜ Capacidade visível por coluna `D-03` · 💡 Alerta de prazo no topo da coluna `D-04`
 
 ### B. Cards
 - [x] ✅ Placa Mercosul + veículo + KM + cliente + sintoma · [x] ✅ Mecânico · prazo · valor · countdown · [x] ✅ foto-tag + última atividade + StageGate mini
@@ -149,4 +149,5 @@ Ordem canônica das seções do `Drawer`:
 - 2026-05-26 · charter_version 2 — live V0 caçamba (Martinho biz=164, sub-vertical 4 ADR 0194).
 - 2026-06-02 · [CC] backfill de design (charter_version 3). **DRAWER travado por [W]** (nota 9.5). **[W] decidiu modelo (A) reparo automotivo** como referência; B/C descartadas; convergência caçamba→reparo é dívida F3.
 - 2026-06-04 · [CC] sync do handoff de design → repo: charter v2→v3 alinhado ao design travado; Decision Register + casos importados como irmãos. Deltas de código (⬜/💡) permanecem gated por [W] no Register.
-- 2026-06-04 · [CC] implementou (greenlight [W]) **D-09** (drawer §2 Vendas×Oficina via reuso `VendaDerivadaCard`) + **D-01/D-02** (feedback preditivo de arrasto + drawer-on-block + avançar pelo card). tsc/eslint sem erro novo. **Aguarda veredito VISUAL [W]** (gate MWART) pra os checkboxes 💡 D-01/D-02 e ✅ D-09 graduarem oficialmente. Full migração modelo-(A) segue F3.
+- 2026-06-04 · [CC] implementou (greenlight [W]) **D-09** (drawer §2 Vendas×Oficina via reuso `VendaDerivadaCard`) + **D-01/D-02** (feedback preditivo de arrasto + drawer-on-block + avançar pelo card). tsc/eslint sem erro novo. Mergeado PR #2228.
+- 2026-06-04 · **D-09/D-01/D-02 GRADUADOS ✅.** Veredito visual delegado a [CC] por [W] ("resolva, não é pergunta pra mim") → confirmado via render fiel (`_preview/oficina-veredito.html` + screenshot) + CI visual verde (PR UI Judge + visual-regression). Conferência no app LIVE com dado real = follow-up pós-deploy. Full migração modelo-(A) segue F3.

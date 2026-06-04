@@ -1,9 +1,9 @@
 import '../css/inertia.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { StrictMode } from 'react';
 import { configureEcho } from '@laravel/echo-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,6 +14,43 @@ configureEcho({
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'OI Impresso';
+
+// ── Flash global → toast: padrão ÚNICO de alerta pra TODO o sistema ───────────
+// Lê o flash compartilhado pelo HandleInertiaRequests (status.success/error/info,
+// incluindo o status.msg do store UltimatePOS). Roda a cada visita Inertia bem
+// sucedida, em QUALQUER página, independente de layout. Substitui handlers de
+// flash espalhados por página. Catalogado 2026-06-04: vendas bloqueadas
+// (PurchaseSellMismatch/estoque) falhavam em SILÊNCIO porque a msg do backend não
+// chegava em toast nenhum. Agora todo controller que faz ->with('status', [...])
+// ou ->with('error'/'success', ...) avisa o usuário automaticamente.
+interface FlashBag {
+  success?: unknown;
+  error?: unknown;
+  info?: unknown;
+}
+let lastFlashKey = '';
+function showFlashToast(page?: { url?: string; props?: { flash?: FlashBag } }): void {
+  const flash = page?.props?.flash;
+  if (!flash) return;
+  const error = typeof flash.error === 'string' ? flash.error : null;
+  const success = typeof flash.success === 'string' ? flash.success : null;
+  const info = typeof flash.info === 'string' ? flash.info : null;
+  if (!error && !success && !info) return;
+  // Dedupe: não repete o mesmo alerta pro mesmo estado de página.
+  const key = `${page?.url ?? ''}|${error ?? ''}|${success ?? ''}|${info ?? ''}`;
+  if (key === lastFlashKey) return;
+  lastFlashKey = key;
+  if (error) {
+    toast.error(error, { duration: 8000 });
+  } else if (success) {
+    toast.success(success);
+  } else if (info) {
+    toast.info(info);
+  }
+}
+if (typeof window !== 'undefined') {
+  router.on('success', (event) => showFlashToast(event.detail.page));
+}
 
 // TanStack Query (Onda 4, ADR 0211 — R7 raiz). Factory em vez de singleton
 // module-level: o `setup` do Inertia client roda 1× por carga de página (o
@@ -63,6 +100,10 @@ createInertiaApp({
     }
 
     createRoot(el).render(tree);
+
+    // Flash presente já no primeiro carregamento (redirect full-page) — o
+    // router.on('success') só cobre visitas Inertia subsequentes.
+    showFlashToast((props as { initialPage?: { url?: string; props?: { flash?: FlashBag } } }).initialPage);
   },
   progress: {
     color: '#4f46e5',
