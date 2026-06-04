@@ -3379,7 +3379,8 @@ class TransactionUtil extends Util
                     $business_name = optional(Business::find($business['id']))->name;
                     $location_name = optional(BusinessLocation::find($business['location_id']))->name;
                     \Log::emergency($mismatch_error.' Business: '.$business_name.' Location: '.$location_name);
-                    throw new PurchaseSellMismatch($mismatch_error);
+                    // Passa a variação que falhou pro frontend contornar a linha exata.
+                    throw new PurchaseSellMismatch($mismatch_error, $line->variation_id ? (int) $line->variation_id : null);
                 } else {
                     //Mapping with no purchase line
                     $purchase_sell_map[] = ['sell_line_id' => $line->id,

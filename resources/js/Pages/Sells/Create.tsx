@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
+import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -665,7 +665,14 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         if (errs.venda) {
           toast.error(errs.venda, { duration: 8000 });
         }
-        // Rola pro topo da primeira seção com erro pra Wagner ver feedback.
+        // Erro POR ITEM (estoque/compra: chave 'item.{variation_id}') → rola
+        // pra seção de Produtos, onde a linha já fica contornada em vermelho.
+        const hasItemError = Object.keys(errs).some((k) => k.startsWith('item.'));
+        if (hasItemError) {
+          document.getElementById('sec-produtos')?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+        // Senão, rola pro topo da primeira seção com erro pra Wagner ver feedback.
         const firstErrorKey = Object.keys(errs)[0];
         if (firstErrorKey) {
           const sectionMap: Record<string, string> = {
@@ -1121,14 +1128,35 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                       p.quantity * p.unit_price - p.discount,
                       0,
                     );
+                    // Erro POR ITEM vindo do backend (estoque/compra insuficiente):
+                    // contorna a linha exata + mostra o motivo embaixo do produto,
+                    // em vez de só um aviso genérico no topo. 2026-06-04 (Wagner).
+                    const itemError =
+                      p.variation_id != null
+                        ? (errors as Record<string, string>)['item.' + p.variation_id]
+                        : undefined;
                     return (
-                      <tr key={`${p.product_id}-${p.variation_id}-${idx}`}>
-                        <td className="px-3 py-2 align-top">
+                      <tr
+                        key={`${p.product_id}-${p.variation_id}-${idx}`}
+                        className={itemError ? 'bg-destructive/5' : undefined}
+                      >
+                        <td
+                          className={
+                            'px-3 py-2 align-top' +
+                            (itemError ? ' border-l-2 border-destructive' : '')
+                          }
+                        >
                           <div className="font-medium text-foreground">
                             {p.name}
                             {p.variation && <> — <span className="text-muted-foreground">{p.variation}</span></>}
                           </div>
                           <div className="text-xs text-muted-foreground">SKU {p.sku}</div>
+                          {itemError && (
+                            <div className="mt-1 flex items-start gap-1 text-xs font-medium text-destructive">
+                              <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />
+                              <span>{itemError}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-3 py-2">
                           {/* NumericInputPtBR — paridade Blade __read_number/__write_number.

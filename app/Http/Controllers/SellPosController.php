@@ -751,17 +751,23 @@ class SellPosController extends Controller
             DB::rollBack();
             \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
             $msg = trans('messages.something_went_wrong');
+            $itemVariationId = null;
 
-            if (get_class($e) == \App\Exceptions\PurchaseSellMismatch::class) {
+            if ($e instanceof \App\Exceptions\PurchaseSellMismatch) {
                 $msg = $e->getMessage();
+                // Variação do produto que falhou → o frontend contorna a linha.
+                $itemVariationId = $e->variationId;
             }
-            if (get_class($e) == \App\Exceptions\AdvanceBalanceNotAvailable::class) {
+            if ($e instanceof \App\Exceptions\AdvanceBalanceNotAvailable) {
                 $msg = $e->getMessage();
             }
 
             $output = ['success' => 0,
                 'msg' => $msg,
             ];
+            if ($itemVariationId !== null) {
+                $output['item_variation_id'] = $itemVariationId;
+            }
         }
 
         if (!$is_direct_sale) {
@@ -774,8 +780,18 @@ class SellPosController extends Controller
             // e salva de novo SEM perder a venda. Antes redirecionava pra lista
             // e perdia tudo. with('status') mantém a msg pro form Blade legado.
             if (empty($output['success'])) {
+                // 'venda' = erro geral (toast). 'item.{variation_id}' = erro NO
+                // produto específico → o frontend contorna a linha exata do
+                // carrinho (estoque/compra insuficiente). Ver Sells/Create.tsx.
+                $errors = ['venda' => $output['msg']];
+                if (! empty($output['item_variation_id'])) {
+                    // Mensagem CONCISA na linha (o produto/SKU já aparece ali);
+                    // o detalhe completo vai no toast geral ('venda').
+                    $errors['item.' . $output['item_variation_id']] = 'Estoque/compra insuficiente para a quantidade vendida.';
+                }
+
                 return back()
-                    ->withErrors(['venda' => $output['msg']])
+                    ->withErrors($errors)
                     ->with('status', $output);
             }
             if ($input['status'] == 'draft') {
