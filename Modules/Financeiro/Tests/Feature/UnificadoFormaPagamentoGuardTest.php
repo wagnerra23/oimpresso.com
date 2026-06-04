@@ -28,6 +28,16 @@ uses(Tests\TestCase::class);
  * ou subscription gate bloqueia financeiro_module no env atual.
  */
 
+/**
+ * Cleanup via DB raw: Titulo::delete()/forceDelete() é bloqueado por DomainException
+ * (fin_titulos não permite delete — usa cancelar()/status=cancelado). US-FIN-053 Batch 5.
+ */
+function fpCleanup(Titulo $t): void
+{
+    DB::table('fin_titulo_baixas')->where('titulo_id', $t->id)->delete();
+    DB::table('fin_titulos')->where('id', $t->id)->delete();
+}
+
 function fpBootstrap(): array
 {
     try {
@@ -94,7 +104,7 @@ it('GUARD G1: shapeTitulo expõe forma_pagamento (prevista) + flag realizada', f
     $response = $this->actingAs($user)->get('/financeiro/unificado');
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        fpCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -109,7 +119,7 @@ it('GUARD G1: shapeTitulo expõe forma_pagamento (prevista) + flag realizada', f
         expect($found['forma_pagamento_realizada'])->toBeFalse();
     });
 
-    $titulo->forceDelete();
+    fpCleanup($titulo);
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -129,7 +139,7 @@ it('GUARD G2: Edit PUT /unificado/{id} persiste forma_pagamento', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        fpCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -137,7 +147,7 @@ it('GUARD G2: Edit PUT /unificado/{id} persiste forma_pagamento', function () {
     $titulo->refresh();
     expect($titulo->forma_pagamento)->toBe('pix');
 
-    $titulo->forceDelete();
+    fpCleanup($titulo);
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -168,7 +178,7 @@ it('GUARD G3: Store POST /unificado persiste forma_pagamento', function () {
     expect($created)->not->toBeNull();
     expect($created->forma_pagamento)->toBe('cartao_credito');
 
-    $created->forceDelete();
+    fpCleanup($created);
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -188,7 +198,7 @@ it('GUARD G4: forma_pagamento fora do enum é rejeitada', function () {
     ]);
 
     if (in_array($response->status(), [403, 404], true)) {
-        $titulo->forceDelete();
+        fpCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -196,7 +206,7 @@ it('GUARD G4: forma_pagamento fora do enum é rejeitada', function () {
     $titulo->refresh();
     expect($titulo->forma_pagamento)->toBeNull('Enum inválido foi persistido — validação furou');
 
-    $titulo->forceDelete();
+    fpCleanup($titulo);
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -222,8 +232,8 @@ it('GUARD G5: baixa.meio_pagamento sobrepõe forma prevista + flag realizada', f
     $response = $this->actingAs($user)->get('/financeiro/unificado');
 
     if (in_array($response->status(), [403, 404], true)) {
-        $baixa->forceDelete();
-        $titulo->forceDelete();
+        DB::table('fin_titulo_baixas')->where('id', $baixa->id)->delete();
+        fpCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
@@ -238,6 +248,6 @@ it('GUARD G5: baixa.meio_pagamento sobrepõe forma prevista + flag realizada', f
         }
     });
 
-    $baixa->forceDelete();
-    $titulo->forceDelete();
+    DB::table('fin_titulo_baixas')->where('id', $baixa->id)->delete();
+    fpCleanup($titulo);
 });
