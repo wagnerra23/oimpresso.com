@@ -546,38 +546,34 @@ class UnificadoController extends Controller
                 // BAIXA PARCIAL → SPLIT (Wagner 2026-06-04): cria um lançamento FILHO
                 // quitado com o valor recebido + reduz o ORIGINAL pro restante (que
                 // segue "a receber"/"a pagar"). NÃO usa mais status 'parcial'.
-                $prefixo = $titulo->tipo === 'receber' ? 'R' : 'P';
+                $prefixo = $titulo->getAttribute('tipo') === 'receber' ? 'R' : 'P';
                 $proximo = (int) Titulo::where('business_id', $businessId)
                     ->where('numero', 'like', "{$prefixo}-%")
                     ->lockForUpdate()
                     ->selectRaw("MAX(CAST(SUBSTRING(numero, 3) AS UNSIGNED)) as max_n")
                     ->value('max_n');
                 $numero = sprintf('%s-%05d', $prefixo, max(1, $proximo + 1));
+                $paiNumero = (string) $titulo->getAttribute('numero');
 
-                $filho = Titulo::create([
-                    'business_id'       => $businessId,
+                // replicate() copia os atributos do pai (contraparte, plano, categoria,
+                // datas…) e fill() sobrescreve só o que muda — evita acesso dinâmico a
+                // ~10 propriedades (PHPStan property.notFound).
+                $filho = $titulo->replicate(['conferido_by', 'conferido_at', 'aprovacao_status']);
+                $filho->fill([
                     'numero'            => $numero,
-                    'tipo'              => $titulo->tipo,
                     'status'            => 'quitado',
-                    'cliente_id'        => $titulo->cliente_id,
-                    'cliente_descricao' => $titulo->cliente_descricao,
                     'valor_total'       => $valor,
                     'valor_aberto'      => 0,
-                    'moeda'             => $titulo->moeda,
-                    'emissao'           => $titulo->emissao?->toDateString() ?? now()->toDateString(),
-                    'vencimento'        => $titulo->vencimento->toDateString(),
-                    'competencia_mes'   => $titulo->competencia_mes,
                     'origem'            => 'manual', // derivado do split (origem_id null evita colisão UNIQUE)
                     'origem_id'         => null,
                     'titulo_pai_id'     => $titulo->id,
-                    'plano_conta_id'    => $titulo->plano_conta_id,
-                    'categoria_id'      => $titulo->categoria_id,
                     'forma_pagamento'   => $meio,
                     'conta_bancaria_id' => $conta->id,
-                    'observacoes'       => "Baixa parcial de {$titulo->numero}",
+                    'observacoes'       => "Baixa parcial de {$paiNumero}",
                     'created_by'        => $request->user()->id,
                     'updated_by'        => $request->user()->id,
                 ]);
+                $filho->save();
 
                 TituloBaixa::create([
                     'business_id'       => $businessId,
@@ -587,14 +583,12 @@ class UnificadoController extends Controller
                     'data_baixa'        => $dataBaixa,
                     'meio_pagamento'    => $meio,
                     'idempotency_key'   => (string) Str::uuid(),
-                    'observacoes'       => "Baixa parcial de {$titulo->numero}",
+                    'observacoes'       => "Baixa parcial de {$paiNumero}",
                     'created_by'        => $request->user()->id,
                 ]);
 
-                // Reduz o original pro restante.
-                $titulo->valor_total = $restante;
-                $titulo->valor_aberto = $restante;
-                $titulo->save();
+                // Reduz o original pro restante (fill evita acesso dinâmico).
+                $titulo->fill(['valor_total' => $restante, 'valor_aberto' => $restante])->save();
             } else {
                 // Quitação total: baixa no próprio título.
                 TituloBaixa::create([
@@ -615,8 +609,9 @@ class UnificadoController extends Controller
         });
 
         $base = $titulo->tipo === 'receber' ? 'Recebimento' : 'Pagamento';
+        $paiNum = (string) $titulo->getAttribute('numero');
         $msg = $parcial
-            ? "{$base} parcial de R$ ".number_format($valor, 2, ',', '.')." — {$titulo->numero} segue com R$ ".number_format($restante, 2, ',', '.')
+            ? "{$base} parcial de R$ ".number_format($valor, 2, ',', '.')." — {$paiNum} segue com R$ ".number_format($restante, 2, ',', '.')
             : "{$base} confirmado";
 
         return back()->with('success', $msg);
@@ -1282,7 +1277,7 @@ class UnificadoController extends Controller
             'plano_conta_codigo' => $t->planoConta?->codigo,
             'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
-            'conta_bancaria_id' => $t->conta_bancaria_id,
+            'conta_bancaria_id' => $t->getAttribute('conta_bancaria_id'),
             // Forma de pagamento: a REALIZADA (última baixa) manda quando existe
             // e é read-only; senão a PREVISTA (titulo.forma_pagamento), editável.
             // Fallback `delphi_tipopagto` (metadata) pros títulos migrados do WR.
