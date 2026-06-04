@@ -235,6 +235,17 @@ function resolveDragMapping(
   };
 }
 
+// D-02 — coluna-alvo do "avançar direto pelo card" por estado de origem (o botão do
+// card dispara a MESMA porta gate-guardada do arrasto · resolveDragMapping). `locada`
+// = "Acompanhar" (ver, não avançar) → tratado no card via onClick, fica null aqui.
+const NEXT_COLUMN_FOR: Record<CacambaStatus, CacambaStatus | null> = {
+  disponivel: 'locada',     // Iniciar locação → redirect criar OS
+  locada:     null,         // Acompanhar → abre drawer (não avança)
+  aguardando: 'disponivel', // Recolher → encerrar OS
+  manutencao: 'pronta',     // Concluir → pronto p/ entrega
+  pronta:     'disponivel', // Entregar → volta ao pátio
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
@@ -309,6 +320,11 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         } else {
           toast.info(result.reason);
         }
+        // D-01 — "gate falha → o drawer abre já no que falta": em vez de só toast,
+        // abre o documento da OS pra o usuário ver o estado (quando há OS ativa).
+        if (cacamba.current_rental_id) {
+          setOpenOsId(cacamba.current_rental_id);
+        }
         return;
       }
 
@@ -330,6 +346,32 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
       });
     },
     [],
+  );
+
+  // D-01 — veredito preditivo síncrono pra pintar as colunas durante o arrasto.
+  // Reusa resolveDragMapping (mesma máquina do drop real) — verde se avança, âmbar se barra.
+  const evaluateDrop = useCallback(
+    (from: CacambaStatus, to: CacambaStatus, cacamba: CacambaCardData) => {
+      const r = resolveDragMapping(from, to, cacamba);
+      if (r.kind === 'allowed') return r.isCritical ? 'confirm' : 'advance';
+      return 'blocked'; // redirect_sells + blocked: não avança soltando aqui
+    },
+    [],
+  );
+
+  // D-02 — "avançar etapa direto no card": o botão dispara a MESMA porta do arrasto
+  // (handleDragMove → resolveDragMapping → confirm/toast). Touch-friendly (tablet do mecânico).
+  const handleCardAdvance = useCallback(
+    (cacamba: CacambaCardData, from: CacambaStatus) => {
+      const to = NEXT_COLUMN_FOR[from];
+      if (!to) {
+        // Estado sem avanço definido (ex.: locada "Acompanhar") — abre o drawer.
+        handleCardClick(cacamba);
+        return;
+      }
+      handleDragMove(cacamba.id, from, to, cacamba);
+    },
+    [handleDragMove, handleCardClick],
   );
 
   const handleConfirmTransition = useCallback(async () => {
@@ -599,7 +641,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
 
         {/* ─── Kanban 5 colunas (drag-drop entre colunas) ─── */}
         <div className="p-6">
-          <KanbanDndProvider onMove={handleDragMove}>
+          <KanbanDndProvider onMove={handleDragMove} evaluateDrop={evaluateDrop}>
             <div className="grid grid-cols-5 gap-4">
               {columnsData.map((col) => (
                 <CacambaKanbanColumn
@@ -608,6 +650,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
                   label={col.label}
                   cards={col.cards}
                   onCardClick={handleCardClick}
+                  onCardAdvance={handleCardAdvance}
                 />
               ))}
             </div>

@@ -17,12 +17,15 @@
 import { memo, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import CacambaCard, { type CacambaCardData, type CacambaStatus } from './CacambaCard';
+import { useKanbanDragState } from './kanbanDrag';
 
 interface Props {
   status: CacambaStatus;
   label: string;
   cards: CacambaCardData[];
   onCardClick: (cacamba: CacambaCardData) => void;
+  /** D-02 — avançar etapa direto pelo botão do card (mesma porta do arrasto). */
+  onCardAdvance?: (cacamba: CacambaCardData, from: CacambaStatus) => void;
 }
 
 const dotColorMap: Record<CacambaStatus, string> = {
@@ -42,11 +45,16 @@ const topBorderMap: Record<CacambaStatus, string> = {
   pronta:     'border-t-emerald-400',
 };
 
-function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
+function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdvance }: Props) {
   // Handler estável — Card memo recebe sempre mesma referência
   const handleClick = useCallback(
     (c: CacambaCardData) => onCardClick(c),
     [onCardClick]
+  );
+
+  const handleAdvance = useCallback(
+    (c: CacambaCardData) => onCardAdvance?.(c, status),
+    [onCardAdvance, status]
   );
 
   // Drop zone — id = status (disponivel/locada/aguardando/manutencao/pronta)
@@ -57,10 +65,29 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
 
   const isAguardando = status === 'aguardando';
 
-  // Visual feedback quando algo está sendo arrastado sobre a coluna
-  const overClasses = isOver
-    ? 'ring-2 ring-primary/60 ring-offset-2 bg-primary/5'
-    : '';
+  // D-01 — feedback preditivo: durante o arrasto a coluna mostra o desfecho de soltar
+  // aqui (verde "solte p/ avançar" se o gate libera · âmbar "abre detalhes" se barra).
+  const { activeFromColumn, verdictFor } = useKanbanDragState();
+  const isDragging = activeFromColumn != null;
+  const verdict = isDragging ? verdictFor(status) : null; // null = origem ou mesma coluna
+  const isValidTarget = verdict === 'advance' || verdict === 'confirm';
+
+  // Realce: coluna sob o cursor (isOver) ganha realce forte; alvos válidos não-sob-cursor
+  // ganham dica sutil; bloqueado fica âmbar discreto. Sem arrasto = neutro (comportamento antigo).
+  let overClasses = '';
+  if (verdict) {
+    if (isOver) {
+      // Tokens semânticos success/warning (ADR UI-0013 · não-flagados R1) — verde=avança, âmbar=barra.
+      overClasses = isValidTarget
+        ? 'ring-2 ring-success/70 ring-offset-2 bg-success/10'
+        : 'ring-2 ring-warning/70 ring-offset-2 bg-warning/10';
+    } else if (isValidTarget) {
+      overClasses = 'ring-1 ring-success/40';
+    }
+  } else if (isOver) {
+    // Sem evaluateDrop (fallback) — realce neutro antigo.
+    overClasses = 'ring-2 ring-primary/60 ring-offset-2 bg-primary/5';
+  }
 
   return (
     <section
@@ -94,6 +121,25 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
         </span>
       </header>
 
+      {/* D-01 — dica preditiva na coluna sob o cursor (Linear/Stripe: sem bounce-surpresa) */}
+      {isOver && verdict && (
+        <div
+          className={
+            'px-3 py-1 text-[11px] font-medium border-b ' +
+            (isValidTarget
+              ? 'bg-success/10 text-success-foreground border-success/30'
+              : 'bg-warning/10 text-warning-foreground border-warning/30')
+          }
+          aria-live="polite"
+        >
+          {verdict === 'advance'
+            ? 'Solte p/ avançar'
+            : verdict === 'confirm'
+              ? 'Solte p/ confirmar avanço'
+              : 'Abre os detalhes (não avança aqui)'}
+        </div>
+      )}
+
       <div
         className="p-2 space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto"
         style={{ scrollbarWidth: 'thin' }}
@@ -109,6 +155,7 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick }: Props) {
               cacamba={c}
               variant={status}
               onClick={handleClick}
+              onAdvance={onCardAdvance ? handleAdvance : undefined}
             />
           ))
         )}
