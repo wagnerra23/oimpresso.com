@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ProjectMgmt/Backlog/Index
+path: resources/js/Pages/ProjectMgmt/Backlog/Index.tsx
+archetype: list
+persona: wagner
+nota: 84
+nivel: "Advanced"
+baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista densa com filtros multi + bulk-edit sticky + defer-guard + persist localStorage e badges canônicos; falta charter e atalhos de teclado (J/K) que o resto do módulo tem."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Speed-to-task"
+    best_of_class: "Linear: J/K + X seleciona, atalhos de bulk sem mouse"
+    fix: "Adicionar navegação J/K + tecla pra (de)selecionar linha, alinhando com Board"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear charter por tela"
+    fix: "Criar Backlog/Index.charter.md"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe: bulk action mostra resultado/falhas parciais e permite undo"
+    fix: "bulk() deve tratar erro do fetch (banner) e oferecer desfazer"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

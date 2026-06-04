@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Nfse/Show
+path: resources/js/Pages/Nfse/Show.tsx
+archetype: detail
+persona: eliana
+nota: 82
+nivel: "Advanced"
+baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe limpo com AlertDialog de cancelamento (contador+minLength) e aside de venda; falta token roxo e auto-refresh no processando."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear"
+    fix: "var(--accent) no total da venda/icone -> primary roxo 295 (ADR 0190)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe invoice"
+    fix: "aside w-72 fixo: empilhar abaixo do conteudo em <lg (flex-col) em vez de side-by-side forcado"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Stripe (polling)"
+    fix: "status processando pede 'atualize a pagina' — auto-poll/reload only:[nfse] a cada 5s"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

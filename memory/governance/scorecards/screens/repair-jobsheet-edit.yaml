@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Repair/JobSheet/Edit
+path: resources/js/Pages/Repair/JobSheet/Edit.tsx
+archetype: form
+persona: tecnico
+nota: 71
+nivel: "Advanced"
+baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Edit com tabs e indicador de erro por aba (bom), mas checklist readOnly inativo e cliente por ID."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Shopify"
+    fix: "Checklist usa checkbox readOnly (nao salva estado); tornar editavel e persistir"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Bling"
+    fix: "contact_id input number; trocar por busca de cliente"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear tabs"
+    fix: "Tabs hand-roll + selects nativos; usar Tabs/Select do DS (tokens v4)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

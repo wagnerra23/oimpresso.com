@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Ponto/Importacoes/Show
+path: resources/js/Pages/Ponto/Importacoes/Show.tsx
+archetype: detail
+persona: tecnico
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe solido com polling de job e bloco de erro, mas header canon nao estilizado e polling sem backoff/aria-live."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Detalhe canon estilizado"
+    fix: "os-page-h orfao (sem scope ponto) — header sem estilo canon"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Linear usa websocket/SSE p/ status de job"
+    fix: "Polling setInterval 3s fixo; preferir backoff ou Centrifugo (ja na stack)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "aria-live em status que muda sozinho"
+    fix: "Auto-refresh sem aria-live; leitor de tela nao anuncia mudanca de estado"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

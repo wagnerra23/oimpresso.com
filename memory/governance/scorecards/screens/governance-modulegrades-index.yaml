@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: governance/ModuleGrades/Index
+path: resources/js/Pages/governance/ModuleGrades/Index.tsx
+archetype: list
+persona: wagner
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Tabela densa 13-col com filtros/KPIs/Deferred/skeletons e charter — mas paleta sky/emerald em vez de primary roxo v4 e header de cores cruas."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear (1 accent token consistente)"
+    fix: "Trocar focus:ring-sky-500, chip ativo zinc-900 e header D6-D9 (purple/pink/indigo/cyan literais) por tokens primary/ring v4 roxo 295"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Shopify (cards stacked < md)"
+    fix: "Tabela 13col só faz overflow-x; abaixo de sm virar lista de cards key-value"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Microcopy"
+    best_of_class: "Stripe"
+    fix: "Empty 'Nenhum módulo combina' poderia oferecer ação 'limpar filtros'"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/ProjectShow
+path: resources/js/Pages/ads/Admin/ProjectShow.tsx
+archetype: detail
+persona: wagner
+nota: 72
+nivel: "Advanced"
+baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe de project bem estruturado (KpiGrid+parts ordenadas+deps), mas cores cruas com blue e confirm() nativo derrubam Pre-Flight."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear status tokens"
+    fix: "viabilityColor/statusBadge usam bg-blue/emerald/amber/red-100 crus -> mapear pra tokens semanticos v4 (primary roxo/destructive/muted), zerar blue"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe modal"
+    fix: "decompose() usa window.confirm nativo -> trocar por AlertDialog @/Components/ui com custo/tokens explicitos"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Notion"
+    fix: "emoji inline (clock/dollar/depende) sem aria -> usar lucide icons com aria-label + sem charter ao lado"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

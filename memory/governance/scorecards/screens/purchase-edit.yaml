@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Purchase/Edit
+path: resources/js/Pages/Purchase/Edit.tsx
+archetype: form
+persona: misto
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Clone fiel do Create com PUT e pré-popula; herda as mesmas forças e o mesmo gap de affordance (IDs textuais)."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Bling — fornecedor/produto via combobox, não ID textual"
+    fix: "Mesma combobox do Create; reaproveita pattern (já compartilha ~80%)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe — avisar campos travados quando fora do período editável (R-PUR-005)"
+    fix: "Exibir banner/disabled quando canBeEdited=false em vez de só depender do 403 backend"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Notion — mostrar pagamentos já lançados no Edit"
+    fix: "Edit não expõe payment_lines; adicionar bloco read-only de pagamentos existentes"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

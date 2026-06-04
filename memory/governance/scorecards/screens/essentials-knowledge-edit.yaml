@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Essentials/Knowledge/Edit
+path: resources/js/Pages/Essentials/Knowledge/Edit.tsx
+archetype: form
+persona: misto
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Edicao espelha o Create com mesmos campos e DS limpo; mesma lacuna de editor rich-text e charter ausente."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Notion edita rich-text WYSIWYG"
+    fix: "Trocar Textarea de conteudo por editor rich-text com preview"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Linear protege edicao nao salva"
+    fix: "Detectar dirty e confirmar antes de sair/cancelar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Stripe extrai form compartilhado"
+    fix: "Extrair form compartilhado Create/Edit pra um KbForm unico (DRY)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

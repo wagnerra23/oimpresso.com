@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: OficinaAuto/ServiceOrders/Create
+path: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
+archetype: form
+persona: tecnico
+nota: 66
+nivel: "Developing"
+baseline_anterior: 66   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Form de OS em Sheet 720 funcional com referer-close, mas selects/textarea nativos e erros parciais o deixam scaffold."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "@/Components/ui"
+    fix: "<select> e <textarea> nativos hand-rolled — usar Select/Textarea do DS (Edit usa mesmo padrao raw; padronizar)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe forms"
+    fix: "so vehicle_id mostra erro; status/datas sem render de errors[]; sem foco no 1o campo invalido"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Cognitive-load"
+    best_of_class: "Linear quick-create"
+    fix: "selecao de veiculo por <option> texto plano — combobox com busca de placa (lista grande trava)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/Unificado/Novo
+path: resources/js/Pages/Financeiro/Unificado/Novo.tsx
+archetype: form
+persona: eliana
+nota: 52
+nivel: "Developing"
+baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Stub-ponte provisorio (2 cards picker receber/pagar) auto-declarado status=stub — funcional mas sem form real nem charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Speed-to-task"
+    best_of_class: "Bling: form unico inline"
+    fix: "E stub picker (2 cards) que so redireciona pra contas-receber/pagar — entregar form unificado real"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS shadcn Button"
+    fix: "Sem charter; usa os-btn cru e nao @/Components/ui; sem estados loading/error"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Notion empty-action"
+    fix: "Cards div role=button com hover-cor crua; usar Card + Button DS"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
