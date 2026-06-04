@@ -3,6 +3,13 @@
 > Cole este arquivo como **primeira mensagem** numa nova sessão Claude Design.
 > Depois anexe também: `README.md`, `SKILL.md` e `colors_and_type.css` deste projeto.
 
+> ⚠️ **COR/SHELL DEFASADOS — reconciliado 2026-06-04.** Onde este briefing disser **azul**
+> (`--accent: oklch(... 220)`, "accent blue", "sidebar dark"), está **MORTO**. Canon vivo:
+> **roxo 295** `oklch(0.55 0.15 295)` ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md)) ·
+> **sidebar light** ([UI-0014](adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) · fonte única de tokens =
+> `tokens.css`/`design-system.css` no git ([ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md)).
+> Estrutura e decisões de produto abaixo seguem úteis; **a paleta não**.
+
 ---
 
 ## O que já foi feito — NÃO recriar
