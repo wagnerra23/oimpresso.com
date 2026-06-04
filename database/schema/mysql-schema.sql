@@ -9561,7 +9561,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 
 /*!50001 VIEW `copiloto_sugestoes` AS select NULL AS `id`,NULL AS `conversa_id`,NULL AS `meta_id`,NULL AS `payload_json`,NULL AS `escolhida_em`,NULL AS `rejeitada_em`,NULL AS `created_at`,NULL AS `updated_at` */;
