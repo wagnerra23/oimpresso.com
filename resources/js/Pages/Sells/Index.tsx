@@ -445,16 +445,18 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // ao front (HandleInertiaRequests lia status.error, store usa status.msg) e a
   // venda "sumia" SEM AVISO. Sonner já está montado no AppShellV2.
   const flash = usePage<SellsFlashProps>().props.flash;
+  const flashError = flash?.error;
+  const flashSuccess = flash?.success;
+  const flashInfo = flash?.info;
   useEffect(() => {
-    if (flash?.error) {
-      toast.error(flash.error, { duration: 8000 });
-    } else if (flash?.success && typeof flash.success === 'string') {
-      toast.success(flash.success);
-    } else if (flash?.info) {
-      toast.info(flash.info);
+    if (flashError) {
+      toast.error(flashError, { duration: 8000 });
+    } else if (typeof flashSuccess === 'string') {
+      toast.success(flashSuccess);
+    } else if (flashInfo) {
+      toast.info(flashInfo);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flash?.error, flash?.success, flash?.info]);
+  }, [flashError, flashSuccess, flashInfo]);
 
   // FOCO segmented control (vista) — Caixa / Faturamento / Comissão (afeta 4º KPI).
   const [foco, setFoco] = useState<FocoKey>(() => {
