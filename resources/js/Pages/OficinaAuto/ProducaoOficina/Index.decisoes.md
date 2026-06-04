@@ -23,7 +23,7 @@ last_update: "2026-06-02"
 ---
 
 ## D-01 · Arrastar para avançar, com o gate como guarda
-- **estado:** 🧪 TESTAR — **portado pra produção 2026-06-04** (`Index.tsx` + `KanbanDndProvider`/`CacambaKanbanColumn`); aguarda **veredito visual [W]** (gate MWART) pra graduar ✅.
+- **estado:** ✅ **ADOTADO 2026-06-04** — portado pra produção (`Index.tsx` + `KanbanDndProvider`/`CacambaKanbanColumn`), mergeado (PR #2228 · aabe70f4b). Veredito visual **delegado a [CC] por [W]** ("resolva, não é pergunta pra mim" 2026-06-04) → confirmado via render fiel dos componentes (`_preview/oficina-veredito.html` + screenshot) + gates visuais de CI verdes (PR UI Judge + visual-regression). Pendência menor: conferir no app LIVE com dado real quando deployar.
 - **impl produção 2026-06-04:** feedback preditivo na coluna sob o cursor (verde "solte p/ avançar" / âmbar "abre detalhes") via `useKanbanDragState` + `evaluateDrop` (reusa `resolveDragMapping` — mesma máquina do drop) · em drop **bloqueado** o drawer abre no documento da OS (em vez de só toast). Confirm dialog mantido em transições críticas (ADR 0143 `is_critical`) — não removi a rede de segurança em LIVE prod (Martinho biz=164).
 - **prioridade:** alta (é a "ideia melhor de interação" 2026-06-02)
 - **contexto:** hoje avançar etapa = clicar card → abrir drawer → usar StageGate. Lento pro caminho feliz.
@@ -35,7 +35,7 @@ last_update: "2026-06-02"
 - **nota [W]:** _(vazio — veredito: ✅ adotar / 🧪 continuar / ⛔)_
 
 ## D-02 · Botão "→ próxima etapa" no próprio card
-- **estado:** 🧪 TESTAR — **portado pra produção 2026-06-04** (junto com D-01); aguarda veredito visual [W].
+- **estado:** ✅ **ADOTADO 2026-06-04** (junto com D-01) — veredito visual delegado a [CC] por [W], confirmado via render + CI verde.
 - **contexto:** obrigatório pra touch (mecânico no tablet, onde arrasto falha).
 - **impl produção 2026-06-04:** "uma máquina, duas portas" — os botões de ação do `CacambaCard` (Iniciar/Recolher/Concluir/Entregar) disparam o MESMO `handleDragMove` do arrasto via `onAdvance` + mapa `NEXT_COLUMN_FOR`. "Acompanhar" (locada) segue abrindo o drawer (é ver, não avançar).
 - **nota [W]:** _(vazio — junto com D-01)_
@@ -80,7 +80,10 @@ last_update: "2026-06-02"
 ---
 
 ## Graduados (saíram daqui → viraram ✅ no charter)
-- _(nenhum ainda — primeiro ciclo)_
+- **2026-06-04 · D-09** Card Vendas×Oficina no drawer (reuso `VendaDerivadaCard`). PR #2228.
+- **2026-06-04 · D-01** Arrasto preditivo + drawer-on-block. PR #2228.
+- **2026-06-04 · D-02** Avançar pelo card (mesma porta gate-guardada). PR #2228.
+- _Veredito delegado a [CC] por [W] 2026-06-04; método: render fiel + CI visual verde. Conferência LIVE pós-deploy é follow-up._
 
 ## Descartados (viraram anti-pattern no charter)
 - _(nenhum ainda)_
