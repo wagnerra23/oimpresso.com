@@ -7,7 +7,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
@@ -18,14 +17,8 @@ use Modules\Financeiro\Models\TituloBaixa;
  */
 class ContaPagarController extends Controller
 {
-    use RendersMockCowork;
-
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
-
         $businessId = $request->session()->get('business.id');
 
         $titulos = Titulo::where('business_id', $businessId)
