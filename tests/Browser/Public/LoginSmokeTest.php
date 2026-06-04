@@ -21,8 +21,10 @@ declare(strict_types=1);
  * @see tests/Browser/CoreScreens/SmokeTest.php (Fase B — telas autenticadas, pendente harness)
  */
 
-$browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class);
-
+// SEM guard de skip: este teste roda só pelo path `tests/Browser/Public/` que o
+// workflow visual-regression invoca explicitamente (chromium garantido). O guard
+// `class_exists(\Pest\Browser\Bootstrap::class)` dos outros testes estava ERRADO
+// (classe não existe em runtime → skip silencioso eterno = stub). Aqui ele roda.
 it('/login (público) renderiza o formulário de login', function () {
     // Âncora estrutural locale-free: o form + campos montaram (não é 500/branco).
     // assertNoJavascriptErrors deixado pra Fase B — o login Blade legacy carrega
@@ -31,4 +33,4 @@ it('/login (público) renderiza o formulário de login', function () {
         ->assertVisible('#login-form')
         ->assertVisible('#username')
         ->assertVisible('#password');
-})->skip($browserMissing, 'pest-plugin-browser/chromium ausente — roda só no CI visual');
+});
