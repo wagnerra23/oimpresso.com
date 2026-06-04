@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Essentials/Todo/Create
+path: resources/js/Pages/Essentials/Todo/Create.tsx
+archetype: form
+persona: misto
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Form de criação sólido (@ui, Sonner, validação inline em task/date); falta PageHeader canon, charter e multiselect com busca."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear: modo FOCO PageHeader sem distração"
+    fix: "Header hand-roll em vez de PageHeader modo-foco; sem charter (só Reminders tem)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Shopify: multiselect com search/chips removíveis"
+    fix: "Picker de usuários é botões toggle sem busca; ruim com muitos users"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe: estimated_hours numérico validado"
+    fix: "estimated_hours é Input string livre, sem type=number/máscara"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

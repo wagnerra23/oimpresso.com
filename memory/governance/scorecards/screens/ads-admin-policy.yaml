@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/Policy
+path: resources/js/Pages/ads/Admin/Policy.tsx
+archetype: list
+persona: wagner
+nota: 73
+nivel: "Advanced"
+baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Firewall read-only claro: aviso imutabilidade, 4 categorias com icone/cor, copy honesta; cor parcialmente crua e sem filtro."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo"
+    fix: "categoryConfig amber/blue/emerald/5 cru (destructive ok); banner Lock amber-600 cru; tokenizar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Stripe"
+    fix: "read-only firewall sem busca/filtro por event_type; com muitas regras vira scroll — add filtro client-side"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "GOV.UK"
+    fix: "4 categorias em grid 2-col sem ordem de severidade explicita (BLOCK→ALLOW); fixar ordem semantica"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/DecisaoShow
+path: resources/js/Pages/ads/Admin/DecisaoShow.tsx
+archetype: detail
+persona: wagner
+nota: 73
+nivel: "Advanced"
+baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe rico: drill-down chain, review G-Eval, KV tecnico, StatusBadge canon; window.prompt e cores cruas seguram a nota."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Linear"
+    fix: "reject/dismiss usam window.prompt() nativo (sem validacao, sem cancel limpo); trocar por Dialog DS com Textarea"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 roxo"
+    fix: "border-blue-500/20, bg-emerald-600, text-red-700, bg-zinc-100 cru espalhados; tokenizar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Stripe"
+    fix: "acoes Aprovar/Rejeitar so no header; em pagina longa somem no scroll — sticky action bar ou repetir no rodape"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/Caixa/Index
+path: resources/js/Pages/Financeiro/Caixa/Index.tsx
+archetype: list
+persona: eliana
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Wrapper read-only maduro: charter excelente, PageHeader v3.8, SubNav, KPIs, fmtMoney pt-BR e badge integração; perde em cores cruas/emerald-primary, confirm() nativo e tabela hand-roll."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4: tokens roxo, zero cor crua"
+    fix: "PageHeader canon ok, mas bg-emerald/stone/blue/red/amber + bg-white hardcoded (sem dark), emerald como primary (não roxo), emojis ℹ️⚠️✅💡 na UI"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Linear: AlertDialog confirm"
+    fix: "native confirm() p/ lançar fin_titulo retroativo; trocar por AlertDialog do @/ui"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Bling: DataTable + export"
+    fix: "Tabela hand-roll (charter mira PT-01); sem export (backlog conhecido)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

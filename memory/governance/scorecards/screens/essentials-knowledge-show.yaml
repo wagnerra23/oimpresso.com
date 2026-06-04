@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Essentials/Knowledge/Show
+path: resources/js/Pages/Essentials/Knowledge/Show.tsx
+archetype: detail
+persona: misto
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Leitor de artigo com nav lateral em arvore, prose e badge de tipo, mas innerHTML cru e sem charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Conteudo sanitizado server-side"
+    fix: "Sanitizar item.content antes de dangerouslySetInnerHTML (XSS)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Notion mostra breadcrumb do caminho"
+    fix: "Breadcrumb Livro > Secao > Artigo acima do titulo alem da nav lateral"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe vira nav em drawer no mobile"
+    fix: "Colapsar aside de arvore em drawer/accordion <1024px"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

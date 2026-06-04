@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: NfeBrasil/Tributacao/ImportCsv
+path: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.tsx
+archetype: form
+persona: eliana
+nota: 77
+nivel: "Advanced"
+baseline_anterior: 77   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Fluxo import 2-step (upload->preview->aplicar) exemplar: amostra em tabela sticky, erros em <details>, idempotencia explicita; sem charter e usa confirm() nativo."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe (confirm de aplicar via Dialog DS)"
+    fix: "Trocar confirm() de aplicar regras por AlertDialog; mostrar diff (novas vs atualizadas)."
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Shopify (import com download de template CSV)"
+    fix: "Adicionar botao 'Baixar modelo CSV' alem do cabecalho mostrado em <code>."
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear (charter por tela + tokens)"
+    fix: "Criar ImportCsv.charter.md; trocar bg-emerald-50 raw do success por token."
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

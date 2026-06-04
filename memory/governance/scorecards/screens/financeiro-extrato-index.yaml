@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/Extrato/Index
+path: resources/js/Pages/Financeiro/Extrato/Index.tsx
+archetype: detail
+persona: eliana
+nota: 67
+nivel: "Developing"
+baseline_anterior: 67   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Extrato bancario shadcn com 4 cards-resumo e filtro periodo; charter live, mas header os-page-h inline sem PageHeader/SubNav, text-red cru e doc da contraparte exposto sem mascara (PII)."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe (PII mascarada)"
+    fix: "contraparte_documento renderizado em plain text; aplicar piiMask como em Cobranca (LGPD)"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Cobranca (PageHeader+SubNav)"
+    fix: "Header os-page-h inline sem PageHeader canon nem FinanceiroSubNav; rompe navegacao do modulo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Fluxo (rose token)"
+    fix: "Debitos usam text-red-600 cru; padronizar pra rose semantico do modulo"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
