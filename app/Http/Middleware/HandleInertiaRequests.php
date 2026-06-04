@@ -99,7 +99,7 @@ class HandleInertiaRequests extends Middleware
                 // bloqueadas sem aviso). Agora a msg do store chega ao frontend.
                 'success' => function () use ($session) {
                     $msg = $session->get('status.msg');
-                    if ($msg !== null && $session->get('status.success')) {
+                    if ($msg !== null && (bool) $session->get('status.success')) {
                         return $msg; // UltimatePOS: ['success'=>1,'msg'=>...]
                     }
                     return $session->get('status.success') ?? $session->get('success');
@@ -107,7 +107,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => function () use ($session) {
                     $msg = $session->get('status.msg');
                     // status presente + success falsy (0/''/false) + msg → erro a exibir.
-                    if ($msg !== null && $session->has('status') && ! $session->get('status.success')) {
+                    if ($msg !== null && $session->has('status') && ! (bool) $session->get('status.success')) {
                         return $msg;
                     }
                     return $session->get('status.error') ?? $session->get('error');

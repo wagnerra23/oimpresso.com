@@ -426,7 +426,9 @@ const SAVED_VIEWS: SavedView[] = [
 ];
 
 // Flash compartilhado pelo HandleInertiaRequests (status.msg do store UltimatePOS).
-type SellsFlashBag = { success?: string | number | null; error?: string | null; info?: string | null };
+interface SellsFlashProps {
+  flash?: { success?: unknown; error?: string; info?: string };
+}
 
 // ──────────────────────────────────────────────────────────────
 // MAIN — SellsIndex
@@ -442,7 +444,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // É aqui que o /pos redireciona após salvar. Antes a msg do store não chegava
   // ao front (HandleInertiaRequests lia status.error, store usa status.msg) e a
   // venda "sumia" SEM AVISO. Sonner já está montado no AppShellV2.
-  const flash = (usePage().props as { flash?: SellsFlashBag }).flash;
+  const flash = usePage<SellsFlashProps>().props.flash;
   useEffect(() => {
     if (flash?.error) {
       toast.error(flash.error, { duration: 8000 });
