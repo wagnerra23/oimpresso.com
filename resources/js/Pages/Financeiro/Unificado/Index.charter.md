@@ -12,7 +12,7 @@ related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (a
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 12
+charter_version: 13
 ---
 
 # Page Charter — /financeiro/unificado
@@ -36,6 +36,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - **Forma de pagamento no lançamento** (2026-06-03, charter v11, pedido [W]): coluna **Forma** na tabela + campo no drawer (aba Detalhes) + edição (FinEditPanel) e criação (TituloCreateSheet). Nova coluna `fin_titulos.forma_pagamento` (enum espelha `fin_titulo_baixas.meio_pagamento`). Regra de exibição: a forma **realizada** (`baixa.meio_pagamento`) tem prioridade e é **read-only** (espelha `valor_mutavel` / ADR fin-tech/0002); senão a **prevista** (`titulo.forma_pagamento`), editável em aberto; senão "—". Helper compartilhado `_lib/forma-pagamento.ts` (rótulo PT-BR + ícone). Cobertura `UnificadoFormaPagamentoGuardTest` (5 GUARDs). Títulos criados por cobrança paga (`OnCobrancaPagaCreateFinanceiroTitulo`) já exibem a forma realizada via baixa.
 
 - **Paridade filtros de data WR** (2026-06-03, US-FIN-030): seletor de **campo de data** (Vencimento default · Emissão · Pagamento · Competência) + **intervalo explícito** `data_inicio`/`data_fim` na toolbar, espelhando o WR Comercial. Backend `parseFilters()` + `aplicarFiltroData()` (vencimento/emissao via coluna; pagamento via `baixas.data_baixa`; competencia via `competencia_mes` YYYY-MM); intervalo sobrepõe o período preset. **O `data_campo` aplica na tabela E nos cards de KPI** (`kpisCore` segue o mesmo campo — totais consistentes com o grid filtrado; `recebido`/`pago` por `data_baixa` quando campo=pagamento, senão por título que casa o campo). Cobertura `UnificadoDataCampoTest`. Pendente: filtros 'Nota Fiscal'/'Vendas' do WR exigem link título→transaction (`origem_id`).
+
+- **Cancelado não soma + filtro Arquivados + campos paridade WR no drawer** (2026-06-04, charter v13, US-FIN-030 / PRs #2207+#2211): títulos `cancelado` ficam **escondidos** da lista por padrão e **não somam** nos KPIs (`kpisCore` exclui baixas de cancelados — pareia com a lista); filtro **Arquivados** (`?arquivados=1`) mostra **só** eles. Drawer Detalhes expõe os campos de paridade WR (Número · Parcela · Pedido · Condição de pagamento · Documento · Desconto · Juros sempre visíveis · Emissão · Competência · Vencimento · Data de pagamento · Valor em aberto). Cobertura **`UnificadoCanceladoArquivadosKpiTest`** (5 GUARDs: C1 cancelado-não-soma · A1/A2 Arquivados · D1 KPI-segue-`data_campo` · S1 shape paridade WR). Pendente Fase 2-data (US-FIN-051): data+hora completas + Documento/NF/conta/plano reais exigem re-import (colunas truncadas/redactadas na migração WR).
 
 - **PR C — GUARD + RUNBOOK** (2026-05-25, charter v9, US-FIN-027 parcial + G1/G3 auditoria):
   - **`UnificadoPlanoContaGuardTest`** — 7 GUARDs Tier 0 anti-regressão pra `plano_conta_id`: prop Inertia `planosConta`, shape 3 campos (`plano_conta_id` + `_codigo` + `_nome`), eager-load preserva (anti N+1), Update persiste, coerência tipo↔plano (Edit), Store persiste, cross-tenant rejeitado em ambos. Cada Δ = CI quebra.
