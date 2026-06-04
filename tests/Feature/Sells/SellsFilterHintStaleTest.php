@@ -21,12 +21,12 @@ declare(strict_types=1);
  *   - PR #1034 (DateFilter reintegration que preservou keys legacy)
  */
 
-const SELLS_INDEX_PATH = __DIR__ . '/../../../resources/js/Pages/Sells/Index.tsx';
+const SELLS_INDEX_PATH_ABS = __DIR__ . '/../../../resources/js/Pages/Sells/Index.tsx';
 const INERTIA_CSS_PATH = __DIR__ . '/../../../resources/css/inertia.css';
 
 describe('Bug fix 2026-05-18 — hint filter stale em Sells/Index', function () {
     it('Index.tsx define helpers de detecção de filter ativo + stale', function () {
-        $src = file_get_contents(SELLS_INDEX_PATH);
+        $src = file_get_contents(SELLS_INDEX_PATH_ABS);
         // Helpers novos
         expect($src)->toContain('const clearDateFilter = useCallback');
         expect($src)->toContain('const dateFilterActive =');
@@ -42,7 +42,7 @@ describe('Bug fix 2026-05-18 — hint filter stale em Sells/Index', function () 
     });
 
     it('Index.tsx renderiza JSX hint condicional com botao Limpar filtro', function () {
-        $src = file_get_contents(SELLS_INDEX_PATH);
+        $src = file_get_contents(SELLS_INDEX_PATH_ABS);
         // Render conditional
         expect($src)->toContain('{dateFilterActive && (');
         expect($src)->toContain('vd-date-filter-hint');
@@ -55,7 +55,7 @@ describe('Bug fix 2026-05-18 — hint filter stale em Sells/Index', function () 
     });
 
     it('Index.tsx detecta dateTo < ontem como stale (proteção contra localStorage stuck)', function () {
-        $src = file_get_contents(SELLS_INDEX_PATH);
+        $src = file_get_contents(SELLS_INDEX_PATH_ABS);
         // Logica core: dateTo < yesterday
         expect($src)->toContain('86_400_000');
         expect($src)->toContain('today.getTime() - 86_400_000');

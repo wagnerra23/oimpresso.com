@@ -37,8 +37,8 @@ beforeEach(function () {
 });
 
 // IDs canônicos — biz=1 (Wagner WR2) e biz=99 (fictício)
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 // ------------------------------------------------------------------
 // Asset — isolamento via filtro manual where('business_id', ...)

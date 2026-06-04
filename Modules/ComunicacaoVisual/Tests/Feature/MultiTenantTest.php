@@ -35,8 +35,8 @@ beforeEach(function () {
 });
 
 // IDs usados nos testes — biz=1 (Wagner) e biz=99 (fictício isolamento)
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 // ------------------------------------------------------------------
 // Helpers internos

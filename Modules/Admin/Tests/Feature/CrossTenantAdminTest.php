@@ -28,8 +28,8 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0122-admin-center-ct100.md
  */
 
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 // Guard SQLite: Pest local Wagner mandatory MySQL UltimatePOS — ADR 0101.
 beforeEach(function () {

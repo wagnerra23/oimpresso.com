@@ -31,7 +31,7 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const W27_BIZ_FICTICIO = 99;
+defined('W27_BIZ_FICTICIO') || define('W27_BIZ_FICTICIO', 99);
 const W27_BIZ_FICTICIO_B = 88;
 const W27_OWNER_ID = 1;
 

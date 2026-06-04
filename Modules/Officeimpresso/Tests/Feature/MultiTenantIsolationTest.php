@@ -37,8 +37,8 @@ beforeEach(function () {
     }
 });
 
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 // ------------------------------------------------------------------
 // Licenca_Computador (computador desktop licenciado bridge Delphi)

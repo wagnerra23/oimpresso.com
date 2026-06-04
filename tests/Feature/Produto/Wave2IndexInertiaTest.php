@@ -20,15 +20,15 @@ if (! function_exists('repo_path')) {
     }
 }
 
-const PAGE_PATH = 'resources/js/Pages/Produto/Index.tsx';
+const PRODUTO_INDEX_PAGE_PATH = 'resources/js/Pages/Produto/Index.tsx';
 
 function readProdutoIndex(): string
 {
-    return file_get_contents(repo_path(PAGE_PATH));
+    return file_get_contents(repo_path(PRODUTO_INDEX_PAGE_PATH));
 }
 
 it('Page Inertia existe em Pages/Produto/Index.tsx', function () {
-    expect(file_exists(repo_path(PAGE_PATH)))->toBeTrue();
+    expect(file_exists(repo_path(PRODUTO_INDEX_PAGE_PATH)))->toBeTrue();
 });
 
 it('Page importa AppShellV2 (Persistent Layout)', function () {

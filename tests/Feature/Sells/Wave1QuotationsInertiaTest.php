@@ -17,7 +17,7 @@ declare(strict_types=1);
  */
 
 const QUOTATIONS_PAGE_PATH = 'resources/js/Pages/Sells/Quotations.tsx';
-const QUOTATIONS_CHARTER_PATH = 'resources/js/Pages/Sells/Quotations.charter.md';
+defined('QUOTATIONS_CHARTER_PATH') || define('QUOTATIONS_CHARTER_PATH', 'resources/js/Pages/Sells/Quotations.charter.md');
 const QUOTATIONS_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
 
 function readQuotationsPage(): string

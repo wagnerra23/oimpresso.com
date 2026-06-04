@@ -24,7 +24,7 @@ declare(strict_types=1);
  */
 
 const DRAFTS_TSX_PATH = 'resources/js/Pages/Sells/Drafts.tsx';
-const DRAFTS_CHARTER_PATH = 'resources/js/Pages/Sells/Drafts.charter.md';
+defined('DRAFTS_CHARTER_PATH') || define('DRAFTS_CHARTER_PATH', 'resources/js/Pages/Sells/Drafts.charter.md');
 const DRAFTS_CSS_PATH = 'resources/css/sells-cowork-drafts.css';
 const DRAFTS_INERTIA_CSS_PATH = 'resources/css/inertia.css';
 const DRAFTS_INDEX_TSX_PATH = 'resources/js/Pages/Sells/Index.tsx';

@@ -25,8 +25,8 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 // Guard SQLite: mcp_briefs vive no schema MCP MySQL only.
 beforeEach(function () {

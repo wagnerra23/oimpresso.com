@@ -69,8 +69,8 @@ describe('Wave 13 — adoção HasBusinessScope (reflection-only)', function () 
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 describe('Isolamento multi-tenant Manufacturing (DB-dependent — MySQL only)', function () {
     // Guard SQLite + schema. UltimatePOS Manufacturing requer schema MySQL real.
