@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\ExtratoLancamento;
 
@@ -28,8 +27,6 @@ use Modules\Financeiro\Models\ExtratoLancamento;
  */
 class ExtratoController extends Controller
 {
-    use RendersMockCowork;
-
     /**
      * Ponto de entrada SEM id: /financeiro/extrato.
      * O sidebar/topnav apontam pra /financeiro/extrato (sem contaBancariaId), mas a
@@ -59,10 +56,6 @@ class ExtratoController extends Controller
 
     public function index(Request $request, int $contaBancariaId): Response|\Illuminate\Http\Response
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
-
         // Session key canônica UPOS `user.business_id` (B5 — padroniza com o resto do módulo).
         $businessId = (int) $request->session()->get('user.business_id');
 

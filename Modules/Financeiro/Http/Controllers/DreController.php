@@ -11,7 +11,6 @@ use Illuminate\Http\Response as IlluminateResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Exports\DreExport;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Services\DreService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -43,8 +42,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class DreController extends Controller
 {
-    use RendersMockCowork;
-
     public function __construct(private DreService $service)
     {
         $this->middleware('auth');
@@ -53,10 +50,6 @@ class DreController extends Controller
 
     public function index(Request $request): Response|IlluminateResponse
     {
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
-
         $businessId = (int) session('user.business_id');
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
         $aba = $this->resolveAba($request);

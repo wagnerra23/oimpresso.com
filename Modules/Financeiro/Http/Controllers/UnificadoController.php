@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Events\TituloCriado;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\StoreTituloRequest;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
@@ -41,8 +40,6 @@ use Spatie\Activitylog\Models\Activity;
  */
 class UnificadoController extends Controller
 {
-    use RendersMockCowork;
-
     public function __construct()
     {
         $this->middleware('auth');
@@ -51,11 +48,6 @@ class UnificadoController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        // Wagner 2026-05-18 Mock Cowork Mode (config/financeiro.php).
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
-
         $businessId = (int) session('user.business_id');
         $hoje = now()->toDateString();
         $vencendoLimite = now()->addDays(7)->toDateString();
