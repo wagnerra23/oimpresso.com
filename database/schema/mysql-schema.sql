@@ -1,26 +1,276 @@
--- ============================================================================
--- mysql-schema.sql — SCHEMA SQUASH (Laravel migration squashing · ADR 0108/US-GOV-013)
--- Origem: dump estrutural (--no-data) + tabela migrations do STAGING saudável
---   (oimpresso-staging-db, CT 100, anonimizado LGPD) — 359 tabelas + 24 views.
--- Por quê: migrate:fresh do zero estava quebrado por podridão histórica (view×table
---   copiloto_metas, FK INT×BIGINT nfse, etc). Este squash bypassa o replay das 774
---   migrations: o migrate carrega este schema + marca migrations como aplicadas, e
---   só roda migrations NOVAS por cima. Regenerar: schema:dump do staging (RUNBOOK).
--- DEFINER strippado (views = SQL SECURITY INVOKER) pra carregar em qualquer ambiente.
--- ============================================================================
-
 /*M!999999\- enable the sandbox mode */ 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+DROP TABLE IF EXISTS `_bkp_bad_compras_20260602`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `_bkp_bad_compras_20260602` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0,
+  `business_id` int(10) unsigned NOT NULL,
+  `process_id` bigint(20) unsigned DEFAULT NULL,
+  `current_stage_id` bigint(20) unsigned DEFAULT NULL,
+  `is_grouped_invoice` tinyint(1) NOT NULL DEFAULT 0,
+  `location_id` int(10) unsigned DEFAULT NULL,
+  `is_kitchen_order` tinyint(1) NOT NULL DEFAULT 0,
+  `journal_entry_id` bigint(20) unsigned DEFAULT NULL,
+  `res_table_id` int(10) unsigned DEFAULT NULL COMMENT 'fields to restaurant module',
+  `res_waiter_id` int(10) unsigned DEFAULT NULL COMMENT 'fields to restaurant module',
+  `res_order_status` enum('received','cooked','served') DEFAULT NULL,
+  `type` varchar(191) DEFAULT NULL,
+  `sub_type` varchar(20) DEFAULT NULL,
+  `status` varchar(191) NOT NULL,
+  `sub_status` varchar(191) DEFAULT NULL,
+  `is_quotation` tinyint(1) NOT NULL DEFAULT 0,
+  `payment_status` enum('paid','due','partial') DEFAULT NULL,
+  `adjustment_type` enum('normal','abnormal') DEFAULT NULL,
+  `contact_id` int(11) unsigned DEFAULT NULL,
+  `customer_group_id` int(11) DEFAULT NULL COMMENT 'used to add customer group while selling',
+  `invoice_no` varchar(191) DEFAULT NULL,
+  `ref_no` varchar(191) DEFAULT NULL,
+  `source` varchar(191) DEFAULT NULL,
+  `os_ref` varchar(20) DEFAULT NULL COMMENT 'Referência cross-módulo OS-NNNN quando source=oficina · ADR 0192',
+  `commission_split` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Split { mecanico_id, mecanico_pct, balcao_id, balcao_pct } total=100 · ADR 0192',
+  `subscription_no` varchar(191) DEFAULT NULL,
+  `subscription_repeat_on` varchar(191) DEFAULT NULL,
+  `transaction_date` datetime NOT NULL,
+  `cancelled_at` timestamp NULL DEFAULT NULL COMMENT 'Marcador de cancelamento · NULL = ativa · timestamp = cancelada (preserva row + audit) · ADR 0192 reverse hook',
+  `invoiced_at` datetime DEFAULT NULL COMMENT 'US-SELL-021 · DT_FATURAMENTO legacy — quando a venda foi faturada',
+  `invoice_sent_at` datetime DEFAULT NULL COMMENT 'US-SELL-021 · FATURAMENTO_DT_ENVIO legacy — quando a fatura foi enviada ao cliente',
+  `competence_date` date DEFAULT NULL COMMENT 'US-SELL-021 · DT_COMPETENCIA legacy — mês contábil de competência (≠ emissão)',
+  `due_date` date DEFAULT NULL COMMENT 'US-SELL-021 · PROJETO_DT_FIM legacy — data prometida pro cliente (entrega/serviço)',
+  `total_before_tax` decimal(22,4) NOT NULL DEFAULT 0.0000 COMMENT 'Total before the purchase/invoice tax, this includeds the indivisual product tax',
+  `tax_id` int(10) unsigned DEFAULT NULL,
+  `tax_amount` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `discount_type` enum('fixed','percentage') DEFAULT NULL,
+  `discount_amount` decimal(22,4) DEFAULT 0.0000,
+  `rp_redeemed` int(11) NOT NULL DEFAULT 0 COMMENT 'rp is the short form of reward points',
+  `rp_redeemed_amount` decimal(22,4) NOT NULL DEFAULT 0.0000 COMMENT 'rp is the short form of reward points',
+  `shipping_details` varchar(191) DEFAULT NULL,
+  `shipping_address` text DEFAULT NULL,
+  `delivery_date` datetime DEFAULT NULL,
+  `shipping_status` varchar(191) DEFAULT NULL,
+  `delivered_to` varchar(191) DEFAULT NULL,
+  `delivery_person` bigint(20) DEFAULT NULL,
+  `shipping_charges` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `shipping_custom_field_1` varchar(191) DEFAULT NULL,
+  `shipping_custom_field_2` varchar(191) DEFAULT NULL,
+  `shipping_custom_field_3` varchar(191) DEFAULT NULL,
+  `shipping_custom_field_4` varchar(191) DEFAULT NULL,
+  `shipping_custom_field_5` varchar(191) DEFAULT NULL,
+  `additional_notes` text DEFAULT NULL,
+  `staff_note` text DEFAULT NULL,
+  `is_export` tinyint(1) NOT NULL DEFAULT 0,
+  `export_custom_fields_info` longtext DEFAULT NULL,
+  `round_off_amount` decimal(22,4) NOT NULL DEFAULT 0.0000 COMMENT 'Difference of rounded total and actual total',
+  `additional_expense_key_1` varchar(191) DEFAULT NULL,
+  `additional_expense_value_1` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `additional_expense_key_2` varchar(191) DEFAULT NULL,
+  `additional_expense_value_2` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `additional_expense_key_3` varchar(191) DEFAULT NULL,
+  `additional_expense_value_3` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `additional_expense_key_4` varchar(191) DEFAULT NULL,
+  `additional_expense_value_4` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `final_total` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `expense_category_id` int(10) unsigned DEFAULT NULL,
+  `expense_sub_category_id` int(11) DEFAULT NULL,
+  `expense_for` int(10) unsigned DEFAULT NULL,
+  `commission_agent` int(11) DEFAULT NULL,
+  `document` varchar(191) DEFAULT NULL,
+  `is_direct_sale` tinyint(1) NOT NULL DEFAULT 0,
+  `is_suspend` tinyint(1) NOT NULL DEFAULT 0,
+  `exchange_rate` decimal(20,3) NOT NULL DEFAULT 1.000,
+  `total_amount_recovered` decimal(22,4) DEFAULT NULL COMMENT 'Used for stock adjustment.',
+  `transfer_parent_id` int(11) DEFAULT NULL,
+  `return_parent_id` int(11) DEFAULT NULL,
+  `opening_stock_product_id` int(11) DEFAULT NULL,
+  `created_by` int(10) unsigned NOT NULL,
+  `purchase_requisition_ids` text DEFAULT NULL,
+  `prefer_payment_method` varchar(191) DEFAULT NULL,
+  `prefer_payment_account` int(11) DEFAULT NULL,
+  `sales_order_ids` text DEFAULT NULL,
+  `purchase_order_ids` text DEFAULT NULL,
+  `custom_field_1` varchar(191) DEFAULT NULL,
+  `custom_field_2` varchar(191) DEFAULT NULL,
+  `custom_field_3` varchar(191) DEFAULT NULL,
+  `custom_field_4` varchar(191) DEFAULT NULL,
+  `crm_is_order_request` tinyint(1) NOT NULL DEFAULT 0,
+  `essentials_duration` decimal(8,2) NOT NULL,
+  `essentials_duration_unit` varchar(20) DEFAULT NULL,
+  `essentials_amount_per_unit_duration` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `essentials_allowances` text DEFAULT NULL,
+  `essentials_deductions` text DEFAULT NULL,
+  `mfg_parent_production_purchase_id` int(11) DEFAULT NULL,
+  `mfg_wasted_units` decimal(22,4) DEFAULT NULL,
+  `mfg_production_cost` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `mfg_production_cost_type` varchar(191) DEFAULT 'percentage',
+  `mfg_is_final` tinyint(1) NOT NULL DEFAULT 0,
+  `woocommerce_order_id` int(11) DEFAULT NULL,
+  `repair_completed_on` datetime DEFAULT NULL,
+  `repair_warranty_id` int(11) DEFAULT NULL,
+  `repair_brand_id` int(11) DEFAULT NULL,
+  `repair_status_id` int(11) DEFAULT NULL,
+  `repair_model_id` int(11) DEFAULT NULL,
+  `repair_job_sheet_id` int(10) unsigned DEFAULT NULL,
+  `repair_defects` text DEFAULT NULL,
+  `repair_serial_no` varchar(191) DEFAULT NULL,
+  `repair_checklist` text DEFAULT NULL,
+  `repair_security_pwd` varchar(191) DEFAULT NULL,
+  `repair_security_pattern` varchar(191) DEFAULT NULL,
+  `repair_due_date` datetime DEFAULT NULL,
+  `repair_device_id` int(11) DEFAULT NULL,
+  `repair_updates_notif` tinyint(1) NOT NULL DEFAULT 0,
+  `import_batch` int(11) DEFAULT NULL,
+  `import_time` datetime DEFAULT NULL,
+  `types_of_service_id` int(11) DEFAULT NULL,
+  `packing_charge` decimal(22,4) DEFAULT NULL,
+  `packing_charge_type` enum('fixed','percent') DEFAULT NULL,
+  `service_custom_field_1` text DEFAULT NULL,
+  `service_custom_field_2` text DEFAULT NULL,
+  `service_custom_field_3` text DEFAULT NULL,
+  `service_custom_field_4` text DEFAULT NULL,
+  `service_custom_field_5` text DEFAULT NULL,
+  `service_custom_field_6` text DEFAULT NULL,
+  `is_created_from_api` tinyint(1) NOT NULL DEFAULT 0,
+  `rp_earned` int(11) NOT NULL DEFAULT 0 COMMENT 'rp is the short form of reward points',
+  `order_addresses` text DEFAULT NULL,
+  `is_recurring` tinyint(1) NOT NULL DEFAULT 0,
+  `recur_interval` double(22,4) DEFAULT NULL,
+  `recur_interval_type` enum('days','months','years') DEFAULT NULL,
+  `recur_repetitions` int(11) DEFAULT NULL,
+  `recur_stopped_on` datetime DEFAULT NULL,
+  `recur_parent_id` int(11) DEFAULT NULL,
+  `invoice_token` varchar(191) DEFAULT NULL,
+  `pay_term_number` int(11) DEFAULT NULL,
+  `pay_term_type` enum('days','months') DEFAULT NULL,
+  `selling_price_group_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `natureza_id` int(10) unsigned DEFAULT NULL,
+  `placa` varchar(9) NOT NULL DEFAULT '',
+  `uf` varchar(2) NOT NULL DEFAULT '',
+  `valor_frete` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tipo` int(11) NOT NULL DEFAULT 0,
+  `qtd_volumes` int(11) NOT NULL DEFAULT 0,
+  `numeracao_volumes` varchar(20) NOT NULL DEFAULT '',
+  `especie` varchar(20) NOT NULL DEFAULT '',
+  `peso_liquido` decimal(8,3) NOT NULL DEFAULT 0.000,
+  `peso_bruto` decimal(8,3) NOT NULL DEFAULT 0.000,
+  `numero_nfe` int(11) NOT NULL DEFAULT 0,
+  `numero_nfce` int(11) NOT NULL DEFAULT 0,
+  `numero_nfe_entrada` int(11) NOT NULL DEFAULT 0,
+  `chave` varchar(48) NOT NULL DEFAULT '',
+  `chave_entrada` varchar(48) NOT NULL DEFAULT '',
+  `sequencia_cce` int(11) NOT NULL DEFAULT 0,
+  `cpf_nota` varchar(15) NOT NULL DEFAULT '',
+  `troco` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `valor_recebido` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `transportadora_id` int(10) unsigned DEFAULT NULL,
+  `estado` varchar(20) NOT NULL DEFAULT 'NOVO'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `_bkp_devolucao_softdel_20260603`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `_bkp_devolucao_softdel_20260603` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `status` enum('aberto','parcial','quitado','cancelado') NOT NULL DEFAULT 'aberto',
+  `tipo` enum('receber','pagar') NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `_bkp_fin_titulos_20260602`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `_bkp_fin_titulos_20260602` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0,
+  `business_id` int(10) unsigned NOT NULL,
+  `numero` varchar(20) NOT NULL COMMENT 'Sequencial business-isolado; lockForUpdate em geração',
+  `legacy_id` varchar(32) DEFAULT NULL COMMENT 'Chave natural FINANCEIRO.CODIGO Delphi pra dedup importer.',
+  `tipo` enum('receber','pagar') NOT NULL,
+  `status` enum('aberto','parcial','quitado','cancelado') NOT NULL DEFAULT 'aberto',
+  `aprovacao_status` enum('pendente','aprovado','rejeitado') DEFAULT NULL,
+  `aprovado_by` int(10) unsigned DEFAULT NULL,
+  `aprovado_at` timestamp NULL DEFAULT NULL,
+  `aprovacao_motivo` varchar(500) DEFAULT NULL,
+  `cliente_id` int(10) unsigned DEFAULT NULL COMMENT 'FK soft -> contacts.id',
+  `cliente_descricao` varchar(255) DEFAULT NULL COMMENT 'Fallback se cliente não cadastrado',
+  `valor_total` decimal(22,4) NOT NULL,
+  `valor_aberto` decimal(22,4) NOT NULL COMMENT 'valor_total - sum(baixas.valor); auto via observer',
+  `moeda` char(3) NOT NULL DEFAULT 'BRL',
+  `emissao` date NOT NULL,
+  `vencimento` date NOT NULL,
+  `competencia_mes` char(7) NOT NULL COMMENT 'YYYY-MM regime competência',
+  `origem` enum('manual','venda','compra','despesa','recurring','folha','caixa') NOT NULL,
+  `origem_id` int(10) unsigned DEFAULT NULL COMMENT 'transaction.id, recurring_invoice.id, etc.',
+  `parcela_numero` tinyint(3) unsigned DEFAULT NULL,
+  `parcela_total` tinyint(3) unsigned DEFAULT NULL,
+  `titulo_pai_id` int(10) unsigned DEFAULT NULL COMMENT 'Self-FK para parcelas',
+  `plano_conta_id` int(10) unsigned DEFAULT NULL,
+  `categoria_id` int(10) unsigned DEFAULT NULL,
+  `observacoes` text DEFAULT NULL,
+  `metadata` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Shape específico por origem (ex: nfe_chave)',
+  `created_by` int(10) unsigned NOT NULL,
+  `updated_by` int(10) unsigned DEFAULT NULL,
+  `conferido_by` int(10) unsigned DEFAULT NULL COMMENT 'FK users.id — quem marcou como conferido (per-user audit)',
+  `conferido_at` timestamp NULL DEFAULT NULL COMMENT 'Timestamp da conferência',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `_bkp_prod_codigo_backfill_20260602`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `_bkp_prod_codigo_backfill_20260602` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `_bkp_tsl_biz164_20260601`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `_bkp_tsl_biz164_20260601` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0,
+  `transaction_id` int(10) unsigned NOT NULL,
+  `product_id` int(10) unsigned NOT NULL,
+  `variation_id` int(10) unsigned NOT NULL,
+  `quantity` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `secondary_unit_quantity` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `mfg_waste_percent` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `mfg_ingredient_group_id` int(11) DEFAULT NULL,
+  `quantity_returned` decimal(20,4) NOT NULL DEFAULT 0.0000,
+  `unit_price_before_discount` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `unit_price` decimal(22,4) DEFAULT NULL COMMENT 'Sell price excluding tax',
+  `line_discount_type` enum('fixed','percentage') DEFAULT NULL,
+  `line_discount_amount` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `unit_price_inc_tax` decimal(22,4) DEFAULT NULL COMMENT 'Sell price including tax',
+  `item_tax` decimal(22,4) NOT NULL COMMENT 'Tax for one quantity',
+  `tax_id` int(10) unsigned DEFAULT NULL,
+  `discount_id` int(11) DEFAULT NULL,
+  `lot_no_line_id` int(11) DEFAULT NULL,
+  `sell_line_note` text DEFAULT NULL,
+  `so_line_id` int(11) DEFAULT NULL,
+  `so_quantity_invoiced` decimal(22,4) NOT NULL DEFAULT 0.0000,
+  `woocommerce_line_items_id` int(11) DEFAULT NULL,
+  `res_service_staff_id` int(11) DEFAULT NULL,
+  `res_line_order_status` varchar(191) DEFAULT NULL,
+  `parent_sell_line_id` int(11) DEFAULT NULL,
+  `children_type` varchar(191) NOT NULL DEFAULT '' COMMENT 'Type of children for the parent, like modifier or combo',
+  `sub_unit_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `_bkp_undelete_prod_20260602`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `_bkp_undelete_prod_20260602` (
+  `id` int(10) unsigned NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `_tmp_skus_ativos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -42,7 +292,7 @@ CREATE TABLE `account_detail_types` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=140 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `account_subtypes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -57,7 +307,7 @@ CREATE TABLE `account_subtypes` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `account_transactions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -87,7 +337,7 @@ CREATE TABLE `account_transactions` (
   KEY `account_transactions_type_index` (`type`),
   KEY `account_transactions_sub_type_index` (`sub_type`),
   KEY `account_transactions_operation_date_index` (`operation_date`)
-) ENGINE=InnoDB AUTO_INCREMENT=11893 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `account_types`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -102,7 +352,7 @@ CREATE TABLE `account_types` (
   PRIMARY KEY (`id`),
   KEY `account_types_parent_account_type_id_index` (`parent_account_type_id`),
   KEY `account_types_business_id_index` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `accounts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -124,7 +374,7 @@ CREATE TABLE `accounts` (
   KEY `accounts_business_id_index` (`business_id`),
   KEY `accounts_account_type_id_index` (`account_type_id`),
   KEY `accounts_created_by_index` (`created_by`)
-) ENGINE=InnoDB AUTO_INCREMENT=149 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `accounts_legacy_map`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -147,7 +397,7 @@ CREATE TABLE `accounts_legacy_map` (
   KEY `accounts_legacy_map_business_id_index` (`business_id`),
   CONSTRAINT `accounts_legacy_map_account_id_foreign` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `accounts_legacy_map_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `activity_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -175,7 +425,7 @@ CREATE TABLE `activity_log` (
   KEY `activity_log_log_name_index` (`log_name`),
   KEY `idx_business_kind_created` (`business_id`,`causer_kind`,`created_at`),
   KEY `idx_subject_reverted` (`subject_type`,`subject_id`,`reverted_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=84810 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `advisor_business_access`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -474,7 +724,7 @@ CREATE TABLE `barcodes` (
   PRIMARY KEY (`id`),
   KEY `barcodes_business_id_foreign` (`business_id`),
   CONSTRAINT `barcodes_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `bookings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -545,7 +795,7 @@ CREATE TABLE `brands` (
   KEY `brands_created_by_foreign` (`created_by`),
   CONSTRAINT `brands_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `brands_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `budgets`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -720,7 +970,7 @@ CREATE TABLE `business` (
   CONSTRAINT `business_currency_id_foreign` FOREIGN KEY (`currency_id`) REFERENCES `currencies` (`id`),
   CONSTRAINT `business_default_sales_tax_foreign` FOREIGN KEY (`default_sales_tax`) REFERENCES `tax_rates` (`id`),
   CONSTRAINT `business_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=227 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `business_locations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -774,7 +1024,7 @@ CREATE TABLE `business_locations` (
   CONSTRAINT `business_locations_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `business_locations_invoice_layout_id_foreign` FOREIGN KEY (`invoice_layout_id`) REFERENCES `invoice_layouts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `business_locations_invoice_scheme_id_foreign` FOREIGN KEY (`invoice_scheme_id`) REFERENCES `invoice_schemes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=181 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cash_denominations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -811,7 +1061,7 @@ CREATE TABLE `cash_register_transactions` (
   KEY `cash_register_transactions_type_index` (`type`),
   KEY `cash_register_transactions_transaction_type_index` (`transaction_type`),
   CONSTRAINT `cash_register_transactions_cash_register_id_foreign` FOREIGN KEY (`cash_register_id`) REFERENCES `cash_registers` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cash_registers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -836,7 +1086,7 @@ CREATE TABLE `cash_registers` (
   KEY `cash_registers_location_id_index` (`location_id`),
   CONSTRAINT `cash_registers_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `cash_registers_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -864,7 +1114,7 @@ CREATE TABLE `categories` (
   KEY `categories_parent_id_index` (`parent_id`),
   CONSTRAINT `categories_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `categories_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=266 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `categorizables`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -895,7 +1145,7 @@ CREATE TABLE `channel_user_access` (
   KEY `cua_biz_user_idx` (`business_id`,`user_id`),
   KEY `cua_biz_channel_idx` (`business_id`,`channel_id`),
   CONSTRAINT `cua_channel_fk` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `channels`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -932,7 +1182,7 @@ CREATE TABLE `channels` (
   KEY `channels_biz_idx` (`business_id`),
   KEY `channels_type_health_idx` (`type`,`channel_health`),
   KEY `channels_display_identifier_type_idx` (`display_identifier`,`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `chart_of_accounts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -974,7 +1224,7 @@ CREATE TABLE `cidades` (
   PRIMARY KEY (`id`),
   KEY `cidades_business_id_foreign` (`business_id`),
   CONSTRAINT `cidades_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5632 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cities`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -989,7 +1239,7 @@ CREATE TABLE `cities` (
   `business_id` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `cities_business_id_index` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5571 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `clients_feedbacks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1061,7 +1311,7 @@ CREATE TABLE `cms_page_metas` (
   PRIMARY KEY (`id`),
   KEY `cms_page_metas_cms_page_id_foreign` (`cms_page_id`),
   CONSTRAINT `cms_page_metas_cms_page_id_foreign` FOREIGN KEY (`cms_page_id`) REFERENCES `cms_pages` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cms_pages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1081,7 +1331,7 @@ CREATE TABLE `cms_pages` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cms_site_details`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1093,7 +1343,7 @@ CREATE TABLE `cms_site_details` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cnab_retorno_uploads`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1234,7 +1484,7 @@ CREATE TABLE `comvis_materiais` (
   KEY `idx_comvis_mat_business` (`business_id`),
   KEY `idx_comvis_mat_business_ativo` (`business_id`,`ativo`),
   CONSTRAINT `fk_comvis_mat_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `comvis_orcamento_itens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1353,7 +1603,7 @@ CREATE TABLE `condicaopagto` (
   PRIMARY KEY (`id`),
   KEY `condicaopagto_business_id_foreign` (`business_id`),
   CONSTRAINT `condicaopagto_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `contact_addresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1382,7 +1632,7 @@ CREATE TABLE `contact_addresses` (
   KEY `contact_addresses_contact_id_index` (`contact_id`),
   CONSTRAINT `contact_addresses_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `contact_addresses_contact_id_foreign` FOREIGN KEY (`contact_id`) REFERENCES `contacts` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16060 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `contacts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1407,6 +1657,7 @@ CREATE TABLE `contacts` (
   `is_supplier` tinyint(1) NOT NULL DEFAULT 0,
   `is_employee` tinyint(1) NOT NULL DEFAULT 0,
   `is_representative` tinyint(1) NOT NULL DEFAULT 0,
+  `is_other` tinyint(1) NOT NULL DEFAULT 0,
   `contact_type` varchar(191) DEFAULT NULL,
   `land_mark` varchar(191) DEFAULT NULL,
   `street_name` varchar(191) DEFAULT NULL,
@@ -1537,10 +1788,11 @@ CREATE TABLE `contacts` (
   KEY `idx_contacts_biz_parent` (`business_id`,`parent_contact_id`),
   KEY `idx_contacts_biz_sales_rep` (`business_id`,`sales_rep_contact_id`),
   KEY `idx_contacts_biz_officeimpresso_codigo` (`business_id`,`officeimpresso_codigo`),
+  KEY `idx_contacts_biz_other` (`business_id`,`is_other`),
   CONSTRAINT `contacts_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `contacts_city_id_foreign` FOREIGN KEY (`city_id`) REFERENCES `cities` (`id`) ON DELETE CASCADE,
   CONSTRAINT `contacts_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=30540 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `conversations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1575,207 +1827,222 @@ CREATE TABLE `conversations` (
   KEY `conversations_biz_lid_idx` (`business_id`,`lid`),
   KEY `conversations_biz_phone_idx` (`business_id`,`phone_e164`),
   KEY `conversations_biz_bsuid_idx` (`business_id`,`bsuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=442 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `copiloto_business_profile`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_business_profile`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_business_profile` AS SELECT
- NULL AS `id`,
- NULL AS `business_id`,
- NULL AS `profile_text`,
- NULL AS `tokens_estimated`,
- NULL AS `raw_context_tokens`,
- NULL AS `gerado_em`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `business_id`,
+  1 AS `profile_text`,
+  1 AS `tokens_estimated`,
+  1 AS `raw_context_tokens`,
+  1 AS `gerado_em`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_cache_semantico`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_cache_semantico`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_cache_semantico` AS SELECT
- NULL AS `id`,
- NULL AS `cache_key`,
- NULL AS `business_id`,
- NULL AS `user_id`,
- NULL AS `query_original`,
- NULL AS `query_normalizada`,
- NULL AS `query_embedding`,
- NULL AS `resposta`,
- NULL AS `metadata`,
- NULL AS `hits`,
- NULL AS `ultimo_hit_em`,
- NULL AS `tokens_in`,
- NULL AS `tokens_out`,
- NULL AS `custo_brl_original`,
- NULL AS `expira_em`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `cache_key`,
+  1 AS `business_id`,
+  1 AS `user_id`,
+  1 AS `query_original`,
+  1 AS `query_normalizada`,
+  1 AS `query_embedding`,
+  1 AS `resposta`,
+  1 AS `metadata`,
+  1 AS `hits`,
+  1 AS `ultimo_hit_em`,
+  1 AS `tokens_in`,
+  1 AS `tokens_out`,
+  1 AS `custo_brl_original`,
+  1 AS `expira_em`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_conversas`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_conversas`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_conversas` AS SELECT
- NULL AS `id`,
- NULL AS `business_id`,
- NULL AS `user_id`,
- NULL AS `titulo`,
- NULL AS `status`,
- NULL AS `iniciada_em`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `business_id`,
+  1 AS `user_id`,
+  1 AS `titulo`,
+  1 AS `status`,
+  1 AS `iniciada_em`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_memoria_facts`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_memoria_facts`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_memoria_facts` AS SELECT
- NULL AS `id`,
- NULL AS `business_id`,
- NULL AS `user_id`,
- NULL AS `fato`,
- NULL AS `metadata`,
- NULL AS `valid_from`,
- NULL AS `valid_until`,
- NULL AS `hits_count`,
- NULL AS `ultimo_hit_em`,
- NULL AS `core_memory`,
- NULL AS `created_at`,
- NULL AS `updated_at`,
- NULL AS `deleted_at` */;
+ 1 AS `id`,
+  1 AS `business_id`,
+  1 AS `user_id`,
+  1 AS `fato`,
+  1 AS `metadata`,
+  1 AS `valid_from`,
+  1 AS `valid_until`,
+  1 AS `hits_count`,
+  1 AS `ultimo_hit_em`,
+  1 AS `core_memory`,
+  1 AS `created_at`,
+  1 AS `updated_at`,
+  1 AS `deleted_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_memoria_gabarito`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_memoria_gabarito`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_memoria_gabarito` AS SELECT
- NULL AS `id`,
- NULL AS `business_id`,
- NULL AS `categoria`,
- NULL AS `subcategoria`,
- NULL AS `pergunta`,
- NULL AS `memoria_esperada_keys`,
- NULL AS `resposta_esperada_pattern`,
- NULL AS `contexto_setup`,
- NULL AS `dificuldade`,
- NULL AS `ativo`,
- NULL AS `notas`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `business_id`,
+  1 AS `categoria`,
+  1 AS `subcategoria`,
+  1 AS `pergunta`,
+  1 AS `memoria_esperada_keys`,
+  1 AS `resposta_esperada_pattern`,
+  1 AS `contexto_setup`,
+  1 AS `dificuldade`,
+  1 AS `ativo`,
+  1 AS `notas`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_memoria_metricas`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_memoria_metricas`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_memoria_metricas` AS SELECT
- NULL AS `id`,
- NULL AS `apurado_em`,
- NULL AS `business_id`,
- NULL AS `recall_at_3`,
- NULL AS `precision_at_3`,
- NULL AS `mrr`,
- NULL AS `latencia_p95_ms`,
- NULL AS `tokens_medio_interacao`,
- NULL AS `memory_bloat_ratio`,
- NULL AS `taxa_contradicoes_pct`,
- NULL AS `cross_tenant_violations`,
- NULL AS `faithfulness`,
- NULL AS `answer_relevancy`,
- NULL AS `context_precision`,
- NULL AS `total_interacoes_dia`,
- NULL AS `total_memorias_ativas`,
- NULL AS `detalhes`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `apurado_em`,
+  1 AS `business_id`,
+  1 AS `recall_at_3`,
+  1 AS `precision_at_3`,
+  1 AS `mrr`,
+  1 AS `latencia_p95_ms`,
+  1 AS `tokens_medio_interacao`,
+  1 AS `memory_bloat_ratio`,
+  1 AS `taxa_contradicoes_pct`,
+  1 AS `cross_tenant_violations`,
+  1 AS `faithfulness`,
+  1 AS `answer_relevancy`,
+  1 AS `context_precision`,
+  1 AS `total_interacoes_dia`,
+  1 AS `total_memorias_ativas`,
+  1 AS `detalhes`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_mensagens`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_mensagens`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_mensagens` AS SELECT
- NULL AS `id`,
- NULL AS `conversa_id`,
- NULL AS `role`,
- NULL AS `content`,
- NULL AS `tokens_in`,
- NULL AS `tokens_out`,
- NULL AS `created_at` */;
+ 1 AS `id`,
+  1 AS `conversa_id`,
+  1 AS `role`,
+  1 AS `content`,
+  1 AS `tokens_in`,
+  1 AS `tokens_out`,
+  1 AS `created_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_meta_apuracoes`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_meta_apuracoes`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_meta_apuracoes` AS SELECT
- NULL AS `id`,
- NULL AS `meta_id`,
- NULL AS `data_ref`,
- NULL AS `valor_realizado`,
- NULL AS `calculado_em`,
- NULL AS `fonte_query_hash`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `meta_id`,
+  1 AS `data_ref`,
+  1 AS `valor_realizado`,
+  1 AS `calculado_em`,
+  1 AS `fonte_query_hash`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_meta_fontes`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_meta_fontes`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_meta_fontes` AS SELECT
- NULL AS `id`,
- NULL AS `meta_id`,
- NULL AS `driver`,
- NULL AS `config_json`,
- NULL AS `cadencia`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `meta_id`,
+  1 AS `driver`,
+  1 AS `config_json`,
+  1 AS `cadencia`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_meta_periodos`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_meta_periodos`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_meta_periodos` AS SELECT
- NULL AS `id`,
- NULL AS `meta_id`,
- NULL AS `tipo_periodo`,
- NULL AS `data_ini`,
- NULL AS `data_fim`,
- NULL AS `valor_alvo`,
- NULL AS `trajetoria`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `meta_id`,
+  1 AS `tipo_periodo`,
+  1 AS `data_ini`,
+  1 AS `data_fim`,
+  1 AS `valor_alvo`,
+  1 AS `trajetoria`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_metas`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_metas`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_metas` AS SELECT
- NULL AS `id`,
- NULL AS `business_id`,
- NULL AS `slug`,
- NULL AS `nome`,
- NULL AS `unidade`,
- NULL AS `tipo_agregacao`,
- NULL AS `ativo`,
- NULL AS `criada_por_user_id`,
- NULL AS `origem`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `business_id`,
+  1 AS `slug`,
+  1 AS `nome`,
+  1 AS `unidade`,
+  1 AS `tipo_agregacao`,
+  1 AS `ativo`,
+  1 AS `criada_por_user_id`,
+  1 AS `origem`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
+SET character_set_client = @saved_cs_client;
+DROP TABLE IF EXISTS `copiloto_negative_cache`;
+/*!50001 DROP VIEW IF EXISTS `copiloto_negative_cache`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8mb4;
+/*!50001 CREATE VIEW `copiloto_negative_cache` AS SELECT
+ 1 AS `id`,
+  1 AS `cache_key`,
+  1 AS `business_id`,
+  1 AS `user_id`,
+  1 AS `query_normalizada`,
+  1 AS `hits_negativos`,
+  1 AS `expira_em`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `copiloto_sugestoes`;
 /*!50001 DROP VIEW IF EXISTS `copiloto_sugestoes`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8mb4;
 /*!50001 CREATE VIEW `copiloto_sugestoes` AS SELECT
- NULL AS `id`,
- NULL AS `conversa_id`,
- NULL AS `meta_id`,
- NULL AS `payload_json`,
- NULL AS `escolhida_em`,
- NULL AS `rejeitada_em`,
- NULL AS `created_at`,
- NULL AS `updated_at` */;
+ 1 AS `id`,
+  1 AS `conversa_id`,
+  1 AS `meta_id`,
+  1 AS `payload_json`,
+  1 AS `escolhida_em`,
+  1 AS `rejeitada_em`,
+  1 AS `created_at`,
+  1 AS `updated_at` */;
 SET character_set_client = @saved_cs_client;
 DROP TABLE IF EXISTS `countries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1787,7 +2054,7 @@ CREATE TABLE `countries` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=247 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `crm_call_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2096,7 +2363,7 @@ CREATE TABLE `currencies` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `customer_groups`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2115,7 +2382,7 @@ CREATE TABLE `customer_groups` (
   KEY `customer_groups_business_id_foreign` (`business_id`),
   KEY `customer_groups_created_by_index` (`created_by`),
   CONSTRAINT `customer_groups_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `customer_memory`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2166,7 +2433,7 @@ CREATE TABLE `customer_memory` (
   KEY `cm_biz_reclamacoes_idx` (`business_id`,`total_reclamacoes`),
   CONSTRAINT `customer_memory_business_fk` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `customer_memory_contact_fk` FOREIGN KEY (`contact_id`) REFERENCES `contacts` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=340 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `cv_acabamentos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2368,7 +2635,7 @@ CREATE TABLE `devolucaos` (
   CONSTRAINT `devolucaos_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `devolucaos_contact_id_foreign` FOREIGN KEY (`contact_id`) REFERENCES `contacts` (`id`),
   CONSTRAINT `devolucaos_natureza_id_foreign` FOREIGN KEY (`natureza_id`) REFERENCES `natureza_operacaos` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `discount_variations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2407,7 +2674,7 @@ CREATE TABLE `discounts` (
   KEY `discounts_location_id_index` (`location_id`),
   KEY `discounts_priority_index` (`priority`),
   KEY `discounts_spg_index` (`spg`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `docs_chat_messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2501,7 +2768,7 @@ CREATE TABLE `docs_pages` (
   UNIQUE KEY `docs_pages_path_unique` (`path`),
   KEY `docs_pages_module_status_index` (`module`,`status`),
   KEY `docs_pages_module_index` (`module`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `docs_requirements`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2591,7 +2858,7 @@ CREATE TABLE `document_and_notes` (
   KEY `document_and_notes_business_id_index` (`business_id`),
   KEY `document_and_notes_notable_id_index` (`notable_id`),
   KEY `document_and_notes_created_by_index` (`created_by`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `employee_performance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2631,7 +2898,7 @@ CREATE TABLE `employee_performance` (
   KEY `employee_performance_user_fk` (`user_id`),
   CONSTRAINT `employee_performance_business_fk` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `employee_performance_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_allowances_and_deductions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2671,7 +2938,7 @@ CREATE TABLE `essentials_attendances` (
   KEY `essentials_attendances_user_id_index` (`user_id`),
   KEY `essentials_attendances_business_id_index` (`business_id`),
   KEY `essentials_attendances_essentials_shift_id_index` (`essentials_shift_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_document_shares`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2701,7 +2968,7 @@ CREATE TABLE `essentials_documents` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_holidays`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2741,7 +3008,7 @@ CREATE TABLE `essentials_kb` (
   KEY `essentials_kb_parent_id_index` (`parent_id`),
   KEY `essentials_kb_created_by_index` (`created_by`),
   CONSTRAINT `essentials_kb_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `essentials_kb` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_kb_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2807,7 +3074,7 @@ CREATE TABLE `essentials_messages` (
   KEY `essentials_messages_business_id_index` (`business_id`),
   KEY `essentials_messages_user_id_index` (`user_id`),
   KEY `essentials_messages_location_id_index` (`location_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_payroll_group_transactions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2834,7 +3101,7 @@ CREATE TABLE `essentials_payroll_groups` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_reminders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2853,7 +3120,7 @@ CREATE TABLE `essentials_reminders` (
   PRIMARY KEY (`id`),
   KEY `essentials_reminders_business_id_index` (`business_id`),
   KEY `essentials_reminders_user_id_index` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_shifts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2873,7 +3140,7 @@ CREATE TABLE `essentials_shifts` (
   PRIMARY KEY (`id`),
   KEY `essentials_shifts_type_index` (`type`),
   KEY `essentials_shifts_business_id_index` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_to_dos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2898,7 +3165,7 @@ CREATE TABLE `essentials_to_dos` (
   KEY `essentials_to_dos_created_by_index` (`created_by`),
   KEY `essentials_to_dos_business_id_index` (`business_id`),
   KEY `essentials_to_dos_task_id_index` (`task_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `essentials_todo_comments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2961,7 +3228,7 @@ CREATE TABLE `essentials_user_shifts` (
   PRIMARY KEY (`id`),
   KEY `essentials_user_shifts_user_id_index` (`user_id`),
   KEY `essentials_user_shifts_essentials_shift_id_index` (`essentials_shift_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `expense_categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2978,7 +3245,7 @@ CREATE TABLE `expense_categories` (
   PRIMARY KEY (`id`),
   KEY `expense_categories_business_id_foreign` (`business_id`),
   CONSTRAINT `expense_categories_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `failed_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2993,7 +3260,7 @@ CREATE TABLE `failed_jobs` (
   `failed_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `feature_flag_audits`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3050,7 +3317,7 @@ CREATE TABLE `fin_bank_statement_lines` (
   CONSTRAINT `fin_bank_statement_lines_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_bank_statement_lines_conta_bancaria_id_foreign` FOREIGN KEY (`conta_bancaria_id`) REFERENCES `fin_contas_bancarias` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fin_bank_statement_lines_titulo_id_foreign` FOREIGN KEY (`titulo_id`) REFERENCES `fin_titulos` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=230 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_boleto_remessas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3112,7 +3379,7 @@ CREATE TABLE `fin_caixa_movimentos` (
   CONSTRAINT `fin_caixa_movimentos_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_caixa_movimentos_conta_bancaria_id_foreign` FOREIGN KEY (`conta_bancaria_id`) REFERENCES `fin_contas_bancarias` (`id`),
   CONSTRAINT `fin_caixa_movimentos_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_categorias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3134,7 +3401,7 @@ CREATE TABLE `fin_categorias` (
   KEY `fin_categorias_business_id_index` (`business_id`),
   CONSTRAINT `fin_categorias_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_categorias_plano_conta_id_foreign` FOREIGN KEY (`plano_conta_id`) REFERENCES `fin_planos_conta` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_contas_bancarias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3185,7 +3452,7 @@ CREATE TABLE `fin_contas_bancarias` (
   CONSTRAINT `fin_conta_rb_cred_fk` FOREIGN KEY (`rb_gateway_credential_id`) REFERENCES `rb_boleto_credentials` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fin_contas_bancarias_account_id_foreign` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_contas_bancarias_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=143 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_extrato_lancamentos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3214,6 +3481,7 @@ CREATE TABLE `fin_extrato_lancamentos` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `fin_extrato_idem_unique` (`conta_bancaria_id`,`idempotency_key`),
+  UNIQUE KEY `fin_extrato_external_unique` (`business_id`,`conta_bancaria_id`,`external_id`),
   KEY `fin_extrato_biz_data_idx` (`business_id`,`data`),
   KEY `fin_extrato_concil_status_idx` (`business_id`,`status`),
   KEY `fin_extrato_titulo_fk` (`titulo_id`),
@@ -3221,7 +3489,7 @@ CREATE TABLE `fin_extrato_lancamentos` (
   CONSTRAINT `fin_extrato_biz_fk` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_extrato_conta_fk` FOREIGN KEY (`conta_bancaria_id`) REFERENCES `fin_contas_bancarias` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_extrato_titulo_fk` FOREIGN KEY (`titulo_id`) REFERENCES `fin_titulos` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_planos_conta`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3248,7 +3516,7 @@ CREATE TABLE `fin_planos_conta` (
   KEY `fin_planos_conta_business_id_index` (`business_id`),
   CONSTRAINT `fin_planos_conta_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_planos_conta_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `fin_planos_conta` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=150 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_titulo_anexos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3273,7 +3541,7 @@ CREATE TABLE `fin_titulo_anexos` (
   KEY `fin_titulo_anexos_business_id_index` (`business_id`),
   CONSTRAINT `fin_titulo_anexos_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_titulo_anexos_titulo_id_foreign` FOREIGN KEY (`titulo_id`) REFERENCES `fin_titulos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_titulo_baixas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3308,7 +3576,7 @@ CREATE TABLE `fin_titulo_baixas` (
   CONSTRAINT `fin_titulo_baixas_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),
   CONSTRAINT `fin_titulo_baixas_estorno_de_id_foreign` FOREIGN KEY (`estorno_de_id`) REFERENCES `fin_titulo_baixas` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fin_titulo_baixas_titulo_id_foreign` FOREIGN KEY (`titulo_id`) REFERENCES `fin_titulos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=89650 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `fin_titulo_comments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3351,6 +3619,8 @@ CREATE TABLE `fin_titulos` (
   `moeda` char(3) NOT NULL DEFAULT 'BRL',
   `emissao` date NOT NULL,
   `vencimento` date NOT NULL,
+  `forma_pagamento` enum('dinheiro','pix','boleto','cartao_credito','cartao_debito','transferencia','cheque','compensacao','outro') DEFAULT NULL,
+  `conta_bancaria_id` int(10) unsigned DEFAULT NULL,
   `competencia_mes` char(7) NOT NULL COMMENT 'YYYY-MM regime competência',
   `origem` enum('manual','venda','compra','despesa','recurring','folha','caixa') NOT NULL,
   `origem_id` int(10) unsigned DEFAULT NULL COMMENT 'transaction.id, recurring_invoice.id, etc.',
@@ -3382,13 +3652,14 @@ CREATE TABLE `fin_titulos` (
   KEY `fk_titulo_conferido_by` (`conferido_by`),
   KEY `idx_business_conferido` (`business_id`,`conferido_by`),
   KEY `fin_titulos_business_id_aprovacao_status_index` (`business_id`,`aprovacao_status`),
+  KEY `idx_fin_titulos_conta` (`business_id`,`conta_bancaria_id`),
   CONSTRAINT `fin_titulos_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fin_titulos_categoria_id_foreign` FOREIGN KEY (`categoria_id`) REFERENCES `fin_categorias` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fin_titulos_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),
   CONSTRAINT `fin_titulos_plano_conta_id_foreign` FOREIGN KEY (`plano_conta_id`) REFERENCES `fin_planos_conta` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fin_titulos_titulo_pai_id_foreign` FOREIGN KEY (`titulo_pai_id`) REFERENCES `fin_titulos` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_titulo_conferido_by` FOREIGN KEY (`conferido_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=117809 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `gateway_webhook_events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3557,7 +3828,7 @@ CREATE TABLE `invoice_layouts` (
   PRIMARY KEY (`id`),
   KEY `invoice_layouts_business_id_foreign` (`business_id`),
   CONSTRAINT `invoice_layouts_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=186 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `invoice_schemes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3580,7 +3851,7 @@ CREATE TABLE `invoice_schemes` (
   KEY `invoice_schemes_scheme_type_index` (`scheme_type`),
   KEY `invoice_schemes_number_type_index` (`number_type`),
   CONSTRAINT `invoice_schemes_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=190 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `item_devolucaos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3602,7 +3873,7 @@ CREATE TABLE `item_devolucaos` (
   PRIMARY KEY (`id`),
   KEY `item_devolucaos_devolucao_id_foreign` (`devolucao_id`),
   CONSTRAINT `item_devolucaos_devolucao_id_foreign` FOREIGN KEY (`devolucao_id`) REFERENCES `devolucaos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `item_dves`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3634,7 +3905,7 @@ CREATE TABLE `jana_business_profile` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `copiloto_business_profile_business_id_unique` (`business_id`),
   KEY `cbp_gerado_idx` (`gerado_em`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_cache_semantico`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3664,7 +3935,7 @@ CREATE TABLE `jana_cache_semantico` (
   KEY `copiloto_cache_semantico_user_id_index` (`user_id`),
   KEY `copiloto_cache_semantico_expira_em_index` (`expira_em`),
   FULLTEXT KEY `cs_query_ft` (`query_normalizada`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_conversas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3683,7 +3954,7 @@ CREATE TABLE `jana_conversas` (
   KEY `copiloto_conversas_business_id_index` (`business_id`),
   CONSTRAINT `copiloto_conversas_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `copiloto_conversas_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_health_narratives`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3704,7 +3975,7 @@ CREATE TABLE `jana_health_narratives` (
   KEY `jana_health_narratives_generated_at_index` (`generated_at`),
   KEY `jana_health_narratives_severity_index` (`severity`),
   KEY `jana_health_narratives_snapshot_hash_index` (`snapshot_hash`)
-) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_memoria_facts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3728,7 +3999,7 @@ CREATE TABLE `jana_memoria_facts` (
   KEY `cmf_validity_idx` (`valid_from`,`valid_until`),
   KEY `cmf_biz_core_idx` (`business_id`,`core_memory`),
   KEY `cmf_hits_idx` (`hits_count`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_memoria_gabarito`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3750,7 +4021,7 @@ CREATE TABLE `jana_memoria_gabarito` (
   PRIMARY KEY (`id`),
   KEY `cmg_biz_ativo_idx` (`business_id`,`ativo`),
   KEY `cmg_categoria_idx` (`categoria`)
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_memoria_metricas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3780,7 +4051,7 @@ CREATE TABLE `jana_memoria_metricas` (
   KEY `mem_metr_apurado_em_idx` (`apurado_em`),
   KEY `mem_metr_biz_idx` (`business_id`),
   CONSTRAINT `copiloto_memoria_metricas_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_mensagens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3796,7 +4067,7 @@ CREATE TABLE `jana_mensagens` (
   PRIMARY KEY (`id`),
   KEY `copiloto_mensagens_conversa_id_created_at_index` (`conversa_id`,`created_at`),
   CONSTRAINT `copiloto_mensagens_conversa_id_foreign` FOREIGN KEY (`conversa_id`) REFERENCES `jana_conversas` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=119 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `jana_meta_apuracoes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3949,7 +4220,7 @@ CREATE TABLE `jobs` (
   `created_at` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `jobs_queue_index` (`queue`)
-) ENGINE=InnoDB AUTO_INCREMENT=31913 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `journal_entries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4004,7 +4275,7 @@ CREATE TABLE `kb_bridge_state` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_kb_bridge_state_business` (`business_id`),
   CONSTRAINT `fk_kb_bridge_state_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4024,34 +4295,7 @@ CREATE TABLE `kb_categories` (
   UNIQUE KEY `uq_kb_cat_business_slug` (`business_id`,`slug`),
   KEY `idx_kb_cat_business_sort` (`business_id`,`sort_order`),
   CONSTRAINT `fk_kb_cat_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `kb_charter_suggestions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `kb_charter_suggestions` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `business_id` int(10) unsigned NOT NULL,
-  `charter_path` varchar(255) NOT NULL COMMENT 'git_path do *.charter.md (âncora — resources/js/Pages/.../X.charter.md)',
-  `anchor` varchar(255) DEFAULT NULL COMMENT 'seção/trecho do charter a que a sugestão se refere (texto livre)',
-  `kind` varchar(20) NOT NULL DEFAULT 'suggestion' COMMENT 'suggestion|question|erratum|comment',
-  `text` text NOT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'proposed' COMMENT 'proposed|under_review|accepted|rejected|merged',
-  `author_user_id` int(10) unsigned NOT NULL,
-  `resolved_by_user_id` int(10) unsigned DEFAULT NULL,
-  `resolution_note` varchar(500) DEFAULT NULL COMMENT 'comentário obrigatório no approve/reject (Document360-style)',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_kbcs_biz_path_status` (`business_id`,`charter_path`,`status`),
-  KEY `idx_kbcs_author` (`author_user_id`),
-  KEY `idx_kbcs_deleted` (`deleted_at`),
-  KEY `fk_kbcs_resolver` (`resolved_by_user_id`),
-  CONSTRAINT `fk_kbcs_author` FOREIGN KEY (`author_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_kbcs_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_kbcs_resolver` FOREIGN KEY (`resolved_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_comments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4133,7 +4377,7 @@ CREATE TABLE `kb_decision_trees` (
   CONSTRAINT `fk_kb_dt_author` FOREIGN KEY (`author_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_kb_dt_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_kb_dt_root_step` FOREIGN KEY (`root_step_id`) REFERENCES `kb_decision_tree_steps` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_edges`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4160,7 +4404,7 @@ CREATE TABLE `kb_edges` (
   CONSTRAINT `fk_kb_edges_from` FOREIGN KEY (`from_node_id`) REFERENCES `kb_nodes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_kb_edges_to` FOREIGN KEY (`to_node_id`) REFERENCES `kb_nodes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chk_kb_edges_no_self` CHECK (`from_node_id` <> `to_node_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_favorites`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4247,7 +4491,7 @@ CREATE TABLE `kb_nodes` (
   CONSTRAINT `fk_kb_nodes_category` FOREIGN KEY (`category_id`) REFERENCES `kb_categories` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_kb_nodes_source_doc` FOREIGN KEY (`source_doc_id`) REFERENCES `mcp_memory_documents` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_kb_nodes_subcategory` FOREIGN KEY (`subcategory_id`) REFERENCES `kb_subcategories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=554 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_path_steps`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4269,7 +4513,7 @@ CREATE TABLE `kb_path_steps` (
   CONSTRAINT `fk_kb_path_steps_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_kb_path_steps_node` FOREIGN KEY (`node_id`) REFERENCES `kb_nodes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_kb_path_steps_path` FOREIGN KEY (`path_id`) REFERENCES `kb_paths` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_paths`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4293,7 +4537,7 @@ CREATE TABLE `kb_paths` (
   KEY `fk_kb_paths_author` (`author_user_id`),
   CONSTRAINT `fk_kb_paths_author` FOREIGN KEY (`author_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_kb_paths_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `kb_subcategories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4314,7 +4558,7 @@ CREATE TABLE `kb_subcategories` (
   KEY `fk_kb_sub_category` (`category_id`),
   CONSTRAINT `fk_kb_sub_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_kb_sub_category` FOREIGN KEY (`category_id`) REFERENCES `kb_categories` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `licenca_computador`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4367,7 +4611,7 @@ CREATE TABLE `licenca_computador` (
   KEY `lcomp_business_dt_acesso_idx` (`business_id`,`dt_ultimo_acesso`),
   KEY `lcomp_business_bloqueado_idx` (`business_id`,`bloqueado`),
   CONSTRAINT `licenca_computador_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=187 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `licenca_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4399,7 +4643,7 @@ CREATE TABLE `licenca_log` (
   KEY `licenca_log_event_index` (`event`),
   KEY `licenca_log_created_at_index` (`created_at`),
   KEY `licenca_log_business_location_id_index` (`business_location_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5812 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `macro_variants`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4452,7 +4696,7 @@ CREATE TABLE `manifesto_limites` (
   PRIMARY KEY (`id`),
   KEY `manifesto_limites_business_id_foreign` (`business_id`),
   CONSTRAINT `manifesto_limites_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `manifestos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4507,7 +4751,7 @@ CREATE TABLE `mcp_actors` (
   KEY `mcp_actors_parent_actor_id_index` (`parent_actor_id`),
   KEY `mcp_actors_user_id_index` (`user_id`),
   KEY `mcp_actors_revoked_at_index` (`revoked_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_admin_audit_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4573,7 +4817,7 @@ CREATE TABLE `mcp_alertas_eventos` (
   KEY `mae_user_criado_idx` (`user_id`,`criado_em`),
   KEY `mae_tipo_sev_idx` (`tipo`,`severidade`),
   KEY `mae_status_criado_idx` (`status`,`criado_em`)
-) ENGINE=InnoDB AUTO_INCREMENT=95 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_audit_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4613,7 +4857,7 @@ CREATE TABLE `mcp_audit_log` (
   CONSTRAINT `mcp_audit_log_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `mcp_audit_log_mcp_token_id_foreign` FOREIGN KEY (`mcp_token_id`) REFERENCES `mcp_tokens` (`id`) ON DELETE SET NULL,
   CONSTRAINT `mcp_audit_log_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4582 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -4624,14 +4868,13 @@ CREATE TABLE `mcp_audit_log` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER trg_mcp_audit_log_no_update
+/*!50003 CREATE*/ /*!50017 DEFINER=`u906587222_oimpresso`@`localhost`*/ /*!50003 TRIGGER trg_mcp_audit_log_no_update
             BEFORE UPDATE ON mcp_audit_log
             FOR EACH ROW
             BEGIN
                 SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = 'mcp_audit_log is append-only (Constitution v1.1.0 Article 9). UPDATE forbidden.';
-            END 
-*/;;
+            END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -4646,14 +4889,13 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER trg_mcp_audit_log_no_delete
+/*!50003 CREATE*/ /*!50017 DEFINER=`u906587222_oimpresso`@`localhost`*/ /*!50003 TRIGGER trg_mcp_audit_log_no_delete
             BEFORE DELETE ON mcp_audit_log
             FOR EACH ROW
             BEGIN
                 SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = 'mcp_audit_log is append-only (Constitution v1.1.0 Article 9). DELETE forbidden.';
-            END 
-*/;;
+            END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -4740,7 +4982,7 @@ CREATE TABLE `mcp_briefs` (
   KEY `idx_mcp_briefs_generated_at` (`generated_at` DESC),
   KEY `idx_mcp_briefs_valid_recent` (`valid`,`generated_at` DESC),
   CONSTRAINT `mcp_briefs_token_limit` CHECK (`token_count` <= 3500)
-) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_cc_blobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4799,7 +5041,7 @@ CREATE TABLE `mcp_cc_messages` (
   FULLTEXT KEY `cc_msg_content_ft` (`content_text`),
   CONSTRAINT `mcp_cc_messages_session_id_foreign` FOREIGN KEY (`session_id`) REFERENCES `mcp_cc_sessions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `mcp_cc_messages_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=17687 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_cc_sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4833,7 +5075,7 @@ CREATE TABLE `mcp_cc_sessions` (
   KEY `mcp_cc_sessions_user_id_index` (`user_id`),
   KEY `mcp_cc_sessions_business_id_index` (`business_id`),
   FULLTEXT KEY `cc_sess_summary_ft` (`summary_auto`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_components`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4888,7 +5130,7 @@ CREATE TABLE `mcp_cycle_goals` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_mcp_cycle_goals_cycle_status` (`cycle_id`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_cycles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4911,7 +5153,7 @@ CREATE TABLE `mcp_cycles` (
   UNIQUE KEY `uq_mcp_cycles_project_key` (`project_id`,`key`),
   KEY `idx_mcp_cycles_project_status` (`project_id`,`status`),
   KEY `idx_mcp_cycles_dates` (`start_date`,`end_date`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_decision_links`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4973,7 +5215,7 @@ CREATE TABLE `mcp_decision_thresholds` (
   `reason` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_threshold_domain_type` (`domain`,`event_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_doc_summaries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5046,7 +5288,7 @@ CREATE TABLE `mcp_dual_brain_decisions` (
   KEY `idx_dbd_review` (`review_score`),
   KEY `idx_dbd_auto_gen` (`auto_generated`),
   CONSTRAINT `mcp_dual_brain_decisions_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=26898 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_epics`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5069,7 +5311,7 @@ CREATE TABLE `mcp_epics` (
   UNIQUE KEY `uq_mcp_epics_project_key` (`project_id`,`key`),
   KEY `idx_mcp_epics_project_status` (`project_id`,`status`),
   KEY `idx_mcp_epics_owner` (`owner`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_file_locks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5106,7 +5348,7 @@ CREATE TABLE `mcp_git_links` (
   KEY `idx_mcp_git_links_task` (`task_id`),
   KEY `idx_mcp_git_links_commit` (`commit_sha`),
   KEY `idx_mcp_git_links_pr` (`repo_full_name`,`pr_number`)
-) ENGINE=InnoDB AUTO_INCREMENT=208 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_governance_rules`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5130,7 +5372,7 @@ CREATE TABLE `mcp_governance_rules` (
   UNIQUE KEY `mcp_governance_rules_rule_key_unique` (`rule_key`),
   KEY `idx_gov_enabled` (`enabled`),
   KEY `idx_gov_category` (`category`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_handoff_diffs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5188,7 +5430,7 @@ CREATE TABLE `mcp_inbox_notifications` (
   KEY `idx_mcp_inbox_user_read` (`user_id`,`read_at`),
   KEY `idx_mcp_inbox_task` (`task_id`),
   KEY `idx_mcp_inbox_type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_issue_templates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5229,7 +5471,7 @@ CREATE TABLE `mcp_jira_projects` (
   UNIQUE KEY `mcp_jira_projects_key_unique` (`key`),
   KEY `idx_mcp_jira_projects_status` (`status`),
   KEY `idx_mcp_jira_projects_lead` (`lead_user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_memory_documents`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5283,7 +5525,7 @@ CREATE TABLE `mcp_memory_documents` (
   KEY `mcp_md_type_status_life_idx` (`type`,`status`,`lifecycle`),
   KEY `mcp_md_ctx_idx` (`contextual_indexed`),
   FULLTEXT KEY `mcp_md_fulltext_idx` (`title`,`content_md`)
-) ENGINE=InnoDB AUTO_INCREMENT=3772 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_memory_documents_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5305,7 +5547,7 @@ CREATE TABLE `mcp_memory_documents_history` (
   KEY `mcp_mh_slug_changed_idx` (`slug`,`changed_at`),
   KEY `mcp_mh_sha_idx` (`git_sha`),
   CONSTRAINT `mcp_memory_documents_history_document_id_foreign` FOREIGN KEY (`document_id`) REFERENCES `mcp_memory_documents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=984 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_project_parts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5381,7 +5623,7 @@ CREATE TABLE `mcp_quotas` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `mcp_qt_user_period_kind_ux` (`user_id`,`period`,`kind`),
   CONSTRAINT `mcp_quotas_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_scopes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5401,7 +5643,7 @@ CREATE TABLE `mcp_scopes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `mcp_scopes_slug_unique` (`slug`),
   KEY `mcp_scopes_slug_idx` (`slug`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_scorecard_ai_suggestions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5453,7 +5695,7 @@ CREATE TABLE `mcp_skill_labels` (
   KEY `idx_labels_version` (`version_id`),
   CONSTRAINT `mcp_skill_labels_skill_id_foreign` FOREIGN KEY (`skill_id`) REFERENCES `mcp_skills` (`id`) ON DELETE CASCADE,
   CONSTRAINT `mcp_skill_labels_version_id_foreign` FOREIGN KEY (`version_id`) REFERENCES `mcp_skill_versions` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_skill_telemetry`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5468,7 +5710,7 @@ CREATE TABLE `mcp_skill_telemetry` (
   `context_payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`context_payload`)),
   PRIMARY KEY (`id`),
   KEY `idx_skill_telemetry_recent` (`skill_name`,`triggered_at` DESC)
-) ENGINE=InnoDB AUTO_INCREMENT=187 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_skill_test_runs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5519,7 +5761,7 @@ CREATE TABLE `mcp_skill_versions` (
   KEY `idx_versions_skill_status` (`skill_id`,`status`),
   KEY `idx_versions_origin` (`origin`),
   CONSTRAINT `mcp_skill_versions_skill_id_foreign` FOREIGN KEY (`skill_id`) REFERENCES `mcp_skills` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_skills`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5545,7 +5787,7 @@ CREATE TABLE `mcp_skills` (
   KEY `idx_skills_module` (`module`),
   KEY `idx_skills_source` (`source`),
   KEY `idx_skills_sync_mode` (`git_sync_mode`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_task_attachments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5580,7 +5822,7 @@ CREATE TABLE `mcp_task_comments` (
   PRIMARY KEY (`id`),
   KEY `idx_mcp_task_comments_task_id` (`task_id`),
   KEY `idx_mcp_task_comments_author` (`author`)
-) ENGINE=InnoDB AUTO_INCREMENT=215 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_task_dependencies`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5616,7 +5858,7 @@ CREATE TABLE `mcp_task_events` (
   KEY `idx_mcp_task_events_task_timeline` (`task_id`,`occurred_at`),
   KEY `idx_mcp_task_events_type` (`event_type`),
   KEY `idx_mcp_task_events_author` (`author`)
-) ENGINE=InnoDB AUTO_INCREMENT=1110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_task_memory_links`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5698,7 +5940,7 @@ CREATE TABLE `mcp_tasks` (
   KEY `idx_mcp_tasks_parent` (`parent_task_id`),
   KEY `idx_mcp_tasks_due` (`due_date`),
   KEY `idx_mcp_tasks_completed` (`completed_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=956 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mcp_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5880,7 +6122,7 @@ CREATE TABLE `mcp_workflows` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_mcp_workflows_project` (`project_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `media`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5902,7 +6144,7 @@ CREATE TABLE `media` (
   KEY `media_woocommerce_media_id_index` (`woocommerce_media_id`),
   KEY `media_business_id_index` (`business_id`),
   KEY `media_uploaded_by_index` (`uploaded_by`)
-) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `medida_ctes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5964,7 +6206,7 @@ CREATE TABLE `messages` (
   KEY `msgs_media_pending_idx` (`media_download_status`,`created_at`),
   KEY `msgs_macro_variant_idx` (`macro_variant_id`),
   CONSTRAINT `messages_macro_variant_id_foreign` FOREIGN KEY (`macro_variant_id`) REFERENCES `macro_variants` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=46732 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mfg_ingredient_groups`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5977,7 +6219,7 @@ CREATE TABLE `mfg_ingredient_groups` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mfg_recipe_ingredients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -5999,7 +6241,7 @@ CREATE TABLE `mfg_recipe_ingredients` (
   KEY `mfg_recipe_ingredients_variation_id_index` (`variation_id`),
   KEY `mfg_recipe_ingredients_sub_unit_id_index` (`sub_unit_id`),
   CONSTRAINT `mfg_recipe_ingredients_mfg_recipe_id_foreign` FOREIGN KEY (`mfg_recipe_id`) REFERENCES `mfg_recipes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mfg_recipes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6021,7 +6263,7 @@ CREATE TABLE `mfg_recipes` (
   PRIMARY KEY (`id`),
   KEY `mfg_recipes_product_id_index` (`product_id`),
   KEY `mfg_recipes_variation_id_index` (`variation_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `migrations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6031,7 +6273,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(191) NOT NULL,
   `batch` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=850 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `model_has_permissions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6073,7 +6315,7 @@ CREATE TABLE `natureza_operacaos` (
   PRIMARY KEY (`id`),
   KEY `natureza_operacaos_business_id_foreign` (`business_id`),
   CONSTRAINT `natureza_operacaos_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `nf_natureza_operacao`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6096,7 +6338,7 @@ CREATE TABLE `nf_natureza_operacao` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `nf_natureza_operacao_prodgrupo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6232,7 +6474,7 @@ CREATE TABLE `nfe_business_configs` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `nfe_business_configs_business_id_unique` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `nfe_certificados`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6314,7 +6556,7 @@ CREATE TABLE `nfe_dfe_nsu_state` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `nfe_dfe_nsu_state_business_id_unique` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `nfe_dfe_recebidos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6373,7 +6615,7 @@ CREATE TABLE `nfe_emissoes` (
   KEY `nfe_emissoes_business_id_index` (`business_id`),
   KEY `nfe_emissoes_chave_44_index` (`chave_44`),
   KEY `nfe_emissoes_status_index` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=238 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `nfe_eventos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6566,7 +6808,7 @@ CREATE TABLE `nfse_provider_configs` (
   KEY `nfse_provider_configs_cert_id_foreign` (`cert_id`),
   CONSTRAINT `nfse_provider_configs_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `nfse_provider_configs_cert_id_foreign` FOREIGN KEY (`cert_id`) REFERENCES `nfe_certificados` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `notification_templates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6587,7 +6829,7 @@ CREATE TABLE `notification_templates` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1661 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `notifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6632,7 +6874,7 @@ CREATE TABLE `oa_inspection_items` (
   KEY `idx_oai_client_decision` (`client_decision`,`client_decided_at`),
   CONSTRAINT `fk_oai_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_oai_service_order` FOREIGN KEY (`service_order_id`) REFERENCES `service_orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `oauth_access_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6681,7 +6923,7 @@ CREATE TABLE `oauth_clients` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `oauth_clients_user_id_index` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `oauth_personal_access_clients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6693,7 +6935,7 @@ CREATE TABLE `oauth_personal_access_clients` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `oauth_personal_access_clients_client_id_index` (`client_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `oauth_refresh_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6730,7 +6972,7 @@ CREATE TABLE `oficina_service_order_items` (
   KEY `idx_osi_so_tipo` (`service_order_id`,`tipo`),
   CONSTRAINT `fk_osi_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_osi_service_order` FOREIGN KEY (`service_order_id`) REFERENCES `service_orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `packages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6765,7 +7007,7 @@ CREATE TABLE `packages` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `officeimpresso_limitemaquinas` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=310 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `password_resets`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6807,7 +7049,7 @@ CREATE TABLE `payment_gateway_credentials` (
   `ambiente` enum('production','sandbox') NOT NULL DEFAULT 'production',
   `ativo` tinyint(1) NOT NULL DEFAULT 1,
   `nome_display` varchar(191) DEFAULT NULL,
-  `config_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`config_json`)),
+  `config_json` longtext DEFAULT NULL,
   `conta_bancaria_id` int(10) unsigned DEFAULT NULL,
   `health_status` enum('ok','degraded','down','unknown') NOT NULL DEFAULT 'unknown',
   `health_checked_at` timestamp NULL DEFAULT NULL,
@@ -6841,7 +7083,7 @@ CREATE TABLE `payment_types` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `permissions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6853,7 +7095,7 @@ CREATE TABLE `permissions` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=369 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `pessoas_grupo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -6870,7 +7112,7 @@ CREATE TABLE `pessoas_grupo` (
   PRIMARY KEY (`id`),
   KEY `pessoas_grupo_business_id_foreign` (`business_id`),
   CONSTRAINT `pessoas_grupo_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `pg_webhook_events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7088,7 +7330,7 @@ CREATE TABLE `ponto_importacoes` (
   KEY `ponto_importacoes_business_id_index` (`business_id`),
   CONSTRAINT `ponto_importacoes_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`),
   CONSTRAINT `ponto_importacoes_usuario_id_foreign` FOREIGN KEY (`usuario_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `ponto_intercorrencias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7175,14 +7417,13 @@ CREATE TABLE `ponto_marcacoes` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER trg_ponto_marcacoes_no_update
+/*!50003 CREATE*/ /*!50017 DEFINER=`u906587222_oimpresso`@`localhost`*/ /*!50003 TRIGGER trg_ponto_marcacoes_no_update
     BEFORE UPDATE ON ponto_marcacoes
     FOR EACH ROW
     BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'ponto_marcacoes é append-only (Portaria 671/2021). Use origem=ANULACAO.';
-    END 
-*/;;
+    END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -7197,14 +7438,13 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER trg_ponto_marcacoes_no_delete
+/*!50003 CREATE*/ /*!50017 DEFINER=`u906587222_oimpresso`@`localhost`*/ /*!50003 TRIGGER trg_ponto_marcacoes_no_delete
     BEFORE DELETE ON ponto_marcacoes
     FOR EACH ROW
     BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'ponto_marcacoes é append-only (Portaria 671/2021).';
-    END 
-*/;;
+    END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -7321,7 +7561,7 @@ CREATE TABLE `product_variations` (
   KEY `product_variations_name_index` (`name`),
   KEY `product_variations_product_id_index` (`product_id`),
   CONSTRAINT `product_variations_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16210 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7421,7 +7661,7 @@ CREATE TABLE `products` (
   CONSTRAINT `products_sub_category_id_foreign` FOREIGN KEY (`sub_category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
   CONSTRAINT `products_tax_foreign` FOREIGN KEY (`tax`) REFERENCES `tax_rates` (`id`),
   CONSTRAINT `products_unit_id_foreign` FOREIGN KEY (`unit_id`) REFERENCES `units` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15611 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `produto_grupo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7439,7 +7679,7 @@ CREATE TABLE `produto_grupo` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `produto_grupo_referencia_unique` (`referencia`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `purchase_lines`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7481,7 +7721,7 @@ CREATE TABLE `purchase_lines` (
   CONSTRAINT `purchase_lines_tax_id_foreign` FOREIGN KEY (`tax_id`) REFERENCES `tax_rates` (`id`) ON DELETE CASCADE,
   CONSTRAINT `purchase_lines_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `purchase_lines_variation_id_foreign` FOREIGN KEY (`variation_id`) REFERENCES `variations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=17410 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `rb_boleto_credentials`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7525,7 +7765,7 @@ CREATE TABLE `rb_charge_attempts` (
   KEY `rb_charge_attempts_gateway_index` (`gateway`),
   KEY `rb_charge_attempts_status_index` (`status`),
   CONSTRAINT `rb_charge_attempts_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `rb_invoices` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `rb_invoices`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7560,7 +7800,7 @@ CREATE TABLE `rb_invoices` (
   CONSTRAINT `rb_invoices_conta_fk` FOREIGN KEY (`conta_bancaria_id`) REFERENCES `fin_contas_bancarias` (`id`) ON DELETE SET NULL,
   CONSTRAINT `rb_invoices_contact_fk` FOREIGN KEY (`contact_id`) REFERENCES `contacts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `rb_invoices_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `rb_subscriptions` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `rb_plans`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7588,7 +7828,7 @@ CREATE TABLE `rb_plans` (
   UNIQUE KEY `rb_plans_biz_slug_unique` (`business_id`,`slug`),
   KEY `rb_plans_business_id_index` (`business_id`),
   KEY `rb_plans_ativo_index` (`ativo`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `rb_subscription_events`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7626,7 +7866,7 @@ CREATE TABLE `rb_subscription_favorites` (
   KEY `rb_subscription_favorites_business_id_index` (`business_id`),
   CONSTRAINT `rb_fav_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `rb_subscription_favorites_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `rb_subscriptions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `rb_subscription_notes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7648,7 +7888,7 @@ CREATE TABLE `rb_subscription_notes` (
   KEY `rb_subscription_notes_business_id_index` (`business_id`),
   CONSTRAINT `rb_notes_user_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `rb_subscription_notes_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `rb_subscriptions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `rb_subscriptions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7688,7 +7928,7 @@ CREATE TABLE `rb_subscriptions` (
   CONSTRAINT `rb_subs_conta_fk` FOREIGN KEY (`conta_bancaria_id`) REFERENCES `fin_contas_bancarias` (`id`) ON DELETE SET NULL,
   CONSTRAINT `rb_subs_contact_fk` FOREIGN KEY (`contact_id`) REFERENCES `contacts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `rb_subscriptions_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `rb_plans` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `reference_counts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7702,7 +7942,7 @@ CREATE TABLE `reference_counts` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `reference_counts_business_id_index` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=408 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `repair_device_models`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7793,7 +8033,7 @@ CREATE TABLE `repair_job_sheets` (
   CONSTRAINT `repair_job_sheets_device_id_foreign` FOREIGN KEY (`device_id`) REFERENCES `categories` (`id`),
   CONSTRAINT `repair_job_sheets_device_model_id_foreign` FOREIGN KEY (`device_model_id`) REFERENCES `repair_device_models` (`id`),
   CONSTRAINT `repair_job_sheets_service_staff_foreign` FOREIGN KEY (`service_staff`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `repair_statuses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7811,7 +8051,7 @@ CREATE TABLE `repair_statuses` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `res_product_modifier_sets`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7868,7 +8108,7 @@ CREATE TABLE `roles` (
   PRIMARY KEY (`id`),
   KEY `roles_business_id_foreign` (`business_id`),
   CONSTRAINT `roles_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=691 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sale_process_stages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7887,7 +8127,7 @@ CREATE TABLE `sale_process_stages` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `sale_stages_proc_key_uq` (`process_id`,`key`),
   KEY `sale_stages_proc_sort_idx` (`process_id`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=503 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sale_processes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7905,7 +8145,7 @@ CREATE TABLE `sale_processes` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `sale_processes_biz_key_uq` (`business_id`,`key`),
   KEY `sale_processes_biz_active_idx` (`business_id`,`active`)
-) ENGINE=InnoDB AUTO_INCREMENT=123 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sale_stage_action_roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7918,7 +8158,7 @@ CREATE TABLE `sale_stage_action_roles` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sale_action_roles_uq` (`action_id`,`role_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=955 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sale_stage_actions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7939,7 +8179,7 @@ CREATE TABLE `sale_stage_actions` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `sale_actions_stage_key_uq` (`stage_id`,`key`),
   KEY `sale_actions_target_idx` (`target_stage_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=651 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sale_stage_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7957,7 +8197,7 @@ CREATE TABLE `sale_stage_history` (
   PRIMARY KEY (`id`),
   KEY `sale_history_biz_tx_idx` (`business_id`,`transaction_id`),
   KEY `sale_history_biz_when_idx` (`business_id`,`executed_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=17563 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sell_line_warranties`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7982,7 +8222,7 @@ CREATE TABLE `selling_price_groups` (
   PRIMARY KEY (`id`),
   KEY `selling_price_groups_business_id_foreign` (`business_id`),
   CONSTRAINT `selling_price_groups_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `service_orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -7994,7 +8234,7 @@ CREATE TABLE `service_orders` (
   `transaction_sell_line_id` bigint(20) unsigned DEFAULT NULL COMMENT 'Linha de produto (transaction_sell_lines.id) que originou a OS. NULL = OS cobre venda toda (modo single, caso Martinho). Sem FK pra evitar cascade soft-delete.',
   `vehicle_id` bigint(20) unsigned NOT NULL,
   `contact_id` int(10) unsigned DEFAULT NULL COMMENT 'FK lógica pra contacts.id (cliente da OS — pode diferir de vehicle.contact_id em locações)',
-  `order_type` enum('locacao','manutencao') NOT NULL DEFAULT 'manutencao' COMMENT 'Tipo OS — locacao (Martinho caçamba) | manutencao (oficina automotiva genérica)',
+  `order_type` enum('locacao','manutencao','mecanica') NOT NULL DEFAULT 'manutencao' COMMENT 'Tipo OS — locacao (sub-vertical 3 hipotético) | manutencao (legado cacamba) | mecanica (fluxo real reparo caminhão ADR 0194 · oficina_mecanica_os)',
   `delivery_address` varchar(255) DEFAULT NULL COMMENT 'Endereço entrega/coleta da caçamba (locação)',
   `expected_return_date` date DEFAULT NULL COMMENT 'Data prometida de devolução — base do alerta is_overdue',
   `daily_rate` decimal(10,2) DEFAULT NULL COMMENT 'Valor diária locação caçamba (BRL) — multiplicado por dias_locacao',
@@ -8025,7 +8265,7 @@ CREATE TABLE `service_orders` (
   KEY `idx_service_orders_business_assigned_user` (`business_id`,`assigned_user_id`),
   CONSTRAINT `fk_so_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_so_vehicle` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8119,7 +8359,7 @@ CREATE TABLE `stock_adjustment_lines` (
   CONSTRAINT `stock_adjustment_lines_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `stock_adjustment_lines_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `stock_adjustment_lines_variation_id_foreign` FOREIGN KEY (`variation_id`) REFERENCES `variations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `stock_adjustments_temp`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8173,7 +8413,7 @@ CREATE TABLE `subscriptions` (
   KEY `subscriptions_package_id_index` (`package_id`),
   KEY `subscriptions_created_id_index` (`created_id`),
   CONSTRAINT `subscriptions_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=169 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `superadmin_communicator_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8186,7 +8426,7 @@ CREATE TABLE `superadmin_communicator_logs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `superadmin_frontend_pages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8211,7 +8451,7 @@ CREATE TABLE `system` (
   `key` varchar(191) NOT NULL,
   `value` text DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `tax_rates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8234,7 +8474,7 @@ CREATE TABLE `tax_rates` (
   KEY `tax_rates_woocommerce_tax_rate_id_index` (`woocommerce_tax_rate_id`),
   CONSTRAINT `tax_rates_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `tax_rates_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transaction_documents`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8297,7 +8537,7 @@ CREATE TABLE `transaction_payments` (
   KEY `transaction_payments_parent_id_index` (`parent_id`),
   KEY `transaction_payments_payment_type_index` (`payment_type`),
   CONSTRAINT `transaction_payments_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16487 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transaction_sell_lines`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8349,7 +8589,7 @@ CREATE TABLE `transaction_sell_lines` (
   CONSTRAINT `transaction_sell_lines_tax_id_foreign` FOREIGN KEY (`tax_id`) REFERENCES `tax_rates` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transaction_sell_lines_transaction_id_foreign` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transaction_sell_lines_variation_id_foreign` FOREIGN KEY (`variation_id`) REFERENCES `variations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=64339 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transaction_sell_lines_purchase_lines`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8367,7 +8607,7 @@ CREATE TABLE `transaction_sell_lines_purchase_lines` (
   KEY `sell_line_id` (`sell_line_id`),
   KEY `stock_adjustment_line_id` (`stock_adjustment_line_id`),
   KEY `purchase_line_id` (`purchase_line_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=36102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transactions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8593,7 +8833,7 @@ CREATE TABLE `transactions` (
   CONSTRAINT `transactions_repair_job_sheet_id_foreign` FOREIGN KEY (`repair_job_sheet_id`) REFERENCES `repair_job_sheets` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transactions_tax_id_foreign` FOREIGN KEY (`tax_id`) REFERENCES `tax_rates` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transactions_transportadora_id_foreign` FOREIGN KEY (`transportadora_id`) REFERENCES `transportadoras` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=69308 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `transfers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8627,7 +8867,7 @@ CREATE TABLE `transportadoras` (
   KEY `transportadoras_business_id_foreign` (`business_id`),
   CONSTRAINT `transportadoras_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `transportadoras_cidade_id_foreign` FOREIGN KEY (`cidade_id`) REFERENCES `cities` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `types_of_services`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8645,7 +8885,7 @@ CREATE TABLE `types_of_services` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `types_of_services_business_id_index` (`business_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `units`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8679,7 +8919,7 @@ CREATE TABLE `units` (
   KEY `units_base_unit_id_index` (`base_unit_id`),
   CONSTRAINT `units_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `units_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `user_contact_access`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8800,7 +9040,7 @@ CREATE TABLE `users` (
   KEY `users_microsoft_id_index` (`microsoft_id`),
   CONSTRAINT `users_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE,
   CONSTRAINT `users_crm_contact_id_foreign` FOREIGN KEY (`crm_contact_id`) REFERENCES `contacts` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=605 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `variation_group_prices`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8818,7 +9058,7 @@ CREATE TABLE `variation_group_prices` (
   KEY `variation_group_prices_price_group_id_foreign` (`price_group_id`),
   CONSTRAINT `variation_group_prices_price_group_id_foreign` FOREIGN KEY (`price_group_id`) REFERENCES `selling_price_groups` (`id`) ON DELETE CASCADE,
   CONSTRAINT `variation_group_prices_variation_id_foreign` FOREIGN KEY (`variation_id`) REFERENCES `variations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3306 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `variation_location_details`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8839,7 +9079,7 @@ CREATE TABLE `variation_location_details` (
   KEY `variation_location_details_variation_id_index` (`variation_id`),
   CONSTRAINT `variation_location_details_location_id_foreign` FOREIGN KEY (`location_id`) REFERENCES `business_locations` (`id`),
   CONSTRAINT `variation_location_details_variation_id_foreign` FOREIGN KEY (`variation_id`) REFERENCES `variations` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `variation_templates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8855,7 +9095,7 @@ CREATE TABLE `variation_templates` (
   KEY `variation_templates_business_id_foreign` (`business_id`),
   KEY `variation_templates_woocommerce_attr_id_index` (`woocommerce_attr_id`),
   CONSTRAINT `variation_templates_business_id_foreign` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `variation_value_templates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8870,7 +9110,7 @@ CREATE TABLE `variation_value_templates` (
   KEY `variation_value_templates_name_index` (`name`),
   KEY `variation_value_templates_variation_template_id_index` (`variation_template_id`),
   CONSTRAINT `variation_value_templates_variation_template_id_foreign` FOREIGN KEY (`variation_template_id`) REFERENCES `variation_templates` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=73 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `variations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8901,7 +9141,7 @@ CREATE TABLE `variations` (
   KEY `variations_woocommerce_variation_id_index` (`woocommerce_variation_id`),
   CONSTRAINT `variations_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `variations_product_variation_id_foreign` FOREIGN KEY (`product_variation_id`) REFERENCES `product_variations` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=30196 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `vehicles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -8937,7 +9177,7 @@ CREATE TABLE `vehicles` (
   KEY `idx_vehicles_business_status` (`business_id`,`current_status`),
   KEY `idx_vehicles_current_rental` (`current_rental_id`),
   CONSTRAINT `fk_vehicles_business` FOREIGN KEY (`business_id`) REFERENCES `business` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=282 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `veiculos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9040,7 +9280,7 @@ CREATE TABLE `warranties` (
   PRIMARY KEY (`id`),
   KEY `warranties_business_id_index` (`business_id`),
   KEY `warranties_duration_type_index` (`duration_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `webhook_nonces`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9053,7 +9293,7 @@ CREATE TABLE `webhook_nonces` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `webhook_nonces_nonce_unique` (`nonce`),
   KEY `webhook_nonces_created_at_idx` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=1410 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_business_configs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9173,7 +9413,7 @@ CREATE TABLE `whatsapp_conversation_metricas` (
   KEY `wa_metrics_biz_date_idx` (`business_id`,`metric_date`),
   KEY `whatsapp_conversation_metricas_channel_id_foreign` (`channel_id`),
   CONSTRAINT `whatsapp_conversation_metricas_channel_id_foreign` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_conversation_tags`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9188,7 +9428,7 @@ CREATE TABLE `whatsapp_conversation_tags` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wa_conv_tags_uniq` (`conversation_id`,`tag_id`),
   KEY `wa_conv_tags_tag_idx` (`tag_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_conversations`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9219,7 +9459,7 @@ CREATE TABLE `whatsapp_conversations` (
   KEY `whatsapp_conversations_biz_lid_idx` (`business_id`,`lid`),
   KEY `whatsapp_conversations_biz_phone_idx` (`business_id`,`phone_e164`),
   KEY `whatsapp_conversations_biz_bsuid_idx` (`business_id`,`bsuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_csat_responses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9280,7 +9520,7 @@ CREATE TABLE `whatsapp_lid_pn_map` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wa_lid_pn_business_lid_uniq` (`business_id`,`lid`),
   KEY `wa_lid_pn_business_phone_idx` (`business_id`,`phone_e164`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9317,7 +9557,7 @@ CREATE TABLE `whatsapp_messages` (
   KEY `wm_biz_conv_created_idx` (`business_id`,`conversation_id`,`created_at`),
   KEY `wm_biz_status_idx` (`business_id`,`status`,`created_at`),
   KEY `wm_phone_idx` (`whatsapp_business_phone_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_phone_user_access`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9372,7 +9612,7 @@ CREATE TABLE `whatsapp_tags` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `wa_tags_biz_slug_uniq` (`business_id`,`slug`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `whatsapp_templates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9394,7 +9634,7 @@ CREATE TABLE `whatsapp_templates` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `wt_biz_prov_name_lang_uniq` (`business_id`,`provider`,`name`,`language`),
   KEY `wt_biz_status_idx` (`business_id`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `woocommerce_sync_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -9410,8 +9650,202 @@ CREATE TABLE `woocommerce_sync_logs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5403 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `get_current_brief` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`u906587222_oimpresso`@`localhost` PROCEDURE `get_current_brief`()
+BEGIN
+        SELECT
+            b.id,
+            b.generated_at,
+            b.content,
+            b.token_count,
+            TIMESTAMPDIFF(MINUTE, b.generated_at, NOW()) AS staleness_minutes
+        FROM mcp_briefs b
+        WHERE b.valid = 1
+        ORDER BY b.generated_at DESC
+        LIMIT 1;
+    END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `refresh_brief_inputs_cache` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`u906587222_oimpresso`@`localhost` PROCEDURE `refresh_brief_inputs_cache`()
+BEGIN
+        DECLARE v_active_cycle JSON;
+        DECLARE v_hitl_pending JSON;
+        DECLARE v_in_flight JSON;
+        DECLARE v_recent_24h JSON;
+        DECLARE v_skills_7d JSON;
+        DECLARE v_skills_poda JSON;
+
+        -- Cycle ativo
+        SELECT JSON_OBJECT(
+            'id', id,
+            'key', `key`,
+            'name', name,
+            'start_date', start_date,
+            'end_date', end_date,
+            'goal', goal
+        ) INTO v_active_cycle
+        FROM mcp_cycles
+        WHERE status = 'active'
+        ORDER BY start_date DESC
+        LIMIT 1;
+
+        -- HITL pending: tasks blocked do Wagner
+        SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'id', id,
+            'identifier', identifier,
+            'title', title,
+            'module', module,
+            'priority', priority,
+            'created_at', created_at
+        )) INTO v_hitl_pending
+        FROM (
+            SELECT id, identifier, title, module, priority, created_at
+            FROM mcp_tasks
+            WHERE status = 'blocked'
+              AND owner = 'wagner'
+            ORDER BY priority DESC, created_at ASC
+            LIMIT 10
+        ) t;
+
+        -- BRIEF-A1 fix #3: in_flight populado de mcp_tasks doing+review.
+        -- Pivot do TODO Sprint 3 (mcp_design_locks ainda não existe).
+        SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'identifier', identifier,
+            'title', title,
+            'status', status,
+            'owner', owner,
+            'module', module,
+            'priority', priority,
+            'aging_hours', TIMESTAMPDIFF(HOUR, COALESCE(started_at, updated_at), NOW())
+        )) INTO v_in_flight
+        FROM (
+            SELECT identifier, title, status, owner, module, priority, started_at, updated_at
+            FROM mcp_tasks
+            WHERE status IN ('doing', 'review')
+            ORDER BY updated_at DESC
+            LIMIT 10
+        ) wf;
+
+        -- BRIEF-A1 fix #1+#2: recent_24h corrigido.
+        -- adrs_approved: CURDATE() - 1 DAY (cobre ontem+hoje, evita bug DATE-vs-DATETIME).
+        -- commits_count → mcp_activity_24h (audit log real, não github inexistente).
+        SET v_recent_24h = JSON_OBJECT(
+            'adrs_approved', (
+                SELECT JSON_ARRAYAGG(JSON_OBJECT('id', id, 'slug', slug, 'title', title))
+                FROM mcp_memory_documents
+                WHERE type = 'adr'
+                  AND status = 'aceito'
+                  AND decided_at >= CURDATE() - INTERVAL 1 DAY
+            ),
+            'mcp_activity_24h', (
+                SELECT COUNT(*)
+                FROM mcp_audit_log
+                WHERE created_at > NOW() - INTERVAL 24 HOUR
+                  AND status = 'ok'
+                  AND tool_or_resource IS NOT NULL
+            ),
+            'mcp_distinct_tools_24h', (
+                SELECT COUNT(DISTINCT tool_or_resource)
+                FROM mcp_audit_log
+                WHERE created_at > NOW() - INTERVAL 24 HOUR
+                  AND status = 'ok'
+                  AND tool_or_resource IS NOT NULL
+            ),
+            'mcp_distinct_users_24h', (
+                SELECT COUNT(DISTINCT user_id)
+                FROM mcp_audit_log
+                WHERE created_at > NOW() - INTERVAL 24 HOUR
+                  AND user_id IS NOT NULL
+            ),
+            'ads_escalations', 0,
+            'incidents', 0
+        );
+
+        -- Skills uso 7d
+        SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'skill_name', skill_name,
+            'trigger_count', trigger_count,
+            'success_count', success_count,
+            'tokens_saved', tokens_saved
+        )) INTO v_skills_7d
+        FROM (
+            SELECT
+                skill_name,
+                COUNT(*) AS trigger_count,
+                SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) AS success_count,
+                SUM(tokens_saved_estimate) AS tokens_saved
+            FROM mcp_skill_telemetry
+            WHERE triggered_at > NOW() - INTERVAL 7 DAY
+            GROUP BY skill_name
+            ORDER BY trigger_count DESC
+            LIMIT 10
+        ) s;
+
+        -- Skills candidatas a poda (zero disparos 30d)
+        SELECT JSON_ARRAYAGG(skill_name) INTO v_skills_poda
+        FROM (
+            SELECT DISTINCT skill_name
+            FROM mcp_skill_telemetry
+            WHERE skill_name NOT IN (
+                SELECT DISTINCT skill_name
+                FROM mcp_skill_telemetry
+                WHERE triggered_at > NOW() - INTERVAL 30 DAY
+            )
+        ) s;
+
+        SET @v_flags = JSON_OBJECT(
+            'migration_aging_critical', 0,
+            'prs_stale_3d', 0,
+            'visual_regression_failures_24h', 0
+        );
+
+        SET @v_brain_b_budget = JSON_OBJECT(
+            'spent_usd', 0,
+            'cap_usd', 50,
+            'pct_used', 0
+        );
+
+        TRUNCATE TABLE mcp_brief_inputs_cache;
+
+        INSERT INTO mcp_brief_inputs_cache (
+            singleton_id, computed_at, active_cycle, hitl_pending,
+            brain_b_budget, in_flight, recent_24h, skills_7d,
+            skills_candidatas_poda, charters_stale, flags
+        ) VALUES (
+            1, NOW(), v_active_cycle, v_hitl_pending,
+            @v_brain_b_budget, v_in_flight, v_recent_24h, v_skills_7d,
+            v_skills_poda, NULL, @v_flags
+        );
+    END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50001 DROP VIEW IF EXISTS `copiloto_business_profile`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
@@ -9420,7 +9854,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_business_profile` AS select `jana_business_profile`.`id` AS `id`,`jana_business_profile`.`business_id` AS `business_id`,`jana_business_profile`.`profile_text` AS `profile_text`,`jana_business_profile`.`tokens_estimated` AS `tokens_estimated`,`jana_business_profile`.`raw_context_tokens` AS `raw_context_tokens`,`jana_business_profile`.`gerado_em` AS `gerado_em`,`jana_business_profile`.`created_at` AS `created_at`,`jana_business_profile`.`updated_at` AS `updated_at` from `jana_business_profile` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9433,7 +9867,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_cache_semantico` AS select `jana_cache_semantico`.`id` AS `id`,`jana_cache_semantico`.`cache_key` AS `cache_key`,`jana_cache_semantico`.`business_id` AS `business_id`,`jana_cache_semantico`.`user_id` AS `user_id`,`jana_cache_semantico`.`query_original` AS `query_original`,`jana_cache_semantico`.`query_normalizada` AS `query_normalizada`,`jana_cache_semantico`.`query_embedding` AS `query_embedding`,`jana_cache_semantico`.`resposta` AS `resposta`,`jana_cache_semantico`.`metadata` AS `metadata`,`jana_cache_semantico`.`hits` AS `hits`,`jana_cache_semantico`.`ultimo_hit_em` AS `ultimo_hit_em`,`jana_cache_semantico`.`tokens_in` AS `tokens_in`,`jana_cache_semantico`.`tokens_out` AS `tokens_out`,`jana_cache_semantico`.`custo_brl_original` AS `custo_brl_original`,`jana_cache_semantico`.`expira_em` AS `expira_em`,`jana_cache_semantico`.`created_at` AS `created_at`,`jana_cache_semantico`.`updated_at` AS `updated_at` from `jana_cache_semantico` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9446,7 +9880,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_conversas` AS select `jana_conversas`.`id` AS `id`,`jana_conversas`.`business_id` AS `business_id`,`jana_conversas`.`user_id` AS `user_id`,`jana_conversas`.`titulo` AS `titulo`,`jana_conversas`.`status` AS `status`,`jana_conversas`.`iniciada_em` AS `iniciada_em`,`jana_conversas`.`created_at` AS `created_at`,`jana_conversas`.`updated_at` AS `updated_at` from `jana_conversas` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9459,7 +9893,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_memoria_facts` AS select `jana_memoria_facts`.`id` AS `id`,`jana_memoria_facts`.`business_id` AS `business_id`,`jana_memoria_facts`.`user_id` AS `user_id`,`jana_memoria_facts`.`fato` AS `fato`,`jana_memoria_facts`.`metadata` AS `metadata`,`jana_memoria_facts`.`valid_from` AS `valid_from`,`jana_memoria_facts`.`valid_until` AS `valid_until`,`jana_memoria_facts`.`hits_count` AS `hits_count`,`jana_memoria_facts`.`ultimo_hit_em` AS `ultimo_hit_em`,`jana_memoria_facts`.`core_memory` AS `core_memory`,`jana_memoria_facts`.`created_at` AS `created_at`,`jana_memoria_facts`.`updated_at` AS `updated_at`,`jana_memoria_facts`.`deleted_at` AS `deleted_at` from `jana_memoria_facts` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9472,7 +9906,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_memoria_gabarito` AS select `jana_memoria_gabarito`.`id` AS `id`,`jana_memoria_gabarito`.`business_id` AS `business_id`,`jana_memoria_gabarito`.`categoria` AS `categoria`,`jana_memoria_gabarito`.`subcategoria` AS `subcategoria`,`jana_memoria_gabarito`.`pergunta` AS `pergunta`,`jana_memoria_gabarito`.`memoria_esperada_keys` AS `memoria_esperada_keys`,`jana_memoria_gabarito`.`resposta_esperada_pattern` AS `resposta_esperada_pattern`,`jana_memoria_gabarito`.`contexto_setup` AS `contexto_setup`,`jana_memoria_gabarito`.`dificuldade` AS `dificuldade`,`jana_memoria_gabarito`.`ativo` AS `ativo`,`jana_memoria_gabarito`.`notas` AS `notas`,`jana_memoria_gabarito`.`created_at` AS `created_at`,`jana_memoria_gabarito`.`updated_at` AS `updated_at` from `jana_memoria_gabarito` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9485,7 +9919,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_memoria_metricas` AS select `jana_memoria_metricas`.`id` AS `id`,`jana_memoria_metricas`.`apurado_em` AS `apurado_em`,`jana_memoria_metricas`.`business_id` AS `business_id`,`jana_memoria_metricas`.`recall_at_3` AS `recall_at_3`,`jana_memoria_metricas`.`precision_at_3` AS `precision_at_3`,`jana_memoria_metricas`.`mrr` AS `mrr`,`jana_memoria_metricas`.`latencia_p95_ms` AS `latencia_p95_ms`,`jana_memoria_metricas`.`tokens_medio_interacao` AS `tokens_medio_interacao`,`jana_memoria_metricas`.`memory_bloat_ratio` AS `memory_bloat_ratio`,`jana_memoria_metricas`.`taxa_contradicoes_pct` AS `taxa_contradicoes_pct`,`jana_memoria_metricas`.`cross_tenant_violations` AS `cross_tenant_violations`,`jana_memoria_metricas`.`faithfulness` AS `faithfulness`,`jana_memoria_metricas`.`answer_relevancy` AS `answer_relevancy`,`jana_memoria_metricas`.`context_precision` AS `context_precision`,`jana_memoria_metricas`.`total_interacoes_dia` AS `total_interacoes_dia`,`jana_memoria_metricas`.`total_memorias_ativas` AS `total_memorias_ativas`,`jana_memoria_metricas`.`detalhes` AS `detalhes`,`jana_memoria_metricas`.`created_at` AS `created_at`,`jana_memoria_metricas`.`updated_at` AS `updated_at` from `jana_memoria_metricas` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9498,7 +9932,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_mensagens` AS select `jana_mensagens`.`id` AS `id`,`jana_mensagens`.`conversa_id` AS `conversa_id`,`jana_mensagens`.`role` AS `role`,`jana_mensagens`.`content` AS `content`,`jana_mensagens`.`tokens_in` AS `tokens_in`,`jana_mensagens`.`tokens_out` AS `tokens_out`,`jana_mensagens`.`created_at` AS `created_at` from `jana_mensagens` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9511,7 +9945,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_meta_apuracoes` AS select `jana_meta_apuracoes`.`id` AS `id`,`jana_meta_apuracoes`.`meta_id` AS `meta_id`,`jana_meta_apuracoes`.`data_ref` AS `data_ref`,`jana_meta_apuracoes`.`valor_realizado` AS `valor_realizado`,`jana_meta_apuracoes`.`calculado_em` AS `calculado_em`,`jana_meta_apuracoes`.`fonte_query_hash` AS `fonte_query_hash`,`jana_meta_apuracoes`.`created_at` AS `created_at`,`jana_meta_apuracoes`.`updated_at` AS `updated_at` from `jana_meta_apuracoes` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9524,7 +9958,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_meta_fontes` AS select `jana_meta_fontes`.`id` AS `id`,`jana_meta_fontes`.`meta_id` AS `meta_id`,`jana_meta_fontes`.`driver` AS `driver`,`jana_meta_fontes`.`config_json` AS `config_json`,`jana_meta_fontes`.`cadencia` AS `cadencia`,`jana_meta_fontes`.`created_at` AS `created_at`,`jana_meta_fontes`.`updated_at` AS `updated_at` from `jana_meta_fontes` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9537,7 +9971,7 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_meta_periodos` AS select `jana_meta_periodos`.`id` AS `id`,`jana_meta_periodos`.`meta_id` AS `meta_id`,`jana_meta_periodos`.`tipo_periodo` AS `tipo_periodo`,`jana_meta_periodos`.`data_ini` AS `data_ini`,`jana_meta_periodos`.`data_fim` AS `data_fim`,`jana_meta_periodos`.`valor_alvo` AS `valor_alvo`,`jana_meta_periodos`.`trajetoria` AS `trajetoria`,`jana_meta_periodos`.`created_at` AS `created_at`,`jana_meta_periodos`.`updated_at` AS `updated_at` from `jana_meta_periodos` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -9550,8 +9984,21 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `copiloto_metas` AS select `jana_metas`.`id` AS `id`,`jana_metas`.`business_id` AS `business_id`,`jana_metas`.`slug` AS `slug`,`jana_metas`.`nome` AS `nome`,`jana_metas`.`unidade` AS `unidade`,`jana_metas`.`tipo_agregacao` AS `tipo_agregacao`,`jana_metas`.`ativo` AS `ativo`,`jana_metas`.`criada_por_user_id` AS `criada_por_user_id`,`jana_metas`.`origem` AS `origem`,`jana_metas`.`created_at` AS `created_at`,`jana_metas`.`updated_at` AS `updated_at` from `jana_metas` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+/*!50001 DROP VIEW IF EXISTS `copiloto_negative_cache`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `copiloto_negative_cache` AS select `jana_negative_cache`.`id` AS `id`,`jana_negative_cache`.`cache_key` AS `cache_key`,`jana_negative_cache`.`business_id` AS `business_id`,`jana_negative_cache`.`user_id` AS `user_id`,`jana_negative_cache`.`query_normalizada` AS `query_normalizada`,`jana_negative_cache`.`hits_negativos` AS `hits_negativos`,`jana_negative_cache`.`expira_em` AS `expira_em`,`jana_negative_cache`.`created_at` AS `created_at`,`jana_negative_cache`.`updated_at` AS `updated_at` from `jana_negative_cache` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -9563,8 +10010,8 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
-/*!50001 VIEW `copiloto_sugestoes` AS select NULL AS `id`,NULL AS `conversa_id`,NULL AS `meta_id`,NULL AS `payload_json`,NULL AS `escolhida_em`,NULL AS `rejeitada_em`,NULL AS `created_at`,NULL AS `updated_at` */;
+/*!50013 DEFINER=`u906587222_oimpresso`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `copiloto_sugestoes` AS select `jana_sugestoes`.`id` AS `id`,`jana_sugestoes`.`conversa_id` AS `conversa_id`,`jana_sugestoes`.`meta_id` AS `meta_id`,`jana_sugestoes`.`payload_json` AS `payload_json`,`jana_sugestoes`.`escolhida_em` AS `escolhida_em`,`jana_sugestoes`.`rejeitada_em` AS `rejeitada_em`,`jana_sugestoes`.`created_at` AS `created_at`,`jana_sugestoes`.`updated_at` AS `updated_at` from `jana_sugestoes` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -9573,856 +10020,829 @@ CREATE TABLE `woocommerce_sync_logs` (
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
-
--- ====== MIGRATIONS DATA (squash marker) ======
 /*M!999999\- enable the sandbox mode */ 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
-
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `migrations` WRITE;
-/*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
-INSERT INTO `migrations` VALUES
-(1,'2014_10_12_000000_create_users_table',1),
-(2,'2014_10_12_003455_create_cities_table',1),
-(3,'2014_10_12_100000_create_password_resets_table',1),
-(4,'2017_07_05_071953_create_currencies_table',1),
-(5,'2017_07_05_073658_create_business_table',1),
-(6,'2017_07_05_074333_create_natureza_operacaos_table',1),
-(7,'2017_07_22_075923_add_business_id_users_table',1),
-(8,'2017_07_23_113209_create_brands_table',1),
-(9,'2017_07_26_083429_create_permission_tables',1),
-(10,'2017_07_26_110000_create_tax_rates_table',1),
-(11,'2017_07_26_122313_create_units_table',1),
-(12,'2017_07_27_075706_create_contacts_table',1),
-(13,'2017_08_04_071038_create_categories_table',1),
-(14,'2017_08_08_115903_create_products_table',1),
-(15,'2017_08_09_061616_create_variation_templates_table',1),
-(16,'2017_08_09_061638_create_variation_value_templates_table',1),
-(17,'2017_08_10_061146_create_product_variations_table',1),
-(18,'2017_08_10_061216_create_variations_table',1),
-(19,'2017_08_18_054827_create_transportadoras_table',1),
-(20,'2017_08_19_054827_create_transactions_table',1),
-(21,'2017_08_31_073533_create_purchase_lines_table',1),
-(22,'2017_10_15_064638_create_transaction_payments_table',1),
-(23,'2017_10_31_065621_add_default_sales_tax_to_business_table',1),
-(24,'2017_11_20_051930_create_table_group_sub_taxes',1),
-(25,'2017_11_20_063603_create_transaction_sell_lines',1),
-(26,'2017_11_21_064540_create_barcodes_table',1),
-(27,'2017_11_23_181237_create_invoice_schemes_table',1),
-(28,'2017_12_25_122822_create_business_locations_table',1),
-(29,'2017_12_25_160253_add_location_id_to_transactions_table',1),
-(30,'2017_12_25_163227_create_variation_location_details_table',1),
-(31,'2018_01_04_115627_create_sessions_table',1),
-(32,'2018_01_05_112817_create_invoice_layouts_table',1),
-(33,'2018_01_06_112303_add_invoice_scheme_id_and_invoice_layout_id_to_business_locations',1),
-(34,'2018_01_08_104124_create_expense_categories_table',1),
-(35,'2018_01_08_123327_modify_transactions_table_for_expenses',1),
-(36,'2018_01_09_111005_modify_payment_status_in_transactions_table',1),
-(37,'2018_01_09_111109_add_paid_on_column_to_transaction_payments_table',1),
-(38,'2018_01_25_172439_add_printer_related_fields_to_business_locations_table',1),
-(39,'2018_01_27_184322_create_printers_table',1),
-(40,'2018_01_30_181442_create_cash_registers_table',1),
-(41,'2018_01_31_125836_create_cash_register_transactions_table',1),
-(42,'2018_02_07_173326_modify_business_table',1),
-(43,'2018_02_08_105425_add_enable_product_expiry_column_to_business_table',1),
-(44,'2018_02_08_111027_add_expiry_period_and_expiry_period_type_columns_to_products_table',1),
-(45,'2018_02_08_131118_add_mfg_date_and_exp_date_purchase_lines_table',1),
-(46,'2018_02_08_155348_add_exchange_rate_to_transactions_table',1),
-(47,'2018_02_09_124945_modify_transaction_payments_table_for_contact_payments',1),
-(48,'2018_02_12_113640_create_transaction_sell_lines_purchase_lines_table',1),
-(49,'2018_02_12_114605_add_quantity_sold_in_purchase_lines_table',1),
-(50,'2018_02_13_183323_alter_decimal_fields_size',1),
-(51,'2018_02_14_161928_add_transaction_edit_days_to_business_table',1),
-(52,'2018_02_15_161032_add_document_column_to_transactions_table',1),
-(53,'2018_02_17_124709_add_more_options_to_invoice_layouts',1),
-(54,'2018_02_19_111517_add_keyboard_shortcut_column_to_business_table',1),
-(55,'2018_02_19_121537_stock_adjustment_move_to_transaction_table',1),
-(56,'2018_02_20_165505_add_is_direct_sale_column_to_transactions_table',1),
-(57,'2018_02_21_105329_create_system_table',1),
-(58,'2018_02_23_100549_version_1_2',1),
-(59,'2018_02_23_125648_add_enable_editing_sp_from_purchase_column_to_business_table',1),
-(60,'2018_02_26_103612_add_sales_commission_agent_column_to_business_table',1),
-(61,'2018_02_26_130519_modify_users_table_for_sales_cmmsn_agnt',1),
-(62,'2018_02_26_134500_add_commission_agent_to_transactions_table',1),
-(63,'2018_02_27_121422_add_item_addition_method_to_business_table',1),
-(64,'2018_02_27_170232_modify_transactions_table_for_stock_transfer',1),
-(65,'2018_03_05_153510_add_enable_inline_tax_column_to_business_table',1),
-(66,'2018_03_06_210206_modify_product_barcode_types',1),
-(67,'2018_03_13_181541_add_expiry_type_to_business_table',1),
-(68,'2018_03_16_113446_product_expiry_setting_for_business',1),
-(69,'2018_03_19_113601_add_business_settings_options',1),
-(70,'2018_03_26_125334_add_pos_settings_to_business_table',1),
-(71,'2018_03_26_165350_create_customer_groups_table',1),
-(72,'2018_03_27_122720_customer_group_related_changes_in_tables',1),
-(73,'2018_03_29_110138_change_tax_field_to_nullable_in_business_table',1),
-(74,'2018_03_29_115502_add_changes_for_sr_number_in_products_and_sale_lines_table',1),
-(75,'2018_03_29_134340_add_inline_discount_fields_in_purchase_lines',1),
-(76,'2018_03_31_140921_update_transactions_table_exchange_rate',1),
-(77,'2018_04_03_103037_add_contact_id_to_contacts_table',1),
-(78,'2018_04_03_122709_add_changes_to_invoice_layouts_table',1),
-(79,'2018_04_09_135320_change_exchage_rate_size_in_business_table',1),
-(80,'2018_04_17_123122_add_lot_number_to_business',1),
-(81,'2018_04_17_160845_add_product_racks_table',1),
-(82,'2018_04_20_182015_create_res_tables_table',1),
-(83,'2018_04_24_105246_restaurant_fields_in_transaction_table',1),
-(84,'2018_04_24_114149_add_enabled_modules_business_table',1),
-(85,'2018_04_24_133704_add_modules_fields_in_invoice_layout_table',1),
-(86,'2018_04_27_132653_quotation_related_change',1),
-(87,'2018_05_02_104439_add_date_format_and_time_format_to_business',1),
-(88,'2018_05_02_111939_add_sell_return_to_transaction_payments',1),
-(89,'2018_05_14_114027_add_rows_positions_for_products',1),
-(90,'2018_05_14_125223_add_weight_to_products_table',1),
-(91,'2018_05_14_164754_add_opening_stock_permission',1),
-(92,'2018_05_15_134729_add_design_to_invoice_layouts',1),
-(93,'2018_05_16_183307_add_tax_fields_invoice_layout',1),
-(94,'2018_05_18_191956_add_sell_return_to_transaction_table',1),
-(95,'2018_05_21_131349_add_custom_fileds_to_contacts_table',1),
-(96,'2018_05_21_131607_invoice_layout_fields_for_sell_return',1),
-(97,'2018_05_21_131949_add_custom_fileds_and_website_to_business_locations_table',1),
-(98,'2018_05_22_123527_create_reference_counts_table',1),
-(99,'2018_05_22_154540_add_ref_no_prefixes_column_to_business_table',1),
-(100,'2018_05_24_132620_add_ref_no_column_to_transaction_payments_table',1),
-(101,'2018_05_24_161026_add_location_id_column_to_business_location_table',1),
-(102,'2018_05_25_180603_create_modifiers_related_table',1),
-(103,'2018_05_29_121714_add_purchase_line_id_to_stock_adjustment_line_table',1),
-(104,'2018_05_31_114645_add_res_order_status_column_to_transactions_table',1),
-(105,'2018_06_05_103530_rename_purchase_line_id_in_stock_adjustment_lines_table',1),
-(106,'2018_06_05_111905_modify_products_table_for_modifiers',1),
-(107,'2018_06_06_110524_add_parent_sell_line_id_column_to_transaction_sell_lines_table',1),
-(108,'2018_06_07_152443_add_is_service_staff_to_roles_table',1),
-(109,'2018_06_07_182258_add_image_field_to_products_table',1),
-(110,'2018_06_13_133705_create_bookings_table',1),
-(111,'2018_06_15_173636_add_email_column_to_contacts_table',1),
-(112,'2018_06_27_182835_add_superadmin_related_fields_business',1),
-(113,'2018_06_27_185405_create_packages_table',1),
-(114,'2018_06_28_182803_create_subscriptions_table',1),
-(115,'2018_07_10_101913_add_custom_fields_to_products_table',1),
-(116,'2018_07_17_103434_add_sales_person_name_label_to_invoice_layouts_table',1),
-(117,'2018_07_17_163920_add_theme_skin_color_column_to_business_table',1),
-(118,'2018_07_17_182021_add_rows_to_system_table',1),
-(119,'2018_07_19_131721_add_options_to_packages_table',1),
-(120,'2018_07_24_160319_add_lot_no_line_id_to_transaction_sell_lines_table',1),
-(121,'2018_07_25_110004_add_show_expiry_and_show_lot_colums_to_invoice_layouts_table',1),
-(122,'2018_07_25_172004_add_discount_columns_to_transaction_sell_lines_table',1),
-(123,'2018_07_26_124720_change_design_column_type_in_invoice_layouts_table',1),
-(124,'2018_07_26_170424_add_unit_price_before_discount_column_to_transaction_sell_line_table',1),
-(125,'2018_07_28_103614_add_credit_limit_column_to_contacts_table',1),
-(126,'2018_08_08_110755_add_new_payment_methods_to_transaction_payments_table',1),
-(127,'2018_08_08_122225_modify_cash_register_transactions_table_for_new_payment_methods',1),
-(128,'2018_08_14_104036_add_opening_balance_type_to_transactions_table',1),
-(129,'2018_08_17_155534_add_min_termination_alert_days',1),
-(130,'2018_08_28_105945_add_business_based_username_settings_to_system_table',1),
-(131,'2018_08_30_105906_add_superadmin_communicator_logs_table',1),
-(132,'2018_09_04_155900_create_accounts_table',1),
-(133,'2018_09_06_114438_create_selling_price_groups_table',1),
-(134,'2018_09_06_154057_create_variation_group_prices_table',1),
-(135,'2018_09_07_102413_add_permission_to_access_default_selling_price',1),
-(136,'2018_09_07_134858_add_selling_price_group_id_to_transactions_table',1),
-(137,'2018_09_10_112448_update_product_type_to_single_if_null_in_products_table',1),
-(138,'2018_09_10_152703_create_account_transactions_table',1),
-(139,'2018_09_10_173656_add_account_id_column_to_transaction_payments_table',1),
-(140,'2018_09_19_123914_create_notification_templates_table',1),
-(141,'2018_09_22_110504_add_sms_and_email_settings_columns_to_business_table',1),
-(142,'2018_09_24_134942_add_lot_no_line_id_to_stock_adjustment_lines_table',1),
-(143,'2018_09_26_105557_add_transaction_payments_for_existing_expenses',1),
-(144,'2018_09_27_111609_modify_transactions_table_for_purchase_return',1),
-(145,'2018_09_27_131154_add_quantity_returned_column_to_purchase_lines_table',1),
-(146,'2018_10_02_131401_add_return_quantity_column_to_transaction_sell_lines_table',1),
-(147,'2018_10_03_104918_add_qty_returned_column_to_transaction_sell_lines_purchase_lines_table',1),
-(148,'2018_10_03_185947_add_default_notification_templates_to_database',1),
-(149,'2018_10_09_153105_add_business_id_to_transaction_payments_table',1),
-(150,'2018_10_16_135229_create_permission_for_sells_and_purchase',1),
-(151,'2018_10_22_114441_add_columns_for_variable_product_modifications',1),
-(152,'2018_10_22_134428_modify_variable_product_data',1),
-(153,'2018_10_30_181558_add_table_tax_headings_to_invoice_layout',1),
-(154,'2018_10_31_122619_add_pay_terms_field_transactions_table',1),
-(155,'2018_10_31_161328_add_new_permissions_for_pos_screen',1),
-(156,'2018_10_31_174752_add_access_selected_contacts_only_to_users_table',1),
-(157,'2018_10_31_175627_add_user_contact_access',1),
-(158,'2018_10_31_180559_add_auto_send_sms_column_to_notification_templates_table',1),
-(159,'2018_11_02_130636_add_custom_permissions_to_packages_table',1),
-(160,'2018_11_02_171949_change_card_type_column_to_varchar_in_transaction_payments_table',1),
-(161,'2018_11_05_161848_add_more_fields_to_packages_table',1),
-(162,'2018_11_08_105621_add_role_permissions',1),
-(163,'2018_11_26_114135_add_is_suspend_column_to_transactions_table',1),
-(164,'2018_11_28_104410_modify_units_table_for_multi_unit',1),
-(165,'2018_11_28_170952_add_sub_unit_id_to_purchase_lines_and_sell_lines',1),
-(166,'2018_11_29_115918_add_primary_key_in_system_table',1),
-(167,'2018_12_03_185546_add_product_description_column_to_products_table',1),
-(168,'2018_12_06_114937_modify_system_table_and_users_table',1),
-(169,'2018_12_10_124621_modify_system_table_values_null_default',1),
-(170,'2018_12_13_160007_add_custom_fields_display_options_to_invoice_layouts_table',1),
-(171,'2018_12_14_103307_modify_system_table',1),
-(172,'2018_12_18_133837_add_prev_balance_due_columns_to_invoice_layouts_table',1),
-(173,'2018_12_18_170656_add_invoice_token_column_to_transaction_table',1),
-(174,'2018_12_20_133639_add_date_time_format_column_to_invoice_layouts_table',1),
-(175,'2018_12_21_120659_add_recurring_invoice_fields_to_transactions_table',1),
-(176,'2018_12_24_154933_create_notifications_table',1),
-(177,'2019_01_08_112015_add_document_column_to_transaction_payments_table',1),
-(178,'2019_01_10_124645_add_account_permission',1),
-(179,'2019_01_16_125825_add_subscription_no_column_to_transactions_table',1),
-(180,'2019_01_28_111647_add_order_addresses_column_to_transactions_table',1),
-(181,'2019_02_13_173821_add_is_inactive_column_to_products_table',1),
-(182,'2019_02_19_103118_create_discounts_table',1),
-(183,'2019_02_21_120324_add_discount_id_column_to_transaction_sell_lines_table',1),
-(184,'2019_02_21_134324_add_permission_for_discount',1),
-(185,'2019_03_04_170832_add_service_staff_columns_to_transaction_sell_lines_table',1),
-(186,'2019_03_09_102425_add_sub_type_column_to_transactions_table',1),
-(187,'2019_03_09_124457_add_indexing_transaction_sell_lines_purchase_lines_table',1),
-(188,'2019_03_12_120336_create_activity_log_table',1),
-(189,'2019_03_15_132925_create_media_table',1),
-(190,'2019_05_08_130339_add_indexing_to_parent_id_in_transaction_payments_table',1),
-(191,'2019_05_10_132311_add_missing_column_indexing',1),
-(192,'2019_05_10_135434_add_missing_database_column_indexes',1),
-(193,'2019_05_14_091812_add_show_image_column_to_invoice_layouts_table',1),
-(194,'2019_05_25_104922_add_view_purchase_price_permission',1),
-(195,'2019_06_17_103515_add_profile_informations_columns_to_users_table',1),
-(196,'2019_06_18_135524_add_permission_to_view_own_sales_only',1),
-(197,'2019_06_19_112058_add_database_changes_for_reward_points',1),
-(198,'2019_06_28_133732_change_type_column_to_string_in_transactions_table',1),
-(199,'2019_07_13_111420_add_is_created_from_api_column_to_transactions_table',1),
-(200,'2019_07_15_165136_add_fields_for_combo_product',1),
-(201,'2019_07_19_103446_add_mfg_quantity_used_column_to_purchase_lines_table',1),
-(202,'2019_07_22_152649_add_not_for_selling_in_product_table',1),
-(203,'2019_07_29_185351_add_show_reward_point_column_to_invoice_layouts_table',1),
-(204,'2019_08_08_162302_add_sub_units_related_fields',1),
-(205,'2019_08_16_115300_create_superadmin_frontend_pages_table',1),
-(206,'2019_08_26_133419_update_price_fields_decimal_point',1),
-(207,'2019_09_02_160054_remove_location_permissions_from_roles',1),
-(208,'2019_09_03_185259_add_permission_for_pos_screen',1),
-(209,'2019_09_04_163141_add_location_id_to_cash_registers_table',1),
-(210,'2019_09_04_184008_create_types_of_services_table',1),
-(211,'2019_09_06_131445_add_types_of_service_fields_to_transactions_table',1),
-(212,'2019_09_09_134810_add_default_selling_price_group_id_column_to_business_locations_table',1),
-(213,'2019_09_12_105616_create_product_locations_table',1),
-(214,'2019_09_17_122522_add_custom_labels_column_to_business_table',1),
-(215,'2019_09_18_164319_add_shipping_fields_to_transactions_table',1),
-(216,'2019_09_19_170927_close_all_active_registers',1),
-(217,'2019_09_23_161906_add_media_description_cloumn_to_media_table',1),
-(218,'2019_10_18_155633_create_account_types_table',1),
-(219,'2019_10_22_163335_add_common_settings_column_to_business_table',1),
-(220,'2019_10_29_132521_add_update_purchase_status_permission',1),
-(221,'2019_11_09_110522_add_indexing_to_lot_number',1),
-(222,'2019_11_19_170824_add_is_active_column_to_business_locations_table',1),
-(223,'2019_11_21_162913_change_quantity_field_types_to_decimal',1),
-(224,'2019_11_25_160340_modify_categories_table_for_polymerphic_relationship',1),
-(225,'2019_12_02_105025_create_warranties_table',1),
-(226,'2019_12_03_180342_add_common_settings_field_to_invoice_layouts_table',1),
-(227,'2019_12_05_183955_add_more_fields_to_users_table',1),
-(228,'2019_12_06_174904_add_change_return_label_column_to_invoice_layouts_table',1),
-(229,'2019_12_11_121307_add_draft_and_quotation_list_permissions',1),
-(230,'2019_12_12_180126_copy_expense_total_to_total_before_tax',1),
-(231,'2019_12_19_181412_make_alert_quantity_field_nullable_on_products_table',1),
-(232,'2019_12_25_173413_create_dashboard_configurations_table',1),
-(233,'2020_01_08_133506_create_document_and_notes_table',1),
-(234,'2020_01_09_113252_add_cc_bcc_column_to_notification_templates_table',1),
-(235,'2020_01_16_174818_add_round_off_amount_field_to_transactions_table',1),
-(236,'2020_01_28_162345_add_weighing_scale_settings_in_business_settings_table',1),
-(237,'2020_02_18_172447_add_import_fields_to_transactions_table',1),
-(238,'2020_03_13_135844_add_is_active_column_to_selling_price_groups_table',1),
-(239,'2020_03_16_115449_add_contact_status_field_to_contacts_table',1),
-(240,'2020_03_26_124736_add_allow_login_column_in_users_table',1),
-(241,'2020_04_13_154150_add_feature_products_column_to_business_loactions',1),
-(242,'2020_04_15_151802_add_user_type_to_users_table',1),
-(243,'2020_04_22_153905_add_subscription_repeat_on_column_to_transactions_table',1),
-(244,'2020_04_28_111436_add_shipping_address_to_contacts_table',1),
-(245,'2020_06_01_094654_add_max_sale_discount_column_to_users_table',1),
-(246,'2020_08_16_154813_create_devolucaos_table',1),
-(247,'2020_08_16_155443_create_item_devolucaos_table',1),
-(248,'2020_11_14_143711_create_veiculos_table',1),
-(249,'2020_11_15_142315_create_ctes_table',1),
-(250,'2020_11_15_142325_create_componente_ctes_table',1),
-(251,'2020_11_15_142337_create_medida_ctes_table',1),
-(252,'2020_11_21_090013_create_manifestos_table',1),
-(253,'2020_11_21_090053_create_manifesto_limites_table',1),
-(254,'2020_11_21_090341_create_item_dves_table',1),
-(255,'2019_03_07_155813_make_repair_statuses_table',2),
-(256,'2019_03_08_120634_add_repair_columns_to_transactions_table',2),
-(257,'2019_03_14_182704_add_repair_permissions',2),
-(258,'2019_03_29_110241_add_repair_version_column_to_system_table',2),
-(259,'2019_04_12_113901_add_repair_settings_column_to_business_table',2),
-(260,'2020_05_05_125008_create_device_models_table',2),
-(261,'2020_05_06_103135_add_repair_model_id_column_to_products_table',2),
-(262,'2020_07_11_120308_add_columns_to_repair_statuses_table',2),
-(263,'2020_07_31_130737_create_job_sheets_table',2),
-(264,'2020_08_07_124241_add_job_sheet_id_to_transactions_table',2),
-(265,'2020_08_22_104640_add_email_template_field_to_repair_status_table',2),
-(266,'2020_10_19_131934_add_job_sheet_custom_fields_to_repair_job_sheets_table',2),
-(267,'2018_10_10_110400_add_module_version_to_system_table',3),
-(268,'2018_10_10_122845_add_woocommerce_api_settings_to_business_table',3),
-(269,'2018_10_10_162041_add_woocommerce_category_id_to_categories_table',3),
-(270,'2018_10_11_173839_create_woocommerce_sync_logs_table',3),
-(271,'2018_10_16_123522_add_woocommerce_tax_rate_id_column_to_tax_rates_table',3),
-(272,'2018_10_23_111555_add_woocommerce_attr_id_column_to_variation_templates_table',3),
-(273,'2018_12_03_163945_add_woocommerce_permissions',3),
-(274,'2019_02_18_154414_change_woocommerce_sync_logs_table',3),
-(275,'2019_04_19_174129_add_disable_woocommerce_sync_column_to_products_table',3),
-(276,'2019_06_08_132440_add_woocommerce_wh_oc_secret_column_to_business_table',3),
-(277,'2019_10_01_171828_add_woocommerce_media_id_columns',3),
-(278,'2020_09_07_124952_add_woocommerce_skipped_orders_fields_to_business_table',3),
-(279,'2019_07_15_114211_add_manufacturing_module_version_to_system_table',4),
-(280,'2019_07_15_114403_create_mfg_recipes_table',4),
-(281,'2019_07_18_180217_add_production_columns_to_transactions_table',4),
-(282,'2019_07_26_110753_add_manufacturing_settings_column_to_business_table',4),
-(283,'2019_07_26_170450_add_manufacturing_permissions',4),
-(284,'2019_08_08_110035_create_mfg_recipe_ingredients_table',4),
-(285,'2019_08_08_172837_add_recipe_add_edit_permissions',4),
-(286,'2019_08_12_114610_add_ingredient_waste_percent_columns',4),
-(287,'2019_11_05_115136_create_ingredient_groups_table',4),
-(288,'2020_02_22_120303_add_column_to_mfg_recipe_ingredients_table',4),
-(289,'2020_08_19_103831_add_production_cost_type_to_recipe_and_transaction_table',4),
-(290,'2019_11_12_163135_create_projects_table',5),
-(291,'2019_11_12_164431_create_project_members_table',5),
-(292,'2019_11_14_112230_create_project_tasks_table',5),
-(293,'2019_11_14_112258_create_project_task_members_table',5),
-(294,'2019_11_18_154617_create_project_task_comments_table',5),
-(295,'2019_11_19_134807_create_project_time_logs_table',5),
-(296,'2019_12_11_102549_add_more_fields_in_transactions_table',5),
-(297,'2019_12_11_102735_create_invoice_lines_table',5),
-(298,'2020_01_07_172852_add_project_permissions',5),
-(299,'2020_01_08_115422_add_project_module_version_to_system_table',5),
-(300,'2020_07_10_114514_set_location_id_on_existing_invoice',5),
-(301,'2019_07_15_114211_add_boleto_module_version_to_system_table',6),
-(302,'2019_07_26_110753_add_boleto_settings_column_to_business_table',6),
-(303,'2019_07_26_170450_add_boleto_permissions',6),
-(304,'2016_06_01_000001_create_oauth_auth_codes_table',7),
-(305,'2016_06_01_000002_create_oauth_access_tokens_table',7),
-(306,'2016_06_01_000003_create_oauth_refresh_tokens_table',7),
-(307,'2016_06_01_000004_create_oauth_clients_table',7),
-(308,'2016_06_01_000005_create_oauth_personal_access_clients_table',7),
-(309,'2019_07_15_114211_add_fiscal_module_version_to_system_table',7),
-(310,'2019_07_26_110753_add_fiscal_settings_column_to_business_table',8),
-(311,'2019_07_26_170450_add_fiscal_permissions',8),
-(312,'2020_06_12_162245_modify_contacts_table',9),
-(313,'2020_06_22_103104_change_recur_interval_default_to_one',9),
-(314,'2020_07_09_174621_add_balance_field_to_contacts_table',10),
-(315,'2020_07_23_104933_change_status_column_to_varchar_in_transaction_table',10),
-(316,'2020_09_07_171059_change_completed_stock_transfer_status_to_final',10),
-(317,'2020_09_21_123224_modify_booking_status_column_in_bookings_table',10),
-(318,'2020_09_22_121639_create_discount_variations_table',10),
-(319,'2020_10_05_121550_modify_business_location_table_for_invoice_layout',11),
-(320,'2020_10_16_175726_set_status_as_received_for_opening_stock',11),
-(321,'2020_10_23_170823_add_for_group_tax_column_to_tax_rates_table',12),
-(322,'2020_11_04_130940_add_more_custom_fields_to_contacts_table',13),
-(323,'2020_11_10_152841_add_cash_register_permissions',13),
-(324,'2020_11_17_164041_modify_type_column_to_varchar_in_contacts_table',13),
-(325,'2021_01_26_155139_add_image_table_users',13),
-(326,'2021_01_26_155423_add_regime_table_contacts',13),
-(327,'2020_08_18_123107_add_connector_module_version_to_system_table',14),
-(328,'2020_09_29_184909_add_product_catalogue_version',15),
-(329,'2021_02_16_190608_add_woocommerce_module_indexing',16),
-(330,'2018_10_01_151252_create_documents_table',17),
-(331,'2018_10_02_151803_create_document_shares_table',17),
-(332,'2018_10_09_134558_create_reminders_table',17),
-(333,'2018_11_16_170756_create_to_dos_table',17),
-(334,'2019_02_22_120329_essentials_messages',17),
-(335,'2019_02_22_161513_add_message_permissions',17),
-(336,'2019_03_29_164339_add_essentials_version_to_system_table',17),
-(337,'2019_05_17_153306_create_essentials_leave_types_table',17),
-(338,'2019_05_17_175921_create_essentials_leaves_table',17),
-(339,'2019_05_21_154517_add_essentials_settings_columns_to_business_table',17),
-(340,'2019_05_21_181653_create_table_essentials_attendance',17),
-(341,'2019_05_30_110049_create_essentials_payrolls_table',17),
-(342,'2019_06_04_105723_create_essentials_holidays_table',17),
-(343,'2019_06_28_134217_add_payroll_columns_to_transactions_table',17),
-(344,'2019_08_26_103520_add_approve_leave_permission',17),
-(345,'2019_08_27_103724_create_essentials_allowance_and_deduction_table',17),
-(346,'2019_08_27_105236_create_essentials_user_allowances_and_deductions',17),
-(347,'2019_09_20_115906_add_more_columns_to_essentials_to_dos_table',17),
-(348,'2019_09_23_120439_create_essentials_todo_comments_table',17),
-(349,'2019_12_05_170724_add_hrm_columns_to_users_table',17),
-(350,'2019_12_09_105809_add_allowance_and_deductions_permission',17),
-(351,'2020_03_28_152838_create_essentials_shift_table',17),
-(352,'2020_03_30_162029_create_user_shifts_table',17),
-(353,'2020_03_31_134558_add_shift_id_to_attendance_table',17),
-(354,'2020_11_05_105157_modify_todos_date_column_type',17),
-(355,'2020_11_11_174852_add_end_time_column_to_essentials_reminders_table',17),
-(356,'2020_11_26_170527_create_essentials_kb_table',17),
-(357,'2020_11_30_112615_create_essentials_kb_users_table',17),
-(358,'2021_02_12_185514_add_clock_in_location_to_essentials_attendances_table',17),
-(359,'2021_02_16_190203_add_essentials_module_indexing',17),
-(360,'2021_02_27_133448_add_columns_to_users_table',17),
-(361,'2021_03_04_174857_create_payroll_groups_table',17),
-(362,'2021_03_04_175025_create_payroll_group_transactions_table',17),
-(363,'2021_03_09_123914_add_auto_clockout_to_essentials_shifts',17),
-(364,'2020_11_25_111050_add_parts_column_to_repair_job_sheets_table',18),
-(365,'2020_12_30_101842_add_use_for_repair_column_to_brands_table',18),
-(366,'2021_02_16_190423_add_repair_module_indexing',18),
-(369,'2024_10_16_161122_create_licenca_log_table',20),
-(373,'2024_11_05_101935_create_licenca_computador_table',21),
-(374,'2024_11_07_083505_update_licenca_computador_table',22),
-(375,'2020_03_19_130231_add_contact_id_to_users_table',23),
-(376,'2020_03_27_133605_create_schedules_table',23),
-(377,'2020_03_27_133628_create_schedule_users_table',23),
-(378,'2020_03_30_112834_create_schedule_logs_table',23),
-(379,'2020_04_02_182331_add_crm_module_version_to_system_table',23),
-(380,'2020_04_08_153231_modify_cloumn_in_contacts_table',23),
-(381,'2020_04_09_101052_create_lead_users_table',23),
-(382,'2020_04_16_114747_create_crm_campaigns_table',23),
-(383,'2021_01_07_155757_add_followup_additional_info_column_to_crm_schedules_table',23),
-(384,'2021_02_02_140021_add_additional_info_to_crm_campaigns_table',23),
-(385,'2021_02_02_173651_add_new_columns_to_contacts_table',23),
-(386,'2021_02_04_120439_create_call_logs_table',23),
-(387,'2021_02_08_172047_add_mobile_name_column_to_crm_call_logs_table',23),
-(388,'2021_02_16_190038_add_crm_module_indexing',23),
-(389,'2021_02_19_120846_create_crm_followup_invoices',23),
-(390,'2021_02_22_132125_add_follow_up_by_to_crm_schedules_table',23),
-(391,'2021_03_24_160736_add_department_and_designation_to_users_table',23),
-(392,'2021_06_15_152924_create_proposal_templates_table',23),
-(393,'2021_06_16_114448_add_recursive_fields_to_crm_schedules_table',23),
-(394,'2021_06_16_125740_create_proposals_table',23),
-(395,'2021_09_24_065738_add_crm_settings_column_to_business_table',23),
-(397,'2024_11_07_111500_add_fields_to_business_table',24),
-(398,'2024_11_08_075242_add_officeimpresso_limitemaquinas_to_packages_table',25),
-(399,'2024_11_11_162652_add_officeimpresso_migration_to_brands_table',26),
-(401,'2024_11_21_164209_add_officeimpresso_fields_to_users_table',27),
-(402,'2024_11_28_134259_add_officeimpresso_senha_to_users_table',28),
-(403,'2024_12_16_065654_add_officeimpresso_categories_table',29),
-(404,'2024_12_16_075504_add_officeimpresso_fields_to_units_table',30),
-(405,'2024_12_17_070922_add_officeimpresso_fields_to_products_table',31),
-(406,'2024_12_17_133215_fix_officeimpresso_fields_to_cities_table',32),
-(407,'2024_12_17_163927_add_officeimpresso_business_to_cities_table',33),
-(409,'2024_12_18_145324_create_condicaopagto_table',34),
-(410,'2024_12_19_092905_create_cidades_table',35),
-(411,'2024_12_19_174606_create_pessoas_grupo_table',36),
-(412,'2024_12_30_093956_create_nf_natureza_operacao_table',37),
-(413,'2024_12_30_095801_create_produto_grupo_table',38),
-(414,'2024_12_30_142344_create_nf_natureza_operacao_prodgrupo_table',39),
-(415,'2025_01_06_073702_add_sync_fields_to_products_table',40),
-(424,'2026_04_18_000001_create_ponto_colaborador_config_table',41),
-(425,'2026_04_18_000002_create_ponto_reps_table',41),
-(426,'2026_04_18_000003_create_ponto_escalas_table',41),
-(427,'2026_04_18_000004_create_ponto_marcacoes_table',41),
-(428,'2026_04_18_000005_create_ponto_intercorrencias_table',41),
-(429,'2026_04_18_000006_create_ponto_apuracao_dia_table',41),
-(430,'2026_04_18_000007_create_ponto_banco_horas_table',41),
-(431,'2026_04_18_000008_create_ponto_importacoes_table',41),
-(432,'2019_07_07_093258_create_chart_of_accounts_table',42),
-(433,'2019_07_07_093648_create_journal_entries_table',42),
-(434,'2019_07_07_110645_create_payment_types_table',42),
-(435,'2020_08_19_175842_add_asset_management_module_version_to_system_table',42),
-(436,'2020_08_20_114339_create_assets_table',42),
-(437,'2020_08_20_173031_create_asset_transactions_table',42),
-(438,'2020_08_21_180138_add_asset_settings_column_to_business_table',42),
-(439,'2020_12_18_181447_add_shipping_custom_fields_to_transactions_table',42),
-(440,'2020_12_22_164303_add_sub_status_column_to_transactions_table',42),
-(441,'2020_12_23_125610_add_spreadsheet_version_to_system_table',42),
-(442,'2020_12_23_153255_create_spreadsheets_table',42),
-(443,'2020_12_24_153050_add_custom_fields_to_transactions_table',42),
-(444,'2020_12_28_105403_add_whatsapp_text_column_to_notification_templates_table',42),
-(445,'2020_12_29_165925_add_model_document_type_to_media_table',42),
-(446,'2021_02_08_175632_add_contact_number_fields_to_users_table',42),
-(447,'2021_02_11_172217_add_indexing_for_multiple_columns',42),
-(448,'2021_02_16_190302_add_manufacturing_module_indexing',42),
-(449,'2021_02_23_122043_add_more_columns_to_customer_groups_table',42),
-(450,'2021_02_24_175551_add_print_invoice_permission_to_all_roles',42),
-(451,'2021_03_03_162021_add_purchase_order_columns_to_purchase_lines_and_transactions_table',42),
-(452,'2021_03_11_120229_add_sales_order_columns',42),
-(453,'2021_03_12_175416_create_spreadsheet_shares_table',42),
-(454,'2021_03_16_120705_add_business_id_to_activity_log_table',42),
-(455,'2021_03_16_153427_add_code_columns_to_business_table',42),
-(456,'2021_03_18_173308_add_account_details_column_to_accounts_table',42),
-(457,'2021_03_18_183119_add_prefer_payment_account_columns_to_transactions_table',42),
-(458,'2021_03_22_120810_add_more_types_of_service_custom_fields',42),
-(459,'2021_03_24_183132_add_shipping_export_custom_field_details_to_contacts_table',42),
-(460,'2021_03_25_170715_add_export_custom_fields_info_to_transactions_table',42),
-(461,'2021_04_07_154331_add_mfg_ingredient_group_id_to_transaction_sell_lines_table',42),
-(462,'2021_04_15_063449_add_denominations_column_to_cash_registers_table',42),
-(463,'2021_05_22_083426_add_indexing_to_account_transactions_table',42),
-(464,'2021_06_17_121451_add_location_id_to_table',42),
-(465,'2021_07_08_065808_add_additional_expense_columns_to_transaction_table',42),
-(466,'2021_07_13_082918_add_qr_code_columns_to_invoice_layouts_table',42),
-(467,'2021_07_21_061615_add_fields_to_show_commission_agent_in_invoice_layout',42),
-(468,'2021_08_13_105549_add_crm_contact_id_to_users_table',42),
-(469,'2021_08_23_175321_add_contact_and_location_id_to_journal_entries_table',43),
-(470,'2021_08_25_114932_add_payment_link_fields_to_transaction_payments_table',43),
-(471,'2021_09_01_063110_add_spg_column_to_discounts_table',43),
-(472,'2021_09_03_061528_modify_cash_register_transactions_table',43),
-(473,'2021_09_28_091541_create_essentials_user_sales_targets_table',43),
-(474,'2021_10_05_061658_add_source_column_to_transactions_table',43),
-(475,'2021_10_29_110841_create_asset_warranties_table',43),
-(476,'2021_11_29_170819_add_business_id_to_chart_of_accounts_table',43),
-(477,'2021_12_16_121851_add_parent_id_column_to_expense_categories_table',43),
-(478,'2022_01_17_202319_create_payment_details_table',43),
-(479,'2022_01_19_034231_create_countries_table',43),
-(480,'2022_02_01_031031_create_transfers_table',43),
-(481,'2022_02_03_215602_create_budgets_table',43),
-(482,'2022_02_08_113906_add_opening_balance_to_chart_of_accounts_table',43),
-(483,'2022_02_08_121045_add_currency_id_to_chart_of_accounts_table',43),
-(484,'2022_02_09_002406_add_payment_type_id_to_chart_of_accounts_table',43),
-(485,'2022_02_09_055012_create_crm_marketplaces_table',43),
-(486,'2022_02_09_125328_create_account_detail_types_table',43),
-(487,'2022_02_09_223848_create_account_subtypes_table',43),
-(488,'2022_02_09_223849_add_account_subtype_id_and_detail_type_id_to_chart_of_accounts_table',43),
-(489,'2022_02_17_113045_add_source_id_to_marketplace',43),
-(490,'2022_02_23_130555_add_journal_entry_id_to_transactions_table',43),
-(491,'2022_03_02_180929_add_followup_category_id',43),
-(492,'2022_03_17_140457_add_reconcile_opening_balance_to_chart_of_accounts_table',43),
-(493,'2022_03_26_062215_create_asset_maintenances_table',43),
-(494,'2022_04_11_163625_populate_account_subtypes_table',43),
-(495,'2022_04_11_165143_populate_account_detail_types_table',43),
-(496,'2022_04_14_075120_add_payment_type_column_to_transaction_payments_table',43),
-(497,'2022_04_21_083327_create_cash_denominations_table',43),
-(498,'2022_05_10_055307_add_delivery_date_column_to_transactions_table',43),
-(499,'2022_05_11_070711_add_maintenance_note_column_to_asset_maintenances_table',43),
-(500,'2022_05_26_061553_create_crm_contact_person_commissions_table',43),
-(501,'2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table',43),
-(502,'2022_06_08_105942_create_branch_capital_table',43),
-(503,'2022_06_13_123135_add_currency_precision_and_quantity_precision_fields_to_business_table',43),
-(504,'2022_06_28_133342_add_secondary_unit_columns_to_products_sell_line_purchase_lines_tables',43),
-(505,'2022_07_13_114307_create_purchase_requisition_related_columns',43),
-(506,'2022_07_25_100234_change_payment_type_id_column_from_int_to_string_in_payment_details_table',43),
-(507,'2022_08_04_143146_create_cms_pages_table',43),
-(508,'2022_08_25_132707_add_service_staff_timer_fields_to_products_and_users_table',43),
-(509,'2022_09_10_161849_add_layout_column_to_cms_pages_table',43),
-(510,'2022_09_10_163209_create_cms_site_details_table',43),
-(511,'2022_09_15_122547_create_cms_page_metas_table',43),
-(512,'2022_09_16_130337_create_default_data_for_cms',43),
-(513,'2022_12_23_150311_is_sincronizado_contacts',44),
-(514,'2022_12_23_162847_add_repair_jobsheet_settings_column_to_business_table',45),
-(515,'2023_01_16_124948_add_folder_id_column_to_sheet_spreadsheets_table',45),
-(516,'2023_01_28_114255_add_letter_head_column_to_invoice_layouts_table',45),
-(517,'2023_02_11_161510_add_event_column_to_activity_log_table',45),
-(518,'2023_02_11_161511_add_batch_uuid_column_to_activity_log_table',45),
-(519,'2023_02_17_140135_AddVersionForAiAssistance',45),
-(520,'2023_02_21_182321_create_aiassistance_generation_table',45),
-(521,'2023_03_02_170312_add_provider_to_oauth_clients_table',45),
-(522,'2023_03_21_122731_add_sale_invoice_scheme_id_business_table',45),
-(523,'2023_03_21_170446_add_number_type_to_invoice_scheme',45),
-(524,'2023_04_17_155216_add_custom_fields_to_products',45),
-(525,'2023_04_28_130247_add_price_type_to_group_price_table',45),
-(526,'2023_06_21_033923_add_delivery_person_in_transactions',45),
-(527,'2023_09_13_153555_add_service_staff_pin_columns_in_users',45),
-(528,'2023_09_15_154404_add_is_kitchen_order_in_transactions',45),
-(529,'2023_12_06_152840_add_contact_type_in_contacts',45),
-(530,'2024_10_03_151459_modify_transaction_sell_lines_purchase_lines_table',45),
-(531,'2025_03_07_114637_add_more_addresh_column_in_contact',45),
-(532,'2025_02_07_184909_add_officeimpresso_version',46),
-(533,'2026_04_21_000001_add_office_oimpresso_updated_at_to_contacts',46),
-(534,'2026_04_22_000001_create_docs_sources_table',47),
-(535,'2026_04_22_000002_create_docs_evidences_table',47),
-(536,'2026_04_22_000003_create_docs_requirements_table',47),
-(537,'2026_04_22_000004_create_docs_links_table',47),
-(538,'2026_04_22_000005_create_docs_chat_messages_table',47),
-(539,'2026_04_22_000006_create_docs_pages_table',47),
-(540,'2026_04_22_000007_create_docs_validation_runs_table',47),
-(541,'2026_04_22_000008_add_fulltext_index_to_docs_evidences',47),
-(542,'2026_04_22_180000_add_ui_preferences_to_users_table',47),
-(543,'2026_04_23_200000_create_licenca_log_table',48),
-(544,'2026_04_23_200100_create_licenca_log_triggers',48),
-(545,'2026_04_23_200200_add_indexes_to_licenca_computador',48),
-(546,'2026_04_24_000000_drop_licenca_log_triggers',49),
-(547,'2026_04_24_100000_add_fiscal_fields_to_business_locations',50),
-(548,'2026_04_24_100500_add_business_location_id_to_licenca_log',50),
-(549,'2026_04_24_140001_create_fin_planos_conta_table',51),
-(550,'2026_04_24_140002_create_fin_categorias_table',51),
-(551,'2026_04_24_140003_create_fin_contas_bancarias_table',51),
-(552,'2026_04_24_140004_create_fin_titulos_table',51),
-(553,'2026_04_24_140005_create_fin_titulo_baixas_table',51),
-(554,'2026_04_24_140006_create_fin_caixa_movimentos_table',51),
-(555,'2026_04_25_140101_create_fin_boleto_remessas_table',51),
-(556,'2026_04_24_000001_create_copiloto_metas_table',52),
-(557,'2026_04_24_000002_create_copiloto_meta_periodos_table',52),
-(558,'2026_04_24_000003_create_copiloto_meta_fontes_table',52),
-(559,'2026_04_24_000004_create_copiloto_meta_apuracoes_table',52),
-(560,'2026_04_24_000005_create_copiloto_conversas_table',52),
-(561,'2026_04_24_000006_create_copiloto_mensagens_table',52),
-(562,'2026_04_24_000007_create_copiloto_sugestoes_table',52),
-(563,'2026_04_26_120000_add_social_auth_columns_to_users_table',53),
-(564,'2026_04_27_000001_create_copiloto_memoria_facts_table',53),
-(565,'2026_04_29_000001_create_copiloto_memoria_metricas_table',54),
-(566,'2026_04_29_100001_create_mcp_scopes_table',55),
-(567,'2026_04_29_100002_create_mcp_user_scopes_table',55),
-(568,'2026_04_29_100003_create_mcp_tokens_table',55),
-(569,'2026_04_29_100004_create_mcp_quotas_table',55),
-(570,'2026_04_29_100005_create_mcp_audit_log_table',55),
-(571,'2026_04_29_100006_create_mcp_usage_diaria_table',55),
-(572,'2026_04_29_100007_create_mcp_alertas_table',55),
-(573,'2026_04_29_100008_create_mcp_memory_documents_table',55),
-(574,'2026_04_29_100009_create_mcp_memory_documents_history_table',55),
-(575,'2026_04_29_200001_create_copiloto_memoria_gabarito_table',56),
-(576,'2026_04_29_400001_create_copiloto_cache_semantico_table',57),
-(577,'2026_04_29_500001_create_copiloto_business_profile_table',58),
-(578,'2026_04_29_500002_add_promotion_to_memoria_facts',59),
-(579,'2026_04_29_500003_create_copiloto_negative_cache_table',60),
-(580,'2026_04_29_600001_create_mcp_alertas_eventos_table',61),
-(581,'2026_04_29_300001_create_mcp_cc_sessions_table',62),
-(582,'2026_04_29_300002_create_mcp_cc_messages_table',63),
-(583,'2026_04_29_300003_create_mcp_cc_blobs_table',64),
-(584,'2026_04_30_120001_expand_mcp_memory_documents_type_enum',65),
-(585,'2026_04_30_200001_add_business_id_to_mcp_memory_documents',66),
-(586,'2026_04_30_180001_create_mcp_tasks_table',67),
-(587,'2026_05_01_100001_add_typed_cols_to_mcp_memory_documents',67),
-(588,'2026_05_01_120001_create_mcp_task_comments_table',68),
-(589,'2026_05_01_120002_create_mcp_task_events_table',68),
-(590,'2026_05_01_000001_create_nfe_certificados_table',69),
-(591,'2026_05_01_000002_create_nfse_provider_configs_table',69),
-(592,'2026_05_01_000003_create_nfse_emissoes_table',69),
-(593,'2026_05_01_000004_add_prestador_cnpj_to_nfse_provider_configs',69),
-(599,'2026_05_03_000001_add_transaction_id_to_nfse_emissoes',71),
-(600,'2026_05_03_180001_add_dismissed_at_to_dual_brain_decisions',72),
-(601,'2026_05_03_200001_add_learning_loop_columns',73),
-(609,'2026_05_03_100001_create_user_lockouts_table',79),
-(610,'2026_05_03_000001_create_mcp_file_locks_table',80),
-(611,'2026_05_03_000002_create_mcp_decision_thresholds_table',80),
-(612,'2026_05_03_000003_create_mcp_confidence_scores_table',80),
-(613,'2026_05_03_000004_create_mcp_dual_brain_decisions_table',80),
-(614,'2026_05_03_000005_create_mcp_decision_patterns_table',80),
-(615,'2026_05_03_220001_create_mcp_governance_rules_table',80),
-(616,'2026_05_03_230001_create_mcp_projects_table',80),
-(617,'2026_05_03_230002_create_mcp_project_parts_table',80),
-(618,'2026_05_03_230003_link_decisions_to_projects',80),
-(619,'2026_05_03_240001_create_mcp_tool_executions_table',80),
-(620,'2026_05_03_250001_create_mcp_decision_links_table',80),
-(621,'2026_05_03_260001_create_mcp_user_module_access_table',80),
-(622,'2026_05_04_180001_create_mcp_jira_projects_table',80),
-(623,'2026_05_04_180002_create_mcp_epics_table',80),
-(624,'2026_05_04_180003_create_mcp_cycles_table',80),
-(625,'2026_05_04_180004_create_mcp_cycle_goals_table',80),
-(626,'2026_05_04_180005_create_mcp_components_table',80),
-(627,'2026_05_04_180006_create_mcp_workflows_table',80),
-(628,'2026_05_04_180007_create_mcp_issue_templates_table',80),
-(629,'2026_05_04_180008_create_mcp_views_table',80),
-(630,'2026_05_04_180009_create_mcp_inbox_notifications_table',80),
-(631,'2026_05_04_180010_create_mcp_task_dependencies_table',80),
-(632,'2026_05_04_180011_create_mcp_task_watchers_table',80),
-(633,'2026_05_04_180012_create_mcp_task_attachments_table',80),
-(634,'2026_05_04_180013_create_mcp_task_memory_links_table',80),
-(635,'2026_05_04_180014_create_mcp_git_links_table',80),
-(636,'2026_05_04_180015_extend_mcp_tasks_for_jira_style',80),
-(637,'2026_05_05_220001_create_mcp_skills_table',81),
-(638,'2026_05_05_220002_create_mcp_skill_versions_table',81),
-(639,'2026_05_05_220003_create_mcp_skill_labels_table',81),
-(640,'2026_05_05_220004_create_mcp_skill_test_runs_table',82),
-(641,'2026_05_05_220005_create_mcp_skill_approvals_table',83),
-(642,'2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log',84),
-(643,'2026_05_05_240001_create_mcp_actors_and_link_tokens',85),
-(644,'2026_05_05_240002_seed_initial_actors',85),
-(645,'2026_05_06_000001_create_rb_boleto_credentials_table',86),
-(647,'2026_05_06_000001_add_rb_gateway_credential_to_fin_contas_bancarias',87),
-(648,'2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials',88),
-(649,'2026_05_06_000002_add_saldo_cached_to_fin_contas_bancarias',88),
-(650,'2026_05_06_000003_create_pg_webhook_events_table',88),
-(651,'2026_05_06_001000_create_rb_plans_table',89),
-(652,'2026_05_06_001001_create_rb_subscriptions_table',89),
-(653,'2026_05_06_001002_create_rb_invoices_table',89),
-(654,'2026_05_06_001003_create_rb_charge_attempts_table',89),
-(655,'2026_05_06_002000_create_nfe_certificados_table',89),
-(656,'2026_05_06_002001_create_nfe_emissoes_table',89),
-(657,'2026_05_06_002002_create_nfe_eventos_table',89),
-(658,'2026_05_06_002003_create_nfe_inutilizacoes_table',89),
-(659,'2026_05_06_170045_create_daily_brief_schema',89),
-(660,'2026_05_06_172445_fix_brief_procedure_real_schema',90),
-(661,'2026_05_06_010000_create_nfe_fiscal_rules_table',91),
-(662,'2026_05_06_010001_create_nfe_business_configs_table',91),
-(663,'2026_05_06_120000_rename_copiloto_tables_to_jana',92),
-(664,'2026_05_06_020000_create_nfe_fiscal_rule_tax_rate_links_table',93),
-(665,'2026_05_06_180000_add_repair_listing_indexes',93),
-(666,'2026_05_07_120000_fix_brief_aggregator_in_flight_adrs_activity',94),
-(667,'2026_05_07_000001_create_whatsapp_business_configs_table',95),
-(668,'2026_05_07_000002_create_whatsapp_conversations_table',95),
-(669,'2026_05_07_000003_create_whatsapp_messages_table',95),
-(670,'2026_05_07_000004_create_whatsapp_templates_table',95),
-(671,'2026_05_07_210000_migrate_nfe_certificados_nfse_to_nfe_brasil_schema',96),
-(672,'2026_05_07_220000_move_nfe_cert_files_outside_webroot',97),
-(673,'2026_05_07_230000_drop_modules_project_legacy_tables',98),
-(674,'2026_05_07_140000_update_actor_display_name_maiara',99),
-(675,'2026_05_07_220000_create_fin_extrato_lancamentos_table',99),
-(676,'2026_05_08_000000_add_auto_emission_enabled_to_nfe_business_configs',99),
-(677,'2026_05_09_000001_simplify_baileys_columns_in_whatsapp_business_configs',100),
-(678,'2026_05_09_140000_rename_copiloto_permissions_to_jana',100),
-(679,'2026_05_09_120000_create_whatsapp_business_phones_table',101),
-(680,'2026_05_09_120100_create_whatsapp_phone_user_access_table',101),
-(681,'2026_05_09_120200_add_phone_id_to_whatsapp_conversations_and_messages',101),
-(682,'2026_05_09_120300_seed_whatsapp_business_phones_from_configs',101),
-(683,'2026_05_09_120000_create_jana_health_narratives_table',102),
-(684,'2026_05_10_150000_seed_auditoria_mcp_jira_project',103),
-(685,'2026_05_09_100000_create_nfe_dfe_recebidos_table',104),
-(686,'2026_05_09_100001_create_nfe_dfe_itens_table',104),
-(687,'2026_05_09_100002_create_nfe_dfe_eventos_table',104),
-(688,'2026_05_09_100003_create_nfe_dfe_nsu_state_table',104),
-(689,'2026_05_09_210000_create_accounts_legacy_map_table',104),
-(690,'2026_05_09_210001_add_legacy_columns_to_fin_contas_bancarias',104),
-(691,'2026_05_10_000001_create_arquivos_table',104),
-(692,'2026_05_10_000001_create_mcp_admin_audit_log_table',104),
-(693,'2026_05_10_000001_create_vestuario_settings_table',104),
-(694,'2026_05_10_000002_create_arquivos_audit_log_table',104),
-(695,'2026_05_10_000003_create_arquivos_dedupe_table',104),
-(696,'2026_05_10_000010_backfill_nfe_xml_arquivos',104),
-(697,'2026_05_10_000020_backfill_consumers_arquivos',104),
-(698,'2026_05_10_000030_add_metadata_recalculated_at_to_arquivos',104),
-(699,'2026_05_10_000040_create_comvis_materiais_table',105),
-(700,'2026_05_10_000041_create_comvis_orcamentos_table',105),
-(701,'2026_05_10_000042_create_comvis_os_table',105),
-(702,'2026_05_10_000043_create_comvis_apontamentos_table',105),
-(703,'2026_05_10_120000_alter_nfe_emissoes_status_enum_add_enviando_erro_envio',105),
-(704,'2026_05_10_120000_seed_modulos_verticais_mcp_jira_projects',105),
-(705,'2026_05_10_160000_add_causer_kind_and_revert_to_activity_log',106),
-(706,'2026_05_11_000001_create_omnichannel_tables',106),
-(707,'2026_05_11_120001_create_sale_processes_table',106),
-(708,'2026_05_11_120002_create_sale_process_stages_table',106),
-(709,'2026_05_11_120003_create_sale_stage_actions_table',106),
-(710,'2026_05_11_120004_create_sale_stage_action_roles_table',106),
-(711,'2026_05_11_120005_create_sale_stage_history_table',106),
-(712,'2026_05_11_130001_create_stock_reservations_table',106),
-(713,'2026_05_11_140001_create_transaction_documents_table',106),
-(714,'2026_05_11_150001_create_nfse_emissoes_table',106),
-(715,'2026_05_11_160001_add_fsm_columns_to_transactions',106),
-(716,'2026_05_11_000010_create_vehicles_table',107),
-(717,'2026_05_11_000020_create_service_orders_table',107),
-(718,'2026_05_11_170001_add_legacy_date_fields_to_transactions',107),
-(719,'2026_05_11_190001_repair_dual_brain_learning_loop_drift',107),
-(720,'2026_05_11_120000_create_conversation_tags_tables',108),
-(721,'2026_05_11_130000_add_is_blocked_to_conversations',108),
-(722,'2026_05_11_200000_add_updated_at_to_whatsapp_conversation_tags',109),
-(723,'2026_05_12_000001_add_last_message_denormalized_to_conversations',110),
-(724,'2026_05_12_010001_add_is_critical_to_sale_stage_actions',111),
-(725,'2026_05_12_020001_alter_transaction_documents_add_boleto_types',112),
-(726,'2026_05_12_030001_add_current_stage_id_to_transactions',113),
-(727,'2026_05_12_040001_alter_sale_stage_history_action_id_nullable',114),
-(728,'2026_05_12_140000_add_is_internal_note_to_messages',114),
-(729,'2026_05_12_050001_add_current_stage_id_to_job_sheets',115),
-(730,'2026_05_12_060001_add_consent_columns_to_contacts',115),
-(731,'2026_05_12_120000_create_nfse_eventos_cancelamento_table',116),
-(732,'2026_05_12_150000_add_media_to_messages',116),
-(733,'2026_05_12_160000_create_channel_user_access_table',116),
-(734,'2026_05_12_170000_create_whatsapp_jana_correcoes_table',117),
-(735,'2026_05_12_180000_create_whatsapp_reminders_table',117),
-(736,'2026_05_12_190000_create_whatsapp_contact_bot_overrides_table',117),
-(737,'2026_05_12_200000_add_media_download_tracking_to_messages',118),
-(738,'2026_05_12_000010_create_cv_substratos_table',119),
-(739,'2026_05_12_000011_create_cv_acabamentos_table',119),
-(740,'2026_05_12_000012_create_cv_instalacoes_catalogo_table',119),
-(741,'2026_05_12_000013_create_cv_ordens_producao_table',119),
-(742,'2026_05_12_000014_create_cv_instalacoes_table',119),
-(743,'2026_05_12_080001_create_product_bom_table',119),
-(744,'2026_05_12_180000_add_legacy_origin_to_business',119),
-(745,'2026_05_12_210000_create_whatsapp_lid_pn_map_table',119),
-(746,'2026_05_12_140001_add_is_grouped_invoice_to_transactions',120),
-(747,'2026_05_12_220000_create_sla_policies_table',121),
-(748,'2026_05_13_000001_create_macros_table',121),
-(749,'2026_05_12_220000_create_whatsapp_conversation_metricas_table',122),
-(750,'2026_05_12_220000_create_whatsapp_csat_responses_table',123),
-(751,'2026_05_12_200000_create_whatsapp_baileys_auth_state_table',124),
-(752,'2026_05_13_100001_create_macro_variants_table',125),
-(753,'2026_05_13_100002_add_macro_variant_id_to_messages',125),
-(754,'2026_05_12_220001_add_cacamba_fields_to_vehicles',126),
-(755,'2026_05_12_220002_add_rental_fields_to_service_orders',126),
-(756,'2026_05_12_230001_add_transaction_sell_line_id_to_service_orders',126),
-(757,'2026_05_12_230002_add_os_default_per_line_to_business',126),
-(758,'2026_05_13_010001_add_current_stage_id_to_service_orders',127),
-(759,'2026_05_13_010002_add_contact_id_to_service_orders',128),
-(760,'2026_05_13_120000_create_mcp_handoff_summaries_table',129),
-(761,'2026_05_13_130000_create_mcp_handoff_diffs_table',129),
-(762,'2026_05_13_140000_create_mcp_weekly_digests_table',129),
-(763,'2026_05_13_150000_create_mcp_doc_summaries_table',129),
-(764,'2026_05_13_170001_add_legacy_id_to_contacts',130),
-(765,'2026_05_13_201220_create_feature_flag_audits_table',131),
-(766,'2026_05_13_205208_add_index_display_identifier_to_channels',131),
-(767,'2026_05_14_010001_create_jobs_table_for_whatsapp_queue',131),
-(768,'2026_05_14_020001_create_webhook_nonces_table',132),
-(769,'2026_05_14_010001_add_legacy_id_to_fin_titulos',133),
-(770,'2026_05_15_010000_add_identity_columns_to_conversations',134),
-(771,'2026_05_15_020000_fix_identity_columns_whatsapp_conversations',135),
-(772,'2026_05_15_120000_add_contextual_context_to_mcp_memory_documents',136),
-(773,'2026_05_15_230000_create_customer_memory_table',136),
-(774,'2026_05_15_240000_add_employee_complaints_external_to_customer_memory',136),
-(775,'2026_05_15_250000_create_employee_performance_table',136),
-(776,'2026_05_15_100001_create_kb_categories_table',137),
-(777,'2026_05_15_100002_create_kb_subcategories_table',137),
-(778,'2026_05_15_100003_create_kb_nodes_table',137),
-(779,'2026_05_15_100004_create_kb_edges_table',137),
-(780,'2026_05_15_100005_create_kb_paths_table',137),
-(781,'2026_05_15_100006_create_kb_path_steps_table',137),
-(782,'2026_05_15_100007_create_kb_decision_trees_table',137),
-(783,'2026_05_15_100008_create_kb_decision_tree_steps_table',137),
-(784,'2026_05_15_100009_create_kb_node_versions_table',137),
-(785,'2026_05_15_100010_create_kb_favorites_table',137),
-(786,'2026_05_15_100011_create_kb_comments_table',137),
-(787,'2026_05_15_100012_create_kb_bridge_state_table',137),
-(788,'2026_05_16_120000_recurring_v975_schema',138),
-(789,'2026_05_16_220001_create_mcp_scorecard_ai_suggestions_table',138),
-(790,'2026_05_17_000001_create_vestuario_devolucoes_table',138),
-(791,'2026_05_17_000002_create_vestuario_creditos_cliente_table',138),
-(792,'2026_05_17_000010_create_oficina_service_order_items_table',138),
-(793,'2026_05_17_120000_create_crm_deals_table',139),
-(794,'2026_05_18_180000_add_conferido_to_fin_titulos',140),
-(795,'2026_05_19_120000_create_payment_gateway_credentials_table',141),
-(796,'2026_05_19_120001_create_cobrancas_table',141),
-(797,'2026_05_19_120002_create_gateway_webhook_events_table',141),
-(798,'2026_05_19_130000_add_payment_gateway_credential_id_to_fin_contas_bancarias',141),
-(799,'2026_05_18_190000_create_fin_titulo_comments_table',142),
-(800,'2026_05_19_220000_create_fin_bank_statement_lines_table',143),
-(801,'2026_05_19_220001_create_fin_titulo_anexos_table',143),
-(802,'2026_05_19_220002_add_aprovacao_to_fin_titulos',143),
-(803,'2026_05_20_120000_create_inter_webhook_log_table',144),
-(804,'2026_05_20_140000_create_advisors_table',144),
-(805,'2026_05_20_140001_create_advisor_business_access_table',144),
-(806,'2026_05_20_180000_create_ai_usage_log_table',144),
-(807,'2026_05_20_200000_make_titulo_baixa_conta_bancaria_optional',145),
-(808,'2026_05_21_140000_restore_br_fields_to_contacts',146),
-(809,'2026_05_24_200000_add_role_flags_to_contacts',147),
-(810,'2026_05_25_140000_add_source_and_os_ref_to_transactions',148),
-(811,'2026_05_25_180000_add_cancelled_at_to_transactions',149),
-(812,'2026_05_21_220000_add_caixa_bridge_to_fin_titulos_and_contas',150),
-(813,'2026_05_22_000000_extend_contacts_for_cliente_drawer',150),
-(814,'2026_05_22_000001_create_anotacoes_table',151),
-(815,'2026_05_22_120000_add_numero_to_contacts',151),
-(816,'2026_05_22_180000_add_city_code_to_contacts_table',151),
-(817,'2026_05_23_120000_add_sefaz_consulta_fields_to_contacts',151),
-(818,'2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules',152),
-(819,'2026_05_26_120000_expand_payment_gateway_credentials_gateway_key_for_cnab',152),
-(820,'2026_05_26_120100_create_cnab_retorno_uploads_table',152),
-(821,'2026_05_26_120001_add_box_and_assigned_user_to_service_orders',153),
-(822,'2026_05_26_120002_create_oa_inspection_items_table',153),
-(823,'2026_05_27_000010_add_client_decision_to_oa_inspection_items',154),
-(824,'2026_05_26_140000_add_emails_extras_to_contacts',155),
-(825,'2026_05_27_180000_create_clients_feedbacks_table',156),
-(826,'2026_05_27_220000_add_dev_task_requested_to_clients_feedbacks',156),
-(827,'2026_05_27_240000_add_signature_relevance_to_clients_feedbacks',156),
-(828,'2026_05_27_120000_add_sicoob_api_to_payment_gateway_credentials',157),
-(829,'2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption',158),
-(830,'2026_05_27_140000_contacts_bucket_b_legacy_raw_json',158),
-(831,'2026_05_27_160000_contacts_consolidate_officeimpresso_sync_canon',159),
-(832,'2026_05_27_140000_drop_mtls_columns_sicoob_reusa_nfecertificado',160),
-(833,'2026_05_28_000001_drop_baileys_columns_from_whatsapp_business_configs',161),
-(834,'2026_05_28_000002_drop_whatsapp_baileys_auth_state_table',161),
-(835,'2026_05_28_000003_add_meta_waba_id_to_whatsapp_business_configs',162),
-(836,'2026_05_27_180000_add_contato_to_contacts',163),
-(837,'2026_05_31_230000_add_conciliacao_cols_to_fin_extrato_lancamentos',164),
-(838,'2026_06_01_120000_create_kb_charter_suggestions_table',165),
-(843,'2026_06_01_120000_create_contact_addresses_table',166),
-(844,'2026_05_28_120000_add_mensagem_venda_to_contacts',167),
-(845,'2026_05_29_100001_create_mcp_automations_table',167),
-(846,'2026_05_29_100002_create_mcp_automation_runs_table',167),
-(847,'2026_05_29_120000_add_mensagem_venda_to_contacts',167),
-(848,'2026_06_01_000000_add_unificacao_cols_to_fin_extrato_lancamentos',167),
-(849,'2026_06_02_000010_add_checkin_fields_to_service_orders',168);
-/*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (1,'2014_10_12_000000_create_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (2,'2014_10_12_003455_create_cities_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (3,'2014_10_12_100000_create_password_resets_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (4,'2017_07_05_071953_create_currencies_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (5,'2017_07_05_073658_create_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (6,'2017_07_05_074333_create_natureza_operacaos_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (7,'2017_07_22_075923_add_business_id_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (8,'2017_07_23_113209_create_brands_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (9,'2017_07_26_083429_create_permission_tables',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (10,'2017_07_26_110000_create_tax_rates_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (11,'2017_07_26_122313_create_units_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (12,'2017_07_27_075706_create_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (13,'2017_08_04_071038_create_categories_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (14,'2017_08_08_115903_create_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (15,'2017_08_09_061616_create_variation_templates_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (16,'2017_08_09_061638_create_variation_value_templates_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (17,'2017_08_10_061146_create_product_variations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (18,'2017_08_10_061216_create_variations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (19,'2017_08_18_054827_create_transportadoras_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (20,'2017_08_19_054827_create_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (21,'2017_08_31_073533_create_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (22,'2017_10_15_064638_create_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (23,'2017_10_31_065621_add_default_sales_tax_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (24,'2017_11_20_051930_create_table_group_sub_taxes',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (25,'2017_11_20_063603_create_transaction_sell_lines',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (26,'2017_11_21_064540_create_barcodes_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (27,'2017_11_23_181237_create_invoice_schemes_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (28,'2017_12_25_122822_create_business_locations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (29,'2017_12_25_160253_add_location_id_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (30,'2017_12_25_163227_create_variation_location_details_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (31,'2018_01_04_115627_create_sessions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (32,'2018_01_05_112817_create_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (33,'2018_01_06_112303_add_invoice_scheme_id_and_invoice_layout_id_to_business_locations',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (34,'2018_01_08_104124_create_expense_categories_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (35,'2018_01_08_123327_modify_transactions_table_for_expenses',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (36,'2018_01_09_111005_modify_payment_status_in_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (37,'2018_01_09_111109_add_paid_on_column_to_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (38,'2018_01_25_172439_add_printer_related_fields_to_business_locations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (39,'2018_01_27_184322_create_printers_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (40,'2018_01_30_181442_create_cash_registers_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (41,'2018_01_31_125836_create_cash_register_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (42,'2018_02_07_173326_modify_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (43,'2018_02_08_105425_add_enable_product_expiry_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (44,'2018_02_08_111027_add_expiry_period_and_expiry_period_type_columns_to_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (45,'2018_02_08_131118_add_mfg_date_and_exp_date_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (46,'2018_02_08_155348_add_exchange_rate_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (47,'2018_02_09_124945_modify_transaction_payments_table_for_contact_payments',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (48,'2018_02_12_113640_create_transaction_sell_lines_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (49,'2018_02_12_114605_add_quantity_sold_in_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (50,'2018_02_13_183323_alter_decimal_fields_size',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (51,'2018_02_14_161928_add_transaction_edit_days_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (52,'2018_02_15_161032_add_document_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (53,'2018_02_17_124709_add_more_options_to_invoice_layouts',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (54,'2018_02_19_111517_add_keyboard_shortcut_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (55,'2018_02_19_121537_stock_adjustment_move_to_transaction_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (56,'2018_02_20_165505_add_is_direct_sale_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (57,'2018_02_21_105329_create_system_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (58,'2018_02_23_100549_version_1_2',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (59,'2018_02_23_125648_add_enable_editing_sp_from_purchase_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (60,'2018_02_26_103612_add_sales_commission_agent_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (61,'2018_02_26_130519_modify_users_table_for_sales_cmmsn_agnt',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (62,'2018_02_26_134500_add_commission_agent_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (63,'2018_02_27_121422_add_item_addition_method_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (64,'2018_02_27_170232_modify_transactions_table_for_stock_transfer',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (65,'2018_03_05_153510_add_enable_inline_tax_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (66,'2018_03_06_210206_modify_product_barcode_types',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (67,'2018_03_13_181541_add_expiry_type_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (68,'2018_03_16_113446_product_expiry_setting_for_business',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (69,'2018_03_19_113601_add_business_settings_options',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (70,'2018_03_26_125334_add_pos_settings_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (71,'2018_03_26_165350_create_customer_groups_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (72,'2018_03_27_122720_customer_group_related_changes_in_tables',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (73,'2018_03_29_110138_change_tax_field_to_nullable_in_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (74,'2018_03_29_115502_add_changes_for_sr_number_in_products_and_sale_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (75,'2018_03_29_134340_add_inline_discount_fields_in_purchase_lines',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (76,'2018_03_31_140921_update_transactions_table_exchange_rate',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (77,'2018_04_03_103037_add_contact_id_to_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (78,'2018_04_03_122709_add_changes_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (79,'2018_04_09_135320_change_exchage_rate_size_in_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (80,'2018_04_17_123122_add_lot_number_to_business',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (81,'2018_04_17_160845_add_product_racks_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (82,'2018_04_20_182015_create_res_tables_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (83,'2018_04_24_105246_restaurant_fields_in_transaction_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (84,'2018_04_24_114149_add_enabled_modules_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (85,'2018_04_24_133704_add_modules_fields_in_invoice_layout_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (86,'2018_04_27_132653_quotation_related_change',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (87,'2018_05_02_104439_add_date_format_and_time_format_to_business',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (88,'2018_05_02_111939_add_sell_return_to_transaction_payments',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (89,'2018_05_14_114027_add_rows_positions_for_products',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (90,'2018_05_14_125223_add_weight_to_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (91,'2018_05_14_164754_add_opening_stock_permission',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (92,'2018_05_15_134729_add_design_to_invoice_layouts',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (93,'2018_05_16_183307_add_tax_fields_invoice_layout',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (94,'2018_05_18_191956_add_sell_return_to_transaction_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (95,'2018_05_21_131349_add_custom_fileds_to_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (96,'2018_05_21_131607_invoice_layout_fields_for_sell_return',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (97,'2018_05_21_131949_add_custom_fileds_and_website_to_business_locations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (98,'2018_05_22_123527_create_reference_counts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (99,'2018_05_22_154540_add_ref_no_prefixes_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (100,'2018_05_24_132620_add_ref_no_column_to_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (101,'2018_05_24_161026_add_location_id_column_to_business_location_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (102,'2018_05_25_180603_create_modifiers_related_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (103,'2018_05_29_121714_add_purchase_line_id_to_stock_adjustment_line_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (104,'2018_05_31_114645_add_res_order_status_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (105,'2018_06_05_103530_rename_purchase_line_id_in_stock_adjustment_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (106,'2018_06_05_111905_modify_products_table_for_modifiers',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (107,'2018_06_06_110524_add_parent_sell_line_id_column_to_transaction_sell_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (108,'2018_06_07_152443_add_is_service_staff_to_roles_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (109,'2018_06_07_182258_add_image_field_to_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (110,'2018_06_13_133705_create_bookings_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (111,'2018_06_15_173636_add_email_column_to_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (112,'2018_06_27_182835_add_superadmin_related_fields_business',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (113,'2018_06_27_185405_create_packages_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (114,'2018_06_28_182803_create_subscriptions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (115,'2018_07_10_101913_add_custom_fields_to_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (116,'2018_07_17_103434_add_sales_person_name_label_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (117,'2018_07_17_163920_add_theme_skin_color_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (118,'2018_07_17_182021_add_rows_to_system_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (119,'2018_07_19_131721_add_options_to_packages_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (120,'2018_07_24_160319_add_lot_no_line_id_to_transaction_sell_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (121,'2018_07_25_110004_add_show_expiry_and_show_lot_colums_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (122,'2018_07_25_172004_add_discount_columns_to_transaction_sell_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (123,'2018_07_26_124720_change_design_column_type_in_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (124,'2018_07_26_170424_add_unit_price_before_discount_column_to_transaction_sell_line_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (125,'2018_07_28_103614_add_credit_limit_column_to_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (126,'2018_08_08_110755_add_new_payment_methods_to_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (127,'2018_08_08_122225_modify_cash_register_transactions_table_for_new_payment_methods',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (128,'2018_08_14_104036_add_opening_balance_type_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (129,'2018_08_17_155534_add_min_termination_alert_days',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (130,'2018_08_28_105945_add_business_based_username_settings_to_system_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (131,'2018_08_30_105906_add_superadmin_communicator_logs_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (132,'2018_09_04_155900_create_accounts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (133,'2018_09_06_114438_create_selling_price_groups_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (134,'2018_09_06_154057_create_variation_group_prices_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (135,'2018_09_07_102413_add_permission_to_access_default_selling_price',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (136,'2018_09_07_134858_add_selling_price_group_id_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (137,'2018_09_10_112448_update_product_type_to_single_if_null_in_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (138,'2018_09_10_152703_create_account_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (139,'2018_09_10_173656_add_account_id_column_to_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (140,'2018_09_19_123914_create_notification_templates_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (141,'2018_09_22_110504_add_sms_and_email_settings_columns_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (142,'2018_09_24_134942_add_lot_no_line_id_to_stock_adjustment_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (143,'2018_09_26_105557_add_transaction_payments_for_existing_expenses',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (144,'2018_09_27_111609_modify_transactions_table_for_purchase_return',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (145,'2018_09_27_131154_add_quantity_returned_column_to_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (146,'2018_10_02_131401_add_return_quantity_column_to_transaction_sell_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (147,'2018_10_03_104918_add_qty_returned_column_to_transaction_sell_lines_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (148,'2018_10_03_185947_add_default_notification_templates_to_database',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (149,'2018_10_09_153105_add_business_id_to_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (150,'2018_10_16_135229_create_permission_for_sells_and_purchase',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (151,'2018_10_22_114441_add_columns_for_variable_product_modifications',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (152,'2018_10_22_134428_modify_variable_product_data',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (153,'2018_10_30_181558_add_table_tax_headings_to_invoice_layout',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (154,'2018_10_31_122619_add_pay_terms_field_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (155,'2018_10_31_161328_add_new_permissions_for_pos_screen',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (156,'2018_10_31_174752_add_access_selected_contacts_only_to_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (157,'2018_10_31_175627_add_user_contact_access',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (158,'2018_10_31_180559_add_auto_send_sms_column_to_notification_templates_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (159,'2018_11_02_130636_add_custom_permissions_to_packages_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (160,'2018_11_02_171949_change_card_type_column_to_varchar_in_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (161,'2018_11_05_161848_add_more_fields_to_packages_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (162,'2018_11_08_105621_add_role_permissions',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (163,'2018_11_26_114135_add_is_suspend_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (164,'2018_11_28_104410_modify_units_table_for_multi_unit',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (165,'2018_11_28_170952_add_sub_unit_id_to_purchase_lines_and_sell_lines',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (166,'2018_11_29_115918_add_primary_key_in_system_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (167,'2018_12_03_185546_add_product_description_column_to_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (168,'2018_12_06_114937_modify_system_table_and_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (169,'2018_12_10_124621_modify_system_table_values_null_default',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (170,'2018_12_13_160007_add_custom_fields_display_options_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (171,'2018_12_14_103307_modify_system_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (172,'2018_12_18_133837_add_prev_balance_due_columns_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (173,'2018_12_18_170656_add_invoice_token_column_to_transaction_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (174,'2018_12_20_133639_add_date_time_format_column_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (175,'2018_12_21_120659_add_recurring_invoice_fields_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (176,'2018_12_24_154933_create_notifications_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (177,'2019_01_08_112015_add_document_column_to_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (178,'2019_01_10_124645_add_account_permission',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (179,'2019_01_16_125825_add_subscription_no_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (180,'2019_01_28_111647_add_order_addresses_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (181,'2019_02_13_173821_add_is_inactive_column_to_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (182,'2019_02_19_103118_create_discounts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (183,'2019_02_21_120324_add_discount_id_column_to_transaction_sell_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (184,'2019_02_21_134324_add_permission_for_discount',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (185,'2019_03_04_170832_add_service_staff_columns_to_transaction_sell_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (186,'2019_03_09_102425_add_sub_type_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (187,'2019_03_09_124457_add_indexing_transaction_sell_lines_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (188,'2019_03_12_120336_create_activity_log_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (189,'2019_03_15_132925_create_media_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (190,'2019_05_08_130339_add_indexing_to_parent_id_in_transaction_payments_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (191,'2019_05_10_132311_add_missing_column_indexing',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (192,'2019_05_10_135434_add_missing_database_column_indexes',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (193,'2019_05_14_091812_add_show_image_column_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (194,'2019_05_25_104922_add_view_purchase_price_permission',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (195,'2019_06_17_103515_add_profile_informations_columns_to_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (196,'2019_06_18_135524_add_permission_to_view_own_sales_only',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (197,'2019_06_19_112058_add_database_changes_for_reward_points',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (198,'2019_06_28_133732_change_type_column_to_string_in_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (199,'2019_07_13_111420_add_is_created_from_api_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (200,'2019_07_15_165136_add_fields_for_combo_product',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (201,'2019_07_19_103446_add_mfg_quantity_used_column_to_purchase_lines_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (202,'2019_07_22_152649_add_not_for_selling_in_product_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (203,'2019_07_29_185351_add_show_reward_point_column_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (204,'2019_08_08_162302_add_sub_units_related_fields',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (205,'2019_08_16_115300_create_superadmin_frontend_pages_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (206,'2019_08_26_133419_update_price_fields_decimal_point',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (207,'2019_09_02_160054_remove_location_permissions_from_roles',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (208,'2019_09_03_185259_add_permission_for_pos_screen',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (209,'2019_09_04_163141_add_location_id_to_cash_registers_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (210,'2019_09_04_184008_create_types_of_services_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (211,'2019_09_06_131445_add_types_of_service_fields_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (212,'2019_09_09_134810_add_default_selling_price_group_id_column_to_business_locations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (213,'2019_09_12_105616_create_product_locations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (214,'2019_09_17_122522_add_custom_labels_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (215,'2019_09_18_164319_add_shipping_fields_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (216,'2019_09_19_170927_close_all_active_registers',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (217,'2019_09_23_161906_add_media_description_cloumn_to_media_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (218,'2019_10_18_155633_create_account_types_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (219,'2019_10_22_163335_add_common_settings_column_to_business_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (220,'2019_10_29_132521_add_update_purchase_status_permission',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (221,'2019_11_09_110522_add_indexing_to_lot_number',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (222,'2019_11_19_170824_add_is_active_column_to_business_locations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (223,'2019_11_21_162913_change_quantity_field_types_to_decimal',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (224,'2019_11_25_160340_modify_categories_table_for_polymerphic_relationship',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (225,'2019_12_02_105025_create_warranties_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (226,'2019_12_03_180342_add_common_settings_field_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (227,'2019_12_05_183955_add_more_fields_to_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (228,'2019_12_06_174904_add_change_return_label_column_to_invoice_layouts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (229,'2019_12_11_121307_add_draft_and_quotation_list_permissions',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (230,'2019_12_12_180126_copy_expense_total_to_total_before_tax',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (231,'2019_12_19_181412_make_alert_quantity_field_nullable_on_products_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (232,'2019_12_25_173413_create_dashboard_configurations_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (233,'2020_01_08_133506_create_document_and_notes_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (234,'2020_01_09_113252_add_cc_bcc_column_to_notification_templates_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (235,'2020_01_16_174818_add_round_off_amount_field_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (236,'2020_01_28_162345_add_weighing_scale_settings_in_business_settings_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (237,'2020_02_18_172447_add_import_fields_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (238,'2020_03_13_135844_add_is_active_column_to_selling_price_groups_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (239,'2020_03_16_115449_add_contact_status_field_to_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (240,'2020_03_26_124736_add_allow_login_column_in_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (241,'2020_04_13_154150_add_feature_products_column_to_business_loactions',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (242,'2020_04_15_151802_add_user_type_to_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (243,'2020_04_22_153905_add_subscription_repeat_on_column_to_transactions_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (244,'2020_04_28_111436_add_shipping_address_to_contacts_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (245,'2020_06_01_094654_add_max_sale_discount_column_to_users_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (246,'2020_08_16_154813_create_devolucaos_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (247,'2020_08_16_155443_create_item_devolucaos_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (248,'2020_11_14_143711_create_veiculos_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (249,'2020_11_15_142315_create_ctes_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (250,'2020_11_15_142325_create_componente_ctes_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (251,'2020_11_15_142337_create_medida_ctes_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (252,'2020_11_21_090013_create_manifestos_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (253,'2020_11_21_090053_create_manifesto_limites_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (254,'2020_11_21_090341_create_item_dves_table',1);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (255,'2019_03_07_155813_make_repair_statuses_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (256,'2019_03_08_120634_add_repair_columns_to_transactions_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (257,'2019_03_14_182704_add_repair_permissions',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (258,'2019_03_29_110241_add_repair_version_column_to_system_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (259,'2019_04_12_113901_add_repair_settings_column_to_business_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (260,'2020_05_05_125008_create_device_models_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (261,'2020_05_06_103135_add_repair_model_id_column_to_products_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (262,'2020_07_11_120308_add_columns_to_repair_statuses_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (263,'2020_07_31_130737_create_job_sheets_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (264,'2020_08_07_124241_add_job_sheet_id_to_transactions_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (265,'2020_08_22_104640_add_email_template_field_to_repair_status_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (266,'2020_10_19_131934_add_job_sheet_custom_fields_to_repair_job_sheets_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (267,'2018_10_10_110400_add_module_version_to_system_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (268,'2018_10_10_122845_add_woocommerce_api_settings_to_business_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (269,'2018_10_10_162041_add_woocommerce_category_id_to_categories_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (270,'2018_10_11_173839_create_woocommerce_sync_logs_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (271,'2018_10_16_123522_add_woocommerce_tax_rate_id_column_to_tax_rates_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (272,'2018_10_23_111555_add_woocommerce_attr_id_column_to_variation_templates_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (273,'2018_12_03_163945_add_woocommerce_permissions',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (274,'2019_02_18_154414_change_woocommerce_sync_logs_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (275,'2019_04_19_174129_add_disable_woocommerce_sync_column_to_products_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (276,'2019_06_08_132440_add_woocommerce_wh_oc_secret_column_to_business_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (277,'2019_10_01_171828_add_woocommerce_media_id_columns',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (278,'2020_09_07_124952_add_woocommerce_skipped_orders_fields_to_business_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (279,'2019_07_15_114211_add_manufacturing_module_version_to_system_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (280,'2019_07_15_114403_create_mfg_recipes_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (281,'2019_07_18_180217_add_production_columns_to_transactions_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (282,'2019_07_26_110753_add_manufacturing_settings_column_to_business_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (283,'2019_07_26_170450_add_manufacturing_permissions',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (284,'2019_08_08_110035_create_mfg_recipe_ingredients_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (285,'2019_08_08_172837_add_recipe_add_edit_permissions',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (286,'2019_08_12_114610_add_ingredient_waste_percent_columns',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (287,'2019_11_05_115136_create_ingredient_groups_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (288,'2020_02_22_120303_add_column_to_mfg_recipe_ingredients_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (289,'2020_08_19_103831_add_production_cost_type_to_recipe_and_transaction_table',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (290,'2019_11_12_163135_create_projects_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (291,'2019_11_12_164431_create_project_members_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (292,'2019_11_14_112230_create_project_tasks_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (293,'2019_11_14_112258_create_project_task_members_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (294,'2019_11_18_154617_create_project_task_comments_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (295,'2019_11_19_134807_create_project_time_logs_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (296,'2019_12_11_102549_add_more_fields_in_transactions_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (297,'2019_12_11_102735_create_invoice_lines_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (298,'2020_01_07_172852_add_project_permissions',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (299,'2020_01_08_115422_add_project_module_version_to_system_table',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (300,'2020_07_10_114514_set_location_id_on_existing_invoice',5);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (301,'2019_07_15_114211_add_boleto_module_version_to_system_table',6);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (302,'2019_07_26_110753_add_boleto_settings_column_to_business_table',6);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (303,'2019_07_26_170450_add_boleto_permissions',6);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (304,'2016_06_01_000001_create_oauth_auth_codes_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (305,'2016_06_01_000002_create_oauth_access_tokens_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (306,'2016_06_01_000003_create_oauth_refresh_tokens_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (307,'2016_06_01_000004_create_oauth_clients_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (308,'2016_06_01_000005_create_oauth_personal_access_clients_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (309,'2019_07_15_114211_add_fiscal_module_version_to_system_table',7);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (310,'2019_07_26_110753_add_fiscal_settings_column_to_business_table',8);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (311,'2019_07_26_170450_add_fiscal_permissions',8);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (312,'2020_06_12_162245_modify_contacts_table',9);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (313,'2020_06_22_103104_change_recur_interval_default_to_one',9);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (314,'2020_07_09_174621_add_balance_field_to_contacts_table',10);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (315,'2020_07_23_104933_change_status_column_to_varchar_in_transaction_table',10);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (316,'2020_09_07_171059_change_completed_stock_transfer_status_to_final',10);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (317,'2020_09_21_123224_modify_booking_status_column_in_bookings_table',10);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (318,'2020_09_22_121639_create_discount_variations_table',10);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (319,'2020_10_05_121550_modify_business_location_table_for_invoice_layout',11);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (320,'2020_10_16_175726_set_status_as_received_for_opening_stock',11);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (321,'2020_10_23_170823_add_for_group_tax_column_to_tax_rates_table',12);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (322,'2020_11_04_130940_add_more_custom_fields_to_contacts_table',13);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (323,'2020_11_10_152841_add_cash_register_permissions',13);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (324,'2020_11_17_164041_modify_type_column_to_varchar_in_contacts_table',13);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (325,'2021_01_26_155139_add_image_table_users',13);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (326,'2021_01_26_155423_add_regime_table_contacts',13);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (327,'2020_08_18_123107_add_connector_module_version_to_system_table',14);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (328,'2020_09_29_184909_add_product_catalogue_version',15);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (329,'2021_02_16_190608_add_woocommerce_module_indexing',16);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (330,'2018_10_01_151252_create_documents_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (331,'2018_10_02_151803_create_document_shares_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (332,'2018_10_09_134558_create_reminders_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (333,'2018_11_16_170756_create_to_dos_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (334,'2019_02_22_120329_essentials_messages',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (335,'2019_02_22_161513_add_message_permissions',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (336,'2019_03_29_164339_add_essentials_version_to_system_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (337,'2019_05_17_153306_create_essentials_leave_types_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (338,'2019_05_17_175921_create_essentials_leaves_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (339,'2019_05_21_154517_add_essentials_settings_columns_to_business_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (340,'2019_05_21_181653_create_table_essentials_attendance',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (341,'2019_05_30_110049_create_essentials_payrolls_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (342,'2019_06_04_105723_create_essentials_holidays_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (343,'2019_06_28_134217_add_payroll_columns_to_transactions_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (344,'2019_08_26_103520_add_approve_leave_permission',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (345,'2019_08_27_103724_create_essentials_allowance_and_deduction_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (346,'2019_08_27_105236_create_essentials_user_allowances_and_deductions',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (347,'2019_09_20_115906_add_more_columns_to_essentials_to_dos_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (348,'2019_09_23_120439_create_essentials_todo_comments_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (349,'2019_12_05_170724_add_hrm_columns_to_users_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (350,'2019_12_09_105809_add_allowance_and_deductions_permission',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (351,'2020_03_28_152838_create_essentials_shift_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (352,'2020_03_30_162029_create_user_shifts_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (353,'2020_03_31_134558_add_shift_id_to_attendance_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (354,'2020_11_05_105157_modify_todos_date_column_type',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (355,'2020_11_11_174852_add_end_time_column_to_essentials_reminders_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (356,'2020_11_26_170527_create_essentials_kb_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (357,'2020_11_30_112615_create_essentials_kb_users_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (358,'2021_02_12_185514_add_clock_in_location_to_essentials_attendances_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (359,'2021_02_16_190203_add_essentials_module_indexing',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (360,'2021_02_27_133448_add_columns_to_users_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (361,'2021_03_04_174857_create_payroll_groups_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (362,'2021_03_04_175025_create_payroll_group_transactions_table',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (363,'2021_03_09_123914_add_auto_clockout_to_essentials_shifts',17);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (364,'2020_11_25_111050_add_parts_column_to_repair_job_sheets_table',18);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (365,'2020_12_30_101842_add_use_for_repair_column_to_brands_table',18);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (366,'2021_02_16_190423_add_repair_module_indexing',18);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (369,'2024_10_16_161122_create_licenca_log_table',20);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (373,'2024_11_05_101935_create_licenca_computador_table',21);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (374,'2024_11_07_083505_update_licenca_computador_table',22);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (375,'2020_03_19_130231_add_contact_id_to_users_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (376,'2020_03_27_133605_create_schedules_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (377,'2020_03_27_133628_create_schedule_users_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (378,'2020_03_30_112834_create_schedule_logs_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (379,'2020_04_02_182331_add_crm_module_version_to_system_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (380,'2020_04_08_153231_modify_cloumn_in_contacts_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (381,'2020_04_09_101052_create_lead_users_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (382,'2020_04_16_114747_create_crm_campaigns_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (383,'2021_01_07_155757_add_followup_additional_info_column_to_crm_schedules_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (384,'2021_02_02_140021_add_additional_info_to_crm_campaigns_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (385,'2021_02_02_173651_add_new_columns_to_contacts_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (386,'2021_02_04_120439_create_call_logs_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (387,'2021_02_08_172047_add_mobile_name_column_to_crm_call_logs_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (388,'2021_02_16_190038_add_crm_module_indexing',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (389,'2021_02_19_120846_create_crm_followup_invoices',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (390,'2021_02_22_132125_add_follow_up_by_to_crm_schedules_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (391,'2021_03_24_160736_add_department_and_designation_to_users_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (392,'2021_06_15_152924_create_proposal_templates_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (393,'2021_06_16_114448_add_recursive_fields_to_crm_schedules_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (394,'2021_06_16_125740_create_proposals_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (395,'2021_09_24_065738_add_crm_settings_column_to_business_table',23);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (397,'2024_11_07_111500_add_fields_to_business_table',24);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (398,'2024_11_08_075242_add_officeimpresso_limitemaquinas_to_packages_table',25);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (399,'2024_11_11_162652_add_officeimpresso_migration_to_brands_table',26);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (401,'2024_11_21_164209_add_officeimpresso_fields_to_users_table',27);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (402,'2024_11_28_134259_add_officeimpresso_senha_to_users_table',28);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (403,'2024_12_16_065654_add_officeimpresso_categories_table',29);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (404,'2024_12_16_075504_add_officeimpresso_fields_to_units_table',30);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (405,'2024_12_17_070922_add_officeimpresso_fields_to_products_table',31);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (406,'2024_12_17_133215_fix_officeimpresso_fields_to_cities_table',32);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (407,'2024_12_17_163927_add_officeimpresso_business_to_cities_table',33);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (409,'2024_12_18_145324_create_condicaopagto_table',34);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (410,'2024_12_19_092905_create_cidades_table',35);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (411,'2024_12_19_174606_create_pessoas_grupo_table',36);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (412,'2024_12_30_093956_create_nf_natureza_operacao_table',37);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (413,'2024_12_30_095801_create_produto_grupo_table',38);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (414,'2024_12_30_142344_create_nf_natureza_operacao_prodgrupo_table',39);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (415,'2025_01_06_073702_add_sync_fields_to_products_table',40);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (424,'2026_04_18_000001_create_ponto_colaborador_config_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (425,'2026_04_18_000002_create_ponto_reps_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (426,'2026_04_18_000003_create_ponto_escalas_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (427,'2026_04_18_000004_create_ponto_marcacoes_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (428,'2026_04_18_000005_create_ponto_intercorrencias_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (429,'2026_04_18_000006_create_ponto_apuracao_dia_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (430,'2026_04_18_000007_create_ponto_banco_horas_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (431,'2026_04_18_000008_create_ponto_importacoes_table',41);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (432,'2019_07_07_093258_create_chart_of_accounts_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (433,'2019_07_07_093648_create_journal_entries_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (434,'2019_07_07_110645_create_payment_types_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (435,'2020_08_19_175842_add_asset_management_module_version_to_system_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (436,'2020_08_20_114339_create_assets_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (437,'2020_08_20_173031_create_asset_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (438,'2020_08_21_180138_add_asset_settings_column_to_business_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (439,'2020_12_18_181447_add_shipping_custom_fields_to_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (440,'2020_12_22_164303_add_sub_status_column_to_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (441,'2020_12_23_125610_add_spreadsheet_version_to_system_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (442,'2020_12_23_153255_create_spreadsheets_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (443,'2020_12_24_153050_add_custom_fields_to_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (444,'2020_12_28_105403_add_whatsapp_text_column_to_notification_templates_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (445,'2020_12_29_165925_add_model_document_type_to_media_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (446,'2021_02_08_175632_add_contact_number_fields_to_users_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (447,'2021_02_11_172217_add_indexing_for_multiple_columns',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (448,'2021_02_16_190302_add_manufacturing_module_indexing',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (449,'2021_02_23_122043_add_more_columns_to_customer_groups_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (450,'2021_02_24_175551_add_print_invoice_permission_to_all_roles',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (451,'2021_03_03_162021_add_purchase_order_columns_to_purchase_lines_and_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (452,'2021_03_11_120229_add_sales_order_columns',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (453,'2021_03_12_175416_create_spreadsheet_shares_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (454,'2021_03_16_120705_add_business_id_to_activity_log_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (455,'2021_03_16_153427_add_code_columns_to_business_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (456,'2021_03_18_173308_add_account_details_column_to_accounts_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (457,'2021_03_18_183119_add_prefer_payment_account_columns_to_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (458,'2021_03_22_120810_add_more_types_of_service_custom_fields',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (459,'2021_03_24_183132_add_shipping_export_custom_field_details_to_contacts_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (460,'2021_03_25_170715_add_export_custom_fields_info_to_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (461,'2021_04_07_154331_add_mfg_ingredient_group_id_to_transaction_sell_lines_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (462,'2021_04_15_063449_add_denominations_column_to_cash_registers_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (463,'2021_05_22_083426_add_indexing_to_account_transactions_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (464,'2021_06_17_121451_add_location_id_to_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (465,'2021_07_08_065808_add_additional_expense_columns_to_transaction_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (466,'2021_07_13_082918_add_qr_code_columns_to_invoice_layouts_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (467,'2021_07_21_061615_add_fields_to_show_commission_agent_in_invoice_layout',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (468,'2021_08_13_105549_add_crm_contact_id_to_users_table',42);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (469,'2021_08_23_175321_add_contact_and_location_id_to_journal_entries_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (470,'2021_08_25_114932_add_payment_link_fields_to_transaction_payments_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (471,'2021_09_01_063110_add_spg_column_to_discounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (472,'2021_09_03_061528_modify_cash_register_transactions_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (473,'2021_09_28_091541_create_essentials_user_sales_targets_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (474,'2021_10_05_061658_add_source_column_to_transactions_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (475,'2021_10_29_110841_create_asset_warranties_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (476,'2021_11_29_170819_add_business_id_to_chart_of_accounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (477,'2021_12_16_121851_add_parent_id_column_to_expense_categories_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (478,'2022_01_17_202319_create_payment_details_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (479,'2022_01_19_034231_create_countries_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (480,'2022_02_01_031031_create_transfers_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (481,'2022_02_03_215602_create_budgets_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (482,'2022_02_08_113906_add_opening_balance_to_chart_of_accounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (483,'2022_02_08_121045_add_currency_id_to_chart_of_accounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (484,'2022_02_09_002406_add_payment_type_id_to_chart_of_accounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (485,'2022_02_09_055012_create_crm_marketplaces_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (486,'2022_02_09_125328_create_account_detail_types_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (487,'2022_02_09_223848_create_account_subtypes_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (488,'2022_02_09_223849_add_account_subtype_id_and_detail_type_id_to_chart_of_accounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (489,'2022_02_17_113045_add_source_id_to_marketplace',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (490,'2022_02_23_130555_add_journal_entry_id_to_transactions_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (491,'2022_03_02_180929_add_followup_category_id',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (492,'2022_03_17_140457_add_reconcile_opening_balance_to_chart_of_accounts_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (493,'2022_03_26_062215_create_asset_maintenances_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (494,'2022_04_11_163625_populate_account_subtypes_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (495,'2022_04_11_165143_populate_account_detail_types_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (496,'2022_04_14_075120_add_payment_type_column_to_transaction_payments_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (497,'2022_04_21_083327_create_cash_denominations_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (498,'2022_05_10_055307_add_delivery_date_column_to_transactions_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (499,'2022_05_11_070711_add_maintenance_note_column_to_asset_maintenances_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (500,'2022_05_26_061553_create_crm_contact_person_commissions_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (501,'2022_06_06_073006_add_cc_and_bcc_columns_to_crm_proposals_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (502,'2022_06_08_105942_create_branch_capital_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (503,'2022_06_13_123135_add_currency_precision_and_quantity_precision_fields_to_business_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (504,'2022_06_28_133342_add_secondary_unit_columns_to_products_sell_line_purchase_lines_tables',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (505,'2022_07_13_114307_create_purchase_requisition_related_columns',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (506,'2022_07_25_100234_change_payment_type_id_column_from_int_to_string_in_payment_details_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (507,'2022_08_04_143146_create_cms_pages_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (508,'2022_08_25_132707_add_service_staff_timer_fields_to_products_and_users_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (509,'2022_09_10_161849_add_layout_column_to_cms_pages_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (510,'2022_09_10_163209_create_cms_site_details_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (511,'2022_09_15_122547_create_cms_page_metas_table',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (512,'2022_09_16_130337_create_default_data_for_cms',43);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (513,'2022_12_23_150311_is_sincronizado_contacts',44);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (514,'2022_12_23_162847_add_repair_jobsheet_settings_column_to_business_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (515,'2023_01_16_124948_add_folder_id_column_to_sheet_spreadsheets_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (516,'2023_01_28_114255_add_letter_head_column_to_invoice_layouts_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (517,'2023_02_11_161510_add_event_column_to_activity_log_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (518,'2023_02_11_161511_add_batch_uuid_column_to_activity_log_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (519,'2023_02_17_140135_AddVersionForAiAssistance',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (520,'2023_02_21_182321_create_aiassistance_generation_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (521,'2023_03_02_170312_add_provider_to_oauth_clients_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (522,'2023_03_21_122731_add_sale_invoice_scheme_id_business_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (523,'2023_03_21_170446_add_number_type_to_invoice_scheme',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (524,'2023_04_17_155216_add_custom_fields_to_products',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (525,'2023_04_28_130247_add_price_type_to_group_price_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (526,'2023_06_21_033923_add_delivery_person_in_transactions',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (527,'2023_09_13_153555_add_service_staff_pin_columns_in_users',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (528,'2023_09_15_154404_add_is_kitchen_order_in_transactions',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (529,'2023_12_06_152840_add_contact_type_in_contacts',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (530,'2024_10_03_151459_modify_transaction_sell_lines_purchase_lines_table',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (531,'2025_03_07_114637_add_more_addresh_column_in_contact',45);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (532,'2025_02_07_184909_add_officeimpresso_version',46);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (533,'2026_04_21_000001_add_office_oimpresso_updated_at_to_contacts',46);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (534,'2026_04_22_000001_create_docs_sources_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (535,'2026_04_22_000002_create_docs_evidences_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (536,'2026_04_22_000003_create_docs_requirements_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (537,'2026_04_22_000004_create_docs_links_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (538,'2026_04_22_000005_create_docs_chat_messages_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (539,'2026_04_22_000006_create_docs_pages_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (540,'2026_04_22_000007_create_docs_validation_runs_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (541,'2026_04_22_000008_add_fulltext_index_to_docs_evidences',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (542,'2026_04_22_180000_add_ui_preferences_to_users_table',47);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (543,'2026_04_23_200000_create_licenca_log_table',48);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (544,'2026_04_23_200100_create_licenca_log_triggers',48);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (545,'2026_04_23_200200_add_indexes_to_licenca_computador',48);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (546,'2026_04_24_000000_drop_licenca_log_triggers',49);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (547,'2026_04_24_100000_add_fiscal_fields_to_business_locations',50);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (548,'2026_04_24_100500_add_business_location_id_to_licenca_log',50);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (549,'2026_04_24_140001_create_fin_planos_conta_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (550,'2026_04_24_140002_create_fin_categorias_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (551,'2026_04_24_140003_create_fin_contas_bancarias_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (552,'2026_04_24_140004_create_fin_titulos_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (553,'2026_04_24_140005_create_fin_titulo_baixas_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (554,'2026_04_24_140006_create_fin_caixa_movimentos_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (555,'2026_04_25_140101_create_fin_boleto_remessas_table',51);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (556,'2026_04_24_000001_create_copiloto_metas_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (557,'2026_04_24_000002_create_copiloto_meta_periodos_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (558,'2026_04_24_000003_create_copiloto_meta_fontes_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (559,'2026_04_24_000004_create_copiloto_meta_apuracoes_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (560,'2026_04_24_000005_create_copiloto_conversas_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (561,'2026_04_24_000006_create_copiloto_mensagens_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (562,'2026_04_24_000007_create_copiloto_sugestoes_table',52);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (563,'2026_04_26_120000_add_social_auth_columns_to_users_table',53);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (564,'2026_04_27_000001_create_copiloto_memoria_facts_table',53);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (565,'2026_04_29_000001_create_copiloto_memoria_metricas_table',54);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (566,'2026_04_29_100001_create_mcp_scopes_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (567,'2026_04_29_100002_create_mcp_user_scopes_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (568,'2026_04_29_100003_create_mcp_tokens_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (569,'2026_04_29_100004_create_mcp_quotas_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (570,'2026_04_29_100005_create_mcp_audit_log_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (571,'2026_04_29_100006_create_mcp_usage_diaria_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (572,'2026_04_29_100007_create_mcp_alertas_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (573,'2026_04_29_100008_create_mcp_memory_documents_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (574,'2026_04_29_100009_create_mcp_memory_documents_history_table',55);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (575,'2026_04_29_200001_create_copiloto_memoria_gabarito_table',56);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (576,'2026_04_29_400001_create_copiloto_cache_semantico_table',57);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (577,'2026_04_29_500001_create_copiloto_business_profile_table',58);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (578,'2026_04_29_500002_add_promotion_to_memoria_facts',59);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (579,'2026_04_29_500003_create_copiloto_negative_cache_table',60);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (580,'2026_04_29_600001_create_mcp_alertas_eventos_table',61);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (581,'2026_04_29_300001_create_mcp_cc_sessions_table',62);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (582,'2026_04_29_300002_create_mcp_cc_messages_table',63);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (583,'2026_04_29_300003_create_mcp_cc_blobs_table',64);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (584,'2026_04_30_120001_expand_mcp_memory_documents_type_enum',65);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (585,'2026_04_30_200001_add_business_id_to_mcp_memory_documents',66);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (586,'2026_04_30_180001_create_mcp_tasks_table',67);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (587,'2026_05_01_100001_add_typed_cols_to_mcp_memory_documents',67);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (588,'2026_05_01_120001_create_mcp_task_comments_table',68);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (589,'2026_05_01_120002_create_mcp_task_events_table',68);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (590,'2026_05_01_000001_create_nfe_certificados_table',69);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (591,'2026_05_01_000002_create_nfse_provider_configs_table',69);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (592,'2026_05_01_000003_create_nfse_emissoes_table',69);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (593,'2026_05_01_000004_add_prestador_cnpj_to_nfse_provider_configs',69);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (599,'2026_05_03_000001_add_transaction_id_to_nfse_emissoes',71);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (600,'2026_05_03_180001_add_dismissed_at_to_dual_brain_decisions',72);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (601,'2026_05_03_200001_add_learning_loop_columns',73);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (609,'2026_05_03_100001_create_user_lockouts_table',79);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (610,'2026_05_03_000001_create_mcp_file_locks_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (611,'2026_05_03_000002_create_mcp_decision_thresholds_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (612,'2026_05_03_000003_create_mcp_confidence_scores_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (613,'2026_05_03_000004_create_mcp_dual_brain_decisions_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (614,'2026_05_03_000005_create_mcp_decision_patterns_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (615,'2026_05_03_220001_create_mcp_governance_rules_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (616,'2026_05_03_230001_create_mcp_projects_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (617,'2026_05_03_230002_create_mcp_project_parts_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (618,'2026_05_03_230003_link_decisions_to_projects',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (619,'2026_05_03_240001_create_mcp_tool_executions_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (620,'2026_05_03_250001_create_mcp_decision_links_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (621,'2026_05_03_260001_create_mcp_user_module_access_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (622,'2026_05_04_180001_create_mcp_jira_projects_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (623,'2026_05_04_180002_create_mcp_epics_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (624,'2026_05_04_180003_create_mcp_cycles_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (625,'2026_05_04_180004_create_mcp_cycle_goals_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (626,'2026_05_04_180005_create_mcp_components_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (627,'2026_05_04_180006_create_mcp_workflows_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (628,'2026_05_04_180007_create_mcp_issue_templates_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (629,'2026_05_04_180008_create_mcp_views_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (630,'2026_05_04_180009_create_mcp_inbox_notifications_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (631,'2026_05_04_180010_create_mcp_task_dependencies_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (632,'2026_05_04_180011_create_mcp_task_watchers_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (633,'2026_05_04_180012_create_mcp_task_attachments_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (634,'2026_05_04_180013_create_mcp_task_memory_links_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (635,'2026_05_04_180014_create_mcp_git_links_table',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (636,'2026_05_04_180015_extend_mcp_tasks_for_jira_style',80);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (637,'2026_05_05_220001_create_mcp_skills_table',81);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (638,'2026_05_05_220002_create_mcp_skill_versions_table',81);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (639,'2026_05_05_220003_create_mcp_skill_labels_table',81);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (640,'2026_05_05_220004_create_mcp_skill_test_runs_table',82);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (641,'2026_05_05_220005_create_mcp_skill_approvals_table',83);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (642,'2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log',84);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (643,'2026_05_05_240001_create_mcp_actors_and_link_tokens',85);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (644,'2026_05_05_240002_seed_initial_actors',85);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (645,'2026_05_06_000001_create_rb_boleto_credentials_table',86);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (647,'2026_05_06_000001_add_rb_gateway_credential_to_fin_contas_bancarias',87);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (648,'2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials',88);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (649,'2026_05_06_000002_add_saldo_cached_to_fin_contas_bancarias',88);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (650,'2026_05_06_000003_create_pg_webhook_events_table',88);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (651,'2026_05_06_001000_create_rb_plans_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (652,'2026_05_06_001001_create_rb_subscriptions_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (653,'2026_05_06_001002_create_rb_invoices_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (654,'2026_05_06_001003_create_rb_charge_attempts_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (655,'2026_05_06_002000_create_nfe_certificados_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (656,'2026_05_06_002001_create_nfe_emissoes_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (657,'2026_05_06_002002_create_nfe_eventos_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (658,'2026_05_06_002003_create_nfe_inutilizacoes_table',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (659,'2026_05_06_170045_create_daily_brief_schema',89);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (660,'2026_05_06_172445_fix_brief_procedure_real_schema',90);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (661,'2026_05_06_010000_create_nfe_fiscal_rules_table',91);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (662,'2026_05_06_010001_create_nfe_business_configs_table',91);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (663,'2026_05_06_120000_rename_copiloto_tables_to_jana',92);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (664,'2026_05_06_020000_create_nfe_fiscal_rule_tax_rate_links_table',93);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (665,'2026_05_06_180000_add_repair_listing_indexes',93);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (666,'2026_05_07_120000_fix_brief_aggregator_in_flight_adrs_activity',94);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (667,'2026_05_07_000001_create_whatsapp_business_configs_table',95);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (668,'2026_05_07_000002_create_whatsapp_conversations_table',95);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (669,'2026_05_07_000003_create_whatsapp_messages_table',95);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (670,'2026_05_07_000004_create_whatsapp_templates_table',95);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (671,'2026_05_07_210000_migrate_nfe_certificados_nfse_to_nfe_brasil_schema',96);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (672,'2026_05_07_220000_move_nfe_cert_files_outside_webroot',97);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (673,'2026_05_07_230000_drop_modules_project_legacy_tables',98);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (674,'2026_05_07_140000_update_actor_display_name_maiara',99);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (675,'2026_05_07_220000_create_fin_extrato_lancamentos_table',99);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (676,'2026_05_08_000000_add_auto_emission_enabled_to_nfe_business_configs',99);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (677,'2026_05_09_000001_simplify_baileys_columns_in_whatsapp_business_configs',100);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (678,'2026_05_09_140000_rename_copiloto_permissions_to_jana',100);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (679,'2026_05_09_120000_create_whatsapp_business_phones_table',101);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (680,'2026_05_09_120100_create_whatsapp_phone_user_access_table',101);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (681,'2026_05_09_120200_add_phone_id_to_whatsapp_conversations_and_messages',101);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (682,'2026_05_09_120300_seed_whatsapp_business_phones_from_configs',101);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (683,'2026_05_09_120000_create_jana_health_narratives_table',102);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (684,'2026_05_10_150000_seed_auditoria_mcp_jira_project',103);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (685,'2026_05_09_100000_create_nfe_dfe_recebidos_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (686,'2026_05_09_100001_create_nfe_dfe_itens_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (687,'2026_05_09_100002_create_nfe_dfe_eventos_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (688,'2026_05_09_100003_create_nfe_dfe_nsu_state_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (689,'2026_05_09_210000_create_accounts_legacy_map_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (690,'2026_05_09_210001_add_legacy_columns_to_fin_contas_bancarias',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (691,'2026_05_10_000001_create_arquivos_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (692,'2026_05_10_000001_create_mcp_admin_audit_log_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (693,'2026_05_10_000001_create_vestuario_settings_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (694,'2026_05_10_000002_create_arquivos_audit_log_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (695,'2026_05_10_000003_create_arquivos_dedupe_table',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (696,'2026_05_10_000010_backfill_nfe_xml_arquivos',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (697,'2026_05_10_000020_backfill_consumers_arquivos',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (698,'2026_05_10_000030_add_metadata_recalculated_at_to_arquivos',104);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (699,'2026_05_10_000040_create_comvis_materiais_table',105);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (700,'2026_05_10_000041_create_comvis_orcamentos_table',105);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (701,'2026_05_10_000042_create_comvis_os_table',105);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (702,'2026_05_10_000043_create_comvis_apontamentos_table',105);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (703,'2026_05_10_120000_alter_nfe_emissoes_status_enum_add_enviando_erro_envio',105);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (704,'2026_05_10_120000_seed_modulos_verticais_mcp_jira_projects',105);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (705,'2026_05_10_160000_add_causer_kind_and_revert_to_activity_log',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (706,'2026_05_11_000001_create_omnichannel_tables',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (707,'2026_05_11_120001_create_sale_processes_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (708,'2026_05_11_120002_create_sale_process_stages_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (709,'2026_05_11_120003_create_sale_stage_actions_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (710,'2026_05_11_120004_create_sale_stage_action_roles_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (711,'2026_05_11_120005_create_sale_stage_history_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (712,'2026_05_11_130001_create_stock_reservations_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (713,'2026_05_11_140001_create_transaction_documents_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (714,'2026_05_11_150001_create_nfse_emissoes_table',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (715,'2026_05_11_160001_add_fsm_columns_to_transactions',106);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (716,'2026_05_11_000010_create_vehicles_table',107);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (717,'2026_05_11_000020_create_service_orders_table',107);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (718,'2026_05_11_170001_add_legacy_date_fields_to_transactions',107);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (719,'2026_05_11_190001_repair_dual_brain_learning_loop_drift',107);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (720,'2026_05_11_120000_create_conversation_tags_tables',108);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (721,'2026_05_11_130000_add_is_blocked_to_conversations',108);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (722,'2026_05_11_200000_add_updated_at_to_whatsapp_conversation_tags',109);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (723,'2026_05_12_000001_add_last_message_denormalized_to_conversations',110);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (724,'2026_05_12_010001_add_is_critical_to_sale_stage_actions',111);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (725,'2026_05_12_020001_alter_transaction_documents_add_boleto_types',112);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (726,'2026_05_12_030001_add_current_stage_id_to_transactions',113);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (727,'2026_05_12_040001_alter_sale_stage_history_action_id_nullable',114);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (728,'2026_05_12_140000_add_is_internal_note_to_messages',114);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (729,'2026_05_12_050001_add_current_stage_id_to_job_sheets',115);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (730,'2026_05_12_060001_add_consent_columns_to_contacts',115);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (731,'2026_05_12_120000_create_nfse_eventos_cancelamento_table',116);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (732,'2026_05_12_150000_add_media_to_messages',116);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (733,'2026_05_12_160000_create_channel_user_access_table',116);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (734,'2026_05_12_170000_create_whatsapp_jana_correcoes_table',117);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (735,'2026_05_12_180000_create_whatsapp_reminders_table',117);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (736,'2026_05_12_190000_create_whatsapp_contact_bot_overrides_table',117);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (737,'2026_05_12_200000_add_media_download_tracking_to_messages',118);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (738,'2026_05_12_000010_create_cv_substratos_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (739,'2026_05_12_000011_create_cv_acabamentos_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (740,'2026_05_12_000012_create_cv_instalacoes_catalogo_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (741,'2026_05_12_000013_create_cv_ordens_producao_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (742,'2026_05_12_000014_create_cv_instalacoes_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (743,'2026_05_12_080001_create_product_bom_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (744,'2026_05_12_180000_add_legacy_origin_to_business',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (745,'2026_05_12_210000_create_whatsapp_lid_pn_map_table',119);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (746,'2026_05_12_140001_add_is_grouped_invoice_to_transactions',120);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (747,'2026_05_12_220000_create_sla_policies_table',121);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (748,'2026_05_13_000001_create_macros_table',121);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (749,'2026_05_12_220000_create_whatsapp_conversation_metricas_table',122);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (750,'2026_05_12_220000_create_whatsapp_csat_responses_table',123);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (751,'2026_05_12_200000_create_whatsapp_baileys_auth_state_table',124);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (752,'2026_05_13_100001_create_macro_variants_table',125);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (753,'2026_05_13_100002_add_macro_variant_id_to_messages',125);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (754,'2026_05_12_220001_add_cacamba_fields_to_vehicles',126);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (755,'2026_05_12_220002_add_rental_fields_to_service_orders',126);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (756,'2026_05_12_230001_add_transaction_sell_line_id_to_service_orders',126);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (757,'2026_05_12_230002_add_os_default_per_line_to_business',126);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (758,'2026_05_13_010001_add_current_stage_id_to_service_orders',127);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (759,'2026_05_13_010002_add_contact_id_to_service_orders',128);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (760,'2026_05_13_120000_create_mcp_handoff_summaries_table',129);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (761,'2026_05_13_130000_create_mcp_handoff_diffs_table',129);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (762,'2026_05_13_140000_create_mcp_weekly_digests_table',129);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (763,'2026_05_13_150000_create_mcp_doc_summaries_table',129);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (764,'2026_05_13_170001_add_legacy_id_to_contacts',130);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (765,'2026_05_13_201220_create_feature_flag_audits_table',131);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (766,'2026_05_13_205208_add_index_display_identifier_to_channels',131);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (767,'2026_05_14_010001_create_jobs_table_for_whatsapp_queue',131);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (768,'2026_05_14_020001_create_webhook_nonces_table',132);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (769,'2026_05_14_010001_add_legacy_id_to_fin_titulos',133);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (770,'2026_05_15_010000_add_identity_columns_to_conversations',134);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (771,'2026_05_15_020000_fix_identity_columns_whatsapp_conversations',135);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (772,'2026_05_15_120000_add_contextual_context_to_mcp_memory_documents',136);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (773,'2026_05_15_230000_create_customer_memory_table',136);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (774,'2026_05_15_240000_add_employee_complaints_external_to_customer_memory',136);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (775,'2026_05_15_250000_create_employee_performance_table',136);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (776,'2026_05_15_100001_create_kb_categories_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (777,'2026_05_15_100002_create_kb_subcategories_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (778,'2026_05_15_100003_create_kb_nodes_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (779,'2026_05_15_100004_create_kb_edges_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (780,'2026_05_15_100005_create_kb_paths_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (781,'2026_05_15_100006_create_kb_path_steps_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (782,'2026_05_15_100007_create_kb_decision_trees_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (783,'2026_05_15_100008_create_kb_decision_tree_steps_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (784,'2026_05_15_100009_create_kb_node_versions_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (785,'2026_05_15_100010_create_kb_favorites_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (786,'2026_05_15_100011_create_kb_comments_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (787,'2026_05_15_100012_create_kb_bridge_state_table',137);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (788,'2026_05_16_120000_recurring_v975_schema',138);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (789,'2026_05_16_220001_create_mcp_scorecard_ai_suggestions_table',138);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (790,'2026_05_17_000001_create_vestuario_devolucoes_table',138);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (791,'2026_05_17_000002_create_vestuario_creditos_cliente_table',138);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (792,'2026_05_17_000010_create_oficina_service_order_items_table',138);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (793,'2026_05_17_120000_create_crm_deals_table',139);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (794,'2026_05_18_180000_add_conferido_to_fin_titulos',140);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (795,'2026_05_19_120000_create_payment_gateway_credentials_table',141);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (796,'2026_05_19_120001_create_cobrancas_table',141);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (797,'2026_05_19_120002_create_gateway_webhook_events_table',141);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (798,'2026_05_19_130000_add_payment_gateway_credential_id_to_fin_contas_bancarias',141);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (799,'2026_05_18_190000_create_fin_titulo_comments_table',142);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (800,'2026_05_19_220000_create_fin_bank_statement_lines_table',143);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (801,'2026_05_19_220001_create_fin_titulo_anexos_table',143);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (802,'2026_05_19_220002_add_aprovacao_to_fin_titulos',143);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (803,'2026_05_20_120000_create_inter_webhook_log_table',144);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (804,'2026_05_20_140000_create_advisors_table',144);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (805,'2026_05_20_140001_create_advisor_business_access_table',144);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (806,'2026_05_20_180000_create_ai_usage_log_table',144);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (807,'2026_05_20_200000_make_titulo_baixa_conta_bancaria_optional',145);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (808,'2026_05_21_140000_restore_br_fields_to_contacts',146);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (809,'2026_05_24_200000_add_role_flags_to_contacts',147);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (810,'2026_05_25_140000_add_source_and_os_ref_to_transactions',148);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (811,'2026_05_25_180000_add_cancelled_at_to_transactions',149);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (812,'2026_05_21_220000_add_caixa_bridge_to_fin_titulos_and_contas',150);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (813,'2026_05_22_000000_extend_contacts_for_cliente_drawer',150);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (814,'2026_05_22_000001_create_anotacoes_table',151);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (815,'2026_05_22_120000_add_numero_to_contacts',151);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (816,'2026_05_22_180000_add_city_code_to_contacts_table',151);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (817,'2026_05_23_120000_add_sefaz_consulta_fields_to_contacts',151);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (818,'2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules',152);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (819,'2026_05_26_120000_expand_payment_gateway_credentials_gateway_key_for_cnab',152);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (820,'2026_05_26_120100_create_cnab_retorno_uploads_table',152);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (821,'2026_05_26_120001_add_box_and_assigned_user_to_service_orders',153);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (822,'2026_05_26_120002_create_oa_inspection_items_table',153);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (823,'2026_05_27_000010_add_client_decision_to_oa_inspection_items',154);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (824,'2026_05_26_140000_add_emails_extras_to_contacts',155);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (825,'2026_05_27_180000_create_clients_feedbacks_table',156);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (826,'2026_05_27_220000_add_dev_task_requested_to_clients_feedbacks',156);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (827,'2026_05_27_240000_add_signature_relevance_to_clients_feedbacks',156);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (828,'2026_05_27_120000_add_sicoob_api_to_payment_gateway_credentials',157);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (829,'2026_05_27_120000_extend_contacts_bucket_a_legacy_absorption',158);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (830,'2026_05_27_140000_contacts_bucket_b_legacy_raw_json',158);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (831,'2026_05_27_160000_contacts_consolidate_officeimpresso_sync_canon',159);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (832,'2026_05_27_140000_drop_mtls_columns_sicoob_reusa_nfecertificado',160);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (833,'2026_05_28_000001_drop_baileys_columns_from_whatsapp_business_configs',161);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (834,'2026_05_28_000002_drop_whatsapp_baileys_auth_state_table',161);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (835,'2026_05_28_000003_add_meta_waba_id_to_whatsapp_business_configs',162);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (836,'2026_05_27_180000_add_contato_to_contacts',163);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (837,'2026_05_28_120000_add_mensagem_venda_to_contacts',164);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (838,'2026_05_29_100001_create_mcp_automations_table',164);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (839,'2026_05_29_100002_create_mcp_automation_runs_table',164);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (840,'2026_05_29_120000_add_mensagem_venda_to_contacts',164);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (841,'2026_05_31_230000_add_conciliacao_cols_to_fin_extrato_lancamentos',164);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (842,'2026_06_01_000000_add_unificacao_cols_to_fin_extrato_lancamentos',165);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (843,'2026_06_01_000001_add_external_id_unique_to_fin_extrato_lancamentos',166);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (844,'2026_06_01_120000_create_contact_addresses_table',167);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (845,'2026_06_02_000001_add_mecanica_to_service_orders_order_type',168);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (846,'2026_06_02_000010_add_checkin_fields_to_service_orders',168);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (847,'2026_06_03_120000_add_forma_pagamento_to_fin_titulos',168);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (848,'2026_06_03_120000_add_is_other_flag_to_contacts',169);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (849,'2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos',169);
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
-
