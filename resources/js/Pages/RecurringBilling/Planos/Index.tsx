@@ -100,7 +100,7 @@ const BRLshort = (n: number) =>
 const FISCAL_LABEL: Record<FiscalType, { label: string; classes: string }> = {
   nfe:  { label: 'NFe',        classes: 'bg-blue-100 text-blue-700 ring-blue-200' },
   nfse: { label: 'NFS-e',      classes: 'bg-emerald-100 text-emerald-700 ring-emerald-200' },
-  none: { label: 'Não emite',  classes: 'bg-zinc-100 text-zinc-500 ring-zinc-200' },
+  none: { label: 'Não emite',  classes: 'bg-stone-100 text-stone-500 ring-stone-200' },
 };
 
 const CICLO_LABEL: Record<Ciclo, string> = {
@@ -135,19 +135,19 @@ function KpiCard({
     ok: 'text-emerald-300',
     warn: 'text-amber-400',
     bad: 'text-rose-400',
-    neutral: 'text-zinc-400',
+    neutral: 'text-stone-400',
   }[deltaTone];
   const deltaClsLight = {
     ok: 'text-emerald-700',
     warn: 'text-amber-700',
     bad: 'text-rose-700',
-    neutral: 'text-zinc-500',
+    neutral: 'text-stone-500',
   }[deltaTone];
 
   if (hero) {
     return (
-      <div className="rounded-2xl bg-zinc-900 p-4 text-white shadow-sm ring-1 ring-zinc-800">
-        <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+      <div className="rounded-lg bg-stone-900 p-4 text-white shadow-sm ring-1 ring-stone-800">
+        <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-400">
           <span>{label}</span>
           {sparkline && sparkline.length > 0 ? (
             <Sparkline points={sparkline} color="oklch(0.75 0.13 145)" />
@@ -161,9 +161,9 @@ function KpiCard({
     );
   }
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200">
-      <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</div>
-      <div className="mt-2 text-2xl font-bold text-zinc-900 tabular-nums">{value}</div>
+    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
+      <div className="text-[11px] font-medium uppercase tracking-wider text-stone-500">{label}</div>
+      <div className="mt-2 text-2xl font-bold text-stone-900 tabular-nums">{value}</div>
       {delta && <div className={`mt-1 text-xs font-medium ${deltaClsLight}`}>{delta}</div>}
     </div>
   );
@@ -171,7 +171,7 @@ function KpiCard({
 
 function CicloDistribuicao({ kpis }: { kpis: KpisPayload }) {
   const totals: Array<{ key: Ciclo; label: string; count: number; color: string }> = [
-    { key: 'monthly',    label: 'mensal',      count: kpis.distribuicao.monthly,    color: 'bg-violet-500' },
+    { key: 'monthly',    label: 'mensal',      count: kpis.distribuicao.monthly,    color: 'bg-primary' },
     { key: 'quarterly',  label: 'trimestral',  count: kpis.distribuicao.quarterly,  color: 'bg-blue-500' },
     { key: 'semiannual', label: 'semestral',   count: kpis.distribuicao.semiannual, color: 'bg-cyan-500' },
     { key: 'yearly',     label: 'anual',       count: kpis.distribuicao.yearly,     color: 'bg-emerald-500' },
@@ -180,21 +180,21 @@ function CicloDistribuicao({ kpis }: { kpis: KpisPayload }) {
   const max = Math.max(...totals.map((t) => t.count), 1);
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200">
-      <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
+      <div className="text-[11px] font-medium uppercase tracking-wider text-stone-500">
         Distribuição ciclos
       </div>
       <ul className="mt-3 space-y-1.5">
         {totals.map((t) => (
           <li key={t.key} className="flex items-center gap-2 text-xs">
-            <span className="w-20 text-zinc-600">{t.label}</span>
-            <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-zinc-100">
+            <span className="w-20 text-stone-600">{t.label}</span>
+            <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-stone-100">
               <div
                 className={`absolute inset-y-0 left-0 ${t.color}`}
                 style={{ width: `${(t.count / max) * 100}%` }}
               />
             </div>
-            <span className="w-6 text-right font-mono tabular-nums text-zinc-700">{t.count}</span>
+            <span className="w-6 text-right font-mono tabular-nums text-stone-700">{t.count}</span>
           </li>
         ))}
       </ul>
@@ -209,7 +209,7 @@ function StatusBadge({ ativo }: { ativo: boolean }) {
       ativo
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-500 ring-1 ring-zinc-200">
+    <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500 ring-1 ring-stone-200">
       <XCircle size={11} />
       inativo
     </span>
@@ -356,15 +356,15 @@ export default function PlanosIndex(props: PageProps) {
     <>
       <Head title="Planos · Cobrança Recorrente" />
 
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-6">
+      <div className="min-h-screen bg-stone-50 p-4 md:p-6">
         {/* HEADER */}
         <header className="mb-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+              <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
                 Planos · cobrança recorrente
               </h1>
-              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
+              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
                 {kpis ? (
                   <>
                     {kpis.total_planos} PLANOS · {kpis.total_ativos} ATIVOS · MRR potencial {BRL(kpis.mrr_potencial)}
@@ -377,7 +377,7 @@ export default function PlanosIndex(props: PageProps) {
             <div className="flex items-center gap-2">
               <Link
                 href="/recurring-billing"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-stone-700 shadow-sm ring-1 ring-stone-200 hover:bg-stone-50"
               >
                 Voltar
               </Link>
@@ -385,17 +385,17 @@ export default function PlanosIndex(props: PageProps) {
                 type="button"
                 onClick={() => setShowCheatsheet(true)}
                 title="Atalhos teclado (?)"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium text-stone-700 shadow-sm ring-1 ring-stone-200 hover:bg-stone-50"
               >
-                <kbd className="rounded bg-zinc-100 px-1 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">?</kbd>
+                <kbd className="rounded bg-stone-100 px-1 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">?</kbd>
               </button>
               <Link
                 href="/recurring-billing/planos/novo"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-violet-700"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary"
               >
                 <Plus size={14} />
                 Novo plano
-                <kbd className="ml-1 rounded bg-violet-700 px-1 text-[10px] font-mono">N</kbd>
+                <kbd className="ml-1 rounded bg-primary px-1 text-[10px] font-mono">N</kbd>
               </Link>
             </div>
           </div>
@@ -452,29 +452,29 @@ export default function PlanosIndex(props: PageProps) {
         </Deferred>
 
         {/* Tabela */}
-        <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200">
+        <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
           {/* Toolbar */}
           <form
             onSubmit={handleSearch}
-            className="flex items-center gap-2 border-b border-zinc-200 p-2.5"
+            className="flex items-center gap-2 border-b border-stone-200 p-2.5"
           >
-            <div className="flex flex-1 items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5">
-              <Search size={14} className="text-zinc-400" />
+            <div className="flex flex-1 items-center gap-2 rounded-lg bg-stone-100 px-3 py-1.5">
+              <Search size={14} className="text-stone-400" />
               <input
                 ref={searchRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar (/) — nome ou slug"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-stone-400"
               />
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">
+              <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">
                 /
               </kbd>
             </div>
             <button
               type="submit"
-              className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800"
+              className="rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-stone-800"
             >
               Buscar
             </button>
@@ -486,7 +486,7 @@ export default function PlanosIndex(props: PageProps) {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-zinc-50 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+                  <thead className="bg-stone-50 text-[11px] font-semibold uppercase tracking-wider text-stone-500">
                     <tr>
                       <th className="px-4 py-2 text-left">Plano</th>
                       <th className="px-4 py-2 text-left">Ciclo</th>
@@ -497,34 +497,34 @@ export default function PlanosIndex(props: PageProps) {
                       <th className="px-4 py-2 text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-stone-100">
                     {rows.map((p) => (
                       <tr
                         key={p.id}
                         onClick={() => setActiveId(p.id)}
                         className={`cursor-pointer transition ${
                           activeId === p.id
-                            ? 'border-l-2 border-l-violet-500 bg-violet-50/50'
-                            : 'hover:bg-zinc-50'
+                            ? 'border-l-2 border-l-primary bg-primary/50'
+                            : 'hover:bg-stone-50'
                         }`}
                       >
                         <td className="px-4 py-2.5">
-                          <div className="font-medium text-zinc-900">{p.name}</div>
-                          <div className="font-mono text-[11px] text-zinc-500">{p.slug}</div>
+                          <div className="font-medium text-stone-900">{p.name}</div>
+                          <div className="font-mono text-[11px] text-stone-500">{p.slug}</div>
                           {p.descricao_curta && (
-                            <div className="mt-0.5 text-[11px] text-zinc-500">{p.descricao_curta}</div>
+                            <div className="mt-0.5 text-[11px] text-stone-500">{p.descricao_curta}</div>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 text-zinc-700">
+                        <td className="px-4 py-2.5 text-stone-700">
                           {CICLO_LABEL[p.ciclo] ?? p.ciclo_label}
                           {p.ciclo === 'custom' && p.ciclo_dias && (
-                            <span className="ml-1 text-[11px] text-zinc-500">({p.ciclo_dias}d)</span>
+                            <span className="ml-1 text-[11px] text-stone-500">({p.ciclo_dias}d)</span>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 text-right font-mono tabular-nums text-zinc-900">
+                        <td className="px-4 py-2.5 text-right font-mono tabular-nums text-stone-900">
                           {BRLshort(p.valor)}
                         </td>
-                        <td className="px-4 py-2.5 text-center font-mono tabular-nums text-zinc-700">
+                        <td className="px-4 py-2.5 text-center font-mono tabular-nums text-stone-700">
                           {p.assinaturas_ativas_count}
                         </td>
                         <td className="px-4 py-2.5 text-center">
@@ -537,7 +537,7 @@ export default function PlanosIndex(props: PageProps) {
                           <div className="inline-flex items-center gap-1">
                             <Link
                               href={`/recurring-billing/planos/${p.id}/editar`}
-                              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
+                              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-stone-700 hover:bg-stone-100"
                               title="Editar"
                             >
                               <Pencil size={12} />
@@ -564,7 +564,7 @@ export default function PlanosIndex(props: PageProps) {
 
           {/* Footer paginação */}
           {plans && plans.meta.total > 0 && (
-            <div className="flex items-center justify-between border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500">
+            <div className="flex items-center justify-between border-t border-stone-200 px-4 py-2 text-xs text-stone-500">
               <span>
                 {plans.meta.total} {plans.meta.total === 1 ? 'plano' : 'planos'} no total
               </span>
@@ -612,16 +612,16 @@ export default function PlanosIndex(props: PageProps) {
 function EmptyState() {
   return (
     <div className="p-12 text-center">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-violet-100">
-        <Plus size={20} className="text-violet-600" />
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+        <Plus size={20} className="text-primary" />
       </div>
-      <div className="text-lg font-medium text-zinc-700">Nenhum plano cadastrado.</div>
-      <div className="mt-1 text-sm text-zinc-500">
+      <div className="text-lg font-medium text-stone-700">Nenhum plano cadastrado.</div>
+      <div className="mt-1 text-sm text-stone-500">
         Crie o primeiro plano pra começar a vincular assinaturas.
       </div>
       <Link
         href="/recurring-billing/planos/novo"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary"
       >
         <Plus size={14} />
         Criar primeiro plano
@@ -634,7 +634,7 @@ function KpiSkeleton() {
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-24 animate-pulse rounded-2xl bg-zinc-100" />
+        <div key={i} className="h-24 animate-pulse rounded-lg bg-stone-100" />
       ))}
     </div>
   );
@@ -642,15 +642,15 @@ function KpiSkeleton() {
 
 function ListSkeleton() {
   return (
-    <div className="divide-y divide-zinc-100">
+    <div className="divide-y divide-stone-100">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1 space-y-1">
-            <div className="h-3 w-40 animate-pulse rounded bg-zinc-200" />
-            <div className="h-2 w-24 animate-pulse rounded bg-zinc-100" />
+            <div className="h-3 w-40 animate-pulse rounded bg-stone-200" />
+            <div className="h-2 w-24 animate-pulse rounded bg-stone-100" />
           </div>
-          <div className="h-4 w-16 animate-pulse rounded-full bg-zinc-100" />
-          <div className="h-4 w-12 animate-pulse rounded bg-zinc-100" />
+          <div className="h-4 w-16 animate-pulse rounded-full bg-stone-100" />
+          <div className="h-4 w-12 animate-pulse rounded bg-stone-100" />
         </div>
       ))}
     </div>

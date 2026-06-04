@@ -123,26 +123,26 @@ const STATUS_STYLES: Record<InvoiceStatus, { label: string; classes: string }> =
   },
   canceled: {
     label: 'cancelada',
-    classes: 'bg-zinc-100 text-zinc-400 ring-zinc-200 line-through',
+    classes: 'bg-stone-100 text-stone-400 ring-stone-200 line-through',
   },
   refunded: {
     label: 'reembolsada',
-    classes: 'bg-zinc-100 text-zinc-600 ring-zinc-200',
+    classes: 'bg-stone-100 text-stone-600 ring-stone-200',
   },
 };
 
 const GATEWAY_STYLES: Record<Gateway, { label: string; classes: string }> = {
   inter: { label: 'Inter', classes: 'bg-orange-50 text-orange-700 ring-orange-200' },
-  c6: { label: 'C6', classes: 'bg-zinc-900 text-white ring-zinc-700' },
+  c6: { label: 'C6', classes: 'bg-stone-900 text-white ring-stone-700' },
   asaas: { label: 'Asaas', classes: 'bg-sky-50 text-sky-700 ring-sky-200' },
 };
 
 const STATUS_PILLS: Array<{ key: StatusFilter; label: string; dot: string }> = [
-  { key: 'all', label: 'Todas', dot: 'bg-zinc-300' },
+  { key: 'all', label: 'Todas', dot: 'bg-stone-300' },
   { key: 'paid', label: 'Pagas', dot: 'bg-emerald-500' },
   { key: 'open', label: 'Pendentes', dot: 'bg-amber-500' },
   { key: 'overdue', label: 'Atrasadas', dot: 'bg-rose-500' },
-  { key: 'canceled', label: 'Canceladas', dot: 'bg-zinc-400' },
+  { key: 'canceled', label: 'Canceladas', dot: 'bg-stone-400' },
 ];
 
 const GATEWAY_OPTIONS: Array<{ key: GatewayFilter; label: string }> = [
@@ -175,7 +175,7 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
 function GatewayBadge({ gateway }: { gateway: Gateway | null }) {
   if (!gateway) {
     return (
-      <span className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium text-zinc-400 ring-1 ring-zinc-200">
+      <span className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium text-stone-400 ring-1 ring-stone-200">
         —
       </span>
     );
@@ -209,18 +209,18 @@ function KpiCard({
     ok: 'bg-emerald-700',
     warn: 'bg-amber-700',
     bad: 'bg-rose-700',
-    neutral: 'bg-zinc-900',
+    neutral: 'bg-stone-900',
   }[tone];
   const lightDelta = {
     ok: 'text-emerald-700',
     warn: 'text-amber-700',
     bad: 'text-rose-700',
-    neutral: 'text-zinc-500',
+    neutral: 'text-stone-500',
   }[tone];
 
   if (hero) {
     return (
-      <div className={`rounded-2xl ${heroTone} p-4 text-white shadow-sm ring-1 ring-zinc-800`}>
+      <div className={`rounded-lg ${heroTone} p-4 text-white shadow-sm ring-1 ring-stone-800`}>
         <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-white/70">
           <span>{label}</span>
           {sparkline && sparkline.length > 0 ? (
@@ -237,12 +237,12 @@ function KpiCard({
     );
   }
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200">
-      <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
+      <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-500">
         <span>{label}</span>
-        {Icon && <Icon size={14} className="text-zinc-400" />}
+        {Icon && <Icon size={14} className="text-stone-400" />}
       </div>
-      <div className="mt-2 text-2xl font-bold text-zinc-900 tabular-nums">{value}</div>
+      <div className="mt-2 text-2xl font-bold text-stone-900 tabular-nums">{value}</div>
       {delta && <div className={`mt-1 text-xs font-medium ${lightDelta}`}>{delta}</div>}
     </div>
   );
@@ -252,7 +252,7 @@ function KpiSkeleton() {
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-24 animate-pulse rounded-2xl bg-zinc-100" />
+        <div key={i} className="h-24 animate-pulse rounded-lg bg-stone-100" />
       ))}
     </div>
   );
@@ -260,16 +260,16 @@ function KpiSkeleton() {
 
 function TableSkeleton() {
   return (
-    <div className="divide-y divide-zinc-100">
+    <div className="divide-y divide-stone-100">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-4 py-3">
-          <div className="h-4 w-24 animate-pulse rounded bg-zinc-100" />
+          <div className="h-4 w-24 animate-pulse rounded bg-stone-100" />
           <div className="flex-1 space-y-1">
-            <div className="h-3 w-48 animate-pulse rounded bg-zinc-200" />
-            <div className="h-2 w-32 animate-pulse rounded bg-zinc-100" />
+            <div className="h-3 w-48 animate-pulse rounded bg-stone-200" />
+            <div className="h-2 w-32 animate-pulse rounded bg-stone-100" />
           </div>
-          <div className="h-4 w-20 animate-pulse rounded bg-zinc-100" />
-          <div className="h-4 w-16 animate-pulse rounded-full bg-zinc-100" />
+          <div className="h-4 w-20 animate-pulse rounded bg-stone-100" />
+          <div className="h-4 w-16 animate-pulse rounded-full bg-stone-100" />
         </div>
       ))}
     </div>
@@ -294,9 +294,9 @@ function CancelDialog({
   const [motivo, setMotivo] = useState('ACERTOS');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-zinc-200"
+        className="w-full max-w-md rounded-lg bg-white p-6 shadow-2xl ring-1 ring-stone-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">
@@ -304,29 +304,29 @@ function CancelDialog({
             <AlertCircle size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-base font-semibold text-zinc-900">Cancelar fatura</h3>
-            <p className="mt-1 text-sm text-zinc-600">
+            <h3 className="text-base font-semibold text-stone-900">Cancelar fatura</h3>
+            <p className="mt-1 text-sm text-stone-600">
               Você vai cancelar a fatura{' '}
-              <span className="font-mono font-semibold text-zinc-900">
+              <span className="font-mono font-semibold text-stone-900">
                 {invoice.numero_documento || `#${invoice.id}`}
               </span>{' '}
               de <strong>{invoice.cliente_nome}</strong> ({BRL(invoice.valor)}).
             </p>
-            <p className="mt-2 text-xs text-zinc-500">
+            <p className="mt-2 text-xs text-stone-500">
               Se a fatura está num gateway (Inter/C6/Asaas), o cancelamento é propagado.
               Ação registrada em audit log (LGPD).
             </p>
           </div>
         </div>
 
-        <label className="mt-4 block text-xs font-medium text-zinc-700">
+        <label className="mt-4 block text-xs font-medium text-stone-700">
           Motivo (opcional)
           <input
             type="text"
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             placeholder="Ex: ACERTOS, duplicidade, solicitação cliente"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
             disabled={busy}
           />
         </label>
@@ -336,7 +336,7 @@ function CancelDialog({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 disabled:opacity-50"
           >
             Voltar
           </button>
@@ -440,15 +440,15 @@ export default function FaturasIndex(props: PageProps) {
     <>
       <Head title="Faturas · cobrança recorrente" />
 
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-6">
+      <div className="min-h-screen bg-stone-50 p-4 md:p-6">
         {/* ── HEADER ── */}
         <header className="mb-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+              <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
                 Faturas · cobrança recorrente
               </h1>
-              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
+              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
                 {kpis ? (
                   <>
                     {kpis.total_faturas} FATURAS · ATRASADAS {kpis.count_overdue}
@@ -462,12 +462,12 @@ export default function FaturasIndex(props: PageProps) {
               <button
                 type="button"
                 disabled
-                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-500 shadow-sm"
+                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-stone-200 px-3 py-2 text-sm font-medium text-stone-500 shadow-sm"
                 title="Nova fatura — em breve"
               >
                 <Plus size={14} />
                 Nova fatura
-                <span className="ml-1 rounded bg-zinc-300 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">
+                <span className="ml-1 rounded bg-stone-300 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">
                   em breve
                 </span>
               </button>
@@ -519,10 +519,10 @@ export default function FaturasIndex(props: PageProps) {
         </Deferred>
 
         {/* ── FILTER BAR ── */}
-        <div className="mb-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-zinc-200">
+        <div className="mb-4 rounded-lg bg-white p-3 shadow-sm ring-1 ring-stone-200">
           <div className="flex flex-wrap items-center gap-2">
             {/* Status pills */}
-            <div className="flex items-center gap-1 rounded-lg bg-zinc-100 p-1">
+            <div className="flex items-center gap-1 rounded-lg bg-stone-100 p-1">
               {STATUS_PILLS.map((p) => (
                 <button
                   key={p.key}
@@ -533,8 +533,8 @@ export default function FaturasIndex(props: PageProps) {
                   }}
                   className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
                     statusFilter === p.key
-                      ? 'bg-white text-zinc-900 shadow-sm ring-1 ring-zinc-200'
-                      : 'text-zinc-600 hover:text-zinc-900'
+                      ? 'bg-white text-stone-900 shadow-sm ring-1 ring-stone-200'
+                      : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
@@ -580,8 +580,8 @@ export default function FaturasIndex(props: PageProps) {
             </Select>
 
             {/* Search */}
-            <div className="flex flex-1 items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5">
-              <Search size={14} className="text-zinc-400" />
+            <div className="flex flex-1 items-center gap-2 rounded-lg bg-stone-100 px-3 py-1.5">
+              <Search size={14} className="text-stone-400" />
               <input
                 ref={searchRef}
                 type="text"
@@ -591,15 +591,15 @@ export default function FaturasIndex(props: PageProps) {
                   if (e.key === 'Enter') applyFilters({ q: search });
                 }}
                 placeholder="Buscar (/) — cliente, CNPJ, número da fatura"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-stone-400"
               />
-              <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">
+              <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">
                 /
               </kbd>
             </div>
 
             {invoices?.meta && (
-              <span className="text-xs text-zinc-500 tabular-nums">
+              <span className="text-xs text-stone-500 tabular-nums">
                 {rows.length} / {invoices.meta.total}
               </span>
             )}
@@ -607,22 +607,22 @@ export default function FaturasIndex(props: PageProps) {
         </div>
 
         {/* ── TABELA ── */}
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200">
+        <div className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
           <Deferred data="invoices" fallback={<TableSkeleton />}>
             {rows.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400">
                   <Banknote size={22} />
                 </div>
-                <div className="font-medium text-zinc-700">Nenhuma fatura encontrada.</div>
-                <div className="mt-1 text-sm text-zinc-500">
+                <div className="font-medium text-stone-700">Nenhuma fatura encontrada.</div>
+                <div className="mt-1 text-sm text-stone-500">
                   Ajuste os filtros ou crie uma nova fatura.
                 </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-zinc-200 bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
+                  <thead className="border-b border-stone-200 bg-stone-50 text-[11px] uppercase tracking-wider text-stone-500">
                     <tr>
                       <th className="px-4 py-2.5 text-left font-medium">Número</th>
                       <th className="px-4 py-2.5 text-left font-medium">Cliente</th>
@@ -634,33 +634,33 @@ export default function FaturasIndex(props: PageProps) {
                       <th className="px-4 py-2.5 text-right font-medium">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  <tbody className="divide-y divide-stone-100">
                     {rows.map((inv) => (
-                      <tr key={inv.id} className="hover:bg-zinc-50">
-                        <td className="px-4 py-3 font-mono text-xs text-zinc-700">
+                      <tr key={inv.id} className="hover:bg-stone-50">
+                        <td className="px-4 py-3 font-mono text-xs text-stone-700">
                           {inv.numero_documento || (
-                            <span className="text-zinc-400">#{inv.id}</span>
+                            <span className="text-stone-400">#{inv.id}</span>
                           )}
                         </td>
                         <td className="max-w-[220px] px-4 py-3">
-                          <div className="truncate font-medium text-zinc-900">{inv.cliente_nome}</div>
+                          <div className="truncate font-medium text-stone-900">{inv.cliente_nome}</div>
                           {inv.cliente_cnpj && (
-                            <div className="truncate font-mono text-[11px] text-zinc-500">
+                            <div className="truncate font-mono text-[11px] text-stone-500">
                               {inv.cliente_cnpj}
                             </div>
                           )}
                         </td>
-                        <td className="max-w-[180px] truncate px-4 py-3 text-xs text-zinc-600">
-                          {inv.plano_nome || <span className="italic text-zinc-400">avulsa</span>}
+                        <td className="max-w-[180px] truncate px-4 py-3 text-xs text-stone-600">
+                          {inv.plano_nome || <span className="italic text-stone-400">avulsa</span>}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono font-semibold tabular-nums text-zinc-900">
+                        <td className="px-4 py-3 text-right font-mono font-semibold tabular-nums text-stone-900">
                           {BRL(inv.valor)}
                         </td>
-                        <td className="px-4 py-3 text-xs text-zinc-700">
+                        <td className="px-4 py-3 text-xs text-stone-700">
                           <div>{dateBR(inv.vencimento)}</div>
                           <div
                             className={`mt-0.5 text-[11px] ${
-                              inv.is_overdue ? 'font-medium text-rose-600' : 'text-zinc-500'
+                              inv.is_overdue ? 'font-medium text-rose-600' : 'text-stone-500'
                             }`}
                           >
                             {dueLabel(inv.dias_delta_venc)}
@@ -685,7 +685,7 @@ export default function FaturasIndex(props: PageProps) {
                             </button>
                           )}
                           {!inv.is_cancelavel && (
-                            <span className="text-[11px] italic text-zinc-400">—</span>
+                            <span className="text-[11px] italic text-stone-400">—</span>
                           )}
                         </td>
                       </tr>
@@ -698,7 +698,7 @@ export default function FaturasIndex(props: PageProps) {
 
           {/* Pagination footer */}
           {invoices?.meta && invoices.meta.last_page > 1 && (
-            <div className="flex items-center justify-between border-t border-zinc-200 bg-zinc-50/50 px-4 py-2.5 text-xs text-zinc-600">
+            <div className="flex items-center justify-between border-t border-stone-200 bg-stone-50/50 px-4 py-2.5 text-xs text-stone-600">
               <span>
                 Página <strong className="tabular-nums">{invoices.meta.current_page}</strong> de{' '}
                 <strong className="tabular-nums">{invoices.meta.last_page}</strong> ·{' '}
@@ -714,7 +714,7 @@ export default function FaturasIndex(props: PageProps) {
                       only: ['invoices'],
                     })
                   }
-                  className="rounded px-2 py-1 hover:bg-zinc-200 disabled:opacity-30"
+                  className="rounded px-2 py-1 hover:bg-stone-200 disabled:opacity-30"
                 >
                   ← Anterior
                 </button>
@@ -727,7 +727,7 @@ export default function FaturasIndex(props: PageProps) {
                       only: ['invoices'],
                     })
                   }
-                  className="rounded px-2 py-1 hover:bg-zinc-200 disabled:opacity-30"
+                  className="rounded px-2 py-1 hover:bg-stone-200 disabled:opacity-30"
                 >
                   Próxima →
                 </button>
@@ -737,10 +737,10 @@ export default function FaturasIndex(props: PageProps) {
         </div>
 
         {/* Footer note */}
-        <div className="mt-3 text-[11px] italic text-zinc-400">
+        <div className="mt-3 text-[11px] italic text-stone-400">
           Cancelar dispara <code className="font-mono">POST /financeiro/rb-invoices/&#123;id&#125;/cancelar</code>{' '}
           (US-RB-042). Cancelamento propagado ao gateway + audit log Spatie.
-          <CreditCard size={11} className="ml-1 inline align-text-bottom text-zinc-400" />
+          <CreditCard size={11} className="ml-1 inline align-text-bottom text-stone-400" />
         </div>
       </div>
 

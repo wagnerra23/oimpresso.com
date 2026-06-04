@@ -191,13 +191,13 @@ const STATUS_STYLES: Record<VisualStatus, { label: string; classes: string; dot:
   },
   pausada: {
     label: 'pausada',
-    classes: 'bg-zinc-100 text-zinc-600 ring-zinc-200',
-    dot: 'bg-zinc-400',
+    classes: 'bg-stone-100 text-stone-600 ring-stone-200',
+    dot: 'bg-stone-400',
   },
   cancelada: {
     label: 'cancelada',
-    classes: 'bg-zinc-100 text-zinc-400 ring-zinc-200 line-through',
-    dot: 'bg-zinc-300',
+    classes: 'bg-stone-100 text-stone-400 ring-stone-200 line-through',
+    dot: 'bg-stone-300',
   },
 };
 
@@ -262,7 +262,7 @@ function StatusBadge({ status, retry, retryMax }: { status: VisualStatus; retry?
 
 function MethodIcon({ method, size = 12 }: { method: PaymentMethod; size?: number }) {
   const Icon = METHOD_ICONS[method];
-  return <Icon size={size} className="text-zinc-500" />;
+  return <Icon size={size} className="text-stone-500" />;
 }
 
 // Onda 11 v9,75 — sparkline SVG real (substituiu TrendingUp icon estático).
@@ -319,19 +319,19 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, spa
     ok: 'text-emerald-300',
     warn: 'text-amber-400',
     bad: 'text-rose-400',
-    neutral: 'text-zinc-400',
+    neutral: 'text-stone-400',
   }[deltaTone];
   const deltaClsLight = {
     ok: 'text-emerald-700',
     warn: 'text-amber-700',
     bad: 'text-rose-700',
-    neutral: 'text-zinc-500',
+    neutral: 'text-stone-500',
   }[deltaTone];
 
   if (hero) {
     return (
-      <div className="rounded-2xl bg-zinc-900 p-4 text-white shadow-sm ring-1 ring-zinc-800">
-        <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+      <div className="rounded-lg bg-stone-900 p-4 text-white shadow-sm ring-1 ring-stone-800">
+        <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-400">
           <span>{label}</span>
           {sparkline && sparkline.length > 0 ? (
             <Sparkline points={sparkline} color="oklch(0.75 0.13 145)" />
@@ -345,9 +345,9 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, spa
     );
   }
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200">
-      <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</div>
-      <div className="mt-2 text-2xl font-bold text-zinc-900 tabular-nums">{value}</div>
+    <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
+      <div className="text-[11px] font-medium uppercase tracking-wider text-stone-500">{label}</div>
+      <div className="mt-2 text-2xl font-bold text-stone-900 tabular-nums">{value}</div>
       {delta && <div className={`mt-1 text-xs font-medium ${deltaClsLight}`}>{delta}</div>}
     </div>
   );
@@ -478,25 +478,25 @@ export default function RecurringBillingIndex(props: PageProps) {
 
   // ── Filtros status
   const STATUS_FILTERS: Array<{ key: string; label: string; dot: string }> = [
-    { key: 'all', label: 'Todas', dot: 'bg-zinc-300' },
+    { key: 'all', label: 'Todas', dot: 'bg-stone-300' },
     { key: 'em_dia', label: 'Em dia', dot: 'bg-emerald-500' },
     { key: 'retentando', label: 'Retentando', dot: 'bg-amber-500' },
     { key: 'falhou', label: 'Falharam', dot: 'bg-rose-500' },
-    { key: 'pausada', label: 'Pausadas', dot: 'bg-zinc-400' },
-    { key: 'cancelada', label: 'Canceladas', dot: 'bg-zinc-300' },
+    { key: 'pausada', label: 'Pausadas', dot: 'bg-stone-400' },
+    { key: 'cancelada', label: 'Canceladas', dot: 'bg-stone-300' },
   ];
 
   return (
     <>
       <Head title="Cobrança Recorrente" />
 
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-6">
+      <div className="min-h-screen bg-stone-50 p-4 md:p-6">
         {/* ── HEADER ── */}
         <header className="mb-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Cobrança recorrente</h1>
-              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
+              <h1 className="text-2xl font-semibold tracking-tight text-stone-900">Cobrança recorrente</h1>
+              <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-stone-500">
                 {kpis ? (
                   <>
                     {kpis.active_count} ATIVAS · MRR {BRL(kpis.mrr)} · CHURN {kpis.churn_rate}%
@@ -507,7 +507,7 @@ export default function RecurringBillingIndex(props: PageProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <nav className="flex gap-1 rounded-lg bg-white p-1 shadow-sm ring-1 ring-zinc-200">
+              <nav className="flex gap-1 rounded-lg bg-white p-1 shadow-sm ring-1 ring-stone-200">
                 {TABS.map((t) => (
                   <button
                     key={t.key}
@@ -526,13 +526,13 @@ export default function RecurringBillingIndex(props: PageProps) {
                     }}
                     className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition ${
                       tab === t.key
-                        ? 'bg-violet-100 text-violet-900'
-                        : 'text-zinc-600 hover:bg-zinc-100'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-stone-600 hover:bg-stone-100'
                     }`}
                   >
                     {t.label}
                     {t.count !== undefined && (
-                      <span className="rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-700">
+                      <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-stone-700">
                         {t.count}
                       </span>
                     )}
@@ -541,12 +541,12 @@ export default function RecurringBillingIndex(props: PageProps) {
               </nav>
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-violet-700"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90"
                 title="Nova assinatura (em breve)"
               >
                 <Plus size={14} />
                 Nova assinatura
-                <kbd className="ml-1 rounded bg-violet-700 px-1 text-[10px] font-mono">N</kbd>
+                <kbd className="ml-1 rounded bg-primary px-1 text-[10px] font-mono">N</kbd>
               </button>
             </div>
           </div>
@@ -594,17 +594,17 @@ export default function RecurringBillingIndex(props: PageProps) {
 
         {/* ── Placeholder pras outras 3 tabs ── */}
         {tab !== 'assinaturas' && (
-          <div className="rounded-2xl bg-white p-12 text-center shadow-sm ring-1 ring-zinc-200">
-            <div className="text-lg font-medium text-zinc-700">
-              Aba <strong className="text-violet-700">{TABS.find((t) => t.key === tab)?.label}</strong> em construção
+          <div className="rounded-lg bg-white p-12 text-center shadow-sm ring-1 ring-stone-200">
+            <div className="text-lg font-medium text-stone-700">
+              Aba <strong className="text-primary">{TABS.find((t) => t.key === tab)?.label}</strong> em construção
             </div>
-            <div className="mt-2 text-sm text-zinc-500">
+            <div className="mt-2 text-sm text-stone-500">
               Próximas ondas: Planos · Faturas · Configurações. Por ora use a aba Assinaturas.
             </div>
             <button
               type="button"
               onClick={() => setTab('assinaturas')}
-              className="mt-4 inline-flex rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+              className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
               Voltar a Assinaturas
             </button>
@@ -615,26 +615,26 @@ export default function RecurringBillingIndex(props: PageProps) {
         {tab === 'assinaturas' && (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_340px]">
             {/* COL 1 · FILTROS */}
-            <aside className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-zinc-200">
+            <aside className="rounded-lg bg-white p-3 shadow-sm ring-1 ring-stone-200">
               <button
                 type="button"
                 onClick={() => setOnlyPinned((p) => !p)}
                 className={`mb-3 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium transition ${
                   onlyPinned
                     ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
-                    : 'text-zinc-700 hover:bg-zinc-50'
+                    : 'text-stone-700 hover:bg-stone-50'
                 }`}
               >
                 <Star size={14} className={onlyPinned ? 'fill-amber-500 text-amber-500' : ''} />
                 <span className="flex-1 text-left">
                   {onlyPinned ? 'Mostrando favoritos' : 'Mostrar só favoritos'}
                 </span>
-                <span className="rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] tabular-nums">
+                <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] tabular-nums">
                   {subsData.filter((s) => s.is_pinned).length}
                 </span>
               </button>
 
-              <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+              <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
                 Próxima cobrança
               </div>
               <ul className="mt-1">
@@ -647,8 +647,8 @@ export default function RecurringBillingIndex(props: PageProps) {
                     }}
                     className={`flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-sm transition ${
                       whenFilter === f.key
-                        ? 'bg-violet-50 font-medium text-violet-900'
-                        : 'text-zinc-700 hover:bg-zinc-50'
+                        ? 'bg-primary/10 font-medium text-primary'
+                        : 'text-stone-700 hover:bg-stone-50'
                     }`}
                   >
                     <span>{f.label}</span>
@@ -656,7 +656,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                 ))}
               </ul>
 
-              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+              <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
                 Status
               </div>
               <ul className="mt-1">
@@ -669,8 +669,8 @@ export default function RecurringBillingIndex(props: PageProps) {
                     }}
                     className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${
                       statusFilter === f.key
-                        ? 'bg-violet-50 font-medium text-violet-900'
-                        : 'text-zinc-700 hover:bg-zinc-50'
+                        ? 'bg-primary/10 font-medium text-primary'
+                        : 'text-stone-700 hover:bg-stone-50'
                     }`}
                   >
                     <span className={`h-2 w-2 rounded-full ${f.dot}`} />
@@ -681,16 +681,16 @@ export default function RecurringBillingIndex(props: PageProps) {
 
               {plans && plans.length > 0 && (
                 <>
-                  <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
                     Plano
                   </div>
                   <ul className="mt-1 space-y-1">
                     {plans.map((p) => {
                       const n = subsData.filter((s) => s.plan_id === p.id && s.status !== 'cancelada').length;
                       return (
-                        <li key={p.id} className="rounded-lg px-2 py-1.5 text-xs text-zinc-700">
+                        <li key={p.id} className="rounded-lg px-2 py-1.5 text-xs text-stone-700">
                           <div className="font-medium">{p.name}</div>
-                          <div className="text-zinc-500 tabular-nums">
+                          <div className="text-stone-500 tabular-nums">
                             {BRL(p.price)} · {n} ativ.
                           </div>
                         </li>
@@ -700,24 +700,24 @@ export default function RecurringBillingIndex(props: PageProps) {
                 </>
               )}
 
-              <div className="mt-4 border-t border-zinc-200 pt-3">
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+              <div className="mt-4 border-t border-stone-200 pt-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">
                   MRR filtrado
                 </div>
-                <div className="mt-1 font-mono text-base font-bold text-zinc-900 tabular-nums">
+                <div className="mt-1 font-mono text-base font-bold text-stone-900 tabular-nums">
                   {BRL(filteredMrr)}
                 </div>
-                <div className="text-[11px] text-zinc-500">
+                <div className="text-[11px] text-stone-500">
                   {filtered.filter((s) => s.status !== 'cancelada').length} ativ. de {subsData.length}
                 </div>
               </div>
             </aside>
 
             {/* COL 2 · LISTA */}
-            <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-zinc-200">
-              <div className="flex items-center gap-2 border-b border-zinc-200 p-2.5">
-                <div className="flex flex-1 items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5">
-                  <Search size={14} className="text-zinc-400" />
+            <section className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-stone-200">
+              <div className="flex items-center gap-2 border-b border-stone-200 p-2.5">
+                <div className="flex flex-1 items-center gap-2 rounded-lg bg-stone-100 px-3 py-1.5">
+                  <Search size={14} className="text-stone-400" />
                   <input
                     ref={searchRef}
                     type="text"
@@ -727,13 +727,13 @@ export default function RecurringBillingIndex(props: PageProps) {
                       if (e.key === 'Enter') applyFilters({ q: search });
                     }}
                     placeholder="Buscar (/) — cliente, CNPJ, OS"
-                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-stone-400"
                   />
-                  <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 ring-1 ring-zinc-200">
+                  <kbd className="rounded bg-white px-1.5 py-0.5 text-[10px] font-mono text-stone-500 ring-1 ring-stone-200">
                     /
                   </kbd>
                 </div>
-                <span className="text-xs text-zinc-500 tabular-nums">
+                <span className="text-xs text-stone-500 tabular-nums">
                   {filtered.length} / {subsData.length}
                 </span>
               </div>
@@ -742,8 +742,8 @@ export default function RecurringBillingIndex(props: PageProps) {
                 <div className="max-h-[calc(100vh-360px)] overflow-y-auto">
                   {filtered.length === 0 && (
                     <div className="p-8 text-center">
-                      <div className="font-medium text-zinc-700">Nada por aqui.</div>
-                      <div className="mt-1 text-sm text-zinc-500">
+                      <div className="font-medium text-stone-700">Nada por aqui.</div>
+                      <div className="mt-1 text-sm text-stone-500">
                         Nenhuma assinatura com este filtro + busca.
                       </div>
                     </div>
@@ -754,10 +754,10 @@ export default function RecurringBillingIndex(props: PageProps) {
                       <div
                         key={s.id}
                         onClick={() => setActiveId(s.id)}
-                        className={`flex cursor-pointer items-center gap-3 border-b border-zinc-100 px-3 py-2.5 transition ${
+                        className={`flex cursor-pointer items-center gap-3 border-b border-stone-100 px-3 py-2.5 transition ${
                           isActive
-                            ? 'border-l-2 border-l-violet-500 bg-violet-50/50'
-                            : 'hover:bg-zinc-50'
+                            ? 'border-l-2 border-l-primary bg-primary/5'
+                            : 'hover:bg-stone-50'
                         }`}
                       >
                         {/* Onda 19 v9,75 — ★ favorite toggle persistente (POST backend). */}
@@ -775,22 +775,22 @@ export default function RecurringBillingIndex(props: PageProps) {
                         >
                           <Star
                             size={14}
-                            className={s.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-zinc-300 hover:text-amber-400'}
+                            className={s.is_pinned ? 'fill-amber-500 text-amber-500' : 'text-stone-300 hover:text-amber-400'}
                           />
                         </button>
                         <Avatar name={s.client} />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-zinc-900">
+                          <div className="flex items-center gap-1.5 truncate text-sm font-semibold text-stone-900">
                             <span className="truncate">{s.client}</span>
                           </div>
-                          <div className="truncate text-xs text-zinc-500">
+                          <div className="truncate text-xs text-stone-500">
                             {s.plan_name} · {s.plan_cycle} · desde {daysAgoLabel(s.since) || '—'}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <StatusBadge status={s.status} retry={s.retry} retryMax={s.retry_max} />
                           {s.status !== 'cancelada' && (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-zinc-700">
+                            <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-stone-700">
                               <MethodIcon method={s.method} size={11} />
                               {BRL(s.next_value)}
                             </span>
@@ -804,9 +804,9 @@ export default function RecurringBillingIndex(props: PageProps) {
             </section>
 
             {/* COL 3 · DETAIL DRAWER */}
-            <aside className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-zinc-200">
+            <aside className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-stone-200">
               {!active && (
-                <div className="flex h-full items-center justify-center text-sm text-zinc-400">
+                <div className="flex h-full items-center justify-center text-sm text-stone-400">
                   Selecione uma assinatura
                 </div>
               )}
@@ -887,17 +887,17 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
   return (
     <div className="space-y-4">
       {/* Header — Onda 13 v9,75 add botão PDF (print extrato) */}
-      <div className="flex items-start gap-3 border-b border-zinc-100 pb-3">
+      <div className="flex items-start gap-3 border-b border-stone-100 pb-3">
         <Avatar name={sub.client} size={40} />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-zinc-900">{sub.client}</h3>
-          <div className="truncate text-xs text-zinc-500">{sub.cnpj || '—'}</div>
+          <h3 className="truncate text-base font-semibold text-stone-900">{sub.client}</h3>
+          <div className="truncate text-xs text-stone-500">{sub.cnpj || '—'}</div>
         </div>
         <button
           type="button"
           title="Imprimir extrato (⇧E)"
           onClick={() => printSubDetail(sub.id)}
-          className="inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-1 text-[10px] text-zinc-600 hover:bg-zinc-50"
+          className="inline-flex items-center gap-1 rounded border border-stone-300 px-2 py-1 text-[10px] text-stone-600 hover:bg-stone-50"
         >
           PDF
         </button>
@@ -911,23 +911,23 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
             ? 'bg-rose-50 ring-1 ring-rose-200'
             : sub.status === 'retentando'
               ? 'bg-amber-50 ring-1 ring-amber-200'
-              : 'bg-violet-50 ring-1 ring-violet-200'
+              : 'bg-primary/10 ring-1 ring-primary/30'
         }`}>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-600">
             {sub.status === 'falhou' ? 'Ação manual' : 'Próxima cobrança'}
           </div>
           <div className="mt-1 flex items-end justify-between">
             <div>
-              <div className="text-lg font-bold text-zinc-900">{nextLabel(sub.next_at)}</div>
-              <div className="text-xs text-zinc-600">
+              <div className="text-lg font-bold text-stone-900">{nextLabel(sub.next_at)}</div>
+              <div className="text-xs text-stone-600">
                 {nextDateBR(sub.next_at)} · ciclo {sub.plan_cycle}
               </div>
             </div>
             <div className="text-right">
-              <div className="font-mono text-base font-semibold tabular-nums text-zinc-900">
+              <div className="font-mono text-base font-semibold tabular-nums text-stone-900">
                 {BRL(sub.next_value)}
               </div>
-              <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-zinc-600">
+              <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-stone-600">
                 <MethodIcon method={sub.method} size={10} />
                 {sub.method === 'pix' ? 'Pix' : sub.method === 'boleto' ? 'Boleto' : 'Cartão'}
               </div>
@@ -938,34 +938,34 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
 
       {/* KV grid */}
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-        <dt className="text-zinc-500">Plano</dt>
-        <dd className="font-medium text-zinc-800">{sub.plan_name}</dd>
-        <dt className="text-zinc-500">Ciclo</dt>
-        <dd className="text-zinc-800">{sub.plan_cycle}</dd>
-        <dt className="text-zinc-500">Desde</dt>
-        <dd className="text-zinc-800">{daysAgoLabel(sub.since) || '—'}</dd>
-        <dt className="text-zinc-500">Cobranças pagas</dt>
-        <dd className="font-mono tabular-nums text-zinc-800">{sub.paid}</dd>
-        <dt className="text-zinc-500">Falhas</dt>
-        <dd className={`font-mono tabular-nums ${sub.missed > 0 ? 'text-rose-600 font-semibold' : 'text-zinc-800'}`}>
+        <dt className="text-stone-500">Plano</dt>
+        <dd className="font-medium text-stone-800">{sub.plan_name}</dd>
+        <dt className="text-stone-500">Ciclo</dt>
+        <dd className="text-stone-800">{sub.plan_cycle}</dd>
+        <dt className="text-stone-500">Desde</dt>
+        <dd className="text-stone-800">{daysAgoLabel(sub.since) || '—'}</dd>
+        <dt className="text-stone-500">Cobranças pagas</dt>
+        <dd className="font-mono tabular-nums text-stone-800">{sub.paid}</dd>
+        <dt className="text-stone-500">Falhas</dt>
+        <dd className={`font-mono tabular-nums ${sub.missed > 0 ? 'text-rose-600 font-semibold' : 'text-stone-800'}`}>
           {sub.missed}
         </dd>
-        <dt className="text-zinc-500">LTV</dt>
-        <dd className="font-mono tabular-nums text-zinc-800">{BRL(sub.ltv)}</dd>
-        <dt className="text-zinc-500">Contato</dt>
-        <dd className="truncate text-zinc-800">
+        <dt className="text-stone-500">LTV</dt>
+        <dd className="font-mono tabular-nums text-stone-800">{BRL(sub.ltv)}</dd>
+        <dt className="text-stone-500">Contato</dt>
+        <dd className="truncate text-stone-800">
           {sub.contact.name} · <span className="font-mono">{sub.contact.phone}</span>
         </dd>
         {sub.os && (
           <>
-            <dt className="text-zinc-500">OS recente</dt>
-            <dd className="font-mono text-zinc-800">{sub.os}</dd>
+            <dt className="text-stone-500">OS recente</dt>
+            <dd className="font-mono text-stone-800">{sub.os}</dd>
           </>
         )}
         {sub.churn_reason && (
           <>
-            <dt className="text-zinc-500">Motivo cancelamento</dt>
-            <dd className="text-zinc-800">{sub.churn_reason}</dd>
+            <dt className="text-stone-500">Motivo cancelamento</dt>
+            <dd className="text-stone-800">{sub.churn_reason}</dd>
           </>
         )}
       </dl>
@@ -979,7 +979,7 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
       )}
 
       {/* Bloco Fiscal */}
-      <div className="rounded-lg border border-zinc-200 p-3">
+      <div className="rounded-lg border border-stone-200 p-3">
         <div className="flex items-center justify-between">
           <div>
             <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${
@@ -987,17 +987,17 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
                 ? 'bg-blue-100 text-blue-700'
                 : sub.fiscal?.type === 'nfse'
                   ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-zinc-100 text-zinc-500'
+                  : 'bg-stone-100 text-stone-500'
             }`}>
               {fiscal.label}
             </span>
-            <div className="mt-1 text-[10px] text-zinc-500">{fiscal.long}</div>
+            <div className="mt-1 text-[10px] text-stone-500">{fiscal.long}</div>
           </div>
           {sub.fiscal?.last_nf && (
             <button
               type="button"
               onClick={() => postAction(`/recurring-billing/${sub.id}/reenviar-nfe`, {}, `Reenviar ${sub.fiscal?.last_nf}?`)}
-              className="inline-flex items-center gap-1 rounded border border-zinc-300 px-2 py-1 text-[11px] text-zinc-600 hover:bg-zinc-50"
+              className="inline-flex items-center gap-1 rounded border border-stone-300 px-2 py-1 text-[11px] text-stone-600 hover:bg-stone-50"
               title="Reenviar última NFe por e-mail/WhatsApp"
             >
               <RefreshCw size={10} />
@@ -1107,8 +1107,8 @@ function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
   }, []);
 
   return (
-    <div className="rounded-lg border border-zinc-200 p-3">
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+    <div className="rounded-lg border border-stone-200 p-3">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
         Histórico de pagamentos
       </div>
       <div className="flex gap-1">
@@ -1120,14 +1120,14 @@ function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
                   ? 'bg-emerald-400'
                   : c === 'missed'
                     ? 'bg-rose-400'
-                    : 'bg-zinc-100 ring-1 ring-zinc-200'
+                    : 'bg-stone-100 ring-1 ring-stone-200'
               }`}
             />
-            <div className="mt-0.5 text-[9px] text-zinc-400">{months[i]?.slice(0, 1) || ''}</div>
+            <div className="mt-0.5 text-[9px] text-stone-400">{months[i]?.slice(0, 1) || ''}</div>
           </div>
         ))}
       </div>
-      <div className="mt-2 flex items-center gap-3 text-[10px] text-zinc-500">
+      <div className="mt-2 flex items-center gap-3 text-[10px] text-stone-500">
         <span className="inline-flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-sm bg-emerald-400" /> pago ({paid})
         </span>
@@ -1135,7 +1135,7 @@ function PaymentHistory({ paid, missed }: { paid: number; missed: number }) {
           <span className="inline-block h-2 w-2 rounded-sm bg-rose-400" /> falhou ({missed})
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-sm bg-zinc-100 ring-1 ring-zinc-200" /> futuro
+          <span className="inline-block h-2 w-2 rounded-sm bg-stone-100 ring-1 ring-stone-200" /> futuro
         </span>
       </div>
     </div>
@@ -1201,8 +1201,8 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
 
   const kindStyle: Record<string, { dot: string; label: string }> = {
     note: { dot: 'bg-amber-400', label: 'nota' },
-    'event-create': { dot: 'bg-violet-400', label: 'criou' },
-    'event-status': { dot: 'bg-zinc-400', label: 'status' },
+    'event-create': { dot: 'bg-primary', label: 'criou' },
+    'event-status': { dot: 'bg-stone-400', label: 'status' },
     'event-plan': { dot: 'bg-blue-400', label: 'plano' },
     'event-charge': { dot: 'bg-emerald-400', label: 'cobrança' },
     'event-retry': { dot: 'bg-amber-500', label: 'retry' },
@@ -1210,9 +1210,9 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
   };
 
   return (
-    <div className="rounded-lg border border-zinc-200 p-3">
+    <div className="rounded-lg border border-stone-200 p-3">
       <div className="mb-2 flex items-center justify-between">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-stone-500">
           Notas & Eventos {events.length > 0 ? `· ${events.length}` : ''}
         </div>
       </div>
@@ -1230,14 +1230,14 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
               }
             }}
             placeholder="Anotar internamente…"
-            className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-200"
+            className="flex-1 rounded border border-stone-200 bg-white px-2 py-1 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
             maxLength={5000}
           />
           <button
             type="button"
             onClick={submitNote}
             disabled={submitting || !noteText.trim()}
-            className="rounded-lg bg-violet-600 px-3 py-1 text-xs font-medium text-white hover:bg-violet-700 disabled:bg-zinc-300"
+            className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-white hover:opacity-90 disabled:bg-stone-300"
           >
             Anotar
           </button>
@@ -1247,13 +1247,13 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
       {loading && (
         <div className="space-y-1.5">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-8 animate-pulse rounded bg-zinc-100" />
+            <div key={i} className="h-8 animate-pulse rounded bg-stone-100" />
           ))}
         </div>
       )}
 
       {!loading && events.length === 0 && (
-        <div className="py-3 text-center text-[11px] text-zinc-400">
+        <div className="py-3 text-center text-[11px] text-stone-400">
           Nenhum evento registrado.
         </div>
       )}
@@ -1261,7 +1261,7 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
       {!loading && events.length > 0 && (
         <ul className="space-y-2 max-h-64 overflow-y-auto">
           {events.map((ev) => {
-            const ks = kindStyle[ev.kind] || { dot: 'bg-zinc-300', label: ev.kind };
+            const ks = kindStyle[ev.kind] || { dot: 'bg-stone-300', label: ev.kind };
             const when = new Date(ev.occurred_at).toLocaleString('pt-BR', {
               day: '2-digit',
               month: 'short',
@@ -1272,14 +1272,14 @@ function SubscriptionTimeline({ subId, subStatus }: { subId: number; subStatus: 
               <li key={ev.id} className="flex gap-2 text-xs">
                 <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${ks.dot}`} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
+                  <div className="flex items-center gap-1.5 text-[10px] text-stone-500">
                     <span className="font-semibold uppercase">{ks.label}</span>
                     <span>·</span>
                     <span>{ev.by_actor}</span>
                     <span>·</span>
                     <span>{when}</span>
                   </div>
-                  <div className="text-zinc-800">{ev.body}</div>
+                  <div className="text-stone-800">{ev.body}</div>
                 </div>
               </li>
             );
@@ -1298,8 +1298,8 @@ function ActionBtn({ icon: Icon, label, hint, primary = false, onClick }: {
   onClick?: () => void;
 }) {
   const cls = primary
-    ? 'bg-violet-600 text-white hover:bg-violet-700'
-    : 'bg-white text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50';
+    ? 'bg-primary text-white hover:opacity-90'
+    : 'bg-white text-stone-700 ring-1 ring-stone-200 hover:bg-stone-50';
   return (
     <button
       type="button"
@@ -1310,7 +1310,7 @@ function ActionBtn({ icon: Icon, label, hint, primary = false, onClick }: {
       {label}
       {hint && (
         <kbd className={`rounded px-1 text-[10px] font-mono ${
-          primary ? 'bg-violet-700' : 'bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200'
+          primary ? 'bg-primary' : 'bg-stone-100 text-stone-500 ring-1 ring-stone-200'
         }`}>{hint}</kbd>
       )}
     </button>
@@ -1325,7 +1325,7 @@ function KpiSkeleton() {
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="h-24 animate-pulse rounded-2xl bg-zinc-100" />
+        <div key={i} className="h-24 animate-pulse rounded-lg bg-stone-100" />
       ))}
     </div>
   );
@@ -1333,15 +1333,15 @@ function KpiSkeleton() {
 
 function ListSkeleton() {
   return (
-    <div className="divide-y divide-zinc-100">
+    <div className="divide-y divide-stone-100">
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-          <div className="h-7 w-7 animate-pulse rounded-full bg-zinc-200" />
+          <div className="h-7 w-7 animate-pulse rounded-full bg-stone-200" />
           <div className="flex-1 space-y-1">
-            <div className="h-3 w-32 animate-pulse rounded bg-zinc-200" />
-            <div className="h-2 w-48 animate-pulse rounded bg-zinc-100" />
+            <div className="h-3 w-32 animate-pulse rounded bg-stone-200" />
+            <div className="h-2 w-48 animate-pulse rounded bg-stone-100" />
           </div>
-          <div className="h-4 w-16 animate-pulse rounded-full bg-zinc-100" />
+          <div className="h-4 w-16 animate-pulse rounded-full bg-stone-100" />
         </div>
       ))}
     </div>
