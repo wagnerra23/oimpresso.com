@@ -5,14 +5,14 @@ type: spec
 module: Infra
 status: ativo
 owner: wagner
-version: "1.1"
-last_updated: 2026-05-20
+version: "1.2"
+last_updated: "2026-06-04"
 na_justified:
   D5: "Infra é loop de governança fechado (META → SINAL → DESVIO → RECÁLCULO — ADR 0105) servindo o projeto inteiro, NÃO módulo de features cliente. Não há biz=4 ROTA LIVRE consumindo GrowthBook/APM/MCP server diretamente — são fundações da plataforma. D5 cliente real não aplica por design."
   D4.b: "Infra não tem state machine FSM (ADR 0143). Concentra runbooks operacionais (deploy Centrifugo, Hostinger, CT 100, GrowthBook) e SPECs de infra — sem Eloquent Models com transições. D4.b FSM canônica N/A."
 na_justified_v3:
   D6.a: "Infra é orquestração de runbooks + ADRs operacionais — sem Controllers Inertia::render. Inertia::defer N/A por ausência de telas geradas pelo módulo (US-INFRA-* viram features em outros módulos como Governance/Brief/Admin)."
-related_adrs: [0105, 0106, 0153, 0154, 0155, 0156]
+related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-velocidade-fator-10x-ia-pair", "0153-module-grade-rubrica-v1", "0154-module-grade-v2-na-justificado", "0155-module-grade-v3-sub-dimensoes-gate-ci", "0156-module-grade-v3-errata-otel-helper-na-justified"]
 ---
 
 # Especificação funcional — Infra (loop de governança fechado)
@@ -683,11 +683,11 @@ Refs: ADR 0213 Mecanismo 5
 
 **Acceptance (a decidir na investigação):**
 - [ ] Definir estratégia canônica de DB de teste no CT 100: banco de teste dedicado com migrations frescas + `RefreshDatabase`/transações, OU `:memory:` sqlite no container, OU schema de teste MySQL separado — em vez de apontar `phpunit.xml` pro `oimpresso_staging` (clone de prod).
-- [ ] Tests não devem fazer `Schema::dropIfExists`/`create` cru em tabelas compartilhadas; migrar pro RefreshDatabase ou schema isolado.
+- [ ] Tests não devem fazer `Schema::dropIfExists`/`create` cru em tabelas compartilhadas. ⚠️ **Cuidado com `RefreshDatabase`:** ele roda `migrate:fresh` (dropa todas as tabelas) — **destrutivo contra o clone compartilhado** (apagaria o `oimpresso_staging` anonimizado) e envenena lanes MySQL compartilhadas (dropa FK + limpa seed). Só é seguro com DB de teste dedicado/efêmero. Contra DB pré-seedado/clone, o padrão validado é `DatabaseTransactions` (rollback por teste, sem re-migrate) + skip-guard quando schema/biz ausente.
 - [ ] Auditar asserts que dependem de semântica SQLite (UNIQUE+NULL) e torná-los DB-agnostic ou skip-on-mysql explícito.
 - [ ] Meta: `sudo staging-test` (suíte cheia ou por módulo) verde ou com falhas conhecidas catalogadas — não 493 ruidosas.
 
-**Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251.
+**Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251 · **US-FIN-053 / PR #2253** (precedente trabalhado: a lane `financeiro-pest.yml` resolveu esta mesma classe — `CaixaMovimentoFreshnessTest` migrado de `RefreshDatabase` → `DatabaseTransactions` + skip-guard contra MySQL real; o mesmo PR corrigiu 2 bugs de schema-drift `deleted_at`/`valor_baixa` no `FinanceiroHealthCommand`, instância do padrão #2 "schema drift").
 
 ---
 
