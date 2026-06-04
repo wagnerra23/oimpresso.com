@@ -135,6 +135,18 @@ jobs:
           php artisan package:discover --ansi
           php artisan migrate --force
 
+      - name: "PROBE ADR 0108/US-GOV-013 — migrate:fresh do zero passa? (report-only)"
+        # Probe NÃO-bloqueante: descobre se o migration-order legacy (citado nas
+        # notas INFRA-ONLY) AINDA quebra, ou se já foi corrigido (as 2 migrations
+        # de contacts viraram idempotentes em 2026-05-29). Marca MIGRATE_PROBE no log.
+        continue-on-error: true
+        run: |
+          if php artisan migrate:fresh --force; then
+            echo "MIGRATE_PROBE=PASS — migrate:fresh do zero PASSOU; gate visual é revivível (remover continue-on-error + add browser tests/baselines)."
+          else
+            echo "MIGRATE_PROBE=FAIL — migrate:fresh ainda quebra; ver erro acima pra a migration ofensora real."
+          fi
+
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
         # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
