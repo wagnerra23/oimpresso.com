@@ -1605,3 +1605,10 @@ Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débi
 **Já entregue no PR #2211:** 5 guards `UnificadoCanceladoArquivadosKpiTest` (C1 cancelado-não-soma · A1/A2 Arquivados · D1 KPI-segue-data_campo · S1 shape WR) + guard FK RB (#1 acima) + linha de referência no charter. Os testes estão escritos e corretos; falta só este lane pra serem executados em CI (hoje só rodam no CT100 manual).
 
 **Alternativa descartada:** corrigir migration-a-migration (whack-a-mole, perde FKs em fresh-install, não iterável sem MySQL local).
+
+**Retrato empírico da suíte inteira (2026-06-04, lane com migrate-tolerante + FK off + DB_CONNECTION=mysql + stub Vite manifest):** rodando `Modules/Financeiro/Tests` completo → **243 passed · 138 failed · 227 skipped** (876 assertions). Confirma cobertura real (243 passam contra MySQL+seed) — antes 100% skipava (falsa cobertura via `phpunit.xml` sqlite). Decomposição dos 138:
+- **~62 `ErrorException`** — testes leem arquivos de design ausentes no checkout do CI (`public/cowork-preview/*.js`, `resources/css/cowork-financeiro-bundle.css`, gitignored/build). Não são bugs de lógica.
+- **~21 `SQLSTATE[42S02]` base table not found** — auto-infligido pelo migrate-tolerante (skip-loop dropa tabelas dos módulos pulados). Sumiriam com `schema:dump` baseline.
+- **~9 `Failed asserting` + 403/404/500/419** — bugs reais nunca-rodados (ex.: cleanup `forceDelete()` → `Titulo::delete()` DomainException, padrão já corrigido nos 5 guards via `uniCleanup`/DB raw).
+
+**Status (2026-06-04):** #2211 mergeado (5 guards + RB FK guard + charter v13). Follow-up traz o **cleanup fix** (forceDelete→DB raw, pros guards realmente passarem) + o **lane `financeiro-pest.yml`** (escopado aos 5 guards — verde, provado `5 passed/67 assertions` contra MySQL real). Suíte INTEIRA verde continua dependendo do **`schema:dump` baseline (CT100, 1 comando)** + arquivos de design presentes/skip gracioso.
