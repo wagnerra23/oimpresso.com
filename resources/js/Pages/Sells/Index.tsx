@@ -425,11 +425,6 @@ const SAVED_VIEWS: SavedView[] = [
   { id: 'todas',                   label: 'Todas',                   filter: () => true },
 ];
 
-// Flash compartilhado pelo HandleInertiaRequests (status.msg do store UltimatePOS).
-interface SellsFlashProps {
-  flash?: { success?: unknown; error?: string; info?: string };
-}
-
 // ──────────────────────────────────────────────────────────────
 // MAIN — SellsIndex
 // ──────────────────────────────────────────────────────────────
@@ -438,25 +433,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // Insights Jana — usavam-se só pra header tenant. Veja /ia/dashboard via Jana V2.)
   // Tier 0 multi-tenant: storage scoped per business_id (ver useBizStorage acima).
   const ls = useBizStorage();
-
-  // 2026-06-04 — avisa o operador quando o backend BLOQUEIA ou confirma a venda
-  // via flash (ex: venda recusada por estoque/compra — PurchaseSellMismatch).
-  // É aqui que o /pos redireciona após salvar. Antes a msg do store não chegava
-  // ao front (HandleInertiaRequests lia status.error, store usa status.msg) e a
-  // venda "sumia" SEM AVISO. Sonner já está montado no AppShellV2.
-  const flash = usePage<SellsFlashProps>().props.flash;
-  const flashError = flash?.error;
-  const flashSuccess = flash?.success;
-  const flashInfo = flash?.info;
-  useEffect(() => {
-    if (flashError) {
-      toast.error(flashError, { duration: 8000 });
-    } else if (typeof flashSuccess === 'string') {
-      toast.success(flashSuccess);
-    } else if (flashInfo) {
-      toast.info(flashInfo);
-    }
-  }, [flashError, flashSuccess, flashInfo]);
 
   // FOCO segmented control (vista) — Caixa / Faturamento / Comissão (afeta 4º KPI).
   const [foco, setFoco] = useState<FocoKey>(() => {
