@@ -117,7 +117,11 @@ jobs:
         run: |
           php artisan db:seed --class="Database\\Seeders\\CurrenciesTableSeeder" --force || true
           php artisan db:seed --class="Database\\Seeders\\PermissionsTableSeeder" --force || true
-          php artisan db:seed --class="Database\\Seeders\\DummyBusinessSeeder" --force
+          # DummyBusinessSeeder é stale: insere contacts.first_name (coluna removida
+          # do schema real). Ele cria business+users ANTES de chegar em contacts, então
+          # || true deixa o essencial (biz=1 + users) persistir e segue. Os testes só
+          # precisam de Business::first()+User+conta, não de contacts/brands/categories.
+          php artisan db:seed --class="Database\\Seeders\\DummyBusinessSeeder" --force || true
           php artisan tinker --execute="
             \$c = \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',1)->first();
             if (! \$c) {
