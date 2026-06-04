@@ -108,6 +108,7 @@ jobs:
           mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache
           cat > .env <<'EOF'
           APP_NAME=oimpresso-visreg
+          APP_KEY=
           APP_ENV=testing
           APP_DEBUG=true
           APP_URL=http://localhost
