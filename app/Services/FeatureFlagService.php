@@ -49,7 +49,17 @@ class FeatureFlagService
     {
         try {
             $features = $this->getFeatures();
-            if ($features === null) {
+
+            // Fallback offline-safe: usar o default seguro quando o GrowthBook
+            // está inacessível (null) OU quando ele NÃO conhece esta flag
+            // (features vazio / flag ausente). Sem o `array_key_exists`, quando
+            // o GrowthBook do CT 100 cai / responde non-2xx / não tem a flag
+            // definida, getFeatures() devolve [] (não null) e $gb->isOn()
+            // retorna false silenciosamente — derrubando v2 (tela React de
+            // venda) pro Blade legado pra TODOS os business, ignorando o
+            // fallbackDefaults=true. Catalogado 2026-06-04 (tela /sells/create
+            // do Martinho reverteu pro layout antigo).
+            if ($features === null || ! array_key_exists($flag, $features)) {
                 return $this->fallback($flag);
             }
 
