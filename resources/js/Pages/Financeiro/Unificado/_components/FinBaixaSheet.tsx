@@ -116,14 +116,17 @@ export function FinBaixaSheet({ open, onClose, lancamento, contas, planos }: Fin
             <label htmlFor="bx-valor" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Valor {receber ? 'a receber' : 'a pagar'}
             </label>
+            {/* Input formatado como moeda BRL: usuário digita dígitos, vira R$ [redacted Tier 0] */}
             <Input
               id="bx-valor"
-              type="number"
-              step="0.01"
-              min="0.01"
-              max={aberto}
-              value={form.data.valor_baixa}
-              onChange={(e) => form.setData('valor_baixa', parseFloat(e.target.value) || 0)}
+              type="text"
+              inputMode="decimal"
+              value={brl(form.data.valor_baixa)}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '');
+                const cents = digits === '' ? 0 : parseInt(digits, 10);
+                form.setData('valor_baixa', cents / 100);
+              }}
             />
             <div className="flex items-center gap-2 text-[11px]">
               <button type="button" className="underline text-muted-foreground hover:text-foreground" onClick={() => form.setData('valor_baixa', aberto)}>

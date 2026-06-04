@@ -28,6 +28,11 @@ interface Categoria {
   nome: string;
 }
 
+interface ContaOpt {
+  id: number;
+  nome: string;
+}
+
 interface Lancamento {
   id: number;
   kind: 'receivable' | 'payable';
@@ -46,6 +51,8 @@ interface Lancamento {
   // 2026-06-03 — forma de pagamento. Editável só se não-realizada (sem baixa).
   forma_pagamento: string | null;
   forma_pagamento_realizada: boolean;
+  // 2026-06-04 — conta bancária prevista (editável).
+  conta_bancaria_id: number | null;
 }
 
 interface TituloEditSheetProps {
@@ -54,9 +61,10 @@ interface TituloEditSheetProps {
   lancamento: Lancamento;
   categorias: Categoria[];
   planos: PlanoConta[];
+  contas: ContaOpt[];
 }
 
-export function TituloEditSheet({ open, onClose, lancamento, categorias, planos }: TituloEditSheetProps) {
+export function TituloEditSheet({ open, onClose, lancamento, categorias, planos, contas }: TituloEditSheetProps) {
   const form = useForm({
     cliente_descricao: lancamento.contraparte === '—' ? '' : lancamento.contraparte,
     observacoes: lancamento.observacao ?? '',
@@ -65,6 +73,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
     vencimento: lancamento.vencimento,
     valor_total: lancamento.valor,
     forma_pagamento: lancamento.forma_pagamento ?? '',
+    conta_bancaria_id: (lancamento.conta_bancaria_id ?? '') as number | '',
   });
 
   // Reset form quando trocar de lançamento sem fechar.
@@ -77,6 +86,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
       vencimento: lancamento.vencimento,
       valor_total: lancamento.valor,
       forma_pagamento: lancamento.forma_pagamento ?? '',
+      conta_bancaria_id: (lancamento.conta_bancaria_id ?? '') as number | '',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lancamento.id]);
@@ -94,6 +104,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
     if (lancamento.valor_mutavel) {
       data.valor_total = form.data.valor_total;
     }
+    data.conta_bancaria_id = form.data.conta_bancaria_id === '' ? null : form.data.conta_bancaria_id;
     // Forma só editável quando NÃO-realizada (sem baixa). Realizada vem da baixa (read-only).
     if (!lancamento.forma_pagamento_realizada) {
       data.forma_pagamento = form.data.forma_pagamento || null;
@@ -190,6 +201,30 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos 
             )}
             {form.errors.forma_pagamento && (
               <p className="text-[11px] text-destructive">{form.errors.forma_pagamento}</p>
+            )}
+          </div>
+
+          {/* 2026-06-04 — Conta bancária (prevista). Pedido Wagner: trocar conta no Editar. */}
+          <div className="space-y-1.5">
+            <label htmlFor="ed-conta" className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+              Conta bancária
+            </label>
+            <Select
+              value={form.data.conta_bancaria_id === '' ? '__none__' : String(form.data.conta_bancaria_id)}
+              onValueChange={(v) => form.setData('conta_bancaria_id', (v === '__none__' ? '' : Number(v)) as number | '')}
+            >
+              <SelectTrigger id="ed-conta" aria-label="Conta bancária">
+                <SelectValue placeholder="— escolha —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— escolha —</SelectItem>
+                {contas.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.errors.conta_bancaria_id && (
+              <p className="text-[11px] text-destructive">{form.errors.conta_bancaria_id}</p>
             )}
           </div>
 

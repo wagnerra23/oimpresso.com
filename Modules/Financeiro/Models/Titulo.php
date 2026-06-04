@@ -63,7 +63,7 @@ class Titulo extends Model
         'emissao', 'vencimento', 'competencia_mes',
         'origem', 'origem_id', 'parcela_numero', 'parcela_total', 'titulo_pai_id',
         'plano_conta_id', 'categoria_id',
-        'forma_pagamento',
+        'forma_pagamento', 'conta_bancaria_id',
         'observacoes', 'metadata',
         'created_by', 'updated_by',
         'conferido_by', 'conferido_at',
@@ -86,6 +86,11 @@ class Titulo extends Model
     public function planoConta(): BelongsTo
     {
         return $this->belongsTo(PlanoConta::class, 'plano_conta_id');
+    }
+
+    public function contaBancaria(): BelongsTo
+    {
+        return $this->belongsTo(ContaBancaria::class, 'conta_bancaria_id');
     }
 
     public function categoria(): BelongsTo
