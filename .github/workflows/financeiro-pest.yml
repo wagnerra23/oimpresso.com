@@ -151,10 +151,13 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (Financeiro guards · MySQL)
+      - name: Run Pest (Financeiro suite · MySQL) [DIAGNÓSTICO — landscape completo]
         # phpunit.xml força DB_CONNECTION=sqlite :memory: (sem force=) — se não
         # sobrescrever, o Pest roda em sqlite VAZIO e os testes (Business::first())
         # SKIPam (a falsa cobertura). Exportar aqui faz rodar no MySQL real semeado.
+        # DIAGNÓSTICO US-FIN-053: roda a suíte INTEIRA pra capturar a lista real de
+        # falhas (continue-on-error pra não abortar e capturar tudo).
+        continue-on-error: true
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -162,4 +165,4 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: vendor/bin/pest Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php --no-coverage --colors=always
+        run: vendor/bin/pest Modules/Financeiro/Tests/Feature --no-coverage --colors=never 2>&1 | tail -400
