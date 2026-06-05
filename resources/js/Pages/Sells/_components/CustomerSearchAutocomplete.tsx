@@ -17,17 +17,6 @@ import { Search, Loader2, X, UserPlus } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import QuickAddCustomerSheet from './QuickAddCustomerSheet';
 
-/**
- * ADR 0251 — veículo do catálogo do cliente (`vehicles`, Modules/OficinaAuto).
- * Alimenta o seletor de veículo na venda direta de oficina (Sells/Create).
- */
-export interface VehicleOption {
-  id: number;
-  plate: string;
-  secondary_plate?: string | null;
-  vehicle_type?: string | null;
-}
-
 export interface CustomerSearchResult {
   id: number;
   text: string;
@@ -47,8 +36,6 @@ export interface CustomerSearchResult {
   pay_term_type?: 'days' | 'months' | string | null;
   /** Endereço entrega — pré-fill no campo shipping. */
   shipping_address?: string | null;
-  /** ADR 0251 — veículos do cliente (catálogo OficinaAuto), pro seletor na venda. */
-  vehicles?: VehicleOption[] | null;
 }
 
 /**

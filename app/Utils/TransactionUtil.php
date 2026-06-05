@@ -117,9 +117,6 @@ class TransactionUtil extends Util
             'rp_redeemed_amount' => ! empty($input['rp_redeemed_amount']) ? $input['rp_redeemed_amount'] : 0,
             'is_created_from_api' => ! empty($input['is_created_from_api']) ? 1 : 0,
             'types_of_service_id' => ! empty($input['types_of_service_id']) ? $input['types_of_service_id'] : null,
-            // ADR 0251 — veículo na venda direta de oficina (nullable; só vem quando
-            // OficinaAuto habilitado + vendedor selecionou/cadastrou veículo).
-            'vehicle_id' => ! empty($input['vehicle_id']) ? $input['vehicle_id'] : null,
             'packing_charge' => ! empty($input['packing_charge']) ? $input['packing_charge'] : 0,
             'packing_charge_type' => ! empty($input['packing_charge_type']) ? $input['packing_charge_type'] : null,
             'service_custom_field_1' => ! empty($input['service_custom_field_1']) ? $input['service_custom_field_1'] : null,
@@ -241,9 +238,6 @@ class TransactionUtil extends Util
             'rp_redeemed' => ! empty($input['rp_redeemed']) ? $input['rp_redeemed'] : 0,
             'rp_redeemed_amount' => ! empty($input['rp_redeemed_amount']) ? $input['rp_redeemed_amount'] : 0,
             'types_of_service_id' => ! empty($input['types_of_service_id']) ? $input['types_of_service_id'] : null,
-            // ADR 0251 — veículo na venda direta de oficina (nullable; só vem quando
-            // OficinaAuto habilitado + vendedor selecionou/cadastrou veículo).
-            'vehicle_id' => ! empty($input['vehicle_id']) ? $input['vehicle_id'] : null,
             'packing_charge' => ! empty($input['packing_charge']) ? $input['packing_charge'] : 0,
             'packing_charge_type' => ! empty($input['packing_charge_type']) ? $input['packing_charge_type'] : null,
             'service_custom_field_1' => ! empty($input['service_custom_field_1']) ? $input['service_custom_field_1'] : null,

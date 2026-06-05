@@ -163,7 +163,7 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function store(StoreVehicleRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
+    public function store(StoreVehicleRequest $request): RedirectResponse
     {
         // D8 Security Wave 15: authorize() rodou no FormRequest (Spatie permission check).
         // abort_unless mantido como defense-in-depth caso FormRequest::authorize seja burlado.
@@ -175,23 +175,6 @@ class VehicleController extends Controller
 
         // business_id é setado automaticamente pelo Model::creating hook (ADR 0093)
         $vehicle = Vehicle::create($request->validated());
-
-        // ADR 0251 — quick-add da venda (QuickAddVehicleSheet) faz fetch direto (não
-        // Inertia router) pra NÃO perder o draft da venda; espera JSON com o veículo
-        // criado. Gate `wantsJson() && !X-Inertia` distingue do form Inertia normal
-        // (que manda X-Requested-With mas Accept:text/html + header X-Inertia) — sem
-        // isso o redirect do fluxo padrão quebraria.
-        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'id'              => (int) $vehicle->id,
-                    'plate'           => $vehicle->plate,
-                    'secondary_plate' => $vehicle->secondary_plate,
-                    'vehicle_type'    => $vehicle->vehicle_type,
-                ],
-            ]);
-        }
 
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo cadastrado.']);

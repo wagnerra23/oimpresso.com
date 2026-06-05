@@ -930,27 +930,6 @@ class SellController extends Controller
             $types_of_service = TypesOfService::forDropdown($business_id);
         }
 
-        // ADR 0251 — Veículo na venda (oficina). Gate per-business CANÔNICO (mesmo de
-        // OficinaAuto DataController::modifyAdminMenu): superadmin vê se módulo instalado;
-        // demais via hasThePermissionInSubscription('oficina_auto_module'). Vestuário
-        // (ROTA LIVRE biz=4) NÃO habilita → seletor de veículo nem aparece (Tier 0 ADR 0093).
-        // Instância local de ModuleUtil (mesmo pattern do DataController) — evita
-        // somar acessos a $this->moduleUtil baselined no PHPStan ratchet.
-        $oficinaModuleUtil = new \App\Utils\ModuleUtil();
-        $has_oficina_auto = false;
-        if (auth()->user()->can('superadmin')) {
-            $has_oficina_auto = $oficinaModuleUtil->isModuleInstalled('OficinaAuto');
-        } else {
-            $has_oficina_auto = (bool) $oficinaModuleUtil->hasThePermissionInSubscription(
-                $business_id,
-                'oficina_auto_module',
-                'superadmin_package'
-            );
-        }
-        $vehicle_types = ($has_oficina_auto && class_exists(\Modules\OficinaAuto\Http\Controllers\VehicleController::class))
-            ? \Modules\OficinaAuto\Http\Controllers\VehicleController::vehicleTypes()
-            : [];
-
         //Accounts
         $accounts = [];
         if ($this->moduleUtil->isModuleEnabled('account')) {
@@ -1020,9 +999,6 @@ class SellController extends Controller
                 'customerGroups'       => $customer_groups,
                 'accounts'             => $accounts,
                 'typesOfService'       => $types_of_service,
-                // ADR 0251 — veículo na venda direta de oficina (gated per-business).
-                'hasOficinaAuto'       => $has_oficina_auto,
-                'vehicleTypes'         => $vehicle_types,
                 'users'                => $users,
                 'permissions'          => [
                     'editDiscount' => true,  // SellController não tem flag separado (pos screen é só SellPosController)
@@ -1299,22 +1275,8 @@ class SellController extends Controller
                 ->map(fn($group) => $group->first());
         }
 
-        // ADR 0251 — placa do veículo por venda (consulta). Lookup separado guardado
-        // por hasColumn/hasTable (degrada gracioso pré-migration ou OficinaAuto ausente,
-        // inclusive no SQLite do Pest). Scoped por business_id (Tier 0 ADR 0093).
-        $vehiclePlateByTx = collect();
-        if (! empty($txIds)
-            && \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'vehicle_id')
-            && \Illuminate\Support\Facades\Schema::hasTable('vehicles')) {
-            $vehiclePlateByTx = \DB::table('transactions')
-                ->join('vehicles', 'vehicles.id', '=', 'transactions.vehicle_id')
-                ->whereIn('transactions.id', $txIds)
-                ->where('vehicles.business_id', $business_id)
-                ->pluck('vehicles.plate', 'transactions.id');
-        }
-
         $rows = $rows
-            ->map(function ($r) use ($fiscalByTx, $vehiclePlateByTx) {
+            ->map(function ($r) use ($fiscalByTx) {
                 // Calcula overdue inline (boolean derivado, evita re-query).
                 $overdue = false;
                 $daysToDue = null;
@@ -1455,9 +1417,6 @@ class SellController extends Controller
                         default   => 'Balcão',
                     },
                     'os_ref' => $r->os_ref,
-                    // ADR 0251 — placa do veículo (venda direta de oficina). null quando
-                    // a venda não tem veículo; frontend renderiza a plaquinha Mercosul.
-                    'vehicle_plate' => $vehiclePlateByTx->get($r->id),
                 ];
             });
 
@@ -2464,18 +2423,6 @@ class SellController extends Controller
                     'id' => (int) $sell->location_id,
                     'name' => optional(\App\BusinessLocation::find($sell->location_id))->name,
                 ] : null,
-                // ADR 0251 — veículo da venda direta de oficina (placa na consulta).
-                // Vehicle tem global scope por business_id (Tier 0). Guard hasColumn/
-                // hasTable degrada gracioso (pré-migration ou OficinaAuto ausente → null).
-                'vehicle' => (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'vehicle_id')
-                    && $sell->vehicle_id
-                    && \Illuminate\Support\Facades\Schema::hasTable('vehicles'))
-                    ? optional(\Modules\OficinaAuto\Entities\Vehicle::find($sell->vehicle_id), fn ($v) => [
-                        'id' => (int) $v->id,
-                        'plate' => (string) $v->plate,
-                        'secondary_plate' => $v->secondary_plate,
-                    ])
-                    : null,
             ];
 
             // Detail payload já calculado acima — encapsular pra defer.

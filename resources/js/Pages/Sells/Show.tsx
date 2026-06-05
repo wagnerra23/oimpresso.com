@@ -19,13 +19,11 @@ import {
   Phone,
   Printer,
   Trash2,
-  Truck,
   User as UserIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
-import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';
 import {
   DropdownMenu,
@@ -68,8 +66,6 @@ interface Headline {
   current_stage_key: string | null;
   customer: Customer | null;
   location: { id: number; name: string } | null;
-  /** ADR 0251 — veículo da venda direta de oficina (placa na consulta). null = sem veículo. */
-  vehicle?: { id: number; plate: string; secondary_plate?: string | null } | null;
 }
 
 interface SaleLine {
@@ -434,23 +430,6 @@ export default function SellsShow(props: SellsShowPageProps) {
                       <Mail className="h-3 w-3" />
                       {headline.customer.email}
                     </p>
-                  )}
-                </div>
-              </section>
-            )}
-
-            {/* ADR 0251 — Veículo do atendimento (venda direta de oficina). Plaquinha
-                Mercosul reusada do OficinaAuto. Só aparece quando a venda tem veículo. */}
-            {headline.vehicle && (
-              <section className="rounded-lg border border-border bg-card p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <h2 className="font-semibold text-sm">Veículo</h2>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MercosulPlate plate={headline.vehicle.plate} size="md" />
-                  {headline.vehicle.secondary_plate && (
-                    <MercosulPlate plate={headline.vehicle.secondary_plate} size="md" />
                   )}
                 </div>
               </section>
