@@ -685,8 +685,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       additional_expense_value_3: d.additional_expenses[2]?.value ?? '',
       additional_expense_key_4: d.additional_expenses[3]?.key ?? '',
       additional_expense_value_4: d.additional_expenses[3]?.value ?? '',
-      // Total calculado client-side (backend re-calcula via productUtil mas evita 422)
-      final_total: totalGeral,
+      // Total calculado client-side (backend re-calcula via productUtil mas evita 422).
+      // INCIDENTE 2026-06-05: desconto percentual gera total fracionado de 5 casas
+      // (ex 204.99605). Enviar arredondado a 2 casas evita float "204.99605" que o
+      // num_uf pt-BR do backend interpretava como milhar e inflava p/ 20.499.605.
+      final_total: Math.round(totalGeral * 100) / 100,
       // Campos hidden Blade que controller espera
       default_price_group: d.price_group_id,
       // Products precisam de campos que ProductUtil acessa direto (Undefined array key
