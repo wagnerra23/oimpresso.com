@@ -155,8 +155,45 @@ jobs:
       - name: Permissions storage + bootstrap/cache
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
 
+      - name: Force OPcache invalidate (composer dump-autoload + touch)
+        # Wagner/Eliana 2026-06-05: Hostinger LSPHP/LiteSpeed segura bytecode OPcache
+        # entre deploys, ignorando código novo do git pull até validate_timestamps expirar.
+        # Dois truques juntos forçam re-stat imediato:
+        # (1) composer dump-autoload --optimize regenera arquivos compilados, mtime muda
+        # (2) find ... -exec touch força mtime de todos os PHPs (LSPHP detecta em próximo request)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            /usr/local/bin/composer dump-autoload --optimize --no-dev 2>&1 | tail -3 &&
+            find app bootstrap config routes -name '*.php' -exec touch {} + 2>&1 | tail -3
+          "
+
       - name: Maintenance mode OFF
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up"
+
+      - name: Reset OPcache via HTTP (LSPHP/LiteSpeed) — opcional
+        # Wagner/Eliana 2026-06-05: PR #2274 hotfix (ADR 0246) deploy success
+        # mas ContactController OPcache no LSPHP/LiteSpeed segurou bytecode antigo
+        # do whitelist `$types` (sem 'other') → aba "Outros" mostrava registros de
+        # Cliente. `php artisan config:clear` etc rodam em SAPI CLI, NÃO compartilham
+        # OPcache com FPM/LSPHP servindo HTTP. Solução: chamar opcache_reset() no
+        # MESMO contexto SAPI servindo o site = via HTTP request.
+        # Endpoint: public/_ops_opcache_reset.php (autenticado por env var
+        # OPCACHE_RESET_TOKEN configurado no .env do servidor).
+        run: |
+          if [ -z "${{ secrets.OPCACHE_RESET_TOKEN }}" ]; then
+            echo "::warning::OPCACHE_RESET_TOKEN não configurado em GitHub Secrets — skip reset OPcache. Configurar pra ativar."
+            exit 0
+          fi
+          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=${{ secrets.OPCACHE_RESET_TOKEN }}" || echo "FAIL_CURL")
+          echo "OPcache reset response: $RESP"
+          if echo "$RESP" | grep -q "OPCACHE_RESET_OK"; then
+            echo "✅ OPcache resetado"
+          elif echo "$RESP" | grep -q "OPCACHE_UNAVAILABLE"; then
+            echo "::warning::OPcache extension não disponível na SAPI — skip silencioso"
+          else
+            echo "::warning::Reset OPcache falhou ou retornou inesperado — investigar: $RESP"
+          fi
 
       - name: Smoke test — HTTPS home (strict)
         id: smoke
