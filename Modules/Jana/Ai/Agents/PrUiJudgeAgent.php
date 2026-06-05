@@ -14,7 +14,8 @@ use Stringable;
 /**
  * PrUiJudgeAgent — Onda 4.1 do AUTOMATION-ROADMAP.
  *
- * Agente LLM (OpenAI gpt-4o-mini · consistente com BriefDiarioAgent etc) que
+ * Agente LLM (Anthropic claude-sonnet-4-6 · review de design exige juízo
+ * semântico superior ao gpt-4o-mini) que
  * avalia PRs Inertia/React contra a Constituição UI v2 (ADR UI-0013). Carrega
  * no system prompt:
  *  - Hierarquia 4 camadas (Fundações → Shell → PT → Módulo)
@@ -37,21 +38,23 @@ use Stringable;
  * "copy não-PT-BR em string template", "PT-01 violado em essência mesmo
  * importando PageHeader (uso fora do slot 1)".
  *
- * Custo estimado por PR: ~10k tokens input + ~1k tokens output = $0.002/PR
- * (gpt-4o-mini @ $0.15/M input + $0.60/M output).
+ * Custo estimado por PR: ~10k tokens input + ~1k tokens output ≈ $0.034/PR
+ * (claude-sonnet-4-6 @ $3/M input + $15/M output) · com prompt caching do
+ * system prompt fixo cai pra ~$0.005/PR.
  *
- * UPGRADE PRA ANTHROPIC: trocar `#[Provider('openai')]` por
- * `#[Provider('anthropic')]` + `#[Model('claude-sonnet-4-5-20250929')]` se
- * `ANTHROPIC_API_KEY` for configurada (config/ai.php já provider 'anthropic'
- * registrado). Sonnet 4.5 dá review de qualidade superior · custo ~15x maior
- * ($0.034/PR) mas com prompt caching cai pra ~$0.005/PR.
+ * HISTÓRICO: nasceu em OpenAI gpt-4o-mini ($0.002/PR), mas o command e o
+ * workflow já se anunciavam como "Claude Sonnet" — inconsistência ativa
+ * (a tela dizia Sonnet, rodava gpt-4o-mini). Migrado pra anthropic /
+ * claude-sonnet-4-6 (canon do projeto · BrainBAgent, EvalCommands) tanto
+ * pra resolver a inconsistência quanto pela qualidade de juízo semântico
+ * que review de design exige. `ANTHROPIC_API_KEY` já é pré-req do kill-switch.
  *
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4.1)
  * @see memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  */
-#[Provider('openai')]
-#[Model('gpt-4o-mini')]
+#[Provider('anthropic')]
+#[Model('claude-sonnet-4-6')]
 #[MaxSteps(3)]
 class PrUiJudgeAgent implements Agent
 {
@@ -105,28 +108,36 @@ class PrUiJudgeAgent implements Agent
 
         UI-0009 + UI-0014 — Wagner-explícito 2026-05-24. v2 externa propõe dark sempre · **NÃO aplicar**.
 
-        ## Como você avalia
+        ## Como você avalia (método G-Eval · raciocine ANTES de pontuar)
 
-        Para cada PR recebido (metadata + diff), produza output JSON estrito:
+        Avalie em ordem encadeada — **primeiro o rationale dimensão-por-dimensão, só depois o score agregado**. Nunca crave o score total antes de raciocinar cada dimensão; o score é *derivado* das 9 dimensões, não chutado de cabeça.
+
+        Passos obrigatórios, nesta ordem:
+
+        1. **Para cada uma das 9 dimensões:** escreva primeiro o `rationale` (1-2 frases citando o que viu no diff — arquivo/linha quando possível), e só então atribua o `score` 0-10 coerente com esse rationale.
+        2. **Liste as `violacoes_estruturais`** grep-invisíveis encontradas (com arquivo/linha/severidade).
+        3. **Só então** compute o `score` total 0-100 (proporcional à soma das 9 dimensões · 9×10=90 → normalize pra 100) e derive o `verdict` dele: `< 60` → `request_changes`, `60-84` → `comment`, `≥ 85` → `approve`.
+
+        Produza output JSON estrito **nesta ordem de chaves** (a ordem reflete a ordem do raciocínio):
 
         ```json
         {
-          "score": 0-100,
-          "verdict": "approve | request_changes | comment",
           "dimensoes": {
-            "hierarquia_4_camadas": { "score": 0-10, "nota": "..." },
-            "pt_01_slot_adherence": { "score": 0-10, "nota": "..." },
-            "anti_padroes_ap1_ap8": { "score": 0-10, "nota": "..." },
-            "tokens_semanticos": { "score": 0-10, "nota": "..." },
-            "componentes_shared": { "score": 0-10, "nota": "..." },
-            "atalhos_canonicos_jk_cmdk": { "score": 0-10, "nota": "..." },
-            "localStorage_prefix_oimpresso": { "score": 0-10, "nota": "..." },
-            "pt_br_voice_tone": { "score": 0-10, "nota": "..." },
-            "lucide_iconography_only": { "score": 0-10, "nota": "..." }
+            "hierarquia_4_camadas": { "rationale": "...", "score": 0-10 },
+            "pt_01_slot_adherence": { "rationale": "...", "score": 0-10 },
+            "anti_padroes_ap1_ap8": { "rationale": "...", "score": 0-10 },
+            "tokens_semanticos": { "rationale": "...", "score": 0-10 },
+            "componentes_shared": { "rationale": "...", "score": 0-10 },
+            "atalhos_canonicos_jk_cmdk": { "rationale": "...", "score": 0-10 },
+            "localStorage_prefix_oimpresso": { "rationale": "...", "score": 0-10 },
+            "pt_br_voice_tone": { "rationale": "...", "score": 0-10 },
+            "lucide_iconography_only": { "rationale": "...", "score": 0-10 }
           },
           "violacoes_estruturais": [
             { "tipo": "...", "arquivo": "...", "linha": N, "detalhe": "...", "severidade": "critical|warning|info" }
           ],
+          "score": 0-100,
+          "verdict": "approve | request_changes | comment",
           "sugestoes": [
             "..."
           ],
@@ -137,6 +148,8 @@ class PrUiJudgeAgent implements Agent
           ]
         }
         ```
+
+        > Nota de compatibilidade: o campo de texto de cada dimensão chama-se agora `rationale` (antes `nota`). Quem consome o JSON deve aceitar ambos.
 
         ## Princípios de avaliação
 

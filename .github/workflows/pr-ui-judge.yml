@@ -1,11 +1,11 @@
 name: PR UI Judge (LLM Brain B · Constituição UI v2)
 
 # Onda 4.1 do AUTOMATION-ROADMAP. Avalia PRs Inertia/React contra a
-# Constituição UI v2 usando Claude Sonnet 4.5. Posta comentário inline
+# Constituição UI v2 usando Claude Sonnet 4.6. Posta comentário inline
 # com score 0-100 + 9 dimensões + violações estruturais + sugestões.
 #
 # CUSTO REAL:
-# - ~$0.034/PR (Claude Sonnet 4.5)
+# - ~$0.034/PR (Claude Sonnet 4.6)
 # - ~$0.005/PR após primeiro do dia (prompt caching ~85% reuse)
 # - ~$3/mês a 100 PRs/mês
 #
@@ -48,7 +48,7 @@ permissions:
 
 jobs:
   judge:
-    name: PR UI Judge · Claude Sonnet 4.5
+    name: PR UI Judge · Claude Sonnet 4.6
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
