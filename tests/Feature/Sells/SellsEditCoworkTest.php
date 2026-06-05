@@ -22,7 +22,7 @@ declare(strict_types=1);
  */
 
 const EDIT_TSX_PATH = 'resources/js/Pages/Sells/Edit.tsx';
-const EDIT_CHARTER_PATH = 'resources/js/Pages/Sells/Edit.charter.md';
+defined('EDIT_CHARTER_PATH') || define('EDIT_CHARTER_PATH', 'resources/js/Pages/Sells/Edit.charter.md');
 const EDIT_CSS_PATH = 'resources/css/sells-cowork-edit.css';
 const EDIT_INERTIA_CSS_PATH = 'resources/css/inertia.css';
 

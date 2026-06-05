@@ -30,8 +30,8 @@ beforeEach(function () {
     }
 });
 
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 it('decisão biz=1 NÃO aparece com filtro biz=99', function () {
     $id = DB::table('mcp_dual_brain_decisions')->insertGetId([

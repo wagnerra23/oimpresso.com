@@ -23,7 +23,7 @@ declare(strict_types=1);
  */
 
 const QUOTATIONS_TSX_PATH = 'resources/js/Pages/Sells/Quotations.tsx';
-const QUOTATIONS_CHARTER_PATH = 'resources/js/Pages/Sells/Quotations.charter.md';
+defined('QUOTATIONS_CHARTER_PATH') || define('QUOTATIONS_CHARTER_PATH', 'resources/js/Pages/Sells/Quotations.charter.md');
 const QUOTATIONS_CSS_PATH = 'resources/css/sells-cowork-quotations.css';
 const QUOTATIONS_INERTIA_CSS_PATH = 'resources/css/inertia.css';
 const QUOTATIONS_INDEX_TSX_PATH = 'resources/js/Pages/Sells/Index.tsx';

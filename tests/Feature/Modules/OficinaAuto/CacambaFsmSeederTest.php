@@ -29,8 +29,8 @@ use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
-const BIZ_WAGNER_FSM = 1;
-const BIZ_FICTICIO_FSM = 99;
+defined('BIZ_WAGNER_FSM') || define('BIZ_WAGNER_FSM', 1);
+defined('BIZ_FICTICIO_FSM') || define('BIZ_FICTICIO_FSM', 99);
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {

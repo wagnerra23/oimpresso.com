@@ -47,7 +47,7 @@ uses(Tests\TestCase::class);
  */
 
 const W27_BIZ_WAGNER = 1;
-const W27_BIZ_FICTICIO = 99;
+defined('W27_BIZ_FICTICIO') || define('W27_BIZ_FICTICIO', 99);
 const W27_MARCADOR_NOME = 'W27-cross-tenant-escala';
 const W27_MARCADOR_IP = 'w27-ct-marc';
 

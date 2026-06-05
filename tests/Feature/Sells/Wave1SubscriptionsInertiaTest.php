@@ -18,7 +18,7 @@ declare(strict_types=1);
  */
 
 const SUBSCRIPTIONS_PAGE_PATH = 'resources/js/Pages/Sells/Subscriptions.tsx';
-const SUBSCRIPTIONS_CHARTER_PATH = 'resources/js/Pages/Sells/Subscriptions.charter.md';
+defined('SUBSCRIPTIONS_CHARTER_PATH') || define('SUBSCRIPTIONS_CHARTER_PATH', 'resources/js/Pages/Sells/Subscriptions.charter.md');
 const SUBSCRIPTIONS_CONTROLLER_PATH = 'app/Http/Controllers/SellPosController.php';
 
 function readSubscriptionsPage(): string
