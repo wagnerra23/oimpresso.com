@@ -50,7 +50,7 @@ export default function SaleJourneyStepper({ journey, saleId }: Props) {
   }
 
   // CTA só na direção balcão, quando o nó Oficina existe e ainda está pendente
-  // (venda pronta, sem OS criada).
+  // (venda pronta, sem OS criada). Não toca valor/estoque — só cria OS via endpoint.
   const oficinaNode = journey.nodes.find((n) => n.key === 'oficina');
   const canSendToWorkshop =
     journey.direction === 'balcao' && oficinaNode?.state === 'todo' && journey.current === 'venda';
