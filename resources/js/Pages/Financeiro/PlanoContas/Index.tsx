@@ -14,6 +14,7 @@ import { router } from '@inertiajs/react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import FinStatStrip, { FinStat } from '@/Pages/Financeiro/_shared/FinStatStrip';
 
 interface PlanoConta {
   id: number;
@@ -83,34 +84,19 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
         </div>
       </PageHeader>
 
-      {/* KPI strip canon */}
-      <div className="fin-stats">
-        <div className="fin-stat fin-stat-hero">
-          <small>TOTAL DE CONTAS</small>
-          <b>{stats.total}</b>
-          <span className="fin-stat-hint">Hierarquia BR padrão (4 níveis)</span>
-        </div>
-        <div className="fin-stat">
-          <small>RECEITA</small>
-          <b className="fin-num-pos">{stats.receita}</b>
-          <span className="fin-stat-hint">contas tipo receita</span>
-        </div>
-        <div className="fin-stat">
-          <small>DESPESA</small>
-          <b className="fin-num-neg">{stats.despesa}</b>
-          <span className="fin-stat-hint">contas tipo despesa</span>
-        </div>
-        <div className="fin-stat">
-          <small>ATIVO</small>
-          <b>{stats.ativo}</b>
-          <span className="fin-stat-hint">contas tipo ativo</span>
-        </div>
-        <div className="fin-stat">
-          <small>PASSIVO + PATRIM.</small>
-          <b>{stats.passivo + stats.patrimonio}</b>
-          <span className="fin-stat-hint">{stats.passivo} passivo + {stats.patrimonio} patrim.</span>
-        </div>
-      </div>
+      {/* KPI strip canon — piloto: migrado de .fin-stats bespoke pro componente
+          <FinStatStrip> (passo 2-3 MANUAL-CSS-JS). Visualmente idêntico. */}
+      <FinStatStrip>
+        <FinStat hero label="TOTAL DE CONTAS" value={stats.total} hint="Hierarquia BR padrão (4 níveis)" />
+        <FinStat label="RECEITA" value={stats.receita} tone="pos" hint="contas tipo receita" />
+        <FinStat label="DESPESA" value={stats.despesa} tone="neg" hint="contas tipo despesa" />
+        <FinStat label="ATIVO" value={stats.ativo} hint="contas tipo ativo" />
+        <FinStat
+          label="PASSIVO + PATRIM."
+          value={stats.passivo + stats.patrimonio}
+          hint={`${stats.passivo} passivo + ${stats.patrimonio} patrim.`}
+        />
+      </FinStatStrip>
 
       {/* Filtros */}
       <div className="fin-toolbar mt-4">
