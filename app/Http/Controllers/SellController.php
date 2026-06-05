@@ -930,6 +930,24 @@ class SellController extends Controller
             $types_of_service = TypesOfService::forDropdown($business_id);
         }
 
+        // ADR 0251 — Veículo na venda (oficina). Gate per-business CANÔNICO (mesmo de
+        // OficinaAuto DataController::modifyAdminMenu): superadmin vê se módulo instalado;
+        // demais via hasThePermissionInSubscription('oficina_auto_module'). Vestuário
+        // (ROTA LIVRE biz=4) NÃO habilita → seletor de veículo nem aparece (Tier 0 ADR 0093).
+        $has_oficina_auto = false;
+        if (auth()->user()->can('superadmin')) {
+            $has_oficina_auto = $this->moduleUtil->isModuleInstalled('OficinaAuto');
+        } else {
+            $has_oficina_auto = (bool) $this->moduleUtil->hasThePermissionInSubscription(
+                $business_id,
+                'oficina_auto_module',
+                'superadmin_package'
+            );
+        }
+        $vehicle_types = ($has_oficina_auto && class_exists(\Modules\OficinaAuto\Http\Controllers\VehicleController::class))
+            ? \Modules\OficinaAuto\Http\Controllers\VehicleController::vehicleTypes()
+            : [];
+
         //Accounts
         $accounts = [];
         if ($this->moduleUtil->isModuleEnabled('account')) {
@@ -999,6 +1017,9 @@ class SellController extends Controller
                 'customerGroups'       => $customer_groups,
                 'accounts'             => $accounts,
                 'typesOfService'       => $types_of_service,
+                // ADR 0251 — veículo na venda direta de oficina (gated per-business).
+                'hasOficinaAuto'       => $has_oficina_auto,
+                'vehicleTypes'         => $vehicle_types,
                 'users'                => $users,
                 'permissions'          => [
                     'editDiscount' => true,  // SellController não tem flag separado (pos screen é só SellPosController)
