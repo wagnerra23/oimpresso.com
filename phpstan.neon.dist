@@ -43,6 +43,12 @@ parameters:
         # 9x class.notFound: Officeimpresso/Transformers/* usam Resource (Laravel 5)
         # em vez de JsonResource (5.6+). Owner Officeimpresso migra em PR dedicado.
         - Modules/Officeimpresso/Transformers/* (?)
+        # 1x return.missing FALSO-POSITIVO Larastan (não-ignorável → só excludePath).
+        # `Menu::getFacadeAccessor(): string` retorna `'menus'` (literal string) — correto.
+        # PHPStan só reporta no full-project (interação extensão Facade Larastan 2.2.0);
+        # `phpstan analyse app/Facades/Menu.php` isolado = 0 erro (prova falso-positivo).
+        # Facade sem lógica de negócio → exclusão não perde cobertura. Drift 2026-06-05.
+        - app/Facades/Menu.php (?)
 
     # Ignore patterns canônicos pra UltimatePOS legacy
     ignoreErrors:

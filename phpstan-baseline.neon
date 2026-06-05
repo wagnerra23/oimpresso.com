@@ -37384,3 +37384,291 @@ parameters:
 			count: 1
 			path: Modules/Financeiro/Http/Controllers/ExtratoController.php
 
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, version\: int\<0, max\>, origin\: ''git_drift''\|''git_seed''\|''ui'', status\: ''archived''\|''draft''\|''drift_pending''\|''published''\|''review'', created_at\: non\-falsy\-string\|null, is_current\: bool\}, Closure\(Modules\\Jana\\Entities\\Mcp\\McpSkillVersion\)\: array\{id\: int, version\: int\<0, max\>, origin\: ''git_drift''\|''git_seed''\|''ui'', status\: ''archived''\|''draft''\|''drift_pending''\|''published''\|''review'', created_at\: non\-falsy\-string\|null, is_current\: bool\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/ADS/Http/Controllers/Admin/SkillsController.php
+
+		-
+			message: '#^Method Modules\\AssetManagement\\Http\\Controllers\\RevokeAllocatedAssetController\:\:_getRevokedQtyOfAllocatedAsset\(\) should return int but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php
+
+		-
+			message: '#^Property Modules\\Officeimpresso\\Entities\\Licenca_Computador\:\:\$bloqueado \(int\) does not accept true\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php
+
+		-
+			message: '#^Property Modules\\Officeimpresso\\Entities\\Licenca_Computador\:\:\$bloqueado \(int\) does not accept true\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Connector/Http/Controllers/Api/OImpressoRegistroController.php
+
+		-
+			message: '#^Property Modules\\Crm\\Entities\\Campaign\:\:\$sent_on \(string\|null\) does not accept Carbon\\Carbon\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Crm/Services/CampaignService.php
+
+		-
+			message: '#^Parameter \#1 \$input_number of method App\\Utils\\Util\:\:num_f\(\) expects int, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: Modules/Essentials/Entities/EssentialsAllowanceAndDeduction.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: Modules/Fiscal/Http/Controllers/ConfigController.php
+
+		-
+			message: '#^Match arm comparison between ''monthly'' and ''monthly'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: Modules/Jana/Entities/Mcp/McpQuota.php
+
+		-
+			message: '#^Anonymous function should return array\{id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, apuracoes_recentes\: Illuminate\\Support\\Collection\<int, array\{data_ref\: mixed, valor_realizado\: float\}\>\} but returns array\{id\: int, slug\: string, nome\: string, unidade\: ''%%''\|''dias''\|''qtd''\|''R\$'', tipo_agregacao\: ''contagem''\|''media''\|''soma''\|''ultimo'', periodo_atual\: array\{data_ini\: mixed, data_fim\: mixed, valor_alvo\: float, trajetoria\: mixed\}\|null, ultima_apuracao\: array\{data_ref\: mixed, valor_realizado\: float\}\|null, apuracoes_recentes\: Illuminate\\Support\\Collection\<int, array\{data_ref\: mixed, valor_realizado\: float\}\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Jana/Http/Controllers/DashboardController.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: Modules/Jana/Mcp/Tools/MyWorkTool.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: Modules/Jana/Mcp/Tools/TriageTool.php
+
+		-
+			message: '#^Match arm comparison between ''monthly'' and ''monthly'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: Modules/Jana/Services/Mcp/QuotaEnforcer.php
+
+		-
+			message: '#^Method Modules\\Jana\\Services\\Memoria\\MeilisearchDriver\:\:resolveDocDate\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: Modules/Jana/Services/Memoria/MeilisearchDriver.php
+
+		-
+			message: '#^Method Modules\\Jana\\Services\\Memoria\\MeilisearchDriver\:\:resolveDocDate\(\) should return Illuminate\\Support\\Carbon\|null but returns Carbon\\Carbon\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/Jana/Services/Memoria/MeilisearchDriver.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between Carbon\\Carbon and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: Modules/Jana/Services/Memoria/MeilisearchDriver.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: Modules/Jana/Services/Memoria/MeilisearchDriver.php
+
+		-
+			message: '#^Parameter \#1 \$number of method App\\Utils\\Util\:\:calc_percentage\(\) expects int, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Manufacturing/Utils/ManufacturingUtil.php
+
+		-
+			message: '#^Match arm comparison between ''erro'' and ''erro'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: Modules/NFSe/Models/NfseEmissao.php
+
+		-
+			message: '#^Property Modules\\NfeBrasil\\Models\\NfseEmissao\:\:\$status \(''cancelada''\|''emitida''\|''erro''\|''processando''\|''rascunho''\) does not accept ''sent''\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/NfeBrasil/Jobs/EmitirNFSeJob.php
+
+		-
+			message: '#^Access to an undefined property App\\Transaction\:\:\$contact\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/NfeBrasil/Listeners/EnviarDanfeNFCePorEmail.php
+
+		-
+			message: '#^Call to function is_string\(\) with array\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
+
+		-
+			message: '#^Offset ''was_blocked'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: Modules/Officeimpresso/Http/Controllers/LicencaLogController.php
+
+		-
+			message: '#^Property Modules\\Officeimpresso\\Entities\\Licenca_Computador\:\:\$bloqueado \(int\) does not accept bool\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Officeimpresso/Services/LicencaService.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysController.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: Modules/PaymentGateway/Jobs/CnabRetornoProcessor.php
+
+		-
+			message: '#^Method Modules\\PaymentGateway\\Repositories\\CobrancaQuery\:\:gateways\(\) should return Illuminate\\Support\\Collection\<int, array\{key\: string, nome\: string, ambiente\: string, ativo\: bool\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, key\: ''ailos_cnab''\|''asaas''\|''banrisul_cnab''\|''bb_api''\|''bb_cnab''\|''bcb_pix''\|''bradesco_api''\|''bradesco_cnab''\|''btg_cnab''\|''c6''\|''caixa_cnab''\|''cresol_cnab''\|''inter''\|''itau_api''\|''itau_cnab''\|''pagarme''\|''pesapal''\|''santander_api''\|''santander_cnab''\|''sicoob_api''\|''sicoob_cnab''\|''sicredi_cnab'', nome\: non\-falsy\-string, ambiente\: ''production''\|''sandbox'', ativo\: bool\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: Modules/PaymentGateway/Repositories/CobrancaQuery.php
+
+		-
+			message: '#^Cannot call method diffInMinutes\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: Modules/Ponto/Entities/Intercorrencia.php
+
+		-
+			message: '#^Parameter \#1 \$num1 of function intdiv expects int, float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Ponto/Services/ApuracaoService.php
+
+		-
+			message: '#^Property Modules\\Ponto\\Entities\\ApuracaoDia\:\:\$interjornada_violacao_minutos \(int\) does not accept float\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Ponto/Services/ApuracaoService.php
+
+		-
+			message: '#^Property Modules\\Ponto\\Entities\\ApuracaoDia\:\:\$realizada_intrajornada_minutos \(int\<0, max\>\) does not accept float\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Ponto/Services/ApuracaoService.php
+
+		-
+			message: '#^Property Modules\\Ponto\\Entities\\ApuracaoDia\:\:\$realizada_trabalhada_minutos \(int\<0, max\>\) does not accept float\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Ponto/Services/ApuracaoService.php
+
+		-
+			message: '#^Instanceof between Carbon\\Carbon and Carbon\\Carbon will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: Modules/Ponto/Services/MarcacaoService.php
+
+		-
+			message: '#^Match arm comparison between ''asaas'' and ''asaas'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: Modules/RecurringBilling/Http/Controllers/ConfiguracoesController.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: Modules/RecurringBilling/Http/Controllers/InvoiceController.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: Modules/RecurringBilling/Http/Controllers/InvoiceController.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 2
+			path: Modules/RecurringBilling/Http/Controllers/InvoiceController.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: Modules/RecurringBilling/Services/AssinaturaCobrancaService.php
+
+		-
+			message: '#^Match arm comparison between ''asaas'' and ''asaas'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: Modules/RecurringBilling/Services/Boleto/BoletoService.php
+
+		-
+			message: '#^Parameter \#2 \$string of function explode expects string, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Repair/Http/Controllers/DeviceModelController.php
+
+		-
+			message: '#^Parameter \#2 \$string of function explode expects string, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Repair/Http/Controllers/RepairController.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments ''approved''\|''declined''\|''waiting'', array\{''cancelled'', ''expired''\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
+
+		-
+			message: '#^Property Modules\\Superadmin\\Entities\\Subscription\:\:\$status \(''approved''\|''declined''\|''waiting''\) does not accept ''cancelled''\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
+
+		-
+			message: '#^Property Modules\\Superadmin\\Entities\\Subscription\:\:\$status \(''approved''\|''declined''\|''waiting''\) does not accept ''expired''\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between ''approved''\|''declined'' and ''waiting_approval'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: Modules/Whatsapp/Http/Controllers/Admin/InboxController.php
+
+		-
+			message: '#^Property Spatie\\Permission\\Models\\Role\:\:\$is_service_staff \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Http/Controllers/RoleController.php
