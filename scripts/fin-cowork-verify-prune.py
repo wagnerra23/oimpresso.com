@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Integridade do prune: nenhuma classe VIVA pode ter perdido definição."""
-import re
+import re, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
-ORIG = ROOT / "resources/css/cowork-canon-financeiro-bundle.css"
-PRUNED = ROOT / "resources/css/cowork-canon-financeiro-bundle.css.pruned"
+def _arg(flag, default):
+    return sys.argv[sys.argv.index(flag) + 1] if flag in sys.argv else default
+_rel = _arg("--bundle", "resources/css/cowork-canon-financeiro-bundle.css")
+ORIG = ROOT / _rel
+PRUNED = ROOT / (_rel + ".pruned")
 JS = ROOT / "resources/js"; VIEWS = ROOT / "resources/views"
 
 used = set()

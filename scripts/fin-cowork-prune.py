@@ -23,7 +23,9 @@ import re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BUNDLE = ROOT / "resources/css/cowork-canon-financeiro-bundle.css"
+def _arg(flag, default):
+    return sys.argv[sys.argv.index(flag) + 1] if flag in sys.argv else default
+BUNDLE = ROOT / _arg("--bundle", "resources/css/cowork-canon-financeiro-bundle.css")
 JS_DIR = ROOT / "resources/js"
 VIEWS_DIR = ROOT / "resources/views"
 
@@ -105,13 +107,23 @@ def split_top_level(s):
 
 CLASS_RE = re.compile(r"\.(-?[A-Za-z_][A-Za-z0-9_-]*)")
 
+# Wrapper de escopo (ex: fin-cowork / sells-cowork): classe mais frequente nos
+# seletores. É a raiz `.wrapper ...` de quase toda regra e SEMPRE viva — precisa
+# ser ignorada no teste de "toda classe morta", senão envenena todas as regras.
+from collections import Counter
+_cnt = Counter()
+for _m in re.finditer(r"([^{}]+)\{", css):
+    _cnt.update(set(CLASS_RE.findall(_m.group(1))))
+WRAPPER = _cnt.most_common(1)[0][0] if _cnt else ""
+
 def rule_deletable(header):
     """SEGURO: removível só se TODA classe do seletor (todos os branches) for
     morta. Assim nenhuma classe viva pode perder sua última definição —
-    mesmo que apareça num seletor composto junto de uma classe morta."""
-    classes = [c for c in CLASS_RE.findall(header) if c != "fin-cowork"]
+    mesmo que apareça num seletor composto junto de uma classe morta.
+    O wrapper de escopo é ignorado (sempre vivo, presente em toda regra)."""
+    classes = [c for c in CLASS_RE.findall(header) if c != WRAPPER]
     if not classes:
-        return False  # sem classe própria => mantém (ex: .fin-cowork, [data-*])
+        return False  # sem classe própria => mantém (ex: .wrapper, [data-*])
     return all(c not in used for c in classes)
 
 def inner_body(raw, header):

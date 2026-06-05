@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-05T17:57:34.968Z",
-    "total_violations": 657,
+    "generated_at": "2026-06-05T18:14:15.483Z",
+    "total_violations": 494,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -30,9 +30,9 @@
     "resources/css/sells-cowork-quotations.css|color-no-hex": 1,
     "resources/css/sells-cowork-show.css|color-no-hex": 11,
     "resources/css/sells-cowork-show.css|declaration-no-important": 2,
-    "resources/css/sells-cowork.css|color-no-hex": 188,
-    "resources/css/sells-cowork.css|declaration-no-important": 40,
-    "resources/css/sells-cowork.css|no-duplicate-selectors": 39,
+    "resources/css/sells-cowork.css|color-no-hex": 69,
+    "resources/css/sells-cowork.css|declaration-no-important": 11,
+    "resources/css/sells-cowork.css|no-duplicate-selectors": 24,
     "resources/css/sells-kb975-cheatsheet.css|color-no-hex": 25,
     "resources/css/sells-kb975-emit-modals.css|color-no-hex": 4,
     "resources/css/sells-kb975-next-action.css|color-no-hex": 6,
