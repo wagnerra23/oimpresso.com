@@ -1,0 +1,128 @@
+name: PHPStan baseline regen (manual)
+
+# Regenera phpstan-baseline.neon FRIO (sem result cache) no MESMO ambiente do gate
+# (ubuntu + PHP 8.4 + Larastan pinado no composer.lock), pra que as mensagens congeladas
+# no baseline batam EXATAMENTE com a inferência que o gate produz a cada run.
+#
+# Por que existe (ADR 0208 — bug 2026-06-05 / PR #2287):
+#   O baseline tinha sido gerado sob uma inferência Larastan/PHP antiga e ficou STALE.
+#   O result cache persistido mascarava o drift; quando invalidava, ~55 erros baselined
+#   ressurgiam como "regressão" falsa. Fix = baseline frio + gate sem cache persistido.
+#
+# Uso: Actions → "PHPStan baseline regen (manual)" → Run workflow → escolher a branch.
+#   O baseline regenerado é commitado na branch escolhida E publicado como artifact.
+#   Rode em commit separado/dedicado (o diff do .neon entra pra revisão humana).
+#
+# Repetir este workflow após QUALQUER bump de toolchain que mexa em inferência
+# (larastan/phpstan no composer.lock, PHP-patch pinado no gate, level no phpstan.neon.dist).
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commitar o baseline regenerado na branch (senão, só artifact)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: phpstan-baseline-regen-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    name: Regenerar phpstan-baseline.neon (frio)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          # MANTER SINCRONIZADO com php-version em phpstan-gate.yml — o baseline tem que
+          # ser gerado no MESMO patch que o gate usa pra analisar, senão drifta de novo.
+          php-version: '8.4.21'
+          extensions: mbstring, xml, ctype, json, opentelemetry, pcntl, posix
+          coverage: none
+          tools: composer:v2
+
+      - name: Registrar versão exata do PHP (pinar no gate p/ determinismo)
+        run: |
+          echo "=== PHP exato deste runner — PINE este patch em phpstan-gate.yml ==="
+          php -v
+          php -r 'echo "PHP_VERSION=".PHP_VERSION."\n";'
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-phpstan-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-phpstan-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Registrar versão Larastan/PHPStan
+        run: |
+          composer show larastan/larastan phpstan/phpstan 2>/dev/null | grep -E "name|versions" || true
+
+      - name: Prepare storage dirs + .env mínimo
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-phpstan
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          BCRYPT_ROUNDS=4
+          APP_KEY=
+          EOF
+          php artisan key:generate --force
+
+      - name: Regenerar baseline FRIO (sem cache restaurado)
+        run: |
+          rm -rf .phpstan-cache
+          vendor/bin/phpstan analyse \
+            --generate-baseline=phpstan-baseline.neon \
+            --memory-limit=1G \
+            --no-progress
+          echo "=== baseline regenerado — $(grep -c 'message:' phpstan-baseline.neon) entradas ==="
+
+      - name: Upload baseline como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpstan-baseline-neon
+          path: phpstan-baseline.neon
+          retention-days: 14
+
+      - name: Commitar baseline na branch
+        # Só no dispatch manual. No bootstrap (push), o baseline sai como artifact e é
+        # commitado por humano/agente pra autoria limpa + gate validar via pull_request.
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.commit }}
+        run: |
+          if git diff --quiet -- phpstan-baseline.neon; then
+            echo "Baseline já está limpo (sem diff) — nada a commitar."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add phpstan-baseline.neon
+          git commit \
+            -m "chore(phpstan): regenerar baseline frio vs toolchain atual (ADR 0208)" \
+            -m "Baseline estava stale: inferencia Larastan/PHP antiga congelada nao casava com a inferencia atual em run frio -> ~55 erros baselined ressurgiam como regressao falsa (PR #2287). Regen frio elimina o drift." \
+            -m "Refs: ADR 0208"
+          git push origin HEAD:${{ github.ref_name }}

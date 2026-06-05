@@ -42,7 +42,12 @@ jobs:
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          # PHP-patch PINADO (não floating '8.4'): a inferência Larastan pode mudar
+          # entre patches, e o phpstan-baseline.neon é gerado contra um patch exato.
+          # Patch floating fazia o baseline drift silenciosamente quando a imagem do
+          # runner atualizava o PHP. Manter SINCRONIZADO com phpstan-baseline-regen.yml
+          # — ao bumpar aqui, rodar o regen e commitar o baseline novo no mesmo PR.
+          php-version: '8.4.21'
           extensions: mbstring, xml, ctype, json, opentelemetry, pcntl, posix
           coverage: none
           tools: composer:v2
@@ -54,12 +59,24 @@ jobs:
           key: composer-phpstan-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-phpstan-${{ runner.os }}-
 
-      - name: Cache PHPStan result cache
-        uses: actions/cache@v4
-        with:
-          path: .phpstan-cache
-          key: phpstan-cache-${{ runner.os }}-${{ hashFiles('phpstan.neon.dist', 'composer.lock') }}
-          restore-keys: phpstan-cache-${{ runner.os }}-
+      # NÃO persistir o PHPStan result cache entre runs (determinismo — ADR 0208).
+      #
+      # Bug 2026-06-05 (PR #2287): o result cache restaurado via actions/cache servia
+      # resultados de uma inferência Larastan ANTIGA (versão/PHP-patch diferente) que
+      # casava com o phpstan-baseline.neon congelado. Quando o cache invalidava (bump de
+      # PHP-patch na imagem do runner, mudança em composer.lock, ou perturbação ampla do
+      # grafo de models — ex: novo Entity), o PHPStan rodava frio e a inferência ATUAL
+      # produzia mensagens diferentes (tipos literais precisos vs `mixed`, identifiers
+      # distintos) que o regex do baseline não casava → ~55 erros pré-existentes/baselined
+      # "ressurgiam" como regressão nova em arquivos que o PR nem tocou.
+      #
+      # Sem cache persistido, TODA run é fria/determinística e sempre bate com o baseline
+      # gerado frio (mesma inferência). Custo: análise full a cada PR (~minutos) — aceitável
+      # pra um gate de correção. Regenerar baseline via workflow phpstan-baseline-regen.yml.
+      #
+      # Alternativa (mais rápida, mais peças): manter o cache mas (a) pinar PHP-patch exato,
+      # (b) trocar restore-keys por chave exata incluindo a versão Larastan, pra nunca
+      # restaurar cache cross-toolchain. Optamos pelo caminho à prova de balas.
 
       - name: Install PHP deps
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
