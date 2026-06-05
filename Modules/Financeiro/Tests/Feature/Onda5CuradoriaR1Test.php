@@ -23,7 +23,7 @@ uses(Tests\TestCase::class);
 
 const FIN_BASE = __DIR__ . '/../../../../resources/js/Pages/Financeiro/Unificado';
 const FIN_CSS_PATH = __DIR__ . '/../../../../resources/css/fin-curadoria.css';
-const FIN_INERTIA_CSS = __DIR__ . '/../../../../resources/css/inertia.css';
+defined('FIN_INERTIA_CSS') || define('FIN_INERTIA_CSS', __DIR__ . '/../../../../resources/css/inertia.css');
 
 describe('Onda 5 Financeiro R1 Curadoria — 4 components existem', function () {
     it('FinPillFrescor existe e exporta finFrescorInfo + 6 kinds', function () {

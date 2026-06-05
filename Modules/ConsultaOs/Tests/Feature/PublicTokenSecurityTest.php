@@ -32,8 +32,8 @@ beforeEach(function () {
 });
 
 // ID Wagner WR2 — biz canonico para tests (ADR 0101) e ID ficticio sem dados
-const BIZ_WAGNER = 1;
-const BIZ_FICTICIO = 99;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
+defined('BIZ_FICTICIO') || define('BIZ_FICTICIO', 99);
 
 it('cenario A: numero invalido/inexistente retorna 404 com found=false (sem vazar dados)', function () {
     // Tentar varios numeros aleatorios — nenhum existe no mock.

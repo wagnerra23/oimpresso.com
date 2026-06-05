@@ -17,7 +17,7 @@ declare(strict_types=1);
  */
 
 const DRAFTS_PAGE_PATH = 'resources/js/Pages/Sells/Drafts.tsx';
-const DRAFTS_CHARTER_PATH = 'resources/js/Pages/Sells/Drafts.charter.md';
+defined('DRAFTS_CHARTER_PATH') || define('DRAFTS_CHARTER_PATH', 'resources/js/Pages/Sells/Drafts.charter.md');
 const DRAFTS_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
 
 function readDraftsPage(): string

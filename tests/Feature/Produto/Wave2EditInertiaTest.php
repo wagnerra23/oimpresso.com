@@ -9,15 +9,15 @@ if (! function_exists('repo_path')) {
     }
 }
 
-const EDIT_PAGE_PATH = 'resources/js/Pages/Produto/Edit.tsx';
+const PRODUTO_EDIT_PAGE_PATH = 'resources/js/Pages/Produto/Edit.tsx';
 
 function readProdutoEdit(): string
 {
-    return file_get_contents(repo_path(EDIT_PAGE_PATH));
+    return file_get_contents(repo_path(PRODUTO_EDIT_PAGE_PATH));
 }
 
 it('Page existe em Pages/Produto/Edit.tsx', function () {
-    expect(file_exists(repo_path(EDIT_PAGE_PATH)))->toBeTrue();
+    expect(file_exists(repo_path(PRODUTO_EDIT_PAGE_PATH)))->toBeTrue();
 });
 
 it('Page importa AppShellV2', function () {

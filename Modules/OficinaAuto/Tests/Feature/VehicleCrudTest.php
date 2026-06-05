@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
-const BIZ_WAGNER = 1;
+defined('BIZ_WAGNER') || define('BIZ_WAGNER', 1);
 
 beforeEach(function () {
     // CI SQLite :memory: sem migrate UltimatePOS — testes precisam schema MySQL completo

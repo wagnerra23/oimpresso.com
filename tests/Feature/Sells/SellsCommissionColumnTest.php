@@ -23,7 +23,7 @@ declare(strict_types=1);
  *  - PR #1043 "NÃO INCLUI" (Onda 5 Polish — dados reais)
  */
 
-const COMMISSION_SELL_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
+defined('COMMISSION_SELL_CONTROLLER_PATH') || define('COMMISSION_SELL_CONTROLLER_PATH', 'app/Http/Controllers/SellController.php');
 const COMMISSION_INDEX_TSX_PATH = 'resources/js/Pages/Sells/Index.tsx';
 
 function commissionReadSellController(): string

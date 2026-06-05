@@ -18,7 +18,7 @@ declare(strict_types=1);
  */
 
 const EDIT_PAGE_PATH = 'resources/js/Pages/Sells/Edit.tsx';
-const EDIT_CHARTER_PATH = 'resources/js/Pages/Sells/Edit.charter.md';
+defined('EDIT_CHARTER_PATH') || define('EDIT_CHARTER_PATH', 'resources/js/Pages/Sells/Edit.charter.md');
 const EDIT_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
 
 function readEditPage(): string
