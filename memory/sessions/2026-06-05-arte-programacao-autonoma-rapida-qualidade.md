@@ -182,6 +182,75 @@ E o erro de orquestração: **fan-out sem schema validation entre subagent e orq
 
 ---
 
+## 9. PLANO — o que falta no oimpresso (executável, batch pro backlog MCP)
+
+> Estado real confirmado 2026-06-05 (inspeção `composer.json` + `.claude/hooks/` + `.github/workflows/`):
+> - ✅ **TEM:** Pest v4 (+ browser, +laravel), 35+ CI gates (`modules-pest`, `multi-tenant-gate`, `financeiro-pest`, `mwart-gate`, `charter-gate`, `module-grades-gate`), hooks fortes (`block-mwart`, `block-claim-without-evidence`, `block-test-fora-ct100`), CT 100 staging com MySQL real biz=1.
+> - ❌ **NÃO TEM:** `pest-plugin-property` (PBT), `infection` (mutation — pasta `vendor/infection/` vazia), hook **red-first**, gate de **impact-analysis** (TDAD), subagent **refutador**.
+>
+> **Conclusão:** o gap é 100% **mecânica de teste**, não processo. As 6 US abaixo são o caminho. Recalibrado fator 10x ([ADR 0106](../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)). ⚠️ **Não criar tasks sem Wagner aprovar o batch** (publication-policy).
+
+### ONDA 1 — Fundação "teste especializado" (~1 sprint · maior ROI)
+
+#### US-TEST-001 · PBT nas 3 invariantes Tier 0 (piloto) — **P0 · ~4h**
+- **O quê:** instalar `pestphp/pest-plugin-mutate`/property (ou `eris`/`fakerphp` generators) e escrever **3 property tests** das invariantes que já são regra Tier 0:
+  1. **FSM** (`app/Domain/Fsm/`): *para qualquer subject + qualquer sequência válida de actions, nunca existe UPDATE direto em `current_stage_id`* (trait `GuardsFsmTransitions` sempre dispara). Gera N sequências aleatórias de transição.
+  2. **Financeiro** (`Modules/Financeiro/`): *para qualquer valor de baixa B ≤ saldo, `saldo_depois == saldo_antes − B`* (conservação). Gera valores/parcelas aleatórias.
+  3. **Estoque** (FSM side-effects `ReservarEstoque`/`ConsumirEstoque`/`LiberarReserva`): *reservado + disponível = total, sempre* (invariante de conservação).
+- **Onde pluga:** `tests/Property/` novo + roda no CT 100 (`tailscale ssh root@ct100-mcp "docker exec oimpresso-staging vendor/bin/pest --group=property"`).
+- **DoD:** 3 properties verdes com ≥100 casos gerados cada + 1 mutante manual confirma que pegam o bug.
+- **Por quê primeiro:** as invariantes **já existem escritas em português** nas proibições Tier 0 — só falta expressá-las como propriedade. ROI imediato num ERP com lei (Portaria 671, baixa financeira).
+
+#### US-TEST-002 · Hook red-first (PreToolUse) — **P1 · ~3h**
+- **O quê:** hook `.claude/hooks/block-impl-without-failing-test.mjs` que, ao detectar Edit em `Modules/<X>/.../*Service.php` ou `Controller.php` **sem** um teste falhando commitado nos últimos commits/`.claude/run/`, **avisa** (nudge, não bloqueio duro no começo — virar bloqueio após calibrar). Espelha `nudge-diagnosis-without-evidence.ps1` que já existe.
+- **Onde pluga:** `.claude/hooks/` + registro em `settings.json` (matcher `Edit|Write`).
+- **DoD:** hook dispara em PR de teste sem red-first; escape valve `# tdd-override: <razão>`.
+- **Por quê:** transforma TDD de cultura → mecânica. Pesquisa: red-first é o que dá "exit criteria" ao agente.
+
+### ONDA 2 — Impact analysis + verificação (~2 sprints)
+
+#### US-TEST-003 · TDAD-lite (grafo arquivo→teste + "rode só impactados") — **P1 · ~6h**
+- **O quê:** comando `php artisan test:impacted` que constrói grafo simples (parser: quais `*Test.php` referenciam a classe/Model tocada no diff `git diff --name-only`) e roda **só o subset impactado** antes de declarar pronto. Versão "lite" sem AST completo — usa namespaces + `use` statements.
+- **Onde pluga:** `app/Console/Commands/` + opcional gate CI leve `impacted-pest.yml` (roda subset no PR, suíte completa no merge).
+- **DoD:** num diff que toca `ServiceOrder`, roda só `ServiceOrderCrudTest` + dependentes, não a suíte inteira. Mede tempo: subset < 20% do full.
+- **Por quê:** pesquisa TDAD = **-70% regressão** quando o agente sabe QUAIS testes a mudança afeta. Acelera o loop (não roda 100% sempre).
+
+#### US-TEST-004 · Subagent refutador no `/ultrareview` — **P2 · ~3h**
+- **O quê:** estender skill `ultrareview` pra spawnar 1 subagent (modelo diferente/contexto limpo) cuja única missão é **REFUTAR** o "está pronto" — tentar achar 1 caso que quebra antes do merge. "Quem faz não dá a nota."
+- **Onde pluga:** `.claude/skills/ultrareview/` (ou agent novo `.claude/agents/refutador.md`).
+- **DoD:** roda em 1 PR real, produz ou "refutado: caso X" ou "não consegui refutar em N tentativas".
+- **Por quê:** fecha a Camada 4 (já estamos 92/100) com a única peça que falta. Pattern Anthropic "verification by second opinion".
+
+### ONDA 3 — High-assurance (trimestral / contínuo)
+
+#### US-TEST-005 · Mutation testing trimestral (Tier 0) — **P2 · ~5h setup**
+- **O quê:** instalar `infection/infection`, configurar pra rodar **só** `app/Domain/Fsm/` + `Modules/Financeiro/` + multi-tenant scopes. Cron trimestral no CT 100 (caro pra rodar sempre). Meta MSI (Mutation Score Indicator) ≥ 70% nesses módulos.
+- **Onde pluga:** `infection.json5` + workflow `mutation-tier0-quarterly.yml` (schedule) + relatório no PR.
+- **DoD:** 1 run completo gera MSI baseline dos 3 alvos; mutantes sobreviventes viram tasks.
+- **Por quê:** cobertura mente (linha coberta ≠ comportamento testado). Mutation mede a **força real** da suíte. Meta usa em escala.
+
+#### US-TEST-006 · Expandir PBT pra todos módulos com invariante — **P3 · contínuo**
+- **O quê:** após piloto US-TEST-001 validar, adicionar 1 property test por módulo que tenha invariante de conservação/append-only (Ponto: marcação append-only; NfeBrasil: número usado nunca reusa; RecurringBilling: soma parcelas = total fatura).
+- **DoD:** ≥ 1 property por módulo Tier 0; entra no `module:grade` como dimensão.
+- **Por quê:** escala o ganho da Onda 1 sem reabrir decisão.
+
+### Resumo do plano
+
+| Onda | US | Prio | Esforço | Entrega | Bloqueia |
+|---|---|:---:|:---:|---|---|
+| 1 | US-TEST-001 PBT piloto (3 invariantes) | P0 | ~4h | propriedades FSM/Financeiro/estoque verdes | — |
+| 1 | US-TEST-002 hook red-first | P1 | ~3h | nudge TDD mecânico | — |
+| 2 | US-TEST-003 TDAD-lite impacted | P1 | ~6h | -70% regressão + loop rápido | US-TEST-001 (convenção) |
+| 2 | US-TEST-004 subagent refutador | P2 | ~3h | Camada 4 fechada | — |
+| 3 | US-TEST-005 mutation Tier 0 | P2 | ~5h | MSI baseline | US-TEST-001 |
+| 3 | US-TEST-006 PBT todos módulos | P3 | contínuo | invariante por módulo | US-TEST-001 |
+
+**Sequência crítica:** US-TEST-001 destrava tudo (estabelece o padrão de property test). Começar por ela. Total Ondas 1+2 ≈ 16h de trabalho codável (recalibrado) → ~2 sprints com IA-pair.
+
+**Próximo passo (Wagner aprova):** transformar essas 6 US em `tasks-create` no MCP (módulo virtual `TestInfra` ou dentro de `Governance`). Não criei nada — aguardo seu OK no batch.
+
+---
+
 ## 8. Fontes
 
 **Rankings / benchmarks (atualizados jun/2026):**
@@ -229,3 +298,4 @@ E o erro de orquestração: **fan-out sem schema validation entre subagent e orq
 - **2026-06-05 (v1):** versão inicial — SDD/TDAD/PBT + ranking agentes (GPT-5.3-Codex no topo do Pro ~56.8%).
 - **2026-06-05 (v2):** Wagner pediu "tabela primeiro" → tabelas com notas movidas pro topo.
 - **2026-06-05 (v3):** Wagner pediu "pesquise os atualizados" → dados refrescados jun/2026: **GPT-5.5 assumiu #1** (88.7% Verified / 58.6% Pro-SEAL), **Gemini 3.1 Pro** entrou no top tier (54.2% Pro), **Devin→Devin Desktop** (relançado 02/jun), e separação explícita **Pro-SEAL (honesto) vs Pro-público (gamed por scaffold)**. Tabela 2 reordenada; §3 colapsada pra evitar números duplicados/stale.
+- **2026-06-05 (v4):** Wagner pediu "o plano do que falta no meu" → §9 PLANO executável adicionado, ancorado na inspeção real (`composer.json`/`hooks/`/`workflows/`): 6 US (US-TEST-001..006) em 3 ondas, gap = 100% mecânica de teste (PBT + TDAD-lite + mutation + red-first hook + refutador). Aguarda Wagner aprovar batch `tasks-create`.
