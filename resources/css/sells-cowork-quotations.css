@@ -55,51 +55,15 @@
 }
 
 /* ── Botão "Converter em venda" (CTA verde, distinto de "Enviar") ── */
-.sells-cowork-quotations .vd-quote-convert-btn {
-  appearance: none;
-  background: var(--vd-quote-convert);
-  color: var(--vd-quote-convert-fg);
-  border: 1px solid var(--vd-quote-convert);
-  padding: 5px 11px;
-  border-radius: var(--radius-sm, 6px);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: background .12s, border-color .12s;
-}
-.sells-cowork-quotations .vd-quote-convert-btn:hover {
-  background: var(--vd-quote-convert-hover);
-  border-color: var(--vd-quote-convert-hover);
-}
-.sells-cowork-quotations .vd-quote-convert-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 /* ── Chip de expiração (validade do orçamento) ── */
-.sells-cowork-quotations .vd-quote-expiry {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1.4;
-  font-variant-numeric: tabular-nums;
-}
+
 .sells-cowork-quotations .vd-quote-expiry.expired {
   background: var(--vd-quote-expired-soft);
   color: var(--vd-quote-expired);
   border: 1px solid color-mix(in oklch, var(--vd-quote-expired) 30%, transparent);
 }
-.sells-cowork-quotations .vd-quote-expiry.expiring {
-  background: var(--vd-quote-expiring-soft);
-  color: var(--vd-quote-expiring);
-  border: 1px solid color-mix(in oklch, var(--vd-quote-expiring) 30%, transparent);
-}
+
 .sells-cowork-quotations .vd-quote-expiry.fresh {
   background: var(--bg-2, oklch(0.965 0.004 90));
   color: var(--text-dim, oklch(0.50 0.01 80));
