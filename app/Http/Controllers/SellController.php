@@ -2545,7 +2545,6 @@ class SellController extends Controller
 
             $journey = (new \App\Services\SaleJourneyService())->build([
                 'source'           => (string) ($sell->source ?? 'balcao'),
-                'status'           => (string) $sell->status,
                 'has_oficina_auto' => $hasOficinaAuto,
                 'os_ref'           => $sell->os_ref ?? null,
                 'invoiced'         => in_array(strtolower((string) $fiscalStatus), ['autorizada', 'authorized', 'emitida', 'enviada', 'aprovada'], true),

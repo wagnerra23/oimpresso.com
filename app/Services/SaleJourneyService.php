@@ -47,10 +47,8 @@ class SaleJourneyService
     /**
      * @param array{
      *   source?: string|null,
-     *   status?: string|null,
      *   has_oficina_auto?: bool,
-     *   has_vehicle?: bool,
-     *   has_os?: bool,
+     *   os_ref?: string|null,
      *   invoiced?: bool,
      *   delivered?: bool
      * } $state
@@ -59,6 +57,7 @@ class SaleJourneyService
      *   show: bool,
      *   direction: string,
      *   current: string|null,
+     *   os_ref: string|null,
      *   nodes: array<int, array{key:string,label:string,state:string}>
      * }
      */
@@ -109,7 +108,7 @@ class SaleJourneyService
         return [
             'show'      => $show,
             'direction' => 'oficina',
-            'current'   => $order[$currentIdx] ?? null,
+            'current'   => $order[$currentIdx],
             'os_ref'    => $osRef,
             'nodes'     => $nodes,
         ];
