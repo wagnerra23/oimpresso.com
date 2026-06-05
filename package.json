@@ -20,6 +20,8 @@
     "stylelint": "stylelint \"resources/css/**/*.css\"",
     "stylelint:baseline:write": "node scripts/stylelint-baseline.mjs --write",
     "stylelint:baseline:check": "node scripts/stylelint-baseline.mjs",
+    "css:size:write": "node scripts/css-size-baseline.mjs --write",
+    "css:size:check": "node scripts/css-size-baseline.mjs",
     "ds:report": "node scripts/ds-report.mjs",
     "ds:report:write": "node scripts/ds-report.mjs --write",
     "design:review": "node prototipo-ui/audit/review-gen.mjs",
