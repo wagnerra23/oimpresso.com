@@ -216,6 +216,22 @@
 
 Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evidence/SKILL.md`](../.claude/skills/smoke-prod-evidence/SKILL.md).
 
+## Ideias avaliadas e DESCARTADAS — não re-propor (registro de regressões · equiv. §5 do PROCESSO_MEMORIA_CC)
+
+> **Por que existe:** o método de design ([`prototipo-ui/PROCESSO_MEMORIA_CC.md`](../prototipo-ui/PROCESSO_MEMORIA_CC.md) §5) tem um registro de "tentei, reprovou, não repete". O mundo de **código** não tinha equivalente — então uma sessão futura **re-propõe ideia morta** e regride na prática. Este é o §5 do código (Opção B: sistema separado do design, mesmo princípio). **Antes de propor abordagem técnica, conferir aqui; se bater, eu mesmo barro e cito a entrada.**
+>
+> Estrutura de cada entrada (igual ao §5): **o que foi tentado · por que caiu · o limite (a variante parecida também é proibida)**. Append-only — nada sai daqui sem ADR explícito.
+
+### 2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente
+- **O que foi tentado:** criar um roadmap de evolução (design + teste) num doc novo, em paralelo ao [`AUTOMATION-ROADMAP.md`](requisitos/_DesignSystem/AUTOMATION-ROADMAP.md) (que já tem Ondas) — e um roadmap de teste órfão sem casa.
+- **Por que caiu:** viola o gate **T6 (DURO)** do método — *"evoluindo o que EXISTE, não criando paralelo; 1 tema = 1 doc"*. Dois roadmaps competindo pelo mesmo juiz = fragmentação (a dor que Wagner levantou: "não saber onde está nada").
+- **O limite (variante também proibida):** qualquer doc de plano/roadmap/SPEC novo que **duplique** roadmap/SPEC/ADR já existente. Antes de criar plano, achar o canon dono do tema e **estender** (nova Onda/seção), nunca abrir paralelo.
+
+### 2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato
+- **O que foi tentado:** property test (`FsmAuthorizationFlagPropertyTest`) cujas invariantes foram extraídas do que a classe **faz hoje**, não de um contrato independente ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) + §"FSM Pipeline Canônico" deste arquivo).
+- **Por que caiu:** teste derivado do código é tautológico — passa ✅ mesmo se o comportamento estiver errado vs a intenção, e **trava (catraca) o desvio** em vez de pegá-lo. Pior que não ter teste. (NÚCLEO invariante 4 do método: *"Casos = contrato de não-regressão"*.)
+- **O limite (variante também proibida):** qualquer teste cuja asserção venha da implementação (ou do palpite do agente) e não de um contrato externo (SPEC / ADR / proibicoes / charter / casos). **Teste sem âncora de contrato citada = rejeitado** no gate pré-adoção (Peça 2).
+
 ## Sempre fazer
 
 - ✅ **PT-BR em tudo** — texto, commit, comentário, label. Código em inglês ok; domínio negócio em PT (`Marcacao`, `Intercorrencia`, `BancoHoras`)
