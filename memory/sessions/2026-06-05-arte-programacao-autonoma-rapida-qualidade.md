@@ -19,20 +19,25 @@
 | 7 | **Mutation testing com LLM** | **72** | Injeta bugs artificiais pra medir a FORÇA real da suíte (cobertura mente). Caro → uso trimestral em módulos críticos. |
 | ⚠️ — | **Vibe coding** (anti-padrão p/ sistema) | **40** | Rápido pra demo, **dívida técnica + drift** em produção. Só serve pra explorar/prototipar. |
 
-## ⭐ Tabela 2 — Quem programa autônomo COM qualidade (agentes pontuados)
+## ⭐ Tabela 2 — Quem programa autônomo COM qualidade (agentes pontuados · ATUALIZADO 2026-06-05)
 
-> Nota ponderada: **corretude em tarefa real (SWE-bench Pro, anti-contaminação) 40% · autonomia long-horizon 25% · qualidade/manutenibilidade 20% · custo/controle 15%.** Uso o **Pro** porque o *Verified* está contaminado (OpenAI parou de reportar).
+> Nota ponderada: **corretude em tarefa real (SWE-bench Pro c/ scaffold padronizado Scale SEAL) 40% · autonomia long-horizon 25% · qualidade/manutenibilidade 20% · custo/controle 15%.**
+> ⚠️ **Duas colunas porque há dois "Pro":** o **Pro-SEAL** (Scale, scaffold IDÊNTICO p/ todos, limite 250-turn = honesto) e o **Pro-público/Verified** (cada vendor tuna o próprio agente = inflado/"gamed"). Pondero pelo **SEAL**.
 
-| # | Agente/Sistema | SWE-bench (Verified / **Pro**) | Nota | Por quê |
+| # | Agente/Sistema | **Pro-SEAL** / Verified | Nota | Por quê |
 |---|---|---|:---:|---|
-| 🥇 1 | **GPT-5.3-Codex** | — / **56.8%** | **92** | Líder no benchmark honesto (Pro). Forte em long-horizon multi-arquivo (107 linhas / 4.1 arquivos). |
-| 🥈 2 | **Claude Opus 4.6 + subagent de busca** | — / **57.5%** | **91** | Maior Pro absoluto QUANDO pareado com subagent — prova: **orquestração faz o número subir, não o modelo sozinho.** |
-| 🥉 3 | **Claude Code (Opus 4.8 + Dynamic Workflows)** | 87.6% / ~46% | **90** | Melhor *sistema* agêntico end-to-end: subagents, skills, hooks, até 1.000 subagents. **É o stack que o oimpresso roda.** |
-| 4 | **Claude Mythos Preview** | 93.9% / 45.9% | **84** | Topo do Verified, mas gap 93.9%→45.9% no Pro = overfit ao benchmark. Cuidado com hype de número. |
-| 5 | **OpenHands (open-source)** | ~70%+ / — | **78** | Melhor open-source self-hosted. Pra quem precisa on-prem/sem vendor lock. Qualidade abaixo dos frontier. |
-| 6 | **Devin 2.0 (Cognition)** | 45.8% / — | **68** | Pioneiro "engenheiro autônomo", mas SWE-bench unassisted fraco (45.8%). Marketing > números. |
+| 🥇 1 | **GPT-5.5 (Codex CLI)** — lançado 23/abr/2026 | **58.6%** / 88.7% | **94** | **Novo #1.** Líder no Pro honesto E no Verified (88.7%, +1.1 vs Opus 4.7). Também #1 Terminal-Bench 2.0 (82%). OpenAI assumiu a ponta em abril. |
+| 🥈 2 | **Claude Opus 4.6 + subagent de busca** | **57.5%** / — | **91** | Prova a tese: **orquestração faz o número subir, não o modelo sozinho.** |
+| 🥉 3 | **GPT-5.3-Codex** | **57.0%** / 85.0% | **90** | Forte em long-horizon multi-arquivo (107 linhas / 4.1 arquivos). |
+| 4 | **Claude Code (Opus 4.8 + Dynamic Workflows)** | ~46% (SEAL) · 69.2% (público) / 87.6% | **90** | Melhor *sistema* agêntico end-to-end: subagents isolados, skills, hooks, até 1.000 subagents, 1M context. **É o stack que o oimpresso roda** — controle+governança imbatíveis. |
+| 5 | **Gemini 3.1 Pro** — novo entrante | **54.2%** / 80.6% | **86** | Subiu forte: 3º tier de corretude + 1M context + grátis via Antigravity 2.0. |
+| 6 | **Claude Mythos Preview** | **45.9%** (SEAL) · 77.8% (público) / 93.9% | **82** | 93.9% Verified é recorde, mas o gap p/ 45.9% no SEAL **denuncia scaffold gaming**. Hype de número. |
+| 7 | **OpenHands / Cline (open-source)** | — / ~70% | **77** | Melhor OSS self-hosted (Cline 5M+ installs, zero markup). On-prem/sem vendor lock. Qualidade abaixo dos frontier. |
+| 8 | **Devin Desktop (Cognition)** — relançado 02/jun/2026 | — / 45.8% | **70** | Mais autônomo end-to-end (planeja→testa→abre PR), retirou o nome Windsurf. Mas benchmark unassisted fraco. Marketing > números. |
 
-> 📉 **Leitura crítica:** o número "real" cai de ~88% (Verified contaminado) → **~57% (Pro honesto)**. **Ninguém programa "sistema inteiro sozinho" ainda** — o teto do estado-da-arte é ~57% das issues difíceis resolvidas autonomamente.
+> 📉 **Leitura crítica (atualizada):** trocando scaffold inflado → padronizado (SEAL), o teto cai de ~88-93% → **~58%**. **Ninguém programa "sistema inteiro sozinho" ainda** — o estado-da-arte honesto é **~58% das issues difíceis** resolvidas autonomamente. Quando alguém te mostrar "93%", pergunte: *é SEAL ou é o agente tunado pro benchmark?*
+>
+> 🔄 **O que mudou desde a 1ª versão (mai→jun/2026):** (1) **GPT-5.5 tomou o #1** de Claude no Verified e Pro-SEAL; (2) **Gemini 3.1 Pro** entrou no top tier; (3) **Devin** virou **Devin Desktop**; (4) ficou claro que o leaderboard "público" é gamed por scaffold — só o **Scale SEAL** é comparável.
 
 ---
 
@@ -94,23 +99,16 @@ A ideia central: **o teste deixa de ser verificação no fim e vira a ESPECIFICA
 
 ---
 
-## 3. Quem programa autônomo COM qualidade — ranking 2026 (com notas)
+## 3. Quem programa autônomo COM qualidade — leituras-chave
 
-> Notas ponderadas: **corretude em tarefa real (SWE-bench Pro, contaminação-resistente) 40% · autonomia long-horizon 25% · qualidade/manutenibilidade 20% · custo/controle 15%.** SWE-bench *Verified* está contaminado (OpenAI parou de reportar) — uso o **Pro** como sinal honesto.
-
-| # | Agente/Sistema | SWE-bench (Verified / **Pro**) | Nota | Por quê |
-|---|---|---|---|---|
-| 🥇 1 | **GPT-5.3-Codex** | — / **56.8%** | **92** | Líder honesto no benchmark anti-contaminação (Pro). Forte em long-horizon multi-arquivo (média 107 linhas / 4.1 arquivos). |
-| 🥈 2 | **Claude Opus 4.6 + WarpGrep v2 (search subagent)** | — / **57.5%** | **91** | Maior Pro absoluto QUANDO pareado com subagent de busca — prova a tese: **o agente sozinho não basta, a orquestração faz o número subir.** |
-| 🥉 3 | **Claude Code (Opus 4.8 + Dynamic Workflows)** | 87.6% / ~46% | **90** | Melhor *sistema agêntico* end-to-end: subagents isolados, Dynamic Workflows (até 1.000 subagents, research preview mai/2026), skills, hooks. **É o stack que o oimpresso roda.** Melhor relação qualidade+controle+governança. |
-| 4 | **Claude Mythos Preview** | 93.9% / 45.9% | **84** | Topo do Verified, mas o gap brutal 93.9%→45.9% no Pro denuncia overfit ao benchmark. Cuidado com hype de número. |
-| 5 | **OpenHands (open-source)** | ~70%+ / — | **78** | Melhor open-source self-hosted; bom pra quem precisa rodar on-prem/sem vendor lock. Qualidade abaixo dos frontier. |
-| 6 | **Devin 2.0 (Cognition)** | 45.8% / — | **68** | Pioneiro "engenheiro autônomo", mas SWE-bench *unassisted* fraco (45.8%). Brilha em tarefas guiadas/repetitivas, decepciona em autonomia real. Marketing > números. |
+> 👉 O ranking pontuado está na **Tabela 2** no topo (atualizado 2026-06-05). Aqui só as conclusões.
 
 **Leituras-chave do ranking:**
-- **O número que importa caiu de ~88% pra ~57%** quando se troca benchmark contaminado (Verified) por honesto (Pro). Ninguém "programa sistema inteiro sozinho" ainda — o estado-da-arte real é **~57% de tarefas de issue resolvidas autonomamente** nas difíceis.
-- **O salto vem da ORQUESTRAÇÃO, não do modelo isolado:** Opus 4.6 sozinho < Opus 4.6 + subagent de busca (57.5%). Isso valida o pattern `coordenador-paralelo` + waves do oimpresso.
-- **"Melhor sistema" ≠ "maior número de benchmark":** Claude Code lidera em qualidade/governança/controle, que é o que importa pra um ERP multi-tenant com lei (Portaria 671, LGPD) — não é uma corrida de pass@1.
+- **O número que importa caiu de ~88-93% pra ~58%** quando se troca scaffold inflado (Verified / Pro-público) por padronizado (Pro-SEAL, Scale, 250-turn). Ninguém "programa sistema inteiro sozinho" ainda — o estado-da-arte honesto é **~58% das issues difíceis** resolvidas autonomamente.
+- **GPT-5.5 tomou o #1 (abr/2026)** tanto no Verified (88.7%) quanto no Pro-SEAL (58.6%) — a liderança trocou de mãos desde a 1ª versão deste doc.
+- **O salto vem da ORQUESTRAÇÃO, não do modelo isolado:** Opus 4.6 sozinho < Opus 4.6 + subagent de busca (57.5%). Valida o pattern `coordenador-paralelo` + waves do oimpresso.
+- **Cuidado com scaffold gaming:** Mythos mostra 93.9% (Verified) mas 45.9% (SEAL). Sempre pergunte qual benchmark. O leaderboard público é tunável pelo vendor; o SEAL não.
+- **"Melhor sistema" ≠ "maior número":** Claude Code lidera em qualidade/governança/controle — o que importa pra um ERP multi-tenant com lei (Portaria 671, LGPD), não é corrida de pass@1.
 
 ---
 
@@ -186,7 +184,13 @@ E o erro de orquestração: **fan-out sem schema validation entre subagent e orq
 
 ## 8. Fontes
 
-**Rankings / benchmarks:**
+**Rankings / benchmarks (atualizados jun/2026):**
+- [SWE-Bench Leaderboard Mai 2026 — GPT-5.5 lidera 88.7% Verified / 58.6% Pro](https://www.marc0.dev/en/leaderboard)
+- [SWE-Bench Pro 2026 Ranking: Opus 4.7 vs GPT-5.5 vs GPT-5.3-Codex — QCode](https://qcode.cc/en/swe-bench-pro-2026-ranking)
+- [SWE-Bench Pro Public (Scale SEAL, scaffold padronizado)](https://labs.scale.com/leaderboard/swe_bench_pro_public)
+- [SWE-Bench Pro Leaderboard — llm-stats (público, Mythos 77.8%)](https://llm-stats.com/benchmarks/swe-bench-pro)
+- [Best AI Coding Agents 2026 (Claude Code/Codex/Devin/Cline ranked) — Blink](https://blink.new/blog/best-ai-coding-agents-2026)
+- [GPT-5.5 vs Gemini 3.1 Pro — DataCamp](https://www.datacamp.com/blog/gpt-5-5-vs-gemini-3-1-pro)
 - [SWE-bench Pro Leaderboard 2026 — Morph (Why 46% Beats 81%)](https://www.morphllm.com/swe-bench-pro)
 - [SWE-Bench Pro — Scale AI (contamination-resistant)](https://scale.com/blog/swe-bench-pro)
 - [SWE-bench Leaderboard 2026 — CodeAnt](https://www.codeant.ai/blogs/swe-bench-scores)
@@ -217,3 +221,11 @@ E o erro de orquestração: **fan-out sem schema validation entre subagent e orq
 ---
 
 *Gerado pela skill estado-da-arte. Não executa código nem commita produção — entrega conhecimento decisório. Próximo passo natural: Wagner escolhe quais das 5 ações viram US no backlog MCP (`tasks-create`).*
+
+---
+
+### Trilha do tempo (append-only)
+
+- **2026-06-05 (v1):** versão inicial — SDD/TDAD/PBT + ranking agentes (GPT-5.3-Codex no topo do Pro ~56.8%).
+- **2026-06-05 (v2):** Wagner pediu "tabela primeiro" → tabelas com notas movidas pro topo.
+- **2026-06-05 (v3):** Wagner pediu "pesquise os atualizados" → dados refrescados jun/2026: **GPT-5.5 assumiu #1** (88.7% Verified / 58.6% Pro-SEAL), **Gemini 3.1 Pro** entrou no top tier (54.2% Pro), **Devin→Devin Desktop** (relançado 02/jun), e separação explícita **Pro-SEAL (honesto) vs Pro-público (gamed por scaffold)**. Tabela 2 reordenada; §3 colapsada pra evitar números duplicados/stale.
