@@ -229,10 +229,13 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // pra Show (supplier NUNCA cai aqui). Ver app/Http/Middleware/RedirectLegacyContacts.php.
     //
     // ADR 0188 (2026-05-24) — Slot 2 PT-01 multi-type: `/cliente?type=X` aceita
-    // whitelist 5 valores (customer/supplier/employee/representative/all). Default
+    // whitelist 6 valores (customer/supplier/employee/representative/other/all). Default
     // 'customer' se ausente ou inválido pra retrocompat com bookmarks/links externos.
+    // ADR 0246 (2026-06-03) — `other` (aba "Outros") incluído: o frontend (Index.tsx
+    // SLOT2_TABS) + controller ($types/$inertiaTypes) já aceitavam, mas esta whitelist
+    // ficou pra trás → `?type=other` caía no fallback `customer` (aba abria em Clientes).
     Route::get('/cliente', function (ContactController $c) {
-        $allowed = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        $allowed = ['customer', 'supplier', 'employee', 'representative', 'other', 'all'];
         $type = (string) request()->query('type', 'customer');
         if (! in_array($type, $allowed, true)) {
             $type = 'customer';
