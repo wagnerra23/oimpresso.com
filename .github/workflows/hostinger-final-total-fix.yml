@@ -1,21 +1,13 @@
 name: Hostinger — corrigir final_total inflado (incidente num_uf 2026-06-05)
 
-# HOTFIX OUTAGE 2026-06-05: reaproveitado pra diagnóstico+recovery do prod 500.
-# Roda via gh workflow run --ref <branch>. Remover pós-incidente.
+# HOTFIX OUTAGE 2026-06-05: prod 500 = ScribeServiceProvider not found (require-dev
+# não instalado em prod, mas no packages.php cacheado). Remove o manifest stale.
 
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: 'ignorado (recovery)'
-        required: false
-        default: 'recovery'
-        type: string
-      since:
-        description: 'ignorado'
-        required: false
-        default: '-'
-        type: string
+      mode: { description: 'ignorado', required: false, default: 'recovery2', type: string }
+      since: { description: 'ignorado', required: false, default: '-', type: string }
 
 concurrency:
   group: hostinger-final-total-fix
@@ -25,7 +17,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH Hostinger → diagnóstico + recovery prod 500
+      - name: SSH Hostinger → recovery2 (rm manifest scribe)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -35,20 +27,18 @@ jobs:
           command_timeout: 15m
           script: |
             cd domains/oimpresso.com/public_html
-            echo "===== GIT HEAD ====="
-            git log --oneline -3 2>&1 || true
-            echo "===== laravel.log (tail 50) ====="
-            tail -50 storage/logs/laravel.log 2>&1 || echo "(sem log)"
-            echo "===== PHP error_log (tail 30) ====="
-            tail -30 error_log 2>&1 || echo "(sem error_log)"
-            echo "===== RECOVERY: optimize:clear ====="
-            php artisan optimize:clear 2>&1 || echo "optimize:clear FALHOU"
-            echo "===== RECOVERY: dump-autoload --no-scripts ====="
-            composer dump-autoload --optimize --no-scripts --no-interaction 2>&1 | tail -8 || echo "dump-autoload FALHOU"
-            echo "===== RECOVERY: config+route+view cache ====="
-            php artisan config:clear 2>&1 || true
-            php artisan view:clear 2>&1 || true
-            php artisan route:clear 2>&1 || true
-            echo "===== HEALTH local ====="
-            curl -s -o /dev/null -w "localhost/login: %{http_code}\n" http://localhost/login 2>&1 || true
+            echo "===== Scribe em config/app.php (hardcoded?) ====="
+            grep -in scribe config/app.php 2>&1 | head || echo "nao no app.php"
+            echo "===== Scribe em composer.json ====="
+            grep -in scribe composer.json 2>&1 | head || echo "nao no composer.json"
+            echo "===== vendor/knuckles instalado? ====="
+            ls -d vendor/knuckles 2>&1 || echo "AUSENTE (require-dev nao instalado em prod)"
+            echo "===== packages.php menciona Scribe? ====="
+            grep -ic scribe bootstrap/cache/packages.php 2>/dev/null || echo "0/sem-arquivo"
+            echo "===== RM manifest stale (Laravel reconstroi sem scribe) ====="
+            rm -fv bootstrap/cache/packages.php bootstrap/cache/services.php 2>&1 || true
+            echo "===== rebuild via package:discover ====="
+            php artisan package:discover --ansi 2>&1 | tail -15 || echo "discover FALHOU (scribe pode estar hardcoded em app.php)"
+            echo "===== HEALTH externo real ====="
+            curl -s -o /dev/null -w "ext https login: %{http_code}\n" --max-time 20 https://oimpresso.com/login 2>&1 || true
             echo "===== done ====="
