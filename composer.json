@@ -141,7 +141,8 @@
     "extra": {
         "laravel": {
             "dont-discover": [
-                "laravel/horizon"
+                "laravel/horizon",
+                "knuckleswtf/scribe"
             ]
         }
     },

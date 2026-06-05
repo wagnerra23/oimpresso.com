@@ -283,6 +283,16 @@ class AppServiceProvider extends ServiceProvider
 
         // FeatureFlagService singleton — US-INFRA-001 (GrowthBook self-hosted).
         $this->app->singleton(\App\Services\FeatureFlagService::class);
+
+        // Scribe (docs API) é require-dev + dont-discover (composer.json) pra NÃO
+        // quebrar o boot em prod quando o pacote está ausente (--no-dev). Incidente
+        // 2026-06-05: `installed.json` cacheado referenciava ScribeServiceProvider
+        // mas vendor/knuckles sumiu → prod 503 (deploy travou em manutenção).
+        // Registra manualmente SÓ quando a classe existe (= ambiente dev com o
+        // pacote instalado) → dev mantém `scribe:generate`, prod nunca tenta carregar.
+        if (class_exists(\Knuckles\Scribe\ScribeServiceProvider::class)) {
+            $this->app->register(\Knuckles\Scribe\ScribeServiceProvider::class);
+        }
     }
 
     /**
