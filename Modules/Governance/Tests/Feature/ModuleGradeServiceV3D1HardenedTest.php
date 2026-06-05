@@ -25,13 +25,18 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0158-module-grade-v3-d1-heuristica-hardening.md (proposto)
  */
 
-// Helper local — invoca método privado via reflection
-function invokePrivate(ModuleGradeService $service, string $method, array $args = []): mixed
-{
-    $reflection = new \ReflectionClass($service);
-    $m = $reflection->getMethod($method);
-    $m->setAccessible(true);
-    return $m->invoke($service, ...$args);
+// Helper local — invoca método privado via reflection.
+// Guardado por function_exists: o mesmo helper genérico é declarado em
+// tests/Feature/Modules/Governance/DashboardExtensionTest.php; sem o guard,
+// a descoberta da suíte cheia (php artisan test) fatala "Cannot redeclare".
+if (! function_exists('invokePrivate')) {
+    function invokePrivate(object $obj, string $method, array $args = []): mixed
+    {
+        $ref = new ReflectionMethod($obj, $method);
+        $ref->setAccessible(true);
+
+        return $ref->invokeArgs($obj, $args);
+    }
 }
 
 // Helper local — gera fixture path temporário no storage (limpa via cleanup)
