@@ -25,10 +25,10 @@ const FIN_BRIDGE_COMMENTS = __DIR__ . '/../../../../public/cowork-preview/_oimpr
 const FIN_BRIDGE_AUDIT = __DIR__ . '/../../../../public/cowork-preview/_oimpresso-bridge-audit.js';
 const FIN_CURATION_JSX_ONDA = __DIR__ . '/../../../../public/cowork-preview/financeiro-curation.jsx';
 const FIN_APP_JSX_ONDA = __DIR__ . '/../../../../public/cowork-preview/financeiro-app.jsx';
-const FIN_UNIFICADO_CONTROLLER = __DIR__ . '/../../Http/Controllers/UnificadoController.php';
-const FIN_ROUTES_WEB = __DIR__ . '/../../Routes/web.php';
-const FIN_TITULO_COMMENT_MODEL = __DIR__ . '/../../Models/TituloComment.php';
-const FIN_COMMENTS_MIGRATION = __DIR__ . '/../../Database/Migrations/2026_05_18_190000_create_fin_titulo_comments_table.php';
+defined('FIN_UNIFICADO_CONTROLLER') || define('FIN_UNIFICADO_CONTROLLER', __DIR__ . '/../../Http/Controllers/UnificadoController.php');
+defined('FIN_ROUTES_WEB') || define('FIN_ROUTES_WEB', __DIR__ . '/../../Routes/web.php');
+defined('FIN_TITULO_COMMENT_MODEL') || define('FIN_TITULO_COMMENT_MODEL', __DIR__ . '/../../Models/TituloComment.php');
+defined('FIN_COMMENTS_MIGRATION') || define('FIN_COMMENTS_MIGRATION', __DIR__ . '/../../Database/Migrations/2026_05_18_190000_create_fin_titulo_comments_table.php');
 
 describe('Mock Onda Comments DB — Bridge comments (estrutural)', function () {
     it('arquivo _oimpresso-bridge-comments.js existe', function () {
