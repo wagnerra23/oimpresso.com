@@ -20,9 +20,9 @@ const KB975_NFE_MODAL_PATH = 'resources/js/Pages/Sells/_components/VdNfeEmitModa
 const KB975_NFSE_MODAL_PATH = 'resources/js/Pages/Sells/_components/VdNfseEmitModal.tsx';
 const KB975_BULK_MODAL_PATH = 'resources/js/Pages/Sells/_components/VdBulkEmitModal.tsx';
 const KB975_EMIT_CSS = 'resources/css/sells-kb975-emit-modals.css';
-const KB975_INERTIA_CSS = 'resources/css/inertia.css';
-const KB975_INDEX_PAGE = 'resources/js/Pages/Sells/Index.tsx';
-const KB975_SHOW_PAGE = 'resources/js/Pages/Sells/Show.tsx';
+defined('KB975_INERTIA_CSS') || define('KB975_INERTIA_CSS', 'resources/css/inertia.css');
+defined('KB975_INDEX_PAGE') || define('KB975_INDEX_PAGE', 'resources/js/Pages/Sells/Index.tsx');
+defined('KB975_SHOW_PAGE') || define('KB975_SHOW_PAGE', 'resources/js/Pages/Sells/Show.tsx');
 const KB975_NEXTACTION = 'resources/js/Pages/Sells/_components/VdNextActionPanel.tsx';
 
 // ─────────────────────────────────────────────────────────────
