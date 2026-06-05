@@ -12,12 +12,12 @@ use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
  * `ui:judge-pr` — Onda 4.1 do AUTOMATION-ROADMAP (Constituição UI v2).
  *
  * Avalia um PR contra a Constituição UI v2 usando agente LLM (Anthropic Claude
- * Sonnet 4.5) e — opcionalmente — posta comentário inline no PR via `gh`.
+ * Sonnet 4.6) e — opcionalmente — posta comentário inline no PR via `gh`.
  *
  * Workflow:
  *   1. Pega metadata do PR (título · descrição · arquivos modificados) via gh CLI
  *   2. Pega diff filtrado (.tsx, .jsx, .css)
- *   3. Manda pro PrUiJudgeAgent (anthropic / claude-sonnet-4-5)
+ *   3. Manda pro PrUiJudgeAgent (anthropic / claude-sonnet-4-6)
  *   4. Parse output JSON
  *   5. Print score + violações no console
  *   6. (Opcional) `--post-comment` posta no PR via gh
@@ -28,7 +28,7 @@ use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
  *   php artisan ui:judge-pr 1438 --post-comment # postar comentário no PR
  *   php artisan ui:judge-pr 1438 --strict       # exit 1 se verdict=request_changes
  *
- * Custo estimado por run: ~$0.034 (Claude Sonnet 4.5) · com prompt caching
+ * Custo estimado por run: ~$0.034 (Claude Sonnet 4.6) · com prompt caching
  * cai pra ~$0.005 após primeiro PR do dia.
  *
  * @see Modules\Jana\Ai\Agents\PrUiJudgeAgent
@@ -100,7 +100,7 @@ class UiJudgePrCommand extends Command
         $this->line('  Diff UI: '.strlen($diff).' bytes');
 
         // 4. Mandar pro agent
-        $this->info('Enviando pra PrUiJudgeAgent (Claude Sonnet 4.5)...');
+        $this->info('Enviando pra PrUiJudgeAgent (Claude Sonnet 4.6)...');
         $output = $this->runAgent($prData, $diff);
         if ($output === null) {
             return self::FAILURE;
@@ -236,17 +236,15 @@ class UiJudgePrCommand extends Command
     private function runAgent(array $prData, string $diff): ?string
     {
         // Pre-flight: validar API key do provider configurado no PrUiJudgeAgent.
-        // Default PrUiJudgeAgent = OpenAI gpt-4o-mini (consistente com BriefDiarioAgent
-        // etc). Wagner pode trocar pra Anthropic editando o @Provider/@Model do agent.
-        $openaiKey = (string) (config('ai.providers.openai.key') ?? env('OPENAI_API_KEY') ?? '');
+        // PrUiJudgeAgent = Anthropic claude-sonnet-4-6 (review de design exige
+        // juízo semântico · canon do projeto). Wagner pode trocar editando o
+        // @Provider/@Model do agent.
         $anthropicKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
 
-        if ($openaiKey === '' && $anthropicKey === '') {
-            $this->error('Nenhuma API key configurada (OPENAI_API_KEY nem ANTHROPIC_API_KEY)');
-            $this->line('  Adicionar em .env: OPENAI_API_KEY=sk-... (default do PrUiJudgeAgent)');
-            $this->line('  OU: ANTHROPIC_API_KEY=sk-ant-... (upgrade pra Claude Sonnet 4.5)');
-            $this->line('  Pegar key em: https://platform.openai.com/api-keys (OpenAI)');
-            $this->line('                https://console.anthropic.com/settings/keys (Anthropic)');
+        if ($anthropicKey === '') {
+            $this->error('ANTHROPIC_API_KEY não configurada (provider do PrUiJudgeAgent)');
+            $this->line('  Adicionar em .env: ANTHROPIC_API_KEY=sk-ant-... (Claude Sonnet 4.6)');
+            $this->line('  Pegar key em: https://console.anthropic.com/settings/keys');
             $this->line('  Depois: php artisan config:clear');
 
             return null;
@@ -320,7 +318,7 @@ class UiJudgePrCommand extends Command
             foreach ($review['dimensoes'] as $dim => $data) {
                 if (is_array($data)) {
                     $s = (int) ($data['score'] ?? 0);
-                    $nota = (string) ($data['nota'] ?? '');
+                    $nota = (string) ($data['rationale'] ?? $data['nota'] ?? '');
                     $this->line("  {$dim}: {$s}/10 · {$nota}");
                 }
             }
@@ -388,7 +386,7 @@ class UiJudgePrCommand extends Command
             foreach ($review['dimensoes'] as $dim => $data) {
                 if (is_array($data)) {
                     $s = (int) ($data['score'] ?? 0);
-                    $nota = (string) ($data['nota'] ?? '');
+                    $nota = (string) ($data['rationale'] ?? $data['nota'] ?? '');
                     $out[] = "| `{$dim}` | {$s}/10 | {$nota} |";
                 }
             }
