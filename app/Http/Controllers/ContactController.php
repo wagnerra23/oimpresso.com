@@ -257,11 +257,13 @@ class ContactController extends Controller
 
         $type = request()->get('type');
 
-        // ADR 0188 (multi-type 2026-05-24) + Wagner 2026-05-25: whitelist canon canônica
-        // alinhada com $inertiaTypes abaixo (linha ~237). Antes era ['supplier', 'customer']
+        // ADR 0188 (multi-type 2026-05-24) + ADR 0246 (Outros 2026-06-03) + Wagner 2026-05-25:
+        // whitelist canon alinhada com $inertiaTypes abaixo. Antes era ['supplier', 'customer']
         // UPOS legacy → /contacts?type=all/employee/representative caía em redirect()->back()
         // (bug: usuário em /sells clicava em "Contatos" sidebar → voltava pra /sells).
-        $types = ['supplier', 'customer', 'employee', 'representative', 'all'];
+        // ADR 0246: adicionado 'other' — sem isso, ?type=other rejeitado e cai default 'customer'
+        // (bug Wagner reportou 2026-06-04 pós-deploy PR #2205: aba Outros mostrava Clientes).
+        $types = ['supplier', 'customer', 'employee', 'representative', 'other', 'all'];
 
         if (empty($type) || ! in_array($type, $types)) {
             return redirect()->back();
@@ -293,7 +295,8 @@ class ContactController extends Controller
         // Spatie permanecem mapeadas pra 'customer.*' (UPOS legacy) por simplicidade
         // operacional — Wagner expande pra 'supplier.*' etc em ondas futuras se time
         // pedir granularidade por papel.
-        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        // ADR 0188 + ADR 0246 — 5 papéis canônicos + 'all' agregado.
+        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'other', 'all'];
         if (in_array($type, $inertiaTypes, true) && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
             return Inertia::render('Cliente/Index', [
                 'activeType' => $type,
