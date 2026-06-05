@@ -1,22 +1,20 @@
 name: Hostinger — corrigir final_total inflado (incidente num_uf 2026-06-05)
 
-# Dispatch manual pra rodar `sells:final-total-audit` na PROD Hostinger via SSH
-# (secrets SSH_HOST/PORT/USER/PRIVATE_KEY já existentes). Criado durante o
-# incidente ROTA LIVRE biz=4 (valores inflados ~×100k por num_uf strippar ponto
-# decimal de total fracionado — fix #2279).
+# Dispatch manual: corrige na PROD Hostinger as vendas com final_total inflado
+# pelo bug num_uf (ROTA LIVRE biz=4). Roda um script PHP STANDALONE (bootstrap
+# Laravel + DB) — não depende de comando artisan deployado. business FIXO=4.
+# mode=dry-run só lista (echo, zero escrita); mode=apply corrige.
 #
-# Least-privilege: business FIXO=4, comando FIXO `sells:final-total-audit`, sem
-# args livres de shell. mode=dry-run só lista; mode=apply corrige os IDs passados
-# (o comando faz UPDATE cirúrgico só do final_total, recomputado dos campos intactos).
-# Remover pós-incidente.
-#
-# Ref: PR #2279 (Util::num_uf) · app/Console/Commands/SellsFinalTotalAuditCommand.php
+# Lógica idêntica ao sells:final-total-audit --apply-all (PR #2283):
+#   final_total → esperado (before_tax − desconto sane); pagamento pago-em-cheio
+#   escala proporcional; flag desconto-corrompido/parcial; NFe emitida bloqueia.
+# Idempotente (só pega final_total > teto). Ref fix raiz: #2279. Remover pós-incidente.
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'dry-run (lista as infladas) ou apply (corrige os IDs)'
+        description: 'dry-run (lista, zero escrita) ou apply (corrige)'
         required: true
         default: 'dry-run'
         type: choice
@@ -24,13 +22,9 @@ on:
           - dry-run
           - apply
       since:
-        description: 'dry-run: auditar desde esta data (YYYY-MM-DD)'
+        description: 'Auditar desde (YYYY-MM-DD)'
         required: false
         default: '2026-05-26'
-        type: string
-      ids:
-        description: 'apply: IDs de transaction separados por espaço'
-        required: false
         type: string
 
 concurrency:
@@ -41,27 +35,81 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH Hostinger → sells:final-total-audit
+      - name: SSH Hostinger → correção standalone
         uses: appleboy/ssh-action@v1.0.3
         env:
-          MODE: ${{ github.event.inputs.mode }}
-          SINCE: ${{ github.event.inputs.since }}
-          IDS: ${{ github.event.inputs.ids }}
+          FIX_MODE: ${{ github.event.inputs.mode }}
+          FIX_SINCE: ${{ github.event.inputs.since }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: MODE,SINCE,IDS
+          envs: FIX_MODE,FIX_SINCE
           command_timeout: 15m
           script: |
             set -e
             cd domains/oimpresso.com/public_html
-            echo "== pwd: $(pwd) · mode=$MODE =="
-            if [ "$MODE" = "apply" ]; then
-              # apply-all não-interativo: corrige final_total + pagamento pago-em-cheio
-              # de TODAS as detectadas; separa flagged (desconto corrompido/parcial).
-              php artisan sells:final-total-audit --business=4 --apply-all --since="$SINCE"
-            else
-              php artisan sells:final-total-audit --business=4 --since="$SINCE"
-            fi
+            echo "== pwd: $(pwd) · mode=$FIX_MODE · since=$FIX_SINCE =="
+            cat > _incident_numuf_fix.php <<'PHPEOF'
+            <?php
+            require __DIR__.'/vendor/autoload.php';
+            $app = require_once __DIR__.'/bootstrap/app.php';
+            $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+            use Illuminate\Support\Facades\DB;
+
+            $business = 4;
+            $since = getenv('FIX_SINCE') ?: '2026-05-26';
+            $apply = getenv('FIX_MODE') === 'apply';
+
+            $rows = DB::select(
+                "SELECT t.id, t.invoice_no, t.total_before_tax, t.discount_amount, t.discount_type, ".
+                "t.tax_amount, t.shipping_charges, t.final_total, t.payment_status, t.chave AS nfe_chave ".
+                "FROM transactions t WHERE t.business_id = ? AND t.type='sell' AND t.created_at >= ? ".
+                "AND t.total_before_tax > 0 AND t.final_total > 0 ORDER BY t.id DESC",
+                [$business, $since]
+            );
+
+            $nOk=0; $nFlag=0; $nBlock=0;
+            foreach ($rows as $r) {
+                $beforeTax=(float)$r->total_before_tax; $tax=(float)$r->tax_amount; $ship=(float)$r->shipping_charges;
+                $teto=$beforeTax+$tax+$ship; $real=(float)$r->final_total; $disc=(float)$r->discount_amount;
+                if (!($teto>0 && $real > $teto*1.5)) continue;
+                if (!empty($r->nfe_chave)) { echo "BLOQUEADA #{$r->id} inv {$r->invoice_no}: NFe {$r->nfe_chave}\n"; $nBlock++; continue; }
+                $discCorrupt = ($r->discount_type==='percentage' && $disc>=100) || ($r->discount_type==='fixed' && $disc>$beforeTax);
+                if ($discCorrupt) { $esperado=round($teto,2); }
+                elseif ($r->discount_type==='percentage') { $esperado=round($beforeTax*(1-$disc/100)+$tax+$ship,2); }
+                else { $esperado=round($beforeTax-$disc+$tax+$ship,2); }
+                if ($esperado<=0){ $esperado=round($teto,2); $discCorrupt=true; }
+                $payments = DB::select("SELECT id, amount FROM transaction_payments WHERE transaction_id=? AND is_return=0",[$r->id]);
+                $paidOld=0.0; foreach($payments as $p){ $paidOld+=(float)$p->amount; }
+                $paidInFull = $paidOld>0.01 && abs($paidOld-$real)<0.01;
+                $partial = $paidOld>0.01 && !$paidInFull;
+                $flag = $discCorrupt || $partial;
+                $tag = $flag ? ($discCorrupt?'FLAG-desconto':'FLAG-parcial') : 'OK';
+                echo sprintf("%-13s #%d inv %s: %s -> %s | pgto:%s\n", $tag, $r->id, $r->invoice_no,
+                    number_format($real,2,',','.'), number_format($esperado,2,',','.'),
+                    $paidInFull?'escala':($partial?'parcial(nao-toca)':'sem'));
+                if ($flag){ $nFlag++; } else { $nOk++; }
+                if ($apply) {
+                    DB::transaction(function() use ($r,$esperado,$real,$business,$payments,$paidInFull,$paidOld){
+                        DB::table('activity_log')->insert(['log_name'=>'sells-final-total-audit',
+                            'description'=>'final_total+pgto corrigido (apply-all standalone) incidente num_uf 2026-06-05',
+                            'subject_type'=>'App\\Transaction','subject_id'=>$r->id,'causer_type'=>null,'causer_id'=>null,
+                            'properties'=>json_encode(['business_id'=>$business,'attributes'=>['final_total'=>$esperado],'old'=>['final_total'=>$real]]),
+                            'created_at'=>now(),'updated_at'=>now()]);
+                        DB::table('transactions')->where('id',$r->id)->update(['final_total'=>$esperado,'updated_at'=>now()]);
+                        if ($paidInFull && $real>0){
+                            $scale=$esperado/$real;
+                            foreach($payments as $p){ DB::table('transaction_payments')->where('id',$p->id)->update(['amount'=>round((float)$p->amount*$scale,2),'updated_at'=>now()]); }
+                            DB::table('transactions')->where('id',$r->id)->update(['payment_status'=>'paid']);
+                        } elseif ($paidOld<=0.01){
+                            DB::table('transactions')->where('id',$r->id)->update(['payment_status'=>'due']);
+                        }
+                    });
+                }
+            }
+            echo "\n== {$nOk} OK · {$nFlag} flagged · {$nBlock} bloqueadas · mode=".($apply?'APPLY':'DRY-RUN')." ==\n";
+            PHPEOF
+            php _incident_numuf_fix.php
+            rm -f _incident_numuf_fix.php
