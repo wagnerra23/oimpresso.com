@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Services\FaturarServiceOrderService;
 
 /**
  * ProducaoOficinaController — Kanban estado dos veículos em produção (Martinho LIVE prod biz=164).
@@ -427,5 +428,68 @@ class ProducaoOficinaController extends Controller
             'atrasadas'               => $aguardando,
             'valor_em_curso'          => round($valorEmCurso, 2),
         ];
+    }
+
+    /**
+     * Prévia do valor da venda que SERÁ gerada a partir da OS — pro botão
+     * "Gerar venda" mostrar o total ANTES de confirmar (regra-mestre valor/estoque
+     * Wagner 2026-06-05: apresentar o impacto antes de aplicar).
+     */
+    public function previewVenda(ServiceOrder $order, FaturarServiceOrderService $service): \Illuminate\Http\JsonResponse
+    {
+        abort_unless(
+            auth()->user()->can('superadmin') || auth()->user()->can('oficinaauto.vehicle.view'),
+            403,
+            'Sem permissão.'
+        );
+
+        return response()->json([
+            'success'      => true,
+            'order_type'   => $order->order_type,
+            'final_total'  => $service->previewTotal($order),
+            'already_sold' => $order->transaction_id !== null,
+        ]);
+    }
+
+    /**
+     * Gera a venda (Transaction derivada) a partir da OS — fluxo REAL oficina→venda
+     * (ADR 0192) acionado manualmente pelo board. Reusa o FaturarServiceOrderService
+     * (mesmo do auto-faturar) → idempotente + valor pelos accessors testados.
+     *
+     * Tenancy Tier 0 (ADR 0093): o route-model-binding de ServiceOrder passa pelo
+     * global scope business_id (404 fora do tenant).
+     */
+    public function gerarVenda(ServiceOrder $order, FaturarServiceOrderService $service): \Illuminate\Http\JsonResponse
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.vehicle.view')
+            || auth()->user()->can('oficinaauto.vehicle.update'),
+            403,
+            'Sem permissão pra gerar venda.'
+        );
+
+        $result = $service->faturar($order);
+
+        if ($result['transaction'] === null) {
+            return response()->json([
+                'success' => false,
+                'reason'  => $result['reason'],
+                'msg'     => 'Não foi possível gerar a venda — a OS não tem cliente vinculado.',
+            ], 422);
+        }
+
+        $tx = $result['transaction'];
+
+        return response()->json([
+            'success'        => true,
+            'created'        => $result['created'],
+            'transaction_id' => (int) $tx->id,
+            'final_total'    => (float) $tx->final_total,
+            'redirect'       => '/sells/'.$tx->id,
+            'message'        => $result['created']
+                ? 'Venda gerada a partir da OS.'
+                : 'Esta OS já tinha venda — abrindo a existente.',
+        ]);
     }
 }

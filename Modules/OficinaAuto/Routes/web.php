@@ -41,6 +41,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [ProducaoOficinaController::class, 'index'])
             ->name('oficinaauto.producao-oficina');
 
+        // "Gerar venda" do board (fluxo real oficina→venda, ADR 0192). Preview do
+        // valor antes de confirmar (regra-mestre) + geração idempotente via serviço.
+        Route::get('producao-oficina/ordens/{order}/preview-venda',
+            [ProducaoOficinaController::class, 'previewVenda'])
+            ->name('oficinaauto.producao-oficina.preview-venda');
+        Route::post('producao-oficina/ordens/{order}/gerar-venda',
+            [ProducaoOficinaController::class, 'gerarVenda'])
+            ->name('oficinaauto.producao-oficina.gerar-venda');
+
         // CRUD Vehicle
         Route::get('veiculos',                     [VehicleController::class, 'index'])->name('oficinaauto.vehicles.index');
         Route::get('veiculos/create',              [VehicleController::class, 'create'])->name('oficinaauto.vehicles.create');

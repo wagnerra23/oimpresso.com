@@ -40,6 +40,16 @@ import KanbanDndProvider from './_components/KanbanDndProvider';
 import DragConfirmDialog, {
   type PendingTransition,
 } from './_components/DragConfirmDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -288,6 +298,62 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     // Refresh kanban + kpis após transição FSM
     router.reload({ only: ['kanban', 'kpis'], preserveScroll: true, preserveState: true });
   }, []);
+
+  // ─── "Gerar venda" do board (fluxo real oficina→venda, ADR 0192) ─────────
+  // Confirm com prévia do valor (regra-mestre: apresentar impacto antes de aplicar).
+  // POST idempotente → FaturarServiceOrderService (mesma lógica do auto-faturar).
+  const [gerarVendaTarget, setGerarVendaTarget] = useState<CacambaCardData | null>(null);
+  const [gerarVendaTotal, setGerarVendaTotal] = useState<number | null>(null);
+  const [gerarVendaLoading, setGerarVendaLoading] = useState(false);
+
+  const handleCardGerarVenda = useCallback((c: CacambaCardData) => {
+    if (!c.current_rental_id) return;
+    setGerarVendaTarget(c);
+    setGerarVendaTotal(null);
+    fetch(`/oficina-auto/producao-oficina/ordens/${c.current_rental_id}/preview-venda`, {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+      .then((r) => r.json())
+      .then((j) => setGerarVendaTotal(typeof j?.final_total === 'number' ? j.final_total : 0))
+      .catch(() => setGerarVendaTotal(0));
+  }, []);
+
+  const confirmGerarVenda = useCallback(async () => {
+    const rentalId = gerarVendaTarget?.current_rental_id;
+    if (!rentalId || gerarVendaLoading) return;
+    setGerarVendaLoading(true);
+    try {
+      const csrf = (
+        document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null
+      )?.content;
+      const res = await fetch(
+        `/oficina-auto/producao-oficina/ordens/${rentalId}/gerar-venda`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(csrf ? { 'X-CSRF-TOKEN': csrf } : {}),
+          },
+          credentials: 'same-origin',
+        },
+      );
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        toast.error(json?.msg ?? 'Falha ao gerar a venda.');
+        return;
+      }
+      toast.success(json.message ?? 'Venda gerada.');
+      if (json.redirect) router.visit(json.redirect);
+    } catch (e) {
+      toast.error(`Erro: ${(e as Error)?.message ?? e}`);
+    } finally {
+      setGerarVendaLoading(false);
+      setGerarVendaTarget(null);
+    }
+  }, [gerarVendaTarget, gerarVendaLoading]);
 
   // ─── Drag-drop state + handlers ─────────────────────────────────────────
   const [pendingTransition, setPendingTransition] =
@@ -651,6 +717,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
                   cards={col.cards}
                   onCardClick={handleCardClick}
                   onCardAdvance={handleCardAdvance}
+                  onCardGerarVenda={handleCardGerarVenda}
                 />
               ))}
             </div>
@@ -674,6 +741,46 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         onConfirm={handleConfirmTransition}
         onCancel={handleCancelTransition}
       />
+
+      {/* "Gerar venda" — confirm com prévia do valor (regra-mestre) */}
+      <AlertDialog
+        open={gerarVendaTarget != null}
+        onOpenChange={(o) => {
+          if (!o && !gerarVendaLoading) setGerarVendaTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Gerar venda desta OS?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {gerarVendaTarget?.cliente_nome
+                ? `Cliente: ${gerarVendaTarget.cliente_nome}. `
+                : ''}
+              Valor:{' '}
+              {gerarVendaTotal == null
+                ? 'calculando…'
+                : formatBRLCompact(gerarVendaTotal)}
+              . A venda nasce com origem oficina
+              {gerarVendaTarget?.current_rental_id
+                ? ` (SO-${gerarVendaTarget.current_rental_id})`
+                : ''}
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={gerarVendaLoading}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmGerarVenda();
+              }}
+              disabled={gerarVendaLoading || gerarVendaTotal == null}
+            >
+              {gerarVendaLoading ? 'Gerando…' : 'Gerar venda'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -27,6 +27,7 @@ import {
   MapPin,
   ArrowRight,
   CheckCircle2,
+  Receipt,
   Wrench,
 } from 'lucide-react';
 import MercosulPlate from './MercosulPlate';
@@ -66,6 +67,12 @@ interface Props {
    * "Acompanhar" (locada) segue abrindo o drawer (é ver, não avançar).
    */
   onAdvance?: (cacamba: CacambaCardData) => void;
+  /**
+   * "Gerar venda" — fluxo real oficina→venda (ADR 0192). Quando presente e a
+   * caçamba tem rental ativo (current_rental_id), o card mostra o botão; o Index
+   * trata o confirm (com valor) + POST idempotente. Callback puro (card segue memo).
+   */
+  onGerarVenda?: (cacamba: CacambaCardData) => void;
 }
 
 const formatBRL = (value: number | null | undefined) =>
@@ -152,7 +159,7 @@ function actionLabelFor(variant: CacambaStatus): string | null {
   }
 }
 
-function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
+function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, onGerarVenda }: Props) {
   // D-02 — estados de avanço usam a porta gate-guardada (onAdvance); "Acompanhar"
   // (locada) é ver, não avançar → segue abrindo o drawer (onClick).
   const canAdvance = onAdvance != null && variant !== 'locada';
@@ -460,6 +467,24 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
           >
             {actionLabel}
             <ArrowRight size={10} />
+          </button>
+        </div>
+      )}
+
+      {/* ─── "Gerar venda" — fluxo real oficina→venda (ADR 0192). Só com rental ativo. ─── */}
+      {cacamba.current_rental_id != null && onGerarVenda && (
+        <div className="mt-2 pt-2 border-t border-border flex items-center justify-end">
+          <button
+            type="button"
+            className="text-[10.5px] px-2 py-1 rounded font-medium inline-flex items-center gap-1 transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={(e) => {
+              e.stopPropagation();
+              onGerarVenda(cacamba);
+            }}
+            aria-label="Gerar venda desta OS"
+          >
+            <Receipt size={10} />
+            Gerar venda
           </button>
         </div>
       )}

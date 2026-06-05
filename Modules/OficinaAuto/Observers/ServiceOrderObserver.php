@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\OficinaAuto\Observers;
 
-use App\Transaction;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 
@@ -76,113 +74,20 @@ class ServiceOrderObserver
             return;
         }
 
-        // Idempotência (a): skip se já tem transaction_id linkado.
-        if ($so->transaction_id !== null) {
-            return;
-        }
-
-        // Idempotência (b): defesa-em-profundidade via os_ref.
-        $osRef = $this->buildOsRef($so);
-        $exists = Transaction::where('business_id', $so->business_id)
-            ->where('os_ref', $osRef)
-            ->exists();
-
-        if ($exists) {
-            Log::info('ServiceOrderObserver: skip · Transaction derivada já existe', [
-                'os_ref' => $osRef,
-                'service_order_id' => $so->id,
-                'business_id' => $so->business_id,
-            ]);
-
-            return;
-        }
-
-        // Resolve contact_id: prefere SO direto · fallback Vehicle owner.
-        $contactId = $so->contact_id ?? $so->vehicle?->contact_id;
-        if ($contactId === null) {
-            Log::warning('ServiceOrderObserver: skip · sem contact_id resolvível (SO+Vehicle ambos NULL)', [
-                'service_order_id' => $so->id,
-                'vehicle_id' => $so->vehicle_id,
-            ]);
-
-            return;
-        }
-
-        // Compute final_total: locação usa accessor valor_receber · manutenção zero (manual depois).
-        $finalTotal = $this->computeFinalTotal($so);
-
+        // Auto-faturar OS → Venda: delega ao FaturarServiceOrderService — SINGLE
+        // SOURCE OF TRUTH (mesmo serviço do botão "Gerar venda" do board
+        // producao-oficina). O serviço trata idempotência (transaction_id / os_ref),
+        // resolução de contact e o valor (accessors valor_receber/total_items —
+        // regra-mestre valor/estoque: zero cálculo novo aqui).
         try {
-            $tx = Transaction::create([
-                'business_id' => $so->business_id,
-                'location_id' => null,
-                'contact_id' => $contactId,
-                'type' => 'sell',
-                'status' => 'final',
-                'sub_type' => null,
-                'payment_status' => 'due',
-                'source' => 'oficina',
-                'os_ref' => $osRef,
-                'final_total' => $finalTotal,
-                'total_before_tax' => $finalTotal,
-                'transaction_date' => $so->delivered_at ?? $so->completed_at ?? Carbon::now(),
-                'created_by' => 1, // System default (NULL pode rejeitar UPOS constraint)
-            ]);
-
-            // Completa o 1-1 ADR 0137 §"Escopo arquitetural V0".
-            $so->transaction_id = $tx->id;
-            $so->saveQuietly(); // saveQuietly evita re-trigger Observer (infinite loop guard)
-
-            Log::info('ServiceOrderObserver: Transaction derivada criada · transaction_id linkado', [
-                'transaction_id' => $tx->id,
-                'os_ref' => $osRef,
-                'service_order_id' => $so->id,
-                'business_id' => $so->business_id,
-                'contact_id' => $contactId,
-                'final_total' => $finalTotal,
-                'order_type' => $so->order_type,
-            ]);
+            app(\Modules\OficinaAuto\Services\FaturarServiceOrderService::class)->faturar($so);
         } catch (\Throwable $e) {
-            // Não bloqueia transição status se Transaction create falhar.
-            Log::error('ServiceOrderObserver: falha ao criar Transaction derivada', [
-                'os_ref' => $osRef,
+            // Não bloqueia a transição de status se a criação da venda falhar.
+            Log::error('ServiceOrderObserver: falha ao auto-faturar OS → venda', [
                 'service_order_id' => $so->id,
-                'business_id' => $so->business_id,
-                'error' => $e->getMessage(),
+                'business_id'      => $so->business_id,
+                'error'            => $e->getMessage(),
             ]);
         }
-    }
-
-    private function buildOsRef(ServiceOrder $so): string
-    {
-        return "SO-{$so->id}";
-    }
-
-    private function computeFinalTotal(ServiceOrder $so): float
-    {
-        if ($so->order_type === 'locacao') {
-            // Accessor `valor_receber` = daily_rate × dias_locacao (definido na entity)
-            return (float) ($so->valor_receber ?? 0);
-        }
-
-        // order_type='manutencao' (Martinho sub-vertical 4 mecânica pesada CNAE 4520 — ADR 0194):
-        // soma valor_total de todos itens (peça + mão-de-obra + serviço terceiro) via
-        // hasMany ServiceOrder::items() — schema oficina_service_order_items entregue em
-        // Wave 27 G1 (migration 2026_05_17_000010). Accessor `total_items` retorna float
-        // já arredondado decimal:2.
-        //
-        // OS sem items lançados retorna 0.0 — backward compat com comportamento legacy
-        // (Wagner edita Transaction manual depois). Pós-UI Wave 2, mecânico lança peças
-        // pela tela e o cálculo fecha automático.
-        $total = $so->total_items;
-
-        if ($total > 0) {
-            Log::info('ServiceOrderObserver: final_total recalculado via items()', [
-                'service_order_id' => $so->id,
-                'business_id' => $so->business_id,
-                'items_total' => $total,
-            ]);
-        }
-
-        return $total;
     }
 }
