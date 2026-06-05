@@ -12,8 +12,9 @@ use Stringable;
  * Recebe um evento roteado pelo DecisionRouter com destination=brain_b
  * e gera uma instrução estruturada para o Claude Code executar.
  *
- * Modelo padrão: claude-sonnet-4-6 (configurado em config/ai.php).
- * Para eventos com criticality_score >= 0.8, usar claude-opus-4-7.
+ * Provider/modelo: resolvido por config('ai.default') (= openai pós-migração) +
+ * config('ai.providers.{provider}.models.text.*'). O Agent não fixa provider —
+ * herda o default global. Trocar de provider é via config/.env, não aqui.
  */
 class BrainBAgent implements Agent
 {
