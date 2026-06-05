@@ -96,10 +96,10 @@ export default function SaleJourneyStepper({ journey, saleId }: Props) {
                 <span
                   className={[
                     'flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-                    isDone
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                      : isCurrent
-                        ? 'border-primary bg-primary/10 text-primary'
+                    isCurrent
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : isDone
+                        ? 'border-border bg-card text-foreground'
                         : 'border-border bg-muted/40 text-muted-foreground',
                   ].join(' ')}
                   aria-current={isCurrent ? 'step' : undefined}
@@ -107,11 +107,9 @@ export default function SaleJourneyStepper({ journey, saleId }: Props) {
                   <span
                     className={[
                       'flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold',
-                      isDone
-                        ? 'bg-emerald-600 text-white'
-                        : isCurrent
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted-foreground/20 text-muted-foreground',
+                      isDone || isCurrent
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted-foreground/20 text-muted-foreground',
                     ].join(' ')}
                   >
                     {isDone ? <Check size={10} strokeWidth={3} /> : i + 1}
@@ -120,7 +118,7 @@ export default function SaleJourneyStepper({ journey, saleId }: Props) {
                 </span>
                 {i < journey.nodes.length - 1 && (
                   <span
-                    className={['h-px w-5', isDone ? 'bg-emerald-300' : 'bg-border'].join(' ')}
+                    className={['h-px w-5', isDone ? 'bg-primary' : 'bg-border'].join(' ')}
                     aria-hidden="true"
                   />
                 )}
