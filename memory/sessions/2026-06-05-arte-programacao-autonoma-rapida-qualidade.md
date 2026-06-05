@@ -192,7 +192,9 @@ E o erro de orquestração: **fan-out sem schema validation entre subagent e orq
 
 ### ONDA 1 — Fundação "teste especializado" (~1 sprint · maior ROI)
 
-#### US-TEST-001 · PBT nas 3 invariantes Tier 0 (piloto) — **P0 · ~4h**
+#### US-TEST-001 · PBT nas 3 invariantes Tier 0 (piloto) — **P0 · 🟢 PARTE 1 IMPLEMENTADA 2026-06-05**
+> **Status:** invariante #1 (FSM `FsmAuthorizationFlag` consume-once) entregue em [`tests/Unit/Property/FsmAuthorizationFlagPropertyTest.php`](../../tests/Unit/Property/FsmAuthorizationFlagPropertyTest.php) — 6 propriedades × 200 casos gerados via Faker, **sem dependência nova** (zero ADR). Sanity-check da lógica contra a classe real: **2311 asserts aleatórios, 0 falhas**. Roda em `tests/Unit` (PHPUnit puro, sem boot/DB) → CI valida. Invariantes #2 (conservação saldo Financeiro) e #3 (conservação estoque) tocam schema MySQL → **parte 2 roda no CT 100** (próxima sessão com `tailscale ssh`).
+
 - **O quê:** instalar `pestphp/pest-plugin-mutate`/property (ou `eris`/`fakerphp` generators) e escrever **3 property tests** das invariantes que já são regra Tier 0:
   1. **FSM** (`app/Domain/Fsm/`): *para qualquer subject + qualquer sequência válida de actions, nunca existe UPDATE direto em `current_stage_id`* (trait `GuardsFsmTransitions` sempre dispara). Gera N sequências aleatórias de transição.
   2. **Financeiro** (`Modules/Financeiro/`): *para qualquer valor de baixa B ≤ saldo, `saldo_depois == saldo_antes − B`* (conservação). Gera valores/parcelas aleatórias.
@@ -299,3 +301,4 @@ E o erro de orquestração: **fan-out sem schema validation entre subagent e orq
 - **2026-06-05 (v2):** Wagner pediu "tabela primeiro" → tabelas com notas movidas pro topo.
 - **2026-06-05 (v3):** Wagner pediu "pesquise os atualizados" → dados refrescados jun/2026: **GPT-5.5 assumiu #1** (88.7% Verified / 58.6% Pro-SEAL), **Gemini 3.1 Pro** entrou no top tier (54.2% Pro), **Devin→Devin Desktop** (relançado 02/jun), e separação explícita **Pro-SEAL (honesto) vs Pro-público (gamed por scaffold)**. Tabela 2 reordenada; §3 colapsada pra evitar números duplicados/stale.
 - **2026-06-05 (v4):** Wagner pediu "o plano do que falta no meu" → §9 PLANO executável adicionado, ancorado na inspeção real (`composer.json`/`hooks/`/`workflows/`): 6 US (US-TEST-001..006) em 3 ondas, gap = 100% mecânica de teste (PBT + TDAD-lite + mutation + red-first hook + refutador). Aguarda Wagner aprovar batch `tasks-create`.
+- **2026-06-05 (v5):** Wagner "pode fazer" → **US-TEST-001 parte 1 implementada** — primeiro property test do projeto (`tests/Unit/Property/FsmAuthorizationFlagPropertyTest.php`, invariante FSM consume-once, 6 propriedades × 200 casos Faker, zero dependência nova). Sanity 2311 asserts / 0 falhas. CT 100 inacessível do ambiente cloud → CI GitHub Actions é o gate. PBT saiu de **10/100 → ~35/100** (padrão estabelecido + 1 invariante Tier 0 coberta).
