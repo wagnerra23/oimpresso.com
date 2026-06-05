@@ -81,6 +81,26 @@
 >
 > **Detalhe completo + 5 vetores catalogados + 7 defesas automáticas + comportamento Claude esperado em [`memory/reference/feedback-modulo-mexeu-registra-sempre.md`](reference/feedback-modulo-mexeu-registra-sempre.md).**
 
+---
+
+## REGRA MESTRE — CÁLCULO DE VALOR ou ESTOQUE (Tier 0 IRREVOGÁVEL)
+
+> ⛔⛔⛔ **TODA alteração que possa mexer em VALOR (preço, total, subtotal, desconto, imposto, frete, `final_total`, `total_before_tax`, pagamento, comissão, parsing/format de número — `num_uf`/`num_f`/`parseDecimalPtBR`) ou em ESTOQUE (quantidade, movimentação, reserva, baixa) exige, ANTES de mergear/deploiar:**
+>
+> | # | Exigência | Como |
+> |---|---|---|
+> | **1** | **DUPLA CONFIRMAÇÃO do cálculo** | Provar o resultado por **DOIS caminhos independentes** com NÚMEROS CONCRETOS: ex (a) caso de teste manual ponta-a-ponta + (b) cross-check frontend×backend, OU dry-run + recompute à mão. Nunca confiar num só. |
+> | **2** | **APRESENTAR O IMPACTO antes de aplicar** | Mostrar ao Wagner **tabela antes→depois** explícita: quais vendas/valores/estoques mudam e como. Em prod, **dry-run obrigatório** mostrando o delta de cada registro afetado ANTES de qualquer escrita. |
+> | **3** | **Aprovação humana explícita** | Só aplicar após Wagner ver o impacto (#2) e confirmar. Pareia com R10. |
+>
+> **Origem (2026-06-05):** incidente ROTA LIVRE biz=4 — `Util::num_uf` strippava o ponto decimal de total fracionado (desconto %): React mandava `final_total: 204.99605` → `num_uf` interpretava "." como milhar → gravou **R$ [redacted Tier 0]** numa venda de **R$ [redacted Tier 0]**. 16 vendas infladas ~×100k + pagamentos corrompidos antes de detectar. Wagner palavras textuais: *"cada modificação que possa mexer em valor precisa ser confirmada duas vezes para garantir e você precisa apresentar as mudanças que vão ocorrer — regra mestre para qualquer alteração de cálculo que mexa em qualquer valor ou estoque."*
+>
+> **Lição técnica perene:** separador de milhar tem SEMPRE 3 dígitos; frontend NUNCA manda float locale-ambíguo (`204.99605`) pra parser pt-BR — arredonda a 2 casas no submit. Ver [session 2026-06-05](sessions/2026-06-05-veiculo-na-venda-e-incidente-numuf-valor-inflado.md) + fix #2279.
+>
+> **Sintoma de violação:** mexer em `TransactionUtil`/`ProductUtil`/`Util::num_uf`/`Sells/Create|Edit.tsx`/`numberPtBR.ts` (ou qualquer cálculo de total/desconto/estoque) e mergear SEM (1) provar com 2 caminhos + (2) apresentar antes→depois. Rule path-scoped [`.claude/rules/calculo-valor-estoque.md`](../.claude/rules/calculo-valor-estoque.md) carrega esta regra ao tocar esses arquivos.
+
+---
+
 ## Ambiente
 
 - ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
