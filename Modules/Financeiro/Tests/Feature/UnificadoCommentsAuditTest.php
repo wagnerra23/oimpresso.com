@@ -29,10 +29,10 @@ uses(Tests\TestCase::class);
  * grupos — não boota app, sobrevive DB greenfield; + HTTP smoke real no fim.
  */
 
-const FIN_UNIFICADO_CONTROLLER = __DIR__ . '/../../Http/Controllers/UnificadoController.php';
-const FIN_ROUTES_WEB = __DIR__ . '/../../Routes/web.php';
-const FIN_TITULO_COMMENT_MODEL = __DIR__ . '/../../Models/TituloComment.php';
-const FIN_COMMENTS_MIGRATION = __DIR__ . '/../../Database/Migrations/2026_05_18_190000_create_fin_titulo_comments_table.php';
+defined('FIN_UNIFICADO_CONTROLLER') || define('FIN_UNIFICADO_CONTROLLER', __DIR__ . '/../../Http/Controllers/UnificadoController.php');
+defined('FIN_ROUTES_WEB') || define('FIN_ROUTES_WEB', __DIR__ . '/../../Routes/web.php');
+defined('FIN_TITULO_COMMENT_MODEL') || define('FIN_TITULO_COMMENT_MODEL', __DIR__ . '/../../Models/TituloComment.php');
+defined('FIN_COMMENTS_MIGRATION') || define('FIN_COMMENTS_MIGRATION', __DIR__ . '/../../Database/Migrations/2026_05_18_190000_create_fin_titulo_comments_table.php');
 
 describe('Comments + Audit — Backend Laravel (endpoints)', function () {
     it('UnificadoController tem 3 métodos: comments + addComment + auditTrail', function () {
