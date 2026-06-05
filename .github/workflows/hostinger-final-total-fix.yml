@@ -1,12 +1,9 @@
 name: Hostinger — corrigir final_total inflado (incidente num_uf 2026-06-05)
 
-# HOTFIX OUTAGE 2026-06-05: prod 500 = ScribeServiceProvider not found (require-dev
-# não instalado em prod, mas no packages.php cacheado). Remove o manifest stale.
-
 on:
   workflow_dispatch:
     inputs:
-      mode: { description: 'ignorado', required: false, default: 'recovery2', type: string }
+      mode: { description: 'ignorado', required: false, default: 'recovery3', type: string }
       since: { description: 'ignorado', required: false, default: '-', type: string }
 
 concurrency:
@@ -17,7 +14,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH Hostinger → recovery2 (rm manifest scribe)
+      - name: SSH Hostinger → recovery3 diag
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -27,18 +24,18 @@ jobs:
           command_timeout: 15m
           script: |
             cd domains/oimpresso.com/public_html
-            echo "===== Scribe em config/app.php (hardcoded?) ====="
-            grep -in scribe config/app.php 2>&1 | head || echo "nao no app.php"
-            echo "===== Scribe em composer.json ====="
-            grep -in scribe composer.json 2>&1 | head || echo "nao no composer.json"
-            echo "===== vendor/knuckles instalado? ====="
-            ls -d vendor/knuckles 2>&1 || echo "AUSENTE (require-dev nao instalado em prod)"
-            echo "===== packages.php menciona Scribe? ====="
-            grep -ic scribe bootstrap/cache/packages.php 2>/dev/null || echo "0/sem-arquivo"
-            echo "===== RM manifest stale (Laravel reconstroi sem scribe) ====="
-            rm -fv bootstrap/cache/packages.php bootstrap/cache/services.php 2>&1 || true
-            echo "===== rebuild via package:discover ====="
-            php artisan package:discover --ansi 2>&1 | tail -15 || echo "discover FALHOU (scribe pode estar hardcoded em app.php)"
-            echo "===== HEALTH externo real ====="
-            curl -s -o /dev/null -w "ext https login: %{http_code}\n" --max-time 20 https://oimpresso.com/login 2>&1 || true
+            echo "===== scribe: require vs require-dev ====="
+            php -r '$c=json_decode(file_get_contents("composer.json"),true); echo "require: ".(isset($c["require"]["knuckleswtf/scribe"])?"SIM":"nao")."\n"; echo "require-dev: ".(isset($c["require-dev"]["knuckleswtf/scribe"])?"SIM":"nao")."\n";' 2>&1
+            echo "===== packages.php atual tem scribe? ====="
+            grep -ic -i scribe bootstrap/cache/packages.php 2>/dev/null || echo "0/sem-arquivo"
+            echo "===== services.php tem scribe? ====="
+            grep -ic -i scribe bootstrap/cache/services.php 2>/dev/null || echo "0/sem-arquivo"
+            echo "===== optimize:clear (manifest limpo agora) ====="
+            php artisan optimize:clear 2>&1 | tail -12
+            echo "===== config:clear + cache:clear ====="
+            php artisan config:clear 2>&1 | tail -2 || true
+            echo "===== HEALTH externo 3x ====="
+            for i in 1 2 3; do curl -s -o /dev/null -w "%{http_code} " --max-time 15 https://oimpresso.com/login; sleep 3; done; echo
+            echo "===== laravel.log tail 6 (erro atual) ====="
+            tail -6 storage/logs/laravel.log 2>&1 | head -6 || true
             echo "===== done ====="
