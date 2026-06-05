@@ -4,11 +4,11 @@ mission: "Substituir auditoria humana de governança interna de módulo por chec
 description: ATIVAR antes de marcar US como `done` (`tasks-update task_id:US-XXX-NNN status:done` ou `tasks-update from:review to:done`), OU quando user pedir "auditar completude de {modulo}", "{modulo} está pronto?", "checklist de governança {modulo}", "/module-completeness-audit {modulo}", "está pronto pra fechar?", "vai poder marcar done?". Roda 8-10 verificações objetivas (multi-instance scope, permissions UI, charter, RUNBOOK, Pest cobertura, AuditLog write, business_id scope, browser MCP smoke salvo) cruzando código + memory/requisitos + Charter + browser MCP screenshots. Bloqueia transição se faltar item. Complementa skill `comparativo-do-modulo` (que detecta gaps mercado) — esta detecta gaps governança interna.
 type: process-skill
 status: active
-version: 1.0.0
+version: 1.1.0
 trust_level: L2
 owner: wagner
 created_at: 2026-05-10
-updated_at: 2026-05-10
+updated_at: 2026-06-05
 charter_adr: 0094
 parent_mission: "Toda skill substitui trabalho humano repetitivo com ROI provado, rumo ao ERP autônomo de R$ [redacted Tier 0]M em 24 meses."
 triggers_on:
@@ -49,7 +49,7 @@ related_adrs: [0089, 0093, 0095, 0101, 0104, 0110]
 
 # module-completeness-audit (v1.0)
 
-Skill que **bloqueia** a transição `review → done` de uma US se o módulo não cobrir o checklist objetivo de 8 dimensões de governança interna.
+Skill que **bloqueia** a transição `review → done` de uma US se o módulo não cobrir o checklist objetivo **pontuado** de 9 dimensões de governança interna (score estilo Bateria §9 do [`PROCESSO_MEMORIA_CC`](../../../prototipo-ui/PROCESSO_MEMORIA_CC.md): corte **≥90**, qualquer check **duro** ❌ = **INVÁLIDO**). É o gate pré-adoção (Peça 2 do anti-regressão do código, Opção B).
 
 Diferente de [`comparativo-do-modulo`](../comparativo-do-modulo/SKILL.md) (que mede gap **vs mercado**), esta mede gap **vs nossa própria Constituição v2** ([ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)).
 
@@ -78,9 +78,9 @@ Pergunta dele: "como automatizar essas verificações? deveria ter uma maneira d
 - Comparar com mercado (use `comparativo-do-modulo`)
 - Criar módulo novo (use `criar-modulo`)
 
-## Os 8 itens do checklist
+## Os 9 itens do checklist (pontuados)
 
-Cada item é **binário** (✅/❌) com evidência citada em arquivo. Item 🟡 (parcial) conta como ❌ até evidência completa.
+Cada item é **binário** (✅/❌) com evidência citada em arquivo. Item 🟡 (parcial) conta como ❌ até evidência completa. **4 itens são DUROS** (#5, #7, #8, #9) — qualquer duro ❌ = **INVÁLIDO** (não fecha US), independente do score. Pontuação na §"Veredito" abaixo.
 
 ### 1. Multi-instance scope decidido e documentado
 
@@ -188,6 +188,33 @@ Cada item é **binário** (✅/❌) com evidência citada em arquivo. Item 🟡 
 - US done sem smoke (Wagner descobre quebrado pelo cliente)
 - Smoke só em local — não validou prod (ex: caso Whatsapp 2026-05-10 onde local mostrava inbox vazia mas prod tinha mensagens reais)
 
+### 9. Teste ancorado em CONTRATO, não no código (DURO — novo v1.1)
+
+**Pergunta:** Cada teste novo/alterado deriva de um contrato **externo** (SPEC / ADR / proibicoes / charter / casos) citado — e não da implementação?
+
+**Aprovado se:**
+- O teste cita no cabeçalho/doc-comment a fonte do contrato (ex: `@see ADR 0143` + a regra em português que ele prova)
+- A asserção corresponde à **regra do contrato**, não ao que a classe já faz
+- Invariante de negócio escrita a partir da proibição/SPEC, não copiada do comportamento atual
+
+**Reprovado se:**
+- Invariante/asserção extraída do código (tautológico) — passa ✅ mesmo se o comportamento estiver errado vs a intenção, **travando o drift** em vez de pegá-lo. Ver [§"Ideias avaliadas e DESCARTADAS"](../../../memory/proibicoes.md) entrada 2026-06-05 "Teste tautológico".
+- Teste sem nenhuma âncora de contrato citada.
+
+**Por que DURO:** teste tautológico é **pior que não ter teste** (catraca o desvio). NÚCLEO invariante 4 do método: *"Casos = contrato de não-regressão"*. Caso real: `FsmAuthorizationFlagPropertyTest` (2026-06-05) derivou invariantes da classe, não do contrato ADR 0143.
+
+## Veredito — pontuação (Bateria §9 portada)
+
+> Porta a régua do [`PROCESSO_MEMORIA_CC`](../../../prototipo-ui/PROCESSO_MEMORIA_CC.md) §9 pro mundo de código. **Não é bateria nova** — é a mesma lógica, sistema separado (Opção B).
+
+- **Peso:** cada check = 1 ponto. Os **4 duros (#5, #7, #8, #9) contam dobrado.** Total possível = **13**.
+- **Corte duro:** qualquer check DURO ❌ → **INVÁLIDO** (não fecha US), independente do score.
+- **Senão, pelo score%** (pontos ÷ 13):
+  - **≥90%** → ✅ APROVADO (pode marcar done)
+  - **75–89%** → 🟡 CONDICIONAL (corrige os ❌ e re-roda; não fecha ainda)
+  - **<75%** → ❌ INVÁLIDO
+- Score registrado no `AUDIT-LOG.md` junto do resultado (§7) — alimenta a métrica de drift (Peça 3).
+
 ## Os 7 passos do ciclo
 
 ### 1. Detectar trigger
@@ -227,11 +254,12 @@ Check 5 → Read phpunit.xml + Glob Modules/{Modulo}/Tests/ + Bash `vendor\bin\p
 Check 6 → Grep AuditLog::write em Modules/{Modulo}/Http/Controllers/
 Check 7 → Grep BelongsToBusiness + grep withoutGlobalScopes
 Check 8 → Glob memory/requisitos/{Modulo}/smoke/*.png (data > merge da US)
+Check 9 → grep doc-comment (@see/ADR/SPEC/proibicoes/charter) em cada *Test.php novo/alterado; conferir asserção vs regra do CONTRATO (não vs a classe)
 ```
 
 ### 4. Compilar resultado
 
-Tabela com 8 linhas:
+Tabela com 9 linhas + linha de **Veredito** (score/13 + duros ❌ se houver):
 
 ```markdown
 | # | Check | Status | Evidência | Próximo passo |
@@ -246,8 +274,9 @@ Tabela com 8 linhas:
 ```
 🔍 Audit completude — Modules/{Modulo} ({task_id ou "módulo inteiro"})
 
-✅ Aprovados: {N}/8
-❌ Reprovados: {M}
+✅ Aprovados: {N}/9  ·  Score: {pontos}/13 ({pct}%)
+❌ Reprovados: {M}  {duros ❌: [#5/#7/#8/#9] se houver}
+Veredito: {APROVADO ≥90 / CONDICIONAL 75-89 / INVÁLIDO <75 OU qualquer duro ❌}
 
 Reprovados:
 - #2 Permissions UI: {evidência curta}
@@ -296,7 +325,7 @@ Atualizar `metrics:` no frontmatter desta skill.
 Resultado: {APROVADO ✅ / BLOQUEADO ❌}
 
 [se aprovado]
-✅ 8/8 checks passaram. Pode marcar US-XXX-NNN como done.
+✅ 9/9 checks · score 13/13 (100%). Pode marcar US-XXX-NNN como done.
 
 [se bloqueado]
 ❌ {M} reprovados. Bloqueio transição review→done.
