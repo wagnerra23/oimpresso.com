@@ -17,8 +17,9 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2 } from 'lucide-react';
+import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2, Truck } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
@@ -30,7 +31,9 @@ import ProductSearchAutocomplete, {
 } from './_components/ProductSearchAutocomplete';
 import CustomerSearchAutocomplete, {
   type CustomerSearchResult,
+  type VehicleOption,
 } from './_components/CustomerSearchAutocomplete';
+import QuickAddVehicleSheet from './_components/QuickAddVehicleSheet';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from './_components/NumericInputPtBR';
 import { dropdownEntries } from './_components/dropdownEntries';
@@ -93,6 +96,11 @@ export interface SellsCreatePageProps {
   customerGroups: OptionMap;
   accounts: OptionMap;
   typesOfService: OptionMap;
+  // ADR 0251 — veículo na venda direta de oficina. hasOficinaAuto = gate per-business
+  // (vestuário/ROTA LIVRE vem false → seção some). vehicleTypes alimenta o dropdown
+  // do cadastro rápido (QuickAddVehicleSheet).
+  hasOficinaAuto?: boolean;
+  vehicleTypes?: OptionMap;
   categories?: Record<string, unknown> | false;
   brands?: Record<string, unknown> | false;
   shortcuts?: Record<string, string> | null;
@@ -189,6 +197,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     price_group_id: props.defaultPriceGroupId,
     commission_agent_id: null as number | null,
     tax_rate_id: null as number | null,
+    // ADR 0251 — veículo na venda direta de oficina. null = sem veículo. Só
+    // relevante quando OficinaAuto habilitado; em vestuário fica sempre null.
+    vehicle_id: null as number | null,
     products: [] as Array<{
       product_id: number;
       variation_id: number | null;
@@ -264,6 +275,14 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   const hasMultiplePriceGroups = Object.keys(props.priceGroups).length > 1;
   const hasCommissionAgent = Object.keys(props.commissionAgents).length > 0;
   const hasTypesOfService = Object.keys(props.typesOfService).length > 0;
+
+  // ADR 0251 — Veículo na venda. Gate per-business: vestuário (ROTA LIVRE) vem
+  // hasOficinaAuto=false → toda a seção de veículo some. customerVehicles = catálogo
+  // do cliente selecionado (vem do payload getCustomers). quickAddVehicleOpen abre o
+  // drawer de cadastro rápido (sem perder a venda).
+  const hasOficinaAuto = props.hasOficinaAuto === true;
+  const [customerVehicles, setCustomerVehicles] = useState<VehicleOption[]>([]);
+  const [quickAddVehicleOpen, setQuickAddVehicleOpen] = useState(false);
 
   // Cálculos de produtos
   const productSearchRef = useRef<HTMLDivElement>(null);
@@ -481,6 +500,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (c.selling_price_group_id !== null && c.selling_price_group_id !== undefined) {
       void handlePriceGroupChange(c.selling_price_group_id);
     }
+    // ADR 0251 — catálogo de veículos do cliente alimenta o seletor. Auto-seleciona
+    // quando o cliente tem 1 veículo só (caso comum oficina); senão deixa o vendedor
+    // escolher. Troca de cliente reseta o veículo (não vaza veículo de outro dono).
+    const vs = c.vehicles ?? [];
+    setCustomerVehicles(vs);
+    setData('vehicle_id', vs.length === 1 ? vs[0].id : null);
   };
 
   // R8 — reset ao limpar cliente. Volta pros defaults (walk-in + props default).
@@ -488,6 +513,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     setData('contact_id', props.walkInCustomer.id);
     setData('pay_term_number', '');
     setData('pay_term_type', 'days');
+    // ADR 0251 — sem cliente, não há catálogo de veículos.
+    setCustomerVehicles([]);
+    setData('vehicle_id', null);
     // shipping fica como user editou — não auto-limpa (pode ser endereço manual)
     // price_group volta ao default do business
     if (props.defaultPriceGroupId !== data.price_group_id) {
@@ -1136,6 +1164,71 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             </Select>
             <FieldError message={errors.location_id as string | undefined} />
           </div>
+
+          {/* ADR 0251 — Veículo na venda direta de oficina. Só aparece quando
+              OficinaAuto habilitado pro business (vestuário/ROTA LIVRE não vê).
+              Consome contact.vehicles[]; plaquinha Mercosul reusada do OficinaAuto. */}
+          {hasOficinaAuto && (
+            <div className="space-y-2 md:col-span-2 lg:col-span-4">
+              <Label className="flex items-center gap-2">
+                <Truck className="h-4 w-4 text-muted-foreground" />
+                Veículo
+                {data.vehicle_id !== null && (
+                  <span className="rounded bg-primary/10 px-1.5 text-[10px] font-medium text-primary">
+                    selecionado
+                  </span>
+                )}
+              </Label>
+
+              {data.contact_id !== props.walkInCustomer.id ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  {customerVehicles.map((v) => {
+                    const selected = data.vehicle_id === v.id;
+                    const typeLabel = (props.vehicleTypes ?? {})[v.vehicle_type ?? ''] ?? v.vehicle_type ?? '';
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setData('vehicle_id', selected ? null : v.id)}
+                        aria-pressed={selected}
+                        className={
+                          'flex items-center gap-2 rounded-md border p-2 text-left transition-colors ' +
+                          (selected
+                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                            : 'border-border hover:bg-muted/50')
+                        }
+                      >
+                        <MercosulPlate plate={v.plate} size="sm" />
+                        {v.secondary_plate && <MercosulPlate plate={v.secondary_plate} size="sm" />}
+                        {typeLabel && (
+                          <span className="text-xs text-muted-foreground pr-1">{typeLabel}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setQuickAddVehicleOpen(true)}
+                    className="flex items-center gap-1.5 rounded-md border border-dashed border-border p-2 text-sm text-muted-foreground transition-colors hover:bg-muted/50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Cadastrar veículo
+                  </button>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Selecione o cliente pra escolher ou cadastrar o veículo do atendimento.
+                </p>
+              )}
+
+              {data.contact_id !== props.walkInCustomer.id && customerVehicles.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Cliente sem veículo cadastrado — use <b>Cadastrar veículo</b>.
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -1880,6 +1973,20 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ADR 0251 — cadastro rápido de veículo sem perder a venda (drawer lateral) */}
+      {hasOficinaAuto && (
+        <QuickAddVehicleSheet
+          open={quickAddVehicleOpen}
+          onClose={() => setQuickAddVehicleOpen(false)}
+          contactId={data.contact_id !== props.walkInCustomer.id ? data.contact_id : null}
+          vehicleTypes={props.vehicleTypes ?? {}}
+          onCreated={(v) => {
+            setCustomerVehicles((prev) => [v, ...prev.filter((x) => x.id !== v.id)]);
+            setData('vehicle_id', v.id);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -2420,7 +2420,42 @@ class ContactController extends Controller
             }
             $contacts = $contacts->get();
 
-            return json_encode($contacts);
+            // ADR 0251 — catálogo de veículos do cliente p/ o seletor de veículo na
+            // venda direta de oficina (Sells/Create). Query separada + map (mesmo
+            // padrão do vehiclesCountMap) porque o select() acima é custom + leftjoin.
+            //
+            // BLINDAGEM: este endpoint é COMPARTILHADO com o Blade legado. Guard
+            // Schema::hasTable degrada gracioso quando OficinaAuto não está instalado
+            // (sem catálogo, o seletor some) em vez de quebrar a busca de cliente.
+            // Vehicle tem global scope por business_id (ADR 0093) — Tier 0 automático.
+            $vehiclesByContact = collect();
+            if (\Illuminate\Support\Facades\Schema::hasTable('vehicles') && $contacts->isNotEmpty()) {
+                $contactIds = $contacts->pluck('id')->all();
+                $vehiclesByContact = \Modules\OficinaAuto\Entities\Vehicle::query()
+                    ->whereIn('contact_id', $contactIds)
+                    ->orderByDesc('id')
+                    ->get(['id', 'contact_id', 'plate', 'secondary_plate', 'vehicle_type'])
+                    ->groupBy('contact_id');
+            }
+
+            // Mapeia pra array (em vez de setar propriedade dinâmica no Model — Larastan
+            // acusaria App\Contact::$vehicles undefined) anexando vehicles[] por contato.
+            $payload = $contacts->map(function ($c) use ($vehiclesByContact) {
+                $arr = $c->toArray();
+                $arr['vehicles'] = collect($vehiclesByContact->get($c->id) ?? [])
+                    ->map(fn ($v) => [
+                        'id'              => (int) $v->id,
+                        'plate'           => $v->plate,
+                        'secondary_plate' => $v->secondary_plate,
+                        'vehicle_type'    => $v->vehicle_type,
+                    ])
+                    ->values()
+                    ->all();
+
+                return $arr;
+            });
+
+            return json_encode($payload);
         }
     }
 

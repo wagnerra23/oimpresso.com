@@ -12,6 +12,7 @@ Módulo de vendas — wrapper KB-9.75 sobre `Transaction(type='sell')` UltimateP
 
 - **Sells/Index** (`A+ · 9,75/10` KB-9.75 v2 · PR #1064) — lista vendas com KPI hero, saved tree, filtros, hover-reveal actions
 - **Sells/Create** (`A+ · 9,75/10`) — checkout balcão com search produto + cliente + payment
+- **Veículo na venda** ([ADR 0251](../../decisions/0251-veiculo-na-venda-direta-oficina.md) · 2026-06-05) — venda direta de oficina seleciona/cadastra o veículo do cliente sem abrir OS: seletor com plaquinha Mercosul (reusada do OficinaAuto) + `QuickAddVehicleSheet` (cadastro rápido sem perder a venda) na `Sells/Create`, placa na consulta (Index + Show). Schema `transactions.vehicle_id` nullable + FK. **Gated per-business** (vestuário/ROTA LIVRE não vê)
 - **Sells/Edit** — edição venda existente + Wave Z-2 `commission_split` editor (2 selects mecânico/balcão + 2 inputs % · validation total=100 server-side)
 - **Sells/Quotations / Drafts / Show / Subscriptions** — variações da entidade `Transaction`
 - **Integração Vendas × Oficina** ([ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) · Wave Z-2 mergeada 2026-05-25):
