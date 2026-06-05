@@ -37632,30 +37632,6 @@ parameters:
 			path: Modules/Repair/Http/Controllers/RepairController.php
 
 		-
-			message: '#^Call to function in_array\(\) with arguments ''approved''\|''declined''\|''waiting'', array\{''cancelled'', ''expired''\} and true will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
-
-		-
-			message: '#^Property Modules\\Superadmin\\Entities\\Subscription\:\:\$status \(''approved''\|''declined''\|''waiting''\) does not accept ''cancelled''\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
-
-		-
-			message: '#^Property Modules\\Superadmin\\Entities\\Subscription\:\:\$status \(''approved''\|''declined''\|''waiting''\) does not accept ''expired''\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between ''approved''\|''declined'' and ''waiting_approval'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: Modules/Superadmin/Services/SubscriptionLifecycleService.php
-
-		-
 			message: '#^Expression on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.expr
 			count: 1

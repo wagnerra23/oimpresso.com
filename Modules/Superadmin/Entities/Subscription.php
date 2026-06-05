@@ -8,6 +8,15 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Coluna `subscriptions.status` é enum (migration aditiva 2026_06_05_000100 amplia
+ * de 3 → 5 valores). Larastan deriva o tipo do enum da migration de criação via
+ * Blueprint, mas não enxerga `ALTER ... MODIFY` em SQL cru — daí a anotação explícita
+ * mantém o tipo estático em sincronia com o schema real (SubscriptionLifecycleService
+ * grava 'expired'/'cancelled'). Refs ADR 0208.
+ *
+ * @property 'approved'|'waiting'|'declined'|'expired'|'cancelled' $status
+ */
 class Subscription extends Model
 {
     use LogsActivity;
