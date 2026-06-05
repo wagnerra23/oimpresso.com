@@ -1,9 +1,13 @@
 ---
 date: "2026-06-05"
-hour: "14:50 BRT"
+time: "14:50 BRT"
+slug: anti-regressao-codigo-e-sinal-design-gargalo
+tldr: "Sessão entregou anti-regressão do CÓDIGO (Opção B: §5 + gate pontuado + nudge hook, 2 PRs mergeados) e terminou com sinal forte do fundador — DESIGN é o gargalo absoluto de receita; é a prioridade da próxima sessão."
 topic: "Anti-regressão do código (Opção B) + sinal forte: DESIGN é o gargalo de receita"
 duration: "~longa (pesquisa + 2 PRs + reframe estratégico)"
 authors: [W, CC]
+decided_by: [W]
+prs: [2273, 2278]
 ---
 
 # Handoff — anti-regressão do código + sinal DESIGN-gargalo
