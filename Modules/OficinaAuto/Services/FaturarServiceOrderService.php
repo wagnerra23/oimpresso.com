@@ -66,8 +66,13 @@ class FaturarServiceOrderService
             return ['transaction' => $existing, 'created' => false, 'reason' => self::REASON_OS_REF_EXISTS];
         }
 
-        // Resolve contact_id: prefere a OS · fallback dono do veículo.
-        $contactId = $so->contact_id ?? $so->vehicle?->contact_id;
+        // Resolve contact_id: prefere a OS · fallback dono do veículo. value() em
+        // vez de $so->vehicle?->contact_id evita acesso a propriedade de relação
+        // não-tipada (larastan) e respeita o global scope business_id do Vehicle.
+        $contactId = $so->contact_id;
+        if ($contactId === null && $so->vehicle_id !== null) {
+            $contactId = \Modules\OficinaAuto\Entities\Vehicle::whereKey($so->vehicle_id)->value('contact_id');
+        }
         if ($contactId === null) {
             Log::warning('FaturarServiceOrderService: sem contact_id resolvível (OS+Veículo NULL)', [
                 'service_order_id' => $so->id,
