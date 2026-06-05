@@ -18,7 +18,7 @@
 // quando wantsJson() && !X-Inertia (ADR 0251). business_id + contact_id setados
 // server-side (Tier 0 ADR 0093). contact_id vem do cliente já selecionado na venda.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Truck, Loader2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -85,7 +85,7 @@ export default function QuickAddVehicleSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, prefillPlate]);
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (saving) return;
 

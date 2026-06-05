@@ -934,11 +934,14 @@ class SellController extends Controller
         // OficinaAuto DataController::modifyAdminMenu): superadmin vê se módulo instalado;
         // demais via hasThePermissionInSubscription('oficina_auto_module'). Vestuário
         // (ROTA LIVRE biz=4) NÃO habilita → seletor de veículo nem aparece (Tier 0 ADR 0093).
+        // Instância local de ModuleUtil (mesmo pattern do DataController) — evita
+        // somar acessos a $this->moduleUtil baselined no PHPStan ratchet.
+        $oficinaModuleUtil = new \App\Utils\ModuleUtil();
         $has_oficina_auto = false;
         if (auth()->user()->can('superadmin')) {
-            $has_oficina_auto = $this->moduleUtil->isModuleInstalled('OficinaAuto');
+            $has_oficina_auto = $oficinaModuleUtil->isModuleInstalled('OficinaAuto');
         } else {
-            $has_oficina_auto = (bool) $this->moduleUtil->hasThePermissionInSubscription(
+            $has_oficina_auto = (bool) $oficinaModuleUtil->hasThePermissionInSubscription(
                 $business_id,
                 'oficina_auto_module',
                 'superadmin_package'

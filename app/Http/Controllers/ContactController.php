@@ -2425,6 +2425,7 @@ class ContactController extends Controller
             // Schema::hasTable degrada gracioso quando OficinaAuto não está instalado
             // (sem catálogo, o seletor some) em vez de quebrar a busca de cliente.
             // Vehicle tem global scope por business_id (ADR 0093) — Tier 0 automático.
+            $vehiclesByContact = collect();
             if (\Illuminate\Support\Facades\Schema::hasTable('vehicles') && $contacts->isNotEmpty()) {
                 $contactIds = $contacts->pluck('id')->all();
                 $vehiclesByContact = \Modules\OficinaAuto\Entities\Vehicle::query()
@@ -2432,21 +2433,26 @@ class ContactController extends Controller
                     ->orderByDesc('id')
                     ->get(['id', 'contact_id', 'plate', 'secondary_plate', 'vehicle_type'])
                     ->groupBy('contact_id');
-
-                $contacts->each(function ($c) use ($vehiclesByContact) {
-                    $c->vehicles = ($vehiclesByContact[$c->id] ?? collect())
-                        ->map(fn ($v) => [
-                            'id'              => (int) $v->id,
-                            'plate'           => $v->plate,
-                            'secondary_plate' => $v->secondary_plate,
-                            'vehicle_type'    => $v->vehicle_type,
-                        ])
-                        ->values()
-                        ->all();
-                });
             }
 
-            return json_encode($contacts);
+            // Mapeia pra array (em vez de setar propriedade dinâmica no Model — Larastan
+            // acusaria App\Contact::$vehicles undefined) anexando vehicles[] por contato.
+            $payload = $contacts->map(function ($c) use ($vehiclesByContact) {
+                $arr = $c->toArray();
+                $arr['vehicles'] = collect($vehiclesByContact->get($c->id) ?? [])
+                    ->map(fn ($v) => [
+                        'id'              => (int) $v->id,
+                        'plate'           => $v->plate,
+                        'secondary_plate' => $v->secondary_plate,
+                        'vehicle_type'    => $v->vehicle_type,
+                    ])
+                    ->values()
+                    ->all();
+
+                return $arr;
+            });
+
+            return json_encode($payload);
         }
     }
 
