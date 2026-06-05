@@ -70,7 +70,8 @@ class FaturarServiceOrderService
         // vez de $so->vehicle?->contact_id evita acesso a propriedade de relação
         // não-tipada (larastan) e respeita o global scope business_id do Vehicle.
         $contactId = $so->contact_id;
-        if ($contactId === null && $so->vehicle_id !== null) {
+        if ($contactId === null) {
+            // whereKey lida com vehicle_id null graciosamente (sem match → null).
             $contactId = \Modules\OficinaAuto\Entities\Vehicle::whereKey($so->vehicle_id)->value('contact_id');
         }
         if ($contactId === null) {
