@@ -1,36 +1,20 @@
 name: Hostinger — corrigir final_total inflado (incidente num_uf 2026-06-05)
 
-# Dispatch manual pra rodar `sells:final-total-audit` na PROD Hostinger via SSH
-# (secrets SSH_HOST/PORT/USER/PRIVATE_KEY já existentes). Criado durante o
-# incidente ROTA LIVRE biz=4 (valores inflados ~×100k por num_uf strippar ponto
-# decimal de total fracionado — fix #2279).
-#
-# Least-privilege: business FIXO=4, comando FIXO `sells:final-total-audit`, sem
-# args livres de shell. mode=dry-run só lista; mode=apply corrige os IDs passados
-# (o comando faz UPDATE cirúrgico só do final_total, recomputado dos campos intactos).
-# Remover pós-incidente.
-#
-# Ref: PR #2279 (Util::num_uf) · app/Console/Commands/SellsFinalTotalAuditCommand.php
+# HOTFIX OUTAGE 2026-06-05: reaproveitado pra diagnóstico+recovery do prod 500.
+# Roda via gh workflow run --ref <branch>. Remover pós-incidente.
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'dry-run (lista as infladas) ou apply (corrige os IDs)'
-        required: true
-        default: 'dry-run'
-        type: choice
-        options:
-          - dry-run
-          - apply
-      since:
-        description: 'dry-run: auditar desde esta data (YYYY-MM-DD)'
+        description: 'ignorado (recovery)'
         required: false
-        default: '2026-05-26'
+        default: 'recovery'
         type: string
-      ids:
-        description: 'apply: IDs de transaction separados por espaço'
+      since:
+        description: 'ignorado'
         required: false
+        default: '-'
         type: string
 
 concurrency:
@@ -41,31 +25,30 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH Hostinger → sells:final-total-audit
+      - name: SSH Hostinger → diagnóstico + recovery prod 500
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          MODE: ${{ github.event.inputs.mode }}
-          SINCE: ${{ github.event.inputs.since }}
-          IDS: ${{ github.event.inputs.ids }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: MODE,SINCE,IDS
           command_timeout: 15m
           script: |
-            set -e
             cd domains/oimpresso.com/public_html
-            echo "== pwd: $(pwd) · mode=$MODE =="
-            if [ "$MODE" = "apply" ]; then
-              for id in $IDS; do
-                case "$id" in
-                  ''|*[!0-9]*) echo "SKIP id inválido: $id"; continue ;;
-                esac
-                echo "---- apply transaction=$id ----"
-                php artisan sells:final-total-audit --business=4 --apply --transaction="$id"
-              done
-            else
-              php artisan sells:final-total-audit --business=4 --since="$SINCE"
-            fi
+            echo "===== GIT HEAD ====="
+            git log --oneline -3 2>&1 || true
+            echo "===== laravel.log (tail 50) ====="
+            tail -50 storage/logs/laravel.log 2>&1 || echo "(sem log)"
+            echo "===== PHP error_log (tail 30) ====="
+            tail -30 error_log 2>&1 || echo "(sem error_log)"
+            echo "===== RECOVERY: optimize:clear ====="
+            php artisan optimize:clear 2>&1 || echo "optimize:clear FALHOU"
+            echo "===== RECOVERY: dump-autoload --no-scripts ====="
+            composer dump-autoload --optimize --no-scripts --no-interaction 2>&1 | tail -8 || echo "dump-autoload FALHOU"
+            echo "===== RECOVERY: config+route+view cache ====="
+            php artisan config:clear 2>&1 || true
+            php artisan view:clear 2>&1 || true
+            php artisan route:clear 2>&1 || true
+            echo "===== HEALTH local ====="
+            curl -s -o /dev/null -w "localhost/login: %{http_code}\n" http://localhost/login 2>&1 || true
+            echo "===== done ====="
