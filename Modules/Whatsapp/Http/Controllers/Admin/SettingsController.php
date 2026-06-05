@@ -216,7 +216,7 @@ class SettingsController extends Controller
             $config->display_phone = $data['display_phone'];
             $config->driver_health = 'healthy';
             $config->driver_health_consecutive_failures = 0;
-            $config->last_health_check_at = now();
+            $config->last_health_check_at = now()->toImmutable(); // cast immutable_datetime → CarbonImmutable
             $config->last_health_message = 'Embedded Signup v4 OK';
             $config->save();
 

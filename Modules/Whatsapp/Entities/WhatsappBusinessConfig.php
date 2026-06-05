@@ -48,6 +48,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $bot_enabled
  * @property string $driver_health
  * @property int $driver_health_consecutive_failures
+ * @property ?\Carbon\CarbonImmutable $last_health_check_at
+ * @property ?string $last_health_message
  */
 class WhatsappBusinessConfig extends Model
 {

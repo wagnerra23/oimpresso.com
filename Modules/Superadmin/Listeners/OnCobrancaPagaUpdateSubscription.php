@@ -102,7 +102,12 @@ final class OnCobrancaPagaUpdateSubscription
      * Calcula dates do package — pattern BaseController::_get_package_dates
      * inlined (BaseController é instance method, listener é stateless).
      *
-     * @return array{start: string, end: string, trial: \Carbon\Carbon}
+     * Tipos alinhados aos casts reais de Subscription (PHPStan/Larastan nível 5):
+     *   - start_date/end_date têm cast `datetime` → property Carbon|null → devolve Carbon
+     *   - trial_end_date NÃO tem cast (coluna `date`, tratada como string-date em
+     *     todo o módulo: uf_date(), @format_date Blade) → devolve string
+     *
+     * @return array{start: \Carbon\Carbon, end: \Carbon\Carbon, trial: string}
      */
     private function calcPackageDates(int $businessId, Package $package): array
     {
@@ -111,17 +116,17 @@ final class OnCobrancaPagaUpdateSubscription
             $start = Carbon::parse($start);
         }
 
-        $output = ['start' => $start->toDateString(), 'end' => '', 'trial' => null];
+        $output = ['start' => $start, 'end' => clone $start, 'trial' => ''];
 
         if ($package->interval === 'days') {
-            $output['end'] = (clone $start)->addDays((int) $package->interval_count)->toDateString();
+            $output['end'] = (clone $start)->addDays((int) $package->interval_count);
         } elseif ($package->interval === 'months') {
-            $output['end'] = (clone $start)->addMonths((int) $package->interval_count)->toDateString();
+            $output['end'] = (clone $start)->addMonths((int) $package->interval_count);
         } elseif ($package->interval === 'years') {
-            $output['end'] = (clone $start)->addYears((int) $package->interval_count)->toDateString();
+            $output['end'] = (clone $start)->addYears((int) $package->interval_count);
         }
 
-        $output['trial'] = (clone $start)->addDays((int) ($package->trial_days ?? 0));
+        $output['trial'] = (clone $start)->addDays((int) ($package->trial_days ?? 0))->toDateString();
 
         return $output;
     }
