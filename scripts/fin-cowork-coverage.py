@@ -13,7 +13,9 @@ import re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BUNDLE = ROOT / "resources/css/cowork-canon-financeiro-bundle.css"
+def _arg(flag, default):
+    return sys.argv[sys.argv.index(flag) + 1] if flag in sys.argv else default
+BUNDLE = ROOT / _arg("--bundle", "resources/css/cowork-canon-financeiro-bundle.css")
 JS_DIR = ROOT / "resources/js"
 
 css = BUNDLE.read_text(encoding="utf-8")
