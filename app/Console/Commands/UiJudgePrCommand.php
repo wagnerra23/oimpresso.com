@@ -12,13 +12,13 @@ use Modules\Jana\Entities\UiJudgeRun;
 /**
  * `ui:judge-pr` — Onda 4.1 do AUTOMATION-ROADMAP (Constituição UI v2).
  *
- * Avalia um PR contra a Constituição UI v2 usando agente LLM (Anthropic Claude
- * Sonnet 4.6) e — opcionalmente — posta comentário inline no PR via `gh`.
+ * Avalia um PR contra a Constituição UI v2 usando agente LLM (OpenAI gpt-4o)
+ * e — opcionalmente — posta comentário inline no PR via `gh`.
  *
  * Workflow:
  *   1. Pega metadata do PR (título · descrição · arquivos modificados) via gh CLI
  *   2. Pega diff filtrado (.tsx, .jsx, .css)
- *   3. Manda pro PrUiJudgeAgent (anthropic / claude-sonnet-4-6)
+ *   3. Manda pro PrUiJudgeAgent (openai / gpt-4o)
  *   4. Parse output JSON
  *   5. Print score + violações no console
  *   6. (Opcional) `--post-comment` posta no PR via gh
@@ -29,8 +29,7 @@ use Modules\Jana\Entities\UiJudgeRun;
  *   php artisan ui:judge-pr 1438 --post-comment # postar comentário no PR
  *   php artisan ui:judge-pr 1438 --strict       # exit 1 se verdict=request_changes
  *
- * Custo estimado por run: ~$0.034 (Claude Sonnet 4.6) · com prompt caching
- * cai pra ~$0.005 após primeiro PR do dia.
+ * Custo estimado por run: ~$0.05 (OpenAI gpt-4o, ~10k in + ~1k out).
  *
  * @see Modules\Jana\Ai\Agents\PrUiJudgeAgent
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4)
@@ -101,7 +100,7 @@ class UiJudgePrCommand extends Command
         $this->line('  Diff UI: '.strlen($diff).' bytes');
 
         // 4. Mandar pro agent
-        $this->info('Enviando pra PrUiJudgeAgent (Claude Sonnet 4.6)...');
+        $this->info('Enviando pra PrUiJudgeAgent (OpenAI gpt-4o)...');
         $output = $this->runAgent($prData, $diff);
         if ($output === null) {
             return self::FAILURE;
@@ -212,6 +211,7 @@ class UiJudgePrCommand extends Command
             str_contains($model, 'sonnet') => 0.034,
             str_contains($model, 'haiku') => 0.003,
             str_contains($model, 'gpt-4o-mini') => 0.002,
+            str_contains($model, 'gpt-4o') => 0.050,
             default => null,
         };
     }
@@ -312,15 +312,16 @@ class UiJudgePrCommand extends Command
     private function runAgent(array $prData, string $diff): ?string
     {
         // Pre-flight: validar API key do provider configurado no PrUiJudgeAgent.
-        // PrUiJudgeAgent = Anthropic claude-sonnet-4-6 (review de design exige
-        // juízo semântico · canon do projeto). Wagner pode trocar editando o
-        // @Provider/@Model do agent.
-        $anthropicKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
+        // PrUiJudgeAgent = OpenAI gpt-4o (provider canon pós-migração). Wagner
+        // pode trocar editando o @Provider/@Model do agent — o check abaixo lê
+        // o provider por reflexão, então segue o agent sem hardcode.
+        [$provider] = $this->agentProviderModel();
+        $envVar = strtoupper($provider) . '_API_KEY';
+        $providerKey = (string) (config("ai.providers.{$provider}.key") ?? env($envVar) ?? '');
 
-        if ($anthropicKey === '') {
-            $this->error('ANTHROPIC_API_KEY não configurada (provider do PrUiJudgeAgent)');
-            $this->line('  Adicionar em .env: ANTHROPIC_API_KEY=sk-ant-... (Claude Sonnet 4.6)');
-            $this->line('  Pegar key em: https://console.anthropic.com/settings/keys');
+        if ($providerKey === '') {
+            $this->error("{$envVar} não configurada (provider '{$provider}' do PrUiJudgeAgent)");
+            $this->line("  Adicionar em .env: {$envVar}=...");
             $this->line('  Depois: php artisan config:clear');
 
             return null;
@@ -343,14 +344,14 @@ class UiJudgePrCommand extends Command
             $msg = $e->getMessage();
 
             // Diagnóstico amigável pra erros comuns
-            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication')) {
-                $this->error('ANTHROPIC_API_KEY inválida ou expirada (HTTP 401)');
-                $this->line('  Verificar valor em .env · regenerar key em https://console.anthropic.com');
+            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication') || str_contains($msg, 'Incorrect API key')) {
+                $this->error('API key do provider inválida ou expirada (HTTP 401)');
+                $this->line('  Verificar valor em .env · regenerar key no dashboard do provider');
                 $this->line('  Depois: php artisan config:clear');
             } elseif (str_contains($msg, '429') || str_contains($msg, 'rate_limit')) {
-                $this->error('Rate limit Anthropic (HTTP 429) · aguardar 60s e tentar novamente');
+                $this->error('Rate limit do provider (HTTP 429) · aguardar 60s e tentar novamente');
             } elseif (str_contains($msg, '529') || str_contains($msg, 'overloaded')) {
-                $this->error('Anthropic overloaded (HTTP 529) · tentar novamente em alguns minutos');
+                $this->error('Provider overloaded (HTTP 529) · tentar novamente em alguns minutos');
             } else {
                 $this->error("PrUiJudgeAgent falhou: {$msg}");
             }
