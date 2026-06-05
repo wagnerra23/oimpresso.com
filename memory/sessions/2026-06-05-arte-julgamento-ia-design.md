@@ -3,7 +3,7 @@ slug: arte-julgamento-ia-design
 title: "Estado da arte — julgamento de DESIGN/UI por IA (LLM/VLM-as-judge)"
 topic: "Estado da arte de julgamento de design/UI por IA (LLM/VLM-as-judge) + comparativo com oimpresso"
 type: estado-da-arte
-date: 2026-06-05
+date: "2026-06-05"
 authors: [C, W]
 agent: estado-da-arte
 escopo: "Como a IA AVALIA e JULGA design (telas, UX, hierarquia, a11y) — não como gera"
