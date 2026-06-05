@@ -68,12 +68,14 @@ function controllerInstance(): \Modules\Governance\Http\Controllers\DashboardCon
     return new \Modules\Governance\Http\Controllers\DashboardController;
 }
 
-function invokePrivate(object $obj, string $method, array $args = []): mixed
-{
-    $ref = new ReflectionMethod($obj, $method);
-    $ref->setAccessible(true);
+if (! function_exists('invokePrivate')) {
+    function invokePrivate(object $obj, string $method, array $args = []): mixed
+    {
+        $ref = new ReflectionMethod($obj, $method);
+        $ref->setAccessible(true);
 
-    return $ref->invokeArgs($obj, $args);
+        return $ref->invokeArgs($obj, $args);
+    }
 }
 
 test('failedJobs24h conta apenas registros recentes', function () {
