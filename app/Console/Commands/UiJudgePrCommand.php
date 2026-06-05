@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
+use Modules\Jana\Entities\UiJudgeRun;
 
 /**
  * `ui:judge-pr` — Onda 4.1 do AUTOMATION-ROADMAP (Constituição UI v2).
@@ -118,6 +119,11 @@ class UiJudgePrCommand extends Command
         // 6. Render no console
         $this->renderReview($review);
 
+        // 6.5. Medição (append-only · jana_ui_judge_runs). Sem isto o juiz era
+        // fire-and-forget: postava o comentário e o score evaporava. Best-effort —
+        // medição NUNCA derruba o julgamento.
+        $this->recordRun($prNumber, $repo, $review);
+
         // 7. Save to file
         if ($saveTo !== '') {
             file_put_contents(base_path($saveTo), json_encode($review, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
@@ -138,6 +144,76 @@ class UiJudgePrCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Persiste 1 linha de medição (append-only) por julgamento.
+     *
+     * Provider/model são lidos por reflexão dos atributos do PrUiJudgeAgent —
+     * assim a medição reflete o modelo REAL em uso (nunca mais "anuncia X, roda
+     * Y"). Best-effort: qualquer falha aqui é avisada mas não derruba o run.
+     */
+    private function recordRun(int $prNumber, string $repo, array $review): void
+    {
+        try {
+            [$provider, $model] = $this->agentProviderModel();
+
+            $verdict = $review['verdict'] ?? 'comment';
+            if (! in_array($verdict, ['approve', 'request_changes', 'comment'], true)) {
+                $verdict = 'comment';
+            }
+
+            UiJudgeRun::create([
+                'pr_number' => $prNumber,
+                'repo' => $repo !== '' ? $repo : null,
+                'provider' => $provider,
+                'model' => $model,
+                'score' => (int) ($review['score'] ?? 0),
+                'verdict' => $verdict,
+                'violacoes_count' => is_array($review['violacoes_estruturais'] ?? null)
+                    ? count($review['violacoes_estruturais'])
+                    : 0,
+                'dimensoes' => $review['dimensoes'] ?? null,
+                'custo_usd_estimado' => $this->estimateCostUsd($model),
+                'judged_at' => now(),
+            ]);
+
+            $this->line('  Medição registrada em jana_ui_judge_runs (jana:ui-judge-trend)');
+        } catch (\Throwable $e) {
+            $this->warn('  Medição não registrada (não-bloqueante): '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Provider + model declarados nos atributos do PrUiJudgeAgent (reflexão).
+     *
+     * @return array{0:string, 1:string}
+     */
+    private function agentProviderModel(): array
+    {
+        $ref = new \ReflectionClass(PrUiJudgeAgent::class);
+
+        $provider = ($ref->getAttributes(\Laravel\Ai\Attributes\Provider::class)[0] ?? null)
+            ?->getArguments()[0] ?? 'unknown';
+        $model = ($ref->getAttributes(\Laravel\Ai\Attributes\Model::class)[0] ?? null)
+            ?->getArguments()[0] ?? 'unknown';
+
+        return [(string) $provider, (string) $model];
+    }
+
+    /**
+     * Estimativa grosseira de custo por PR (~10k tokens in + ~1k out).
+     * NÃO é billing real — só pra dar ordem de grandeza no trend.
+     */
+    private function estimateCostUsd(string $model): ?float
+    {
+        return match (true) {
+            str_contains($model, 'opus') => 0.165,
+            str_contains($model, 'sonnet') => 0.034,
+            str_contains($model, 'haiku') => 0.003,
+            str_contains($model, 'gpt-4o-mini') => 0.002,
+            default => null,
+        };
     }
 
     /**
