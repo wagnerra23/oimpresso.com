@@ -107,6 +107,8 @@ interface SaleRow {
   source?: 'balcao' | 'oficina' | 'online' | string;
   source_label?: string;
   os_ref?: string | null;
+  /** ADR 0251 — placa do veículo (venda direta de oficina). null = sem veículo. */
+  vehicle_plate?: string | null;
 }
 
 interface SellKpis {

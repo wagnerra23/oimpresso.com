@@ -23,6 +23,7 @@ import {
 } from '../Index';
 import QuickPaymentPopover from './QuickPaymentPopover';
 import VdSource, { type VdSourceKind } from './VdSource';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Checkbox } from '@/Components/ui/checkbox';
 
 // ──────────────────────────────────────────────────────────────
@@ -74,6 +75,8 @@ export interface SaleRow {
   source?: VdSourceKind | string;
   source_label?: string;
   os_ref?: string | null;
+  /** ADR 0251 — placa do veículo (venda direta de oficina). null = sem veículo. */
+  vehicle_plate?: string | null;
 }
 
 // Identificadores canônicos das colunas. Ordem desta enumeração = ordem default
@@ -335,6 +338,12 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
         <td key={id} className="vd-client">
           <div className="vd-client-name">{v.customer_name ?? '—'}</div>
           {v.items_summary && <div className="vd-notes">{v.items_summary}</div>}
+          {/* ADR 0251 — placa do veículo (venda direta de oficina) na consulta. */}
+          {v.vehicle_plate && (
+            <div className="mt-1">
+              <MercosulPlate plate={v.vehicle_plate} size="sm" />
+            </div>
+          )}
         </td>
       );
     case 'seller':
