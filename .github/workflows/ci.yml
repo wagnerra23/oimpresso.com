@@ -91,7 +91,7 @@ jobs:
         # trava provider/model do juiz de UI (anti "mentira do Sonnet", parecer
         # PR #2270). Modules/Jana nao esta no modules-pest.yml, entao ancoramos a
         # catraca aqui pra ela rodar de fato em todo PR.
-        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php --no-coverage
+        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php --no-coverage
 
   frontend:
     name: Frontend / Vite build
