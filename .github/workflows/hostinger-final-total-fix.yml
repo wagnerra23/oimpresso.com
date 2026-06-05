@@ -1,0 +1,45 @@
+name: Hostinger — corrigir final_total inflado (incidente num_uf 2026-06-05)
+
+# Dispatch manual pra rodar `sells:final-total-audit` na PROD Hostinger via SSH
+# (secrets SSH_HOST/PORT/USER/PRIVATE_KEY já existentes). Criado durante o
+# incidente ROTA LIVRE biz=4 (valores inflados ~×100k por num_uf strippar ponto
+# decimal de total fracionado). O comando é DRY-RUN por padrão; --apply exige
+# --transaction=ID (segurança per-row do próprio comando).
+#
+# Prefixo FIXO `php artisan sells:final-total-audit` (least-privilege: este
+# workflow só roda ESSE comando, não artisan arbitrário). Remover pós-incidente.
+#
+# Ref: PR fix #2279 (Util::num_uf) · app/Console/Commands/SellsFinalTotalAuditCommand.php
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: 'Args do sells:final-total-audit (ex: "--business=4 --since=2026-05-26" ou "--business=4 --apply --transaction=81939")'
+        required: true
+        type: string
+
+concurrency:
+  group: hostinger-final-total-fix
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH Hostinger → php artisan sells:final-total-audit
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          ARTISAN_ARGS: ${{ github.event.inputs.args }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: ARTISAN_ARGS
+          command_timeout: 10m
+          script: |
+            set -e
+            cd domains/oimpresso.com/public_html
+            echo "== pwd: $(pwd) =="
+            php artisan sells:final-total-audit $ARTISAN_ARGS
