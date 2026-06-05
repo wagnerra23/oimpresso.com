@@ -59,13 +59,9 @@ jobs:
             cd domains/oimpresso.com/public_html
             echo "== pwd: $(pwd) · mode=$MODE =="
             if [ "$MODE" = "apply" ]; then
-              for id in $IDS; do
-                case "$id" in
-                  ''|*[!0-9]*) echo "SKIP id inválido: $id"; continue ;;
-                esac
-                echo "---- apply transaction=$id ----"
-                php artisan sells:final-total-audit --business=4 --apply --transaction="$id"
-              done
+              # apply-all não-interativo: corrige final_total + pagamento pago-em-cheio
+              # de TODAS as detectadas; separa flagged (desconto corrompido/parcial).
+              php artisan sells:final-total-audit --business=4 --apply-all --since="$SINCE"
             else
               php artisan sells:final-total-audit --business=4 --since="$SINCE"
             fi

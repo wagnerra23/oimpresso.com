@@ -50,7 +50,8 @@ class SellsFinalTotalAuditCommand extends Command
         {--since= : Data ISO (YYYY-MM-DD) a partir de quando auditar (default: últimos 30d)}
         {--ratio=5 : Razão final_total / esperado considerada suspeita (default 5x, só mode=final-total)}
         {--apply : Aplica correção (default DRY-RUN). Exige --transaction.}
-        {--transaction= : ID da transaction única a corrigir (apply requer este)}';
+        {--transaction= : ID da transaction única a corrigir (apply requer este)}
+        {--apply-all : NÃO-INTERATIVO. Corrige TODAS as detectadas (final_total + pagamento pago-em-cheio). Separa flagged (desconto corrompido/parcial) pra revisão. Incidente num_uf 2026-06-05.}';
 
     protected $description = 'Audita transactions corrompidas por bug num_uf histórico (DRY-RUN por padrão).';
 
@@ -72,6 +73,13 @@ class SellsFinalTotalAuditCommand extends Command
 
         $since = $this->option('since') ?: now()->subDays(30)->format('Y-m-d');
         $ratio = (float) ($this->option('ratio') ?: 5);
+
+        // Incidente num_uf 2026-06-05: correção em massa NÃO-INTERATIVA (roda via
+        // GitHub Actions SSH). final_total + pagamento pago-em-cheio. Flagged
+        // (desconto corrompido / parcial) ficam pra revisão manual com recibo.
+        if ($this->option('apply-all')) {
+            return $this->runApplyAll($business, $since, $ratio);
+        }
 
         if (! $this->option('apply')) {
             return $mode === 'times-ten'
@@ -269,6 +277,172 @@ class SellsFinalTotalAuditCommand extends Command
 
         $this->info("✅ Transaction {$tid} corrigida. final_total {$real} → {$esperado}.");
         $this->warn('Lembre de revisar payment_status / fin_titulos / commission manualmente se aplicável.');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * APPLY-ALL não-interativo (incidente num_uf 2026-06-05) — corrige em massa
+     * todas as vendas com final_total inflado (final_total > teto, mat. impossível).
+     *
+     * Pra cada venda:
+     *   1) final_total → esperado (before_tax − desconto sane + tax + frete).
+     *   2) Pagamento PAGO-EM-CHEIO (soma pagamentos ≈ final_total antigo): escala
+     *      os pagamentos pelo mesmo fator (esperado/antigo) → continua pago em cheio
+     *      no valor certo. payment_status recomputado.
+     *   3) FLAGGED (não corrige pagamento, separa pra Larissa conferir no recibo):
+     *      - desconto CORROMPIDO (percentage ≥ 100% ou fixed > before_tax) → esperado
+     *        = teto (sem desconto), pode faltar um desconto real;
+     *      - pagamento PARCIAL (também pode estar corrompido independente).
+     *   4) NFe emitida (chave) → BLOQUEIA (anular SEFAZ antes).
+     *
+     * Determinístico, idempotente (re-rodar não infla — só pega final_total > teto).
+     */
+    private function runApplyAll(int $business, string $since, float $ratio): int
+    {
+        $this->info("APPLY-ALL não-interativo — business={$business}, since={$since}");
+        $this->line('');
+
+        $rows = DB::select(
+            <<<'SQL'
+                SELECT t.id, t.invoice_no, t.total_before_tax, t.discount_amount,
+                       t.discount_type, t.tax_amount, t.shipping_charges,
+                       t.final_total, t.payment_status, t.chave AS nfe_chave
+                FROM transactions t
+                WHERE t.business_id = ?
+                  AND t.type = 'sell'
+                  AND t.created_at >= ?
+                  AND t.total_before_tax > 0
+                  AND t.final_total > 0
+                ORDER BY t.id DESC
+            SQL,
+            [$business, $since]
+        );
+
+        $corrigidas = [];
+        $flagged = [];
+        $bloqueadas = [];
+
+        foreach ($rows as $r) {
+            $beforeTax = (float) $r->total_before_tax;
+            $tax = (float) $r->tax_amount;
+            $ship = (float) $r->shipping_charges;
+            $teto = $beforeTax + $tax + $ship;
+            $real = (float) $r->final_total;
+            $disc = (float) $r->discount_amount;
+
+            // Só infladas: final_total > teto*1.5 (desconto NUNCA aumenta o total).
+            if (! ($teto > 0 && $real > $teto * 1.5)) {
+                continue;
+            }
+
+            // NFe emitida → bloqueia.
+            if (! empty($r->nfe_chave)) {
+                $bloqueadas[] = ['id' => $r->id, 'invoice' => $r->invoice_no, 'motivo' => 'NFe emitida ('.$r->nfe_chave.')'];
+
+                continue;
+            }
+
+            // Desconto corrompido?
+            $discCorrupt = ($r->discount_type === 'percentage' && $disc >= 100)
+                || ($r->discount_type === 'fixed' && $disc > $beforeTax);
+
+            if ($discCorrupt) {
+                $esperado = round($teto, 2);
+            } elseif ($r->discount_type === 'percentage') {
+                $esperado = round($beforeTax * (1 - $disc / 100) + $tax + $ship, 2);
+            } else {
+                $esperado = round($beforeTax - $disc + $tax + $ship, 2);
+            }
+            if ($esperado <= 0) {
+                $esperado = round($teto, 2);
+                $discCorrupt = true;
+            }
+
+            // Pagamentos (não-devolução).
+            $payments = DB::table('transaction_payments')
+                ->where('transaction_id', $r->id)
+                ->where('is_return', 0)
+                ->get();
+            $totalPaidOld = 0.0;
+            foreach ($payments as $p) {
+                $totalPaidOld += (float) $p->amount;
+            }
+
+            $paidInFull = $totalPaidOld > 0.01 && abs($totalPaidOld - $real) < 0.01;
+            $partial = $totalPaidOld > 0.01 && ! $paidInFull;
+
+            DB::transaction(function () use ($r, $esperado, $real, $business, $payments, $paidInFull): void {
+                DB::table('activity_log')->insert([
+                    'log_name' => 'sells-final-total-audit',
+                    'description' => 'final_total (+pagamento pago-em-cheio) corrigido via apply-all — incidente num_uf 2026-06-05',
+                    'subject_type' => 'App\\Transaction',
+                    'subject_id' => $r->id,
+                    'causer_type' => null,
+                    'causer_id' => null,
+                    'properties' => json_encode([
+                        'business_id' => $business,
+                        'attributes' => ['final_total' => $esperado],
+                        'old' => ['final_total' => $real],
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                DB::table('transactions')->where('id', $r->id)->update([
+                    'final_total' => $esperado,
+                    'updated_at' => now(),
+                ]);
+
+                // Pagamento pago-em-cheio: escala proporcional → continua quitada no valor certo.
+                if ($paidInFull && $real > 0) {
+                    $scale = $esperado / $real;
+                    foreach ($payments as $p) {
+                        DB::table('transaction_payments')->where('id', $p->id)->update([
+                            'amount' => round((float) $p->amount * $scale, 2),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                    DB::table('transactions')->where('id', $r->id)->update(['payment_status' => 'paid']);
+                } elseif ((float) $payments->sum('amount') <= 0.01) {
+                    // Sem pagamento → vencida (due). Parcial fica como está (flagged).
+                    DB::table('transactions')->where('id', $r->id)->update(['payment_status' => 'due']);
+                }
+            });
+
+            $info = [
+                'id' => $r->id,
+                'invoice' => $r->invoice_no,
+                'antes' => number_format($real, 2, ',', '.'),
+                'depois' => number_format($esperado, 2, ',', '.'),
+                'pgto' => $paidInFull ? 'escalado' : ($partial ? '⚠️ parcial (não tocado)' : 'sem pgto'),
+            ];
+
+            if ($discCorrupt || $partial) {
+                $info['flag'] = $discCorrupt ? 'desconto corrompido' : 'pagamento parcial';
+                $flagged[] = $info;
+            } else {
+                $corrigidas[] = $info;
+            }
+        }
+
+        $this->info(sprintf('✅ %d corrigidas limpas · ⚠️ %d flagged (revisar) · ⛔ %d bloqueadas (NFe)', count($corrigidas), count($flagged), count($bloqueadas)));
+        $this->line('');
+
+        if (! empty($corrigidas)) {
+            $this->info('CORRIGIDAS (final_total + pagamento, confiança alta):');
+            $this->table(['id', 'invoice', 'antes', 'depois', 'pgto'], $corrigidas);
+        }
+        if (! empty($flagged)) {
+            $this->line('');
+            $this->warn('FLAGGED — total corrigido pra valor sensato, MAS Larissa deve conferir no recibo:');
+            $this->table(['id', 'invoice', 'antes', 'depois', 'pgto', 'flag'], $flagged);
+        }
+        if (! empty($bloqueadas)) {
+            $this->line('');
+            $this->error('BLOQUEADAS (NFe emitida — anular SEFAZ antes):');
+            $this->table(['id', 'invoice', 'motivo'], $bloqueadas);
+        }
 
         return self::SUCCESS;
     }
