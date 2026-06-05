@@ -13,7 +13,7 @@ use Modules\Superadmin\Entities\Subscription;
  * SubscriptionLifecycleService — encapsula transições de status Subscription.
  *
  * Wave 18 RETRY — D4 boost. Subscription tem status linear simples
- * (waiting_approval → approved → expired) — não justifica FSM Pipeline ADR 0143
+ * (waiting → approved → expired/cancelled) — não justifica FSM Pipeline ADR 0143
  * (declarado `fsm_n_a: true` em module.json), mas merece Service dedicado pra:
  *
  *   - Centralizar regra "quando approve cria audit trail automático"
@@ -45,7 +45,7 @@ class SubscriptionLifecycleService
     public function approve(Subscription $subscription, ?Carbon $startDate = null): bool
     {
         return OtelHelper::spanBiz('superadmin.subscription.approve', function () use ($subscription, $startDate): bool {
-            if ($subscription->status !== 'waiting' && $subscription->status !== 'waiting_approval') {
+            if ($subscription->status !== 'waiting') {
                 return false;
             }
 
