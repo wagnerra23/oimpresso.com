@@ -1,5 +1,7 @@
 ---
 date: "2026-06-05"
+slug: parecer-pr2270-julgamento-ia-design
+tldr: "Review do PR #2270 (pesquisa LLM/VLM-as-judge pra avaliar UI). Validei claim-a-claim contra código: todos confirmam. Achado que o doc subestima (G3): o juiz se anuncia 'Claude Sonnet 4.5' mas roda gpt-4o-mini (PrUiJudgeAgent sem override) → fix de consistência, não bump opcional. Wagner: NÃO mergear ainda, PR #2270 OPEN. Caminho proposto: G2+G3 no PrUiJudgeAgent (provider→anthropic/sonnet + rationale-por-dimensão antes do score)."
 hour: "14:30 BRT"
 topic: "Parecer de review do PR #2270 (estado-da-arte julgamento de design por IA) — validação de claims contra código real"
 duration: "~1h"
