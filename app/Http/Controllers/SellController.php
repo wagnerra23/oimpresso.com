@@ -2529,10 +2529,11 @@ class SellController extends Controller
                 ];
             };
 
-            // Breadcrumb "onde a venda está" (Wagner 2026-06-05). Gate per-business
-            // OficinaAuto (mesmo padrão de create()) — ROTA LIVRE varejo recebe
-            // show=false e o Show.tsx não renderiza nada novo. Função pura testada
-            // em tests/Unit/Services/SaleJourneyServiceTest (CI).
+            // Breadcrumb READ-ONLY "onde a venda está" (Wagner 2026-06-05). Só pra
+            // venda de ORIGEM oficina (source='oficina', fluxo real OS→Venda ADR 0192).
+            // Gate per-business OficinaAuto (mesmo padrão de create()) — ROTA LIVRE
+            // varejo recebe show=false e o Show.tsx não renderiza nada novo. Função
+            // pura testada em tests/Unit/Services/SaleJourneyServiceTest (CI).
             $oficinaModuleUtil = new \App\Utils\ModuleUtil();
             $hasOficinaAuto = auth()->user()->can('superadmin')
                 ? $oficinaModuleUtil->isModuleInstalled('OficinaAuto')
@@ -2542,17 +2543,11 @@ class SellController extends Controller
                     'superadmin_package'
                 );
 
-            $hasLinkedOs = $hasOficinaAuto
-                && class_exists(\Modules\OficinaAuto\Entities\ServiceOrder::class)
-                && \Illuminate\Support\Facades\Schema::hasTable('service_orders')
-                && \Modules\OficinaAuto\Entities\ServiceOrder::where('transaction_id', $sell->id)->exists();
-
             $journey = (new \App\Services\SaleJourneyService())->build([
                 'source'           => (string) ($sell->source ?? 'balcao'),
                 'status'           => (string) $sell->status,
                 'has_oficina_auto' => $hasOficinaAuto,
-                'has_vehicle'      => ! empty($sell->vehicle_id),
-                'has_os'           => $hasLinkedOs,
+                'os_ref'           => $sell->os_ref ?? null,
                 'invoiced'         => in_array(strtolower((string) $fiscalStatus), ['autorizada', 'authorized', 'emitida', 'enviada', 'aprovada'], true),
                 'delivered'        => ($sell->shipping_status ?? null) === 'delivered',
             ]);

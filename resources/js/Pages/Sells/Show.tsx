@@ -383,7 +383,7 @@ export default function SellsShow(props: SellsShowPageProps) {
 
         {/* Breadcrumb "onde a venda está" — só em venda de oficina (Wagner 2026-06-05).
             journey.show=false em varejo/ROTA LIVRE → não renderiza. */}
-        {journey?.show && <SaleJourneyStepper journey={journey} saleId={headline.id} />}
+        {journey?.show && <SaleJourneyStepper journey={journey} />}
 
         {/* KPIs grandes (4-col canon V2) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
