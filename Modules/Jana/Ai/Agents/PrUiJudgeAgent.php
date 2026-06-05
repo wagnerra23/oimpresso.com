@@ -14,8 +14,7 @@ use Stringable;
 /**
  * PrUiJudgeAgent — Onda 4.1 do AUTOMATION-ROADMAP.
  *
- * Agente LLM (Anthropic claude-sonnet-4-6 · review de design exige juízo
- * semântico superior ao gpt-4o-mini) que
+ * Agente LLM (OpenAI gpt-4o · review de design exige juízo semântico) que
  * avalia PRs Inertia/React contra a Constituição UI v2 (ADR UI-0013). Carrega
  * no system prompt:
  *  - Hierarquia 4 camadas (Fundações → Shell → PT → Módulo)
@@ -38,23 +37,21 @@ use Stringable;
  * "copy não-PT-BR em string template", "PT-01 violado em essência mesmo
  * importando PageHeader (uso fora do slot 1)".
  *
- * Custo estimado por PR: ~10k tokens input + ~1k tokens output ≈ $0.034/PR
- * (claude-sonnet-4-6 @ $3/M input + $15/M output) · com prompt caching do
- * system prompt fixo cai pra ~$0.005/PR.
+ * Custo estimado por PR: ~10k tokens input + ~1k tokens output ≈ $0.05/PR
+ * (gpt-4o @ $2.5/M input + $10/M output).
  *
- * HISTÓRICO: nasceu em OpenAI gpt-4o-mini ($0.002/PR), mas o command e o
- * workflow já se anunciavam como "Claude Sonnet" — inconsistência ativa
- * (a tela dizia Sonnet, rodava gpt-4o-mini). Migrado pra anthropic /
- * claude-sonnet-4-6 (canon do projeto · BrainBAgent, EvalCommands) tanto
- * pra resolver a inconsistência quanto pela qualidade de juízo semântico
- * que review de design exige. `ANTHROPIC_API_KEY` já é pré-req do kill-switch.
+ * HISTÓRICO: nasceu em OpenAI gpt-4o-mini ($0.002/PR); migrou pra
+ * anthropic/claude-sonnet-4-6 por qualidade de juízo; agora volta pra OpenAI
+ * gpt-4o (provider canon pós-migração — config('ai.default')='openai', sem
+ * crédito Anthropic). gpt-4o (smartest do config/ai.php) preserva o juízo
+ * semântico que review de design exige, melhor que o gpt-4o-mini original.
  *
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4.1)
  * @see memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  */
-#[Provider('anthropic')]
-#[Model('claude-sonnet-4-6')]
+#[Provider('openai')]
+#[Model('gpt-4o')]
 #[MaxSteps(3)]
 class PrUiJudgeAgent implements Agent
 {

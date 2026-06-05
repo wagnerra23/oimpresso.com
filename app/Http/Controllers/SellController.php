@@ -2529,9 +2529,38 @@ class SellController extends Controller
                 ];
             };
 
+            // Breadcrumb "onde a venda está" (Wagner 2026-06-05). Gate per-business
+            // OficinaAuto (mesmo padrão de create()) — ROTA LIVRE varejo recebe
+            // show=false e o Show.tsx não renderiza nada novo. Função pura testada
+            // em tests/Unit/Services/SaleJourneyServiceTest (CI).
+            $oficinaModuleUtil = new \App\Utils\ModuleUtil();
+            $hasOficinaAuto = auth()->user()->can('superadmin')
+                ? $oficinaModuleUtil->isModuleInstalled('OficinaAuto')
+                : (bool) $oficinaModuleUtil->hasThePermissionInSubscription(
+                    $business_id,
+                    'oficina_auto_module',
+                    'superadmin_package'
+                );
+
+            $hasLinkedOs = $hasOficinaAuto
+                && class_exists(\Modules\OficinaAuto\Entities\ServiceOrder::class)
+                && \Illuminate\Support\Facades\Schema::hasTable('service_orders')
+                && \Modules\OficinaAuto\Entities\ServiceOrder::where('transaction_id', $sell->id)->exists();
+
+            $journey = (new \App\Services\SaleJourneyService())->build([
+                'source'           => (string) ($sell->source ?? 'balcao'),
+                'status'           => (string) $sell->status,
+                'has_oficina_auto' => $hasOficinaAuto,
+                'has_vehicle'      => ! empty($sell->vehicle_id),
+                'has_os'           => $hasLinkedOs,
+                'invoiced'         => in_array(strtolower((string) $fiscalStatus), ['autorizada', 'authorized', 'emitida', 'enviada', 'aprovada'], true),
+                'delivered'        => ($sell->shipping_status ?? null) === 'delivered',
+            ]);
+
             return Inertia::render('Sells/Show', [
                 'saleId' => (int) $id,
                 'headline' => $headline,
+                'journey' => $journey,
                 'detail' => Inertia::defer($detailPayload),
                 'permissions' => [
                     'edit' => auth()->user()->can('direct_sell.update') || auth()->user()->can('so.update'),

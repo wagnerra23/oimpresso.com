@@ -72,7 +72,13 @@ class BrainBService
                 ->where('id', $decisionId)
                 ->update([
                     'brain_used'            => 'brain_b',
-                    'model_used'            => config('ai.providers.anthropic.model', 'claude-sonnet-4-6'),
+                    // Reflete o provider ATIVO (config('ai.default') = openai pós-migração),
+                    // não um modelo hardcoded — mesmo resolver que LaravelAiSdkDriver usa.
+                    'model_used'            => (static function (): string {
+                        $sistema = (string) config('ai.default', 'openai');
+
+                        return (string) config("ai.providers.{$sistema}.models.text.default", 'gpt-4o-mini');
+                    })(),
                     'instruction_generated' => $rawText,
                     'tokens_used'           => $tokensUsed,
                     'execution_ms'          => $executionMs,
