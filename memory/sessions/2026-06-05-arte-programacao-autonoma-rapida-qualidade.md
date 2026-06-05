@@ -4,6 +4,38 @@
 
 ---
 
+## ⭐ Tabela 1 — As técnicas pontuadas (notas e porquê)
+
+> Nota = quanto cada técnica entrega **velocidade COM qualidade** num sistema inteiro (não protótipo). Ponderação: impacto em qualidade autônoma 40% · ganho de velocidade 30% · maturidade/prova 2026 20% · facilidade de adotar 10%.
+
+| # | Técnica | Nota | Por quê (1 linha) |
+|---|---|:---:|---|
+| 🥇 1 | **SDD — Spec-Driven Development** | **95** | A spec vira o código-fonte. Guarda-chuva de tudo. Kiro: feature 40h→<8h; Spec Kit: ~10× menos "refaz do zero". Padrão enterprise 2026. |
+| 🥈 2 | **TDAD — Test-Driven Agentic Development** | **92** | TDD + grafo AST mostrando ao agente QUAIS testes a mudança quebra. **-70% regressão** (6.08%→1.82%). É o "teste especializado" que você intuiu. |
+| 🥉 3 | **PBT — Property-Based Testing (2 agentes)** | **90** | Testa *invariantes* (ex: baixa reduz saldo no valor exato), não exemplos. **+23–37% pass@1** vs TDD. Ouro pra regra de negócio com lei. |
+| 4 | **Orquestração multi-agente fan-out** | **88** | 1 orquestrador → N subagents isolados em paralelo. **O salto vem daqui, não do modelo sozinho** (Opus+subagent > Opus). |
+| 5 | **TDD agêntico (Red-Green-Refactor)** | **85** | Teste é o critério de "pronto" que impede alucinação. Maduro. Cuidado: num único contexto FALHA — precisa subagent por fase. |
+| 6 | **Verificação por evidência** | **84** | Modelo *diferente* tenta refutar; CI é o árbitro, não a narração. "Quem faz não dá a nota." |
+| 7 | **Mutation testing com LLM** | **72** | Injeta bugs artificiais pra medir a FORÇA real da suíte (cobertura mente). Caro → uso trimestral em módulos críticos. |
+| ⚠️ — | **Vibe coding** (anti-padrão p/ sistema) | **40** | Rápido pra demo, **dívida técnica + drift** em produção. Só serve pra explorar/prototipar. |
+
+## ⭐ Tabela 2 — Quem programa autônomo COM qualidade (agentes pontuados)
+
+> Nota ponderada: **corretude em tarefa real (SWE-bench Pro, anti-contaminação) 40% · autonomia long-horizon 25% · qualidade/manutenibilidade 20% · custo/controle 15%.** Uso o **Pro** porque o *Verified* está contaminado (OpenAI parou de reportar).
+
+| # | Agente/Sistema | SWE-bench (Verified / **Pro**) | Nota | Por quê |
+|---|---|---|:---:|---|
+| 🥇 1 | **GPT-5.3-Codex** | — / **56.8%** | **92** | Líder no benchmark honesto (Pro). Forte em long-horizon multi-arquivo (107 linhas / 4.1 arquivos). |
+| 🥈 2 | **Claude Opus 4.6 + subagent de busca** | — / **57.5%** | **91** | Maior Pro absoluto QUANDO pareado com subagent — prova: **orquestração faz o número subir, não o modelo sozinho.** |
+| 🥉 3 | **Claude Code (Opus 4.8 + Dynamic Workflows)** | 87.6% / ~46% | **90** | Melhor *sistema* agêntico end-to-end: subagents, skills, hooks, até 1.000 subagents. **É o stack que o oimpresso roda.** |
+| 4 | **Claude Mythos Preview** | 93.9% / 45.9% | **84** | Topo do Verified, mas gap 93.9%→45.9% no Pro = overfit ao benchmark. Cuidado com hype de número. |
+| 5 | **OpenHands (open-source)** | ~70%+ / — | **78** | Melhor open-source self-hosted. Pra quem precisa on-prem/sem vendor lock. Qualidade abaixo dos frontier. |
+| 6 | **Devin 2.0 (Cognition)** | 45.8% / — | **68** | Pioneiro "engenheiro autônomo", mas SWE-bench unassisted fraco (45.8%). Marketing > números. |
+
+> 📉 **Leitura crítica:** o número "real" cai de ~88% (Verified contaminado) → **~57% (Pro honesto)**. **Ninguém programa "sistema inteiro sozinho" ainda** — o teto do estado-da-arte é ~57% das issues difíceis resolvidas autonomamente.
+
+---
+
 ## TL;DR (resposta direta)
 
 1. **Não existe UMA técnica — existe um STACK de 4 camadas** que, juntas, é o que hoje permite "programar sistema inteiro autônomo com qualidade":
