@@ -75,7 +75,7 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (Form shim + FeatureFlagService offline-safe)
+      - name: Run Pest (Form shim + FeatureFlagService offline-safe + UI Judge catraca)
         # ModuleUtil::isModuleInstalled e getModuleVersionInfo agora sao
         # graceful (try/catch) — boot da app funciona sem migrate completo.
         #
@@ -86,7 +86,12 @@ jobs:
         # NAO incluir o diretorio inteiro: GrowthBookAdminServiceTest usa
         # RefreshDatabase e esbarra na migration MySQL-only (ALTER TABLE
         # transactions MODIFY COLUMN type ENUM) — fica pra um setup MySQL em CI.
-        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php --no-coverage
+        #
+        # PrUiJudgeAgentTest e DB-less (reflexao nos atributos + string do prompt):
+        # trava provider/model do juiz de UI (anti "mentira do Sonnet", parecer
+        # PR #2270). Modules/Jana nao esta no modules-pest.yml, entao ancoramos a
+        # catraca aqui pra ela rodar de fato em todo PR.
+        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php --no-coverage
 
   frontend:
     name: Frontend / Vite build
