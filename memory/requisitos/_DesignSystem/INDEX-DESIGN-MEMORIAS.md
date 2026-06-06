@@ -1,3 +1,11 @@
+---
+owner: wagner
+last_reviewed: "2026-06-06"
+next_review: "2026-07-31"
+related_adrs: [0235, 0249, 0253, 0254]
+note: "SSOT de design. next_review obrigatório (DesignDocsFreshnessChecker ADR 0236) — é o que impede este índice de apodrecer como aconteceu com 'PT-02..05 não existem'."
+---
+
 # ÍNDICE-MESTRE — Memórias de Design que o Claude Design pode usar
 
 > **Pra que serve:** ponto único de partida do Claude Design. Lista TODAS as memórias de design do projeto — **positivas** (o que copiar/seguir) e **negativas** (o que NÃO repetir) — já reconciliadas, com a **regra de ouro** que resolve conflito. Substitui a tarefa de "montar contexto de cabeça" (origem da invenção e do erro repetido).

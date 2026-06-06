@@ -1,3 +1,12 @@
+---
+title: "Manual de Identidade Visual — Clareza Confiante"
+owner: wagner
+last_reviewed: "2026-06-06"
+next_review: "2026-07-31"
+related_adrs: [0235, 0249, 0253, 0254]
+note: "Voz visual canon. next_review obrigatório (DesignDocsFreshnessChecker ADR 0236) — sobrevive ao tempo por revisão forçada + grade medido (ADR 0254), não por boa-vontade."
+---
+
 # Manual de Identidade Visual — oimpresso · "Clareza Confiante"
 
 > **O que é:** a **voz visual** do produto — as decisões de identidade que toda tela/componente
