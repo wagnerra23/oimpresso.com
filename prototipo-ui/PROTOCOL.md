@@ -241,8 +241,11 @@ O Claude Design oficial empacota o design num **bundle estruturado** (spec machi
 | Validação antes de aplicar | passa pelo **gate §10.4** (ancorar `origin/main` fresco · não duplicar/renumerar ADR · não trazer rascunho pro canon) — **sozinho, sem esperar `[W]`** |
 | Reporte pós-merge | os **3 canais §10.2** (DS_ADOCAO/SYNC_LOG/HANDOFF) — o oficial não fecha o loop, nós fechamos |
 | Auto-DS do codebase (Claude Design lê nosso código → monta DS) | apontar pro **nosso DS v6 canon** (tokens oklch + `REGISTRY_DS_COMPONENTES` + `Components/layout` ADR 0253). O DS que ele gerar é **proposta** validada contra o canon — append-only, **sem** renumerar/mutar token aceito (mesma regra §10.4) |
+| **Drift de token do bundle** (token não-canon que o bundle/auto-DS trouxe) | **já coberto** por `foundation-guard.mjs` (ratchet: definição de token só na allowlist `foundations.css`/`cockpit.css` — token novo fora da fundação → conta sobe → bloqueia) + `conformance-gate.mjs` (cor crua/`--accent`). **Não criar gate novo** — os tokens do bundle, ao serem escritos, passam por esses gates existentes |
 
 **O que NÃO muda:** o bundle é insumo de **F1/F3**, não pula F1.5/F2/F3.5 nem o overlay autônomo (gates CI). Adotar o **formato** do bundle (alto impacto, mata o mapeamento manual) depende do "Send to Claude Code" real existir — até lá, esta seção **blinda** o canon contra lock-in/stale quando o bundle chegar.
+
+> **Roadmap reativo (dispara só com o bundle REAL — [ADR 0105](../memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) "sinal antes de feature"):** **F-B** (drift de token) = **já coberto** por `foundation-guard` + `conformance` acima · **F-C** (parser do tar estruturado → casa layout no DS v6, mata o mapeamento manual CSS→Tailwind) = **especulativo até o formato sair** (Anthropic não publicou — "muda antes do GA"); estender `cowork-to-inertia` F3.1 **quando o bundle real chegar** · **F-D** (versionar `BUNDLE_<tela>_<sha>`) = §10.1 já manda salvar no git. **Não construir contra formato fantasma.** Dossiê: [2026-06-06-arte-claude-design-handoff](../memory/sessions/2026-06-06-arte-claude-design-handoff.md).
 
 ## 11. Links
 
