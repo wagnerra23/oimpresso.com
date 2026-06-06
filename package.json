@@ -22,6 +22,8 @@
     "stylelint:baseline:check": "node scripts/stylelint-baseline.mjs",
     "css:size:write": "node scripts/css-size-baseline.mjs --write",
     "css:size:check": "node scripts/css-size-baseline.mjs",
+    "pageheader:guard": "node scripts/pageheader-migration-guard.mjs",
+    "pageheader:guard:write": "node scripts/pageheader-migration-guard.mjs --write",
     "ds:report": "node scripts/ds-report.mjs",
     "ds:report:write": "node scripts/ds-report.mjs --write",
     "design:review": "node prototipo-ui/audit/review-gen.mjs",
