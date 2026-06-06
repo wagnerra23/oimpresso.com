@@ -4,8 +4,8 @@ description: Manual canônico de administração de CSS/JS (frontend) do oimpres
 type: reference
 status: ativo
 owner: wagner
-version: "1.0"
-last_updated: "2026-06-04"
+version: "1.1"
+last_updated: "2026-06-06"
 related_adrs: ["0094-constituicao-v2-7-camadas-8-principios", "0209-eslint-9-flat-config"]
 ---
 
@@ -145,3 +145,109 @@ Replicar protótipo Cowork **do jeito certo** (sem gerar `.css` novo): [RUNBOOK-
 - [ADR 0209 — ESLint 9 baseline ratchet](../../decisions/0209-eslint-9-flat-config.md)
 - [RUNBOOK replicar protótipo Cowork](RUNBOOK-replicar-prototipo-cowork.md) · [ARCHITECTURE](ARCHITECTURE.md) · [SCREEN-GRADE-METODO](SCREEN-GRADE-METODO.md)
 - Estado-da-arte comparado: Linear · Stripe · Shopify Polaris · GitHub Primer · Vercel/Geist · Notion
+
+---
+
+## Anexo A — Financeiro: ordem de dissolução de-riscada (2026-06-06)
+
+> **Origem:** Wagner 2026-06-06 — *"Design está me ferrando, tem muito css do ultimatepos
+> ainda e os novos que botei no sótão em conflito"* → foco escolhido: **Financeiro**.
+> Instancia o **passo 3** deste manual pra UM módulo, com as armadilhas já mapeadas
+> (sessão de investigação, branch `claude/design-css-conflicts-k2T6H`).
+>
+> **Veredito:** o "conflito" do Financeiro **não é CSS morto pra deletar** — é uma
+> **migração pela metade**. Algumas telas no token novo, ~7 no CSS bespoke, e Fluxo/DRE/Caixa
+> ainda em Blade legado. Parece "ferrado" porque convivem 3 gerações de estilo na mesma área.
+
+### A.1 Snapshot medido (2026-06-06)
+
+| Item | Valor |
+|---|---|
+| CSS Financeiro (`cowork-canon-financeiro-bundle` + `fin-cowork/curadoria/ia/output/mobile`) | ~7.046 linhas |
+| `cowork-canon-financeiro-bundle.css` | 4.746 linhas (já podado de 8.666 no #2291), 15 `!important` |
+| `!important` na família `fin-*` (guerra de especificidade) | **28** total |
+| Telas ainda em `.fin-stat` bespoke (não migradas) | **7** |
+| Tela migrada pro componente `<FinStatStrip>` | 1 (PlanoContas, #2301 — **smoke visual PENDENTE**) |
+
+### A.2 As 3 armadilhas (DE-RISK — ler antes de tocar)
+
+1. **Poda automática de CSS é INSEGURA no `fin-*`.** Classes compostas dinamicamente
+   vivem em runtime mas o token literal não aparece no `.tsx` → `fin-cowork-coverage.py`
+   e o gate `verify-prune` marcam **falso-morto**. Confirmadas vivas via template string:
+   `fin-frescor-${kind}` (`FinPillFrescor.tsx`), `fin-xlink-${kind}` (`FinCrossLinkify.tsx`),
+   `fin-anomaly-${kind}`/`fin-anomaly-sev-${sev}` (`FinAnomalyDetector.tsx`),
+   `fin-audit-${kind}`. **NUNCA** deletar essas por coverage — só com grep de prefixo
+   (`fin-frescor-`, `fin-xlink-`, `fin-anomaly-`, `fin-audit-`) confirmando 0 composição dinâmica.
+2. **A fatia `.fin-stat*` (`fin-cowork.css:117-227`) é load-bearing — NÃO deletar ainda.**
+   Sustenta 7 telas: `Unificado/Index`, `Dre/_components/BalanceteView`, `Dre/_components/BalancoView`,
+   `Relatorios/Index`, `Fluxo/Index`, `Dashboard/Index`, `Conciliacao/Index`. A fatia só sai
+   **depois** que as 7 migrarem pro `<FinStatStrip>` (critério em A.3).
+3. **`resources/js/Pages/Financeiro/_cowork-bundle/*.jsx` NÃO é entulho do "sótão".**
+   São 10 dumps de referência canônica (underscore = fora do auto-discovery Inertia, nada
+   importa, Vite não empacota). README local proíbe editar/renomear/deletar — é a fonte pra
+   portar Fluxo/DRE/Caixa/fsm-stepper que faltam. **Deixar quieto.**
+
+### A.3 Ordem de execução (cheapest-first — cada passo exige smoke visual)
+
+> ⚠️ **Cada tela = 1 PR + smoke visual obrigatório** (Chrome MCP no desktop OU staging).
+> Sem browser não dá pra fechar — é o gate que o #2301 furou. Não empilhar reescrita não-validada.
+
+1. **Fechar o débito do piloto:** smoke visual de `<FinStatStrip>` em PlanoContas
+   (logar staging → `/financeiro/plano-contas` → comparar KPI strip vs prod + reflow 1100/600 + dark).
+   Se destoar: `git revert ffc5f5e3d`. **Bloqueia tudo abaixo** (o componente é a base).
+2. **Migrar as 7 telas `.fin-stat` → `<FinStatStrip>`** (componente já existe, "visualmente idêntico"):
+   ordem por tráfego — `Unificado/Index` → `Dashboard/Index` → `Conciliacao/Index` →
+   `Relatorios/Index` → `Fluxo/Index` → `Dre/BalanceteView` → `Dre/BalancoView`.
+   Cada PR: troca markup `.fin-stats`/`.fin-stat` pelo componente + smoke + **não** mexe no CSS ainda.
+3. **Deletar a fatia `.fin-stat*`** (`fin-cowork.css:117-227` + equivalente em `fin-mobile.css`)
+   SÓ quando `grep -rl "fin-stat" resources/js --include=*.tsx | grep -v _cowork-bundle | grep -v FinStatStrip`
+   voltar **vazio**. Aí o ratchet `css-size-gate` encolhe sozinho. _Esse é o "delete a fatia" do passo 3 do manual._
+4. **Atacar os 28 `!important`** por último, tela-a-tela já tokenizada (cada `!important` removido
+   exige smoke — pode mudar render). Não fazer em lote.
+
+### A.4 O que NÃO fazer (regressões já barradas)
+
+- ❌ Rodar `fin-cowork-prune.py` na família `fin-*` e confiar no resultado (armadilha A.2.1).
+- ❌ Deletar `.fin-stat*` antes das 7 telas migrarem (armadilha A.2.2).
+- ❌ Tocar/mover/deletar `_cowork-bundle/*.jsx` (armadilha A.2.3).
+- ❌ Mergear migração de tela sem smoke visual (débito do #2301 — não repetir).
+
+### A.5 Como um ESPECIALISTA faria (o caminho sistêmico — preferir a A.3)
+
+> A.3 é o caminho artesão (seguro, lento, smoke manual por tela). Um sênior de design-system
+> **conserta o sistema primeiro** pra que a migração vire mecânica e sem medo. Ordem real:
+
+1. **Corrigir o modelo mental.** O inimigo **não é o UltimatePOS**. Os dois pipelines já estão
+   isolados (`inertia.blade.php` carrega só `inertia.css`; o SASS/AdminLTE legado só vive nas
+   telas Blade). O conflito real é **intra-Inertia**: bundles bespoke `cowork/fin-*` vs a camada
+   de tokens `@theme`. Atacar o UltimatePOS é energia no alvo errado.
+
+2. **Boundary de cascata com `@layer` (a maior alavanca, 1 mudança mata a classe inteira de bug).**
+   Declarar `@layer legacy, ds;` e mover os bundles bespoke pra `@layer legacy`, mantendo
+   tokens/componentes/utilities Tailwind em camada superior (ou unlayered). Resultado: **o
+   design-system SEMPRE vence o bespoke**, independente de especificidade — sem editar as 7k
+   linhas. Mata a guerra de especificidade na raiz. _Caveat honesto:_ `!important` inverte a
+   ordem entre layers, então os **28 `!important`** ainda precisam sair individualmente; mas o
+   grosso (não-important) é neutralizado de uma vez. Tailwind v4 já usa `@layer` nativo — encaixa.
+
+3. **Rede de regressão visual em CI ANTES de refatorar (é o que torna o refactor destemido).**
+   O motivo de a migração estar travada é não ter baseline visual automatizado — aí cada tela
+   vira smoke manual (o gargalo, e o gate que o #2301 furou). Especialista liga
+   **snapshot Playwright/visual-diff** (o projeto já tem `screen-grade` + `design:review`
+   meio-construídos) pras ~14 telas Financeiro. Daí pode arrancar CSS e o **diff prova** que nada
+   moveu — zero olho humano por PR.
+
+4. **Codemod, não migração manual.** Um `ts-morph`/`jscodeshift` que reescreve o markup
+   `.fin-stats`/`.fin-stat` → `<FinStatStrip>` nas 7 telas **de uma vez**, e o visual-diff (passo 3)
+   atesta. Editar 7 telas na mão é trabalho de artesão; o sênior automatiza o transform repetitivo.
+
+5. **Token como fonte única (matar o drift quantitativamente).** Script AST que varre cada
+   cor/espaço/raio hardcoded nos bundles bespoke e mapeia pro token mais próximo — expõe o drift
+   em número e converte o bespoke pra token-referencing. Aí `foundation:check` vira verdade, não aspiração.
+
+6. **Só então** deletar fatias (passo A.3.3) + unificar build quando o último Blade morrer.
+
+**Tradeoff honesto:** isso é ~1-2 semanas de trabalho de plataforma e exige **congelar CSS bespoke
+novo** durante (o `css-size-gate` já faz). Mas troca um débito que cresce por uma fundação que se
+auto-protege. A sequência que mais alivia rápido: **passo 2 (`@layer`) + passo 3 (visual CI)** —
+depois a migração das telas vira mecânica.
