@@ -16,13 +16,15 @@ uses(Tests\TestCase::class);
  * #[Model('gpt-4o-mini')] — inconsistência ativa ("a mentira do Sonnet").
  * G3 resolveu migrando pra anthropic / claude-sonnet-4-6.
  *
- * Atualizado 2026-06-05 (migração definitiva pra OpenAI · sem crédito Anthropic):
- * o canon de provider agora é openai / gpt-4o (config('ai.default')='openai').
- * gpt-4o (smartest do config/ai.php) preserva o juízo semântico que review de
- * design exige. Estes testes TRAVAM a consistência pra ela não regredir.
+ * Atualizado 2026-06-06 (fix CI · projeto OpenAI sem acesso ao gpt-4o):
+ * o canon de provider é openai (config('ai.default')='openai'); o model é
+ * gpt-4o-mini porque o projeto OpenAI NÃO tem acesso ao gpt-4o ("Project does
+ * not have access to model gpt-4o") — o juiz quebrava em TODO PR de tela.
+ * Upgrade de qualidade (gpt-4o liberado / Sonnet c/ crédito) → decisão do #2270.
+ * Estes testes TRAVAM a consistência model↔anúncio pra não regredir a "mentira".
  *
  *  001. provider declarado = openai (canon pós-migração)
- *  002. model declarado = gpt-4o (smartest · review de design)
+ *  002. model declarado = gpt-4o-mini (modelo com acesso confirmado)
  *  003. instructions() carrega contrato G-Eval (rationale ANTES do score)
  *  004. instructions() ainda carrega a Constituição UI v2 (4 camadas + AP1-AP8)
  *
@@ -36,11 +38,11 @@ it('R-JANA-UI-JUDGE-001 — declara provider openai (canon pós-migração)', fu
     expect($attrs[0]->getArguments()[0])->toBe('openai');
 });
 
-it('R-JANA-UI-JUDGE-002 — declara model gpt-4o (smartest · review de design)', function () {
+it('R-JANA-UI-JUDGE-002 — declara model gpt-4o-mini (modelo com acesso no projeto OpenAI)', function () {
     $attrs = (new ReflectionClass(PrUiJudgeAgent::class))->getAttributes(Model::class);
 
     expect($attrs)->not->toBeEmpty();
-    expect($attrs[0]->getArguments()[0])->toBe('gpt-4o');
+    expect($attrs[0]->getArguments()[0])->toBe('gpt-4o-mini');
 });
 
 it('R-JANA-UI-JUDGE-003 — instructions() exige rationale ANTES do score (G-Eval)', function () {
