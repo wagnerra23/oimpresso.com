@@ -25,15 +25,13 @@ declare(strict_types=1);
  * @see routes/web.php (rota _visreg-login, guard !isProduction)
  */
 
+use App\Business;
 use App\User;
-use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
     // CROSS-PROCESS DB: o browser (subprocesso) usa MySQL (.env, schema-squash #2221),
     // mas o test process usa sqlite :memory: (phpunit.xml força DB_CONNECTION/DB_DATABASE).
-    // Pra os dados criados AQUI (user/permission) serem VISÍVEIS ao browser, o test process
-    // tem que usar o MESMO MySQL. host/port/user/pass já vêm do .env (phpunit só sobrescreve
-    // connection+database) — só realinho default + database e reconecto.
+    // Realinha o test process pro MESMO MySQL (host/user/pass já vêm do .env).
     config([
         'database.default' => 'mysql',
         'database.connections.mysql.database' => 'oimpresso_test',
@@ -51,17 +49,21 @@ $screens = [
 ];
 
 foreach ($screens as $nome => [$rota, $permissao, $ancora]) {
-    it("{$nome} renderiza AUTENTICADA sem erro de console (auth bridge)", function () use ($rota, $permissao, $ancora) {
-        $user = User::factory()->create(['business_id' => 1]);
-        Permission::firstOrCreate(['name' => $permissao, 'guard_name' => 'web']);
-        try {
-            $user->givePermissionTo($permissao);
-        } catch (\Throwable) {
-            // slug pode variar por módulo — não falha o smoke por isso (a âncora é o gate).
+    it("{$nome} renderiza AUTENTICADA sem erro de console (auth bridge)", function () use ($rota, $ancora) {
+        // Usa o tenant SEEDADO (DummyBusinessSeeder roda no workflow): business 1 + admin
+        // (id=1, role Admin com todas as permissões). Padrão do FinanceiroTestCase — o
+        // schema-squash é schema-only, o seed traz os dados. Sem seed = skip (não falha).
+        $business = Business::first();
+        if (! $business) {
+            test()->markTestSkipped('Sem business seedado (DummyBusinessSeeder não rodou).');
+        }
+        $admin = User::where('business_id', $business->id)->orderBy('id')->first();
+        if (! $admin) {
+            test()->markTestSkipped('Sem user no business seedado.');
         }
 
-        // 1 visit: loga no subprocesso + redireciona pra tela → carrega autenticada.
-        visit('/_visreg-login/' . $user->id . '?to=' . urlencode($rota))
+        // 1 visit: loga o admin no subprocesso + redireciona pra tela → carrega autenticada.
+        visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota))
             ->assertSee($ancora)
             ->assertNoConsoleLogs();
     });

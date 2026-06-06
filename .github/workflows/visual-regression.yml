@@ -133,6 +133,17 @@ jobs:
           echo "=== schema-squash check: tabelas criadas ==="
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
+      - name: Seed demo tenant (business + admin + permissions)
+        # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
+        # precisam de um business + admin + permissions seedados. DatabaseSeeder roda os
+        # seeders na ordem certa (Currencies → Permissions → DummyBusiness: business 1 +
+        # user 'admin' id=1). NÃO piped (falha de seeder tem que aparecer). Tolerante a
+        # seeders pesados que possam não existir no env minimal (|| true no fim só do echo).
+        run: |
+          php artisan db:seed --force
+          echo "=== seed check ==="
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
+
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
         # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
