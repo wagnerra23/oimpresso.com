@@ -44,4 +44,8 @@ Padrão da sessão inteira (Larissa R7-R10 → prevenção → 4.8): Wagner corr
 
 > ⚠️ **3ª ocorrência do MESMO padrão** (2026-05-26 escopo PR → 2026-05-28 menu encerramento → 2026-05-28 menu reconciliação). Doc passivo não está bastando pra mudar comportamento em sessão longa. Considerar hook `UserPromptSubmit`/`PreToolUse` que intercepte `AskUserQuestion` cujas opções sejam todas "qual próximo passo de execução / qual fato verificar" e force investigação antes — análogo ao `force-r12-closing-signal.mjs`.
 
+**Reforço #3 + FIX MECÂNICO 2026-06-06 (sessão "auditoria IA OS"):** 4ª ocorrência. Wagner pediu "como faço a auditoria do sistema?" e o Claude perguntou via `AskUserQuestion` 3× seguidas (escopo → estreitar → "qual detalhar?"). Wagner: *"novamente tais me perguntando vc tem que arrumar isso"*.
+> Diagnóstico: o hook `nudge-recommend-not-menu.ps1` (criado 2026-06-04) **não pegou** porque é **Stop + advisory** e lê só o TEXTO da resposta — a *tool* `AskUserQuestion` nunca vira texto, então passava batido. "Existe mas não funciona = está errado."
+> **FIX:** criado `block-askq-execution-menu.mjs` — **PreToolUse NA tool `AskUserQuestion`** (matcher registrado em `settings.json`). Varre question+labels+descriptions; se tem sinal de execução/fato (fecho/investigo/crio task/deleto/rodo/próximo passo/está feito/qual dos dois) E SEM sinal de escopo/UX/produto → **BLOQUEIA (exit 2)** antes de a pergunta chegar no Wagner. Allow-list (escopo/persona/preço/marca/visual) passa. Fail-open no ambíguo. Escape `OIMPRESSO_ASKQ_OVERRIDE=1`. Teste `block-askq-execution-menu.test.mjs` 12/12 verde. Esta é a defesa que faltava (PreToolUse > Stop advisory).
+
 **Não confundir com:** decisões de produto, preço, integração externa, marca — essas Wagner aprova sempre.

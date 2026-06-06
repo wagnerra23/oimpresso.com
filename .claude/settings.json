@@ -34,6 +34,15 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-askq-execution-menu.mjs"
+          }
+        ]
+      },
+      {
         "matcher": "Read|Glob|Grep",
         "hooks": [
           {
