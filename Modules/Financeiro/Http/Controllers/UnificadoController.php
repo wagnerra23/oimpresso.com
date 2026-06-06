@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Events\TituloCriado;
-use Modules\Financeiro\Http\Controllers\Concerns\RendersMockCowork;
 use Modules\Financeiro\Http\Requests\StoreTituloRequest;
 use Modules\Financeiro\Http\Requests\UpdateTituloRequest;
 use Modules\Financeiro\Models\Categoria;
@@ -41,7 +40,6 @@ use Spatie\Activitylog\Models\Activity;
  */
 class UnificadoController extends Controller
 {
-    use RendersMockCowork;
 
     public function __construct()
     {
@@ -51,10 +49,6 @@ class UnificadoController extends Controller
 
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
-        // Wagner 2026-05-18 Mock Cowork Mode (config/financeiro.php).
-        if ($mock = $this->tryRenderMockCowork()) {
-            return $mock;
-        }
 
         $businessId = (int) session('user.business_id');
         $hoje = now()->toDateString();
@@ -77,7 +71,11 @@ class UnificadoController extends Controller
             ->with([
                 'categoria:id,nome',
                 'planoConta:id,codigo,nome,tipo',
-                'contaBancaria:id,nome',
+                // `nome` é ACCESSOR (getNomeAttribute → account->name), não coluna —
+                // eager-load `:id,nome` gerava `select id, nome` e 500ava (Unknown column
+                // 'nome') quando o título tinha conta_bancaria_id. Carrega a FK + account.
+                'contaBancaria:id,account_id',
+                'contaBancaria.account:id,name',
                 'conferidoPor:id,first_name,last_name,username',
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',

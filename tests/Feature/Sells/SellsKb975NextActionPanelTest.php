@@ -18,8 +18,8 @@ declare(strict_types=1);
 const KB975_NEXTACTION_PATH = 'resources/js/Pages/Sells/_components/VdNextActionPanel.tsx';
 const KB975_VALIDATIONS_PATH = 'resources/js/Lib/validacoesFiscaisBr.ts';
 const KB975_CSS_PATH = 'resources/css/sells-kb975-next-action.css';
-const KB975_INERTIA_CSS = 'resources/css/inertia.css';
-const KB975_SHOW_PAGE = 'resources/js/Pages/Sells/Show.tsx';
+defined('KB975_INERTIA_CSS') || define('KB975_INERTIA_CSS', 'resources/css/inertia.css');
+defined('KB975_SHOW_PAGE') || define('KB975_SHOW_PAGE', 'resources/js/Pages/Sells/Show.tsx');
 
 it('VdNextActionPanel.tsx existe', function () {
     expect(file_exists(base_path(KB975_NEXTACTION_PATH)))->toBeTrue();

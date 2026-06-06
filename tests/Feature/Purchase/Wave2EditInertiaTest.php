@@ -7,8 +7,8 @@ declare(strict_types=1);
  */
 
 const EDIT_INERTIA_PATH = 'resources/js/Pages/Purchase/Edit.tsx';
-const EDIT_CHARTER_PATH = 'resources/js/Pages/Purchase/Edit.charter.md';
-const EDIT_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
+const PURCHASE_EDIT_CHARTER_PATH = 'resources/js/Pages/Purchase/Edit.charter.md';
+const PURCHASE_EDIT_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
 const EDIT_RUNBOOK_PATH = 'memory/requisitos/Inventory/RUNBOOK-purchase-edit.md';
 const EDIT_VISUAL_PATH = 'memory/requisitos/Inventory/purchase-edit-visual-comparison.md';
 
@@ -19,7 +19,7 @@ function readEditInertia(): string
 
 function readEditControllerInertia(): string
 {
-    return file_get_contents(base_path(EDIT_CONTROLLER_PATH));
+    return file_get_contents(base_path(PURCHASE_EDIT_CONTROLLER_PATH));
 }
 
 it('Page Edit.tsx existe', function () {
@@ -27,8 +27,8 @@ it('Page Edit.tsx existe', function () {
 });
 
 it('Charter Edit.charter.md existe (ADR 0149)', function () {
-    expect(file_exists(base_path(EDIT_CHARTER_PATH)))->toBeTrue();
-    $content = file_get_contents(base_path(EDIT_CHARTER_PATH));
+    expect(file_exists(base_path(PURCHASE_EDIT_CHARTER_PATH)))->toBeTrue();
+    $content = file_get_contents(base_path(PURCHASE_EDIT_CHARTER_PATH));
     expect($content)->toContain('mwart_pattern_reuse:');
 });
 

@@ -182,4 +182,10 @@ jobs:
             Modules/Financeiro/Tests/Feature/Wave27PolishTest.php \
             Modules/Financeiro/Tests/Feature/Wave28PolishTest.php \
             Modules/Financeiro/Tests/Feature/CaixaMovimentoFreshnessTest.php \
-            Modules/Financeiro/Tests/Feature/MultiTenantComprehensiveTest.php
+            Modules/Financeiro/Tests/Feature/MultiTenantComprehensiveTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoFormaPagamentoGuardTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoBaixaDialogGuardTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoEditPlanoContaTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoUpdateTest.php

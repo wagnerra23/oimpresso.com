@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Schema;
 const COMMISSION_CONTROLLER_PATH = 'app/Http/Controllers/SellCommissionSplitController.php';
 const COMMISSION_EDITOR_TSX_PATH = 'resources/js/Pages/Sells/_components/CommissionSplitEditor.tsx';
 const COMMISSION_EDIT_TSX_PATH = 'resources/js/Pages/Sells/Edit.tsx';
-const COMMISSION_SELL_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
+defined('COMMISSION_SELL_CONTROLLER_PATH') || define('COMMISSION_SELL_CONTROLLER_PATH', 'app/Http/Controllers/SellController.php');
 const COMMISSION_ROUTES_PATH = 'routes/web.php';
 
 function commRead(string $rel): string

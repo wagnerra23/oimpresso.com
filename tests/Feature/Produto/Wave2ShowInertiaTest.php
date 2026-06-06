@@ -9,15 +9,15 @@ if (! function_exists('repo_path')) {
     }
 }
 
-const SHOW_PAGE_PATH = 'resources/js/Pages/Produto/Show.tsx';
+const PRODUTO_SHOW_PAGE_PATH = 'resources/js/Pages/Produto/Show.tsx';
 
 function readProdutoShow(): string
 {
-    return file_get_contents(repo_path(SHOW_PAGE_PATH));
+    return file_get_contents(repo_path(PRODUTO_SHOW_PAGE_PATH));
 }
 
 it('Page existe em Pages/Produto/Show.tsx', function () {
-    expect(file_exists(repo_path(SHOW_PAGE_PATH)))->toBeTrue();
+    expect(file_exists(repo_path(PRODUTO_SHOW_PAGE_PATH)))->toBeTrue();
 });
 
 it('Page importa AppShellV2', function () {

@@ -1,19 +1,18 @@
 name: PR UI Judge (LLM Brain B · Constituição UI v2)
 
 # Onda 4.1 do AUTOMATION-ROADMAP. Avalia PRs Inertia/React contra a
-# Constituição UI v2 usando Claude Sonnet 4.5. Posta comentário inline
+# Constituição UI v2 usando OpenAI gpt-4o. Posta comentário inline
 # com score 0-100 + 9 dimensões + violações estruturais + sugestões.
 #
 # CUSTO REAL:
-# - ~$0.034/PR (Claude Sonnet 4.5)
-# - ~$0.005/PR após primeiro do dia (prompt caching ~85% reuse)
-# - ~$3/mês a 100 PRs/mês
+# - ~$0.05/PR (OpenAI gpt-4o, ~10k in + ~1k out)
+# - ~$5/mês a 100 PRs/mês
 #
 # DEFAULT: DESLIGADO (env var PR_UI_JUDGE_ENABLED não setada).
-# Wagner ativa quando quota Brain B aprovada:
+# Wagner ativa quando quota aprovada:
 #   GitHub Repo → Settings → Secrets and variables → Actions → Variables
 #   Adicionar variable PR_UI_JUDGE_ENABLED=true
-#   Adicionar secret ANTHROPIC_API_KEY (provavelmente já existe)
+#   Adicionar secret OPENAI_API_KEY (provavelmente já existe)
 #
 # NÃO substitui ui-lint.yml (sintático/lexical) — complementa com análise
 # semântica que grep não vê: drawer modal sobre modal, slot reinventado,
@@ -48,7 +47,7 @@ permissions:
 
 jobs:
   judge:
-    name: PR UI Judge · Claude Sonnet 4.5
+    name: PR UI Judge · OpenAI gpt-4o
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

@@ -74,12 +74,21 @@ class Util
             $normalized = $intPart.'.'.$decPart;
         } elseif ($hasDot) {
             // Apenas ponto: heurística inequívoca.
-            //   1 ponto + ≤2 dígitos após = decimal en-US tolerado ("80.00" = 80)
-            //   1 ponto + ≥3 dígitos após OU múltiplos pontos = milhar pt-BR ("25.000" = 25000)
+            //   1 ponto + ≤2 dígitos após  = decimal en-US tolerado ("80.00" = 80)
+            //   1 ponto + EXATAMENTE 3 após = milhar pt-BR ("25.000" = 25000)
+            //   1 ponto + ≥4 dígitos após  = decimal (separador de milhar tem SEMPRE
+            //                                 3 dígitos; ≥4 não é grupo de milhar).
+            //   múltiplos pontos           = milhar pt-BR ("1.234.567" = 1234567)
+            //
+            // INCIDENTE 2026-06-05 (Larissa @ Rota Livre biz=4): venda com desconto
+            // percentual gera total fracionado de 5 casas no React (ex 204.99605 =
+            // 227,90 − 10,05%). O `<= 2` caía no else e str_replace removia o ponto:
+            // "204.99605" → "20499605" → R$ 20.499.605 (real R$ 205). Como grupo de
+            // milhar nunca tem 4+ dígitos, `!== 3` trata esses casos como decimal.
             $dotCount = substr_count($abs, '.');
             $lastDot = strrpos($abs, '.');
             $afterLastDot = strlen($abs) - $lastDot - 1;
-            if ($dotCount === 1 && $afterLastDot <= 2) {
+            if ($dotCount === 1 && $afterLastDot !== 3) {
                 $normalized = $abs;
             } else {
                 $normalized = str_replace('.', '', $abs);

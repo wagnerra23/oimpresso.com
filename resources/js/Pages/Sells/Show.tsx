@@ -19,11 +19,13 @@ import {
   Phone,
   Printer,
   Trash2,
+  Truck,
   User as UserIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';
 import {
   DropdownMenu,
@@ -40,6 +42,7 @@ import SaleReciboPrint80mm from './_components/SaleReciboPrint80mm';
 import SaleOrcamentoA4 from './_components/SaleOrcamentoA4';
 import SellsCheatSheet, { SELLS_SHOW_SHORTCUTS } from './_components/SellsCheatSheet';
 import SaleTimeline from './_components/SaleTimeline';
+import SaleJourneyStepper, { type SaleJourney } from './_components/SaleJourneyStepper';
 
 // Modos de impressão KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
 type CoworkPrintMode = 'recibo-80mm' | 'orcamento-a4' | null;
@@ -66,6 +69,8 @@ interface Headline {
   current_stage_key: string | null;
   customer: Customer | null;
   location: { id: number; name: string } | null;
+  /** ADR 0251 — veículo da venda direta de oficina (placa na consulta). null = sem veículo. */
+  vehicle?: { id: number; plate: string; secondary_plate?: string | null } | null;
 }
 
 interface SaleLine {
@@ -111,6 +116,8 @@ interface ShowDetail {
 export interface SellsShowPageProps {
   saleId: number;
   headline: Headline;
+  /** Breadcrumb "onde a venda está" (oficina). show=false em varejo/ROTA LIVRE. */
+  journey?: SaleJourney;
   detail?: ShowDetail;  // deferred
   permissions: { edit: boolean; delete: boolean; print: boolean };
   urls: { edit: string; destroy: string; print: string; sheet_data: string; back: string };
@@ -169,7 +176,7 @@ function DetailSkeleton() {
 }
 
 export default function SellsShow(props: SellsShowPageProps) {
-  const { headline, urls, permissions } = props;
+  const { headline, urls, permissions, journey } = props;
   const [isPrinting, setIsPrinting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   // KB-9.75 P0 gaps #2/#3 — emit modals abertos via VdNextActionPanel gate.
@@ -374,6 +381,10 @@ export default function SellsShow(props: SellsShowPageProps) {
           </div>
         </div>
 
+        {/* Breadcrumb "onde a venda está" — só em venda de oficina (Wagner 2026-06-05).
+            journey.show=false em varejo/ROTA LIVRE → não renderiza. */}
+        {journey?.show && <SaleJourneyStepper journey={journey} saleId={headline.id} />}
+
         {/* KPIs grandes (4-col canon V2) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
@@ -430,6 +441,23 @@ export default function SellsShow(props: SellsShowPageProps) {
                       <Mail className="h-3 w-3" />
                       {headline.customer.email}
                     </p>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* ADR 0251 — Veículo do atendimento (venda direta de oficina). Plaquinha
+                Mercosul reusada do OficinaAuto. Só aparece quando a venda tem veículo. */}
+            {headline.vehicle && (
+              <section className="rounded-lg border border-border bg-card p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="font-semibold text-sm">Veículo</h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MercosulPlate plate={headline.vehicle.plate} size="md" />
+                  {headline.vehicle.secondary_plate && (
+                    <MercosulPlate plate={headline.vehicle.secondary_plate} size="md" />
                   )}
                 </div>
               </section>

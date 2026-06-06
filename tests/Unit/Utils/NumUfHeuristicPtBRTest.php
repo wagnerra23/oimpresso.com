@@ -65,10 +65,19 @@ class NumUfHeuristicPtBRTest extends TestCase
             '1.5 → 1.5'                   => ['1.5', 1.5],
             '0.5 → 0.5'                   => ['0.5', 0.5],
 
-            // Heurística milhar pt-BR (1 ponto + ≥3 dígitos, ou múltiplos pontos)
+            // Heurística milhar pt-BR (1 ponto + EXATAMENTE 3 dígitos, ou múltiplos pontos)
             '25.000 → 25000'              => ['25.000', 25000.0],
             '1.234 → 1234'                => ['1.234', 1234.0],
             '1.234.567 → 1234567'         => ['1.234.567', 1234567.0],
+
+            // INCIDENTE 2026-06-05 (Larissa @ Rota Livre): desconto percentual gera
+            // total fracionado de >3 casas no React (227,90 − 10,05% = 204.99605).
+            // Antes o else stripava o ponto → 20499605 (R$ 20.499.605). Grupo de
+            // milhar tem SEMPRE 3 dígitos; ≥4 casas após o ponto = decimal.
+            'INCIDENTE 204.99605 → 204.99605' => ['204.99605', 204.99605],
+            '20.5005 (4 casas) → 20.5005'     => ['20.5005', 20.5005],
+            '227.9 (1 casa) → 227.9'          => ['227.9', 227.9],
+            '1329.0567 → 1329.0567'           => ['1329.0567', 1329.0567],
 
             // Símbolo de moeda + espaços (bug secundário antes retornava 0)
             'R$ 80,00 → 80'               => ['R$ 80,00', 80.0],

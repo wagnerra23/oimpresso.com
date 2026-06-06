@@ -7,17 +7,18 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
+use Modules\Jana\Entities\UiJudgeRun;
 
 /**
  * `ui:judge-pr` — Onda 4.1 do AUTOMATION-ROADMAP (Constituição UI v2).
  *
- * Avalia um PR contra a Constituição UI v2 usando agente LLM (Anthropic Claude
- * Sonnet 4.5) e — opcionalmente — posta comentário inline no PR via `gh`.
+ * Avalia um PR contra a Constituição UI v2 usando agente LLM (OpenAI gpt-4o)
+ * e — opcionalmente — posta comentário inline no PR via `gh`.
  *
  * Workflow:
  *   1. Pega metadata do PR (título · descrição · arquivos modificados) via gh CLI
  *   2. Pega diff filtrado (.tsx, .jsx, .css)
- *   3. Manda pro PrUiJudgeAgent (anthropic / claude-sonnet-4-5)
+ *   3. Manda pro PrUiJudgeAgent (openai / gpt-4o)
  *   4. Parse output JSON
  *   5. Print score + violações no console
  *   6. (Opcional) `--post-comment` posta no PR via gh
@@ -28,8 +29,7 @@ use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
  *   php artisan ui:judge-pr 1438 --post-comment # postar comentário no PR
  *   php artisan ui:judge-pr 1438 --strict       # exit 1 se verdict=request_changes
  *
- * Custo estimado por run: ~$0.034 (Claude Sonnet 4.5) · com prompt caching
- * cai pra ~$0.005 após primeiro PR do dia.
+ * Custo estimado por run: ~$0.05 (OpenAI gpt-4o, ~10k in + ~1k out).
  *
  * @see Modules\Jana\Ai\Agents\PrUiJudgeAgent
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4)
@@ -100,7 +100,7 @@ class UiJudgePrCommand extends Command
         $this->line('  Diff UI: '.strlen($diff).' bytes');
 
         // 4. Mandar pro agent
-        $this->info('Enviando pra PrUiJudgeAgent (Claude Sonnet 4.5)...');
+        $this->info('Enviando pra PrUiJudgeAgent (OpenAI gpt-4o)...');
         $output = $this->runAgent($prData, $diff);
         if ($output === null) {
             return self::FAILURE;
@@ -117,6 +117,11 @@ class UiJudgePrCommand extends Command
 
         // 6. Render no console
         $this->renderReview($review);
+
+        // 6.5. Medição (append-only · jana_ui_judge_runs). Sem isto o juiz era
+        // fire-and-forget: postava o comentário e o score evaporava. Best-effort —
+        // medição NUNCA derruba o julgamento.
+        $this->recordRun($prNumber, $repo, $review);
 
         // 7. Save to file
         if ($saveTo !== '') {
@@ -138,6 +143,77 @@ class UiJudgePrCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Persiste 1 linha de medição (append-only) por julgamento.
+     *
+     * Provider/model são lidos por reflexão dos atributos do PrUiJudgeAgent —
+     * assim a medição reflete o modelo REAL em uso (nunca mais "anuncia X, roda
+     * Y"). Best-effort: qualquer falha aqui é avisada mas não derruba o run.
+     */
+    private function recordRun(int $prNumber, string $repo, array $review): void
+    {
+        try {
+            [$provider, $model] = $this->agentProviderModel();
+
+            $verdict = $review['verdict'] ?? 'comment';
+            if (! in_array($verdict, ['approve', 'request_changes', 'comment'], true)) {
+                $verdict = 'comment';
+            }
+
+            UiJudgeRun::create([
+                'pr_number' => $prNumber,
+                'repo' => $repo !== '' ? $repo : null,
+                'provider' => $provider,
+                'model' => $model,
+                'score' => (int) ($review['score'] ?? 0),
+                'verdict' => $verdict,
+                'violacoes_count' => is_array($review['violacoes_estruturais'] ?? null)
+                    ? count($review['violacoes_estruturais'])
+                    : 0,
+                'dimensoes' => $review['dimensoes'] ?? null,
+                'custo_usd_estimado' => $this->estimateCostUsd($model),
+                'judged_at' => now(),
+            ]);
+
+            $this->line('  Medição registrada em jana_ui_judge_runs (jana:ui-judge-trend)');
+        } catch (\Throwable $e) {
+            $this->warn('  Medição não registrada (não-bloqueante): '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Provider + model declarados nos atributos do PrUiJudgeAgent (reflexão).
+     *
+     * @return array{0:string, 1:string}
+     */
+    private function agentProviderModel(): array
+    {
+        $ref = new \ReflectionClass(PrUiJudgeAgent::class);
+
+        $provider = ($ref->getAttributes(\Laravel\Ai\Attributes\Provider::class)[0] ?? null)
+            ?->getArguments()[0] ?? 'unknown';
+        $model = ($ref->getAttributes(\Laravel\Ai\Attributes\Model::class)[0] ?? null)
+            ?->getArguments()[0] ?? 'unknown';
+
+        return [(string) $provider, (string) $model];
+    }
+
+    /**
+     * Estimativa grosseira de custo por PR (~10k tokens in + ~1k out).
+     * NÃO é billing real — só pra dar ordem de grandeza no trend.
+     */
+    private function estimateCostUsd(string $model): ?float
+    {
+        return match (true) {
+            str_contains($model, 'opus') => 0.165,
+            str_contains($model, 'sonnet') => 0.034,
+            str_contains($model, 'haiku') => 0.003,
+            str_contains($model, 'gpt-4o-mini') => 0.002,
+            str_contains($model, 'gpt-4o') => 0.050,
+            default => null,
+        };
     }
 
     /**
@@ -236,17 +312,16 @@ class UiJudgePrCommand extends Command
     private function runAgent(array $prData, string $diff): ?string
     {
         // Pre-flight: validar API key do provider configurado no PrUiJudgeAgent.
-        // Default PrUiJudgeAgent = OpenAI gpt-4o-mini (consistente com BriefDiarioAgent
-        // etc). Wagner pode trocar pra Anthropic editando o @Provider/@Model do agent.
-        $openaiKey = (string) (config('ai.providers.openai.key') ?? env('OPENAI_API_KEY') ?? '');
-        $anthropicKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
+        // PrUiJudgeAgent = OpenAI gpt-4o (provider canon pós-migração). Wagner
+        // pode trocar editando o @Provider/@Model do agent — o check abaixo lê
+        // o provider por reflexão, então segue o agent sem hardcode.
+        [$provider] = $this->agentProviderModel();
+        $envVar = strtoupper($provider) . '_API_KEY';
+        $providerKey = (string) (config("ai.providers.{$provider}.key") ?? env($envVar) ?? '');
 
-        if ($openaiKey === '' && $anthropicKey === '') {
-            $this->error('Nenhuma API key configurada (OPENAI_API_KEY nem ANTHROPIC_API_KEY)');
-            $this->line('  Adicionar em .env: OPENAI_API_KEY=sk-... (default do PrUiJudgeAgent)');
-            $this->line('  OU: ANTHROPIC_API_KEY=sk-ant-... (upgrade pra Claude Sonnet 4.5)');
-            $this->line('  Pegar key em: https://platform.openai.com/api-keys (OpenAI)');
-            $this->line('                https://console.anthropic.com/settings/keys (Anthropic)');
+        if ($providerKey === '') {
+            $this->error("{$envVar} não configurada (provider '{$provider}' do PrUiJudgeAgent)");
+            $this->line("  Adicionar em .env: {$envVar}=...");
             $this->line('  Depois: php artisan config:clear');
 
             return null;
@@ -269,14 +344,14 @@ class UiJudgePrCommand extends Command
             $msg = $e->getMessage();
 
             // Diagnóstico amigável pra erros comuns
-            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication')) {
-                $this->error('ANTHROPIC_API_KEY inválida ou expirada (HTTP 401)');
-                $this->line('  Verificar valor em .env · regenerar key em https://console.anthropic.com');
+            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication') || str_contains($msg, 'Incorrect API key')) {
+                $this->error('API key do provider inválida ou expirada (HTTP 401)');
+                $this->line('  Verificar valor em .env · regenerar key no dashboard do provider');
                 $this->line('  Depois: php artisan config:clear');
             } elseif (str_contains($msg, '429') || str_contains($msg, 'rate_limit')) {
-                $this->error('Rate limit Anthropic (HTTP 429) · aguardar 60s e tentar novamente');
+                $this->error('Rate limit do provider (HTTP 429) · aguardar 60s e tentar novamente');
             } elseif (str_contains($msg, '529') || str_contains($msg, 'overloaded')) {
-                $this->error('Anthropic overloaded (HTTP 529) · tentar novamente em alguns minutos');
+                $this->error('Provider overloaded (HTTP 529) · tentar novamente em alguns minutos');
             } else {
                 $this->error("PrUiJudgeAgent falhou: {$msg}");
             }
@@ -320,7 +395,7 @@ class UiJudgePrCommand extends Command
             foreach ($review['dimensoes'] as $dim => $data) {
                 if (is_array($data)) {
                     $s = (int) ($data['score'] ?? 0);
-                    $nota = (string) ($data['nota'] ?? '');
+                    $nota = (string) ($data['rationale'] ?? $data['nota'] ?? '');
                     $this->line("  {$dim}: {$s}/10 · {$nota}");
                 }
             }
@@ -388,7 +463,7 @@ class UiJudgePrCommand extends Command
             foreach ($review['dimensoes'] as $dim => $data) {
                 if (is_array($data)) {
                     $s = (int) ($data['score'] ?? 0);
-                    $nota = (string) ($data['nota'] ?? '');
+                    $nota = (string) ($data['rationale'] ?? $data['nota'] ?? '');
                     $out[] = "| `{$dim}` | {$s}/10 | {$nota} |";
                 }
             }

@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  */
 
 const FIN_BUNDLE = __DIR__ . '/../../../../resources/css/cowork-financeiro-bundle.css';
-const FIN_INERTIA_CSS = __DIR__ . '/../../../../resources/css/inertia.css';
+defined('FIN_INERTIA_CSS') || define('FIN_INERTIA_CSS', __DIR__ . '/../../../../resources/css/inertia.css');
 const FIN_COWORK_JSX_DIR = __DIR__ . '/../../../../resources/js/Pages/Financeiro/_cowork-bundle';
 
 describe('Cowork Bundle Integral — arquivo + header', function () {

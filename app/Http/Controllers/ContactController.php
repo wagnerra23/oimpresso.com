@@ -257,11 +257,13 @@ class ContactController extends Controller
 
         $type = request()->get('type');
 
-        // ADR 0188 (multi-type 2026-05-24) + Wagner 2026-05-25: whitelist canon canônica
-        // alinhada com $inertiaTypes abaixo (linha ~237). Antes era ['supplier', 'customer']
+        // ADR 0188 (multi-type 2026-05-24) + ADR 0246 (Outros 2026-06-03) + Wagner 2026-05-25:
+        // whitelist canon alinhada com $inertiaTypes abaixo. Antes era ['supplier', 'customer']
         // UPOS legacy → /contacts?type=all/employee/representative caía em redirect()->back()
         // (bug: usuário em /sells clicava em "Contatos" sidebar → voltava pra /sells).
-        $types = ['supplier', 'customer', 'employee', 'representative', 'all'];
+        // ADR 0246: adicionado 'other' — sem isso, ?type=other rejeitado e cai default 'customer'
+        // (bug Wagner reportou 2026-06-04 pós-deploy PR #2205: aba Outros mostrava Clientes).
+        $types = ['supplier', 'customer', 'employee', 'representative', 'other', 'all'];
 
         if (empty($type) || ! in_array($type, $types)) {
             return redirect()->back();
@@ -293,7 +295,8 @@ class ContactController extends Controller
         // Spatie permanecem mapeadas pra 'customer.*' (UPOS legacy) por simplicidade
         // operacional — Wagner expande pra 'supplier.*' etc em ondas futuras se time
         // pedir granularidade por papel.
-        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        // ADR 0188 + ADR 0246 — 5 papéis canônicos + 'all' agregado.
+        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'other', 'all'];
         if (in_array($type, $inertiaTypes, true) && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
             return Inertia::render('Cliente/Index', [
                 'activeType' => $type,
@@ -2417,7 +2420,42 @@ class ContactController extends Controller
             }
             $contacts = $contacts->get();
 
-            return json_encode($contacts);
+            // ADR 0251 — catálogo de veículos do cliente p/ o seletor de veículo na
+            // venda direta de oficina (Sells/Create). Query separada + map (mesmo
+            // padrão do vehiclesCountMap) porque o select() acima é custom + leftjoin.
+            //
+            // BLINDAGEM: este endpoint é COMPARTILHADO com o Blade legado. Guard
+            // Schema::hasTable degrada gracioso quando OficinaAuto não está instalado
+            // (sem catálogo, o seletor some) em vez de quebrar a busca de cliente.
+            // Vehicle tem global scope por business_id (ADR 0093) — Tier 0 automático.
+            $vehiclesByContact = collect();
+            if (\Illuminate\Support\Facades\Schema::hasTable('vehicles') && $contacts->isNotEmpty()) {
+                $contactIds = $contacts->pluck('id')->all();
+                $vehiclesByContact = \Modules\OficinaAuto\Entities\Vehicle::query()
+                    ->whereIn('contact_id', $contactIds)
+                    ->orderByDesc('id')
+                    ->get(['id', 'contact_id', 'plate', 'secondary_plate', 'vehicle_type'])
+                    ->groupBy('contact_id');
+            }
+
+            // Mapeia pra array (em vez de setar propriedade dinâmica no Model — Larastan
+            // acusaria App\Contact::$vehicles undefined) anexando vehicles[] por contato.
+            $payload = $contacts->map(function ($c) use ($vehiclesByContact) {
+                $arr = $c->toArray();
+                $arr['vehicles'] = collect($vehiclesByContact->get($c->id) ?? [])
+                    ->map(fn ($v) => [
+                        'id'              => (int) $v->id,
+                        'plate'           => $v->plate,
+                        'secondary_plate' => $v->secondary_plate,
+                        'vehicle_type'    => $v->vehicle_type,
+                    ])
+                    ->values()
+                    ->all();
+
+                return $arr;
+            });
+
+            return json_encode($payload);
         }
     }
 

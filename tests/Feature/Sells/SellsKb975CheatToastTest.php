@@ -19,9 +19,9 @@ declare(strict_types=1);
 const KB975_CHEAT_PATH = 'resources/js/Pages/Sells/_components/SellsCheatSheet.tsx';
 const KB975_TOAST_PATH = 'resources/js/Lib/oimpressoToast.ts';
 const KB975_CHEAT_CSS = 'resources/css/sells-kb975-cheatsheet.css';
-const KB975_INERTIA_CSS = 'resources/css/inertia.css';
-const KB975_INDEX_PAGE = 'resources/js/Pages/Sells/Index.tsx';
-const KB975_SHOW_PAGE = 'resources/js/Pages/Sells/Show.tsx';
+defined('KB975_INERTIA_CSS') || define('KB975_INERTIA_CSS', 'resources/css/inertia.css');
+defined('KB975_INDEX_PAGE') || define('KB975_INDEX_PAGE', 'resources/js/Pages/Sells/Index.tsx');
+defined('KB975_SHOW_PAGE') || define('KB975_SHOW_PAGE', 'resources/js/Pages/Sells/Show.tsx');
 
 // ──────────────────────────────────────────────────────────────
 // SellsCheatSheet.tsx (gap P3 #12)

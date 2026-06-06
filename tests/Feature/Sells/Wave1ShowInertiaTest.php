@@ -18,7 +18,7 @@ declare(strict_types=1);
  */
 
 const SHOW_PAGE_PATH = 'resources/js/Pages/Sells/Show.tsx';
-const SHOW_CHARTER_PATH = 'resources/js/Pages/Sells/Show.charter.md';
+defined('SHOW_CHARTER_PATH') || define('SHOW_CHARTER_PATH', 'resources/js/Pages/Sells/Show.charter.md');
 const SHOW_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
 
 function readShowPage(): string

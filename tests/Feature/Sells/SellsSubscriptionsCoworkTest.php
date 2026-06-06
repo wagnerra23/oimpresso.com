@@ -26,7 +26,7 @@ declare(strict_types=1);
  */
 
 const SUBSCRIPTIONS_TSX_PATH = 'resources/js/Pages/Sells/Subscriptions.tsx';
-const SUBSCRIPTIONS_CHARTER_PATH = 'resources/js/Pages/Sells/Subscriptions.charter.md';
+defined('SUBSCRIPTIONS_CHARTER_PATH') || define('SUBSCRIPTIONS_CHARTER_PATH', 'resources/js/Pages/Sells/Subscriptions.charter.md');
 const SUBSCRIPTIONS_CSS_PATH = 'resources/css/sells-cowork-subscriptions.css';
 const SUBSCRIPTIONS_INERTIA_CSS_PATH = 'resources/css/inertia.css';
 const SUBSCRIPTIONS_INDEX_TSX_PATH = 'resources/js/Pages/Sells/Index.tsx';

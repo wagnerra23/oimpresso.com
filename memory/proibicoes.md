@@ -81,6 +81,26 @@
 >
 > **Detalhe completo + 5 vetores catalogados + 7 defesas automáticas + comportamento Claude esperado em [`memory/reference/feedback-modulo-mexeu-registra-sempre.md`](reference/feedback-modulo-mexeu-registra-sempre.md).**
 
+---
+
+## REGRA MESTRE — CÁLCULO DE VALOR ou ESTOQUE (Tier 0 IRREVOGÁVEL)
+
+> ⛔⛔⛔ **TODA alteração que possa mexer em VALOR (preço, total, subtotal, desconto, imposto, frete, `final_total`, `total_before_tax`, pagamento, comissão, parsing/format de número — `num_uf`/`num_f`/`parseDecimalPtBR`) ou em ESTOQUE (quantidade, movimentação, reserva, baixa) exige, ANTES de mergear/deploiar:**
+>
+> | # | Exigência | Como |
+> |---|---|---|
+> | **1** | **DUPLA CONFIRMAÇÃO do cálculo** | Provar o resultado por **DOIS caminhos independentes** com NÚMEROS CONCRETOS: ex (a) caso de teste manual ponta-a-ponta + (b) cross-check frontend×backend, OU dry-run + recompute à mão. Nunca confiar num só. |
+> | **2** | **APRESENTAR O IMPACTO antes de aplicar** | Mostrar ao Wagner **tabela antes→depois** explícita: quais vendas/valores/estoques mudam e como. Em prod, **dry-run obrigatório** mostrando o delta de cada registro afetado ANTES de qualquer escrita. |
+> | **3** | **Aprovação humana explícita** | Só aplicar após Wagner ver o impacto (#2) e confirmar. Pareia com R10. |
+>
+> **Origem (2026-06-05):** incidente ROTA LIVRE biz=4 — `Util::num_uf` strippava o ponto decimal de total fracionado (desconto %): React mandava `final_total: 204.99605` → `num_uf` interpretava "." como milhar → gravou **R$ 20.499.605** numa venda de **R$ 205**. 16 vendas infladas ~×100k + pagamentos corrompidos antes de detectar. Wagner palavras textuais: *"cada modificação que possa mexer em valor precisa ser confirmada duas vezes para garantir e você precisa apresentar as mudanças que vão ocorrer — regra mestre para qualquer alteração de cálculo que mexa em qualquer valor ou estoque."*
+>
+> **Lição técnica perene:** separador de milhar tem SEMPRE 3 dígitos; frontend NUNCA manda float locale-ambíguo (`204.99605`) pra parser pt-BR — arredonda a 2 casas no submit. Ver [session 2026-06-05](sessions/2026-06-05-veiculo-na-venda-e-incidente-numuf-valor-inflado.md) + fix #2279.
+>
+> **Sintoma de violação:** mexer em `TransactionUtil`/`ProductUtil`/`Util::num_uf`/`Sells/Create|Edit.tsx`/`numberPtBR.ts` (ou qualquer cálculo de total/desconto/estoque) e mergear SEM (1) provar com 2 caminhos + (2) apresentar antes→depois. Rule path-scoped [`.claude/rules/calculo-valor-estoque.md`](../.claude/rules/calculo-valor-estoque.md) carrega esta regra ao tocar esses arquivos.
+
+---
+
 ## Ambiente
 
 - ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
@@ -215,6 +235,22 @@
 - ⛔ **APÓS qualquer merge de PR que mexa em UI** (`resources/js/Pages/**/*.tsx` · `resources/js/Components/**/*.tsx` · `resources/css/*.css` · `.blade.php` ou Inertia render) — Claude **OBRIGATORIAMENTE** abre Chrome MCP + screenshot + relata o que viu **ANTES de declarar "pronto"/"deployed"/"funcionando"**. **Sem screenshot post-deploy = não está pronto**. Wagner regra reincidente Tier 0: *"sempre estou tendo que fazer isso, os metodos de memória ainda não estão sendo garantidos"* — após `feedback-brave-mcp-primeiro-sempre.md` (instalado 2026-05-15) ter falhado em prevenir 6+ reincidências. Hook bloqueador: [`.claude/hooks/post-merge-ui-smoke-required.ps1`](../.claude/hooks/post-merge-ui-smoke-required.ps1) detecta `gh pr merge` em PR que tocou UI files e bloqueia próximas declarações `"pronto|deployed|funcionando|ao vivo|live em prod"` no chat até detectar uso de `mcp__computer-use__screenshot` ou `mcp__Claude_in_Chrome__*` nos últimos 5min. Escape: pra mudança backend-only OR docs, mencionar `<!-- no-ui-smoke: <razão> -->` no PR body. Skill pareada (Tier B): [`smoke-prod-evidence`](../.claude/skills/smoke-prod-evidence/SKILL.md).
 
 Skill pareada (cultural, Tier B auto-trigger): [`.claude/skills/smoke-prod-evidence/SKILL.md`](../.claude/skills/smoke-prod-evidence/SKILL.md).
+
+## Ideias avaliadas e DESCARTADAS — não re-propor (registro de regressões · equiv. §5 do PROCESSO_MEMORIA_CC)
+
+> **Por que existe:** o método de design ([`prototipo-ui/PROCESSO_MEMORIA_CC.md`](../prototipo-ui/PROCESSO_MEMORIA_CC.md) §5) tem um registro de "tentei, reprovou, não repete". O mundo de **código** não tinha equivalente — então uma sessão futura **re-propõe ideia morta** e regride na prática. Este é o §5 do código (Opção B: sistema separado do design, mesmo princípio). **Antes de propor abordagem técnica, conferir aqui; se bater, eu mesmo barro e cito a entrada.**
+>
+> Estrutura de cada entrada (igual ao §5): **o que foi tentado · por que caiu · o limite (a variante parecida também é proibida)**. Append-only — nada sai daqui sem ADR explícito.
+
+### 2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente
+- **O que foi tentado:** criar um roadmap de evolução (design + teste) num doc novo, em paralelo ao [`AUTOMATION-ROADMAP.md`](requisitos/_DesignSystem/AUTOMATION-ROADMAP.md) (que já tem Ondas) — e um roadmap de teste órfão sem casa.
+- **Por que caiu:** viola o gate **T6 (DURO)** do método — *"evoluindo o que EXISTE, não criando paralelo; 1 tema = 1 doc"*. Dois roadmaps competindo pelo mesmo juiz = fragmentação (a dor que Wagner levantou: "não saber onde está nada").
+- **O limite (variante também proibida):** qualquer doc de plano/roadmap/SPEC novo que **duplique** roadmap/SPEC/ADR já existente. Antes de criar plano, achar o canon dono do tema e **estender** (nova Onda/seção), nunca abrir paralelo.
+
+### 2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato
+- **O que foi tentado:** property test (`FsmAuthorizationFlagPropertyTest`) cujas invariantes foram extraídas do que a classe **faz hoje**, não de um contrato independente ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) + §"FSM Pipeline Canônico" deste arquivo).
+- **Por que caiu:** teste derivado do código é tautológico — passa ✅ mesmo se o comportamento estiver errado vs a intenção, e **trava (catraca) o desvio** em vez de pegá-lo. Pior que não ter teste. (NÚCLEO invariante 4 do método: *"Casos = contrato de não-regressão"*.)
+- **O limite (variante também proibida):** qualquer teste cuja asserção venha da implementação (ou do palpite do agente) e não de um contrato externo (SPEC / ADR / proibicoes / charter / casos). **Teste sem âncora de contrato citada = rejeitado** no gate pré-adoção (Peça 2).
 
 ## Sempre fazer
 
