@@ -52,6 +52,7 @@ Quando duas memórias divergem, vence nesta ordem:
 | [framework-15-dimensoes.md](framework-15-dimensoes.md) | as 15 dim de qualidade + ponderação por persona |
 | [pageheader-matriz-diferencas.md](pageheader-matriz-diferencas.md) | PageHeader: F1-F16 fixas vs V1-V9 variáveis |
 | [PRE-MERGE-UI.md](PRE-MERGE-UI.md) · [SPEC.md](SPEC.md) (R-DS-001..012) · README.md · ARCHITECTURE.md | regras duras + checklist + mapa da stack |
+| [MANUAL-CSS-JS.md](MANUAL-CSS-JS.md) | regimento **CSS/JS** — do/don't + arquitetura-alvo (token DS v6 → primitivos **layout**+ui → padrão → página) + gap dos primitivos de layout (§2.1) + roadmap de convergência F0–F7 (sair do sprawl de 28k linhas) |
 | RUNBOOK-{replicar-prototipo-cowork,onda-cowork,design-deep,inertia-defer-pattern}.md | receitas de execução (portar protótipo, ondas, defer) |
 
 > ⚠️ **Goldens de arquétipo: só existe PT-01-Lista.** Faltam **PT-02 Form/Drawer · PT-03 Detalhe · PT-04 Dashboard · PT-05 Config/Kanban** (confirmado por 2 agentes + piloto). Até existirem, o Claude Design usa o golden de código (GOLDEN-REFERENCE = form) e, p/ outros tipos, **pergunta** em vez de inventar.

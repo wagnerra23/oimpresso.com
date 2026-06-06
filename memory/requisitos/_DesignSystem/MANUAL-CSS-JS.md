@@ -4,20 +4,31 @@ description: Manual canônico de administração de CSS/JS (frontend) do oimpres
 type: reference
 status: ativo
 owner: wagner
-version: "1.0"
-last_updated: "2026-06-04"
-related_adrs: ["0094-constituicao-v2-7-camadas-8-principios", "0209-eslint-9-flat-config"]
+version: "1.1"
+last_updated: "2026-06-06"
+related_adrs: ["0094-constituicao-v2-7-camadas-8-principios", "0235-ds-v4-accent-roxo-universal", "0249-ds-v6-naming-amends-0235", "0239-governanca-design-system-git-ssot-regressao-ia", "0013-constituicao-ui-v2-camadas", "0209-eslint-9-flat-config"]
+ssot: INDEX-DESIGN-MEMORIAS.md
 ---
 
 # Manual — CSS & JS no oimpresso: como deveria ser e como fazer
 
+> ⚠️ **SUBORDINADO AO SSOT.** A **identidade e a governança de design já são canon** — vivem no
+> SSOT [INDEX-DESIGN-MEMORIAS.md](INDEX-DESIGN-MEMORIAS.md): cor `primary` roxo `oklch(0.55 0.15 295)`
+> ([ADR 0235](../../decisions/0235-ds-v4-accent-roxo-universal.md)) + camada de tokens semânticos
+> **DS v6** ([ADR 0249](../../decisions/0249-ds-v6-naming-amends-0235.md)), sob governança git-SSOT
+> ([ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md)). Este manual
+> **não redefine** identidade — é o **regimento de CSS/JS** (regras do/don't + alvo + caminho de
+> convergência do código). Azul de **marca** = débito a migrar; azul **semântico** (status/origin-badge)
+> sobrevive (SSOT §4).
+>
 > **Origem:** 2026-06-04 — Wagner: *"investigar a lista de problemas de css e js, isso está
 > bem administrado como deveria ser? compare com os melhores. Crie um manual de como deveria
-> ser e como fazer."*
+> ser e como fazer."* · Ampliado 2026-06-06 (absorveu o plano de convergência standalone, evitando
+> 3º doc — anti-duplicação ADR 0249/0239): + gap de **primitivos de layout** (§2.1) + roadmap como tasks MCP (§5).
 >
 > **Veredito de uma linha:** o **JS/TS está bem administrado** (TS strict, stack moderna,
 > lint com ratchet); o **CSS NÃO** — ~28k linhas de CSS bespoke por-tela (dumps de protótipo
-> Cowork) minam o design-system que já existe no papel. Este manual define o alvo e o caminho.
+> Cowork) minam o design-system que já existe no papel. **A visão existe; falta o código convergir nela.**
 
 ---
 
@@ -52,12 +63,37 @@ Referências estado-da-arte 2026: **Linear, Stripe, Shopify Polaris, GitHub Prim
 | **Token é a fonte única** (cor/espaço/tipo/raio/sombra) | Tudo vem de `@theme` Tailwind v4 + camada Fundações da Constituição UI v2. Nenhum hex/px solto. |
 | **Utility-first, ZERO CSS por-página** | Estilo mora no JSX via classes Tailwind. `resources/css/*` só pra: reset, tokens, e raras exceções globais. **Não existe `sells-cowork.css`.** |
 | **Componentes, não páginas, são a unidade** | Primitivos Radix + variantes CVA em `resources/js/Components/ui/`. Telas compõem componentes; não redefinem estilo. |
+| **Layout via primitivos, não CSS por-tela** | `Box`/`Stack`/`Inline`/`Grid`/`Container`/`Text` (Polaris/Radix Themes/Geist têm). **Falta no oimpresso** — ver §2.1. |
 | **Lint estrito, baseline → ZERO** | O ratchet nunca sobe; baseline só **encolhe**. `__parser_error__`/`no-undef` são P0 (bug), não dívida tolerada. |
 | **Um build, um grafo** | Um pipeline Vite. Code-splitting por rota automático. Bundle budget no CI. |
 | **Visual regression automatizado** | Snapshot por componente/tela (Playwright/Chromatic-like) — o projeto já tem `design:review` + screen-grade; ligar o gate. |
 | **Acessibilidade é gate, não opção** | `jsx-a11y` sem baseline crescente + axe nos testes de tela (screen-qa). |
 
 **Regra-mestre (Constituição UI v2):** Fundações (tokens) → Shell → Padrão de Tela → Módulo. Camada superior **herda** e **nunca contradiz**. CSS bespoke por-tela viola isso por construção.
+
+---
+
+## 2.1 A camada que FALTA: primitivos de layout
+
+> Achado da auditoria 2026-06-06: o REGISTRY do projeto cobre componentes de **UI/form**
+> (`@/Components/ui`), mas **não existe nenhum primitivo de LAYOUT**. Hoje o layout é feito com
+> `flex`/`grid` solto espalhado nas telas OU dentro do CSS bespoke — o oposto de sistema. Essa é a
+> única lacuna **fora** do canon de design atual (identidade/governança já estão resolvidas no SSOT).
+
+**O que os melhores têm (e nós não):** uma camada fina de primitivos onde *espaço* só vem de token.
+
+| Primitivo | Faz | Equivalente best-in-class |
+|---|---|---|
+| `Box` | container neutro com props de espaço/cor via token | Polaris Box · Radix Themes Box |
+| `Stack` | empilha vertical com `gap` token | Polaris BlockStack · Geist |
+| `Inline` | alinha horizontal com `gap` + wrap | Polaris InlineStack |
+| `Grid` | grid responsivo por colunas-token | Radix Grid · Polaris Grid |
+| `Container` | largura máxima + padding de página | Geist Container |
+| `Text` | tipografia 100% via type-scale token (sem `text-[22px]` solto) | Radix Text · Primer |
+
+**Regra:** assim que `Components/layout/` existir, layout é **composição de primitivos**, nunca
+`<div className="flex gap-4 ...">` repetido nem `.css`. Wrappers finos Tailwind+CVA; props = tokens
+DS v6. Entra no roadmap §5 (passo de criação) e vira itens do REGISTRY quando pronto.
 
 ---
 
@@ -114,15 +150,19 @@ Replicar protótipo Cowork **do jeito certo** (sem gerar `.css` novo): [RUNBOOK-
 ## 5. Plano de migração — sair do sprawl (incremental, por sinal)
 
 > Não é big-bang. Cada tela tocada paga um pedaço. Ordem por impacto×esforço.
+> **O roadmap executável vive como tasks MCP** (ADR 0070 — trabalho rastreado nas tools `tasks-*`,
+> não em tabela `.md`), módulo `_DesignSystem`, prefixo **F0–F7**. Esta lista é o mapa; o backlog é a verdade.
 
-1. **Congelar o crescimento** (já feito em parte): gate que **proíbe arquivo `.css` novo** em `resources/css/` sem ADR + proíbe crescer linhas dos bundles (ratchet de tamanho). _Esforço baixo, trava o problema._
-2. **Tokenizar** `cockpit.css`/`inertia.css` → mover cor/espaço/tipo pra `@theme` Tailwind v4 (fonte única). _Médio._
-3. **Dissolver os 2 mega-bundles** (`cowork-canon-financeiro-bundle` 8.6k + `sells-cowork` 7.5k) tela-a-tela: quando uma tela Financeiro/Sells for tocada (MWART/feedback), reescrever o estilo dela em Tailwind+componentes e **deletar** a fatia correspondente do bundle. Medir: linhas de CSS bespoke ↓ a cada PR. _Alto, mas incremental._
-4. **Zerar `__parser_error__` + `no-undef`** do baseline ESLint (são bugs, P0). Depois encolher `jsx-a11y/*`. _Médio._
-5. **Unificar build** quando o último Blade legacy morrer → um `vite.config`. _Depende do fim do MWART._
-6. **Ligar visual-regression como gate** (screen-grade/design:review já existem) — trava regressão visual ao refatorar CSS. _Médio._
+1. **F0 · Congelar o crescimento** (já feito em parte): gate que **proíbe arquivo `.css` novo** em `resources/css/` sem ADR + proíbe crescer linhas dos bundles (ratchet de tamanho) + rule `.claude/rules/css.md` (carrega SSOT+manual ao tocar CSS). _Esforço baixo, trava o problema._
+2. **F1 · Inventariar o débito de identidade**: mapear azul de **marca** legacy (`#1572E8`, `@apply`) vs azul **semântico** que sobrevive; listar onde `.cockpit` define token paralelo ao `@theme`. _Baixo. Sem ADR — cor já é canon (0235/0249)._
+3. **F2 · Token único em `@theme`**: dobrar `.cockpit`/legacy nos tokens DS v6 do Tailwind v4 (`inertia.css`); `cockpit.css` passa a **consumir** (`var(--…)`), não definir. `foundation:check` cobre. _Médio._
+4. **F3 · Criar `Components/layout/`** (Box/Stack/Inline/Grid/Container/Text — §2.1): a camada que falta. Doc no DS + ≥1 tela composta 100% por primitivos (zero flex solto, zero `.css`). _Médio._
+5. **F4 · Unificar o Shell**: escolher 1 `PageHeader` canônico (hoje há 2: `Components/PageHeader/` + `Components/shared/`), migrar e deletar o duplicado. _Baixo._
+6. **F5 · Dissolver os 2 mega-bundles** (`cowork-canon-financeiro-bundle` 8.6k + `sells-cowork` 7.5k) tela-a-tela: tela tocada (MWART/feedback) é reescrita em Tailwind+primitivos e a fatia correspondente do bundle é **deletada**. Medir: linhas bespoke ↓ a cada PR. _Alto, incremental._
+7. **F6 · Saúde do lint**: zerar `__parser_error__` + `no-undef` (bugs P0); depois encolher `jsx-a11y/*`. _Médio._
+8. **F7 · Gates de regressão**: ligar visual-regression como gate (screen-grade/`design:review` existem) + axe nas telas (`screen-qa`); unificar `vite.config` quando o último Blade morrer. _Médio, dep. MWART._
 
-**Métrica-mãe deste manual:** linhas de CSS em `resources/css/` **caindo** PR a PR (hoje 28.585) + baseline ESLint **encolhendo** (hoje 1.340), sem regressão visual.
+**Métrica-mãe deste manual:** linhas de CSS em `resources/css/` **caindo** PR a PR (baseline 2026-06-06: **28.585**) + baseline ESLint **encolhendo** (**1.340**) + fontes de token **3 → 1** + `PageHeader` **2 → 1**, sem regressão visual.
 
 ---
 
