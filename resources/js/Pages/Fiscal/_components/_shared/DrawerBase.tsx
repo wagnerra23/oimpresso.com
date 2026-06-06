@@ -153,7 +153,7 @@ export default function DrawerBase({
         }
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open, dataReady]);
 
   // Header is-scrolled — Onda 2.2.
