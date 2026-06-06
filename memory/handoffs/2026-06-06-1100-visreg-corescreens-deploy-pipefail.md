@@ -1,7 +1,7 @@
 ---
 date: "2026-06-06"
 slug: visreg-corescreens-deploy-pipefail
-tldr: "Continuação do handoff 1312 (passo 1 'arrumar o seed'). (1) VisregTenantSeeder minimal substituiu o DummyBusinessSeeder podre (#2319) → smoke autenticado ativou sozinho (business=1/users=1/roles=1, 2 telas verdes). Bônus não-previsto: OpenTelemetry crashava no fiber do Pest Browser em toda query DB autenticada → removida a ext só no workflow. (2) Ampliado pro núcleo-6 (#2320): 7 telas autenticadas verdes no gate (Financeiro/Unificado, Venda, Compras, Fiscal Cockpit/NF-e/NFS-e, Oficina/OS). Clientes PODADO com TODO (falha runtime/SSR com tenant minimal — Index é a Page mais pesada, sem bug óbvio de prop). (3) deploy.yml ganhou set -o pipefail nos 4 comandos remotos críticos (#2321) — fim do mascaramento de falha de composer/migrate. 3 PRs merged --admin. Tudo provado no CI. ⚠️ senha DB prod segue pra rotacionar."
+tldr: "Continuação do handoff 1312 (passo 1 'arrumar o seed'). #2319 VisregTenantSeeder minimal substitui o DummyBusinessSeeder podre → smoke autenticado ativou (business/users/roles=1). Bônus: OpenTelemetry crashava no fiber do Pest Browser em query DB → removida ext do workflow. #2320 amplia pro núcleo-6: 7 telas autenticadas verdes (Clientes podado c/ TODO — Index pesada quebra com tenant minimal). #2321 set -o pipefail no deploy.yml — fim do mascaramento de falha composer/migrate. 3 PRs merged --admin, provado no CI. ⚠️ senha DB prod segue pra rotacionar."
 hour: "11:00 BRT"
 topic: "Ativar + ampliar gate de regressão visual autenticado (seeder minimal + núcleo-6) + endurecer deploy (pipefail)"
 duration: "~3h (continuação CI-driven)"
