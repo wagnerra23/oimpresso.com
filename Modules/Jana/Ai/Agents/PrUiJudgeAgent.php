@@ -14,7 +14,7 @@ use Stringable;
 /**
  * PrUiJudgeAgent — Onda 4.1 do AUTOMATION-ROADMAP.
  *
- * Agente LLM (OpenAI gpt-4o · review de design exige juízo semântico) que
+ * Agente LLM (OpenAI gpt-4o-mini · review de design exige juízo semântico) que
  * avalia PRs Inertia/React contra a Constituição UI v2 (ADR UI-0013). Carrega
  * no system prompt:
  *  - Hierarquia 4 camadas (Fundações → Shell → PT → Módulo)
@@ -37,21 +37,23 @@ use Stringable;
  * "copy não-PT-BR em string template", "PT-01 violado em essência mesmo
  * importando PageHeader (uso fora do slot 1)".
  *
- * Custo estimado por PR: ~10k tokens input + ~1k tokens output ≈ $0.05/PR
- * (gpt-4o @ $2.5/M input + $10/M output).
+ * Custo estimado por PR: ~10k tokens input + ~1k tokens output ≈ $0.002/PR
+ * (gpt-4o-mini @ $0.15/M input + $0.60/M output).
  *
  * HISTÓRICO: nasceu em OpenAI gpt-4o-mini ($0.002/PR); migrou pra
- * anthropic/claude-sonnet-4-6 por qualidade de juízo; agora volta pra OpenAI
- * gpt-4o (provider canon pós-migração — config('ai.default')='openai', sem
- * crédito Anthropic). gpt-4o (smartest do config/ai.php) preserva o juízo
- * semântico que review de design exige, melhor que o gpt-4o-mini original.
+ * anthropic/claude-sonnet-4-6 (sem crédito Anthropic, inviável) e depois pra
+ * OpenAI gpt-4o por qualidade de juízo. Mas o projeto OpenAI NÃO tem acesso ao
+ * gpt-4o ("Project does not have access to model gpt-4o") → o juiz quebrava em
+ * TODO PR de tela. Revertido pra gpt-4o-mini (modelo com acesso confirmado).
+ * Upgrade de qualidade (gpt-4o c/ acesso liberado, ou Sonnet c/ crédito) fica
+ * pra decisão do PR #2270 — aqui o objetivo é o juiz VOLTAR A FUNCIONAR.
  *
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4.1)
  * @see memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  */
 #[Provider('openai')]
-#[Model('gpt-4o')]
+#[Model('gpt-4o-mini')]
 #[MaxSteps(3)]
 class PrUiJudgeAgent implements Agent
 {

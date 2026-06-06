@@ -12,13 +12,13 @@ use Modules\Jana\Entities\UiJudgeRun;
 /**
  * `ui:judge-pr` — Onda 4.1 do AUTOMATION-ROADMAP (Constituição UI v2).
  *
- * Avalia um PR contra a Constituição UI v2 usando agente LLM (OpenAI gpt-4o)
+ * Avalia um PR contra a Constituição UI v2 usando agente LLM (OpenAI gpt-4o-mini)
  * e — opcionalmente — posta comentário inline no PR via `gh`.
  *
  * Workflow:
  *   1. Pega metadata do PR (título · descrição · arquivos modificados) via gh CLI
  *   2. Pega diff filtrado (.tsx, .jsx, .css)
- *   3. Manda pro PrUiJudgeAgent (openai / gpt-4o)
+ *   3. Manda pro PrUiJudgeAgent (openai / gpt-4o-mini)
  *   4. Parse output JSON
  *   5. Print score + violações no console
  *   6. (Opcional) `--post-comment` posta no PR via gh
@@ -29,7 +29,7 @@ use Modules\Jana\Entities\UiJudgeRun;
  *   php artisan ui:judge-pr 1438 --post-comment # postar comentário no PR
  *   php artisan ui:judge-pr 1438 --strict       # exit 1 se verdict=request_changes
  *
- * Custo estimado por run: ~$0.05 (OpenAI gpt-4o, ~10k in + ~1k out).
+ * Custo estimado por run: ~$0.002 (OpenAI gpt-4o-mini, ~10k in + ~1k out).
  *
  * @see Modules\Jana\Ai\Agents\PrUiJudgeAgent
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4)
@@ -99,8 +99,9 @@ class UiJudgePrCommand extends Command
 
         $this->line('  Diff UI: '.strlen($diff).' bytes');
 
-        // 4. Mandar pro agent
-        $this->info('Enviando pra PrUiJudgeAgent (OpenAI gpt-4o)...');
+        // 4. Mandar pro agent — anúncio lê o modelo REAL por reflexão (nunca "anuncia X, roda Y")
+        [$annProvider, $annModel] = $this->agentProviderModel();
+        $this->info("Enviando pra PrUiJudgeAgent ({$annProvider}/{$annModel})...");
         $output = $this->runAgent($prData, $diff);
         if ($output === null) {
             return self::FAILURE;

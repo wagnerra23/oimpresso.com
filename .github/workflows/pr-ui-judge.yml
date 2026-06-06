@@ -1,12 +1,15 @@
 name: PR UI Judge (LLM Brain B · Constituição UI v2)
 
 # Onda 4.1 do AUTOMATION-ROADMAP. Avalia PRs Inertia/React contra a
-# Constituição UI v2 usando OpenAI gpt-4o. Posta comentário inline
+# Constituição UI v2 usando OpenAI gpt-4o-mini. Posta comentário inline
 # com score 0-100 + 9 dimensões + violações estruturais + sugestões.
 #
 # CUSTO REAL:
-# - ~$0.05/PR (OpenAI gpt-4o, ~10k in + ~1k out)
-# - ~$5/mês a 100 PRs/mês
+# - ~$0.002/PR (OpenAI gpt-4o-mini, ~10k in + ~1k out)
+# - ~$0.20/mês a 100 PRs/mês
+#
+# NOTA: gpt-4o-mini porque o projeto OpenAI não tem acesso ao gpt-4o (quebrava
+# todo PR). Upgrade de qualidade (gpt-4o liberado / Sonnet c/ crédito) → PR #2270.
 #
 # DEFAULT: DESLIGADO (env var PR_UI_JUDGE_ENABLED não setada).
 # Wagner ativa quando quota aprovada:
@@ -47,7 +50,7 @@ permissions:
 
 jobs:
   judge:
-    name: PR UI Judge · OpenAI gpt-4o
+    name: PR UI Judge · OpenAI gpt-4o-mini
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -143,5 +146,5 @@ jobs:
             echo "Review não gerado · ver logs acima"
           fi
           echo ""
-          echo "Custo estimado: ~\$0.034 (primeiro PR) · ~\$0.005 (subsequentes do dia)"
+          echo "Custo estimado: ~\$0.002/PR (OpenAI gpt-4o-mini)"
           echo "Refs: ADR UI-0013 · AUTOMATION-ROADMAP Onda 4"
