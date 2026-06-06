@@ -3,11 +3,13 @@ slug: 0253-primitivos-layout
 number: 253
 title: "Primitivos de layout (Components/layout/): Box/Stack/Inline/Grid/Container/Text — a camada que falta entre tokens DS v6 e telas"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-06-06"
+accepted_at: "2026-06-06"
+accepted_via: "Wagner 2026-06-06 — 'Maravilha, eu aceito, pode fazer' (após ver preview dos primitivos renderizados via mock fiel DS v6 — roxo oklch 0.55 0.15 295 confirmado)"
 module: _DesignSystem
 quarter: 2026-Q2
 tags: [design-system, ds-v6, layout-primitives, componentes, governanca-ui, gap-f3, m-ap-6]
@@ -45,7 +47,7 @@ A regra **M-AP-6** ([INDEX §"anti-padrões"](../requisitos/_DesignSystem/INDEX-
 proíbe "criar componente se não existe" como reflexo — institucionaliza invenção. Por isso a criação
 da camada de layout **exige um ADR primeiro**. Este é esse ADR.
 
-## Decisão (proposta — aguarda [W])
+## Decisão ([W], 2026-06-06 — aceita)
 
 Criar uma camada fina e fechada de **6 primitivos de layout** em
 `resources/js/Components/layout/`, governada pelas regras abaixo:
