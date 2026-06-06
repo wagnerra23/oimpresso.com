@@ -67,6 +67,25 @@ class ServiceOrderItemService
             throw new InvalidArgumentException('descricao obrigatória');
         }
 
+        // Tier 0 (ADR 0093): se vier product_id, o produto TEM que pertencer ao mesmo
+        // business — senão um item de OS poderia referenciar (e baixar estoque de) catálogo
+        // de outro tenant. Rejeita cross-tenant antes de persistir.
+        $productId = isset($data['product_id']) ? (int) $data['product_id'] : null;
+        if ($productId !== null && $productId > 0) {
+            $produtoNoBiz = \App\Product::withoutGlobalScopes() // SUPERADMIN: check cross-tenant
+                ->where('id', $productId)
+                ->where('business_id', $businessId)
+                ->exists();
+
+            if (! $produtoNoBiz) {
+                throw new InvalidArgumentException(
+                    "product_id #{$productId} não existe OU não pertence ao business {$businessId} (Tier 0 ADR 0093)"
+                );
+            }
+        } else {
+            $productId = null;
+        }
+
         $quantidade = (float) ($data['quantidade'] ?? 1);
         $valorUnitario = (float) ($data['valor_unitario'] ?? 0);
 
@@ -83,9 +102,85 @@ class ServiceOrderItemService
             'quantidade'       => $quantidade,
             'valor_unitario'   => $valorUnitario,
             'valor_total'      => $valorTotal,
-            'product_id'       => $data['product_id'] ?? null,
+            'product_id'       => $productId,
             'notes'            => $data['notes'] ?? null,
         ]);
+    }
+
+    /**
+     * Baixa de estoque ao CONCLUIR a OS (P0-2 · análise tela-venda × oficina 2026-06-04).
+     *
+     * Para cada item `tipo=peca` com `product_id` de produto stock-managed
+     * (`enable_stock=1`), decrementa `variation_location_details.qty_available` pela
+     * `quantidade` do item — por caminho AUDITÁVEL (modelo Eloquent `save()` dispara o
+     * LogsActivity 'inventory.stock' do VariationLocationDetails · INV-1 DOC-RAIZ §7),
+     * espelhando o fix R1 de ConsumirEstoque.
+     *
+     * Itens mão-de-obra / serviço terceiro (sem product_id) NÃO mexem estoque (INV-4).
+     * Produto sem controle de estoque (`enable_stock=0`) é ignorado (INV-5).
+     *
+     * Idempotência: o caller (ServiceOrderObserver) só chama uma vez por OS — o guard
+     * `transaction_id !== null` impede re-faturar/re-baixar numa 2ª conclusão.
+     *
+     * Cross-tenant safe: itera só itens da OS (já business-scoped); VLD resolvido por
+     * product_id que addItem garantiu pertencer ao business.
+     *
+     * @return int  quantidade de itens que efetivamente baixaram estoque
+     *
+     * @see app/Domain/Fsm/SideEffects/ConsumirEstoque.php (mesmo caminho auditável)
+     * @see memory/requisitos/Estoque/DOC-RAIZ-ESTOQUE.md §7 INV-1/4/5
+     */
+    public function baixarEstoqueConclusao(int $businessId, int $osId): int
+    {
+        if ($businessId <= 0) {
+            throw new InvalidArgumentException('business_id obrigatório (Tier 0 ADR 0093)');
+        }
+
+        $itens = ServiceOrderItem::withoutGlobalScopes()
+            ->where('service_order_id', $osId)
+            ->where('business_id', $businessId)
+            ->where('tipo', ServiceOrderItem::TIPO_PECA)
+            ->whereNotNull('product_id')
+            ->whereNull('deleted_at')
+            ->get();
+
+        $baixados = 0;
+
+        foreach ($itens as $item) {
+            $product = \App\Product::withoutGlobalScopes()
+                ->where('id', $item->product_id)
+                ->where('business_id', $businessId)
+                ->first();
+
+            // INV-5: produto inexistente ou sem controle de estoque não movimenta saldo.
+            if ($product === null || (int) $product->enable_stock !== 1) {
+                continue;
+            }
+
+            $qty = (float) $item->quantidade;
+            if ($qty <= 0) {
+                continue;
+            }
+
+            // Resolve um VLD do produto com saldo pra debitar (prefere o maior saldo).
+            $vld = \App\VariationLocationDetails::query()
+                ->where('product_id', $item->product_id)
+                ->orderByDesc('qty_available')
+                ->first();
+
+            if ($vld === null) {
+                continue;
+            }
+
+            // Caminho auditável (INV-1): save() no modelo dispara LogsActivity 'inventory.stock'.
+            // Clamp em 0 (DOC-RAIZ §5) — nunca deixa saldo negativo.
+            $vld->qty_available = max(0, (float) $vld->qty_available - $qty);
+            $vld->save();
+
+            $baixados++;
+        }
+
+        return $baixados;
     }
 
     /**
