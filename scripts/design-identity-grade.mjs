@@ -49,7 +49,8 @@ const count = (re, str = SRC) => (str.match(re) || []).length
 const conf = (tok, cru) => (tok + cru === 0 ? 100 : Math.round((tok / (tok + cru)) * 100))
 
 // 1. TIPOGRAFIA — token text-(xs..) vs cru text-[Npx]
-const textTok = count(/\btext-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl)\b/g)
+// Onda 3: credita o primitivo <Text> (tipografia 100% token-by-design)
+const textTok = count(/\btext-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl)\b/g) + count(/<Text\b/g)
 const textRaw = count(/\btext-\[[0-9.]+px\]/g)
 const TIPO = conf(textTok, textRaw)
 
@@ -67,12 +68,21 @@ const ESP = conf(espTok, espRaw)
 // 4. FORMA — radius token vs cru
 const FORMA = conf(count(/\brounded(-(sm|md|lg|xl|2xl|3xl|full|none))?\b/g), count(/\brounded-\[[^\]]+\]/g))
 
-// 5. MOVIMENTO — cobertura de transição / botões
-const botoes = count(/<button\b/g) + count(/<Button\b/g)
-const MOV = botoes === 0 ? 100 : Math.min(100, Math.round((count(/\btransition(-[a-z]+)?\b/g) / botoes) * 100))
+// ── Ondas 1-2 (refino justo): controles shared de @/Components/ui JÁ carregam
+//    focus-ring + transition embutidos (button.tsx = `transition-all focus-visible:ring`).
+//    Creditar a ADOÇÃO deles mede a REALIDADE — o grade cru punia o padrão BOM
+//    (componente centralizado) e premiava sprinkle de classe. Goodhart ao contrário.
+const sharedCtl = count(/<(Button|Input|Textarea|Checkbox|Switch|Select|SelectTrigger|Toggle|ToggleGroup|Tabs|TabsTrigger|Slider|RadioGroup|DropdownMenuTrigger)\b/g)
+const rawCtl = count(/<(button|input|textarea|select)\b/g)
+const interativos = sharedCtl + rawCtl
 
-// 6. FOCO (assinatura a11y) — % de interativos com focus-ring
-const FOCO = botoes === 0 ? 100 : Math.min(100, Math.round((count(/focus(-visible)?:ring/g) / botoes) * 100))
+// 5. MOVIMENTO — % de interativos com transição (shared embutido + raw com transition)
+const transRaw = Math.min(count(/\btransition(-[a-z]+)?\b/g), rawCtl)
+const MOV = interativos === 0 ? 100 : Math.min(100, Math.round(((sharedCtl + transRaw) / interativos) * 100))
+
+// 6. FOCO (assinatura a11y) — % de interativos com focus-ring (shared embutido + raw com ring)
+const ringRaw = Math.min(count(/focus(-visible)?:ring/g), rawCtl)
+const FOCO = interativos === 0 ? 100 : Math.min(100, Math.round(((sharedCtl + ringRaw) / interativos) * 100))
 
 // 7. ÍCONE — emoji pictográfico cru NO JSX (sem comentário). Gate já força lucide.
 const emoji = count(/[\u{1F300}-\u{1FAFF}]/gu, SRC_NC)
@@ -90,8 +100,8 @@ const DIMS = [
   ['cor', COR, 2, `${corDrift} cor-drift vs ${corTok + corStatus} ok (status allowlisted)`],
   ['espaco', ESP, 2, `${espRaw} sub-token vs ${espTok} token`],
   ['forma', FORMA, 1, `${count(/\brounded-\[[^\]]+\]/g)} radius cru`],
-  ['movimento', MOV, 2, `${count(/\btransition(-[a-z]+)?\b/g)} transições / ${botoes} botões`],
-  ['foco', FOCO, 2, `${count(/focus(-visible)?:ring/g)} focus-ring / ${botoes} botões`],
+  ['movimento', MOV, 2, `${sharedCtl} shared + ${transRaw} raw-transition / ${interativos} interativos`],
+  ['foco', FOCO, 2, `${sharedCtl} shared + ${ringRaw} raw-ring / ${interativos} interativos`],
   ['icone', ICONE, 1, `${emoji} emoji pictográfico no JSX`],
   ['layout', LAYOUT, 2, `${primit} primitivos vs ${flexCru + gridCru} flex/grid cru`],
 ]
@@ -104,6 +114,20 @@ function printTable() {
   console.log(`\n=== GRADE DE IDENTIDADE VISUAL · determinístico (${ROOT}) ===\n`)
   for (const [n, s, w, ev] of DIMS) console.log(`  ${n.padEnd(12)} ${String(s).padStart(3)}  ${w}×  ${ev}`)
   console.log(`\n  NOTA: ${nota}/100 · ${nivel} · σ=0 (reprodutível)\n`)
+}
+
+// Onda 4: acionável — top-5 arquivos ofensores por dimensão (vira roadmap de migração)
+function printOffenders() {
+  const sig = [
+    ['layout', (f) => (f.match(/className=["'{`][^"'}`]*\b(flex(-col)?|grid-cols-)/g) || []).length],
+    ['tipografia', (f) => (f.match(/text-\[[0-9.]+px\]/g) || []).length],
+  ]
+  for (const [dim, fn] of sig) {
+    const top = files.map((p) => [fn(readFileSync(p, 'utf8')), p]).filter(([n]) => n > 0).sort((a, b) => b[0] - a[0]).slice(0, 5)
+    console.log(`  top-5 ofensores · ${dim}:`)
+    for (const [n, p] of top) console.log(`    ${String(n).padStart(3)}  ${p.replace(/^.*resources[\/\\]js[\/\\]/, '')}`)
+    console.log('')
+  }
 }
 
 if (MODE === 'baseline') {
@@ -121,4 +145,5 @@ if (MODE === 'baseline') {
   console.log(`✅ Sem regressão (nota ${nota} ≥ baseline ${base.nota})`)
 } else {
   printTable()
+  printOffenders()
 }

@@ -52,8 +52,8 @@ máquina conta, σ=0, não alucina.
    | cor | 2 | cor é token? (status allowlisted) | token semântico ÷ (token + cor-drift neutra/azul/roxo cru) |
    | espaco | 2 | espaço é token? | `gap/p-(N)` ÷ (token + `gap-0.5`/`[px]`) |
    | forma | 1 | radius é token? | `rounded-*` ÷ (token + `rounded-[px]`) |
-   | movimento | 2 | há transição? | `transition` ÷ nº de botões |
-   | foco | 2 | assinatura a11y? | `focus-visible:ring` ÷ nº de botões |
+   | movimento | 2 | há transição? | (shared @/ui c/ transition embutido + raw c/ transition) ÷ interativos |
+   | foco | 2 | assinatura a11y? | (shared @/ui c/ focus-ring embutido + raw c/ ring) ÷ interativos |
    | icone | 1 | lucide-only? | 100 − densidade de emoji pictográfico no JSX |
    | layout | 2 | composto por primitivo? | `<Stack/Inline/Grid/Box>` ÷ (primitivo + flex/grid cru) |
 
@@ -61,6 +61,14 @@ máquina conta, σ=0, não alucina.
    rose/red/sky` são convenção semântica (soft pills), NÃO contam como drift; só neutros + azul/roxo
    cru contam. (b) **emoji** conta só pictográfico `\u{1F300}-\u{1FAFF}` fora de comentário, por
    densidade (não zera o projeto por 1 tela poluída).
+
+2b. **Refino justo v1.1** (4 ondas, Wagner 2026-06-06 "refine mais 3-4 ondas"): o grade cru punia o
+   **padrão BOM** (Goodhart ao contrário) — um `<Button>` shared que JÁ tem `transition-all
+   focus-visible:ring` embutido contava como 0 cobertura. Ondas: (1) **Foco** credita os 1.823
+   controles shared de `@/Components/ui`; (2) **Movimento** idem; (3) **Tipografia** credita o
+   primitivo `<Text>`; (4) **acionável** — o grade lista os top-5 arquivos ofensores por dimensão
+   (vira roadmap). Efeito: foco 13→71, movimento 24→77, **nota 51→66** (medida mais fiel da realidade,
+   não generosidade — controles shared genuinamente têm a assinatura).
 
 3. **Ratchet gate** (espelha [ADR 0209](0209-eslint-baseline-ratchet.md)): `config/design-identity-baseline.json`
    congela o estado. `--check` falha se a NOTA ou qualquer dimensão CAIR. **Só sobe.**
@@ -74,9 +82,10 @@ máquina conta, σ=0, não alucina.
 
 ## Baseline inaugural (2026-06-06)
 
-**NOTA 51/100 · Developing.** Piores: `layout 0` (primitivos recém-nascidos), `foco 13`, `movimento 24`
-— as 3 dimensões de craft/identidade, agora **medidas**, não opinadas. Estas são as metas da Manual de
-Identidade "Clareza Confiante".
+**NOTA 66/100 · Developing** (pós refino justo v1.1). Piores REAIS: `layout 0` (primitivos recém-nascidos
+— migração via codemod) e `tipografia 61` (2.230 `text-[px]` — o token `2xs` resolve). Foco/Movimento
+saíram do vermelho ao creditar os controles shared (a cobertura já existia, o grade cru não enxergava).
+Estas são as metas mensuráveis da Manual de Identidade "Clareza Confiante": 66 → 85.
 
 ## Escopo / não-decidido
 
