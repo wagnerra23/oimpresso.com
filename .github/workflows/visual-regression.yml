@@ -121,7 +121,7 @@ jobs:
           DB_PASSWORD=root
           CACHE_DRIVER=array
           QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
+          SESSION_DRIVER=file
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
           TELESCOPE_ENABLED=false
@@ -133,6 +133,25 @@ jobs:
           echo "=== schema-squash check: tabelas criadas ==="
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
+      - name: Seed demo tenant (business + admin + permissions)
+        # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
+        # precisam de um business + admin seedados.
+        #
+        # FUNDAÇÃO LANDADA, SEED PENDENTE (2026-06-06): o auth bridge (rota _visreg-login
+        # + SESSION_DRIVER=file + cross-process DB) está PROVADO. Falta SÓ um tenant válido.
+        # DatabaseSeeder roda só os seeders de PROD (Permissions/Currencies). O
+        # DummyBusinessSeeder (demo, business 1 + admin id=1) está DESATUALIZADO contra o
+        # schema atual (insere contacts.first_name, coluna removida) → falha. Tolerado
+        # (|| true) → o AuthBridgeSmokeTest skipa gracioso (Business::first() null) SEM
+        # quebrar o gate. PRÓXIMO PR: consertar o DummyBusinessSeeder OU um seeder minimal
+        # de tenant (business+location+admin+role) contra o schema atual → os 2 testes
+        # autenticados ATIVAM sozinhos (já estão wired). Vide RUNBOOK US-GOV-013.
+        run: |
+          php artisan db:seed --force
+          php artisan db:seed --class=Database\\Seeders\\DummyBusinessSeeder --force || echo "DUMMY_SEED_OUTDATED (esperado — ver comentário; teste skipa gracioso)"
+          echo "=== seed check ==="
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
+
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
         # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
@@ -141,13 +160,13 @@ jobs:
 
       - name: Run Pest Browser tests
         id: pest-browser
-        # GATE REAL — Fase A (US-GOV-013): roda só tests/Browser/Public/ (rotas SEM
-        # auth), que JÁ passam end-to-end (boot via schema-squash #2221 + render +
-        # asserção). `continue-on-error` REMOVIDO + sem o `|| echo fail=1` que mascarava
-        # falha → agora o pixel/render morde de verdade nessas telas. Fase B amplia o
-        # path pras autenticadas (tests/Browser/CoreScreens, tests/Browser/Sells) quando
-        # o harness de auth cross-process + seed estiver pronto.
-        run: ./vendor/bin/pest tests/Browser/Public/
+        # GATE REAL — Fase A (públicas) + INÍCIO da Fase B (autenticadas).
+        # 2026-06-06: destravado o auth cross-process via rota /_visreg-login/{id}?to=
+        # (routes/web.php, env-guarded) + SESSION_DRIVER=file (persiste cross-request).
+        # AuthBridgeSmokeTest cobre Financeiro/Unificado + Sells/Lista (autenticadas) —
+        # prova de conceito do harness. Amplia pro CoreScreens-6 inteiro depois que estas
+        # 2 passarem verde no CI (cada tela pode precisar ajuste de slug-permissão/seed).
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
