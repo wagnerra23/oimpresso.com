@@ -135,17 +135,20 @@ jobs:
 
       - name: Seed demo tenant (business + admin + permissions)
         # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
-        # precisam de um business + admin + permissions seedados. DatabaseSeeder roda os
-        # seeders na ordem certa (Currencies → Permissions → DummyBusiness: business 1 +
-        # user 'admin' id=1). NÃO piped (falha de seeder tem que aparecer). Tolerante a
-        # seeders pesados que possam não existir no env minimal (|| true no fim só do echo).
+        # precisam de um business + admin seedados.
+        #
+        # FUNDAÇÃO LANDADA, SEED PENDENTE (2026-06-06): o auth bridge (rota _visreg-login
+        # + SESSION_DRIVER=file + cross-process DB) está PROVADO. Falta SÓ um tenant válido.
+        # DatabaseSeeder roda só os seeders de PROD (Permissions/Currencies). O
+        # DummyBusinessSeeder (demo, business 1 + admin id=1) está DESATUALIZADO contra o
+        # schema atual (insere contacts.first_name, coluna removida) → falha. Tolerado
+        # (|| true) → o AuthBridgeSmokeTest skipa gracioso (Business::first() null) SEM
+        # quebrar o gate. PRÓXIMO PR: consertar o DummyBusinessSeeder OU um seeder minimal
+        # de tenant (business+location+admin+role) contra o schema atual → os 2 testes
+        # autenticados ATIVAM sozinhos (já estão wired). Vide RUNBOOK US-GOV-013.
         run: |
           php artisan db:seed --force
-          # DatabaseSeeder só roda os seeders de PRODUÇÃO (Permissions/Currencies). O
-          # business demo é dev-only → chama o DummyBusinessSeeder explícito (business 1 +
-          # user 'admin' id=1 + locations). Tolera falha (|| true) pra não bloquear o gate
-          # se uma dep de FK faltar no env minimal — o teste skipa gracioso sem business.
-          php artisan db:seed --class=Database\\Seeders\\DummyBusinessSeeder --force || echo "DUMMY_SEED_FAIL"
+          php artisan db:seed --class=Database\\Seeders\\DummyBusinessSeeder --force || echo "DUMMY_SEED_OUTDATED (esperado — ver comentário; teste skipa gracioso)"
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
 
