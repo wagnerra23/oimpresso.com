@@ -161,10 +161,18 @@ jobs:
         # Dois truques juntos forçam re-stat imediato:
         # (1) composer dump-autoload --optimize regenera arquivos compilados, mtime muda
         # (2) find ... -exec touch força mtime de todos os PHPs (LSPHP detecta em próximo request)
+        #
+        # 2026-06-06 (fix deploy quebrado 5×): REMOVIDO --no-dev daqui. Causa raiz do
+        # `Class "Knuckles\Scribe\ScribeServiceProvider" not found` que quebrou os deploys
+        # de 2026-06-05: o `package:discover` (step acima) registra o provider do Scribe
+        # (require-dev, instalado pois o install NÃO usa --no-dev — Faker em prod), mas este
+        # dump-autoload --no-dev REMOVIA as classes dev do classmap → boot (php artisan up)
+        # tentava carregar o provider e não achava → 500. Agora alinhado com o dump-autoload
+        # principal (mantém dev + ignora platform-req ext-opentelemetry do Hostinger).
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            /usr/local/bin/composer dump-autoload --optimize --no-dev 2>&1 | tail -3 &&
+            /usr/local/bin/composer dump-autoload --optimize --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 &&
             find app bootstrap config routes -name '*.php' -exec touch {} + 2>&1 | tail -3
           "
 
