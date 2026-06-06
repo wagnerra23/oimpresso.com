@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-05T18:21:20.464Z",
-    "total_violations": 491,
+    "generated_at": "2026-06-06T22:57:15.089Z",
+    "total_violations": 487,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -38,8 +38,6 @@
     "resources/css/sells-kb975-next-action.css|color-no-hex": 6,
     "resources/css/sells-kb975-next-action.css|declaration-no-important": 1,
     "resources/css/sells-kb975-print.css|color-no-hex": 40,
-    "resources/css/sells-kb975-print.css|declaration-no-important": 28,
-    "resources/css/themes.css|color-no-hex": 2,
-    "resources/css/utilities.css|color-no-hex": 2
+    "resources/css/sells-kb975-print.css|declaration-no-important": 28
   }
 }
