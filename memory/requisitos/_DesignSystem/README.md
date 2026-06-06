@@ -2,6 +2,8 @@
 module: _DesignSystem
 alias: design-system
 status: ativo
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
 migration_target: N/A
 migration_priority: alta
 risk: baixo
