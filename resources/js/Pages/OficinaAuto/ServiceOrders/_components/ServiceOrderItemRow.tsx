@@ -70,7 +70,7 @@ export default function ServiceOrderItemRow({ item, onEdit, onDelete, busy = fal
   // (shrink-0). Cluster de ações é outro Inline.
   return (
     <Inline asChild gap={2} align="center">
-      <li className="group px-3 py-2 text-[11.5px] hover:bg-slate-50/80 transition-colors">
+      <li className="group px-3 py-2 text-[11.5px] hover:bg-muted/50 transition-colors">
         <Icon size={14} className="text-muted-foreground shrink-0" aria-hidden />
         <Box className="min-w-0 flex-1">
           <div className="text-foreground font-medium truncate">{item.descricao}</div>
@@ -89,7 +89,7 @@ export default function ServiceOrderItemRow({ item, onEdit, onDelete, busy = fal
             type="button"
             onClick={() => onEdit(item)}
             disabled={busy}
-            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-slate-200 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-accent text-muted-foreground hover:text-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed"
             title="Editar item"
             aria-label="Editar item"
           >
@@ -99,7 +99,7 @@ export default function ServiceOrderItemRow({ item, onEdit, onDelete, busy = fal
             type="button"
             onClick={() => onDelete(item)}
             disabled={busy}
-            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-rose-100 text-muted-foreground hover:text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-40 disabled:cursor-not-allowed"
             title="Excluir item"
             aria-label="Excluir item"
           >
