@@ -1,3 +1,10 @@
+---
+status: ativo
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+note: "GLOSSARY de _DesignSystem (shadcn/CVA/oklch). Há outro em prototipo-ui/GLOSSARY.md (siglas/fases) — dedup pendente (faxina)."
+---
+
 # Glossário · Design System
 
 ## cn()
