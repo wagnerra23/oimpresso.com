@@ -132,6 +132,28 @@ class ServiceOrderObserver
             $so->transaction_id = $tx->id;
             $so->saveQuietly(); // saveQuietly evita re-trigger Observer (infinite loop guard)
 
+            // P0-2 — baixa de estoque das peças da OS (análise tela-venda × oficina 2026-06-04).
+            // Ancorado no mesmo caminho once-only do faturamento (transaction_id agora linkado),
+            // então uma 2ª conclusão não re-baixa. Falha de baixa NÃO desfaz o faturamento.
+            try {
+                $baixados = app(\Modules\OficinaAuto\Services\ServiceOrderItemService::class)
+                    ->baixarEstoqueConclusao((int) $so->business_id, (int) $so->id);
+
+                if ($baixados > 0) {
+                    Log::info('ServiceOrderObserver: estoque baixado na conclusão da OS', [
+                        'service_order_id' => $so->id,
+                        'business_id' => $so->business_id,
+                        'itens_baixados' => $baixados,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                Log::error('ServiceOrderObserver: falha ao baixar estoque na conclusão (faturamento preservado)', [
+                    'service_order_id' => $so->id,
+                    'business_id' => $so->business_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             Log::info('ServiceOrderObserver: Transaction derivada criada · transaction_id linkado', [
                 'transaction_id' => $tx->id,
                 'os_ref' => $osRef,
