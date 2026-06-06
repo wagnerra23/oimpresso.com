@@ -1,7 +1,11 @@
 ---
 doc: AUTOMATION-ROADMAP
 camada: meta-protocolo
-status: planejado
+status: accepted-historical
+lifecycle: arquivado
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+morreu_porque: "Dizia 'zero ondas executadas' (status:planejado) — FALSO em 2026-06: ondas + 6 gates já entregues (ui-lint.yml, pr-ui-judge.yml, conformance-gate, screen-grades-gate ADR 0250, eslint-baseline ADR 0209). Meta ~90% atingida por outra via. NÃO ler como roadmap futuro — é histórico do plano original. (Onda 2 inspeção 2026-06-06)"
 created: 2026-05-24
 parent_adr: UI-0013
 related_adrs: [UI-0013, UI-0014, 0187]

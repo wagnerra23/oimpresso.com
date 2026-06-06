@@ -1,3 +1,13 @@
+---
+status: accepted-historical
+lifecycle: arquivado
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+superseded_by: ["INDEX-DESIGN-MEMORIAS.md", "MANUAL-IDENTIDADE.md"]
+morreu_porque: "Corpo de abr/2026 propõe accent azul 220° + sidebar dark — canon hoje é roxo oklch(0.55 0.15 295) (ADR 0235) + sidebar LIGHT (UI-0009/0014). Histórico negativo: NÃO copiar paleta/sidebar daqui. (Onda 2 inspeção 2026-06-06)"
+related_adrs: [0235, 0249]
+---
+
 # Briefing pra Claude Design — Migração dos módulos Blade do Oimpresso ERP
 
 > ## ⚠️ CANON ATUAL (2026-05-30) — corrige o corpo abaixo (2026-04-27)
