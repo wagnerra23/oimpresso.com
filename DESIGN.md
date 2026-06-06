@@ -4,16 +4,23 @@
 >
 > Pra trabalhos de código backend/CRUD não-visuais, comece em [`CLAUDE.md`](CLAUDE.md). Pra acesso/deploy de produção, em [`INFRA.md`](INFRA.md).
 
+> ⚠️ **CANON ATUALIZADO 2026-06-06 (grande inspeção).** O **ponto único** de design é o SSOT
+> [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) + a voz visual
+> [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante").
+> Canon **vivo** = **DS v6** (roxo `oklch(0.55 0.15 295)`) + **primitivos de layout** ([ADR 0253](memory/decisions/0253-primitivos-layout.md)) + **grade medido** ([ADR 0254](memory/decisions/0254-design-identity-grade-deterministico.md)).
+> ☠️ As referências a "zip Cowork canon / UI-0010 / `ui_kits/cowork-2026-04-27`" mais abaixo estão
+> **SUPERSEDED** (por [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) — a pasta virou `_BACKUP-NAO-USAR-`). Ver **§3e Lápides** do SSOT.
+
 ---
 
 ## 1. O que você quer fazer?
 
 | Cenário | Vá direto pra |
 |---|---|
-| **Comparar tela alvo com canon visual antes de codar** ⭐ | [`memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/) — UI Kit canônico (`os-page.jsx` é referência pra list+detail, [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) |
+| **Saber como toda tela deve PARECER (identidade)** ⭐ | [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) (voz "Clareza Confiante") + [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) (SSOT) · layout = primitivos [ADR 0253](memory/decisions/0253-primitivos-layout.md) |
 | Codar uma tela React nova ou alterar uma existente | Seção "Padrão técnico de implementação React" abaixo nesse arquivo |
-| Mockup visual numa nova sessão Claude Design canvas | [`memory/requisitos/_DesignSystem/BRIEFING_CLAUDE_DESIGN.md`](memory/requisitos/_DesignSystem/BRIEFING_CLAUDE_DESIGN.md) — colar como 1ª mensagem + anexar arquivo |
-| Decidir se um padrão visual é canônico ou divergência | [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) (canon visual) + [ADR raiz 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) (Cockpit layout-mãe) |
+| Mockup visual numa nova sessão Claude Design canvas | Cole o [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) + SSOT como 1ª mensagem _(o antigo `BRIEFING_CLAUDE_DESIGN.md` é **histórico** — paleta morta)_ |
+| Decidir se um padrão visual é canônico ou divergência | [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) (canon visual vivo) + Regra de Ouro [SSOT §0](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) + grade [ADR 0254](memory/decisions/0254-design-identity-grade-deterministico.md) |
 | Buscar/usar um componente shared existente | [`memory/requisitos/_DesignSystem/SPEC.md`](memory/requisitos/_DesignSystem/SPEC.md) |
 | Gerar/auditar runbook de tela | Skill `cockpit-runbook` (pede `runbook da tela X` ou `audita tela X contra Cockpit`) |
 | Auditar uma tela contra o sistema de design | [`memory/requisitos/_DesignSystem/audits/`](memory/requisitos/_DesignSystem/audits/) |
