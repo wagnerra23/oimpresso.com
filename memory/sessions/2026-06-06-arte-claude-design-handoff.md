@@ -111,6 +111,21 @@ Cada fase = 1 PR ≤300 linhas (commit-discipline). F-A não toca código, só d
 
 ---
 
+## PROVA EMPÍRICA — "é mesmo melhor?" (medido em origin/main, 2026-06-06)
+
+O bundle real ainda não está no nosso fluxo (F-C reativo), então não dá pra testar o handoff ponta-a-ponta. **Mas o custo do jeito-VELHO (export HTML + mapeamento manual CSS→Tailwind) está medido no nosso próprio código** — é o sprawl que a Onda anti-duplicação combateu:
+
+| Métrica (origin/main) | Jeito-VELHO (dump HTML + mapeamento manual) | Jeito-NOVO (bundle estruturado = tokens) |
+|---|---:|---|
+| Valores de cor crus `oklch` em `resources/css` | **1969** | reusa os **18** tokens da fundação |
+| Arquivos CSS por-tela/módulo (`sells-cowork`/`fin-`/`cowork-`) | **27** | nenhum novo |
+
+**Veredito medido:** o handoff manual produziu **~109× mais valores de cor** (1969 cru vs 18 token) espalhados em 27 arquivos por-tela. O bundle estruturado carrega os **tokens usados no canvas** → o Code reusa o canon em vez de re-derivar cor crua. Não é teoria: **é exatamente o sprawl que deletamos a sessão toda** (o manual diagnosticou ~20k linhas de CSS de "dumps Cowork colados"). O jeito-novo é melhor porque **não gera o problema que estávamos limpando**.
+
+Comando de reprodução: `git grep -h -o "oklch(" origin/main -- 'resources/css/*.css' | wc -l`.
+
+---
+
 ## Fontes
 
 - [Anthropic — Introducing Claude Design](https://www.anthropic.com/news/claude-design-anthropic-labs) (oficial)
