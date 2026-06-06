@@ -2,8 +2,14 @@
 module: Estoque
 title: "SPEC — Estoque (cross-cutting: saldo, reserva, movimentação)"
 status: ativo
+version: "1.0"
+last_updated: "2026-06-04"
 owner: wagner
-related_adrs: [0093, 0129, 0192]
+owners: [W]
+related_adrs:
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0129-state-machine-canonica-fsm-rbac"
+  - "0192-auto-faturar-os-venda-jobsheet-observer"
 doc_raiz: ./DOC-RAIZ-ESTOQUE.md
 ---
 

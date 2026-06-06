@@ -1,11 +1,21 @@
 ---
 title: "Análise tela de venda (add + consulta) vs estado-da-arte oficina — o que falta pra operar numa oficina"
-date: 2026-06-04
+topic: "Análise tela de venda vs estado-da-arte oficina — gaps pra operar numa oficina (P0-2 estoque)"
+date: "2026-06-04"
 type: session-log
 status: ativo
+authors: [W, C]
 scope_modulos: [Sells, OficinaAuto, NfeBrasil, Compras, Whatsapp]
 cliente_ancora: Martinho Caçambas LTDA (biz=164 · mecânica pesada CNAE 4520)
-related_adrs: [0137, 0143, 0171, 0179, 0192, 0194, 0110, 0093]
+related_adrs:
+  - "0137-modules-oficinaauto-qualificada"
+  - "0143-fsm-pipeline-live-prod-marco-2026-05-12"
+  - "0171-oficinaauto-ativacao-piloto-martinho-faseada"
+  - "0179-cliente-drawer-760px-substitui-show-fullpage"
+  - "0192-auto-faturar-os-venda-jobsheet-observer"
+  - "0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada"
+  - "0110-cockpit-pattern-v2-canon-list-detail"
+  - "0093-multi-tenant-isolation-tier-0"
 owner: [W]
 sem_aprovacao_humana: tasks_propostas_nao_criadas_no_mcp
 metodo: leitura código real + typecheck + WebSearch concorrentes BR 2026
