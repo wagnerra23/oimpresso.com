@@ -191,7 +191,7 @@ class DataController extends Controller
                             ['key' => 'fluxo',         'label' => 'Fluxo de Caixa', 'href' => '/financeiro/fluxo'],
                             ['key' => 'dre',           'label' => 'DRE',            'href' => '/financeiro/dre'],
                             ['key' => 'relatorios',    'label' => 'Relatórios',     'href' => '/financeiro/relatorios'],
-                            ['key' => 'dashboard',     'label' => 'Dashboard',      'href' => '/financeiro/dashboard'],
+                            // Dashboard deprecado 2026-06-06 (Wagner não usa) — landing = Unificada.
                             ['key' => 'plano-contas',  'label' => 'Plano de Contas','href' => '/financeiro/plano-contas'],
                             ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias'],
                             ['key' => 'contador',      'label' => 'Contador',       'href' => '/financeiro/configuracoes/contador'],
