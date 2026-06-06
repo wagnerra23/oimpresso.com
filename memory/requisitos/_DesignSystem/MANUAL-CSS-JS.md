@@ -43,13 +43,13 @@ ssot: INDEX-DESIGN-MEMORIAS.md
 
 ### ❌ A "lista de problemas" (o que está errado)
 
-1. **CSS sprawl — 28.585 linhas em 33 arquivos.** Dois arquivos concentram **57%**:
-   - `resources/css/cowork-canon-financeiro-bundle.css` — **8.666 linhas**
-   - `resources/css/sells-cowork.css` — **7.540 linhas**
+1. **CSS sprawl — ~20.294 linhas em 34 arquivos** (2026-06-06; era ~28.5k antes da limpeza de morto #2291/#2293/#2295). Dois arquivos ainda concentram a maior parte:
+   - `resources/css/cowork-canon-financeiro-bundle.css` — **4.747 linhas** (era 8.666)
+   - `resources/css/sells-cowork.css` — **3.969 linhas** (era 7.540)
    - +~20 arquivos `sells-cowork-*`, `cowork-*`, `fin-*` — **CSS por-tela/por-módulo**, o oposto de um design-system. São dumps do protótipo Cowork colados, não tokens compartilhados.
-2. **Dívida de lint — 1.340 violações ESLint suprimidas** no baseline (ADR 0209). Inclui `__parser_error__` (arquivo que nem parseia) e `no-undef` (bug real escondido) + vários `jsx-a11y/*` (dívida de acessibilidade).
+2. **Dívida de lint — ~1.073 violações ESLint** no baseline (ADR 0209; era 1.340 — `__parser_error__` e `no-undef`-em-TS já zerados, PRs #2326/#2327). Resta dívida `jsx-a11y/*` (acessibilidade) + 31 `no-undef` em `bootstrap.js` (.js).
 3. **Build dual** — `vite.config.js` (legacy Blade) + `vite.inertia.config.mjs` (Inertia). Migração Blade→Inertia (MWART) inacabada; dois pipelines coexistindo.
-4. **Tokens não são fonte única** — Tailwind v4 existe, mas 28k linhas de CSS bespoke definem cor/espaço/tipo à mão em paralelo aos tokens → drift visual e impossível refatorar com confiança.
+4. **Tokens não são fonte única** — Tailwind v4 existe, mas ~20k linhas de CSS bespoke definem cor/espaço/tipo à mão em paralelo aos tokens → drift visual e impossível refatorar com confiança.
 5. **Colisões de símbolo global** (tests/helpers) — sintoma cultural de copy-paste (mesma raiz do sprawl CSS). Ver [feedback-nao-tocar-pr-fora-escopo] / US-INFRA-031.
 
 ---
@@ -157,12 +157,12 @@ Replicar protótipo Cowork **do jeito certo** (sem gerar `.css` novo): [RUNBOOK-
 2. **F1 · Inventariar o débito de identidade**: mapear azul de **marca** legacy (`#1572E8`, `@apply`) vs azul **semântico** que sobrevive; listar onde `.cockpit` define token paralelo ao `@theme`. _Baixo. Sem ADR — cor já é canon (0235/0249)._
 3. **F2 · Token único em `@theme`**: dobrar `.cockpit`/legacy nos tokens DS v6 do Tailwind v4 (`inertia.css`); `cockpit.css` passa a **consumir** (`var(--…)`), não definir. `foundation:check` cobre. _Médio._
 4. **F3 · Criar `Components/layout/`** (Box/Stack/Inline/Grid/Container/Text — §2.1): a camada que falta. Doc no DS + ≥1 tela composta 100% por primitivos (zero flex solto, zero `.css`). _Médio._
-5. **F4 · Unificar o Shell**: escolher 1 `PageHeader` canônico (hoje há 2: `Components/PageHeader/` + `Components/shared/`), migrar e deletar o duplicado. _Baixo._
-6. **F5 · Dissolver os 2 mega-bundles** (`cowork-canon-financeiro-bundle` 8.6k + `sells-cowork` 7.5k) tela-a-tela: tela tocada (MWART/feedback) é reescrita em Tailwind+primitivos e a fatia correspondente do bundle é **deletada**. Medir: linhas bespoke ↓ a cada PR. _Alto, incremental._
+5. **F4 · Unificar o `PageHeader` (incremental — NÃO big-bang)**: há 2 hoje — o **canon novo** `@/Components/PageHeader` (v3.8 flat, ADR 0189/0190, ~15 telas) e o **antigo** `@/Components/shared/PageHeader` (**104 telas**). Migrar 104 é visual-pesado (aprovação por tela). Política: **(a) congelado** — `pageheader-gate` (ratchet `pageheader-shared-baseline.json`) proíbe tela NOVA adotar o antigo; **(b)** toda tela tocada migra seu header antigo→canon no mesmo PR (aprovação visual natural); **(c)** `shared/PageHeader` só é **deletado** quando o contador zerar. _Incremental._
+6. **F5 · Dissolver os 2 mega-bundles** (`cowork-canon-financeiro-bundle` ~4.7k + `sells-cowork` ~4.0k — já caíram de 8.6k/7.5k) tela-a-tela: tela tocada (MWART/feedback) é reescrita em Tailwind+primitivos e a fatia correspondente do bundle é **deletada**. Medir: linhas bespoke ↓ a cada PR. _Alto, incremental._
 7. **F6 · Saúde do lint**: zerar `__parser_error__` + `no-undef` (bugs P0); depois encolher `jsx-a11y/*`. _Médio._
 8. **F7 · Gates de regressão**: ligar visual-regression como gate (screen-grade/`design:review` existem) + axe nas telas (`screen-qa`); unificar `vite.config` quando o último Blade morrer. _Médio, dep. MWART._
 
-**Métrica-mãe deste manual:** linhas de CSS em `resources/css/` **caindo** PR a PR (baseline 2026-06-06: **28.585**) + baseline ESLint **encolhendo** (**1.340**) + fontes de token **3 → 1** + `PageHeader` **2 → 1**, sem regressão visual.
+**Métrica-mãe deste manual:** linhas de CSS em `resources/css/` **caindo** PR a PR (**~20.294** em 2026-06-06, de ~28.5k) + baseline ESLint **encolhendo** (**1.073**, de 1.340) + fontes de token **3 → 1** + telas no `PageHeader` antigo **104 → 0** (ratchet `pageheader-gate`), sem regressão visual.
 
 ---
 
