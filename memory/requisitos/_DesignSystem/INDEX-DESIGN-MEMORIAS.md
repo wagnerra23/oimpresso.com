@@ -118,6 +118,21 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | DS_ADOCAO_INDICE | drift-raiz: hand-rolou `<input radio>` existindo `radio-group.tsx` — falta de guard |
 | HANDOFF/SYNC_LOG | NÃO copiar zip Cowork `{Modules,Pages,resources}` direto pra raiz (viola Tier 0, regride prod) |
 
+### 3e. Lápides — mortos com lição (grande inspeção 2026-06-06)
+
+> **Histórico negativo é first-class** (decisão Wagner 2026-06-06: *"ter o histórico negativo pra não voltar a errar é muito importante"*). Estes docs/ADRs **ficam no lugar** (append-only, status de lápide + `morreu_porque` no frontmatter) — listados aqui pra **não repetir o erro já pago**.
+
+| Morto | Estado | Lição (`morreu_porque`) |
+|---|---|---|
+| **UI-0010 / UI-0012** (zip-cowork "canon visual") | `superseded` → [UI-0018](adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) | zip datado ≠ canon. Verdade viva = DS v6 + primitivos ([0253](../../decisions/0253-primitivos-layout.md)) + [Manual de Identidade](MANUAL-IDENTIDADE.md). **NÃO copiar HTML/cor de zip.** |
+| **BRIEFING_CLAUDE_DESIGN / _PROXIMA_SESSAO** | `accepted-historical` | propunham azul 220° + sidebar dark — canon = roxo 295 + light. NÃO usar de ponto de partida |
+| **CATALOGO_ACABAMENTOS** | `accepted-historical` (parcial) | só a **COR** (azul 220) morreu; estrutura/tipo/espaço seguem válidos |
+| **sidebar-rail-mode / GUIA-SIDEBAR-V3** | `superseded`/`historical` | hue-per-grupo morto — verdade = `cockpit/shared.ts` (código>doc) |
+| **AUTOMATION-ROADMAP** | `accepted-historical` | dizia "zero ondas" — falso, ondas+6 gates entregues. NÃO ler como roadmap futuro |
+| **from-claude-design/04-conventions · decisions-README** | `superseded` | importados PontoWr2 legado (Laravel 10) → `.claude/rules/` + MCP `decisions-search` |
+| **audits/2026-04-24** | `deprecated` | duplicata byte-a-byte de `2026-04-22` |
+| **ui_kits/_BACKUP-NAO-USAR-cowork-2026-04-27** | tombstone (no nome) | snapshot abril — **NÃO usar** (mantido como histórico negativo · decisão Wagner) |
+
 ---
 
 ## 4 · CONFLITOS RECONCILIADOS (a regra de ouro aplicada)
@@ -136,6 +151,8 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | **Sidebar hue-per-grupo** | **código `cockpit/shared.ts SIDEBAR_GROUP_HUE`** (reconciliado 2026-05-25) | hues de GUIA-SIDEBAR / sidebar-rail-mode (antigos) | R3 |
 | **PageHeader (estrutura)** | **3 blocos fechados** separados, gap 12px (ADR 0189 v3.1, pageheader-matriz F1) | "layout flat 3 zonas" (ADR 0182) | R1 |
 | **Azul que SOBREVIVE** | **origin-badge CRM = blue** (sistema de badge de origem, ≠ botão primary) — continua válido | confundir com cor de marca | R2 (nuance) |
+| **Canon visual (vivo vs snapshot)** | **DS v6 + primitivos (0253) + Manual de Identidade — vivo e MEDIDO** (grade 0254) | zip-cowork UI-0010/0012 (`superseded` por UI-0018) — snapshot datado | R1+R5 |
+| **DS naming (v3/v4/v5/v6)** | **"DS v6"** é o nome único (ADR 0249) | "v3/v4/v5" = nomes antigos da MESMA coisa (UI-0017 aditiva, não morre — só o nome) | R2 |
 
 ---
 
