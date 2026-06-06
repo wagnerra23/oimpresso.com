@@ -197,7 +197,7 @@ function CcSessionsIndex(props: Props) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [sessions.data, selectedUuid, previewOpen]);
 
   function applyFilter(patch: Partial<Filters>) {

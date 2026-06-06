@@ -217,7 +217,7 @@ function KbIndex(props: Props) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [docs.data, selectedSlug, previewOpen]);
 
   const csrf = () =>
