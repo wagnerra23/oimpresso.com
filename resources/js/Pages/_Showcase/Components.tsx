@@ -11,6 +11,7 @@ import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Badge } from '@/Components/ui/badge';
 import PageHeader from '@/Components/shared/PageHeader';
+import { Box, Stack, Inline, Grid, Container, Text } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -389,8 +390,96 @@ export default function Showcase() {
             </ul>
           </div>
         </Section>
+
+        {/* ========================================= LAYOUT PRIMITIVES ========================================= */}
+        <Section title="11. Primitivos de Layout (ADR 0253 · F3 — props = token, zero flex solto)">
+          <div className="space-y-6">
+            {/* Text */}
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Text — tipografia 100% type-scale token:</h3>
+              <Stack gap={1}>
+                <Text as="h2" size="2xl" weight="semibold">Título 2xl semibold</Text>
+                <Text size="base">Corpo base · tom default</Text>
+                <Text size="sm" tone="muted">Legenda sm · tom muted</Text>
+                <Text size="sm" tone="primary" weight="medium">Destaque primary</Text>
+                <Text size="sm" tone="destructive">Erro destructive</Text>
+              </Stack>
+            </div>
+
+            {/* Stack */}
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Stack — empilha vertical com gap-token (gap=2 vs gap=6):</h3>
+              <Inline gap={6} align="start">
+                <Stack gap={2}>
+                  <Tile>gap=2</Tile><Tile>·</Tile><Tile>·</Tile>
+                </Stack>
+                <Stack gap={6}>
+                  <Tile>gap=6</Tile><Tile>·</Tile><Tile>·</Tile>
+                </Stack>
+              </Inline>
+            </div>
+
+            {/* Inline */}
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Inline — alinha horizontal + wrap (chips):</h3>
+              <Inline gap={2} wrap>
+                {['Aberta', 'Orçamento', 'Aprovada', 'Em execução', 'Concluída', 'Faturada'].map((s) => (
+                  <Badge key={s} variant="secondary">{s}</Badge>
+                ))}
+              </Inline>
+            </div>
+
+            {/* Grid */}
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Grid — cols=3, gap=4:</h3>
+              <Grid cols={3} gap={4}>
+                {['A', 'B', 'C', 'D', 'E', 'F'].map((c) => (
+                  <Box key={c} p={4} className="rounded-md border border-border bg-muted/40">
+                    <Text size="sm" tone="muted">Card {c}</Text>
+                  </Box>
+                ))}
+              </Grid>
+            </div>
+
+            {/* Box + Container */}
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Box (padding p=6) dentro de Container (size=sm, centralizado):</h3>
+              <Container size="sm" px={0}>
+                <Box p={6} className="rounded-md border border-dashed border-primary/40 bg-primary/5">
+                  <Text size="sm" tone="primary">Container size=sm · Box p=6 — toda a medida vem de token</Text>
+                </Box>
+              </Container>
+            </div>
+
+            {/* Composição — a mesma "tela-cartão" do teste, agora visível */}
+            <div>
+              <h3 className="mb-2 text-sm font-medium text-muted-foreground">Composição 100% primitivos (zero className=&quot;flex gap&quot; solto):</h3>
+              <Box p={4} className="rounded-lg border border-border bg-card">
+                <Stack gap={4}>
+                  <Text as="h3" size="xl" weight="semibold">Resumo da OS</Text>
+                  <Grid cols={2} gap={4}>
+                    <Box p={3} className="rounded-md bg-muted/40"><Text size="sm" tone="muted">Peças · R$ 480,00</Text></Box>
+                    <Box p={3} className="rounded-md bg-muted/40"><Text size="sm" tone="muted">Mão de obra · R$ 360,00</Text></Box>
+                  </Grid>
+                  <Inline gap={2} justify="end">
+                    <Button variant="outline" size="sm">Cancelar</Button>
+                    <Button size="sm">Faturar</Button>
+                  </Inline>
+                </Stack>
+              </Box>
+            </div>
+          </div>
+        </Section>
       </div>
     </>
+  );
+}
+
+function Tile({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+      {children}
+    </div>
   );
 }
 
