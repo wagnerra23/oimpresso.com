@@ -77,15 +77,12 @@ export function formatDateTime(iso: string): string {
 }
 
 /**
- * Formata bytes em string legível (B / KB / MB). Usado em MediaPreviewCard
- * (US-WA-042) + MessageBubble document (US-WA-072) + MediaContent
- * (ConversationThread, PR #707/#716). Exportado pra reuso cross-component.
+ * Formata bytes em string legível. Vive no canon `@/Lib/utils` (idêntico até MB,
+ * superset com faixa GB). Re-exportado aqui pra manter o import path `./helpers`
+ * dos consumidores (MediaPreviewCard US-WA-042, ConversationThread PR #707/#716)
+ * sem duplicar a implementação — anti-duplicação (reuse-index, MANUAL #5).
  */
-export function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-}
+export { formatBytes } from '@/Lib/utils';
 
 /**
  * Detecta se `phone` parece ser um LID (Linked ID Multi-Device) em vez de
