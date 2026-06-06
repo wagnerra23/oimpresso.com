@@ -64,3 +64,6 @@ tests/eval/results/*.json
 
 # ESLint 9 (ADR 0209)
 # config/eslint-baseline.json é VERSIONADO (canon ratchet)
+
+# jscpd — relatório local (anti-duplicação copy-paste); .jscpd.json é VERSIONADO
+/report
