@@ -31,7 +31,10 @@ return [
     */
     'openai' => [
         'model_chat'         => env('COPILOTO_OPENAI_CHAT_MODEL', 'gpt-4o-mini'),
-        'model_suggestions'  => env('COPILOTO_OPENAI_SUGGEST_MODEL', 'gpt-4o'),
+        // Default gpt-4o-mini: único modelo a que o projeto OpenAI atual tem acesso
+        // (gpt-4o → 403 "does not have access" — mesma razão de clarify/advisor/PrUiJudgeAgent).
+        // Subir via env COPILOTO_OPENAI_SUGGEST_MODEL quando houver acesso frontier (ou Sonnet) — #2270.
+        'model_suggestions'  => env('COPILOTO_OPENAI_SUGGEST_MODEL', 'gpt-4o-mini'),
         'max_tokens_chat'    => 2000,
         'max_tokens_suggest' => 4000,
         'temperature'        => 0.7,
