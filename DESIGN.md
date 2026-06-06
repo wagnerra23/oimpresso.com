@@ -4,16 +4,23 @@
 >
 > Pra trabalhos de código backend/CRUD não-visuais, comece em [`CLAUDE.md`](CLAUDE.md). Pra acesso/deploy de produção, em [`INFRA.md`](INFRA.md).
 
+> ⚠️ **CANON ATUALIZADO 2026-06-06 (grande inspeção).** O **ponto único** de design é o SSOT
+> [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) + a voz visual
+> [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante").
+> Canon **vivo** = **DS v6** (roxo `oklch(0.55 0.15 295)`) + **primitivos de layout** ([ADR 0253](memory/decisions/0253-primitivos-layout.md)) + **grade medido** ([ADR 0254](memory/decisions/0254-design-identity-grade-deterministico.md)).
+> ☠️ As referências a "zip Cowork canon / UI-0010 / `ui_kits/cowork-2026-04-27`" mais abaixo estão
+> **SUPERSEDED** (por [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) — a pasta virou `_BACKUP-NAO-USAR-`). Ver **§3e Lápides** do SSOT.
+
 ---
 
 ## 1. O que você quer fazer?
 
 | Cenário | Vá direto pra |
 |---|---|
-| **Comparar tela alvo com canon visual antes de codar** ⭐ | [`memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/) — UI Kit canônico (`os-page.jsx` é referência pra list+detail, [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) |
+| **Saber como toda tela deve PARECER (identidade)** ⭐ | [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) (voz "Clareza Confiante") + [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) (SSOT) · layout = primitivos [ADR 0253](memory/decisions/0253-primitivos-layout.md) |
 | Codar uma tela React nova ou alterar uma existente | Seção "Padrão técnico de implementação React" abaixo nesse arquivo |
-| Mockup visual numa nova sessão Claude Design canvas | [`memory/requisitos/_DesignSystem/BRIEFING_CLAUDE_DESIGN.md`](memory/requisitos/_DesignSystem/BRIEFING_CLAUDE_DESIGN.md) — colar como 1ª mensagem + anexar arquivo |
-| Decidir se um padrão visual é canônico ou divergência | [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) (canon visual) + [ADR raiz 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) (Cockpit layout-mãe) |
+| Mockup visual numa nova sessão Claude Design canvas | Cole o [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) + SSOT como 1ª mensagem _(o antigo `BRIEFING_CLAUDE_DESIGN.md` é **histórico** — paleta morta)_ |
+| Decidir se um padrão visual é canônico ou divergência | [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) (canon visual vivo) + Regra de Ouro [SSOT §0](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) + grade [ADR 0254](memory/decisions/0254-design-identity-grade-deterministico.md) |
 | Buscar/usar um componente shared existente | [`memory/requisitos/_DesignSystem/SPEC.md`](memory/requisitos/_DesignSystem/SPEC.md) |
 | Gerar/auditar runbook de tela | Skill `cockpit-runbook` (pede `runbook da tela X` ou `audita tela X contra Cockpit`) |
 | Auditar uma tela contra o sistema de design | [`memory/requisitos/_DesignSystem/audits/`](memory/requisitos/_DesignSystem/audits/) |
@@ -79,11 +86,8 @@ Wagner é o aprovador final em divergências de padrão. Cliente (WR2 Sistemas /
 
 ## 6. Antes de codificar qualquer tela
 
-1. **Abra o canon visual** em [`memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/) — UI Kit Cowork. Identifique qual `.jsx` corresponde ao tipo da sua tela:
-   - **list+detail (CRUD operacional)** → [`os-page.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/os-page.jsx) ⭐ padrão canônico
-   - **inbox unificada** → [`tasks.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/tasks.jsx) + [`viewers.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/viewers.jsx)
-   - **conversação/chat** → [`chat.jsx`](memory/requisitos/_DesignSystem/ui_kits/cowork-2026-04-27/chat.jsx)
-2. **Leia [_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)** — formaliza zip Cowork como canon e lista conflitos resolvidos (ex.: sidebar light de UI-0009 sobrevive).
+1. **Leia a voz visual** [`MANUAL-IDENTIDADE.md`](memory/requisitos/_DesignSystem/MANUAL-IDENTIDADE.md) ("Clareza Confiante") + o SSOT [`INDEX-DESIGN-MEMORIAS.md`](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md). Layout = composição de primitivos [`@/Components/layout`](resources/js/Components/layout/index.ts) ([ADR 0253](memory/decisions/0253-primitivos-layout.md)). _(O antigo "UI Kit `ui_kits/cowork-2026-04-27/`" virou `_BACKUP-NAO-USAR-` — NÃO usar.)_
+2. **Canon visual vivo:** [UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) (supersede o zip-cowork UI-0010/0012).
 3. **Leia [ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md)** — define layout-mãe "Chat Cockpit" 3-colunas, dual-tab Chat/Menu, painel direito de Apps Vinculados, atalhos J/K/E/A, Tweaks (vibe/densidade/accentHue).
 4. **Leia o session log mais recente em `memory/sessions/`** — pode ter ajuste de design não refletido no ADR ainda.
 5. **Olhe `resources/js/Layouts/AppShellV2.tsx`** — shell único do ERP em React (AppShell legado removido em 2026-05-04). Cliente final NÃO pode reaprender o sistema; mudança de menu/labels/ícones precisa ser aprovada explicitamente.
@@ -106,11 +110,11 @@ Em ordem de precedência (regra mais alta vence em conflito):
 
 1. **Stack-target do projeto** (Inertia v3 + React 19 + TS + Tailwind 4) — não muda sem ADR.
 2. **Constituição UI v2** ([UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)) — mãe atual das 4 camadas.
-3. **Tokens canon** ([ADR 0190](memory/decisions/0190-primary-button-roxo-medio-canon.md) primary roxo 295) — `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border, universal cross-módulo.
-4. **PageHeader canon v3** ([ADR 0180](memory/decisions/0180-pageheader-canon-href-direto-ghost-rapido.md) / [0182](memory/decisions/0182-pageheader-3-zonas-esq-centro-dir.md) / [0189](memory/decisions/0189-pageheader-modo-foco-edit-create.md)) — modo NAV (Index/Show) vs modo FOCO (Edit/Create) + 3 zonas Esq/Centro/Dir.
+3. **Tokens canon** ([ADR 0190](memory/decisions/0190-primary-button-roxo-universal-295.md) primary roxo 295) — `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border, universal cross-módulo.
+4. **PageHeader canon v3** ([ADR 0182](memory/decisions/0182-pageheadertabs-canon-pattern-telas.md) / [0189](memory/decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)) — modo NAV (Index/Show) vs modo FOCO (Edit/Create) + 3 zonas Esq/Centro/Dir.
 5. **PT-01 Lista** ([padrão de tela canônico](memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)) — anatomia + DNA + slots de listagem operacional.
 6. **Cockpit Pattern V2** ([ADR 0110](memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)) — list+detail consolidado (ver §16).
-7. **Canon visual Cowork 2026-04-27** ([_DS UI-0010](memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md)) — UI Kit `os-page.jsx`/`tasks.jsx`/`viewers.jsx`/`chat.jsx`.
+7. **Canon visual vivo** ([UI-0018](memory/requisitos/_DesignSystem/adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md)) — DS v6 + primitivos + Manual (supersede o zip-cowork UI-0010/0012, agora `_BACKUP-NAO-USAR-`).
 8. **Layout-mãe "Chat Cockpit"** ([ADR 0039](memory/decisions/0039-ui-chat-cockpit-padrao.md) + [_DS UI-0008](memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)).
 9. **Sidebar light por padrão** ([_DS UI-0009](memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) + [UI-0014](memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md)) — sobrevive a UI v2 (Wagner explícito).
 10. **Padrão Jana** ([ADR 0011](memory/decisions/0011-alinhamento-padrao-jana.md)) — UltimatePOS-like estrutura modular; vale pra DataController/Install (não-visual).
@@ -245,7 +249,7 @@ Quick-check resumido:
 | `pr-ui-judge.yml` (Onda 4.1) | Claude Sonnet 4.5 avalia PR contra Constituição UI v2 — score 0-100 + 9 dimensões + sugestões cirúrgicas (~$3/mês a 100 PRs) |
 | `mwart-gate.yml` | `<tela>-visual-comparison.md` obrigatório se Page Inertia nova (ADR 0107 §F1.5) |
 | `charter-gate.yml` | `.charter.md` obrigatório ao lado de `.tsx` em paths MWART |
-| `module-grades-gate.yml` ([ADR 0155](memory/decisions/0155-rubrica-module-grade-v3.md)) | Regressão de nota módulo vs baseline |
+| `module-grades-gate.yml` ([ADR 0155](memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) | Regressão de nota módulo vs baseline |
 
 ---
 
@@ -364,7 +368,7 @@ Antes de criar componente custom, **buscar** em `resources/js/Components/`. Patt
 
 ### 16.8. Anti-padrões V2 (testes Pest CI varre)
 
-- ❌ `<AppShell>` sem V2 ([auto-mem](memory/feedback_persistent_layouts.md))
+- ❌ `<AppShell>` sem V2 ([preferência](memory/claude/preference_persistent_layouts.md))
 - ❌ `sessionStorage` (use `localStorage` com prefixo `oimpresso.`)
 - ❌ `bg-(gray|indigo|purple|pink|yellow|red|green)-[0-9]+`
 - ❌ `font-bold/extrabold/black` em h1-h3

@@ -1,3 +1,13 @@
+---
+status: accepted-historical
+lifecycle: arquivado
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+superseded_by: ["INDEX-DESIGN-MEMORIAS.md"]
+morreu_porque: "Briefing de sessão datado; accent 220° / sidebar dark 260px mortos (canon = roxo 295 + light, ADR 0235/UI-0014). NÃO usar como ponto de partida. (Onda 2 inspeção 2026-06-06)"
+related_adrs: [0235, 0249]
+---
+
 # Briefing para retomar o Design System Oimpresso — Claude Design
 
 > Cole este arquivo como **primeira mensagem** numa nova sessão Claude Design.

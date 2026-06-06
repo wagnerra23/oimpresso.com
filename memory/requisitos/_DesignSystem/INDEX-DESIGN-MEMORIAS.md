@@ -1,3 +1,11 @@
+---
+owner: wagner
+last_reviewed: "2026-06-06"
+next_review: "2026-07-31"
+related_adrs: [0235, 0249, 0253, 0254]
+note: "SSOT de design. next_review obrigatório (DesignDocsFreshnessChecker ADR 0236) — é o que impede este índice de apodrecer como aconteceu com 'PT-02..05 não existem'."
+---
+
 # ÍNDICE-MESTRE — Memórias de Design que o Claude Design pode usar
 
 > **Pra que serve:** ponto único de partida do Claude Design. Lista TODAS as memórias de design do projeto — **positivas** (o que copiar/seguir) e **negativas** (o que NÃO repetir) — já reconciliadas, com a **regra de ouro** que resolve conflito. Substitui a tarefa de "montar contexto de cabeça" (origem da invenção e do erro repetido).
@@ -23,7 +31,8 @@ Quando duas memórias divergem, vence nesta ordem:
 
 1. **[PRE-FLIGHT-TELA.md](../../../prototipo-ui/PRE-FLIGHT-TELA.md)** — monta o pacote de pré-requisitos DAQUELA tela (identidade/não-inventar/não-repetir/validar).
 2. **[GOLDEN-REFERENCE.md](../../../prototipo-ui/GOLDEN-REFERENCE.md)** — a tela-ouro do arquétipo + 10 regras binárias. "Faça idêntico, mude só X."
-3. **[REGISTRY_DS_COMPONENTES.md](../../../prototipo-ui/REGISTRY_DS_COMPONENTES.md)** — componentes `@/Components/ui` disponíveis. Se está aqui, **não hand-rola**. ⚠️ Onda F (`Segmented`/`FormSection`/`InputGroup`/`FieldState`) **ainda NÃO existe** — não assuma que existe.
+2b. **[MANUAL-IDENTIDADE.md](MANUAL-IDENTIDADE.md)** ⭐ — a VOZ visual "Clareza Confiante": como deve PARECER + DO/DON'T + as 3 assinaturas. Define o *feel*; o golden define a *estrutura*.
+3. **[REGISTRY_DS_COMPONENTES.md](../../../prototipo-ui/REGISTRY_DS_COMPONENTES.md)** — componentes `@/Components/ui` disponíveis. Se está aqui, **não hand-rola**. ➕ **Layout: usar primitivos `@/Components/layout` ([ADR 0253](../../decisions/0253-primitivos-layout.md)) — `Stack/Inline/Grid/Box/Container/Text`.** ⚠️ Onda F (`Segmented`/`FormSection`/`InputGroup`/`FieldState`) **ainda NÃO existe** — não assuma que existe.
 4. **[LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)** — os 21 anti-padrões (exemplo errado). Leitura obrigatória antes de F3.
 5. **[SCREEN-GRADE-METODO.md](SCREEN-GRADE-METODO.md)** — como a tela será notada (16 dim, níveis Beginner→Champion).
 
@@ -36,6 +45,7 @@ Quando duas memórias divergem, vence nesta ordem:
 ### 2a. Entrada / identidade do projeto
 | Memória | Usar pra |
 |---|---|
+| **[MANUAL-IDENTIDADE.md](MANUAL-IDENTIDADE.md)** ⭐ | **A VOZ VISUAL — "Clareza Confiante" (2026-06-06).** Como toda tela deve PARECER: type-scale 8 tokens (incl `2xs`), 3 assinaturas (focus-ring roxo · barra-accent · tabular-nums), densidade 36px, motion 150ms, DO/DON'T. **Leitura obrigatória antes de craftar identidade.** Irmã do MANUAL-CSS-JS (voz de código) |
 | [memory/why-oimpresso.md](../../why-oimpresso.md) | **Posicionamento REAL: ERP modular multi-vertical** (ADR 0121). Larissa/ROTA LIVRE = **vestuário** (não gráfica). ⚠️ corrige briefings antigos |
 | [personas-por-modulo.yml](personas-por-modulo.yml) + ADR UI-0016 | Persona dona da tela (Larissa 1280px densidade · Eliana tabela densa · técnico touch ≥44px) |
 | [prototipo-ui/GLOSSARY.md](../../../prototipo-ui/GLOSSARY.md) | Siglas, fases, comparáveis externos por arquétipo |
@@ -46,6 +56,7 @@ Quando duas memórias divergem, vence nesta ordem:
 | **GOLDEN-REFERENCE.md** | tela-ouro `Sells/Create` (form) + 10 regras binárias R1-R10 |
 | **padroes-tela/PT-01-Lista.md** | golden do arquétipo **lista** (status sem bg-fill, slots) |
 | **REGISTRY_DS_COMPONENTES.md** | componentes reais `@/Components/ui` |
+| **[ADR 0253 — primitivos de layout](../../decisions/0253-primitivos-layout.md)** ⭐ | `<Stack/Inline/Grid/Box/Container/Text>` em `@/Components/layout` — **layout é COMPOSIÇÃO de primitivo, nunca `flex`/`grid` solto** (props = token). Showcase em `/showcase/components` |
 | **tokens v4** (`resources/css/inertia.css`, ADR 0235) | cor = `primary` roxo. Zero `blue-*` de marca |
 | ADR 0110 (Cockpit Pattern V2) + UI-0010 `os-page.jsx` + UI-0012 | padrão list+detail / shell |
 | ADR UI-0015 | campos de form default `variant="cowork"` |
@@ -55,12 +66,13 @@ Quando duas memórias divergem, vence nesta ordem:
 | [MANUAL-CSS-JS.md](MANUAL-CSS-JS.md) | regimento **CSS/JS** — do/don't + arquitetura-alvo (token DS v6 → primitivos **layout**+ui → padrão → página) + gap dos primitivos de layout (§2.1) + roadmap de convergência F0–F7 (sair do sprawl de 28k linhas) |
 | RUNBOOK-{replicar-prototipo-cowork,onda-cowork,design-deep,inertia-defer-pattern}.md | receitas de execução (portar protótipo, ondas, defer) |
 
-> ⚠️ **Goldens de arquétipo: só existe PT-01-Lista.** Faltam **PT-02 Form/Drawer · PT-03 Detalhe · PT-04 Dashboard · PT-05 Config/Kanban** (confirmado por 2 agentes + piloto). Até existirem, o Claude Design usa o golden de código (GOLDEN-REFERENCE = form) e, p/ outros tipos, **pergunta** em vez de inventar.
+> ✅ **Goldens de arquétipo (corrigido 2026-06-06): PT-01 Lista · [PT-02 Form/Drawer](padroes-tela/PT-02-Form-Drawer.md) · [PT-03 Detalhe](padroes-tela/PT-03-Detalhe.md) · [PT-04 Dashboard](padroes-tela/PT-04-Dashboard.md) · [PT-05 Kanban](padroes-tela/PT-05-Kanban.md) — TODOS existem** em [`padroes-tela/`](padroes-tela/). _(O INDEX dizia "faltam PT-02..05" — era stale de 2026-05-30; os 5 arquivos têm 116-135 linhas cada.)_
 
 ### 2c. Validação / definição de pronto
 | Memória | Usar pra |
 |---|---|
-| **SCREEN-GRADE-METODO.md** | nota 16-dim, níveis, score-as-code |
+| **SCREEN-GRADE-METODO.md** | nota 16-dim, níveis, score-as-code (UX amplo, por tela) |
+| **[ADR 0254 — grade de identidade DETERMINÍSTICO](../../decisions/0254-design-identity-grade-deterministico.md)** ⭐ | nota de **identidade** 0-100 **σ=0** por regex (anti-alucinação — cura o LLM-judge que dava 91→71). `node scripts/design-identity-grade.mjs` · ratchet só sobe · **hoje 66, meta 85** · lista top-5 ofensores |
 | [design-requests/LEDGER.md](../../governance/design-requests/LEDGER.md) | ledger incremental de pedidos (REQ-NNN, **file-based**) — checar "já processei?" antes de trabalhar; grava resultado/grade ao fechar · ⚠️ scaffold pré-ADR ([proposta](../../decisions/proposals/design-request-ledger-incremental.md)) |
 | [PRE-MERGE-UI.md](PRE-MERGE-UI.md) | checklist AP1-AP8 antes de merge |
 | `php artisan ui:lint` (R1-R6, CI ratchet) | cor crua, FontAwesome, emoji, PT-01, origens, blade |
@@ -106,6 +118,21 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | DS_ADOCAO_INDICE | drift-raiz: hand-rolou `<input radio>` existindo `radio-group.tsx` — falta de guard |
 | HANDOFF/SYNC_LOG | NÃO copiar zip Cowork `{Modules,Pages,resources}` direto pra raiz (viola Tier 0, regride prod) |
 
+### 3e. Lápides — mortos com lição (grande inspeção 2026-06-06)
+
+> **Histórico negativo é first-class** (decisão Wagner 2026-06-06: *"ter o histórico negativo pra não voltar a errar é muito importante"*). Estes docs/ADRs **ficam no lugar** (append-only, status de lápide + `morreu_porque` no frontmatter) — listados aqui pra **não repetir o erro já pago**.
+
+| Morto | Estado | Lição (`morreu_porque`) |
+|---|---|---|
+| **UI-0010 / UI-0012** (zip-cowork "canon visual") | `superseded` → [UI-0018](adr/ui/0018-canon-visual-vivo-ds-v6-manual-identidade.md) | zip datado ≠ canon. Verdade viva = DS v6 + primitivos ([0253](../../decisions/0253-primitivos-layout.md)) + [Manual de Identidade](MANUAL-IDENTIDADE.md). **NÃO copiar HTML/cor de zip.** |
+| **BRIEFING_CLAUDE_DESIGN / _PROXIMA_SESSAO** | `accepted-historical` | propunham azul 220° + sidebar dark — canon = roxo 295 + light. NÃO usar de ponto de partida |
+| **CATALOGO_ACABAMENTOS** | `accepted-historical` (parcial) | só a **COR** (azul 220) morreu; estrutura/tipo/espaço seguem válidos |
+| **sidebar-rail-mode / GUIA-SIDEBAR-V3** | `superseded`/`historical` | hue-per-grupo morto — verdade = `cockpit/shared.ts` (código>doc) |
+| **AUTOMATION-ROADMAP** | `accepted-historical` | dizia "zero ondas" — falso, ondas+6 gates entregues. NÃO ler como roadmap futuro |
+| **from-claude-design/04-conventions · decisions-README** | `superseded` | importados PontoWr2 legado (Laravel 10) → `.claude/rules/` + MCP `decisions-search` |
+| **audits/2026-04-24** | `deprecated` | duplicata byte-a-byte de `2026-04-22` |
+| **ui_kits/_BACKUP-NAO-USAR-cowork-2026-04-27** | tombstone (no nome) | snapshot abril — **NÃO usar** (mantido como histórico negativo · decisão Wagner) |
+
 ---
 
 ## 4 · CONFLITOS RECONCILIADOS (a regra de ouro aplicada)
@@ -124,6 +151,8 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | **Sidebar hue-per-grupo** | **código `cockpit/shared.ts SIDEBAR_GROUP_HUE`** (reconciliado 2026-05-25) | hues de GUIA-SIDEBAR / sidebar-rail-mode (antigos) | R3 |
 | **PageHeader (estrutura)** | **3 blocos fechados** separados, gap 12px (ADR 0189 v3.1, pageheader-matriz F1) | "layout flat 3 zonas" (ADR 0182) | R1 |
 | **Azul que SOBREVIVE** | **origin-badge CRM = blue** (sistema de badge de origem, ≠ botão primary) — continua válido | confundir com cor de marca | R2 (nuance) |
+| **Canon visual (vivo vs snapshot)** | **DS v6 + primitivos (0253) + Manual de Identidade — vivo e MEDIDO** (grade 0254) | zip-cowork UI-0010/0012 (`superseded` por UI-0018) — snapshot datado | R1+R5 |
+| **DS naming (v3/v4/v5/v6)** | **"DS v6"** é o nome único (ADR 0249) | "v3/v4/v5" = nomes antigos da MESMA coisa (UI-0017 aditiva, não morre — só o nome) | R2 |
 
 ---
 
