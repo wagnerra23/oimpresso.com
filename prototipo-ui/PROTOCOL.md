@@ -59,6 +59,8 @@ Sem fase pulada. Mesmo princípio do MWART process ([ADR 0104](../memory/decisio
 | F3.5 → F4 | `prototipos/<tela>/a11y-report.md` sem `severity: critical` |
 | F4 → done | PR merged + `SYNC_LOG.md` com `[W2]: merged` + `HANDOFF.md` atualizado |
 
+> **Entrada via bundle estruturado (Claude Design oficial):** quando o insumo de F1/F3 chega como bundle do Claude Design (spec+tokens+layout+assets) em vez de protótipo HTML, ele entra como **proposta** validada pelo gate — ver **§10.5**. Não pula fase nem o overlay autônomo.
+
 ## 4. Onde cada fase escreve
 
 | Fase | Arquivo escrito | Responsável |
@@ -222,6 +224,25 @@ Todo `PROMPT_PARA_CODE` / comando de sync do `[CC]` é **proposta, não ordem**.
 **Regra de ouro:** se a checagem tem resposta no git, `[CL]` **decide e age — só informa `[W]`**. Escala pra `[W]` **apenas o subjetivo** (estético / estratégico / prioridade / dinheiro). O gate não espera `[W]`.
 
 **Backstop no repo (2ª linha, também sem `[W]`):** hook **`git-base-freshness-guard.mjs`** (SessionStart — choque "BASE STALE" automático, Passo 0) + `AdrNumberCollisionTest` (#1997) + invariante append-only pegam se algo stale chegar a commitar. Lição canon: [feedback-cowork-sync-now-prompt-stale](../memory/reference/feedback-cowork-sync-now-prompt-stale.md).
+
+### 10.5 Handoff bundle estruturado (Claude Design oficial) — entra como PROPOSTA, nunca autoridade
+
+> **Origem:** 2026-06-06 — pesquisa profunda do **Claude Design (Anthropic Labs, 17/abr/2026)** e seu handoff Claude Design→Claude Code. Dossiê: [memory/sessions/2026-06-06-arte-claude-design-handoff.md](../memory/sessions/2026-06-06-arte-claude-design-handoff.md).
+
+O Claude Design oficial empacota o design num **bundle estruturado** (spec machine-readable: estrutura de componentes + design tokens usados no canvas + hierarquia de layout + assets) que o Claude Code lê direto, **sem inferir de pixels** (mesma família de modelo). O **formato** é superior ao nosso export HTML (`visual-source.html`) + mapeamento manual CSS→Tailwind (F3 do RUNBOOK-replicar-prototipo-cowork) — é **ali** que nasce perda de tradução / regressão visual.
+
+**MAS o protocolo oficial é só IDA** — não tem retorno `[CL]→[CC]`, não tem gate de validação, não usa git=SSOT, o spec **não foi publicado** ("muda antes do GA"), o preview **não tem audit log nem versionamento**, e o auto-DS tem **drift não resolvido**. Nossa governança (§10.1–10.4 + ADR 0239) **cobre todos esses buracos** — desde que o bundle entre **pelo §10**, não pelos snippets genéricos que originaram esta seção.
+
+**Regra (Tier 0 deste loop):**
+
+| Aspecto do bundle oficial | Como entra no nosso loop |
+|---|---|
+| O bundle (spec + tokens + layout + assets) | **Proposta**, igual ao `PROMPT_PARA_CODE_*`: salvar no git ANTES de agir (URLs `claudeusercontent.com` expiram ~1h · §10.1) — git é o SSOT |
+| Validação antes de aplicar | passa pelo **gate §10.4** (ancorar `origin/main` fresco · não duplicar/renumerar ADR · não trazer rascunho pro canon) — **sozinho, sem esperar `[W]`** |
+| Reporte pós-merge | os **3 canais §10.2** (DS_ADOCAO/SYNC_LOG/HANDOFF) — o oficial não fecha o loop, nós fechamos |
+| Auto-DS do codebase (Claude Design lê nosso código → monta DS) | apontar pro **nosso DS v6 canon** (tokens oklch + `REGISTRY_DS_COMPONENTES` + `Components/layout` ADR 0253). O DS que ele gerar é **proposta** validada contra o canon — append-only, **sem** renumerar/mutar token aceito (mesma regra §10.4) |
+
+**O que NÃO muda:** o bundle é insumo de **F1/F3**, não pula F1.5/F2/F3.5 nem o overlay autônomo (gates CI). Adotar o **formato** do bundle (alto impacto, mata o mapeamento manual) depende do "Send to Claude Code" real existir — até lá, esta seção **blinda** o canon contra lock-in/stale quando o bundle chegar.
 
 ## 11. Links
 
