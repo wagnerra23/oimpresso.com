@@ -1,3 +1,10 @@
+---
+status: ativo
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+related_adrs: [0016, 0013, 0232]
+---
+
 # Framework 15 dimensões UX — oimpresso canon
 
 > Canon do processo `design-deep-analysis`. Score 0-100 por dimensão + ponderação 1-3× por persona = decisão objetiva por tela.

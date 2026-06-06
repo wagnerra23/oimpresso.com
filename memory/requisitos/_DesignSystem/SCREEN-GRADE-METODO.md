@@ -1,3 +1,10 @@
+---
+status: ativo
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+related_adrs: [0230, 0231, 0232, 0250, 0254]
+---
+
 # SCREEN-GRADE — método de maturidade de tela (nota /100 comparativa)
 
 > **O que é:** o `module-grade` ([ADR 0155](../../decisions/0155-rubrica-module-grade-v3.md)/[0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md)) aplicado **por tela**. Nota 0-100 comparativa vs golden do arquétipo + ≥3 best-of-class, ponderada por persona e por Peso Real.
