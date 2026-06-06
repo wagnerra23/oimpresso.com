@@ -1,0 +1,33 @@
+{
+  "measured_against_sha": "08411a8df",
+  "generated_by": "reuse-index.mjs --write-baseline",
+  "count": 26,
+  "keys": [
+    "component:Avatar",
+    "component:Chat",
+    "component:CheatSheet",
+    "component:Cockpit",
+    "component:CommandPalette",
+    "component:ConfiguracoesIndex",
+    "component:Dashboard",
+    "component:DashboardIndex",
+    "component:Field",
+    "component:Graph",
+    "component:InboxIndex",
+    "component:KpiCard",
+    "component:Login",
+    "component:Memoria",
+    "component:ModuleTopNav",
+    "component:PageHeader",
+    "component:ProducaoOficinaIndex",
+    "component:StatusBadge",
+    "util:LS",
+    "util:MOCK_MODULES",
+    "util:MOCK_NODES",
+    "util:brl",
+    "util:cn",
+    "util:formatBytes",
+    "util:lsGet",
+    "util:lsSet"
+  ]
+}
