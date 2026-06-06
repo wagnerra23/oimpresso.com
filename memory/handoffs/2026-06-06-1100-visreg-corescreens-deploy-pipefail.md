@@ -1,7 +1,7 @@
 ---
 date: "2026-06-06"
 slug: visreg-corescreens-deploy-pipefail
-tldr: "Continuação do handoff 1312 (passo 1 'arrumar o seed'). #2319 VisregTenantSeeder minimal substitui o DummyBusinessSeeder podre → smoke autenticado ativou (business/users/roles=1). Bônus: OpenTelemetry crashava no fiber do Pest Browser em query DB → removida ext do workflow. #2320 amplia pro núcleo-6: 7 telas autenticadas verdes (Clientes podado c/ TODO — Index pesada quebra com tenant minimal). #2321 set -o pipefail no deploy.yml — fim do mascaramento de falha composer/migrate. 3 PRs merged --admin, provado no CI. ⚠️ senha DB prod segue pra rotacionar."
+tldr: "Continuação do 1312 (passo 1: arrumar o seed). #2319 VisregTenantSeeder minimal substitui o DummyBusinessSeeder podre → smoke autenticado ativou. Bônus: OpenTelemetry crashava no fiber do Pest Browser → removida ext do workflow. #2320 amplia pro núcleo-6: 7 telas autenticadas verdes (Clientes podado c/ TODO). #2321 set -o pipefail no deploy.yml. 3 PRs merged. Senha DB prod segue pra rotacionar."
 hour: "11:00 BRT"
 topic: "Ativar + ampliar gate de regressão visual autenticado (seeder minimal + núcleo-6) + endurecer deploy (pipefail)"
 duration: "~3h (continuação CI-driven)"
