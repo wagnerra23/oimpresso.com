@@ -257,7 +257,7 @@ function MyWorkIndex({
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [focus, linearTasks, selectedId, inbox, selectedInboxId, optimisticRead]);
 
   useEffect(() => {

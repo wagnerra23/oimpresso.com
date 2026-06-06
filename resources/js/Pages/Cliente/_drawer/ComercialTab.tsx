@@ -158,7 +158,7 @@ export default function ComercialTab({
           } else if (r.status === 403) msg = 'Sem permissão.';
           else if (r.status === 404) msg = 'Cliente não encontrado.';
           setErrorField({ field, message: msg });
-          // eslint-disable-next-line no-console
+           
           console.error(`[ComercialTab] autosave ${field} falhou`, { status: r.status });
           return;
         }
@@ -168,7 +168,7 @@ export default function ComercialTab({
       } catch (err) {
         rollbackField(field, prev);
         setErrorField({ field, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
+         
         console.error(`[ComercialTab] autosave ${field} network`, err);
       } finally {
         setSavingField((c) => (c === field ? null : c));

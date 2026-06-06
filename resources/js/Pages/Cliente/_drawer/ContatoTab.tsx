@@ -155,7 +155,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
           } else if (r.status === 403) msg = 'Sem permissão.';
           else if (r.status === 404) msg = 'Cliente não encontrado.';
           setErrorField({ field, message: msg });
-          // eslint-disable-next-line no-console
+           
           console.error(`[ContatoTab] autosave ${field} falhou`, { status: r.status });
           return;
         }
@@ -165,7 +165,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
       } catch (err) {
         rollbackField(field, prev);
         setErrorField({ field, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
+         
         console.error(`[ContatoTab] autosave ${field} network`, err);
       } finally {
         setSavingField((c) => (c === field ? null : c));

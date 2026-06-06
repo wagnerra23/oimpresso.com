@@ -21,7 +21,7 @@ declare global {
  */
 export function clarityIdentify(_userId: string): void {
   if (typeof console !== 'undefined') {
-    // eslint-disable-next-line no-console
+     
     console.warn('clarityIdentify is intentionally a no-op. See ADR 0191.');
   }
 }

@@ -212,7 +212,7 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
         onOpenChange(false);
       }, devTask?.message ? 2500 : 1500);
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.error('[CaptureFeedbackSheet] save error', err);
       setError('Falha de rede. Tente novamente.');
       setSaving(false);
