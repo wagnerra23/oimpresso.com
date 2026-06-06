@@ -79,6 +79,23 @@ include_once 'install_r.php';
 // pipeline end-to-end. NÃO existe em produção (app()->isProduction()).
 if (! app()->isProduction()) {
     Route::get('/_smoke-probe', fn () => view('_smoke-probe'))->name('smoke.probe');
+
+    // US-GOV-013 Fase B — auth bridge cross-process pro Pest 4 Browser (visual-regression).
+    // O browser Playwright roda em SUBPROCESSO: a sessão do test process NÃO cruza pra ele.
+    // Esta rota loga um user por id DENTRO do subprocesso do server → seta o cookie de
+    // sessão no browser → as visits seguintes ficam autenticadas. Persistência exige
+    // SESSION_DRIVER não-array (file/database) no .env do gate. NUNCA em produção
+    // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
+    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) {
+        \Illuminate\Support\Facades\Auth::loginUsingId($id);
+
+        // `to` = tela alvo (1 visit só: loga + redireciona). Só path relativo (anti
+        // open-redirect, ainda que env-guarded). Default '/'.
+        $to = (string) $request->query('to', '/');
+        $to = str_starts_with($to, '/') ? $to : '/';
+
+        return redirect($to);
+    })->middleware('web')->name('visreg.login');
 }
 
 Route::middleware(['setData'])->group(function () {

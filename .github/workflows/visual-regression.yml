@@ -121,7 +121,7 @@ jobs:
           DB_PASSWORD=root
           CACHE_DRIVER=array
           QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
+          SESSION_DRIVER=file
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
           TELESCOPE_ENABLED=false
@@ -141,13 +141,13 @@ jobs:
 
       - name: Run Pest Browser tests
         id: pest-browser
-        # GATE REAL — Fase A (US-GOV-013): roda só tests/Browser/Public/ (rotas SEM
-        # auth), que JÁ passam end-to-end (boot via schema-squash #2221 + render +
-        # asserção). `continue-on-error` REMOVIDO + sem o `|| echo fail=1` que mascarava
-        # falha → agora o pixel/render morde de verdade nessas telas. Fase B amplia o
-        # path pras autenticadas (tests/Browser/CoreScreens, tests/Browser/Sells) quando
-        # o harness de auth cross-process + seed estiver pronto.
-        run: ./vendor/bin/pest tests/Browser/Public/
+        # GATE REAL — Fase A (públicas) + INÍCIO da Fase B (autenticadas).
+        # 2026-06-06: destravado o auth cross-process via rota /_visreg-login/{id}?to=
+        # (routes/web.php, env-guarded) + SESSION_DRIVER=file (persiste cross-request).
+        # AuthBridgeSmokeTest cobre Financeiro/Unificado + Sells/Lista (autenticadas) —
+        # prova de conceito do harness. Amplia pro CoreScreens-6 inteiro depois que estas
+        # 2 passarem verde no CI (cada tela pode precisar ajuste de slug-permissão/seed).
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
