@@ -1,7 +1,7 @@
 {
-  "measured_against_sha": "08411a8df",
+  "measured_against_sha": "0e8f95411",
   "generated_by": "reuse-index.mjs --write-baseline",
-  "count": 26,
+  "count": 25,
   "keys": [
     "component:Avatar",
     "component:Chat",
@@ -26,7 +26,6 @@
     "util:MOCK_NODES",
     "util:brl",
     "util:cn",
-    "util:formatBytes",
     "util:lsGet",
     "util:lsSet"
   ]
