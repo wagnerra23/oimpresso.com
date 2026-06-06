@@ -193,7 +193,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
           } else if (r.status === 403) msg = 'Sem permissão.';
           else if (r.status === 404) msg = 'Cliente não encontrado.';
           setErrorField({ field, message: msg });
-          // eslint-disable-next-line no-console
+           
           console.error(`[ClassificacaoTab] autosave ${field} falhou`, { status: r.status });
           return;
         }
@@ -203,7 +203,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
       } catch (err) {
         rollbackField(field, prev);
         setErrorField({ field, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
+         
         console.error(`[ClassificacaoTab] autosave ${field} network`, err);
       } finally {
         setSavingField((c) => (c === field ? null : c));
@@ -320,7 +320,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
             msg = 'Sem permissão pra editar papéis.';
           }
           setErrorField({ field: flag, message: msg });
-          // eslint-disable-next-line no-console
+           
           console.error(`[ClassificacaoTab] papeis ${flag} falhou`, { status: r.status });
           return;
         }
@@ -331,7 +331,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
       } catch (err) {
         setters[flag](currentValues[flag]);
         setErrorField({ field: flag, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
+         
         console.error(`[ClassificacaoTab] papeis ${flag} network`, err);
       } finally {
         setSavingField((c) => (c === flag ? null : c));
