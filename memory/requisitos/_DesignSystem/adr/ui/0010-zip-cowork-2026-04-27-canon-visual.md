@@ -1,6 +1,11 @@
+> ⚰️ **SUPERSEDED em 2026-06-06 por [UI-0018](0018-canon-visual-vivo-ds-v6-manual-identidade.md).**
+> Este zip-snapshot de 2026-04-27 **deixou de ser canon visual** — a verdade viva é DS v6 + primitivos
+> (ADR 0253) + Manual de Identidade. Preservado como **histórico** (append-only); NÃO copiar.
+
 # ADR UI-0010 · Zip Cowork 2026-04-27 é canon visual; `os-page.jsx` é padrão canônico de tela list+detail
 
-- **Status**: accepted
+- **Status**: superseded · lifecycle: substituido
+- **Substituído por**: [UI-0018 — Canon visual vivo DS v6 + Manual](0018-canon-visual-vivo-ds-v6-manual-identidade.md)
 - **Data**: 2026-05-05
 - **Decisores**: Wagner, Claude
 - **Categoria**: ui · estruturante
