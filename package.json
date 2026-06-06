@@ -39,6 +39,8 @@
     "reuse:duplicates": "node scripts/reuse-index.mjs --duplicates",
     "reuse:gate": "node scripts/reuse-index.mjs --gate",
     "reuse:baseline:write": "node scripts/reuse-index.mjs --write-baseline",
+    "no-mock:check": "node scripts/no-mock-in-prod.mjs",
+    "no-mock:baseline:write": "node scripts/no-mock-in-prod.mjs --write-baseline",
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts"
   },
