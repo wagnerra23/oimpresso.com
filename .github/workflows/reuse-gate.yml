@@ -1,0 +1,64 @@
+name: Reuse duplicates ratchet (anti-duplicação de símbolo)
+
+# Fecha o problema #5 do MANUAL-CSS-JS ("colisões de símbolo global / copy-paste"):
+# congela as duplicatas de símbolo conhecidas (mesmo nome+kind em 2+ arquivos, na camada JS
+# SEM namespace — Lib/Hooks/Components/utils) e FALHA o PR só se nascer uma duplicata NOVA.
+# Legado existente é tolerado (baseline). Encolher é sempre OK. Espelha o ratchet do
+# eslint/stylelint/css-size (ADR 0209) — "teste pra não piorar".
+#
+# Script é Node puro (fs) — sem deps, sem npm ci. Comando local: npm run reuse:gate
+# Consultar antes de criar símbolo: npm run reuse:check "o que procura"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/**'
+      - 'app/**'
+      - 'Modules/**'
+      - 'scripts/reuse-index.mjs'
+      - 'scripts/reuse-duplicates-baseline.json'
+      - '.github/workflows/reuse-gate.yml'
+  pull_request:
+    paths:
+      - 'resources/js/**'
+      - 'app/**'
+      - 'Modules/**'
+      - 'scripts/reuse-index.mjs'
+      - 'scripts/reuse-duplicates-baseline.json'
+      - '.github/workflows/reuse-gate.yml'
+
+concurrency:
+  group: reuse-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reuse-gate:
+    name: Reuse · ratchet de duplicatas
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Reuse ratchet (falha em duplicata NOVA)
+        run: node scripts/reuse-index.mjs --gate
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Nasceu uma duplicata de símbolo NOVA (mesmo nome+kind em 2+ arquivos)."
+          echo ""
+          echo "Antes de criar componente/util/hook, confira se já existe:"
+          echo "    npm run reuse:check \"o que você ia criar\""
+          echo "Reuse > recriar (MANUAL-CSS-JS problema #5)."
+          echo ""
+          echo "Se a duplicata for LEGÍTIMA (convenção nova), absorva no baseline conscientemente:"
+          echo "    npm run reuse:baseline:write   # commit + justificativa no PR"
+          echo ""
+          echo "Refs: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md (#5) · ADR 0240"
