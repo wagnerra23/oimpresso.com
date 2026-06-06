@@ -1,5 +1,5 @@
 ---
-date: 2026-06-06
+date: "2026-06-06"
 topic: "Plano — inventário derivado + gates anti-duplicação (CSS/JS/componentes) pra IA não recriar nem hand-rolar errado"
 authors: [W, C]
 related_adrs:
