@@ -133,6 +133,10 @@ jobs:
           BCRYPT_ROUNDS=4
           TELESCOPE_ENABLED=false
           VIEW_COMPILED_PATH=storage/framework/views
+          # MWART_CLIENTE_INDEX=true: sem o flag, /cliente cai no Blade legacy e dá 500
+          # (provado por screenshot do artifact #2320) → fica fora do gate. Com o flag,
+          # renderiza a Page Inertia canônica de Clientes — que é o que o gate deve proteger.
+          MWART_CLIENTE_INDEX=true
           EOF
           php artisan key:generate --force
           php artisan package:discover --ansi
