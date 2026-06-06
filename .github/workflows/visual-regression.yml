@@ -141,6 +141,11 @@ jobs:
         # seeders pesados que possam não existir no env minimal (|| true no fim só do echo).
         run: |
           php artisan db:seed --force
+          # DatabaseSeeder só roda os seeders de PRODUÇÃO (Permissions/Currencies). O
+          # business demo é dev-only → chama o DummyBusinessSeeder explícito (business 1 +
+          # user 'admin' id=1 + locations). Tolera falha (|| true) pra não bloquear o gate
+          # se uma dep de FK faltar no env minimal — o teste skipa gracioso sem business.
+          php artisan db:seed --class=Database\\Seeders\\DummyBusinessSeeder --force || echo "DUMMY_SEED_FAIL"
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
 
