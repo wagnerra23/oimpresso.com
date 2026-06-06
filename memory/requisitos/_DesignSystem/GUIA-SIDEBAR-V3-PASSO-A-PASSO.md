@@ -1,3 +1,11 @@
+---
+status: accepted-historical
+lifecycle: arquivado
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+morreu_porque: "Já tinha errata 2026-06-04; os hues por grupo estão MORTOS (verdade = cockpit/shared.ts). Plano de 5 ondas pode ter valor histórico de processo; NÃO copiar cores. (Onda 2 inspeção 2026-06-06)"
+---
+
 # GUIA — Sidebar v3 oimpresso: do estado atual ao canon completo
 
 > **Pra quem está se perguntando "como faço pra arrumar a bagunça do sidebar?"** — este guia é seu roteiro executável. Passo a passo, com comandos prontos pra copiar, ordem de execução, e validação visual a cada onda.

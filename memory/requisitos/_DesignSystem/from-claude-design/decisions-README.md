@@ -1,3 +1,12 @@
+---
+status: superseded
+lifecycle: substituido
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+superseded_by: ["MCP decisions-search"]
+morreu_porque: "Índice de ADRs congelado em 0001-0023 (abr/2026, do PontoWr2). Índice vivo de decisões é via tool MCP decisions-search. (Onda 2 inspeção 2026-06-06)"
+---
+
 # Architecture Decision Records (ADRs)
 
 Este diretório contém os registros formais de decisões arquiteturais importantes do projeto Ponto WR2.
