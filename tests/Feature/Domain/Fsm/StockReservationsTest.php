@@ -62,6 +62,17 @@ beforeEach(function () {
         $t->timestamps();
     });
 
+    // products: mantida VAZIA — BomResolver consulta no fallback combo (App\Product,
+    // sem global scope). Vazia ⇒ produto não-combo ⇒ caminho "produto simples"
+    // (ReservarEstoque cria 1 reserva por item). Tabela precisa existir mesmo vazia.
+    Schema::create('products', function (Blueprint $t) {
+        $t->increments('id');
+        $t->unsignedInteger('business_id')->nullable();
+        $t->string('name')->nullable();
+        $t->string('type')->default('single');
+        $t->timestamps();
+    });
+
     foreach (['permissions', 'roles'] as $tbl) {
         Schema::create($tbl, function (Blueprint $t) {
             $t->bigIncrements('id');
@@ -93,16 +104,20 @@ beforeEach(function () {
         (require $f)->up();
     }
     (require database_path('migrations/2026_05_11_130001_create_stock_reservations_table.php'))->up();
+    // product_bom: BomResolver::resolve() consulta esta tabela ANTES do fallback
+    // combo. Sem ela, ReservarEstoque quebra (no such table: product_bom).
+    (require database_path('migrations/2026_05_12_080001_create_product_bom_table.php'))->up();
 
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 afterEach(function () {
+    (require database_path('migrations/2026_05_12_080001_create_product_bom_table.php'))->down();
     (require database_path('migrations/2026_05_11_130001_create_stock_reservations_table.php'))->down();
     foreach (array_reverse(glob(database_path('migrations/2026_05_11_120*_create_sale_*.php')) ?: []) as $f) {
         (require $f)->down();
     }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'variation_location_details', 'fsm_test_subjects', 'users'] as $tbl) {
+    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'products', 'variation_location_details', 'fsm_test_subjects', 'users'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -295,4 +310,94 @@ it('8. integração FSM: ExecuteStageActionService dispara ReservarEstoque via s
     expect($rows)->toHaveCount(1);
     expect((float) $rows->first()->qty_reserved)->toBe(4.0);
     expect($subject->fresh()->current_stage_id)->toBe($aprovada->id);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Invariantes do fluxo (DOC-RAIZ-ESTOQUE §7) — guards de estado e hold ≠ baixa.
+// Lacunas não cobertas pelos casos 1-8: reserva não baixa saldo (INV-4),
+// idempotência da reserva, e imutabilidade dos estados terminais
+// (consumed/released/expired) — toda mutação guarda em status=ACTIVE.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('9. INV-4: ReservarEstoque NÃO decrementa qty_available (hold ≠ baixa)', function () {
+    $subject = stockMakeSubject(1);
+    stockMakeVld(200, 1, 10.0);
+
+    (new ReservarEstoque)->execute($subject, [
+        'items' => [['product_id' => 100, 'variation_id' => 200, 'location_id' => 1, 'qty' => 6.0]],
+    ]);
+
+    // Reserva criada active, mas saldo físico intacto — só ConsumirEstoque baixa (INV-4).
+    $r = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->first();
+    expect($r->status)->toBe(StockReservation::STATUS_ACTIVE);
+    expect((float) $r->qty_reserved)->toBe(6.0);
+
+    $vld = DB::table('variation_location_details')->first();
+    expect((float) $vld->qty_available)->toBe(10.0);
+});
+
+it('10. ReservarEstoque idempotente: 2ª reserva do mesmo item não duplica nem soma', function () {
+    $subject = stockMakeSubject(1);
+    stockMakeVld(200, 1, 10.0);
+
+    $payload = ['items' => [['product_id' => 100, 'variation_id' => 200, 'location_id' => 1, 'qty' => 6.0]]];
+    (new ReservarEstoque)->execute($subject, $payload);
+    (new ReservarEstoque)->execute($subject, $payload);
+
+    $rows = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->get();
+    expect($rows)->toHaveCount(1);
+    expect((float) $rows->first()->qty_reserved)->toBe(6.0);
+});
+
+it('11. ConsumirEstoque ignora reserva RELEASED: liberar→consumir não baixa saldo', function () {
+    $subject = stockMakeSubject(1);
+    stockMakeVld(200, 1, 10.0);
+
+    (new ReservarEstoque)->execute($subject, [
+        'items' => [['product_id' => 100, 'variation_id' => 200, 'location_id' => 1, 'qty' => 6.0]],
+    ]);
+    (new LiberarReserva)->execute($subject);   // active → released
+    (new ConsumirEstoque)->execute($subject);  // só consome ACTIVE → no-op
+
+    $r = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->first();
+    expect($r->status)->toBe(StockReservation::STATUS_RELEASED);
+
+    $vld = DB::table('variation_location_details')->first();
+    expect((float) $vld->qty_available)->toBe(10.0);
+});
+
+it('12. ConsumirEstoque ignora reserva EXPIRED: expirar→consumir não baixa saldo', function () {
+    $subject = stockMakeSubject(1);
+    stockMakeVld(200, 1, 10.0);
+
+    // expires_in_days negativo força expires_at no passado → job expira.
+    (new ReservarEstoque)->execute($subject, [
+        'items' => [['product_id' => 100, 'variation_id' => 200, 'location_id' => 1, 'qty' => 6.0]],
+        'expires_in_days' => -1,
+    ]);
+    expect((new ExpireStaleReservationsJob)->handle())->toBe(1); // active → expired
+    (new ConsumirEstoque)->execute($subject);                    // só consome ACTIVE → no-op
+
+    $r = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->first();
+    expect($r->status)->toBe(StockReservation::STATUS_EXPIRED);
+
+    $vld = DB::table('variation_location_details')->first();
+    expect((float) $vld->qty_available)->toBe(10.0);
+});
+
+it('13. estado terminal imutável: LiberarReserva após ConsumirEstoque não reverte a baixa', function () {
+    $subject = stockMakeSubject(1);
+    stockMakeVld(200, 1, 10.0);
+
+    (new ReservarEstoque)->execute($subject, [
+        'items' => [['product_id' => 100, 'variation_id' => 200, 'location_id' => 1, 'qty' => 6.0]],
+    ]);
+    (new ConsumirEstoque)->execute($subject);  // active → consumed, saldo 10 → 4
+    (new LiberarReserva)->execute($subject);   // só libera ACTIVE → não toca consumed
+
+    $r = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->first();
+    expect($r->status)->toBe(StockReservation::STATUS_CONSUMED);
+
+    $vld = DB::table('variation_location_details')->first();
+    expect((float) $vld->qty_available)->toBe(4.0); // baixa NÃO revertida
 });
