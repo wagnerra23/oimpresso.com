@@ -45,7 +45,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, dom, fileinfo, pdo_mysql, gd, opentelemetry
+          # SEM `opentelemetry`: a auto-instrumentação opentelemetry-auto-laravel
+          # (QueryWatcher) acessa contexto OTel não-inicializado DENTRO do fiber do
+          # servidor do Pest Browser → ErrorException fatal em toda query DB das telas
+          # autenticadas (Fase B). O gate visual não precisa de telemetria.
+          extensions: mbstring, dom, fileinfo, pdo_mysql, gd
           coverage: none
 
       - name: Wait for MySQL ready
@@ -78,7 +82,10 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
+        # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
+        # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
+        # O pacote degrada gracioso sem a ext (hooks não registram).
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
         run: npm ci
@@ -133,24 +140,21 @@ jobs:
           echo "=== schema-squash check: tabelas criadas ==="
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
-      - name: Seed demo tenant (business + admin + permissions)
+      - name: Seed demo tenant (business + admin + role Admin#1)
         # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
         # precisam de um business + admin seedados.
         #
-        # FUNDAÇÃO LANDADA, SEED PENDENTE (2026-06-06): o auth bridge (rota _visreg-login
-        # + SESSION_DRIVER=file + cross-process DB) está PROVADO. Falta SÓ um tenant válido.
-        # DatabaseSeeder roda só os seeders de PROD (Permissions/Currencies). O
-        # DummyBusinessSeeder (demo, business 1 + admin id=1) está DESATUALIZADO contra o
-        # schema atual (insere contacts.first_name, coluna removida) → falha. Tolerado
-        # (|| true) → o AuthBridgeSmokeTest skipa gracioso (Business::first() null) SEM
-        # quebrar o gate. PRÓXIMO PR: consertar o DummyBusinessSeeder OU um seeder minimal
-        # de tenant (business+location+admin+role) contra o schema atual → os 2 testes
-        # autenticados ATIVAM sozinhos (já estão wired). Vide RUNBOOK US-GOV-013.
+        # 2026-06-06: o DummyBusinessSeeder (demo UltimatePOS de 2018) estava PODRE contra
+        # o schema atual (inseria contacts.first_name, coluna removida → "Unknown column")
+        # → sem business → AuthBridgeSmokeTest skipava. Trocado pelo VisregTenantSeeder
+        # MINIMAL (business 1 + location + admin id=1 + role spatie Admin#1), idempotente e
+        # alinhado ao schema. Sem `|| echo` que mascarava: agora o seed é GATE REAL — se
+        # quebrar, o job falha. Vide database/seeders/VisregTenantSeeder.php.
         run: |
           php artisan db:seed --force
-          php artisan db:seed --class=Database\\Seeders\\DummyBusinessSeeder --force || echo "DUMMY_SEED_OUTDATED (esperado — ver comentário; teste skipa gracioso)"
+          php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
           echo "=== seed check ==="
-          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
 
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
