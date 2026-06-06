@@ -12,6 +12,8 @@
 
 import { Package, Pencil, Trash2, UserCog, Wrench } from 'lucide-react';
 
+import { Box, Inline } from '@/Components/layout';
+
 export type ItemTipo = 'peca' | 'mao_obra' | 'servico_terceiro';
 
 export interface ServiceOrderItemDto {
@@ -62,43 +64,49 @@ export default function ServiceOrderItemRow({ item, onEdit, onDelete, busy = fal
   const vu = toFloat(item.valor_unitario);
   const total = toFloat(item.valor_total);
 
+  // Layout via primitivos (ADR 0253 · F3): o row é uma composição horizontal
+  // (Inline) — adeus `grid grid-cols-[auto_1fr_auto_auto]` solto. `asChild` mantém
+  // o elemento semântico <li>. A descrição cresce (flex-1), o resto é content-width
+  // (shrink-0). Cluster de ações é outro Inline.
   return (
-    <li className="group px-3 py-2 grid grid-cols-[auto_1fr_auto_auto] gap-2 items-center text-[11.5px] hover:bg-slate-50/80 transition-colors">
-      <Icon size={14} className="text-muted-foreground shrink-0" aria-hidden />
-      <div className="min-w-0">
-        <div className="text-foreground font-medium truncate">{item.descricao}</div>
-        <div className="text-muted-foreground text-[10.5px]">
-          {TIPO_LABEL[item.tipo]} ·{' '}
-          {qtd.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} × {formatBRL(vu)}
+    <Inline asChild gap={2} align="center">
+      <li className="group px-3 py-2 text-[11.5px] hover:bg-slate-50/80 transition-colors">
+        <Icon size={14} className="text-muted-foreground shrink-0" aria-hidden />
+        <Box className="min-w-0 flex-1">
+          <div className="text-foreground font-medium truncate">{item.descricao}</div>
+          <div className="text-muted-foreground text-[10.5px]">
+            {TIPO_LABEL[item.tipo]} ·{' '}
+            {qtd.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} × {formatBRL(vu)}
+          </div>
+        </Box>
+        <div className="shrink-0 text-foreground tabular-nums font-medium whitespace-nowrap">
+          {formatBRL(total)}
         </div>
-      </div>
-      <div className="text-foreground tabular-nums font-medium whitespace-nowrap">
-        {formatBRL(total)}
-      </div>
-      {/* Hover actions — visíveis sempre em mobile (group-hover requer hover capable device).
-          Acessibilidade: focus visible via :focus-visible nativo, opacity-100 ao focus. */}
-      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-        <button
-          type="button"
-          onClick={() => onEdit(item)}
-          disabled={busy}
-          className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-slate-200 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Editar item"
-          aria-label="Editar item"
-        >
-          <Pencil size={11} />
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(item)}
-          disabled={busy}
-          className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-rose-100 text-muted-foreground hover:text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Excluir item"
-          aria-label="Excluir item"
-        >
-          <Trash2 size={11} />
-        </button>
-      </div>
-    </li>
+        {/* Hover actions — visíveis sempre em mobile (group-hover requer hover capable device).
+            Acessibilidade: focus visible via :focus-visible nativo, opacity-100 ao focus. */}
+        <Inline align="center" className="shrink-0 gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          <button
+            type="button"
+            onClick={() => onEdit(item)}
+            disabled={busy}
+            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-slate-200 text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Editar item"
+            aria-label="Editar item"
+          >
+            <Pencil size={11} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(item)}
+            disabled={busy}
+            className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-rose-100 text-muted-foreground hover:text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Excluir item"
+            aria-label="Excluir item"
+          >
+            <Trash2 size={11} />
+          </button>
+        </Inline>
+      </li>
+    </Inline>
   );
 }
