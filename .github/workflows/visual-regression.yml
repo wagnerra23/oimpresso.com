@@ -45,7 +45,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, dom, fileinfo, pdo_mysql, gd, opentelemetry
+          # SEM `opentelemetry`: a auto-instrumentação opentelemetry-auto-laravel
+          # (QueryWatcher) acessa contexto OTel não-inicializado DENTRO do fiber do
+          # servidor do Pest Browser → ErrorException fatal em toda query DB das telas
+          # autenticadas (Fase B). O gate visual não precisa de telemetria.
+          extensions: mbstring, dom, fileinfo, pdo_mysql, gd
           coverage: none
 
       - name: Wait for MySQL ready
@@ -78,7 +82,10 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
+        # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
+        # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
+        # O pacote degrada gracioso sem a ext (hooks não registram).
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
         run: npm ci
