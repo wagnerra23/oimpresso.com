@@ -28,7 +28,20 @@ declare(strict_types=1);
 use App\User;
 use Spatie\Permission\Models\Permission;
 
-beforeEach(fn () => \Carbon\Carbon::setTestNow('2026-06-06 12:00:00'));
+beforeEach(function () {
+    // CROSS-PROCESS DB: o browser (subprocesso) usa MySQL (.env, schema-squash #2221),
+    // mas o test process usa sqlite :memory: (phpunit.xml força DB_CONNECTION/DB_DATABASE).
+    // Pra os dados criados AQUI (user/permission) serem VISÍVEIS ao browser, o test process
+    // tem que usar o MESMO MySQL. host/port/user/pass já vêm do .env (phpunit só sobrescreve
+    // connection+database) — só realinho default + database e reconecto.
+    config([
+        'database.default' => 'mysql',
+        'database.connections.mysql.database' => 'oimpresso_test',
+    ]);
+    \Illuminate\Support\Facades\DB::purge('mysql');
+
+    \Carbon\Carbon::setTestNow('2026-06-06 12:00:00');
+});
 afterEach(fn () => \Carbon\Carbon::setTestNow());
 
 /** Tela => [rota, slug-permissão, âncora-de-texto que prova que montou (não 403/login/erro)]. */
