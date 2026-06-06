@@ -1,3 +1,12 @@
+---
+status: superseded
+lifecycle: substituido
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+superseded_by: [".claude/rules/modules.md", ".claude/rules/migrations.md", "CLAUDE.md"]
+morreu_porque: "Convenções importadas do projeto PontoWr2 legado; cita Laravel 10 (stack real = 13.6). Convenções vivas em .claude/rules/ + CLAUDE.md. (Onda 2 inspeção 2026-06-06)"
+---
+
 # 04 — Convenções do Projeto
 
 ## Idioma
