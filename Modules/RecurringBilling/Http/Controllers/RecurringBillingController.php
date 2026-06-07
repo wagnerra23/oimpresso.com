@@ -14,6 +14,8 @@ use Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter;
 use Modules\RecurringBilling\Http\Requests\CancelSubscriptionRequest;
 use Modules\RecurringBilling\Http\Requests\PauseSubscriptionRequest;
 use Modules\RecurringBilling\Http\Requests\StoreAssinaturaRequest;
+use Modules\RecurringBilling\Http\Requests\UpdateAssinaturaRequest;
+use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Models\Plan;
 use Modules\RecurringBilling\Models\Subscription;
@@ -357,9 +359,40 @@ class RecurringBillingController extends Controller
         return view('recurringbilling::edit');
     }
 
-    public function update(Request $request, $id): RedirectResponse
-    {
-        //
+    /**
+     * PUT /recurring-billing/{id} — atualiza cobrança (valor / ciclo / forma).
+     *
+     * Onda 23 v9,75: wira o serviço AssinaturaCobrancaService::atualizarCobrancaAssinatura
+     * (lógica já existia, faltava a rota canônica). Edição parcial (UpdateAssinaturaRequest:
+     * todos os campos sometimes — pelo menos 1). Multi-tenant Tier 0 + Gate update.
+     */
+    public function update(
+        UpdateAssinaturaRequest $request,
+        int $id,
+        AssinaturaCobrancaService $service,
+    ): RedirectResponse|JsonResponse {
+        $sub = $this->loadOwnedOrFail($id);
+        Gate::authorize('update', $sub);
+
+        $result = $service->atualizarCobrancaAssinatura(
+            (int) session('user.business_id'),
+            $sub->id,
+            $request->validated(),
+        );
+
+        if (! ($result['ok'] ?? false)) {
+            return $this->respondError(
+                $request,
+                $result['error'] ?? 'Falha ao atualizar a assinatura.',
+                (int) ($result['http_status'] ?? 422),
+            );
+        }
+
+        return $this->respondOk(
+            $request,
+            sprintf('Assinatura #%d atualizada.', $sub->id),
+            ['subscription' => $sub->fresh()],
+        );
     }
 
     public function destroy($id)
