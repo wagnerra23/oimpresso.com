@@ -192,12 +192,33 @@ function checkAdrEnumDrift() {
   }
 }
 
+// ── Check F: anti-ressurreição da auto-mem (GAP 3, ADR 0258/0061) ───────────
+// O legado memory/claude/ foi purgado e o cron memcofre:sync-memories desativado
+// (PR #2383). Este invariante IMPEDE a volta: se o dir reaparecer OU o schedule
+// for re-ativado (linha não-comentada), 🔴 fail. Mata a classe "rebaixei/apaguei
+// e voltou" de raiz.
+function checkAntiResurrection() {
+  if (exists('memory/claude')) {
+    fails.push({ check: 'F', kind: 'automem-ressuscitou',
+      msg: `memory/claude/ REAPARECEU — auto-mem legada (ADR 0061 proíbe). Apague + investigue o que recriou (cron memcofre? sync manual?).` });
+  }
+  const kernel = 'app/Console/Kernel.php';
+  if (exists(kernel)) {
+    const active = read(kernel).split('\n').some((l) => /^\s*\$schedule->command\(\s*['"]memcofre:sync-memories['"]/.test(l));
+    if (active) {
+      fails.push({ check: 'F', kind: 'cron-automem-reativado',
+        msg: `cron memcofre:sync-memories foi RE-ATIVADO no Kernel.php (linha não-comentada) — era a fonte do vazamento/ressurreição (ADR 0258). Só volta via ADR que reverta o 0061.` });
+    }
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
 checkSecretsInMemory();
 checkStaleCanon();
 checkAdrEnumDrift();
+checkAntiResurrection();
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ fails, warns, ok: fails.length === 0 }, null, 2));

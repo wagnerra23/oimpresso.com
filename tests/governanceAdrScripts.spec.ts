@@ -17,6 +17,7 @@ import { join, resolve } from 'node:path';
 const REPO = process.cwd();
 const GEN = resolve(REPO, 'scripts/governance/adr-index-generate.mjs');
 const SUP = resolve(REPO, 'scripts/governance/adr-supersede.mjs');
+const MH = resolve(REPO, 'scripts/governance/memory-health.mjs');
 
 let tmp: string;
 const adr = (dir: string, file: string, fm: string) =>
@@ -76,5 +77,34 @@ describe('adr-supersede — SUPERSEDE ATÔMICO (físico)', () => {
     catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
     expect(threw).toBe(true);            // colisão → erro (não escolhe sozinho)
     expect(msg).toMatch(/colide|slug/i);
+  });
+});
+
+describe('GAP 1 — supersede-integrity como GATE DURO (--check, ADR 0258)', () => {
+  it('--check FALHA quando A supersedes B mas B não está marcada superseded', () => {
+    adr(tmp, '0920-old.md', 'slug: 0920-old\nnumber: 920\ntitle: "Old"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0921-new.md', 'slug: 0921-new\nnumber: 921\ntitle: "New"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes: [\'0920-old\']');
+    run(`node "${GEN}" --write`); // gera o índice (com o alerta)
+    let threw = false; let msg = '';
+    try { run(`node "${GEN}" --check`); }
+    catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
+    expect(threw).toBe(true);                 // supWarn>0 → gate bloqueia
+    expect(msg).toMatch(/supersess|0920/i);
+  });
+});
+
+describe('GAP 3 — invariante anti-ressurreição (memory-health Check F, ADR 0258/0061)', () => {
+  it('FALHA se memory/claude/ reaparece', () => {
+    mkdirSync(join(tmp, 'memory/claude'), { recursive: true });
+    writeFileSync(join(tmp, 'memory/claude/legado.md'), '# legado ressuscitado');
+    let threw = false; let msg = '';
+    try { run(`node "${MH}"`); } // sem --warn-only → fail-class bloqueia
+    catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
+    expect(threw).toBe(true);
+    expect(msg).toMatch(/ressuscit|claude/i);
+  });
+  it('NÃO acusa quando memory/claude não existe (especificidade)', () => {
+    const out = run(`node "${MH}" --warn-only`);
+    expect(out).not.toMatch(/\[F\]/); // Check F sem fail
   });
 });
