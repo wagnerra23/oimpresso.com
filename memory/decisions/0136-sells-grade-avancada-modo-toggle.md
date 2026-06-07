@@ -3,9 +3,9 @@ slug: 0136-sells-grade-avancada-modo-toggle
 number: 136
 title: "Sells: split Lista (default) vs Grade Avançada (toggle) — migração legacy OfficeImpresso sem chocar power-user"
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 decided_by: [W]
 decided_at: 2026-05-11
 module: sells
@@ -13,7 +13,7 @@ tags: [migration, ux, legacy, officeimpresso, comunicacao-visual, grid, power-us
 supersedes: []
 supersedes_partially: []
 amends: []
-superseded_by: []
+superseded_by: [0178]
 related: [0094, 0104, 0105, 0107, 0121]
 pii: false
 review_triggers:

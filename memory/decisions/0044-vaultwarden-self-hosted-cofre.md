@@ -3,9 +3,10 @@ slug: 0044-vaultwarden-self-hosted-cofre
 number: 44
 title: !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw==
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: [0060]
 decided_by:
   - W
 decided_at: '2026-04-28'

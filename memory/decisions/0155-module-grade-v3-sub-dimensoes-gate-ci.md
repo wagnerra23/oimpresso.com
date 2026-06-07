@@ -8,6 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-16
+supersedes: [0153, 0154]
 accepted_at: 2026-05-16
 review_at: 2026-05-23
 module: Governance
