@@ -64,26 +64,18 @@ NÃO escreva mais nada. NÃO consolide. 1 arquivo por tela.
 | [`example.design-report.json`](example.design-report.json) | 1 exemplo versionado (amostra do schema) |
 | [`consolidate.mjs`](consolidate.mjs) | Determinístico: lê `reports/` → `CONSOLIDADO.md` + `CONSOLIDADO.json` |
 | `CONSOLIDADO.md` | Placar único versionado (gerado — Cowork lê daqui; nunca editado à mão) |
-| [`review-gen.mjs`](review-gen.mjs) | **`design:review <tela>`** — renderiza o `design-report.json` (Fase 1) num `<Tela>.review.md` append-only ao lado do `<Tela>.charter.md` (charter page viva), ancorado por `measured_against_sha` |
-| [`review-freshness.mjs`](review-freshness.mjs) | Gate de **frescor** (missing/stale/fresh) + ratchet `--write-baseline`. Espelha o Pest `DesignReviewFreshnessTest` |
-| `review-freshness-baseline.json` | Ratchet (espelha `config/eslint-baseline.json`) — dívida herdada de telas live sem review; **só encolhe** |
+| [`review-gen.mjs`](review-gen.mjs) | **`design:review <tela>`** — renderiza o `design-report.json` (Fase 1) num `<Tela>.review.md` **ON-DEMAND** (não persistido/gateado — [ADR 0255](../../memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md)) |
 
-## Review por tela (charter page viva) — `design:review`
+## Review por tela — `design:review` (ON-DEMAND, rebaixado · ADR 0255)
 
-A Fase 1 cospe `reports/*.design-report.json` (gitignored, regenerável). Pra virar **relatório de
-tarefas versionado por tela**, o `review-gen.mjs` renderiza esse report num `<Tela>.review.md`
-append-only **ao lado do `<Tela>.charter.md`** (= charter page viva: spec + nota viva + backlog).
+> **Rebaixado em 2026-06-06 ([ADR 0255](../../memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md)):** os 157 `<Tela>.review.md` persistidos + o gate de frescor (`review-freshness.mjs` + `DesignReviewFreshnessTest` + baseline) foram **removidos** — apodreciam e exigiam manutenção. O **frescor estrutural determinístico** agora vive no `<Tela>.design-spec.json` (`design-spec:check`, machine-checkable, sem juiz LLM). O review LLM (opinião de design subjetiva) vira **on-demand**: gera quando quiser, não persiste, não gateia.
 
 ```bash
-npm run design:review Jana/Pro        # gera/append round N em resources/js/Pages/Jana/Pro.review.md
-npm run design:review:check           # gate: tela live sem review (fora do baseline) = falha
-npm run design:review:baseline        # (re)grava o ratchet review-freshness-baseline.json
+npm run design:review Jana/Pro        # gera o review LLM da tela ON-DEMAND (não commita)
+node scripts/design-spec-gen.mjs resources/js/Pages/Jana/Pro.tsx   # contrato estrutural (determinístico, este SIM gateado)
 ```
 
-**Frescor (anti-stale):** cada `<Tela>.review.md` carrega `measured_against_sha` = sha do último
-commit que tocou o `.tsx`. `review-freshness.mjs` compara e classifica `fresh`/`stale`/`missing`.
-Ratchet (espelha `config/eslint-baseline.json`, ADR 0209): só falha por tela live **nova** fora do
-baseline; o baseline **só encolhe** (ao gerar o review, rode `--write-baseline` pra podar).
+**Por quê:** review.md era LLM-judge persistido com gate de frescor pra combater o apodrecimento — mas o que importava (estrutura: componentes/tokens/layout) é DERIVÁVEL e agora está no design-spec (determinístico). O resíduo (opinião subjetiva de design) não precisa de frescor gateado — gera sob demanda.
 
 `stale` é **advisory na v1** (reviews legados de 2026-05-17 não têm `measured_against_sha`); vira
 HARD quando regenerados. PROTOCOL §6 ganha `design_review_missing` + `design_review_stale`. A
