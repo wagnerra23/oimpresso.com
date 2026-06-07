@@ -616,26 +616,10 @@ export default function RecurringBillingIndex(props: PageProps) {
           )}
         </Deferred>
 
-        {/* ── Placeholder pras outras 3 tabs ── */}
-        {tab !== 'assinaturas' && (
-          <div className="rounded-lg bg-white p-12 text-center shadow-sm ring-1 ring-stone-200">
-            <div className="text-lg font-medium text-stone-700">
-              Aba <strong className="text-primary">{TABS.find((t) => t.key === tab)?.label}</strong> em construção
-            </div>
-            <div className="mt-2 text-sm text-stone-500">
-              Próximas ondas: Planos · Faturas · Configurações. Por ora use a aba Assinaturas.
-            </div>
-            <button
-              type="button"
-              onClick={() => setTab('assinaturas')}
-              className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-            >
-              Voltar a Assinaturas
-            </button>
-          </div>
-        )}
-
-        {/* ── 3-COL BODY (sub-tab Assinaturas) ── */}
+        {/* ── 3-COL BODY (sub-tab Assinaturas) ──
+            Onda 22 v9,75: removido placeholder "em construção" morto — as abas
+            Planos/Faturas/Configurações navegam via router.visit pras Pages reais
+            (Ondas 6/7/8), então `tab` é sempre 'assinaturas' nesta página. */}
         {tab === 'assinaturas' && (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_340px]">
             {/* COL 1 · FILTROS */}
