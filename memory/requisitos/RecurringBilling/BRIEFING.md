@@ -45,6 +45,8 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 - **Webhooks**: idempotência via `webhook_event_id` + `ProcessAsaasWebhookJob`/`ProcessInterWebhookJob`
 - **NFe**: listener `InvoicePaid` → `NfeBrasil` emite automaticamente (US-RB-044)
 - **Banking sync**: `SyncBankBalancesJob` + `SyncBankStatementsJob` Inter PJ
+- **Page Inertia completa**: Index (assinaturas 3-col) + Pages Planos (CRUD) + Faturas + Configurações
+- **Nova assinatura (Onda 21 · PR #2369)**: drawer DS de criação com busca de cliente debounced (Tier 0) + seletor de plano que pré-preenche valor/ciclo → POST `recurring-billing.store`. 3 gatilhos: CTA header, atalho `N`, primary sidebar (`?new=1`)
 
 ## 4. Diferenciais únicos
 
@@ -58,11 +60,13 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 
 | # | PR alvo | Esforço IA-pair | Score impact |
 |---|---|---|---|
-| 1 | UI React Pages/RecurringBilling/Plans completa | 4h | +2pp |
-| 2 | Dunning automatizado (régua 3/7/15d) | 6h | +3pp |
-| 3 | Pix Automático BCB (JRC) | 8h | +2pp |
-| 4 | MRR/Churn dashboard real | 4h | +1.5pp |
-| 5 | Pix recorrente Asaas | 3h | +1.5pp |
+| 1 | Dunning automatizado (régua 3/7/15d) | 6h | +3pp |
+| 2 | Pix Automático BCB (JRC) | 8h | +2pp |
+| 3 | MRR/Churn dashboard real (sparkline histórico 12m server-side, hoje mock derivada) | 4h | +1.5pp |
+| 4 | Pix recorrente Asaas | 3h | +1.5pp |
+| 5 | Edição de assinatura (drawer Editar — hoje só criar/cancelar/pausar/reativar) | 3h | +1.5pp |
+
+> ✅ Onda 21 (PR #2369) fechou o gap "criar assinatura pela UI" (antes só backend). Pages Planos/Faturas/Configurações também já existem (Ondas 6/7/8).
 
 ## 6. Bloqueadores manuais Wagner
 
@@ -90,7 +94,7 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 - MRR ativo: pendente medição pós-G1
 - Faturas geradas: ~0 (pré-canary)
 - Webhook idempotency rate: 100% (suite Pest verde)
-- Cobertura Pest: 14 testes Feature passando
+- Cobertura Pest: suite Feature verde na CI · +`Wave21NewSubscriptionTest` (8 cenários: validação request + plan_id, store(), searchContacts() Tier 0 biz=1 vs biz=99)
 
 ## 10. Cliente piloto / canary
 
@@ -106,6 +110,7 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 
 ## 12. Sessões e handoffs relevantes (últimos 30d)
 
+- **2026-06-07 — PR #2369 Onda 21 (Nova assinatura ativa)**: ativa o botão de criação (era stub "(em breve)" + primary sidebar 404 `/create`). Backend de criação já existia 100% (`store` + `StoreAssinaturaRequest` + Policy); faltava só frontend. Drawer DS (Sheet/Input/Select/Textarea/Label/FieldError) + endpoint `recurring-billing.contacts.search` (Tier 0) + `StoreAssinaturaRequest` aceita `plan_id`. Removido método/rota `create()` (noop) → sidebar aponta `?new=1` (prop `openCreate`). 32/32 checks CI verdes (gates Charter/ESLint/UI-Lint R1/no-mock corrigidos na raiz).
 - **2026-05-17 — PR #1045 Ondas 3+4+5 (Page Inertia Cobrança Recorrente)**: primeiro Page Inertia React substitui Blade "Hello World". Backend (Controller Inertia::defer + SubscriptionRepository::paginatedForIndex + SubscriptionIndexPresenter stateless). Frontend (Index.tsx ~600 linhas Tailwind 4 + 3-col + Drawer detalhe + skeletons). Sidebar grupo FINANCEIRO (DataController.modifyAdminMenu order 86 + Sidebar.tsx MENU_ICON_MAP RefreshCw + SIDEBAR_GROUPS['fin']). DemoSeeder biz=1 (5 planos + 18 subs + invoices/charge_attempts). Pest 5/5 (47 assertions) PASSED. Smoke local Herd OK.
 - Wave J 2026-05-16 — boost 56→70: thin `AssinaturaCobrancaService` + BRIEFING + Pest smoke
 - CYCLE-06 G1 — Martinho Inter PJ canary (pendente desbloqueio cert)
@@ -114,6 +119,6 @@ Sub-módulo de assinaturas recorrentes (`rb_plans`, `rb_subscriptions`, `rb_invo
 
 ## 13. Último update
 
-**Atualizado:** 2026-05-17 BRT pelo PR #1045 (Ondas 3+4+5 — Page Inertia Cobrança Recorrente)
-**Próximo update esperado:** Ondas 6/7/8 (tabs Planos/Faturas/Configurações) OU canary G1 Martinho Inter PJ
-**Mantenedor:** Claude (PR #1045 + Wave J) + Wagner (review/merge)
+**Atualizado:** 2026-06-07 BRT pelo PR #2369 (Onda 21 — Nova assinatura / drawer de criação ativo)
+**Próximo update esperado:** dunning automatizado OU MRR/Churn dashboard real OU canary G1 Martinho Inter PJ
+**Mantenedor:** Claude (auto via skill `brief-update`) + Wagner (review/merge)
