@@ -46,6 +46,7 @@
     "a11y:report": "node scripts/a11y-ratchet.mjs --report",
     "a11y:baseline:write": "node scripts/a11y-ratchet.mjs --write",
     "a11y:axe": "vitest run tests/a11y-primitives.test.tsx",
+    "scorer:sync": "node scripts/scorer-sync-check.mjs",
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts"
   },
