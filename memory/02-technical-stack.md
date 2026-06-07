@@ -1,5 +1,7 @@
 # 02 — Stack Técnica
 
+> ⚠️ **FÓSSIL parcial — NÃO usar a seção de stack de IA.** O cabeçalho PHP 8.4/Laravel 13.6 está correto, mas a stack de IA aqui (Vizra ADK / OpenAI como futuro) foi **DESCARTADA** — canon atual é `laravel/ai` (ADR 0035/0048). Stack canônica atual: `memory/what-oimpresso.md` (@import). Ver `memory/governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md`.
+
 ## Linguagem e framework
 
 | Item | Versão real na instância | Razão |
