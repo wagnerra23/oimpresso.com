@@ -50,7 +50,8 @@
     "a11y:axe": "vitest run tests/a11y-primitives.test.tsx",
     "scorer:sync": "node scripts/scorer-sync-check.mjs",
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
-    "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts"
+    "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts",
+    "test:adr-governance": "vitest run tests/governanceAdrScripts.spec.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -109,6 +110,8 @@
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-query-devtools": "^5.0.0",
     "@tanstack/react-table": "^8.21.3",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "centrifuge": "^5.5.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

@@ -1,0 +1,80 @@
+// Camada META — teste FÍSICO (integração caixa-preta) dos scripts de governança de ADR.
+//
+// Regra do MÉTODO ("todo ✅ tem que ter sido visto falhar"): cria ADRs-fixture num dir
+// temporário, RODA o script real (node, subprocess) e exige o comportamento — incluindo
+// os bugs que já mordemos (parser pegando ano/hue "2026"/"295"; superseded_by em número
+// cru em vez de slug). Não é mock: é o .mjs de verdade contra disco real.
+//
+// Cobre: scripts/governance/adr-index-generate.mjs + adr-supersede.mjs
+// Refs: ADR 0256/0257/0258 · padrão foundationGuard.spec.ts (controle-negativo).
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+
+const REPO = process.cwd();
+const GEN = resolve(REPO, 'scripts/governance/adr-index-generate.mjs');
+const SUP = resolve(REPO, 'scripts/governance/adr-supersede.mjs');
+
+let tmp: string;
+const adr = (dir: string, file: string, fm: string) =>
+  writeFileSync(join(dir, 'memory/decisions', file), `---\n${fm}\n---\n\n# ${file}\n\nCorpo.\n`);
+
+beforeEach(() => {
+  tmp = mkdtempSync(join(tmpdir(), 'adrgov-'));
+  mkdirSync(join(tmp, 'memory/decisions'), { recursive: true });
+});
+afterEach(() => rmSync(tmp, { recursive: true, force: true }));
+
+const run = (cmd: string) => execSync(cmd, { cwd: tmp, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+
+describe('adr-index-generate — GERADOR (físico)', () => {
+  it('SENSIBILIDADE: detecta colisão de número + conta ATIVOS normalizando grafia', () => {
+    adr(tmp, '0901-alpha.md', 'slug: 0901-alpha\nnumber: 901\ntitle: "Alpha"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0902-collide.md', 'slug: 0902-collide\nnumber: 902\ntitle: "C1"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0902-beta.md', 'slug: 0902-beta\nnumber: 902\ntitle: "C2"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0903-drift.md', 'slug: 0903-drift\nnumber: 903\ntitle: "Drift"\ntype: adr\nstatus: accepted\nauthority: canonical\nlifecycle: active\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    run(`node "${GEN}" --write`);
+    const idx = readFileSync(join(tmp, 'memory/decisions/_INDEX-GENERATED.md'), 'utf8');
+    expect(idx).toContain('**0902** ×2'); // colisão detectada
+    expect(idx).toMatch(/ATIVOS \(lifecycle ativo\): 4/); // 0903 active→ativo normalizado entra na conta
+    expect(idx).toMatch(/aceito 4/); // 0903 accepted→aceito normalizado
+  });
+
+  it('ESPECIFICIDADE: não inventa "supersedes 2026/295" de comentário/ano (regressão do parser)', () => {
+    adr(tmp, '0905-superseder.md',
+      'slug: 0905-superseder\nnumber: 905\ntitle: "Sup"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes:\n  - \'0901-alpha\'  # adotado 2026-01, hue 295');
+    adr(tmp, '0901-alpha.md', 'slug: 0901-alpha\nnumber: 901\ntitle: "Alpha"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    run(`node "${GEN}" --write`);
+    const idx = readFileSync(join(tmp, 'memory/decisions/_INDEX-GENERATED.md'), 'utf8');
+    expect(idx).not.toMatch(/supersede[^\n]*2026/i); // NÃO captura o ano do comentário
+    expect(idx).not.toMatch(/supersede[^\n]*\b295\b/);  // NÃO captura o hue
+    expect(idx).toMatch(/0905 supersedes 0901/);        // captura o alvo real (0901 não marcada)
+  });
+});
+
+describe('adr-supersede — SUPERSEDE ATÔMICO (físico)', () => {
+  it('rebaixa a antiga com superseded_by em SLUG (regressão: era número cru)', () => {
+    adr(tmp, '0911-old.md', 'slug: 0911-old\nnumber: 911\ntitle: "Old"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0912-new.md', 'slug: 0912-new\nnumber: 912\ntitle: "New"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes: [\'0911-old\']');
+    run(`node "${SUP}" --new 0912 --old 0911 --write`);
+    const old = readFileSync(join(tmp, 'memory/decisions/0911-old.md'), 'utf8');
+    expect(old).toMatch(/^status: superseded$/m);
+    expect(old).toMatch(/^lifecycle: substituido$/m);
+    expect(old).toMatch(/^superseded_by: \['0912-new'\]$/m); // SLUG, não [0912]
+    expect(old).not.toMatch(/superseded_by: \[0912\]/);       // o bug que consertamos
+  });
+
+  it('SENSIBILIDADE: número colidido exige slug (não adivinha)', () => {
+    adr(tmp, '0913-x.md', 'slug: 0913-x\nnumber: 913\ntitle: "X"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0913-y.md', 'slug: 0913-y\nnumber: 913\ntitle: "Y"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0914-z.md', 'slug: 0914-z\nnumber: 914\ntitle: "Z"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    let threw = false; let msg = '';
+    try { run(`node "${SUP}" --new 0914 --old 0913 --write`); }
+    catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
+    expect(threw).toBe(true);            // colisão → erro (não escolhe sozinho)
+    expect(msg).toMatch(/colide|slug/i);
+  });
+});
