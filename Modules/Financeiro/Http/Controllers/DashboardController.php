@@ -135,12 +135,18 @@ class DashboardController extends Controller
                 'vencidos_qtd' => (clone $aPagar)->where('vencimento', '<', $hoje)->count(),
                 'vencidos_valor' => (float) (clone $aPagar)->where('vencimento', '<', $hoje)->sum('valor_aberto'),
             ],
+            // Eliana [E] 2026-06-07: KPIs RECEBIDO/PAGO mostram valor REAL pago
+            // (valor_baixa + juros + multa - desconto) — paridade WR Comercial.
             'recebido_mes' => [
-                'valor' => (float) (clone $recebidoMes)->sum('valor_baixa'),
+                'valor' => (float) (clone $recebidoMes)
+                    ->selectRaw('COALESCE(SUM(valor_baixa + juros + multa - desconto), 0) as total')
+                    ->value('total'),
                 'qtd' => (clone $recebidoMes)->count(),
             ],
             'pago_mes' => [
-                'valor' => (float) (clone $pagoMes)->sum('valor_baixa'),
+                'valor' => (float) (clone $pagoMes)
+                    ->selectRaw('COALESCE(SUM(valor_baixa + juros + multa - desconto), 0) as total')
+                    ->value('total'),
                 'qtd' => (clone $pagoMes)->count(),
             ],
         ];
