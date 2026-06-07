@@ -50,11 +50,14 @@ describe("primitivos — props viram classe-token", () => {
     expect(el.className).toContain("px-6")
   })
 
-  it("Container: size vira max-width-token e centraliza", () => {
+  it("Container: size vira max-width-token (escala TW v4-safe) e centraliza", () => {
+    // refino v2 (ADR 0253): `max-w-screen-*` foi removido no Tailwind v4 — virava
+    // no-op silencioso. Agora `lg` mapeia pra `max-w-6xl`, que existe de fato no v4.
     const { container } = render(<Container size="lg" />)
     const el = container.querySelector('[data-slot="container"]')!
     expect(el.className).toContain("mx-auto")
-    expect(el.className).toContain("max-w-screen-lg")
+    expect(el.className).toContain("max-w-6xl")
+    expect(el.className).not.toContain("max-w-screen-")
   })
 
   it("Text: tone/size viram token semântico; default tag = p", () => {
@@ -86,6 +89,50 @@ describe("primitivos — polimorfismo (semântica desacoplada do estilo)", () =>
     expect(el.getAttribute("data-slot")).toBe("stack")
     expect(el.className).toContain("flex-col")
     expect(el.className).toContain("gap-2")
+  })
+})
+
+describe("primitivos — refino v2 (ADR 0253): cobertura ERP real, ainda só-token", () => {
+  it("Box: bg/rounded/border viram superfície-token (fecha a promessa 'espaço E cor')", () => {
+    const { container } = render(<Box p={4} bg="card" rounded="lg" border />)
+    const el = container.querySelector('[data-slot="box"]')!
+    expect(el.className).toContain("bg-card")
+    expect(el.className).toContain("text-card-foreground")
+    expect(el.className).toContain("rounded-lg")
+    expect(el.className).toContain("border-border")
+  })
+
+  it("Stack/Inline: divider liga divide-y / divide-x divide-border", () => {
+    const { container } = render(
+      <>
+        <Stack divider />
+        <Inline divider />
+      </>,
+    )
+    expect(container.querySelector('[data-slot="stack"]')!.className).toContain("divide-y")
+    expect(container.querySelector('[data-slot="inline"]')!.className).toContain("divide-x")
+  })
+
+  it("Grid: min vira auto-fit responsivo (e vence cols quando ambos vierem)", () => {
+    const { container } = render(<Grid min="md" cols={3} gap={4} />)
+    const el = container.querySelector('[data-slot="grid"]')!
+    expect(el.className).toContain("auto-fill")
+    expect(el.className).toContain("minmax")
+    expect(el.className).not.toContain("grid-cols-3")
+  })
+
+  it("Text: family=mono + numeric=tabular alinham números (money/placa/km/NF-e)", () => {
+    const { container } = render(<Text family="mono" numeric="tabular">R$ [redacted Tier 0]</Text>)
+    const el = container.querySelector('[data-slot="text"]')!
+    expect(el.className).toContain("font-mono")
+    expect(el.className).toContain("tabular-nums")
+  })
+
+  it("Text: tons success/warning/destructive viram token-KPI; size sobe até 5xl", () => {
+    const { container } = render(<Text tone="success" size="4xl">+12,5%</Text>)
+    const el = container.querySelector('[data-slot="text"]')!
+    expect(el.className).toContain("text-success")
+    expect(el.className).toContain("text-4xl")
   })
 })
 

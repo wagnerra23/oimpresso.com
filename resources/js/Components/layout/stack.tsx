@@ -5,10 +5,12 @@ import { Slot } from "radix-ui"
 import { cn } from "@/Lib/utils"
 
 /**
- * Stack — empilha filhos na vertical com `gap` de token (ADR 0253 · F3).
+ * Stack — empilha filhos na vertical com `gap` de token (ADR 0253 · F3 · refino v2).
  *
  * Substitui o `<div className="flex flex-col gap-4">` solto repetido pelas telas.
- * `gap`/`align`/`justify` são enumerados → espaço nunca vem de px literal.
+ * `gap`/`align`/`justify` enumerados → espaço nunca vem de px literal. O refino v2
+ * adiciona `divider` (hairline entre itens via `divide-y divide-border`) — o
+ * separador onipresente no DS, antes feito à mão.
  */
 const stackVariants = cva("flex flex-col", {
   variants: {
@@ -31,6 +33,10 @@ const stackVariants = cva("flex flex-col", {
       around: "justify-around",
       evenly: "justify-evenly",
     },
+    divider: {
+      true: "divide-y divide-border",
+      false: "",
+    },
   },
   defaultVariants: {
     gap: 4,
@@ -40,12 +46,12 @@ const stackVariants = cva("flex flex-col", {
 export type StackProps = React.ComponentProps<"div"> &
   VariantProps<typeof stackVariants> & { asChild?: boolean }
 
-export function Stack({ className, gap, align, justify, asChild = false, ...props }: StackProps) {
+export function Stack({ className, gap, align, justify, divider, asChild = false, ...props }: StackProps) {
   const Comp = asChild ? Slot.Root : "div"
   return (
     <Comp
       data-slot="stack"
-      className={cn(stackVariants({ gap, align, justify }), className)}
+      className={cn(stackVariants({ gap, align, justify, divider }), className)}
       {...props}
     />
   )
