@@ -65,8 +65,8 @@
 - **Regra:** teste tem que falhar quando o código quebra. Mutation testing (infection `--min-msi`) prova isso.
 - **Classe:** happy-path-only-test
 - **Ocorrências:** 0
-- **Gate:** none
-- **Ref:** audit 2026-06-06 (gap nº1)
+- **Gate:** mutation-gate (advisory) — .github/workflows/mutation-gate.yml + infection.json5
+- **Ref:** audit 2026-06-06 (gap nº1); gate advisory landeado sessão 2026-06-06
 
 ## LC-04 — N+1 / query dentro de loop
 - **Erro:** loop com query por iteração (IA adora gerar); sem eager-load.

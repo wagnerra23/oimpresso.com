@@ -1,0 +1,115 @@
+name: Mutation Gate (advisory)
+
+# Gate ADVISORY de mutation testing (infection) — NAO bloqueia merge (v1).
+# Fecha LC-03 (testes de caminho feliz) de memory/LICOES_CODE.md.
+#
+# CONTEXTO: o CI roda SQLite e pula testes que dependem de banco (migrations
+# UltimatePOS sao MySQL-only). Mutation so e confiavel em codigo pure-logic,
+# por isso o escopo (infection.json5) e app/Domain + app/Services e roda
+# SO no diff do PR (--git-diff-lines). continue-on-error garante que nunca
+# bloqueia — e baseline informativo ate confirmar que o sinal e real.
+#
+# PROMOVER A BLOQUEANTE: rodar a suite no MySQL real (CT 100) no CI antes.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/Domain/**/*.php'
+      - 'app/Services/**/*.php'
+      - 'infection.json5'
+      - '.github/workflows/mutation-gate.yml'
+
+concurrency:
+  group: mutation-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  infection:
+    name: Infection (diff, advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # advisory: nunca bloqueia o PR
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # precisa de origin/main pro --git-diff-lines
+
+      - name: Setup PHP 8.4 (pcov)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd
+          tools: composer:v2
+          coverage: pcov
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/infection bootstrap/cache
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Install Infection (global — nao toca composer.json/lock do projeto)
+        run: composer global require infection/infection --no-interaction --no-progress
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run Infection on PR diff (advisory)
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        run: |
+          INFECTION_BIN="$(composer global config home)/vendor/bin/infection"
+          echo "Infection bin: $INFECTION_BIN"
+          "$INFECTION_BIN" \
+            --git-diff-lines \
+            --git-diff-base="origin/${{ github.base_ref }}" \
+            --logger-github \
+            --min-msi=0 \
+            --threads=max \
+            --no-progress \
+            --no-interaction || echo "::notice::Infection terminou non-zero (advisory, nao bloqueia o PR)."
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Mutation Gate (advisory)" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f infection-summary.log ]; then
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat infection-summary.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "_Sem mudanca em codigo pure-logic (app/Domain, app/Services) neste PR — nada a mutar._" >> "$GITHUB_STEP_SUMMARY"
+          fi

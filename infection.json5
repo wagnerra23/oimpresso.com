@@ -1,0 +1,31 @@
+{
+  // Mutation testing config — gate ADVISORY (nao-bloqueante) v1.
+  // Origem: sessao 2026-06-06, fecha LC-03 (testes de caminho feliz) de memory/LICOES_CODE.md.
+  //
+  // POR QUE ESCOPADO: o CI roda SQLite e pula testes que dependem de banco
+  // (migrations UltimatePOS sao MySQL-only). Mutation testing so da sinal
+  // CONFIAVEL em codigo pure-logic que roda sem banco. Por isso o escopo
+  // inicial e app/Domain + app/Services (services, value objects, FSM, command logic).
+  //
+  // COMO RODA: so no diff do PR (--git-diff-lines vs origin/main) — ver
+  // .github/workflows/mutation-gate.yml. Mantem rapido e relevante.
+  //
+  // PROMOVER A BLOQUEANTE: exige rodar a suite no MySQL real (CT 100) dentro
+  // do CI pra nao gerar MSI falso por teste pulado. Decisao futura do Wagner.
+  "source": {
+    "directories": [
+      "app/Domain",
+      "app/Services"
+    ]
+  },
+  "mutators": {
+    "@default": true
+  },
+  "testFramework": "pest",
+  "logs": {
+    "github": true,
+    "summary": "infection-summary.log",
+    "text": "infection-text.log"
+  },
+  "tmpDir": "storage/infection"
+}
