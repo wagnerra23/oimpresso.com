@@ -27,6 +27,7 @@ class StoreAssinaturaRequest extends FormRequest
     {
         return [
             'contact_id' => ['required', 'integer', 'min:1'],
+            'plan_id' => ['nullable', 'integer', 'min:1'],
             'valor' => ['required', 'numeric', 'min:0.01'],
             'ciclo' => ['required', 'string', Rule::in(['mensal', 'trimestral', 'semestral', 'anual'])],
             'data_proxima_cobranca' => ['required', 'date', 'after_or_equal:today'],
