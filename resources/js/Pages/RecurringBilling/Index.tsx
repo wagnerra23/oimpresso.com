@@ -17,6 +17,7 @@ import {
   Banknote,
   CreditCard,
   Pause,
+  Pencil,
   Play,
   Plus,
   RefreshCw,
@@ -378,6 +379,8 @@ export default function RecurringBillingIndex(props: PageProps) {
   const [activeId, setActiveId] = useState<number | null>(null);
   // Onda 21 v9,75 — drawer "Nova assinatura" (auto-abre via ?new=1 / atalho N).
   const [showCreate, setShowCreate] = useState<boolean>(props.openCreate ?? false);
+  // Onda 24 v9,75 — drawer Editar cobrança (valor/ciclo/forma → PUT).
+  const [editSub, setEditSub] = useState<SubRow | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>(filters.status_visual || 'all');
   // Onda 13/14/18 v9,75 — overlays modal state
   const [showCheatsheet, setShowCheatsheet] = useState(false);
@@ -818,7 +821,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                   Selecione uma assinatura
                 </div>
               )}
-              {active && <DetailDrawer sub={active} onTrouble={setTrouble} />}
+              {active && <DetailDrawer sub={active} onTrouble={setTrouble} onEdit={setEditSub} />}
             </aside>
           </div>
         )}
@@ -846,6 +849,18 @@ export default function RecurringBillingIndex(props: PageProps) {
           onClose={() => setShowCreate(false)}
           onCreated={() => {
             setShowCreate(false);
+            router.reload({ only: ['subscriptions', 'kpis'] });
+          }}
+        />
+      )}
+
+      {/* Onda 24 v9,75 — drawer Editar cobrança (PUT recurring-billing.update) */}
+      {editSub && (
+        <EditSubscriptionDrawer
+          sub={editSub}
+          onClose={() => setEditSub(null)}
+          onSaved={() => {
+            setEditSub(null);
             router.reload({ only: ['subscriptions', 'kpis'] });
           }}
         />
@@ -886,7 +901,7 @@ function postAction(url: string, payload: Record<string, unknown> = {}, confirmM
 }
 
 type TroubleId = 'boleto-recusado' | 'cartao-expirado' | 'cliente-sumiu' | 'suspensao';
-function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: TroubleId | null) => void }) {
+function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t: TroubleId | null) => void; onEdit?: (sub: SubRow) => void }) {
   const fiscalLabels: Record<FiscalType, { label: string; long: string }> = {
     nfe: { label: 'NFe', long: 'NFe · Nota Fiscal Eletrônica' },
     nfse: { label: 'NFS-e', long: 'NFS-e · Nota Fiscal de Serviços' },
@@ -1039,6 +1054,13 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
       {/* Ações executáveis — Onda 9 v9,75 wiring real. */}
       {sub.status !== 'cancelada' && (
         <div className="flex flex-wrap gap-2 pt-2">
+          {onEdit && (
+            <ActionBtn
+              icon={Pencil}
+              label="Editar"
+              onClick={() => onEdit(sub)}
+            />
+          )}
           {sub.status === 'em_dia' && (
             <>
               <ActionBtn
@@ -1711,6 +1733,143 @@ function NewSubscriptionDrawer({
           <Button type="button" onClick={submit} disabled={!canSubmit || submitting}>
             <Plus size={14} />
             {submitting ? 'Criando…' : 'Criar assinatura'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────
+// EDIT SUBSCRIPTION DRAWER (Onda 24 v9,75)
+// Drawer enxuto (Sheet DS) — edita valor/ciclo/forma via PUT recurring-billing.update.
+// Espelha UpdateAssinaturaRequest (só esses 3 campos editáveis). Não toca cliente/
+// plano/data (imutáveis pós-criação). Isolado do NewSubscriptionDrawer pra não
+// arriscar o fluxo de criação que já está live.
+// ────────────────────────────────────────────────────────────────
+
+function EditSubscriptionDrawer({
+  sub,
+  onClose,
+  onSaved,
+}: {
+  sub: SubRow;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const cicloInicial = ['mensal', 'trimestral', 'semestral', 'anual'].includes(sub.plan_cycle)
+    ? sub.plan_cycle
+    : 'mensal';
+  const [valor, setValor] = useState(sub.next_value != null ? String(sub.next_value) : '');
+  const [ciclo, setCiclo] = useState(cicloInicial);
+  const [forma, setForma] = useState(sub.method === 'card' ? 'cartao' : (sub.method ?? 'boleto'));
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function submit() {
+    if (submitting) return;
+    setErrors({});
+    setSubmitting(true);
+    const payload = {
+      valor: valor === '' ? null : Number(valor),
+      ciclo,
+      forma_pagamento: forma,
+    };
+    router.put(
+      `/recurring-billing/${sub.id}`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload as any,
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          setSubmitting(false);
+          onSaved();
+        },
+        onError: (errs) => {
+          setSubmitting(false);
+          setErrors(errs as Record<string, string>);
+        },
+      },
+    );
+  }
+
+  const canSubmit = valor !== '' && Number(valor) > 0;
+
+  return (
+    <Sheet
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[560px]">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>Editar cobrança</SheetTitle>
+          <SheetDescription>{sub.client} · atualizar valor, ciclo ou forma de pagamento</SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+            <div>
+              <Label htmlFor="ed-valor" className="cw-label">
+                Valor <RequiredMark />
+              </Label>
+              <Input
+                variant="cowork"
+                id="ed-valor"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder="0,00"
+                autoFocus
+              />
+              <FieldError>{errors.valor}</FieldError>
+            </div>
+
+            <div>
+              <Label htmlFor="ed-ciclo" className="cw-label">
+                Ciclo <RequiredMark />
+              </Label>
+              <Select value={ciclo} onValueChange={setCiclo}>
+                <SelectTrigger id="ed-ciclo" variant="cowork" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError>{errors.ciclo}</FieldError>
+            </div>
+
+            <div>
+              <Label htmlFor="ed-forma" className="cw-label">
+                Forma de pagamento <RequiredMark />
+              </Label>
+              <Select value={forma} onValueChange={setForma}>
+                <SelectTrigger id="ed-forma" variant="cowork" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="pix">Pix</SelectItem>
+                  <SelectItem value="cartao">Cartão</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError>{errors.forma_pagamento}</FieldError>
+            </div>
+        </div>
+
+        <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={submit} disabled={!canSubmit || submitting}>
+            <Pencil size={14} />
+            {submitting ? 'Salvando…' : 'Salvar alterações'}
           </Button>
         </SheetFooter>
       </SheetContent>
