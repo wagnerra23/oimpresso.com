@@ -6,9 +6,9 @@
 
 ## Resumo
 - **263** arquivos · **248** números únicos · máx **0258**
-- **ADRs ATIVOS (lifecycle ativo): 233** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 213 · proposto 34 · superseded 13 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 233 · substituido 13 · (vazio) 8 · arquivado 6 · historical 3
+- **ADRs ATIVOS (lifecycle ativo): 223** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 203 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 223 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -26,26 +26,17 @@
 - **0236** ×3: 0236-extrato-conciliacao-modelo-unificado · 0236-governanca-evolucao-doc-design · 0236-scorecard-universal-entidade-arbitraria
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 
-## Integridade de supersessão (10 alertas)
-- ⚠️ 0011 supersedes 0002 → 0002 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0011 supersedes 0001 → 0001 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0048 supersedes 0035 → 0035 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0048 supersedes 0035 → 0035 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0053 supersedes 0036 → 0036 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0053 supersedes 0036 → 0036 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0055 supersedes 0054 → 0054 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0060 supersedes 0044 → 0044 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0092 supersedes 0088 → 0088 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0178 supersedes 0136 → 0136 NÃO está marcada substituido/superseded ⚠️
+## Integridade de supersessão (0 alertas)
+_(íntegra)_
 
 ## Todas as ADRs (263)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
-| 0001 | aceito | ativo | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
-| 0002 | aceito | ativo | decision | !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHV |
+| 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
+| 0002 | superseded | substituido | decision | !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHV |
 | 0003 | aceito | ativo | decision | !!binary gJQgTWFyY2HDp8O1ZXMgYXBwZW5kLW9ubHkgY29tIHRyaWdnZXJzIE15U1FMICsgcHJvdGX |
 | 0004 | aceito | ativo | decision | !!binary gJQgVGFiZWxhIGJyaWRnZSBgcG9udG9fY29sYWJvcmFkb3JfY29uZmlnYA== |
-| 0005 | aceito | ativo | decision | !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3V |
+| 0005 | superseded | substituido | decision | !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3V |
 | 0006 | aceito | ativo | decision | !!binary gJQgTXVsdGktdGVuYW5jeSBsw7NnaWNhIHZpYSBgYnVzaW5lc3NfaWRg |
 | 0007 | aceito | ativo | decision | !!binary gJQgQmFuY28gZGUgaG9yYXMgY29tbyBsZWRnZXIgYXBwZW5kLW9ubHk= |
 | 0008 | superseded | substituido | decision | !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJ |
@@ -67,15 +58,15 @@
 | 0025 | aceito | ativo | decision | !!binary gJQgUmVkZXNpZ24gZGEgbGFuZGluZyBww7pibGljYSAoYE1vZHVsZXMvQ21zYCkgZW0gSW5 |
 | 0026 | aceito | ativo | decision | !!binary gJQgUG9zaWNpb25hbWVudG8gZXN0cmF0w6lnaWNvOiBFUlAgZGUgQ29tdW5pY2HDp8OjbyB |
 | 0027 | aceito | ativo | decision | !!binary gJQgR2VzdMOjbyBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvOiBwYXDDqWlzIGNsYXJvcyBwb3I |
-| 0028 | aceito | ativo | decision | !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA= |
+| 0028 | superseded | substituido | decision | !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA= |
 | 0029 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBJbmVydGlhICsgUmVhY3QgKyBVbHRpbWF0ZVBPUyBwcmEgbcOzZHVsb3M |
 | 0030 | aceito | ativo | decision | !!binary gJQgQ3JlZGVuY2lhaXMgc2Vuc8OtdmVpczogbnVuY2EgZW0gZ2l0 |
 | 0031 | superseded | substituido | decision | !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGB |
 | 0032 | superseded | substituido | decision | !!binary gJQgVml6cmEgQURLICsgUHJpc20gUEhQIGNvbW8gY2FtYWRhIGRlIG9ycXVlc3RyYcOnw6N |
 | 0033 | superseded | substituido | decision | !!binary gJQgVmVjdG9yIHN0b3JlIC8gc2VhcmNoIGJhY2tlbmQgZG8gb2ltcHJlc3NvOiBwZ3ZlY3R |
 | 0034 | aceito | ativo | decision | !!binary gJQgTGFyYXZlbCBBSSBlY29zeXN0ZW0gMjAyNjogU0RLIG9maWNpYWwgKyBCb29zdCArIE1 |
-| 0035 | aceito | ativo | decision | !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bml |
-| 0036 | aceito | ativo | decision | !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWV |
+| 0035 | superseded | substituido | decision | !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bml |
+| 0036 | superseded | substituido | decision | !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWV |
 | 0037 | aceito | ativo | decision | !!binary gJQgUm9hZG1hcCBkZSBldm9sdcOnw6NvIHDDs3MtU3ByaW50IDU6IFRpZXIgNS02IOKGkiB |
 | 0038 | aceito | ativo | decision | !!binary gJQgUHJvbW/Dp8OjbyBkZSBgNi43LWJvb3RzdHJhcGAgcGFyYSBgbWFpbmAgY29tbyBicmF |
 | 0039 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBkZSBVSSAiQ2hhdCBDb2NrcGl0IiAoMyBjb2x1bmFzKSBwYXJhIG8gRVJ |
@@ -83,7 +74,7 @@
 | 0041 | aceito | ativo | decision | !!binary gJQgU3RhY2sgZGUgUUEgZGUgSUE6IFZpenJhIEFESyBldmFsICsgTGFuZ2Z1c2Ugc2VsZi1 |
 | 0042 | superseded | substituido | decision | !!binary gJQgUmV2ZXJiIChzZWxmLWhvc3RlZCkgc3Vic3RpdHVpIFB1c2hlciBDbG91ZCBjb21vIGJ |
 | 0043 | aceito | ativo | decision | !!binary gJQgRG9ja2VyICsgVHJhZWZpayArIFBvcnRhaW5lciBudW0gTFhDLCBlbSB2ZXogZGUgTiB |
-| 0044 | aceito | ativo | decision | !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw= |
+| 0044 | superseded | substituido | decision | !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw= |
 | 0045 | aceito | ativo | decision | !!binary gJQgRW5kcG9pbnQgY2Fuw7RuaWNvIGRhIEhvc3RpbmdlciBETlMgQVBJIFYx |
 | 0046 | aceito | ativo | decision | !!binary gJQgYENoYXRDb3BpbG90b0FnZW50YCBwcmVjaXNhIGRlIGNvbnRleHRvIHJpY28gKyB0b29 |
 | 0047 | aceito | ativo | decision | !!binary gJQgV2FnbmVyIHNvbG86IHNwcmludCBtZW3Ds3JpYSBkbyBhZ2VudGUgKHRva2VuIGVjb25 |
@@ -93,7 +84,7 @@
 | 0051 | aceito | ativo | decision | !!binary gJQgU2NoZW1hIHByw7NwcmlvICsgYWRhcHRlciBwYXR0ZXJuICsgZW1pc3PDo28gT3BlblR |
 | 0052 | aceito | ativo | decision | !!binary gJQgYENvbnRleHRvTmVnb2Npb2AgZGV2ZSBleHBvciBtw7psdGlwbG9zIMOibmd1bG9zIHB |
 | 0053 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBkYSBlbXByZXNhOiBnb3Zlcm5hbsOnYSBjb21vIHByb2R1dG8sIG7 |
-| 0054 | aceito | ativo | decision | !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICs |
+| 0054 | superseded | substituido | decision | !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICs |
 | 0055 | aceito | ativo | decision | !!binary gJQgU2VsZi1ob3N0IFRlYW0gcGxhbiBlcXVpdmFsZW50ZSBhbyBBbnRocm9waWMgVGVhbS9 |
 | 0056 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBjb21vIGZvbnRlIMO6bmljYSBkZSBtZW3Ds3JpYSBwcm8gQ29waWx |
 | 0057 | aceito | ativo | decision | !!binary gJQgVGVsYSBgL3RlYW0tbWNwL3RlYW1gOiByZWdyYXMgZGUgZ292ZXJuYW7Dp2EgZGUgdG9 |
@@ -125,7 +116,7 @@
 | 0085 | aceito | ativo | decision | Fase 3.4 SCOPE.md completo + ActorResolver + PII Redactor + roadmap pendências |
 | 0086 | aceito | ativo | decision | Fase 5 MVP — Modules/Governance scaffold + ActionGate (warn-only) + Sidebar GOVE |
 | 0087 | aceito | ativo | decision | Drift resolution sem mover URL — pattern de migration safe |
-| 0088 | aceito | ativo | decision | Module rename PHP-only — fachada legacy mantida durante transição |
+| 0088 | superseded | substituido | decision | Module rename PHP-only — fachada legacy mantida durante transição |
 | 0089 | aceito | ativo | decision | Capterra-driven Module Evolution (skill + 3 artefatos) |
 | 0090 | aceito | ativo | decision | NFe replace gradual: app/Services → Modules/NfeBrasil |
 | 0091 | aceito | ativo | decision | Daily Brief: contrato de contexto consolidado L7 |
@@ -177,7 +168,7 @@
 | 0133 | aceito | ativo | decision | System health audit canônico — 5 dimensões automáticas (Tool MCP + cron daily) |
 | 0134 | aceito | ativo | decision | tasks-create respeita placeholders em SPEC.md (regex headers + bullets) |
 | 0135 | aceito | ativo | decision | Omnichannel inbox — schema polimórfico Channel+Driver, 4 fases com gate cliente- |
-| 0136 | aceito | ativo | decision | Sells: split Lista (default) vs Grade Avançada (toggle) — migração legacy Office |
+| 0136 | superseded | substituido | decision | Sells: split Lista (default) vs Grade Avançada (toggle) — migração legacy Office |
 | 0137 | aceito | ativo | decision | Modules/OficinaAuto qualificada — sinal confirmado por 2 de 4 candidatos OfficeI |
 | 0140 | aceito | ativo | decision | JANA Pro — Produto comercial SaaS de IA pra PMEs BR (upsell sobre oimpresso, R$  |
 | 0141 | aceito | ativo | decision | Agents IA com tool use loop (pattern "Claude Code") — Camada B v2 |

@@ -3,9 +3,10 @@ slug: 0002-nwidart-laravel-modules
 number: 2
 title: !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHVsb3M=
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0011-alinhamento-padrao-jana']
 decided_by:
   - W
 decided_at: '2026-04-18'

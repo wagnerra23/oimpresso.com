@@ -3,9 +3,10 @@ slug: 0036-replanejamento-meilisearch-first
 number: 36
 title: !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWVtMCBwb3Igw7psdGltbw==
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0053-mcp-server-governanca-como-produto']
 decided_by:
   - W
 decided_at: '2026-04-26'

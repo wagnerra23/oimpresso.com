@@ -3,9 +3,10 @@ slug: 0035-stack-ai-canonica-wagner-2026-04-26
 number: 35
 title: !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bmljYQ==
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0048-framework-agentes-laravel-ai-vizra-rejeitada']
 decided_by:
   - W
   - E
