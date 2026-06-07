@@ -26,11 +26,17 @@ use Stringable;
  *  - Metadata do PR (título, descrição, arquivos modificados)
  *  - Diff resumido (`git diff` filtrado pra .tsx/.jsx/.css)
  *
- * Retorna:
- *  - Score 0-100
- *  - Análise por 9 dimensões
+ * Retorna (Onda 1 LLM-judge → determinístico · dossiê 2026-06-06 · ADR 0255):
+ *  - Análise das 3 dimensões SEMÂNTICAS (hierarquia_4_camadas · pt_01_slot_adherence ·
+ *    pt_br_voice_tone) — as únicas que exigem juízo que regex não captura
  *  - Lista de violações estruturais não-capturadas pelo `ui:lint` (grep-invisíveis)
  *  - Sugestões concretas de refactor
+ *
+ * As OUTRAS 6 dimensões (tokens_semanticos · componentes_shared · atalhos_canonicos_jk_cmdk ·
+ * localStorage_prefix_oimpresso · lucide_iconography_only · anti_padroes_ap1_ap8) são
+ * DETERMINÍSTICAS — computadas por regex em UiDeterministicScorer (porte de
+ * score-mechanized.mjs). O UiJudgePrCommand MESCLA as 6 determinísticas + estas 3
+ * num único review de 9 dimensões. O LLM não pontua mais as 6 (sem custo/viés/flakiness).
  *
  * NÃO substitui `ui:lint` (sintático/lexical) — complementa com análise
  * semântica: "drawer modal sobre modal", "slot 4 BulkBar inventado custom",
@@ -107,15 +113,25 @@ class PrUiJudgeAgent implements Agent
 
         UI-0009 + UI-0014 — Wagner-explícito 2026-05-24. v2 externa propõe dark sempre · **NÃO aplicar**.
 
+        ## Divisão de trabalho (Onda 1 · LLM-judge → determinístico · ADR 0255)
+
+        Das 9 dimensões da Constituição UI v2, **6 são determinísticas** (cor crua, componente nativo, atalho, localStorage-prefix, ícone-lucide, anti-padrões grep-áveis AP1/2/3/4/6/7) e são computadas FORA de você, por regex reproduzível (UiDeterministicScorer, porte de score-mechanized.mjs). **Você NÃO pontua essas 6** — elas chegam prontas e o comando mescla.
+
+        **Você julga SOMENTE as 3 dimensões SEMÂNTICAS** que regex não captura:
+
+        - `hierarquia_4_camadas` — a camada superior herda e nunca contradiz a inferior? Conflito de camada? (Fundações > Shell > PT > Módulo)
+        - `pt_01_slot_adherence` — os 6 slots da PT-01 estão na ordem/papel certos? Slot reinventado custom? PageHeader usado fora do slot 1? Drawer modal sobre modal?
+        - `pt_br_voice_tone` — copy/label/erro/empty em PT-BR natural e no tom do produto? (AP8 — string em inglês visível ao usuário, voz robótica/traduzida)
+
         ## Como você avalia (método G-Eval · raciocine ANTES de pontuar)
 
-        Avalie em ordem encadeada — **primeiro o rationale dimensão-por-dimensão, só depois o score agregado**. Nunca crave o score total antes de raciocinar cada dimensão; o score é *derivado* das 9 dimensões, não chutado de cabeça.
+        Avalie em ordem encadeada — **primeiro o rationale dimensão-por-dimensão, só depois o score**. Nunca crave o score antes de raciocinar cada dimensão; o score é *derivado* do rationale, não chutado de cabeça.
 
         Passos obrigatórios, nesta ordem:
 
-        1. **Para cada uma das 9 dimensões:** escreva primeiro o `rationale` (1-2 frases citando o que viu no diff — arquivo/linha quando possível), e só então atribua o `score` 0-10 coerente com esse rationale.
+        1. **Para cada uma das 3 dimensões semânticas:** escreva primeiro o `rationale` (1-2 frases citando o que viu no diff — arquivo/linha quando possível), e só então atribua o `score` 0-10 coerente com esse rationale.
         2. **Liste as `violacoes_estruturais`** grep-invisíveis encontradas (com arquivo/linha/severidade).
-        3. **Só então** compute o `score` total 0-100 (proporcional à soma das 9 dimensões · 9×10=90 → normalize pra 100) e derive o `verdict` dele: `< 60` → `request_changes`, `60-84` → `comment`, `≥ 85` → `approve`.
+        3. **Não calcule o score total** — o comando soma suas 3 dims às 6 determinísticas e normaliza pra 0-100. O `verdict` também é derivado lá. Você só raciocina as 3.
 
         Produza output JSON estrito **nesta ordem de chaves** (a ordem reflete a ordem do raciocínio):
 
@@ -124,31 +140,23 @@ class PrUiJudgeAgent implements Agent
           "dimensoes": {
             "hierarquia_4_camadas": { "rationale": "...", "score": 0-10 },
             "pt_01_slot_adherence": { "rationale": "...", "score": 0-10 },
-            "anti_padroes_ap1_ap8": { "rationale": "...", "score": 0-10 },
-            "tokens_semanticos": { "rationale": "...", "score": 0-10 },
-            "componentes_shared": { "rationale": "...", "score": 0-10 },
-            "atalhos_canonicos_jk_cmdk": { "rationale": "...", "score": 0-10 },
-            "localStorage_prefix_oimpresso": { "rationale": "...", "score": 0-10 },
-            "pt_br_voice_tone": { "rationale": "...", "score": 0-10 },
-            "lucide_iconography_only": { "rationale": "...", "score": 0-10 }
+            "pt_br_voice_tone": { "rationale": "...", "score": 0-10 }
           },
           "violacoes_estruturais": [
             { "tipo": "...", "arquivo": "...", "linha": N, "detalhe": "...", "severidade": "critical|warning|info" }
           ],
-          "score": 0-100,
-          "verdict": "approve | request_changes | comment",
           "sugestoes": [
             "..."
           ],
           "lembretes": [
-            "AP1 — cor hardcoded vs token semântico",
+            "AP1 — cor hardcoded vs token semântico (esta já é checada por regex)",
             "Sidebar permanece light (UI-0014)",
             "..."
           ]
         }
         ```
 
-        > Nota de compatibilidade: o campo de texto de cada dimensão chama-se agora `rationale` (antes `nota`). Quem consome o JSON deve aceitar ambos.
+        > Nota de compatibilidade: o campo de texto de cada dimensão chama-se agora `rationale` (antes `nota`). Quem consome o JSON deve aceitar ambos. Se por engano você incluir uma das 6 dims determinísticas, o comando ignora — a fonte da verdade delas é o regex.
 
         ## Princípios de avaliação
 
