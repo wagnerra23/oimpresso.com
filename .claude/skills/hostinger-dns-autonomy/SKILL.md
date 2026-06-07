@@ -43,8 +43,7 @@ grep -A 1 "Hostinger DNS API" memory/_INDEX-SECRETS.md
 
 Hostinger DNS API token está documentado em:
 - [`memory/_INDEX-SECRETS.md`](../../../memory/_INDEX-SECRETS.md) (índice + ponteiro)
-- [`memory/claude/reference_hostinger_hpanel.md`](../../../memory/claude/reference_hostinger_hpanel.md) (valor histórico — pode estar 🔴 EXPIRED)
-- `/root/.hostinger-api-token` CT 100 (cache runtime — agente atualiza pós rotação)
+- `/root/.hostinger-api-token` CT 100 (fonte canônica runtime — agente lê via `tailscale ssh`)
 
 Status atual no índice indica se ainda funciona. Se 🔴 EXPIRED → secret-rotation needed, NÃO Tier 0 gap.
 
@@ -99,17 +98,9 @@ tailscale ssh root@ct100-mcp 'cat /root/.vaultwarden-cli-session 2>/dev/null'
 tailscale ssh root@ct100-mcp 'export BW_SESSION=$(cat /root/.bw-session 2>/dev/null) && bw get item "hostinger-api-token" --raw 2>/dev/null'
 ```
 
-### Path 7 — **CANON** memory/claude/reference_hostinger_*.md (PRIMEIRO a checar)
+### ~~Path 7 — memory/claude/reference_hostinger_*.md~~ — REMOVIDO 2026-06-07
 
-> Falha 2026-05-28 18:30: agente declarou Tier 0 gap "token só no Vaultwarden encrypted" sem ter pesquisado memory canon. Wagner cobrou "tem api da hostinger na memoria". Token estava literalmente em `memory/claude/reference_hostinger_hpanel.md:37` desde abril.
-
-```bash
-grep -hr "Authorization: Bearer" memory/claude/reference_hostinger_*.md 2>/dev/null | head -3
-# Ou direto:
-grep -hE "^Authorization: Bearer ([A-Za-z0-9]{20,})" memory/claude/reference_hostinger_hpanel.md
-```
-
-**Path 7 deve ser tentado ANTES do Path 1.** memory canon é a fonte de verdade #0.
+> O antigo Path 7 fazia `grep` de token literal em `memory/claude/` — anti-padrão (segredo em git contradiz a própria regra "nunca commitar secret"). O legado `memory/claude/` foi PURGADO na auditoria de conflitos 2026-06-07 (ADR 0061/0215). Fonte canônica = Path 0 (`_INDEX-SECRETS`) + Path 1 (CT 100 `/root/.hostinger-api-token`).
 
 ## Se token achado MAS retorna 401 (secret stale)
 
@@ -124,8 +115,8 @@ curl -s -w "\nHTTP:%{http_code}\n" \
 
 Se HTTP 401: token expirado/revogado. Propor Wagner regenerar:
 1. Wagner gera novo token via hPanel API page (irredutível — gerar token é UI-only Hostinger, não tem API pra criar token de token)
-2. Wagner atualiza `memory/claude/reference_hostinger_hpanel.md` linha "Authorization: Bearer ..."
-3. Wagner cola em `/root/.hostinger-api-token` CT 100 (uso runtime, sem precisar agente ler git)
+2. Wagner cola em `/root/.hostinger-api-token` CT 100 (fonte canônica runtime — NUNCA em git)
+3. Agente atualiza ponteiro/status em `memory/_INDEX-SECRETS.md` (🔴→✅)
 4. Agente continua trabalho
 
 **Frequência rotação:** anual ~. NÃO é "operação repetida". Análogo a Wagner ter regenerado SSH key 2026-04-23 — setup único por ciclo de vida do secret.
