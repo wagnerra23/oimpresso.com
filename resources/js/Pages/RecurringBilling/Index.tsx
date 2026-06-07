@@ -23,6 +23,7 @@ import {
   Search,
   Star,
   TrendingUp,
+  X,
   XCircle,
   Zap,
   type LucideIcon,
@@ -113,6 +114,7 @@ interface PageProps {
   kpis?: Kpis;
   subscriptions?: SubsPaginated;
   plans?: PlanRow[];
+  openCreate?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -361,6 +363,8 @@ export default function RecurringBillingIndex(props: PageProps) {
   const { filters, kpis, subscriptions, plans } = props;
   const [tab, setTab] = useState<Tab>(props.tab || 'assinaturas');
   const [activeId, setActiveId] = useState<number | null>(null);
+  // Onda 21 v9,75 — drawer "Nova assinatura" (auto-abre via ?new=1 / atalho N).
+  const [showCreate, setShowCreate] = useState<boolean>(props.openCreate ?? false);
   const [statusFilter, setStatusFilter] = useState<string>(filters.status_visual || 'all');
   // Onda 13/14/18 v9,75 — overlays modal state
   const [showCheatsheet, setShowCheatsheet] = useState(false);
@@ -453,6 +457,10 @@ export default function RecurringBillingIndex(props: PageProps) {
         // Onda 14 v9,75 — ⌘K abre CmdPalette
         e.preventDefault();
         setShowCmdPalette(true);
+      } else if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey) {
+        // Onda 21 v9,75 — N abre drawer Nova assinatura
+        e.preventDefault();
+        setShowCreate(true);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -541,8 +549,9 @@ export default function RecurringBillingIndex(props: PageProps) {
               </nav>
               <button
                 type="button"
+                onClick={() => setShowCreate(true)}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90"
-                title="Nova assinatura (em breve)"
+                title="Nova assinatura (N)"
               >
                 <Plus size={14} />
                 Nova assinatura
@@ -830,6 +839,18 @@ export default function RecurringBillingIndex(props: PageProps) {
       )}
       {showTour && <TourOnboarding onClose={() => setShowTour(false)} />}
       {showCheatsheet && <CheatSheet onClose={() => setShowCheatsheet(false)} />}
+
+      {/* Onda 21 v9,75 — drawer Nova assinatura (POST recurring-billing.store) */}
+      {showCreate && (
+        <NewSubscriptionDrawer
+          plans={plans || []}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            router.reload({ only: ['subscriptions', 'kpis'] });
+          }}
+        />
+      )}
 
       {/* Onda 14 v9,75 — CmdPalette ⌘K com Jana IA fallback graceful */}
       {showCmdPalette && (
@@ -1344,6 +1365,376 @@ function ListSkeleton() {
           <div className="h-4 w-16 animate-pulse rounded-full bg-stone-100" />
         </div>
       ))}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────
+// NEW SUBSCRIPTION DRAWER (Onda 21 v9,75)
+// Drawer lateral 760px — cria Subscription via POST recurring-billing.store.
+// Cliente via busca debounced (recurring-billing.contacts.search, Tier 0).
+// ────────────────────────────────────────────────────────────────
+
+interface ContactHit {
+  id: number;
+  name: string;
+  mobile: string | null;
+  email: string | null;
+  tax_number: string | null;
+}
+
+const CYCLE_DB_TO_PT: Record<string, string> = {
+  monthly: 'mensal',
+  quarterly: 'trimestral',
+  semiannual: 'semestral',
+  yearly: 'anual',
+};
+
+function NewSubscriptionDrawer({
+  plans,
+  onClose,
+  onCreated,
+}: {
+  plans: PlanRow[];
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  // ── Cliente (busca debounced)
+  const [contactId, setContactId] = useState<number | null>(null);
+  const [contactLabel, setContactLabel] = useState('');
+  const [query, setQuery] = useState('');
+  const [hits, setHits] = useState<ContactHit[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  // ── Campos do form
+  const [planId, setPlanId] = useState<number | null>(null);
+  const [valor, setValor] = useState('');
+  const [ciclo, setCiclo] = useState('mensal');
+  const defaultNext = useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return d.toISOString().slice(0, 10);
+  }, []);
+  const [dataProxima, setDataProxima] = useState(defaultNext);
+  const [gateway, setGateway] = useState('inter');
+  const [forma, setForma] = useState('boleto');
+  const [descricao, setDescricao] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // Debounce da busca de cliente.
+  useEffect(() => {
+    if (contactId && query === contactLabel) return; // já selecionado, não re-busca
+    if (query.trim().length < 2) {
+      setHits([]);
+      return;
+    }
+    let cancel = false;
+    setSearching(true);
+    const t = setTimeout(() => {
+      fetch(`/recurring-billing/contacts/search?q=${encodeURIComponent(query.trim())}`, {
+        headers: { Accept: 'application/json' },
+      })
+        .then((r) => (r.ok ? r.json() : { contacts: [] }))
+        .then((d) => {
+          if (!cancel) {
+            setHits(d.contacts || []);
+            setOpenDropdown(true);
+            setSearching(false);
+          }
+        })
+        .catch(() => !cancel && setSearching(false));
+    }, 300);
+    return () => {
+      cancel = true;
+      clearTimeout(t);
+    };
+  }, [query, contactId, contactLabel]);
+
+  // ESC fecha o drawer.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  function pickContact(c: ContactHit) {
+    setContactId(c.id);
+    setContactLabel(c.name);
+    setQuery(c.name);
+    setOpenDropdown(false);
+  }
+
+  function pickPlan(id: number | null) {
+    setPlanId(id);
+    const p = plans.find((pl) => pl.id === id);
+    if (p) {
+      setValor(String(p.price));
+      setCiclo(CYCLE_DB_TO_PT[p.cycle] ?? ciclo);
+    }
+  }
+
+  function submit() {
+    if (submitting) return;
+    setErrors({});
+    setSubmitting(true);
+    const payload = {
+      contact_id: contactId,
+      plan_id: planId,
+      valor: valor === '' ? null : Number(valor),
+      ciclo,
+      data_proxima_cobranca: dataProxima,
+      gateway,
+      forma_pagamento: forma,
+      descricao: descricao || null,
+    };
+    router.post(
+      '/recurring-billing',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload as any,
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          setSubmitting(false);
+          onCreated();
+        },
+        onError: (errs) => {
+          setSubmitting(false);
+          setErrors(errs as Record<string, string>);
+        },
+      },
+    );
+  }
+
+  const canSubmit = contactId !== null && valor !== '' && Number(valor) > 0 && !!dataProxima;
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-stone-900/40 backdrop-blur-[1px]"
+        onClick={onClose}
+        aria-hidden
+      />
+      {/* Painel */}
+      <div className="relative flex h-full w-full max-w-[760px] flex-col bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-stone-900">Nova assinatura</h2>
+            <p className="text-xs text-stone-500">Cadastrar cobrança recorrente para um cliente</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+            title="Fechar (Esc)"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-1 gap-5">
+            {/* Cliente */}
+            <div className="relative">
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Cliente <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Search size={14} className="pointer-events-none absolute left-2.5 top-2.5 text-stone-400" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setContactId(null);
+                  }}
+                  onFocus={() => hits.length > 0 && setOpenDropdown(true)}
+                  placeholder="Buscar por nome, telefone, e-mail ou CNPJ…"
+                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-8 pr-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                  autoFocus
+                />
+              </div>
+              {contactId && (
+                <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                  Cliente selecionado: {contactLabel}
+                </div>
+              )}
+              {openDropdown && (searching || hits.length > 0) && (
+                <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-stone-200 bg-white shadow-lg">
+                  {searching && <div className="px-3 py-2 text-xs text-stone-400">Buscando…</div>}
+                  {!searching &&
+                    hits.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => pickContact(c)}
+                        className="flex w-full flex-col items-start border-b border-stone-100 px-3 py-2 text-left last:border-0 hover:bg-stone-50"
+                      >
+                        <span className="text-sm font-medium text-stone-900">{c.name}</span>
+                        <span className="text-[11px] text-stone-500">
+                          {[c.mobile, c.tax_number, c.email].filter(Boolean).join(' · ') || 'sem contato'}
+                        </span>
+                      </button>
+                    ))}
+                  {!searching && hits.length === 0 && query.trim().length >= 2 && (
+                    <div className="px-3 py-2 text-xs text-stone-400">Nenhum cliente encontrado.</div>
+                  )}
+                </div>
+              )}
+              {errors.contact_id && <p className="mt-1 text-xs text-rose-500">{errors.contact_id}</p>}
+            </div>
+
+            {/* Plano (opcional) */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Plano <span className="font-normal normal-case text-stone-400">(opcional — preenche valor e ciclo)</span>
+              </label>
+              <select
+                value={planId ?? ''}
+                onChange={(e) => pickPlan(e.target.value === '' ? null : Number(e.target.value))}
+                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+              >
+                <option value="">Sem plano (avulso)</option>
+                {plans.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} · {p.cycle_label} · {BRL(p.price)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Valor + Ciclo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Valor <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm tabular-nums outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                />
+                {errors.valor && <p className="mt-1 text-xs text-rose-500">{errors.valor}</p>}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Ciclo <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={ciclo}
+                  onChange={(e) => setCiclo(e.target.value)}
+                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                >
+                  <option value="mensal">Mensal</option>
+                  <option value="trimestral">Trimestral</option>
+                  <option value="semestral">Semestral</option>
+                  <option value="anual">Anual</option>
+                </select>
+                {errors.ciclo && <p className="mt-1 text-xs text-rose-500">{errors.ciclo}</p>}
+              </div>
+            </div>
+
+            {/* Próxima cobrança */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Próxima cobrança <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={dataProxima}
+                min={todayStr}
+                onChange={(e) => setDataProxima(e.target.value)}
+                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+              />
+              {errors.data_proxima_cobranca && (
+                <p className="mt-1 text-xs text-rose-500">{errors.data_proxima_cobranca}</p>
+              )}
+            </div>
+
+            {/* Gateway + Forma de pagamento */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Gateway <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={gateway}
+                  onChange={(e) => setGateway(e.target.value)}
+                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                >
+                  <option value="inter">Banco Inter</option>
+                  <option value="asaas">Asaas</option>
+                </select>
+                {errors.gateway && <p className="mt-1 text-xs text-rose-500">{errors.gateway}</p>}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Forma de pagamento <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={forma}
+                  onChange={(e) => setForma(e.target.value)}
+                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                >
+                  <option value="boleto">Boleto</option>
+                  <option value="pix">Pix</option>
+                  <option value="cartao">Cartão</option>
+                </select>
+                {errors.forma_pagamento && <p className="mt-1 text-xs text-rose-500">{errors.forma_pagamento}</p>}
+              </div>
+            </div>
+
+            {/* Descrição */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                Descrição <span className="font-normal normal-case text-stone-400">(opcional)</span>
+              </label>
+              <textarea
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                rows={2}
+                maxLength={255}
+                placeholder="Ex.: Mensalidade manutenção mensal…"
+                className="w-full resize-none rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+              />
+              {errors.descricao && <p className="mt-1 text-xs text-rose-500">{errors.descricao}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 border-t border-stone-200 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!canSubmit || submitting}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:bg-stone-300"
+          >
+            <Plus size={14} />
+            {submitting ? 'Criando…' : 'Criar assinatura'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

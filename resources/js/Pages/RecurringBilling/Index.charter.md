@@ -49,6 +49,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 - Permission gate Spatie: `recurringbilling.access` OR `superadmin`
 - Sidebar AppShellV2 entry: `Modules/RecurringBilling/Http/Controllers/DataController@modifyAdminMenu` injeta item label `Cobrança Recorrente` order=86 (entre Financeiro=85 e PontoWr2=88), agrupado visualmente em SIDEBAR_GROUPS['fin'] no frontend
 - Routes nomeadas: `recurring-billing.index` (GET `/recurring-billing`), legacy `/recurringbilling` intacta (Onda 10 cuta)
+- **Onda 21 v9,75 — Nova assinatura ativa:** CTA header + primary sidebar + atalho `N` abrem drawer lateral 760px de criação (busca de cliente debounced via `recurring-billing.contacts.search` Tier 0 + seletor de plano que pré-preenche valor/ciclo + valor/ciclo/data/gateway/forma/descrição) → POST `recurring-billing.store`. Substitui o stub "(em breve)" e a rota `/recurring-billing/create` 404.
 
 ---
 
@@ -98,8 +99,11 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 | Método | Rota | Retorna |
 |---|---|---|
-| GET | `/recurring-billing` (X-Inertia) | Inertia render `RecurringBilling/Index` props `{kpis, subscriptions (defer), plans, filters}` |
+| GET | `/recurring-billing` (X-Inertia) | Inertia render `RecurringBilling/Index` props `{kpis, subscriptions (defer), plans, filters, openCreate}` |
 | GET | `/recurring-billing` (browser sem header X-Inertia) | mesmo (Inertia gerencia fallback) |
+| GET | `/recurring-billing/create` (Onda 21) | redirect 302 → `/recurring-billing?new=1` (auto-abre drawer Nova assinatura — primary do sidebar aponta pra cá) |
+| GET | `/recurring-billing/contacts/search?q=` (Onda 21) | JSON `{contacts:[{id,name,mobile,email,tax_number}]}` scoped business_id (Tier 0), type customer/both, min 2 chars |
+| POST | `/recurring-billing` (Onda 21 — drawer submit) | cria Subscription (StoreAssinaturaRequest: contact_id, plan_id?, valor, ciclo, data_proxima_cobranca, gateway, forma_pagamento, descricao?) + redirect flash |
 | GET | `/recurringbilling` (legacy Blade `view('recurringbilling::index')` "Hello World") | preservado intacto até Onda 10 cutover 301 |
 
 ---

@@ -50,8 +50,11 @@ class RecurringBillingController extends Controller
         $tab = $request->string('tab', 'assinaturas')->toString();
 
         return Inertia::render('RecurringBilling/Index', [
-            'filters' => $filters,
-            'tab'     => $tab,
+            'filters'    => $filters,
+            'tab'        => $tab,
+            // Onda 21 v9,75 — abre drawer "Nova assinatura" via ?new=1 (atalho N
+            // ou primary do sidebar /recurring-billing/create → redirect).
+            'openCreate' => $request->boolean('new'),
 
             'kpis' => Inertia::defer(function () use ($businessId) {
                 return SubscriptionIndexPresenter::computeKpis(
@@ -298,9 +301,62 @@ class RecurringBillingController extends Controller
         ]);
     }
 
-    public function create()
+    /**
+     * GET /recurring-billing/create — Onda 21 v9,75.
+     *
+     * O primary do sidebar (DataController) aponta pra cá. Em vez de Blade
+     * legacy, redireciona pra Page Inertia com flag ?new=1 que auto-abre o
+     * drawer "Nova assinatura" (canon: criação inline, não página separada).
+     */
+    public function create(): RedirectResponse
     {
-        return view('recurringbilling::create');
+        return redirect()->route('recurring-billing.index', ['new' => 1]);
+    }
+
+    /**
+     * GET /recurring-billing/contacts/search — autocomplete cliente do drawer.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): scope business_id da sessão SEMPRE.
+     * Pattern reusado de Whatsapp InboxController::searchContacts (US-WA-064).
+     * Só type customer/both (lead ainda não é cliente; supplier não assina).
+     */
+    public function searchContacts(Request $request): JsonResponse
+    {
+        Gate::authorize('create', Subscription::class);
+
+        $businessId = (int) session('user.business_id');
+        $q = trim((string) $request->input('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['contacts' => []], 200);
+        }
+
+        // Sanitiza query — escapa LIKE wildcards `% _ \`.
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+        $like = "%{$escaped}%";
+
+        $contacts = \App\Contact::query()
+            ->where('business_id', $businessId)
+            ->whereIn('type', ['customer', 'both'])
+            ->where(function ($w) use ($like) {
+                $w->where('name', 'LIKE', $like)
+                    ->orWhere('mobile', 'LIKE', $like)
+                    ->orWhere('email', 'LIKE', $like)
+                    ->orWhere('tax_number', 'LIKE', $like);
+            })
+            ->orderBy('name')
+            ->limit(15)
+            ->get(['id', 'name', 'mobile', 'email', 'tax_number']);
+
+        return response()->json([
+            'contacts' => $contacts->map(fn ($c) => [
+                'id'         => $c->id,
+                'name'       => $c->name,
+                'mobile'     => $c->mobile,
+                'email'      => $c->email,
+                'tax_number' => $c->tax_number,
+            ])->all(),
+        ], 200);
     }
 
     public function show($id)
