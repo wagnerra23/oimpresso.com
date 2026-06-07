@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **263** arquivos · **248** números únicos · máx **0258**
-- **ADRs ATIVOS (lifecycle ativo): 223** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 203 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 223 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **265** arquivos · **250** números únicos · máx **0260**
+- **ADRs ATIVOS (lifecycle ativo): 225** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 205 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 225 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (263)
+## Todas as ADRs (265)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -295,3 +295,5 @@ _(íntegra)_
 | 0256 | proposto | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
 | 0257 | proposto | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
 | 0258 | proposto | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
+| 0259 | aceito | ativo | errata | Errata 0091 — modelo do Brief é gpt-4o-mini (não Sonnet); §Geração superseded po |
+| 0260 | aceito | ativo | errata | Errata 0182 — cor primária do PageHeader é roxo universal 295 (não hue-per-grupo |
