@@ -5,12 +5,19 @@ import { Slot } from "radix-ui"
 import { cn } from "@/Lib/utils"
 
 /**
- * Text — tipografia 100% via type-scale token (ADR 0253 · F3).
+ * Text — tipografia 100% via type-scale token (ADR 0253 · F3 · refino v2 2026-06-07).
  *
- * Mata o `className="text-[22px]"` / cor crua: `size`/`weight`/`tone` são
- * enumerados e mapeiam pros tokens do DS v6 (`text-foreground`,
- * `text-muted-foreground`, `text-primary`, `text-destructive`). `as` escolhe a
- * tag semântica (h1–h6/p/span/label) — estilo e semântica desacoplados.
+ * Mata o `className="text-[22px]"` / cor crua. `as` escolhe a tag semântica
+ * (h1–h6/p/span/label) — estilo e semântica desacoplados.
+ *
+ * Refino v2 — fecha os gaps que travavam telas de NÚMERO (vendas/financeiro/OS/NF-e):
+ *  • `family="mono"` + `numeric="tabular"` → money, placa, km, NF-e alinham.
+ *    (NB: o utility `font-mono` cai no mono do sistema até o token `--font-mono`
+ *     ("IBM Plex Mono") existir no @theme — decisão Tier 0 de [W], flag no handoff.)
+ *  • `tone` ganha `success`/`warning`/`destructive` (KPI +/−) — tokens REAIS do
+ *    @theme (inertia.css), não os nomes da régua CSS (`--pos/--neg`).
+ *  • `size` sobe até `5xl` — o KPI canônico é `4xl/36px` (DESIGN.md §16.3),
+ *    que a v1 (teto `3xl`) não expressava.
  */
 const textVariants = cva("", {
   variants: {
@@ -22,6 +29,8 @@ const textVariants = cva("", {
       xl: "text-xl",
       "2xl": "text-2xl",
       "3xl": "text-3xl",
+      "4xl": "text-4xl",
+      "5xl": "text-5xl",
     },
     weight: {
       normal: "font-normal",
@@ -29,11 +38,29 @@ const textVariants = cva("", {
       semibold: "font-semibold",
       bold: "font-bold",
     },
+    /* tons = tokens semânticos do @theme (geram utilities Tailwind v4) */
     tone: {
       default: "text-foreground",
       muted: "text-muted-foreground",
       primary: "text-primary",
+      success: "text-success",
+      warning: "text-warning",
       destructive: "text-destructive",
+    },
+    family: {
+      sans: "font-sans",
+      mono: "font-mono",
+    },
+    numeric: {
+      tabular: "tabular-nums",
+      normal: "",
+    },
+    leading: {
+      none: "leading-none",
+      tight: "leading-tight",
+      snug: "leading-snug",
+      normal: "leading-normal",
+      relaxed: "leading-relaxed",
     },
     align: {
       left: "text-left",
@@ -62,13 +89,17 @@ export type TextProps = React.HTMLAttributes<HTMLElement> &
   }
 
 export function Text({
-  className, size, weight, tone, align, truncate, as = "p", asChild = false, ...props
+  className, size, weight, tone, family, numeric, leading, align, truncate,
+  as = "p", asChild = false, ...props
 }: TextProps) {
   const Comp = asChild ? Slot.Root : as
   return (
     <Comp
       data-slot="text"
-      className={cn(textVariants({ size, weight, tone, align, truncate }), className)}
+      className={cn(
+        textVariants({ size, weight, tone, family, numeric, leading, align, truncate }),
+        className,
+      )}
       {...props}
     />
   )

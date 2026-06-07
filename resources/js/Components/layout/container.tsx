@@ -5,19 +5,24 @@ import { Slot } from "radix-ui"
 import { cn } from "@/Lib/utils"
 
 /**
- * Container — largura-máxima de página + padding horizontal de token (ADR 0253 · F3).
+ * Container — largura-máxima de página + padding horizontal de token (ADR 0253 · F3 · refino v2).
  *
- * O wrapper de página: centraliza e limita a medida de leitura. `size` mapeia
- * pros breakpoints-token do Tailwind; `px` é o respiro lateral (token).
+ * O wrapper de página: centraliza e limita a medida de leitura. `px` é o respiro
+ * lateral (token).
+ *
+ * ⚠️ Correção do refino v2: a v1 usava `max-w-screen-*`, utilities REMOVIDAS no
+ * Tailwind v4 — o limite de largura virava silenciosamente nulo. Agora mapeia
+ * pra escala `max-w-*` que existe de fato no v4 (valores controlados no enum,
+ * nunca px literal no call-site).
  */
 const containerVariants = cva("mx-auto w-full", {
   variants: {
     size: {
-      sm: "max-w-screen-sm",
-      md: "max-w-screen-md",
-      lg: "max-w-screen-lg",
-      xl: "max-w-screen-xl",
-      "2xl": "max-w-screen-2xl",
+      sm: "max-w-3xl",      /* ~768px  */
+      md: "max-w-5xl",      /* ~1024px */
+      lg: "max-w-6xl",      /* ~1152px */
+      xl: "max-w-7xl",      /* ~1280px — alvo Larissa/Wagner */
+      "2xl": "max-w-[96rem]", /* ~1536px */
       full: "max-w-full",
     },
     px: {
