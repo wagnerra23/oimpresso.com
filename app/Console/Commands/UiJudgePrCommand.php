@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
+use Modules\Jana\Ai\UiDeterministicScorer;
 use Modules\Jana\Entities\UiJudgeRun;
 
 /**
@@ -107,7 +108,7 @@ class UiJudgePrCommand extends Command
             return self::FAILURE;
         }
 
-        // 5. Parse JSON
+        // 5. Parse JSON (agora o LLM retorna só as 3 dims semânticas — sem score)
         $review = $this->parseReview($output);
         if ($review === null) {
             $this->warn('Output do LLM não é JSON válido · imprimindo raw:');
@@ -115,6 +116,12 @@ class UiJudgePrCommand extends Command
 
             return $strict ? self::FAILURE : self::SUCCESS;
         }
+
+        // 5.5. Onda 1 (LLM-judge → determinístico · ADR 0255): mescla as 6 dimensões
+        // DETERMINÍSTICAS (regex · UiDeterministicScorer) com as 3 SEMÂNTICAS do LLM → 9 dims,
+        // computa o score total (0-100) + verdict AQUI (não mais no LLM). O juiz não pontua
+        // mais as 6 → sem custo/viés/flakiness nelas.
+        $review = $this->mergeDeterministic($review, $diff);
 
         // 6. Render no console
         $this->renderReview($review);
@@ -374,11 +381,46 @@ class UiJudgePrCommand extends Command
         $clean = preg_replace('/\n```\s*$/', '', $clean) ?? $clean;
 
         $data = json_decode($clean, true);
-        if (! is_array($data) || ! isset($data['score'])) {
+        // Onda 1: o LLM agora retorna `dimensoes` (3 semânticas) — sem `score` (calculado
+        // no command após mesclar as 6 determinísticas). Exigimos `dimensoes`, não `score`.
+        if (! is_array($data) || ! isset($data['dimensoes'])) {
             return null;
         }
 
         return $data;
+    }
+
+    /**
+     * Onda 1 (LLM-judge → determinístico · ADR 0255): mescla as 6 dimensões determinísticas
+     * (regex · UiDeterministicScorer) com as 3 semânticas julgadas pelo LLM, computa o score
+     * total 0-100 (soma das 9 dims · cada 0-10) e deriva o verdict.
+     *
+     * @param  array<string, mixed>  $review
+     * @return array<string, mixed>
+     */
+    private function mergeDeterministic(array $review, string $diff): array
+    {
+        $deterministic = (new UiDeterministicScorer)->score($diff); // 6 dims
+
+        $llm = is_array($review['dimensoes'] ?? null) ? $review['dimensoes'] : [];
+        // só as 3 dimensões semânticas do LLM entram (ignora qualquer dim que o LLM
+        // tenha pontuado fora do contrato).
+        $semantic = array_intersect_key($llm, array_flip(UiDeterministicScorer::SEMANTIC_DIMENSIONS));
+
+        $dimensoes = array_merge($deterministic, $semantic); // 6 + 3 = 9
+        $review['dimensoes'] = $dimensoes;
+
+        $sum = 0;
+        foreach ($dimensoes as $d) {
+            $sum += is_array($d) ? (int) ($d['score'] ?? 0) : 0;
+        }
+        $maxPts = max(count($dimensoes), 1) * 10;
+        $score = (int) round($sum / $maxPts * 100);
+
+        $review['score'] = $score;
+        $review['verdict'] = $score < 60 ? 'request_changes' : ($score < 85 ? 'comment' : 'approve');
+
+        return $review;
     }
 
     private function renderReview(array $review): void
