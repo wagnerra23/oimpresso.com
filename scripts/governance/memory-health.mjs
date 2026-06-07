@@ -17,6 +17,9 @@
  *       (🔴 fail — defense-in-depth do secrets:scan PHP; este pega senha PT-BR/UUID.)
  *   D · DOC STALE — doc canon com "última atualização"/reviewed_at > LIMIAR meses
  *       que se diz canon/estado-atual. (🟡 warn.)
+ *   E · ADR ENUM-DRIFT — status/lifecycle de ADR fora do enum canônico
+ *       (accepted vs aceito, active vs ativo, canon/feature_wish inválidos).
+ *       É o que impede a contagem limpa de "ADRs ativos". (🟡 warn.)
  *
  * Uso:
  *   node scripts/governance/memory-health.mjs            (CI: exit 1 se algum 🔴)
@@ -163,11 +166,38 @@ function checkStaleCanon() {
   }
 }
 
+// ── Check E: drift de enum status/lifecycle em ADR ──────────────────────────
+// Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
+// editar ADR ratificada in-place — então normalizar é no leitor OU override
+// consciente; este check só IMPEDE PIORAR (flagga grafia/enum novo).
+const STATUS_OK = new Set(['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded']);
+const LIFECYCLE_OK = new Set(['ativo', 'arquivado', 'substituido', 'historical']);
+function checkAdrEnumDrift() {
+  const dir = 'memory/decisions';
+  if (!exists(dir)) return;
+  const badStatus = {}, badLifecycle = {};
+  let n = 0;
+  for (const f of readdirSync(join(ROOT, dir))) {
+    if (!/^\d{4}-.+\.md$/.test(f)) continue;
+    const txt = read(`${dir}/${f}`);
+    const st = (txt.match(/^status:\s*["']?([^\s"'#]+)/m) || [])[1]?.toLowerCase();
+    const lc = (txt.match(/^lifecycle:\s*["']?([^\s"'#]+)/m) || [])[1]?.toLowerCase();
+    if (st && !STATUS_OK.has(st)) { badStatus[st] = (badStatus[st] || 0) + 1; n++; }
+    if (lc && !LIFECYCLE_OK.has(lc)) { badLifecycle[lc] = (badLifecycle[lc] || 0) + 1; n++; }
+  }
+  if (n > 0) {
+    warns.push({ check: 'E', kind: 'adr-enum-drift', count: n,
+      sample: [{ status_invalido: badStatus }, { lifecycle_invalido: badLifecycle }],
+      msg: `${n} ADR(s) com status/lifecycle fora do enum canônico (adr.schema.json). Normalizar (accepted→aceito, active→ativo; canon/feature_wish não são lifecycle válidos). Append-only bloqueia editar in-place: normalizar no leitor (decisions-search) ou override consciente.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
 checkSecretsInMemory();
 checkStaleCanon();
+checkAdrEnumDrift();
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ fails, warns, ok: fails.length === 0 }, null, 2));
