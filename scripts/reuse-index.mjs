@@ -3,7 +3,7 @@
 //
 // POR QUE EXISTE (plano 2026-06-06 · memory/sessions/2026-06-06-plano-inventario-anti-duplicacao.md):
 // a IA recria função/componente/Model que JÁ existe porque não tem onde perguntar "isso já existe?".
-// Documento-índice escrito à mão APODRECE (ADR 0240). Este índice é REGENERADO do código a cada
+// Documento-índice escrito à mão APODRECE (ADR 0239: git=SSOT, derivado>escrito). Este índice é REGENERADO do código a cada
 // chamada — impossível apodrecer. Responde "reusa ou cria, e em qual arquivo".
 //
 // Mata os erros reais T-AP-1 / T-AP-7 (inventar Model/Service que não existe — LICOES_F3_FINANCEIRO_REJEITADO).
@@ -23,8 +23,8 @@
 // DERIVADO, consultável e abrangente (JS+PHP). Não substitui css-size/pageheader/conformance gates —
 // é a camada de "reusa ou cria, em qual arquivo" que faltava.
 //
-// Refs: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md (problema #5) · ADR 0240 (derivado>escrito)
-//       · ADR 0239 (git=SSOT) · prototipo-ui/REGISTRY_DS_COMPONENTES.md.
+// Refs: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md (problema #5)
+//       · ADR 0239 (git=SSOT · derivado>escrito) · prototipo-ui/REGISTRY_DS_COMPONENTES.md.
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';
