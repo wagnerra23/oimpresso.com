@@ -1,5 +1,5 @@
 ---
-date: 2026-06-06
+date: '2026-06-06'
 topic: 'Migração WR Comercial Delphi → oimpresso biz=1 WR2 Sistemas (sessão Eliana, 3 dias)'
 authors: ['E', 'C']
 prs: [2205, 2274, 2288, 2363]

@@ -1,5 +1,5 @@
 ---
-date: 2026-06-07
+date: '2026-06-07'
 time: '02:20 BRT'
 slug: migracao-financeira-wr2-completa-fix-kpi-juros
 tldr: 'Migração WR Comercial Delphi → oimpresso biz=1 WR2 Sistemas completa: 13.703 contatos + 159 plano contas + 38.442 títulos + 35.315 baixas, paridade 100% jan/2026 vs WR2, fix KPI juros+multa-desconto (PR #2363 mergeado e em prod).'
