@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\RecurringBilling\Models\Invoice;
+use Modules\RecurringBilling\Models\Plan;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Models\SubscriptionEvent;
 use Throwable;
@@ -105,24 +106,30 @@ class InvoiceGeneratorService
      */
     private function processarSubscription(Subscription $sub, int $businessId, bool $dryRun, array $stats): array
     {
+        /** @var Plan|null $plan */
         $plan = $sub->plan;
         if ($plan === null) {
             $stats['errors']++;
             Log::channel('single')->error('rb:generate-invoices subscription sem plan', [
-                'subscription_id' => $sub->id,
-                'plan_id'         => $sub->plan_id,
+                'subscription_id' => $sub->getKey(),
+                'plan_id'         => $sub->getAttribute('plan_id'),
                 'business_id'     => $businessId,
             ]);
 
             return $stats;
         }
 
-        $vencimento = Carbon::parse($sub->next_due_date);
+        $vencimento = Carbon::parse($sub->getAttribute('next_due_date'));
+        $planId      = (int) $plan->getKey();
+        $planValor   = (float) $plan->getAttribute('valor');
+        $planNome    = (string) $plan->getAttribute('name');
+        $planCiclo   = (string) $plan->getAttribute('ciclo');
+        $subId       = (int) $sub->getKey();
 
         // Idempotência — invoice mesma competência (YYYY-MM) já existe?
         $exists = Invoice::query()
             ->where('business_id', $businessId)
-            ->where('subscription_id', $sub->id)
+            ->where('subscription_id', $subId)
             ->whereYear('vencimento', $vencimento->year)
             ->whereMonth('vencimento', $vencimento->month)
             ->whereNotIn('status', ['canceled'])
@@ -140,25 +147,25 @@ class InvoiceGeneratorService
             return $stats;
         }
 
-        $proximo = $this->avancarCiclo($vencimento, (string) $plan->ciclo);
-        $numeroDocumento = sprintf('RB-%d-%s', $sub->id, $vencimento->format('Y-m'));
+        $proximo = $this->avancarCiclo($vencimento, $planCiclo);
+        $numeroDocumento = sprintf('RB-%d-%s', $subId, $vencimento->format('Y-m'));
 
-        DB::transaction(function () use ($sub, $plan, $businessId, $vencimento, $proximo, $numeroDocumento): void {
+        DB::transaction(function () use ($sub, $businessId, $subId, $planId, $planValor, $planNome, $planCiclo, $vencimento, $proximo, $numeroDocumento): void {
             Invoice::create([
                 'business_id'       => $businessId,
-                'subscription_id'   => $sub->id,
-                'contact_id'        => $sub->contact_id,
+                'subscription_id'   => $subId,
+                'contact_id'        => $sub->getAttribute('contact_id'),
                 'numero_documento'  => $numeroDocumento,
-                'valor'             => $plan->valor,
+                'valor'             => $planValor,
                 'status'            => 'open',
                 'vencimento'        => $vencimento->toDateString(),
-                'conta_bancaria_id' => $sub->conta_bancaria_id,
+                'conta_bancaria_id' => $sub->getAttribute('conta_bancaria_id'),
                 'metadata'          => [
                     'generated_by'  => 'rb:generate-invoices',
                     'generated_at'  => now()->toIso8601String(),
-                    'plan_id'       => (int) $plan->id,
-                    'plan_name'     => (string) $plan->name,
-                    'plan_ciclo'    => (string) $plan->ciclo,
+                    'plan_id'       => $planId,
+                    'plan_name'     => $planNome,
+                    'plan_ciclo'    => $planCiclo,
                     'us'            => 'US-RB-003',
                 ],
             ]);
@@ -167,14 +174,14 @@ class InvoiceGeneratorService
 
             SubscriptionEvent::create([
                 'business_id'     => $businessId,
-                'subscription_id' => $sub->id,
+                'subscription_id' => $subId,
                 'kind'            => SubscriptionEvent::KIND_CHARGE,
                 'by_actor'        => 'system:rb:generate-invoices',
                 'body'            => sprintf(
                     'Fatura %s gerada — vencimento %s — R$ %s. Próximo ciclo: %s.',
                     $numeroDocumento,
                     $vencimento->format('d/m/Y'),
-                    number_format((float) $plan->valor, 2, ',', '.'),
+                    number_format($planValor, 2, ',', '.'),
                     Carbon::parse($proximo)->format('d/m/Y'),
                 ),
                 'occurred_at'     => now(),
