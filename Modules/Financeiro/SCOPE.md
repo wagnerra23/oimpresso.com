@@ -23,6 +23,7 @@ contains:
   - "FluxoController"
   - "InstallController"
   - "PlanoContaController — Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
+  - "ProvaVivaController — tela-piloto /financeiro/prova-viva, read-only sem query de negócio (prova viva dos primitivos de layout ADR 0253; dados mock no .tsx, não substitui Unificado)"
   - "RelatoriosController"
   - "UnificadoController"
 not_contains:
