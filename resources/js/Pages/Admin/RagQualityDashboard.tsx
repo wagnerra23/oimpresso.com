@@ -111,7 +111,7 @@ function Sparkline({
   unit?: string;
   formatValue?: (v: number) => string;
 }) {
-  if (!values || values.length === 0) return <span className="text-xs text-zinc-400">sem dados</span>;
+  if (!values || values.length === 0) return <span className="text-xs text-muted-foreground">sem dados</span>;
   const max = Math.max(...values, 1);
   const min = Math.min(...values, 0);
   const range = Math.max(max - min, 1);
@@ -173,7 +173,7 @@ function LatencyBucketCard({ bucket, data }: { bucket: Bucket; data?: LatencyBuc
         <div className={`mb-2 ${p99Color(last)}`}>
           <Sparkline values={values} unit="ms" />
         </div>
-        <div className="text-xs text-zinc-500 grid grid-cols-2 gap-2">
+        <div className="text-xs text-muted-foreground grid grid-cols-2 gap-2">
           <div>último p99: <strong>{last}ms</strong></div>
           <div>pico janela: <strong>{max}ms</strong></div>
           <div>contagem: <strong>{totalCount.toLocaleString('pt-BR')}</strong></div>
@@ -187,10 +187,10 @@ function LatencyBucketCard({ bucket, data }: { bucket: Bucket; data?: LatencyBuc
 function NdcgTrendCard({ points }: { points?: NdcgPoint[] }) {
   if (!points || points.length === 0) {
     return (
-      <div className="text-sm text-zinc-500">
-        Tabela <code className="text-xs bg-zinc-100 px-1 rounded">mcp_rag_evals</code> ainda não
+      <div className="text-sm text-muted-foreground">
+        Tabela <code className="text-xs bg-muted px-1 rounded">mcp_rag_evals</code> ainda não
         materializada (Wave 29 escopo). Trend nDCG@5 vai aparecer aqui após primeira execução de{' '}
-        <code className="text-xs bg-zinc-100 px-1 rounded">kb:ragas-eval-snapshot</code>.
+        <code className="text-xs bg-muted px-1 rounded">kb:ragas-eval-snapshot</code>.
       </div>
     );
   }
@@ -201,7 +201,7 @@ function NdcgTrendCard({ points }: { points?: NdcgPoint[] }) {
     <div className="space-y-2">
       <div className="flex items-baseline gap-4">
         <div className="text-2xl font-bold text-success">{last.toFixed(3)}</div>
-        <div className="text-xs text-zinc-500">média {avg.toFixed(3)} · n={points.length}d</div>
+        <div className="text-xs text-muted-foreground">média {avg.toFixed(3)} · n={points.length}d</div>
       </div>
       <div className="text-success">
         <Sparkline values={values} width={240} height={40} formatValue={(v) => v.toFixed(3)} />
@@ -213,7 +213,7 @@ function NdcgTrendCard({ points }: { points?: NdcgPoint[] }) {
 function RecallTrendCard({ points }: { points?: RecallPoint[] }) {
   if (!points || points.length === 0) {
     return (
-      <div className="text-sm text-zinc-500">
+      <div className="text-sm text-muted-foreground">
         Recall@5 trend pendente (mesma fonte mcp_rag_evals).
       </div>
     );
@@ -225,7 +225,7 @@ function RecallTrendCard({ points }: { points?: RecallPoint[] }) {
     <div className="space-y-2">
       <div className="flex items-baseline gap-4">
         <div className="text-2xl font-bold text-primary">{(last * 100).toFixed(1)}%</div>
-        <div className="text-xs text-zinc-500">média {(avg * 100).toFixed(1)}% · n={points.length}d</div>
+        <div className="text-xs text-muted-foreground">média {(avg * 100).toFixed(1)}% · n={points.length}d</div>
       </div>
       <div className="text-primary">
         <Sparkline values={values} width={240} height={40} formatValue={(v) => `${(v * 100).toFixed(1)}%`} />
@@ -237,7 +237,7 @@ function RecallTrendCard({ points }: { points?: RecallPoint[] }) {
 function TopSlowQueriesTable({ rows }: { rows?: SlowQuery[] }) {
   if (!rows || rows.length === 0) {
     return (
-      <div className="text-sm text-zinc-500">
+      <div className="text-sm text-muted-foreground">
         Nenhuma query lenta detectada (mcp_observability_spans pode estar vazia em dev).
       </div>
     );
@@ -245,7 +245,7 @@ function TopSlowQueriesTable({ rows }: { rows?: SlowQuery[] }) {
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-left text-xs text-zinc-500 border-b">
+        <tr className="text-left text-xs text-muted-foreground border-b">
           <th className="py-2">#</th>
           <th>span</th>
           <th>query_hash</th>
@@ -256,17 +256,17 @@ function TopSlowQueriesTable({ rows }: { rows?: SlowQuery[] }) {
       <tbody>
         {rows.map((r, i) => (
           <tr key={`${r.span_name}-${r.query_hash}`} className="border-b last:border-b-0">
-            <td className="py-1.5 text-zinc-400">{i + 1}</td>
+            <td className="py-1.5 text-muted-foreground">{i + 1}</td>
             <td>
-              <code className="text-xs bg-zinc-100 px-1 rounded">{r.span_name}</code>
+              <code className="text-xs bg-muted px-1 rounded">{r.span_name}</code>
             </td>
             <td>
-              <code className="text-xs text-zinc-600">{r.query_hash}</code>
+              <code className="text-xs text-muted-foreground">{r.query_hash}</code>
             </td>
             <td className={`text-right font-bold ${p99Color(r.max_duration_ms)}`}>
               {r.max_duration_ms}ms
             </td>
-            <td className="text-right text-zinc-500">{r.count}</td>
+            <td className="text-right text-muted-foreground">{r.count}</td>
           </tr>
         ))}
       </tbody>
@@ -276,7 +276,7 @@ function TopSlowQueriesTable({ rows }: { rows?: SlowQuery[] }) {
 
 function FallbackRateCard({ data }: { data?: FallbackRate }) {
   if (!data) {
-    return <div className="text-sm text-zinc-500">Carregando rate fallback…</div>;
+    return <div className="text-sm text-muted-foreground">Carregando rate fallback…</div>;
   }
   const pctColor =
     data.fallback_pct <= FALLBACK_THRESHOLDS.good
@@ -288,12 +288,12 @@ function FallbackRateCard({ data }: { data?: FallbackRate }) {
     <div className="space-y-2">
       <div className="flex items-baseline gap-4">
         <div className={`text-3xl font-bold ${pctColor}`}>{data.fallback_pct.toFixed(2)}%</div>
-        <div className="text-xs text-zinc-500">
+        <div className="text-xs text-muted-foreground">
           {data.fallback_count.toLocaleString('pt-BR')} de{' '}
           {data.rerank_total.toLocaleString('pt-BR')} reranks
         </div>
       </div>
-      <div className="text-xs text-zinc-600">
+      <div className="text-xs text-muted-foreground">
         {data.fallback_pct <= FALLBACK_THRESHOLDS.good ? (
           <span className="text-success">
             ✓ CT 100 BGE saudável (&lt;{FALLBACK_THRESHOLDS.good}%).
@@ -359,7 +359,7 @@ export default function RagQualityDashboard({
                     <CardTitle className="text-base">{BUCKET_LABEL[bk]}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-sm text-zinc-500">Carregando agregados…</div>
+                    <div className="text-sm text-muted-foreground">Carregando agregados…</div>
                   </CardContent>
                 </Card>
               ))}
@@ -388,7 +388,7 @@ export default function RagQualityDashboard({
             <CardContent>
               <Deferred
                 data="ndcg_trend"
-                fallback={<div className="text-sm text-zinc-500">Carregando RAGAS evals…</div>}
+                fallback={<div className="text-sm text-muted-foreground">Carregando RAGAS evals…</div>}
               >
                 <NdcgTrendCard points={ndcg_trend} />
               </Deferred>
@@ -404,7 +404,7 @@ export default function RagQualityDashboard({
             <CardContent>
               <Deferred
                 data="recall_trend"
-                fallback={<div className="text-sm text-zinc-500">Carregando recall trend…</div>}
+                fallback={<div className="text-sm text-muted-foreground">Carregando recall trend…</div>}
               >
                 <RecallTrendCard points={recall_trend} />
               </Deferred>
@@ -423,7 +423,7 @@ export default function RagQualityDashboard({
             <CardContent>
               <Deferred
                 data="fallback_rate"
-                fallback={<div className="text-sm text-zinc-500">Calculando…</div>}
+                fallback={<div className="text-sm text-muted-foreground">Calculando…</div>}
               >
                 <FallbackRateCard data={fallback_rate} />
               </Deferred>
@@ -441,7 +441,7 @@ export default function RagQualityDashboard({
                 <Deferred
                   data="top_slow_queries"
                   fallback={
-                    <div className="text-sm text-zinc-500">Agregando mcp_observability_spans…</div>
+                    <div className="text-sm text-muted-foreground">Agregando mcp_observability_spans…</div>
                   }
                 >
                   <TopSlowQueriesTable rows={top_slow_queries} />
@@ -451,7 +451,7 @@ export default function RagQualityDashboard({
           </div>
         </div>
 
-        <div className="text-xs text-zinc-400 text-center pt-2">
+        <div className="text-xs text-muted-foreground text-center pt-2">
           Wave 28 §G3 · gerado {new Date(meta.generated_at).toLocaleString('pt-BR')} · janela{' '}
           {meta.window_days} dias
         </div>
