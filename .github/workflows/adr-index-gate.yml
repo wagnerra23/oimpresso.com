@@ -1,27 +1,43 @@
 name: ADR Index Gate — ADR 0258
 
 # Catraca anti-drift (fitness function, ADR 0258 + 0256).
-# O índice de ADR é GERADO (modelo Log4brains). Se o _INDEX-GENERATED.md commitado
-# divergir do que o gerador produz dos arquivos → drift → bloqueia o PR.
-# Conserto: `node scripts/governance/adr-index-generate.mjs --write` e commitar.
+# (1) Índice de ADR é GERADO (Log4brains). _INDEX-GENERATED.md commitado ≠ gerado → bloqueia.
+#     Conserto: `node scripts/governance/adr-index-generate.mjs --write`.
+# (2) GAP 1: --check também falha em alerta de supersede-integrity.
+# (3) META-TESTE: roda o vitest dos scripts de governança — o gate só "vale" se o
+#     controle-negativo que o prova roda no CI (método ADR 0258).
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'memory/decisions/**'
-      - 'scripts/governance/adr-index-generate.mjs'
+      - 'scripts/governance/**'
+      - 'tests/governanceAdrScripts.spec.ts'
       - '.github/workflows/adr-index-gate.yml'
   workflow_dispatch:
 
 jobs:
   check:
-    name: índice de ADR em dia (--check)
+    name: índice de ADR em dia (--check + supersede-integrity)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Verifica se _INDEX-GENERATED.md está atualizado
+      - name: Verifica índice atualizado + supersede íntegra
         run: node scripts/governance/adr-index-generate.mjs --check
+
+  meta-test:
+    name: meta-teste dos scripts de governança (vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: npm ci
+      - name: Controle-negativo dos gates (gerador + supersede + memory-health)
+        run: npm run test:adr-governance
