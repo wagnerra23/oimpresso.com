@@ -26,21 +26,17 @@
 - **0236** ×3: 0236-extrato-conciliacao-modelo-unificado · 0236-governanca-evolucao-doc-design · 0236-scorecard-universal-entidade-arbitraria
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 
-## Integridade de supersessão (14 alertas)
+## Integridade de supersessão (10 alertas)
 - ⚠️ 0011 supersedes 0002 → 0002 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0011 supersedes 0001 → 0001 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0048 supersedes 0035 → 0035 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0048 supersedes 0035 → 0035 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0048 supersedes 2026 → ADR 2026 NÃO existe
 - ⚠️ 0053 supersedes 0036 → 0036 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0053 supersedes 0036 → 0036 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0055 supersedes 0054 → 0054 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0060 supersedes 0044 → 0044 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0092 supersedes 0088 → 0088 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0172 supersedes 0005 → 0005 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0172 supersedes 0001 → 0001 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0178 supersedes 0136 → 0136 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0235 supersedes 295 → ADR 295 NÃO existe
 
 ## Todas as ADRs (263)
 | Nº | Status | Lifecycle | Kind | Título |
