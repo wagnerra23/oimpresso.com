@@ -73,10 +73,17 @@ class Kernel extends ConsoleKernel
         // Scheduler ficou apontando pro nome antigo `docvault:*` até 2026-05-04,
         // causando 40+ arquivos atrasados (drift descoberto ao auditar 2 fontes
         // de verdade auto-mem ↔ git).
-        $schedule->command('memcofre:sync-memories')
-            ->dailyAt('23:00')
-            ->withoutOverlapping()
-            ->environments(['local', 'live']);
+        // ⛔ DESATIVADO 2026-06-07 (auditoria de conflitos de memória).
+        // Este sync copiava auto-mem local (~/.claude/.../memory/) → git memory/claude/:
+        // foi o MECANISMO que vazou credenciais em claro pro git e ressuscitava o
+        // legado a cada noite. Viola ADR 0061 (zero auto-mem privada — o próprio
+        // comando cita o ADR mas rodava mesmo assim). O command memcofre:sync-memories
+        // continua existindo (Modules/SRS) e pode ser rodado manual se algum dia
+        // precisar — mas NÃO volta ao scheduler sem ADR que reverta o 0061.
+        // $schedule->command('memcofre:sync-memories')
+        //     ->dailyAt('23:00')
+        //     ->withoutOverlapping()
+        //     ->environments(['local', 'live']);
 
         // H5 Onda 3 (Gap #5 COMPARATIVO-MCP-2026-05-13) — auto-fechamento cycles
         // expirados (Linear-style desde 2019). Daily 23:55 BRT detecta cycles com
