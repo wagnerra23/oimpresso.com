@@ -96,6 +96,7 @@ jobs:
         run: |
           vendor/bin/pest tests/Feature/Services/FeatureFlagServiceTest.php \
             --mutate \
+            --path=app/Services \
             --covered-only \
             --min=0 \
             --ignore-min-score-on-zero-mutations
