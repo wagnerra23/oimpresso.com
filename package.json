@@ -42,6 +42,8 @@
     "dup:check": "jscpd resources/js",
     "no-mock:check": "node scripts/no-mock-in-prod.mjs",
     "no-mock:baseline:write": "node scripts/no-mock-in-prod.mjs --write-baseline",
+    "design-spec:check": "node scripts/design-spec-gen.mjs --check",
+    "design-spec:write-all": "node scripts/design-spec-gen.mjs --write-all",
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts"
   },
