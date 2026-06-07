@@ -1,7 +1,7 @@
 ---
 date: "2026-06-06"
 slug: determinizacao-anti-dup-design
-tldr: "Sessão épica ~23 PRs (#2343-2364) OFF-CYCLE, 3 frentes. ANTI-DUP: reuse-index (3434 símbolos JS+PHP) + gates reuse/no-mock/jscpd + rule reuse-check + deletou stubs CSS mortos. DESIGN-COMM: Claude Design oficial = já somos superset governado; PROTOCOL §10.5 (bundle=proposta, não autoridade) + prova 1969 oklch cru vs 18 token. DETERMINIZAÇÃO LLM-judge→teste: ADR 0255 (contrato de view charter+design-spec derivado) + a11y 3 fases axe + Onda 1 (PR UI Judge 6/9 dims→regex via UiDeterministicScorer, LLM só nas 3 semânticas). 2 agentes em thread travaram — assumi/finalizei. Fechei 2 pontas soltas minhas (#2364)."
+tldr: "~23 PRs (#2343-2364) OFF-CYCLE, 3 frentes. ANTI-DUP: reuse-index (3434 símbolos JS+PHP) + gates reuse/no-mock/jscpd + deletou stubs CSS. DESIGN-COMM: Claude Design oficial = já somos superset governado (PROTOCOL §10.5). DETERMINIZAÇÃO LLM-judge→teste: ADR 0255 (charter+design-spec derivado) + a11y 3 fases axe + Onda 1 (PR UI Judge 6/9 dims→regex). 2 agentes thread travaram→assumi/finalizei. Fechei 2 pontas soltas minhas (#2364)."
 hour: "22:51 BRT"
 topic: "Onda de determinização (LLM-judge→teste) + anti-duplicação + comunicação com Claude Design — ~23 PRs"
 duration: "~8h"
