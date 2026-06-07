@@ -27,8 +27,6 @@
     "ds:report": "node scripts/ds-report.mjs",
     "ds:report:write": "node scripts/ds-report.mjs --write",
     "design:review": "node prototipo-ui/audit/review-gen.mjs",
-    "design:review:check": "node prototipo-ui/audit/review-freshness.mjs",
-    "design:review:baseline": "node prototipo-ui/audit/review-freshness.mjs --write-baseline",
     "test": "vitest run",
     "test:watch": "vitest",
     "conformance:check": "node scripts/conformance-gate.mjs --all",
