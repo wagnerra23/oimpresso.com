@@ -302,18 +302,6 @@ class RecurringBillingController extends Controller
     }
 
     /**
-     * GET /recurring-billing/create — Onda 21 v9,75.
-     *
-     * O primary do sidebar (DataController) aponta pra cá. Em vez de Blade
-     * legacy, redireciona pra Page Inertia com flag ?new=1 que auto-abre o
-     * drawer "Nova assinatura" (canon: criação inline, não página separada).
-     */
-    public function create(): RedirectResponse
-    {
-        return redirect()->route('recurring-billing.index', ['new' => 1]);
-    }
-
-    /**
      * GET /recurring-billing/contacts/search — autocomplete cliente do drawer.
      *
      * Multi-tenant Tier 0 (ADR 0093): scope business_id da sessão SEMPRE.

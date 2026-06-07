@@ -23,11 +23,24 @@ import {
   Search,
   Star,
   TrendingUp,
-  X,
   XCircle,
   Zap,
   type LucideIcon,
 } from 'lucide-react';
+// Onda 21 v9,75 — componentes DS pro drawer Nova assinatura (conformidade ui:lint R1 + eslint ds/*).
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/Components/ui/sheet';
+import { Input } from '@/Components/ui/input';
+import { Textarea } from '@/Components/ui/textarea';
+import { Label } from '@/Components/ui/label';
+import { Button } from '@/Components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
+import { FieldError, FieldSuccess, RequiredMark } from '@/Components/ui/field-state';
 import {
   useEffect,
   useMemo,
@@ -421,6 +434,8 @@ export default function RecurringBillingIndex(props: PageProps) {
   // Onda 18 v9,75 — atalhos teclado completos (depois de filtered+active calculados).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Onda 21 — drawer aberto: Sheet gerencia teclado (Esc/foco), ignora atalhos globais.
+      if (showCreate) return;
       const t = e.target as HTMLElement;
       const inField = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
       if (inField && e.key !== 'Escape') return;
@@ -465,7 +480,7 @@ export default function RecurringBillingIndex(props: PageProps) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [filtered, active]);
+  }, [filtered, active, showCreate]);
 
   // ── Tabs sub-rota
   const TABS: Array<{ key: Tab; label: string; count?: number }> = [
@@ -1369,10 +1384,13 @@ function ListSkeleton() {
   );
 }
 
+
 // ────────────────────────────────────────────────────────────────
 // NEW SUBSCRIPTION DRAWER (Onda 21 v9,75)
-// Drawer lateral 760px — cria Subscription via POST recurring-billing.store.
+// Drawer lateral (Sheet DS) — cria Subscription via POST recurring-billing.store.
 // Cliente via busca debounced (recurring-billing.contacts.search, Tier 0).
+// 100% componentes DS (Sheet/Input/Select/Textarea/Label/FieldError) — ui:lint R1
+// + eslint ds/no-native-select + ds/no-adhoc-status-text + a11y label limpos.
 // ────────────────────────────────────────────────────────────────
 
 interface ContactHit {
@@ -1389,6 +1407,9 @@ const CYCLE_DB_TO_PT: Record<string, string> = {
   semiannual: 'semestral',
   yearly: 'anual',
 };
+
+// shadcn Select proíbe SelectItem value="" — sentinel pro "sem plano".
+const NO_PLAN = '__none__';
 
 function NewSubscriptionDrawer({
   plans,
@@ -1408,7 +1429,7 @@ function NewSubscriptionDrawer({
   const [openDropdown, setOpenDropdown] = useState(false);
 
   // ── Campos do form
-  const [planId, setPlanId] = useState<number | null>(null);
+  const [planId, setPlanId] = useState<string>(NO_PLAN);
   const [valor, setValor] = useState('');
   const [ciclo, setCiclo] = useState('mensal');
   const defaultNext = useMemo(() => {
@@ -1455,15 +1476,6 @@ function NewSubscriptionDrawer({
     };
   }, [query, contactId, contactLabel]);
 
-  // ESC fecha o drawer.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
   function pickContact(c: ContactHit) {
     setContactId(c.id);
     setContactLabel(c.name);
@@ -1471,9 +1483,9 @@ function NewSubscriptionDrawer({
     setOpenDropdown(false);
   }
 
-  function pickPlan(id: number | null) {
+  function pickPlan(id: string) {
     setPlanId(id);
-    const p = plans.find((pl) => pl.id === id);
+    const p = plans.find((pl) => String(pl.id) === id);
     if (p) {
       setValor(String(p.price));
       setCiclo(CYCLE_DB_TO_PT[p.cycle] ?? ciclo);
@@ -1486,7 +1498,7 @@ function NewSubscriptionDrawer({
     setSubmitting(true);
     const payload = {
       contact_id: contactId,
-      plan_id: planId,
+      plan_id: planId === NO_PLAN ? null : Number(planId),
       valor: valor === '' ? null : Number(valor),
       ciclo,
       data_proxima_cobranca: dataProxima,
@@ -1515,43 +1527,34 @@ function NewSubscriptionDrawer({
   const canSubmit = contactId !== null && valor !== '' && Number(valor) > 0 && !!dataProxima;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-stone-900/40 backdrop-blur-[1px]"
-        onClick={onClose}
-        aria-hidden
-      />
-      {/* Painel */}
-      <div className="relative flex h-full w-full max-w-[760px] flex-col bg-white shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-stone-900">Nova assinatura</h2>
-            <p className="text-xs text-stone-500">Cadastrar cobrança recorrente para um cliente</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
-            title="Fechar (Esc)"
-          >
-            <X size={18} />
-          </button>
-        </div>
+    <Sheet
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[760px]">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>Nova assinatura</SheetTitle>
+          <SheetDescription>Cadastrar cobrança recorrente para um cliente</SheetDescription>
+        </SheetHeader>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <div className="grid grid-cols-1 gap-5">
             {/* Cliente */}
             <div className="relative">
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                Cliente <span className="text-rose-500">*</span>
-              </label>
+              <Label htmlFor="rb-cliente" className="cw-label">
+                Cliente <RequiredMark />
+              </Label>
               <div className="relative">
-                <Search size={14} className="pointer-events-none absolute left-2.5 top-2.5 text-stone-400" />
-                <input
-                  type="text"
+                <Search
+                  size={14}
+                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  variant="cowork"
+                  id="rb-cliente"
+                  className="pl-8"
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
@@ -1559,183 +1562,175 @@ function NewSubscriptionDrawer({
                   }}
                   onFocus={() => hits.length > 0 && setOpenDropdown(true)}
                   placeholder="Buscar por nome, telefone, e-mail ou CNPJ…"
-                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-8 pr-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                  autoComplete="off"
                   autoFocus
                 />
               </div>
               {contactId && (
-                <div className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
-                  Cliente selecionado: {contactLabel}
-                </div>
+                <FieldSuccess className="mt-1">Cliente selecionado: {contactLabel}</FieldSuccess>
               )}
               {openDropdown && (searching || hits.length > 0) && (
-                <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-stone-200 bg-white shadow-lg">
-                  {searching && <div className="px-3 py-2 text-xs text-stone-400">Buscando…</div>}
+                <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border bg-popover shadow-lg">
+                  {searching && <div className="px-3 py-2 text-xs text-muted-foreground">Buscando…</div>}
                   {!searching &&
                     hits.map((c) => (
                       <button
                         key={c.id}
                         type="button"
                         onClick={() => pickContact(c)}
-                        className="flex w-full flex-col items-start border-b border-stone-100 px-3 py-2 text-left last:border-0 hover:bg-stone-50"
+                        className="flex w-full flex-col items-start border-b px-3 py-2 text-left last:border-0 hover:bg-muted"
                       >
-                        <span className="text-sm font-medium text-stone-900">{c.name}</span>
-                        <span className="text-[11px] text-stone-500">
+                        <span className="text-sm font-medium text-foreground">{c.name}</span>
+                        <span className="text-[11px] text-muted-foreground">
                           {[c.mobile, c.tax_number, c.email].filter(Boolean).join(' · ') || 'sem contato'}
                         </span>
                       </button>
                     ))}
                   {!searching && hits.length === 0 && query.trim().length >= 2 && (
-                    <div className="px-3 py-2 text-xs text-stone-400">Nenhum cliente encontrado.</div>
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente encontrado.</div>
                   )}
                 </div>
               )}
-              {errors.contact_id && <p className="mt-1 text-xs text-rose-500">{errors.contact_id}</p>}
+              <FieldError>{errors.contact_id}</FieldError>
             </div>
 
             {/* Plano (opcional) */}
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                Plano <span className="font-normal normal-case text-stone-400">(opcional — preenche valor e ciclo)</span>
-              </label>
-              <select
-                value={planId ?? ''}
-                onChange={(e) => pickPlan(e.target.value === '' ? null : Number(e.target.value))}
-                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
-              >
-                <option value="">Sem plano (avulso)</option>
-                {plans.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} · {p.cycle_label} · {BRL(p.price)}
-                  </option>
-                ))}
-              </select>
+              <Label htmlFor="rb-plano" className="cw-label">
+                Plano <span className="font-normal text-muted-foreground">(opcional — preenche valor e ciclo)</span>
+              </Label>
+              <Select value={planId} onValueChange={pickPlan}>
+                <SelectTrigger id="rb-plano" variant="cowork" className="w-full">
+                  <SelectValue placeholder="Sem plano (avulso)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_PLAN}>Sem plano (avulso)</SelectItem>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name} · {p.cycle_label} · {BRL(p.price)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Valor + Ciclo */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Valor <span className="text-rose-500">*</span>
-                </label>
-                <input
+                <Label htmlFor="rb-valor" className="cw-label">
+                  Valor <RequiredMark />
+                </Label>
+                <Input
+                  variant="cowork"
+                  id="rb-valor"
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={valor}
                   onChange={(e) => setValor(e.target.value)}
                   placeholder="0,00"
-                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm tabular-nums outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
                 />
-                {errors.valor && <p className="mt-1 text-xs text-rose-500">{errors.valor}</p>}
+                <FieldError>{errors.valor}</FieldError>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Ciclo <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={ciclo}
-                  onChange={(e) => setCiclo(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
-                >
-                  <option value="mensal">Mensal</option>
-                  <option value="trimestral">Trimestral</option>
-                  <option value="semestral">Semestral</option>
-                  <option value="anual">Anual</option>
-                </select>
-                {errors.ciclo && <p className="mt-1 text-xs text-rose-500">{errors.ciclo}</p>}
+                <Label htmlFor="rb-ciclo" className="cw-label">
+                  Ciclo <RequiredMark />
+                </Label>
+                <Select value={ciclo} onValueChange={setCiclo}>
+                  <SelectTrigger id="rb-ciclo" variant="cowork" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mensal">Mensal</SelectItem>
+                    <SelectItem value="trimestral">Trimestral</SelectItem>
+                    <SelectItem value="semestral">Semestral</SelectItem>
+                    <SelectItem value="anual">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldError>{errors.ciclo}</FieldError>
               </div>
             </div>
 
             {/* Próxima cobrança */}
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                Próxima cobrança <span className="text-rose-500">*</span>
-              </label>
-              <input
+              <Label htmlFor="rb-data" className="cw-label">
+                Próxima cobrança <RequiredMark />
+              </Label>
+              <Input
+                variant="cowork"
+                id="rb-data"
                 type="date"
                 value={dataProxima}
                 min={todayStr}
                 onChange={(e) => setDataProxima(e.target.value)}
-                className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
               />
-              {errors.data_proxima_cobranca && (
-                <p className="mt-1 text-xs text-rose-500">{errors.data_proxima_cobranca}</p>
-              )}
+              <FieldError>{errors.data_proxima_cobranca}</FieldError>
             </div>
 
             {/* Gateway + Forma de pagamento */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Gateway <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={gateway}
-                  onChange={(e) => setGateway(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
-                >
-                  <option value="inter">Banco Inter</option>
-                  <option value="asaas">Asaas</option>
-                </select>
-                {errors.gateway && <p className="mt-1 text-xs text-rose-500">{errors.gateway}</p>}
+                <Label htmlFor="rb-gateway" className="cw-label">
+                  Gateway <RequiredMark />
+                </Label>
+                <Select value={gateway} onValueChange={setGateway}>
+                  <SelectTrigger id="rb-gateway" variant="cowork" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inter">Banco Inter</SelectItem>
+                    <SelectItem value="asaas">Asaas</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldError>{errors.gateway}</FieldError>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Forma de pagamento <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={forma}
-                  onChange={(e) => setForma(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
-                >
-                  <option value="boleto">Boleto</option>
-                  <option value="pix">Pix</option>
-                  <option value="cartao">Cartão</option>
-                </select>
-                {errors.forma_pagamento && <p className="mt-1 text-xs text-rose-500">{errors.forma_pagamento}</p>}
+                <Label htmlFor="rb-forma" className="cw-label">
+                  Forma de pagamento <RequiredMark />
+                </Label>
+                <Select value={forma} onValueChange={setForma}>
+                  <SelectTrigger id="rb-forma" variant="cowork" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="pix">Pix</SelectItem>
+                    <SelectItem value="cartao">Cartão</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldError>{errors.forma_pagamento}</FieldError>
               </div>
             </div>
 
             {/* Descrição */}
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">
-                Descrição <span className="font-normal normal-case text-stone-400">(opcional)</span>
-              </label>
-              <textarea
+              <Label htmlFor="rb-descricao" className="cw-label">
+                Descrição <span className="font-normal text-muted-foreground">(opcional)</span>
+              </Label>
+              <Textarea
+                id="rb-descricao"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
                 rows={2}
                 maxLength={255}
                 placeholder="Ex.: Mensalidade manutenção mensal…"
-                className="w-full resize-none rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
               />
-              {errors.descricao && <p className="mt-1 text-xs text-rose-500">{errors.descricao}</p>}
+              <FieldError>{errors.descricao}</FieldError>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-stone-200 px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100"
-          >
+        <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={submit}
-            disabled={!canSubmit || submitting}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90 disabled:cursor-not-allowed disabled:bg-stone-300"
-          >
+          </Button>
+          <Button type="button" onClick={submit} disabled={!canSubmit || submitting}>
             <Plus size={14} />
             {submitting ? 'Criando…' : 'Criar assinatura'}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 

@@ -35,11 +35,6 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('/', [RecurringBillingController::class, 'index'])
             ->name('recurring-billing.index');
 
-        // Onda 21 v9,75 — primary sidebar "Nova assinatura" → redirect ?new=1
-        // (auto-abre drawer de criação na Page Inertia).
-        Route::get('/create', [RecurringBillingController::class, 'create'])
-            ->name('recurring-billing.create');
-
         // Onda 21 v9,75 — autocomplete cliente do drawer (busca debounced).
         Route::get('/contacts/search', [RecurringBillingController::class, 'searchContacts'])
             ->name('recurring-billing.contacts.search');

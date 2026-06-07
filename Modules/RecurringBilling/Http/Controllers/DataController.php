@@ -109,8 +109,9 @@ class DataController extends Controller
                         'active'  => $segmento_ativo,
                         'group'   => 'financas',
                         'primary' => [
+                            // Onda 21 v9,75 — abre o drawer de criação inline (?new=1).
                             'label'    => 'Nova assinatura',
-                            'href'     => '/recurring-billing/create',
+                            'href'     => '/recurring-billing?new=1',
                             'shortcut' => 'N',
                         ],
                         'ghosts'  => [
