@@ -174,7 +174,12 @@ jobs:
         # AuthBridgeSmokeTest cobre Financeiro/Unificado + Sells/Lista (autenticadas) —
         # prova de conceito do harness. Amplia pro CoreScreens-6 inteiro depois que estas
         # 2 passarem verde no CI (cada tela pode precisar ajuste de slug-permissão/seed).
-        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php
+        #
+        # A11yAxeBrowserTest (Fase 3 a11y determinística): roda axe-core no CHROMIUM REAL
+        # numa tela core (Financeiro/Unificado) pra pegar contraste/foco/ARIA-em-contexto
+        # que o jsdom da Fase 2 não enxerga. Piso conservador: 0 violações CRITICAL (ratchet
+        # level 0). Mesmo harness auth-bridge do AuthBridgeSmokeTest.
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
