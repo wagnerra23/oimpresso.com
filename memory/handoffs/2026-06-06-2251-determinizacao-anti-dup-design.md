@@ -1,7 +1,7 @@
 ---
 date: "2026-06-06"
 slug: determinizacao-anti-dup-design
-tldr: "Sessão épica ~23 PRs (#2343-2364) em 3 frentes. (1) ANTI-DUPLICAÇÃO: reuse-index (3434 símbolos JS+PHP) + gate reuse:duplicates + no-mock-in-prod + jscpd (achou clone 272 linhas) + rule reuse-check + deletou 6 stubs CSS mortos. (2) DESIGN-COMM: pesquisou Claude Design oficial, PROTOCOL §10.5 (bundle estruturado = proposta, não autoridade), prova empírica 1969 oklch cru vs 18 token. (3) DETERMINIZAÇÃO LLM-judge→teste: ADR 0255 (contrato de view = charter intenção + design-spec.json estrutura derivada) + gate design-spec:check + rebaixe review.md (-7836 linhas) + a11y 3 fases (jsx-a11y ratchet + axe jsdom + axe browser real) + Onda 1 (PR UI Judge 6/9 dims → regex via UiDeterministicScorer, LLM só nas 3 semânticas). 2 agentes em thread TRAVARAM (Fase 2 npm install / Onda 1 fiação Pest) — assumi e finalizei. Fechei 2 pontas soltas minhas. Off-cycle (ciclo = Receita)."
+tldr: "Sessão épica ~23 PRs (#2343-2364) OFF-CYCLE, 3 frentes. ANTI-DUP: reuse-index (3434 símbolos JS+PHP) + gates reuse/no-mock/jscpd + rule reuse-check + deletou stubs CSS mortos. DESIGN-COMM: Claude Design oficial = já somos superset governado; PROTOCOL §10.5 (bundle=proposta, não autoridade) + prova 1969 oklch cru vs 18 token. DETERMINIZAÇÃO LLM-judge→teste: ADR 0255 (contrato de view charter+design-spec derivado) + a11y 3 fases axe + Onda 1 (PR UI Judge 6/9 dims→regex via UiDeterministicScorer, LLM só nas 3 semânticas). 2 agentes em thread travaram — assumi/finalizei. Fechei 2 pontas soltas minhas (#2364)."
 hour: "22:51 BRT"
 topic: "Onda de determinização (LLM-judge→teste) + anti-duplicação + comunicação com Claude Design — ~23 PRs"
 duration: "~8h"
