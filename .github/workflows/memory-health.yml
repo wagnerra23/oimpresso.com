@@ -1,8 +1,10 @@
 name: Memory Health — ADR 0256
 
-# Sentinela de saúde da base de conhecimento (ADR 0256 Onda 1).
-# v1 = ADVISORY (--warn-only): surface no log do PR + heartbeat diário, NÃO bloqueia.
-# Onda 2 flipará pra enforce (remove --warn-only + adiciona baseline ratchet).
+# Sentinela de saúde da base de conhecimento (ADR 0256 + 0258 GAP 2).
+# ENFORCE: PR falha em FAIL-class (segredo NOVO acima do baseline · colisão ADR
+# não-registrada · auto-mem ressuscitada/cron reativado). Warns (scorecard stale,
+# enum drift) só sinalizam. Baseline ratchet em scripts/governance/.memory-health-baseline.json
+# (aceitos atuais; segredo novo bloqueia — `--update-baseline` se legítimo).
 
 on:
   pull_request:
@@ -10,6 +12,7 @@ on:
     paths:
       - 'memory/**'
       - 'scripts/governance/memory-health.mjs'
+      - 'scripts/governance/.memory-health-baseline.json'
   schedule:
     # Daily 06h30 BRT (09h30 UTC) — batimento cardíaco da memória (após health-check dados).
     - cron: '30 9 * * *'
@@ -17,7 +20,7 @@ on:
 
 jobs:
   health:
-    name: memory-health (advisory)
+    name: memory-health (enforce — fail-class bloqueia)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,5 +29,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run memory-health sentinel
-        run: node scripts/governance/memory-health.mjs --warn-only
+      - name: Run memory-health sentinel (enforce)
+        run: node scripts/governance/memory-health.mjs

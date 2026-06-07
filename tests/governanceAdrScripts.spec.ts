@@ -108,3 +108,21 @@ describe('GAP 3 — invariante anti-ressurreição (memory-health Check F, ADR 0
     expect(out).not.toMatch(/\[F\]/); // Check F sem fail
   });
 });
+
+describe('GAP 2 — memory-health ENFORCE + baseline ratchet (Check C, ADR 0258)', () => {
+  it('FALHA (enforce) em segredo NOVO fora do baseline', () => {
+    writeFileSync(join(tmp, 'memory/vazou.md'), '# doc\n\nPASSWORD: hunter2secretLeak123\n');
+    let threw = false; let msg = '';
+    try { run(`node "${MH}"`); } // sem --warn-only = enforce; sem baseline no tmp = tudo novo
+    catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
+    expect(threw).toBe(true);
+    expect(msg).toMatch(/segredo|memory/i);
+  });
+  it('--update-baseline aceita o atual e a próxima rodada passa (ratchet)', () => {
+    mkdirSync(join(tmp, 'scripts/governance'), { recursive: true }); // destino do baseline
+    writeFileSync(join(tmp, 'memory/legado.md'), '# doc\n\nPASSWORD: defaultDocValue123\n');
+    run(`node "${MH}" --update-baseline`); // aceita o estado atual
+    const out = run(`node "${MH}"`); // agora passa (nada NOVO acima do baseline)
+    expect(out).toMatch(/0 .*fail|saudável|🩺/i);
+  });
+});

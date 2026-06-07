@@ -29,7 +29,7 @@
  * Refs: ADR 0256 (Knowledge Survival) · ADR 0215 (secrets) · ADR 0180 (colisão ADR)
  *       · ADR 0250 (screen-qa) · AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md
  */
-import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 
@@ -37,6 +37,13 @@ const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
 const WARN_ONLY = process.argv.includes('--warn-only');
 const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
+
+// GAP 2 (ADR 0258) — baseline ratchet do Check C (segredos): só falha em segredo NOVO
+// acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
+const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
+const UPDATE_BASELINE = process.argv.includes('--update-baseline');
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {} };
+let checkCByFile = {};
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -142,9 +149,17 @@ function checkSecretsInMemory() {
       }
     });
   }
-  if (hits.length) {
-    fails.push({ check: 'C', kind: 'segredo-em-memory', count: hits.length, sample: hits.slice(0, 15),
-      msg: `${hits.length} possível(is) segredo(s) em memory/** SEM entry no _INDEX-SECRETS. Mova pra CT100/Vault e cite só o ponteiro (ADR 0061/0215). Falso-positivo? Refine o padrão ou adicione ponteiro no índice.` });
+  // Ratchet por arquivo (GAP 2): só segredo NOVO acima do baseline falha. Remover é livre.
+  for (const h of hits) checkCByFile[h.file] = (checkCByFile[h.file] || 0) + 1;
+  if (UPDATE_BASELINE) return; // no modo update só capturamos; nada de fail
+  const novos = [];
+  for (const [f, n] of Object.entries(checkCByFile)) {
+    const teto = (baseline.checkC || {})[f] || 0;
+    if (n > teto) novos.push(`${f} (${n - teto} novo acima do teto ${teto})`);
+  }
+  if (novos.length) {
+    fails.push({ check: 'C', kind: 'segredo-novo-em-memory', count: novos.length, sample: novos.slice(0, 15),
+      msg: `segredo(s) NOVO(s) em memory/** acima do baseline. Mova pra CT100/Vault + ponteiro (ADR 0061/0215). Se legítimo (ex: default doc), rode --update-baseline.` });
   }
 }
 
@@ -219,6 +234,12 @@ checkSecretsInMemory();
 checkStaleCanon();
 checkAdrEnumDrift();
 checkAntiResurrection();
+
+if (UPDATE_BASELINE) {
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (${Object.keys(checkCByFile).length} arquivos com Check C aceitos)`);
+  process.exit(0);
+}
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ fails, warns, ok: fails.length === 0 }, null, 2));
