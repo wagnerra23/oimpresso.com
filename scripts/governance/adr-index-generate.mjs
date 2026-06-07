@@ -132,7 +132,14 @@ if (MODE === 'check') {
     console.error(`✗ ${OUT} está DESATUALIZADO — rode --write. (índice gerado ≠ commitado = drift)`);
     process.exit(1);
   }
-  console.log(`✓ ${OUT} em dia (${adrs.length} ADRs).`);
+  // GAP 1 (ADR 0258) — supersede-integrity vira GATE DURO (antes só relatava).
+  // A supersede que não marca a antiga / órfã / aponta inexistente = bloqueia.
+  if (supWarn.length) {
+    console.error(`✗ ${supWarn.length} alerta(s) de integridade de supersessão (ADR 0258) — corrija com adr-supersede:`);
+    supWarn.forEach((w) => console.error(`   - ${w}`));
+    process.exit(1);
+  }
+  console.log(`✓ ${OUT} em dia (${adrs.length} ADRs) · supersede íntegra.`);
   process.exit(0);
 }
 if (MODE === 'write') {
