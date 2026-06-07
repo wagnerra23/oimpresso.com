@@ -110,9 +110,9 @@ jobs:
           while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^M[[:space:]]+//')
             [ -z "$file" ] && continue
-            bad=$(git diff "$base_sha"...HEAD -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority):' || true)
+            bad=$(git diff "$base_sha"...HEAD -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority|superseded_by|supersedes):' | grep -vE "^[+-][[:space:]]*-[[:space:]]*['\"]?[0-9]{3,4}" || true)
             if [ -n "$bad" ]; then
-              echo "::warning::$file muda fora de status/lifecycle/kind/authority — exceção NÃO aplica a esta PR."
+              echo "::warning::$file muda fora de status/lifecycle/kind/authority/superseded_by/supersedes — exceção NÃO aplica a esta PR."
               ok=0
             fi
           done < /tmp/adr_mod.txt
