@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **260** arquivos · **245** números únicos · máx **0255**
-- **ADRs ATIVOS (lifecycle ativo): 230** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 213 · proposto 31 · superseded 13 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 230 · substituido 13 · (vazio) 8 · arquivado 6 · historical 3
+- **263** arquivos · **248** números únicos · máx **0258**
+- **ADRs ATIVOS (lifecycle ativo): 233** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 213 · proposto 34 · superseded 13 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 233 · substituido 13 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -42,7 +42,7 @@
 - ⚠️ 0178 supersedes 0136 → 0136 NÃO está marcada substituido/superseded ⚠️
 - ⚠️ 0235 supersedes 295 → ADR 295 NÃO existe
 
-## Todas as ADRs (260)
+## Todas as ADRs (263)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -305,3 +305,6 @@
 | 0253 | aceito | ativo | decision | Primitivos de layout (Components/layout/): Box/Stack/Inline/Grid/Container/Text  |
 | 0254 | proposto | ativo | decision | Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (end |
 | 0255 | aceito | ativo | decision | Contrato de view determinístico: charter (intenção) + design-spec.json derivado  |
+| 0256 | proposto | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
+| 0257 | proposto | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
+| 0258 | proposto | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
