@@ -1,0 +1,68 @@
+name: Layout primitives guard (flex/grid solto)
+
+# Enforcement da ADR 0253 (primitivos de layout). A própria ADR diz, nas
+# Consequências: "Enforcement por lint (proibir flex solto) = ADR/PR seguinte,
+# depois da camada + piloto." A camada (#2371) e a tela-piloto (#2372) existem —
+# este é o PR seguinte.
+#
+# Escaneia resources/js/Pages/** + Components/** (exceto layout/ e ui/) e FALHA o PR
+# só se um arquivo GANHAR flex/grid solto vs baseline (ou nascer com flex/grid solto).
+# Legado tolerado (baseline fotografa ~2450 ocorrências); compor com primitivos é OK.
+# Ratchet por arquivo — espelha no-mock/eslint/css-size (ADR 0209), "teste pra não piorar".
+#
+# Node puro (fs), sem deps, sem npm ci. Comando local: npm run layout:check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Components/**/*.tsx'
+      - 'scripts/layout-primitives-guard.mjs'
+      - 'scripts/layout-primitives-baseline.json'
+      - '.github/workflows/layout-primitives-guard.yml'
+  pull_request:
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Components/**/*.tsx'
+      - 'scripts/layout-primitives-guard.mjs'
+      - 'scripts/layout-primitives-baseline.json'
+      - '.github/workflows/layout-primitives-guard.yml'
+
+concurrency:
+  group: layout-primitives-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  layout-primitives-guard:
+    name: Layout primitives · ratchet
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Layout ratchet (falha em aumento de flex/grid solto)
+        run: node scripts/layout-primitives-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Uma tela/componente ganhou flex/grid solto vs baseline (ADR 0253)."
+          echo ""
+          echo "Layout é COMPOSIÇÃO de primitivos — não '<div className=\"flex …\">' cru:"
+          echo "  flex-col  → <Stack>      ·  flex-row → <Inline>"
+          echo "  grid      → <Grid>       ·  superfície/padding → <Box>"
+          echo "  (resources/js/Components/layout)"
+          echo ""
+          echo "  1. Local: npm run layout:check · vê os achados novos file:line"
+          echo "  2. Componha com os primitivos — é o ponto do gate."
+          echo "  3. Se for legítimo/intencional, absorva conscientemente:"
+          echo "       npm run layout:baseline:write   # commit + justificativa no PR"
+          echo ""
+          echo "Refs: memory/decisions/0253-primitivos-layout.md · tela-piloto Financeiro/ProvaViva.tsx"
