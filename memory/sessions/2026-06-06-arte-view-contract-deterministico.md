@@ -11,7 +11,6 @@ related_adrs:
   - 0239-governanca-design-system-git-ssot-regressao-ia
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
-  - UI-0013-constituicao-ui-v2-camadas
 ---
 
 # Contrato de view determinístico por-tela — dossiê estado-da-arte

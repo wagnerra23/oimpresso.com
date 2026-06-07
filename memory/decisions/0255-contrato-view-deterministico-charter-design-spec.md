@@ -7,6 +7,7 @@ status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
+decided_at: "2026-06-06"
 proposed_at: "2026-06-06"
 module: _DesignSystem
 quarter: 2026-Q2
