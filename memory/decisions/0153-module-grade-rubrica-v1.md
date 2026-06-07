@@ -3,9 +3,9 @@ slug: 0153-module-grade-rubrica-v1
 number: 0153
 title: "Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module"
 type: adr
-status: superseded
+status: proposto
 authority: canonical
-lifecycle: substituido
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-16
 module: Governance
@@ -13,7 +13,7 @@ quarter: 2026-Q2
 tags: [governance, qualidade, audit, dashboard, dim-5-pesos-100]
 supersedes: []
 supersedes_partially: []
-superseded_by: [0155]
+superseded_by: []
 related: [0093, 0094, 0101, 0105, 0143]
 pii: false
 review_triggers:

@@ -6,9 +6,9 @@
 
 ## Resumo
 - **263** arquivos · **248** números únicos · máx **0258**
-- **ADRs ATIVOS (lifecycle ativo): 221** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 202 · proposto 33 · superseded 25 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 221 · substituido 25 · (vazio) 8 · arquivado 6 · historical 3
+- **ADRs ATIVOS (lifecycle ativo): 223** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 203 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 223 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -184,8 +184,8 @@ _(íntegra)_
 | 0150 | aceito | ativo | decision | KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso |
 | 0151 | proposto | historical | decision | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
 | 0152 | proposto | historical | decision | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
-| 0153 | superseded | substituido | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
-| 0154 | superseded | substituido | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
+| 0153 | proposto | ativo | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
+| 0154 | aceito | ativo | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
 | 0155 | aceito | ativo | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
 | 0156 | aceito | ativo | decision | module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_jus |
 | 0157 | aceito | ativo | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
