@@ -1,0 +1,27 @@
+name: ADR Index Gate — ADR 0258
+
+# Catraca anti-drift (fitness function, ADR 0258 + 0256).
+# O índice de ADR é GERADO (modelo Log4brains). Se o _INDEX-GENERATED.md commitado
+# divergir do que o gerador produz dos arquivos → drift → bloqueia o PR.
+# Conserto: `node scripts/governance/adr-index-generate.mjs --write` e commitar.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/decisions/**'
+      - 'scripts/governance/adr-index-generate.mjs'
+      - '.github/workflows/adr-index-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: índice de ADR em dia (--check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verifica se _INDEX-GENERATED.md está atualizado
+        run: node scripts/governance/adr-index-generate.mjs --check

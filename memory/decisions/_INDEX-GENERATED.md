@@ -1,0 +1,310 @@
+# ADR Index — GERADO (não editar à mão)
+
+> ⚙️ **Auto-gerado** por `scripts/governance/adr-index-generate.mjs` a partir de `memory/decisions/[0-9]*.md`.
+> Fonte única (modelo Log4brains/adr-tools, estado-da-arte 2026). Regenerar: `node scripts/governance/adr-index-generate.mjs --write`.
+> Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
+
+## Resumo
+- **263** arquivos · **248** números únicos · máx **0258**
+- **ADRs ATIVOS (lifecycle ativo): 233** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 213 · proposto 34 · superseded 13 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 233 · substituido 13 · (vazio) 8 · arquivado 6 · historical 3
+- Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
+
+## Colisões de número (13) — auto-detectadas
+- **0101** ×2: 0101-sistema-charter-capterra-governanca-escopo · 0101-tests-business-id-1-nunca-cliente
+- **0102** ×2: 0102-nfce-status-polling-vs-broadcast · 0102-s6-charter-capterra-postmortem-s7-backlog
+- **0119** ×2: 0119-migration-factory-capacidade-institucional · 0119-paralelismo-sessoes-whats-active-tier-1
+- **0126** ×2: 0126-mcp-jira-projects-modulos-verticais · 0126-vault-chunked-encryption-sprint-2
+- **0141** ×2: 0141-agents-tool-use-pattern-claude-code · 0141-skill-migracao-blade-react
+- **0170** ×3: 0170-bancos-nativos-top5-drivers-separados · 0170-onda5-simplificada · 0170-paymentgateway-extracao-camada-cobranca
+- **0178** ×2: 0178-restauracao-campos-fiscais-br-canon · 0178-sells-unified-tabs-visao-supersede-0136
+- **0180** ×2: 0180-drift-numero-adr-0178-conflito-paralelo · 0180-sidebar-v3-5-grupos-ghosts-header
+- **0195** ×2: 0195-feedback-relevance-scoring-decay-adaptativo · 0195-tabs-autosave-mount-sempre-hidden
+- **0216** ×2: 0216-deploy-webhook-rodar-composer-dump-autoload · 0216-governance-drift-framework-driftchecker-plugavel
+- **0235** ×2: 0235-ds-v4-accent-roxo-universal · 0235-staging-ct100-clone-anonimizado
+- **0236** ×3: 0236-extrato-conciliacao-modelo-unificado · 0236-governanca-evolucao-doc-design · 0236-scorecard-universal-entidade-arbitraria
+- **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
+
+## Integridade de supersessão (14 alertas)
+- ⚠️ 0011 supersedes 0002 → 0002 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0011 supersedes 0001 → 0001 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0048 supersedes 0035 → 0035 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0048 supersedes 0035 → 0035 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0048 supersedes 2026 → ADR 2026 NÃO existe
+- ⚠️ 0053 supersedes 0036 → 0036 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0053 supersedes 0036 → 0036 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0055 supersedes 0054 → 0054 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0060 supersedes 0044 → 0044 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0092 supersedes 0088 → 0088 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0172 supersedes 0005 → 0005 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0172 supersedes 0001 → 0001 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0178 supersedes 0136 → 0136 NÃO está marcada substituido/superseded ⚠️
+- ⚠️ 0235 supersedes 295 → ADR 295 NÃO existe
+
+## Todas as ADRs (263)
+| Nº | Status | Lifecycle | Kind | Título |
+|---|---|---|---|---|
+| 0001 | aceito | ativo | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
+| 0002 | aceito | ativo | decision | !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHV |
+| 0003 | aceito | ativo | decision | !!binary gJQgTWFyY2HDp8O1ZXMgYXBwZW5kLW9ubHkgY29tIHRyaWdnZXJzIE15U1FMICsgcHJvdGX |
+| 0004 | aceito | ativo | decision | !!binary gJQgVGFiZWxhIGJyaWRnZSBgcG9udG9fY29sYWJvcmFkb3JfY29uZmlnYA== |
+| 0005 | aceito | ativo | decision | !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3V |
+| 0006 | aceito | ativo | decision | !!binary gJQgTXVsdGktdGVuYW5jeSBsw7NnaWNhIHZpYSBgYnVzaW5lc3NfaWRg |
+| 0007 | aceito | ativo | decision | !!binary gJQgQmFuY28gZGUgaG9yYXMgY29tbyBsZWRnZXIgYXBwZW5kLW9ubHk= |
+| 0008 | superseded | substituido | decision | !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJ |
+| 0009 | aceito | ativo | decision | !!binary gJQgUHJvdMOzdGlwb3MgdmlzdWFpcyBlbSBIVE1MICsgVGFpbHdpbmQgKyBDaGFydC5qcyA |
+| 0010 | superseded | substituido | decision | !!binary gJQgU2lzdGVtYSBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvIChDTEFVREUubWQgKyAvbWVtb3J |
+| 0011 | aceito | ativo | decision | !!binary gJQgQWxpbmhhbWVudG8gY29tIG8gcGFkcsOjbyBKYW5hIChVbHRpbWF0ZVBPUyk= |
+| 0013 | aceito | arquivado | decision | Ecossistema de Módulos: Inventário, Categorias e Padrões |
+| 0014 | aceito | arquivado | decision | Integração PontoWR2 × Essentials (HRM) |
+| 0015 | aceito | arquivado | decision | Connector: API Gateway para Integrações Externas |
+| 0016 | aceito | arquivado | decision | Plano de Otimização e Roadmap PontoWR2 |
+| 0017 | aceito | ativo | decision | !!binary gJQgT2ZmaWNlaW1wcmVzc28gcmVzdGF1cmFkbyBkYSAzLjcgY29tbyBtw7NkdWxvIFN1cGV |
+| 0018 | aceito | arquivado | decision | !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l |
+| 0019 | aceito | ativo | decision | !!binary gJQgRGVscGhpIGxlZ2FkbyBuw6NvIGF1dGVudGljYSBhcMOzcyB1cGdyYWRlIDMuN+KGkjY |
+| 0020 | proposto | ativo | decision | !!binary gJQgR3J1cG8gZWNvbsO0bWljbyAobWF0cml6ICsgZmlsaWFpcykgbm8gT2ZmaWNlaW1wcmV |
+| 0021 | aceito | ativo | decision | !!binary gJQgQ29udHJhdG8gcmVhbCBkYSBBUEkgY29uc3VtaWRhIHBlbG8gRGVscGhp |
+| 0022 | aceito | ativo | decision | !!binary gJQgTWV0YSBmaW5hbmNlaXJhIG9pbXByZXNzbzogUiQgNSBtaWxow7Vlcy9hbm8= |
+| 0023 | aceito | ativo | decision | !!binary gJQgVXBncmFkZSBwYXJhIEluZXJ0aWEuanMgdjM= |
+| 0024 | aceito | ativo | decision | !!binary gJQgSW5zdGFsYcOnw6NvIDEtY2xpcXVlIHBhZHJvbml6YWRhIHBhcmEgdG9kb3Mgb3MgbcO |
+| 0025 | aceito | ativo | decision | !!binary gJQgUmVkZXNpZ24gZGEgbGFuZGluZyBww7pibGljYSAoYE1vZHVsZXMvQ21zYCkgZW0gSW5 |
+| 0026 | aceito | ativo | decision | !!binary gJQgUG9zaWNpb25hbWVudG8gZXN0cmF0w6lnaWNvOiBFUlAgZGUgQ29tdW5pY2HDp8OjbyB |
+| 0027 | aceito | ativo | decision | !!binary gJQgR2VzdMOjbyBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvOiBwYXDDqWlzIGNsYXJvcyBwb3I |
+| 0028 | aceito | ativo | decision | !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA= |
+| 0029 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBJbmVydGlhICsgUmVhY3QgKyBVbHRpbWF0ZVBPUyBwcmEgbcOzZHVsb3M |
+| 0030 | aceito | ativo | decision | !!binary gJQgQ3JlZGVuY2lhaXMgc2Vuc8OtdmVpczogbnVuY2EgZW0gZ2l0 |
+| 0031 | superseded | substituido | decision | !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGB |
+| 0032 | superseded | substituido | decision | !!binary gJQgVml6cmEgQURLICsgUHJpc20gUEhQIGNvbW8gY2FtYWRhIGRlIG9ycXVlc3RyYcOnw6N |
+| 0033 | superseded | substituido | decision | !!binary gJQgVmVjdG9yIHN0b3JlIC8gc2VhcmNoIGJhY2tlbmQgZG8gb2ltcHJlc3NvOiBwZ3ZlY3R |
+| 0034 | aceito | ativo | decision | !!binary gJQgTGFyYXZlbCBBSSBlY29zeXN0ZW0gMjAyNjogU0RLIG9maWNpYWwgKyBCb29zdCArIE1 |
+| 0035 | aceito | ativo | decision | !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bml |
+| 0036 | aceito | ativo | decision | !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWV |
+| 0037 | aceito | ativo | decision | !!binary gJQgUm9hZG1hcCBkZSBldm9sdcOnw6NvIHDDs3MtU3ByaW50IDU6IFRpZXIgNS02IOKGkiB |
+| 0038 | aceito | ativo | decision | !!binary gJQgUHJvbW/Dp8OjbyBkZSBgNi43LWJvb3RzdHJhcGAgcGFyYSBgbWFpbmAgY29tbyBicmF |
+| 0039 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBkZSBVSSAiQ2hhdCBDb2NrcGl0IiAoMyBjb2x1bmFzKSBwYXJhIG8gRVJ |
+| 0040 | aceito | ativo | decision | !!binary gJQgUG9saWN5IGRlIHB1YmxpY2HDp8OjbzogQ2xhdWRlIHN1cGVydmlzaW9uYSwgV2FnbmV |
+| 0041 | aceito | ativo | decision | !!binary gJQgU3RhY2sgZGUgUUEgZGUgSUE6IFZpenJhIEFESyBldmFsICsgTGFuZ2Z1c2Ugc2VsZi1 |
+| 0042 | superseded | substituido | decision | !!binary gJQgUmV2ZXJiIChzZWxmLWhvc3RlZCkgc3Vic3RpdHVpIFB1c2hlciBDbG91ZCBjb21vIGJ |
+| 0043 | aceito | ativo | decision | !!binary gJQgRG9ja2VyICsgVHJhZWZpayArIFBvcnRhaW5lciBudW0gTFhDLCBlbSB2ZXogZGUgTiB |
+| 0044 | aceito | ativo | decision | !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw= |
+| 0045 | aceito | ativo | decision | !!binary gJQgRW5kcG9pbnQgY2Fuw7RuaWNvIGRhIEhvc3RpbmdlciBETlMgQVBJIFYx |
+| 0046 | aceito | ativo | decision | !!binary gJQgYENoYXRDb3BpbG90b0FnZW50YCBwcmVjaXNhIGRlIGNvbnRleHRvIHJpY28gKyB0b29 |
+| 0047 | aceito | ativo | decision | !!binary gJQgV2FnbmVyIHNvbG86IHNwcmludCBtZW3Ds3JpYSBkbyBhZ2VudGUgKHRva2VuIGVjb25 |
+| 0048 | aceito | ativo | decision | !!binary gJQgRnJhbWV3b3JrIGRlIGFnZW50ZXMgSUE6IGBsYXJhdmVsL2FpYCAoVml6cmEgQURLIHJ |
+| 0049 | aceito | ativo | decision | !!binary gJQgQ2FtYWRhcyBkZSBtZW3Ds3JpYSBkbyBhZ2VudGU6IGxpZ2FyIGZhc2UgcG9yIGZhc2U |
+| 0050 | aceito | ativo | decision | !!binary gJQgOCBtw6l0cmljYXMgb2JyaWdhdMOzcmlhcyBkZSBtZW3Ds3JpYSArIHRhYmVsYSBgbWV |
+| 0051 | aceito | ativo | decision | !!binary gJQgU2NoZW1hIHByw7NwcmlvICsgYWRhcHRlciBwYXR0ZXJuICsgZW1pc3PDo28gT3BlblR |
+| 0052 | aceito | ativo | decision | !!binary gJQgYENvbnRleHRvTmVnb2Npb2AgZGV2ZSBleHBvciBtw7psdGlwbG9zIMOibmd1bG9zIHB |
+| 0053 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBkYSBlbXByZXNhOiBnb3Zlcm5hbsOnYSBjb21vIHByb2R1dG8sIG7 |
+| 0054 | aceito | ativo | decision | !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICs |
+| 0055 | aceito | ativo | decision | !!binary gJQgU2VsZi1ob3N0IFRlYW0gcGxhbiBlcXVpdmFsZW50ZSBhbyBBbnRocm9waWMgVGVhbS9 |
+| 0056 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBjb21vIGZvbnRlIMO6bmljYSBkZSBtZW3Ds3JpYSBwcm8gQ29waWx |
+| 0057 | aceito | ativo | decision | !!binary gJQgVGVsYSBgL3RlYW0tbWNwL3RlYW1gOiByZWdyYXMgZGUgZ292ZXJuYW7Dp2EgZGUgdG9 |
+| 0058 | aceito | ativo | decision | !!binary gJQgUmV2ZXJiIHN1YnN0aXR1w61kbyBwb3IgQ2VudHJpZnVnbyArIEZyYW5rZW5QSFA= |
+| 0059 | aceito | ativo | decision | !!binary gJQgR292ZXJuYW7Dp2EgZGEgbWVtw7NyaWEgZXN0aWxvIEFudGhyb3BpYyBUZWFtIHBsYW4 |
+| 0060 | aceito | ativo | decision | !!binary gJQgSUEgKyB3b3JrZXJzIHBlc2Fkb3MgbmEgcmVkZSBpbnRlcm5hIChQcm94bW94KSwgYXB |
+| 0061 | aceito | ativo | decision | !!binary gJQgQ29uaGVjaW1lbnRvIGNhbsO0bmljbyBlbSBnaXQvTUNQLCBaRVJPIGF1dG8tbWVtIHB |
+| 0062 | aceito | ativo | decision | Separação dura de runtime: Hostinger ≠ CT 100 Proxmox |
+| 0063 | aceito | ativo | decision | Prevenir composer.lock drift permanentemente |
+| 0064 | aceito | ativo | decision | Modularização — split TeamMcp + KB + Superadmin 360° |
+| 0065 | aceito | ativo | decision | Permission Registry — contrato declarativo de permissions per-módulo |
+| 0066 | aceito | ativo | decision | format_date com shift +3h preservado intencionalmente — quirk legacy ROTA LIVRE |
+| 0067 | aceito | ativo | decision | Sprint 8 — McpMemoryDocument Searchable + retrieval hybrid na pipeline RAGAS |
+| 0068 | rascunho | ativo | decision | Sprint 9 — Estratégia retrieval: Ollama embedder + reranking + documentTemplate  |
+| 0069 | superseded | substituido | decision | Governança de tasks: TaskRegistry MCP tools canônico, TASKS.md ASCII deprecated |
+| 0070 | aceito | ativo | decision | Jira-style task management no MCP — CURRENT.md/TASKS.md removidos |
+| 0071 | aceito | ativo | decision | Auditoria tools MCP 2026-05-05 — bugs descobertos + workarounds |
+| 0072 | proposto | ativo | decision | Maturação memória + Team MCP — gaps identificados vs OpenClaw/Mem0/Letta/Zep/A-M |
+| 0073 | superseded | substituido | decision | Team MCP P0 — skills e policies como entidades governadas (mcp_skills + mcp_poli |
+| 0074 | proposto | ativo | decision | P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel quer |
+| 0075 | superseded | substituido | decision | Team MCP P0 v2 — UI gestão de skills estilo prompt-management (5 tabelas, 5 tela |
+| 0076 | proposto | ativo | decision | Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/ |
+| 0077 | superseded | substituido | decision | MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity Mesh) |
+| 0078 | superseded | substituido | decision | Meta-skill ROI ERP autônomo — skill+missão como unidade operacional (parcialment |
+| 0079 | superseded | substituido | decision | Constituição do Oimpresso ERP — 10 artigos supremos sobre 7 camadas de governanç |
+| 0080 | aceito | ativo | decision | Trust Tiers operacional + Architecture & Scope + audit findings v1.1.0 |
+| 0081 | aceito | ativo | decision | Identity Mesh — schema mcp_actors + manifest pattern + seed inicial 6 actors |
+| 0084 | aceito | ativo | decision | Triggers MySQL append-only em mcp_audit_log + correção audit P0.1 |
+| 0085 | aceito | ativo | decision | Fase 3.4 SCOPE.md completo + ActorResolver + PII Redactor + roadmap pendências |
+| 0086 | aceito | ativo | decision | Fase 5 MVP — Modules/Governance scaffold + ActionGate (warn-only) + Sidebar GOVE |
+| 0087 | aceito | ativo | decision | Drift resolution sem mover URL — pattern de migration safe |
+| 0088 | aceito | ativo | decision | Module rename PHP-only — fachada legacy mantida durante transição |
+| 0089 | aceito | ativo | decision | Capterra-driven Module Evolution (skill + 3 artefatos) |
+| 0090 | aceito | ativo | decision | NFe replace gradual: app/Services → Modules/NfeBrasil |
+| 0091 | aceito | ativo | decision | Daily Brief: contrato de contexto consolidado L7 |
+| 0092 | aceito | ativo | decision | Tabela rename copiloto_* → jana_* (PR-9 da Fase 3.7 — renumerada de 0090 pra 009 |
+| 0093 | aceito | ativo | decision | Multi-tenant isolation by default — Tier 0, IRREVOGÁVEL |
+| 0094 | aceito | ativo | decision | Constituição v2 Oimpresso — 7 camadas + 8 princípios duros |
+| 0095 | aceito | ativo | decision | Skills Tier A/B/C — convenção interna pra controle de always-on |
+| 0096 | aceito | ativo | decision | Módulo Whatsapp — Z-API default + Meta Cloud fallback + BaileysDriver custom (Sp |
+| 0097 | aceito | ativo | decision | BRIEF generator usa gpt-4o-mini em vez de Sonnet (supersede parcial ADR 0091) |
+| 0098 | aceito | ativo | decision | build:inertia roda na Hostinger pós git-pull (substitui GH Actions runner) |
+| 0099 | aceito | ativo | decision | Modules/Project (legacy UltimatePOS) — Discovery pré-deletion (Fase 3.8) |
+| 0100 | aceito | ativo | decision | ProjectMgmt UI Redesign — Linear-tier UX em 4 fases capterra-driven |
+| 0101 | aceito | ativo | decision | Sistema Charter-Capterra — governança de escopo em 2 níveis × 3 eixos |
+| 0101 | aceito | ativo | decision | Tests SEMPRE business_id=1 (Wagner) — nunca cliente real, com guard CI |
+| 0102 | aceito | ativo | decision | US-NFE-002 fase 2C — UI status NFC-e via polling JSON (broadcast adiado) |
+| 0102 | aceito | ativo | decision | Sprint S6 Charter-Capterra postmortem + S7 backlog (5 itens, ~24h) |
+| 0103 | aceito | ativo | decision | Eventos fiscais Laravel separados por modelo NFe (NFeAutorizada / NFCeAutorizada |
+| 0104 | aceito | ativo | decision | Processo MWART canônico — único caminho de migração Blade→Inertia |
+| 0105 | aceito | ativo | decision | Cliente como sinal + guiar sem mandar (3 graus de regulação) |
+| 0106 | aceito | ativo | decision | Recalibração de velocidade — fator 10x em tarefas codáveis (IA-pair) |
+| 0107 | aceito | ativo | decision | Emendation ADR 0104 — Visual comparison gate obrigatório em F3 (loop design supe |
+| 0108 | aceito | ativo | decision | Regressão visual via Pest 4 Browser snapshot — Tier 2 (CI gate F4 QA) |
+| 0109 | aceito | ativo | decision | Claude Design plugin (Anthropic) integrado ao processo MWART — design supervisio |
+| 0110 | aceito | ativo | decision | Cockpit Pattern V2 — list+detail canônico para todas as migrações MWART (header  |
+| 0111 | aceito | ativo | decision | Emenda 5 ao ADR 0096 — Bypass Meta-fallback per-business via env (piloto biz=1 s |
+| 0112 | aceito | arquivado | decision | MWART exceção — fix bugs UI Settings.tsx Whatsapp (sem migração nova) |
+| 0113 | aceito | ativo | decision | Integração Delphi WR Comercial ↔ Laravel oimpresso ↔ ADs em 3 caminhos aditivos |
+| 0114 | aceito | ativo | decision | Loop Cowork ↔ Claude Code formalizado via prototipo-ui/ |
+| 0115 | aceito | ativo | decision | Recuperação cliente Gold Comunicação Visual via bundle oimpresso + NF-e 55 (anti |
+| 0116 | aceito | ativo | decision | Pivot caso Gold — Manifestação do Destinatário (DFe) substitui escopo de emissão |
+| 0117 | aceito | ativo | decision | Múltiplos números Whatsapp por business — 1 driver + escopo de atendimento por n |
+| 0118 | proposto | ativo | decision | Segregação de domínios externos e clientes-legacy em pastas top-level no memory/ |
+| 0119 | proposto | ativo | decision | Migration Factory — capacidade institucional do oimpresso pra ingerir cliente de |
+| 0119 | aceito | ativo | decision | Paralelismo de sessões — Tier 1 `whats-active` aceito, Tier 2 lease formal dorme |
+| 0120 | aceito | ativo | decision | Supersession metadata housekeeping — fix 0079 + documenta drift de direção forwa |
+| 0121 | aceito | ativo | decision | oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Ver |
+| 0122 | proposto | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
+| 0123 | proposto | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
+| 0124 | proposto | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
+| 0125 | proposto | historical | decision | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
+| 0126 | proposto | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
+| 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
+| 0127 | aceito | ativo | decision | Modules/Auditoria — UI rica + undo sobre activity_log existente |
+| 0128 | proposto | (vazio) | decision | ADR 0128 — Smoke testing E2E pós-cycle |
+| 0129 | aceito | ativo | decision | State Machine canônica — FSM tabular custom + Spatie Permission por transição |
+| 0130 | aceito | ativo | decision | Handoff append-only + MCP-first antes de escrever — fim do overwrite cego de 08- |
+| 0131 | aceito | ativo | decision | Tiering de memória — canônico (git/MCP) / máquina-local / segredo (Vaultwarden) |
+| 0132 | aceito | ativo | decision | Langfuse self-host CT 100 — observabilidade GenAI canônica oimpresso |
+| 0133 | aceito | ativo | decision | System health audit canônico — 5 dimensões automáticas (Tool MCP + cron daily) |
+| 0134 | aceito | ativo | decision | tasks-create respeita placeholders em SPEC.md (regex headers + bullets) |
+| 0135 | aceito | ativo | decision | Omnichannel inbox — schema polimórfico Channel+Driver, 4 fases com gate cliente- |
+| 0136 | aceito | ativo | decision | Sells: split Lista (default) vs Grade Avançada (toggle) — migração legacy Office |
+| 0137 | aceito | ativo | decision | Modules/OficinaAuto qualificada — sinal confirmado por 2 de 4 candidatos OfficeI |
+| 0140 | aceito | ativo | decision | JANA Pro — Produto comercial SaaS de IA pra PMEs BR (upsell sobre oimpresso, R$  |
+| 0141 | aceito | ativo | decision | Agents IA com tool use loop (pattern "Claude Code") — Camada B v2 |
+| 0141 | aceito | ativo | decision | Skill `migracao-blade-react` — orquestrador Cowork→Inertia preservando paridade  |
+| 0142 | aceito | ativo | decision | Notas internas como sinal de treino pra Jana — slash commands + 3 tabelas + pars |
+| 0143 | aceito | ativo | decision | FSM Pipeline Canônico LIVE em prod biz=1 — marco 2026-05-12 (40+ PRs em ~10h) |
+| 0144 | aceito | ativo | decision | TaskRegistry — DB é canon de estado vivo, SPEC.md é template descritivo |
+| 0145 | aceito | ativo | decision | IA Administradora do oimpresso — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE |
+| 0146 | proposto | ativo | decision | Refactor contact_lid como chave canônica de identidade WhatsApp |
+| 0147 | aceito | ativo | decision | Cascade Review §10.4 — Defesa em profundidade contra drift pré-entrada time MCP |
+| 0148 | aceito | ativo | decision | Cascade Review §10.4 — Onda 6 fechamento roadmap memoria-senior pra nota 98 |
+| 0149 | aceito | ativo | decision | Screen-Pattern Reuse no MWART — Index Cowork blueprint pra Show/Edit/Detail da m |
+| 0150 | aceito | ativo | decision | KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso |
+| 0151 | proposto | historical | decision | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
+| 0152 | proposto | historical | decision | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
+| 0153 | proposto | ativo | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
+| 0154 | aceito | ativo | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
+| 0155 | aceito | ativo | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
+| 0156 | aceito | ativo | decision | module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_jus |
+| 0157 | aceito | ativo | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
+| 0158 | aceito | ativo | decision | module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job  |
+| 0159 | proposto | ativo | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
+| 0160 | aceito | ativo | decision | module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta  |
+| 0161 | aceito | ativo | decision | Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecar |
+| 0162 | aceito | ativo | decision | OpenTelemetry Collector ativo em prod (CT 100) — destrava D6.b + D9.b governance |
+| 0163 | aceito | ativo | decision | Governance v4 — metas por bucket alcançadas (Ondas 19-28) · 4/4 buckets acima da |
+| 0164 | aceito | ativo | decision | Screen Review PDCA — fase C (Check) automática pós-merge via skill tela-smoke-po |
+| 0165 | proposto | ativo | decision | Design System — breakpoints canon + regra mobile-first em todas as Pages Inertia |
+| 0166 | aceito | ativo | decision | Errata ADR 0162 — OTel SDK em require-dev (Hostinger shared sem ext-opentelemetr |
+| 0167 | aceito | ativo | decision | Errata ADR 0130 — Índice de handoff mantém histórico longo (não trunca 5) |
+| 0168 | proposto | ativo | decision | PROTOCOLO WAGNER SEMPRE — 10 regras canon Tier A always-on (Constituição v2 emen |
+| 0169 | proposto | ativo | decision | Errata ADR 0168 — RUNBOOK-onda-cowork.md como artefato 4º da triade governance |
+| 0170 | aceito | (vazio) | decision | PaymentGateway Top-5 bancos brasileiros — drivers REST e CNAB SEPARADOS (Ondas 4 |
+| 0170 | aceito | (vazio) | decision | PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway adicional |
+| 0170 | proposto | ativo | decision | Modules/PaymentGateway — extração da camada técnica de cobrança |
+| 0171 | aceito | ativo | decision | Ativação Modules/OficinaAuto — Piloto Martinho Caçambas (faseada, add-on faturáv |
+| 0172 | aceito | (vazio) | decision | Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Fi |
+| 0173 | aceito | (vazio) | decision | Errata ARQ-0005 — tabelas Accounting usam nomes nus (não prefixo `accounting_*`) |
+| 0174 | aceito | ativo | decision | Errata DEPRECATION-PLAN Accounting — Ondas 3+4 SKIP (audit prod 0 rows) |
+| 0175 | aceito | ativo | decision | Fix arquitetural — Observer Financeiro permite baixa sem fin_contas_bancarias (r |
+| 0177 | aceito | ativo | decision | MWART exceção — Cliente/Show Wave paralela paridade tabs (visual regression over |
+| 0178 | aceito | ativo | decision | Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7) |
+| 0178 | aceito | ativo | decision | Sells: unificar Lista + Grade Avançada numa só tabela com tabs de Visão (Operaci |
+| 0179 | aceito | ativo | decision | Cliente — drawer lateral 760px substitui Show.tsx full-page (paradigma cadastral |
+| 0180 | aceito | ativo | decision | Drift de número ADR 0178 — conflito paralelo PR #1323 (Sells) × PR #1324 (Client |
+| 0180 | aceito | ativo | decision | Sidebar v3 — 5 grupos canônicos (VENDER · OPERAR · FINANÇAS · PESSOAS · SISTEMA) |
+| 0182 | aceito | ativo | decision | PageHeaderTabs pattern canon — header obrigatório de telas Inertia com sub-naveg |
+| 0183 | aceito | ativo | decision | Caixa físico (cash_registers) ↔ Financeiro (fin_titulos) — ponte canon multi-cai |
+| 0184 | aceito | ativo | decision | Errata ADR 0183 — NÃO deprecar rotas `/cash-register/*` UPOS core (descoberta pó |
+| 0185 | aceito | ativo | decision | Drawer 760 escala pra entidades cadastrais do projeto — substitui Edit.tsx/Creat |
+| 0186 | aceito | ativo | decision | Chain de certificado A1 + SEFAZ ConsultaCadastro merge paralelo — IRREVOGÁVEL |
+| 0187 | aceito | ativo | decision | Constituição UI v2 — ponteiro canon (hierarquia 4 camadas + regra-mestre + PT-01 |
+| 0188 | aceito | ativo | decision | Contatos multi-type · flags aditivas is_customer/is_supplier/is_employee/is_repr |
+| 0189 | proposto | ativo | decision | PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo m |
+| 0190 | superseded | substituido | decision | Primary button interno = roxo médio universal oklch(0.55 0.15 295) — hue per gru |
+| 0191 | aceito | ativo | decision | Microsoft Clarity como ferramenta canon de session replay + heatmap LGPD-complia |
+| 0192 | aceito | ativo | decision | Auto-faturar OS → Venda via JobSheetObserver (Integração Vendas × Oficina A1 KB- |
+| 0193 | proposto | ativo | decision | NfeService.retransmitir sem forceDelete (Wave 27 D6 · CONFAZ SINIEF 07/2005 Art. |
+| 0194 | aceito | ativo | decision | Correção domínio OficinaAuto Martinho — mecânica pesada caminhão basculante (não |
+| 0195 | aceito | ativo | decision | Feedback indexing — relevance scoring + decay adaptativo + signature dedup |
+| 0195 | aceito | ativo | decision | Tabs com autosave/state user-editável ficam mount-sempre (hidden via CSS) — rend |
+| 0197 | aceito | ativo | decision | Extensão `contacts` pra absorver schema legacy `PESSOAS` (WR Comercial Delphi/Fi |
+| 0198 | aceito | ativo | decision | Estratégia hot/cold tiering pra migração transacional histórica de 8-10 clientes |
+| 0199 | aceito | ativo | decision | Errata Bucket B · pivot tabela satélite 10 cols → 2 cols JSON catch-all em conta |
+| 0200 | aceito | ativo | decision | Contacts adopta canon sync bidirecional Wagner 2024-11 (officeimpresso_codigo +  |
+| 0201 | aceito | ativo | decision | Receita Federal + SEFAZ ConsultaCadastro é o padrão canon de coleta de dados cad |
+| 0202 | aceito | ativo | decision | WhatsApp profissionalização — Meta Cloud API default universal + Z-API opcional  |
+| 0203 | aceito | ativo | decision | Pipeline legacy-migration Firebird → oimpresso completo (Wave 29-1) |
+| 0204 | aceito | ativo | decision | WhatsApp whatsmeow Go driver — substituto não-oficial Baileys (amend ADR 0202) |
+| 0205 | aceito | ativo | decision | Contract tests autosave como padrão canônico pra toda tela com endpoint PATCH |
+| 0206 | aceito | ativo | decision | Whatsmeow profissionalização — State Machine + Reconciler + circuit breaker + ba |
+| 0207 | aceito | ativo | decision | Contract test obrigatório em PR que toque tela autosave — CI gate hard |
+| 0208 | aceito | ativo | decision | Larastan PHPStan baseline ratchet — enforcement passivo de anti-padrões PHP |
+| 0209 | aceito | ativo | decision | ESLint 9 flat-config + react-hooks + jsx-a11y baseline ratchet — enforcement pas |
+| 0210 | aceito | ativo | decision | Type safety end-to-end via Wayfinder — eliminar R8/AP-12 (type drift backend↔fro |
+| 0211 | aceito | ativo | decision | TanStack Query como padrão de data-fetching em componentes — eliminar R7 (race c |
+| 0212 | aceito | ativo | decision | Defensive logging em fallback paths — eliminar R9-class (silent fallback) via Lo |
+| 0213 | aceito | ativo | decision | Audit docs com gaps criam MCP tasks automaticamente — loop fechado audit → backl |
+| 0214 | aceito | ativo | decision | Arquivos backbone — aceite ADR 0123 + emenda storage default S3 MinIO CT 100 |
+| 0215 | aceito | ativo | decision | Secrets governance — 5 camadas automáticas (auto-discovery + auto-validate + aut |
+| 0216 | aceito | ativo | decision | Deploy webhook Hostinger deve rodar `composer dump-autoload -o` + `php artisan o |
+| 0216 | aceito | ativo | decision | Governance Drift Framework — interface DriftChecker plugável (generaliza ADR 021 |
+| 0217 | aceito | ativo | decision | ComposerAuditChecker — CVE detection deps composer.lock (supply chain) |
+| 0218 | aceito | ativo | decision | MultiTenantScopeChecker — Tier 0 IRREVOGÁVEL (ADR 0093 defesa em profundidade) |
+| 0219 | aceito | ativo | decision | AdrLinksChecker — link rot + lifecycle integrity de ADRs Nygard |
+| 0220 | aceito | ativo | decision | ChartersFreshnessChecker — adapter pattern do charter:audit existente |
+| 0221 | aceito | ativo | decision | RoutesZombieChecker — routes sem hits = tech debt + blast radius |
+| 0222 | aceito | ativo | decision | Renovate config — defesa proativa supply chain (lições Shai-Hulud + axios + lara |
+| 0223 | aceito | ativo | decision | NpmAuditChecker — frontend supply chain CVE detection (complementa 0217) |
+| 0224 | aceito | ativo | decision | Triagem hooks block vs advisory — Claude 4.8-aware (rebaixa enforcement semântic |
+| 0225 | aceito | ativo | decision | Recalibração skills Tier A pós-Claude 4.8 — 8 always-on → 5 núcleo + 7 auto-trig |
+| 0226 | aceito | ativo | decision | Brief v2 (1M-aware) — régua 3.5k → 8k tokens, reposiciona como estado-rico-pro-W |
+| 0229 | aceito | ativo | decision | Errata 0225 — medição empírica 25/66 skills eager (corrige diagnóstico 8→5 estim |
+| 0230 | proposto | ativo | decision | Método Governance Scorecard — pontuar regras vs estado-da-arte + anti-regressão  |
+| 0231 | proposto | ativo | decision | Processo de Trabalho Canônico — dividir → especialista por área → Método Scoreca |
+| 0232 | proposto | ativo | decision | Modelo de Peso Real — classificar memórias, decisões e iniciativas por contribui |
+| 0233 | proposto | ativo | decision | Ativação de memória no momento-decisão — ciclo de vida 8 etapas + convenção gati |
+| 0234 | aceito | ativo | decision | Registry de Automações no MCP — hooks/crons/rotinas governados |
+| 0235 | aceito | ativo | decision | DS v4 — design system roxo universal (accent oklch 0.55 0.15 295); supersede ADR |
+| 0235 | aceito | ativo | decision | Ambiente de Staging no CT 100 — clone anonimizado da produção |
+| 0236 | aceito | ativo | decision | Extrato bancário + Conciliação: modelo unificado (origem como atributo, concilia |
+| 0236 | aceito | ativo | decision | Governança de evolução da documentação de design — append-only + índice fonte-ún |
+| 0236 | proposto | ativo | decision | Scorecard Universal — entidade avaliável arbitrária (blueprint pattern): temas/c |
+| 0237 | aceito | ativo | decision | jana:reconcile — loop de reconciliação único (git == índice == MCP == settings = |
+| 0238 | aceito | ativo | decision | Soberania de [W] sobre a constituição — modificação autorizada e versionada |
+| 0239 | aceito | ativo | decision | Governança do Design System — git é fonte única; mudança flui Cowork→Code→git co |
+| 0240 | aceito | ativo | decision | Task ledger git-native + handoff-por-tarefa + fechamento por evidência + antifra |
+| 0241 | aceito | ativo | decision | Loop design Cowork↔Code autônomo — humano sai do loop (gates CI no lugar de [W2] |
+| 0242 | aceito | ativo | decision | Charters de papel — [W] soberano + agentes champion ([CC]/[CL]/[CD]/[CA]): memór |
+| 0243 | aceito | ativo | decision | Processo de memória/evolução de design do Cowork — loop medido e auto-corretivo  |
+| 0244 | aceito | ativo | decision | DS v5 = Design System único ativo (v4 lápide) · Oficina = tela-padrão/semente do |
+| 0245 | aceito | ativo | decision | Jana Modo Consultor (Advisor) — clarify reativo (cascata Decidir→Clarificar→Resp |
+| 0246 | (vazio) | (vazio) | decision | ADR 0246 — Harmonização DS sem perder qualidade + caminho v4.2 |
+| 0246 | aceito | ativo | decision | Tipo "Outros" como categoria default pra cadastros legacy em migrações |
+| 0247 | (vazio) | (vazio) | decision | ADR 0247 — Carta de Design [CC] subordinada ao protocolo do git |
+| 0248 | proposto | ativo | decision | Gate de exclusão do Sells/Show espelha a autorização do servidor (sell.delete // |
+| 0249 | aceito | ativo | decision | DS v6 — nome canônico único da camada de tokens semânticos (resolve divergência  |
+| 0250 | aceito | ativo | decision | QA-de-tela sustentável: enforcement determinístico do screen-grade (seed + catra |
+| 0251 | aceito | ativo | decision | Veículo na venda direta de oficina (transactions.vehicle_id) — extensão da Integ |
+| 0252 | aceito | ativo | decision | Provider LLM default da camada A = OpenAI (gpt-4o-mini / gpt-4o) |
+| 0253 | aceito | ativo | decision | Primitivos de layout (Components/layout/): Box/Stack/Inline/Grid/Container/Text  |
+| 0254 | proposto | ativo | decision | Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (end |
+| 0255 | aceito | ativo | decision | Contrato de view determinístico: charter (intenção) + design-spec.json derivado  |
+| 0256 | proposto | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
+| 0257 | proposto | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
+| 0258 | proposto | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
