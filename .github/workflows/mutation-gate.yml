@@ -31,7 +31,9 @@ jobs:
   infection:
     name: Infection (diff, advisory)
     runs-on: ubuntu-latest
-    continue-on-error: true   # advisory: nunca bloqueia o PR
+    # Nao e um required check (branch protection) — logo nunca bloqueia merge.
+    # Falha de SETUP fica visivel (vermelho, pra corrigir); o RESULTADO do
+    # infection nunca avermelha (passo abaixo usa "|| echo", sempre exit 0).
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,7 +43,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd, opentelemetry
           tools: composer:v2
           coverage: pcov
 
