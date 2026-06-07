@@ -25,6 +25,12 @@
 import * as React from 'react';
 import { useState, type ReactNode } from 'react';
 
+import {
+  Plus, Search, ChevronRight, Calendar, RefreshCw, Check,
+  ArrowDownLeft, ArrowUpRight, Zap, FileText, Send, X, Link2,
+  type LucideIcon,
+} from 'lucide-react';
+
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Box, Stack, Inline, Grid, Container, Text } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
@@ -85,25 +91,16 @@ const K = (n: number): string =>
     ? (Math.abs(n) / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'k'
     : fmt(n);
 
-/* ═══ ÍCONES (SVG inline — conteúdo, não layout) ═══ */
-const Ic = ({ d, s = 14, w = 2 }: { d: ReactNode; s?: number; w?: number }) => (
-  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+/* ═══ ÍCONES (lucide-react — canon R4, zero svg inline) ═══ */
+const ICN = {
+  plus: Plus, search: Search, chev: ChevronRight, cal: Calendar, refresh: RefreshCw,
+  check: Check, in: ArrowDownLeft, out: ArrowUpRight, bolt: Zap, doc: FileText,
+  send: Send, x: X, link: Link2,
+} satisfies Record<string, LucideIcon>;
+/** Adapter fino: mantém o call-site `<Ic d={ICN.foo} s={N} w={W}/>` mas renderiza lucide. */
+const Ic = ({ d: Glyph, s = 14, w = 2, className }: { d: LucideIcon; s?: number; w?: number; className?: string }) => (
+  <Glyph size={s} strokeWidth={w} className={className} />
 );
-const ICN: Record<string, ReactNode> = {
-  plus: <path d="M12 5v14M5 12h14" />,
-  search: <g><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></g>,
-  chev: <path d="M9 6l6 6-6 6" />,
-  cal: <g><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" /></g>,
-  refresh: <g><path d="M3 12a9 9 0 0 1 15-6.7L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-15 6.7L3 16" /><path d="M3 21v-5h5" /></g>,
-  check: <path d="M20 6 9 17l-5-5" />,
-  in: <path d="M17 7 7 17M7 7v10h10" />,
-  out: <path d="M7 17 17 7M17 17V7H7" />,
-  bolt: <path d="M13 2 3 14h7l-1 8 10-12h-7z" />,
-  doc: <g><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M8 13h8M8 17h8" /></g>,
-  send: <path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" />,
-  x: <path d="M18 6 6 18M6 6l12 12" />,
-  link: <g><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1" /><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></g>,
-};
 
 /* ═══ ÁTOMOS (compostos só de primitivos) ═══ */
 type NumSize = 'hero' | 'xl' | 'lg' | 'md' | 'sm';
@@ -174,7 +171,7 @@ function Kbd({ children }: { children: ReactNode }) {
   );
 }
 
-function Btn({ primary, icon, children, ...rest }: { primary?: boolean; icon?: ReactNode } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+function Btn({ primary, icon, children, ...rest }: { primary?: boolean; icon?: LucideIcon } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...rest}
@@ -203,7 +200,7 @@ function Hero({ previsto, saldo, pend }: { previsto: number; saldo: number; pend
             <Text as="span" size="xs" weight="semibold" className="uppercase tracking-[0.16em] text-white/80 whitespace-nowrap">Saldo previsto · maio</Text>
           </Inline>
           <Box className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 19 19 5M9 5h10v10" /></svg>
+            <Ic d={ICN.out} s={11} w={2.6} className="text-white" />
             <Text as="span" size="xs" weight="bold" family="mono" numeric="tabular" className="leading-none text-white">12,4%</Text>
           </Box>
         </Inline>
@@ -416,7 +413,7 @@ function Drawer({ row, onClose }: { row: Row | null; onClose: () => void }) {
   return (
     <Box className="fixed inset-0 z-[60]">
       <button type="button" aria-label="Fechar detalhe" onClick={onClose} className="absolute inset-0 bg-foreground/25 cursor-default" />
-      <Stack gap={0} role="dialog" aria-modal="true" className="absolute top-0 right-0 h-full w-[452px] max-w-[94vw] bg-card text-card-foreground border-l border-border" style={{ boxShadow: '-22px 0 55px -22px rgba(0,0,0,.4)' }}>
+      <Stack gap={0} role="dialog" aria-modal="true" className="absolute top-0 right-0 h-full w-[452px] max-w-[94vw] bg-card text-card-foreground border-l border-border shadow-2xl">
         {/* header */}
         <Inline gap={3} className="px-5 h-14 border-b border-border shrink-0">
           <Dir kind={row.kind} s={30} />
