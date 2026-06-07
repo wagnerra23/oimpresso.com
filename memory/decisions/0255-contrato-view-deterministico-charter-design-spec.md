@@ -3,12 +3,14 @@ slug: 0255-contrato-view-deterministico-charter-design-spec
 number: 255
 title: "Contrato de view determinístico: charter (intenção) + design-spec.json derivado (estrutura) — consolida os 4 artefatos por-tela"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-06-06"
 proposed_at: "2026-06-06"
+accepted_at: "2026-06-06"
+accepted_via: "Wagner 2026-06-06 — 'eu aceito, merge' (após PoC Sells/Create.design-spec.json provado + dossiê 6 refs SOTA + mapa de conflitos resolvido)"
 module: _DesignSystem
 quarter: 2026-Q2
 related_adrs:
@@ -20,7 +22,7 @@ tags: [design-system, view-contract, design-spec, charter, derivado, determinist
 
 # ADR 0255 — Contrato de view determinístico: charter + design-spec.json derivado
 
-> **PROPOSTA — Wagner aprova pra aceitar (Tier 0: muda padrão de artefato canônico por-tela).**
+> **ACEITA por Wagner 2026-06-06** ("eu aceito, merge"). Tier 0: muda padrão de artefato canônico por-tela. Enactment (gate + migração incremental + rebaixar review.md) começa após este merge.
 > Origem: 2026-06-06, Wagner — *"esse protocolo deve ser o padrão spec da view, junto do page charter? assim consigo fazer testes? pesquise, consolide e rebaixe os conflitos — isso é evolução determinística."* Dossiê: [2026-06-06-arte-view-contract-deterministico](../sessions/2026-06-06-arte-view-contract-deterministico.md).
 
 ## Contexto
