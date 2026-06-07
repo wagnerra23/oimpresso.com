@@ -1,6 +1,6 @@
 ---
 name: Proxmox + CT 100 — acesso, hardening, runtime
-description: Servidor Proxmox empresa (192.168.0.2) + CT 100 docker-host (192.168.0.50) — credenciais (no Vaultwarden), SSH key-only + fail2ban systemd backend, Tailscale 100.99.207.66, stack Docker (Traefik/Portainer/Vaultwarden/Reverb/Meilisearch), bootstrap services, Traefik labels pattern, autossh tunnel pra Hostinger MySQL
+description: Servidor Proxmox empresa (192.168.0.2) + CT 100 docker-host (192.168.0.50) — credenciais (no Vaultwarden), SSH key-only + fail2ban systemd backend, Tailscale 100.99.207.66, stack Docker (Traefik/Portainer/Vaultwarden/Centrifugo/Meilisearch), bootstrap services, Traefik labels pattern, autossh tunnel pra Hostinger MySQL
 type: reference
 ---
 
@@ -195,7 +195,7 @@ Quando todos os caminhos SSH falham (Tailscale down, LAN inacessível):
   - Wagner criou conta: `wagnerra@gmail.com` / senha master (não documentar)
   - ADMIN_TOKEN: ver vaultwarden-credenciais.md
   - SIGNUPS: **false** (desabilitado após criação da conta)
-- **Reverb (Laravel 8.4)** em `https://reverb.oimpresso.com/` (creds Vaultwarden)
+- ~~**Reverb (Laravel 8.4)** em `https://reverb.oimpresso.com/`~~ **(legado — substituído por Centrifugo, [ADR 0058](../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md))**
 - **Meilisearch v1.10.3** em `https://meilisearch.oimpresso.com/` (master key Vaultwarden)
 
 ---
