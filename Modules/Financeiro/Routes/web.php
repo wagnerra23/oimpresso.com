@@ -18,6 +18,7 @@ use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
+use Modules\Financeiro\Http\Controllers\ProvaVivaController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -124,6 +125,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
+
+        // Prova viva dos primitivos de layout (ADR 0253 — critério de pronto).
+        // Read-only, dados MOCK no .tsx (prova de layout, não consulta DB).
+        // NÃO substitui /financeiro/unificado (landing de produção).
+        Route::get('/prova-viva', [ProvaVivaController::class, 'index'])->name('prova-viva.index');
 
         // DRE gerencial hierárquica — Cockpit V2 (US-FIN-014a, reaplicação canon).
         // Wagner aprovou 2026-05-20 (Q1-Q8b em memory/requisitos/Financeiro/
