@@ -1196,19 +1196,28 @@ class UnificadoController extends Controller
             + (float) (clone $aReceber)->sum('valor_aberto')
             - (float) (clone $aPagar)->sum('valor_aberto');
 
+        // Eliana [E] 2026-06-07: KPIs RECEBIDO/PAGO mostram valor REAL pago,
+        // incluindo juros + multa - desconto (paridade WR Comercial legacy
+        // DÉBITO/CRÉDITO). Antes era só valor_baixa, gerando diff em
+        // conferências (jan/2026: PAGO R$ 45.983,88 + juros R$ 349,12 =
+        // R$ 46.333,00 real vs WR2 R$ 46.333,99 — diff < 1ct arredondamento).
+        $totalRealExpr = 'COALESCE(SUM(valor_baixa + juros + multa - desconto), 0)';
+        $recebidoAgg = (clone $recebido)->selectRaw("{$totalRealExpr} as total, COUNT(*) as qtd")->first();
+        $pagoAgg = (clone $pago)->selectRaw("{$totalRealExpr} as total, COUNT(*) as qtd")->first();
+
         return [
             'saldo_previsto' => (float) $saldoPrevisto,
             'recebido' => [
-                'valor' => (float) (clone $recebido)->sum('valor_baixa'),
-                'qtd' => (clone $recebido)->count(),
+                'valor' => (float) ($recebidoAgg->total ?? 0),
+                'qtd' => (int) ($recebidoAgg->qtd ?? 0),
             ],
             'a_receber' => [
                 'valor' => (float) (clone $aReceber)->sum('valor_aberto'),
                 'qtd' => (clone $aReceber)->count(),
             ],
             'pago' => [
-                'valor' => (float) (clone $pago)->sum('valor_baixa'),
-                'qtd' => (clone $pago)->count(),
+                'valor' => (float) ($pagoAgg->total ?? 0),
+                'qtd' => (int) ($pagoAgg->qtd ?? 0),
             ],
             'a_pagar' => [
                 'valor' => (float) (clone $aPagar)->sum('valor_aberto'),
