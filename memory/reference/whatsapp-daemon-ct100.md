@@ -3,6 +3,9 @@ name: Whatsapp Daemon Baileys CT 100 — source/deploy/endpoints/anti-QR-fest/pu
 description: Daemon Baileys CT 100 (Baileys 6.7.18 + Fastify + TypeScript) — onde mora, endpoints canônicos, deploy padrão, purge sem restart, anti-QR-fest PRs #685+#686, Multi-Device unified inbox PR #688, states semântica, erros comuns
 type: reference
 ---
+
+> ⚠️ **STALE (histórico).** Baileys foi desativado em 2026-05-27 — ADR 0202 (BaileysDriver OUT, Meta Cloud default universal). Este doc descreve a era Baileys; não usar como estado atual.
+
 # Whatsapp Daemon CT 100 (Baileys 6.7.18 + Fastify + TypeScript)
 
 ## Canais em prod biz=1 (estado 2026-05-12)

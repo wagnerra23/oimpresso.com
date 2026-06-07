@@ -1,0 +1,30 @@
+name: Memory Health — ADR 0256
+
+# Sentinela de saúde da base de conhecimento (ADR 0256 Onda 1).
+# v1 = ADVISORY (--warn-only): surface no log do PR + heartbeat diário, NÃO bloqueia.
+# Onda 2 flipará pra enforce (remove --warn-only + adiciona baseline ratchet).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/**'
+      - 'scripts/governance/memory-health.mjs'
+  schedule:
+    # Daily 06h30 BRT (09h30 UTC) — batimento cardíaco da memória (após health-check dados).
+    - cron: '30 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  health:
+    name: memory-health (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # precisa do histórico p/ git log -1 (scorecard fantasma)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run memory-health sentinel
+        run: node scripts/governance/memory-health.mjs --warn-only

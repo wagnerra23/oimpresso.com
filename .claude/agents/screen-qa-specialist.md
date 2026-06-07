@@ -29,7 +29,7 @@ Leia o charter (Mission/Goals/Non-Goals/Anti-hooks) e o Controller real (`Inerti
 Escreva/atualize `tests/Browser/<Mod>/<Tela>Test.php`:
 - viewports **1280** (Larissa/ROTA LIVRE) **e 1440**;
 - asserções vindas do charter, não de chute;
-- **smoke biz=1** ([ADR 0101](../../memory/decisions/0101-sistema-charter-capterra-governanca-escopo.md)) — NUNCA biz=4;
+- **smoke biz=1** ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)) — NUNCA biz=4;
 - baseline visual via `toHaveScreenshot`/snapshot (a atualização de baseline exige aprovação humana — anti-drift);
 - injete **axe** (`@axe-core` / accessibility) e asserte zero violação crítica WCAG.
 - ⛔ **Você NÃO roda o teste local** (Pest/PHPStan são CT 100 only — `memory/proibicoes.md`). Você gera o arquivo; a catraca/CI roda no CT 100. Se precisar de execução, instrua o comando `tailscale ssh root@ct100-mcp "docker exec ... pest tests/Browser/<...>"`.
