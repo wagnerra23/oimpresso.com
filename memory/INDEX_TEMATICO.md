@@ -1,5 +1,7 @@
 # INDEX_TEMATICO.md — Índice Temático da Memória (Cowork + Git)
 
+> ⚠️ Para a lista **COMPLETA e atual de ADRs** (status/lifecycle/colisões), use o índice **GERADO** [`decisions/_INDEX-GENERATED.md`](decisions/_INDEX-GENERATED.md) (ADR 0258). Este índice temático é navegação por tema e pode estar atrás do disco.
+
 > **Busca por tema, não por número.** Une as duas memórias: a **grande memória do git**
 > (`wagnerra23/oimpresso.com` · `memory/decisions/` · ~239 ADRs Nygard, numeração monotônica
 > ADR 0028) e a **memória do Cowork** (projeto de design). Para "o que decidimos sobre X?", venha aqui.
