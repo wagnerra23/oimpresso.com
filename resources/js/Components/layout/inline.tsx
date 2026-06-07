@@ -5,10 +5,12 @@ import { Slot } from "radix-ui"
 import { cn } from "@/Lib/utils"
 
 /**
- * Inline — alinha filhos na horizontal com `gap` de token + `wrap` (ADR 0253 · F3).
+ * Inline — alinha filhos na horizontal com `gap` de token + `wrap` (ADR 0253 · F3 · refino v2).
  *
  * Substitui o `<div className="flex items-center gap-2">` solto. `wrap` liga o
- * flex-wrap (toolbars, chips). Espaço só por token.
+ * flex-wrap (toolbars, chips). Espaço só por token. O refino v2 adiciona
+ * `divider` (separador vertical via `divide-x divide-border`) — o "·" entre
+ * meta-itens (ex.: "Cliente PJ · Frota · desde mar/2019").
  */
 const inlineVariants = cva("flex flex-row", {
   variants: {
@@ -35,6 +37,10 @@ const inlineVariants = cva("flex flex-row", {
       true: "flex-wrap",
       false: "flex-nowrap",
     },
+    divider: {
+      true: "divide-x divide-border",
+      false: "",
+    },
   },
   defaultVariants: {
     gap: 2,
@@ -45,12 +51,12 @@ const inlineVariants = cva("flex flex-row", {
 export type InlineProps = React.ComponentProps<"div"> &
   VariantProps<typeof inlineVariants> & { asChild?: boolean }
 
-export function Inline({ className, gap, align, justify, wrap, asChild = false, ...props }: InlineProps) {
+export function Inline({ className, gap, align, justify, wrap, divider, asChild = false, ...props }: InlineProps) {
   const Comp = asChild ? Slot.Root : "div"
   return (
     <Comp
       data-slot="inline"
-      className={cn(inlineVariants({ gap, align, justify, wrap }), className)}
+      className={cn(inlineVariants({ gap, align, justify, wrap, divider }), className)}
       {...props}
     />
   )
