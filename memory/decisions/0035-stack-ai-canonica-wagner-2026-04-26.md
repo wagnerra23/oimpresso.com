@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0048]
+superseded_by: ['0048-framework-agentes-laravel-ai-vizra-rejeitada']
 decided_by:
   - W
   - E

@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0053]
+superseded_by: ['0053-mcp-server-governanca-como-produto']
 decided_by:
   - W
 decided_at: '2026-04-26'

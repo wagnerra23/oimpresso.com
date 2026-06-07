@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0060]
+superseded_by: ['0060-tudo-rede-interna-proxmox-bye-hostinger']
 decided_by:
   - W
 decided_at: '2026-04-28'

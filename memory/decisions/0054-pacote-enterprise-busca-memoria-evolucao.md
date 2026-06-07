@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0055]
+superseded_by: ['0055-self-host-team-plan-equivalente-anthropic']
 decided_by:
   - W
   - E

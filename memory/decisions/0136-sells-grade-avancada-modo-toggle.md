@@ -13,7 +13,7 @@ tags: [migration, ux, legacy, officeimpresso, comunicacao-visual, grid, power-us
 supersedes: []
 supersedes_partially: []
 amends: []
-superseded_by: [0178]
+superseded_by: ['0178-sells-unified-tabs-visao-supersede-0136']
 related: [0094, 0104, 0105, 0107, 0121]
 pii: false
 review_triggers:

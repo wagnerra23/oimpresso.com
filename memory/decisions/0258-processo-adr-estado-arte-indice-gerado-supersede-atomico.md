@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-06-07"
-supersedes: [0028]
+supersedes: ['0028-adrs-numeracao-monotonica']
 module: governance
 related:
   - 0028-adrs-numeracao-monotonica

@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0258]
+superseded_by: ['0258-processo-adr-estado-arte-indice-gerado-supersede-atomico']
 decided_by:
   - W
 decided_at: '2026-04-26'

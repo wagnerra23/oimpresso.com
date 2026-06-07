@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0172]
+superseded_by: ['0172-deprecar-modulo-accounting-fundir-financeiro']
 decided_by:
   - W
 decided_at: '2026-04-18'

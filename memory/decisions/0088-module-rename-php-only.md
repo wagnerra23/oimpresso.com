@@ -15,7 +15,7 @@ quarter: 2026-Q2
 tags: [governance, refactor, rename, module-charter, migration-pattern, php-only]
 supersedes: []
 supersedes_partially: []
-superseded_by: [0092]
+superseded_by: ['0092-tabela-rename-copiloto-para-jana']
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings

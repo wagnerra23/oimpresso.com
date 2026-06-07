@@ -6,7 +6,7 @@ type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
-superseded_by: [0011]
+superseded_by: ['0011-alinhamento-padrao-jana']
 decided_by:
   - W
 decided_at: '2026-04-18'

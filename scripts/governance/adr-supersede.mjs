@@ -71,8 +71,10 @@ function patchFrontmatter(file, edits) {
   return { path, text: fm + body, diffs };
 }
 
-// ANTIGA: rebaixa + linka (a parte que "não pegava"). Escrevemos isto.
-const oldPatch = patchFrontmatter(oldFile, { status: 'superseded', lifecycle: 'substituido', superseded_by: `[${newNum}]` });
+// ANTIGA: rebaixa + linka. superseded_by usa o SLUG da nova (schema exige
+// pattern ^[0-9]{4}-[a-z0-9-]+$, não número cru). ADR 0257/adr.schema.json.
+const newSlug = newFile.replace(/\.md$/, '');
+const oldPatch = patchFrontmatter(oldFile, { status: 'superseded', lifecycle: 'substituido', superseded_by: `['${newSlug}']` });
 
 // NOVA: NÃO auto-editamos o `supersedes` (é lista — clobber perderia outros números,
 // ex 0048 supersedes [0032,0035]). Só verificamos e avisamos.
