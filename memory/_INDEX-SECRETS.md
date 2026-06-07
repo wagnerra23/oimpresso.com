@@ -19,7 +19,7 @@ lifecycle: active
 
 | Nome | Tipo | Onde está (canon) | Como acessar agente | Frequência rotação | Status |
 |---|---|---|---|---|---|
-| **Hostinger DNS API token** | Bearer | `memory/claude/reference_hostinger_hpanel.md:37` E `/root/.hostinger-api-token` CT 100 (espelho) | `grep "Authorization: Bearer" memory/claude/reference_hostinger_hpanel.md` | ~anual | 🔴 **EXPIRED 2026-05-28** — Wagner regerar |
+| **Hostinger DNS API token** | Bearer | `/root/.hostinger-api-token` CT 100 (fonte canônica) | `tailscale ssh root@ct100-mcp 'cat /root/.hostinger-api-token'` | ~anual | 🔴 **EXPIRED 2026-05-28** — Wagner regerar |
 | **Hostinger SSH key (id_ed25519_oimpresso)** | SSH private key | `~/.ssh/id_ed25519_oimpresso` local (Wagner machine) | já configurado, agente usa `ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115` | sob demanda (incident only) | ✅ active |
 | **Hostinger MySQL credentials** | DB user/pass | `.env` do Hostinger (variáveis `DB_USERNAME` + `DB_PASSWORD`) | `ssh ... 'grep ^DB_ .env'` (já no padrão receita `memory/reference/hostinger.md`) | sob demanda | ✅ active |
 | **Tailscale auth (CT 100 ct100-mcp)** | Tailscale ACL key | gerenciado via tailnet UI; agente usa `tailscale ssh` com auth existente | `tailscale ssh root@ct100-mcp 'COMANDO'` | sem rotação (key não expira) | ✅ active |
@@ -60,7 +60,7 @@ lifecycle: active
 - Item Vaultwarden slug
 - Path CT 100 chmod 600
 
-**Exceção histórica:** `memory/claude/reference_hostinger_hpanel.md` tem token literal (commitado em 2026-04-28). Foi erro mas o token expirou. Próxima rotação Wagner deve usar padrão correto (só ponteiro).
+**Nota 2026-06-07:** o legado `memory/claude/` (que tinha tokens literais commitados, ex `reference_hostinger_hpanel.md`) foi PURGADO na auditoria de conflitos 2026-06-07. Segredos vivem só em CT100/Vault/.env. Os que estavam em claro foram catalogados como comprometidos para rotação (Wagner).
 
 ### Como atualizar este índice
 
