@@ -1,10 +1,10 @@
 ---
-title: Migração financeira WR2 completa + fix KPI juros [E]
 date: 2026-06-07
-time: 02:20 BRT
-owner: Eliana [E]
+time: '02:20 BRT'
 slug: migracao-financeira-wr2-completa-fix-kpi-juros
-prs: [#2205, #2274, #2288, #2363]
+tldr: 'Migração WR Comercial Delphi → oimpresso biz=1 WR2 Sistemas completa: 13.703 contatos + 159 plano contas + 38.442 títulos + 35.315 baixas, paridade 100% jan/2026 vs WR2, fix KPI juros+multa-desconto (PR #2363 mergeado e em prod).'
+decided_by: ['E', 'W']
+prs: [2205, 2274, 2288, 2363]
 related_session: memory/sessions/2026-06-06-migracao-wr-comercial-financeiro-eliana.md
 ---
 

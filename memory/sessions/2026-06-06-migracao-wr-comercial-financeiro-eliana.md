@@ -1,9 +1,9 @@
 ---
-title: Migração WR Comercial Delphi → oimpresso biz=1 (sessão Eliana 5-7/jun)
 date: 2026-06-06
-owner: Eliana [E]
+topic: 'Migração WR Comercial Delphi → oimpresso biz=1 WR2 Sistemas (sessão Eliana, 3 dias)'
+authors: ['E', 'C']
+prs: [2205, 2274, 2288, 2363]
 related_handoff: memory/handoffs/2026-06-07-0220-migracao-financeira-wr2-completa-fix-kpi-juros.md
-prs: [#2205, #2274, #2288, #2363]
 ---
 
 # Session log — migração WR Comercial Eliana
