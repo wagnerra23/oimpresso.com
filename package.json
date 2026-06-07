@@ -45,6 +45,7 @@
     "a11y:check": "node scripts/a11y-ratchet.mjs",
     "a11y:report": "node scripts/a11y-ratchet.mjs --report",
     "a11y:baseline:write": "node scripts/a11y-ratchet.mjs --write",
+    "a11y:axe": "vitest run tests/a11y-primitives.test.tsx",
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts"
   },
@@ -61,6 +62,7 @@
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
     "@vitejs/plugin-react": "^4.3.0",
+    "axe-core": "^4.12.0",
     "eslint": "^9.39.4",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^5.2.0",
