@@ -35,11 +35,13 @@ function field(fm, key) {
   return m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
 }
 function numbersFrom(fm, key) {
-  // captura [0028] inline OU lista multilinha "- '0028'"
+  // captura [0028] inline OU lista multilinha "- '0028'".
+  // Pega só o nº do ITEM (após [ ou após -), ignorando comentários (#) e anos/hues
+  // em trailing text (ex: "- 0190 # oklch 295" → 0190, não 295; "2026-..." em comentário → nada).
   const inline = fm.match(new RegExp(`^${key}:\\s*\\[([^\\]]*)\\]`, 'mi'));
-  if (inline) return (inline[1].match(/\d{3,4}/g) || []);
+  if (inline) return inline[1].split(',').map((s) => (s.match(/(\d{3,4})/) || [])[1]).filter(Boolean);
   const block = fm.match(new RegExp(`^${key}:\\s*\\n((?:\\s*-\\s*.+\\n?)+)`, 'mi'));
-  if (block) return (block[1].match(/\d{3,4}/g) || []);
+  if (block) return block[1].split('\n').map((l) => (l.split('#')[0].match(/-\s*['"]?(\d{3,4})/) || [])[1]).filter(Boolean);
   return [];
 }
 
