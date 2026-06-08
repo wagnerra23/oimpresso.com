@@ -116,7 +116,7 @@ SELECT 1, 'boleto', {esc(status)}, {valor_cents}, {esc(venc_str)}, t.cliente_id,
        c.name, c.tax_number,
        CONCAT('Boleto legacy WR2 #', {esc(legacy_id)}),
        {esc(idem_key)},
-       'fin_titulo', t.id, 'boleto', {esc(payload_json)},
+       'avulsa', t.id, 'boleto', {esc(payload_json)},
        NOW(), NOW()
 FROM fin_titulos t
 LEFT JOIN contacts c ON c.id=t.cliente_id
