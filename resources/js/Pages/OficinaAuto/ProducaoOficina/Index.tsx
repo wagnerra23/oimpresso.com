@@ -26,16 +26,17 @@
 // Visual comparison: memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { toast } from 'sonner';
-import { Plus, Printer, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { Plus, Printer, Search, LayoutGrid, List as ListIcon, X } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Box, Stack, Inline, Grid, Text } from '@/Components/layout';
@@ -91,6 +92,31 @@ const COLUMNS: Array<{ key: keyof KanbanGroups; status: CacambaStatus; label: st
   { key: 'manutencao',  status: 'manutencao',  label: 'Em execução' },
   { key: 'pronta',      status: 'pronta',      label: 'Pronto p/ retirar' },
 ];
+
+// D-05 — chave de filtro por KPI. As 5 etapas mapeiam pra coluna FSM; `urgentes`
+// filtra os atrasados (is_overdue) em todas as colunas. `valor` não filtra.
+type KpiFilterKey = 'recepcao' | 'diagnostico' | 'pecas' | 'execucao' | 'urgentes';
+
+const KPI_FILTER_TO_STATUS: Record<
+  Exclude<KpiFilterKey, 'urgentes'>,
+  CacambaStatus
+> = {
+  recepcao: 'disponivel',
+  diagnostico: 'locada',
+  pecas: 'aguardando',
+  execucao: 'manutencao',
+};
+
+const KPI_FILTER_KEYS: readonly KpiFilterKey[] = [
+  'recepcao',
+  'diagnostico',
+  'pecas',
+  'execucao',
+  'urgentes',
+];
+
+const isKpiFilterKey = (v: string): v is KpiFilterKey =>
+  (KPI_FILTER_KEYS as readonly string[]).includes(v);
 
 const formatBRLCompact = (value: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -248,6 +274,45 @@ const NEXT_COLUMN_FOR: Record<CacambaStatus, CacambaStatus | null> = {
 
 export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
   const [searchInput, setSearchInput] = useState(filters.q ?? '');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // D-06 — preferência por-usuário Tier-0-scoped (multi-tenant, ADR 0093): a chave
+  // do localStorage carrega o business_id (sessão, via shared props) pra NÃO vazar
+  // o filtro entre tenants num mesmo browser.
+  const page = usePage();
+  const bizId =
+    (page.props as { auth?: { user?: { business_id?: number } } })?.auth?.user
+      ?.business_id ?? 0;
+  const kpiFilterStorageKey = `oimpresso.b${bizId}.oficina.kpiFilter`;
+
+  // D-05 — filtro por KPI (toggle). D-07 — card em foco por teclado.
+  const [kpiFilter, setKpiFilter] = useState<KpiFilterKey | null>(null);
+  const [focusedId, setFocusedId] = useState<number | null>(null);
+
+  // D-06 — hidrata o último filtro escolhido (client-only; SSR não tem localStorage).
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(kpiFilterStorageKey);
+      if (saved && isKpiFilterKey(saved)) setKpiFilter(saved);
+    } catch {
+      /* localStorage indisponível (modo privado) — ignora */
+    }
+  }, [kpiFilterStorageKey]);
+
+  // D-06 — persiste a escolha entre sessões.
+  useEffect(() => {
+    try {
+      if (kpiFilter) window.localStorage.setItem(kpiFilterStorageKey, kpiFilter);
+      else window.localStorage.removeItem(kpiFilterStorageKey);
+    } catch {
+      /* ignora */
+    }
+  }, [kpiFilter, kpiFilterStorageKey]);
+
+  const toggleKpiFilter = useCallback((key: KpiFilterKey) => {
+    setKpiFilter((cur) => (cur === key ? null : key));
+    setFocusedId(null);
+  }, []);
 
   // Debounce 300ms — evita visit por keystroke
   useEffect(() => {
@@ -508,6 +573,83 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     return parts;
   }, [kpis]);
 
+  // D-05 — aplica o filtro de KPI ao quadro (client-side, alimenta o kanban).
+  // Etapa → mantém só a coluna correspondente; `urgentes` → só os atrasados.
+  const filteredColumnsData = useMemo(() => {
+    if (!kpiFilter) return columnsData;
+    if (kpiFilter === 'urgentes') {
+      return columnsData.map((col) => ({
+        ...col,
+        cards: col.cards.filter((c) => c.is_overdue),
+      }));
+    }
+    const targetStatus = KPI_FILTER_TO_STATUS[kpiFilter];
+    return columnsData.map((col) => ({
+      ...col,
+      cards: col.status === targetStatus ? col.cards : [],
+    }));
+  }, [columnsData, kpiFilter]);
+
+  // D-07 — lista linear dos cards visíveis pra navegação por setas.
+  const flatCards = useMemo(
+    () => filteredColumnsData.flatMap((col) => col.cards),
+    [filteredColumnsData],
+  );
+
+  // D-07 — atalhos de teclado (Larissa é teclado-first): N nova OS · / busca ·
+  // setas navegam o card em foco · Enter abre o drawer · Esc fecha.
+  // Ignora quando o foco está num input/textarea/select (não sequestra digitação).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = (target?.tagName ?? '').toLowerCase();
+      const typing =
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        Boolean(target?.isContentEditable);
+
+      if (e.key === 'Escape') {
+        setOpenOsId(null);
+        return;
+      }
+      if (typing) return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        router.visit('/oficina-auto/ordens-servico/create');
+        return;
+      }
+      if (flatCards.length === 0) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        setFocusedId((id) => {
+          const i = flatCards.findIndex((c) => c.id === id);
+          const next = flatCards[Math.min(flatCards.length - 1, i + 1)];
+          return next ? next.id : id;
+        });
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setFocusedId((id) => {
+          const i = flatCards.findIndex((c) => c.id === id);
+          const prev = flatCards[i <= 0 ? 0 : i - 1];
+          return prev ? prev.id : id;
+        });
+      } else if (e.key === 'Enter' && focusedId != null) {
+        const c = flatCards.find((x) => x.id === focusedId);
+        if (c) handleCardClick(c);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [flatCards, focusedId, handleCardClick]);
+
   return (
     <>
       <Head title="Oficina Auto" />
@@ -562,12 +704,26 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
           </header>
         </Box>
 
-        {/* ─── 6 KPI cards — Grid auto-fit reflowa 1280↔1440 sem media-query (ADR 0253) ─── */}
+        {/* ─── 6 KPI cards — Grid auto-fit reflowa 1280↔1440 sem media-query (ADR 0253).
+             D-05: as 5 etapas são clicáveis (toggle) e filtram o quadro; ativo ganha
+             anel, os outros esmaecem. "Valor em curso" não filtra. ─── */}
         <Box bg="card" px={6} py={4} className="border-b border-border">
           <Grid min="sm" gap={3}>
-            {kpiCards.map(({ id, ...kpi }) => (
-              <KpiCard key={id} {...kpi} />
-            ))}
+            {kpiCards.map(({ id, ...kpi }) => {
+              const filterKey = isKpiFilterKey(id) ? id : undefined;
+              const isActive = filterKey != null && kpiFilter === filterKey;
+              const isDimmed =
+                kpiFilter != null && filterKey != null && !isActive;
+              return (
+                <KpiCard
+                  key={id}
+                  {...kpi}
+                  active={isActive}
+                  dimmed={isDimmed}
+                  onToggle={filterKey ? () => toggleKpiFilter(filterKey) : undefined}
+                />
+              );
+            })}
           </Grid>
         </Box>
 
@@ -577,14 +733,27 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
             <Inline gap={2} className="flex-1 min-w-[240px] max-w-md">
               <Search size={14} className="text-muted-foreground/60 flex-shrink-0" />
               <Input
+                ref={searchInputRef}
                 type="search"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar OS, veículo ou cliente…"
+                placeholder="Buscar OS, veículo ou cliente… (/ foca)"
                 className="h-8 border-border"
                 aria-label="Buscar OS, veículo ou cliente"
               />
             </Inline>
+
+            {/* D-05 — chip pra limpar o filtro de KPI ativo */}
+            {kpiFilter && (
+              <button
+                type="button"
+                onClick={() => setKpiFilter(null)}
+                className="inline-flex items-center gap-1 h-8 px-2.5 rounded text-xs font-medium text-muted-foreground border border-border hover:bg-muted transition-colors flex-shrink-0"
+              >
+                <X size={12} />
+                Limpar filtro
+              </button>
+            )}
 
             {/* KPI inline (à direita) */}
             <Inline gap={0} className="ml-auto" aria-live="polite">
@@ -615,7 +784,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
         <Box p={6}>
           <KanbanDndProvider onMove={handleDragMove} evaluateDrop={evaluateDrop}>
             <Grid cols={5} gap={4}>
-              {columnsData.map((col) => (
+              {filteredColumnsData.map((col) => (
                 <CacambaKanbanColumn
                   key={col.key}
                   status={col.status}
@@ -623,6 +792,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
                   cards={col.cards}
                   onCardClick={handleCardClick}
                   onCardAdvance={handleCardAdvance}
+                  focusedId={focusedId}
                 />
               ))}
             </Grid>
@@ -659,30 +829,62 @@ interface KpiCardProps {
   value: string;
   sub: string;
   tone: 'default' | 'warning' | 'destructive' | 'success';
+  /** D-05 — quando presente, o card é clicável (filtra o quadro) e vira `<button>`. */
+  onToggle?: () => void;
+  active?: boolean;
+  dimmed?: boolean;
 }
 
 // KpiCard — composto nos primitivos (ADR 0253). Superfície neutra (card branco);
 // o destaque vem do `tone` semântico no valor, não de fundo tingido feito à mão.
-function KpiCard({ label, value, sub, tone }: KpiCardProps) {
+// D-05: quando `onToggle` existe, é um `<button>` real (a11y: teclado nativo +
+// aria-pressed), NUNCA um `div role="button"`.
+function KpiCard({ label, value, sub, tone, onToggle, active = false, dimmed = false }: KpiCardProps) {
+  const body = (
+    <Stack gap={0}>
+      <Text
+        as="span"
+        size="xs"
+        weight="semibold"
+        tone="muted"
+        className="uppercase tracking-wider"
+      >
+        {label}
+      </Text>
+      <Text as="span" size="4xl" weight="bold" numeric="tabular" tone={tone}>
+        {value}
+      </Text>
+      <Text as="span" size="xs" tone="muted">
+        {sub}
+      </Text>
+    </Stack>
+  );
+
+  if (!onToggle) {
+    return (
+      <Box bg="card" border rounded="lg" p={3}>
+        {body}
+      </Box>
+    );
+  }
+
   return (
-    <Box bg="card" border rounded="lg" p={3}>
-      <Stack gap={0}>
-        <Text
-          as="span"
-          size="xs"
-          weight="semibold"
-          tone="muted"
-          className="uppercase tracking-wider"
-        >
-          {label}
-        </Text>
-        <Text as="span" size="4xl" weight="bold" numeric="tabular" tone={tone}>
-          {value}
-        </Text>
-        <Text as="span" size="xs" tone="muted">
-          {sub}
-        </Text>
-      </Stack>
+    <Box
+      asChild
+      bg="card"
+      border
+      rounded="lg"
+      p={3}
+      className={
+        'w-full text-left cursor-pointer transition-colors hover:border-primary/40 ' +
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ' +
+        (active ? 'ring-1 ring-primary border-primary/50 ' : '') +
+        (dimmed ? 'opacity-50 ' : '')
+      }
+    >
+      <button type="button" onClick={onToggle} aria-pressed={active}>
+        {body}
+      </button>
     </Box>
   );
 }
