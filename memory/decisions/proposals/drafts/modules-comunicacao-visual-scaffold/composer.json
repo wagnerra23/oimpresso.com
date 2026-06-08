@@ -1,0 +1,22 @@
+{
+    "name": "oimpresso/comunicacao-visual",
+    "description": "ERP vertical brasileiro pra gráfica rápida e comunicação visual (lona, fachada, plotter, ACM, brindes). Cálculo m² + PCP gráfico + apontamento de máquina + NFe-de-boleto-pago + IA conversacional.",
+    "authors": [
+        {
+            "name": "Wagner",
+            "email": "wagnerra@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\ComunicacaoVisual\\Providers\\ComunicacaoVisualServiceProvider"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ComunicacaoVisual\\": ""
+        }
+    }
+}

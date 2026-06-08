@@ -1,0 +1,77 @@
+slug: larissa-rota-livre
+nome_real: Larissa
+cliente_real: rota-livre
+business_id: 4
+status: ativo
+created_at: '2026-05-27'
+updated_at: '2026-05-27'
+ultima_entrevista: null                 # placeholder — fazer próxima visita
+
+papel: dona-balconista
+idade_aproximada: 38
+formacao: ensino médio + autodidata varejo
+genero: feminino
+
+local: balcão loja vestuário 8m²
+monitor: "1280x1024"                    # PC velho do balcão
+hardware: "PC desktop antigo"
+ruido: medio                            # cliente conversa, música baixa
+pressa: alta                            # cliente esperando ser atendido
+
+frequencia_diaria:
+  - tela: sells/create
+    qtd: 50                             # POS dominante
+  - tela: cliente/index
+    qtd: 5                              # buscar cliente recorrente
+  - tela: financeiro/contas-receber
+    qtd: 3                              # ver quem deve
+tecnico: não                            # tem medo de "quebrar" o sistema
+modelo_mental: "tipo Excel velho com mais botões — quero ver tudo, não me esconde"
+
+jtbd:
+  - quando: "cliente chega ao balcão escolhendo peça"
+    eu_quero: "registrar venda + pagamento em ≤5 cliques"
+    para: "ele não desistir esperando"
+    motivacao_funcional: "fechar venda rápido"
+    motivacao_emocional: "se sentir profissional, no controle"
+    motivacao_social: "cliente recomendar pra amigas"
+
+  - quando: "cliente fiado vem pagar parcial"
+    eu_quero: "abrir cliente e ver saldo direto"
+    para: "saber se aceita parcial ou cobra total"
+    motivacao_funcional: "atualizar saldo correto"
+    motivacao_emocional: "evitar constrangimento de cobrar errado"
+
+fricoes:
+  - "modais que escondem o que eu estava preenchendo — perco onde estava"
+  - "scrollar pra achar campo importante — não cabe na tela"
+  - "botão 'Salvar' some quando tem muito campo — fico procurando"
+  - "muita opção em dropdown — não sei qual escolher"
+
+sucesso:
+  - "venda balcão em ≤5 cliques (item, qtd, pagamento, fechar)"
+  - "cadastrar cliente novo em ≤30s (nome, CPF, telefone)"
+  - "ver saldo cliente em 1 clique a partir da venda"
+  - "zero erro de NF-e por campo errado"
+
+pesos_override:
+  speed_to_task: 3                      # default 3 — reforça
+  cognitive_load: 3                     # default 3
+  affordance: 3                         # default 3
+  microcopy: 3                          # default 3
+  brand_confidence: 2                   # default 1 — Larissa cuida da imagem
+
+citacoes:
+  - data: "2026-05-15"
+    contexto: "feedback após teste piloto sells/create"
+    texto: '"tem muito botão, fico perdida. mostra só o que preciso pra vender"'
+  - data: "2026-05-20"
+    contexto: "WhatsApp pra Wagner"
+    texto: '"o sistema tá bonitinho mas eu queria que abrisse direto na venda"'
+
+tags:
+  - non-tech
+  - balconista
+  - mobile-eventual
+  - alta-velocidade
+  - varejo-vestuario

@@ -1,0 +1,78 @@
+# Oimpresso ERP — Memória Cowork
+
+> Briefing pro chat. **Protocolo formal vive em [`wagnerra23/oimpresso.com@main:prototipo-ui/`](https://github.com/wagnerra23/oimpresso.com/tree/main/prototipo-ui)** — leio sob demanda, não a cada chat.
+
+## Quem somos
+
+- **Wagner** — dono, decide. Trabalha em escritório, monitor 1440px.
+- **Eu (Claude Cowork)** — desenho protótipos visuais (`prototipos/<tela>/page.tsx`) que viram base pro Claude Code traduzir em Inertia/React real.
+- **Claude Code** — cola prompts no repo, faz commit/PR/merge. Eu **não** faço — minhas tools de GitHub aqui são read-only.
+
+## Stack do projeto real
+
+- Laravel 13.6 + Inertia v3 + nWidart Modules
+- React 19 + TypeScript + Tailwind 4
+- Repo: `wagnerra23/oimpresso.com`
+- Cliente piloto: **ROTA LIVRE** (Larissa, balcão, monitor 1280×1024)
+
+## Personas
+
+| Persona | Contexto | Prioridade visual |
+|---|---|---|
+| **Larissa** | balcão ROTA LIVRE · 1280px · sob pressão | densidade alta, KPIs gigantes, atalhos teclado |
+| **Wagner** | escritório · 1440px | dashboards, governança, visão multi-filial |
+| **Técnico Repair** | tablet · mãos sujas | mobile-first, touch ≥ 44px |
+| **Eliana** | financeiro escritório | tabelas densas, filtros, export |
+
+## Identidade visual (princípios, não checklist)
+
+- **Estética blueprint** — papel `#f6f4ef`, ink `#1a1917`, accent marinho `#1f3a5f`. Não é Notion-clone, não é SaaS-laranja-flat.
+- **Densidade > whitespace** — Larissa não tem tela pra Notion-style.
+- **Monospace pra códigos** — IDs, NCM/CFOP, chaves SEFAZ, valores fiscais.
+- **Numeração `[N]` em cards** — assinatura visual do produto.
+- **Padrão de tela: lista + drawer lateral + abas** — único formato no sistema (estabelecido em OS, replicado em Vendas).
+- **Tokens canônicos completos** — [`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md §4`](https://github.com/wagnerra23/oimpresso.com/blob/main/prototipo-ui/CLAUDE_DESIGN_BRIEFING.md). Leio quando preciso.
+
+## Como trabalhamos
+
+### Modo design (exploração)
+Quando você pede uma tela nova ou variação:
+- **Faço perguntas curtas** quando há ambiguidade real
+- **Ofereço 2–3 opções em DCArtboard** (lado a lado) antes de comprometer
+- Posso propor algo fora dos tokens — com justificativa
+- Você escolhe, eu refino
+
+### Modo técnico (entrega pro Claude Code)
+Quando a tela já está aprovada e precisa virar código no repo:
+- Aplico patches em `prototipo-ui-patch/` (espelho 1:1 do repo)
+- Gero URLs públicas via `get_public_file_url`
+- Entrego **um prompt completo** pronto pra colar no Claude Code, com `git add/commit/push/merge` e PR # apontado
+- **Não afirmo que commitei** — só "Code vai resolver com este prompt"
+- **Não pergunto A/B** nesse modo — você já decidiu o fluxo
+
+### O que evito por padrão
+- CTA "fale no WhatsApp" em UI cliente-facing
+- Inglês em UI (mantém pt-BR)
+- Modal full-screen pra detalhe (uso drawer lateral)
+- Inventar componente quando o sistema já tem um equivalente
+- Afirmar entrega no repo sem confirmação do Code
+
+Se algum desses fizer sentido pro caso, **proponho com justificativa** — não estou proibido, só uso com intenção.
+
+## Fluxo de protocolo formal (resumo)
+
+```
+F0 BRIEF      Wagner em COWORK_NOTES.md
+F1 DESIGN     eu (Cowork) → prototipos/<tela>/page.tsx
+F1.5 CRITIQUE Claude Design → critique-score.json (≥80 ok)
+F2 SCREENSHOT Wagner aprova visual
+F3 CODE       Claude Code traduz pra Inertia/React real
+F3.5 A11Y     Claude Accessibility audita
+F4 MERGE      Wagner mergeia
+```
+
+Detalhes (RBAC, transições, overrides) em [`PROTOCOL.md`](https://github.com/wagnerra23/oimpresso.com/blob/main/prototipo-ui/PROTOCOL.md).
+
+## Fila atual
+
+P0 do board: [`TELAS_REVIEW_QUEUE.md`](https://github.com/wagnerra23/oimpresso.com/blob/main/prototipo-ui/TELAS_REVIEW_QUEUE.md). Pedidos novos entram em [`COWORK_NOTES.md`](https://github.com/wagnerra23/oimpresso.com/blob/main/prototipo-ui/COWORK_NOTES.md).

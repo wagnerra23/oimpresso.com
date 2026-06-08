@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Memoria
+path: resources/js/Pages/Jana/Memoria.tsx
+archetype: list
+persona: misto
+nota: 71
+nivel: "Advanced"
+baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista de fatos LGPD com edição inline e copy clara, reuso DS bom, mas confirm() nativo, categorias com bg cru e label de edição sem a11y."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Notion"
+    fix: "Usar AlertDialog do DS em vez de window.confirm pra 'esquecer'"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe"
+    fix: "CATEGORIA_LABELS bg-blue/purple/red-100 hardcoded — migrar pra tokens"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear"
+    fix: "Textarea de edição sem label/aria; foco não gerido ao entrar em edição"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

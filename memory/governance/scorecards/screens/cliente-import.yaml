@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Cliente/Import
+path: resources/js/Pages/Cliente/Import.tsx
+archetype: form
+persona: larissa
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Wizard import bom: 2 passos, progress bar, estado zip-indisponivel, variants cowork — mas cores rose/emerald cruas e sem preview de linhas."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 (tokens success/danger, nao rose/emerald cru)"
+    fix: "Notification e erro-zip usam rose-/emerald-100/700 crus; trocar por tokens semanticos"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Flatfile (preview + relatorio de linhas com erro)"
+    fix: "Sem preview de linhas nem mapeamento de colunas; so sucesso/falha agregado — add preview pre-commit"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Dropzone (drag real, nao so onClick)"
+    fix: "Dropzone tem texto 'arraste' mas so onClick dispara; implementar onDrop real"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="random"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>./tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>./tests/Feature</directory>
+            <directory>./Modules/Essentials/Tests/Feature</directory>
+            <directory>./Modules/Cms/Tests/Feature</directory>
+            <directory>./Modules/Jana/Tests/Feature</directory>
+            <directory>./Modules/RecurringBilling/Tests/Feature</directory>
+            <directory>./Modules/PaymentGateway/Tests/Feature</directory>
+            <directory>./Modules/Financeiro/Tests/Feature</directory>
+            <directory>./Modules/Financeiro/Tests/Unit</directory>
+            <directory>./Modules/NfeBrasil/Tests/Feature</directory>
+            <directory>./Modules/Repair/Tests/Feature</directory>
+            <directory>./Modules/ProjectMgmt/Tests/Feature</directory>
+            <directory>./Modules/Whatsapp/Tests/Feature</directory>
+            <directory>./Modules/Admin/Tests/Feature</directory>
+            <directory>./Modules/Arquivos/Tests/Feature</directory>
+            <directory>./Modules/Ponto/Tests/Feature</directory>
+            <directory>./Modules/ADS/Tests/Feature</directory>
+            <directory>./Modules/ADS/Tests/Unit</directory>
+            <directory>./Modules/Vestuario/Tests/Feature</directory>
+            <directory>./Modules/ComunicacaoVisual/Tests/Feature</directory>
+            <directory>./Modules/OficinaAuto/Tests/Feature</directory>
+            <directory>./Modules/TeamMcp/Tests/Feature</directory>
+            <directory>./Modules/KB/Tests/Feature</directory>
+            <directory>./Modules/KB/Tests/Unit</directory>
+            <directory>./Modules/Auditoria/Tests/Feature</directory>
+            <directory>./Modules/Crm/Tests/Feature</directory>
+            <directory>./Modules/Manufacturing/Tests/Feature</directory>
+            <directory>./Modules/NFSe/Tests/Feature</directory>
+            <directory>./Modules/Fiscal/Tests/Feature</directory>
+            <directory>./Modules/Connector/Tests/Feature</directory>
+            <directory>./Modules/Superadmin/Tests/Feature</directory>
+            <directory>./Modules/Officeimpresso/Tests/Feature</directory>
+            <directory>./Modules/SRS/Tests/Feature</directory>
+            <directory>./Modules/AssetManagement/Tests/Feature</directory>
+            <directory>./Modules/Governance/Tests/Feature</directory>
+            <directory>./Modules/Spreadsheet/Tests/Feature</directory>
+            <directory>./Modules/ProductCatalogue/Tests/Feature</directory>
+            <directory>./Modules/ConsultaOs/Tests/Feature</directory>
+            <directory>./Modules/Brief/Tests/Feature</directory>
+            <directory>./Modules/Woocommerce/Tests/Feature</directory>
+            <directory>./Modules/Compras/Tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>./app</directory>
+            <directory>./Modules</directory>
+        </include>
+        <exclude>
+            <directory>./Modules/*/Tests</directory>
+        </exclude>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="SCOUT_DRIVER" value="null"/>
+    </php>
+</phpunit>

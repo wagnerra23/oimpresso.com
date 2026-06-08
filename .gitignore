@@ -1,0 +1,78 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/storage/
+/vendor
+/.idea
+/.vagrant
+Homestead.json
+Homestead.yaml
+npm-debug.log
+.env
+/public/uploads/business_logos
+/public/uploads/documents
+/public/uploads/img
+/public/uploads/media
+/public/uploads/invoice_logos
+/public/uploads/UltimatePOS
+/public/uploads/temp
+/public/css/
+/public/fonts/
+/public/images/
+/public/modules/
+/public/mix-manifest.json
+# Bundle Inertia gerado por `npm run build:inertia`. Build acontece na
+# Hostinger pós git-pull (quick-sync.yml). Repo source-only — não comitar
+# binários. Se precisar testar local, rode `npm run build:inertia` (saída
+# vai pra public/build-inertia/ ignorado).
+/public/build-inertia/
+.scribe
+/public/docs
+/public/js/skins/
+/public/js/icons/
+/.env.example
+/.phpunit.cache
+/.phpunit.result.cache
+/.claude/settings.local.json
+/.claude/worktrees/
+/.claude/*.diff
+/.claude/.last-skills-sync
+/meilisearch/
+
+# DXT generation
+scripts/tokens.json
+dxt/
+storage/app/dxt/
+
+**/caddy
+frankenphp
+frankenphp-worker.php
+
+# RAGAS eval outputs — gerados por scripts, não commitar
+tests/eval/results/*.json
+!tests/eval/results/.gitkeep
+
+# Pest Browser screenshots — baselines em __snapshots__/ vão pro git, atual/diff temporários ficam de fora (ADR 0108)
+/tests/Browser/Screenshots/__failures__
+/tests/Browser/Screenshots/__diff_output__
+
+# PHPStan (ADR 0208)
+/.phpstan-cache
+/phpstan-gen.log
+/phpstan-gen.err
+
+# ESLint 9 (ADR 0209)
+# config/eslint-baseline.json é VERSIONADO (canon ratchet)
+
+# jscpd — relatório local (anti-duplicação copy-paste); .jscpd.json é VERSIONADO
+/report
+
+# Saída gerada do Laravel Wayfinder (regenerável — vite plugin / php artisan wayfinder:generate)
+/resources/js/actions/
+/resources/js/routes/
+/resources/js/wayfinder/
+
+# Cache/scratch local — NÃO versionar (design fetch + prancheta de design-grading)
+/_design_fetch/
+/_preview/

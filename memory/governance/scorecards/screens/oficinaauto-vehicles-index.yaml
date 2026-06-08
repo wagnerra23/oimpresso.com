@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: OficinaAuto/Vehicles/Index
+path: resources/js/Pages/OficinaAuto/Vehicles/Index.tsx
+archetype: list
+persona: tecnico
+nota: 81
+nivel: "Advanced"
+baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista de caçambas rica (KPIs, pills c/ contagem, tfoot totais, paginacao, dark-mode); cores cruas e toggle Grade sem efeito real."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 (roxo primary)"
+    fix: "KPIs/status em emerald/blue/amber/rose cru — manter tokens border/muted ja usados e levar realce ao primary roxo 295"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Linear"
+    fix: "header h1 + toolbar + table + tfoot + pagination hand-rolled — extrair pra PageHeader/DataTable shared (consistencia c/ Nfse)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Linear"
+    fix: "toggle Lista/Grade existe mas 'Grade Avancada' renderiza a mesma tabela; sem atalhos teclado — implementar grade real ou remover toggle"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

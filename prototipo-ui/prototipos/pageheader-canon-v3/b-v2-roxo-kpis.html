@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B v3 · header fechado + ⋮ overflow + KPI strip separado</title>
+<style>
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-strong: #0f172a;
+  --text-base: #334155;
+  --text-dim: #64748b;
+  --text-faint: #94a3b8;
+  --border-soft: #e2e8f0;
+  --border-mid: #cbd5e1;
+
+  /* PRIMARY ROXO MEDIO (hue 295) — Wagner 2026-05-24 */
+  --primary: oklch(0.55 0.15 295);
+  --primary-dark: oklch(0.45 0.15 295);
+  --primary-soft: oklch(0.96 0.03 295);
+  --primary-light: oklch(0.88 0.08 295);
+  --primary-text-on-soft: oklch(0.35 0.15 295);
+
+  /* semantica */
+  --rose-text: #be123c;
+  --rose-bg: #fff1f2;
+  --rose-border: #fecdd3;
+  --emerald-text: #047857;
+  --amber-text: #b45309;
+  --slate-icon-bg: #f1f5f9;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg-page);
+  color: var(--text-base);
+  padding: 1.5rem 1rem;
+  min-height: 100vh;
+  font-size: 13px;
+}
+h1.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.25rem;
+}
+p.page-lead {
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 1.5rem;
+  max-width: 72ch;
+  line-height: 1.55;
+}
+
+/* ============================================================
+   HEADER (bloco fechado independente)
+   ============================================================ */
+.page-header-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;   /* GAP entre header e KPI strip */
+}
+
+.os-page-h {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 24px;
+  background: var(--bg-card);
+  min-height: 60px;
+}
+.os-page-h-l { flex: 1; min-width: 0; }
+.os-page-h-l h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+.os-page-h-l p {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.os-page-h-l .alert {
+  color: var(--rose-text);
+  font-weight: 500;
+}
+
+.os-page-h-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  align-self: stretch;
+  margin-left: 8px;
+}
+.os-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-dim);
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 120ms, border-color 120ms;
+}
+.os-tab:hover { color: var(--text-base); }
+.os-tab.active {
+  color: var(--text-strong);
+  font-weight: 500;
+  border-bottom-color: var(--primary);
+}
+.os-tab-count {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-faint);
+  background: var(--slate-icon-bg);
+  border-radius: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.os-tab.active .os-tab-count {
+  color: var(--primary-text-on-soft);
+  background: var(--primary-soft);
+}
+
+.os-page-h-r {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  position: relative;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 11px;
+  height: 32px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--text-base);
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms, border-color 120ms;
+}
+.btn:hover { background: var(--bg-page); border-color: var(--border-mid); }
+.btn.primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary-dark);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn.icon-only {
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+}
+
+.icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* ============================================================
+   OVERFLOW MENU (mock aberto pra mostrar conteudo)
+   ============================================================ */
+.overflow-menu-wrap { position: relative; }
+.overflow-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  padding: 4px;
+  display: none;
+  z-index: 10;
+}
+.overflow-menu-wrap.open .overflow-menu { display: block; }
+.overflow-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  color: var(--text-base);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 80ms;
+}
+.overflow-menu-item:hover { background: var(--bg-page); color: var(--text-strong); }
+.overflow-menu-item .icon { color: var(--text-dim); }
+.overflow-menu-item .badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 9px;
+  background: var(--primary);
+  color: white;
+}
+.overflow-menu-sep {
+  height: 1px;
+  background: var(--border-soft);
+  margin: 4px 0;
+}
+.overflow-menu-label {
+  padding: 6px 10px 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   KPI STRIP (bloco SEPARADO do header)
+   ============================================================ */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.kpi-card {
+  background: var(--bg-card);
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.kpi-card:hover { background: var(--bg-page); }
+.kpi-card.active {
+  background: var(--primary-soft);
+}
+.kpi-card.alert {
+  background: var(--rose-bg);
+}
+.kpi-card.alert:hover { background: #ffe4e6; }
+.kpi-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.kpi-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+.kpi-card.alert .kpi-value { color: var(--rose-text); }
+.kpi-card.active .kpi-value { color: var(--primary-text-on-soft); }
+.kpi-hint {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   CONTEUDO PLACEHOLDER
+   ============================================================ */
+.content-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  min-height: 200px;
+}
+
+.toggle-tip {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<h1 class="page-title">Clientes / Contatos — Header fechado · ⋮ overflow · KPI strip separado</h1>
+<p class="page-lead">
+3 blocos visuais distintos com gap 12px entre eles:<br>
+&nbsp;&nbsp;<strong>1.</strong> Header bloco fechado (title + tabs + actions). Botão "Filtros avançados" REMOVIDO da Zona R.<br>
+&nbsp;&nbsp;<strong>2.</strong> Overflow <code>⋮</code> agora contém: Filtros avançados (com badge 3 ativos) + Importar + Exportar + Grupos.<br>
+&nbsp;&nbsp;<strong>3.</strong> KPI strip em bloco próprio abaixo (não mais grudado no header).
+</p>
+
+<p class="toggle-tip">Clica no botão ⋮ pra abrir o menu mock e ver o conteúdo. (Em produção será um Radix DropdownMenu de verdade.)</p>
+
+<!-- ========== BLOCO 1 — HEADER FECHADO ========== -->
+<div class="page-header-card">
+  <header class="os-page-h">
+    <div class="os-page-h-l">
+      <h1>Clientes</h1>
+      <p>31 cadastrados · 4 ativos · <strong class="alert">2 com saldo</strong></p>
+    </div>
+    <nav class="os-page-h-nav">
+      <a class="os-tab active" href="#">Todos<span class="os-tab-count">31</span></a>
+      <a class="os-tab" href="#">Clientes<span class="os-tab-count">22</span></a>
+      <a class="os-tab" href="#" title="Fornecedores">Fornec.<span class="os-tab-count">5</span></a>
+      <a class="os-tab" href="#" title="Funcionários">Equipe<span class="os-tab-count">3</span></a>
+      <a class="os-tab" href="#" title="Representantes">Repr.<span class="os-tab-count">1</span></a>
+    </nav>
+    <div class="os-page-h-r">
+      <div class="overflow-menu-wrap" id="ovwrap">
+        <button class="btn icon-only" aria-label="Mais ações" id="ovbtn" onclick="document.getElementById('ovwrap').classList.toggle('open')">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+        <div class="overflow-menu">
+          <div class="overflow-menu-label">Filtros</div>
+          <div class="overflow-menu-item">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Filtros avançados
+            <span class="badge">3</span>
+          </div>
+          <div class="overflow-menu-sep"></div>
+          <div class="overflow-menu-label">Dados</div>
+          <div class="overflow-menu-item">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importar
+          </div>
+          <div class="overflow-menu-item">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </div>
+          <div class="overflow-menu-sep"></div>
+          <div class="overflow-menu-label">Configuração</div>
+          <div class="overflow-menu-item">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            Grupos de clientes
+          </div>
+        </div>
+      </div>
+      <button class="btn primary">+ Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<!-- ========== BLOCO 2 — KPI STRIP ========== -->
+<div class="kpi-strip">
+  <div class="kpi-card active">
+    <span class="kpi-label">Total cadastrados</span>
+    <span class="kpi-value">31</span>
+    <span class="kpi-hint">desde 2024</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Ativos</span>
+    <span class="kpi-value">4</span>
+    <span class="kpi-hint">com OS aberta</span>
+  </div>
+  <div class="kpi-card alert">
+    <span class="kpi-label">Com saldo</span>
+    <span class="kpi-value">2</span>
+    <span class="kpi-hint">R$ [redacted Tier 0]</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Novos este mês</span>
+    <span class="kpi-value">22</span>
+    <span class="kpi-hint">desde dia 1</span>
+  </div>
+</div>
+
+<!-- ========== BLOCO 3 — CONTEUDO (lista) ========== -->
+<div class="content-card">
+  [ lista de clientes — bg branco frio · hover stripe sutil · 31 linhas no estado Todos ]
+</div>
+
+</body>
+</html>

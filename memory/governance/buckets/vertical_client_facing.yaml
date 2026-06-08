@@ -1,0 +1,58 @@
+# Bucket config canônico — vertical_client_facing (ADR 0160 proposto).
+#
+# Wave 24 Agent A (2026-05-16) — paired indicators enforcement.
+#
+# Define dimensões + pesos + paired (cap 50% quando velocidade alta + qualidade baixa).
+# Consumido por Modules\Governance\Services\ScopedScorecardEvaluator::evaluateScorecard().
+#
+# Módulos neste bucket: Vestuario (piloto), ComunicacaoVisual (em construção),
+# OficinaAuto (aguarda sinal). Critério: vertical especializado com cliente real
+# pagante OU sinal qualificado (ADR 0105 + ADR 0121).
+
+bucket: "vertical_client_facing"
+description: "Módulos verticais especializados com UI cliente-facing (vendas, OS, dashboards). Padrão: F1 pest E2E + F2 Inertia::defer + F3 LGPD opt-in + F4 audit trail."
+target_score: 85
+adr: "0160"
+
+# Dimensões core (mantém pesos rubrica v3 — ADR 0155)
+core:
+  multi_tenant:  { peso: 25, target: 25 }
+  pest_coverage: { peso: 17, target: 17 }
+  documentation: { peso: 12, target: 12 }
+  architecture:  { peso: 17, target: 17 }
+  client_real:   { peso: 12, target: 12 }
+  performance:   { peso: 10, target: 10 }
+  lgpd:          { peso: 10, target: 10 }
+  security:      { peso:  8, target:  8 }
+  observability: { peso:  7, target:  7 }
+
+# Dimensões bucket-específicas (extras vertical client-facing)
+bucket_dimensions:
+  F1_pest_e2e:
+    peso: 20
+    target: 20
+    descricao: "Pest E2E (rotas + smoke biz=1 + cross-tenant)"
+    regras:
+      F1_a: { peso: 6, descricao: "Smoke routes biz=1 (ADR 0101)" }
+      F1_b: { peso: 8, descricao: "Velocidade testes (rodam <30s)" }
+      F1_c: { peso: 6, descricao: "Qualidade asserts (≥3 assertions por teste)" }
+  F2_inertia_defer:
+    peso: 10
+    target: 10
+    descricao: "Inertia::defer aplicado em props caras (RUNBOOK-inertia-defer-pattern.md)"
+    regras:
+      F2_a: { peso: 5, descricao: "Velocidade carga inicial (<500ms p95)" }
+      F2_b: { peso: 5, descricao: "Qualidade skeleton + partial reload" }
+
+# Paired indicators (cap 50% canônico Wave 24).
+# Heurística: se velocidade alta (≥75% peso) mas qualidade baixa (<50% peso),
+# a dimensão velocidade tem score capado em 50% — penaliza gaming "ship fast / break quality".
+paired:
+  - velocidade: "F1_pest_e2e.F1_b"
+    qualidade:  "F1_pest_e2e.F1_c"
+    rule: "Velocidade Pest ≥75% + Qualidade asserts <50% → cap 50% em F1_pest_e2e"
+    racional: "Testes rápidos sem asserts robustas viram smoke vazio — D6 performance ilusória"
+  - velocidade: "F2_inertia_defer.F2_a"
+    qualidade:  "F2_inertia_defer.F2_b"
+    rule: "Velocidade carga ≥75% + Qualidade skeleton <50% → cap 50% em F2_inertia_defer"
+    racional: "Defer aplicado sem fallback skeleton = UX confusa (blank flicker)"

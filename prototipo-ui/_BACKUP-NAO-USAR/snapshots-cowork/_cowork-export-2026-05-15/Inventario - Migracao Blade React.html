@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Inventário · Oimpresso ERP — Migração Blade → React</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.985 0.003 90);
+  --bg-2: oklch(0.965 0.004 90);
+  --surface: #ffffff;
+  --border: oklch(0.90 0.004 90);
+  --border-2: oklch(0.93 0.004 90);
+  --text: oklch(0.22 0.01 80);
+  --text-dim: oklch(0.48 0.01 80);
+  --text-mute: oklch(0.62 0.01 80);
+  --accent: oklch(0.58 0.09 220);
+  --accent-soft: oklch(0.94 0.025 220);
+  --laravel: oklch(0.55 0.18 25);
+  --green: oklch(0.55 0.13 145);
+  --amber: oklch(0.65 0.14 65);
+  --red:   oklch(0.58 0.18 25);
+  --gray:  oklch(0.65 0.005 90);
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap{max-width: 1100px; margin: 0 auto; padding: 48px 32px 96px;}
+
+/* Header */
+.hero{
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 32px;
+  margin-bottom: 36px;
+}
+.eyebrow{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--laravel);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+h1{
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 14px;
+}
+.subtitle{
+  font-size: 16px;
+  color: var(--text-dim);
+  max-width: 720px;
+  margin: 0;
+}
+.meta{
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-mute);
+}
+.meta b{ color: var(--text); font-weight: 600; }
+
+h2{
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 48px 0 8px;
+  display: flex; align-items: baseline; gap: 12px;
+}
+h2 .num{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0;
+}
+h3{
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-mute);
+  margin: 28px 0 10px;
+}
+p{margin: 0 0 12px; color: var(--text-dim);}
+p.lead{ color: var(--text); font-size: 15px; }
+code{
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text);
+}
+
+/* Stack callout */
+.stack{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 24px 0 8px;
+}
+.stack-card{
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+.stack-card .label{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 6px;
+}
+.stack-card b{
+  font-size: 15px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+.stack-card small{
+  font-size: 12px;
+  color: var(--text-dim);
+  display: block;
+}
+
+/* Table */
+table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 6px 0 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+thead th{
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+tbody td{
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: top;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+tbody td:first-child{ font-weight: 600; white-space: nowrap; }
+tbody td code{ font-size: 11.5px; padding: 1px 4px; }
+
+/* Status badges */
+.bdg{
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+.bdg.blade{ background: oklch(0.95 0.04 25); color: var(--laravel); border: 1px solid oklch(0.85 0.06 25); }
+.bdg.react{ background: oklch(0.94 0.05 220); color: var(--accent); border: 1px solid oklch(0.85 0.06 220); }
+.bdg.mix{   background: oklch(0.95 0.05 80); color: oklch(0.40 0.10 65); border: 1px solid oklch(0.85 0.06 80); }
+.bdg.ready{ background: oklch(0.93 0.06 145); color: var(--green); border: 1px solid oklch(0.82 0.08 145); }
+.bdg.off{   background: var(--bg-2); color: var(--text-mute); border: 1px solid var(--border); }
+.bdg.p1{ background: var(--red); color: #fff; }
+.bdg.p2{ background: var(--amber); color: #fff; }
+.bdg.p3{ background: var(--gray); color: #fff; }
+
+/* Side-by-side comparison */
+.comp{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 12px 0 8px;
+}
+.comp-card{
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: var(--surface);
+}
+.comp-card h4{
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.comp-card ul{
+  margin: 0; padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+.comp-card ul li{ margin-bottom: 4px; }
+.comp-card .file{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 8px;
+}
+
+/* Roadmap */
+.phase{
+  border-left: 2px solid var(--border);
+  padding: 0 0 18px 18px;
+  margin-left: 8px;
+  position: relative;
+}
+.phase:last-child{ padding-bottom: 0; }
+.phase::before{
+  content: "";
+  position: absolute;
+  left: -6px; top: 4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+}
+.phase.done::before{ background: var(--green); border-color: var(--green); }
+.phase.now::before{ background: var(--amber); border-color: var(--amber); box-shadow: 0 0 0 4px oklch(0.94 0.05 65); }
+.phase h4{
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex; gap: 10px; align-items: center;
+}
+.phase h4 .tag{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.phase ul{
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* Padrão MWART callout */
+.callout{
+  background: oklch(0.97 0.03 220);
+  border: 1px solid oklch(0.88 0.05 220);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: 12px 0;
+}
+.callout.warn{
+  background: oklch(0.97 0.03 65);
+  border-color: oklch(0.85 0.07 65);
+}
+.callout h4{
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.callout h4::before{
+  content: "▸";
+  color: var(--accent);
+  font-size: 11px;
+}
+.callout.warn h4::before{ color: var(--amber); }
+.callout p{ margin: 0; font-size: 13px; color: var(--text); }
+.callout p + p{ margin-top: 6px; }
+
+/* Counters */
+.counters{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+.counter{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.counter .n{
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1;
+}
+.counter .l{
+  font-size: 11.5px;
+  color: var(--text-mute);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* TOC */
+.toc{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 0 0 36px;
+}
+.toc b{
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 10px;
+}
+.toc ol{
+  margin: 0; padding-left: 22px;
+  columns: 2;
+  column-gap: 32px;
+  font-size: 13px;
+}
+.toc li{ margin-bottom: 4px; break-inside: avoid; }
+.toc a{ color: var(--text); text-decoration: none; }
+.toc a:hover{ color: var(--accent); }
+
+ul.plain{ margin: 6px 0 12px; padding-left: 20px; }
+ul.plain li{ margin-bottom: 4px; color: var(--text-dim); font-size: 13px; }
+ul.plain li b{ color: var(--text); }
+
+footer{
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">⚡ Inventário técnico — wagnerra23/oimpresso.com</div>
+  <h1>Migração Blade → React<br/><span style="color:var(--text-dim); font-weight:500;">Mantendo o padrão MWART do sidebar</span></h1>
+  <p class="subtitle">
+    Levantamento do estado atual da base do <b>Oimpresso ERP</b> (UltimatePOS v6 + nWidart Modules) e plano de transição gradual das telas Blade legadas para React + Inertia, sem perder o contrato visual da sidebar de módulos do Laravel.
+  </p>
+  <div class="meta">
+    <span>Repo: <b>wagnerra23/oimpresso.com</b></span>
+    <span>Branch: <b>main</b> @ <code>b4c7268</code></span>
+    <span>Stack: <b>Laravel 13.6 · PHP 8.4 · Inertia v3 · React 19 · TW4</b></span>
+    <span>Módulos: <b>23 instalados · 21 ativos</b></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <b>Sumário</b>
+  <ol>
+    <li><a href="#contexto">Contexto e estado da migração</a></li>
+    <li><a href="#mwart">Padrão MWART — o contrato a preservar</a></li>
+    <li><a href="#sidebar-comp">Sidebar Blade vs Sidebar React (AppShell)</a></li>
+    <li><a href="#modulos">Inventário de módulos (23)</a></li>
+    <li><a href="#paginas">Inventário de páginas React (Pages/*)</a></li>
+    <li><a href="#shared">Componentes compartilhados</a></li>
+    <li><a href="#chat">Onde o módulo Chat se encaixa</a></li>
+    <li><a href="#roadmap">Roadmap de migração</a></li>
+    <li><a href="#riscos">Riscos & checklist por tela</a></li>
+  </ol>
+</nav>
+
+<!-- 1 -->
+<h2 id="contexto"><span class="num">01</span> Contexto e estado da migração</h2>
+<p class="lead">
+  O <b>Oimpresso ERP</b> é uma instalação UltimatePOS v6 estendida com 23 módulos nWidart, alguns deles fork do core, outros próprios da WR2/Oimpresso. A camada de UI vive em <b>dois mundos coexistentes</b>:
+</p>
+
+<div class="stack">
+  <div class="stack-card">
+    <div class="label">Camada legada</div>
+    <b>Blade + AdminLTE</b>
+    <small>~460 views · ~6.4k chamadas <code>Form::</code> via shim. Renderiza via <code>resources/views/layouts/app.blade.php</code> e o partial <code>partials/sidebar.blade.php</code> que injeta o menu via <code>Menu::render('admin-sidebar-menu')</code>.</small>
+  </div>
+  <div class="stack-card">
+    <div class="label">Camada nova</div>
+    <b>Inertia v3 + React 19 + TW4</b>
+    <small>Layout único <code>resources/js/Layouts/AppShell.tsx</code>. Usa shadcn/ui (Radix), Lucide icons, sonner, react-hook-form, zod. Páginas em <code>resources/js/Pages/{Modulo}/</code>.</small>
+  </div>
+  <div class="stack-card">
+    <div class="label">Bridge</div>
+    <b>LegacyMenuAdapter</b>
+    <small>O backend monta o array de módulos (mesma fonte que o Blade Menu) e injeta em <code>shell.menu</code> nas props da página Inertia. <b>Mesmo menu, dois renderers.</b></small>
+  </div>
+</div>
+
+<div class="counters">
+  <div class="counter"><div class="n">23</div><div class="l">Módulos nWidart</div></div>
+  <div class="counter"><div class="n">21</div><div class="l">Ativos em produção</div></div>
+  <div class="counter"><div class="n">8</div><div class="l">Áreas com React</div></div>
+  <div class="counter"><div class="n">~460</div><div class="l">Views Blade restantes</div></div>
+</div>
+
+<!-- 2 -->
+<h2 id="mwart"><span class="num">02</span> Padrão MWART — o contrato a preservar</h2>
+<p>
+  "MWART" no jargão deste projeto = <b>Módulo · Widget · Ação · Rota · Tradução</b>: a forma como cada módulo nWidart se anuncia para o shell. É o que faz Project, Repair, Jana, Manufacturing, NfeBrasil etc. aparecerem na sidebar com seus sub-itens, badges e permissões Spatie já filtradas, <b>sem que o shell saiba quem é quem</b>.
+</p>
+
+<div class="callout">
+  <h4>Princípio de migração</h4>
+  <p>
+    O shell (Blade ou React) <b>não conhece módulos individualmente</b>. Recebe uma árvore <code>MenuItem[]</code> ordenada pelo backend (com <code>label</code>, <code>icon</code>, <code>href</code>, <code>children</code>, <code>badge</code>, <code>inertia</code>, <code>permission</code>) e renderiza accordion. Migrar uma tela do Blade para React <b>não pode mexer na ordem nem nos nomes do menu</b> — só troca o destino do <code>href</code>.
+  </p>
+</div>
+
+<table>
+  <thead><tr><th>Campo MenuItem</th><th>Origem</th><th>Função</th></tr></thead>
+  <tbody>
+    <tr><td><code>label</code></td><td><code>Modules/{Mod}/Resources/lang/pt/menu.php</code></td><td>Texto exibido (PT-BR obrigatório)</td></tr>
+    <tr><td><code>icon</code></td><td>String Lucide (ex: <code>Wrench</code>, <code>Package</code>)</td><td>Resolvido pelo <code>&lt;Icon name=…&gt;</code> no React; classe FontAwesome no Blade</td></tr>
+    <tr><td><code>href</code></td><td>Rota nomeada Laravel</td><td>Ponto de bifurcação Blade vs Inertia</td></tr>
+    <tr><td><code>inertia</code></td><td><code>boolean</code></td><td><b>Chave da migração:</b> <code>true</code> = navega via Inertia; <code>false</code> = full page reload (Blade)</td></tr>
+    <tr><td><code>children</code></td><td>Array recursivo</td><td>Sub-itens do módulo — ordem preservada</td></tr>
+    <tr><td><code>badge</code></td><td>Number opcional</td><td>Notificações (ex: 7 mensagens não lidas)</td></tr>
+    <tr><td><code>permission</code></td><td>Spatie roles/permissions</td><td>Filtrado <b>no backend</b> antes de chegar no front</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+  <h4>Não faça</h4>
+  <p>Não duplique a árvore de menu no React. Não codifique módulos no shell. Toda mudança de menu vive no backend (<code>menu.php</code> de cada módulo) e os <b>dois</b> renderers se atualizam juntos.</p>
+</div>
+
+<!-- 3 -->
+<h2 id="sidebar-comp"><span class="num">03</span> Sidebar Blade vs Sidebar React</h2>
+
+<div class="comp">
+  <div class="comp-card">
+    <h4><span class="bdg blade">BLADE</span> partials/sidebar.blade.php</h4>
+    <ul>
+      <li>Largura fixa <code>tw-w-64</code></li>
+      <li>Topo: brand business + dot online verde</li>
+      <li>Menu via <code>Menu::render('admin-sidebar-menu', 'adminltecustom')</code></li>
+      <li>Sem rodapé de usuário (vive no header global)</li>
+      <li>Cor configurável por <code>session('business.theme_color')</code></li>
+      <li>Sem dark mode</li>
+    </ul>
+    <div class="file">resources/views/layouts/partials/sidebar.blade.php · 1058 B</div>
+  </div>
+  <div class="comp-card">
+    <h4><span class="bdg react">REACT</span> Layouts/AppShell.tsx</h4>
+    <ul>
+      <li>Largura <code>w-64</code> (paridade) · Sheet drawer no mobile</li>
+      <li>Topo: brand business + dot online verde (paridade)</li>
+      <li>Menu accordion recursivo (<code>MenuList</code> → <code>MenuEntry</code>)</li>
+      <li>Auto-expande módulo da URL atual</li>
+      <li>Rodapé: avatar + nome + email + ThemeToggle + Sair</li>
+      <li>Dark mode via <code>ThemeToggle</code> · Toasts via Sonner</li>
+      <li><code>ModuleTopNav</code> opcional (sub-itens horizontais)</li>
+    </ul>
+    <div class="file">resources/js/Layouts/AppShell.tsx · 15.8 KB</div>
+  </div>
+</div>
+
+<p>
+  <b>Veredicto:</b> O AppShell já é a versão evoluída e correta. <b>Não recriar.</b> Toda nova tela React deve usar <code>&lt;AppShell&gt;</code> como wrapper. O protótipo de chat que entreguei antes precisa ser <b>refeito sobre o AppShell</b> para preservar MWART (próxima entrega, depois desse inventário).
+</p>
+
+<!-- 4 -->
+<h2 id="modulos"><span class="num">04</span> Inventário de módulos</h2>
+<p>Status do <code>modules_statuses.json</code> + estado de migração (Blade vs React vs híbrido).</p>
+
+<table>
+  <thead><tr><th>Módulo</th><th>Status</th><th>UI</th><th>Origem</th><th>Notas</th></tr></thead>
+  <tbody>
+    <tr><td>Officeimpresso</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Próprio</td><td>Core do ERP da gráfica — OS, produção, expedição</td></tr>
+    <tr><td>PontoWr2</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Próprio</td><td>Ponto eletrônico CLT (Portaria 671). Append-only. Padrão Jana</td></tr>
+    <tr><td>Copiloto</td><td><span class="bdg ready">on</span></td><td><span class="bdg react">React</span></td><td>Próprio · IA</td><td>Roda em DRY_RUN. Stack-alvo: laravel/ai + Vizra ADK + Meilisearch</td></tr>
+    <tr><td>MemCofre</td><td><span class="bdg ready">on</span></td><td><span class="bdg react">React</span></td><td>Próprio</td><td>Cofre de evidências (Doc*) — sem UI de upload ainda</td></tr>
+    <tr><td>Financeiro</td><td><span class="bdg ready">on</span></td><td><span class="bdg react">React</span></td><td>Próprio</td><td>Pages/Financeiro/* já migrado</td></tr>
+    <tr><td>Essentials</td><td><span class="bdg ready">on</span></td><td><span class="bdg mix">Híbrido</span></td><td>Core UPOS</td><td>HRM base — algumas telas em <code>Pages/Essentials/</code></td></tr>
+    <tr><td>NfeBrasil</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Próprio · Fiscal</td><td>Não tocar sem teste fiscal</td></tr>
+    <tr><td>Manufacturing</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Produção — útil pra fila de impressão</td></tr>
+    <tr><td>Project</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td><b>Módulo de referência canônica (CLAUDE.md)</b></td></tr>
+    <tr><td>Repair</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td><b>Módulo de referência canônica</b></td></tr>
+    <tr><td>Crm</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Clientes, leads</td></tr>
+    <tr><td>Accounting</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Contábil</td></tr>
+    <tr><td>AssetManagement</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Equipamentos</td></tr>
+    <tr><td>Cms</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Site público</td></tr>
+    <tr><td>Connector</td><td><span class="bdg ready">on</span></td><td>API</td><td>Core UPOS</td><td>API REST — sem UI</td></tr>
+    <tr><td>CustomDashboard</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Dashboards customizáveis</td></tr>
+    <tr><td>Ecommerce</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Loja online</td></tr>
+    <tr><td>FieldForce</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Equipe de campo</td></tr>
+    <tr><td>Hms</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Hotel — provavelmente desnecessário</td></tr>
+    <tr><td>InboxReport</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Relatórios</td></tr>
+    <tr><td>ProductCatalogue</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Catálogo</td></tr>
+    <tr><td>RecurringBilling</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Cobrança recorrente</td></tr>
+    <tr><td>Spreadsheet</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Planilhas</td></tr>
+    <tr><td>Superadmin</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Multi-tenant admin</td></tr>
+    <tr><td>Woocommerce</td><td><span class="bdg ready">on</span></td><td><span class="bdg blade">Blade</span></td><td>Core UPOS</td><td>Sync WooCommerce</td></tr>
+    <tr><td>IProduction</td><td><span class="bdg off">off</span></td><td>—</td><td>Core UPOS</td><td>Desativado</td></tr>
+    <tr><td>Grow</td><td><span class="bdg off">off</span></td><td>—</td><td>Core UPOS</td><td>Desativado</td></tr>
+    <tr><td>Writebot</td><td><span class="bdg off">off</span></td><td>—</td><td>Core UPOS</td><td>Desativado · IA legada</td></tr>
+  </tbody>
+</table>
+
+<!-- 5 -->
+<h2 id="paginas"><span class="num">05</span> Inventário de páginas React</h2>
+<p>Áreas que já têm <code>resources/js/Pages/{Modulo}/</code> — são os módulos com início de migração concreto e devem ser a referência para portar os próximos.</p>
+
+<table>
+  <thead><tr><th>Pasta</th><th>Status</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td><code>Pages/Copiloto/</code></td><td><span class="bdg react">migrado</span></td><td>UI principal do agente IA</td></tr>
+    <tr><td><code>Pages/Essentials/</code></td><td><span class="bdg mix">parcial</span></td><td>Algumas telas HRM já em React</td></tr>
+    <tr><td><code>Pages/Financeiro/</code></td><td><span class="bdg react">migrado</span></td><td>Módulo próprio, primeira migração completa</td></tr>
+    <tr><td><code>Pages/MemCofre/</code></td><td><span class="bdg react">migrado</span></td><td>Cofre de evidências</td></tr>
+    <tr><td><code>Pages/Modules/</code></td><td><span class="bdg react">migrado</span></td><td>Provável: gerenciador de módulos</td></tr>
+    <tr><td><code>Pages/Ponto/</code></td><td><span class="bdg mix">parcial</span></td><td>Telas novas do PontoWr2 nascendo em React</td></tr>
+    <tr><td><code>Pages/Site/</code></td><td><span class="bdg react">migrado</span></td><td>Site público (CMS)</td></tr>
+    <tr><td><code>Pages/_Showcase/</code></td><td>—</td><td>Storybook interno de componentes</td></tr>
+  </tbody>
+</table>
+
+<!-- 6 -->
+<h2 id="shared"><span class="num">06</span> Componentes compartilhados</h2>
+<p>O que já existe em <code>resources/js/Components/shared/</code> — <b>reutilizar isso primeiro</b>, criar novo só se nada cobrir o caso.</p>
+
+<ul class="plain">
+  <li><b>PageHeader</b> · padrão de cabeçalho de página com título + ações</li>
+  <li><b>PageFilters</b> · filtros padronizados</li>
+  <li><b>DataTable</b> · tabela base com sort/paginação (TanStack Table)</li>
+  <li><b>BulkActionBar</b> · barra de ações em lote</li>
+  <li><b>EmptyState</b> · estados vazios</li>
+  <li><b>KpiCard</b> · <b>KpiGrid</b> · cartões de KPI dashboards</li>
+  <li><b>ModuleTopNav</b> · barra horizontal sob o header com sub-rotas do módulo (alimentada por <code>menus/topnav.php</code>)</li>
+  <li><b>StatusBadge</b> · badges de status padronizados</li>
+  <li><b>SimpleMarkdown</b> · render de markdown leve</li>
+  <li><b>Components/shared/ponto/</b> · componentes específicos do PontoWr2 (marcação, banco horas)</li>
+</ul>
+
+<p>Layer de UI primitiva: <code>Components/ui/*</code> (shadcn) — Button, Sheet, DropdownMenu, Avatar, Tooltip, Dialog, Tabs, Toast, Switch, Select, etc. <b>Tudo Radix.</b></p>
+
+<!-- 7 -->
+<h2 id="chat"><span class="num">07</span> Onde o módulo Chat se encaixa</h2>
+<p>
+  <b>Não há um módulo Chat hoje</b> em <code>modules_statuses.json</code>. Conversas internas estão dispersas (provavelmente no Copiloto, na timeline do Project, ou em e-mail). O protótipo que entreguei antes deve virar:
+</p>
+
+<div class="callout">
+  <h4>Decisão recomendada</h4>
+  <p>
+    Criar <code>Modules/Chat/</code> seguindo padrão Jana/Repair/Project. Telas em <code>resources/js/Pages/Chat/</code>, usando <code>&lt;AppShell&gt;</code>. <b>A sidebar atual (com seletor de empresa no topo, módulos accordion no meio, usuário no rodapé) já existe — o chat fica só na área de conteúdo</b>, NÃO recria sidebar.
+  </p>
+  <p>
+    O sub-menu do Chat (Caixa de entrada / Equipes / OS / Clientes / Configurações) usa <code>&lt;ModuleTopNav&gt;</code> horizontal, não coluna intermediária — assim mantém o ritmo visual dos outros módulos do ERP.
+  </p>
+</div>
+
+<!-- 8 -->
+<h2 id="roadmap"><span class="num">08</span> Roadmap de migração</h2>
+
+<div class="phase done">
+  <h4>Fase 0 — Base já feita <span class="tag">concluído</span></h4>
+  <ul>
+    <li>AppShell.tsx com sidebar accordion + dark mode + mobile drawer</li>
+    <li>LegacyMenuAdapter ligando o array Blade ao Inertia</li>
+    <li>Components/shared/* (DataTable, PageHeader, KpiCard, ModuleTopNav…)</li>
+    <li>Inertia v3 + React 19 + TW4 + shadcn estabilizados (ADR 0023)</li>
+  </ul>
+</div>
+
+<div class="phase now">
+  <h4>Fase 1 — Refazer protótipo de Chat sobre AppShell <span class="tag">próximo passo</span> <span class="bdg p1">P1</span></h4>
+  <ul>
+    <li>Recriar <code>Oimpresso ERP - Chat.html</code> usando o esqueleto do AppShell (sidebar fixa de módulos)</li>
+    <li>Painel de conversas vira coluna interna do conteúdo, não substitui sidebar</li>
+    <li>Alinhar tipografia/cores com TW4 + tokens shadcn (HSL theme vars)</li>
+    <li>Definir <code>Modules/Chat/menu.php</code> com Caixa de entrada / Equipes / OS / Clientes</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <h4>Fase 2 — Pilotar uma tela de OS (Officeimpresso) em React <span class="bdg p2">P2</span></h4>
+  <ul>
+    <li>Listagem de OS é o caso mais visitado — alto ROI</li>
+    <li>Usar <code>DataTable</code> + <code>PageFilters</code> + <code>StatusBadge</code> existentes</li>
+    <li>Manter rota legada como fallback até paridade visual</li>
+    <li>Validar com Eliana antes de descomissionar Blade</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <h4>Fase 3 — Migrar telas de alta frequência <span class="bdg p2">P2</span></h4>
+  <ul>
+    <li>Clientes (CRM list/edit) · Orçamentos · Produtos</li>
+    <li>Cada tela: criar Page React, apontar <code>inertia: true</code> no menu, manter Blade como rota nomeada de fallback durante 1 sprint</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <h4>Fase 4 — Telas operacionais de produção <span class="bdg p3">P3</span></h4>
+  <ul>
+    <li>Fila de impressão · Acabamento · Expedição (Officeimpresso)</li>
+    <li>Aproveitar para criar <code>StatusBadge</code> de etapa de produção (queue → print → finish → ship)</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <h4>Fase 5 — Decomissionar Blade gradualmente <span class="bdg p3">P3</span></h4>
+  <ul>
+    <li>Telas de relatório/admin pouco usadas migram por último</li>
+    <li>NfeBrasil migra apenas após bateria fiscal aprovada</li>
+    <li>Meta: zerar <code>Form::</code> calls e remover shim <code>App\View\Helpers\Form</code></li>
+  </ul>
+</div>
+
+<!-- 9 -->
+<h2 id="riscos"><span class="num">09</span> Riscos & checklist por tela migrada</h2>
+
+<div class="callout warn">
+  <h4>Riscos conhecidos</h4>
+  <p><b>1.</b> Permissões Spatie — não duplicar lógica no front; sempre filtrar no controller antes de devolver props.</p>
+  <p><b>2.</b> <code>business_id</code> scope multi-empresa — toda query nova precisa do scope (CLAUDE.md exige).</p>
+  <p><b>3.</b> Marcações <code>ponto_marcacoes</code> e banco de horas: <b>append-only por lei</b> — nunca UPDATE/DELETE.</p>
+  <p><b>4.</b> Deploy: histórico de quebras (3 incidentes em 5 dias). <b>Sempre staging primeiro.</b> Push em <code>6.7-bootstrap</code> + <code>composer install</code> + <code>artisan optimize:clear</code>.</p>
+  <p><b>5.</b> NfeBrasil & PontoWr2: zonas de teste obrigatório (fiscal/legal). Não migrar sem cobertura Pest.</p>
+</div>
+
+<h3>Checklist por tela (cole no PR)</h3>
+<ul class="plain">
+  <li><b>[ ] MWART preservado</b> — menu.php não mexido; só <code>inertia: true</code> ativado para a rota</li>
+  <li><b>[ ] Layout</b> — usa <code>&lt;AppShell&gt;</code>, não recria sidebar</li>
+  <li><b>[ ] Componentes shared</b> — usou <code>PageHeader</code> / <code>DataTable</code> / etc. antes de criar novo</li>
+  <li><b>[ ] business_id</b> aplicado em toda query</li>
+  <li><b>[ ] Permissões</b> filtradas no controller (Spatie)</li>
+  <li><b>[ ] Lang</b> — strings PT-BR, em <code>Modules/{Mod}/Resources/lang/pt/</code></li>
+  <li><b>[ ] Fallback</b> — rota Blade ainda existe (1 sprint)</li>
+  <li><b>[ ] Testes</b> — Pest cobrindo regras de domínio</li>
+  <li><b>[ ] Dark mode</b> — sem cores hardcoded; usa tokens TW4 (<code>bg-card</code>, <code>text-foreground</code>, etc.)</li>
+  <li><b>[ ] Mobile</b> — testado no Sheet drawer</li>
+  <li><b>[ ] Toasts</b> — flash <code>success/error/info</code> via Sonner já vem do AppShell</li>
+  <li><b>[ ] Staging</b> — validado em <code>oimpresso.test</code> antes de push</li>
+</ul>
+
+<footer>
+  Inventário gerado a partir de <code>wagnerra23/oimpresso.com@b4c7268</code> · CLAUDE.md (16.2 KB) · modules_statuses.json · AppShell.tsx · sidebar.blade.php · package.json
+</footer>
+
+</div>
+</body>
+</html>

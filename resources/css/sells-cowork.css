@@ -1,0 +1,3969 @@
+/* SCOPED-OK */ - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py
+/* SCOPED-OK */
+.sells-cowork - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py
+/* ───────────────────── Oimpresso ERP — Sells Cowork ─────────────────────
+ * Copiado verbatim de prototipo-ui/prototipos/sells-index/styles.css (handoff
+ * Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 "KB-9.75 Vendas"
+ * 2026-05-16, score 9.75/10).
+ *
+ * Globais (body/html/.app/.main/.sidebar/.topbar/.chat-*) DESATIVADOS porque
+ * conflitam com AppShellV2. Resto preservado verbatim — escopo de uso é
+ * resources/js/Pages/Sells/Index.tsx (root div tem class .sells-cowork).
+ *
+ * Importado por resources/css/inertia.css. Ver:
+ *  - memory/requisitos/Sells/index-r1-visual-comparison.md
+ *  - memory/reference/feedback-design-literal-copy-quando-aprovado.md
+ *
+ * Fontes IBM Plex Sans/Mono são carregadas via <link rel="stylesheet"> no
+ * resources/views/layouts/inertia.blade.php — não via @import aqui. Motivo:
+ * @import de URL externa em CSS bundleado é descartado pelo Vite no build de
+ * produção, .sells-cowork fazendo a fonte cair em system-ui em todo browser que não tem
+ * IBM Plex instalado no SO (causava prod "errada" e localhost ok).
+ */
+.sells-cowork {
+  /* Sidebar dark — espelho AppShell */
+  --sb-bg:        oklch(0.21 0 0);
+  --sb-bg-2:      oklch(0.18 0 0);
+  --sb-border:    oklch(0.28 0 0);
+  --sb-text:      oklch(0.78 0 0);
+  --sb-text-dim:  oklch(0.55 0 0);
+  --sb-text-hi:   oklch(0.96 0 0);
+  --sb-hover:     oklch(0.27 0 0);
+  --sb-active:    oklch(0.32 0 0);
+
+  /* Surface */
+  --bg:           oklch(0.985 0.003 90);
+  --bg-2:         oklch(0.965 0.004 90);
+  --surface:      #ffffff;
+  --border:       oklch(0.90 0.004 90);
+  --border-2:     oklch(0.93 0.004 90);
+  --text:         oklch(0.22 0.01 80);
+  --text-dim:     oklch(0.50 0.01 80);
+  --text-mute:    oklch(0.65 0.01 80);
+
+  --accent:       oklch(0.55 0.15 295);
+  --accent-2:     oklch(0.62 0.15 295);
+  --accent-soft:  oklch(0.95 0.04 295);
+  --accent-fg:    #ffffff;
+
+  --bubble-me:    var(--accent);
+  --bubble-me-fg: #ffffff;
+  --bubble-them:  oklch(0.96 0.003 90);
+  --bubble-them-fg: var(--text);
+
+  /* Origens (módulos que geram tarefas) */
+  --origin-OS-bg:  oklch(0.93 0.07 70);   --origin-OS-fg:  oklch(0.40 0.10 60);
+  --origin-CRM-bg: oklch(0.92 0.06 220);  --origin-CRM-fg: oklch(0.40 0.10 220);
+  --origin-FIN-bg: oklch(0.93 0.07 145);  --origin-FIN-fg: oklch(0.36 0.10 145);
+  --origin-PNT-bg: oklch(0.93 0.06 295);  --origin-PNT-fg: oklch(0.40 0.10 295);
+  --origin-MFG-bg: oklch(0.93 0.05 30);   --origin-MFG-fg: oklch(0.40 0.10 30);
+
+  --radius:       8px;
+  --radius-sm:    6px;
+  --radius-lg:    12px;
+
+  --shadow-pop:   0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft:  0 1px 2px rgba(0,0,0,.04);
+
+  --row-h:        30px;
+  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+.sells-cowork [data-density="compact"] { --row-h: 26px; }
+.sells-cowork [data-density="comfy"] {   --row-h: 34px; }
+.sells-cowork [data-theme="dark"] {
+  --bg:        oklch(0.16 0.003 240);
+  --bg-2:      oklch(0.14 0.003 240);
+  --surface:   oklch(0.19 0.003 240);
+  --border:    oklch(0.26 0.005 240);
+  --border-2:  oklch(0.23 0.005 240);
+  --text:      oklch(0.92 0.005 90);
+  --text-dim:  oklch(0.68 0.005 90);
+  --text-mute: oklch(0.55 0.005 90);
+  --bubble-them: oklch(0.24 0.005 240);
+  --accent-soft: oklch(0.32 0.06 295);
+
+  --origin-OS-bg:  oklch(0.30 0.07 60);   --origin-OS-fg:  oklch(0.85 0.07 60);
+  --origin-CRM-bg: oklch(0.30 0.07 220);  --origin-CRM-fg: oklch(0.85 0.07 220);
+  --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
+  --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
+  --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
+}
+/* ── globais desativados (conflito com AppShellV2) ── */
+/* * { box-sizing: border-box; } */
+/* html, body, #app { height: 100%; margin: 0; } */
+/* body { ... } */
+/* Plex aplica SÓ dentro de .sells-cowork (escopo de página) */
+.sells-cowork {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100%;
+}
+/* ────────────────── App shell (DESATIVADO) ────────────────── */
+/* .app { ... } */
+/* .app.app--sb-rail { --sb-w: 56px; } */
+/* .app.app--sb-hidden { --sb-w: 0px; } */
+/* .main { ... } */
+.sells-cowork .main-body {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+/* ────────────────── Topbar ────────────────── */
+.sells-cowork .topbar {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex-shrink: 0;
+}
+.sells-cowork .topbar-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.sells-cowork .topbar-tab.active svg { opacity: 1; }
+/* legados breadcrumb — manter caso algum ponto ainda use */
+.sells-cowork .bc { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); }
+.sells-cowork .bc-sep { color: var(--text-mute); }
+.sells-cowork .bc-cur { color: var(--text); font-weight: 500; }
+/* ────────────────── Sidebar ────────────────── */
+.sells-cowork .sb {
+  background: var(--sb-bg);
+  color: var(--sb-text);
+  border-right: 1px solid var(--sb-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* Topo: empresa */
+.sells-cowork .sb-top {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--sb-border);
+  position: relative;
+}
+.sells-cowork .sb-cp { position: relative; }
+.sells-cowork .sb-cp-btn {
+  appearance: none;
+  border: 1px solid var(--sb-border);
+  background: var(--sb-bg-2);
+  color: var(--sb-text-hi);
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: default;
+  width: 100%;
+}
+.sells-cowork .sb-cp-btn:hover { background: var(--sb-hover); }
+.sells-cowork .sb-cp-btn .avatar {
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  flex: 0 0 auto;
+}
+.sells-cowork .sb-cp-btn .name { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.sells-cowork .sb-cp-btn .chev { width: 12px; height: 12px; opacity: .55; flex: 0 0 auto; }
+.sells-cowork .sb-dd {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0; right: 0;
+  background: oklch(0.20 0 0);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
+  z-index: 50;
+  font-size: 12.5px;
+}
+.sells-cowork .sb-dd-h {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--sb-text-dim);
+  padding: 6px 8px 4px;
+}
+.sells-cowork .sb-dd-i {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--sb-text-hi);
+  cursor: default;
+}
+.sells-cowork .sb-dd-i:hover { background: var(--sb-hover); }
+.sells-cowork .sb-dd-i .check { margin-left: auto; opacity: .85; }
+.sells-cowork .sb-dd-sep { height: 1px; background: var(--sb-border); margin: 4px 0; }
+.sells-cowork .sb-dd-foot {
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--sb-text-dim);
+  font-size: 12px;
+  cursor: default;
+}
+.sells-cowork .sb-dd-foot:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+/* Tabs Chat/Menu */
+.sells-cowork .sb-tab.active {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+/* Body scrollable */
+.sells-cowork .sb-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.32 0 0) transparent;
+}
+.sells-cowork .sb-body::-webkit-scrollbar { width: 8px; }
+.sells-cowork .sb-body::-webkit-scrollbar-thumb {
+  background: oklch(0.32 0 0);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+/* ── Aba CHAT ── */
+.sells-cowork .sb-actions { display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
+.sells-cowork .sb-action {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 10px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  color: var(--sb-text);
+  font-size: 13px;
+  cursor: default;
+}
+.sells-cowork .sb-action:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.sells-cowork .sb-action .ic { width: 14px; height: 14px; opacity: .85; flex: 0 0 auto; }
+.sells-cowork .sb-action span { flex: 1 1 auto; }
+.sells-cowork .sb-action .kbd {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--sb-text-dim);
+}
+.sells-cowork .sb-action .kbd-badge {
+  font-size: 10px; font-weight: 700;
+  background: oklch(0.55 0.15 30);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 999px;
+  min-width: 16px;
+  text-align: center;
+}
+.sells-cowork .sb-action .beta {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+  border: 1px solid var(--sb-border);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.sells-cowork .sb-section-h {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+  padding: 14px 10px 6px;
+}
+.sells-cowork .sb-bullet {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+.sells-cowork .sb-bullet.outline { border: 1.4px solid oklch(0.40 0 0); }
+.sells-cowork .sb-bullet.filled { background: oklch(0.78 0.16 75); border: 0; }
+.sells-cowork .sb-conv {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 10px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  color: var(--sb-text);
+  font-size: 13px;
+  cursor: default;
+}
+.sells-cowork .sb-conv:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.sells-cowork .sb-conv.active { background: var(--sb-active); color: var(--sb-text-hi); font-weight: 500; }
+.sells-cowork .sb-conv-t {
+  flex: 1 1 auto;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* ── Aba MENU ── */
+.sells-cowork .sb-group-h {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+  padding: 12px 10px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+.sells-cowork .sb-group-h:hover { color: var(--sb-text-hi); }
+.sells-cowork .sb-group-h .chev { width: 10px; height: 10px; opacity: .7; flex: 0 0 auto; }
+.sells-cowork .sb-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 10px;
+  height: var(--row-h);
+  border-radius: var(--radius-sm);
+  color: var(--sb-text);
+  font-size: 13px;
+  cursor: default;
+  position: relative;
+}
+.sells-cowork .sb-item:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
+.sells-cowork .sb-item.active {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+  font-weight: 500;
+}
+.sells-cowork .sb-item.active::before {
+  content: "";
+  position: absolute;
+  left: -8px; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--accent-2);
+  border-radius: 2px;
+}
+.sells-cowork .sb-item .ic { width: 16px; height: 16px; flex: 0 0 auto; opacity: .85; }
+.sells-cowork .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sells-cowork .sb-item .badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* Rodapé usuário */
+.sells-cowork .sb-user {
+  border-top: 1px solid var(--sb-border);
+  padding: 10px;
+  position: relative;
+}
+.sells-cowork .sb-user-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: var(--radius);
+  cursor: default;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+}
+.sells-cowork .sb-user-btn:hover { background: var(--sb-hover); }
+.sells-cowork .sb-user-btn { padding: 9px 10px; gap: 10px; }
+.sells-cowork .sb-user-btn .avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  flex: 0 0 auto;
+  position: relative;
+}
+.sells-cowork .sb-user-btn .avatar::after {
+  content: "";
+  position: absolute;
+  right: -1px; bottom: -1px;
+  width: 9px; height: 9px;
+  background: oklch(0.72 0.18 145);
+  border: 2px solid var(--sb-bg);
+  border-radius: 50%;
+}
+.sells-cowork .sb-user-btn .who { flex: 1 1 auto; min-width: 0; text-align: left; }
+.sells-cowork .sb-user-btn .who b {
+  display: block;
+  color: var(--sb-text-hi);
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sells-cowork .sb-user-btn .who small {
+  display: block;
+  color: var(--sb-text-dim);
+  font-size: 11px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sells-cowork .sb-user-btn .chev { width: 14px; height: 14px; opacity: .6; flex: 0 0 auto; }
+.sells-cowork .user-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 8px; right: 8px;
+  min-width: 220px;
+  background: oklch(0.22 0 0);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
+  z-index: 60;
+  font-size: 12.5px;
+}
+/* No rail, abre pra direita do botão (não pra dentro do sidebar) */
+.sells-cowork .sb--rail .sb-user-rail .user-menu {
+  bottom: 0;
+  left: calc(100% + 8px);
+  right: auto;
+  width: 240px;
+}
+.sells-cowork .user-menu-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 12px;
+  border-bottom: 1px solid var(--sb-border);
+  margin-bottom: 6px;
+}
+.sells-cowork .user-menu-head .avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
+  color: #fff;
+  font-weight: 700;
+  display: grid; place-items: center;
+}
+.sells-cowork .user-menu-head .meta b { display: block; color: var(--sb-text-hi); font-weight: 500; }
+.sells-cowork .user-menu-head .meta small { display: block; color: var(--sb-text-dim); font-size: 11.5px; }
+.sells-cowork .um-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--sb-text-hi);
+  cursor: default;
+}
+.sells-cowork .um-item:hover { background: var(--sb-hover); }
+.sells-cowork .um-item .ic { width: 14px; height: 14px; opacity: .8; flex: 0 0 auto; }
+.sells-cowork .um-item .label { flex: 1 1 auto; }
+.sells-cowork .um-item .kbd { font-family: var(--font-mono); font-size: 10.5px; color: var(--sb-text-dim); }
+.sells-cowork .um-item .arrow { font-size: 10px; color: var(--sb-text-dim); }
+.sells-cowork .um-status { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+.sells-cowork .um-sep { height: 1px; background: var(--sb-border); margin: 4px 2px; }
+/* ────────────────── TAREFAS — master/detail ────────────────── */
+.sells-cowork .tk-page {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.sells-cowork .tk-list {
+  background: var(--bg-2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+.sells-cowork .tk-list-h {
+  padding: 16px 16px 10px;
+  display: flex; flex-direction: column; gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .tk-list-h-row {
+  display: flex; align-items: baseline; gap: 8px;
+}
+.sells-cowork .tk-list-h h2 {
+  font-size: 16px; font-weight: 600; margin: 0;
+  letter-spacing: -0.01em;
+}
+.sells-cowork .tk-list-h-sub {
+  margin: -6px 0 0;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.sells-cowork .tk-mini-btn {
+  appearance: none; border: 0;
+  margin-left: auto;
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  background: transparent;
+  color: var(--text-mute);
+  border-radius: 4px;
+  cursor: default;
+}
+.sells-cowork .tk-mini-btn:hover { background: var(--border-2); color: var(--text); }
+.sells-cowork .tk-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.sells-cowork .tk-kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.sells-cowork .tk-kpi b {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.sells-cowork .tk-kpi small {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+.sells-cowork .tk-kpi.warn {
+  background: oklch(0.97 0.04 25);
+  border-color: oklch(0.85 0.08 25);
+}
+.sells-cowork .tk-kpi.warn b { color: oklch(0.50 0.18 25); }
+.sells-cowork [data-theme="dark"] .tk-kpi.warn {
+  background: oklch(0.26 0.06 25);
+  border-color: oklch(0.40 0.10 25);
+}
+.sells-cowork [data-theme="dark"] .tk-kpi.warn b { color: oklch(0.78 0.16 25); }
+.sells-cowork .tk-kpi.muted b { color: var(--text-dim); }
+.sells-cowork .tk-search {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 9px;
+  color: var(--text-mute);
+}
+.sells-cowork .tk-search input {
+  appearance: none; border: 0; background: transparent;
+  font: inherit; font-size: 12px;
+  color: var(--text);
+  flex: 1 1 auto; min-width: 0;
+  outline: none;
+}
+.sells-cowork .tk-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.sells-cowork .tk-count {
+  font-size: 12px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork .tk-filters {
+  display: flex; flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .tk-filter {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  cursor: default;
+}
+.sells-cowork .tk-filter:hover { background: var(--border-2); color: var(--text); }
+.sells-cowork .tk-filter.active { background: var(--text); color: var(--bg); font-weight: 500; }
+.sells-cowork .tk-list-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 6px 8px 12px;
+  scrollbar-width: thin;
+}
+.sells-cowork .tk-list-body::-webkit-scrollbar { width: 8px; }
+.sells-cowork .tk-list-body::-webkit-scrollbar-thumb {
+  background: var(--border); border-radius: 4px;
+  border: 2px solid transparent; background-clip: content-box;
+}
+.sells-cowork .tk-group { margin-top: 6px; }
+.sells-cowork .tk-group-h {
+  display: flex; align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 10px 8px 6px;
+}
+.sells-cowork .tk-group-c {
+  margin-left: 6px;
+  background: var(--border-2);
+  color: var(--text-dim);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork .tk-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  cursor: default;
+  border: 1px solid transparent;
+  margin-bottom: 2px;
+}
+.sells-cowork .tk-card:hover { background: var(--border-2); }
+.sells-cowork .tk-card.active {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.sells-cowork [data-theme="dark"] .tk-card.active { background: oklch(0.22 0.005 240); }
+.sells-cowork .tk-card.urgent {
+  border-left: 3px solid oklch(0.62 0.18 25);
+  padding-left: 10px;
+}
+.sells-cowork .tk-card-h {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10.5px;
+}
+.sells-cowork .tk-origin {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.sells-cowork .tk-origin.lg {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.sells-cowork .tk-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: oklch(0.78 0.16 75);
+}
+.sells-cowork .tk-when {
+  margin-left: auto;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork .tk-card.urgent .tk-when { color: var(--neg); font-weight: 600; }
+.sells-cowork .tk-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+}
+.sells-cowork .tk-sub {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.sells-cowork .tk-foot {
+  display: flex; gap: 6px;
+  font-size: 10.5px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.sells-cowork .tk-empty {
+  padding: 50px 20px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: var(--text-mute);
+}
+.sells-cowork .tk-empty b { font-size: 13px; color: var(--text); }
+.sells-cowork .tk-empty small { font-size: 11.5px; color: var(--text-dim); }
+.sells-cowork .tk-empty-ico {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  display: grid; place-items: center;
+  color: var(--text-mute);
+  margin-bottom: 6px;
+}
+.sells-cowork .tk-empty-ico.lg { width: 56px; height: 56px; border-radius: 16px; }
+.sells-cowork .tk-empty-ico.ok {
+  background: oklch(0.92 0.10 145);
+  color: oklch(0.40 0.16 145);
+}
+.sells-cowork [data-theme="dark"] .tk-empty-ico.ok {
+  background: oklch(0.32 0.10 145);
+  color: oklch(0.85 0.16 145);
+}
+.sells-cowork .tk-empty-state {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-align: center; max-width: 320px;
+}
+.sells-cowork .tk-empty-state b { font-size: 15px; color: var(--text); margin-top: 6px; }
+.sells-cowork .tk-empty-state small { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.sells-cowork .tk-shortcuts {
+  margin-top: 18px;
+  display: flex; gap: 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.sells-cowork .tk-shortcuts kbd {
+  display: inline-block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 3px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text);
+}
+/* Detail */
+.sells-cowork .tk-detail {
+  display: flex; flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+}
+.sells-cowork .tk-detail.empty { justify-content: center; align-items: center; }
+.sells-cowork .tk-detail-h {
+  padding: 16px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface);
+}
+.sells-cowork .tk-detail-bc {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 600;
+}
+.sells-cowork .tk-bc-step { color: var(--text-dim); }
+.sells-cowork .tk-bc-sep { color: var(--text-mute); opacity: .5; }
+.sells-cowork .tk-bc-spacer { flex: 1 1 auto; }
+.sells-cowork .tk-bc-pos {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-dim);
+}
+.sells-cowork .tk-detail-title-row {
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.sells-cowork .tk-detail-title-row h1 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.sells-cowork .tk-detail-actions {
+  display: flex; gap: 2px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.sells-cowork .tk-detail-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+.sells-cowork .tk-detail-meta .t-mute { color: var(--text-mute); margin-right: 3px; }
+.sells-cowork .tk-detail-meta b { font-weight: 500; }
+.sells-cowork .tk-detail-meta .urgent b { color: var(--neg); font-weight: 600; }
+.sells-cowork .tk-detail-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  min-height: 0;
+}
+/* ────────────────── Viewers ────────────────── */
+.sells-cowork .vw {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px 20px 16px;
+  scrollbar-width: thin;
+}
+.sells-cowork .vw::-webkit-scrollbar { width: 10px; }
+.sells-cowork .vw::-webkit-scrollbar-thumb {
+  background: var(--border); border-radius: 5px;
+  border: 3px solid transparent; background-clip: content-box;
+}
+.sells-cowork .vw-dl dd.mono { font-family: var(--font-mono); }
+.sells-cowork .vw-dl dd.urgent { color: var(--neg); font-weight: 600; }
+.sells-cowork .vw-hist .t { color: var(--text-mute); font-variant-numeric: tabular-nums; }
+.sells-cowork .mini-msg.me { justify-content: flex-end; }
+.sells-cowork .mini-bub.me {
+  background: var(--bubble-me);
+  color: var(--bubble-me-fg);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 3px;
+}
+/* CRM */
+.sells-cowork .vw-contact-row .ic { color: var(--text-mute); }
+/* Radio/Chips/Textarea reutilizáveis */
+.sells-cowork .vw-chip.on {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+/* PNT */
+/* FIN — money */
+.sells-cowork .vw-due.urgent { color: var(--neg); font-weight: 600; }
+/* Botões viewer */
+.sells-cowork .vw-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.sells-cowork .vw-btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.sells-cowork .vw-btn.danger {
+  background: var(--neg);
+  color: #fff;
+  border-color: var(--neg);
+}
+.sells-cowork .vw-btn.danger:hover { background: oklch(0.50 0.18 25); }
+.sells-cowork .vw-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-dim);
+}
+.sells-cowork .vw-btn.ghost:hover { background: var(--border-2); color: var(--text); }
+.sells-cowork .vw-btn.sm { height: 26px; padding: 0 10px; font-size: 11.5px; }
+/* ────────────────── Module stub (rich migration page) ────────────────── */
+.sells-cowork .mod-stub-status .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-mute);
+}
+.sells-cowork .mod-stub-status.ok { background: oklch(0.95 0.05 145); color: oklch(0.36 0.10 145); border-color: oklch(0.85 0.06 145); }
+.sells-cowork .mod-stub-status.ok .dot { background: oklch(0.62 0.16 145); }
+.sells-cowork .mod-stub-status.partial { background: oklch(0.95 0.05 75); color: oklch(0.40 0.10 75); border-color: oklch(0.85 0.06 75); }
+.sells-cowork .mod-stub-status.partial .dot { background: oklch(0.72 0.16 75); }
+.sells-cowork .mod-stub-status.next { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); }
+.sells-cowork .mod-stub-status.next .dot { background: var(--accent); }
+.sells-cowork .mod-stub-status.queue { background: var(--surface); color: var(--text); border-color: var(--border); }
+.sells-cowork .mod-stub-status.queue .dot { background: var(--text-dim); }
+.sells-cowork .mod-stub-status.muted { color: var(--text-mute); }
+.sells-cowork [data-theme="dark"] .mod-stub-status.ok { background: oklch(0.30 0.07 145); color: oklch(0.85 0.10 145); }
+.sells-cowork [data-theme="dark"] .mod-stub-status.partial { background: oklch(0.30 0.07 75); color: oklch(0.85 0.10 75); }
+.sells-cowork .mod-stub-card.span { grid-column: 1 / -1; }
+.sells-cowork .mod-stub-action.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.sells-cowork .mod-stub-action.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.sells-cowork .mod-stub-dl dd.mono { font-family: var(--font-mono); font-size: 12px; }
+.sells-cowork .mod-stub-dl dd.mono.small { font-size: 11px; color: var(--text-dim); word-break: break-all; }
+.sells-cowork .mod-stub-roadmap li .step {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  display: grid; place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork .mod-stub-roadmap li.done { opacity: 1; background: oklch(0.97 0.03 145); border-color: oklch(0.85 0.06 145); }
+.sells-cowork .mod-stub-roadmap li.done .step { background: oklch(0.62 0.16 145); border-color: oklch(0.62 0.16 145); color: #fff; }
+.sells-cowork .mod-stub-roadmap li.current { opacity: 1; background: var(--accent-soft); border-color: var(--accent); }
+.sells-cowork .mod-stub-roadmap li.current .step { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sells-cowork [data-theme="dark"] .mod-stub-roadmap li.done { background: oklch(0.28 0.05 145); border-color: oklch(0.45 0.10 145); }
+.sells-cowork [data-theme="dark"] .mod-stub-roadmap li.current { background: oklch(0.28 0.06 220); }
+.sells-cowork .mod-stub-tag .mono { font-family: var(--font-mono); }
+/* ────────────────── Chat (thread) ────────────────── */
+.sells-cowork .thread {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: var(--bg);
+}
+.sells-cowork .th-head {
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sells-cowork .th-head .av {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff; font-weight: 600; font-size: 13px;
+}
+.sells-cowork .th-head .who b { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.sells-cowork .th-head .who small { display: block; font-size: 11.5px; color: var(--text-dim); }
+.sells-cowork .th-head .who small .dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: oklch(0.72 0.18 145);
+  margin-right: 5px; vertical-align: middle;
+}
+.sells-cowork .th-head .actions { margin-left: auto; display: flex; gap: 4px; }
+.sells-cowork .th-context {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 18px;
+  display: flex; align-items: center; gap: 14px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sells-cowork .th-context b { color: var(--text); font-weight: 600; }
+.sells-cowork .th-context .pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+}
+.sells-cowork .th-context .stage {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px;
+  background: var(--origin-OS-bg);
+  color: var(--origin-OS-fg);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.sells-cowork .msgs {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 18px 24px 12px;
+  scrollbar-width: thin;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sells-cowork .msgs::-webkit-scrollbar { width: 10px; }
+.sells-cowork .msgs::-webkit-scrollbar-thumb {
+  background: var(--border); border-radius: 5px;
+  border: 3px solid transparent; background-clip: content-box;
+}
+.sells-cowork .day-sep {
+  align-self: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin: 12px 0 8px;
+}
+.sells-cowork .row { display: flex; gap: 10px; margin-top: 2px; max-width: 78%; }
+.sells-cowork .row.me { align-self: flex-end; flex-direction: row-reverse; }
+.sells-cowork .row .av {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  align-self: flex-end;
+}
+.sells-cowork .row.me .av { display: none; }
+.sells-cowork .row.continued .av { visibility: hidden; }
+.sells-cowork .bubble {
+  background: var(--bubble-them);
+  color: var(--bubble-them-fg);
+  padding: 8px 12px;
+  border-radius: 14px;
+  border-top-left-radius: 4px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  max-width: 100%;
+  word-wrap: break-word;
+  position: relative;
+}
+.sells-cowork .row.me .bubble {
+  background: var(--bubble-me);
+  color: var(--bubble-me-fg);
+  border-top-left-radius: 14px;
+  border-top-right-radius: 4px;
+}
+.sells-cowork .row.continued .bubble { border-top-left-radius: 14px; }
+.sells-cowork .row.me.continued .bubble { border-top-right-radius: 14px; }
+.sells-cowork .bubble .meta {
+  display: block;
+  font-size: 10.5px;
+  margin-top: 3px;
+  opacity: .65;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.sells-cowork .row.me .bubble .meta { color: rgba(255,255,255,.85); }
+.sells-cowork .bubble .author {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--accent);
+}
+.sells-cowork .bubble.note {
+  background: oklch(0.96 0.04 80);
+  color: oklch(0.32 0.06 70);
+  border: 1px dashed oklch(0.80 0.08 80);
+  font-size: 12.5px;
+}
+.sells-cowork [data-theme="dark"] .bubble.note {
+  background: oklch(0.26 0.04 80);
+  color: oklch(0.88 0.05 80);
+  border-color: oklch(0.38 0.06 80);
+}
+.sells-cowork .bubble.file { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.sells-cowork .bubble.file .fic {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: oklch(0.94 0.02 220);
+  color: oklch(0.40 0.10 220);
+  display: grid; place-items: center;
+  flex: 0 0 auto;
+}
+.sells-cowork .bubble.file b { display: block; font-size: 13px; }
+.sells-cowork .bubble.file small { display: block; font-size: 11.5px; opacity: .7; font-family: var(--font-mono); }
+.sells-cowork .typing {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 10px 14px;
+  background: var(--bubble-them);
+  border-radius: 14px;
+  border-top-left-radius: 4px;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.sells-cowork .typing span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-mute);
+  animation: bounce 1.2s infinite ease-in-out;
+}
+.sells-cowork .typing span:nth-child(2) { animation-delay: .15s; }
+.sells-cowork .typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce {
+  0%, 60%, 100%{ transform: translateY(0); opacity: .5; }
+  30%{ transform: translateY(-4px); opacity: 1; }
+}
+.sells-cowork .composer {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  padding: 12px 18px 14px;
+}
+.sells-cowork .composer textarea {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  resize: none;
+  outline: none;
+  width: 100%;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text);
+  min-height: 22px;
+  max-height: 160px;
+  padding: 4px 2px;
+}
+.sells-cowork .composer-toolbar { display: flex; align-items: center; gap: 4px; }
+.sells-cowork .composer-toolbar .icon-btn {
+  width: 26px; height: 26px;
+  border: 0;
+  background: transparent;
+}
+.sells-cowork .composer-toolbar .icon-btn:hover { background: var(--border-2); color: var(--text); }
+.sells-cowork .composer-toolbar .spacer { flex: 1 1 auto; }
+.sells-cowork .composer-toolbar .hint { font-size: 11px; color: var(--text-mute); margin-right: 4px; }
+.sells-cowork .composer-toolbar .hint kbd {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin: 0 1px;
+}
+.sells-cowork .send-btn {
+  appearance: none;
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sells-cowork .send-btn:hover { background: var(--accent-2); }
+.sells-cowork .send-btn:disabled {
+  background: var(--border);
+  color: var(--text-mute);
+  cursor: not-allowed;
+}
+.sells-cowork .icon-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  display: grid; place-items: center;
+  cursor: default;
+}
+.sells-cowork .icon-btn:hover { color: var(--text); border-color: var(--text-mute); }
+/* Empty */
+.sells-cowork .empty {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  color: var(--text-mute);
+  font-size: 13px;
+  text-align: center;
+  padding: 40px;
+}
+.sells-cowork .empty .ico {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  display: grid; place-items: center;
+  margin: 0 auto 12px;
+  color: var(--text-mute);
+}
+/* Avatar palette helpers */
+/* Mono helper */
+.sells-cowork .mono { font-family: var(--font-mono); }
+/* ────────────────── Chat page (3 colunas) ────────────────── */
+.sells-cowork .chat-page:has(.linked.collapsed) {
+  grid-template-columns: 1fr 44px;
+}
+/* Tabsbar interna do chat (Todos/OS/Equipe/Clientes) */
+.sells-cowork .chat-tabsbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.sells-cowork .chat-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px;
+}
+.sells-cowork .chat-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 14px;
+  border-radius: 999px;
+  cursor: default;
+  letter-spacing: -0.005em;
+}
+.sells-cowork .chat-tab:hover { color: var(--text); }
+.sells-cowork .chat-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-soft);
+}
+.sells-cowork .chat-search {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  height: 28px;
+  padding: 0 10px 0 9px;
+  width: 240px;
+  color: var(--text-mute);
+}
+.sells-cowork .chat-search input {
+  appearance: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  flex: 1 1 auto;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  min-width: 0;
+}
+.sells-cowork .chat-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+/* ────────────────── Linked Apps (coluna direita) ────────────────── */
+.sells-cowork .linked {
+  border-left: 1px solid var(--border);
+  background: var(--bg-2);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  transition: width .15s;
+}
+.sells-cowork .linked-h .icon-btn {
+  width: 26px; height: 26px;
+  background: transparent;
+  border-color: transparent;
+}
+.sells-cowork .linked-h .icon-btn:hover { background: var(--border-2); }
+.sells-cowork .linked-h .spacer { flex: 1 1 auto; }
+.sells-cowork .linked.collapsed .linked-h {
+  flex-direction: column;
+  height: auto;
+  padding: 8px 0;
+  gap: 6px;
+}
+.sells-cowork .linked.collapsed .linked-h .spacer { display: none; }
+/* Bloco individual */
+.sells-cowork .lblock {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sells-cowork .lblock-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  cursor: default;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .lblock.collapsed .lblock-h { border-bottom: 0; }
+.sells-cowork .lblock-h:hover { background: var(--bg-2); }
+.sells-cowork .lblock-h b { font-weight: 600; font-size: 12px; color: var(--text); }
+.sells-cowork .lblock-h .spacer { flex: 1 1 auto; }
+.sells-cowork .lblock-chev {
+  color: var(--text-mute);
+  transition: transform .15s;
+  transform: rotate(0deg);
+}
+.sells-cowork .lblock-chev.open { transform: rotate(90deg); }
+.sells-cowork .lblock-b {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sells-cowork .origin-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.sells-cowork .origin-badge.o-OS {  background: var(--origin-OS-bg);  color: var(--origin-OS-fg); }
+.sells-cowork .origin-badge.o-CRM { background: var(--origin-CRM-bg); color: var(--origin-CRM-fg); }
+.sells-cowork .origin-badge.o-FIN { background: var(--origin-FIN-bg); color: var(--origin-FIN-fg); }
+.sells-cowork .origin-badge.o-PNT { background: var(--origin-PNT-bg); color: var(--origin-PNT-fg); }
+.sells-cowork .lkv {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  padding: 2px 0;
+}
+.sells-cowork .lkv span:first-child {
+  color: var(--text-mute);
+  font-size: 11px;
+  min-width: 76px;
+  flex: 0 0 auto;
+}
+.sells-cowork .lkv b { color: var(--text); font-weight: 500; flex: 1 1 auto; min-width: 0; }
+.sells-cowork .lkv b.mono { font-family: var(--font-mono); font-size: 11.5px; }
+.sells-cowork .lkv.col { flex-direction: column; gap: 2px; }
+.sells-cowork .lstage {
+  display: inline-flex;
+  background: var(--origin-OS-bg);
+  color: var(--origin-OS-fg);
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.sells-cowork .lhint { font-size: 11.5px; color: var(--text-dim); line-height: 1.4; }
+.sells-cowork .lrow-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.sells-cowork .lbtn-sec {
+  flex: 1 1 0;
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.sells-cowork .lbtn-sec:hover { background: var(--border-2); }
+.sells-cowork .lblock-cta {
+  appearance: none;
+  border: 1px solid var(--accent-soft);
+  background: var(--accent-soft);
+  color: var(--accent);
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  align-self: stretch;
+}
+.sells-cowork .lblock-cta:hover { background: var(--accent); color: #fff; }
+.sells-cowork .lpunch-row.missing {
+  background: oklch(0.97 0.04 25);
+  border-color: oklch(0.85 0.08 25);
+  border-style: dashed;
+}
+.sells-cowork .lpunch-row.missing b { color: var(--neg); }
+.sells-cowork [data-theme="dark"] .lpunch-row.missing {
+  background: oklch(0.26 0.05 25);
+  border-color: oklch(0.45 0.08 25);
+}
+.sells-cowork .latts { display: flex; flex-direction: column; gap: 4px; }
+.sells-cowork .latt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.sells-cowork .latt-body { flex: 1 1 auto; min-width: 0; }
+.sells-cowork .latt-body b { display: block; font-size: 11.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sells-cowork .latt-body small { display: block; font-size: 10.5px; color: var(--text-mute); font-family: var(--font-mono); }
+.sells-cowork .lhist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.sells-cowork .lhist li {
+  display: flex;
+  gap: 8px;
+  font-size: 11.5px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border-2);
+}
+.sells-cowork .lhist li:last-child { border-bottom: 0; }
+.sells-cowork .lhist-when {
+  flex: 0 0 auto;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  padding-top: 1px;
+}
+.sells-cowork .lhist-who { flex: 1 1 auto; color: var(--text-dim); line-height: 1.35; }
+.sells-cowork .lhist-who b { color: var(--text); font-weight: 500; }
+/* ════════════════════════ OS LIST PAGE ════════════════════════ */
+.sells-cowork .os-page {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+  position: relative;
+}
+.sells-cowork .os-page-h {
+  padding: 28px 32px 16px;
+  display: flex; align-items: flex-start; gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .os-page-h-l { flex: 1 1 auto; min-width: 0; }
+.sells-cowork .os-page-h-l h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.sells-cowork .os-page-h-l p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.sells-cowork .os-page-h-r { display: flex; gap: 8px; flex: 0 0 auto; }
+/* Stats */
+.sells-cowork .os-stat.warn {
+  background: oklch(0.97 0.04 25);
+  border-color: oklch(0.85 0.08 25);
+}
+.sells-cowork .os-stat.warn b { color: oklch(0.50 0.18 25); }
+.sells-cowork [data-theme="dark"] .os-stat.warn {
+  background: oklch(0.26 0.06 25);
+  border-color: oklch(0.40 0.10 25);
+}
+.sells-cowork [data-theme="dark"] .os-stat.warn b { color: oklch(0.78 0.16 25); }
+.sells-cowork .os-stat.muted b { color: var(--text-dim); font-size: 18px; }
+/* Toolbar */
+.sells-cowork .os-tabs {
+  display: flex; gap: 2px;
+  flex-wrap: wrap;
+}
+.sells-cowork .os-tab {
+  appearance: none; border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 11px;
+  border-radius: var(--radius-sm);
+  cursor: default;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.sells-cowork .os-tab:hover { background: var(--border-2); color: var(--text); }
+.sells-cowork .os-tab.active {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.sells-cowork .os-tab.warn { color: var(--neg); }
+.sells-cowork .os-tab.warn.active { border-color: oklch(0.85 0.08 25); }
+.sells-cowork .os-tab-n {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  background: var(--border-2);
+  color: var(--text-dim);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.sells-cowork .os-tab.active .os-tab-n { background: var(--accent-soft); color: var(--accent); }
+.sells-cowork .os-tab.warn .os-tab-n { background: oklch(0.93 0.07 25); color: oklch(0.50 0.18 25); }
+/* Bulk bar */
+/* Buttons */
+.sells-cowork .os-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: default;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.sells-cowork .os-btn:hover { background: var(--border-2); }
+.sells-cowork .os-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sells-cowork .os-btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.sells-cowork .os-btn.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
+.sells-cowork .os-btn.ghost:hover { background: var(--border-2); color: var(--text); }
+.sells-cowork .os-btn.ghost.danger { color: var(--neg); }
+.sells-cowork .os-btn.ghost.danger:hover { background: oklch(0.96 0.04 25); }
+.sells-cowork .os-btn.sm { height: 26px; padding: 0 10px; font-size: 11.5px; }
+/* Table */
+.sells-cowork .os-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  background: var(--bg);
+}
+.sells-cowork .os-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.sells-cowork .os-table thead th {
+  position: sticky; top: 0;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+  z-index: 1;
+}
+.sells-cowork .os-table .os-th-num { width: 90px; }
+.sells-cowork .os-table .os-th-val { text-align: right; }
+.sells-cowork .os-table tbody td {
+  /* Wagner 2026-05-21 — densidade compacta. Linha ~32px (de ~42px) mostra
+     ~30% mais vendas por viewport (Larissa 1280px) sem comprometer leitura.
+     Estilo Linear/Notion. */
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: middle;
+  color: var(--text);
+}
+.sells-cowork .os-row { cursor: default; transition: background .08s; }
+.sells-cowork .os-row:hover { background: var(--bg-2); }
+.sells-cowork .os-row.selected { background: var(--accent-soft); }
+.sells-cowork .os-row.selected td { background: var(--accent-soft); }
+.sells-cowork .os-row.urgent { box-shadow: inset 3px 0 0 oklch(0.62 0.18 25); }
+.sells-cowork .os-cell-num .mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sells-cowork .os-resp-av.lg { width: 36px; height: 36px; font-size: 12px; }
+.sells-cowork .os-cell-deadline.urgent { color: var(--neg); font-weight: 600; }
+.sells-cowork .os-table tfoot td {
+  border-top: 2px solid var(--border);
+  background: var(--bg-2);
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+/* Empty in table */
+/* Stage badge */
+.sells-cowork .os-stage {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.sells-cowork .os-stage.muted {   background: var(--border-2); color: var(--text-dim); }
+.sells-cowork .os-stage.blue {    background: oklch(0.93 0.06 240); color: oklch(0.40 0.12 240); }
+.sells-cowork .os-stage.amber {   background: oklch(0.94 0.07 75);  color: oklch(0.42 0.12 70);  }
+.sells-cowork .os-stage.violet {  background: oklch(0.93 0.07 295); color: oklch(0.42 0.12 295); }
+.sells-cowork .os-stage.cyan {    background: oklch(0.94 0.06 200); color: oklch(0.42 0.10 200); }
+.sells-cowork .os-stage.green {   background: oklch(0.94 0.06 145); color: oklch(0.40 0.12 145); }
+.sells-cowork .os-stage.red {     background: oklch(0.95 0.05 25);  color: oklch(0.50 0.16 25);  }
+.sells-cowork [data-theme="dark"] .os-stage.muted {   background: oklch(0.30 0 0);     color: oklch(0.78 0 0); }
+.sells-cowork [data-theme="dark"] .os-stage.blue {    background: oklch(0.30 0.07 240); color: oklch(0.85 0.10 240); }
+.sells-cowork [data-theme="dark"] .os-stage.amber {   background: oklch(0.30 0.07 75);  color: oklch(0.85 0.10 75);  }
+.sells-cowork [data-theme="dark"] .os-stage.violet {  background: oklch(0.30 0.07 295); color: oklch(0.85 0.10 295); }
+.sells-cowork [data-theme="dark"] .os-stage.cyan {    background: oklch(0.30 0.07 200); color: oklch(0.85 0.10 200); }
+.sells-cowork [data-theme="dark"] .os-stage.green {   background: oklch(0.30 0.07 145); color: oklch(0.85 0.10 145); }
+.sells-cowork [data-theme="dark"] .os-stage.red {     background: oklch(0.30 0.07 25);  color: oklch(0.85 0.16 25);  }
+/* ════════════════════════ OS DETAIL DRAWER ════════════════════════ */
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slidein { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.sells-cowork .os-drawer-meta .urgent { color: var(--neg); }
+.sells-cowork .os-drawer-meta .mono { font-family: var(--font-mono); }
+/* Stages flow */
+.sells-cowork .os-stage-step.done .step-dot { background: oklch(0.62 0.16 145); border-color: oklch(0.62 0.16 145); }
+.sells-cowork .os-stage-step.done { color: var(--text-dim); }
+.sells-cowork .os-stage-step.current .step-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.sells-cowork .os-stage-step.current { color: var(--accent); font-weight: 600; }
+/* Timeline */
+.sells-cowork .os-tl-item.create .os-tl-dot { border-color: var(--text-dim); }
+.sells-cowork .os-tl-item.client .os-tl-dot { border-color: oklch(0.62 0.14 220); }
+.sells-cowork .os-tl-item.art    .os-tl-dot { border-color: oklch(0.65 0.16 75);  }
+.sells-cowork .os-tl-item.prod   .os-tl-dot { border-color: oklch(0.62 0.14 295); }
+.sells-cowork .os-tl-item.pending .os-tl-dot { border-color: var(--accent); background: var(--accent); }
+/* ════════════════════════ NOVA OS DRAWER ════════════════════════ */
+.sells-cowork .os-drawer.wide { width: min(820px, 100%); }
+.sells-cowork .os-step.active {
+  background: var(--surface);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.sells-cowork .os-step.done .os-step-bullet {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.sells-cowork .os-new-results li.empty { cursor: default; color: var(--text-dim); justify-content: flex-start; }
+.sells-cowork .os-new-results li.empty a { color: var(--accent); cursor: pointer; margin-left: 6px; }
+.sells-cowork .os-new-row2 input.mono { font-family: var(--font-mono); }
+.sells-cowork .os-cat.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.sells-cowork .os-new-itable th.r, .sells-cowork .os-new-itable td.r { text-align: right; }
+.sells-cowork .os-new-resp.active {
+  border-color: var(--accent);
+  background: oklch(from var(--accent) l c h / 0.08);
+}
+.sells-cowork .os-btn.disabled, .sells-cowork .os-btn:disabled {
+  opacity: .45; cursor: not-allowed;
+}
+/* ════════════════════════ APROVAR ARTE — MODAL ════════════════════════ */
+@keyframes modalin {
+  from { transform: translate(-50%, -48%); opacity: 0; }
+  to   { transform: translate(-50%, -50%); opacity: 1; }
+}
+.sells-cowork .os-modal-h .icon-btn { flex-shrink: 0; }
+/* Body do modal de aprovação: 240px coluna versões + canvas */
+.sells-cowork .os-version-list li.selected {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+/* Thumbs (placeholder gráfico colorido por versão) */
+.sells-cowork .os-art-corner.tl { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
+.sells-cowork .os-art-corner.tr { top: 6px; right: 6px; border-left: 0; border-bottom: 0; }
+.sells-cowork .os-art-corner.bl { bottom: 6px; left: 6px; border-right: 0; border-top: 0; }
+.sells-cowork .os-art-corner.br { bottom: 6px; right: 6px; border-left: 0; border-top: 0; }
+.sells-cowork .os-art-thumb.art-v1 .os-art-blob.a { background: #e8c468; top: -10px; right: 30px; width: 110px; height: 110px; }
+.sells-cowork .os-art-thumb.art-v1 .os-art-blob.b { background: #d97757; top: 50px; right: -20px; width: 90px; height: 90px; }
+.sells-cowork .os-art-thumb.art-v1 .os-art-blob.c { background: #a8a29e; bottom: 60px; right: 50px; width: 60px; height: 60px; opacity: .4; }
+.sells-cowork .os-art-thumb.art-v2 .os-art-blob.a { background: #e8c468; top: -14px; right: 24px; width: 130px; height: 130px; }
+.sells-cowork .os-art-thumb.art-v2 .os-art-blob.b { background: #d97757; top: 46px; right: -18px; width: 100px; height: 100px; }
+.sells-cowork .os-art-thumb.art-v2 .os-art-blob.c { background: #6c8ea4; bottom: 56px; right: 44px; width: 70px; height: 70px; }
+.sells-cowork .os-art-thumb.art-v3 .os-art-blob.a { background: #e8c468; top: -14px; right: 24px; width: 130px; height: 130px; }
+.sells-cowork .os-art-thumb.art-v3 .os-art-blob.b { background: #d97757; top: 46px; right: -18px; width: 100px; height: 100px; }
+.sells-cowork .os-art-thumb.art-v3 .os-art-blob.c { background: #4a6b85; bottom: 56px; right: 44px; width: 70px; height: 70px; }
+/* Decisão (aprovar/ajustar/rejeitar) */
+.sells-cowork .os-decision.approve.active {
+  border-color: oklch(0.55 0.16 145);
+  background: oklch(0.96 0.04 145);
+}
+.sells-cowork [data-theme="dark"] .os-decision.approve.active {
+  background: oklch(0.28 0.06 145);
+}
+.sells-cowork .os-decision.approve.active svg { color: oklch(0.45 0.16 145); opacity: 1; }
+.sells-cowork .os-decision.adjust.active {
+  border-color: oklch(0.62 0.14 75);
+  background: oklch(0.96 0.04 75);
+}
+.sells-cowork [data-theme="dark"] .os-decision.adjust.active {
+  background: oklch(0.30 0.06 75);
+}
+.sells-cowork .os-decision.adjust.active svg { color: oklch(0.55 0.16 75); opacity: 1; }
+.sells-cowork .os-decision.reject.active {
+  border-color: var(--neg);
+  background: oklch(0.96 0.04 25);
+}
+.sells-cowork [data-theme="dark"] .os-decision.reject.active {
+  background: oklch(0.30 0.06 25);
+}
+.sells-cowork .os-decision.reject.active svg { color: var(--neg); opacity: 1; }
+.sells-cowork .os-decision.active .os-kbd { border-color: currentColor; color: currentColor; opacity: .8; }
+/* ════════════════════════ PRINT (OS Detail) ════════════════════════ */
+@media print {
+.sells-cowork { background: white !important; }
+.sells-cowork .app-shell, .sells-cowork .sidebar, .sells-cowork .chat-panel, .sells-cowork .os-page-h-r, .sells-cowork .os-toolbar, .sells-cowork .os-bulk, .sells-cowork .os-table-wrap, .sells-cowork .os-stats, .sells-cowork .os-drawer-actions, .sells-cowork .os-drawer-back, .sells-cowork .tweaks-panel, .sells-cowork .os-modal-back, .sells-cowork .os-modal { display: none !important; }
+.sells-cowork .os-drawer-h, .sells-cowork .os-drawer-body { padding: 0 !important; }
+@page { margin: 18mm 14mm; }
+}
+/* ════════════════════════ BULK MODAL ════════════════════════ */
+.sells-cowork .os-bulk-stage.active {
+  border-color: var(--accent);
+  background: oklch(from var(--accent) l c h / 0.08);
+}
+/* ════════════════════════ CLIENTES (Fase 3) ════════════════════════ */
+.sells-cowork .cli-status.ativo { background: oklch(0.93 0.07 145); color: oklch(0.36 0.10 145); }
+.sells-cowork .cli-status.inativo { background: var(--bg-2); color: var(--text-dim); }
+.sells-cowork .cli-kpi b.ok { color: oklch(0.50 0.14 145); }
+.sells-cowork .cli-kpi b.muted { color: var(--text-dim); }
+/* ════════════════════════ ORÇAMENTOS ════════════════════════ */
+/* ════════════════════════ PRODUTOS ════════════════════════ */
+.sells-cowork .prod-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.sells-cowork .prod-card.inactive { opacity: .55; }
+/* ─── Produção: Fila / Acabamento / Expedição ─── */
+.sells-cowork .prod-view-toggle button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.sells-cowork .prod-equip-tab .count {
+  font-size: 11px;
+  background: var(--bg-3, var(--bg));
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text-mute);
+}
+.sells-cowork .prod-equip-tab.active {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--text-mute);
+}
+.sells-cowork .prod-equip-tab.active .count { background: var(--accent-soft); color: var(--accent); }
+.sells-cowork .prod-equip-dot.violet { background: oklch(0.55 0.18 295); }
+.sells-cowork .prod-equip-dot.blue { background: oklch(0.55 0.16 230); }
+.sells-cowork .prod-equip-dot.cyan { background: oklch(0.60 0.13 200); }
+.sells-cowork .prod-col-dot.violet { background: oklch(0.55 0.18 295); }
+.sells-cowork .prod-col-dot.amber { background: oklch(0.70 0.14 65); }
+.sells-cowork .prod-col-dot.cyan { background: oklch(0.60 0.13 200); }
+/* Cards */
+.sells-cowork .prod-card.urgent {
+  border-color: oklch(0.75 0.16 25);
+  box-shadow: 0 0 0 2px oklch(0.95 0.06 25);
+}
+.sells-cowork .prod-equip-pill.violet { background: oklch(0.94 0.05 295); color: oklch(0.40 0.14 295); }
+.sells-cowork .prod-equip-pill.blue { background: oklch(0.94 0.05 230); color: oklch(0.40 0.13 230); }
+.sells-cowork .prod-equip-pill.cyan { background: oklch(0.94 0.04 200); color: oklch(0.40 0.10 200); }
+.sells-cowork .prod-progress {
+  position: relative;
+  height: 6px;
+  background: var(--bg-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sells-cowork .prod-card.urgent .prod-deadline { color: oklch(0.50 0.18 25); font-weight: 500; }
+.sells-cowork .prod-act.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.sells-cowork .prod-act.primary:hover { background: var(--accent-2); }
+/* Lista plana */
+.sells-cowork .prod-list .os-table tbody tr { cursor: default; }
+.sells-cowork .prod-list .os-table tbody tr:hover td { background: var(--bg-2); }
+/* Drawer */
+/* ════════════════════════ CLIENTES PAGE ════════════════════════ */
+.sells-cowork .cli-page .os-table th, .sells-cowork .cli-page .os-table td { padding: 10px 12px; }
+.sells-cowork .cli-avatar.lg { width: 48px; height: 48px; font-size: 16px; }
+.sells-cowork .cli-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.sells-cowork .cli-table .value { font-weight: 600; color: var(--ink-1); }
+.sells-cowork .cli-status.late { background: #fef2f2; color: #b91c1c; }
+.sells-cowork .cli-status.active { background: #ecfdf5; color: #047857; }
+.sells-cowork .cli-status.idle { background: var(--bg-2); color: var(--ink-3); }
+/* Drawer */
+.sells-cowork .cli-kpi.danger { border-color: #fecaca; background: #fef2f2; }
+.sells-cowork .cli-kpi.danger .cli-kpi-v { color: #b91c1c; }
+.sells-cowork .cli-fin-row b.danger { color: #b91c1c; }
+/* ════════════ VENDAS ════════════ */
+.sells-cowork .vendas-page .vd-id { font-family:var(--font-mono); font-size:12px; color:oklch(0.40 0.04 250); font-weight:600; }
+.sells-cowork .vendas-page .vd-date { font-size:11px; }
+.sells-cowork .vendas-page .vd-time { font-size:10px; color:oklch(0.55 0.02 250); }
+.sells-cowork .vendas-page .vd-client-name { font-weight:600; font-size:13px; }
+.sells-cowork .vendas-page .vd-notes { font-size:11px; color:oklch(0.50 0.02 250); }
+.sells-cowork .vendas-page .vd-pay > div:first-child { font-weight:500; font-size:12px; }
+.sells-cowork .vendas-page .vd-transp { font-size:11.5px; }
+.sells-cowork .vendas-page .vd-transp-pill {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:11px; font-weight:500;
+  padding:2px 8px; border-radius:99px;
+  background:oklch(0.93 0.02 240);
+  color:oklch(0.38 0.07 240);
+  white-space:nowrap;
+}
+.sells-cowork .vendas-page .vd-transp-pill.retira {
+  background:oklch(0.94 0.04 145);
+  color:oklch(0.38 0.10 145);
+}
+.sells-cowork .vendas-page .vd-transp-pill.proprio {
+  background:oklch(0.94 0.04 60);
+  color:oklch(0.38 0.10 60);
+}
+.sells-cowork .vendas-page .vd-inst { font-size:10px; color:oklch(0.50 0.02 250); }
+.sells-cowork .vendas-page .vd-items { text-align:center; font-variant-numeric:tabular-nums; }
+.sells-cowork .vendas-page .vd-total { font-weight:600; font-variant-numeric:tabular-nums; font-size:13px; }
+.sells-cowork .vendas-page .vd-os-pill { display:inline-block; padding:1px 6px; border-radius:4px; background:oklch(0.95 0.01 250); font-family:var(--font-mono); font-size:10px; margin-right:3px; color:oklch(0.40 0.04 250); }
+.sells-cowork .vendas-page .vd-no-os { font-size:11px; color:oklch(0.55 0.02 250); font-style:italic; }
+.sells-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:9px; color:oklch(0.40 0.04 250); background:#fff; }
+/* Drawer venda */
+/* Stepper */
+.sells-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+.sells-cowork .vd-step.done { color:oklch(0.45 0.12 145); }
+.sells-cowork .vd-step.active .vd-step-num { background:oklch(0.55 0.14 240); color:#fff; }
+.sells-cowork .vd-step.done .vd-step-num { background:oklch(0.55 0.14 145); color:#fff; }
+/* Create body */
+/* Itens */
+/* Pagamento */
+.sells-cowork .vd-pay-card.active { border-color:oklch(0.55 0.14 240); background:oklch(0.97 0.03 240); box-shadow:0 0 0 2px oklch(0.55 0.14 240 / 0.15); }
+/* Confirmar */
+/* Foot */
+/* ════════════ VENDAS MODULE — sub-nav + extras ════════════ */
+.sells-cowork .vm-subtab.active { color:var(--accent); border-bottom-color:var(--accent); }
+/* ──── CAIXA DO DIA ──── */
+.sells-cowork .vc-page .vc-date {
+  padding:5px 8px; border:1px solid oklch(0.85 0.02 250); border-radius:6px;
+  font-size:12px; font-family:var(--font-mono);
+}
+.sells-cowork .vc-grid {
+  display:grid; grid-template-columns:1.3fr 1fr; gap:14px;
+  padding:0 20px 20px;
+}
+.sells-cowork .vc-grid > .vc-card:nth-child(3) { grid-column: 1 / -1; }
+.sells-cowork .vc-card {
+  background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px;
+  overflow:hidden;
+}
+.sells-cowork .vc-card-h {
+  display:flex; align-items:baseline; justify-content:space-between;
+  padding:12px 16px; border-bottom:1px solid oklch(0.95 0.01 250);
+}
+.sells-cowork .vc-card-h h3 {
+  margin:0; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;
+  color:oklch(0.30 0.02 250); font-weight:600;
+}
+.sells-cowork .vc-muted { font-size:11px; color:oklch(0.55 0.02 250); }
+.sells-cowork .vc-pay-table { width:100%; border-collapse:collapse; font-size:13px; }
+.sells-cowork .vc-pay-table th, .sells-cowork .vc-pay-table td {
+  padding:9px 16px; text-align:left; border-bottom:1px solid oklch(0.96 0.01 250);
+}
+.sells-cowork .vc-pay-table th {
+  font-weight:500; font-size:11px; color:oklch(0.50 0.02 250);
+  background:oklch(0.98 0.005 250);
+}
+.sells-cowork .vc-pay-icon { display:inline-block; margin-right:6px; }
+.sells-cowork .vc-num { font-variant-numeric:tabular-nums; text-align:right; }
+.sells-cowork .vc-num.strong { font-weight:600; }
+.sells-cowork .vc-pay-table tfoot td {
+  font-weight:600; background:oklch(0.98 0.005 250);
+  border-top:2px solid oklch(0.90 0.01 250); border-bottom:none;
+}
+.sells-cowork .vc-move-amount.pos { color:oklch(0.45 0.14 145); }
+.sells-cowork .vc-move-amount.neg { color:oklch(0.50 0.16 25); }
+.sells-cowork .vc-counter-summary .strong { font-weight:600; font-size:14px; padding-top:6px; border-top:1px solid oklch(0.90 0.01 250); }
+/* ──── CAIXA · POR ORIGEM (Onda 6 · ADR 0192 A1 KB-9.75) ──── */
+.sells-cowork .vc-card-source { padding:6px 0 12px; }
+.sells-cowork .vc-empty {
+  margin:0; padding:18px 16px; font-size:12px; color:oklch(0.55 0.02 250);
+  text-align:center; line-height:1.5;
+}
+.sells-cowork .vc-empty a { color:oklch(0.45 0.13 230); text-decoration:underline; }
+.sells-cowork .vc-empty small { color:oklch(0.60 0.02 250); }
+.sells-cowork .vc-src-row {
+  padding:10px 16px;
+  border-bottom:1px solid oklch(0.96 0.01 250);
+  font-size:12px;
+}
+.sells-cowork .vc-src-row:last-child { border-bottom:none; }
+.sells-cowork .vc-src-h {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:6px;
+}
+.sells-cowork .vc-src-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.sells-cowork .vc-src-balcao  .vc-src-dot { background: var(--vd-src-balcao); }
+.sells-cowork .vc-src-oficina .vc-src-dot { background: var(--vd-src-oficina); }
+.sells-cowork .vc-src-online  .vc-src-dot { background: var(--vd-src-online); }
+.sells-cowork .vc-src-h b { font-weight:600; color:oklch(0.25 0.02 250); }
+.sells-cowork .vc-src-ct {
+  color:oklch(0.50 0.02 250); font-size:11px; margin-left:4px;
+}
+.sells-cowork .vc-src-tot {
+  margin-left:auto; font-weight:600; font-variant-numeric:tabular-nums;
+}
+.sells-cowork .vc-src-bar {
+  height:6px; background:oklch(0.95 0.01 250); border-radius:3px;
+  overflow:hidden; margin-bottom:5px;
+}
+.sells-cowork .vc-src-balcao  .vc-src-bar > div { background: var(--vd-src-balcao); }
+.sells-cowork .vc-src-oficina .vc-src-bar > div { background: var(--vd-src-oficina); }
+.sells-cowork .vc-src-online  .vc-src-bar > div { background: var(--vd-src-online); }
+.sells-cowork .vc-src-bar > div { height:100%; border-radius:3px; transition:width 200ms ease; }
+.sells-cowork .vc-src-meta {
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:11px; color:oklch(0.55 0.02 250);
+}
+.sells-cowork .vc-src-refs a {
+  color: var(--vd-src-oficina); text-decoration:none;
+  font-family:var(--font-mono); font-size:11px;
+}
+.sells-cowork .vc-src-refs a:hover { text-decoration:underline; }
+/* Responsive: esconde refs OS abaixo de 1100px (mesmo break Sells/Index) */
+@media (max-width: 1100px) {
+.sells-cowork .vc-src-refs { display:none; }
+}
+/* ──── DEVOLUÇÕES ──── */
+.sells-cowork .vdv-tl-dot.ok { background:oklch(0.55 0.14 145); }
+.sells-cowork .vdv-tl-dot.active { background:oklch(0.60 0.14 70); box-shadow:0 0 0 3px oklch(0.60 0.14 70 / 0.2); }
+.sells-cowork .vdv-reason-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+/* ──── COMISSÕES ──── */
+.sells-cowork .vco-period button.active { background:var(--accent); color:#fff; }
+/* ──── RELATÓRIOS ──── */
+.sells-cowork .vrep-tabs button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+/* ──── PDV BALCÃO (overlay) ──── */
+.sells-cowork .pdv-num.strong { font-weight:600; }
+.sells-cowork .pdv-pay-btn.active { border-color:var(--accent); background:oklch(0.30 0.06 var(--accent-h, 220)); }
+/* ──── RECIBO (térmica + A4) ──── */
+.sells-cowork .rec-layout button.active { background:var(--accent); color:#fff; }
+/* ──── NF-e drawer extras ──── */
+.sells-cowork .nfe-cfop-btn.active, .sells-cowork .nfe-transp-btn.active { border-color:var(--accent); background:oklch(0.97 0.04 var(--accent-h, 220)); }
+.sells-cowork .nfe-review-card.span { grid-column:1 / -1; }
+.sells-cowork .nfe-review-card .mono { font-family:var(--font-mono); }
+.sells-cowork .nfe-review-card .small { font-size:10px; word-break:break-all; line-height:1.4; }
+@media print {
+.sells-cowork body > * { display:none !important; }
+.sells-cowork .pdv-head, .sells-cowork .rec-layout, .sells-cowork .pdv-close, .sells-cowork .os-btn { display:none !important; }
+}
+/* ════════════ OS-page chrome (used by vendas-* and others) ════════════ */
+.sells-cowork .os-head {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:16px; padding:24px 24px 14px; flex-wrap:wrap;
+}
+.sells-cowork .os-head-l h1 { margin:0 0 4px; font-size:22px; letter-spacing:-0.01em; color:var(--text); }
+.sells-cowork .os-head-l p { margin:0; font-size:13px; color:var(--text-dim); }
+.sells-cowork .os-head-r { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.sells-cowork .os-kpis {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:10px; padding:0 24px 14px;
+}
+.sells-cowork .os-kpi {
+  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  border-radius:8px; padding:12px 14px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.sells-cowork .os-kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:600; }
+.sells-cowork .os-kpi-value { font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); }
+.sells-cowork .os-kpi-sub { font-size:11px; color:var(--text-dim, oklch(0.55 0.02 250)); }
+.sells-cowork .os-kpi-alert .os-kpi-value { color:oklch(0.50 0.14 70); }
+.sells-cowork .os-tabs {
+  display:flex; align-items:center; gap:4px; flex-wrap:wrap;
+  padding:8px 24px 0; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
+}
+.sells-cowork .os-tab {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 12px; border:none; background:transparent; cursor:pointer;
+  font-size:12px; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:500;
+  border-bottom:2px solid transparent; transition:all .12s;
+}
+.sells-cowork .os-tab:hover { color:var(--text); }
+.sells-cowork .os-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.sells-cowork .os-tab .count {
+  display:inline-block; padding:1px 6px; border-radius:8px;
+  background:oklch(0.95 0.01 250); font-size:10px; font-weight:600;
+  color:oklch(0.40 0.02 250);
+}
+.sells-cowork .os-tab.active .count { background:oklch(0.94 0.06 var(--accent-h, 220)); color:var(--accent); }
+.sells-cowork .os-table-wrap { padding:14px 24px 20px; overflow:auto; }
+.sells-cowork .os-table {
+  width:100%; border-collapse:collapse;
+  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  border-radius:8px; overflow:hidden;
+}
+.sells-cowork .os-table thead th {
+  padding:10px 12px; text-align:left;
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;
+  color:var(--text-dim, oklch(0.45 0.02 250));
+  background:oklch(0.98 0.005 250);
+  border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
+}
+.sells-cowork .os-table td { padding:6px 12px; border-bottom:1px solid oklch(0.96 0.01 250); font-size:13px; vertical-align:middle; }
+.sells-cowork .os-table tbody tr:last-child td { border-bottom:none; }
+.sells-cowork .os-row { cursor:pointer; transition:background .1s; }
+.sells-cowork .os-row:hover { background:oklch(0.98 0.01 var(--accent-h, 220)); }
+.sells-cowork .os-row.urgent { box-shadow:inset 3px 0 0 oklch(0.60 0.16 25); }
+.sells-cowork .os-stage {
+  display:inline-block; padding:2px 8px; border-radius:10px;
+  font-size:11px; font-weight:500;
+}
+.sells-cowork .os-drawer-head {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px; padding:18px 20px; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
+  background:#fff;
+}
+.sells-cowork .os-drawer-head-l { flex:1; min-width:0; }
+.sells-cowork .os-drawer-head-l h2 { margin:4px 0 4px; font-size:18px; }
+.sells-cowork .os-drawer-head-l p { margin:0; font-size:12px; color:var(--text-dim); }
+.sells-cowork .os-drawer-body { flex:1; overflow:auto; }
+.sells-cowork .icon-btn {
+  width:28px; height:28px; border-radius:6px;
+  background:transparent; border:1px solid transparent; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  color:var(--text-dim);
+}
+.sells-cowork .icon-btn:hover { background:var(--border-2, oklch(0.95 0.01 250)); color:var(--text); }
+/* Stepper for create/nfe drawers */
+.sells-cowork .vd-step.active .vd-step-num { background:var(--accent); color:#fff; }
+.sells-cowork .vd-step.active { color:var(--text); font-weight:600; }
+.sells-cowork .vd-step.done .vd-step-num { background:oklch(0.55 0.14 145); color:#fff; }
+/* ────────────────── Embed (iframe consolidator) ────────────────── */
+.sells-cowork .embed-btn.on {
+  background: var(--accent-soft, #eaf0f7);
+  border-color: var(--accent, #1f3a5f);
+  color: var(--accent, #1f3a5f);
+}
+/* ────────────────── Sidebar lean ────────────────── */
+.sells-cowork .sb-menu-lean .sb-item {
+  margin: 1px 0;
+}
+.sells-cowork .sb-item .badge.muted {
+  background: transparent;
+  color: var(--text-mute, #8b8580);
+  font-family: var(--mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 10px;
+  font-weight: 400;
+  padding: 0;
+  min-width: auto;
+}
+/* ────────────────── TopNav (sub-telas da área ativa) ────────────────── */
+.sells-cowork .topnav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--border, #e5e0d3);
+  background: var(--panel, #fff);
+  font-size: 12px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border, #e5e0d3) transparent;
+  min-height: 38px;
+}
+.sells-cowork .topnav::-webkit-scrollbar { height: 4px; }
+.sells-cowork .topnav::-webkit-scrollbar-thumb { background: var(--border, #e5e0d3); border-radius: 999px; }
+.sells-cowork .topnav-pill.active {
+  color: var(--accent, #1f3a5f);
+  font-weight: 600;
+  background: var(--accent-soft, #eaf0f7);
+}
+.sells-cowork .topnav-pill.active svg { opacity: 1; }
+/* ────────────────── Sidebar group — header com cor ────────────────── */
+.sells-cowork .sb-group {
+  margin: 6px 0 2px;
+}
+.sells-cowork .sb-group-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  user-select: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sb-text);
+}
+.sells-cowork .sb-group-h:hover { background: var(--sb-hover); }
+.sells-cowork .sb-group-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+.sells-cowork .sb-group-l {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sells-cowork .sb-group-n {
+  font-size: 9.5px;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, monospace);
+  color: var(--text-mute);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.sells-cowork .sb-group .chev {
+  width: 10px;
+  height: 10px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+.sells-cowork .sb-item.sb-sub {
+  border-left: 2px solid transparent;
+  padding-left: 18px;
+}
+.sells-cowork .sb-item.sb-sub.active {
+  border-left-color: var(--accent);
+}
+/* esconde estilo lean antigo */
+/* ────────────────── Sidebar collapse / rail / hidden ────────────────── */
+.sells-cowork .sb { position: relative; overflow: visible; }
+/* Alça de colapsar na borda direita */
+.sells-cowork .sb-collapse-handle {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--sb-border);
+  background: var(--sb-bg);
+  color: var(--sb-text-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 30;
+  opacity: 0;
+  transition: opacity .12s, color .12s, background .12s, transform .12s;
+  padding: 0;
+}
+.sells-cowork .sb:hover .sb-collapse-handle, .sells-cowork .sb-collapse-handle:focus-visible, .sells-cowork .sb-collapse-handle:hover {
+  opacity: 1;
+}
+.sells-cowork .sb-collapse-handle:hover {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+/* Alça flutuante para reabrir quando oculta */
+/* ── Sidebar em modo RAIL ── */
+.sells-cowork .sb--rail {
+  overflow: visible;
+}
+.sells-cowork .sb--rail .sb-top {
+  padding: 8px 8px 6px;
+  display: grid;
+  place-items: center;
+}
+.sells-cowork .sb--rail .sb-body {
+  padding: 4px 0;
+}
+.sells-cowork .sb--rail .sb-user {
+  padding: 8px;
+  display: grid;
+  place-items: center;
+}
+.sells-cowork .sb-menu-rail {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+/* Botão genérico do rail (40x40 centrado em 56px) */
+.sells-cowork .sb-rail-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--sb-text);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  transition: background .1s, color .1s;
+}
+.sells-cowork .sb-rail-btn:hover {
+  background: var(--sb-hover);
+  color: var(--sb-text-hi);
+}
+.sells-cowork .sb-rail-btn.active {
+  background: var(--sb-active);
+  color: var(--sb-text-hi);
+}
+.sells-cowork .sb-rail-btn.active::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 8px; bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent);
+}
+.sells-cowork .sb-rail-btn .ic {
+  width: 18px;
+  height: 18px;
+  opacity: .9;
+}
+.sells-cowork .sb-rail-btn.active .ic { opacity: 1; }
+.sells-cowork .sb-rail-btn.sb-rail-group .ic {
+  width: 18px;
+  height: 18px;
+}
+.sells-cowork .sb-rail-btn.sb-rail-group.active .ic, .sells-cowork .sb-rail-btn.sb-rail-group.open .ic {
+  filter: brightness(1.15);
+}
+.sells-cowork .sb-rail-dot-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.62 0.18 30);
+  box-shadow: 0 0 0 2px var(--sb-bg);
+}
+/* Avatar empresa / user no rail */
+.sells-cowork .sb--rail .sb-cp-rail-btn .avatar, .sells-cowork .sb--rail .sb-user-rail-btn .avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+}
+.sells-cowork .sb--rail .sb-user-rail-btn .avatar {
+  border-radius: 50%;
+}
+/* Dropdown de empresa quando em rail (alinhado à direita do rail) */
+/* Tooltip via data-tip (somente no rail) */
+.sells-cowork .sb--rail [data-tip] {
+  position: relative;
+}
+.sells-cowork .sb--rail [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 6px 10px;
+  background: oklch(0.18 0 0);
+  color: oklch(0.96 0 0);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s .12s, transform .12s .12s;
+  z-index: 60;
+  box-shadow: 0 4px 14px oklch(0 0 0 / 0.22);
+}
+.sells-cowork .sb--rail [data-tip]:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+/* Tooltip de GRUPO: maior, com a cor do grupo, e setinha */
+.sells-cowork .sb--rail .sb-rail-group[data-tip]::after {
+  background: oklch(0.96 0.02 var(--gh, 220));
+  color: oklch(0.28 0.08 var(--gh, 220));
+  border: 1px solid oklch(0.72 0.10 var(--gh, 220) / 0.55);
+  border-left: 3px solid oklch(0.62 0.13 var(--gh, 220));
+  padding: 7px 12px 7px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 18px oklch(0 0 0 / 0.18);
+}
+/* Esconde tooltip enquanto o flyout do grupo está aberto */
+.sells-cowork .sb--rail .sb-rail-btn.open[data-tip]::after {
+  opacity: 0 !important;
+}
+/* Flyout do grupo no rail */
+.sells-cowork .sb-rail-flyout {
+  position: fixed;
+  background: var(--sb-bg);
+  border: 1px solid var(--sb-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px oklch(0 0 0 / 0.28);
+  padding: 6px;
+  min-width: 220px;
+  max-width: 260px;
+  z-index: 60;
+  animation: sbFlyoutIn .14s ease-out;
+}
+@keyframes sbFlyoutIn {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.sells-cowork .sb-rail-flyout-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.sells-cowork .sb-rail-flyout-h .sb-group-n {
+  margin-left: auto;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--sb-text-dim);
+  letter-spacing: 0;
+}
+.sells-cowork .sb-rail-flyout .sb-item {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+}
+.sells-cowork .sb-rail-flyout .sb-item.sb-sub {
+  padding-left: 14px;
+  border-left-width: 2px;
+}
+/* No rail: oculta o handle interno (a alça basta) */
+.sells-cowork .sb--rail .sb-collapse-handle {
+  /* permanece visível, mas roda 180° via SVG no JSX */
+}
+/* (auto-rail em viewports estreitas é feito no JS no mount inicial — */
+/*  não sobrescreve a escolha do usuário via CSS.) */
+/* ══════════════════════════════════════════════════════════════════
+   VENDAS A+ (2026-05-14) — refator pra 9.5
+   8 itens: identidade green · sparkline+ageing · stepper FSM · avatar
+            Vista toggle · ⌘K · saved views+bulk · NF-e+NFS-e
+   Namespace: .vendas-aplus  (escopo da Index Vendas)
+   ════════════════════════════════════════════════════════════════ */
+.sells-cowork .vendas-aplus {
+  --vd-green:       oklch(0.45 0.11 155);
+  --vd-green-2:     oklch(0.55 0.11 155);
+  --vd-green-soft:  oklch(0.95 0.04 155);
+  --vd-green-hero:  oklch(0.21 0.025 155);
+  --vd-green-hero-2:oklch(0.27 0.03 155);
+  --vd-green-fg:    oklch(0.78 0.05 155);
+
+  /* DS v6 (PR3 slice 2) — camada semântica local da tela redireciona pros tokens
+     canônicos (cockpit.css: --pos/--warn/--neg + -soft), espelhando o gabarito.
+     Bônus: passam a flipar claro/escuro de fábrica (antes eram só light). */
+  --vd-ok:    var(--pos);
+  --vd-ok-soft: var(--pos-soft);
+  --vd-warn:  var(--warn);
+  --vd-warn-soft: var(--warn-soft);
+  --vd-bad:   var(--neg);
+  --vd-bad-soft: var(--neg-soft);
+  --vd-neutral: var(--text-mute);
+  --vd-neutral-soft: var(--bg-2);
+}
+/* ── HEADER: ⌘K button no centro do .os-head ── */
+.sells-cowork .vendas-aplus .os-head { align-items:center; gap:12px; }
+.sells-cowork .vendas-aplus .vd-cmdk {
+  flex: 0 1 360px; min-width: 220px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 10px;
+  color: var(--text-mute); cursor: pointer;
+  font: inherit; font-size: 12.5px;
+  transition: border-color .12s;
+}
+.sells-cowork .vendas-aplus .vd-cmdk:hover { border-color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-cmdk span { flex: 1; text-align: left; }
+.sells-cowork .vendas-aplus .vd-cmdk kbd {
+  font-family: var(--font-mono); font-size: 9.5px; padding: 1px 5px;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
+  background: var(--bg-2); color: var(--text-dim);
+}
+/* ── Vista segmented control ── */
+.sells-cowork .vendas-aplus .vd-vista {
+  display: inline-flex; background: var(--bg-2);
+  border: 1px solid var(--border); border-radius: 6px; padding: 2px;
+}
+.sells-cowork .vendas-aplus .vd-vista button {
+  border: 0; background: transparent;
+  padding: 4px 12px; font-size: 11.5px; font-weight: 600;
+  color: var(--text-mute); border-radius: 4px;
+  letter-spacing: 0.02em; cursor: pointer; font-family: inherit;
+  transition: all .15s;
+}
+.sells-cowork .vendas-aplus .vd-vista button.on {
+  background: var(--surface); color: var(--vd-green);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+/* ── Saved views dropdown ── */
+.sells-cowork .vendas-aplus .vd-views { position: relative; }
+.sells-cowork .vendas-aplus .vd-views-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 5px;
+  font-size: 12px; font-weight: 600; color: var(--text);
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; cursor: pointer;
+}
+.sells-cowork .vendas-aplus .vd-views-btn::after { content: '▾'; font-size: 9px; color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-views-btn:hover { border-color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-views-menu {
+  position: absolute; top: calc(100% + 4px); right: 0;
+  min-width: 240px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 8px 24px -8px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.02);
+  padding: 4px; z-index: 30;
+}
+.sells-cowork .vendas-aplus .vd-views-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; font-size: 12.5px; cursor: pointer;
+  border-radius: 4px;
+}
+.sells-cowork .vendas-aplus .vd-views-item:hover { background: var(--bg-2); }
+.sells-cowork .vendas-aplus .vd-views-item.active { color: var(--vd-green); font-weight: 600; }
+.sells-cowork .vendas-aplus .vd-views-item .ct {
+  margin-left: auto;
+  color: var(--text-mute); font-family: var(--font-mono); font-size: 10.5px;
+  background: var(--bg-2); padding: 1px 6px; border-radius: 99px;
+}
+.sells-cowork .vendas-aplus .vd-views-item.active .ct { background: var(--vd-green-soft); color: var(--vd-green); }
+.sells-cowork .vendas-aplus .vd-views-sep { height: 1px; background: var(--border-2); margin: 4px -4px; }
+/* ── KPIs ── */
+.sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sells-cowork .vendas-aplus .vd-kpi-hero {
+  background: var(--vd-green-hero); color: oklch(0.92 0.01 155);
+  border-color: var(--vd-green-hero);
+}
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-label { color: var(--vd-green-fg); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: oklch(0.95 0.01 155); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-sub { color: var(--vd-green-fg); }
+.sells-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; }
+.sells-cowork .vendas-aplus .vd-delta-up { color: var(--vd-ok) !important; display: inline-flex; align-items: center; gap: 4px; }
+.sells-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: oklch(0.78 0.10 155) !important; }
+.sells-cowork .vendas-aplus .os-kpi-value small { font-size: 13px; color: var(--text-mute); font-weight: 500; margin-left: 2px; }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: oklch(0.65 0.04 155); }
+/* ageing 3 bars */
+.sells-cowork .vendas-aplus .vd-ageing {
+  margin-top: 10px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+}
+.sells-cowork .vendas-aplus .vd-ag-bar {
+  height: 4px; border-radius: 99px;
+  background: var(--border-2); position: relative; overflow: hidden;
+}
+.sells-cowork .vendas-aplus .vd-ag-bar > div {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  border-radius: 99px; min-width: 4px;
+}
+.sells-cowork .vendas-aplus .vd-ag-bar.ok   > div { background: var(--vd-ok); }
+.sells-cowork .vendas-aplus .vd-ag-bar.warn > div { background: var(--vd-warn); }
+.sells-cowork .vendas-aplus .vd-ag-bar.bad  > div { background: var(--vd-bad); }
+.sells-cowork .vendas-aplus .vd-ag-lbls {
+  grid-column: 1 / -1;
+  display: flex; justify-content: space-between;
+  font-size: 9.5px; color: var(--text-mute);
+  margin-top: 2px; font-family: var(--font-mono);
+}
+/* PIX progress */
+.sells-cowork .vendas-aplus .vd-pix-prog {
+  margin-top: 12px; height: 6px; background: var(--border-2);
+  border-radius: 99px; overflow: hidden;
+}
+.sells-cowork .vendas-aplus .vd-pix-prog > div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--vd-green), var(--vd-green-2));
+  border-radius: 99px;
+}
+/* Fiscal stacked bar */
+.sells-cowork .vendas-aplus .vd-fiscal-bar {
+  margin-top: 10px; height: 6px; display: flex; gap: 2px;
+  border-radius: 99px; overflow: hidden; background: var(--border-2);
+}
+.sells-cowork .vendas-aplus .vd-fiscal-bar > div { min-width: 2px; }
+/* Ranking vendedores no KPI Comissão */
+.sells-cowork .vendas-aplus .vd-rank { padding: 12px 14px; }
+.sells-cowork .vendas-aplus .vd-rank-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 6px;
+}
+.sells-cowork .vendas-aplus .vd-rank-info {
+  flex: 1; font-size: 11.5px; line-height: 1.3;
+}
+.sells-cowork .vendas-aplus .vd-rank-info > div:first-child {
+  display: flex; justify-content: space-between;
+  font-weight: 600; margin-bottom: 2px;
+}
+.sells-cowork .vendas-aplus .vd-rank-info > div:first-child span:last-child {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); font-weight: 500;
+}
+.sells-cowork .vendas-aplus .vd-rank-bar {
+  height: 3px; border-radius: 99px;
+  background: var(--border-2); overflow: hidden;
+}
+.sells-cowork .vendas-aplus .vd-rank-bar > div { height: 100%; border-radius: 99px; }
+/* ── Avatar vendedor ── */
+.sells-cowork .vendas-aplus .vd-av {
+  display: inline-grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  font-size: 10.5px; font-weight: 700; color: #fff;
+  font-family: var(--font-mono); letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.sells-cowork .vendas-aplus .vd-av-1 { background: oklch(0.55 0.12 30); }
+.sells-cowork .vendas-aplus .vd-av-2 { background: oklch(0.50 0.13 200); }
+.sells-cowork .vendas-aplus .vd-av-3 { background: oklch(0.55 0.13 290); }
+.sells-cowork .vendas-aplus .vd-av-4 { background: oklch(0.50 0.13 120); }
+/* ── Table: tweaks A+ ── */
+.sells-cowork .vendas-aplus .vd-aplus-table { font-size: 12.5px; }
+.sells-cowork .vendas-aplus .vd-aplus-table thead th {
+  background: var(--bg-2); color: var(--text-mute);
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; padding: 9px 12px;
+}
+.sells-cowork .vendas-aplus .vd-aplus-table tbody td {
+  /* Wagner 2026-05-21 — densidade compacta v2 (era 10px). Esta regra com 3
+     classes vence em especificidade sobre .sells-cowork .os-table tbody td
+     (2 classes) do PR #1337 — fix de density. */
+  padding: 6px 12px; vertical-align: middle;
+}
+.sells-cowork .vendas-aplus .vd-aplus-table .vd-chk { padding: 0 0 0 12px; width: 24px; }
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.selected td { background: var(--vd-green-soft); }
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.urgent td:first-child { box-shadow: inset 3px 0 0 var(--vd-bad); }
+.sells-cowork .vendas-aplus .vd-seller-cell { display: flex; align-items: center; gap: 8px; }
+.sells-cowork .vendas-aplus .vd-seller-info { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.sells-cowork .vendas-aplus .vd-seller-info b { font-size: 12px; font-weight: 600; }
+.sells-cowork .vendas-aplus .vd-seller-info small {
+  font-size: 10.5px; color: var(--text-mute);
+  font-family: var(--font-mono); text-transform: lowercase;
+}
+/* commission column shown only on vista=comissao */
+.sells-cowork .vendas-aplus[data-vista="comissao"] .vd-col-commission { display: table-cell; }
+.sells-cowork .vendas-aplus .vd-col-commission { display: none; }
+/* ── Mini-stepper FSM inline ── */
+.sells-cowork .vendas-aplus .vd-stp {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 7px; border-radius: 99px;
+  background: var(--bg-2);
+}
+.sells-cowork .vendas-aplus .vd-stp-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border); transition: all .15s;
+}
+/* DS v6 (PR3 slice 4) — pipeline FSM dots usam a escala canônica --stage-*
+   (cockpit.css), espelhando o .fsm do gabarito: done→emerald · atual→green+anel. */
+.sells-cowork .vendas-aplus .vd-stp-dot.done { background: var(--stage-emerald); }
+.sells-cowork .vendas-aplus .vd-stp-dot.current {
+  background: var(--stage-green);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--stage-green) 24%, transparent);
+  transform: scale(1.3);
+}
+.sells-cowork .vendas-aplus .vd-stp-lbl {
+  font-size: 10px; color: var(--text-mute); margin-left: 4px;
+  font-family: var(--font-mono); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 600;
+}
+/* ── Fiscal badges ── */
+.sells-cowork .vendas-aplus .vd-fc { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.sells-cowork .vendas-aplus .vd-fb {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 3px;
+  letter-spacing: 0.02em;
+  position: relative; cursor: help;
+}
+/* DS v6 (PR3 slice 5) — fiscal badges: fg cru → token canônico, espelha o fbadge
+   do gabarito (--pos/--warn/--neg sobre o -soft). bg já era token (slice 2). */
+.sells-cowork .vendas-aplus .vd-fb-ok { background: var(--vd-ok-soft);     color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-fb-wait { background: var(--vd-warn-soft);   color: var(--warn); }
+.sells-cowork .vendas-aplus .vd-fb-bad { background: var(--vd-bad-soft);    color: var(--neg); }
+.sells-cowork .vendas-aplus .vd-fb-canc { background: var(--vd-neutral-soft);color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-fb-na { background: transparent; color: var(--text-mute); padding: 2px 4px; }
+.sells-cowork .vendas-aplus .vd-fb-ic { font-size: 9px; }
+.sells-cowork .vendas-aplus .vd-fb-tip {
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--text); color: oklch(0.97 0.005 90);
+  padding: 5px 9px; border-radius: 5px;
+  font-size: 10px; font-family: var(--font-mono); font-weight: 500;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: all .12s;
+  z-index: 20;
+  box-shadow: 0 4px 12px rgba(0,0,0,.20);
+}
+.sells-cowork .vendas-aplus .vd-fb-tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 4px solid transparent; border-top-color: var(--text);
+}
+.sells-cowork .vendas-aplus .vd-fb:hover .vd-fb-tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ── Bulk action bar (fixed bottom) ── */
+.sells-cowork .vendas-aplus .vd-bulk {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--text); color: oklch(0.97 0.005 90);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,.30);
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 6px;
+  z-index: 30; opacity: 0;
+  transition: all .22s ease-out;
+}
+.sells-cowork .vendas-aplus .vd-bulk.on {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+.sells-cowork .vendas-aplus .vd-bulk-ct {
+  font-size: 12px; font-weight: 600;
+  padding: 2px 8px; background: rgba(255,255,255,.12); border-radius: 99px;
+}
+.sells-cowork .vendas-aplus .vd-bulk-btn {
+  background: transparent; color: oklch(0.97 0.005 90);
+  border: 1px solid rgba(255,255,255,.20);
+  padding: 5px 10px; border-radius: 5px;
+  font-size: 11.5px; font-weight: 500; font-family: inherit; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.sells-cowork .vendas-aplus .vd-bulk-btn:hover { background: rgba(255,255,255,.10); }
+.sells-cowork .vendas-aplus .vd-bulk-btn.primary {
+  background: var(--vd-green); border-color: var(--vd-green);
+}
+.sells-cowork .vendas-aplus .vd-bulk-btn.primary:hover { background: var(--vd-green-2); }
+.sells-cowork .vendas-aplus .vd-bulk-close {
+  background: transparent; border: 0;
+  color: oklch(0.75 0.005 90); padding: 4px 6px;
+  cursor: pointer; font-size: 13px;
+}
+/* ── ⌘K Palette ── */
+.sells-cowork .vendas-aplus .vd-pal-bd {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.34);
+  z-index: 60;
+  display: grid; place-items: start center;
+  padding-top: 12vh;
+  opacity: 0; pointer-events: none;
+  transition: opacity .14s;
+}
+.sells-cowork .vendas-aplus .vd-pal-bd.on { opacity: 1; pointer-events: auto; }
+.sells-cowork .vendas-aplus .vd-pal {
+  width: 560px; max-width: 92vw;
+  background: var(--surface); border-radius: 12px;
+  box-shadow: 0 24px 64px -12px rgba(0,0,0,.40);
+  overflow: hidden;
+  transform: scale(0.96); transition: transform .14s;
+}
+.sells-cowork .vendas-aplus .vd-pal-bd.on .vd-pal { transform: scale(1); }
+.sells-cowork .vendas-aplus .vd-pal-in {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.sells-cowork .vendas-aplus .vd-pal-in input {
+  flex: 1; border: 0; background: transparent;
+  font: inherit; font-size: 15px;
+  color: var(--text); outline: none;
+}
+.sells-cowork .vendas-aplus .vd-pal-in input::placeholder { color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-pal-in kbd {
+  font-family: var(--font-mono); font-size: 10px; padding: 1px 5px;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
+  background: var(--bg-2); color: var(--text-dim);
+}
+.sells-cowork .vendas-aplus .vd-pal-list { max-height: 50vh; overflow-y: auto; padding: 6px; }
+.sells-cowork .vendas-aplus .vd-pal-grp {
+  padding: 6px 12px 4px; font-size: 9.5px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-mute); font-weight: 700;
+}
+.sells-cowork .vendas-aplus .vd-pal-it {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 13px;
+}
+.sells-cowork .vendas-aplus .vd-pal-it.sel { background: var(--vd-green-soft); }
+.sells-cowork .vendas-aplus .vd-pal-ic {
+  width: 28px; height: 28px; border-radius: 6px; background: var(--bg-2);
+  display: grid; place-items: center; color: var(--text-dim);
+  flex-shrink: 0;
+}
+.sells-cowork .vendas-aplus .vd-pal-it.sel .vd-pal-ic { background: var(--vd-green); color: #fff; }
+.sells-cowork .vendas-aplus .vd-pal-tx { flex: 1; min-width: 0; }
+.sells-cowork .vendas-aplus .vd-pal-tx b { display: block; font-weight: 600; }
+.sells-cowork .vendas-aplus .vd-pal-tx small { font-size: 11px; color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-pal-it kbd {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 10px; padding: 1px 5px;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
+  background: var(--bg-2); color: var(--text-dim);
+}
+.sells-cowork .vendas-aplus .vd-pal-empty {
+  padding: 24px; text-align: center;
+  color: var(--text-mute); font-size: 12.5px;
+}
+.sells-cowork .vendas-aplus .vd-pal-ft {
+  padding: 10px 16px; border-top: 1px solid var(--border);
+  display: flex; gap: 16px; font-size: 11px; color: var(--text-mute);
+}
+.sells-cowork .vendas-aplus .vd-pal-ft span {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.sells-cowork .vendas-aplus .vd-pal-ft kbd {
+  font-family: var(--font-mono); font-size: 9.5px; padding: 1px 4px;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
+  background: var(--bg-2); color: var(--text-dim);
+}
+/* ══════════════════════════════════════════════════════════════════
+   VENDAS A+ — Detail drawer com Fiscal tab
+   ════════════════════════════════════════════════════════════════ */
+.sells-cowork .vd-drawer-aplus.os-drawer.wide { width: 720px; }
+.sells-cowork .vd-drawer-aplus .os-drawer-head {
+  align-items: flex-start;
+}
+/* drawer tabs */
+.sells-cowork .vd-drawer-aplus .vd-drawer-tab.on {
+  color: var(--vd-green);
+  border-bottom-color: var(--vd-green);
+  font-weight: 600;
+}
+.sells-cowork .vd-drawer-aplus .vd-drawer-tab.on .vd-drawer-tab-ct {
+  background: var(--vd-green-soft); color: var(--vd-green);
+}
+/* Itens cards */
+/* Emit panel */
+.sells-cowork .vd-drawer-aplus .vd-emit .os-btn { margin-left: auto; flex-shrink: 0; }
+/* Sub-tabs fiscal */
+.sells-cowork .vd-drawer-aplus .vd-fsub button.on { background: var(--bg-2); color: var(--text); }
+/* Fiscal card grid */
+.sells-cowork .vd-drawer-aplus .vd-fcard-grid.single {
+  grid-template-columns: 1fr; max-width: 500px;
+}
+/* Fiscal card */
+.sells-cowork .vd-drawer-aplus .vd-fcard-fail.neutral {
+  background: var(--vd-neutral-soft);
+  border-left-color: var(--vd-neutral);
+  color: var(--text-dim);
+}
+.sells-cowork .vd-drawer-aplus .vd-fcard-copy.copied {
+  background: var(--vd-ok-soft); color: oklch(0.36 0.10 145);
+  border-color: transparent;
+}
+/* Timeline SEFAZ horizontal */
+.sells-cowork .vd-drawer-aplus .vd-fcard-step.done .vd-fcard-step-d {
+  background: var(--vd-green); border-color: var(--vd-green); color: #fff;
+}
+.sells-cowork .vd-drawer-aplus .vd-fcard-step.done::before { background: var(--vd-green); }
+.sells-cowork .vd-drawer-aplus .vd-fcard-step.failed .vd-fcard-step-d {
+  background: var(--vd-bad); border-color: var(--vd-bad); color: #fff;
+}
+.sells-cowork .vd-drawer-aplus .vd-fcard.failed .vd-fcard-step.done .vd-fcard-step-d { background: var(--vd-bad); border-color: var(--vd-bad); }
+.sells-cowork .vd-drawer-aplus .vd-fcard.failed .vd-fcard-step.done::before { background: var(--vd-bad); }
+/* Breakdown box */
+/* Payment tab */
+/* Timeline tab */
+/* responsive — KPIs em 2 cols se viewport apertado */
+@media (max-width: 1180px) {
+.sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(2, 1fr); }
+.sells-cowork .vendas-aplus .vd-cmdk { display: none; }
+}
+@media (max-width: 980px) {
+.sells-cowork .vd-drawer-aplus.os-drawer.wide { width: 95vw; }
+}
+/* ── F1.5 iter1: Placa Mercosul (Oficina) ── */
+.sells-cowork .vendas-aplus .vd-client-mec { display: flex; align-items: center; gap: 10px; }
+.sells-cowork .vendas-aplus .vd-plate {
+  display: inline-flex; flex-direction: column; align-items: stretch;
+  width: 78px; flex-shrink: 0;
+  background: #fff;
+  border: 1px solid oklch(0.30 0 0); border-radius: 3px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  box-shadow: 0 1px 0 rgba(0,0,0,.04);
+}
+.sells-cowork .vendas-aplus .vd-plate-top {
+  background: oklch(0.30 0.12 240); color: #fff;
+  font-size: 6px; font-weight: 700;
+  text-align: center; padding: 1px 0;
+  letter-spacing: 0.04em;
+}
+.sells-cowork .vendas-aplus .vd-plate-num {
+  font-size: 13px; font-weight: 700; color: oklch(0.18 0 0);
+  text-align: center; padding: 3px 0;
+  letter-spacing: 0.06em;
+}
+/* ── F1.5 iter1: Skeleton loading rows ── */
+.sells-cowork .vendas-aplus .vd-sk-row td {
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--border-2);
+}
+.sells-cowork .vendas-aplus .vd-sk-bar {
+  height: 12px; border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-2) 0%,
+    var(--border-2) 50%,
+    var(--bg-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: vdSk 1.2s ease-in-out infinite;
+}
+@keyframes vdSk {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+/* ── F1.5 iter1: empty state com kbd hints ── */
+.sells-cowork .vendas-aplus .os-empty {
+  padding: 40px 20px; text-align: center;
+  color: var(--text-mute); font-size: 12.5px;
+}
+.sells-cowork .vendas-aplus .os-empty kbd {
+  display: inline-block; padding: 1px 5px; margin: 0 2px;
+  border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--bg-2); color: var(--text-dim);
+}
+/* ═══════════════════════════════════════════════════════════════════
+   VENDAS · REFINO #1 KB-9.75 · FUNDAÇÃO (2026-05-15)
+   SLA pill · J/K row-nav · tree-view · cheat-sheet · ⌘K prefixos
+   ═══════════════════════════════════════════════════════════════════ */
+/* ── SLA pill ── (fresco · atrasando · estourado · paga) */
+.sells-cowork .vendas-aplus .vd-sla {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.01em; white-space: nowrap;
+}
+.sells-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: 9px; line-height: 1; }
+.sells-cowork .vendas-aplus .vd-sla-fresh { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
+.sells-cowork .vendas-aplus .vd-sla-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60); }
+.sells-cowork .vendas-aplus .vd-sla-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25); }
+.sells-cowork .vendas-aplus .vd-sla-paid { background: var(--bg-2); color: var(--text-mute); }
+/* SLA mini-pills no KPI A receber */
+.sells-cowork .vendas-aplus .vd-sla-counts {
+  display: inline-flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 2px;
+}
+.sells-cowork .vendas-aplus .vd-sla-mini {
+  display: inline-flex; align-items: center;
+  font-size: 10.5px; font-weight: 600;
+  padding: 0; line-height: 1.5;
+}
+.sells-cowork .vendas-aplus .vd-sla-mini .ic { font-size: 8px; line-height: 1; margin-right: 4px; }
+.sells-cowork .vendas-aplus .vd-sla-mini.fresh { color: oklch(0.45 0.13 145); }
+.sells-cowork .vendas-aplus .vd-sla-mini.warning { color: oklch(0.50 0.13 60); }
+.sells-cowork .vendas-aplus .vd-sla-mini.overdue { color: var(--neg); }
+.sells-cowork .vendas-aplus .vd-sla-mini + .vd-sla-mini::before {
+  content: "·"; margin-right: 2px; color: var(--text-mute); font-weight: 400;
+}
+/* ── Coluna Pagamento com SLA inline ── */
+.sells-cowork .vendas-aplus .vd-pay .vd-pay-top {
+  display: flex; align-items: center; gap: 6px; line-height: 1.3;
+}
+.sells-cowork .vendas-aplus .vd-pay .vd-pay-top > span:first-child { font-weight: 600; color: var(--text); }
+.sells-cowork .vendas-aplus .vd-pay .vd-inst {
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--bg-2); color: var(--text-mute);
+  padding: 1px 5px; border-radius: 3px;
+}
+.sells-cowork .vendas-aplus .vd-pay .vd-pay-sla { margin-top: 3px; }
+/* ── Row focused (J/K) ── */
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.row-focused {
+  background: oklch(0.97 0.025 155);
+  box-shadow: inset 3px 0 0 var(--vd-green), inset -3px 0 0 var(--vd-green);
+  outline: none;
+}
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.row-focused td {
+  background: oklch(0.97 0.025 155);
+}
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.row-focused.urgent td:first-child {
+  box-shadow: inset 3px 0 0 var(--vd-bad);
+}
+/* favorito ★ */
+.sells-cowork .vendas-aplus .vd-fav {
+  color: oklch(0.65 0.16 70);
+  margin-right: 3px; font-size: 11px;
+}
+/* ── Tree-view saved views ── */
+.sells-cowork .vendas-aplus .vd-views-menu.vd-tree {
+  min-width: 280px;
+  padding: 6px;
+}
+.sells-cowork .vendas-aplus .vd-tree-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 8px; border-radius: 4px;
+  font-size: 12.5px; cursor: pointer; user-select: none;
+}
+.sells-cowork .vendas-aplus .vd-tree-row:hover { background: var(--bg-2); }
+.sells-cowork .vendas-aplus .vd-tree-row.l0 { font-weight: 500; }
+.sells-cowork .vendas-aplus .vd-tree-row.l1 {
+  padding-left: 28px; font-size: 11.5px; color: var(--text-dim);
+}
+.sells-cowork .vendas-aplus .vd-tree-row.active {
+  background: var(--vd-green-soft); color: var(--vd-green); font-weight: 600;
+}
+.sells-cowork .vendas-aplus .vd-tree-row.active .ct { background: white; color: var(--vd-green); }
+.sells-cowork .vendas-aplus .vd-tree-arr {
+  width: 12px; flex-shrink: 0; text-align: center;
+  font-size: 10px; color: var(--text-mute);
+  transition: transform 0.12s;
+  cursor: pointer;
+}
+.sells-cowork .vendas-aplus .vd-tree-arr.open { transform: rotate(90deg); }
+.sells-cowork .vendas-aplus .vd-tree-arr.empty { visibility: hidden; }
+.sells-cowork .vendas-aplus .vd-tree-lbl { flex: 1; }
+.sells-cowork .vendas-aplus .vd-tree-row .ct {
+  font-family: var(--font-mono); font-size: 10.5px;
+  background: var(--bg-2); color: var(--text-mute);
+  padding: 1px 6px; border-radius: 99px;
+}
+/* ── Cheat-sheet overlay (?) ── */
+.sells-cowork .vd-cheat-bd {
+  position: fixed; inset: 0; z-index: 1000;
+  background: oklch(0 0 0 / 0.5);
+  display: grid; place-items: center;
+  padding: 24px;
+  animation: vdCheatFadeIn 0.15s ease-out;
+}
+@keyframes vdCheatFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.sells-cowork .vd-cheat {
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+  width: 100%; max-width: 760px;
+  max-height: 86vh; overflow: auto;
+  display: flex; flex-direction: column;
+  animation: vdCheatSlideUp 0.18s ease-out;
+}
+@keyframes vdCheatSlideUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sells-cowork .vd-cheat-h {
+  padding: 22px 26px 18px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "ic title x" "ic sub x";
+  gap: 2px 14px;
+  align-items: center;
+}
+.sells-cowork .vd-cheat-ic {
+  grid-area: ic;
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  background: var(--vd-green); color: white;
+  border-radius: 8px;
+  font-size: 19px;
+  align-self: center;
+}
+.sells-cowork .vd-cheat-h h2 {
+  grid-area: title;
+  margin: 0; font-size: 17px; font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.sells-cowork .vd-cheat-h p {
+  grid-area: sub;
+  margin: 0; font-size: 12.5px; color: var(--text-mute);
+}
+.sells-cowork .vd-cheat-x {
+  grid-area: x;
+  background: transparent; border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 5px;
+  cursor: pointer; color: var(--text-mute);
+  align-self: center;
+}
+.sells-cowork .vd-cheat-x kbd {
+  font-family: var(--font-mono); font-size: 10px;
+  border: none; padding: 0; background: transparent;
+}
+.sells-cowork .vd-cheat-grid {
+  padding: 22px 26px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 22px 32px;
+}
+.sells-cowork .vd-cheat-sec h4 {
+  margin: 0 0 10px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--vd-green);
+}
+.sells-cowork .vd-cs-row {
+  display: grid; grid-template-columns: 130px 1fr; gap: 12px;
+  padding: 5px 0; align-items: center;
+  font-size: 12px; color: var(--text-dim);
+}
+.sells-cowork .vd-cs-row + .vd-cs-row { border-top: 1px solid var(--border-2); }
+.sells-cowork .vd-cs-keys { display: flex; gap: 4px; align-items: center; }
+.sells-cowork .vd-cs-keys kbd {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 2px 7px; min-width: 24px; text-align: center;
+}
+.sells-cowork .vd-cs-plus { font-size: 10px; color: var(--text-mute); }
+.sells-cowork .vd-cs-lbl b { color: var(--text); font-weight: 600; }
+.sells-cowork .vd-cs-lbl code {
+  font-family: var(--font-mono); font-size: 10.5px;
+  background: var(--bg-2); padding: 1px 4px;
+  border-radius: 3px; color: var(--vd-green);
+}
+.sells-cowork .vd-cheat-ft {
+  padding: 14px 26px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-2);
+  font-size: 11px; color: var(--text-mute);
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+/* ── ⌘K palette: prefix hint no footer ── */
+.sells-cowork .vendas-aplus .vd-pal-prefix {
+  display: inline-flex; gap: 6px; flex-wrap: wrap;
+  color: var(--text-mute); font-size: 10.5px;
+}
+.sells-cowork .vendas-aplus .vd-pal-prefix kbd {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1px 5px;
+  margin-right: 2px;
+}
+/* ── Responsive ≤1100px (tablet balcão) — degradação progressiva ── */
+@media (max-width: 1100px) {
+.sells-cowork .vendas-aplus .vd-col-commission { display: none; }
+.sells-cowork .vendas-aplus .vd-cmdk { flex: 0 1 240px; min-width: 180px; }
+.sells-cowork .vendas-aplus .vd-cmdk span { font-size: 11px; }
+.sells-cowork .vendas-aplus .vd-aplus-table .vd-seller-info small { display: none; }
+.sells-cowork .vendas-aplus .vd-stp-lbl { display: none; }
+/* só dots */
+.sells-cowork .vendas-aplus .os-kpis { grid-template-columns: 1fr 1fr; }
+.sells-cowork .vendas-aplus .os-kpi.vd-kpi-hero { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+.sells-cowork .vendas-aplus .vd-vista button:nth-child(3), .sells-cowork .vendas-aplus .vd-vista button:nth-child(2) { display: none; }
+/* só Caixa */
+.sells-cowork .vendas-aplus .vd-pay .vd-inst { display: none; }
+.sells-cowork .vendas-aplus .os-kpis { grid-template-columns: 1fr; }
+.sells-cowork .vd-cheat-grid { grid-template-columns: 1fr; }
+}
+/* ═══════════════════════════════════════════════════════════════════
+   VENDAS · REFINO #2 KB-9.75 · IA DENTRO DO FLUXO (2026-05-15)
+   ✦ accent roxo · 3 blocos IA · palette empty-state IA
+   ═══════════════════════════════════════════════════════════════════ */
+.sells-cowork {
+  --vd-ai: oklch(0.52 0.20 295);
+  --vd-ai-soft: oklch(0.96 0.04 295);
+  --vd-ai-border: oklch(0.86 0.10 295);
+  --vd-ai-text: oklch(0.32 0.18 295);
+}
+/* ── Tab IA no drawer ── */
+.sells-cowork .vd-drawer-aplus .vd-drawer-tab.vd-tab-ai.on {
+  background: var(--vd-ai-soft);
+  border-bottom-color: var(--vd-ai);
+  color: var(--vd-ai-text);
+}
+/* ── Painel IA · banner topo ── */
+.sells-cowork .vd-ai-panel h3 {
+  margin: 18px 0 8px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--vd-ai); opacity: 0.85;
+}
+.sells-cowork .vd-ai-panel h3:first-of-type { margin-top: 8px; }
+.sells-cowork .vd-ai-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--vd-ai-soft), oklch(0.985 0.015 295));
+  border: 1px solid var(--vd-ai-border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.sells-cowork .vd-ai-banner-ic {
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  background: var(--vd-ai); color: white;
+  border-radius: 7px;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-ai-banner b { display: block; font-size: 13px; color: var(--vd-ai-text); }
+.sells-cowork .vd-ai-banner small { display: block; font-size: 11.5px; color: var(--text-dim); line-height: 1.4; }
+/* ── Bloco IA genérico ── */
+.sells-cowork .vd-ai-block {
+  background: white;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--vd-ai);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+}
+.sells-cowork .vd-ai-block.vd-ai-disabled {
+  opacity: 0.6;
+  border-left-color: var(--border);
+}
+.sells-cowork .vd-ai-block-h {
+  display: flex; align-items: center; gap: 10px;
+}
+.sells-cowork .vd-ai-ic {
+  display: grid; place-items: center;
+  width: 26px; height: 26px;
+  background: var(--vd-ai-soft); color: var(--vd-ai);
+  border-radius: 6px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-ai-block-tx { flex: 1; min-width: 0; }
+.sells-cowork .vd-ai-block-tx b { display: block; font-size: 12.5px; font-weight: 600; }
+.sells-cowork .vd-ai-block-tx small {
+  display: block; font-size: 11px; color: var(--text-dim);
+  line-height: 1.45;
+}
+.sells-cowork .vd-ai-cta {
+  background: var(--vd-ai); color: white;
+  border: none; padding: 6px 12px;
+  border-radius: 5px; font-size: 11.5px; font-weight: 600;
+  cursor: pointer; flex-shrink: 0;
+  transition: background .1s;
+}
+.sells-cowork .vd-ai-cta:hover { background: oklch(0.46 0.20 295); }
+.sells-cowork .vd-ai-retry {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--vd-ai);
+  width: 26px; height: 26px; border-radius: 5px;
+  cursor: pointer; font-size: 14px;
+}
+.sells-cowork .vd-ai-retry:hover { background: var(--vd-ai-soft); }
+/* ── Loader dots ── */
+.sells-cowork .vd-ai-loader {
+  display: inline-flex; gap: 3px; align-items: center;
+  padding: 6px 10px;
+}
+.sells-cowork .vd-ai-loader span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--vd-ai);
+  animation: vdAiPulse 1.2s ease-in-out infinite;
+}
+.sells-cowork .vd-ai-loader span:nth-child(2) { animation-delay: 0.15s; }
+.sells-cowork .vd-ai-loader span:nth-child(3) { animation-delay: 0.30s; }
+@keyframes vdAiPulse {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+/* ── Skeleton ── */
+.sells-cowork .vd-ai-skel {
+  margin-top: 10px; padding: 6px 0;
+}
+.sells-cowork .vd-ai-skel-line {
+  height: 9px; margin: 6px 0;
+  background: linear-gradient(90deg, var(--bg-2) 0%, oklch(0.94 0.005 90) 50%, var(--bg-2) 100%);
+  background-size: 200% 100%;
+  animation: vdAiShimmer 1.4s linear infinite;
+  border-radius: 3px;
+}
+@keyframes vdAiShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+/* ── Output da IA ── */
+.sells-cowork .vd-ai-out {
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--vd-ai-soft);
+  border-radius: 6px;
+  font-size: 12.5px; line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.sells-cowork .vd-ai-out.err {
+  background: oklch(0.96 0.04 25); color: oklch(0.45 0.18 25);
+  font-family: var(--font-mono); font-size: 11.5px;
+}
+/* ── História: stats grid ── */
+.sells-cowork .vd-ai-stat.full { grid-column: 1 / -1; }
+.sells-cowork .vd-ai-tag.new {
+  background: var(--vd-ai); color: white;
+}
+.sells-cowork .vd-ai-prods .ct {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  color: var(--vd-ai); background: var(--vd-ai-soft);
+  padding: 1px 6px; border-radius: 99px; text-align: center;
+}
+.sells-cowork .vd-ai-prods .px {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-mute);
+}
+/* ── Sugestão parseada ── */
+.sells-cowork .vd-ai-suggest {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sells-cowork .vd-ai-suggest-h {
+  display: flex; align-items: center; gap: 10px;
+}
+.sells-cowork .vd-ai-suggest-ic {
+  display: grid; place-items: center;
+  width: 30px; height: 30px;
+  background: var(--vd-ai); color: white;
+  border-radius: 6px; font-size: 15px;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-ai-suggest-h b {
+  display: block; font-size: 13.5px; font-weight: 700;
+}
+.sells-cowork .vd-ai-suggest-h small {
+  display: block; font-family: var(--font-mono);
+  font-size: 11.5px; color: var(--vd-ai);
+}
+.sells-cowork .vd-ai-suggest p {
+  margin: 4px 0 0; font-size: 12px; line-height: 1.5;
+  color: var(--text-dim);
+  padding-left: 40px;
+}
+/* ── Empty-state IA no ⌘K palette ── */
+.sells-cowork .vendas-aplus .vd-pal-ai-wrap {
+  padding: 8px;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-cta {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 14px;
+  background: linear-gradient(135deg, var(--vd-ai-soft), oklch(0.985 0.015 295));
+  border: 1px dashed var(--vd-ai-border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .12s;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-cta:hover {
+  border-style: solid;
+  background: linear-gradient(135deg, oklch(0.93 0.06 295), oklch(0.96 0.04 295));
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-ic {
+  display: grid; place-items: center;
+  width: 30px; height: 30px;
+  background: var(--vd-ai); color: white;
+  border-radius: 7px; font-size: 15px;
+  flex-shrink: 0;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-tx { flex: 1; text-align: left; }
+.sells-cowork .vendas-aplus .vd-pal-ai-tx b {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--vd-ai-text);
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-tx small {
+  display: block; font-size: 11.5px; color: var(--text-dim);
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-tx i { color: var(--vd-ai); font-style: normal; font-weight: 500; }
+.sells-cowork .vendas-aplus .vd-pal-ai-cta kbd {
+  font-family: var(--font-mono); font-size: 10px;
+  background: white; border: 1px solid var(--vd-ai-border);
+  border-bottom-width: 2px; border-radius: 4px;
+  padding: 2px 7px; color: var(--vd-ai);
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-loading {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px;
+  background: var(--vd-ai-soft);
+  border-radius: 8px;
+  font-size: 12.5px; color: var(--vd-ai-text);
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-dots {
+  display: inline-flex; gap: 3px; margin-left: auto;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-dots span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--vd-ai);
+  animation: vdAiPulse 1.2s ease-in-out infinite;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-dots span:nth-child(2) { animation-delay: 0.15s; }
+.sells-cowork .vendas-aplus .vd-pal-ai-dots span:nth-child(3) { animation-delay: 0.30s; }
+.sells-cowork .vendas-aplus .vd-pal-ai-answer {
+  background: white;
+  border: 1px solid var(--vd-ai-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-answer header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-answer header .vd-pal-ai-ic {
+  width: 22px; height: 22px; font-size: 12px; border-radius: 5px;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-answer header b { color: var(--vd-ai-text); font-size: 12.5px; }
+.sells-cowork .vendas-aplus .vd-pal-ai-answer header span {
+  font-size: 11px; color: var(--text-mute); margin-left: auto;
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-answer p {
+  margin: 0; font-size: 12.5px; line-height: 1.55;
+  color: var(--text);
+}
+.sells-cowork .vendas-aplus .vd-pal-ai-answer small {
+  display: block; margin-top: 8px;
+  font-size: 10.5px; color: var(--text-mute);
+  border-top: 1px solid var(--border-2);
+  padding-top: 6px;
+}
+/* ── Responsive: stats grid IA cai pra 2 cols ── */
+/* ═══════════════════════════════════════════════════════════════════
+   VENDAS · REFINO #3 KB-9.75 · CURADORIA + GUIA (2026-05-15)
+   Comentários inline · histórico edições · troubleshooter · cross-link
+   ═══════════════════════════════════════════════════════════════════ */
+/* ── Header note linkificada ── */
+/* ── Tab counter comentários ── */
+/* ── Item card com comentários inline ── */
+.sells-cowork .vd-drawer-aplus .vd-item-cur {
+  display: flex; flex-direction: column;
+  background: white; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+  transition: border-color .12s;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-cur.has-comments {
+  border-color: oklch(0.82 0.10 240);
+  background: oklch(0.99 0.015 240);
+}
+.sells-cowork .vd-drawer-aplus .vd-item-cur .vd-item-c-main {
+  display: grid;
+  grid-template-columns: 1fr 50px 90px 110px 36px;
+  gap: 10px; align-items: center;
+  padding: 10px 12px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-c-comm {
+  width: 28px; height: 28px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 13px; cursor: pointer;
+  position: relative;
+  display: grid; place-items: center;
+  color: var(--text-mute);
+  transition: all .12s;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-c-comm:hover {
+  border-color: oklch(0.55 0.13 240);
+  color: oklch(0.55 0.13 240);
+  background: oklch(0.96 0.04 240);
+}
+.sells-cowork .vd-drawer-aplus .vd-item-c-comm.on {
+  background: oklch(0.55 0.13 240); color: white;
+  border-color: oklch(0.55 0.13 240);
+}
+.sells-cowork .vd-drawer-aplus .vd-item-c-comm.has {
+  background: oklch(0.94 0.06 240); color: oklch(0.36 0.13 240);
+  border-color: oklch(0.86 0.08 240);
+}
+.sells-cowork .vd-drawer-aplus .vd-item-c-comm .ct {
+  position: absolute; top: -5px; right: -5px;
+  background: oklch(0.55 0.13 240); color: white;
+  font-size: 9px; font-weight: 700;
+  padding: 1px 4px; border-radius: 99px;
+  min-width: 14px; text-align: center;
+  line-height: 1.4;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-thread {
+  border-top: 1px solid var(--border-2);
+  background: oklch(0.985 0.012 240);
+  padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment {
+  background: white; border: 1px solid var(--border-2);
+  border-radius: 6px; padding: 8px 10px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-h {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 4px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-av {
+  display: grid; place-items: center;
+  width: 18px; height: 18px;
+  background: oklch(0.55 0.13 240); color: white;
+  border-radius: 50%; font-size: 10px; font-weight: 700;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-h b { font-size: 12px; font-weight: 600; }
+.sells-cowork .vd-drawer-aplus .vd-item-comment-when {
+  font-size: 10.5px; color: var(--text-mute);
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-x {
+  margin-left: auto;
+  background: transparent; border: none;
+  color: var(--text-mute); font-size: 14px;
+  cursor: pointer; padding: 0 4px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-x:hover { color: var(--vd-bad); }
+.sells-cowork .vd-drawer-aplus .vd-item-comment p {
+  margin: 0; font-size: 12px; line-height: 1.5;
+  color: var(--text);
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-new {
+  background: white; border: 1px solid oklch(0.82 0.10 240);
+  border-radius: 6px; padding: 8px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-new textarea {
+  width: 100%; border: none; outline: none; resize: vertical;
+  font-family: inherit; font-size: 12px; line-height: 1.5;
+  background: transparent;
+  min-height: 50px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 6px;
+}
+.sells-cowork .vd-drawer-aplus .vd-item-comment-row small {
+  flex: 1; font-size: 10.5px; color: var(--text-mute);
+}
+/* ── Audit trail ── */
+.sells-cowork .vd-drawer-aplus .vd-audit-h {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 14px;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-h h4 {
+  margin: 0; font-size: 14px; font-weight: 700;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-h small {
+  font-size: 11px; color: var(--text-mute);
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+  gap: 0;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-row {
+  display: grid; grid-template-columns: 28px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-2);
+  position: relative;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-row:last-child { border-bottom: none; }
+.sells-cowork .vd-drawer-aplus .vd-audit-row::before {
+  content: ''; position: absolute;
+  left: 13px; top: 30px; bottom: -2px;
+  width: 2px; background: var(--border-2);
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-row:last-child::before { display: none; }
+.sells-cowork .vd-drawer-aplus .vd-audit-ic {
+  display: grid; place-items: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--bg-2); color: var(--text-mute);
+  font-size: 12px; font-weight: 700;
+  position: relative; z-index: 1;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-create .vd-audit-ic { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
+.sells-cowork .vd-drawer-aplus .vd-audit-edit   .vd-audit-ic { background: oklch(0.94 0.06 240); color: oklch(0.36 0.13 240); }
+.sells-cowork .vd-drawer-aplus .vd-audit-fiscal .vd-audit-ic { background: oklch(0.96 0.05 70); color: oklch(0.42 0.13 60); }
+.sells-cowork .vd-drawer-aplus .vd-audit-reject .vd-audit-ic { background: oklch(0.96 0.05 25); color: var(--vd-bad); }
+.sells-cowork .vd-drawer-aplus .vd-audit-body header {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 2px;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-body header b { font-size: 12.5px; font-weight: 600; }
+.sells-cowork .vd-drawer-aplus .vd-audit-action {
+  font-size: 11px; color: var(--text-mute);
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-body header time {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--text-mute);
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-body p {
+  margin: 0; font-size: 12px; color: var(--text-dim); line-height: 1.45;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-diff {
+  margin-top: 5px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--bg-2); padding: 3px 8px; border-radius: 4px;
+}
+.sells-cowork .vd-drawer-aplus .vd-audit-diff .diff-from { color: var(--text-mute); text-decoration: line-through; }
+.sells-cowork .vd-drawer-aplus .vd-audit-diff .diff-arr { color: var(--text-mute); }
+.sells-cowork .vd-drawer-aplus .vd-audit-diff .diff-to { color: var(--text); font-weight: 600; }
+.sells-cowork .vd-drawer-aplus .vd-audit-diff .diff-pct.pos { color: oklch(0.50 0.13 145); }
+.sells-cowork .vd-drawer-aplus .vd-audit-diff .diff-pct.neg { color: var(--vd-bad); }
+/* ── Troubleshooter button ── */
+/* ── Cross-link pills (#V #OS #CLI #orc) ── */
+.sells-cowork .vd-link {
+  display: inline-flex; align-items: center;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  padding: 1px 6px; border-radius: 4px;
+  text-decoration: none; line-height: 1.5;
+  transition: opacity .12s;
+}
+.sells-cowork .vd-link:hover { opacity: 0.75; }
+.sells-cowork .vd-link-venda { background: var(--vd-green-soft); color: var(--vd-green); }
+.sells-cowork .vd-link-os { background: oklch(0.94 0.06 240); color: oklch(0.36 0.13 240); }
+.sells-cowork .vd-link-cli { background: oklch(0.94 0.06 295); color: oklch(0.36 0.13 295); }
+.sells-cowork .vd-link-orc { background: oklch(0.96 0.05 70);  color: oklch(0.42 0.13 60); }
+.sells-cowork .vd-link-ref { background: var(--bg-2); color: var(--text); }
+/* ═══════════════════════════════════════════════════════════════════
+   VENDAS · REFINO #4 KB-9.75 · DISTRIBUIÇÃO (2026-05-15)
+   Transcript PDF · Modo apresentação · Mensagem variáveis · Favoritas
+   ═══════════════════════════════════════════════════════════════════ */
+/* ── Favoritas no tree-view ── */
+.sells-cowork .vendas-aplus .vd-tree-row.vd-tree-fav .vd-tree-lbl {
+  color: oklch(0.55 0.16 70);
+}
+.sells-cowork .vendas-aplus .vd-tree-row.vd-tree-fav.active {
+  background: oklch(0.96 0.06 70);
+  color: oklch(0.42 0.13 60);
+}
+.sells-cowork .vendas-aplus .vd-tree-row.vd-tree-fav.active .vd-tree-lbl { color: oklch(0.42 0.13 60); }
+.sells-cowork .vendas-aplus .vd-tree-row.vd-tree-fav small {
+  font-size: 10px; font-weight: 400;
+  color: var(--text-mute); margin-left: 4px;
+}
+/* ── Botão Apresentar no drawer footer ── */
+/* ══════════════════════════════════════════
+   TRANSCRIPT PDF — overlay + print layout
+   ══════════════════════════════════════════ */
+.sells-cowork .vd-trans-items .num, .sells-cowork .vd-trans-fiscal .num { text-align: right; font-variant-numeric: tabular-nums; }
+.sells-cowork .vd-trans-items .strong, .sells-cowork .vd-trans-fiscal .strong { font-weight: 700; }
+.sells-cowork .vd-trans-items .mono, .sells-cowork .vd-trans-fiscal .mono, .sells-cowork .vd-trans-audit .mono { font-family: var(--font-mono); font-size: 10px; }
+.sells-cowork .vd-trans-fiscal .small { font-size: 9.5px; color: #888; margin-top: 2px; }
+.sells-cowork .vd-trans-fiscal .fail { color: oklch(0.45 0.18 25); margin-top: 4px; }
+.sells-cowork .vd-trans-comment .mono { font-family: var(--font-mono); font-size: 9.5px; color: #888; }
+/* @media print — só mostra o transcript */
+/* ══════════════════════════════════════════
+   MODO APRESENTAÇÃO — fullscreen
+   ══════════════════════════════════════════ */
+@keyframes vdPresFade { from { opacity: 0; } to { opacity: 1; } }
+.sells-cowork .vd-pres-chip.primary {
+  background: oklch(0.50 0.14 155);
+  border-color: oklch(0.55 0.14 155);
+  color: white;
+}
+.sells-cowork .vd-pres-dot.on { background: oklch(0.65 0.14 145); width: 24px; border-radius: 99px; }
+/* ══════════════════════════════════════════
+   MENSAGEM — variáveis live no Pagamento
+   ══════════════════════════════════════════ */
+.sells-cowork .vd-drawer-aplus .vd-msg {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-tpl.on {
+  background: var(--vd-green-soft); color: var(--vd-green);
+  border-color: var(--vd-green); font-weight: 600;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-vars {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border-2);
+  margin-bottom: 12px;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-vars small {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--text-mute); margin-right: 4px;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-var .k {
+  font-family: var(--font-mono);
+  color: oklch(0.36 0.13 295);
+  font-weight: 600;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-var .arr { color: var(--text-mute); }
+.sells-cowork .vd-drawer-aplus .vd-msg-var .v {
+  color: var(--text); font-weight: 500;
+  max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-bubble {
+  background: oklch(0.95 0.05 145);
+  border-radius: 8px 8px 8px 2px;
+  padding: 10px 14px;
+  font-size: 12.5px; line-height: 1.55;
+  color: oklch(0.20 0.04 145);
+  max-width: 92%;
+  white-space: pre-wrap;
+}
+.sells-cowork .vd-drawer-aplus .vd-msg-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+/* ══════════════════════════════════════════
+   ART-SLOT (preview da arte por item)
+   ══════════════════════════════════════════ */
+.sells-cowork .vd-art.empty {
+  border: 1.5px dashed var(--border);
+}
+.sells-cowork .vd-art.empty.drag {
+  border-color: var(--vd-green); background: var(--vd-green-soft);
+}
+.sells-cowork .vd-art.has {
+  border: 1px solid var(--border);
+}
+/* ── Refino #4 polish · Dropdown "Visões ▾" (substitui topnav) ── */
+.sells-cowork .vendas-aplus .vd-visoes { position: relative; }
+.sells-cowork .vendas-aplus .vd-visoes-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 5px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  cursor: pointer; color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.sells-cowork .vendas-aplus .vd-visoes-btn::after {
+  content: '▾'; font-size: 9px; color: var(--text-mute); margin-left: 2px;
+}
+.sells-cowork .vendas-aplus .vd-visoes-btn:hover { border-color: var(--text-mute); color: var(--text); }
+.sells-cowork .vendas-aplus .vd-visoes-menu {
+  position: absolute; top: calc(100% + 4px); right: 0;
+  min-width: 240px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  padding: 6px; z-index: 30;
+}
+.sells-cowork .vendas-aplus .vd-visoes-grp {
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 6px 10px 4px;
+}
+.sells-cowork .vendas-aplus .vd-visoes-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 4px;
+  font-size: 12.5px; cursor: pointer;
+}
+.sells-cowork .vendas-aplus .vd-visoes-item:hover { background: var(--bg-2); }
+.sells-cowork .vendas-aplus .vd-visoes-item.active {
+  background: var(--vd-green-soft); color: var(--vd-green); font-weight: 600;
+}
+.sells-cowork .vendas-aplus .vd-visoes-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--vd-green);
+}
+.sells-cowork .vendas-aplus .vd-visoes-dot.pdv { background: oklch(0.55 0.13 240); }
+.sells-cowork .vendas-aplus .vd-visoes-here {
+  margin-left: auto; font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--vd-green); opacity: 0.7;
+}
+.sells-cowork .vendas-aplus .vd-visoes-sep {
+  height: 1px; background: var(--border-2); margin: 4px -6px;
+}
+.sells-cowork .vendas-aplus .vd-visoes-item.primary {
+  color: oklch(0.36 0.13 240); font-weight: 600;
+}
+.sells-cowork .vendas-aplus .vd-visoes-item.primary:hover { background: oklch(0.96 0.04 240); }
+.sells-cowork .vendas-aplus .vd-visoes-item kbd {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-bottom-width: 2px; border-radius: 3px;
+  padding: 1px 6px;
+}
+/* Esconder a antiga topnav (vendas-extras) — agora vive em "Visões ▾" */
+/* ── Vista → "Foco" label inline ── */
+.sells-cowork .vendas-aplus .vd-vista { display: inline-flex; align-items: center; }
+.sells-cowork .vendas-aplus .vd-vista-lbl {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 0 8px 0 4px;
+}
+/* ── Breadcrumb pras sub-páginas (Caixa/Devoluções/Comissões/Relatórios) ── */
+.sells-cowork .vd-subpage .vd-bcrumb {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 0 12px;
+  font-size: 12px; color: var(--text-mute);
+  margin-bottom: 0;
+}
+.sells-cowork .vd-subpage .vd-bcrumb-back {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px solid transparent;
+  padding: 4px 9px 4px 6px; border-radius: 5px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: var(--vd-green, oklch(0.50 0.14 155)); cursor: pointer;
+  transition: all .12s;
+}
+.sells-cowork .vd-subpage .vd-bcrumb-back:hover {
+  background: var(--vd-green-soft, oklch(0.94 0.05 155));
+  border-color: var(--vd-green-soft, oklch(0.94 0.05 155));
+}
+.sells-cowork .vd-subpage .vd-bcrumb-back svg { flex-shrink: 0; transition: transform .12s; }
+.sells-cowork .vd-subpage .vd-bcrumb-back:hover svg { transform: translateX(-2px); }
+.sells-cowork .vd-subpage .vd-bcrumb-sep {
+  color: var(--text-mute); opacity: 0.5;
+  font-size: 13px;
+}
+.sells-cowork .vd-subpage .vd-bcrumb-here {
+  font-weight: 500; color: var(--text);
+}
+/* ══════════════════════════════════════════
+   HEADER LIMPO + TOOLBAR EM LINHA SEPARADA
+   ══════════════════════════════════════════ */
+.sells-cowork .vendas-aplus .vd-head-clean {
+  align-items: center; gap: 16px;
+}
+.sells-cowork .vendas-aplus .vd-head-clean .os-head-l h1 {
+  margin: 0; font-size: 22px; font-weight: 700;
+  letter-spacing: -0.018em;
+}
+.sells-cowork .vendas-aplus .vd-head-clean .os-head-l p {
+  margin: 2px 0 0; font-size: 12px; color: var(--text-mute);
+}
+.sells-cowork .vendas-aplus .vd-head-clean .os-head-r {
+  display: inline-flex; gap: 8px; align-items: center;
+}
+/* Toolbar limpa abaixo do header */
+.sells-cowork .vendas-aplus .vd-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0 14px;
+  border-bottom: 1px solid var(--border-2);
+  margin-bottom: 14px;
+}
+.sells-cowork .vendas-aplus .vd-toolbar-l {
+  display: inline-flex; align-items: center; gap: 8px; flex: 1;
+}
+.sells-cowork .vendas-aplus .vd-toolbar-r {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.sells-cowork .vendas-aplus .vd-toolbar-sep {
+  width: 1px; height: 18px; background: var(--border);
+  margin: 0 4px;
+}
+.sells-cowork .vendas-aplus .vd-toolbar-act {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: none;
+  padding: 5px 9px; border-radius: 5px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all .12s;
+}
+.sells-cowork .vendas-aplus .vd-toolbar-act:hover {
+  background: var(--bg-2); color: var(--text);
+}
+.sells-cowork .vendas-aplus .vd-toolbar-act svg { flex-shrink: 0; }
+/* Foco mais discreto na toolbar */
+.sells-cowork .vendas-aplus .vd-toolbar .vd-vista {
+  background: var(--bg-2); border-radius: 6px;
+  padding: 2px; gap: 0;
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-vista-lbl {
+  padding: 0 8px 0 6px;
+  font-size: 9.5px;
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-vista button {
+  border: none; background: transparent;
+  padding: 4px 10px; border-radius: 4px;
+  font-family: inherit; font-size: 11.5px; font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all .12s;
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-vista button:hover { color: var(--text); }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-vista button.on {
+  background: var(--surface); color: var(--vd-green); font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+/* Views button na toolbar — sem botão "box" pesado */
+.sells-cowork .vendas-aplus .vd-toolbar .vd-views { position: relative; }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-views-btn {
+  background: transparent; border: 1px solid transparent;
+  padding: 5px 9px; border-radius: 5px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all .12s;
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-views-btn::after {
+  content: '▾'; font-size: 9px; color: var(--text-mute); margin-left: 4px;
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-views-btn:hover {
+  background: var(--bg-2); color: var(--text);
+}
+/* Visões button na toolbar (mais discreto que dropdown standalone) */
+.sells-cowork .vendas-aplus .vd-toolbar .vd-toolbar-act.vd-visoes-btn {
+  border: 1px dashed var(--border);
+  color: var(--text-mute);
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-toolbar-act.vd-visoes-btn:hover {
+  border-color: var(--text-dim);
+  background: var(--bg-2);
+  color: var(--text);
+}
+/* ── Sticky table header ── */
+.sells-cowork .vendas-aplus .vd-aplus-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--border);
+}
+/* ── Hover-reveal row actions ── */
+.sells-cowork .vendas-aplus .vd-row-actions {
+  display: inline-flex; gap: 2px;
+  margin-left: 6px;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity .12s, transform .12s;
+  vertical-align: middle;
+}
+.sells-cowork .vendas-aplus .os-row:hover .vd-row-actions, .sells-cowork .vendas-aplus .os-row.row-focused .vd-row-actions {
+  opacity: 1; transform: none;
+}
+.sells-cowork .vendas-aplus .vd-row-act {
+  width: 22px; height: 22px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 4px; cursor: pointer;
+  display: inline-grid; place-items: center;
+  color: var(--text-mute);
+  transition: all .12s;
+}
+.sells-cowork .vendas-aplus .vd-row-act:hover {
+  border-color: var(--vd-green); color: var(--vd-green);
+  background: var(--vd-green-soft);
+}
+/* ═══════════════════════════════════════════════════════════════════
+   VENDAS · TWEAKS via data-attrs
+   ═══════════════════════════════════════════════════════════════════ */
+/* Densidade */
+.sells-cowork .vendas-aplus[data-vd-density="compact"]  .vd-aplus-table td { padding: 5px 8px; font-size: 11.5px; }
+.sells-cowork .vendas-aplus[data-vd-density="compact"]  .vd-aplus-table th { padding: 5px 8px; }
+.sells-cowork .vendas-aplus[data-vd-density="compact"]  .vd-item-cur .vd-item-c-main { padding: 6px 10px; }
+.sells-cowork .vendas-aplus[data-vd-density="spacious"] .vd-aplus-table td { padding: 14px 14px; font-size: 13.5px; }
+.sells-cowork .vendas-aplus[data-vd-density="spacious"] .vd-aplus-table th { padding: 12px 14px; }
+.sells-cowork .vendas-aplus[data-vd-density="spacious"] .vd-item-cur .vd-item-c-main { padding: 14px 16px; }
+/* Drawer largura */
+.sells-cowork .vendas-aplus[data-vd-drawer="largo"] ~ .os-drawer-back .os-drawer.wide, .sells-cowork body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide { width: 720px; max-width: 92vw; }
+/* SLA visual variations */
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla {
+  background: transparent !important;
+  padding: 0;
+  gap: 4px;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-ic {
+  width: 7px; height: 7px; border-radius: 50%;
+  font-size: 0;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-fresh   .vd-sla-ic { background: oklch(0.55 0.13 145); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-warning .vd-sla-ic { background: oklch(0.62 0.13 60); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-overdue .vd-sla-ic { background: var(--vd-bad); }
+.sells-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-lbl {
+  color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla {
+  display: block; margin-top: 4px;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla .vd-sla {
+  display: block; background: transparent !important; padding: 0;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla .vd-sla-ic { display: none; }
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla .vd-sla-lbl {
+  display: block; font-size: 10px; color: var(--text-mute); margin-bottom: 3px;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla::after {
+  content: ''; display: block; height: 3px; border-radius: 99px;
+  background: linear-gradient(90deg, var(--vd-ok), var(--vd-warn), var(--vd-bad));
+  opacity: 0.4;
+}
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-fresh)::after { background: var(--vd-ok); opacity: 1; }
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-warning)::after { background: var(--vd-warn); opacity: 1; }
+.sells-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla:has(.vd-sla-overdue)::after { background: var(--vd-bad); opacity: 1; }
+/* Paleta accent */
+.sells-cowork .vendas-aplus[data-vd-palette="indigo"] {
+  --vd-green: oklch(0.45 0.18 270);
+  --vd-green-soft: oklch(0.95 0.05 270);
+}
+.sells-cowork .vendas-aplus[data-vd-palette="slate"] {
+  --vd-green: oklch(0.42 0.04 240);
+  --vd-green-soft: oklch(0.94 0.005 240);
+}
+.sells-cowork .vendas-aplus[data-vd-palette="amber"] {
+  --vd-green: oklch(0.52 0.14 60);
+  --vd-green-soft: oklch(0.95 0.06 60);
+}
+/* ──────────────────────────────────────────────────────────────
+   Integração Vendas × Oficina (Ondas 3-4 · ADR 0192)
+   Refs: prototipo-ui/vendas.css L1651-1775 verbatim (escopo .sells-cowork)
+   Tokens source (balcao/oficina/online) + .vd-src-* pill + .vd-row-oficina
+   stripe + .vd-kpi-breakdown (KPI hero quando foco=faturamento).
+   ────────────────────────────────────────────────────────────── */
+.sells-cowork .vendas-aplus {
+  /* DS v6 (PR3 slice 3) — origem da venda redireciona pros tokens canônicos
+     --origin-* (cockpit.css), espelhando o c-org do gabarito:
+     balcão→CRM (azul) · oficina→OS (âmbar) · online→FIN (verde). Flip dark de fábrica. */
+  --vd-src-balcao:       var(--origin-CRM-fg);
+  --vd-src-balcao-soft:  var(--origin-CRM-bg);
+  --vd-src-oficina:      var(--origin-OS-fg);
+  --vd-src-oficina-soft: var(--origin-OS-bg);
+  --vd-src-online:       var(--origin-FIN-fg);
+  --vd-src-online-soft:  var(--origin-FIN-bg);
+}
+/* Source pill — célula Origem */
+.sells-cowork .vd-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  max-width: 100%;
+}
+.sells-cowork .vd-src-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-src-lbl { flex-shrink: 0; }
+.sells-cowork .vd-src-os {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+  opacity: 0.85;
+  margin-left: 2px;
+  white-space: nowrap;
+}
+.sells-cowork .vd-src-os:hover { opacity: 1; }
+.sells-cowork .vd-src-balcao  .vd-src-dot { background: var(--vd-src-balcao); }
+.sells-cowork .vd-src-oficina .vd-src-dot { background: var(--vd-src-oficina); }
+.sells-cowork .vd-src-online  .vd-src-dot { background: var(--vd-src-online); }
+/* Stripe sutil na linha vinda da Oficina — assinatura visual cross-módulo */
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.vd-row-oficina td:first-child {
+  box-shadow: inset 2px 0 0 var(--vd-src-oficina);
+}
+/* Header da coluna Origem */
+.sells-cowork .vendas-aplus .vd-aplus-table th.vd-col-source, .sells-cowork .vendas-aplus .vd-aplus-table td.vd-col-source {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+/* KPI Hero — breakdown por source (vista=Faturamento) */
+.sells-cowork .vd-kpi-tag {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+.sells-cowork .vd-kpi-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.sells-cowork .vd-kpi-b {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 2px solid;
+  border-radius: 3px;
+  min-width: 0;
+}
+.sells-cowork .vd-kpi-b small {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: oklch(0.78 0.01 80);
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sells-cowork .vd-kpi-b b {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+.sells-cowork .vd-kpi-b.balcao { border-left-color: var(--vd-src-balcao); }
+.sells-cowork .vd-kpi-b.oficina { border-left-color: var(--vd-src-oficina); }
+.sells-cowork .vd-kpi-b.online { border-left-color: var(--vd-src-online); }
+/* Tree row · l1 com source dot embutido no label (saved tree "Por origem") */
+.sells-cowork .vendas-aplus .vd-tree-row.l1 .vd-tree-lbl {
+  font-size: 11.5px;
+}
+/* Onda 4 (ADR 0192) — dot standalone nos filhos do branch "Por origem ▾"
+   (fora do flex container .vd-src; força size + cor herdada do token). */
+.sells-cowork .vd-tree-row .vd-src-dot.vd-src-balcao { width: 6px; height: 6px; border-radius: 50%; background: var(--vd-src-balcao); }
+.sells-cowork .vd-tree-row .vd-src-dot.vd-src-oficina { width: 6px; height: 6px; border-radius: 50%; background: var(--vd-src-oficina); }
+.sells-cowork .vd-tree-row .vd-src-dot.vd-src-online { width: 6px; height: 6px; border-radius: 50%; background: var(--vd-src-online); }
+/* Responsive — abaixo de 1280, esconder #osRef pra não quebrar layout */
+@media (max-width: 1280px) {
+.sells-cowork .vd-src-os { display: none; }
+}
+@media (max-width: 1100px) {
+.sells-cowork .vendas-aplus .vd-aplus-table th.vd-col-source, .sells-cowork .vendas-aplus .vd-aplus-table td.vd-col-source {
+    display: none;
+  }
+.sells-cowork .vendas-aplus .vd-aplus-table .os-row.vd-row-oficina td:first-child {
+    box-shadow: inset 2px 0 0 var(--vd-src-oficina);
+  }
+}

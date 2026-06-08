@@ -1,0 +1,64 @@
+# Alertmanager config — exemplo pra oimpresso WhatsApp Baileys.
+# Coloque o real em /etc/alertmanager/alertmanager.yml (NÃO commitar com secret real).
+#
+# Slack webhook: Vaultwarden item "slack-webhook-alertmanager".
+
+global:
+  resolve_timeout: 5m
+  slack_api_url_file: '/run/secrets/slack_webhook_url'
+
+route:
+  receiver: 'slack-oimpresso-alerts'
+  group_by: ['alertname', 'instance_id']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  routes:
+    # Críticos vão pra canal de oncall + Slack pessoal Wagner
+    - matchers:
+        - severity="critical"
+        - surface="whatsapp"
+      receiver: 'slack-oimpresso-critical'
+      repeat_interval: 30m
+      continue: false
+
+    # Warnings vão pra canal regular
+    - matchers:
+        - severity="warning"
+        - surface="whatsapp"
+      receiver: 'slack-oimpresso-alerts'
+
+receivers:
+  - name: 'slack-oimpresso-alerts'
+    slack_configs:
+      - channel: '#oimpresso-alerts'
+        send_resolved: true
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+
+  - name: 'slack-oimpresso-critical'
+    slack_configs:
+      - channel: '#oimpresso-oncall'
+        send_resolved: true
+        title: '[CRITICAL] {{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        link_names: true
+
+templates:
+  - '/etc/alertmanager/templates/slack.tmpl'
+
+inhibit_rules:
+  # WhatsappDaemonDown silencia todos os outros alerts de WhatsApp
+  # (sem daemon nenhuma métrica chega, alerts derivados são ruído).
+  - source_matchers:
+      - alertname="WhatsappDaemonDown"
+    target_matchers:
+      - surface="whatsapp"
+    equal: ['surface']
+
+  # Ban silencia QrStuckPending no mesmo instance (ban explica QR pending).
+  - source_matchers:
+      - alertname="WhatsappBansCrossTenant"
+    target_matchers:
+      - alertname="WhatsappQrStuckPending"
+    equal: ['instance_id']

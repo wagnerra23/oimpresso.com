@@ -1,0 +1,14 @@
+.tw-dw-card {
+    border-radius: var(--rounded-box, 1rem);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  
+  .tw-dw-card-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: .5rem;
+    padding: var(--padding-card, 2rem);
+  }

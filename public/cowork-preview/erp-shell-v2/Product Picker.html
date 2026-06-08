@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>Product Picker — modal central · placeholders por categoria</title>
+<style>
+  :root{
+    --bg:#f6f4ef;--paper:#fff;--ink:#1a1917;--ink-2:#5b574f;--ink-3:#8b8580;
+    --line:#e5e0d3;--line-2:#efeae0;
+    --accent:#1f3a5f;--accent-soft:#eaf0f7;--accent-2:#173049;
+    --ok:#1f6d3a;--ok-soft:#e6f1e8;
+    --warn:#a35a00;--warn-soft:#fbf0dc;
+    --radius:6px;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 ui-sans-serif,system-ui,-apple-system,sans-serif}
+  button{font:inherit;cursor:pointer}
+
+  /* fundo da venda (mock) */
+  .stage{padding:40px;max-width:920px;margin:0 auto}
+  .stage h1{font-size:18px;margin:0 0 4px;font-weight:600}
+  .stage p{margin:0 0 24px;color:var(--ink-2);font-size:13px}
+  .mock-sale{background:#fff;border:1px solid var(--line);border-radius:6px;padding:18px}
+  .mock-sale .h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .mock-sale .h b{font-size:13px}
+  .mock-sale .h small{color:var(--ink-3);font-size:11.5px;font-family:var(--mono)}
+  .empty-cart{padding:32px;text-align:center;color:var(--ink-3);font-size:12.5px;border:1px dashed var(--line);border-radius:5px}
+  .empty-cart b{display:block;color:var(--ink-2);font-size:13.5px;margin-bottom:4px}
+  .btn{border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:5px;font-size:12.5px;color:var(--ink)}
+  .btn:hover{border-color:#c5beae;background:#fbf9f3}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:var(--accent-2)}
+  .btn.sm{padding:4px 9px;font-size:11.5px}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+  .btn.ghost:hover{background:var(--line-2)}
+
+  .cart-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-2)}
+  .cart-row:last-child{border-bottom:none}
+  .cart-thumb{width:42px;height:42px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:600}
+  .cart-info{flex:1;min-width:0}
+  .cart-info b{font-size:12.5px;font-weight:600}
+  .cart-info small{display:block;color:var(--ink-3);font-size:10.5px;font-family:var(--mono);margin-top:1px}
+  .cart-q{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+  .cart-q button{border:none;background:#fbf9f3;padding:4px 9px;color:var(--ink-2);font-size:13px}
+  .cart-q button:hover{background:var(--line-2)}
+  .cart-q input{border:none;width:38px;text-align:center;font:inherit;font-family:var(--mono);font-weight:600;background:#fff;padding:4px 0}
+  .cart-q input:focus{outline:1px solid var(--accent)}
+  .cart-val{font-family:var(--mono);font-weight:600;font-size:12.5px;min-width:75px;text-align:right;font-variant-numeric:tabular-nums}
+  .cart-x{border:none;background:transparent;color:var(--ink-3);width:24px;height:24px;border-radius:5px;font-size:12px}
+  .cart-x:hover{background:var(--line-2);color:var(--ink)}
+
+  .cart-tot{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:6px;border-top:1px solid var(--line);font-weight:600}
+  .cart-tot b{font-size:17px;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+
+  /* MODAL PICKER */
+  .modal-back{position:fixed;inset:0;background:rgba(15,16,20,.5);backdrop-filter:blur(2px);z-index:50}
+  .modal{position:fixed;inset:32px auto auto 50%;transform:translateX(-50%);background:#fff;border-radius:8px;width:920px;max-width:calc(100vw - 64px);height:calc(100vh - 64px);max-height:780px;display:grid;grid-template-rows:auto auto auto 1fr auto;box-shadow:0 24px 60px rgba(15,16,20,.3);z-index:51;overflow:hidden}
+
+  .mh{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line-2)}
+  .mh h2{margin:0;font-size:15px;font-weight:600}
+  .mh small{color:var(--ink-3);font-size:11.5px;font-family:var(--mono)}
+  .mh .x{margin-left:auto;border:none;background:transparent;color:var(--ink-3);width:28px;height:28px;border-radius:5px;font-size:16px}
+  .mh .x:hover{background:var(--line-2);color:var(--ink)}
+
+  .msearch{padding:10px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-2);background:#fbf9f3}
+  .msearch .s{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:7px 12px}
+  .msearch .s input{border:none;outline:none;background:transparent;font:inherit;flex:1;font-size:13.5px}
+  .msearch .s input::placeholder{color:var(--ink-3)}
+  .msearch .s span{color:var(--ink-3);font-size:14px}
+  .view-toggle{display:flex;border:1px solid var(--line);border-radius:5px;overflow:hidden;background:#fff}
+  .view-toggle button{border:none;background:transparent;padding:6px 11px;font-size:11.5px;color:var(--ink-2)}
+  .view-toggle button.active{background:var(--accent);color:#fff;font-weight:600}
+
+  .mcats{display:flex;gap:4px;padding:8px 18px;border-bottom:1px solid var(--line-2);overflow-x:auto;background:#fff}
+  .mcat{border:none;background:transparent;padding:5px 11px;border-radius:99px;font-size:11.5px;color:var(--ink-2);white-space:nowrap;border:1px solid transparent}
+  .mcat:hover{background:var(--line-2)}
+  .mcat.active{background:var(--accent-soft);color:var(--accent);border-color:#c9d6e8;font-weight:600}
+  .mcat .n{margin-left:5px;font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .mcat.active .n{color:var(--accent)}
+
+  .mbody{overflow:auto;padding:14px 18px;background:#fbf9f3}
+  .mbody .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  .mbody .list{display:flex;flex-direction:column;gap:6px}
+
+  /* CARD GRID */
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s}
+  .pcard:hover{border-color:#c9d6e8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(31,58,95,.06)}
+  .pcard .img{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:600;color:#fff;position:relative;letter-spacing:-.02em}
+  .pcard .img .cat-mini{position:absolute;top:6px;left:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:rgba(255,255,255,.85);color:var(--ink);padding:2px 7px;border-radius:99px;line-height:1.5}
+  .pcard .img .pop{position:absolute;bottom:6px;right:6px;background:rgba(15,16,20,.75);color:#fff;font-size:9.5px;padding:2px 6px;border-radius:99px;font-weight:600}
+  .pcard .info{padding:9px 11px 11px;display:flex;flex-direction:column;gap:2px}
+  .pcard .info b{font-size:12.5px;font-weight:600;line-height:1.3;text-wrap:pretty}
+  .pcard .info small{font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
+  .pcard .footer{display:flex;align-items:flex-end;justify-content:space-between;padding:8px 11px;border-top:1px solid var(--line-2);background:#fbf9f3}
+  .pcard .price{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+  .pcard .price small{display:block;font-size:9.5px;color:var(--ink-3);font-family:ui-sans-serif;font-weight:400;letter-spacing:0;margin-top:-1px}
+  .pcard .lead{font-size:10.5px;color:var(--ink-2);text-align:right}
+  .pcard .lead b{display:block;font-weight:600;font-size:11.5px;color:var(--ink)}
+  .pcard.added{border-color:var(--ok);background:#fafff8}
+  .pcard.added::after{content:"✓ adicionado";position:absolute;top:8px;right:8px;background:var(--ok);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase;z-index:2}
+  .pcard{position:relative}
+
+  /* LIST DENSO */
+  .prow{background:#fff;border:1px solid var(--line);border-radius:5px;display:flex;align-items:center;gap:12px;padding:8px 12px 8px 8px;cursor:pointer;transition:border-color .12s}
+  .prow:hover{border-color:#c9d6e8;background:#fbfbf6}
+  .prow .img{width:54px;height:54px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#fff}
+  .prow .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .prow .info b{font-size:13px;font-weight:600}
+  .prow .info small{font-size:10.5px;color:var(--ink-3);font-family:var(--mono)}
+  .prow .info .cat{font-size:10px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-top:2px}
+  .prow .price{font-family:var(--mono);font-size:13.5px;font-weight:700;text-align:right;flex-shrink:0;min-width:90px}
+  .prow .price small{display:block;font-size:10px;color:var(--ink-3);font-family:ui-sans-serif;font-weight:400;margin-top:-1px}
+  .prow .lead{font-size:10.5px;color:var(--ink-2);text-align:center;flex-shrink:0;min-width:50px}
+  .prow .lead b{display:block;font-weight:600;color:var(--ink)}
+  .prow .add{flex-shrink:0}
+  .prow.added{border-color:var(--ok);background:#fafff8}
+  .prow.added .add{background:var(--ok);border-color:var(--ok);color:#fff}
+
+  .mbody .empty{padding:50px;text-align:center;color:var(--ink-3);font-size:13px}
+  .mbody .empty b{display:block;color:var(--ink-2);font-size:14px;margin-bottom:5px}
+
+  .mfoot{display:flex;align-items:center;gap:10px;padding:12px 18px;border-top:1px solid var(--line-2);background:#fbf9f3}
+  .mfoot .summary{flex:1;font-size:12.5px;color:var(--ink-2)}
+  .mfoot .summary b{color:var(--ink);font-weight:600}
+  .mfoot .summary .v{font-family:var(--mono);font-weight:700;color:var(--ink);margin-left:6px}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <h1>Product Picker — embutido na venda</h1>
+  <p>Modal central · placeholders coloridos por categoria · 2 modos (grid balcão / lista densa). Clique em <b>+ Adicionar item</b> abaixo pra abrir.</p>
+
+  <div class="mock-sale">
+    <div class="h"><b>Venda V-7834</b> <small>· rascunho · cliente: Vitrine Pizzas</small></div>
+    <div id="cart"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn primary" onclick="openPicker()">+ Adicionar item</button>
+      <button class="btn ghost">Aplicar desconto</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+// ─── catálogo mock ───
+const CAT_COLORS = {
+  "Comunicação Visual": "#c97a3a",
+  "Vestuário":          "#3a4a5e",
+  "Impressão Digital":  "#1f5a8a",
+  "Brindes":            "#7a3a5e",
+  "Acabamento":         "#4a6a3a",
+  "Adesivos":           "#a85a1f",
+};
+const PRODUCTS = [
+  { id:"PROD-018", name:"Banner lona 380gr",            cat:"Comunicação Visual", unit:"m²",     price:55, lead:"2 dias",   pop:73, ic:"BL" },
+  { id:"PROD-022", name:"Adesivo vinil recortado",      cat:"Adesivos",           unit:"m²",     price:42, lead:"1 dia",    pop:81, ic:"AV" },
+  { id:"PROD-031", name:"Camiseta básica algodão",      cat:"Vestuário",          unit:"un",     price:35, lead:"3 dias",   pop:62, ic:"CT" },
+  { id:"PROD-014", name:"Cartão visita 9×5 250g",       cat:"Impressão Digital",  unit:"milheiro",price:120,lead:"24 h",    pop:88, ic:"CV" },
+  { id:"PROD-007", name:"Folder A4 dobrado 4×4",        cat:"Impressão Digital",  unit:"un",     price:0.85,lead:"24 h",   pop:55, ic:"FD" },
+  { id:"PROD-045", name:"Caneca cerâmica branca 325ml", cat:"Brindes",            unit:"un",     price:18, lead:"2 dias",   pop:45, ic:"CN" },
+  { id:"PROD-052", name:"Faixa lona 1×3m",              cat:"Comunicação Visual", unit:"un",     price:90, lead:"2 dias",   pop:38, ic:"FX" },
+  { id:"PROD-061", name:"Plotagem PVC 3mm",             cat:"Comunicação Visual", unit:"m²",     price:140,lead:"3 dias",   pop:42, ic:"PV" },
+  { id:"PROD-009", name:"Adesivo perfurado vitrine",    cat:"Adesivos",           unit:"m²",     price:75, lead:"2 dias",   pop:51, ic:"AP" },
+  { id:"PROD-038", name:"Camiseta poliéster sublim.",   cat:"Vestuário",          unit:"un",     price:48, lead:"4 dias",   pop:33, ic:"CP" },
+  { id:"PROD-047", name:"Chaveiro acrílico 4×4cm",      cat:"Brindes",            unit:"un",     price:6,  lead:"2 dias",   pop:29, ic:"CH" },
+  { id:"PROD-076", name:"Laminação fosca/brilho",       cat:"Acabamento",         unit:"m²",     price:25, lead:"+ 1 dia",  pop:35, ic:"LM" },
+];
+const fmt = (n) => "R$ " + Number(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+// ─── carrinho ───
+let cart = []; // {id, qty}
+function renderCart(){
+  const el = document.getElementById("cart");
+  if (!cart.length){
+    el.innerHTML = `<div class="empty-cart"><b>Nenhum item adicionado</b><span>Clique em "+ Adicionar item" pra começar</span></div>`;
+    return;
+  }
+  let total = 0;
+  el.innerHTML = cart.map((it, i) => {
+    const p = PRODUCTS.find(x => x.id === it.id);
+    const sub = p.price * it.qty; total += sub;
+    return `
+      <div class="cart-row">
+        <div class="cart-thumb" style="background:${CAT_COLORS[p.cat]}">${p.ic}</div>
+        <div class="cart-info"><b>${p.name}</b><small>${p.id} · ${fmt(p.price)}/${p.unit}</small></div>
+        <div class="cart-q">
+          <button onclick="setQty(${i}, ${it.qty-1})">−</button>
+          <input value="${it.qty}" onchange="setQty(${i}, parseFloat(this.value)||1)"/>
+          <button onclick="setQty(${i}, ${it.qty+1})">+</button>
+        </div>
+        <div class="cart-val">${fmt(sub)}</div>
+        <button class="cart-x" onclick="removeItem(${i})" title="Remover">✕</button>
+      </div>`;
+  }).join("") + `
+    <div class="cart-tot"><span>Total</span><b>${fmt(total)}</b></div>`;
+}
+function setQty(i, q){ cart[i].qty = Math.max(1, q); renderCart(); }
+function removeItem(i){ cart.splice(i,1); renderCart(); }
+function addItem(p){
+  const ex = cart.find(c => c.id === p.id);
+  if (ex) ex.qty++; else cart.push({ id:p.id, qty:1 });
+  renderCart(); renderPicker();
+}
+
+// ─── picker modal ───
+let pickerOpen = false;
+let view = "grid"; // grid | list
+let cat  = "all";
+let q    = "";
+
+function openPicker(){ pickerOpen = true; renderPicker(); document.querySelector(".msearch input")?.focus(); }
+function closePicker(){ pickerOpen = false; renderPicker(); }
+
+function renderPicker(){
+  const root = document.getElementById("modal-root");
+  if (!pickerOpen){ root.innerHTML = ""; return; }
+
+  const cats = ["all", ...new Set(PRODUCTS.map(p => p.cat))];
+  const counts = Object.fromEntries(cats.map(c => [c, c==="all" ? PRODUCTS.length : PRODUCTS.filter(p => p.cat===c).length]));
+
+  let filtered = PRODUCTS;
+  if (cat !== "all") filtered = filtered.filter(p => p.cat === cat);
+  if (q.trim()){
+    const qq = q.toLowerCase();
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(qq) || p.id.toLowerCase().includes(qq) || p.cat.toLowerCase().includes(qq));
+  }
+  // ordena por popularidade
+  filtered = [...filtered].sort((a,b) => b.pop - a.pop);
+
+  const inCart = (id) => cart.find(c => c.id === id);
+
+  const cardsHTML = filtered.map(p => {
+    const added = !!inCart(p.id);
+    return `
+      <div class="pcard ${added?"added":""}" onclick="addItem(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+        <div class="img" style="background:${CAT_COLORS[p.cat]}">
+          <span class="cat-mini">${p.cat.split(' ')[0]}</span>
+          ${p.ic}
+          <span class="pop">${p.pop}% pop</span>
+        </div>
+        <div class="info">
+          <b>${p.name}</b>
+          <small>${p.id}</small>
+        </div>
+        <div class="footer">
+          <div class="price">${fmt(p.price)}<small>/${p.unit}</small></div>
+          <div class="lead"><b>${p.lead}</b><span>prazo</span></div>
+        </div>
+      </div>`;
+  }).join("");
+
+  const rowsHTML = filtered.map(p => {
+    const added = !!inCart(p.id);
+    return `
+      <div class="prow ${added?"added":""}" onclick="addItem(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+        <div class="img" style="background:${CAT_COLORS[p.cat]}">${p.ic}</div>
+        <div class="info">
+          <b>${p.name}</b>
+          <small>${p.id} · ${p.pop}% pop</small>
+          <span class="cat">${p.cat}</span>
+        </div>
+        <div class="lead"><b>${p.lead}</b><span>prazo</span></div>
+        <div class="price">${fmt(p.price)}<small>/${p.unit}</small></div>
+        <button class="btn sm add">${added?"Adicionar +":"Adicionar"}</button>
+      </div>`;
+  }).join("");
+
+  const cartCount = cart.reduce((a,c) => a+c.qty, 0);
+  const cartTot = cart.reduce((a,c) => a + c.qty * PRODUCTS.find(p => p.id===c.id).price, 0);
+
+  root.innerHTML = `
+    <div class="modal-back" onclick="closePicker()"></div>
+    <div class="modal" role="dialog">
+      <div class="mh">
+        <h2>Adicionar produto à venda</h2>
+        <small>V-7834</small>
+        <button class="x" onclick="closePicker()">✕</button>
+      </div>
+      <div class="msearch">
+        <div class="s">
+          <span>⌕</span>
+          <input placeholder="Buscar por nome, código ou categoria..." value="${q.replace(/"/g,'&quot;')}" oninput="q=this.value;renderPicker()" autofocus/>
+        </div>
+        <div class="view-toggle">
+          <button class="${view==='grid'?'active':''}" onclick="view='grid';renderPicker()">▦ Balcão</button>
+          <button class="${view==='list'?'active':''}" onclick="view='list';renderPicker()">≡ Densa</button>
+        </div>
+      </div>
+      <div class="mcats">
+        ${cats.map(c => `
+          <button class="mcat ${cat===c?'active':''}" onclick="cat='${c}';renderPicker()">
+            ${c==='all' ? 'Todas' : c}<span class="n">${counts[c]}</span>
+          </button>`).join("")}
+      </div>
+      <div class="mbody">
+        ${filtered.length ? `<div class="${view==='grid'?'grid':'list'}">${view==='grid' ? cardsHTML : rowsHTML}</div>` : `
+          <div class="empty"><b>Nenhum produto bate</b>Ajuste a busca ou troque a categoria.</div>`}
+      </div>
+      <div class="mfoot">
+        <div class="summary">
+          ${cartCount ? `<b>${cartCount}</b> item${cartCount>1?'s':''} adicionado${cartCount>1?'s':''} <span class="v">${fmt(cartTot)}</span>` : `Selecione produtos · clique adiciona, clique novamente soma quantidade`}
+        </div>
+        <button class="btn ghost" onclick="closePicker()">Continuar adicionando</button>
+        <button class="btn primary" onclick="closePicker()">Concluir e voltar à venda</button>
+      </div>
+    </div>`;
+}
+
+renderCart();
+// abre por default pra demonstrar
+openPicker();
+
+// Esc fecha
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePicker(); });
+</script>
+</body>
+</html>

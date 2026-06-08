@@ -1,0 +1,37 @@
+[
+  {
+    "NOME_TABELA": "EMPRESA",
+    "CODEMPRESA": "1",
+    "CNPJCPF": "10.609.954/0001-50",
+    "RAZAOSOCIAL": "JAIR UMBELINA VARGAS ME",
+    "NOMEFANTASIA": "VARGAS MOTOS",
+    "INSCRESTADUAL": "1234567890",
+    "INSCMUNICIPAL": "",
+    "ENDERECO": "RUA EXEMPLO 123",
+    "BAIRRO": "CENTRO",
+    "CIDADE": "CURITIBA",
+    "UF": "PR",
+    "CEP": "80000-000",
+    "TELEFONE": "4133333333",
+    "EMAIL": "contato@vargas.com",
+    "DT_ALTERACAO": "2026-04-24 11:00:00"
+  },
+  {
+    "NOME_TABELA": "LICENCIAMENTO",
+    "HD": "F0A24779",
+    "DESCRICAO": "BOOK-GV80BF5507",
+    "SISTEMA": "WR Comercial",
+    "PROCESSADOR": "Intel Core i7",
+    "MEMORIA": "16GB",
+    "SISTEMA_OPERACIONAL": "Windows 11 Pro",
+    "IP_INTERNO": "192.168.0.10",
+    "PASTA_INSTALACAO": "C:\\WR Comercial",
+    "VERSAO_EXE": "2026.1.1.6",
+    "VERSAO_BANCO": "2026.1.0",
+    "SERIAL": "",
+    "CONTRA_SENHA": "",
+    "CAMINHO_BANCO": "C:\\WR Comercial\\Data\\banco.fdb",
+    "GERA_MENSALIDADE": "S",
+    "PAF": "N"
+  }
+]

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Admin/FeatureFlags/Show
+path: resources/js/Pages/Admin/FeatureFlags/Show.tsx
+archetype: config
+persona: wagner
+nota: 66
+nivel: "Developing"
+baseline_anterior: 66   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe de flag com mata-switch e CRUD de rule biz via useForm; bom error-recovery por confirm, mas <select> nativo, cores cruas e zero charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe usa Select do DS + Alert tokenizado"
+    fix: "Trocar <select> nativo por @/Components/ui/select e bg-red-100 por Alert variant; criar charter"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Vercel usa modal de confirmacao com input de typed-confirm pra acao destrutiva"
+    fix: "Substituir window.confirm do mata-switch por Dialog com double-confirm visual"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear evita emoji 🟢🔴 inline, usa Badge com dot"
+    fix: "Trocar emojis de status por Badge/Circle tokenizado"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

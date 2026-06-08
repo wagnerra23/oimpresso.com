@@ -1,0 +1,30 @@
+{
+    "name": "wr2/ponto",
+    "description": "Módulo de Ponto Eletrônico (Portaria 671/2021) para UltimatePOS 6 + Essentials.",
+    "authors": [
+        {
+            "name": "WR2 Sistemas",
+            "email": "contato@wr2.com.br"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\Ponto\\Providers\\PontoServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Ponto\\": ""
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "spatie/laravel-permission": "^6.0",
+        "spatie/laravel-activitylog": "^4.0",
+        "maatwebsite/excel": "^3.1",
+        "barryvdh/laravel-dompdf": "^2.0"
+    }
+}

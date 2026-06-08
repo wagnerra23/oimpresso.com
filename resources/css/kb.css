@@ -1,0 +1,184 @@
+/* ─────────────────────────────────────────────────────────────────
+ * kb.css — KB Unificado (port consolidado de prototipo-ui/prototipos/kb/kb-page.css)
+ *
+ * Tokens canon: hue 240 (PROJETOS) pra KB. Variáveis OKLCH do shell.
+ * Charter: Index.v2.tsx, ADR 0149 (proposal).
+ *
+ * Cobre apenas o que Tailwind 4 NÃO resolve bem:
+ *   - Grid tri-pane responsivo com breakpoints duros
+ *   - Keyboard hint <kbd> styling consistente
+ *   - Frescor pill states
+ *   - Print mode (futuro KBPrintSOP ONDA 3)
+ * ───────────────────────────────────────────────────────────────── */
+
+/* ── Container principal ─── */
+.kb-page-v2 {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ── Tri-pane grid ─── */
+.kb-tri {
+  display: grid;
+  grid-template-columns: 240px 380px 1fr;
+  gap: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  background: var(--background, hsl(0 0% 100%));
+  overflow: hidden;
+}
+
+@media (max-width: 1500px) {
+  .kb-tri {
+    grid-template-columns: 220px 360px 1fr;
+  }
+}
+
+/* Larissa balcão (ONDA 6+) — densidade alta */
+@media (max-width: 1280px) {
+  .kb-tri {
+    grid-template-columns: 200px 320px 1fr;
+  }
+}
+
+/* Tablet — sidebar colapsa */
+@media (max-width: 1024px) {
+  .kb-tri {
+    grid-template-columns: 1fr;
+  }
+  .kb-tri .kb-side,
+  .kb-tri .kb-list {
+    display: none;
+  }
+  .kb-tri[data-mobile-view='cats'] .kb-side {
+    display: flex;
+  }
+  .kb-tri[data-mobile-view='list'] .kb-list {
+    display: flex;
+  }
+  .kb-tri[data-mobile-view='reader'] .kb-reader {
+    display: flex;
+  }
+  .kb-tri[data-mobile-view='cats'] .kb-reader,
+  .kb-tri[data-mobile-view='list'] .kb-reader {
+    display: none;
+  }
+}
+
+/* ── <kbd> consistente ─── */
+.kb-kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  font-family: var(
+    --font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    'IBM Plex Mono',
+    Menlo,
+    Consolas,
+    monospace
+  );
+  font-size: 9.5px;
+  font-weight: 600;
+  background: hsl(var(--muted, 0 0% 96%));
+  color: hsl(var(--muted-foreground, 0 0% 40%));
+  border: 1px solid hsl(var(--border, 0 0% 90%));
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+/* ── kbLinkifyText link visual ─── */
+.kb-link {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  font-family: var(
+    --font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    'IBM Plex Mono',
+    Menlo,
+    Consolas,
+    monospace
+  );
+  font-size: 0.9em;
+  color: oklch(0.5 0.13 240);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: color 0.1s;
+}
+
+.kb-link:hover {
+  color: oklch(0.4 0.16 240);
+  text-decoration-style: solid;
+}
+
+.kb-link:focus-visible {
+  outline: 2px solid oklch(0.55 0.13 240);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Body do artigo prose-like ─── */
+.kb-art-body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+  max-width: 78ch;
+}
+
+/* ── Scrollbar custom no leitor ─── */
+.kb-reader-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.kb-reader-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kb-reader-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 5px;
+}
+.kb-reader-scroll::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.7 0.05 240);
+}
+
+/* ── Print mode (ONDA 3 KBPrintSOP) ─── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .kb-print-sheet,
+  .kb-print-sheet * {
+    visibility: visible;
+  }
+  .kb-print-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .kb-no-print {
+    display: none !important;
+  }
+}
+
+/* ── Sidebar empty hint ─── */
+.kb-side[role='complementary']:focus-within {
+  outline: none;
+}
+
+/* ── focus visible em buttons interactives ─── */
+.kb-page-v2 [role='button']:focus-visible,
+.kb-page-v2 button:focus-visible {
+  outline: 2px solid oklch(0.55 0.13 240);
+  outline-offset: 1px;
+}

@@ -1,0 +1,48 @@
+# Scorecard Auditoria — meta-módulo governança transversal (ADR 0156 + ADR 0127).
+
+module: "Auditoria"
+slug: "auditoria"
+type: "meta"
+fsm_n_a: true
+fsm_n_a_reason: "Entries activity_log são append-only (event-sourced) + revert cria nova entry. Não há entity com transição multi-stage."
+last_grade: 72
+last_grade_at: "2026-05-16T00:00:00-03:00"
+target_score: 90
+bucket: "Bom"
+
+dimensions:
+  D1_models:        { weight: 30, target: 30, current: 30 }
+  D2_pest:          { weight: 20, target: 20, current: 16 }  # +4 Wave 23 (AuditEntryReversibilityTest)
+  D3_charter:       { weight: 10, target: 10, current: 6  }  # +4 Wave 23 (Audit/Index.charter.md)
+  D4_architecture:  { weight: 15, target: 15, current: 15 }
+  D5_lgpd:          { weight: 8,  target: 8,  current: 5  }  # +3 Wave 23 (pii_leak_in_activity_log enforce)
+  D6_performance:   { weight: 10, target: 10, current: 10 }  # Inertia::defer aplicado
+  D7_security:      { weight: 5,  target: 5,  current: 5  }
+  D8_observability: { weight: 2,  target: 2,  current: 2  }
+
+ownership:
+  primary: "wagner"
+  secondary: ["felipe"]
+
+adrs_referenciadas:
+  - 0093  # Multi-tenant Tier 0
+  - 0094  # Constituição v2
+  - 0101  # Tests biz=1
+  - 0127  # Modules/Auditoria UI + undo (mãe)
+  - 0156  # Scorecards YAML
+
+capacidades:
+  - "AuditEntryService list/find/normalizeFilters"
+  - "RevertService whitelist UNREVERTIBLE 5 categorias"
+  - "Bulk revert ≤50 ids + reason"
+  - "AuditNote (auditoria_audit_notes)"
+  - "Inertia::defer activities + activity"
+  - "OTel spans auditoria.entries.*"
+  - "PiiRedactor no revert_reason"
+
+unrevertibles:
+  - "Marcacao (Portaria MTP 671/2021)"
+  - "NfeTransaction (cstat 100/101/135 SEFAZ)"
+  - "TituloBaixa (asaas-paid)"
+  - "OS (NFSe emitida)"
+  - "Transaction (payment posterior)"

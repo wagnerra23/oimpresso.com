@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Auditoria/Index
+path: resources/js/Pages/Auditoria/Index.tsx
+archetype: list
+persona: wagner
+nota: 57
+nivel: "Developing"
+baseline_anterior: 57   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Log de atividades legivel mas Developing: cores sky/zinc cruas, filtros sem UI, sem Deferred/skeleton nem header canon."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 (zero sky/zinc cru)"
+    fix: "hover:bg-sky-50, text-sky-700, badges bg-emerald/sky/amber-100 crus; migrar pra tokens semanticos"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Datadog logs (filtros por log/causer/periodo na UI)"
+    fix: "Filters existe no payload mas sem UI de filtro — so badge readonly; add barra de filtros"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Linear (Deferred + skeleton)"
+    fix: "Sem Inertia::defer nem skeleton; lista grande bloqueia paint — adicionar Deferred"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

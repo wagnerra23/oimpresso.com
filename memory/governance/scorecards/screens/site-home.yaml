@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Site/Home
+path: resources/js/Pages/Site/Home.tsx
+archetype: dashboard
+persona: misto
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Landing marketing composicional com Inertia::defer per-prop, CTA final em bg-primary roxo e componentes Site reusados; perde so por tipos any e fallbacks que piscam."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "tipagem estrita"
+    fix: "Props page/testimonials/faqs/statistics tipadas como any/any[]; definir interfaces reais do CMS"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Stripe landing: secoes com IDs/anchor nav"
+    fix: "Composicao linear de secoes sem ancoras/nav interna; ok pra landing curta, revisar se crescer"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Linear: skeleton fiel por secao"
+    fix: "Deferred per-prop bom, mas fallbacks renderizam componente com null (pode piscar copy hardcoded vs DB)"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

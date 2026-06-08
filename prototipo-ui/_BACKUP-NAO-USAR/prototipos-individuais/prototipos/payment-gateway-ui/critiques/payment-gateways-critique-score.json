@@ -1,0 +1,78 @@
+{
+  "tela": "Settings/PaymentGateways/Index",
+  "artifact": "../../../pg-payment-gateways-page.jsx",
+  "f0_brief": "../../../prototipo-ui-patch/COWORK_NOTES.amendment-paymentgateway-batch.md",
+  "adr": "0144-paymentgateway-extracao-camada-cobranca",
+  "persona": "Wagner",
+  "gate_target": 80,
+  "score": 78,
+  "verdict": "needs_refator (1 round, margem 2pts)",
+  "first_impression": "Tela nova bem-estruturada — Settings sem barulho. 3 KPIs + alerta mTLS + tabela + drawer 4 tabs + cards 5 drivers. Wizard 3 steps Novo gateway é clean. Botão Voltar pra Cobrança no header é bom (cross-tela). Mas 2 problemas estruturais: (1) tabela top + cards drivers bottom mostram a MESMA info de drivers em dois lugares — confuso (qual é a fonte?); (2) Toggle 'ativo' inline na tabela sem confirm é perigoso pra Trust L3 (1 click derruba cobrança em prod).",
+
+  "strengths": [
+    "Botão Voltar no header pra cross-navegar Cobrança ↔ Gateways",
+    "Alerta mTLS BCB 47d expiração — Trust L3 fail-fast preview",
+    "Drawer 4 tabs canônicas (Identificação/Credenciais/Webhook/Health) generalizado pra qualquer driver",
+    "Campos dinâmicos por driver (mTLS Inter vs api_key Asaas vs CNPJ homologado BCB) — sem campos vazios",
+    "Wizard 3 steps com cards de driver explicando capability (chips tipos + cred técnica)",
+    "Reveal/Edit secret pattern (masked + Editar) — UX shadcn-grade",
+    "Driver PesaPal com chip 'deprecated' + bloco amber 'Iniciar migração'",
+    "Histórico health 7d com barras verdes/amarelas/vermelhas — visualização Wagner-grade"
+  ],
+
+  "weaknesses_priority": [
+    { "severity": "high",
+      "issue": "Tabela superior lista gateways CONFIGURADOS; cards inferiores listam drivers DISPONÍVEIS. Mas visualmente parecem 'a mesma coisa 2x'. Wagner pergunta: qual a diferença? (anti-pattern: redundância semântica)",
+      "fix": "Cards inferiores viram 'Drivers disponíveis (não configurados)' — filtra pra mostrar SÓ os drivers SEM credencial ativa. Botão '+ Configurar' linka Step 1 do wizard com driver pré-selecionado. Cards configurados desaparecem dos inferiores." },
+
+    { "severity": "high",
+      "issue": "Toggle 'ativo' na tabela sem confirm. Wagner clica errado → cobrança em prod silenciosamente para. Trust L3 exige confirm + audit log de toggle.",
+      "fix": "Toggle abre modal 'Desativar Inter PJ?' com warning 'X cobranças em aberto serão afetadas. Continuar?' + audit log nota campo motivo (opcional)" },
+
+    { "severity": "med",
+      "issue": "KPI 'Cobranças hoje' é navegacional sem onClick — link morto. Wagner espera clicar e ir pra /financeiro/cobranca?emitida_em=today.",
+      "fix": "onClick → PgGotoRoute('cobranca'); ou remover KPI (não é métrica de Settings, é métrica de Cobrança)" },
+
+    { "severity": "med",
+      "issue": "Drawer Gateway tab Health mostra histórico 7d como mock visual sem dados — 'fake confidence'. Briefing canon proíbe gráficos sem dado real.",
+      "fix": "Substituir gráfico mock por tabela vertical 'últimos 5 checks' com timestamp + status + latência (dados reais que vêm do health command)" },
+
+    { "severity": "med",
+      "issue": "Health 'degraded' no BCB (mTLS 47d) não tem severity P0 visual claro. Banner amber 'precisa de atenção' não é proporcional ao impacto (PIX Aut. para sem cert).",
+      "fix": "Banner P0 vermelho quando expira em <30d; amber 30-90d; nenhum >90d. Texto deve dizer 'PIX Automático PARA em 47 dias se não renovar'." },
+
+    { "severity": "low",
+      "issue": "5 gateways hoje, sem busca/filtro. Em 50+ vira ingovernável (multi-tenant SaaS futuro).",
+      "fix": "Filtro por driver (chips topo) + busca por apelido" },
+
+    { "severity": "low",
+      "issue": "Wizard Step 3 'vinculo' mostra checkbox 'Ativar imediatamente' default ON — perigoso pra primeiro gateway de produção.",
+      "fix": "Default OFF + texto 'Recomendamos testar em sandbox antes de ativar production'" }
+  ],
+
+  "dimensions_15": {
+    "A_estrutura": {
+      "1_layout":            { "score": 8, "note": "header + KPIs + alert + tabela + cards drivers + footer ações — fluxo claro" },
+      "2_hierarquia":        { "score": 8, "note": "1 primária (Novo gateway), 2 secundárias (Testar todos + Voltar). Bom." },
+      "3_densidade":         { "score": 7, "note": "tabela densa OK; cards drivers dão respiro — mas redundância visual baixa nota" },
+      "4_iconografia":       { "score": 8, "note": "lucide shield/webhook/zap/refresh consistente" },
+      "5_estados":           { "score": 7, "note": "ok/degraded/down chips; toggle visual ok; falta loading nos testar+rodar health" },
+      "6_atalhos":           { "score": 4, "note": "AUSENTE — Settings precisa de menos atalhos, mas / e Esc obrigatórios" },
+      "7_persistencia":      { "score": 6, "note": "sem localStorage namespace; ordenação tabela não persiste" },
+      "8_componentes_shared":{ "score": 9, "note": "reusa KpiCard, Btn, HealthBadge, DriverChip, Toggle — share-grade" }
+    },
+    "B_estado_arte": {
+      "9_tipo_numerica":     { "score": 8, "note": "latência tabular-nums; timestamps mono" },
+      "10_espacamento_num":  { "score": 9, "note": "p-3/p-4 cards; gap-3 grid drivers" },
+      "11_cores_warm":       { "score": 9, "note": "emerald/amber/rose health; deprecated amber consistente" },
+      "12_microinteracoes":  { "score": 6, "note": "wizard slide entre steps ausente; toggle sem feedback animado" },
+      "13_ref_wagner":       { "score": 7, "note": "deriva de SheetConfigInter mas falta personalidade Wagner-grade (governança)" },
+      "14_benchmark_ext":    { "score": 8, "note": "Stripe Dashboard Settings + Asaas Integrações — referências corretas" },
+      "15_persona_priori":   { "score": 7, "note": "Wagner-only mas a UI não exige Trust L3 awareness (toggle sem confirm é Larissa-grade)" }
+    }
+  },
+
+  "benchmark_comparable": "Stripe Dashboard > Settings > Payments (referência cards + drawer + masked secrets)",
+  "linear_vercel_stripe_test": "Parece feita pelo time da Stripe: PARCIAL. Sim na estrutura, drawer 4 tabs, masked secrets. Não na redundância tabela+cards e toggle sem confirm (Stripe sempre confirma irreversibles).",
+  "kb975_alignment": "7.8/10. Tela nova sem charter ainda — gap esperado. Atalhos teclado + persistência são P2."
+}
