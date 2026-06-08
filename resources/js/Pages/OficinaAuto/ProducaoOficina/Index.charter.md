@@ -3,7 +3,7 @@ page: /oficina-auto/producao
 component: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-02"
+last_validated: "2026-06-08"
 parent_module: OficinaAuto
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
@@ -13,8 +13,9 @@ related_adrs:
   - 0171-oficinaauto-ativacao-piloto-martinho-faseada
   - 0192-auto-faturar-os-venda-jobsheet-observer
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
+  - 0253-primitivos-layout
 tier: A
-charter_version: 3
+charter_version: 4
 ---
 
 # Page Charter — /oficina-auto/producao (Produção / Kanban da Oficina)
@@ -23,9 +24,11 @@ charter_version: 3
 > **Personas:** Larissa (balcão, 1280px) · mecânico (tablet) · Wagner (governança).
 > **Referência travada (design):** Shopmonkey (calma/polish) × Tekmetric (densidade/fluxo) × Linear (kanban) × Stripe Tax (split fiscal invisível). Nota [W] do design: **9.5**.
 >
-> **charter_version 3 (2026-06-02):** backfill de design [CC] que **trava o conceito** (drawer + modelo). Versão 2 (2026-05-26) pré-data a trava do drawer e a decisão de modelo abaixo. Co-vive com o Decision Register irmão [`Index.decisoes.md`](Index.decisoes.md) (o que está em movimento) e os casos de uso [`Index.casos.md`](Index.casos.md) (comportamento durável + aceite).
+> **charter_version 4 (2026-06-08):** convergência F3 da **camada visível** caçamba→reparo landada ([PR #2417](https://github.com/wagnerra23/oimpresso.com/pull/2417)) + recomposição nos primitivos de layout ([ADR 0253](../../../../../memory/decisions/0253-primitivos-layout.md)). Versão 3 (2026-06-02) travou o conceito (drawer + modelo). Co-vive com o Decision Register irmão [`Index.decisoes.md`](Index.decisoes.md) (o que está em movimento) e os casos de uso [`Index.casos.md`](Index.casos.md) (comportamento durável + aceite).
 >
-> ⚠️ **Divergência conhecida (dívida F3):** o código de produção hoje espelha o protótipo **caçamba** antigo (colunas `disponivel/locada/aguardando/manutencao/pronta`, vocabulário sub-vertical 4 mecânica pesada — Martinho biz=164 LIVE prod, [ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)). A **verdade de design** é o modelo **(A) reparo** (ver decisão abaixo). Convergir é tarefa **F3** — não regredir o existente até lá.
+> ✅ **Convergência parcial (camada visível) — PR #2417:** a UI default já é **reparo** (colunas Recepção/Diagnóstico/Aguardando peças/Em execução/Pronto p/ retirar · KPIs · vocabulário · "Nova OS"). As **keys/status FSM** (`disponivel/locada/aguardando/manutencao/pronta`) e o DB `cacamba_locacao` do **Martinho biz=164 LIVE prod** ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)) **permanecem intactos** — só a apresentação convergiu.
+>
+> ⏳ **Dívida F3 remanescente (Tier 0):** (1) migração de domínio das keys FSM/seeder/DB (`cacamba_locacao` → `mecanica_pesada_basculante`/reparo) segue pendente, em ADR própria; (2) **filtro funcional por box/elevador** (eixo do reparo) exige campo `recurso` no card + filtro no controller = backend → ADR; (3) Fase 2 (D-04..D-07) entra em PR próprio sobre o modelo já convergido.
 
 ## Mission
 
@@ -36,7 +39,7 @@ Dar à oficina um painel Kanban tempo-real pra o gerente movimentar OS entre est
 > [W] 2026-06-02: **"referência é a A".** Decisão cravada — o kanban segue o modelo de **oficina de reparo automotivo** (boxes/elevadores, mecânico, diagnóstico, ETA, partsStatus). Não é mais default provisório. Opções B/C descartadas.
 
 - Modelo canônico do kanban + drawer = **reparo**. Colunas-alvo: **Recepção → Diagnóstico → Aguardando peças → Em execução → Pronto p/ retirar**.
-- A produção real caçamba (Martinho · biz 164, CNAE 4520) roda hoje colunas `disponivel · locada · aguardando · manutencao · pronta`. **Consequência (A):** a caçamba **sobe** pro nível do protótipo de reparo na F3 — NÃO o contrário. Quando a F3 chegar, `ProducaoOficina/Index` adota colunas/cards/drawer de reparo; locação vira caso particular.
+- A produção real caçamba (Martinho · biz 164, CNAE 4520) roda hoje colunas `disponivel · locada · aguardando · manutencao · pronta`. **Consequência (A):** a caçamba **sobe** pro nível do protótipo de reparo na F3 — NÃO o contrário. _Status 2026-06-08:_ `ProducaoOficina/Index` já adota colunas/KPIs/vocabulário de reparo na **camada visível** (PR #2417); a migração das **keys/cards/DB** e o drawer de domínio reparo seguem como dívida F3 (Tier 0). Locação vira caso particular.
 - [ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) marca a dívida técnica (`cacamba_locacao` legado → `mecanica_pesada_basculante`).
 
 ## 🔒 DRAWER — TRAVADO (canônico · anti-regressão · não redesenhar)
@@ -151,3 +154,4 @@ Ordem canônica das seções do `Drawer`:
 - 2026-06-04 · [CC] sync do handoff de design → repo: charter v2→v3 alinhado ao design travado; Decision Register + casos importados como irmãos. Deltas de código (⬜/💡) permanecem gated por [W] no Register.
 - 2026-06-04 · [CC] implementou (greenlight [W]) **D-09** (drawer §2 Vendas×Oficina via reuso `VendaDerivadaCard`) + **D-01/D-02** (feedback preditivo de arrasto + drawer-on-block + avançar pelo card). tsc/eslint sem erro novo. Mergeado PR #2228.
 - 2026-06-04 · **D-09/D-01/D-02 GRADUADOS ✅.** Veredito visual delegado a [CC] por [W] ("resolva, não é pergunta pra mim") → confirmado via render fiel (`_preview/oficina-veredito.html` + screenshot) + CI visual verde (PR UI Judge + visual-regression). Conferência no app LIVE com dado real = follow-up pós-deploy. Full migração modelo-(A) segue F3.
+- 2026-06-08 · charter_version 4 — **convergência F3 da camada visível caçamba→reparo landada** ([PR #2417](https://github.com/wagnerra23/oimpresso.com/pull/2417), 20/20 checks verdes, merge [W]). Colunas/KPIs/vocabulário/"Nova OS" = reparo; header/KPIs/filtro/grid recompostos nos primitivos ([ADR 0253](../../../../../memory/decisions/0253-primitivos-layout.md)). **Keys FSM + DB `cacamba_locacao` do Martinho intactos** (zero backend). Pills de m³ "Capacidade" removidas. **Dívida F3 remanescente:** migração de domínio das keys (Tier 0, ADR própria) + filtro funcional box/elevador (backend, ADR própria) + Fase 2 D-04..D-07 (PR próprio).
