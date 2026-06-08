@@ -1,6 +1,7 @@
 // Onda Final.E — Tab Reward Points (pontos fidelidade).
 // Condicional business.enable_rp. Mostra saldo + histórico ganhos/resgates.
 
+import { useEffect, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { Gift, ExternalLink } from 'lucide-react';
 
@@ -29,7 +30,10 @@ export interface RewardPointsPayload {
 }
 
 export interface RewardPointsTabProps {
+  /** Modo Inertia (Show.tsx full-page): payload vindo via Inertia::defer. */
   reward_points?: RewardPointsPayload;
+  /** Modo self-fetch (drawer Cliente/Index → OssTab): busca via /cliente/{id}/rewards-json. */
+  contactId?: number;
 }
 
 const formatBRL = (v: number) =>
@@ -42,7 +46,63 @@ const formatDate = (iso: string | null) => {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
 };
 
-export default function RewardPointsTab({ reward_points }: RewardPointsTabProps) {
+export default function RewardPointsTab({ reward_points: rewardProp, contactId }: RewardPointsTabProps) {
+  const [data, setData] = useState<RewardPointsPayload | null>(rewardProp ?? null);
+  const [loading, setLoading] = useState(rewardProp === undefined);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Modo Inertia (Show.tsx): payload veio via prop, não busca.
+    if (rewardProp !== undefined) {
+      setData(rewardProp);
+      setLoading(false);
+      return;
+    }
+    // Modo self-fetch (drawer): sem prop → busca o endpoint JSON.
+    if (!contactId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch(`/cliente/${contactId}/rewards-json`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((j: RewardPointsPayload) => {
+        if (cancelled) return;
+        setData(j);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError('Não foi possível carregar os pontos.');
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [contactId, rewardProp]);
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center text-xs text-muted-foreground" data-testid="rewards-tab-skeleton">
+        Carregando pontos…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-xs text-muted-foreground" data-testid="rewards-tab-error">
+        {error}
+      </div>
+    );
+  }
+
+  const reward_points = data;
   if (!reward_points) {
     return (
       <div className="p-8 text-center text-xs text-muted-foreground" data-testid="rewards-tab-skeleton">

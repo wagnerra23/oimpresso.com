@@ -102,7 +102,9 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
     setLoading(true);
     setError(null);
 
-    fetch(`/contacts/payments/${contactId}`, {
+    // Fix 2026-06-08: endpoint JSON dedicado (/cliente/{id}/payments-json) — o legado
+    // /contacts/payments/{id} devolvia Blade HTML, deixando a aba presa em "Aguardando wiring".
+    fetch(`/cliente/${contactId}/payments-json`, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         Accept: 'application/json',
@@ -111,11 +113,9 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // Endpoint legacy retorna blade HTML — futuro: criar getContactPaymentsJson(). Por agora extrai JSON se vier.
         const ct = res.headers.get('content-type') ?? '';
         if (!ct.includes('application/json')) {
-          // Fallback: backend ainda é blade. Wave A entrega só estrutura; parent wiring fará Inertia::defer.
-          throw new Error('Endpoint legacy retorna HTML — aguardando wiring Inertia::defer no parent.');
+          throw new Error('Resposta inesperada do servidor (esperava JSON).');
         }
         return res.json();
       })
