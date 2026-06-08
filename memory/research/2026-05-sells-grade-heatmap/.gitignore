@@ -1,7 +1,0 @@
-# Protege relatorios com PII bruta (razao social, CNPJ, situacao livre).
-# Apenas versoes *-anonimizada.md sao commitaveis.
-*-COM-NOMES.md
-*.fdb
-*.gbk
-raw-*.json
-raw-*.csv

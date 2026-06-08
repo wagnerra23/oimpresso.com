@@ -1,6 +1,0 @@
-# Gerados — regeneráveis. NÃO versionar (Cowork lê o CONSOLIDADO.md, não os 239 JSONs).
-#   reports/  -> `node score-mechanized.mjs`
-#   CONSOLIDADO.json -> `node consolidate.mjs`
-# CONSOLIDADO.md (placar legível) FICA versionado — é o artefato que o Cowork consome.
-reports/
-CONSOLIDADO.json
