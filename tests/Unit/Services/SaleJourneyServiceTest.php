@@ -5,9 +5,13 @@ declare(strict_types=1);
 use App\Services\SaleJourneyService;
 
 /**
- * Jornada/breadcrumb da venda de oficina (Wagner 2026-06-05). Função pura →
- * roda no lane SQLite do CI. Cobre as duas direções + progressão dos estágios
- * + o gate que protege a ROTA LIVRE (varejo nunca mostra o breadcrumb).
+ * Jornada/breadcrumb READ-ONLY da venda de oficina (Wagner 2026-06-05).
+ *
+ * Fluxo real (ADR 0192): OS nasce na oficina e VIRA venda ao concluir
+ * (source='oficina'). O breadcrumb na venda só indica o estágio pós-oficina —
+ * Oficina → Venda → Faturamento → Entrega — e SÓ pra venda de origem oficina.
+ * Função pura → roda no lane SQLite do CI. Cobre o gate (protege ROTA LIVRE) +
+ * a progressão dos estágios.
  */
 
 function journey(array $state): array
@@ -31,94 +35,67 @@ function stateOf(array $built, string $key): ?string
     return null;
 }
 
-// ─── Gate (ROTA LIVRE protegida) ────────────────────────────────────────────
+// ─── Gate (ROTA LIVRE / balcão protegidos) ──────────────────────────────────
 
 it('varejo SEM OficinaAuto nunca mostra o breadcrumb (ROTA LIVRE intocada)', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => false]);
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => false]);
     expect($b['show'])->toBeFalse();
 });
 
-it('venda de oficina SEM veículo/OS e não-oficina-first não mostra (sem ruído)', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true,
-        'has_vehicle' => false, 'has_os' => false]);
+it('venda de BALCÃO (mesmo com OficinaAuto e veículo) NÃO mostra — não é origem oficina', function () {
+    $b = journey(['source' => 'balcao', 'has_oficina_auto' => true, 'has_vehicle' => true, 'has_os' => true]);
     expect($b['show'])->toBeFalse();
 });
 
-it('venda com veículo + OficinaAuto mostra o breadcrumb', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true, 'has_vehicle' => true]);
+it('venda de ORIGEM oficina + OficinaAuto mostra o breadcrumb', function () {
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true]);
     expect($b['show'])->toBeTrue();
 });
 
-// ─── Direção balcão (orçamento-first) ───────────────────────────────────────
+// ─── Jornada fixa pós-oficina ───────────────────────────────────────────────
 
-it('balcão segue Orçamento → Venda → Oficina → Faturamento → Entrega', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true, 'has_vehicle' => true]);
-    expect(keys($b))->toBe(['orcamento', 'venda', 'oficina', 'faturamento', 'entrega']);
-    expect($b['direction'])->toBe('balcao');
+it('a jornada é Oficina → Venda → Faturamento → Entrega (sempre oficina-first)', function () {
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true]);
+    expect(keys($b))->toBe(['oficina', 'venda', 'faturamento', 'entrega']);
+    expect($b['direction'])->toBe('oficina');
 });
 
-it('orçamento (status quotation) marca Orçamento como atual', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'quotation', 'has_oficina_auto' => true, 'has_vehicle' => true]);
-    expect($b['current'])->toBe('orcamento');
-    expect(stateOf($b, 'orcamento'))->toBe('current');
-    expect(stateOf($b, 'venda'))->toBe('todo');
-});
-
-it('venda final (sem OS ainda) marca Venda como atual e Orçamento como done', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true, 'has_vehicle' => true]);
+it('venda recém-gerada (sem NFe/entrega) está em Venda, com Oficina já concluída', function () {
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true]);
     expect($b['current'])->toBe('venda');
-    expect(stateOf($b, 'orcamento'))->toBe('done');
-    expect(stateOf($b, 'venda'))->toBe('current');
-    expect(stateOf($b, 'oficina'))->toBe('todo');
-});
-
-it('enviada pra oficina (OS criada) marca Oficina como atual', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true,
-        'has_vehicle' => true, 'has_os' => true]);
-    expect($b['current'])->toBe('oficina');
-    expect(stateOf($b, 'venda'))->toBe('done');
-    expect(stateOf($b, 'oficina'))->toBe('current');
-});
-
-it('faturada (NFe) marca Faturamento como atual', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true,
-        'has_vehicle' => true, 'has_os' => true, 'invoiced' => true]);
-    expect($b['current'])->toBe('faturamento');
     expect(stateOf($b, 'oficina'))->toBe('done');
+    expect(stateOf($b, 'venda'))->toBe('current');
+    expect(stateOf($b, 'faturamento'))->toBe('todo');
+});
+
+it('faturada (NFe autorizada) marca Faturamento como atual', function () {
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true, 'invoiced' => true]);
+    expect($b['current'])->toBe('faturamento');
+    expect(stateOf($b, 'venda'))->toBe('done');
 });
 
 it('entregue marca Entrega como atual (último nó)', function () {
-    $b = journey(['source' => 'balcao', 'status' => 'final', 'has_oficina_auto' => true,
-        'has_vehicle' => true, 'has_os' => true, 'invoiced' => true, 'delivered' => true]);
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true, 'invoiced' => true, 'delivered' => true]);
     expect($b['current'])->toBe('entrega');
     expect(stateOf($b, 'faturamento'))->toBe('done');
     expect(stateOf($b, 'entrega'))->toBe('current');
 });
 
-// ─── Direção oficina-first (OS → venda, ADR 0192) ───────────────────────────
+// ─── os_ref (link de origem) ────────────────────────────────────────────────
 
-it('oficina-first segue Oficina → Venda → Faturamento → Entrega (sem Orçamento)', function () {
-    $b = journey(['source' => 'oficina', 'status' => 'final', 'has_oficina_auto' => true, 'has_os' => true]);
-    expect(keys($b))->toBe(['oficina', 'venda', 'faturamento', 'entrega']);
-    expect($b['direction'])->toBe('oficina');
-    expect($b['show'])->toBeTrue();
+it('propaga o os_ref (origem da OS) quando presente', function () {
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true, 'os_ref' => 'SO-42']);
+    expect($b['os_ref'])->toBe('SO-42');
 });
 
-it('oficina-first com venda final marca Venda como atual', function () {
-    $b = journey(['source' => 'oficina', 'status' => 'final', 'has_oficina_auto' => true, 'has_os' => true]);
-    expect($b['current'])->toBe('venda');
-    expect(stateOf($b, 'oficina'))->toBe('done');
-});
-
-it('oficina-first faturada+entregue chega em Entrega', function () {
-    $b = journey(['source' => 'oficina', 'status' => 'final', 'has_oficina_auto' => true,
-        'has_os' => true, 'invoiced' => true, 'delivered' => true]);
-    expect($b['current'])->toBe('entrega');
+it('os_ref vazio vira null', function () {
+    $b = journey(['source' => 'oficina', 'has_oficina_auto' => true, 'os_ref' => '']);
+    expect($b['os_ref'])->toBeNull();
 });
 
 // ─── Robustez ───────────────────────────────────────────────────────────────
 
-it('estado vazio não explode (defaults seguros)', function () {
+it('estado vazio não explode (defaults seguros, show=false)', function () {
     $b = journey([]);
     expect($b['show'])->toBeFalse();
     expect($b['nodes'])->not->toBeEmpty();
