@@ -13,7 +13,7 @@ prs: [2416, 2430, 2431, 2432]
 
 Wagner pediu fechar o loop da migração WR Comercial: assinatura → cobrança → financeiro. Os 38k títulos históricos já vieram em 07/jun, mas **assinaturas (rb_subscriptions) e cobranças (PaymentGateway) ficaram vazias**. Esta sessão criou as 108 assinaturas mensais + 1.311 invoices + 2.533 cobranças refletindo o ano 2026 inteiro + importou 1.222 boletos a receber vivos do Firebird.
 
-**MRR projetado**: R$ 37.111,26/mês × 12 = **R$ 445.335/ano**.
+**Volume financeiro**: redacted Tier 0 — só Wagner/Eliana têm acesso (regra LGPD/governança 2026-06-08).
 
 ## Escopo confirmado por Wagner
 
@@ -104,16 +104,12 @@ fin_jul_dez_2026:           648   ← 108 × 6 meses
 cobrancas_total:            2533
 cobrancas_invoice:          1311  ← origem_type=invoice
 cobrancas_boleto_firebird:  1222  ← origem_type=avulsa
-cobrancas_valor_total_brl:  R$ 743.109,84
+cobrancas_valor_total_brl:  [redacted Tier 0]
 
-=== INVOICES POR MÊS 2026 ===
-jan: 110 × R$ 40.080,31
-fev: 112 × R$ 39.514,85
-mar: 111 × R$ 39.378,11
-abr: 111 × R$ 39.323,73
-mai: 110 × R$ 37.327,79
-jun: 109 × R$ 37.222,55
-jul-dez: 108 × R$ 37.111,26 (idênticos pq esteira mensal)
+=== INVOICES POR MÊS 2026 (qtd só) ===
+jan: 110  · fev: 112  · mar: 111  · abr: 111
+mai: 110  · jun: 109  · jul-dez: 108 cada mês (esteira mensal)
+[valores redacted Tier 0]
 
 === Anti-regressão biz=4 (Larissa ROTA LIVRE) ===
 subs_biz4: 0   ✅ NÃO tocado

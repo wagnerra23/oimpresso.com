@@ -17,13 +17,13 @@ Fechei o loop da migração WR Comercial→oimpresso biz=1 que estava no handoff
 
 **Cadeia recorrência agora completa** Subscription → rb_invoice → Cobranca + fin_titulo.
 
-**MRR consolidado**: 108 ativos × R$ 37.111,26/mês × 12 = **R$ 445.335/ano** projetado.
+**Volume financeiro**: redacted Tier 0 (regra Wagner 2026-06-08 — só Wagner/Eliana têm acesso a valores via git; Felipe/Maiara/Luiz veem só escopo/contagens).
 
 ## Estado MCP no momento do fechamento
 
 ```
 cycles-active: CYCLE-08 Receita Onda A (2026-05-31 → 2026-06-28, 29% decorrido)
-  Goal MRR novo carteira: R$ 2.000 alvo (R$ 445.335/ano gerado = sinaliza)
+  Goal MRR novo carteira: [valor redacted] — esta sessão sinaliza progresso
   Goal carteira Onda A 5 clientes em migração-demo: WR2 conta 1
   Outros 4 goals (pricing público, ComVis V1, Martinho, Agrosys) sem mudança nesta sessão
 
@@ -63,8 +63,8 @@ subs biz=1: 161 (108 ativas anchor=2025-12-30)
 rb_invoices: 4.037 total (1.311 em 2026: 663 jan-jun originais + 648 jul-dez novos)
 fin_titulos jul-dez/2026: 648
 cobrancas: 2.533 (1.311 invoice + 1.222 avulsa Firebird)
-valor cobrancas total: R$ 743.109,84
-MRR mensal: R$ 37.111,26
+valor cobrancas total: [redacted Tier 0]
+MRR mensal: [redacted Tier 0]
 
 Anti-regressão biz=4 ROTA LIVRE Larissa: 0 subs / 0 cobrancas ✅ NÃO tocado
 ```
