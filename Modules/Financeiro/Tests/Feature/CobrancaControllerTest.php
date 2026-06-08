@@ -6,6 +6,7 @@ use App\Business;
 use App\Role;
 use App\User;
 use Modules\Financeiro\Models\ContaBancaria;
+use Modules\Financeiro\Models\Titulo;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Permission\Models\Permission;
@@ -321,4 +322,71 @@ it('POST /cobranca/cartao exige card_last4 com exatos 4 dígitos', function () {
             'card_exp_year' => '2028',
         ])
         ->assertSessionHasErrors(['card_last4']);
+});
+
+// ─── US-FIN-054 — deep-link "Cobrar" do Unificado pré-preenche o wizard ───────
+
+it('prefill: ?cobrar_titulo=ID popula prefill com dados do título a receber', function () {
+    $titulo = Titulo::create([
+        'business_id' => $this->business->id,
+        'numero' => 'T-PREFILL-001',
+        'tipo' => 'receber',
+        'status' => 'aberto',
+        'cliente_descricao' => 'CLIENTE PREFILL TESTE',
+        'valor_total' => 500.00,
+        'valor_aberto' => 500.00,
+        'moeda' => 'BRL',
+        'emissao' => now()->subDay()->toDateString(),
+        'vencimento' => now()->addDays(10)->toDateString(),
+        'competencia_mes' => now()->format('Y-m'),
+        'origem' => 'manual',
+        'created_by' => $this->user->id,
+    ]);
+
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->get('/financeiro/cobranca?cobrar_titulo='.$titulo->id)
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('prefill.titulo_id', $titulo->id)
+            ->where('prefill.tipo', 'boleto')
+            ->where('prefill.contato', 'CLIENTE PREFILL TESTE')
+            ->where('prefill.valor', '500,00')
+            ->where('prefill.vencimento', $titulo->vencimento->toDateString())
+        );
+});
+
+it('prefill: sem cobrar_titulo → prefill null', function () {
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->get('/financeiro/cobranca')
+        ->assertInertia(fn ($page) => $page->where('prefill', null));
+});
+
+it('prefill Tier 0 IRREVOGÁVEL: título de outro business não vaza (prefill null)', function () {
+    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+
+    $tituloOutro = Titulo::withoutGlobalScopes()->create([
+        'business_id' => $otherBiz->id,
+        'numero' => 'T-CROSS-TENANT',
+        'tipo' => 'receber',
+        'status' => 'aberto',
+        'cliente_descricao' => 'NEVER SHOULD APPEAR PREFILL',
+        'valor_total' => 99999.00,
+        'valor_aberto' => 99999.00,
+        'moeda' => 'BRL',
+        'emissao' => now()->subDay()->toDateString(),
+        'vencimento' => now()->addDays(10)->toDateString(),
+        'competencia_mes' => now()->format('Y-m'),
+        'origem' => 'manual',
+        'created_by' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
+        ->get('/financeiro/cobranca?cobrar_titulo='.$tituloOutro->id);
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page->where('prefill', null));
+    expect($response->getContent())->not->toContain('NEVER SHOULD APPEAR PREFILL');
 });

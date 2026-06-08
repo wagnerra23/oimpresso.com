@@ -9,7 +9,7 @@ import {
 import { Btn, Field, GatewayTipoChip } from './atoms';
 import {
   brl, cn, fmtDate, DRIVERS,
-  type CobrancaTipo, type Account, type GatewayKey,
+  type CobrancaTipo, type Account, type GatewayKey, type PrefillCobranca,
 } from '../_lib/cobranca-shared';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -18,6 +18,8 @@ import {
 interface Props {
   accounts: Account[];
   onClose: () => void;
+  /** US-FIN-054 — pré-preenchimento vindo do deep-link "Cobrar" do Unificado. */
+  prefill?: PrefillCobranca | null;
 }
 
 const TIPOS_DISPONIVEIS: Array<{ id: CobrancaTipo; label: string; desc: string; icon: ReactNode; highlight?: boolean }> = [
@@ -29,12 +31,13 @@ const TIPOS_DISPONIVEIS: Array<{ id: CobrancaTipo; label: string; desc: string; 
 
 const STEPS = ['Tipo', 'Pagador', 'Valores', 'Revisar'];
 
-export default function SheetNovaCobranca({ accounts, onClose }: Props) {
+export default function SheetNovaCobranca({ accounts, onClose, prefill = null }: Props) {
   const [step, setStep] = useState(1);
-  const [tipo, setTipo] = useState<CobrancaTipo | null>(null);
-  const [contato, setContato] = useState('');
-  const [valor, setValor] = useState('');
+  const [tipo, setTipo] = useState<CobrancaTipo | null>(prefill?.tipo ?? null);
+  const [contato, setContato] = useState(prefill?.contato ?? '');
+  const [valor, setValor] = useState(prefill?.valor ?? '');
   const [vencimento, setVencimento] = useState(() => {
+    if (prefill?.vencimento) return prefill.vencimento;
     const d = new Date();
     d.setDate(d.getDate() + 7);
     return d.toISOString().slice(0, 10);
@@ -72,6 +75,7 @@ export default function SheetNovaCobranca({ accounts, onClose }: Props) {
       vencimento,
       account_id: account,
       payer_name: contato || null,
+      descricao: prefill?.descricao ?? undefined,
       idempotency_key: typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(36).slice(2)}`,

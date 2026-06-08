@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\ContaBancaria;
+use Modules\Financeiro\Models\Titulo;
 use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Exceptions\CardDeclinedException;
@@ -84,11 +85,60 @@ class CobrancaController extends Controller
             'accounts' => $this->listarContasDestino($businessId),
             'gateways' => $query->gateways($businessId),
 
+            // US-FIN-054 — deep-link "Cobrar" do Financeiro Unificado pré-abre o
+            // wizard com os dados do título a receber. null quando ausente.
+            'prefill' => $this->resolvePrefill($request, $businessId),
+
             // Defer props caras (Inertia::defer DEFAULT — RUNBOOK pattern)
             'cobrancas' => Inertia::defer(fn () => $query->listar($businessId, $filtros)),
             'kpis' => Inertia::defer(fn () => $query->kpis($businessId, $hoje)),
             'funil' => Inertia::defer(fn () => $query->funil($businessId, $hoje)),
         ]);
+    }
+
+    /**
+     * US-FIN-054 — Pré-preenchimento do wizard a partir de um título a receber.
+     *
+     * Disparado pelo deep-link `/financeiro/cobranca?cobrar_titulo=ID` (botão
+     * "Cobrar" do drawer do Financeiro Unificado). Resolve server-side (fonte
+     * única) e devolve shape pro wizard pré-abrir já preenchido.
+     *
+     * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): título filtrado por
+     * business_id + global scope do Model. Só `tipo=receber` (boleto é cobrança
+     * de quem nos deve). Retorna null se ausente/não encontrado/cross-tenant.
+     *
+     * Escopo Onda A: pré-preenche tipo/contato/valor/vencimento. O elo de
+     * mão dupla título↔cobrança (origem_id pra baixa automática ao pagar) é
+     * Onda B — ver ADR de integração título↔cobrança (US-FIN-054 §relacionado).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function resolvePrefill(Request $request, int $businessId): ?array
+    {
+        $tituloId = $request->integer('cobrar_titulo');
+        if ($tituloId <= 0) {
+            return null;
+        }
+
+        $titulo = Titulo::query()
+            ->where('business_id', $businessId)
+            ->where('tipo', 'receber')
+            ->find($tituloId);
+
+        if (! $titulo) {
+            return null;
+        }
+
+        $valorAberto = (float) ($titulo->valor_aberto ?: $titulo->valor_total);
+
+        return [
+            'titulo_id' => $titulo->id,
+            'tipo' => 'boleto',
+            'contato' => $titulo->cliente_descricao,
+            'valor' => number_format($valorAberto, 2, ',', ''),
+            'vencimento' => optional($titulo->vencimento)->toDateString(),
+            'descricao' => 'Título a receber #'.($titulo->numero ?: $titulo->id),
+        ];
     }
 
     /**

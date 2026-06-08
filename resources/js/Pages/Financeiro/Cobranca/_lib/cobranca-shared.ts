@@ -6,6 +6,21 @@ import { toast } from 'sonner';
 export type CobrancaTipo = 'boleto' | 'pix_cob' | 'pix_cobv' | 'pix_recv' | 'card';
 export type CobrancaStatus = 'emitida' | 'paga' | 'vencida' | 'cancelada' | 'erro' | 'pending';
 export type OrigemType = 'sale' | 'invoice' | 'subscription_license';
+
+/**
+ * Pré-preenchimento do wizard "Nova cobrança" vindo de deep-link
+ * (?cobrar_titulo=ID a partir do drawer do Financeiro Unificado — US-FIN-054).
+ * Resolvido server-side em CobrancaController::resolvePrefill (Tier 0 scoped).
+ */
+export interface PrefillCobranca {
+  titulo_id: number;
+  tipo: CobrancaTipo;
+  contato: string | null;
+  valor: string | null;       // BR string "500,00" — wizard parseia com replace(',', '.')
+  vencimento: string | null;  // Y-m-d
+  descricao: string | null;
+}
+
 export type GatewayKey =
   // API REST drivers
   | 'inter' | 'c6' | 'asaas' | 'bcb_pix' | 'pagarme'

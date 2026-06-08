@@ -11,7 +11,7 @@ related_us: [US-PG-F3-COBRANCA]
 related_prototype: prototipo Cowork "payment-gateway-ui" F1+F1.5 aprovado [W] 2026-05-19 (Chat Cowork live)
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 96/93/93)
 tier: A
-charter_version: 1
+charter_version: 2
 supersedes: /financeiro/boletos
 ---
 
@@ -37,6 +37,7 @@ Eliana acompanha **toda a cobrança gerada (boleto · pix · pix automático · 
 - **Tabela densa** (text-[12.5px] tabular-nums): vencimento + relativo · Pagador + doc mascarado + origem · chip composto gateway+tipo · Conta destino · nosso nº · valor · status badge com ícone lucide · ações row hover
 - **Drawer detalhe condicional por tipo** (520px): boleto (linha digitável + cód barras) · PIX cob (BR Code + QR fake) · PIX recv (mandato BCB) · Cartão (last4 + 3DS)
 - **Sheet "Nova cobrança"** wizard 4 steps (Tipo → Pagador → Valores → Revisar) — dispara `PaymentGatewayContract::emitirX()` (Onda 4 backend)
+- **Deep-link "Cobrar" (US-FIN-054)**: `?cobrar_titulo=ID` (vindo do drawer do Financeiro Unificado) pré-abre o wizard já preenchido (tipo=boleto + contato + valor + vencimento do título). Resolvido server-side via `CobrancaController::resolvePrefill` (Tier 0 scoped). Substitui o botão "Cobrar" quebrado que apontava pra rota 404 `/cobranca/recorrente/nova`
 - **Sheet "Remessa/Retorno"** CNAB 240 — C6 driver (Onda 5 backlog)
 - **AI panel ✦ "Resumir mês"** — narrativa MRR + inadimplência + distribuição gateway + insights
 - **Cheat sheet** overlay `?` — atalhos teclado documentados
@@ -122,6 +123,9 @@ it('filtra por status/tipo/gateway/account/origem via querystring')
 it('Tier 0 IRREVOGÁVEL: Cobranca respeita business_id global scope')
 it('redirect 301 /financeiro/boletos → /financeiro/cobranca')
 it('não dispara mutação em GET /cobranca (read-only puro)')
+it('prefill: ?cobrar_titulo=ID popula prefill com dados do título a receber')
+it('prefill: sem cobrar_titulo → prefill null')
+it('prefill Tier 0: título de outro business não vaza (prefill null)')
 ```
 
 ---
@@ -153,3 +157,4 @@ it('não dispara mutação em GET /cobranca (read-only puro)')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-19 | Wagner [W] + Claude Code [CL] | F3 PaymentGateway UI Tela 1 entregue — substitui /financeiro/boletos. Escopo expandido pix+card+pix_recv+subscription_license. Cowork F1.5 score 96/100. Bundle CSS canon `cowork-payment-gateway-bundle.css` aplicado inteiro (regra Wagner 2026-05-18). |
+| 2026-06-08 | Wagner [W] + Claude Code [CL] | US-FIN-054 — deep-link `?cobrar_titulo=ID` pré-abre o wizard preenchido a partir do título a receber do Financeiro Unificado. Conserta o botão "Cobrar" que apontava pra rota 404 `/cobranca/recorrente/nova` (morto desde 2026-05-28). +3 Pest GUARDs (incl. cross-tenant Tier 0). |

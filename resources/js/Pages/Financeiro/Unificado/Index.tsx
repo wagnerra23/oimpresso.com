@@ -1924,7 +1924,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     </Button>
                   )}
                   {selected.kind === 'receivable' && (selected.status !== 'recebido') && (
-                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/cobranca/recorrente/nova?titulo=${selected.id}`)}>
+                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/financeiro/cobranca?cobrar_titulo=${selected.id}`)}>
                       <span aria-hidden>✉</span>
                       <span className="ml-1">Cobrar</span>
                     </Button>

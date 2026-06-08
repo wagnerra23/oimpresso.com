@@ -37,7 +37,7 @@ import {
   brl, brlNoSign, cn, fmtDate, fmtDateRel, piiMask, lsGet, lsSet, copiar,
   DRIVERS, TIPOS, ORIGENS,
   type Cobranca, type Account, type Gateway, type CobrancaKpis, type CobrancaFunil,
-  type CobrancaFiltros, type OrigemType,
+  type CobrancaFiltros, type OrigemType, type PrefillCobranca,
 } from './_lib/cobranca-shared';
 
 interface Props {
@@ -49,6 +49,7 @@ interface Props {
   filtros: CobrancaFiltros;
   isSaasBusiness: boolean;
   today: string;
+  prefill?: PrefillCobranca | null;
 }
 
 const KPI_FALLBACK: CobrancaKpis = {
@@ -68,7 +69,7 @@ const FUNIL_FALLBACK: CobrancaFunil = {
   mandatos_cancelados: 0,
 };
 
-function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], filtros, isSaasBusiness, today }: Props) {
+function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], filtros, isSaasBusiness, today, prefill = null }: Props) {
   // Hotfix Inertia::defer first paint: kpis/funil podem ser undefined até resolver.
   kpis = kpis ?? KPI_FALLBACK;
   funil = funil ?? FUNIL_FALLBACK;
@@ -87,7 +88,8 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
   const setOrigemFilterLs = useCallback((v: string) => { setOrigemFilter(v); lsSet('origem', v); }, []);
 
   const [drawer, setDrawer] = useState<Cobranca | null>(null);
-  const [novaOpen, setNovaOpen] = useState(false);
+  // US-FIN-054 — deep-link ?cobrar_titulo=ID pré-abre o wizard já preenchido.
+  const [novaOpen, setNovaOpen] = useState(Boolean(prefill));
   const [remessaOpen, setRemessaOpen] = useState(false);
   const [cheatOpen, setCheatOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
@@ -428,7 +430,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       </div>
 
       {drawer && <DrawerCobranca cob={drawer} accounts={accounts} today={today} onClose={() => setDrawer(null)} />}
-      {novaOpen && <SheetNovaCobranca accounts={accounts} onClose={() => setNovaOpen(false)} />}
+      {novaOpen && <SheetNovaCobranca accounts={accounts} prefill={prefill} onClose={() => setNovaOpen(false)} />}
       {remessaOpen && <SheetRemessaRetorno onClose={() => setRemessaOpen(false)} />}
       {cheatOpen && <CheatSheet onClose={() => setCheatOpen(false)} />}
       {aiOpen && <AiResumoMes kpis={kpis} cobs={cobrancas ?? []} onClose={() => setAiOpen(false)} />}
