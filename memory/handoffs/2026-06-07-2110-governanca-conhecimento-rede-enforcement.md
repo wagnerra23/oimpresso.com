@@ -4,6 +4,7 @@ date: 2026-06-07
 time: 21:10 BRT
 owner: Wagner [W]
 slug: governanca-conhecimento-rede-enforcement
+tldr: "Sessão longa Wagner: de 'quais telas arrumar?' (46→5 reais, baseline stale) à faxina de memória (purga memory/claude + 10 segredos vazados + cron desativado), processo de ADR estado-da-arte (Log4brains — ADR 0256/0257/0258, índice gerado + supersede atômico + erratas), 5 gaps fechados com teste físico (detector+gate+meta-teste), e a rede pendurada: umbrella Governance Gate + ruleset 17379186 ativo (required + break-glass admin logado). Pendente Wagner: rotacionar 9 segredos."
 prs: [2378, 2379, 2380, 2381, 2382, 2383, 2385, 2386, 2387, 2388, 2390, 2391, 2392, 2393, 2394, 2395, 2396, 2397, 2398, 2399, 2400, 2401, 2402]
 related_adrs: [0256-knowledge-survival-meia-vida-catraca-sentinela, 0257-adr-status-lifecycle-kind-modelo-canonico, 0258-processo-adr-estado-arte-indice-gerado-supersede-atomico, 0061-conhecimento-canonico-git-mcp-zero-automem]
 ---
