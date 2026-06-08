@@ -1580,38 +1580,52 @@ Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débi
 - Modules/NfeBrasil/Services/CertificadoService.php canon a reusar
 - Sicoob docs: TecnoSpeed/SoftenSistemas/ACBr confirmam ICP-Brasil A1 (busca Wagner 2026-05-27)
 
----
+### US-FIN-053 · WR2 backfill recorrência 2026 biz=1 — assinaturas+invoices+cobranças+boletos Firebird COMPLETO
 
-### US-FIN-052 · CI lane MySQL pra suíte Financeiro via schema:dump baseline (cobertura real)
-
-> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: eliana · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
-**Problema (falsa cobertura):** nenhum job de CI roda `Modules/Financeiro/Tests`. `ci.yml` ("Pest (Unit)") roda só `tests/Feature/Form` + 1 arquivo em SQLite `:memory:` sem migrate; `modules-pest.yml` (matrix Arquivos/ComVis/Fiscal/NfeBrasil/Repair/Vestuario — Financeiro fora) idem SQLite-sem-migrate. Os ~40 testes Feature do Financeiro dependem de schema completo + business semeado (`Business::first()`) → dariam **skip** nesses jobs. Resultado: a suíte existe no repo mas o CI nunca executa (anti-padrão "Modules/X/Tests sem rodar").
+Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpresso biz=1 que estava no handoff de 07/jun (aquele trouxe 38k títulos históricos, deixou assinatura+cobrança vazias).
 
-**Evidência empírica (2026-06-04, lane experimental financeiro-pest.yml):** `migrate --force` do-zero no MySQL roda centenas de migrations mas **as migrations NUNCA foram validadas pra fresh-install no MySQL** — só funcionam no DB dogfood incremental. Falha em cadeia:
-- (1) FK `fin_contas_bancarias → rb_boleto_credentials` criado antes da tabela alvo (ordenação cross-módulo, mesmo timestamp). **JÁ CORRIGIDO** com guard `Schema::hasTable` (PR #2211).
-- (2) FK `nfse_eventos_cancelamento → nfse_emissoes` com **tipos de coluna incompatíveis** (erro 3780). Pendente.
-- (3+) provavelmente mais (whack-a-mole — cada fix revela o próximo; não iterável local sem MySQL).
+## Resultado prod biz=1
 
-**Solução definitiva (recomendada): `php artisan schema:dump`** num DB com schema OK (CT100 staging `oimpresso-staging-db` / dogfood) → commitar `database/schema/mysql-schema.sql`. O `migrate` passa a carregar o schema final num passo só (sem replay de migration ordenada) → zero erros de ordenação/tipo. Daí o lane MySQL roda a suíte de verdade. **Bônus:** destrava CI test real pra TODOS os módulos (não só Financeiro) + remove o INFRA-ONLY mode do `visual-regression.yml`.
+| Camada | Antes | Depois |
+|---|---|---|
+| Subscriptions ativas (billing_anchor=2025-12-30) | 0 | **108** |
+| rb_invoices 2026 (jan-dez) | 663 | **1.311** |
+| fin_titulos jul-dez/2026 | 0 | **648** |
+| cobrancas biz=1 (1.311 invoice + 1.222 boletos Firebird avulsa) | 0 | **2.533** |
+| Valor total cobranças | — | **R$ [redacted Tier 0]** |
+| MRR projetado (108 × R$ [redacted Tier 0] × 12) | — | **R$ [redacted Tier 0]/ano** |
+| biz=4 Larissa ROTA LIVRE (anti-regressão) | 0/0 | **0/0 ✅** |
 
-**Passos:**
-1. CT100: `docker exec oimpresso-staging php artisan schema:dump --database=mysql` → gera `database/schema/mysql-schema.sql`.
-2. Commitar o dump (+ revisar PII/segredos — schema-only, sem dados).
-3. Recriar lane `financeiro-pest.yml` (MySQL service + migrate[carrega dump] + DummyBusinessSeeder + seed conta bancária mínima pra C1/S1 não skiparem + `pest Modules/Financeiro/Tests`).
-4. Verde → expandir matrix de cobertura módulo a módulo.
+## Comando entregue
 
-**Já entregue no PR #2211:** 5 guards `UnificadoCanceladoArquivadosKpiTest` (C1 cancelado-não-soma · A1/A2 Arquivados · D1 KPI-segue-data_campo · S1 shape WR) + guard FK RB (#1 acima) + linha de referência no charter. Os testes estão escritos e corretos; falta só este lane pra serem executados em CI (hoje só rodam no CT100 manual).
+`app/Console/Commands/Wr2BackfillRecurring2026Command.php` artisan idempotente com 5 etapas. Dry-run default. Hardcoded biz=1.
 
-**Alternativa descartada:** corrigir migration-a-migration (whack-a-mole, perde FKs em fresh-install, não iterável sem MySQL local).
+## PRs família (5 PRs --admin)
 
-**RESOLVIDO (2026-06-04) — lane verde end-to-end.** Caminho que funcionou:
-1. **Schema baseline** `database/schema/mysql-schema.sql` regenerado via `schema:dump` da **prod (Hostinger MariaDB)** — agora com as **820 migrations registradas** (o anterior na main tinha só 1 → CI rodava tudo do zero e batia nos bugs fresh-install). MySQL 8 do CI carrega o dump MariaDB sem problema (`/*M!*/` é ignorado pelo MySQL).
-2. **migrate limpo** — carrega o baseline + roda só as migrations posteriores. Zero skip-loop, zero FK-off no migrate.
-3. **Seed mínimo correto** — `DummyBusinessSeeder` é stale (insere `contacts.first_name`/colunas removidas do schema real). Substituído por seed inline: currency → user → business (resolvendo FK circular `business.owner_id ↔ users.business_id`) + 1 `ContaBancaria` (FK `account_id` relaxada na sessão do seed, pois usa account fake).
-4. **Pest no MySQL real** — `DB_CONNECTION=mysql` exportado no step sobrepõe o `DB_CONNECTION=sqlite` que o `phpunit.xml` força (a raiz da falsa cobertura — sem isso os testes SKIPam em sqlite vazio). + stub Vite manifest pro render Inertia.
+- #2416 base + script Firebird (CI verde 10/10)
+- #2430 fix shell_exec Hostinger
+- #2431 fix FK created_by
+- #2432 fix origem_type ENUM (sale,invoice,subscription_license,avulsa)
+- #2433 session+handoff docs
 
-**Prova:** `Tests: 5 passed (67 assertions)` contra MySQL real semeado (run CI 2026-06-04). Lane `financeiro-pest.yml` roda em todo PR que toca `Modules/Financeiro/**` ou o baseline.
+## Refs
 
-**Próximo (expandir cobertura):** rodar a suíte Financeiro inteira no lane exige corrigir o mesmo padrão de cleanup (`forceDelete`→DB raw) nos ~40 testes legados que nunca rodaram (243 passam / 138 falham hoje — ver retrato acima). E os seeders stale (`DummyBusinessSeeder`) merecem atualização vs schema atual.
+- Session: memory/sessions/2026-06-08-wr2-backfill-recurring-2026.md
+- Handoff: memory/handoffs/2026-06-08-1800-wr2-backfill-recurring-2026.md
+- Parent: memory/handoffs/2026-06-07-0220-migracao-financeira-wr2-completa-fix-kpi-juros.md
+- Backup defensivo Hostinger: storage/backups/wr2-backfill-2026/pre-execucao-20260608-134412.sql
+
+## Pendente pra Wagner
+
+- Ligar PaymentGatewayCredential Inter/Sicoob biz=1 pra emitir as 2.533 cobranças
+- Cron rb:generate-invoices gera 2027 em jan/2027 (next_due=2026-07-XX dos 108 ativos)
+
+## Pegadinhas catalogadas
+
+1. cobrancas.origem_type ENUM estrito — rb_invoice/fin_titulo viram empty silenciosamente. Conferir COLUMN_TYPE antes de seed em massa.
+2. fin_titulos.created_by FK NOT NULL users(id).
+3. uk_titulo_origem UNIQUE impede fix em massa do bug 07/jun (3.372 fin_titulos origem_id=subscription_id em vez de invoice.id).
+4. shell_exec disabled Hostinger shared (fopen/fgets nativo).
