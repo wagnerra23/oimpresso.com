@@ -396,9 +396,13 @@ class Wr2BackfillRecurring2026Command extends Command
         $tam = filesize($sqlPath);
         $this->line("  SQL pré-gerado: {$sqlPath} ({$tam} bytes)");
 
-        // Conta linhas INSERT
-        $cmd = sprintf('grep -c "^INSERT" %s', escapeshellarg($sqlPath));
-        $linhas = (int) trim(shell_exec($cmd) ?: '0');
+        // Conta linhas INSERT (sem shell_exec — Hostinger bloqueia)
+        $linhas = 0;
+        $fh = fopen($sqlPath, 'r');
+        while (($line = fgets($fh)) !== false) {
+            if (str_starts_with($line, 'INSERT')) $linhas++;
+        }
+        fclose($fh);
         $this->line("  INSERTs no SQL: {$linhas}");
 
         if (!$execute) {
