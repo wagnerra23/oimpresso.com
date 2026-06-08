@@ -3248,20 +3248,35 @@ class ContactController extends Controller
      */
     private function buildContactPaymentsPayload(int $contactId, int $businessId): array
     {
-        $parents = TransactionPayment::where('transaction_payments.business_id', $businessId)
+        // Estilo idêntico aos defers de transactions/sales/subscriptions: leftJoin +
+        // colunas aliased em vez de relações Eloquent (Larastan não resolve as relations
+        // transaction()/child_payments() de App\TransactionPayment).
+        $parents = TransactionPayment::leftJoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            ->where('transaction_payments.business_id', $businessId)
             ->where('transaction_payments.payment_for', $contactId)
             ->whereNull('transaction_payments.parent_id')
-            ->with(['transaction', 'child_payments.transaction'])
             ->orderByDesc('transaction_payments.paid_on')
-            ->get();
+            ->get($this->contactPaymentColumns());
+
+        if ($parents->isEmpty()) {
+            return [];
+        }
+
+        // Pagamentos filhos (split / devolução) — agrupados pelo parent_id pra indentar no front.
+        $children = TransactionPayment::leftJoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            ->where('transaction_payments.business_id', $businessId)
+            ->whereIn('transaction_payments.parent_id', $parents->pluck('id')->all())
+            ->orderByDesc('transaction_payments.paid_on')
+            ->get($this->contactPaymentColumns())
+            ->groupBy('parent_id');
 
         $rows = [];
 
         foreach ($parents as $payment) {
             $rows[] = $this->mapContactPaymentRow($payment, null);
 
-            foreach ($payment->child_payments as $child) {
-                $rows[] = $this->mapContactPaymentRow($child, $payment->payment_ref_no);
+            foreach ($children->get($payment->id, collect()) as $child) {
+                $rows[] = $this->mapContactPaymentRow($child, (string) ($payment->payment_ref_no ?? ''));
             }
         }
 
@@ -3269,27 +3284,50 @@ class ContactController extends Controller
     }
 
     /**
-     * Mapeia uma TransactionPayment pro shape PaymentRow do front.
+     * Colunas do select dos pagamentos (pai + filhas), com aliases da transação.
+     *
+     * @return array<int, string>
+     */
+    private function contactPaymentColumns(): array
+    {
+        return [
+            'transaction_payments.id',
+            'transaction_payments.amount',
+            'transaction_payments.is_return',
+            'transaction_payments.method',
+            'transaction_payments.paid_on',
+            'transaction_payments.payment_ref_no',
+            'transaction_payments.parent_id',
+            'transaction_payments.cheque_number',
+            'transaction_payments.card_transaction_number',
+            'transaction_payments.bank_account_number',
+            't.invoice_no as invoice_no',
+            't.ref_no as ref_no',
+            't.type as transaction_type',
+            't.id as transaction_id',
+        ];
+    }
+
+    /**
+     * Mapeia uma linha de pagamento pro shape PaymentRow do front.
      * $parentRefNo != null indica pagamento filho (renderiza identado no front).
      *
      * @return array<string, mixed>
      */
     private function mapContactPaymentRow(TransactionPayment $payment, ?string $parentRefNo): array
     {
-        $transaction = $payment->transaction;
-
         return [
             'id' => (int) $payment->id,
-            'paid_on' => optional($payment->paid_on)->toIso8601String(),
+            'paid_on' => $payment->paid_on ? \Carbon\Carbon::parse($payment->paid_on)->toIso8601String() : null,
             'payment_ref_no' => (string) ($payment->payment_ref_no ?? ''),
             'parent_payment_ref_no' => $parentRefNo,
             'amount' => (float) $payment->amount,
             'is_return' => ((int) ($payment->is_return ?? 0)) === 1 ? 1 : 0,
             'method' => (string) ($payment->method ?? 'other'),
-            'invoice_no' => $transaction->invoice_no ?? null,
-            'ref_no' => $transaction->ref_no ?? null,
-            'transaction_id' => $transaction ? (int) $transaction->id : null,
-            'transaction_type' => $transaction->type ?? null,
+            'invoice_no' => $payment->invoice_no ?? null,
+            'ref_no' => $payment->ref_no ?? null,
+            'transaction_id' => $payment->transaction_id !== null ? (int) $payment->transaction_id : null,
+            'transaction_type' => $payment->transaction_type ?? null,
             'cheque_number' => $payment->cheque_number ?? null,
             'card_transaction_number' => $payment->card_transaction_number ?? null,
             'bank_account_number' => $this->maskBankAccount($payment->bank_account_number ?? null),
