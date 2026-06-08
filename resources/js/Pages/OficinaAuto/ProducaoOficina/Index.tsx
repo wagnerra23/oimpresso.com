@@ -1,24 +1,29 @@
 // @memcofre tela=/oficina-auto/producao-oficina module=OficinaAuto
-// Produção · Oficina — Kanban estado dos veículos em produção (V2 RICA — espelha visual-source.html canônico).
-// Espelha 1:1 protótipo Cowork rico:
-//   prototipo-ui/prototipos/producao-oficina/visual-source.html (1213 linhas — fonte canônica visual)
-// 5 colunas FSM: Disponível/Em serviço/Aguardando peça/Em manutenção/Pronto entrega
-// + 6 KPIs ricos + drawer próprio ServiceOrderRichSheet polimórfico.
+// Produção · Oficina — Kanban estado dos veículos em produção.
 //
-// Pós-ADR 0194 (2026-05-26): vocabulário sub-vertical 4 mecânica pesada caminhão
-// basculante CNAE 4520 (Martinho biz=164). Labels visíveis atualizadas; keys FSM
-// canon (`disponivel`/`locada`/`aguardando`/`manutencao`/`pronta`) preservados
-// porque DB cacamba_locacao continua rodando LIVE prod (compat backwards).
+// Convergência F3 caçamba → modelo (A) reparo automotivo (camada VISÍVEL apenas).
+// Gabarito de design: protótipo Cowork `oficina-page.{jsx,css}` (modelo (A), nota [W] 9.5).
+// 5 colunas reparo: Recepção/Diagnóstico/Aguardando peças/Em execução/Pronto p/ retirar.
+// + 6 KPIs (Recepção · Em diagnóstico · Aguardando peças · Em execução · Urgentes · Valor)
+// + drawer próprio ServiceOrderRichSheet polimórfico (TRAVADO — não tocar além de vocab header).
+//
+// ⛔ Trava dura (Martinho biz=164 LIVE prod, ADR 0194): as KEYS FSM canon
+// (`disponivel`/`locada`/`aguardando`/`manutencao`/`pronta`) e o DB `cacamba_locacao`
+// PERMANECEM intactos. A convergência troca só APRESENTAÇÃO (label/vocab/KPIs/filtro);
+// migração de seeder/controller/DB é Tier 0 → ADR própria. Aqui: zero backend.
+//
+// Composição via primitivos de layout (ADR 0253): header/KPIs/filtro recompostos em
+// Box/Stack/Inline/Grid/Text — sem `flex`/`grid` solto novo, sem `.css` de tela.
 //
 // Refs:
 //   - ADR 0137 (OficinaAuto qualificada) — amendado por 0194
-//   - ADR 0194 (correção domínio Martinho — mecânica pesada não locação)
+//   - ADR 0194 (correção domínio Martinho — mecânica pesada não locação; dívida F3)
 //   - ADR 0143 (FSM Pipeline LIVE prod biz=1)
 //   - ADR 0110 (Cockpit V2 — AppShellV2 obrigatório)
+//   - ADR 0253 (primitivos de layout)
 //   - PR #717 lição: useMemo/useCallback nos handlers descendentes (re-render loop)
-//   - ServiceOrderSheet existing (PR #729) — NÃO usado aqui (drawer próprio ServiceOrderRichSheet
-//     embute ServiceOrderFsmActionPanel) — renomeado de CacambaProducaoSheet Wave 2.2 US-OFICINA-027
-// Visual comparison: memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md (V2)
+//   - Charter: Index.charter.md (modelo (A) reparo decidido por [W] 2026-06-02; drawer travado)
+// Visual comparison: memory/requisitos/OficinaAuto/producao-oficina-cacamba-visual-comparison.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
@@ -33,6 +38,7 @@ import { toast } from 'sonner';
 import { Plus, Printer, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import { Box, Stack, Inline, Grid, Text } from '@/Components/layout';
 import CacambaKanbanColumn from './_components/CacambaKanbanColumn';
 import type { CacambaCardData, CacambaStatus } from './_components/CacambaCard';
 import ServiceOrderRichSheet from './_components/ServiceOrderRichSheet';
@@ -74,24 +80,16 @@ interface Props {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-// ADR 0194: labels sub-vertical 4 mecânica pesada caminhão basculante.
-// Keys FSM canon preservados (compat DB cacamba_locacao LIVE prod biz=164).
+// Convergência F3 (modelo (A) reparo): só o LABEL visível muda — as keys/status FSM
+// canon permanecem (compat DB cacamba_locacao LIVE prod biz=164, ADR 0194). Mapa:
+//   disponivel→Recepção · locada→Diagnóstico · aguardando→Aguardando peças ·
+//   manutencao→Em execução · pronta→Pronto p/ retirar.
 const COLUMNS: Array<{ key: keyof KanbanGroups; status: CacambaStatus; label: string }> = [
-  { key: 'disponivel',  status: 'disponivel',  label: 'Disponível' },
-  { key: 'locada',      status: 'locada',      label: 'Em serviço' },
-  { key: 'aguardando',  status: 'aguardando',  label: 'Aguardando peça' },
-  { key: 'manutencao',  status: 'manutencao',  label: 'Em manutenção' },
-  { key: 'pronta',      status: 'pronta',      label: 'Pronto entrega' },
-];
-
-// Filtro capacidade preservado nullable (sub-vertical 3 hipotético — caçamba container
-// pode reaparecer com cliente real). Veículos sub-vertical 4 (caminhão basculante)
-// têm capacity_m3 = null e cairão no filtro "Todas" por padrão.
-const CAPACIDADES: Array<{ key: CapacidadeFilter; label: string }> = [
-  { key: 'all', label: 'Todas' },
-  { key: '3',   label: '3m³' },
-  { key: '5',   label: '5m³' },
-  { key: '7',   label: '7m³' },
+  { key: 'disponivel',  status: 'disponivel',  label: 'Recepção' },
+  { key: 'locada',      status: 'locada',      label: 'Diagnóstico' },
+  { key: 'aguardando',  status: 'aguardando',  label: 'Aguardando peças' },
+  { key: 'manutencao',  status: 'manutencao',  label: 'Em execução' },
+  { key: 'pronta',      status: 'pronta',      label: 'Pronto p/ retirar' },
 ];
 
 const formatBRLCompact = (value: number) =>
@@ -257,10 +255,7 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     const t = setTimeout(() => {
       router.get(
         '/oficina-auto/producao-oficina',
-        {
-          q: searchInput || undefined,
-          capacidade: filters.capacidade === 'all' ? undefined : filters.capacidade,
-        },
+        { q: searchInput || undefined },
         { preserveState: true, preserveScroll: true, replace: true },
       );
     }, 300);
@@ -448,51 +443,52 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     [kanban]
   );
 
-  // 6 KPI cards (espelha visual-source.html linha de 6 cards horizontais)
-  // ADR 0194 vocabulário sub-vertical 4 mecânica pesada caminhão basculante.
+  // 6 KPI cards — modelo (A) reparo (espelha `oficina-page.jsx` → totals).
+  // Labels reparo; valores continuam vindo das mesmas keys FSM canon (compat Martinho).
+  // Tons por token: urgente=destructive · valor=success (resto default).
   const kpiCards = useMemo(
     () => [
       {
-        key: 'total',
-        label: 'Total',
-        value: String(kpis.total),
-        sub: `${kpis.total === 1 ? 'veículo cadastrado' : 'veículos cadastrados'}`,
+        id: 'recepcao',
+        label: 'Recepção',
+        value: String(kpis.disponivel),
+        sub: 'aguardando triagem',
         tone: 'default' as const,
       },
       {
-        key: 'locada',
-        label: 'Em serviço',
+        id: 'diagnostico',
+        label: 'Em diagnóstico',
         value: String(kpis.locada),
-        sub: 'oficina no momento',
+        sub: 'em análise técnica',
         tone: 'default' as const,
       },
       {
-        key: 'aguardando',
-        label: 'Aguardando',
+        id: 'pecas',
+        label: 'Aguardando peças',
         value: String(kpis.aguardando_recolhimento),
-        sub: 'peça',
-        tone: 'amber' as const,
+        sub: 'peça ou aprovação',
+        tone: 'warning' as const,
       },
       {
-        key: 'manutencao',
-        label: 'Em manutenção',
+        id: 'execucao',
+        label: 'Em execução',
         value: String(kpis.manutencao),
-        sub: 'bancada',
+        sub: 'serviço em andamento',
         tone: 'default' as const,
       },
       {
-        key: 'atrasadas',
-        label: 'Atrasadas',
+        id: 'urgentes',
+        label: 'Urgentes',
         value: String(kpis.atrasadas),
         sub: 'prazo crítico',
-        tone: 'rose' as const,
+        tone: 'destructive' as const,
       },
       {
-        key: 'valor',
+        id: 'valor',
         label: 'Valor em curso',
         value: formatBRLCompact(kpis.valor_em_curso),
         sub: 'faturamento previsto',
-        tone: 'emerald' as const,
+        tone: 'success' as const,
       },
     ],
     [kpis]
@@ -507,142 +503,118 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
       parts.push(`${kpis.atrasadas} ${kpis.atrasadas === 1 ? 'atrasada' : 'atrasadas'}`);
     }
     if (kpis.aguardando_recolhimento > 0) {
-      parts.push(`${kpis.aguardando_recolhimento} aguardando peça`);
+      parts.push(`${kpis.aguardando_recolhimento} aguardando peças`);
     }
     return parts;
   }, [kpis]);
 
   return (
     <>
-      <Head title="Produção · Oficina — Mecânica Pesada" />
-      <div className="-m-6 bg-muted min-h-[calc(100vh-3rem)]">
-        {/* ─── Topbar header — h1 + sub + ações ─── */}
-        <header className="bg-white border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-foreground">
-              Produção · Oficina — Mecânica Pesada
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              OS em execução · mecânica e manutenção de caminhão basculante
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-            {/* Toggle Kanban|Lista — Lista navega pra /veiculos por enquanto */}
-            <div
-              className="inline-flex rounded border border-border bg-white overflow-hidden"
-              role="group"
-              aria-label="Visualização"
-            >
-              <button
-                className="px-2.5 py-1 text-xs font-medium bg-foreground text-background inline-flex items-center gap-1"
-                disabled
-                aria-pressed="true"
-              >
-                <LayoutGrid size={12} />
-                Kanban
-              </button>
-              <Link
-                href="/oficina-auto/veiculos"
-                className="px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted inline-flex items-center gap-1"
-              >
-                <ListIcon size={12} />
-                Lista
-              </Link>
-            </div>
-            <Button variant="ghost" size="sm" disabled title="Imprimir fila — V2">
-              <Printer className="mr-1.5 h-4 w-4" />
-              Imprimir fila
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/oficina-auto/veiculos/create">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Novo veículo
-              </Link>
-            </Button>
-          </div>
-        </header>
-
-        {/* ─── 6 KPI cards (grid-cols-6 — espelha visual-source.html) ─── */}
-        <div className="bg-white border-b border-border px-6 py-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {kpiCards.map((kpi) => (
-              <KpiCard key={kpi.key} {...kpi} />
-            ))}
-          </div>
-        </div>
-
-        {/* ─── Filter bar sticky — pills capacidade + busca + KPI inline ─── */}
-        <div className="bg-white border-b border-border px-6 py-3 flex items-center gap-6 sticky top-0 z-10 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-              Capacidade
-            </span>
-            <div className="flex gap-1" role="group" aria-label="Filtro por capacidade">
-              {CAPACIDADES.map((cap) => {
-                const isActive = filters.capacidade === cap.key;
-                return (
-                  <Link
-                    key={cap.key}
-                    href={`/oficina-auto/producao-oficina?${new URLSearchParams({
-                      ...(cap.key !== 'all' ? { capacidade: cap.key } : {}),
-                      ...(searchInput ? { q: searchInput } : {}),
-                    }).toString()}`}
-                    preserveScroll
-                    preserveState
-                    className={
-                      'px-2.5 py-1 text-sm rounded transition-colors ' +
-                      (isActive
-                        ? 'bg-foreground text-background'
-                        : 'bg-muted text-foreground hover:bg-muted/80')
-                    }
-                    aria-pressed={isActive}
-                  >
-                    {cap.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="w-px h-6 bg-border" />
-
-          <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md">
-            <Search size={14} className="text-muted-foreground/60 flex-shrink-0" />
-            <Input
-              type="search"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar OS, veículo ou cliente…"
-              className="h-8 border-border"
-              aria-label="Buscar OS, veículo ou cliente"
-            />
-          </div>
-
-          {/* KPI inline (à direita) */}
-          <div className="ml-auto text-sm text-muted-foreground" aria-live="polite">
-            {kpiSummary.map((part, i) => (
-              <span key={part}>
-                {i > 0 && <span className="mx-1.5 text-muted-foreground/60">·</span>}
-                <span
-                  className={
-                    part.includes('atrasada')
-                      ? 'font-medium text-destructive'
-                      : part.includes('aguardando')
-                        ? 'font-medium text-warning-foreground'
-                        : 'font-medium text-foreground'
-                  }
+      <Head title="Oficina Auto" />
+      <Box bg="muted" className="-m-6 min-h-[calc(100vh-3rem)]">
+        {/* ─── Topbar header — h1 + sub + ações (primitivos ADR 0253) ─── */}
+        <Box asChild bg="card" px={6} py={4} className="border-b border-border">
+          <header>
+            <Inline justify="between" align="start" wrap gap={4}>
+              <Stack gap={1} className="min-w-0">
+                <Text as="h1" size="lg" weight="semibold">
+                  Oficina Auto
+                </Text>
+                <Text as="p" size="xs" tone="muted">
+                  Recepção, diagnóstico, peças, execução e entrega de veículos
+                </Text>
+              </Stack>
+              <Inline gap={2} wrap>
+                {/* Toggle Kanban|Lista — Lista navega pra /veiculos por enquanto */}
+                <div
+                  className="inline-flex rounded border border-border bg-card overflow-hidden"
+                  role="group"
+                  aria-label="Visualização"
                 >
-                  {part}
-                </span>
-              </span>
+                  <button
+                    className="px-2.5 py-1 text-xs font-medium bg-foreground text-background inline-flex items-center gap-1"
+                    disabled
+                    aria-pressed="true"
+                  >
+                    <LayoutGrid size={12} />
+                    Kanban
+                  </button>
+                  <Link
+                    href="/oficina-auto/veiculos"
+                    className="px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted inline-flex items-center gap-1"
+                  >
+                    <ListIcon size={12} />
+                    Lista
+                  </Link>
+                </div>
+                <Button variant="ghost" size="sm" disabled title="Imprimir fila — V2">
+                  <Printer className="mr-1.5 h-4 w-4" />
+                  Imprimir fila
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/oficina-auto/ordens-servico/create">
+                    <Plus className="mr-1.5 h-4 w-4" />
+                    Nova OS
+                  </Link>
+                </Button>
+              </Inline>
+            </Inline>
+          </header>
+        </Box>
+
+        {/* ─── 6 KPI cards — Grid auto-fit reflowa 1280↔1440 sem media-query (ADR 0253) ─── */}
+        <Box bg="card" px={6} py={4} className="border-b border-border">
+          <Grid min="sm" gap={3}>
+            {kpiCards.map(({ id, ...kpi }) => (
+              <KpiCard key={id} {...kpi} />
             ))}
-          </div>
-        </div>
+          </Grid>
+        </Box>
+
+        {/* ─── Filter bar sticky — busca + KPI inline ─── */}
+        <Box bg="card" px={6} py={3} className="border-b border-border sticky top-0 z-10">
+          <Inline gap={6} wrap className="w-full">
+            <Inline gap={2} className="flex-1 min-w-[240px] max-w-md">
+              <Search size={14} className="text-muted-foreground/60 flex-shrink-0" />
+              <Input
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar OS, veículo ou cliente…"
+                className="h-8 border-border"
+                aria-label="Buscar OS, veículo ou cliente"
+              />
+            </Inline>
+
+            {/* KPI inline (à direita) */}
+            <Inline gap={0} className="ml-auto" aria-live="polite">
+              {kpiSummary.map((part, i) => (
+                <span key={part}>
+                  {i > 0 && <span className="mx-1.5 text-muted-foreground/60">·</span>}
+                  <Text
+                    as="span"
+                    size="sm"
+                    weight="medium"
+                    tone={
+                      part.includes('atrasada')
+                        ? 'destructive'
+                        : part.includes('aguardando')
+                          ? 'warning'
+                          : 'default'
+                    }
+                  >
+                    {part}
+                  </Text>
+                </span>
+              ))}
+            </Inline>
+          </Inline>
+        </Box>
 
         {/* ─── Kanban 5 colunas (drag-drop entre colunas) ─── */}
-        <div className="p-6">
+        <Box p={6}>
           <KanbanDndProvider onMove={handleDragMove} evaluateDrop={evaluateDrop}>
-            <div className="grid grid-cols-5 gap-4">
+            <Grid cols={5} gap={4}>
               {columnsData.map((col) => (
                 <CacambaKanbanColumn
                   key={col.key}
@@ -653,10 +625,10 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
                   onCardAdvance={handleCardAdvance}
                 />
               ))}
-            </div>
+            </Grid>
           </KanbanDndProvider>
-        </div>
-      </div>
+        </Box>
+      </Box>
 
       {/* Drawer rico polimórfico (locação CNAE 4581 + manutenção CNAE 4520) — Wave 2.2 US-OFICINA-027
           embute FsmActionPanel reusado · seção PEÇAS & MÃO DE OBRA consome data.items[] */}
@@ -686,50 +658,31 @@ interface KpiCardProps {
   label: string;
   value: string;
   sub: string;
-  tone: 'default' | 'amber' | 'rose' | 'emerald';
+  tone: 'default' | 'warning' | 'destructive' | 'success';
 }
 
+// KpiCard — composto nos primitivos (ADR 0253). Superfície neutra (card branco);
+// o destaque vem do `tone` semântico no valor, não de fundo tingido feito à mão.
 function KpiCard({ label, value, sub, tone }: KpiCardProps) {
-  const toneClasses = {
-    default: {
-      wrapper: 'bg-white border-border',
-      label: 'text-muted-foreground',
-      value: 'text-foreground',
-      sub: 'text-muted-foreground/60',
-    },
-    amber: {
-      wrapper: 'bg-warning/10 border-warning/30',
-      label: 'text-warning-foreground',
-      value: 'text-warning-foreground',
-      sub: 'text-warning',
-    },
-    rose: {
-      wrapper: 'bg-destructive/10 border-destructive/30',
-      label: 'text-destructive',
-      value: 'text-destructive',
-      sub: 'text-destructive',
-    },
-    emerald: {
-      wrapper: 'bg-success/10 border-success/30',
-      label: 'text-success',
-      value: 'text-success',
-      sub: 'text-success',
-    },
-  }[tone];
-
   return (
-    <div
-      className={`rounded-lg border p-3 flex flex-col gap-0.5 ${toneClasses.wrapper}`}
-    >
-      <span
-        className={`text-[10px] font-semibold uppercase tracking-wider ${toneClasses.label}`}
-      >
-        {label}
-      </span>
-      <span className={`text-2xl font-bold tabular-nums ${toneClasses.value}`}>
-        {value}
-      </span>
-      <span className={`text-[11px] ${toneClasses.sub}`}>{sub}</span>
-    </div>
+    <Box bg="card" border rounded="lg" p={3}>
+      <Stack gap={0}>
+        <Text
+          as="span"
+          size="xs"
+          weight="semibold"
+          tone="muted"
+          className="uppercase tracking-wider"
+        >
+          {label}
+        </Text>
+        <Text as="span" size="4xl" weight="bold" numeric="tabular" tone={tone}>
+          {value}
+        </Text>
+        <Text as="span" size="xs" tone="muted">
+          {sub}
+        </Text>
+      </Stack>
+    </Box>
   );
 }
