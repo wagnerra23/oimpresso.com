@@ -75,6 +75,12 @@ interface Props {
    * ver onde está; Enter abre o drawer (tratado no Index).
    */
   isFocused?: boolean;
+  /**
+   * Foco re-pivot — no modo Box/Mecânico o quadro não é por etapa, então arrastar
+   * não tem semântica FSM (reatribuir box/mecânico por drag fica pra outra onda).
+   * `false` desliga o drag: o card continua clicável (abre drawer) e focável.
+   */
+  draggable?: boolean;
 }
 
 /**
@@ -189,7 +195,7 @@ function actionLabelFor(variant: CacambaStatus): string | null {
   }
 }
 
-function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = false }: Props) {
+function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = false, draggable = true }: Props) {
   // D-02 — estados de avanço usam a porta gate-guardada (onAdvance); "Acompanhar"
   // (locada) é ver, não avançar → segue abrindo o drawer (onClick).
   const canAdvance = onAdvance != null && variant !== 'locada';
@@ -255,17 +261,20 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
     ? `Caçamba ${Number(cacamba.capacity_m3)}m³`
     : 'Caçamba';
 
+  // Foco re-pivot: drag só no modo Etapa. Sem drag → cursor de clique simples.
+  const dragHandleProps = draggable ? { ...attributes, ...listeners } : {};
+  const cursorClasses = draggable
+    ? (isDragging
+        ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
+        : 'cursor-grab active:cursor-grabbing hover:shadow-sm')
+    : 'cursor-pointer hover:shadow-sm';
+
   return (
     <article
       ref={setNodeRef}
-      style={dragStyle}
-      {...attributes}
-      {...listeners}
-      className={`${cardBg} ${opacityClass} ${slaBorder} ${focusRing} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 transition-colors ${
-        isDragging
-          ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
-          : 'cursor-grab active:cursor-grabbing hover:shadow-sm'
-      }`}
+      style={draggable ? dragStyle : undefined}
+      {...dragHandleProps}
+      className={`${cardBg} ${opacityClass} ${slaBorder} ${focusRing} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 transition-colors ${cursorClasses}`}
       onClick={(e) => {
         // Bloqueia click durante drag (PointerSensor distance:8 já filtra,
         // mas defensivo extra). Não interfere em Enter/Space teclado.
@@ -287,7 +296,7 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
       role="button"
       tabIndex={0}
       aria-label={`Caçamba ${cacamba.vehicle_number ?? cacamba.plate}${cacamba.cliente_nome ? ` — ${cacamba.cliente_nome}` : ''}`}
-      aria-roledescription="Card arrastável — use Space pra agarrar e setas pra mover"
+      aria-roledescription={draggable ? 'Card arrastável — use Space pra agarrar e setas pra mover' : 'Card — Enter abre os detalhes'}
     >
       {/* ─── Linha 1: OS# esquerda · capacidade badge + valor direita ─── */}
       <div className="flex items-center justify-between mb-2 gap-2">
