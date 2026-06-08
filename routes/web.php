@@ -79,6 +79,23 @@ include_once 'install_r.php';
 // pipeline end-to-end. NÃO existe em produção (app()->isProduction()).
 if (! app()->isProduction()) {
     Route::get('/_smoke-probe', fn () => view('_smoke-probe'))->name('smoke.probe');
+
+    // US-GOV-013 Fase B — auth bridge cross-process pro Pest 4 Browser (visual-regression).
+    // O browser Playwright roda em SUBPROCESSO: a sessão do test process NÃO cruza pra ele.
+    // Esta rota loga um user por id DENTRO do subprocesso do server → seta o cookie de
+    // sessão no browser → as visits seguintes ficam autenticadas. Persistência exige
+    // SESSION_DRIVER não-array (file/database) no .env do gate. NUNCA em produção
+    // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
+    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) {
+        \Illuminate\Support\Facades\Auth::loginUsingId($id);
+
+        // `to` = tela alvo (1 visit só: loga + redireciona). Só path relativo (anti
+        // open-redirect, ainda que env-guarded). Default '/'.
+        $to = (string) $request->query('to', '/');
+        $to = str_starts_with($to, '/') ? $to : '/';
+
+        return redirect($to);
+    })->middleware('web')->name('visreg.login');
 }
 
 Route::middleware(['setData'])->group(function () {
@@ -229,10 +246,13 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // pra Show (supplier NUNCA cai aqui). Ver app/Http/Middleware/RedirectLegacyContacts.php.
     //
     // ADR 0188 (2026-05-24) — Slot 2 PT-01 multi-type: `/cliente?type=X` aceita
-    // whitelist 5 valores (customer/supplier/employee/representative/all). Default
+    // whitelist 6 valores (customer/supplier/employee/representative/other/all). Default
     // 'customer' se ausente ou inválido pra retrocompat com bookmarks/links externos.
+    // ADR 0246 (2026-06-03) — `other` (aba "Outros") incluído: o frontend (Index.tsx
+    // SLOT2_TABS) + controller ($types/$inertiaTypes) já aceitavam, mas esta whitelist
+    // ficou pra trás → `?type=other` caía no fallback `customer` (aba abria em Clientes).
     Route::get('/cliente', function (ContactController $c) {
-        $allowed = ['customer', 'supplier', 'employee', 'representative', 'all'];
+        $allowed = ['customer', 'supplier', 'employee', 'representative', 'other', 'all'];
         $type = (string) request()->query('type', 'customer');
         if (! in_array($type, $allowed, true)) {
             $type = 'customer';

@@ -3,9 +3,10 @@ slug: 0005-uuid-vs-bigint
 number: 5
 title: !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3Vwcw==
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0172-deprecar-modulo-accounting-fundir-financeiro']
 decided_by:
   - W
 decided_at: '2026-04-18'

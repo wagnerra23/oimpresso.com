@@ -24,7 +24,7 @@ related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0107-emendation-0104-visual-comparison-gate-f3
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
-  - 0180-pageheader-canon-v3-href-direto-sem-dropdown
+  - 0189-pageheader-canon-v3-1-cadastro-roxo
   - 0190-primary-button-roxo-universal-295
   - 0192-auto-faturar-os-venda-jobsheet-observer
 ---
@@ -230,7 +230,7 @@ curl -sv 'https://oimpresso.com/sells' -H 'X-Inertia: true' -H 'X-Inertia-Partia
 - [ADR 0104 — Processo MWART canônico](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - [ADR 0107 — Visual gate F1.5](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
 - [ADR 0143 — FSM canon LIVE prod](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
-- [ADR 0180 — PageHeader v3 canon](../../decisions/0180-pageheader-canon-v3-href-direto-sem-dropdown.md)
+- [ADR 0189 — PageHeader v3.1 canon](../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)
 - [ADR 0190 — Primary roxo 295 universal](../../decisions/0190-primary-button-roxo-universal-295.md)
 - [ADR 0192 — Auto-faturar OS→Venda Observer](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)
 - PRs recentes: #1638 KB-9.75 bundle · #1641 VdNextActionPanel + validações fiscais BR · #1644 Emit modais + Bulk + saved view · #1647 charters Edit · #1648 fix BulkActionBar wire-up + z-index

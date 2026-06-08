@@ -1,0 +1,31 @@
+name: Design Identity Gate (soft)
+
+# Ratchet de identidade visual determinístico (ADR 0254). Nasce SOFT: reporta a nota
+# + regressões, mas NÃO bloqueia o merge até Wagner ratificar os pesos (soft→hard).
+# Espelha o padrão eslint-baseline (ADR 0209). Pure-node (sem npm install).
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/**'
+      - 'scripts/design-identity-grade.mjs'
+      - 'config/design-identity-baseline.json'
+      - '.github/workflows/design-identity-gate.yml'
+
+concurrency:
+  group: design-identity-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  grade:
+    name: Grade de identidade (determinístico · σ=0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Grade + ratchet check (soft — não bloqueia · ADR 0254 §4)
+        run: |
+          node scripts/design-identity-grade.mjs --check \
+            || echo "::warning title=Design Identity::Identidade regrediu vs baseline (soft mode — ver ADR 0254). Vira blocking quando Wagner ratificar."

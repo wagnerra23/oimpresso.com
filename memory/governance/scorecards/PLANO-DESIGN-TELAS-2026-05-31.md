@@ -97,7 +97,7 @@
 
 ## Parte 3 — Onda 4: alinhamento estrutural do sidebar (4 fixes, não-tela)
 
-Cruzando o board (agrupado por **módulo**) com o `SIDEBAR_GROUPS` canon ([ADR 0180](../../decisions/0180-sidebar-v3-href-direto-ghosts-pageheader.md), 8 grupos):
+Cruzando o board (agrupado por **módulo**) com o `SIDEBAR_GROUPS` canon ([ADR 0180](../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md), 8 grupos):
 
 1. **SISTEMA está inchado (15 das 44 telas fracas).** Maioria é **ferramenta interna** (`ads/*`, `governance/*`, `MemCofre`, `Usuario360`, `RagQuality`) — não tela de cliente. **Fix:** separar "interno/superadmin" do SISTEMA do tenant (cliente não deve ver governança no menu dele). Várias já deviam viver só no footer Superadmin cascade.
 2. **Módulos órfãos caindo em MAIS:** `ads`, `MemCofre`, `kb`, `ProjectMgmt` **não declaram `group`** no DataController → caem no fallback MAIS (fim, fechado). **Fix:** dar group canon OU marcar explicitamente como interno.
@@ -154,7 +154,7 @@ Todas as 44 telas <70 implementadas + push na `feat/staging-ct100`. Fechamento p
 
 **Plano (tasks):** US-TR-309 (O0) · US-TR-310 (O1) · US-TR-311 (Público) · US-TR-312 (O2) · US-TR-313 (O3) · US-TR-314 (O4 parcial).
 
-### Onda 4 — 3 fixes que FALTAM (decisão de produto Wagner, [ADR 0180](../../decisions/0180-sidebar-v3-href-direto-ghosts-pageheader.md))
+### Onda 4 — 3 fixes que FALTAM (decisão de produto Wagner, [ADR 0180](../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md))
 Não alterados sem aprovação — mudam o que cliente vê no menu (governado, Wagner-explícito):
 1. **Desinchar SISTEMA** — 15 telas internas (`ads/*`, `governance/*`, `MemCofre`, `Usuario360`, `RagQuality`) ≠ tela de cliente. Separar interno do SISTEMA do tenant.
 2. **Grupos órfãos** — `ads`/`MemCofre`/`kb`/`ProjectMgmt` sem `group` caem em MAIS. Decidir: dar group canon OU marcar interno (talvez MAIS já seja o certo p/ ferramenta interna).

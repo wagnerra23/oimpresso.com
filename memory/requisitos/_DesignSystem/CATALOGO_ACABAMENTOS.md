@@ -1,3 +1,12 @@
+---
+status: accepted-historical
+lifecycle: arquivado
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+morreu_porque: "MORTE PARCIAL — paleta accent azul 220° é snapshot do Cockpit piloto; cor canon é roxo oklch(0.55 0.15 295) (ADR 0235/0249). Estrutura/tipografia/espaçamento/acabamentos seguem VÁLIDOS — só a COR morreu. (Onda 2 inspeção 2026-06-06)"
+related_adrs: [0235, 0249]
+---
+
 # Catálogo de Acabamentos · Cockpit
 
 > **Propósito**: documentar com precisão pixel-perfect cada detalhe visual do `/copiloto/cockpit` em produção (workspace Vibe, density 50%, accent hue 220°). Serve como **referência canônica** pra qualquer mudança futura — humana ou IA — não inventar tonalidade, sombra, ou tamanho que não esteja aqui.

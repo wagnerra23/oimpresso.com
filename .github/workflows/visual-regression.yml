@@ -45,7 +45,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, dom, fileinfo, pdo_mysql, gd, opentelemetry
+          # SEM `opentelemetry`: a auto-instrumentação opentelemetry-auto-laravel
+          # (QueryWatcher) acessa contexto OTel não-inicializado DENTRO do fiber do
+          # servidor do Pest Browser → ErrorException fatal em toda query DB das telas
+          # autenticadas (Fase B). O gate visual não precisa de telemetria.
+          extensions: mbstring, dom, fileinfo, pdo_mysql, gd
           coverage: none
 
       - name: Wait for MySQL ready
@@ -78,7 +82,10 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
+        # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
+        # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
+        # O pacote degrada gracioso sem a ext (hooks não registram).
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
         run: npm ci
@@ -121,17 +128,37 @@ jobs:
           DB_PASSWORD=root
           CACHE_DRIVER=array
           QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
+          SESSION_DRIVER=file
           MAIL_MAILER=array
           BCRYPT_ROUNDS=4
           TELESCOPE_ENABLED=false
           VIEW_COMPILED_PATH=storage/framework/views
+          # MWART_CLIENTE_INDEX=true: sem o flag, /cliente cai no Blade legacy e dá 500
+          # (provado por screenshot do artifact #2320) → fica fora do gate. Com o flag,
+          # renderiza a Page Inertia canônica de Clientes — que é o que o gate deve proteger.
+          MWART_CLIENTE_INDEX=true
           EOF
           php artisan key:generate --force
           php artisan package:discover --ansi
           php artisan migrate --force
           echo "=== schema-squash check: tabelas criadas ==="
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
+
+      - name: Seed demo tenant (business + admin + role Admin#1)
+        # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
+        # precisam de um business + admin seedados.
+        #
+        # 2026-06-06: o DummyBusinessSeeder (demo UltimatePOS de 2018) estava PODRE contra
+        # o schema atual (inseria contacts.first_name, coluna removida → "Unknown column")
+        # → sem business → AuthBridgeSmokeTest skipava. Trocado pelo VisregTenantSeeder
+        # MINIMAL (business 1 + location + admin id=1 + role spatie Admin#1), idempotente e
+        # alinhado ao schema. Sem `|| echo` que mascarava: agora o seed é GATE REAL — se
+        # quebrar, o job falha. Vide database/seeders/VisregTenantSeeder.php.
+        run: |
+          php artisan db:seed --force
+          php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          echo "=== seed check ==="
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
 
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
@@ -141,13 +168,18 @@ jobs:
 
       - name: Run Pest Browser tests
         id: pest-browser
-        # GATE REAL — Fase A (US-GOV-013): roda só tests/Browser/Public/ (rotas SEM
-        # auth), que JÁ passam end-to-end (boot via schema-squash #2221 + render +
-        # asserção). `continue-on-error` REMOVIDO + sem o `|| echo fail=1` que mascarava
-        # falha → agora o pixel/render morde de verdade nessas telas. Fase B amplia o
-        # path pras autenticadas (tests/Browser/CoreScreens, tests/Browser/Sells) quando
-        # o harness de auth cross-process + seed estiver pronto.
-        run: ./vendor/bin/pest tests/Browser/Public/
+        # GATE REAL — Fase A (públicas) + INÍCIO da Fase B (autenticadas).
+        # 2026-06-06: destravado o auth cross-process via rota /_visreg-login/{id}?to=
+        # (routes/web.php, env-guarded) + SESSION_DRIVER=file (persiste cross-request).
+        # AuthBridgeSmokeTest cobre Financeiro/Unificado + Sells/Lista (autenticadas) —
+        # prova de conceito do harness. Amplia pro CoreScreens-6 inteiro depois que estas
+        # 2 passarem verde no CI (cada tela pode precisar ajuste de slug-permissão/seed).
+        #
+        # A11yAxeBrowserTest (Fase 3 a11y determinística): roda axe-core no CHROMIUM REAL
+        # numa tela core (Financeiro/Unificado) pra pegar contraste/foco/ARIA-em-contexto
+        # que o jsdom da Fase 2 não enxerga. Piso conservador: 0 violações CRITICAL (ratchet
+        # level 0). Mesmo harness auth-bridge do AuthBridgeSmokeTest.
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'

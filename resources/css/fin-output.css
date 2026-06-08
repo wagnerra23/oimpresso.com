@@ -753,9 +753,7 @@
   padding-right: 18px;
 }
 /* Linha de toggles (pill status + frescor + valor à direita) */
-.fin-cowork .fin-toggles-row {
-  padding: 4px 0 2px;
-}
+
 /* Footer ações do drawer (gap + alinhamento canônico) */
 .fin-cowork .fin-drawer-footer {
   display: flex;
@@ -844,27 +842,9 @@
 }
 .fin-cowork .fin-edit-cancel:hover { background: oklch(0.97 0 0); }
 /* Anomalia wrapper (Cowork v2 — substitui card flat) */
-.fin-cowork .fin-ai-anomalia {
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: oklch(0.97 0.06 60 / 0.4);
-  border-left: 3px solid oklch(0.65 0.18 60);
-}
+
 /* vd-ai stats grid (Cowork v2 — compartilha prefixo vendas) */
-.fin-cowork .vd-ai-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 6px;
-  margin-top: 8px;
-}
-.fin-cowork .vd-ai-stat {
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: white;
-  border: 1px solid oklch(0.92 0.005 80);
-  font-size: 11px;
-}
-.fin-cowork .vd-ai-stat b { display: block; font-size: 13px; color: oklch(0.20 0 0); margin-top: 2px; }
+
 /* Comments header + items (Cowork v2 — antes era stack flat) */
 .fin-cowork .fin-comments-h {
   display: flex;
@@ -882,8 +862,7 @@
   font-size: 12px;
   line-height: 1.4;
 }
-.fin-cowork .fin-comment-author { font-weight: 600; color: oklch(0.20 0 0); margin-right: 6px; }
-.fin-cowork .fin-comment-time { font-size: 10.5px; color: oklch(0.50 0 0); }
+
 /* Aliases pill-frescor (Cowork canon ref) — herda do .fin-frescor existente em fin-curadoria.css. */
 .fin-cowork .fin-curadoria .fin-pill-frescor { /* alias semântico: pill arredondada de frescor */
   display: inline-flex;
@@ -895,9 +874,7 @@
   font-weight: 500;
   line-height: 1.3;
 }
-.fin-cowork .fin-pill-frescor-fresh { background: oklch(0.94 0.04 145); color: oklch(0.42 0.13 145); }
-.fin-cowork .fin-pill-frescor-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60);  }
-.fin-cowork .fin-pill-frescor-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25);  }
+
 /* Mais state vars pra fin-drawer-tabs (pra UX completa) */
 .fin-cowork .fin-drawer-tabs[aria-orientation="horizontal"] { flex-direction: row; }
 .fin-cowork .fin-drawer-tab[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
@@ -907,20 +884,12 @@
 }
 .fin-cowork .fin-drawer-tab-ai:focus-visible { outline-color: oklch(0.55 0.18 280); }
 /* fin-ai-anomalia states */
-.fin-cowork .fin-ai-anomalia.severe {
-  background: oklch(0.95 0.10 25 / 0.5);
-  border-left-color: oklch(0.55 0.20 25);
-}
+
 .fin-cowork .fin-ai-anomalia.info {
   background: oklch(0.97 0.04 240 / 0.5);
   border-left-color: oklch(0.55 0.13 240);
 }
-.fin-cowork .fin-ai-anomalia .fin-ai-anomalia-title {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: oklch(0.30 0 0);
-}
+
 /* fin-audit-row hover state (já existe em fin-curadoria.css, mas reforço pra drawer) */
 .fin-cowork .fin-curadoria .fin-audit-row:hover { background: oklch(0.97 0.005 80); }
 /* fin-frescor inside drawer — sutil padding adjustment */

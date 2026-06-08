@@ -55,6 +55,23 @@
 
 ---
 
+## Primitivos de layout ([ADR 0253](../memory/decisions/0253-primitivos-layout.md) · F3)
+
+> A camada entre tokens DS v6 e telas. **Layout é COMPOSIÇÃO destes primitivos**, nunca `<div className="flex gap-4">` solto nem `.css` bespoke. Props = token (enumerado via CVA) → espaço/tipo nunca vêm de px literal. Superfície única: **`@/Components/layout`**.
+
+| Componente | Import | Faz | Substitui (anti-pattern) |
+|---|---|---|---|
+| **Box** | `@/Components/layout` | container neutro c/ espaço/cor via token | `<div>` com padding/cor literal |
+| **Stack** | `@/Components/layout` | empilha vertical com `gap` token | `<div className="flex flex-col gap-4">` solto |
+| **Inline** | `@/Components/layout` | alinha horizontal com `gap` + wrap | `<div className="flex items-center gap-2">` solto |
+| **Grid** | `@/Components/layout` | grid responsivo por colunas-token | `<div className="grid grid-cols-…">` solto |
+| **Container** | `@/Components/layout` | largura máx + padding de página | wrapper de largura/padding na mão |
+| **Text** | `@/Components/layout` | tipografia 100% via type-scale token | `text-[22px]` / tamanho literal solto |
+
+> Testados em `tests/layout-primitives.test.tsx`. Estes existem mas estavam **fora do REGISTRY** — registrados aqui pra serem descobertos/reusados (o ponto do F3: parar de hand-rolar flex). Adoção em telas = incremental, por gate visual.
+
+---
+
 ## Onda F — a criar em `@/Components/ui` (hoje só CSS no DS)
 
 Estes 4 ainda **não** têm impl React. Enquanto não existirem, a tela hand-rola — por isso entram primeiro.

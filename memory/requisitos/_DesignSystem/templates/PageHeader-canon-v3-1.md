@@ -2,7 +2,7 @@
 
 > **Status:** proposto · pending Larissa biz=4 validação 7d
 > **Origem:** [ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) + [ADR 0190](../../../decisions/0190-primary-button-roxo-universal-295.md) (primary universal)
-> **Supersedes parcialmente:** [ADR 0180](../../../decisions/0180-pageheader-canon-3-zonas.md), [ADR 0182](../../../decisions/0182-pageheader-canon-hue-per-grupo.md)
+> **Supersedes parcialmente:** [ADR 0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) (PageHeader canon 3 zonas → v3.1), [ADR 0182](../../../decisions/0182-pageheadertabs-canon-pattern-telas.md)
 > **Protótipo visual:** [prototipo-ui/prototipos/pageheader-canon-v3/](../../../../prototipo-ui/prototipos/pageheader-canon-v3/)
 > **Diário evolutivo:** [PageHeader-LEARNINGS.md](./PageHeader-LEARNINGS.md)
 > **Última atualização:** 2026-05-25 (ADR 0190 primary universal)
@@ -799,8 +799,8 @@ interface PageHeaderProps {
 
 | Versão | Data | Mudança | ADR |
 |---|---|---|---|
-| v1 | 2026-04-XX | PageHeader canon 3 zonas inicial | [0180](../../../decisions/0180-pageheader-canon-3-zonas.md) |
-| v2 | 2026-05-21 | Hue per grupo (cadastro=202, financas=145, etc) | [0182](../../../decisions/0182-pageheader-canon-hue-per-grupo.md) |
+| v1 | 2026-04-XX | PageHeader canon 3 zonas inicial | [0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md) |
+| v2 | 2026-05-21 | Hue per grupo (cadastro=202, financas=145, etc) | [0182](../../../decisions/0182-pageheadertabs-canon-pattern-telas.md) |
 | **v3.1** | **2026-05-24** | **Modern SaaS + roxo médio 295 + KPI separado + ⋮ overflow + bloco fechado + tabs abreviadas** | **[0189](../../../decisions/0189-pageheader-canon-v3-1-cadastro-roxo.md)** |
 | **v3.2** | **2026-05-25** | **BLOCO 1 final · h1 22px/700 peso Vendas + padding `pt-6 px-6 pb-3.5` + `rounded-t-lg` (bottom reta) · primary universal 295 (sem hue per grupo)** | **[0190](../../../decisions/0190-primary-button-roxo-universal-295.md)** + LEARNINGS Decisões #1 (primary universal) + #3 (h1 peso) + #4 (BLOCO 1 pattern final) |
 | **v3.3** | **2026-05-25** | **BLOCO 2 KPI strip Stripe-style flutuante · 5 cards autossuficientes · `mx-6` (24px respiro) · sem wrapper externo · toolbar move pra header BLOCO 3 · AP21 catalogado** | LEARNINGS Decisão #5 + PRs [#1481](https://github.com/wagnerra23/oimpresso.com/pull/1481), [#1482](https://github.com/wagnerra23/oimpresso.com/pull/1482), [#1483](https://github.com/wagnerra23/oimpresso.com/pull/1483) |

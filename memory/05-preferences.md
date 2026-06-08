@@ -1,5 +1,7 @@
 # 05 — Preferências do Usuário
 
+> ⚠️ **FÓSSIL (pré-Constituição v2) — NÃO usar como verdade.** Capturado com "Eliana/WR2" (cliente legado, não o usuário atual Wagner). Contém "Decida, não pergunte" que **CONTRADIZ** a regra-mestre atual da Constituição UI v2 (`wagner-request-refiner`: perguntar antes em pedido vago). Preferências canônicas: `memory/proibicoes.md` + `how-trabalhar.md` + `~/.claude/oimpresso-local/`. Ver `memory/governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md`.
+
 Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferências têm precedência sobre escolhas padrão a menos que conflitem com requisitos legais.
 
 ## Comunicação

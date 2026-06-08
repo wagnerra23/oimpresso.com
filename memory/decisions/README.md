@@ -1,5 +1,7 @@
 # Architecture Decision Records (ADRs)
 
+> ⚠️ **Este README NÃO é a lista de ADRs** — está obsoleto (parou no ADR 0023, era "Ponto WR2"). A lista canônica e atual é **GERADA**: [`_INDEX-GENERATED.md`](_INDEX-GENERATED.md) (modelo Log4brains, ADR 0258 / PR #2391 · `node scripts/governance/adr-index-generate.mjs`). Este arquivo serve só como doc de "o que é / como criar uma ADR".
+
 Este diretório contém os registros formais de decisões arquiteturais importantes do projeto Ponto WR2.
 
 ## O que é uma ADR

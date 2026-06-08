@@ -1,5 +1,7 @@
 # 00 — Perfil do Usuário / Cliente
 
+> ⚠️ **FÓSSIL (pré-Constituição v2) — NÃO usar como verdade.** Descreve "Eliana/WR2 Sistemas" como usuário — ERRADO hoje: o usuário é **Wagner** (`wagnerra@gmail.com`); o cliente-piloto é **Larissa/ROTA LIVRE** (biz=4); Eliana/WR2 é relação legada/externa. Perfil atual do usuário: `~/.claude/oimpresso-local/` (ADR 0131). Mantido só por link do INDEX. Ver auditoria `memory/governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md`.
+
 ## Identificação
 
 - **Empresa:** WR2 Sistemas

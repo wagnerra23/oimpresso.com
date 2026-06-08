@@ -131,6 +131,7 @@ class RecurringBillingServiceProvider extends ServiceProvider
                 \Modules\RecurringBilling\Console\Commands\SyncBankBalancesCommand::class,
                 \Modules\RecurringBilling\Console\Commands\RecurringHealthCommand::class,
                 \Modules\RecurringBilling\Console\Commands\BackfillCachedFieldsCommand::class,
+                \Modules\RecurringBilling\Console\Commands\GenerateInvoicesCommand::class,
             ]);
         }
     }
@@ -140,10 +141,23 @@ class RecurringBillingServiceProvider extends ServiceProvider
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        $this->app->booted(function () {
+            $schedule = $this->app->make(\Illuminate\Console\Scheduling\Schedule::class);
+
+            // US-RB-003 — Gera rb_invoices das rb_subscriptions ativas com next_due_date <= hoje.
+            // Sem este schedule, assinaturas ficam "paradas" — vencimento nunca avança automaticamente
+            // e nenhuma fatura nova aparece pra cobrar.
+            $schedule->command('rb:generate-invoices')
+                ->dailyAt('03:00')
+                ->timezone('America/Sao_Paulo')
+                ->withoutOverlapping()
+                ->environments(['live'])
+                ->onFailure(function () {
+                    \Illuminate\Support\Facades\Log::channel('single')->error(
+                        'Schedule rb:generate-invoices FALHOU — assinaturas ativas não geraram fatura no ciclo. Verificar logs + rodar manual.'
+                    );
+                });
+        });
     }
 
     /**

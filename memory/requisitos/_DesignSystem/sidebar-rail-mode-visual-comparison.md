@@ -1,3 +1,12 @@
+---
+status: superseded
+lifecycle: substituido
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+superseded_by: ["cockpit/shared.ts (SIDEBAR_GROUP_HUE)", "INDEX-DESIGN-MEMORIAS.md §4"]
+morreu_porque: "Hue-map por grupo obsoleto e divergente de 2 outros docs; a VERDADE é o código shared.ts (código > doc, Regra de Ouro #3). NÃO copiar os hues daqui. (Onda 2 inspeção 2026-06-06)"
+---
+
 # Sidebar — rail mode + cores por grupo (visual-comparison)
 
 **Tela:** Layout global `AppShellV2` (sidebar global do ERP)

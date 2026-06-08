@@ -197,7 +197,7 @@ export default function IdentificacaoTab({
             msg = 'Cliente não encontrado.';
           }
           setErrorField({ field, message: msg });
-          // eslint-disable-next-line no-console
+           
           console.error(`[IdentificacaoTab] autosave ${field} falhou`, { status: r.status, msg });
           return;
         }
@@ -208,7 +208,7 @@ export default function IdentificacaoTab({
       } catch (err) {
         rollbackField(field, previousValue);
         setErrorField({ field, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
+         
         console.error(`[IdentificacaoTab] autosave ${field} network error`, err);
       } finally {
         setSavingField((current) => (current === field ? null : current));
@@ -591,7 +591,7 @@ export default function IdentificacaoTab({
     } catch (err) {
       setCnpjLookup('error');
       setCnpjLookupMsg('Falha ao consultar Receita.');
-      // eslint-disable-next-line no-console
+       
       console.error('[IdentificacaoTab] cnpj lookup failed', err);
     }
   }, [doc, nome, fantasia, ie, performSave, contact, onCnpjEnderecoPersisted, onContactUpdated]);

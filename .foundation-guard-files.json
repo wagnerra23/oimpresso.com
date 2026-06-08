@@ -1,8 +1,5 @@
 [
-  "app.css",
-  "base.css",
   "cockpit.css",
-  "components.css",
   "cowork-canon-financeiro-bundle.css",
   "cowork-compras-bundle.css",
   "cowork-fields.css",
@@ -15,7 +12,6 @@
   "fiscal-cockpit.css",
   "inertia.css",
   "kb.css",
-  "layout.css",
   "screen-grade.css",
   "sells-cowork-curadoria.css",
   "sells-cowork-distribuicao.css",
@@ -30,7 +26,5 @@
   "sells-kb975-cheatsheet.css",
   "sells-kb975-emit-modals.css",
   "sells-kb975-next-action.css",
-  "sells-kb975-print.css",
-  "themes.css",
-  "utilities.css"
+  "sells-kb975-print.css"
 ]

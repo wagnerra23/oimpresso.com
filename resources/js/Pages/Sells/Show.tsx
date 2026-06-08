@@ -42,6 +42,7 @@ import SaleReciboPrint80mm from './_components/SaleReciboPrint80mm';
 import SaleOrcamentoA4 from './_components/SaleOrcamentoA4';
 import SellsCheatSheet, { SELLS_SHOW_SHORTCUTS } from './_components/SellsCheatSheet';
 import SaleTimeline from './_components/SaleTimeline';
+import SaleJourneyStepper, { type SaleJourney } from './_components/SaleJourneyStepper';
 
 // Modos de impressão KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
 type CoworkPrintMode = 'recibo-80mm' | 'orcamento-a4' | null;
@@ -115,6 +116,8 @@ interface ShowDetail {
 export interface SellsShowPageProps {
   saleId: number;
   headline: Headline;
+  /** Breadcrumb "onde a venda está" (oficina). show=false em varejo/ROTA LIVRE. */
+  journey?: SaleJourney;
   detail?: ShowDetail;  // deferred
   permissions: { edit: boolean; delete: boolean; print: boolean };
   urls: { edit: string; destroy: string; print: string; sheet_data: string; back: string };
@@ -173,7 +176,7 @@ function DetailSkeleton() {
 }
 
 export default function SellsShow(props: SellsShowPageProps) {
-  const { headline, urls, permissions } = props;
+  const { headline, urls, permissions, journey } = props;
   const [isPrinting, setIsPrinting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   // KB-9.75 P0 gaps #2/#3 — emit modals abertos via VdNextActionPanel gate.
@@ -377,6 +380,10 @@ export default function SellsShow(props: SellsShowPageProps) {
             )}
           </div>
         </div>
+
+        {/* Breadcrumb "onde a venda está" — só em venda de oficina (Wagner 2026-06-05).
+            journey.show=false em varejo/ROTA LIVRE → não renderiza. */}
+        {journey?.show && <SaleJourneyStepper journey={journey} />}
 
         {/* KPIs grandes (4-col canon V2) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

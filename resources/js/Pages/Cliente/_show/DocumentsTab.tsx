@@ -197,7 +197,7 @@ export default function DocumentsTab({
       // Recarrega do backend (fonte da verdade) — reflete o que persistiu.
       await loadDocuments();
     } catch (err) {
-      // eslint-disable-next-line no-alert
+       
       alert('Erro ao enviar arquivo. Tente novamente.');
     } finally {
       setUploading(false);
@@ -228,7 +228,7 @@ export default function DocumentsTab({
       setDocuments(next);
       onCountChange?.(next.length); // decrementa o chip do header
     } catch {
-      // eslint-disable-next-line no-alert
+       
       alert('Erro ao excluir anexo.');
     }
   };

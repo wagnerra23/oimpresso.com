@@ -129,7 +129,7 @@ export default function MentionInput({
           setMention((prev) => ({ ...prev, suggestions: [], loading: false }));
         });
     }, 180);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [mention.query, mention.active]);
 
   function applyMention(user: UserSuggestion) {

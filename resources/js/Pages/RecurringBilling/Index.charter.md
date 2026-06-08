@@ -3,9 +3,9 @@ page: /recurring-billing
 component: resources/js/Pages/RecurringBilling/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-17
+last_validated: "2026-06-07"
 parent_module: RecurringBilling
-related_adrs: [0110, 0107, 0109, 0104, 0093, 0114, 0101, 0094, 0143]
+related_adrs: [110, 107, 109, 104, 93, 114, 101, 94, 143]
 tier: A
 charter_version: 1
 visual_source: prototipo-ui/prototipos/recurring/recurring-page.jsx
@@ -49,6 +49,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 - Permission gate Spatie: `recurringbilling.access` OR `superadmin`
 - Sidebar AppShellV2 entry: `Modules/RecurringBilling/Http/Controllers/DataController@modifyAdminMenu` injeta item label `Cobrança Recorrente` order=86 (entre Financeiro=85 e PontoWr2=88), agrupado visualmente em SIDEBAR_GROUPS['fin'] no frontend
 - Routes nomeadas: `recurring-billing.index` (GET `/recurring-billing`), legacy `/recurringbilling` intacta (Onda 10 cuta)
+- **Onda 21 v9,75 — Nova assinatura ativa:** CTA header + primary sidebar (`?new=1`) + atalho `N` abrem drawer lateral 760px de criação (Sheet DS — busca de cliente debounced via `recurring-billing.contacts.search` Tier 0 + seletor de plano que pré-preenche valor/ciclo + valor/ciclo/data/gateway/forma/descrição) → POST `recurring-billing.store`. Substitui o stub "(em breve)" e conserta o primary do sidebar (que apontava pra `/recurring-billing/create` 404). Form usa componentes DS (Sheet/Input/Select/Textarea/Label/FieldError) — ui:lint R1 + eslint ds/* limpos.
 
 ---
 
@@ -98,8 +99,11 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 | Método | Rota | Retorna |
 |---|---|---|
-| GET | `/recurring-billing` (X-Inertia) | Inertia render `RecurringBilling/Index` props `{kpis, subscriptions (defer), plans, filters}` |
+| GET | `/recurring-billing` (X-Inertia) | Inertia render `RecurringBilling/Index` props `{kpis, subscriptions (defer), plans, filters, openCreate}` |
 | GET | `/recurring-billing` (browser sem header X-Inertia) | mesmo (Inertia gerencia fallback) |
+| GET | `/recurring-billing?new=1` (Onda 21) | mesmo render do index + prop `openCreate=true` → auto-abre drawer Nova assinatura (primary do sidebar aponta pra cá) |
+| GET | `/recurring-billing/contacts/search?q=` (Onda 21) | JSON `{contacts:[{id,name,mobile,email,tax_number}]}` scoped business_id (Tier 0), type customer/both, min 2 chars |
+| POST | `/recurring-billing` (Onda 21 — drawer submit) | cria Subscription (StoreAssinaturaRequest: contact_id, plan_id?, valor, ciclo, data_proxima_cobranca, gateway, forma_pagamento, descricao?) + redirect flash |
 | GET | `/recurringbilling` (legacy Blade `view('recurringbilling::index')` "Hello World") | preservado intacto até Onda 10 cutover 301 |
 
 ---

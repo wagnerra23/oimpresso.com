@@ -90,8 +90,37 @@ jobs:
           echo "--- Constituição modificada (exige cascade) ---"
           cat /tmp/const_mod.txt
 
+      - name: Exceção — normalização cirúrgica de metadados (ADR 0257)
+        id: norm
+        if: steps.detect.outputs.adr_mod_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Exceção append-only: só metadados (status/lifecycle/kind/authority), sob label.
+          # Protege a DECISÃO (corpo imutável); libera corrigir a ETIQUETA. ADR 0257.
+          labels=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" --jq '.[].name' 2>/dev/null || echo "")
+          if ! echo "$labels" | grep -qFx "adr-metadata-normalization"; then
+            echo "norm_ok=0" >> "$GITHUB_OUTPUT"
+            echo "Label 'adr-metadata-normalization' ausente — append-only normal."
+            exit 0
+          fi
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          ok=1
+          while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^M[[:space:]]+//')
+            [ -z "$file" ] && continue
+            bad=$(git diff "$base_sha"...HEAD -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority|superseded_by|supersedes):' | grep -vE "^[+-][[:space:]]*-[[:space:]]*['\"]?[0-9]{3,4}" || true)
+            if [ -n "$bad" ]; then
+              echo "::warning::$file muda fora de status/lifecycle/kind/authority/superseded_by/supersedes — exceção NÃO aplica a esta PR."
+              ok=0
+            fi
+          done < /tmp/adr_mod.txt
+          echo "norm_ok=$ok" >> "$GITHUB_OUTPUT"
+          if [ "$ok" = "1" ]; then echo "✓ Normalização cirúrgica validada (ADR 0257) — exceção aplicada."; fi
+
       - name: Block ADR canon edits (append-only)
-        if: steps.detect.outputs.adr_mod_count != '0' || steps.detect.outputs.adr_renamed_count != '0'
+        if: steps.detect.outputs.adr_renamed_count != '0' || (steps.detect.outputs.adr_mod_count != '0' && steps.norm.outputs.norm_ok != '1')
         run: |
           set -euo pipefail
           echo "::error::ADR CANON é append-only (Constituição Art. 3 + ADR 0095)."

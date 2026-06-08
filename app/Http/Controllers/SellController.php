@@ -2529,9 +2529,32 @@ class SellController extends Controller
                 ];
             };
 
+            // Breadcrumb READ-ONLY "onde a venda está" (Wagner 2026-06-05). Só pra
+            // venda de ORIGEM oficina (source='oficina', fluxo real OS→Venda ADR 0192).
+            // Gate per-business OficinaAuto (mesmo padrão de create()) — ROTA LIVRE
+            // varejo recebe show=false e o Show.tsx não renderiza nada novo. Função
+            // pura testada em tests/Unit/Services/SaleJourneyServiceTest (CI).
+            $oficinaModuleUtil = new \App\Utils\ModuleUtil();
+            $hasOficinaAuto = auth()->user()->can('superadmin')
+                ? $oficinaModuleUtil->isModuleInstalled('OficinaAuto')
+                : (bool) $oficinaModuleUtil->hasThePermissionInSubscription(
+                    $business_id,
+                    'oficina_auto_module',
+                    'superadmin_package'
+                );
+
+            $journey = (new \App\Services\SaleJourneyService())->build([
+                'source'           => (string) ($sell->source ?? 'balcao'),
+                'has_oficina_auto' => $hasOficinaAuto,
+                'os_ref'           => $sell->os_ref ?? null,
+                'invoiced'         => in_array(strtolower((string) $fiscalStatus), ['autorizada', 'authorized', 'emitida', 'enviada', 'aprovada'], true),
+                'delivered'        => ($sell->shipping_status ?? null) === 'delivered',
+            ]);
+
             return Inertia::render('Sells/Show', [
                 'saleId' => (int) $id,
                 'headline' => $headline,
+                'journey' => $journey,
                 'detail' => Inertia::defer($detailPayload),
                 'permissions' => [
                     'edit' => auth()->user()->can('direct_sell.update') || auth()->user()->can('so.update'),

@@ -512,6 +512,80 @@ Ref: `BACKLOG-FIXES.md` (lote R7). parent: worklist-auditoria-paralela.
 
 ---
 
+### US-_DESIGNSYSTEM-027 · F0 · Congelar crescimento CSS (PARCIAL — falta rule css.md)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Roadmap MANUAL-CSS-JS §5 passo F0. **Já feito:** `css-size-gate` (ratchet de linhas) + `pageheader-gate`. **Falta:** rule `.claude/rules/css.md` que carrega SSOT+manual ao tocar `resources/css/**` + reforçar "proibir .css novo sem ADR". Esforço baixo. Fonte: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md
+
+---
+
+### US-_DESIGNSYSTEM-028 · F1 · Inventariar débito de identidade (azul marca vs semântico)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §5 F1. Mapear azul de MARCA legacy (#1572E8, @apply) que deve migrar vs azul SEMÂNTICO (status/origin-badge) que sobrevive; listar onde `.cockpit` define token paralelo ao `@theme`. Esforço baixo, sem ADR (cor já é canon 0235/0249).
+
+---
+
+### US-_DESIGNSYSTEM-029 · F2 · Token único em @theme (cockpit consome var(), não define)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §5 F2. Dobrar `.cockpit`/legacy nos tokens DS v6 do Tailwind v4 (`inertia.css`); `cockpit.css` passa a CONSUMIR (`var(--…)`), não definir. `foundation:check` cobre. Fontes de token 3→1. Esforço médio.
+
+---
+
+### US-_DESIGNSYSTEM-030 · F3 · Criar Components/layout/ (Box/Stack/Inline/Grid/Container/Text)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §2.1 + §5 F3. A camada que FALTA: primitivos de layout onde espaço só vem de token (Polaris/Radix Themes/Geist têm; oimpresso não). Doc no DS + ≥1 tela composta 100% por primitivos (zero flex solto, zero .css). Esforço médio. NOTA: criar componente novo = gate visual [W].
+
+---
+
+### US-_DESIGNSYSTEM-031 · F4 · Unificar PageHeader 104→0 (PARCIAL — pageheader-gate já congela)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §5 F4. 2 PageHeaders: canon novo `@/Components/PageHeader` (~15 telas) vs antigo `@/Components/shared/PageHeader` (104 telas). **Já feito:** `pageheader-gate` (ratchet) proíbe tela NOVA adotar o antigo. **Falta:** toda tela tocada migra header antigo→canon no mesmo PR (gate visual natural); deletar `shared/PageHeader` quando contador zerar. Incremental.
+
+---
+
+### US-_DESIGNSYSTEM-032 · F5 · Dissolver os 2 mega-bundles CSS tela-a-tela
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §5 F5. `cowork-canon-financeiro-bundle` (~4.7k linhas) + `sells-cowork` (~4.0k) reescritos em Tailwind+primitivos tela-a-tela (tela tocada = fatia do bundle deletada). Métrica: linhas bespoke ↓ a cada PR. **Candidatos imediatos** (achados 2026-06-06): 6 bundles órfãos `app/base/components/layout/themes/utilities.css` (stubs Tailwind v3 mortos, confirmado seguro deletar — rebaseline css-size+stylelint). Esforço alto, incremental.
+
+---
+
+### US-_DESIGNSYSTEM-033 · F6 · Saúde do lint (zerar parser_error/no-undef P0, encolher jsx-a11y)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §5 F6. Zerar `__parser_error__` + `no-undef` (bugs P0, não dívida tolerada); depois encolher `jsx-a11y/*` (acessibilidade). Baseline ESLint só encolhe (~1.073 em 2026-06-06, de 1.340). Esforço médio.
+
+---
+
+### US-_DESIGNSYSTEM-034 · F7 · Gates de regressão visual + axe + unificar vite
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: —
+
+MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` já existem) + axe nas telas (`screen-qa`); unificar `vite.config` quando o último Blade morrer. Esforço médio, dep. MWART.
+
+---
+
+**Última atualização (US-_DESIGNSYSTEM-027..034):** 2026-06-06 — roadmap F0–F7 do [MANUAL-CSS-JS](MANUAL-CSS-JS.md) §5 seedado como tasks (de doc → MCP, conforme o próprio manual manda). IDs 027–034 (gap 019–026 = drift do contador do servidor MCP que sugeriu 027 vs SPEC.md max 018 — a reconciliar no servidor). F0/F4 marcados PARCIAL (já têm gates ativos).
+
 **Última atualização (US-_DESIGNSYSTEM-014..018):** 2026-05-31 — backlog de fixes da worklist de auditoria paralela (5 lotes por regra mecanizada: R9+R3 · R6+R4 · R1 · R2 · R7). Fecha por evidência (scorer = regra zerada). Ref `prototipo-ui/audit/BACKLOG-FIXES.md`.
 
 **Última atualização (US-_DESIGNSYSTEM-004..013):** 2026-05-28 — adicionadas 10 tasks Onda prevenção bugs MWART frontend (ADRs 0209-0211 propostos no PR #1837). Atacam R7/R8-class via ESLint baseline, Wayfinder type-gen, TanStack Query data-fetching, MSW Vitest scanner-race tests.

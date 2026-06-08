@@ -14,8 +14,8 @@ type: reference
 |---|---|---|---|
 | **Produção** | `https://oimpresso.com/` | Hostinger shared hosting | Workflow GHA `quick-sync.yml` (push to main → SSH rsync) |
 | **Dev local** | `https://localhost:5173/` (Vite) + `http://localhost:8000/` (artisan serve) | Máquina do dev | `npm run dev` + `php artisan serve` |
-| **CT 100 Proxmox** | endpoints internos (Centrifugo/FrankenPHP/Reverb) | Container Docker | compose-managed, ver [INFRA.md](../../INFRA.md) §6 + [proxmox-docker-host skill](../../.claude/skills/proxmox-docker-host) |
-| **MCP server** | `mcp.oimpresso.com` | Hostinger subdomain | webhook GitHub→MCP sync |
+| **CT 100 Proxmox** | endpoints internos (Centrifugo/FrankenPHP) | Container Docker | compose-managed, ver [INFRA.md](../../INFRA.md) §6 + [proxmox-docker-host skill](../../.claude/skills/proxmox-docker-host) |
+| **MCP server** | `mcp.oimpresso.com` | CT 100 Proxmox (container `oimpresso-mcp` / FrankenPHP) — NÃO Hostinger ([ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md) PROÍBE MCP/daemon no Hostinger) | webhook GitHub→MCP sync |
 
 ## Ambientes DESCONTINUADOS (não usar)
 

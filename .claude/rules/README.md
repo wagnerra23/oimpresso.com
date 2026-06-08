@@ -19,6 +19,7 @@ Ver dossier: [`memory/sessions/2026-05-15-arte-claude-rules-path-scoped.md`](../
 | `migrations.md` | `**/Database/Migrations/*.php` | Idempotência + business_id + down() |
 | `routes.md` | `routes/web.php`, `routes/*.php` | FQCN obrigatório (sem string legacy) |
 | `commands.md` | `app/Console/Commands/**/*.php`, `Modules/**/Console/**/*.php` | `--detail` em vez de `--verbose` |
+| `reuse-check.md` | `resources/js/{Components,Lib,Hooks}/**`, `Modules/**/{Services,Entities,Models}/**/*.php` | `reuse:check` antes de criar símbolo (anti-duplicação · MANUAL #5) |
 
 ## Convenções internas oimpresso
 

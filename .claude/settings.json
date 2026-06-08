@@ -27,12 +27,25 @@
           },
           {
             "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/licoes-code-two-strikes.ps1"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/git-base-freshness-guard.mjs"
           }
         ]
       }
     ],
     "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-askq-execution-menu.mjs"
+          }
+        ]
+      },
       {
         "matcher": "Read|Glob|Grep",
         "hooks": [

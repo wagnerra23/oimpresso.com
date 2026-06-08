@@ -88,8 +88,9 @@ jobs:
         # transactions MODIFY COLUMN type ENUM) — fica pra um setup MySQL em CI.
         #
         # PrUiJudgeAgentTest e DB-less (reflexao nos atributos + string do prompt):
-        # trava provider/model do juiz de UI (anti "mentira do Sonnet", parecer
-        # PR #2270). Modules/Jana nao esta no modules-pest.yml, entao ancoramos a
+        # trava provider/model do juiz de UI (canon openai/gpt-4o pos-migracao
+        # OpenAI; ex "mentira do Sonnet", parecer PR #2270). Modules/Jana nao
+        # esta no modules-pest.yml, entao ancoramos a
         # catraca aqui pra ela rodar de fato em todo PR.
         run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php --no-coverage
 
