@@ -13,9 +13,19 @@ relates_to:
 
 # PROPOSAL — Eixo de recurso (box/elevador + mecânico) no kanban da Oficina
 
-> **Status:** `proposal` — Wagner promove pra ADR aceita (próximo número canônico, ~0263) após validar o desenho de domínio. **Tier 0** porque toca schema com cliente LIVE (Martinho biz=164).
+> **Status:** `proposal` — Wagner promove pra ADR aceita (próximo número canônico, ~0263). **Tier 0** rebaixado a baixo-risco pela revisão abaixo (sem schema novo).
 
-## Contexto
+## ⚠️ REVISÃO 2026-06-08 — o dado JÁ EXISTE (premissa original corrigida)
+
+> A premissa do "Contexto" abaixo (escrita antes de auditar o schema) está **errada**: `service_orders` **já tem** `box_label` (texto livre) + `assigned_user_id` (mecânico) desde a **Wave 2.1 US-OFICINA-027** (migration `2026_05_26_120001_add_box_and_assigned_user_to_service_orders.php`), com relação `assignedUser()` no model e exibição no drawer. **A decisão de domínio já foi tomada lá:** box é **texto livre, sem tabela**, "até sinal qualificado" ([ADR 0105](../0105-cliente-como-sinal-guiar-sem-mandar.md)).
+>
+> **Consequência:** a proposta da **tabela `oficina_recursos`** (seção 1 abaixo) é **descartada por ora** — contradiz a decisão Wave 2.1 + ADR 0105 (nenhum cliente de reparo LIVE ainda; Martinho é mecânica pesada sem boxes). O **filtro funcional** foi implementado **sobre os campos existentes** (zero migration, zero Tier 0 de DB): `ProducaoOficinaController` projeta `box_label`/mecânico no card, filtra por `box`/`mecanico`, e expõe as opções distintas; a UI ganhou pills de box/mecânico (só aparecem quando há dado). Entregue no **PR do filtro box/mecânico** (2026-06-08).
+>
+> **A tabela `oficina_recursos` volta à mesa SE** aparecer cliente de reparo pagante que precise de agenda/capacidade por box (aí o texto-livre não basta). Até lá, **texto livre vence** (ADR 0105). O resto desta proposta fica como **registro do trade-off** e do desenho de tabela pra quando o sinal chegar.
+>
+> **Foco=Box/Mecânico (re-pivot do quadro)** segue como onda seguinte (muda a estrutura de colunas + semântica do drag) — não entrou no PR do filtro.
+
+## Contexto (premissa original — ver revisão acima)
 
 A convergência F3 da camada visível caçamba→reparo landou ([PR #2417](https://github.com/wagnerra23/oimpresso.com/pull/2417)): colunas, KPIs e vocabulário da tela `OficinaAuto/ProducaoOficina/Index` já são **reparo**. Mas o **filtro** ficou pela metade.
 

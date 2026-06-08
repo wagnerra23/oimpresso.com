@@ -68,15 +68,23 @@ interface Kpis {
   valor_em_curso: number;
 }
 
-type CapacidadeFilter = 'all' | '3' | '5' | '7';
+interface Mecanico {
+  id: number;
+  nome: string;
+}
 
 interface Props {
   kanban: KanbanGroups;
   kpis: Kpis;
   filters: {
-    capacidade: CapacidadeFilter;
+    box: string;
+    mecanico: number | null;
     q: string;
   };
+  /** Boxes (texto livre) presentes nas OS ativas — eixo de recurso do modelo reparo. */
+  recursos: string[];
+  /** Mecânicos atribuídos nas OS ativas. */
+  mecanicos: Mecanico[];
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -272,7 +280,7 @@ const NEXT_COLUMN_FOR: Record<CacambaStatus, CacambaStatus | null> = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
+export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, mecanicos }: Props) {
   const [searchInput, setSearchInput] = useState(filters.q ?? '');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -314,19 +322,40 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
     setFocusedId(null);
   }, []);
 
-  // Debounce 300ms — evita visit por keystroke
+  // Debounce 300ms — evita visit por keystroke. Preserva box/mecânico ativos.
   useEffect(() => {
     if (searchInput === (filters.q ?? '')) return;
     const t = setTimeout(() => {
       router.get(
         '/oficina-auto/producao-oficina',
-        { q: searchInput || undefined },
+        {
+          q: searchInput || undefined,
+          box: filters.box || undefined,
+          mecanico: filters.mecanico || undefined,
+        },
         { preserveState: true, preserveScroll: true, replace: true },
       );
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
+
+  // Filtro server-side por box/mecânico (eixo de recurso do modelo reparo).
+  // `null` no campo = limpar aquele eixo; preserva busca + o outro eixo.
+  const goFilter = useCallback(
+    (next: { box: string; mecanico: number | null }) => {
+      router.get(
+        '/oficina-auto/producao-oficina',
+        {
+          q: searchInput || undefined,
+          box: next.box || undefined,
+          mecanico: next.mecanico || undefined,
+        },
+        { preserveState: true, preserveScroll: true, replace: true },
+      );
+    },
+    [searchInput],
+  );
 
   // Drawer caçamba — abre OS atual (rental ativa) ao clicar card
   const [openOsId, setOpenOsId] = useState<number | null>(null);
@@ -727,6 +756,60 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
           </Grid>
         </Box>
 
+        {/* ─── Eixo de recurso (modelo reparo): filtro por box + mecânico.
+             Só aparece quando há boxes/mecânicos atribuídos (server-side). Cliente
+             sem esse eixo (ex.: Martinho mecânica pesada) não vê controle vazio. ─── */}
+        {(recursos.length > 0 || mecanicos.length > 0) && (
+          <Box bg="card" px={6} py={2} className="border-b border-border">
+            <Inline gap={4} wrap>
+              {recursos.length > 0 && (
+                <Inline gap={2} wrap align="center">
+                  <Text as="span" size="xs" weight="semibold" tone="muted" className="uppercase tracking-wide">
+                    Box
+                  </Text>
+                  <FilterPill
+                    active={filters.box === ''}
+                    onClick={() => goFilter({ box: '', mecanico: filters.mecanico })}
+                  >
+                    Todos
+                  </FilterPill>
+                  {recursos.map((b) => (
+                    <FilterPill
+                      key={b}
+                      active={filters.box === b}
+                      onClick={() => goFilter({ box: b, mecanico: filters.mecanico })}
+                    >
+                      {b}
+                    </FilterPill>
+                  ))}
+                </Inline>
+              )}
+              {mecanicos.length > 0 && (
+                <Inline gap={2} wrap align="center">
+                  <Text as="span" size="xs" weight="semibold" tone="muted" className="uppercase tracking-wide">
+                    Mecânico
+                  </Text>
+                  <FilterPill
+                    active={filters.mecanico === null}
+                    onClick={() => goFilter({ box: filters.box, mecanico: null })}
+                  >
+                    Todos
+                  </FilterPill>
+                  {mecanicos.map((m) => (
+                    <FilterPill
+                      key={m.id}
+                      active={filters.mecanico === m.id}
+                      onClick={() => goFilter({ box: filters.box, mecanico: m.id })}
+                    >
+                      {m.nome}
+                    </FilterPill>
+                  ))}
+                </Inline>
+              )}
+            </Inline>
+          </Box>
+        )}
+
         {/* ─── Filter bar sticky — busca + KPI inline ─── */}
         <Box bg="card" px={6} py={3} className="border-b border-border sticky top-0 z-10">
           <Inline gap={6} wrap className="w-full">
@@ -823,6 +906,33 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters }: Props) {
 ProducaoOficinaIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
 // ─── Subcomponents ───────────────────────────────────────────────────────────
+
+// Pílula de filtro (box/mecânico) — `<button>` real (a11y: teclado + aria-pressed).
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={
+        'px-2.5 py-1 text-xs rounded font-medium transition-colors ' +
+        (active
+          ? 'bg-foreground text-background'
+          : 'bg-muted text-foreground hover:bg-muted/80')
+      }
+    >
+      {children}
+    </button>
+  );
+}
 
 interface KpiCardProps {
   label: string;
