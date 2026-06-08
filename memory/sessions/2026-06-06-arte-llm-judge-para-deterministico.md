@@ -1,7 +1,7 @@
 ---
 date: "2026-06-06"
 topic: "Inventário de tudo que é julgado-por-LLM no oimpresso → o que vira teste determinístico, o que fica LLM-judge"
-related_adrs: [0255, 0239, 0236, 0230, 0216, 0114, 0107, 0093, 0106]
+related_adrs: ["0239-governanca-design-system-git-ssot-regressao-ia", "0236-extrato-conciliacao-modelo-unificado", "0230-metodo-governance-scorecard", "0216-deploy-webhook-rodar-composer-dump-autoload", "0114-prototipo-ui-cowork-loop-formalizado", "0107-emendation-0104-visual-comparison-gate-f3", "0093-multi-tenant-isolation-tier-0", "0106-recalibracao-velocidade-fator-10x-ia-pair"]
 ---
 
 # Estado-da-arte — LLM-judge → determinístico: o inventário e o framework de decisão
