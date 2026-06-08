@@ -3326,10 +3326,12 @@ class ContactController extends Controller
             'amount' => (float) $payment->amount,
             'is_return' => ((int) ($payment->is_return ?? 0)) === 1 ? 1 : 0,
             'method' => (string) ($payment->method ?? 'other'),
-            'invoice_no' => $payment->invoice_no ?? null,
-            'ref_no' => $payment->ref_no ?? null,
-            'transaction_id' => $payment->joined_transaction_id !== null ? (int) $payment->joined_transaction_id : null,
-            'transaction_type' => $payment->transaction_type ?? null,
+            // Campos vindos do join (não são colunas de transaction_payments) lidos via
+            // getAttribute() — retorna mixed, evita "undefined property" e "always-true" do Larastan.
+            'invoice_no' => $payment->getAttribute('invoice_no'),
+            'ref_no' => $payment->getAttribute('ref_no'),
+            'transaction_id' => ($txId = $payment->getAttribute('joined_transaction_id')) !== null ? (int) $txId : null,
+            'transaction_type' => $payment->getAttribute('transaction_type'),
             'cheque_number' => $payment->cheque_number ?? null,
             'card_transaction_number' => $payment->card_transaction_number ?? null,
             'bank_account_number' => $this->maskBankAccount($payment->bank_account_number ?? null),
