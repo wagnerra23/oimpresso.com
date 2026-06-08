@@ -1,5 +1,7 @@
 # `Modules/Crm` **É** o módulo de Cliente (contatos do cliente)
 
+> 🔇 **SILENCIADO NA MEMÓRIA — Wagner 2026-06-08.** Não comentar, não evoluir, não criar task pra este módulo sem decisão explícita do Wagner. Motivo: o "CRM" (pipeline herdado do UltimatePOS — Leads/Proposals/Campaigns/Schedules/CallLogs) não faz sentido pro negócio (gráfica/vestuário) e estava confundindo/irritando recorrentemente. **O app NÃO foi tocado:** `Modules/Crm/module.json` segue `active: 1` — o cadastro de Cliente (drawer 760px) continua funcionando pra biz=4 (Larissa) e demais tenants. **Reversível:** basta remover este banner. **Decisão permanente pendente (Wagner aprova):** (a) renomear `Modules/Crm` → `Modules/Cliente` pra matar a confusão de nome, e/ou (b) separar/deprecar o pipeline-legacy mantendo só o cadastro de Cliente.
+
 > **Origem:** Wagner 2026-06-01 — *"por no crm? era para ser no contatos do cliente. o crm está me incomodando e sempre confundindo."* Desambiguação canônica pra parar a confusão recorrente (humano **e** agente).
 
 ## A regra (decore isto)

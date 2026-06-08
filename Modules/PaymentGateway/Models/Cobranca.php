@@ -25,6 +25,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * declarado em module.json.lgpd_compliance, retention 5y, redactor habilitado.
  *
  * ADR 0170 Onda 2.
+ *
+ * @property string|null $origem_type Origem (sale|invoice|subscription_license|avulsa|fin_titulo).
+ *           String livre — enum expandido por migration via raw SQL (invisível ao larastan,
+ *           que senão infere o union antigo e marca `=== 'fin_titulo'` como sempre-falso).
+ * @property int|null $origem_id
  */
 class Cobranca extends Model
 {

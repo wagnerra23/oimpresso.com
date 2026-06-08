@@ -217,7 +217,40 @@ class ClienteAutosaveController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        return $this->updateAndRespond($contact, $validator->validated());
+        $validated = $validator->validated();
+
+        // Unicidade CPF/CNPJ por business (unique key `uk_contacts_biz_tax` =
+        // business_id + tax_number). Sem este pre-check o save estoura
+        // `1062 Duplicate entry` -> 500 cru. Avisar claramente que ja existe
+        // cadastro (Wagner 2026-06-08). Escopo Tier 0: so olha o mesmo business.
+        //
+        // withTrashed(): a unique key cobre linhas SOFT-DELETED, entao um contato
+        // excluido continua "segurando" o CNPJ. O caso real do Wagner foi
+        // exatamente esse (holder arquivado as 15:59) -- precisamos enxergar o
+        // trashed pra explicar, senao o pre-check passa e o save 500a mesmo assim.
+        if (! empty($validated['tax_number'])) {
+            $existing = Contact::withTrashed()
+                ->where('business_id', $contact->business_id)
+                ->where('tax_number', $validated['tax_number'])
+                ->where('id', '!=', $contact->id)
+                ->first();
+
+            if ($existing !== null) {
+                $nome = trim((string) ($existing->name ?? ''));
+                $ref = $nome !== '' ? $nome : ('cadastro #' . $existing->id);
+                $msg = $existing->trashed()
+                    ? 'Já existe um cadastro arquivado/excluído com este CPF/CNPJ (' . $ref . '). Restaure o cadastro existente em vez de criar outro.'
+                    : 'Já existe um cadastro com este CPF/CNPJ: ' . $ref . '.';
+
+                // Chave `doc` = alias PT-BR que o IdentificacaoTab usa pra exibir
+                // o erro sob o campo; `tax_number` = canon pra outros callers.
+                return response()->json([
+                    'errors' => ['doc' => [$msg], 'tax_number' => [$msg]],
+                ], 422);
+            }
+        }
+
+        return $this->updateAndRespond($contact, $validated);
     }
 
     /**
@@ -560,7 +593,25 @@ class ClienteAutosaveController extends Controller
      */
     private function updateAndRespond(Contact $contact, array $data): JsonResponse
     {
-        $contact->update($data);
+        // Backstop pra qualquer unique key (ex: uk_contacts_biz_tax = CPF/CNPJ
+        // duplicado, ou race entre o pre-check e o save). Nunca devolver 500 cru
+        // num autosave -- traduzir pra mensagem clara que o drawer ja sabe exibir.
+        try {
+            $contact->update($data);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            if (array_key_exists('tax_number', $data)) {
+                $msg = 'Já existe um cadastro com este CPF/CNPJ neste negócio.';
+
+                // `doc` pro IdentificacaoTab exibir sob o campo; `tax_number` canon.
+                return response()->json([
+                    'errors' => ['doc' => [$msg], 'tax_number' => [$msg]],
+                ], 422);
+            }
+
+            return response()->json([
+                'errors' => ['_' => ['Já existe um cadastro com estes dados.']],
+            ], 422);
+        }
 
         return response()->json([
             'success' => true,

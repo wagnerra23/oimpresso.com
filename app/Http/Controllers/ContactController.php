@@ -144,6 +144,221 @@ class ContactController extends Controller
     }
 
     /**
+     * Fix 2026-06-08 — Endpoint JSON das vendas do contato pro SalesTab self-fetch.
+     *
+     * Bug: no paradigma drawer 760px (ADR 0179, MWART_CLIENTE_INDEX) o SalesTab
+     * dentro de OssTab recebia `sales=undefined` e NÃO tinha carga inicial — só
+     * buscava ao filtrar/paginar. Resultado: skeleton infinito, "as vendas não
+     * aparecem no cadastro de cliente". No Show.tsx full-page funcionava porque o
+     * `<Deferred data="sales">` dispara o Inertia::defer; o drawer não tem esse
+     * wrapper. Este endpoint dá ao SalesTab uma fonte AJAX (espelha o padrão
+     * self-fetch de PaymentsTab `/contacts/payments/{id}` e anexos).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): contato resolvido DENTRO do
+     * business (404 cross-tenant) + buildClienteSalesPaginator já força
+     * business_id em todo query.
+     *
+     * GET /cliente/{id}/sales-json  (?customer_sales_start/_end/_status/_q/_page)
+     */
+    public function salesJson($id)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')
+            && ! auth()->user()->can('supplier.view') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        // 404 cross-tenant: o contato precisa existir DENTRO do business.
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        return response()->json(
+            $this->buildClienteSalesPaginator((int) $id, (int) $business_id, request())
+        );
+    }
+
+    /**
+     * Fix 2026-06-08 — Endpoint JSON dos pagamentos do contato pro PaymentsTab self-fetch.
+     *
+     * O legado GET /contacts/payments/{id} devolve Blade HTML (modal DataTable),
+     * deixando a aba "Pagamentos" do drawer presa em "Aguardando wiring". Este
+     * entrega JSON limpo no shape do `PaymentRow` (PaymentsTab.tsx).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): contato resolvido DENTRO do business +
+     * scope business_id em transaction_payments. PII §LGPD: bank_account_number
+     * mascarado (nunca em claro).
+     *
+     * GET /cliente/{id}/payments-json
+     */
+    public function paymentsJson($id)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')
+            && ! auth()->user()->can('supplier.view') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        $payments = TransactionPayment::leftJoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
+            ->leftJoin('transaction_payments as parent_payment', 'transaction_payments.parent_id', '=', 'parent_payment.id')
+            ->where('transaction_payments.business_id', $business_id)
+            ->whereNull('transaction_payments.parent_id')
+            ->where('transaction_payments.payment_for', $id)
+            ->select(
+                'transaction_payments.id',
+                'transaction_payments.amount',
+                'transaction_payments.is_return',
+                'transaction_payments.method',
+                'transaction_payments.paid_on',
+                'transaction_payments.payment_ref_no',
+                'transaction_payments.parent_id',
+                't.invoice_no',
+                't.ref_no',
+                't.type as transaction_type',
+                't.id as transaction_id',
+                'transaction_payments.cheque_number',
+                'transaction_payments.card_transaction_number',
+                'transaction_payments.bank_account_number',
+                'parent_payment.payment_ref_no as parent_payment_ref_no',
+            )
+            ->groupBy('transaction_payments.id')
+            ->orderByDesc('transaction_payments.paid_on')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => (int) $p->id,
+                'paid_on' => $p->paid_on ? \Illuminate\Support\Carbon::parse($p->paid_on)->toIso8601String() : null,
+                'payment_ref_no' => (string) ($p->payment_ref_no ?? ''),
+                'parent_payment_ref_no' => $p->parent_payment_ref_no,
+                'amount' => (float) $p->amount,
+                'is_return' => (int) $p->is_return,
+                'method' => (string) ($p->method ?? ''),
+                'invoice_no' => $p->invoice_no,
+                'ref_no' => $p->ref_no,
+                'transaction_id' => $p->transaction_id !== null ? (int) $p->transaction_id : null,
+                'transaction_type' => $p->transaction_type,
+                'cheque_number' => $p->cheque_number,
+                'card_transaction_number' => $p->card_transaction_number,
+                // PII (ADR 0093 §LGPD): nunca devolver número de conta em claro.
+                'bank_account_number' => $p->bank_account_number
+                    ? '****' . substr((string) $p->bank_account_number, -4)
+                    : null,
+                'parent_id' => $p->parent_id !== null ? (int) $p->parent_id : null,
+            ])
+            ->all();
+
+        return response()->json(['payments' => $payments]);
+    }
+
+    /**
+     * Fix 2026-06-08 — Endpoint JSON dos pontos (reward points) pro RewardPointsTab
+     * self-fetch. Espelha o defer 'reward_points' do show() (mesmo shape/limite).
+     * Tier 0: contato DENTRO do business + scope business_id no histórico.
+     *
+     * GET /cliente/{id}/rewards-json
+     */
+    public function rewardsJson($id)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')
+            && ! auth()->user()->can('supplier.view') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $contact = $this->contactUtil->getContactInfo($business_id, $id);
+
+        $enabled = request()->session()->get('business.enable_rp') == 1
+            && in_array($contact->type, ['customer', 'both'], true);
+
+        if (! $enabled) {
+            return response()->json(['enabled' => false, 'rp_name' => '', 'summary' => null, 'history' => []]);
+        }
+
+        return response()->json([
+            'enabled' => true,
+            'rp_name' => (string) (request()->session()->get('business.rp_name') ?? 'Pontos'),
+            'summary' => [
+                'total_earned' => (int) ($contact->total_rp ?? 0),
+                'total_used' => (int) ($contact->total_rp_used ?? 0),
+                'total_expired' => (int) ($contact->total_rp_expired ?? 0),
+                'balance' => (int) (((int) ($contact->total_rp ?? 0)) - ((int) ($contact->total_rp_used ?? 0)) - ((int) ($contact->total_rp_expired ?? 0))),
+            ],
+            'history' => Transaction::where('transactions.business_id', $business_id)
+                ->where('transactions.contact_id', $id)
+                ->where(function ($q) {
+                    $q->where('transactions.rp_earned', '>', 0)
+                      ->orWhere('transactions.rp_redeemed', '>', 0);
+                })
+                ->orderByDesc('transactions.transaction_date')
+                ->limit(100)
+                ->get(['id', 'invoice_no', 'transaction_date', 'final_total', 'rp_earned', 'rp_redeemed', 'rp_redeemed_amount'])
+                ->map(fn ($tx) => [
+                    'id' => (int) $tx->id,
+                    'invoice_no' => (string) ($tx->invoice_no ?? ''),
+                    'transaction_date' => optional($tx->transaction_date)->toIso8601String(),
+                    'final_total' => (float) $tx->final_total,
+                    'rp_earned' => (int) ($tx->rp_earned ?? 0),
+                    'rp_redeemed' => (int) ($tx->rp_redeemed ?? 0),
+                    'rp_redeemed_amount' => (float) ($tx->rp_redeemed_amount ?? 0),
+                ])
+                ->all(),
+        ]);
+    }
+
+    /**
+     * Fix 2026-06-08 — Endpoint JSON das assinaturas pro SubscriptionsTab self-fetch.
+     * Espelha o defer 'subscriptions' do show() (recur is_recurring=1, pai da série).
+     * Tier 0: contato DENTRO do business + scope business_id.
+     *
+     * GET /cliente/{id}/subscriptions-json
+     */
+    public function subscriptionsJson($id)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')
+            && ! auth()->user()->can('supplier.view') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        return response()->json(
+            Transaction::where('transactions.business_id', $business_id)
+                ->where('transactions.contact_id', $id)
+                ->where('transactions.is_recurring', 1)
+                ->whereNull('transactions.recur_parent_id')
+                ->leftJoin('business_locations as bl_sub', 'transactions.location_id', '=', 'bl_sub.id')
+                ->orderByDesc('transactions.transaction_date')
+                ->limit(100)
+                ->get([
+                    'transactions.id',
+                    'transactions.subscription_no',
+                    'transactions.transaction_date',
+                    'transactions.recur_interval',
+                    'transactions.recur_interval_type',
+                    'transactions.recur_repetitions',
+                    'transactions.recur_stopped_on',
+                    'bl_sub.name as location_name',
+                ])
+                ->map(fn ($s) => [
+                    'id' => (int) $s->id,
+                    'subscription_no' => (string) ($s->subscription_no ?? ''),
+                    'transaction_date' => optional($s->transaction_date)->toIso8601String(),
+                    'recur_interval' => (int) ($s->recur_interval ?? 0),
+                    'recur_interval_type' => (string) ($s->recur_interval_type ?? ''),
+                    'recur_repetitions' => (int) ($s->recur_repetitions ?? 0),
+                    'recur_stopped_on' => optional($s->recur_stopped_on)->toIso8601String(),
+                    'location_name' => $s->location_name,
+                    'generated_count' => (int) Transaction::where('business_id', $business_id)
+                        ->where('recur_parent_id', $s->id)
+                        ->count(),
+                ])
+                ->all()
+        );
+    }
+
+    /**
      * Wave Onda 1 PR D 2026-05-26 — Paginador de veículos do contato (frota Martinho).
      *
      * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório.

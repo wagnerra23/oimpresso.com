@@ -1,5 +1,7 @@
 # BRIEFING — Modules/Crm
 
+> 🔇 **SILENCIADO NA MEMÓRIA — Wagner 2026-06-08.** Não comentar, não evoluir, não criar task pra este módulo sem decisão explícita do Wagner. O "CRM" (pipeline herdado UltimatePOS) não faz sentido pro negócio e confundia. **App intacto** (`module.json active: 1` — cadastro de Cliente segue funcionando pra Larissa/biz=4). Reversível (remover banner). Ver [`memory/reference/crm-e-o-modulo-de-cliente.md`](../../reference/crm-e-o-modulo-de-cliente.md).
+
 > **Última atualização:** 2026-05-21 (Wave A-G+Z — drawer 760px paradigma cadastral)
 > **Owner:** Wagner | **Status produção:** ✅ usado por biz=4 (ROTA LIVRE — Larissa)
 > **Nota Module Grade v1:** 42/100 (Médio) → meta pós-wave 60+/100

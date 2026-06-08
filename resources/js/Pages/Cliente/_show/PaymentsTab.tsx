@@ -7,6 +7,7 @@
 // Pattern reuse: Cliente/Ledger.tsx (filtros + tabela densa) + Atendimento/Channels/Show.tsx (Deferred per-tab).
 
 import { useEffect, useState } from 'react';
+import { Link } from '@inertiajs/react';
 import { CreditCard, ExternalLink, Banknote, Receipt, CornerDownRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 
@@ -101,7 +102,9 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
     setLoading(true);
     setError(null);
 
-    fetch(`/contacts/payments/${contactId}`, {
+    // Fix 2026-06-08: endpoint JSON dedicado (/cliente/{id}/payments-json) — o legado
+    // /contacts/payments/{id} devolvia Blade HTML, deixando a aba presa em "Aguardando wiring".
+    fetch(`/cliente/${contactId}/payments-json`, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         Accept: 'application/json',
@@ -110,11 +113,9 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // Endpoint legacy retorna blade HTML — futuro: criar getContactPaymentsJson(). Por agora extrai JSON se vier.
         const ct = res.headers.get('content-type') ?? '';
         if (!ct.includes('application/json')) {
-          // Fallback: backend ainda é blade. Wave A entrega só estrutura; parent wiring fará Inertia::defer.
-          throw new Error('Endpoint legacy retorna HTML — aguardando wiring Inertia::defer no parent.');
+          throw new Error('Resposta inesperada do servidor (esperava JSON).');
         }
         return res.json();
       })
@@ -218,9 +219,9 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
                   <td className="px-4 py-2.5 text-right">
                     {canViewSell && p.transaction_id && (
                       <Button variant="ghost" size="sm" asChild>
-                        <a href={`/sells/${p.transaction_id}`} aria-label={`Ver venda ${p.invoice_no}`}>
+                        <Link href={`/sells/${p.transaction_id}`} aria-label={`Ver venda ${p.invoice_no}`}>
                           <ExternalLink size={14} />
-                        </a>
+                        </Link>
                       </Button>
                     )}
                   </td>

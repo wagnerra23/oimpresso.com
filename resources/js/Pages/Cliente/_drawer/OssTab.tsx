@@ -161,10 +161,12 @@ export default function OssTab({
           />
         )}
         {active === 'sales' && (
+          // Fix 2026-06-08: no drawer, SalesTab busca os dados sozinho via
+          // `jsonEndpoint` (self-fetch). Sem isso recebia sales=undefined e
+          // ficava preso no skeleton — "as vendas não aparecem no cadastro".
           <SalesTab
             contactId={contact.id}
-            sales={undefined}
-            endpoint={`/cliente/${contact.id}`}
+            jsonEndpoint={`/cliente/${contact.id}/sales-json`}
           />
         )}
         {active === 'payments' && (
@@ -189,8 +191,10 @@ export default function OssTab({
         {active === 'persons' && (
           <PessoasContatoTab contactId={contact.id} contact_persons={undefined} />
         )}
-        {active === 'subscriptions' && <SubscriptionsTab subscriptions={undefined} />}
-        {active === 'rewards' && <RewardPointsTab reward_points={undefined} />}
+        {/* Fix 2026-06-08: passa contactId pro self-fetch (sem prop = busca o endpoint JSON,
+            em vez de ficar preso no skeleton "Carregando…"). */}
+        {active === 'subscriptions' && <SubscriptionsTab contactId={contact.id} />}
+        {active === 'rewards' && <RewardPointsTab contactId={contact.id} />}
       </div>
     </div>
   );

@@ -22,7 +22,15 @@ use Modules\Financeiro\Models\TituloBaixa;
 use Modules\Financeiro\Models\TituloComment;
 use Modules\Financeiro\Services\BoletoOcrService;
 use Modules\Financeiro\Services\LinhaDigitavelValidator;
+use App\Account;
+use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
+use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
+use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
+use Modules\PaymentGateway\Exceptions\InvalidPayerException;
+use Modules\PaymentGateway\Exceptions\PaymentGatewayException;
 use Spatie\Activitylog\Models\Activity;
+use Throwable;
 
 /**
  * Tela /financeiro/unificado — Visão Unificada (Cockpit V2).
@@ -613,6 +621,122 @@ class UnificadoController extends Controller
             : "{$base} confirmado";
 
         return back()->with('success', $msg);
+    }
+
+    /**
+     * POST /financeiro/unificado/{tituloId}/boleto
+     *
+     * Gera boleto registrado (Banco Inter) PRA UM TÍTULO QUE JÁ EXISTE — direto
+     * do drawer da Visão Unificada, sem ir pra /financeiro/cobranca. Reaproveita
+     * o MESMO motor real do PaymentGateway que o CobrancaController::store usa
+     * ($gateway->for($coreAccount)->emitirBoleto()), que está LIVE em prod biz=1.
+     *
+     * Anti-duplo-recebível (Tier 0 dinheiro): a cobrança nasce com
+     * origem_type='fin_titulo' + origem_id=titulo.id. No pagamento, o listener
+     * OnCobrancaPagaCreateFinanceiroTitulo dá BAIXA neste título — em vez de
+     * criar um título novo (PG-xxx), o que contaria o recebível em dobro.
+     *
+     * Pré-condição: conta Banco Inter (banco_codigo 077) ativa para boleto, com
+     * credencial PaymentGateway configurada em /settings/payment-gateways. Sem
+     * isso, o gateway lança CredentialMisconfiguredException (tratada abaixo).
+     */
+    public function emitirBoletoTitulo(Request $request, int $tituloId, PaymentGatewayContract $gateway): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $titulo = Titulo::where('business_id', $businessId)->findOrFail($tituloId);
+
+        if ($titulo->getAttribute('tipo') !== 'receber') {
+            return back()->with('error', 'Boleto só pode ser gerado para título a receber.');
+        }
+        if (in_array($titulo->status, ['quitado', 'cancelado'], true)) {
+            return back()->with('error', 'Título já '.$titulo->status.' — não gera boleto.');
+        }
+
+        // Idempotência leve: se já tem boleto emitido, devolve a linha digitável
+        // (a idempotencyKey determinística abaixo também protege no gateway).
+        $metadata = $titulo->metadata ?? [];
+        if (! empty($metadata['boleto']['linha_digitavel'])) {
+            return back()->with('success', 'Boleto já emitido: '.$metadata['boleto']['linha_digitavel']);
+        }
+
+        // Conta Banco Inter (077) ativa para boleto neste business.
+        $conta = ContaBancaria::where('business_id', $businessId)
+            ->where('banco_codigo', '077')
+            ->where('ativo_para_boleto', true)
+            ->orderBy('id')
+            ->first();
+        if (! $conta) {
+            return back()->with('error', 'Sem conta Banco Inter ativa para boleto. Configure a credencial em /settings/payment-gateways.');
+        }
+
+        $coreAccount = Account::query()->find($conta->account_id);
+        if (! $coreAccount) {
+            return back()->with('error', 'Conta bancária core inválida (account_id).');
+        }
+
+        // Vencimento nunca no passado — gateway exige >= hoje. Título atrasado
+        // recai pra hoje (multa/juros ficam pra onda futura).
+        // vencimento é cast 'date' (Carbon não-nulo). Atrasado → recai pra hoje.
+        $vencCarbon = $titulo->vencimento->greaterThan(now())
+            ? $titulo->vencimento
+            : now();
+        $vencimento = new \DateTimeImmutable($vencCarbon->toDateString());
+
+        $valorCentavos = (int) round(((float) $titulo->valor_aberto) * 100);
+        if ($valorCentavos < 100) {
+            return back()->with('error', 'Valor em aberto abaixo do mínimo de R$ 1,00 para boleto.');
+        }
+
+        $numero = (string) $titulo->getAttribute('numero');
+        $descricao = $numero !== '' ? "Título {$numero}" : 'Cobrança';
+
+        $input = new EmitirCobrancaInput(
+            businessId: $businessId,
+            contactId: (int) ($titulo->getAttribute('cliente_id') ?? 0),
+            valorCentavos: $valorCentavos,
+            vencimento: $vencimento,
+            descricao: $descricao,
+            idempotencyKey: 'fintitulo-'.$titulo->id,
+            origemType: 'fin_titulo',
+            origemId: (int) $titulo->id,
+            meta: [
+                'payer_name'     => $titulo->cliente_descricao,
+                'payer_cpf_cnpj' => $metadata['cliente_documento'] ?? null,
+                'payer_email'    => $metadata['cliente_email'] ?? null,
+            ],
+        );
+
+        try {
+            $result = $gateway->for($coreAccount)->emitirBoleto($input);
+        } catch (CredentialMisconfiguredException $e) {
+            // DriverNotSupportedException não chega aqui (Inter suporta boleto); se
+            // chegar via for(), cai no catch Throwable abaixo. Catch específico
+            // removido pra não regredir o ratchet PHPStan (dead catch).
+            return back()->with('error', 'Credencial Inter não configurada para boleto: '.$e->getMessage());
+        } catch (InvalidPayerException $e) {
+            return back()->with('error', 'Pagador inválido (CPF/CNPJ/endereço incompletos): '.$e->getMessage());
+        } catch (GatewayUnavailableException $e) {
+            return back()->with('error', 'Banco Inter indisponível agora: '.$e->getMessage());
+        } catch (PaymentGatewayException | Throwable $e) {
+            report($e);
+            return back()->with('error', 'Falha ao gerar boleto. Detalhe registrado no log.');
+        }
+
+        // Persiste a linha digitável/nosso número no título pra exibir no drawer.
+        $titulo->metadata = array_merge($metadata, [
+            'boleto' => [
+                'linha_digitavel' => $result->linhaDigitavel,
+                'codigo_barras'   => $result->codigoBarras,
+                'nosso_numero'    => $result->nossoNumero,
+                'cobranca_id'     => $result->cobrancaId,
+                'gateway'         => 'inter',
+                'emitido_em'      => now()->toIso8601String(),
+            ],
+        ]);
+        $titulo->save();
+
+        return back()->with('success', 'Boleto Inter gerado: '.($result->linhaDigitavel ?: $result->nossoNumero));
     }
 
     // ─────────── Comments + Audit (Onda DB 2026-05-18) ───────────
@@ -1334,6 +1458,10 @@ class UnificadoController extends Controller
             'valor_mutavel' => ! in_array($t->status, ['quitado', 'cancelado'], true),
             // Onda 21 #55 — Workflow aprovação (nullable: títulos sem fluxo)
             'aprovacao_status' => $t->aprovacao_status ?? null,
+            // Gerar Boleto no drawer (2026-06-08) — linha digitável persistida em
+            // metadata.boleto após emissão via PaymentGateway (InterDriver). Null
+            // até o título ter um boleto emitido.
+            'boleto' => $metadata['boleto'] ?? null,
         ];
     }
 

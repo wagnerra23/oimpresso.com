@@ -70,6 +70,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::post('/unificado/{id}/baixar', [UnificadoController::class, 'baixar'])
             ->whereNumber('id')
             ->name('unificado.baixar');
+        // Gerar Boleto no drawer (2026-06-08) — emite boleto Inter pra um título
+        // existente, sem sair da Visão Unificada. origem_type='fin_titulo' garante
+        // baixa (não duplica) no pagamento via OnCobrancaPagaCreateFinanceiroTitulo.
+        Route::post('/unificado/{tituloId}/boleto', [UnificadoController::class, 'emitirBoletoTitulo'])
+            ->whereNumber('tituloId')
+            ->name('unificado.emitir-boleto');
         // Onda 15 (2026-05-20): bulk update categoria em lote
         Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
             ->name('unificado.bulk-update-categoria');

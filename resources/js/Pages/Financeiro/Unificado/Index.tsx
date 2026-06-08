@@ -124,6 +124,14 @@ interface Lancamento {
   valor_mutavel: boolean;
   // Onda 21 (2026-05-19) #55 — Workflow aprovação pra títulos a pagar.
   aprovacao_status: 'pendente' | 'aprovado' | 'rejeitado' | null;
+  // Gerar Boleto no drawer (2026-06-08) — linha digitável após emissão Inter.
+  boleto: {
+    linha_digitavel: string | null;
+    codigo_barras: string | null;
+    nosso_numero: string | null;
+    gateway: string;
+    emitido_em: string;
+  } | null;
 }
 
 interface Kpi {
@@ -1923,11 +1931,35 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       <span className="ml-1">Ver NFe</span>
                     </Button>
                   )}
+                  {/* Gerar Boleto no drawer (2026-06-08) — emite boleto Inter pro
+                      título SEM sair da Visão Unificada. Quando já emitido, vira
+                      "Copiar boleto" (linha digitável persistida em metadata). */}
                   {selected.kind === 'receivable' && (selected.status !== 'recebido') && (
-                    <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Cobrar contraparte" onClick={() => router.visit(`/cobranca/recorrente/nova?titulo=${selected.id}`)}>
-                      <span aria-hidden>✉</span>
-                      <span className="ml-1">Cobrar</span>
-                    </Button>
+                    selected.boleto?.linha_digitavel ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="fin-foot-icon-btn"
+                        title={`Boleto Inter · ${selected.boleto?.linha_digitavel ?? ''}`}
+                        onClick={() => navigator.clipboard?.writeText(selected.boleto?.linha_digitavel ?? '')}
+                      >
+                        <span aria-hidden>📋</span>
+                        <span className="ml-1">Copiar boleto</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="fin-foot-icon-btn"
+                        title="Gerar boleto registrado (Banco Inter)"
+                        onClick={() =>
+                          router.post(`/financeiro/unificado/${selected.id}/boleto`, {}, { preserveScroll: true })
+                        }
+                      >
+                        <span aria-hidden>✉</span>
+                        <span className="ml-1">Gerar boleto</span>
+                      </Button>
+                    )
                   )}
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
                     <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn">
