@@ -4,6 +4,21 @@
 
 **Última atualização:** 2026-05-20 tarde · **27 PRs Ondas 12-26** ([#1158→#1252](https://github.com/wagnerra23/oimpresso.com/pulls)) · Bundle copy CSS canon 9054 LOC · 7 funções novas · paridade canon 4.8→**9.8/10** · drawer detalhe **10/10** · cobertura funcional 75%→**87%**.
 
+## ⚠️ Estado de boletos/cobrança 2026-06-08 (corrige pegadinha)
+
+> **Boleto NÃO é mais mock.** A emissão real vive em `Modules/PaymentGateway` (não no `CnabDirectStrategy` legado, que está sendo aposentado — `/financeiro/boletos` → 301 `/financeiro/cobranca`).
+
+| Item | Estado |
+|---|---|
+| **Funcionando em PROD** | Boleto via **Banco Inter** (`InterDriver` — API Cobrança v3, OAuth2 + mTLS), **biz=1** (Wagner/interno) |
+| **Driver mais maduro** | `InterDriver` — único com mTLS real (cert materializado de base64 inline em `rb_boleto_credentials` via `scripts/inter-credentials/install-biz.py`), `registerWebhook`, polling de reconciliação (`InterReconcilePixCommand`), import de boletos pagos por fora (legado WR) |
+| **Demais drivers** | Implementados + testados, **aguardando credencial ativa** pra ligar: Asaas (boleto/pix/card), C6, BCB Pix, Pagar.me, Sicoob API, + 11 CNAB file-based (Bradesco/Itaú/BB/Santander/Caixa/Sicoob/Ailos/Sicredi/Cresol/Banrisul/BTG) |
+| **biz=4 (Larissa/ROTA LIVRE)** | Boleto Inter **ainda não ligado** (sem credencial ativa comprovada) |
+
+**Pré-condição pra emitir de verdade:** `PaymentGatewayCredential` ativa cadastrada em `/settings/payment-gateways` e vinculada à conta bancária (wizard step 3). Sem isso, `PaymentGatewayService::for($account)` lança `CredentialMisconfiguredException`.
+
+**Caminho real:** tela `/financeiro/cobranca` → "Emitir cobrança" `tipo=boleto` → `CobrancaController::store` → `PaymentGatewayContract::emitirBoleto()` → driver real → persiste `Cobranca` → webhook reconcilia pagamento → evento `CobrancaPaga` → cria baixa no Financeiro (`OnCobrancaPagaCreateFinanceiroTitulo`). ADR 0144 + 0170.
+
 ## Estado UI 2026-05-20 tarde — Drawer canon 10/10 ✅
 
 `/financeiro/*` (12 telas) com **paridade visual 9.8/10** vs canon `financeiro-app.jsx`. Bundle CSS de **9054 LOC** importado inteiro em `resources/css/cowork-canon-financeiro-bundle.css` (regra Tier 0 [`feedback-cowork-bundle-aplicar-inteiro`](../../reference/feedback-cowork-bundle-aplicar-inteiro.md) validada 4ª vez).
@@ -32,7 +47,7 @@
 | `/financeiro/extrato/{contaId}` | 12.8 | 8.5/10 | Movimento bancário |
 | `/financeiro/fluxo` | 12.8+15+18 | 9/10 | Projeção 35d + banner CTA sem conta |
 | `/financeiro/relatorios` | 14+15 | 9/10 | DRE comparativo + Fluxo realizado + Resumo |
-| `/financeiro/cobranca` | 15 híbrido pg-shell | 8/10 | Gateways recorrentes |
+| `/financeiro/cobranca` | 15 híbrido pg-shell | 8/10 | Emitir cobrança real (boleto/pix/card) via PaymentGateway — **Inter LIVE biz=1**, demais drivers aguardando credencial |
 | **`/financeiro/plano-contas`** (Onda 18) | 18 | 9/10 | **Hierárquica BR 49 entries** |
 | **`/financeiro/conciliacao`** (Onda 19) | 19 | 9/10 | **OFX upload + fuzzy match** |
 | `/financeiro/assinaturas/atualizar` | 14 | 8/10 | Valor/ciclo/forma pgto |
@@ -118,7 +133,7 @@ Lançamentos CRUD + 1-clique baixa + filtros lifecycle multi-select + densidade 
 
 - **AR/AP unificado** — Visão Unificada `/financeiro/unificado` (ADR Cockpit V2) — coluna única Títulos (`fin_titulos`) tipo `receber`/`pagar`, baixas append-only (`fin_titulo_baixas`), idempotência via UNIQUE(business_id, origem, origem_id, parcela_numero).
 - **Fluxo de Caixa projeção 35d** — `FluxoCaixaService::projetar(biz, dias)` agrega saldo_cached + títulos futuros + baixas históricas, retorna shape Inertia pronto (KPIs: saldo_hoje, saldo_30d, pior_dia, margem_mínima R$ [redacted Tier 0]).
-- **Boletos** — `TituloService` orquestra emissão via `BoletoStrategy` (default `CnabDirectStrategy`); remessas CNAB 240 em `fin_boleto_remessas`.
+- **Boletos / Cobrança (estado real 2026-06-08)** — emissão **real** via `Modules/PaymentGateway` (`/financeiro/cobranca` → `PaymentGatewayContract::emitirBoleto()`). **Inter LIVE em prod biz=1** (`InterDriver` OAuth2+mTLS). Demais drivers (Asaas/C6/BCB Pix/Pagar.me/Sicoob API + 11 CNAB) prontos e testados, aguardando credencial ativa. O `CnabDirectStrategy` legado (offline `gerado_mock`, sem registrar no banco) está sendo aposentado — ver callout "Estado de boletos/cobrança" no topo.
 - **Conta Bancária** — `saldo_cached` materializado (migration 2026-05-06), múltiplas contas por business, mapeamento legacy via `accounts_legacy_map`.
 - **Extrato** — `fin_extrato_lancamentos` para conciliação OFX/CSV (US-FIN futuros).
 - **Plano de Contas BR** — Seeder pronto (`PlanoContasBrSeeder`) + categorização hierárquica `fin_categorias`.
@@ -145,7 +160,7 @@ Todas Models usam `BusinessScope` trait (`Modules/Financeiro/Models/Concerns/Bus
 - **Repositories (2):** TituloRepository (Wave 18), BaixaRepository (Wave 18 RETRY) — singleton, type-safe `businessId:int` 1º param
 - **Models (10):** Titulo (Onda Edit: +`conferidoPor()` BelongsTo App\User), TituloBaixa, CaixaMovimento, Categoria, ContaBancaria, BoletoRemessa, ExtratoLancamento, PlanoConta, AccountsLegacyMap
 - **FormRequests (7):** UpsertCategoriaRequest, UpsertContaBancariaRequest, StoreTransactionRequest, UpdateTransactionRequest, StoreAccountRequest, FluxoFiltroRequest, StoreBaixaRequest, UpdateAccountRequest, UpdateTituloRequest (Onda Edit — guard imutabilidade pós-baixa)
-- **Strategies:** `CnabDirectStrategy` (default boleto via CNAB 240)
+- **Strategies:** `CnabDirectStrategy` (boleto offline mock `gerado_mock` — **legado, sendo aposentado**). Emissão real de boleto migrou pra `Modules/PaymentGateway` (`InterDriver` LIVE biz=1; ver callout no topo)
 - **Observers:** TransactionObserver, TransactionPaymentObserver (sync vendas core → Títulos)
 - **Pages Inertia (13 charters):** Cockpit V2 padrão; Fluxo, Unificado, ContasReceber, ContasPagar, Boletos validados visualmente
 
