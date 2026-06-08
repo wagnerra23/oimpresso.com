@@ -1,6 +1,7 @@
 // Onda Final.D — Tab Assinaturas (transactions is_recurring=1).
 // Paridade com Blade sale_pos/partials/subscriptions_table.
 
+import { Link } from '@inertiajs/react';
 import { Recycle, ExternalLink } from 'lucide-react';
 
 export interface SubscriptionItem {
@@ -104,13 +105,13 @@ export default function SubscriptionsTab({ subscriptions }: SubscriptionsTabProp
                   )}
                 </td>
                 <td className="px-4 py-3 text-xs">
-                  <a
+                  <Link
                     href={`/sells/${s.id}`}
                     className="inline-flex items-center gap-1 text-primary hover:underline"
                   >
                     Ver
                     <ExternalLink size={11} aria-hidden />
-                  </a>
+                  </Link>
                 </td>
               </tr>
             );
