@@ -67,3 +67,12 @@ tests/eval/results/*.json
 
 # jscpd — relatório local (anti-duplicação copy-paste); .jscpd.json é VERSIONADO
 /report
+
+# Saída gerada do Laravel Wayfinder (regenerável — vite plugin / php artisan wayfinder:generate)
+/resources/js/actions/
+/resources/js/routes/
+/resources/js/wayfinder/
+
+# Cache/scratch local — NÃO versionar (design fetch + prancheta de design-grading)
+/_design_fetch/
+/_preview/
