@@ -47,10 +47,8 @@ class SaleJourneyService
     /**
      * @param array{
      *   source?: string|null,
-     *   status?: string|null,
      *   has_oficina_auto?: bool,
-     *   has_vehicle?: bool,
-     *   has_os?: bool,
+     *   os_ref?: string|null,
      *   invoiced?: bool,
      *   delivered?: bool
      * } $state
@@ -59,43 +57,38 @@ class SaleJourneyService
      *   show: bool,
      *   direction: string,
      *   current: string|null,
+     *   os_ref: string|null,
      *   nodes: array<int, array{key:string,label:string,state:string}>
      * }
      */
     public function build(array $state): array
     {
         $source         = (string) ($state['source'] ?? 'balcao');
-        $status         = (string) ($state['status'] ?? 'final');
         $hasOficinaAuto = (bool) ($state['has_oficina_auto'] ?? false);
-        $hasVehicle     = (bool) ($state['has_vehicle'] ?? false);
-        $hasOs          = (bool) ($state['has_os'] ?? false);
         $invoiced       = (bool) ($state['invoiced'] ?? false);
         $delivered      = (bool) ($state['delivered'] ?? false);
+        $osRef          = isset($state['os_ref']) && $state['os_ref'] !== '' ? (string) $state['os_ref'] : null;
 
-        $isOficinaFirst = $source === 'oficina';
+        // Fluxo REAL (ADR 0192): a OS nasce na oficina e VIRA venda ao concluir
+        // (source='oficina', os_ref='SO-{id}'). Logo o breadcrumb na venda é só um
+        // indicador READ-ONLY da jornada pós-oficina — e SÓ pra venda de origem
+        // oficina. Venda de balcão/veículo avulso e varejo (ROTA LIVRE) NUNCA mostra.
+        // (Não existe "mandar venda pra oficina" — gerar venda vive no board
+        // producao-oficina, lado da oficina.)
+        $isOficinaOrigin = $source === 'oficina';
+        $show = $hasOficinaAuto && $isOficinaOrigin;
 
-        // Gate: o breadcrumb de oficina só aparece em venda relacionada à oficina.
-        // Varejo puro (ROTA LIVRE) → show=false → Show.tsx não renderiza nada novo.
-        $show = $hasOficinaAuto && ($isOficinaFirst || $hasVehicle || $hasOs);
+        // Jornada fixa pós-oficina. Oficina + Venda já estão alcançados quando a
+        // venda existe (a OS foi concluída pra gerar a venda). Avança com NFe e entrega.
+        $order = [self::NODE_OFICINA, self::NODE_VENDA, self::NODE_FATURAMENTO, self::NODE_ENTREGA];
 
-        // É um orçamento (ainda não virou venda final)?
-        $isQuote = in_array($status, ['quotation', 'draft', 'proforma'], true);
-
-        // Ordem dos nós por direção.
-        $order = $isOficinaFirst
-            ? [self::NODE_OFICINA, self::NODE_VENDA, self::NODE_FATURAMENTO, self::NODE_ENTREGA]
-            : [self::NODE_ORCAMENTO, self::NODE_VENDA, self::NODE_OFICINA, self::NODE_FATURAMENTO, self::NODE_ENTREGA];
-
-        // "Alcançado" por nó (monotônico): pega o nó mais avançado satisfeito.
         $reached = [
-            self::NODE_ORCAMENTO   => true,                  // sempre o ponto de partida balcão
-            self::NODE_OFICINA     => $isOficinaFirst || $hasOs,
-            self::NODE_VENDA       => ! $isQuote,            // status final = virou venda
+            self::NODE_OFICINA     => true,
+            self::NODE_VENDA       => true,
             self::NODE_FATURAMENTO => $invoiced,
             self::NODE_ENTREGA     => $delivered,
         ];
 
-        // Índice atual = posição do nó mais avançado alcançado na ordem da direção.
         $currentIdx = 0;
         foreach ($order as $i => $key) {
             if (! empty($reached[$key])) {
@@ -114,8 +107,9 @@ class SaleJourneyService
 
         return [
             'show'      => $show,
-            'direction' => $isOficinaFirst ? 'oficina' : 'balcao',
-            'current'   => $order[$currentIdx] ?? null,
+            'direction' => 'oficina',
+            'current'   => $order[$currentIdx],
+            'os_ref'    => $osRef,
             'nodes'     => $nodes,
         ];
     }

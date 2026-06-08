@@ -1,24 +1,12 @@
 // Breadcrumb "onde a venda está" — jornada da venda de oficina (Wagner 2026-06-05).
 //
-// Stepper horizontal direcional. Os nós + o estágio atual vêm prontos do backend
-// (prop `journey`, montada por App\Services\SaleJourneyService — função pura
-// testada no CI). Duas direções:
-//   balcão : Orçamento → Venda → Oficina → Faturamento → Entrega
-//   oficina: Oficina → Venda → Faturamento → Entrega
-//
-// CTA "Enviar para a oficina" aparece só quando há um nó Oficina pendente na
-// direção balcão (= venda pronta, ainda sem OS). Reusa POST /sells/{id}/create-os
-// (mesmo endpoint do CriarOsButton, modo 'single' = 1 OS pra venda toda, padrão
-// Martinho/caçambas).
-//
-// Gate de visibilidade é do backend (journey.show=false pra varejo/ROTA LIVRE) —
-// este componente só renderiza quando journey.show é true.
+// READ-ONLY. Fluxo real (ADR 0192): a OS nasce na oficina e VIRA venda ao concluir
+// (source='oficina'). Por isso este stepper só aparece em venda de ORIGEM oficina
+// e apenas INDICA o estágio — Oficina → Venda → Faturamento → Entrega. Não há ação
+// aqui: gerar venda é no board producao-oficina (lado da oficina). Varejo/ROTA
+// LIVRE recebe journey.show=false e nada renderiza.
 
-import { useState } from 'react';
-import { router } from '@inertiajs/react';
-import { Check, Loader2, Wrench } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/Components/ui/button';
+import { Check } from 'lucide-react';
 
 export interface JourneyNode {
   key: string;
@@ -28,66 +16,26 @@ export interface JourneyNode {
 
 export interface SaleJourney {
   show: boolean;
-  direction: 'balcao' | 'oficina' | string;
+  direction: 'oficina' | string;
   current: string | null;
+  os_ref?: string | null;
   nodes: JourneyNode[];
 }
 
 interface Props {
   journey: SaleJourney;
-  saleId: number;
 }
 
-function getCsrfToken(): string {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-}
-
-export default function SaleJourneyStepper({ journey, saleId }: Props) {
-  const [sending, setSending] = useState(false);
-
+export default function SaleJourneyStepper({ journey }: Props) {
+  // Fail-safe: sem journey.show (varejo/ROTA LIVRE) ou sem nós → não renderiza.
   if (!journey?.show || !Array.isArray(journey.nodes) || journey.nodes.length === 0) {
     return null;
   }
 
-  // CTA só na direção balcão, quando o nó Oficina existe e ainda está pendente
-  // (venda pronta, sem OS criada).
-  const oficinaNode = journey.nodes.find((n) => n.key === 'oficina');
-  const canSendToWorkshop =
-    journey.direction === 'balcao' && oficinaNode?.state === 'todo' && journey.current === 'venda';
-
-  const handleSend = async () => {
-    if (sending) return;
-    setSending(true);
-    try {
-      const res = await fetch(`/sells/${saleId}/create-os`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': getCsrfToken(),
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify({ mode: 'single' }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        toast.error(json.msg ?? json.message ?? 'Falha ao enviar para a oficina.');
-        return;
-      }
-      toast.success(json.message ?? 'Venda enviada para a oficina.');
-      router.reload({ only: ['journey'] });
-    } catch (err) {
-      toast.error(`Erro: ${(err as Error)?.message ?? err}`);
-    } finally {
-      setSending(false);
-    }
-  };
-
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <ol className="flex items-center gap-1 flex-wrap" aria-label="Progresso da venda">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <ol className="flex items-center gap-1 flex-wrap" aria-label="Progresso da venda de oficina">
           {journey.nodes.map((node, i) => {
             const isDone = node.state === 'done';
             const isCurrent = node.state === 'current';
@@ -127,15 +75,10 @@ export default function SaleJourneyStepper({ journey, saleId }: Props) {
           })}
         </ol>
 
-        {canSendToWorkshop && (
-          <Button type="button" size="sm" onClick={handleSend} disabled={sending}>
-            {sending ? (
-              <Loader2 size={14} className="mr-1.5 animate-spin" />
-            ) : (
-              <Wrench size={14} className="mr-1.5" />
-            )}
-            Enviar para a oficina
-          </Button>
+        {journey.os_ref && (
+          <span className="text-xs text-muted-foreground">
+            Origem: <span className="font-medium text-foreground">{journey.os_ref}</span>
+          </span>
         )}
       </div>
     </div>
