@@ -40,7 +40,6 @@ import {
   Search,
   Sparkles,
   Star,
-  Trash2,
   Truck,
   Upload,
   UserCheck,
@@ -415,6 +414,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [openContactId, setOpenContactId] = useState<number | null>(null);
+  // 2026-06-08 (Wagner "arrumar botões da contacts") — aba-alvo do drawer ao abrir.
+  // Consolidação ADR 0179: o menu ⋮ da linha não manda mais pra Blade legacy
+  // (/contacts/{id}, /contacts/{id}/edit, /contacts/ledger). Tudo abre o drawer
+  // 760 — "Editar" cai na Identificação, "Extrato" cai em Operações›Extrato.
+  const [openTab, setOpenTab] = useState<DrawerTab>('identificacao');
+  // Entrada única do drawer: garante reset da aba-alvo em cada abertura (sem
+  // herdar a aba da última ação — ex: abrir via Extrato e depois clicar a linha).
+  const openDrawer = useCallback((id: number, tab: DrawerTab = 'identificacao') => {
+    setOpenTab(tab);
+    setOpenContactId(id);
+  }, []);
 
   // ADR 0179 evolução 2026-05-25 — "Novo cliente" via drawer 760 modo 'novo'.
   // State declarado aqui; callback (que depende de activeType) está DEPOIS
@@ -544,6 +554,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           vip: false,
         } as unknown as ClienteRow;
         setDraftContact(placeholderContact);
+        setOpenTab('identificacao');
         setOpenContactId(newId);
 
         // Em paralelo: reload customers do backend pra sincronizar listagem com o
@@ -705,7 +716,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       if (e.key === 'Enter' && focusedIndex !== null) {
         e.preventDefault();
         const row = filteredRows[focusedIndex];
-        if (row) setOpenContactId(row.id);
+        if (row) openDrawer(row.id);
         return;
       }
 
@@ -717,7 +728,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [paletteOpen, cheatOpen, filteredRows, focusedIndex]);
+  }, [paletteOpen, cheatOpen, filteredRows, focusedIndex, openDrawer]);
 
   const handleSort = useCallback((key: SortKey) => {
     setSortKey((prevKey) => {
@@ -1170,7 +1181,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           }
                           onClick={() => {
                             setFocusedIndex(idx);
-                            setOpenContactId(row.id);
+                            openDrawer(row.id);
                           }}
                         >
                           <td className="px-4 py-2.5">
@@ -1279,7 +1290,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             </button>
                           </td>
                           <td className="px-2 py-2.5 text-right pr-4" onClick={(e) => e.stopPropagation()}>
-                            <ActionsMenu row={row} onView={() => setOpenContactId(row.id)} />
+                            <ActionsMenu
+                              row={row}
+                              onView={() => openDrawer(row.id)}
+                              onEdit={() => openDrawer(row.id, 'identificacao')}
+                              onExtrato={() => openDrawer(row.id, 'operacoes')}
+                            />
                           </td>
                         </tr>
                       );
@@ -1299,6 +1315,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       <ClienteSheet
         contactId={openContactId}
         open={openContactId !== null}
+        initialTab={openTab}
         rows={rows}
         draftContact={draftContact}
         priceGroups={props.priceGroups ?? []}
@@ -1324,7 +1341,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           onClose={() => setPaletteOpen(false)}
           onSelectContact={(id) => {
             setPaletteOpen(false);
-            setOpenContactId(id);
+            openDrawer(id);
           }}
           onClearFilters={() => {
             setStatusFilter('');
@@ -1651,14 +1668,30 @@ function StatusBadge({ status }: { status: ClienteRow['status'] }) {
   );
 }
 
-function ActionsMenu({ row, onView }: { row: ClienteRow; onView: () => void }) {
+// 2026-06-08 (Wagner "arrumar botões da contacts") — menu ⋮ consolidado no
+// drawer 760 (ADR 0179: drawer substitui página/edit full-page Blade legacy).
+// REMOVIDOS: "Página completa" (/contacts/{id} — ícone duplicado + Non-Goal
+// Charter "Show.tsx full-page DELETADO") e "Excluir" (estava disabled permanente
+// = botão morto). "Editar" e "Extrato" não mandam mais pra Blade legacy
+// (/contacts/{id}/edit, /contacts/ledger) — abrem o drawer na aba certa.
+function ActionsMenu({
+  row,
+  onView,
+  onEdit,
+  onExtrato,
+}: {
+  row: ClienteRow;
+  onView: () => void;
+  onEdit: () => void;
+  onExtrato: () => void;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
           className="inline-flex h-8 w-8 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Ações do cliente"
+          aria-label={`Ações de ${row.name || 'contato'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <MoreVertical size={16} />
@@ -1669,31 +1702,13 @@ function ActionsMenu({ row, onView }: { row: ClienteRow; onView: () => void }) {
           <Eye size={14} className="mr-2" />
           Ver detalhes
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href={`/contacts/${row.id}`}>
-            <Eye size={14} className="mr-2" />
-            Página completa
-          </a>
+        <DropdownMenuItem onClick={onEdit}>
+          <Edit size={14} className="mr-2" />
+          Editar
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href={`/contacts/${row.id}/edit`}>
-            <Edit size={14} className="mr-2" />
-            Editar
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href={`/contacts/ledger?contact_id=${row.id}`}>
-            <CreditCard size={14} className="mr-2" />
-            Extrato
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40"
-          disabled
-          title="Use rota legacy /contacts/duplicates pra deletar/mesclar (Non-Goal Charter)."
-        >
-          <Trash2 size={14} className="mr-2" />
-          Excluir
+        <DropdownMenuItem onClick={onExtrato}>
+          <CreditCard size={14} className="mr-2" />
+          Extrato
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -1761,6 +1776,7 @@ function relativeDate(iso: string | null | undefined): string {
 function ClienteSheet({
   contactId,
   open,
+  initialTab = 'identificacao',
   rows,
   draftContact,
   priceGroups = [],
@@ -1770,6 +1786,9 @@ function ClienteSheet({
 }: {
   contactId: number | null;
   open: boolean;
+  /** Aba em que o drawer abre. Menu ⋮ da linha usa pra "Editar" (identificacao)
+   *  e "Extrato" (operacoes›ledger). Default identificacao (clique na linha). */
+  initialTab?: DrawerTab;
   rows: ClienteRow[];
   /** Hotfix 2026-05-25 — modo 'novo cliente' passa contact placeholder direto
    * via state Index.tsx pra não depender do `rows.find()` (que falha porque
@@ -1811,13 +1830,16 @@ function ClienteSheet({
   // carrega/sobe/exclui, o OssTab reporta o número real e o chip passa a refletir.
   const [liveAnexosCount, setLiveAnexosCount] = useState<number | null>(null);
 
-  // Reset tab ao abrir contact diferente. Drawer abre default em "Identificação".
+  // Reset tab ao abrir contact diferente. Abre na aba pedida pelo chamador
+  // (default "Identificação"; menu ⋮ pede "operacoes" pra Extrato). Entrar em
+  // Operações já cai na sub-aba Extrato ('ledger').
   useEffect(() => {
     if (open && contactId) {
-      setActiveTab('identificacao');
+      setActiveTab(initialTab);
+      if (initialTab === 'operacoes') setOpsSubTab('ledger');
       setLiveAnexosCount(null); // novo contact → count do payload até o painel carregar
     }
-  }, [open, contactId]);
+  }, [open, contactId, initialTab]);
 
   // Z-2.1: Atalho 1-8 troca tab quando drawer aberto. Alinhado ao protótipo Cowork.
   // Pulado quando user está digitando em input/textarea (form fields cadastrais).
