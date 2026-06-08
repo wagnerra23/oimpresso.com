@@ -1,0 +1,102 @@
+name: Mutation Gate (advisory)
+
+# Gate ADVISORY de mutation testing — NAO e required check, logo nunca bloqueia merge.
+# Fecha LC-03 (testes de caminho feliz) de memory/LICOES_CODE.md: prova que o
+# teste realmente PEGA bug (mutation testing muta o codigo e exige que um teste
+# falhe). Combate o pior habito da IA: teste verde que nao testa nada.
+#
+# FERRAMENTA: Pest v4 mutation testing NATIVO (vendor/bin/pest --mutate) —
+# pestphp/pest ^4.0 ja e dependencia do projeto, ZERO mudanca em composer.lock.
+# (infection standalone nao suporta testFramework "pest".)
+#
+# ESCOPO v1 (honesto e pequeno): o CI roda SQLite e SO um subconjunto curado
+# de testes passa (ver ci.yml — a suite inteira nao roda verde sob SQLite).
+# Ancoramos no FeatureFlagServiceTest, que ja roda verde e cobre app/Services
+# (logica pura). --covered-only garante que so mutamos o que esse teste cobre.
+#
+# EXPANDIR: adicionar mais pares (teste-verde, fonte pura) conforme surgirem.
+# PROMOVER A BLOQUEANTE: rodar a suite no MySQL real (CT 100) no CI antes de
+# subir --min acima de 0 — senao o score seria falso por teste pulado.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/Services/**/*.php'
+      - 'tests/Feature/Services/**/*.php'
+      - '.github/workflows/mutation-gate.yml'
+
+concurrency:
+  group: mutation-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Pest mutation (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4 (pcov)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd, opentelemetry
+          tools: composer:v2
+          coverage: pcov
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run Pest mutation (advisory, escopo v1)
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        # Sem mascara de erro: se a ferramenta quebrar, fica VERMELHO (pra corrigir).
+        # --min=0 + --ignore-min-score-on-zero-mutations => execucao normal sai 0
+        # mesmo com mutantes sobreviventes (advisory). So erro real avermelha.
+        run: |
+          vendor/bin/pest tests/Feature/Services/FeatureFlagServiceTest.php \
+            --mutate \
+            --path=app/Services \
+            --covered-only \
+            --min=0 \
+            --ignore-min-score-on-zero-mutations

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: governance/DriftAlerts
+path: resources/js/Pages/governance/DriftAlerts.tsx
+archetype: list
+persona: wagner
+nota: 69
+nivel: "Developing"
+baseline_anterior: 69   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista de drift funcional com KPIs e historico, mas quase toda em amber cru e divs hand-rolled (sem CardTitle), read-only sem acao e fora do DS roxo."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear"
+    fix: "tudo em amber-50/100/200/950 + zinc cru hand-rolled, h3 hand-rolled em vez de CardTitle, zero primary roxo + charter existe mas UI nao herda DS -> tokens v4 + Card components"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Datadog monitors"
+    fix: "3 secoes (runtime/sem-scope/historico) achatadas sem severidade visual nem agrupamento; '→ ctrl' como bullet -> severidade por cor token + counts no header"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Linear"
+    fix: "drift listado mas sem acao inline (add ao SCOPE, ir pro modulo) -> CTA por item ligando ao fix descrito no texto"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

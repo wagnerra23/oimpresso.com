@@ -1,0 +1,65 @@
+# Grafana Tempo 2.6.0 — config canônica oimpresso
+# ADR 0162. Wave 26 Agent 4.
+#
+# Storage local (CT 100 docker volume `oimpresso-tempo-data`).
+# Retention: 168h = 7 dias (Wagner aumenta após soak).
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: info
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+ingester:
+  trace_idle_period: 10s
+  max_block_bytes: 100_000_000     # 100 MB por block antes de flush
+  max_block_duration: 5m
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/blocks
+    wal:
+      path: /var/tempo/wal
+    pool:
+      max_workers: 100
+      queue_depth: 10000
+
+# Retention 7 dias (168h). Wagner ajusta após validar disk usage.
+compactor:
+  compaction:
+    block_retention: 168h
+    compacted_block_retention: 1h
+    compaction_window: 1h
+
+# Query frontend default (single-binary monolítico — sem necessidade de scalar agora).
+query_frontend:
+  search:
+    max_duration: 0                # 0 = sem limite (query histórica permitida)
+    default_result_limit: 50
+    max_result_limit: 1000
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: oimpresso-ct100
+  storage:
+    path: /var/tempo/generator/wal
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: []               # Sem service-graph/span-metrics por enquanto (ativar quando wirar Prometheus)
+    ingestion:
+      rate_limit_bytes: 20_000_000        # 20 MB/s ingest limit (soak)
+      burst_size_bytes: 30_000_000        # 30 MB burst

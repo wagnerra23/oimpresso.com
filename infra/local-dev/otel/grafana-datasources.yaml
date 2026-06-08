@@ -1,0 +1,26 @@
+# Grafana datasources auto-provisioning — SMOKE LOCAL DEV
+# Wave 28 Agent 6 — sobe Grafana já com Tempo conectado (Wagner zero-config).
+
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo:3200
+    isDefault: true
+    editable: true
+    uid: tempo-localdev
+    jsonData:
+      httpMethod: GET
+      tracesToLogs:
+        datasourceUid: null
+      serviceMap:
+        datasourceUid: null
+      search:
+        hide: false
+      nodeGraph:
+        enabled: true
+      lokiSearch:
+        datasourceUid: null

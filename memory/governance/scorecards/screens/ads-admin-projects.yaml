@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: ads/Admin/Projects
+path: resources/js/Pages/ads/Admin/Projects.tsx
+archetype: list
+persona: wagner
+nota: 71
+nivel: "Advanced"
+baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista+create inline limpa com progress roxo, mas sem filtro/busca e paleta de status crua (blue presente)."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear"
+    fix: "statusColor map bg-blue/amber/emerald/red-100 cru + zero primary roxo -> tokens semanticos, badge variant"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Bling filtro"
+    fix: "lista sem busca/filtro/sort (so KPIs) -> add Input filtro client-side como em Skills/Index"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Shopify inline create"
+    fix: "create inline OK mas sem skeleton/defer; progress bar usa bg-primary (bom) -> manter, add empty da busca"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

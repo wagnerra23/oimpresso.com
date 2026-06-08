@@ -1,0 +1,324 @@
+/* KB-9.75 Refino #1 — styles for cmdk, cheat-sheet, fresh pill, IA panel, score badge. */
+
+/* ── C3 Frescor pill ──────────────────────────────────────────── */
+.cockpit .kb-fresc {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; line-height: 1;
+  padding: 4px 8px; border-radius: 999px;
+}
+.cockpit .kb-fresc-dot { width: 5px; height: 5px; border-radius: 999px; background: currentColor; }
+.cockpit .kb-fresc-rel { color: var(--text-mute); font-weight: 400; font-size: 10.5px; }
+.cockpit .kb-fresc-fresh  { background: oklch(0.94 0.07 145); color: oklch(0.36 0.13 145); }
+.cockpit .kb-fresc-recent { background: oklch(0.94 0.06 220); color: oklch(0.40 0.10 220); }
+.cockpit .kb-fresc-cold   { background: var(--bg-2); color: var(--text-mute); }
+.cockpit .kb-fresc-lost   { background: oklch(0.95 0.04 25); color: oklch(0.50 0.18 25); }
+
+/* ── Favorito (S1) — small star button ─────────────────────────── */
+.cockpit .kb-fav-btn {
+  appearance: none; border: 0; background: transparent;
+  width: 24px; height: 24px; border-radius: 4px;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--text-mute);
+  transition: color .12s, background .12s;
+}
+.cockpit .kb-fav-btn:hover { background: var(--bg-2); color: oklch(0.72 0.18 75); }
+.cockpit .kb-fav-btn.on { color: oklch(0.72 0.18 75); }
+.cockpit .kb-fav-btn.on svg { fill: oklch(0.78 0.16 75); }
+
+/* ── N2 Command palette ⌘K ────────────────────────────────────── */
+.cockpit .kb-cmdk-backdrop {
+  position: fixed; inset: 0; z-index: 800;
+  background: oklch(0.18 0.005 240 / 0.45);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 10vh;
+  animation: kbFade .12s ease-out;
+}
+@keyframes kbFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kbPop { from { opacity: 0; transform: translateY(-8px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.cockpit .kb-cmdk {
+  width: 600px; max-width: 92vw;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px -10px rgba(0,0,0,.30), 0 4px 16px -4px rgba(0,0,0,.12);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  animation: kbPop .14s cubic-bezier(.2,.7,.3,1);
+}
+.cockpit .kb-cmdk-input {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-mute);
+}
+.cockpit .kb-cmdk-input input {
+  appearance: none; border: 0; outline: none; background: transparent;
+  flex: 1; font: inherit; font-size: 15px; color: var(--text); min-width: 0;
+}
+.cockpit .kb-cmdk-input input::placeholder { color: var(--text-mute); }
+.cockpit .kb-cmdk kbd, .cockpit .kb-cheat kbd {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
+  background: var(--bg-2); border: 1px solid var(--border); border-bottom-width: 2px;
+  padding: 1px 6px; border-radius: 4px; color: var(--text-dim);
+}
+.cockpit .kb-cmdk-list { flex: 1; overflow-y: auto; padding: 6px; max-height: 460px; }
+.cockpit .kb-cmdk-head {
+  padding: 10px 10px 4px; font-size: 10px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--text-mute);
+}
+.cockpit .kb-cmdk-item {
+  appearance: none; border: 0; background: transparent;
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 8px 10px; border-radius: 7px;
+  cursor: pointer; font: inherit;
+  color: var(--text); text-align: left;
+}
+.cockpit .kb-cmdk-item.on { background: var(--accent-soft); }
+.cockpit .kb-cmdk-item.kb-cmdk-ia { background: var(--accent-soft); }
+.cockpit .kb-cmdk-av {
+  width: 28px; height: 28px; border-radius: 50%;
+  color: #fff; display: grid; place-items: center;
+  font-size: 10.5px; font-weight: 700; flex: 0 0 auto;
+}
+.cockpit .kb-cmdk-ico {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--bg-2); display: grid; place-items: center;
+  color: var(--text-dim); flex: 0 0 auto;
+}
+.cockpit .kb-cmdk-kind {
+  margin-left: auto; font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 600; letter-spacing: .04em;
+  color: var(--text-mute); text-transform: uppercase;
+  padding: 1px 6px; border-radius: 999px;
+  background: var(--bg-2);
+}
+.cockpit .kb-cmdk-foot {
+  display: flex; gap: 14px; padding: 8px 14px;
+  border-top: 1px solid var(--border-2);
+  background: var(--bg-2);
+  font-size: 11px; color: var(--text-mute);
+}
+.cockpit .kb-cmdk-foot kbd { margin-right: 4px; }
+
+/* ── P2 Cheat-sheet ─────────────────────────────────────────────── */
+.cockpit .kb-cheat-backdrop {
+  position: fixed; inset: 0; z-index: 700;
+  background: oklch(0.18 0.005 240 / 0.35);
+  backdrop-filter: blur(2px);
+  display: grid; place-items: center;
+  animation: kbFade .12s ease-out;
+}
+.cockpit .kb-cheat {
+  width: 620px; max-width: 90vw;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -10px rgba(0,0,0,.25);
+  animation: kbPop .14s cubic-bezier(.2,.7,.3,1);
+}
+.cockpit .kb-cheat header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.cockpit .kb-cheat header h3 {
+  margin: 0; font-size: 14px; font-weight: 600;
+  flex: 1;
+}
+.cockpit .kb-cheat-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 18px; padding: 20px;
+}
+.cockpit .kb-cheat-grid h4 {
+  margin: 0 0 10px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-mute);
+}
+.cockpit .kb-cheat-grid dl {
+  margin: 0; display: grid; grid-template-columns: auto 1fr;
+  gap: 6px 10px; align-items: center;
+}
+.cockpit .kb-cheat-grid dt {
+  display: inline-flex; gap: 2px; align-items: center;
+}
+.cockpit .kb-cheat-grid dd {
+  margin: 0; font-size: 12px; color: var(--text-dim);
+}
+
+/* ── Floating shortcut hint button ─────────────────────────────── */
+.cockpit .kb-hint-fab {
+  position: fixed; bottom: 18px; right: 18px;
+  z-index: 50;
+  appearance: none; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-dim);
+  height: 32px; padding: 0 14px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 8px;
+  font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  transition: background .12s, color .12s, transform .12s;
+}
+.cockpit .kb-hint-fab:hover { background: var(--bg-2); color: var(--text); transform: translateY(-1px); }
+.cockpit .kb-hint-fab kbd {
+  font-family: var(--font-mono); font-size: 10px; padding: 1px 5px;
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* ── I1 Resumo IA dentro do drawer ──────────────────────────────── */
+.cockpit .kb-resumo {
+  background: linear-gradient(135deg, var(--accent-soft), var(--bg-2));
+  border: 1px solid var(--accent-soft);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 16px 0 0;
+}
+.cockpit .kb-resumo-h {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px;
+}
+.cockpit .kb-resumo-h b { font-size: 12.5px; font-weight: 600; }
+.cockpit .kb-resumo-body {
+  margin: 0; font-size: 13px; line-height: 1.55; color: var(--text);
+}
+
+/* ── I4 Empty-state IA reply ───────────────────────────────────── */
+.cockpit .kb-ia-empty {
+  margin: 18px auto 0; max-width: 380px;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: flex; gap: 10px; align-items: flex-start;
+  text-align: left;
+  color: var(--text);
+}
+.cockpit .kb-ia-empty p {
+  font-size: 12.5px; line-height: 1.5;
+}
+
+/* ── KB Score badge in topbar ──────────────────────────────────── */
+.cockpit .kb-score {
+  appearance: none; border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--accent-soft), var(--bg-2));
+  color: var(--accent);
+  height: 28px; padding: 0 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: 11.5px; font-weight: 600;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.cockpit .kb-score:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+.cockpit .kb-score-tag {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+  letter-spacing: .06em;
+  background: var(--accent); color: #fff;
+  padding: 1px 5px; border-radius: 3px;
+}
+.cockpit .kb-score-val { font-variant-numeric: tabular-nums; }
+.cockpit .kb-score-val sub { font-size: 9.5px; opacity: 0.6; vertical-align: baseline; }
+
+/* Dark theme */
+.cockpit[data-theme="dark"] .kb-cmdk { background: oklch(0.22 0.005 240); }
+.cockpit[data-theme="dark"] .kb-cheat { background: oklch(0.22 0.005 240); }
+.cockpit[data-theme="dark"] .kb-fresc-cold { background: oklch(0.26 0.005 240); color: var(--text-dim); }
+
+/* ── C4 Revalidar pill ─────────────────────────────────────────── */
+.cockpit .kb-reval {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9.5px; font-weight: 600; line-height: 1;
+  padding: 2px 6px; border-radius: 3px;
+  background: oklch(0.94 0.07 80); color: oklch(0.45 0.13 65);
+  border: 1px solid oklch(0.88 0.10 80);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cockpit .kb-reval-inline { margin-left: 4px; }
+
+/* ── C5 Comentários box ────────────────────────────────────────── */
+.cockpit .kb-comm {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.cockpit .kb-comm h4 {
+  margin: 0 0 10px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-mute);
+  display: flex; align-items: center; gap: 6px;
+}
+.cockpit .kb-comm-count {
+  font-family: var(--font-mono); font-size: 10.5px;
+  background: var(--bg-2); color: var(--text-dim);
+  padding: 1px 6px; border-radius: 999px;
+  letter-spacing: 0;
+}
+.cockpit .kb-comm-empty {
+  margin: 0 0 12px;
+  font-size: 12px; color: var(--text-mute); line-height: 1.5;
+  font-style: italic;
+}
+.cockpit .kb-comm-list { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.cockpit .kb-comm-list li {
+  background: var(--bg-2); border-radius: 6px; padding: 10px 12px;
+}
+.cockpit .kb-comm-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px;
+}
+.cockpit .kb-comm-who {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff;
+  font-size: 9.5px; font-weight: 700;
+}
+.cockpit .kb-comm-head b { font-size: 12px; font-weight: 600; }
+.cockpit .kb-comm-head small { font-size: 11px; color: var(--text-mute); flex: 1; }
+.cockpit .kb-comm-del {
+  appearance: none; border: 0; background: transparent;
+  width: 22px; height: 22px; border-radius: 4px;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--text-mute); opacity: 0; transition: opacity .12s, color .12s, background .12s;
+}
+.cockpit .kb-comm-list li:hover .kb-comm-del { opacity: 1; }
+.cockpit .kb-comm-del:hover { color: oklch(0.55 0.18 25); background: oklch(0.96 0.04 25); }
+.cockpit .kb-comm-list li p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text); }
+.cockpit .kb-comm-add {
+  display: flex; gap: 6px; align-items: flex-end;
+}
+.cockpit .kb-comm-add textarea {
+  flex: 1;
+  appearance: none; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text);
+  border-radius: 6px; padding: 8px 10px;
+  font: inherit; font-size: 12.5px;
+  resize: vertical; min-height: 40px;
+  outline: none; transition: border-color .12s, box-shadow .12s;
+}
+.cockpit .kb-comm-add textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ── I3 Auto-sugest ────────────────────────────────────────────── */
+.cockpit .kb-sugest {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--accent-soft), var(--bg-2));
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+}
+.cockpit .kb-sugest-h {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.cockpit .kb-sugest-h b { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+.cockpit .kb-sugest-body { margin: 0; font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.cockpit .kb-sugest-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 0; font-size: 12.5px;
+}
+.cockpit .kb-sugest-label {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-mute); min-width: 80px;
+}

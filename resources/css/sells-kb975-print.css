@@ -1,0 +1,675 @@
+/* sells-kb975-print.css — KB-9.75 Cowork bundle 2026-05-26 P2 gaps #8 + #9
+ * Tokens .vd-receipt-* / .vd-rcp-* (Recibo térmico 80mm)
+ *      + .vd-orc-* (Orçamento A4 formal)
+ * Escopo .sells-cowork pra coexistir com legacy printSaleReceipt.ts (Bootstrap 3)
+ * Refs:
+ *   - prototipo-ui project/vendas.css linhas 2666-2930 (recibo) + 3016-3347 (orçamento)
+ *   - prototipo-ui project/vendas-flow.jsx VdReceiptThermal (899) + VdOrcamentoPrint (1228)
+ *   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md
+ */
+
+/* ============================================================
+ * RECIBO TÉRMICO 80mm — overlay tela + @media print
+ * ============================================================ */
+
+.sells-cowork .vd-receipt-bd {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 30, 40, 0.72);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 70px;
+  overflow-y: auto;
+}
+
+.sells-cowork .vd-receipt-toolbar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(20, 30, 40, 0.86);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 6px 10px 6px 6px;
+  z-index: 1101;
+}
+
+.sells-cowork .vd-receipt-toolbar .os-btn {
+  background: transparent;
+  color: oklch(0.92 0.01 250);
+  border: 1px solid oklch(0.42 0.01 250);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.sells-cowork .vd-receipt-toolbar .os-btn:hover {
+  background: oklch(0.30 0.01 250);
+}
+
+.sells-cowork .vd-receipt-toolbar .os-btn.primary {
+  background: oklch(0.55 0.13 240);
+  border-color: oklch(0.55 0.13 240);
+  color: #fff;
+}
+
+.sells-cowork .vd-receipt-toolbar .os-btn.primary:hover {
+  background: oklch(0.48 0.15 240);
+}
+
+.sells-cowork .vd-receipt-tag {
+  color: oklch(0.85 0.01 250);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 8px;
+}
+
+/* Paper — 80mm = 302px @ 96dpi */
+.sells-cowork .vd-receipt-paper {
+  width: 302px;
+  background: #fff;
+  padding: 14px 18px 22px;
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #000;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 20px 50px rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+}
+
+/* HEADER */
+.sells-cowork .vd-rcp-h {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.sells-cowork .vd-rcp-brand {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 1px;
+}
+
+.sells-cowork .vd-rcp-sub {
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.sells-cowork .vd-rcp-meta {
+  font-size: 9.5px;
+  line-height: 1.45;
+  color: #555;
+}
+
+/* SEPARATOR — serrilha sutil */
+.sells-cowork .vd-rcp-sep {
+  margin: 10px -4px;
+  border-top: 1px dashed #000;
+}
+
+/* INFO + TOTAIS rows */
+.sells-cowork .vd-rcp-info,
+.sells-cowork .vd-rcp-totais,
+.sells-cowork .vd-rcp-pgto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sells-cowork .vd-rcp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sells-cowork .vd-rcp-row span {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex: 0 0 auto;
+}
+
+.sells-cowork .vd-rcp-row b {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.sells-cowork .vd-rcp-row-total {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #000;
+}
+
+.sells-cowork .vd-rcp-row-total span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+}
+
+.sells-cowork .vd-rcp-row-total b {
+  font-size: 16px;
+}
+
+/* ITENS */
+.sells-cowork .vd-rcp-itens-h {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #555;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #000;
+}
+
+.sells-cowork .vd-rcp-itens-h span:last-child {
+  text-align: right;
+}
+
+.sells-cowork .vd-rcp-item {
+  margin-bottom: 6px;
+}
+
+.sells-cowork .vd-rcp-item-name {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 1px;
+}
+
+.sells-cowork .vd-rcp-item-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sells-cowork .vd-rcp-item-qty {
+  color: #444;
+}
+
+.sells-cowork .vd-rcp-item-tot {
+  font-weight: 600;
+}
+
+/* FOOTER */
+.sells-cowork .vd-rcp-foot {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.sells-cowork .vd-rcp-thanks {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.sells-cowork .vd-rcp-disclaimer {
+  display: block;
+  font-size: 9.5px;
+  color: #555;
+  line-height: 1.4;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+.sells-cowork .vd-rcp-stamp {
+  font-size: 8.5px;
+  color: #888;
+  letter-spacing: 0.04em;
+}
+
+/* ────────── @media print 80mm — esconde tudo menos o recibo ────────── */
+@media print {
+  body.vd-print-receipt > *:not(.sells-cowork-show):not(.sells-cowork) {
+    display: none !important;
+  }
+  body.vd-print-receipt .sells-cowork-show > *:not(:has(.vd-receipt-bd)),
+  body.vd-print-receipt .sells-cowork > *:not(:has(.vd-receipt-bd)) {
+    display: none !important;
+  }
+  body.vd-print-receipt .vd-receipt-bd {
+    position: static !important;
+    background: #fff !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  body.vd-print-receipt .vd-receipt-toolbar {
+    display: none !important;
+  }
+  body.vd-print-receipt .vd-receipt-paper {
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    padding: 4mm 6mm 8mm !important;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}
+
+/* ============================================================
+ * ORÇAMENTO A4 — overlay tela + @media print
+ * ============================================================ */
+
+.sells-cowork .vd-orc-bd {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 28, 38, 0.75);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 70px;
+  overflow-y: auto;
+}
+
+.sells-cowork .vd-orc-toolbar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 22, 32, 0.86);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 6px 10px 6px 6px;
+  z-index: 1101;
+}
+
+.sells-cowork .vd-orc-toolbar .os-btn {
+  background: transparent;
+  color: oklch(0.92 0.01 250);
+  border: 1px solid oklch(0.42 0.01 250);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.sells-cowork .vd-orc-toolbar .os-btn:hover {
+  background: oklch(0.30 0.01 250);
+}
+
+.sells-cowork .vd-orc-toolbar .os-btn.primary {
+  background: oklch(0.55 0.13 240);
+  border-color: oklch(0.55 0.13 240);
+  color: #fff;
+}
+
+.sells-cowork .vd-orc-tag {
+  color: oklch(0.85 0.01 250);
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+/* Paper A4 (210mm = 794px @ 96dpi) */
+.sells-cowork .vd-orc-page {
+  width: 794px;
+  min-height: 1123px;
+  background: #fff;
+  padding: 40px 48px 32px;
+  color: #1a1a1a;
+  font-family: "IBM Plex Sans", -apple-system, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 30px 80px rgba(0, 0, 0, 0.35);
+  margin-bottom: 40px;
+}
+
+/* HEADER */
+.sells-cowork .vd-orc-h {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #111;
+}
+
+.sells-cowork .vd-orc-brand-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.sells-cowork .vd-orc-logo {
+  width: 54px;
+  height: 54px;
+  background: oklch(0.45 0.10 155);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+
+.sells-cowork .vd-orc-brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1px;
+}
+
+.sells-cowork .vd-orc-brand-sub {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #555;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.sells-cowork .vd-orc-brand-meta {
+  font-size: 10.5px;
+  color: #444;
+  line-height: 1.55;
+}
+
+.sells-cowork .vd-orc-num-block {
+  text-align: right;
+  min-width: 220px;
+}
+
+.sells-cowork .vd-orc-num-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.sells-cowork .vd-orc-num {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: "IBM Plex Mono", monospace;
+  color: oklch(0.40 0.10 155);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.sells-cowork .vd-orc-num-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  font-size: 11px;
+  margin: 0;
+}
+
+.sells-cowork .vd-orc-num-meta dt {
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 9.5px;
+  align-self: center;
+}
+
+.sells-cowork .vd-orc-num-meta dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sells-cowork .vd-orc-validade {
+  color: oklch(0.50 0.16 28) !important;
+}
+
+/* Seções h3 padrão */
+.sells-cowork .vd-orc-page h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #555;
+  margin: 24px 0 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* DESTINATÁRIO */
+.sells-cowork .vd-orc-dest-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+
+.sells-cowork .vd-orc-dest-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sells-cowork .vd-orc-dest-lbl {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sells-cowork .vd-orc-dest-grid b {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ITENS table */
+.sells-cowork .vd-orc-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.sells-cowork .vd-orc-tbl thead th {
+  background: oklch(0.97 0.01 250);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #444;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1.5px solid #222;
+}
+
+.sells-cowork .vd-orc-tbl tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.sells-cowork .vd-orc-tbl-n {
+  font-family: "IBM Plex Mono", monospace;
+  color: #888;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.sells-cowork .vd-orc-tbl tbody b {
+  font-weight: 600;
+  font-size: 12px;
+  display: block;
+}
+
+.sells-cowork .vd-orc-tbl-sku {
+  display: block;
+  font-size: 10px;
+  color: #777;
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.sells-cowork .vd-orc-tbl-tot {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sells-cowork .vd-orc-tbl tfoot td {
+  padding: 7px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sells-cowork .vd-orc-tbl-foot-lbl {
+  text-align: right;
+  font-weight: 500;
+  font-size: 11px;
+  color: #555;
+}
+
+.sells-cowork .vd-orc-tbl-total-row td {
+  background: oklch(0.96 0.04 155 / 0.4);
+  border-top: 2px solid oklch(0.40 0.10 155);
+  font-weight: 700;
+  font-size: 14px;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.sells-cowork .vd-orc-tbl-total-row .vd-orc-tbl-foot-lbl {
+  color: #000;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* CONDIÇÕES */
+.sells-cowork .vd-orc-cond ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sells-cowork .vd-orc-cond li {
+  padding: 4px 0 4px 18px;
+  position: relative;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.sells-cowork .vd-orc-cond li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: oklch(0.45 0.10 155);
+  font-weight: 600;
+}
+
+.sells-cowork .vd-orc-cond li b {
+  font-weight: 600;
+}
+
+/* ASSINATURAS */
+.sells-cowork .vd-orc-sign {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 48px;
+  padding-top: 40px;
+}
+
+.sells-cowork .vd-orc-sign-col {
+  text-align: center;
+}
+
+.sells-cowork .vd-orc-sign-line {
+  border-top: 1px solid #444;
+  margin-bottom: 8px;
+}
+
+.sells-cowork .vd-orc-sign-lbl {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.sells-cowork .vd-orc-sign-lbl b {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.sells-cowork .vd-orc-sign-lbl small {
+  font-size: 10.5px;
+  color: #666;
+}
+
+/* FOOTER */
+.sells-cowork .vd-orc-ft {
+  margin-top: 32px;
+  padding-top: 14px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: #777;
+  letter-spacing: 0.04em;
+}
+
+/* @media print A4 — esconde tudo exceto o orçamento */
+@media print {
+  body.vd-print-orc > *:not(.sells-cowork-show):not(.sells-cowork) {
+    display: none !important;
+  }
+  body.vd-print-orc .sells-cowork-show > *:not(:has(.vd-orc-bd)),
+  body.vd-print-orc .sells-cowork > *:not(:has(.vd-orc-bd)) {
+    display: none !important;
+  }
+  body.vd-print-orc .vd-orc-bd {
+    position: static !important;
+    background: #fff !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  body.vd-print-orc .vd-orc-toolbar {
+    display: none !important;
+  }
+  body.vd-print-orc .vd-orc-page {
+    box-shadow: none !important;
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 12mm 14mm !important;
+    margin: 0 !important;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

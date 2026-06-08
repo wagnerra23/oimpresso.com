@@ -1,0 +1,26 @@
+{
+    "name": "ConsultaOs",
+    "alias": "consultaos",
+    "description": "Portal público de consulta de Ordem de Serviço — cliente acompanha pipeline de produção (orçado → aprovação → produção → acabamento → expedição → entregue) sem login.",
+    "keywords": ["consulta", "os", "ordem-servico", "publico", "tracking"],
+    "priority": 0,
+    "providers": [
+        "Modules\\ConsultaOs\\Providers\\ConsultaOsServiceProvider"
+    ],
+    "files": [],
+    "grade": {
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "ConsultaOs é portal read-only de consulta pública (cliente externo sem login). Estado da OS pertence a Modules/Repair (que ESTE módulo só lê). Não há transições próprias — FSM (ADR 0143) gerenciada por Repair/Sells.",
+        "wave_18_retry_targets": {
+            "D4_service_pattern": 20,
+            "D5_customer_journey": 15,
+            "D9_observability_otel": 7
+        }
+    },
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Portal público consulta OS read-only cross-vertical útil em qualquer empresa BR com OS (gráfica/oficina/repair), padrão read-only horizontal"
+    }
+}

@@ -1,0 +1,55 @@
+# ── Template canônico perfil EMPRESA cliente oimpresso ──────────────────
+# Refs: ADR UI-0016 (Design contextualizado), ADR 0105 (cliente-como-sinal)
+
+slug: <kebab-case>
+nome_fantasia: <nome do estabelecimento>
+razao_social: <CNPJ legal>
+business_id: <int>                      # tier 0 multi-tenant
+status: prospect | piloto | ativo | churned
+plano: <free | starter | pro | enterprise>
+arr_mensal_brl: <valor>                 # MRR×12 OU NULL pra prospect
+contato_principal: <nome — link persona>
+
+# ── Identidade do negócio ─────────────────────────────────────────────────
+ramo: <vestuario | oficina-mecanica | grafica | varejo-alimentos | servicos | etc>
+cnae: <código CNAE BR>
+sub_segmento: <ex: vestuario-feminino, oficina-pesada, etc>
+tamanho:
+  funcionarios: <int>
+  faturamento_mensal_brl: <faixa>
+  pontos_venda: <int>
+porte: <mei | me | epp | medio | grande>
+
+# ── Localização ───────────────────────────────────────────────────────────
+localizacao:
+  estado: <UF>
+  cidade: <cidade>
+  bairro: <opcional>
+  endereco: <opcional — só se relevante pra contexto>
+
+# ── Tech profile ──────────────────────────────────────────────────────────
+tech:
+  sistema_anterior: <descrição>          # ex: planilha Excel, ContaAzul, Bling
+  internet: <fibra | 4G | instavel>
+  hardware_principal: <pc desktop | notebook | tablet>
+  uso_mobile: <baixo | médio | alto>
+
+# ── Necessidades canon ────────────────────────────────────────────────────
+modulos_uso:
+  - <ex: sells>
+  - <ex: oficinaauto>
+  - <ex: financeiro>
+features_criticas:
+  - <ex: NF-e automática>
+  - <ex: gestão de frota>
+
+# ── Sinal qualificado (ADR 0105) ──────────────────────────────────────────
+sinal:
+  paga: true | false
+  reporta_uso: true | false
+  feedback_aberto: <link discovery raw mais recente>
+
+# ── Tags ──────────────────────────────────────────────────────────────────
+tags:
+  - <ex: piloto-frota>
+  - <ex: prospect-quente>

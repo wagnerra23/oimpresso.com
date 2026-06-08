@@ -1,0 +1,32 @@
+{
+    "name": "Financeiro",
+    "alias": "financeiro",
+    "description": "Contas a pagar, a receber, fluxo de caixa e DRE — tudo na mesma tela. Foundation BR pra virar ERP completo.",
+    "keywords": ["financeiro", "contas-a-pagar", "contas-a-receber", "fluxo-caixa", "dre", "boleto", "pix"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Financeiro\\Providers\\FinanceiroServiceProvider"
+    ],
+    "files": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Contas pagar/receber/fluxo caixa/DRE cross-vertical útil em qualquer empresa BR, foundation horizontal sem dono cliente único",
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Financeiro nao tem state machine de processo (titulo aberto/parcial/quitado e status linear, nao fsm pipeline). Boleto remessa e step puramente tecnico. Vendas/Repair usam FSM canon mas titulos sao subordinados a essas (ADR 0143)."
+    },
+    "retention_days": 2555,
+    "retention_config": "Modules/Financeiro/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": [
+            "fin_titulos.cliente_descricao",
+            "fin_titulos.observacoes",
+            "fin_titulo_baixas.metadata",
+            "fin_extrato_lancamentos.descricao"
+        ],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "Modules/Financeiro/Config/retention.php"
+    }
+}

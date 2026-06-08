@@ -1,0 +1,206 @@
+name: Quick Sync (auto on push)
+
+# Deploy pra Hostinger pós push em main. Pipeline:
+#   1. SSH na Hostinger
+#   2. git fetch + reset --hard origin/main
+#   3. (condicional) npm ci se package-lock.json mudou
+#   4. (condicional) npm run build:inertia se source frontend mudou
+#   5. clear caches Laravel
+#   6. smoke test HTTP
+#
+# Por que build na Hostinger e não no GitHub Actions:
+#   - Hostinger TEM Node 24 + npm 11 via nvm (~/.nvm/versions/node/v24.15.0/)
+#   - Memória abundante (host shared sem isolamento — 138GB available)
+#   - Build leva ~52s — aceitável pra deploy one-shot
+#   - Source-only repo (public/build-inertia/ no .gitignore) — sem race
+#     condition entre 2 workflows, sem commits gigantes auto-rebuild,
+#     sem 600+ arquivos renomeados a cada deploy
+#   - Single source of truth: build sempre determinístico do source que
+#     está no servidor de prod
+#
+# Pra mudancas pesadas (composer, migrations), continuar usando deploy.yml.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'resources/**'
+      - 'public/**'
+      - 'config/**'
+      - 'routes/**'
+      - 'lang/**'
+      - 'app/**'
+      - 'Modules/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.inertia.config.mjs'
+      - 'vite.config.js'
+      - '!app/Console/Commands/**'
+      # Tailwind Blade legacy entry (vite.config.js → public/css/tailwind.css).
+      # Catalogado 2026-05-15: outra sessão (2026-05-07) esqueceu de incluir,
+      # ficou 10 dias stale até rebuild manual. Sem isso, mudança em sass não
+      # dispara build do Tailwind legacy.
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  quick-sync:
+    name: Quick sync to Hostinger
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # `|| true`: ssh-keyscan falha intermitente (rede runner→Hostinger) NÃO pode
+          # matar o deploy sob `bash -e`. A verificação de host key já é coberta por
+          # StrictHostKeyChecking=accept-new no ssh_exec helper. Catalogado 2026-06-03:
+          # quick-sync do #2159 morreu aqui em 7s sem nem chegar no build.
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: SSH helper
+        run: |
+          cat > /tmp/ssh_exec.sh <<'EOF'
+          #!/bin/bash
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "$@"
+          EOF
+          chmod +x /tmp/ssh_exec.sh
+
+      - name: Git pull
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            # Lock cleanup defensivo — quick-sync cancelado anterior (race CI ou
+            # timeout) deixa .git/*.lock órfão e bloqueia próximos pulls com
+            # 'fatal: Unable to create .git/index.lock: File exists'.
+            # rm -f é idempotente: no-op se não existe; remove se existe.
+            # Bug reproduzível: PR #279 (2026-05-09 09:26) deixou lock órfão
+            # que bloqueou deploys dos PRs #285 e #286 por ~3h.
+            rm -f .git/index.lock .git/HEAD.lock .git/refs/heads/main.lock 2>/dev/null || true &&
+            # Git fetch retry (3 tries) — race condition catalogada PR #870
+            # (2026-05-15 12:56): 'cannot lock ref refs/remotes/origin/main'
+            # quando outro PR mergeia entre fetch e reset. Re-fetch resolve.
+            for i in 1 2 3; do
+              git fetch origin && break || (echo \"fetch try \$i failed, sleeping 3s\"; sleep 3);
+            done &&
+            # Reset --hard com AUTO-HEAL de índice corrompido — catalogado
+            # 2026-06-04: um reset anterior interrompido (SSH drop no meio do
+            # checkout) deixa o índice inconsistente; git passa a tratar todo
+            # arquivo rastreado como 'novo' e o checkout aborta com
+            # 'error: unable to create file X: File exists' (exit 128),
+            # travando TODOS os deploys seguintes (#2208/#2209/#2213 ficaram
+            # presos). Recovery seguro: após o reset falho o índice JÁ aponta
+            # pra origin/main, então 'git checkout-index -f -a' força a
+            # sobrescrita dos arquivos rastreados (O_TRUNC, não O_EXCL) e o
+            # segundo reset finaliza limpo. NÃO toca .env/vendor/storage/
+            # node_modules (gitignored → fora do index → intocados).
+            ( git reset --hard origin/main || ( echo \"reset falhou (índice corrompido?) — auto-heal via checkout-index -f -a\"; git checkout-index -f -a && git reset --hard origin/main ) ) &&
+            git log --oneline -3
+          "
+
+      - name: npm ci (se package-lock mudou)
+        # Compara fingerprint do package-lock.json com o último ci feito.
+        # Hash salvo em ~/.last-npm-ci-hash (fora do git, state local da Hostinger).
+        # Se diff: roda npm ci (~30s). Se igual: skip — assume node_modules OK.
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            CURRENT_HASH=\$(sha256sum package-lock.json | cut -d' ' -f1) &&
+            LAST_HASH=\$(cat .last-npm-ci-hash 2>/dev/null || echo '') &&
+            if [ \"\$CURRENT_HASH\" != \"\$LAST_HASH\" ]; then
+              echo '→ package-lock.json mudou, rodando npm ci...' &&
+              npm ci --no-audit --no-fund &&
+              echo \"\$CURRENT_HASH\" > .last-npm-ci-hash
+            else
+              echo '→ package-lock.json sem mudanças, pulando npm ci'
+            fi
+          "
+
+      - name: Build Inertia bundles
+        # Build sempre roda — 52s aceitável e garante manifest.json determinístico.
+        # Saída em public/build-inertia/ (gitignored). Vite gera hashes novos a
+        # cada build, mas o manifest.json mapeia consistente com source atual.
+        # RAYON_NUM_THREADS=1: Tailwind v4/lightningcss/oxide usam rayon (Rust) que
+        # tenta criar um thread pool grande; no shared hosting Hostinger isso estoura
+        # o limite de threads/processos → `ThreadPoolBuildError: Resource temporarily
+        # unavailable`, o build falha E esvazia public/build-inertia/ (emptyOutDir)
+        # → site 500 (manifest.json some). Single-thread evita o estouro. Catalogado
+        # 2026-06-03: incident 500 + builds quick-sync falhando. (~35s single-thread.)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            export RAYON_NUM_THREADS=1 &&
+            npm run build:inertia 2>&1 | tail -10
+          "
+
+      - name: Build Tailwind Blade legacy
+        # Build do Tailwind pra Blade legacy (vite.config.js → public/css/tailwind.css).
+        # ~0.7s — custo trivial. Sempre roda pra garantir CSS sincronizado.
+        # Catalogado 2026-05-15: sessão 2026-05-07 esqueceu deste step ao
+        # criar quick-sync.yml — public/css/tailwind.css ficou 10 dias stale
+        # até rebuild manual via SSH. Sem este step, mudança em
+        # resources/sass/** não rendererializa em Blade legacy (Sells/Repair
+        # ainda usam Blade — não cobertos pelo build:inertia).
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            export PATH=\"\$HOME/.nvm/versions/node/v24.15.0/bin:\$PATH\" &&
+            export RAYON_NUM_THREADS=1 &&
+            npm run build 2>&1 | tail -10
+          "
+
+      - name: Composer dump-autoload (registra classes novas)
+        # CAUSA RAIZ catalogada 2026-06-03: quick-sync faz `git reset --hard` mas NÃO
+        # regenera o autoload do Composer. Quando um PR adiciona CLASSE NOVA (ex.
+        # comando artisan do PaymentGateway, Service, Observer), o autoload de prod
+        # não a conhece → o `php artisan ...` do step seguinte crasha com
+        # `BindingResolutionException: Target class [...] does not exist` → deploy
+        # vermelho + caches NÃO limpos. `--no-scripts` evita rodar post-autoload
+        # scripts (package:discover etc) que dependeriam de bootar o app. É barato
+        # (~2-3s) e idempotente — rodar sempre é seguro.
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            composer dump-autoload --no-scripts --no-interaction 2>&1 | tail -3
+          "
+
+      - name: Clear view + config + route + cache (force PHP DataController reload)
+        run: |
+          /tmp/ssh_exec.sh "
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            php artisan view:clear &&
+            php artisan config:clear &&
+            php artisan route:clear &&
+            php artisan cache:clear
+          "
+        # cache:clear adicionado 2026-05-18 pós bug "Financeiro dropdown invisivel
+        # apos sync biz=4" — DataController novo não era visto sem cache:clear.
+
+      - name: Smoke test (strict + log tail on fail)
+        run: |
+          set -uo pipefail
+          HTTP_CODE=$(curl -sL -o /dev/null -w "%{http_code}|%{time_total}" https://oimpresso.com/login)
+          CODE="${HTTP_CODE%%|*}"
+          TIME="${HTTP_CODE##*|}"
+          echo "HTTP $CODE (${TIME}s)"
+          if [ "$CODE" != "200" ] && [ "$CODE" != "302" ]; then
+            echo "::error::Quick-sync smoke FAILED — HTTP $CODE pra /login"
+            echo "=== Last 60 lines de storage/logs/laravel.log ==="
+            /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && tail -60 storage/logs/laravel.log 2>&1 || true"
+            exit 1
+          fi
+
+      - name: Sync concluido
+        run: echo "Quick sync deployado. Para mudancas pesadas use deploy.yml (backup + composer + migrate)."

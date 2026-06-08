@@ -1,0 +1,1056 @@
+/* ─────────────────────────────────────────────────────────────
+   Clientes (Pessoas) — PT-01 Lista canon
+   Refs: prototipo-ui/padroes-tela/PT-01-Lista.md @ wagnerra23/oimpresso.com@main
+         ADR UI-0013 Constituição UI v2 · Cliente/Index.charter.md v7
+   ───────────────────────────────────────────────────────────── */
+
+/* ════════════════════ Slot 1: PageHeader simples ════════════════════ */
+.cli-pageheader{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.cli-pageheader-l{
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.cli-pageheader-icon{
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cli-pageheader-title-wrap{ min-width: 0; }
+.cli-pageheader-title-wrap h1{
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cli-pageheader-title-wrap p{
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  max-width: 56ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cli-pageheader-title-wrap p strong{ color: var(--text); font-weight: 600; }
+.cli-pageheader-title-wrap p strong[data-tone="danger"]{ color: oklch(0.55 0.18 25); }
+.cli-pageheader-title-wrap p strong[data-tone="warn"]{ color: oklch(0.55 0.16 60); }
+
+.cli-pageheader-r{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* ════════════════════ Slot 2: ModuleTopNav (sub-tabs ghost) ════════════════════ */
+.cli-moduletopnav{
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cli-moduletopnav::-webkit-scrollbar{ display: none; }
+.cli-moduletopnav-tab{
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px 9px;
+  margin-bottom: -1px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+.cli-moduletopnav-tab:hover{
+  color: var(--text);
+  background: color-mix(in oklch, var(--border-2) 60%, transparent);
+}
+.cli-moduletopnav-tab.active{
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+  background: color-mix(in oklch, var(--accent-soft) 50%, transparent);
+}
+.cli-moduletopnav-tab.active svg{ color: var(--accent); opacity: 1; }
+.cli-moduletopnav-tab svg{ flex: 0 0 14px; opacity: 0.7; }
+.cli-moduletopnav-n{
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  background: var(--border-2);
+  color: var(--text-dim);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+}
+.cli-moduletopnav-tab.active .cli-moduletopnav-n{
+  background: var(--accent);
+  color: var(--accent-fg, white);
+}
+
+/* ════════════════════ Slot 3a: KpiStripClickable (slim · charter v6 PTDP Onda 2) ════════════════════
+   Inspirado: Stripe Customers + Mercury Accounts.
+   Hairline divisor entre cards (não box completo). Numbers mono tabular.
+   Clicável: clique aplica filtro substitutivo · 2º clique desativa.
+*/
+.cli-kpistrip{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.cli-kpistrip-card{
+  position: relative;
+  padding: 14px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background-color 120ms ease;
+}
+.cli-kpistrip-card:first-child{ border-left: 0; }
+.cli-kpistrip-card:hover{ background: color-mix(in oklch, var(--border-2) 40%, transparent); }
+.cli-kpistrip-card.active{
+  background: var(--accent-soft);
+}
+.cli-kpistrip-card.active::after{
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--accent);
+}
+.cli-kpistrip-label{
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.cli-kpistrip-value{
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.cli-kpistrip-value.muted{ color: var(--text-dim); font-weight: 500; }
+.cli-kpistrip-value.danger{ color: oklch(0.55 0.18 25); }
+.cli-kpistrip-value.warn{ color: oklch(0.55 0.16 60); }
+.cli-kpistrip-value.success{ color: oklch(0.50 0.13 145); }
+.cli-kpistrip-delta{
+  font-size: 11px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+}
+.cli-kpistrip-card.active .cli-kpistrip-label{ color: var(--accent); }
+.cli-kpistrip-card.active .cli-kpistrip-value{ color: var(--accent); }
+.cli-kpistrip-card:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.cli-kpistrip-card[aria-disabled="true"]{ cursor: default; }
+.cli-kpistrip-card[aria-disabled="true"]:hover{ background: transparent; }
+
+/* ════════════════════ Slot 3b: Filter chips + search (toolbar denso) ════════════════════ */
+.cli-toolbar{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+.cli-filter-chips{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.cli-filter-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.cli-filter-chip:hover{
+  color: var(--text);
+  border-color: var(--text-mute);
+  background: var(--border-2);
+}
+.cli-filter-chip.active{
+  color: var(--accent-fg, white);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.cli-filter-chip.warn:not(.active){
+  color: oklch(0.50 0.16 60);
+  border-color: oklch(0.85 0.10 60);
+}
+.cli-filter-chip-n{
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.cli-toolbar-sep{
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.cli-toolbar-search{
+  flex: 1 1 280px;
+  margin-left: auto;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.cli-toolbar-search:focus-within{
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cli-toolbar-search svg{ color: var(--text-mute); flex: 0 0 14px; }
+.cli-toolbar-search input{
+  border: 0;
+  background: transparent;
+  outline: 0;
+  font: 500 12.5px var(--font-sans);
+  color: var(--text);
+  width: 100%;
+  padding: 2px 0;
+}
+.cli-toolbar-search input::placeholder{ color: var(--text-mute); }
+.cli-toolbar-kbd{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 1px 5px;
+  background: var(--border-2);
+  color: var(--text-mute);
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+/* ════════════════════ Focus rings (WCAG) ════════════════════ */
+.cli-pageheader-r .os-btn:focus-visible,
+.cli-moduletopnav-tab:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ════════════════════ Responsivo ════════════════════ */
+@media (max-width: 900px){
+  .cli-pageheader{ flex-direction: column; align-items: stretch; padding: 16px 16px 12px; }
+  .cli-pageheader-r{ justify-content: flex-end; }
+  .cli-moduletopnav{ padding: 0 16px; }
+}
+
+/* ════════════════════ Print ════════════════════ */
+@media print{
+  .cli-pageheader{ position: static; padding: 0 0 6pt; border-bottom: 1pt solid #000; background: white !important; }
+  .cli-pageheader-icon{ display: none; }
+  .cli-pageheader-title-wrap h1{ font-size: 14pt; font-weight: 700; }
+  .cli-pageheader-title-wrap p{ font-size: 10pt; color: #444; }
+  .cli-pageheader-r, .cli-moduletopnav{ display: none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   V2 — Wave A-G features absorvidas (Cockpit V2 cream-and-navy preservado)
+   Amendment 2026-05-25: Frescor temporal, SaldoCell, ⭐, ⋮, KPIs hero, dropdowns
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Hero KPIs: 6 cards flat (5 + Faturamento dark) ─── */
+.cli-kpihero{
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.cli-kpihero-card{
+  padding: 16px 18px 14px;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: background-color 120ms ease;
+}
+.cli-kpihero-card:first-child{ border-left: 0; }
+.cli-kpihero-card:hover{ background: color-mix(in oklch, var(--border-2) 35%, transparent); }
+.cli-kpihero-l{
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cli-kpihero-v{
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.cli-kpihero-v-aside{
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0;
+}
+.cli-kpihero-s{
+  font-size: 11px;
+  color: var(--text-mute);
+  margin-top: 2px;
+}
+.cli-kpihero-delta{
+  color: oklch(0.55 0.14 145);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Faturamento — único card destaque (fundo escuro Cockpit V2 navy) */
+.cli-kpihero-dark{
+  background: oklch(0.20 0.03 250);
+  color: oklch(0.96 0 0);
+  border-left-color: oklch(0.20 0.03 250);
+}
+.cli-kpihero-dark:hover{ background: oklch(0.22 0.03 250); }
+.cli-kpihero-dark .cli-kpihero-l{ color: oklch(0.70 0.02 250); }
+.cli-kpihero-dark .cli-kpihero-v{ color: oklch(0.98 0 0); }
+.cli-kpihero-dark .cli-kpihero-s{ color: oklch(0.68 0.02 250); }
+.cli-kpihero-dark .cli-kpihero-delta{ color: oklch(0.75 0.16 145); }
+
+/* ─── Toolbar V2: busca grande + dropdowns + count ─── */
+.cli-toolbar-v2{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 24px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.cli-toolbar-search-v2{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+.cli-toolbar-search-v2:focus-within{
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cli-toolbar-search-v2 svg{ color: var(--text-mute); flex: 0 0 13px; }
+.cli-toolbar-search-v2 input{
+  flex: 1 1 auto;
+  border: 0;
+  background: transparent;
+  outline: 0;
+  font: 500 13px var(--font-sans);
+  color: var(--text);
+  padding: 2px 0;
+}
+.cli-toolbar-search-v2 input::placeholder{ color: var(--text-mute); }
+.cli-toolbar-hint{
+  font-size: 11px;
+  color: var(--text-mute);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cli-toolbar-hint kbd{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  background: var(--border-2);
+  color: var(--text-dim);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.cli-fdrop-row{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cli-toolbar-count{
+  font-size: 11.5px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+/* ─── Filter Dropdown ─── */
+.cli-fdrop-wrap{ position: relative; }
+.cli-fdrop-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-family: var(--font-sans);
+}
+.cli-fdrop-btn:hover{
+  color: var(--text);
+  border-color: var(--text-mute);
+  background: var(--border-2);
+}
+.cli-fdrop-btn.active{
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.cli-fdrop-btn .cli-fdrop-l{ font-weight: 500; }
+.cli-fdrop-btn.active .cli-fdrop-l{ font-weight: 600; }
+.cli-fdrop-btn .cli-fdrop-v{
+  font-weight: 600;
+  color: var(--text);
+}
+.cli-fdrop-btn.active .cli-fdrop-v{ color: var(--accent); }
+.cli-fdrop-btn svg{ opacity: 0.6; }
+
+.cli-fdrop-menu{
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 50;
+  min-width: 180px;
+  background: var(--surface, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,0.08), 0 4px 8px -2px rgba(0,0,0,0.04);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+.cli-fdrop-menu button{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 80ms ease;
+}
+.cli-fdrop-menu button:hover{ background: var(--border-2); }
+.cli-fdrop-menu button.active{
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.cli-fdrop-n{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  background: var(--border-2);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.cli-fdrop-menu button.active .cli-fdrop-n{
+  background: var(--accent);
+  color: var(--accent-fg, white);
+}
+.cli-fdrop-clear{
+  font-size: 11.5px;
+  color: var(--text-mute);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 4px;
+  margin-left: 4px;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.cli-fdrop-clear:hover{ color: var(--text); background: var(--border-2); }
+
+/* ─── Tabela V2 — densidade + colunas novas ─── */
+.cli-table-v2{ font-size: 12.5px; }
+.cli-table-v2 thead th{
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  padding: 10px 12px;
+  white-space: nowrap;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.cli-table-v2 thead th.num{ text-align: right; }
+.cli-table-v2 tbody td{
+  padding: 9px 12px;
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
+  vertical-align: middle;
+}
+.cli-table-v2 tbody td.num{ text-align: right; font-variant-numeric: tabular-nums; }
+.cli-row{ cursor: pointer; transition: background-color 80ms ease; }
+.cli-row:hover{ background: color-mix(in oklch, var(--border-2) 50%, transparent); }
+.cli-row:hover .cli-fav-btn{ opacity: 1; }
+.cli-row:hover .cli-kebab-btn{ opacity: 1; }
+
+.cli-cell-muted{ color: var(--text-mute); }
+
+/* ─── Cliente cell (avatar + nome + telefone) ─── */
+.cli-td-cli{ min-width: 220px; max-width: 320px; }
+.cli-name{ display: flex; align-items: center; gap: 10px; min-width: 0; }
+.cli-avatar{
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+}
+.cli-avatar.lg{ width: 44px; height: 44px; font-size: 14px; flex-basis: 44px; }
+.cli-name-block{ min-width: 0; flex: 1 1 auto; }
+.cli-name-text{
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cli-name-sub{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+.cli-name-sub svg{ opacity: 0.55; }
+
+/* VIP / Novo / Tipo badges */
+.cli-vip{
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: oklch(0.92 0.07 80);
+  color: oklch(0.40 0.12 75);
+  text-transform: uppercase;
+}
+.cli-new{
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: oklch(0.93 0.05 200);
+  color: oklch(0.42 0.12 230);
+}
+.cli-tipo{
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+.cli-tipo-pj{ background: oklch(0.94 0.02 250); color: oklch(0.40 0.06 250); }
+.cli-tipo-pf{ background: oklch(0.94 0.04 145); color: oklch(0.40 0.10 145); }
+
+/* Documento mono */
+.cli-doc-mono{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Cidade/UF */
+.cli-td-city{ min-width: 130px; }
+.cli-city-line{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.3;
+}
+.cli-city-line svg{ opacity: 0.5; }
+.cli-city-uf{
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+/* ─── FrescorPill — 4 níveis temporais ─── */
+.cli-frescor{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.cli-frescor-dot{
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.cli-frescor-state{ font-weight: 600; }
+.cli-frescor-sep{ opacity: 0.5; }
+.cli-frescor-label{ color: var(--text-mute); font-variant-numeric: tabular-nums; }
+
+/* recente — verde forte */
+.cli-frescor-recente{
+  background: oklch(0.95 0.04 145);
+  color: oklch(0.42 0.13 145);
+  border-color: oklch(0.88 0.06 145);
+}
+.cli-frescor-recente .cli-frescor-label{ color: oklch(0.50 0.06 145); }
+
+/* fresc — verde claro */
+.cli-frescor-fresc{
+  background: oklch(0.96 0.03 145);
+  color: oklch(0.48 0.10 145);
+  border-color: oklch(0.92 0.05 145);
+}
+.cli-frescor-fresc .cli-frescor-label{ color: oklch(0.55 0.04 145); }
+
+/* distante — amber */
+.cli-frescor-distante{
+  background: oklch(0.95 0.05 60);
+  color: oklch(0.50 0.13 60);
+  border-color: oklch(0.88 0.08 60);
+}
+.cli-frescor-distante .cli-frescor-label{ color: oklch(0.55 0.06 60); }
+
+/* frio — rose suave */
+.cli-frescor-frio{
+  background: oklch(0.95 0.04 25);
+  color: oklch(0.50 0.13 25);
+  border-color: oklch(0.88 0.07 25);
+}
+.cli-frescor-frio .cli-frescor-label{ color: oklch(0.55 0.05 25); }
+
+/* ─── SaldoCell vermelho ─── */
+.cli-saldo-neg{
+  color: oklch(0.50 0.16 25);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* ─── Tags chips ─── */
+.cli-td-tags{ min-width: 120px; }
+.cli-tag{
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--border-2);
+  color: var(--text-dim);
+  margin-right: 4px;
+  letter-spacing: 0.02em;
+}
+.cli-tag-vip{ background: oklch(0.94 0.07 80); color: oklch(0.42 0.13 75); font-weight: 600; }
+.cli-tag-indicador{ background: oklch(0.94 0.04 200); color: oklch(0.45 0.10 230); }
+.cli-tag-atraso-recorrente{ background: oklch(0.94 0.05 25); color: oklch(0.45 0.12 25); }
+.cli-tag-premium{ background: oklch(0.93 0.06 290); color: oklch(0.42 0.12 290); }
+.cli-tag-more{
+  font-size: 10.5px;
+  color: var(--text-mute);
+  font-weight: 500;
+}
+
+/* Última OS link */
+.cli-lastos-link{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+}
+.cli-lastos-link:hover{ text-decoration: underline; }
+
+/* ─── Favorito ⭐ ─── */
+.cli-td-fav{ width: 32px; text-align: center; }
+.cli-fav-btn{
+  background: transparent;
+  border: 0;
+  padding: 5px;
+  cursor: pointer;
+  color: var(--text-mute);
+  opacity: 0.35;
+  border-radius: 4px;
+  transition: opacity 120ms ease, color 120ms ease, background-color 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cli-fav-btn:hover{ background: var(--border-2); color: oklch(0.65 0.14 80); opacity: 1; }
+.cli-fav-btn.on{
+  opacity: 1;
+  color: oklch(0.65 0.16 80);
+}
+.cli-fav-btn:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  opacity: 1;
+}
+
+/* ─── Kebab ⋮ por linha ─── */
+.cli-td-kebab{ width: 32px; text-align: center; position: relative; }
+.cli-kebab-wrap{ position: relative; display: inline-block; }
+.cli-kebab-btn{
+  background: transparent;
+  border: 0;
+  padding: 5px;
+  cursor: pointer;
+  color: var(--text-mute);
+  opacity: 0.35;
+  border-radius: 4px;
+  transition: opacity 120ms ease, background-color 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cli-kebab-btn:hover{ background: var(--border-2); color: var(--text); opacity: 1; }
+.cli-kebab-btn[aria-expanded="true"]{ opacity: 1; background: var(--border-2); color: var(--text); }
+.cli-kebab-btn:focus-visible{
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  opacity: 1;
+}
+.cli-kebab-menu{
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 60;
+  min-width: 180px;
+  background: var(--surface, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 10px 28px -4px rgba(0,0,0,0.10), 0 4px 10px -2px rgba(0,0,0,0.05);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+.cli-kebab-menu button{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 80ms ease;
+}
+.cli-kebab-menu button:hover{ background: var(--border-2); }
+.cli-kebab-menu button svg{ color: var(--text-mute); opacity: 0.7; }
+.cli-kebab-menu button.danger{ color: oklch(0.50 0.16 25); }
+.cli-kebab-menu button.danger svg{ color: oklch(0.50 0.16 25); }
+.cli-kebab-menu button.danger:hover{ background: oklch(0.96 0.03 25); }
+.cli-kebab-sep{
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ─── Drawer extras ─── */
+.cli-head-doc{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cli-head-sep{ color: var(--text-mute); }
+.cli-info-tags{ display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* ─── Responsivo ─── */
+@media (max-width: 1280px){
+  .cli-kpihero{ grid-template-columns: repeat(3, 1fr); }
+  .cli-kpihero-card{ border-top: 1px solid var(--border); }
+  .cli-kpihero-card:nth-child(-n+3){ border-top: 0; }
+  .cli-kpihero-card:nth-child(3n+1){ border-left: 0; }
+}
+/* ════════════════════════════════════════════════════════════════════════════
+   V3 — Role-specific pills + minimal "Todos" view
+   2026-05-25 refactor: cliente/fornecedor/funcionário/representante separados
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* KPI tones extras */
+.cli-kpihero-tone-warning .cli-kpihero-v{ color: oklch(0.50 0.13 60); }
+.cli-kpihero-tone-danger  .cli-kpihero-v{ color: oklch(0.50 0.16 25); }
+.cli-kpihero-clickable{
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+.cli-kpihero-clickable:hover{ background: color-mix(in oklch, var(--border-2) 60%, transparent); }
+.cli-kpihero-clickable:focus-visible{ outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Hint banner "view consolidada" */
+.cli-all-hint{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: oklch(0.96 0.02 250);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.cli-all-hint svg{ color: var(--accent); flex: 0 0 12px; }
+.cli-all-hint strong{ color: var(--text); }
+
+/* Tipo (PJ/PF) — vinculos funcionário extra */
+.cli-tipo-clt        { background: oklch(0.94 0.03 250); color: oklch(0.40 0.08 250); }
+.cli-tipo-pj         { background: oklch(0.94 0.02 250); color: oklch(0.40 0.06 250); }
+.cli-tipo-pf         { background: oklch(0.94 0.04 145); color: oklch(0.40 0.10 145); }
+.cli-tipo-estagiario { background: oklch(0.94 0.05 60);  color: oklch(0.42 0.10 60); }
+.cli-tipo-socio      { background: oklch(0.93 0.06 290); color: oklch(0.40 0.12 290); }
+
+/* Categoria fornecedor */
+.cli-tag-cat{
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--border-2);
+  color: var(--text-dim);
+  letter-spacing: 0.01em;
+}
+
+/* Setor funcionário */
+.cli-tag-dept{
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: oklch(0.95 0.025 250);
+  color: oklch(0.42 0.08 250);
+  letter-spacing: 0.01em;
+}
+
+/* Região representante */
+.cli-tag-region{
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: oklch(0.94 0.04 200);
+  color: oklch(0.40 0.10 230);
+  margin-right: 3px;
+  letter-spacing: 0.04em;
+}
+
+/* Acesso (operador/admin/financeiro/produção/design) */
+.cli-pill-access{
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--border-2);
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+/* Pill genérico danger (Crítico fornecedor) */
+.cli-pill-danger{
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: oklch(0.94 0.06 25);
+  color: oklch(0.45 0.13 25);
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+
+/* Status pill (ativo/férias/ocioso) */
+.cli-status-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+}
+.cli-status-pill::before{
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.cli-status-ativo{ background: oklch(0.95 0.04 145); color: oklch(0.42 0.13 145); border-color: oklch(0.88 0.06 145); }
+.cli-status-ferias{ background: oklch(0.95 0.05 60); color: oklch(0.50 0.13 60); border-color: oklch(0.88 0.08 60); }
+.cli-status-afastado{ background: oklch(0.94 0.04 25); color: oklch(0.50 0.13 25); border-color: oklch(0.88 0.07 25); }
+.cli-status-ociosa{ background: oklch(0.95 0.02 250); color: oklch(0.48 0.06 250); border-color: var(--border); }
+
+/* Kind badge (Cliente/Fornecedor/Funcionário/Representante) — usado em "Todos" */
+.cli-kind{
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+.cli-kind-customer      { background: oklch(0.94 0.04 145); color: oklch(0.40 0.11 145); }
+.cli-kind-supplier      { background: oklch(0.94 0.05 60);  color: oklch(0.42 0.12 60); }
+.cli-kind-employee      { background: oklch(0.94 0.03 250); color: oklch(0.40 0.08 250); }
+.cli-kind-representative{ background: oklch(0.93 0.06 290); color: oklch(0.40 0.12 290); }
+
+/* Números fortes (lead time, %, vendas) */
+.cli-num-strong{
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.cli-cell-mono{
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}

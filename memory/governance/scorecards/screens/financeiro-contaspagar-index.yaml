@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/ContasPagar/Index
+path: resources/js/Pages/Financeiro/ContasPagar/Index.tsx
+archetype: list
+persona: eliana
+nota: 70
+nivel: "Advanced"
+baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista titulos + Sheet de baixa shadcn com toast e validacao; solido, mas status bg-blue-100 nao-token, sem defer/skeleton e empty state minimo."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "PlanoContas (tipo tokens fin)"
+    fix: "STATUS_LABELS aberto usa bg-blue-100 text-blue-900 cru; mapear pra cor semantica DS (sky/stone token)"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Dashboard (Deferred+skeleton)"
+    fix: "titulos eager sem defer; sem skeleton de tabela enquanto filtro recarrega"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Cobranca (KB-9.75 / + Enter)"
+    fix: "Zero atalhos teclado; Eliana navega so com mouse - sem busca, sem foco /"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

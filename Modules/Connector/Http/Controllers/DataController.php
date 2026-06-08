@@ -1,0 +1,94 @@
+<?php
+
+namespace Modules\Connector\Http\Controllers;
+
+use App\Utils\ModuleUtil;
+use Illuminate\Routing\Controller;
+use Menu;
+
+class DataController extends Controller
+{
+    public function superadmin_package()
+    {
+        return [
+            [
+                'name' => 'connector_module',
+                'label' => __('connector::lang.connector_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Permissões registradas no UI de Roles do UltimatePOS.
+     *
+     * Adicionado 2026-04-26 (audit DataController) — antes não havia
+     * permissão dedicada e o menu era 100% gated por `can('superadmin')`,
+     * impedindo delegar acesso à API a usuários técnicos não-superadmin.
+     */
+    public function user_permissions()
+    {
+        return [
+            [
+                'value' => 'connector.access',
+                'label' => __('connector::lang.connector_module'),
+                'default' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Adds Connectoe menus
+     *
+     * @return null
+     */
+    public function modifyAdminMenu()
+    {
+        $module_util = new ModuleUtil();
+
+        if (auth()->user()->can('superadmin')) {
+            $is_connector_enabled = $module_util->isModuleInstalled('Connector');
+        } else {
+            $business_id = session()->get('user.business_id');
+            $is_connector_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'connector_module', 'superadmin_package');
+        }
+        if ($is_connector_enabled) {
+            Menu::modify('admin-sidebar-menu', function ($menu) {
+                $menu->dropdown(
+                    __('connector::lang.connector'),
+                    function ($sub) {
+                        if (auth()->user()->can('superadmin')) {
+                            $sub->url(
+                                action([\Modules\Connector\Http\Controllers\ClientController::class, 'index']),
+                               __('connector::lang.clients'),
+                                ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'connector' && request()->segment(2) == 'api']
+                            );
+                        }
+                        $sub->url(
+                            url('\docs'),
+                           __('connector::lang.documentation'),
+                            ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'docs']
+                        );
+                    },
+                    [
+                        'icon'    => 'fas fa-plug',
+                        // ADR 0180 Fase 4 Wave E — Connector é ghost virtual de
+                        // Plataforma no grupo canon `sistema` v3. Sem `shortcut`
+                        // (acoplado em Governança); `primary` = "Novo client OAuth"
+                        // (criação via ClientController create); `ghosts` = Clients
+                        // + Documentation (2 sub-views existentes).
+                        'primary' => [
+                            'label'    => 'Novo API client',
+                            'href'     => '/connector/client/create',
+                            'shortcut' => 'N',
+                        ],
+                        'ghosts'  => [
+                            ['key' => 'clients', 'label' => 'API Clients',   'href' => '/connector/api'],
+                            ['key' => 'docs',    'label' => 'Documentação',  'href' => '/docs'],
+                        ],
+                    ]
+                )->order(6);
+            });
+        }
+    }
+}
