@@ -161,10 +161,12 @@ export default function OssTab({
           />
         )}
         {active === 'sales' && (
+          // Fix 2026-06-08: no drawer, SalesTab busca os dados sozinho via
+          // `jsonEndpoint` (self-fetch). Sem isso recebia sales=undefined e
+          // ficava preso no skeleton — "as vendas não aparecem no cadastro".
           <SalesTab
             contactId={contact.id}
-            sales={undefined}
-            endpoint={`/cliente/${contact.id}`}
+            jsonEndpoint={`/cliente/${contact.id}/sales-json`}
           />
         )}
         {active === 'payments' && (
