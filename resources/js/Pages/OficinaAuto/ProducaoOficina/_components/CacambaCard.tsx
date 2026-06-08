@@ -53,6 +53,10 @@ export interface CacambaCardData {
   valor_receber: number | null;
   atendente_nome: string | null;
   atendente_iniciais: string | null;
+  // Eixo de recurso (modelo reparo) — box (texto livre) + mecânico atribuído.
+  box_label?: string | null;
+  mecanico_nome?: string | null;
+  mecanico_iniciais?: string | null;
 }
 
 interface Props {
@@ -291,6 +295,16 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
           {osLabel ?? <span className="text-muted-foreground/60 italic">sem OS</span>}
         </span>
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Eixo de recurso (modelo reparo): box atribuído à OS. */}
+          {cacamba.box_label ? (
+            <span
+              className="inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded font-medium border bg-primary/5 text-primary border-primary/20 whitespace-nowrap"
+              title={`Box: ${cacamba.box_label}`}
+            >
+              <Wrench size={9} />
+              {cacamba.box_label}
+            </span>
+          ) : null}
           {showValorTop && (
             <span
               className={
