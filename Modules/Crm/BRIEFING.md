@@ -1,5 +1,7 @@
 # Crm — BRIEFING (estado consolidado)
 
+> 🔇 **SILENCIADO NA MEMÓRIA — Wagner 2026-06-08.** Este BRIEFING descreve o **pipeline-legacy do UltimatePOS** (Leads/Proposals/Campaigns/Schedules/CallLogs) — exatamente a parte que o Wagner considera defasada e que não deve mais ser comentada, evoluída nem virar task sem decisão explícita dele. **O cadastro de Cliente (drawer 760px) NÃO está aqui** — vive em `memory/requisitos/Crm/` e segue ativo no app (`module.json active: 1` intacto). Reversível (remover banner).
+
 > **Última atualização:** 2026-05-16 (Wave 18 RETRY)
 > **Wave 18 RETRY score (target 97):** D1=30/30 · D4=20/20 · D8=8/8 (saturado)
 
