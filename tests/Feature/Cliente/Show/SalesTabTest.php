@@ -99,3 +99,29 @@ test('SalesTab.tsx — empty state PT-BR', function () {
         ->toContain('Ajuste os filtros ou registre uma nova venda.')
         ->toContain('data-testid="sales-empty"');
 });
+
+test('SalesTab.tsx — duplo-clique na linha abre a venda', function () {
+    $tsxPath = __DIR__ . '/../../../../resources/js/Pages/Cliente/_show/SalesTab.tsx';
+    $contents = file_get_contents($tsxPath);
+
+    expect($contents)
+        ->toContain('onDoubleClick={() => router.visit(`/sells/${s.id}`)}')
+        ->toContain('cursor-pointer')
+        ->toContain('Duplo-clique para abrir a venda');
+});
+
+test('SalesTab.tsx — abre a venda via Inertia (X-Inertia → Sells/Show estilizada), não <a> cru', function () {
+    // SellController@show só renderiza a tela moderna Sells/Show quando há header
+    // X-Inertia; `<a href>`/window.location caem no partial Blade legado cru.
+    // Por isso link da fatura + ícone Ações + duplo-clique usam navegação Inertia.
+    $tsxPath = __DIR__ . '/../../../../resources/js/Pages/Cliente/_show/SalesTab.tsx';
+    $contents = file_get_contents($tsxPath);
+
+    expect($contents)
+        ->toContain("import { Link, router } from '@inertiajs/react'")
+        ->toContain('<Link href={`/sells/${s.id}`}')
+        ->toContain('router.visit(`/sells/${s.id}`)')
+        // Não pode voltar pro <a href> cru nem window.location (partial feio).
+        ->not->toContain('<a href={`/sells/${s.id}`}')
+        ->not->toContain('window.location.href = `/sells/${s.id}`');
+});

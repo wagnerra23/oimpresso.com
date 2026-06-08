@@ -191,8 +191,10 @@ export default function OssTab({
         {active === 'persons' && (
           <PessoasContatoTab contactId={contact.id} contact_persons={undefined} />
         )}
-        {active === 'subscriptions' && <SubscriptionsTab subscriptions={undefined} />}
-        {active === 'rewards' && <RewardPointsTab reward_points={undefined} />}
+        {/* Fix 2026-06-08: passa contactId pro self-fetch (sem prop = busca o endpoint JSON,
+            em vez de ficar preso no skeleton "Carregando…"). */}
+        {active === 'subscriptions' && <SubscriptionsTab contactId={contact.id} />}
+        {active === 'rewards' && <RewardPointsTab contactId={contact.id} />}
       </div>
     </div>
   );

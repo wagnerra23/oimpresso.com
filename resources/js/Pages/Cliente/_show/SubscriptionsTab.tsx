@@ -1,6 +1,8 @@
 // Onda Final.D — Tab Assinaturas (transactions is_recurring=1).
 // Paridade com Blade sale_pos/partials/subscriptions_table.
 
+import { useEffect, useState } from 'react';
+import { Link } from '@inertiajs/react';
 import { Recycle, ExternalLink } from 'lucide-react';
 
 export interface SubscriptionItem {
@@ -16,7 +18,10 @@ export interface SubscriptionItem {
 }
 
 export interface SubscriptionsTabProps {
+  /** Modo Inertia (Show.tsx full-page): lista vinda via Inertia::defer. */
   subscriptions?: SubscriptionItem[];
+  /** Modo self-fetch (drawer Cliente/Index → OssTab): busca via /cliente/{id}/subscriptions-json. */
+  contactId?: number;
 }
 
 const INTERVAL_LABELS: Record<string, string> = {
@@ -42,7 +47,63 @@ const formatInterval = (n: number, type: string) => {
   return `a cada ${n} ${unit}${n === 1 ? '' : type === 'months' ? 'es' : 's'}`;
 };
 
-export default function SubscriptionsTab({ subscriptions }: SubscriptionsTabProps) {
+export default function SubscriptionsTab({ subscriptions: subsProp, contactId }: SubscriptionsTabProps) {
+  const [data, setData] = useState<SubscriptionItem[] | null>(subsProp ?? null);
+  const [loading, setLoading] = useState(subsProp === undefined);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Modo Inertia (Show.tsx): lista veio via prop, não busca.
+    if (subsProp !== undefined) {
+      setData(subsProp);
+      setLoading(false);
+      return;
+    }
+    // Modo self-fetch (drawer): sem prop → busca o endpoint JSON.
+    if (!contactId) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch(`/cliente/${contactId}/subscriptions-json`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((j: SubscriptionItem[]) => {
+        if (cancelled) return;
+        setData(Array.isArray(j) ? j : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setError('Não foi possível carregar as assinaturas.');
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [contactId, subsProp]);
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center text-xs text-muted-foreground" data-testid="subscriptions-tab-skeleton">
+        Carregando assinaturas…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-xs text-muted-foreground" data-testid="subscriptions-tab-error">
+        {error}
+      </div>
+    );
+  }
+
+  const subscriptions = data;
   if (!subscriptions) {
     return (
       <div className="p-8 text-center text-xs text-muted-foreground" data-testid="subscriptions-tab-skeleton">
@@ -104,13 +165,13 @@ export default function SubscriptionsTab({ subscriptions }: SubscriptionsTabProp
                   )}
                 </td>
                 <td className="px-4 py-3 text-xs">
-                  <a
+                  <Link
                     href={`/sells/${s.id}`}
                     className="inline-flex items-center gap-1 text-primary hover:underline"
                   >
                     Ver
                     <ExternalLink size={11} aria-hidden />
-                  </a>
+                  </Link>
                 </td>
               </tr>
             );

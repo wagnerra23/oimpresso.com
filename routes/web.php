@@ -306,6 +306,16 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/cliente/{id}/sales-json', [ContactController::class, 'salesJson'])
         ->name('cliente.sales.json')->whereNumber('id');
 
+    // Fix 2026-06-08 — pagamentos/pontos/assinaturas do cliente (drawer Operações). JSON.
+    // Mesmas abas que ficavam vazias/"aguardando wiring" no drawer por falta de fonte
+    // self-fetch (recebiam prop undefined). Tier 0 multi-tenant: scope no controller.
+    Route::get('/cliente/{id}/payments-json', [ContactController::class, 'paymentsJson'])
+        ->name('cliente.payments.json')->whereNumber('id');
+    Route::get('/cliente/{id}/rewards-json', [ContactController::class, 'rewardsJson'])
+        ->name('cliente.rewards.json')->whereNumber('id');
+    Route::get('/cliente/{id}/subscriptions-json', [ContactController::class, 'subscriptionsJson'])
+        ->name('cliente.subscriptions.json')->whereNumber('id');
+
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
     Route::resource('taxonomies', TaxonomyController::class);
 
