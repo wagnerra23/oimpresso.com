@@ -8,7 +8,7 @@
 // ESC stack preservado: closeOnEsc={noModalOpen} delega pro DrawerBase quando
 // nenhum modal nested aberto; useEffect local lida com ESC quando modal aberto.
 
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Bot, FileText, PenLine, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -347,7 +347,7 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
             <dt>Venda</dt>
             <dd>
               {nota.transactionId
-                ? <a className="fx-link" href={`/sells/${nota.transactionId}`}>V-{nota.transactionId}</a>
+                ? <Link className="fx-link" href={`/sells/${nota.transactionId}`}>V-{nota.transactionId}</Link>
                 : '—'}
             </dd>
             <dt>Emissão</dt><dd>{nota.when ?? '—'}</dd>

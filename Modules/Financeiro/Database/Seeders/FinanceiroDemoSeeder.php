@@ -40,11 +40,29 @@ class FinanceiroDemoSeeder extends Seeder
 
     public function run(): void
     {
-        $businessId = (int) (env('BIZ_ID') ?? 1);
+        // Alvo default = test_business_id (99). biz=1 (WR2 Sistemas) passou a ter
+        // DADOS REAIS em 2026-06-08 — demo seeder não grava mais nele por default.
+        $businessId = (int) (env('BIZ_ID') ?? config('app.test_business_id', 99));
+
+        // Fail-safe anti-poluição (Tier 0): RECUSA gravar demo em tenant REAL/
+        // protegido (biz=1 WR2, biz=4 ROTA LIVRE…). Override consciente só com
+        // ALLOW_DEMO_ON_PROTECTED=1 (NÃO recomendado — risco de poluir dado real).
+        $protected = (array) config('app.protected_business_ids', [1, 4]);
+        if (in_array($businessId, $protected, true) && env('ALLOW_DEMO_ON_PROTECTED') != '1') {
+            $this->command->error(
+                "RECUSADO: business_id={$businessId} tem DADOS REAIS (protected_business_ids). ".
+                'Demo seeder não grava em tenant real. Use BIZ_ID=99 (test_business_id). '.
+                'Forçar mesmo assim: ALLOW_DEMO_ON_PROTECTED=1 (NÃO recomendado).'
+            );
+
+            return;
+        }
+
         $createdBy = $this->resolveCreatedBy($businessId);
 
         if (! $createdBy) {
             $this->command->error("Nenhum user encontrado pra business_id={$businessId}. Abort.");
+
             return;
         }
 
