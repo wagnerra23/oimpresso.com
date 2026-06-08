@@ -1,0 +1,87 @@
+name: Infra Contract Required
+
+# Camada A do enforcement claim-evidence (sessão 2026-05-17).
+# Bloqueia PR que toca runtime crítico (.htaccess, middleware, routing, Kernel,
+# ServiceProviders, bootstrap) sem seção "## Infra Contract" ou "## Validação prod"
+# OU comentário escape "<!-- evidence-override: <razão> -->".
+#
+# Ref: memory/templates/INFRA-CONTRACT.md
+# Ref: memory/sessions/2026-05-17-arte-evidencia-llm-agents.md
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited, reopened]
+    paths:
+      - '.htaccess'
+      - 'public/.htaccess'
+      - 'app/Http/Middleware/**'
+      - 'app/Http/Kernel.php'
+      - 'routes/**'
+      - 'app/Providers/*ServiceProvider.php'
+      - 'bootstrap/app.php'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-infra-contract:
+    name: Verifica seção Infra Contract no PR body
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate PR body
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -e
+
+          if [ -z "$PR_BODY" ]; then
+            echo "::error::PR body vazio. Adicione seção '## Infra Contract' antes do merge."
+            echo "::error::Template canônico em memory/templates/INFRA-CONTRACT.md"
+            exit 1
+          fi
+
+          # Aceita 3 formas:
+          # 1. "## Infra Contract" (header markdown)
+          # 2. "## Validação prod" (alias usado em PRs antigos)
+          # 3. "<!-- evidence-override: <razão> -->" (escape valve hotfix)
+
+          if echo "$PR_BODY" | grep -qiE '^##[[:space:]]+(Infra Contract|Validação prod|Validacao prod)'; then
+            echo "✓ PR body contém seção 'Infra Contract' ou 'Validação prod'"
+
+            # Verifica que tem pelo menos 1 referência a curl ou HTTP status (evidência mínima)
+            if echo "$PR_BODY" | grep -qE '(curl -sv|< HTTP/1\.[01]|HTTP/2)'; then
+              echo "✓ Evidência curl/HTTP detectada no body"
+              exit 0
+            fi
+
+            echo "::warning::Seção 'Infra Contract' presente mas SEM curl/HTTP literal cole."
+            echo "::warning::Pode estar incompleto. Veja template memory/templates/INFRA-CONTRACT.md"
+            # Não bloqueia (warning soft) — autor pode preencher pós-deploy
+            exit 0
+          fi
+
+          if echo "$PR_BODY" | grep -qiE '<!--[[:space:]]*evidence-override:'; then
+            REASON=$(echo "$PR_BODY" | grep -oiE '<!--[[:space:]]*evidence-override:[^>]+' | head -1)
+            echo "::warning::Evidence override ativado pelo autor:"
+            echo "::warning::$REASON"
+            echo "::warning::Wagner audita uso de override via governance:detect-drift cron"
+            exit 0
+          fi
+
+          # Sem nenhuma das 3 formas — bloqueia
+          echo "::error::PR #$PR_NUMBER toca runtime crítico (.htaccess/middleware/routes/Kernel/ServiceProvider/bootstrap)"
+          echo "::error::sem seção '## Infra Contract' no body."
+          echo "::error::"
+          echo "::error::Adicione ao body do PR usando template:"
+          echo "::error::  memory/templates/INFRA-CONTRACT.md"
+          echo "::error::"
+          echo "::error::Para hotfix legítimo, adicione no body:"
+          echo "::error::  <!-- evidence-override: <razão concreta> -->"
+          echo "::error::"
+          echo "::error::Origem do gate: 3 PRs em cascata #1024 #1026 #1028 (17/mai/2026) — declarações precoces sem curl prod"
+
+          exit 1

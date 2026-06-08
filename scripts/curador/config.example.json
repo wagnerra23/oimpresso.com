@@ -1,0 +1,41 @@
+{
+  "_doc": "Copie pra config.json (gitignored). Define paths a scanear, owners conhecidos, paths excluídos.",
+  "sources": [
+    {
+      "path": "D:\\Conhecimento",
+      "owner": "wagner",
+      "label": "pasta principal de conhecimento Wagner"
+    },
+    {
+      "path": "C:\\Users\\wagne\\Documents",
+      "owner": "wagner",
+      "label": "Documents Wagner",
+      "enabled": false
+    },
+    {
+      "path": "C:\\Users\\wagne\\OneDrive",
+      "owner": "wagner",
+      "label": "OneDrive Wagner",
+      "enabled": false
+    }
+  ],
+  "_team_sources_lgpd_warning": "Pra scanear pasta de outro dev (Maiara/Felipe/Luiz/Eliana), exige consent log em db/consent.jsonl. Use: /curador consent <user>",
+  "exclude_globs": [
+    "**/node_modules/**",
+    "**/.git/objects/**",
+    "**/.git/refs/**",
+    "**/AppData/Local/**",
+    "**/Windows/**",
+    "**/Program Files*/**"
+  ],
+  "destination": {
+    "_repo_root": "D:\\oimpresso.com",
+    "memory_base": "memory",
+    "vault_pending": "D:\\Conhecimento\\_VAULT-PENDING",
+    "descartado": "D:\\Conhecimento\\_DESCARTADO",
+    "triagem": "D:\\Conhecimento\\_TRIAGEM"
+  },
+  "report": {
+    "batch_size": 500
+  }
+}

@@ -1,0 +1,79 @@
+# ── Template canônico de persona oimpresso ───────────────────────────────
+# Refs: ADR UI-0016 (Design contextualizado por persona)
+# Uso: cliente real + 1 persona por papel relevante (dono, gerente, operador)
+# Princípio ADR 0105: só persona com CLIENTE PAGA + REPORTOU vira canon.
+# Persona hipotética = `_proposta_*.yml` (não canon).
+
+slug: <kebab-case-do-nome>             # ex: larissa-rota-livre
+nome_real: <Nome>                       # ex: Larissa
+cliente_real: <slug-cliente>            # link cross-ref → memory/clientes/<slug>/perfil.yml
+business_id: <int>                      # multi-tenant Tier 0 ADR 0093
+status: ativo | inativo | _proposta     # _proposta = sem confirmação cliente
+created_at: YYYY-MM-DD
+updated_at: YYYY-MM-DD
+ultima_entrevista: YYYY-MM-DD           # discovery raw em ../discovery-*.md
+
+# ── Identidade ────────────────────────────────────────────────────────────
+papel: <dono | gerente | operador | balconista | contador | supervisor>
+idade_aproximada: <int>
+formacao: <descrição>                   # técnico / superior / autodidata
+genero: <opcional — afeta microcopy>
+
+# ── Ambiente de trabalho ──────────────────────────────────────────────────
+local: <descrição>                       # balcão loja, escritório oficina, etc
+monitor: <wxh>                          # 1280x1024 / 1920x1080 / mobile
+hardware: <pc velho / notebook / tablet>
+ruido: <calmo | médio | barulhento>     # afeta atenção
+pressa: <baixa | média | alta>          # média de pressa diária
+
+# ── Uso do sistema ────────────────────────────────────────────────────────
+frequencia_diaria:
+  - tela: <slug>                        # ex: sells/create
+    qtd: <int_por_dia>                  # 30× POS
+  - tela: <slug>
+    qtd: <int>
+tecnico: <não | meio | sim>              # familiaridade com computador
+modelo_mental: <descrição_1_frase>       # ex: "tipo Excel velho com mais botões"
+                                         # ex: "tudo numa tela só, não me esconde"
+
+# ── Jobs-to-be-done principais (Christensen) ──────────────────────────────
+jtbd:
+  - quando: <contexto>                   # quando cliente chega ao balcão
+    eu_quero: <ação>                     # registrar venda rápido
+    para: <resultado>                    # ele não esperar e voltar
+    motivacao_funcional: <ação prática>
+    motivacao_emocional: <sentimento>    # se sentir profissional
+    motivacao_social: <reputação>        # cliente reconhecer marca
+
+# ── Fricções temidas (concretas, não abstratas) ───────────────────────────
+fricoes:
+  - <fricção 1 com exemplo> # ex: "modais escondem o que estava preenchendo"
+  - <fricção 2>
+  - <fricção 3>
+
+# ── Métricas de sucesso (comportamento mensurável) ────────────────────────
+sucesso:
+  - <ação> em <tempo>                    # cadastrar cliente em 30s
+  - <ação> em <cliques>                  # fechar venda em 5 cliques
+  - zero <erro tipo>                     # zero CNPJ inválido aceito
+
+# ── Ponderação 15 dimensões (override do default por papel) ──────────────
+# Ver framework-15-dimensoes.md tabela default. Override quando persona
+# tem peso DIFERENTE do papel default. Vazio = usa default do papel.
+pesos_override: {}
+# Exemplo:
+# pesos_override:
+#   speed_to_task: 3      # default balconista já é 3, mas reforça
+#   brand_confidence: 3   # default 1, mas Larissa cuida da imagem da loja
+
+# ── Citações textuais do cliente ──────────────────────────────────────────
+citacoes:
+  - data: YYYY-MM-DD
+    contexto: <ex onde foi dita>
+    texto: '<citação literal entre aspas>'
+
+# ── Tags pra busca/filtragem ──────────────────────────────────────────────
+tags:
+  - <ex: nao-tecnico>
+  - <ex: usuario-poder>
+  - <ex: mobile-eventual>

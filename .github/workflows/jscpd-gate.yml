@@ -1,0 +1,67 @@
+name: jscpd ratchet (anti-duplicação de bloco copy-paste)
+
+# Complementa o reuse-gate (#2343, que pega duplicata por NOME/símbolo) pegando o que
+# ele NÃO vê: blocos copy-paste com nomes diferentes. Fecha o problema #5 do
+# MANUAL-CSS-JS ("copy-paste"). jscpd mede o % de duplicação de blocos em
+# resources/js/**/*.{ts,tsx} e FALHA o PR só se a duplicação SUBIR acima do legado
+# atual (threshold no .jscpd.json). Legado é tolerado (baseline); encolher é sempre OK.
+# Espelha o ratchet do reuse/eslint/stylelint/css-size — "teste pra não piorar".
+#
+# Baseline medido 2026-06-06 (origin/main): 5.3% linhas / 5.39% tokens, 591 clones.
+# threshold = 5.5 (arredondado pra cima com margem). Comando local: npm run dup:check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/**'
+      - '.jscpd.json'
+      - 'package.json'
+      - '.github/workflows/jscpd-gate.yml'
+  pull_request:
+    paths:
+      - 'resources/js/**'
+      - '.jscpd.json'
+      - 'package.json'
+      - '.github/workflows/jscpd-gate.yml'
+
+concurrency:
+  group: jscpd-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  jscpd-gate:
+    name: jscpd · ratchet de copy-paste
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: jscpd ratchet (falha se duplicação SUBIR acima do legado)
+        run: npx jscpd resources/js
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ A duplicação de bloco SUBIU acima do legado tolerado (threshold no .jscpd.json)."
+          echo ""
+          echo "jscpd achou um BLOCO copiado (copy-paste) — não basta nome diferente,"
+          echo "o conteúdo é o mesmo. Em vez de copiar, EXTRAIA pra componente/util/hook"
+          echo "compartilhado e reutilize. Reuse > copiar (MANUAL-CSS-JS problema #5)."
+          echo ""
+          echo "Pra ver QUAIS blocos duplicaram, rode local:"
+          echo "    npm run dup:check"
+          echo ""
+          echo "Isso lista par a par (arquivo:linha <-> arquivo:linha) os clones achados."
+          echo "Complementa o reuse-gate (duplicata por NOME) — aqui é duplicata por CONTEÚDO."
+          echo ""
+          echo "Refs: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md (#5) · reuse-gate (#2343)"

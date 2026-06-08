@@ -1,0 +1,38 @@
+{
+    "name": "OficinaAuto",
+    "alias": "oficina-auto",
+    "description": "Modules/OficinaAuto — vertical oficinas automotivas BR (CNAEs 4520-0/01, 2212-9/00, 4581-4/00). Estado V0 em construção (ADR 0137 — qualificada por sinal Vargas + Martinho). Scaffold inicial com CRUD Vehicle + ServiceOrder multi-tenant Tier 0. Ver memory/requisitos/OficinaAuto/SPEC.md.",
+    "keywords": ["oficina-auto", "automotivo", "veiculo", "ordem-servico", "vertical", "cnae-4520"],
+    "active": 1,
+    "order": 0,
+    "providers": [
+        "Modules\\OficinaAuto\\Providers\\OficinaAutoServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "retention_days": 1825,
+    "retention_config": "Modules/OficinaAuto/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": ["plate", "secondary_plate", "chassis", "renavam", "contact_id"],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "memory/requisitos/OficinaAuto/SPEC.md"
+    },
+    "governance": {
+        "bucket": "vertical_client_facing",
+        "bucket_adr": "0160",
+        "bucket_config": "governance/buckets/vertical_client_facing.yaml",
+        "fsm_canonico": true,
+        "fsm_pipeline": "service_order",
+        "fsm_doc": "memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md",
+        "fsm_estados_simples": ["aberta", "em_servico", "concluida"],
+        "fsm_estados_complexa": ["aberta", "orcamento", "aprovada", "em_producao", "concluida", "entregue"],
+        "fsm_us": "US-OFICINA-003",
+        "wave": 23,
+        "wave_23_saturation": true,
+        "scoped_score_target": 85,
+        "last_governance_review": "2026-05-16",
+        "rubrica_version": "v3_scoped"
+    }
+}

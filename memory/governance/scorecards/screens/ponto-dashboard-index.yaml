@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Ponto/Dashboard/Index
+path: resources/js/Pages/Ponto/Dashboard/Index.tsx
+archetype: dashboard
+persona: wagner
+nota: 85
+nivel: "Leader"
+baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Cockpit rico (KPIs clicaveis, presenca ao vivo, chart 7d, polling only:[]) — peca skeleton, a11y do chart e charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS tokens"
+    fix: "bg-primary/80 ok mas bg-amber-500 cru no chart + sem charter.md"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Linear (skeleton)"
+    fix: "Polling 30s sem skeleton no 1o load; envolver chart/feeds em Deferred+skeleton"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe charts"
+    fix: "BarChart canvas-div sem aria-label/tabela alt; add descricao textual da serie"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

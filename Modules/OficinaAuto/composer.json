@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/oficina-auto",
+    "description": "Vertical oficinas automotivas BR (CNAEs 4520/2212/4581) — CRUD Vehicle + ServiceOrder + futura integração CRLV/diagnóstico Jana IA",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\OficinaAuto\\Providers\\OficinaAutoServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\OficinaAuto\\": ""
+        }
+    }
+}

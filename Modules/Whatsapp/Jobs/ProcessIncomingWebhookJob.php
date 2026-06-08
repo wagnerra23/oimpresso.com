@@ -1,0 +1,629 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Whatsapp\Jobs;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use App\Util\OtelHelper;
+use Modules\Jana\Scopes\ScopeByBusiness;
+use Modules\Whatsapp\Entities\WhatsappBusinessConfig;
+use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
+use Modules\Whatsapp\Entities\WhatsappConversation;
+use Modules\Whatsapp\Entities\WhatsappMessage;
+use Modules\Whatsapp\Events\WhatsappMessageReceived;
+
+/**
+ * Processa payload de webhook (Meta/Z-API/Baileys), normaliza pra
+ * WhatsappMessage append-only.
+ *
+ * **Driver-agnóstico:** o controller já validou assinatura e identificou
+ * `business_id` + `provider`. Aqui só normalizamos o payload de cada
+ * provider pra estrutura comum.
+ *
+ * **Multi-números (ADR 0117 — US-WA-040):**
+ * Aceita `?int $whatsappBusinessPhoneId` opcional. Quando set, escreve
+ * `whatsapp_business_phone_id` em `WhatsappConversation` e `WhatsappMessage`
+ * inbound — UI Inbox filtra conversas por phone do user. Quando NULL
+ * (legacy/coexistência), comportamento original sem phone_id (data migration
+ * PR 1 já preencheu phone_id em conversations existentes).
+ *
+ * **Idempotência:** UNIQUE em `provider_message_id` impede duplicata.
+ * Se webhook chegar 2× com mesmo wamid/messageId, segunda vez é no-op.
+ *
+ * **Tier 0 (ADR 0093):** `$businessId` no constructor; queries com
+ * `withoutGlobalScope` + filtro explícito.
+ *
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-011, US-WA-040
+ * @see memory/requisitos/Whatsapp/ARCHITECTURE.md §3.2
+ */
+class ProcessIncomingWebhookJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 3;
+    public int $timeout = 60;
+
+    /**
+     * @param  array<string, mixed>  $payload  Raw payload do provider (já validado HMAC/Client-Token)
+     */
+    public function __construct(
+        public readonly int $businessId,
+        public readonly string $provider, // meta_cloud|zapi|baileys
+        public readonly array $payload,
+        public readonly ?int $whatsappBusinessPhoneId = null,
+    ) {
+        $this->onQueue(config('whatsapp.queue', 'whatsapp'));
+    }
+
+    public function backoff(): array
+    {
+        return [30, 90, 270];
+    }
+
+    public function handle(): void
+    {
+        OtelHelper::span('whatsapp.webhook.process_incoming', [
+            'business_id' => $this->businessId,
+            'provider' => $this->provider,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+        ], fn () => $this->doHandle());
+    }
+
+    private function doHandle(): void
+    {
+        Log::info('whatsapp.webhook.process_incoming.started', [
+            'business_id' => $this->businessId,
+            'provider' => $this->provider,
+            'phone_id' => $this->whatsappBusinessPhoneId,
+        ]);
+
+        // Resolve phone se fornecido (defensive Tier 0); senão fallback config legacy
+        $phone = null;
+        if ($this->whatsappBusinessPhoneId !== null) {
+            // SUPERADMIN: job webhook sem session — business_id do constructor (validado pelo middleware HMAC)
+            $phone = WhatsappBusinessPhone::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->where('id', $this->whatsappBusinessPhoneId)
+                ->first();
+        }
+
+        if ($phone === null) {
+            // ADR 0135 + 0204: providers Channel-based (whatsmeow) NÃO usam
+            // whatsapp_business_configs legacy. Skip lookup — job processa
+            // direto via Channel (resolveChannel no upsertMessage).
+            // Legacy providers (zapi/meta_cloud com phones table) ainda passam
+            // phone_id no constructor; whatsmeow nunca passa.
+            if ($this->provider !== 'whatsmeow') {
+                $config = WhatsappBusinessConfig::query()
+                    ->withoutGlobalScope(ScopeByBusiness::class)
+                    ->where('business_id', $this->businessId)
+                    ->first();
+                if ($config === null) {
+                    Log::warning('whatsapp.webhook.process_incoming.no_legacy_config', [
+                        'business_id' => $this->businessId,
+                        'provider' => $this->provider,
+                    ]);
+                    return; // sem config legacy → não processa (defensive)
+                }
+            }
+            $resolvedPhoneId = null;
+        } else {
+            $resolvedPhoneId = $phone->id;
+        }
+
+        $extracted = $this->extractMessages();
+        if (empty($extracted)) {
+            return;
+        }
+
+        foreach ($extracted as $msg) {
+            // ADR 0135 + 0204: provider=whatsmeow usa schema novo (channels/conversations/messages)
+            // Caixa Unificada v4. Legacy providers continuam via whatsapp_business_configs.
+            if ($this->provider === 'whatsmeow') {
+                $this->upsertMessageWhatsmeow($msg);
+            } else {
+                $this->upsertMessage($this->businessId, $resolvedPhoneId, $msg);
+            }
+        }
+    }
+
+    /**
+     * Upsert mensagem no schema NOVO (channels/conversations/messages) — ADR 0135 + 0204.
+     *
+     * Resolve channel via instanceName no payload (whatsmeowUserName match).
+     * Cria conversation + message via DB::table direto (não usa WhatsappMessage
+     * model legacy que aponta pra whatsapp_messages table vazia).
+     */
+    private function upsertMessageWhatsmeow(array $msg): void
+    {
+        $providerMessageId = (string) ($msg['provider_message_id'] ?? '');
+        if ($providerMessageId === '') {
+            return;
+        }
+
+        // Idempotência cross-tenant — provider_message_id UNIQUE global
+        $existing = \DB::table('messages')
+            ->where('provider_message_id', $providerMessageId)
+            ->first();
+        if ($existing !== null) {
+            return;
+        }
+
+        // Resolve channel via instanceName do payload outer (passado pelo controller)
+        // OU via primeiro channel whatsmeow ativo do business (fallback).
+        $instanceName = (string) ($this->payload['instanceName'] ?? '');
+        $channel = null;
+        if ($instanceName !== '') {
+            $channel = \Modules\Whatsapp\Entities\Channel::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->where('type', \Modules\Whatsapp\Entities\Channel::TYPE_WHATSAPP_WHATSMEOW)
+                ->get()
+                ->first(fn ($ch) => $ch->whatsmeowUserName() === $instanceName);
+        }
+        if ($channel === null) {
+            $channel = \Modules\Whatsapp\Entities\Channel::query()
+                ->withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $this->businessId)
+                ->where('type', \Modules\Whatsapp\Entities\Channel::TYPE_WHATSAPP_WHATSMEOW)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if ($channel === null) {
+            Log::warning('whatsapp.webhook.whatsmeow.no_channel_resolved', [
+                'business_id' => $this->businessId,
+                'instance_name' => $instanceName,
+                'provider_message_id' => $providerMessageId,
+            ]);
+            return;
+        }
+
+        $phoneE164 = (string) ($msg['from'] ?? '');
+        $externalId = (string) ($msg['external_id'] ?? '');
+        $contactName = (string) ($msg['push_name'] ?? '') ?: $phoneE164;
+
+        // Direção — fromMe (resposta da equipe pelo WhatsApp oficial OU eco do
+        // nosso próprio composer) entra como outbound/sent/human; senão inbound.
+        $fromMe = (bool) ($msg['from_me'] ?? false);
+        $direction = $fromMe ? 'outbound' : 'inbound';
+
+        // Defense-in-depth — customer_external_id é NOT NULL no schema, parte da
+        // UNIQUE conv_biz_ch_ext_uniq (business_id, channel_id, customer_external_id).
+        // Se chegar vazio (extractor não capturou Chat/Sender), NÃO crie row lixo.
+        // Bug 2026-05-27: 5 failed jobs com Duplicate '1-11-' originaram exatamente
+        // disso — primeira passou com '' e travou todas seguintes.
+        if ($externalId === '') {
+            Log::warning('whatsapp.webhook.whatsmeow.empty_external_id_rejected', [
+                'business_id' => $this->businessId,
+                'channel_id' => $channel->id,
+                'provider_message_id' => $providerMessageId,
+                'phone_e164_sample' => substr($phoneE164, 0, 20),
+            ]);
+            return;
+        }
+
+        // firstOrCreate conversation — chave de UNIQUE é customer_external_id, NÃO phone_e164.
+        $conversation = \DB::table('conversations')
+            ->where('business_id', $this->businessId)
+            ->where('channel_id', $channel->id)
+            ->where('customer_external_id', $externalId)
+            ->first();
+
+        $convId = $conversation?->id;
+        $now = now();
+        // Hora real da mensagem no fuso do business — NÃO now() (este job roda na
+        // fila, fora do middleware Timezone, então now() seria Europe/London = +3h
+        // vs SP → msg no horário/dia errado). Fallback seguro pra now() embutido.
+        $sentAt = $this->resolveSentAt($msg['sent_at'] ?? null, $this->businessTimezone());
+        if ($convId === null) {
+            $convData = [
+                'business_id' => $this->businessId,
+                'channel_id' => $channel->id,
+                'customer_external_id' => $externalId,
+                'phone_e164' => $phoneE164,
+                'contact_name' => $contactName,
+                'status' => 'open',
+                'unread_count' => $fromMe ? 0 : 1, // outbound não conta como não-lida
+                'last_inbound_at' => $fromMe ? null : $sentAt,
+                'last_message_at' => $sentAt,
+                'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
+                'last_message_direction' => $direction,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+            // last_outbound_at só no caminho outbound — mantém o INSERT inbound
+            // byte-idêntico ao original (não introduz coluna nova no fluxo que
+            // os testes legados de inbound já cobrem).
+            if ($fromMe) {
+                $convData['last_outbound_at'] = $sentAt;
+            }
+            $convId = \DB::table('conversations')->insertGetId($convData);
+        }
+
+        // Schema 2026-05-27: messages table não tem channel_id direto;
+        // canal vem via conversation_id → conversation.channel_id.
+        // M1 fix 2026-05-28: persiste media_mime/size/filename quando extractor capturou
+        // (image/video/audio/document/sticker) — antes era NULL = 45.819 msgs órfãs.
+        \DB::table('messages')->insert([
+            'business_id' => $this->businessId,
+            'conversation_id' => $convId,
+            'direction' => $direction,
+            'provider' => 'whatsmeow',
+            'provider_message_id' => $providerMessageId,
+            'type' => $msg['type'] ?? 'text',
+            'body' => $msg['body'] ?? null,
+            'payload' => json_encode($msg['raw'] ?? null),
+            'status' => $fromMe ? 'sent' : 'received',
+            // NOTA: sender_kind/sender_user_id ficam NULL aqui — a captura via
+            // daemon não sabe QUAL atendente respondeu pelo WhatsApp oficial.
+            // Enriquecer (human vs bot, autor) é follow-up junto do outbound
+            // pelo composer do oimpresso (que conhece o user logado).
+            'media_mime' => $msg['media_mime'] ?? null,
+            'media_size_bytes' => $msg['media_size_bytes'] ?? null,
+            'media_filename' => $msg['media_filename'] ?? null,
+            'created_at' => $sentAt,
+            'updated_at' => $sentAt,
+        ]);
+
+        // Realtime Centrifugo — publica evento "message.received" no canal
+        // omnichannel do business pra UI Caixa Unificada V4 atualizar sem refresh.
+        //
+        // 🚨 INCIDENT 2026-05-28: canal e nome do evento ESTAVAM em MISMATCH com
+        // o frontend (`Pages/Atendimento/CaixaUnificada/Index.tsx`):
+        //   - Publish ERA "whatsapp:business:{id}"      → Frontend subscribe "omnichannel:business:{id}"
+        //   - Evento ERA "whatsmeow.message.received"   → Frontend `ctx.data.type === 'message.received'`
+        // Resultado: msgs persistiam OK no DB mas WebSocket NUNCA entregava → tela
+        // só atualizava via polling 5s (que pausa em tab inativa) → latência percebida ~60s.
+        // Fix: publicar no canal omnichannel canon (ADR 0135) com chave `type` esperada.
+        // Frontend (CaixaUnificada/Index.tsx) escuta message.received E message.sent;
+        // ambos só disparam router.reload() (direção vem do DB recarregado).
+        $eventType = $fromMe ? 'message.sent' : 'message.received';
+        try {
+            app(\Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher::class)->publish(
+                "omnichannel:business:{$this->businessId}",
+                [
+                    'type' => $eventType,
+                    'channel_id' => $channel->id,
+                    'conversation_id' => $convId,
+                    'phone_e164' => $phoneE164,
+                    'contact_name' => $contactName,
+                    'body_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
+                ]
+            );
+            Log::info('whatsapp.centrifugo.publish.success', [
+                'business_id' => $this->businessId,
+                'channel_centrifugo' => "omnichannel:business:{$this->businessId}",
+                'conversation_id' => $convId,
+                'event_type' => $eventType,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('whatsmeow.centrifugo.publish_failed', [
+                'error' => $e->getMessage(),
+                'business_id' => $this->businessId,
+                'conversation_id' => $convId,
+            ]);
+        }
+
+        if ($conversation !== null) {
+            $convUpdate = [
+                'last_message_at' => $sentAt,
+                'last_message_preview' => mb_substr((string) ($msg['body'] ?? ''), 0, 200),
+                'last_message_direction' => $direction,
+                'updated_at' => $now,
+            ];
+            if ($fromMe) {
+                // outbound: marca saída, NÃO incrementa unread, NÃO toca
+                // last_inbound_at nem contact_name (preserva nome do cliente).
+                $convUpdate['last_outbound_at'] = $sentAt;
+            } else {
+                // inbound: idêntico ao original (não introduz coluna nova).
+                $convUpdate['unread_count'] = ($conversation->unread_count ?? 0) + 1;
+                $convUpdate['last_inbound_at'] = $sentAt;
+                $convUpdate['contact_name'] = $contactName;
+            }
+            \DB::table('conversations')->where('id', $convId)->update($convUpdate);
+        }
+
+        Log::info('whatsapp.webhook.whatsmeow.message_persisted', [
+            'business_id' => $this->businessId,
+            'channel_id' => $channel->id,
+            'conversation_id' => $convId,
+            'provider_message_id' => $providerMessageId,
+        ]);
+    }
+
+    /**
+     * Hora REAL da mensagem (do provider) no fuso do business.
+     *
+     * Por que NÃO `now()`: este job roda na fila (queue worker), que não passa
+     * pelo middleware HTTP `App\Http\Middleware\Timezone`. Logo `now()` cairia no
+     * default `config('app.timezone')` (Europe/London) e gravaria a msg +3h
+     * adiantada vs America/Sao_Paulo — "pulando de dia" perto da meia-noite.
+     *
+     * Robusto aos 2 formatos que o whatsmeow emite (time.Time do Go):
+     *   - string RFC3339 com offset ("2026-05-28T22:00:00-03:00") → respeita o offset
+     *   - epoch numérico (UTC) → createFromTimestamp
+     *
+     * Fallback seguro: sem timestamp → `now()` (mantém o comportamento anterior).
+     */
+    private function resolveSentAt(mixed $raw, string $tz): \Illuminate\Support\Carbon
+    {
+        if ($raw === null || $raw === '') {
+            return now();
+        }
+
+        try {
+            $c = is_numeric($raw)
+                ? \Illuminate\Support\Carbon::createFromTimestamp((int) $raw) // epoch é UTC
+                : \Illuminate\Support\Carbon::parse((string) $raw);           // RFC3339: offset embutido
+            return $c->setTimezone($tz); // storage UPos é local ao business, não UTC
+        } catch (\Throwable) {
+            return now(); // formato inesperado → fallback seguro
+        }
+    }
+
+    /**
+     * Fuso do business — mesmo valor que o middleware HTTP `Timezone` aplicaria
+     * num request autenticado. Sem business/time_zone → default do app (não quebra).
+     */
+    private function businessTimezone(): string
+    {
+        $tz = optional(\App\Business::find($this->businessId))->time_zone;
+
+        return is_string($tz) && $tz !== '' ? $tz : (string) config('app.timezone');
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractMessages(): array
+    {
+        return match ($this->provider) {
+            'meta_cloud' => $this->extractFromMeta($this->payload),
+            'zapi' => $this->extractFromZapi($this->payload),
+            'baileys' => $this->extractFromBaileys($this->payload),
+            'whatsmeow' => $this->extractFromWhatsmeow($this->payload),
+            default => [],
+        };
+    }
+
+    /**
+     * Whatsmeow (WuzAPI daemon Go) — ADR 0204.
+     * Payload já unwrapped pelo WhatsmeowWebhookController: $payload.event.Info + $payload.event.Message
+     */
+    private function extractFromWhatsmeow(array $payload): array
+    {
+        $event = $payload['event'] ?? $payload;
+        $info = $event['Info'] ?? [];
+        $message = $event['Message'] ?? [];
+
+        // fromMe = mensagem enviada pela PRÓPRIA equipe — seja pelo composer do
+        // oimpresso, seja pelo WhatsApp oficial (Web/celular) no mesmo número
+        // pareado. Multi-device replica esses envios pra sessão do daemon com
+        // IsFromMe=true. NÃO descartamos mais (ver bloco de persistência abaixo).
+        $fromMe = ($info['IsFromMe'] ?? false) === true;
+
+        // customer_external_id — JID do OUTRO lado (cliente) em 1:1. Igual pra
+        // inbound e outbound: o Chat sempre identifica o contato, não o remetente.
+        $externalId = (string) ($info['Chat'] ?? $info['Sender'] ?? '');
+
+        // Telefone E.164 do CLIENTE. Inbound: SenderAlt traz o phone real do
+        // cliente (Chat/Sender podem vir @lid em multi-device). Outbound (fromMe):
+        // Sender/SenderAlt é o NOSSO número → o cliente é o Chat (destinatário).
+        $contactJid = $fromMe
+            ? $externalId
+            : (string) ($info['SenderAlt'] ?? $info['Chat'] ?? '');
+        $phone = '+' . preg_replace('/\D/', '', explode('@', $contactJid)[0]);
+
+        // Mídia inbound — incident 2026-05-28 M1: ANTES NUNCA preenchia
+        // media_mime/url/size/filename → 45.819 msgs presas type='' body='[media]'
+        // sem download possível. Whatsmeow protobuf: Message.{image|video|audio|document}Message
+        // (camelCase) carrega { url, mimetype, fileLength, mediaKey, fileName, caption }.
+        $mediaInfo = null;
+        $detectedType = strtolower((string) ($info['Type'] ?? 'text'));
+        if (isset($message['imageMessage']) && is_array($message['imageMessage'])) {
+            $m = $message['imageMessage'];
+            $detectedType = 'image';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'image/jpeg'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => (string) ($m['caption'] ?? '')];
+        } elseif (isset($message['videoMessage']) && is_array($message['videoMessage'])) {
+            $m = $message['videoMessage'];
+            $detectedType = 'video';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'video/mp4'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => (string) ($m['caption'] ?? '')];
+        } elseif (isset($message['audioMessage']) && is_array($message['audioMessage'])) {
+            $m = $message['audioMessage'];
+            $detectedType = 'audio';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'audio/ogg'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => ''];
+        } elseif (isset($message['documentMessage']) && is_array($message['documentMessage'])) {
+            $m = $message['documentMessage'];
+            $detectedType = 'document';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'application/octet-stream'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => (string) ($m['fileName'] ?? 'document'), 'caption' => (string) ($m['caption'] ?? '')];
+        } elseif (isset($message['stickerMessage']) && is_array($message['stickerMessage'])) {
+            $m = $message['stickerMessage'];
+            $detectedType = 'sticker';
+            $mediaInfo = ['mime' => (string) ($m['mimetype'] ?? 'image/webp'), 'size' => (int) ($m['fileLength'] ?? 0), 'filename' => null, 'caption' => ''];
+        }
+
+        // Body (texto/caption). Mantém placeholder genérico só pra mídias sem caption.
+        $body = match (true) {
+            isset($message['conversation']) => (string) $message['conversation'],
+            isset($message['extendedTextMessage']['text']) => (string) $message['extendedTextMessage']['text'],
+            $mediaInfo !== null && $mediaInfo['caption'] !== '' => $mediaInfo['caption'],
+            $detectedType === 'image' => '[imagem]',
+            $detectedType === 'video' => '[vídeo]',
+            $detectedType === 'audio' => '[áudio]',
+            $detectedType === 'document' => '[documento]',
+            $detectedType === 'sticker' => '[sticker]',
+            default => '[' . $detectedType . ']',
+        };
+
+        // R-WA-WHATSMEOW-FROMME (2026-05-30): NÃO descartar fromMe. Antes
+        // `if (IsFromMe) return [];` jogava fora toda resposta que a equipe
+        // mandava pelo WhatsApp oficial (Web/celular) → caixa unificada cega do
+        // lado de saída. Agora persistimos como outbound/sent/human; o eco dos
+        // envios feitos pelo próprio oimpresso é deduplicado pela UNIQUE
+        // provider_message_id (idempotência), espelhando o fix Baileys PR #688.
+        $out = [[
+            'provider_message_id' => $info['ID'] ?? null,
+            'external_id' => $externalId,
+            'from' => $phone,
+            'from_me' => $fromMe,
+            'body' => $body,
+            'type' => $detectedType,
+            // PushName em evento fromMe é o nome do operador — NÃO usar como
+            // contact_name do cliente. Passa null pra preservar o nome existente.
+            'push_name' => $fromMe ? null : ($info['PushName'] ?? null),
+            // Hora REAL do evento (whatsmeow serializa time.Time → RFC3339 c/ offset
+            // OU epoch). Usada no created_at em vez de now() — ver resolveSentAt().
+            'sent_at' => $info['Timestamp'] ?? null,
+            'raw' => $payload,
+        ]];
+
+        if ($mediaInfo !== null) {
+            $out[0]['media_mime'] = $mediaInfo['mime'];
+            $out[0]['media_size_bytes'] = $mediaInfo['size'];
+            $out[0]['media_filename'] = $mediaInfo['filename'];
+            // media_url fica null — download separado pelo DownloadMediaJob whatsmeow
+            // (próximo PR M2): endpoint WuzAPI /chat/downloadimage usando mediaKey + url.
+            // Por hora UI mostra thumb placeholder com mime/size em vez de "[media]" genérico.
+        }
+
+        return $out;
+    }
+
+    private function extractFromMeta(array $payload): array
+    {
+        $out = [];
+        foreach ($payload['entry'] ?? [] as $entry) {
+            foreach ($entry['changes'] ?? [] as $change) {
+                $value = $change['value'] ?? [];
+                foreach ($value['messages'] ?? [] as $m) {
+                    $type = $m['type'] ?? 'text';
+                    $body = match ($type) {
+                        'text' => $m['text']['body'] ?? '',
+                        'image' => $m['image']['caption'] ?? '[imagem]',
+                        'document' => $m['document']['caption'] ?? '[documento]',
+                        'audio' => '[áudio]',
+                        default => '[' . $type . ']',
+                    };
+                    $out[] = [
+                        'provider_message_id' => $m['id'] ?? null,
+                        'from' => '+' . preg_replace('/\D/', '', $m['from'] ?? ''),
+                        'body' => $body,
+                        'type' => $type,
+                        'raw' => $m,
+                    ];
+                }
+            }
+        }
+        return $out;
+    }
+
+    private function extractFromZapi(array $payload): array
+    {
+        if ($payload['fromMe'] ?? false) {
+            return [];
+        }
+
+        $type = strtolower($payload['type'] ?? 'text');
+        $body = $payload['text']['message'] ?? $payload['caption'] ?? '';
+
+        return [[
+            'provider_message_id' => $payload['messageId'] ?? null,
+            'from' => '+' . preg_replace('/\D/', '', $payload['phone'] ?? ''),
+            'body' => $body,
+            'type' => str_contains($type, 'image') ? 'image' : (str_contains($type, 'document') ? 'document' : 'text'),
+            'raw' => $payload,
+        ]];
+    }
+
+    private function extractFromBaileys(array $payload): array
+    {
+        if (($payload['event'] ?? '') !== 'message') {
+            return [];
+        }
+        $data = $payload['data'] ?? [];
+        return [[
+            'provider_message_id' => $data['id'] ?? null,
+            'from' => '+' . preg_replace('/\D/', '', $data['from'] ?? ''),
+            'body' => $data['body'] ?? '',
+            'type' => $data['type'] ?? 'text',
+            'raw' => $data,
+        ]];
+    }
+
+    private function upsertMessage(int $businessId, ?int $phoneId, array $msg): void
+    {
+        $providerMessageId = (string) ($msg['provider_message_id'] ?? '');
+        if ($providerMessageId === '') {
+            return;
+        }
+
+        // SUPERADMIN: job webhook sem session — provider_message_id é UNIQUE global (idempotência cross-tenant via wamid/messageId único)
+        $existing = WhatsappMessage::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('provider_message_id', $providerMessageId)
+            ->first();
+
+        if ($existing !== null) {
+            return;
+        }
+
+        // SUPERADMIN: job webhook sem session — firstOrCreate com business_id explícito (param)
+        $conversation = WhatsappConversation::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->firstOrCreate(
+                ['business_id' => $businessId, 'customer_phone' => $msg['from']],
+                ['status' => 'open', 'whatsapp_business_phone_id' => $phoneId],
+            );
+
+        // Se conversa existente está sem phone_id (legacy) e agora resolvemos,
+        // atualiza pra cravar o phone correto.
+        if ($phoneId !== null && $conversation->whatsapp_business_phone_id === null) {
+            $conversation->update(['whatsapp_business_phone_id' => $phoneId]);
+        }
+
+        // SUPERADMIN: job webhook sem session — INSERT inbound com business_id do param
+        $message = WhatsappMessage::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->create([
+                'business_id' => $businessId,
+                'whatsapp_business_phone_id' => $phoneId ?? $conversation->whatsapp_business_phone_id,
+                'conversation_id' => $conversation->id,
+                'direction' => 'inbound',
+                'provider' => $this->provider,
+                'provider_message_id' => $providerMessageId,
+                'type' => $msg['type'] ?? 'text',
+                'body' => $msg['body'] ?? null,
+                'payload' => $msg['raw'] ?? null,
+                'status' => 'received',
+            ]);
+
+        $conversation->update([
+            'last_inbound_at' => now(),
+            'last_message_at' => now(),
+            'unread_count' => $conversation->unread_count + 1,
+        ]);
+
+        WhatsappMessageReceived::dispatch($message);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function tags(): array
+    {
+        $tags = ["business:{$this->businessId}", "whatsapp:webhook:{$this->provider}"];
+        if ($this->whatsappBusinessPhoneId !== null) {
+            $tags[] = "phone:{$this->whatsappBusinessPhoneId}";
+        }
+        return $tags;
+    }
+}

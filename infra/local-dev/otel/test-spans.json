@@ -1,0 +1,71 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "oimpresso-localdev-smoke" } },
+          { "key": "service.version", "value": { "stringValue": "0.1.0" } },
+          { "key": "deployment.environment", "value": { "stringValue": "localdev" } }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": { "name": "oimpresso.test.smoke", "version": "1.0.0" },
+          "spans": [
+            {
+              "traceId": "0102030405060708090a0b0c0d0e0f10",
+              "spanId": "0102030405060708",
+              "name": "jana.agent.run",
+              "kind": 1,
+              "startTimeUnixNano": "1747440000000000000",
+              "endTimeUnixNano": "1747440000200000000",
+              "attributes": [
+                { "key": "oimpresso.feature", "value": { "stringValue": "jana.brain" } },
+                { "key": "oimpresso.tenant_id", "value": { "stringValue": "1" } },
+                { "key": "oimpresso.user_id", "value": { "stringValue": "42" } },
+                { "key": "user.email", "value": { "stringValue": "wagnerra@gmail.com" } },
+                { "key": "user.cpf", "value": { "stringValue": "000.000.000-00" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "0102030405060708090a0b0c0d0e0f10",
+              "spanId": "0a0b0c0d0e0f1011",
+              "parentSpanId": "0102030405060708",
+              "name": "jana.llm.call",
+              "kind": 3,
+              "startTimeUnixNano": "1747440000020000000",
+              "endTimeUnixNano": "1747440001520000000",
+              "attributes": [
+                { "key": "oimpresso.feature", "value": { "stringValue": "jana.brain" } },
+                { "key": "llm.provider", "value": { "stringValue": "anthropic" } },
+                { "key": "llm.model", "value": { "stringValue": "claude-opus-4-7" } },
+                { "key": "llm.input_tokens", "value": { "intValue": "1234" } },
+                { "key": "llm.output_tokens", "value": { "intValue": "567" } },
+                { "key": "http.url", "value": { "stringValue": "https://api.anthropic.com/v1/messages?key=SECRET" } },
+                { "key": "http.request.header.authorization", "value": { "stringValue": "Bearer sk-ant-FAKE-MUST-BE-REDACTED" } }
+              ],
+              "status": { "code": 1 }
+            },
+            {
+              "traceId": "0102030405060708090a0b0c0d0e0f10",
+              "spanId": "1112131415161718",
+              "parentSpanId": "0102030405060708",
+              "name": "jana.embed.compute",
+              "kind": 1,
+              "startTimeUnixNano": "1747440001530000000",
+              "endTimeUnixNano": "1747440001580000000",
+              "attributes": [
+                { "key": "oimpresso.feature", "value": { "stringValue": "jana.embed" } },
+                { "key": "embedding.model", "value": { "stringValue": "BAAI/bge-m3" } },
+                { "key": "embedding.dim", "value": { "intValue": "1024" } },
+                { "key": "db.statement", "value": { "stringValue": "INSERT INTO embeddings VALUES (?, ?, ?) -- must be redacted" } }
+              ],
+              "status": { "code": 1 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

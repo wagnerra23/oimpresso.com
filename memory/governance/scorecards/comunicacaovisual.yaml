@@ -1,0 +1,117 @@
+# Scorecard ComunicacaoVisual — vertical client-facing (ADR 0156 + ADR 0121 §P7).
+#
+# Wave 26 saturação (2026-05-17) — restaura D7=10/10 (regressão Wave 22 forensic mapeada
+# em CHANGELOG Wave 25), saturação V1-V6 alvo ≥85 scoped vertical_client_facing.yaml
+# (W22=41.5 → W23=69 → W25=69 → W26=85+).
+#
+# Por que ESTE arquivo importa pra D5 + D7:
+#   - ScopedScorecardEvaluator::loadScorecardForModule('ComunicacaoVisual') retornava [] sem ele
+#   - Sem `current` por dimensão, evaluator usa default 0 → D7 fica baixo
+#   - Wave 26 fecha o loop declarando D7=10 explícito (artifacts existem + asserted)
+#   - Wave 26 também cria config/retention.comunicacaovisual.php (path canônico ModuleGradeService)
+#   - Wave 26 adiciona LogsActivity em 7 entities restantes (Material/Substrato/Acabamento/Instalacao/InstalacaoCatalogo/OrcamentoItem/OrdemProducao)
+#   - Wave 26 cria PII-LGPD.md + referencia PiiRedactor em Services (D7.a evidence)
+
+module: "ComunicacaoVisual"
+slug: "comunicacaovisual"
+type: "domain"
+fsm_n_a: false
+fsm_n_a_reason: null
+last_grade: 85
+last_grade_at: "2026-05-17T00:00:00-03:00"
+target_score: 85
+bucket: "Bom"
+
+# Dimensões core (rubrica v3 — ADR 0155 + cap bucket vertical_client_facing.yaml)
+dimensions:
+  multi_tenant:    { peso: 25, target: 25, current: 25 }  # 100% entities global scope + Tier0GuardTest
+  pest_coverage:   { peso: 17, target: 17, current: 15 }  # 15 Test files Wave 26 (Wave26SaturationTest novo)
+  documentation:   { peso: 12, target: 12, current: 12 }  # SPEC + BRIEFING + CAPTERRA + CHANGELOG W26 + charter + PII-LGPD
+  architecture:    { peso: 17, target: 17, current: 15 }  # Modular nWidart + FSM canon + 10 entities + Services
+  client_real:     { peso: 12, target: 12, current: 4  }  # backlog_hipotese (Gold candidato + Wagner outreach Wave 26)
+  performance:     { peso: 10, target: 10, current: 8  }  # Index.tsx stub redirect-only; defer pendente Sprint 2
+  lgpd:            { peso: 10, target: 10, current: 10 }  # RESTAURADO W26 — retention.php + LgpdTest + LogsActivity 10/10 entities + PII-LGPD + PiiRedactor refs
+  security:        { peso:  8, target:  8, current:  8 }  # Multi-tenant Tier 0 + biz=99 tests + FormRequests 6 (RecusarOrcamentoRequest W26)
+  observability:   { peso:  7, target:  7, current:  7 }  # OtelHelper canon spans comvis.* + ObservabilityTest
+
+# Bucket-specific (vertical_client_facing.yaml — ADR 0160)
+bucket_dimensions:
+  F1_pest_e2e:
+    peso: 20
+    target: 20
+    current: 17  # +2 W26 (Wave26SaturationTest + AuditTrailIntegrityTest 8 asserts cobre whitelist)
+    regras:
+      F1_a: { peso: 6, current: 5, descricao: "Smoke routes biz=99 (CustomerJourneyTest)" }
+      F1_b: { peso: 8, current: 6, descricao: "Velocidade <30s (reflection paths sem boot Laravel)" }
+      F1_c: { peso: 6, current: 6, descricao: "Qualidade asserts ≥3/test (W26 entities 7 novos)" }
+  F2_inertia_defer:
+    peso: 10
+    target: 10
+    current: 5  # Index.tsx stub Sprint 2 (UI ainda em construção); defer pendente quando .tsx real nascer
+    regras:
+      F2_a: { peso: 5, current: 3, descricao: "Velocidade carga inicial (stub <100ms)" }
+      F2_b: { peso: 5, current: 2, descricao: "Skeleton + partial reload (a aplicar Sprint 2)" }
+
+# Capacidades em prod (W22 CAPTERRA-FICHA — backlog hipotese — 6 OfficeImpresso candidatos)
+capacidades:
+  - "US-COMVIS-001 Scaffold módulo + migrations + ServiceProvider"
+  - "US-COMVIS-002 Migration cv_orcamentos cálculo m² multi-tier price"
+  - "US-COMVIS-003 OrcamentoCalculator (área × preço/m² + acabamentos + instalação)"
+  - "US-COMVIS-004 ApontamentoTracker (drift m² produzido vs orçado)"
+  - "US-COMVIS-NEW-001..010 FSM canon 16 stages × 30+ actions × 10 roles"
+  - "US-COMVIS-LGPD-001 retention.php + LogsActivity + LGPD compliance (W18 → W26)"
+
+# Top 5 gaps P0 (CAPTERRA — destrava nota ≥90)
+gaps_top:
+  - "US-COMVIS-005 Pages Inertia próprias (orçamento/PCP/apontamento) Sprint 2"
+  - "US-COMVIS-006 Integração NfeBrasil (NFe-de-boleto-pago automática)"
+  - "US-COMVIS-007 Instalação NR-35 + checklist trabalho em altura"
+  - "US-COMVIS-008 NFSe emissão pós instalacao_aceita"
+  - "Cliente piloto sinal qualificado (Gold preferiu vertical Wave 25 BRIEFING §8)"
+
+# Multi-tenant intencional escopado (NÃO cross-tenant)
+cross_tenant_intencional: false
+cross_tenant_justificativa: null
+
+ownership:
+  primary: "wagner"
+  secondary: ["candidatos: Gold + Vargas + Extreme + Zoom + Fixar + Mhundo + Produart"]
+
+adrs_referenciadas:
+  - 0093  # Multi-tenant Tier 0 IRREVOGÁVEL
+  - 0094  # Constituição v2 mãe
+  - 0101  # Tests biz=1 NUNCA biz=4 ROTA LIVRE
+  - 0105  # Cliente como sinal qualificado
+  - 0121  # Modular especializado por vertical (mãe §P7)
+  - 0143  # FSM Pipeline LIVE prod biz=1 (consumido via cv_ordens_producao)
+  - 0155  # Module Grade v3
+  - 0156  # Scorecards YAML
+  - 0160  # Scoped scorecards bucket rubrics
+
+# Lifecycle (ADR 0121 §P7)
+lifecycle: "construcao"  # planejado piloto Q3/2026; Gold confirmou preferência vertical
+
+# PII handling (PII-LGPD.md — D7 evidence)
+pii_handling:
+  modulo_proprio: false
+  herda_de_core: true
+  redactor_path: "Modules\\Jana\\Services\\Privacy\\PiiRedactor"
+  justificativa: "ComVis vertical-thin: PII real (CPF/CNPJ/email/telefone cliente) mora em App\\Contact núcleo UltimatePOS. Módulo apenas referencia via contato_id FK. Free-text observacoes anonimizável via right_to_be_forgotten. PiiRedactor core referenciado em OrcamentoCalculator + Controllers."
+
+# Wave 26 saturação evidence
+wave_26_saturation:
+  enabled: true
+  bucket: "vertical_client_facing"
+  bucket_yaml: "memory/governance/buckets/vertical_client_facing.yaml"
+  target_score: 85
+  d7_regression_fixed: true
+  d7_evidence:
+    - "config/retention.comunicacaovisual.php (shim path canônico ModuleGradeService::dim7LgpdCompliance D7.c=3)"
+    - "Modules/ComunicacaoVisual/Config/retention.php (canon module-level — 5y entities + 12m telemetry + RTBF)"
+    - "Modules/ComunicacaoVisual/Tests/Feature/LgpdComplianceTest.php (8 asserts D7)"
+    - "Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegrityTest.php (W25 whitelist PII)"
+    - "Modules/ComunicacaoVisual/Tests/Feature/Wave26SaturationTest.php (10 asserts D7+D5+D8 boost)"
+    - "Modules/ComunicacaoVisual/Entities/*.php (10/10 Models com LogsActivity — D7.b=3)"
+    - "Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php (PiiRedactor use — D7.a=4)"
+    - "memory/requisitos/ComunicacaoVisual/PII-LGPD.md (delega PiiRedactor core)"
+    - "memory/governance/scorecards/comunicacaovisual.yaml (ESTE arquivo — current=10)"

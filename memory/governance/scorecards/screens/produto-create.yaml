@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Produto/Create
+path: resources/js/Pages/Produto/Create.tsx
+archetype: form
+persona: larissa
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Cadastro Cowork com avancado colapsavel persistido + dedup; usa Deferred? nao, e perde em tokens crus + feedback de erro so no nome."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 tokens + AppShellV2 PageHeader"
+    fix: "Header sticky proprio em stone + rose-700 cru em erros; nao usa os-page-h/PageHeader canon nem tokens DS roxo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Stripe rola ate 1o erro + resumo no topo"
+    fix: "So errors.name renderizado inline; demais campos (unit/tax) sem feedback de erro nem scroll-to-error"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Shopify salva e mostra toast/redireciona claro"
+    fix: "post('/products') sem onSuccess/onError (sem toast); sem 'salvar e novo'"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

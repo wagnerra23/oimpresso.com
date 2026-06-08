@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: superadmin/Usuario360/Show
+path: resources/js/Pages/superadmin/Usuario360/Show.tsx
+archetype: detail
+persona: wagner
+nota: 64
+nivel: "Developing"
+baseline_anterior: 64   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Painel 360 abrangente (roles/perms/tokens/sessions/audit/lockouts) com graceful-degradation de tabelas ausentes, mas sem charter, emoji-heavy, RISK_STYLES em cores cruas e window.confirm nativo."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe (dialog tipado)"
+    fix: "submitUnlock usa window.confirm nativo; trocar por Dialog do DS com motivo/nota igual ao lock"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 tokens"
+    fix: "RISK_STYLES (gray/yellow/orange/red literais) e emojis 🔒✅⏸; mapear risk pra tokens semânticos + ícones lucide; criar charter"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Notion"
+    fix: "9 blocos empilhados sem âncoras/tabs; adicionar nav lateral ou tabs pra navegar seções longas"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

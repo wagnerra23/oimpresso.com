@@ -1,0 +1,66 @@
+# Grafana Tempo 2.6.0 — SMOKE LOCAL DEV
+# Wave 28 Agent 6 — config minimalista pra rodar single-binary local sem fricção.
+#
+# Diffs vs CT 100 (infra/ct100/otel/tempo.yaml):
+#   ✅ retention reduzida pra 24h (local-dev limpa rápido; CT 100 = 168h/7d)
+#   ✅ rate limit menor (1 MB/s; CT 100 = 20 MB/s) — local-dev não tem tráfego volumoso
+#   ✅ trace_idle_period menor (1s; CT 100 = 10s) — flush rápido pra ver na hora
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+  log_level: info
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+ingester:
+  trace_idle_period: 1s
+  max_block_bytes: 10_000_000
+  max_block_duration: 1m
+  complete_block_timeout: 10s
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/blocks
+    wal:
+      path: /var/tempo/wal
+    pool:
+      max_workers: 20
+      queue_depth: 1000
+
+compactor:
+  compaction:
+    block_retention: 24h
+    compacted_block_retention: 10m
+    compaction_window: 30m
+
+query_frontend:
+  search:
+    max_duration: 0
+    default_result_limit: 50
+    max_result_limit: 1000
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: oimpresso-localdev
+  storage:
+    path: /var/tempo/generator/wal
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: []
+    ingestion:
+      rate_limit_bytes: 1_000_000
+      burst_size_bytes: 2_000_000

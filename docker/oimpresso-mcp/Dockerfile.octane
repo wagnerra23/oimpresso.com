@@ -1,0 +1,64 @@
+# MEM-MCP-1.c-perf Fase 1 (ADR 0053) — FrankenPHP + Laravel Octane
+#
+# Ganho esperado vs PHP-FPM: 200-400 RPS → 4.000-15.000 RPS, latência 30ms → <5ms.
+# Cold start de cada request: 1-3s (boot Laravel) → ~50ms (worker mantido em mem).
+#
+# Single binary: FrankenPHP = PHP 8.4 + Caddy + HTTP/2/3 + auto-TLS.
+# Tudo num só processo, sem supervisord/nginx/php-fpm.
+
+FROM dunglas/frankenphp:php8.4-alpine
+
+WORKDIR /var/www/html
+
+# Extensões PHP do Laravel.
+# gd/soap/sockets/opentelemetry adicionados 2026-05-29: o composer.lock atual exige
+# essas exts (composer install falhava com "ext-gd/soap/sockets/opentelemetry missing"
+# → bloqueava deploy do código novo no container, que ficou 1302 commits atrás).
+# Ver memory/reference/INFRA-ACESSO-CANON.md (deploy oimpresso-mcp).
+RUN install-php-extensions \
+        pdo_mysql \
+        intl \
+        bcmath \
+        zip \
+        opcache \
+        pcntl \
+        redis \
+        gd \
+        soap \
+        sockets \
+        opentelemetry
+
+# OPcache + JIT em produção pra acelerar boot inicial e código quente
+COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini
+
+# Entrypoint Octane: warm-up + octane:start em foreground
+COPY entrypoint-octane.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# www-data já existe na base image FrankenPHP
+RUN chown -R www-data:www-data /var/www/html
+
+# Healthcheck — Traefik usa pra detectar container vivo.
+# 127.0.0.1 explícito (não `localhost`): Caddy/FrankenPHP em alguns setups
+# bind preferencialmente em IPv6; `localhost` no curl resolve IPv4 e falha,
+# embora request real entre via Docker network IP funcione perfeito.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+    CMD curl -fsS http://127.0.0.1/api/mcp/health || exit 1
+
+EXPOSE 80
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Default: octane:start em foreground (FrankenPHP server)
+# --admin-port=2019: explicit pq Octane calcula admin_port = 2019 + (port - 8000)
+#                    e port=80 dá admin_port negativo (crash).
+# --workers=16: matching CT 100 (16 cores após resize 29-abr).
+# --max-requests=500: recycle worker periodic pra evitar memory leaks.
+# --task-workers=2: workers separados pra dispatch async (audit log fire-and-forget).
+CMD ["php", "artisan", "octane:start", \
+     "--server=frankenphp", \
+     "--host=0.0.0.0", \
+     "--port=80", \
+     "--admin-port=2019", \
+     "--workers=16", \
+     "--task-workers=2", \
+     "--max-requests=500"]

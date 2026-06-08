@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "IBM Plex Sans", sans-serif; background: #fff; padding: 16px; }
+  .row { display: flex; gap: 8px; }
+  .origin { flex: 1; border-radius: 8px; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .origin .badge {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    width: fit-content;
+  }
+  .origin .name { font-size: 11.5px; font-weight: 600; }
+  .origin .desc { font-size: 10.5px; opacity: .7; }
+  .origin .hex  { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; opacity: .6; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <div class="origin" style="background:oklch(0.93 0.07 70); color:oklch(0.35 0.10 60)">
+      <span class="badge" style="background:oklch(0.93 0.07 70); color:oklch(0.40 0.10 60); border:1px solid oklch(0.80 0.09 70)">OS</span>
+      <span class="name">Ordem de Serviço</span>
+      <span class="desc">Produção gráfica, plotagem, expedição</span>
+      <span class="hex">oklch(0.93 0.07 70) · amber</span>
+    </div>
+    <div class="origin" style="background:oklch(0.92 0.06 220); color:oklch(0.35 0.10 220)">
+      <span class="badge" style="background:oklch(0.92 0.06 220); color:oklch(0.40 0.10 220); border:1px solid oklch(0.78 0.08 220)">CRM</span>
+      <span class="name">Clientes / CRM</span>
+      <span class="desc">Cadastro, relacionamento, orçamentos</span>
+      <span class="hex">oklch(0.92 0.06 220) · blue</span>
+    </div>
+    <div class="origin" style="background:oklch(0.93 0.07 145); color:oklch(0.32 0.10 145)">
+      <span class="badge" style="background:oklch(0.93 0.07 145); color:oklch(0.36 0.10 145); border:1px solid oklch(0.78 0.09 145)">FIN</span>
+      <span class="name">Financeiro</span>
+      <span class="desc">Contas, títulos, cobrança, fluxo</span>
+      <span class="hex">oklch(0.93 0.07 145) · green</span>
+    </div>
+    <div class="origin" style="background:oklch(0.93 0.06 295); color:oklch(0.35 0.10 295)">
+      <span class="badge" style="background:oklch(0.93 0.06 295); color:oklch(0.40 0.10 295); border:1px solid oklch(0.78 0.08 295)">PNT</span>
+      <span class="name">Ponto / RH</span>
+      <span class="desc">Marcações, banco de horas, intercorrências</span>
+      <span class="hex">oklch(0.93 0.06 295) · violet</span>
+    </div>
+    <div class="origin" style="background:oklch(0.93 0.05 30); color:oklch(0.35 0.10 30)">
+      <span class="badge" style="background:oklch(0.93 0.05 30); color:oklch(0.40 0.10 30); border:1px solid oklch(0.80 0.08 30)">MFG</span>
+      <span class="name">Produção / MFG</span>
+      <span class="desc">Manufatura, insumos, lotes</span>
+      <span class="hex">oklch(0.93 0.05 30) · orange</span>
+    </div>
+  </div>
+</body>
+</html>

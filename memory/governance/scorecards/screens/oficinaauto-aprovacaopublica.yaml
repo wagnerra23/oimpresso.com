@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: OficinaAuto/AprovacaoPublica
+path: resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx
+archetype: form
+persona: tecnico
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Aprovacao publica mobile-first com PIN OTP e lockout; cores cruas green/blue violam Pre-Flight e flash sem aria-live."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 tokens"
+    fix: "bg-green-50/blue-50/border-green-200 sao cores cruas — trocar por tokens success/info (zero hex/raw Tailwind palette e regra dura)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Stripe Checkout"
+    fix: "flash success/erro sem role=status/alert + aria-live; lockout sem anuncio pra leitor de tela"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Shopify"
+    fix: "PIN 4-digit: usar OTP slots separados (melhor toque) e foco automatico ao montar"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

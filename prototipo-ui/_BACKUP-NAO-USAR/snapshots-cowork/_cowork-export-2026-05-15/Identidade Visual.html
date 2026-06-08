@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Identidade Visual · Oimpresso ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.98 0.005 80);
+    --surface: #fff;
+    --text: oklch(0.20 0.01 80);
+    --text-dim: oklch(0.40 0.01 80);
+    --text-mute: oklch(0.55 0.01 80);
+    --border: oklch(0.92 0.005 80);
+    --border-2: oklch(0.95 0.005 80);
+    --accent: oklch(0.58 0.12 220);
+    --accent-soft: oklch(0.94 0.05 220);
+    --ok: oklch(0.55 0.13 145);
+    --ok-soft: oklch(0.94 0.05 145);
+    --warn: oklch(0.62 0.13 70);
+    --warn-soft: oklch(0.94 0.06 70);
+    --bad: oklch(0.55 0.18 25);
+    --bad-soft: oklch(0.94 0.05 25);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; background: var(--bg);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    color: var(--text); font-size: 14px; line-height: 1.55;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  /* COVER */
+  .cover {
+    background: var(--text); color: oklch(0.96 0.01 80);
+    border-radius: 16px; padding: 56px 48px;
+    margin-bottom: 56px;
+    position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ""; position: absolute; top: -40%; right: -10%;
+    width: 50%; height: 200%;
+    background: radial-gradient(ellipse at center, oklch(0.55 0.13 220 / 0.35), transparent 60%);
+    pointer-events: none;
+  }
+  .cover .meta { display: flex; gap: 12px; align-items: center; color: oklch(0.68 0.01 80); font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+  .cover .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .cover .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: oklch(0.65 0.01 80); font-weight: 500; }
+  .cover h1 { margin: 8px 0 18px; font-size: 52px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; color: white; }
+  .cover p { margin: 0; font-size: 17px; color: oklch(0.82 0.01 80); max-width: 680px; line-height: 1.5; }
+
+  /* SECTION */
+  .sec {
+    margin-bottom: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
+  }
+  .sec-h {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  .sec-h .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-mute);
+    background: var(--border-2);
+    padding: 4px 8px; border-radius: 4px;
+    letter-spacing: 0.04em;
+  }
+  .sec-h h2 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.015em; }
+  .sec-h .desc { margin-left: auto; color: var(--text-mute); font-size: 13px; }
+  .sec-body { padding: 28px 32px; }
+
+  /* LOGO BLOCK */
+  .logo-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;
+  }
+  .logo-tile {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    min-height: 160px;
+    text-align: center;
+  }
+  .logo-tile.dark { background: var(--text); color: oklch(0.96 0.01 80); border-color: var(--text); }
+  .logo-tile.accent { background: var(--accent); color: white; border-color: var(--accent); }
+  .logo-mark {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    background: var(--text); color: white;
+    display: grid; place-items: center;
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .logo-tile.dark .logo-mark { background: white; color: var(--text); }
+  .logo-tile.accent .logo-mark { background: white; color: var(--accent); }
+  .logo-wordmark {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 24px; font-weight: 700; letter-spacing: -0.015em;
+  }
+  .logo-wordmark .lm { width: 28px; height: 28px; border-radius: 6px; background: var(--text); color: white; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+  .logo-tile.dark .logo-wordmark .lm { background: white; color: var(--text); }
+  .logo-tile.accent .logo-wordmark .lm { background: white; color: var(--accent); }
+  .logo-tile small { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mute); }
+  .logo-tile.dark small { color: oklch(0.65 0.01 80); }
+  .logo-tile.accent small { color: oklch(0.92 0.04 220); }
+
+  /* TYPE BLOCK */
+  .type-row {
+    display: grid; grid-template-columns: 220px 1fr; gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-2);
+    align-items: baseline;
+  }
+  .type-row:last-child { border-bottom: none; }
+  .type-row .spec {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .type-row .spec b { display: block; color: var(--text); font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .type-row .sample { color: var(--text); }
+  .type-row.h1-spec .sample { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .type-row.h2-spec .sample { font-size: 24px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; }
+  .type-row.h3-spec .sample { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+  .type-row.body-spec .sample { font-size: 14px; line-height: 1.55; }
+  .type-row.small-spec .sample { font-size: 12.5px; color: var(--text-dim); }
+  .type-row.eyebrow-spec .sample { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mute); font-weight: 600; }
+  .type-row.mono-spec .sample { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  /* COLOR SWATCHES */
+  .color-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+  }
+  .swatch {
+    border-radius: 10px;
+    padding: 14px 14px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+    min-height: 110px;
+    color: var(--text);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .swatch .name { font-size: 12px; font-weight: 600; margin-top: auto; }
+  .swatch .hex { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: inherit; opacity: 0.7; }
+  .swatch.dark { color: white; }
+
+  /* SPACING SCALE */
+  .space-grid {
+    display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;
+  }
+  .space-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .space-box { background: var(--text); border-radius: 3px; }
+  .space-item small { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mute); }
+  .space-item small b { color: var(--text); }
+
+  /* COMPONENT GALLERY */
+  .comp-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  .comp-card {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .comp-card h4 {
+    margin: 0 0 4px; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-mute); font-weight: 600;
+  }
+  .comp-card .demo { margin: 12px 0 10px; }
+  .comp-card code {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+    background: var(--border-2); padding: 2px 6px; border-radius: 3px;
+    color: var(--text-dim);
+  }
+
+  /* BUTTONS demo */
+  .btn {
+    appearance: none; font-family: inherit;
+    height: 32px; padding: 0 14px; border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    font-size: 13px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .12s, border-color .12s;
+  }
+  .btn:hover { background: var(--border-2); }
+  .btn.primary { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .btn.primary:hover { background: oklch(0.30 0.01 80); }
+  .btn.accent { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
+  .btn.danger { background: var(--bad); color: white; border-color: var(--bad); }
+  .btn.sm { height: 26px; padding: 0 10px; font-size: 11.5px; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: 99px;
+    background: var(--border-2); color: var(--text-dim);
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.warn { background: var(--warn-soft); color: oklch(0.42 0.12 60); }
+  .badge.bad { background: var(--bad-soft); color: var(--bad); }
+  .badge.accent { background: var(--accent-soft); color: var(--accent); }
+
+  /* INPUT */
+  .input-demo {
+    display: flex; gap: 6px; align-items: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 7px; padding: 6px 10px;
+    width: 240px;
+  }
+  .input-demo input { border: none; outline: none; font: inherit; flex: 1; background: transparent; }
+
+  /* PAGE LAYOUT EXAMPLE */
+  .layout-demo {
+    display: grid; grid-template-columns: 200px 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+    min-height: 320px;
+  }
+  .ld-side {
+    background: var(--text); color: oklch(0.82 0.01 80);
+    padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .ld-side .brand {
+    font-size: 13px; color: white; font-weight: 700;
+    padding: 4px 8px 14px; border-bottom: 1px solid oklch(0.30 0.01 80); margin-bottom: 8px;
+  }
+  .ld-side .item { font-size: 12px; padding: 6px 8px; border-radius: 5px; color: oklch(0.78 0.01 80); cursor: pointer; }
+  .ld-side .item.active { background: oklch(0.30 0.01 80); color: white; }
+  .ld-main { background: var(--bg); display: flex; flex-direction: column; }
+  .ld-hero { background: var(--surface); padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .ld-hero h3 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+  .ld-hero p { margin: 0; font-size: 11.5px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+  .ld-stats { padding: 14px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--bg); }
+  .ld-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; }
+  .ld-stat small { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; display: block; }
+  .ld-stat b { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 700; }
+  .ld-stat.hero { background: var(--text); color: white; border-color: var(--text); }
+  .ld-stat.hero small { color: oklch(0.65 0.01 80); }
+  .ld-stat.hero b { color: white; }
+  .ld-toolbar { padding: 10px 20px; background: var(--surface); border-top: 1px solid var(--border); display: flex; gap: 4px; }
+  .ld-tab { padding: 5px 10px; font-size: 11.5px; border-radius: 5px; color: var(--text-dim); cursor: pointer; }
+  .ld-tab.active { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-weight: 500; }
+
+  /* DOS/DONTS */
+  .dos-dnts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .dn-card {
+    padding: 18px 20px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .dn-card.do { background: oklch(0.98 0.018 145); border-color: oklch(0.90 0.05 145); }
+  .dn-card.dont { background: oklch(0.98 0.018 25); border-color: oklch(0.90 0.05 25); }
+  .dn-card h4 {
+    margin: 0 0 10px; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .dn-card.do h4 { color: oklch(0.36 0.10 145); }
+  .dn-card.dont h4 { color: oklch(0.42 0.13 20); }
+  .dn-card ul { margin: 0; padding-left: 18px; }
+  .dn-card li { margin-bottom: 6px; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .dn-card li b { color: var(--text); }
+
+  /* VOICE */
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .voice-block h4 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; }
+  .voice-block p { margin: 0; font-size: 13.5px; color: var(--text-dim); line-height: 1.6; }
+  .voice-block .ex {
+    background: var(--bg); border: 1px solid var(--border-2); border-radius: 7px;
+    padding: 10px 14px; margin-top: 8px;
+    font-size: 13px; color: var(--text);
+  }
+  .voice-block .ex b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-mute); margin-bottom: 4px; }
+
+  /* MODULE COLOR DOTS */
+  .mod-colors { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .mod-color {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .mod-color .dot {
+    width: 32px; height: 32px; border-radius: 8px;
+  }
+  .mod-color b { font-size: 13px; }
+  .mod-color small { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-mute); }
+
+  /* APPENDIX */
+  .css-block {
+    background: var(--text); color: oklch(0.92 0.01 80);
+    padding: 24px 28px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .css-block .k { color: oklch(0.75 0.10 250); }
+  .css-block .v { color: oklch(0.78 0.13 145); }
+  .css-block .c { color: oklch(0.62 0.01 80); font-style: italic; }
+  .css-block .s { color: oklch(0.80 0.12 30); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="meta"><span class="dot"></span><span>Manual de Identidade Visual</span><span>·</span><span>v1.0 · maio 2026</span></div>
+    <div class="eyebrow">Oimpresso ERP</div>
+    <h1>Identidade Visual<br/>do produto</h1>
+    <p>
+      Padrões de marca, tipografia, cor, espaçamento e componentes que devem aparecer em toda
+      tela do Oimpresso. Use como base canônica para qualquer nova feature, módulo ou comunicação.
+    </p>
+  </header>
+
+
+  <!-- 01 LOGO -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">01</span>
+      <h2>Marca</h2>
+      <span class="desc">Logo, mark, wordmark — sempre o "O" como peso visual</span>
+    </div>
+    <div class="sec-body">
+      <div class="logo-grid">
+        <div class="logo-tile">
+          <div class="logo-mark">O</div>
+          <small>Mark · 56×56</small>
+        </div>
+        <div class="logo-tile">
+          <div class="logo-wordmark"><span class="lm">O</span><span>Oimpresso</span></div>
+          <small>Wordmark · uso principal</small>
+        </div>
+        <div class="logo-tile dark">
+          <div class="logo-wordmark"><span class="lm">O</span><span>Oimpresso</span></div>
+          <small>Versão dark</small>
+        </div>
+      </div>
+
+      <p style="margin: 24px 0 0; font-size: 13px; color: var(--text-dim);">
+        <b style="color: var(--text);">Regras de uso ·</b>
+        Sempre minúsculo. Mark é quadrado <b>rounded-md (7px)</b>, fundo
+        <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">oklch(0.20 0.01 80)</code>
+        ou branco (em fundo escuro). Letra "O" em IBM Plex Sans Bold. Mínimo 24×24 para legibilidade.
+      </p>
+    </div>
+  </section>
+
+
+  <!-- 02 TIPOGRAFIA -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">02</span>
+      <h2>Tipografia</h2>
+      <span class="desc">IBM Plex Sans (texto) + IBM Plex Mono (números, código, eyebrow)</span>
+    </div>
+    <div class="sec-body">
+      <div class="type-row h1-spec">
+        <div class="spec"><b>Display · H1</b>36px / 700 / -2% / 1.1</div>
+        <div class="sample">Visão unificada</div>
+      </div>
+      <div class="type-row h2-spec">
+        <div class="spec"><b>Heading · H2</b>24px / 700 / -1.5% / 1.2</div>
+        <div class="sample">Saldo previsto · maio</div>
+      </div>
+      <div class="type-row h3-spec">
+        <div class="spec"><b>Subhead · H3</b>18px / 600 / -1% / 1.3</div>
+        <div class="sample">Próximos eventos</div>
+      </div>
+      <div class="type-row body-spec">
+        <div class="spec"><b>Body</b>14px / 400 / 0 / 1.55</div>
+        <div class="sample">Lorem ipsum dolor sit amet — texto corrido em tabelas e descrições.</div>
+      </div>
+      <div class="type-row small-spec">
+        <div class="spec"><b>Small / Caption</b>12.5px / 400 / text-dim</div>
+        <div class="sample">[REDACTED] · Última OS há 3 dias</div>
+      </div>
+      <div class="type-row eyebrow-spec">
+        <div class="spec"><b>Eyebrow · Mono</b>11px / 600 / +8% / UPPER</div>
+        <div class="sample">MAIO 2026 · ROTA LIVRE</div>
+      </div>
+      <div class="type-row mono-spec">
+        <div class="spec"><b>Mono · números</b>14px / tabular-nums</div>
+        <div class="sample">R$ 13.420,80 · #4821 · 12/05/2026</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 03 CORES -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">03</span>
+      <h2>Paleta de cor</h2>
+      <span class="desc">Base stone + accent indigo + status (ok/warn/bad)</span>
+    </div>
+    <div class="sec-body">
+
+      <h4 style="margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600;">Neutros · stone (texto / fundo / bordas)</h4>
+      <div class="color-grid" style="margin-bottom: 24px;">
+        <div class="swatch dark" style="background: oklch(0.20 0.01 80);"><div class="name">text</div><div class="hex">0.20 0.01 80</div></div>
+        <div class="swatch dark" style="background: oklch(0.40 0.01 80);"><div class="name">text-dim</div><div class="hex">0.40 0.01 80</div></div>
+        <div class="swatch" style="background: oklch(0.55 0.01 80); color: white;"><div class="name">text-mute</div><div class="hex">0.55 0.01 80</div></div>
+        <div class="swatch" style="background: oklch(0.92 0.005 80);"><div class="name">border</div><div class="hex">0.92 0.005 80</div></div>
+        <div class="swatch" style="background: oklch(0.98 0.005 80);"><div class="name">bg</div><div class="hex">0.98 0.005 80</div></div>
+        <div class="swatch" style="background: #fff;"><div class="name">surface</div><div class="hex">#FFFFFF</div></div>
+      </div>
+
+      <h4 style="margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600;">Accent · indigo (CTAs, links, foco)</h4>
+      <div class="color-grid" style="margin-bottom: 24px; grid-template-columns: repeat(3, 1fr);">
+        <div class="swatch dark" style="background: oklch(0.42 0.10 220);"><div class="name">accent-2 (hover)</div><div class="hex">0.42 0.10 220</div></div>
+        <div class="swatch dark" style="background: oklch(0.58 0.12 220);"><div class="name">accent</div><div class="hex">0.58 0.12 220</div></div>
+        <div class="swatch" style="background: oklch(0.94 0.05 220);"><div class="name">accent-soft</div><div class="hex">0.94 0.05 220</div></div>
+      </div>
+
+      <h4 style="margin: 0 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600;">Status · ok / warn / bad (com versões soft para fundos)</h4>
+      <div class="color-grid" style="grid-template-columns: repeat(3, 1fr) repeat(3, 1fr);">
+        <div class="swatch dark" style="background: oklch(0.55 0.13 145);"><div class="name">ok</div><div class="hex">0.55 0.13 145</div></div>
+        <div class="swatch dark" style="background: oklch(0.62 0.13 70);"><div class="name">warn</div><div class="hex">0.62 0.13 70</div></div>
+        <div class="swatch dark" style="background: oklch(0.55 0.18 25);"><div class="name">bad</div><div class="hex">0.55 0.18 25</div></div>
+        <div class="swatch" style="background: oklch(0.94 0.05 145);"><div class="name">ok-soft</div><div class="hex">0.94 0.05 145</div></div>
+        <div class="swatch" style="background: oklch(0.94 0.06 70);"><div class="name">warn-soft</div><div class="hex">0.94 0.06 70</div></div>
+        <div class="swatch" style="background: oklch(0.94 0.05 25);"><div class="name">bad-soft</div><div class="hex">0.94 0.05 25</div></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 04 CORES POR MÓDULO -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">04</span>
+      <h2>Cores por área</h2>
+      <span class="desc">Cada grupo do menu tem um hue dedicado (chip e identificador)</span>
+    </div>
+    <div class="sec-body">
+      <div class="mod-colors">
+        <div class="mod-color">
+          <div class="dot" style="background: oklch(0.62 0.13 60);"></div>
+          <b>Operação</b>
+          <small>hue 60 · OS, clientes, vendas</small>
+        </div>
+        <div class="mod-color">
+          <div class="dot" style="background: oklch(0.62 0.13 220);"></div>
+          <b>Comercial</b>
+          <small>hue 220 · CRM, ADS, WhatsApp</small>
+        </div>
+        <div class="mod-color">
+          <div class="dot" style="background: oklch(0.62 0.13 30);"></div>
+          <b>Produção</b>
+          <small>hue 30 · fila, acabamento</small>
+        </div>
+        <div class="mod-color">
+          <div class="dot" style="background: oklch(0.62 0.13 145);"></div>
+          <b>Financeiro</b>
+          <small>hue 145 · caixa, boletos, NF</small>
+        </div>
+        <div class="mod-color">
+          <div class="dot" style="background: oklch(0.62 0.13 295);"></div>
+          <b>Pessoas</b>
+          <small>hue 295 · ponto, equipes</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 05 ESPAÇAMENTO -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">05</span>
+      <h2>Espaçamento</h2>
+      <span class="desc">Escala 4-base · use múltiplos de 4 sempre</span>
+    </div>
+    <div class="sec-body">
+      <div class="space-grid">
+        <div class="space-item"><div class="space-box" style="width: 4px; height: 4px;"></div><small><b>4</b> · 0.25rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 8px; height: 8px;"></div><small><b>8</b> · 0.5rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 12px; height: 12px;"></div><small><b>12</b> · 0.75rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 16px; height: 16px;"></div><small><b>16</b> · 1rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 24px; height: 24px;"></div><small><b>24</b> · 1.5rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 32px; height: 32px;"></div><small><b>32</b> · 2rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 48px; height: 48px;"></div><small><b>48</b> · 3rem</small></div>
+        <div class="space-item"><div class="space-box" style="width: 64px; height: 64px;"></div><small><b>64</b> · 4rem</small></div>
+      </div>
+      <p style="margin: 24px 0 0; font-size: 13px; color: var(--text-dim);">
+        <b style="color: var(--text);">Regra ·</b> Padding interno padrão: <b>16px</b> em cards pequenos, <b>24px</b> em cards grandes,
+        <b>32px</b> em containers de página. Border-radius: <b>6px</b> botões/inputs, <b>10px</b> cards, <b>14px</b> containers maiores.
+      </p>
+    </div>
+  </section>
+
+
+  <!-- 06 COMPONENTES -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">06</span>
+      <h2>Componentes-chave</h2>
+      <span class="desc">Buttons · badges · inputs · stats</span>
+    </div>
+    <div class="sec-body">
+
+      <div class="comp-grid">
+
+        <div class="comp-card">
+          <h4>Botões</h4>
+          <div class="demo" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn primary">Salvar</button>
+            <button class="btn">Cancelar</button>
+            <button class="btn ghost">Saiba mais</button>
+            <button class="btn danger sm">Excluir</button>
+          </div>
+          <code>.btn / .btn.primary / .btn.ghost / .btn.danger / .btn.sm</code>
+        </div>
+
+        <div class="comp-card">
+          <h4>Badges de status</h4>
+          <div class="demo" style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <span class="badge ok">Pago</span>
+            <span class="badge warn">Vencendo</span>
+            <span class="badge bad">Atrasado</span>
+            <span class="badge accent">Em produção</span>
+            <span class="badge">Rascunho</span>
+          </div>
+          <code>.badge / .badge.ok / .badge.warn / .badge.bad / .badge.accent</code>
+        </div>
+
+        <div class="comp-card">
+          <h4>Input com ícone</h4>
+          <div class="demo">
+            <div class="input-demo">
+              <span style="color: var(--text-mute); font-size: 13px;">⌕</span>
+              <input placeholder="Buscar lançamento…"/>
+              <kbd style="font-family:'IBM Plex Mono',monospace; font-size: 10px; color: var(--text-mute); background: var(--border-2); padding: 1px 5px; border-radius: 3px;">⌘K</kbd>
+            </div>
+          </div>
+          <code>.os-search · 32px altura · radius 7px</code>
+        </div>
+
+        <div class="comp-card">
+          <h4>Stat card</h4>
+          <div class="demo" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div style="background: var(--text); color: white; border-radius: 7px; padding: 10px 12px;">
+              <small style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: oklch(0.65 0.01 80); font-weight: 600; display: block;">Saldo</small>
+              <b class="mono" style="font-size: 16px; font-weight: 700;">R$ 13.420</b>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px;">
+              <small style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; display: block;">A receber</small>
+              <b class="mono" style="font-size: 16px; font-weight: 700;">R$ 15.600</b>
+            </div>
+          </div>
+          <code>.os-stat · hero card stone-900</code>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 07 PATTERN DE TELA -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">07</span>
+      <h2>Pattern canônico de tela</h2>
+      <span class="desc">Sidebar + hero + stats + toolbar + tabela — válido para QUALQUER módulo</span>
+    </div>
+    <div class="sec-body">
+      <div class="layout-demo">
+        <div class="ld-side">
+          <div class="brand">oimpresso</div>
+          <div class="item">Tarefas</div>
+          <div class="item">Chat</div>
+          <div class="item active">Ordens de Serviço</div>
+          <div class="item">Clientes</div>
+          <div class="item">Produtos</div>
+        </div>
+        <div class="ld-main">
+          <div class="ld-hero">
+            <h3>Módulo</h3>
+            <p>Eyebrow · breadcrumb · contexto</p>
+          </div>
+          <div class="ld-stats">
+            <div class="ld-stat hero"><small>Principal</small><b>13.420</b></div>
+            <div class="ld-stat"><small>KPI 2</small><b>1.980</b></div>
+            <div class="ld-stat"><small>KPI 3</small><b>15.600</b></div>
+          </div>
+          <div class="ld-toolbar">
+            <div class="ld-tab active">Todas</div>
+            <div class="ld-tab">Aberto</div>
+            <div class="ld-tab">Atrasado</div>
+            <div class="ld-tab">Concluído</div>
+          </div>
+          <div style="flex: 1; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 20px; color: var(--text-mute); font-size: 11.5px; font-family: 'IBM Plex Mono', monospace;">
+            Tabela com linhas, agrupamento por data quando aplicável, drawer lateral em clique.
+          </div>
+        </div>
+      </div>
+
+      <p style="margin: 20px 0 0; font-size: 13px; color: var(--text-dim);">
+        <b style="color: var(--text);">Estrutura DOM ·</b>
+        <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">.os-page</code> →
+        <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">.os-page-h</code> →
+        <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">.os-stats</code> →
+        <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">.os-toolbar</code> →
+        <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">.os-table-wrap</code>.
+        Definidos no <code style="font-family:'IBM Plex Mono',monospace;background:var(--border-2);padding:1px 5px;border-radius:3px;">styles.css</code> do shell.
+      </p>
+    </div>
+  </section>
+
+
+  <!-- 08 VOZ -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">08</span>
+      <h2>Voz & tom</h2>
+      <span class="desc">Como falar com o usuário em microcopy, vazio, erros, sucesso</span>
+    </div>
+    <div class="sec-body">
+      <div class="voice-grid">
+
+        <div class="voice-block">
+          <h4>Direto, em pt-BR coloquial</h4>
+          <p>Frases curtas, verbo no imperativo. Sem jargão técnico. Sem "por favor", "atenciosamente", "estamos cientes".</p>
+          <div class="ex">
+            <b>Bom</b>
+            Marque como pago quando o cliente confirmar.
+          </div>
+          <div class="ex" style="background: oklch(0.97 0.02 25);">
+            <b>Evitar</b>
+            Por favor, atualize o status para "Pago" quando o pagamento for confirmado pelo cliente.
+          </div>
+        </div>
+
+        <div class="voice-block">
+          <h4>Empty states com ação</h4>
+          <p>Estado vazio nunca é só "Nada aqui." Sempre mostre o que fazer agora.</p>
+          <div class="ex">
+            <b>Bom</b>
+            Nenhuma OS aqui ainda. <a style="color: var(--accent); text-decoration: underline;">+ Criar a primeira</a>
+          </div>
+          <div class="ex" style="background: oklch(0.97 0.02 25);">
+            <b>Evitar</b>
+            Lista vazia.
+          </div>
+        </div>
+
+        <div class="voice-block">
+          <h4>Erros = caminho de saída</h4>
+          <p>Erro sempre vem com 1 ação clara de recuperação. Nunca só "Algo deu errado."</p>
+          <div class="ex">
+            <b>Bom</b>
+            Não conseguimos salvar. Verifique a conexão e <a style="color: var(--accent); text-decoration: underline;">tente de novo</a>.
+          </div>
+          <div class="ex" style="background: oklch(0.97 0.02 25);">
+            <b>Evitar</b>
+            Erro 500. Algo deu errado.
+          </div>
+        </div>
+
+        <div class="voice-block">
+          <h4>Números com unidade</h4>
+          <p>Sempre R$, %, dias, peças — nunca número solto sem contexto.</p>
+          <div class="ex">
+            <b>Bom</b>
+            R$ 13.420,80 · 7 dias · 1.200 cartões · 22%
+          </div>
+          <div class="ex" style="background: oklch(0.97 0.02 25);">
+            <b>Evitar</b>
+            13420,8 · 7 · 1200 · 0.22
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 09 DO / DONT -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">09</span>
+      <h2>Do's & Don'ts</h2>
+      <span class="desc">Regras de uso visual e de informação</span>
+    </div>
+    <div class="sec-body">
+      <div class="dos-dnts">
+
+        <div class="dn-card do">
+          <h4>✓ Fazer</h4>
+          <ul>
+            <li>Usar <b>IBM Plex Mono</b> para todo número, código, CNPJ, NFe, prazo</li>
+            <li>Usar a <b>stone-900</b> para hero cards de cockpit (saldo, total, KPI principal)</li>
+            <li>Usar <b>radius 10px</b> em cards e <b>6-7px</b> em botões/inputs</li>
+            <li>Manter <b>border 1px stone-200</b> em todo container de superfície</li>
+            <li>Adicionar <b>border-bottom dashed</b> entre seções dentro do mesmo card</li>
+            <li>Tabular nums em qualquer coluna numérica de tabela</li>
+            <li>Status badges com bolinha colorida (não emoji)</li>
+          </ul>
+        </div>
+
+        <div class="dn-card dont">
+          <h4>✗ Evitar</h4>
+          <ul>
+            <li>Misturar <b>fontes</b> além de Plex Sans + Plex Mono (sem Inter, Roboto, sem Material)</li>
+            <li>Usar <b>gradient colorido</b> em hero cards — só stone-900 chapado ou gradient sutil</li>
+            <li>Adicionar <b>emoji decorativo</b> (📊 📈 💰) em UI — usar SVG ou texto</li>
+            <li>Usar <b>cores fora da paleta</b> — qualquer roxo/rosa/turquesa solto está errado</li>
+            <li>Texto em <b>UPPERCASE</b> exceto eyebrow + label (sempre mono)</li>
+            <li>KPIs com <b>número grande sem contexto</b> (faltar sub-line ou delta)</li>
+            <li>Mais de <b>3 níveis</b> de hierarquia visual numa mesma tela</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 10 TOKENS -->
+  <section class="sec">
+    <div class="sec-h">
+      <span class="num">10</span>
+      <h2>Tokens CSS</h2>
+      <span class="desc">Variáveis de design para copy-paste no styles.css</span>
+    </div>
+    <div class="sec-body">
+<pre class="css-block"><span class="c">/* Identidade Visual · Oimpresso ERP · v1.0 */</span>
+<span class="k">:root</span> {
+  <span class="c">/* Tipografia */</span>
+  <span class="k">--font-sans</span>: <span class="s">'IBM Plex Sans'</span>, system-ui, sans-serif;
+  <span class="k">--font-mono</span>: <span class="s">'IBM Plex Mono'</span>, ui-monospace, monospace;
+
+  <span class="c">/* Neutros · stone */</span>
+  <span class="k">--bg</span>:        <span class="v">oklch(0.98 0.005 80)</span>;
+  <span class="k">--surface</span>:   <span class="v">#ffffff</span>;
+  <span class="k">--text</span>:      <span class="v">oklch(0.20 0.01 80)</span>;
+  <span class="k">--text-dim</span>:  <span class="v">oklch(0.40 0.01 80)</span>;
+  <span class="k">--text-mute</span>: <span class="v">oklch(0.55 0.01 80)</span>;
+  <span class="k">--border</span>:    <span class="v">oklch(0.92 0.005 80)</span>;
+  <span class="k">--border-2</span>:  <span class="v">oklch(0.95 0.005 80)</span>;
+
+  <span class="c">/* Accent · indigo (CTA, foco, link) */</span>
+  <span class="k">--accent</span>:      <span class="v">oklch(0.58 0.12 220)</span>;
+  <span class="k">--accent-2</span>:    <span class="v">oklch(0.42 0.10 220)</span>; <span class="c">/* hover */</span>
+  <span class="k">--accent-soft</span>: <span class="v">oklch(0.94 0.05 220)</span>; <span class="c">/* bg */</span>
+
+  <span class="c">/* Status */</span>
+  <span class="k">--ok</span>:        <span class="v">oklch(0.55 0.13 145)</span>;
+  <span class="k">--ok-soft</span>:   <span class="v">oklch(0.94 0.05 145)</span>;
+  <span class="k">--warn</span>:      <span class="v">oklch(0.62 0.13 70)</span>;
+  <span class="k">--warn-soft</span>: <span class="v">oklch(0.94 0.06 70)</span>;
+  <span class="k">--bad</span>:       <span class="v">oklch(0.55 0.18 25)</span>;
+  <span class="k">--bad-soft</span>:  <span class="v">oklch(0.94 0.05 25)</span>;
+
+  <span class="c">/* Espaçamento · use múltiplos de 4 */</span>
+  <span class="k">--space-1</span>:  <span class="v">4px</span>;
+  <span class="k">--space-2</span>:  <span class="v">8px</span>;
+  <span class="k">--space-3</span>:  <span class="v">12px</span>;
+  <span class="k">--space-4</span>:  <span class="v">16px</span>;
+  <span class="k">--space-6</span>:  <span class="v">24px</span>;
+  <span class="k">--space-8</span>:  <span class="v">32px</span>;
+
+  <span class="c">/* Border radius */</span>
+  <span class="k">--radius-sm</span>: <span class="v">6px</span>;  <span class="c">/* botão, input */</span>
+  <span class="k">--radius-md</span>: <span class="v">10px</span>; <span class="c">/* card */</span>
+  <span class="k">--radius-lg</span>: <span class="v">14px</span>; <span class="c">/* container grande */</span>
+}</pre>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <p style="text-align: center; margin: 32px 0 0; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;">
+    Oimpresso ERP · Manual de Identidade Visual · v1.0 · maio 2026
+  </p>
+
+</div>
+</body>
+</html>
