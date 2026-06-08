@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Paleta oficial — oimpresso</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{--ink:oklch(0.22 0.01 80);--dim:oklch(0.50 0.01 80);--mute:oklch(0.65 0.01 80);--line:oklch(0.90 0.004 90);--bg:oklch(0.985 0.003 90);--card:#fff;--roxo:oklch(0.55 0.15 295);--roxo-soft:oklch(0.95 0.04 295);--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 28px 70px}
+  .auto{font-family:var(--mono);font-size:11px;color:var(--mute);background:var(--roxo-soft);border:1px solid color-mix(in oklch,var(--roxo) 25%,transparent);border-radius:8px;padding:10px 14px;margin-bottom:24px}
+  .auto b{color:var(--roxo)}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0 0 4px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--roxo);font-weight:600}
+  .lede{color:var(--dim);max-width:62ch;margin:6px 0 30px}
+  .grp{margin:30px 0}
+  .grp.accent h2{color:var(--roxo)}
+  h2{font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--mute);font-weight:600;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .gd{font-size:12.5px;color:var(--dim);margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .sw{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .chips{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+  .chip{width:40px;height:24px;border-radius:6px;border:1px solid rgba(0,0,0,.08)}
+  .chip.dk{height:16px;opacity:.95}
+  .meta{display:flex;flex-direction:column;gap:1px;min-width:0}
+  .name{font-family:var(--mono);font-size:12.5px;font-weight:600}
+  .use{font-size:12px;color:var(--dim)}
+  .val{font-family:var(--mono);font-size:10.5px;color:var(--mute)}
+  .val b{color:var(--dim);font-weight:500}
+  .uncat{margin-top:24px;font-size:12.5px;color:oklch(0.45 0.12 70);background:oklch(0.96 0.05 75);border:1px solid oklch(0.85 0.08 75);border-radius:8px;padding:12px 14px}
+  .uncat code{font-family:var(--mono);font-size:11px}
+  .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mute);font-family:var(--mono)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="auto">⛔ <b>AUTO-GERADO</b> por <code>scripts/governance/palette-generate.mjs</code> a partir de <code>resources/css/cockpit.css</code>. <b>NÃO EDITE À MÃO.</b> Para mudar a paleta: edite os tokens no <code>cockpit.css</code> (Tier 0, só Wagner) e rode <code>--write</code>. O CI (<code>--check</code>) trava se esta página divergir da fonte.</div>
+    <div class="eyebrow">Paleta oficial · 27 cores governadas</div>
+    <h1>As cores do oimpresso</h1>
+    <p class="lede">Esta é a paleta inteira — e a única permitida. Chrome (roxo, identidade) + semântica governada (status, origem, etapa). Fora daqui não entra: <code>foundation-guard</code> trava cor nova fora do <code>cockpit.css</code> (ADR 0263). Cada cor mostra a versão clara e a escura.</p>
+    <section class="grp accent">
+      <h2>Chrome — identidade</h2>
+      <p class="gd">A cor da marca. Única e travada. É o que diz “é o mesmo produto”. Nunca redefinir por módulo.</p>
+      <div class="grid">
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.55 0.15 295)"></span><span class="chip dk" style="background:oklch(0.55 0.15 295)"></span></div>
+        <div class="meta"><code class="name">--accent</code><span class="use">Cor principal — botão, link, estado ativo, primary</span>
+          <span class="val">claro <b>oklch(0.55 0.15 295)</b></span>
+          <span class="val">escuro <b>oklch(0.55 0.15 295)</b> <i>(herda)</i></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.62 0.15 295)"></span><span class="chip dk" style="background:oklch(0.62 0.15 295)"></span></div>
+        <div class="meta"><code class="name">--accent-2</code><span class="use">Hover / pressionado</span>
+          <span class="val">claro <b>oklch(0.62 0.15 295)</b></span>
+          <span class="val">escuro <b>oklch(0.62 0.15 295)</b> <i>(herda)</i></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.95 0.04 295)"></span><span class="chip dk" style="background:oklch(0.32 0.06 295)"></span></div>
+        <div class="meta"><code class="name">--accent-soft</code><span class="use">Fundo suave — seleção, chip, linha ativa</span>
+          <span class="val">claro <b>oklch(0.95 0.04 295)</b></span>
+          <span class="val">escuro <b>oklch(0.32 0.06 295)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:#ffffff"></span><span class="chip dk" style="background:#ffffff"></span></div>
+        <div class="meta"><code class="name">--accent-fg</code><span class="use">Texto/ícone sobre o roxo</span>
+          <span class="val">claro <b>#ffffff</b></span>
+          <span class="val">escuro <b>#ffffff</b> <i>(herda)</i></span>
+        </div>
+      </div>
+      </div>
+    </section>
+    <section class="grp">
+      <h2>Status — recado de estado</h2>
+      <p class="gd">O que aconteceu, num relance. Verde ok, vermelho erro, âmbar atenção. Cada um tem o par -soft (fundo).</p>
+      <div class="grid">
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.50 0.12 150)"></span><span class="chip dk" style="background:oklch(0.74 0.14 150)"></span></div>
+        <div class="meta"><code class="name">--pos</code><span class="use">Sucesso / pago / concluído</span>
+          <span class="val">claro <b>oklch(0.50 0.12 150)</b></span>
+          <span class="val">escuro <b>oklch(0.74 0.14 150)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.95 0.075 150)"></span><span class="chip dk" style="background:oklch(0.30 0.085 150)"></span></div>
+        <div class="meta"><code class="name">--pos-soft</code><span class="use">Fundo de sucesso</span>
+          <span class="val">claro <b>oklch(0.95 0.075 150)</b></span>
+          <span class="val">escuro <b>oklch(0.30 0.085 150)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.55 0.18 25)"></span><span class="chip dk" style="background:oklch(0.72 0.16 25)"></span></div>
+        <div class="meta"><code class="name">--neg</code><span class="use">Erro / falha / vencido</span>
+          <span class="val">claro <b>oklch(0.55 0.18 25)</b></span>
+          <span class="val">escuro <b>oklch(0.72 0.16 25)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.955 0.055 25)"></span><span class="chip dk" style="background:oklch(0.32 0.09 25)"></span></div>
+        <div class="meta"><code class="name">--neg-soft</code><span class="use">Fundo de erro</span>
+          <span class="val">claro <b>oklch(0.955 0.055 25)</b></span>
+          <span class="val">escuro <b>oklch(0.32 0.09 25)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.58 0.12 70)"></span><span class="chip dk" style="background:oklch(0.80 0.13 75)"></span></div>
+        <div class="meta"><code class="name">--warn</code><span class="use">Atenção / pendente</span>
+          <span class="val">claro <b>oklch(0.58 0.12 70)</b></span>
+          <span class="val">escuro <b>oklch(0.80 0.13 75)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.955 0.072 75)"></span><span class="chip dk" style="background:oklch(0.32 0.085 70)"></span></div>
+        <div class="meta"><code class="name">--warn-soft</code><span class="use">Fundo de atenção</span>
+          <span class="val">claro <b>oklch(0.955 0.072 75)</b></span>
+          <span class="val">escuro <b>oklch(0.32 0.085 70)</b></span>
+        </div>
+      </div>
+      </div>
+    </section>
+    <section class="grp">
+      <h2>Origem — de onde a tarefa veio</h2>
+      <p class="gd">Wayfinding por módulo (não decoração). Sempre par fundo + texto.</p>
+      <div class="grid">
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.93 0.07 70)"></span><span class="chip dk" style="background:oklch(0.30 0.07 60)"></span></div>
+        <div class="meta"><code class="name">--origin-OS-bg</code><span class="use">Ordem de Serviço — fundo</span>
+          <span class="val">claro <b>oklch(0.93 0.07 70)</b></span>
+          <span class="val">escuro <b>oklch(0.30 0.07 60)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.40 0.10 60)"></span><span class="chip dk" style="background:oklch(0.85 0.07 60)"></span></div>
+        <div class="meta"><code class="name">--origin-OS-fg</code><span class="use">Ordem de Serviço — texto</span>
+          <span class="val">claro <b>oklch(0.40 0.10 60)</b></span>
+          <span class="val">escuro <b>oklch(0.85 0.07 60)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.92 0.06 220)"></span><span class="chip dk" style="background:oklch(0.30 0.07 220)"></span></div>
+        <div class="meta"><code class="name">--origin-CRM-bg</code><span class="use">CRM — fundo</span>
+          <span class="val">claro <b>oklch(0.92 0.06 220)</b></span>
+          <span class="val">escuro <b>oklch(0.30 0.07 220)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.40 0.10 220)"></span><span class="chip dk" style="background:oklch(0.85 0.07 220)"></span></div>
+        <div class="meta"><code class="name">--origin-CRM-fg</code><span class="use">CRM — texto</span>
+          <span class="val">claro <b>oklch(0.40 0.10 220)</b></span>
+          <span class="val">escuro <b>oklch(0.85 0.07 220)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.93 0.07 145)"></span><span class="chip dk" style="background:oklch(0.30 0.07 145)"></span></div>
+        <div class="meta"><code class="name">--origin-FIN-bg</code><span class="use">Financeiro — fundo</span>
+          <span class="val">claro <b>oklch(0.93 0.07 145)</b></span>
+          <span class="val">escuro <b>oklch(0.30 0.07 145)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.36 0.10 145)"></span><span class="chip dk" style="background:oklch(0.85 0.07 145)"></span></div>
+        <div class="meta"><code class="name">--origin-FIN-fg</code><span class="use">Financeiro — texto</span>
+          <span class="val">claro <b>oklch(0.36 0.10 145)</b></span>
+          <span class="val">escuro <b>oklch(0.85 0.07 145)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.93 0.06 295)"></span><span class="chip dk" style="background:oklch(0.30 0.07 295)"></span></div>
+        <div class="meta"><code class="name">--origin-PNT-bg</code><span class="use">Ponto — fundo</span>
+          <span class="val">claro <b>oklch(0.93 0.06 295)</b></span>
+          <span class="val">escuro <b>oklch(0.30 0.07 295)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.40 0.10 295)"></span><span class="chip dk" style="background:oklch(0.85 0.07 295)"></span></div>
+        <div class="meta"><code class="name">--origin-PNT-fg</code><span class="use">Ponto — texto</span>
+          <span class="val">claro <b>oklch(0.40 0.10 295)</b></span>
+          <span class="val">escuro <b>oklch(0.85 0.07 295)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.93 0.05 30)"></span><span class="chip dk" style="background:oklch(0.30 0.07 30)"></span></div>
+        <div class="meta"><code class="name">--origin-MFG-bg</code><span class="use">Oficina / Produção — fundo</span>
+          <span class="val">claro <b>oklch(0.93 0.05 30)</b></span>
+          <span class="val">escuro <b>oklch(0.30 0.07 30)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.40 0.10 30)"></span><span class="chip dk" style="background:oklch(0.85 0.07 30)"></span></div>
+        <div class="meta"><code class="name">--origin-MFG-fg</code><span class="use">Oficina / Produção — texto</span>
+          <span class="val">claro <b>oklch(0.40 0.10 30)</b></span>
+          <span class="val">escuro <b>oklch(0.85 0.07 30)</b></span>
+        </div>
+      </div>
+      </div>
+    </section>
+    <section class="grp">
+      <h2>Etapa — fase do kanban</h2>
+      <p class="gd">Escala categórica de pipeline (Recepção→Pronto). Reusável por qualquer kanban/FSM.</p>
+      <div class="grid">
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.58 0.025 250)"></span><span class="chip dk" style="background:oklch(0.66 0.03 250)"></span></div>
+        <div class="meta"><code class="name">--stage-slate</code><span class="use">Neutro / a fazer</span>
+          <span class="val">claro <b>oklch(0.58 0.025 250)</b></span>
+          <span class="val">escuro <b>oklch(0.66 0.03 250)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.58 0.13 252)"></span><span class="chip dk" style="background:oklch(0.68 0.13 252)"></span></div>
+        <div class="meta"><code class="name">--stage-blue</code><span class="use">Em fila / locada</span>
+          <span class="val">claro <b>oklch(0.58 0.13 252)</b></span>
+          <span class="val">escuro <b>oklch(0.68 0.13 252)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.55 0.16 270)"></span><span class="chip dk" style="background:oklch(0.66 0.16 270)"></span></div>
+        <div class="meta"><code class="name">--stage-indigo</code><span class="use">Diagnóstico</span>
+          <span class="val">claro <b>oklch(0.55 0.16 270)</b></span>
+          <span class="val">escuro <b>oklch(0.66 0.16 270)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.54 0.15 288)"></span><span class="chip dk" style="background:oklch(0.66 0.15 288)"></span></div>
+        <div class="meta"><code class="name">--stage-violet</code><span class="use">Em manutenção</span>
+          <span class="val">claro <b>oklch(0.54 0.15 288)</b></span>
+          <span class="val">escuro <b>oklch(0.66 0.15 288)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.62 0.16 20)"></span><span class="chip dk" style="background:oklch(0.68 0.16 20)"></span></div>
+        <div class="meta"><code class="name">--stage-rose</code><span class="use">Aguardando peças / bloqueio</span>
+          <span class="val">claro <b>oklch(0.62 0.16 20)</b></span>
+          <span class="val">escuro <b>oklch(0.68 0.16 20)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.60 0.13 155)"></span><span class="chip dk" style="background:oklch(0.68 0.14 155)"></span></div>
+        <div class="meta"><code class="name">--stage-emerald</code><span class="use">Em execução</span>
+          <span class="val">claro <b>oklch(0.60 0.13 155)</b></span>
+          <span class="val">escuro <b>oklch(0.68 0.14 155)</b></span>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="chips"><span class="chip" style="background:oklch(0.66 0.15 145)"></span><span class="chip dk" style="background:oklch(0.74 0.15 145)"></span></div>
+        <div class="meta"><code class="name">--stage-green</code><span class="use">Pronto / concluído</span>
+          <span class="val">claro <b>oklch(0.66 0.15 145)</b></span>
+          <span class="val">escuro <b>oklch(0.74 0.15 145)</b></span>
+        </div>
+      </div>
+      </div>
+    </section>
+    <div class="foot">Fonte: resources/css/cockpit.css · ADR 0263 (identidade = gate bloqueante) · MANUAL-IDENTIDADE.md (a voz) · regenerar: node scripts/governance/palette-generate.mjs --write</div>
+  </div>
+</body>
+</html>
