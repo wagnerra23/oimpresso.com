@@ -888,7 +888,7 @@
 .sells-cowork .mod-stub-roadmap li.current { opacity: 1; background: var(--accent-soft); border-color: var(--accent); }
 .sells-cowork .mod-stub-roadmap li.current .step { background: var(--accent); border-color: var(--accent); color: #fff; }
 .sells-cowork [data-theme="dark"] .mod-stub-roadmap li.done { background: oklch(0.28 0.05 145); border-color: oklch(0.45 0.10 145); }
-.sells-cowork [data-theme="dark"] .mod-stub-roadmap li.current { background: oklch(0.28 0.06 220); }
+.sells-cowork [data-theme="dark"] .mod-stub-roadmap li.current { background: oklch(0.28 0.06 295); }
 .sells-cowork .mod-stub-tag .mono { font-family: var(--font-mono); }
 /* ────────────────── Chat (thread) ────────────────── */
 .sells-cowork .thread {
@@ -1919,11 +1919,11 @@
 .sells-cowork .vrep-tabs button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 /* ──── PDV BALCÃO (overlay) ──── */
 .sells-cowork .pdv-num.strong { font-weight:600; }
-.sells-cowork .pdv-pay-btn.active { border-color:var(--accent); background:oklch(0.30 0.06 var(--accent-h, 220)); }
+.sells-cowork .pdv-pay-btn.active { border-color:var(--accent); background:oklch(0.30 0.06 var(--accent-h, 295)); }
 /* ──── RECIBO (térmica + A4) ──── */
 .sells-cowork .rec-layout button.active { background:var(--accent); color:#fff; }
 /* ──── NF-e drawer extras ──── */
-.sells-cowork .nfe-cfop-btn.active, .sells-cowork .nfe-transp-btn.active { border-color:var(--accent); background:oklch(0.97 0.04 var(--accent-h, 220)); }
+.sells-cowork .nfe-cfop-btn.active, .sells-cowork .nfe-transp-btn.active { border-color:var(--accent); background:oklch(0.97 0.04 var(--accent-h, 295)); }
 .sells-cowork .nfe-review-card.span { grid-column:1 / -1; }
 .sells-cowork .nfe-review-card .mono { font-family:var(--font-mono); }
 .sells-cowork .nfe-review-card .small { font-size:10px; word-break:break-all; line-height:1.4; }
@@ -1969,7 +1969,7 @@
   background:oklch(0.95 0.01 250); font-size:10px; font-weight:600;
   color:oklch(0.40 0.02 250);
 }
-.sells-cowork .os-tab.active .count { background:oklch(0.94 0.06 var(--accent-h, 220)); color:var(--accent); }
+.sells-cowork .os-tab.active .count { background:oklch(0.94 0.06 var(--accent-h, 295)); color:var(--accent); }
 .sells-cowork .os-table-wrap { padding:14px 24px 20px; overflow:auto; }
 .sells-cowork .os-table {
   width:100%; border-collapse:collapse;
@@ -1986,7 +1986,7 @@
 .sells-cowork .os-table td { padding:6px 12px; border-bottom:1px solid oklch(0.96 0.01 250); font-size:13px; vertical-align:middle; }
 .sells-cowork .os-table tbody tr:last-child td { border-bottom:none; }
 .sells-cowork .os-row { cursor:pointer; transition:background .1s; }
-.sells-cowork .os-row:hover { background:oklch(0.98 0.01 var(--accent-h, 220)); }
+.sells-cowork .os-row:hover { background:oklch(0.98 0.01 var(--accent-h, 295)); }
 .sells-cowork .os-row.urgent { box-shadow:inset 3px 0 0 oklch(0.60 0.16 25); }
 .sells-cowork .os-stage {
   display:inline-block; padding:2px 8px; border-radius:10px;
