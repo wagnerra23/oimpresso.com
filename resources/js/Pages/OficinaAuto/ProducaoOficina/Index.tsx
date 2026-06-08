@@ -41,7 +41,7 @@ import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Box, Stack, Inline, Grid, Text } from '@/Components/layout';
 import CacambaKanbanColumn from './_components/CacambaKanbanColumn';
-import type { CacambaCardData, CacambaStatus } from './_components/CacambaCard';
+import CacambaCard, { type CacambaCardData, type CacambaStatus } from './_components/CacambaCard';
 import ServiceOrderRichSheet from './_components/ServiceOrderRichSheet';
 import KanbanDndProvider from './_components/KanbanDndProvider';
 import DragConfirmDialog, {
@@ -125,6 +125,17 @@ const KPI_FILTER_KEYS: readonly KpiFilterKey[] = [
 
 const isKpiFilterKey = (v: string): v is KpiFilterKey =>
   (KPI_FILTER_KEYS as readonly string[]).includes(v);
+
+// Foco — re-pivota o quadro. Etapa = colunas FSM (com drag). Box/Mecânico =
+// colunas dinâmicas pelo recurso/responsável (leitura, sem drag). Só Etapa
+// está sempre disponível; Box/Mecânico só quando há dado (não vaza pra Martinho).
+type FocoKey = 'etapa' | 'box' | 'mecanico';
+
+const FOCO_OPTIONS: ReadonlyArray<{ key: FocoKey; label: string }> = [
+  { key: 'etapa', label: 'Etapa' },
+  { key: 'box', label: 'Box' },
+  { key: 'mecanico', label: 'Mecânico' },
+];
 
 const formatBRLCompact = (value: number) =>
   new Intl.NumberFormat('pt-BR', {
@@ -292,10 +303,14 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
     (page.props as { auth?: { user?: { business_id?: number } } })?.auth?.user
       ?.business_id ?? 0;
   const kpiFilterStorageKey = `oimpresso.b${bizId}.oficina.kpiFilter`;
+  const focoStorageKey = `oimpresso.b${bizId}.oficina.foco`;
 
   // D-05 — filtro por KPI (toggle). D-07 — card em foco por teclado.
   const [kpiFilter, setKpiFilter] = useState<KpiFilterKey | null>(null);
   const [focusedId, setFocusedId] = useState<number | null>(null);
+  // Foco re-pivot — default Etapa (comportamento atual). Box/Mecânico só ativa
+  // quando o eixo tem dado.
+  const [foco, setFoco] = useState<FocoKey>('etapa');
 
   // D-06 — hidrata o último filtro escolhido (client-only; SSR não tem localStorage).
   useEffect(() => {
@@ -316,6 +331,28 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
       /* ignora */
     }
   }, [kpiFilter, kpiFilterStorageKey]);
+
+  // D-06 — hidrata/persiste o Foco. Só restaura Box/Mecânico se o eixo tem dado
+  // (senão cai em Etapa — evita quadro de 1 coluna "Sem box" sem sentido).
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(focoStorageKey);
+      if (saved === 'box' && recursos.length > 0) setFoco('box');
+      else if (saved === 'mecanico' && mecanicos.length > 0) setFoco('mecanico');
+      else setFoco('etapa');
+    } catch {
+      /* ignora */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focoStorageKey]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(focoStorageKey, foco);
+    } catch {
+      /* ignora */
+    }
+  }, [foco, focoStorageKey]);
 
   const toggleKpiFilter = useCallback((key: KpiFilterKey) => {
     setKpiFilter((cur) => (cur === key ? null : key));
@@ -528,14 +565,17 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
     if (!transitionLoading) setPendingTransition(null);
   }, [transitionLoading]);
 
-  // Memoiza 5 cards arrays — só re-render se conteúdo mudar (lição PR #717)
-  const columnsData = useMemo(
-    () => COLUMNS.map((col) => ({
-      ...col,
-      cards: kanban[col.key] ?? [],
-    })),
-    [kanban]
-  );
+  // Flat de todos os cards (5 buckets) com o status de origem, após o filtro D-05.
+  // Base do re-pivot por Foco.
+  const flatVisible = useMemo(() => {
+    const all = COLUMNS.flatMap((col) =>
+      (kanban[col.key] ?? []).map((card) => ({ card, status: col.status })),
+    );
+    if (!kpiFilter) return all;
+    if (kpiFilter === 'urgentes') return all.filter((x) => x.card.is_overdue);
+    const target = KPI_FILTER_TO_STATUS[kpiFilter];
+    return all.filter((x) => x.status === target);
+  }, [kanban, kpiFilter]);
 
   // 6 KPI cards — modelo (A) reparo (espelha `oficina-page.jsx` → totals).
   // Labels reparo; valores continuam vindo das mesmas keys FSM canon (compat Martinho).
@@ -602,27 +642,42 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
     return parts;
   }, [kpis]);
 
-  // D-05 — aplica o filtro de KPI ao quadro (client-side, alimenta o kanban).
-  // Etapa → mantém só a coluna correspondente; `urgentes` → só os atrasados.
-  const filteredColumnsData = useMemo(() => {
-    if (!kpiFilter) return columnsData;
-    if (kpiFilter === 'urgentes') {
-      return columnsData.map((col) => ({
-        ...col,
-        cards: col.cards.filter((c) => c.is_overdue),
+  // Colunas do quadro conforme o Foco. Etapa = 5 colunas FSM (dndStatus → habilita
+  // drag). Box/Mecânico = colunas dinâmicas pelo recurso/responsável (dndStatus null
+  // → leitura). Cada item carrega o status de origem pra o card manter a cor da etapa.
+  const boardColumns = useMemo(() => {
+    type Item = { card: CacambaCardData; status: CacambaStatus };
+    if (foco === 'etapa') {
+      return COLUMNS.map((col) => ({
+        key: String(col.key),
+        label: col.label,
+        dndStatus: col.status as CacambaStatus | null,
+        items: flatVisible.filter((x) => x.status === col.status) as Item[],
       }));
     }
-    const targetStatus = KPI_FILTER_TO_STATUS[kpiFilter];
-    return columnsData.map((col) => ({
-      ...col,
-      cards: col.status === targetStatus ? col.cards : [],
+    const groups = new Map<string, Item[]>();
+    const seed = foco === 'box' ? recursos : mecanicos.map((m) => m.nome);
+    for (const label of seed) groups.set(label, []);
+    for (const x of flatVisible) {
+      const label = foco === 'box' ? (x.card.box_label ?? '') : (x.card.mecanico_nome ?? '');
+      const key = label || '__none';
+      const bucket = groups.get(key);
+      if (bucket) bucket.push(x);
+      else groups.set(key, [x]);
+    }
+    const noneLabel = foco === 'box' ? 'Sem box' : 'Sem mecânico';
+    return [...groups.entries()].map(([key, items]) => ({
+      key: `${foco}-${key}`,
+      label: key === '__none' ? noneLabel : key,
+      dndStatus: null as CacambaStatus | null,
+      items,
     }));
-  }, [columnsData, kpiFilter]);
+  }, [foco, flatVisible, recursos, mecanicos]);
 
-  // D-07 — lista linear dos cards visíveis pra navegação por setas.
+  // D-07 — lista linear dos cards visíveis pra navegação por setas (respeita Foco).
   const flatCards = useMemo(
-    () => filteredColumnsData.flatMap((col) => col.cards),
-    [filteredColumnsData],
+    () => boardColumns.flatMap((col) => col.items.map((i) => i.card)),
+    [boardColumns],
   );
 
   // D-07 — atalhos de teclado (Larissa é teclado-first): N nova OS · / busca ·
@@ -762,6 +817,29 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
         {(recursos.length > 0 || mecanicos.length > 0) && (
           <Box bg="card" px={6} py={2} className="border-b border-border">
             <Inline gap={4} wrap>
+              {/* Foco — re-pivota o quadro (Etapa / Box / Mecânico). */}
+              <Inline gap={2} wrap align="center">
+                <Text as="span" size="xs" weight="semibold" tone="muted" className="uppercase tracking-wide">
+                  Foco
+                </Text>
+                {FOCO_OPTIONS.filter(
+                  (o) =>
+                    o.key === 'etapa' ||
+                    (o.key === 'box' && recursos.length > 0) ||
+                    (o.key === 'mecanico' && mecanicos.length > 0),
+                ).map((o) => (
+                  <FilterPill
+                    key={o.key}
+                    active={foco === o.key}
+                    onClick={() => {
+                      setFoco(o.key);
+                      setFocusedId(null);
+                    }}
+                  >
+                    {o.label}
+                  </FilterPill>
+                ))}
+              </Inline>
               {recursos.length > 0 && (
                 <Inline gap={2} wrap align="center">
                   <Text as="span" size="xs" weight="semibold" tone="muted" className="uppercase tracking-wide">
@@ -863,23 +941,38 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
           </Inline>
         </Box>
 
-        {/* ─── Kanban 5 colunas (drag-drop entre colunas) ─── */}
+        {/* ─── Quadro — Foco=Etapa: 5 colunas FSM com drag-drop. Foco=Box/Mecânico:
+             colunas dinâmicas (leitura, sem drag · reatribuir por arrasto = outra onda). ─── */}
         <Box p={6}>
-          <KanbanDndProvider onMove={handleDragMove} evaluateDrop={evaluateDrop}>
-            <Grid cols={5} gap={4}>
-              {filteredColumnsData.map((col) => (
-                <CacambaKanbanColumn
+          {foco === 'etapa' ? (
+            <KanbanDndProvider onMove={handleDragMove} evaluateDrop={evaluateDrop}>
+              <Grid cols={5} gap={4}>
+                {boardColumns.map((col) => (
+                  <CacambaKanbanColumn
+                    key={col.key}
+                    status={col.dndStatus as CacambaStatus}
+                    label={col.label}
+                    cards={col.items.map((i) => i.card)}
+                    onCardClick={handleCardClick}
+                    onCardAdvance={handleCardAdvance}
+                    focusedId={focusedId}
+                  />
+                ))}
+              </Grid>
+            </KanbanDndProvider>
+          ) : (
+            <Grid min="md" gap={4}>
+              {boardColumns.map((col) => (
+                <PivotColumn
                   key={col.key}
-                  status={col.status}
                   label={col.label}
-                  cards={col.cards}
+                  items={col.items}
                   onCardClick={handleCardClick}
-                  onCardAdvance={handleCardAdvance}
                   focusedId={focusedId}
                 />
               ))}
             </Grid>
-          </KanbanDndProvider>
+          )}
         </Box>
       </Box>
 
@@ -931,6 +1024,58 @@ function FilterPill({
     >
       {children}
     </button>
+  );
+}
+
+// Coluna do quadro no modo Foco=Box/Mecânico — leitura (sem dnd, sem cor de etapa
+// na coluna). Cada card mantém a cor da própria etapa via `variant`. Composta nos
+// primitivos (Box/Inline/Stack/Text) — sem flex/grid solto.
+function PivotColumn({
+  label,
+  items,
+  onCardClick,
+  focusedId,
+}: {
+  label: string;
+  items: Array<{ card: CacambaCardData; status: CacambaStatus }>;
+  onCardClick: (c: CacambaCardData) => void;
+  focusedId: number | null;
+}) {
+  return (
+    <Box bg="card" border rounded="lg">
+      <Inline justify="between" align="center" className="px-3 py-2.5 border-b border-border">
+        <Text as="h3" size="sm" weight="semibold" truncate className="min-w-0">
+          {label}
+        </Text>
+        <Text
+          as="span"
+          size="xs"
+          tone="muted"
+          numeric="tabular"
+          className="px-1.5 py-0.5 rounded bg-muted flex-shrink-0"
+        >
+          {items.length}
+        </Text>
+      </Inline>
+      <Stack gap={2} className="p-2 max-h-[calc(100vh-220px)] overflow-y-auto">
+        {items.length === 0 ? (
+          <Text as="p" size="xs" tone="muted" align="center" className="py-8 italic">
+            vazio
+          </Text>
+        ) : (
+          items.map((i) => (
+            <CacambaCard
+              key={i.card.id}
+              cacamba={i.card}
+              variant={i.status}
+              onClick={onCardClick}
+              isFocused={focusedId === i.card.id}
+              draggable={false}
+            />
+          ))
+        )}
+      </Stack>
+    </Box>
   );
 }
 
