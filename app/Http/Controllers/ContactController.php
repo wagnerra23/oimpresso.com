@@ -229,14 +229,16 @@ class ContactController extends Controller
                 'id' => (int) $p->id,
                 'paid_on' => $p->paid_on ? \Illuminate\Support\Carbon::parse($p->paid_on)->toIso8601String() : null,
                 'payment_ref_no' => (string) ($p->payment_ref_no ?? ''),
-                'parent_payment_ref_no' => $p->parent_payment_ref_no,
+                // Campos vindos do join (não são colunas de transaction_payments) via
+                // getAttribute() — evita "undefined property"/"always-true" do Larastan.
+                'parent_payment_ref_no' => $p->getAttribute('parent_payment_ref_no'),
                 'amount' => (float) $p->amount,
                 'is_return' => (int) $p->is_return,
                 'method' => (string) ($p->method ?? ''),
-                'invoice_no' => $p->invoice_no,
-                'ref_no' => $p->ref_no,
-                'transaction_id' => $p->transaction_id !== null ? (int) $p->transaction_id : null,
-                'transaction_type' => $p->transaction_type,
+                'invoice_no' => $p->getAttribute('invoice_no'),
+                'ref_no' => $p->getAttribute('ref_no'),
+                'transaction_id' => ($txId = $p->getAttribute('transaction_id')) !== null ? (int) $txId : null,
+                'transaction_type' => $p->getAttribute('transaction_type'),
                 'cheque_number' => $p->cheque_number,
                 'card_transaction_number' => $p->card_transaction_number,
                 // PII (ADR 0093 §LGPD): nunca devolver número de conta em claro.
@@ -349,7 +351,7 @@ class ContactController extends Controller
                     'recur_interval_type' => (string) ($s->recur_interval_type ?? ''),
                     'recur_repetitions' => (int) ($s->recur_repetitions ?? 0),
                     'recur_stopped_on' => optional($s->recur_stopped_on)->toIso8601String(),
-                    'location_name' => $s->location_name,
+                    'location_name' => $s->getAttribute('location_name'), // alias do join (bl_sub) → getAttribute
                     'generated_count' => (int) Transaction::where('business_id', $business_id)
                         ->where('recur_parent_id', $s->id)
                         ->count(),
