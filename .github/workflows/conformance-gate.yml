@@ -27,16 +27,9 @@ on:
       - '.foundation-guard-files.json'
       - '.github/workflows/conformance-gate.yml'
   pull_request:
-    paths:
-      # Cor-crua (ratchet) escopa sells-cowork*; o invariante --accent varre TODO resources/css/*.css
-      # (token de marca vive em cockpit.css/fin-cowork.css/cowork-*-bundle.css) — gatilho cobre os dois.
-      - 'resources/css/**/*.css'
-      - 'scripts/conformance-gate.mjs'
-      - 'scripts/foundation-guard.mjs'
-      - '.conformance-baseline.json'
-      - '.foundation-guard-baseline.json'
-      - '.foundation-guard-files.json'
-      - '.github/workflows/conformance-gate.yml'
+    # SEM path filter de propósito (ADR 0263): roda em TODO PR. O gate é ratchet — sem
+    # mudança de CSS ele passa trivial. Rodar sempre permite torná-lo REQUIRED (muro da
+    # identidade de cor) sem o deadlock de "Expected" que trava PRs sem CSS (incidente 2026-06-08).
 
 concurrency:
   group: conformance-gate-${{ github.ref }}
