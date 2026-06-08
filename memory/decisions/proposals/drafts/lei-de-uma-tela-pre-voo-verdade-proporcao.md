@@ -3,7 +3,7 @@ slug: lei-de-uma-tela-pre-voo-verdade-proporcao
 number: PENDENTE
 title: "A Lei de Uma Tela — pré-voo VERDADE → PROPORÇÃO → MANDATO → PROVA acima de R1-R14"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
@@ -19,7 +19,7 @@ tags: [governance, protocolo-wagner, pre-flight, verdade-viva, proporcao, tier-0
 
 ## Status
 
-`accepted` — aprovado por Wagner 2026-06-08 ("aprovar"). Origem: auditoria Cowork
+`aceito` — aprovado por Wagner 2026-06-08 ("aprovar"). Origem: auditoria Cowork
 `Auditoria CC - 2026-06-08` (handoff bundle claude.ai/design, projeto "Oimpresso ERP
 Comunicação Visual"). O próprio relatório registra que mexer na constituição é soberania do
 Wagner: *"gravo como proposta pro Code numerar sob teu OK — não cunho ADR sozinho."*
