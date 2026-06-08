@@ -1,0 +1,200 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Jana\Mcp\Tools;
+
+use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Laravel\Mcp\Request;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\Server\Tool;
+use Modules\Jana\Contracts\MemoriaContrato;
+use Modules\Jana\Contracts\MemoriaPersistida;
+use Modules\Jana\Services\Memoria\MeilisearchDriver;
+
+/**
+ * MEM-MEM-MCP-1 (ADR 0056) — Tool MCP que busca fatos persistentes da memória
+ * do Copiloto (`jana_memoria_facts`), filtrados por business + user.
+ *
+ * Uso:
+ *   - Copiloto chat web (Laravel app) chama via McpMemoriaDriver no recall
+ *   - Claude Code do Wagner chama via "memoria-search" pra ver lembranças do projeto
+ *
+ * Como conhecemos o business_id/user_id?
+ *   - Vem do user autenticado pelo Bearer token MCP (mcp_user attribute)
+ *   - Server-side calls (ex: Copiloto chat usando system token) passam
+ *     scope_business_id explícito como parâmetro
+ *
+ * Cross-tenant safety: assert business_id do user do token === business_id da query.
+ * Excepão: superadmin pode passar qualquer.
+ */
+class MemoriaSearchTool extends Tool
+{
+    protected string $name = 'memoria-search';
+
+    protected string $title = 'Buscar memória do Copiloto';
+
+    protected string $description = 'Busca fatos persistentes na memória do Copiloto (copiloto_memoria_facts) filtrados por business. Retorna top-K snippets relevantes via FULLTEXT search. Use pra reter contexto entre conversas.';
+
+    public function schema(JsonSchema $schema): array
+    {
+        return [
+            'query' => $schema->string()
+                ->required()
+                ->description('Termos de busca (ex: "meta de faturamento", "preferência cliente", "última conversa sobre X")'),
+            'business_id' => $schema->integer()
+                ->min(1)
+                ->description('Business ID alvo. Se omitido, usa o business do user autenticado.'),
+            'limit' => $schema->integer()
+                ->min(1)
+                ->max(20)
+                ->default(5)
+                ->description('Quantos fatos retornar (default 5, max 20)'),
+        ];
+    }
+
+    public function handle(Request $request): Response
+    {
+        $query = (string) $request->get('query', '');
+        $bizParaBusca = (int) ($request->get('business_id') ?? 0);
+        $limit = max(1, min(20, (int) $request->get('limit', 5)));
+
+        if (trim($query) === '') {
+            return Response::error('Parâmetro "query" obrigatório.');
+        }
+
+        $user = $request->user();
+        if ($user === null) {
+            return Response::error('Autenticação requerida.');
+        }
+
+        // Resolve business_id: parâmetro OR user.business_id
+        if ($bizParaBusca === 0) {
+            $bizParaBusca = (int) ($user->business_id ?? 0);
+        }
+
+        // Cross-tenant safety: user só pode buscar memória do próprio business
+        // (exceto superadmin)
+        $isSuperadmin = method_exists($user, 'hasRole') && $user->hasRole('superadmin');
+        if (! $isSuperadmin && $bizParaBusca !== (int) ($user->business_id ?? 0)) {
+            return Response::error(sprintf(
+                'Cross-tenant violation: user biz=%d tentou acessar biz=%d',
+                (int) ($user->business_id ?? 0),
+                $bizParaBusca,
+            ));
+        }
+
+        if ($bizParaBusca === 0) {
+            return Response::error('business_id não pôde ser resolvido.');
+        }
+
+        // Gap #2 (US-RET-002) — pipeline bom BUSINESS-scoped atrás de flag, com
+        // fallback gracioso pro FULLTEXT. memoria-search recupera memória da EMPRESA
+        // (todos os fatos do business, SEM user_id — ADR 0093/0056). DEFAULT OFF =
+        // comportamento abaixo idêntico.
+        if (config('copiloto.mcp_search.memoria_pipeline', false)) {
+            $viaPipeline = $this->buscarViaPipeline($bizParaBusca, $query, $limit);
+            if ($viaPipeline !== null) {
+                return $viaPipeline;
+            }
+            // null = pipeline indisponível/vazio/erro → cai no FULLTEXT abaixo.
+        }
+
+        // Busca via FULLTEXT em copiloto_memoria_facts
+        // (não usa Meilisearch direto pra ter controle de filter biz/user/valid_until aqui;
+        //  Meilisearch fica como cache/index secundário — pode ser refinement futuro)
+        $rows = DB::table('jana_memoria_facts')
+            ->where('business_id', $bizParaBusca)
+            ->whereNull('valid_until')   // só fatos atuais
+            ->whereNull('deleted_at')
+            ->whereRaw(
+                'MATCH(fato) AGAINST(? IN NATURAL LANGUAGE MODE)',
+                [$query]
+            )
+            ->orderByDesc(DB::raw('MATCH(fato) AGAINST(?) IN NATURAL LANGUAGE MODE'))
+            ->limit($limit)
+            ->get(['id', 'fato', 'metadata', 'valid_from', 'created_at']);
+
+        if ($rows->isEmpty()) {
+            return Response::text("Nenhum fato encontrado pra: \"$query\".");
+        }
+
+        $output = "Encontrados {$rows->count()} fato(s) na memória pra \"$query\":\n\n";
+        foreach ($rows as $r) {
+            $meta = is_string($r->metadata) ? json_decode($r->metadata, true) : ($r->metadata ?? []);
+            $cat = $meta['categoria'] ?? '';
+            $relev = $meta['relevancia'] ?? '';
+
+            $output .= "## Fato #{$r->id}";
+            if ($cat) $output .= " [$cat]";
+            if ($relev) $output .= " · relevância $relev";
+            $output .= "\n";
+            $output .= $r->fato . "\n";
+            $output .= "_Persistido em: {$r->valid_from}_\n\n";
+        }
+
+        return Response::text($output);
+    }
+
+    /**
+     * Busca via pipeline bom BUSINESS-scoped (MeilisearchDriver::buscarBusiness —
+     * hybrid+HyDE+RRF+decay+Peso Real+reranker, SEM user_id; memória é da empresa).
+     * Retorna Response formatada, ou null (= fallback FULLTEXT) se o driver não
+     * suportar (Null/Mcp em dev/CI), vazio, ou erro.
+     *
+     * @return Response|null
+     */
+    protected function buscarViaPipeline(int $businessId, string $query, int $limit): ?Response
+    {
+        /** @var MemoriaContrato $driver */
+        $driver = app(MemoriaContrato::class);
+
+        // buscarBusiness é específico do MeilisearchDriver — outros drivers
+        // (Null/Mcp em dev/CI, resolvidos por config) caem no FULLTEXT.
+        if (! $driver instanceof MeilisearchDriver) {
+            return null;
+        }
+
+        try {
+            /** @var MemoriaPersistida[] $hits */
+            $hits = $driver->buscarBusiness($businessId, $query, $limit);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning(
+                'memoria-search: pipeline business falhou, fallback FULLTEXT: '.$e->getMessage()
+            );
+
+            return null;
+        }
+
+        if ($hits === []) {
+            return null;
+        }
+
+        $output = sprintf("Encontrados %d fato(s) na memória pra \"%s\" (pipeline):\n\n", count($hits), $query);
+        foreach ($hits as $h) {
+            $meta  = $h->metadata;
+            $cat   = (string) ($meta['categoria'] ?? $meta['doc_type'] ?? '');
+            $relev = (string) ($meta['relevancia'] ?? '');
+
+            $output .= "## Fato #{$h->id}";
+            if ($cat !== '') {
+                $output .= " [{$cat}]";
+            }
+            if ($relev !== '') {
+                $output .= " · relevância {$relev}";
+            }
+            if ($h->score !== null) {
+                $output .= sprintf(' · score %.3f', $h->score);
+            }
+            $output .= "\n".$h->fato."\n";
+            if ($h->validFrom !== null) {
+                $output .= "_Persistido em: {$h->validFrom}_\n";
+            }
+            $output .= "\n";
+        }
+
+        return Response::text($output);
+    }
+}

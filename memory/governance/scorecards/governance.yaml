@@ -1,0 +1,42 @@
+# Scorecard Governance — meta-módulo (ADR 0156 + ADR 0155).
+#
+# Wave 23 cross_cutting_infra (2026-05-16): target 90+ via C3 + C5 + C6.
+
+module: "Governance"
+slug: "governance"
+type: "meta"
+fsm_n_a: true
+fsm_n_a_reason: "Meta-módulo. Policies têm enabled bool, ADRs têm status enum simples (mcp_memory_documents). Nenhum requer FSM pipeline (ADR 0143)."
+last_grade: 74
+last_grade_at: "2026-05-16T00:00:00-03:00"
+target_score: 90
+bucket: "Bom"
+
+dimensions:
+  C1_coerencia:       { weight: 10, target: 10, current: 10 }  # saturado
+  C2_reversibilidade: { weight: 10, target: 10, current: 9  }
+  C3_reflexividade:   { weight: 13, target: 13, current: 7  }  # +3 Wave 23 (BRIEFING + ADRs referenciadas)
+  C4_compliance:      { weight: 10, target: 10, current: 10 }
+  C5_cobertura:       { weight: 17, target: 17, current: 4  }  # +9 Wave 23 (4 YAMLs scorecard + snapshot cmd)
+  C6_adoption_time:   { weight: 10, target: 10, current: 7  }  # +3 Wave 23 (skill governance-pr-summary)
+
+ownership:
+  primary: "wagner"
+  secondary: []
+
+adrs_referenciadas:
+  - 0094  # Constituição v2 (mãe)
+  - 0155  # Rubrica v3 + Gate CI
+  - 0156  # Scorecards YAML canon
+  - 0157  # bucket fsm_n_a
+  - 0158  # Charter audit flow
+  - 0159  # ActionGate runtime
+  - 0160  # Skill governance-pr-summary
+
+capacidades:
+  - "ActionGate runtime + PiiRedactor"
+  - "Module Grades v3 (12 dimensões)"
+  - "module:grade-snapshot daily 06:00 BRT"
+  - "Drift detection (filesystem vs snapshot canon)"
+  - "Charter audit (12 charters Inertia)"
+  - "Policies CRUD + audit"

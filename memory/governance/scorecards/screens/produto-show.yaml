@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Produto/Show
+path: resources/js/Pages/Produto/Show.tsx
+archetype: detail
+persona: larissa
+nota: 70
+nivel: "Advanced"
+baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe com tabs + Deferred/skeleton e bons empty-states, porém tabs e header hand-rolled com bg-stone-900 em vez do PageHeader e token roxo."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Shopify: header de produto padronizado e reutilizado"
+    fix: "Substituir header/tabs stone por PageHeader canon + tokens roxo; tab ativa via primary"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Notion: detalhe traz métricas-chave (estoque, preço) acima da dobra"
+    fix: "Adicionar KpiStrip/KpiCard de estoque e preço no topo do Resumo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Affordance"
+    best_of_class: "Linear sincroniza tab ativa com a URL (deep-link)"
+    fix: "Persistir activeTab na querystring pra deep-link e back-button"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

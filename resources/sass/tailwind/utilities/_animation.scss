@@ -1,0 +1,9 @@
+@keyframes tw-pulse {
+    50% {
+      opacity: .5;
+    }
+  }
+  
+  .hover\:tw-animate-pulse:hover {
+    animation: tw-pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
+  }

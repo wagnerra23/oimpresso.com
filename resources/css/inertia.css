@@ -1,0 +1,363 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
+@import "./sells-cowork.css";
+
+/* Sells Insights Jana view — KB-9.75 P5 parking lot tabs Dashboard|Insights (PR #1682) */
+@import "./sells-cowork-insights.css";
+
+/* Sells KB-9.75 NextActionPanel + validações fiscais BR (Cowork bundle 2026-05-26 P0 gaps #1/#5) */
+@import "./sells-kb975-next-action.css";
+
+/* Sells KB-9.75 Emit modals NF-e/NFS-e/Bulk (Cowork bundle 2026-05-26 P0 gaps #2/#3/#4 — fullscreen modal global) */
+@import "./sells-kb975-emit-modals.css";
+
+/* Sells KB-9.75 Recibo térmico 80mm + Orçamento A4 (Cowork bundle 2026-05-26 P2 gaps #8/#9) */
+@import "./sells-kb975-print.css";
+
+/* Sells KB-9.75 Cheat-sheet overlay '?' (Cowork bundle 2026-05-26 gap P3 #12 — fullscreen global, fora .sells-cowork) */
+@import "./sells-kb975-cheatsheet.css";
+
+/* Sells Cowork Onda 2 R2 IA drawer — escopado em .sells-cowork + .sells-cowork-ia-panel */
+@import "./sells-cowork-ia.css";
+
+/* Sells Cowork Onda 3 R3 Curadoria — escopado em .sells-cowork-curadoria + linkify pills */
+@import "./sells-cowork-curadoria.css";
+
+/* Sells Cowork Onda 4 R4 Distribuição — transcript PDF A4, presentation fullscreen, WhatsApp preview */
+@import "./sells-cowork-distribuicao.css";
+
+/* Sells/Show Cowork — readonly venda finalizada (espelha família Index) */
+@import "./sells-cowork-show.css";
+
+/* Sells/Quotations Cowork — lista orçamentos (extensões mínimas além da família Index) */
+@import "./sells-cowork-quotations.css";
+
+/* Sells/Drafts Cowork — lista rascunhos (extensões mínimas além da família Index) */
+@import "./sells-cowork-drafts.css";
+
+/* Sells/Edit Cowork — form edição venda (espelha família Index, irmão de Show) */
+@import "./sells-cowork-edit.css";
+
+/* Sells/Subscriptions Cowork — lista assinaturas recorrentes (extensões mínimas além da família Index) */
+@import "./sells-cowork-subscriptions.css";
+
+/* Cowork fields — port fiel `.cl-input`/`.cl-field`/`.cl-radio` do protótipo
+ * (prototipo-ui/prototipos/clientes/clientes.css). Aplicado via
+ * `<Input variant="cowork">` no drawer Cliente após pedido Wagner 2026-05-26
+ * "copie do cowork seja fiel". Classes `.cw-*` (não-escopadas — usam tokens
+ * globais já definidos em cockpit.css). */
+@import "./cowork-fields.css";
+
+/* ============================================================================
+ * FINANCEIRO — Design System Cowork — REATIVADO 2026-05-19 (Plano B canon)
+ *
+ * Os 5 @import abaixo foram REATIVADOS após executar o Plano B documentado
+ * no histórico DESATIVADO de 2026-05-18 noite:
+ *   (a) script scripts/scope-fin-cowork-css.py espelha o pattern de
+ *       scope-sells-cowork-css.py — prefixa `.fin-cowork ` em TODOS
+ *       seletores top-level (2350 regras no bundle principal), mapeia
+ *       :root / html / body / * / #app → .fin-cowork (wrapper acts as body),
+ *       preserva @keyframes / @font-face (global by spec), recursa em
+ *       @media / @supports / @container / @layer.
+ *   (b) Pages/Financeiro/**/*.tsx envolvidas em <div className="fin-cowork">
+ *       (mesmo pattern de Sells/Index linha 917 com `.sells-cowork`).
+ *   (c) Build npm + smoke biz=1 (ROTA LIVRE não, ADR 0101) + biz=4 valida
+ *       AppShellV2 grid 3-cols intacto.
+ *
+ * Antes (2026-05-18 noite): bundle não-escopado definia GLOBALS
+ * (`*`, `html`, `body`, `#app`, `:root`) que SOBRESCREVIAM o grid
+ * 3-colunas do AppShellV2 (260+1fr+320) e quebravam /financeiro/unificado.
+ * Agora: todos seletores top-level escopados em .fin-cowork — afeta
+ * APENAS conteúdo dentro de <div className="fin-cowork">, AppShellV2 intacto.
+ *
+ * Refs: memory/reference/feedback-cowork-bundle-aplicar-inteiro.md
+ *       §Apêndice "Plano B canônico" — agora executado.
+ * Bug-report Wagner 2026-05-19: /financeiro/unificado renderizava HTML cru
+ * porque imports estavam comentados + Pages sem wrap.
+ *
+ * Marker idempotente: primeira linha de cada CSS tem `/* SCOPED-OK */ */
+ *  (re-rodar scripts/scope-fin-cowork-css.py é no-op).
+ * ============================================================================ */
+
+/* Onda 12.3 (2026-05-19) — Bundle canon REAL CSS inteiro (9054 LOC originais,
+   8630 pós escopo .fin-cowork via scripts/scope-fin-cowork-css.py).
+   Copiado de public/cowork-preview/styles.css conforme regra Tier 0
+   feedback-cowork-bundle-aplicar-inteiro.md — Wagner autorizou após 3 falhas
+   de cherry-pick de classes Cowork sharedas (vd-toolbar*, os-btn*).
+   PRIMEIRO no import order pra ter base canon + overrides locais por cima. */
+@import "./cowork-canon-financeiro-bundle.css";
+
+/* Onda 12.4 (2026-06-02) — bundle Cowork antigo (Onda 8) DEPRECADO e removido.
+   Paridade canon validada programaticamente (scripts/scope-fin-cowork-css comparativo):
+   2309 regras idênticas, 0 seletor real só-no-antigo, e os 29 com body diferente
+   eram TODOS `background: var(--surface)` → `#fff` — no-op em produção porque
+   `data-theme="dark"` não é ativado em nenhuma tela (—surface == #fff sempre).
+   Economia: −327KB e elimina override do antigo vencendo o cascade. */
+@import "./fin-curadoria.css";
+@import "./fin-ia.css";
+@import "./fin-output.css";
+@import "./fin-cowork.css";
+@import "./fin-mobile.css";
+
+/* PaymentGateway UI F3 Cowork (Cobrança + Settings/Gateways + Sells drawer chip) — escopado em .pg-shell-scope */
+@import "./cowork-payment-gateway-bundle.css";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Light (default) — shadcn new-york slate */
+  --color-border: hsl(214.3 31.8% 91.4%);
+  --color-input: hsl(214.3 31.8% 91.4%);
+  --color-ring: hsl(222.2 84% 4.9%);
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222.2 84% 4.9%);
+
+  /* canon v3.4 (Wagner 2026-05-25): fundo cream warm hue 90 pra Index canon v3.x.
+     Espelha `.cockpit` em /sells (Cowork canon · oklch(0.985 0.003 90)).
+     Substitui `bg-slate-50` cool hue 248. Cria afinidade visual com cards brancos
+     (mesma família temperatura) sem competir com filtros coloridos.
+     Gera utility `bg-page-cream` automaticamente via Tailwind v4. */
+  --color-page-cream: oklch(0.985 0.003 90);
+
+  /* DS v4 — primary universal ROXO (era hsl(221) azul). Canon ADR 0190: oklch(0.55 0.15 295).
+     `bg-primary`/`text-primary`/`border-primary` em todas as Pages Inertia (inclusive OS) seguem este token. */
+  --color-primary: oklch(0.55 0.15 295);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-secondary: hsl(210 40% 96.1%);
+  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  --color-accent: hsl(210 40% 96.1%);
+  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(222.2 84% 4.9%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(222.2 84% 4.9%);
+
+  /* Semantic status tokens — adicionados 2026-05-27 pra ADR 0202 Settings WhatsApp
+     + qualquer Page que precise green/yellow/red sem cair em violação UI lint R1.
+     Constituição UI v2 ([ADR UI-0013]) — tokens semânticos > cores hardcoded.
+     Geram utilities `bg-success`, `text-success-foreground`, `bg-warning`, etc
+     via Tailwind v4 (@theme directive). */
+  --color-success: hsl(142 71% 45%);
+  --color-success-foreground: hsl(143 64% 24%);
+  --color-warning: hsl(38 92% 50%);
+  --color-warning-foreground: hsl(26 90% 30%);
+
+  /* Brand Meta (Facebook OAuth) — token específico do botão "Conectar com Meta"
+     no Embedded Signup v4. Cor oficial Facebook (#1877F2 hover #166FE5)
+     mantida cross-theme porque é cor de identidade Meta (não muda em dark). */
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+}
+
+/* ==========================================================================
+   Dark mode — ativa quando <html class="dark">
+   Anti-flash: script inline em layouts/inertia.blade.php aplica a classe
+   ANTES do React hidratar, evitando "piscar" branco-para-escuro.
+   ========================================================================== */
+.dark {
+  --color-border: hsl(217.2 32.6% 17.5%);
+  --color-input: hsl(217.2 32.6% 17.5%);
+  --color-ring: hsl(212.7 26.8% 83.9%);
+  --color-background: hsl(222.2 84% 4.9%);
+  --color-foreground: hsl(210 40% 98%);
+
+  /* canon v3.4 dark mode: cream warm não inverte coerente — usa slate-950 neutro */
+  --color-page-cream: hsl(222.2 84% 4.9%);
+
+  /* DS v4 — primary ROXO dark (era hsl(217) azul). Mais claro que o light pra contraste em fundo escuro. */
+  --color-primary: oklch(0.62 0.15 295);
+  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-secondary: hsl(217.2 32.6% 17.5%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+  --color-muted: hsl(217.2 32.6% 17.5%);
+  --color-muted-foreground: hsl(215 20.2% 65.1%);
+  --color-accent: hsl(217.2 32.6% 17.5%);
+  --color-accent-foreground: hsl(210 40% 98%);
+  --color-destructive: hsl(0 62.8% 30.6%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+  --color-card: hsl(222.2 47.4% 11.2%);
+  --color-card-foreground: hsl(210 40% 98%);
+  --color-popover: hsl(222.2 84% 4.9%);
+  --color-popover-foreground: hsl(210 40% 98%);
+
+  /* Semantic status tokens — dark mode (mais saturado pra contraste em fundo escuro) */
+  --color-success: hsl(142 71% 45%);
+  --color-success-foreground: hsl(143 70% 78%);
+  --color-warning: hsl(38 92% 55%);
+  --color-warning-foreground: hsl(35 90% 78%);
+
+  /* Brand Meta — mantém Facebook color cross-theme (identidade visível em ambos) */
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+}
+
+/* Sells/Index Cowork — extensões fora do prototype (paginação backend Laravel) */
+.sells-cowork .vd-pagi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sells-cowork .vd-pagi-btn {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+}
+.sells-cowork .vd-pagi-btn:hover:not(:disabled) { background: var(--bg-2); }
+.sells-cowork .vd-pagi-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* US-SELL-COWORK-R5-POLISH — delta negativo (cor vermelha-suave) */
+.sells-cowork .vd-delta-dn {
+  color: oklch(0.55 0.16 25) !important;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.sells-cowork .vd-kpi-hero .vd-delta-dn { color: oklch(0.65 0.18 25) !important; }
+
+/* PR follow-up — Filtros avançados ▾ (DateFilter + GroupBy + Toggle Lista/Grade) */
+.sells-cowork .vd-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .vd-tabs-grow { flex: 1 1 auto; border-bottom: 0; }
+.sells-cowork .vd-tabs-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.sells-cowork .vd-filters-toggle {
+  appearance: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.sells-cowork .vd-filters-toggle:hover { background: var(--bg-2); }
+.sells-cowork .vd-filters-toggle.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sells-cowork .vd-filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+.sells-cowork .vd-grade-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Fix bug 2026-05-18 "vendas até dia 14" — hint visível pra filter stale.
+ * Aparece acima da linha de status pills quando há filter de data ativo. */
+.sells-cowork .vd-date-filter-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid oklch(0.85 0.05 240);
+  background: oklch(0.97 0.04 240);
+  color: oklch(0.36 0.13 240);
+  font-size: 12.5px;
+}
+.sells-cowork .vd-date-filter-hint.stale {
+  border-color: oklch(0.65 0.18 60);
+  background: oklch(0.96 0.07 60);
+  color: oklch(0.40 0.18 60);
+}
+.sells-cowork .vd-date-filter-hint-ic {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+  color: currentColor;
+}
+.sells-cowork .vd-date-filter-hint-tx {
+  flex: 1;
+  min-width: 0;
+}
+.sells-cowork .vd-date-filter-hint-tx b {
+  font-weight: 600;
+}
+.sells-cowork .vd-date-filter-hint-range {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+.sells-cowork .vd-date-filter-hint-tx small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.sells-cowork .vd-date-filter-hint-clear {
+  appearance: none;
+  background: white;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s;
+}
+.sells-cowork .vd-date-filter-hint-clear:hover {
+  filter: brightness(0.97);
+}

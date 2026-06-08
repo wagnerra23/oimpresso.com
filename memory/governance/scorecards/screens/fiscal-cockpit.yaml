@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Fiscal/Cockpit
+path: resources/js/Pages/Fiscal/Cockpit.tsx
+archetype: dashboard
+persona: eliana
+nota: 82
+nivel: "Advanced"
+baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Cockpit fiscal unificado rico (ribbon KPI, saved-views chips, bulk, drawers NFe/NFSe/Eventos, density) — charter ok, mas layer fx-* fora do DS e dados mock eager."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 @/Components/ui + primary roxo"
+    fix: "FxShell usa --fx-* / fx-btn / <input> cru + 6-KPI ribbon fora do DS shadcn; alinhar com tokens DS"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Inertia::defer (ver Nfe.tsx)"
+    fix: "notasMock vem eager no controller (sem Deferred como nas irmas Nfe/Nfse/Dfe)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Linear single-source filter"
+    fix: "Filtro client-side local (TODO sync URL) diverge do server-side filter das sub-paginas"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

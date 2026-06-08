@@ -1,0 +1,34 @@
+{
+    "name": "RecurringBilling",
+    "alias": "recurringbilling",
+    "description": "Cobrança recorrente brasileira: assinaturas, Pix Automático, smart retries, NFSe automática, régua de inadimplência.",
+    "keywords": ["assinatura", "subscription", "pix-automatico", "boleto-recorrente", "dunning", "mrr"],
+    "priority": 0,
+    "providers": [
+        "Modules\\RecurringBilling\\Providers\\RecurringBillingServiceProvider"
+    ],
+    "files": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Assinaturas/Pix Auto/boleto recorrente/dunning cross-vertical útil pra qualquer empresa BR com cobrança recorrente, padrão Service/Job horizontal",
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Subscription/Invoice status (trialing/active/paused/past_due/canceled e open/paid/overdue/canceled) sao state machines simples lineares geridas pelo AssinaturaCobrancaService + listeners (InvoicePaid emite NFe). NAO usam FSM canon (ADR 0143) porque nao tem 11 stages × 21 actions × roles — granularidade overkill. Convencao: dunning regua pode virar FSM futuramente (US-RB-013) mas hoje e regra simples retry."
+    },
+    "retention_days": 1825,
+    "retention_config": "Modules/RecurringBilling/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": [
+            "contact.tax_number",
+            "contact.mobile",
+            "contact.email",
+            "rb_boleto_credentials.config_json",
+            "rb_charge_attempts.request_json",
+            "rb_charge_attempts.response_json"
+        ],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "Modules/RecurringBilling/Config/retention.php"
+    }
+}

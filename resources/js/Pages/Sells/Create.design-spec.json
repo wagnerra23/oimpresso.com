@@ -1,0 +1,52 @@
+{
+  "screen": "Sells/Create",
+  "path": "resources/js/Pages/Sells/Create.tsx",
+  "measured_against_sha": "5c6c557f5",
+  "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
+  "shell": [
+    "AppShellV2"
+  ],
+  "components": {
+    "ui": [
+      "Button",
+      "Card",
+      "CardContent",
+      "CardHeader",
+      "CardTitle",
+      "Checkbox",
+      "Input",
+      "Label",
+      "Textarea"
+    ],
+    "shared": [
+      "EmptyState",
+      "MercosulPlate"
+    ],
+    "layout": [],
+    "local": [
+      "NumericInputPtBR (./_components/NumericInputPtBR)",
+      "PaymentRow (./_components/PaymentRow)",
+      "QuickAddVehicleSheet (./_components/QuickAddVehicleSheet)",
+      "dropdownEntries (./_components/dropdownEntries)",
+      "type Payment (./_components/PaymentRow)"
+    ]
+  },
+  "hooks": [
+    "useAuth",
+    "useBusiness"
+  ],
+  "violations": {
+    "raw_oklch": 0,
+    "raw_hex": 0,
+    "hardcoded_px": 6,
+    "inline_style": 0,
+    "native_select": 0,
+    "native_input": 1
+  },
+  "totals": {
+    "canon_components": 11,
+    "local_components": 5,
+    "uses_layout_primitives": false,
+    "structural_violations": 7
+  }
+}

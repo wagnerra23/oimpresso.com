@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Sells/Edit
+path: resources/js/Pages/Sells/Edit.tsx
+archetype: form
+persona: larissa
+nota: 79
+nivel: "Advanced"
+baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Edit deferred com skeleton, autosave per-venda, FSM-safe e paridade Create; cai por selects nativos, confirm()/alert() nativos e cores cruas."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Aesthetic-usability"
+    best_of_class: "Stripe: Select estilizado consistente"
+    fix: "Status/desconto/responsavel usam <select> nativo hand-roll em vez do componente Select @/Components/ui"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Linear: dialog in-app"
+    fix: "Substituir confirm() e alert() nativos (recover draft, >5MB) por AlertDialog shadcn (Create ja fez)"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "tokens semanticos"
+    fix: "amber/emerald hardcoded nos KPI; alinhar com tokens como na pendencia do Create"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

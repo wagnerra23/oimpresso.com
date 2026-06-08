@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kucherenko/jscpd/master/packages/jscpd/schemas/jscpd.json",
+  "path": ["resources/js"],
+  "pattern": "**/*.{ts,tsx}",
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.d.ts",
+    "resources/js/actions/**",
+    "resources/js/routes/**",
+    "resources/js/wayfinder/**"
+  ],
+  "minTokens": 50,
+  "threshold": 5.5,
+  "reporters": ["console", "json"],
+  "output": "./report/jscpd",
+  "absolute": true,
+  "gitignore": true
+}

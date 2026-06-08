@@ -1,0 +1,67 @@
+/*
+ * PR K (2026-05-25) US-FIN-025 — Mobile responsive Financeiro.
+ *
+ * Auditoria 2026-05-25: charter v8 Non-Goal #8 ("Mobile responsive — F1 só
+ * desktop ≥1024px") fica RESOLVIDO em modo "MVP usável" (não pixel-perfect):
+ *   - KPI strip: 5 cols (>=1024) → 2 cols (768-1023) → 1 col (<768)
+ *   - Toolbar filtros: flex-wrap pra evitar overflow
+ *   - Tabela: scroll horizontal preservando densidade desktop
+ *   - Drawer Sheet: width auto até 92vw (já configurado em sheet shadcn)
+ *
+ * Persona Eliana continua desktop fixo — mas Wagner em viagem ou Larissa
+ * checando do celular ganham um fallback funcional. NÃO substitui app nativo.
+ *
+ * Escopo enxuto: zero JS, só CSS @media. Pode evoluir pra cards stack 2×2 +
+ * lista mobile cardificada em PR futuro se sinal qualificado aparecer
+ * (ADR 0105 — cliente reportar mobile dor real).
+ */
+
+@media (max-width: 1023px) {
+  /* KPI strip — 5 colunas viram 2 (medio) ou 1 (pequeno) */
+  .fin-cowork .fin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+  /* Hero card spanning full width em medio/mobile */
+  .fin-cowork .fin-stats .fin-stat-hero {
+    grid-column: 1 / -1;
+  }
+  /* Toolbar filtros wrap em mobile/tablet */
+  .fin-cowork .fin-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .fin-cowork .fin-filter-group {
+    flex-wrap: wrap;
+  }
+  /* Header page menor em mobile (ícone + título + sub em coluna) */
+  .fin-cowork .os-page-h {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .fin-cowork .os-page-h-r {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Stack KPI 1 coluna em mobile */
+  .fin-cowork .fin-stats {
+    grid-template-columns: 1fr !important;
+  }
+  /* Tabela scrolla horizontal preservando densidade canon */
+  .fin-cowork .fin-curadoria > .mt-3,
+  .fin-cowork .fin-curadoria > .CardContent > div {
+    overflow-x: auto;
+  }
+  /* Footer summary compacto */
+  .fin-cowork .fin-footer-tips {
+    flex-wrap: wrap;
+    font-size: 11px;
+  }
+  /* Drawer occupy full width em mobile */
+  .fin-cowork [role="dialog"] {
+    max-width: 100vw !important;
+  }
+}

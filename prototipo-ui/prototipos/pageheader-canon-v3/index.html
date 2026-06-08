@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PageHeader Canon v3 — Protótipo</title>
+<style>
+/* ============================================================
+   TOKENS BASE — light/dark + density
+   ============================================================ */
+:root {
+  --background:       0 0% 100%;
+  --foreground:       222 47% 11%;
+  --muted:            210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border:           214 32% 91%;
+  --accent:           210 40% 96%;
+  --rose-700:         336 64% 38%;
+  --amber-700:        26 86% 36%;
+  --emerald-700:      155 79% 26%;
+  --amber-50:         48 100% 96%;
+  --amber-200:        48 96% 76%;
+  --amber-900:        38 86% 22%;
+
+  --ease-snap:   cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-soft:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-instant:  60ms;
+  --t-fast:     120ms;
+  --t-base:     180ms;
+  --t-slow:     280ms;
+  --t-shimmer:  1500ms;
+}
+[data-theme="dark"] {
+  --background:       222 47% 11%;
+  --foreground:       210 40% 98%;
+  --muted:            217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --border:           217 33% 22%;
+  --accent:           217 33% 17%;
+  --rose-700:         336 70% 65%;
+  --amber-700:        38 92% 55%;
+  --emerald-700:      155 64% 58%;
+  --amber-50:         38 25% 18%;
+  --amber-200:        38 35% 30%;
+  --amber-900:        38 92% 75%;
+}
+
+/* density */
+:root, [data-density="cozy"] {
+  --page-h-min: 64px;
+  --page-h-pt: 1.25rem;
+  --page-h-pb: 1rem;
+  --page-h-px: 2rem;
+  --page-h-gap: 1.5rem;
+  --page-h-title-size: 22px;
+  --page-h-tab-h: 36px;
+  --page-h-tab-size: 13.5px;
+  --page-h-btn-h: 36px;
+  --page-h-btn-size: 13px;
+}
+[data-density="compact"] {
+  --page-h-min: 56px;
+  --page-h-pt: 0.75rem; --page-h-pb: 0.5rem;
+  --page-h-px: 1.5rem; --page-h-gap: 1rem;
+  --page-h-title-size: 18px;
+  --page-h-tab-h: 32px; --page-h-tab-size: 13px;
+  --page-h-btn-h: 32px; --page-h-btn-size: 12.5px;
+}
+[data-density="comfortable"] {
+  --page-h-min: 80px;
+  --page-h-pt: 1.5rem; --page-h-pb: 1.25rem;
+  --page-h-px: 2.5rem; --page-h-gap: 2rem;
+  --page-h-title-size: 24px;
+  --page-h-tab-h: 40px; --page-h-tab-size: 14px;
+  --page-h-btn-h: 40px; --page-h-btn-size: 13.5px;
+}
+
+/* hue per group */
+.fin-cowork     { --page-primary: oklch(0.55 0.15 145); --btn-hue: 145; }
+.cadastro-scope { --page-primary: oklch(0.55 0.15 202); --btn-hue: 202; }
+.comercial      { --page-primary: oklch(0.55 0.15 55);  --btn-hue: 55;  }
+.producao       { --page-primary: oklch(0.55 0.15 8);   --btn-hue: 8;   }
+[data-theme="dark"] .fin-cowork     { --page-primary: oklch(0.60 0.15 145); }
+[data-theme="dark"] .cadastro-scope { --page-primary: oklch(0.60 0.15 202); }
+
+/* ============================================================
+   RESET + body
+   ============================================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; }
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 2rem;
+  min-height: 100vh;
+}
+h2.demo-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  margin: 2rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.demo-card {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.demo-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+}
+.demo-controls label {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.demo-controls select {
+  padding: 4px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 13px;
+}
+.demo-content {
+  padding: 1rem 2rem;
+  background: hsl(var(--muted));
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  min-height: 80px;
+}
+
+/* ============================================================
+   PAGE HEADER CANON v3
+   ============================================================ */
+.os-page-h {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--page-h-gap);
+  padding: var(--page-h-pt) var(--page-h-px) var(--page-h-pb);
+  min-height: var(--page-h-min);
+  background: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}
+.page-h-zone-l { flex: 1; min-width: 0; }
+.page-h-title {
+  font-size: var(--page-h-title-size);
+  font-weight: 600;
+  letter-spacing: -0.011em;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-h-title-suffix { color: hsl(var(--muted-foreground)); font-weight: 600; }
+.page-h-subtitle {
+  font-size: 13.5px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.page-h-metric-alert   { color: hsl(var(--rose-700));    font-weight: 500; }
+.page-h-metric-warn    { color: hsl(var(--amber-700));   font-weight: 500; }
+.page-h-metric-success { color: hsl(var(--emerald-700)); font-weight: 500; }
+
+/* nav */
+.page-h-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  align-self: stretch;
+  flex-shrink: 0;
+  max-width: 60%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.page-h-nav::-webkit-scrollbar { display: none; }
+.page-h-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: var(--page-h-tab-h);
+  font-size: var(--page-h-tab-size);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition:
+    color var(--t-fast) var(--ease-smooth),
+    border-color var(--t-fast) var(--ease-smooth);
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.page-h-tab:hover {
+  color: hsl(var(--foreground));
+  border-bottom-color: hsl(var(--border));
+}
+.page-h-tab[aria-current="page"] {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  border-bottom-color: var(--page-primary);
+}
+.page-h-tab:focus-visible {
+  outline: 2px solid var(--page-primary);
+  outline-offset: 2px;
+}
+.page-h-tab-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+  transition: opacity var(--t-fast) var(--ease-smooth);
+}
+.page-h-tab[aria-current="page"] .page-h-tab-icon { opacity: 1; }
+
+/* zona R */
+.page-h-zone-r {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.page-h-overflow, .page-h-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast) var(--ease-smooth),
+    border-color var(--t-fast) var(--ease-smooth),
+    color var(--t-fast) var(--ease-smooth),
+    transform var(--t-instant) var(--ease-snap);
+  font-family: inherit;
+}
+.page-h-overflow {
+  width: var(--page-h-btn-h);
+  height: var(--page-h-btn-h);
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.page-h-overflow:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+.page-h-primary {
+  height: var(--page-h-btn-h);
+  padding: 0 12px;
+  gap: 6px;
+  font-size: var(--page-h-btn-size);
+  font-weight: 500;
+  color: white;
+  background: oklch(0.55 0.15 var(--btn-hue));
+  border: 1px solid oklch(0.45 0.15 var(--btn-hue));
+}
+.page-h-primary:hover {
+  background: oklch(0.48 0.16 var(--btn-hue));
+  border-color: oklch(0.38 0.16 var(--btn-hue));
+}
+.page-h-primary:active {
+  transform: scale(0.97);
+}
+.page-h-primary:focus-visible {
+  outline: 2px solid oklch(0.55 0.15 var(--btn-hue));
+  outline-offset: 2px;
+}
+.page-h-primary[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* skeleton */
+.skel {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.08) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer var(--t-shimmer) linear infinite;
+  border-radius: 4px;
+}
+.skel-title { width: 220px; height: 33px; }
+.skel-subtitle { width: 280px; height: 16px; margin-top: 4px; }
+.skel-tab { height: 36px; border-radius: 4px 4px 0 0; }
+.skel-overflow { width: 36px; height: 36px; border-radius: 6px; }
+.skel-primary { width: 130px; height: 36px; border-radius: 6px; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* offline banner */
+.page-h-offline-banner {
+  background: hsl(var(--amber-50));
+  border-bottom: 1px solid hsl(var(--amber-200));
+  color: hsl(var(--amber-900));
+  font-size: 13px;
+  padding: 0.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+[data-online="false"] .page-h-primary {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<h1 style="font-size: 24px; font-weight: 600; margin-bottom: 0.25rem;">PageHeader Canon v3 — Protótipo</h1>
+<p style="color: hsl(var(--muted-foreground)); font-size: 13.5px; margin-bottom: 1.5rem;">
+  Use os controles abaixo pra alternar tema, densidade, grupo, estado loading/offline.
+</p>
+
+<div class="demo-controls">
+  <label>Tema:
+    <select id="theme">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </label>
+  <label>Densidade:
+    <select id="density">
+      <option value="compact">Compact</option>
+      <option value="cozy" selected>Cozy</option>
+      <option value="comfortable">Comfortable</option>
+    </select>
+  </label>
+  <label>Grupo:
+    <select id="group">
+      <option value="cadastro-scope">Cadastro (ciano)</option>
+      <option value="fin-cowork">Financas (verde)</option>
+      <option value="comercial">Comercial (ambar)</option>
+      <option value="producao">Producao (vermelho)</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="loading"> Loading</label>
+  <label><input type="checkbox" id="offline"> Offline</label>
+</div>
+
+<h2 class="demo-title">1 · Header canon completo (interativo)</h2>
+<div class="demo-card" id="demo-1">
+  <!-- offline banner injected by JS -->
+  <header class="os-page-h cadastro-scope" data-density="cozy" role="banner" id="header-main">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">
+        Clientes<span class="page-h-title-suffix"> · cadastro</span>
+      </h1>
+      <p class="page-h-subtitle">
+        31 cadastrados · 4 ativos
+        <strong class="page-h-metric-alert"> · 2 com saldo</strong>
+      </p>
+    </div>
+
+    <nav class="page-h-nav" aria-label="Sub-navegacao">
+      <a class="page-h-tab" href="#all">
+        <svg class="page-h-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Todos
+      </a>
+      <a class="page-h-tab" href="#cli" aria-current="page">
+        <svg class="page-h-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M17 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clientes
+      </a>
+      <a class="page-h-tab" href="#sup">
+        <svg class="page-h-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Fornecedores
+      </a>
+      <a class="page-h-tab" href="#emp">
+        <svg class="page-h-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Funcionarios
+      </a>
+      <a class="page-h-tab" href="#rep">
+        <svg class="page-h-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+        Representantes
+      </a>
+    </nav>
+
+    <div class="page-h-zone-r">
+      <button class="page-h-overflow" aria-label="Mais acoes" title="Importar / Exportar / Grupos">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      </button>
+      <button class="page-h-primary" id="primary-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo cliente
+      </button>
+    </div>
+  </header>
+  <div class="demo-content">Conteudo da pagina (lista de clientes, KPIs, etc.) viria aqui abaixo do header.</div>
+</div>
+
+<h2 class="demo-title">2 · Loading skeleton</h2>
+<div class="demo-card">
+  <header class="os-page-h cadastro-scope" data-density="cozy">
+    <div class="page-h-zone-l">
+      <div class="skel skel-title"></div>
+      <div class="skel skel-subtitle"></div>
+    </div>
+    <nav class="page-h-nav">
+      <div class="skel skel-tab" style="width: 80px"></div>
+      <div class="skel skel-tab" style="width: 100px"></div>
+      <div class="skel skel-tab" style="width: 130px"></div>
+      <div class="skel skel-tab" style="width: 115px"></div>
+      <div class="skel skel-tab" style="width: 130px"></div>
+    </nav>
+    <div class="page-h-zone-r">
+      <div class="skel skel-overflow"></div>
+      <div class="skel skel-primary"></div>
+    </div>
+  </header>
+  <div class="demo-content">Skeleton: layout reservado (CLS = 0), shimmer 1.5s linear loop.</div>
+</div>
+
+<h2 class="demo-title">3 · Offline state</h2>
+<div class="demo-card" data-online="false">
+  <div class="page-h-offline-banner">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+    Sem conexao — alteracoes vao sincronizar quando voltar
+  </div>
+  <header class="os-page-h cadastro-scope" data-density="cozy">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Clientes<span class="page-h-title-suffix"> · cadastro</span></h1>
+      <p class="page-h-subtitle">31 cadastrados · 4 ativos</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page">Todos</a>
+      <a class="page-h-tab" href="#">Clientes</a>
+      <a class="page-h-tab" href="#">Fornecedores</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="page-h-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="page-h-primary" disabled>+ Novo cliente</button>
+    </div>
+  </header>
+</div>
+
+<h2 class="demo-title">4 · Comparativo grupos (hue per scope)</h2>
+<div class="demo-card">
+  <header class="os-page-h fin-cowork" data-density="cozy" style="border-bottom: 1px solid hsl(var(--border));">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Cobranca<span class="page-h-title-suffix"> · Boletos e PIX</span></h1>
+      <p class="page-h-subtitle">0 em aberto · gestao de remessa/retorno + gateways</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#">Caixa</a>
+      <a class="page-h-tab" href="#" aria-current="page">Cobranca</a>
+      <a class="page-h-tab" href="#">Financeiro</a>
+      <a class="page-h-tab" href="#">Relatorio</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="page-h-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="page-h-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova cobranca</button>
+    </div>
+  </header>
+  <header class="os-page-h comercial" data-density="cozy" style="border-bottom: 1px solid hsl(var(--border));">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Vendas</h1>
+      <p class="page-h-subtitle">14 hoje · R$ [redacted Tier 0] · 3 pendentes</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page">Pedidos</a>
+      <a class="page-h-tab" href="#">Carrinhos</a>
+      <a class="page-h-tab" href="#">Devolucoes</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="page-h-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="page-h-primary">+ Nova venda</button>
+    </div>
+  </header>
+  <header class="os-page-h producao" data-density="cozy">
+    <div class="page-h-zone-l">
+      <h1 class="page-h-title">Producao</h1>
+      <p class="page-h-subtitle">8 OS abertas · 3 atrasadas</p>
+    </div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page">Kanban</a>
+      <a class="page-h-tab" href="#">Lista</a>
+    </nav>
+    <div class="page-h-zone-r">
+      <button class="page-h-overflow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+      <button class="page-h-primary">+ Nova OS</button>
+    </div>
+  </header>
+</div>
+
+<h2 class="demo-title">5 · Densidades lado a lado (mesmo conteudo)</h2>
+<div class="demo-card">
+  <header class="os-page-h cadastro-scope" data-density="compact">
+    <div class="page-h-zone-l"><h1 class="page-h-title">Compact 56px</h1><p class="page-h-subtitle">power-user · maxima densidade</p></div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page">Todos</a>
+      <a class="page-h-tab" href="#">Clientes</a>
+      <a class="page-h-tab" href="#">Fornec</a>
+    </nav>
+    <div class="page-h-zone-r"><button class="page-h-primary">+ Novo</button></div>
+  </header>
+  <header class="os-page-h cadastro-scope" data-density="cozy">
+    <div class="page-h-zone-l"><h1 class="page-h-title">Cozy 64px (default)</h1><p class="page-h-subtitle">Larissa · padrao</p></div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page">Todos</a>
+      <a class="page-h-tab" href="#">Clientes</a>
+      <a class="page-h-tab" href="#">Fornecedores</a>
+    </nav>
+    <div class="page-h-zone-r"><button class="page-h-primary">+ Novo cliente</button></div>
+  </header>
+  <header class="os-page-h cadastro-scope" data-density="comfortable">
+    <div class="page-h-zone-l"><h1 class="page-h-title">Comfortable 80px</h1><p class="page-h-subtitle">acessibilidade visual · zoom 125%</p></div>
+    <nav class="page-h-nav">
+      <a class="page-h-tab" href="#" aria-current="page">Todos</a>
+      <a class="page-h-tab" href="#">Clientes</a>
+      <a class="page-h-tab" href="#">Fornecedores</a>
+    </nav>
+    <div class="page-h-zone-r"><button class="page-h-primary">+ Novo cliente</button></div>
+  </header>
+</div>
+
+<p style="margin-top: 2rem; padding: 1rem; background: hsl(var(--muted)); border-radius: 6px; font-size: 13px; color: hsl(var(--muted-foreground)); line-height: 1.6;">
+  <strong>O que tu deve julgar:</strong><br>
+  1. Altura do header esta bem proporcional? (1 linha conteudo / 2 linhas com subtitulo)<br>
+  2. Tabs alinhadas verticalmente com primary? (mesma baseline visual)<br>
+  3. Border do primary coerente com o bg? (mesmo hue, escuro)<br>
+  4. Underline da tab ativa &quot;morde&quot; a linha do header?<br>
+  5. Hover nos tabs e suave (120ms)?<br>
+  6. Press no primary tem feedback (scale 0.97)?<br>
+  7. Loading skeleton ocupa MESMO espaco (CLS = 0)?<br>
+  8. Comparativo entre grupos (ciano/verde/ambar/vermelho) mantem coerencia?<br>
+  9. Densidades compact/cozy/comfortable fazem sentido?<br>
+  10. Tema dark mantem contraste WCAG AA?<br>
+  <br>
+  Aprovar &rarr; codificar componente &lt;PageHeader&gt; + aplicar em Cliente/Index + Cobranca + roadmap migration.
+</p>
+
+<script>
+const $theme = document.getElementById('theme');
+const $density = document.getElementById('density');
+const $group = document.getElementById('group');
+const $loading = document.getElementById('loading');
+const $offline = document.getElementById('offline');
+const $header = document.getElementById('header-main');
+const $demo1 = document.getElementById('demo-1');
+
+$theme.addEventListener('change', () => document.documentElement.dataset.theme = $theme.value);
+$density.addEventListener('change', () => $header.dataset.density = $density.value);
+$group.addEventListener('change', () => {
+  $header.className = 'os-page-h ' + $group.value;
+});
+$loading.addEventListener('change', () => {
+  if ($loading.checked) {
+    $header.style.display = 'none';
+    if (!document.getElementById('skel-header')) {
+      const skel = document.createElement('header');
+      skel.id = 'skel-header';
+      skel.className = 'os-page-h cadastro-scope';
+      skel.dataset.density = $density.value;
+      skel.innerHTML = `
+        <div class="page-h-zone-l">
+          <div class="skel skel-title"></div>
+          <div class="skel skel-subtitle"></div>
+        </div>
+        <nav class="page-h-nav">
+          <div class="skel skel-tab" style="width: 80px"></div>
+          <div class="skel skel-tab" style="width: 100px"></div>
+          <div class="skel skel-tab" style="width: 130px"></div>
+          <div class="skel skel-tab" style="width: 115px"></div>
+          <div class="skel skel-tab" style="width: 130px"></div>
+        </nav>
+        <div class="page-h-zone-r">
+          <div class="skel skel-overflow"></div>
+          <div class="skel skel-primary"></div>
+        </div>`;
+      $demo1.insertBefore(skel, $header);
+    }
+  } else {
+    $header.style.display = '';
+    document.getElementById('skel-header')?.remove();
+  }
+});
+$offline.addEventListener('change', () => {
+  if ($offline.checked) {
+    if (!document.getElementById('offline-banner')) {
+      const banner = document.createElement('div');
+      banner.id = 'offline-banner';
+      banner.className = 'page-h-offline-banner';
+      banner.setAttribute('role', 'status');
+      banner.setAttribute('aria-live', 'polite');
+      banner.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        Sem conexao — alteracoes vao sincronizar quando voltar`;
+      $demo1.insertBefore(banner, $demo1.firstChild);
+    }
+    $demo1.dataset.online = 'false';
+    document.getElementById('primary-btn').setAttribute('disabled', '');
+  } else {
+    document.getElementById('offline-banner')?.remove();
+    $demo1.dataset.online = 'true';
+    document.getElementById('primary-btn').removeAttribute('disabled');
+  }
+});
+
+// haptic feedback no primary (mobile)
+document.getElementById('primary-btn')?.addEventListener('click', () => {
+  if (navigator.vibrate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    navigator.vibrate(10);
+  }
+});
+</script>
+
+</body>
+</html>

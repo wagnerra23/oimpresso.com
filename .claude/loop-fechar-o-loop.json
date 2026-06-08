@@ -1,0 +1,90 @@
+{
+  "_automation_registry": true,
+  "slug": "loop-fechar-o-loop",
+  "tipo": "routine",
+  "gatilho": "SessionStart pos brief-fetch",
+  "descricao": "Rotina IA-OS Fechar o Loop: verifica idempotentemente os 4 gaps P0 da auditoria IA-OS (RAGAS CI, drift sentinel, observability, LGPD purge) e aponta o proximo pendente. NUNCA toca Brain B/autonomia.",
+  "arquivo": ".claude/hooks/loop-fechar-check.ps1",
+  "owner": "wagner",
+  "governed_by_adr": "automation-registry-mcp",
+  "enabled": true,
+  "_titulo": "Rotina 'Fechar o Loop' do IA-OS",
+  "_origem": "AUDIT IA-OS 2026-05-29 (nota 68/100). Wagner: criar rotina idempotente atrelada ao brief que verifica o que ja foi feito e avanca o que falta.",
+  "_decisao_wagner": "NAO ligar o 2o cerebro (Brain B / autonomia ADS - gap #1). Custo que ele nao quer fazer agora. Esta rotina NUNCA toca Brain B, ADS routing, nem ads-route.",
+  "_como_funciona": "Hook SessionStart .claude/hooks/loop-fechar-check.ps1 le este arquivo a cada brief. Para itens code-based: 'feito' = artefato existe no repo (detect file_any). Para item de infra (#4): 'feito' = flag done manual (vira true apos deploy+smoke). Mostra o PROXIMO pendente e Claude pergunta ao Wagner se faz na hora.",
+  "_ordem_racional": "Custo-zero primeiro (#2,#3,#6). Item com mensalidade recorrente (#4 Langfuse) por ultimo, gated na aprovacao do Wagner igual a decisao do Brain B.",
+  "atualizado_em": "2026-05-29",
+  "itens": [
+    {
+      "id": "loop-2-ragas-ci",
+      "gap": 2,
+      "ordem": 1,
+      "prioridade": "P0",
+      "titulo": "RAGAS gate em CI (gold-set 30q bloqueia PR que toca Modules/Jana/Ai ou Services/Memoria)",
+      "custo_recorrente": "R$ [redacted Tier 0] infra (~R$ [redacted Tier 0]-10/mes LLM eval)",
+      "precisa_aprovacao_wagner": false,
+      "detect": {
+        "tipo": "file_any",
+        "paths": [
+          ".github/workflows/ragas-canary.yml",
+          "Modules/Jana/Tests/Feature/Ai/RagasCanaryGateTest.php"
+        ]
+      },
+      "done": false,
+      "ref": "AUDIT-SENIOR-2026-05-25 G2 + IA-MATURITY-FICHA gap#1"
+    },
+    {
+      "id": "loop-3-drift-sentinel",
+      "gap": 3,
+      "ordem": 2,
+      "prioridade": "P0",
+      "titulo": "Drift sentinel / canary semanal + alerta (recall<80% ou halluc>5%)",
+      "custo_recorrente": "R$ [redacted Tier 0] infra",
+      "precisa_aprovacao_wagner": false,
+      "detect": {
+        "tipo": "file_any",
+        "paths": [
+          "scripts/ragas-eval.py",
+          ".github/workflows/jana-canary-semanal.yml"
+        ]
+      },
+      "done": false,
+      "ref": "IA-MATURITY-FICHA gap#2 + RUNBOOK-ragas-canary.md"
+    },
+    {
+      "id": "loop-6-lgpd-purge",
+      "gap": 6,
+      "ordem": 3,
+      "prioridade": "P0",
+      "titulo": "LGPD purge job (jana:retention-purge) + DSR Art.18 SVI (LgpdEsquecerTitularTool)",
+      "custo_recorrente": "R$ [redacted Tier 0]",
+      "precisa_aprovacao_wagner": true,
+      "nota_aprovacao": "Codigo pode ser feito; ativar JANA_RETENTION_ENABLED=true em prod exige canary 7d biz=1 + sign-off Wagner. NUNCA roda automated em biz=4 Larissa (ADR 0101).",
+      "detect": {
+        "tipo": "file_any",
+        "paths": [
+          "Modules/Jana/Console/Commands/RetentionPurgeCommand.php",
+          "Modules/Jana/Services/Privacy/RetentionPurgeService.php"
+        ]
+      },
+      "done": false,
+      "ref": "AUDIT-SENIOR-2026-05-25 G1 + Config/retention.php"
+    },
+    {
+      "id": "loop-4-observability",
+      "gap": 4,
+      "ordem": 4,
+      "prioridade": "P0",
+      "titulo": "Ligar Langfuse + OTel collector CT 100 (painel custo/latencia/halluc)",
+      "custo_recorrente": "R$ [redacted Tier 0]-80/mes CT 100 (Postgres+ClickHouse)",
+      "precisa_aprovacao_wagner": true,
+      "nota_aprovacao": "Mensalidade recorrente - mesma regua do Brain B. So avancar com OK explicito de orcamento do Wagner. ADR 0132 ja decidiu a arquitetura; falta ligar.",
+      "detect": {
+        "tipo": "manual",
+        "como_marcar": "Apos deploy Langfuse no CT 100 + OtelExportSmokeTest verde, mudar 'done' para true aqui."
+      },
+      "done": false,
+      "ref": "ADR 0132 + AUDIT-SENIOR-2026-05-25 G3 + IA-MATURITY-FICHA gap#3"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+name: Screen Smoke After Merge
+
+# W30 Agent C — Workflow GHA pra disparar skill `tela-smoke-pos-merge`
+# automaticamente após merge em main que toque Pages .tsx.
+#
+# Pattern:
+#   1. push em main com paths matching resources/js/Pages/**/*.tsx
+#   2. Diff HEAD~1..HEAD detecta telas modificadas
+#   3. Matrix job comenta no último PR mergeado avisando smoke pendente
+#   4. Workflow_dispatch permite Wagner forçar smoke manual
+#
+# Limitação atual: skill `tela-smoke-pos-merge` ainda não invocável remoto
+# via API Claude Code. Workflow registra notice + comment pra Wagner ver na
+# UI /admin/screen-review e decidir quando rodar (cron daily 09:00 BRT ou
+# invocação manual via gh workflow run).
+#
+# Tier 0:
+#   - Job não escreve em git (zero ops destrutivas)
+#   - GITHUB_TOKEN scope default (read repo + write PR comment)
+#
+# @see .claude/skills/tela-smoke-pos-merge/SKILL.md (W30-A)
+# @see memory/decisions/0164-skill-tela-smoke-pos-merge.md (W30-A proposta)
+# @see Modules/Admin/Http/Controllers/ScreenReviewController.php (W30-B)
+# @see memory/requisitos/Admin/SCREEN-REVIEW-RUNBOOK.md (W30-C operacional)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+  workflow_dispatch:
+    inputs:
+      screen_path:
+        description: 'Path tela (ex: Admin/GovernanceV4 — sem .tsx)'
+        required: true
+        type: string
+      force_smoke:
+        description: 'Force re-smoke mesmo se status=approved'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect-screens-changed:
+    name: Detectar telas .tsx modificadas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      screens: ${{ steps.diff.outputs.screens }}
+      count: ${{ steps.diff.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detectar Pages tsx modificados (HEAD~1..HEAD)
+        id: diff
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual: lista única vinda do input
+            screens=$(printf '%s' "${{ github.event.inputs.screen_path }}" | jq -R -s -c 'split("\n")[:-1] // [.]')
+            echo "screens=$screens" >> "$GITHUB_OUTPUT"
+            echo "count=1" >> "$GITHUB_OUTPUT"
+          else
+            # Push: detecta diff
+            changed=$(git diff --name-only HEAD~1 HEAD -- 'resources/js/Pages/**/*.tsx' || true)
+            if [ -z "$changed" ]; then
+              echo "screens=[]" >> "$GITHUB_OUTPUT"
+              echo "count=0" >> "$GITHUB_OUTPUT"
+            else
+              screens=$(echo "$changed" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+              count=$(echo "$changed" | grep -c . || echo 0)
+              echo "screens=$screens" >> "$GITHUB_OUTPUT"
+              echo "count=$count" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Resumo no log
+        run: |
+          echo "::notice title=Screen Smoke::Telas detectadas: ${{ steps.diff.outputs.count }}"
+          echo "Lista: ${{ steps.diff.outputs.screens }}"
+
+  smoke-screen:
+    name: Smoke pendente por tela
+    needs: detect-screens-changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: needs.detect-screens-changed.outputs.count != '0' && needs.detect-screens-changed.outputs.screens != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        screen: ${{ fromJson(needs.detect-screens-changed.outputs.screens) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Registrar smoke pendente
+        run: |
+          echo "::notice title=Smoke pendente::${{ matrix.screen }}"
+          echo "Skill tela-smoke-pos-merge ainda não invocável via API remota."
+          echo "Wagner deve invocar manual via /admin/screen-review OU cron daily 09:00 BRT."
+
+      - name: Comentar no último PR mergeado (push event)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          last_pr=$(gh pr list --base main --state merged --limit 1 --json number --jq '.[0].number' || echo "")
+          if [ -z "$last_pr" ]; then
+            echo "::warning::Sem PR mergeado recente — sem destino pra comentário."
+            exit 0
+          fi
+          screen_slug=$(basename "${{ matrix.screen }}" .tsx)
+          body=$(cat <<EOF
+          ## Screen Smoke pendente
+
+          Tela modificada: \`${{ matrix.screen }}\`
+
+          ### Próximas ações
+          1. **Wagner** valida via UI: https://oimpresso.com/admin/screen-review (Tailscale-only)
+          2. **OU** invoca workflow manual:
+             \`\`\`bash
+             gh workflow run screen-smoke-after-merge.yml \\
+               -f screen_path="${screen_slug}" \\
+               -f force_smoke=true
+             \`\`\`
+          3. **OU** cron daily 09:00 BRT roda batch das telas pending automaticamente
+
+          ### Onde ler
+          - Skill: \`.claude/skills/tela-smoke-pos-merge/SKILL.md\`
+          - Runbook operacional: \`memory/requisitos/Admin/SCREEN-REVIEW-RUNBOOK.md\`
+          - ADR: \`memory/decisions/0164-skill-tela-smoke-pos-merge.md\`
+
+          _Workflow gerado por \`.github/workflows/screen-smoke-after-merge.yml\` (W30-C)._
+          EOF
+          )
+          gh pr comment "$last_pr" --body "$body" || echo "::warning::Falha ao comentar — pode ser PR já fechado/arquivado"
+
+      - name: Resumo workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "::notice title=Manual run::Screen=${{ matrix.screen }} force_smoke=${{ github.event.inputs.force_smoke }}"
+          echo "Smoke real ainda manual — abra /admin/screen-review e dispare via UI."

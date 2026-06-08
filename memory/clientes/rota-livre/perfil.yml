@@ -1,0 +1,49 @@
+slug: rota-livre
+nome_fantasia: ROTA LIVRE
+razao_social: ROTA LIVRE COMERCIO DE VESTUARIO LTDA
+business_id: 4
+status: piloto                          # cliente piloto Wagner desde Q1 2026
+plano: starter
+arr_mensal_brl: null                    # piloto — sem cobrança formal ainda
+contato_principal: larissa-rota-livre
+
+ramo: vestuario
+cnae: '4781-4'                          # comércio varejista de vestuário
+sub_segmento: vestuario-feminino-bairro
+tamanho:
+  funcionarios: 2                       # Larissa + 1 vendedora eventual
+  faturamento_mensal_brl: "20k-40k"
+  pontos_venda: 1
+porte: me
+
+localizacao:
+  estado: SP
+  cidade: "São Paulo"
+  bairro: "loja de bairro 8m²"
+
+tech:
+  sistema_anterior: "planilha Excel + caderno fiado"
+  internet: "fibra básica"
+  hardware_principal: "PC desktop balcão + Android celular eventual"
+  uso_mobile: medio                     # POS celular quando trava o PC
+
+modulos_uso:
+  - sells                               # POS balcão 50×/dia
+  - cliente                             # cadastra clientes recorrentes
+  - financeiro                          # contas a receber simples
+features_criticas:
+  - venda balcão rápida (≤5 cliques)
+  - cadastro cliente recorrente (CPF, telefone, WhatsApp)
+  - controle fiado (saldo cliente)
+  - emissão NFC-e (CFe SAT — esperado)
+
+sinal:
+  paga: false                           # piloto Wagner — sinal qualificado via uso ativo
+  reporta_uso: true                     # Larissa reporta fricção semanal
+  feedback_aberto: "memory/clientes/rota-livre/discovery-PROXIMA.md"
+
+tags:
+  - piloto-vestuario
+  - pme-pequena
+  - mobile-eventual
+  - non-tech

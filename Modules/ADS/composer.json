@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/ads",
+    "description": "Adaptive Decision System",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\ADS\\Providers\\AdsServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ADS\\": ""
+        }
+    }
+}

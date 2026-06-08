@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<title>Venda — Exemplo simples (F1)</title>
+<style>
+  :root{
+    --bg:#fafaf9; --ink:#1a1917; --ink-2:#5b574f; --line:#e7e3da;
+    --paper:#fff; --accent:#1f3a5f; --accent-soft:#eaf0f7;
+    --ok:#1f6d3a; --warn:#a35a00; --err:#992020;
+    --r:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+  .wrap{max-width:880px;margin:32px auto;padding:0 24px}
+  h1{font-size:18px;margin:0 0 4px;font-weight:600;letter-spacing:-.01em}
+  .sub{color:var(--ink-2);margin:0 0 24px;font-size:13px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r)}
+  .card + .card{margin-top:12px}
+  .card-head{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px}
+  .card-head .num{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12px}
+  .card-head h2{font-size:13px;margin:0;font-weight:600}
+  .card-head .hint{margin-left:auto;color:var(--ink-2);font-size:12px}
+  .card-body{padding:12px 14px}
+  .row{display:flex;gap:8px;align-items:center}
+  .row + .row{margin-top:6px}
+  .grow{flex:1}
+  input,select{font:inherit;color:inherit;border:1px solid var(--line);background:#fff;border-radius:4px;padding:6px 8px;height:30px}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .input-block{flex:1;display:flex;flex-direction:column;gap:3px}
+  .input-block > span{font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-weight:500;color:var(--ink-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  tfoot td{border-bottom:none;border-top:1px solid var(--line);font-weight:600}
+  td input{height:26px;padding:2px 6px;width:100%}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .add{color:var(--accent);background:transparent;border:1px dashed var(--line);padding:8px;width:100%;border-radius:4px;cursor:pointer;font:inherit}
+  .add:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .x{background:none;border:none;cursor:pointer;color:var(--ink-2);font-size:14px;padding:0 4px}
+  .x:hover{color:var(--err)}
+
+  /* Fiscal block */
+  .fiscal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .doc{border:1px solid var(--line);border-radius:6px;padding:10px;background:#fff;cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:4px;position:relative}
+  .doc:hover{border-color:var(--accent)}
+  .doc.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+  .doc.unavailable{opacity:.55;cursor:not-allowed}
+  .doc-tag{font-size:10px;color:var(--ink-2);font-weight:600;letter-spacing:.06em}
+  .doc-name{font-size:13px;font-weight:600}
+  .doc-desc{font-size:11px;color:var(--ink-2);line-height:1.35}
+  .doc-state{position:absolute;top:8px;right:8px;font-size:10px;padding:1px 6px;border-radius:99px;background:var(--ink);color:#fff}
+  .doc.active .doc-state{background:var(--accent)}
+  .doc-warn{font-size:10px;color:var(--warn);font-weight:600}
+
+  .fiscal-detail{margin-top:10px;padding:10px;background:#fafaf9;border:1px solid var(--line);border-radius:4px;font-size:12px;color:var(--ink-2);line-height:1.5}
+  .fiscal-detail b{color:var(--ink)}
+  .fiscal-detail code{background:#fff;border:1px solid var(--line);padding:1px 5px;border-radius:3px;font-size:11px}
+
+  /* Foot */
+  .foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);position:sticky;bottom:16px}
+  .foot-totals{display:flex;gap:24px;align-items:baseline}
+  .foot-totals .lbl{font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.04em;display:block}
+  .foot-totals .val{font-variant-numeric:tabular-nums;font-size:14px;font-weight:600}
+  .foot-totals .total .val{font-size:18px}
+  .btn{font:inherit;border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:4px;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .btn.primary:hover{background:#173049}
+  .btn.primary:disabled{background:#aaa;border-color:#aaa;cursor:not-allowed}
+
+  .legend{margin-top:24px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:var(--r);font-size:12px;color:var(--ink-2)}
+  .legend h3{margin:0 0 6px;font-size:11px;color:var(--ink);text-transform:uppercase;letter-spacing:.05em}
+  .legend ul{margin:0;padding-left:18px}
+  .legend li + li{margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Nova venda — exemplo simples</h1>
+  <p class="sub">Tela mínima: cliente · itens · pagamento · documento fiscal. Lê módulos reais do repo (<code style="background:#fff;padding:1px 5px;border:1px solid var(--line);border-radius:3px;font-size:11px">NfeBrasil</code>, <code style="background:#fff;padding:1px 5px;border:1px solid var(--line);border-radius:3px;font-size:11px">NFSe</code>).</p>
+
+  <!-- 1. Cliente -->
+  <section class="card">
+    <header class="card-head"><span class="num">1</span><h2>Cliente</h2><span class="hint">CPF/CNPJ define quais notas estão disponíveis</span></header>
+    <div class="card-body">
+      <div class="row">
+        <div class="input-block grow"><span>Nome ou CNPJ</span><input id="clienteNome" placeholder="Buscar cliente ou digitar..." value="Gráfica Boa Vista LTDA"/></div>
+        <div class="input-block" style="flex:0 0 180px"><span>CNPJ</span><input id="clienteDoc" value="[REDACTED]"/></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Itens -->
+  <section class="card">
+    <header class="card-head"><span class="num">2</span><h2>Itens</h2><span class="hint" id="itensTipo">misto · produto + serviço</span></header>
+    <div class="card-body">
+      <table>
+        <thead><tr><th style="width:50%">Produto/serviço</th><th>Tipo</th><th class="num" style="width:60px">Qtd</th><th class="num" style="width:100px">Unit.</th><th class="num" style="width:110px">Subtotal</th><th style="width:30px"></th></tr></thead>
+        <tbody id="itensBody"></tbody>
+        <tfoot><tr><td colspan="4" class="num">Total bruto</td><td class="num" id="itensTotal">R$ [redacted Tier 0]</td><td></td></tr></tfoot>
+      </table>
+      <div style="margin-top:8px"><button class="add" onclick="addItem()">+ adicionar item</button></div>
+    </div>
+  </section>
+
+  <!-- 3. Pagamento -->
+  <section class="card">
+    <header class="card-head"><span class="num">3</span><h2>Pagamento</h2></header>
+    <div class="card-body">
+      <div class="row">
+        <div class="input-block"><span>Forma</span>
+          <select id="pgForma"><option>Dinheiro</option><option selected>PIX</option><option>Cartão crédito</option><option>Cartão débito</option><option>Boleto</option><option>Faturado 30d</option></select>
+        </div>
+        <div class="input-block"><span>Parcelas</span><select id="pgParc"><option>1×</option><option>2×</option><option>3×</option><option>4×</option><option>6×</option><option>10×</option><option>12×</option></select></div>
+        <div class="input-block grow"><span>Observação</span><input placeholder="Opcional"/></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Documento fiscal -->
+  <section class="card">
+    <header class="card-head"><span class="num">4</span><h2>Documento fiscal</h2><span class="hint">selecione o que será emitido junto com a venda</span></header>
+    <div class="card-body">
+      <div class="fiscal-grid">
+        <button class="doc" data-doc="nfce">
+          <span class="doc-state">recomendado</span>
+          <span class="doc-tag">NFC-e · 65</span>
+          <span class="doc-name">Nota fiscal consumidor</span>
+          <span class="doc-desc">Venda balcão · CPF na nota opcional · DANFE simples</span>
+        </button>
+        <button class="doc" data-doc="nfe">
+          <span class="doc-tag">NF-e · 55</span>
+          <span class="doc-name">Nota fiscal eletrônica</span>
+          <span class="doc-desc">Venda B2B com produto físico · obriga CNPJ · DANFE A4</span>
+        </button>
+        <button class="doc" data-doc="nfse">
+          <span class="doc-tag">NFS-e · LC 214/25</span>
+          <span class="doc-name">Nota fiscal de serviço</span>
+          <span class="doc-desc">Itens marcados como serviço · ISS municipal · Sistema Nacional</span>
+        </button>
+        <button class="doc unavailable" data-doc="mdfe" title="Necessário pra transporte interestadual de carga própria">
+          <span class="doc-state" style="background:#aaa">backlog</span>
+          <span class="doc-tag">MDF-e · 58</span>
+          <span class="doc-name">Manifesto de transporte</span>
+          <span class="doc-desc">Carga própria fora do município · módulo ainda não implementado</span>
+        </button>
+      </div>
+      <div class="fiscal-detail" id="fiscalDetail">Selecione um documento acima.</div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <div class="foot-totals">
+      <div><span class="lbl">Itens</span><span class="val" id="footQtd">0</span></div>
+      <div><span class="lbl">Subtotal</span><span class="val" id="footSub">R$ [redacted Tier 0]</span></div>
+      <div class="total"><span class="lbl">Total</span><span class="val" id="footTotal">R$ [redacted Tier 0]</span></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Salvar rascunho</button>
+      <button class="btn primary" id="btnEmit" disabled>Confirmar e emitir</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h3>Características mínimas — extraídas dos módulos do repo</h3>
+    <ul>
+      <li><b>NFC-e / NF-e</b> (<code>Modules/NfeBrasil</code>): certificado A1/A3, emissão manual, reenvio DANFE por e-mail, download PDF, manifestação destinatário, regras NCM por estado.</li>
+      <li><b>NFS-e</b> (<code>Modules/NFSe</code>): emissão via Sistema Nacional (LC 214/2025), ativada junto com NfeBrasil.</li>
+      <li><b>MDF-e</b>: <b>módulo ainda não existe</b> no repo — entra na tela como backlog explícito pra não criar expectativa indevida.</li>
+      <li>Disponibilidade dinâmica: <b>NF-e</b> exige CNPJ no cliente; <b>NFS-e</b> só aparece se houver item tipo "serviço"; <b>NFC-e</b> é default pra consumidor final.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const ITEMS = [
+    { desc:"Banner lona 4×1m impressão",       tipo:"produto", qtd:2, unit:120 },
+    { desc:"Diagramação folder A4 (serviço)",  tipo:"servico", qtd:1, unit:280 },
+  ];
+  const fmt = (n) => "R$ " + n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  let docSel = "nfce";
+
+  function render(){
+    const tb = document.getElementById("itensBody");
+    tb.innerHTML = ITEMS.map((it,i)=>`
+      <tr>
+        <td><input value="${it.desc}" oninput="ITEMS[${i}].desc=this.value"/></td>
+        <td><select onchange="ITEMS[${i}].tipo=this.value;render()">
+          <option value="produto" ${it.tipo==="produto"?"selected":""}>produto</option>
+          <option value="servico" ${it.tipo==="servico"?"selected":""}>serviço</option>
+        </select></td>
+        <td><input class="num" type="number" value="${it.qtd}" oninput="ITEMS[${i}].qtd=+this.value||0;render()"/></td>
+        <td><input class="num" type="number" value="${it.unit}" oninput="ITEMS[${i}].unit=+this.value||0;render()"/></td>
+        <td class="num">${fmt(it.qtd*it.unit)}</td>
+        <td><button class="x" onclick="ITEMS.splice(${i},1);render()">×</button></td>
+      </tr>`).join("");
+    const total = ITEMS.reduce((s,it)=>s+it.qtd*it.unit,0);
+    document.getElementById("itensTotal").textContent = fmt(total);
+    document.getElementById("footSub").textContent = fmt(total);
+    document.getElementById("footTotal").textContent = fmt(total);
+    document.getElementById("footQtd").textContent = ITEMS.length;
+
+    const hasProd = ITEMS.some(i=>i.tipo==="produto");
+    const hasServ = ITEMS.some(i=>i.tipo==="servico");
+    document.getElementById("itensTipo").textContent =
+      hasProd && hasServ ? "misto · produto + serviço" :
+      hasProd ? "só produto" : hasServ ? "só serviço" : "vazio";
+
+    // doc availability — NFS-e requer serviço, NF-e/NFC-e requerem produto
+    const cnpj = document.getElementById("clienteDoc").value.replace(/\D/g,"");
+    const hasCnpj = cnpj.length === 14;
+    document.querySelectorAll(".doc").forEach(b=>{
+      const k = b.dataset.doc;
+      let avail = true, reason = "";
+      if (k==="nfe")  { if(!hasProd){avail=false;reason="sem produto";} else if(!hasCnpj){avail=false;reason="cliente sem CNPJ";} }
+      if (k==="nfce") { if(!hasProd){avail=false;reason="sem produto";} }
+      if (k==="nfse") { if(!hasServ){avail=false;reason="sem serviço";} }
+      if (k==="mdfe") { avail=false; reason="módulo backlog"; }
+      b.classList.toggle("unavailable", !avail);
+      b.classList.toggle("active", avail && docSel===k);
+      const st = b.querySelector(".doc-state");
+      if (!avail) { if(st) st.style.background="#aaa"; if(st) st.textContent = reason; }
+      else if (k==="nfce") { if(st){st.style.background="";st.textContent="recomendado";} }
+      else if (st) st.remove();
+    });
+
+    const detailMap = {
+      nfce: `<b>NFC-e (modelo 65)</b> · emitida pela <code>NfeBrasil/NfeEmissaoController</code>. DANFE consumidor enviado por e-mail/SMS · CFOP automático por NCM (regras estaduais já cadastradas).`,
+      nfe : `<b>NF-e (modelo 55)</b> · emitida pela <code>NfeBrasil/NfeEmissaoController</code>. DANFE A4 anexado · cliente recebe XML por e-mail · entra em <code>nfe_emissoes</code> com status SEFAZ.`,
+      nfse: `<b>NFS-e (LC 214/2025)</b> · emitida pela <code>NFSe/NfseController</code> via Sistema Nacional · ISS calculado por código de serviço municipal.`,
+      mdfe: `<b>MDF-e (modelo 58)</b> · módulo ainda <b>não implementado</b>. Pra transporte interestadual de carga própria. Backlog após NF-e estabilizar.`,
+    };
+    document.getElementById("fiscalDetail").innerHTML = detailMap[docSel] || "Selecione um documento.";
+    document.getElementById("btnEmit").disabled = total === 0 || !document.querySelector(".doc.active");
+  }
+  function addItem(){ ITEMS.push({desc:"Novo item", tipo:"produto", qtd:1, unit:0}); render(); }
+  document.querySelectorAll(".doc").forEach(b=>{
+    b.addEventListener("click",()=>{ if(b.classList.contains("unavailable")) return; docSel=b.dataset.doc; render(); });
+  });
+  document.getElementById("clienteDoc").addEventListener("input",render);
+  render();
+</script>
+</body>
+</html>

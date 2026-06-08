@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: MemCofre/Memoria
+path: resources/js/Pages/MemCofre/Memoria.tsx
+archetype: detail
+persona: wagner
+nota: 71
+nivel: "Advanced"
+baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Explorador arvore+preview de 3 roots com filtro recursivo e markdown render; bom UX mas usa <input> hand-rolled, fetch manual sem error state e cores raw amber/sky/emerald."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear (so @/Components/ui + tokens)"
+    fix: "Trocar <input> cru por @/Components/ui/input e icones text-amber/sky/emerald-500 por tokens."
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Notion (estado de falha de carregamento com retry)"
+    fix: "openFile() faz fetch sem tratar res !ok — adicionar toast/erro + botao tentar de novo."
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "VS Code web (treeview com role=tree/treeitem + navegacao por seta)"
+    fix: "Anotar arvore com role=tree/treeitem/aria-expanded e suporte a setas teclado."
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

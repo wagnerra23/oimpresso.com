@@ -1,0 +1,302 @@
+# Golden questions — Camada 3 Eval LLM-as-judge.
+# Roda via: php artisan eval:adr-discovery
+# Custo aprox: $0.30/run (Sonnet 4.6)
+
+- id: format-date-shift
+  category: adr
+  question: "Posso corrigir o shift +3h em format_date?"
+  must_contain:
+    - "ADR 0066"
+    - "Larissa"
+    - "decorou"
+    - "UPDATE transactions"
+    - "comunicar"
+  must_not_contain:
+    - "pode corrigir sim"
+    - "edite o Util.php direto"
+  expected_adr: "0066"
+
+- id: permission-registry
+  category: adr
+  question: "Como funciona o Permission Registry?"
+  must_contain:
+    - "Modules/*/Resources/permissions.php"
+    - "auto-discovery"
+    - "risk"
+    - "low"
+    - "high"
+  must_not_contain: []
+  expected_adr: "0065"
+
+- id: usuario-360-location
+  category: adr
+  question: "Onde mora a tela Usuário 360°?"
+  must_contain:
+    - "/superadmin/usuarios"
+    - "PermissionRegistry"
+    - "UserLockoutService"
+  must_not_contain: []
+  expected_adr: "0064"
+
+- id: split-modular
+  category: adr
+  question: "Por que TeamMcp foi separado do Copiloto?"
+  must_contain:
+    - "agentes externos"
+    - "Claude Code"
+    - "Larissa"
+    - "agente interno"
+  must_not_contain: []
+  expected_adr: "0064"
+
+- id: kb-mora
+  category: adr
+  question: "Onde fica o KB do projeto?"
+  must_contain:
+    - "/kb"
+    - "Modules/KB"
+    - "352 docs"
+  must_not_contain: []
+  expected_adr: "0064"
+
+- id: governance-criar
+  category: adr
+  question: "Devo criar módulo Governance separado agora?"
+  must_contain:
+    - "não"
+    - "3+ engines disputando"
+    - "ADR 0064"
+  must_not_contain:
+    - "sim, crie agora"
+  expected_adr: "0064"
+
+- id: vizra-rejeitada
+  category: adr
+  question: "Posso usar Vizra ADK no projeto?"
+  must_contain:
+    - "rejeitada"
+    - "ADR 0048"
+    - "laravel/ai"
+  must_not_contain:
+    - "sim, instale"
+  expected_adr: "0048"
+
+- id: reverb-status
+  category: adr
+  question: "Reverb está em produção?"
+  must_contain:
+    - "abandonado"
+    - "Centrifugo"
+    - "ADR 0058"
+  must_not_contain: []
+  expected_adr: "0058"
+
+# ─── Categoria: Larissa-style perguntas operacionais (Cycle 01 goal) ───
+# Perguntas que Larissa (ROTA LIVRE biz=4) faria pro Copiloto. Valores
+# devem ser preenchidos por Wagner com baseline real antes de rodar
+# (substituir VALOR_REAL pelos números corretos via consulta ao DB prod).
+
+- id: faturamento-mes-bruto
+  category: larissa-faturamento
+  question: "Quanto faturei em março de 2026?"
+  must_contain:
+    - "R$"
+    - "março"
+  must_not_contain:
+    - "não tenho dados"
+    - "sem informação"
+  expected_source: "ContextoNegocio bruto"
+
+- id: faturamento-mes-liquido
+  category: larissa-faturamento
+  question: "Qual meu faturamento líquido de março?"
+  must_contain:
+    - "R$"
+    - "líquido"
+  must_not_contain: []
+  expected_source: "ContextoNegocio líquido"
+
+- id: caixa-mes
+  category: larissa-faturamento
+  question: "Quanto entrou no caixa em março?"
+  must_contain:
+    - "R$"
+    - "caixa"
+  must_not_contain: []
+  expected_source: "ContextoNegocio caixa"
+
+- id: tres-numeros-distintos
+  category: larissa-faturamento
+  question: "Faturamento, líquido e caixa de março — me dê os 3 valores"
+  must_contain:
+    - "bruto"
+    - "líquido"
+    - "caixa"
+    - "R$"
+  must_not_contain:
+    - "mesmo valor"
+    - "todos iguais"
+  expected_source: "ContextoNegocio 3 ângulos"
+
+- id: meta-cumprimento
+  category: larissa-metas
+  question: "Cumpri a meta de março?"
+  must_contain:
+    - "meta"
+    - "%"
+  must_not_contain:
+    - "não tenho metas"
+  expected_source: "Modules/Copiloto/MetasController"
+
+- id: meta-projecao
+  category: larissa-metas
+  question: "Vou bater a meta de abril com a tendência atual?"
+  must_contain:
+    - "projeção"
+    - "tendência"
+    - "%"
+  must_not_contain: []
+  expected_source: "MetasController + projeção linear"
+
+- id: meta-pendente
+  category: larissa-metas
+  question: "Quanto falta pra fechar a meta de abril?"
+  must_contain:
+    - "R$"
+    - "falta"
+  must_not_contain: []
+  expected_source: "MetasController saldo"
+
+- id: top-produtos-mes
+  category: larissa-vendas
+  question: "Quais foram meus 3 produtos mais vendidos em março?"
+  must_contain:
+    - "produto"
+  must_not_contain:
+    - "não posso responder"
+  expected_source: "transactions JOIN transaction_sell_lines"
+
+- id: ticket-medio
+  category: larissa-vendas
+  question: "Qual meu ticket médio em março?"
+  must_contain:
+    - "R$"
+    - "médio"
+  must_not_contain: []
+  expected_source: "AVG(final_total) transactions"
+
+- id: vendas-dia-pico
+  category: larissa-vendas
+  question: "Qual foi o dia que mais vendi em março?"
+  must_contain:
+    - "março"
+    - "R$"
+  must_not_contain: []
+  expected_source: "GROUP BY DATE(transaction_date)"
+
+- id: comparacao-mes-anterior
+  category: larissa-comparacao
+  question: "Como março comparou com fevereiro? Subi ou caí?"
+  must_contain:
+    - "março"
+    - "fevereiro"
+    - "%"
+  must_not_contain: []
+  expected_source: "comparativo períodos"
+
+- id: comparacao-ano-anterior
+  category: larissa-comparacao
+  question: "Esse março foi melhor que março do ano passado?"
+  must_contain:
+    - "2026"
+    - "2025"
+    - "%"
+  must_not_contain: []
+  expected_source: "transactions WHERE YEAR()"
+
+- id: contas-pagar-pendentes
+  category: larissa-financeiro
+  question: "Tenho contas a pagar vencidas?"
+  must_contain:
+    - "vencid"
+  must_not_contain: []
+  expected_source: "transactions type=purchase status=due"
+
+- id: contas-receber-atraso
+  category: larissa-financeiro
+  question: "Quanto tenho a receber em atraso?"
+  must_contain:
+    - "R$"
+    - "atraso"
+  must_not_contain: []
+  expected_source: "transactions type=sell payment_status overdue"
+
+- id: custo-mensal-ia
+  category: larissa-custos
+  question: "Quanto gastei com Copiloto IA esse mês?"
+  must_contain:
+    - "R$"
+    - "Copiloto"
+  must_not_contain: []
+  expected_source: "copiloto_custo_diario_business"
+
+- id: custos-categoria
+  category: larissa-custos
+  question: "Quais foram minhas 5 maiores despesas de março?"
+  must_contain:
+    - "março"
+    - "R$"
+  must_not_contain: []
+  expected_source: "transactions type=expense GROUP BY category"
+
+- id: estoque-baixo
+  category: larissa-estoque
+  question: "Quais produtos estão com estoque baixo?"
+  must_contain:
+    - "estoque"
+  must_not_contain:
+    - "não tenho dados"
+  expected_source: "variation_location_details qty_available"
+
+- id: cliente-top
+  category: larissa-vendas
+  question: "Quem é meu maior cliente em valor de compras?"
+  must_contain:
+    - "cliente"
+  must_not_contain: []
+  expected_source: "GROUP BY contact_id"
+
+- id: hora-pico
+  category: larissa-vendas
+  question: "Qual é o horário do dia que mais vendo?"
+  must_contain:
+    - "horário"
+    - "h"
+  must_not_contain: []
+  expected_source: "GROUP BY HOUR(transaction_date)"
+
+- id: ano-faturamento
+  category: larissa-faturamento
+  question: "Quanto já faturei em 2026 até hoje?"
+  must_contain:
+    - "R$"
+    - "2026"
+  must_not_contain: []
+  expected_source: "ContextoNegocio YTD"
+
+- id: dia-medio
+  category: larissa-vendas
+  question: "Quanto vendo por dia em média esse mês?"
+  must_contain:
+    - "R$"
+    - "média"
+  must_not_contain: []
+  expected_source: "AVG diário"
+
+- id: forma-pagamento
+  category: larissa-financeiro
+  question: "Qual forma de pagamento mais usada esse mês?"
+  must_contain:
+    - "pagamento"
+  must_not_contain: []
+  expected_source: "transaction_payments method"

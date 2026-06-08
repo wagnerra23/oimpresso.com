@@ -1,0 +1,69 @@
+name: ESLint 9 (ADR 0209)
+
+# Onda 1.2 do plano prevenção bugs MWART 2026-05-28.
+# Bloqueia PR que introduzir regressão ESLint vs config/eslint-baseline.json.
+#
+# Pattern ratchet idêntico ao ui-lint.yml + phpstan-gate.yml — falha só em delta > 0.
+# Captura react-hooks/exhaustive-deps (R7 raiz) entre outros bugs.
+#
+# Comando manual local: npm run lint:baseline:check
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'resources/js/**'
+      - 'eslint.config.js'
+      - 'config/eslint-baseline.json'
+      - 'scripts/eslint-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/eslint-gate.yml'
+  pull_request:
+    paths:
+      - 'resources/js/**'
+      - 'eslint.config.js'
+      - 'config/eslint-baseline.json'
+      - 'scripts/eslint-baseline.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/eslint-gate.yml'
+
+concurrency:
+  group: eslint-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eslint:
+    name: ESLint · ratchet vs baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install npm deps
+        run: npm ci --no-audit --no-fund
+
+      - name: ESLint ratchet (falha só em regressão vs baseline)
+        run: node scripts/eslint-baseline.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ ESLint detectou REGRESSÃO vs config/eslint-baseline.json"
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Local: npm run lint · vê quais arquivos regrediram"
+          echo "  2. Refatorar PR pra eliminar lint issues novos"
+          echo "  3. Se regressão intencional/aceita, atualizar baseline em commit separado:"
+          echo "       npm run lint:baseline:write"
+          echo "     (commit + justificativa no PR — vai aparecer no diff do JSON)"
+          echo ""
+          echo "Refs: ADR 0209 · memory/sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md F5-B"
