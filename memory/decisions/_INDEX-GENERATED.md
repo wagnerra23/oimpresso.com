@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **267** arquivos · **252** números únicos · máx **0262**
-- **ADRs ATIVOS (lifecycle ativo): 227** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 207 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 227 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **268** arquivos · **253** números únicos · máx **0263**
+- **ADRs ATIVOS (lifecycle ativo): 228** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 208 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 228 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (267)
+## Todas as ADRs (268)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -299,3 +299,4 @@ _(íntegra)_
 | 0260 | aceito | ativo | errata | Errata 0182 — cor primária do PageHeader é roxo universal 295 (não hue-per-grupo |
 | 0261 | aceito | ativo | decision | Enforcement faseado dos gates de CI: required-checks por níveis + skip-as-pass + |
 | 0262 | aceito | ativo | decision | Governança escala com o time: review opcional pra dev solo + evolução = mais fác |
+| 0263 | aceito | ativo | decision | Identidade de cor vira gate bloqueante no main: chrome roxo único + semântica go |
