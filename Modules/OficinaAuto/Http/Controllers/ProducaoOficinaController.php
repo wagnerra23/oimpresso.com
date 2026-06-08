@@ -75,10 +75,17 @@ class ProducaoOficinaController extends Controller
         // current_status, mostramos tela com kanban vazio em vez de quebrar.
         $hasFsmSchema = Schema::hasColumn('vehicles', 'current_status');
 
-        $capacidade = $this->normalizeCapacidade($request->string('capacidade')->toString());
-        $search     = trim((string) $request->string('q'));
+        // Eixo de recurso (modelo reparo): box (texto livre, Wave 2.1 US-OFICINA-027)
+        // + mecânico. Filtro funcional SEM schema novo — colunas já existem
+        // (ADR 0105: box é texto livre, sem tabela até sinal qualificado). Substitui
+        // o filtro de capacidade (m³), que era vocabulário de caçamba.
+        $hasResourceSchema = Schema::hasColumn('service_orders', 'box_label');
 
-        $vehicles = $this->loadVehicles($hasFsmSchema, $capacidade, $search);
+        $box      = trim((string) $request->string('box'));
+        $mecanico = $request->integer('mecanico') ?: null;
+        $search   = trim((string) $request->string('q'));
+
+        $vehicles = $this->loadVehicles($hasFsmSchema, $hasResourceSchema, $box, $mecanico, $search);
 
         // V3 fallback: vehicles ativos sem current_rental_id buscam most-recent
         // ServiceOrder não-terminal pra suprir dados (LOR-3F88 caso real demo).
@@ -92,48 +99,58 @@ class ProducaoOficinaController extends Controller
         $kanban = $this->groupIntoKanban($vehicles, $rentalFallbacks, $atendenteFallback);
         $kpis   = $this->buildKpis($kanban);
 
+        // Opções de filtro (box + mecânico) entre as OS ativas do business.
+        [$boxes, $mecanicos] = $hasResourceSchema
+            ? $this->buildFilterOptions()
+            : [[], []];
+
         return Inertia::render('OficinaAuto/ProducaoOficina/Index', [
-            'kanban'  => $kanban,
-            'kpis'    => $kpis,
-            'filters' => [
-                'capacidade' => $capacidade,
-                'q'          => $search,
+            'kanban'    => $kanban,
+            'kpis'      => $kpis,
+            'filters'   => [
+                'box'      => $box,
+                'mecanico' => $mecanico,
+                'q'        => $search,
             ],
+            'recursos'  => $boxes,
+            'mecanicos' => $mecanicos,
         ]);
     }
 
     /**
-     * Normaliza filtro de capacidade. Aceita 'all', '3', '5', '7'. Default 'all'.
-     */
-    protected function normalizeCapacidade(string $raw): string
-    {
-        $allowed = ['all', '3', '5', '7'];
-        return in_array($raw, $allowed, true) ? $raw : 'all';
-    }
-
-    /**
-     * Carrega vehicles aplicando filters (capacidade + q) — global scope
+     * Carrega vehicles aplicando filters (box + mecânico + q) — global scope
      * já filtra business_id automaticamente.
      *
      * @return Collection<int, Vehicle>
      */
-    protected function loadVehicles(bool $hasFsmSchema, string $capacidade, string $search): Collection
-    {
+    protected function loadVehicles(
+        bool $hasFsmSchema,
+        bool $hasResourceSchema,
+        string $box,
+        ?int $mecanico,
+        string $search
+    ): Collection {
         $query = Vehicle::query();
 
         if ($hasFsmSchema) {
             // Eager-load currentRental + contact + transaction.createdBy pra atendente
             // (transaction pode ser null em rentals draft — fallback: auth user no projector).
+            // + box_label/assigned_user_id/assignedUser pro eixo de recurso (modelo reparo).
             $query->with([
-                'currentRental:id,vehicle_id,contact_id,transaction_id,entered_at,delivery_address,expected_return_date,daily_rate,status,notes,created_at,order_type',
+                'currentRental:id,vehicle_id,contact_id,transaction_id,entered_at,delivery_address,expected_return_date,daily_rate,status,notes,created_at,order_type,box_label,assigned_user_id',
                 'currentRental.contact:id,name,mobile',
                 'currentRental.transaction:id,created_by',
                 'currentRental.transaction.createdBy:id,first_name,last_name,username',
+                'currentRental.assignedUser:id,first_name,last_name,surname,username',
             ]);
         }
 
-        if ($capacidade !== 'all') {
-            $query->where('capacity_m3', (int) $capacidade);
+        // Filtro por box (texto livre) e/ou mecânico — só OS ativa casa (whereHas).
+        if ($hasResourceSchema && $box !== '') {
+            $query->whereHas('currentRental', fn ($q) => $q->where('box_label', $box));
+        }
+        if ($hasResourceSchema && $mecanico !== null) {
+            $query->whereHas('currentRental', fn ($q) => $q->where('assigned_user_id', $mecanico));
         }
 
         if ($search !== '') {
@@ -194,6 +211,7 @@ class ProducaoOficinaController extends Controller
                 'contact:id,name,mobile',
                 'transaction:id,created_by',
                 'transaction.createdBy:id,first_name,last_name,username',
+                'assignedUser:id,first_name,last_name,surname,username',
             ])
             ->orderByDesc('id')
             ->get();
@@ -345,6 +363,21 @@ class ProducaoOficinaController extends Controller
             $atendenteIniciais = $atendenteFallback['iniciais'];
         }
 
+        // Eixo de recurso (modelo reparo): box (texto livre) + mecânico (assignedUser).
+        $mecanicoNome = null;
+        $mecanicoIniciais = null;
+        if ($rental && $rental->assignedUser) {
+            $m = $rental->assignedUser;
+            $nome = trim(
+                (string) ($m->first_name ?? '') . ' ' . (string) ($m->last_name ?? '')
+            );
+            if ($nome === '') {
+                $nome = (string) ($m->surname ?? $m->username ?? '');
+            }
+            $mecanicoNome = $nome !== '' ? $nome : null;
+            $mecanicoIniciais = $mecanicoNome !== null ? $this->makeIniciais($mecanicoNome) : null;
+        }
+
         return [
             'id'                  => $v->id,
             'plate'               => $v->plate,
@@ -365,7 +398,59 @@ class ProducaoOficinaController extends Controller
             'valor_receber'       => $rental ? (float) $rental->valor_receber : null,
             'atendente_nome'      => $atendenteNome,
             'atendente_iniciais'  => $atendenteIniciais,
+            'box_label'           => $rental?->box_label,
+            'mecanico_nome'       => $mecanicoNome,
+            'mecanico_iniciais'   => $mecanicoIniciais,
         ];
+    }
+
+    /**
+     * Opções de filtro do quadro — boxes (texto livre) + mecânicos distintos entre
+     * as OS ativas (não-terminais) do business. Global scope já filtra business_id;
+     * mecânicos resolvidos com scope explícito por business (User não tem global scope).
+     *
+     * @return array{0: list<string>, 1: list<array{id:int, nome:string}>}
+     */
+    protected function buildFilterOptions(): array
+    {
+        $terminal = ['concluida', 'cancelada', 'recolhida'];
+
+        $boxes = ServiceOrder::query()
+            ->whereNotIn('status', $terminal)
+            ->whereNotNull('box_label')
+            ->where('box_label', '!=', '')
+            ->distinct()
+            ->orderBy('box_label')
+            ->pluck('box_label')
+            ->values()
+            ->all();
+
+        $mechanicIds = ServiceOrder::query()
+            ->whereNotIn('status', $terminal)
+            ->whereNotNull('assigned_user_id')
+            ->distinct()
+            ->pluck('assigned_user_id')
+            ->all();
+
+        $mecanicos = [];
+        if (! empty($mechanicIds)) {
+            $bizId = (int) (session('user.business_id') ?? auth()->user()?->business_id ?? 0);
+            $users = User::query()
+                ->whereIn('id', $mechanicIds)
+                ->when($bizId > 0, fn ($q) => $q->where('business_id', $bizId))
+                ->orderBy('first_name')
+                ->get(['id', 'first_name', 'last_name', 'surname', 'username']);
+
+            foreach ($users as $u) {
+                $nome = trim((string) ($u->first_name ?? '') . ' ' . (string) ($u->last_name ?? ''));
+                if ($nome === '') {
+                    $nome = (string) ($u->surname ?? $u->username ?? '');
+                }
+                $mecanicos[] = ['id' => (int) $u->id, 'nome' => $nome !== '' ? $nome : '—'];
+            }
+        }
+
+        return [$boxes, $mecanicos];
     }
 
     /**
