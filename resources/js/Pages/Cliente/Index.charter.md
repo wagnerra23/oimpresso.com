@@ -3,8 +3,8 @@ page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.client
 component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
-last_validated: '2026-06-03'
-charter_version: 8
+last_validated: '2026-06-08'
+charter_version: 9
 parent_module: Cliente / Crm
 related_adrs:
   - '0093-multi-tenant-isolation-tier-0'
@@ -246,3 +246,40 @@ Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importe
 - [Migration `2026_06_03_120000_add_is_other_flag_to_contacts.php`](../../../database/migrations/2026_06_03_120000_add_is_other_flag_to_contacts.php)
 - [memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md](../../../memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md) — profile WR2 motivador
 - Conversa Wagner 2026-06-03: insight "aba Classificação já tem isso pronto, só falta o chip Outros"
+
+---
+
+## v9 · 2026-06-08 · Excluir contato pela tela (menu ⋮) + consolidação no drawer (append-only)
+
+**Trigger:** Wagner 2026-06-08. Primeiro pediu "arrumar os botões da contacts" — o menu ⋮ da linha tinha 5 itens, 3 apontando pra Blade legacy (`/contacts/{id}`, `/contacts/{id}/edit`, `/contacts/ledger`), ícone `Eye` duplicado e um "Excluir" `disabled` permanente (botão morto). Consolidado no drawer 760 (PR #2420): **Ver detalhes · Editar · Extrato** abrem o drawer na aba certa. Depois Wagner: "exclusão de contato pela tela, precisa" → "Excluir" volta **funcional**.
+
+### Goals novos (append-only · v8 preservados)
+
+- **Menu ⋮ da linha consolidado no drawer** (ADR 0179): "Editar" → drawer aba Identificação · "Extrato" → drawer aba Operações › Extrato (sub-aba `ledger`). Removidos os links Blade legacy "Página completa" e o "Excluir" morto.
+- **Excluir contato (soft delete)** via `DELETE /contacts/{id}` (`ContactController::destroy`, AJAX JSON `{success,msg}`):
+  - Gated por `permissions.delete` (`customer.delete || supplier.delete`) — backend revalida o mesmo `can()`.
+  - **Escondido pro `is_default`** (consumidor/fornecedor walk-in) no front; `destroy()` também protege server-side.
+  - **AlertDialog de confirmação** (ação destrutiva nunca em 1 clique) + toast sonner de sucesso/erro.
+  - Pós-sucesso: fecha o drawer do excluído (se aberto) + `router.reload(['customers','kpis','tab_counts'])`.
+
+### Invariantes (Tier 0 IRREVOGÁVEL)
+
+1. Exclusão é **soft delete** (Contact `use SoftDeletes`) — reversível, LGPD-friendly.
+2. `destroy()` **bloqueia** se houver qualquer `Transaction` do contato (venda/compra/OS) — devolve `success:false` + msg; nada é apagado.
+3. Escopo `business_id` em todas as queries de exclusão — multi-tenant Tier 0 ([ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+4. `is_default` (walk-in) **nunca** é excluído.
+5. Toda exclusão grava `ActivityLog` `contact_deleted` (LGPD Art. 18) + desabilita login de usuários associados (`allow_login=0`).
+
+### Non-Goals v9
+
+- ❌ **Merge/mesclar contatos duplicados** pela tela — segue na rota legacy `/contacts/duplicates` (Non-Goal v7 mantido; esforço maior, futuro).
+- ❌ **Exclusão em batch** (mantém Non-Goal "1 por vez").
+- ❌ **Hard delete / forceDelete** pela UI — soft delete only.
+- ❌ **Restaurar excluído** pela tela (Onda futura se demanda aparecer).
+
+### Refs v9
+
+- PR #2420 (consolidação do menu ⋮ no drawer · mergeado 2026-06-08)
+- `ContactController::destroy($id)` (trava transação + `is_default` + ActivityLog + business_id scope)
+- `Route::resource('contacts')` → `DELETE /contacts/{id}` (`contacts.destroy`)
+- Conversa Wagner 2026-06-08: "arrumar os botões" → "exclusão de contato pela tela, precisa"
