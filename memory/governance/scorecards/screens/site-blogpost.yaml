@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Site/BlogPost
+path: resources/js/Pages/Site/BlogPost.tsx
+archetype: detail
+persona: misto
+nota: 55
+nivel: "Developing"
+baseline_anterior: 55   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Pagina de post marketing tokenizada (prose, tags, meta-desc); fina e com dangerouslySetInnerHTML sem sanitizacao e img hero sem lazy/dimensoes."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Next/Stripe blog: HTML sanitizado"
+    fix: "content via dangerouslySetInnerHTML sem sanitizacao (risco XSS se CMS aceitar HTML nao-confiavel); sanitizar server/client"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "feature_image com width/height + lazy"
+    fix: "img hero sem loading/lazy nem dimensoes (CLS); adicionar"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Medium: meta autor/data/tempo leitura"
+    fix: "Falta data publicacao, autor e tempo de leitura no topo do post"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

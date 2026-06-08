@@ -1,0 +1,121 @@
+<?php
+
+return [
+    'name' => 'Governance',
+
+    /*
+     * ActionGate enforcement mode (Constituição Art. 8):
+     * - 'off':    middleware loaded mas não checa nada
+     * - 'warn':   loga warnings em mcp_audit_log mas não bloqueia (default MVP)
+     * - 'strict': BLOCK_ALWAYS força reject quando rule decide
+     */
+    'actiongate_mode' => env('GOVERNANCE_ACTIONGATE_MODE', 'warn'),
+
+    /*
+     * Quarterly review schedule (Art. 10 §10.4 + Enforcement #7).
+     * Próxima review em 2026-08-05 (3 meses pós-ratificação v1.0.0).
+     */
+    'next_review_at' => env('GOVERNANCE_NEXT_REVIEW_AT', '2026-08-05'),
+
+    /*
+     * D1 heurística hardening (ADR 0158 — aceita Wave 12, ATIVADA Wave 14 2026-05-16).
+     *
+     * Quando true, ModuleGradeService aplica 3 fixes na heurística D1 multi-tenant:
+     *
+     *   (1) phpFiles() recursivo em Entities/ + Models/ + Jobs/
+     *       — captura subdiretórios (ex Jana/Entities/Mcp/*.php)
+     *   (2) Regex isCrossTenantTestFile aceita `withoutGlobalScope` singular E plural
+     *       (s? = 0 ou 1 ocorrência) — back-compat preservado
+     *   (3) D1.c fallback regex: Job constructor `__construct(int $entityId)` +
+     *       body referencia `->business_id` qualifica como multi-tenant safe
+     *
+     * Default `true` desde Wave 14 — Wagner aprovou após smoke run + diff por módulo
+     * mostrar ajustes esperados (Jana/Entities/Mcp/* sobe, jobs Asaas/Inter qualificam).
+     *
+     * Quando desativar (`GOVERNANCE_D1_HARDENED=false` no .env):
+     *   - Regressão massiva (>3 módulos perdem ≥3pts D1) detectada em prod
+     *   - Investigação de bug exige isolar heurística legacy vs hardened
+     *   - Rollback emergencial de ADR 0158 (via ADR nova de reversão)
+     *
+     * @see memory/decisions/0158-module-grade-v3-d1-heuristica-hardening.md
+     */
+    'd1_hardened' => env('GOVERNANCE_D1_HARDENED', true),
+
+    /*
+     * ADR 0216 — Drift Framework master switch.
+     *
+     * Quando true, GovernanceServiceProvider auto-registra DriftCheckers default
+     * (5 da ADR 0216 PR1) + comando `governance:audit` itera registry.
+     *
+     * Quando false (rollback canary), framework dorme; comandos legacy
+     * (`secrets:scan`, `secrets:audit`, `governance:detect-drift`) continuam
+     * funcionando standalone.
+     *
+     * Default true em local; em live promover via env `GOVERNANCE_DRIFT_FRAMEWORK_ENABLED=true`
+     * após canary 7d (ADR 0216 §D10).
+     */
+    'drift_framework_enabled' => env('GOVERNANCE_DRIFT_FRAMEWORK_ENABLED', true),
+
+    /*
+     * Lista canônica de DriftCheckers a auto-registrar no boot.
+     * Override por ENV ou config:cache. Ordem importa pra `--all` (executa em sequência).
+     *
+     * Cada classe DEVE implementar Modules\Governance\Contracts\DriftChecker.
+     *
+     * PR1 (ADR 0216) ships com array vazio — checkers adicionados em PR2 (ADRs 0217+).
+     * Exemplo futuro:
+     *   \Modules\Governance\Services\Checkers\MultiTenantScopeChecker::class,
+     *   \Modules\Governance\Services\Checkers\ComposerAuditChecker::class,
+     *   ...
+     *
+     * @see memory/decisions/0216-governance-drift-framework-driftchecker-plugavel.md
+     */
+    'drift_checkers' => [
+        \Modules\Governance\Services\Checkers\ComposerAuditChecker::class,       // ADR 0217
+        \Modules\Governance\Services\Checkers\NpmAuditChecker::class,            // ADR 0223 — frontend supply chain
+        \Modules\Governance\Services\Checkers\MultiTenantScopeChecker::class,    // ADR 0218 — Tier 0 IRREVOGÁVEL
+        \Modules\Governance\Services\Checkers\AdrLinksChecker::class,            // ADR 0219
+        \Modules\Governance\Services\Checkers\ChartersFreshnessChecker::class,   // ADR 0220 — adapter charter:audit
+        \Modules\Governance\Services\Checkers\DesignDocsFreshnessChecker::class, // ADR 0236 — freshness gate dos docs de design (file-based)
+        \Modules\Governance\Services\Checkers\RoutesZombieChecker::class,        // ADR 0221
+        \Modules\Governance\Services\Checkers\MeilisearchSettingsDriftChecker::class, // 2026-05-29 — embedder do índice se perdeu 2× (recall degrada)
+        \Modules\Governance\Services\Checkers\DeployDriftChecker::class,         // 2026-05-29 — código deployado != main (1302-commits cego)
+    ],
+
+    /*
+     * Allowlist multi-tenant: Models legítimos sem HasBusinessScope.
+     * Convenção: FQCN completo. System-wide entities ou catálogos read-only.
+     * @see Modules\Governance\Services\Checkers\MultiTenantScopeChecker
+     */
+    'multi_tenant_scope_allowlist' => [
+        // System-wide
+        'App\Models\User',
+        'App\Models\Business',
+        'App\Models\Module',
+        // Catálogo read-only
+        'App\Models\Country',
+        'App\Models\State',
+        'App\Models\City',
+        // Adicionar conforme MultiTenantScopeChecker flagar legitimamente
+    ],
+
+    /*
+     * Routes zombie allowlist: regex (com #) ou match literal exato.
+     * @see Modules\Governance\Services\Checkers\RoutesZombieChecker
+     */
+    'routes_zombie_allowlist' => [
+        '#^/healthz#',
+        '#^/up#',
+        '#^/api/webhooks/#',
+        '#^/api/asaas#',
+        '#^/api/sicoob#',
+        '#^/api/mailgun#',
+        '#^/_centrifugo#',
+    ],
+
+    /*
+     * Centrifugo channel padrão pra drift alerts (ADR 0216 §Trait PublishesDrift).
+     * Substitui `governance:secrets` (ADR 0215) — mas trait permite override por checker.
+     */
+    'drift_centrifugo_channel' => env('GOVERNANCE_DRIFT_CHANNEL', 'governance:drift'),
+];

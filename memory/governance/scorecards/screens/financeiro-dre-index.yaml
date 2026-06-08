@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/Dre/Index
+path: resources/js/Pages/Financeiro/Dre/Index.tsx
+archetype: detail
+persona: eliana
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "DRE hierarquico denso classe-Cowork com tabs Balanco/Balancete, charter+visual-comparison approved; mas 5 botoes feature sao no-op F1, banner oklch cru e sem defer."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Affordance"
+    best_of_class: "Notion (sem botao morto)"
+    fix: "Buscar/Resumir/Fechamento/Apresentar/Exportar no overflow sao stubs vazios (onClick comentado); esconder ate F2 ou marcar 'em breve'"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Cobranca (sem style inline)"
+    fix: "Banner aviso_sem_mapping com style inline oklch 70 cru; extrair pra componente Alert DS com token amber"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Dashboard (Deferred)"
+    fix: "linhas/balanco/balancete eager sem defer; DRE pesado bloqueia first paint"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

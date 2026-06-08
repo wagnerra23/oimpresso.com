@@ -1,0 +1,82 @@
+{
+  "$schema": "../design-report.schema.json",
+  "screen": "NfeBrasil/Transactions/NfceStatus",
+  "file": "resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx",
+  "measured_against_sha": "4c91d15eb",
+  "scored_by": "mechanized-v1",
+  "scored_at": "2026-05-31",
+  "archetype": "other",
+  "persona": "misto",
+  "nota": 88,
+  "nivel": "Leader",
+  "rules": [
+    {
+      "id": "R1",
+      "status": "fail",
+      "mechanized": true,
+      "evidence": "1× — oklch("
+    },
+    {
+      "id": "R2",
+      "status": "pass",
+      "mechanized": true
+    },
+    {
+      "id": "R3",
+      "status": "pass",
+      "mechanized": true
+    },
+    {
+      "id": "R4",
+      "status": "pass",
+      "mechanized": true
+    },
+    {
+      "id": "R5",
+      "status": "n/a",
+      "mechanized": false,
+      "evidence": "regra julgada — pendente do agente LLM"
+    },
+    {
+      "id": "R6",
+      "status": "pass",
+      "mechanized": true
+    },
+    {
+      "id": "R7",
+      "status": "pass",
+      "mechanized": true
+    },
+    {
+      "id": "R8",
+      "status": "n/a",
+      "mechanized": false,
+      "evidence": "regra julgada — pendente do agente LLM"
+    },
+    {
+      "id": "R9",
+      "status": "pass",
+      "mechanized": true
+    },
+    {
+      "id": "R10",
+      "status": "n/a",
+      "mechanized": false,
+      "evidence": "regra julgada — pendente do agente LLM"
+    }
+  ],
+  "ds_violations": {
+    "total": 0,
+    "by_rule": {}
+  },
+  "top_gaps": [
+    {
+      "dim": "Pre-Flight-conformance",
+      "best_of_class": "Linear/Stripe (zero cor crua, componente DS, sem nativo)",
+      "fix": "Regras mecanizadas falhando: R1 — ver GOLDEN-REFERENCE",
+      "esforco": "M"
+    }
+  ],
+  "resumo": "Score mecanizado (regex + ds/*). 1 regra(s) mecanizada(s) falhando + ds/*=0. Regras julgadas (R5/R8/R10) pendentes do agente LLM — nota é TETO provisório.",
+  "evidence_links": []
+}

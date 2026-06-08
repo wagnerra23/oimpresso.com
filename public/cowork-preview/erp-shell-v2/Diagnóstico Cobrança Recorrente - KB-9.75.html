@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Diagnóstico Cobrança Recorrente — Método KB-9.75</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:        oklch(0.985 0.003 90);
+    --bg-2:      oklch(0.965 0.004 90);
+    --surface:   #ffffff;
+    --border:    oklch(0.90 0.004 90);
+    --border-2:  oklch(0.93 0.004 90);
+    --text:      oklch(0.22 0.01 80);
+    --text-dim:  oklch(0.50 0.01 80);
+    --text-mute: oklch(0.65 0.01 80);
+    --accent:    oklch(0.55 0.13 240);
+    --accent-soft: oklch(0.94 0.06 240);
+    --rec:       oklch(0.55 0.13 295);
+    --rec-soft:  oklch(0.94 0.06 295);
+    --ok:        oklch(0.55 0.13 145);
+    --ok-soft:   oklch(0.94 0.06 145);
+    --warn:      oklch(0.62 0.13 60);
+    --warn-soft: oklch(0.96 0.05 60);
+    --bad:       oklch(0.55 0.18 25);
+    --bad-soft:  oklch(0.95 0.04 25);
+    --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    font-feature-settings: "ss01", "cv11";
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 36px 28px 80px; }
+
+  /* Section */
+  .section { margin-bottom: 48px; }
+  .section-h {
+    display: flex; align-items: baseline; gap: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 22px;
+  }
+  .section-h h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.015em; }
+  .section-h .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: var(--rec-soft);
+    color: var(--rec);
+    letter-spacing: 0.04em;
+  }
+  .section-h p { margin: 0; color: var(--text-mute); font-size: 12.5px; flex: 1; }
+
+  /* HERO */
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 14px;
+    align-items: center;
+    padding: 24px 26px;
+    margin-bottom: 32px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, oklch(0.97 0.025 295), oklch(0.99 0.01 240));
+  }
+  .hero .eyebrow {
+    display: inline-flex; gap: 6px; align-items: center;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.10em;
+    text-transform: uppercase; color: var(--rec);
+    margin-bottom: 8px;
+  }
+  .hero .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--rec); }
+  .hero h1 {
+    margin: 0 0 6px;
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
+  }
+  .hero h1 .glyph {
+    display: inline-grid; place-items: center;
+    width: 32px; height: 32px;
+    background: var(--rec); color: white;
+    border-radius: 7px;
+    font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+    margin-right: 10px; vertical-align: -7px;
+  }
+  .hero p { margin: 0; color: var(--text-dim); font-size: 12.5px; max-width: 720px; line-height: 1.5; }
+
+  .score-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: right;
+    min-width: 160px;
+  }
+  .score-card.now { border-top: 3px solid var(--bad); }
+  .score-card.target { border-top: 3px solid var(--rec); }
+  .score-card small {
+    display: block;
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text-mute);
+    margin-bottom: 2px;
+  }
+  .score-card .big {
+    font-family: var(--font-mono);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .score-card .big sub { font-size: 13px; color: var(--text-mute); font-weight: 500; }
+  .score-card .delta { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .score-card.now .delta { color: var(--bad); }
+  .score-card.target .delta { color: var(--rec); }
+
+  /* Verdict callout */
+  .verdict {
+    background: oklch(0.96 0.04 25);
+    border: 1px solid oklch(0.88 0.06 25);
+    border-left: 3px solid var(--bad);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 36px;
+    font-size: 12.5px;
+    color: oklch(0.32 0.10 25);
+    line-height: 1.55;
+  }
+  .verdict b { font-weight: 700; color: oklch(0.28 0.13 25); }
+  .verdict code {
+    font-family: var(--font-mono); font-size: 11.5px;
+    background: white;
+    padding: 1px 6px; border-radius: 4px;
+    color: oklch(0.32 0.10 25);
+    border: 1px solid oklch(0.88 0.06 25);
+  }
+
+  /* 5-cat scores */
+  .diag-cats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .diag-cat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .diag-cat .head { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+  .diag-cat .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; align-self: center; }
+  .diag-cat.c1 .dot { background: oklch(0.55 0.13 240); }
+  .diag-cat.c2 .dot { background: oklch(0.55 0.13 70); }
+  .diag-cat.c3 .dot { background: oklch(0.55 0.13 145); }
+  .diag-cat.c4 .dot { background: oklch(0.55 0.13 295); }
+  .diag-cat.c5 .dot { background: oklch(0.55 0.18 25); }
+  .diag-cat b { font-size: 12px; font-weight: 700; flex: 1; }
+  .diag-cat .sc {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .diag-cat .bar {
+    height: 4px; background: var(--border-2);
+    border-radius: 99px; overflow: visible;
+    margin: 8px 0 6px; position: relative;
+  }
+  .diag-cat .bar-fill { height: 100%; border-radius: 99px; }
+  .diag-cat.c1 .bar-fill { background: oklch(0.55 0.13 240); }
+  .diag-cat.c2 .bar-fill { background: oklch(0.55 0.13 70); }
+  .diag-cat.c3 .bar-fill { background: oklch(0.55 0.13 145); }
+  .diag-cat.c4 .bar-fill { background: oklch(0.55 0.13 295); }
+  .diag-cat.c5 .bar-fill { background: oklch(0.55 0.18 25); }
+  .diag-cat .bar-target {
+    position: absolute;
+    top: -2px; bottom: -2px;
+    width: 1px;
+    background: var(--text);
+    opacity: 0.4;
+  }
+  .diag-cat p {
+    margin: 0; font-size: 10.5px; color: var(--text-mute); line-height: 1.4;
+  }
+
+  /* What exists table */
+  .what-exists {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .what-exists table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .what-exists thead th {
+    background: var(--bg-2);
+    text-align: left;
+    padding: 9px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    border-bottom: 1px solid var(--border);
+  }
+  .what-exists tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-2);
+    vertical-align: top;
+  }
+  .what-exists tbody tr:last-child td { border-bottom: none; }
+  .what-exists td.file {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text);
+    width: 30%;
+    font-weight: 600;
+  }
+  .what-exists td.status {
+    width: 14%;
+  }
+  .what-exists td.status .ic {
+    display: inline-flex; align-items: center; padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10.5px; font-weight: 600;
+    font-family: var(--font-mono);
+  }
+  .what-exists td.status .ic.real { background: var(--ok-soft); color: var(--ok); }
+  .what-exists td.status .ic.mock { background: var(--warn-soft); color: oklch(0.42 0.12 60); }
+  .what-exists td.status .ic.miss { background: var(--bad-soft); color: var(--bad); }
+  .what-exists td.note { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+  .what-exists td.note b { color: var(--text); font-weight: 600; }
+
+  /* 22 features applied (compact, only categories that move on refino #1) */
+  .applied-tbl {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .applied-tbl table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .applied-tbl thead th {
+    background: var(--bg-2);
+    text-align: left;
+    padding: 9px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    border-bottom: 1px solid var(--border);
+  }
+  .applied-tbl tbody td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border-2);
+    vertical-align: middle;
+  }
+  .applied-tbl tbody tr:last-child td { border-bottom: none; }
+  .applied-tbl tbody tr.refino1 td { background: oklch(0.98 0.02 295); }
+  .applied-tbl tbody tr:hover td { background: var(--bg); }
+  .applied-tbl tbody tr.refino1:hover td { background: oklch(0.96 0.03 295); }
+  .applied-tbl td.cat { width: 9%; }
+  .applied-tbl td.cat .pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 99px;
+    font-size: 10px; font-weight: 600;
+  }
+  .applied-tbl td.cat .pill.c1 { background: oklch(0.94 0.06 240); color: oklch(0.36 0.13 240); }
+  .applied-tbl td.cat .pill.c2 { background: oklch(0.96 0.05 70); color: oklch(0.42 0.13 60); }
+  .applied-tbl td.cat .pill.c3 { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
+  .applied-tbl td.cat .pill.c4 { background: oklch(0.94 0.06 295); color: oklch(0.36 0.13 295); }
+  .applied-tbl td.cat .pill.c5 { background: oklch(0.96 0.05 25); color: oklch(0.45 0.18 25); }
+  .applied-tbl td.feat { width: 22%; font-weight: 600; }
+  .applied-tbl td.feat small { display: block; font-weight: 400; color: var(--text-mute); font-size: 10.5px; line-height: 1.3; margin-top: 1px; }
+  .applied-tbl td.status { width: 11%; text-align: center; }
+  .applied-tbl td.status .ic {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 10.5px; font-weight: 600; font-family: var(--font-mono);
+  }
+  .applied-tbl td.status .ic.miss { background: var(--bad-soft); color: var(--bad); }
+  .applied-tbl td.status .ic.part { background: var(--warn-soft); color: oklch(0.42 0.13 60); }
+  .applied-tbl td.status .ic.ok   { background: var(--ok-soft); color: var(--ok); }
+  .applied-tbl td.gain {
+    width: 10%; text-align: center;
+    font-family: var(--font-mono); font-weight: 600; font-size: 11.5px;
+  }
+  .applied-tbl td.gain.r1 { color: var(--rec); }
+  .applied-tbl td.gain.later { color: var(--text-mute); }
+  .applied-tbl td.note { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+  .applied-tbl td .r1-mark {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--rec);
+    background: var(--rec-soft);
+    padding: 1px 6px; border-radius: 99px;
+    margin-left: 6px;
+  }
+
+  /* Refino #1 plan */
+  .refino-hdr {
+    background: linear-gradient(135deg, var(--rec-soft), oklch(0.99 0.01 295));
+    border: 1px solid oklch(0.86 0.06 295);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px;
+    align-items: center;
+  }
+  .refino-hdr h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: oklch(0.30 0.13 295);
+  }
+  .refino-hdr p {
+    margin: 0; font-size: 12.5px; color: var(--text-dim); max-width: 680px; line-height: 1.5;
+  }
+  .refino-hdr .score-jump {
+    text-align: right;
+    font-family: var(--font-mono);
+  }
+  .refino-hdr .score-jump .arrow {
+    font-size: 13px;
+    color: var(--text-mute);
+    margin: 0 6px;
+  }
+  .refino-hdr .score-jump .from {
+    font-size: 18px; color: var(--bad); font-weight: 700;
+  }
+  .refino-hdr .score-jump .to {
+    font-size: 22px; color: var(--rec); font-weight: 700;
+  }
+  .refino-hdr .score-jump small {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-mute);
+    margin-bottom: 4px;
+  }
+
+  /* Frentes do refino */
+  .fronts {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 14px;
+  }
+  .front {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--rec);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .front .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--rec);
+    text-transform: uppercase;
+  }
+  .front h4 {
+    margin: 4px 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+  .front > p {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .front .files {
+    background: var(--bg-2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .front .files .ff-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 11px;
+    border-bottom: 1px dashed var(--border-2);
+  }
+  .front .files .ff-row:last-child { border-bottom: none; }
+  .front .files .ff-row code {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .front .files .ff-row .lines {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-mute);
+  }
+  .front ul {
+    margin: 0; padding-left: 16px;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+  .front ul li { margin-bottom: 3px; }
+  .front ul li b { color: var(--text); font-weight: 600; }
+  .front ul li code {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    background: var(--bg-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--text);
+  }
+
+  /* Architecture sketch */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 14px;
+  }
+  .arch h4 {
+    margin: 0 0 4px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+  .arch p {
+    margin: 0 0 12px;
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .arch-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 280px;
+    gap: 6px;
+    height: 200px;
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+  }
+  .arch-pane {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .arch-pane .ap-title {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-2);
+    margin-bottom: 2px;
+  }
+  .arch-pane.left { background: oklch(0.97 0.012 240); border-color: oklch(0.86 0.04 240); }
+  .arch-pane.mid  { background: white; }
+  .arch-pane.right { background: oklch(0.97 0.014 295); border-color: oklch(0.86 0.04 295); }
+  .arch-pane .row {
+    background: white;
+    border: 1px solid var(--border-2);
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-size: 9.5px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .arch-pane .row.selected {
+    background: var(--rec-soft);
+    border-color: var(--rec);
+    color: var(--rec);
+    font-weight: 600;
+  }
+  .arch-pane .row .dot {
+    width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  }
+  .arch-pane .row .dot.ok { background: var(--ok); }
+  .arch-pane .row .dot.warn { background: var(--warn); }
+  .arch-pane .row .dot.bad { background: var(--bad); }
+  .arch-pane .row .dot.mute { background: var(--text-mute); }
+  .arch-pane .row .right-info {
+    margin-left: auto;
+    font-size: 9px;
+    color: var(--text-mute);
+  }
+
+  /* Status pill sketch */
+  .pill-sketch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .pill-sketch .p {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+  }
+  .pill-sketch .p::before {
+    content: ""; width: 5px; height: 5px;
+    border-radius: 50%; background: currentColor;
+  }
+  .pill-sketch .p.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill-sketch .p.retry { background: var(--warn-soft); color: oklch(0.42 0.13 60); }
+  .pill-sketch .p.fail { background: var(--bad-soft); color: var(--bad); }
+  .pill-sketch .p.pause { background: var(--bg-2); color: var(--text-dim); border: 1px dashed var(--border); }
+  .pill-sketch .p.cancel { background: oklch(0.95 0.005 80); color: var(--text-mute); text-decoration: line-through; }
+
+  /* Out of scope */
+  .later {
+    background: var(--bg-2);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    font-size: 11.5px;
+    color: var(--text-mute);
+    line-height: 1.55;
+  }
+  .later b { color: var(--text-dim); font-weight: 600; }
+  .later code {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    background: white;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .later-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .later-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 2px solid;
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .later-card.r2 { border-top-color: oklch(0.55 0.13 200); }
+  .later-card.r3 { border-top-color: oklch(0.55 0.13 145); }
+  .later-card.r4 { border-top-color: oklch(0.55 0.13 60); }
+  .later-card small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600; letter-spacing: 0.06em;
+    color: var(--text-mute); text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .later-card h5 { margin: 2px 0 4px; font-size: 12.5px; font-weight: 700; color: var(--text-dim); }
+  .later-card p { margin: 0; font-size: 11px; color: var(--text-mute); line-height: 1.4; }
+
+  /* Persona row */
+  .personas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .persona {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid;
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+  .persona.e { border-left-color: oklch(0.55 0.13 295); }
+  .persona.w { border-left-color: oklch(0.55 0.13 145); }
+  .persona b { display: block; font-size: 12.5px; font-weight: 700; }
+  .persona small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .persona p { margin: 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.45; }
+
+  /* Foot */
+  .foot {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-mute);
+    display: flex; justify-content: space-between; gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 1100px) {
+    .diag-cats { grid-template-columns: 1fr 1fr; }
+    .hero { grid-template-columns: 1fr; }
+    .fronts { grid-template-columns: 1fr; }
+    .arch-layout { grid-template-columns: 1fr; height: auto; }
+    .applied-tbl table { font-size: 11.5px; }
+    .later-grid { grid-template-columns: 1fr; }
+    .personas { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Diagnóstico · Método KB-9.75 · Maio 2026</div>
+      <h1><span class="glyph">↻</span>Cobrança Recorrente</h1>
+      <p>Aplicação do método nos 22 features-tipo. Módulo hoje vive apenas como <b>mockup estático</b> em <code style="font-family:var(--font-mono); font-size:11.5px; background:white; padding:1px 6px; border-radius:4px;">mockup-bodies.js["recurring"]</code> + estilos <code style="font-family:var(--font-mono); font-size:11.5px; background:white; padding:1px 6px; border-radius:4px;">.rec-*</code> em <code style="font-family:var(--font-mono); font-size:11.5px; background:white; padding:1px 6px; border-radius:4px;">mockup-pages.css</code>. <b>Não há .jsx canônico</b> — Refino #1 começa pela promoção.</p>
+    </div>
+    <div class="score-card now">
+      <small>Score atual</small>
+      <div class="big">1,4<sub>/10</sub></div>
+      <div class="delta">mockup-only</div>
+    </div>
+    <div class="score-card target">
+      <small>Após 4 refinos</small>
+      <div class="big">9,75<sub>/10</sub></div>
+      <div class="delta">+8,35 · ~8-10 sem.</div>
+    </div>
+  </header>
+
+  <div class="verdict">
+    <b>Pegadinha estrutural:</b> Cobrança Recorrente não está no mesmo ponto de partida da Caixa Unificada (7,4) ou do KB (8,27). Não existe lista de assinaturas como componente, drawer de detalhe, mock de dados, nem rota dedicada (renderiza via <code>&lt;MockupPage route="recurring"/&gt;</code>). Portanto o Refino #1 absorve a <b>promoção mockup→canônico</b> antes de ⌘K/J/K — caso contrário, todos os refinos seguintes ficam sem chão.
+  </div>
+
+  <!-- 1. PERSONAS -->
+  <section class="section">
+    <div class="section-h">
+      <span class="num">1</span>
+      <h2>Personas operacionais</h2>
+      <p>Quem usa esse módulo no dia-a-dia define a hierarquia visual.</p>
+    </div>
+
+    <div class="personas">
+      <div class="persona e">
+        <small>Principal · diária</small>
+        <b>Eliana — Financeiro escritório</b>
+        <p>Operadora da rotina de cobrança. Confere retentativas falhas, ajusta plano, dispara dunning manual, exporta extrato pro cliente contestar. Densidade alta, tabelas, filtros, atalhos de teclado.</p>
+      </div>
+      <div class="persona w">
+        <small>Secundária · semanal</small>
+        <b>Wagner — Gestão / MRR</b>
+        <p>Olha o painel de receita recorrente: MRR, churn, ticket médio, projeção próximos 30/60/90d. Não opera linha-a-linha. Quer dashboard limpo, modo apresentação pra reunião com sócio.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. INVENTÁRIO -->
+  <section class="section">
+    <div class="section-h">
+      <span class="num">2</span>
+      <h2>O que existe vs. o que falta</h2>
+      <p>Inventário dos artefatos de código + assets visuais que tocam Cobrança Recorrente.</p>
+    </div>
+
+    <div class="what-exists">
+      <table>
+        <thead>
+          <tr>
+            <th>Artefato</th>
+            <th>Status</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="file">mockup-bodies.js["recurring"]</td>
+            <td class="status"><span class="ic mock">mockup</span></td>
+            <td class="note">Único body existente. Hero + 4 KPIs (MRR, Churn, Próxima cobrança, Retentativas falhas) + grid 2-col (Planos ativos × calendário). <b>Tudo em HTML string</b>.</td>
+          </tr>
+          <tr>
+            <td class="file">mockup-pages.css (.rec-*)</td>
+            <td class="status"><span class="ic mock">mockup</span></td>
+            <td class="note">12 linhas: <code style="font-family:var(--font-mono); font-size:10.5px;">.rec-grid</code>, <code style="font-family:var(--font-mono); font-size:10.5px;">.rec-card</code>, <code style="font-family:var(--font-mono); font-size:10.5px;">.plan</code>, <code style="font-family:var(--font-mono); font-size:10.5px;">.calend-*</code>. Reaproveitáveis no novo arquivo canônico, mas precisam migrar.</td>
+          </tr>
+          <tr>
+            <td class="file">app.jsx rota "recurring"</td>
+            <td class="status"><span class="ic mock">mockup</span></td>
+            <td class="note">Cai no fallback genérico <code style="font-family:var(--font-mono); font-size:10.5px;">&lt;MockupPage route="recurring"/&gt;</code>. Topbar removida na sessão anterior.</td>
+          </tr>
+          <tr>
+            <td class="file">recurring-page.jsx</td>
+            <td class="status"><span class="ic miss">não existe</span></td>
+            <td class="note">Componente principal a criar. Padrão a seguir: <b>financeiro-app.jsx</b> (IIFE, expõe <code style="font-family:var(--font-mono); font-size:10.5px;">window.RecurringPage</code>, hooks renomeados, densidade no <code style="font-family:var(--font-mono); font-size:10.5px;">DENSITY</code> spec).</td>
+          </tr>
+          <tr>
+            <td class="file">recurring-data.jsx</td>
+            <td class="status"><span class="ic miss">não existe</span></td>
+            <td class="note">Mocks de planos, assinaturas, cobranças, retentativas, motivos de churn. Padrão: <b>financeiro-data.jsx</b>.</td>
+          </tr>
+          <tr>
+            <td class="file">recurring-extras.jsx</td>
+            <td class="status"><span class="ic miss">não existe</span></td>
+            <td class="note">Drawer de detalhe da assinatura + modal "Nova assinatura" + modal "Mudar plano". Padrão: <b>financeiro-telas-extras.jsx</b>.</td>
+          </tr>
+          <tr>
+            <td class="file">RecurringBilling (backend)</td>
+            <td class="status"><span class="ic real">existe</span></td>
+            <td class="note">Módulo nWidart já cadastrado (<code style="font-family:var(--font-mono); font-size:10.5px;">Modules/RecurringBilling/</code>). Frontend é o gap.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. NOTAS POR CATEGORIA -->
+  <section class="section">
+    <div class="section-h">
+      <span class="num">3</span>
+      <h2>Score por categoria do método</h2>
+      <p>5 categorias × 22 features-tipo. Linha vertical fina = meta 9,75.</p>
+    </div>
+
+    <div class="diag-cats">
+      <div class="diag-cat c1">
+        <div class="head"><span class="dot"></span><b>Navegação</b><span class="sc">2,0</span></div>
+        <div class="bar"><div class="bar-fill" style="width: 20%"></div><div class="bar-target" style="left: 97%"></div></div>
+        <p>Mockup 1-pane. Zero teclado. Sem ⌘K, J/K, subcategorias, responsive. Cabe no shell mas não opera.</p>
+      </div>
+      <div class="diag-cat c2">
+        <div class="head"><span class="dot"></span><b>Curadoria</b><span class="sc">3,0</span></div>
+        <div class="bar"><div class="bar-fill" style="width: 30%"></div><div class="bar-target" style="left: 97%"></div></div>
+        <p>KPIs de retentativas falhas e churn já mostram <em>frescor</em>. Falta: pílula de status canônica, comentários, histórico de mudança de plano.</p>
+      </div>
+      <div class="diag-cat c3">
+        <div class="head"><span class="dot"></span><b>Inteligência</b><span class="sc">0,5</span></div>
+        <div class="bar"><div class="bar-fill" style="width: 5%"></div><div class="bar-target" style="left: 97%"></div></div>
+        <p>Zero IA. Não há resumir histórico, sugerir ação em retentativa falha, classificar motivo de churn, perguntar histórico do cliente.</p>
+      </div>
+      <div class="diag-cat c4">
+        <div class="head"><span class="dot"></span><b>Guia</b><span class="sc">0,5</span></div>
+        <div class="bar"><div class="bar-fill" style="width: 5%"></div><div class="bar-target" style="left: 97%"></div></div>
+        <p>Sem troubleshooter (falha boleto, cliente sem resposta 7d, suspensão), sem trilhas onboarding Eliana, sem cross-link com OS/Cliente.</p>
+      </div>
+      <div class="diag-cat c5">
+        <div class="head"><span class="dot"></span><b>Saída</b><span class="sc">1,0</span></div>
+        <div class="bar"><div class="bar-fill" style="width: 10%"></div><div class="bar-target" style="left: 97%"></div></div>
+        <p>Único traço de saída é o botão "Logs" no hero do mockup. Sem export, sem PDF, sem favoritar, sem modo apresentação.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 22 FEATURES APLICADAS -->
+  <section class="section">
+    <div class="section-h">
+      <span class="num">4</span>
+      <h2>22 features-tipo aplicadas</h2>
+      <p>Equivalente na recorrência, status atual, ganho de score, e em qual refino entra. <span style="color: var(--rec); font-weight: 600;">Linhas em destaque = entram no Refino #1.</span></p>
+    </div>
+
+    <div class="applied-tbl">
+      <table>
+        <thead>
+          <tr>
+            <th class="cat">Cat.</th>
+            <th class="feat">Feature do método</th>
+            <th class="feat">→ Equivalente na Recorrência</th>
+            <th class="status">Status</th>
+            <th class="gain">Ganho</th>
+            <th class="note">Refino · Como</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="refino1"><td class="cat"><span class="pill c1">Nav</span></td>
+            <td class="feat">N1 Tri/quad-pane<small>colunas com responsabilidade</small></td>
+            <td class="feat">3-col: Filtros · Lista assinaturas · Detalhe+Próximas<small>padrão Cockpit V2</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain r1">+0,8</td>
+            <td class="note"><b>R#1 (1.a)</b> · Nasce direto no .jsx canônico — não tem como retrofitar mockup.</td>
+          </tr>
+          <tr class="refino1"><td class="cat"><span class="pill c1">Nav</span></td>
+            <td class="feat">N2 Command palette ⌘K<small>busca global na recorrência</small></td>
+            <td class="feat">Buscar assinante, plano, OS, próxima cobrança<small>cross-module</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain r1">+0,4</td>
+            <td class="note"><b>R#1 (1.b)</b> · Reuso de <code style="font-family:var(--font-mono); font-size:10.5px;">window.CommandPalette</code> da Caixa, escopado para corpus de assinaturas.</td>
+          </tr>
+          <tr class="refino1"><td class="cat"><span class="pill c1">Nav</span></td>
+            <td class="feat">N3 J/K + atalhos<small>navegar sem mouse</small></td>
+            <td class="feat">J/K na lista, R retentar, P pausar, E editar plano<small>+ cheat-sheet</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain r1">+0,3</td>
+            <td class="note"><b>R#1 (1.b)</b> · Padrão idêntico ao OsListPage.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c1">Nav</span></td>
+            <td class="feat">N4 Subcategorias tree<small>hierarquia visual</small></td>
+            <td class="feat">Filtros: status · plano · forma de pgto · ciclo<small>4 grupos colapsáveis</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#3 · Vem depois do conteúdo estabilizar.</td>
+          </tr>
+          <tr class="refino1"><td class="cat"><span class="pill c1">Nav</span></td>
+            <td class="feat">N5 Responsive tabs<small>monitor 1280 Larissa / tablet</small></td>
+            <td class="feat">≤1100px vira 3 abas: Lista / Detalhe / Próximas<small>mesma lib do KB</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain r1">+0,2</td>
+            <td class="note"><b>R#1 (1.c)</b> · Build-in desde o início — não retrofitar.</td>
+          </tr>
+
+          <tr><td class="cat"><span class="pill c2">Cur</span></td>
+            <td class="feat">C1 Editor de blocos<small>conteúdo estruturado</small></td>
+            <td class="feat">Editor de plano: itens, ciclo, desconto, dia cobrança<small>+ preview</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,3</td>
+            <td class="note">R#3 · Drawer "Editar plano" com form rico.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c2">Cur</span></td>
+            <td class="feat">C2 Histórico + diff<small>versões</small></td>
+            <td class="feat">Histórico de mudança de plano (upgrade/downgrade)<small>+ auditoria fiscal</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,3</td>
+            <td class="note">R#3 · Drawer "Histórico do assinante" linha-do-tempo.</td>
+          </tr>
+          <tr class="refino1"><td class="cat"><span class="pill c2">Cur</span></td>
+            <td class="feat">C3 Frescor (pill)<small>idade / status do conteúdo</small></td>
+            <td class="feat">Status canônico: em-dia · retentando · falhou · pausada · cancelada<small>visual consistente</small></td>
+            <td class="status"><span class="ic part">parcial</span></td>
+            <td class="gain r1">+0,4</td>
+            <td class="note"><b>R#1 (1.c)</b> · Spec visual + componente <code style="font-family:var(--font-mono); font-size:10.5px;">RecStatusBadge</code>.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c2">Cur</span></td>
+            <td class="feat">C4 Re-verificar<small>dono confirma</small></td>
+            <td class="feat">"Reativar assinatura" / "Confirmar mudança"<small>handshake operador</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,1</td>
+            <td class="note">R#3 · Trabalho com troubleshooter.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c2">Cur</span></td>
+            <td class="feat">C5 Comentários inline<small>discussão sobre o conteúdo</small></td>
+            <td class="feat">Nota interna por assinatura ("cliente pediu pra adiar venc.")<small>visível só pra equipe</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#3 · Reuso direto do padrão Caixa.</td>
+          </tr>
+
+          <tr><td class="cat"><span class="pill c3">IA</span></td>
+            <td class="feat">I1 Resumir IA<small>resumir corpo</small></td>
+            <td class="feat">"Resumir 14 cobranças deste assinante"<small>1 botão</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,5</td>
+            <td class="note">R#2 · Maior ganho de IA. Eliana abre detalhe sem ler tudo.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c3">IA</span></td>
+            <td class="feat">I2 Perguntar (RAG)<small>perguntar ao histórico</small></td>
+            <td class="feat">"Por que esse cliente cancelou em fev?" — RAG no histórico<small>+ OS</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,4</td>
+            <td class="note">R#2 · Integra com OS e Caixa (A1 — integração).</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c3">IA</span></td>
+            <td class="feat">I3 Auto-sugest meta<small>IA propõe ação</small></td>
+            <td class="feat">Em retentativa falha 3x → sugere: re-cobrar / trocar método / pausar / dunning<small>4 opções editáveis</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,3</td>
+            <td class="note">R#2 · Eliana clica e revisa antes de aplicar. Nunca auto-execute.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c3">IA</span></td>
+            <td class="feat">I4 Empty-state IA<small>busca vazia oferece IA</small></td>
+            <td class="feat">"Não achei assinatura — perguntar à IA"<small>resgata intenção</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,1</td>
+            <td class="note">R#2 · Copia padrão KB direto.</td>
+          </tr>
+
+          <tr><td class="cat"><span class="pill c4">Gui</span></td>
+            <td class="feat">G1 Troubleshooter<small>árvore de decisão</small></td>
+            <td class="feat">Fluxos: boleto recusado · cartão expirado · cliente sumiu 7d · suspensão por inadimplência<small>4 árvores</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,3</td>
+            <td class="note">R#3 · Reuso lib KBTroubleEditor.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c4">Gui</span></td>
+            <td class="feat">G2 Editor visual de árvore<small>sem código</small></td>
+            <td class="feat">Wagner cria novo fluxo de cobrança visualmente<small>+ versionado</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#3 · Reuso direto KB.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c4">Gui</span></td>
+            <td class="feat">G3 Trilhas<small>onboarding guiado</small></td>
+            <td class="feat">Onboarding Eliana: ativar plano · aplicar desconto · mudar dia · pausar cobrança<small>4 trilhas</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#3 · Substituto da Eliana opera sem treinamento presencial.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c4">Gui</span></td>
+            <td class="feat">G4 Cross-link #ref<small>knowledge graph</small></td>
+            <td class="feat">Nota "Conforme #os4821 + #a9 (sefaz)" vira link<small>+ cliente</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#3 · Reuso lib kbLinkifyText.</td>
+          </tr>
+
+          <tr><td class="cat"><span class="pill c5">Saí</span></td>
+            <td class="feat">S1 Favoritos<small>marcar pessoal</small></td>
+            <td class="feat">Pinar assinatura crítica (atalho B)<small>pessoal por operador</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#4 · Eliana tem 3-5 assinantes que monitora diário.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c5">Saí</span></td>
+            <td class="feat">S2 Apresentação<small>foco fullscreen</small></td>
+            <td class="feat">Dashboard MRR read-only (mostrar pro sócio)<small>sem margem por cliente exposta</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,1</td>
+            <td class="note">R#4 · Reunião mensal.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c5">Saí</span></td>
+            <td class="feat">S3 Imprimir com brand<small>SOP / extrato</small></td>
+            <td class="feat">Extrato do assinante em PDF (header Oimpresso) — uso jurídico / contestação<small>+ lista de retentativas</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,3</td>
+            <td class="note">R#4 · Reuso KBPrintSOP adaptado.</td>
+          </tr>
+          <tr><td class="cat"><span class="pill c5">Saí</span></td>
+            <td class="feat">S4 Imagens nos blocos<small>conteúdo visual</small></td>
+            <td class="feat">Comprovante de boleto/PIX anexado à cobrança — preview inline<small>+ lightbox</small></td>
+            <td class="status"><span class="ic miss">falta</span></td>
+            <td class="gain later">+0,2</td>
+            <td class="note">R#4 · Cliente manda print via WhatsApp.</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 5. REFINO #1 -->
+  <section class="section">
+    <div class="section-h">
+      <span class="num">5</span>
+      <h2>Refino #1 · Fundação + Promoção</h2>
+      <p>Etapa 2 do método (Fundação) absorvendo a promoção mockup→canônico. Sem isso, refinos #2-#4 não têm onde aterrissar.</p>
+    </div>
+
+    <div class="refino-hdr">
+      <div>
+        <h3>Refino #1 — Fundação + Promoção mockup→canônico</h3>
+        <p>3 frentes paralelas: <b>(1.a)</b> criar os 3 arquivos .jsx + rota, <b>(1.b)</b> teclado canônico (⌘K + J/K + cheat-sheet), <b>(1.c)</b> pílula de status + responsive tabs. Tudo entra junto porque um depende do outro — não dá pra fazer ⌘K sem ter o componente.</p>
+      </div>
+      <div class="score-jump">
+        <small>Score esperado</small>
+        <span class="from">1,4</span><span class="arrow">→</span><span class="to">3,8</span>
+        <small style="margin-top: 8px;">+2,4 · ~2 sprints</small>
+      </div>
+    </div>
+
+    <div class="fronts">
+
+      <!-- FRENTE 1.a -->
+      <div class="front">
+        <span class="tag">Frente 1.a</span>
+        <h4>Promoção mockup → .jsx canônico</h4>
+        <p>Cria a estrutura de arquivos espelhando o padrão do Financeiro. Rota <code>/recurring</code> deixa de cair em <code>MockupPage</code> e passa a renderizar <code>&lt;RecurringPage/&gt;</code>.</p>
+
+        <div class="files">
+          <div class="ff-row"><code>recurring-page.jsx</code><span class="lines">~400 ln</span></div>
+          <div class="ff-row"><code>recurring-data.jsx</code><span class="lines">~200 ln</span></div>
+          <div class="ff-row"><code>recurring-extras.jsx</code><span class="lines">~300 ln</span></div>
+          <div class="ff-row"><code>styles.css (sec .rec-*)</code><span class="lines">~150 ln</span></div>
+        </div>
+
+        <ul>
+          <li><b>recurring-page.jsx</b> — IIFE, expõe <code>window.RecurringPage</code>. Layout 3-col.</li>
+          <li><b>recurring-data.jsx</b> — 20+ assinaturas mock, 5 planos, 14 dias de retentativas, motivos de churn.</li>
+          <li><b>recurring-extras.jsx</b> — <code>SubscriptionDrawer</code> (480px), <code>NewSubscriptionDrawer</code> (620px), <code>ChangePlanModal</code> (centro).</li>
+          <li>Em <code>app.jsx</code>, mover <code>recurring</code> do array <code>MockupPage</code> para o roteador, igual financeiro/boletos.</li>
+          <li>Em <code>Oimpresso ERP - Chat.html</code>, adicionar os 3 <code>&lt;script type="text/babel"&gt;</code> na ordem.</li>
+        </ul>
+      </div>
+
+      <!-- FRENTE 1.b -->
+      <div class="front">
+        <span class="tag">Frente 1.b</span>
+        <h4>Teclado canônico</h4>
+        <p>Operador veterano (Eliana) não usa mouse. Atalhos visíveis. Reuso direto dos componentes existentes — não reinventar.</p>
+
+        <ul>
+          <li><b>⌘K</b> abre command palette escopada em assinaturas + planos + próximas cobranças. Reuso <code>window.CommandPalette</code> da Caixa.</li>
+          <li><b>J / K</b> navegam linha-a-linha na lista de assinaturas.</li>
+          <li><b>↵</b> abre drawer de detalhe da assinatura focada.</li>
+          <li><b>R</b> "Retentar agora" na linha focada (se status = falhou/retentando).</li>
+          <li><b>P</b> "Pausar" / "Reativar" toggle.</li>
+          <li><b>E</b> "Editar plano" — abre <code>ChangePlanModal</code>.</li>
+          <li><b>N</b> "Nova assinatura" — abre drawer.</li>
+          <li><b>/</b> foca a busca local.</li>
+          <li><b>Esc</b> fecha drawer/modal.</li>
+          <li><b>?</b> abre cheat-sheet flutuante (overlay com lista de atalhos).</li>
+        </ul>
+      </div>
+
+      <!-- FRENTE 1.c -->
+      <div class="front">
+        <span class="tag">Frente 1.c</span>
+        <h4>Status canônico + responsive</h4>
+        <p>Componente <code>RecStatusBadge</code> reusável. Cobre 5 estados que aparecem em toda lista, drawer e timeline. Responsive 3-tabs abaixo de 1100px (monitor da Larissa).</p>
+
+        <div class="pill-sketch">
+          <span class="p ok">em dia</span>
+          <span class="p retry">retentando 2/3</span>
+          <span class="p fail">falhou 3x</span>
+          <span class="p pause">pausada</span>
+          <span class="p cancel">cancelada</span>
+        </div>
+
+        <ul style="margin-top: 12px;">
+          <li><b>em dia</b> · próxima cobrança no ciclo normal</li>
+          <li><b>retentando</b> · mostra contador <code>X/3</code></li>
+          <li><b>falhou</b> · 3 tentativas esgotadas → ação manual da Eliana</li>
+          <li><b>pausada</b> · operador pausou; data de retomada</li>
+          <li><b>cancelada</b> · churn confirmado; mostra motivo</li>
+          <li>Responsive: ≤1100px vira 3 abas (Lista / Detalhe / Próximas).</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Arquitetura visual -->
+    <div class="arch">
+      <h4>Layout-alvo do Refino #1 · 3-col (≥1100px)</h4>
+      <p>Densidade padrão do Financeiro. Coluna direita combina detalhe + próximas cobranças (não vira drawer separado).</p>
+
+      <div class="arch-layout">
+        <div class="arch-pane left">
+          <div class="ap-title">Filtros</div>
+          <div class="row"><span class="dot ok"></span>em dia<span class="right-info">8</span></div>
+          <div class="row selected"><span class="dot warn"></span>retentando<span class="right-info">2</span></div>
+          <div class="row"><span class="dot bad"></span>falhou<span class="right-info">2</span></div>
+          <div class="row"><span class="dot mute"></span>pausada<span class="right-info">1</span></div>
+          <div class="row" style="margin-top: 6px; font-weight: 600;">Plano</div>
+          <div class="row"><span class="dot mute"></span>Padaria · 480/mês</div>
+          <div class="row"><span class="dot mute"></span>Acme · 1.890/mês</div>
+        </div>
+
+        <div class="arch-pane mid">
+          <div class="ap-title">Assinaturas · 13</div>
+          <div class="row selected">Padaria Estrela · cardápios<span class="right-info">retent 2/3</span></div>
+          <div class="row">Acme Comércio · banner promo<span class="right-info">em dia</span></div>
+          <div class="row">Imob. Horizonte · wind banner<span class="right-info">em dia</span></div>
+          <div class="row">Mercado União · fachada<span class="right-info">retent 1/3</span></div>
+          <div class="row">Cervejaria Lupulada · rótulos<span class="right-info">falhou 3x</span></div>
+          <div class="row">[...]</div>
+        </div>
+
+        <div class="arch-pane right">
+          <div class="ap-title">Detalhe · Padaria Estrela</div>
+          <div class="row" style="font-weight: 600;">R$ 480 / mês · ciclo dia 5</div>
+          <div class="row"><span class="dot warn"></span>retentando 2/3 · prox 14h</div>
+          <div class="row" style="font-weight: 600; margin-top: 6px;">Histórico (14)</div>
+          <div class="row">✓ abr/2026 · pago d+0</div>
+          <div class="row">✓ mar/2026 · pago d+0</div>
+          <div class="row" style="font-weight: 600; margin-top: 6px;">Próximas 3</div>
+          <div class="row">05/jun · R$ 480</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap futuro -->
+    <div class="later">
+      <b>Fora do escopo do Refino #1</b> — entra nos refinos seguintes, mantendo o método KB-9.75:
+
+      <div class="later-grid">
+        <div class="later-card r2">
+          <small>Refino #2</small>
+          <h5>IA dentro do fluxo</h5>
+          <p>Resumir histórico · sugerir ação em retentativa falha · perguntar histórico · auto-classificar motivo de churn. Target: 3,8 → 6,5.</p>
+        </div>
+        <div class="later-card r3">
+          <small>Refino #3</small>
+          <h5>Curadoria + Guia</h5>
+          <p>Comentário por assinatura · histórico/diff de mudança de plano · 4 troubleshooters · trilhas Eliana · cross-link OS/cliente. Target: 6,5 → 8,8.</p>
+        </div>
+        <div class="later-card r4">
+          <small>Refino #4</small>
+          <h5>Distribuição</h5>
+          <p>Extrato PDF · variáveis no template de boleto · modo apresentação MRR · favoritar · lightbox de comprovantes. Target: 8,8 → 9,75.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Diagnóstico Cobrança Recorrente · v1 · 2026-05-16 · Cowork</span>
+    <span>Aplica Método KB-9.75 · próximos: Compras · CRM · Vendas</span>
+  </footer>
+
+</div>
+</body>
+</html>

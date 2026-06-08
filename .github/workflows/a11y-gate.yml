@@ -1,0 +1,59 @@
+name: A11y ratchet (acessibilidade = categoria protegida)
+
+# Auditoria 2026-06-06 (LLM-judge→determinístico) + benchmark vs SOTA: a11y era o ponto-baixo
+# (nota ~62). As 294 violações jsx-a11y viviam ENTERRADAS no baseline geral de eslint (1073) —
+# gateadas contra novas, mas absorvíveis via lint:baseline:write (porta de escape).
+# Este gate trata a11y como categoria PROTEGIDA: a contagem jsx-a11y/* só DESCE, nunca sobe —
+# nem via baseline:write. axe-core RUNTIME (contraste/ARIA/foco) = Fase 2 (vitest-axe).
+#
+# Node puro (lê config/eslint-baseline.json commitado), sem deps, sem npm ci.
+# Local: npm run a11y:check · visibilidade: npm run a11y:report
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'config/eslint-baseline.json'
+      - 'config/a11y-baseline.json'
+      - 'scripts/a11y-ratchet.mjs'
+      - '.github/workflows/a11y-gate.yml'
+  pull_request:
+    paths:
+      - 'config/eslint-baseline.json'
+      - 'config/a11y-baseline.json'
+      - 'scripts/a11y-ratchet.mjs'
+      - '.github/workflows/a11y-gate.yml'
+
+concurrency:
+  group: a11y-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  a11y:
+    name: A11y · ratchet jsx-a11y (só desce)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: A11y ratchet (falha se jsx-a11y aumentou)
+        run: node scripts/a11y-ratchet.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Aumentou violação de acessibilidade (jsx-a11y) vs config/a11y-baseline.json."
+          echo ""
+          echo "Acessibilidade é categoria PROTEGIDA — não absorve débito novo, NEM via lint:baseline:write."
+          echo ""
+          echo "  1. Local: npm run a11y:report  · vê a violação nova (label/key-events/role/aria)"
+          echo "  2. CORRIJA (não suprima): <label htmlFor>, onKeyDown junto de onClick, role correto, aria-*"
+          echo "  3. Encolher é sempre OK — ao corrigir, rode: npm run a11y:baseline:write"
+          echo ""
+          echo "Refs: ADR 0209 (ratchet) · auditoria LLM-judge→determinístico 2026-06-06 · eslint-plugin-jsx-a11y"

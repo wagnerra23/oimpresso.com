@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/project-mgmt",
+    "description": "Project Management Jira-style sobre o stack MCP do Copiloto — Kanban, Backlog, Roadmap, My Work, Inbox, Triage. Promovido a módulo próprio em 2026-05-04 (ADR 0070).",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\ProjectMgmt\\Providers\\ProjectMgmtServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ProjectMgmt\\": ""
+        }
+    }
+}

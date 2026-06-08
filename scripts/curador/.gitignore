@@ -1,0 +1,4 @@
+# Estado local do Curador — paths absolutos do PC do dev. NUNCA commitar.
+db/
+reports/
+config.json

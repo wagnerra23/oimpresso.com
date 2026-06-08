@@ -1,0 +1,309 @@
+<?php
+
+namespace Modules\Jana\Providers;
+
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
+use Modules\Jana\Drivers\Sql\SqlDriver;
+use Modules\Jana\Events\CopilotoDesvioDetectado;
+use Modules\Jana\Listeners\NotificarDesvioListener;
+use Nwidart\Modules\Facades\Module;
+
+/**
+ * ServiceProvider do módulo Jana (ex-Copiloto, renomeado em Fase 3.7 PR-2).
+ *
+ * Modelado conforme Modules/Ponto/Providers/PontoServiceProvider.php.
+ * Rotas carregadas via start.php (ver module.json "files").
+ *
+ * Note: config keys, log channels, URLs, permissions e Pages React mantêm
+ * prefixo `copiloto.*` por compatibilidade (rename PHP-only — ver plano §4 erratum).
+ */
+class JanaServiceProvider extends ServiceProvider
+{
+    /**
+     * @var bool
+     */
+    protected $defer = false;
+
+    /**
+     * Boot do módulo.
+     */
+    public function boot(Router $router): void
+    {
+        $this->registerTranslations();
+        $this->registerConfig();
+        $this->registerViews();
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        // Eventos do módulo
+        Event::listen(CopilotoDesvioDetectado::class, NotificarDesvioListener::class);
+
+        // MEM-MCP-1.b (ADR 0053) — middleware de auth do MCP server
+        $router->aliasMiddleware('mcp.auth', \Modules\Jana\Http\Middleware\McpAuthMiddleware::class);
+
+        // Comandos artisan
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Jana\Console\Commands\ApurarMetricasCommand::class,    // MEM-MET-2
+                \Modules\Jana\Console\Commands\AvaliarGabaritoCommand::class,   // MEM-EVAL-1
+                \Modules\Jana\Console\Commands\BackfillFatosCommand::class,     // MEM-EVAL-2
+                \Modules\Jana\Console\Commands\McpSystemTokenCommand::class,    // MEM-MEM-MCP-1
+                \Modules\Jana\Console\Commands\McpSyncMemoryCommand::class,     // MEM-MCP-1.a
+                \Modules\Jana\Console\Commands\McpTokenGerarCommand::class,     // MEM-MCP-1.b
+                \Modules\Jana\Console\Commands\McpAdrMigrarFrontmatterCommand::class, // MEM-KB-3 / F1
+                \Modules\Jana\Console\Commands\SeedAdrsCommand::class,          // MEM-MULTI-1
+                \Modules\Jana\Console\Commands\CleanupMemoriaCommand::class,   // MEM-FASE8
+                \Modules\Jana\Console\Commands\SinteseSemanalCommand::class,   // MemoriaAutonoma F1
+                \Modules\Jana\Console\Commands\McpTasksSyncCommand::class,     // TaskRegistry F0
+                \Modules\Jana\Console\Commands\BackfillTasksFromMarkdownCommand::class, // ADR 0070 — backfill 1× CURRENT.md/TASKS.md
+                \Modules\Jana\Console\Commands\McpSkillsImportFromGitCommand::class, // ADR 0076 Fase 1
+                \Modules\Jana\Console\Commands\HealthCheckCommand::class,      // sentinela operacional 5 checks
+                \Modules\Jana\Console\Commands\SystemAuditCommand::class,      // ADR 0133 — 5 audits Constituição v2 (observ/evals/ADR-stale/cost/coverage)
+                \Modules\Jana\Console\Commands\McpTasksHealthCheckCommand::class, // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection
+                \Modules\Jana\Console\Commands\JanaBacklinksSweepCommand::class, // Gap G5 P1 auditoria 2026-05-13 — backlinks ADR↔SPEC sweep
+                \Modules\Jana\Console\Commands\JanaRagasEvalCommand::class,    // ADR 0037 §GAP-2 — RAGAS gate (faithfulness/relevancy/precision/recall)
+                \Modules\Jana\Console\Commands\JanaRagasCiCommand::class,      // W28-2 — RAGAS CI gate BLOQUEANTE (golden set + JSON gh pr comment)
+                \Modules\Jana\Console\Commands\JanaCyclesAutoCloseExpiredCommand::class, // Gap #5 COMPARATIVO-MCP — auto-rollover Linear-style daily 23:55 BRT
+                \Modules\Jana\Console\Commands\JanaWeeklyDigestCommand::class, // Gap G8 P2 auditoria 2026-05-13 — Reflect-style weekly digest
+                \Modules\Jana\Console\Commands\JanaValidateMemoryCommand::class, // S1 Onda 5 P1 — schema rígido CI (6 schemas + AJV + grace period 14d)
+                \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
+                \Modules\Jana\Console\Commands\JanaDriftSentinelCommand::class, // Wave 23 §G2 — canary semanal drift Jana (faithfulness vs baseline)
+                \Modules\Jana\Console\Commands\RetentionPurgeCommand::class, // G1 P0 AUDIT-SENIOR-2026-05-25 — D7.d LGPD purge (Art. 16 + Art. 18 §VI)
+                \Modules\Jana\Console\Commands\IndexRegenCommand::class, // regressão 2026-05-29 — gate integridade/priorização memory/INDEX.md (Tier 0 + links + contagens)
+                \Modules\Jana\Console\Commands\MeilisearchIndexSetupCommand::class, // 2026-05-29 — config-as-code dos embedders Meilisearch (Sprint 9b se perdeu)
+                \Modules\Jana\Console\Commands\ReconcileCommand::class, // ADR 0237 — jana:reconcile loop único (orquestra Reconcilers index/settings/content/deploy/eval)
+                \Modules\Jana\Console\Commands\UiJudgeTrendCommand::class, // parecer PR #2270 — medição do PR UI Judge (trend score/verdict/custo)
+            ]);
+        }
+    }
+
+    /**
+     * Register the service provider — binds + singletons.
+     */
+    public function register(): void
+    {
+        $this->app->singleton(\Modules\Jana\Services\SuggestionEngine::class);
+        $this->app->singleton(\Modules\Jana\Services\ApuracaoService::class);
+        $this->app->singleton(\Modules\Jana\Services\ContextSnapshotService::class);
+        $this->app->singleton(\Modules\Jana\Services\AlertaService::class);
+
+        // Freshness (GAP D7 #2 · revisão adversarial 2026-05-29 finding #2):
+        // StalenessDetectorService é STATEFUL (repoBasePath). Sem singleton, o
+        // FreshnessCheckCommand configurava `comRepoBasePath(base_path())` na SUA
+        // instância injetada, mas o ReindexJobDispatcher recebia OUTRA instância
+        // (repoBasePath=null) → detectDrift() no dispatcher sempre vazio → drift
+        // git-SHA detectado no relatório mas NUNCA reindexado (anulava o BUG-1 fix).
+        // Singleton já com base_path() → command e dispatcher compartilham a config.
+        $this->app->singleton(
+            \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService::class,
+            fn () => new \Modules\Jana\Services\Memoria\Freshness\StalenessDetectorService(base_path()),
+        );
+
+        // L1 Onda 4 (P0 GAP-ANALYSIS-91-100-2026-05-13) — Langfuse v3 self-host
+        // CT 100 + batch ingestion REST. Multiplicador exponencial: instrumenta
+        // TODOS os tools LLM (kb-answer, handoff-summarized, handoff-diff,
+        // weekly-digest, RAGAS, brief, Jana chat). % IA observability 40%→95%.
+        $this->app->singleton(\Modules\Jana\Services\Telemetry\LangfuseClient::class);
+
+        // A1 Onda 5 (P1 ONDA-5-DOSSIER-2026-05-13) — Auto-summary docs longos
+        // via map-reduce gpt-4o-mini + cache MySQL 24h + Anthropic prompt
+        // caching sentinels. Cap mensal R$ 10. Threshold ativação 8KB.
+        // Wrappa decisions-fetch + tasks-detail + kb-answer.
+        $this->app->singleton(\Modules\Jana\Services\Summarizer\AutoSummarizerService::class);
+
+        // Drivers de apuração — ver adr/tech/0001
+        $this->app->tag([SqlDriver::class], 'copiloto.drivers');
+
+        // Adapter IA — verdade canônica em ADRs 0031/0032/0033/0034/0035
+        $this->app->bind(
+            \Modules\Jana\Contracts\AiAdapter::class,
+            function () {
+                $adapterMode = config('copiloto.ai_adapter', 'auto');
+
+                // 'laravel_ai_sdk' (CANÔNICO) — pacote oficial laravel/ai (fev/2026)
+                if ($adapterMode === 'laravel_ai_sdk' || ($adapterMode === 'auto' && $this->laravelAiSdkAvailable())) {
+                    return $this->app->make(\Modules\Jana\Services\Ai\LaravelAiSdkDriver::class);
+                }
+
+                // 'openai_direct' (LEGADO/deprecated) — depende de openai-php/laravel não instalado
+                return $this->app->make(\Modules\Jana\Services\Ai\OpenAiDirectDriver::class);
+            }
+        );
+
+        // MemoriaContrato — verdade canônica ADR 0036 (Meilisearch first, Mem0 último)
+        //
+        // D8 gap #3 (2026-05-15, +2pp 86→88) — quando
+        // config('copiloto.telemetry.retrieval_spans_enabled') = true, o driver
+        // resolvido é wrappado por RetrievalTelemetryDecorator (OTel GenAI spans
+        // canônicos + audit log mcp_audit_log linha por query).
+        $this->app->bind(
+            \Modules\Jana\Contracts\MemoriaContrato::class,
+            function () {
+                $driver = config('copiloto.memoria.driver', 'auto');
+
+                $inner = match (true) {
+                    // 'null' — dev / dry_run / CI (não chama rede)
+                    $driver === 'null' || (bool) config('copiloto.dry_run')
+                        => $this->app->make(\Modules\Jana\Services\Memoria\NullMemoriaDriver::class),
+
+                    // 'meilisearch' (CANÔNICO até abr/2026) — Scout + Meilisearch self-hosted
+                    $driver === 'meilisearch' || $driver === 'auto'
+                        => $this->app->make(\Modules\Jana\Services\Memoria\MeilisearchDriver::class),
+
+                    // 'mcp' (NOVO ADR 0056) — Copiloto chat consome MCP server.
+                    // Fallback automático: se MCP indisponível, usa MeilisearchDriver direto.
+                    $driver === 'mcp'
+                        => new \Modules\Jana\Services\Memoria\McpMemoriaDriver(
+                            $this->app->make(\Modules\Jana\Services\Memoria\MeilisearchDriver::class)
+                        ),
+
+                    // 'mem0_rest' (CONDICIONAL sprint 8+) — placeholder, não implementado
+                    default => throw new \RuntimeException(
+                        "Driver de memória '{$driver}' não implementado. ".
+                        'Drivers válidos: meilisearch (default), mcp (ADR 0056), null (dev), mem0_rest (futuro).'
+                    ),
+                };
+
+                // Wrap com OTel GenAI retrieval spans quando feature flag ligada.
+                // Default DESLIGADO — Wagner liga JANA_RETRIEVAL_SPANS=true após
+                // validar overhead (~5-15ms/query) em homolog.
+                if ((bool) config('copiloto.telemetry.retrieval_spans_enabled', false)) {
+                    return new \Modules\Jana\Services\Memoria\Telemetry\RetrievalTelemetryDecorator(
+                        $inner,
+                        $this->app->make(\Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder::class),
+                    );
+                }
+
+                return $inner;
+            }
+        );
+
+        // RetrievalSpanBuilder (D8 gap #3) — singleton com LangfuseClient injetado.
+        // Container resolve LangfuseClient automaticamente (já registrado linha ~87).
+        $this->app->singleton(
+            \Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder::class,
+            function ($app) {
+                return new \Modules\Jana\Services\Memoria\Telemetry\RetrievalSpanBuilder(
+                    $app->make(\Modules\Jana\Services\Telemetry\LangfuseClient::class),
+                );
+            }
+        );
+
+        // Reranker canônico (GAP-A — AUDITORIA 2026-05-13 §5 G3)
+        // Drivers: rrf (default), llm (LLM-as-judge), null (passthrough).
+        $this->app->bind(
+            \Modules\Jana\Services\Retrieval\Reranker::class,
+            function () {
+                $enabled = (bool) config('copiloto.reranker.enabled', true);
+                $driver  = (string) config('copiloto.reranker.driver', 'rrf');
+
+                if (! $enabled || $driver === 'null') {
+                    return $this->app->make(\Modules\Jana\Services\Retrieval\NullReranker::class);
+                }
+
+                if ($driver === 'llm') {
+                    return new \Modules\Jana\Services\Retrieval\LlmRerankerAdapter(
+                        $this->app->make(\Modules\Jana\Services\Memoria\LlmReranker::class)
+                    );
+                }
+
+                // bge — cross-encoder BGE-v2-m3 self-host CT 100 (R1 Onda 4, +6pp NDCG@10 vs RRF)
+                if ($driver === 'bge') {
+                    return new \Modules\Jana\Services\Retrieval\BgeReranker(
+                        endpoint: (string) config('copiloto.reranker.bge.endpoint'),
+                        timeout: (int) config('copiloto.reranker.bge.timeout', 5),
+                        fallback: $this->app->make(\Modules\Jana\Services\Retrieval\RrfReranker::class)
+                    );
+                }
+
+                // rrf (default MVP)
+                return $this->app->make(\Modules\Jana\Services\Retrieval\RrfReranker::class);
+            }
+        );
+    }
+
+    /**
+     * Pacote laravel/ai (Laravel AI SDK oficial) está instalado?
+     * Detecta via class_exists no autoload, sem exigir publish de config.
+     */
+    protected function laravelAiSdkAvailable(): bool
+    {
+        return class_exists(\Laravel\Ai\AiManager::class);
+    }
+
+    /**
+     * Módulo LaravelAI interno instalado e ativo? (legado, ainda referenciado por config)
+     */
+    protected function laravelAiAvailable(): bool
+    {
+        try {
+            $module = Module::find('LaravelAI');
+            return $module && $module->isEnabled();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Publica e merge do arquivo de config.
+     */
+    protected function registerConfig(): void
+    {
+        $this->publishes([
+            __DIR__ . '/../Config/config.php' => config_path('copiloto.php'),
+        ], 'config');
+
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/config.php',
+            'copiloto'
+        );
+
+        // G1 P0 AUDIT-SENIOR-2026-05-25 — D7 LGPD retention.php sob namespace jana.retention.
+        // Permite config('jana.retention.entities.conversa') consumível por
+        // RetentionPurgeCommand + RetentionPurgeService (Modules/Jana/Services/Privacy).
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/retention.php',
+            'jana.retention',
+        );
+    }
+
+    /**
+     * Publica e registra as views.
+     */
+    public function registerViews(): void
+    {
+        $viewPath = resource_path('views/modules/copiloto');
+        $sourcePath = __DIR__ . '/../Resources/views';
+
+        $this->publishes([
+            $sourcePath => $viewPath,
+        ], 'views');
+
+        $this->loadViewsFrom(
+            array_merge(array_map(function ($path) {
+                return $path . '/modules/copiloto';
+            }, \Config::get('view.paths')), [$sourcePath]),
+            'copiloto'
+        );
+    }
+
+    /**
+     * Registra as traduções.
+     */
+    public function registerTranslations(): void
+    {
+        $langPath = resource_path('lang/modules/copiloto');
+
+        if (is_dir($langPath)) {
+            $this->loadTranslationsFrom($langPath, 'copiloto');
+        } else {
+            $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'copiloto');
+        }
+    }
+
+    public function provides(): array
+    {
+        return [];
+    }
+}

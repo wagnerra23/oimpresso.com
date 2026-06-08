@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oimpresso.com/schemas/charter.schema.json",
+  "title": "Page Charter frontmatter — oimpresso (ONDA 5 S1)",
+  "description": "Schema canônico do bloco YAML em resources/js/Pages/<Mod>/<Tela>.charter.md. ADR 0114 charter-first Tier A. ONDA-5-DOSSIER §5 S1.",
+  "type": "object",
+  "required": ["page", "component", "status"],
+  "additionalProperties": true,
+  "properties": {
+    "page": {
+      "type": "string",
+      "pattern": "^/.*$",
+      "description": "URL path ex /admin ou /atendimento/inbox"
+    },
+    "component": {
+      "type": "string",
+      "pattern": "^resources/js/Pages/.+\\.tsx$",
+      "description": "Path do arquivo Inertia React (relative ao repo root)"
+    },
+    "page_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Slug curto opcional usado por charter-fetch MCP tool"
+    },
+    "owner": {
+      "type": "string",
+      "enum": ["wagner", "felipe", "maiara", "luiz", "eliana"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "live", "deprecated"]
+    },
+    "last_validated": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "parent_module": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80
+    },
+    "related_adrs": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "integer", "minimum": 1, "maximum": 9999 },
+          { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" }
+        ]
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["A", "B", "C"]
+    },
+    "charter_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "mission": {
+      "type": "string",
+      "description": "Frase única descrevendo o porquê da página (opcional no frontmatter; usual no corpo)"
+    },
+    "goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "non_goals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "ux_targets": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "automation_hooks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "anti_hooks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
+  }
+}

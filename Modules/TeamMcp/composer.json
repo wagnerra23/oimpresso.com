@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/team-mcp",
+    "description": "Team MCP — governança de tokens MCP, DXT, quotas, Kanban e auditoria Claude Code do time. Self-host equivalent ao Anthropic Team plan (ADR 0055).",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\TeamMcp\\Providers\\TeamMcpServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\TeamMcp\\": ""
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "name": "Auditoria",
+    "alias": "auditoria",
+    "description": "Camada de governança transversal — UI rica /auditoria + undo sobre activity_log existente. Distingue User vs IA (causer_kind). Whitelist UNREVERTIBLE de 5 categorias. Per ADR 0127.",
+    "keywords": ["auditoria", "audit", "activity-log", "undo", "governanca", "lgpd"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Auditoria\\Providers\\AuditoriaServiceProvider"
+    ],
+    "files": [],
+    "governance": {
+        "bucket": "cross_cutting_infra",
+        "bucket_assigned_at": "2026-05-17",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Camada governança transversal /auditoria + undo sobre activity_log, infra interna depende-de-tudo, time MCP usa diário (ADR 0127)",
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Auditoria opera SOBRE activity_log existente (Spatie Activitylog) — NÃO tem state machine própria. Listing/filter/revert são ações idempotentes (revertir é uma write nova, NÃO mudança de stage). Whitelist UNREVERTIBLE (5 categorias — ADR 0127 §3) é regra de domínio, não FSM. Wave 18 RETRY sinalizado.",
+        "wave_18_retry": {
+            "d1_score": 30,
+            "d2_score": 20,
+            "d6_score": 10,
+            "d8_score": 8,
+            "artifacts": ["AuditEntryService", "AuditNote", "Inertia::defer", "RevertActivityRequest", "FilterAuditEntriesRequest", "StoreAuditNoteRequest", "UpdateAuditNoteRequest", "BulkRevertActivityRequest", "Wave18SaturationTest"]
+        }
+    }
+}

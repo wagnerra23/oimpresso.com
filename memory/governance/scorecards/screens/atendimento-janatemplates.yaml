@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Atendimento/JanaTemplates
+path: resources/js/Pages/Atendimento/JanaTemplates.tsx
+archetype: config
+persona: misto
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Form config limpo c/ charter, PageHeader canon e @/Components/ui — simples demais, sem render de erros de validacao inline."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe (erro de validacao inline por campo)"
+    fix: "useForm errors nao renderizados nos Inputs; so spinner no submit — exibir errors.template_* abaixo de cada campo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Notion (helper text explica o que e template HSM)"
+    fix: "Campos de template pedem nome exato sem link/ajuda do que e HSM; add hint ou link doc Meta"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Density"
+    best_of_class: "Linear settings (agrupa toggle+campos relacionados)"
+    fix: "4 campos soltos num grid; agrupar Repair vs Cobranca em sub-secoes rotuladas"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,132 @@
+/* SCOPED-OK */
+/* ───────────────── Oimpresso ERP — Sells/Show Cowork ─────────────────
+ * Visual readonly da venda finalizada (espelha família .sells-cowork de
+ * Sells/Index canon — KB-9.75 chat10 2026-05-16).
+ *
+ * Aplicado em resources/js/Pages/Sells/Show.tsx wrappando o outer div
+ * com class `.sells-cowork-show` (US-SELL-SHOW-COWORK marker).
+ * Charter: resources/js/Pages/Sells/Show.charter.md (status: wave1-draft).
+ *
+ * Importado por resources/css/inertia.css. Refs:
+ *  - resources/css/sells-cowork.css (palette/tipografia canon)
+ *  - prototipo-ui/prototipos/sells-create/visual-source.html (tokens irmãos)
+ *  - memory/requisitos/Sells/RUNBOOK-show.md
+ *
+ * Princípios visuais (charter anti-patterns preservados):
+ *  - SEM border-b-2 em headings/tabs
+ *  - SEM font-bold em h1 (usar font-weight 600)
+ *  - SEM cor crua bg-blue-500 (oklch tokens)
+ *  - Tipografia canon: h1 24px / KPI 24-36px / label 11px upper
+ *  - Cabe ≤1280px (Larissa ROTA LIVRE monitor)
+ * ─────────────────────────────────────────────────────────────────── */
+
+.sells-cowork-show {
+  /* Tokens espelhados de .sells-cowork canon (carbon + accent oklch) */
+  --bg:           oklch(0.985 0.003 90);
+  --bg-2:         oklch(0.965 0.004 90);
+  --surface:      #ffffff;
+  --border:       oklch(0.90 0.004 90);
+  --border-2:     oklch(0.93 0.004 90);
+  --text:         oklch(0.22 0.01 80);
+  --text-dim:     oklch(0.50 0.01 80);
+  --text-mute:    oklch(0.65 0.01 80);
+
+  --accent:       oklch(0.55 0.15 295);
+  --accent-2:     oklch(0.62 0.15 295);
+  --accent-soft:  oklch(0.95 0.04 295);
+  --accent-fg:    #ffffff;
+
+  /* Status pgto (semantic colors via oklch — NÃO bg-*-500 cru) */
+  --status-paid:      oklch(0.62 0.13 145);
+  --status-paid-bg:   oklch(0.95 0.05 145);
+  --status-due:       oklch(0.62 0.15 60);
+  --status-due-bg:    oklch(0.96 0.06 75);
+  --status-partial:   oklch(0.58 0.09 220);
+  --status-partial-bg: oklch(0.95 0.04 220);
+
+  /* Fiscal (NFe — chave 4-em-4) */
+  --fiscal-bg:    oklch(0.965 0.004 90);
+  --fiscal-fg:    oklch(0.30 0.01 80);
+
+  --radius:       8px;
+  --radius-sm:    6px;
+  --radius-lg:    12px;
+
+  --shadow-pop:   0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft:  0 1px 2px rgba(0,0,0,.04);
+
+  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  font-family: var(--font-sans);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Dark mode (espelha .sells-cowork [data-theme=dark]) ─── */
+.dark .sells-cowork-show,
+.sells-cowork-show[data-theme="dark"] {
+  --bg:        oklch(0.16 0.003 240);
+  --bg-2:      oklch(0.14 0.003 240);
+  --surface:   oklch(0.19 0.003 240);
+  --border:    oklch(0.26 0.005 240);
+  --border-2:  oklch(0.23 0.005 240);
+  --text:      oklch(0.92 0.005 90);
+  --text-dim:  oklch(0.68 0.005 90);
+  --text-mute: oklch(0.55 0.005 90);
+  --accent-soft: oklch(0.32 0.06 295);
+  --status-paid-bg:    oklch(0.28 0.06 145);
+  --status-due-bg:     oklch(0.28 0.07 75);
+  --status-partial-bg: oklch(0.28 0.05 220);
+  --fiscal-bg: oklch(0.21 0.003 240);
+  --fiscal-fg: oklch(0.85 0.005 90);
+}
+
+/* ─── Header readonly (h1 + meta + total gigante) ─── */
+
+/* Total gigante alinhado à direita do header */
+
+/* ─── Badge status pgto (semantic — não bg-*-500) ─── */
+
+/* ─── Bloco fiscal NFe (chave em grupos 4-em-4) ─── */
+
+/* ─── KPI cards (espelham KpiCard shared) ─── */
+
+/* ─── Cards seção (cliente, linhas, pagamentos, atividades) ─── */
+
+/* ─── Tabela linhas (zebra leve + tabular-nums) ─── */
+
+/* ─── Footer sticky (Imprimir · Editar · Voltar) ─── */
+
+/* ─── Responsive ≤1024px (Larissa 1280 cabe; tablet quebra suave) ─── */
+
+/* ─── Print (imprimir venda — readonly canon) ─── */
+@media print {
+  
+  
+  .sells-cowork-show { background: #fff; color: #000; }
+}
+
+/* ─── Timeline unified (P4 parking lot #11 — cross-source stream) ─── */
+.sells-cowork-show .sb-timeline-unified {
+  --sb-timeline-gap: 0.625rem;
+}
+.sells-cowork-show .sb-timeline-event {
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.sells-cowork-show .sb-timeline-event:hover {
+  background-color: var(--bg-2, #f8fafc);
+  border-color: var(--border-2, #e2e8f0);
+}
+.sells-cowork-show .sb-timeline-avatar {
+  box-shadow: 0 0 0 2px var(--surface, #ffffff);
+}
+.sells-cowork-show .sb-timeline-colorbar {
+  border-radius: 2px 0 0 2px;
+}
+@media print {
+  .sells-cowork-show .sb-timeline-event { border-color: #ccc; box-shadow: none; }
+  .sells-cowork-show .sb-timeline-colorbar { display: none; }
+  .sells-cowork-show .sb-timeline-avatar { background: #eee !important; color: #000 !important; box-shadow: none; }
+}

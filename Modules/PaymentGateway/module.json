@@ -1,0 +1,34 @@
+{
+    "name": "PaymentGateway",
+    "alias": "paymentgateway",
+    "description": "Camada técnica de cobrança BR — drivers Inter/C6/Asaas/Pix Automático BCB, webhooks, CNAB, credenciais. Consumida por Sell, RecurringBilling, NFSe, Superadmin.",
+    "keywords": ["payment", "gateway", "boleto", "pix", "pix-automatico", "cnab", "webhook", "bcb"],
+    "priority": 0,
+    "providers": [
+        "Modules\\PaymentGateway\\Providers\\PaymentGatewayServiceProvider"
+    ],
+    "files": [],
+    "governance": {
+        "bucket": "functional_horizontal",
+        "bucket_assigned_at": "2026-05-19",
+        "bucket_assigned_by": "[W]",
+        "bucket_justificativa": "Camada técnica de cobrança consumida cross-vertical (Sell de qualquer vertical, RecurringBilling, NFSe, Superadmin SaaS). Padrão Service/Driver/Job horizontal sem regra de domínio específica.",
+        "fsm_n_a": true,
+        "fsm_n_a_reason": "Cobrança status (pending/emitida/paga/vencida/cancelada/erro) é state machine simples linear gerida pelo Cobranca model + listeners. NÃO usa FSM canon (ADR 0143) — granularidade 11 stages × 21 actions × roles é overkill pra ciclo de cobrança."
+    },
+    "retention_days": 1825,
+    "retention_config": "Modules/PaymentGateway/Config/retention.php",
+    "lgpd_compliance": {
+        "pii_fields_tracked": [
+            "cobrancas.payer_cpf_cnpj",
+            "cobrancas.payer_name",
+            "cobrancas.payer_email",
+            "cobrancas.description",
+            "payment_gateway_credentials.config_json",
+            "gateway_webhook_events.payload"
+        ],
+        "pii_redactor_enabled": true,
+        "activity_log_enabled": true,
+        "policy_doc": "Modules/PaymentGateway/Config/retention.php"
+    }
+}

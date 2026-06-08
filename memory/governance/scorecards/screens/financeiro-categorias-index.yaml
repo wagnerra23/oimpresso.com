@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Financeiro/Categorias/Index
+path: resources/js/Pages/Financeiro/Categorias/Index.tsx
+archetype: list
+persona: eliana
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista CRUD com PageHeader canon, FinanceiroPrimaryButton, drawer CategoriaSheet e toasts; arranha em confirm() nativo, cores cruas de tipo e ausência de charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Linear: AlertDialog confirm"
+    fix: "native confirm() p/ excluir/soft-delete; migrar p/ AlertDialog do @/ui"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4: tokens semânticos"
+    fix: "TIPO_LABELS hardcodam bg-emerald/rose/slate; sem charter; classes legacy fin-curadoria/vendas-aplus/fin-cowork"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Bling: DataTable compartilhada"
+    fix: "Tabela hand-roll em vez de PT-01/DataTable padrão"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

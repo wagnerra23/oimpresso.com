@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Maskable: safe zone = circle de raio 102.4px (40%) no centro. Conteudo crítico
+       fica dentro desse circle pra sobreviver mascaras do Android (squircle, circle, etc). -->
+  <rect width="512" height="512" fill="#1c1917"/>
+  <circle cx="256" cy="256" r="128" fill="#fafaf9"/>
+  <text x="256" y="308" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="172" font-weight="700" text-anchor="middle" fill="#1c1917">F</text>
+</svg>

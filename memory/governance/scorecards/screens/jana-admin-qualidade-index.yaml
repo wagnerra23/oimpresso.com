@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Admin/Qualidade/Index
+path: resources/js/Pages/Jana/Admin/Qualidade/Index.tsx
+archetype: dashboard
+persona: wagner
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Dashboard de métricas IA denso e competente (sparklines SVG, gates, KpiCard reuse, empty state com comando), mas cores cruas hex e sem charter."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe (tokens semânticos)"
+    fix: "Trocar hex sparkline (#3b82f6 etc) por tokens v4 / CSS vars"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Microcopy"
+    best_of_class: "Linear"
+    fix: "Substituir emoji ✅🔴 por Badge/ícone DS com aria-label de status"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Bling"
+    fix: "Tabela trend larga sem scroll-x dedicado nem stack mobile"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

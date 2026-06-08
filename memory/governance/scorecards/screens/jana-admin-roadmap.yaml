@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Admin/Roadmap
+path: resources/js/Pages/Jana/Admin/Roadmap.tsx
+archetype: dashboard
+persona: wagner
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Gantt de tasks MCP bem estruturado (Sheet detalhe, useMemo/useCallback, filtros, empty states, charter), porém tons de prioridade hardcoded e a11y fraca no canvas Gantt."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear"
+    fix: "priorityTone usa rose/amber/sky/hex — mapear pra tokens v4 primary/semantic"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Notion"
+    fix: "Gantt SVAR sem navegação teclado/aria; expor lista acessível alternativa"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Shopify"
+    fix: "Gantt 600px fixo não responsivo; fallback lista em viewport pequena"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

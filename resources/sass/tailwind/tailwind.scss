@@ -1,0 +1,22 @@
+// Importações modulares (devem vir primeiro)
+@use "base/variables" as *;
+@use "base/reset";
+@use "base/typography";
+@use "components/buttons";
+@use "components/cards";
+@use "components/tables";
+@use "components/forms";
+@use "layouts/topbar";
+@use "layouts/sidebar";
+@use "layouts/media";
+@use "plugins/plugin";
+@use "plugins/font-awesome";
+@use "utilities/dimension";
+@use "utilities/animation";
+@use "themes/oimpresso";
+// @use "themes/rise"; // Descomente se necessário
+
+// Integração com Tailwind (depois das @use)
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

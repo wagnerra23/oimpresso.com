@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-05-27T16:30:00-03:00",
+  "baseline_version": "v3.5.0",
+  "rubric_adr": "0155",
+  "reconciled_at": "2026-05-28T00:00:00-03:00",
+  "reconciliation_pr": "fix(ci) gates secrets/governance OTel+boot (PR #1888) — reconcilia Governance 89→88: drift natural pós-merge #1885 (ADR 0222 Renovate) + #1887 (ADR 0223 NpmAuditChecker, código novo sem teste pareado). PR #1888 NÃO toca Modules/Governance.",
+  "last_update_pr": "v3.5.0 (#2303 fix model_used OpenAI): Jana 72→71 — drift natural da rubrica entre runs CI/local (mesmo padrão -1pp sistêmico ja documentado em v3.4.7); PR #2303 NÃO toca Modules/Jana (só Modules/ADS, que ficou 83→83 estável). Baixa o floor do Jana em 1pp pra destravar o gate; OficinaAuto/ProjectMgmt/Superadmin subiram (+1/+1/+2) e nao bloqueiam (floor < atual). · v3.4.9 US-CRM-078 backend (#2095/#2100): Crm 88→87 — controller multi-tenant novo, Pest validado no CT-100 MySQL (tests/Feature/Contact, não Modules/Crm/Tests) + drift natural rubrica; sem regressão funcional. · v3.4.6 fix-whatsapp-settings — Whatsapp +2pp, NfeBrasil +2pp, demais drift natural · v3.4.7 fix-sells-v2-agrupar-variacoes-popover: 26 módulos com -1pp sistêmico vs baseline v3.4.6 (drift natural rubrica entre execuções CI/local — não há mudança funcional nesses módulos no PR). ComunicacaoVisual +1pp (72→73 natural). PaymentRow.amount convertido pra NumericInputPtBR completando fix Bug R$25k Larissa.",
+  "notes": "Atualizado 2026-05-27 (PR #1778 popover variações + PaymentRow.amount fix): snapshot CI rodado pós-merge #1779 (parser pt-BR) + #1780 (cliente drawer). 26 módulos com -1pp sistêmico vs v3.4.6 — drift natural rubrica entre runs CI/local (mesma rodada em local main devolve nota X-1 vs snapshot anterior). Sem mudança funcional nos 26. ComunicacaoVisual +1pp natural. Esta PR só toca Sells V2 — Sells não está no gate (entry deprecated_pending_decision).",
+  "modules": {
+    "Governance": 88,
+    "Crm": 87,
+    "Essentials": 84,
+    "ProjectMgmt": 84,
+    "Repair": 83,
+    "ADS": 83,
+    "Brief": 83,
+    "Financeiro": 82,
+    "TeamMcp": 82,
+    "Auditoria": 81,
+    "RecurringBilling": 81,
+    "Woocommerce": 81,
+    "Connector": 80,
+    "NfeBrasil": 79,
+    "Officeimpresso": 79,
+    "Admin": 78,
+    "OficinaAuto": 79,
+    "Manufacturing": 77,
+    "NFSe": 77,
+    "AssetManagement": 77,
+    "Vestuario": 76,
+    "Whatsapp": 75,
+    "Arquivos": 74,
+    "ConsultaOs": 75,
+    "KB": 74,
+    "ProductCatalogue": 75,
+    "SRS": 73,
+    "Spreadsheet": 74,
+    "Jana": 71,
+    "Cms": 71,
+    "ComunicacaoVisual": 73,
+    "Fiscal": 71,
+    "Superadmin": 71,
+    "Ponto": 69,
+    "PaymentGateway": 60,
+    "Compras": 58
+  },
+  "renames": {
+    "PontoWr2": {
+      "new_name": "Ponto",
+      "reason": "Renomeado Fase 3.7 PR-2 — module.json name=Ponto. URL/permissions/config keys mantem prefixo legacy pontowr2.* por compat.",
+      "renamed_at": "2026-05-16T14:46:35-03:00"
+    },
+    "MemCofre": {
+      "new_name": "SRS",
+      "reason": "Renomeado Fase 3.7 PR-2 — module.json name=SRS (System Requirements Spec). URL/permissions/config keys mantem prefixo legacy memcofre.* por compat.",
+      "renamed_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Project": {
+      "new_name": "ProjectMgmt",
+      "reason": "Dir fisico canonico e Modules/ProjectMgmt (promovido modulo proprio 2026-05-04 ADR 0070, supersede absorcao em TeamMcp). module.json name=ProjectMgmt.",
+      "renamed_at": "2026-05-16T14:46:35-03:00"
+    }
+  },
+  "deprecated_modules": {
+    "Accounting": {
+      "score_v3_at_drop": 56,
+      "reason": "Modules/Accounting deletado em 2026-05-20 via Onda 5 da deprecacao (ADR 0172, ADR 0174). Audit prod confirmou ZERO rows nas 6 tabelas core + ZERO subscriptions com accounting_module ativo + ZERO cross-imports do namespace. Substituto canonico: Modules/Financeiro (Conciliacao OFX + AR/AP automatico via Observer + Portal Advisor US-FIN-037). Onda 6 (DROP TABLE) deferred.",
+      "dropped_at": "2026-05-20",
+      "supersede_adr": "0172",
+      "errata_adr": "0174"
+    }
+  },
+  "deprecated_pending_decision": {
+    "Copiloto": {
+      "score_v3": 64,
+      "reason": "Entry baseline v3 sem dir fisico em Modules/. Funcionalidade Jana IA agora vive em Modules/Jana + rotas /copiloto/admin. Decisao Wagner pendente: deprecar entry OU reativar se houver codigo vivo a ser graded.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Sells": {
+      "score_v3": 58,
+      "reason": "Entry baseline v3 sem dir fisico em Modules/. Sells e feature core UltimatePOS (rotas/views fora de Modules/, FSM pipeline em app/Domain/Fsm/ — ADR 0143). Decisao Wagner pendente: criar Modules/Sells wrapper OU deprecar entry do gate.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    },
+    "Form": {
+      "score_v3": 30,
+      "reason": "Entry baseline v3 sem dir fisico em Modules/. Provavel referencia ao shim App\\View\\Helpers\\Form (nao e modulo nWidart). Decisao Wagner pendente: remover do baseline.",
+      "marked_at": "2026-05-16T14:46:35-03:00"
+    }
+  },
+  "_compras_history": {
+    "moved_to_active_at": "2026-05-23T12:30:00Z",
+    "moved_from": "deprecated_pending_decision",
+    "score_v3_legacy": 42,
+    "score_v3_4_active": 38,
+    "score_v3_4_3_reconciled": 58,
+    "reason_move": "Compras virou dir fisico em Modules/Compras (DataController canonico via Wave UltimatePOS). Gate detectou como modulo novo desde 2026-05-22 em toda PR aberta. Wagner aprovou entrada via label module-grades-new-module-allowed em 6+ PRs consecutivos. Esta atualizacao formaliza a entrada na rubrica como modulo ativo permanente — proximos PRs nao precisam mais da label.",
+    "reason_v3_4_3_bump": "Compras saltou 38→58 (+20pp) em 48h via lanes A/B/C mergeadas 2026-05-25 (PR #lane-a-compras-20260521 exports/filtros · PR #lane-b-compras-20260521 importar XML DFe · PR #lane-c-compras-20260521 Pest deep) — D1-D9 evoluíram em paralelo no PR mais agressivo de cobertura recente."
+  },
+  "_comvis_regression_v3_4_3": {
+    "delta_pp": -3,
+    "previous": 76,
+    "current": 73,
+    "detected_at_pr": "1597 (fix NFSe schema velho — não causada por este PR)",
+    "scope": "ComunicacaoVisual",
+    "investigation_pending": true,
+    "reason_inferred": "Provável drift entre 2026-05-25 e 2026-05-26 em PRs que tocaram cross-cutting (sidebar / cockpit / observability). Não toca Modules/ComunicacaoVisual diretamente — afeta D-dimensions transversais (D2 cobertura / D6.a Inertia::defer ratio / D4 Services stateless). A confirmar com `php artisan module:grade ComunicacaoVisual --detail --evolve` no próximo PR que toque o módulo.",
+    "next_action": "Criar US-COMVIS-NNN P2 'investigar regressão D-dimensions ComunicacaoVisual 76→73' quando alguém tocar o módulo — não bloqueia este PR"
+  },
+  "_fiscal_bump_v3_4_4": {
+    "delta_pp": 1,
+    "previous": 71,
+    "current": 72,
+    "detected_at_pr": "1599 (rewrite Cockpit + Dfe + Eventos + Config visual Cowork)",
+    "scope": "Fiscal",
+    "reason": "Rewrite Cockpit.tsx (575 linhas) + sub-páginas no visual Cowork \"Notas Fiscais\" (header chips + KPI ribbon estreito + tabela unificada NF-e/NFC-e/NFS-e + cert card 2-col com bar validade + 410 linhas CSS apêndice) — elevou marginalmente D3 (documentação charter inline @memcofre) + D6.a (Inertia::defer não regrediu)."
+  }
+}

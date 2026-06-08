@@ -1,0 +1,110 @@
+/* ───────────────────────────────────────────────────────────────────
+ * Sells Cowork — Sells/Drafts (rascunhos) extensões mínimas.
+ *
+ * Reusa a família .sells-cowork (tokens canon + paginação + filtros) e
+ * adiciona APENAS os toques específicos da página de rascunhos:
+ *   - badge "Rascunho" (pill cinza-suave neutro — não terminou)
+ *   - chip de idade do rascunho (X dias parado — sinal de abandono)
+ *   - botão "Continuar venda" (acento azul CTA — retomar fluxo)
+ *
+ * Importado por resources/css/inertia.css. Scope cumulativo:
+ *   <div class="sells-cowork sells-cowork-drafts">
+ * cohabita tokens da família Index sem reescrever nenhum.
+ *
+ * Refs:
+ *  - resources/css/sells-cowork.css (família canon — tokens base)
+ *  - resources/css/sells-cowork-quotations.css (modelo a espelhar)
+ *  - resources/js/Pages/Sells/Drafts.charter.md (Mission + Goals)
+ *  - resources/js/Pages/Sells/Drafts.tsx (uso)
+ *  - memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md
+ * ─────────────────────────────────────────────────────────────────── */
+
+.sells-cowork-drafts {
+  /* Tokens locais — rascunho (cinza-neutro, distinto de pendente/paga vendas) */
+  --vd-draft-neutral: oklch(0.62 0.02 80);
+  --vd-draft-neutral-soft: oklch(0.96 0.01 80);
+  --vd-draft-neutral-border: oklch(0.88 0.01 80);
+  --vd-draft-neutral-text: oklch(0.42 0.02 80);
+
+  /* Tokens locais — continuar venda (azul CTA, distinto de converter orçamento) */
+  --vd-draft-continue: oklch(0.55 0.13 245);
+  --vd-draft-continue-hover: oklch(0.50 0.14 245);
+  --vd-draft-continue-fg: #ffffff;
+
+  /* Tokens locais — idade rascunho (gradiente: fresco→envelhecido→velho) */
+  --vd-draft-age-fresh: oklch(0.62 0.10 145);
+  --vd-draft-age-fresh-soft: oklch(0.96 0.04 145);
+  --vd-draft-age-aging: oklch(0.62 0.13 60);
+  --vd-draft-age-aging-soft: oklch(0.96 0.04 60);
+  --vd-draft-age-stale: oklch(0.55 0.16 25);
+  --vd-draft-age-stale-soft: oklch(0.96 0.04 25);
+}
+
+/* ── Badge "Rascunho" — destaque sutil no header da página ── */
+.sells-cowork-drafts .vd-draft-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--vd-draft-neutral-soft);
+  border: 1px solid var(--vd-draft-neutral-border);
+  color: var(--vd-draft-neutral-text);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── Botão "Continuar venda" (CTA azul, distinto de "Nova venda") ── */
+.sells-cowork-drafts .vd-draft-continue-btn {
+  appearance: none;
+  background: var(--vd-draft-continue);
+  color: var(--vd-draft-continue-fg);
+  border: 1px solid var(--vd-draft-continue);
+  padding: 5px 11px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background .12s, border-color .12s;
+}
+.sells-cowork-drafts .vd-draft-continue-btn:hover {
+  background: var(--vd-draft-continue-hover);
+  border-color: var(--vd-draft-continue-hover);
+}
+.sells-cowork-drafts .vd-draft-continue-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Chip de idade do rascunho (sinal de abandono — quanto mais velho, mais quente) ── */
+.sells-cowork-drafts .vd-draft-age {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+.sells-cowork-drafts .vd-draft-age.fresh {
+  background: var(--vd-draft-age-fresh-soft);
+  color: var(--vd-draft-age-fresh);
+  border: 1px solid color-mix(in oklch, var(--vd-draft-age-fresh) 30%, transparent);
+}
+.sells-cowork-drafts .vd-draft-age.aging {
+  background: var(--vd-draft-age-aging-soft);
+  color: var(--vd-draft-age-aging);
+  border: 1px solid color-mix(in oklch, var(--vd-draft-age-aging) 30%, transparent);
+}
+.sells-cowork-drafts .vd-draft-age.stale {
+  background: var(--vd-draft-age-stale-soft);
+  color: var(--vd-draft-age-stale);
+  border: 1px solid color-mix(in oklch, var(--vd-draft-age-stale) 30%, transparent);
+}

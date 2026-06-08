@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Repair/DeviceModels/Edit
+path: resources/js/Pages/Repair/DeviceModels/Edit.tsx
+archetype: form
+persona: misto
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Form de modelo limpo com useForm/charter/AppShellV2, mas cores cruas rose e selects nativos fora do DS."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe (semantic tokens)"
+    fix: "Trocar text-rose-600 por text-destructive; usar Select de @/Components/ui no lugar de <select> hand-roll"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Notion drawer cadastral"
+    fix: "PT cadastral pede drawer-760, nao container max-w-3xl full-page"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Linear"
+    fix: "Sem estado processing visivel alem do disabled; add inline saving spinner"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

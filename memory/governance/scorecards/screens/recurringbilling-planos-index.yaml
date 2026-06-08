@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: RecurringBilling/Planos/Index
+path: resources/js/Pages/RecurringBilling/Planos/Index.tsx
+archetype: list
+persona: eliana
+nota: 85
+nivel: "Leader"
+baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Lista de planos forte (KPIs hero+distribuição de ciclos, defer+skeleton, flash, ⌘K, atalhos N/J/K) limitada por cores cruas, a11y de linha e métricas aproximadas."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 — @/Components/ui + shell + sem azul/cyan cru"
+    fix: "Tudo hand-roll; CicloDistribuicao usa blue-500/cyan-500 e FiscalBadge blue-*. Trocar por tokens DS e primitives"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear — linha selecionável é button/option com teclado"
+    fix: "<tr onClick> sem role/tabindex; j/k move activeId mas linha não é focável p/ leitor de tela"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Stripe — sparkline derivado de dado real"
+    fix: "Ticket médio = MRR/total (aprox) e sparkline mock; rotular como estimativa ou puxar real"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
