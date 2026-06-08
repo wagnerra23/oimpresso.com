@@ -125,40 +125,86 @@ class BriefFetchTool extends Tool
                 return '';
             }
 
+            // 3 categorias mutuamente exclusivas (partição exata de `total`):
+            //  on_cycle    — commit em task DESTE cycle (alinhado)
+            //  other_cycle — commit em task de OUTRO cycle (pivot real)
+            //  unlinked    — commit sem task de cycle (sem `Refs: US-XXX`) → rastreio
+            //                faltando, NÃO é pivot. Antes era lumpado em "off-cycle"
+            //                e inflava o alarme (causa do falso "0% → pivot?").
             $stats = DB::selectOne(<<<'SQL'
                 SELECT
-                  SUM(CASE WHEN t.cycle_id = ? THEN 1 ELSE 0 END) AS in_cycle,
+                  SUM(CASE WHEN t.cycle_id = ? THEN 1 ELSE 0 END) AS on_cycle,
+                  SUM(CASE WHEN t.cycle_id IS NOT NULL AND t.cycle_id <> ? THEN 1 ELSE 0 END) AS other_cycle,
+                  SUM(CASE WHEN t.cycle_id IS NULL THEN 1 ELSE 0 END) AS unlinked,
                   COUNT(*) AS total
                 FROM mcp_git_links gl
                 LEFT JOIN mcp_tasks t ON t.task_id = gl.task_id
                 WHERE gl.occurred_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-            SQL, [$row->cycle_id]);
+            SQL, [$row->cycle_id, $row->cycle_id]);
 
             $total = (int) ($stats->total ?? 0);
             if ($total === 0) {
                 return '';
             }
 
-            $inCycle = (int) ($stats->in_cycle ?? 0);
-            $aligned = $total > 0 ? (int) round($inCycle / $total * 100) : 0;
-            $offCycle = $total - $inCycle;
+            $onCycle = (int) ($stats->on_cycle ?? 0);
+            $aligned = (int) round($onCycle / $total * 100);
 
-            if ($offCycle === 0 || $aligned >= 50) {
+            if ($aligned >= 50) {
                 return '';
             }
 
-            return sprintf(
-                "\n\n⚠️ **Cycle drift detectado:** %d/%d commits/PRs (7d) NÃO tocam tasks do cycle ativo `%s` (%d%% alinhados). ".
-                "Pivot estratégico em curso? Considere `cycles-close --rollover` + `cycles-create` novo. ".
-                "_Aprendizado retro CYCLE-01 (sessão 2026-05-07)._",
-                $offCycle,
+            return self::formatCycleDriftAlert(
+                $onCycle,
+                (int) ($stats->other_cycle ?? 0),
+                (int) ($stats->unlinked ?? 0),
                 $total,
-                $row->cycle_key,
                 $aligned,
+                (string) $row->cycle_key,
             );
         } catch (Throwable) {
             return '';
         }
+    }
+
+    /**
+     * Formata o alerta de drift distinguindo as 3 causas (pura — testável sem DB).
+     *
+     * A sugestão se adapta à causa DOMINANTE: se a maior parte é trabalho em outro
+     * cycle → pivot real (rollover); se é commit sem task → rastreio faltando
+     * (linkar `Refs: US-XXX`), não pivot. Antes o alarme assumia sempre pivot,
+     * mesmo quando o problema era só falta de linkagem.
+     */
+    public static function formatCycleDriftAlert(
+        int $onCycle,
+        int $otherCycle,
+        int $unlinked,
+        int $total,
+        int $aligned,
+        string $cycleKey,
+    ): string {
+        $lines = [];
+        if ($unlinked > 0) {
+            $lines[] = sprintf('  ↳ %d sem task de cycle linkada (commits sem `Refs: US-XXX`) — rastreio faltando, não pivot', $unlinked);
+        }
+        if ($otherCycle > 0) {
+            $lines[] = sprintf('  ↳ %d em tasks de OUTRO cycle — pivot real?', $otherCycle);
+        }
+
+        $suggestion = $otherCycle > $unlinked
+            ? 'Trabalho migrou pra outro cycle — considere `cycles-close --rollover` + `cycles-create`.'
+            : 'A maior parte é commit sem task — linke com `Refs: US-XXX` ou registre a task antes de assumir pivot.';
+
+        return sprintf(
+            "\n\n⚠️ **Cycle drift detectado:** só %d/%d commits/PRs (7d) tocam o cycle ativo `%s` (%d%% alinhados).\n%s\n%s ".
+            "_Aprendizado retro CYCLE-01 (sessão 2026-05-07)._",
+            $onCycle,
+            $total,
+            $cycleKey,
+            $aligned,
+            implode("\n", $lines),
+            $suggestion,
+        );
     }
 
     private function fetchCurrent(): ?array
