@@ -48,6 +48,11 @@
       "type": "string",
       "enum": ["ativo", "arquivado", "substituido", "historical"]
     },
+    "kind": {
+      "type": "string",
+      "description": "Eixo ortogonal de categoria da ADR (ADR 0257). Default decision. feature-wish = hipótese parqueada (ADR 0105); errata = corrige outra ADR; meta = sobre o processo de ADR.",
+      "enum": ["decision", "feature-wish", "errata", "meta"]
+    },
     "decided_by": {
       "type": "array",
       "items": {

@@ -1,3 +1,10 @@
+---
+status: ativo
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+related_adrs: [0235, 0249, 0253, 0013]
+---
+
 # Arquitetura · Design System
 
 ## Stack visual

@@ -9,12 +9,14 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Camada 3 — Eval LLM-as-judge da Eval Suite (Opção C).
  *
- * Roda golden questions de tests/eval/golden-questions.yaml contra Anthropic API
+ * Roda golden questions de tests/eval/golden-questions.yaml contra o LLM
  * SEM tools (testa o pior caso — modelo sem busca canônica). Score baseado em
  * substring match contra `must_contain` / `must_not_contain`.
  *
- * Modelo padrão: claude-sonnet-4-6 (Sonnet é mais barato pra eval que Opus).
- * Custo aprox: $0.30/run com 8 perguntas.
+ * Provider auto-detect (pós-migração OpenAI): prefere OpenAI (mais barato),
+ * fallback Anthropic. Forçável via --provider. Modelo default por provider:
+ * gpt-4o-mini (openai) / claude-sonnet-4-6 (anthropic). Custo gpt-4o-mini
+ * ~$0.01/run com 8 perguntas.
  *
  * Output:
  *   - Tabela no terminal
@@ -22,7 +24,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  * Exit code 1 se score médio < 0.7 (CI gate).
  *
- * Sem ANTHROPIC_API_KEY no env, sai 0 graceful (não quebra CI).
+ * Sem OPENAI_API_KEY nem ANTHROPIC_API_KEY no env, sai 0 graceful (não quebra CI).
  *
  * Ver: ADR 0064/0065/0066 (entradas canônicas testadas).
  */
@@ -30,16 +32,26 @@ class EvalAdrDiscoveryCommand extends Command
 {
     protected $signature = 'eval:adr-discovery
                             {--question= : Roda apenas 1 question por id}
-                            {--model=claude-sonnet-4-6 : Modelo Anthropic}
+                            {--provider= : Forçar provider (openai | anthropic). Auto-detect via env por default.}
+                            {--model= : Modelo do LLM (auto-detect: gpt-4o-mini se OpenAI, claude-sonnet-4-6 se Anthropic)}
                             {--threshold=0.7 : Score médio mínimo pra exit 0}';
 
     protected $description = 'Eval LLM-as-judge das golden questions sobre ADRs canônicas';
 
     public function handle(): int
     {
-        $apiKey = env('ANTHROPIC_API_KEY');
+        // Provider auto-detect: prefere OpenAI (mais barato), fallback Anthropic.
+        $provider = $this->option('provider')
+            ?: (env('OPENAI_API_KEY') ? 'openai' : (env('ANTHROPIC_API_KEY') ? 'anthropic' : null));
+
+        if ($provider === null) {
+            $this->warn('Nem OPENAI_API_KEY nem ANTHROPIC_API_KEY no .env — eval pulado (graceful exit).');
+            return 0;
+        }
+
+        $apiKey = $provider === 'openai' ? env('OPENAI_API_KEY') : env('ANTHROPIC_API_KEY');
         if (! $apiKey) {
-            $this->warn('ANTHROPIC_API_KEY ausente — eval pulado (graceful exit).');
+            $this->warn(strtoupper($provider) . '_API_KEY ausente — eval pulado (graceful exit).');
             return 0;
         }
 
@@ -64,8 +76,9 @@ class EvalAdrDiscoveryCommand extends Command
             }
         }
 
-        $model = $this->option('model');
-        $systemPrompt = "Você é Claude trabalhando no projeto oimpresso (ERP gráfico Laravel + UltimatePOS). " .
+        $model = $this->option('model')
+            ?: ($provider === 'openai' ? 'gpt-4o-mini' : 'claude-sonnet-4-6');
+        $systemPrompt = "Você é um assistente trabalhando no projeto oimpresso (ERP gráfico Laravel + UltimatePOS). " .
             "Responda usando apenas conhecimento de `memory/decisions/*.md` (ADRs canônicas do projeto). " .
             "Se não souber, diga 'não tenho info canônica'. Seja conciso (3-6 frases).";
 
@@ -74,7 +87,7 @@ class EvalAdrDiscoveryCommand extends Command
             $id = $q['id'] ?? '?';
             $this->line("→ Avaliando: <info>$id</info>");
 
-            $resposta = $this->askAnthropic($apiKey, $model, $systemPrompt, $q['question']);
+            $resposta = $this->askLlm($provider, $apiKey, $model, $systemPrompt, $q['question']);
             if ($resposta === null) {
                 $results[] = [
                     'id' => $id, 'score' => 0.0, 'erro' => 'API call falhou',
@@ -115,6 +128,7 @@ class EvalAdrDiscoveryCommand extends Command
         $jsonPath = $resultsDir . '/' . date('Y-m-d-His') . '.json';
         file_put_contents($jsonPath, json_encode([
             'timestamp' => date('c'),
+            'provider'  => $provider,
             'model'     => $model,
             'avg_score' => $media,
             'results'   => $results,
@@ -122,6 +136,40 @@ class EvalAdrDiscoveryCommand extends Command
         $this->line("JSON salvo em: $jsonPath");
 
         return $media >= (float) $this->option('threshold') ? 0 : 1;
+    }
+
+    private function askLlm(string $provider, string $apiKey, string $model, string $system, string $userMsg): ?string
+    {
+        return $provider === 'openai'
+            ? $this->askOpenAi($apiKey, $model, $system, $userMsg)
+            : $this->askAnthropic($apiKey, $model, $system, $userMsg);
+    }
+
+    private function askOpenAi(string $apiKey, string $model, string $system, string $userMsg): ?string
+    {
+        try {
+            $resp = Http::withHeaders([
+                'Authorization' => "Bearer $apiKey",
+                'Content-Type'  => 'application/json',
+            ])->timeout(60)->post('https://api.openai.com/v1/chat/completions', [
+                'model'    => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $system],
+                    ['role' => 'user',   'content' => $userMsg],
+                ],
+                'max_tokens'  => 1024,
+                'temperature' => 0,
+            ]);
+
+            if (! $resp->successful()) {
+                $this->warn("API erro {$resp->status()}: " . substr($resp->body(), 0, 200));
+                return null;
+            }
+            return $resp->json()['choices'][0]['message']['content'] ?? null;
+        } catch (\Throwable $e) {
+            $this->warn("HTTP exception: {$e->getMessage()}");
+            return null;
+        }
     }
 
     private function askAnthropic(string $apiKey, string $model, string $system, string $userMsg): ?string

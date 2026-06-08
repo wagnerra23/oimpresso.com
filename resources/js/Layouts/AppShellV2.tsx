@@ -262,7 +262,7 @@ export default function AppShellV2({
   // `conversas` aceito por compat — sidebar single-pane (UI-0011) NÃO renderiza
   // mais conversas. Páginas que precisam do conv switcher devem renderizar lista
   // própria dentro do main column (Pages/Copiloto/Chat.tsx faz isso).
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const _conversasIgnored = conversasProp;
 
   // ── State do shell (apps colapsado + conversa ativa fallback)

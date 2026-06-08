@@ -7,18 +7,19 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
+use Modules\Jana\Ai\UiDeterministicScorer;
 use Modules\Jana\Entities\UiJudgeRun;
 
 /**
  * `ui:judge-pr` — Onda 4.1 do AUTOMATION-ROADMAP (Constituição UI v2).
  *
- * Avalia um PR contra a Constituição UI v2 usando agente LLM (Anthropic Claude
- * Sonnet 4.6) e — opcionalmente — posta comentário inline no PR via `gh`.
+ * Avalia um PR contra a Constituição UI v2 usando agente LLM (OpenAI gpt-4o-mini)
+ * e — opcionalmente — posta comentário inline no PR via `gh`.
  *
  * Workflow:
  *   1. Pega metadata do PR (título · descrição · arquivos modificados) via gh CLI
  *   2. Pega diff filtrado (.tsx, .jsx, .css)
- *   3. Manda pro PrUiJudgeAgent (anthropic / claude-sonnet-4-6)
+ *   3. Manda pro PrUiJudgeAgent (openai / gpt-4o-mini)
  *   4. Parse output JSON
  *   5. Print score + violações no console
  *   6. (Opcional) `--post-comment` posta no PR via gh
@@ -29,8 +30,7 @@ use Modules\Jana\Entities\UiJudgeRun;
  *   php artisan ui:judge-pr 1438 --post-comment # postar comentário no PR
  *   php artisan ui:judge-pr 1438 --strict       # exit 1 se verdict=request_changes
  *
- * Custo estimado por run: ~$0.034 (Claude Sonnet 4.6) · com prompt caching
- * cai pra ~$0.005 após primeiro PR do dia.
+ * Custo estimado por run: ~$0.002 (OpenAI gpt-4o-mini, ~10k in + ~1k out).
  *
  * @see Modules\Jana\Ai\Agents\PrUiJudgeAgent
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4)
@@ -100,14 +100,15 @@ class UiJudgePrCommand extends Command
 
         $this->line('  Diff UI: '.strlen($diff).' bytes');
 
-        // 4. Mandar pro agent
-        $this->info('Enviando pra PrUiJudgeAgent (Claude Sonnet 4.6)...');
+        // 4. Mandar pro agent — anúncio lê o modelo REAL por reflexão (nunca "anuncia X, roda Y")
+        [$annProvider, $annModel] = $this->agentProviderModel();
+        $this->info("Enviando pra PrUiJudgeAgent ({$annProvider}/{$annModel})...");
         $output = $this->runAgent($prData, $diff);
         if ($output === null) {
             return self::FAILURE;
         }
 
-        // 5. Parse JSON
+        // 5. Parse JSON (agora o LLM retorna só as 3 dims semânticas — sem score)
         $review = $this->parseReview($output);
         if ($review === null) {
             $this->warn('Output do LLM não é JSON válido · imprimindo raw:');
@@ -115,6 +116,12 @@ class UiJudgePrCommand extends Command
 
             return $strict ? self::FAILURE : self::SUCCESS;
         }
+
+        // 5.5. Onda 1 (LLM-judge → determinístico · ADR 0255): mescla as 6 dimensões
+        // DETERMINÍSTICAS (regex · UiDeterministicScorer) com as 3 SEMÂNTICAS do LLM → 9 dims,
+        // computa o score total (0-100) + verdict AQUI (não mais no LLM). O juiz não pontua
+        // mais as 6 → sem custo/viés/flakiness nelas.
+        $review = $this->mergeDeterministic($review, $diff);
 
         // 6. Render no console
         $this->renderReview($review);
@@ -212,6 +219,7 @@ class UiJudgePrCommand extends Command
             str_contains($model, 'sonnet') => 0.034,
             str_contains($model, 'haiku') => 0.003,
             str_contains($model, 'gpt-4o-mini') => 0.002,
+            str_contains($model, 'gpt-4o') => 0.050,
             default => null,
         };
     }
@@ -312,15 +320,16 @@ class UiJudgePrCommand extends Command
     private function runAgent(array $prData, string $diff): ?string
     {
         // Pre-flight: validar API key do provider configurado no PrUiJudgeAgent.
-        // PrUiJudgeAgent = Anthropic claude-sonnet-4-6 (review de design exige
-        // juízo semântico · canon do projeto). Wagner pode trocar editando o
-        // @Provider/@Model do agent.
-        $anthropicKey = (string) (config('ai.providers.anthropic.key') ?? env('ANTHROPIC_API_KEY') ?? '');
+        // PrUiJudgeAgent = OpenAI gpt-4o (provider canon pós-migração). Wagner
+        // pode trocar editando o @Provider/@Model do agent — o check abaixo lê
+        // o provider por reflexão, então segue o agent sem hardcode.
+        [$provider] = $this->agentProviderModel();
+        $envVar = strtoupper($provider) . '_API_KEY';
+        $providerKey = (string) (config("ai.providers.{$provider}.key") ?? env($envVar) ?? '');
 
-        if ($anthropicKey === '') {
-            $this->error('ANTHROPIC_API_KEY não configurada (provider do PrUiJudgeAgent)');
-            $this->line('  Adicionar em .env: ANTHROPIC_API_KEY=sk-ant-... (Claude Sonnet 4.6)');
-            $this->line('  Pegar key em: https://console.anthropic.com/settings/keys');
+        if ($providerKey === '') {
+            $this->error("{$envVar} não configurada (provider '{$provider}' do PrUiJudgeAgent)");
+            $this->line("  Adicionar em .env: {$envVar}=...");
             $this->line('  Depois: php artisan config:clear');
 
             return null;
@@ -343,14 +352,14 @@ class UiJudgePrCommand extends Command
             $msg = $e->getMessage();
 
             // Diagnóstico amigável pra erros comuns
-            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication')) {
-                $this->error('ANTHROPIC_API_KEY inválida ou expirada (HTTP 401)');
-                $this->line('  Verificar valor em .env · regenerar key em https://console.anthropic.com');
+            if (str_contains($msg, '401') || str_contains($msg, 'x-api-key') || str_contains($msg, 'authentication') || str_contains($msg, 'Incorrect API key')) {
+                $this->error('API key do provider inválida ou expirada (HTTP 401)');
+                $this->line('  Verificar valor em .env · regenerar key no dashboard do provider');
                 $this->line('  Depois: php artisan config:clear');
             } elseif (str_contains($msg, '429') || str_contains($msg, 'rate_limit')) {
-                $this->error('Rate limit Anthropic (HTTP 429) · aguardar 60s e tentar novamente');
+                $this->error('Rate limit do provider (HTTP 429) · aguardar 60s e tentar novamente');
             } elseif (str_contains($msg, '529') || str_contains($msg, 'overloaded')) {
-                $this->error('Anthropic overloaded (HTTP 529) · tentar novamente em alguns minutos');
+                $this->error('Provider overloaded (HTTP 529) · tentar novamente em alguns minutos');
             } else {
                 $this->error("PrUiJudgeAgent falhou: {$msg}");
             }
@@ -372,11 +381,46 @@ class UiJudgePrCommand extends Command
         $clean = preg_replace('/\n```\s*$/', '', $clean) ?? $clean;
 
         $data = json_decode($clean, true);
-        if (! is_array($data) || ! isset($data['score'])) {
+        // Onda 1: o LLM agora retorna `dimensoes` (3 semânticas) — sem `score` (calculado
+        // no command após mesclar as 6 determinísticas). Exigimos `dimensoes`, não `score`.
+        if (! is_array($data) || ! isset($data['dimensoes'])) {
             return null;
         }
 
         return $data;
+    }
+
+    /**
+     * Onda 1 (LLM-judge → determinístico · ADR 0255): mescla as 6 dimensões determinísticas
+     * (regex · UiDeterministicScorer) com as 3 semânticas julgadas pelo LLM, computa o score
+     * total 0-100 (soma das 9 dims · cada 0-10) e deriva o verdict.
+     *
+     * @param  array<string, mixed>  $review
+     * @return array<string, mixed>
+     */
+    private function mergeDeterministic(array $review, string $diff): array
+    {
+        $deterministic = (new UiDeterministicScorer)->score($diff); // 6 dims
+
+        $llm = is_array($review['dimensoes'] ?? null) ? $review['dimensoes'] : [];
+        // só as 3 dimensões semânticas do LLM entram (ignora qualquer dim que o LLM
+        // tenha pontuado fora do contrato).
+        $semantic = array_intersect_key($llm, array_flip(UiDeterministicScorer::SEMANTIC_DIMENSIONS));
+
+        $dimensoes = array_merge($deterministic, $semantic); // 6 + 3 = 9
+        $review['dimensoes'] = $dimensoes;
+
+        $sum = 0;
+        foreach ($dimensoes as $d) {
+            $sum += is_array($d) ? (int) ($d['score'] ?? 0) : 0;
+        }
+        $maxPts = max(count($dimensoes), 1) * 10;
+        $score = (int) round($sum / $maxPts * 100);
+
+        $review['score'] = $score;
+        $review['verdict'] = $score < 60 ? 'request_changes' : ($score < 85 ? 'comment' : 'approve');
+
+        return $review;
     }
 
     private function renderReview(array $review): void

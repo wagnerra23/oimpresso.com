@@ -13,12 +13,12 @@ use Modules\Financeiro\Http\Controllers\ConciliacaoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
-use Modules\Financeiro\Http\Controllers\DashboardController;
 use Modules\Financeiro\Http\Controllers\DreController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
+use Modules\Financeiro\Http\Controllers\ProvaVivaController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -57,8 +57,12 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('financeiro')
     ->name('financeiro.')
     ->group(function () {
-        // Dashboard unificado (US-FIN-013)
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        // DEPRECADO 2026-06-06 (Wagner "não vou usar o dashboard"): a landing do
+        // Financeiro é a Visão Unificada (mesmos KPIs A receber/A pagar + lançamentos).
+        // /financeiro redireciona 301 pra /financeiro/unificado. DashboardController +
+        // Pages/Financeiro/Dashboard/Index ficam DORMENTES (não deletados = reversível).
+        // Nome 'dashboard' preservado pra não quebrar route('financeiro.dashboard').
+        Route::redirect('/', '/financeiro/unificado', 301)->name('dashboard');
 
         // Visão Unificada — Cockpit V2 (US-FIN-013/020) — protótipo Cowork 2026-05-09
         Route::get('/unificado', [UnificadoController::class, 'index'])->name('unificado.index');
@@ -122,6 +126,11 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
 
+        // Prova viva dos primitivos de layout (ADR 0253 — critério de pronto).
+        // Read-only, dados MOCK no .tsx (prova de layout, não consulta DB).
+        // NÃO substitui /financeiro/unificado (landing de produção).
+        Route::get('/prova-viva', [ProvaVivaController::class, 'index'])->name('prova-viva.index');
+
         // DRE gerencial hierárquica — Cockpit V2 (US-FIN-014a, reaplicação canon).
         // Wagner aprovou 2026-05-20 (Q1-Q8b em memory/requisitos/Financeiro/
         // dre-visual-comparison.md). Read-only. Ver Pages/Financeiro/Dre/Index.charter.md.
@@ -184,8 +193,8 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         Route::get('/relatorios', [RelatoriosController::class, 'index'])->name('relatorios.index');
         Route::get('/relatorios/export-csv', [RelatoriosController::class, 'exportCsv'])->name('relatorios.export-csv');
 
-        // Alias canonical: /financeiro/dashboard → /financeiro (URL canônica é a raiz)
-        Route::redirect('/dashboard', '/financeiro', 301)->name('dashboard.alias');
+        // Alias legacy /financeiro/dashboard → Visão Unificada (Dashboard deprecado 2026-06-06).
+        Route::redirect('/dashboard', '/financeiro/unificado', 301)->name('dashboard.alias');
 
         // Wagner 2026-05-21 Fase 6 Soft (wrapper Inertia) — caixa do turno read-only.
         // Lifecycle (abrir/fechar) continua na header POS via CashRegisterController core;

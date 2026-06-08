@@ -3,9 +3,10 @@ slug: 0028-adrs-numeracao-monotonica
 number: 28
 title: !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA==
 type: adr
-status: aceito
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
+superseded_by: ['0258-processo-adr-estado-arte-indice-gerado-supersede-atomico']
 decided_by:
   - W
 decided_at: '2026-04-26'

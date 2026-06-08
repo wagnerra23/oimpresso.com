@@ -1,6 +1,6 @@
 ---
 title: Index de Lifecycle das ADRs — pós-triagem 2026-05-06 (refresh 2026-05-09)
-description: Single source of truth pra status de lifecycle das ADRs canon (11 colisões de número — ver numbering_collisions + Bloco 11). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27; colisão 0235 + auditoria de 6 colisões históricas apendadas em 2026-05-30. Tool MCP `decisions-search` filtra por este index.
+description: Single source of truth pra status de lifecycle das ADRs canon (13 colisões de número — ver numbering_collisions + Bloco 12). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27; colisão 0235 + auditoria de 6 colisões históricas apendadas em 2026-05-30. Tool MCP `decisions-search` filtra por este index.
 type: index
 status: aceito
 authority: [Wagner]
@@ -8,7 +8,7 @@ last_reviewed: 2026-05-09
 next_review: 2026-08-09  # trimestral
 total_adrs: 119
 unique_numbers: 116
-numbering_collisions: [0101, 0102, 0119, 0126, 0141, 0170, 0178, 0180, 0195, 0216, 0235]  # ADR 0028 não cumprido em 11 casos — pendente housekeeping (ADR 0120). 0195 add 2026-05-27 (PR #1714+#1736). 0235 add 2026-05-30 (PR #1963 roxo + PR #1973 staging; renumber PR #1995 bloqueado pelo gate append-only). 6 colisões históricas (0126/0141/0170×3/0178/0180/0216) surfaçadas + registradas 2026-05-30 pelo novo AdrNumberCollisionTest — ver Bloco 11.
+numbering_collisions: [0101, 0102, 0119, 0126, 0141, 0170, 0178, 0180, 0195, 0216, 0235, 0236, 0246]  # ADR 0028 não cumprido em 13 casos — pendente housekeeping (ADR 0120). 0195 add 2026-05-27 (PR #1714+#1736). 0235 add 2026-05-30 (PR #1963 roxo + PR #1973 staging; renumber PR #1995 bloqueado pelo gate append-only). 6 colisões históricas (0126/0141/0170×3/0178/0180/0216) surfaçadas + registradas 2026-05-30 pelo novo AdrNumberCollisionTest — ver Bloco 11. 0236 (×3) + 0246 (×2) add 2026-06-07 — surfaçadas pelo AdrNumberCollisionTest no housekeeping P3, ver Bloco 12.
 governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete uso, não validade histórica
 ---
 
@@ -338,3 +338,24 @@ Ao escrever o gate Pest [`AdrNumberCollisionTest`](../../tests/Feature/Memory/Ad
 **Achado-chave:** `0180-drift-numero-adr-0178-conflito-paralelo` é uma ADR *sobre* a colisão do 0178 — o time **documentou em prosa** mas **nunca atualizou o registro**, e o próprio 0180 colidiu depois. Prova de que doc-em-prosa não basta: precisa de **registro estruturado + teste**. Os 11 estão agora em `numbering_collisions` e o teste impede a 12ª.
 
 **Política (consolidada):** colisão de número = tech-debt aceito (Constituição append-only proíbe rename retroativo — gate provado em PR #1995). Descoberta: **referencie ADR por slug**, não pelo número cru; `decisions-search` retorna todos os slugs ao filtrar por number. Housekeeping eventual = ADR 0120.
+
+## Bloco 12 — Apendado 2026-06-07 — colisões 0236 (×3) + 0246 (×2) (housekeeping P3)
+
+Housekeeping P3 de memória: o [`AdrNumberCollisionTest`](../../tests/Feature/Memory/AdrNumberCollisionTest.php) surfaçou **2 colisões novas** no disco que ainda não constavam em `numbering_collisions` — drift acumulado desde o Bloco 11.
+
+### Colisão 0236 (×3 arquivos)
+
+| Numero | Lifecycle | Notas |
+|---|---|---|
+| 0236a | A | **Extrato/conciliação — modelo unificado** · slug `0236-extrato-conciliacao-modelo-unificado` · ⚠️ colisão com 0236b/0236c |
+| 0236b | A | **Governança da evolução de doc de design** · slug `0236-governanca-evolucao-doc-design` · ⚠️ colisão com 0236a/0236c |
+| 0236c | A | **Scorecard universal — entidade arbitrária** · slug `0236-scorecard-universal-entidade-arbitraria` · ⚠️ colisão com 0236a/0236b |
+
+### Colisão 0246 (×2 arquivos)
+
+| Numero | Lifecycle | Notas |
+|---|---|---|
+| 0246a | A | **Sessão 2026-05-30 — DS harmonização** · slug `0246-sessao-2026-05-30-ds-harmonizacao` · ⚠️ colisão com 0246b |
+| 0246b | A | **Tipo "Outros" default — migrações legacy** · slug `0246-tipo-outros-default-migracoes-legacy` · ⚠️ colisão com 0246a |
+
+**Causa:** PRs paralelos numeraram igual sem coordenação cross-branch (mesmo padrão de 0195/0235). **Renumber PROIBIDO** — append-only Tier 0 (Constituição Art. 3 + ADR 0094/0095/0180), gate `Append-only canon` bloqueia rename de ADR ratificada. **Resolução:** documentar, não mutar — coexistência tech-debt. Descoberta: referencie por slug; `decisions-search` retorna todos ao filtrar por number. Housekeeping eventual = ADR 0120.

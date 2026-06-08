@@ -1,5 +1,7 @@
 # 04 — Convenções do Projeto
 
+> ⚠️ **FÓSSIL (pré-Constituição v2) — verificar contra canon.** Regras válidas misturadas com stale: "Laravel 10" em migrations (hoje **13.6**) e branch `develop` (hoje **`main`-protected**). Convenções canônicas atuais: `memory/how-trabalhar.md` + skills Tier A + ADRs. Ver `memory/governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md`.
+
 ## Idioma
 
 - **Mensagens para o usuário / UI:** PT-BR

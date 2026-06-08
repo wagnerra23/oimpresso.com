@@ -17,6 +17,7 @@ import {
   Banknote,
   CreditCard,
   Pause,
+  Pencil,
   Play,
   Plus,
   RefreshCw,
@@ -27,6 +28,20 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
+// Onda 21 v9,75 — componentes DS pro drawer Nova assinatura (conformidade ui:lint R1 + eslint ds/*).
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/Components/ui/sheet';
+import { Input } from '@/Components/ui/input';
+import { Textarea } from '@/Components/ui/textarea';
+import { Label } from '@/Components/ui/label';
+import { Button } from '@/Components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/Components/ui/select';
+import { FieldError, FieldSuccess, RequiredMark } from '@/Components/ui/field-state';
 import {
   useEffect,
   useMemo,
@@ -113,6 +128,7 @@ interface PageProps {
   kpis?: Kpis;
   subscriptions?: SubsPaginated;
   plans?: PlanRow[];
+  openCreate?: boolean;
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -361,6 +377,10 @@ export default function RecurringBillingIndex(props: PageProps) {
   const { filters, kpis, subscriptions, plans } = props;
   const [tab, setTab] = useState<Tab>(props.tab || 'assinaturas');
   const [activeId, setActiveId] = useState<number | null>(null);
+  // Onda 21 v9,75 — drawer "Nova assinatura" (auto-abre via ?new=1 / atalho N).
+  const [showCreate, setShowCreate] = useState<boolean>(props.openCreate ?? false);
+  // Onda 24 v9,75 — drawer Editar cobrança (valor/ciclo/forma → PUT).
+  const [editSub, setEditSub] = useState<SubRow | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>(filters.status_visual || 'all');
   // Onda 13/14/18 v9,75 — overlays modal state
   const [showCheatsheet, setShowCheatsheet] = useState(false);
@@ -417,6 +437,8 @@ export default function RecurringBillingIndex(props: PageProps) {
   // Onda 18 v9,75 — atalhos teclado completos (depois de filtered+active calculados).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Onda 21 — drawer aberto: Sheet gerencia teclado (Esc/foco), ignora atalhos globais.
+      if (showCreate) return;
       const t = e.target as HTMLElement;
       const inField = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable;
       if (inField && e.key !== 'Escape') return;
@@ -453,11 +475,15 @@ export default function RecurringBillingIndex(props: PageProps) {
         // Onda 14 v9,75 — ⌘K abre CmdPalette
         e.preventDefault();
         setShowCmdPalette(true);
+      } else if ((e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey) {
+        // Onda 21 v9,75 — N abre drawer Nova assinatura
+        e.preventDefault();
+        setShowCreate(true);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [filtered, active]);
+  }, [filtered, active, showCreate]);
 
   // ── Tabs sub-rota
   const TABS: Array<{ key: Tab; label: string; count?: number }> = [
@@ -541,8 +567,9 @@ export default function RecurringBillingIndex(props: PageProps) {
               </nav>
               <button
                 type="button"
+                onClick={() => setShowCreate(true)}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:opacity-90"
-                title="Nova assinatura (em breve)"
+                title="Nova assinatura (N)"
               >
                 <Plus size={14} />
                 Nova assinatura
@@ -592,26 +619,10 @@ export default function RecurringBillingIndex(props: PageProps) {
           )}
         </Deferred>
 
-        {/* ── Placeholder pras outras 3 tabs ── */}
-        {tab !== 'assinaturas' && (
-          <div className="rounded-lg bg-white p-12 text-center shadow-sm ring-1 ring-stone-200">
-            <div className="text-lg font-medium text-stone-700">
-              Aba <strong className="text-primary">{TABS.find((t) => t.key === tab)?.label}</strong> em construção
-            </div>
-            <div className="mt-2 text-sm text-stone-500">
-              Próximas ondas: Planos · Faturas · Configurações. Por ora use a aba Assinaturas.
-            </div>
-            <button
-              type="button"
-              onClick={() => setTab('assinaturas')}
-              className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-            >
-              Voltar a Assinaturas
-            </button>
-          </div>
-        )}
-
-        {/* ── 3-COL BODY (sub-tab Assinaturas) ── */}
+        {/* ── 3-COL BODY (sub-tab Assinaturas) ──
+            Onda 22 v9,75: removido placeholder "em construção" morto — as abas
+            Planos/Faturas/Configurações navegam via router.visit pras Pages reais
+            (Ondas 6/7/8), então `tab` é sempre 'assinaturas' nesta página. */}
         {tab === 'assinaturas' && (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_340px]">
             {/* COL 1 · FILTROS */}
@@ -810,7 +821,7 @@ export default function RecurringBillingIndex(props: PageProps) {
                   Selecione uma assinatura
                 </div>
               )}
-              {active && <DetailDrawer sub={active} onTrouble={setTrouble} />}
+              {active && <DetailDrawer sub={active} onTrouble={setTrouble} onEdit={setEditSub} />}
             </aside>
           </div>
         )}
@@ -830,6 +841,30 @@ export default function RecurringBillingIndex(props: PageProps) {
       )}
       {showTour && <TourOnboarding onClose={() => setShowTour(false)} />}
       {showCheatsheet && <CheatSheet onClose={() => setShowCheatsheet(false)} />}
+
+      {/* Onda 21 v9,75 — drawer Nova assinatura (POST recurring-billing.store) */}
+      {showCreate && (
+        <NewSubscriptionDrawer
+          plans={plans || []}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            router.reload({ only: ['subscriptions', 'kpis'] });
+          }}
+        />
+      )}
+
+      {/* Onda 24 v9,75 — drawer Editar cobrança (PUT recurring-billing.update) */}
+      {editSub && (
+        <EditSubscriptionDrawer
+          sub={editSub}
+          onClose={() => setEditSub(null)}
+          onSaved={() => {
+            setEditSub(null);
+            router.reload({ only: ['subscriptions', 'kpis'] });
+          }}
+        />
+      )}
 
       {/* Onda 14 v9,75 — CmdPalette ⌘K com Jana IA fallback graceful */}
       {showCmdPalette && (
@@ -866,7 +901,7 @@ function postAction(url: string, payload: Record<string, unknown> = {}, confirmM
 }
 
 type TroubleId = 'boleto-recusado' | 'cartao-expirado' | 'cliente-sumiu' | 'suspensao';
-function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: TroubleId | null) => void }) {
+function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t: TroubleId | null) => void; onEdit?: (sub: SubRow) => void }) {
   const fiscalLabels: Record<FiscalType, { label: string; long: string }> = {
     nfe: { label: 'NFe', long: 'NFe · Nota Fiscal Eletrônica' },
     nfse: { label: 'NFS-e', long: 'NFS-e · Nota Fiscal de Serviços' },
@@ -1019,6 +1054,13 @@ function DetailDrawer({ sub, onTrouble }: { sub: SubRow; onTrouble?: (t: Trouble
       {/* Ações executáveis — Onda 9 v9,75 wiring real. */}
       {sub.status !== 'cancelada' && (
         <div className="flex flex-wrap gap-2 pt-2">
+          {onEdit && (
+            <ActionBtn
+              icon={Pencil}
+              label="Editar"
+              onClick={() => onEdit(sub)}
+            />
+          )}
           {sub.status === 'em_dia' && (
             <>
               <ActionBtn
@@ -1345,6 +1387,493 @@ function ListSkeleton() {
         </div>
       ))}
     </div>
+  );
+}
+
+
+// ────────────────────────────────────────────────────────────────
+// NEW SUBSCRIPTION DRAWER (Onda 21 v9,75)
+// Drawer lateral (Sheet DS) — cria Subscription via POST recurring-billing.store.
+// Cliente via busca debounced (recurring-billing.contacts.search, Tier 0).
+// 100% componentes DS (Sheet/Input/Select/Textarea/Label/FieldError) — ui:lint R1
+// + eslint ds/no-native-select + ds/no-adhoc-status-text + a11y label limpos.
+// ────────────────────────────────────────────────────────────────
+
+interface ContactHit {
+  id: number;
+  name: string;
+  mobile: string | null;
+  email: string | null;
+  tax_number: string | null;
+}
+
+const CYCLE_DB_TO_PT: Record<string, string> = {
+  monthly: 'mensal',
+  quarterly: 'trimestral',
+  semiannual: 'semestral',
+  yearly: 'anual',
+};
+
+// shadcn Select proíbe SelectItem value="" — sentinel pro "sem plano".
+const NO_PLAN = '__none__';
+
+function NewSubscriptionDrawer({
+  plans,
+  onClose,
+  onCreated,
+}: {
+  plans: PlanRow[];
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  // ── Cliente (busca debounced)
+  const [contactId, setContactId] = useState<number | null>(null);
+  const [contactLabel, setContactLabel] = useState('');
+  const [query, setQuery] = useState('');
+  const [hits, setHits] = useState<ContactHit[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  // ── Campos do form
+  const [planId, setPlanId] = useState<string>(NO_PLAN);
+  const [valor, setValor] = useState('');
+  const [ciclo, setCiclo] = useState('mensal');
+  const defaultNext = useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return d.toISOString().slice(0, 10);
+  }, []);
+  const [dataProxima, setDataProxima] = useState(defaultNext);
+  const [gateway, setGateway] = useState('inter');
+  const [forma, setForma] = useState('boleto');
+  const [descricao, setDescricao] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // Debounce da busca de cliente.
+  useEffect(() => {
+    if (contactId && query === contactLabel) return; // já selecionado, não re-busca
+    if (query.trim().length < 2) {
+      setHits([]);
+      return;
+    }
+    let cancel = false;
+    setSearching(true);
+    const t = setTimeout(() => {
+      fetch(`/recurring-billing/contacts/search?q=${encodeURIComponent(query.trim())}`, {
+        headers: { Accept: 'application/json' },
+      })
+        .then((r) => (r.ok ? r.json() : { contacts: [] }))
+        .then((d) => {
+          if (!cancel) {
+            setHits(d.contacts || []);
+            setOpenDropdown(true);
+            setSearching(false);
+          }
+        })
+        .catch(() => !cancel && setSearching(false));
+    }, 300);
+    return () => {
+      cancel = true;
+      clearTimeout(t);
+    };
+  }, [query, contactId, contactLabel]);
+
+  function pickContact(c: ContactHit) {
+    setContactId(c.id);
+    setContactLabel(c.name);
+    setQuery(c.name);
+    setOpenDropdown(false);
+  }
+
+  function pickPlan(id: string) {
+    setPlanId(id);
+    const p = plans.find((pl) => String(pl.id) === id);
+    if (p) {
+      setValor(String(p.price));
+      setCiclo(CYCLE_DB_TO_PT[p.cycle] ?? ciclo);
+    }
+  }
+
+  function submit() {
+    if (submitting) return;
+    setErrors({});
+    setSubmitting(true);
+    const payload = {
+      contact_id: contactId,
+      plan_id: planId === NO_PLAN ? null : Number(planId),
+      valor: valor === '' ? null : Number(valor),
+      ciclo,
+      data_proxima_cobranca: dataProxima,
+      gateway,
+      forma_pagamento: forma,
+      descricao: descricao || null,
+    };
+    router.post(
+      '/recurring-billing',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload as any,
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          setSubmitting(false);
+          onCreated();
+        },
+        onError: (errs) => {
+          setSubmitting(false);
+          setErrors(errs as Record<string, string>);
+        },
+      },
+    );
+  }
+
+  const canSubmit = contactId !== null && valor !== '' && Number(valor) > 0 && !!dataProxima;
+
+  return (
+    <Sheet
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[760px]">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>Nova assinatura</SheetTitle>
+          <SheetDescription>Cadastrar cobrança recorrente para um cliente</SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-1 gap-5">
+            {/* Cliente */}
+            <div className="relative">
+              <Label htmlFor="rb-cliente" className="cw-label">
+                Cliente <RequiredMark />
+              </Label>
+              <div className="relative">
+                <Search
+                  size={14}
+                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  variant="cowork"
+                  id="rb-cliente"
+                  className="pl-8"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setContactId(null);
+                  }}
+                  onFocus={() => hits.length > 0 && setOpenDropdown(true)}
+                  placeholder="Buscar por nome, telefone, e-mail ou CNPJ…"
+                  autoComplete="off"
+                  autoFocus
+                />
+              </div>
+              {contactId && (
+                <FieldSuccess className="mt-1">Cliente selecionado: {contactLabel}</FieldSuccess>
+              )}
+              {openDropdown && (searching || hits.length > 0) && (
+                <div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border bg-popover shadow-lg">
+                  {searching && <div className="px-3 py-2 text-xs text-muted-foreground">Buscando…</div>}
+                  {!searching &&
+                    hits.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => pickContact(c)}
+                        className="flex w-full flex-col items-start border-b px-3 py-2 text-left last:border-0 hover:bg-muted"
+                      >
+                        <span className="text-sm font-medium text-foreground">{c.name}</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {[c.mobile, c.tax_number, c.email].filter(Boolean).join(' · ') || 'sem contato'}
+                        </span>
+                      </button>
+                    ))}
+                  {!searching && hits.length === 0 && query.trim().length >= 2 && (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente encontrado.</div>
+                  )}
+                </div>
+              )}
+              <FieldError>{errors.contact_id}</FieldError>
+            </div>
+
+            {/* Plano (opcional) */}
+            <div>
+              <Label htmlFor="rb-plano" className="cw-label">
+                Plano <span className="font-normal text-muted-foreground">(opcional — preenche valor e ciclo)</span>
+              </Label>
+              <Select value={planId} onValueChange={pickPlan}>
+                <SelectTrigger id="rb-plano" variant="cowork" className="w-full">
+                  <SelectValue placeholder="Sem plano (avulso)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_PLAN}>Sem plano (avulso)</SelectItem>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name} · {p.cycle_label} · {BRL(p.price)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Valor + Ciclo */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rb-valor" className="cw-label">
+                  Valor <RequiredMark />
+                </Label>
+                <Input
+                  variant="cowork"
+                  id="rb-valor"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                  placeholder="0,00"
+                />
+                <FieldError>{errors.valor}</FieldError>
+              </div>
+              <div>
+                <Label htmlFor="rb-ciclo" className="cw-label">
+                  Ciclo <RequiredMark />
+                </Label>
+                <Select value={ciclo} onValueChange={setCiclo}>
+                  <SelectTrigger id="rb-ciclo" variant="cowork" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mensal">Mensal</SelectItem>
+                    <SelectItem value="trimestral">Trimestral</SelectItem>
+                    <SelectItem value="semestral">Semestral</SelectItem>
+                    <SelectItem value="anual">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldError>{errors.ciclo}</FieldError>
+              </div>
+            </div>
+
+            {/* Próxima cobrança */}
+            <div>
+              <Label htmlFor="rb-data" className="cw-label">
+                Próxima cobrança <RequiredMark />
+              </Label>
+              <Input
+                variant="cowork"
+                id="rb-data"
+                type="date"
+                value={dataProxima}
+                min={todayStr}
+                onChange={(e) => setDataProxima(e.target.value)}
+              />
+              <FieldError>{errors.data_proxima_cobranca}</FieldError>
+            </div>
+
+            {/* Gateway + Forma de pagamento */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="rb-gateway" className="cw-label">
+                  Gateway <RequiredMark />
+                </Label>
+                <Select value={gateway} onValueChange={setGateway}>
+                  <SelectTrigger id="rb-gateway" variant="cowork" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inter">Banco Inter</SelectItem>
+                    <SelectItem value="asaas">Asaas</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldError>{errors.gateway}</FieldError>
+              </div>
+              <div>
+                <Label htmlFor="rb-forma" className="cw-label">
+                  Forma de pagamento <RequiredMark />
+                </Label>
+                <Select value={forma} onValueChange={setForma}>
+                  <SelectTrigger id="rb-forma" variant="cowork" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="pix">Pix</SelectItem>
+                    <SelectItem value="cartao">Cartão</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldError>{errors.forma_pagamento}</FieldError>
+              </div>
+            </div>
+
+            {/* Descrição */}
+            <div>
+              <Label htmlFor="rb-descricao" className="cw-label">
+                Descrição <span className="font-normal text-muted-foreground">(opcional)</span>
+              </Label>
+              <Textarea
+                id="rb-descricao"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                rows={2}
+                maxLength={255}
+                placeholder="Ex.: Mensalidade manutenção mensal…"
+              />
+              <FieldError>{errors.descricao}</FieldError>
+            </div>
+          </div>
+        </div>
+
+        <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={submit} disabled={!canSubmit || submitting}>
+            <Plus size={14} />
+            {submitting ? 'Criando…' : 'Criar assinatura'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────
+// EDIT SUBSCRIPTION DRAWER (Onda 24 v9,75)
+// Drawer enxuto (Sheet DS) — edita valor/ciclo/forma via PUT recurring-billing.update.
+// Espelha UpdateAssinaturaRequest (só esses 3 campos editáveis). Não toca cliente/
+// plano/data (imutáveis pós-criação). Isolado do NewSubscriptionDrawer pra não
+// arriscar o fluxo de criação que já está live.
+// ────────────────────────────────────────────────────────────────
+
+function EditSubscriptionDrawer({
+  sub,
+  onClose,
+  onSaved,
+}: {
+  sub: SubRow;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const cicloInicial = ['mensal', 'trimestral', 'semestral', 'anual'].includes(sub.plan_cycle)
+    ? sub.plan_cycle
+    : 'mensal';
+  const [valor, setValor] = useState(sub.next_value != null ? String(sub.next_value) : '');
+  const [ciclo, setCiclo] = useState(cicloInicial);
+  const [forma, setForma] = useState(sub.method === 'card' ? 'cartao' : (sub.method ?? 'boleto'));
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function submit() {
+    if (submitting) return;
+    setErrors({});
+    setSubmitting(true);
+    const payload = {
+      valor: valor === '' ? null : Number(valor),
+      ciclo,
+      forma_pagamento: forma,
+    };
+    router.put(
+      `/recurring-billing/${sub.id}`,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload as any,
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          setSubmitting(false);
+          onSaved();
+        },
+        onError: (errs) => {
+          setSubmitting(false);
+          setErrors(errs as Record<string, string>);
+        },
+      },
+    );
+  }
+
+  const canSubmit = valor !== '' && Number(valor) > 0;
+
+  return (
+    <Sheet
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
+      <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[560px]">
+        <SheetHeader className="border-b px-6 py-4">
+          <SheetTitle>Editar cobrança</SheetTitle>
+          <SheetDescription>{sub.client} · atualizar valor, ciclo ou forma de pagamento</SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+            <div>
+              <Label htmlFor="ed-valor" className="cw-label">
+                Valor <RequiredMark />
+              </Label>
+              <Input
+                variant="cowork"
+                id="ed-valor"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder="0,00"
+                autoFocus
+              />
+              <FieldError>{errors.valor}</FieldError>
+            </div>
+
+            <div>
+              <Label htmlFor="ed-ciclo" className="cw-label">
+                Ciclo <RequiredMark />
+              </Label>
+              <Select value={ciclo} onValueChange={setCiclo}>
+                <SelectTrigger id="ed-ciclo" variant="cowork" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError>{errors.ciclo}</FieldError>
+            </div>
+
+            <div>
+              <Label htmlFor="ed-forma" className="cw-label">
+                Forma de pagamento <RequiredMark />
+              </Label>
+              <Select value={forma} onValueChange={setForma}>
+                <SelectTrigger id="ed-forma" variant="cowork" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="pix">Pix</SelectItem>
+                  <SelectItem value="cartao">Cartão</SelectItem>
+                </SelectContent>
+              </Select>
+              <FieldError>{errors.forma_pagamento}</FieldError>
+            </div>
+        </div>
+
+        <SheetFooter className="flex-row justify-end gap-2 border-t px-6 py-4">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={submit} disabled={!canSubmit || submitting}>
+            <Pencil size={14} />
+            {submitting ? 'Salvando…' : 'Salvar alterações'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 

@@ -1,3 +1,9 @@
+---
+status: ativo
+last_reviewed: "2026-06-06"
+next_review: "2026-09-06"
+---
+
 # Changelog · Design System
 
 ## [0.6.8] - 2026-05-24 · Smoke real OpenAI · LLM judge funciona + pegou drift real

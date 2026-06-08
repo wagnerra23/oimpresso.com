@@ -35,9 +35,17 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('/', [RecurringBillingController::class, 'index'])
             ->name('recurring-billing.index');
 
+        // Onda 21 v9,75 — autocomplete cliente do drawer (busca debounced).
+        Route::get('/contacts/search', [RecurringBillingController::class, 'searchContacts'])
+            ->name('recurring-billing.contacts.search');
+
         // Onda 3 v9,75 — store/cancelar/pausar/reativar Subscription.
         Route::post('/', [RecurringBillingController::class, 'store'])
             ->name('recurring-billing.store');
+        // Onda 23 v9,75 — editar cobrança (valor/ciclo/forma) via serviço existente.
+        Route::put('/{id}', [RecurringBillingController::class, 'update'])
+            ->whereNumber('id')
+            ->name('recurring-billing.update');
         Route::post('/{id}/cancelar', [RecurringBillingController::class, 'cancelar'])
             ->whereNumber('id')
             ->name('recurring-billing.cancelar');

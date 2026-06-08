@@ -506,7 +506,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         body: JSON.stringify({ type: draftType }),
       });
       if (!r.ok) {
-        // eslint-disable-next-line no-console
+         
         console.error('[ClienteIndex] POST /cliente/draft falhou', r.status);
         alert('Não foi possível criar novo cliente. Tente de novo ou contate suporte.');
         return;
@@ -556,7 +556,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         });
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.error('[ClienteIndex] POST /cliente/draft network', err);
       alert('Falha de rede ao criar cliente. Verifique sua conexão e tente de novo.');
     } finally {

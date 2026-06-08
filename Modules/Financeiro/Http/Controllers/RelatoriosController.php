@@ -237,8 +237,14 @@ class RelatoriosController extends Controller
 
         $totReceberAberto = (float) (clone $receber)->sum('valor_aberto');
         $totPagarAberto = (float) (clone $pagar)->sum('valor_aberto');
-        $totRecebidoPeriodo = (float) (clone $recebidoPeriodo)->sum('valor_baixa');
-        $totPagoPeriodo = (float) (clone $pagoPeriodo)->sum('valor_baixa');
+        // Eliana [E] 2026-06-07: RECEBIDO/PAGO mostram valor REAL pago
+        // (valor_baixa + juros + multa - desconto) — paridade WR Comercial.
+        $totRecebidoPeriodo = (float) (clone $recebidoPeriodo)
+            ->selectRaw('COALESCE(SUM(valor_baixa + juros + multa - desconto), 0) as total')
+            ->value('total');
+        $totPagoPeriodo = (float) (clone $pagoPeriodo)
+            ->selectRaw('COALESCE(SUM(valor_baixa + juros + multa - desconto), 0) as total')
+            ->value('total');
 
         return [
             'periodo' => [

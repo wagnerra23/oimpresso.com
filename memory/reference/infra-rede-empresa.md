@@ -19,7 +19,7 @@ type: reference
 - **192.168.0.2** = Proxmox host (servidor `sistema`, Xeon 14C / 125 GB RAM) — ver infra-proxmox-ct100.md
 - **192.168.0.4** = Windows Server 2022 (Sistema WR2 / Delphi WR Comercial — RDS, Cpanel, FireBird, FTP, Horse/THorse/socket_horce)
 - **192.168.0.21** = Central VoIP Issabel/Asterisk
-- **192.168.0.50** = CT 100 docker-host (Reverb, Traefik, Portainer, Meilisearch, Vaultwarden)
+- **192.168.0.50** = CT 100 docker-host (Centrifugo, Traefik, Portainer, Meilisearch, Vaultwarden)
 - **192.168.0.55** = SVN dedicado (porta 8777)
 
 **`192.168.0.3` e `192.168.0.4` = MESMA máquina** (Windows Server 2022 com 2 NICs). Wagner esclareceu 2026-04-28: a "máquina servidor Delphi" tem **2 placas de rede**, e responde nos dois IPs. **NÃO usar `192.168.0.3` pra novas VMs/CTs** — é interface secundária do mesmo Windows Server.
@@ -67,7 +67,7 @@ Specs do Windows Server 2022 (.4):
 ## Recomendação pra novas VMs/CTs
 
 Reservar (permanente) por MAC. Sugestão de range fora do DHCP rotativo:
-- **192.168.0.50** → docker-host (já em uso — Reverb, Traefik, Portainer, Meilisearch, Vaultwarden)
+- **192.168.0.50** → docker-host (já em uso — Centrifugo, Traefik, Portainer, Meilisearch, Vaultwarden)
 - 192.168.0.51-59 → outras VMs (staging, workers, etc.)
 
 Adicionar reserva DHCP pelo MAC do CT/VM antes de subir, pra IP não trocar em reboot.

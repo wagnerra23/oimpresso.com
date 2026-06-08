@@ -877,7 +877,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         // ignore
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [draftKey]);
 
   const handleDraftRecover = () => {

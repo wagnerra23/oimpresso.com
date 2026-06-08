@@ -1251,7 +1251,7 @@ export default function ConversationThread({
         onOpenChange={setFeedbackSheetOpen}
         input={feedbackInput}
         onSaved={(feedbackId, mcpTaskPending) => {
-          // eslint-disable-next-line no-console
+           
           console.info('[capture-feedback] salvo', { feedbackId, mcpTaskPending });
         }}
       />

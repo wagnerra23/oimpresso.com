@@ -86,6 +86,12 @@ export default [
     rules: {
       // === TypeScript recommended subset (pragmático, não-pedante) ===
       ...tsPlugin.configs.recommended.rules,
+      // `no-undef` DESLIGADO em TS — recomendação canônica do typescript-eslint: a regra
+      // não entende tipos/namespaces TS e gera falso-positivo em referências de TIPO
+      // (ex: `React`, `EventListener`/`HeadersInit` da lib DOM, interfaces locais). Quem
+      // pega identificador realmente indefinido é o próprio compilador TS (npm run typecheck).
+      // Mantê-la ligada só obrigava a inflar a allowlist de globals. Ref: typescript-eslint.io/troubleshooting/faqs/eslint/#no-undef
+      'no-undef': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',

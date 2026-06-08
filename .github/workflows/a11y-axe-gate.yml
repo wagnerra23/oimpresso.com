@@ -1,0 +1,62 @@
+name: A11y axe runtime (jsdom · componentes canon)
+
+# Fase 2 da determinização de a11y (Fase 1 = ratchet jsx-a11y estático #2359 · Fase 3 = axe
+# browser real #2360). Renderiza os componentes canon @/Components/ui no jsdom (Vitest +
+# testing-library) e roda axe-core: pega ARIA/role/nome-acessível/associação-label que o
+# estático não vê. Determinístico (axe é regra, não juiz LLM). 0 violações serious/critical.
+#
+# NOTA: nenhum workflow rodava vitest — este é o 1º gate que exercita a suíte de componente no CI.
+# jsdom NÃO vê contraste/foco (isso é a Fase 3, browser real). Local: npm run a11y:axe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/ui/**'
+      - 'tests/a11y-primitives.test.tsx'
+      - 'tests/js/setup.ts'
+      - 'package-lock.json'
+      - '.github/workflows/a11y-axe-gate.yml'
+  pull_request:
+    paths:
+      - 'resources/js/Components/ui/**'
+      - 'tests/a11y-primitives.test.tsx'
+      - 'tests/js/setup.ts'
+      - 'package-lock.json'
+      - '.github/workflows/a11y-axe-gate.yml'
+
+concurrency:
+  group: a11y-axe-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  a11y-axe:
+    name: A11y axe · runtime nos componentes canon
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deps (npm ci — instala axe-core do lock)
+        run: npm ci
+
+      - name: axe runtime nos componentes canon (jsdom)
+        run: npm run a11y:axe
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Componente canon @/Components/ui tem violação axe serious/critical (jsdom)."
+          echo ""
+          echo "  1. Local: npm run a11y:axe  · vê a violação (id + help)"
+          echo "  2. CORRIJA o componente (aria-*, role, nome acessível, associação label↔control)"
+          echo "  3. NÃO mascare — a11y é categoria protegida."
+          echo ""
+          echo "Escopo jsdom: ARIA/estrutura. Contraste/foco = Fase 3 (browser real, #2360)."
+          echo "Refs: auditoria 2026-06-06-arte-llm-judge-para-deterministico · ADR 0209"

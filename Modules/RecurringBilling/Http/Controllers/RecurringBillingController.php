@@ -14,6 +14,8 @@ use Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter;
 use Modules\RecurringBilling\Http\Requests\CancelSubscriptionRequest;
 use Modules\RecurringBilling\Http\Requests\PauseSubscriptionRequest;
 use Modules\RecurringBilling\Http\Requests\StoreAssinaturaRequest;
+use Modules\RecurringBilling\Http\Requests\UpdateAssinaturaRequest;
+use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Models\Plan;
 use Modules\RecurringBilling\Models\Subscription;
@@ -50,8 +52,11 @@ class RecurringBillingController extends Controller
         $tab = $request->string('tab', 'assinaturas')->toString();
 
         return Inertia::render('RecurringBilling/Index', [
-            'filters' => $filters,
-            'tab'     => $tab,
+            'filters'    => $filters,
+            'tab'        => $tab,
+            // Onda 21 v9,75 — abre drawer "Nova assinatura" via ?new=1 (atalho N
+            // ou primary do sidebar /recurring-billing/create → redirect).
+            'openCreate' => $request->boolean('new'),
 
             'kpis' => Inertia::defer(function () use ($businessId) {
                 return SubscriptionIndexPresenter::computeKpis(
@@ -298,9 +303,50 @@ class RecurringBillingController extends Controller
         ]);
     }
 
-    public function create()
+    /**
+     * GET /recurring-billing/contacts/search — autocomplete cliente do drawer.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): scope business_id da sessão SEMPRE.
+     * Pattern reusado de Whatsapp InboxController::searchContacts (US-WA-064).
+     * Só type customer/both (lead ainda não é cliente; supplier não assina).
+     */
+    public function searchContacts(Request $request): JsonResponse
     {
-        return view('recurringbilling::create');
+        Gate::authorize('create', Subscription::class);
+
+        $businessId = (int) session('user.business_id');
+        $q = trim((string) $request->input('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['contacts' => []], 200);
+        }
+
+        // Sanitiza query — escapa LIKE wildcards `% _ \`.
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
+        $like = "%{$escaped}%";
+
+        $contacts = \App\Contact::query()
+            ->where('business_id', $businessId)
+            ->whereIn('type', ['customer', 'both'])
+            ->where(function ($w) use ($like) {
+                $w->where('name', 'LIKE', $like)
+                    ->orWhere('mobile', 'LIKE', $like)
+                    ->orWhere('email', 'LIKE', $like)
+                    ->orWhere('tax_number', 'LIKE', $like);
+            })
+            ->orderBy('name')
+            ->limit(15)
+            ->get(['id', 'name', 'mobile', 'email', 'tax_number']);
+
+        return response()->json([
+            'contacts' => $contacts->map(fn ($c) => [
+                'id'         => $c->id,
+                'name'       => $c->name,
+                'mobile'     => $c->mobile,
+                'email'      => $c->email,
+                'tax_number' => $c->tax_number,
+            ])->all(),
+        ], 200);
     }
 
     public function show($id)
@@ -313,9 +359,40 @@ class RecurringBillingController extends Controller
         return view('recurringbilling::edit');
     }
 
-    public function update(Request $request, $id): RedirectResponse
-    {
-        //
+    /**
+     * PUT /recurring-billing/{id} — atualiza cobrança (valor / ciclo / forma).
+     *
+     * Onda 23 v9,75: wira o serviço AssinaturaCobrancaService::atualizarCobrancaAssinatura
+     * (lógica já existia, faltava a rota canônica). Edição parcial (UpdateAssinaturaRequest:
+     * todos os campos sometimes — pelo menos 1). Multi-tenant Tier 0 + Gate update.
+     */
+    public function update(
+        UpdateAssinaturaRequest $request,
+        int $id,
+        AssinaturaCobrancaService $service,
+    ): RedirectResponse|JsonResponse {
+        $sub = $this->loadOwnedOrFail($id);
+        Gate::authorize('update', $sub);
+
+        $result = $service->atualizarCobrancaAssinatura(
+            (int) session('user.business_id'),
+            $sub->id,
+            $request->validated(),
+        );
+
+        if (! ($result['ok'] ?? false)) {
+            return $this->respondError(
+                $request,
+                $result['error'] ?? 'Falha ao atualizar a assinatura.',
+                (int) ($result['http_status'] ?? 422),
+            );
+        }
+
+        return $this->respondOk(
+            $request,
+            sprintf('Assinatura #%d atualizada.', $sub->id),
+            ['subscription' => $sub->fresh()],
+        );
     }
 
     public function destroy($id)

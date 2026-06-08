@@ -184,7 +184,7 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
           } else if (r.status === 403) msg = 'Sem permissão.';
           else if (r.status === 404) msg = 'Cliente não encontrado.';
           setErrorField({ field, message: msg });
-          // eslint-disable-next-line no-console
+           
           console.error(`[EnderecoTab] autosave ${field} falhou`, { status: r.status });
           return;
         }
@@ -194,7 +194,7 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
       } catch (err) {
         rollbackField(field, prev);
         setErrorField({ field, message: 'Falha de rede. Tente de novo.' });
-        // eslint-disable-next-line no-console
+         
         console.error(`[EnderecoTab] autosave ${field} network`, err);
       } finally {
         setSavingField((c) => (c === field ? null : c));
@@ -305,7 +305,7 @@ export default function EnderecoTab({ contact, onSaved, onContactUpdated, disabl
     } catch (err) {
       setCepLookup('error');
       setCepLookupMsg('Falha ao consultar ViaCEP.');
-      // eslint-disable-next-line no-console
+       
       console.error('[EnderecoTab] cep lookup failed', err);
     }
   }, [zipCode, addressLine1, addressLine2, neighborhood, city, stateUf, performSave, onContactUpdated]);
