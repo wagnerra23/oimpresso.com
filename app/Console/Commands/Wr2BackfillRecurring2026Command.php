@@ -243,6 +243,8 @@ class Wr2BackfillRecurring2026Command extends Command
                         'subscription_id' => $sub->id,
                         'cycle_month' => $mes,
                     ], JSON_UNESCAPED_UNICODE),
+                    'created_by'     => 1, // Wagner (user system)
+                    'updated_by'     => 1,
                     'created_at'     => now(),
                     'updated_at'     => now(),
                 ]);
