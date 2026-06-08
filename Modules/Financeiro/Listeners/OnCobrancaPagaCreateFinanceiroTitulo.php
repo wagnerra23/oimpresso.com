@@ -55,6 +55,16 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             return;
         }
 
+        // Gerar Boleto no drawer (2026-06-08): cobrança nascida de um título que
+        // JÁ existe (origem_type='fin_titulo', botão "Gerar boleto" da Visão
+        // Unificada) → dá BAIXA nesse título em vez de criar PG-xxx, senão o
+        // recebível contaria em DOBRO (título original aberto + PG-xxx quitado).
+        if ($cobranca->origem_type === 'fin_titulo' && $cobranca->origem_id) {
+            $this->baixarTituloExistente($event, $cobranca);
+
+            return;
+        }
+
         $tituloExistente = Titulo::where('business_id', 1)
             ->where('origem', 'manual')
             ->where('origem_id', $event->cobrancaId)
@@ -129,6 +139,81 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 'created_by'         => 1,
             ]);
         });
+    }
+
+    /**
+     * Baixa um título PRÉ-EXISTENTE quando a cobrança nasceu dele (origem_type
+     * 'fin_titulo' — botão "Gerar boleto" do drawer). Cria a TituloBaixa e
+     * fecha o título, sem criar título novo (evita duplo-recebível).
+     *
+     * Idempotente via idempotency_key determinístico da TituloBaixa.
+     */
+    private function baixarTituloExistente(CobrancaPaga $event, Cobranca $cobranca): void
+    {
+        $titulo = Titulo::where('business_id', 1)
+            ->where('id', $cobranca->origem_id)
+            ->first();
+
+        if (!$titulo) {
+            Log::warning('[boleto-drawer][financeiro] CobrancaPaga origem fin_titulo sem título correspondente', [
+                'cobranca_id' => $event->cobrancaId,
+                'titulo_id'   => $cobranca->origem_id,
+            ]);
+
+            return;
+        }
+
+        if (in_array($titulo->status, ['quitado', 'cancelado'], true)) {
+            return; // já resolvido
+        }
+
+        $idemKey = $this->buildIdempotencyKey($event->cobrancaId);
+        if (TituloBaixa::where('business_id', 1)->where('idempotency_key', $idemKey)->exists()) {
+            return; // idempotência — baixa já registrada
+        }
+
+        $contaBancariaId = $this->resolveContaBancaria($cobranca);
+        $valorPago = ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos) / 100;
+        $pagaEm = $event->pagaEm;
+
+        DB::transaction(function () use ($titulo, $contaBancariaId, $valorPago, $pagaEm, $event, $cobranca, $idemKey): void {
+            if ($contaBancariaId) {
+                TituloBaixa::create([
+                    'business_id'       => 1,
+                    'titulo_id'         => $titulo->id,
+                    'conta_bancaria_id' => $contaBancariaId,
+                    'valor_baixa'       => $valorPago,
+                    'juros'             => 0,
+                    'multa'             => 0,
+                    'desconto'          => 0,
+                    'data_baixa'        => $pagaEm->format('Y-m-d'),
+                    'meio_pagamento'    => $this->mapMeioPagamento($cobranca->tipo, $cobranca->forma_pagamento),
+                    'idempotency_key'   => $idemKey,
+                    'observacoes'       => 'Auto-baixa boleto drawer · cobrança #' . $event->cobrancaId,
+                    'created_by'        => 1,
+                ]);
+            }
+
+            $novoAberto = round(((float) $titulo->valor_aberto) - $valorPago, 2);
+            $titulo->valor_aberto = max(0, $novoAberto);
+            if ($contaBancariaId && $titulo->valor_aberto <= 0.001) {
+                $titulo->status = 'quitado';
+            }
+            $titulo->metadata = array_merge($titulo->metadata ?? [], [
+                'boleto_pago' => [
+                    'cobranca_id' => $event->cobrancaId,
+                    'paga_em'     => $pagaEm->format('Y-m-d'),
+                ],
+            ]);
+            $titulo->save();
+        });
+
+        if (!$contaBancariaId) {
+            Log::warning('[boleto-drawer][financeiro] Título NÃO baixado (conta bancária não resolvida)', [
+                'cobranca_id' => $event->cobrancaId,
+                'titulo_id'   => $titulo->id,
+            ]);
+        }
     }
 
     /**

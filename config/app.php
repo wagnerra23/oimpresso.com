@@ -249,4 +249,23 @@ return [
     |
     */
     'saas_owner_business_id' => (int) env('SAAS_OWNER_BUSINESS_ID', 1),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Test / demo business
+    |--------------------------------------------------------------------------
+    |
+    | Tenant DEDICADO a dados de teste/demo (seeders, smoke, dogfooding de QA).
+    | A partir de 2026-06-08 biz=1 (WR2 Sistemas) passou a ter DADOS REAIS — então
+    | seeders de demo NÃO podem mais gravar nele. O alvo canônico de demo é o
+    | `test_business_id` (99). `protected_business_ids` são tenants REAIS que os
+    | seeders de demo devem RECUSAR (fail-safe anti-poluição de dado real).
+    |
+    */
+    'test_business_id' => (int) env('TEST_BUSINESS_ID', 99),
+
+    'protected_business_ids' => array_values(array_filter(array_map(
+        'intval',
+        explode(',', (string) env('PROTECTED_BUSINESS_IDS', '1,4'))
+    ))),
 ];

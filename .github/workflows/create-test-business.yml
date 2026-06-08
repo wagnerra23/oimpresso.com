@@ -1,19 +1,21 @@
-name: Run FinanceiroDemoSeeder (one-shot)
+name: Create Test Business (biz 99 · one-shot)
 
-# Workflow_dispatch dedicado pra rodar `FinanceiroDemoSeeder` no Hostinger.
-# Criado porque `deploy.yml --extra_artisan='db:seed --class=...'` não funciona
-# por escape de backslash/slash em FQCN namespaced. Aqui o comando é literal
-# entre aspas simples — sem interpolação de shell.
+# Workflow_dispatch dedicado pra criar o tenant de TESTE (biz=99) no Hostinger,
+# rodando `TestBusinessSeeder` via via canônica (BusinessUtil::createNewBusiness).
 #
-# Wagner 2026-05-20: poppular biz=1 com 29 titulos mock.
+# Contexto: biz=1 (WR2 Sistemas) virou DADOS REAIS (2026-06-08). Dado de teste/
+# demo migra pro tenant dedicado (test_business_id=99). Idempotente: não faz nada
+# se o business já existir.
+#
+# Mesmo padrão do run-financeiro-demo-seeder.yml (FQCN entre aspas simples).
 
 on:
   workflow_dispatch:
     inputs:
-      biz_id:
-        description: 'business_id alvo de TESTE (99=TESTE · 1=WR2 e 4=ROTA LIVRE são REAIS — seeder recusa)'
+      confirm:
+        description: 'Digite CRIAR pra confirmar a criação do tenant de teste'
         required: true
-        default: '99'
+        default: ''
         type: string
 
 concurrency:
@@ -21,10 +23,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  seed:
-    name: Run FinanceiroDemoSeeder biz=${{ inputs.biz_id }}
+  create:
+    name: Create test business (TestBusinessSeeder)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: ${{ inputs.confirm == 'CRIAR' }}
     steps:
       - name: Setup SSH
         run: |
@@ -50,24 +53,25 @@ jobs:
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
             php artisan --version &&
-            ls -la Modules/Financeiro/Database/Seeders/FinanceiroDemoSeeder.php
+            ls -la database/seeders/TestBusinessSeeder.php
           "
 
       - name: Run seeder
         # FQCN entre aspas simples ao redor do --class — bash preserva backslash literais.
-        # 2>&1 | tail -50 pra ver output do seeder (categorias + titulos count).
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            BIZ_ID=${{ inputs.biz_id }} php artisan db:seed --class='Modules\Financeiro\Database\Seeders\FinanceiroDemoSeeder' --force 2>&1 | tail -50
+            php artisan db:seed --class='Database\Seeders\TestBusinessSeeder' --force 2>&1 | tail -30
           "
 
-      - name: Verify count
+      - name: Verify business
+        # Reporta o id REAL criado (pode != 99 se o AUTO_INCREMENT já passou). Se
+        # diferente, setar TEST_BUSINESS_ID pro id mostrado aqui.
         run: |
           /tmp/ssh_exec.sh "
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            php artisan tinker --execute=\"echo 'Titulos demo biz=${{ inputs.biz_id }}: ' . \Modules\Financeiro\Models\Titulo::withoutGlobalScopes()->where('business_id', ${{ inputs.biz_id }})->where('observacoes', 'LIKE', 'SEEDER_DEMO%')->count();\"
+            php artisan tinker --execute=\"\\\$b = \App\Business::where('name','LIKE','TESTE%')->orderByDesc('id')->first(); echo 'Test business: id=' . (\\\$b->id ?? 'NENHUM') . ' name=' . (\\\$b->name ?? '-');\"
           "
 
       - name: Done
-        run: echo "Seeder concluido pra biz=${{ inputs.biz_id }}. Verificar /financeiro/unificado em prod."
+        run: echo "TestBusinessSeeder concluido. Conferir o id acima e ajustar TEST_BUSINESS_ID se != 99."

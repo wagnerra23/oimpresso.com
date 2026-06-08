@@ -14,7 +14,7 @@
 //    ficava preso no skeleton — as vendas nunca apareciam (fix 2026-06-08).
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { AlertTriangle, ChevronLeft, ChevronRight, ExternalLink, Filter, Search, ShoppingCart, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -310,12 +310,18 @@ export default function SalesTab({
                 </thead>
                 <tbody>
                   {salesData.data.map((s) => (
-                    <tr key={s.id} className="border-b border-border hover:bg-muted/40" data-testid={`sales-row-${s.id}`}>
+                    <tr
+                      key={s.id}
+                      className="border-b border-border hover:bg-muted/40 cursor-pointer select-none"
+                      data-testid={`sales-row-${s.id}`}
+                      onDoubleClick={() => router.visit(`/sells/${s.id}`)}
+                      title="Duplo-clique para abrir a venda"
+                    >
                       <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{formatDate(s.transaction_date)}</td>
                       <td className="px-4 py-2.5">
-                        <a href={`/sells/${s.id}`} className="font-medium text-foreground hover:underline">
+                        <Link href={`/sells/${s.id}`} className="font-medium text-foreground hover:underline">
                           {s.invoice_no}
-                        </a>
+                        </Link>
                         {s.ref_no && <span className="ml-2 text-[10px] text-muted-foreground">({s.ref_no})</span>}
                         {s.location_name && (
                           <div className="text-[10px] text-muted-foreground mt-0.5">{s.location_name}</div>
@@ -333,9 +339,9 @@ export default function SalesTab({
                       </td>
                       <td className="px-4 py-2.5 text-right">
                         <Button variant="ghost" size="sm" asChild>
-                          <a href={`/sells/${s.id}`} aria-label={`Ver venda ${s.invoice_no}`}>
+                          <Link href={`/sells/${s.id}`} aria-label={`Ver venda ${s.invoice_no}`}>
                             <ExternalLink size={14} />
-                          </a>
+                          </Link>
                         </Button>
                       </td>
                     </tr>
