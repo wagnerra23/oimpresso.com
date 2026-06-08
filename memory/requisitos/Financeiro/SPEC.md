@@ -1595,8 +1595,8 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 | rb_invoices 2026 (jan-dez) | 663 | **1.311** |
 | fin_titulos jul-dez/2026 | 0 | **648** |
 | cobrancas biz=1 (1.311 invoice + 1.222 boletos Firebird avulsa) | 0 | **2.533** |
-| Valor total cobranças | — | **R$ [redacted Tier 0]** |
-| MRR projetado (108 × R$ [redacted Tier 0] × 12) | — | **R$ [redacted Tier 0]/ano** |
+| Valor total cobranças | — | **[redacted Tier 0]** |
+| MRR projetado | — | **[redacted Tier 0]** |
 | biz=4 Larissa ROTA LIVRE (anti-regressão) | 0/0 | **0/0 ✅** |
 
 ## Comando entregue
