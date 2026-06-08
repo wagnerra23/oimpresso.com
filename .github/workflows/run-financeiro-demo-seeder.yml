@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       biz_id:
-        description: 'business_id alvo (1=WR2 Sistemas, 4=ROTA LIVRE — CUIDADO biz=4 é prod)'
+        description: 'business_id alvo de TESTE (99=TESTE · 1=WR2 e 4=ROTA LIVRE são REAIS — seeder recusa)'
         required: true
-        default: '1'
+        default: '99'
         type: string
 
 concurrency:
