@@ -66,7 +66,40 @@ interface Props {
    * "Acompanhar" (locada) segue abrindo o drawer (é ver, não avançar).
    */
   onAdvance?: (cacamba: CacambaCardData) => void;
+  /**
+   * D-07 — card em foco via teclado (setas no Index). Pinta o anel pra o usuário
+   * ver onde está; Enter abre o drawer (tratado no Index).
+   */
+  isFocused?: boolean;
 }
+
+/**
+ * D-04 — tom de SLA por prazo (função pura, sem efeito colateral).
+ * `destructive` = atrasada · `warning` = vence hoje/amanhã · `null` = calmo (sem borda).
+ * Só para estados ativos (locada/aguardando) — pátio/pronta não têm prazo em curso.
+ */
+function slaTone(
+  card: CacambaCardData,
+  variant: CacambaStatus,
+): 'destructive' | 'warning' | null {
+  if (variant !== 'locada' && variant !== 'aguardando') return null;
+  if (card.is_overdue) return 'destructive';
+  if (card.expected_return) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(card.expected_return + 'T00:00:00');
+    if (!Number.isNaN(due.getTime())) {
+      const diffDays = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+      if (diffDays <= 1) return 'warning';
+    }
+  }
+  return null;
+}
+
+const SLA_LEFT_BORDER: Record<'destructive' | 'warning', string> = {
+  destructive: 'border-l-2 border-l-destructive',
+  warning: 'border-l-2 border-l-warning',
+};
 
 const formatBRL = (value: number | null | undefined) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value ?? 0));
@@ -152,7 +185,7 @@ function actionLabelFor(variant: CacambaStatus): string | null {
   }
 }
 
-function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
+function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = false }: Props) {
   // D-02 — estados de avanço usam a porta gate-guardada (onAdvance); "Acompanhar"
   // (locada) é ver, não avançar → segue abrindo o drawer (onClick).
   const canAdvance = onAdvance != null && variant !== 'locada';
@@ -198,6 +231,11 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
 
   const opacityClass = isPronta ? 'opacity-95' : '';
 
+  // D-04 — borda-esquerda por SLA (token semântico). D-07 — anel de foco por teclado.
+  const sla = slaTone(cacamba, variant);
+  const slaBorder = sla ? SLA_LEFT_BORDER[sla] : '';
+  const focusRing = isFocused && !isDragging ? 'ring-2 ring-primary ring-offset-1' : '';
+
   const osLabel = cacamba.os_number ? `OS #${cacamba.os_number}` : null;
   const venceLabel = formatVence(cacamba.expected_return);
   const progressPct = computeProgressPct(cacamba.entered_at, cacamba.expected_return);
@@ -219,7 +257,7 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance }: Props) {
       style={dragStyle}
       {...attributes}
       {...listeners}
-      className={`${cardBg} ${opacityClass} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 transition-colors ${
+      className={`${cardBg} ${opacityClass} ${slaBorder} ${focusRing} relative rounded border border-t-2 ${cardBaseBorder} ${TOP_BORDER_COLOR[variant]} p-3 transition-colors ${
         isDragging
           ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
           : 'cursor-grab active:cursor-grabbing hover:shadow-sm'

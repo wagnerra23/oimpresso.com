@@ -26,6 +26,8 @@ interface Props {
   onCardClick: (cacamba: CacambaCardData) => void;
   /** D-02 — avançar etapa direto pelo botão do card (mesma porta do arrasto). */
   onCardAdvance?: (cacamba: CacambaCardData, from: CacambaStatus) => void;
+  /** D-07 — id do card em foco por teclado (anel visível). */
+  focusedId?: number | null;
 }
 
 const dotColorMap: Record<CacambaStatus, string> = {
@@ -45,7 +47,7 @@ const topBorderMap: Record<CacambaStatus, string> = {
   pronta:     'border-t-[var(--stage-emerald)]',
 };
 
-function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdvance }: Props) {
+function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdvance, focusedId = null }: Props) {
   // Handler estável — Card memo recebe sempre mesma referência
   const handleClick = useCallback(
     (c: CacambaCardData) => onCardClick(c),
@@ -156,6 +158,7 @@ function CacambaKanbanColumnImpl({ status, label, cards, onCardClick, onCardAdva
               variant={status}
               onClick={handleClick}
               onAdvance={onCardAdvance ? handleAdvance : undefined}
+              isFocused={focusedId === c.id}
             />
           ))
         )}
