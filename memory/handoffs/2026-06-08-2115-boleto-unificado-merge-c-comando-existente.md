@@ -3,7 +3,7 @@ date: "2026-06-08"
 hour: "21:15 BRT"
 slug: boleto-unificado-merge-c-comando-existente
 topic: "Boleto pelo Financeiro Unificado: investigação → consolidação de branch WIP → merge + fix-forward PHPStan; C é comando que já existe"
-tldr: "Boleto é REAL (Modules/PaymentGateway, Inter LIVE biz=1; CnabDirectStrategy=mock legado). Bug US-FIN-054: botão Cobrar do Unificado→rota 404. Consolidei branch WIP que já fazia gerar-boleto-Inter-direto-do-drawer → #2452 MERGED. Mas mergeou via auto-merge sem meu fix PHPStan→main vermelho (+erro #2453 seeder)→fix-forward #2457→verde. O 'C' (unificar credenciais) já é o comando paymentgateway:migrate-credentials, não rodável daqui (php artisan Hostinger). #2438 briefing + #2450 ADR C abertos. Vendor local esvaziado por junction→restaurado composer install."
+tldr: "Boleto é REAL (PaymentGateway, Inter LIVE biz=1; CnabDirectStrategy=mock). Bug US-FIN-054: botão Cobrar do Unificado→404. Consolidei branch WIP gerar-boleto-direto→#2452 MERGED. Mergeou sem meu fix PHPStan→main vermelho→fix-forward #2457→verde. 'C' (unificar credenciais)=comando paymentgateway:migrate-credentials, não rodável daqui (artisan Hostinger). #2438 briefing + #2450 ADR C abertos."
 duration: "~4h"
 authors: [CL]
 session: frosty-greider-83ab2f
