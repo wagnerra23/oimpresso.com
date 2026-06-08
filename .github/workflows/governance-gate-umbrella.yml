@@ -33,6 +33,8 @@ jobs:
         run: npm ci
       - name: Índice de ADR em dia + supersede íntegra
         run: node scripts/governance/adr-index-generate.mjs --check
+      - name: Paleta de cor em dia (PALETA.html == cockpit.css)
+        run: node scripts/governance/palette-generate.mjs --check
       - name: memory-health (enforce — segredo novo / colisão / ressurreição bloqueiam)
         run: node scripts/governance/memory-health.mjs
       - name: Meta-teste dos scripts de governança (controle-negativo)
