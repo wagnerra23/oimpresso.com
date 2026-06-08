@@ -72,6 +72,31 @@ Painel único Wagner-only que agrega visão de toda a infra/governance/time da e
 - Alerting rules (Tier 0 violado → mensagem WhatsApp via Evolution)
 - Daemon background Curador (Tailscale-aware) — extensão de `scripts/curador/`
 
+## Backlog — Ferramentas internas
+
+### US-ADM-021 · Tela Admin/MapaTelas — mapa vivo de telas (spec-driven cockpit)
+
+> owner: wagner · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Contexto.** Wagner pediu superfície única pra "ver o que cada tela tem e o que deveria ter" e dirigir evolução/atrito (sessão 2026-06-08). Hoje isso vive num `.md` gerado por `scripts/gen-mapa-telas.py` (PR #2412) que ele não abre direto. Esta US transforma o mapa numa **tela real no ERP, auto-regenerável**, e fecha o loop de captura de atrito.
+
+**Goal.** Página Wagner-only `/admin/mapa-telas` que lista as ~232 telas reais agrupadas por módulo, mostrando o "deveria ter" (Mission do charter) + status do contrato, com captura de atrito inline que alimenta o backlog.
+
+**Acceptance criteria:**
+- [ ] Rota `/admin/mapa-telas` (middleware `is-wagner`), Inertia `Admin/MapaTelas.tsx`
+- [ ] Backend: artisan command porta de `gen-mapa-telas.py` — escaneia `resources/js/Pages/**/*.tsx` + `*.charter.md` ao lado, classifica tela×componente, extrai Mission, gera JSON/props (cacheado)
+- [ ] Por tela: nome, link "abrir" pra rota real, badge charter (✅ live / 📝 draft / ❌ sem), trecho da Mission
+- [ ] Filtros: por módulo + toggle "só telas cegas (sem charter)"
+- [ ] KPIs no topo: total telas, % com charter, módulos cegos
+- [ ] **Fase 2** — botão "apontar atrito/evolução" por tela → cria item via skill `feedback-capture` → triagem vira charter/US (fecha o loop do diagrama da sessão 2026-06-08)
+- [ ] `Admin/MapaTelas.charter.md` próprio (dogfood spec-driven)
+- [ ] Pest: scope Wagner-only + business_id; browser MCP smoke salvo
+
+**Refs.** PR #2412 (mapa + gerador) · ADR 0105 (cliente/Wagner como sinal) · skills `charter-first`, `feedback-capture`, `audit-to-backlog`.
+
+> ⚠️ Criada manualmente como **US-ADM-021** (não 002): a tool MCP `tasks-create` gerou `US-ADM-002` por drift da cópia server-side (que só via US-ADM-001), colidindo com US-ADM-002..020 já existentes no main. Próximo ID livre = 021.
+
 ## Não-goals
 
 - ❌ NÃO substitui Officeimpresso superadmin (mantido cliente-side)

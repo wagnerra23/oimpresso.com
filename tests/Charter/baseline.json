@@ -1,7 +1,0 @@
-{
-  "_comment": "Ratchet baseline pra workflow charter-gate hard mode (F2+). Cada entrada = 'erro existente que CI aceita'. Workflow só falha se PR introduz erro NOVO. Wagner remove items conforme corrige. Vazio agora = ainda em soft mode (não enforced).",
-  "snapshotted_at": null,
-  "snapshotted_by": null,
-  "mode": "soft",
-  "charters": {}
-}
