@@ -15728,7 +15728,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Transaction\:\:\$location_name\.$#'
 			identifier: property.notFound
-			count: 2
+			count: 3
 			path: app/Http/Controllers/ContactController.php
 
 		-
@@ -15757,6 +15757,30 @@ parameters:
 
 		-
 			message: '#^Access to an undefined property App\\Transaction\:\:\$valor_aberto\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$invoice_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$parent_payment_ref_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$ref_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$transaction_type\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/ContactController.php
@@ -15986,6 +16010,12 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Transaction\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
+			count: 2
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\TransactionPayment\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
 			count: 1
 			path: app/Http/Controllers/ContactController.php
 
@@ -16023,6 +16053,12 @@ parameters:
 			message: '#^Strict comparison using \!\=\= between bool and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 2
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between int\<0, max\> and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
 			path: app/Http/Controllers/ContactController.php
 
 		-
