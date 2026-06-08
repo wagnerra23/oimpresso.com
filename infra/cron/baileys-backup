@@ -1,0 +1,23 @@
+# baileys-auth daily backup — CT 100 Proxmox
+#
+# Wagner: copiar pra /etc/cron.d/baileys-backup no CT 100 + chmod 644
+#
+# Deploy:
+#   scp infra/cron/baileys-backup root@ct100-mcp:/etc/cron.d/baileys-backup
+#   tailscale ssh root@ct100-mcp 'chmod 644 /etc/cron.d/baileys-backup'
+#   tailscale ssh root@ct100-mcp 'systemctl reload cron'
+#
+# Pré-requisitos no CT 100 (rodar 1x antes de ativar cron):
+#   mkdir -p /opt/scripts /backups/baileys-auth
+#   cp backup-baileys-auth.sh /opt/scripts/
+#   chmod 755 /opt/scripts/backup-baileys-auth.sh
+#   touch /var/log/baileys-backup.log && chmod 640 /var/log/baileys-backup.log
+#
+# Validar: tail -f /var/log/baileys-backup.log (próxima execução 03:00 BRT)
+# Manual run: /opt/scripts/backup-baileys-auth.sh
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# m h dom mon dow user command
+0 3 * * * root /opt/scripts/backup-baileys-auth.sh >> /var/log/baileys-backup.log 2>&1

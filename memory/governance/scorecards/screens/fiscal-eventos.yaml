@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Fiscal/Eventos
+path: resources/js/Pages/Fiscal/Eventos.tsx
+archetype: list
+persona: eliana
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Timeline append-only de eventos fiscais (CC-e/cancel/EPEC/manifesto) com callout janelas legais + Deferred + link cross pra NFe — correta e enxuta, layer fx-* fora do DS."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS tokens + Select"
+    fix: "Timeline fx-tl-* + <select> cru fora do DS; sem @/Components/ui"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Linear filtro persistente"
+    fix: "Filtro tipo+dias nao reflete em URL bookmark alem do server-roundtrip; sem busca textual"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe stacked timeline"
+    fix: "fx-tl-h horizontal (badge+link+cstat+when) sem wrap testado em mobile"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

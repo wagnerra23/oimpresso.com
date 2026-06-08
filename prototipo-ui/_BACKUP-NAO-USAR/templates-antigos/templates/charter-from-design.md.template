@@ -1,0 +1,91 @@
+---
+slug: <modulo-lower>-<tela-kebab>-charter
+title: "<Modulo> — Charter de <Nome legível>"
+type: charter
+module: <Modulo>
+status: draft   # mudará pra "live" após Wagner aprovar
+date: <YYYY-MM-DD>
+page_target: resources/js/Pages/<Modulo>/<Tela>.tsx
+prototipo_source: prototipo-ui/prototipos/<tela-kebab>/page.tsx
+---
+
+# Charter: <Modulo>/<Tela>
+
+> Contrato vivo da tela. Atualizar quando Mission/Goals/Anti-hooks mudam — não a cada bugfix.
+
+## Mission
+
+<1-2 frases. O que essa tela existe pra resolver? Qual o "se eu não tivesse, o que perderia?".>
+
+Exemplo: "Permite Larissa (ROTA LIVRE) finalizar venda PDV em ≤30 segundos sem digitar nada além do que é obrigatório por lei."
+
+## Goals (3-5 outcomes mensuráveis)
+
+- [ ] <Goal 1 outcome-oriented com métrica>
+- [ ] <Goal 2>
+- [ ] <Goal 3>
+
+Exemplo:
+- [ ] Larissa fecha venda em ≤30s na 1280px (medido por Pest browser timing)
+- [ ] Split de pagamento até 5 formas sem perder foco do total
+- [ ] CSOSN/CFOP preenchidos automaticamente por config tributária
+
+## Non-Goals (o que ESSA tela NÃO faz)
+
+- ❌ <coisa que poderia parecer escopo mas NÃO é>
+- ❌ ...
+
+Exemplo:
+- ❌ Cadastro de cliente novo — vira drawer pro `Customers/Create`
+- ❌ Gestão de produto — vira link pro `Products/Index`
+- ❌ Emissão NFe — Listener `TransactionCompleted` cuida
+
+## UX targets
+
+| Métrica | Target |
+|---|---|
+| Tempo médio fechar venda (Larissa, 1280px) | ≤30s |
+| Score `design:design-critique` | ≥80 |
+| WCAG 2.1 AA | pass |
+| Pest browser baseline | locked |
+
+## Personas atendidas
+
+- **Primária:** <quem usa todo dia>
+- **Secundária:** <quem usa às vezes>
+- **Negada explicitamente:** <quem NÃO é público>
+
+## Automation hooks
+
+- **In:** `<event/route>` dispara essa tela (ex: link sidebar, deeplink)
+- **Out:** `<event>` ao submeter (ex: `TransactionCompleted` → Listener emite NFC-e)
+
+## Anti-hooks (cuidado dobrado)
+
+> Estas são as áreas onde Claude pode **alucinar** com mais facilidade. Wagner revisa com lupa.
+
+- ⚠️ <armadilha 1: ex: shift +3h em formato_date — não tirar>
+- ⚠️ <armadilha 2: ex: business_id global scope — não desabilitar com withoutGlobalScopes>
+- ⚠️ <armadilha 3: ex: append-only em ponto_marcacoes — não DELETE>
+
+## Decisões de design (vinda do prototipo Cowork)
+
+| Decisão | Fonte | Razão |
+|---|---|---|
+| Header sticky | canon Cockpit V2 | navegação sempre visível |
+| KPI text-3xl | critique-score.json passo X | Larissa 1m de distância |
+| Drawer (não modal) | regra dura Cockpit V2 | não bloqueia visão da lista |
+| ... | ... | ... |
+
+## Refs
+
+- Protótipo: `prototipo-ui/prototipos/<tela>/page.tsx`
+- Critique: `prototipo-ui/prototipos/<tela>/critique.md` (score: <NN>)
+- Handoff: `prototipo-ui/prototipos/<tela>/handoff-spec.md`
+- A11y: `prototipo-ui/prototipos/<tela>/a11y-report.md`
+- ADR canon: <link>
+
+---
+
+**Aprovado por:** [W] Wagner (data: <YYYY-MM-DD>)
+**Status:** <draft | live | deprecated>

@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Cliente · B Cowork × 4 tons de BG — 2026-05-26</title>
+  <style>
+    :root {
+      --surface:      #ffffff;
+      --text:         oklch(0.22 0.01 80);
+      --text-dim:     oklch(0.50 0.01 80);
+      --text-mute:    oklch(0.65 0.01 80);
+      --accent:       oklch(0.58 0.09 220);
+      --accent-soft:  oklch(0.94 0.025 220);
+      --error:        oklch(0.55 0.18 25);
+      --error-soft:   oklch(0.94 0.04 25);
+      --border:       oklch(0.90 0.004 90);
+      --border-2:     oklch(0.93 0.004 90);
+      --r-sm:         6px;
+      --r-md:         8px;
+      --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 24px 32px 60px;
+      font-family: var(--font-sans);
+      background: oklch(0.94 0.004 90);  /* fundo neutro pra destacar as 4 variantes */
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+    .intro { color: var(--text-dim); font-size: 13px; max-width: 900px; margin-bottom: 24px; }
+    .intro kbd {
+      background: #fff; padding: 1px 6px; border-radius: 4px;
+      border: 1px solid var(--border); font-family: ui-monospace, monospace; font-size: 11px;
+    }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px;
+      max-width: 1600px;
+    }
+
+    /* Drawer wrapper (simula drawer 760px do Cliente) */
+    .drawer {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 6px 24px -8px rgba(0,0,0,.10), 0 2px 6px -2px rgba(0,0,0,.06);
+    }
+    .drawer-header {
+      padding: 14px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-2);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .drawer-header .av {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, oklch(0.88 0.05 60), oklch(0.78 0.05 60));
+      display: grid; place-items: center;
+      font-weight: 700; color: oklch(0.30 0.10 60); font-size: 13px;
+    }
+    .drawer-header .title { font-size: 14px; font-weight: 600; }
+    .drawer-header .sub { font-size: 11.5px; color: var(--text-mute); margin-top: 1px; }
+    .tabs {
+      display: flex; gap: 4px;
+      padding: 0 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-2);
+    }
+    .tabs .tab {
+      padding: 10px 14px; font-size: 12.5px; color: var(--text-mute);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      cursor: pointer;
+    }
+    .tabs .tab.on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+    /* Drawer body — onde o BG muda em cada variante */
+    .drawer-body {
+      padding: 20px 22px 24px;
+    }
+    .drawer-body .section-title {
+      font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-mute);
+      margin: 0 0 10px;
+    }
+    .drawer-body .section + .section { margin-top: 18px; }
+
+    /* Campos B Cowork canon (idênticos em todas variantes) */
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field.full { grid-column: 1 / -1; }
+    .label {
+      font-size: 11.5px; font-weight: 500; color: var(--text-dim);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .opt-mark { font-size: 10.5px; font-weight: 400; color: var(--text-mute); }
+    .inp {
+      width: 100%; height: 36px; padding: 0 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text); font: inherit; font-size: 13px;
+      border-radius: var(--r-sm); outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .inp.err { border-color: var(--error); }
+    .err-msg { font-size: 11px; color: var(--error); }
+
+    /* Header label de cada variante */
+    .variant-label {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; margin-bottom: 0;
+      background: var(--surface);
+      border: 1px solid var(--border); border-bottom: 0;
+      border-radius: 12px 12px 0 0;
+      font-size: 13px; font-weight: 700;
+    }
+    .variant-label .num {
+      font-family: ui-monospace, monospace; font-size: 18px; font-weight: 800;
+      color: var(--accent); letter-spacing: -0.03em;
+    }
+    .variant-label .swatch {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 1px solid var(--border-2);
+    }
+    .variant-label .feel {
+      margin-left: auto; font-size: 10.5px; color: var(--text-mute);
+      font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .variant-wrap .drawer { border-radius: 0 0 12px 12px; border-top: 0; }
+
+    /* ════ Variantes — só muda drawer-body bg ════ */
+    .v1 .drawer-body { background: oklch(0.985 0.003 90); }   /* off-white quase branco (Cowork --bg) */
+    .v1 .swatch { background: oklch(0.985 0.003 90); }
+
+    .v2 .drawer-body { background: oklch(0.965 0.004 90); }   /* cinza neutro suave (Cowork --bg-2) */
+    .v2 .swatch { background: oklch(0.965 0.004 90); }
+
+    .v3 .drawer-body { background: oklch(0.96 0.008 90); }    /* cinza creme warm */
+    .v3 .swatch { background: oklch(0.96 0.008 90); }
+
+    .v4 .drawer-body { background: oklch(0.965 0.008 240); }  /* cinza azulado leve */
+    .v4 .swatch { background: oklch(0.965 0.008 240); }
+
+    /* Banner com tokens */
+    .token-hint {
+      margin-top: 22px; max-width: 1600px;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 14px 18px;
+      font-size: 12px; color: var(--text-dim);
+    }
+    .token-hint h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--text); }
+    .token-hint code { background: oklch(0.96 0.004 90); padding: 1px 6px; border-radius: 3px; font-family: ui-monospace, monospace; font-size: 11.5px; }
+  </style>
+</head>
+<body>
+  <h1>B Cowork + 4 cores de fundo do drawer</h1>
+  <p class="intro">
+    Os <strong>campos são idênticos</strong> em todas as 4 variantes (B Cowork: bg branco sólido, font 13px, label dim, ring accent-soft).
+    O que muda é só a <strong>cor do BG do drawer</strong> ao redor dos campos. Foca no contraste entre o branco do campo
+    e o fundo — qual destaca melhor pra Daniela/Larissa sentirem "preencha aqui".
+    Pressione <kbd>Tab</kbd> circulando os campos pra comparar o feel.
+  </p>
+
+  <div class="grid">
+
+    <!-- V1 — off-white (mesmo do Cowork --bg) -->
+    <div class="variant-wrap v1">
+      <div class="variant-label">
+        <span class="num">01</span>
+        <span class="swatch"></span>
+        Off-white quase branco
+        <span class="feel">Cowork canon · --bg</span>
+      </div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div class="av">M</div>
+          <div>
+            <div class="title">Martinho Caçambas LTDA</div>
+            <div class="sub">Pessoa jurídica · cadastrado há 11m</div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab on">Contato</div>
+          <div class="tab">Endereço</div>
+          <div class="tab">Comercial</div>
+        </div>
+        <div class="drawer-body">
+          <div class="section">
+            <p class="section-title">Telefones</p>
+            <div class="row">
+              <div class="field"><label class="label">Telefone principal</label><input class="inp" value="(11) 9 9999-0000" /></div>
+              <div class="field"><label class="label">Telefone alternativo <span class="opt-mark">(opcional)</span></label><input class="inp" placeholder="(00) 0 0000-0000" /></div>
+            </div>
+            <div class="row">
+              <div class="field full"><label class="label">Telefone 3 <span class="opt-mark">(opcional · recados)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+          <div class="section">
+            <p class="section-title">E-mails</p>
+            <div class="row">
+              <div class="field full"><label class="label">E-mail</label><input class="inp err" value="contato@martinho" /><p class="err-msg">⚠ Formato inválido.</p></div>
+            </div>
+            <div class="row">
+              <div class="field"><label class="label">E-mail comercial <span class="opt-mark">(opcional · vendedor)</span></label><input class="inp" /></div>
+              <div class="field"><label class="label">E-mail NF-e <span class="opt-mark">(opcional · contador)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V2 — cinza neutro suave (Cowork --bg-2) -->
+    <div class="variant-wrap v2">
+      <div class="variant-label">
+        <span class="num">02</span>
+        <span class="swatch"></span>
+        Cinza neutro suave
+        <span class="feel">Cowork canon · --bg-2 ⭐</span>
+      </div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div class="av">M</div>
+          <div>
+            <div class="title">Martinho Caçambas LTDA</div>
+            <div class="sub">Pessoa jurídica · cadastrado há 11m</div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab on">Contato</div>
+          <div class="tab">Endereço</div>
+          <div class="tab">Comercial</div>
+        </div>
+        <div class="drawer-body">
+          <div class="section">
+            <p class="section-title">Telefones</p>
+            <div class="row">
+              <div class="field"><label class="label">Telefone principal</label><input class="inp" value="(11) 9 9999-0000" /></div>
+              <div class="field"><label class="label">Telefone alternativo <span class="opt-mark">(opcional)</span></label><input class="inp" placeholder="(00) 0 0000-0000" /></div>
+            </div>
+            <div class="row">
+              <div class="field full"><label class="label">Telefone 3 <span class="opt-mark">(opcional · recados)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+          <div class="section">
+            <p class="section-title">E-mails</p>
+            <div class="row">
+              <div class="field full"><label class="label">E-mail</label><input class="inp err" value="contato@martinho" /><p class="err-msg">⚠ Formato inválido.</p></div>
+            </div>
+            <div class="row">
+              <div class="field"><label class="label">E-mail comercial <span class="opt-mark">(opcional · vendedor)</span></label><input class="inp" /></div>
+              <div class="field"><label class="label">E-mail NF-e <span class="opt-mark">(opcional · contador)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V3 — cinza creme warm -->
+    <div class="variant-wrap v3">
+      <div class="variant-label">
+        <span class="num">03</span>
+        <span class="swatch"></span>
+        Cinza creme warm
+        <span class="feel">Tom amarelado · papel</span>
+      </div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div class="av">M</div>
+          <div>
+            <div class="title">Martinho Caçambas LTDA</div>
+            <div class="sub">Pessoa jurídica · cadastrado há 11m</div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab on">Contato</div>
+          <div class="tab">Endereço</div>
+          <div class="tab">Comercial</div>
+        </div>
+        <div class="drawer-body">
+          <div class="section">
+            <p class="section-title">Telefones</p>
+            <div class="row">
+              <div class="field"><label class="label">Telefone principal</label><input class="inp" value="(11) 9 9999-0000" /></div>
+              <div class="field"><label class="label">Telefone alternativo <span class="opt-mark">(opcional)</span></label><input class="inp" placeholder="(00) 0 0000-0000" /></div>
+            </div>
+            <div class="row">
+              <div class="field full"><label class="label">Telefone 3 <span class="opt-mark">(opcional · recados)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+          <div class="section">
+            <p class="section-title">E-mails</p>
+            <div class="row">
+              <div class="field full"><label class="label">E-mail</label><input class="inp err" value="contato@martinho" /><p class="err-msg">⚠ Formato inválido.</p></div>
+            </div>
+            <div class="row">
+              <div class="field"><label class="label">E-mail comercial <span class="opt-mark">(opcional · vendedor)</span></label><input class="inp" /></div>
+              <div class="field"><label class="label">E-mail NF-e <span class="opt-mark">(opcional · contador)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- V4 — cinza azulado leve -->
+    <div class="variant-wrap v4">
+      <div class="variant-label">
+        <span class="num">04</span>
+        <span class="swatch"></span>
+        Cinza azulado leve
+        <span class="feel">Tom frio · fintech</span>
+      </div>
+      <div class="drawer">
+        <div class="drawer-header">
+          <div class="av">M</div>
+          <div>
+            <div class="title">Martinho Caçambas LTDA</div>
+            <div class="sub">Pessoa jurídica · cadastrado há 11m</div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab on">Contato</div>
+          <div class="tab">Endereço</div>
+          <div class="tab">Comercial</div>
+        </div>
+        <div class="drawer-body">
+          <div class="section">
+            <p class="section-title">Telefones</p>
+            <div class="row">
+              <div class="field"><label class="label">Telefone principal</label><input class="inp" value="(11) 9 9999-0000" /></div>
+              <div class="field"><label class="label">Telefone alternativo <span class="opt-mark">(opcional)</span></label><input class="inp" placeholder="(00) 0 0000-0000" /></div>
+            </div>
+            <div class="row">
+              <div class="field full"><label class="label">Telefone 3 <span class="opt-mark">(opcional · recados)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+          <div class="section">
+            <p class="section-title">E-mails</p>
+            <div class="row">
+              <div class="field full"><label class="label">E-mail</label><input class="inp err" value="contato@martinho" /><p class="err-msg">⚠ Formato inválido.</p></div>
+            </div>
+            <div class="row">
+              <div class="field"><label class="label">E-mail comercial <span class="opt-mark">(opcional · vendedor)</span></label><input class="inp" /></div>
+              <div class="field"><label class="label">E-mail NF-e <span class="opt-mark">(opcional · contador)</span></label><input class="inp" /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="token-hint">
+    <h3>Cores em CSS / Tailwind</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <thead><tr style="text-align: left; color: var(--text-mute); font-size: 11px;">
+        <th style="padding: 6px 8px;">Variante</th><th style="padding: 6px 8px;">CSS</th><th style="padding: 6px 8px;">Tailwind aproximado</th><th style="padding: 6px 8px;">Sensação</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding: 6px 8px;"><strong>01 Off-white</strong></td><td style="padding: 6px 8px;"><code>oklch(0.985 0.003 90)</code></td><td style="padding: 6px 8px;"><code>bg-stone-50</code></td><td style="padding: 6px 8px;">Contraste sutil · quase invisível vs branco do campo</td></tr>
+        <tr><td style="padding: 6px 8px;"><strong>02 Cinza neutro ⭐</strong></td><td style="padding: 6px 8px;"><code>oklch(0.965 0.004 90)</code></td><td style="padding: 6px 8px;"><code>bg-stone-100</code></td><td style="padding: 6px 8px;">Contraste claro mas suave · campos brancos pop sem agredir</td></tr>
+        <tr><td style="padding: 6px 8px;"><strong>03 Creme warm</strong></td><td style="padding: 6px 8px;"><code>oklch(0.96 0.008 90)</code></td><td style="padding: 6px 8px;"><code>bg-amber-50/30</code></td><td style="padding: 6px 8px;">Acolhedor · feel papel/journal · pode parecer datado</td></tr>
+        <tr><td style="padding: 6px 8px;"><strong>04 Azulado frio</strong></td><td style="padding: 6px 8px;"><code>oklch(0.965 0.008 240)</code></td><td style="padding: 6px 8px;"><code>bg-slate-100</code></td><td style="padding: 6px 8px;">Tech · fintech · pode parecer "frio demais" pra Martinho</td></tr>
+      </tbody>
+    </table>
+    <p style="margin: 10px 0 0; font-size: 12px;">Diferença prática: <strong>01 vs 02</strong> é a maior questão — 01 quase não diferencia campo do BG, 02 destaca claro. <strong>03 e 04</strong> são tons de cor (warm vs cool) — opcionais se quiser personalidade.</p>
+  </div>
+</body>
+</html>

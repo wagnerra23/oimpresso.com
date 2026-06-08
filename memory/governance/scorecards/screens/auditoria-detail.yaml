@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Auditoria/Detail
+path: resources/js/Pages/Auditoria/Detail.tsx
+archetype: detail
+persona: wagner
+nota: 58
+nivel: "Developing"
+baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe de auditoria funcional mas thin: azul sky cru, JSON dump bruto, sem header roxo canon nem links navegaveis."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 (text-sky-700 -> token primary roxo)"
+    fix: "Links text-sky-700 (azul) + zinc-* cru + sem PageHeader primary roxo; trocar por tokens DS"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear (diff visual key/value, nao JSON dump)"
+    fix: "properties renderizado como <pre>JSON.stringify</pre> bruto; render diff antes/depois formatado"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Stripe audit (timeline + entidade clicavel)"
+    fix: "Entidade/causer texto morto; tornar subject e causer links navegaveis"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

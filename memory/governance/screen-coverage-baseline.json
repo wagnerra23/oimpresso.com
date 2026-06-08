@@ -1,0 +1,285 @@
+{
+  "generated_note": "baseline da catraca de cobertura — NÃO editar à mão",
+  "aggregates": {
+    "total": 275,
+    "charter": 132,
+    "e2e": 3,
+    "a11y": 0,
+    "scorecard": 222
+  },
+  "by_module": {
+    "Admin": {
+      "total": 8,
+      "charter": 8,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 8
+    },
+    "ads": {
+      "total": 19,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 19
+    },
+    "Atendimento": {
+      "total": 9,
+      "charter": 6,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 9
+    },
+    "Auditoria": {
+      "total": 2,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "Cliente": {
+      "total": 34,
+      "charter": 7,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 7
+    },
+    "Compras": {
+      "total": 5,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "ComunicacaoVisual": {
+      "total": 1,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "ConsultaOs": {
+      "total": 1,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "Essentials": {
+      "total": 13,
+      "charter": 3,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 13
+    },
+    "Financeiro": {
+      "total": 23,
+      "charter": 12,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 19
+    },
+    "Fiscal": {
+      "total": 8,
+      "charter": 7,
+      "e2e": 1,
+      "a11y": 0,
+      "scorecard": 7
+    },
+    "governance": {
+      "total": 6,
+      "charter": 6,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 6
+    },
+    "Home": {
+      "total": 1,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "Jana": {
+      "total": 17,
+      "charter": 8,
+      "e2e": 1,
+      "a11y": 0,
+      "scorecard": 11
+    },
+    "kb": {
+      "total": 3,
+      "charter": 3,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "Manufacturing": {
+      "total": 1,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "MemCofre": {
+      "total": 6,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 6
+    },
+    "Modules": {
+      "total": 1,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "NfeBrasil": {
+      "total": 6,
+      "charter": 4,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 6
+    },
+    "Nfse": {
+      "total": 3,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 3
+    },
+    "OficinaAuto": {
+      "total": 11,
+      "charter": 11,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 10
+    },
+    "Ponto": {
+      "total": 22,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 20
+    },
+    "Produto": {
+      "total": 8,
+      "charter": 8,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 8
+    },
+    "ProjectMgmt": {
+      "total": 9,
+      "charter": 3,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 8
+    },
+    "Purchase": {
+      "total": 4,
+      "charter": 2,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 4
+    },
+    "RecurringBilling": {
+      "total": 6,
+      "charter": 6,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 6
+    },
+    "Repair": {
+      "total": 13,
+      "charter": 12,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 13
+    },
+    "Sells": {
+      "total": 8,
+      "charter": 8,
+      "e2e": 1,
+      "a11y": 0,
+      "scorecard": 8
+    },
+    "Settings": {
+      "total": 2,
+      "charter": 2,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "Site": {
+      "total": 7,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 7
+    },
+    "StockAdjustment": {
+      "total": 2,
+      "charter": 2,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "StockTransfer": {
+      "total": 2,
+      "charter": 2,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "superadmin": {
+      "total": 2,
+      "charter": 2,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "Tarefas": {
+      "total": 1,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 0
+    },
+    "team-mcp": {
+      "total": 3,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 0
+    },
+    "TransactionPayment": {
+      "total": 3,
+      "charter": 3,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 3
+    },
+    "Vestuario": {
+      "total": 1,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 1
+    },
+    "Whatsapp": {
+      "total": 2,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 2
+    },
+    "_Showcase": {
+      "total": 2,
+      "charter": 0,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 0
+    }
+  }
+}

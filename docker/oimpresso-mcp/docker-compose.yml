@@ -1,0 +1,96 @@
+# MEM-MCP-1.b (ADR 0053) — Stack Docker do MCP server da empresa
+#
+# Hospedagem: CT 100 docker-host (Proxmox empresa, 192.168.0.50)
+# Subdomínio: mcp.oimpresso.com → 177.74.67.30 → Traefik → este container
+# Cert: Let's Encrypt R12 automático via Traefik labels
+# DB: MySQL Hostinger DIRETO via porta 3306 (Remote MySQL whitelist 177.74.67.30)
+#
+# DECISÃO 29-abr 2026: SSH tunnel via autossh (ver scripts/start-tunnel.sh)
+# foi REJEITADO porque CT 100 → Hostinger:65002 dá Connection timed out
+# (provável bloqueio fail2ban ou firewall stateful no upstream Hostinger).
+# nc -zv reporta porta open mas SSH handshake não completa.
+# Solução: ativar Remote MySQL no hPanel Hostinger pra IP 177.74.67.30 +
+# conectar direto na 3306 (com TLS).
+#
+# Deploy:
+#   tailscale ssh root@ct100-mcp
+#   cd /opt/oimpresso-mcp/code && git pull
+#   cd docker/oimpresso-mcp && docker compose up -d --build
+
+services:
+
+  # ========================================================================
+  # MCP server — app Laravel com endpoints /api/mcp/*
+  # ========================================================================
+  mcp:
+    build:
+      context: .
+      # MEM-MCP-1.c-perf Fase 1: switch FPM → FrankenPHP+Octane.
+      # Dockerfile (FPM legacy) preservado pra rollback rápido se precisar.
+      dockerfile: Dockerfile.octane
+    image: oimpresso/mcp:latest
+    container_name: oimpresso-mcp
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+
+    # Volume bind: código vem do clone git em /opt/oimpresso-mcp/code (host)
+    # Atualização: git pull no host + reload PHP-FPM no container
+    # NOTA: code NÃO é :ro porque submount :rw (storage, bootstrap/cache) dentro de
+    # parent :ro falha com "read-only file system" no overlayfs
+    volumes:
+      - /opt/oimpresso-mcp/code:/var/www/html
+      - /opt/oimpresso-mcp/storage:/var/www/html/storage
+      - /opt/oimpresso-mcp/bootstrap-cache:/var/www/html/bootstrap/cache
+
+    # Variáveis de ambiente — usar .env (não commitado)
+    env_file:
+      - .env
+
+    environment:
+      # Conecta MySQL Hostinger DIRETO (Remote MySQL whitelist no hPanel)
+      # Hostname descoberto 29-abr: srv1818.hstgr.io (193.203.166.217) — NÃO é
+      # 148.135.133.115 (esse é só web/SSH). MySQL fica em servidor separado.
+      DB_HOST: srv1818.hstgr.io
+      DB_PORT: 3306
+      # Laravel paths
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+
+    # Healthcheck pra Traefik saber quando o container está pronto
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/api/mcp/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    labels:
+      # Traefik routing
+      - "traefik.enable=true"
+      - "traefik.docker.network=docker-host_default"
+
+      # HTTPS router
+      - "traefik.http.routers.mcp.rule=Host(`mcp.oimpresso.com`)"
+      - "traefik.http.routers.mcp.entrypoints=websecure"
+      - "traefik.http.routers.mcp.tls=true"
+      - "traefik.http.routers.mcp.tls.certresolver=le"
+      - "traefik.http.routers.mcp.service=mcp"
+
+      # Backend (FrankenPHP/Octane na 80)
+      # ServersTransport global está em infra/proxmox/docker-host/compose.yml
+      # (Traefik CLI args: maxIdleConnsPerHost=500, dialTimeout=5s).
+      - "traefik.http.services.mcp.loadbalancer.server.port=80"
+      - "traefik.http.services.mcp.loadbalancer.healthcheck.path=/api/mcp/health"
+      - "traefik.http.services.mcp.loadbalancer.healthcheck.interval=30s"
+
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.mcp-http.rule=Host(`mcp.oimpresso.com`)"
+      - "traefik.http.routers.mcp-http.entrypoints=web"
+      - "traefik.http.routers.mcp-http.middlewares=mcp-redirect"
+      - "traefik.http.middlewares.mcp-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.mcp-redirect.redirectscheme.permanent=true"
+
+networks:
+  docker-host_default:
+    external: true

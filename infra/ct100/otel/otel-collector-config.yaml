@@ -1,0 +1,130 @@
+# OpenTelemetry Collector Contrib v0.110.0 — config canônica oimpresso
+# ADR 0162. Wave 26 Agent 4.
+#
+# Pipeline traces:
+#   apps (PHP Hostinger + TS frontend) --OTLP--> collector
+#     -> batch (10s/1024)
+#     -> attributes/redact (anti-PII Tier 0)
+#     -> tail_sampling (errors + slow >2s + FSM + 5% random)
+#     -> exporters: tempo (storage primário 7d) + Laravel custom (DB MySQL pra ScopedScorecardEvaluator)
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "https://oimpresso.com"
+            - "https://mcp.oimpresso.com"
+          allowed_headers:
+            - "*"
+
+processors:
+  # Batch obrigatório antes do tail_sampling (recomendação upstream).
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # Anti-PII filter (Tier 0 ADR 0093) — descarta/hash atributos sensíveis ANTES de exportar.
+  # Catalogadas em memory/proibicoes.md (CPF/CNPJ/PII nunca em log/trace).
+  attributes/redact:
+    actions:
+      - key: http.url
+        action: delete                 # URL pode conter token/api-key em query string
+      - key: http.target
+        action: delete                 # Idem
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.cookie
+        action: delete
+      - key: http.request.header.x-api-key
+        action: delete
+      - key: user.email
+        action: delete
+      - key: user.cpf
+        action: delete
+      - key: user.cnpj
+        action: delete
+      - key: db.statement
+        action: delete                 # SQL pode conter dados PII em WHERE
+      - key: oimpresso.tenant_id
+        action: hash                   # business_id como hash (preserva cardinalidade, esconde valor)
+      - key: oimpresso.user_id
+        action: hash
+
+  # Tail sampling — decide DEPOIS de ver todos spans do trace (decision_wait: 30s).
+  # Política: sempre amostrar erros + ops lentas (>2s) + FSM transitions + 5% baseline random.
+  tail_sampling:
+    decision_wait: 30s
+    num_traces: 50000
+    expected_new_traces_per_sec: 200
+    policies:
+      - name: errors-policy
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow-ops-policy
+        type: latency
+        latency:
+          threshold_ms: 2000
+      - name: fsm-policy
+        type: string_attribute
+        string_attribute:
+          key: span.name
+          values: ["fsm.transition", "fsm.action.execute"]
+          enabled_regex_matching: true
+      - name: jana-llm-policy
+        type: string_attribute
+        string_attribute:
+          key: oimpresso.feature
+          values: ["jana.brain", "jana.assistant", "jana.embed"]
+      - name: random-5pct
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 5
+
+exporters:
+  # Storage primário — Tempo local CT 100 (retention 7d definida em tempo.yaml).
+  otlphttp/tempo:
+    endpoint: http://tempo:4318
+    tls:
+      insecure: true                   # Mesma rede docker oimpresso-mcp; sem TLS interno
+
+  # Storage secundário — endpoint Laravel custom que persiste em MySQL Hostinger
+  # pra ScopedScorecardEvaluator consultar via SQL (não precisa hit em Tempo).
+  otlphttp/laravel:
+    endpoint: https://mcp.oimpresso.com/api/observability/ingest
+    headers:
+      Authorization: "Bearer ${OIMPRESSO_OTEL_INGEST_TOKEN}"
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 5000
+
+  # Debug exporter — habilitar apenas em troubleshooting (logs verbose).
+  debug:
+    verbosity: basic
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, attributes/redact, tail_sampling]
+      exporters: [otlphttp/tempo, otlphttp/laravel]
+
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888
+    logs:
+      level: info

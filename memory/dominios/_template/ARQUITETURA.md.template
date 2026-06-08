@@ -1,0 +1,57 @@
+# Arquitetura interna — <SISTEMA>
+
+## Local e VCS
+
+- **Local:** <path do repo / "SaaS, sem código local">
+- **VCS:** <Git/SVN/N/A>
+- **Repo URL:** <se acessível>
+- **Documentação oficial:** <URL ou "indisponível">
+
+## Stack técnico
+
+| Componente | Tecnologia | Notas |
+|---|---|---|
+| Linguagem | <preencher> | <versão> |
+| Framework | <preencher> | <versão> |
+| Banco | <preencher> | <Firebird/MySQL/PostgreSQL/MongoDB/REST/etc> |
+| Acesso a dados | <preencher> | <ORM/driver/SDK> |
+| Autenticação | <preencher> | <OAuth2/API key/SYSDBA hardcoded/etc> |
+| Charset | <preencher> | <WIN1252/UTF-8/etc> |
+| HTTP client | <se aplicável> | <SDK específico> |
+
+## Fluxo crítico — <fluxo principal>
+
+> Documentar 1-2 fluxos críticos que afetam migração. Ex: como o sistema autentica, como busca dados de cliente, etc.
+
+## Como inspecionar
+
+### Origem dos dados
+
+```<linguagem>
+# Exemplo de query/call pra acessar schema
+```
+
+### Listar entidades disponíveis
+
+```<linguagem>
+# Comando pra listar tabelas/coleções/endpoints
+```
+
+### Sample de 1 registro
+
+```<linguagem>
+# Como puxar 1 registro pra entender shape
+```
+
+## Notas operacionais
+
+- <preencher quirks operacionais relevantes>
+- <ex: rate limiting, charset gotchas, timeouts, etc>
+
+## Histórico de bugs / aprendizados
+
+> Documentar bugs ENCONTRADOS durante migração que outros devs/sessões podem repetir.
+
+## Não recompilar / não-modificar regra
+
+<se aplicável — ex: cliente desktop em produção sem pipeline de build>

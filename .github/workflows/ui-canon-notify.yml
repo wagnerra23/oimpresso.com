@@ -1,0 +1,173 @@
+name: UI Canon Notify (Constituição UI v2)
+
+# Onda 3.1 do AUTOMATION-ROADMAP. Notificação proativa pro time MCP
+# quando UI canon muda (PR mergeado em main tocando memory/requisitos/_DesignSystem/,
+# resources/js/Pages/, ou resources/js/Components/shared/).
+#
+# DEPENDÊNCIAS:
+# - secret UI_NOTIF_WEBHOOK_URL (opcional). Sem ele, workflow loga warning
+#   e exit 0 — não falha · não-bloqueante.
+# - Endpoint webhook pode ser Slack, Discord, mcp-server, ou qualquer
+#   service que aceite POST JSON.
+#
+# COMPLEMENTOS NÃO-DUPLICADOS:
+# - SyncMemoryWebhookController (ADR 0053) já indexa memory/ no MCP
+#   automaticamente via GitHub push webhook — esse workflow apenas
+#   notifica humanos/agentes que UI canon mudou.
+# - visual-regression.yml (ADR 0108) já cobre validação de drift visual
+#   via Pest 4 Browser + Playwright — esse workflow não duplica.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'memory/requisitos/_DesignSystem/**'
+      - 'memory/decisions/**'
+      - 'resources/js/Pages/**'
+      - 'resources/js/Components/shared/**'
+      - 'resources/css/cockpit.css'
+      - 'resources/css/inertia.css'
+      - '.claude/skills/constituicao-ui-aware/**'
+
+  # Permite trigger manual pra teste
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Mensagem custom de notif'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Notify UI canon change
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Pra git diff HEAD~1
+
+      - name: Extract changed UI files
+        id: changes
+        run: |
+          # Lista arquivos UI canônicos modificados neste push
+          UI_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          UI_CANON=$(echo "$UI_FILES" | grep -E "^(memory/requisitos/_DesignSystem|memory/decisions|resources/js/Pages|resources/js/Components/shared|resources/css/(cockpit|inertia)\.css|\.claude/skills/constituicao-ui-aware)" || true)
+
+          # Conta + categoriza
+          DS_DOCS=$(echo "$UI_CANON" | grep -c "^memory/requisitos/_DesignSystem" || echo 0)
+          ADRS=$(echo "$UI_CANON" | grep -c "^memory/decisions" || echo 0)
+          PAGES=$(echo "$UI_CANON" | grep -c "^resources/js/Pages" || echo 0)
+          SHARED=$(echo "$UI_CANON" | grep -c "^resources/js/Components/shared" || echo 0)
+          CSS=$(echo "$UI_CANON" | grep -c "^resources/css/" || echo 0)
+          SKILL=$(echo "$UI_CANON" | grep -c "^\.claude/skills/constituicao-ui-aware" || echo 0)
+
+          echo "ds_docs=$DS_DOCS" >> "$GITHUB_OUTPUT"
+          echo "adrs=$ADRS" >> "$GITHUB_OUTPUT"
+          echo "pages=$PAGES" >> "$GITHUB_OUTPUT"
+          echo "shared=$SHARED" >> "$GITHUB_OUTPUT"
+          echo "css=$CSS" >> "$GITHUB_OUTPUT"
+          echo "skill=$SKILL" >> "$GITHUB_OUTPUT"
+          echo "total=$(echo "$UI_CANON" | grep -c .)" >> "$GITHUB_OUTPUT"
+
+          # Lista compacta (top 10) pra payload
+          {
+            echo "files<<EOF"
+            echo "$UI_CANON" | head -10
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build notif payload
+        id: payload
+        run: |
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_URL="${{ github.event.head_commit.url }}"
+          AUTHOR="${{ github.event.head_commit.author.name }}"
+          MSG="${{ github.event.head_commit.message }}"
+          # Sanitiza mensagem (escape pra JSON · trunca em 200 chars)
+          MSG_CLEAN=$(echo "$MSG" | head -c 200 | tr '\n' ' ' | sed 's/"/\\"/g')
+
+          cat > /tmp/payload.json <<EOF
+          {
+            "event": "ui_canon_changed",
+            "source": "github.workflow.ui-canon-notify",
+            "commit": {
+              "sha": "$COMMIT_SHA",
+              "url": "$COMMIT_URL",
+              "author": "$AUTHOR",
+              "message": "$MSG_CLEAN"
+            },
+            "stats": {
+              "total_files": ${{ steps.changes.outputs.total }},
+              "design_system_docs": ${{ steps.changes.outputs.ds_docs }},
+              "adrs": ${{ steps.changes.outputs.adrs }},
+              "pages": ${{ steps.changes.outputs.pages }},
+              "shared_components": ${{ steps.changes.outputs.shared }},
+              "css_canon": ${{ steps.changes.outputs.css }},
+              "skill_aware": ${{ steps.changes.outputs.skill }}
+            },
+            "refs": {
+              "constituicao_ui_v2": "memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md",
+              "automation_roadmap": "memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md"
+            }
+          }
+          EOF
+
+          echo "✓ Payload gerado:"
+          cat /tmp/payload.json
+
+      - name: Send to webhook (if configured)
+        env:
+          WEBHOOK_URL: ${{ secrets.UI_NOTIF_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "⚠️  Secret UI_NOTIF_WEBHOOK_URL não configurado · notif skipped (não-bloqueante)"
+            echo ""
+            echo "Pra ativar notif:"
+            echo "  GitHub Repo → Settings → Secrets and variables → Actions"
+            echo "  Adicionar secret UI_NOTIF_WEBHOOK_URL com endpoint Slack/Discord/MCP"
+            echo ""
+            echo "Endpoints sugeridos (qualquer um que aceite POST JSON):"
+            echo "  - Slack incoming webhook: https://hooks.slack.com/services/..."
+            echo "  - MCP team-notify: https://mcp.oimpresso.com/team-notify (futuro)"
+            echo "  - GitHub Discussions API: precisa GITHUB_TOKEN com discussion:write"
+            exit 0
+          fi
+
+          echo "📤 Enviando notif pro webhook configurado..."
+          HTTP_CODE=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
+            -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Source: oimpresso-ui-canon-notify" \
+            --data @/tmp/payload.json)
+
+          echo "HTTP status: $HTTP_CODE"
+          cat /tmp/response.txt
+          echo ""
+
+          # Aceita 2xx + 3xx · não bloqueia em 4xx/5xx (já tá em main)
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "⚠️  Webhook retornou erro · não bloqueia (push já mergeou em main)"
+          else
+            echo "✓ Notif enviada com sucesso"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## 🎨 UI Canon Notify · ${{ github.sha }}"
+          echo ""
+          echo "**${{ steps.changes.outputs.total }} arquivo(s) UI canon** modificados:"
+          echo "  - Design System docs: ${{ steps.changes.outputs.ds_docs }}"
+          echo "  - ADRs: ${{ steps.changes.outputs.adrs }}"
+          echo "  - Pages Inertia: ${{ steps.changes.outputs.pages }}"
+          echo "  - Components shared: ${{ steps.changes.outputs.shared }}"
+          echo "  - CSS canon: ${{ steps.changes.outputs.css }}"
+          echo "  - Skill aware: ${{ steps.changes.outputs.skill }}"
+          echo ""
+          echo "Refs:"
+          echo "  - Constituição UI v2: memory/requisitos/_DesignSystem/adr/ui/0013-..."
+          echo "  - Roadmap: memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md"

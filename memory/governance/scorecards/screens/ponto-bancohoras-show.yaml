@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Ponto/BancoHoras/Show
+path: resources/js/Pages/Ponto/BancoHoras/Show.tsx
+archetype: detail
+persona: tecnico
+nota: 81
+nivel: "Advanced"
+baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe append-only solido (saldo hero, ajuste, historico, useForm) — limitado por cores cruas e validacao so-toast."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Stripe tokens"
+    fix: "text-emerald-600/text-red-600 cru em saldo+movimentos -> tokens; sem charter"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Error-recovery"
+    best_of_class: "Notion (validacao inline)"
+    fix: "Validacao minutos!=0/obs<5 so via toast; mostrar erro inline no campo antes do submit"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Information-hierarchy"
+    best_of_class: "Linear"
+    fix: "Saldo gigante + form + alert + tabela competem; mover Alert append-only p/ tooltip do titulo"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

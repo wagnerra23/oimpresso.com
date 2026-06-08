@@ -1,0 +1,40 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "WABA_456",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "554899000000",
+              "phone_number_id": "PHONE_ID_123"
+            },
+            "contacts": [
+              {
+                "wa_id": "5548999000000",
+                "user_id": "abc123-bsuid-xyz",
+                "profile": {
+                  "name": "Cliente Sandbox"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "from": "5548999000000",
+                "id": "wamid.HBgLNTU0ODk5OTAwMDAwFQIAEhggMTIzNDU2",
+                "timestamp": "1747276800",
+                "type": "text",
+                "text": {
+                  "body": "Ola sandbox canary"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Purchase/Show
+path: resources/js/Pages/Purchase/Show.tsx
+archetype: detail
+persona: misto
+nota: 80
+nivel: "Advanced"
+baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Detalhe completo (fornecedor/empresa/itens/pagamentos/totais) bem hierarquizado e fiscal-aware; falta CTA de pagamento e ajuste do azul cru."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 — paleta sem azul cru"
+    fix: "STATUS_PILL.ordered = blue-*; alinhar ao token DS como no Index"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Speed-to-task"
+    best_of_class: "Stripe — ações de pagamento no detalhe (registrar pagamento)"
+    fix: "Show só lê pagamentos; adicionar 'Registrar pagamento' quando permissions.payments e há saldo"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Mobile-fit"
+    best_of_class: "Shopify — tabela vira cards/scroll em <640px"
+    fix: "Tabela de itens sem overflow-x wrapper; adicionar overflow-x-auto ou layout card mobile"
+    esforco: baixo
+    origin: screen-grades-baseline-2026-05-30

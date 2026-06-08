@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Sidebar v3 — Oimpresso ERP (ADR 0180)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* ============================================================
+       Sidebar v3 — Protótipo Cowork standalone (ADR 0180)
+       5 grupos · ghosts header · Cmd+K · Pinned · ARIA tablist
+       ============================================================ */
+
+    :root {
+      --bg: oklch(0.99 0 0);
+      --bg-elev: oklch(1 0 0);
+      --bg-sb: oklch(0.985 0.003 250);
+      --border: oklch(0.92 0.005 250);
+      --border-soft: oklch(0.95 0.003 250);
+      --text: oklch(0.25 0.015 250);
+      --text-dim: oklch(0.55 0.015 250);
+      --text-faint: oklch(0.7 0.015 250);
+      --accent: oklch(0.55 0.18 240);
+      --primary: oklch(0.6 0.15 145);   /* verde fin OKLCH */
+      --primary-fg: oklch(0.99 0 0);
+      --kbd-bg: oklch(0.96 0.005 250);
+      --gh: 145;                          /* hue do grupo ativo (financas) */
+      --hover: oklch(0.96 0.005 250);
+
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 12px;
+
+      --sb-w: 248px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+
+    /* ============ Layout shell ============ */
+    .shell { display: grid; grid-template-columns: var(--sb-w) 1fr; height: 100vh; }
+
+    /* ============ Sidebar ============ */
+    .sb {
+      background: var(--bg-sb);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .sb-top { padding: 12px 10px 8px; border-bottom: 1px solid var(--border-soft); }
+    .sb-cp-btn {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      background: none; border: 0; padding: 6px 6px; border-radius: var(--r-sm);
+      cursor: pointer; color: var(--text); font: inherit;
+    }
+    .sb-cp-btn:hover { background: var(--hover); }
+    .avatar {
+      width: 24px; height: 24px; border-radius: 6px;
+      display: grid; place-items: center;
+      color: white; font-size: 10px; font-weight: 600;
+      background: linear-gradient(135deg, oklch(0.55 0.15 240), oklch(0.65 0.15 300));
+    }
+    .sb-cp-btn .name { flex: 1; text-align: left; font-weight: 500; font-size: 12.5px; }
+    .sb-cp-btn .chev { color: var(--text-faint); }
+
+    .sb-search {
+      margin: 10px 0 6px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-elev);
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+    .sb-search:hover { border-color: oklch(0.85 0.01 250); }
+    .sb-search .ic { opacity: 0.6; }
+    .sb-search .kbd { margin-left: auto; }
+
+    .kbd {
+      display: inline-block;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      background: var(--kbd-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-dim);
+      line-height: 1.2;
+    }
+
+    .sb-scroll { flex: 1; overflow-y: auto; padding: 8px 8px 14px; }
+
+    .sb-section-h {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 12px 8px 4px;
+    }
+    .sb-section-h:first-child { padding-top: 4px; }
+
+    .sb-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 6px 8px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12.5px;
+      position: relative;
+    }
+    .sb-item:hover { background: var(--hover); }
+    .sb-item.active {
+      background: oklch(0.94 0.02 var(--gh, 240));
+      color: oklch(0.35 0.12 var(--gh, 240));
+      font-weight: 500;
+    }
+    .sb-item .ic {
+      width: 16px; height: 16px; display: grid; place-items: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+    .sb-item.active .ic { color: oklch(0.45 0.15 var(--gh, 240)); }
+    .sb-item .label { flex: 1; }
+    .sb-item .star { color: oklch(0.7 0.15 80); font-size: 10px; }
+    .sb-item .kbd { opacity: 0; transition: opacity 0.1s; }
+    .sb-item:hover .kbd { opacity: 1; }
+    .sb-item.active .kbd { opacity: 1; }
+
+    /* Group hue per section */
+    .sb-section[data-group="ia"] .sb-item.active { --gh: 220; }
+    .sb-section[data-group="atendimento"] .sb-item.active { --gh: 30; }
+    .sb-section[data-group="equipe"] .sb-item.active { --gh: 270; }
+    .sb-section[data-group="vender"] .sb-item.active { --gh: 60; }
+    .sb-section[data-group="operar"] .sb-item.active { --gh: 350; }
+    .sb-section[data-group="financas"] .sb-item.active { --gh: 145; }
+    .sb-section[data-group="pessoas"] .sb-item.active { --gh: 295; }
+    .sb-section[data-group="sistema"] .sb-item.active { --gh: 200; }
+
+    .sb-foot {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border-soft);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sb-foot .name { flex: 1; font-size: 12px; }
+
+    /* ============ Main (página) ============ */
+    .main { display: flex; flex-direction: column; overflow: hidden; }
+
+    .page-topbar {
+      height: 44px;
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0 18px;
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg-elev);
+    }
+    .crumbs { font-size: 12px; color: var(--text-dim); }
+    .crumbs strong { color: var(--text); font-weight: 500; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--text-faint); }
+    .topbar-actions span { cursor: pointer; padding: 4px 6px; border-radius: 4px; }
+    .topbar-actions span:hover { background: var(--hover); }
+
+    /* ============ PageHeader (canon ADR 0180) ============ */
+    .ph {
+      background: var(--bg-elev);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 14px 24px 0;
+    }
+    .ph-title-row {
+      display: flex; align-items: baseline; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .ph-title-row h1 {
+      font-size: 20px; font-weight: 600; margin: 0;
+      color: var(--text);
+    }
+    .ph-title-row .sub {
+      font-size: 12px; color: var(--text-dim);
+    }
+
+    .ph-actions {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+      padding-bottom: 0;
+    }
+
+    .btn-primary {
+      background: oklch(0.6 0.15 var(--gh));
+      color: var(--primary-fg);
+      border: 0;
+      padding: 7px 14px;
+      border-radius: var(--r-sm);
+      font: inherit; font-size: 12.5px; font-weight: 500;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 1px 0 oklch(0.5 0.15 var(--gh) / 0.3);
+    }
+    .btn-primary:hover { background: oklch(0.55 0.16 var(--gh)); }
+    .btn-primary .kbd {
+      background: oklch(0.5 0.15 var(--gh));
+      border-color: oklch(0.45 0.15 var(--gh));
+      color: oklch(0.95 0.05 var(--gh));
+    }
+
+    .ph-sep {
+      width: 1px; height: 22px; background: var(--border); margin: 0 6px;
+    }
+
+    /* Ghost tabs — ARIA tablist */
+    .ghosts {
+      display: flex; align-items: center; gap: 2px;
+      flex: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .ghosts::-webkit-scrollbar { display: none; }
+    .ghost {
+      background: none;
+      border: 0;
+      padding: 7px 12px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12.5px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      position: relative;
+      border-bottom: 2px solid transparent;
+    }
+    .ghost:hover { background: var(--hover); color: var(--text); }
+    .ghost[aria-selected="true"] {
+      color: oklch(0.35 0.15 var(--gh));
+      font-weight: 500;
+      border-bottom-color: oklch(0.55 0.15 var(--gh));
+    }
+    .ghost-overflow {
+      color: var(--text-faint);
+      padding: 7px 8px;
+    }
+
+    .ph-aux {
+      display: flex; align-items: center; gap: 8px;
+      margin-left: auto;
+    }
+    .chip {
+      padding: 4px 9px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 11.5px;
+      color: var(--text-dim);
+      background: var(--bg-elev);
+      cursor: pointer;
+    }
+    .chip:hover { background: var(--hover); }
+    .chip-link { color: var(--accent); border-color: transparent; }
+
+    /* ============ Filtros row ============ */
+    .filters {
+      padding: 10px 24px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--bg);
+    }
+    .filter-dd {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-elev);
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .filter-dd:hover { border-color: oklch(0.85 0.01 250); }
+
+    .filter-search {
+      flex: 1; max-width: 320px;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-elev);
+      font-size: 12px;
+    }
+
+    /* ============ Tabela mock ============ */
+    .content { flex: 1; overflow: auto; padding: 0 24px 24px; }
+
+    table.t {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 12.5px;
+    }
+    table.t thead th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    table.t tbody td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    table.t tbody tr:hover { background: oklch(0.985 0.005 var(--gh)); }
+    .badge {
+      display: inline-block; padding: 1px 7px; border-radius: 999px;
+      font-size: 10.5px; font-weight: 500;
+    }
+    .badge-pago { background: oklch(0.95 0.08 145); color: oklch(0.35 0.15 145); }
+    .badge-pendente { background: oklch(0.95 0.08 80); color: oklch(0.4 0.15 80); }
+    .badge-vencido { background: oklch(0.95 0.08 25); color: oklch(0.4 0.15 25); }
+
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* ============ Cmd+K palette ============ */
+    .cmdk-backdrop {
+      position: fixed; inset: 0;
+      background: oklch(0.3 0.02 250 / 0.5);
+      display: none; align-items: flex-start; justify-content: center;
+      z-index: 100;
+      padding-top: 100px;
+    }
+    .cmdk-backdrop.open { display: flex; }
+    .cmdk {
+      width: 560px;
+      background: var(--bg-elev);
+      border-radius: var(--r-lg);
+      box-shadow: 0 8px 40px oklch(0.2 0.02 250 / 0.25);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .cmdk-input {
+      width: 100%;
+      padding: 14px 18px;
+      border: 0;
+      border-bottom: 1px solid var(--border-soft);
+      font: inherit; font-size: 14px;
+      outline: none;
+    }
+    .cmdk-section {
+      padding: 8px 0 4px;
+    }
+    .cmdk-section-h {
+      padding: 4px 18px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+    .cmdk-item {
+      padding: 8px 18px;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .cmdk-item:hover, .cmdk-item.active {
+      background: oklch(0.95 0.02 var(--accent));
+    }
+    .cmdk-item .ic { color: var(--text-dim); width: 16px; }
+    .cmdk-item .label { flex: 1; }
+    .cmdk-item .ctx { color: var(--text-faint); font-size: 11px; }
+    .cmdk-foot {
+      padding: 8px 18px;
+      border-top: 1px solid var(--border-soft);
+      display: flex; align-items: center; gap: 14px;
+      color: var(--text-faint);
+      font-size: 11px;
+    }
+
+    /* ============ Pinned section accent ============ */
+    .pinned .sb-item .star { display: inline; }
+    .sb-item .star { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sb" role="navigation" aria-label="Navegação principal">
+
+    <div class="sb-top">
+      <button class="sb-cp-btn" type="button">
+        <span class="avatar">RL</span>
+        <span class="name">ROTA LIVRE</span>
+        <span class="chev">▾</span>
+      </button>
+
+      <div class="sb-search" onclick="document.querySelector('.cmdk-backdrop').classList.add('open')">
+        <span class="ic">⌘</span>
+        <span>Buscar tudo…</span>
+        <span class="kbd">⌘K</span>
+      </div>
+    </div>
+
+    <div class="sb-scroll">
+
+      <!-- FIXADOS -->
+      <div class="sb-section pinned" data-group="financas">
+        <div class="sb-section-h">★ Fixados</div>
+        <a class="sb-item" href="#">
+          <span class="ic">₿</span>
+          <span class="label">Financeiro · Receber</span>
+          <span class="star">★</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">$</span>
+          <span class="label">Vendas</span>
+          <span class="star">★</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">▥</span>
+          <span class="label">Compras</span>
+          <span class="star">★</span>
+        </a>
+      </div>
+
+      <!-- TOPO -->
+      <div class="sb-section" data-group="ia">
+        <div class="sb-section-h">Topo</div>
+        <a class="sb-item" href="#">
+          <span class="ic">✦</span>
+          <span class="label">IA</span>
+          <span class="kbd">G I</span>
+        </a>
+      </div>
+      <div class="sb-section" data-group="atendimento">
+        <a class="sb-item" href="#">
+          <span class="ic">☎</span>
+          <span class="label">Atendimento</span>
+          <span class="kbd">G A</span>
+        </a>
+      </div>
+      <div class="sb-section" data-group="equipe">
+        <a class="sb-item" href="#">
+          <span class="ic">◐</span>
+          <span class="label">Equipe</span>
+          <span class="kbd">G E</span>
+        </a>
+      </div>
+
+      <!-- VENDER -->
+      <div class="sb-section" data-group="vender">
+        <div class="sb-section-h">Vender</div>
+        <a class="sb-item" href="#">
+          <span class="ic">$</span>
+          <span class="label">Vendas</span>
+          <span class="kbd">G V</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">♥</span>
+          <span class="label">Clientes</span>
+          <span class="kbd">G C</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">▣</span>
+          <span class="label">Catálogo</span>
+          <span class="kbd">G K</span>
+        </a>
+      </div>
+
+      <!-- OPERAR -->
+      <div class="sb-section" data-group="operar">
+        <div class="sb-section-h">Operar</div>
+        <a class="sb-item" href="#">
+          <span class="ic">⚙</span>
+          <span class="label">Ordens de Serviço</span>
+          <span class="kbd">G O</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">⚒</span>
+          <span class="label">Produção</span>
+          <span class="kbd">G P</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">▥</span>
+          <span class="label">Estoque</span>
+          <span class="kbd">G S</span>
+        </a>
+      </div>
+
+      <!-- FINANÇAS (ativo) -->
+      <div class="sb-section" data-group="financas">
+        <div class="sb-section-h">Finanças</div>
+        <a class="sb-item active" href="#">
+          <span class="ic">₿</span>
+          <span class="label">Financeiro</span>
+          <span class="kbd">G F</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">⎙</span>
+          <span class="label">Fiscal</span>
+          <span class="kbd">G X</span>
+        </a>
+      </div>
+
+      <!-- PESSOAS -->
+      <div class="sb-section" data-group="pessoas">
+        <div class="sb-section-h">Pessoas</div>
+        <a class="sb-item" href="#">
+          <span class="ic">☻</span>
+          <span class="label">RH</span>
+          <span class="kbd">G H</span>
+        </a>
+      </div>
+
+      <!-- SISTEMA -->
+      <div class="sb-section" data-group="sistema">
+        <div class="sb-section-h">Sistema</div>
+        <a class="sb-item" href="#">
+          <span class="ic">⚖</span>
+          <span class="label">Governança</span>
+          <span class="kbd">G G</span>
+        </a>
+        <a class="sb-item" href="#">
+          <span class="ic">◇</span>
+          <span class="label">Plataforma</span>
+          <span class="kbd">G T</span>
+        </a>
+      </div>
+
+    </div>
+
+    <div class="sb-foot">
+      <span class="avatar" style="background: linear-gradient(135deg, oklch(0.55 0.15 200), oklch(0.65 0.15 260));">WR</span>
+      <span class="name">Wagner Ramos</span>
+      <span style="color: var(--text-faint); cursor: pointer;">⚙</span>
+      <span style="color: var(--text-faint); cursor: pointer;">▾</span>
+    </div>
+
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <div class="page-topbar">
+      <div class="crumbs">
+        <span>Finanças</span> · <strong>Financeiro</strong>
+      </div>
+      <div class="topbar-actions">
+        <span title="Cmd+K" onclick="document.querySelector('.cmdk-backdrop').classList.add('open')">⌘K</span>
+        <span title="Ajuda">?</span>
+        <span title="Notificações">🔔</span>
+      </div>
+    </div>
+
+    <!-- ============ PageHeader canon ADR 0180 ============ -->
+    <div class="ph">
+      <div class="ph-title-row">
+        <h1>Financeiro</h1>
+        <span class="sub">Visão unificada do fluxo financeiro · biz=4 ROTA LIVRE</span>
+      </div>
+
+      <div class="ph-actions" role="group" aria-label="Ações da página">
+        <button class="btn-primary">
+          <span>+ Novo título</span>
+          <span class="kbd">N</span>
+        </button>
+
+        <span class="ph-sep"></span>
+
+        <div class="ghosts" role="tablist" aria-label="Visão do Financeiro">
+          <button class="ghost" role="tab" aria-selected="true" tabindex="0">Unificado</button>
+          <button class="ghost" role="tab" aria-selected="false" tabindex="-1">Pagar</button>
+          <button class="ghost" role="tab" aria-selected="false" tabindex="-1">Receber</button>
+          <button class="ghost" role="tab" aria-selected="false" tabindex="-1">Caixa</button>
+          <button class="ghost" role="tab" aria-selected="false" tabindex="-1">Conciliação</button>
+          <button class="ghost" role="tab" aria-selected="false" tabindex="-1">Boletos</button>
+          <button class="ghost ghost-overflow" role="tab" aria-haspopup="menu">⋯ Mais</button>
+        </div>
+
+        <div class="ph-aux">
+          <span class="chip chip-link">⤓ Exportar</span>
+        </div>
+      </div>
+
+      <div style="height: 8px;"></div>
+    </div>
+
+    <!-- ============ Filtros ============ -->
+    <div class="filters">
+      <button class="filter-dd">Vencimento ▾</button>
+      <button class="filter-dd">Status ▾</button>
+      <button class="filter-dd">Conta ▾</button>
+      <input class="filter-search" placeholder="Buscar título, cliente, OS…" />
+      <span class="chip">Salvar visão</span>
+    </div>
+
+    <!-- ============ Tabela mock ============ -->
+    <div class="content">
+      <table class="t" aria-label="Títulos financeiros">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vencimento</th>
+            <th>Cliente / Fornecedor</th>
+            <th>Origem</th>
+            <th>Conta</th>
+            <th style="text-align: right;">Valor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">12873</td>
+            <td>22/05</td>
+            <td>Larissa Cardoso</td>
+            <td>Venda #1283</td>
+            <td>Itaú · 2841-6</td>
+            <td class="num" style="text-align: right;">R$ [redacted Tier 0]</td>
+            <td><span class="badge badge-pago">Pago</span></td>
+          </tr>
+          <tr>
+            <td class="num">12874</td>
+            <td>23/05</td>
+            <td>Oficina Martinho</td>
+            <td>OS #4421</td>
+            <td>Sicoob · 18-3</td>
+            <td class="num" style="text-align: right;">R$ [redacted Tier 0]</td>
+            <td><span class="badge badge-pendente">A vencer</span></td>
+          </tr>
+          <tr>
+            <td class="num">12875</td>
+            <td>15/05</td>
+            <td>Distribuidora Vargas</td>
+            <td>Compra #882</td>
+            <td>Itaú · 2841-6</td>
+            <td class="num" style="text-align: right;">R$ [redacted Tier 0]</td>
+            <td><span class="badge badge-vencido">Vencido 6d</span></td>
+          </tr>
+          <tr>
+            <td class="num">12876</td>
+            <td>28/05</td>
+            <td>Eliana Souza</td>
+            <td>Venda #1290</td>
+            <td>PIX · agência</td>
+            <td class="num" style="text-align: right;">R$ [redacted Tier 0]</td>
+            <td><span class="badge badge-pendente">A vencer</span></td>
+          </tr>
+          <tr>
+            <td class="num">12877</td>
+            <td>22/05</td>
+            <td>Felipe Cunha</td>
+            <td>Comissão</td>
+            <td>Itaú · 2841-6</td>
+            <td class="num" style="text-align: right;">R$ [redacted Tier 0]</td>
+            <td><span class="badge badge-pago">Pago</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============ Cmd+K palette ============ -->
+<div class="cmdk-backdrop" onclick="if (event.target === this) this.classList.remove('open')">
+  <div class="cmdk" role="dialog" aria-label="Buscar tudo">
+    <input class="cmdk-input" placeholder="Digite uma ação, módulo ou recente…" autofocus value="receb" />
+
+    <div class="cmdk-section">
+      <div class="cmdk-section-h">Ações</div>
+      <div class="cmdk-item">
+        <span class="ic">+</span>
+        <span class="label">Novo título a receber</span>
+        <span class="ctx">Financeiro</span>
+        <span class="kbd">↵</span>
+      </div>
+    </div>
+
+    <div class="cmdk-section">
+      <div class="cmdk-section-h">Navegar</div>
+      <div class="cmdk-item active">
+        <span class="ic">₿</span>
+        <span class="label">Financeiro · Receber</span>
+        <span class="ctx">FINANÇAS</span>
+        <span class="kbd">G F R</span>
+      </div>
+      <div class="cmdk-item">
+        <span class="ic">₿</span>
+        <span class="label">Financeiro · Boletos</span>
+        <span class="ctx">FINANÇAS</span>
+        <span class="kbd">G F B</span>
+      </div>
+    </div>
+
+    <div class="cmdk-section">
+      <div class="cmdk-section-h">Recentes</div>
+      <div class="cmdk-item">
+        <span class="ic">♥</span>
+        <span class="label">Cliente · Larissa Cardoso</span>
+        <span class="ctx">VENDER</span>
+        <span class="kbd">↵</span>
+      </div>
+      <div class="cmdk-item">
+        <span class="ic">$</span>
+        <span class="label">Venda #1283</span>
+        <span class="ctx">VENDER</span>
+        <span class="kbd">↵</span>
+      </div>
+    </div>
+
+    <div class="cmdk-foot">
+      <span><span class="kbd">↑↓</span> navegar</span>
+      <span><span class="kbd">↵</span> abrir</span>
+      <span><span class="kbd">esc</span> fechar</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Ghost tabs ARIA — selection
+  document.querySelectorAll('.ghost[role="tab"]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.ghost[role="tab"]').forEach((t) => {
+        t.setAttribute('aria-selected', 'false');
+        t.setAttribute('tabindex', '-1');
+      });
+      tab.setAttribute('aria-selected', 'true');
+      tab.setAttribute('tabindex', '0');
+    });
+  });
+
+  // Cmd+K global shortcut
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      document.querySelector('.cmdk-backdrop').classList.add('open');
+    }
+    if (e.key === 'Escape') {
+      document.querySelector('.cmdk-backdrop').classList.remove('open');
+    }
+  });
+</script>
+
+</body>
+</html>

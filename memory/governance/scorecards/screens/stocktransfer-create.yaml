@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: StockTransfer/Create
+path: resources/js/Pages/StockTransfer/Create.tsx
+archetype: form
+persona: eliana
+nota: 81
+nivel: "Advanced"
+baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Transfer com guard origem≠destino (bloqueia submit + filtra destino), total+frete ao vivo, charter presente; mesmas pendencias: product-picker fake e cores stone."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Speed-to-task"
+    best_of_class: "Bling combobox"
+    fix: "Produto e Input texto puro (product_id null) — sem autocomplete real nem validacao de estoque na origem"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 tokens"
+    fix: "<select> nativo + paleta stone/emerald/rose hardcoded fora do token roxo v4"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear"
+    fix: "Bloco DE→PARA bom, mas badges DE/PARA com bg-stone-200/emerald-100 cru; preferir token + Badge DS"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

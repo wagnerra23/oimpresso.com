@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/auditoria",
+    "description": "Camada de governanca transversal — UI rica /auditoria + undo sobre activity_log",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Auditoria\\Providers\\AuditoriaServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Auditoria\\": ""
+        }
+    }
+}

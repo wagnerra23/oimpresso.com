@@ -1,0 +1,31 @@
+{
+    "name": "nwidart/nfebrasil",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\NfeBrasil\\": "",
+            "Modules\\NfeBrasil\\App\\": "app/",
+            "Modules\\NfeBrasil\\Database\\Factories\\": "database/factories/",
+            "Modules\\NfeBrasil\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\NfeBrasil\\Tests\\": "tests/"
+        }
+    }
+}

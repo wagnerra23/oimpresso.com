@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Http;
+
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
+
+class Kernel extends HttpKernel
+{
+    /**
+     * The application's global HTTP middleware stack.
+     *
+     * These middleware are run during every request to your application.
+     *
+     * @var array
+     */
+    protected $middleware = [
+        // Fallback PHP-side do redirect /public/X → /X. Roda ANTES de tudo
+        // porque o .htaccess raiz não consegue interceptar em LiteSpeed em
+        // alguns paths (request com auth passava direto). Ver hostinger.md.
+        \App\Http\Middleware\RedirectPublicPath::class,
+        \App\Http\Middleware\TrustProxies::class,
+        \Illuminate\Http\Middleware\HandleCors::class,
+        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \App\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+    ];
+
+    /**
+     * The application's route middleware groups.
+     *
+     * @var array
+     */
+    protected $middlewareGroups = [
+        'web' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            // ADR 0212 Camada 1 (2026-05-28) — injeta business_id/user_id/request_id/
+            // route_name em Log::withContext pra toda request. Camada base do
+            // "fail loud not silent" — fallbacks WARN/ERROR têm rastreabilidade
+            // automática. Posicionado APÓS StartSession (precisa session ativa).
+            \App\Http\Middleware\LogContextMiddleware::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            // Wagner 2026-05-20 Fase 2 deprecação legacy — captura bookmarks
+            // /expenses /account/* e 301 pra telas Financeiro canônicas.
+            // Early return rápido em path desconhecido (99% dos requests).
+            \App\Http\Middleware\RedirectLegacyFinanceiro::class,
+            // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — DESABILITADO
+            // INICIALMENTE. Middleware existe em app/Http/Middleware/RedirectLegacyContacts.php
+            // mas NÃO entra no pipeline até Wagner aprovar canary. Pra ativar, descomente:
+            // \App\Http\Middleware\RedirectLegacyContacts::class,
+            \App\Http\Middleware\HandleInertiaRequests::class,
+        ],
+
+        'api' => [
+            'throttle:api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+    ];
+
+    /**
+     * The application's route middleware.
+     *
+     * These middleware may be assigned to groups or used individually.
+     *
+     * @var array
+     */
+    protected $routeMiddleware = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'language' => \App\Http\Middleware\Language::class,
+        'timezone' => \App\Http\Middleware\Timezone::class,
+        'SetSessionData' => \App\Http\Middleware\SetSessionData::class,
+        'setData' => \App\Http\Middleware\IsInstalled::class,
+        'authh' => \App\Http\Middleware\IsInstalled::class,
+        'EcomApi' => \App\Http\Middleware\EcomApi::class,
+        'AdminSidebarMenu' => \App\Http\Middleware\AdminSidebarMenu::class,
+        'superadmin' => \App\Http\Middleware\Superadmin::class,
+        'CheckUserLogin' => \App\Http\Middleware\CheckUserLogin::class,
+    ];
+}

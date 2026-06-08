@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Cliente/Index
+path: resources/js/Pages/Cliente/Index.tsx
+archetype: list
+persona: larissa
+nota: 84
+nivel: "Advanced"
+baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Flagship denso (KB ⌘K/J/K, KPI strip clicavel, 6 filtros, drawer 5 tabs, avatar HSL) — execucao Leader mas paleta inline oklch/sky-rose fora dos tokens e header nao-canon."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4 (token --primary, nao oklch inline nem sky/rose/stone cru)"
+    fix: "PRIMARY_HUE 295 via oklch() inline + paleta sky/rose/stone/amber crua; promover pra tokens DS e componente PageHeader canon"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "PT-01 Lista (header/toolbar componentizados)"
+    fix: "Header+toolbar reconstruidos inline com comentarios de iteracao Wagner; extrair pra PageHeader/Toolbar canon reutilizavel"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Cognitive-load"
+    best_of_class: "Linear (estado derivado enxuto)"
+    fix: "~10 useState de filtro + KPI + KB num so componente 2486 linhas; extrair hooks/subcomponentes"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

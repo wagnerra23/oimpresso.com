@@ -1,0 +1,64 @@
+# OpenTelemetry Collector + Grafana Tempo backend — CT 100 docker-host
+# ADR 0162 — observability tracing canônico oimpresso (Wave 26 / governance).
+#
+# Pré-requisitos:
+#   - Rede docker `oimpresso-mcp` JÁ EXISTE (criada pelo stack mcp.oimpresso.com — Centrifugo + FrankenPHP)
+#   - Vaultwarden item `oimpresso/otel/ingest-token` com OIMPRESSO_OTEL_INGEST_TOKEN exportado no .env do host
+#
+# Deploy:
+#   cd /opt/oimpresso/otel/ && docker compose up -d
+#
+# Anti-PII: filtro `attributes/redact` no otel-collector-config.yaml descarta http.url,
+# authorization headers, user.email, user.cpf antes de exportar (Tier 0 multi-tenant ADR 0093).
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    container_name: oimpresso-otel-collector
+    restart: unless-stopped
+    ports:
+      - "4317:4317"   # OTLP gRPC (apps PHP/TS exportam aqui)
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Métricas internas do próprio collector (Prometheus scrape)
+      - "13133:13133" # Health check endpoint
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    environment:
+      - OIMPRESSO_OTEL_INGEST_TOKEN=${OIMPRESSO_OTEL_INGEST_TOKEN}
+    networks:
+      - oimpresso-mcp
+    depends_on:
+      - tempo
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:13133/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: oimpresso-tempo
+    restart: unless-stopped
+    ports:
+      - "3200:3200"   # Tempo HTTP query API (Grafana datasource)
+      - "9095:9095"   # Tempo gRPC query API
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    networks:
+      - oimpresso-mcp
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3200/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tempo-data:
+    name: oimpresso-tempo-data
+
+networks:
+  oimpresso-mcp:
+    external: true   # Reusa rede do stack mcp.oimpresso.com (NÃO criar nova rede)

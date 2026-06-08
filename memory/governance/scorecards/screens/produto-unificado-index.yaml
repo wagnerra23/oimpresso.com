@@ -1,0 +1,32 @@
+# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
+# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
+# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Produto/Unificado/Index
+path: resources/js/Pages/Produto/Unificado/Index.tsx
+archetype: list
+persona: larissa
+nota: 56
+nivel: "Developing"
+baseline_anterior: 56   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grades-baseline-2026-05-30
+graded_at: "2026-05-30"
+resumo: "Catálogo denso 5-sub-telas density-first (bom pra Larissa), mas zero @/Components/ui (native select/input), text-sky-700 blue-leak, bg-stone-900 e TODOs por todo lado."
+dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Shopify Polaris: nenhum input nativo, tudo via design system"
+    fix: "Trocar <select>/<input>/TweaksPanel nativos pelos @/Components/ui; remover sky-700 e stone-900 por tokens roxo"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "Internal-consistency"
+    best_of_class: "Notion reusa o mesmo shell em todas as views"
+    fix: "Extrair CockpitShell/KpiStrip compartilhados (TODOs declarados) e alinhar com PageHeader das telas PM"
+    esforco: alto
+    origin: screen-grades-baseline-2026-05-30
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear: linhas de tabela navegáveis por teclado com foco visível"
+    fix: "Adicionar role/aria nas linhas clicáveis + foco teclado + atalhos (a tela não tem nenhum)"
+    esforco: medio
+    origin: screen-grades-baseline-2026-05-30

@@ -1,0 +1,163 @@
+/* ═══════════════════════════════════════════════════════════════
+   Oimpresso ERP — Design Tokens
+   Fonte: resources/css/cockpit.css + styles.css do protótipo
+   Escopo: variáveis globais para uso em mockups e UI kits
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+/* ── Tokens Base (light mode) ──────────────────────────────── */
+:root {
+  /* Sidebar (sempre dark) */
+  --sb-bg:        oklch(0.21 0 0);
+  --sb-bg-2:      oklch(0.18 0 0);
+  --sb-border:    oklch(0.28 0 0);
+  --sb-text:      oklch(0.78 0 0);
+  --sb-text-dim:  oklch(0.55 0 0);
+  --sb-text-hi:   oklch(0.96 0 0);
+  --sb-hover:     oklch(0.27 0 0);
+  --sb-active:    oklch(0.32 0 0);
+
+  /* Superfícies — modo claro */
+  --bg:           oklch(0.985 0.003 90);
+  --bg-2:         oklch(0.965 0.004 90);
+  --surface:      #ffffff;
+  --border:       oklch(0.90 0.004 90);
+  --border-2:     oklch(0.93 0.004 90);
+
+  /* Texto */
+  --text:         oklch(0.22 0.01 80);
+  --text-dim:     oklch(0.50 0.01 80);
+  --text-mute:    oklch(0.65 0.01 80);
+
+  /* Accent (azul acinzentado — hue 220) */
+  --accent:       oklch(0.58 0.09 220);
+  --accent-2:     oklch(0.66 0.09 220);
+  --accent-soft:  oklch(0.94 0.025 220);
+  --accent-fg:    #ffffff;
+
+  /* Chat bubbles */
+  --bubble-me:      oklch(0.58 0.09 220);
+  --bubble-me-fg:   #ffffff;
+  --bubble-them:    oklch(0.96 0.003 90);
+  --bubble-them-fg: var(--text);
+
+  /* Origin badges — 5 módulos canônicos */
+  --origin-OS-bg:   oklch(0.93 0.07 70);    /* amber  */
+  --origin-OS-fg:   oklch(0.40 0.10 60);
+  --origin-CRM-bg:  oklch(0.92 0.06 220);   /* blue   */
+  --origin-CRM-fg:  oklch(0.40 0.10 220);
+  --origin-FIN-bg:  oklch(0.93 0.07 145);   /* green  */
+  --origin-FIN-fg:  oklch(0.36 0.10 145);
+  --origin-PNT-bg:  oklch(0.93 0.06 295);   /* violet */
+  --origin-PNT-fg:  oklch(0.40 0.10 295);
+  --origin-MFG-bg:  oklch(0.93 0.05 30);    /* orange */
+  --origin-MFG-fg:  oklch(0.40 0.10 30);
+
+  /* Raios */
+  --radius:     8px;
+  --radius-sm:  6px;
+  --radius-lg:  12px;
+
+  /* Sombras */
+  --shadow-pop:  0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.04);
+
+  /* Densidade */
+  --row-h:    30px;
+  --card-pad: 12px;
+  --card-gap: 0px;
+
+  /* Tipografia */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ── Dark mode ────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:        oklch(0.16 0.003 240);
+  --bg-2:      oklch(0.14 0.003 240);
+  --surface:   oklch(0.19 0.003 240);
+  --border:    oklch(0.26 0.005 240);
+  --border-2:  oklch(0.23 0.005 240);
+  --text:      oklch(0.92 0.005 90);
+  --text-dim:  oklch(0.68 0.005 90);
+  --text-mute: oklch(0.55 0.005 90);
+  --bubble-them: oklch(0.24 0.005 240);
+  --accent-soft: oklch(0.30 0.04 220);
+
+  --origin-OS-bg:   oklch(0.30 0.07 60);   --origin-OS-fg:   oklch(0.85 0.07 60);
+  --origin-CRM-bg:  oklch(0.30 0.07 220);  --origin-CRM-fg:  oklch(0.85 0.07 220);
+  --origin-FIN-bg:  oklch(0.30 0.07 145);  --origin-FIN-fg:  oklch(0.85 0.07 145);
+  --origin-PNT-bg:  oklch(0.30 0.07 295);  --origin-PNT-fg:  oklch(0.85 0.07 295);
+  --origin-MFG-bg:  oklch(0.30 0.07 30);   --origin-MFG-fg:  oklch(0.85 0.07 30);
+}
+
+/* ── Density variants ─────────────────────────────────────── */
+[data-density="compact"]  { --row-h: 26px; }
+[data-density="default"]  { --row-h: 30px; }
+[data-density="comfy"]    { --row-h: 34px; }
+
+/* ── Tipografia semântica ─────────────────────────────────── */
+body {
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Hierarquia de headings */
+h1, .h1 {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+h2, .h2 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+h3, .h3 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+/* Labels de seção — tudo caps */
+.label-section {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+/* Corpo */
+p, .body { font-size: 13px; line-height: 1.55; color: var(--text-dim); }
+.body-sm  { font-size: 11.5px; line-height: 1.45; color: var(--text-dim); }
+.body-xs  { font-size: 11px; line-height: 1.4; color: var(--text-mute); }
+
+/* Mono — IDs, timestamps, valores */
+code, .mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Avatar gradientes */
+.av-1 { background: linear-gradient(135deg, oklch(0.62 0.12 30),  oklch(0.50 0.15 10)); }
+.av-2 { background: linear-gradient(135deg, oklch(0.62 0.12 220), oklch(0.50 0.15 260)); }
+.av-3 { background: linear-gradient(135deg, oklch(0.62 0.12 145), oklch(0.50 0.15 175)); }
+.av-4 { background: linear-gradient(135deg, oklch(0.62 0.12 80),  oklch(0.50 0.15 50)); }
+.av-5 { background: linear-gradient(135deg, oklch(0.62 0.12 300), oklch(0.50 0.15 270)); }
+.av-6 { background: linear-gradient(135deg, oklch(0.62 0.12 180), oklch(0.50 0.15 200)); }
