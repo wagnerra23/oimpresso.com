@@ -99,3 +99,13 @@ test('SalesTab.tsx — empty state PT-BR', function () {
         ->toContain('Ajuste os filtros ou registre uma nova venda.')
         ->toContain('data-testid="sales-empty"');
 });
+
+test('SalesTab.tsx — duplo-clique na linha abre a venda', function () {
+    $tsxPath = __DIR__ . '/../../../../resources/js/Pages/Cliente/_show/SalesTab.tsx';
+    $contents = file_get_contents($tsxPath);
+
+    expect($contents)
+        ->toContain('onDoubleClick={() => { window.location.href = `/sells/${s.id}`; }}')
+        ->toContain('cursor-pointer')
+        ->toContain('Duplo-clique para abrir a venda');
+});
