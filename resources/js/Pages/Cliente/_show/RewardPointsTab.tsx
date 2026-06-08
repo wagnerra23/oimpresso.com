@@ -1,6 +1,7 @@
 // Onda Final.E — Tab Reward Points (pontos fidelidade).
 // Condicional business.enable_rp. Mostra saldo + histórico ganhos/resgates.
 
+import { Link } from '@inertiajs/react';
 import { Gift, ExternalLink } from 'lucide-react';
 
 export interface RewardSummary {
@@ -109,9 +110,9 @@ export default function RewardPointsTab({ reward_points }: RewardPointsTabProps)
                     {h.rp_redeemed_amount > 0 ? formatBRL(h.rp_redeemed_amount) : '—'}
                   </td>
                   <td className="px-4 py-3 text-xs">
-                    <a href={`/sells/${h.id}`} className="inline-flex items-center gap-1 text-primary hover:underline">
+                    <Link href={`/sells/${h.id}`} className="inline-flex items-center gap-1 text-primary hover:underline">
                       Ver <ExternalLink size={11} aria-hidden />
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}

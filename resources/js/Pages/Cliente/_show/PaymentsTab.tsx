@@ -7,6 +7,7 @@
 // Pattern reuse: Cliente/Ledger.tsx (filtros + tabela densa) + Atendimento/Channels/Show.tsx (Deferred per-tab).
 
 import { useEffect, useState } from 'react';
+import { Link } from '@inertiajs/react';
 import { CreditCard, ExternalLink, Banknote, Receipt, CornerDownRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 
@@ -218,9 +219,9 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
                   <td className="px-4 py-2.5 text-right">
                     {canViewSell && p.transaction_id && (
                       <Button variant="ghost" size="sm" asChild>
-                        <a href={`/sells/${p.transaction_id}`} aria-label={`Ver venda ${p.invoice_no}`}>
+                        <Link href={`/sells/${p.transaction_id}`} aria-label={`Ver venda ${p.invoice_no}`}>
                           <ExternalLink size={14} />
-                        </a>
+                        </Link>
                       </Button>
                     )}
                   </td>
