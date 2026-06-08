@@ -355,7 +355,7 @@ class Wr2BackfillRecurring2026Command extends Command
                 'payer_email'    => $inv->payer_email,
                 'descricao'      => sprintf('Mensalidade %s - %s', date('m/Y', strtotime($inv->vencimento)), $inv->numero_documento),
                 'idempotency_key' => $idemKey,
-                'origem_type'    => 'rb_invoice',
+                'origem_type'    => 'invoice', // ENUM válido: (sale,invoice,subscription_license,avulsa)
                 'origem_id'      => $inv->invoice_id,
                 'forma_pagamento' => 'boleto',
                 'payload_gateway' => json_encode([
