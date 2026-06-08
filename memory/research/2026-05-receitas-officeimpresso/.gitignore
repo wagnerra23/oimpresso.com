@@ -1,6 +1,0 @@
-# Pasta confidencial — análise interna receitas WR Sistemas
-# Bloquear TUDO por default (relatórios + scripts com credenciais hardcoded)
-*
-# Permitir apenas:
-!.gitignore
-!README.md
