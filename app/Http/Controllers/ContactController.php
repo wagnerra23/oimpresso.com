@@ -3304,7 +3304,9 @@ class ContactController extends Controller
             't.invoice_no as invoice_no',
             't.ref_no as ref_no',
             't.type as transaction_type',
-            't.id as transaction_id',
+            // Alias que NÃO colide com a coluna real transaction_payments.transaction_id
+            // (senão Larastan tipa como int não-nulo e acusa o !== null como redundante).
+            't.id as joined_transaction_id',
         ];
     }
 
@@ -3326,7 +3328,7 @@ class ContactController extends Controller
             'method' => (string) ($payment->method ?? 'other'),
             'invoice_no' => $payment->invoice_no ?? null,
             'ref_no' => $payment->ref_no ?? null,
-            'transaction_id' => $payment->transaction_id !== null ? (int) $payment->transaction_id : null,
+            'transaction_id' => $payment->joined_transaction_id !== null ? (int) $payment->joined_transaction_id : null,
             'transaction_type' => $payment->transaction_type ?? null,
             'cheque_number' => $payment->cheque_number ?? null,
             'card_transaction_number' => $payment->card_transaction_number ?? null,
