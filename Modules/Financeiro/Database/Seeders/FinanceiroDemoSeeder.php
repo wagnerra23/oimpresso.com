@@ -48,7 +48,7 @@ class FinanceiroDemoSeeder extends Seeder
         // protegido (biz=1 WR2, biz=4 ROTA LIVRE…). Override consciente só com
         // ALLOW_DEMO_ON_PROTECTED=1 (NÃO recomendado — risco de poluir dado real).
         $protected = (array) config('app.protected_business_ids', [1, 4]);
-        if (in_array($businessId, $protected, true) && env('ALLOW_DEMO_ON_PROTECTED') != '1') {
+        if (in_array($businessId, $protected, true) && getenv('ALLOW_DEMO_ON_PROTECTED') !== '1') {
             $this->command->error(
                 "RECUSADO: business_id={$businessId} tem DADOS REAIS (protected_business_ids). ".
                 'Demo seeder não grava em tenant real. Use BIZ_ID=99 (test_business_id). '.

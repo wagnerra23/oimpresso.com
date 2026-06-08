@@ -26,7 +26,6 @@ use App\Account;
 use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
 use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
 use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
-use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Exceptions\PaymentGatewayException;
@@ -678,7 +677,7 @@ class UnificadoController extends Controller
 
         // Vencimento nunca no passado — gateway exige >= hoje. Título atrasado
         // recai pra hoje (multa/juros ficam pra onda futura).
-        $vencCarbon = ($titulo->vencimento && $titulo->vencimento->greaterThan(now()))
+        $vencCarbon = $titulo->vencimento->greaterThan(now())
             ? $titulo->vencimento
             : now();
         $vencimento = new \DateTimeImmutable($vencCarbon->toDateString());
@@ -709,7 +708,7 @@ class UnificadoController extends Controller
 
         try {
             $result = $gateway->for($coreAccount)->emitirBoleto($input);
-        } catch (CredentialMisconfiguredException | DriverNotSupportedException $e) {
+        } catch (CredentialMisconfiguredException $e) {
             return back()->with('error', 'Credencial Inter não configurada para boleto: '.$e->getMessage());
         } catch (InvalidPayerException $e) {
             return back()->with('error', 'Pagador inválido (CPF/CNPJ/endereço incompletos): '.$e->getMessage());

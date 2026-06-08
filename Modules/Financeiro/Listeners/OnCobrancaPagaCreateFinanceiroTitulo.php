@@ -59,7 +59,11 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
         // JÁ existe (origem_type='fin_titulo', botão "Gerar boleto" da Visão
         // Unificada) → dá BAIXA nesse título em vez de criar PG-xxx, senão o
         // recebível contaria em DOBRO (título original aberto + PG-xxx quitado).
-        if ($cobranca->origem_type === 'fin_titulo' && $cobranca->origem_id) {
+        // getAttribute() em vez de ->origem_type: o Larastan tipa origem_type pelo
+        // enum do CREATE migration (sale/invoice/subscription_license/avulsa) e não
+        // enxerga o ALTER cru que adicionou 'fin_titulo' (2026_06_08) → acusaria
+        // "Result of && is always false". getAttribute() devolve mixed (runtime intacto).
+        if ($cobranca->getAttribute('origem_type') === 'fin_titulo' && $cobranca->origem_id) {
             $this->baixarTituloExistente($event, $cobranca);
 
             return;
