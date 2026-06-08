@@ -1,5 +1,8 @@
 ---
 module: Admin
+version: "1.0.0"
+last_updated: "2026-06-08"
+owner: wagner
 na_justified:
   D5: "Admin Center é Wagner-only no CT 100 via Tailscale (gate `is_wagner` + role `superadmin#1` + CIDR `100.99.0.0/16` whitelist — ADR 0122 Princípio 1+2). Cliente externo biz=4 ROTA LIVRE NÃO tem acesso por design — internet pública zera vetor de ataque. D5 cliente real não aplica."
   D4.b: "Admin Center é painel read-mostly que AGREGA visão de outros módulos (brief, health-check, cycles, ADRs) — sem state machine FSM própria. Não orquestra fluxo de negócio Eloquent; ações mutacionais limitadas a `apply` Curador, regenerate token, run-now health-check (ADR 0122 Princípio 4 read-mostly). D4.b FSM N/A."
@@ -33,6 +36,10 @@ Painel único Wagner-only que agrega visão de toda a infra/governance/time da e
 - Sanctum + Spatie role + Tailscale CIDR `100.99.0.0/16` whitelist
 - Horizon (queue), Centrifugo (real-time)
 - MySQL via autossh tunnel CT 100 → Hostinger
+
+## User stories
+
+> Organizadas por sprint abaixo (Sprint 1 MVP · Sprint 2 Curador · Sprint 3 condicional) + Backlog de ferramentas internas.
 
 ## Sprint 1 — MVP CASCA + 4 widgets read-only (~3-5 dias IA-pair)
 
@@ -113,3 +120,15 @@ Painel único Wagner-only que agrega visão de toda a infra/governance/time da e
 - ✅ curl externo (sem Tailscale) → time-out
 - ✅ Health check W2 mostra estado real (testar quebrando isolamento multi-tenant temp em homolog → widget vira 🔴)
 - ✅ Brief widget W1 cache 5min funcionando
+
+## Histórico
+
+- **2026-06-08** — Adicionada US-ADM-021 (tela Admin/MapaTelas, mapa vivo de telas). Frontmatter conformado ao schema atual (`version`/`last_updated`/`owner`) + seção `## User stories` — SPEC estava pré-schema e nunca fora revalidado.
+- **2026-05** — SPEC inicial Admin Center (ADR 0122): Sprints 1-3, US-ADM-001..020.
+
+## Referências
+
+- [ADR 0122 — Admin Center CT 100](../../decisions/0122-admin-center-ct100.md) (mãe)
+- [ADR 0093 — Multi-tenant isolation Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0094 — Constituição v2](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
+- PR #2412 — mapa panorâmico de telas + gerador (`scripts/gen-mapa-telas.py`)
