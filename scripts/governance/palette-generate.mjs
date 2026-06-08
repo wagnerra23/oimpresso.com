@@ -12,6 +12,8 @@
  *   node scripts/governance/palette-generate.mjs --write    (grava PALETA.html)
  *   node scripts/governance/palette-generate.mjs --check     (CI: exit 1 se gerado != commitado)
  *
+ * O --check é gate OBRIGATÓRIO no Governance Gate (umbrella) desde 2026-06-08: mexer no
+ * cockpit.css sem rodar --write trava o merge. A paleta não pode divergir da fonte.
  * Determinístico: sem Date.now()/aleatoriedade, ordem fixa → --check estável claro/escuro.
  * Refs: ADR 0263 (identidade = gate), 0235/0249 (cor/nome DS v6), MANUAL-IDENTIDADE.md.
  */
