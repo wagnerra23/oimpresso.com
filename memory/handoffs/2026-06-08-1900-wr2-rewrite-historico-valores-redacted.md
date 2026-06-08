@@ -1,12 +1,13 @@
 ---
 title: WR2 rewrite histórico — purga de valores BRL Tier 0 + regra perene proibições [E]
-date: 2026-06-08
+date: "2026-06-08"
 time: "19:00"
 owner: Eliana [E]
 slug: wr2-rewrite-historico-valores-redacted
 related_session: memory/sessions/2026-06-08-wr2-backfill-recurring-2026.md
 related_handoff: memory/handoffs/2026-06-08-1800-wr2-backfill-recurring-2026.md
 prs: [2435, 2439]
+tldr: Continuação do handoff 1800. Wagner explicitou regra retroativa "valores BRL não podem estar no git pra time op". Vazei MRR/totais em PRs anteriores. Recuperação via filter-repo + force push em 5.033 commits + regra perene catalogada em proibições.
 ---
 
 # Handoff continuação — rewrite histórico git removendo valores BRL
