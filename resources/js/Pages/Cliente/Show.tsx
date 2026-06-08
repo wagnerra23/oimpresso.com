@@ -32,7 +32,7 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import PaymentsTab from './_show/PaymentsTab';
+import PaymentsTab, { type PaymentRow } from './_show/PaymentsTab';
 import LedgerTab from './_show/LedgerTab';
 import SalesTab, { type SalesPaginator } from './_show/SalesTab';
 import VehiclesTab, { type VehiclesPaginator } from './_show/VehiclesTab';
@@ -105,6 +105,8 @@ interface ClienteShowPageProps {
   contact_persons?: ContactPerson[];
   subscriptions?: SubscriptionItem[];
   reward_points?: RewardPointsPayload;
+  // Tab Pagamentos via Inertia::defer (wiring 2026-06-08) — backend buildContactPaymentsPayload.
+  payments?: PaymentRow[];
   // Onda 1 PR D 2026-05-26 — Veículos do cliente (frota Martinho).
   modules?: { oficinaauto_enabled: boolean };
   vehicles?: VehiclesPaginator | null;
@@ -275,7 +277,9 @@ export default function ClienteShow(props: ClienteShowPageProps) {
                 </Deferred>
               )}
               {activeTab === 'payments' && (
-                <PaymentsTab contactId={contact.id} canViewSell={permissions.view_sell} />
+                <Deferred data="payments" fallback={<TabSkeleton />}>
+                  <PaymentsTab contactId={contact.id} payments={props.payments} canViewSell={permissions.view_sell} />
+                </Deferred>
               )}
               {activeTab === 'documents' && (
                 <DocumentsTab

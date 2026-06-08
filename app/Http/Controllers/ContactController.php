@@ -2065,6 +2065,13 @@ class ContactController extends Controller
                             ->count(),
                     ])
                     ->all()),
+                // Tab Pagamentos (US-CRM-063) — wiring Inertia::defer (2026-06-08).
+                // Antes o PaymentsTab fazia self-fetch no endpoint legacy blade
+                // (/contacts/payments/{id}) que retorna HTML → caía no estado
+                // "Aguardando wiring". Agora vem JSON via defer, igual às outras abas.
+                // Multi-tenant Tier 0 (ADR 0093): business_id scope + payment_for = contact.
+                // LGPD (Show.charter Anti-hook): bank_account_number mascarado backend.
+                'payments' => Inertia::defer(fn () => $this->buildContactPaymentsPayload((int) $contact->id, (int) $business_id)),
                 'permissions' => [
                     'update' => $can_customer_update || $can_supplier_update,
                     'pay_due' => $user->can('purchase.payments') || $user->can('sell.payments'),
@@ -3224,6 +3231,86 @@ class ContactController extends Controller
 
         return view('contact.contact_map')
              ->with(compact('contacts', 'all_contacts'));
+    }
+
+    /**
+     * Monta o payload de pagamentos do cliente pro Tab Pagamentos (Inertia::defer).
+     *
+     * Espelha getContactPayments() (versão legacy blade) mas devolve JSON no shape
+     * PaymentRow[] esperado por resources/js/Pages/Cliente/_show/PaymentsTab.tsx.
+     * Achata pagamento pai + pagamentos filhos numa lista única (a filha carrega
+     * parent_id + parent_payment_ref_no pra indentação no front).
+     *
+     * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório.
+     * LGPD (Show.charter Anti-hook): bank_account_number devolvido mascarado.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildContactPaymentsPayload(int $contactId, int $businessId): array
+    {
+        $parents = TransactionPayment::where('transaction_payments.business_id', $businessId)
+            ->where('transaction_payments.payment_for', $contactId)
+            ->whereNull('transaction_payments.parent_id')
+            ->with(['transaction', 'child_payments.transaction'])
+            ->orderByDesc('transaction_payments.paid_on')
+            ->get();
+
+        $rows = [];
+
+        foreach ($parents as $payment) {
+            $rows[] = $this->mapContactPaymentRow($payment, null);
+
+            foreach ($payment->child_payments as $child) {
+                $rows[] = $this->mapContactPaymentRow($child, $payment->payment_ref_no);
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Mapeia uma TransactionPayment pro shape PaymentRow do front.
+     * $parentRefNo != null indica pagamento filho (renderiza identado no front).
+     *
+     * @return array<string, mixed>
+     */
+    private function mapContactPaymentRow(TransactionPayment $payment, ?string $parentRefNo): array
+    {
+        $transaction = $payment->transaction;
+
+        return [
+            'id' => (int) $payment->id,
+            'paid_on' => optional($payment->paid_on)->toIso8601String(),
+            'payment_ref_no' => (string) ($payment->payment_ref_no ?? ''),
+            'parent_payment_ref_no' => $parentRefNo,
+            'amount' => (float) $payment->amount,
+            'is_return' => ((int) ($payment->is_return ?? 0)) === 1 ? 1 : 0,
+            'method' => (string) ($payment->method ?? 'other'),
+            'invoice_no' => $transaction->invoice_no ?? null,
+            'ref_no' => $transaction->ref_no ?? null,
+            'transaction_id' => $transaction ? (int) $transaction->id : null,
+            'transaction_type' => $transaction->type ?? null,
+            'cheque_number' => $payment->cheque_number ?? null,
+            'card_transaction_number' => $payment->card_transaction_number ?? null,
+            'bank_account_number' => $this->maskBankAccount($payment->bank_account_number ?? null),
+            'parent_id' => $payment->parent_id !== null ? (int) $payment->parent_id : null,
+        ];
+    }
+
+    /**
+     * Máscara LGPD pra conta bancária: mantém só os últimos 4 dígitos.
+     */
+    private function maskBankAccount(?string $account): ?string
+    {
+        if (empty($account)) {
+            return null;
+        }
+        $len = strlen($account);
+        if ($len <= 4) {
+            return str_repeat('•', $len);
+        }
+
+        return str_repeat('•', $len - 4).substr($account, -4);
     }
 
     public function getContactPayments($contact_id)
