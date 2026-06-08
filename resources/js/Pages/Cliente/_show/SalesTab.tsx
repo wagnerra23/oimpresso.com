@@ -310,7 +310,13 @@ export default function SalesTab({
                 </thead>
                 <tbody>
                   {salesData.data.map((s) => (
-                    <tr key={s.id} className="border-b border-border hover:bg-muted/40" data-testid={`sales-row-${s.id}`}>
+                    <tr
+                      key={s.id}
+                      className="border-b border-border hover:bg-muted/40 cursor-pointer select-none"
+                      data-testid={`sales-row-${s.id}`}
+                      onDoubleClick={() => { window.location.href = `/sells/${s.id}`; }}
+                      title="Duplo-clique para abrir a venda"
+                    >
                       <td className="px-4 py-2.5 text-xs text-muted-foreground tabular-nums">{formatDate(s.transaction_date)}</td>
                       <td className="px-4 py-2.5">
                         <a href={`/sells/${s.id}`} className="font-medium text-foreground hover:underline">
