@@ -40,12 +40,14 @@ import {
   Search,
   Sparkles,
   Star,
+  Trash2,
   Truck,
   Upload,
   UserCheck,
   Users,
   X,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -64,6 +66,16 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/Components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 // Wave C-FE — 5 tabs cadastrais com autosave on blur (ADR 0179).
 import IdentificacaoTab from './_drawer/IdentificacaoTab';
 import ContatoTab from './_drawer/ContatoTab';
@@ -160,6 +172,9 @@ interface ClienteRow {
   // ADR 0195 Bucket A — flag `bloqueado` (separada de `status` enum derivado).
   // Sells/Financeiro consultam pra impedir checkout/cobrança mesmo quando ativo.
   bloqueado?: boolean | null;
+  // Consumidor/fornecedor padrão (walk-in). destroy() protege server-side;
+  // front esconde "Excluir" pra ele. Wagner 2026-06-08.
+  is_default?: boolean | null;
   // Wagner 2026-05-27 iteracao 2 — contador veiculos pro botao header drawer.
   // Lazy: count so existe se modulo OficinaAuto instalado (gate hasTable).
   vehicles_count?: number | null;
@@ -237,6 +252,8 @@ export interface ClienteIndexPageProps {
     create: boolean;
     view: boolean;
     import: boolean;
+    /** customer.delete || supplier.delete — gate do "Excluir" no menu ⋮. */
+    delete: boolean;
   };
   /**
    * Tabelas de preço REAIS do business (customer_groups id+name). Server-side
@@ -425,6 +442,45 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     setOpenTab(tab);
     setOpenContactId(id);
   }, []);
+
+  // 2026-06-08 (Wagner "exclusão de contato pela tela") — soft delete via
+  // DELETE /contacts/{id} (ContactController::destroy). O backend é a fonte de
+  // verdade das travas: escopo business_id (Tier 0 ADR 0093), bloqueia se há
+  // qualquer transação/venda/OS, protege is_default e grava ActivityLog
+  // (LGPD). Aqui só confirmamos e tratamos o JSON {success,msg}.
+  const [deleteTarget, setDeleteTarget] = useState<ClienteRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const r = await fetch(`/contacts/${deleteTarget.id}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      const json = await r.json().catch(() => ({ success: false }));
+      if (r.ok && json?.success) {
+        toast.success(json.msg || 'Contato excluído.');
+        // Se o drawer do excluído estiver aberto, fecha. Recarrega a lista.
+        if (openContactId === deleteTarget.id) setOpenContactId(null);
+        setDeleteTarget(null);
+        router.reload({ only: ['customers', 'kpis', 'tab_counts'], preserveScroll: true });
+      } else {
+        // Caso típico: contato com vendas/OS — backend devolve success:false +
+        // msg "você não pode excluir este contato". Mantém o dialog aberto.
+        toast.error(json?.msg || 'Não foi possível excluir este contato.');
+      }
+    } catch {
+      toast.error('Falha de rede ao excluir. Verifique a conexão e tente de novo.');
+    } finally {
+      setDeleting(false);
+    }
+  }, [deleteTarget, deleting, openContactId]);
 
   // ADR 0179 evolução 2026-05-25 — "Novo cliente" via drawer 760 modo 'novo'.
   // State declarado aqui; callback (que depende de activeType) está DEPOIS
@@ -1292,9 +1348,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           <td className="px-2 py-2.5 text-right pr-4" onClick={(e) => e.stopPropagation()}>
                             <ActionsMenu
                               row={row}
+                              canDelete={props.permissions.delete}
                               onView={() => openDrawer(row.id)}
                               onEdit={() => openDrawer(row.id, 'identificacao')}
                               onExtrato={() => openDrawer(row.id, 'operacoes')}
+                              onDelete={() => setDeleteTarget(row)}
                             />
                           </td>
                         </tr>
@@ -1363,6 +1421,38 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <Keyboard size={14} />
         <Kbd>?</Kbd>
       </button>
+
+      {/* 2026-06-08 — confirmação de exclusão (ação destrutiva → AlertDialog,
+          nunca delete num clique só). Soft delete server-side; reversível. */}
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(o) => { if (!o && !deleting) setDeleteTarget(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir contato?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget ? (
+                <>
+                  <strong>{deleteTarget.name || 'Este contato'}</strong> será excluído.
+                  Contatos com venda, compra ou OS lançada não podem ser excluídos —
+                  nesse caso o sistema avisa e nada é apagado.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDelete(); }}
+              disabled={deleting}
+              className="bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-600"
+            >
+              {deleting ? 'Excluindo…' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
      </div>
     </div>
   );
@@ -1668,23 +1758,29 @@ function StatusBadge({ status }: { status: ClienteRow['status'] }) {
   );
 }
 
-// 2026-06-08 (Wagner "arrumar botões da contacts") — menu ⋮ consolidado no
-// drawer 760 (ADR 0179: drawer substitui página/edit full-page Blade legacy).
-// REMOVIDOS: "Página completa" (/contacts/{id} — ícone duplicado + Non-Goal
-// Charter "Show.tsx full-page DELETADO") e "Excluir" (estava disabled permanente
-// = botão morto). "Editar" e "Extrato" não mandam mais pra Blade legacy
-// (/contacts/{id}/edit, /contacts/ledger) — abrem o drawer na aba certa.
+// 2026-06-08 (Wagner "arrumar botões da contacts" + "exclusão de contato") —
+// menu ⋮ consolidado no drawer 760 (ADR 0179: drawer substitui página/edit
+// full-page Blade legacy). "Editar"/"Extrato" abrem o drawer na aba certa (não
+// vão mais pra /contacts/{id}/edit · /contacts/ledger). "Excluir" voltou
+// funcional (soft delete via DELETE /contacts/{id}) — gated por canDelete
+// (customer/supplier.delete) e escondido pro is_default (walk-in). A trava de
+// "tem venda/OS → não exclui" é server-side (destroy()).
 function ActionsMenu({
   row,
+  canDelete,
   onView,
   onEdit,
   onExtrato,
+  onDelete,
 }: {
   row: ClienteRow;
+  canDelete: boolean;
   onView: () => void;
   onEdit: () => void;
   onExtrato: () => void;
+  onDelete: () => void;
 }) {
+  const showDelete = canDelete && !row.is_default;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -1710,6 +1806,18 @@ function ActionsMenu({
           <CreditCard size={14} className="mr-2" />
           Extrato
         </DropdownMenuItem>
+        {showDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={onDelete}
+              className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40"
+            >
+              <Trash2 size={14} className="mr-2" />
+              Excluir
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

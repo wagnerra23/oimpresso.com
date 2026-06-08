@@ -311,6 +311,10 @@ class ContactController extends Controller
                     'create' => auth()->user()->can('customer.create'),
                     'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
                     'import' => auth()->user()->can('customer.create'),
+                    // Exclusão (soft delete) — destroy() já valida o mesmo can()
+                    // + bloqueia se houver transação + escopo business_id (Tier 0).
+                    // OR supplier.delete cobre a aba Fornecedores. Wagner 2026-06-08.
+                    'delete' => auth()->user()->can('customer.delete') || auth()->user()->can('supplier.delete'),
                 ],
                 // Tabela de preço REAL pro drawer Comercial (ADR 0093 scope).
                 // [{id,name}] das customer_groups do business — substitui o
@@ -484,6 +488,10 @@ class ContactController extends Controller
             // Drawer ComercialTab lê pra popular o dropdown de tabela de preço.
             'contacts.customer_group_id',
             'contacts.contact_status',
+            // is_default = consumidor final / fornecedor padrão (walk-in). Canon
+            // UPOS sempre presente. Front esconde "Excluir" pra ele (destroy()
+            // protege server-side, mas evita o no-op confuso). Wagner 2026-06-08.
+            'contacts.is_default',
             'contacts.created_at',
             // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
             // CNPJ/CEP zera campos no EnderecoTab (undefined → setState('')) e a UI
@@ -721,6 +729,8 @@ class ContactController extends Controller
                 'valor_aberto' => $valorAberto,
                 'status' => $status,
                 'last_os_at' => $lastOsAt,
+                // Consumidor/fornecedor padrão (walk-in) — front esconde "Excluir".
+                'is_default' => (bool) $contact->is_default,
                 // Wave G novos campos cadastrais.
                 // avatar_hash_seed = name (HSL hash determinístico Components/clientes/Avatar.tsx).
                 // Frontend usa name por default mas seed explícito permite estabilidade
