@@ -144,6 +144,40 @@ class ContactController extends Controller
     }
 
     /**
+     * Fix 2026-06-08 — Endpoint JSON das vendas do contato pro SalesTab self-fetch.
+     *
+     * Bug: no paradigma drawer 760px (ADR 0179, MWART_CLIENTE_INDEX) o SalesTab
+     * dentro de OssTab recebia `sales=undefined` e NÃO tinha carga inicial — só
+     * buscava ao filtrar/paginar. Resultado: skeleton infinito, "as vendas não
+     * aparecem no cadastro de cliente". No Show.tsx full-page funcionava porque o
+     * `<Deferred data="sales">` dispara o Inertia::defer; o drawer não tem esse
+     * wrapper. Este endpoint dá ao SalesTab uma fonte AJAX (espelha o padrão
+     * self-fetch de PaymentsTab `/contacts/payments/{id}` e anexos).
+     *
+     * Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL): contato resolvido DENTRO do
+     * business (404 cross-tenant) + buildClienteSalesPaginator já força
+     * business_id em todo query.
+     *
+     * GET /cliente/{id}/sales-json  (?customer_sales_start/_end/_status/_q/_page)
+     */
+    public function salesJson($id)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')
+            && ! auth()->user()->can('supplier.view') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+
+        // 404 cross-tenant: o contato precisa existir DENTRO do business.
+        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+
+        return response()->json(
+            $this->buildClienteSalesPaginator((int) $id, (int) $business_id, request())
+        );
+    }
+
+    /**
      * Wave Onda 1 PR D 2026-05-26 — Paginador de veículos do contato (frota Martinho).
      *
      * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório.
