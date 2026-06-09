@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 export type DviSeverity = 'ok' | 'atencao' | 'critico';
 
@@ -330,7 +331,7 @@ export default function DviInlineEditor({
   return (
     <div className="space-y-2.5">
       {/* Pills de contagem + botão adicionar */}
-      <div className="flex items-center gap-1.5">
+      <Inline className="gap-1.5">
         <Pill tone="success" count={sums.ok} label="ok" />
         <Pill tone="warning" count={sums.atencao} label="atenção" />
         <Pill tone="destructive" count={sums.critico} label="crítico" />
@@ -346,7 +347,7 @@ export default function DviInlineEditor({
             Item
           </Button>
         )}
-      </div>
+      </Inline>
 
       {/* Estado vazio */}
       {items.length === 0 && !adding && (
@@ -366,13 +367,16 @@ export default function DviInlineEditor({
       {items.length > 0 && (
         <ul className="divide-y divide-border/60 overflow-hidden rounded-md border border-border bg-white">
           {items.map((item) => (
-            <li
+            <Grid
+              asChild
+              gap={2}
               key={item.id}
               className={
-                'grid grid-cols-[auto_1fr_72px_auto] items-center gap-2 px-2.5 py-2 ' +
+                'grid-cols-[auto_1fr_72px_auto] items-center px-2.5 py-2 ' +
                 (item.severity === 'critico' ? 'bg-destructive/5' : '')
               }
             >
+            <li>
               <DviTraffic
                 value={item.severity}
                 name={item.descricao}
@@ -428,19 +432,20 @@ export default function DviInlineEditor({
                 onClick={() => handleRemove(item)}
                 title="Remover item da vistoria"
                 aria-label={`Remover ${item.descricao}`}
-                className="grid h-7 w-7 place-items-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                className="grid place-items-center h-7 w-7 rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 size={13} aria-hidden />
               </button>
             </li>
+            </Grid>
           ))}
         </ul>
       )}
 
       {/* Form de adicionar */}
       {adding && (
-        <div className="grid grid-cols-[1fr_auto] items-start gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 p-2.5">
-          <div className="space-y-2">
+        <Inline align="start" gap={2} className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-2.5">
+          <Stack gap={2} className="flex-1 min-w-0">
             <Select
               value={draft.sistema}
               onValueChange={(v) => setDraft((d) => ({ ...d, sistema: v }))}
@@ -456,7 +461,7 @@ export default function DviInlineEditor({
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2">
+            <Inline gap={2}>
               <DviTraffic
                 value={draft.severity}
                 name="novo item"
@@ -470,7 +475,7 @@ export default function DviInlineEditor({
                 className="w-20 rounded border border-border bg-background px-2 py-1 text-right text-[11px] tabular-nums outline-none focus:border-ring"
                 onChange={(e) => setDraft((d) => ({ ...d, valor: e.target.value }))}
               />
-            </div>
+            </Inline>
             <input
               value={draft.recomendacao}
               placeholder="observação · recomendação"
@@ -478,8 +483,8 @@ export default function DviInlineEditor({
               className="w-full rounded border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-ring"
               onChange={(e) => setDraft((d) => ({ ...d, recomendacao: e.target.value }))}
             />
-          </div>
-          <div className="flex flex-col gap-1">
+          </Stack>
+          <Stack gap={1}>
             <Button
               type="button"
               size="sm"
@@ -503,12 +508,12 @@ export default function DviInlineEditor({
             >
               <X size={13} />
             </Button>
-          </div>
-        </div>
+          </Stack>
+        </Inline>
       )}
 
       {/* Rodapé: total recomendado + CTA Pedir aprovação */}
-      <div className="flex items-center justify-between gap-3 pt-1">
+      <Inline justify="between" gap={3} className="pt-1">
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Total recomendado · cliente
@@ -532,7 +537,7 @@ export default function DviInlineEditor({
           )}
           Pedir aprovação
         </Button>
-      </div>
+      </Inline>
     </div>
   );
 }

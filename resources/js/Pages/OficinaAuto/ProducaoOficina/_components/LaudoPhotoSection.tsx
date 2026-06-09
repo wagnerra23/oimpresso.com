@@ -29,6 +29,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Camera, ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogTitle } from '@/Components/ui/dialog';
+import { Grid, Inline } from '@/Components/layout';
 
 export interface LaudoPhoto {
   id: number;
@@ -249,7 +250,7 @@ export default function LaudoPhotoSection({ serviceOrderId, initialPhotos }: Pro
         </div>
       ) : (
         // ─── Estado PREENCHIDO / ENVIANDO ───
-        <div className="grid grid-cols-3 gap-1.5">
+        <Grid cols={3} className="gap-1.5">
           {photos.map((photo) => (
             <button
               key={photo.id}
@@ -319,7 +320,7 @@ export default function LaudoPhotoSection({ serviceOrderId, initialPhotos }: Pro
           >
             <ImagePlus size={16} aria-hidden />
           </div>
-        </div>
+        </Grid>
       )}
 
       {doneCount > 0 && (
@@ -350,7 +351,7 @@ export default function LaudoPhotoSection({ serviceOrderId, initialPhotos }: Pro
                 alt={lightbox.label}
                 className="max-h-[70vh] w-full bg-black object-contain"
               />
-              <div className="flex items-center gap-2 border-t border-border px-3 py-2">
+              <Inline gap={2} className="border-t border-border px-3 py-2">
                 <input
                   defaultValue={lightbox.label}
                   aria-label="Legenda da foto"
@@ -370,7 +371,7 @@ export default function LaudoPhotoSection({ serviceOrderId, initialPhotos }: Pro
                   <Trash2 size={14} aria-hidden />
                   Remover
                 </button>
-              </div>
+              </Inline>
             </>
           )}
         </DialogContent>
