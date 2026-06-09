@@ -43,6 +43,7 @@
     "casos:check": "node scripts/casos-coverage-guard.mjs",
     "casos:report": "node scripts/casos-coverage-guard.mjs --report",
     "casos:baseline:write": "node scripts/casos-coverage-guard.mjs --write-baseline",
+    "casos:results": "node scripts/casos-results-collect.mjs",
     "dominio:check": "node scripts/domain-dict-guard.mjs",
     "dominio:report": "node scripts/domain-dict-guard.mjs --report",
     "dominio:baseline:write": "node scripts/domain-dict-guard.mjs --write-baseline",
@@ -61,6 +62,7 @@
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts",
     "test:adr-governance": "vitest run tests/governanceAdrScripts.spec.ts",
     "test:casos-guard": "vitest run tests/casosGuard.spec.ts",
+    "test:casos-results": "vitest run tests/casosResultsCollect.spec.ts",
     "test:dominio-guard": "vitest run tests/dominioGuard.spec.ts"
   },
   "devDependencies": {

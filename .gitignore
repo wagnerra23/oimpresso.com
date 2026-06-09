@@ -76,3 +76,7 @@ tests/eval/results/*.json
 # Cache/scratch local — NÃO versionar (design fetch + prancheta de design-grading)
 /_design_fetch/
 /_preview/
+
+# Test-results JUnit (Salto #2 / G-7) — efêmero; o manifesto derivado (scripts/casos-test-results.json) é o que se commita
+test-results/
+playwright-report/

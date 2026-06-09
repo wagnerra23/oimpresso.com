@@ -22,6 +22,10 @@
 //   G-6 FRESCOR       : se o <Nome>.tsx tem commit MAIS NOVO que o `last_run`, os casos
 //                       estão STALE (tela mudou sem revalidar). Sinal amarrado à mudança
 //                       de CÓDIGO via git (melhor que wall-clock). Resolve "last_run mente".
+//   G-7 STATUS DERIVADO (Salto #2): o `Status: ✅` declarado por UC tem que bater com o
+//                       VEREDITO REAL do teste (manifesto scripts/casos-test-results.json,
+//                       gerado por `casos:results` a partir do JUnit). ✅ + teste-falhou =
+//                       lies; ✅ sem teste verde = unverified. Fecha "o Status pode mentir".
 //
 // =====================================================================================
 // RATCHET / BASELINE — gêmeo de pageheader-migration-guard.mjs + no-mock-in-prod.mjs
@@ -48,6 +52,7 @@ import { execSync } from 'node:child_process';
 const ROOT = process.cwd();
 const PAGES_DIR = resolve(ROOT, 'resources/js/Pages');
 const BASELINE_PATH = resolve(ROOT, 'scripts/casos-coverage-baseline.json');
+const MANIFEST_PATH = resolve(ROOT, 'scripts/casos-test-results.json'); // G-7: veredito por-UC (Salto #2)
 const TEST_DIRS = ['Modules', 'tests', 'app', 'e2e']; // onde um UC-id pode ser referenciado por teste
 
 const MODE_WRITE = process.argv.includes('--write-baseline');
@@ -249,6 +254,65 @@ function stalenessViolations(casosFiles) {
 }
 
 // ---------------------------------------------------------------------------
+// G-7 — STATUS DERIVADO DO VERDE (Salto #2): o `Status: ✅` declarado tem que bater
+//       com o veredito REAL do teste (manifesto scripts/casos-test-results.json).
+// ---------------------------------------------------------------------------
+// Fecha o limite honesto do G-5 (trava presença do Status, mas o valor pode MENTIR). O
+// veredito por-UC vem de RODAR a suíte (reporter JUnit → coletor casos:results → manifesto);
+// este gate só LÊ o manifesto commitado (offline, rápido, required-safe — não roda teste,
+// não acopla ao job lento; evita o deadlock que o ADR 0261 proíbe).
+//
+//   status:lies:<file>#<uc>          declara ✅ mas o teste FALHOU (mentira — alto sinal)
+//   status:unverified:<file>#<uc>    declara ✅ mas nenhum teste verde provou (skip/sem entrada)
+//   status:stale-results:<file>#<uc> ✅ provado, mas a tela mudou DEPOIS do teste (revalidar)
+//
+// Só ✅ é uma AFIRMAÇÃO que exige prova. 🧪/⬜/❌ são não-afirmações honestas → sem violação.
+// Sem manifesto (bootstrap) → G-7 dorme (gracioso). F1 não-bloqueante: baseline absorve.
+function loadManifest() {
+  if (!existsSync(MANIFEST_PATH)) return null;
+  try { return JSON.parse(readFileSync(MANIFEST_PATH, 'utf8')); } catch { return null; }
+}
+
+function declaredStatus(block) {
+  const m = block.match(/Status\s*[:：]\s*([^\n]*)/);
+  if (!m) return null;
+  const line = m[1];
+  if (line.includes('✅')) return 'green';
+  if (line.includes('❌')) return 'broken';
+  if (line.includes('🧪')) return 'testing';
+  if (line.includes('⬜')) return 'unverified';
+  return 'other';
+}
+
+function statusViolations(casosFiles, manifest) {
+  if (!manifest) return []; // sem manifesto → gate dorme (gracioso, F1 bootstrap).
+  const ucs = manifest.ucs || {};
+  const shallow = isShallowRepo();
+  const violations = [];
+  for (const file of casosFiles) {
+    const content = readFileSync(resolve(ROOT, file), 'utf8');
+    const tsx = file.replace(/\.casos\.md$/, '.tsx');
+    const tsxDate = (!shallow && existsSync(resolve(ROOT, tsx))) ? gitCommitDate(tsx) : null;
+    const blocks = content.split(/^##\s+/m).slice(1);
+    for (const block of blocks) {
+      const head = block.match(/^(UC-[A-Z]*\d+[a-zA-Z]?)\b/);
+      if (!head) continue;
+      if (declaredStatus(block) !== 'green') continue; // só ✅ precisa de prova
+      const uc = head[1].toUpperCase();
+      const entry = ucs[uc];
+      if (!entry || !entry.verdict || entry.verdict === 'skip') {
+        violations.push(`status:unverified:${file}#${uc}`);
+      } else if (entry.verdict === 'fail') {
+        violations.push(`status:lies:${file}#${uc}`);
+      } else if (entry.verdict === 'pass' && tsxDate && entry.ran_at && entry.ran_at < tsxDate) {
+        violations.push(`status:stale-results:${file}#${uc}`);
+      }
+    }
+  }
+  return violations;
+}
+
+// ---------------------------------------------------------------------------
 // Cálculo
 // ---------------------------------------------------------------------------
 function computeViolations() {
@@ -261,8 +325,9 @@ function computeViolations() {
   const orphans = orphanUcViolations(ucDecls, testCorpus);
   const meta = metadataViolations(casosFiles);
   const stale = stalenessViolations(casosFiles);
+  const status = statusViolations(casosFiles, loadManifest());
 
-  const all = [...trio, ...orphans, ...meta, ...stale].sort((a, b) => a.localeCompare(b));
+  const all = [...trio, ...orphans, ...meta, ...stale, ...status].sort((a, b) => a.localeCompare(b));
   return {
     violations: all,
     stats: {
@@ -274,6 +339,9 @@ function computeViolations() {
       orphan_ucs: orphans.length,
       metadata_issues: meta.length,
       stale_cases: stale.length,
+      status_lies: status.filter((v) => v.startsWith('status:lies')).length,
+      status_unverified: status.filter((v) => v.startsWith('status:unverified')).length,
+      status_stale: status.filter((v) => v.startsWith('status:stale-results')).length,
     },
   };
 }
@@ -306,6 +374,9 @@ function main() {
     console.log(`UCs órfãos (sem teste): ${stats.orphan_ucs}`);
     console.log(`Metadata viva faltando (owner/last_run/Status por UC): ${stats.metadata_issues}`);
     console.log(`Casos STALE (tela mudou depois do last_run — frescor G-6): ${stats.stale_cases}`);
+    console.log(`Status MENTE (✅ declarado vs teste FALHOU — G-7): ${stats.status_lies}`);
+    console.log(`Status SEM PROVA (✅ declarado sem teste verde — G-7): ${stats.status_unverified}`);
+    console.log(`Status com RESULTADO velho (✅ provado, tela mudou depois — G-7): ${stats.status_stale}`);
     console.log(`\nTOTAL de violações (débito): ${violations.length}`);
     console.log('\n→ F1 fotografa isso no baseline (não-bloqueante). F3 ratchet zera tela-a-tela.');
     process.exit(0);
@@ -315,7 +386,7 @@ function main() {
     const out = {
       _meta: {
         generated_at: new Date().toISOString(),
-        gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva + G-6 frescor)',
+        gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)',
         stats,
         nota: 'Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write',
         refs: ['ADR 0264', 'ADR 0261', 'ADR 0256'],
@@ -347,6 +418,9 @@ function main() {
         `\nmeta:* → o casos.md precisa de frontmatter \`owner:\` (quem) + \`last_run: "AAAA-MM-DD"\` (quando)` +
         `\n         e cada \`## UC-XX\` precisa de uma linha \`Status:\` (se está ativa/passa) — ADR 0264 G-5.` +
         `\nstale:* → a tela (.tsx) mudou DEPOIS do \`last_run\` — revalide os casos e bumpe o \`last_run\` (ADR 0264 G-6).` +
+        `\nstatus:lies:* → o UC declara \`Status: ✅\` mas o teste FALHOU (manifesto). Conserte o teste ou seja honesto (❌). G-7.` +
+        `\nstatus:unverified:* → \`Status: ✅\` sem teste verde que prove. Rode a suíte + \`npm run casos:results\`, ou baixe pra 🧪/⬜. G-7.` +
+        `\nstatus:stale-results:* → ✅ provado, mas a tela mudou depois do teste — re-rode + \`npm run casos:results\`. G-7.` +
         `\nSe for legado movido/refatorado conscientemente: npm run casos:baseline:write`,
     );
     process.exit(1);
