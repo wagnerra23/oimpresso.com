@@ -112,7 +112,7 @@ it('card payload V2 tem rental_notes, rental_created_at, atendente, daily_rate, 
     $rental = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_RICH,
         'vehicle_id'           => $vehicle->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); current_status=locada (canônico) mantém o card na coluna
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(5),
         'expected_return_date' => now()->addDays(2)->toDateString(),
@@ -176,7 +176,7 @@ it('filter ?q=Construtora filtra por nome cliente (contact eager-loaded)', funct
         'business_id'          => BIZ_WAGNER_RICH,
         'vehicle_id'           => $vehicleA->id,
         'contact_id'           => $contact->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); current_status=locada (canônico) mantém o card na coluna
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(2),
         'expected_return_date' => now()->addDays(3)->toDateString(),
@@ -219,6 +219,13 @@ it('filter ?q=Construtora filtra por nome cliente (contact eager-loaded)', funct
 });
 
 it('valor_em_curso soma valor_receber das colunas locada + aguardando', function () {
+    $this->markTestSkipped(
+        'F3 charter v4 (dívida): valor_receber/is_overdue eram do modelo de locação '
+        . 'erradicado (ADR 0265) — agora sempre 0.0/false, então valor_em_curso=0 e nada cai '
+        . 'em aguardando. Em produção já era assim (nenhuma OS order_type=locacao). Repontuar '
+        . 'o valor/atraso de reparo no kanban de Caçambas é dívida F3 — RUNBOOK-erradicacao-locacao.md.'
+    );
+
     session(['user.business_id' => BIZ_WAGNER_RICH]);
     $this->actingAs(stubUserSuperadminRich());
 
@@ -233,7 +240,7 @@ it('valor_em_curso soma valor_receber das colunas locada + aguardando', function
     $rLocada = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_RICH,
         'vehicle_id'           => $vehLocada->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); current_status=locada (canônico) mantém o card na coluna
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(3)->startOfDay(),
         'expected_return_date' => now()->addDays(2)->toDateString(),
@@ -253,7 +260,7 @@ it('valor_em_curso soma valor_receber das colunas locada + aguardando', function
     $rOver = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_RICH,
         'vehicle_id'           => $vehOver->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); current_status=locada (canônico) mantém o card na coluna
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(7)->startOfDay(),
         'expected_return_date' => now()->subDays(2)->toDateString(),
@@ -284,6 +291,13 @@ it('valor_em_curso soma valor_receber das colunas locada + aguardando', function
 });
 
 it('V3 fallback — vehicle locada SEM current_rental_id pega rental órfão pra cair em aguardando se overdue', function () {
+    $this->markTestSkipped(
+        'F3 charter v4 (dívida): o fallback overdue→aguardando dependia do accessor is_overdue '
+        . '(modelo de locação erradicado, ADR 0265 — agora sempre false). Em produção já era inerte. '
+        . 'Repontuar o kanban de Caçambas para atraso de reparo (expected_completion) é dívida F3 — '
+        . 'RUNBOOK-erradicacao-locacao.md.'
+    );
+
     session(['user.business_id' => BIZ_WAGNER_RICH]);
     $this->actingAs(stubUserSuperadminRich());
 
@@ -302,7 +316,7 @@ it('V3 fallback — vehicle locada SEM current_rental_id pega rental órfão pra
     \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_RICH,
         'vehicle_id'           => $vehicle->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); current_status=locada (canônico) mantém o card na coluna
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(15)->startOfDay(),
         'expected_return_date' => now()->subDays(10)->toDateString(),
@@ -340,7 +354,7 @@ it('V3 fallback — atendente_nome cai pro Admin do business quando transaction.
     $rental = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_RICH,
         'vehicle_id'           => $vehicle->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); current_status=locada (canônico) mantém o card na coluna
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(2),
         'expected_return_date' => now()->addDays(3)->toDateString(),

@@ -21,9 +21,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *   - OS Simples (Martinho · sub-vertical 4 mecânica pesada caminhão basculante): aberta → em_servico → concluida
  *   - OS Complexa (Vargas · sub-vertical 2 recapagem · V1): aberta → orcamento → aprovada → em_producao → concluida → entregue
  *
- * order_type extension migration 2026_05_12_220002 (schema preservado nullable pós-ADR 0194):
+ * order_type enum {manutencao, mecanica} (locação erradicada — ADR 0265):
  * - order_type=manutencao → fluxo Martinho mecânica pesada (predominante prod biz=164) — sub-vertical 4 default
- * - order_type=locacao → schema sub-vertical 3 hipotético locação caçamba container (sem cliente real ancorado pós-ADR 0194 — pré-correção dizia "fluxo Martinho caçamba avulsa")
+ * - order_type=mecanica   → fluxo de reparo de caminhão (ADR 0194 · oficina_mecanica_os)
  *
  * Multi-tenant Tier 0 (ADR 0093): global scope obrigatório.
  *
@@ -45,9 +45,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property \Illuminate\Support\Carbon|null $delivered_at
  * @property string|null  $notes
  *
- * @property-read bool    $is_overdue       Accessor — locação ativa com expected_return_date passada
+ * @property-read bool    $is_overdue       Accessor — sempre false (locação erradicada, ADR 0265; atraso de reparo vive no Controller via expected_completion)
  * @property-read int     $dias_locacao     Accessor — dias decorridos desde entered_at
- * @property-read float   $valor_receber    Accessor — daily_rate × dias_locacao
+ * @property-read float   $valor_receber    Accessor — sempre 0.0 (locação erradicada, ADR 0265; valor de reparo = total_items)
  *
  * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-001
  */
@@ -96,12 +96,6 @@ class ServiceOrder extends Model
         'completed_at'          => 'datetime',
         'delivered_at'          => 'datetime',
     ];
-
-    /** Stages considerados "ativos" pra locação (não-terminais). */
-    private const RENTAL_ACTIVE_STATUSES = ['aberta', 'locada', 'em_servico'];
-
-    /** Stages terminais (concluida, cancelada, recolhida). */
-    private const RENTAL_TERMINAL_STATUSES = ['concluida', 'cancelada', 'recolhida'];
 
     // ------------------------------------------------------------------
     // Global scope multi-tenant Tier 0 (ADR 0093)
@@ -213,25 +207,16 @@ class ServiceOrder extends Model
     // ------------------------------------------------------------------
 
     /**
-     * Locação ativa com expected_return_date passada → atrasada.
+     * Atraso de locação — conceito erradicado (ADR 0265: Oficina é reparo, não locação).
      *
-     * Apenas relevante pra order_type=locacao em status não-terminal.
+     * Sempre `false`: não existe mais o tipo de OS de locação. O accessor é mantido porque
+     * o payload é consumido pelo kanban de Caçambas (ProducaoOficina, FSM `locada` LIVE prod —
+     * dívida F3 charter v4) e pela ServiceOrders Index. O atraso de REPARO é calculado por
+     * `expected_completion` na camada de Controller (ServiceOrderController), não aqui.
      */
     public function getIsOverdueAttribute(): bool
     {
-        if ($this->order_type !== 'locacao') {
-            return false;
-        }
-
-        if ($this->expected_return_date === null) {
-            return false;
-        }
-
-        if (in_array($this->status, self::RENTAL_TERMINAL_STATUSES, true)) {
-            return false;
-        }
-
-        return $this->expected_return_date->isPast();
+        return false;
     }
 
     /**
@@ -250,25 +235,16 @@ class ServiceOrder extends Model
     }
 
     /**
-     * Valor a receber pela locação ativa = daily_rate × dias_locacao.
+     * Valor a receber por locação — conceito erradicado (ADR 0265: Oficina é reparo).
      *
-     * Retorna 0.0 se daily_rate null OU não é locação OU já terminal.
+     * Sempre `0.0`: não existe mais o tipo de OS de locação. Mantido porque o payload é
+     * consumido pelo kanban de Caçambas (ProducaoOficina, FSM `locada` LIVE prod — dívida F3)
+     * e pela ServiceOrders Index. O valor de REPARO sai de `total_items` (peças + mão-de-obra),
+     * computado pelo ServiceOrderObserver::computeFinalTotal.
      */
     public function getValorReceberAttribute(): float
     {
-        if ($this->order_type !== 'locacao') {
-            return 0.0;
-        }
-
-        if ($this->daily_rate === null) {
-            return 0.0;
-        }
-
-        if (in_array($this->status, self::RENTAL_TERMINAL_STATUSES, true)) {
-            return 0.0;
-        }
-
-        return round((float) $this->daily_rate * $this->dias_locacao, 2);
+        return 0.0;
     }
 
     /**
@@ -309,20 +285,5 @@ class ServiceOrder extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('oficinaauto.service_order');
-    }
-
-    // ------------------------------------------------------------------
-    // Scopes
-    // ------------------------------------------------------------------
-
-    /**
-     * Locações ativas (order_type=locacao + status não-terminal).
-     *
-     * Base do dashboard "Caçambas em campo agora".
-     */
-    public function scopeRentalsAtivas(Builder $query): Builder
-    {
-        return $query->where('order_type', 'locacao')
-                     ->whereNotIn('status', self::RENTAL_TERMINAL_STATUSES);
     }
 }

@@ -182,15 +182,13 @@ class AprovacaoOsController extends Controller
     }
 
     /**
-     * Valor total estimado (best-effort V0 — quando US-OFICINA-006 mapear
-     * transaction_id → final_total, usar).
+     * Valor total estimado (best-effort V0).
+     *
+     * Locação erradicada (ADR 0265): sem fluxo de diária, não há valor estimável aqui.
+     * Quando US-OFICINA-006 mapear transaction_id → final_total, retornar esse valor.
      */
     private function valorTotal(ServiceOrder $os): ?float
     {
-        if ($os->order_type === 'locacao' && $os->daily_rate !== null) {
-            return (float) $os->daily_rate * max(1, $os->dias_locacao);
-        }
-
         return null;
     }
 }
