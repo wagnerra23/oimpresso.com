@@ -1,9 +1,11 @@
 name: Dominio-dict ratchet (coerência de domínio)
 
 # Gate G-4 da Governança executável (ADR 0264). O vocabulário de domínio declarado em
-# memory/dominio/<modulo>.md tem que bater com os enum() reais das migrations do módulo.
-# É a camada que a alucinação "locação de caçamba" (ADR 0265) atravessou — nenhum gate
-# pegava enum incoerente. Ratchet: FALHA só em divergência NOVA vs baseline.
+# memory/dominio/<modulo>.md tem que bater com os enum() reais das migrations do módulo
+# E com os valores-literais usados no CÓDIGO de aplicação (Salto #3: where/whereIn/comparação
+# de campo/validação in: contra coluna governada). É a camada que a alucinação "locação de
+# caçamba" (ADR 0265) atravessou — nenhum gate pegava enum incoerente nem código morto que
+# ainda ramificava no valor erradicado. Ratchet: FALHA só em divergência NOVA vs baseline.
 #
 # FASE 2 (ADR 0264 + ADR 0261, flip [W] 2026-06-09): ALWAYS-RUN → required status check.
 # Ratchet node:fs puro (~12s), SEMPRE reporta verde quando nada regrediu → seguro como
@@ -44,10 +46,11 @@ jobs:
         if: failure()
         run: |
           echo ""
-          echo "❌ Um enum de migration divergiu do dicionário de domínio do módulo (ADR 0264 G-4)."
+          echo "❌ Um enum de migration OU um valor-literal no código divergiu do dicionário (ADR 0264 G-4 + Salto #3)."
           echo ""
-          echo "Fonte única: memory/dominio/<modulo>.md (bloco json). O enum() da migration tem que"
-          echo "bater com a lista canônica. Reintroduzir locacao/locada viola a ADR 0265 (proibicoes.md)."
+          echo "Fonte única: memory/dominio/<modulo>.md (bloco json). O enum() da migration E os valores"
+          echo "usados no código (where/comparação/in:) têm que bater com a lista canônica."
+          echo "Reintroduzir locacao/locada viola a ADR 0265 (proibicoes.md)."
           echo ""
           echo "  1. Local: npm run dominio:check   · vê as divergências novas"
           echo "  2. Se a mudança de domínio é legítima: atualize o dicionário + npm run dominio:baseline:write"
