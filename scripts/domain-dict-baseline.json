@@ -1,11 +1,11 @@
 {
   "_meta": {
-    "generated_at": "2026-06-09T12:16:58.885Z",
+    "generated_at": "2026-06-09T13:29:21.429Z",
     "gate": "dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration)",
     "stats": {
       "modules_with_dict": 1,
       "modules_with_enums": 21,
-      "divergences": 1,
+      "divergences": 0,
       "modules_no_dict": 20
     },
     "nota": "Divergências ATUAIS fotografadas (débito). Gate falha só em divergência NOVA (ratchet). order_type=locacao zera quando o PR de erradicação (ADR 0265) baixar o enum.",
@@ -36,7 +36,6 @@
     "dominio:module-no-dict:TeamMcp",
     "dominio:module-no-dict:Vestuario",
     "dominio:module-no-dict:Whatsapp",
-    "dominio:module-no-dict:Woocommerce",
-    "dominio:undeclared-value:OficinaAuto:service_orders.order_type:locacao"
+    "dominio:module-no-dict:Woocommerce"
   ]
 }

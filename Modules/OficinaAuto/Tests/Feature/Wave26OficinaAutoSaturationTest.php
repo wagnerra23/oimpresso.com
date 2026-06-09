@@ -70,8 +70,8 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
         $ref = new ReflectionMethod(ServiceOrderSummaryService::class, 'kpisDashboard');
         $docComment = $ref->getDocComment();
 
-        // 4 KPIs canon
-        foreach (['locacao_ativa', 'manutencao_ativa', 'concluida_mes', 'atrasada'] as $kpi) {
+        // 3 KPIs canon (locacao_ativa erradicado — ADR 0265)
+        foreach (['manutencao_ativa', 'concluida_mes', 'atrasada'] as $kpi) {
             expect(str_contains((string) $docComment, $kpi))->toBeTrue("KPI '{$kpi}' deve estar declarado no docblock");
         }
     });

@@ -20,7 +20,7 @@ return [
     'icon'  => 'Wrench',
     'items' => [
         ['label' => 'Produção · Oficina', 'href' => '/oficina-auto/producao-oficina', 'icon' => 'KanbanSquare'],
-        ['label' => 'Caçambas',           'href' => '/oficina-auto/veiculos',         'icon' => 'Truck'],
+        ['label' => 'Veículos',            'href' => '/oficina-auto/veiculos',         'icon' => 'Truck'],
         ['label' => 'Ordens de Serviço',  'href' => '/oficina-auto/ordens-servico',   'icon' => 'ClipboardList'],
     ],
 ];

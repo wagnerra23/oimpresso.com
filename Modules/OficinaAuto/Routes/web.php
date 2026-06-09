@@ -33,9 +33,10 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->prefix('oficina-auto')
     ->group(function () {
         // ─────────────────────────────────────────────────────────────────────
-        // Produção · Oficina — Kanban estado das caçambas (Martinho 13/maio 2026).
-        // Espelha 1:1 prototipo-ui/prototipos/producao-oficina/F1.html adaptado
-        // pra caçambas (5 colunas: disponivel/locada/aguardando/manutencao/pronta).
+        // Produção · Oficina — Kanban de REPARO (5 etapas: Recepção → Diagnóstico →
+        // Aguardando peças → Em execução → Pronto). Convergência visual landada no
+        // PR #2417. As keys FSM internas seguem como dívida F3 (charter v4). Oficina =
+        // reparo, não locação (ADR 0265 — order_type ∈ {manutencao, mecanica}).
         // ─────────────────────────────────────────────────────────────────────
         Route::get('producao-oficina',
             [ProducaoOficinaController::class, 'index'])
