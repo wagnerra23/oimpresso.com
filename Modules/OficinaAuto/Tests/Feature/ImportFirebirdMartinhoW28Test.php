@@ -56,10 +56,10 @@ it('normalizeStatus: legacy WR (PT livre) → FSM manutencao', function () {
     expect(w28Invoke('normalizeStatus', ''))->toBe('concluida');
 });
 
-it('normalizeOrderType: default manutencao (legado), respeita mecanica/locacao', function () {
+it('normalizeOrderType: default manutencao, respeita mecanica; locacao erradicado→manutencao (ADR 0265)', function () {
     expect(w28Invoke('normalizeOrderType', null))->toBe('manutencao');
     expect(w28Invoke('normalizeOrderType', 'mecanica'))->toBe('mecanica');
-    expect(w28Invoke('normalizeOrderType', 'locacao'))->toBe('locacao');
+    expect(w28Invoke('normalizeOrderType', 'locacao'))->toBe('manutencao'); // erradicado (ADR 0265)
     expect(w28Invoke('normalizeOrderType', 'qualquer_coisa'))->toBe('manutencao');
 });
 
