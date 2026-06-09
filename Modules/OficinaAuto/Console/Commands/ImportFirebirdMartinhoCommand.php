@@ -364,19 +364,18 @@ class ImportFirebirdMartinhoCommand extends Command
     }
 
     /**
-     * Mapeia order_type legacy → {locacao|manutencao|mecanica}.
+     * Mapeia order_type legacy → {manutencao|mecanica}.
      *
-     * Default 'manutencao' = bucket do legado (migration 2026_06_02_000001 decidiu
-     * "novo processo mecanica não mexe no legado"). OS históricas importadas ficam
-     * em 'manutencao'. [W] decide se quer reclassificar pra 'mecanica' (ver CODE_NOTES).
+     * `locacao` ERRADICADO (ADR 0265 — Oficina = reparo, não locação): qualquer valor
+     * legado de locação cai no default 'manutencao' (mesmo bucket que o importer já
+     * aplicava a status legado). Default 'manutencao' = OS histórica importada.
      */
     private function normalizeOrderType(mixed $raw): string
     {
         $v = strtolower(trim((string) ($raw ?? '')));
         return match (true) {
             $v === 'mecanica'  => 'mecanica',
-            $v === 'locacao'   => 'locacao',
-            default            => 'manutencao',
+            default            => 'manutencao', // locacao erradicado → manutencao (ADR 0265)
         };
     }
 

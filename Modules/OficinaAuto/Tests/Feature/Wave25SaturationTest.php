@@ -158,8 +158,8 @@ describe('Wave 25 OficinaAuto POLISH', function () {
         $ref = new ReflectionMethod(ServiceOrderSummaryService::class, 'kpisDashboard');
         $docComment = $ref->getDocComment();
 
-        expect($docComment)->toContain('locacao_ativa')
-            ->and($docComment)->toContain('manutencao_ativa')
+        // locacao_ativa erradicado (ADR 0265) — KPI de locação removido.
+        expect($docComment)->toContain('manutencao_ativa')
             ->and($docComment)->toContain('concluida_mes')
             ->and($docComment)->toContain('atrasada');
     });
