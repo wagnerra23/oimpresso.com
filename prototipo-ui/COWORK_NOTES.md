@@ -350,3 +350,46 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 
 **F3 UI = parte da Onda 4 backend** — PaymentGatewayController + CobrancaController + Pages Inertia/React virão depois de F2 (screenshot Wagner aprova). Sequência travada conforme chat11.md Cowork.
 
+
+---
+
+## [2026-06-09] F0 — Fila V2 do drawer de OS (RichSheet) · pedido [W] via Cowork
+
+> Origem: avaliação F1.5 `prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md` + conferência pós-merge
+> #2477. O drawer `ServiceOrderRichSheet` já espelha o protótipo canon nas seções principais
+> (MercosulPlate, KV hero, Peças & Mão de obra, FSM, timeline de reparo, footer 3 ações).
+> Os 4 itens abaixo são os gaps V2 declarados no próprio código — [W] autorizou virarem fila.
+> Ordem de prioridade definida por impacto no balcão do Martinho (biz=164 LIVE).
+
+### OS-V2-1 · Fotos & Laudo reais no drawer — P1
+- **Hoje:** grid 3 placeholders hachurados + botão "Adicionar foto" disabled.
+- **Quero:** upload real (câmera no celular do mecânico + arquivo no desktop) via
+  Modules/Arquivos; thumbnails no grid; lightbox ao clicar; foto vira anexo da OS
+  e sai no print A4 (seção opcional).
+- **Persona:** Técnico Repair (tablet/celular, mãos sujas — touch ≥44px, fluxo de 1 toque).
+- **F1:** [CC] protótipo do estado preenchido + vazio + uploading no drawer canon.
+
+### OS-V2-2 · DVI inline com severidade — P1
+- **Hoje:** drawer não tem o checklist DVI; protótipo canon tem itens com severidade
+  ok/atenção/crítico e valor por item.
+- **Quero:** seção DVI no drawer: lista de inspeção com badge de severidade, valor
+  sugerido por item crítico/atenção, e o subtotal alimentando o gate de aprovação.
+- **Depende:** endpoint DVI por OS (DviInspectionController já existe — verificar shape).
+- **F1:** [CC] já tem o padrão visual no protótipo `producao-oficina` — extrair pro drawer.
+
+### OS-V2-3 · Gate "Pedir aprovação" hero no drawer — P2
+- **Hoje:** ApprovalGateCard existe no fluxo mas discreto; protótipo canon tem barra
+  preta "Total recomendado R$ X" + CTA primário "Pedir aprovação" (WhatsApp).
+- **Quero:** quando a OS está em diagnóstico com itens recomendados sem aprovação,
+  o drawer mostra a barra de total + CTA hero. LGPD: link wa.me sem PII na mensagem.
+- **F1:** [CC] portar a barra do protótipo pro vocabulário do DS (token, não preto cru).
+
+### OS-V2-4 · Linha do tempo FSM auditável — P2
+- **Hoje:** TimelineSkeleton derivada de entered_at/expected/completed_at.
+- **Quero:** timeline real via histórico de transições FSM (quem, quando, de→pra),
+  já exposto em endpoint (`fsm/history` previsto no código). Mantém vocabulário de reparo.
+- **Valor:** auditoria — Wagner vê quem travou a OS e onde o lead time estoura.
+
+### Residual técnico (não-UI, registrar como chore)
+- Backfill `order_type='locacao'|null → 'mecanica'` nas OS legadas (badge "—" na lista).
+- Renomear LABELS (não keys) dos estágios FSM `cacamba_locacao` pra vocabulário de reparo.
