@@ -182,7 +182,7 @@ it('actions() retorna actions disponíveis pra OS locação stage disponivel', f
 
     $stage = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-A1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stage->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stage->id);
 
     $controller = app(ServiceOrderFsmActionController::class);
     $response = $controller->actions($order);
@@ -228,7 +228,7 @@ it('actions() retorna in_pipeline=false pra OS sem current_stage_id', function (
     session(['user.business_id' => BIZ_WAGNER_SOFAC]);
 
     $vehicle = makeVehicleSofac('SOFAC-C1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', null);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', null);
 
     $controller = app(ServiceOrderFsmActionController::class);
     $response = $controller->actions($order);
@@ -251,7 +251,7 @@ it('execute() action recolher move stage + cria history entry', function () {
     $stageRecolhida = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'recolhida');
 
     $vehicle = makeVehicleSofac('SOFAC-D1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageLocada->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageLocada->id);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/execute', 'POST', [
         'action_key' => 'recolher',
@@ -297,7 +297,7 @@ it('execute() permission denied retorna 403', function () {
 
     $stageLocada = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'locada');
     $vehicle = makeVehicleSofac('SOFAC-E1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageLocada->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageLocada->id);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/execute', 'POST', [
         'action_key' => 'recolher',
@@ -325,7 +325,7 @@ it('execute() action invalida retorna 422', function () {
 
     $stageDisponivel = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-F1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageDisponivel->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageDisponivel->id);
 
     // 'concluir' não existe pro stage 'disponivel' do processo cacamba_locacao
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/execute', 'POST', [
@@ -348,7 +348,7 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
     session(['user.business_id' => BIZ_WAGNER_SOFAC]);
 
     $vehicle = makeVehicleSofac('SOFAC-G1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', null);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', null);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/start-pipeline', 'POST');
 
@@ -385,7 +385,7 @@ it('startPipeline() recusa OS já em pipeline (422)', function () {
 
     $stageDisponivel = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-H1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageDisponivel->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageDisponivel->id);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/start-pipeline', 'POST');
 
@@ -403,7 +403,7 @@ it('cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)', function () {
     setupSofacBusiness(BIZ_WAGNER_SOFAC);
     $stage = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-I1', BIZ_WAGNER_SOFAC);
-    $orderBiz1 = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stage->id);
+    $orderBiz1 = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stage->id);
 
     // Switch pra biz=99
     $userBiz99 = setupSofacBusiness(BIZ_FICTICIO_SOFAC);

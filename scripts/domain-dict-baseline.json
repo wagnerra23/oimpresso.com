@@ -1,12 +1,12 @@
 {
   "_meta": {
-    "generated_at": "2026-06-09T14:16:47.666Z",
+    "generated_at": "2026-06-09T15:25:32.466Z",
     "gate": "dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3)",
     "stats": {
       "modules_with_dict": 1,
       "modules_with_enums": 21,
       "divergences": 0,
-      "code_divergences": 1,
+      "code_divergences": 0,
       "modules_no_dict": 20
     },
     "nota": "Divergências ATUAIS fotografadas (débito): enum⇔dicionário E valores de domínio hardcoded no código (Salto #3). Gate falha só em divergência NOVA (ratchet). order_type=locacao zera quando a erradicação (ADR 0265) remover o valor do enum E das ramificações de código.",
@@ -37,7 +37,6 @@
     "dominio:module-no-dict:TeamMcp",
     "dominio:module-no-dict:Vestuario",
     "dominio:module-no-dict:Whatsapp",
-    "dominio:module-no-dict:Woocommerce",
-    "dominio:undeclared-code-value:OficinaAuto:order_type:locacao"
+    "dominio:module-no-dict:Woocommerce"
   ]
 }
