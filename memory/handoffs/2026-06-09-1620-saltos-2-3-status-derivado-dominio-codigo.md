@@ -3,7 +3,7 @@ date: "2026-06-09"
 hour: "16:20 BRT"
 slug: saltos-2-3-status-derivado-dominio-codigo
 topic: "Passe dedicado dos saltos #2 e #3 da governança executável (ADR 0264): dominio:check além do enum (cobertura de código) + casos:check Status derivado do veredito real do teste"
-tldr: "Retomei o passe pausado no handoff 13:57 (opção B). Wagner escolheu #3 primeiro (tratável), depois 'merge + já ataco o #2' (que precisa de desenho). 2 PRs merged --admin. #3 (#2471): dominio:check passou a varrer o CÓDIGO (where/whereIn/comparação-de-campo/validação in:) nos módulos com dicionário — pegou 11 ramificações vivas de order_type==='locacao' (dead-code pós-erradicação do enum) absorvidas no baseline. #2 (#2472, F1): aprovei blueprint com Wagner antes de codar — G-7 deriva o Status:✅ por UC do veredito REAL do teste via manifesto JUnit commitado (gate offline, evita deadlock ADR 0261); pegou 8 UCs ✅ da Oficina sem prova (status:unverified). Os 3 saltos do loop agora fechados (#1 #2469 · #3 · #2). Limpeza do dead-code locacao corre em sessão spawn própria."
+tldr: "Saltos pausados (handoff 13:57, opção B), 2 PRs --admin. #3 (#2471): dominio:check agora varre o CÓDIGO (where/comparação/in:) — pegou 11 dead-code de order_type==='locacao' pós-erradicação do enum. #2 (#2472, F1): G-7 deriva Status:✅ por UC do veredito REAL via manifesto JUnit offline (sem deadlock ADR 0261) — pegou 8 UCs ✅ da Oficina sem prova. 3 saltos do loop fechados. Dead-code locacao em sessão spawn. Detalhe no corpo."
 duration: "~3h"
 authors: [CL, W]
 session: frosty-greider-83ab2f
