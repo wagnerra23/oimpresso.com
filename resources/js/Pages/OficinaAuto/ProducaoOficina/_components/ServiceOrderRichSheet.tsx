@@ -5,10 +5,8 @@
 // (`prototipo-ui/prototipos/producao-oficina/visual-source.html`) E protótipo OS
 // mecânica CNAE 4520 Martinho (screenshot Wagner 2026-05-26 · sub-vertical 4 ADR 0194).
 //
-// 6 sections polimórficas (branching por `data.order_type`):
-//   1. Header KV grid:
-//        - locação: Cliente / Capacidade / Endereço / Diárias / Valor
-//        - manutenção: KM / Box / Mecânico / Valor (items_total) — ADR 0194 mecânica pesada
+// 6 sections (reparo · ADR 0265):
+//   1. Header KV grid: Cliente / KM / Box / Mecânico / Valor (items_total)
 //   2. OBSERVAÇÃO (notes — italic se vazio)
 //   3. PEÇAS & MÃO DE OBRA — NOVA Wave 2.3 (data.items[] consumindo `oficina_service_order_items`
 //      via US-OFICINA-027 backend). Renderiza linha-a-linha com ícones tipo + qty + valor unit
@@ -21,8 +19,14 @@
 //
 // CRÍTICO React 19 — useMemo/useCallback nos handlers descendentes (lição PR #717).
 //
-// Consumidores: ProducaoOficina/Index.tsx — drawer abre ao clicar card kanban.
+// Consumidores: ProducaoOficina/Index.tsx + ServiceOrders/Board.tsx — drawer abre ao clicar card kanban.
 // Multi-tenant Tier 0 [ADR 0093]: payload vem do endpoint show() que respeita global scope.
+//
+// 2026-06-09 sweep ADR 0265 (avaliação [CC]): ramo LOCAÇÃO erradicado — o branch
+// polimórfico tratava order_type='mecanica' como locação (título "Caçamba", Diárias,
+// timeline "Caçamba entregue ao cliente"). Agora o drawer é 100% reparo:
+// types {manutencao,mecanica}, timeline de oficina, erro "a OS" (não "a caçamba"),
+// formatBRL null→"—", status via ServiceOrderStatusBadge (label PT, não cru).
 
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -34,7 +38,6 @@ import {
   ExternalLink,
   FileText,
   Loader2,
-  MapPin,
   Phone,
   Truck,
   User,
@@ -49,12 +52,13 @@ import {
 import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
+import ServiceOrderStatusBadge from '../../ServiceOrders/_components/ServiceOrderStatusBadge';
 import VendaDerivadaCard, { type VendaDerivada } from '@/Components/shared/VendaDerivadaCard';
 import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
 import { printServiceOrder } from '@/Lib/printServiceOrder';
 
-type OrderType = 'locacao' | 'manutencao' | null;
+type OrderType = 'manutencao' | 'mecanica' | null;
 
 type ItemTipo = 'peca' | 'mao_obra' | 'servico_terceiro';
 
@@ -136,9 +140,9 @@ interface Props {
 }
 
 const formatBRL = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined || value === '') return 'R$ [redacted Tier 0]';
+  if (value === null || value === undefined || value === '') return '—';
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (Number.isNaN(num)) return 'R$ [redacted Tier 0]';
+  if (Number.isNaN(num)) return '—';
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
@@ -247,7 +251,7 @@ export default function ServiceOrderRichSheet({
             <div>
               <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
               <p className="text-sm text-foreground font-medium">
-                Não foi possível carregar a caçamba
+                Não foi possível carregar a OS
               </p>
               <p className="text-xs text-muted-foreground mt-1">{error}</p>
             </div>
@@ -262,7 +266,7 @@ export default function ServiceOrderRichSheet({
                 <span className="font-mono text-xs text-muted-foreground">
                   OS {data.number ?? `#${data.id}`}
                 </span>
-                <StatusBadge status={data.status} orderType={data.order_type} />
+                <ServiceOrderStatusBadge status={data.status} orderType={data.order_type} />
                 {data.is_overdue && (
                   <span className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-[11px] font-medium text-destructive">
                     <AlertTriangle size={10} className="mr-0.5" />
@@ -271,27 +275,14 @@ export default function ServiceOrderRichSheet({
                 )}
               </div>
               <SheetTitle className="text-lg font-semibold tracking-tight text-foreground">
-                {data.order_type === 'manutencao' ? (
-                  <>
-                    {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
-                    {' '}
-                    {data.vehicle?.plate ?? '—'}
-                    {data.vehicle?.model_year ? (
-                      <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                        · {data.vehicle.model_year}
-                      </span>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    Caçamba {data.vehicle?.vehicle_number ?? data.vehicle?.plate ?? '—'}
-                    {data.vehicle?.capacity_m3 ? (
-                      <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                        · {data.vehicle.capacity_m3}m³
-                      </span>
-                    ) : null}
-                  </>
-                )}
+                {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
+                {' '}
+                {data.vehicle?.plate ?? '—'}
+                {data.vehicle?.model_year ? (
+                  <span className="text-sm font-normal text-muted-foreground ml-1.5">
+                    · {data.vehicle.model_year}
+                  </span>
+                ) : null}
               </SheetTitle>
               <SheetDescription className="text-sm text-muted-foreground">
                 {data.contact ? data.contact.name : 'Cliente não informado'}
@@ -313,82 +304,44 @@ export default function ServiceOrderRichSheet({
                 </div>
               )}
 
-              {/* ─── SEÇÃO 3 (Hero): Veículo + KV grid polimórfico (Wave 2.2 US-OFICINA-027) ───
-                  - manutenção (Martinho sub-vertical 4 CNAE 4520): KM / Box / Mecânico / Valor (items_total)
-                  - locação    (sub-vertical 3 hipotético CNAE 4581): Cliente / Capacidade / Endereço / Diárias / Valor */}
+              {/* ─── SEÇÃO 3 (Hero): Veículo + KV grid de reparo (ADR 0265):
+                  Cliente / KM / Box / Mecânico / Valor (items_total) */}
               {data.vehicle && (
                 <div className="rounded-lg border border-border bg-muted p-3 grid grid-cols-[auto_1fr] gap-3">
                   <MercosulPlate plate={data.vehicle.plate} size="md" />
                   <dl className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 text-[11.5px] self-end">
-                    {data.order_type === 'manutencao' ? (
+                    {data.contact && (
                       <>
-                        {data.mileage_at_service != null && (
-                          <>
-                            <dt className="text-muted-foreground">KM</dt>
-                            <dd className="text-foreground font-medium tabular-nums">
-                              {data.mileage_at_service.toLocaleString('pt-BR')}
-                            </dd>
-                          </>
-                        )}
-                        {data.box_label && (
-                          <>
-                            <dt className="text-muted-foreground">Box</dt>
-                            <dd className="text-foreground">{data.box_label}</dd>
-                          </>
-                        )}
-                        {data.assigned_user && (
-                          <>
-                            <dt className="text-muted-foreground">Mecânico</dt>
-                            <dd className="text-foreground">{data.assigned_user.name}</dd>
-                          </>
-                        )}
-                        <dt className="text-muted-foreground">Valor</dt>
-                        <dd className="tabular-nums font-semibold text-success">
-                          {formatBRL(data.items_total ?? 0)}
-                        </dd>
-                      </>
-                    ) : (
-                      <>
-                        {data.contact && (
-                          <>
-                            <dt className="text-muted-foreground">Cliente</dt>
-                            <dd className="text-foreground font-medium truncate">
-                              {data.contact.name}
-                            </dd>
-                          </>
-                        )}
-                        {data.vehicle.capacity_m3 && (
-                          <>
-                            <dt className="text-muted-foreground">Capacidade</dt>
-                            <dd className="text-foreground tabular-nums">
-                              {data.vehicle.capacity_m3}m³
-                            </dd>
-                          </>
-                        )}
-                        {data.delivery_address && (
-                          <>
-                            <dt className="text-muted-foreground">Endereço</dt>
-                            <dd className="text-foreground truncate" title={data.delivery_address}>
-                              {data.delivery_address}
-                            </dd>
-                          </>
-                        )}
-                        <dt className="text-muted-foreground">Diárias</dt>
-                        <dd className="text-foreground tabular-nums">
-                          {data.dias_locacao ?? 0}d ×{' '}
-                          <span className="text-muted-foreground">{formatBRL(data.daily_rate)}</span>
-                        </dd>
-                        <dt className="text-muted-foreground">Valor</dt>
-                        <dd
-                          className={
-                            'tabular-nums font-semibold ' +
-                            (data.is_overdue ? 'text-destructive' : 'text-success')
-                          }
-                        >
-                          {formatBRL(data.valor_receber)}
+                        <dt className="text-muted-foreground">Cliente</dt>
+                        <dd className="text-foreground font-medium truncate">
+                          {data.contact.name}
                         </dd>
                       </>
                     )}
+                    {data.mileage_at_service != null && (
+                      <>
+                        <dt className="text-muted-foreground">KM</dt>
+                        <dd className="text-foreground font-medium tabular-nums">
+                          {data.mileage_at_service.toLocaleString('pt-BR')}
+                        </dd>
+                      </>
+                    )}
+                    {data.box_label && (
+                      <>
+                        <dt className="text-muted-foreground">Box</dt>
+                        <dd className="text-foreground">{data.box_label}</dd>
+                      </>
+                    )}
+                    {data.assigned_user && (
+                      <>
+                        <dt className="text-muted-foreground">Mecânico</dt>
+                        <dd className="text-foreground">{data.assigned_user.name}</dd>
+                      </>
+                    )}
+                    <dt className="text-muted-foreground">Valor</dt>
+                    <dd className="tabular-nums font-semibold text-success">
+                      {formatBRL(data.items_total ?? 0)}
+                    </dd>
                   </dl>
                 </div>
               )}
@@ -450,16 +403,7 @@ export default function ServiceOrderRichSheet({
                 </Section>
               )}
 
-              {/* Endereço extra (se NÃO mostrado em KV grid acima por truncate) */}
-              {data.delivery_address && data.delivery_address.length > 40 && (
-                <Section title="Endereço de entrega" icon={MapPin}>
-                  <p className="text-sm text-muted-foreground break-words leading-relaxed">
-                    {data.delivery_address}
-                  </p>
-                </Section>
-              )}
-
-              {/* ─── SEÇÃO 2: OBSERVAÇÃO (rental.notes) ─── */}
+              {/* ─── SEÇÃO 2: OBSERVAÇÃO (notes) ─── */}
               <Section title="Observação" icon={FileText}>
                 {data.notes ? (
                   <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
@@ -559,7 +503,7 @@ export default function ServiceOrderRichSheet({
               <Section title="Linha do tempo" icon={Clock}>
                 <TimelineSkeleton
                   enteredAt={data.entered_at}
-                  expectedReturn={data.expected_return_date}
+                  expectedReturn={data.expected_completion ?? data.expected_return_date}
                   completedAt={data.completed_at}
                   status={data.status}
                 />
@@ -661,33 +605,10 @@ function PhotoPlaceholder({ label }: { label: string }) {
   );
 }
 
-function StatusBadge({
-  status,
-  orderType,
-}: {
-  status: string;
-  orderType: OrderType;
-}) {
-  const isLocacao = orderType === 'locacao';
-  const cls = isLocacao
-    ? 'border-[var(--stage-blue)]/30 bg-[var(--stage-blue)]/10 text-[var(--stage-blue)]'
-    : 'border-warning/30 bg-warning/10 text-warning-foreground';
-  return (
-    <span
-      className={
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ' +
-        cls
-      }
-    >
-      {isLocacao ? <Truck size={10} className="mr-1" /> : null}
-      {status}
-    </span>
-  );
-}
-
 /**
- * Timeline skeleton derivada dos campos disponíveis (entered_at, expected_return,
+ * Timeline skeleton derivada dos campos disponíveis (entered_at, prazo,
  * completed_at, status). V2: fetch real via /oficina-auto/service-orders/{id}/fsm/history.
+ * Vocabulário de REPARO (ADR 0265) — nada de "locação/caçamba/recolhimento".
  */
 function TimelineSkeleton({
   enteredAt,
@@ -705,24 +626,24 @@ function TimelineSkeleton({
   if (enteredAt) {
     items.push({
       when: formatDate(enteredAt),
-      what: 'Locação iniciada',
+      what: 'OS aberta — veículo recebido',
       state: 'done',
     });
   }
 
-  // Estado intermediário (entrega presumida)
+  // Estado intermediário (serviço em andamento)
   if (enteredAt && status !== 'aberta') {
     items.push({
       when: '—',
-      what: 'Caçamba entregue ao cliente',
+      what: 'Serviço em andamento na oficina',
       state: 'done',
     });
   }
 
   if (expectedReturn) {
     items.push({
-      when: formatDate(expectedReturn + 'T18:00:00'),
-      what: 'Prazo de devolução',
+      when: formatDate(expectedReturn.length <= 10 ? expectedReturn + 'T18:00:00' : expectedReturn),
+      what: 'Previsão de entrega',
       state: completedAt ? 'done' : 'future',
     });
   }
@@ -730,13 +651,13 @@ function TimelineSkeleton({
   if (completedAt) {
     items.push({
       when: formatDate(completedAt),
-      what: 'Locação concluída',
+      what: 'Serviço concluído',
       state: 'done',
     });
   } else {
     items.push({
       when: 'agora',
-      what: 'Aguardando recolhimento…',
+      what: 'Aguardando próxima etapa…',
       state: 'now',
     });
   }

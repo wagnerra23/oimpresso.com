@@ -555,9 +555,23 @@ class ServiceOrderController extends Controller
             ->limit(500)
             ->get(['id', 'plate', 'secondary_plate', 'vehicle_type']);
 
+        // Clientes (donos dos caminhões de terceiros) pro combobox do Create — charter
+        // exige (sem cliente o gate de aprovação WhatsApp não tem destinatário). Sweep
+        // ADR 0265: Create.tsx renderiza o campo só quando a prop `contacts` chega.
+        // Multi-tenant Tier 0 (ADR 0093): business_id EXPLÍCITO + scopes Contact canon
+        // (onlyCustomers/active). Contact não tem global scope (pattern UltimatePOS).
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+        $contacts = \App\Contact::where('contacts.business_id', $businessId)
+            ->onlyCustomers()
+            ->active()
+            ->orderBy('contacts.name')
+            ->limit(500)
+            ->get(['contacts.id', 'contacts.name']);
+
         return Inertia::render('OficinaAuto/ServiceOrders/Create', [
             'vehicles' => $vehicles,
             'statuses' => self::statuses(),
+            'contacts' => $contacts,
         ]);
     }
 
