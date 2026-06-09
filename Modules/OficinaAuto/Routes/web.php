@@ -45,6 +45,12 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // CRUD Vehicle
         Route::get('veiculos',                     [VehicleController::class, 'index'])->name('oficinaauto.vehicles.index');
         Route::get('veiculos/create',              [VehicleController::class, 'create'])->name('oficinaauto.vehicles.create');
+        // Consulta de placa (AJAX) — digita placa → dados técnicos do veículo.
+        // ANTES de veiculos/{vehicle} pra 'consulta-placa' não virar parâmetro.
+        // Throttle 20/min anti-abuse (consulta externa pode ter custo por chamada).
+        Route::post('veiculos/consulta-placa',     [VehicleController::class, 'consultaPlaca'])
+            ->middleware('throttle:20,1')
+            ->name('oficinaauto.vehicles.consulta-placa');
         // D8 Security Wave 15: throttle 60 req/min nas mutações autenticadas (anti-bot+anti-abuse).
         Route::post('veiculos',                    [VehicleController::class, 'store'])
             ->middleware('throttle:60,1')
