@@ -104,14 +104,16 @@
 
 ## 🟡 F0 batch — Drawer de OS V2 (ServiceOrderRichSheet · Oficina) (2026-06-09)
 
-> Pedido completo no bloco F0 de [`COWORK_NOTES.md`](COWORK_NOTES.md) (`[2026-06-09] F0 — Fila V2 do drawer de OS`). Origem: avaliação F1.5 [`AVALIACAO_OS_GIT_2026-06-09.md`](AVALIACAO_OS_GIT_2026-06-09.md) + conferência pós-merge [#2477](https://github.com/wagnerra23/oimpresso.com/pull/2477). Vinculado [ADR 0265](../memory/decisions/0265-oficina-reparo-erradica-locacao.md). O drawer `ServiceOrderRichSheet` já espelha o protótipo canon; os 4 itens abaixo são os gaps V2 declarados no próprio código. Prioridade por impacto no balcão do Martinho (biz=164 LIVE).
+> Pedido completo no bloco F0 de [`COWORK_NOTES.md`](COWORK_NOTES.md) (`[2026-06-09] F0 — Fila V2 do drawer de OS`). Origem: avaliação F1.5 [`AVALIACAO_OS_GIT_2026-06-09.md`](AVALIACAO_OS_GIT_2026-06-09.md) + conferência pós-merge [#2477](https://github.com/wagnerra23/oimpresso.com/pull/2477). Vinculado [ADR 0265](../memory/decisions/0265-oficina-reparo-erradica-locacao.md). O drawer `ServiceOrderRichSheet` já espelha o protótipo canon; os 6 itens abaixo são os gaps V2 (4 originais + V2-5/V2-6 abertos no batch 2 de 2026-06-09). **Fechamento total landado: OS-V2-1..6 todos `[x]`.** Prioridade por impacto no balcão do Martinho (biz=164 LIVE).
 
 | Status | Tela | Prioridade | Refs |
 |---|---|---|---|
 | `[x]` | OS-V2-1 · Fotos & Laudo reais no drawer | **P1** | ✅ F3 [CC] 2026-06-09 — upload OS-level real (3 estados + progresso XHR + lightbox legenda editável) via `ServiceOrderPhotoController` (HasArquivos morphTo OS) + seção "Fotos da vistoria" no print A4. Persona Técnico Repair (touch ≥44px). |
 | `[x]` | OS-V2-2 · DVI inline com severidade | **P1** | ✅ F3 [CC] 2026-06-09 — semáforo radiogroup 1-toque (ok/atenção/crítico, tokens DS) no drawer via `DviInlineEditor` + `dvi_items` no payload; CRUD reusa `DviInspectionController` + CTA "Pedir aprovação" (gate WhatsApp). |
-| `[~]` | OS-V2-3 · Gate "Pedir aprovação" hero no drawer | **P2** | Barra de total recomendado + CTA hero "Pedir aprovação" (WhatsApp `wa.me` sem PII). Portar barra do protótipo pro token do DS. |
-| `[~]` | OS-V2-4 · Linha do tempo FSM auditável | **P2** | Timeline real via histórico de transições FSM (quem/quando/de→pra), endpoint `fsm/history` previsto no código. Valor: auditoria de lead time. |
+| `[x]` | OS-V2-3 · Gate "Pedir aprovação" com ciclo de estados | **P1** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — `DviGateFoot` 4 estados (none→pending→approved\|declined) no `DviInlineEditor`, derivados do backend (`ServiceOrder::approval_state` + colunas `approval_requested_at`/`approval_decided_at`/`approval_decision`). "Cobrar" re-dispara WhatsApp; "Revisar e reenviar" volta pra pending. Sem botões de simulação. |
+| `[x]` | OS-V2-4 · Linha do tempo FSM auditável | **P1** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — `ServiceOrderTimeline` real (quem/quando/de→pra com chips) via endpoint existente `/service-orders/{id}/history`; fallback skeleton derivado quando OS antiga sem histórico. |
+| `[x]` | OS-V2-5 · StageGate — checklist de bloqueio por etapa | **P1** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — seção "Checklist de etapa" (`ServiceOrderStageGate`) entre Peças e Pipeline FSM; requisitos data-driven por transição (`StageGateEvaluator`), gate ENFORÇADO no servidor (`fsm/execute` → 422) + UI espelho (FsmActionPanel desabilita). Override gerente/superadmin registrado na trilha. |
+| `[x]` | OS-V2-6 · Lançar item inline no drawer | **P2** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — "+ Adicionar item" abre `ServiceOrderItemFormSheet` nested (sem fechar o drawer) + Editar/Remover por item (`ServiceOrderItemRow`); refetch atualiza Total OS. Touch ≥44px. |
 
 > **Residual técnico (chore, não-UI):** backfill `order_type='locacao'\|null → 'mecanica'` nas OS legadas (badge "—" na lista) · renomear LABELS (não keys) dos estágios FSM `cacamba_locacao` pro vocabulário de reparo.
 

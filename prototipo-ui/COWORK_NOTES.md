@@ -393,3 +393,38 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 ### Residual técnico (não-UI, registrar como chore)
 - Backfill `order_type='locacao'|null → 'mecanica'` nas OS legadas (badge "—" na lista).
 - Renomear LABELS (não keys) dos estágios FSM `cacamba_locacao` pra vocabulário de reparo.
+
+---
+
+## [2026-06-09] F0/F2 — Drawer de OS: fechamento total (batch 2) · aprovado [W]
+
+> Comparação drawer protótipo × `ServiceOrderRichSheet` real pós-#2482 (~85%).
+> [W] deu F2 nos F1 verificados de OS-V2-3/V2-4 e aprovou registrar + executar os 2 gaps novos.
+> Ponte F3 única gerada pra [CL] com os 4 itens.
+
+### OS-V2-3 · Gate "Pedir aprovação" com ciclo de estados — P1 · F2 ✓
+Barra hero abaixo da DVI: none (escura "Total recomendado"+CTA) → pending (âmbar
+"Aguardando · WhatsApp há X" + Cobrar) → approved (verde "Autorizado") | declined
+(vermelha "Revisar e reenviar" → reabre). Estado real vem do status da OS /
+approval_requested_at / approval_decided_at — sem botões de simulação (demo-only).
+
+### OS-V2-4 · Linha do tempo FSM auditável — P1 (era P2; subiu com F2) · F2 ✓
+Substituir TimelineSkeleton pelo fetch do histórico FSM real
+(`/oficina-auto/service-orders/{id}/fsm/history` — criar se não existir, lendo
+sale_stage_history/equivalente): quem · quando · de→pra com chips de transição.
+Eventos de aprovação (enviado/aprovado/recusado) e fotos entram na trilha.
+
+### OS-V2-5 · StageGate — checklist de bloqueio por etapa — P1 · NOVO
+Seção "Checklist de etapa" no drawer: requisitos pra avançar a etapa atual
+(ex.: Diagnóstico→orçamento exige DVI com ≥1 item e foto; Aguardando aprovação→
+execução exige aprovação registrada). Itens com check verde/pendente; botão
+"Avançar etapa" desabilitado com tooltip do que falta. Regras data-driven por
+transição (config no FSM/seeder), não hardcoded no componente.
+
+### OS-V2-6 · Lançar item inline no drawer — P2 · NOVO
+Na seção Peças & Mão de obra: botão "+ Adicionar item" abrindo o
+ServiceOrderItemFormSheet (já existe) sem sair do drawer; editar/remover item
+existente inline (kebab ou swipe). Total OS atualiza via refetch.
+
+### Residual conhecido (não bloqueia)
+- "Observação" vs "Sintoma reportado" — cosmético, campo único no schema.
