@@ -176,16 +176,24 @@ jobs:
         # dump-autoload --no-dev REMOVIA as classes dev do classmap → boot (php artisan up)
         # tentava carregar o provider e não achava → 500. Agora alinhado com o dump-autoload
         # principal (mantém dev + ignora platform-req ext-opentelemetry do Hostinger).
-        # 2026-06-09 (fix outage #2484 deploy): trocado `/usr/local/bin/composer` por
-        # `composer` (PATH). O binário hardcoded /usr/local/bin é antigo e NÃO entende
-        # `--ignore-platform-req=ext-opentelemetry` → imprime o HELP do dump-autoload e
-        # sai 1 (mesmo sintoma do incidente 2026-05-26). O step "Composer install" acima
-        # usa `composer` (PATH, 2.x) com a MESMA flag e funciona — agora alinhado.
+        # 2026-06-09 (fix outage #2484): trocou `/usr/local/bin/composer` por `composer`
+        # (PATH) achando ser versão do binário. NÃO resolveu — o deploy do PR #2485
+        # (run 27240100705, main JÁ com aquele fix) FALHOU de novo aqui (HELP + exit 1),
+        # `touch` nunca rodou e o "Smoke test" seguinte foi PULADO (sem validar prod).
+        #
+        # 2026-06-09 (fix definitivo): duas correções —
+        #   1. Espelhar EXATAMENTE o comando do step "Composer install" que funcionou no
+        #      MESMO run: `-o --classmap-authoritative --no-interaction --no-scripts`. O
+        #      `--no-scripts` evita re-disparar o post-autoload-dump (package:discover).
+        #   2. Este dump-autoload é REDUNDANTE — o classmap autoritativo JÁ foi gerado no
+        #      step "Composer install" (com pipefail, falha lá não é silenciosa). Aqui o que
+        #      importa é o `touch` que invalida o OPcache. Por isso: SEM `set -o pipefail`
+        #      neste step + `;` (não `&&`) antes do `touch` → o `touch` SEMPRE roda e este
+        #      cache-bust redundante NUNCA mais bloqueia o smoke gate.
         run: |
           /tmp/ssh_exec.sh "
-            set -o pipefail &&
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            composer dump-autoload --optimize --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 &&
+            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 ;
             find app bootstrap config routes -name '*.php' -exec touch {} + 2>&1 | tail -3
           "
 
