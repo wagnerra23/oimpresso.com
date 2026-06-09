@@ -78,6 +78,9 @@ class ServiceOrder extends Model
         'expected_completion',
         'completed_at',
         'delivered_at',
+        'approval_requested_at', // F3 OS-V2-3 — gate de aprovação (pending)
+        'approval_decided_at',   // F3 OS-V2-3 — decisão do cliente (approved/declined)
+        'approval_decision',     // F3 OS-V2-3 — approved | declined | null
         'notes',
     ];
 
@@ -95,6 +98,8 @@ class ServiceOrder extends Model
         'expected_completion'   => 'datetime',
         'completed_at'          => 'datetime',
         'delivered_at'          => 'datetime',
+        'approval_requested_at' => 'datetime', // F3 OS-V2-3
+        'approval_decided_at'   => 'datetime', // F3 OS-V2-3
     ];
 
     // ------------------------------------------------------------------
@@ -258,6 +263,34 @@ class ServiceOrder extends Model
         return round((float) $this->items()->sum('valor_total'), 2);
     }
 
+    /**
+     * Estado do gate de aprovação (F3 OS-V2-3) — fonte única consumida pelo drawer.
+     *
+     * Deriva de `status` + colunas de aprovação (NUNCA simulação no frontend):
+     *   - approved : OS já aprovada (status='aprovada') OU decisão registrada 'approved'
+     *   - declined : cliente recusou (approval_decision='declined') e ainda não reenviado
+     *   - pending  : orçamento enviado (approval_requested_at) e sem decisão, em orcamento
+     *   - none     : nada enviado ainda
+     *
+     * @return 'none'|'pending'|'approved'|'declined'
+     */
+    public function getApprovalStateAttribute(): string
+    {
+        if ($this->status === 'aprovada' || $this->approval_decision === 'approved') {
+            return 'approved';
+        }
+
+        if ($this->approval_decision === 'declined') {
+            return 'declined';
+        }
+
+        if ($this->approval_requested_at !== null && $this->status === 'orcamento') {
+            return 'pending';
+        }
+
+        return 'none';
+    }
+
     // ------------------------------------------------------------------
     // LGPD audit trail (D7.b — Wave 14)
     // ------------------------------------------------------------------
@@ -281,6 +314,7 @@ class ServiceOrder extends Model
                 'fuel_level_at_entry',
                 'entry_damages',
                 'completed_at',
+                'approval_decision', // F3 OS-V2-3 — decisão do cliente (audit trail LGPD)
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()

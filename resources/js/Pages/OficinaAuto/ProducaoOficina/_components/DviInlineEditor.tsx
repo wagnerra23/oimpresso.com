@@ -65,13 +65,42 @@ export interface DviInlineItem {
   budget_item_id?: number | null;
 }
 
+// F3 OS-V2-3 — estado do gate de aprovação, derivado do backend (ServiceOrder::approval_state).
+export type ApprovalState = 'none' | 'pending' | 'approved' | 'declined';
+
+export interface ApprovalInfo {
+  state: ApprovalState;
+  total: number;
+  requested_at: string | null;
+  decided_at: string | null;
+  decision: string | null;
+}
+
 interface Props {
   serviceOrderId: number;
   initialItems: DviInlineItem[];
-  /** Dispara o gate de aprovação (status → orcamento → WhatsApp+PIN). */
+  /**
+   * Dispara o gate de aprovação (status → orcamento → WhatsApp+PIN). O MESMO handler
+   * serve "Pedir aprovação" (none), "Cobrar" (pending) e "Revisar e reenviar" (declined) —
+   * o backend re-carimba `approval_requested_at` e re-dispara o WhatsApp.
+   */
   onPedirAprovacao: () => void;
   /** true enquanto o POST enviar-aprovacao está em voo (vem do drawer). */
   approvalSending?: boolean;
+  /** F3 OS-V2-3 — estado do gate vindo do backend (null = none). */
+  approval?: ApprovalInfo | null;
+}
+
+// Tempo relativo curto pro gate ("há 12 min" / "há 3h" / "há 2d").
+function gateRel(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const min = Math.max(1, Math.round((Date.now() - then) / 60000));
+  if (min < 60) return `há ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `há ${h}h`;
+  return `há ${Math.round(h / 24)}d`;
 }
 
 // Presets de sistema → mapeiam o "sistema" do protótipo (DVI_SISTEMAS) na dupla
@@ -203,6 +232,7 @@ export default function DviInlineEditor({
   initialItems,
   onPedirAprovacao,
   approvalSending = false,
+  approval = null,
 }: Props) {
   // Estado local seeded uma vez por OS (drawer renderiza com key={data.id}).
   const [items, setItems] = useState<DviInlineItem[]>(initialItems);
@@ -512,33 +542,151 @@ export default function DviInlineEditor({
         </Inline>
       )}
 
-      {/* Rodapé: total recomendado + CTA Pedir aprovação */}
-      <Inline justify="between" gap={3} className="pt-1">
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Total recomendado · cliente
+      {/* Rodapé: gate de aprovação com ciclo de estados (F3 OS-V2-3).
+          none → pending → approved | declined. Derivado do backend (approval). */}
+      <DviGateFoot
+        total={sums.total}
+        itemsCount={items.length}
+        approval={approval}
+        sending={approvalSending}
+        onPedirAprovacao={onPedirAprovacao}
+      />
+    </div>
+  );
+}
+
+// F3 OS-V2-3 — barra hero do gate de aprovação com 4 estados (espelha DviGateFoot do
+// protótipo Cowork aprovado [W] 2026-06-09). Sem botões de simulação demo: o estado
+// vem do backend (status da OS + approval_requested_at / approval_decided_at).
+function DviGateFoot({
+  total,
+  itemsCount,
+  approval,
+  sending,
+  onPedirAprovacao,
+}: {
+  total: number;
+  itemsCount: number;
+  approval: ApprovalInfo | null;
+  sending: boolean;
+  onPedirAprovacao: () => void;
+}) {
+  const state: ApprovalState = approval?.state ?? 'none';
+  // Em pending/approved/declined o valor exibido é o que o cliente recebeu (backend);
+  // em none usa o total recomendado vivo da DVI.
+  const shownTotal = state === 'none' ? total : (approval?.total ?? total);
+
+  const spinnerOr = (icon: React.ReactNode) =>
+    sending ? <Loader2 size={14} className="animate-spin" aria-hidden /> : icon;
+
+  if (state === 'pending') {
+    return (
+      <Inline
+        justify="between"
+        gap={3}
+        className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 pt-2"
+      >
+        <div className="min-w-0">
+          <div className="truncate text-[10px] font-semibold uppercase tracking-wider text-warning-foreground">
+            Aguardando aprovação · WhatsApp {gateRel(approval?.requested_at)}
           </div>
           <div className="text-base font-semibold tabular-nums text-foreground">
-            {fmtBRL(sums.total)}
+            {fmtBRL(shownTotal)}
           </div>
         </div>
         <Button
           type="button"
           size="sm"
+          variant="outline"
           className="h-8 gap-1.5"
-          disabled={approvalSending || items.length === 0}
+          disabled={sending}
           onClick={onPedirAprovacao}
-          title="Envia o orçamento da vistoria por WhatsApp (link + PIN)"
+          title="Reenvia o link de aprovação por WhatsApp"
         >
-          {approvalSending ? (
-            <Loader2 size={14} className="animate-spin" aria-hidden />
-          ) : (
-            <MessageCircle size={14} aria-hidden />
-          )}
-          Pedir aprovação
+          {spinnerOr(<MessageCircle size={14} aria-hidden />)}
+          Cobrar
         </Button>
       </Inline>
-    </div>
+    );
+  }
+
+  if (state === 'approved') {
+    return (
+      <Inline
+        justify="between"
+        gap={3}
+        className="rounded-md border border-success/40 bg-success/10 px-3 py-2"
+      >
+        <div className="min-w-0">
+          <div className="truncate text-[10px] font-semibold uppercase tracking-wider text-success-foreground">
+            Aprovado pelo cliente {gateRel(approval?.decided_at)}
+          </div>
+          <div className="text-base font-semibold tabular-nums text-foreground">
+            {fmtBRL(shownTotal)}
+          </div>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-success">
+          <Check size={15} aria-hidden />
+          Autorizado
+        </span>
+      </Inline>
+    );
+  }
+
+  if (state === 'declined') {
+    return (
+      <Inline
+        justify="between"
+        gap={3}
+        className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2"
+      >
+        <div className="min-w-0">
+          <div className="truncate text-[10px] font-semibold uppercase tracking-wider text-destructive">
+            Cliente recusou {gateRel(approval?.decided_at)}
+          </div>
+          <div className="text-base font-semibold tabular-nums text-foreground">
+            {fmtBRL(shownTotal)}
+          </div>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-8 gap-1.5"
+          disabled={sending}
+          onClick={onPedirAprovacao}
+          title="Revise o orçamento e reenvie o link de aprovação"
+        >
+          {spinnerOr(<MessageCircle size={14} aria-hidden />)}
+          Revisar e reenviar
+        </Button>
+      </Inline>
+    );
+  }
+
+  // none — barra padrão "Total recomendado · cliente" + CTA Pedir aprovação.
+  return (
+    <Inline justify="between" gap={3} className="pt-1">
+      <div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Total recomendado · cliente
+        </div>
+        <div className="text-base font-semibold tabular-nums text-foreground">
+          {fmtBRL(shownTotal)}
+        </div>
+      </div>
+      <Button
+        type="button"
+        size="sm"
+        className="h-8 gap-1.5"
+        disabled={sending || itemsCount === 0}
+        onClick={onPedirAprovacao}
+        title="Envia o orçamento da vistoria por WhatsApp (link + PIN)"
+      >
+        {spinnerOr(<MessageCircle size={14} aria-hidden />)}
+        Pedir aprovação
+      </Button>
+    </Inline>
   );
 }
 

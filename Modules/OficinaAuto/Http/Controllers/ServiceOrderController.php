@@ -663,6 +663,17 @@ class ServiceOrderController extends Controller
                     'notes'          => $item->notes,
                 ])->values()->all(),
                 'items_total' => (float) $order->total_items,
+                // F3 OS-V2-3 — estado do gate de aprovação (none/pending/approved/declined)
+                // + timestamps. O drawer (DviInlineEditor · DviGateFoot) deriva a barra de
+                // 4 estados DESTE payload — nunca de simulação client-side. `total` espelha o
+                // total recomendado da DVI (atenção+crítico), o número que o cliente aprovou.
+                'approval' => [
+                    'state'        => $order->approval_state,
+                    'total'        => (float) $order->dvi_breakdown['total_recomendado'],
+                    'requested_at' => $order->approval_requested_at?->toIso8601String(),
+                    'decided_at'   => $order->approval_decided_at?->toIso8601String(),
+                    'decision'     => $order->approval_decision,
+                ],
                 // F3 OS-V2-2 — itens DVI (Vistoria Digital) pra o semáforo inline editável
                 // do drawer ServiceOrderRichSheet (DviInlineEditor). Mesmo shape do branch
                 // Inertia (Show), + sort_order pra ordenação estável. `budget_item_id` (em
@@ -817,8 +828,28 @@ class ServiceOrderController extends Controller
             ]);
         }
 
-        // status → orcamento dispara o Observer (WhatsApp link + PIN ao cliente).
-        $order->update(['status' => 'orcamento']);
+        // F3 OS-V2-3 — distingue 1º envio de RE-envio ("Cobrar" / "Revisar e reenviar").
+        // O ServiceOrderObserver só dispara o WhatsApp quando o status MUDA pra orcamento;
+        // num re-envio (já em orcamento) precisamos disparar manualmente + limpar a chave
+        // de idempotência de 7d do Job pra forçar um novo envio.
+        $jaEmOrcamento = $order->status === 'orcamento';
+
+        // Carimba o gate: pending (requested_at) + zera decisão anterior (caso reenvio
+        // pós-declined → volta pra pending). status → orcamento (Observer envia WhatsApp).
+        $order->forceFill([
+            'status'                => 'orcamento',
+            'approval_requested_at' => now(),
+            'approval_decided_at'   => null,
+            'approval_decision'     => null,
+        ])->save();
+
+        if ($jaEmOrcamento) {
+            \Illuminate\Support\Facades\Cache::forget("oficina:approval_dispatched:{$order->id}");
+            \Modules\OficinaAuto\Jobs\EnviarLinkAprovacaoWhatsappJob::dispatch(
+                (int) $order->business_id,
+                (int) $order->id,
+            );
+        }
 
         return back()->with('status', [
             'success' => 1,
