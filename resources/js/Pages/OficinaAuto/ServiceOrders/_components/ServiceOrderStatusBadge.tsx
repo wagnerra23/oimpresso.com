@@ -6,7 +6,8 @@ import { cn } from '@/Lib/utils';
 
 export interface ServiceOrderStatusBadgeProps {
   status: string;
-  orderType?: 'locacao' | 'manutencao' | null;
+  // ADR 0265: domínio = reparo — order_type ∈ {manutencao, mecanica}
+  orderType?: 'manutencao' | 'mecanica' | null;
   isOverdue?: boolean;
   className?: string;
 }
@@ -16,11 +17,11 @@ interface BadgeStyle {
   classes: string;
 }
 
-function resolveBadge({ status, orderType, isOverdue }: ServiceOrderStatusBadgeProps): BadgeStyle {
-  // Atrasada tem prioridade visual máxima.
-  if (isOverdue && orderType === 'locacao' && !['concluida', 'cancelada'].includes(status)) {
+function resolveBadge({ status, isOverdue }: ServiceOrderStatusBadgeProps): BadgeStyle {
+  // Atrasada tem prioridade visual máxima (qualquer tipo de reparo ativo).
+  if (isOverdue && !['concluida', 'cancelada', 'entregue'].includes(status)) {
     return {
-      label: 'Atrasada · cobrar',
+      label: 'Atrasada',
       classes: 'bg-rose-100 text-rose-700 border-rose-300',
     };
   }
@@ -45,15 +46,7 @@ function resolveBadge({ status, orderType, isOverdue }: ServiceOrderStatusBadgeP
     };
   }
 
-  // Estados ativos — combina com tipo.
-  if (orderType === 'locacao') {
-    return {
-      label: 'Em locação',
-      classes: 'bg-blue-50 text-blue-700 border-blue-200',
-    };
-  }
-
-  // Manutenção ou tipo desconhecido — diferencia pelo status.
+  // Estados ativos — diferencia pelo status (FSM reparo).
   switch (status) {
     case 'aberta':
       return {

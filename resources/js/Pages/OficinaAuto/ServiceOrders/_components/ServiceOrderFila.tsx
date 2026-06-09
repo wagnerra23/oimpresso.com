@@ -29,7 +29,8 @@ export interface FilaOrder {
   id: number;
   number?: string | null;
   status: string;
-  order_type?: 'locacao' | 'manutencao' | null;
+  // ADR 0265: order_type ∈ {manutencao, mecanica}
+  order_type?: 'manutencao' | 'mecanica' | null;
   delivery_address?: string | null;
   expected_return_date?: string | null;
   expected_completion?: string | null;
@@ -66,7 +67,7 @@ function vehicleLabel(o: FilaOrder): string {
 }
 
 function typeLabel(t: FilaOrder['order_type']): string {
-  if (t === 'locacao') return 'Locação';
+  if (t === 'mecanica') return 'Mecânica';
   if (t === 'manutencao') return 'Manutenção';
   return '—';
 }
@@ -233,12 +234,6 @@ function OsDetailInline({
               {overdue && ' ⚠'}
             </dd>
           </div>
-          {o.order_type === 'locacao' && o.dias_locacao != null && (
-            <div>
-              <dt className="text-xs text-muted-foreground">Diárias</dt>
-              <dd className="tabular-nums text-foreground">{o.dias_locacao}d</dd>
-            </div>
-          )}
           <div>
             <dt className="text-xs text-muted-foreground">A receber</dt>
             <dd className={cn('tabular-nums', Number(o.valor_receber ?? 0) > 0 ? 'text-warning' : 'text-foreground')}>

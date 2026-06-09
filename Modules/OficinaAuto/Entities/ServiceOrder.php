@@ -63,6 +63,7 @@ class ServiceOrder extends Model
         'business_id',
         'transaction_id',
         'vehicle_id',
+        'contact_id',          // Sweep ADR 0265 — Create envia cliente (dono do caminhão 3º); scopado por business na validação
         'order_type',
         'delivery_address',
         'expected_return_date',
