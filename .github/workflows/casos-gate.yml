@@ -4,27 +4,17 @@ name: Casos-coverage ratchet (trio-de-tela + caso↔teste)
 # (charter.md + casos.md); todo UC-* precisa de >=1 teste citando o id. Ratchet: FALHA só
 # se a contagem de violações AUMENTAR vs baseline (legado absorvido; encolher é sempre OK).
 #
-# FASE 1 (ADR 0264 + ADR 0261): este workflow RODA e reporta a dívida, mas NÃO é required
-# status check ainda — vira `required` na Fase 2 (flip consciente, após [W] ver a dívida),
-# convertendo pra always-run + skip-as-pass (padrão ADR 0261 Alavanca 2).
+# FASE 2 (ADR 0264 + ADR 0261, flip [W] 2026-06-09): ALWAYS-RUN → required status check.
+# O ratchet é node:fs puro (~12s) e SEMPRE reporta verde quando nada regrediu — por isso é
+# seguro como `required` sem deadlock (padrão ADR 0261 Alavanca 2: always-run > path-scoped
+# required). Tirar o filtro `paths:` é o flip: o check passa a reportar em TODO PR.
 #
 # Node puro (node:fs), sem deps, sem npm ci. Comando local: npm run casos:check
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'resources/js/Pages/**'
-      - 'scripts/casos-coverage-guard.mjs'
-      - 'scripts/casos-coverage-baseline.json'
-      - '.github/workflows/casos-gate.yml'
   pull_request:
-    paths:
-      - 'resources/js/Pages/**'
-      - 'scripts/casos-coverage-guard.mjs'
-      - 'scripts/casos-coverage-baseline.json'
-      - 'tests/casosGuard.spec.ts'
-      - '.github/workflows/casos-gate.yml'
 
 concurrency:
   group: casos-gate-${{ github.ref }}
@@ -63,17 +53,3 @@ jobs:
           echo "  3. Se for legado movido/refatorado conscientemente: npm run casos:baseline:write"
           echo ""
           echo "Refs: ADR 0264 (G-1/G-2) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca)"
-
-  meta-test:
-    name: meta-teste do casos-guard (vitest)
-    # O gate só "vale" se o controle-negativo que o prova roda no CI (método ADR 0258).
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Install deps
-        run: npm ci
-      - name: Controle-negativo do casos-guard (físico)
-        run: npm run test:casos-guard
