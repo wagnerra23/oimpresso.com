@@ -1,7 +1,10 @@
 // @memcofre tela=/oficina-auto/ordens-servico module=OficinaAuto
-// V0.5 dashboard de OS (mecânica pesada predominante + schema locação preservado nullable) — Martinho LIVE prod biz=164 (sub-vertical 4 ADR 0194).
-// Espelha layout Vehicles Index (Wave 5-B) + mockup demo-martinho-2026-05-13/mockup.html.
-// Schema flags do Backend permitem renderizar mesmo antes da Wave 5-A migrar.
+// V0.6 dashboard de OS — Martinho LIVE prod biz=164 (sub-vertical 4 ADR 0194).
+// 2026-06-09 sweep ADR 0265 (avaliação [CC]): locação erradicada do front —
+// types/pills/colunas/copy agora são de REPARO (mecanica|manutencao). Colunas
+// de locação (Endereço/Diárias) removidas; "Caçamba"→"Veículo"; formatBRL
+// null→"—" (antes vazava "R$ [redacted Tier 0]" literal na UI).
+// Espelha layout Vehicles Index (Wave 5-B).
 // RUNBOOK: memory/requisitos/OficinaAuto/RUNBOOK-index.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -29,7 +32,8 @@ function initialView(): ListView {
 }
 
 // ──────── Types ────────
-type OrderType = 'locacao' | 'manutencao' | null;
+// ADR 0265: order_type ∈ {manutencao, mecanica} — 'locacao' não existe mais no enum.
+type OrderType = 'manutencao' | 'mecanica' | null;
 
 interface VehicleRel {
   id: number;
@@ -133,15 +137,14 @@ const EMPTY_KPIS: Kpis = {
 // ──────── Helpers ────────
 const STATUS_PILLS: Array<{ key: string; label: string }> = [
   { key: 'all', label: 'Todas' },
-  { key: 'locacao_ativa', label: 'Locações ativas' },
-  { key: 'manutencao_ativa', label: 'Em manutenção' },
+  { key: 'manutencao_ativa', label: 'Em andamento' },
   { key: 'concluida_mes', label: 'Concluídas mês' },
   { key: 'atrasada', label: 'Atrasadas' },
 ];
 
 const TYPE_PILLS: Array<{ key: string; label: string }> = [
   { key: 'all', label: 'Todos os tipos' },
-  { key: 'locacao', label: 'Locação' },
+  { key: 'mecanica', label: 'Mecânica' },
   { key: 'manutencao', label: 'Manutenção' },
 ];
 
@@ -155,9 +158,9 @@ function formatBRDate(value?: string | null): string {
 }
 
 function formatBRL(value: number | string | null | undefined): string {
-  if (value === null || value === undefined || value === '') return 'R$ [redacted Tier 0]';
+  if (value === null || value === undefined || value === '') return '—';
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (Number.isNaN(num)) return 'R$ [redacted Tier 0]';
+  if (Number.isNaN(num)) return '—';
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
@@ -247,7 +250,7 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
     applyFilter({});
   }
 
-  const subtitle = `${kpis.locacoes_ativas} locações ativas · ${kpis.manutencao_ativas} manutenções · ${kpis.atrasadas} atrasadas`;
+  const subtitle = `${kpis.manutencao_ativas} em andamento · ${kpis.concluidas_mes} concluídas no mês · ${kpis.atrasadas} atrasadas`;
 
   return (
     <AppShellV2>
@@ -279,21 +282,15 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
         {/* Aviso pré-Wave 5-A (some quando schema migrar) */}
         {!schemaFlags.has_order_type && (
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Schema Wave 5-A pendente — distinção locação/manutenção só ativa após migração de
+            Schema Wave 5-A pendente — distinção mecânica/manutenção só ativa após migração de
             <code className="mx-1 px-1 rounded bg-amber-100">order_type</code>.
           </div>
         )}
 
-        {/* KPIs */}
-        <KpiGrid cols={4}>
+        {/* KPIs — reparo (ADR 0265: KPI de locação morreu com o domínio) */}
+        <KpiGrid cols={3}>
           <KpiCard
-            label="Locações ativas"
-            value={kpis.locacoes_ativas}
-            tone="info"
-            icon="truck"
-          />
-          <KpiCard
-            label="Em manutenção"
+            label="Em andamento"
             value={kpis.manutencao_ativas}
             tone="warning"
             icon="wrench"
@@ -482,18 +479,13 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
               <table className="w-full text-sm">
                 <thead className="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2 text-left w-8">
-                      <input type="checkbox" disabled aria-label="Selecionar todos" />
-                    </th>
                     <th className="px-3 py-2 text-left">Nº OS</th>
                     <th className="px-3 py-2 text-left">Tipo</th>
-                    <th className="px-3 py-2 text-left">Caçamba</th>
+                    <th className="px-3 py-2 text-left">Veículo</th>
                     <th className="px-3 py-2 text-left">Cliente</th>
-                    <th className="px-3 py-2 text-left">Endereço</th>
-                    <th className="px-3 py-2 text-left">Início</th>
-                    <th className="px-3 py-2 text-left">Prazo</th>
-                    <th className="px-3 py-2 text-right">Diárias</th>
-                    <th className="px-3 py-2 text-right">A receber</th>
+                    <th className="px-3 py-2 text-left">Entrada</th>
+                    <th className="px-3 py-2 text-left">Previsão</th>
+                    <th className="px-3 py-2 text-right">Valor</th>
                     <th className="px-3 py-2 text-left">Status</th>
                   </tr>
                 </thead>
@@ -502,7 +494,6 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                     const overdue = isOverdueClient(o, schemaFlags);
                     const startedAt = o.started_at ?? o.entered_at;
                     const prazo = schemaFlags.has_return_date ? o.expected_return_date : o.expected_completion;
-                    const isLocacao = o.order_type === 'locacao';
 
                     return (
                       <tr
@@ -513,9 +504,6 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                         )}
                         onClick={() => setOpenOsId(o.id)}
                       >
-                        <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                          <input type="checkbox" disabled aria-label={`Selecionar OS ${o.id}`} />
-                        </td>
                         <td className="px-3 py-2.5 font-mono font-semibold">
                           {overdue && (
                             <span
@@ -526,9 +514,9 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                           {o.number ?? `#${o.id}`}
                         </td>
                         <td className="px-3 py-2.5">
-                          {o.order_type === 'locacao' ? (
-                            <span className="inline-block px-2 py-0.5 text-xs rounded bg-blue-50 text-blue-700 border border-blue-200">
-                              Locação
+                          {o.order_type === 'mecanica' ? (
+                            <span className="inline-block px-2 py-0.5 text-xs rounded bg-violet-50 text-violet-700 border border-violet-200">
+                              Mecânica
                             </span>
                           ) : o.order_type === 'manutencao' ? (
                             <span className="inline-block px-2 py-0.5 text-xs rounded bg-amber-50 text-amber-700 border border-amber-200">
@@ -562,11 +550,6 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                         <td className="px-3 py-2.5">
                           {o.contact?.name ?? <span className="text-muted-foreground">—</span>}
                         </td>
-                        <td className="px-3 py-2.5 text-xs text-muted-foreground max-w-[200px]">
-                          <div className="truncate" title={o.delivery_address ?? ''}>
-                            {o.delivery_address || '—'}
-                          </div>
-                        </td>
                         <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground">
                           {formatBRDate(startedAt)}
                         </td>
@@ -577,20 +560,6 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                           )}
                         >
                           {formatBRDate(prazo)}
-                        </td>
-                        <td
-                          className={cn(
-                            'px-3 py-2.5 text-right tabular-nums',
-                            overdue ? 'text-rose-700 font-medium' : '',
-                          )}
-                        >
-                          {isLocacao && o.dias_locacao != null ? (
-                            <>
-                              {o.dias_locacao}d{overdue && ' ⚠'}
-                            </>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
                         </td>
                         <td
                           className={cn(
