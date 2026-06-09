@@ -9,9 +9,12 @@ use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Services\Privacy\PiiRedactor;
+use Illuminate\Http\JsonResponse;
 use Modules\OficinaAuto\Entities\Vehicle;
 use Modules\OficinaAuto\Http\Requests\StoreVehicleRequest;
 use Modules\OficinaAuto\Http\Requests\UpdateVehicleRequest;
+use Modules\OficinaAuto\Services\PlacaLookup\PlacaLookupException;
+use Modules\OficinaAuto\Services\VehicleLookupService;
 
 /**
  * VehicleController — CRUD de veículos (Modules/OficinaAuto V0).
@@ -195,6 +198,67 @@ class VehicleController extends Controller
 
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo cadastrado.']);
+    }
+
+    /**
+     * Consulta de placa (AJAX) — digita a placa e busca os dados do veículo.
+     *
+     * Endpoint JSON consumido pelo botão "Buscar" no form de cadastro
+     * (resources/js/Pages/OficinaAuto/Vehicles/Create.tsx). Retorna SÓ dados
+     * técnicos do veículo (charter Create v2) — NENHUM dado de proprietário é
+     * devolvido nem armazenado (sem PII de terceiro). PII da placa nunca é logada.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): cache do resultado é namespeada por
+     * business_id da sessão dentro do VehicleLookupService.
+     *
+     * @see Modules\OficinaAuto\Services\VehicleLookupService
+     */
+    public function consultaPlaca(Request $request, VehicleLookupService $lookup): JsonResponse
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.vehicle.create'),
+            403
+        );
+
+        $validated = $request->validate([
+            'plate' => ['required', 'string', 'max:10'],
+        ]);
+
+        $plate = VehicleLookupService::normalizePlate($validated['plate']);
+
+        if (! VehicleLookupService::isValidPlate($plate)) {
+            return response()->json([
+                'found'   => false,
+                'message' => 'Placa inválida — use o formato ABC1234 (antiga) ou ABC1D23 (Mercosul).',
+            ], 422);
+        }
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+
+        try {
+            $result = $lookup->lookup($plate, $businessId);
+        } catch (PlacaLookupException $e) {
+            // D7 LGPD: a exceção já é PII-safe (não carrega placa), mas redaciona por garantia.
+            \Log::warning('[oficinaauto] consulta-placa falhou: ' . app(PiiRedactor::class)->redact($e->getMessage()));
+
+            return response()->json([
+                'found'   => false,
+                'message' => 'Consulta de placa indisponível no momento. Preencha os dados manualmente.',
+            ], 502);
+        }
+
+        if ($result === null) {
+            return response()->json([
+                'found'   => false,
+                'message' => 'Nenhum dado encontrado para esta placa.',
+            ]);
+        }
+
+        return response()->json([
+            'found' => true,
+            'data'  => $result->toArray(),
+        ]);
     }
 
     public function show(Vehicle $vehicle): Response

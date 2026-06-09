@@ -8654,6 +8654,12 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 7
+			path: Modules/OficinaAuto/Config/config.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
 			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
 
