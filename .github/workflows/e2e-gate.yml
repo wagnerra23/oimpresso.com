@@ -1,0 +1,70 @@
+name: E2E Playwright (UCs críticos) — G-3 NÃO-required
+
+# Gate G-3 da Governança executável (ADR 0264): E2E de comportamento nos UCs críticos.
+#
+# ⚠️ workflow_dispatch (MANUAL) por enquanto — o harness boota o app real (PHP+DB+build+serve)
+# e o primeiro run verde ainda não foi validado (sem stack no agente desktop). Manter MANUAL +
+# NÃO-required evita travar todo merge num gate ainda-não-estável (lição dura ADR 0261).
+# Quando verde-estável: trocar pra `pull_request` + promover a required junto com casos/dominio.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E Playwright · UCs críticos (não-required)
+    runs-on: ubuntu-latest
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, mbstring, bcmath, intl
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: NPM ci + build Inertia
+        run: |
+          npm ci
+          npm run build:inertia
+
+      - name: App bootstrap (env + key + migrate + seed biz=1)
+        run: |
+          cp .env.example .env || true
+          php artisan key:generate --force
+          php artisan migrate --force
+          # Seed do piloto OficinaAuto (biz=1 dev — ADR 0101). Ajustar o seeder conforme o real.
+          php artisan db:seed --class="Modules\\OficinaAuto\\Database\\Seeders\\OficinaAutoDatabaseSeeder" --force || true
+
+      - name: Playwright install (chromium)
+        run: npm run e2e:install
+
+      - name: Serve app + run E2E
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8000 &
+          npx wait-on http://127.0.0.1:8000 --timeout 60000 || sleep 10
+          npm run e2e:check
+
+      - name: Upload trace/report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
