@@ -71,7 +71,29 @@ que é `order_type`-only). Marcados aqui pra ficarem **visíveis**, não escondi
 > Erradicar estes exige migration Tier 0 em `vehicles` + ajuste de `Vehicle`/`VehicleQueryService` —
 > escopo que Wagner ainda não autorizou. Quando autorizar, remover daqui e do schema juntos.
 
+## Cobertura de CÓDIGO (Salto #3 — domínio além do enum)
+
+O `dominio:check` não para no enum: nos módulos com este dicionário ele também varre o **código de
+aplicação** (exclui `Database/` e `Tests/`) e exige que todo valor-literal usado **contra uma coluna
+governada** seja canônico. Padrões cobertos: `->where('col','v')` / `->where('col','=','v')` /
+`->whereIn('col', ['v',…])`, comparação de campo `$x->col === 'v'` (e `!== / == / != / <>`), e regra
+de validação Laravel `'col' => '…|in:v1,v2'`. Só literais entre aspas — `self::CONST`/variável/operador
+(`like`) não contam (anti-falso-positivo). Chave: `dominio:undeclared-code-value:<mod>:<col>:<valor>`.
+
+**Por que existe:** erradicar o *enum* não basta — a alucinação sobrevive como **código morto** que
+ramifica num valor que não existe mais (ex.: `if ($so->order_type === 'locacao')` depois do enum já ser
+`{manutencao, mecanica}`). É o que o enum-check não pegava.
+
+**Débito atual fotografado (baseline F1):** `dominio:undeclared-code-value:OficinaAuto:order_type:locacao`
+— 11 ocorrências de código morto pós-erradicação (`ServiceOrder`, `Vehicle`, `ServiceOrderController`,
+`AprovacaoOsController`, `ServiceOrderObserver`). Ratchet zera quando o **follow-up de limpeza de
+dead-code** (documentado no `RUNBOOK-erradicacao-locacao.md`) remover essas ramificações. Valores de
+`current_status.locada` no código **não** flagam (ainda declarados como resíduo vestigial acima).
+
 ## Trilha do tempo
 
 - 2026-06-09 · [CL] semeou o dicionário (ADR 0264 G-4) já com `order_type` canônico pós-erradicação
   (ADR 0265). Resíduo `current_status.locada` + `vehicle_type.cacamba_*` flagado como débito visível.
+- 2026-06-09 · [CL] **Salto #3** — `dominio:check` ganhou cobertura de código (`undeclared-code-value`).
+  Pegou 11 ramificações de `order_type === 'locacao'` em código vivo (dead-code) que o enum-check não via
+  → absorvidas no baseline como débito caçável (ratchet).

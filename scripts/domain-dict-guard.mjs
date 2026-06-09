@@ -15,12 +15,28 @@
 // O guard deriva o ESTADO ATUAL de cada enum percorrendo as migrations do módulo
 // (last-write-wins por tabela.coluna, só a região up()) e compara com o dicionário.
 //
+// ── SALTO #3: domínio ALÉM do enum (cobertura de código) ────────────────────────────
+// Erradicar o enum NÃO basta: a alucinação sobrevive como CÓDIGO MORTO que ramifica num
+// valor que não existe mais (ex.: `if ($so->order_type === 'locacao')` depois do enum já
+// ter virado {manutencao, mecanica}). O enum-check não pega isso. Então, NOS MÓDULOS COM
+// DICIONÁRIO, o guard também varre o código de aplicação e exige que todo valor-literal
+// usado em POSIÇÃO DE DOMÍNIO contra uma coluna governada seja canônico:
+//   · query builder:        ->where('col', 'v') · ->where('col','=','v') · ->whereIn('col', ['v',...])
+//   · comparação de campo:  $x->col === 'v' / !== / == / != / <>  (e a forma invertida)
+//   · regra de validação:   'col' => '...|in:v1,v2'  (Laravel `in:`)
+// Escopo CUIDADOSO (só módulo com dict; só coluna declarada; só literal — variável/CONST
+// não conta). EXCLUI Database/ (migration+seeder+factory: data-fix legitimamente cita o
+// valor velho) e Tests/ (fixture pode afirmar que o valor é REJEITADO). Ligação valor⇔coluna
+// é pelo NOME da coluna (sufixo após o último ponto) — colunas genéricas (`tipo`/`status`)
+// podem super-casar; o dono do dicionário refina declarando a coluna certa.
+//
 // VIOLAÇÕES (cada uma uma chave estável pro ratchet):
-//   dominio:undeclared-value:<mod>:<tab.col>:<v>    valor no schema mas não no dicionário
-//   dominio:stale-dict-value:<mod>:<tab.col>:<v>    valor no dicionário mas não no schema
-//   dominio:undeclared-column:<mod>:<tab.col>       coluna enum no schema do módulo, fora do dicionário
+//   dominio:undeclared-value:<mod>:<tab.col>:<v>     valor no schema (enum) mas não no dicionário
+//   dominio:stale-dict-value:<mod>:<tab.col>:<v>     valor no dicionário mas não no schema (enum)
+//   dominio:undeclared-column:<mod>:<tab.col>        coluna enum no schema do módulo, fora do dicionário
 //   dominio:missing-column-in-schema:<mod>:<tab.col> coluna no dicionário sem enum correspondente
-//   dominio:module-no-dict:<mod>                     módulo TEM enum em migration mas NÃO tem dicionário
+//   dominio:undeclared-code-value:<mod>:<col>:<v>    valor-literal usado no CÓDIGO contra coluna governada, fora do dicionário (Salto #3)
+//   dominio:module-no-dict:<mod>                      módulo TEM enum em migration mas NÃO tem dicionário
 //
 // =====================================================================================
 // RATCHET / BASELINE — gêmeo de no-mock-in-prod.mjs / casos-coverage-guard.mjs
@@ -34,7 +50,7 @@
 // Gate falha só em divergência NOVA (ratchet). Ex.: `order_type=locacao` entra no baseline
 // agora; o PR de erradicação (ADR 0265) remove o enum e a divergência some sozinha.
 //
-// Refs: ADR 0264 (G-4) · ADR 0265 (erradica locação) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca).
+// Refs: ADR 0264 (G-4 + Salto #3 cobertura de código) · ADR 0265 (erradica locação) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca).
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
@@ -163,13 +179,107 @@ function modulesWithEnums() {
 }
 
 // ---------------------------------------------------------------------------
+// SALTO #3 — cobertura de código (valores de domínio hardcoded fora do enum)
+// ---------------------------------------------------------------------------
+// Sufixo da coluna (ignora prefixo de tabela: 'service_orders.order_type' → 'order_type').
+const shortColOf = (c) => (c.includes('.') ? c.split('.').pop() : c);
+
+// Índice coluna-curta → Set(valores canônicos) a partir do dicionário do módulo.
+// União por nome de coluna: um valor é "declarado" se for canônico pra QUALQUER tabela com
+// aquela coluna (conservador — minimiza falso-positivo no ratchet).
+function buildColIndex(enums) {
+  const idx = {};
+  for (const [tabCol, vals] of Object.entries(enums)) {
+    const short = shortColOf(tabCol);
+    (idx[short] ??= new Set());
+    for (const v of vals) idx[short].add(v);
+  }
+  return idx;
+}
+
+// Arquivos de CÓDIGO de aplicação do módulo (exclui data-setup e testes — ver header).
+function moduleCodeFiles(moduleName) {
+  const dir = join(MODULES_DIR, moduleName);
+  return walk(dir, (full, name) => {
+    if (!name.endsWith('.php')) return false;
+    const rel = norm(full);
+    return !/\/(Database|Tests|tests)\//.test(rel);
+  });
+}
+
+// Referências valor⇔coluna num texto PHP. Só literais entre aspas simples; variável/CONST
+// (sem aspas) é ignorada de propósito. Retorna [{ col, value, index }].
+function codeValueRefs(content) {
+  const refs = [];
+
+  // (1) where / orWhere — 2-arg ('col','v') ou 3-arg ('col','OP','v'). Agnóstico a aspas
+  // (' ou ", via backreference). No 3-arg só conta IGUALDADE (=,==,===,!=,<>): operadores
+  // tipo `like`/`>`/`<` levam pattern/número, não valor de domínio. Guarda extra: se o 2º
+  // arg é um operador-palavra (like/ilike/...) o 3º (real valor) costuma ser variável/aspas
+  // duplas — ignora. E o valor tem que parecer token de domínio (^[a-z0-9_]+$).
+  const EQ_OPS = new Set(['=', '==', '===', '!=', '<>']);
+  const WORD_OPS = new Set(['like', 'ilike', 'rlike', 'regexp', 'in', 'between', 'not']);
+  const isDomainTok = (v) => /^[a-z0-9_]+$/.test(v);
+  for (const m of content.matchAll(/->(?:or)?[wW]here\(\s*['"]([a-z0-9_.]+)['"]\s*,\s*(['"])([^'"]*)\2\s*(?:,\s*(['"])([^'"]*)\4)?/g)) {
+    const col = shortColOf(m[1]);
+    const hasThird = m[5] !== undefined;
+    const value = hasThird ? m[5] : m[3];
+    if (hasThird && !EQ_OPS.has(m[3])) continue;   // 3-arg não-igualdade (like/>/<) → ignora
+    if (!hasThird && WORD_OPS.has(m[3])) continue;  // 2-arg cujo "valor" é na verdade operador → ignora
+    if (!isDomainTok(value)) continue;
+    refs.push({ col, value, index: m.index });
+  }
+  // (2) whereIn / whereNotIn com lista LITERAL (self::CONST sem '[' não casa, de propósito).
+  for (const m of content.matchAll(/->where(?:Not)?In\(\s*'([a-z0-9_.]+)'\s*,\s*\[([^\]]*)\]/g)) {
+    const col = shortColOf(m[1]);
+    for (const vm of m[2].matchAll(/'([a-z0-9_]+)'/g)) refs.push({ col, value: vm[1], index: m.index });
+  }
+  // (3) comparação de campo: ->col OP 'v'  e a forma invertida 'v' OP $x->col.
+  for (const m of content.matchAll(/->([a-z0-9_]+)\s*(?:===|!==|==|!=|<>)\s*'([a-z0-9_]+)'/g)) {
+    refs.push({ col: m[1], value: m[2], index: m.index });
+  }
+  for (const m of content.matchAll(/'([a-z0-9_]+)'\s*(?:===|!==|==|!=|<>)\s*\$[a-z0-9_]+->([a-z0-9_]+)/g)) {
+    refs.push({ col: m[2], value: m[1], index: m.index });
+  }
+  // (4) regra de validação Laravel `in:` na mesma linha lógica: 'col' => '...|in:v1,v2'.
+  for (const m of content.matchAll(/'([a-z0-9_.]+)'\s*=>[^\n]*?\bin:([a-z0-9_,]+)/g)) {
+    const col = shortColOf(m[1]);
+    for (const v of m[2].split(',').filter(Boolean)) refs.push({ col, value: v, index: m.index });
+  }
+
+  return refs;
+}
+
+const lineOf = (content, index) => content.slice(0, index).split('\n').length;
+
+// Viola se a coluna é GOVERNADA pelo dicionário e o valor NÃO é canônico.
+// Retorna { keys:Set, occ:{ key -> [{file,line}] } }.
+function codeValueViolations(moduleName, colIndex) {
+  const keys = new Set();
+  const occ = {};
+  if (!Object.keys(colIndex).length) return { keys, occ };
+  for (const file of moduleCodeFiles(moduleName)) {
+    const content = readFileSync(file, 'utf8');
+    for (const { col, value, index } of codeValueRefs(content)) {
+      const allowed = colIndex[col];
+      if (!allowed || allowed.has(value)) continue; // coluna não-governada OU valor canônico
+      const key = `dominio:undeclared-code-value:${moduleName}:${col}:${value}`;
+      keys.add(key);
+      (occ[key] ??= []).push({ file: norm(file), line: lineOf(content, index) });
+    }
+  }
+  return { keys, occ };
+}
+
+// ---------------------------------------------------------------------------
 // Cálculo de violações
 // ---------------------------------------------------------------------------
 function computeViolations() {
   const dicts = loadDicts();
   const withEnums = modulesWithEnums();
   const violations = [];
-  const stats = { modules_with_dict: Object.keys(dicts).length, modules_with_enums: withEnums.size, divergences: 0, modules_no_dict: 0 };
+  const occurrences = {}; // key -> [{file,line}] (só code-value, pro --report)
+  const stats = { modules_with_dict: Object.keys(dicts).length, modules_with_enums: withEnums.size, divergences: 0, code_divergences: 0, modules_no_dict: 0 };
 
   // Módulos com enum mas sem dicionário → débito (ratchet pra F3 cobrir todos).
   for (const mod of withEnums) {
@@ -195,9 +305,13 @@ function computeViolations() {
       for (const v of real) if (!canon.has(v)) { violations.push(`dominio:undeclared-value:${mod}:${col}:${v}`); stats.divergences++; }
       for (const v of canon) if (!real.has(v)) { violations.push(`dominio:stale-dict-value:${mod}:${col}:${v}`); stats.divergences++; }
     }
+
+    // SALTO #3 — valores de domínio hardcoded no código de aplicação.
+    const { keys, occ } = codeValueViolations(mod, buildColIndex(dict.enums));
+    for (const key of keys) { violations.push(key); occurrences[key] = occ[key]; stats.code_divergences++; }
   }
 
-  return { violations: violations.sort((a, b) => a.localeCompare(b)), stats };
+  return { violations: violations.sort((a, b) => a.localeCompare(b)), stats, occurrences };
 }
 
 function loadBaseline() {
@@ -209,7 +323,7 @@ function loadBaseline() {
 // Main
 // ---------------------------------------------------------------------------
 function main() {
-  const { violations, stats } = computeViolations();
+  const { violations, stats, occurrences } = computeViolations();
 
   if (MODE_JSON) {
     const baseline = loadBaseline();
@@ -224,9 +338,17 @@ function main() {
     console.log(`Módulos com dicionário: ${stats.modules_with_dict} · com enum: ${stats.modules_with_enums}`);
     console.log(`Módulos com enum SEM dicionário: ${stats.modules_no_dict}`);
     console.log(`Divergências enum⇔dicionário (nos módulos com dict): ${stats.divergences}`);
+    console.log(`Divergências de domínio no CÓDIGO (Salto #3): ${stats.code_divergences}`);
     console.log(`\nTOTAL de violações (débito): ${violations.length}`);
-    if (violations.length) { console.log('\nDetalhe:'); for (const v of violations) console.log('  · ' + v); }
-    console.log('\n→ F1 fotografa no baseline (não-bloqueante). PR erradicação (ADR 0265) zera `order_type=locacao`.');
+    if (violations.length) {
+      console.log('\nDetalhe:');
+      for (const v of violations) {
+        console.log('  · ' + v);
+        // Code-value: lista as ocorrências file:line pra a dívida ser caçável.
+        for (const o of occurrences[v] || []) console.log(`      ↳ ${o.file}:${o.line}`);
+      }
+    }
+    console.log('\n→ F1 fotografa no baseline (não-bloqueante). Erradicação (ADR 0265) zera `order_type=locacao` no enum E no código.');
     process.exit(0);
   }
 
@@ -234,20 +356,20 @@ function main() {
     const out = {
       _meta: {
         generated_at: new Date().toISOString(),
-        gate: 'dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration)',
+        gate: 'dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3)',
         stats,
-        nota: 'Divergências ATUAIS fotografadas (débito). Gate falha só em divergência NOVA (ratchet). order_type=locacao zera quando o PR de erradicação (ADR 0265) baixar o enum.',
+        nota: 'Divergências ATUAIS fotografadas (débito): enum⇔dicionário E valores de domínio hardcoded no código (Salto #3). Gate falha só em divergência NOVA (ratchet). order_type=locacao zera quando a erradicação (ADR 0265) remover o valor do enum E das ramificações de código.',
         refs: ['ADR 0264', 'ADR 0265', 'ADR 0261', 'ADR 0256'],
       },
       violations,
     };
     writeFileSync(BASELINE_PATH, JSON.stringify(out, null, 2) + '\n');
-    console.log(`✅ Baseline gravado: ${violations.length} violações (${stats.divergences} divergência · ${stats.modules_no_dict} módulo sem dict) → ${norm(BASELINE_PATH)}`);
+    console.log(`✅ Baseline gravado: ${violations.length} violações (${stats.divergences} enum · ${stats.code_divergences} código · ${stats.modules_no_dict} módulo sem dict) → ${norm(BASELINE_PATH)}`);
     process.exit(0);
   }
 
   // VALIDATE
-  console.log(`dominio:check · ${violations.length} violações (dicts: ${stats.modules_with_dict}, divergências: ${stats.divergences})`);
+  console.log(`dominio:check · ${violations.length} violações (dicts: ${stats.modules_with_dict}, enum: ${stats.divergences}, código: ${stats.code_divergences})`);
   const baseline = loadBaseline();
   if (!baseline) {
     console.error(`\n❌ Baseline ausente (${norm(BASELINE_PATH)}). Rode: npm run dominio:baseline:write`);
@@ -258,9 +380,13 @@ function main() {
 
   if (novos.length) {
     console.error(`\n❌ ${novos.length} divergência(s) NOVA(s) de domínio (não no baseline):\n`);
-    for (const v of novos) console.error('  🆕 ' + v);
+    for (const v of novos) {
+      console.error('  🆕 ' + v);
+      for (const o of occurrences[v] || []) console.error(`        ↳ ${o.file}:${o.line}`);
+    }
     console.error(
-      `\nUm enum de migration divergiu do dicionário do módulo (memory/dominio/<mod>.md) — ADR 0264 G-4.` +
+      `\nUm enum de migration OU um valor-literal no código divergiu do dicionário do módulo` +
+        `\n(memory/dominio/<mod>.md) — ADR 0264 G-4 (+ Salto #3 cobertura de código).` +
         `\nReintroduzir \`locacao\`/\`locada\` viola a ADR 0265 (ver memory/proibicoes.md).` +
         `\nSe a mudança de domínio for legítima: atualize o dicionário + npm run dominio:baseline:write`,
     );

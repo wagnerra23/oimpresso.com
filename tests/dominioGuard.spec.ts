@@ -31,6 +31,10 @@ const dict = (module: string, enums: Record<string, string[]>) =>
 const migration = (module: string, file: string, php: string) =>
   write(`Modules/${module}/Database/Migrations/${file}`, php);
 
+// Arquivo de código de aplicação do módulo (Salto #3 — cobertura de código).
+const code = (module: string, rel: string, php: string) =>
+  write(`Modules/${module}/${rel}`, php);
+
 beforeEach(() => {
   tmp = mkdtempSync(join(tmpdir(), 'dominio-'));
   mkdirSync(join(tmp, 'scripts'), { recursive: true });
@@ -130,5 +134,125 @@ describe('dominio:check — divergência enum⇔dicionário (físico)', () => {
     run('--write-baseline'); // absorve o débito locacao
     const out = run(''); // passa (nada NOVO)
     expect(out).toMatch(/Sem divergências novas/);
+  });
+});
+
+// =====================================================================================
+// SALTO #3 — cobertura de código (valor de domínio hardcoded fora do enum)
+// =====================================================================================
+describe('dominio:check — valor de domínio no CÓDIGO (Salto #3, físico)', () => {
+  // enum que BATE com o dicionário, pra isolar a divergência só ao code-scan.
+  const cleanEnum = (module: string, col = 'order_type', vals = ['manutencao', 'mecanica']) =>
+    migration(module, '2026_01_01_000001_create.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('service_orders', function ($t) { $t->enum('${col}', ${JSON.stringify(vals)}); });
+      } };`);
+
+  it('SENSIBILIDADE (where): where("order_type","locacao") no código vira undeclared-code-value', () => {
+    dict('ModW', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModW');
+    code('ModW', 'Http/Controllers/X.php',
+      `<?php class X { function q($qb) { return $qb->where('order_type', 'locacao'); } }`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:ModW:order_type:locacao/);
+  });
+
+  it('SENSIBILIDADE (comparação de campo): $x->order_type === "locacao" vira undeclared-code-value', () => {
+    dict('ModP', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModP');
+    code('ModP', 'Entities/ServiceOrder.php',
+      `<?php class ServiceOrder { function f() { if ($this->order_type !== 'locacao') { return; } } }`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:ModP:order_type:locacao/);
+  });
+
+  it('SENSIBILIDADE (whereIn): lista literal com valor não-declarado é pega', () => {
+    dict('ModI', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModI');
+    code('ModI', 'Services/S.php',
+      `<?php class S { function q($qb) { return $qb->whereIn('order_type', ['manutencao', 'locacao']); } }`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:ModI:order_type:locacao/);
+    expect(out).not.toMatch(/order_type:manutencao/); // valor declarado não vira violação
+  });
+
+  it('SENSIBILIDADE (validação in:): regra Laravel in: com valor fora do dicionário é pega', () => {
+    dict('ModV', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModV');
+    code('ModV', 'Http/Requests/R.php',
+      `<?php class R { function rules() { return ['order_type' => ['nullable', 'in:manutencao,locacao']]; } }`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:ModV:order_type:locacao/);
+  });
+
+  it('ESPECIFICIDADE: valor DECLARADO usado no código não vira violação', () => {
+    dict('ModOK', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModOK');
+    code('ModOK', 'Http/Controllers/X.php',
+      `<?php class X { function q($qb) { return $qb->where('order_type', 'manutencao')->orWhere('order_type', 'mecanica'); } }`);
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/undeclared-code-value/);
+  });
+
+  it('ESPECIFICIDADE: coluna FORA do dicionário não é vigiada no código', () => {
+    dict('ModC', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModC');
+    code('ModC', 'Http/Controllers/X.php',
+      `<?php class X { function q($qb) { return $qb->where('status', 'qualquer_coisa'); } }`); // 'status' não está no dict
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/undeclared-code-value/);
+  });
+
+  it('ESPECIFICIDADE: self::CONST / variável (sem aspas) não é literal → não conta', () => {
+    dict('ModK', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModK');
+    code('ModK', 'Services/S.php',
+      `<?php class S { function q($qb, $tipo) { return $qb->where('order_type', self::ALGO)->orWhere('order_type', $tipo); } }`);
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/undeclared-code-value/);
+  });
+
+  it('REGRESSÃO (operador LIKE): where("col","like","%x%") não lê o operador como valor', () => {
+    // O bug real mordido: orWhere('vehicle_type','like',"%search%") → 'like' virou "valor".
+    dict('ModL', { 'vehicles.vehicle_type': ['caminhao'] });
+    migration('ModL', '2026_01_01_000001_create.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('vehicles', function ($t) { $t->enum('vehicle_type', ['caminhao']); });
+      } };`);
+    code('ModL', 'Services/VehicleQueryService.php',
+      `<?php class V { function q($qb, $search) { return $qb->orWhere('vehicle_type', 'like', "%{$search}%"); } }`);
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/vehicle_type:like/);
+  });
+
+  it('ESPECIFICIDADE: Database/ e Tests/ são excluídos (data-fix / fixture cita valor velho)', () => {
+    dict('ModX', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModX');
+    // data-fix legítimo na migration/seeder + fixture que afirma rejeição — citam 'locacao'.
+    code('ModX', 'Database/Seeders/Seed.php',
+      `<?php class Seed { function r($qb) { return $qb->where('order_type', 'locacao'); } }`);
+    code('ModX', 'Tests/Feature/T.php',
+      `<?php class T { function t($qb) { return $qb->where('order_type', 'locacao'); } }`);
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/undeclared-code-value/);
+  });
+
+  it('RATCHET: débito de código no baseline não bloqueia; valor de código NOVO bloqueia', () => {
+    dict('ModR', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModR');
+    code('ModR', 'Http/Controllers/X.php',
+      `<?php class X { function q($qb) { return $qb->where('order_type', 'locacao'); } }`);
+    run('--write-baseline'); // absorve locacao no código
+    expect(run('')).toMatch(/Sem divergências novas/);
+    // valor de domínio NOVO aparece no código → bloqueia
+    code('ModR', 'Http/Controllers/Y.php',
+      `<?php class Y { function q($qb) { return $qb->where('order_type', 'aluguel'); } }`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:ModR:order_type:aluguel/);
   });
 });
