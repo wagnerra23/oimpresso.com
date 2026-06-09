@@ -3,9 +3,17 @@ name: E2E Playwright (UCs críticos) — G-3 NÃO-required
 # Gate G-3 da Governança executável (ADR 0264): E2E de comportamento nos UCs críticos.
 #
 # ⚠️ workflow_dispatch (MANUAL) por enquanto — o harness boota o app real (PHP+DB+build+serve)
-# e o primeiro run verde ainda não foi validado (sem stack no agente desktop). Manter MANUAL +
-# NÃO-required evita travar todo merge num gate ainda-não-estável (lição dura ADR 0261).
-# Quando verde-estável: trocar pra `pull_request` + promover a required junto com casos/dominio.
+# e o primeiro run verde está sendo validado. Manter MANUAL + NÃO-required evita travar todo
+# merge num gate ainda-não-estável (lição dura ADR 0261). Quando verde-estável (2 runs verdes
+# seguidos): trocar `workflow_dispatch` → `pull_request` + promover a required junto de
+# casos/dominio (ADR 0264 T2).
+#
+# Boot do app: MESMO padrão PROVADO do visual-regression.yml (gate verde em main) —
+# MySQL 8.0 service + schema-squash (database/schema/mysql-schema.sql) + seed mínimo de
+# tenant biz=1 (VisregTenantSeeder). NÃO usa sqlite :memory: (morre entre `migrate` e o
+# `artisan serve`, que é OUTRO processo → DB vazio servido). Login via rota env-guarded
+# `/_visreg-login/{id}` (Auth::loginUsingId, NUNCA em produção) — pula os gates de
+# subscription/trial do form de login UltimatePOS (robusto cross-process).
 
 on:
   workflow_dispatch:
@@ -18,47 +26,115 @@ jobs:
   e2e:
     name: E2E Playwright · UCs críticos (não-required)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
     env:
-      DB_CONNECTION: sqlite
-      DB_DATABASE: ':memory:'
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+      # Login cross-process via /_visreg-login/{id} (env-guarded, não-prod). 1 = admin do
+      # VisregTenantSeeder (business_id=1, role Admin#1 = todas as abilities via Gate::before).
+      E2E_BYPASS_LOGIN_ID: '1'
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
+          # SEM `opentelemetry`: a auto-instrumentação opentelemetry-auto-laravel acessa
+          # contexto OTel não-inicializado e quebra queries DB em telas autenticadas. O
+          # gate de comportamento não precisa de telemetria (mesma decisão do visual-regression).
           php-version: '8.4'
-          extensions: sqlite3, pdo_sqlite, mbstring, bcmath, intl
+          extensions: mbstring, dom, fileinfo, pdo_mysql, gd, bcmath, intl
+          coverage: none
 
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Wait for MySQL ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then echo "MySQL ready"; break; fi
+            echo "Waiting MySQL... $i"; sleep 2
+          done
 
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
 
-      - name: NPM ci + build Inertia
-        run: |
-          npm ci
-          npm run build:inertia
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
-      - name: App bootstrap (env + key + migrate + seed biz=1)
+      - name: Composer install
+        # --ignore-platform-req=ext-opentelemetry: o pacote exige a ext no platform check
+        # mas a removemos de propósito (Setup PHP). Degrada gracioso sem ela.
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts --ignore-platform-req=ext-opentelemetry
+
+      - name: NPM ci
+        run: npm ci
+
+      - name: App bootstrap (.env + key + schema-squash migrate + seed biz=1)
+        # SCHEMA-SQUASH: `migrate` carrega database/schema/mysql-schema.sql (squash do staging
+        # saudável) ANTES de replayar — bypassa a podridão de fresh-migrate (mesma estratégia
+        # provada do visual-regression / financeiro-pest). Seed mínimo do tenant biz=1 (ADR 0101).
         run: |
-          cp .env.example .env || true
+          mkdir -p storage/framework/cache storage/framework/views storage/framework/sessions storage/framework/testing storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-e2e
+          APP_KEY=
+          APP_ENV=testing
+          APP_DEBUG=true
+          APP_URL=http://127.0.0.1:8000
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=oimpresso_test
+          DB_USERNAME=root
+          DB_PASSWORD=root
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=file
+          MAIL_MAILER=array
+          BCRYPT_ROUNDS=4
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          EOF
           php artisan key:generate --force
+          php artisan package:discover --ansi
           php artisan migrate --force
-          # Seed do piloto OficinaAuto (biz=1 dev — ADR 0101). Ajustar o seeder conforme o real.
-          php artisan db:seed --class="Modules\\OficinaAuto\\Database\\Seeders\\OficinaAutoDatabaseSeeder" --force || true
+          php artisan db:seed --force
+          php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          echo "=== seed check ==="
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
+
+      - name: Build Inertia
+        run: npm run build:inertia
 
       - name: Playwright install (chromium)
         run: npm run e2e:install
 
       - name: Serve app + run E2E
         run: |
-          php artisan serve --host=127.0.0.1 --port=8000 &
-          npx wait-on http://127.0.0.1:8000 --timeout 60000 || sleep 10
+          php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+          npx wait-on http://127.0.0.1:8000 --timeout 90000
           npm run e2e:check
 
       # Salto #2 / G-7: coleta o JUnit do Playwright (test-results/) → manifesto por-UC.
@@ -77,10 +153,13 @@ jobs:
           path: scripts/casos-test-results.json
           retention-days: 14
 
-      - name: Upload trace/report on failure
+      - name: Upload trace/report + serve log on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: e2e-failure-logs
+          path: |
+            playwright-report/
+            test-results/
+            storage/logs/serve.log
           retention-days: 7
