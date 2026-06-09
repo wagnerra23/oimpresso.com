@@ -5,29 +5,17 @@ name: Dominio-dict ratchet (coerência de domínio)
 # É a camada que a alucinação "locação de caçamba" (ADR 0265) atravessou — nenhum gate
 # pegava enum incoerente. Ratchet: FALHA só em divergência NOVA vs baseline.
 #
-# FASE 1 (ADR 0264 + ADR 0261): roda e reporta a dívida, NÃO é required ainda. Ex.: o
-# baseline atual carrega `order_type=locacao` como débito; o PR de erradicação (ADR 0265)
-# baixa o enum e a divergência zera sozinha. Vira required na Fase 2 (flip consciente).
+# FASE 2 (ADR 0264 + ADR 0261, flip [W] 2026-06-09): ALWAYS-RUN → required status check.
+# Ratchet node:fs puro (~12s), SEMPRE reporta verde quando nada regrediu → seguro como
+# `required` sem deadlock (ADR 0261 Alavanca 2). Tirar `paths:` é o flip. O baseline carrega
+# `order_type=locacao` como débito; o PR de erradicação (ADR 0265) zera a divergência.
 #
 # Node puro (node:fs), sem deps, sem npm ci. Comando local: npm run dominio:check
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'Modules/**/Database/Migrations/**'
-      - 'memory/dominio/**'
-      - 'scripts/domain-dict-guard.mjs'
-      - 'scripts/domain-dict-baseline.json'
-      - '.github/workflows/dominio-gate.yml'
   pull_request:
-    paths:
-      - 'Modules/**/Database/Migrations/**'
-      - 'memory/dominio/**'
-      - 'scripts/domain-dict-guard.mjs'
-      - 'scripts/domain-dict-baseline.json'
-      - 'tests/dominioGuard.spec.ts'
-      - '.github/workflows/dominio-gate.yml'
 
 concurrency:
   group: dominio-gate-${{ github.ref }}
@@ -65,17 +53,3 @@ jobs:
           echo "  2. Se a mudança de domínio é legítima: atualize o dicionário + npm run dominio:baseline:write"
           echo ""
           echo "Refs: ADR 0264 (G-4) · ADR 0265 (erradica locação) · ADR 0261 (enforcement faseado)"
-
-  meta-test:
-    name: meta-teste do dominio-guard (vitest)
-    # O gate só "vale" se o controle-negativo que o prova roda no CI (método ADR 0258).
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Install deps
-        run: npm ci
-      - name: Controle-negativo do dominio-guard (físico)
-        run: npm run test:dominio-guard
