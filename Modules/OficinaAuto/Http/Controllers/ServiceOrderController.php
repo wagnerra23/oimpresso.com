@@ -598,6 +598,8 @@ class ServiceOrderController extends Controller
             'assignedUser:id,first_name,last_name,surname',
             // US-OFICINA-040 — itens DVI pra seção "Vistoria → orçamento" no Show
             'dviInspectionItems',
+            // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo) pro drawer + print
+            'arquivos',
         ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
@@ -661,6 +663,40 @@ class ServiceOrderController extends Controller
                     'notes'          => $item->notes,
                 ])->values()->all(),
                 'items_total' => (float) $order->total_items,
+                // F3 OS-V2-2 — itens DVI (Vistoria Digital) pra o semáforo inline editável
+                // do drawer ServiceOrderRichSheet (DviInlineEditor). Mesmo shape do branch
+                // Inertia (Show), + sort_order pra ordenação estável. `budget_item_id` (em
+                // metadata) sinaliza item já convertido em linha de orçamento.
+                'dvi_items' => $order->dviInspectionItems
+                    ->sortBy([['sort_order', 'asc'], ['id', 'asc']])
+                    ->map(fn (OaInspectionItem $dvi) => [
+                        'id'                => (int) $dvi->id,
+                        'categoria'         => (string) $dvi->categoria,
+                        'descricao'         => (string) $dvi->descricao,
+                        'severity'          => (string) $dvi->severity,
+                        'recomendacao'      => $dvi->recomendacao,
+                        'valor_recomendado' => $dvi->valor_recomendado !== null ? (float) $dvi->valor_recomendado : null,
+                        'sort_order'        => (int) $dvi->sort_order,
+                        'budget_item_id'    => is_array($dvi->metadata) ? ($dvi->metadata['budget_item_id'] ?? null) : null,
+                    ])->values()->all(),
+                // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo) pra o drawer.
+                // `label` = original_name (legenda editável no lightbox). display_url
+                // é signed quando bucket=sensitive (defesa em profundidade).
+                'laudo_photos' => $order->arquivos
+                    ->sortBy([['created_at', 'asc'], ['id', 'asc']])
+                    ->map(function ($a) {
+                        // closure sem tipo no param + @var: relação HasArquivos é MorphMany
+                        // sem generic (Larastan tipa Model, não Arquivo — dívida US-ARQ-TYPE).
+                        /** @var \Modules\Arquivos\Entities\Arquivo $a */
+                        return [
+                            'id'          => (int) $a->id,
+                            'label'       => (string) ($a->original_name ?? ''),
+                            'mime_type'   => (string) $a->mime_type,
+                            'size_bytes'  => (int) $a->size_bytes,
+                            'display_url' => (string) $a->display_url,
+                            'created_at'  => $a->created_at?->toIso8601String(),
+                        ];
+                    })->values()->all(),
                 // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
                 // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController
@@ -881,6 +917,8 @@ class ServiceOrderController extends Controller
                 'items',
                 'dviInspectionItems',
                 'assignedUser:id,first_name,last_name,surname',
+                // F3 OS-V2-1 — fotos do laudo OS-level entram na folha A4 ("Fotos da vistoria")
+                'arquivos',
             ]);
 
             $business = \App\Business::find($businessId);
