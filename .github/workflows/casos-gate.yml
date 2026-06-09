@@ -23,6 +23,7 @@ on:
       - 'resources/js/Pages/**'
       - 'scripts/casos-coverage-guard.mjs'
       - 'scripts/casos-coverage-baseline.json'
+      - 'tests/casosGuard.spec.ts'
       - '.github/workflows/casos-gate.yml'
 
 concurrency:
@@ -62,3 +63,17 @@ jobs:
           echo "  3. Se for legado movido/refatorado conscientemente: npm run casos:baseline:write"
           echo ""
           echo "Refs: ADR 0264 (G-1/G-2) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca)"
+
+  meta-test:
+    name: meta-teste do casos-guard (vitest)
+    # O gate só "vale" se o controle-negativo que o prova roda no CI (método ADR 0258).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: Controle-negativo do casos-guard (físico)
+        run: npm run test:casos-guard
