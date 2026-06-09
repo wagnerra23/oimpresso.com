@@ -14,6 +14,7 @@ import {
   Check,
   CircleSlash,
   Loader2,
+  Lock,
   Play,
   Zap,
   X,
@@ -30,6 +31,15 @@ interface FsmStage {
   is_terminal?: boolean;
 }
 
+// F3 OS-V2-5 — gate (checklist de etapa) da action, vindo do backend.
+interface FsmActionGate {
+  requirements: Array<{ key: string; label: string; type: string; ok: boolean; blocking: boolean }>;
+  blocking_unmet: number;
+  total: number;
+  done: number;
+  satisfied: boolean;
+}
+
 interface FsmAction {
   key: string;
   label: string;
@@ -38,6 +48,8 @@ interface FsmAction {
   requires_confirmation: boolean;
   has_side_effect: boolean;
   can_execute: boolean;
+  /** F3 OS-V2-5 — gate da transição (UI desabilita o botão quando não satisfeito). */
+  gate?: FsmActionGate;
 }
 
 interface ActionsResponse {
@@ -307,29 +319,44 @@ export default function ServiceOrderFsmActionPanel({
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {actionsExecutable.map((action) => (
-            <Button
-              key={action.key}
-              size="sm"
-              variant={action.is_critical ? 'destructive' : 'default'}
-              onClick={() => executeAction(action)}
-              disabled={executing}
-              title={
-                action.target_stage
-                  ? `Move pra: ${action.target_stage.name}`
-                  : 'Ação que não transita stage'
-              }
-              className="text-xs"
-            >
-              {action.is_critical ? (
-                <AlertTriangle size={12} className="mr-1" />
-              ) : (
-                <Play size={12} className="mr-1" />
-              )}
-              {action.label}
-              {action.has_side_effect && <Zap size={12} className="ml-1 opacity-70" />}
-            </Button>
-          ))}
+          {actionsExecutable.map((action) => {
+            // F3 OS-V2-5 — gate não satisfeito desabilita o botão + tooltip do que falta.
+            // O avanço (com override quando aplicável) acontece na seção "Checklist de etapa".
+            const gateBlocked = action.gate ? !action.gate.satisfied : false;
+            const unmetLabels = action.gate
+              ? action.gate.requirements
+                  .filter((r) => r.blocking && !r.ok)
+                  .map((r) => r.label)
+                  .join(' · ')
+              : '';
+            return (
+              <Button
+                key={action.key}
+                size="sm"
+                variant={action.is_critical ? 'destructive' : 'default'}
+                onClick={() => executeAction(action)}
+                disabled={executing || gateBlocked}
+                title={
+                  gateBlocked
+                    ? `Checklist de etapa pendente: ${unmetLabels}`
+                    : action.target_stage
+                      ? `Move pra: ${action.target_stage.name}`
+                      : 'Ação que não transita stage'
+                }
+                className="text-xs"
+              >
+                {gateBlocked ? (
+                  <Lock size={12} className="mr-1" />
+                ) : action.is_critical ? (
+                  <AlertTriangle size={12} className="mr-1" />
+                ) : (
+                  <Play size={12} className="mr-1" />
+                )}
+                {action.label}
+                {action.has_side_effect && <Zap size={12} className="ml-1 opacity-70" />}
+              </Button>
+            );
+          })}
         </div>
       )}
 
