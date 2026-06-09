@@ -31,11 +31,12 @@ export interface FilaOrder {
   status: string;
   // ADR 0265: order_type ∈ {manutencao, mecanica}
   order_type?: 'manutencao' | 'mecanica' | null;
-  delivery_address?: string | null;
-  expected_return_date?: string | null;
+  // Atraso de reparo: só expected_completion (campos de locação erradicados, ADR 0265).
   expected_completion?: string | null;
   entered_at?: string | null;
   started_at?: string | null;
+  // Sintoma/defeito relatado na entrada — exibido na linha secundária da fila.
+  notes?: string | null;
   vehicle?: {
     id: number;
     plate: string;
@@ -45,7 +46,6 @@ export interface FilaOrder {
   } | null;
   contact?: { id: number; name: string } | null;
   is_overdue?: boolean;
-  dias_locacao?: number | null;
   valor_receber?: number | string | null;
 }
 
@@ -55,9 +55,14 @@ interface Props {
   isOverdue: (o: FilaOrder) => boolean;
   formatBRDate: (v?: string | null) => string;
   formatBRL: (v: number | string | null | undefined) => string;
-  hasReturnDate: boolean;
   /** Abre o drawer canônico (ServiceOrderSheet) pra edição/ações FSM. */
   onOpenFull: (id: number) => void;
+}
+
+// 1ª linha do sintoma/defeito relatado (linha secundária da fila).
+function defeitoLine(notes?: string | null): string {
+  if (!notes) return '';
+  return notes.split(/\r?\n/)[0]?.trim() ?? '';
 }
 
 function vehicleLabel(o: FilaOrder): string {
@@ -79,17 +84,16 @@ function FilaItem({
   overdue,
   onSelect,
   formatBRDate,
-  hasReturnDate,
 }: {
   o: FilaOrder;
   active: boolean;
   overdue: boolean;
   onSelect: () => void;
   formatBRDate: Props['formatBRDate'];
-  hasReturnDate: boolean;
 }) {
-  const prazo = hasReturnDate ? o.expected_return_date : o.expected_completion;
+  const prazo = o.expected_completion;
   const meta = [o.vehicle?.plate, typeLabel(o.order_type)].filter((s) => s && s !== '—').join(' · ');
+  const defeito = defeitoLine(o.notes);
   return (
     <button
       type="button"
@@ -111,6 +115,7 @@ function FilaItem({
       <div className="truncate text-xs text-muted-foreground">
         OS {o.number ?? `#${o.id}`} · {o.contact?.name ?? '—'}
       </div>
+      {defeito && <div className="mt-0.5 truncate text-[11px] text-muted-foreground" title={defeito}>{defeito}</div>}
       {meta && <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">{meta}</div>}
     </button>
   );
@@ -122,14 +127,12 @@ function FilaList({
   onSelect,
   isOverdue,
   formatBRDate,
-  hasReturnDate,
 }: {
   orders: FilaOrder[];
   selectedId: number | null;
   onSelect: (id: number) => void;
   isOverdue: Props['isOverdue'];
   formatBRDate: Props['formatBRDate'];
-  hasReturnDate: boolean;
 }) {
   const urgentes = orders.filter((o) => isOverdue(o));
   const demais = orders.filter((o) => !isOverdue(o));
@@ -149,7 +152,6 @@ function FilaList({
             overdue={isOverdue(o)}
             onSelect={() => onSelect(o.id)}
             formatBRDate={formatBRDate}
-            hasReturnDate={hasReturnDate}
           />
         ))}
       </div>
@@ -175,18 +177,17 @@ function OsDetailInline({
   overdue,
   formatBRDate,
   formatBRL,
-  hasReturnDate,
   onOpenFull,
 }: {
   o: FilaOrder;
   overdue: boolean;
   formatBRDate: Props['formatBRDate'];
   formatBRL: Props['formatBRL'];
-  hasReturnDate: boolean;
   onOpenFull: Props['onOpenFull'];
 }) {
-  const prazo = hasReturnDate ? o.expected_return_date : o.expected_completion;
+  const prazo = o.expected_completion;
   const inicio = o.started_at ?? o.entered_at;
+  const defeito = defeitoLine(o.notes);
   return (
     <div className="flex min-h-0 flex-col rounded-lg border bg-card">
       <header className="flex items-start justify-between gap-3 border-b px-4 py-3">
@@ -240,10 +241,10 @@ function OsDetailInline({
               {formatBRL(o.valor_receber)}
             </dd>
           </div>
-          {o.delivery_address && (
+          {defeito && (
             <div className="col-span-2 sm:col-span-3">
-              <dt className="text-xs text-muted-foreground">Endereço</dt>
-              <dd className="text-foreground">{o.delivery_address}</dd>
+              <dt className="text-xs text-muted-foreground">Defeito</dt>
+              <dd className="text-foreground">{o.notes}</dd>
             </div>
           )}
         </dl>
@@ -264,17 +265,15 @@ function AppsRail({
   overdue,
   formatBRDate,
   formatBRL,
-  hasReturnDate,
   onOpenFull,
 }: {
   o: FilaOrder;
   overdue: boolean;
   formatBRDate: Props['formatBRDate'];
   formatBRL: Props['formatBRL'];
-  hasReturnDate: boolean;
   onOpenFull: Props['onOpenFull'];
 }) {
-  const prazo = hasReturnDate ? o.expected_return_date : o.expected_completion;
+  const prazo = o.expected_completion;
   return (
     <aside className="hidden min-h-0 flex-col gap-3 xl:flex">
       <div className="px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Apps vinculados</div>
@@ -335,7 +334,6 @@ export default function ServiceOrderFila({
   isOverdue,
   formatBRDate,
   formatBRL,
-  hasReturnDate,
   onOpenFull,
 }: Props) {
   const [selectedId, setSelectedId] = useState<number | null>(orders[0]?.id ?? null);
@@ -357,7 +355,6 @@ export default function ServiceOrderFila({
         onSelect={setSelectedId}
         isOverdue={isOverdue}
         formatBRDate={formatBRDate}
-        hasReturnDate={hasReturnDate}
       />
       {selected ? (
         <OsDetailInline
@@ -365,7 +362,6 @@ export default function ServiceOrderFila({
           overdue={isOverdue(selected)}
           formatBRDate={formatBRDate}
           formatBRL={formatBRL}
-          hasReturnDate={hasReturnDate}
           onOpenFull={onOpenFull}
         />
       ) : (
@@ -379,7 +375,6 @@ export default function ServiceOrderFila({
           overdue={isOverdue(selected)}
           formatBRDate={formatBRDate}
           formatBRL={formatBRL}
-          hasReturnDate={hasReturnDate}
           onOpenFull={onOpenFull}
         />
       )}
