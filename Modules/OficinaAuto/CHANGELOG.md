@@ -1,5 +1,12 @@
 # OficinaAuto — Changelog
 
+## [2026-06-09] Erradicação de "locação" — reparo é o único domínio (ADR 0265)
+
+### 🪦 Lápide — order_type=locacao é resíduo, não fluxo (append, não reescreve história · L-22)
+- Veredito de Wagner (soberano do domínio) 2026-06-09: locação de caçamba **não é processo que ele usa** — é alucinação herdada do legado WR Sistemas. A [ADR 0265](../../memory/decisions/0265-oficina-reparo-erradica-locacao.md) (errata que **fecha o resíduo** que a [ADR 0194](../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) deixou) decide: **Oficina = reparo, ponto.** `order_type ∈ {manutencao, mecanica}`. "Caçambas" sobrevive **só como nome comercial** do cliente Martinho.
+- **Anti-retorno (D-4) LANDADO + GATED:** linha em [`memory/proibicoes.md`](../../memory/proibicoes.md) + gate `dominio:check` ([ADR 0264](../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4) que **falha o CI** se `locacao` reaparecer num enum. A alucinação que nenhuma spec de tela pegava agora falha mecanicamente.
+- **Erradicação de schema/código pendente (Tier 0 live-prod, exige Pest local — não-blind):** enum `order_type` (data-fix + ALTER), importer `normalizeOrderType`, KPI `locacao_ativa` no `ServiceOrderSummaryService`, fixtures de teste FSM-roteadas, menu `Caçambas→Veículos`, saturação Wave25/26/27. Plano executável em [`RUNBOOK-erradicacao-locacao.md`](../../memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md). **Preservado (charter v4 PR #2417):** FSM keys `disponivel/locada` + componentes `Cacamba*` = dívida F3 em ADR própria; **não tocar** nesta onda.
+
 ## [W28 — 2026-06-03] Importer Firebird fino + reconciliação de domínio (ADR 0194)
 
 ### G4 Importer Firebird Martinho — mapping fino (sai do esqueleto W27)
