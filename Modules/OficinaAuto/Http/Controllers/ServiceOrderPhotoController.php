@@ -53,11 +53,17 @@ class ServiceOrderPhotoController extends Controller
     {
         $this->authorize('view', $order);
 
+        // map() com closure SEM tipo no param + @var: a relação HasArquivos é
+        // MorphMany sem generic (Larastan tipa a coleção como Model, não Arquivo —
+        // dívida US-ARQ-TYPE no trait). O @var estreita pra Arquivo sem mexer no trait.
         $fotos = $order->arquivos()
             ->orderBy('created_at')
             ->orderBy('id')
             ->get()
-            ->map(fn (Arquivo $a) => $this->shape($a))
+            ->map(function ($a) {
+                /** @var Arquivo $a */
+                return $this->shape($a);
+            })
             ->all();
 
         return response()->json(['fotos' => $fotos]);

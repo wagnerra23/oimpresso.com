@@ -684,14 +684,19 @@ class ServiceOrderController extends Controller
                 // é signed quando bucket=sensitive (defesa em profundidade).
                 'laudo_photos' => $order->arquivos
                     ->sortBy([['created_at', 'asc'], ['id', 'asc']])
-                    ->map(fn (\Modules\Arquivos\Entities\Arquivo $a) => [
-                        'id'          => (int) $a->id,
-                        'label'       => (string) ($a->original_name ?? ''),
-                        'mime_type'   => (string) $a->mime_type,
-                        'size_bytes'  => (int) $a->size_bytes,
-                        'display_url' => (string) $a->display_url,
-                        'created_at'  => $a->created_at?->toIso8601String(),
-                    ])->values()->all(),
+                    ->map(function ($a) {
+                        // closure sem tipo no param + @var: relação HasArquivos é MorphMany
+                        // sem generic (Larastan tipa Model, não Arquivo — dívida US-ARQ-TYPE).
+                        /** @var \Modules\Arquivos\Entities\Arquivo $a */
+                        return [
+                            'id'          => (int) $a->id,
+                            'label'       => (string) ($a->original_name ?? ''),
+                            'mime_type'   => (string) $a->mime_type,
+                            'size_bytes'  => (int) $a->size_bytes,
+                            'display_url' => (string) $a->display_url,
+                            'created_at'  => $a->created_at?->toIso8601String(),
+                        ];
+                    })->values()->all(),
                 // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
                 // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController
