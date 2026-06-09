@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Services\StageGateEvaluator;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -97,8 +98,13 @@ class ServiceOrderFsmActionController extends Controller
 
         $user = auth()->user();
         $policy = app(StageActionPolicy::class);
+        $gateEvaluator = app(StageGateEvaluator::class);
 
-        $payload = $actions->map(function (SaleStageAction $a) use ($policy, $user, $order) {
+        $payload = $actions->map(function (SaleStageAction $a) use ($policy, $user, $order, $processKey, $gateEvaluator) {
+            // F3 OS-V2-5 — gate por action: a UI desabilita o botão de avançar + tooltip
+            // do que falta. O servidor enforça a MESMA regra em execute() (gate é servidor).
+            $gate = $gateEvaluator->evaluate($order, $processKey, $a->key);
+
             return [
                 'key' => $a->key,
                 'label' => $a->label,
@@ -111,6 +117,7 @@ class ServiceOrderFsmActionController extends Controller
                 'requires_confirmation' => (bool) $a->requires_confirmation,
                 'has_side_effect' => ! empty($a->side_effect_class),
                 'can_execute' => $policy->canExecute($user, $order, $a->key),
+                'gate' => $gate,
             ];
         });
 
@@ -152,7 +159,7 @@ class ServiceOrderFsmActionController extends Controller
     /**
      * Executa uma transição FSM na OS.
      */
-    public function execute(Request $request, ServiceOrder $order, ExecuteStageActionService $service): JsonResponse
+    public function execute(Request $request, ServiceOrder $order, ExecuteStageActionService $service, StageGateEvaluator $gateEvaluator): JsonResponse
     {
         if (! auth()->check()) {
             abort(Response::HTTP_UNAUTHORIZED);
@@ -167,14 +174,45 @@ class ServiceOrderFsmActionController extends Controller
         $validated = $request->validate([
             'action_key' => 'required|string|max:80',
             'payload'    => 'sometimes|array',
+            'override'   => 'sometimes|boolean',
         ]);
+
+        $payload = $validated['payload'] ?? [];
+
+        // F3 OS-V2-5 — gate de etapa ENFORÇADO no servidor (UI é espelho). Bloqueia 422
+        // quando há requisito bloqueante pendente, salvo override explícito de
+        // gerente/superadmin (registrado na trilha sale_stage_history).
+        $gate = $gateEvaluator->evaluate($order, $this->resolveProcessKey($order), $validated['action_key']);
+        if (! $gate['satisfied']) {
+            $user = auth()->user();
+            $canOverride = $user->can('superadmin')
+                || $user->hasRole(['gerente', 'gerente#' . $order->business_id]);
+            $override = (bool) ($validated['override'] ?? false);
+
+            if (! $override || ! $canOverride) {
+                return response()->json([
+                    'error'        => 'Checklist de etapa incompleto — ' . $gate['blocking_unmet'] . ' requisito(s) pendente(s).',
+                    'gate'         => $gate,
+                    'can_override' => $canOverride,
+                ], 422);
+            }
+
+            // Override autorizado — carimba na trilha (payload_snapshot) pra auditoria.
+            $payload['gate_override'] = true;
+            $payload['gate_unmet'] = collect($gate['requirements'])
+                ->where('blocking', true)
+                ->where('ok', false)
+                ->pluck('key')
+                ->values()
+                ->all();
+        }
 
         try {
             $history = $service->execute(
                 $order,
                 $validated['action_key'],
                 auth()->user(),
-                $validated['payload'] ?? [],
+                $payload,
             );
 
             return response()->json([
@@ -389,6 +427,106 @@ class ServiceOrderFsmActionController extends Controller
             'count' => $items->count(),
             'items' => $payload,
         ]);
+    }
+
+    /**
+     * F3 OS-V2-5 — Gate (checklist de etapa) da PRÓXIMA transição da OS.
+     *
+     * Resolve a action de avanço natural do stage atual (menor target sort_order > atual,
+     * incluindo o terminal positivo "entregue"; cancelamentos/garantia ficam de fora por
+     * terem sort_order maior que o avanço positivo) e devolve os requisitos do gate dela.
+     * O drawer (ServiceOrderStageGate) renderiza a checklist + CTA "Avançar" desta resposta.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): ServiceOrder via global scope + permission view.
+     */
+    public function gate(ServiceOrder $order, StageGateEvaluator $gateEvaluator): JsonResponse
+    {
+        if (! auth()->check()) {
+            abort(Response::HTTP_UNAUTHORIZED);
+        }
+
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.service_order.view'),
+            Response::HTTP_FORBIDDEN
+        );
+
+        $processKey = $this->resolveProcessKey($order);
+        $currentStageId = $order->current_stage_id ?? null;
+
+        if ($processKey === null || $currentStageId === null) {
+            return response()->json([
+                'service_order_id' => $order->id,
+                'in_pipeline'      => false,
+                'current_stage'    => null,
+                'forward_action'   => null,
+                'requirements'     => [],
+                'blocking_unmet'   => 0,
+                'total'            => 0,
+                'done'             => 0,
+                'satisfied'        => true,
+                'can_override'     => false,
+            ]);
+        }
+
+        $currentStage = SaleProcessStage::find($currentStageId);
+
+        // Action de avanço natural = menor target.sort_order ENTRE os maiores que o atual.
+        $forward = SaleStageAction::with('targetStage')
+            ->where('stage_id', $currentStageId)
+            ->get()
+            ->filter(fn (SaleStageAction $a) => $a->targetStage
+                && (int) $a->targetStage->sort_order > (int) ($currentStage?->sort_order ?? -1))
+            ->sortBy(fn (SaleStageAction $a) => (int) $a->targetStage->sort_order)
+            ->first();
+
+        if ($forward === null) {
+            return response()->json([
+                'service_order_id' => $order->id,
+                'in_pipeline'      => true,
+                'current_stage'    => [
+                    'key'         => $currentStage?->key,
+                    'name'        => $currentStage?->name,
+                    'color'       => $currentStage?->color,
+                    'is_terminal' => (bool) $currentStage?->is_terminal,
+                ],
+                'forward_action'   => null,
+                'requirements'     => [],
+                'blocking_unmet'   => 0,
+                'total'            => 0,
+                'done'             => 0,
+                'satisfied'        => true,
+                'can_override'     => false,
+            ]);
+        }
+
+        $gate = $gateEvaluator->evaluate($order, $processKey, $forward->key);
+
+        $user = auth()->user();
+        $canOverride = $user->can('superadmin')
+            || $user->hasRole(['gerente', 'gerente#' . $order->business_id]);
+
+        return response()->json(array_merge($gate, [
+            'service_order_id' => $order->id,
+            'in_pipeline'      => true,
+            'current_stage'    => [
+                'key'         => $currentStage?->key,
+                'name'        => $currentStage?->name,
+                'color'       => $currentStage?->color,
+                'is_terminal' => (bool) $currentStage?->is_terminal,
+            ],
+            'forward_action'   => [
+                'key'          => $forward->key,
+                'label'        => $forward->label,
+                'is_critical'  => (bool) ($forward->is_critical ?? false),
+                'target_stage' => $forward->targetStage ? [
+                    'key'   => $forward->targetStage->key,
+                    'name'  => $forward->targetStage->name,
+                    'color' => $forward->targetStage->color,
+                ] : null,
+            ],
+            'can_override'     => $canOverride,
+        ]));
     }
 
     /**

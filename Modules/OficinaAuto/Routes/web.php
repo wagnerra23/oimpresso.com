@@ -163,6 +163,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->name('oficinaauto.service_orders.history');
 
         // ─────────────────────────────────────────────────────────────────────
+        // F3 OS-V2-5 — Gate (checklist de etapa) da próxima transição da OS.
+        // Frontend ServiceOrderStageGate.tsx consome no drawer (entre Peças e
+        // Pipeline FSM). O servidor enforça a mesma regra no fsm/execute (422).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('service-orders/{order}/fsm/gate',
+            [ServiceOrderFsmActionController::class, 'gate'])
+            ->name('oficinaauto.service_orders.fsm.gate');
+
+        // ─────────────────────────────────────────────────────────────────────
         // Wave 3 — DVI (Vistoria Digital) US-OFICINA-035.
         // CAPTERRA-FICHA Repair gap #3 — wedge competitivo vs RepairShopr/mHelpDesk.
         // UI consumirá via fetch JSON em Wave 3b (depende drawer ServiceOrderRichSheet PR #1624).
