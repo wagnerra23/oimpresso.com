@@ -1,8 +1,11 @@
 name: Casos-coverage ratchet (trio-de-tela + caso↔teste)
 
-# Gate G-1/G-2 da Governança executável (ADR 0264). Toda .tsx roteada precisa do trio
-# (charter.md + casos.md); todo UC-* precisa de >=1 teste citando o id. Ratchet: FALHA só
-# se a contagem de violações AUMENTAR vs baseline (legado absorvido; encolher é sempre OK).
+# Gate G-1/G-2/G-5/G-6/G-7 da Governança executável (ADR 0264). Toda .tsx roteada precisa
+# do trio (charter.md + casos.md); todo UC-* precisa de >=1 teste citando o id (G-1/G-2);
+# metadata viva owner/last_run/Status (G-5); frescor via git (G-6); e o `Status: ✅` por UC
+# tem que bater com o veredito REAL do teste — manifesto scripts/casos-test-results.json
+# gerado por `npm run casos:results` (G-7, Salto #2). Ratchet: FALHA só se a contagem de
+# violações AUMENTAR vs baseline (legado absorvido; encolher é sempre OK).
 #
 # FASE 2 (ADR 0264 + ADR 0261, flip [W] 2026-06-09): ALWAYS-RUN → required status check.
 # O ratchet é node:fs puro (~12s) e SEMPRE reporta verde quando nada regrediu — por isso é

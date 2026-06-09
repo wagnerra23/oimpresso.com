@@ -61,6 +61,22 @@ jobs:
           npx wait-on http://127.0.0.1:8000 --timeout 60000 || sleep 10
           npm run e2e:check
 
+      # Salto #2 / G-7: coleta o JUnit do Playwright (test-results/) → manifesto por-UC.
+      # Roda SEMPRE (mesmo se o E2E falhou: a falha É o veredito que o G-7 quer registrar).
+      # Sobe como ARTIFACT — NÃO commita (o manifesto commitado é atualizado conscientemente
+      # pelo dev via `npm run casos:results`, idioma baseline/ratchet; ADR 0264 G-7).
+      - name: Coletar veredito por-UC (casos:results)
+        if: always()
+        run: npm run casos:results || true
+
+      - name: Upload manifesto de veredito (casos-test-results)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: casos-test-results
+          path: scripts/casos-test-results.json
+          retention-days: 14
+
       - name: Upload trace/report on failure
         if: failure()
         uses: actions/upload-artifact@v4

@@ -185,3 +185,94 @@ describe('casos:check — G-6 frescor via git (físico)', () => {
     expect(out).toMatch(/"stale_cases": 0/);
   });
 });
+
+// =====================================================================================
+// G-7 — STATUS DERIVADO DO VERDE (Salto #2): ✅ declarado vs veredito real (manifesto)
+// =====================================================================================
+describe('casos:check — G-7 status derivado do verde (físico)', () => {
+  // Tela compliant em todas as outras camadas, com Status declarado parametrizável.
+  const compliant = (dir: string, uc: string, statusGlyph: string) => {
+    write(page(dir), 'x');
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(
+      `resources/js/Pages/${dir}/Index.casos.md`,
+      `---\nowner: w\nlast_run: "2026-06-09"\n---\n## ${uc} · caso\n- **Status: ${statusGlyph}**`,
+    );
+    write(`tests/${dir}Test.php`, `<?php // ${uc}`);
+  };
+  const manifest = (ucs: Record<string, { verdict: string; ran_at?: string }>) =>
+    write('scripts/casos-test-results.json', JSON.stringify({ ucs }));
+
+  it('SENSIBILIDADE (lies): ✅ declarado mas teste FALHOU → status:lies', () => {
+    compliant('L', 'UC-01', '✅');
+    manifest({ 'UC-01': { verdict: 'fail' } });
+    const out = runExpectFail('--json'); // sem baseline → tudo novo
+    expect(out).toMatch(/status:lies:resources\/js\/Pages\/L\/Index\.casos\.md#UC-01/);
+  });
+
+  it('SENSIBILIDADE (unverified): ✅ declarado sem teste verde (manifesto vazio) → status:unverified', () => {
+    compliant('U', 'UC-01', '✅');
+    manifest({});
+    const out = runExpectFail('--json');
+    expect(out).toMatch(/status:unverified:resources\/js\/Pages\/U\/Index\.casos\.md#UC-01/);
+  });
+
+  it('SENSIBILIDADE (unverified): ✅ com teste SKIP no manifesto → unverified (skip não é prova)', () => {
+    compliant('K', 'UC-01', '✅');
+    manifest({ 'UC-01': { verdict: 'skip' } });
+    const out = runExpectFail('--json');
+    expect(out).toMatch(/status:unverified:resources\/js\/Pages\/K\/Index\.casos\.md#UC-01/);
+  });
+
+  it('ESPECIFICIDADE: ✅ com teste PASS no manifesto → sem violação de status', () => {
+    compliant('P', 'UC-01', '✅');
+    manifest({ 'UC-01': { verdict: 'pass' } });
+    const out = run('--json'); // tela 100% compliant + verde provado → ok
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/status:/);
+  });
+
+  it('ESPECIFICIDADE (honesto): ❌ declarado + teste FALHOU → NÃO é mentira', () => {
+    compliant('B', 'UC-01', '❌');
+    manifest({ 'UC-01': { verdict: 'fail' } });
+    const out = run('--json'); // ❌ é afirmação honesta de quebra → sem status:lies
+    expect(out).not.toMatch(/status:lies/);
+    expect(out).not.toMatch(/status:unverified/);
+  });
+
+  it('ESPECIFICIDADE: 🧪 / ⬜ não são afirmação ✅ → não exigem prova', () => {
+    compliant('T', 'UC-01', '🧪');
+    manifest({}); // sem prova nenhuma
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/status:/);
+  });
+
+  it('GRACIOSO: sem manifesto (bootstrap) → G-7 dorme mesmo com ✅ sem prova', () => {
+    compliant('S', 'UC-01', '✅');
+    // sem manifest() → arquivo ausente → G-7 não roda.
+    const out = run('--json');
+    expect(out).toMatch(/"status_unverified": 0/);
+  });
+
+  it('RATCHET: lie atual absorvida no baseline; lie NOVA (outro UC) bloqueia', () => {
+    write(page('R'), 'x');
+    write('resources/js/Pages/R/Index.charter.md', '# c');
+    write(
+      'resources/js/Pages/R/Index.casos.md',
+      '---\nowner: w\nlast_run: "2026-06-09"\n---\n## UC-01 · a\n- **Status: ✅**',
+    );
+    write('tests/RTest.php', '<?php // UC-01 UC-02');
+    manifest({ 'UC-01': { verdict: 'fail' } });
+    run('--write-baseline'); // absorve a lie de UC-01
+    expect(run('')).toMatch(/Sem violações novas/);
+    // adiciona UC-02 ✅ + manifesto fail → lie NOVA bloqueia.
+    write(
+      'resources/js/Pages/R/Index.casos.md',
+      '---\nowner: w\nlast_run: "2026-06-09"\n---\n## UC-01 · a\n- **Status: ✅**\n## UC-02 · b\n- **Status: ✅**',
+    );
+    manifest({ 'UC-01': { verdict: 'fail' }, 'UC-02': { verdict: 'fail' } });
+    const out = runExpectFail('');
+    expect(out).toMatch(/status:lies:resources\/js\/Pages\/R\/Index\.casos\.md#UC-02/);
+  });
+});

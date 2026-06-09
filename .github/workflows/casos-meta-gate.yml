@@ -9,13 +9,18 @@ on:
     paths:
       - 'scripts/casos-coverage-guard.mjs'
       - 'scripts/casos-coverage-baseline.json'
+      - 'scripts/casos-results-collect.mjs'
+      - 'scripts/casos-test-results.json'
       - 'tests/casosGuard.spec.ts'
+      - 'tests/casosResultsCollect.spec.ts'
       - '.github/workflows/casos-meta-gate.yml'
   push:
     branches: [main]
     paths:
       - 'scripts/casos-coverage-guard.mjs'
+      - 'scripts/casos-results-collect.mjs'
       - 'tests/casosGuard.spec.ts'
+      - 'tests/casosResultsCollect.spec.ts'
 
 jobs:
   meta-test:
@@ -28,5 +33,7 @@ jobs:
           node-version: '24'
       - name: Install deps
         run: npm ci
-      - name: Controle-negativo do casos-guard (físico)
-        run: npm run test:casos-guard
+      - name: Controle-negativo do casos-guard + coletor (físico)
+        run: |
+          npm run test:casos-guard
+          npm run test:casos-results
