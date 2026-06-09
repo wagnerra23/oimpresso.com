@@ -4,7 +4,7 @@ component: resources/js/Pages/OficinaAuto/Vehicles/Create.tsx
 page_id: oficina-auto-veiculos-create
 owner: wagner
 status: live
-last_validated: "2026-05-31"
+last_validated: "2026-06-09"
 parent_module: OficinaAuto
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
@@ -12,12 +12,14 @@ related_adrs:
   - 0137-modules-oficinaauto-qualificada
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /oficina-auto/veiculos/create
 
 > **Charter retroativo (2026-05-31):** v1 baseline scaffold V0 US-OFICINA-001. Espelha codigo EXISTENTE de `Create.tsx` apos `@memcofre` header comment. Criado junto da restauracao de paridade Edit<->Create (mesmos 13 campos, DS Select/Textarea, erros em todos os campos). Append-only — futuras mudancas viram v2. Gemeo de `Edit.charter.md` (mesmo conjunto de campos, diferenca = POST vs PUT e defaults vazios).
+>
+> **v2 (2026-06-09 · decisao Wagner):** adiciona **consulta de placa** (digita placa → busca dados tecnicos do veiculo e auto-preenche o form). O Non-Goal v1 "NAO consultar APIs externas" era explicitamente "feature pos-V0" — agora promovido. Escopo travado em **SO DADOS TECNICOS** (marca/modelo/ano/cor/combustivel/chassi/renavam): o **proprietario (PII de terceiro) NAO e consultado nem armazenado** (decisao Wagner 2026-06-09 — remover PII do proprietario). Adapter agnostico (driver `stub` padrao, `http` pluga fornecedor real via .env — key no Vaultwarden). NAO so paridade com Edit.tsx neste ponto (Edit nao tem o botao Buscar).
 
 ## Mission
 
@@ -40,11 +42,13 @@ Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (s
   - `notes` Textarea DS
 - **G3.** Validation errors inline em TODOS os campos (`errors.<campo>`) + `aria-invalid` + foco/scroll automatico no 1o campo invalido apos resposta do servidor (`FIELD_ORDER`).
 - **G4.** Footer com botoes "Cancelar" outline (volta pra Index) + "Salvar veiculo" primary (disabled durante `processing`).
+- **G5. (v2)** Botao "Buscar" ao lado da `plate` (+ Enter no campo) chama `POST /oficina-auto/veiculos/consulta-placa` (AJAX, throttle 20/min, permission `oficinaauto.vehicle.create`) e auto-preenche os campos tecnicos retornados (`manufacture_year`/`model_year`/`color`/`fuel_type`/`chassis`/`engine`/`renavam`). Marca/modelo (sem coluna V0) vao pra `notes` so se vazio. Feedback inline `role=status` (sucesso emerald / nao-encontrado muted / erro destructive). Loading via `Loader2` spinner. Driver agnostico (`stub` default).
 
 ## Non-Goals
 
 - NAO criar veiculos em batch — uma operacao por vez (importer em massa = artisan `officeimpresso:import-vehicles`, US-OFICINA-002).
-- NAO consultar APIs externas (DENATRAN/Senatran/Sintegra) pra preenchimento automatico — feature pos-V0.
+- NAO consultar nem armazenar dados do PROPRIETARIO (nome/CPF) na consulta de placa — escopo v2 e SO dados tecnicos do veiculo (decisao Wagner 2026-06-09 — sem PII de terceiro). Owner permanece vinculado manualmente a um Contact em fluxo proprio.
+- NAO persistir resultado da consulta automaticamente — auto-preenche o form e o operador confere/salva (Save unico continua sendo a fonte da verdade).
 - NAO permitir upload de foto do veiculo no Create V0 — Gap futuro via `HasArquivos` trait.
 - NAO vincular contact (dono) inline no Create V0 — relacao tratada em fluxo proprio.
 - NAO setar `business_id` no frontend — Model::creating hook seta automaticamente (Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
@@ -59,9 +63,9 @@ Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (s
 
 ## Automation Anti-hooks
 
-- NAO cria veiculo em outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Model::creating hook + global scope enforce).
-- NAO consulta APIs externas (DENATRAN/Senatran) — sem custo externo, sem LGPD-extra-scope.
-- NAO loggar payload `notes`/`chassis`/`renavam` em telemetria (texto livre + PII fiscal — backend redaciona via PiiRedactor).
+- NAO cria veiculo em outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Model::creating hook + global scope enforce). Cache da consulta de placa e namespeada por `business_id` (um tenant nunca ve resultado cacheado de outro).
+- A consulta de placa (v2) NAO traz proprietario (PII de terceiro) — so dados tecnicos (decisao Wagner 2026-06-09). Custo externo e opt-in (driver `stub` default sem rede; `http` so quando fornecedor plugado via .env, key no Vaultwarden).
+- NAO loggar a placa em claro nem payload `notes`/`chassis`/`renavam` em telemetria (PII — span Otel so com `plate_prefix` 3 chars; excecoes redacionadas via PiiRedactor).
 - NAO redireciona pra rota fora `/oficina-auto/veiculos/{id}` apos Save (Inertia `post` retorna pro Show via controller `store`).
 
 ## Sub-components
@@ -81,5 +85,7 @@ Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (s
 - RUNBOOK: `memory/requisitos/OficinaAuto/RUNBOOK-create.md` (compartilhado com ServiceOrders create — pode separar futuro)
 - Charter gemeo: `resources/js/Pages/OficinaAuto/Vehicles/Edit.charter.md` (mesmo conjunto de 13 campos)
 
-@see Modules/OficinaAuto/Http/Controllers/VehicleController.php (action `create` + `store`)
+@see Modules/OficinaAuto/Http/Controllers/VehicleController.php (action `create` + `store` + `consultaPlaca` v2)
 @see Modules/OficinaAuto/Entities/Vehicle.php (model com business_id scope)
+@see Modules/OficinaAuto/Services/VehicleLookupService.php (orquestra consulta de placa — adapter agnostico, cache por business_id, span Otel PII-safe)
+@see Modules/OficinaAuto/Services/PlacaLookup/ (PlacaProvider interface + StubPlacaProvider + HttpPlacaProvider + PlacaLookupResult DTO)
