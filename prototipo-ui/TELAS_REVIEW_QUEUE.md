@@ -108,8 +108,8 @@
 
 | Status | Tela | Prioridade | Refs |
 |---|---|---|---|
-| `[~]` | OS-V2-1 · Fotos & Laudo reais no drawer | **P1** | Hoje 3 placeholders + botão disabled. Upload real (câmera/arquivo) via Modules/Arquivos, thumbnails + lightbox, anexo sai no print A4. Persona Técnico Repair (touch ≥44px). |
-| `[~]` | OS-V2-2 · DVI inline com severidade | **P1** | Seção DVI no drawer (badge ok/atenção/crítico + valor por item alimentando gate). Depende: endpoint `DviInspectionController` (verificar shape). Padrão visual já no protótipo `producao-oficina`. |
+| `[x]` | OS-V2-1 · Fotos & Laudo reais no drawer | **P1** | ✅ F3 [CC] 2026-06-09 — upload OS-level real (3 estados + progresso XHR + lightbox legenda editável) via `ServiceOrderPhotoController` (HasArquivos morphTo OS) + seção "Fotos da vistoria" no print A4. Persona Técnico Repair (touch ≥44px). |
+| `[x]` | OS-V2-2 · DVI inline com severidade | **P1** | ✅ F3 [CC] 2026-06-09 — semáforo radiogroup 1-toque (ok/atenção/crítico, tokens DS) no drawer via `DviInlineEditor` + `dvi_items` no payload; CRUD reusa `DviInspectionController` + CTA "Pedir aprovação" (gate WhatsApp). |
 | `[~]` | OS-V2-3 · Gate "Pedir aprovação" hero no drawer | **P2** | Barra de total recomendado + CTA hero "Pedir aprovação" (WhatsApp `wa.me` sem PII). Portar barra do protótipo pro token do DS. |
 | `[~]` | OS-V2-4 · Linha do tempo FSM auditável | **P2** | Timeline real via histórico de transições FSM (quem/quando/de→pra), endpoint `fsm/history` previsto no código. Valor: auditoria de lead time. |
 

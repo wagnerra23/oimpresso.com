@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\OficinaAuto\Entities\OaInspectionItem;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\ServiceOrderItem;
 use Modules\OficinaAuto\Entities\Vehicle;
@@ -83,6 +84,7 @@ function rich_cleanup(string $suffix): void
         ->toArray();
 
     if (! empty($osIds)) {
+        OaInspectionItem::withoutGlobalScopes()->whereIn('service_order_id', $osIds)->forceDelete();
         ServiceOrderItem::withoutGlobalScopes()->whereIn('service_order_id', $osIds)->forceDelete();
         ServiceOrder::withoutGlobalScopes()->whereIn('id', $osIds)->forceDelete();
     }
@@ -190,3 +192,82 @@ it('GET /service-orders/{id} com assigned_user populado → name concatenado Ult
     // Concat trimmed: "Pedro Souza" (sem surname)
     expect($response->json('assigned_user.name'))->toBe('Pedro Souza');
 })->afterEach(fn () => rich_cleanup('C'));
+
+// ---------------------------------------------------------------------------
+// F3 OS-V2-2 — JSON payload com dvi_items[] pro semáforo inline do drawer
+// ---------------------------------------------------------------------------
+
+it('GET /service-orders/{id} JSON retorna dvi_items[] ordenado por sort_order com shape do semáforo', function () {
+    session(['user.business_id' => BIZ_RICH]);
+    $os = rich_criaOs('D');
+
+    // Cria 3 itens DVI fora de ordem de sort_order pra validar ordenação.
+    OaInspectionItem::withoutGlobalScopes()->create([
+        'business_id'       => BIZ_RICH,
+        'service_order_id'  => $os->id,
+        'categoria'         => 'correia',
+        'descricao'         => 'Correia dentada',
+        'severity'          => 'critico',
+        'recomendacao'      => 'trincada · troca imediata',
+        'valor_recomendado' => 480,
+        'sort_order'        => 2,
+    ]);
+    OaInspectionItem::withoutGlobalScopes()->create([
+        'business_id'       => BIZ_RICH,
+        'service_order_id'  => $os->id,
+        'categoria'         => 'fluidos',
+        'descricao'         => 'Motor · óleo + filtro',
+        'severity'          => 'ok',
+        'recomendacao'      => null,
+        'valor_recomendado' => null,
+        'sort_order'        => 0,
+    ]);
+    OaInspectionItem::withoutGlobalScopes()->create([
+        'business_id'       => BIZ_RICH,
+        'service_order_id'  => $os->id,
+        'categoria'         => 'freios',
+        'descricao'         => 'Freios dianteiros · pastilhas',
+        'severity'          => 'atencao',
+        'recomendacao'      => '3mm · vida útil 60%',
+        'valor_recomendado' => 145,
+        'sort_order'        => 1,
+    ]);
+
+    $user = User::factory()->create(['business_id' => BIZ_RICH]);
+    $user->givePermissionTo('superadmin');
+
+    $response = $this->actingAs($user)
+        ->getJson("/oficina-auto/service-orders/{$os->id}");
+
+    $response->assertOk();
+
+    $dvi = $response->json('dvi_items');
+    expect($dvi)->toBeArray()->toHaveCount(3);
+
+    // Ordenação por sort_order ASC → óleo(0), pastilhas(1), correia(2)
+    expect($dvi[0]['descricao'])->toBe('Motor · óleo + filtro');
+    expect($dvi[0]['severity'])->toBe('ok');
+    expect($dvi[0]['valor_recomendado'])->toBeNull();
+
+    expect($dvi[1]['descricao'])->toBe('Freios dianteiros · pastilhas');
+    expect($dvi[1]['severity'])->toBe('atencao');
+    expect($dvi[1]['valor_recomendado'])->toBe(145.0);
+
+    expect($dvi[2]['severity'])->toBe('critico');
+    expect($dvi[2]['categoria'])->toBe('correia');
+    expect($dvi[2])->toHaveKeys(['id', 'categoria', 'descricao', 'severity', 'recomendacao', 'valor_recomendado', 'sort_order', 'budget_item_id']);
+})->afterEach(fn () => rich_cleanup('D'));
+
+it('GET /service-orders/{id} OS sem DVI → dvi_items=[] (backward compat)', function () {
+    session(['user.business_id' => BIZ_RICH]);
+    $os = rich_criaOs('E');
+
+    $user = User::factory()->create(['business_id' => BIZ_RICH]);
+    $user->givePermissionTo('superadmin');
+
+    $response = $this->actingAs($user)
+        ->getJson("/oficina-auto/service-orders/{$os->id}");
+
+    $response->assertOk();
+    expect($response->json('dvi_items'))->toBeArray()->toHaveCount(0);
+})->afterEach(fn () => rich_cleanup('E'));

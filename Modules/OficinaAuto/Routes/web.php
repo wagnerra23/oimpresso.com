@@ -8,6 +8,7 @@ use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderItemController;
+use Modules\OficinaAuto\Http\Controllers\ServiceOrderPhotoController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -204,6 +205,32 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [DviInspectionController::class, 'deletePhoto'])
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.dvi.photo.delete');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // F3 OS-V2-1 — Fotos & Laudo OS-level (anexo da própria ServiceOrder via
+        // HasArquivos · distinto da foto POR item DVI acima). Entram no laudo A4
+        // impresso ("Fotos da vistoria"). Protótipo Cowork aprovado [W] 2026-06-09:
+        // zona drag&drop (vazio/enviando/preenchido) + lightbox com legenda editável.
+        // Multi-tenant Tier 0 (ADR 0093) via ArquivosService + cross-owner guard.
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('ordens-servico/{order}/fotos',
+            [ServiceOrderPhotoController::class, 'index'])
+            ->name('oficinaauto.orders.fotos.index');
+
+        Route::post('ordens-servico/{order}/fotos',
+            [ServiceOrderPhotoController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.fotos.store');
+
+        Route::patch('ordens-servico/{order}/fotos/{arquivo}',
+            [ServiceOrderPhotoController::class, 'updateLabel'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.fotos.update');
+
+        Route::delete('ordens-servico/{order}/fotos/{arquivo}',
+            [ServiceOrderPhotoController::class, 'destroy'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.fotos.destroy');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────

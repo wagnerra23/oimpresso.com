@@ -244,6 +244,11 @@ class ServiceOrderController extends Controller
 
         $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
         $q = $request->string('q')->toString();
+        // Filtros do quadro (mesmo eixo Box/Mecânico que o RichSheet mostra).
+        // box_label/assigned_user_id chegaram na Wave 2.1 (US-OFICINA-027) — guard de schema.
+        $hasResourceSchema = Schema::hasColumn('service_orders', 'box_label');
+        $mecanico = $request->integer('mecanico') ?: null;
+        $box      = $request->string('box')->toString();
 
         // Stages do processo real do carro, ordenados (multi-tenant via business_id).
         $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
@@ -261,9 +266,25 @@ class ServiceOrderController extends Controller
         $stageKeyById = $stages->pluck('key', 'id');
         $boardStageIds = $boardStages->pluck('id');
 
-        // OS do carro: em pipeline (stage de board) OU recém-criadas sem pipeline
-        // (order_type=mecanica, current_stage_id null) — estas caem na coluna inicial
-        // com in_pipeline=false (drag desabilitado até abrir a OS e iniciar o pipeline).
+        // Membership do quadro: OS em pipeline (stage de board) OU recém-criadas sem
+        // pipeline (order_type=mecanica, current_stage_id null) — estas caem na coluna
+        // inicial com in_pipeline=false (drag desabilitado até abrir a OS e iniciar).
+        // Closure reusada pra montar as opções de filtro sobre o MESMO universo.
+        $boardMembership = function ($w) use ($boardStageIds) {
+            $w->whereIn('current_stage_id', $boardStageIds)
+                ->orWhere(function ($w2) {
+                    $w2->where('order_type', 'mecanica')->whereNull('current_stage_id');
+                });
+        };
+
+        // Opções dos selects (Box/Mecânico) — distinct sobre o universo do quadro, ANTES
+        // de aplicar box/mecanico (senão o select encolheria pra própria seleção).
+        [$boxOptions, $mecanicoOptions] = $this->buildBoardFilterOptions(
+            $boardMembership,
+            $businessId,
+            $hasResourceSchema,
+        );
+
         $orders = ServiceOrder::query()
             ->with([
                 'vehicle:id,plate,vehicle_type',
@@ -272,12 +293,11 @@ class ServiceOrderController extends Controller
                 'dviInspectionItems',
                 'dviInspectionItems.arquivos',
             ])
-            ->where(function ($w) use ($boardStageIds) {
-                $w->whereIn('current_stage_id', $boardStageIds)
-                    ->orWhere(function ($w2) {
-                        $w2->where('order_type', 'mecanica')->whereNull('current_stage_id');
-                    });
-            })
+            ->where($boardMembership)
+            // Filtro por mecânico (assigned_user_id) e/ou box (texto livre) — query (canon
+            // charter), não client-side. Guard de schema pra ambiente pré-Wave 2.1.
+            ->when($hasResourceSchema && $mecanico !== null, fn ($qb) => $qb->where('assigned_user_id', $mecanico))
+            ->when($hasResourceSchema && $box !== '', fn ($qb) => $qb->where('box_label', $box))
             ->when($q !== '', function ($qb) use ($q) {
                 $like = '%' . $q . '%';
                 $qb->where(function ($w) use ($like, $q) {
@@ -321,8 +341,61 @@ class ServiceOrderController extends Controller
             'columns'      => $columns,
             'kpis'         => $this->buildBoardKpis($columns),
             'process_seeded' => $boardStages->isNotEmpty(),
-            'filters'      => ['q' => $q],
+            'filters'      => ['q' => $q, 'mecanico' => $mecanico, 'box' => $box !== '' ? $box : null],
+            'filterOptions' => ['boxes' => $boxOptions, 'mecanicos' => $mecanicoOptions],
         ]);
+    }
+
+    /**
+     * Opções dos selects de filtro do quadro — boxes (texto livre) + mecânicos distintos
+     * entre as OS do universo do quadro (closure $membership). Mesmo eixo Box/Mecânico que
+     * o ServiceOrderRichSheet mostra. Global scope ServiceOrder já filtra business_id;
+     * mecânicos resolvidos com scope explícito por business (User não tem global scope).
+     *
+     * @param  \Closure  $membership  filtro de pertencimento ao quadro (reusa o do board)
+     * @return array{0: list<string>, 1: list<array{id:int, nome:string}>}
+     */
+    private function buildBoardFilterOptions(\Closure $membership, int $businessId, bool $hasResourceSchema): array
+    {
+        if (! $hasResourceSchema) {
+            return [[], []];
+        }
+
+        $boxes = ServiceOrder::query()
+            ->where($membership)
+            ->whereNotNull('box_label')
+            ->where('box_label', '!=', '')
+            ->distinct()
+            ->orderBy('box_label')
+            ->pluck('box_label')
+            ->values()
+            ->all();
+
+        $mechanicIds = ServiceOrder::query()
+            ->where($membership)
+            ->whereNotNull('assigned_user_id')
+            ->distinct()
+            ->pluck('assigned_user_id')
+            ->all();
+
+        $mecanicos = [];
+        if (! empty($mechanicIds)) {
+            $users = \App\User::query()
+                ->whereIn('id', $mechanicIds)
+                ->when($businessId > 0, fn ($qb) => $qb->where('business_id', $businessId))
+                ->orderBy('first_name')
+                ->get(['id', 'first_name', 'last_name', 'surname', 'username']);
+
+            foreach ($users as $u) {
+                $nome = trim((string) ($u->first_name ?? '') . ' ' . (string) ($u->last_name ?? ''));
+                if ($nome === '') {
+                    $nome = (string) ($u->surname ?? $u->username ?? '');
+                }
+                $mecanicos[] = ['id' => (int) $u->id, 'nome' => $nome !== '' ? $nome : '—'];
+            }
+        }
+
+        return [$boxes, $mecanicos];
     }
 
     /**
@@ -598,6 +671,8 @@ class ServiceOrderController extends Controller
             'assignedUser:id,first_name,last_name,surname',
             // US-OFICINA-040 — itens DVI pra seção "Vistoria → orçamento" no Show
             'dviInspectionItems',
+            // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo) pro drawer + print
+            'arquivos',
         ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
@@ -661,6 +736,40 @@ class ServiceOrderController extends Controller
                     'notes'          => $item->notes,
                 ])->values()->all(),
                 'items_total' => (float) $order->total_items,
+                // F3 OS-V2-2 — itens DVI (Vistoria Digital) pra o semáforo inline editável
+                // do drawer ServiceOrderRichSheet (DviInlineEditor). Mesmo shape do branch
+                // Inertia (Show), + sort_order pra ordenação estável. `budget_item_id` (em
+                // metadata) sinaliza item já convertido em linha de orçamento.
+                'dvi_items' => $order->dviInspectionItems
+                    ->sortBy([['sort_order', 'asc'], ['id', 'asc']])
+                    ->map(fn (OaInspectionItem $dvi) => [
+                        'id'                => (int) $dvi->id,
+                        'categoria'         => (string) $dvi->categoria,
+                        'descricao'         => (string) $dvi->descricao,
+                        'severity'          => (string) $dvi->severity,
+                        'recomendacao'      => $dvi->recomendacao,
+                        'valor_recomendado' => $dvi->valor_recomendado !== null ? (float) $dvi->valor_recomendado : null,
+                        'sort_order'        => (int) $dvi->sort_order,
+                        'budget_item_id'    => is_array($dvi->metadata) ? ($dvi->metadata['budget_item_id'] ?? null) : null,
+                    ])->values()->all(),
+                // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo) pra o drawer.
+                // `label` = original_name (legenda editável no lightbox). display_url
+                // é signed quando bucket=sensitive (defesa em profundidade).
+                'laudo_photos' => $order->arquivos
+                    ->sortBy([['created_at', 'asc'], ['id', 'asc']])
+                    ->map(function ($a) {
+                        // closure sem tipo no param + @var: relação HasArquivos é MorphMany
+                        // sem generic (Larastan tipa Model, não Arquivo — dívida US-ARQ-TYPE).
+                        /** @var \Modules\Arquivos\Entities\Arquivo $a */
+                        return [
+                            'id'          => (int) $a->id,
+                            'label'       => (string) ($a->original_name ?? ''),
+                            'mime_type'   => (string) $a->mime_type,
+                            'size_bytes'  => (int) $a->size_bytes,
+                            'display_url' => (string) $a->display_url,
+                            'created_at'  => $a->created_at?->toIso8601String(),
+                        ];
+                    })->values()->all(),
                 // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
                 // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController
@@ -881,6 +990,8 @@ class ServiceOrderController extends Controller
                 'items',
                 'dviInspectionItems',
                 'assignedUser:id,first_name,last_name,surname',
+                // F3 OS-V2-1 — fotos do laudo OS-level entram na folha A4 ("Fotos da vistoria")
+                'arquivos',
             ]);
 
             $business = \App\Business::find($businessId);

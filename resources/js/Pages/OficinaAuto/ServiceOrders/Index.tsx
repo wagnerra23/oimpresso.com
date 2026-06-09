@@ -53,18 +53,17 @@ interface ServiceOrder {
   number?: string | null;
   status: string;
   order_type?: OrderType;
-  delivery_address?: string | null;
-  expected_return_date?: string | null;
+  // Atraso de reparo (ADR 0265): só expected_completion. Campos de locação
+  // (delivery_address/expected_return_date/daily_rate/dias_locacao) erradicados.
   expected_completion?: string | null;
-  daily_rate?: number | string | null;
   entered_at?: string | null;
   started_at?: string | null;
   completed_at?: string | null;
+  // Sintoma/defeito relatado na entrada da OS — 1ª linha exibida na coluna "Defeito".
+  notes?: string | null;
   vehicle?: VehicleRel | null;
   contact?: ContactRel | null;
-  // accessors Wave 5-A (vêm via $appends ou load explicit):
   is_overdue?: boolean;
-  dias_locacao?: number | null;
   valor_receber?: number | string | null;
 }
 
@@ -87,7 +86,6 @@ interface Filters {
 }
 
 interface Kpis {
-  locacoes_ativas: number;
   manutencao_ativas: number;
   concluidas_mes: number;
   atrasadas: number;
@@ -105,9 +103,6 @@ interface Stage {
 
 interface SchemaFlags {
   has_order_type: boolean;
-  has_return_date: boolean;
-  has_delivery_address: boolean;
-  has_daily_rate: boolean;
   has_number: boolean;
   has_started_at: boolean;
   has_contact: boolean;
@@ -128,7 +123,6 @@ interface Props {
 }
 
 const EMPTY_KPIS: Kpis = {
-  locacoes_ativas: 0,
   manutencao_ativas: 0,
   concluidas_mes: 0,
   atrasadas: 0,
@@ -164,15 +158,23 @@ function formatBRL(value: number | string | null | undefined): string {
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function isOverdueClient(o: ServiceOrder, flags: SchemaFlags): boolean {
+// Atraso de REPARO (ADR 0265 — locação erradicada): só expected_completion.
+function isOverdueClient(o: ServiceOrder): boolean {
   if (typeof o.is_overdue === 'boolean') return o.is_overdue;
   if (['concluida', 'cancelada'].includes(o.status)) return false;
-  const dateField = flags.has_return_date ? o.expected_return_date : o.expected_completion;
+  const dateField = o.expected_completion;
   if (!dateField) return false;
   const target = new Date(dateField.length >= 10 ? dateField.slice(0, 10) : dateField);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return target < today;
+}
+
+// 1ª linha do sintoma/defeito relatado (coluna "Defeito" + linha secundária da Fila).
+function firstLine(notes?: string | null): string {
+  if (!notes) return '';
+  const line = notes.split(/\r?\n/)[0]?.trim() ?? '';
+  return line;
 }
 
 // Gap #3 — paleta de cores Tailwind por stage.color (vinda do seeder OficinaAutoFsmSeeder).
@@ -467,10 +469,9 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
         ) : view === 'fila' ? (
           <ServiceOrderFila
             orders={orders.data}
-            isOverdue={(o) => isOverdueClient(o, schemaFlags)}
+            isOverdue={isOverdueClient}
             formatBRDate={formatBRDate}
             formatBRL={formatBRL}
-            hasReturnDate={schemaFlags.has_return_date}
             onOpenFull={setOpenOsId}
           />
         ) : (
@@ -483,6 +484,7 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                     <th className="px-3 py-2 text-left">Tipo</th>
                     <th className="px-3 py-2 text-left">Veículo</th>
                     <th className="px-3 py-2 text-left">Cliente</th>
+                    <th className="px-3 py-2 text-left">Defeito</th>
                     <th className="px-3 py-2 text-left">Entrada</th>
                     <th className="px-3 py-2 text-left">Previsão</th>
                     <th className="px-3 py-2 text-right">Valor</th>
@@ -491,9 +493,10 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                 </thead>
                 <tbody>
                   {orders.data.map((o) => {
-                    const overdue = isOverdueClient(o, schemaFlags);
+                    const overdue = isOverdueClient(o);
                     const startedAt = o.started_at ?? o.entered_at;
-                    const prazo = schemaFlags.has_return_date ? o.expected_return_date : o.expected_completion;
+                    const prazo = o.expected_completion;
+                    const defeito = firstLine(o.notes);
 
                     return (
                       <tr
@@ -549,6 +552,18 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                         </td>
                         <td className="px-3 py-2.5">
                           {o.contact?.name ?? <span className="text-muted-foreground">—</span>}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {defeito ? (
+                            <span
+                              className="block max-w-[28ch] truncate text-xs text-muted-foreground"
+                              title={defeito}
+                            >
+                              {defeito}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </td>
                         <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground">
                           {formatBRDate(startedAt)}
