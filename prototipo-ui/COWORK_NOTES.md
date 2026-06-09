@@ -103,6 +103,12 @@ Razão: ADR 0109 introduziu plugin Claude Design (capability). ADR 0114 formaliz
 - 🆕 **Achado novo (não coberto pela fila §10.4 das 07:00):** são **6 motores de score**, em 2 camadas — cara/LLM `design:*` **DORMANTE** (`mwart-comparative` último 05-17 · `design-deep-analysis` **0 disparos** · `a11y-report.md` nunca) vs barata/estática **VIVA** (`screen-grade` 222 telas · `module:grade` · `ds/*`). PROTOCOL descreve só a dormante.
 - ⏸️ **Sobra real:** **G1/G2/G6** (consolidar motores — religar `mwart-comparative` como aprofundamento sob demanda do `screen-grade`, não skill nova) + **G5-`.css`**. Ordem = decisão [W].
 
+## 2026-06-09 [CC] → [CL] · EVAL-001 — fundação de evals de comportamento dos agentes
+
+**[PROCESSADO]** EVAL-001 — PR #2478 aguardando merge [W]. Ondas 2 e 3 descritas em [`prototipo-ui/evals/EVAL_PROTOCOL.md`](evals/EVAL_PROTOCOL.md) (EVAL-002 = outcome metrics + rubrica [W]; EVAL-003 = red-team + US-GOV-013).
+
+Processado por [CL] 2026-06-09, gate §10.4 contra `origin/main` (Passo 0: worktree fresco, `0 0` ahead). Entregue: `prototipo-ui/evals/{EVAL_PROTOCOL,GOLDEN_SET,REPLAY_CASES,AUTONOMY_LADDER}.md` + `results/.gitkeep` + ADR **0266** (status proposto, próximo livre após 0265). **Classe A1** pela própria AUTONOMY_LADDER → **NÃO merge autônomo**: o merge de [W] é o ato de congelamento do golden set.
+
 ## 2026-05-09 16:45 [W] → [CC]
 
 ### Tela: Jana/Chat
