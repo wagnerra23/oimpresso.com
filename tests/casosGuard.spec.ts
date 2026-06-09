@@ -141,3 +141,47 @@ describe('casos:check — G-5 metadata viva (quem · quando · status) (físico)
     expect(out).toMatch(/meta:missing-last_run:resources\/js\/Pages\/D\/Index\.casos\.md/);
   });
 });
+
+describe('casos:check — G-6 frescor via git (físico)', () => {
+  const git = (cmd: string) => execSync(`git ${cmd}`, { cwd: tmp, stdio: 'ignore' });
+  const initRepo = () => {
+    git('init -q');
+    git('config user.email t@t.co');
+    git('config user.name t');
+    git('config commit.gpgsign false');
+  };
+  const seedScreen = (dir: string, lastRun: string) => {
+    write(page(dir), 'x');
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(`resources/js/Pages/${dir}/Index.casos.md`, `---\nowner: w\nlast_run: "${lastRun}"\n---\n## UC-01 · x\n- **Status: ✅**`);
+    write(`tests/${dir}Test.php`, '<?php // UC-01');
+  };
+
+  it('SENSIBILIDADE: .tsx com commit MAIS NOVO que last_run vira stale', () => {
+    initRepo();
+    seedScreen('S', '2099-01-01'); // last_run no futuro → o commit (hoje) NÃO é mais novo
+    git('add -A');
+    git('commit -qm init'); // .tsx commit = agora
+    run('--write-baseline'); // 0 stale (last_run 2099 > hoje)
+    // bumba o last_run pra trás → agora a tela está "mais nova" que os casos.
+    write('resources/js/Pages/S/Index.casos.md', '---\nowner: w\nlast_run: "2020-01-01"\n---\n## UC-01 · x\n- **Status: ✅**');
+    const out = runExpectFail('');
+    expect(out).toMatch(/stale:resources\/js\/Pages\/S\/Index\.casos\.md/);
+  });
+
+  it('ESPECIFICIDADE: last_run >= commit da tela NÃO é stale', () => {
+    initRepo();
+    seedScreen('F', '2099-01-01');
+    git('add -A');
+    git('commit -qm init');
+    const out = run('--json');
+    expect(out).toMatch(/"stale_cases": 0/);
+  });
+
+  it('GRACIOSO: repo shallow / sem histórico → pula frescor (zero falso-positivo)', () => {
+    // tmp NÃO é repo git (sem initRepo) → isShallowRepo()=true → G-6 pula.
+    seedScreen('G', '2020-01-01'); // last_run antiga, mas sem git não dá pra saber → não acusa.
+    const out = run('--json');
+    expect(out).toMatch(/"stale_cases": 0/);
+  });
+});

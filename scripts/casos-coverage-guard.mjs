@@ -10,7 +10,7 @@
 // (charter/casos/teste/proibições) viram MÁQUINA, não disciplina (ADR 0264, lei da
 // catraca ADR 0256). Censo @main 2026-06-09: 277 páginas roteadas, 138 charter, 1 casos.md.
 //
-// Este guard cobre 3 camadas:
+// Este guard cobre 4 camadas:
 //   G-1 TRIO-DE-TELA  : toda .tsx ROTEADA em resources/js/Pages/** (exclui _components/)
 //                       DEVE ter, ao lado, <Nome>.charter.md E <Nome>.casos.md.
 //   G-2 RASTREABILIDADE: todo UC-* declarado num *.casos.md DEVE ser citado por >=1 teste
@@ -18,8 +18,10 @@
 //                       UC órfão (caso no papel sem teste que o defenda) = violação.
 //   G-5 METADATA VIVA : cada *.casos.md DEVE carregar `owner` (quem fez) + `last_run`
 //                       (quando, data) + `Status:` por UC (se está ativa/passa). É o que
-//                       faz a spec "saber de si" e não apodrecer. Trava PRESENÇA (frescor
-//                       de last_run é manual — pode mentir; carimbo automático = futuro).
+//                       faz a spec "saber de si" e não apodrecer. Trava PRESENÇA.
+//   G-6 FRESCOR       : se o <Nome>.tsx tem commit MAIS NOVO que o `last_run`, os casos
+//                       estão STALE (tela mudou sem revalidar). Sinal amarrado à mudança
+//                       de CÓDIGO via git (melhor que wall-clock). Resolve "last_run mente".
 //
 // =====================================================================================
 // RATCHET / BASELINE — gêmeo de pageheader-migration-guard.mjs + no-mock-in-prod.mjs
@@ -41,6 +43,7 @@
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname, basename, relative } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const PAGES_DIR = resolve(ROOT, 'resources/js/Pages');
@@ -190,6 +193,62 @@ function metadataViolations(casosFiles) {
 }
 
 // ---------------------------------------------------------------------------
+// G-6 — FRESCOR (staleness) via git: a tela mudou DEPOIS dos casos serem validados?
+// ---------------------------------------------------------------------------
+// Resolve o "last_run pode mentir" (o limite honesto do G-5). Sinal de frescor amarrado
+// à MUDANÇA DE CÓDIGO (não relógio de parede — melhor que o wall-clock à la Backstage):
+// se o <Nome>.tsx tem commit MAIS NOVO que o `last_run` do <Nome>.casos.md, os casos estão
+// STALE (o comportamento mudou sem revalidar). Força a regra de ouro do F3: "tocou a tela
+// → bumpa o last_run (= revalidou os casos)".
+//
+// Degrada gracioso: sem git / histórico raso (shallow clone) / data ausente → PULA (zero
+// falso-positivo). O CI roda com fetch-depth: 0 pro sinal funcionar (casos-gate.yml).
+function gitCommitDate(relTsx) {
+  try {
+    const out = execSync(`git log -1 --format=%cs -- "${relTsx}"`, {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null;
+  } catch {
+    return null;
+  }
+}
+
+function isShallowRepo() {
+  try {
+    return execSync('git rev-parse --is-shallow-repository', { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() === 'true';
+  } catch {
+    return true; // sem git → trata como "sem sinal" (pula tudo).
+  }
+}
+
+function stalenessViolations(casosFiles) {
+  // Histórico raso (shallow clone) faz `git log` devolver a data do HEAD pra TODO arquivo →
+  // falso-positivo em massa. Nesse caso PULA (o CI deve usar fetch-depth: 0 pra enforçar).
+  if (isShallowRepo()) return [];
+
+  const violations = [];
+  for (const file of casosFiles) {
+    const lastRunRaw = fmField(frontmatterBlock(readFileSync(resolve(ROOT, file), 'utf8')), 'last_run');
+    if (!lastRunRaw) continue; // sem last_run → G-5 já pega; frescor não se aplica.
+    const lastRun = lastRunRaw.replace(/["']/g, '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(lastRun)) continue;
+
+    const tsx = file.replace(/\.casos\.md$/, '.tsx');
+    if (!existsSync(resolve(ROOT, tsx))) continue; // trio incompleto → G-1 pega.
+
+    const tsxDate = gitCommitDate(tsx);
+    if (!tsxDate) continue; // sem sinal git (shallow/sem histórico) → pula gracioso.
+
+    // Datas YYYY-MM-DD: comparação lexicográfica = cronológica.
+    if (tsxDate > lastRun) violations.push(`stale:${file}`);
+  }
+  return violations;
+}
+
+// ---------------------------------------------------------------------------
 // Cálculo
 // ---------------------------------------------------------------------------
 function computeViolations() {
@@ -201,8 +260,9 @@ function computeViolations() {
   const trio = trioViolations(pages);
   const orphans = orphanUcViolations(ucDecls, testCorpus);
   const meta = metadataViolations(casosFiles);
+  const stale = stalenessViolations(casosFiles);
 
-  const all = [...trio, ...orphans, ...meta].sort((a, b) => a.localeCompare(b));
+  const all = [...trio, ...orphans, ...meta, ...stale].sort((a, b) => a.localeCompare(b));
   return {
     violations: all,
     stats: {
@@ -213,6 +273,7 @@ function computeViolations() {
       missing_casos: trio.filter((v) => v.startsWith('trio:missing-casos')).length,
       orphan_ucs: orphans.length,
       metadata_issues: meta.length,
+      stale_cases: stale.length,
     },
   };
 }
@@ -244,6 +305,7 @@ function main() {
     console.log(`Telas SEM casos.md:   ${stats.missing_casos}`);
     console.log(`UCs órfãos (sem teste): ${stats.orphan_ucs}`);
     console.log(`Metadata viva faltando (owner/last_run/Status por UC): ${stats.metadata_issues}`);
+    console.log(`Casos STALE (tela mudou depois do last_run — frescor G-6): ${stats.stale_cases}`);
     console.log(`\nTOTAL de violações (débito): ${violations.length}`);
     console.log('\n→ F1 fotografa isso no baseline (não-bloqueante). F3 ratchet zera tela-a-tela.');
     process.exit(0);
@@ -253,7 +315,7 @@ function main() {
     const out = {
       _meta: {
         generated_at: new Date().toISOString(),
-        gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva)',
+        gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva + G-6 frescor)',
         stats,
         nota: 'Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write',
         refs: ['ADR 0264', 'ADR 0261', 'ADR 0256'],
@@ -284,6 +346,7 @@ function main() {
         `\nUC NOVO precisa de teste citando o id (ADR 0264 G-2).` +
         `\nmeta:* → o casos.md precisa de frontmatter \`owner:\` (quem) + \`last_run: "AAAA-MM-DD"\` (quando)` +
         `\n         e cada \`## UC-XX\` precisa de uma linha \`Status:\` (se está ativa/passa) — ADR 0264 G-5.` +
+        `\nstale:* → a tela (.tsx) mudou DEPOIS do \`last_run\` — revalide os casos e bumpe o \`last_run\` (ADR 0264 G-6).` +
         `\nSe for legado movido/refatorado conscientemente: npm run casos:baseline:write`,
     );
     process.exit(1);

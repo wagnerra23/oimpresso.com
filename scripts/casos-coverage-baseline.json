@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-09T13:25:07.805Z",
-    "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva)",
+    "generated_at": "2026-06-09T13:54:01.902Z",
+    "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva + G-6 frescor)",
     "stats": {
       "pages": 277,
       "casos_files": 1,
@@ -9,7 +9,8 @@
       "missing_charter": 144,
       "missing_casos": 276,
       "orphan_ucs": 5,
-      "metadata_issues": 0
+      "metadata_issues": 0,
+      "stale_cases": 1
     },
     "nota": "Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write",
     "refs": [
@@ -19,6 +20,7 @@
     ]
   },
   "violations": [
+    "stale:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md",
     "trio:missing-casos:resources/js/Pages/_Showcase/Components.tsx",
     "trio:missing-casos:resources/js/Pages/_Showcase/OndaF.tsx",
     "trio:missing-casos:resources/js/Pages/Admin/FeatureFlags/Index.tsx",
