@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ArrowRight, Check, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Inline } from '@/Components/layout';
 
 interface GateRequirement {
   key: string;
@@ -153,10 +154,10 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Inline className="text-xs text-muted-foreground">
         <Loader2 size={14} className="animate-spin" />
         Carregando checklist…
-      </div>
+      </Inline>
     );
   }
 
@@ -199,7 +200,7 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
       }
     >
       {/* Cabeçalho: ícone + "Gate p/ X" + done/total + pct */}
-      <div className="flex items-start gap-2.5">
+      <Inline align="start" className="gap-2.5">
         <span
           className={
             'grid h-7 w-7 shrink-0 place-items-center rounded-full ' +
@@ -230,7 +231,7 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
             {pct}%
           </span>
         )}
-      </div>
+      </Inline>
 
       {total > 0 && (
         <>
@@ -253,7 +254,7 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
                 }
               >
                 {it.type === 'manual' ? (
-                  <div className="flex w-full items-center gap-2">
+                  <Inline className="w-full">
                     <Checkbox
                       checked={it.displayOk}
                       onCheckedChange={(c) => setManualCheck(it.key, c === true)}
@@ -262,7 +263,7 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
                     />
                     <span className="flex-1">{it.label}</span>
                     <span className="text-[9.5px] italic text-muted-foreground">conferir</span>
-                  </div>
+                  </Inline>
                 ) : (
                   <>
                     <span
