@@ -176,15 +176,24 @@ jobs:
         # dump-autoload --no-dev REMOVIA as classes dev do classmap → boot (php artisan up)
         # tentava carregar o provider e não achava → 500. Agora alinhado com o dump-autoload
         # principal (mantém dev + ignora platform-req ext-opentelemetry do Hostinger).
+        # 2026-06-09 (fix outage #2484 deploy): trocado `/usr/local/bin/composer` por
+        # `composer` (PATH). O binário hardcoded /usr/local/bin é antigo e NÃO entende
+        # `--ignore-platform-req=ext-opentelemetry` → imprime o HELP do dump-autoload e
+        # sai 1 (mesmo sintoma do incidente 2026-05-26). O step "Composer install" acima
+        # usa `composer` (PATH, 2.x) com a MESMA flag e funciona — agora alinhado.
         run: |
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd /home/u906587222/domains/oimpresso.com/public_html &&
-            /usr/local/bin/composer dump-autoload --optimize --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 &&
+            composer dump-autoload --optimize --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 &&
             find app bootstrap config routes -name '*.php' -exec touch {} + 2>&1 | tail -3
           "
 
+      # if: always() — rede de segurança: um deploy que falhe em QUALQUER step anterior
+      # (ex: OPcache 2026-06-09 → site preso em 503) NUNCA pode deixar o site em manutenção.
+      # `php artisan up` é idempotente; rodar sempre garante que o site volta.
       - name: Maintenance mode OFF
+        if: always()
         run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up"
 
       - name: Reset OPcache via HTTP (LSPHP/LiteSpeed) — opcional
