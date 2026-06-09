@@ -9,8 +9,6 @@ lifecycle: ativo
 kind: meta
 decided_by: [W]
 decided_at: "2026-06-09"
-accepted_at: "2026-06-09"
-accepted_via: "merge do PR EVAL-001 por [W] (ato de congelamento do golden set)"
 module: null
 quarter: 2026-Q2
 tags: [evals, governanca, comportamento-agentes, golden-set, replay-cases, autonomy-ladder, anti-contaminacao]
@@ -26,7 +24,7 @@ pii: false
 > Numeração e ratificação por [CL] sob soberania [W] (ADR 0238). Não é mudança constitucional (não toca ADR 0094/UI-0013/PROTOCOL/BRIEFING) — mas o merge deve ser de [W], porque o merge do golden set é o ato de congelamento da régua (classe A1 na própria AUTONOMY_LADDER que este ADR introduz).
 
 ## Status
-Aceito — 2026-06-09, pelo merge do PR EVAL-001 por [W] (o merge é o ato de congelamento da régua). Proposto na mesma data por [CC], a partir de avaliação em grade da governança (nota 7.2/10) + pergunta de [W] "o que não estou sabendo perguntar?"
+Proposto — 2026-06-09 · [CC], a partir de avaliação em grade da governança (nota 7.2/10) + pergunta de [W] "o que não estou sabendo perguntar?"
 
 ## Contexto
 O sistema de governança atual governa ARTEFATOS (gates de CI sobre PRs, tokens, telas) e o faz bem (ratchet, §10.4, merge 0-humano). Mas não governa o COMPORTAMENTO dos agentes:
