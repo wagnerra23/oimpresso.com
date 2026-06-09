@@ -66,6 +66,31 @@ function relativeDays(iso: string | null): string | null {
   return months === 1 ? 'há 1 mês' : `há ${months} meses`;
 }
 
+// Chip de prazo restante — só aparece quando a OS está atrasada (destructive) ou
+// vence em < 24h (warning). Estático: recalcula no render, sem countdown animado.
+function deadlineChip(
+  iso: string | null,
+  isOverdue: boolean,
+): { label: string; overdue: boolean } | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const diffMs = d.getTime() - Date.now();
+
+  if (isOverdue || diffMs < 0) {
+    const lateMs = Math.abs(diffMs);
+    const days = Math.floor(lateMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(lateMs / (1000 * 60 * 60));
+    return { label: days >= 1 ? `vencida há ${days}d` : `vencida há ${Math.max(1, hours)}h`, overdue: true };
+  }
+
+  const hoursLeft = diffMs / (1000 * 60 * 60);
+  if (hoursLeft < 24) {
+    return { label: `vence em ${Math.max(1, Math.ceil(hoursLeft))}h`, overdue: false };
+  }
+  return null;
+}
+
 function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }: Props) {
   const draggable = useDraggable({
     id: `so-${card.id}`,
@@ -83,6 +108,7 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
     : {};
 
   const entered = relativeDays(card.entered_at);
+  const deadline = deadlineChip(card.expected_completion, card.is_overdue);
   const hasDvi = card.dvi_total > 0;
   // [W] mod #2 — tooltip claro distinguindo o que o contador significa.
   const dviTooltip = hasDvi
@@ -205,6 +231,23 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
           </span>
         ) : null}
       </div>
+
+      {/* Prazo restante — chip discreto só quando atrasada (destructive) ou < 24h (warning) */}
+      {deadline ? (
+        <div className="mt-1.5 text-right">
+          <span
+            className={
+              'inline-flex items-center gap-0.5 text-[10px] font-semibold rounded px-1.5 py-0.5 border tabular-nums '
+              + (deadline.overdue
+                ? 'text-destructive bg-destructive/10 border-destructive/30'
+                : 'text-warning-foreground bg-warning/10 border-warning/30')
+            }
+            title="Prazo de entrega"
+          >
+            <Clock size={9} aria-hidden /> {deadline.label}
+          </span>
+        </div>
+      ) : null}
 
       {/* OS sem pipeline iniciado — dica discreta */}
       {!card.in_pipeline && (
