@@ -27,6 +27,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # G-6 frescor precisa do histórico (data do último commit do .tsx vs last_run)
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
