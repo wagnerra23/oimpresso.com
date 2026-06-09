@@ -1,5 +1,5 @@
 // Wire-up UI FSM ServiceOrder — botões dinâmicos no drawer ServiceOrderSheet
-// pra executar transições FSM (Iniciar locação, Recolher caçamba, Concluir, etc).
+// pra executar transições FSM do reparo (Iniciar diagnóstico, Concluir etc · ADR 0265).
 //
 // Refs: Wave 7-A backend (ServiceOrderFsmActionController),
 //       Pages/Sells/_components/FsmActionPanel.tsx (pattern canon pós-PR #717),
@@ -129,7 +129,7 @@ function StartPipelineEmptyState({
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">
-        Esta OS ainda não está em pipeline FSM (Recebido → Em locação → Recolhido → Concluído).
+        Esta OS ainda não está em pipeline FSM (Recepção → Diagnóstico → Execução → Pronto p/ retirar).
         Inicie pra rastrear o ciclo completo via timeline auditável.
       </p>
       <Button

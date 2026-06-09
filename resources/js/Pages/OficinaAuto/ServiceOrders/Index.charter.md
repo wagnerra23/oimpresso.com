@@ -3,7 +3,7 @@ page: /oficina-auto/service-orders
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-26"
+last_validated: "2026-06-09"
 parent_module: OficinaAuto
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
@@ -13,26 +13,29 @@ related_adrs:
   - 0171-oficinaauto-ativacao-piloto-martinho-faseada
   - 0192-auto-faturar-os-venda-jobsheet-observer
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
+  - 0265-oficina-reparo-erradica-locacao
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /oficina-auto/service-orders
 
 > **Status:** live (V0). Listagem-detalhe canon Cockpit Pattern V2 das Ordens de Serviço.
 >
-> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** OS em prod biz=164 Martinho são sub-vertical 4 mecânica pesada (`order_type='manutencao'` predominante). KPI "locações ativas / atrasadas (overdue)" aplica primariamente pra schema sub-vertical 3 hipotético preservado nullable — quando sem dado real, exibe 0 sem erro. Auto-faturar OS→Venda extensão ADR 0192 LIVE 2026-05-25 (Card "Esta OS gerou venda #V-NNNN" no drawer).
+> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** OS em prod biz=164 Martinho são sub-vertical 4 mecânica pesada (reparo de caminhão). Auto-faturar OS→Venda extensão ADR 0192 LIVE 2026-05-25 (Card "Esta OS gerou venda #V-NNNN" no drawer).
+>
+> **Erradicação de locação ([ADR 0265](../../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md) — 2026-06-09):** KPI "Locações ativas" **aposentado** (o backend removeu o KPI no W25/0265). Os 4 KPIs do topo passam a ser de reparo (Em diagnóstico / Aguardando aprovação / Em execução / Atrasadas). Colunas e badges de locação ("Caçamba"/"Diárias"/"Endereço") removidas — `order_type ∈ {manutencao, mecanica}`. `formatBRL(null)` → "—" (matou o vazamento de string literal na tabela).
 
 ## Mission
 
-Dashboard operacional pra atendente/gerente da oficina decidir próxima ação em cada OS — visão consolidada de OS abertas, em serviço, aguardando aprovação, atrasadas (locação overdue) e concluídas pendente entrega.
+Dashboard operacional pra atendente/gerente da oficina decidir próxima ação em cada OS — visão consolidada de OS abertas, em serviço, aguardando aprovação, atrasadas e concluídas pendente entrega.
 
 ## Goals — Features (faz)
 
 - AppShellV2 + topnav padrão Cockpit V2 (ADR 0110)
 - `<PageHeader>` shared (h1 "Ordens de Serviço" + subtitle + ações Criar OS / Importer Firebird)
-- KpiGrid topo: OS abertas, em serviço, locações ativas, atrasadas (overdue), valor a receber consolidado
-- Listagem com filtros: status, order_type (manutencao/locacao), vehicle.plate, contact, intervalo de datas
+- KpiGrid topo (reparo, ADR 0265): em diagnóstico, aguardando aprovação, em execução, atrasadas — **sem** "locações ativas"
+- Listagem com filtros: status, order_type (manutencao/mecanica — **sem** locacao), vehicle.plate, contact, intervalo de datas
 - Badge status semântico (rose=atrasada, amber=orcamento aguardando, blue=em_servico, emerald=concluida)
 - Drawer detail (ServiceOrderSheet) ao clicar linha — FSM action panel + timeline append-only
 - Multi-tenant Tier 0 (ADR 0093) — dados scopados business_id
@@ -71,3 +74,10 @@ Dashboard operacional pra atendente/gerente da oficina decidir próxima ação e
 - [RUNBOOK-index.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-index.md)
 - [ADR 0137](../../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
 - [ADR 0143 FSM canon](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
+
+## Trilha do tempo
+
+> Append-only (L-22 — não reescrever histórico).
+
+- **2026-05-26** (v2) — Cockpit Pattern V2; KPI "locações ativas" + colunas locação mantidos.
+- **2026-06-09** (v3) — sweep ADR 0265 no front ([sessão](../../../../../memory/sessions/2026-06-09-sweep-os-front-adr0265.md) · [avaliação CC](../../../../../prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md)): KPI "Locações ativas" **morto**; colunas/pills/badges de locação → reparo (`OrderType = {manutencao, mecanica}`); `formatBRL(null)` → "—". `mecanica` deixou de cair no ramo locação.

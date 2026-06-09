@@ -2,8 +2,8 @@
 // Espelha resources/js/Pages/Sells/_components/SaleSheet.tsx (LIVE prod biz=1).
 //
 // Contexto: pré-reunião Martinho 13/maio precisa demonstrar fluxo end-to-end clicável.
-// Click row Vehicles/ServiceOrders → drawer abre → usuário roda ações FSM (Iniciar locação,
-// Recolher caçamba, Concluir, Cancelar) — sem sair da listagem.
+// Click row Vehicles/ServiceOrders → drawer abre → usuário roda ações FSM do reparo
+// (Iniciar diagnóstico, Concluir, Cancelar · ADR 0265) — sem sair da listagem.
 //
 // Refs: ADR 0143 (FSM Pipeline LIVE), ADR 0110 (Cockpit V2),
 //       PR #717 (re-render fix — useMemo/useCallback nos handlers descendentes),
@@ -38,7 +38,7 @@ import ServiceOrderFsmActionPanel from './ServiceOrderFsmActionPanel';
 import ServiceOrderStagePipeline from './ServiceOrderStagePipeline';
 import ServiceOrderTimeline from './ServiceOrderTimeline';
 
-type OrderType = 'locacao' | 'manutencao' | null;
+type OrderType = 'manutencao' | 'mecanica' | null; // ADR 0265: reparo, sem locação
 
 interface ContactRel {
   id: number;
@@ -91,9 +91,9 @@ interface Props {
 }
 
 const formatBRL = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined || value === '') return 'R$ [redacted Tier 0]';
+  if (value === null || value === undefined || value === '') return '—';
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (Number.isNaN(num)) return 'R$ [redacted Tier 0]';
+  if (Number.isNaN(num)) return '—';
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
@@ -207,7 +207,7 @@ export default function ServiceOrderSheet({
                 )}
               </div>
               <SheetTitle className="text-xl font-semibold tracking-tight text-foreground">
-                {data.order_type === 'locacao' ? 'Locação' : 'Manutenção'}{' '}
+                {data.order_type === 'mecanica' ? 'Mecânica' : 'Manutenção'}{' '}
                 {data.number ?? `#${data.id}`}
               </SheetTitle>
               <SheetDescription className="text-sm text-muted-foreground">
@@ -229,20 +229,11 @@ export default function ServiceOrderSheet({
                   reutilizado por Modules/Repair desde PR #1504 Onda 5). */}
               {data.venda_derivada && <VendaDerivadaCard venda={data.venda_derivada} />}
 
-              {/* 4 KPIs mini horizontais */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* KPIs mini horizontais — reparo (ADR 0265: Diárias/Diária eram locação) */}
+              <div className="grid grid-cols-2 gap-3">
                 <MiniKpi
-                  label="Diárias"
-                  value={
-                    data.dias_locacao != null
-                      ? `${data.dias_locacao}d`
-                      : '—'
-                  }
-                  tone={data.is_overdue ? 'warning' : undefined}
-                />
-                <MiniKpi
-                  label="Diária"
-                  value={formatBRL(data.daily_rate)}
+                  label="Entrada"
+                  value={formatDateOnly(data.started_at ?? data.entered_at)}
                 />
                 <MiniKpi
                   label="A receber"
@@ -260,7 +251,7 @@ export default function ServiceOrderSheet({
               {/* Detalhes — campos básicos OS */}
               <Section title="Detalhes" icon={Truck}>
                 <div className="space-y-2 text-sm">
-                  {/* Caçamba */}
+                  {/* Veículo */}
                   {data.vehicle && (
                     <div className="flex items-center gap-2 text-foreground">
                       <Truck size={13} className="text-muted-foreground" />
@@ -302,7 +293,7 @@ export default function ServiceOrderSheet({
                     </>
                   )}
 
-                  {/* Endereço entrega (locação) */}
+                  {/* Endereço do cliente (se informado) */}
                   {data.delivery_address && (
                     <div className="flex items-start gap-2 text-muted-foreground text-xs pt-1.5 border-t border-border/60">
                       <MapPin size={12} className="mt-0.5 flex-shrink-0" />
@@ -471,11 +462,11 @@ function MiniKpi({
 }
 
 function OrderTypeBadge({ type }: { type: OrderType }) {
-  if (type === 'locacao') {
+  if (type === 'mecanica') {
     return (
-      <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-300">
-        <Truck size={10} className="mr-1" />
-        Locação
+      <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 text-[11px] font-medium text-violet-700 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-300">
+        <Wrench size={10} className="mr-1" />
+        Mecânica
       </span>
     );
   }
