@@ -39,6 +39,7 @@ import {
   Edit,
   ExternalLink,
   FileText,
+  ListChecks,
   Loader2,
   Phone,
   Truck,
@@ -55,12 +56,19 @@ import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
 import ServiceOrderStatusBadge from '../../ServiceOrders/_components/ServiceOrderStatusBadge';
+import ServiceOrderTimeline from '../../ServiceOrders/_components/ServiceOrderTimeline';
+import ServiceOrderStageGate from '../../ServiceOrders/_components/ServiceOrderStageGate';
 import VendaDerivadaCard, { type VendaDerivada } from '@/Components/shared/VendaDerivadaCard';
-import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
+import { MessageCircle, Printer, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { printServiceOrder } from '@/Lib/printServiceOrder';
-import DviInlineEditor, { type DviInlineItem } from './DviInlineEditor';
+import DviInlineEditor, { type DviInlineItem, type ApprovalInfo } from './DviInlineEditor';
 import LaudoPhotoSection, { type LaudoPhoto } from './LaudoPhotoSection';
+import ServiceOrderItemRow, {
+  type ServiceOrderItemDto,
+} from '../../ServiceOrders/_components/ServiceOrderItemRow';
+import ServiceOrderItemFormSheet from '../../ServiceOrders/_components/ServiceOrderItemFormSheet';
+import { Plus } from 'lucide-react';
 
 type OrderType = 'manutencao' | 'mecanica' | null;
 
@@ -129,6 +137,8 @@ interface ServiceOrderDetail {
   dvi_items?: DviInlineItem[];
   // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo).
   laudo_photos?: LaudoPhoto[];
+  // F3 OS-V2-3 — estado do gate de aprovação (none/pending/approved/declined).
+  approval?: ApprovalInfo | null;
   // D-09 (charter §2 TRAVADO) — venda derivada da OS (origem oficina · ADR 0192).
   // Backend ServiceOrderController::show() popula via shapeVendaDerivada() só quando
   // a OS já gerou Transaction (transição → concluída/pronto). null no resto.
@@ -180,24 +190,6 @@ const capitalize = (s: string | null | undefined) => {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 };
 
-const ITEM_TIPO_LABEL: Record<ItemTipo, string> = {
-  peca: 'Peça',
-  mao_obra: 'Mão de obra',
-  servico_terceiro: 'Serviço terceiro',
-};
-
-const ITEM_TIPO_ICON: Record<ItemTipo, typeof Wrench> = {
-  peca: Package,
-  mao_obra: Wrench,
-  servico_terceiro: UserCog,
-};
-
-const toFloat = (value: number | string | null | undefined): number => {
-  if (value === null || value === undefined || value === '') return 0;
-  const n = typeof value === 'string' ? parseFloat(value) : value;
-  return Number.isNaN(n) ? 0 : n;
-};
-
 export default function ServiceOrderRichSheet({
   serviceOrderId,
   open,
@@ -208,6 +200,10 @@ export default function ServiceOrderRichSheet({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [approvalSending, setApprovalSending] = useState(false);
+  // F3 OS-V2-6 — lançar/editar/remover item inline sem fechar o drawer.
+  const [itemFormOpen, setItemFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ServiceOrderItemDto | null>(null);
+  const [itemBusy, setItemBusy] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!serviceOrderId) return;
@@ -243,6 +239,57 @@ export default function ServiceOrderRichSheet({
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
 
+  // F3 OS-V2-6 — abre o ServiceOrderItemFormSheet (nested) em modo criar/editar.
+  const handleItemAdd = useCallback(() => {
+    setEditingItem(null);
+    setItemFormOpen(true);
+  }, []);
+
+  const handleItemEdit = useCallback((item: ServiceOrderItemDto) => {
+    setEditingItem(item);
+    setItemFormOpen(true);
+  }, []);
+
+  // Após salvar (POST/PUT) refetch do drawer — items_total atualiza + Observer recompõe.
+  const handleItemSaved = useCallback(() => {
+    setItemFormOpen(false);
+    setEditingItem(null);
+    void fetchData();
+    onOrderChanged?.();
+  }, [fetchData, onOrderChanged]);
+
+  // Remover item: DELETE + refetch (Controller tem Policy update + scope Tier 0).
+  const handleItemDelete = useCallback(
+    async (item: ServiceOrderItemDto) => {
+      if (!data) return;
+      setItemBusy(true);
+      try {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        const res = await fetch(
+          `/oficina-auto/ordens-servico/${data.id}/items/${item.id}`,
+          {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: {
+              Accept: 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': meta?.getAttribute('content') ?? '',
+            },
+          },
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        toast.success('Item removido.');
+        void fetchData();
+        onOrderChanged?.();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Falha ao remover item.');
+      } finally {
+        setItemBusy(false);
+      }
+    },
+    [data, fetchData, onOrderChanged],
+  );
+
   // F3 OS-V2-2 — "Pedir aprovação" no editor DVI dispara o gate de aprovação
   // (status → orcamento → ServiceOrderObserver despacha WhatsApp link + PIN).
   // Reusa o pipeline existente de enviarAprovacao (espelha ApprovalGateCard via
@@ -269,6 +316,7 @@ export default function ServiceOrderRichSheet({
   }, [data, fetchData, onOrderChanged]);
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
@@ -461,6 +509,7 @@ export default function ServiceOrderRichSheet({
                   initialItems={data.dvi_items ?? []}
                   onPedirAprovacao={handlePedirAprovacao}
                   approvalSending={approvalSending}
+                  approval={data.approval ?? null}
                 />
               </Section>
 
@@ -486,33 +535,15 @@ export default function ServiceOrderRichSheet({
                 {data.items && data.items.length > 0 ? (
                   <>
                     <ul className="divide-y divide-border border border-border rounded-md overflow-hidden bg-white">
-                      {data.items.map((item) => {
-                        const Icon = ITEM_TIPO_ICON[item.tipo];
-                        const qtd = toFloat(item.quantidade);
-                        const vu = toFloat(item.valor_unitario);
-                        const total = toFloat(item.valor_total);
-                        return (
-                          <li
-                            key={item.id}
-                            className="px-3 py-2 grid grid-cols-[auto_1fr_auto] gap-2 items-center text-[11.5px]"
-                          >
-                            <Icon size={14} className="text-muted-foreground shrink-0" aria-hidden />
-                            <div className="min-w-0">
-                              <div className="text-foreground font-medium truncate">
-                                {item.descricao}
-                              </div>
-                              <div className="text-muted-foreground text-[10.5px]">
-                                {ITEM_TIPO_LABEL[item.tipo]} · {qtd.toLocaleString('pt-BR', { maximumFractionDigits: 3 })}
-                                {' × '}
-                                {formatBRL(vu)}
-                              </div>
-                            </div>
-                            <div className="text-foreground tabular-nums font-medium">
-                              {formatBRL(total)}
-                            </div>
-                          </li>
-                        );
-                      })}
+                      {data.items.map((item) => (
+                        <ServiceOrderItemRow
+                          key={item.id}
+                          item={item}
+                          onEdit={handleItemEdit}
+                          onDelete={handleItemDelete}
+                          busy={itemBusy}
+                        />
+                      ))}
                     </ul>
                     <div className="mt-2 flex items-center justify-between px-1">
                       <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
@@ -529,6 +560,32 @@ export default function ServiceOrderRichSheet({
                     {data.order_type === 'manutencao' ? ' (cobrança não fechará automática)' : ''}
                   </p>
                 )}
+
+                {/* F3 OS-V2-6 — lançar item inline (abre ServiceOrderItemFormSheet nested,
+                    sem fechar o drawer). Touch ≥44px (h-11). */}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 h-11 w-full gap-1.5 sm:h-9"
+                  onClick={handleItemAdd}
+                  disabled={itemBusy}
+                >
+                  <Plus size={14} aria-hidden />
+                  Adicionar item
+                </Button>
+              </Section>
+
+              {/* ─── SEÇÃO CHECKLIST DE ETAPA (F3 OS-V2-5) ───
+                  Requisitos da próxima transição FSM (gate ENFORÇADO no servidor). Entre
+                  Peças e Pipeline FSM. CTA "Avançar" só habilita quando os bloqueantes
+                  passam; gerente/superadmin pode override (registrado na trilha). */}
+              <Section title="Checklist de etapa" icon={ListChecks}>
+                <ServiceOrderStageGate
+                  serviceOrderId={data.id}
+                  enabled={open}
+                  onChanged={handleFsmTransition}
+                />
               </Section>
 
               {/* ─── SEÇÃO 4: PIPELINE FSM (REUSO PR #729) ─── */}
@@ -540,13 +597,23 @@ export default function ServiceOrderRichSheet({
                 />
               </Section>
 
-              {/* ─── SEÇÃO 5: LINHA DO TEMPO (placeholder skeleton V2) ─── */}
+              {/* ─── SEÇÃO 5: LINHA DO TEMPO FSM AUDITÁVEL (F3 OS-V2-4) ───
+                  Histórico real de transições (quem · quando · de→pra com chips) lido de
+                  sale_stage_history via /service-orders/{id}/history. Eventos de aprovação
+                  e pipeline entram na trilha. OS antiga sem histórico cai na skeleton
+                  derivada das datas (fallback). */}
               <Section title="Linha do tempo" icon={Clock}>
-                <TimelineSkeleton
-                  enteredAt={data.entered_at}
-                  expectedReturn={data.expected_completion ?? data.expected_return_date}
-                  completedAt={data.completed_at}
-                  status={data.status}
+                <ServiceOrderTimeline
+                  serviceOrderId={data.id}
+                  enabled={open}
+                  fallback={
+                    <TimelineSkeleton
+                      enteredAt={data.entered_at}
+                      expectedReturn={data.expected_completion ?? data.expected_return_date}
+                      completedAt={data.completed_at}
+                      status={data.status}
+                    />
+                  }
                 />
               </Section>
             </div>
@@ -604,6 +671,19 @@ export default function ServiceOrderRichSheet({
         )}
       </SheetContent>
     </Sheet>
+
+    {/* F3 OS-V2-6 — drawer nested pra criar/editar item (não fecha o drawer-mãe).
+        onSaved refaz o fetch do drawer (items_total atualiza). */}
+    {data && (
+      <ServiceOrderItemFormSheet
+        serviceOrderId={data.id}
+        item={editingItem}
+        open={itemFormOpen}
+        onOpenChange={setItemFormOpen}
+        onSaved={handleItemSaved}
+      />
+    )}
+    </>
   );
 }
 
