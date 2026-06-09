@@ -8648,26 +8648,20 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
-			path: Modules/OficinaAuto/Config/retention.php
-
-		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 7
 			path: Modules/OficinaAuto/Config/config.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
+			count: 2
+			path: Modules/OficinaAuto/Config/retention.php
 
 		-
-			message: '#^Constant Modules\\OficinaAuto\\Entities\\ServiceOrder\:\:RENTAL_ACTIVE_STATUSES is unused\.$#'
-			identifier: classConstant.unused
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
-			path: Modules/OficinaAuto/Entities/ServiceOrder.php
+			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
 
 		-
 			message: '#^Property Modules\\OficinaAuto\\Entities\\ServiceOrderItem\:\:\$valor_total \(string\) does not accept float\.$#'
@@ -8780,12 +8774,6 @@ parameters:
 		-
 			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
 			identifier: oimpresso.silentFallback
-			count: 1
-			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
-
-		-
-			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\ServiceOrderController\:\:create\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
 
@@ -21830,7 +21818,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$color\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 6
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-
@@ -21842,7 +21830,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$key\.$#'
 			identifier: property.notFound
-			count: 6
+			count: 7
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-
@@ -21854,7 +21842,13 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 6
+			path: app/Http/Controllers/ServiceOrderFsmActionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-

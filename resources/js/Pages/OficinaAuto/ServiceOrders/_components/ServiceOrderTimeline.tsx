@@ -47,6 +47,12 @@ interface TimelineResponse {
 interface Props {
   serviceOrderId: number;
   enabled: boolean;
+  /**
+   * F3 OS-V2-4 — render alternativo quando o histórico FSM real está VAZIO (OS antiga
+   * sem transições registradas). O drawer passa a TimelineSkeleton derivada das datas
+   * (entered/prazo/completed) pra não deixar a seção careca.
+   */
+  fallback?: React.ReactNode;
 }
 
 const STAGE_COLOR_MAP: Record<string, string> = {
@@ -86,7 +92,7 @@ const formatDate = (iso: string | null) => {
   }
 };
 
-export default function ServiceOrderTimeline({ serviceOrderId, enabled }: Props) {
+export default function ServiceOrderTimeline({ serviceOrderId, enabled, fallback }: Props) {
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -159,10 +165,14 @@ export default function ServiceOrderTimeline({ serviceOrderId, enabled }: Props)
   }
 
   if (items.length === 0) {
+    // F3 OS-V2-4 — OS antiga sem histórico FSM: cai pra timeline derivada (skeleton).
+    if (fallback) {
+      return <>{fallback}</>;
+    }
     return (
       <p className="text-xs text-muted-foreground">
         Nenhuma transição registrada ainda. Inicie o pipeline FSM ou execute uma
-        ação (iniciar locação, recolher caçamba, concluir) — aparecem aqui.
+        ação (iniciar diagnóstico, concluir serviço, entregar) — aparecem aqui.
       </p>
     );
   }

@@ -116,6 +116,10 @@ class AprovacaoOsController extends Controller
 
         // Rejeitar: cenário 5 do test — preserva em orcamento (idempotente).
         // Operador humano negocia depois. Loga pra audit ad-hoc.
+        // F3 OS-V2-3 — carimba a decisão `declined` (gate vira vermelho "Revisar e reenviar"
+        // no drawer). NÃO muda o status (segue orcamento) — só registra a trilha de decisão.
+        $this->registrarDecisao($os, 'declined');
+
         Log::info('[AprovacaoOsController] Cliente rejeitou OS via link público', [
             'os_id'       => $os->id,
             'business_id' => $os->business_id,
@@ -150,12 +154,43 @@ class AprovacaoOsController extends Controller
             return;
         }
 
-        $fresh->update(['status' => 'aprovada']);
+        // F3 OS-V2-3 — status → aprovada + carimba a decisão `approved` (gate verde
+        // "Autorizado" no drawer). saveQuietly nas colunas de gate evita re-trigger
+        // do Observer (que só reage a mudança de status — aqui status muda 1x).
+        $fresh->forceFill([
+            'status'              => 'aprovada',
+            'approval_decided_at' => now(),
+            'approval_decision'   => 'approved',
+        ])->save();
 
         Log::info('[AprovacaoOsController] OS aprovada via link público + PIN', [
             'os_id'       => $fresh->id,
             'business_id' => $fresh->business_id,
         ]);
+    }
+
+    /**
+     * Carimba a decisão do cliente nas colunas de gate (F3 OS-V2-3) SEM mudar status.
+     *
+     * Usado no caminho `declined` (status segue orcamento — operador renegocia).
+     * Re-busca sem scope (rota pública sem session) + lock pra consistência.
+     */
+    private function registrarDecisao(ServiceOrder $os, string $decisao): void
+    {
+        $fresh = ServiceOrder::withoutGlobalScopes() // SUPERADMIN: rota pública sem session
+            ->where('id', $os->id)
+            ->where('business_id', $os->business_id)
+            ->lockForUpdate()
+            ->first();
+
+        if ($fresh === null || $fresh->status !== 'orcamento') {
+            return;
+        }
+
+        $fresh->forceFill([
+            'approval_decided_at' => now(),
+            'approval_decision'   => $decisao,
+        ])->saveQuietly(); // saveQuietly — status não muda, sem Observer/WhatsApp
     }
 
     /**
