@@ -75,12 +75,18 @@ class OficinaAutoFsmSeeder extends Seeder
 
     // ----- Processo 1: cacamba_locacao ----------------------------------
 
-    /** @var array<string, string> stage_key → label PT-BR */
+    /**
+     * @var array<string, string> stage_key → label PT-BR.
+     *
+     * KEYS intocadas (compat backwards prod biz=164 + trava FSM); DISPLAY NAMES já em
+     * vocabulário de REPARO (ADR 0265 erradica locação — auditoria [CC] 2026-06-09). O dado
+     * em prod é renomeado pela migration 2026_06_09_000003_rename_cacamba_locacao_stage_labels.
+     */
     private const LOCACAO_STAGES = [
-        'disponivel' => 'Disponível',
-        'locada'     => 'Locada (com cliente)',
-        'recolhida'  => 'Recolhida',
-        'manutencao' => 'Em manutenção',
+        'disponivel' => 'Aguardando',
+        'locada'     => 'Em execução',
+        'recolhida'  => 'Pronto p/ retirar',
+        'manutencao' => 'Em diagnóstico',
     ];
 
     /** @var array<string, array{order:int, terminal?:bool, color:string, initial?:bool}> */
