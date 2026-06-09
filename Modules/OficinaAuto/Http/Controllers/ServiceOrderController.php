@@ -661,6 +661,22 @@ class ServiceOrderController extends Controller
                     'notes'          => $item->notes,
                 ])->values()->all(),
                 'items_total' => (float) $order->total_items,
+                // F3 OS-V2-2 — itens DVI (Vistoria Digital) pra o semáforo inline editável
+                // do drawer ServiceOrderRichSheet (DviInlineEditor). Mesmo shape do branch
+                // Inertia (Show), + sort_order pra ordenação estável. `budget_item_id` (em
+                // metadata) sinaliza item já convertido em linha de orçamento.
+                'dvi_items' => $order->dviInspectionItems
+                    ->sortBy([['sort_order', 'asc'], ['id', 'asc']])
+                    ->map(fn (OaInspectionItem $dvi) => [
+                        'id'                => (int) $dvi->id,
+                        'categoria'         => (string) $dvi->categoria,
+                        'descricao'         => (string) $dvi->descricao,
+                        'severity'          => (string) $dvi->severity,
+                        'recomendacao'      => $dvi->recomendacao,
+                        'valor_recomendado' => $dvi->valor_recomendado !== null ? (float) $dvi->valor_recomendado : null,
+                        'sort_order'        => (int) $dvi->sort_order,
+                        'budget_item_id'    => is_array($dvi->metadata) ? ($dvi->metadata['budget_item_id'] ?? null) : null,
+                    ])->values()->all(),
                 // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
                 // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController

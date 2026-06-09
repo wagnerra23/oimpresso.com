@@ -29,10 +29,12 @@
 // formatBRL null→"—", status via ServiceOrderStatusBadge (label PT, não cru).
 
 import { useCallback, useEffect, useState } from 'react';
+import { router } from '@inertiajs/react';
 import {
   AlertTriangle,
   Camera,
   CheckCircle2,
+  ClipboardCheck,
   Clock,
   Edit,
   ExternalLink,
@@ -57,6 +59,7 @@ import VendaDerivadaCard, { type VendaDerivada } from '@/Components/shared/Venda
 import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
 import { printServiceOrder } from '@/Lib/printServiceOrder';
+import DviInlineEditor, { type DviInlineItem } from './DviInlineEditor';
 
 type OrderType = 'manutencao' | 'mecanica' | null;
 
@@ -121,6 +124,8 @@ interface ServiceOrderDetail {
   // Wave 2.3 US-OFICINA-027 — items lançados (peças + mão-de-obra + terceiros)
   items?: ServiceOrderItemRel[];
   items_total?: number | string;
+  // F3 OS-V2-2 — itens DVI (Vistoria Digital) pro semáforo inline editável.
+  dvi_items?: DviInlineItem[];
   // D-09 (charter §2 TRAVADO) — venda derivada da OS (origem oficina · ADR 0192).
   // Backend ServiceOrderController::show() popula via shapeVendaDerivada() só quando
   // a OS já gerou Transaction (transição → concluída/pronto). null no resto.
@@ -199,6 +204,7 @@ export default function ServiceOrderRichSheet({
   const [data, setData] = useState<ServiceOrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [approvalSending, setApprovalSending] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!serviceOrderId) return;
@@ -233,6 +239,31 @@ export default function ServiceOrderRichSheet({
     void fetchData();
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
+
+  // F3 OS-V2-2 — "Pedir aprovação" no editor DVI dispara o gate de aprovação
+  // (status → orcamento → ServiceOrderObserver despacha WhatsApp link + PIN).
+  // Reusa o pipeline existente de enviarAprovacao (espelha ApprovalGateCard via
+  // Inertia router.post pra processar o redirect/flash). Após sucesso, refetch
+  // pra refletir novo status no badge + Pipeline FSM.
+  const handlePedirAprovacao = useCallback(() => {
+    if (!data) return;
+    router.post(
+      `/oficina-auto/ordens-servico/${data.id}/enviar-aprovacao`,
+      {},
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onStart: () => setApprovalSending(true),
+        onSuccess: () => {
+          toast.success('Orçamento da vistoria enviado para aprovação do cliente.');
+          void fetchData();
+          onOrderChanged?.();
+        },
+        onError: () => toast.error('Não foi possível enviar o pedido de aprovação.'),
+        onFinish: () => setApprovalSending(false),
+      },
+    );
+  }, [data, fetchData, onOrderChanged]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -414,6 +445,20 @@ export default function ServiceOrderRichSheet({
                     — sem observação registrada
                   </p>
                 )}
+              </Section>
+
+              {/* ─── SEÇÃO VISTORIA DIGITAL · DVI (F3 OS-V2-2) ───
+                  Semáforo inline editável de 1 toque (DviInlineEditor). Alimenta
+                  o orçamento (peças) e o gate de aprovação. key={data.id} garante
+                  re-seed do estado local quando troca de OS. */}
+              <Section title="Vistoria Digital · DVI" icon={ClipboardCheck}>
+                <DviInlineEditor
+                  key={data.id}
+                  serviceOrderId={data.id}
+                  initialItems={data.dvi_items ?? []}
+                  onPedirAprovacao={handlePedirAprovacao}
+                  approvalSending={approvalSending}
+                />
               </Section>
 
               {/* ─── SEÇÃO PEÇAS & MÃO DE OBRA (Wave 2.3 US-OFICINA-027) ───
