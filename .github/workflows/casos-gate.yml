@@ -1,0 +1,64 @@
+name: Casos-coverage ratchet (trio-de-tela + caso↔teste)
+
+# Gate G-1/G-2 da Governança executável (ADR 0264). Toda .tsx roteada precisa do trio
+# (charter.md + casos.md); todo UC-* precisa de >=1 teste citando o id. Ratchet: FALHA só
+# se a contagem de violações AUMENTAR vs baseline (legado absorvido; encolher é sempre OK).
+#
+# FASE 1 (ADR 0264 + ADR 0261): este workflow RODA e reporta a dívida, mas NÃO é required
+# status check ainda — vira `required` na Fase 2 (flip consciente, após [W] ver a dívida),
+# convertendo pra always-run + skip-as-pass (padrão ADR 0261 Alavanca 2).
+#
+# Node puro (node:fs), sem deps, sem npm ci. Comando local: npm run casos:check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**'
+      - 'scripts/casos-coverage-guard.mjs'
+      - 'scripts/casos-coverage-baseline.json'
+      - '.github/workflows/casos-gate.yml'
+  pull_request:
+    paths:
+      - 'resources/js/Pages/**'
+      - 'scripts/casos-coverage-guard.mjs'
+      - 'scripts/casos-coverage-baseline.json'
+      - '.github/workflows/casos-gate.yml'
+
+concurrency:
+  group: casos-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  casos-gate:
+    name: Casos-coverage · ratchet (trio + rastreabilidade)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Relatório de dívida (informativo)
+        run: node scripts/casos-coverage-guard.mjs --report
+
+      - name: Casos ratchet (falha em violação NOVA de trio/rastreabilidade)
+        run: node scripts/casos-coverage-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Apareceu violação NOVA de trio-de-tela (G-1) ou rastreabilidade UC↔teste (G-2)."
+          echo ""
+          echo "Tela NOVA precisa do trio ao lado do .tsx:  <Nome>.charter.md + <Nome>.casos.md"
+          echo "UC NOVO (UC-XX no casos.md) precisa de >=1 teste citando o id (Tests/**, tests/**, e2e/**)."
+          echo ""
+          echo "  1. Local: npm run casos:check   · vê as violações novas"
+          echo "  2. Crie o charter/casos faltante (skill charter-write) ou o teste do UC."
+          echo "  3. Se for legado movido/refatorado conscientemente: npm run casos:baseline:write"
+          echo ""
+          echo "Refs: ADR 0264 (G-1/G-2) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca)"
