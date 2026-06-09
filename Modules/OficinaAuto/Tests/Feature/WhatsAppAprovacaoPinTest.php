@@ -94,7 +94,7 @@ it('Cenário 2 — OS sem status orcamento NÃO deve receber link aprovação (a
     $osSimples = ServiceOrder::create([
         'business_id' => BIZ_WAGNER_WPP,
         'vehicle_id'  => $vehicle->id,
-        'order_type'  => 'locacao',
+        'order_type'  => 'manutencao', // locação erradicada (ADR 0265); incidental ao teste de aprovação WhatsApp
         'status'      => 'em_servico',
         'entered_at'  => now(),
     ]);

@@ -173,24 +173,13 @@ class AprovacaoOsController extends Controller
             'entered_at'          => $os->entered_at?->toIso8601String(),
             'expected_completion' => $os->expected_completion?->toIso8601String(),
             'notes'               => $os->notes,
-            'valor_total'         => $this->valorTotal($os),
+            // valor_total: locação erradicada (ADR 0265) — sem fluxo de diária, sem valor
+            // estimável aqui. Quando US-OFICINA-006 mapear transaction_id → final_total, usar.
+            'valor_total'         => null,
             'vehicle'             => $os->vehicle ? [
                 'plate'        => $os->vehicle->plate,
                 'vehicle_type' => $os->vehicle->vehicle_type,
             ] : null,
         ];
-    }
-
-    /**
-     * Valor total estimado (best-effort V0 — quando US-OFICINA-006 mapear
-     * transaction_id → final_total, usar).
-     */
-    private function valorTotal(ServiceOrder $os): ?float
-    {
-        if ($os->order_type === 'locacao' && $os->daily_rate !== null) {
-            return (float) $os->daily_rate * max(1, $os->dias_locacao);
-        }
-
-        return null;
     }
 }

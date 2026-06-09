@@ -182,7 +182,7 @@ it('mapping locada → manutencao dispara FSM action enviar_manutencao', functio
     $stageManutencao = getStageKanbanDnd(BIZ_KANBAN_DND, 'cacamba_locacao', 'manutencao');
 
     $vehicle = makeVehicleKanbanDnd('KDND-A1', BIZ_KANBAN_DND);
-    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'locacao', $stageLocada->id);
+    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'manutencao', $stageLocada->id);
 
     // NOTA: FSM seeder cadastra enviar_manutencao a partir de 'disponivel' e 'recolhida',
     // não de 'locada' direto. O frontend resolveDragMapping aplica 'recolher' implícito
@@ -225,7 +225,7 @@ it('mapping aguardando → disponivel dispara FSM action recolher', function () 
     $stageRecolhida = getStageKanbanDnd(BIZ_KANBAN_DND, 'cacamba_locacao', 'recolhida');
 
     $vehicle = makeVehicleKanbanDnd('KDND-B1', BIZ_KANBAN_DND);
-    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'locacao', $stageLocada->id);
+    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'manutencao', $stageLocada->id);
 
     $request = Request::create(
         '/oficina-auto/service-orders/'.$order->id.'/fsm/execute',
@@ -258,7 +258,7 @@ it('mapping manutencao → disponivel dispara FSM action voltar_disponivel', fun
     $stageDisponivel = getStageKanbanDnd(BIZ_KANBAN_DND, 'cacamba_locacao', 'disponivel');
 
     $vehicle = makeVehicleKanbanDnd('KDND-C1', BIZ_KANBAN_DND);
-    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'locacao', $stageManutencao->id);
+    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'manutencao', $stageManutencao->id);
 
     $request = Request::create(
         '/oficina-auto/service-orders/'.$order->id.'/fsm/execute',
@@ -289,7 +289,7 @@ it('action key inexistente retorna 422 — defense pro mapping bloqueado client-
 
     $stageDisponivel = getStageKanbanDnd(BIZ_KANBAN_DND, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleKanbanDnd('KDND-D1', BIZ_KANBAN_DND);
-    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'locacao', $stageDisponivel->id);
+    $order = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'manutencao', $stageDisponivel->id);
 
     // Simula drop disponivel→pronta (mapping client-side bloqueia, mas server é última linha)
     $request = Request::create(
@@ -316,7 +316,7 @@ it('cross-tenant biz=99 NÃO pode disparar FSM action em OS biz=1', function () 
     setupKanbanDndBusiness(BIZ_KANBAN_DND);
     $stage = getStageKanbanDnd(BIZ_KANBAN_DND, 'cacamba_locacao', 'locada');
     $vehicle = makeVehicleKanbanDnd('KDND-E1', BIZ_KANBAN_DND);
-    $orderBiz1 = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'locacao', $stage->id);
+    $orderBiz1 = makeOrderKanbanDnd(BIZ_KANBAN_DND, $vehicle->id, 'manutencao', $stage->id);
 
     // Switch pra biz=99
     $userBiz99 = setupKanbanDndBusiness(BIZ_KANBAN_DND_CROSS);

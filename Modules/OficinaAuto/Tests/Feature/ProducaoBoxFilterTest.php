@@ -55,7 +55,7 @@ function boxCreateVehicleWithOs(int $bizId, ?string $box, string $status = 'loca
     $order = ServiceOrder::withoutGlobalScopes()->create([
         'business_id' => $bizId,
         'vehicle_id'  => $vehicle->id,
-        'order_type'  => 'locacao',
+        'order_type'  => 'manutencao', // locação erradicada (ADR 0265); order_type incidental — teste é de box_label
         'status'      => 'aberta',
         'entered_at'  => now(),
         'box_label'   => $box,
@@ -69,7 +69,7 @@ function boxCreateVehicleWithOs(int $bizId, ?string $box, string $status = 'loca
 function boxCleanup(int $bizId): void
 {
     Vehicle::withoutGlobalScopes()->where('business_id', $bizId)->where('plate', 'like', 'BOX%')->forceDelete();
-    ServiceOrder::withoutGlobalScopes()->where('business_id', $bizId)->where('order_type', 'locacao')->forceDelete();
+    ServiceOrder::withoutGlobalScopes()->where('business_id', $bizId)->where('order_type', 'manutencao')->forceDelete();
 }
 
 // ─── Specs ────────────────────────────────────────────────────────────────

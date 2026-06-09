@@ -47,9 +47,10 @@ class ServiceOrderController extends Controller
      * Schema::hasColumn fallback porque colunas Wave 5-A (order_type / delivery_address /
      * expected_return_date / daily_rate) podem não estar migradas ainda nessa branch.
      *
-     * Filtros aceitos:
-     *  - ?status=locacao_ativa | manutencao_ativa | concluida_mes | atrasada | all
-     *  - ?type=locacao | manutencao | all
+     * Filtros aceitos (locação erradicada — ADR 0265):
+     *  - ?status=manutencao_ativa | concluida_mes | atrasada | all
+     *    (atrasada = OS não-terminal com expected_completion vencida — atraso de reparo)
+     *  - ?type=manutencao | mecanica | all
      *  - ?q=<busca em number/cliente/vehicle>
      */
     public function index(Request $request): Response
@@ -94,14 +95,8 @@ class ServiceOrderController extends Controller
         }
 
         // ──────── Filter status (semântico) ────────
-        $base->when($statusFilter !== '' && $statusFilter !== 'all', function ($qb) use ($statusFilter, $hasOrderType, $hasReturnDate) {
+        $base->when($statusFilter !== '' && $statusFilter !== 'all', function ($qb) use ($statusFilter, $hasOrderType) {
             switch ($statusFilter) {
-                case 'locacao_ativa':
-                    if ($hasOrderType) {
-                        $qb->where('order_type', 'locacao');
-                    }
-                    $qb->whereNotIn('status', ['concluida', 'cancelada']);
-                    break;
                 case 'manutencao_ativa':
                     if ($hasOrderType) {
                         $qb->where('order_type', 'manutencao');
@@ -114,18 +109,11 @@ class ServiceOrderController extends Controller
                         ->whereYear('updated_at', now()->year);
                     break;
                 case 'atrasada':
-                    if ($hasOrderType) {
-                        $qb->where('order_type', 'locacao');
-                    }
-                    $qb->whereNotIn('status', ['concluida', 'cancelada']);
-                    if ($hasReturnDate) {
-                        $qb->whereNotNull('expected_return_date')
-                            ->whereDate('expected_return_date', '<', now()->toDateString());
-                    } else {
-                        // Fallback: sem expected_return_date usa expected_completion
-                        $qb->whereNotNull('expected_completion')
-                            ->whereDate('expected_completion', '<', now()->toDateString());
-                    }
+                    // Atraso de REPARO (ADR 0265 — locação erradicada): OS não-terminal
+                    // com expected_completion vencida. Espelha buildServiceOrderKpisPayload.
+                    $qb->whereNotIn('status', ['concluida', 'cancelada'])
+                        ->whereNotNull('expected_completion')
+                        ->whereDate('expected_completion', '<', now()->toDateString());
                     break;
                 default:
                     // status livre legado: aberta/em_servico/etc
@@ -207,7 +195,7 @@ class ServiceOrderController extends Controller
                 'stage'  => $stageFilter,
                 'q'      => $q,
             ],
-            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
+            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType)),
             // Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear.
             // Defer porque é COUNT por stage (~8 stages × cacamba_* processos).
             'stages' => Inertia::defer(fn () => $this->buildStagesPayload($hasCurrentStage)),
@@ -491,23 +479,22 @@ class ServiceOrderController extends Controller
      * Extraído pra helper + Inertia::defer no index() pra pular execução quando
      * partial reload `only:['orders']` não pede kpis (RUNBOOK-inertia-defer-pattern).
      */
-    private function buildServiceOrderKpisPayload(bool $hasOrderType, bool $hasReturnDate): array
+    private function buildServiceOrderKpisPayload(bool $hasOrderType): array
     {
         $kpiBase = fn () => ServiceOrder::query();
 
-        if ($hasOrderType) {
-            $locacoesAtivas = $kpiBase()
-                ->where('order_type', 'locacao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count();
+        // Locação erradicada (ADR 0265): KPI mantida em 0 só pelo contrato do payload
+        // — o frontend (ServiceOrders/Index) ainda consome a chave. A remoção visual do
+        // card/chip "Locações ativas" é dívida F3 (RUNBOOK-erradicacao-locacao.md P5).
+        $locacoesAtivas = 0;
 
+        if ($hasOrderType) {
             $manutencaoAtivas = $kpiBase()
                 ->where('order_type', 'manutencao')
                 ->whereNotIn('status', ['concluida', 'cancelada'])
                 ->count();
         } else {
             // Fallback pré-Wave 5-A: tudo ainda não tem tipo, agrupa em "manutenção"
-            $locacoesAtivas = 0;
             $manutencaoAtivas = $kpiBase()
                 ->whereNotIn('status', ['concluida', 'cancelada'])
                 ->count();
@@ -519,20 +506,13 @@ class ServiceOrderController extends Controller
             ->whereYear('updated_at', now()->year)
             ->count();
 
-        if ($hasReturnDate && $hasOrderType) {
-            $atrasadas = $kpiBase()
-                ->where('order_type', 'locacao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->whereNotNull('expected_return_date')
-                ->whereDate('expected_return_date', '<', now()->toDateString())
-                ->count();
-        } else {
-            $atrasadas = $kpiBase()
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->whereNotNull('expected_completion')
-                ->whereDate('expected_completion', '<', now()->toDateString())
-                ->count();
-        }
+        // Atraso de REPARO (ADR 0265 — locação erradicada): OS não-terminal com
+        // expected_completion vencida. Mesma regra do filtro ?status=atrasada.
+        $atrasadas = $kpiBase()
+            ->whereNotIn('status', ['concluida', 'cancelada'])
+            ->whereNotNull('expected_completion')
+            ->whereDate('expected_completion', '<', now()->toDateString())
+            ->count();
 
         return [
             'locacoes_ativas'   => $locacoesAtivas,

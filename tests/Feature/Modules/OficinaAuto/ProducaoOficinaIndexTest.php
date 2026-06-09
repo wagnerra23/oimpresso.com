@@ -78,6 +78,14 @@ it('Controller@index retorna props kanban (5 grupos) + kpis + filters', function
 });
 
 it('caçamba locada overdue cai em "aguardando" (não "locada")', function () {
+    $this->markTestSkipped(
+        'F3 charter v4 (dívida): o roteamento overdue→aguardando dependia de '
+        . 'order_type=locacao + accessor is_overdue, erradicado pela ADR 0265. Em produção '
+        . 'is_overdue já era sempre false (nenhuma OS order_type=locacao após a erradicação), '
+        . 'então o kanban nunca caía em aguardando. Repontuar o kanban de Caçambas para '
+        . 'atraso de reparo (expected_completion) é dívida F3 — RUNBOOK-erradicacao-locacao.md.'
+    );
+
     if (! Schema::hasColumn('vehicles', 'current_status')) {
         $this->markTestSkipped('current_status column missing — Wave 5 schema pending');
     }
@@ -99,7 +107,7 @@ it('caçamba locada overdue cai em "aguardando" (não "locada")', function () {
     $rentalOk = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_PROD,
         'vehicle_id'           => $vehNoOverdue->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); teste skipado (dívida F3)
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(3),
         'expected_return_date' => now()->addDays(2)->toDateString(), // futuro = não overdue
@@ -118,7 +126,7 @@ it('caçamba locada overdue cai em "aguardando" (não "locada")', function () {
     $rentalOverdue = \Modules\OficinaAuto\Entities\ServiceOrder::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'          => BIZ_WAGNER_PROD,
         'vehicle_id'           => $vehOverdue->id,
-        'order_type'           => 'locacao',
+        'order_type'           => 'manutencao', // locação erradicada (ADR 0265); teste skipado (dívida F3)
         'status'               => 'aberta',
         'entered_at'           => now()->subDays(10),
         'expected_return_date' => now()->subDays(2)->toDateString(), // passado = overdue
