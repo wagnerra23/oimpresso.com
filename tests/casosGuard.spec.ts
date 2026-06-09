@@ -102,3 +102,42 @@ describe('casos:check — G-2 rastreabilidade caso↔teste (físico)', () => {
     expect(out).toMatch(/Sem violações novas/);
   });
 });
+
+describe('casos:check — G-5 metadata viva (quem · quando · status) (físico)', () => {
+  it('SENSIBILIDADE: casos.md sem owner/last_run e UC sem Status falham', () => {
+    // baseline limpo com uma tela compliant.
+    write(page('M'), 'x');
+    write('resources/js/Pages/M/Index.charter.md', '# c');
+    write('resources/js/Pages/M/Index.casos.md', '---\nowner: wagner\nlast_run: "2026-06-09"\n---\n## UC-01 · x\n- **Status: ✅**');
+    write('tests/MTest.php', '<?php // UC-01');
+    run('--write-baseline');
+    // tela nova com casos.md SEM frontmatter + UC sem Status.
+    write(page('N'), 'x');
+    write('resources/js/Pages/N/Index.charter.md', '# c');
+    write('resources/js/Pages/N/Index.casos.md', '## UC-02 · y');
+    write('tests/NTest.php', '<?php // UC-02');
+    const out = runExpectFail('');
+    expect(out).toMatch(/meta:missing-owner:resources\/js\/Pages\/N\/Index\.casos\.md/);
+    expect(out).toMatch(/meta:missing-last_run:resources\/js\/Pages\/N\/Index\.casos\.md/);
+    expect(out).toMatch(/meta:uc-no-status:resources\/js\/Pages\/N\/Index\.casos\.md#UC-02/);
+  });
+
+  it('ESPECIFICIDADE: casos.md com owner+last_run+Status por UC NÃO gera meta-violação', () => {
+    write(page('Z'), 'x');
+    write('resources/js/Pages/Z/Index.charter.md', '# c');
+    write('resources/js/Pages/Z/Index.casos.md', '---\nowner: wagner\nlast_run: "2026-06-09"\n---\n## UC-09 · ok\n- **Status: 🧪**');
+    write('tests/ZTest.php', '<?php // UC-09');
+    run('--write-baseline');
+    const out = run('--json');
+    expect(out).toMatch(/"metadata_issues": 0/);
+  });
+
+  it('SENSIBILIDADE: last_run com formato inválido (não-data) falha', () => {
+    write(page('D'), 'x');
+    write('resources/js/Pages/D/Index.charter.md', '# c');
+    write('resources/js/Pages/D/Index.casos.md', '---\nowner: wagner\nlast_run: ontem\n---\n## UC-01 · x\n- **Status: ✅**');
+    write('tests/DTest.php', '<?php // UC-01');
+    const out = runExpectFail('--json'); // sem baseline → tudo novo
+    expect(out).toMatch(/meta:missing-last_run:resources\/js\/Pages\/D\/Index\.casos\.md/);
+  });
+});
