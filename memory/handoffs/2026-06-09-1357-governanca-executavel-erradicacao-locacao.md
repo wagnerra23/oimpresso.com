@@ -3,7 +3,7 @@ date: "2026-06-09"
 hour: "13:57 BRT"
 slug: governanca-executavel-erradicacao-locacao
 topic: "Governança executável (casos/dominio/E2E viram gate required) + erradicação de order_type=locacao na Oficina + research estado-da-arte + freshness G-6"
-tldr: "Loop zero-toque [W]. 10 PRs mergeados (#2462-2469). ADR 0264 (governança executável: 4 gates trio/traceability/E2E/domínio) + ADR 0265 (Oficina=reparo, erradica locacao). F1 guards casos:check+dominio:check (ratchet, baseline real 426 dívida) → F2 flip pra REQUIRED via gh api → erradicação backend locacao (enum {manutencao,mecanica}, importer, KPI, validação) provada por dominio:check 1→0 + Pest verde. G-5 metadata viva (owner/last_run/Status) + G-6 frescor via git (pegou Oficina casos stale). F1b Playwright harness não-required. Research 7 estratégias com nota. PAUSA opção B: saltos #2 (Status derivado do verde) e #3 (domínio além de enum) = passe dedicado."
+tldr: "Loop zero-toque [W]. 10 PRs (#2462-2469). ADR 0264 (governança executável: 4 gates) + 0265 (Oficina=reparo, erradica locacao). F1 guards casos:check+dominio:check (ratchet) → F2 flip REQUIRED via gh api → erradicação backend (enum {manutencao,mecanica}) provada por dominio:check 1→0 + Pest verde. G-5 metadata + G-6 frescor via git (pegou Oficina stale). F1b Playwright não-required. Research 7 estratégias. PAUSA opção B: saltos #2/#3 = passe dedicado."
 duration: "~6h"
 authors: [CL]
 session: frosty-greider-83ab2f
