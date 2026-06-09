@@ -28,6 +28,9 @@ import { toast } from 'sonner';
 import { Plus, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
 import KanbanDndProvider from '@/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider';
 import DragConfirmDialog, {
   type PendingTransition,
@@ -56,11 +59,17 @@ interface BoardKpis {
   atrasadas: number;
 }
 
+interface MecanicoOption {
+  id: number;
+  nome: string;
+}
+
 interface Props {
   columns: BoardColumn[];
   kpis: BoardKpis;
   process_seeded: boolean;
-  filters: { q: string };
+  filters: { q: string; mecanico: number | null; box: string | null };
+  filterOptions: { boxes: string[]; mecanicos: MecanicoOption[] };
 }
 
 // ─── Drag mapping FSM (espelha oficina_mecanica_os do OficinaAutoFsmSeeder) ────
@@ -114,15 +123,31 @@ const STAGE_TRANSITIONS: Record<string, Record<string, AllowedMove>> = {
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
-export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filters }: Props) {
+export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filters, filterOptions }: Props) {
   const [searchInput, setSearchInput] = useState(filters.q ?? '');
+
+  // Navega pro board mesclando os filtros atuais com o patch (query — canon charter).
+  // Limpa chaves vazias pra não poluir a URL ('' / null / undefined caem fora).
+  const applyBoardFilter = useCallback(
+    (patch: { q?: string; mecanico?: number | null; box?: string | null }) => {
+      const next: Record<string, string | number> = {};
+      const q = patch.q ?? filters.q ?? '';
+      const mecanico = patch.mecanico !== undefined ? patch.mecanico : filters.mecanico;
+      const box = patch.box !== undefined ? patch.box : filters.box;
+      if (q) next.q = q;
+      if (mecanico) next.mecanico = mecanico;
+      if (box) next.box = box;
+      router.get('/oficina-auto/ordens-servico/board', next, {
+        preserveState: true, preserveScroll: true, replace: true,
+      });
+    },
+    [filters.q, filters.mecanico, filters.box],
+  );
 
   useEffect(() => {
     if (searchInput === (filters.q ?? '')) return;
     const t = setTimeout(() => {
-      router.get('/oficina-auto/ordens-servico/board', { q: searchInput || undefined }, {
-        preserveState: true, preserveScroll: true, replace: true,
-      });
+      applyBoardFilter({ q: searchInput });
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -267,8 +292,8 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </div>
         </div>
 
-        {/* Filtro busca */}
-        <div className="bg-white border-b border-border px-6 py-2.5 flex items-center gap-3 sticky top-0 z-10">
+        {/* Filtro busca + selects compactos Mecânico/Box */}
+        <div className="bg-white border-b border-border px-6 py-2.5 flex items-center gap-3 sticky top-0 z-10 flex-wrap">
           <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md">
             <Search size={14} className="text-muted-foreground flex-shrink-0" />
             <Input
@@ -280,6 +305,41 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
               aria-label="Buscar OS, placa ou cliente"
             />
           </div>
+
+          {filterOptions.mecanicos.length > 0 && (
+            <Select
+              value={filters.mecanico ? String(filters.mecanico) : 'all'}
+              onValueChange={(v) => applyBoardFilter({ mecanico: v === 'all' ? null : Number(v) })}
+            >
+              <SelectTrigger className="h-8 w-auto gap-1.5 text-xs" aria-label="Filtrar por mecânico">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Mecânico: todos</SelectItem>
+                {filterOptions.mecanicos.map((m) => (
+                  <SelectItem key={m.id} value={String(m.id)}>{m.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {filterOptions.boxes.length > 0 && (
+            <Select
+              value={filters.box ?? 'all'}
+              onValueChange={(v) => applyBoardFilter({ box: v === 'all' ? null : v })}
+            >
+              <SelectTrigger className="h-8 w-auto gap-1.5 text-xs" aria-label="Filtrar por box">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Box: todos</SelectItem>
+                {filterOptions.boxes.map((b) => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
           <span className="ml-auto text-sm text-muted-foreground" aria-live="polite">
             <span className="font-medium text-foreground">{kpis.total} {kpis.total === 1 ? 'OS' : 'OS'}</span>
             {kpis.atrasadas > 0 && (<><span className="mx-1.5 text-muted-foreground">·</span><span className="font-medium text-destructive">{kpis.atrasadas} atrasada{kpis.atrasadas === 1 ? '' : 's'}</span></>)}
