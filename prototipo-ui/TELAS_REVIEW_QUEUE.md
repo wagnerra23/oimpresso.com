@@ -102,6 +102,21 @@
 
 ---
 
+## 🟡 F0 batch — Drawer de OS V2 (ServiceOrderRichSheet · Oficina) (2026-06-09)
+
+> Pedido completo no bloco F0 de [`COWORK_NOTES.md`](COWORK_NOTES.md) (`[2026-06-09] F0 — Fila V2 do drawer de OS`). Origem: avaliação F1.5 [`AVALIACAO_OS_GIT_2026-06-09.md`](AVALIACAO_OS_GIT_2026-06-09.md) + conferência pós-merge [#2477](https://github.com/wagnerra23/oimpresso.com/pull/2477). Vinculado [ADR 0265](../memory/decisions/0265-oficina-reparo-erradica-locacao.md). O drawer `ServiceOrderRichSheet` já espelha o protótipo canon; os 4 itens abaixo são os gaps V2 declarados no próprio código. Prioridade por impacto no balcão do Martinho (biz=164 LIVE).
+
+| Status | Tela | Prioridade | Refs |
+|---|---|---|---|
+| `[~]` | OS-V2-1 · Fotos & Laudo reais no drawer | **P1** | Hoje 3 placeholders + botão disabled. Upload real (câmera/arquivo) via Modules/Arquivos, thumbnails + lightbox, anexo sai no print A4. Persona Técnico Repair (touch ≥44px). |
+| `[~]` | OS-V2-2 · DVI inline com severidade | **P1** | Seção DVI no drawer (badge ok/atenção/crítico + valor por item alimentando gate). Depende: endpoint `DviInspectionController` (verificar shape). Padrão visual já no protótipo `producao-oficina`. |
+| `[~]` | OS-V2-3 · Gate "Pedir aprovação" hero no drawer | **P2** | Barra de total recomendado + CTA hero "Pedir aprovação" (WhatsApp `wa.me` sem PII). Portar barra do protótipo pro token do DS. |
+| `[~]` | OS-V2-4 · Linha do tempo FSM auditável | **P2** | Timeline real via histórico de transições FSM (quem/quando/de→pra), endpoint `fsm/history` previsto no código. Valor: auditoria de lead time. |
+
+> **Residual técnico (chore, não-UI):** backfill `order_type='locacao'\|null → 'mecanica'` nas OS legadas (badge "—" na lista) · renomear LABELS (não keys) dos estágios FSM `cacamba_locacao` pro vocabulário de reparo.
+
+---
+
 ## Critérios pra mover de coluna
 
 - `[ ] → [~]`: charter draft criado OU Wagner adicionou em [COWORK_NOTES.md](COWORK_NOTES.md) com pedido completo
