@@ -46,6 +46,8 @@
     "dominio:check": "node scripts/domain-dict-guard.mjs",
     "dominio:report": "node scripts/domain-dict-guard.mjs --report",
     "dominio:baseline:write": "node scripts/domain-dict-guard.mjs --write-baseline",
+    "e2e:install": "playwright install --with-deps chromium",
+    "e2e:check": "playwright test",
     "layout:check": "node scripts/layout-primitives-guard.mjs",
     "layout:baseline:write": "node scripts/layout-primitives-guard.mjs --write-baseline",
     "design-spec:check": "node scripts/design-spec-gen.mjs --check",
@@ -63,6 +65,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.49.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@laravel/vite-plugin-wayfinder": "^0.1.7",
     "@tailwindcss/typography": "^0.5.19",
