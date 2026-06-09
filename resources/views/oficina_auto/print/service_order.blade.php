@@ -29,6 +29,9 @@
     $totalItems = (float) ($order->total_items ?? 0);
     $hasItems = $order->items && $order->items->count() > 0;
     $hasDvi = $order->dviInspectionItems && $order->dviInspectionItems->count() > 0;
+    // F3 OS-V2-1 — fotos do laudo OS-level (relação polimórfica arquivos()).
+    $laudoFotos = $order->relationLoaded('arquivos') ? $order->arquivos : collect();
+    $hasFotos = $laudoFotos->count() > 0;
 @endphp
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -228,6 +231,31 @@
             text-align: right;
             font-size: 9.5pt;
         }
+        /* ─── Fotos da vistoria (F3 OS-V2-1) ─── */
+        .os-photos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .os-photo {
+            margin: 0;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        .os-photo img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            display: block;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+        }
+        .os-photo figcaption {
+            font-size: 8pt;
+            color: #555;
+            margin-top: 2px;
+            word-break: break-word;
+        }
         .os-signature {
             margin-top: 28px;
             border-top: 1px solid #aaa;
@@ -425,11 +453,18 @@
             <div class="os-section-title">DVI · Vistoria Digital</div>
             <ul class="os-dvi-list">
                 @foreach ($order->dviInspectionItems as $dvi)
+                    @php
+                        $sevLabel = match ($dvi->severity ?? 'ok') {
+                            'atencao' => 'Atenção',
+                            'critico' => 'Crítico',
+                            default => 'OK',
+                        };
+                    @endphp
                     <li>
-                        <span class="os-dvi-sev {{ $dvi->severity ?? 'ok' }}">{{ ucfirst($dvi->severity ?? 'ok') }}</span>
+                        <span class="os-dvi-sev {{ $dvi->severity ?? 'ok' }}">{{ $sevLabel }}</span>
                         <span class="os-dvi-desc">
-                            <strong>{{ $dvi->item_name ?? $dvi->component ?? 'Item' }}</strong>
-                            @if (!empty($dvi->notes)) — {{ $dvi->notes }}@endif
+                            <strong>{{ $dvi->descricao ?? 'Item' }}</strong>
+                            @if (!empty($dvi->recomendacao)) — {{ $dvi->recomendacao }}@endif
                         </span>
                         <span class="os-dvi-value">
                             @if (!empty($dvi->valor_recomendado) && (float) $dvi->valor_recomendado > 0)
@@ -439,6 +474,26 @@
                     </li>
                 @endforeach
             </ul>
+        </div>
+    @endif
+
+    {{-- ════════════════════════════════════════════════════════════════
+         Zone 4b-bis — Fotos da vistoria (F3 OS-V2-1)
+         Fotos do laudo OS-level (anexo polimórfico da OS). Grid 3 colunas,
+         legenda (original_name) abaixo de cada foto. break-inside avoid pra
+         não cortar uma foto no meio entre páginas A4.
+         ════════════════════════════════════════════════════════════════ --}}
+    @if ($hasFotos)
+        <div class="os-section">
+            <div class="os-section-title">Fotos da vistoria</div>
+            <div class="os-photos">
+                @foreach ($laudoFotos as $foto)
+                    <figure class="os-photo">
+                        <img src="{{ $foto->display_url }}" alt="{{ $foto->original_name }}">
+                        <figcaption>{{ $foto->original_name }}</figcaption>
+                    </figure>
+                @endforeach
+            </div>
         </div>
     @endif
 
