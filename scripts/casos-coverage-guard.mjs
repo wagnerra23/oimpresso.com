@@ -10,12 +10,16 @@
 // (charter/casos/teste/proibições) viram MÁQUINA, não disciplina (ADR 0264, lei da
 // catraca ADR 0256). Censo @main 2026-06-09: 277 páginas roteadas, 138 charter, 1 casos.md.
 //
-// Este guard cobre 2 das 4 camadas:
+// Este guard cobre 3 camadas:
 //   G-1 TRIO-DE-TELA  : toda .tsx ROTEADA em resources/js/Pages/** (exclui _components/)
 //                       DEVE ter, ao lado, <Nome>.charter.md E <Nome>.casos.md.
 //   G-2 RASTREABILIDADE: todo UC-* declarado num *.casos.md DEVE ser citado por >=1 teste
 //                       (string do ID em Tests/**, tests/**, ou spec Playwright e2e/**).
 //                       UC órfão (caso no papel sem teste que o defenda) = violação.
+//   G-5 METADATA VIVA : cada *.casos.md DEVE carregar `owner` (quem fez) + `last_run`
+//                       (quando, data) + `Status:` por UC (se está ativa/passa). É o que
+//                       faz a spec "saber de si" e não apodrecer. Trava PRESENÇA (frescor
+//                       de last_run é manual — pode mentir; carimbo automático = futuro).
 //
 // =====================================================================================
 // RATCHET / BASELINE — gêmeo de pageheader-migration-guard.mjs + no-mock-in-prod.mjs
@@ -142,6 +146,50 @@ function orphanUcViolations(ucDecls, testCorpus) {
 }
 
 // ---------------------------------------------------------------------------
+// G-5 — metadata viva (quem fez · quando · status por UC)
+// ---------------------------------------------------------------------------
+// É o que [W] mais valoriza na estrutura de spec: cada casos.md "sabe de si" — owner
+// (quem), last_run (quando) e Status por UC (se está ativa/passa). Sem isso a spec
+// apodrece (vira convenção esquecível). Aqui isso vira LEI (ratchet).
+//
+// Trava PRESENÇA, não FRESCOR: last_run é manual e PODE MENTIR (uma data antiga não
+// significa que rodou). Carimbar a data automaticamente quando o teste roda é evolução
+// futura (precisa o runner escrever de volta no arquivo) — fora do escopo deste guard.
+const DATE_RE = /^["']?\d{4}-\d{2}-\d{2}["']?$/;
+
+function frontmatterBlock(content) {
+  const m = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  return m ? m[1] : null;
+}
+function fmField(fm, key) {
+  if (!fm) return null;
+  const m = fm.match(new RegExp(`^${key}\\s*:\\s*(.+)$`, 'm'));
+  return m ? m[1].trim() : null;
+}
+
+function metadataViolations(casosFiles) {
+  const violations = [];
+  for (const file of casosFiles) {
+    const content = readFileSync(resolve(ROOT, file), 'utf8');
+    const fm = frontmatterBlock(content);
+    const owner = fmField(fm, 'owner');
+    const lastRun = fmField(fm, 'last_run');
+    if (!owner) violations.push(`meta:missing-owner:${file}`);
+    if (!lastRun || !DATE_RE.test(lastRun)) violations.push(`meta:missing-last_run:${file}`);
+
+    // Status por UC — cada heading "## UC-XX ..." precisa de um "Status:" no bloco
+    // (até o próximo "## "). É o "se está ativa / passa" que [W] valoriza.
+    const blocks = content.split(/^##\s+/m).slice(1);
+    for (const block of blocks) {
+      const head = block.match(/^(UC-[A-Z]*\d+[a-zA-Z]?)\b/);
+      if (!head) continue;
+      if (!/Status\s*[:：]/.test(block)) violations.push(`meta:uc-no-status:${file}#${head[1].toUpperCase()}`);
+    }
+  }
+  return violations;
+}
+
+// ---------------------------------------------------------------------------
 // Cálculo
 // ---------------------------------------------------------------------------
 function computeViolations() {
@@ -152,8 +200,9 @@ function computeViolations() {
 
   const trio = trioViolations(pages);
   const orphans = orphanUcViolations(ucDecls, testCorpus);
+  const meta = metadataViolations(casosFiles);
 
-  const all = [...trio, ...orphans].sort((a, b) => a.localeCompare(b));
+  const all = [...trio, ...orphans, ...meta].sort((a, b) => a.localeCompare(b));
   return {
     violations: all,
     stats: {
@@ -163,6 +212,7 @@ function computeViolations() {
       missing_charter: trio.filter((v) => v.startsWith('trio:missing-charter')).length,
       missing_casos: trio.filter((v) => v.startsWith('trio:missing-casos')).length,
       orphan_ucs: orphans.length,
+      metadata_issues: meta.length,
     },
   };
 }
@@ -193,6 +243,7 @@ function main() {
     console.log(`Telas SEM charter.md: ${stats.missing_charter}`);
     console.log(`Telas SEM casos.md:   ${stats.missing_casos}`);
     console.log(`UCs órfãos (sem teste): ${stats.orphan_ucs}`);
+    console.log(`Metadata viva faltando (owner/last_run/Status por UC): ${stats.metadata_issues}`);
     console.log(`\nTOTAL de violações (débito): ${violations.length}`);
     console.log('\n→ F1 fotografa isso no baseline (não-bloqueante). F3 ratchet zera tela-a-tela.');
     process.exit(0);
@@ -202,7 +253,7 @@ function main() {
     const out = {
       _meta: {
         generated_at: new Date().toISOString(),
-        gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade)',
+        gate: 'casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva)',
         stats,
         nota: 'Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write',
         refs: ['ADR 0264', 'ADR 0261', 'ADR 0256'],
@@ -231,6 +282,8 @@ function main() {
     console.error(
       `\nTela NOVA precisa do trio: <Nome>.tsx + <Nome>.charter.md + <Nome>.casos.md (ADR 0264 G-1).` +
         `\nUC NOVO precisa de teste citando o id (ADR 0264 G-2).` +
+        `\nmeta:* → o casos.md precisa de frontmatter \`owner:\` (quem) + \`last_run: "AAAA-MM-DD"\` (quando)` +
+        `\n         e cada \`## UC-XX\` precisa de uma linha \`Status:\` (se está ativa/passa) — ADR 0264 G-5.` +
         `\nSe for legado movido/refatorado conscientemente: npm run casos:baseline:write`,
     );
     process.exit(1);

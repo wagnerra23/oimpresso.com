@@ -1,14 +1,15 @@
 {
   "_meta": {
-    "generated_at": "2026-06-09T12:13:41.492Z",
-    "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade)",
+    "generated_at": "2026-06-09T13:25:07.805Z",
+    "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata viva)",
     "stats": {
       "pages": 277,
       "casos_files": 1,
       "ucs_declared": 10,
       "missing_charter": 144,
       "missing_casos": 276,
-      "orphan_ucs": 10
+      "orphan_ucs": 5,
+      "metadata_issues": 0
     },
     "nota": "Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write",
     "refs": [
@@ -438,15 +439,10 @@
     "trio:missing-charter:resources/js/Pages/team-mcp/Tasks/Index.tsx",
     "trio:missing-charter:resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
     "trio:missing-charter:resources/js/Pages/Whatsapp/Templates/Index.tsx",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-01",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-02",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-03",
     "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-04",
     "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-05",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-06",
     "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-07",
     "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-08",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-09",
     "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-10"
   ]
 }
