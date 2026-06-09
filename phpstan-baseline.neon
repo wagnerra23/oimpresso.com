@@ -8648,14 +8648,14 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 2
-			path: Modules/OficinaAuto/Config/retention.php
+			count: 7
+			path: Modules/OficinaAuto/Config/config.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 7
-			path: Modules/OficinaAuto/Config/config.php
+			count: 2
+			path: Modules/OficinaAuto/Config/retention.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
