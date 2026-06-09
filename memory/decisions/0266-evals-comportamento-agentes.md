@@ -3,7 +3,7 @@ slug: 0266-evals-comportamento-agentes
 number: 266
 title: "Evals de comportamento dos agentes — golden set + replay cases + escada de autonomia (EVAL-001/002/003)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta
