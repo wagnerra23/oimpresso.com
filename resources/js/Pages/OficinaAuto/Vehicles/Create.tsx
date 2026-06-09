@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
+import { Inline } from '@/Components/layout';
 
 interface Props {
   vehicleTypes: Record<string, string>;
@@ -172,7 +173,7 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="plate">Placa principal *</Label>
-              <div className="flex gap-2">
+              <Inline gap={2} align="start">
                 <Input
                   id="plate"
                   value={data.plate}
@@ -202,14 +203,14 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
                   )}
                   <span className="ml-1">Buscar</span>
                 </Button>
-              </div>
+              </Inline>
               {errors.plate && <p className="text-sm text-destructive mt-1">{errors.plate}</p>}
               {lookupFeedback && (
                 <p
                   className={
                     'text-sm mt-1 ' +
                     (lookupFeedback.kind === 'success'
-                      ? 'text-emerald-600'
+                      ? 'text-success'
                       : lookupFeedback.kind === 'error'
                         ? 'text-destructive'
                         : 'text-muted-foreground')

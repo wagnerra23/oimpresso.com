@@ -44,16 +44,18 @@ return [
 
             // Mapeia campo-do-fornecedor → campo canônico (cada fornecedor usa
             // nomes diferentes). Suporta dot-notation pra respostas aninhadas.
+            // Edite estes nomes aqui ao plugar um fornecedor (não vão no .env —
+            // são estrutura de resposta, não credencial/knob de runtime).
             'field_map' => [
-                'brand'            => env('OFICINA_PLACA_MAP_BRAND', 'marca'),
-                'model'            => env('OFICINA_PLACA_MAP_MODEL', 'modelo'),
-                'manufacture_year' => env('OFICINA_PLACA_MAP_MANUF_YEAR', 'ano'),
-                'model_year'       => env('OFICINA_PLACA_MAP_MODEL_YEAR', 'anoModelo'),
-                'color'            => env('OFICINA_PLACA_MAP_COLOR', 'cor'),
-                'fuel_type'        => env('OFICINA_PLACA_MAP_FUEL', 'combustivel'),
-                'chassis'          => env('OFICINA_PLACA_MAP_CHASSIS', 'chassi'),
-                'engine'           => env('OFICINA_PLACA_MAP_ENGINE', 'motor'),
-                'renavam'          => env('OFICINA_PLACA_MAP_RENAVAM', 'renavam'),
+                'brand'            => 'marca',
+                'model'            => 'modelo',
+                'manufacture_year' => 'ano',
+                'model_year'       => 'anoModelo',
+                'color'            => 'cor',
+                'fuel_type'        => 'combustivel',
+                'chassis'          => 'chassi',
+                'engine'           => 'motor',
+                'renavam'          => 'renavam',
             ],
         ],
     ],
