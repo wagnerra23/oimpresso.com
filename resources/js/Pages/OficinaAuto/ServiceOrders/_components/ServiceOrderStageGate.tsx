@@ -59,10 +59,13 @@ function csrfToken(): string {
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 }
 
+// Prefixo canônico multi-tenant Tier 0 (R3 · AP3): oimpresso.<modulo>.*
+const stageGateKey = (osId: number) => `oimpresso.oficinaauto.stageGate.${osId}`;
+
 // Checks manuais (advisory) persistidos por OS — não afetam o gate do servidor.
 function readManual(osId: number): Record<string, boolean> {
   try {
-    return JSON.parse(localStorage.getItem(`oficina:stageGate:${osId}`) || '{}');
+    return JSON.parse(localStorage.getItem(stageGateKey(osId)) || '{}');
   } catch {
     return {};
   }
@@ -108,7 +111,7 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
       setManual((prev) => {
         const next = { ...prev, [key]: checked };
         try {
-          localStorage.setItem(`oficina:stageGate:${serviceOrderId}`, JSON.stringify(next));
+          localStorage.setItem(stageGateKey(serviceOrderId), JSON.stringify(next));
         } catch {
           /* ignore quota */
         }
