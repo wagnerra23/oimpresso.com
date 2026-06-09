@@ -43,11 +43,15 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property \Illuminate\Support\Carbon|null $expected_completion
  * @property \Illuminate\Support\Carbon|null $completed_at
  * @property \Illuminate\Support\Carbon|null $delivered_at
+ * @property \Illuminate\Support\Carbon|null $approval_requested_at  F3 OS-V2-3 — gate enviado (pending)
+ * @property \Illuminate\Support\Carbon|null $approval_decided_at    F3 OS-V2-3 — decisão do cliente
+ * @property string|null  $approval_decision  F3 OS-V2-3 — approved | declined | null
  * @property string|null  $notes
  *
  * @property-read bool    $is_overdue       Accessor — sempre false (locação erradicada, ADR 0265; atraso de reparo vive no Controller via expected_completion)
  * @property-read int     $dias_locacao     Accessor — dias decorridos desde entered_at
  * @property-read float   $valor_receber    Accessor — sempre 0.0 (locação erradicada, ADR 0265; valor de reparo = total_items)
+ * @property-read string  $approval_state   Accessor F3 OS-V2-3 — none|pending|approved|declined
  *
  * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-001
  */
