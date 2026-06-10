@@ -121,16 +121,22 @@ test.describe.serial('UC-11 · OS funcional fim-a-fim (caminho da Larissa)', () 
     // registrado na trilha (contrato do ServiceOrderStageGate).
     // OS recém-criada ainda não está no pipeline FSM (run 27274647985): Larissa inicia
     // o rastreio primeiro ("Iniciar pipeline FSM") e só então o gate oferece o avanço.
+    // O painel FSM re-monta após o pedido de aprovação (refetch) — isVisible() sem wait
+    // caía na janela de loading e pulava o clique (run 27275373607, zero POST no serve.log).
     const iniciarFsm = drawer.getByRole('button', { name: /Iniciar pipeline FSM/i });
-    if (await iniciarFsm.isVisible().catch(() => false)) {
-      await iniciarFsm.click();
-    }
     const avancar = drawer.getByRole('button', { name: /^Avançar p\// });
     const override = drawer.getByRole('button', { name: /Avançar mesmo assim/i });
     await expect(
-      avancar.or(override).first(),
-      'após iniciar o pipeline, o gate deve oferecer Avançar ou o override de responsável',
+      iniciarFsm.or(avancar).or(override).first(),
+      'painel FSM deve carregar (Iniciar pipeline OU gate de avanço)',
     ).toBeVisible({ timeout: 30_000 });
+    if (await iniciarFsm.isVisible()) {
+      await iniciarFsm.click();
+      await expect(
+        avancar.or(override).first(),
+        'após iniciar o pipeline, o gate deve oferecer Avançar ou o override de responsável',
+      ).toBeVisible({ timeout: 30_000 });
+    }
     if (await avancar.first().isEnabled().catch(() => false)) {
       await avancar.first().click();
     } else {
