@@ -3,16 +3,23 @@ page: /atendimento/caixa-unificada
 component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-15
-cutover_at: 2026-05-15
+last_validated: "2026-06-10"
+cutover_at: "2026-05-15"
 supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
 visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
-related_adrs: [0093, 0094, 0104, 0107, 0110, 0114, 0135]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0110-cockpit-pattern-v2-canon-list-detail
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 1
+charter_version: 2
 permissao: whatsapp.access
 ---
 
@@ -101,7 +108,11 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 
 ### Sidebar direita (8 sections)
 1. **Fila** — derivada via heurística tag→fila (read-only nesta passada).
-2. **Atribuído** — placeholder "sem atribuição" (TODO US-WA-XXX).
+2. **Atribuído** — assignee picker real (US-WA-302, 2026-06-10): Popover com
+   operadores do business (grant ativo OU `whatsapp.access`/`whatsapp.send`),
+   avatar iniciais + hue determinístico, "remover atribuição". PATCH
+   `atendimento.inbox.assign` (Tier 0 — target user do MESMO business,
+   cross-tenant = 422). Tab "Minhas" (`assigned`) ganha utilidade real.
 3. **Canal · Conta** — short label + handle mono.
 4. **Tags** — chips coloridos quando há tags aplicadas.
 5. **OS vinculada** — placeholder (TODO US-WA-XXX: linkar Repair).
@@ -129,7 +140,6 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - ❌ **Broadcast cross-canal** — placeholder; backlog (alta complexidade
   janela 24h Meta + opt-in LGPD).
 - ❌ **Mover conversa entre filas** — só leitura (fila vem de heurística).
-- ❌ **Assignee picker** — placeholder; backlog US-WA-XXX.
 - ❌ **Templates picker no composer** — placeholder; reusar
   `TemplatePicker` do legacy em PR seguinte.
 - ❌ **Macros / slash commands** no composer — placeholder; reusar dropdown
@@ -200,6 +210,8 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivada` | `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` |
 | ✅ | `R-WA-CAIXA-UNIF-002 — cross-tenant biz=99 invisível pra biz=1 (Tier 0)` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)` | mesmo arquivo |
 
 ---
 
@@ -220,11 +232,10 @@ preview + dry-run.
 
 **US sugerida:** US-WA-XXX Broadcast (~6-8h IA-pair).
 
-### §3 Assignee picker (P1)
+### §3 Assignee picker (P1) — ✅ ENTREGUE 2026-06-10 (US-WA-302)
 Dropdown no contexto da sidebar pra atribuir conv a operador específico.
 Reusa `assigned_user_id` nullable já existente em `conversations`.
-
-**US sugerida:** US-WA-XXX Assignee picker (~2-3h IA-pair).
+Endpoint PATCH `atendimento.inbox.assign` + payload `availableAssignees`.
 
 ### §4 Mover conversa entre filas (P2)
 Hoje fila é derivada read-only via tag heurística. Mover = re-tagar.
@@ -254,4 +265,5 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas" — brief [CC] Caixa Unificada completa) | **US-WA-302 Assignee picker** (PR-1/10): section 2 da sidebar vira picker real (Popover operadores + avatar hue + remover atribuição). Backend: PATCH `atendimento.inbox.assign` (InboxController::assign, Tier 0 cross-tenant 422) + prop deferred `availableAssignees` + relação `Conversation::assignedUser`. Charter v2. Pest R-WA-CAIXA-UNIF-004/005. |
 | 2026-05-15 | Wagner + Opus 4.7 | Adicionado `<CustomerMemoryBlock>` (US-WA-VOZ-001/002/003 — PR #919) no topo do `ContextSidebarV4`. Lazy fetch `GET /atendimento/customer/{ext}/profile`. Mostra identidade Contact CRM, stats agregados, top 3 reclamações 30d com severity, external_sources Firebird, flags VIP/frágil, LGPD. Mesmo componente usado pelo Inbox legacy (`ConversationSidebar.tsx`) — atendente vê Customer 360 em qualquer tela durante cutover. |

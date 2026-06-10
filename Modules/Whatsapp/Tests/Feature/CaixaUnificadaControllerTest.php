@@ -32,9 +32,24 @@ uses(Tests\TestCase::class);
  * NUNCA usar biz=4 (ROTA LIVRE cliente real) em tests — ADR 0101.
  */
 beforeEach(function () {
-    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels'] as $t) {
+    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // US-WA-302 — users mínima pro payload availableAssignees + endpoint assign
+    // (pattern BackfillChannelAccessCommandTest + colunas de nome do App\User).
+    Schema::create('users', function ($table) {
+        $table->increments('id');
+        $table->unsignedInteger('business_id');
+        $table->string('first_name', 100)->nullable();
+        $table->string('surname', 100)->nullable();
+        $table->string('last_name', 100)->nullable();
+        $table->string('username', 100)->nullable();
+        $table->string('email', 100)->nullable();
+        $table->string('password')->nullable();
+        $table->softDeletes();
+        $table->timestamps();
+    });
 
     Schema::create('whatsapp_tags', function ($table) {
         $table->bigIncrements('id');
@@ -330,4 +345,87 @@ it('R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal',
     $forbiddenRequest = cuctBuildRequest(['account_id' => $chForbidden->id]);
     expect(fn () => cuctIndexProps(new CaixaUnificadaController(), $forbiddenRequest))
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+});
+
+// ============================================================================
+// 4. US-WA-302 — assignee picker: payload Tier 0 + endpoint assign
+// ============================================================================
+
+/** Cria user row direto na tabela (sem model events — pattern BackfillChannelAccessCommandTest). */
+function cuctMakeUserRow(int $businessId, int $id, string $firstName, ?string $lastName = null): void
+{
+    \Illuminate\Support\Facades\DB::table('users')->insert([
+        'id' => $id,
+        'business_id' => $businessId,
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+function cuctPatchRequest(string $uri, array $body = []): Request
+{
+    $request = Request::create($uri, 'PATCH', $body);
+    $request->setLaravelSession(app('session.store'));
+    return $request;
+}
+
+it('R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-004-uuid');
+    cuctMakeConv(1, $ch->id);
+
+    // 2 operadores biz=1 com grant ativo + 1 user biz=99 (cross-tenant) + 1 biz=1 SEM grant
+    cuctMakeUserRow(1, 10, 'Maiara', 'Silva');
+    cuctMakeUserRow(1, 11, 'Felipe', 'Souza');
+    cuctMakeUserRow(99, 90, 'Intruso', 'Tenant');
+    cuctMakeUserRow(1, 12, 'Sem', 'Grant');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+    \Modules\Whatsapp\Entities\ChannelUserAccess::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => 1, 'channel_id' => $ch->id, 'user_id' => 11,
+        'granted_by_user_id' => 1, 'granted_at' => now(),
+    ]);
+
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    $assignees = cuctResolveDefer($props['availableAssignees']);
+
+    $ids = collect($assignees)->pluck('id')->all();
+    expect($ids)->toContain(10, 11)
+        ->and($ids)->not->toContain(90)   // Tier 0 — cross-tenant invisível
+        ->and($ids)->not->toContain(12);  // sem grant + sem permission → fora
+
+    $maiara = collect($assignees)->firstWhere('id', 10);
+    expect($maiara['name'])->toBe('Maiara Silva');
+});
+
+it('R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-005-uuid');
+    $conv = cuctMakeConv(1, $ch->id);
+
+    cuctMakeUserRow(1, 10, 'Maiara', 'Silva');
+    cuctMakeUserRow(1, 11, 'Felipe', 'Souza');
+    cuctMakeUserRow(99, 90, 'Intruso', 'Tenant');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    $inbox = new \Modules\Whatsapp\Http\Controllers\Admin\InboxController();
+
+    // Atribui pro user 11 (mesmo business)
+    $inbox->assign(cuctPatchRequest("/atendimento/inbox/{$conv->id}/assign", ['assigned_user_id' => 11]), $conv->id);
+    expect((int) $conv->fresh()->assigned_user_id)->toBe(11);
+
+    // Thread payload expõe assigned_user_id + nome resolvido
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props['thread']['assigned_user_id'])->toBe(11)
+        ->and($props['thread']['assigned_user_name'])->toBe('Felipe Souza');
+
+    // Cross-tenant assignment → ValidationException fail-loud (Tier 0)
+    expect(fn () => $inbox->assign(
+        cuctPatchRequest("/atendimento/inbox/{$conv->id}/assign", ['assigned_user_id' => 90]),
+        $conv->id,
+    ))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect((int) $conv->fresh()->assigned_user_id)->toBe(11); // intacto
+
+    // Remove atribuição (null)
+    $inbox->assign(cuctPatchRequest("/atendimento/inbox/{$conv->id}/assign", ['assigned_user_id' => null]), $conv->id);
+    expect($conv->fresh()->assigned_user_id)->toBeNull();
 });
