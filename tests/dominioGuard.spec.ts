@@ -25,8 +25,8 @@ const write = (rel: string, content: string) => {
   writeFileSync(full, content);
 };
 
-const dict = (module: string, enums: Record<string, string[]>) =>
-  write(`memory/dominio/${module.toLowerCase()}.md`, '# dict\n\n```json\n' + JSON.stringify({ module, enums }) + '\n```\n');
+const dict = (module: string, enums: Record<string, string[]>, extra: Record<string, unknown> = {}) =>
+  write(`memory/dominio/${module.toLowerCase()}.md`, '# dict\n\n```json\n' + JSON.stringify({ module, enums, ...extra }) + '\n```\n');
 
 const migration = (module: string, file: string, php: string) =>
   write(`Modules/${module}/Database/Migrations/${file}`, php);
@@ -254,5 +254,76 @@ describe('dominio:check — valor de domínio no CÓDIGO (Salto #3, físico)', (
       `<?php class Y { function q($qb) { return $qb->where('order_type', 'aluguel'); } }`);
     const out = runJsonExpectFail();
     expect(out).toMatch(/dominio:undeclared-code-value:ModR:order_type:aluguel/);
+  });
+});
+
+// =====================================================================================
+// SALTO #4 — termos PROIBIDOS user-facing (trava de regressão ADR 0265)
+// =====================================================================================
+describe('dominio:check — termos proibidos user-facing (Salto #4, físico)', () => {
+  const uiDict = (module: string) =>
+    dict(module, { 'service_orders.order_type': ['manutencao', 'mecanica'] }, {
+      forbidden_ui_terms: ['locacao', 'cacamba'],
+      forbidden_ui_paths: [`resources/js/Pages/${module}`, `Modules/${module}/Database/Seeders`],
+    });
+
+  const cleanEnum = (module: string) =>
+    migration(module, '2026_01_01_000001_create.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('service_orders', function ($t) { $t->enum('order_type', ['manutencao', 'mecanica']); });
+      } };`);
+
+  const page = (module: string, rel: string, tsx: string) =>
+    write(`resources/js/Pages/${module}/${rel}`, tsx);
+
+  it('SENSIBILIDADE: string de UI com "Locação" (acento+caixa) vira forbidden-ui-term', () => {
+    uiDict('ModU');
+    cleanEnum('ModU');
+    page('ModU', 'Index.tsx', `export const label = 'Iniciar Locação (entregar Caçamba)';`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:forbidden-ui-term:ModU:resources\/js\/Pages\/ModU\/Index\.tsx:locacao:1/);
+    expect(out).toMatch(/dominio:forbidden-ui-term:ModU:resources\/js\/Pages\/ModU\/Index\.tsx:cacamba:1/);
+  });
+
+  it('SENSIBILIDADE: label de seeder com termo proibido é pego', () => {
+    uiDict('ModS');
+    cleanEnum('ModS');
+    code('ModS', 'Database/Seeders/FsmSeeder.php',
+      `<?php class FsmSeeder { function defs() { return [['key1', 'Liberar pra locação']]; } }`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:forbidden-ui-term:ModS:Modules\/ModS\/Database\/Seeders\/FsmSeeder\.php:locacao:1/);
+  });
+
+  it('ESPECIFICIDADE: comentário explicando a erradicação NÃO conta', () => {
+    uiDict('ModN');
+    cleanEnum('ModN');
+    page('ModN', 'Index.tsx',
+      `// locação erradicada (ADR 0265) — não renderizamos mais o card\n` +
+      `/* a palavra caçamba aqui também é só explicação */\n` +
+      `export const label = 'Reparo';`);
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/forbidden-ui-term/);
+  });
+
+  it('RATCHET por contagem: ocorrência NOVA num arquivo já-baselined bloqueia', () => {
+    uiDict('ModT');
+    cleanEnum('ModT');
+    page('ModT', 'Index.tsx', `export const a = 'dias_locacao';`);
+    run('--write-baseline'); // absorve a 1ª ocorrência
+    expect(run('')).toMatch(/Sem divergências novas/);
+    // 2ª ocorrência no MESMO arquivo → chave :2 nova → bloqueia
+    page('ModT', 'Index.tsx', `export const a = 'dias_locacao';\nexport const b = 'Locação ativa';`);
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:forbidden-ui-term:ModT:resources\/js\/Pages\/ModT\/Index\.tsx:locacao:2/);
+  });
+
+  it('ESPECIFICIDADE: dicionário SEM forbidden_ui_terms não roda o scan (opt-in)', () => {
+    dict('ModZ', { 'service_orders.order_type': ['manutencao', 'mecanica'] });
+    cleanEnum('ModZ');
+    page('ModZ', 'Index.tsx', `export const label = 'Locação';`);
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/forbidden-ui-term/);
   });
 });

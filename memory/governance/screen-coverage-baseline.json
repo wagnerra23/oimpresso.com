@@ -1,11 +1,11 @@
 {
   "generated_note": "baseline da catraca de cobertura — NÃO editar à mão",
   "aggregates": {
-    "total": 275,
-    "charter": 132,
-    "e2e": 3,
-    "a11y": 0,
-    "scorecard": 222
+    "total": 277,
+    "charter": 133,
+    "e2e": 4,
+    "a11y": 1,
+    "scorecard": 221
   },
   "by_module": {
     "Admin": {
@@ -72,8 +72,8 @@
       "scorecard": 13
     },
     "Financeiro": {
-      "total": 23,
-      "charter": 12,
+      "total": 26,
+      "charter": 14,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 19
@@ -137,8 +137,8 @@
     "NfeBrasil": {
       "total": 6,
       "charter": 4,
-      "e2e": 0,
-      "a11y": 0,
+      "e2e": 1,
+      "a11y": 1,
       "scorecard": 6
     },
     "Nfse": {
@@ -149,11 +149,11 @@
       "scorecard": 3
     },
     "OficinaAuto": {
-      "total": 11,
-      "charter": 11,
+      "total": 10,
+      "charter": 10,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 10
+      "scorecard": 9
     },
     "Ponto": {
       "total": 22,

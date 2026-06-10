@@ -3,11 +3,12 @@
 // Refs: ADR 0110 (Cockpit V2 — semantic colors), ADR 0137 (OficinaAuto).
 //       Mockup memory/requisitos/OficinaAuto/demo-martinho-2026-05-13/mockup.html
 //
-// Mapeamento status → label:
-//  disponivel   → "Disponível"          (slate)
-//  locada       → "Locada"              (blue)
-//  locada+pago  → "Locada · pago"       (emerald)  [P2 — accessor isPaid futuro]
-//  atrasada     → "Atrasada · cobrar"   (rose)     [is_overdue=true em rental]
+// Mapeamento status → label (ADR 0265 — vocabulário de REPARO; keys do enum
+// vehicles.current_status são Tier 0 e ficam intactas, só o label muda):
+//  disponivel   → "No pátio"            (slate)    [sem OS ativa]
+//  locada       → "Em serviço"          (blue)     [OS ativa — current_rental_id]
+//  locada+pago  → "Em serviço · pago"   (emerald)  [P2 — accessor isPaid futuro]
+//  atrasada     → "Atrasada · cobrar"   (rose)     [is_overdue=true na OS]
 //  manutencao   → "Em manutenção"       (amber)
 //  indisponivel → "Indisponível"        (slate)
 
@@ -23,8 +24,8 @@ interface Props {
 }
 
 const LABELS: Record<string, string> = {
-  disponivel: 'Disponível',
-  locada: 'Locada',
+  disponivel: 'No pátio',
+  locada: 'Em serviço',
   manutencao: 'Em manutenção',
   indisponivel: 'Indisponível',
 };
@@ -67,7 +68,7 @@ export default function VehicleStatusBadge({ status, isOverdue = false, isPaid =
           STYLES.locada_paga
         }
       >
-        Locada · pago
+        Em serviço · pago
       </span>
     );
   }
