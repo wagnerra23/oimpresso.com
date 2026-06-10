@@ -303,4 +303,4 @@ _(íntegra)_
 | 0264 | aceito | ativo | meta | Governança executável: trio-de-tela + caso↔teste + domínio + E2E viram gates de  |
 | 0265 | aceito | ativo | errata | Oficina = reparo é o único domínio; erradicar resíduo de order_type=locacao; 'Ca |
 | 0266 | aceito | ativo | meta | Evals de comportamento dos agentes — golden set + replay cases + escada de auton |
-| 0267 | proposto | ativo | per-schema | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
+| 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
