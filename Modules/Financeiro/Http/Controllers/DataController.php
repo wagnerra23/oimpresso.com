@@ -191,6 +191,8 @@ class DataController extends Controller
                             ['key' => 'fluxo',         'label' => 'Fluxo de Caixa', 'href' => '/financeiro/fluxo'],
                             ['key' => 'dre',           'label' => 'DRE',            'href' => '/financeiro/dre'],
                             ['key' => 'relatorios',    'label' => 'Relatórios',     'href' => '/financeiro/relatorios'],
+                            // F2 PR-2 (2026-06-10) — Impostos & obrigações (estimativa Simples; oficial = Fiscal).
+                            ['key' => 'impostos',      'label' => 'Impostos',       'href' => '/financeiro/impostos'],
                             // Dashboard deprecado 2026-06-06 (Wagner não usa) — landing = Unificada.
                             ['key' => 'plano-contas',  'label' => 'Plano de Contas','href' => '/financeiro/plano-contas'],
                             ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias'],
