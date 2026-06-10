@@ -115,6 +115,12 @@ it('Oficina drawer (estado "adicionando" ABERTO) — probes G2/G3/G4 limpos + co
         test()->markTestSkipped('Sem user no business seedado.');
     }
 
+    // FSM da Oficina é per-business e o visual-regression.yml NÃO roda OficinaAutoFsmSeeder
+    // (só VisregTenantSeeder) — sem o processo `oficina_mecanica_os` o Quadro de OS renderiza
+    // ZERO colunas e o card PRBG34 nunca aparece (falha do run 27292898190 pós-redirect
+    // ADR 0265). Seeder idempotente (firstOrCreate) — teste auto-suficiente em qualquer env.
+    (new \Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder())->runForBusiness((int) $business->id);
+
     // Dados mínimos pro drawer existir: 1 veículo + 1 OS aberta (idioma RichUITest).
     $vehicle = Vehicle::withoutGlobalScopes()->create([ // SUPERADMIN: setup teste
         'business_id'    => $business->id,
