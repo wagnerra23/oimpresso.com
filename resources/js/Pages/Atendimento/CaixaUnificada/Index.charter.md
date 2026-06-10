@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 5
+charter_version: 6
 permissao: whatsapp.access
 ---
 
@@ -260,13 +260,10 @@ Endpoint PATCH `atendimento.inbox.assign` + payload `availableAssignees`.
 Coluna `queue_override` em conversations + PATCH `atendimento.inbox.move_queue`
 + Popover na section Fila. Override vence heurística; null volta pra automática.
 
-### §5 Painel "Canais e contas" drawer
-Cowork tem drawer lateral com lista agrupada de canais (Baileys/Meta/Z-API
-+ contas com status ativo/em-breve). Hoje a tela linka direto pra
-`/atendimento/canais` (página completa). Drawer in-place economiza
-context switch.
-
-**US sugerida:** US-WA-XXX Channels drawer (~2-3h IA-pair).
+### §5 Painel "Canais e contas" drawer — ✅ ENTREGUE 2026-06-10 (US-WA-304)
+`ChannelsDrawer` (Sheet) agrupado por type + contas com status/health + link
+"Gerenciar" pra página completa. Zero backend novo (reusa `availableChannels`
++ `availableAccounts`).
 
 ### §6 Cutover Inbox legacy → Caixa Unificada V4 (P0 — pós-canary)
 Após Wagner aprovar canary 7d:
@@ -282,6 +279,7 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-304 Drawer Canais e contas** (PR-5/10): topnav "Canais" deixa de navegar pra página e abre `ChannelsDrawer` (Sheet in-place agrupado por type, contas com status ativo/em-breve + health, link Gerenciar pra `/atendimento/canais`). ZERO backend novo — reusa payloads `availableChannels`/`availableAccounts` (cobertos por R-WA-CAIXA-UNIF-001/002). Charter v6. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-305 Mover entre filas** (PR-4/10): coluna `queue_override` (migration idempotente, slug não-FK de propósito — fila deletada não quebra conversa) + `InboxController::moveQueue` (slug validado contra filas do business, 422 fail-loud) + Popover "mover" na section Fila com badge "manual" e volta pra automática. Charter v5. Pest R-WA-CAIXA-UNIF-009. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-301 Filas DB + painel** (PR-3/10): tabela `whatsapp_queues` (ADR 0267, per-schema antes da migration) + seed lazy idempotente do config + QueuesSheet CRUD (label/hue/SLA/dist/tags-gatilho, default protegida) + heurística tag→fila lê DB com fallback config. Topnav "Filas" deixa de ser disabled. Charter v4. Pest R-WA-CAIXA-UNIF-007/008. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-303 Composer completo** (PR-2/10): Templates via `TemplatePicker` legacy filtrado por provider do canal + payload `availableTemplates` (LOCAL/APPROVED) · Macros dropdown + autocomplete `/` inline reusando backend US-WA-048 (`macros.list` + `apply_macro`) · Variáveis `{{nome}}`/`{{telefone}}`/`{{operador}}` com botão `{}`, preview verde/vermelho e substituição no send. Charter v3. Pest R-WA-CAIXA-UNIF-006. |

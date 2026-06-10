@@ -42,6 +42,7 @@ import {
 } from '@/Components/ui/dropdown-menu';
 
 import ChannelChipsRow from './_components/ChannelChipsRow';
+import ChannelsDrawer from './_components/ChannelsDrawer';
 import QueuesSheet from './_components/QueuesSheet';
 import ConversationListV4 from './_components/ConversationListV4';
 import ConversationThreadV4 from './_components/ConversationThreadV4';
@@ -111,6 +112,8 @@ export default function CaixaUnificadaIndex({
 }: Props) {
   // US-WA-301 — painel Filas (Sheet in-place)
   const [filasOpen, setFilasOpen] = useState(false);
+  // US-WA-304 — drawer Canais e contas (Sheet in-place, charter §5)
+  const [canaisOpen, setCanaisOpen] = useState(false);
 
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
@@ -348,14 +351,17 @@ export default function CaixaUnificadaIndex({
           >
             Filas
           </button>
-          <a
-            href={route('atendimento.channels.index')}
+          {/* US-WA-304 — vira drawer in-place (Sheet); página completa fica no link
+              "Gerenciar" dentro do drawer */}
+          <button
+            type="button"
+            onClick={() => setCanaisOpen(true)}
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-            title="Gerenciar canais"
+            title="Canais e contas (drawer)"
             data-testid="caixa-unif-topnav-canais"
           >
             Canais
-          </a>
+          </button>
           <button
             type="button"
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
@@ -477,6 +483,15 @@ export default function CaixaUnificadaIndex({
           queues={queuesAdmin ?? []}
           availableTags={availableTags ?? []}
           canManage={canManageQueues ?? false}
+        />
+
+        {/* US-WA-304 — drawer Canais e contas (reusa payloads já carregados) */}
+        <ChannelsDrawer
+          open={canaisOpen}
+          onOpenChange={setCanaisOpen}
+          channels={availableChannels ?? []}
+          accounts={availableAccounts ?? []}
+          canManageChannels={canManageQueues ?? false}
         />
 
         {thread && (
