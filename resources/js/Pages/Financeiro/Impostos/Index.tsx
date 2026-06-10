@@ -17,6 +17,7 @@ import { router } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import { Calendar, Check, FileText, Receipt } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 type GuiaStatus = 'a_vencer' | 'paga' | 'atrasada';
@@ -84,11 +85,13 @@ function CardSection({ icon: Icon, title, extra, children }: {
 }) {
   return (
     <section className="border border-border rounded-lg bg-card overflow-hidden">
-      <header className="px-4 h-10 flex items-center gap-2 border-b border-border">
+      <Inline asChild gap={2} className="px-4 h-10 border-b border-border">
+        <header>
         <Icon size={13} className="text-muted-foreground" aria-hidden />
         <b className="text-[12.5px] font-semibold">{title}</b>
-        {extra && <span className="ml-auto text-[11.5px] text-muted-foreground">{extra}</span>}
-      </header>
+          {extra && <span className="ml-auto text-[11.5px] text-muted-foreground">{extra}</span>}
+        </header>
+      </Inline>
       {children}
     </section>
   );
@@ -106,13 +109,13 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
         suffix=" · Impostos & obrigações"
         subtitle={<>{periodLabel}{businessName ? ` · ${businessName}` : ''} · estimativa Simples Nacional</>}
       >
-        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+        <Inline gap={1} className="flex-shrink-0 gap-1.5 ml-auto">
           <FinanceiroSubNav active="impostos" hidePrimary />
-        </div>
+        </Inline>
       </PageHeader>
 
       {/* 3 KPIs — a recolher no mês · próxima obrigação · % receita com NF */}
-      <div className="px-6 pt-4 grid grid-cols-3 max-[1100px]:grid-cols-1 gap-3">
+      <Grid cols={3} gap={3} className="px-6 pt-4 max-[1100px]:grid-cols-1">
         <div className="border border-border rounded-lg bg-card px-5 py-4">
           <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">A recolher</div>
           <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{brl(kpis.a_recolher.valor)}</div>
@@ -130,9 +133,9 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
             {kpis.sem_nf_qtd === 0 ? 'todos os títulos com NF ✓' : `${kpis.sem_nf_qtd} título(s) sem NF vinculada`}
           </div>
         </div>
-      </div>
+      </Grid>
 
-      <div className="px-6 mt-4 grid grid-cols-[1fr_300px] max-[1100px]:grid-cols-1 gap-4 items-start">
+      <Grid gap={4} className="px-6 mt-4 grid-cols-[1fr_300px] max-[1100px]:grid-cols-1 items-start">
         {/* Guias do período */}
         <CardSection icon={Receipt} title="Guias do período" extra="estimado + lançadas no caixa (6 meses)">
           <table className="w-full text-[12.5px]">
@@ -190,23 +193,27 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
         </CardSection>
 
         {/* Coluna lateral: calendário + costura NF↔título */}
-        <div className="grid gap-4">
+        <Stack gap={4}>
           <CardSection icon={Calendar} title="Calendário de obrigações">
             <ul className="py-1">
               {calendario.map((g) => (
-                <li key={g.id} className="px-4 py-2 flex items-baseline gap-2.5 text-[12.5px]">
+                <Inline asChild align="baseline" gap={2} key={g.id} className="px-4 py-2 gap-2.5 text-[12.5px]">
+                  <li>
                   <span className="font-mono text-[11.5px] text-muted-foreground shrink-0 w-11 tabular-nums">{dataBr(g.vencimento)}</span>
                   <span className="flex-1 truncate">{g.nome}</span>
-                  <span className="font-mono text-[11.5px] text-muted-foreground tabular-nums">{brlK(g.valor)}</span>
-                </li>
+                    <span className="font-mono text-[11.5px] text-muted-foreground tabular-nums">{brlK(g.valor)}</span>
+                  </li>
+                </Inline>
               ))}
               {calendario.length === 0 && (
                 <li className="px-4 py-3 text-[12.5px] text-muted-foreground">Nada em aberto — obrigações pagas em dia ✓</li>
               )}
-              <li className="px-4 py-2 flex items-baseline gap-2.5 text-[12.5px] border-t border-border">
-                <span className="font-mono text-[11.5px] text-muted-foreground shrink-0 w-11">fim/mês</span>
-                <span className="flex-1 text-muted-foreground">Fechamento mensal (trilha no Unificado)</span>
-              </li>
+              <Inline asChild align="baseline" gap={2} className="px-4 py-2 gap-2.5 text-[12.5px] border-t border-border">
+                <li>
+                  <span className="font-mono text-[11.5px] text-muted-foreground shrink-0 w-11">fim/mês</span>
+                  <span className="flex-1 text-muted-foreground">Fechamento mensal (trilha no Unificado)</span>
+                </li>
+              </Inline>
             </ul>
           </CardSection>
 
@@ -219,11 +226,13 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
             ) : (
               <ul className="py-1">
                 {sem_nf.map((r) => (
-                  <li key={r.id} className="px-4 py-2 text-[12.5px] flex items-baseline gap-2">
-                    <span className="font-mono text-muted-foreground">{r.numero}</span>
-                    <span className="flex-1 truncate">{r.contraparte}</span>
-                    <span className="font-mono tabular-nums">{brlK(r.valor)}</span>
-                  </li>
+                  <Inline asChild align="baseline" gap={2} key={r.id} className="px-4 py-2 text-[12.5px]">
+                    <li>
+                      <span className="font-mono text-muted-foreground">{r.numero}</span>
+                      <span className="flex-1 truncate">{r.contraparte}</span>
+                      <span className="font-mono tabular-nums">{brlK(r.valor)}</span>
+                    </li>
+                  </Inline>
                 ))}
                 <li className="px-4 py-2 text-[11.5px] text-muted-foreground border-t border-border">
                   Sem NF a base do DAS sai distorcida — vincule antes do fechamento.
@@ -231,8 +240,8 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
               </ul>
             )}
           </CardSection>
-        </div>
-      </div>
+        </Stack>
+      </Grid>
 
       {/* Disclaimer fixo — exigência do pacote F2 (anti-pattern: apresentar estimativa como apuração) */}
       <p className="px-6 mt-4 pb-6 text-[11.5px] text-muted-foreground leading-relaxed">
