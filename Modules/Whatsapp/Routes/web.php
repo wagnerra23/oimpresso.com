@@ -181,6 +181,13 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.assign');
 
+    // US-WA-305: mover conversa entre filas (override manual vence heurística;
+    // null volta pra automática) — ADR 0267.
+    Route::patch('/inbox/{id}/queue', [InboxController::class, 'moveQueue'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.move_queue');
+
     // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
     // Captura feedback diretamente de mensagens do inbox WhatsApp.
     Route::post('/feedback/capture', [ClientFeedbackController::class, 'capture'])

@@ -150,6 +150,8 @@ export interface CaixaUnifThread {
   created_at: string | null;
   tags: ConvTag[];
   queue: QueueDerived;
+  /** US-WA-305 — true quando a fila vem de override manual (não da heurística). */
+  queue_is_override: boolean;
   preview_only: boolean;
 }
 
