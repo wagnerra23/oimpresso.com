@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-06T22:57:13.623Z",
-    "total_lines": 20213,
+    "generated_at": "2026-06-10T11:56:45.069Z",
+    "total_lines": 20204,
     "file_count": 28,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -33,7 +33,7 @@
     "resources/css/sells-cowork-quotations.css": 71,
     "resources/css/sells-cowork-show.css": 132,
     "resources/css/sells-cowork-subscriptions.css": 121,
-    "resources/css/sells-cowork.css": 3969,
+    "resources/css/sells-cowork.css": 3960,
     "resources/css/sells-kb975-cheatsheet.css": 242,
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,
