@@ -65,7 +65,7 @@ describe("primitivos — props viram classe-token", () => {
     const el = container.querySelector('[data-slot="text"]')!
     expect(el.tagName).toBe("P")
     expect(el.className).toContain("text-muted-foreground")
-    expect(el.className).toContain("text-sm")
+    expect(el.className).toContain("text-[length:var(--fs-2)]") // ramp F2: sm→--fs-2
     expect(el.textContent).toBe("oi")
   })
 })
@@ -75,7 +75,7 @@ describe("primitivos — polimorfismo (semântica desacoplada do estilo)", () =>
     const { container } = render(<Text as="h2" size="2xl" weight="bold">Título</Text>)
     const el = container.querySelector('[data-slot="text"]')!
     expect(el.tagName).toBe("H2")
-    expect(el.className).toContain("text-2xl")
+    expect(el.className).toContain("text-[length:var(--fs-6)]") // ramp F2: 2xl→--fs-6
     expect(el.className).toContain("font-bold")
   })
 
@@ -132,7 +132,7 @@ describe("primitivos — refino v2 (ADR 0253): cobertura ERP real, ainda só-tok
     const { container } = render(<Text tone="success" size="4xl">+12,5%</Text>)
     const el = container.querySelector('[data-slot="text"]')!
     expect(el.className).toContain("text-success")
-    expect(el.className).toContain("text-4xl")
+    expect(el.className).toContain("text-[length:var(--fs-8)]") // ramp F2: 4xl→--fs-8
   })
 })
 

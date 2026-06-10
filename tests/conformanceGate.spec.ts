@@ -12,7 +12,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { rawColorHits, accentHueViolations, tokenRoleViolations } from '../scripts/conformance-gate.mjs';
+import { rawColorHits, accentHueViolations, tokenRoleViolations, fontRampHits, FS_RAMP } from '../scripts/conformance-gate.mjs';
 
 describe('conformance-gate — SENSIBILIDADE (injeta bug → conta sobe)', () => {
   it('cor crua oklch(<hue numérico>) NOVA em regra de tela é contada', () => {
@@ -125,5 +125,44 @@ describe('token-role guard — repo LIMPO (invariante absoluto vale hoje)', () =
     const files = readdirSync('resources/css').filter((n) => n.endsWith('.css'));
     const hits = files.flatMap((f) => tokenRoleViolations(readFileSync(`resources/css/${f}`, 'utf8'), f));
     expect(hits).toEqual([]);
+  });
+});
+
+// ── Type RAMP ratchet (F2 · [W] "vai" 2026-06-10) — controle-negativo (L-31) ──────────────
+// fontRampHits conta `font-size: <N>px` com N FORA dos 9 degraus --fs-1..9 (foundations.css).
+describe('fontramp guard — SENSIBILIDADE (px fora do ramp é pego)', () => {
+  it('font-size:13px (fora do ramp) conta', () => {
+    expect(fontRampHits(`.fin-x { font-size: 13px; }`).length).toBe(1);
+  });
+  it('font-size:16px e 14px (defaults Tailwind/browser fora do ramp) contam', () => {
+    expect(fontRampHits(`.a { font-size: 16px; } .b { font-size: 14px; }`).length).toBe(2);
+  });
+});
+
+describe('fontramp guard — ESPECIFICIDADE (não acusa inocente)', () => {
+  it('os 9 degraus do ramp NÃO contam', () => {
+    const css = FS_RAMP.map((v: number, i: number) => `.s${i} { font-size: ${v}px; }`).join('\n');
+    expect(fontRampHits(css).length).toBe(0);
+  });
+  it('consumo via var(--fs-N) NÃO conta', () => {
+    expect(fontRampHits(`.fin-x { font-size: var(--fs-4); }`).length).toBe(0);
+  });
+  it('definição do token (--fs-1: 10.5px) NÃO conta — propriedade não é font-size', () => {
+    expect(fontRampHits(`:root { --fs-1: 10.5px; --fs-9: 38px; }`).length).toBe(0);
+  });
+  it('font-size px dentro de comentário NÃO conta', () => {
+    expect(fontRampHits(`/* antes era font-size: 13px */ .x { color: var(--text); }`).length).toBe(0);
+  });
+  it('unidade relativa (rem/em) NÃO conta — ramp é âncora px', () => {
+    expect(fontRampHits(`.x { font-size: 1rem; } .y { font-size: 0.875em; }`).length).toBe(0);
+  });
+});
+
+describe('fontramp guard — foundations.css define o ramp completo', () => {
+  it('os 9 tokens --fs-1..9 existem com os valores canônicos', () => {
+    const css = readFileSync('resources/css/foundations.css', 'utf8');
+    FS_RAMP.forEach((v: number, i: number) => {
+      expect(css).toMatch(new RegExp(`--fs-${i + 1}:\\s*${String(v).replace('.', '\\.')}px`));
+    });
   });
 });

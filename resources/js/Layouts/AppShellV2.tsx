@@ -82,6 +82,7 @@ import CommandPalette from '@/Components/CommandPalette';
 import PwaInstallBanner from '@/Components/shared/PwaInstallBanner';
 import ConsentBanner from '@/Components/shared/ConsentBanner';
 
+import '../../css/foundations.css';
 import '../../css/cockpit.css';
 
 import {
