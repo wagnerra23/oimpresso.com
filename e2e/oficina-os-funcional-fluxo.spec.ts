@@ -119,12 +119,21 @@ test.describe.serial('UC-11 · OS funcional fim-a-fim (caminho da Larissa)', () 
     // Caminho feliz: CTA "Avançar p/ …" habilitado. Checklist bloqueando (ex.: aprovação
     // pendente — o cliente aprova por WhatsApp fora desta tela): override de responsável,
     // registrado na trilha (contrato do ServiceOrderStageGate).
+    // OS recém-criada ainda não está no pipeline FSM (run 27274647985): Larissa inicia
+    // o rastreio primeiro ("Iniciar pipeline FSM") e só então o gate oferece o avanço.
+    const iniciarFsm = drawer.getByRole('button', { name: /Iniciar pipeline FSM/i });
+    if (await iniciarFsm.isVisible().catch(() => false)) {
+      await iniciarFsm.click();
+    }
     const avancar = drawer.getByRole('button', { name: /^Avançar p\// });
     const override = drawer.getByRole('button', { name: /Avançar mesmo assim/i });
-    if (await avancar.isEnabled().catch(() => false)) {
-      await avancar.click();
+    await expect(
+      avancar.or(override).first(),
+      'após iniciar o pipeline, o gate deve oferecer Avançar ou o override de responsável',
+    ).toBeVisible({ timeout: 30_000 });
+    if (await avancar.first().isEnabled().catch(() => false)) {
+      await avancar.first().click();
     } else {
-      await expect(override, 'sem CTA habilitado, o override de responsável deve existir').toBeVisible();
       await override.click();
     }
     await expect(page.getByText(/Etapa avançada/i).first()).toBeVisible({ timeout: 15_000 });
