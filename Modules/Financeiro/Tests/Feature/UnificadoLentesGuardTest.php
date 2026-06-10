@@ -6,7 +6,7 @@ use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
-use Modules\Financeiro\Entities\Titulo;
+use Modules\Financeiro\Models\Titulo;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
