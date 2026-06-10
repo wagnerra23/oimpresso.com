@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Http\Controllers\Admin;
 
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -98,7 +99,7 @@ class CaixaUnificadaController extends Controller
         if ($threadId) {
             $threadQuery = Conversation::query()
                 ->where('business_id', $businessId)
-                ->with(['channel', 'tags:id,slug,label,color']);
+                ->with(['channel', 'tags:id,slug,label,color', 'assignedUser:id,first_name,surname,last_name']);
             $this->applyChannelAclFilter($threadQuery, $businessId, $userId);
             $threadModel = $threadQuery->find($threadId);
             if ($threadModel) {
@@ -142,6 +143,7 @@ class CaixaUnificadaController extends Controller
             'availableChannels' => Inertia::defer(fn () => $this->buildAvailableChannelsPayload($businessId, $userId)),
             'availableAccounts' => Inertia::defer(fn () => $this->buildAvailableAccountsPayload($businessId, $userId)),
             'availableTags' => Inertia::defer(fn () => $this->buildAvailableTagsPayload($businessId)),
+            'availableAssignees' => Inertia::defer(fn () => $this->buildAvailableAssigneesPayload($businessId)),
 
             // ─── Eager: estados de UI leves ───
             'businessId' => $businessId,
@@ -461,6 +463,50 @@ class CaixaUnificadaController extends Controller
     }
 
     /**
+     * US-WA-302 — operadores atribuíveis (assignee picker da sidebar).
+     *
+     * Tier 0 ADR 0093: APENAS users do business atual. Inclui users com grant
+     * ativo em algum canal (`channel_user_access`) OU com permission
+     * `whatsapp.access`/`whatsapp.send` (mesmo critério do
+     * ChannelsController::buildCandidates). O check de permission é guarded —
+     * se a infra de permissions não resolver (ex: ambiente de teste sem as
+     * tabelas), degrade gracioso pro critério de grant DB-only.
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    protected function buildAvailableAssigneesPayload(int $businessId): array
+    {
+        $grantedIds = ChannelUserAccess::query()
+            ->where('business_id', $businessId)
+            ->whereNull('revoked_at')
+            ->pluck('user_id')
+            ->unique();
+
+        $users = User::where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'surname', 'last_name']);
+
+        return $users
+            ->filter(function (User $u) use ($grantedIds) {
+                if ($grantedIds->contains($u->id)) {
+                    return true;
+                }
+                try {
+                    return $u->can('whatsapp.access') || $u->can('whatsapp.send');
+                } catch (\Throwable) {
+                    return false;
+                }
+            })
+            ->map(fn (User $u) => [
+                'id' => $u->id,
+                'name' => trim(implode(' ', array_filter([$u->first_name, $u->surname, $u->last_name]))) ?: "Operador #{$u->id}",
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Seed defaults idempotente (paridade com InboxController::ensureDefaultTags).
      */
     protected function ensureDefaultTags(int $businessId): void
@@ -563,6 +609,11 @@ class CaixaUnificadaController extends Controller
             'contact_name' => $c->contact_name ?? $c->customer_external_id,
             'status' => $c->status,
             'is_blocked' => (bool) $c->is_blocked,
+            // US-WA-302 — assignee picker (sidebar section 2)
+            'assigned_user_id' => $c->assigned_user_id !== null ? (int) $c->assigned_user_id : null,
+            'assigned_user_name' => $c->relationLoaded('assignedUser') && $c->assignedUser
+                ? trim(implode(' ', array_filter([$c->assignedUser->first_name, $c->assignedUser->surname, $c->assignedUser->last_name]))) ?: "Operador #{$c->assigned_user_id}"
+                : null,
             'last_inbound_at' => optional($c->last_inbound_at)->toIso8601String(),
             'last_message_at' => optional($c->last_message_at)->toIso8601String(),
             'created_at' => optional($c->created_at)->toIso8601String(),

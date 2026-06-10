@@ -30,6 +30,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property ?string $contact_name
  * @property string $status
  * @property ?int $assigned_user_id
+ * @property-read ?\App\User $assignedUser
  * @property bool $bot_handling
  * @property ?\Carbon\CarbonImmutable $last_inbound_at
  * @property ?\Carbon\CarbonImmutable $last_outbound_at
@@ -102,6 +103,17 @@ class Conversation extends Model
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
+    }
+
+    /**
+     * Operador atribuído à conversa (US-WA-302 — assignee picker).
+     *
+     * Tier 0 ADR 0093: assignment cross-tenant é bloqueado no
+     * InboxController::assign (target user precisa ser do mesmo business).
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'assigned_user_id');
     }
 
     public function messages(): HasMany

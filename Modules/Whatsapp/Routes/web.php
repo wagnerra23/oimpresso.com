@@ -172,6 +172,14 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.update_status');
 
+    // US-WA-302: assignee picker — atribui conversa a operador específico
+    // (updateStatus só aceita assigned_to_me boolean; este aceita qualquer
+    // user do MESMO business — Tier 0 validado no Controller).
+    Route::patch('/inbox/{id}/assign', [InboxController::class, 'assign'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.assign');
+
     // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
     // Captura feedback diretamente de mensagens do inbox WhatsApp.
     Route::post('/feedback/capture', [ClientFeedbackController::class, 'capture'])

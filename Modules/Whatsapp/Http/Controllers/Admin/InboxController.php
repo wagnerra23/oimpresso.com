@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Contact;
+use App\User;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
@@ -1067,6 +1068,51 @@ class InboxController extends Controller
         $conversation->save();
 
         return back()->with('success', 'Conversa atualizada.');
+    }
+
+    /**
+     * US-WA-302: PATCH `/atendimento/inbox/{id}/assign` — atribui conversa a
+     * um operador específico (assignee picker da Caixa Unificada V4).
+     *
+     * Diferente de `updateStatus` (que só aceita `assigned_to_me` boolean),
+     * aceita QUALQUER user do business — Tier 0 ADR 0093: target user precisa
+     * pertencer ao MESMO business (cross-tenant assignment = 422 fail-loud).
+     * `assigned_user_id: null` remove a atribuição.
+     */
+    public function assign(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não muta.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
+
+        $payload = $request->validate([
+            'assigned_user_id' => ['nullable', 'integer'],
+        ]);
+
+        $targetId = $payload['assigned_user_id'] ?? null;
+        if ($targetId !== null) {
+            // Tier 0 — target user PRECISA ser do mesmo business (não vaza
+            // user_id de outro tenant nem permite assignment cross-tenant).
+            $targetExists = User::where('business_id', $businessId)
+                ->whereNull('deleted_at')
+                ->where('id', (int) $targetId)
+                ->exists();
+            if (! $targetExists) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'assigned_user_id' => 'Operador não encontrado neste business.',
+                ]);
+            }
+        }
+
+        $conversation->assigned_user_id = $targetId !== null ? (int) $targetId : null;
+        $conversation->save();
+
+        return back()->with('success', $targetId !== null ? 'Conversa atribuída.' : 'Atribuição removida.');
     }
 
     /**
