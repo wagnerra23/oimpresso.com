@@ -179,7 +179,11 @@ jobs:
         # numa tela core (Financeiro/Unificado) pra pegar contraste/foco/ARIA-em-contexto
         # que o jsdom da Fase 2 não enxerga. Piso conservador: 0 violações CRITICAL (ratchet
         # level 0). Mesmo harness auth-bridge do AuthBridgeSmokeTest.
-        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php
+        #
+        # ConformanceProbesTest (PACOTE-Q9 PR-3): espelho CI da semântica G2/G3/G4 do
+        # qa-conformance.js v2 (Cowork) — computed-style no Chromium real, drawer Oficina
+        # com o estado "adicionando" ABERTO (o que vazava), controle-negativo embutido (L-31).
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
