@@ -188,6 +188,12 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.move_queue');
 
+    // US-WA-307: + Nova conversa — find-or-create + mensagem inicial opcional
+    // (reusa pipeline send). Tier 0: canal ativo do business + ACL.
+    Route::post('/inbox/conversations', [InboxController::class, 'startConversation'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.start_conversation');
+
     // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
     // Captura feedback diretamente de mensagens do inbox WhatsApp.
     Route::post('/feedback/capture', [ClientFeedbackController::class, 'capture'])

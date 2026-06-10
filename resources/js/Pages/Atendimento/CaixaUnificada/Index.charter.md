@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 6
+charter_version: 7
 permissao: whatsapp.access
 ---
 
@@ -59,8 +59,13 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - **Dropdown de status** dentro do header da lista — 4 valores canônicos:
   Abertas / Pendentes / Aguardando / Resolvidas.
 - **Busca inline** com Enter pra aplicar, Esc pra limpar.
-- **Topnav direita** — Filas | Canais | Broadcast | + Nova conversa
-  (placeholders TODO US-WA-XXX exceto "Canais" que linka real).
+- **Topnav direita** — Filas (QueuesSheet US-WA-301) | Canais (ChannelsDrawer
+  US-WA-304) | Broadcast (placeholder — US-WA-306 no PR-7) | **+ Nova conversa**
+  (US-WA-307, 2026-06-10): dialog com conta ativa + telefone OU Contact CRM
+  (ContactPickerModal US-WA-064) + mensagem inicial opcional. POST
+  `atendimento.inbox.start_conversation` faz find-or-create (número que já
+  conversou REABRE thread) e redireciona com a thread aberta; mensagem inicial
+  reusa o pipeline send() completo (zero duplicação de driver).
 
 ### Banner "em homologação"
 - Canais com `Channel.status != 'active'` viram preview-only no backend
@@ -235,6 +240,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
 
 ---
 
@@ -279,6 +285,7 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-307 + Nova conversa** (PR-6/10): dialog conta ativa + telefone/Contact CRM + mensagem inicial opcional; `InboxController::startConversation` find-or-create Tier 0 (canal ativo do business + ACL US-WA-069; cross/inativo = 403/422) reusando pipeline send(). Charter v7. Pest R-WA-CAIXA-UNIF-010. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-304 Drawer Canais e contas** (PR-5/10): topnav "Canais" deixa de navegar pra página e abre `ChannelsDrawer` (Sheet in-place agrupado por type, contas com status ativo/em-breve + health, link Gerenciar pra `/atendimento/canais`). ZERO backend novo — reusa payloads `availableChannels`/`availableAccounts` (cobertos por R-WA-CAIXA-UNIF-001/002). Charter v6. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-305 Mover entre filas** (PR-4/10): coluna `queue_override` (migration idempotente, slug não-FK de propósito — fila deletada não quebra conversa) + `InboxController::moveQueue` (slug validado contra filas do business, 422 fail-loud) + Popover "mover" na section Fila com badge "manual" e volta pra automática. Charter v5. Pest R-WA-CAIXA-UNIF-009. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-301 Filas DB + painel** (PR-3/10): tabela `whatsapp_queues` (ADR 0267, per-schema antes da migration) + seed lazy idempotente do config + QueuesSheet CRUD (label/hue/SLA/dist/tags-gatilho, default protegida) + heurística tag→fila lê DB com fallback config. Topnav "Filas" deixa de ser disabled. Charter v4. Pest R-WA-CAIXA-UNIF-007/008. |
