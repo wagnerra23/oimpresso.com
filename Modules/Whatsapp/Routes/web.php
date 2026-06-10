@@ -10,6 +10,7 @@ use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;
 use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
+use Modules\Whatsapp\Http\Controllers\Admin\QueuesController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 use Modules\Whatsapp\Http\Controllers\Api\CustomerProfileController;
@@ -339,6 +340,20 @@ Route::group([
         ->whereNumber('macro')->whereNumber('variant')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.macros.variants.mark_winner');
+
+    // US-WA-301 (ADR 0267) — CRUD de filas do painel "Filas" da Caixa Unificada.
+    // Leitura vai nos props do CaixaUnificadaController; aqui só mutações.
+    Route::post('/filas', [QueuesController::class, 'store'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.filas.store');
+    Route::put('/filas/{id}', [QueuesController::class, 'update'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.filas.update');
+    Route::delete('/filas/{id}', [QueuesController::class, 'destroy'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.filas.destroy');
 
     // US-WA-021/041 (CYCLE-07 PR-3) — Dashboard métricas omnichannel
     // (gap P0 #4 do COMPARATIVO-MERCADO-2026-05-12). Lê snapshot diário
