@@ -1,11 +1,12 @@
-// Card individual de caçamba no Kanban Produção · Oficina — V3 PIXEL-PERFECT.
-// Espelha 1:1 protótipo Cowork canon `prototipo-ui/prototipos/producao-oficina/visual-source.html`
-// adaptado pra caçambas (vocabulário m³ + locação + recolhimento, não revisão veicular).
+// Card individual de veículo no Kanban Produção · Oficina — V3 PIXEL-PERFECT.
+// Espelha 1:1 protótipo Cowork canon `prototipo-ui/prototipos/producao-oficina/visual-source.html`.
+// Vocabulário visível = REPARO (ADR 0265) — "Caçamba" só como nome comercial, nunca label.
+// Keys FSM (`disponivel/locada/...`) intactas — dívida F3 Tier 0 (charter v4).
 //
 // Estrutura V3 (12 fixes do canon):
 //  1. Borda superior colorida por coluna (slate/blue/rose/violet/emerald)
 //  2. OS# esquerda + capacidade badge (m³ box) direita
-//  3. Layout horizontal: [Plate Mercosul] · "Caçamba 5m³" + sub "vehicle_number · cliente"
+//  3. Layout horizontal: [Plate Mercosul] · "Veículo 5m³" + sub "vehicle_number · cliente"
 //  4. Observação MAIS LEGÍVEL (text-[12px] not italic, leading-snug)
 //  5. Valor R$ canto superior direito (junto OS#) quando ativa
 //  6. Progress bar fina embaixo do sintoma (tempo decorrido / prazo)
@@ -186,7 +187,7 @@ function computeProgressPct(entered: string | null, expected: string | null): nu
 /** Botão de ação por estado — texto + leve hint. Click stops propagation. */
 function actionLabelFor(variant: CacambaStatus): string | null {
   switch (variant) {
-    case 'disponivel': return 'Iniciar locação';
+    case 'disponivel': return 'Abrir OS';
     case 'locada':     return 'Acompanhar';
     case 'aguardando': return 'Recolher';
     case 'manutencao': return 'Concluir';
@@ -256,10 +257,10 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
   // Valor superior direito apenas quando ativa (espelha canon: valor no topo)
   const showValorTop = isAtiva && cacamba.valor_receber != null && cacamba.valor_receber > 0;
 
-  // Subtítulo horizontal: "Caçamba {N}m³ · vehicle_number · cliente" (linha única)
+  // Subtítulo horizontal: "Veículo {N}m³ · vehicle_number · cliente" (linha única)
   const cacambaTitle = cacamba.capacity_m3 != null
-    ? `Caçamba ${Number(cacamba.capacity_m3)}m³`
-    : 'Caçamba';
+    ? `Veículo ${Number(cacamba.capacity_m3)}m³`
+    : 'Veículo';
 
   // Foco re-pivot: drag só no modo Etapa. Sem drag → cursor de clique simples.
   const dragHandleProps = draggable ? { ...attributes, ...listeners } : {};
@@ -295,7 +296,7 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
       }}
       role="button"
       tabIndex={0}
-      aria-label={`Caçamba ${cacamba.vehicle_number ?? cacamba.plate}${cacamba.cliente_nome ? ` — ${cacamba.cliente_nome}` : ''}`}
+      aria-label={`Veículo ${cacamba.vehicle_number ?? cacamba.plate}${cacamba.cliente_nome ? ` — ${cacamba.cliente_nome}` : ''}`}
       aria-roledescription={draggable ? 'Card arrastável — use Space pra agarrar e setas pra mover' : 'Card — Enter abre os detalhes'}
     >
       {/* ─── Linha 1: OS# esquerda · capacidade badge + valor direita ─── */}
@@ -387,12 +388,12 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
         </p>
       ) : !hasRentalContext && variant === 'manutencao' ? (
         <p className="text-[12px] text-muted-foreground leading-snug mb-2">
-          Caçamba em diagnóstico
+          Veículo em diagnóstico
           {cacamba.entered_at ? <span className="text-muted-foreground/60"> · {relativeDays(cacamba.entered_at)}</span> : null}
         </p>
       ) : !hasRentalContext && variant === 'disponivel' ? (
         <p className="text-[12px] text-muted-foreground leading-snug mb-2 italic">
-          No pátio · pronta pra locar
+          No pátio · sem OS aberta
         </p>
       ) : null}
 
@@ -473,7 +474,7 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
         <div className="mt-2 px-2 py-1.5 bg-success/10 border border-success/30 rounded text-[11px] text-success flex items-start gap-1.5">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-success mt-1 flex-shrink-0" />
           <div className="flex-1 leading-snug">
-            <b className="font-semibold">Caçamba pronta</b> · agendar entrega
+            <b className="font-semibold">Veículo pronto</b> · agendar entrega
             {cacamba.entered_at ? <span className="text-success"> · concluído {relativeDays(cacamba.entered_at)}</span> : null}
           </div>
         </div>
@@ -495,7 +496,7 @@ function CacambaCardImpl({ cacamba, variant, onClick, onAdvance, isFocused = fal
             type="button"
             className="text-[10.5px] px-2 py-1 bg-foreground text-background rounded font-medium hover:bg-foreground/90 inline-flex items-center gap-1 transition-colors"
             onClick={triggerAction}
-            aria-label="Entregar caçamba"
+            aria-label="Entregar veículo"
           >
             Entregar
             <ArrowRight size={10} />

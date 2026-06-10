@@ -86,8 +86,8 @@ function CardDragPreview({ cacamba }: { cacamba: CacambaCardData }) {
         <div className="flex flex-col min-w-0">
           <span className="text-[12.5px] font-medium text-foreground truncate">
             {cacamba.capacity_m3 != null
-              ? `Caçamba ${Number(cacamba.capacity_m3)}m³`
-              : 'Caçamba'}
+              ? `Veículo ${Number(cacamba.capacity_m3)}m³`
+              : 'Veículo'}
           </span>
           {cacamba.cliente_nome ? (
             <span className="text-[10.5px] text-muted-foreground truncate">
