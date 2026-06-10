@@ -33,24 +33,40 @@
 //      Espelha o canon do protótipo Cowork (.prod-kanban.ofc-5 em
 //      oficina-page.css: repeat(5, minmax(228px, 1fr)) + overflow auto):
 //      o quadro rola HORIZONTALMENTE POR DENTRO, o shell nunca estoura.
+//
+// ONDA 1 toolbar [CC] 2026-06-10 — paridade com o protótipo Cowork homologado:
+//   - KPIs clicáveis como filtro client-side (canon D-05) + chip "limpar filtro";
+//   - menu Visão (.ofc-adjust): Foco Etapa/Box/Mecânico (re-pivot client-side,
+//     drag desliga fora do foco Etapa) + Densidade compacto/padrão/detalhe,
+//     persistidos em localStorage. Pressão ficou FORA desta onda;
+//   - busca com botão limpar (×) + atalho "/";
+//   - atalhos de teclado (canon D-07): N nova OS · / busca · setas navegam ·
+//     Enter abre drawer · Esc fecha (ignorados enquanto digita);
+//   - "Imprimir fila" no header (ghost) — printOficinaFila.ts via mecanismo
+//     canônico printHtmlDocument (port do oficina-print.js);
+//   - coluna Em execução com ocupação "x/y boxes" no header.
+//   Onda 2 (PR separado): views Grade e Fila no toggle.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Plus, Search, LayoutGrid, List as ListIcon } from 'lucide-react';
+import { Plus, Search, LayoutGrid, List as ListIcon, Printer, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Segmented } from '@/Components/ui/segmented';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
+import { printOficinaFila, type FilaPrintRow } from '@/Lib/printOficinaFila';
 import KanbanDndProvider from '@/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider';
 import DragConfirmDialog, {
   type PendingTransition,
 } from '@/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog';
 import ServiceOrderRichSheet from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet';
 import ServiceOrderKanbanColumn from './_components/board/ServiceOrderKanbanColumn';
-import type { ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
+import type { BoardDensity, ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
 import { kpiTone, type KpiTone } from './_components/board/boardTone';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -83,6 +99,44 @@ interface Props {
   process_seeded: boolean;
   filters: { q: string; mecanico: number | null; box: string | null };
   filterOptions: { boxes: string[]; mecanicos: MecanicoOption[] };
+}
+
+// ─── Onda 1 paridade Cowork (canon D-05/D-07 + menu Visão) ───────────────────
+// KPI clicável filtra cards client-side (sem round-trip); menu Visão re-pivota
+// as colunas por Box/Mecânico e controla densidade; atalhos de teclado pra
+// Larissa (teclado-first). Pressão ficou FORA desta onda (decisão [W]).
+
+/** KPIs filtráveis → predicado (stage do card ou atraso). 'total' não filtra. */
+type KpiFilterKey = 'aprovacao' | 'pecas' | 'execucao' | 'pronto' | 'atrasadas';
+
+const KPI_FILTER_STAGE: Record<Exclude<KpiFilterKey, 'atrasadas'>, string> = {
+  aprovacao: 'aguardando_aprovacao',
+  pecas: 'aguardando_pecas',
+  execucao: 'em_execucao',
+  pronto: 'pronto_retirada',
+};
+
+const KPI_FILTER_LABEL: Record<KpiFilterKey, string> = {
+  aprovacao: 'Aguardando aprovação',
+  pecas: 'Aguardando peças',
+  execucao: 'Em execução',
+  pronto: 'Pronto p/ retirar',
+  atrasadas: 'Atrasadas',
+};
+
+type BoardFoco = 'etapa' | 'box' | 'mecanico';
+
+const FOCO_STORAGE_KEY = 'oficinaBoard.foco';
+const DENSIDADE_STORAGE_KEY = 'oficinaBoard.densidade';
+
+/** Coluna exibida no quadro — etapa FSM (foco Etapa) ou pivot Box/Mecânico. */
+interface DisplayColumn {
+  key: string;
+  name: string;
+  color: string | null;
+  cards: ServiceOrderCardData[];
+  emphasis: 'aprovacao' | 'pecas' | null;
+  capacity: string | null;
 }
 
 // ─── Drag mapping FSM (espelha oficina_mecanica_os do OficinaAutoFsmSeeder) ────
@@ -138,6 +192,36 @@ const STAGE_TRANSITIONS: Record<string, Record<string, AllowedMove>> = {
 
 export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filters, filterOptions }: Props) {
   const [searchInput, setSearchInput] = useState(filters.q ?? '');
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  // D-05 — filtro por KPI (client-side, clicar de novo limpa)
+  const [kpiFilter, setKpiFilter] = useState<KpiFilterKey | null>(null);
+  // D-07 — card focado pela navegação por setas (anel visível)
+  const [focusedId, setFocusedId] = useState<number | null>(null);
+
+  // Menu Visão — foco (pivot das colunas) + densidade, persistidos por operador
+  const [foco, setFocoState] = useState<BoardFoco>(() => {
+    const v = typeof window !== 'undefined' ? window.localStorage.getItem(FOCO_STORAGE_KEY) : null;
+    return v === 'box' || v === 'mecanico' ? v : 'etapa';
+  });
+  const [densidade, setDensidadeState] = useState<BoardDensity>(() => {
+    const v = typeof window !== 'undefined' ? window.localStorage.getItem(DENSIDADE_STORAGE_KEY) : null;
+    return v === 'compacto' || v === 'detalhe' ? v : 'padrao';
+  });
+  const setFoco = useCallback((v: BoardFoco) => {
+    setFocoState(v);
+    setFocusedId(null);
+    try { window.localStorage.setItem(FOCO_STORAGE_KEY, v); } catch { /* storage cheio/bloqueado — preferência só não persiste */ }
+  }, []);
+  const setDensidade = useCallback((v: BoardDensity) => {
+    setDensidadeState(v);
+    try { window.localStorage.setItem(DENSIDADE_STORAGE_KEY, v); } catch { /* idem */ }
+  }, []);
+
+  const kpiClick = useCallback((key: KpiFilterKey) => {
+    setKpiFilter((f) => (f === key ? null : key));
+    setFocusedId(null);
+  }, []);
 
   // Navega pro board mesclando os filtros atuais com o patch (query — canon charter).
   // Limpa chaves vazias pra não poluir a URL ('' / null / undefined caem fora).
@@ -256,20 +340,148 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
   ), []);
 
   const kpiCards = useMemo(() => [
-    { id: 'total', label: 'OS no quadro', value: String(kpis.total), tone: 'default' as const },
-    { id: 'aprovacao', label: 'Aguardando aprovação', value: String(kpis.aguardando_aprovacao), tone: 'amber' as const },
-    { id: 'pecas', label: 'Aguardando peças', value: String(kpis.aguardando_pecas), tone: 'violet' as const },
-    { id: 'execucao', label: 'Em execução', value: String(kpis.em_execucao), tone: 'default' as const },
-    { id: 'pronto', label: 'Pronto p/ retirar', value: String(kpis.pronto_retirada), tone: 'emerald' as const },
-    { id: 'atrasadas', label: 'Atrasadas', value: String(kpis.atrasadas), tone: 'rose' as const },
+    { id: 'total', label: 'OS no quadro', value: String(kpis.total), tone: 'default' as const, filterKey: null },
+    { id: 'aprovacao', label: 'Aguardando aprovação', value: String(kpis.aguardando_aprovacao), tone: 'amber' as const, filterKey: 'aprovacao' as const },
+    { id: 'pecas', label: 'Aguardando peças', value: String(kpis.aguardando_pecas), tone: 'violet' as const, filterKey: 'pecas' as const },
+    { id: 'execucao', label: 'Em execução', value: String(kpis.em_execucao), tone: 'default' as const, filterKey: 'execucao' as const },
+    { id: 'pronto', label: 'Pronto p/ retirar', value: String(kpis.pronto_retirada), tone: 'emerald' as const, filterKey: 'pronto' as const },
+    { id: 'atrasadas', label: 'Atrasadas', value: String(kpis.atrasadas), tone: 'rose' as const, filterKey: 'atrasadas' as const },
   ], [kpis]);
+
+  // D-05 — predicado do KPI ativo sobre (card, etapa). Client-side: o payload do
+  // board já está no browser; filtrar não round-tripa.
+  const cardMatchesKpi = useCallback((card: ServiceOrderCardData, stageKey: string): boolean => {
+    if (!kpiFilter) return true;
+    if (kpiFilter === 'atrasadas') return card.is_overdue;
+    return stageKey === KPI_FILTER_STAGE[kpiFilter];
+  }, [kpiFilter]);
+
+  // Etapa de origem de cada card (sobrevive ao pivot Box/Mecânico — usada no
+  // filtro por KPI de etapa e na folha "Imprimir fila").
+  const stageByCardId = useMemo(() => {
+    const m = new Map<number, { key: string; name: string; index: number }>();
+    columns.forEach((col, index) => col.cards.forEach((c) => m.set(c.id, { key: col.key, name: col.name, index })));
+    return m;
+  }, [columns]);
+
+  // Colunas exibidas — foco Etapa usa as colunas FSM; Box/Mecânico re-pivota
+  // client-side (cards já carregam box + mechanic_id do BoardController).
+  const displayColumns = useMemo<DisplayColumn[]>(() => {
+    if (foco === 'etapa') {
+      return columns.map((col) => ({
+        key: col.key,
+        name: col.name,
+        color: col.color,
+        cards: col.cards.filter((c) => cardMatchesKpi(c, col.key)),
+        emphasis: col.key === 'aguardando_aprovacao' ? 'aprovacao' as const : col.key === 'aguardando_pecas' ? 'pecas' as const : null,
+        // Capacidade da oficina (header da coluna Em execução): ocupação REAL,
+        // por isso usa col.cards (pré-filtro KPI) — y = boxes cadastrados.
+        capacity: col.key === 'em_execucao' && filterOptions.boxes.length > 0
+          ? `${col.cards.length}/${filterOptions.boxes.length} boxes`
+          : null,
+      }));
+    }
+
+    const visiveis = columns.flatMap((col) => col.cards.filter((c) => cardMatchesKpi(c, col.key)));
+    const pivotCol = (key: string, name: string, cards: ServiceOrderCardData[]): DisplayColumn => ({
+      key, name, color: null, cards, emphasis: null, capacity: null,
+    });
+
+    if (foco === 'box') {
+      return [
+        ...filterOptions.boxes.map((b) => pivotCol(`box-${b}`, b, visiveis.filter((c) => c.box === b))),
+        pivotCol('box-none', 'Sem box', visiveis.filter((c) => !c.box)),
+      ];
+    }
+
+    return [
+      ...filterOptions.mecanicos.map((m) => pivotCol(`mec-${m.id}`, m.nome, visiveis.filter((c) => c.mechanic_id === m.id))),
+      pivotCol('mec-none', 'Sem mecânico', visiveis.filter((c) => c.mechanic_id === null)),
+    ];
+  }, [columns, foco, cardMatchesKpi, filterOptions.boxes, filterOptions.mecanicos]);
+
+  // Ordem visível dos cards (coluna a coluna) — navegação por setas + contador "N OS"
+  const visibleCards = useMemo(() => displayColumns.flatMap((c) => c.cards), [displayColumns]);
+  const visibleCount = visibleCards.length;
+
+  // D-07 — atalhos de teclado (Larissa é teclado-first): N nova OS · / busca ·
+  // setas navegam cards · Enter abre o drawer · Esc limpa o foco (Radix já fecha
+  // drawer/popover no Esc). Ignora quando digitando em input/select/textarea.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // dnd-kit KeyboardSensor usa as setas durante o drag — não atropelar.
+      if (e.defaultPrevented) return;
+      const target = e.target as HTMLElement | null;
+      const tag = (target?.tagName ?? '').toLowerCase();
+      const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || Boolean(target?.isContentEditable);
+      if (e.key === 'Escape') { setFocusedId(null); return; }
+      if (typing) return;
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); return; }
+      if (e.key === 'n' || e.key === 'N') { e.preventDefault(); router.visit('/oficina-auto/ordens-servico/create'); return; }
+      if (e.key === 'Enter') {
+        if (focusedId !== null && visibleCards.some((c) => c.id === focusedId)) {
+          e.preventDefault();
+          setOpenOsId(focusedId);
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        if (!visibleCards.length) return;
+        e.preventDefault();
+        const dir = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1;
+        setFocusedId((prev) => {
+          const i = visibleCards.findIndex((c) => c.id === prev);
+          const next = i === -1
+            ? visibleCards[0]
+            : visibleCards[Math.min(visibleCards.length - 1, Math.max(0, i + dir))];
+          return next ? next.id : prev;
+        });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visibleCards, focusedId]);
+
+  // Imprimir fila — folha A4 com as OS visíveis (busca + KPI + selects aplicados)
+  const handlePrintFila = useCallback(() => {
+    const rows: FilaPrintRow[] = visibleCards.map((c) => {
+      const stage = stageByCardId.get(c.id);
+      const prazo = c.expected_completion ? new Date(c.expected_completion) : null;
+      return {
+        number: c.number,
+        etapa: stage?.name ?? '—',
+        etapaIndex: stage?.index ?? 99,
+        vehicle: c.vehicle_type,
+        plate: c.plate,
+        cliente: c.cliente_nome,
+        mecanico: c.mechanic_name,
+        box: c.box,
+        prazo: prazo && !Number.isNaN(prazo.getTime())
+          ? prazo.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+          : null,
+        valor: c.valor,
+        atrasada: c.is_overdue,
+      };
+    });
+    const filtroParts: string[] = [];
+    if (filters.q) filtroParts.push(`busca "${filters.q}"`);
+    if (kpiFilter) filtroParts.push(KPI_FILTER_LABEL[kpiFilter]);
+    if (filters.mecanico) {
+      const m = filterOptions.mecanicos.find((x) => x.id === filters.mecanico);
+      if (m) filtroParts.push(`mecânico ${m.nome}`);
+    }
+    if (filters.box) filtroParts.push(`box ${filters.box}`);
+    toast.info('Preparando impressão da fila…');
+    printOficinaFila(rows, { filtro: filtroParts.length ? filtroParts.join(' · ') : null })
+      .catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Falha ao imprimir a fila'));
+  }, [visibleCards, stageByCardId, filters.q, filters.mecanico, filters.box, kpiFilter, filterOptions.mecanicos]);
 
   // FIX [CC] 2026-06-10: colunas com largura mínima utilizável (canon do protótipo
   // .prod-kanban: repeat(n, minmax(228px, 1fr))) — inline style em vez de classe
   // Tailwind literal porque o nº de colunas é data-driven. O wrapper rola no eixo X.
   const boardGridStyle = useMemo(() => ({
-    gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(228px, 1fr))`,
-  }), [columns.length]);
+    gridTemplateColumns: `repeat(${Math.max(displayColumns.length, 1)}, minmax(228px, 1fr))`,
+  }), [displayColumns.length]);
 
   return (
     <>
@@ -290,6 +502,59 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
                 <ListIcon size={12} /> Lista
               </Link>
             </div>
+
+            {/* Menu Visão (canon .ofc-adjust do protótipo) — foco + densidade.
+                Pressão ficou FORA desta onda. */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={foco !== 'etapa' || densidade !== 'padrao' ? 'border-primary text-primary' : undefined}
+                  title="Ajustar visão (foco · densidade)"
+                  data-testid="board-visao-trigger"
+                >
+                  <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" /> Visão
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 space-y-3" role="menu" aria-label="Ajustar visão">
+                <div className="space-y-1.5">
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Foco</span>
+                  <Segmented
+                    value={foco}
+                    onValueChange={(v) => setFoco(v as BoardFoco)}
+                    options={[
+                      { value: 'etapa', label: 'Etapa' },
+                      { value: 'box', label: 'Box', disabled: filterOptions.boxes.length === 0 },
+                      { value: 'mecanico', label: 'Mecânico', disabled: filterOptions.mecanicos.length === 0 },
+                    ]}
+                    aria-label="Foco das colunas"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Densidade</span>
+                  <Segmented
+                    value={densidade}
+                    onValueChange={(v) => setDensidade(v as BoardDensity)}
+                    options={[
+                      { value: 'compacto', label: 'Compacto' },
+                      { value: 'padrao', label: 'Padrão' },
+                      { value: 'detalhe', label: 'Detalhe' },
+                    ]}
+                    aria-label="Densidade dos cards"
+                  />
+                </div>
+                {foco !== 'etapa' && (
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    No foco {foco === 'box' ? 'Box' : 'Mecânico'} o arraste fica desligado — etapas mudam no foco Etapa ou pelo drawer da OS.
+                  </p>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            <Button variant="ghost" size="sm" onClick={handlePrintFila} data-testid="board-print-fila">
+              <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir fila
+            </Button>
             <Button asChild size="sm">
               <Link href="/oficina-auto/ordens-servico/create">
                 <Plus className="mr-1.5 h-4 w-4" /> Nova OS
@@ -298,10 +563,19 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </div>
         </header>
 
-        {/* KPIs compactos — densidade @container (@1280 expande colunas) */}
+        {/* KPIs compactos — densidade @container (@1280 expande colunas).
+            D-05: KPI clicável filtra os cards client-side (clicar de novo limpa). */}
         <div className="bg-white border-b border-border px-6 py-3">
           <div className={'grid grid-cols-2 @[700px]/board:grid-cols-3 @[1100px]/board:grid-cols-6 gap-2'}>
-            {kpiCards.map(({ id, ...kpi }) => <KpiCard key={id} {...kpi} />)}
+            {kpiCards.map(({ id, filterKey, ...kpi }) => (
+              <KpiCard
+                key={id}
+                {...kpi}
+                active={filterKey !== null && kpiFilter === filterKey}
+                dimmed={kpiFilter !== null && filterKey !== null && kpiFilter !== filterKey}
+                onClick={filterKey !== null ? () => kpiClick(filterKey) : undefined}
+              />
+            ))}
           </div>
         </div>
 
@@ -309,15 +583,42 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         <div className="bg-white border-b border-border px-6 py-2.5 flex items-center gap-3 sticky top-0 z-10 flex-wrap">
           <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md">
             <Search size={14} className="text-muted-foreground flex-shrink-0" />
-            <Input
-              type="search"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar OS, placa ou cliente…"
-              className="h-8 border-border"
-              aria-label="Buscar OS, placa ou cliente"
-            />
+            <div className="relative flex-1">
+              <Input
+                ref={searchRef}
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar OS, placa ou cliente…  ( / )"
+                className="h-8 border-border pr-7"
+                aria-label="Buscar OS, placa ou cliente (atalho /)"
+                aria-keyshortcuts="/"
+              />
+              {searchInput !== '' && (
+                <button
+                  type="button"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+                  onClick={() => setSearchInput('')}
+                  aria-label="Limpar busca"
+                  data-testid="board-search-clear"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* D-05 — chip do KPI-filtro ativo (clicar limpa) */}
+          {kpiFilter && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/15"
+              onClick={() => kpiClick(kpiFilter)}
+              data-testid="board-kpi-clear"
+            >
+              <X size={10} /> limpar filtro: {KPI_FILTER_LABEL[kpiFilter]}
+            </button>
+          )}
 
           {filterOptions.mecanicos.length > 0 && (
             <Select
@@ -354,7 +655,8 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           )}
 
           <span className="ml-auto text-sm text-muted-foreground" aria-live="polite">
-            <span className="font-medium text-foreground">{kpis.total} {kpis.total === 1 ? 'OS' : 'OS'}</span>
+            <span className="font-medium text-foreground">{visibleCount} OS</span>
+            {kpiFilter && (<span className="ml-1 text-xs">de {kpis.total}</span>)}
             {kpis.atrasadas > 0 && (<><span className="mx-1.5 text-muted-foreground">·</span><span className="font-medium text-destructive">{kpis.atrasadas} atrasada{kpis.atrasadas === 1 ? '' : 's'}</span></>)}
           </span>
         </div>
@@ -367,14 +669,18 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           ) : (
             <KanbanDndProvider<ServiceOrderCardData, string> onMove={handleDragMove} renderPreview={renderPreview}>
               <div className="grid gap-4 items-start" style={boardGridStyle}>
-                {columns.map((col) => (
+                {displayColumns.map((col) => (
                   <ServiceOrderKanbanColumn
                     key={col.key}
                     stageKey={col.key}
                     name={col.name}
                     color={col.color}
                     cards={col.cards}
-                    emphasis={col.key === 'aguardando_aprovacao' ? 'aprovacao' : col.key === 'aguardando_pecas' ? 'pecas' : null}
+                    emphasis={col.emphasis}
+                    capacity={col.capacity}
+                    density={densidade}
+                    focusedId={focusedId}
+                    dragDisabled={foco !== 'etapa'}
                     onCardClick={handleCardClick}
                   />
                 ))}
@@ -402,14 +708,50 @@ ServiceOrdersBoard.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>
 
 // ─── Subcomponents ───────────────────────────────────────────────────────────
 
-interface KpiCardProps { label: string; value: string; tone: KpiTone; }
+interface KpiCardProps {
+  label: string;
+  value: string;
+  tone: KpiTone;
+  /** D-05 — KPI ativo como filtro (anel primary + aria-pressed) */
+  active?: boolean;
+  /** D-05 — outro KPI está filtrando (esmaece este) */
+  dimmed?: boolean;
+  /** presente = KPI filtrável (vira role=button); ausente = só leitura (ex.: total) */
+  onClick?: () => void;
+}
 
-function KpiCard({ label, value, tone }: KpiCardProps) {
+function KpiCard({ label, value, tone, active = false, dimmed = false, onClick }: KpiCardProps) {
   const t = kpiTone(tone);
-  return (
-    <div className={`rounded-lg border px-3 py-2 flex flex-col gap-0.5 ${t.wrapper}`}>
+
+  const inner = (
+    <>
       <span className={`text-[10px] font-semibold uppercase tracking-wider truncate ${t.label}`}>{label}</span>
       <span className={`text-xl @[1100px]/board:text-2xl font-bold tabular-nums ${t.value}`}>{value}</span>
+    </>
+  );
+
+  // KPI filtrável é <button> de verdade (a11y nativa: foco, Enter/Space, aria-pressed)
+  if (onClick !== undefined) {
+    return (
+      <button
+        type="button"
+        className={
+          `rounded-lg border px-3 py-2 flex flex-col gap-0.5 text-left w-full cursor-pointer select-none transition-all hover:shadow-sm ${t.wrapper}`
+          + (active ? ' ring-2 ring-primary ring-offset-1' : '')
+          + (dimmed ? ' opacity-50' : '')
+        }
+        aria-pressed={active}
+        title={active ? 'Clique pra limpar o filtro' : `Filtrar o quadro: ${label}`}
+        onClick={onClick}
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <div className={`rounded-lg border px-3 py-2 flex flex-col gap-0.5 ${t.wrapper}`}>
+      {inner}
     </div>
   );
 }

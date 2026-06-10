@@ -13,11 +13,16 @@
 //
 // CRÍTICO React 19 — memo + handlers estáveis (lição PR #717).
 
-import { memo, type CSSProperties } from 'react';
+import { memo, useCallback, useEffect, useRef, type CSSProperties } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { ClipboardCheck, AlertTriangle, Clock, Wrench, Camera } from 'lucide-react';
+import { ClipboardCheck, AlertTriangle, Clock, Wrench, Camera, Warehouse } from 'lucide-react';
 import MercosulPlate from '@/Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate';
+
+// Densidade do card (menu Visão — Onda 1 paridade Cowork): compacto esconde
+// sintoma+foto (triagem rápida de fila grande); detalhe respira (foto maior,
+// sintoma sem truncar, chip do box). Tipo mora aqui (não no boardTone — intocado).
+export type BoardDensity = 'compacto' | 'padrao' | 'detalhe';
 
 export interface ServiceOrderCardData {
   id: number;
@@ -31,6 +36,8 @@ export interface ServiceOrderCardData {
   dvi_total: number;
   dvi_critico: number;
   valor: number;
+  box: string | null;
+  mechanic_id: number | null;
   mechanic_name: string | null;
   mechanic_initials: string | null;
   entered_at: string | null;
@@ -46,6 +53,12 @@ interface Props {
   stageKey: string;
   /** classe Tailwind do border-top colorido por etapa */
   topBorderClass: string;
+  /** densidade do menu Visão (default padrao = visual atual) */
+  density?: BoardDensity;
+  /** anel de foco da navegação por setas (D-07 — teclado-first) */
+  focused?: boolean;
+  /** desliga o drag (foco Box/Mecânico — colunas não são etapas FSM) */
+  dragDisabled?: boolean;
   onClick: (card: ServiceOrderCardData) => void;
 }
 
@@ -91,10 +104,11 @@ function deadlineChip(
   return null;
 }
 
-function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }: Props) {
+function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, density = 'padrao', focused = false, dragDisabled = false, onClick }: Props) {
+  const canDrag = card.in_pipeline && !dragDisabled;
   const draggable = useDraggable({
     id: `so-${card.id}`,
-    disabled: !card.in_pipeline,
+    disabled: !canDrag,
     data: {
       subjectId: card.id,
       currentColumn: stageKey,
@@ -102,6 +116,17 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
     },
   });
   const { attributes, listeners, setNodeRef, transform, isDragging } = draggable;
+
+  // Anel de foco da navegação por setas (D-07) — mantém o card focado à vista
+  // dentro do scroll da coluna sem roubar o foco DOM da busca.
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const setRefs = useCallback((node: HTMLDivElement | null) => {
+    elRef.current = node;
+    setNodeRef(node);
+  }, [setNodeRef]);
+  useEffect(() => {
+    if (focused) elRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [focused]);
 
   const dragStyle: CSSProperties = transform
     ? { transform: CSS.Translate.toString(transform) }
@@ -118,18 +143,19 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
 
   return (
     <div
-      ref={setNodeRef}
+      ref={setRefs}
       style={dragStyle}
-      {...(card.in_pipeline ? attributes : {})}
-      {...(card.in_pipeline ? listeners : {})}
+      {...(canDrag ? attributes : {})}
+      {...(canDrag ? listeners : {})}
       className={
         'relative rounded border border-t-2 border-border ' + topBorderClass + ' '
         + 'bg-white p-2.5 transition-colors '
         + (isDragging
           ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
-          : card.in_pipeline
+          : canDrag
             ? 'cursor-grab active:cursor-grabbing hover:shadow-sm hover:border-muted-foreground/40'
             : 'cursor-pointer hover:border-muted-foreground/30')
+        + (focused && !isDragging ? ' ring-2 ring-primary ring-offset-1' : '')
       }
       onClick={(e) => {
         if (isDragging) { e.preventDefault(); return; }
@@ -163,13 +189,14 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
         </div>
       </div>
 
-      {/* [W] mod #1 — foto REAL (sem placeholder de texto). Sem foto → não renderiza. */}
-      {card.thumb_url ? (
+      {/* [W] mod #1 — foto REAL (sem placeholder de texto). Sem foto → não renderiza.
+          Densidade: compacto esconde a foto; detalhe amplia. */}
+      {card.thumb_url && density !== 'compacto' ? (
         <div className="mb-2 rounded overflow-hidden border border-border bg-muted/40">
           <img
             src={card.thumb_url}
             alt={`Foto da OS ${card.number}`}
-            className="w-full h-16 object-cover @[340px]:h-20"
+            className={density === 'detalhe' ? 'w-full h-24 object-cover' : 'w-full h-16 object-cover @[340px]:h-20'}
             loading="lazy"
           />
         </div>
@@ -188,9 +215,12 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
         </div>
       </div>
 
-      {/* Defeito / observação */}
-      {card.notes ? (
-        <p className="text-[12px] text-foreground leading-snug mb-2 line-clamp-2" title={card.notes}>
+      {/* Defeito / observação — compacto esconde; detalhe respira (clamp maior) */}
+      {card.notes && density !== 'compacto' ? (
+        <p
+          className={'text-[12px] text-foreground leading-snug mb-2 ' + (density === 'detalhe' ? 'line-clamp-4' : 'line-clamp-2')}
+          title={card.notes}
+        >
           {card.notes}
         </p>
       ) : null}
@@ -222,6 +252,12 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
                 {card.mechanic_initials}
               </span>
               <span className="truncate max-w-[80px]">{card.mechanic_name}</span>
+            </span>
+          ) : null}
+          {/* Detalhe mostra o box alocado (extra do menu Visão) */}
+          {density === 'detalhe' && card.box ? (
+            <span className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground" title={`Box ${card.box}`}>
+              <Warehouse size={10} aria-hidden /> {card.box}
             </span>
           ) : null}
         </div>
