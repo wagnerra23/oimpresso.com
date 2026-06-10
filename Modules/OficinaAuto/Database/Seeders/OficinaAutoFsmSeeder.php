@@ -204,8 +204,8 @@ class OficinaAutoFsmSeeder extends Seeder
             $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->create([
                 'business_id'              => $businessId,
                 'key'                      => 'cacamba_locacao',
-                'name'                     => 'Caçamba — Locação',
-                'description'              => 'Pipeline FSM caso Martinho (key legacy preservada · vocabulário canon pós-ADR 0194 = sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520; pré-correção dizia "locação de caçamba avulsa estacionária")',
+                'name'                     => 'Fluxo legado — equipamento',
+                'description'              => 'Pipeline FSM caso Martinho (key legacy preservada · vocabulário canon pós-ADR 0194 = sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520; nome user-facing em vocabulário de reparo — ADR 0265)',
                 'default_for_contact_type' => 'any',
                 'active'                   => true,
             ]);

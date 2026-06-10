@@ -132,7 +132,8 @@ it('Oficina drawer (estado "adicionando" ABERTO) — probes G2/G3/G4 limpos + co
     ]);
 
     // Tela núcleo autenticada + drawer aberto + form DVI "adicionar" ativo (o estado que vazava).
-    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/oficina-auto/producao-oficina'));
+    // ADR 0265: kanban canônico único = Quadro de OS (producao-oficina virou redirect 301).
+    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/oficina-auto/ordens-servico/board'));
     $page->assertSee('PRBG34');
     $page->click('PRBG34');
     $page->assertSee('Fotos & Laudo');           // drawer rico montou

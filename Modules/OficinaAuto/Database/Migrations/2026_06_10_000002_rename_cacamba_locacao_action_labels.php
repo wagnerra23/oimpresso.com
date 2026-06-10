@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Schema;
  *
  * Escopo GLOBAL (todos os business): label de UI, não dado tenant-sensível.
  *
+ *   (+ sale_processes.name: "Caçamba — Locação" → "Fluxo legado — equipamento")
+ *
  *   key                 label antigo (locação)              →  label novo (reparo)
  *   iniciar_locacao     Iniciar locação (entregar caçamba)  →  Iniciar execução
  *   recolher            Recolher caçamba (devolução)        →  Concluir serviço
@@ -70,6 +72,14 @@ return new class extends Migration
         if ($processIds->isEmpty()) {
             return;
         }
+
+        // Nome do PROCESSO também é user-facing (telas admin FSM) — mesmo contrato
+        // dos labels: casa o valor de origem exato, idempotente + reversível.
+        [$nameFrom, $nameTo] = $direction('Caçamba — Locação', 'Fluxo legado — equipamento');
+        DB::table('sale_processes')
+            ->whereIn('id', $processIds)
+            ->where('name', $nameFrom)
+            ->update(['name' => $nameTo]);
 
         $stageIds = DB::table('sale_process_stages')->whereIn('process_id', $processIds)->pluck('id');
         if ($stageIds->isEmpty()) {
