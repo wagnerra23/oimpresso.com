@@ -288,22 +288,20 @@ jobs:
       - name: Permissions storage + bootstrap/cache
         run: /tmp/ssh_exec.sh "cd $RDIR && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
 
-      - name: Force OPcache invalidate (dump-autoload + touch)
-        # LSPHP/LiteSpeed segura bytecode entre deploys. dump-autoload muda mtime dos
-        # compilados; find -exec touch força re-stat de todos os PHPs. Sem --no-dev
-        # (incidente 2026-06-06: --no-dev removia provider Scribe dev do classmap → 500).
-        # `public` incluído (ADR 0269): garante que o próprio _ops_opcache_reset.php
-        # recompile antes do step de reset — senão o endpoint que vai resetar o OPcache
-        # poderia ele mesmo ser servido como bytecode velho (paradoxo de bootstrap).
-        # `-name '*.php'` mantém o touch barato em public/ (só os poucos .php; ignora
-        # os bundles .js/.css de build-inertia/build).
+      - name: Force OPcache invalidate (touch mtime — best-effort)
+        # LSPHP/LiteSpeed segura bytecode entre deploys. `find -exec touch` bump o mtime
+        # dos PHPs → LSPHP re-stata (validate_timestamps). `public` incluído pra recompilar
+        # o próprio _ops_opcache_reset.php antes do reset HTTP (senão o endpoint que vai
+        # resetar o OPcache poderia ser servido como bytecode velho — paradoxo de bootstrap).
+        # `-name '*.php'` mantém barato (ignora bundles .js/.css).
+        #
+        # NÃO roda `composer dump-autoload` aqui: o step "Composer install" já faz o
+        # dump-autoload canônico (-o --classmap-authoritative). Rodar de novo era redundante
+        # E flaky — em 2026-06-10 o `dump-autoload --optimize` standalone abortou com help/exit 1
+        # (platform-req), derrubando o deploy DEPOIS do publish. Best-effort (`|| true`): o
+        # reset real e confirmado é o step HTTP seguinte; o failsafe protege o site.
         run: |
-          /tmp/ssh_exec.sh "
-            set -o pipefail &&
-            cd $RDIR &&
-            /usr/local/bin/composer dump-autoload --optimize --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 &&
-            find app bootstrap config routes public -name '*.php' -exec touch {} + 2>&1 | tail -3
-          "
+          /tmp/ssh_exec.sh "cd $RDIR && find app bootstrap config routes public -name '*.php' -exec touch {} + 2>&1 | tail -3" || echo "::warning::touch best-effort falhou — seguindo (reset confirmado é via HTTP)"
 
       - name: Maintenance mode OFF
         run: /tmp/ssh_exec.sh "cd $RDIR && php artisan up"
