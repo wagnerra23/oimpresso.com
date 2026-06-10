@@ -16,13 +16,17 @@
  * mode OFF` (curl localhost / oimpresso.com). Idempotente — múltiplas chamadas
  * resetam de novo sem efeito colateral.
  *
- * Proteção:
- * - Aceita SOMENTE token via query string `?token=$OPCACHE_RESET_TOKEN`
- *   (env var do servidor — não exposto em código nem em git)
- * - Sem token correto: 403
- * - Sem env var configurada no servidor: 503 (nunca permite acesso anônimo)
+ * Proteção (token resolvido em 3 fontes, nesta ordem):
+ * - 1) env var `OPCACHE_RESET_TOKEN` (getenv / $_SERVER) — caso LiteSpeed exponha
+ * - 2) arquivo `storage/app/opcache_reset_token` (fora do webroot, fora do git,
+ *      escrito pelo deploy.yml a partir do GitHub Secret OPCACHE_RESET_TOKEN).
+ *      Esta é a fonte CANÔNICA: um script PHP cru (sem bootstrap Laravel) NÃO lê
+ *      o `.env` da app via getenv(), então a fonte env quase nunca dispara no
+ *      Hostinger/LSPHP — o arquivo é o que torna o reset confiável (ADR 0269).
+ * - Sem token correto: 403 · Sem token configurado: 503 (nunca acesso anônimo)
  *
  * @see memory/decisions/0246-tipo-outros-default-migracoes-legacy.md
+ * @see memory/decisions/0269-deploy-automatico-build-no-runner.md
  * @see https://www.php.net/manual/en/function.opcache-reset.php
  */
 
@@ -32,6 +36,14 @@ header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
 $expectedToken = getenv('OPCACHE_RESET_TOKEN') ?: ($_SERVER['OPCACHE_RESET_TOKEN'] ?? '');
+
+if ($expectedToken === '') {
+    // Fallback canônico: arquivo escrito pelo deploy fora do webroot e do git.
+    $tokenFile = __DIR__ . '/../storage/app/opcache_reset_token';
+    if (is_readable($tokenFile)) {
+        $expectedToken = trim((string) file_get_contents($tokenFile));
+    }
+}
 
 if ($expectedToken === '') {
     http_response_code(503);
