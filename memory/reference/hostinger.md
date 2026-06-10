@@ -81,9 +81,11 @@ ssh -4 [...flags...] u906587222@148.135.133.115 \
 ```
 Validado 2026-04-27: Sprint 2 quebrou /memcofre+/copiloto em 5min, rollback em ~30s.
 
-### Workflows GitHub Actions
+### Workflows GitHub Actions (atualizado 2026-06-10 — ADR 0269)
 
-`.github/workflows/deploy.yml` é manual (`workflow_dispatch`). `quick-sync.yml` está QUEBRADO desde 2026-04-26 (falha Setup SSH). Hostinger NÃO recebe deploys automáticos — sempre pull manual via SSH após merge.
+`.github/workflows/deploy.yml` **auto-deploya em push pra main** (paths-ignore docs) — build no runner + bundles via tar/ssh + OPcache reset confirmado + smoke de hash. `workflow_dispatch` mantido como fallback. `quick-sync.yml` virou **escape manual** (`workflow_dispatch`-only); `force-clean-rebuild-trigger.yml` segue como nuclear manual.
+
+> **Os helpers SSH desses workflows usam os flags canônicos desta página** (`-4` IPv4, `ConnectTimeout`, `ConnectionAttempts=5`, `ServerAlive`) + warm-up curl 5× antes do 1º SSH. Sem o `-4` o runner tentava IPv6 e dava `Connection timed out` em massa (incidente 2026-06-10). **ControlMaster (multiplexing) continua proibido** — falha `mux_client_request_session`; é 1 conexão por comando mesmo.
 
 ## hPanel acesso humano
 
