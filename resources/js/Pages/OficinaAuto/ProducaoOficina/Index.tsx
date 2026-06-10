@@ -177,12 +177,12 @@ function resolveDragMapping(
   const plate = cacamba.plate ?? 'veículo';
   const cliente = cacamba.cliente_nome ?? 'cliente';
 
-  // disponivel → locada: precisa criar OS, não pode inline V1
+  // disponivel → locada: precisa abrir OS, não pode inline V1
   if (from === 'disponivel' && to === 'locada') {
     return {
       kind: 'redirect_sells',
       reason:
-        'Pra abrir OS use "Criar OS" no menu Ordens de Serviço — V1 não cria OS inline via drag.',
+        'Pra abrir OS use o botão "Abrir OS" do card — V1 não cria OS inline via drag.',
     };
   }
 
@@ -282,7 +282,7 @@ function resolveDragMapping(
 // card dispara a MESMA porta gate-guardada do arrasto · resolveDragMapping). `locada`
 // = "Acompanhar" (ver, não avançar) → tratado no card via onClick, fica null aqui.
 const NEXT_COLUMN_FOR: Record<CacambaStatus, CacambaStatus | null> = {
-  disponivel: 'locada',     // Iniciar locação → redirect criar OS
+  disponivel: 'locada',     // Abrir OS → navega direto pro form (handleCardAdvance)
   locada:     null,         // Acompanhar → abre drawer (não avança)
   aguardando: 'disponivel', // Recolher → encerrar OS
   manutencao: 'pronta',     // Concluir → pronto p/ entrega
@@ -432,8 +432,9 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
       if (result.kind === 'redirect_sells') {
         toast.info(result.reason, {
           action: {
-            label: 'Criar OS',
-            onClick: () => router.visit('/oficina-auto/ordens-servico/create'),
+            label: 'Abrir OS',
+            onClick: () =>
+              router.visit(`/oficina-auto/ordens-servico/create?vehicle=${cacamba.id}`),
           },
           duration: 6000,
         });
@@ -489,6 +490,12 @@ export default function ProducaoOficinaIndex({ kanban, kpis, filters, recursos, 
   // (handleDragMove → resolveDragMapping → confirm/toast). Touch-friendly (tablet do mecânico).
   const handleCardAdvance = useCallback(
     (cacamba: CacambaCardData, from: CacambaStatus) => {
+      // Card sem OS (Recepção): "Abrir OS" navega direto pro form com o veículo
+      // pré-selecionado (ADR 0265 — vocabulário/fluxo de reparo, sem toast intermediário).
+      if (from === 'disponivel') {
+        router.visit(`/oficina-auto/ordens-servico/create?vehicle=${cacamba.id}`);
+        return;
+      }
       const to = NEXT_COLUMN_FOR[from];
       if (!to) {
         // Estado sem avanço definido (ex.: locada "Acompanhar") — abre o drawer.

@@ -88,8 +88,18 @@ export default function ServiceOrdersCreate({ vehicles, statuses, contacts }: Pr
   const [contactPickerOpen, setContactPickerOpen] = useState(false);
   void statuses; // mantido na assinatura por compat — status é do FSM, não da UI
 
+  // Prefill via ?vehicle={id} (CTA "Abrir OS" do kanban Produção — ADR 0265).
+  // Só aceita id presente na lista `vehicles` (já scoped por business_id no
+  // controller — Tier 0 ADR 0093): id de outro tenant simplesmente não prefilla.
+  const prefillVehicleId = (() => {
+    if (typeof window === 'undefined') return '';
+    const raw = new URLSearchParams(window.location.search).get('vehicle');
+    if (!raw) return '';
+    return vehicles.some((v) => String(v.id) === raw) ? raw : '';
+  })();
+
   const { data, setData, post, processing, errors } = useForm({
-    vehicle_id: '',
+    vehicle_id: prefillVehicleId,
     contact_id: '',
     // Tipo de OS — 'mecanica' é o fluxo real de reparo de caminhão (ADR 0194),
     // default pra oficina do Martinho. Roda no pipeline FSM oficina_mecanica_os.

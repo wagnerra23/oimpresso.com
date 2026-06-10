@@ -128,3 +128,41 @@
 ## Reordenação
 
 Wagner pode subir P2/P3 pra P0/P1 a qualquer momento — basta editar este arquivo na PR e justificar em [SYNC_LOG.md](SYNC_LOG.md).
+
+---
+
+## 🎯 Régua ≥9 — programa contínuo (PACOTE-Q9 PR-4 · 2026-06-10)
+
+> **Fonte única do placar:** [`audit/CONSOLIDADO.md`](audit/CONSOLIDADO.md) (GERADO por `score-mechanized.mjs` + `consolidate.mjs` — rodar a cada onda; não duplicar números aqui).
+> Run 2026-06-10 @main `c8caaec01`: **242 telas · média 87/100 · 16 abaixo de 70 · golden validado (cache Cowork dizia 86, real 87)**.
+> Regra: **toda tela <90 (=nota 9) entra na fila** com o gap nomeado (R# do [`audit/GOLDEN-REFERENCE.md`](audit/GOLDEN-REFERENCE.md)). Identidade única: `--accent` fora do roxo 250–330 = **ZERO sobrou** (conformance-gate `--all` verde 2026-06-10 — item 3 do PR-4 já conforme).
+
+### Onda W2 — Financeiro (pior gap conhecido, espelha Cowork "Reestruturação Identidade Única e Qualidade 9")
+
+9 das 16 telas <70 são do Financeiro — confirma o W2 do Cowork (8.3):
+
+| Tela | Nota | Gap nomeado |
+|---|--:|---|
+| `Financeiro/Unificado/Index` | 46 | R1 cor crua · R2 nativos · R4 ícones · R6 emoji · R7 bg-fill status |
+| `Financeiro/Fluxo/Index` | 61 | R1 · R2 · R7 |
+| `Financeiro/Caixa/Index` | 62 | R1 · R2 · R7 |
+| `RecurringBilling/Index` | 62 | R1 · R2 · R4 · R7 |
+| `RecurringBilling/Faturas/Index` | 65 | R1 · R2 · R7 |
+| `RecurringBilling/Planos/Index` | 66 | R1 · R2 · R7 |
+| `Financeiro/Conciliacao/Index` | 67 | R1 · R2 · R7 |
+| `Financeiro/ContasBancarias/Index` | 68 | R1 · R2 · R7 |
+| `Financeiro/ContasReceber/Index` | 68 | R1 · R2 · R7 |
+
+### Fora do Financeiro (<70)
+
+| Tela | Nota | Gap nomeado |
+|---|--:|---|
+| `Jana/Cockpit` | 56 | R1 · R2 · R4 · R6 · R7 |
+| `Cliente/Index` | 57 | R1 · R2 · R6 · R7 |
+| `Jana/Admin/Qualidade/Index` | 66 | R1 · R2 · R4 · R6 |
+| `Sells/Edit` | 67 | R1 · R2 · R7 |
+| `Admin/GovernanceV4Dashboard` | 68 | R1 · R4 · R7 |
+| `Repair/Index` | 68 | R1 · R2 · R7 |
+| `Financeiro/Dre/Index` | 68 | R1 · R2 |
+
+**Cadência:** 1 onda por vez, W2 Financeiro primeiro (US-FIN-029 3 lentes + pilar fiscal). Telas 70–89 (faixa Advanced/Leader) entram via CONSOLIDADO conforme as ondas avançam — a fila inline carrega só o bottom-16 pra não drifar do gerado.
