@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · Index.decisoes.md (debate)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-02"
+last_run: "2026-06-10"
 ---
 
 # Casos de Uso & Aceite — Produção / Kanban da Oficina
@@ -70,6 +70,16 @@ last_run: "2026-06-02"
 
 ---
 
+## UC-11 · OS funcional fim-a-fim (caminho da Larissa)
+- **Persona:** Larissa (balcão, 1280px) — o dia inteiro dela numa OS só.
+- **Como usa:** cadastra o carro que chegou → cria a OS (cliente+veículo) → vistoria com semáforo DVI → foto no laudo → pede aprovação do cliente (WhatsApp) → avança a etapa pelo gate → imprime a folha A4.
+- **Aceite:** Dado veículo+cliente cadastrados · Quando percorre criar OS → DVI (item com severidade) → foto enviada no laudo → "Pedir aprovação" → avançar etapa (checklist ou override de responsável, registrado) → "Imprimir OS" · Então cada passo dá feedback visível (card em Recepção, item na lista, foto no grid, "Aguardando aprovação", "Etapa avançada", iframe de impressão) **sem erro**.
+- **Nota:** a aprovação do cliente em si é fora da tela (link público + PIN — `/aprovar-os/{token}`); o lado Larissa é o coberto aqui.
+- **Teste:** `e2e/oficina-os-funcional-fluxo.spec.ts` (Playwright, harness G-3).
+- **Status: ✅** (run verde e2e-gate 27277247743 · 2026-06-10 · manifesto G-7 `pass`)
+
+---
+
 ## Como rodar a suíte
 1. **Static:** grep do componente — o wiring de cada UC existe? (pega regressão de "sumiu a função").
 2. **Live:** rota Produção → checar os asserts `live`.
@@ -78,3 +88,4 @@ last_run: "2026-06-02"
 ## Trilha do tempo
 - 2026-06-02 · [CC] criou a suíte (10 UCs) a partir do inventário aprovado do charter (design).
 - 2026-06-04 · [CC] importado pro repo via handoff. Pointers `Index.*`; nota de mapeamento design→produção adicionada.
+- 2026-06-10 · [CL] UC-11 adicionado (PACOTE QUALIDADE-9 PR-1 — caminho fim-a-fim da Larissa) + spec Playwright `oficina-os-funcional-fluxo.spec.ts`.

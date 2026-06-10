@@ -11,8 +11,8 @@
 // Refs: PROMPT_PARA_CODE_CONFORMANCE-GATE.md (Camada META) · ADR 0209 (ratchet gêmeo).
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { rawColorHits, accentHueViolations } from '../scripts/conformance-gate.mjs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { rawColorHits, accentHueViolations, tokenRoleViolations } from '../scripts/conformance-gate.mjs';
 
 describe('conformance-gate — SENSIBILIDADE (injeta bug → conta sobe)', () => {
   it('cor crua oklch(<hue numérico>) NOVA em regra de tela é contada', () => {
@@ -80,5 +80,50 @@ describe('accent-hue guard — ESPECIFICIDADE (roxo canônico não acusa)', () =
   });
   it('o cockpit.css real (token canônico) está em roxo — 0 violações', () => {
     expect(accentHueViolations(readFileSync('resources/css/cockpit.css', 'utf8')).length).toBe(0);
+  });
+});
+
+// ── Papel de token (PACOTE-Q9 PR-3 · espelho estático do probe G3 do Cowork) ──────────────
+// -fg é texto/ícone, -bg é superfície. Inversão (-fg em background/fill, -bg em color/stroke)
+// foi a classe do erro 06-10a (barra de progresso marrom com --origin-MFG-fg de fill).
+// Controle-negativo (L-31): visto 🔴 no bug injetado E 🟢 no limpo.
+describe('token-role guard — SENSIBILIDADE (papel invertido é pego)', () => {
+  it('-fg como background é violação', () => {
+    expect(tokenRoleViolations(`.os-progress { background: var(--origin-MFG-fg); }`).length).toBe(1);
+  });
+  it('-fg como fill (SVG) é violação', () => {
+    expect(tokenRoleViolations(`.os-bar rect { fill: var(--accent-fg); }`).length).toBe(1);
+  });
+  it('-fg como background-color com fallback é violação', () => {
+    expect(tokenRoleViolations(`.vd-pill { background-color: var(--pos-fg, #fff); }`).length).toBe(1);
+  });
+  it('-bg como color é violação', () => {
+    expect(tokenRoleViolations(`.vd-label { color: var(--surface-bg); }`).length).toBe(1);
+  });
+  it('-bg como stroke é violação', () => {
+    expect(tokenRoleViolations(`.os-ring circle { stroke: var(--card-bg); }`).length).toBe(1);
+  });
+});
+
+describe('token-role guard — ESPECIFICIDADE (papel correto não acusa)', () => {
+  it('-fg em color (papel certo) = 0', () => {
+    expect(tokenRoleViolations(`.vd-kpi { color: var(--accent-fg); }`).length).toBe(0);
+  });
+  it('-bg em background (papel certo) = 0', () => {
+    expect(tokenRoleViolations(`.vd-card { background: var(--card-bg); }`).length).toBe(0);
+  });
+  it('token sem sufixo de papel (--accent/--pos) em qualquer propriedade = 0', () => {
+    expect(tokenRoleViolations(`.vd-btn { background: var(--accent); color: var(--pos); }`).length).toBe(0);
+  });
+  it('definição de token (--x-fg: ...) não é uso — 0', () => {
+    expect(tokenRoleViolations(`:root { --origin-MFG-fg: oklch(0.4 0.1 60); }`).length).toBe(0);
+  });
+});
+
+describe('token-role guard — repo LIMPO (invariante absoluto vale hoje)', () => {
+  it('todos os resources/css/*.css têm 0 inversões de papel', () => {
+    const files = readdirSync('resources/css').filter((n) => n.endsWith('.css'));
+    const hits = files.flatMap((f) => tokenRoleViolations(readFileSync(`resources/css/${f}`, 'utf8'), f));
+    expect(hits).toEqual([]);
   });
 });
