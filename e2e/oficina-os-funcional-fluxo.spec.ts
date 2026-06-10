@@ -62,7 +62,10 @@ test.describe.serial('UC-11 · OS funcional fim-a-fim (caminho da Larissa)', () 
 
     await page.getByLabel(/Defeito \/ Observações/i).fill('E2E UC-11 — barulho no freio dianteiro.');
     await page.getByRole('button', { name: /Criar OS/i }).click();
-    await page.waitForLoadState('networkidle');
+    // Sucesso REAL = redirect pro Show da OS (/ordens-servico/{id}). Sem isso o resto do
+    // fluxo falha longe da causa (lição do run 27273605033: falha silenciosa de submit
+    // só apareceu no drawer, 3 passos depois).
+    await expect(page).toHaveURL(/\/oficina-auto\/ordens-servico\/\d+$/, { timeout: 15_000 });
 
     // ── 3. Achar o card no kanban e abrir o documento vivo (drawer) ────────────
     await page.goto('/oficina-auto/producao-oficina');
