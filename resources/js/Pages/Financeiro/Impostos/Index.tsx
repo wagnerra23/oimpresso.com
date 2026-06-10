@@ -83,11 +83,11 @@ function CardSection({ icon: Icon, title, extra, children }: {
   children: ReactNode;
 }) {
   return (
-    <section className="border border-stone-200 rounded-lg bg-white overflow-hidden">
-      <header className="px-4 h-10 flex items-center gap-2 border-b border-stone-200">
-        <Icon size={13} className="text-stone-400" aria-hidden />
+    <section className="border border-border rounded-lg bg-card overflow-hidden">
+      <header className="px-4 h-10 flex items-center gap-2 border-b border-border">
+        <Icon size={13} className="text-muted-foreground" aria-hidden />
         <b className="text-[12.5px] font-semibold">{title}</b>
-        {extra && <span className="ml-auto text-[11.5px] text-stone-400">{extra}</span>}
+        {extra && <span className="ml-auto text-[11.5px] text-muted-foreground">{extra}</span>}
       </header>
       {children}
     </section>
@@ -113,20 +113,20 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
 
       {/* 3 KPIs — a recolher no mês · próxima obrigação · % receita com NF */}
       <div className="px-6 pt-4 grid grid-cols-3 max-[1100px]:grid-cols-1 gap-3">
-        <div className="border border-stone-200 rounded-lg bg-white px-5 py-4">
-          <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium">A recolher</div>
+        <div className="border border-border rounded-lg bg-card px-5 py-4">
+          <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">A recolher</div>
           <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{brl(kpis.a_recolher.valor)}</div>
-          <div className="mt-2 text-[11.5px] text-stone-500">{kpis.a_recolher.qtd} guia(s) em aberto</div>
+          <div className="mt-2 text-[11.5px] text-muted-foreground">{kpis.a_recolher.qtd} guia(s) em aberto</div>
         </div>
-        <div className="border border-stone-200 rounded-lg bg-white px-5 py-4">
-          <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium">Próxima obrigação</div>
+        <div className="border border-border rounded-lg bg-card px-5 py-4">
+          <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">Próxima obrigação</div>
           <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight tabular-nums">{kpis.proxima ? dataBr(kpis.proxima.vencimento) : '—'}</div>
-          <div className="mt-2 text-[11.5px] text-stone-500 truncate">{kpis.proxima ? kpis.proxima.nome : 'nada em aberto'}</div>
+          <div className="mt-2 text-[11.5px] text-muted-foreground truncate">{kpis.proxima ? kpis.proxima.nome : 'nada em aberto'}</div>
         </div>
-        <div className="border border-stone-200 rounded-lg bg-white px-5 py-4">
-          <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium">Receita com NF</div>
+        <div className="border border-border rounded-lg bg-card px-5 py-4">
+          <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium">Receita com NF</div>
           <div className="mt-1 text-[length:var(--fs-8,28px)] leading-none font-semibold tracking-tight font-mono tabular-nums">{kpis.pct_com_nf}%</div>
-          <div className="mt-2 text-[11.5px] text-stone-500">
+          <div className="mt-2 text-[11.5px] text-muted-foreground">
             {kpis.sem_nf_qtd === 0 ? 'todos os títulos com NF ✓' : `${kpis.sem_nf_qtd} título(s) sem NF vinculada`}
           </div>
         </div>
@@ -137,7 +137,7 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
         <CardSection icon={Receipt} title="Guias do período" extra="estimado + lançadas no caixa (6 meses)">
           <table className="w-full text-[12.5px]">
             <thead>
-              <tr className="text-left text-[10.5px] uppercase tracking-wider text-stone-400">
+              <tr className="text-left text-[10.5px] uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-2 font-medium">Guia</th>
                 <th className="px-2 py-2 font-medium">Competência</th>
                 <th className="px-2 py-2 font-medium">Venc.</th>
@@ -150,12 +150,12 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
               {guias.map((g) => {
                 const st = GUIA_STATUS[g.status];
                 return (
-                  <tr key={g.id} className="border-t border-stone-200">
+                  <tr key={g.id} className="border-t border-border">
                     <td className="px-4 py-2.5">
                       <div className="font-medium">{g.nome}</div>
-                      <div className="text-[11.5px] text-stone-400">{g.det}{g.estimado && ' · estimado'}</div>
+                      <div className="text-[11.5px] text-muted-foreground">{g.det}{g.estimado && ' · estimado'}</div>
                     </td>
-                    <td className="px-2 py-2.5 text-stone-600">{g.competencia_label}</td>
+                    <td className="px-2 py-2.5 text-muted-foreground">{g.competencia_label}</td>
                     <td className="px-2 py-2.5 font-mono tabular-nums">{dataBr(g.vencimento)}</td>
                     <td className="px-2 py-2.5 font-mono tabular-nums text-right">{brl(g.valor)}</td>
                     <td className="px-2 py-2.5">
@@ -163,7 +163,7 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       {g.lanc ? (
-                        <span className="text-[11.5px] text-stone-500 inline-flex items-center gap-1">
+                        <span className="text-[11.5px] text-muted-foreground inline-flex items-center gap-1">
                           <Check size={11} className="text-success-foreground" aria-hidden /> {g.status === 'paga' ? 'paga · ' : 'a pagar · '}
                           <span className="font-mono">{g.lanc}</span>
                         </span>
@@ -172,15 +172,15 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
                           Lançar a pagar
                         </button>
                       ) : (
-                        <span className="text-[11.5px] text-stone-400">—</span>
+                        <span className="text-[11.5px] text-muted-foreground">—</span>
                       )}
                     </td>
                   </tr>
                 );
               })}
               {guias.length === 0 && (
-                <tr className="border-t border-stone-200">
-                  <td colSpan={6} className="px-4 py-6 text-center text-[12.5px] text-stone-500">
+                <tr className="border-t border-border">
+                  <td colSpan={6} className="px-4 py-6 text-center text-[12.5px] text-muted-foreground">
                     Sem guias no período — a guia DAS estimada aparece quando houver receita recebida no mês.
                   </td>
                 </tr>
@@ -195,24 +195,24 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
             <ul className="py-1">
               {calendario.map((g) => (
                 <li key={g.id} className="px-4 py-2 flex items-baseline gap-2.5 text-[12.5px]">
-                  <span className="font-mono text-[11.5px] text-stone-500 shrink-0 w-11 tabular-nums">{dataBr(g.vencimento)}</span>
+                  <span className="font-mono text-[11.5px] text-muted-foreground shrink-0 w-11 tabular-nums">{dataBr(g.vencimento)}</span>
                   <span className="flex-1 truncate">{g.nome}</span>
-                  <span className="font-mono text-[11.5px] text-stone-500 tabular-nums">{brlK(g.valor)}</span>
+                  <span className="font-mono text-[11.5px] text-muted-foreground tabular-nums">{brlK(g.valor)}</span>
                 </li>
               ))}
               {calendario.length === 0 && (
-                <li className="px-4 py-3 text-[12.5px] text-stone-500">Nada em aberto — obrigações pagas em dia ✓</li>
+                <li className="px-4 py-3 text-[12.5px] text-muted-foreground">Nada em aberto — obrigações pagas em dia ✓</li>
               )}
-              <li className="px-4 py-2 flex items-baseline gap-2.5 text-[12.5px] border-t border-stone-200">
-                <span className="font-mono text-[11.5px] text-stone-500 shrink-0 w-11">fim/mês</span>
-                <span className="flex-1 text-stone-500">Fechamento mensal (trilha no Unificado)</span>
+              <li className="px-4 py-2 flex items-baseline gap-2.5 text-[12.5px] border-t border-border">
+                <span className="font-mono text-[11.5px] text-muted-foreground shrink-0 w-11">fim/mês</span>
+                <span className="flex-1 text-muted-foreground">Fechamento mensal (trilha no Unificado)</span>
               </li>
             </ul>
           </CardSection>
 
           <CardSection icon={FileText} title="NF ↔ título">
             {sem_nf.length === 0 ? (
-              <p className="px-4 py-3 text-[12.5px] text-stone-600 leading-relaxed">
+              <p className="px-4 py-3 text-[12.5px] text-muted-foreground leading-relaxed">
                 <Check size={12} className="inline text-success-foreground mr-1" aria-hidden />
                 Todos os recebíveis do período têm NF vinculada — base do DAS consistente.
               </p>
@@ -220,12 +220,12 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
               <ul className="py-1">
                 {sem_nf.map((r) => (
                   <li key={r.id} className="px-4 py-2 text-[12.5px] flex items-baseline gap-2">
-                    <span className="font-mono text-stone-400">{r.numero}</span>
+                    <span className="font-mono text-muted-foreground">{r.numero}</span>
                     <span className="flex-1 truncate">{r.contraparte}</span>
                     <span className="font-mono tabular-nums">{brlK(r.valor)}</span>
                   </li>
                 ))}
-                <li className="px-4 py-2 text-[11.5px] text-stone-500 border-t border-stone-200">
+                <li className="px-4 py-2 text-[11.5px] text-muted-foreground border-t border-border">
                   Sem NF a base do DAS sai distorcida — vincule antes do fechamento.
                 </li>
               </ul>
@@ -235,7 +235,7 @@ function FinanceiroImpostos({ kpis, guias, calendario, sem_nf, receita_recebida,
       </div>
 
       {/* Disclaimer fixo — exigência do pacote F2 (anti-pattern: apresentar estimativa como apuração) */}
-      <p className="px-6 mt-4 pb-6 text-[11.5px] text-stone-400 leading-relaxed">
+      <p className="px-6 mt-4 pb-6 text-[11.5px] text-muted-foreground leading-relaxed">
         Estimativa visual (Simples Nacional · alíquota efetiva ≈ {Math.round(das_rate * 100)}% sobre {brl(receita_recebida)} recebidos no mês, regime caixa) —
         a apuração oficial, o cálculo por anexo e a emissão de guia moram no módulo <b className="font-medium">Fiscal</b>.
       </p>
