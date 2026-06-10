@@ -74,3 +74,19 @@ Simples Nacional (regime caixa) costurada ao caixa unificado — sem fingir ser 
 - ❌ **Apresentar estimativa como apuração** — disclaimer fixo é obrigatório ([W]: "não declarar feito o que é stub").
 - ❌ Confiar em valor vindo do client no lançamento — servidor recalcula.
 - ❌ Inventar guia de folha sem dado real — só DAS é derivado; folha entra via título manual.
+
+---
+
+## Automation Anti-hooks
+
+- ❌ Agente NÃO cria guia/título automaticamente sem clique humano em "Lançar a pagar" (decisão fiscal é humana).
+- ❌ Agente NÃO altera a alíquota ≈6% sem ADR (mudança de regime = decisão [W] + contador).
+- ❌ Agente NÃO remove o disclaimer de estimativa.
+
+---
+
+## Métricas vivas
+
+- Guias DAS lançadas via tela (count títulos com `metadata.guia` like `das-%`) — costura sendo usada?
+- % receita com NF no fechamento do mês — proxy da consistência da base do DAS.
+- Visitas à tela no mês (se telemetria de rota existir) — valida a hipótese "Larissa quer saber quanto paga".
