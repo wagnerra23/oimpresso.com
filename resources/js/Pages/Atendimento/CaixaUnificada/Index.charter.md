@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 7
+charter_version: 8
 permissao: whatsapp.access
 ---
 
@@ -166,8 +166,9 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - ❌ **Wizard de conexão** — `/atendimento/canais/{id}` show + tabs.
 - ❌ **Roteamento automático de filas** (round-robin/sticky/members) —
   `dist`/`members` são persistidos (ADR 0267) mas o roteamento é US futura.
-- ❌ **Broadcast cross-canal** — placeholder; backlog (alta complexidade
-  janela 24h Meta + opt-in LGPD).
+- ❌ **Disparo em massa do broadcast** — fase 2 (ADR 0268): Job rate-limited
+  anti-ban + retry por destinatário, com gate [W]. A fase 1 (pre-flight LGPD +
+  rascunho auditável) está entregue; o botão "Disparar" fica disabled até lá.
 - ❌ **Mídia outbound/inbound** UI — preserva legacy `MediaPreviewCard`
   durante coexistência. PR seguinte unifica.
 
@@ -241,6 +242,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável` | mesmo arquivo |
 
 ---
 
@@ -250,12 +252,13 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 Tabela `whatsapp_queues` (ADR 0267) + QueuesSheet CRUD + seed lazy do config.
 Roteamento automático (dist/members) fica dormente até US futura.
 
-### §2 Broadcast cross-canal (P2)
-Disparar mensagem template (Meta HSM ou Baileys freeform) pra N contatos
-com 1 click. Respeitar janela 24h + opt-in LGPD. Pre-flight: contagem +
-preview + dry-run.
-
-**US sugerida:** US-WA-XXX Broadcast (~6-8h IA-pair).
+### §2 Broadcast cross-canal (P2) — 🟡 FASE 1 ENTREGUE 2026-06-10 (US-WA-306 · ADR 0268)
+Entregue: modelo `whatsapp_broadcasts` + opt-in LGPD (`contacts.whatsapp_opt_in_at`)
++ pre-flight real (total/opt-in/janela 24h/só-HSM) + rascunho auditável
+(snapshot congelado server-side) + BroadcastSheet.
+**Fase 2 (gate [W])**: extrair dispatch do send() pra Service + Job rate-limited
+anti-ban + retry por destinatário + relatório de entrega. Botão "Disparar"
+permanece disabled até lá (anti M-AP-2).
 
 ### §3 Assignee picker (P1) — ✅ ENTREGUE 2026-06-10 (US-WA-302)
 Dropdown no contexto da sidebar pra atribuir conv a operador específico.
@@ -285,6 +288,7 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-306 Broadcast FASE 1** (PR-7/10, scaffold honesto previsto no brief): ADR 0268 + `whatsapp_broadcasts` + `contacts.whatsapp_opt_in_at` (LGPD) + `BroadcastController` pre-flight real (opt-in/janela 24h/só-HSM) + draft auditável + `BroadcastSheet`. Disparo em massa = fase 2 com gate [W] (botão disabled, anti M-AP-2). Charter v8. Pest R-WA-CAIXA-UNIF-011. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-307 + Nova conversa** (PR-6/10): dialog conta ativa + telefone/Contact CRM + mensagem inicial opcional; `InboxController::startConversation` find-or-create Tier 0 (canal ativo do business + ACL US-WA-069; cross/inativo = 403/422) reusando pipeline send(). Charter v7. Pest R-WA-CAIXA-UNIF-010. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-304 Drawer Canais e contas** (PR-5/10): topnav "Canais" deixa de navegar pra página e abre `ChannelsDrawer` (Sheet in-place agrupado por type, contas com status ativo/em-breve + health, link Gerenciar pra `/atendimento/canais`). ZERO backend novo — reusa payloads `availableChannels`/`availableAccounts` (cobertos por R-WA-CAIXA-UNIF-001/002). Charter v6. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-305 Mover entre filas** (PR-4/10): coluna `queue_override` (migration idempotente, slug não-FK de propósito — fila deletada não quebra conversa) + `InboxController::moveQueue` (slug validado contra filas do business, 422 fail-loud) + Popover "mover" na section Fila com badge "manual" e volta pra automática. Charter v5. Pest R-WA-CAIXA-UNIF-009. |
