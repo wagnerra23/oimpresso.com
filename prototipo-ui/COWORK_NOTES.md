@@ -428,3 +428,27 @@ existente inline (kebab ou swipe). Total OS atualiza via refetch.
 
 ### Residual conhecido (não bloqueia)
 - "Observação" vs "Sintoma reportado" — cosmético, campo único no schema.
+
+---
+
+## 2026-06-10 [CL] · PROCESSED PROMPT_PARA_CODE_CAIXA-UNIFICADA-COMPLETA — placar PR-1..10
+
+Mandato [W] "vamos aplicar todas" executado fim-a-fim no dia. Gate §10.4 contra origin/main ANTES de codar mudou 2 PRs: macros backend JA EXISTIA completo (US-WA-048 MacrosController list+apply+variantes → PR-2 reusou, ZERO tabela nova) e o redirect 301 do cutover JA estava no main desde 2026-05-15 (PR-10 virou so charter historical).
+
+| PR | Entrega | Status |
+|---|---|---|
+| sync | 6 prototipos V2 → prototipo-ui/prototipos/caixa-unificada/ (recria path canon do charter) | MERGED #2504 |
+| PR-1 | US-WA-302 assignee picker (PATCH inbox/{id}/assign Tier 0 + availableAssignees) | MERGED #2503 |
+| PR-2 | US-WA-303 composer: TemplatePicker reusado por provider + macros "/" autocomplete (backend US-WA-048 reusado) + variaveis nome/telefone/operador com preview | MERGED #2506 |
+| PR-3 | US-WA-301 filas DB: ADR 0267 + whatsapp_queues + seed lazy do config + QueuesSheet CRUD + heuristica le DB c/ fallback | MERGED #2507 |
+| PR-4 | US-WA-305 queue_override (vence heuristica sem re-tagar; null volta; slug orfao cai no fallback) | MERGED #2509 |
+| PR-5 | US-WA-304 ChannelsDrawer in-place (ZERO backend novo — reusa payloads) | MERGED #2511 |
+| PR-6 | US-WA-307 + Nova conversa (find-or-create REABRE thread; msg inicial reusa pipeline send) | MERGED #2512 |
+| PR-7 | US-WA-306 broadcast FASE 1 (corte previsto no brief): ADR 0268 + whatsapp_broadcasts + contacts.whatsapp_opt_in_at LGPD + pre-flight real + draft auditavel; Disparar=disabled (fase 2 gate [W]) | MERGED #2514 |
+| PR-8 | Polish V2 — 7/8: SLA pill, cheat-sheet "?", lightbox, mobile tabs, favoritos LS, transcript print, modo apresentacao. cmd-K = TODO honesto (palette global PMG-002 ja existe; estender = US cross-modulo) | MERGED #2517 |
+| PR-9 | IA na thread REAL (validacao pre-PR: laravel/ai + Agents Jana existem): InboxAssistAgent + 3 endpoints (summarize/ask/suggest-reply), PiiRedactor antes do provider, dry_run gateia custo | MERGED #2518 |
+| PR-10 | §6 cutover — charter Inbox legacy → deprecated/historical (3 dos 4 itens JA estavam no main) | ABERTO #2513 — GATE [W], NAO mergear sem OK |
+
+Extra (incidente prod ~16:50 BRT, [W] "carregando canais erro 500"): deploy parcial deixou codigo pos-PR-3 sem migrate → queuesAdmin sem guard derrubava o grupo Inertia::defer inteiro. Hotfix #2515 (degrade gracioso, principio duro 8) + #2516 (workflow one-shot debug-caixa-logs.yml read-only). Diagnostico pos-fix: prod trackeia main com migrations aplicadas (whatsapp_queues [176] Ran, tabelas 1/1/1), ZERO production.ERROR no log. LICAO: payload deferred novo SEMPRE nasce com guard (deploy-ordering).
+
+Charter CaixaUnificada/Index.charter.md → v10 (historico PR-a-PR + metricas vivas R-WA-CAIXA-UNIF-001..012). Fase 2 do broadcast (Job rate-limited) e extensao do cmd-K global = proximas US com gate [W].
