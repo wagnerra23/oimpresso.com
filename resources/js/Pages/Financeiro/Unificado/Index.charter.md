@@ -12,13 +12,14 @@ related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (a
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 14
+charter_version: 15
 ---
 
 # Page Charter — /financeiro/unificado
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v15 (2026-06-10):** drawer 3 camadas F2 (ver Goals — hero fixo + lentes + Lente Fiscal).
 > **v14 (2026-06-10):** US-FIN-029 ENTREGUE — header "3 lentes" (ver Goals). Pacote F2 aprovado [W] 2026-06-10 ("aprovado", sessão Cowork).
 > **v10 (2026-05-31):** integrado o feedback de [W] da sessão Cowork (handoff de design) — anti-patterns de densidade do header + direção "3 lentes" registrada como intenção **pendente** (ainda **não** aplicada ao live; ver Backlog US-FIN-029). Origem: charter Cowork `Financeiro.charter.md` v1 (superada por este v10 canônico).
 
@@ -33,6 +34,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ## Goals — Features (faz)
 
 - **Header "3 lentes" (US-FIN-029)** (2026-06-10, charter v14, direção [W] 2026-05-31 aprovada / F2 [W] 2026-06-10): segmented **Caixa · A receber · A pagar** no header (pattern pill do Fluxo) é a **camada 1** do filtro grosso — `?lente=caixa|receber|pagar`, clamp default `caixa`, deep-link funciona. Chips lifecycle **refinam DENTRO da lente**; chip incompatível com a lente não renderiza. **KPI-click seta a lente** correspondente (drill-down ADR ui/0002 preservado: "Recebido"→lente receber+chip re, "A pagar"→lente pagar+chip ap, hero→caixa+ar/ap). Backend: `parseFilters()['lente']` + interseção lifecycle∩lente (interseção vazia = lente inteira, defense-in-depth). O menu `···` e o topnav compartilhado **já estavam entregues** via `FinanceiroSubNav` (`_shared/`, ADR 0180 Fase 5, PR #1365) — gatilho US-FIN-TOPNAV-COMPONENT já satisfeito antes desta US. MWART: `memory/requisitos/Financeiro/unificado-3-lentes-visual-comparison.md`. Cobertura `UnificadoLentesGuardTest` (clamp · lente→estados · inválida→caixa · Tier 0 · GET sem mutação).
+
+- **Drawer 3 camadas (F2 PR-3)** (2026-06-10, charter v15, padrão F2-aprovado [W] 2026-06-10): hero do título virou **Camada 1 fixa fora do scroll** (header → hero → tabs → corpo) — label de estado uppercase (destructive se atrasado) · valor mono tabular grande com prefixo/centavos pequenos · chip + vencimento com urgência em palavras à direita · **FSM compacto** 4 etapas (Lançado→Conferido→Conciliado→Liquidado). Seções viram **lentes** (ícone primary/10 + título + chip de status): Conciliação (conciliada = box discreto bg muted + check, não banda verde) e **Lente Fiscal** nova (ISS retido 5% · No DAS do mês ≈6%, estimativa Simples Nacional + link pra sub-tela Impostos & obrigações). KV empilhado do grid 2-col (Onda 18) validado e mantido. 2 `white` crus do bundle tokenizados (`--accent-fg`). Referência F1: `financeiro-page.jsx` Drawer do protótipo Cowork.
 
 - **Diálogo de baixa + coluna Conta** (2026-06-03, charter v12, pedido [W]): o botão **Recebi/Paguei** agora abre **`FinBaixaSheet`** pra escolher **valor** (suporta baixa **parcial**), **conta bancária** de destino, **forma de pagamento** e **plano de contas** — antes era baixa instantânea (1ª conta, valor cheio, meio fixo). Backend `baixar()` aceita os campos (valida `conta_bancaria_id` no business — anti cross-tenant — e enum do meio) com defaults legacy preservados (body vazio = baixa rápida; espaço/bulk seguem instantâneos). Nova **coluna "Conta"** na tabela. `shapeTitulo` expõe `valor_aberto`. Cobertura `UnificadoBaixaDialogGuardTest` (5 GUARDs: valor_aberto, escolhas, parcial, cross-tenant, legacy).
 
