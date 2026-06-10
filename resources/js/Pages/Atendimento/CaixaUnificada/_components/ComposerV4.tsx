@@ -505,7 +505,9 @@ export default function ComposerV4({
               return v ? (
                 <span
                   key={i}
-                  className="inline-block px-1.5 rounded-full bg-emerald-100 text-emerald-900 font-medium"
+                  className="inline-block px-1.5 rounded-full font-medium"
+                  // Verde-pastel WA — mesmo par OKLCH das bubbles outbound do V4
+                  style={{ background: 'oklch(0.93 0.06 145)', color: 'oklch(0.25 0.10 145)' }}
                   title={part}
                 >
                   {v}
