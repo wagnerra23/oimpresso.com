@@ -11,7 +11,7 @@
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCheck, ClipboardCheck, FileDown, Presentation } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCheck, FileDown, Presentation, Sparkles } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifMessage,
@@ -23,6 +23,7 @@ import {
   slaState,
 } from './helpers';
 import ComposerV4 from './ComposerV4';
+import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
 import InboxPresenterMode from './InboxPresenterMode';
 import InboxTranscriptDialog from './InboxTranscriptDialog';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
@@ -77,6 +78,9 @@ export default function ConversationThreadV4({
   // Polish V2 §7/§8 — transcript print-friendly + modo apresentação
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [presenterOpen, setPresenterOpen] = useState(false);
+
+  // PR-9 — IA na thread (Resumir / Perguntar)
+  const [aiMode, setAiMode] = useState<InboxAiMode | null>(null);
 
   // Polish V2 §1 — SLA no header (direção da última msg não-nota vem das messages)
   const lastRealMsg = useMemo(
@@ -179,14 +183,33 @@ export default function ConversationThreadV4({
             SLA
           </span>
         )}
-        {/* Polish V2 §7/§8 — transcript print + modo apresentação */}
+        {/* PR-9 — IA: Resumir / Perguntar (laravel/ai server-side, PII redigida) */}
         <button
           type="button"
-          onClick={() => setTranscriptOpen(true)}
+          onClick={() => setAiMode('summarize')}
           className={cn(
             'inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0',
             headerSla === null && 'ml-auto',
           )}
+          title="Resumir conversa com IA"
+          data-testid="caixa-unif-thread-ai-summarize"
+        >
+          <Sparkles size={12} aria-hidden /> Resumir
+        </button>
+        <button
+          type="button"
+          onClick={() => setAiMode('ask')}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
+          title="Perguntar sobre a conversa (IA responde só com o transcript)"
+          data-testid="caixa-unif-thread-ai-ask"
+        >
+          Perguntar
+        </button>
+        {/* Polish V2 §7/§8 — transcript print + modo apresentação */}
+        <button
+          type="button"
+          onClick={() => setTranscriptOpen(true)}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
           title="Transcript imprimível / PDF"
           data-testid="caixa-unif-thread-transcript"
         >
@@ -463,6 +486,16 @@ export default function ConversationThreadV4({
         thread={thread}
         messages={messages}
       />
+
+      {/* PR-9 — IA Resumir/Perguntar */}
+      {aiMode !== null && (
+        <InboxAiDialog
+          open={aiMode !== null}
+          onOpenChange={(o) => { if (!o) setAiMode(null); }}
+          mode={aiMode}
+          conversationId={thread.id}
+        />
+      )}
 
       {/* Composer */}
       <ComposerV4
