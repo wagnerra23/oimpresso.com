@@ -255,3 +255,35 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
     expect($print->json('success'))->toBe(1);
     expect($print->json('receipt.html_content'))->not->toBeEmpty();
 })->afterEach(fn () => fioCleanup());
+
+it('OS nova de manutenção roteia pra cacamba_manutencao — JAMAIS pro pipeline de locação', function () {
+    session(['user.business_id' => BIZ_FIO]);
+    (new OficinaAutoFsmSeeder())->runForBusiness(BIZ_FIO);
+
+    $user = fioUsuarioSemRoles();
+    $this->actingAs($user);
+
+    $vehicle = Vehicle::withoutGlobalScopes()->create([
+        'business_id'  => BIZ_FIO,
+        'plate'        => PLATE_FIO . random_int(10, 99),
+        'vehicle_type' => 'caminhao',
+    ]);
+
+    $this->post('/oficina-auto/ordens-servico', [
+        'vehicle_id' => $vehicle->id,
+        'order_type' => 'manutencao',
+        'status'     => 'aberta',
+    ])->assertSessionHasNoErrors();
+
+    $order = ServiceOrder::withoutGlobalScopes()
+        ->where('vehicle_id', $vehicle->id)
+        ->latest('id')
+        ->firstOrFail();
+
+    // Mapa ORDER_TYPE_TO_PROCESS sem 'locacao' (ADR 0265): manutenção cai no
+    // processo de manutenção (stage inicial 'aberta'), nunca em cacamba_locacao.
+    $actions = $this->getJson("/oficina-auto/service-orders/{$order->id}/fsm/actions");
+    $actions->assertOk();
+    $actions->assertJsonPath('process_key', 'cacamba_manutencao');
+    $actions->assertJsonPath('current_stage.key', 'aberta');
+})->afterEach(fn () => fioCleanup());

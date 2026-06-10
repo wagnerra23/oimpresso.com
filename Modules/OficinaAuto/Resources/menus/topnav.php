@@ -19,7 +19,7 @@ return [
     'label' => 'Oficina Auto',
     'icon'  => 'Wrench',
     'items' => [
-        ['label' => 'Produção · Oficina', 'href' => '/oficina-auto/producao-oficina', 'icon' => 'KanbanSquare'],
+        ['label' => 'Quadro de OS',        'href' => '/oficina-auto/ordens-servico/board', 'icon' => 'KanbanSquare'],
         ['label' => 'Veículos',            'href' => '/oficina-auto/veiculos',         'icon' => 'Truck'],
         ['label' => 'Ordens de Serviço',  'href' => '/oficina-auto/ordens-servico',   'icon' => 'ClipboardList'],
     ],
