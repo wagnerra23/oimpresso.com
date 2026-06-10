@@ -104,6 +104,17 @@ class Conversation extends Model
         return $this->belongsTo(Channel::class);
     }
 
+    /**
+     * Operador atribuído à conversa (US-WA-302 — assignee picker).
+     *
+     * Tier 0 ADR 0093: assignment cross-tenant é bloqueado no
+     * InboxController::assign (target user precisa ser do mesmo business).
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'assigned_user_id');
+    }
+
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class)->orderBy('created_at');

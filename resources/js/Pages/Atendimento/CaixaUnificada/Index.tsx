@@ -47,6 +47,7 @@ import ConversationThreadV4 from './_components/ConversationThreadV4';
 import ContextSidebarV4 from './_components/ContextSidebarV4';
 import type {
   AccountItem,
+  AssigneeItem,
   CaixaUnifConversation,
   CaixaUnifMessage,
   CaixaUnifStats,
@@ -66,6 +67,8 @@ interface Props {
   availableChannels?: ChannelCatalogItem[];
   availableAccounts?: AccountItem[];
   availableTags?: { id: number; slug: string; label: string; color: string }[];
+  /** US-WA-302 — operadores atribuíveis (assignee picker da sidebar). */
+  availableAssignees?: AssigneeItem[];
 
   businessId: number;
   /**
@@ -92,7 +95,7 @@ interface Props {
 }
 
 export default function CaixaUnificadaIndex({
-  conversations, stats, availableChannels, availableAccounts, availableTags,
+  conversations, stats, availableChannels, availableAccounts, availableTags, availableAssignees,
   businessId: _businessId,
   statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
   thread, messages, centrifugoConfig,
@@ -462,6 +465,7 @@ export default function CaixaUnificadaIndex({
               channels={availableChannels ?? []}
               queues={queues}
               availableTags={availableTags ?? []}
+              availableAssignees={availableAssignees ?? []}
             />
           </Deferred>
         )}

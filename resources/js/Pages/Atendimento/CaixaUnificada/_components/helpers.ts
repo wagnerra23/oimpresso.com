@@ -82,6 +82,16 @@ export interface ConvTag {
   color: string;
 }
 
+/**
+ * US-WA-302 — operador atribuível (assignee picker da sidebar).
+ * Payload `availableAssignees` do CaixaUnificadaController (Tier 0 — só
+ * users do business atual com acesso whatsapp).
+ */
+export interface AssigneeItem {
+  id: number;
+  name: string;
+}
+
 export interface CaixaUnifConversation {
   id: number;
   channel_id: number | null;
@@ -114,6 +124,9 @@ export interface CaixaUnifThread {
   contact_name: string;
   status: string;
   is_blocked: boolean;
+  /** US-WA-302 — assignee picker (null = sem atribuição) */
+  assigned_user_id: number | null;
+  assigned_user_name: string | null;
   last_inbound_at: string | null;
   last_message_at: string | null;
   created_at: string | null;

@@ -18,7 +18,7 @@
 
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Ban, Check, Link as LinkIcon, Plus, UserPlus } from 'lucide-react';
+import { Ban, Check, Link as LinkIcon, Plus, UserMinus, UserPlus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -27,12 +27,13 @@ import {
 import ContactPickerModal from '@/Pages/Whatsapp/_components/ContactPickerModal';
 import CustomerMemoryBlock from '@/Pages/Whatsapp/_components/CustomerMemoryBlock';
 import type {
+  AssigneeItem,
   CaixaUnifThread,
   ChannelCatalogItem,
   ConvTag,
   QueueConfig,
 } from './helpers';
-import { relativeTimeBR } from './helpers';
+import { avatarHue, initials, relativeTimeBR } from './helpers';
 
 interface Props {
   thread: CaixaUnifThread;
@@ -43,14 +44,34 @@ interface Props {
    * pro editor inline. Default [] quando deferred ainda não resolveu.
    */
   availableTags?: ConvTag[];
+  /**
+   * US-WA-302 — operadores atribuíveis (assignee picker section 2).
+   * Default [] enquanto deferred não resolveu.
+   */
+  availableAssignees?: AssigneeItem[];
 }
 
-export default function ContextSidebarV4({ thread, channels, queues, availableTags = [] }: Props) {
+export default function ContextSidebarV4({ thread, channels, queues, availableTags = [], availableAssignees = [] }: Props) {
   const channel = channels.find(c => c.id === thread.channel_type);
   const queueCfg = queues[thread.queue.slug] ?? null;
   const isPreview = thread.preview_only;
   const activeTagIds = new Set(thread.tags.map(t => t.id));
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  // US-WA-302 — atribuir/remover operador (PATCH /atendimento/inbox/{id}/assign)
+  const [assignPopOpen, setAssignPopOpen] = useState(false);
+  function assignTo(assigneeId: number | null) {
+    router.patch(
+      route('atendimento.inbox.assign', thread.id),
+      { assigned_user_id: assigneeId },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'conversations', 'stats'],
+        onSuccess: () => setAssignPopOpen(false),
+      },
+    );
+  }
 
   // Wave 3 F1 — toggle tag (PATCH /atendimento/inbox/{id}/tags)
   function toggleTag(tagId: number) {
@@ -145,15 +166,89 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           )}
         </div>
 
-        {/* 2. Atribuído — placeholder */}
-        <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
-            Atribuído
-          </small>
-          <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-assignee">
-            — sem atribuição
-          </b>
-          {/* TODO US-WA-XXX: assignee picker (select operators) */}
+        {/* 2. Atribuído — US-WA-302 assignee picker (Popover, mesmo pattern do editor de tags) */}
+        <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1">
+          <div className="flex items-center justify-between">
+            <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
+              Atribuído
+            </small>
+            <Popover open={assignPopOpen} onOpenChange={setAssignPopOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  title="Atribuir conversa a um operador"
+                  data-testid="caixa-unif-ctx-assignee-edit"
+                >
+                  <Plus size={11} aria-hidden /> {thread.assigned_user_id ? 'trocar' : 'atribuir'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60 p-1.5">
+                <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
+                  Operadores do business
+                </div>
+                {availableAssignees.length === 0 ? (
+                  <div className="px-2 py-2 text-[11px] text-muted-foreground italic">
+                    Nenhum operador com acesso ao atendimento
+                  </div>
+                ) : (
+                  <ul className="max-h-64 overflow-auto">
+                    {availableAssignees.map(a => {
+                      const active = thread.assigned_user_id === a.id;
+                      return (
+                        <li key={a.id}>
+                          <button
+                            type="button"
+                            onClick={() => assignTo(active ? null : a.id)}
+                            data-testid={`caixa-unif-ctx-assignee-pick-${a.id}`}
+                            className="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
+                          >
+                            <span className="inline-flex items-center gap-1.5 min-w-0">
+                              <span
+                                className="inline-grid place-items-center w-5 h-5 rounded-full text-white text-[8.5px] font-bold flex-shrink-0"
+                                style={{ background: `oklch(0.60 0.12 ${avatarHue(a.name)})` }}
+                                aria-hidden
+                              >
+                                {initials(a.name)}
+                              </span>
+                              <span className="truncate">{a.name}</span>
+                            </span>
+                            {active && <Check size={13} className="text-primary flex-shrink-0" aria-label="Atribuído" />}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {thread.assigned_user_id !== null && (
+                  <button
+                    type="button"
+                    onClick={() => assignTo(null)}
+                    data-testid="caixa-unif-ctx-assignee-remove"
+                    className="w-full mt-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10.5px] text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded transition-colors"
+                  >
+                    <UserMinus size={11} aria-hidden /> Remover atribuição
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+          {thread.assigned_user_name ? (
+            <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium" data-testid="caixa-unif-ctx-assignee">
+              <span
+                className="inline-grid place-items-center w-5 h-5 rounded-full text-white text-[8.5px] font-bold flex-shrink-0"
+                style={{ background: `oklch(0.60 0.12 ${avatarHue(thread.assigned_user_name)})` }}
+                aria-hidden
+              >
+                {initials(thread.assigned_user_name)}
+              </span>
+              {thread.assigned_user_name}
+            </b>
+          ) : (
+            <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-assignee">
+              — sem atribuição
+            </b>
+          )}
         </div>
 
         {/* 3. Canal · Conta */}
