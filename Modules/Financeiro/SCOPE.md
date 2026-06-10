@@ -21,6 +21,7 @@ contains:
   - "ExtratoController"
   - "FinanceiroController"
   - "FluxoController"
+  - "ImpostosController — F2 PR-2 2026-06-10 tela /financeiro/impostos (DAS estimado ≈6% regime caixa + guias lançadas + calendário + NF↔título; Lançar a pagar cria título payable idempotente; estimativa visual — apuração oficial no módulo Fiscal)"
   - "InstallController"
   - "PlanoContaController — Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
   - "ProvaVivaController — tela-piloto /financeiro/prova-viva, read-only sem query de negócio (prova viva dos primitivos de layout ADR 0253; dados mock no .tsx, não substitui Unificado)"
