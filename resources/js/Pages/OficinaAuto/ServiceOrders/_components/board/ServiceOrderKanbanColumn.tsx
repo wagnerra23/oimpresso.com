@@ -28,11 +28,16 @@ interface Props {
   focusedId?: number | null;
   /** desliga o drag dos cards (foco Box/Mecânico — colunas não são etapas FSM) */
   dragDisabled?: boolean;
+  /** rótulo da ação primária dos cards desta etapa (botão inline — paridade Cowork) */
+  primaryActionLabel?: string | null;
+  /** dispara a ação primária de um card (Board abre confirm FSM ou drawer) */
+  onCardAction?: (card: ServiceOrderCardData) => void;
   onCardClick: (card: ServiceOrderCardData) => void;
 }
 
-function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, capacity, density = 'padrao', focusedId, dragDisabled = false, onCardClick }: Props) {
+function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, capacity, density = 'padrao', focusedId, dragDisabled = false, primaryActionLabel = null, onCardAction, onCardClick }: Props) {
   const handleClick = useCallback((c: ServiceOrderCardData) => onCardClick(c), [onCardClick]);
+  const handleAction = useCallback((c: ServiceOrderCardData) => onCardAction?.(c), [onCardAction]);
 
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${stageKey}`,
@@ -92,6 +97,8 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
               density={density}
               focused={focusedId === c.id}
               dragDisabled={dragDisabled}
+              primaryActionLabel={primaryActionLabel}
+              onPrimaryAction={handleAction}
               onClick={handleClick}
             />
           ))
