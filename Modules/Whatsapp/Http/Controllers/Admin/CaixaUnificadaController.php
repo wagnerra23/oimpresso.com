@@ -15,6 +15,7 @@ use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
+use Modules\Whatsapp\Entities\WhatsappTemplate;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 
 /**
@@ -144,6 +145,7 @@ class CaixaUnificadaController extends Controller
             'availableAccounts' => Inertia::defer(fn () => $this->buildAvailableAccountsPayload($businessId, $userId)),
             'availableTags' => Inertia::defer(fn () => $this->buildAvailableTagsPayload($businessId)),
             'availableAssignees' => Inertia::defer(fn () => $this->buildAvailableAssigneesPayload($businessId)),
+            'availableTemplates' => Inertia::defer(fn () => $this->buildAvailableTemplatesPayload($businessId)),
 
             // ─── Eager: estados de UI leves ───
             'businessId' => $businessId,
@@ -460,6 +462,35 @@ class CaixaUnificadaController extends Controller
                 'label' => $t->label,
                 'color' => $t->color,
             ])->all();
+    }
+
+    /**
+     * US-WA-303 — templates prontos pra envio (picker ⌘T do composer).
+     *
+     * Shape espelha `ReadyTemplate` do frontend legacy (TemplatePicker reusado).
+     * Só status ready (`LOCAL` Z-API/Baileys + `APPROVED` Meta) — picker filtra
+     * por provider do canal da thread no client. Tier 0 ADR 0093: business atual.
+     *
+     * @return array<int, array{id: int, name: string, language: string, category: string, provider: string, status: string, body: string}>
+     */
+    protected function buildAvailableTemplatesPayload(int $businessId): array
+    {
+        return WhatsappTemplate::query()
+            ->where('business_id', $businessId)
+            ->whereIn('status', ['LOCAL', 'APPROVED'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (WhatsappTemplate $t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'language' => $t->language,
+                'category' => $t->category,
+                'provider' => $t->provider,
+                'status' => $t->status,
+                // Body cru com placeholders {{1}}/{{nome}} — picker expande no preview
+                'body' => $t->expandBody([]),
+            ])
+            ->all();
     }
 
     /**

@@ -69,6 +69,8 @@ interface Props {
   availableTags?: { id: number; slug: string; label: string; color: string }[];
   /** US-WA-302 — operadores atribuíveis (assignee picker da sidebar). */
   availableAssignees?: AssigneeItem[];
+  /** US-WA-303 — templates ready do business (picker ⌘T do composer). */
+  availableTemplates?: import('@/Pages/Whatsapp/_components/helpers').ReadyTemplate[];
 
   businessId: number;
   /**
@@ -95,7 +97,7 @@ interface Props {
 }
 
 export default function CaixaUnificadaIndex({
-  conversations, stats, availableChannels, availableAccounts, availableTags, availableAssignees,
+  conversations, stats, availableChannels, availableAccounts, availableTags, availableAssignees, availableTemplates,
   businessId: _businessId,
   statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
   thread, messages, centrifugoConfig,
@@ -440,6 +442,7 @@ export default function CaixaUnificadaIndex({
               messages={messages}
               channels={availableChannels ?? []}
               onResolve={resolveThread}
+              templates={availableTemplates ?? []}
             />
           ) : (
             <div className="h-full flex items-center justify-center bg-muted/15">
