@@ -122,6 +122,11 @@ jobs:
           php artisan migrate --force
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          # FSM da Oficina (oficina_mecanica_os) é per-business e o biz=1 nasce SÓ no
+          # VisregTenantSeeder (acima) — sem este re-run, /fsm/start-pipeline responde 422
+          # "Processo não cadastrado" e o UC-11 trava no gate (run 27275766546). Seeder
+          # idempotente (firstOrCreate) — roda por último, cobre o tenant recém-criado.
+          php artisan db:seed --class=Modules\\OficinaAuto\\Database\\Seeders\\OficinaAutoFsmSeeder --force
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
 
