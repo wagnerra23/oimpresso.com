@@ -828,7 +828,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
        warm hue 90 espelha `.cockpit` /sells canon Cowork. Cria afinidade visual com cards
        brancos (mesma família temperatura) sem competir com filtros coloridos.
        Token `--color-page-cream` definido em resources/css/inertia.css @theme block. */
-    <div className="-m-6 bg-page-cream min-h-[calc(100vh-3rem)] py-4">
+    <div className="flex-1 bg-page-cream py-4">
      {/* Fluid layout — Wagner 2026-05-25: tabela contatos usa 100% da largura disponível
          (pattern Linear/Notion/Stripe Dashboard em listas). `w-full px-6` (24px respiro
          lateral) + `py-4` (16px respiro topo+rodapé) — Wagner pediu "respiro nas laterais

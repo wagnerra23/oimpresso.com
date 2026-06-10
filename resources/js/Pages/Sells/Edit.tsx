@@ -451,7 +451,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
     <>
       <Head title={`Editar venda #${headline.invoice_no}`} />
 
-      <div className="sells-cowork-edit -m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
+      <div className="sells-cowork-edit flex-1 bg-muted/30 flex flex-col">
         {/* Header sticky no topo + filter pills (KB-9.75 paridade Create pattern) */}
         <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="container mx-auto px-8 pt-6 pb-3 max-w-7xl">
