@@ -219,7 +219,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
   return (
     <>
       <Head title="Veículos · Oficina Auto" />
-      <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
+      <div className="flex-1 bg-muted/30">
         {/* Header — Cockpit V2 canon (h1 + subtitle + KPIs + filter pills) */}
         <div className="border-b border-border bg-background">
           <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">

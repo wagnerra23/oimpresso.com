@@ -96,7 +96,7 @@ export default function ClienteLedger(props: ClienteLedgerPageProps) {
   };
 
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
+    <div className="flex-1 bg-muted/30">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
           <div className="flex items-center gap-3 mb-2">
