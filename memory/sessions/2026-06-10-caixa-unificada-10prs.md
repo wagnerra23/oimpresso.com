@@ -1,8 +1,7 @@
 ---
 date: "2026-06-10"
-autor: claude-code
-tipo: session
-modulo: whatsapp
+topic: "Caixa Unificada completa — 9 PRs merged + PR-10 gate W + incidente 500 resolvido (brief CC, mandato aplicar todas)"
+authors: [W, C]
 tags: [caixa-unificada, atendimento, brief-cowork, mandato-aplicar-todas, incidente-prod]
 ---
 
