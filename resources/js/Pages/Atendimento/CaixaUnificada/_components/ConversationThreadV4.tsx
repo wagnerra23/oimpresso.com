@@ -23,16 +23,19 @@ import {
 } from './helpers';
 import ComposerV4 from './ComposerV4';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
+import type { ReadyTemplate } from '@/Pages/Whatsapp/_components/helpers';
 
 interface Props {
   thread: CaixaUnifThread;
   messages: CaixaUnifMessage[];
   channels: ChannelCatalogItem[];
   onResolve?: () => void;
+  /** US-WA-303 — templates ready do business (picker do composer). */
+  templates?: ReadyTemplate[];
 }
 
 export default function ConversationThreadV4({
-  thread, messages, channels, onResolve,
+  thread, messages, channels, onResolve, templates = [],
 }: Props) {
   const threadRef = useRef<HTMLDivElement>(null);
 
@@ -374,6 +377,9 @@ export default function ConversationThreadV4({
         channelShort={channel?.short ?? thread.channel_label ?? 'Canal'}
         channelLabel={thread.channel_label ?? ''}
         channelType={thread.channel_type}
+        templates={templates}
+        contactName={thread.contact_name}
+        contactPhone={thread.customer_external_id}
       />
     </div>
   );

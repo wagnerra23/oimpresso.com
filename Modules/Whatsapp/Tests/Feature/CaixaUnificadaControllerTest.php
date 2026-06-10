@@ -32,9 +32,25 @@ uses(Tests\TestCase::class);
  * NUNCA usar biz=4 (ROTA LIVRE cliente real) em tests — ADR 0101.
  */
 beforeEach(function () {
-    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users'] as $t) {
+    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // US-WA-303 — templates ready pro picker ⌘T (espelho da migration 2026_05_07_000004)
+    Schema::create('whatsapp_templates', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->string('provider', 20)->default('zapi');
+        $table->string('meta_template_id', 64)->nullable();
+        $table->string('name', 64);
+        $table->string('language', 10)->default('pt_BR');
+        $table->string('category', 20);
+        $table->string('status', 20);
+        $table->json('components');
+        $table->string('rejection_reason', 255)->nullable();
+        $table->timestamp('last_synced_at')->nullable();
+        $table->timestamps();
+    });
 
     // US-WA-302 — users mínima pro payload availableAssignees + endpoint assign
     // (pattern BackfillChannelAccessCommandTest + colunas de nome do App\User).
@@ -428,4 +444,49 @@ it('R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tena
     // Remove atribuição (null)
     $inbox->assign(cuctPatchRequest("/atendimento/inbox/{$conv->id}/assign", ['assigned_user_id' => null]), $conv->id);
     expect($conv->fresh()->assigned_user_id)->toBeNull();
+});
+
+// ============================================================================
+// 5. US-WA-303 — availableTemplates: só ready (LOCAL/APPROVED) + Tier 0
+// ============================================================================
+
+function cuctMakeTemplate(int $businessId, string $name, string $provider, string $status, string $body = 'Olá {{nome}}!'): void
+{
+    \Illuminate\Support\Facades\DB::table('whatsapp_templates')->insert([
+        'business_id' => $businessId,
+        'provider' => $provider,
+        'name' => $name,
+        'language' => 'pt_BR',
+        'category' => 'UTILITY',
+        'status' => $status,
+        'components' => json_encode([['type' => 'BODY', 'text' => $body]]),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+it('R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-006-uuid');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    cuctMakeTemplate(1, 'boas_vindas', 'baileys', 'LOCAL', 'Olá {{nome}}, bem-vindo!');
+    cuctMakeTemplate(1, 'cobranca_hsm', 'meta_cloud', 'APPROVED');
+    cuctMakeTemplate(1, 'pendente_meta', 'meta_cloud', 'PENDING');   // não-ready → fora
+    cuctMakeTemplate(1, 'rejeitado', 'meta_cloud', 'REJECTED');      // não-ready → fora
+    cuctMakeTemplate(99, 'intruso_tpl', 'baileys', 'LOCAL');         // cross-tenant → fora
+
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    $templates = cuctResolveDefer($props['availableTemplates']);
+
+    $names = collect($templates)->pluck('name')->all();
+    expect($names)->toContain('boas_vindas', 'cobranca_hsm')
+        ->and($names)->not->toContain('pendente_meta')
+        ->and($names)->not->toContain('rejeitado')
+        ->and($names)->not->toContain('intruso_tpl'); // Tier 0 ADR 0093
+
+    // Shape ReadyTemplate do frontend: body cru com placeholders preservados
+    $bv = collect($templates)->firstWhere('name', 'boas_vindas');
+    expect($bv['body'])->toBe('Olá {{nome}}, bem-vindo!')
+        ->and($bv['provider'])->toBe('baileys')
+        ->and($bv['status'])->toBe('LOCAL');
 });

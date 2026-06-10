@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 2
+charter_version: 3
 permissao: whatsapp.access
 ---
 
@@ -81,7 +81,19 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 
 ### Composer
 - **Toggle Resp/Nota** inline (⌘⇧N) — replica `internalMode` do Cowork.
-- **Botões placeholder** ⌘T (Templates) e `/` (Macros) — TODOs honestos.
+- **Templates** (US-WA-303, 2026-06-10): botão abre `TemplatePicker` legacy
+  reusado, filtrado por provider do canal da thread (baileys/zapi/meta_cloud).
+  Envia `kind=template` via `atendimento.inbox.send`. Payload deferred
+  `availableTemplates` (só LOCAL/APPROVED, Tier 0).
+- **Macros `/`** (US-WA-303): dropdown lazy via `atendimento.macros.list`
+  (US-WA-048 backend reusado — NÃO cria tabela nova) + autocomplete inline
+  digitando `/` no input (Enter aplica a 1ª; Esc dispensa). Apply via
+  `atendimento.inbox.apply_macro` (MacroExecutor envia msg + aplica ações).
+- **Variáveis `{{}}`** (US-WA-303): botão `{}` insere `{{nome}}`/`{{telefone}}`/
+  `{{operador}}`; preview resolvido acima do input (verde=ok, vermelho=sem
+  valor → literal); substituição no send (nota interna fica literal).
+  TODO honesto: `{{empresa}}`/`{{os}}`/`{{saldo}}` esperam integrações
+  Repair/Financeiro das sections 5-6 da sidebar.
 - **Enviar/Anotar** verde-primary ou amarelo-nota.
 - **Disabled** quando preview (modo cliente) ou contato bloqueado.
 
@@ -140,10 +152,6 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - ❌ **Broadcast cross-canal** — placeholder; backlog (alta complexidade
   janela 24h Meta + opt-in LGPD).
 - ❌ **Mover conversa entre filas** — só leitura (fila vem de heurística).
-- ❌ **Templates picker no composer** — placeholder; reusar
-  `TemplatePicker` do legacy em PR seguinte.
-- ❌ **Macros / slash commands** no composer — placeholder; reusar dropdown
-  `/macros` do legacy em PR seguinte.
 - ❌ **Mídia outbound/inbound** UI — preserva legacy `MediaPreviewCard`
   durante coexistência. PR seguinte unifica.
 
@@ -212,6 +220,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-003 — user sem ACL no canal NÃO vê convs daquele canal` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)` | mesmo arquivo |
 
 ---
 
@@ -265,5 +274,6 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-303 Composer completo** (PR-2/10): Templates via `TemplatePicker` legacy filtrado por provider do canal + payload `availableTemplates` (LOCAL/APPROVED) · Macros dropdown + autocomplete `/` inline reusando backend US-WA-048 (`macros.list` + `apply_macro`) · Variáveis `{{nome}}`/`{{telefone}}`/`{{operador}}` com botão `{}`, preview verde/vermelho e substituição no send. Charter v3. Pest R-WA-CAIXA-UNIF-006. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas" — brief [CC] Caixa Unificada completa) | **US-WA-302 Assignee picker** (PR-1/10): section 2 da sidebar vira picker real (Popover operadores + avatar hue + remover atribuição). Backend: PATCH `atendimento.inbox.assign` (InboxController::assign, Tier 0 cross-tenant 422) + prop deferred `availableAssignees` + relação `Conversation::assignedUser`. Charter v2. Pest R-WA-CAIXA-UNIF-004/005. |
 | 2026-05-15 | Wagner + Opus 4.7 | Adicionado `<CustomerMemoryBlock>` (US-WA-VOZ-001/002/003 — PR #919) no topo do `ContextSidebarV4`. Lazy fetch `GET /atendimento/customer/{ext}/profile`. Mostra identidade Contact CRM, stats agregados, top 3 reclamações 30d com severity, external_sources Firebird, flags VIP/frágil, LGPD. Mesmo componente usado pelo Inbox legacy (`ConversationSidebar.tsx`) — atendente vê Customer 360 em qualquer tela durante cutover. |
