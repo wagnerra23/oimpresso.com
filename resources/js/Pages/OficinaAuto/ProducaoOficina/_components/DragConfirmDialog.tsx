@@ -40,7 +40,7 @@ export interface PendingTransition {
   cliente_nome?: string | null;
   valor_receber?: number | null;
   dias_locacao?: number | null;
-  /** Rótulo do campo da placa (default 'Caçamba'; carro usa 'Veículo'). 2026-06-02 */
+  /** Rótulo do campo da placa (default 'Veículo' — vocabulário reparo, ADR 0265). */
   subjectLabel?: string;
 }
 
@@ -90,7 +90,7 @@ export default function DragConfirmDialog({
           <div className="rounded-md border border-border bg-muted px-3 py-2.5 text-xs text-foreground space-y-1">
             {pending.plate ? (
               <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">{pending.subjectLabel ?? 'Caçamba'}</span>
+                <span className="text-muted-foreground">{pending.subjectLabel ?? 'Veículo'}</span>
                 <span className="font-mono font-medium text-foreground">
                   {pending.plate}
                 </span>
