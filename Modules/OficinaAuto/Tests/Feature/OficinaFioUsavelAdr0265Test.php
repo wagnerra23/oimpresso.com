@@ -93,6 +93,10 @@ function fioUsuarioSemRoles(): User
         'language'    => 'pt_BR',
     ]);
 
+    // CheckUserLogin (rota /oficina-auto/*) exige user_type='user' + allow_login=1 —
+    // sem isso o POST do fio morre em 403 silencioso antes do controller.
+    $user->forceFill(['user_type' => 'user', 'allow_login' => 1])->save();
+
     $user->givePermissionTo([
         'oficinaauto.service_order.view',
         'oficinaauto.service_order.create',
