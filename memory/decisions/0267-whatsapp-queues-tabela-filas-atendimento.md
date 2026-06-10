@@ -6,7 +6,7 @@ type: adr
 status: proposto
 authority: canonical
 lifecycle: ativo
-kind: per-schema
+kind: decision
 decided_by: [W]
 decided_at: "2026-06-10"
 module: whatsapp
