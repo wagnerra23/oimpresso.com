@@ -1,11 +1,11 @@
 {
   "generated_note": "baseline da catraca de cobertura — NÃO editar à mão",
   "aggregates": {
-    "total": 277,
-    "charter": 133,
+    "total": 276,
+    "charter": 132,
     "e2e": 4,
     "a11y": 1,
-    "scorecard": 221
+    "scorecard": 220
   },
   "by_module": {
     "Admin": {
@@ -23,11 +23,11 @@
       "scorecard": 19
     },
     "Atendimento": {
-      "total": 9,
-      "charter": 6,
+      "total": 8,
+      "charter": 5,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 9
+      "scorecard": 8
     },
     "Auditoria": {
       "total": 2,
