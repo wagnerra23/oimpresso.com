@@ -453,4 +453,9 @@ Refs SSH: hostinger.md (IP, key, repo path).
 
 **Redes de segurança mantidas:** backup com rotação (5 mais recentes), maintenance on/off, composer (sem `--no-dev` — Faker em prod), migrate, caches (sem `route:cache`, hotfix 27/05), smoke estrito.
 
+**Incidente do 1º auto-deploy (10/06, corrigido no mesmo dia):**
+1. **`npm run build` NÃO sai em `public/build/`.** O build legado (vite.config.js) emite **`public/css/tailwind.css`** (e nada em `public/build/`). O publish do deploy testava `test -d artifact/build` sob `set -e` → falhou em ~6ms. **Os dois artefatos a publicar são `public/build-inertia/` (dir Inertia) + `public/css/` (Tailwind legado)** — ambos gitignored (`/public/build-inertia/` + `/public/css/`). `build-inertia` faz swap de diretório; `css` é copiado por cima.
+2. **Site preso em 503.** O publish falhou DEPOIS do `php artisan down` e ANTES do `up` → maintenance preso até intervenção manual. **Restauração rápida** (sem precisar consertar o bug): `gh workflow run deploy.yml -f skip_backup=true -f skip_migrate=true -f extra_artisan=up` — o step `Artisan extra` roda `php artisan up` antes do publish quebrar. **Fix permanente:** step `Failsafe` com `if: always()` que garante `php artisan up` em qualquer saída (invariante "auto-deploy nunca deixa o site em maintenance").
+3. **Bundles do servidor sobrevivem.** `git reset --hard` NÃO toca arquivos gitignored → `public/build-inertia/` e `public/css/` do último build válido permanecem. Por isso destravar o maintenance já restaura o site funcional, mesmo com o publish do deploy falho.
+
 Refs: ADR 0269; `.github/workflows/deploy.yml`; `public/_ops_opcache_reset.php`.
