@@ -394,17 +394,23 @@ class ServiceOrderController extends Controller
 
         $map = [];
         foreach ($rows as $row) {
-            $osId = (int) $row->transaction_id;
+            // getAttribute (não acesso a propriedade dinâmica) — evita property.notFound
+            // do PHPStan sobre transaction_id (guarded, sem @property) e sobre o Model
+            // genérico das relações belongsTo. Checagem explícita (sem ?? sobre mixed)
+            // pra não tropeçar no "left side not nullable".
+            $osId = (int) $row->getAttribute('transaction_id');
             if (isset($map[$osId])) {
                 continue; // já temos o mais recente (ordenação desc)
             }
-            // getAttribute (não acesso a propriedade) — evita property.notFound do
-            // PHPStan sobre Model genérico de relação belongsTo.
-            $label = $row->action?->getAttribute('label')
-                ?? ('Etapa: ' . ($row->toStage?->getAttribute('name') ?? '—'));
+            $actionLabel = $row->action?->getAttribute('label');
+            $stageName = $row->toStage?->getAttribute('name');
+            $label = is_string($actionLabel) && $actionLabel !== ''
+                ? $actionLabel
+                : 'Etapa: ' . (is_string($stageName) && $stageName !== '' ? $stageName : '—');
+            $executedAt = $row->getAttribute('executed_at');
             $map[$osId] = [
-                'label' => (string) $label,
-                'at'    => $row->executed_at?->toIso8601String() ?? '',
+                'label' => $label,
+                'at'    => $executedAt instanceof \Carbon\CarbonInterface ? $executedAt->toIso8601String() : '',
             ];
         }
 
