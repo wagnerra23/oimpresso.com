@@ -20,6 +20,19 @@
 // densidade compacta @container @1280 · "N OS" + distinção aguardando-peças × aprovação.
 //
 // Lição PR #717 — useMemo/useCallback nos handlers descendentes.
+//
+// FIX layout [CC] 2026-06-10 (reportado por [W] com screenshot — board cortado):
+//   1. Removido `-m-6` do root: AppShellV2 `.main-body` NÃO tem p-6 (é flex column
+//      sem padding — cockpit.css linha ~180). A margem negativa criava overflow
+//      INALCANÇÁVEL à esquerda/topo do scroll container → header/KPIs/1ª coluna
+//      permanentemente cortados embaixo da sidebar.
+//   2. Removido `min-h-[calc(100vh-3rem)]`: assumia topbar de 3rem, mas
+//      hideTopbar default = true desde 2026-05-17. Substituído por `flex-1`.
+//   3. Grid do quadro: `grid-cols-6` (1fr puro, min-content estoura a viewport)
+//      → `repeat(n, minmax(228px, 1fr))` + wrapper com overflow-x-auto.
+//      Espelha o canon do protótipo Cowork (.prod-kanban.ofc-5 em
+//      oficina-page.css: repeat(5, minmax(228px, 1fr)) + overflow auto):
+//      o quadro rola HORIZONTALMENTE POR DENTRO, o shell nunca estoura.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
@@ -251,16 +264,17 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
     { id: 'atrasadas', label: 'Atrasadas', value: String(kpis.atrasadas), tone: 'rose' as const },
   ], [kpis]);
 
-  const gridColsClass = useMemo(() => {
-    const n = columns.length || 1;
-    // até 6 colunas mapeadas estaticamente (Tailwind precisa de classes literais)
-    return ({ 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5', 6: 'grid-cols-6' } as Record<number, string>)[Math.min(n, 6)] ?? 'grid-cols-6';
-  }, [columns.length]);
+  // FIX [CC] 2026-06-10: colunas com largura mínima utilizável (canon do protótipo
+  // .prod-kanban: repeat(n, minmax(228px, 1fr))) — inline style em vez de classe
+  // Tailwind literal porque o nº de colunas é data-driven. O wrapper rola no eixo X.
+  const boardGridStyle = useMemo(() => ({
+    gridTemplateColumns: `repeat(${Math.max(columns.length, 1)}, minmax(228px, 1fr))`,
+  }), [columns.length]);
 
   return (
     <>
       <Head title="Oficina · Quadro de OS" />
-      <div className="-m-6 bg-muted/40 min-h-[calc(100vh-3rem)] @container/board">
+      <div className="flex-1 bg-muted/40 @container/board">
         {/* Topbar */}
         <header className="bg-white border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
@@ -345,13 +359,14 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </span>
         </div>
 
-        {/* Quadro */}
-        <div className="p-6">
+        {/* Quadro — overflow-x-auto: o kanban rola por dentro, o shell nunca estoura
+            (espelha .prod-kanban do protótipo: overflow auto + minmax(228px, 1fr)) */}
+        <div className="p-6 overflow-x-auto">
           {!process_seeded ? (
             <EmptyProcessState />
           ) : (
             <KanbanDndProvider<ServiceOrderCardData, string> onMove={handleDragMove} renderPreview={renderPreview}>
-              <div className={'grid gap-4 ' + gridColsClass}>
+              <div className="grid gap-4 items-start" style={boardGridStyle}>
                 {columns.map((col) => (
                   <ServiceOrderKanbanColumn
                     key={col.key}
