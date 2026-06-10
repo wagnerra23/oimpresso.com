@@ -1,13 +1,13 @@
 // Card do Kanban de OS de mecânica (fluxo real do carro · port Cowork [W] 2026-06-02).
 //
-// NÃO é o card de caçamba (CacambaCard) — vertical diferente (ADR 0194). Reusa
-// MercosulPlate. Aplica as 3 modificações [W]-aceitas do protótipo:
+// Card ÚNICO do kanban canônico (ADR 0265 — o card de locação morreu junto com a
+// tela producao-oficina). Reusa MercosulPlate. Aplica as 3 modificações [W]-aceitas:
 //   1. Foto REAL no card (thumb_url) — nunca placeholder de texto. Sem foto → esconde.
 //   2. Contador DVI x/y com ícone de checklist (não cadeado) + tooltip.
 //   3. Densidade compacta como base; respira em telas largas via @container (NÃO @media —
 //      lição Financeiro F3). O card é o mesmo; a densidade do board é controlada no Board.tsx.
 //
-// Drag canon: useDraggable (@dnd-kit) com data {cacambaId, currentColumn, cacamba}.
+// Drag canon: useDraggable (@dnd-kit) com data {subjectId, currentColumn, subject}.
 // Drag desabilitado quando in_pipeline=false (OS recém-criada sem pipeline iniciado) —
 // clicar abre o drawer pra iniciar o pipeline FSM.
 //
@@ -96,9 +96,9 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, onClick }:
     id: `so-${card.id}`,
     disabled: !card.in_pipeline,
     data: {
-      cacambaId: card.id,
+      subjectId: card.id,
       currentColumn: stageKey,
-      cacamba: card,
+      subject: card,
     },
   });
   const { attributes, listeners, setNodeRef, transform, isDragging } = draggable;

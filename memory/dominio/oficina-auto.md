@@ -46,7 +46,13 @@ Apresentação na tela (kanban de reparo): `recepcao → diagnostico → pecas �
     "oa_inspection_items.categoria": ["motor", "freios", "correia", "bateria", "pneus", "suspensao", "direcao", "eletrica", "fluidos", "outro"],
     "oa_inspection_items.severity": ["ok", "atencao", "critico"],
     "oa_inspection_items.client_decision": ["pending", "approved", "rejected"]
-  }
+  },
+  "forbidden_ui_terms": ["locacao", "cacamba"],
+  "forbidden_ui_paths": [
+    "resources/js/Pages/OficinaAuto",
+    "Modules/OficinaAuto/Database/Seeders",
+    "Modules/OficinaAuto/Database/Migrations"
+  ]
 }
 ```
 
@@ -89,6 +95,22 @@ ramifica num valor que não existe mais (ex.: `if ($so->order_type === 'locacao'
 `AprovacaoOsController`, `ServiceOrderObserver`). Ratchet zera quando o **follow-up de limpeza de
 dead-code** (documentado no `RUNBOOK-erradicacao-locacao.md`) remover essas ramificações. Valores de
 `current_status.locada` no código **não** flagam (ainda declarados como resíduo vestigial acima).
+
+## Termos PROIBIDOS user-facing (Salto #4 — trava de regressão ADR 0265)
+
+O `dominio:check` também varre os paths declarados em `forbidden_ui_paths` (Pages do módulo +
+Seeders/Migrations, onde nascem labels) e flaga **toda ocorrência** de termo em `forbidden_ui_terms`
+— matching **case-insensitive e accent-insensitive** ("Locação" ≡ "locacao", "Caçamba" ≡ "cacamba").
+Comentários (`//`, `/* */`, `#`) são cegados antes do scan (explicar a erradicação em comentário é
+legítimo; mostrar pro usuário não). Chave: `dominio:forbidden-ui-term:<mod>:<file>:<termo>:<i>`
+(uma por ocorrência — **ratchet por contagem**: ocorrência NOVA num arquivo já-baselined também
+estoura o CI).
+
+**Débito fotografado no baseline:** residuais Tier 0 (keys FSM `cacamba_locacao`/`cacamba_manutencao`
+em migrations/seeder — intocáveis por ADR 0143/0194) + identificadores legados do kanban
+(`CacambaCard`, `dias_locacao` em ProducaoOficina — dívida F3 em ADR própria, charter v4 PR #2417).
+A trava garante que [W] nunca mais descubra "locação" nova na tela: QUALQUER string/label/identificador
+novo com os termos = CI vermelho no `dominio-gate`.
 
 ## Trilha do tempo
 

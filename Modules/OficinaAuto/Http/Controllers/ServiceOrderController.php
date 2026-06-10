@@ -40,12 +40,12 @@ class ServiceOrderController extends Controller
     /**
      * Index dashboard de Ordens de Serviço (V0.5 — pré-reunião Martinho 13/maio).
      *
-     * Combina locação + manutenção numa visão única com 4 KPIs + filtros + tabela rica.
-     * Espelha layout de Vehicles Index (Wave 5-B) e mockup
+     * Visão única de REPARO (ADR 0265 — locação erradicada): 3 KPIs + filtros +
+     * tabela rica. Espelha layout de Vehicles Index (Wave 5-B) e mockup
      * memory/requisitos/OficinaAuto/demo-martinho-2026-05-13/mockup.html
      *
-     * Schema::hasColumn fallback porque colunas Wave 5-A (order_type / delivery_address /
-     * expected_return_date / daily_rate) podem não estar migradas ainda nessa branch.
+     * Schema::hasColumn fallback porque colunas Wave 5-A (order_type / number /
+     * started_at) podem não estar migradas ainda nessa branch.
      *
      * Filtros aceitos (locação erradicada — ADR 0265):
      *  - ?status=manutencao_ativa | concluida_mes | atrasada | all
@@ -62,9 +62,6 @@ class ServiceOrderController extends Controller
         );
 
         $hasOrderType   = Schema::hasColumn('service_orders', 'order_type');
-        $hasReturnDate  = Schema::hasColumn('service_orders', 'expected_return_date');
-        $hasDeliveryAddr = Schema::hasColumn('service_orders', 'delivery_address');
-        $hasDailyRate   = Schema::hasColumn('service_orders', 'daily_rate');
         $hasNumber      = Schema::hasColumn('service_orders', 'number');
         $hasStartedAt   = Schema::hasColumn('service_orders', 'started_at');
         $hasContact     = Schema::hasColumn('service_orders', 'contact_id');
@@ -127,8 +124,9 @@ class ServiceOrderController extends Controller
         });
 
         // ──────── Filter stage (Gap #3 — chips por current_stage_id estilo Linear) ────────
-        // UI manda stage.key (ex 'disponivel'), backend resolve pra stage_id via JOIN
-        // com sale_process_stages dos processos cacamba_*. Multi-tenant Tier 0 (ADR 0093)
+        // UI manda stage.key (ex 'recepcao'), backend resolve pra stage_id via JOIN
+        // com sale_process_stages dos processos da Oficina (oficina_mecanica_os = fluxo
+        // real; cacamba_* = legado preservado). Multi-tenant Tier 0 (ADR 0093)
         // preservado via global scope ServiceOrder + filter business_id em SaleProcess.
         $base->when($stageFilter !== '' && $stageFilter !== 'all' && $hasCurrentStage, function ($qb) use ($stageFilter) {
             $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
@@ -136,7 +134,7 @@ class ServiceOrderController extends Controller
                 ->whereHas('process', function ($p) use ($businessId) {
                     $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
                         ->where('business_id', $businessId)
-                        ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
+                        ->whereIn('key', ['oficina_mecanica_os', 'cacamba_locacao', 'cacamba_manutencao']);
                 })
                 ->where('key', $stageFilter)
                 ->pluck('id');
@@ -165,20 +163,17 @@ class ServiceOrderController extends Controller
         });
 
         // ──────── Sort: ativas primeiro, atrasadas no topo das ativas ────────
-        // CASE: cancelada/concluida = 2, atrasada = 0, ativa normal = 1
-        if ($hasReturnDate) {
-            $base->orderByRaw(
-                "CASE
-                    WHEN status IN ('concluida', 'cancelada') THEN 2
-                    WHEN expected_return_date IS NOT NULL AND expected_return_date < CURDATE() THEN 0
-                    ELSE 1
-                END ASC"
-            );
-        } else {
-            $base->orderByRaw(
-                "CASE WHEN status IN ('concluida', 'cancelada') THEN 1 ELSE 0 END ASC"
-            );
-        }
+        // CASE: cancelada/concluida = 2, atrasada = 0, ativa normal = 1.
+        // Atraso de REPARO via expected_completion (ADR 0265 — antes ordenava por
+        // expected_return_date, conceito de locação erradicado).
+        $base->orderByRaw(
+            "CASE
+                WHEN status IN ('concluida', 'cancelada') THEN 2
+                WHEN expected_completion IS NOT NULL AND DATE(expected_completion) < ? THEN 0
+                ELSE 1
+            END ASC",
+            [now()->toDateString()]
+        );
         $base->orderByDesc('id');
 
         // Wave 26 D6 — Inertia::defer pro kpis payload (RUNBOOK-inertia-defer-pattern):
@@ -199,12 +194,11 @@ class ServiceOrderController extends Controller
             // Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear.
             // Defer porque é COUNT por stage (~8 stages × cacamba_* processos).
             'stages' => Inertia::defer(fn () => $this->buildStagesPayload($hasCurrentStage)),
-            // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
+            // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager.
+            // Flags de locação (has_return_date/has_delivery_address/has_daily_rate)
+            // erradicadas (ADR 0265) — frontend não consome mais.
             'schemaFlags' => [
                 'has_order_type'      => $hasOrderType,
-                'has_return_date'     => $hasReturnDate,
-                'has_delivery_address' => $hasDeliveryAddr,
-                'has_daily_rate'      => $hasDailyRate,
                 'has_number'          => $hasNumber,
                 'has_started_at'      => $hasStartedAt,
                 'has_contact'         => $hasContact,
@@ -503,9 +497,11 @@ class ServiceOrderController extends Controller
     /**
      * Stages payload pros chips de filtro (Gap #3 estado-da-arte FSM screen).
      *
-     * Retorna lista de stages dos processos cacamba_locacao + cacamba_manutencao
-     * do business atual com contador de OS em cada stage. Multi-tenant Tier 0
-     * (ADR 0093) via global scope ServiceOrder + filter business_id em SaleProcess.
+     * Retorna lista de stages dos processos da Oficina (oficina_mecanica_os = fluxo
+     * real de reparo, ADR 0265; cacamba_* = legado preservado, chips só aparecem se
+     * houver OS contada neles) do business atual com contador de OS em cada stage.
+     * Multi-tenant Tier 0 (ADR 0093) via global scope ServiceOrder + filter
+     * business_id em SaleProcess.
      *
      * @return list<array{key:string, name:string, color:string|null, count:int, is_terminal:bool, process_key:string}>
      */
@@ -521,7 +517,7 @@ class ServiceOrderController extends Controller
             ->whereHas('process', function ($p) use ($businessId) {
                 $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
                     ->where('business_id', $businessId)
-                    ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
+                    ->whereIn('key', ['oficina_mecanica_os', 'cacamba_locacao', 'cacamba_manutencao']);
             })
             ->with(['process' => function ($p) {
                 $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class);
@@ -543,7 +539,13 @@ class ServiceOrderController extends Controller
             'count'       => (int) ($countsByStageId[$stage->id] ?? 0),
             'is_terminal' => (bool) $stage->is_terminal,
             'process_key' => $stage->process->key,
-        ])->all();
+        ])
+            // Chips legados (cacamba_*) só aparecem com OS neles — pós-migration de
+            // re-aponte (2026_06_10_000001) tendem a zerar e sumir sozinhos. O fluxo
+            // real (oficina_mecanica_os) mostra sempre, mesmo com count=0.
+            ->filter(fn ($s) => $s['process_key'] === 'oficina_mecanica_os' || $s['count'] > 0)
+            ->values()
+            ->all();
     }
 
     /**
@@ -555,11 +557,6 @@ class ServiceOrderController extends Controller
     private function buildServiceOrderKpisPayload(bool $hasOrderType): array
     {
         $kpiBase = fn () => ServiceOrder::query();
-
-        // Locação erradicada (ADR 0265): KPI mantida em 0 só pelo contrato do payload
-        // — o frontend (ServiceOrders/Index) ainda consome a chave. A remoção visual do
-        // card/chip "Locações ativas" é dívida F3 (RUNBOOK-erradicacao-locacao.md P5).
-        $locacoesAtivas = 0;
 
         if ($hasOrderType) {
             $manutencaoAtivas = $kpiBase()
@@ -587,8 +584,9 @@ class ServiceOrderController extends Controller
             ->whereDate('expected_completion', '<', now()->toDateString())
             ->count();
 
+        // Key 'locacoes_ativas' REMOVIDA do contrato (ADR 0265 — o frontend já não
+        // renderiza o card; dívida P5 do RUNBOOK-erradicacao-locacao quitada aqui).
         return [
-            'locacoes_ativas'   => $locacoesAtivas,
             'manutencao_ativas' => $manutencaoAtivas,
             'concluidas_mes'    => $concluidasMes,
             'atrasadas'         => $atrasadas,
@@ -643,6 +641,11 @@ class ServiceOrderController extends Controller
             $validated['entered_at'] = now();
         }
 
+        // ADR 0265 — order_type é nullable no request (API/imports), mas o fio usável
+        // exige a OS nascendo no pipeline certo: default DELIBERADO 'mecanica' (fluxo
+        // real de reparo) quando não informado. Create.tsx já manda 'mecanica'.
+        $validated['order_type'] ??= 'mecanica';
+
         $order = ServiceOrder::create($validated);
 
         // UC-07/UC-11 (casos.md Produção/Oficina): a OS recém-criada é o "documento vivo"
@@ -656,6 +659,24 @@ class ServiceOrderController extends Controller
             ->find($order->vehicle_id);
         if ($vehicle !== null && $vehicle->current_rental_id === null) {
             $vehicle->update(['current_rental_id' => $order->id]);
+        }
+
+        // ADR 0265 (fio usável) — auto-start do pipeline FSM: a OS nasce JÁ no quadro
+        // (stage inicial do processo resolvido pelo order_type — 'mecanica' →
+        // oficina_mecanica_os/recepcao). Antes nascia com current_stage_id=null e
+        // dependia de clique manual em start-pipeline, que podia cair no processo
+        // errado (OS-00004 órfã em locação). Falha aqui NÃO aborta o create (OS fica
+        // fora de pipeline como antes, botão manual continua existindo) — só loga.
+        try {
+            app(\Modules\OficinaAuto\Services\ServiceOrderPipelineStarter::class)
+                ->start($order, null, auth()->id());
+        } catch (\Throwable $e) {
+            \Log::warning('ServiceOrderController@store: auto-start pipeline falhou', [
+                'business_id'      => $order->business_id,
+                'service_order_id' => $order->id,
+                'order_type'       => $order->order_type,
+                'error'            => $e->getMessage(),
+            ]);
         }
 
         return redirect('/oficina-auto/ordens-servico/' . $order->id)
@@ -692,16 +713,15 @@ class ServiceOrderController extends Controller
         // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
         // JSON mas show() só retornava Inertia HTML (HTTP 404 percebido por drawer).
         if ($request->wantsJson()) {
+            // Campos de locação (delivery_address/expected_return_date/daily_rate/
+            // dias_locacao) ERRADICADOS do payload (ADR 0265) — colunas ficam no DB
+            // como dado histórico; UI/contrato não.
             return response()->json([
                 'id'                    => $order->id,
                 'number'                => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                 'status'                => $order->status,
                 'order_type'            => $order->order_type,
-                'delivery_address'      => $order->delivery_address,
-                'expected_return_date'  => $order->expected_return_date,
                 'expected_completion'   => $order->expected_completion,
-                'daily_rate'            => $order->daily_rate,
-                'dias_locacao'          => $order->dias_locacao ?? 0,
                 'valor_receber'         => $order->valor_receber ?? 0,
                 'is_overdue'            => $order->is_overdue ?? false,
                 'entered_at'            => $order->entered_at,

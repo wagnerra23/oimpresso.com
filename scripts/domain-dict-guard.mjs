@@ -30,12 +30,24 @@
 // é pelo NOME da coluna (sufixo após o último ponto) — colunas genéricas (`tipo`/`status`)
 // podem super-casar; o dono do dicionário refina declarando a coluna certa.
 //
+// ── SALTO #4: termos PROIBIDOS user-facing (ADR 0265 — trava de regressão) ──────────
+// Erradicar enum + código não basta: a alucinação volta como STRING DE UI ("Iniciar
+// locação", card "Locações ativas", label de seeder/migration nova). O dicionário pode
+// declarar `forbidden_ui_terms` (termos casados case-insensitive E accent-insensitive:
+// "locação"≡"locacao", "Caçamba"≡"cacamba") + `forbidden_ui_paths` (raízes onde o termo
+// é PROIBIDO: Pages do módulo, Seeders/Migrations com label). Comentários (`//`,`/* */`,
+// `#`) são CEGADOS antes do scan — explicar a erradicação em comentário é legítimo;
+// mostrar pro usuário não. Chave POR OCORRÊNCIA (índice estável): baseline fotografa os
+// residuais Tier 0 (keys FSM `cacamba_locacao` etc.); QUALQUER ocorrência NOVA = CI
+// vermelho (ratchet count-based por arquivo+termo).
+//
 // VIOLAÇÕES (cada uma uma chave estável pro ratchet):
 //   dominio:undeclared-value:<mod>:<tab.col>:<v>     valor no schema (enum) mas não no dicionário
 //   dominio:stale-dict-value:<mod>:<tab.col>:<v>     valor no dicionário mas não no schema (enum)
 //   dominio:undeclared-column:<mod>:<tab.col>        coluna enum no schema do módulo, fora do dicionário
 //   dominio:missing-column-in-schema:<mod>:<tab.col> coluna no dicionário sem enum correspondente
 //   dominio:undeclared-code-value:<mod>:<col>:<v>    valor-literal usado no CÓDIGO contra coluna governada, fora do dicionário (Salto #3)
+//   dominio:forbidden-ui-term:<mod>:<file>:<termo>:<i>  i-ésima ocorrência de termo proibido user-facing (Salto #4)
 //   dominio:module-no-dict:<mod>                      módulo TEM enum em migration mas NÃO tem dicionário
 //
 // =====================================================================================
@@ -95,7 +107,12 @@ function loadDicts() {
     let parsed;
     try { parsed = JSON.parse(m[1]); } catch { continue; }
     if (!parsed?.module || !parsed?.enums) continue;
-    dicts[parsed.module] = { enums: parsed.enums, file: `memory/dominio/${e.name}` };
+    dicts[parsed.module] = {
+      enums: parsed.enums,
+      forbidden_ui_terms: parsed.forbidden_ui_terms || [],
+      forbidden_ui_paths: parsed.forbidden_ui_paths || [],
+      file: `memory/dominio/${e.name}`,
+    };
   }
   return dicts;
 }
@@ -272,14 +289,68 @@ function codeValueViolations(moduleName, colIndex) {
 }
 
 // ---------------------------------------------------------------------------
+// SALTO #4 — termos PROIBIDOS user-facing (trava de regressão ADR 0265)
+// ---------------------------------------------------------------------------
+// Normaliza acento+caixa: "Locação" → "locacao" (NFD + strip combining marks).
+const foldText = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// CEGA comentários preservando posição/linhas (offsets ficam válidos pro lineOf):
+// `/* ... */`, `// ...` (não-URL: exige não vir após ':') e `# ...` (PHP).
+function blindComments(content) {
+  const blank = (m) => m.replace(/[^\n]/g, ' ');
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, blank)
+    .replace(/(^|[^:'"])\/\/[^\n]*/g, (m, pre) => pre + blank(m.slice(pre.length)))
+    .replace(/(^|\s)#(?!\[)[^\n]*/g, (m, pre) => pre + blank(m.slice(pre.length)));
+}
+
+// Varre os paths declarados e emite UMA chave por ocorrência (índice estável):
+// ratchet count-based — ocorrência nova num arquivo já-baselined também estoura.
+// Retorna { keys: list, occ: { key -> [{file,line}] } }.
+function forbiddenUiTermViolations(moduleName, dictEntry) {
+  const keys = [];
+  const occ = {};
+  const terms = [...new Set((dictEntry.forbidden_ui_terms || []).map(foldText))].sort();
+  const paths = dictEntry.forbidden_ui_paths || [];
+  if (!terms.length || !paths.length) return { keys, occ };
+
+  const exts = ['.php', '.ts', '.tsx', '.js', '.jsx'];
+  for (const root of paths) {
+    const dir = resolve(ROOT, root);
+    const files = walk(dir, (full, name) => exts.some((e) => name.endsWith(e))).sort((a, b) =>
+      a.localeCompare(b),
+    );
+    for (const file of files) {
+      const folded = foldText(blindComments(readFileSync(file, 'utf8')));
+      for (const term of terms) {
+        let idx = 0;
+        let n = 0;
+        const lines = [];
+        while ((idx = folded.indexOf(term, idx)) !== -1) {
+          n++;
+          lines.push(lineOf(folded, idx));
+          idx += term.length;
+        }
+        for (let i = 1; i <= n; i++) {
+          const key = `dominio:forbidden-ui-term:${moduleName}:${norm(file)}:${term}:${i}`;
+          keys.push(key);
+          occ[key] = [{ file: norm(file), line: lines[i - 1] }];
+        }
+      }
+    }
+  }
+  return { keys, occ };
+}
+
+// ---------------------------------------------------------------------------
 // Cálculo de violações
 // ---------------------------------------------------------------------------
 function computeViolations() {
   const dicts = loadDicts();
   const withEnums = modulesWithEnums();
   const violations = [];
-  const occurrences = {}; // key -> [{file,line}] (só code-value, pro --report)
-  const stats = { modules_with_dict: Object.keys(dicts).length, modules_with_enums: withEnums.size, divergences: 0, code_divergences: 0, modules_no_dict: 0 };
+  const occurrences = {}; // key -> [{file,line}] (code-value + forbidden-ui-term, pro --report)
+  const stats = { modules_with_dict: Object.keys(dicts).length, modules_with_enums: withEnums.size, divergences: 0, code_divergences: 0, forbidden_ui_terms: 0, modules_no_dict: 0 };
 
   // Módulos com enum mas sem dicionário → débito (ratchet pra F3 cobrir todos).
   for (const mod of withEnums) {
@@ -309,6 +380,10 @@ function computeViolations() {
     // SALTO #3 — valores de domínio hardcoded no código de aplicação.
     const { keys, occ } = codeValueViolations(mod, buildColIndex(dict.enums));
     for (const key of keys) { violations.push(key); occurrences[key] = occ[key]; stats.code_divergences++; }
+
+    // SALTO #4 — termos PROIBIDOS user-facing (trava de regressão ADR 0265).
+    const ui = forbiddenUiTermViolations(mod, dict);
+    for (const key of ui.keys) { violations.push(key); occurrences[key] = ui.occ[key]; stats.forbidden_ui_terms++; }
   }
 
   return { violations: violations.sort((a, b) => a.localeCompare(b)), stats, occurrences };
@@ -339,6 +414,7 @@ function main() {
     console.log(`Módulos com enum SEM dicionário: ${stats.modules_no_dict}`);
     console.log(`Divergências enum⇔dicionário (nos módulos com dict): ${stats.divergences}`);
     console.log(`Divergências de domínio no CÓDIGO (Salto #3): ${stats.code_divergences}`);
+    console.log(`Termos proibidos user-facing (Salto #4): ${stats.forbidden_ui_terms}`);
     console.log(`\nTOTAL de violações (débito): ${violations.length}`);
     if (violations.length) {
       console.log('\nDetalhe:');
@@ -364,12 +440,12 @@ function main() {
       violations,
     };
     writeFileSync(BASELINE_PATH, JSON.stringify(out, null, 2) + '\n');
-    console.log(`✅ Baseline gravado: ${violations.length} violações (${stats.divergences} enum · ${stats.code_divergences} código · ${stats.modules_no_dict} módulo sem dict) → ${norm(BASELINE_PATH)}`);
+    console.log(`✅ Baseline gravado: ${violations.length} violações (${stats.divergences} enum · ${stats.code_divergences} código · ${stats.forbidden_ui_terms} termo UI · ${stats.modules_no_dict} módulo sem dict) → ${norm(BASELINE_PATH)}`);
     process.exit(0);
   }
 
   // VALIDATE
-  console.log(`dominio:check · ${violations.length} violações (dicts: ${stats.modules_with_dict}, enum: ${stats.divergences}, código: ${stats.code_divergences})`);
+  console.log(`dominio:check · ${violations.length} violações (dicts: ${stats.modules_with_dict}, enum: ${stats.divergences}, código: ${stats.code_divergences}, termo UI: ${stats.forbidden_ui_terms})`);
   const baseline = loadBaseline();
   if (!baseline) {
     console.error(`\n❌ Baseline ausente (${norm(BASELINE_PATH)}). Rode: npm run dominio:baseline:write`);
@@ -385,9 +461,10 @@ function main() {
       for (const o of occurrences[v] || []) console.error(`        ↳ ${o.file}:${o.line}`);
     }
     console.error(
-      `\nUm enum de migration OU um valor-literal no código divergiu do dicionário do módulo` +
-        `\n(memory/dominio/<mod>.md) — ADR 0264 G-4 (+ Salto #3 cobertura de código).` +
-        `\nReintroduzir \`locacao\`/\`locada\` viola a ADR 0265 (ver memory/proibicoes.md).` +
+      `\nUm enum de migration, um valor-literal no código OU um termo proibido user-facing` +
+        `\ndivergiu do dicionário do módulo (memory/dominio/<mod>.md) — ADR 0264 G-4` +
+        `\n(+ Salto #3 código · Salto #4 termos UI).` +
+        `\nReintroduzir \`locacao\`/\`locada\`/"locação"/"caçamba" viola a ADR 0265 (ver memory/proibicoes.md).` +
         `\nSe a mudança de domínio for legítima: atualize o dicionário + npm run dominio:baseline:write`,
     );
     process.exit(1);

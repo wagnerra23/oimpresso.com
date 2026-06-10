@@ -9,6 +9,7 @@ use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageHistory;
+use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\User;
 use App\Util\OtelHelper;
@@ -22,7 +23,8 @@ use Modules\Jana\Scopes\ScopeByBusiness;
  * 6 responsabilidades sequenciais:
  *   1. Resolve action válida pra $subject->current_stage_id + $actionKey
  *   2. Valida tenancy (subject.business_id == process.business_id) + bloqueia terminal
- *   3. Checa RBAC via $user->hasAnyRole($action->roles)
+ *   3. Checa RBAC: permission module-level (StageActionPolicy::grantsByPermission,
+ *      ADR 0265) OU $user->hasAnyRole($action->roles)
  *   4. Executa side-effect dentro de DB::transaction (atomicidade)
  *   5. Atualiza $subject->current_stage_id (se target_stage_id != null)
  *   6. Dispara event (se event_class definido) + loga em sale_stage_history (sempre)
@@ -77,11 +79,18 @@ class ExecuteStageActionService
 
         $roleNames = $action->roles->pluck('role_name')->all();
 
+        // ADR 0265 (fio usável) — permission module-level destrava o subject (hoje:
+        // ServiceOrder via oficinaauto.service_order.update). MESMA regra da
+        // StageActionPolicy::canExecute (UI) — policy e service nunca divergem,
+        // senão a UI mostra o botão e o execute() responde 403. Roles Spatie seguem
+        // valendo como caminho alternativo (restrição adicional, não muro default).
+        $grantedByPermission = app(StageActionPolicy::class)->grantsByPermission($user, $subject);
+
         // US-SELL-031 — fail-secure: action is_critical=true SEM role configurada
         // bloqueia execução. Seeds incompletos viravam bypass silencioso pra
         // actions de risco (cancelar_venda, voltar_para_orcamento, iniciar_producao).
         // Mensagem instrutiva cita tabela e caminho de fix pra desbloquear o dev.
-        if (empty($roleNames) && ($action->is_critical ?? false)) {
+        if (! $grantedByPermission && empty($roleNames) && ($action->is_critical ?? false)) {
             throw new UnauthorizedActionException(
                 "Action crítica '{$actionKey}' exige role configurada em " .
                 "sale_stage_action_roles. Adicione role no seeder ou via UI " .
@@ -89,7 +98,7 @@ class ExecuteStageActionService
             );
         }
 
-        if (! empty($roleNames) && (! $user || ! $user->hasAnyRole($roleNames))) {
+        if (! $grantedByPermission && ! empty($roleNames) && (! $user || ! $user->hasAnyRole($roleNames))) {
             throw new UnauthorizedActionException(
                 "User não tem nenhuma das roles exigidas: " . implode(',', $roleNames)
             );
