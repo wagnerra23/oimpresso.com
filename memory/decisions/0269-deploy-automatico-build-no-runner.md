@@ -6,11 +6,11 @@ type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
-kind: infra
 decided_by: [W]
 decided_at: "2026-06-10"
 module: null
 quarter: 2026-Q2
+kind: decision
 tags: [deploy, ci-cd, hostinger, github-actions, build-no-runner, opcache, automacao]
 supersedes: []
 supersedes_partially: []

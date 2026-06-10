@@ -305,4 +305,4 @@ _(íntegra)_
 | 0266 | aceito | ativo | meta | Evals de comportamento dos agentes — golden set + replay cases + escada de auton |
 | 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
 | 0268 | proposto | ativo | decision | whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; dispa |
-| 0269 | aceito | ativo | infra | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
+| 0269 | aceito | ativo | decision | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
