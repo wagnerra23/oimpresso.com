@@ -45,6 +45,14 @@ class FsmTestEvent
 }
 
 beforeEach(function () {
+    // SELF-SCHEMA (cria E dropa users/roles/permissions/sale_* no tearDown) — SQLITE-ONLY.
+    // Contra MySQL real o afterEach DROPA tabelas vivas: incidente staging 2026-06-10
+    // (sale_stage_actions/sale_stage_action_roles/sale_stage_history dropadas do
+    // oimpresso_staging; restauradas via up() + re-seed). CI (sqlite) continua cobrindo.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema test — SQLite-only (vs MySQL real dropa tabelas vivas; incidente staging 2026-06-10)');
+    }
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();

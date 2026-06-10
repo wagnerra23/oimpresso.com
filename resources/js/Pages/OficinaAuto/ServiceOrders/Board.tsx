@@ -177,8 +177,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         return;
       }
       setPending({
-        cacambaId: orderId,
-        rentalId: orderId, // o endpoint /fsm/execute usa o id da OS
+        subjectId: orderId, // o endpoint /fsm/execute usa o id da OS
         fromColumn: from,
         toColumn: to,
         actionKey: move.actionKey,
@@ -195,11 +194,11 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
   );
 
   const handleConfirm = useCallback(async () => {
-    if (!pending || pending.rentalId == null) return;
+    if (!pending) return;
     setLoading(true);
     try {
       const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content;
-      const res = await fetch(`/oficina-auto/service-orders/${pending.rentalId}/fsm/execute`, {
+      const res = await fetch(`/oficina-auto/service-orders/${pending.subjectId}/fsm/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

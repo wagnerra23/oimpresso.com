@@ -1,5 +1,8 @@
 // @memcofre tela=/oficina-auto/veiculos module=OficinaAuto
-// Dashboard de Caçambas (US-OFICINA-001 evoluída pra demo Martinho 13/maio).
+// Dashboard de Veículos (US-OFICINA-001 evoluída pra demo Martinho 13/maio).
+// 2026-06-10 sweep ADR 0265: vocabulário de locação erradicado do user-facing —
+// "Caçambas"→"Veículos", colunas Endereço/Diárias (conceitos de aluguel) removidas,
+// labels "Locada"→"Em serviço" / "Disponível"→"No pátio" (keys do enum Tier 0 intactas).
 // Refs: ADR 0137 (OficinaAuto qualificada), ADR 0110 (Cockpit V2),
 //       Mockup memory/requisitos/OficinaAuto/demo-martinho-2026-05-13/mockup.html
 //       Pattern Pages/Sells/Index.tsx (KPI cards + filter pills + toggle Lista/Grade)
@@ -34,10 +37,8 @@ interface CurrentRental {
   vehicle_id: number;
   contact_id: number | null;
   started_at: string | null;
-  delivery_address: string | null;
-  expected_return_date: string | null;
-  // Accessors expostos pelo Agent A em ServiceOrder model:
-  dias_locacao?: number | null;
+  // Campos de locação (delivery_address/expected_return_date/dias_locacao)
+  // erradicados do consumo (ADR 0265).
   valor_receber?: number | null;
   is_overdue?: boolean;
   contact?: {
@@ -125,11 +126,6 @@ function formatDateBR(iso: string | null | undefined): string {
   }).format(d);
 }
 
-function truncate(s: string | null | undefined, max = 42): string {
-  if (!s) return '—';
-  return s.length > max ? s.slice(0, max - 1) + '…' : s;
-}
-
 // Resolve meta de paginação aceitando ambos shapes (Inertia v3 inline ou {meta:})
 function resolveMeta(p: Paginator<unknown>): PaginatorMeta {
   if (p.meta) return p.meta;
@@ -163,7 +159,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
 
-  // Drawer ServiceOrder state — clicar numa caçamba locada abre OS atual no drawer
+  // Drawer ServiceOrder state — clicar num veículo com OS ativa abre a OS no drawer
   // (US-OFICINA-OS-DRAWER, espelha pattern Sells).
   const [openOsId, setOpenOsId] = useState<number | null>(null);
   const handleVehicleRowClick = useCallback((v: VehicleRow) => {
@@ -171,7 +167,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
       setOpenOsId(v.current_rental_id);
       return;
     }
-    // Sem locação ativa — fallback navegação show (manutenção/disponível)
+    // Sem OS ativa — fallback navegação show (manutenção/no pátio)
     router.visit(`/oficina-auto/veiculos/${v.id}`);
   }, []);
   const handleSheetOpenChange = useCallback((open: boolean) => {
@@ -198,39 +194,38 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
     } catch (_) { /* localStorage indisponível */ }
   }, [viewMode]);
 
-  // Pills de status (deep-link via query string)
+  // Pills de status (deep-link via query string) — labels de REPARO (ADR 0265);
+  // keys do filtro espelham o enum Tier 0 vehicles.current_status (intacto).
   const pills: Array<{ key: StatusFilter; label: string; count: number; danger?: boolean }> = [
-    { key: 'all', label: 'Todas', count: kpis.total },
-    { key: 'disponivel', label: 'Disponíveis', count: kpis.disponivel },
-    { key: 'locada', label: 'Locadas', count: kpis.locada },
+    { key: 'all', label: 'Todos', count: kpis.total },
+    { key: 'disponivel', label: 'No pátio', count: kpis.disponivel },
+    { key: 'locada', label: 'Em serviço', count: kpis.locada },
     { key: 'manutencao', label: 'Em manutenção', count: kpis.manutencao },
-    { key: 'atrasada', label: 'Atrasadas', count: kpis.atrasada, danger: true },
+    { key: 'atrasada', label: 'Atrasados', count: kpis.atrasada, danger: true },
   ];
 
   // Totais rodapé (rodapé tabela soma página atual — não totalizador global)
   const pageTotals = useMemo(() => {
-    let dias = 0;
     let receber = 0;
     for (const v of vehicles.data) {
       const r = v.current_rental;
-      if (r?.dias_locacao) dias += Number(r.dias_locacao) || 0;
       if (r?.valor_receber) receber += Number(r.valor_receber) || 0;
     }
-    return { dias, receber, qtd: vehicles.data.length };
+    return { receber, qtd: vehicles.data.length };
   }, [vehicles.data]);
 
-  const subtitle = `${kpis.total} cadastradas · ${kpis.locada} locadas no momento · ${kpis.manutencao} em manutenção`;
+  const subtitle = `${kpis.total} cadastrados · ${kpis.locada} em serviço · ${kpis.manutencao} em manutenção`;
 
   return (
     <>
-      <Head title="Caçambas · Oficina Auto" />
+      <Head title="Veículos · Oficina Auto" />
       <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
         {/* Header — Cockpit V2 canon (h1 + subtitle + KPIs + filter pills) */}
         <div className="border-b border-border bg-background">
           <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
             <div className="flex items-start gap-4">
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Caçambas</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Veículos</h1>
                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{subtitle}</p>
               </div>
               <div className="flex-shrink-0 flex items-center gap-2">
@@ -244,7 +239,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                 <Button asChild>
                   <Link href="/oficina-auto/veiculos/create">
                     <Plus className="mr-1.5 h-4 w-4" />
-                    Nova caçamba
+                    Novo veículo
                   </Link>
                 </Button>
               </div>
@@ -252,10 +247,10 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
 
             {/* 4 KPI cards conforme mockup */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-              <KpiCard label="Disponíveis" value={kpis.disponivel} tone="emerald" icon={CheckCircle2} />
-              <KpiCard label="Locadas" value={kpis.locada} tone="blue" icon={Truck} />
+              <KpiCard label="No pátio" value={kpis.disponivel} tone="emerald" icon={CheckCircle2} />
+              <KpiCard label="Em serviço" value={kpis.locada} tone="blue" icon={Truck} />
               <KpiCard label="Em manutenção" value={kpis.manutencao} tone="amber" icon={Wrench} />
-              <KpiCard label="Atrasada" value={kpis.atrasada} tone="rose" icon={AlertTriangle} />
+              <KpiCard label="Atrasados" value={kpis.atrasada} tone="rose" icon={AlertTriangle} />
             </div>
           </div>
         </div>
@@ -266,7 +261,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
             {/* Filter pills (segmented) */}
             <nav
               className="inline-flex rounded-md border border-border overflow-hidden bg-background text-sm"
-              aria-label="Filtro de status de caçamba"
+              aria-label="Filtro de status de veículo"
             >
               {pills.map((p) => {
                 const isActive = filters.status === p.key;
@@ -307,9 +302,9 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
               type="search"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar caçamba ou cliente…"
+              placeholder="Buscar veículo ou cliente…"
               className="h-8 w-64"
-              aria-label="Buscar caçamba ou cliente"
+              aria-label="Buscar veículo ou cliente"
             />
 
             {/* Toggle Lista | Grade Avançada (à direita) */}
@@ -362,12 +357,10 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                         {/* P2: multiseleção; placeholder visual */}
                         <input type="checkbox" disabled aria-label="Selecionar todas (P2)" />
                       </th>
-                      <th className="px-3 py-2.5 text-left">Caçamba</th>
+                      <th className="px-3 py-2.5 text-left">Veículo</th>
                       <th className="px-3 py-2.5 text-left">Capacidade</th>
                       <th className="px-3 py-2.5 text-left">Cliente atual</th>
-                      <th className="px-3 py-2.5 text-left">Endereço</th>
-                      <th className="px-3 py-2.5 text-left">Início</th>
-                      <th className="px-3 py-2.5 text-right">Diárias</th>
+                      <th className="px-3 py-2.5 text-left">Entrada</th>
                       <th className="px-3 py-2.5 text-right">A receber</th>
                       <th className="px-3 py-2.5 text-left">Status</th>
                     </tr>
@@ -394,8 +387,8 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                             {isOverdue && (
                               <span
                                 className="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5 align-middle"
-                                title="Atrasada"
-                                aria-label="Caçamba com locação atrasada"
+                                title="Atrasado"
+                                aria-label="Veículo com OS atrasada"
                               />
                             )}
                             {v.vehicle_number ?? v.plate}
@@ -417,30 +410,8 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                               )
                             )}
                           </td>
-                          <td className="px-3 py-2.5 text-xs text-muted-foreground">
-                            {rental?.delivery_address
-                              ? truncate(rental.delivery_address, 42)
-                              : v.current_status === 'manutencao'
-                                ? <span className="text-muted-foreground/70">— oficina</span>
-                                : v.current_status === 'disponivel'
-                                  ? <span className="text-muted-foreground/70">— pátio matriz</span>
-                                  : '—'}
-                          </td>
                           <td className="px-3 py-2.5 text-xs tabular-nums text-muted-foreground whitespace-nowrap">
                             {formatDateBR(rental?.started_at)}
-                          </td>
-                          <td className={
-                            'px-3 py-2.5 text-right tabular-nums whitespace-nowrap ' +
-                            (isOverdue ? 'text-rose-700 font-medium' : 'text-foreground')
-                          }>
-                            {rental?.dias_locacao != null ? (
-                              <>
-                                {rental.dias_locacao}
-                                {isOverdue && <span className="ml-0.5">⚠</span>}
-                              </>
-                            ) : (
-                              <span className="text-muted-foreground/70">—</span>
-                            )}
                           </td>
                           <td className={
                             'px-3 py-2.5 text-right tabular-nums whitespace-nowrap ' +
@@ -465,14 +436,11 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                   {/* Totalizador rodapé (página atual — pattern Sells) */}
                   <tfoot className="bg-muted/40 border-t border-border text-xs">
                     <tr>
-                      <td colSpan={6} className="px-3 py-2.5 text-muted-foreground">
-                        <strong className="text-foreground">QTD:</strong> {pageTotals.qtd} caçambas
+                      <td colSpan={5} className="px-3 py-2.5 text-muted-foreground">
+                        <strong className="text-foreground">QTD:</strong> {pageTotals.qtd} veículos
                         {meta.total > pageTotals.qtd && (
                           <span className="text-muted-foreground/70"> (de {meta.total})</span>
                         )}
-                      </td>
-                      <td className="px-3 py-2.5 text-right tabular-nums font-medium text-foreground">
-                        {pageTotals.dias} {pageTotals.dias === 1 ? 'diária' : 'diárias'}
                       </td>
                       <td className="px-3 py-2.5 text-right tabular-nums font-bold text-amber-700 dark:text-amber-400">
                         {formatBRL(pageTotals.receber)}
@@ -494,7 +462,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
         </div>
       </div>
 
-      {/* Drawer ServiceOrder — abre ao clicar em caçamba locada */}
+      {/* Drawer ServiceOrder — abre ao clicar em veículo com OS ativa */}
       <ServiceOrderSheet
         serviceOrderId={openOsId}
         open={openOsId !== null}
@@ -511,11 +479,11 @@ VehiclesIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
 function pillLabel(status: StatusFilter): string {
   switch (status) {
-    case 'disponivel': return 'disponíveis';
-    case 'locada': return 'locadas';
+    case 'disponivel': return 'no pátio';
+    case 'locada': return 'em serviço';
     case 'manutencao': return 'em manutenção';
-    case 'atrasada': return 'atrasadas';
-    default: return 'todas';
+    case 'atrasada': return 'atrasados';
+    default: return 'todos';
   }
 }
 
@@ -576,10 +544,10 @@ function EmptyVehicles({ status }: { status: StatusFilter }) {
       <div className="text-center py-16 px-6">
         <Truck className="mx-auto h-10 w-10 text-muted-foreground/40" />
         <h3 className="mt-3 text-sm font-semibold text-foreground">
-          Nenhuma caçamba {pillLabel(status)}
+          Nenhum veículo {pillLabel(status)}
         </h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Tente outro filtro acima ou veja todas as caçambas.
+          Tente outro filtro acima ou veja todos os veículos.
         </p>
         <div className="mt-4">
           <Button asChild variant="outline" size="sm">
@@ -592,16 +560,16 @@ function EmptyVehicles({ status }: { status: StatusFilter }) {
   return (
     <div className="text-center py-16 px-6">
       <Truck className="mx-auto h-10 w-10 text-muted-foreground/40" />
-      <h3 className="mt-3 text-sm font-semibold text-foreground">Nenhuma caçamba cadastrada</h3>
+      <h3 className="mt-3 text-sm font-semibold text-foreground">Nenhum veículo cadastrado</h3>
       <p className="mt-1 text-xs text-muted-foreground">
-        Clique em <strong className="text-foreground">+ Nova caçamba</strong> pra começar
+        Clique em <strong className="text-foreground">+ Novo veículo</strong> pra começar
         — ou aguarde o importer Office Impresso (em breve).
       </p>
       <div className="mt-4">
         <Button asChild>
           <Link href="/oficina-auto/veiculos/create">
             <Plus className="mr-1.5 h-4 w-4" />
-            Nova caçamba
+            Novo veículo
           </Link>
         </Button>
       </div>
@@ -622,7 +590,7 @@ function Pagination({ meta }: { meta: PaginatorMeta }) {
     <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1">
       <div className="text-xs text-muted-foreground">
         {total === 0
-          ? 'Nenhuma caçamba'
+          ? 'Nenhum veículo'
           : `Mostrando ${from ?? 0}–${to ?? 0} de ${total.toLocaleString('pt-BR')}`}
       </div>
       <div className="flex items-center gap-1">
