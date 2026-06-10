@@ -53,6 +53,10 @@ interface Props {
   enabled: boolean;
   /** Chamado após avançar a etapa — drawer pai refetch (status/itens/timeline). */
   onChanged?: () => void;
+  /** Bump pra forçar refetch quando o pipeline muda FORA daqui (ex.: "Iniciar pipeline
+      FSM" no FsmActionPanel) — sem isso o checklist fica stale até reabrir o drawer
+      (bug pego pelo E2E UC-11, run 27276374828). */
+  refreshToken?: number;
 }
 
 function csrfToken(): string {
@@ -71,7 +75,7 @@ function readManual(osId: number): Record<string, boolean> {
   }
 }
 
-export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChanged }: Props) {
+export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChanged, refreshToken = 0 }: Props) {
   const [data, setData] = useState<GateResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +108,7 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
     if (!enabled || !serviceOrderId) return;
     setManual(readManual(serviceOrderId));
     void fetchGate();
-  }, [enabled, serviceOrderId, fetchGate]);
+  }, [enabled, serviceOrderId, fetchGate, refreshToken]);
 
   const setManualCheck = useCallback(
     (key: string, checked: boolean) => {

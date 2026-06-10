@@ -1,15 +1,15 @@
 {
   "_meta": {
-    "generated_at": "2026-06-10T12:47:24.127Z",
+    "generated_at": "2026-06-10T12:49:35.004Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/playwright-junit.xml"
     ],
     "stats": {
-      "ucs": 4,
-      "pass": 3,
+      "ucs": 5,
+      "pass": 5,
       "fail": 0,
-      "skip": 1
+      "skip": 0
     },
     "nota": "Veredito por-UC derivado dos relatórios JUnit (test-results/). Lido offline pelo casos:check G-7. Regerar quando a suíte rodar: npm run casos:results. UC sem entrada aqui = sem prova capturada (G-7 marca ✅ declarado como unverified).",
     "refs": [
@@ -19,6 +19,11 @@
     ]
   },
   "ucs": {
+    "UC-11": {
+      "verdict": "pass",
+      "ran_at": "2026-06-10",
+      "tests": 1
+    },
     "UC-01": {
       "verdict": "pass",
       "ran_at": "2026-06-10",
@@ -35,7 +40,7 @@
       "tests": 1
     },
     "UC-06": {
-      "verdict": "skip",
+      "verdict": "pass",
       "ran_at": "2026-06-10",
       "tests": 1
     }

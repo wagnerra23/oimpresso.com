@@ -296,7 +296,17 @@ export default function ServiceOrderFsmActionPanel({
   }
 
   if (!data || !data.in_pipeline) {
-    return <StartPipelineEmptyState serviceOrderId={serviceOrderId} onStarted={fetchActions} />;
+    return (
+      <StartPipelineEmptyState
+        serviceOrderId={serviceOrderId}
+        onStarted={() => {
+          void fetchActions();
+          // Iniciar pipeline muda o estágio da OS — avisa o pai pro StageGate (checklist)
+          // refetchar; sem isso ele fica stale até reabrir o drawer (E2E UC-11, run 27276374828).
+          onTransition?.();
+        }}
+      />
+    );
   }
 
   const stage = data.current_stage;
