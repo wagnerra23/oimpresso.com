@@ -75,6 +75,24 @@ export interface QueueConfig {
   trigger_tags?: string[];
 }
 
+/**
+ * US-WA-301 (ADR 0267) — row completa de `whatsapp_queues` pro painel Filas
+ * (QueuesSheet CRUD). `dist`/`members` persistidos; roteamento automático é
+ * US futura.
+ */
+export interface QueueAdminItem {
+  id: number;
+  slug: string;
+  label: string;
+  hue: number;
+  sla_minutes: number | null;
+  sla: string | null;
+  dist: string;
+  trigger_tags: string[];
+  sort_order: number;
+  is_default: boolean;
+}
+
 export interface ConvTag {
   id: number;
   slug: string;
@@ -132,6 +150,8 @@ export interface CaixaUnifThread {
   created_at: string | null;
   tags: ConvTag[];
   queue: QueueDerived;
+  /** US-WA-305 — true quando a fila vem de override manual (não da heurística). */
+  queue_is_override: boolean;
   preview_only: boolean;
 }
 

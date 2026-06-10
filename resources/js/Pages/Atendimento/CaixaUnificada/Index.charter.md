@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 3
+charter_version: 6
 permissao: whatsapp.access
 ---
 
@@ -118,8 +118,21 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - Stats expandida com counters per-tab (assigned/bot/awaiting_human/archived) — exibe badge contagem na tab quando > 0.
 - URL preservada via `replace: true` no router.get (não polui history).
 
+### Filas persistidas + painel (US-WA-301 · ADR 0267, 2026-06-10)
+- Tabela `whatsapp_queues` substitui `config('whatsapp.queues')` — seed lazy
+  idempotente do config na 1ª visita por business; fallback config se DB vazio.
+- Topnav "Filas" abre **QueuesSheet** (CRUD in-place): label, hue (dot OKLCH),
+  SLA em minutos, distribuição (persistida; roteamento é US futura),
+  tags-gatilho (chips das tags do business). Fila default protegida de delete.
+- Mutações via `atendimento.filas.*` (permission `whatsapp.settings.manage`);
+  leitura nos props (`queues` shape compat + `queuesAdmin` deferred).
+- Heurística tag→fila e `stats.queues_count` passam a ler o DB.
+
 ### Sidebar direita (8 sections)
-1. **Fila** — derivada via heurística tag→fila (read-only nesta passada).
+1. **Fila** — heurística tag→fila + **override manual** (US-WA-305, 2026-06-10):
+   Popover "mover" lista filas do business; PATCH `atendimento.inbox.move_queue`
+   grava `queue_override` (vence heurística sem re-tagar); badge "manual" +
+   opção "Voltar pra automática". Slug órfão de fila deletada cai no fallback.
 2. **Atribuído** — assignee picker real (US-WA-302, 2026-06-10): Popover com
    operadores do business (grant ativo OU `whatsapp.access`/`whatsapp.send`),
    avatar iniciais + hue determinístico, "remover atribuição". PATCH
@@ -146,12 +159,10 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - ❌ **Configurar Channel** — `/atendimento/canais` continua.
 - ❌ **Editar templates HSM** — `/whatsapp/templates`.
 - ❌ **Wizard de conexão** — `/atendimento/canais/{id}` show + tabs.
-- ❌ **Filas configuração real** — placeholder; config via
-  `config('whatsapp.queues')` (estática). UI de gerenciamento fica pra
-  PR seguinte (TODO US-WA-XXX).
+- ❌ **Roteamento automático de filas** (round-robin/sticky/members) —
+  `dist`/`members` são persistidos (ADR 0267) mas o roteamento é US futura.
 - ❌ **Broadcast cross-canal** — placeholder; backlog (alta complexidade
   janela 24h Meta + opt-in LGPD).
-- ❌ **Mover conversa entre filas** — só leitura (fila vem de heurística).
 - ❌ **Mídia outbound/inbound** UI — preserva legacy `MediaPreviewCard`
   durante coexistência. PR seguinte unifica.
 
@@ -221,18 +232,17 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-004 — availableAssignees só lista operadores do business atual (Tier 0)` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-005 — assign atribui/remove operador + bloqueia cross-tenant (Tier 0)` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do business atual (Tier 0)` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422` | mesmo arquivo |
 
 ---
 
 ## Roadmap — O que falta (priorizado pelo Wagner)
 
-### §1 Filas — UI de configuração (P1)
-Hoje filas vêm de `config('whatsapp.queues')` estático. Wagner quer painel
-admin pra criar/editar fila (label, hue, SLA, trigger_tags, distribuição
-round-robin/sticky/manual, members[]). Tabela DB nova `whatsapp_queues` +
-ADR per-schema antes de criar — não inventar.
-
-**US sugerida:** US-WA-XXX Filas DB + painel (~4-6h IA-pair).
+### §1 Filas — UI de configuração (P1) — ✅ ENTREGUE 2026-06-10 (US-WA-301)
+Tabela `whatsapp_queues` (ADR 0267) + QueuesSheet CRUD + seed lazy do config.
+Roteamento automático (dist/members) fica dormente até US futura.
 
 ### §2 Broadcast cross-canal (P2)
 Disparar mensagem template (Meta HSM ou Baileys freeform) pra N contatos
@@ -246,19 +256,14 @@ Dropdown no contexto da sidebar pra atribuir conv a operador específico.
 Reusa `assigned_user_id` nullable já existente em `conversations`.
 Endpoint PATCH `atendimento.inbox.assign` + payload `availableAssignees`.
 
-### §4 Mover conversa entre filas (P2)
-Hoje fila é derivada read-only via tag heurística. Mover = re-tagar.
-Wagner pode querer override manual sem mexer em tag.
+### §4 Mover conversa entre filas (P2) — ✅ ENTREGUE 2026-06-10 (US-WA-305)
+Coluna `queue_override` em conversations + PATCH `atendimento.inbox.move_queue`
++ Popover na section Fila. Override vence heurística; null volta pra automática.
 
-**US sugerida:** US-WA-XXX Manual queue override (~2h IA-pair).
-
-### §5 Painel "Canais e contas" drawer
-Cowork tem drawer lateral com lista agrupada de canais (Baileys/Meta/Z-API
-+ contas com status ativo/em-breve). Hoje a tela linka direto pra
-`/atendimento/canais` (página completa). Drawer in-place economiza
-context switch.
-
-**US sugerida:** US-WA-XXX Channels drawer (~2-3h IA-pair).
+### §5 Painel "Canais e contas" drawer — ✅ ENTREGUE 2026-06-10 (US-WA-304)
+`ChannelsDrawer` (Sheet) agrupado por type + contas com status/health + link
+"Gerenciar" pra página completa. Zero backend novo (reusa `availableChannels`
++ `availableAccounts`).
 
 ### §6 Cutover Inbox legacy → Caixa Unificada V4 (P0 — pós-canary)
 Após Wagner aprovar canary 7d:
@@ -274,6 +279,9 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-304 Drawer Canais e contas** (PR-5/10): topnav "Canais" deixa de navegar pra página e abre `ChannelsDrawer` (Sheet in-place agrupado por type, contas com status ativo/em-breve + health, link Gerenciar pra `/atendimento/canais`). ZERO backend novo — reusa payloads `availableChannels`/`availableAccounts` (cobertos por R-WA-CAIXA-UNIF-001/002). Charter v6. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-305 Mover entre filas** (PR-4/10): coluna `queue_override` (migration idempotente, slug não-FK de propósito — fila deletada não quebra conversa) + `InboxController::moveQueue` (slug validado contra filas do business, 422 fail-loud) + Popover "mover" na section Fila com badge "manual" e volta pra automática. Charter v5. Pest R-WA-CAIXA-UNIF-009. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-301 Filas DB + painel** (PR-3/10): tabela `whatsapp_queues` (ADR 0267, per-schema antes da migration) + seed lazy idempotente do config + QueuesSheet CRUD (label/hue/SLA/dist/tags-gatilho, default protegida) + heurística tag→fila lê DB com fallback config. Topnav "Filas" deixa de ser disabled. Charter v4. Pest R-WA-CAIXA-UNIF-007/008. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-303 Composer completo** (PR-2/10): Templates via `TemplatePicker` legacy filtrado por provider do canal + payload `availableTemplates` (LOCAL/APPROVED) · Macros dropdown + autocomplete `/` inline reusando backend US-WA-048 (`macros.list` + `apply_macro`) · Variáveis `{{nome}}`/`{{telefone}}`/`{{operador}}` com botão `{}`, preview verde/vermelho e substituição no send. Charter v3. Pest R-WA-CAIXA-UNIF-006. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas" — brief [CC] Caixa Unificada completa) | **US-WA-302 Assignee picker** (PR-1/10): section 2 da sidebar vira picker real (Popover operadores + avatar hue + remover atribuição). Backend: PATCH `atendimento.inbox.assign` (InboxController::assign, Tier 0 cross-tenant 422) + prop deferred `availableAssignees` + relação `Conversation::assignedUser`. Charter v2. Pest R-WA-CAIXA-UNIF-004/005. |
 | 2026-05-15 | Wagner + Opus 4.7 | Adicionado `<CustomerMemoryBlock>` (US-WA-VOZ-001/002/003 — PR #919) no topo do `ContextSidebarV4`. Lazy fetch `GET /atendimento/customer/{ext}/profile`. Mostra identidade Contact CRM, stats agregados, top 3 reclamações 30d com severity, external_sources Firebird, flags VIP/frágil, LGPD. Mesmo componente usado pelo Inbox legacy (`ConversationSidebar.tsx`) — atendente vê Customer 360 em qualquer tela durante cutover. |

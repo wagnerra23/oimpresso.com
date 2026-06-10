@@ -32,9 +32,25 @@ uses(Tests\TestCase::class);
  * NUNCA usar biz=4 (ROTA LIVRE cliente real) em tests — ADR 0101.
  */
 beforeEach(function () {
-    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates'] as $t) {
+    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // US-WA-301 (ADR 0267) — filas persistidas (espelho da migration 2026_06_10_000001)
+    Schema::create('whatsapp_queues', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->string('slug', 40);
+        $table->string('label', 80);
+        $table->unsignedSmallInteger('hue')->default(220);
+        $table->unsignedInteger('sla_minutes')->nullable();
+        $table->string('dist', 20)->default('manual');
+        $table->json('trigger_tags');
+        $table->json('members');
+        $table->unsignedInteger('sort_order')->default(0);
+        $table->timestamps();
+        $table->unique(['business_id', 'slug'], 'wq_biz_slug_uniq');
+    });
 
     // US-WA-303 — templates ready pro picker ⌘T (espelho da migration 2026_05_07_000004)
     Schema::create('whatsapp_templates', function ($table) {
@@ -124,6 +140,7 @@ beforeEach(function () {
         $table->string('contact_name', 120)->nullable();
         $table->string('status', 20)->default('open');
         $table->unsignedInteger('assigned_user_id')->nullable();
+        $table->string('queue_override', 40)->nullable();
         $table->boolean('bot_handling')->default(false);
         $table->timestamp('last_inbound_at')->nullable();
         $table->timestamp('last_outbound_at')->nullable();
@@ -489,4 +506,153 @@ it('R-WA-CAIXA-UNIF-006 — availableTemplates só ready (LOCAL/APPROVED) do bus
     expect($bv['body'])->toBe('Olá {{nome}}, bem-vindo!')
         ->and($bv['provider'])->toBe('baileys')
         ->and($bv['status'])->toBe('LOCAL');
+});
+
+// ============================================================================
+// 6. US-WA-301 (ADR 0267) — filas em DB: seed lazy + leitura DB + Tier 0 + CRUD
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-007-uuid');
+    cuctMakeConv(1, $ch->id, ['financeiro']);
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    // Fila de OUTRO tenant pré-existente — não pode vazar nem inibir o seed
+    \Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()->create([
+        'business_id' => 99, 'slug' => 'intrusa', 'label' => 'Intrusa', 'hue' => 10,
+        'trigger_tags' => [], 'members' => [],
+    ]);
+
+    // 1ª visita seeda do config (comercial + financeiro)
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    expect(array_keys($props['queues']))->toContain('comercial', 'financeiro')
+        ->and(array_keys($props['queues']))->not->toContain('intrusa') // Tier 0
+        ->and($props['queues']['financeiro']['hue'])->toBe(280)
+        ->and($props['queues']['financeiro']['sla'])->toBe('4h'); // 240min humanizado
+
+    // Idempotente: 2ª visita NÃO duplica
+    cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    $count = \Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()
+        ->where('business_id', 1)->count();
+    expect($count)->toBe(2);
+
+    // Edição no DB reflete no payload (prova que lê DB, não config)
+    \Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()
+        ->where('business_id', 1)->where('slug', 'financeiro')
+        ->update(['label' => 'Cobranças VIP', 'hue' => 300]);
+    $props2 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    expect($props2['queues']['financeiro']['label'])->toBe('Cobranças VIP')
+        ->and($props2['queues']['financeiro']['hue'])->toBe(300);
+
+    // deriveQueueFromTags acompanha o DB (conv com tag financeiro)
+    $convs = cuctResolveDefer($props2['conversations']);
+    expect($convs['data'][0]['queue']['label'])->toBe('Cobranças VIP');
+
+    // queuesAdmin marca a default e expõe rows completas
+    $admin = cuctResolveDefer($props2['queuesAdmin']);
+    $comercial = collect($admin)->firstWhere('slug', 'comercial');
+    expect($comercial['is_default'])->toBeTrue()
+        ->and(collect($admin)->pluck('slug')->all())->not->toContain('intrusa');
+});
+
+it('R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-008-uuid');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+    // Seed inicial
+    cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+
+    $queuesCtrl = new \Modules\Whatsapp\Http\Controllers\Admin\QueuesController();
+
+    // STORE — slug auto do label
+    $storeReq = Request::create('/atendimento/filas', 'POST', [
+        'label' => 'Suporte Técnico', 'hue' => 150, 'sla_minutes' => 90,
+        'dist' => 'manual', 'trigger_tags' => ['suporte'],
+    ]);
+    $storeReq->setLaravelSession(app('session.store'));
+    $queuesCtrl->store($storeReq);
+    $created = \Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()
+        ->where('business_id', 1)->where('slug', 'suporte-tecnico')->first();
+    expect($created)->not->toBeNull()
+        ->and($created->sla_minutes)->toBe(90)
+        ->and($created->trigger_tags)->toBe(['suporte']);
+
+    // UPDATE — slug imutável, label/hue mudam
+    $updateReq = Request::create("/atendimento/filas/{$created->id}", 'PUT', [
+        'label' => 'Suporte N2', 'hue' => 200, 'sla_minutes' => null,
+        'dist' => 'round_robin', 'slug' => 'hack-tentativa',
+    ]);
+    $updateReq->setLaravelSession(app('session.store'));
+    $queuesCtrl->update($updateReq, $created->id);
+    $fresh = $created->fresh();
+    expect($fresh->label)->toBe('Suporte N2')
+        ->and($fresh->slug)->toBe('suporte-tecnico') // imutável
+        ->and($fresh->dist)->toBe('round_robin');
+
+    // DESTROY default bloqueado (comercial = config default_queue)
+    $comercial = \Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()
+        ->where('business_id', 1)->where('slug', 'comercial')->first();
+    $delReq = Request::create("/atendimento/filas/{$comercial->id}", 'DELETE');
+    $delReq->setLaravelSession(app('session.store'));
+    $queuesCtrl->destroy($delReq, $comercial->id);
+    expect(\Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()->find($comercial->id))
+        ->not->toBeNull(); // ainda existe
+
+    // DESTROY não-default funciona
+    $delReq2 = Request::create("/atendimento/filas/{$created->id}", 'DELETE');
+    $delReq2->setLaravelSession(app('session.store'));
+    $queuesCtrl->destroy($delReq2, $created->id);
+    expect(\Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()->find($created->id))->toBeNull();
+
+    // Tier 0 — mutar fila de outro tenant = 404 fail-loud
+    $alien = \Modules\Whatsapp\Entities\WhatsappQueue::withoutGlobalScopes()->create([
+        'business_id' => 99, 'slug' => 'alien', 'label' => 'Alien', 'hue' => 10,
+        'trigger_tags' => [], 'members' => [],
+    ]);
+    $alienReq = Request::create("/atendimento/filas/{$alien->id}", 'DELETE');
+    $alienReq->setLaravelSession(app('session.store'));
+    expect(fn () => $queuesCtrl->destroy($alienReq, $alien->id))
+        ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});
+
+// ============================================================================
+// 7. US-WA-305 — queue_override: mover entre filas vence heurística
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-009-uuid');
+    $conv = cuctMakeConv(1, $ch->id, ['financeiro']); // heurística → fila financeiro
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    $inbox = new \Modules\Whatsapp\Http\Controllers\Admin\InboxController();
+
+    // Baseline: heurística deriva financeiro
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props['thread']['queue']['slug'])->toBe('financeiro')
+        ->and($props['thread']['queue_is_override'])->toBeFalse();
+
+    // Move pra comercial (override manual) — vence a heurística sem re-tagar
+    $inbox->moveQueue(cuctPatchRequest("/atendimento/inbox/{$conv->id}/queue", ['queue_slug' => 'comercial']), $conv->id);
+    expect($conv->fresh()->queue_override)->toBe('comercial');
+
+    $props2 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props2['thread']['queue']['slug'])->toBe('comercial')
+        ->and($props2['thread']['queue_is_override'])->toBeTrue();
+
+    // Lista também reflete o override
+    $convs = cuctResolveDefer($props2['conversations']);
+    expect($convs['data'][0]['queue']['slug'])->toBe('comercial');
+
+    // Slug inexistente → 422 fail-loud (Tier 0 — não aceita fila de outro tenant)
+    expect(fn () => $inbox->moveQueue(
+        cuctPatchRequest("/atendimento/inbox/{$conv->id}/queue", ['queue_slug' => 'fila-fantasma']),
+        $conv->id,
+    ))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect($conv->fresh()->queue_override)->toBe('comercial'); // intacto
+
+    // null volta pra heurística
+    $inbox->moveQueue(cuctPatchRequest("/atendimento/inbox/{$conv->id}/queue", ['queue_slug' => null]), $conv->id);
+    expect($conv->fresh()->queue_override)->toBeNull();
+    $props3 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props3['thread']['queue']['slug'])->toBe('financeiro')
+        ->and($props3['thread']['queue_is_override'])->toBeFalse();
 });

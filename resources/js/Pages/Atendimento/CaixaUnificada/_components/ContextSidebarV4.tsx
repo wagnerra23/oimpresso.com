@@ -59,6 +59,21 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
   const activeTagIds = new Set(thread.tags.map(t => t.id));
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  // US-WA-305 — mover conversa entre filas (PATCH /atendimento/inbox/{id}/queue)
+  const [queuePopOpen, setQueuePopOpen] = useState(false);
+  function moveToQueue(slug: string | null) {
+    router.patch(
+      route('atendimento.inbox.move_queue', thread.id),
+      { queue_slug: slug },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'conversations', 'stats'],
+        onSuccess: () => setQueuePopOpen(false),
+      },
+    );
+  }
+
   // US-WA-302 — atribuir/remover operador (PATCH /atendimento/inbox/{id}/assign)
   const [assignPopOpen, setAssignPopOpen] = useState(false);
   function assignTo(assigneeId: number | null) {
@@ -147,11 +162,66 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           <CustomerMemoryBlock customerExternalId={thread.customer_external_id} />
         )}
 
-        {/* 1. Fila */}
+        {/* 1. Fila — US-WA-305: select de override manual (vence heurística tag→fila) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
-            Fila
-          </small>
+          <Inline gap={0} align="center" justify="between">
+            <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
+              Fila
+            </small>
+            <Popover open={queuePopOpen} onOpenChange={setQueuePopOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  title="Mover conversa pra outra fila (override manual)"
+                  data-testid="caixa-unif-ctx-queue-move"
+                >
+                  <Plus size={11} aria-hidden /> mover
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60 p-1.5">
+                <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
+                  Mover pra fila
+                </div>
+                <ul className="max-h-64 overflow-auto">
+                  {Object.entries(queues).map(([slug, cfg]) => {
+                    const active = thread.queue.slug === slug;
+                    return (
+                      <li key={slug}>
+                        <button
+                          type="button"
+                          onClick={() => moveToQueue(slug)}
+                          data-testid={`caixa-unif-ctx-queue-pick-${slug}`}
+                          className="w-full inline-flex items-center justify-between gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
+                        >
+                          <span className="inline-flex items-center gap-1.5 min-w-0">
+                            <span
+                              className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ background: `oklch(0.55 0.13 ${cfg.hue})` }}
+                              aria-hidden
+                            />
+                            <span className="truncate">{cfg.label}</span>
+                            {cfg.sla && <small className="text-[10px] text-muted-foreground flex-shrink-0">SLA {cfg.sla}</small>}
+                          </span>
+                          {active && <Check size={13} className="text-primary flex-shrink-0" aria-label="Fila atual" />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {thread.queue_is_override && (
+                  <button
+                    type="button"
+                    onClick={() => moveToQueue(null)}
+                    data-testid="caixa-unif-ctx-queue-auto"
+                    className="w-full mt-1 px-2 py-1.5 text-[10.5px] text-muted-foreground hover:text-foreground hover:bg-muted rounded text-center transition-colors"
+                  >
+                    Voltar pra automática (heurística por tags)
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+          </Inline>
           <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium" data-testid="caixa-unif-ctx-queue">
             <span
               className="inline-block w-2 h-2 rounded-full flex-shrink-0"
@@ -159,6 +229,14 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
               aria-hidden
             />
             {thread.queue.label}
+            {thread.queue_is_override && (
+              <span
+                className="inline-flex text-[9px] font-medium text-muted-foreground bg-muted border rounded-full px-1.5 flex-shrink-0"
+                title="Fila definida manualmente — vence a heurística por tags"
+              >
+                manual
+              </span>
+            )}
           </b>
           {queueCfg?.sla && (
             <small className="text-[11px] text-muted-foreground mt-0.5">

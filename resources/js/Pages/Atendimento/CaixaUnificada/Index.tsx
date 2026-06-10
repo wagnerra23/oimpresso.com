@@ -24,7 +24,7 @@
 // Reusa endpoints backend do legacy: POST /atendimento/inbox/{id}/send,
 // PATCH /atendimento/inbox/{id}, etc — sem duplicar contrato.
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { router, Deferred, Head } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
 import { ChevronDown, Inbox as InboxIcon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
@@ -42,6 +42,8 @@ import {
 } from '@/Components/ui/dropdown-menu';
 
 import ChannelChipsRow from './_components/ChannelChipsRow';
+import ChannelsDrawer from './_components/ChannelsDrawer';
+import QueuesSheet from './_components/QueuesSheet';
 import ConversationListV4 from './_components/ConversationListV4';
 import ConversationThreadV4 from './_components/ConversationThreadV4';
 import ContextSidebarV4 from './_components/ContextSidebarV4';
@@ -71,6 +73,9 @@ interface Props {
   availableAssignees?: AssigneeItem[];
   /** US-WA-303 — templates ready do business (picker ⌘T do composer). */
   availableTemplates?: import('@/Pages/Whatsapp/_components/helpers').ReadyTemplate[];
+  /** US-WA-301 (ADR 0267) — rows completas pro painel Filas (Sheet CRUD). */
+  queuesAdmin?: import('./_components/helpers').QueueAdminItem[];
+  canManageQueues?: boolean;
 
   businessId: number;
   /**
@@ -98,12 +103,18 @@ interface Props {
 
 export default function CaixaUnificadaIndex({
   conversations, stats, availableChannels, availableAccounts, availableTags, availableAssignees, availableTemplates,
+  queuesAdmin, canManageQueues,
   businessId: _businessId,
   statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
   thread, messages, centrifugoConfig,
   queues, defaultQueue: _defaultQueue,
   within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
 }: Props) {
+  // US-WA-301 — painel Filas (Sheet in-place)
+  const [filasOpen, setFilasOpen] = useState(false);
+  // US-WA-304 — drawer Canais e contas (Sheet in-place, charter §5)
+  const [canaisOpen, setCanaisOpen] = useState(false);
+
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
     if (!centrifugoConfig) return;
@@ -330,23 +341,27 @@ export default function CaixaUnificadaIndex({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* US-WA-301 (ADR 0267) — painel Filas (Sheet CRUD, DB whatsapp_queues) */}
           <button
             type="button"
-            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
-            disabled
-            title="Configurar filas (em breve)"
+            onClick={() => setFilasOpen(true)}
+            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title="Configurar filas de atendimento"
             data-testid="caixa-unif-topnav-filas"
           >
             Filas
           </button>
-          <a
-            href={route('atendimento.channels.index')}
+          {/* US-WA-304 — vira drawer in-place (Sheet); página completa fica no link
+              "Gerenciar" dentro do drawer */}
+          <button
+            type="button"
+            onClick={() => setCanaisOpen(true)}
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-            title="Gerenciar canais"
+            title="Canais e contas (drawer)"
             data-testid="caixa-unif-topnav-canais"
           >
             Canais
-          </a>
+          </button>
           <button
             type="button"
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
@@ -461,6 +476,24 @@ export default function CaixaUnificadaIndex({
         </div>
 
         {/* Sidebar direita — só quando thread aberta */}
+        {/* US-WA-301 — painel Filas (Sheet CRUD whatsapp_queues) */}
+        <QueuesSheet
+          open={filasOpen}
+          onOpenChange={setFilasOpen}
+          queues={queuesAdmin ?? []}
+          availableTags={availableTags ?? []}
+          canManage={canManageQueues ?? false}
+        />
+
+        {/* US-WA-304 — drawer Canais e contas (reusa payloads já carregados) */}
+        <ChannelsDrawer
+          open={canaisOpen}
+          onOpenChange={setCanaisOpen}
+          channels={availableChannels ?? []}
+          accounts={availableAccounts ?? []}
+          canManageChannels={canManageQueues ?? false}
+        />
+
         {thread && (
           <Deferred data="availableChannels" fallback={null}>
             <ContextSidebarV4
