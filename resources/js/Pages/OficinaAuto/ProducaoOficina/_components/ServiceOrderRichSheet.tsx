@@ -200,6 +200,9 @@ export default function ServiceOrderRichSheet({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [approvalSending, setApprovalSending] = useState(false);
+  // Bump em toda transição FSM (incl. "Iniciar pipeline") — força o StageGate refetchar
+  // (deps dele são só serviceOrderId/enabled; sem token ele fica stale — E2E UC-11).
+  const [fsmRefresh, setFsmRefresh] = useState(0);
   // F3 OS-V2-6 — lançar/editar/remover item inline sem fechar o drawer.
   const [itemFormOpen, setItemFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ServiceOrderItemDto | null>(null);
@@ -236,6 +239,7 @@ export default function ServiceOrderRichSheet({
   // Callback estável passada pro FsmActionPanel — evita re-render loop (lição PR #717).
   const handleFsmTransition = useCallback(() => {
     void fetchData();
+    setFsmRefresh((n) => n + 1);
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
 
@@ -585,6 +589,7 @@ export default function ServiceOrderRichSheet({
                   serviceOrderId={data.id}
                   enabled={open}
                   onChanged={handleFsmTransition}
+                  refreshToken={fsmRefresh}
                 />
               </Section>
 
