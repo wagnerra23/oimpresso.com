@@ -68,7 +68,8 @@ const brlK = (v: number) => {
   return brl(v);
 };
 
-const dataBr = (d: string) => (d ? d.split('-').reverse().slice(0, 2).join('/') : '—');
+// Defensivo: aceita date-only E datetime legacy (corta o timestamp antes de formatar).
+const dataBr = (d: string) => (d ? d.slice(0, 10).split('-').reverse().slice(0, 2).join('/') : '—');
 
 // Status pill — tons semânticos calmos via tokens do @theme (zero cor crua).
 const GUIA_STATUS: Record<GuiaStatus, { label: string; cls: string }> = {

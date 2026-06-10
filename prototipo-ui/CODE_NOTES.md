@@ -805,3 +805,24 @@ Origem: PROMPT_PARA_CODE_PACOTE-QUALIDADE-9-OS ([CC] 2026-06-10). Validação §
 - **decisão** · [W] 2026-06-10: piso de qualidade = 9; CSS 1-arquivo-por-superfície; duplicata estrutural proibida (espelho/snapshot) — Cowork já deletou 575 e criou IT8. Lado Code: dedup bundles ✅ (2026-06-02), dead-CSS 1-família/PR em curso (fila: vd-drawer 9).
 - **anti-padrão** · token `-fg` como superfície / `-bg` como texto → gate PR-3 (#2489): invariante absoluto no conformance-gate.mjs (repo medido 0) + probe DOM-matched no browser. Caso real: barra de progresso marrom com `--origin-MFG-fg` de fill.
 - **golden** · probe G1–G6 (classes genéricas, controle-negativo embutido) = espelho Cowork da camada-2 portado por SEMÂNTICA (não arquivo): estático onde dá (G3 regex), browser onde precisa (G2 computed accent-color, G4 overflow com estado "adicionando" ABERTO).
+
+---
+
+## 2026-06-10 [CL] → [CC]/[W] · PACOTE-FINANCEIRO-F2 — 4 PRs MERGED (+1 re-land)
+
+| PR | o que | nota |
+|---|---|---|
+| #2493 | Type ramp `--fs-1..9` (fundacao + gate) | `foundations.css` NASCE (Camada Fundacoes ADR UI-0013, ja previsto no foundation-guard); `Text` (ADR 0253) consome o ramp 1:1 xs→fs-1…5xl→fs-9; ratchet `fontramp` no conformance-gate (espelho G8), 814 dividas congeladas; SEM sweep global |
+| #2494 | US-FIN-029 · 3 lentes no Unificado | `?lente=` clamp caixa · chips refinam DENTRO · KPI-click seta lente · charter v14 · MWART commitado · `UnificadoLentesGuardTest` 6 GUARDs. Menu ··· e topnav JA estavam live (FinanceiroSubNav) — nao refeito |
+| #2497 | Drawer 3 camadas (re-land do #2495) | hero FIXO fora do scroll (fs-9 mono + urgencia em palavras + FSM compacto 4 etapas) · DrawerLens primary/10 · conciliada = box discreto · Lente Fiscal ISS 5%/DAS ≈6% + link /financeiro/impostos · 2 white→var(--accent-fg) |
+| #2496 | Impostos & obrigacoes | tela nova /financeiro/impostos 100%% derivada (zero tabela): DAS ≈6%% s/ RECEBIDO (regime caixa, espelha kpisCore) · Lancar a pagar idempotente (`metadata.guia`, valor server-side) · NF↔titulo · charter v1 + casos 7 UCs + `ImpostosGuardTest` |
+
+**Divergencias da spec (registradas nos PRs):** contadores por lente FORA (1280px ja carrega ghosts+lentes+primary; qtd vive nos KPIs/chips) · `<FinModuleTopnav>` nao criado (FinanceiroSubNav ja e o shared em uso) · FGTS/DCTFWeb sem folha no sistema = so historico de titulos lancados (honesto, zero mock).
+
+**Gates que morderam no ciclo (e como resolvemos):** ui:lint R1 (+3 stone no segmented → tokens semanticos) · layout-primitives (Δ+8 drawer / +8 Impostos → Inline/Stack/Grid ADR 0253; `grid place-items-center` e idioma permitido) · css-size (comentario de 4 linhas no bundle → 1 linha inline, delta 0) · casos-coverage (frontmatter owner+last_run + `Status:` por UC) · check-scope strict (ImpostosController no SCOPE.md) · layout test do Text atualizado pro ramp (GUARD nunca deletado).
+
+**Fica de [W]:** screenshots F1.5 @1280/@1440 das telas (lentes/drawer/impostos) no staging quando subir — mergeado por ordem explicita "merge" com CI verde; visual fica validavel no staging.
+
+### new_design_memories
+- **gotcha**: PR stacked + fila de merge com `--delete-branch` = squash pode entrar NA BASE deletada (conteudo some do main sem erro). Confirmar `baseRefName=main` ANTES de mergear o filho.
+- **golden**: gate novo (fontramp) nasce como RATCHET com baseline congelada — adoção tela-a-tela depois, fundacao nunca força sweep.
