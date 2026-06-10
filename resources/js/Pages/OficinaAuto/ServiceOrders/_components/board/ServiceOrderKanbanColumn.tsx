@@ -9,6 +9,7 @@
 
 import { memo, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
+import { Inline } from '@/Components/layout';
 import ServiceOrderKanbanCard, { type BoardDensity, type ServiceOrderCardData } from './ServiceOrderKanbanCard';
 import { toneForColor, emphasisClass } from './boardTone';
 
@@ -58,7 +59,7 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${tone.dot}`} />
           <h3 className="text-sm font-semibold text-foreground truncate">{name}</h3>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <Inline gap={1} className="gap-1.5 flex-shrink-0">
           {capacity ? (
             <span
               className="text-[10px] font-medium text-muted-foreground tabular-nums whitespace-nowrap"
@@ -75,7 +76,7 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
           >
             {cards.length}
           </span>
-        </div>
+        </Inline>
       </header>
 
       <div className="p-2 space-y-2 max-h-[calc(100vh-260px)] overflow-y-auto @[1280px]/board:max-h-[calc(100vh-300px)]" style={{ scrollbarWidth: 'thin' }}>
