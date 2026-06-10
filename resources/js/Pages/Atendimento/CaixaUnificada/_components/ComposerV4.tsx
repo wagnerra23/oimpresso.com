@@ -23,7 +23,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
-import { Braces, LayoutList, Loader2, Send, FileText, Paperclip, Slash, X } from 'lucide-react';
+import { Braces, LayoutList, Loader2, Send, FileText, Paperclip, Slash, Sparkles, X } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import { Inline } from '@/Components/layout';
 import {
@@ -194,6 +194,30 @@ export default function ComposerV4({
       const v = varEntries.find(e => e.key === key.toLowerCase())?.value;
       return v ? v : raw; // sem valor → mantém literal (preview marca em vermelho)
     });
+  }
+
+  // ── PR-9: ✦ Sugerir resposta (IA server-side; humano SEMPRE revisa) ─────
+  const [suggesting, setSuggesting] = useState(false);
+  function suggestReply() {
+    if (suggesting || internalMode || !canType) return;
+    setSuggesting(true);
+    fetch(route('atendimento.inbox.ai.suggest_reply', conversationId), {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '',
+      },
+    })
+      .then(async r => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error ?? 'IA indisponível.');
+        form.setData('body', String(data.text ?? '').trim());
+        requestAnimationFrame(() => inputRef.current?.focus());
+      })
+      .catch((e: Error) => setMediaError(e.message))
+      .finally(() => setSuggesting(false));
   }
 
   function insertVar(key: string) {
@@ -574,6 +598,21 @@ export default function ComposerV4({
       }
       data-testid="caixa-unif-composer"
     >
+      {/* PR-9 — ✦ Sugerir resposta (IA preenche o input; humano revisa e envia) */}
+      {!internalMode && (
+        <button
+          type="button"
+          onClick={suggestReply}
+          disabled={!canType || suggesting}
+          title="IA sugere a próxima resposta — você revisa antes de enviar"
+          data-testid="caixa-unif-composer-suggest"
+          className="h-8 px-2.5 rounded-full border bg-card inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+        >
+          {suggesting ? <Loader2 size={11} className="animate-spin" aria-hidden /> : <Sparkles size={11} aria-hidden />}
+          Sugerir
+        </button>
+      )}
+
       {/* Toggle Resp / Nota — Cowork .om-mode-btn.on tokens OKLCH §589 */}
       <button
         type="button"

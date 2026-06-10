@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Clock, Paperclip, Search, Tag, UserPlus, X } from 'lucide-react';
+import { Clock, Paperclip, Search, Star, Tag, UserPlus, X } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -32,7 +32,9 @@ import {
   initials,
   avatarHue,
   relativeTimeBR,
+  slaState,
 } from './helpers';
+import { useInboxFavs } from './useInboxFavs';
 
 type InboundAging = '6h' | '12h' | '24h' | '48h' | '7d' | null;
 type OrderBy = 'last_message' | 'inbound';
@@ -76,6 +78,13 @@ export default function ConversationListV4({
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
   const tab = status as CaixaUnifTab;
+
+  // Polish V2 §6 — favoritos localStorage ordenam no topo (ordem original preservada dentro dos grupos)
+  const { isFav, toggleFav } = useInboxFavs();
+  const orderedConvs = useMemo(() => {
+    const data = conversations?.data ?? [];
+    return [...data.filter(c => isFav(c.id)), ...data.filter(c => !isFav(c.id))];
+  }, [conversations?.data, isFav]);
 
   const channelsById = useMemo(() => {
     const map = new Map<string, ChannelCatalogItem>();
@@ -390,10 +399,12 @@ export default function ConversationListV4({
           role="listbox"
           aria-label="Conversas"
         >
-          {conversations.data.map(conv => {
+          {orderedConvs.map(conv => {
             const ch = conv.channel_type ? channelsById.get(conv.channel_type) : undefined;
             const isSel = selectedId === conv.id;
             const isGhost = conv.preview_only;
+            const sla = slaState(conv);
+            const fav = isFav(conv.id);
             return (
               <li
                 key={conv.id}
@@ -461,11 +472,48 @@ export default function ConversationListV4({
                   </small>
                 </div>
 
-                {/* Lado direito — tempo + unread */}
+                {/* Lado direito — fav + tempo + SLA + unread */}
                 <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {relativeTimeBR(conv.last_message_at)}
+                  <span className="inline-flex items-center gap-1">
+                    {/* Polish V2 §6 — favorito (localStorage, ordena no topo) */}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleFav(conv.id); }}
+                      className={cn(
+                        'p-0.5 rounded transition-colors',
+                        !fav && 'text-muted-foreground/40 hover:text-muted-foreground',
+                      )}
+                      style={fav ? { color: 'oklch(0.75 0.15 80)' } : undefined}
+                      title={fav ? 'Remover dos favoritos' : 'Favoritar (fica no topo da lista)'}
+                      aria-pressed={fav}
+                      data-testid={`caixa-unif-fav-${conv.id}`}
+                    >
+                      <Star size={11} fill={fav ? 'currentColor' : 'none'} aria-hidden />
+                    </button>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {relativeTimeBR(conv.last_message_at)}
+                    </span>
                   </span>
+                  {/* Polish V2 §1 — pill SLA (âmbar ≥75%, vermelho estourado) */}
+                  {sla === 'breached' && (
+                    <span
+                      className="font-mono text-[9px] font-bold px-1.5 py-px rounded-full bg-destructive/10 text-destructive border border-destructive/30"
+                      title={`SLA ${conv.queue.sla} estourado — cliente aguardando resposta`}
+                      data-testid={`caixa-unif-sla-${conv.id}`}
+                    >
+                      SLA
+                    </span>
+                  )}
+                  {sla === 'warning' && (
+                    <span
+                      className="font-mono text-[9px] font-bold px-1.5 py-px rounded-full"
+                      style={{ background: 'oklch(0.95 0.06 80)', color: 'oklch(0.40 0.12 80)', border: '1px solid oklch(0.82 0.10 80)' }}
+                      title={`SLA ${conv.queue.sla} perto de estourar`}
+                      data-testid={`caixa-unif-sla-${conv.id}`}
+                    >
+                      SLA
+                    </span>
+                  )}
                   {conv.unread_count > 0 && (
                     <span
                       className="bg-primary text-primary-foreground font-mono text-[10px] font-bold px-1.5 py-px rounded-full"

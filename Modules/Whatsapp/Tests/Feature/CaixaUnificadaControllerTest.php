@@ -799,3 +799,49 @@ it('R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + dra
     expect(fn () => $bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $chAlien->id])))
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 });
+
+// ============================================================================
+// 10. PR-9 brief [CC] — IA na thread: dry_run gateia custo + Tier 0/ACL
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud', function () {
+    config(['copiloto.dry_run' => true]); // NUNCA toca provider em teste
+
+    $ch = cuctMakeChannel(1, 'caixa-unif-012-uuid');
+    $chNoAcl = cuctMakeChannel(1, 'caixa-unif-012-noacl-uuid');
+    $conv = cuctMakeConv(1, $ch->id);
+    $convNoAcl = cuctMakeConv(1, $chNoAcl->id);
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    \Illuminate\Support\Facades\DB::table('messages')->insert([
+        'business_id' => 1, 'conversation_id' => $conv->id, 'direction' => 'inbound',
+        'provider' => 'whatsapp_baileys', 'type' => 'text',
+        'body' => 'Quero orçamento de 500 cartões de visita pra minha loja',
+        'status' => 'received', 'created_at' => now(),
+    ]);
+
+    $ai = new \Modules\Whatsapp\Http\Controllers\Admin\InboxAiController();
+
+    // summarize dry-run → fixture (com contagem real de msgs), sem provider
+    $resp = $ai->summarize(cuctPostRequest("/atendimento/inbox/{$conv->id}/ai/summarize"), $conv->id);
+    expect($resp->getData(true)['text'])->toContain('[dry-run]')
+        ->and($resp->getData(true)['text'])->toContain('1 mensagens');
+
+    // ask dry-run ecoa a pergunta na fixture
+    $resp2 = $ai->ask(cuctPostRequest("/atendimento/inbox/{$conv->id}/ai/ask", ['question' => 'qual o pedido?']), $conv->id);
+    expect($resp2->getData(true)['text'])->toContain('qual o pedido?');
+
+    // suggest-reply dry-run devolve resposta plausível
+    $resp3 = $ai->suggestReply(cuctPostRequest("/atendimento/inbox/{$conv->id}/ai/suggest-reply"), $conv->id);
+    expect($resp3->getData(true)['text'])->not->toBe('');
+
+    // ACL: conversa de canal sem grant → 403 fail-loud (US-WA-069)
+    expect(fn () => $ai->summarize(cuctPostRequest("/atendimento/inbox/{$convNoAcl->id}/ai/summarize"), $convNoAcl->id))
+        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+    // Tier 0: conversa de outro tenant → 404
+    $chAlien = cuctMakeChannel(99, 'caixa-unif-012-alien-uuid');
+    $convAlien = cuctMakeConv(99, $chAlien->id);
+    expect(fn () => $ai->summarize(cuctPostRequest("/atendimento/inbox/{$convAlien->id}/ai/summarize"), $convAlien->id))
+        ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});
