@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **271** arquivos · **256** números únicos · máx **0266**
-- **ADRs ATIVOS (lifecycle ativo): 231** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 211 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 231 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **272** arquivos · **257** números únicos · máx **0267**
+- **ADRs ATIVOS (lifecycle ativo): 232** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 211 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 232 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (271)
+## Todas as ADRs (272)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -303,3 +303,4 @@ _(íntegra)_
 | 0264 | aceito | ativo | meta | Governança executável: trio-de-tela + caso↔teste + domínio + E2E viram gates de  |
 | 0265 | aceito | ativo | errata | Oficina = reparo é o único domínio; erradicar resíduo de order_type=locacao; 'Ca |
 | 0266 | aceito | ativo | meta | Evals de comportamento dos agentes — golden set + replay cases + escada de auton |
+| 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
