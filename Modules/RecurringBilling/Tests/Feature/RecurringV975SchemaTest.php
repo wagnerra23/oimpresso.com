@@ -18,6 +18,12 @@ uses(Tests\TestCase::class);
  * Padrão SQLite-stub (mesmo DomainModelsTest) — UPos legacy quebra com migrations.
  */
 beforeEach(function () {
+    // SELF-SCHEMA (cria/dropa tabelas vivas no afterEach) — SQLITE-ONLY.
+    // Contra MySQL real (staging CT 100) o afterEach DROPA tabelas vivas — incidente 2026-06-10.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema (cria/dropa tabelas vivas) — SQLite-only; vs MySQL real dropa staging. Incidente 2026-06-10.');
+    }
+
     foreach ([
         'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
         'rb_subscriptions', 'rb_plans', 'users', 'contacts',

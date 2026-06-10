@@ -15,6 +15,12 @@ use Spatie\Permission\PermissionRegistrar;
  */
 
 beforeEach(function () {
+    // SELF-SCHEMA (cria/dropa tabelas vivas no afterEach) — SQLITE-ONLY.
+    // Contra MySQL real (staging CT 100) o afterEach DROPA tabelas vivas — incidente 2026-06-10.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema (cria/dropa tabelas vivas) — SQLite-only; vs MySQL real dropa staging. Incidente 2026-06-10.');
+    }
+
     Schema::create('users', function (Blueprint $table) {
         $table->increments('id');
         $table->string('surname')->default('');

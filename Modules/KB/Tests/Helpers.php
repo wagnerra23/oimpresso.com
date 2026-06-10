@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
@@ -48,6 +49,13 @@ use Illuminate\Support\Facades\Schema;
  */
 function kbBootstrapSchema(): void
 {
+    // SELF-SCHEMA (cria/dropa tabelas vivas, incl. users/roles/permissions) — SQLITE-ONLY.
+    // Contra MySQL real (staging CT 100) dropa tabelas vivas — incidente 2026-06-10.
+    // test() em vez de $this: helper Pest fora do binding do TestCase.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('Self-schema (cria/dropa tabelas vivas) — SQLite-only; vs MySQL real dropa staging. Incidente 2026-06-10.');
+    }
+
     // Externals mínimos — só campos usados nas FKs/queries.
     Schema::dropIfExists('kb_bridge_state');
     Schema::dropIfExists('kb_comments');
