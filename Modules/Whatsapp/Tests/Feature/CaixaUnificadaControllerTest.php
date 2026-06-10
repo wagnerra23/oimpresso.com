@@ -816,7 +816,7 @@ it('R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL cana
     \Illuminate\Support\Facades\DB::table('messages')->insert([
         'business_id' => 1, 'conversation_id' => $conv->id, 'direction' => 'inbound',
         'provider' => 'whatsapp_baileys', 'type' => 'text',
-        'body' => 'Meu CPF é 123.456.789-09, quero orçamento de 500 cartões',
+        'body' => 'Quero orçamento de 500 cartões de visita pra minha loja',
         'status' => 'received', 'created_at' => now(),
     ]);
 
