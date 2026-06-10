@@ -1151,7 +1151,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               pill segmented do Fluxo/Index.tsx (TabSwitcher), consistência declarada no
               charter do Fluxo. Deep-link ?lente= clamp caixa. */}
           <div
-            className="inline-flex shrink-0 bg-stone-100/80 rounded-md p-0.5 border border-stone-200"
+            className="inline-flex shrink-0 bg-muted rounded-md p-0.5 border border-border"
             role="group"
             aria-label="Lente do fluxo (camada 1 do filtro)"
           >
@@ -1164,8 +1164,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 className={
                   'h-7 px-3 rounded text-[12px] flex items-center transition tabular-nums ' +
                   (lente === l.id
-                    ? 'bg-white shadow-sm font-medium text-stone-900'
-                    : 'text-stone-600 hover:text-stone-800')
+                    ? 'bg-background shadow-sm font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground')
                 }
               >
                 {l.label}
