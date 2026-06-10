@@ -281,7 +281,7 @@ class ServiceOrderController extends Controller
 
         $orders = ServiceOrder::query()
             ->with([
-                'vehicle:id,plate,vehicle_type',
+                'vehicle:id,plate,vehicle_type,mileage_at_entry',
                 'contact:id,name',
                 'assignedUser:id,first_name,last_name,surname',
                 'dviInspectionItems',
@@ -306,6 +306,12 @@ class ServiceOrderController extends Controller
             ->limit(300)
             ->get();
 
+        // "Último" de cada OS — 1 query bulk no audit FSM (sale_stage_history),
+        // filtrada pelo processo oficina_mecanica_os pra não colidir com o
+        // transaction_id de vendas (a coluna é compartilhada por convenção legada).
+        // Paridade card Cowork (linha "últ.") com dado REAL de auditoria.
+        $lastActivityByOsId = $this->buildLastActivityMap($orders->pluck('id')->all(), $businessId);
+
         // Agrupa cards por stage_key (null → coluna inicial).
         $cardsByStage = [];
         foreach ($boardStages as $s) {
@@ -320,7 +326,11 @@ class ServiceOrderController extends Controller
             if ($stageKey === null || ! array_key_exists($stageKey, $cardsByStage)) {
                 continue;
             }
-            $cardsByStage[$stageKey][] = $this->shapeBoardCard($order, $currentStageId !== null);
+            $cardsByStage[$stageKey][] = $this->shapeBoardCard(
+                $order,
+                $currentStageId !== null,
+                $lastActivityByOsId[$order->id] ?? null,
+            );
         }
 
         $columns = $boardStages->map(fn ($s) => [
@@ -333,11 +343,69 @@ class ServiceOrderController extends Controller
 
         return Inertia::render('OficinaAuto/ServiceOrders/Board', [
             'columns'      => $columns,
-            'kpis'         => $this->buildBoardKpis($columns),
+            'kpis'         => $this->buildBoardKpis($columns, count($boxOptions)),
             'process_seeded' => $boardStages->isNotEmpty(),
             'filters'      => ['q' => $q, 'mecanico' => $mecanico, 'box' => $box !== '' ? $box : null],
             'filterOptions' => ['boxes' => $boxOptions, 'mecanicos' => $mecanicoOptions],
         ]);
+    }
+
+    /**
+     * Mapa osId → "última atividade" (linha "últ." do card, paridade Cowork).
+     *
+     * 1 query bulk no audit append-only sale_stage_history (ADR 0129), juntando
+     * stage destino + label da ação. Filtrado por process key oficina_mecanica_os
+     * (a coluna transaction_id é compartilhada com vendas por convenção legada —
+     * sem o filtro de processo, uma venda com mesmo id colidiria). Multi-tenant
+     * Tier 0 (ADR 0093) via business_id explícito.
+     *
+     * @param  list<int>  $osIds
+     * @return array<int, array{label: string, at: string}>
+     */
+    private function buildLastActivityMap(array $osIds, int $businessId): array
+    {
+        if (empty($osIds)) {
+            return [];
+        }
+
+        // Stage IDs do processo de mecânica deste negócio — guarda contra colisão
+        // de transaction_id com pipelines de venda.
+        $mecanicaStageIds = \App\Domain\Fsm\Models\SaleProcessStage::query()
+            ->whereHas('process', function ($p) use ($businessId) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->where('key', 'oficina_mecanica_os');
+            })
+            ->pluck('id');
+
+        if ($mecanicaStageIds->isEmpty()) {
+            return [];
+        }
+
+        // Histórico das OS do quadro, mais recente primeiro. Pega o 1º (latest) por OS.
+        $rows = \App\Domain\Fsm\Models\SaleStageHistory::query()
+            ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->whereIn('transaction_id', $osIds)
+            ->whereIn('to_stage_id', $mecanicaStageIds)
+            ->with(['toStage:id,name', 'action:id,label'])
+            ->orderByDesc('executed_at')
+            ->get(['id', 'transaction_id', 'action_id', 'to_stage_id', 'executed_at']);
+
+        $map = [];
+        foreach ($rows as $row) {
+            $osId = (int) $row->transaction_id;
+            if (isset($map[$osId])) {
+                continue; // já temos o mais recente (ordenação desc)
+            }
+            $label = $row->action?->label ?? ('Etapa: ' . ($row->toStage?->name ?? '—'));
+            $map[$osId] = [
+                'label' => (string) $label,
+                'at'    => $row->executed_at?->toIso8601String() ?? '',
+            ];
+        }
+
+        return $map;
     }
 
     /**
@@ -400,7 +468,7 @@ class ServiceOrderController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function shapeBoardCard(ServiceOrder $order, bool $inPipeline): array
+    private function shapeBoardCard(ServiceOrder $order, bool $inPipeline, ?array $lastActivity = null): array
     {
         $dvi = $order->dviInspectionItems;
         $dviTotal = $dvi->count();
@@ -441,6 +509,14 @@ class ServiceOrderController extends Controller
         // não traz a coluna ausente e getAttribute devolve null (guard implícito).
         $boxLabel = $order->getAttribute('box_label');
 
+        // Progresso (barra do card · paridade Cowork): % de itens DVI decididos pelo
+        // cliente sobre o total. Derivado de dado REAL (sem campo "progress" fake);
+        // null quando não há DVI (frontend esconde a barra).
+        $progress = $dviTotal > 0 ? (int) round($dviDone / $dviTotal * 100) : null;
+
+        // KM de entrada (mileage_at_entry do veículo) — campo real, null se ausente.
+        $km = $order->vehicle?->getAttribute('mileage_at_entry');
+
         return [
             'id'                => (int) $order->id,
             'number'            => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
@@ -459,9 +535,15 @@ class ServiceOrderController extends Controller
             'mechanic_id'       => $order->getAttribute('assigned_user_id') !== null ? (int) $order->getAttribute('assigned_user_id') : null,
             'mechanic_name'     => $mechanicName ?: null,
             'mechanic_initials' => $mechanicInitials ?: null,
+            // Onda 1.5 paridade Cowork — campos do card rico (todos com lastro real):
+            'km'                => $km !== null ? (int) $km : null,
+            'progress'          => $progress,
             'entered_at'        => $order->entered_at?->toIso8601String(),
+            'completed_at'      => $order->completed_at?->toIso8601String(),
             'expected_completion' => $expected?->toIso8601String(),
             'is_overdue'        => $isOverdue,
+            // Linha "últ." — última transição FSM auditada (null se nunca transitou).
+            'last_activity'     => $lastActivity,
             'notes'             => $order->notes,
             'urls'              => [
                 'show' => '/oficina-auto/ordens-servico/' . $order->id,
@@ -471,17 +553,22 @@ class ServiceOrderController extends Controller
     }
 
     /**
-     * KPIs compactos do board (densidade @1280 — [W] mod #3). Derivados das colunas
-     * já montadas (zero query extra).
+     * KPIs compactos do board (densidade @1280). Derivados das colunas já montadas
+     * (zero query extra). Onda 1.5: set do protótipo Cowork — Recepção, Em
+     * diagnóstico, Aguardando peças, Em execução, Urgentes (atrasadas) e Valor em
+     * curso (faturamento previsto = soma do valor das OS não-terminais). Mantém as
+     * chaves antigas (backward-compat) e adiciona as novas.
      *
      * @param  array<int, array{key:string, count:int, cards:array<int,array<string,mixed>>}>  $columns
-     * @return array<string, int>
+     * @param  int  $boxesTotal  nº de boxes/elevadores distintos (sublabel "N boxes")
+     * @return array<string, int|float>
      */
-    private function buildBoardKpis(array $columns): array
+    private function buildBoardKpis(array $columns, int $boxesTotal = 0): array
     {
         $byKey = [];
         $total = 0;
         $atrasadas = 0;
+        $valorEmCurso = 0.0;
         foreach ($columns as $col) {
             $byKey[$col['key']] = $col['count'];
             $total += $col['count'];
@@ -489,16 +576,21 @@ class ServiceOrderController extends Controller
                 if (! empty($card['is_overdue'])) {
                     $atrasadas++;
                 }
+                $valorEmCurso += (float) ($card['valor'] ?? 0);
             }
         }
 
         return [
             'total'                => $total,
+            'recepcao'             => $byKey['recepcao'] ?? 0,
+            'em_diagnostico'       => $byKey['em_diagnostico'] ?? 0,
             'aguardando_aprovacao' => $byKey['aguardando_aprovacao'] ?? 0,
             'aguardando_pecas'     => $byKey['aguardando_pecas'] ?? 0,
             'em_execucao'          => $byKey['em_execucao'] ?? 0,
             'pronto_retirada'      => $byKey['pronto_retirada'] ?? 0,
             'atrasadas'            => $atrasadas,
+            'valor_em_curso'       => round($valorEmCurso, 2),
+            'boxes_total'          => $boxesTotal,
         ];
     }
 

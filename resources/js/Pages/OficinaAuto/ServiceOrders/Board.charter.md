@@ -3,7 +3,7 @@ page: /oficina-auto/ordens-servico/board
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-02"
+last_validated: "2026-06-10"
 parent_module: OficinaAuto
 related_adrs:
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
@@ -32,10 +32,18 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 ## Goals
 - Colunas **data-driven** pelas etapas reais do FSM (Recepção → Diagnóstico →
   Aguardando aprovação → Aguardando peças → Em execução → Pronto p/ retirar).
-- Drag entre colunas → confirmação → **ExecuteStageActionService** (audit em
-  `sale_stage_history`). Nunca UPDATE direto em `current_stage_id`.
+- **Duas portas** pra mesma máquina FSM (Onda 1.5 · paridade Cowork): (a) **drag**
+  entre colunas e (b) **botão de ação** no card (Triagem→/Enviar orçamento→/Peças
+  chegaram→/Concluir→/Entregar→). Ambas → confirmação → **ExecuteStageActionService**
+  (audit em `sale_stage_history`). Nunca UPDATE direto em `current_stage_id`.
 - Card legível na frente do cliente: **foto real** (sem placeholder de texto),
-  contador **DVI x/y** (checklist), placa Mercosul, valor, mecânico, prazo.
+  contador **DVI x/y** (checklist), placa Mercosul, valor, mecânico, prazo, **km de
+  entrada**, **barra de progresso** (% DVI decidido) e linha **"últ."** (última
+  transição FSM auditada — dado real, sem mock).
+- **KPIs com sublinha** (Recepção · Em diagnóstico · Aguardando peças · Em execução ·
+  Urgentes · **Valor em curso** = faturamento previsto), 5 clicáveis como filtro.
+- **Abas de box/elevador** (filtro client-side com contador) + menu Visão (Foco
+  Etapa/Box/Mecânico · Densidade) — re-pivot client-side sem round-trip.
 - Densidade compacta @1280 (monitor do operador) via **@container** (não @media).
 - Reusar o canon: KanbanDndProvider, DragConfirmDialog, ServiceOrderRichSheet,
   MercosulPlate (estender, não recriar — §10.4).
@@ -45,7 +53,13 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 - NÃO emite documento fiscal nem dispara cobrança (fiscal real espera [W]).
 - NÃO substitui a Lista (Index) — é uma visão alternativa (toggle Quadro|Lista).
 - NÃO mexe no board de caçamba (ProducaoOficina) nem no processo `cacamba_*` legado.
-- NÃO faz drag pra etapas terminais (Entregue/Cancelado/Garantia saem pelo drawer).
+- NÃO faz **drag** pra etapas terminais (Entregue/Cancelado/Garantia). **EXCEÇÃO
+  Onda 1.5** (emenda v3 · [W] 2026-06-10): o **botão "Entregar →"** do card em
+  `pronto_retirada` executa a transição terminal `entregar` → `entregue` (sai do
+  quadro) via FSM service. Cancelado/Garantia continuam só pelo drawer.
+- NÃO inventa campo sem lastro: ETA-diag, "Encomendado: peça chega X" e "Pago" do
+  protótipo NÃO têm coluna real → **omitidos** (gate `no-mock-in-prod`). Reentram
+  quando houver schema de estoque/pagamento.
 
 ## UX targets
 - Mover card → etapa avançada + toast em < 1.5s (1 request FSM + reload parcial).

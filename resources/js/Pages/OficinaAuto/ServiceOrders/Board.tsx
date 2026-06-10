@@ -45,6 +45,23 @@
 //   - "Imprimir fila" no header (ghost) — printOficinaFila.ts via mecanismo
 //     canônico printHtmlDocument (port do oficina-print.js);
 //   - coluna Em execução com ocupação "x/y boxes" no header.
+//
+// ONDA 1.5 paridade total [CC] 2026-06-10 (pedido [W] "era para ser assim" — gap
+// vs protótipo Cowork) — fecha o que a checklist da Onda 1 não enumerou:
+//   - KPIs com SUBLINHA + set do protótipo: Recepção · Em diagnóstico · Aguardando
+//     peças · Em execução · Urgentes · Valor em curso (faturamento previsto = soma
+//     do valor das OS não-terminais). 5 filtráveis + valor só-leitura;
+//   - ABAS de box/elevador (.prod-equip-filters) substituem os dropdowns Box/Mecânico
+//     — filtro client-side instantâneo com contador por box ("Todos N | Box 1 (n)…");
+//   - card RICO: km de entrada · barra de progresso (% DVI decidido) · linha "últ."
+//     (última transição FSM auditada, dado real do sale_stage_history) · BOTÃO de
+//     ação primária por etapa (Triagem→/Enviar orçamento→/Peças chegaram→/Concluir→/
+//     Entregar→). O botão é a 2ª PORTA do MESMO ExecuteStageActionService do drag
+//     (reusa pending + DragConfirmDialog) — aguardando_aprovacao abre o drawer
+//     (2 saídas críticas + gate), pronto_retirada→entregue é TERMINAL (o drag não
+//     faz terminal — Non-Goal charter; o botão faz, charter emendado v3).
+//   Sem dado fake (gate no-mock-in-prod): ETA-diag / "Encomendado: peça chega X" /
+//   "Pago" do protótipo NÃO têm campo real → omitidos (documentado no charter/PR).
 //   Onda 2 (PR separado): views Grade e Fila no toggle.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -56,9 +73,7 @@ import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Segmented } from '@/Components/ui/segmented';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/Components/ui/select';
+import { Inline } from '@/Components/layout';
 import { printOficinaFila, type FilaPrintRow } from '@/Lib/printOficinaFila';
 import KanbanDndProvider from '@/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider';
 import DragConfirmDialog, {
@@ -81,11 +96,15 @@ interface BoardColumn {
 
 interface BoardKpis {
   total: number;
+  recepcao: number;
+  em_diagnostico: number;
   aguardando_aprovacao: number;
   aguardando_pecas: number;
   em_execucao: number;
   pronto_retirada: number;
   atrasadas: number;
+  valor_em_curso: number;
+  boxes_total: number;
 }
 
 interface MecanicoOption {
@@ -106,23 +125,26 @@ interface Props {
 // as colunas por Box/Mecânico e controla densidade; atalhos de teclado pra
 // Larissa (teclado-first). Pressão ficou FORA desta onda (decisão [W]).
 
-/** KPIs filtráveis → predicado (stage do card ou atraso). 'total' não filtra. */
-type KpiFilterKey = 'aprovacao' | 'pecas' | 'execucao' | 'pronto' | 'atrasadas';
+/** KPIs filtráveis → predicado (stage do card ou urgência). 'valor' não filtra. */
+type KpiFilterKey = 'recepcao' | 'diagnostico' | 'pecas' | 'execucao' | 'urgentes';
 
-const KPI_FILTER_STAGE: Record<Exclude<KpiFilterKey, 'atrasadas'>, string> = {
-  aprovacao: 'aguardando_aprovacao',
+const KPI_FILTER_STAGE: Record<Exclude<KpiFilterKey, 'urgentes'>, string> = {
+  recepcao: 'recepcao',
+  diagnostico: 'em_diagnostico',
   pecas: 'aguardando_pecas',
   execucao: 'em_execucao',
-  pronto: 'pronto_retirada',
 };
 
 const KPI_FILTER_LABEL: Record<KpiFilterKey, string> = {
-  aprovacao: 'Aguardando aprovação',
+  recepcao: 'Recepção',
+  diagnostico: 'Em diagnóstico',
   pecas: 'Aguardando peças',
   execucao: 'Em execução',
-  pronto: 'Pronto p/ retirar',
-  atrasadas: 'Atrasadas',
+  urgentes: 'Urgentes',
 };
+
+const formatBRL = (value: number): string =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
 
 type BoardFoco = 'etapa' | 'box' | 'mecanico';
 
@@ -188,6 +210,62 @@ const STAGE_TRANSITIONS: Record<string, Record<string, AllowedMove>> = {
   },
 };
 
+// ─── Ação primária do card (botão inline — Onda 1.5 paridade Cowork) ──────────
+// Cada etapa tem um botão de avanço no card (Triagem→/Enviar orçamento→/Peças
+// chegaram→/Concluir→/Entregar→). Vai pelo MESMO ExecuteStageActionService do
+// drag (reusa pending + DragConfirmDialog) — não viola o anti-hook do charter
+// (que proíbe UPDATE direto, não uma 2ª porta pelo serviço). Diferenças vs drag:
+//   - aguardando_aprovacao tem 2 saídas críticas (pedir peças × executar) +
+//     gate de cobrança → o botão ABRE O DRAWER (FsmActionPanel decide), não força;
+//   - pronto_retirada → entregue é TERMINAL: o drag não faz terminal (Non-Goal do
+//     charter), mas o BOTÃO faz (decisão [W] 2026-06-10 · charter emendado v3).
+interface CardAction {
+  label: string;
+  drawer?: boolean;
+  move?: AllowedMove & { toColumn: string };
+}
+
+const CARD_PRIMARY_ACTION: Record<string, CardAction> = {
+  recepcao: {
+    label: 'Triagem',
+    move: {
+      toColumn: 'em_diagnostico', actionKey: 'iniciar_diagnostico', actionLabel: 'Iniciar diagnóstico', isCritical: false,
+      title: 'Iniciar diagnóstico?', description: 'O veículo entra em diagnóstico técnico.',
+    },
+  },
+  em_diagnostico: {
+    label: 'Enviar orçamento',
+    move: {
+      toColumn: 'aguardando_aprovacao', actionKey: 'enviar_orcamento', actionLabel: 'Enviar orçamento', isCritical: false,
+      title: 'Enviar orçamento pra aprovação?', description: 'A OS vai aguardar o OK do cliente sobre o orçamento.',
+    },
+  },
+  // 2 saídas críticas (pedir peças × executar) + gate de cobrança → o botão ABRE
+  // o drawer (FsmActionPanel decide), em vez de forçar uma transição.
+  aguardando_aprovacao: { label: 'Aprovação', drawer: true },
+  aguardando_pecas: {
+    label: 'Peças chegaram',
+    move: {
+      toColumn: 'em_execucao', actionKey: 'pecas_chegaram', actionLabel: 'Peças chegaram', isCritical: false,
+      title: 'Peças chegaram?', description: 'Confirma a chegada das peças e inicia a execução do serviço.',
+    },
+  },
+  em_execucao: {
+    label: 'Concluir',
+    move: {
+      toColumn: 'pronto_retirada', actionKey: 'concluir_servico', actionLabel: 'Concluir serviço', isCritical: true,
+      title: 'Concluir o serviço?', description: 'Marca a OS como pronta pro cliente retirar.',
+    },
+  },
+  pronto_retirada: {
+    label: 'Entregar',
+    move: {
+      toColumn: 'entregue', actionKey: 'entregar', actionLabel: 'Entregar ao cliente', isCritical: false,
+      title: 'Entregar ao cliente?', description: 'Marca a OS como entregue (etapa final) — sai do quadro.',
+    },
+  },
+};
+
 // ─── Component ─────────────────────────────────────────────────────────────
 
 export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filters, filterOptions }: Props) {
@@ -196,6 +274,8 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
 
   // D-05 — filtro por KPI (client-side, clicar de novo limpa)
   const [kpiFilter, setKpiFilter] = useState<KpiFilterKey | null>(null);
+  // Abas de box (client-side, paridade Cowork .prod-equip-filters) — null = todos
+  const [boxFilter, setBoxFilter] = useState<string | null>(null);
   // D-07 — card focado pela navegação por setas (anel visível)
   const [focusedId, setFocusedId] = useState<number | null>(null);
 
@@ -339,22 +419,42 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
     </div>
   ), []);
 
+  // KPIs do protótipo Cowork: label + valor + sublinha descritiva. 5 filtráveis +
+  // "Valor em curso" (faturamento previsto · só leitura). Onda 1.5.
   const kpiCards = useMemo(() => [
-    { id: 'total', label: 'OS no quadro', value: String(kpis.total), tone: 'default' as const, filterKey: null },
-    { id: 'aprovacao', label: 'Aguardando aprovação', value: String(kpis.aguardando_aprovacao), tone: 'amber' as const, filterKey: 'aprovacao' as const },
-    { id: 'pecas', label: 'Aguardando peças', value: String(kpis.aguardando_pecas), tone: 'violet' as const, filterKey: 'pecas' as const },
-    { id: 'execucao', label: 'Em execução', value: String(kpis.em_execucao), tone: 'default' as const, filterKey: 'execucao' as const },
-    { id: 'pronto', label: 'Pronto p/ retirar', value: String(kpis.pronto_retirada), tone: 'emerald' as const, filterKey: 'pronto' as const },
-    { id: 'atrasadas', label: 'Atrasadas', value: String(kpis.atrasadas), tone: 'rose' as const, filterKey: 'atrasadas' as const },
+    { id: 'recepcao', label: 'Recepção', value: String(kpis.recepcao), sub: 'veículos aguardando triagem', tone: 'default' as const, filterKey: 'recepcao' as const },
+    { id: 'diagnostico', label: 'Em diagnóstico', value: String(kpis.em_diagnostico), sub: `${kpis.boxes_total} ${kpis.boxes_total === 1 ? 'box/elevador' : 'boxes/elevadores'}`, tone: 'blue' as const, filterKey: 'diagnostico' as const },
+    { id: 'pecas', label: 'Aguardando peças', value: String(kpis.aguardando_pecas), sub: `${kpis.aguardando_aprovacao} ${kpis.aguardando_aprovacao === 1 ? 'aguarda' : 'aguardam'} OK do cliente`, tone: 'violet' as const, filterKey: 'pecas' as const },
+    { id: 'execucao', label: 'Em execução', value: String(kpis.em_execucao), sub: 'boxes ocupados agora', tone: 'indigo' as const, filterKey: 'execucao' as const },
+    { id: 'urgentes', label: 'Urgentes', value: String(kpis.atrasadas), sub: 'prazo crítico', tone: 'rose' as const, filterKey: 'urgentes' as const },
+    { id: 'valor', label: 'Valor em curso', value: formatBRL(kpis.valor_em_curso), sub: 'faturamento previsto', tone: 'emerald' as const, filterKey: null },
   ], [kpis]);
 
   // D-05 — predicado do KPI ativo sobre (card, etapa). Client-side: o payload do
   // board já está no browser; filtrar não round-tripa.
   const cardMatchesKpi = useCallback((card: ServiceOrderCardData, stageKey: string): boolean => {
     if (!kpiFilter) return true;
-    if (kpiFilter === 'atrasadas') return card.is_overdue;
+    if (kpiFilter === 'urgentes') return card.is_overdue;
     return stageKey === KPI_FILTER_STAGE[kpiFilter];
   }, [kpiFilter]);
+
+  // Predicado combinado: KPI + aba de box (ambos client-side).
+  const cardVisible = useCallback((card: ServiceOrderCardData, stageKey: string): boolean => {
+    if (!cardMatchesKpi(card, stageKey)) return false;
+    if (boxFilter !== null && card.box !== boxFilter) return false;
+    return true;
+  }, [cardMatchesKpi, boxFilter]);
+
+  // Contagem de OS por box (abas .prod-equip-filters) — sobre TODOS os cards
+  // (pré-aba, pós-KPI? não: pré-tudo, pra a aba mostrar o universo). Espelha o
+  // protótipo: "Todos os boxes N | Box 1 (n) …".
+  const boxCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    columns.forEach((col) => col.cards.forEach((c) => {
+      if (c.box) counts.set(c.box, (counts.get(c.box) ?? 0) + 1);
+    }));
+    return counts;
+  }, [columns]);
 
   // Etapa de origem de cada card (sobrevive ao pivot Box/Mecânico — usada no
   // filtro por KPI de etapa e na folha "Imprimir fila").
@@ -372,7 +472,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         key: col.key,
         name: col.name,
         color: col.color,
-        cards: col.cards.filter((c) => cardMatchesKpi(c, col.key)),
+        cards: col.cards.filter((c) => cardVisible(c, col.key)),
         emphasis: col.key === 'aguardando_aprovacao' ? 'aprovacao' as const : col.key === 'aguardando_pecas' ? 'pecas' as const : null,
         // Capacidade da oficina (header da coluna Em execução): ocupação REAL,
         // por isso usa col.cards (pré-filtro KPI) — y = boxes cadastrados.
@@ -382,7 +482,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
       }));
     }
 
-    const visiveis = columns.flatMap((col) => col.cards.filter((c) => cardMatchesKpi(c, col.key)));
+    const visiveis = columns.flatMap((col) => col.cards.filter((c) => cardVisible(c, col.key)));
     const pivotCol = (key: string, name: string, cards: ServiceOrderCardData[]): DisplayColumn => ({
       key, name, color: null, cards, emphasis: null, capacity: null,
     });
@@ -398,7 +498,35 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
       ...filterOptions.mecanicos.map((m) => pivotCol(`mec-${m.id}`, m.nome, visiveis.filter((c) => c.mechanic_id === m.id))),
       pivotCol('mec-none', 'Sem mecânico', visiveis.filter((c) => c.mechanic_id === null)),
     ];
-  }, [columns, foco, cardMatchesKpi, filterOptions.boxes, filterOptions.mecanicos]);
+  }, [columns, foco, cardVisible, filterOptions.boxes, filterOptions.mecanicos]);
+
+  // Botão de ação primária do card (paridade Cowork) — resolve a ação pela ETAPA
+  // REAL do card (via stageByCardId, sobrevive ao pivot Box/Mecânico). Reusa o
+  // mesmo confirm/execute do drag (setPending) ou abre o drawer (aguardando_aprovacao).
+  const handleCardAction = useCallback((card: ServiceOrderCardData) => {
+    const stage = stageByCardId.get(card.id)?.key;
+    if (!stage) return;
+    const action = CARD_PRIMARY_ACTION[stage];
+    if (!action) return;
+    if (action.drawer || !action.move) {
+      setOpenOsId(card.id);
+      return;
+    }
+    const move = action.move;
+    setPending({
+      subjectId: card.id,
+      fromColumn: stage,
+      toColumn: move.toColumn,
+      actionKey: move.actionKey,
+      actionLabel: move.actionLabel,
+      isCritical: move.isCritical,
+      title: move.title,
+      description: move.description,
+      plate: card.plate ?? undefined,
+      cliente_nome: card.cliente_nome,
+      subjectLabel: 'Veículo',
+    });
+  }, [stageByCardId]);
 
   // Ordem visível dos cards (coluna a coluna) — navegação por setas + contador "N OS"
   const visibleCards = useMemo(() => displayColumns.flatMap((c) => c.cards), [displayColumns]);
@@ -466,15 +594,12 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
     const filtroParts: string[] = [];
     if (filters.q) filtroParts.push(`busca "${filters.q}"`);
     if (kpiFilter) filtroParts.push(KPI_FILTER_LABEL[kpiFilter]);
-    if (filters.mecanico) {
-      const m = filterOptions.mecanicos.find((x) => x.id === filters.mecanico);
-      if (m) filtroParts.push(`mecânico ${m.nome}`);
-    }
-    if (filters.box) filtroParts.push(`box ${filters.box}`);
+    if (boxFilter) filtroParts.push(`box ${boxFilter}`);
+    if (foco !== 'etapa') filtroParts.push(`foco ${foco === 'box' ? 'Box' : 'Mecânico'}`);
     toast.info('Preparando impressão da fila…');
     printOficinaFila(rows, { filtro: filtroParts.length ? filtroParts.join(' · ') : null })
       .catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Falha ao imprimir a fila'));
-  }, [visibleCards, stageByCardId, filters.q, filters.mecanico, filters.box, kpiFilter, filterOptions.mecanicos]);
+  }, [visibleCards, stageByCardId, filters.q, kpiFilter, boxFilter, foco]);
 
   // FIX [CC] 2026-06-10: colunas com largura mínima utilizável (canon do protótipo
   // .prod-kanban: repeat(n, minmax(228px, 1fr))) — inline style em vez de classe
@@ -579,7 +704,46 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </div>
         </div>
 
-        {/* Filtro busca + selects compactos Mecânico/Box */}
+        {/* Abas de box/elevador (paridade Cowork .prod-equip-filters) — filtro
+            client-side instantâneo. "Todos os boxes" + cada box com contador. */}
+        {filterOptions.boxes.length > 0 && (
+          <Inline gap={1} className="bg-white border-b border-border px-6 py-2 gap-1.5 overflow-x-auto" role="group" aria-label="Filtrar por box">
+            <button
+              type="button"
+              onClick={() => setBoxFilter(null)}
+              aria-pressed={boxFilter === null}
+              className={
+                'inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 border whitespace-nowrap transition-colors '
+                + (boxFilter === null ? 'bg-primary text-white border-primary' : 'bg-white text-foreground border-border hover:bg-muted')
+              }
+              data-testid="board-box-tab-all"
+            >
+              Todos os boxes
+              <span className={'tabular-nums rounded px-1 ' + (boxFilter === null ? 'bg-white/20' : 'bg-muted')}>{kpis.total}</span>
+            </button>
+            {filterOptions.boxes.map((b) => {
+              const active = boxFilter === b;
+              return (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => setBoxFilter(active ? null : b)}
+                  aria-pressed={active}
+                  className={
+                    'inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 border whitespace-nowrap transition-colors '
+                    + (active ? 'bg-primary text-white border-primary' : 'bg-white text-foreground border-border hover:bg-muted')
+                  }
+                  data-testid={`board-box-tab-${b}`}
+                >
+                  {b}
+                  <span className={'tabular-nums rounded px-1 ' + (active ? 'bg-white/20' : 'bg-muted')}>{boxCounts.get(b) ?? 0}</span>
+                </button>
+              );
+            })}
+          </Inline>
+        )}
+
+        {/* Filtro busca + chip do KPI ativo */}
         <div className="bg-white border-b border-border px-6 py-2.5 flex items-center gap-3 sticky top-0 z-10 flex-wrap">
           <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md">
             <Search size={14} className="text-muted-foreground flex-shrink-0" />
@@ -620,40 +784,6 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
             </button>
           )}
 
-          {filterOptions.mecanicos.length > 0 && (
-            <Select
-              value={filters.mecanico ? String(filters.mecanico) : 'all'}
-              onValueChange={(v) => applyBoardFilter({ mecanico: v === 'all' ? null : Number(v) })}
-            >
-              <SelectTrigger className="h-8 w-auto gap-1.5 text-xs" aria-label="Filtrar por mecânico">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Mecânico: todos</SelectItem>
-                {filterOptions.mecanicos.map((m) => (
-                  <SelectItem key={m.id} value={String(m.id)}>{m.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {filterOptions.boxes.length > 0 && (
-            <Select
-              value={filters.box ?? 'all'}
-              onValueChange={(v) => applyBoardFilter({ box: v === 'all' ? null : v })}
-            >
-              <SelectTrigger className="h-8 w-auto gap-1.5 text-xs" aria-label="Filtrar por box">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Box: todos</SelectItem>
-                {filterOptions.boxes.map((b) => (
-                  <SelectItem key={b} value={b}>{b}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
           <span className="ml-auto text-sm text-muted-foreground" aria-live="polite">
             <span className="font-medium text-foreground">{visibleCount} OS</span>
             {kpiFilter && (<span className="ml-1 text-xs">de {kpis.total}</span>)}
@@ -681,6 +811,10 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
                     density={densidade}
                     focusedId={focusedId}
                     dragDisabled={foco !== 'etapa'}
+                    // Botão de ação só no foco Etapa (coluna = etapa FSM real). No
+                    // pivot Box/Mecânico a coluna mistura etapas → sem rótulo único.
+                    primaryActionLabel={foco === 'etapa' ? (CARD_PRIMARY_ACTION[col.key]?.label ?? null) : null}
+                    onCardAction={handleCardAction}
                     onCardClick={handleCardClick}
                   />
                 ))}
@@ -711,22 +845,25 @@ ServiceOrdersBoard.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>
 interface KpiCardProps {
   label: string;
   value: string;
+  /** sublinha descritiva (paridade Cowork — ex.: "faturamento previsto") */
+  sub?: string;
   tone: KpiTone;
   /** D-05 — KPI ativo como filtro (anel primary + aria-pressed) */
   active?: boolean;
   /** D-05 — outro KPI está filtrando (esmaece este) */
   dimmed?: boolean;
-  /** presente = KPI filtrável (vira role=button); ausente = só leitura (ex.: total) */
+  /** presente = KPI filtrável (vira role=button); ausente = só leitura (ex.: valor) */
   onClick?: () => void;
 }
 
-function KpiCard({ label, value, tone, active = false, dimmed = false, onClick }: KpiCardProps) {
+function KpiCard({ label, value, sub, tone, active = false, dimmed = false, onClick }: KpiCardProps) {
   const t = kpiTone(tone);
 
   const inner = (
     <>
       <span className={`text-[10px] font-semibold uppercase tracking-wider truncate ${t.label}`}>{label}</span>
       <span className={`text-xl @[1100px]/board:text-2xl font-bold tabular-nums ${t.value}`}>{value}</span>
+      {sub ? <span className="text-[10px] text-muted-foreground truncate leading-tight">{sub}</span> : null}
     </>
   );
 
