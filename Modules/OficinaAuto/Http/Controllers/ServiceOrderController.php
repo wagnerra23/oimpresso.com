@@ -649,7 +649,9 @@ class ServiceOrderController extends Controller
         // do veículo no kanban. Sem este vínculo o card fica "sem OS" (bucket disponivel não
         // tem fallback V3 em ProducaoOficinaController::loadRentalFallbacks) e o drawer rico
         // não abre — bug pego pelo E2E UC-11 (run 27273605033). Só vincula se o veículo está
-        // LIVRE (não clobbera OS ativa de outro fluxo). Global scope = mesmo tenant (Tier 0).
+        // LIVRE (não clobbera OS ativa de outro fluxo). Tier 0 (ADR 0093): Vehicle tem
+        // global scope 'business_id' no Model (BusinessScope equivalente, Vehicle::booted)
+        // — o find() já filtra business_id da sessão.
         $vehicle = Vehicle::find($order->vehicle_id);
         if ($vehicle !== null && $vehicle->current_rental_id === null) {
             $vehicle->update(['current_rental_id' => $order->id]);

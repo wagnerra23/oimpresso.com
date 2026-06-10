@@ -112,7 +112,8 @@ test.describe.serial('UC-11 · OS funcional fim-a-fim (caminho da Larissa)', () 
 
     // ── 6. Pedir aprovação do cliente (OS-V2-3 — gate hero) ────────────────────
     await drawer.getByRole('button', { name: /Pedir aprovação/i }).click();
-    await expect(drawer.getByText(/Aguardando aprovação/i)).toBeVisible({ timeout: 15_000 });
+    // .first(): o estado pending pinta 2 elementos (badge do header + barra do gate).
+    await expect(drawer.getByText(/Aguardando aprovação/i).first()).toBeVisible({ timeout: 15_000 });
 
     // ── 7. Executar: avançar a etapa pelo gate (checklist ou override) ─────────
     // Caminho feliz: CTA "Avançar p/ …" habilitado. Checklist bloqueando (ex.: aprovação
