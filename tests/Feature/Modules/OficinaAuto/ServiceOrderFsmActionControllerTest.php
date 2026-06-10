@@ -189,7 +189,10 @@ it('actions() retorna actions disponíveis pra OS locação stage disponivel', f
     $data = $response->getData(true);
 
     expect($data['service_order_id'])->toBe($order->id);
-    expect($data['process_key'])->toBe('cacamba_locacao');
+    // ADR 0265: 'locacao' não existe no mapa — order_type='manutencao' resolve
+    // cacamba_manutencao (a OS está propositalmente num stage do processo legado,
+    // estado de órfã; actions() lista pelas actions do STAGE atual mesmo assim).
+    expect($data['process_key'])->toBe('cacamba_manutencao');
     expect($data['in_pipeline'])->toBeTrue();
     expect($data['current_stage']['key'])->toBe('disponivel');
     expect(collect($data['actions'])->pluck('key')->all())
@@ -237,7 +240,8 @@ it('actions() retorna in_pipeline=false pra OS sem current_stage_id', function (
     expect($data['in_pipeline'])->toBeFalse();
     expect($data['current_stage'])->toBeNull();
     expect($data['actions'])->toBe([]);
-    expect($data['process_key'])->toBe('cacamba_locacao');
+    // ADR 0265: order_type='manutencao' → cacamba_manutencao (mapa ServiceOrderPipelineStarter)
+    expect($data['process_key'])->toBe('cacamba_manutencao');
 })->afterEach(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-C');
 });
@@ -358,8 +362,9 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
 
     expect($response->getStatusCode())->toBe(200);
     expect($data['ok'])->toBeTrue();
-    expect($data['process_key'])->toBe('cacamba_locacao');
-    expect($data['stage']['key'])->toBe('disponivel');
+    // ADR 0265: order_type='manutencao' → cacamba_manutencao (stage inicial 'aberta')
+    expect($data['process_key'])->toBe('cacamba_manutencao');
+    expect($data['stage']['key'])->toBe('aberta');
 
     // OS deve ter current_stage_id setado
     $orderFresh = ServiceOrder::withoutGlobalScopes()->find($order->id);
@@ -373,7 +378,7 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
         ->first();
     expect($history)->not->toBeNull();
     expect($history->payload_snapshot['pipeline_started'] ?? false)->toBeTrue();
-    expect($history->payload_snapshot['process_key'] ?? null)->toBe('cacamba_locacao');
+    expect($history->payload_snapshot['process_key'] ?? null)->toBe('cacamba_manutencao');
 })->afterEach(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-G');
 });

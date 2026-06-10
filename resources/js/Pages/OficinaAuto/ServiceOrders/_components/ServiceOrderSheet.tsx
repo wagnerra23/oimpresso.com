@@ -17,7 +17,6 @@ import {
   Edit,
   ExternalLink,
   Loader2,
-  MapPin,
   Phone,
   Truck,
   User,
@@ -60,11 +59,9 @@ interface ServiceOrderDetail {
   number: string | null;
   status: string;
   order_type: OrderType;
-  delivery_address: string | null;
-  expected_return_date: string | null;
+  // Campos de locação (delivery_address/expected_return_date/daily_rate/dias_locacao)
+  // erradicados do payload do show() — ADR 0265.
   expected_completion: string | null;
-  daily_rate: number | string | null;
-  dias_locacao: number | null;
   valor_receber: number | string | null;
   is_overdue?: boolean;
   entered_at: string | null;
@@ -293,14 +290,6 @@ export default function ServiceOrderSheet({
                     </>
                   )}
 
-                  {/* Endereço do cliente (se informado) */}
-                  {data.delivery_address && (
-                    <div className="flex items-start gap-2 text-muted-foreground text-xs pt-1.5 border-t border-border/60">
-                      <MapPin size={12} className="mt-0.5 flex-shrink-0" />
-                      <span className="break-words">{data.delivery_address}</span>
-                    </div>
-                  )}
-
                   {/* Datas */}
                   <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-border/60">
                     <div className="text-xs">
@@ -319,9 +308,7 @@ export default function ServiceOrderSheet({
                             : 'text-foreground')
                         }
                       >
-                        {formatDateOnly(
-                          data.expected_return_date ?? data.expected_completion,
-                        )}
+                        {formatDateOnly(data.expected_completion)}
                       </div>
                     </div>
                   </div>

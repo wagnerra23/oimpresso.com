@@ -1,7 +1,7 @@
 // Coluna do Kanban de OS de mecânica — data-driven pelas etapas reais do FSM
 // oficina_mecanica_os (port Cowork do carro · [W] 2026-06-02).
 //
-// Diferente da CacambaKanbanColumn (5 status fixos de caçamba): aqui a cor vem do
+// Coluna do kanban canônico de OS (ADR 0265 — colunas data-driven): a cor vem do
 // token `color` do SaleProcessStage (gray/blue/amber/violet/indigo/emerald/...),
 // então o quadro se adapta se o seeder mudar as etapas.
 //
