@@ -30,7 +30,7 @@ jobs:
               -o StrictHostKeyChecking=accept-new \
               -o ConnectTimeout=20 \
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s <<'REMOTE'
-          cd ${{ secrets.DEPLOY_PATH }} 2>/dev/null || cd ~/domains/oimpresso.com/public_html 2>/dev/null || cd ~/oimpresso.com
+          cd /home/u906587222/domains/oimpresso.com/public_html
           echo "== git deployado =="
           git log -1 --oneline 2>/dev/null || echo "(sem git)"
           echo "== migrations pendentes (top 15) =="
