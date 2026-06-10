@@ -24,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/Components/ui/popover';
+import { Inline, Stack } from '@/Components/layout';
 import ContactPickerModal from '@/Pages/Whatsapp/_components/ContactPickerModal';
 import CustomerMemoryBlock from '@/Pages/Whatsapp/_components/CustomerMemoryBlock';
 import type {
@@ -167,8 +168,8 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
         </div>
 
         {/* 2. Atribuído — US-WA-302 assignee picker (Popover, mesmo pattern do editor de tags) */}
-        <div className="pb-2.5 border-b border-border/50 flex flex-col gap-1">
-          <div className="flex items-center justify-between">
+        <Stack gap={1} className="pb-2.5 border-b border-border/50">
+          <Inline gap={0} align="center" justify="between">
             <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
               Atribuído
             </small>
@@ -232,7 +233,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
                 )}
               </PopoverContent>
             </Popover>
-          </div>
+          </Inline>
           {thread.assigned_user_name ? (
             <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium" data-testid="caixa-unif-ctx-assignee">
               <span
@@ -249,7 +250,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
               — sem atribuição
             </b>
           )}
-        </div>
+        </Stack>
 
         {/* 3. Canal · Conta */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
