@@ -642,11 +642,9 @@ class ServiceOrderController extends Controller
         }
 
         // ADR 0265 — order_type é nullable no request (API/imports), mas o fio usável
-        // exige a OS nascendo no pipeline certo: default 'mecanica' (fluxo real de
-        // reparo) quando não informado. Create.tsx já manda 'mecanica' por default.
-        if (empty($validated['order_type'])) {
-            $validated['order_type'] = 'mecanica';
-        }
+        // exige a OS nascendo no pipeline certo: default DELIBERADO 'mecanica' (fluxo
+        // real de reparo) quando não informado. Create.tsx já manda 'mecanica'.
+        $validated['order_type'] ??= 'mecanica';
 
         $order = ServiceOrder::create($validated);
 

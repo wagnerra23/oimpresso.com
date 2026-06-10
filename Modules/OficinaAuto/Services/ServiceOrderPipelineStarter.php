@@ -96,6 +96,7 @@ class ServiceOrderPipelineStarter
             );
         }
 
+        /** @var SaleProcessStage|null $stage relação stages() é HasMany sem generic — Larastan tipa Model */
         $stage = $process->stages()->where('is_initial', true)->first();
 
         if (! $stage) {
