@@ -43,6 +43,7 @@ import {
 
 import ChannelChipsRow from './_components/ChannelChipsRow';
 import ChannelsDrawer from './_components/ChannelsDrawer';
+import NewConversationDialog from './_components/NewConversationDialog';
 import QueuesSheet from './_components/QueuesSheet';
 import ConversationListV4 from './_components/ConversationListV4';
 import ConversationThreadV4 from './_components/ConversationThreadV4';
@@ -114,6 +115,8 @@ export default function CaixaUnificadaIndex({
   const [filasOpen, setFilasOpen] = useState(false);
   // US-WA-304 — drawer Canais e contas (Sheet in-place, charter §5)
   const [canaisOpen, setCanaisOpen] = useState(false);
+  // US-WA-307 — dialog + Nova conversa
+  const [novaConvOpen, setNovaConvOpen] = useState(false);
 
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
@@ -371,11 +374,12 @@ export default function CaixaUnificadaIndex({
           >
             Broadcast
           </button>
+          {/* US-WA-307 — abre dialog (find-or-create + thread aberta) */}
           <button
             type="button"
-            className="inline-flex items-center px-3 py-1.5 text-[11.5px] font-semibold bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-45"
-            disabled
-            title="Iniciar nova conversa (em breve)"
+            onClick={() => setNovaConvOpen(true)}
+            className="inline-flex items-center px-3 py-1.5 text-[11.5px] font-semibold bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+            title="Iniciar nova conversa"
             data-testid="caixa-unif-topnav-nova"
           >
             + Nova conversa
@@ -492,6 +496,13 @@ export default function CaixaUnificadaIndex({
           channels={availableChannels ?? []}
           accounts={availableAccounts ?? []}
           canManageChannels={canManageQueues ?? false}
+        />
+
+        {/* US-WA-307 — + Nova conversa (find-or-create + abre thread) */}
+        <NewConversationDialog
+          open={novaConvOpen}
+          onOpenChange={setNovaConvOpen}
+          accounts={availableAccounts ?? []}
         />
 
         {thread && (
