@@ -2,16 +2,38 @@
 page: /atendimento/inbox
 component: resources/js/Pages/Atendimento/Inbox/Index.tsx
 owner: wagner
-status: live
-last_validated: 2026-05-15
+status: deprecated
+last_validated: "2026-06-10"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
-related_adrs: [0039, 0058, 0093, 0094, 0104, 0110, 0135]
+related_adrs:
+  - 0039-ui-chat-cockpit-padrao
+  - 0058-reverb-substituido-por-centrifugo-frankenphp
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0110-cockpit-pattern-v2-canon-list-detail
+  - 0135-omnichannel-inbox-arquitetura
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
-# Page Charter — `/atendimento/inbox`
+# Page Charter — `/atendimento/inbox` — ⚰️ HISTORICAL (cutover §6, 2026-06-10)
+
+> **CUTOVER §6 CONCLUÍDO** (brief [CC] Caixa Unificada PR-10, mandato [W]
+> "aplicar todas"): `/atendimento/inbox` é 301 permanente pra
+> `/atendimento/caixa-unificada` desde 2026-05-15; sidebar, topnav e menu
+> (DataController) já apontam pra V4. Este charter vira lifecycle
+> **historical** (`status: deprecated` — valor terminal do schema de charter;
+> a semântica append-only "historical" fica registrada aqui).
+>
+> Charter VIVO da tela: `resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md`.
+> Os endpoints `atendimento.inbox.*` (send/tags/assign/move_queue/ai/etc)
+> PERMANECEM ativos — a V4 reusa o contrato HTTP; só a PAGE legacy saiu de cena.
+> Remoção física de `Pages/Atendimento/Inbox/` = PR seguinte ao OK do [W]
+> neste PR (item 4 do §6).
+
+> _Conteúdo original preservado abaixo (append-only):_
 
 > Define as invariantes da tela Inbox omnichannel — substituição long-term
 > de `/whatsapp/conversations` legacy. Mudanças que violem este charter
