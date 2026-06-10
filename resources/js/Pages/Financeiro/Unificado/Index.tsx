@@ -646,7 +646,7 @@ function DrawerLens({ icon: Icon, title, status, tone = 'muted', children }: {
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-stone-100 pt-4">
+    <section className="border-t border-border/60 pt-4">
       <header className="flex items-center gap-2 mb-2.5">
         <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden>
           <Icon size={12} />
@@ -1968,8 +1968,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                             </div>
                           </div>
                         ) : (
-                          <div className="rounded-md border border-stone-200 px-3 py-2.5 text-[12.5px] text-stone-600 flex items-start gap-2.5">
-                            <span className="text-stone-500 mt-0.5" aria-hidden>✦</span>
+                          <div className="rounded-md border border-border px-3 py-2.5 text-[12.5px] text-muted-foreground flex items-start gap-2.5">
+                            <span className="text-muted-foreground mt-0.5" aria-hidden>✦</span>
                             <div>
                               Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ [redacted Tier 0] e ±2 dias) e sugere conciliação automática.
                             </div>
@@ -2004,13 +2004,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                           </div>
                         </div>
                         {isIn && (
-                          <div className="mt-1.5 border-t border-stone-100">
-                            <div className="flex items-baseline justify-between py-[5px] border-b border-stone-100">
-                              <span className="text-[12.5px] text-stone-600">ISS retido · 5%</span>
+                          <div className="mt-1.5 border-t border-border/60">
+                            <div className="flex items-baseline justify-between py-[5px] border-b border-border/60">
+                              <span className="text-[12.5px] text-muted-foreground">ISS retido · 5%</span>
                               <span className="text-[12.5px] font-mono tabular-nums font-medium">{brl(iss)}</span>
                             </div>
                             <div className="flex items-baseline justify-between py-[5px]">
-                              <span className="text-[12.5px] text-stone-600">No DAS do mês · ≈ 6%</span>
+                              <span className="text-[12.5px] text-muted-foreground">No DAS do mês · ≈ 6%</span>
                               <span className="text-[12.5px] font-mono tabular-nums font-medium text-warning-foreground">{brl(das)}</span>
                             </div>
                           </div>
