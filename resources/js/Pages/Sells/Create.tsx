@@ -964,7 +964,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, []);
 
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
+    <div className="flex-1 bg-muted/30 flex flex-col">
       {/* Header sticky no topo + abas seção (pattern Office/OS canon) */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-8 pt-6 pb-3 max-w-7xl">
