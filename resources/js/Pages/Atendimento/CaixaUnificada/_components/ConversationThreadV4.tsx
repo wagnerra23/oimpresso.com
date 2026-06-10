@@ -11,7 +11,7 @@
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCheck, ClipboardCheck } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCheck, FileDown, Presentation, Sparkles } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import {
   type CaixaUnifMessage,
@@ -20,9 +20,14 @@ import {
   initials,
   avatarHue,
   dayGroupLabel,
+  slaState,
 } from './helpers';
 import ComposerV4 from './ComposerV4';
+import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
+import InboxPresenterMode from './InboxPresenterMode';
+import InboxTranscriptDialog from './InboxTranscriptDialog';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
+import MediaFullscreenModal from '@/Pages/Whatsapp/_components/MediaFullscreenModal';
 import type { ReadyTemplate } from '@/Pages/Whatsapp/_components/helpers';
 
 interface Props {
@@ -62,6 +67,31 @@ export default function ConversationThreadV4({
     () => channels.find(c => c.id === thread.channel_type),
     [channels, thread.channel_type],
   );
+
+  // Polish V2 §4 — lightbox in-app (MediaFullscreenModal reusado) em vez de window.open
+  const imageMessages = useMemo(
+    () => messages.filter(m => m.type === 'image' && m.media_url),
+    [messages],
+  );
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // Polish V2 §7/§8 — transcript print-friendly + modo apresentação
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [presenterOpen, setPresenterOpen] = useState(false);
+
+  // PR-9 — IA na thread (Resumir / Perguntar)
+  const [aiMode, setAiMode] = useState<InboxAiMode | null>(null);
+
+  // Polish V2 §1 — SLA no header (direção da última msg não-nota vem das messages)
+  const lastRealMsg = useMemo(
+    () => [...messages].reverse().find(m => !m.is_internal_note),
+    [messages],
+  );
+  const headerSla = slaState({
+    last_message_direction: lastRealMsg?.direction ?? null,
+    last_inbound_at: thread.last_inbound_at,
+    queue: thread.queue,
+  });
 
   // Auto-scroll para baixo no mount + nova msg
   useEffect(() => {
@@ -133,11 +163,72 @@ export default function ConversationThreadV4({
             )}
           </div>
         </div>
+        {/* Polish V2 §1 — pill SLA no header (cliente esperando além do alvo da fila) */}
+        {headerSla === 'breached' && (
+          <span
+            className="ml-auto font-mono text-[9.5px] font-bold px-2 py-px rounded-full bg-destructive/10 text-destructive border border-destructive/30 flex-shrink-0"
+            title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} estourado`}
+            data-testid="caixa-unif-thread-sla"
+          >
+            SLA estourado
+          </span>
+        )}
+        {headerSla === 'warning' && (
+          <span
+            className="ml-auto font-mono text-[9.5px] font-bold px-2 py-px rounded-full flex-shrink-0"
+            style={{ background: 'oklch(0.95 0.06 80)', color: 'oklch(0.40 0.12 80)', border: '1px solid oklch(0.82 0.10 80)' }}
+            title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} perto de estourar`}
+            data-testid="caixa-unif-thread-sla"
+          >
+            SLA
+          </span>
+        )}
+        {/* PR-9 — IA: Resumir / Perguntar (laravel/ai server-side, PII redigida) */}
+        <button
+          type="button"
+          onClick={() => setAiMode('summarize')}
+          className={cn(
+            'inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0',
+            headerSla === null && 'ml-auto',
+          )}
+          title="Resumir conversa com IA"
+          data-testid="caixa-unif-thread-ai-summarize"
+        >
+          <Sparkles size={12} aria-hidden /> Resumir
+        </button>
+        <button
+          type="button"
+          onClick={() => setAiMode('ask')}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
+          title="Perguntar sobre a conversa (IA responde só com o transcript)"
+          data-testid="caixa-unif-thread-ai-ask"
+        >
+          Perguntar
+        </button>
+        {/* Polish V2 §7/§8 — transcript print + modo apresentação */}
+        <button
+          type="button"
+          onClick={() => setTranscriptOpen(true)}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
+          title="Transcript imprimível / PDF"
+          data-testid="caixa-unif-thread-transcript"
+        >
+          <FileDown size={12} aria-hidden />
+        </button>
+        <button
+          type="button"
+          onClick={() => setPresenterOpen(true)}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
+          title="Modo apresentação (overlay limpo, Esc sai)"
+          data-testid="caixa-unif-thread-presenter"
+        >
+          <Presentation size={12} aria-hidden />
+        </button>
         {!isPreview && !isBlocked && onResolve && (
           <button
             type="button"
             onClick={onResolve}
-            className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
             data-testid="caixa-unif-resolve-btn"
           >
             <Check size={12} aria-hidden /> Resolver
@@ -302,7 +393,8 @@ export default function ConversationThreadV4({
                       <img
                         src={m.media_thumbnail_url || m.media_url}
                         alt={m.media_filename || 'imagem'}
-                        onClick={() => window.open(m.media_url!, '_blank')}
+                        // Polish V2 §4 — lightbox in-app em vez de aba nova
+                        onClick={() => setLightboxIndex(imageMessages.findIndex(im => im.id === m.id))}
                         className="rounded-md max-w-full max-h-64 cursor-pointer object-cover mb-1"
                         loading="lazy"
                       />
@@ -368,6 +460,42 @@ export default function ConversationThreadV4({
         onOpenChange={setFeedbackSheetOpen}
         input={feedbackInput}
       />
+
+      {/* Polish V2 §4 — lightbox in-app (MediaFullscreenModal reusado US-WA-072) */}
+      {lightboxIndex !== null && imageMessages.length > 0 && (
+        <MediaFullscreenModal
+          urls={imageMessages.map(m => m.media_url!)}
+          filenames={imageMessages.map(m => m.media_filename ?? null)}
+          currentIndex={Math.max(0, lightboxIndex)}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
+      {/* Polish V2 §7 — transcript imprimível */}
+      <InboxTranscriptDialog
+        open={transcriptOpen}
+        onOpenChange={setTranscriptOpen}
+        thread={thread}
+        messages={messages}
+      />
+
+      {/* Polish V2 §8 — modo apresentação */}
+      <InboxPresenterMode
+        open={presenterOpen}
+        onClose={() => setPresenterOpen(false)}
+        thread={thread}
+        messages={messages}
+      />
+
+      {/* PR-9 — IA Resumir/Perguntar */}
+      {aiMode !== null && (
+        <InboxAiDialog
+          open={aiMode !== null}
+          onOpenChange={(o) => { if (!o) setAiMode(null); }}
+          mode={aiMode}
+          conversationId={thread.id}
+        />
+      )}
 
       {/* Composer */}
       <ComposerV4

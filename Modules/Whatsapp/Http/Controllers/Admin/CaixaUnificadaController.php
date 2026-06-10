@@ -265,27 +265,41 @@ class CaixaUnificadaController extends Controller
      */
     protected function buildQueuesAdminPayload(int $businessId): array
     {
-        $this->ensureDefaultQueues($businessId);
-        $defaultSlug = (string) config('whatsapp.default_queue', 'comercial');
+        // INCIDENTE 2026-06-10 ("carregando canais erro 500"): payload deferred
+        // SEM guard derruba o GRUPO Inertia::defer inteiro quando a tabela
+        // whatsapp_queues ainda não existe (deploy com rsync feito e migrate
+        // cancelado/pendente). Princípio duro 8 (ADR 0094): degrade gracioso —
+        // painel Filas mostra vazio, resto da tela vive.
+        try {
+            $this->ensureDefaultQueues($businessId);
+            $defaultSlug = (string) config('whatsapp.default_queue', 'comercial');
 
-        return WhatsappQueue::query()
-            ->where('business_id', $businessId)
-            ->orderBy('sort_order')
-            ->orderBy('label')
-            ->get()
-            ->map(fn (WhatsappQueue $q) => [
-                'id' => $q->id,
-                'slug' => $q->slug,
-                'label' => $q->label,
-                'hue' => $q->hue,
-                'sla_minutes' => $q->sla_minutes,
-                'sla' => $q->slaHuman(),
-                'dist' => $q->dist,
-                'trigger_tags' => (array) $q->trigger_tags,
-                'sort_order' => $q->sort_order,
-                'is_default' => $q->slug === $defaultSlug,
-            ])
-            ->all();
+            return WhatsappQueue::query()
+                ->where('business_id', $businessId)
+                ->orderBy('sort_order')
+                ->orderBy('label')
+                ->get()
+                ->map(fn (WhatsappQueue $q) => [
+                    'id' => $q->id,
+                    'slug' => $q->slug,
+                    'label' => $q->label,
+                    'hue' => $q->hue,
+                    'sla_minutes' => $q->sla_minutes,
+                    'sla' => $q->slaHuman(),
+                    'dist' => $q->dist,
+                    'trigger_tags' => (array) $q->trigger_tags,
+                    'sort_order' => $q->sort_order,
+                    'is_default' => $q->slug === $defaultSlug,
+                ])
+                ->all();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[caixa-unificada] queuesAdmin degrade gracioso', [
+                'business_id' => $businessId,
+                'error_class' => get_class($e),
+            ]);
+
+            return [];
+        }
     }
 
     /**

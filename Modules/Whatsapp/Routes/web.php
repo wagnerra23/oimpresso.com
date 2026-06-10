@@ -2,10 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
+use Modules\Whatsapp\Http\Controllers\Admin\BroadcastController;
 use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
 use Modules\Whatsapp\Http\Controllers\Admin\ClientFeedbackController;
+use Modules\Whatsapp\Http\Controllers\Admin\InboxAiController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;
@@ -193,6 +195,30 @@ Route::group([
     Route::post('/inbox/conversations', [InboxController::class, 'startConversation'])
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.start_conversation');
+
+    // US-WA-306 (ADR 0268) — broadcast FASE 1: pre-flight real (opt-in LGPD +
+    // janela 24h) + draft auditável. Disparo em massa = fase 2 gate [W].
+    Route::post('/broadcast/preflight', [BroadcastController::class, 'preflight'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.preflight');
+    Route::post('/broadcast', [BroadcastController::class, 'store'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.store');
+
+    // PR-9 brief [CC] — IA na thread (laravel/ai, mesma infra dos Agents Jana).
+    // dry_run da Jana gateia custo; PII redigida antes do provider (LGPD).
+    Route::post('/inbox/{id}/ai/summarize', [InboxAiController::class, 'summarize'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.ai.summarize');
+    Route::post('/inbox/{id}/ai/ask', [InboxAiController::class, 'ask'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.ai.ask');
+    Route::post('/inbox/{id}/ai/suggest-reply', [InboxAiController::class, 'suggestReply'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.ai.suggest_reply');
 
     // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
     // Captura feedback diretamente de mensagens do inbox WhatsApp.
