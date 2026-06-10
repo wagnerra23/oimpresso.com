@@ -30,6 +30,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property ?string $contact_name
  * @property string $status
  * @property ?int $assigned_user_id
+ * @property-read ?\App\User $assignedUser
  * @property bool $bot_handling
  * @property ?\Carbon\CarbonImmutable $last_inbound_at
  * @property ?\Carbon\CarbonImmutable $last_outbound_at
