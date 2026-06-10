@@ -1,0 +1,26 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FOUNDATIONS — Camada Fundações (Constituição UI v2 · ADR UI-0013)
+   Fonte ÚNICA de tokens de FUNDAÇÃO compartilhados entre Shell e telas.
+   Arquivo previsto pelo foundation-guard (TOKEN_DEF_ALLOW) desde o PACOTE-Q9;
+   nasce aqui com o Type RAMP (F2 Financeiro · autorizado [W] textual "vai"
+   2026-06-10 — Tier 0, registrado no PR).
+   Mudar token aqui = decisão de fundação (PR revisado), nunca css de tela.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Type RAMP (âncora única de tamanho · [W] "vai" 2026-06-10) ──
+     9 degraus; TODO font-size do sistema snapa aqui. Enforcement =
+     conformance-gate (ratchet only-down de font-size px fora do ramp,
+     espelho estático do G8 qa-conformance do Cowork).
+     Acabamento: pesos só 400/500/600/700 · lh 1 números · 1.2 títulos ·
+     1.45 corpo · caption uppercase +0.08em · números sempre mono tabular. */
+  --fs-1: 10.5px;  /* caption / eyebrow uppercase */
+  --fs-2: 11.5px;  /* label · chip · hint */
+  --fs-3: 12.5px;  /* corpo denso (células, drawer) */
+  --fs-4: 13.5px;  /* corpo padrão (= body) */
+  --fs-5: 15px;    /* título de seção/card */
+  --fs-6: 18px;    /* subtítulo de página */
+  --fs-7: 22px;    /* h1 de página · KPI médio */
+  --fs-8: 28px;    /* número grande */
+  --fs-9: 38px;    /* número hero */
+}

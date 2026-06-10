@@ -25,6 +25,7 @@ on:
       - '.conformance-baseline.json'
       - '.foundation-guard-baseline.json'
       - '.foundation-guard-files.json'
+      - '.fontramp-baseline.json'
       - '.github/workflows/conformance-gate.yml'
   pull_request:
     # SEM path filter de propósito (ADR 0263): roda em TODO PR. O gate é ratchet — sem
