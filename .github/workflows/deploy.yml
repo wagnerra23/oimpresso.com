@@ -42,7 +42,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          # `|| true`: ssh-keyscan falha intermitente (rede runner→Hostinger) NÃO pode
+          # matar o deploy sob `bash -e`. Host key já coberta por
+          # StrictHostKeyChecking=accept-new no SSH helper. Mesmo fix do quick-sync
+          # (#2162). Catalogado 2026-06-10: deploy 27293791287 morreu aqui 2× em 8s.
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: SSH helper
         run: |
