@@ -137,7 +137,12 @@ it('Oficina drawer (estado "adicionando" ABERTO) — probes G2/G3/G4 limpos + co
     $page->click('PRBG34');
     $page->assertSee('Fotos & Laudo');           // drawer rico montou
     $page->click('Adicionar primeiro item');     // estado "adicionando" ABERTO
-    $page->assertSee('Sistema a vistoriar');
+    // O Select do form nasce com preset (mostra "Motor · óleo + filtro", não o placeholder),
+    // então "Sistema a vistoriar" só existe como aria-label — provado por screenshot do run
+    // 27274045670. Presença do form = combobox com esse accessible name dentro do dialog.
+    expect($page->script(
+        '!!document.querySelector(\'[role="dialog"] [aria-label="Sistema a vistoriar"]\')'
+    ))->toBe(true, 'form DVI "adicionando" deve estar aberto no drawer');
 
     // ── 🟢 no limpo ──────────────────────────────────────────────────────────
     expect($page->script(PROBE_G2))->toBe(0, 'G2: controle nativo visível com accent-color:auto');
