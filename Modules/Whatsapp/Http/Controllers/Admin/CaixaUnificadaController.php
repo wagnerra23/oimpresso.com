@@ -712,6 +712,34 @@ class CaixaUnificadaController extends Controller
     }
 
     /**
+     * US-WA-305 — fila efetiva da conversa: `queue_override` (manual) vence a
+     * heurística tag→fila quando preenchido E o slug ainda existe nas filas do
+     * business (slug órfão de fila deletada cai no fallback automático).
+     *
+     * @return array{slug: string, label: string, hue: int, sla: ?string}
+     */
+    protected function resolveQueue(Conversation $c, array $tagSlugs): array
+    {
+        $override = $c->queue_override;
+        if ($override !== null && $override !== '') {
+            $businessId = (int) session('user.business_id');
+            $queues = $this->getQueuesConfig($businessId);
+            if (isset($queues[$override])) {
+                $cfg = $queues[$override];
+
+                return [
+                    'slug' => $override,
+                    'label' => (string) ($cfg['label'] ?? ucfirst($override)),
+                    'hue' => (int) ($cfg['hue'] ?? 0),
+                    'sla' => $cfg['sla'] ?? null,
+                ];
+            }
+        }
+
+        return $this->deriveQueueFromTags($tagSlugs);
+    }
+
+    /**
      * Conversation pro componente lista (ConversationListV4).
      */
     protected function convToListArray(Conversation $c): array
@@ -737,7 +765,7 @@ class CaixaUnificadaController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
-            'queue' => $this->deriveQueueFromTags($tagSlugs),
+            'queue' => $this->resolveQueue($c, $tagSlugs),
             // Preview-only — canal ainda em homologação (status != 'active')
             'preview_only' => ($channel?->status ?? 'active') !== 'active',
         ];
@@ -774,7 +802,10 @@ class CaixaUnificadaController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
-            'queue' => $this->deriveQueueFromTags($tagSlugs),
+            'queue' => $this->resolveQueue($c, $tagSlugs),
+            // US-WA-305 — sidebar mostra se a fila é override manual ou heurística
+            'queue_is_override' => $c->queue_override !== null && $c->queue_override !== ''
+                && isset($this->getQueuesConfig((int) session('user.business_id'))[$c->queue_override]),
             'preview_only' => ($channel?->status ?? 'active') !== 'active',
         ];
     }

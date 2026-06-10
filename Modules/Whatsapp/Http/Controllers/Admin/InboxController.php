@@ -1116,6 +1116,52 @@ class InboxController extends Controller
     }
 
     /**
+     * US-WA-305: PATCH `/atendimento/inbox/{id}/queue` — move conversa entre
+     * filas (override manual que vence a heurística tag→fila, ADR 0267).
+     *
+     * `queue_slug: null` remove o override (volta pra derivação automática).
+     * Tier 0: slug precisa existir nas filas do MESMO business (whatsapp_queues
+     * com fallback config) — slug desconhecido = 422 fail-loud.
+     */
+    public function moveQueue(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não muta.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
+
+        $payload = $request->validate([
+            'queue_slug' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        $slug = $payload['queue_slug'] ?? null;
+        if ($slug !== null && $slug !== '') {
+            $knownInDb = \Modules\Whatsapp\Entities\WhatsappQueue::query()
+                ->where('business_id', $businessId)
+                ->where('slug', $slug)
+                ->exists();
+            $knownInConfig = array_key_exists($slug, (array) config('whatsapp.queues', []));
+            if (! $knownInDb && ! $knownInConfig) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'queue_slug' => "Fila \"{$slug}\" não existe neste business.",
+                ]);
+            }
+            $conversation->queue_override = $slug;
+        } else {
+            $conversation->queue_override = null;
+        }
+        $conversation->save();
+
+        return back()->with('success', $conversation->queue_override !== null
+            ? 'Conversa movida de fila.'
+            : 'Fila voltou pra automática.');
+    }
+
+    /**
      * US-WA-064: GET `/atendimento/inbox/contacts/search?q=...` — busca
      * Contacts UltimatePOS do business atual filtrando por nome/mobile/landline.
      *
