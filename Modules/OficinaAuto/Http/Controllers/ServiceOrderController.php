@@ -398,7 +398,10 @@ class ServiceOrderController extends Controller
             if (isset($map[$osId])) {
                 continue; // já temos o mais recente (ordenação desc)
             }
-            $label = $row->action?->label ?? ('Etapa: ' . ($row->toStage?->name ?? '—'));
+            // getAttribute (não acesso a propriedade) — evita property.notFound do
+            // PHPStan sobre Model genérico de relação belongsTo.
+            $label = $row->action?->getAttribute('label')
+                ?? ('Etapa: ' . ($row->toStage?->getAttribute('name') ?? '—'));
             $map[$osId] = [
                 'label' => (string) $label,
                 'at'    => $row->executed_at?->toIso8601String() ?? '',
