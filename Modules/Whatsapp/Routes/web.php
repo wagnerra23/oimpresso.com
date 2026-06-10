@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
+use Modules\Whatsapp\Http\Controllers\Admin\BroadcastController;
 use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
@@ -193,6 +194,15 @@ Route::group([
     Route::post('/inbox/conversations', [InboxController::class, 'startConversation'])
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.start_conversation');
+
+    // US-WA-306 (ADR 0268) — broadcast FASE 1: pre-flight real (opt-in LGPD +
+    // janela 24h) + draft auditável. Disparo em massa = fase 2 gate [W].
+    Route::post('/broadcast/preflight', [BroadcastController::class, 'preflight'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.preflight');
+    Route::post('/broadcast', [BroadcastController::class, 'store'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.store');
 
     // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
     // Captura feedback diretamente de mensagens do inbox WhatsApp.

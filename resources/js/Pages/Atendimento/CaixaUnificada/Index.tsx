@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 
+import BroadcastSheet from './_components/BroadcastSheet';
 import ChannelChipsRow from './_components/ChannelChipsRow';
 import ChannelsDrawer from './_components/ChannelsDrawer';
 import NewConversationDialog from './_components/NewConversationDialog';
@@ -117,6 +118,8 @@ export default function CaixaUnificadaIndex({
   const [canaisOpen, setCanaisOpen] = useState(false);
   // US-WA-307 — dialog + Nova conversa
   const [novaConvOpen, setNovaConvOpen] = useState(false);
+  // US-WA-306 — broadcast fase 1 (pre-flight + draft; disparo é fase 2 ADR 0268)
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
 
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
@@ -365,11 +368,12 @@ export default function CaixaUnificadaIndex({
           >
             Canais
           </button>
+          {/* US-WA-306 — fase 1: pre-flight + rascunho (disparo = fase 2 ADR 0268) */}
           <button
             type="button"
-            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
-            disabled
-            title="Broadcast cross-canal (em breve)"
+            onClick={() => setBroadcastOpen(true)}
+            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title="Broadcast cross-canal — audiência + rascunho (disparo na fase 2)"
             data-testid="caixa-unif-topnav-broadcast"
           >
             Broadcast
@@ -503,6 +507,14 @@ export default function CaixaUnificadaIndex({
           open={novaConvOpen}
           onOpenChange={setNovaConvOpen}
           accounts={availableAccounts ?? []}
+        />
+
+        {/* US-WA-306 — broadcast fase 1 (ADR 0268) */}
+        <BroadcastSheet
+          open={broadcastOpen}
+          onOpenChange={setBroadcastOpen}
+          accounts={availableAccounts ?? []}
+          templates={availableTemplates ?? []}
         />
 
         {thread && (
