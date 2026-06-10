@@ -31,6 +31,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $status
  * @property ?int $assigned_user_id
  * @property-read ?\App\User $assignedUser
+ * @property ?string $queue_override  US-WA-305: slug whatsapp_queues que vence heurística; NULL = automática
  * @property bool $bot_handling
  * @property ?\Carbon\CarbonImmutable $last_inbound_at
  * @property ?\Carbon\CarbonImmutable $last_outbound_at
@@ -82,7 +83,7 @@ class Conversation extends Model
     protected $fillable = [
         'business_id', 'channel_id', 'contact_id',
         'customer_external_id', 'contact_name',
-        'status', 'assigned_user_id', 'bot_handling',
+        'status', 'assigned_user_id', 'queue_override', 'bot_handling',
         'last_inbound_at', 'last_outbound_at', 'last_message_at',
         'unread_count', 'is_blocked',
         // US-WA-072 — denormalizado pra evitar N+1 em InboxController list

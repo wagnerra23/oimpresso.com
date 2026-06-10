@@ -1116,6 +1116,164 @@ class InboxController extends Controller
     }
 
     /**
+     * US-WA-305: PATCH `/atendimento/inbox/{id}/queue` — move conversa entre
+     * filas (override manual que vence a heurística tag→fila, ADR 0267).
+     *
+     * `queue_slug: null` remove o override (volta pra derivação automática).
+     * Tier 0: slug precisa existir nas filas do MESMO business (whatsapp_queues
+     * com fallback config) — slug desconhecido = 422 fail-loud.
+     */
+    public function moveQueue(\Illuminate\Http\Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->findOrFail($id);
+
+        // US-WA-069 defense-in-depth: user sem acesso ao canal não muta.
+        $this->ensureChannelAccessOrAbort($conversation, $businessId, $userId);
+
+        $payload = $request->validate([
+            'queue_slug' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        $slug = $payload['queue_slug'] ?? null;
+        if ($slug !== null && $slug !== '') {
+            $knownInDb = \Modules\Whatsapp\Entities\WhatsappQueue::query()
+                ->where('business_id', $businessId)
+                ->where('slug', $slug)
+                ->exists();
+            $knownInConfig = array_key_exists($slug, (array) config('whatsapp.queues', []));
+            if (! $knownInDb && ! $knownInConfig) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'queue_slug' => "Fila \"{$slug}\" não existe neste business.",
+                ]);
+            }
+            $conversation->queue_override = $slug;
+        } else {
+            $conversation->queue_override = null;
+        }
+        $conversation->save();
+
+        return back()->with('success', $conversation->queue_override !== null
+            ? 'Conversa movida de fila.'
+            : 'Fila voltou pra automática.');
+    }
+
+    /**
+     * US-WA-307: POST `/atendimento/inbox/conversations` — inicia conversa
+     * outbound a partir do botão "+ Nova conversa" da Caixa Unificada V4.
+     *
+     * Find-or-create por (business, channel_id, customer_external_id) — número
+     * que já conversou reabre a thread existente (não duplica). Mensagem
+     * inicial opcional REUSA o pipeline completo do send() (ACL re-check,
+     * auto-prefix, dispatch driver) — zero duplicação de lógica de driver.
+     *
+     * Tier 0: canal precisa ser do business + ATIVO + user com ACL (US-WA-069).
+     * Contact via `contact_id` resolve phone/nome do CRM do MESMO business.
+     */
+    public function startConversation(\Illuminate\Http\Request $request): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
+
+        $data = $request->validate([
+            'channel_id' => ['required', 'integer'],
+            'contact_id' => ['nullable', 'integer'],
+            'phone' => ['required_without:contact_id', 'nullable', 'string', 'max:30'],
+            'name' => ['nullable', 'string', 'max:120'],
+            'body' => ['nullable', 'string', 'max:4096'],
+        ]);
+
+        // Canal: do business + ativo + ACL (fail-loud)
+        $channel = Channel::query()
+            ->where('business_id', $businessId)
+            ->where('id', (int) $data['channel_id'])
+            ->first();
+        if (! $channel) {
+            abort(403, 'Canal não encontrado ou sem acesso.');
+        }
+        if ($channel->status !== 'active') {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'channel_id' => "Canal \"{$channel->label}\" não está ativo — conecte antes de iniciar conversas.",
+            ]);
+        }
+        if (! $this->canSeeAllChannels()) {
+            $hasAccess = ChannelUserAccess::query()
+                ->where('business_id', $businessId)
+                ->where('user_id', $userId)
+                ->where('channel_id', $channel->id)
+                ->whereNull('revoked_at')
+                ->exists();
+            if (! $hasAccess) {
+                abort(403, 'Sem acesso a este canal.');
+            }
+        }
+
+        // Contact CRM (mesmo business) resolve phone + nome
+        $contactId = isset($data['contact_id']) ? (int) $data['contact_id'] : null;
+        $phone = (string) ($data['phone'] ?? '');
+        $name = (string) ($data['name'] ?? '');
+        if ($contactId !== null) {
+            $contact = Contact::where('business_id', $businessId)->find($contactId);
+            if (! $contact) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'contact_id' => 'Contato não encontrado neste business.',
+                ]);
+            }
+            $phone = $phone !== '' ? $phone : (string) ($contact->mobile ?? '');
+            $name = $name !== '' ? $name : (string) ($contact->name ?? '');
+        }
+
+        // Normaliza phone → formato canon customer_external_id ("+5511...")
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        if (strlen($digits) < 8) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'phone' => 'Telefone inválido — informe DDI+DDD+número (mínimo 8 dígitos).',
+            ]);
+        }
+        $externalId = '+' . $digits;
+
+        // Find-or-create — número que já conversou reabre a thread (não duplica)
+        $conversation = Conversation::query()
+            ->where('business_id', $businessId)
+            ->where('channel_id', $channel->id)
+            ->where('customer_external_id', $externalId)
+            ->first();
+
+        if (! $conversation) {
+            $conversation = Conversation::query()->create([
+                'business_id' => $businessId,
+                'channel_id' => $channel->id,
+                'contact_id' => $contactId,
+                'customer_external_id' => $externalId,
+                'contact_name' => $name !== '' ? $name : $externalId,
+                'status' => 'open',
+                'last_message_at' => now(),
+            ]);
+        } elseif ($contactId !== null && $conversation->contact_id === null) {
+            // Reaberta a partir do CRM — aproveita pra vincular o Contact
+            $conversation->forceFill(['contact_id' => $contactId])->save();
+        }
+
+        // Mensagem inicial opcional — REUSA o pipeline send() inteiro
+        if (! empty($data['body']) && trim((string) $data['body']) !== '') {
+            $sendRequest = \Illuminate\Http\Request::create(
+                "/atendimento/inbox/{$conversation->id}/send",
+                'POST',
+                ['kind' => 'freeform', 'body' => trim((string) $data['body'])],
+            );
+            $sendRequest->setLaravelSession($request->session());
+            $this->send($sendRequest, $conversation->id);
+        }
+
+        return redirect()
+            ->route('atendimento.caixa-unificada.index', ['thread' => $conversation->id])
+            ->with('success', 'Conversa pronta.');
+    }
+
+    /**
      * US-WA-064: GET `/atendimento/inbox/contacts/search?q=...` — busca
      * Contacts UltimatePOS do business atual filtrando por nome/mobile/landline.
      *

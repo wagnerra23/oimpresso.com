@@ -7,6 +7,8 @@ type: reference
 
 Consolidação de receitas operacionais que se entrelaçam em sessões de deploy. Validadas várias vezes em 2026-04-25 → 2026-05-10.
 
+> **⚠️ MUDANÇA DE POLÍTICA 2026-06-10 (ADR 0269) — ler antes do resto:** o auto-deploy canônico em push pra main passou a ser o **`deploy.yml`** (`Deploy to Hostinger`), que builda o JS **no runner** (ubuntu, determinístico) e publica os bundles via tar/ssh. O **`quick-sync.yml` perdeu o trigger `push`** (virou escape manual `workflow_dispatch`-only). Várias receitas abaixo (§2, §2.1-2.4, §5) descrevem o mundo "quick-sync auto + build no Hostinger" — continuam válidas como **recuperação manual** e pro escape `quick-sync`, mas o caminho-padrão agora é o auto-deploy do `deploy.yml`. Ver §8.
+
 ## 1. composer install OBRIGATÓRIO pós-push em main (se composer.json/lock muda)
 
 **Quando rodar:**
@@ -435,3 +437,25 @@ public function show(Request $request, ServiceOrder $order)
 **Lição:** flag `__debug_diagnose_task_N` no payload + status 200 (não 500) permite distinguir "endpoint corrigido" vs "wrapper ainda ativo" no smoke pós-fix. Caso real PR #1209 (diagnose) → PR #1211 (fix authorize trait).
 
 Refs SSH: hostinger.md (IP, key, repo path).
+
+## 8. Merge ≠ publicado — auto-deploy unificado + build no runner (2026-06-10, ADR 0269)
+
+**Lição central:** *"Merge ≠ publicado"*. Até 2026-06-10 publicar em prod exigia orquestrar workflows na mão — `deploy.yml` (manual: composer/migrate, mas **não** buildava JS) + `force-clean-rebuild` — e **o JS buildava no shared host** (npm no Hostinger), causa raiz dos hashes stale (20/05) e do 500 por estouro de threads (§2.3, 03/06). O `quick-sync.yml` até auto-disparava, mas era leve (sem composer/migrate) e também buildava no servidor.
+
+**O que mudou (ADR 0269):**
+- **Auto-trigger:** push em main (exceto `memory/**`, `**.md`, `prototipo-ui/**`, `cowork-inbox/**`) dispara o `deploy.yml` sozinho. Merge na main = publicado.
+- **Build no runner:** job `build` em ubuntu-latest (node 24 + `npm ci` + `build:inertia` + `build`) → artefato → job `deploy` envia via **tar/ssh + swap atômico** (`.new` → `mv`, mantém `.old` pra rollback). Acabou o build frágil no Hostinger.
+- **`quick-sync.yml`** perdeu o `push` (escape manual only) pra não rodar deploy concorrente (mesma concurrency `deploy-production`).
+- **OPcache reset OBRIGATÓRIO** (warning → falha): secret `OPCACHE_RESET_TOKEN` criado; deploy grava o token em `storage/app/opcache_reset_token` (fora do git/webroot, sobrevive a `git reset --hard`); `_ops_opcache_reset.php` lê dessa fonte (script PHP cru não lê o `.env` via `getenv()` no LSPHP). Só tolera `OPCACHE_UNAVAILABLE`.
+- **Smoke valida hash de bundle:** compara `/assets/` servidos antes×depois; se `resources/js|css` mudou no push mas o hash não mudou → deploy vermelho (publicação não chegou).
+
+**Pegadinha catalogada hoje (10/06):** ao rodar deploy.yml + force-clean manualmente pra "destravar", os **hashes dos bundles vieram idênticos** antes×depois (`app-PfSk7SD1.js` / `inertia-Bawe61gt.css`). Isso **não é bug** — hash do Vite é determinístico do conteúdo: um cold rebuild do `main` reproduzir o mesmo hash **prova que o prod já servia o `main` atual**. Hash idêntico após rebuild = prod já estava publicado, não há o que "republicar" no nível do bundle. Se o operador ainda vê tela velha com hash igual, o problema **não é o bundle** (é dado server-side, OPcache, ou cache de navegador) — investigar lá, não rebuildar de novo.
+
+**Redes de segurança mantidas:** backup com rotação (5 mais recentes), maintenance on/off, composer (sem `--no-dev` — Faker em prod), migrate, caches (sem `route:cache`, hotfix 27/05), smoke estrito.
+
+**Incidente do 1º auto-deploy (10/06, corrigido no mesmo dia):**
+1. **`npm run build` NÃO sai em `public/build/`.** O build legado (vite.config.js) emite **`public/css/tailwind.css`** (e nada em `public/build/`). O publish do deploy testava `test -d artifact/build` sob `set -e` → falhou em ~6ms. **Os dois artefatos a publicar são `public/build-inertia/` (dir Inertia) + `public/css/` (Tailwind legado)** — ambos gitignored (`/public/build-inertia/` + `/public/css/`). `build-inertia` faz swap de diretório; `css` é copiado por cima.
+2. **Site preso em 503.** O publish falhou DEPOIS do `php artisan down` e ANTES do `up` → maintenance preso até intervenção manual. **Restauração rápida** (sem precisar consertar o bug): `gh workflow run deploy.yml -f skip_backup=true -f skip_migrate=true -f extra_artisan=up` — o step `Artisan extra` roda `php artisan up` antes do publish quebrar. **Fix permanente:** step `Failsafe` com `if: always()` que garante `php artisan up` em qualquer saída (invariante "auto-deploy nunca deixa o site em maintenance").
+3. **Bundles do servidor sobrevivem.** `git reset --hard` NÃO toca arquivos gitignored → `public/build-inertia/` e `public/css/` do último build válido permanecem. Por isso destravar o maintenance já restaura o site funcional, mesmo com o publish do deploy falho.
+
+Refs: ADR 0269; `.github/workflows/deploy.yml`; `public/_ops_opcache_reset.php`.

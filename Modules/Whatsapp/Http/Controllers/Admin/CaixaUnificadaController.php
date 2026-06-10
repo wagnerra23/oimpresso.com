@@ -15,6 +15,8 @@ use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
+use Modules\Whatsapp\Entities\WhatsappQueue;
+use Modules\Whatsapp\Entities\WhatsappTemplate;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 
 /**
@@ -144,6 +146,9 @@ class CaixaUnificadaController extends Controller
             'availableAccounts' => Inertia::defer(fn () => $this->buildAvailableAccountsPayload($businessId, $userId)),
             'availableTags' => Inertia::defer(fn () => $this->buildAvailableTagsPayload($businessId)),
             'availableAssignees' => Inertia::defer(fn () => $this->buildAvailableAssigneesPayload($businessId)),
+            'availableTemplates' => Inertia::defer(fn () => $this->buildAvailableTemplatesPayload($businessId)),
+            // US-WA-301 (ADR 0267) — rows completas pro painel "Filas" (Sheet CRUD)
+            'queuesAdmin' => Inertia::defer(fn () => $this->buildQueuesAdminPayload($businessId)),
 
             // ─── Eager: estados de UI leves ───
             'businessId' => $businessId,
@@ -163,10 +168,138 @@ class CaixaUnificadaController extends Controller
             'messages' => $messages,
             'centrifugoConfig' => $centrifugoConfig,
 
-            // Config static (custo zero — array em memória)
-            'queues' => (array) config('whatsapp.queues', []),
+            // US-WA-301 (ADR 0267) — filas agora vêm do DB (seed lazy do config
+            // na 1ª visita; fallback config se DB vazio). Shape QueueConfig compat.
+            'queues' => $this->getQueuesConfig($businessId),
             'defaultQueue' => (string) config('whatsapp.default_queue', 'comercial'),
+            'canManageQueues' => (bool) (auth()->user()?->can('whatsapp.settings.manage') ?? false),
         ]);
+    }
+
+    /** Cache per-request do mapa slug => QueueConfig (evita reler DB nos payloads). */
+    protected ?array $queuesConfigCache = null;
+
+    /**
+     * US-WA-301 (ADR 0267) — filas do business: DB com seed lazy + fallback config.
+     *
+     * Shape compat com `QueueConfig` do frontend (label/hue/sla/trigger_tags) —
+     * `sla` humanizado de `sla_minutes`. Princípio duro 8 (ADR 0094): se a
+     * leitura DB falhar/vier vazia, degrade gracioso pro config estático.
+     *
+     * @return array<string, array{label: string, hue: int, sla: ?string, trigger_tags: array<int, string>}>
+     */
+    protected function getQueuesConfig(int $businessId): array
+    {
+        if ($this->queuesConfigCache !== null) {
+            return $this->queuesConfigCache;
+        }
+
+        try {
+            $this->ensureDefaultQueues($businessId);
+            $rows = WhatsappQueue::query()
+                ->where('business_id', $businessId)
+                ->orderBy('sort_order')
+                ->orderBy('label')
+                ->get();
+        } catch (\Throwable) {
+            $rows = collect();
+        }
+
+        if ($rows->isEmpty()) {
+            // Normaliza o config pro shape completo (PHPStan + consumidores
+            // acessam offsets direto sem ?? redundante).
+            $fallback = [];
+            foreach ((array) config('whatsapp.queues', []) as $slug => $cfg) {
+                $fallback[(string) $slug] = [
+                    'label' => (string) ($cfg['label'] ?? ucfirst((string) $slug)),
+                    'hue' => (int) ($cfg['hue'] ?? 220),
+                    'sla' => $cfg['sla'] ?? null,
+                    'trigger_tags' => (array) ($cfg['trigger_tags'] ?? []),
+                ];
+            }
+
+            return $this->queuesConfigCache = $fallback;
+        }
+
+        return $this->queuesConfigCache = $rows
+            ->mapWithKeys(fn (WhatsappQueue $q) => [$q->slug => [
+                'label' => $q->label,
+                'hue' => $q->hue,
+                'sla' => $q->slaHuman(),
+                'trigger_tags' => (array) $q->trigger_tags,
+            ]])
+            ->all();
+    }
+
+    /**
+     * Seed lazy idempotente das filas default a partir de `config('whatsapp.queues')`
+     * (pattern ensureDefaultTags — migração sem quebra, ADR 0267).
+     */
+    protected function ensureDefaultQueues(int $businessId): void
+    {
+        $existing = WhatsappQueue::query()->where('business_id', $businessId)->count();
+        if ($existing > 0) {
+            return;
+        }
+        $sort = 10;
+        foreach ((array) config('whatsapp.queues', []) as $slug => $cfg) {
+            WhatsappQueue::query()->create([
+                'business_id' => $businessId,
+                'slug' => (string) $slug,
+                'label' => (string) ($cfg['label'] ?? ucfirst((string) $slug)),
+                'hue' => (int) ($cfg['hue'] ?? 220),
+                'sla_minutes' => WhatsappQueue::slaToMinutes($cfg['sla'] ?? null),
+                'dist' => 'manual',
+                'trigger_tags' => (array) ($cfg['trigger_tags'] ?? []),
+                'members' => [],
+                'sort_order' => $sort,
+            ]);
+            $sort += 10;
+        }
+    }
+
+    /**
+     * US-WA-301 — rows completas pro painel "Filas" (Sheet CRUD da V4).
+     *
+     * @return array<int, array{id: int, slug: string, label: string, hue: int, sla_minutes: ?int, sla: ?string, dist: string, trigger_tags: array<int, string>, sort_order: int, is_default: bool}>
+     */
+    protected function buildQueuesAdminPayload(int $businessId): array
+    {
+        // INCIDENTE 2026-06-10 ("carregando canais erro 500"): payload deferred
+        // SEM guard derruba o GRUPO Inertia::defer inteiro quando a tabela
+        // whatsapp_queues ainda não existe (deploy com rsync feito e migrate
+        // cancelado/pendente). Princípio duro 8 (ADR 0094): degrade gracioso —
+        // painel Filas mostra vazio, resto da tela vive.
+        try {
+            $this->ensureDefaultQueues($businessId);
+            $defaultSlug = (string) config('whatsapp.default_queue', 'comercial');
+
+            return WhatsappQueue::query()
+                ->where('business_id', $businessId)
+                ->orderBy('sort_order')
+                ->orderBy('label')
+                ->get()
+                ->map(fn (WhatsappQueue $q) => [
+                    'id' => $q->id,
+                    'slug' => $q->slug,
+                    'label' => $q->label,
+                    'hue' => $q->hue,
+                    'sla_minutes' => $q->sla_minutes,
+                    'sla' => $q->slaHuman(),
+                    'dist' => $q->dist,
+                    'trigger_tags' => (array) $q->trigger_tags,
+                    'sort_order' => $q->sort_order,
+                    'is_default' => $q->slug === $defaultSlug,
+                ])
+                ->all();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[caixa-unificada] queuesAdmin degrade gracioso', [
+                'business_id' => $businessId,
+                'error_class' => get_class($e),
+            ]);
+
+            return [];
+        }
     }
 
     /**
@@ -463,6 +596,35 @@ class CaixaUnificadaController extends Controller
     }
 
     /**
+     * US-WA-303 — templates prontos pra envio (picker ⌘T do composer).
+     *
+     * Shape espelha `ReadyTemplate` do frontend legacy (TemplatePicker reusado).
+     * Só status ready (`LOCAL` Z-API/Baileys + `APPROVED` Meta) — picker filtra
+     * por provider do canal da thread no client. Tier 0 ADR 0093: business atual.
+     *
+     * @return array<int, array{id: int, name: string, language: string, category: string, provider: string, status: string, body: string}>
+     */
+    protected function buildAvailableTemplatesPayload(int $businessId): array
+    {
+        return WhatsappTemplate::query()
+            ->where('business_id', $businessId)
+            ->whereIn('status', ['LOCAL', 'APPROVED'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (WhatsappTemplate $t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'language' => $t->language,
+                'category' => $t->category,
+                'provider' => $t->provider,
+                'status' => $t->status,
+                // Body cru com placeholders {{1}}/{{nome}} — picker expande no preview
+                'body' => $t->expandBody([]),
+            ])
+            ->all();
+    }
+
+    /**
      * US-WA-302 — operadores atribuíveis (assignee picker da sidebar).
      *
      * Tier 0 ADR 0093: APENAS users do business atual. Inclui users com grant
@@ -529,17 +691,22 @@ class CaixaUnificadaController extends Controller
     }
 
     /**
-     * Heurística tag → fila (paridade exata com InboxController::deriveQueueFromTags).
+     * Heurística tag → fila (paridade com InboxController::deriveQueueFromTags).
+     *
+     * US-WA-301 (ADR 0267): filas agora vêm de getQueuesConfig (DB com seed
+     * lazy + fallback config) — shape e semântica idênticos.
      *
      * @return array{slug: string, label: string, hue: int, sla: ?string}
      */
     protected function deriveQueueFromTags(array $tagSlugs): array
     {
-        $queues = (array) config('whatsapp.queues', []);
+        $businessId = (int) session('user.business_id');
+        $queues = $this->getQueuesConfig($businessId);
         $default = (string) config('whatsapp.default_queue', 'comercial');
         $matched = $default;
         foreach ($queues as $slug => $cfg) {
-            $triggers = (array) ($cfg['trigger_tags'] ?? []);
+            // Shape garantido por getQueuesConfig (offsets sempre presentes)
+            $triggers = $cfg['trigger_tags'];
             if ($triggers === []) {
                 continue;
             }
@@ -548,13 +715,43 @@ class CaixaUnificadaController extends Controller
                 break;
             }
         }
-        $cfg = $queues[$matched] ?? ['label' => ucfirst($matched), 'hue' => 0, 'sla' => null];
+        $cfg = $queues[$matched] ?? ['label' => ucfirst($matched), 'hue' => 0, 'sla' => null, 'trigger_tags' => []];
+
         return [
             'slug' => $matched,
-            'label' => (string) ($cfg['label'] ?? ucfirst($matched)),
-            'hue' => (int) ($cfg['hue'] ?? 0),
-            'sla' => $cfg['sla'] ?? null,
+            'label' => (string) $cfg['label'],
+            'hue' => (int) $cfg['hue'],
+            'sla' => $cfg['sla'],
         ];
+    }
+
+    /**
+     * US-WA-305 — fila efetiva da conversa: `queue_override` (manual) vence a
+     * heurística tag→fila quando preenchido E o slug ainda existe nas filas do
+     * business (slug órfão de fila deletada cai no fallback automático).
+     *
+     * @return array{slug: string, label: string, hue: int, sla: ?string}
+     */
+    protected function resolveQueue(Conversation $c, array $tagSlugs): array
+    {
+        $override = $c->queue_override;
+        if ($override !== null && $override !== '') {
+            $businessId = (int) session('user.business_id');
+            $queues = $this->getQueuesConfig($businessId);
+            if (isset($queues[$override])) {
+                $cfg = $queues[$override];
+
+                // Shape garantido por getQueuesConfig — offsets sempre presentes
+                return [
+                    'slug' => $override,
+                    'label' => (string) $cfg['label'],
+                    'hue' => (int) $cfg['hue'],
+                    'sla' => $cfg['sla'],
+                ];
+            }
+        }
+
+        return $this->deriveQueueFromTags($tagSlugs);
     }
 
     /**
@@ -583,7 +780,7 @@ class CaixaUnificadaController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
-            'queue' => $this->deriveQueueFromTags($tagSlugs),
+            'queue' => $this->resolveQueue($c, $tagSlugs),
             // Preview-only — canal ainda em homologação (status != 'active')
             'preview_only' => ($channel?->status ?? 'active') !== 'active',
         ];
@@ -620,7 +817,10 @@ class CaixaUnificadaController extends Controller
             'tags' => $c->relationLoaded('tags')
                 ? $c->tags->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'label' => $t->label, 'color' => $t->color])->all()
                 : [],
-            'queue' => $this->deriveQueueFromTags($tagSlugs),
+            'queue' => $this->resolveQueue($c, $tagSlugs),
+            // US-WA-305 — sidebar mostra se a fila é override manual ou heurística
+            'queue_is_override' => $c->queue_override !== null && $c->queue_override !== ''
+                && isset($this->getQueuesConfig((int) session('user.business_id'))[$c->queue_override]),
             'preview_only' => ($channel?->status ?? 'active') !== 'active',
         ];
     }

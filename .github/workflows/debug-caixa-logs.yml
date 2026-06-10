@@ -1,0 +1,42 @@
+name: Debug Caixa Unificada (one-shot logs)
+
+# Incidente 2026-06-10 "carregando canais erro 500" — lê estado real da prod:
+# commit deployado, existência das tabelas novas (whatsapp_queues/broadcasts,
+# colunas queue_override/whatsapp_opt_in_at) e últimas linhas de erro do
+# laravel.log. Pattern copiado de debug-fin-counts.yml (one-shot read-only).
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Estado da prod (commit + tabelas + log)
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s <<'REMOTE'
+          cd /home/u906587222/domains/oimpresso.com/public_html
+          echo "== git deployado =="
+          git log -1 --oneline 2>/dev/null || echo "(sem git)"
+          echo "== migrations pendentes (top 15) =="
+          php artisan migrate:status 2>/dev/null | grep -i "pending\|whatsapp_queues\|broadcasts\|queue_override\|opt_in" | head -15 || true
+          echo "== tabelas novas =="
+          php artisan tinker --execute="echo (int) \Illuminate\Support\Facades\Schema::hasTable('whatsapp_queues'); echo '/'; echo (int) \Illuminate\Support\Facades\Schema::hasColumn('conversations','queue_override'); echo '/'; echo (int) \Illuminate\Support\Facades\Schema::hasTable('whatsapp_broadcasts');" 2>/dev/null || true
+          echo "== laravel.log: últimos ERROs =="
+          grep -E "production\.ERROR" storage/logs/laravel.log 2>/dev/null | tail -8 | cut -c1-400 || echo "(sem ERROR no log)"
+          REMOTE
