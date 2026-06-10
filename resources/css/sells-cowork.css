@@ -1,6 +1,8 @@
 /* SCOPED-OK */ - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py
 /* SCOPED-OK */
 .sells-cowork - escopo .sells-cowork aplicado por scripts/scope-sells-cowork-css.py
+/* escopo: .sells-cowork · tokens: ds @theme (inertia.css/cockpit.css) · proibido: hex/oklch cru novo, token-def
+ * ordem-alvo: layout → componentes → estados → responsivo → print (PACOTE-Q9 PR-2 padrão único) */
 /* ───────────────────── Oimpresso ERP — Sells Cowork ─────────────────────
  * Copiado verbatim de prototipo-ui/prototipos/sells-index/styles.css (handoff
  * Claude Design `Kf6GHQu6fkwlh0vnL30Oog`, sessão chat10 "KB-9.75 Vendas"
@@ -1649,20 +1651,9 @@
   background: var(--surface);
   border-color: var(--accent);
 }
-/* Thumbs (placeholder gráfico colorido por versão) */
-.sells-cowork .os-art-corner.tl { top: 6px; left: 6px; border-right: 0; border-bottom: 0; }
-.sells-cowork .os-art-corner.tr { top: 6px; right: 6px; border-left: 0; border-bottom: 0; }
-.sells-cowork .os-art-corner.bl { bottom: 6px; left: 6px; border-right: 0; border-top: 0; }
-.sells-cowork .os-art-corner.br { bottom: 6px; right: 6px; border-left: 0; border-top: 0; }
-.sells-cowork .os-art-thumb.art-v1 .os-art-blob.a { background: #e8c468; top: -10px; right: 30px; width: 110px; height: 110px; }
-.sells-cowork .os-art-thumb.art-v1 .os-art-blob.b { background: #d97757; top: 50px; right: -20px; width: 90px; height: 90px; }
-.sells-cowork .os-art-thumb.art-v1 .os-art-blob.c { background: #a8a29e; bottom: 60px; right: 50px; width: 60px; height: 60px; opacity: .4; }
-.sells-cowork .os-art-thumb.art-v2 .os-art-blob.a { background: #e8c468; top: -14px; right: 24px; width: 130px; height: 130px; }
-.sells-cowork .os-art-thumb.art-v2 .os-art-blob.b { background: #d97757; top: 46px; right: -18px; width: 100px; height: 100px; }
-.sells-cowork .os-art-thumb.art-v2 .os-art-blob.c { background: #6c8ea4; bottom: 56px; right: 44px; width: 70px; height: 70px; }
-.sells-cowork .os-art-thumb.art-v3 .os-art-blob.a { background: #e8c468; top: -14px; right: 24px; width: 130px; height: 130px; }
-.sells-cowork .os-art-thumb.art-v3 .os-art-blob.b { background: #d97757; top: 46px; right: -18px; width: 100px; height: 100px; }
-.sells-cowork .os-art-thumb.art-v3 .os-art-blob.c { background: #4a6b85; bottom: 56px; right: 44px; width: 70px; height: 70px; }
+/* Família .os-art* (thumbs placeholder por versão) REMOVIDA 2026-06-10 — morta (zero
+   consumo em resources/js; detector sells-cowork-dead-css.mjs · PACOTE-Q9 PR-2,
+   decisão 06-04: 1 família por PR, nunca nuke). 10 hex crus saíram junto. */
 /* Decisão (aprovar/ajustar/rejeitar) */
 .sells-cowork .os-decision.approve.active {
   border-color: oklch(0.55 0.16 145);
