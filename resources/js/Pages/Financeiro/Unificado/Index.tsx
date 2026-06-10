@@ -157,6 +157,10 @@ type TabId = 'all' | 'open' | 'rec' | 'pay' | 'received' | 'paid' | 'late';
 //  ap = A pagar   (kind=payable, status aberto/parcial/atrasado/vencendo)
 //  pa = Pagas     (kind=payable, status quitado)
 type LifecycleId = 'ar' | 're' | 'ap' | 'pa';
+// US-FIN-029 (2026-06-10) — lente do header (segmented Caixa · A receber · A pagar).
+// Camada 1 do filtro grosso (direção [W] 2026-05-31, charter v14); chips lifecycle
+// refinam DENTRO da lente. `?lente=` clamp default caixa (padrão ?tab= do Fluxo).
+type LenteId = 'caixa' | 'receber' | 'pagar';
 // US-FIN-027 (Onda 22) — workflow aprovação multi-select.
 //  pendente / aprovado / rejeitado / sem_workflow (NULL aprovacao_status)
 type ApprovalStatusId = 'pendente' | 'aprovado' | 'rejeitado' | 'sem_workflow';
@@ -166,7 +170,8 @@ type AgingBucketId = 'lt30' | '30-60' | '60-90' | 'gt90' | 'gt180';
 
 interface Filters {
   tab: TabId;              // Legacy — preservado pra back-compat de bookmarks.
-  lifecycle: LifecycleId[]; // Onda Polish — multi-select.
+  lente: LenteId;          // US-FIN-029 — camada 1 do filtro (segmented header).
+  lifecycle: LifecycleId[]; // Onda Polish — multi-select (refina dentro da lente).
   aprovacao_status: ApprovalStatusId[]; // US-FIN-027 (Onda 22).
   aging: AgingBucketId[];  // PR E US-FIN-022 — vencidos por bucket
   overdue: boolean;        // Toggle "Só atrasados" independente.
@@ -241,6 +246,20 @@ const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
   { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
   { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
   { id: 'pa', label: 'Pagas',      hue: 295 }, // roxo accent v4 — estado ativo = roxo (azul 240 não era semântico de status)
+];
+
+// US-FIN-029 (2026-06-10) — 3 lentes do header (direção [W] 2026-05-31, MWART
+// unificado-3-lentes-visual-comparison.md). LENTE_SETS = chips lifecycle compatíveis
+// por lente: chip incompatível com a lente NÃO renderiza (menos ruído, não desabilitado).
+const LENTE_SETS: Record<LenteId, LifecycleId[]> = {
+  caixa: ['ar', 're', 'ap', 'pa'],
+  receber: ['ar', 're'],
+  pagar: ['ap', 'pa'],
+};
+const FIN_LENTES: { id: LenteId; label: string }[] = [
+  { id: 'caixa',   label: 'Caixa' },
+  { id: 'receber', label: 'A receber' },
+  { id: 'pagar',   label: 'A pagar' },
 ];
 
 // PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
@@ -603,7 +622,9 @@ function useSparkline30d(): SparkPoint[] | null {
   return points;
 }
 
-function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
+// US-FIN-029 — KPI-click agora seta lente + lifecycle coerentes (clicar "A pagar"
+// entra na lente pagar refinada em 'ap'). Drill-down ADR ui/0002 preservado.
+function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
@@ -664,7 +685,7 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
 
   return (
     <div className="fin-stats">
-      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
+      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         <small>Saldo previsto · maio</small>
         <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} /></b>
         <span className="fin-stat-hint">
@@ -673,13 +694,13 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
         <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} points={sparkPoints} />
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['re'])} aria-label="Filtrar recebidas">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
         <small>Recebido</small>
         <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ar'])} aria-label="Filtrar a receber">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
         <small>A receber</small>
         <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} /></b>
         {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
@@ -690,13 +711,13 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
         </span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['pa'])} aria-label="Filtrar pagas">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
         <small>Pago</small>
         <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ap'])} aria-label="Filtrar a pagar">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
         <small>A pagar</small>
         <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} /></b>
         {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
@@ -982,6 +1003,15 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     });
   }, [filters]);
 
+  // US-FIN-029 — lente ativa (clamp client-side espelha o backend) + chips
+  // compatíveis. Trocar de lente RE-ARMA os chips pro conjunto da lente
+  // (espelha applyLente do protótipo F1 financeiro-page.jsx).
+  const lente: LenteId = LENTE_SETS[filters.lente] ? filters.lente : 'caixa';
+  const lenteSet = LENTE_SETS[lente];
+  const applyLente = useCallback((id: LenteId, lifecycle?: LifecycleId[]) => {
+    aplicar({ lente: id, lifecycle: lifecycle ?? LENTE_SETS[id] });
+  }, [aplicar]);
+
   const onBaixar = (id: number) => {
     router.post(`/financeiro/unificado/${id}/baixar`, {}, {
       preserveScroll: true,
@@ -1115,6 +1145,33 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
         </div>
         <div className="os-page-h-r fin-page-h-r">
+          {/* US-FIN-029 (2026-06-10) — segmented 3 lentes (Caixa · A receber · A pagar),
+              direção [W] 2026-05-31 (charter v14 + MWART unificado-3-lentes). Camada 1
+              do filtro grosso; chips lifecycle refinam DENTRO da lente. Pattern visual =
+              pill segmented do Fluxo/Index.tsx (TabSwitcher), consistência declarada no
+              charter do Fluxo. Deep-link ?lente= clamp caixa. */}
+          <div
+            className="inline-flex shrink-0 bg-muted rounded-md p-0.5 border border-border"
+            role="group"
+            aria-label="Lente do fluxo (camada 1 do filtro)"
+          >
+            {FIN_LENTES.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => { if (l.id !== lente) applyLente(l.id); }}
+                aria-pressed={lente === l.id}
+                className={
+                  'h-7 px-3 rounded text-[12px] flex items-center transition tabular-nums ' +
+                  (lente === l.id
+                    ? 'bg-background shadow-sm font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground')
+                }
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
           {/* ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — header em UMA linha:
                 ghost tabs (esquerda) + ⋯ Mais (botões action features) + primary "+ Novo" (direita)
               - Ghost tabs ARIA navegação entre 13 sub-views do Financeiro
@@ -1168,7 +1225,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         </div>
       </div>
 
-      <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
+      <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
           Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
@@ -1183,8 +1240,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             rose  25  = A pagar/Atraso (saída cash + alerta)
             azul  240 = Pagas (saída liquidada) */}
       <div className="fin-toolbar mt-4">
+        {/* US-FIN-029 — chips refinam DENTRO da lente: chip incompatível com a lente
+            ativa NÃO renderiza (some, não desabilitado — menos ruído, MWART dim 4). */}
         <div className="fin-filter-group" role="group" aria-label="Filtros por ciclo de vida">
-          {FILTER_LIFECYCLE.map((lc) => {
+          {FILTER_LIFECYCLE.filter((lc) => lenteSet.includes(lc.id)).map((lc) => {
             const on = filters.lifecycle.includes(lc.id);
             const count = countByLifecycle(lc.id, lancamentos);
             const toggle = () => {
