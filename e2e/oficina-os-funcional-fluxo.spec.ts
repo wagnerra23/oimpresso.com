@@ -123,26 +123,34 @@ test.describe.serial('UC-11 · OS funcional fim-a-fim (caminho da Larissa)', () 
     // o rastreio primeiro ("Iniciar pipeline FSM") e só então o gate oferece o avanço.
     // O painel FSM re-monta após o pedido de aprovação (refetch) — isVisible() sem wait
     // caía na janela de loading e pulava o clique (run 27275373607, zero POST no serve.log).
+    // "Avançar p/ “X”" é TEXTO indicador do StageGate; o BOTÃO chama pelo label da ação
+    // (ex.: "Iniciar diagnóstico" — run 27276890378). Extraímos o label do indicador.
     const iniciarFsm = drawer.getByRole('button', { name: /Iniciar pipeline FSM/i });
-    const avancar = drawer.getByRole('button', { name: /^Avançar p\// });
+    const avancarHint = drawer.getByText(/Avançar p\//).first();
     const override = drawer.getByRole('button', { name: /Avançar mesmo assim/i });
     await expect(
-      iniciarFsm.or(avancar).or(override).first(),
+      iniciarFsm.or(avancarHint).or(override).first(),
       'painel FSM deve carregar (Iniciar pipeline OU gate de avanço)',
     ).toBeVisible({ timeout: 30_000 });
     if (await iniciarFsm.isVisible()) {
       await iniciarFsm.click();
       await expect(
-        avancar.or(override).first(),
+        avancarHint.or(override).first(),
         'após iniciar o pipeline, o gate deve oferecer Avançar ou o override de responsável',
       ).toBeVisible({ timeout: 30_000 });
     }
-    if (await avancar.first().isEnabled().catch(() => false)) {
-      await avancar.first().click();
+    const hintText = (await avancarHint.isVisible()) ? await avancarHint.textContent() : null;
+    const acaoLabel = hintText?.match(/Avançar p\/\s*[“"]?(.+?)[”"]?\s*$/)?.[1] ?? null;
+    const acaoBtn = acaoLabel ? drawer.getByRole('button', { name: acaoLabel }).first() : null;
+    if (acaoBtn && (await acaoBtn.isEnabled().catch(() => false))) {
+      await acaoBtn.click();
     } else {
       await override.click();
     }
-    await expect(page.getByText(/Etapa avançada/i).first()).toBeVisible({ timeout: 15_000 });
+    // StageGate toast: "Etapa avançada." · FsmActionPanel: "Transição aplicada: …"
+    await expect(
+      page.getByText(/Etapa avançada|Transição aplicada/i).first(),
+    ).toBeVisible({ timeout: 15_000 });
 
     // Timeline auditável (OS-V2-4) registra a transição (quem · quando · de→pra).
     await expect(drawer.getByText('Linha do tempo')).toBeVisible();
