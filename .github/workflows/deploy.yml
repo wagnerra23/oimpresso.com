@@ -89,21 +89,23 @@ jobs:
       - name: Build Inertia bundles (public/build-inertia)
         run: npm run build:inertia
 
-      - name: Build Tailwind/Blade legacy (public/build)
+      - name: Build Tailwind/Blade legacy (public/css/tailwind.css)
         run: npm run build
 
       - name: Inventário pós-build
         run: |
           echo "=== public/build-inertia/assets ===" && ls -la public/build-inertia/assets 2>/dev/null | head -10 || echo '(vazio)'
-          echo "=== public/build ===" && ls -la public/build 2>/dev/null | head -10 || echo '(vazio)'
+          echo "=== public/css ===" && ls -la public/css 2>/dev/null || echo '(vazio)'
 
       - name: Upload artefato de build
         uses: actions/upload-artifact@v4
         with:
           name: vite-build
+          # build:inertia → public/build-inertia/ (dir, com manifest); build → public/css/tailwind.css.
+          # Ambos gitignored (/public/build-inertia/ + /public/css/) → publicados pelo deploy.
           path: |
             public/build-inertia
-            public/build
+            public/css
           retention-days: 2
           if-no-files-found: error
 
@@ -216,28 +218,34 @@ jobs:
         run: /tmp/ssh_exec.sh "set -o pipefail && cd $RDIR && php artisan ${{ inputs.extra_artisan }} 2>&1 | tail -30"
 
       - name: Publicar bundles buildados no runner (tar/ssh → swap atômico)
-        # Substitui o build-no-Hostinger (causa raiz dos hashes stale). Os bundles
-        # chegam prontos do JOB build. tar-pipe usa só tar+ssh (sem dependência de
-        # rsync no servidor). Swap mantém `.old` pra rollback instantâneo. Roda sob
-        # maintenance ON, então a janela de microssegundos entre os mv é invisível.
+        # Substitui o build-no-Hostinger (causa raiz dos hashes stale). Os artefatos
+        # chegam prontos do JOB build: build-inertia/ (dir Inertia com manifest) +
+        # css/ (só tailwind.css do build legado). tar-pipe usa só tar+ssh (sem
+        # dependência de rsync no servidor). build-inertia faz swap de DIRETÓRIO
+        # (mantém .old pra rollback); css é COPIADO por cima (public/css é gitignored
+        # e só recebe build, então não há arquivo estático pra preservar). Roda sob
+        # maintenance ON — janela de microssegundos do swap é invisível.
         run: |
           set -euo pipefail
           test -d artifact/build-inertia
-          test -d artifact/build
-          tar -C artifact -czf - build-inertia build \
+          test -d artifact/css
+          tar -C artifact -czf - build-inertia css \
             | /tmp/ssh_exec.sh "cd $RDIR/public && rm -rf .deploy_incoming && mkdir .deploy_incoming && tar -C .deploy_incoming -xzf - && echo UPLOAD_OK && ls .deploy_incoming"
           /tmp/ssh_exec.sh "
             cd $RDIR/public &&
-            for d in build-inertia build; do
-              if [ -d .deploy_incoming/\$d ]; then
-                rm -rf \$d.old
-                [ -d \$d ] && mv \$d \$d.old
-                mv .deploy_incoming/\$d \$d
-                echo \"swapped \$d\"
-              fi
-            done
+            if [ -d .deploy_incoming/build-inertia ]; then
+              rm -rf build-inertia.old
+              [ -d build-inertia ] && mv build-inertia build-inertia.old
+              mv .deploy_incoming/build-inertia build-inertia
+              echo 'swapped build-inertia'
+            fi &&
+            if [ -d .deploy_incoming/css ]; then
+              mkdir -p css
+              cp -af .deploy_incoming/css/. css/
+              echo 'published css'
+            fi &&
             rm -rf .deploy_incoming &&
-            echo '=== manifests publicados ===' &&
+            echo '=== manifest inertia ===' &&
             head -c 200 build-inertia/manifest.json 2>/dev/null; echo
           "
 
@@ -349,6 +357,16 @@ jobs:
             exit 0
           fi
           echo "✅ Smoke OK (frontend_changed=$FRONTEND_CHANGED)"
+
+      - name: Failsafe — nunca deixar o site preso em maintenance (always)
+        # Lição do 1º auto-deploy (2026-06-10): um step falhou DEPOIS do `php artisan
+        # down` e ANTES do `up`, deixando o site em 503 preso até intervenção manual.
+        # Auto-deploy roda sem supervisão → o invariante é "nunca ficar em maintenance".
+        # Este step roda SEMPRE (inclusive em falha) e garante o site no ar. Em sucesso
+        # é no-op (já está up). Fallback remove o flag na unha se o artisan estiver quebrado.
+        if: always()
+        run: |
+          /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (failsafe)'"
 
       - name: Tail laravel.log (sempre — diagnose + post-mortem)
         if: always()
