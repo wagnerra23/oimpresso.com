@@ -727,11 +727,12 @@ class CaixaUnificadaController extends Controller
             if (isset($queues[$override])) {
                 $cfg = $queues[$override];
 
+                // Shape garantido por getQueuesConfig — offsets sempre presentes
                 return [
                     'slug' => $override,
-                    'label' => (string) ($cfg['label'] ?? ucfirst($override)),
-                    'hue' => (int) ($cfg['hue'] ?? 0),
-                    'sla' => $cfg['sla'] ?? null,
+                    'label' => (string) $cfg['label'],
+                    'hue' => (int) $cfg['hue'],
+                    'sla' => $cfg['sla'],
                 ];
             }
         }
