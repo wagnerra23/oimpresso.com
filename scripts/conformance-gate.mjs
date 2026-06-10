@@ -62,6 +62,37 @@ function accentSweep() {
   return hits;
 }
 
+// ── Invariante de PAPEL de token (PACOTE-Q9 PR-3 · espelho estático do probe G3 do Cowork) ──
+// `--*-fg` é TEXTO/ÍCONE — usá-lo como superfície (background/background-color/fill) = papel
+// invertido. `--*-bg` é SUPERFÍCIE — usá-lo como texto/traço (color/stroke) = idem.
+// Caso real que motivou (erro 06-10a): barra de progresso marrom com --origin-MFG-fg de fill.
+// Estado @2026-06-10: ZERO ocorrências em resources/css → invariante ABSOLUTO (não ratchet),
+// mesmo modelo do accent-hue. Regex barata sobre declarações; oklch/var aninhado não confunde
+// porque o gatilho é a PROPRIEDADE + sufixo do token.
+const ROLE_BG_WITH_FG = /(?:^|[;{])\s*(?:background(?:-color)?|fill)\s*:[^;}]*var\(\s*--[\w-]*-fg\s*[,)]/g;
+const ROLE_FG_WITH_BG = /(?:^|[;{])\s*(?:color|stroke)\s*:[^;}]*var\(\s*--[\w-]*-bg\s*[,)]/g;
+
+export function tokenRoleViolations(css, file = "") {
+  const out = [];
+  for (const m of css.matchAll(ROLE_BG_WITH_FG)) {
+    out.push(`${file} ${m[0].trim().slice(0, 70)} — token -fg usado como SUPERFÍCIE (papel invertido · G3)`);
+  }
+  for (const m of css.matchAll(ROLE_FG_WITH_BG)) {
+    out.push(`${file} ${m[0].trim().slice(0, 70)} — token -bg usado como TEXTO/TRAÇO (papel invertido · G3)`);
+  }
+  return out;
+}
+
+// Varre todo resources/css/*.css pelo invariante de papel. Determinístico, sem baseline.
+function tokenRoleSweep() {
+  const hits = [];
+  for (const f of readdirSync(CSS_DIR).filter((n) => n.endsWith(".css"))) {
+    const path = `${CSS_DIR}/${f}`;
+    hits.push(...tokenRoleViolations(readFileSync(path, "utf8"), path));
+  }
+  return hits;
+}
+
 // Seletores onde cor crua é PERMITIDA (defs de token + exceções declaradas).
 const TOKEN_DEF  = /:root|\[data-theme/;
 // transcript = papel A4 (cor fixa proposital) · apresentação = dark próprio (oklch intencional, régua L-122).
@@ -129,9 +160,17 @@ function main() {
     } else {
       console.log(`[conformance-gate] --accent: todos os ${CSS_DIR}/*.css em roxo ${ACCENT_HUE_OK[0]}–${ACCENT_HUE_OK[1]} ✅`);
     }
+    // Invariante absoluto de PAPEL de token (G3 estático): -fg nunca é superfície, -bg nunca é texto.
+    const roleBad = tokenRoleSweep();
+    if (roleBad.length) {
+      console.error(`\n🔴 papel de token invertido (${roleBad.length}) — -fg é texto/ícone, -bg é superfície:`);
+      for (const v of roleBad) console.error(`   ${v}`);
+    } else {
+      console.log(`[conformance-gate] papel de token: nenhum -fg em background/fill nem -bg em color/stroke ✅`);
+    }
     if (failed.length) console.error(`\n🔴 ${failed.length}/${files.length} arquivo(s) com cor crua nova — merge bloqueado.`);
-    if (!failed.length && !accentBad.length) console.log(`\n✅ ${files.length} arquivo(s) conformes (cor crua + token de marca).`);
-    process.exit(failed.length || accentBad.length ? 1 : 0);
+    if (!failed.length && !accentBad.length && !roleBad.length) console.log(`\n✅ ${files.length} arquivo(s) conformes (cor crua + token de marca + papel de token).`);
+    process.exit(failed.length || accentBad.length || roleBad.length ? 1 : 0);
   }
 
   if (!file) { console.error("uso: node scripts/conformance-gate.mjs <arquivo.css> [--update]  |  --all (modo CI)"); process.exit(2); }
