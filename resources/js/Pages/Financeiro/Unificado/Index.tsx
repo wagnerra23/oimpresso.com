@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Link as LinkIcon, Eye, FileText } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sh
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
@@ -624,6 +625,43 @@ function useSparkline30d(): SparkPoint[] | null {
 
 // US-FIN-029 — KPI-click agora seta lente + lifecycle coerentes (clicar "A pagar"
 // entra na lente pagar refinada em 'ap'). Drill-down ADR ui/0002 preservado.
+// ── Drawer F2 (PACOTE-FINANCEIRO-F2 PR-3, [W] "aprovado" 2026-06-10) ──────────────────
+// Seção "lente de domínio" do drawer: ícone em quadradinho primary/10 + título sm
+// semibold + chip de status calmo à direita. Referência F1: LensSection em
+// financeiro-page.jsx do protótipo Cowork. Tokens semânticos do @theme (inertia.css) —
+// o drawer é portal FORA de .cockpit, então var(--accent) etc não resolvem aqui.
+function DrawerLensChip({ tone, children }: { tone: 'pos' | 'warn' | 'muted'; children: ReactNode }) {
+  const cls = {
+    pos: 'bg-success/10 text-success-foreground',
+    warn: 'bg-warning/10 text-warning-foreground',
+    muted: 'bg-muted text-muted-foreground',
+  }[tone];
+  return <span className={`inline-flex items-center h-[19px] px-2 rounded-full text-[10.5px] font-medium ${cls}`}>{children}</span>;
+}
+
+function DrawerLens({ icon: Icon, title, status, tone = 'muted', children }: {
+  icon: LucideIcon;
+  title: string;
+  status?: string | null;
+  tone?: 'pos' | 'warn' | 'muted';
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-t border-border/60 pt-4">
+      <Inline asChild gap={2} className="mb-2.5">
+        <header>
+          <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden>
+            <Icon size={12} />
+          </span>
+          <h4 className="text-[12.5px] font-semibold text-foreground">{title}</h4>
+          {status && <span className="ml-auto"><DrawerLensChip tone={tone}>{status}</DrawerLensChip></span>}
+        </header>
+      </Inline>
+      {children}
+    </section>
+  );
+}
+
 function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
@@ -1670,6 +1708,89 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 </div>
               </SheetHeader>
 
+              {/* PR-3 F2 ([W] "aprovado" 2026-06-10) — Camada 1 "O FATO" FIXA fora do
+                  scroll (ordem canon: header → hero → tabs → corpo). Gabarito Prova
+                  Viva 9.75 / protótipo financeiro-page.jsx Drawer: label de estado
+                  uppercase (destructive se atrasado) · valor mono tabular grande com
+                  prefixo/centavos pequenos (whitespace-nowrap no prefixo) · chip +
+                  vencimento à direita · FSM compacto. Substitui o hero que rolava
+                  junto com o corpo. */}
+              {(() => {
+                const settled = selected.status === 'recebido' || selected.status === 'pago';
+                const isIn = selected.kind === 'receivable';
+                const labelTone =
+                  selected.status === 'atrasado' ? 'text-destructive'
+                  : selected.status === 'vencendo' ? 'text-warning-foreground'
+                  : 'text-muted-foreground';
+                const [intPart, decPart] = (selected.valor ?? 0)
+                  .toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  .split(',');
+                // Urgência em palavras (uma linha calma, não pill redundante).
+                const hojeMs = new Date(new Date().toDateString()).getTime();
+                const vencMs = selected.vencimento ? new Date(`${selected.vencimento}T00:00:00`).getTime() : NaN;
+                const delta = Number.isNaN(vencMs) ? null : Math.round((vencMs - hojeMs) / 86400000);
+                const relText = settled || delta === null ? null
+                  : delta < 0 ? `${-delta} ${-delta === 1 ? 'dia' : 'dias'} em atraso`
+                  : delta === 0 ? 'vence hoje'
+                  : `em ${delta} ${delta === 1 ? 'dia' : 'dias'}`;
+                const relCls = delta !== null && delta < 0 ? 'text-destructive font-medium'
+                  : delta !== null && delta <= 3 ? 'text-warning-foreground font-medium'
+                  : 'text-muted-foreground';
+                const fmtBr = (d: string | null | undefined) => (d ? d.split('-').reverse().join('/') : '—');
+                // FSM compacto — etapas do ciclo do título (espelha finFsmStage do
+                // protótipo: liquidado=3 · conferido=1 · lançado=0; conciliação real
+                // ainda não vive no shape → estágio 2 fica no caminho, não asserido).
+                const etapas = ['Lançado', 'Conferido', 'Conciliado', 'Liquidado'];
+                const stage = settled ? 3 : selected.conferido_at ? 1 : 0;
+                return (
+                  <div className="shrink-0 px-5 pt-3 pb-3.5 border-b border-border">
+                    <Inline align="end" justify="between" gap={3}>
+                      <div className="min-w-0">
+                        <div className={`text-[10.5px] uppercase tracking-[0.1em] font-semibold ${labelTone}`}>
+                          {settled ? 'Liquidado' : isIn ? 'A receber' : 'A pagar'}
+                        </div>
+                        <Inline align="baseline" gap={0} className="mt-0.5">
+                          <span className="text-[13.5px] text-muted-foreground font-mono whitespace-nowrap mr-1">{isIn ? '+ R$' : '− R$'}</span>
+                          <span className={`text-[length:var(--fs-9,38px)] leading-none font-semibold tracking-tight font-mono tabular-nums ${isIn ? 'text-success-foreground' : 'text-foreground'}`}>{intPart}</span>
+                          <span className="text-[13.5px] text-muted-foreground font-mono">,{decPart}</span>
+                        </Inline>
+                      </div>
+                      <Stack gap={1} align="end" className="gap-1.5 shrink-0 pb-0.5">
+                        <Inline gap={1} className="gap-1.5">
+                          <StatusPill s={selected.status} />
+                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                        </Inline>
+                        <div className="text-[12.5px] text-muted-foreground tabular-nums whitespace-nowrap">
+                          {settled
+                            ? <>liq. <b className="font-medium text-foreground">{selected.liquidacao || '—'}</b></>
+                            : <>vence <b className="font-medium text-foreground">{fmtBr(selected.vencimento)}</b>{relText && <> · <span className={relCls}>{relText}</span></>}</>}
+                        </div>
+                      </Stack>
+                    </Inline>
+                    <Inline gap={0} className="mt-3" role="img" aria-label={`Etapa do ciclo: ${etapas[stage]}`}>
+                      {etapas.map((lbl, i) => (
+                        <React.Fragment key={lbl}>
+                          {i > 0 && <span className={`h-px flex-1 mx-1.5 ${i <= stage ? 'bg-primary' : 'bg-border'}`} aria-hidden />}
+                          <span className="inline-flex items-center gap-1" aria-hidden>
+                            <span className={
+                              'w-[15px] h-[15px] rounded-full grid place-items-center text-[9px] font-semibold border ' +
+                              (i < stage
+                                ? 'bg-primary border-primary text-primary-foreground'
+                                : i === stage
+                                  ? 'bg-background border-primary text-primary shadow-[0_0_0_3px] shadow-primary/15'
+                                  : 'bg-background border-border text-muted-foreground')
+                            }>
+                              {i < stage ? '✓' : i + 1}
+                            </span>
+                            <span className={`text-[10.5px] ${i === stage ? 'text-primary font-semibold' : i < stage ? 'text-foreground' : 'text-muted-foreground'}`}>{lbl}</span>
+                          </span>
+                        </React.Fragment>
+                      ))}
+                    </Inline>
+                  </div>
+                );
+              })()}
+
               {/* Nav de abas — Cowork canon V2.1 (3 abas: Detalhes/IA/Editar) */}
               <nav className="fin-drawer-tabs" role="tablist" aria-label="Visualização do título">
                 <button
@@ -1731,37 +1852,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   permite o footer (irmão, fora do scroll) ficar sticky-bottom. */}
               {drawerTab === 'detalhes' && (
                 <div className="mt-3 px-5 pb-4 space-y-5 text-[13px] flex-1 overflow-y-auto min-h-0">
-                  {/* Onda 17 (2026-05-20) — Hierarquia visual canon: UPPERCASE label colorido
-                      por status + date 22px BIG + amount 34px BIG (verde se receivable, stone
-                      se payable) + StatusPill + FrescorPill inline.
-                      Match prototype financeiro-app.jsx:772-806. */}
-                  {(() => {
-                    const settled = selected.status === 'recebido' || selected.status === 'pago';
-                    const labelTone =
-                      selected.status === 'atrasado' ? 'text-rose-700'
-                      : selected.status === 'vencendo' ? 'text-amber-700'
-                      : 'text-stone-500';
-                    return (
-                      <div>
-                        <div className={`text-[11px] uppercase tracking-widest font-medium ${labelTone}`}>
-                          {settled ? 'Liquidado' : 'Vencimento'}
-                        </div>
-                        <div className="mt-1 flex items-baseline gap-2">
-                          <div className="text-[22px] font-semibold tracking-tight tabular-nums">
-                            {settled && selected.liquidacao ? selected.liquidacao : selected.vencimento_label}
-                          </div>
-                        </div>
-                        <div className="mt-3 flex items-baseline gap-2 flex-wrap">
-                          <div className={`text-[34px] font-semibold tracking-tight tabular-nums ${selected.kind === 'receivable' ? 'text-emerald-700' : 'text-destructive'}`}>
-                            {selected.kind === 'receivable' ? '+ ' : '− '}{brl(selected.valor)}
-                          </div>
-                          <StatusPill s={selected.status} />
-                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
-                        </div>
-                      </div>
-                    );
-                  })()}
-
+                  {/* PR-3 F2 (2026-06-10) — o hero (Onda 17) saiu daqui e virou Camada 1
+                      FIXA fora do scroll, entre o header e as tabs (ver acima). */}
                   <FinConferidoToggle rowId={selected.id} conferido={conferido} />
 
                   {/* Onda 18 (2026-05-20) — Grid 2-col canon match prototype financeiro-app.jsx:808-831.
@@ -1861,31 +1953,79 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
                   )}
 
-                  {/* Onda 19 (2026-05-20) — Bloco Conciliação extrato canon match prototype
-                      financeiro-app.jsx:833-851. Settled = green card "Conciliado com extrato",
-                      not settled = stone card "Sem match. Ao liquidar...". */}
+                  {/* PR-3 F2 (2026-06-10) — Conciliação vira LENTE (ícone primary/10 +
+                      chip de status) e o estado conciliado vira box DISCRETO (bg muted +
+                      check pequeno), não banda verde — padrão F2-aprovado [W]. */}
                   {(() => {
                     const settled = selected.status === 'recebido' || selected.status === 'pago';
                     return (
-                      <div className="border-t border-stone-100 pt-4">
-                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conciliação extrato</div>
+                      <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? '100% match' : 'aguardando'} tone={settled ? 'pos' : 'muted'}>
                         {settled ? (
-                          <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 flex items-start gap-2.5">
-                            <LinkIcon className="h-4 w-4 text-emerald-700 mt-0.5" aria-hidden />
-                            <div className="text-[12.5px]">
-                              <div className="text-emerald-800 font-medium">Conciliado com extrato bancário</div>
-                              <div className="text-emerald-700/80">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
+                          <Inline align="start" gap={2} className="gap-2.5 rounded-md border border-border bg-muted px-3 py-2">
+                            <span className="w-[18px] h-[18px] rounded-full grid place-items-center bg-success/15 text-success-foreground shrink-0 mt-px" aria-hidden>
+                              <Check size={11} />
+                            </span>
+                            <div className="text-[12.5px] min-w-0">
+                              <div className="font-medium text-foreground">Conciliado com extrato bancário</div>
+                              <div className="text-muted-foreground tabular-nums">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
                             </div>
-                          </div>
+                          </Inline>
                         ) : (
-                          <div className="mt-2 rounded-md border border-stone-200 px-3 py-2.5 text-[12.5px] text-stone-600 flex items-start gap-2.5">
-                            <span className="text-stone-500 mt-0.5" aria-hidden>✦</span>
+                          <div className="rounded-md border border-border px-3 py-2.5 text-[12.5px] text-muted-foreground flex items-start gap-2.5">
+                            <span className="text-muted-foreground mt-0.5" aria-hidden>✦</span>
                             <div>
                               Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ [redacted Tier 0] e ±2 dias) e sugere conciliação automática.
                             </div>
                           </div>
                         )}
-                      </div>
+                      </DrawerLens>
+                    );
+                  })()}
+
+                  {/* PR-3 F2 (2026-06-10) — Lente FISCAL: NF + impostos estimados (Simples
+                      Nacional, regime caixa). Estimativa VISUAL — apuração oficial no módulo
+                      Fiscal; guia consolidada na sub-tela Impostos & obrigações (F2 PR-2).
+                      Referência F1: LenteFiscal em financeiro-page.jsx (ISS 5% serviços
+                      gráficos · DAS ≈6% sobre o recebido). */}
+                  {(() => {
+                    const isIn = selected.kind === 'receivable';
+                    const hasNf = !!selected.nfe_numero;
+                    const iss = isIn ? (selected.valor ?? 0) * 0.05 : 0;
+                    const das = isIn ? (selected.valor ?? 0) * 0.06 : 0;
+                    return (
+                      <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? 'NF vinculada' : 'sem NF'} tone={hasNf ? 'pos' : 'warn'}>
+                        <Grid cols={2} gap={0} className="gap-x-5">
+                          <div>
+                            <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">{isIn ? 'NF-e de saída' : 'Documento fiscal'}</div>
+                            <div className="text-[13px] text-foreground font-medium truncate">
+                              {hasNf ? <span className="font-mono tabular-nums">{selected.nfe_numero}</span> : <span className="text-warning-foreground">não emitida</span>}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">Regime</div>
+                            <div className="text-[13px] text-foreground font-medium">Simples Nacional</div>
+                          </div>
+                        </Grid>
+                        {isIn && (
+                          <div className="mt-1.5 border-t border-border/60">
+                            <Inline align="baseline" justify="between" gap={0} className="py-[5px] border-b border-border/60">
+                              <span className="text-[12.5px] text-muted-foreground">ISS retido · 5%</span>
+                              <span className="text-[12.5px] font-mono tabular-nums font-medium">{brl(iss)}</span>
+                            </Inline>
+                            <Inline align="baseline" justify="between" gap={0} className="py-[5px]">
+                              <span className="text-[12.5px] text-muted-foreground">No DAS do mês · ≈ 6%</span>
+                              <span className="text-[12.5px] font-mono tabular-nums font-medium text-warning-foreground">{brl(das)}</span>
+                            </Inline>
+                          </div>
+                        )}
+                        <p className="text-[10.5px] text-muted-foreground pt-1.5 leading-relaxed">
+                          Estimativa — apuração e guia na sub-tela{' '}
+                          <button type="button" className="font-medium underline underline-offset-2 hover:text-primary" onClick={() => router.visit('/financeiro/impostos')}>
+                            Impostos &amp; obrigações
+                          </button>{' '}
+                          · oficial no módulo Fiscal.
+                        </p>
+                      </DrawerLens>
                     );
                   })()}
 
