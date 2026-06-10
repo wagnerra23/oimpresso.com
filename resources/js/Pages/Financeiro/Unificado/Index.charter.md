@@ -3,22 +3,23 @@ page: /financeiro/unificado
 component: resources/js/Pages/Financeiro/Unificado/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-31"
+last_validated: "2026-06-10"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
 related_adrs: [93, 94]
-related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 13
+charter_version: 14
 ---
 
 # Page Charter — /financeiro/unificado
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v14 (2026-06-10):** US-FIN-029 ENTREGUE — header "3 lentes" (ver Goals). Pacote F2 aprovado [W] 2026-06-10 ("aprovado", sessão Cowork).
 > **v10 (2026-05-31):** integrado o feedback de [W] da sessão Cowork (handoff de design) — anti-patterns de densidade do header + direção "3 lentes" registrada como intenção **pendente** (ainda **não** aplicada ao live; ver Backlog US-FIN-029). Origem: charter Cowork `Financeiro.charter.md` v1 (superada por este v10 canônico).
 
 ---
@@ -30,6 +31,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Header "3 lentes" (US-FIN-029)** (2026-06-10, charter v14, direção [W] 2026-05-31 aprovada / F2 [W] 2026-06-10): segmented **Caixa · A receber · A pagar** no header (pattern pill do Fluxo) é a **camada 1** do filtro grosso — `?lente=caixa|receber|pagar`, clamp default `caixa`, deep-link funciona. Chips lifecycle **refinam DENTRO da lente**; chip incompatível com a lente não renderiza. **KPI-click seta a lente** correspondente (drill-down ADR ui/0002 preservado: "Recebido"→lente receber+chip re, "A pagar"→lente pagar+chip ap, hero→caixa+ar/ap). Backend: `parseFilters()['lente']` + interseção lifecycle∩lente (interseção vazia = lente inteira, defense-in-depth). O menu `···` e o topnav compartilhado **já estavam entregues** via `FinanceiroSubNav` (`_shared/`, ADR 0180 Fase 5, PR #1365) — gatilho US-FIN-TOPNAV-COMPONENT já satisfeito antes desta US. MWART: `memory/requisitos/Financeiro/unificado-3-lentes-visual-comparison.md`. Cobertura `UnificadoLentesGuardTest` (clamp · lente→estados · inválida→caixa · Tier 0 · GET sem mutação).
 
 - **Diálogo de baixa + coluna Conta** (2026-06-03, charter v12, pedido [W]): o botão **Recebi/Paguei** agora abre **`FinBaixaSheet`** pra escolher **valor** (suporta baixa **parcial**), **conta bancária** de destino, **forma de pagamento** e **plano de contas** — antes era baixa instantânea (1ª conta, valor cheio, meio fixo). Backend `baixar()` aceita os campos (valida `conta_bancaria_id` no business — anti cross-tenant — e enum do meio) com defaults legacy preservados (body vazio = baixa rápida; espaço/bulk seguem instantâneos). Nova **coluna "Conta"** na tabela. `shapeTitulo` expõe `valor_aberto`. Cobertura `UnificadoBaixaDialogGuardTest` (5 GUARDs: valor_aberto, escolhas, parcial, cross-tenant, legacy).
 
@@ -205,7 +208,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - **US-FIN-026** — Pagination 25/100 quando volume passar 500 títulos
 - **US-FIN-027** — Pest GUARD: Tier 0 isolation + KPIs corretos + filtro tab querystring
 - **US-FIN-028** — visual-comparison.md retroativo (ADR ui/0114 / mwart-comparative V4)
-- **US-FIN-029** — Header "3 lentes" (Caixa · A receber · A pagar, segmented) dirigindo o filtro + menu `···` (Buscar/Resumir mês/Fechamento/Apresentar/Imprimir/Exportar) + sub-páginas no sidebar. Direção **aprovada por [W] 2026-05-31** (sessão Cowork / handoff design). Hoje o live usa filter chips (Todas/Aberto/Receber/Pagar/Recebidas/Pagas/Atraso) + `FinSubNav` — mudança requer **MWART + gate visual F1.5** (não é doc-only).
+- ~~**US-FIN-029** — Header "3 lentes" (Caixa · A receber · A pagar, segmented) dirigindo o filtro + menu `···` + sub-páginas no sidebar~~ **DONE charter v14 (2026-06-10)** — lentes entregues nesta data; `···`/topnav compartilhado já tinham sido entregues via FinanceiroSubNav (ADR 0180 Fase 5). MWART em `memory/requisitos/Financeiro/unificado-3-lentes-visual-comparison.md`.
 
 ---
 
