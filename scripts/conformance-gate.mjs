@@ -93,6 +93,54 @@ function tokenRoleSweep() {
   return hits;
 }
 
+// ── Type RAMP ratchet (F2 Financeiro · [W] "vai" 2026-06-10 · espelho estático do G8
+//    qa-conformance v2.3 do Cowork) ────────────────────────────────────────────────────────
+// A âncora única de tamanho tipográfico são os 9 degraus `--fs-1..9` (foundations.css).
+// `font-size: <N>px` com N fora do ramp em css é dívida tipográfica — congelada em baseline
+// per-file (.fontramp-baseline.json, versionado) que só pode CAIR (ratchet only-down, mesmo
+// modelo do ratchet de cor-crua). Snap tela-a-tela nas ondas baixa o teto com --update.
+// `font-size: var(--fs-N)` (consumo do ramp) NÃO conta · def `--fs-N: 10.5px` NÃO conta
+// (a propriedade não é font-size) · comentários são strippados antes · rem/em não contam
+// (o ramp é âncora px; unidade relativa é decisão à parte).
+export const FS_RAMP = [10.5, 11.5, 12.5, 13.5, 15, 18, 22, 28, 38];
+const FS_BASELINE_FILE = ".fontramp-baseline.json";
+
+export function fontRampHits(css, file = "") {
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const out = [];
+  const re = /font-size\s*:\s*([\d.]+)px/g;
+  let m;
+  while ((m = re.exec(clean))) {
+    const v = parseFloat(m[1]);
+    if (!FS_RAMP.includes(v)) out.push(`${file} font-size:${v}px fora do ramp --fs-1..9 (foundations.css)`);
+  }
+  return out;
+}
+
+// Ratchet per-file sobre TODO resources/css/*.css. 1ª vez adota o atual como teto (mesma
+// semântica do checkOne de cor-crua; .css NOVO já é barrado pelo foundation-guard allowlist).
+function fontRampCheck({ update } = {}) {
+  const baseline = loadJsonFile(FS_BASELINE_FILE);
+  const current = {};
+  for (const f of readdirSync(CSS_DIR).filter((n) => n.endsWith(".css")).sort()) {
+    const path = `${CSS_DIR}/${f}`;
+    current[path] = fontRampHits(readFileSync(path, "utf8"), path).length;
+  }
+  if (update) {
+    writeFileSync(FS_BASELINE_FILE, JSON.stringify(current, null, 2) + "\n");
+    console.log(`[conformance-gate] fontramp baseline re-gravado (${Object.keys(current).length} arquivos).`);
+    return [];
+  }
+  const fails = [];
+  for (const [path, count] of Object.entries(current)) {
+    const teto = baseline[path] ?? count;
+    if (count > teto) fails.push(`${path}: font-size px fora do ramp subiu ${teto}→${count} — snap no --fs-1..9 ou re-crave conscientemente (npm run conformance:baseline:write)`);
+  }
+  return fails;
+}
+
+function loadJsonFile(file) { try { return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {}; } catch { return {}; } }
+
 // Seletores onde cor crua é PERMITIDA (defs de token + exceções declaradas).
 const TOKEN_DEF  = /:root|\[data-theme/;
 // transcript = papel A4 (cor fixa proposital) · apresentação = dark próprio (oklch intencional, régua L-122).
@@ -149,6 +197,7 @@ function main() {
       for (const f of files) baseline[f] = rawColorHits(readFileSync(f, "utf8")).length;
       writeFileSync(BASELINE_FILE, JSON.stringify(baseline, null, 2) + "\n");
       console.log(`baseline re-gravado (${files.length} arquivos):\n` + files.map((f) => `  ${f} = ${baseline[f]}`).join("\n"));
+      fontRampCheck({ update: true });
       process.exit(0);
     }
     const failed = files.filter((f) => !checkOne(f, baseline));
@@ -168,9 +217,17 @@ function main() {
     } else {
       console.log(`[conformance-gate] papel de token: nenhum -fg em background/fill nem -bg em color/stroke ✅`);
     }
+    // Ratchet do Type RAMP (--fs-1..9): font-size px fora do ramp só pode CAIR.
+    const fsBad = fontRampCheck();
+    if (fsBad.length) {
+      console.error(`\n🔴 type ramp regrediu (${fsBad.length}) — font-size px novo fora do --fs-1..9:`);
+      for (const v of fsBad) console.error(`   ${v}`);
+    } else {
+      console.log(`[conformance-gate] type ramp: nenhum font-size px novo fora do --fs-1..9 ✅`);
+    }
     if (failed.length) console.error(`\n🔴 ${failed.length}/${files.length} arquivo(s) com cor crua nova — merge bloqueado.`);
-    if (!failed.length && !accentBad.length && !roleBad.length) console.log(`\n✅ ${files.length} arquivo(s) conformes (cor crua + token de marca + papel de token).`);
-    process.exit(failed.length || accentBad.length || roleBad.length ? 1 : 0);
+    if (!failed.length && !accentBad.length && !roleBad.length && !fsBad.length) console.log(`\n✅ ${files.length} arquivo(s) conformes (cor crua + token de marca + papel de token + type ramp).`);
+    process.exit(failed.length || accentBad.length || roleBad.length || fsBad.length ? 1 : 0);
   }
 
   if (!file) { console.error("uso: node scripts/conformance-gate.mjs <arquivo.css> [--update]  |  --all (modo CI)"); process.exit(2); }
