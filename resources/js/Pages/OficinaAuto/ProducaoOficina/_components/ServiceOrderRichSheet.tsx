@@ -113,11 +113,9 @@ interface ServiceOrderDetail {
   number: string | null;
   status: string;
   order_type: OrderType;
-  delivery_address: string | null;
-  expected_return_date: string | null;
+  // Campos de locação (delivery_address/expected_return_date/daily_rate/dias_locacao)
+  // erradicados do payload do show() — ADR 0265.
   expected_completion: string | null;
-  daily_rate: number | string | null;
-  dias_locacao: number | null;
   valor_receber: number | string | null;
   is_overdue?: boolean;
   entered_at: string | null;
@@ -464,7 +462,7 @@ export default function ServiceOrderRichSheet({
                       (data.is_overdue ? 'text-destructive' : 'text-foreground')
                     }
                   >
-                    {formatDateOnly(data.expected_return_date ?? data.expected_completion)}
+                    {formatDateOnly(data.expected_completion)}
                   </div>
                 </div>
               </div>
@@ -614,7 +612,7 @@ export default function ServiceOrderRichSheet({
                   fallback={
                     <TimelineSkeleton
                       enteredAt={data.entered_at}
-                      expectedReturn={data.expected_completion ?? data.expected_return_date}
+                      expectedReturn={data.expected_completion}
                       completedAt={data.completed_at}
                       status={data.status}
                     />

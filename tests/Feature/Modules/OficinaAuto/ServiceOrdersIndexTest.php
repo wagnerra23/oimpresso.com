@@ -13,8 +13,9 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * ServiceOrders Index Dashboard — KPIs, filtros e cross-tenant.
  *
  * Cobre o método `index()` do dashboard de OS de reparo (locação erradicada — ADR 0265).
- * KPIs pós-erradicação: locacoes_ativas=0 (chave mantida pelo contrato do payload),
- * manutencao_ativas, concluidas_mes, atrasadas (atraso de reparo via expected_completion).
+ * KPIs pós-erradicação: manutencao_ativas, concluidas_mes, atrasadas (atraso de reparo
+ * via expected_completion). A chave `locacoes_ativas` foi REMOVIDA do contrato
+ * (dívida P5 do RUNBOOK-erradicacao-locacao quitada — frontend não consome mais).
  * Usa Schema::hasColumn fallbacks porque colunas Wave 5-A podem não estar migradas.
  *
  * Convenção: biz=1 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0101).
@@ -68,7 +69,7 @@ function cleanupSOI(string $platePrefix): void
     }
 }
 
-it('Index retorna 4 KPIs corretos (locacoes_ativas, manutencao_ativas, concluidas_mes, atrasadas)', function () {
+it('Index retorna 3 KPIs corretos (manutencao_ativas, concluidas_mes, atrasadas — locacoes_ativas fora do contrato)', function () {
     session(['user.business_id' => BIZ_WAGNER_SOI]);
 
     $hasOrderType = Schema::hasColumn('service_orders', 'order_type');
@@ -105,10 +106,9 @@ it('Index retorna 4 KPIs corretos (locacoes_ativas, manutencao_ativas, concluida
     DB::table('service_orders')->where('id', $con->id)->update(['updated_at' => now()]);
 
     // Replica a lógica de KPI do controller pós-erradicação (ADR 0265):
-    //  - locacoes_ativas = 0 (locação não existe; chave mantida só pelo contrato do payload)
+    //  - locacoes_ativas NÃO existe mais no contrato (chave removida do payload)
     //  - atrasadas = ativas com expected_completion vencida (atraso de reparo)
     $kpis = [
-        'locacoes_ativas' => 0,
         'manutencao_ativas' => $hasOrderType
             ? ServiceOrder::where('order_type', 'manutencao')
                 ->whereNotIn('status', ['concluida', 'cancelada'])
@@ -124,8 +124,8 @@ it('Index retorna 4 KPIs corretos (locacoes_ativas, manutencao_ativas, concluida
             ->count(),
     ];
 
-    // Locação erradicada → sempre 0. 2 manutenções ativas (man1 + atr), 1 atrasada (atr), 1 concluída.
-    expect($kpis['locacoes_ativas'])->toBe(0);
+    // Locação erradicada → chave fora do contrato. 2 manutenções ativas (man1 + atr), 1 atrasada (atr), 1 concluída.
+    expect($kpis)->not->toHaveKey('locacoes_ativas');
     expect($kpis['manutencao_ativas'])->toBeGreaterThanOrEqual(2);
     expect($kpis['atrasadas'])->toBeGreaterThanOrEqual(1);
     expect($kpis['concluidas_mes'])->toBeGreaterThanOrEqual(1);

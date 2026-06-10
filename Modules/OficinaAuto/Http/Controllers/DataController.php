@@ -147,8 +147,10 @@ class DataController extends Controller
                 //  - `shortcut` G Y → atalho overlay (não-conflito com Repair G O)
                 //  - `primary`     → "Nova OS" via ServiceOrderController@create
                 //  - `ghosts`      → Veículos, Ordens de Serviço, Produção (tabs PageHeader)
+                // Kanban canônico ÚNICO = Quadro de OS (ADR 0265 — unificação dos 2
+                // kanbans; /oficina-auto/producao-oficina virou redirect 301 pro board).
                 $menu->url(
-                    url('/oficina-auto/producao-oficina'),
+                    url('/oficina-auto/ordens-servico/board'),
                     'Oficina Auto',
                     [
                         'icon'     => 'fa fas fa-wrench',
@@ -160,9 +162,9 @@ class DataController extends Controller
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [
-                            ['key' => 'veiculos',          'label' => 'Veículos',           'href' => '/oficina-auto/veiculos'],
-                            ['key' => 'ordens-servico',    'label' => 'Ordens de Serviço',  'href' => '/oficina-auto/ordens-servico'],
-                            ['key' => 'producao-oficina',  'label' => 'Produção',           'href' => '/oficina-auto/producao-oficina'],
+                            ['key' => 'veiculos',       'label' => 'Veículos',           'href' => '/oficina-auto/veiculos'],
+                            ['key' => 'ordens-servico', 'label' => 'Ordens de Serviço',  'href' => '/oficina-auto/ordens-servico'],
+                            ['key' => 'quadro-os',      'label' => 'Quadro',             'href' => '/oficina-auto/ordens-servico/board'],
                         ],
                     ]
                 )->order(31);
