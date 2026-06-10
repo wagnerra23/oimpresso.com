@@ -140,6 +140,7 @@ beforeEach(function () {
         $table->string('contact_name', 120)->nullable();
         $table->string('status', 20)->default('open');
         $table->unsignedInteger('assigned_user_id')->nullable();
+        $table->string('queue_override', 40)->nullable();
         $table->boolean('bot_handling')->default(false);
         $table->timestamp('last_inbound_at')->nullable();
         $table->timestamp('last_outbound_at')->nullable();
@@ -611,4 +612,47 @@ it('R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida
     $alienReq->setLaravelSession(app('session.store'));
     expect(fn () => $queuesCtrl->destroy($alienReq, $alien->id))
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});
+
+// ============================================================================
+// 7. US-WA-305 — queue_override: mover entre filas vence heurística
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-009-uuid');
+    $conv = cuctMakeConv(1, $ch->id, ['financeiro']); // heurística → fila financeiro
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    $inbox = new \Modules\Whatsapp\Http\Controllers\Admin\InboxController();
+
+    // Baseline: heurística deriva financeiro
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props['thread']['queue']['slug'])->toBe('financeiro')
+        ->and($props['thread']['queue_is_override'])->toBeFalse();
+
+    // Move pra comercial (override manual) — vence a heurística sem re-tagar
+    $inbox->moveQueue(cuctPatchRequest("/atendimento/inbox/{$conv->id}/queue", ['queue_slug' => 'comercial']), $conv->id);
+    expect($conv->fresh()->queue_override)->toBe('comercial');
+
+    $props2 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props2['thread']['queue']['slug'])->toBe('comercial')
+        ->and($props2['thread']['queue_is_override'])->toBeTrue();
+
+    // Lista também reflete o override
+    $convs = cuctResolveDefer($props2['conversations']);
+    expect($convs['data'][0]['queue']['slug'])->toBe('comercial');
+
+    // Slug inexistente → 422 fail-loud (Tier 0 — não aceita fila de outro tenant)
+    expect(fn () => $inbox->moveQueue(
+        cuctPatchRequest("/atendimento/inbox/{$conv->id}/queue", ['queue_slug' => 'fila-fantasma']),
+        $conv->id,
+    ))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect($conv->fresh()->queue_override)->toBe('comercial'); // intacto
+
+    // null volta pra heurística
+    $inbox->moveQueue(cuctPatchRequest("/atendimento/inbox/{$conv->id}/queue", ['queue_slug' => null]), $conv->id);
+    expect($conv->fresh()->queue_override)->toBeNull();
+    $props3 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+    expect($props3['thread']['queue']['slug'])->toBe('financeiro')
+        ->and($props3['thread']['queue_is_override'])->toBeFalse();
 });
