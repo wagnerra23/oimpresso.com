@@ -9,7 +9,7 @@ lifecycle: ativo
 kind: per-schema
 decided_by: [W]
 decided_at: "2026-06-10"
-module: Whatsapp
+module: whatsapp
 quarter: 2026-Q2
 tags: [whatsapp, atendimento, caixa-unificada, filas, per-schema, multi-tenant]
 supersedes: []

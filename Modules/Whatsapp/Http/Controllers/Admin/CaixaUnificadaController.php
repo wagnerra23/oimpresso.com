@@ -206,7 +206,19 @@ class CaixaUnificadaController extends Controller
         }
 
         if ($rows->isEmpty()) {
-            return $this->queuesConfigCache = (array) config('whatsapp.queues', []);
+            // Normaliza o config pro shape completo (PHPStan + consumidores
+            // acessam offsets direto sem ?? redundante).
+            $fallback = [];
+            foreach ((array) config('whatsapp.queues', []) as $slug => $cfg) {
+                $fallback[(string) $slug] = [
+                    'label' => (string) ($cfg['label'] ?? ucfirst((string) $slug)),
+                    'hue' => (int) ($cfg['hue'] ?? 220),
+                    'sla' => $cfg['sla'] ?? null,
+                    'trigger_tags' => (array) ($cfg['trigger_tags'] ?? []),
+                ];
+            }
+
+            return $this->queuesConfigCache = $fallback;
         }
 
         return $this->queuesConfigCache = $rows
@@ -679,7 +691,8 @@ class CaixaUnificadaController extends Controller
         $default = (string) config('whatsapp.default_queue', 'comercial');
         $matched = $default;
         foreach ($queues as $slug => $cfg) {
-            $triggers = (array) ($cfg['trigger_tags'] ?? []);
+            // Shape garantido por getQueuesConfig (offsets sempre presentes)
+            $triggers = $cfg['trigger_tags'];
             if ($triggers === []) {
                 continue;
             }
@@ -688,12 +701,13 @@ class CaixaUnificadaController extends Controller
                 break;
             }
         }
-        $cfg = $queues[$matched] ?? ['label' => ucfirst($matched), 'hue' => 0, 'sla' => null];
+        $cfg = $queues[$matched] ?? ['label' => ucfirst($matched), 'hue' => 0, 'sla' => null, 'trigger_tags' => []];
+
         return [
             'slug' => $matched,
-            'label' => (string) ($cfg['label'] ?? ucfirst($matched)),
-            'hue' => (int) ($cfg['hue'] ?? 0),
-            'sla' => $cfg['sla'] ?? null,
+            'label' => (string) $cfg['label'],
+            'hue' => (int) $cfg['hue'],
+            'sla' => $cfg['sla'],
         ];
     }
 
