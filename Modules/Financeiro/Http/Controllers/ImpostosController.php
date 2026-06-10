@@ -98,7 +98,9 @@ class ImpostosController extends Controller
                 'det' => 'título '.$t->numero.' no caixa unificado',
                 'competencia' => (string) $t->competencia_mes,
                 'competencia_label' => $this->compLabel((string) $t->competencia_mes),
-                'vencimento' => (string) $t->vencimento,
+                // Legacy WR traz vencimento com timestamp ("2026-12-18 00:00:00") —
+                // normaliza pra date-only senão o front renderiza "18 00:00:00/12".
+                'vencimento' => substr((string) $t->vencimento, 0, 10),
                 'valor' => (float) $t->valor_total,
                 'status' => $t->status === 'quitado' ? 'paga'
                     : ((string) $t->vencimento < $hoje ? 'atrasada' : 'a_vencer'),
