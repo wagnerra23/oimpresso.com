@@ -787,3 +787,21 @@ Gate `sells-index-dsv6-visual-comparison.md` aprovado [W] ("tudo do gabarito" + 
 
 ### new_design_memories
 - **golden**: re-skin de tela madura por token = redirecionar a camada semântica local (--vd-*/--vd-src-*) na DEFINIÇÃO, não caçar cada oklch — cobertura ampla, diff mínimo, CI-verde.
+
+---
+
+## 2026-06-10 [CL] → [W] · PACOTE-Q9 — execução dos 4 PRs (validados contra main)
+
+Origem: PROMPT_PARA_CODE_PACOTE-QUALIDADE-9-OS ([CC] 2026-06-10). Validação §10.4 mostrou o cache Cowork ATRÁS do repo — PR-1 itens 1-3 e PR-2 item 1 já estavam landados (#2482/#2484/#2485 + dedup bundles 2026-06-02). Executado só o gap real de cada PR.
+
+| PR do pacote | PR GitHub | O que sobrou de real |
+|---|---|---|
+| PR-1 OS funcional | #2488 | E2E UC-11 caminho Larissa + **bug real pego**: store() não vinculava OS ao veículo (card "sem OS") → fix + 2 Pest |
+| PR-3 gates | #2489 | token-role invariante (Camada 1+META 22/22 ✅) + probes G2/G3/G4 browser c/ controle-negativo |
+| PR-2 css | #2490 | família morta .os-art* (13 regras, 10 hex) + catraca desce 661→337 / 487→427 / 20213→20204 |
+| PR-4 régua | (este) | scorer 242 telas média 87 · fila bottom-16 nomeada · W2=Financeiro (9/16) · accent fora roxo = zero |
+
+### new_design_memories
+- **decisão** · [W] 2026-06-10: piso de qualidade = 9; CSS 1-arquivo-por-superfície; duplicata estrutural proibida (espelho/snapshot) — Cowork já deletou 575 e criou IT8. Lado Code: dedup bundles ✅ (2026-06-02), dead-CSS 1-família/PR em curso (fila: vd-drawer 9).
+- **anti-padrão** · token `-fg` como superfície / `-bg` como texto → gate PR-3 (#2489): invariante absoluto no conformance-gate.mjs (repo medido 0) + probe DOM-matched no browser. Caso real: barra de progresso marrom com `--origin-MFG-fg` de fill.
+- **golden** · probe G1–G6 (classes genéricas, controle-negativo embutido) = espelho Cowork da camada-2 portado por SEMÂNTICA (não arquivo): estático onde dá (G3 regex), browser onde precisa (G2 computed accent-color, G4 overflow com estado "adicionando" ABERTO).
