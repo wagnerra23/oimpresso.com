@@ -164,6 +164,7 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
         'notes'      => 'Fio ADR 0265 — barulho no freio dianteiro.',
     ]);
     $resp->assertSessionHasNoErrors();
+    $resp->assertStatus(302);
 
     $order = ServiceOrder::withoutGlobalScopes()
         ->where('vehicle_id', $vehicle->id)
