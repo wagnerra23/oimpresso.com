@@ -656,3 +656,64 @@ it('R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, s
     expect($props3['thread']['queue']['slug'])->toBe('financeiro')
         ->and($props3['thread']['queue_is_override'])->toBeFalse();
 });
+
+// ============================================================================
+// 8. US-WA-307 — + Nova conversa: find-or-create + guards Tier 0
+// ============================================================================
+
+function cuctPostRequest(string $uri, array $body = []): Request
+{
+    $request = Request::create($uri, 'POST', $body);
+    $request->setLaravelSession(app('session.store'));
+    return $request;
+}
+
+it('R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone', function () {
+    $chActive = cuctMakeChannel(1, 'caixa-unif-010-active-uuid');           // status=active
+    $chSetup = cuctMakeChannel(1, 'caixa-unif-010-setup-uuid', 'setup');    // não-ativo
+    $chNoAcl = cuctMakeChannel(1, 'caixa-unif-010-noacl-uuid');             // sem grant
+    cuctSetUserAndGrant(1, 10, [$chActive->id, $chSetup->id]);
+
+    $inbox = new \Modules\Whatsapp\Http\Controllers\Admin\InboxController();
+
+    // Cria nova conversa — phone normalizado pra +<digits>
+    $resp = $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chActive->id,
+        'phone' => '+55 (48) 9999-0001',
+        'name' => 'Cliente Novo',
+    ]));
+    $conv = Conversation::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', 1)
+        ->where('customer_external_id', '+554899990001')
+        ->first();
+    expect($conv)->not->toBeNull()
+        ->and($conv->contact_name)->toBe('Cliente Novo')
+        ->and($conv->status)->toBe('open')
+        ->and($resp->getTargetUrl())->toContain('thread=' . $conv->id);
+
+    // Mesmo número de novo → REABRE (não duplica)
+    $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chActive->id,
+        'phone' => '554899990001',
+    ]));
+    $count = Conversation::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', 1)
+        ->where('customer_external_id', '+554899990001')
+        ->count();
+    expect($count)->toBe(1);
+
+    // Canal não-ativo → 422
+    expect(fn () => $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chSetup->id, 'phone' => '+5548999990002',
+    ])))->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    // Canal sem ACL → 403 fail-loud (US-WA-069)
+    expect(fn () => $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chNoAcl->id, 'phone' => '+5548999990003',
+    ])))->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+    // Telefone curto → 422
+    expect(fn () => $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chActive->id, 'phone' => '123',
+    ])))->toThrow(\Illuminate\Validation\ValidationException::class);
+});
