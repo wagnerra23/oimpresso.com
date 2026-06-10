@@ -301,7 +301,43 @@ export const CU_LS = {
   QUEUE: 'oimpresso.caixa-unif.queue',
   SEARCH: 'oimpresso.caixa-unif.search',
   SIDEBAR_COLLAPSED: 'oimpresso.caixa-unif.sidebar_collapsed',
+  /** Polish V2 §6 — favoritos per-user per-browser (sem DB, sem leakage cross-tenant) */
+  FAVORITES: 'oimpresso.caixa-unif.favorites',
 } as const;
+
+/**
+ * Polish V2 §1 — inverso de WhatsappQueue::slaHuman ("1h"/"4h"/"45min"/"1h30" → minutos).
+ */
+export function parseSlaMinutes(sla: string | null | undefined): number | null {
+  if (!sla) return null;
+  const m = sla.trim().match(/^(?:(\d+)h)?(?:(\d+)(?:min)?)?$/);
+  if (!m) return null;
+  const minutes = (Number(m[1] ?? 0)) * 60 + Number(m[2] ?? 0);
+  return minutes > 0 ? minutes : null;
+}
+
+export type SlaState = 'ok' | 'warning' | 'breached' | null;
+
+/**
+ * Polish V2 §1 — estado do SLA de 1ª resposta da conversa.
+ *
+ * Só conta quando o cliente falou por último (`last_message_direction ===
+ * 'inbound'`) — depois que o atendente respondeu o relógio para. `warning`
+ * a partir de 75% do SLA, `breached` ao estourar.
+ */
+export function slaState(conv: {
+  last_message_direction: 'inbound' | 'outbound' | null;
+  last_inbound_at: string | null;
+  queue: { sla: string | null };
+}): SlaState {
+  if (conv.last_message_direction !== 'inbound' || !conv.last_inbound_at) return null;
+  const slaMin = parseSlaMinutes(conv.queue.sla);
+  if (slaMin === null) return null;
+  const waitedMin = (Date.now() - new Date(conv.last_inbound_at).getTime()) / 60000;
+  if (waitedMin >= slaMin) return 'breached';
+  if (waitedMin >= slaMin * 0.75) return 'warning';
+  return 'ok';
+}
 
 export function cuLsGet(key: string, fallback = ''): string {
   if (typeof window === 'undefined') return fallback;

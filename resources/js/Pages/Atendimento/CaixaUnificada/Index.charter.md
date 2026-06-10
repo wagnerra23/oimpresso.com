@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 6
+charter_version: 10
 permissao: whatsapp.access
 ---
 
@@ -59,8 +59,13 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - **Dropdown de status** dentro do header da lista — 4 valores canônicos:
   Abertas / Pendentes / Aguardando / Resolvidas.
 - **Busca inline** com Enter pra aplicar, Esc pra limpar.
-- **Topnav direita** — Filas | Canais | Broadcast | + Nova conversa
-  (placeholders TODO US-WA-XXX exceto "Canais" que linka real).
+- **Topnav direita** — Filas (QueuesSheet US-WA-301) | Canais (ChannelsDrawer
+  US-WA-304) | Broadcast (placeholder — US-WA-306 no PR-7) | **+ Nova conversa**
+  (US-WA-307, 2026-06-10): dialog com conta ativa + telefone OU Contact CRM
+  (ContactPickerModal US-WA-064) + mensagem inicial opcional. POST
+  `atendimento.inbox.start_conversation` faz find-or-create (número que já
+  conversou REABRE thread) e redireciona com a thread aberta; mensagem inicial
+  reusa o pipeline send() completo (zero duplicação de driver).
 
 ### Banner "em homologação"
 - Canais com `Channel.status != 'active'` viram preview-only no backend
@@ -146,6 +151,38 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 8. **Último contato** — relativeTimeBR do `last_message_at`.
 9. **Ações** — 3 botões (Emitir cobrança · Enviar arte · Ligar) — placeholders.
 
+### IA na thread (PR-9, 2026-06-10 — do protótipo inbox-ai.jsx)
+- **Validação pré-PR** (regra do brief): infra Jana EXISTE — laravel/ai SDK
+  (ADR 0035) + pattern Agents (`BriefingAgent`/`ChatCopilotoAgent`) → IA REAL,
+  não scaffold.
+- **3 endpoints finos** (`InboxAiController` + `InboxAssistAgent`):
+  `POST .../inbox/{id}/ai/summarize` (resumo 5 bullets) · `.../ai/ask`
+  (pergunta sobre o transcript) · `.../ai/suggest-reply` (preenche o composer;
+  humano SEMPRE revisa antes de enviar — nada vai pro cliente automático).
+- **LGPD**: transcript passa pelo `PiiRedactor` da Jana ANTES do provider;
+  notas internas entram marcadas e o Agent é instruído a nunca expô-las.
+- **Custo**: `config('copiloto.dry_run')` (mesma chave da Jana) devolve fixture
+  sem tocar LLM — dev/test nunca gastam token. Provider fora → 503 legível.
+- UI: header "Resumir"/"Perguntar" (`InboxAiDialog`) + composer "✦ Sugerir".
+
+### Polish V2 (PR-8, 2026-06-10 — do protótipo inbox-extras/out/cur)
+1. **SLA pill** — `slaState()` client-side (75% = âmbar, estourado = vermelho)
+   na lista e no header da thread; só conta quando o cliente falou por último.
+2. **⌘K palette** — TODO honesto: palette GLOBAL já existe (PMG-002 no
+   AppShellV2); estender com convs/contatos = US própria cross-módulo
+   (não duplicar palette — MANUAL #5 anti-duplicação).
+3. **Cheat-sheet `?`** — `InboxCheatSheet` com os atalhos REAIS (J/K///E/A/⌘⇧N/⌘K/?).
+4. **Lightbox in-app** — imagem da bubble abre `MediaFullscreenModal` reusado
+   (navegação entre todas as imagens da thread) em vez de `window.open`.
+5. **Mobile tabs <lg** — `InboxMobileTabs` Conversas/Thread/Contexto; abrir
+   conversa salta pra Thread; desktop 3-col intacto.
+6. **Favoritos** — estrela na conversa (`useInboxFavs`, localStorage per-user,
+   SEM DB — anti-hook preservado); favoritas ordenam no topo.
+7. **Transcript imprimível** — `InboxTranscriptDialog` print-friendly com
+   header Oimpresso; notas internas FORA por default (toggle consciente).
+8. **Modo apresentação** — `InboxPresenterMode` overlay limpo (sem IDs
+   internos nem notas), Esc fecha.
+
 ### Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL)
 - Todas queries via global scope `business_id` (Eloquent).
 - ACL canal=fila (US-WA-069) — user sem `channel_user_access` ATIVO não vê
@@ -161,8 +198,9 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - ❌ **Wizard de conexão** — `/atendimento/canais/{id}` show + tabs.
 - ❌ **Roteamento automático de filas** (round-robin/sticky/members) —
   `dist`/`members` são persistidos (ADR 0267) mas o roteamento é US futura.
-- ❌ **Broadcast cross-canal** — placeholder; backlog (alta complexidade
-  janela 24h Meta + opt-in LGPD).
+- ❌ **Disparo em massa do broadcast** — fase 2 (ADR 0268): Job rate-limited
+  anti-ban + retry por destinatário, com gate [W]. A fase 1 (pre-flight LGPD +
+  rascunho auditável) está entregue; o botão "Disparar" fica disabled até lá.
 - ❌ **Mídia outbound/inbound** UI — preserva legacy `MediaPreviewCard`
   durante coexistência. PR seguinte unifica.
 
@@ -235,6 +273,9 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-007 — filas: seed lazy idempotente do config + payload lê DB + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-008 — CRUD filas: store/update/destroy + default protegida + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, slug inválido 422` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud` | mesmo arquivo |
 
 ---
 
@@ -244,12 +285,13 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 Tabela `whatsapp_queues` (ADR 0267) + QueuesSheet CRUD + seed lazy do config.
 Roteamento automático (dist/members) fica dormente até US futura.
 
-### §2 Broadcast cross-canal (P2)
-Disparar mensagem template (Meta HSM ou Baileys freeform) pra N contatos
-com 1 click. Respeitar janela 24h + opt-in LGPD. Pre-flight: contagem +
-preview + dry-run.
-
-**US sugerida:** US-WA-XXX Broadcast (~6-8h IA-pair).
+### §2 Broadcast cross-canal (P2) — 🟡 FASE 1 ENTREGUE 2026-06-10 (US-WA-306 · ADR 0268)
+Entregue: modelo `whatsapp_broadcasts` + opt-in LGPD (`contacts.whatsapp_opt_in_at`)
++ pre-flight real (total/opt-in/janela 24h/só-HSM) + rascunho auditável
+(snapshot congelado server-side) + BroadcastSheet.
+**Fase 2 (gate [W])**: extrair dispatch do send() pra Service + Job rate-limited
+anti-ban + retry por destinatário + relatório de entrega. Botão "Disparar"
+permanece disabled até lá (anti M-AP-2).
 
 ### §3 Assignee picker (P1) — ✅ ENTREGUE 2026-06-10 (US-WA-302)
 Dropdown no contexto da sidebar pra atribuir conv a operador específico.
@@ -279,6 +321,10 @@ Após Wagner aprovar canary 7d:
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **IA na thread** (PR-9/10): validação pré-PR confirmou infra Jana (laravel/ai + Agents) → IA REAL. `InboxAssistAgent` + `InboxAiController` (summarize/ask/suggest-reply) com PII redigida (PiiRedactor), dry_run gateando custo, 503 gracioso. UI: header Resumir/Perguntar + composer ✦ Sugerir (humano revisa). Charter v10. Pest R-WA-CAIXA-UNIF-012. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **Polish V2** (PR-8/10): SLA pill lista+thread (slaState 75%/estourado) · cheat-sheet `?` · lightbox MediaFullscreenModal reusado · mobile tabs <lg (InboxMobileTabs) · favoritos localStorage (useInboxFavs, sem DB) · transcript imprimível (notas fora por default) · modo apresentação (Esc). ⌘K = TODO honesto (palette global PMG-002 já existe; estender = US cross-módulo). 100% frontend — payloads cobertos por R-WA-CAIXA-UNIF-001/002. Charter v9. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-306 Broadcast FASE 1** (PR-7/10, scaffold honesto previsto no brief): ADR 0268 + `whatsapp_broadcasts` + `contacts.whatsapp_opt_in_at` (LGPD) + `BroadcastController` pre-flight real (opt-in/janela 24h/só-HSM) + draft auditável + `BroadcastSheet`. Disparo em massa = fase 2 com gate [W] (botão disabled, anti M-AP-2). Charter v8. Pest R-WA-CAIXA-UNIF-011. |
+| 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-307 + Nova conversa** (PR-6/10): dialog conta ativa + telefone/Contact CRM + mensagem inicial opcional; `InboxController::startConversation` find-or-create Tier 0 (canal ativo do business + ACL US-WA-069; cross/inativo = 403/422) reusando pipeline send(). Charter v7. Pest R-WA-CAIXA-UNIF-010. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-304 Drawer Canais e contas** (PR-5/10): topnav "Canais" deixa de navegar pra página e abre `ChannelsDrawer` (Sheet in-place agrupado por type, contas com status ativo/em-breve + health, link Gerenciar pra `/atendimento/canais`). ZERO backend novo — reusa payloads `availableChannels`/`availableAccounts` (cobertos por R-WA-CAIXA-UNIF-001/002). Charter v6. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-305 Mover entre filas** (PR-4/10): coluna `queue_override` (migration idempotente, slug não-FK de propósito — fila deletada não quebra conversa) + `InboxController::moveQueue` (slug validado contra filas do business, 422 fail-loud) + Popover "mover" na section Fila com badge "manual" e volta pra automática. Charter v5. Pest R-WA-CAIXA-UNIF-009. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **US-WA-301 Filas DB + painel** (PR-3/10): tabela `whatsapp_queues` (ADR 0267, per-schema antes da migration) + seed lazy idempotente do config + QueuesSheet CRUD (label/hue/SLA/dist/tags-gatilho, default protegida) + heurística tag→fila lê DB com fallback config. Topnav "Filas" deixa de ser disabled. Charter v4. Pest R-WA-CAIXA-UNIF-007/008. |

@@ -32,9 +32,34 @@ uses(Tests\TestCase::class);
  * NUNCA usar biz=4 (ROTA LIVRE cliente real) em tests — ADR 0101.
  */
 beforeEach(function () {
-    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues'] as $t) {
+    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues', 'whatsapp_broadcasts', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
+
+    // US-WA-306 (ADR 0268) — broadcast fase 1 + contacts mínima (opt-in LGPD)
+    Schema::create('whatsapp_broadcasts', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedBigInteger('channel_id');
+        $table->unsignedInteger('created_by_user_id');
+        $table->string('kind', 10)->default('freeform');
+        $table->string('template_name', 64)->nullable();
+        $table->text('body')->nullable();
+        $table->string('status', 20)->default('draft');
+        $table->json('audience_snapshot');
+        $table->json('recipient_conversation_ids');
+        $table->timestamp('dispatched_at')->nullable();
+        $table->timestamps();
+    });
+    Schema::create('contacts', function ($table) {
+        $table->increments('id');
+        $table->unsignedInteger('business_id');
+        $table->string('name', 120)->nullable();
+        $table->string('mobile', 30)->nullable();
+        $table->timestamp('whatsapp_opt_in_at')->nullable();
+        $table->softDeletes();
+        $table->timestamps();
+    });
 
     // US-WA-301 (ADR 0267) — filas persistidas (espelho da migration 2026_06_10_000001)
     Schema::create('whatsapp_queues', function ($table) {
@@ -655,4 +680,168 @@ it('R-WA-CAIXA-UNIF-009 — moveQueue: override vence heurística, null volta, s
     $props3 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
     expect($props3['thread']['queue']['slug'])->toBe('financeiro')
         ->and($props3['thread']['queue_is_override'])->toBeFalse();
+});
+
+// ============================================================================
+// 8. US-WA-307 — + Nova conversa: find-or-create + guards Tier 0
+// ============================================================================
+
+function cuctPostRequest(string $uri, array $body = []): Request
+{
+    $request = Request::create($uri, 'POST', $body);
+    $request->setLaravelSession(app('session.store'));
+    return $request;
+}
+
+it('R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone', function () {
+    $chActive = cuctMakeChannel(1, 'caixa-unif-010-active-uuid');           // status=active
+    $chSetup = cuctMakeChannel(1, 'caixa-unif-010-setup-uuid', 'setup');    // não-ativo
+    $chNoAcl = cuctMakeChannel(1, 'caixa-unif-010-noacl-uuid');             // sem grant
+    cuctSetUserAndGrant(1, 10, [$chActive->id, $chSetup->id]);
+
+    $inbox = new \Modules\Whatsapp\Http\Controllers\Admin\InboxController();
+
+    // Cria nova conversa — phone normalizado pra +<digits>
+    $resp = $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chActive->id,
+        'phone' => '+55 (48) 9999-0001',
+        'name' => 'Cliente Novo',
+    ]));
+    $conv = Conversation::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', 1)
+        ->where('customer_external_id', '+554899990001')
+        ->first();
+    expect($conv)->not->toBeNull()
+        ->and($conv->contact_name)->toBe('Cliente Novo')
+        ->and($conv->status)->toBe('open')
+        ->and($resp->getTargetUrl())->toContain('thread=' . $conv->id);
+
+    // Mesmo número de novo → REABRE (não duplica)
+    $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chActive->id,
+        'phone' => '554899990001',
+    ]));
+    $count = Conversation::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', 1)
+        ->where('customer_external_id', '+554899990001')
+        ->count();
+    expect($count)->toBe(1);
+
+    // Canal não-ativo → 422
+    expect(fn () => $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chSetup->id, 'phone' => '+5548999990002',
+    ])))->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    // Canal sem ACL → 403 fail-loud (US-WA-069)
+    expect(fn () => $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chNoAcl->id, 'phone' => '+5548999990003',
+    ])))->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+    // Telefone curto → 422
+    expect(fn () => $inbox->startConversation(cuctPostRequest('/atendimento/inbox/conversations', [
+        'channel_id' => $chActive->id, 'phone' => '123',
+    ])))->toThrow(\Illuminate\Validation\ValidationException::class);
+});
+
+// ============================================================================
+// 9. US-WA-306 (ADR 0268) — broadcast fase 1: pre-flight LGPD/janela + draft
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-011-uuid');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    // 4 conversas: opt-in+janela | opt-in+fora-janela | SEM opt-in | bloqueada
+    $mk = function (int $contactId, ?string $optIn, int $inboundHoursAgo, bool $blocked = false) use ($ch) {
+        \Illuminate\Support\Facades\DB::table('contacts')->insert([
+            'id' => $contactId, 'business_id' => 1, 'name' => "C{$contactId}",
+            'mobile' => "+554899{$contactId}", 'whatsapp_opt_in_at' => $optIn,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $conv = cuctMakeConv(1, $ch->id);
+        $conv->forceFill([
+            'contact_id' => $contactId,
+            'last_inbound_at' => now()->subHours($inboundHoursAgo),
+            'is_blocked' => $blocked,
+        ])->save();
+        return $conv;
+    };
+    $inWindow = $mk(101, now()->toDateTimeString(), 2);          // opt-in + janela aberta
+    $outWindow = $mk(102, now()->toDateTimeString(), 72);        // opt-in + fora (só HSM)
+    $mk(103, null, 1);                                           // SEM opt-in → fora da lista
+    $mk(104, now()->toDateTimeString(), 1, true);                // bloqueada → fora de tudo
+
+    $bcast = new \Modules\Whatsapp\Http\Controllers\Admin\BroadcastController();
+
+    $resp = $bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $ch->id]));
+    $pf = $resp->getData(true);
+    expect($pf['total'])->toBe(3)            // bloqueada fora
+        ->and($pf['with_opt_in'])->toBe(2)   // 101 + 102 (LGPD)
+        ->and($pf['without_opt_in'])->toBe(1)
+        ->and($pf['in_window'])->toBe(1)     // só 101
+        ->and($pf['hsm_only'])->toBe(1)      // 102
+        ->and($pf['recipient_conversation_ids'])->toContain($inWindow->id, $outWindow->id);
+
+    // Draft: snapshot recalculado server-side + status draft (fase 1 — sem disparo)
+    $bcast->store(cuctPostRequest('/atendimento/broadcast', [
+        'channel_id' => $ch->id, 'kind' => 'freeform', 'body' => 'Promoção da semana!',
+    ]));
+    $draft = \Modules\Whatsapp\Entities\WhatsappBroadcast::withoutGlobalScopes()
+        ->where('business_id', 1)->first();
+    expect($draft)->not->toBeNull()
+        ->and($draft->status)->toBe('draft')
+        ->and($draft->audience_snapshot['with_opt_in'])->toBe(2)
+        ->and($draft->recipient_conversation_ids)->toHaveCount(2)
+        ->and($draft->dispatched_at)->toBeNull(); // fase 1 NUNCA dispara
+
+    // Canal de outro tenant → 403 fail-loud (Tier 0)
+    $chAlien = cuctMakeChannel(99, 'caixa-unif-011-alien-uuid');
+    expect(fn () => $bcast->preflight(cuctPostRequest('/atendimento/broadcast/preflight', ['channel_id' => $chAlien->id])))
+        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+});
+
+// ============================================================================
+// 10. PR-9 brief [CC] — IA na thread: dry_run gateia custo + Tier 0/ACL
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud', function () {
+    config(['copiloto.dry_run' => true]); // NUNCA toca provider em teste
+
+    $ch = cuctMakeChannel(1, 'caixa-unif-012-uuid');
+    $chNoAcl = cuctMakeChannel(1, 'caixa-unif-012-noacl-uuid');
+    $conv = cuctMakeConv(1, $ch->id);
+    $convNoAcl = cuctMakeConv(1, $chNoAcl->id);
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    \Illuminate\Support\Facades\DB::table('messages')->insert([
+        'business_id' => 1, 'conversation_id' => $conv->id, 'direction' => 'inbound',
+        'provider' => 'whatsapp_baileys', 'type' => 'text',
+        'body' => 'Quero orçamento de 500 cartões de visita pra minha loja',
+        'status' => 'received', 'created_at' => now(),
+    ]);
+
+    $ai = new \Modules\Whatsapp\Http\Controllers\Admin\InboxAiController();
+
+    // summarize dry-run → fixture (com contagem real de msgs), sem provider
+    $resp = $ai->summarize(cuctPostRequest("/atendimento/inbox/{$conv->id}/ai/summarize"), $conv->id);
+    expect($resp->getData(true)['text'])->toContain('[dry-run]')
+        ->and($resp->getData(true)['text'])->toContain('1 mensagens');
+
+    // ask dry-run ecoa a pergunta na fixture
+    $resp2 = $ai->ask(cuctPostRequest("/atendimento/inbox/{$conv->id}/ai/ask", ['question' => 'qual o pedido?']), $conv->id);
+    expect($resp2->getData(true)['text'])->toContain('qual o pedido?');
+
+    // suggest-reply dry-run devolve resposta plausível
+    $resp3 = $ai->suggestReply(cuctPostRequest("/atendimento/inbox/{$conv->id}/ai/suggest-reply"), $conv->id);
+    expect($resp3->getData(true)['text'])->not->toBe('');
+
+    // ACL: conversa de canal sem grant → 403 fail-loud (US-WA-069)
+    expect(fn () => $ai->summarize(cuctPostRequest("/atendimento/inbox/{$convNoAcl->id}/ai/summarize"), $convNoAcl->id))
+        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+    // Tier 0: conversa de outro tenant → 404
+    $chAlien = cuctMakeChannel(99, 'caixa-unif-012-alien-uuid');
+    $convAlien = cuctMakeConv(99, $chAlien->id);
+    expect(fn () => $ai->summarize(cuctPostRequest("/atendimento/inbox/{$convAlien->id}/ai/summarize"), $convAlien->id))
+        ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });
