@@ -36,6 +36,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sh
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import PageHeader from '@/Components/shared/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
@@ -647,13 +648,15 @@ function DrawerLens({ icon: Icon, title, status, tone = 'muted', children }: {
 }) {
   return (
     <section className="border-t border-border/60 pt-4">
-      <header className="flex items-center gap-2 mb-2.5">
-        <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden>
-          <Icon size={12} />
-        </span>
-        <h4 className="text-[12.5px] font-semibold text-foreground">{title}</h4>
-        {status && <span className="ml-auto"><DrawerLensChip tone={tone}>{status}</DrawerLensChip></span>}
-      </header>
+      <Inline asChild gap={2} className="mb-2.5">
+        <header>
+          <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden>
+            <Icon size={12} />
+          </span>
+          <h4 className="text-[12.5px] font-semibold text-foreground">{title}</h4>
+          {status && <span className="ml-auto"><DrawerLensChip tone={tone}>{status}</DrawerLensChip></span>}
+        </header>
+      </Inline>
       {children}
     </section>
   );
@@ -1741,34 +1744,34 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 const stage = settled ? 3 : selected.conferido_at ? 1 : 0;
                 return (
                   <div className="shrink-0 px-5 pt-3 pb-3.5 border-b border-border">
-                    <div className="flex items-end justify-between gap-3">
+                    <Inline align="end" justify="between" gap={3}>
                       <div className="min-w-0">
                         <div className={`text-[10.5px] uppercase tracking-[0.1em] font-semibold ${labelTone}`}>
                           {settled ? 'Liquidado' : isIn ? 'A receber' : 'A pagar'}
                         </div>
-                        <div className="mt-0.5 flex items-baseline">
+                        <Inline align="baseline" gap={0} className="mt-0.5">
                           <span className="text-[13.5px] text-muted-foreground font-mono whitespace-nowrap mr-1">{isIn ? '+ R$' : '− R$'}</span>
                           <span className={`text-[length:var(--fs-9,38px)] leading-none font-semibold tracking-tight font-mono tabular-nums ${isIn ? 'text-success-foreground' : 'text-foreground'}`}>{intPart}</span>
                           <span className="text-[13.5px] text-muted-foreground font-mono">,{decPart}</span>
-                        </div>
+                        </Inline>
                       </div>
-                      <div className="flex flex-col items-end gap-1.5 shrink-0 pb-0.5">
-                        <div className="flex items-center gap-1.5">
+                      <Stack gap={1} align="end" className="gap-1.5 shrink-0 pb-0.5">
+                        <Inline gap={1} className="gap-1.5">
                           <StatusPill s={selected.status} />
                           <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
-                        </div>
+                        </Inline>
                         <div className="text-[12.5px] text-muted-foreground tabular-nums whitespace-nowrap">
                           {settled
                             ? <>liq. <b className="font-medium text-foreground">{selected.liquidacao || '—'}</b></>
                             : <>vence <b className="font-medium text-foreground">{fmtBr(selected.vencimento)}</b>{relText && <> · <span className={relCls}>{relText}</span></>}</>}
                         </div>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center" role="img" aria-label={`Etapa do ciclo: ${etapas[stage]}`}>
+                      </Stack>
+                    </Inline>
+                    <Inline gap={0} className="mt-3" role="img" aria-label={`Etapa do ciclo: ${etapas[stage]}`}>
                       {etapas.map((lbl, i) => (
                         <React.Fragment key={lbl}>
                           {i > 0 && <span className={`h-px flex-1 mx-1.5 ${i <= stage ? 'bg-primary' : 'bg-border'}`} aria-hidden />}
-                          <span className="flex items-center gap-1" aria-hidden>
+                          <span className="inline-flex items-center gap-1" aria-hidden>
                             <span className={
                               'w-[15px] h-[15px] rounded-full grid place-items-center text-[9px] font-semibold border ' +
                               (i < stage
@@ -1783,7 +1786,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                           </span>
                         </React.Fragment>
                       ))}
-                    </div>
+                    </Inline>
                   </div>
                 );
               })()}
@@ -1958,7 +1961,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     return (
                       <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? '100% match' : 'aguardando'} tone={settled ? 'pos' : 'muted'}>
                         {settled ? (
-                          <div className="rounded-md border border-border bg-muted px-3 py-2 flex items-start gap-2.5">
+                          <Inline align="start" gap={2} className="gap-2.5 rounded-md border border-border bg-muted px-3 py-2">
                             <span className="w-[18px] h-[18px] rounded-full grid place-items-center bg-success/15 text-success-foreground shrink-0 mt-px" aria-hidden>
                               <Check size={11} />
                             </span>
@@ -1966,7 +1969,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                               <div className="font-medium text-foreground">Conciliado com extrato bancário</div>
                               <div className="text-muted-foreground tabular-nums">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
                             </div>
-                          </div>
+                          </Inline>
                         ) : (
                           <div className="rounded-md border border-border px-3 py-2.5 text-[12.5px] text-muted-foreground flex items-start gap-2.5">
                             <span className="text-muted-foreground mt-0.5" aria-hidden>✦</span>
@@ -1991,7 +1994,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     const das = isIn ? (selected.valor ?? 0) * 0.06 : 0;
                     return (
                       <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? 'NF vinculada' : 'sem NF'} tone={hasNf ? 'pos' : 'warn'}>
-                        <div className="grid grid-cols-2 gap-x-5">
+                        <Grid cols={2} gap={0} className="gap-x-5">
                           <div>
                             <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">{isIn ? 'NF-e de saída' : 'Documento fiscal'}</div>
                             <div className="text-[13px] text-foreground font-medium truncate">
@@ -2002,17 +2005,17 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                             <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">Regime</div>
                             <div className="text-[13px] text-foreground font-medium">Simples Nacional</div>
                           </div>
-                        </div>
+                        </Grid>
                         {isIn && (
                           <div className="mt-1.5 border-t border-border/60">
-                            <div className="flex items-baseline justify-between py-[5px] border-b border-border/60">
+                            <Inline align="baseline" justify="between" gap={0} className="py-[5px] border-b border-border/60">
                               <span className="text-[12.5px] text-muted-foreground">ISS retido · 5%</span>
                               <span className="text-[12.5px] font-mono tabular-nums font-medium">{brl(iss)}</span>
-                            </div>
-                            <div className="flex items-baseline justify-between py-[5px]">
+                            </Inline>
+                            <Inline align="baseline" justify="between" gap={0} className="py-[5px]">
                               <span className="text-[12.5px] text-muted-foreground">No DAS do mês · ≈ 6%</span>
                               <span className="text-[12.5px] font-mono tabular-nums font-medium text-warning-foreground">{brl(das)}</span>
-                            </div>
+                            </Inline>
                           </div>
                         )}
                         <p className="text-[10.5px] text-muted-foreground pt-1.5 leading-relaxed">
