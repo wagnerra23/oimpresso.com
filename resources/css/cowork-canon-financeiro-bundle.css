@@ -3999,10 +3999,7 @@
 }
 
 .fin-cowork .fsm-stepper.fsm-full .fsm-step.done .fsm-step-num {
-  /* PR-3 F2 (2026-06-10) — white cru → token (--accent-fg), fallback keyword
-     (drawer é portal fora de .cockpit; var pode não resolver). Espelha o fix
-     do F1 financeiro.css §fsm-step done. */
-  background: var(--fsm-color); color: var(--accent-fg, white); border-color: var(--fsm-color);
+  background: var(--fsm-color); color: var(--accent-fg, white); border-color: var(--fsm-color); /* PR-3 F2: white→token, fallback keyword (portal fora de .cockpit) */
 }
 .fin-cowork .fsm-stepper.fsm-full .fsm-step.current .fsm-step-num {
   background: var(--surface); color: var(--fsm-color-dim);
@@ -4363,8 +4360,7 @@
 }
 .fin-cowork .fin-comment-new button {
   align-self: flex-end;
-  /* PR-3 F2 (2026-06-10) — white cru → token (espelha F1 fin-comment-new). */
-  background: var(--accent); color: var(--accent-fg, white);
+  background: var(--accent); color: var(--accent-fg, white); /* PR-3 F2: white→token */
   border: none; padding: 5px 12px; border-radius: 5px;
   font-family: inherit; font-size: 11.5px; font-weight: 600;
   cursor: pointer;
