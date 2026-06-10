@@ -63,6 +63,15 @@ interface RenderArgs {
   title: string;
 }
 
+/**
+ * Mecanismo canônico de impressão de HTML auto-contido (iframe fora da vista +
+ * print pelo parent + fallback window.open). Exportado pra reuso por outros
+ * documentos da Oficina (ex.: printOficinaFila.ts) — estender, não recriar.
+ */
+export function printHtmlDocument(args: RenderArgs): Promise<void> {
+  return renderAndPrint(args);
+}
+
 const IFRAME_ID = 'service-order-print-iframe';
 
 function renderAndPrint({ htmlContent, title }: RenderArgs): Promise<void> {

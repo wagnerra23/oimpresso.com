@@ -437,6 +437,10 @@ class ServiceOrderController extends Controller
             && ! in_array($order->status, ['concluida', 'cancelada', 'entregue'], true)
             && $expected->isPast();
 
+        // box_label/assigned_user_id (Wave 2.1) podem não existir pré-migração — SELECT *
+        // não traz a coluna ausente e getAttribute devolve null (guard implícito).
+        $boxLabel = $order->getAttribute('box_label');
+
         return [
             'id'                => (int) $order->id,
             'number'            => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
@@ -449,6 +453,10 @@ class ServiceOrderController extends Controller
             'dvi_total'         => $dviTotal,
             'dvi_critico'       => $dviCritico,
             'valor'             => (float) $order->total_items,
+            // box + mechanic_id alimentam o re-pivot client-side do quadro (menu Visão:
+            // Foco Box/Mecânico) e a capacidade "x/y boxes" — Onda 1 paridade Cowork.
+            'box'               => is_string($boxLabel) && $boxLabel !== '' ? $boxLabel : null,
+            'mechanic_id'       => $order->getAttribute('assigned_user_id') !== null ? (int) $order->getAttribute('assigned_user_id') : null,
             'mechanic_name'     => $mechanicName ?: null,
             'mechanic_initials' => $mechanicInitials ?: null,
             'entered_at'        => $order->entered_at?->toIso8601String(),
