@@ -76,7 +76,7 @@ last_run: "2026-06-10"
 - **Aceite:** Dado veículo+cliente cadastrados · Quando percorre criar OS → DVI (item com severidade) → foto enviada no laudo → "Pedir aprovação" → avançar etapa (checklist ou override de responsável, registrado) → "Imprimir OS" · Então cada passo dá feedback visível (card em Recepção, item na lista, foto no grid, "Aguardando aprovação", "Etapa avançada", iframe de impressão) **sem erro**.
 - **Nota:** a aprovação do cliente em si é fora da tela (link público + PIN — `/aprovar-os/{token}`); o lado Larissa é o coberto aqui.
 - **Teste:** `e2e/oficina-os-funcional-fluxo.spec.ts` (Playwright, harness G-3).
-- **Status: 🧪** (spec escrita 2026-06-10 · aguarda primeiro run verde no e2e-gate)
+- **Status: ✅** (run verde e2e-gate 27277247743 · 2026-06-10 · manifesto G-7 `pass`)
 
 ---
 
