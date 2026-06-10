@@ -149,6 +149,9 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
     expect($user->can('superadmin'))->toBeFalse('pré-condição: usuário do fio NÃO é superadmin');
 
     $this->actingAs($user);
+    // CSRF real (ambiente staging/MySQL não roda como 'testing' — VerifyCsrfToken ativo;
+    // mantém o middleware exercitado em vez de desligar via withoutMiddleware).
+    $this->withSession(['_token' => 'fio-csrf']);
 
     $vehicle = Vehicle::withoutGlobalScopes()->create([
         'business_id'  => BIZ_FIO,
@@ -158,6 +161,7 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
 
     // ── 1. Criar a OS via store() — nasce JÁ no pipeline (conserto 1) ────────────
     $resp = $this->post('/oficina-auto/ordens-servico', [
+        '_token'     => 'fio-csrf',
         'vehicle_id' => $vehicle->id,
         'order_type' => 'mecanica',
         'status'     => 'aberta',
@@ -241,9 +245,11 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
             "action {$actionKey} deve ser executável com permission do módulo (sem role mecanico/gerente)"
         );
 
-        $exec = $this->postJson("/oficina-auto/service-orders/{$order->id}/fsm/execute", [
-            'action_key' => $actionKey,
-        ]);
+        $exec = $this->postJson(
+            "/oficina-auto/service-orders/{$order->id}/fsm/execute",
+            ['action_key' => $actionKey],
+            ['X-CSRF-TOKEN' => 'fio-csrf'],
+        );
         $exec->assertOk();
         expect($exec->json('ok'))->toBeTrue("execute {$actionKey} deve retornar ok=true");
     }
@@ -267,6 +273,7 @@ it('OS nova de manutenção roteia pra cacamba_manutencao — JAMAIS pro pipelin
 
     $user = fioUsuarioSemRoles();
     $this->actingAs($user);
+    $this->withSession(['_token' => 'fio-csrf']);
 
     $vehicle = Vehicle::withoutGlobalScopes()->create([
         'business_id'  => BIZ_FIO,
@@ -275,6 +282,7 @@ it('OS nova de manutenção roteia pra cacamba_manutencao — JAMAIS pro pipelin
     ]);
 
     $this->post('/oficina-auto/ordens-servico', [
+        '_token'     => 'fio-csrf',
         'vehicle_id' => $vehicle->id,
         'order_type' => 'manutencao',
         'status'     => 'aberta',
