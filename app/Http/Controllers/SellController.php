@@ -2957,7 +2957,10 @@ class SellController extends Controller
                         // Frontend compara com draft.savedAt — se backend > draft, descarta rascunho stale.
                         'updated_at' => $transaction->updated_at ? (string) $transaction->updated_at : null,
                     ],
-                    'sellDetails' => $sell_details,
+                    // values() reindexa: o foreach acima faz unset() de linhas filhas
+                    // (combo/modificador) e o gap de keys faria o JSON virar OBJETO
+                    // em vez de array — .map() no Edit.tsx quebraria a tela inteira.
+                    'sellDetails' => $sell_details->values(),
                     'taxes' => $taxes,
                     'commissionAgents' => $commission_agent,
                     'types' => $types,
