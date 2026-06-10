@@ -645,6 +645,19 @@ class ServiceOrderController extends Controller
 
         $order = ServiceOrder::create($validated);
 
+        // UC-07/UC-11 (casos.md Produção/Oficina): a OS recém-criada é o "documento vivo"
+        // do veículo no kanban. Sem este vínculo o card fica "sem OS" (bucket disponivel não
+        // tem fallback V3 em ProducaoOficinaController::loadRentalFallbacks) e o drawer rico
+        // não abre — bug pego pelo E2E UC-11 (run 27273605033). Só vincula se o veículo está
+        // LIVRE (não clobbera OS ativa de outro fluxo). Tier 0 (ADR 0093): além do global
+        // scope do Model (Vehicle::booted), filtro explícito por tenant (defense-in-depth).
+        $vehicle = Vehicle::query()
+            ->where('business_id', (int) (session('user.business_id') ?? session('business.id') ?? 0))
+            ->find($order->vehicle_id);
+        if ($vehicle !== null && $vehicle->current_rental_id === null) {
+            $vehicle->update(['current_rental_id' => $order->id]);
+        }
+
         return redirect('/oficina-auto/ordens-servico/' . $order->id)
             ->with('status', ['success' => 1, 'msg' => 'Ordem de Serviço criada.']);
     }

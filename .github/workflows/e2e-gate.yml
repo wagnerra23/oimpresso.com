@@ -122,6 +122,16 @@ jobs:
           php artisan migrate --force
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          # FSM da Oficina (oficina_mecanica_os) é per-business e o biz=1 nasce SÓ no
+          # VisregTenantSeeder (acima) — sem este re-run, /fsm/start-pipeline responde 422
+          # "Processo não cadastrado" e o UC-11 trava no gate (run 27275766546). Seeder
+          # idempotente (firstOrCreate) — roda por último, cobre o tenant recém-criado.
+          php artisan db:seed --class=Modules\\OficinaAuto\\Database\\Seeders\\OficinaAutoFsmSeeder --force
+          # As transições FSM são role-gated per-business (mecanico#1/gerente#1 — criadas
+          # pelo seeder acima). Gate::before do Admin#1 cobre ABILITIES, não hasRole() —
+          # sem o vínculo as ações ficam "ocultas por falta de permissão" e o UC-11 trava
+          # (run 27276374828). Vínculo direto em model_has_roles (idempotente).
+          php artisan tinker --execute='$ids = \Spatie\Permission\Models\Role::whereIn("name", ["gerente#1", "mecanico#1"])->pluck("id"); foreach ($ids as $rid) { \DB::table("model_has_roles")->insertOrIgnore(["role_id" => $rid, "model_type" => \App\User::class, "model_id" => 1]); } echo "fsm-roles=" . $ids->count();'
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
 
