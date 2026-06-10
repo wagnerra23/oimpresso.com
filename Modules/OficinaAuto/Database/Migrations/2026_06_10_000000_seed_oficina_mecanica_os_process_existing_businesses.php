@@ -19,7 +19,7 @@ use Modules\OficinaAuto\Database\Seeders\OficinaAutoFsmSeeder;
  *  - a migration irmã 2026_06_10_000001 (repoint de órfãs) não acha o stage `recepcao`.
  *
  * Roda o seeder canônico (idempotente — firstOrCreate em processo/stage/action/role)
- * APENAS pros businesses que já têm processo cacamba_*/oficina_* OU service_orders —
+ * APENAS pros businesses que já têm processo cacamba_* ou oficina_* OU service_orders —
  * não semeia FSM da Oficina em tenant que nunca usou o módulo.
  *
  * down(): no-op — remover processo FSM em uso quebraria OS vivas (append-only ADR 0143).
