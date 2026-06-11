@@ -23,7 +23,7 @@ use Symfony\Component\Finder\Finder;
  *
  * @see memory/_INDEX-SECRETS.md (índice canon)
  * @see .githooks/pre-commit (Camada 5 git hook chama com --diff-only)
- * @see .github/workflows/secrets-governance.yml (Camada 5 CI)
+ * @see .github/workflows/governance-drift.yml (Camada 5 CI — secrets-governance.yml consolidado aqui na ADR 0271 onda 2)
  */
 class SecretsScanCommand extends Command
 {
