@@ -3,14 +3,14 @@ slug: 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
 number: 270
 title: "Ciclo de vida da informação — porta única + destilação + decaimento + medir o caminho de leitura (anti-elefante-branco)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
-kind: arquitetura-conhecimento
+kind: decision
 decided_by: [W]
 decided_at: "2026-06-11"
-accepted_at: ""
-accepted_via: "Wagner aprovou a DIREÇÃO no chat 2026-06-11 ('Acho que vou fazer todas faz muito sentido. É exatamente o que eu sinto. Faça'), após diagnóstico 'parece um elefante branco — ter mais não tá fácil de usar'. Ratificação formal = merge deste PR (sai de draft). Numeração/redação por [CL]."
+accepted_at: "2026-06-11"
+accepted_via: "Wagner ratificou no chat 2026-06-11: 'Adr aceita' — após aprovar a direção ('Acho que vou fazer todas faz muito sentido. É exatamente o que eu sinto. Faça') em resposta ao diagnóstico 'parece um elefante branco — ter mais não tá fácil de usar'. Numeração/redação por [CL]."
 module: copiloto
 quarter: 2026-Q2
 tags: [conhecimento, memoria, ciclo-de-vida, destilacao, decaimento, porta-unica, recall, time-decay, governanca, anti-elefante-branco]

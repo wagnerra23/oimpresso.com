@@ -7,7 +7,7 @@
 ## Resumo
 - **275** arquivos · **260** números únicos · máx **0270**
 - **ADRs ATIVOS (lifecycle ativo): 235** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 212 · proposto 37 · superseded 23 · (vazio) 2 · rascunho 1
+- Por status: aceito 213 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
 - Por lifecycle: ativo 235 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -306,4 +306,4 @@ _(íntegra)_
 | 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
 | 0268 | proposto | ativo | decision | whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; dispa |
 | 0269 | aceito | ativo | decision | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
-| 0270 | proposto | ativo | arquitetura-conhecimento | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
+| 0270 | aceito | ativo | decision | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
