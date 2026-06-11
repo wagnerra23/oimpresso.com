@@ -23,4 +23,30 @@
   --fs-7: 22px;    /* h1 de página · KPI médio */
   --fs-8: 28px;    /* número grande */
   --fs-9: 38px;    /* número hero */
+
+  /* ── TEMPERO — norte visual do ERP ([W] autorizou 2026-06-10, MESMA autorização
+     textual "vai"/"sim sim é isso que eu quero" do ramp acima — fonte "Norte: Fluxo
+     do Caminhão", §TEMPERO do gabarito ds-v6/tokens.css). Os 3 conceitos que faltavam
+     na fundação: UMA fonte de luz (sombras de baixo→cima, sutis), microfísica única
+     (--ease/--t) e fundo com atmosfera (--atmo, par dark abaixo). Consumir SEMPRE via
+     var(); redefinir em css de tela = espalhamento (foundation-guard barra). ── */
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);   /* card assentado */
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16); /* flutuante: drawer/modal/popover/cmdk */
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* desacelera como coisa física — curva única do ERP */
+  --t-1: .15s;  --t-2: .3s;
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);
+}
+
+/* ── TEMPERO · dark ──
+   O atributo data-theme mora no elemento .cockpit (Shell). Casar por [data-theme]
+   (sem a classe .cockpit) mantém a Fundação desacoplada da estrutura do Shell
+   (ADR UI-0013) e funciona porque o atributo está nesse mesmo elemento; nada mais
+   define as sombras nem a atmosfera, então não há conflito de especificidade.
+   Só os 3 tokens que mudam no escuro. */
+[data-theme="dark"]{
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);
 }
