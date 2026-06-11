@@ -3,7 +3,7 @@ date: "2026-06-11"
 time: "14:10 BRT"
 slug: oficina-os-tela-unica-fila-rica-scroll
 tldr: "OficinaAuto — tela de OS unificada (1 tela, 4 abas Quadro·Lista·Grade·Fila) + drawer único (RichBody extraído) + Fila com detalhe rico inline + fix scroll do shell (chrome fixo) + deploy SSH robusto (ConnectTimeout=180). 6 PRs deployados; OficinaAuto grade 79→80."
-decided_by: [wagner]
+decided_by: ["W"]
 cycle: CYCLE-08
 prs: [2533, 2535, 2538, 2544, 2548, 2551]
 next_steps:
