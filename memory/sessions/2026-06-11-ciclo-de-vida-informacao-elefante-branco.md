@@ -51,8 +51,16 @@ Cruzei código vivo (`Modules/Jana`, `Modules/ADS`) + auditorias canon + 64 gate
 
 Mudanças de **código** da Jana (distiller estendido, time-decay no recall, matar Cockpit mock, checks no health-check) tocam comportamento de IA em prod → **exigem CT 100** (Tier 0). Ficam como roadmap F2-F5, não mergeadas às cegas nesta sessão de nuvem.
 
+## Ato 2 da sessão — MemCofre, detector, e os 64 gates (append 07:58 BRT)
+
+- **ADR 0270 ACEITA** por Wagner no chat ("Adr aceita") — status atualizado, PR #2527 saiu de draft.
+- **Lápide MemCofre** (`memory/requisitos/MemCofre/BRIEFING.md`): MemCofre = DocVault→SRS, ZUMBI (deprecação aprovada nunca executada), 33 docs congelados pré-rename citando `Modules/MemCofre` inexistente, module-grade 73 + auto-audit 97 elogiando o cadáver. **read_path 33→1 medido.**
+- **`scripts/governance/knowledge-drift.mjs`** (1ª batida do batimento): hops + identity-drift + staleness por módulo. **Achado: 39/61 módulos citam `Modules/X` inexistente** (renames nunca propagaram).
+- **"Os portões têm que ser revistos. Estão defasados e conflitantes"** → auditoria de CONTEÚDO dos 64 workflows → **ADR 0271 ACEITA** + onda 1 executada (`ce41d592`, +225/−666): 6 deletados, RAGAS-teatro desarmado (verificado ao vivo), deadlock ui-architecture desarmado (verificado ao vivo), fonte única do vocabulário ADR, proibicoes §MWART corrigida. **64→58.**
+- Meta-lições (Wagner): ter≠qualidade · sistema não preparado pro tempo (derivada>nível) · ADR usada como memória (174 "decisões"/mês) · teto honesto ~85 não 100 · decisão por âncora (invariante→sinal→meta), não por Wagner.
+
 ## Próximos passos
 
-- Wagner ratifica ADR 0270 (merge).
-- F1 (seguro/docs): criar BRIEFING nos 22 módulos órfãos — cada um destilado da leitura real do módulo (não gerado às cegas).
-- F2-F5: tasks MCP com smoke real no CT 100.
+- **MERGE do PR #2527** (ready, CI verde) — contém ADRs 0270+0271 aceitas + lápide + detector + onda 1.
+- **ONDA 2 dos gates — APROVADA ("pode fazer todos") com condição "consultar o mcp antes"** → plano completo no handoff [2026-06-11-0758](../handoffs/2026-06-11-0758-elefante-branco-adr0270-0271-gates-onda1.md). Sessão nuvem não tem MCP → reabrir com MCP, brief-fetch primeiro, executar.
+- F1 da 0270 (portas nos 22 órfãos) + F2-F5 (código, CT 100) + matar Cockpit mock + RAGAS real diário + fix self-audit falso-verde.
