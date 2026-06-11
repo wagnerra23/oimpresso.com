@@ -76,7 +76,7 @@ function tsMakeSell(int $businessId, int $locationId, int $contactId, int $userI
     return Transaction::create(array_merge($defaults, $overrides));
 }
 
-it('CU-3→CU-5: venda a prazo gera título a receber com vencimento +30d (valor correto)', function () {
+it('UC-F01 · CU-3→CU-5: venda a prazo gera título a receber com vencimento +30d (valor correto)', function () {
     $hoje = Carbon::now();
     $tx = tsMakeSell(
         $this->business->id,
@@ -109,7 +109,7 @@ it('CU-3→CU-5: venda a prazo gera título a receber com vencimento +30d (valor
     expect($diffDias)->toBe(30, 'título vence 30 dias após a venda (CU-5)');
 });
 
-it('CU-5: recebimento baixa o título (vende→fatura→recebe completo)', function () {
+it('UC-F02 · CU-5: recebimento baixa o título (vende→fatura→recebe completo)', function () {
     $conta = \Modules\Financeiro\Models\ContaBancaria::query()
         ->withoutGlobalScope(BusinessScopeImpl::class)
         ->where('business_id', $this->business->id)
@@ -161,7 +161,7 @@ it('CU-5: recebimento baixa o título (vende→fatura→recebe completo)', funct
     expect($mov->tipo)->toBe('entrada');
 });
 
-it('CU-4: os endpoints fiscais que a tela de venda dispara existem (wire-up Onda 2)', function () {
+it('UC-F03 · CU-4: os endpoints fiscais que a tela de venda dispara existem (wire-up Onda 2)', function () {
     // O botão "Emitir NF-e" (VdNfeEmitModal) chama POST /nfe-brasil/transactions/{tx}/emitir.
     expect(Route::has('nfe-brasil.transactions.emitir') || collect(Route::getRoutes())->contains(
         fn ($r) => $r->uri() === 'nfe-brasil/transactions/{tx}/emitir' && in_array('POST', $r->methods(), true),
