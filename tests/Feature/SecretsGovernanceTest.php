@@ -76,11 +76,17 @@ it('R-SEC-0215-007 — .githooks/pre-commit tem bloco secrets:scan', function ()
     expect($content)->toContain('SECRETS GOVERNANCE');
 });
 
-it('R-SEC-0215-008 — GH Action workflow secrets-governance.yml existe', function () {
-    $path = base_path('.github/workflows/secrets-governance.yml');
+it('R-SEC-0215-008 — secrets governance consolidado no governance-drift.yml (ADR 0271 onda 2)', function () {
+    // secrets-governance.yml foi deletado na onda 2 dos gates (ADR 0271 item F3):
+    // o scan de PR passou a ser coberto por `governance:audit` (SecretsDriftChecker
+    // dentro do --diff-only) e o auto-PR de rotação (Camada 3) foi portado pro
+    // governance-drift.yml. Fecha o canary 7d da ADR 0216, nunca encerrado.
+    expect(file_exists(base_path('.github/workflows/secrets-governance.yml')))->toBeFalse();
+
+    $path = base_path('.github/workflows/governance-drift.yml');
     expect(file_exists($path))->toBeTrue();
 
     $content = file_get_contents($path);
-    expect($content)->toContain('secrets:scan --fail-on-drift');
-    expect($content)->toContain('secrets:audit --auto-pr');
+    expect($content)->toContain('secrets:audit --auto-pr'); // Camada 3 portada pra cá
+    expect($content)->toContain('governance:audit');         // cobre o SecretsDriftChecker no PR
 });

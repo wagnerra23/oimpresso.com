@@ -19,13 +19,10 @@ on:
       - 'scripts/no-mock-in-prod.mjs'
       - 'scripts/no-mock-baseline.json'
       - '.github/workflows/no-mock-gate.yml'
-  pull_request:
-    paths:
-      - 'Modules/**/Http/Controllers/**'
-      - 'app/Http/Controllers/**'
-      - 'scripts/no-mock-in-prod.mjs'
-      - 'scripts/no-mock-baseline.json'
-      - '.github/workflows/no-mock-gate.yml'
+  # ADR 0271 onda 2 (item 4 — required-readiness): pull_request SEM paths
+  # (always-run) pra ser promovível a required sem deadlock "Expected — waiting".
+  # Ratchet escaneia o repo inteiro vs baseline → passa trivial em PR sem controller.
+  pull_request: {}
 
 concurrency:
   group: no-mock-gate-${{ github.ref }}

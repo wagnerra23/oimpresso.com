@@ -193,7 +193,7 @@
 
 ## Processo MWART canônico — único caminho ([ADR 0104](decisions/0104-processo-mwart-canonico-unico-caminho.md))
 
-- ⛔ **Caminho alternativo de MWART** — Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existir. Hook `block-mwart-violation.ps1` bloqueia em runtime. ⚠️ **Correção 2026-06-11 (auditoria dos 64 gates):** o CI `mwart-gate.yml` NÃO bloqueia merge — é `continue-on-error: true` (soft, só comenta); a régua viva de cobertura migrou pro `casos-gate` (required, ADR 0264). Override runtime: comentar `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`)
+- ⛔ **Caminho alternativo de MWART** — Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existir. Hook `block-mwart-violation.ps1` bloqueia em runtime. ⚠️ **Atualização 2026-06-11 (ADR 0271 onda 2):** o CI `mwart-gate.yml` foi **deletado** (era soft `continue-on-error`, só comentava — teatro). A régua viva de cobertura de tela é o `casos-gate` (required, ADR 0264) + `screen-coverage`. O enforcement de RUNBOOK segue só via hook runtime. Override runtime: comentar `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`)
 - ⛔ **F2 BACKEND BASELINE sem Pest 5+ fixtures** do `store()` antes de mexer — gera regressão silenciosa
 - ⛔ **F4 QA sem smoke biz=1** ([ADR 0101](decisions/0101-tests-business-id-1-nunca-cliente.md)) — usar biz=4 (cliente) em smoke = grave
 - ⛔ **F5 CUTOVER sem aviso prévio cliente + canary 7d** — ROTA LIVRE 99% volume, surprise = perda

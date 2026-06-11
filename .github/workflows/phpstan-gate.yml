@@ -18,14 +18,10 @@ on:
       - 'composer.json'
       - 'composer.lock'
       - '.github/workflows/phpstan-gate.yml'
-  pull_request:
-    paths:
-      - '**/*.php'
-      - 'phpstan.neon.dist'
-      - 'phpstan-baseline.neon'
-      - 'composer.json'
-      - 'composer.lock'
-      - '.github/workflows/phpstan-gate.yml'
+  # ADR 0271 onda 2 (item 4 — required-readiness): pull_request SEM paths
+  # (always-run) pra ser promovível a required sem deadlock "Expected — waiting".
+  # Analyse roda full vs phpstan-baseline.neon → passa trivial em PR sem .php.
+  pull_request: {}
 
 concurrency:
   group: phpstan-gate-${{ github.ref }}
