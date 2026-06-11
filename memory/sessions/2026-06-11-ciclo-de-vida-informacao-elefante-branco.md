@@ -1,4 +1,16 @@
+---
+date: "2026-06-11"
+topic: "Ciclo de vida da informação (o 'elefante branco') — diagnóstico da IA + auditoria do caminho de leitura + ADR 0270"
+authors: [W, C]
+related_adrs: ["0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"]
+prs: [2527]
+---
+
 # Sessão 2026-06-11 — Ciclo de vida da informação (o "elefante branco")
+
+## TL;DR
+
+Wagner perguntou "o que a IA ainda não faz bem / como deixá-la focada", depois "como deve ser o ciclo de vida da informação? **parece um elefante branco**". Diagnóstico da Jana: saturada em isolamento/PII/governança, **fraca em qualidade-de-resposta-medida-em-prod + degradação silenciosa**. Auditoria do caminho de leitura achou o número do elefante: **2.438 .md, 22 de 58 módulos (38%) sem porta da frente, sessions 40→192/mês**. Causa-raiz: sistema otimizado pra ESCREVER, não pra LER; append-only aplicado a conhecimento que devia morrer. Entregue **[ADR 0270]** (porta única + destilação + decaimento + medir leitura), draft PR #2527, status `proposto`. Código (F2-F5) fica pra CT 100.
 
 ## O que rolou
 

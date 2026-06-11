@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **274** arquivos · **259** números únicos · máx **0269**
-- **ADRs ATIVOS (lifecycle ativo): 234** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 212 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 234 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **275** arquivos · **260** números únicos · máx **0270**
+- **ADRs ATIVOS (lifecycle ativo): 235** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 212 · proposto 37 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 235 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (274)
+## Todas as ADRs (275)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -306,3 +306,4 @@ _(íntegra)_
 | 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
 | 0268 | proposto | ativo | decision | whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; dispa |
 | 0269 | aceito | ativo | decision | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
+| 0270 | proposto | ativo | arquitetura-conhecimento | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
