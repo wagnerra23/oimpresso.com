@@ -3,7 +3,7 @@ date: "2026-06-11"
 hour: "07:58 BRT"
 slug: elefante-branco-adr0270-0271-gates-onda1
 topic: "Sessão 'elefante branco': diagnóstico IA + ciclo de vida da informação (ADR 0270 aceita) + lápide MemCofre 33→1 + knowledge-drift.mjs + auditoria dos 64 gates (ADR 0271 aceita, onda 1 executada 64→58) — ONDA 2 APROVADA mas NÃO executada (fechei pra reabrir com MCP)"
-tldr: "Wagner perguntou 'o que a IA não faz bem' → 'ciclo de vida da informação? parece elefante branco' → 'os portões estão defasados e conflitantes'. Entregue no PR #2527 (ready, CI verde): ADR 0270 aceita (porta única + destilação + decaimento + medir leitura), lápide MemCofre (read-path 33→1), detector knowledge-drift.mjs (achado: 39/61 módulos citam Modules/X inexistente), ADR 0271 aceita (auditoria completa dos 64 gates: 12 conflitos, 1 gate de teatro, 1 deadlock latente; onda 1 = 6 deletados + 2 desarmados + fonte única vocab ADR). ONDA 2 APROVADA por Wagner ('pode fazer todos') mas NÃO executada — ele cobrou consultar MCP antes e as tools MCP não existem neste ambiente nuvem → fechei pra reabrir com MCP. Plano detalhado da onda 2 na seção própria abaixo."
+tldr: "PR #2527 (ready, CI verde): ADR 0270 aceita (porta única + destilação + decaimento + medir leitura) · lápide MemCofre 33→1 · knowledge-drift.mjs (39/61 módulos citam Modules/X inexistente) · ADR 0271 aceita (auditoria dos 64 gates: 12 conflitos, 1 teatro, 1 deadlock; onda 1 = 64→58 + fonte única vocab). ONDA 2 APROVADA ('pode fazer todos') NÃO executada — condição 'consultar o mcp antes' e a nuvem não tem MCP → reabrir com MCP, plano detalhado abaixo."
 duration: "~5h"
 authors: [CL, W]
 session: claude-code-web-ai-limitations-qa-4h10n0
