@@ -35,6 +35,10 @@ for i in 1 2 3 4 5; do
 done; echo
 ```
 
+> ⚠️ **O warm-up por curl bate na porta 443 (HTTP), NÃO na porta SSH (65002).** Quando a rota runner→Hostinger está fria *na porta SSH*, o `curl 443` retorna `200` mas o 1º `connect` SSH ainda dá `Connection timed out` → `exit 255` (incidente 2026-06-11, deploy run 27346860058: `php -v` timou 5 min e matou o deploy mesmo com warm-up curl). **Duas defesas obrigatórias** (já no `deploy.yml`):
+> 1. **Warm-up TCP na porta SSH de verdade** antes do 1º comando — sonda `bash -c "echo > /dev/tcp/$HOST/$PORT"` com `timeout` num loop, pra acordar a rota CERTA (não só a 443).
+> 2. **Retry no nível do comando SSH** (não confiar só no `ConnectionAttempts` interno do ssh): wrapper retenta a conexão até 5× espaçando ~15s, **só em `exit 255`** (connect timeout/refused/reset) — erro real do comando remoto (exit ≠ 255) propaga na hora. `ConnectTimeout=30 × ConnectionAttempts=2` por tentativa pra as 5 se espalharem no tempo e pegarem janelas boas, em vez de 1 tentativa-monolítica de 5 min num único momento ruim.
+
 ### SSH config robusto (não cortar nenhum flag)
 
 ```bash
