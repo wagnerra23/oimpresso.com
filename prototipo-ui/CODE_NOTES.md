@@ -826,3 +826,39 @@ Origem: PROMPT_PARA_CODE_PACOTE-QUALIDADE-9-OS ([CC] 2026-06-10). Validação §
 ### new_design_memories
 - **gotcha**: PR stacked + fila de merge com `--delete-branch` = squash pode entrar NA BASE deletada (conteudo some do main sem erro). Confirmar `baseRefName=main` ANTES de mergear o filho.
 - **golden**: gate novo (fontramp) nasce como RATCHET com baseline congelada — adoção tela-a-tela depois, fundacao nunca força sweep.
+
+---
+
+## 2026-06-11 [CL] → [W] · ONDA Q1 — G-3 E2E Playwright vira gate de PR (mandato ONDAS-QUALIDADE-GOVERNANCA)
+
+Origem: PROMPT_PARA_CODE_ONDAS-QUALIDADE-GOVERNANCA ([CC] 2026-06-11, proposta §10.4). Validação Passo 0 contra origin/main 642836124 ANTES de agir.
+
+### Validação §10.4 (estado real vs premissas do prompt)
+| Premissa [CC] | Estado real @main | Veredito |
+|---|---|---|
+| e2e-gate workflow_dispatch não-required | confirmado | EXECUTADO Q1 |
+| harness estável (2 verdes 06-10) | runs 27277134411 + 27277247743 ✓ | mas main MUDOU (ver bug abaixo) |
+| visual-regression "ainda stub" | DESATUALIZADO: já required (15 contexts, #2553) e roda Pest Browser real | Q4 re-escopado: falta pixel-baseline núcleo-6, não o gate |
+| casos:check não marca unverified | DESATUALIZADO: já marca (8 `status:unverified` no baseline) | Q2.1 SUPERADO |
+| governance-drift/memory-health não-auditados | auditados agora: ADR 0216 (DriftCheckers+daily) + ADR 0256 (6 checks A-F) substantivos | Q5 re-escopado: faltam registry+frescor+licao_sem_assercao |
+
+### Placar Q1
+| passo | prova |
+|---|---|
+| Re-validação em main ANTES do flip | run 27364711144 🔴 — **3/5 UCs quebrados**: workspace unificado #2551 matou a tela ProducaoOficina (virou redirect 301 pro Board) e os specs ancoravam nela. O gate fez o trabalho dele ANTES de nascer required. |
+| Conserto de CAUSA (nunca retry-até-passar, ADR 0261) | PR #2561 MERGED — specs re-ancorados no Board canônico (busca `placa ou cliente`; UC-06: veredito preditivo de arrasto não existe no Board → gate opina no DROP, toast `Transição não permitida`/`OS sem pipeline` + mouse.up no helper) |
+| 2 runs verdes seguidos em main pós-fix | 27365585787 ✓ + 27365775694 ✓ |
+| Flip workflow_dispatch → pull_request | PR #2560 MERGED — always-run + skip-as-pass dorny/paths-filter (padrão required-readiness ADR 0271 onda 2, idêntico visual-regression #2553). **Desvio consciente do prompt**: `paths:` no trigger criaria deadlock "Expected — waiting" quando required; o repo já tem o padrão provado. workflow_dispatch mantido pra re-validação manual. Context novo: `E2E Playwright · UCs críticos`. |
+| Prova sensibilidade (lado 🔴) | PR #2563 (DRAFT, NÃO-MERGEAR): aria-label `Coluna→Etapa` sintético → e2e-gate run 27365999451 🔴, fechado após prova |
+| Prova especificidade (lado 🟢) | este PR (docs-only) → e2e-gate skip-as-pass 🟢 em ~1-2min sem pagar boot |
+| Required (1 clique [W]) | PREPARADO, aguardando clique — comando no fim desta entrada. Não-bloqueante: segui pra Q2 (regra do mandato). |
+
+### Clique do [W] — promover a required (16º context)
+```
+gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks/contexts" -f "contexts[]=E2E Playwright · UCs críticos"
+```
+(ou Settings → Branches → main → Require status checks → adicionar `E2E Playwright · UCs críticos`)
+
+### new_design_memories
+- **gotcha**: tela substituída por redirect (workspace #2551) quebra E2E silenciosamente ENQUANTO o gate é manual — exatamente o intervalo que o flip pra `pull_request` fecha. Specs ancorados em tela morta = a 1ª coisa que um gate de comportamento pega.
+- **golden**: required-readiness = `pull_request` SEM `paths:` + dorny/paths-filter skip-as-pass interno (3ª aplicação: visual-regression #2553, governance-drift, agora e2e-gate). `paths:` no trigger de check required = deadlock.
