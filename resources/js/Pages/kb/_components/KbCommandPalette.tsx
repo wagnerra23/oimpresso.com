@@ -13,7 +13,7 @@ import type { KbCategory, KbNode } from '../_lib/types';
 import { findCategory, fuzzyMatch } from '../_lib/helpers';
 
 /**
- * CommandPalette — busca rápida ⌘K
+ * KbCommandPalette — busca rápida ⌘K do KB (nome distinto do Components/CommandPalette global)
  *
  * Port do `kb-page.jsx::CommandPalette` (Cowork [CC]) usando shadcn `Command`
  * (cmdk underneath — feature parity + acessível).
@@ -38,7 +38,7 @@ interface Props {
   onAskAI?: (query: string) => void;
 }
 
-export default function CommandPalette({
+export default function KbCommandPalette({
   open,
   onOpenChange,
   nodes,

@@ -16,7 +16,7 @@ import { type FormEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import FxShell from './_components/FxShell';
-import ModuleTopNav from './_components/ModuleTopNav';
+import FiscalModuleTopNav from './_components/FiscalModuleTopNav';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -258,7 +258,7 @@ export default function Config({ certificado, config, painel, seriesMock = [] }:
         )}
 
         {/* Onda 2 H — ModuleTopNav 4 tabs */}
-        <ModuleTopNav
+        <FiscalModuleTopNav
           items={[
             { id: 'cert',     label: 'Certificado A1', icon: <Shield size={12} />,    count: certificado ? undefined : 0, tone: certificado ? null : 'bad' },
             { id: 'series',   label: 'Séries',         icon: <FileText size={12} />,  count: seriesMock.filter((s) => s.ativo).length },
