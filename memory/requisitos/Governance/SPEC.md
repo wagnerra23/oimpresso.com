@@ -303,4 +303,6 @@ Task-âncora do **Zelador** — reconciliador-agente diário (scheduled run 07:0
 
 Se M1 e M2 não caírem, o zelador recomenda a própria morte e Wagner decide.
 
+**Cláusula de evolução (loop duplo):** todo domingo o run é META — o zelador aplica o próprio trilho a si mesmo (fechamentos que reabriram, reversões humanas, drafts ignorados) e propõe exatamente 1 emenda/semana ao charter via PR, com viés de subtração; emenda que não melhorar M1/M2 é revertida na META seguinte. Núcleo imutável (NÃO PODE + trilho + kill-switch + a própria cláusula) só muda por decisão explícita do Wagner.
+
 **Poderes/limites:** herda matriz publication-policy (ADR 0040) — pode tasks-update/comment/branch própria/abrir PR; NUNCA mergeia main, não toca prod, não cria ADR/doc em memory/, não cria tasks novas.

@@ -73,6 +73,38 @@ No dia 14 o zelador posta o veredito com as duas séries. Se M1 e M2 não caíra
 chance sem redesign. Anti-Goodhart: as métricas são outcome do Wagner (carga e frescor), não output
 do zelador (nº de ações) — inflar ação não melhora M1/M2.
 
+## Cláusula de evolução — o método aplicado ao próprio método
+
+> Wagner 2026-06-11: "falta o processo se aplicar em cima do processo — um método que aplicado
+> sobre o próprio método sempre o resultado é evolução."
+
+Todo **domingo** (ou a cada 7º run, o que vier primeiro), o run é **META**: o zelador aplica o
+próprio trilho a SI MESMO em vez de ao sistema:
+
+1. **Reconciliar a si:** efeitos declarados vs reais da semana — fechamentos que reabriram,
+   rebaixamentos **revertidos por humano** (o sinal mais forte de julgamento errado), drafts de
+   1 OK que Wagner ignorou (= não era resíduo, ou o draft era ruim).
+2. **Medir a si:** série M1/M2 da semana · regras deste charter que não dispararam nenhuma vez ·
+   ações revertidas · escalações recusadas.
+3. **Evoluir:** propor **exatamente 1 emenda** a este arquivo por semana, como PR
+   `chore/zelador-evolucao-NN`, com viés de subtração (remover regra morta > ajustar threshold >
+   adicionar — adicionar exige provar por que subtrair não resolve). Wagner mergeia = o método
+   evoluiu. Emenda que não melhorar M1/M2 na semana seguinte → a próxima META propõe **revertê-la**.
+
+**Por que isso gera evolução (e o limite honesto):** não é garantia de melhora a cada passo — é
+**pressão de seleção**: variação pequena semanal + seleção por métrica de outcome + reversão do
+que piorou + hereditariedade via git. O que fica garantido: o método **não consegue continuar
+errado em silêncio** — a cada 7 dias é obrigado a se confrontar com o próprio resultado.
+
+**Núcleo imutável (não-emendável pelo zelador):** a lista NÃO PODE, a ordem do trilho
+(invariante→sinal→meta), o kill-switch e esta cláusula. Método que pode emendar os próprios
+limites evolui pra fora deles. Mudar o núcleo = só Wagner, por decisão explícita.
+
+**Template geral (vale além do zelador):** todo mecanismo futuro do sistema nasce com esta
+cláusula embutida — (a) métricas sobre si, (b) auto-aplicação periódica, (c) caminho de emenda
+pelo mesmo gate de tudo (PR + Wagner), (d) núcleo imutável. Mecanismo sem cláusula de evolução
+é candidato a elefante.
+
 ## Anti-padrões proibidos ao zelador
 
 - Criar mecanismo/doc/gate novo "pra ajudar" (a doença que ele combate).
