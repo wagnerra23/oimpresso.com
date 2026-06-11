@@ -148,8 +148,8 @@ Entregáveis:
 
 Paralelizável com C se Felipe paralelizar. Entregáveis:
 
-- [ ] `resources/js/Components/clientes/Avatar.tsx` — avatar colorido-hash HSL determinístico via `avatarFor(id)` (Wave C Lib/avatar.ts)
-- [ ] `resources/js/Components/clientes/Pills.tsx` — StatusPill, TipoPill, TagChip (9 cores semânticas), FrescorPill (4 estados: fresco verde 0-30d, recente azul 31-90d, distante âmbar 91-180d, frio cinza 180d+)
+- [ ] `resources/js/Pages/Cliente/_components/Avatar.tsx` — avatar colorido-hash HSL determinístico via `avatarFor(id)` (Wave C Lib/avatar.ts)
+- [ ] `resources/js/Pages/Cliente/_components/Pills.tsx` — StatusPill, TipoPill, TagChip (9 cores semânticas), FrescorPill (4 estados: fresco verde 0-30d, recente azul 31-90d, distante âmbar 91-180d, frio cinza 180d+)
 - [ ] Substituir 4 pílulas radio (Todos/Ativos/Atrasados/Sem OS) por **6 FilterDropdown**: Tipo (PF/PJ) · Status (ativo/inativo/bloqueado) · UF (27) · Tags (multi) · Sem compra há (15d/30d/90d/180d/365d) · Com saldo (sim/não/devedor)
 - [ ] ActiveChip horizontal scrollable — remove filtro individual; sync URL via `router.get('/cliente', { ...filters })` debounced
 - [ ] Colunas tabela finais: [Avatar HSL · Nome+sub-nome (fantasia/cidade/UF) · TipoPill · Documento mascarado · Cidade/UF · FrescorPill+ÚltimaOS · Saldo colorido (`text-red-700 tabular-nums font-semibold` se devedor) · OS · Tags chips + Star pessoal localStorage · Ações ⋯]
@@ -208,7 +208,7 @@ resources/js/Pages/Cliente/
     ├── SubscriptionsTab.tsx
     └── RewardPointsTab.tsx
 
-resources/js/Components/clientes/          ← NOVO (Wave G)
+resources/js/Pages/Cliente/_components/    ← NOVO (Wave G · movido 2026-06-11)
 ├── Avatar.tsx                             (HSL hash determinístico)
 └── Pills.tsx                              (StatusPill/TipoPill/TagChip/FrescorPill)
 

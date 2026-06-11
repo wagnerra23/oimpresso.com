@@ -6,6 +6,18 @@ next_review: "2026-09-06"
 
 # Changelog · Design System
 
+## [0.6.9] - 2026-06-11 · MOVE componentes de domínio single-módulo pra Pages/<Mod>/_components
+
+Camada 4 (Módulo · UI-0013) sai da pasta global `Components/` quando só 1 módulo consome — alinha com convenção `_components/` já vigente (Sells, CaixaUnificada, ServiceOrders). `Components/` global fica reservada a: `ui/` (primitivos) · `shared/` (compostos cross-módulo) · `layout/` (ADR 0253) · `PageHeader/` (canon v3.8) · `cockpit/` (Shell) · `board/` (cross-módulo OficinaAuto+ProjectMgmt) · `Site/` (surface pública) · `NfeBrasil/` (domínio fiscal consumido por Sells).
+
+### Moved
+
+- **MOVE** `Components/clientes/{ActiveChip,Avatar,KpiStripClickable,Pills}.tsx` → `Pages/Cliente/_components/`
+- **MOVE** `Components/ConsultaOs/{OsLookupForm,OsPipeline,OsResultCard,OsStageBadge}.tsx` → `Pages/ConsultaOs/_components/`
+- **MOVE** `Components/jana/AssistantUiChat.tsx` → `Pages/Jana/_components/`
+- Refs atualizadas: imports (Cliente/Index · ConsultaOs/Index · Jana/Chat) · `tests/Feature/Cliente/ClienteListagemTurbinadaTest.php` (GUARDs 1/2/3/13) · `config/eslint-baseline.json` (5 keys re-path) · `Cliente/Index.charter.md` (§Componentes) · docs vivos (Crm BRIEFING/RUNBOOK · REUSE_MAPPING · comentário ContactController)
+- Baselines re-keyed (move puro, sem regressão): `scripts/layout-primitives-baseline.json` (6 keys, counts idênticos) · eslint baseline absorve +6 `no-restricted-syntax` pré-existentes que ENTRARAM no escopo das regras DS (`files: Pages/**`) com o move — hand-roll antigo (rounded-xl ×3 AssistantUiChat · text-rose cru ×2 Pills [assertado por GUARD 2 Pest] · ×1 OsPipeline); catraca segue: PR novo que hand-rolar regride
+
 ## [0.6.8] - 2026-05-24 · Smoke real OpenAI · LLM judge funciona + pegou drift real
 
 ### Smoke real Onda 4 — CONFIRMADO FUNCIONAL

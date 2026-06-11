@@ -120,8 +120,8 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - `_drawer/IATab.tsx` (Wave E)
 - `_drawer/AuditoriaTab.tsx` (Wave F)
 - `_show/*` (8 arquivos Wave Final 2026-05-21 — reusados via OssTab wrapper)
-- `Components/clientes/Pills.tsx` (StatusPill, TipoPill, TagChip, FrescorPill)
-- `Components/clientes/Avatar.tsx` (HSL hash determinístico)
+- `Pages/Cliente/_components/Pills.tsx` (StatusPill, TipoPill, TagChip, FrescorPill)
+- `Pages/Cliente/_components/Avatar.tsx` (HSL hash determinístico)
 - `Lib/br-mask.ts` · `Lib/br-validate.ts` · `Lib/avatar.ts` · `Lib/relDate.ts`
 
 ## Refs

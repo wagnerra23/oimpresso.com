@@ -1,4 +1,4 @@
-// Wave Z-2.1 — Components/clientes/ActiveChip.tsx
+// Wave Z-2.1 — Pages/Cliente/_components/ActiveChip.tsx
 //
 // Chip removível pra filtros ativos na listagem. Alinhado ao protótipo Cowork
 // `clientes-listagem.jsx::ActiveChip` — mostra "Label: valor ×" e dispara
