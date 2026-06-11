@@ -1922,12 +1922,12 @@
 .fin-cowork .vendas-page .vd-total { font-weight:600; font-variant-numeric:tabular-nums; font-size:var(--fs-3); }
 .fin-cowork .vendas-page .vd-os-pill { display:inline-block; padding:1px 6px; border-radius:4px; background:oklch(0.95 0.01 250); font-family:var(--font-mono); font-size:var(--fs-1); margin-right:3px; color:oklch(0.40 0.04 250); }
 .fin-cowork .vendas-page .vd-no-os { font-size:var(--fs-1); color:oklch(0.55 0.02 250); font-style:italic; }
-.fin-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:var(--fs-1); color:oklch(0.40 0.04 250); background:#fff; }
+.fin-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:var(--fs-1); color:oklch(0.40 0.04 250); background:var(--surface); }
 /* Drawer venda */
 
 /* Stepper */
 
-.fin-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+.fin-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,0.04); }
 .fin-cowork .vd-step.done { color:oklch(0.45 0.12 145); }
 
 .fin-cowork .vd-step.active .vd-step-num { background:oklch(0.55 0.14 240); color:#fff; }
@@ -1960,7 +1960,7 @@
 }
 .fin-cowork .vc-grid > .vc-card:nth-child(3) { grid-column: 1 / -1; }
 .fin-cowork .vc-card {
-  background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px;
+  background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px;
   overflow:hidden;
 }
 .fin-cowork .vc-card-h {
@@ -2045,7 +2045,7 @@
   gap:10px; padding:0 24px 14px;
 }
 .fin-cowork .os-kpi {
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border, oklch(0.93 0.01 250));
   border-radius:8px; padding:12px 14px;
   display:flex; flex-direction:column; gap:4px;
 }
@@ -2076,7 +2076,7 @@
 .fin-cowork .os-table-wrap { padding:14px 24px 20px; overflow:auto; }
 .fin-cowork .os-table {
   width:100%; border-collapse:collapse;
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border, oklch(0.93 0.01 250));
   border-radius:8px; overflow:hidden;
 }
 .fin-cowork .os-table thead th {
@@ -2099,7 +2099,7 @@
 .fin-cowork .os-drawer-head {
   display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px; padding:18px 20px; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
-  background:#fff;
+  background:var(--surface);
 }
 .fin-cowork .os-drawer-head-l { flex:1; min-width:0; }
 
@@ -2882,7 +2882,7 @@
 .fin-cowork .vendas-aplus .vd-plate {
   display: inline-flex; flex-direction: column; align-items: stretch;
   width: 78px; flex-shrink: 0;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid oklch(0.30 0 0); border-radius: 3px;
   overflow: hidden;
   font-family: var(--font-mono);
