@@ -4832,6 +4832,25 @@
   border-radius: 10px; padding: 10px 14px 12px;
 }
 
+/* R2 — Categoria editável inline (Canal segue read-only · decisão [W] 2026-06-11):
+   select vestido de valor + chevron ▾ via ::after (token, sem cor crua nem data-URI). */
+.fin-cowork .fin-kvedit { position: relative; display: inline-block; max-width: 100%; }
+.fin-cowork .fin-kvedit::after {
+  content: '▾'; position: absolute; right: 5px; top: 50%;
+  transform: translateY(-50%) scale(0.8); /* fs-1 encolhido — sem px cru fora do ramp */
+  font-size: var(--fs-1); color: var(--text-mute); pointer-events: none;
+}
+.fin-cowork .fin-kvedit select {
+  appearance: none; -webkit-appearance: none;
+  max-width: 100%; margin-left: -4px; padding: 1px 18px 1px 4px;
+  border: 1px solid transparent; border-radius: 5px; background: transparent;
+  color: var(--text); font: inherit; font-weight: 500; font-size: var(--fs-4);
+  cursor: pointer;
+  transition: border-color var(--t-1) var(--ease), background-color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-kvedit select:hover { border-color: var(--border); background-color: var(--bg-2); }
+.fin-cowork .fin-kvedit select:focus { outline: none; border-color: var(--accent); background-color: var(--surface); }
+
 /* F2 — footer NUNCA estoura: botões não quebram, hint some quando há troubleshooter.
    (overflow:hidden e .fin-trouble-btn flex-shrink:1 foram MERGEADOS nas regras-base
    .fin-drawer-footer / .fin-trouble-btn acima — sem dup-selector.) */

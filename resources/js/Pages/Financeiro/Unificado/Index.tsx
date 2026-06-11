@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, type LucideIcon } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +61,6 @@ import { FinMonthResumeDialog } from './_components/FinMonthResume';
 // Onda 10 (canon 100%) — Edit panel inline real (FinSubNav + FinAgeing REMOVIDOS
 // 2026-05-18 Wagner: visualmente duplicados — sidebar já navega entre Fluxo/DRE/etc,
 // e ageing bar é insight contextual no drawer, não strip permanente).
-import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
 import { TituloCreateSheet } from './_components/TituloCreateSheet';
@@ -749,6 +748,75 @@ function printReciboTitulo(t: Lancamento) {
   }, 60);
 }
 
+// FA-5 — Vínculos: chips estruturados derivados dos MESMOS tokens do FinCrossLinkify
+// (#V-/#OS-/#PC-/#BL- na descrição) + nfe_numero. Não inventa dado — estrutura o que já existe.
+const FIN_XLINK_DEFS = [
+  { kind: 'venda', re: /#V-(\d{1,8})/g, label: (n: string) => `Venda #${n}`, href: (n: string) => `/sells/${n}`, Icon: ShoppingBag, cls: 'text-primary' },
+  { kind: 'os', re: /#OS-(\d{1,8})/g, label: (n: string) => `OS #${n}`, href: (n: string) => `/repair/job/${n}`, Icon: Wrench, cls: 'text-warning-foreground' },
+  { kind: 'compra', re: /#PC-(\d{1,8})/g, label: (n: string) => `Compra #${n}`, href: (n: string) => `/compras/${n}`, Icon: Package, cls: 'text-success-foreground' },
+  { kind: 'boleto', re: /#BL-(\d{1,8})/g, label: (n: string) => `Boleto #${n}`, href: (n: string) => `/financeiro/boletos/${n}`, Icon: Receipt, cls: 'text-muted-foreground' },
+] as const;
+
+function FinVinculosChips({ descricao, nfeNumero }: { descricao: string; nfeNumero: string | null }) {
+  const chips: { key: string; label: string; href: string; Icon: LucideIcon; cls: string }[] = [];
+  for (const def of FIN_XLINK_DEFS) {
+    for (const m of (descricao ?? '').matchAll(def.re)) {
+      chips.push({ key: `${def.kind}-${m[1]}`, label: def.label(m[1]), href: def.href(m[1]), Icon: def.Icon, cls: def.cls });
+    }
+  }
+  if (nfeNumero) chips.push({ key: `nf-${nfeNumero}`, label: `NFe ${nfeNumero}`, href: `/fiscal/nfe?numero=${nfeNumero}`, Icon: FileText, cls: 'text-muted-foreground' });
+  if (chips.length === 0) return null;
+  return (
+    <section className="border-t border-stone-100 pt-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden><Link2 size={12} /></span>
+        <h4 className="text-[12.5px] font-semibold text-foreground mr-1">Vínculos</h4>
+        {chips.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => router.visit(c.href)}
+            className="inline-flex items-center gap-1.5 h-7 pl-2 pr-2.5 rounded-md border border-border text-[11.5px] text-foreground transition-colors hover:bg-muted"
+          >
+            <c.Icon size={12} className={c.cls} aria-hidden />
+            <span>{c.label}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// FA-5 — Categoria editável inline (Canal fica read-only — sem rota de save no backend,
+// decisão [W] 2026-06-11). Espelha EXATAMENTE o payload do TituloEditSheet (proven) só
+// trocando categoria_id, pra não nular contraparte/forma/conta (o controller fill()
+// sobrescreve esses campos no update).
+function FinKVCategoriaInline({ selected, categorias }: { selected: Lancamento; categorias: { id: number; nome: string }[] }) {
+  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoriaId = e.target.value === '' ? null : Number(e.target.value);
+    if (categoriaId === (selected.categoria_id ?? null)) return;
+    const data: Record<string, unknown> = {
+      cliente_descricao: selected.contraparte === '—' ? null : selected.contraparte,
+      observacoes: selected.observacao || null,
+      categoria_id: categoriaId,
+      plano_conta_id: selected.plano_conta_id ?? null,
+      vencimento: selected.vencimento,
+      conta_bancaria_id: selected.conta_bancaria_id ?? null,
+    };
+    if (selected.valor_mutavel) data.valor_total = selected.valor;
+    if (!selected.forma_pagamento_realizada) data.forma_pagamento = selected.forma_pagamento || null;
+    router.put(`/financeiro/unificado/${selected.id}`, data as Record<string, never>, { preserveScroll: true });
+  };
+  return (
+    <span className="fin-kvedit">
+      <select value={selected.categoria_id ?? ''} onChange={onChange} title="Editar categoria — salva no lançamento" aria-label="Categoria">
+        <option value="">(Sem categoria)</option>
+        {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+      </select>
+    </span>
+  );
+}
+
 function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void; periodLabel: string }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
@@ -1125,7 +1193,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
   // (Anthropic API design fetch 2026-05-18). 3 abas canônicas:
   //   detalhes (verde 145, default) / ia (roxo 295) / editar (amber 60, inline)
   // Reset pra 'detalhes' ao trocar de linha.
-  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia' | 'editar'>('detalhes');
+  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia'>('detalhes');
   useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
@@ -1902,9 +1970,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         </Inline>
                       </div>
                       <Stack gap={1} align="end" className="gap-1.5 shrink-0 pb-0.5">
-                        {/* FA-5 R3 — estado dito 1×: o label uppercase colorido (acima) já diz
-                            o estado; aqui fica só o frescor como chip calmo. StatusPill saiu. */}
-                        <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                        {/* FA-5 R3 — estado dito 1×: o label uppercase colorido (acima) já diz o
+                            estado; o frescor fica só como chip calmo e SOME quando liquidado
+                            (protótipo: hero do liquidado mostra só a data). StatusPill saiu. */}
+                        {!settled && (
+                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: null, vencimento: selected.vencimento }} />
+                        )}
                         <div className="text-[12.5px] text-muted-foreground tabular-nums whitespace-nowrap">
                           {settled
                             ? <>liq. <b className="font-medium text-foreground">{selected.liquidacao || '—'}</b></>
@@ -1936,7 +2007,17 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 );
               })()}
 
-              {/* Nav de abas — Cowork canon V2.1 (3 abas: Detalhes/IA/Editar) */}
+              {/* FA-5/9.75 — Conferir + Editar campos viram BOTÕES (protótipo: edição fora das
+                  abas). Linha entre o hero (fixo) e as abas. */}
+              <div className="shrink-0 px-5 pt-2.5 flex items-center gap-2 fin-toggles-row">
+                <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+                <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)} title="Editar campos do lançamento">
+                  <span aria-hidden>✎</span>
+                  <span className="ml-1">Editar campos</span>
+                </Button>
+              </div>
+
+              {/* Nav de abas — 9.75 (2 abas: Detalhes / ✦ IA; Editar virou botão acima) */}
               <nav className="fin-drawer-tabs" role="tablist" aria-label="Visualização do título">
                 <button
                   type="button"
@@ -1979,17 +2060,6 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     );
                   })()}
                 </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={false}
-                  className="fin-drawer-tab fin-drawer-tab-edit"
-                  onClick={() => setEditOpen(true)}
-                  title="Editar lançamento"
-                >
-                  <span className="fin-drawer-tab-glyph" aria-hidden>✎</span>
-                  <span>Editar</span>
-                </button>
               </nav>
 
               {/* Aba Detalhes — info + audit + comments + actions
@@ -1997,14 +2067,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   permite o footer (irmão, fora do scroll) ficar sticky-bottom. */}
               {drawerTab === 'detalhes' && (
                 <div className="mt-3 px-5 pb-4 space-y-5 text-[13px] flex-1 overflow-y-auto min-h-0">
-                  {/* PR-3 F2 (2026-06-10) — o hero (Onda 17) saiu daqui e virou Camada 1
-                      FIXA fora do scroll, entre o header e as tabs (ver acima). */}
-                  <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+                  {/* FA-5 — Vínculos: chips estruturados derivados dos tokens #V-/#OS- da descrição
+                      + nfe_numero (mesma fonte do FinCrossLinkify; não inventa dado). */}
+                  <FinVinculosChips descricao={selected.descricao} nfeNumero={selected.nfe_numero} />
 
-                  {/* Onda 18 (2026-05-20) — Grid 2-col canon match prototype financeiro-app.jsx:808-831.
-                      Cells: Contraparte / Categoria / Canal / Documento (col-1) + Conta col-span-2
-                      com bank icon. Labels UPPERCASE tracking-widest text-stone-500. */}
-                  <div className="border-t border-stone-100 pt-4 grid grid-cols-2 gap-y-3 gap-x-3">
+                  {/* FA-5 — ficha de identificação em fin-kv-card (lavanda sutil); MANTÉM os 17
+                      campos WR ([W] 2026-06-11). Onda 18 grid 2-col canon. */}
+                  <div className="fin-kv-card grid grid-cols-2 gap-y-3 gap-x-3">
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
                       <div className="mt-0.5 font-medium text-stone-900"><CopyVal text={selected.contraparte}>{selected.contraparte}</CopyVal></div>
@@ -2012,7 +2081,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     </div>
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Categoria</div>
-                      <div className="mt-0.5 text-stone-700">{selected.categoria || '—'}</div>
+                      <div className="mt-0.5 text-stone-700"><FinKVCategoriaInline selected={selected} categorias={categorias} /></div>
                     </div>
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Canal</div>
@@ -2174,6 +2243,38 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     );
                   })()}
 
+                  {/* FA-5 — Lente Cobrança (protótipo): ciclo título⇄cobrança. Reusa o
+                      endpoint de boleto Inter que já existe; sem PIX (não há gerador no live). */}
+                  {(() => {
+                    const settledCob = selected.status === 'recebido' || selected.status === 'pago';
+                    const isInCob = selected.kind === 'receivable';
+                    const hasBoleto = !!selected.boleto?.linha_digitavel;
+                    const cobStatus = settledCob ? 'encerrada' : selected.status === 'atrasado' ? 'em atraso' : hasBoleto ? 'boleto emitido' : 'a gerar';
+                    const cobTone: 'pos' | 'warn' | 'muted' = settledCob ? 'pos' : selected.status === 'atrasado' ? 'warn' : 'muted';
+                    return (
+                      <DrawerLens icon={Send} title="Cobrança" status={cobStatus} tone={cobTone} hue={settledCob ? 'pos' : selected.status === 'atrasado' ? 'warn' : 'accent'}>
+                        {settledCob ? (
+                          <Inline gap={2} className="gap-2 text-[12.5px]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" aria-hidden />
+                            <span className="text-foreground">Título liquidado — cobrança encerrada.</span>
+                          </Inline>
+                        ) : !isInCob ? (
+                          <div className="text-[12.5px] text-muted-foreground">Saída — registre a baixa quando pagar (sem cobrança a emitir).</div>
+                        ) : hasBoleto ? (
+                          <div className="text-[12.5px] text-muted-foreground">Boleto emitido (Banco Inter). Linha digitável no rodapé — “Copiar boleto”.</div>
+                        ) : (
+                          <div>
+                            <p className="text-[12.5px] text-muted-foreground mb-2">Nenhuma cobrança emitida. Gere um boleto — o status volta pra cá quando o cliente pagar.</p>
+                            <Button variant="outline" size="sm" onClick={() => router.post(`/financeiro/unificado/${selected.id}/boleto`, {}, { preserveScroll: true })}>
+                              <FileText className="h-3.5 w-3.5" aria-hidden />
+                              <span className="ml-1">Gerar boleto</span>
+                            </Button>
+                          </div>
+                        )}
+                      </DrawerLens>
+                    );
+                  })()}
+
                   <div className="border-t border-stone-200 pt-4">
                     <FinAuditTrail row={{
                       id: selected.id,
@@ -2269,6 +2370,9 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   Ver NFe → Cobrar → Recebi/Paguei → Editar → Favoritar. */}
               {drawerTab === 'detalhes' && (
                 <div className="fin-drawer-footer fin-drawer-footer-sticky">
+                  {/* FA-5 — troubleshooter contextual (protótipo: "Resolver..."). Reusa o
+                      FinTroubleshooterDialog já montado na página (setTroubleOpen). */}
+                  <FinTroubleButton onClick={() => setTroubleOpen(true)} label="? Resolver" />
                   {/* FA-5 P2 — teclas visíveis (J/K nav · R liquida). Some no mobile (<720px)
                       e quando houver troubleshooter no footer (CSS :has). */}
                   <span className="fin-dw-hint" title="J / K navegam entre títulos · R liquida · Esc fecha">
@@ -2323,15 +2427,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       <kbd className="fin-kbd fin-kbd-acc">R</kbd>
                     </Button>
                   )}
-                  <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => favs.toggle(selected.id)}
-                    title="Atalho: B (com a linha selecionada)"
-                  >
-                    {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
-                  </Button>
+                  {/* FA-5 — Editar saiu do footer (virou botão 'Editar campos' no topo, ao lado de
+                      Conferir); Favoritar continua pelo atalho B. Footer enxuto = protótipo. */}
                 </div>
               )}
 
@@ -2373,16 +2470,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 </div>
               )}
 
-              {/* Aba Editar — Onda 10 canon 100%: form INLINE real (PUT /financeiro/unificado/{id}) */}
-              {drawerTab === 'editar' && (
-                <div className="mt-3 px-5">
-                  <FinEditPanel
-                    lancamento={selected}
-                    categorias={categorias}
-                    onClose={() => setDrawerTab('detalhes')}
-                  />
-                </div>
-              )}
+              {/* FA-5/9.75 — a aba 'Editar' virou o botão 'Editar campos' (topo) que abre o
+                  TituloEditSheet (editor completo, mais campos que o painel inline antigo). */}
             </>
           )}
         </SheetContent>
