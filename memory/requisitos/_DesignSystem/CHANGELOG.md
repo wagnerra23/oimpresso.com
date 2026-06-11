@@ -6,6 +6,20 @@ next_review: "2026-09-06"
 
 # Changelog · Design System
 
+## [0.6.13] - 2026-06-11 · renames de colisão de nome + catraca reuse apertada 25→21
+
+Auditoria de duplicatas ("tem arquivos duplicados ainda?"): `Fiscal/_components/ModuleTopNav` (44 linhas) e `kb/_components/CommandPalette` (162 linhas) NÃO são cópias dos homônimos shared/global — são implementações próprias dividindo o nome. O erro é a colisão (confunde reuso e polui o sinal do reuse-index), não o conteúdo.
+
+### Moved/Renamed
+
+- **RENAME** `Pages/Fiscal/_components/ModuleTopNav.tsx` → `FiscalModuleTopNav.tsx` (símbolos `FiscalModuleTopNav*`; consumidores Config/Dfe atualizados)
+- **RENAME** `Pages/kb/_components/CommandPalette.tsx` → `KbCommandPalette.tsx` (consumidor Index.v2 atualizado)
+- Baselines re-keyed: eslint (1 key) · layout (1 key)
+
+### Changed
+
+- **Catraca reuse apertada**: `reuse-duplicates-baseline.json` 25 → **21** (2 pares de colisão eliminados + 2 já resolvidos antes). Duplicatas restantes têm dono: atoms.tsx/cn → F5 (bundle Cobrança dissolve tela-a-tela) · MemCofre Pages → deleção verificada futura · MercosulPlate shim → remover pós-#2544 (ADR 0251 re-export, consumidores em edição na sessão irmã)
+
 ## [0.6.12] - 2026-06-11 · shared/ flat (CHECK 3 no guard) + MOVE shared/ponto → Pages/Ponto/_components
 
 Furo achado HORAS depois do guard nascer: subpasta de domínio DENTRO de `shared/` (`shared/ponto/`) escapava do CHECK 1, que só valida o top-level de `Components/`. Regra nova simples e enforçável: **shared/ é flat** — composto cross-módulo é arquivo direto; domínio de 1 módulo vai pra `Pages/<Mod>/_components/`.

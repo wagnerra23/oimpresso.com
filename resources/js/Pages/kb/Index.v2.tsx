@@ -33,7 +33,7 @@ import {
 import CategorySidebar from './_components/CategorySidebar';
 import NodeList from './_components/NodeList';
 import NodeReader from './_components/NodeReader';
-import CommandPalette from './_components/CommandPalette';
+import KbCommandPalette from './_components/KbCommandPalette';
 import PathsDialog from './_components/PathsDialog';
 import TroubleshooterDialog from './_components/TroubleshooterDialog';
 import HealthPanel from './_components/HealthPanel';
@@ -553,7 +553,7 @@ function KbIndexV2(props: KbIndexProps) {
       </div>
 
       {/* Overlays */}
-      <CommandPalette
+      <KbCommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         nodes={baseNodes}

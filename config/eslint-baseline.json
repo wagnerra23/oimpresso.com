@@ -229,7 +229,7 @@
     "resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx|jsx-a11y/no-static-element-interactions": 1,
     "resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx|jsx-a11y/no-noninteractive-element-interactions": 1,
     "resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx|no-restricted-syntax": 1,
-    "resources/js/Pages/Fiscal/_components/ModuleTopNav.tsx|jsx-a11y/no-noninteractive-element-to-interactive-role": 1,
+    "resources/js/Pages/Fiscal/_components/FiscalModuleTopNav.tsx|jsx-a11y/no-noninteractive-element-to-interactive-role": 1,
     "resources/js/Pages/Fiscal/_components/NotaDrawer.tsx|react-hooks/exhaustive-deps": 1,
     "resources/js/Pages/Fiscal/_components/NotaDrawer.tsx|jsx-a11y/click-events-have-key-events": 6,
     "resources/js/Pages/Fiscal/_components/NotaDrawer.tsx|jsx-a11y/no-static-element-interactions": 3,

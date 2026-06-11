@@ -1,4 +1,4 @@
-// ModuleTopNav.tsx — Sub-tabs internas (Pendentes/Histórico em DF-e,
+// FiscalModuleTopNav.tsx — Sub-tabs internas do Fiscal (nome distinto do shared/ModuleTopNav — implementação própria) (Pendentes/Histórico em DF-e,
 // Cert/Séries/Ambiente/SPED em Config). Onda 2 G+H.
 //
 // Port do fiscal-page.jsx §ModuleTopNav. Usa CSS .fx-subtabs já existente
@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react';
 
-export interface ModuleTopNavItem {
+export interface FiscalModuleTopNavItem {
   id: string;
   label: string;
   icon?: ReactNode;
@@ -14,13 +14,13 @@ export interface ModuleTopNavItem {
   tone?: 'ok' | 'warn' | 'bad' | null;
 }
 
-interface ModuleTopNavProps {
-  items: ModuleTopNavItem[];
+interface FiscalModuleTopNavProps {
+  items: FiscalModuleTopNavItem[];
   value: string;
   onChange: (id: string) => void;
 }
 
-export default function ModuleTopNav({ items, value, onChange }: ModuleTopNavProps) {
+export default function FiscalModuleTopNav({ items, value, onChange }: FiscalModuleTopNavProps) {
   return (
     <nav className="fx-subtabs" role="tablist" aria-label="Sub-páginas">
       {items.map((it) => (
