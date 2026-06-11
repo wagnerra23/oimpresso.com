@@ -689,7 +689,24 @@ Refs: ADR 0213 Mecanismo 5
 
 **Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251 · **US-FIN-053 / PR #2253** (precedente trabalhado: a lane `financeiro-pest.yml` resolveu esta mesma classe — `CaixaMovimentoFreshnessTest` migrado de `RefreshDatabase` → `DatabaseTransactions` + skip-guard contra MySQL real; o mesmo PR corrigiu 2 bugs de schema-drift `deleted_at`/`valor_baixa` no `FinanceiroHealthCommand`, instância do padrão #2 "schema drift").
 
+### US-INFRA-035 · Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18)
+
+> owner: claude · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Último item da revisão de gates (ADR 0271). NÃO executar antes de 2026-06-18 — deixar os 14 required + enforce_admins=true (flip 2026-06-11) assentarem 1 semana.
+
+Plano turnkey completo (com comandos gh api de swap e rollback) no handoff `memory/handoffs/2026-06-11-0930-gates-itens56-aplicados-item7-estruturado.md`:
+
+- **P1 (PR aditivo):** criar `color-canon-gate.yml` (job `Cor canon · ratchet unificado vs baseline`, always-run SEM `paths:`) consolidando conformance cor-crua + ui-lint + stylelint + CockpitAccentCanonTest com 1 baseline unificada. MANTER os 4 antigos rodando em paralelo. Paridade: mesmo veredito em ≥3 PRs reais + 1 violação proposital.
+- **P2 (PATCH swap):** trocar os 2 required de cor pelo unificado (14→13) — comando pronto no handoff.
+- **P3 (PR subtrativo):** deletar `conformance-gate.yml` + `ui-lint.yml` + `stylelint-gate.yml` + tirar CockpitAccentCanonTest do `ui-architecture-gate.yml` (teste continua na suíte Pest) + baselines antigas + anti-drift ADR 0270 nos docs.
+
+Cada passo é individualmente seguro — sem janela de deadlock "Expected — waiting". Rollback: re-PATCH pra lista de 14 do handoff.
+
 ---
+
+**Última atualização (US-INFRA-035):** 2026-06-11 — criada via `tasks-create` MCP na sessão de verificação dos itens 5/6 (handoff 2026-06-11-0930). Gate temporal: ≥2026-06-18.
 
 **Última atualização (US-INFRA-033):** 2026-06-04 — follow-up do PR #2251 (fix makeChannel): com as colisões globais resolvidas pro Whatsapp, a suíte roda no staging mas expõe ~493 falhas por testes fazerem Schema cru em tabelas compartilhadas vs clone MySQL. Item de harness de teste no CT 100.
 
