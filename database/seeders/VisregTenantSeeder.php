@@ -41,6 +41,7 @@ class VisregTenantSeeder extends Seeder
     {
         if (DB::table('business')->where('id', 1)->exists()) {
             $this->ensureAdminRole();
+            $this->ensureProduct();
 
             return;
         }
@@ -115,6 +116,56 @@ class VisregTenantSeeder extends Seeder
         }
 
         $this->ensureAdminRole();
+        $this->ensureProduct();
+    }
+
+    /**
+     * Produto mínimo vendável (Onda Q2 — UC-S01 venda balcão a prazo no e2e-gate).
+     *
+     * O `/products/list` (ProductUtil::filterProduct) exige products+variations
+     * (joins de unit/estoque são LEFT) com is_inactive=0, not_for_selling=0 e
+     * type != modifier. `enable_stock=0` evita exigir variation_location_details.
+     * Estrutura UltimatePOS single: products 1—1 product_variations(DUMMY) 1—1 variations.
+     * IDEMPOTENTE pela sku E2E-0001.
+     */
+    private function ensureProduct(): void
+    {
+        if (DB::table('products')->where('business_id', 1)->where('sku', 'E2E-0001')->exists()) {
+            return;
+        }
+
+        $unitId = DB::table('units')->where('business_id', 1)->value('id');
+        if (! $unitId) {
+            $unitId = DB::table('units')->insertGetId([
+                'business_id' => 1, 'actual_name' => 'Unidade', 'short_name' => 'Un',
+                'allow_decimal' => 0, 'created_by' => 1,
+            ]);
+        }
+
+        $productId = DB::table('products')->insertGetId([
+            'name' => 'Produto E2E Balcão', 'business_id' => 1, 'type' => 'single',
+            'unit_id' => $unitId, 'sku' => 'E2E-0001', 'barcode_type' => 'C128',
+            'enable_stock' => 0, 'not_for_selling' => 0, 'is_inactive' => 0,
+            'tax_type' => 'exclusive', 'created_by' => 1,
+        ]);
+
+        $pvId = DB::table('product_variations')->insertGetId([
+            'product_id' => $productId, 'name' => 'DUMMY', 'is_dummy' => 1,
+        ]);
+
+        DB::table('variations')->insert([
+            'name' => 'DUMMY', 'product_id' => $productId, 'product_variation_id' => $pvId,
+            'sub_sku' => 'E2E-0001',
+            'default_purchase_price' => 50, 'dpp_inc_tax' => 50, 'profit_percent' => 0,
+            'default_sell_price' => 100, 'sell_price_inc_tax' => 100,
+        ]);
+
+        // Sem esta linha o produto NÃO aparece no /products/list: filterProduct
+        // aplica ->ForLocation($location_id) → whereHas product_locations
+        // (run 27368277842 — "Nenhum produto encontrado").
+        DB::table('product_locations')->insert([
+            'product_id' => $productId, 'location_id' => 1,
+        ]);
     }
 
     /**
