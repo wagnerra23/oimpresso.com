@@ -1,9 +1,18 @@
 ---
-date: 2026-06-11
-hour: "14:10 BRT"
-topic: OficinaAuto — tela de OS unificada (4 abas) + drawer único + Fila rica inline + fix scroll do shell + deploy SSH robusto
-duration: ~5h
-authors: [wagner, claude]
+date: "2026-06-11"
+time: "14:10 BRT"
+slug: oficina-os-tela-unica-fila-rica-scroll
+tldr: "OficinaAuto — tela de OS unificada (1 tela, 4 abas Quadro·Lista·Grade·Fila) + drawer único (RichBody extraído) + Fila com detalhe rico inline + fix scroll do shell (chrome fixo) + deploy SSH robusto (ConnectTimeout=180). 6 PRs deployados; OficinaAuto grade 79→80."
+decided_by: [wagner]
+cycle: CYCLE-08
+prs: [2533, 2535, 2538, 2544, 2548, 2551]
+next_steps:
+  - "Confirmar com [W] se hard-reload resolveu o 'Oficina parece pendente' (provável bundle em cache)"
+  - "Opcional: skeleton leve na Fila durante o fetch pesado do detalhe rico (~5s no Hostinger)"
+  - "Opcional: padronizar o fix de scroll (root flex-1 min-h-0 flex flex-col) em outras telas altas"
+related_adrs:
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
+  - 0265-oficina-reparo-erradica-locacao
 ---
 
 # Oficina Auto · tela de OS: unificação + Fila rica + scroll, com deploy SSH consertado no meio
