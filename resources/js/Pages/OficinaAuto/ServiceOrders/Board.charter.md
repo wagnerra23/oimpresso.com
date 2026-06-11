@@ -1,5 +1,5 @@
 ---
-page: /oficina-auto/ordens-servico/board
+page: /oficina-auto/ordens-servico
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
 owner: wagner
 status: live
@@ -11,10 +11,16 @@ related_adrs:
   - 0129-state-machine-canonica-fsm-rbac
   - 0093-multi-tenant-isolation-tier-0
 tier: A
-charter_version: 3
+charter_version: 4
 ---
 
-# Charter — Quadro (Kanban) de OS de Mecânica
+# Charter — Oficina Auto · workspace de OS (tela unificada)
+
+> **Tela ÚNICA** servida em `/oficina-auto/ordens-servico` **e** `/oficina-auto/ordens-servico/board`
+> (mesmo componente). Toggle **Quadro · Lista · Grade · Fila** — as 4 views in-page sobre o MESMO
+> payload `columns`, com KPIs + abas de box + toolbar **compartilhados** (1 componente de cada).
+> Unificação [W] 2026-06-11: no demo são ABAS, não páginas — manter Index/Board separados duplicava
+> os componentes. A página `OficinaAuto/ServiceOrders/Index` foi **aposentada** (deletada).
 
 ## Mission
 Dar ao operador da oficina (Martinho · mecânica pesada de caminhão) uma visão de
@@ -47,10 +53,15 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 - **Barra de views canon** (`.ofc-view-toolbar` · Onda 2 · [W] 2026-06-11): o toggle
   de views + o botão **Visão** moram na **barra da busca** (`[busca + contador] |
   [toggle] | [Visão]`), não no header — que fica só com `Imprimir fila` + `Nova OS`.
-- **Toggle de 4 views** (Onda 2): **Quadro** · **Lista** · **Grade** · **Fila**.
-  Quadro e **Grade** são in-page (estado `view` persistido em `localStorage`
-  `oficinaBoard.view`); **Lista** e **Fila** **navegam** pra Index (Fila = `?view=fila`,
-  página já existente — não duplica).
+- **Toggle de 4 views — TODAS in-page** (tela unificada · [W] 2026-06-11): **Quadro** ·
+  **Lista** · **Grade** · **Fila**. Trocam só o miolo sobre o mesmo payload `columns`;
+  KPIs/abas/toolbar continuam acima (compartilhados). View persistida em `localStorage`
+  `oficinaBoard.view` + refletida em `?view=` (shareable). **Lista** = tabela rica (OS ·
+  PLACA Mercosul · VEÍCULO+km · CLIENTE · ETAPA dot+nome · BOX · MECÂNICO · PRAZO ·
+  VALOR). **Fila** = master-detail (lista persistente + detalhe inline read-only com
+  pipeline+meta+timeline ao vivo + rail Apps Vinculados); a edição completa abre o
+  drawer rico via "Abrir OS completa". Detalhe rico inline da Fila (DVI/fotos/peças/
+  checklist) é a próxima onda.
 - **Grade** (Onda 2 · canon `.ofc-grade`): varredura client-side **veículo × etapa**
   — cada linha é uma OS (placa Mercosul + modelo + cliente), cada coluna é uma etapa
   FSM do payload `columns`, e a **marca** cai na célula da **etapa atual** (tom da
@@ -63,8 +74,9 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 ## Non-Goals
 - NÃO cria OS inline pelo drag (usar "Nova OS").
 - NÃO emite documento fiscal nem dispara cobrança (fiscal real espera [W]).
-- NÃO substitui a Lista (Index) — Quadro/Grade são visões alternativas in-page; o
-  toggle Lista/Fila apenas **navega** pra Index (não reimplementa a tabela/fila aqui).
+- As 4 views derivam do MESMO payload `columns` (workspace do pipeline mecânica não-
+  terminal) — não há mais página Index separada. A Lista/Fila aqui **não** são uma
+  segunda implementação: são views in-page sobre os mesmos cards (zero duplicação).
 - A **Grade** NÃO inventa cobertura serviço×sintoma (a heurística do protótipo Cowork
   fica fora · gate `no-mock-in-prod`): a marca espelha só a **etapa FSM real** da OS.
 - NÃO mexe no board de caçamba (ProducaoOficina) nem no processo `cacamba_*` legado.

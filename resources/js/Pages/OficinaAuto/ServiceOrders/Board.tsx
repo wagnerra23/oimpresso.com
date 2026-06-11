@@ -94,8 +94,14 @@ import DragConfirmDialog, {
 import ServiceOrderRichSheet from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet';
 import ServiceOrderKanbanColumn from './_components/board/ServiceOrderKanbanColumn';
 import BoardKpiCard from './_components/board/BoardKpiCard';
+import ServiceOrderStagePipeline from './_components/ServiceOrderStagePipeline';
+import ServiceOrderTimeline from './_components/ServiceOrderTimeline';
 import type { BoardDensity, ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
 import { toneForColor, gradeGlyph } from './_components/board/boardTone';
+
+// Info de etapa por card (do stageByCardId) — compartilhada pelas views Lista/Fila.
+type StageInfo = { key: string; name: string; color: string | null; index: number };
+type StageInfoMap = Map<number, StageInfo>;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -161,18 +167,30 @@ const formatBRL = (value: number): string =>
 
 type BoardFoco = 'etapa' | 'box' | 'mecanico';
 
-// Onda 2 — view do toggle (Quadro · Lista · Grade · Fila). 'quadro' e 'grade' são
-// in-page (estado client-side persistido); 'lista' e 'fila' NAVEGAM pra Index
-// (Lista = tabela densa · Fila = ?view=fila master-detail) — a página já existe,
-// não duplica. Só as duas in-page persistem no localStorage.
-type BoardView = 'quadro' | 'grade';
+// Tela unificada "Oficina Auto" (pedido [W] 2026-06-11 — no demo são ABAS, não
+// páginas): as 4 views (Quadro · Lista · Grade · Fila) são TODAS in-page sobre o
+// MESMO payload `columns`, com KPIs + abas de box + toolbar COMPARTILHADOS (1
+// componente de cada — zero duplicação). Lista/Fila deixaram de navegar pro Index
+// (que foi aposentado); derivam dos cards via `visibleCards`. View persistida no
+// localStorage + refletida em ?view= (shareable). Esta tela é servida tanto em
+// /ordens-servico quanto em /ordens-servico/board (mesmo componente).
+type BoardView = 'quadro' | 'lista' | 'grade' | 'fila';
 
 const FOCO_STORAGE_KEY = 'oficinaBoard.foco';
 const DENSIDADE_STORAGE_KEY = 'oficinaBoard.densidade';
 const VIEW_STORAGE_KEY = 'oficinaBoard.view';
 
-const ROUTE_LISTA = '/oficina-auto/ordens-servico';
-const ROUTE_FILA = '/oficina-auto/ordens-servico?view=fila';
+const BOARD_VIEWS: readonly BoardView[] = ['quadro', 'lista', 'grade', 'fila'];
+
+function initialBoardView(): BoardView {
+  if (typeof window !== 'undefined') {
+    const fromUrl = new URLSearchParams(window.location.search).get('view');
+    if (fromUrl && (BOARD_VIEWS as readonly string[]).includes(fromUrl)) return fromUrl as BoardView;
+    const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
+    if (stored && (BOARD_VIEWS as readonly string[]).includes(stored)) return stored as BoardView;
+  }
+  return 'quadro';
+}
 
 /** Coluna exibida no quadro — etapa FSM (foco Etapa) ou pivot Box/Mecânico. */
 interface DisplayColumn {
@@ -321,16 +339,18 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
     try { window.localStorage.setItem(DENSIDADE_STORAGE_KEY, v); } catch { /* idem */ }
   }, []);
 
-  // Onda 2 — view in-page (Quadro × Grade), persistida por operador. Lista/Fila
-  // não passam por aqui (navegam pra Index via <Link>).
-  const [view, setViewState] = useState<BoardView>(() => {
-    const v = typeof window !== 'undefined' ? window.localStorage.getItem(VIEW_STORAGE_KEY) : null;
-    return v === 'grade' ? 'grade' : 'quadro';
-  });
+  // View in-page (Quadro · Lista · Grade · Fila), persistida por operador +
+  // refletida em ?view= (shareable). Tela unificada — todas as 4 derivam de `columns`.
+  const [view, setViewState] = useState<BoardView>(initialBoardView);
   const setView = useCallback((v: BoardView) => {
     setViewState(v);
     setFocusedId(null);
-    try { window.localStorage.setItem(VIEW_STORAGE_KEY, v); } catch { /* idem */ }
+    try { window.localStorage.setItem(VIEW_STORAGE_KEY, v); } catch { /* storage cheio/bloqueado — preferência só não persiste */ }
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', v);
+      window.history.replaceState(window.history.state, '', url.toString());
+    }
   }, []);
 
   const kpiClick = useCallback((key: KpiFilterKey) => {
@@ -492,10 +512,10 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
   }, [columns]);
 
   // Etapa de origem de cada card (sobrevive ao pivot Box/Mecânico — usada no
-  // filtro por KPI de etapa e na folha "Imprimir fila").
+  // filtro por KPI de etapa, na folha "Imprimir fila" e nas views Lista/Fila).
   const stageByCardId = useMemo(() => {
-    const m = new Map<number, { key: string; name: string; index: number }>();
-    columns.forEach((col, index) => col.cards.forEach((c) => m.set(c.id, { key: col.key, name: col.name, index })));
+    const m = new Map<number, { key: string; name: string; color: string | null; index: number }>();
+    columns.forEach((col, index) => col.cards.forEach((c) => m.set(c.id, { key: col.key, name: col.name, color: col.color, index })));
     return m;
   }, [columns]);
 
@@ -784,41 +804,31 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
             </span>
           </Inline>
 
-          {/* Toggle de views (canon .prod-view-toggle): Quadro · Lista · Grade · Fila.
-              Quadro/Grade são in-page (estado); Lista/Fila navegam pra Index. */}
+          {/* Toggle de views (canon .prod-view-toggle): Quadro · Lista · Grade · Fila —
+              TODAS in-page (tela unificada, pedido [W] 2026-06-11). Trocam só o miolo
+              sobre o mesmo payload `columns`; KPIs/abas/toolbar continuam acima. */}
           <div className="inline-flex flex-shrink-0 rounded border border-border bg-white overflow-hidden" role="group" aria-label="Visualização">
-            <button
-              type="button"
-              onClick={() => setView('quadro')}
-              aria-pressed={view === 'quadro'}
-              className={'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors ' + (view === 'quadro' ? 'bg-primary text-white' : 'text-foreground hover:bg-muted')}
-              data-testid="board-view-quadro"
-            >
-              <LayoutGrid size={12} /> Quadro
-            </button>
-            <Link
-              href={ROUTE_LISTA}
-              className="px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 text-foreground hover:bg-muted transition-colors border-l border-border"
-              data-testid="board-view-lista"
-            >
-              <ListIcon size={12} /> Lista
-            </Link>
-            <button
-              type="button"
-              onClick={() => setView('grade')}
-              aria-pressed={view === 'grade'}
-              className={'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors border-l border-border ' + (view === 'grade' ? 'bg-primary text-white' : 'text-foreground hover:bg-muted')}
-              data-testid="board-view-grade"
-            >
-              <Table2 size={12} /> Grade
-            </button>
-            <Link
-              href={ROUTE_FILA}
-              className="px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 text-foreground hover:bg-muted transition-colors border-l border-border"
-              data-testid="board-view-fila"
-            >
-              <ListOrdered size={12} /> Fila
-            </Link>
+            {([
+              { v: 'quadro', label: 'Quadro', Icon: LayoutGrid },
+              { v: 'lista', label: 'Lista', Icon: ListIcon },
+              { v: 'grade', label: 'Grade', Icon: Table2 },
+              { v: 'fila', label: 'Fila', Icon: ListOrdered },
+            ] as const).map(({ v, label, Icon }, i) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                className={
+                  'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors '
+                  + (i > 0 ? 'border-l border-border ' : '')
+                  + (view === v ? 'bg-primary text-white' : 'text-foreground hover:bg-muted')
+                }
+                data-testid={`board-view-${v}`}
+              >
+                <Icon size={12} /> {label}
+              </button>
+            ))}
           </div>
 
           {/* Menu Visão (canon .ofc-adjust do protótipo) — foco + densidade.
@@ -877,14 +887,17 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </Popover>
         </Inline>
 
-        {/* Conteúdo — Quadro (kanban drag) OU Grade (veículo × etapa). Lista/Fila
-            navegam pra Index, então aqui só alterna Quadro × Grade. */}
+        {/* Conteúdo — as 4 views in-page sobre o mesmo payload (tela unificada). */}
         {!process_seeded ? (
           <div className="p-6">
             <EmptyProcessState />
           </div>
         ) : view === 'grade' ? (
           <BoardGrade columns={columns} rows={gradeRows} onRowClick={handleCardClick} />
+        ) : view === 'lista' ? (
+          <BoardLista rows={visibleCards} stageByCardId={stageByCardId} onRowClick={handleCardClick} />
+        ) : view === 'fila' ? (
+          <BoardFila rows={visibleCards} stageByCardId={stageByCardId} onOpenFull={handleCardClick} />
         ) : (
           /* Quadro — overflow-x-auto: o kanban rola por dentro, o shell nunca estoura
              (espelha .prod-kanban do protótipo: overflow auto + minmax(228px, 1fr)) */
@@ -1026,6 +1039,272 @@ function BoardGrade({ columns, rows, onRowClick }: BoardGradeProps) {
           </span>
         ))}
         <span className="ml-auto italic text-muted-foreground/80">clique no veículo abre a OS</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lista (tabela rica · tela unificada) ────────────────────────────────────
+// View tabela sobre os MESMOS cards do Quadro (paridade protótipo Cowork): OS ·
+// PLACA Mercosul · VEÍCULO+km · CLIENTE · ETAPA (dot+nome) · BOX · MECÂNICO ·
+// PRAZO · VALOR. Respeita busca + KPI-filtro + aba de box (recebe `visibleCards`).
+interface BoardListaProps {
+  rows: ServiceOrderCardData[];
+  stageByCardId: StageInfoMap;
+  onRowClick: (card: ServiceOrderCardData) => void;
+}
+
+const fmtFilaDate = (iso: string | null): string => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+};
+
+const fmtBRL2 = (n: number): string =>
+  n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function BoardLista({ rows, stageByCardId, onRowClick }: BoardListaProps) {
+  return (
+    <div className="p-6 overflow-x-auto">
+      <table className="w-full text-sm bg-white border border-border rounded-lg overflow-hidden">
+        <thead className="border-b bg-muted/50 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <tr>
+            <th className="px-3 py-2.5 text-left font-semibold">OS</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Placa</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Veículo</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Cliente</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Etapa</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Box</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Mecânico</th>
+            <th className="px-3 py-2.5 text-left font-semibold">Prazo</th>
+            <th className="px-3 py-2.5 text-right font-semibold">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((c) => {
+            const stage = stageByCardId.get(c.id);
+            const tone = toneForColor(stage?.color);
+            return (
+              <tr
+                key={c.id}
+                onClick={() => onRowClick(c)}
+                className={
+                  'border-b last:border-0 cursor-pointer transition-colors '
+                  + (c.is_overdue ? 'bg-destructive/5 hover:bg-destructive/10' : 'hover:bg-muted/30')
+                }
+              >
+                <td className="px-3 py-2.5 font-mono font-semibold whitespace-nowrap">{c.number}</td>
+                <td className="px-3 py-2">
+                  {c.plate ? <MercosulPlate plate={c.plate} size="sm" /> : <span className="text-xs text-muted-foreground italic">sem placa</span>}
+                </td>
+                <td className="px-3 py-2.5">
+                  <span className="font-medium text-foreground">{c.vehicle_type ?? '—'}</span>
+                  {c.km != null && <span className="ml-1.5 text-[11px] text-muted-foreground tabular-nums">{c.km.toLocaleString('pt-BR')} km</span>}
+                </td>
+                <td className="px-3 py-2.5">{c.cliente_nome ?? <span className="text-muted-foreground">—</span>}</td>
+                <td className="px-3 py-2.5 whitespace-nowrap">
+                  {stage ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs">
+                      <span className={'inline-block h-2 w-2 rounded-full ' + tone.dot} />
+                      {stage.name}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2.5 text-xs">{c.box ?? <span className="text-muted-foreground">—</span>}</td>
+                <td className="px-3 py-2.5 text-xs">{c.mechanic_name ?? <span className="text-muted-foreground">—</span>}</td>
+                <td className={'px-3 py-2.5 text-xs tabular-nums whitespace-nowrap ' + (c.is_overdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+                  {fmtFilaDate(c.expected_completion)}{c.is_overdue && ' ⚠'}
+                </td>
+                <td className={'px-3 py-2.5 text-right tabular-nums whitespace-nowrap ' + (c.valor > 0 ? 'text-foreground font-medium' : 'text-muted-foreground')}>
+                  {c.valor > 0 ? fmtBRL2(c.valor) : '—'}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {rows.length === 0 && (
+        <p className="text-center text-sm text-muted-foreground py-8">Nenhuma OS no filtro atual.</p>
+      )}
+    </div>
+  );
+}
+
+// ─── Fila (master-detail · tela unificada) ───────────────────────────────────
+// Lista persistente (esq) + detalhe inline (centro) + rail Apps Vinculados (dir),
+// sobre os MESMOS cards. Detalhe READ-ONLY (pipeline + meta + timeline ao vivo por
+// id); a edição completa (DVI/fotos/peças/checklist) abre o drawer rico via "Abrir
+// OS completa". O detalhe rico inline é a próxima onda.
+interface BoardFilaProps {
+  rows: ServiceOrderCardData[];
+  stageByCardId: StageInfoMap;
+  onOpenFull: (card: ServiceOrderCardData) => void;
+}
+
+function BoardFila({ rows, stageByCardId, onOpenFull }: BoardFilaProps) {
+  const [selectedId, setSelectedId] = useState<number | null>(rows[0]?.id ?? null);
+  const selected = useMemo(() => rows.find((c) => c.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
+
+  if (rows.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="rounded-lg border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+          Nenhuma OS no filtro atual.
+        </div>
+      </div>
+    );
+  }
+
+  const urgentes = rows.filter((c) => c.is_overdue);
+  const demais = rows.filter((c) => !c.is_overdue);
+
+  const FilaItem = ({ c }: { c: ServiceOrderCardData }) => {
+    const stage = stageByCardId.get(c.id);
+    const tone = toneForColor(stage?.color);
+    const active = selected?.id === c.id;
+    return (
+      <button
+        type="button"
+        onClick={() => setSelectedId(c.id)}
+        className={
+          'w-full rounded-md border px-3 py-2.5 text-left transition-colors '
+          + (active ? 'border-primary/60 bg-primary/5 ring-1 ring-primary/30' : 'border-border bg-card hover:bg-muted/40')
+          + (c.is_overdue ? ' border-l-2 border-l-destructive' : '')
+        }
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <span className={'inline-block h-1.5 w-1.5 rounded-full ' + tone.dot} />
+            {stage?.name ?? '—'}
+          </span>
+          <span className={'text-[11px] tabular-nums ' + (c.is_overdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>
+            {fmtFilaDate(c.expected_completion)}
+          </span>
+        </div>
+        <div className="mt-1.5 truncate text-sm font-medium text-foreground">
+          {c.vehicle_type ?? 'Veículo'}{c.plate ? <span className="ml-1 font-mono text-xs text-muted-foreground">· {c.plate}</span> : null}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">{c.number} · {c.cliente_nome ?? '—'}</div>
+      </button>
+    );
+  };
+
+  const Group = ({ title, items }: { title: string; items: ServiceOrderCardData[] }) =>
+    items.length === 0 ? null : (
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {title}
+          <span className="rounded-full bg-muted px-1.5 text-[10px] tabular-nums">{items.length}</span>
+        </div>
+        {items.map((c) => <FilaItem key={c.id} c={c} />)}
+      </div>
+    );
+
+  const sel = selected;
+  const selStage = sel ? stageByCardId.get(sel.id) : undefined;
+
+  return (
+    <div className="p-6">
+      <div className="grid max-h-[72vh] grid-cols-1 gap-3 md:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_280px]">
+        {/* Lista (esquerda) */}
+        <div className="flex min-h-0 flex-col rounded-lg border bg-muted/20">
+          <div className="flex items-center justify-between border-b px-3 py-2.5">
+            <b className="text-sm text-foreground">Ordens de serviço</b>
+            <span className="text-xs text-muted-foreground">{rows.length} na fila</span>
+          </div>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-2.5">
+            <Group title="Urgentes" items={urgentes} />
+            <Group title="Demais" items={demais} />
+          </div>
+        </div>
+
+        {/* Detalhe inline (centro) */}
+        {sel ? (
+          <div className="flex min-h-0 flex-col rounded-lg border bg-card">
+            <header className="flex items-start justify-between gap-3 border-b px-4 py-3">
+              <div className="min-w-0">
+                <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
+                  <span className="font-mono">{sel.number}</span>
+                  {' · '}{selStage?.name ?? '—'}
+                  {sel.is_overdue && <span className="ml-1.5 font-semibold text-destructive">· Atrasada</span>}
+                </div>
+                <h2 className="mt-1 truncate text-lg font-semibold text-foreground">
+                  {sel.vehicle_type ?? 'Veículo'}
+                </h2>
+                <p className="text-xs text-muted-foreground">{sel.cliente_nome ?? 'Cliente não informado'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onOpenFull(sel)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+              >
+                Abrir OS completa
+              </button>
+            </header>
+
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+              <ServiceOrderStagePipeline serviceOrderId={sel.id} enabled />
+
+              {/* Meta-grid canon */}
+              <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5 px-0.5">
+                {sel.plate && (<><dt className="text-[11px] text-muted-foreground">Placa</dt><dd className="font-mono text-[13px] text-foreground">{sel.plate}</dd></>)}
+                {sel.km != null && (<><dt className="text-[11px] text-muted-foreground">KM</dt><dd className="text-[13px] tabular-nums text-foreground">{sel.km.toLocaleString('pt-BR')}</dd></>)}
+                {sel.box && (<><dt className="text-[11px] text-muted-foreground">Box</dt><dd className="text-[13px] text-foreground">{sel.box}</dd></>)}
+                {sel.mechanic_name && (<><dt className="text-[11px] text-muted-foreground">Mecânico</dt><dd className="text-[13px] text-foreground">{sel.mechanic_name}</dd></>)}
+                <dt className={'text-[11px] ' + (sel.is_overdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>Prazo</dt>
+                <dd className={'text-[13px] tabular-nums ' + (sel.is_overdue ? 'font-semibold text-destructive' : 'text-foreground')}>{fmtFilaDate(sel.expected_completion)}{sel.is_overdue && ' ⚠'}</dd>
+                <dt className="text-[11px] text-muted-foreground">Valor</dt>
+                <dd className="text-[13px] tabular-nums font-semibold text-success">{sel.valor > 0 ? fmtBRL2(sel.valor) : '—'}</dd>
+              </dl>
+
+              <div>
+                <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Linha do tempo</h4>
+                <ServiceOrderTimeline serviceOrderId={sel.id} enabled />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
+            Selecione uma OS na fila.
+          </div>
+        )}
+
+        {/* Rail Apps Vinculados (direita) */}
+        {sel && (
+          <aside className="hidden min-h-0 flex-col gap-3 xl:flex">
+            <div className="px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Apps vinculados</div>
+            <div className="rounded-lg border bg-card p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <span className="inline-flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-primary">OS</span>
+                <b>{sel.number}</b>
+              </div>
+              <dl className="space-y-1 text-xs">
+                <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Etapa</dt><dd className="truncate text-right text-foreground">{selStage?.name ?? '—'}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Prazo</dt><dd className={'tabular-nums ' + (sel.is_overdue ? 'font-medium text-destructive' : 'text-foreground')}>{fmtFilaDate(sel.expected_completion)}</dd></div>
+                <div className="flex justify-between gap-2"><dt className="text-muted-foreground">Valor</dt><dd className="font-mono tabular-nums text-foreground">{sel.valor > 0 ? fmtBRL2(sel.valor) : '—'}</dd></div>
+              </dl>
+              <button
+                type="button"
+                onClick={() => onOpenFull(sel)}
+                className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Abrir OS completa
+              </button>
+            </div>
+            <div className="rounded-lg border bg-card p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-muted-foreground">Cliente</span>
+                <b className="truncate">{sel.cliente_nome ?? '—'}</b>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Histórico de contato e disparo de WhatsApp ainda não disponíveis nesta tela.
+              </p>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );

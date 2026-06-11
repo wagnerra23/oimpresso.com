@@ -1,11 +1,11 @@
 {
   "generated_note": "baseline da catraca de cobertura — NÃO editar à mão",
   "aggregates": {
-    "total": 276,
-    "charter": 132,
+    "total": 275,
+    "charter": 131,
     "e2e": 4,
     "a11y": 1,
-    "scorecard": 220
+    "scorecard": 219
   },
   "by_module": {
     "Admin": {
@@ -149,11 +149,11 @@
       "scorecard": 3
     },
     "OficinaAuto": {
-      "total": 10,
-      "charter": 10,
+      "total": 9,
+      "charter": 9,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 9
+      "scorecard": 8
     },
     "Ponto": {
       "total": 22,
