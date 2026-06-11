@@ -50,6 +50,8 @@
     "dominio:baseline:write": "node scripts/domain-dict-guard.mjs --write-baseline",
     "e2e:install": "playwright install --with-deps chromium",
     "e2e:check": "playwright test",
+    "visreg:pixel": "./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php",
+    "visreg:update": "./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php --update-snapshots",
     "layout:check": "node scripts/layout-primitives-guard.mjs",
     "layout:baseline:write": "node scripts/layout-primitives-guard.mjs --write-baseline",
     "components:check": "node scripts/components-tree-guard.mjs",
