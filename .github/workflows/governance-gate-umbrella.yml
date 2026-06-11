@@ -39,3 +39,23 @@ jobs:
         run: node scripts/governance/memory-health.mjs
       - name: Meta-teste dos scripts de governança (controle-negativo)
         run: npm run test:adr-governance
+
+  # Segredo NOVO em QUALQUER arquivo do diff (API key, token, senha) — fecha o gap
+  # entre o memory-health (só memory/) e o secrets:audit (só scheduled, não barra PR).
+  # Job SEPARADO de propósito: check context próprio ("Secret scan ...") nasce
+  # ADVISORY (método faseado ADR 0271 — promover a required via gh api após ~2
+  # semanas sem falso-positivo). Always-run sem paths = required-ready desde já.
+  # gitleaks-action escaneia só os COMMITS do PR (linhas adicionadas) — segredos
+  # históricos já catalogados (incidente memory/claude) NÃO flagam a menos que o PR
+  # os toque. Falso-positivo (fixture fake etc) → allowlist em .gitleaks.toml na raiz.
+  # Licença: GITLEAKS_LICENSE só é exigida em repo de ORG — wagnerra23 é user account.
+  secret-scan:
+    name: Secret scan (gitleaks · só linhas novas do PR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
