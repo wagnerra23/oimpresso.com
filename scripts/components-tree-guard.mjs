@@ -117,6 +117,24 @@ if (existsSync(PAGES_DIR)) {
   }
 }
 
+// ── CHECK 3 · shared/ é FLAT — subpasta dentro de shared/ esconde domínio da
+// allowlist do CHECK 1 (caso real: shared/ponto/, achado na auditoria 2026-06-11
+// HORAS depois do guard nascer — domínio de 1 módulo um nível abaixo do radar).
+// Composto cross-módulo é ARQUIVO direto em shared/; domínio vai pra
+// Pages/<Mod>/_components/. Sem grandfather: a única subpasta existente (ponto/)
+// foi movida no mesmo PR que criou este check.
+const SHARED_DIR = join(COMPONENTS_DIR, 'shared');
+if (existsSync(SHARED_DIR)) {
+  for (const entry of readdirSync(SHARED_DIR, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      erros.push(
+        `🆕 subpasta dentro de shared/: resources/js/Components/shared/${entry.name}/\n` +
+          `     shared/ é flat — domínio de 1 módulo vai pra Pages/<Mod>/_components/; composto cross-módulo é arquivo direto em shared/`,
+      );
+    }
+  }
+}
+
 if (erros.length) {
   console.error(`❌ components-tree-guard · ${erros.length} violação(ões):\n`);
   for (const e of erros) console.error('  ' + e + '\n');
@@ -125,6 +143,6 @@ if (erros.length) {
 }
 
 console.log(
-  `✅ components-tree-guard · top-level de Components/ dentro da allowlist (${ALLOWED_DIRS.size} pastas + ${ALLOWED_FILES.size} arquivos) · convenção _components OK.`,
+  `✅ components-tree-guard · top-level de Components/ dentro da allowlist (${ALLOWED_DIRS.size} pastas + ${ALLOWED_FILES.size} arquivos) · convenção _components OK · shared/ flat OK.`,
 );
 process.exit(0);

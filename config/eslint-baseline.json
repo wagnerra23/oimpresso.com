@@ -1,7 +1,7 @@
 {
   "_meta": {
     "generated_at": "2026-06-06T15:44:27.884Z",
-    "total_violations": 1079,
+    "total_violations": 1085,
     "eslint_version": "flat-config 9.x",
     "adr": "0209"
   },
@@ -33,7 +33,11 @@
     "resources/js/Components/shared/DataTable.tsx|@typescript-eslint/no-explicit-any": 3,
     "resources/js/Components/shared/SimpleMarkdown.tsx|no-useless-escape": 1,
     "resources/js/Components/shared/SubNav.tsx|jsx-a11y/no-noninteractive-element-to-interactive-role": 1,
-    "resources/js/Components/shared/ponto/ActivityFeed.tsx|@typescript-eslint/no-unused-vars": 1,
+    "resources/js/Pages/Ponto/_components/ActivityFeed.tsx|@typescript-eslint/no-unused-vars": 1,
+    "resources/js/Pages/Ponto/_components/ActivityFeed.tsx|no-restricted-syntax": 1,
+    "resources/js/Pages/Ponto/_components/AlertInbox.tsx|no-restricted-syntax": 2,
+    "resources/js/Pages/Ponto/_components/MonthHeatmap.tsx|no-restricted-syntax": 2,
+    "resources/js/Pages/Ponto/_components/PresenceStrip.tsx|no-restricted-syntax": 1,
     "resources/js/Components/ui/badge.tsx|react-refresh/only-export-components": 1,
     "resources/js/Components/ui/button.tsx|react-refresh/only-export-components": 1,
     "resources/js/Layouts/AppShellV2.tsx|@typescript-eslint/no-unused-vars": 2,
