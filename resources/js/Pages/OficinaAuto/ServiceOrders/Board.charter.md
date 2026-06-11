@@ -11,7 +11,7 @@ related_adrs:
   - 0129-state-machine-canonica-fsm-rbac
   - 0093-multi-tenant-isolation-tier-0
 tier: A
-charter_version: 4
+charter_version: 5
 ---
 
 # Charter — Oficina Auto · workspace de OS (tela unificada)
@@ -60,8 +60,13 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
   PLACA Mercosul · VEÍCULO+km · CLIENTE · ETAPA dot+nome · BOX · MECÂNICO · PRAZO ·
   VALOR). **Fila** = master-detail (lista persistente + detalhe inline read-only com
   pipeline+meta+timeline ao vivo + rail Apps Vinculados); a edição completa abre o
-  drawer rico via "Abrir OS completa". Detalhe rico inline da Fila (DVI/fotos/peças/
-  checklist) é a próxima onda.
+  drawer rico via "Abrir OS completa". **Onda 2 (v5 · 2026-06-11): o detalhe da Fila
+  virou RICO INLINE** — o centro renderiza o `ServiceOrderRichBody` (DVI semáforo /
+  Fotos & Laudo / Peças & mão-de-obra / Checklist de etapa / Pipeline FSM / Linha do
+  tempo), editável inline. É o **MESMO corpo do drawer** (RichSheet = wrapper Sheet +
+  body; Fila = body inline) — 1 corpo, 2 chrome, **zero duplicação**. O drawer
+  `ServiceOrderSheet` simples foi aposentado; `ServiceOrderRichBody`/`RichSheet` é o
+  único drawer de OS.
 - **Grade** (Onda 2 · canon `.ofc-grade`): varredura client-side **veículo × etapa**
   — cada linha é uma OS (placa Mercosul + modelo + cliente), cada coluna é uma etapa
   FSM do payload `columns`, e a **marca** cai na célula da **etapa atual** (tom da
