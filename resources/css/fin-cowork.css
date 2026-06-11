@@ -65,7 +65,7 @@
   font-size: var(--fs-2);
   font-weight: 500;
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   white-space: nowrap;
 }
 .fin-cowork .fin-curadoria .fin-btn:hover { background: var(--fin-bg-soft); border-color: oklch(0.85 0.005 240); }
@@ -260,7 +260,7 @@
   font-weight: 500;
   color: var(--fin-text-mute);
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   user-select: none;
   --cb-hue: 240;
 }
@@ -422,7 +422,7 @@
   background: white;
   border: 1px solid var(--fin-line);
   border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--sh-1);
   font-size: var(--fs-3);
   color: var(--fin-text-mute);
   display: flex;
@@ -605,7 +605,7 @@
   background: oklch(1 0 0);
   color: oklch(0.40 0.01 80);
   font-size: var(--fs-2); font-weight: 500; font-family: inherit; line-height: 1.4;
-  box-sizing: border-box; cursor: pointer; transition: border-color .12s;
+  box-sizing: border-box; cursor: pointer; transition: border-color var(--t-1) var(--ease);
 }
 .fin-curadoria .fin-toolbar .fin-filter-group input[type="date"]:hover,
 .fin-curadoria .fin-toolbar input.fin-date-input:hover {
@@ -632,7 +632,7 @@
   background-color: oklch(1 0 0);
   color: oklch(0.40 0.01 80);
   font-size: var(--fs-2); font-weight: 500; font-family: inherit; line-height: 1.4;
-  box-sizing: border-box; cursor: pointer; transition: border-color .12s;
+  box-sizing: border-box; cursor: pointer; transition: border-color var(--t-1) var(--ease);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='gray' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
   background-position: right 9px center;
@@ -646,7 +646,7 @@
   width: 24px; height: 26px; padding: 0;
   border-radius: 5px; border: 1px solid transparent; background: transparent;
   color: var(--text-mute); font-size: var(--fs-5); line-height: 1;
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-toolbar .fin-date-clear:hover {
   background: var(--surface); border-color: var(--border); color: var(--text);
