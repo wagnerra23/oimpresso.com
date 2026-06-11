@@ -145,16 +145,40 @@ jobs:
           #      ConnectionAttempts + ServerAlive pra rede flaky runner→Hostinger.
           #  ControlMaster (multiplexing) NÃO é usado: falha "mux_client_request_session"
           #  no Hostinger (catalogado). Uma conexão por comando é o caminho suportado.
-          ssh -4 \
-              -o BatchMode=yes \
-              -o StrictHostKeyChecking=accept-new \
-              -o ConnectTimeout=60 \
-              -o ConnectionAttempts=5 \
-              -o ServerAliveInterval=15 \
-              -o ServerAliveCountMax=10 \
-              -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
-              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-              "$@"
+          #
+          # RETRY INTERNO (2026-06-11 — causa raiz recorrente "sempre quebra"): cada
+          # step chamava o ssh UMA vez; quando o TCP à porta SSH timava (Hostinger flaky),
+          # o 255 matava o deploy inteiro (run 27346860058: `php -v` timou 5min e morreu).
+          # Agora o wrapper retenta a CONEXÃO até 5x espaçando 15s — TODO step que usa
+          # ssh_exec.sh herda a resiliência de graça. Só retenta exit 255 (connect
+          # timeout/refused/reset); erro REAL do comando remoto (exit != 255) propaga na
+          # hora, sem mascarar. Timeouts menores por tentativa (30s×2) pra as 5 se
+          # espalharem no tempo e pegarem janelas em que a rota volta, em vez de 1
+          # tentativa-monolítica de 5min num único momento ruim.
+          ssh_attempt=1
+          ssh_max=5
+          while :; do
+            ssh -4 \
+                -o BatchMode=yes \
+                -o StrictHostKeyChecking=accept-new \
+                -o ConnectTimeout=30 \
+                -o ConnectionAttempts=2 \
+                -o ServerAliveInterval=15 \
+                -o ServerAliveCountMax=10 \
+                -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+                ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+                "$@"
+            ssh_rc=$?
+            # exit != 255 → comando remoto rodou (sucesso ou falha real); propaga.
+            [ "$ssh_rc" -ne 255 ] && exit "$ssh_rc"
+            if [ "$ssh_attempt" -ge "$ssh_max" ]; then
+              echo "ssh_exec: conexão falhou (exit 255) após ${ssh_max} tentativas" >&2
+              exit 255
+            fi
+            echo "ssh_exec: conexão falhou (255) — tentativa ${ssh_attempt}/${ssh_max}, aguardando 15s…" >&2
+            ssh_attempt=$((ssh_attempt + 1))
+            sleep 15
+          done
           EOF
           chmod +x /tmp/ssh_exec.sh
 
@@ -165,13 +189,29 @@ jobs:
             | sort -u > /tmp/bundle_before.txt || true
           echo "BEFORE:" && cat /tmp/bundle_before.txt || true
 
-      - name: Warm-up do caminho SSH (curl 5x — Hostinger flaky, ver hostinger.md)
-        # "Sem warm-up, primeiro SSH quase sempre dá Connection timed out" (hostinger.md).
-        # 5 hits IPv4 acordam a rota runner→Hostinger antes do 1º comando SSH.
+      - name: Warm-up do caminho SSH (porta SSH + curl — Hostinger flaky, ver hostinger.md)
+        # CORREÇÃO 2026-06-11: o warm-up ANTIGO só batia em https://.../login (porta 443)
+        # — NÃO esquentava a PORTA SSH, então o 1º connect SSH caía frio e dava
+        # "Connection timed out" (causa raiz dos 255). Agora o warm-up toca a porta SSH
+        # de verdade: (1) sonda TCP a porta SSH real até abrir (10× com gap, bounded por
+        # `timeout`); (2) curl 443 acorda CDN/rota; (3) um `ssh true` real (já com retry
+        # do helper) faz a 1ª conexão custosa acontecer AQUI, tolerante a falha — o
+        # Pré-deploy check logo abaixo é o gate que valida pra valer.
         run: |
-          for i in 1 2 3 4 5; do
+          echo "=== TCP probe na porta SSH (acorda a rota certa) ==="
+          for i in $(seq 1 10); do
+            if timeout 8 bash -c "echo > /dev/tcp/${{ secrets.SSH_HOST }}/${{ secrets.SSH_PORT }}" 2>/dev/null; then
+              echo "porta SSH respondeu (tentativa $i)"; break
+            fi
+            echo "porta SSH fechada/timeout (tentativa $i) — aguardando 10s…"; sleep 10
+          done
+          echo "=== curl 443 (acorda CDN/rota HTTP) ==="
+          for i in 1 2 3; do
             curl -4 -s -o /dev/null -w "$i:%{http_code} " https://oimpresso.com/login --max-time 15 || true
           done; echo
+          echo "=== ssh true (1ª conexão custosa acontece aqui, tolerante) ==="
+          /tmp/ssh_exec.sh "true" && echo "warm-up SSH OK" \
+            || echo "warm-up SSH ainda frio — o Pré-deploy check fará a validação real"
 
       - name: Pré-deploy check — server state
         run: |
