@@ -639,18 +639,28 @@ function DrawerLensChip({ tone, children }: { tone: 'pos' | 'warn' | 'muted'; ch
   return <span className={`inline-flex items-center h-[19px] px-2 rounded-full text-[10.5px] font-medium ${cls}`}>{children}</span>;
 }
 
-function DrawerLens({ icon: Icon, title, status, tone = 'muted', children }: {
+function DrawerLens({ icon: Icon, title, status, tone = 'muted', hue = 'accent', children }: {
   icon: LucideIcon;
   title: string;
   status?: string | null;
   tone?: 'pos' | 'warn' | 'muted';
+  // FA-5 R3 — cor do ícone por domínio (complementar à identidade roxa).
+  // Tailwind @theme (drawer é portal fora de .cockpit — var(--pos) não resolve aqui).
+  hue?: 'accent' | 'pos' | 'warn' | 'neg' | 'muted';
   children: ReactNode;
 }) {
+  const hueCls = {
+    accent: 'bg-primary/10 text-primary',
+    pos: 'bg-success/10 text-success-foreground',
+    warn: 'bg-warning/10 text-warning-foreground',
+    neg: 'bg-destructive/10 text-destructive',
+    muted: 'bg-muted text-muted-foreground',
+  }[hue];
   return (
     <section className="border-t border-border/60 pt-4">
       <Inline asChild gap={2} className="mb-2.5">
         <header>
-          <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden>
+          <span className={`w-[22px] h-[22px] rounded-md grid place-items-center shrink-0 ${hueCls}`} aria-hidden>
             <Icon size={12} />
           </span>
           <h4 className="text-[12.5px] font-semibold text-foreground">{title}</h4>
@@ -660,6 +670,83 @@ function DrawerLens({ icon: Icon, title, status, tone = 'muted', children }: {
       {children}
     </section>
   );
+}
+
+// FA-5 R1 (Stripe) — valor copiável: ⧉ no hover · 1 clique copia · ✓ 1.4s.
+// stopPropagation pra não mexer no drawer. Cor do ✓/hover por Tailwind (success/primary).
+function CopyVal({ text, children, mono = false }: { text: string; children?: ReactNode; mono?: boolean }) {
+  const [ok, setOk] = useState(false);
+  return (
+    <button
+      type="button"
+      className={'fin-copyval' + (ok ? ' ok' : '')}
+      title="Copiar"
+      onClick={(e) => {
+        e.stopPropagation();
+        try { navigator.clipboard?.writeText(String(text)); } catch { /* clipboard indisponível */ }
+        setOk(true);
+        window.setTimeout(() => setOk(false), 1400);
+      }}
+    >
+      <span className={'fin-copyval-txt' + (mono ? ' font-mono tabular-nums' : '')}>{children ?? text}</span>
+      <span className={'fin-copyval-ic ' + (ok ? 'text-success-foreground' : 'text-muted-foreground')} aria-hidden>
+        {ok ? '✓' : '⧉'}
+      </span>
+    </button>
+  );
+}
+
+// FA-5 P5/S3 — saída no mundo real: recibo imprimível com identidade Oimpresso
+// (iframe oculto · Georgia 12pt · valor 24pt mono · "documento sem valor fiscal").
+// Client-side: o módulo Financeiro não tem rota server-side de recibo (verificado FA-5).
+function printReciboTitulo(t: Lancamento) {
+  const isIn = t.kind === 'receivable';
+  const settled = t.status === 'recebido' || t.status === 'pago';
+  const fmtLong = (iso: string | null | undefined) => {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    const MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    return `${parseInt(d ?? '1', 10)} de ${MES[parseInt(m ?? '1', 10) - 1] ?? ''} de ${y}`;
+  };
+  const esc = (s: string | null | undefined) =>
+    String(s ?? '—').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string));
+  const f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(f);
+  const d = f.contentDocument;
+  if (!d) { f.remove(); return; }
+  const ident = esc(t.numero || String(t.id));
+  const titulo = settled ? 'Recibo' : isIn ? 'Cobrança' : 'Aviso de pagamento';
+  const sinal = (t.valor ?? 0) === 0 ? '' : isIn ? '+ ' : '− ';
+  d.open();
+  d.write(
+    `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo ${ident}</title>` +
+    `<style>body{font:12pt/1.5 Georgia,serif;color:#111;margin:48px}` +
+    `.brand{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:12px}` +
+    `.brand b{font-size:16pt;letter-spacing:.04em}.brand span{font-size:10pt;color:#555}` +
+    `h1{font-size:13pt;margin:24px 0 4px;text-transform:uppercase;letter-spacing:.08em}` +
+    `.valor{font-size:24pt;font-family:ui-monospace,monospace;margin:8px 0 20px}` +
+    `table{width:100%;border-collapse:collapse;font-size:11pt}` +
+    `td{padding:6px 0;border-bottom:1px solid #ddd;vertical-align:top}td:first-child{color:#555;width:170px}` +
+    `.foot{margin-top:36px;font-size:9pt;color:#777}</style></head><body>` +
+    `<div class="brand"><b>OIMPRESSO</b><span>Comunicação Visual</span></div>` +
+    `<h1>${titulo} · ${ident}</h1>` +
+    `<div class="valor">${sinal}${esc(brl(t.valor ?? 0))}</div>` +
+    `<table>` +
+    `<tr><td>Descrição</td><td>${esc(t.descricao)}</td></tr>` +
+    `<tr><td>Contraparte</td><td>${esc(t.contraparte)}</td></tr>` +
+    `<tr><td>Categoria</td><td>${esc(t.categoria)}${t.canal ? ' · ' + esc(t.canal) : ''}</td></tr>` +
+    `<tr><td>${settled ? 'Liquidado em' : 'Vencimento'}</td><td>${fmtLong(settled ? t.liquidacao : t.vencimento)}</td></tr>` +
+    (t.nfe_numero ? `<tr><td>Nota fiscal</td><td>${esc(t.nfe_numero)}</td></tr>` : '') +
+    `</table>` +
+    `<div class="foot">Emitido pelo Oimpresso ERP · documento sem valor fiscal.</div>` +
+    `</body></html>`,
+  );
+  d.close();
+  window.setTimeout(() => {
+    try { f.contentWindow?.focus(); f.contentWindow?.print(); } catch { /* print bloqueado */ }
+    window.setTimeout(() => f.remove(), 800);
+  }, 60);
 }
 
 function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void; periodLabel: string }) {
@@ -1074,6 +1161,18 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     });
   };
 
+  // FA-5 N3 — navega prev/next título na lista FILTRADA sem fechar o drawer
+  // (clamp, não wrap; espelha o handler J/K já existente). O cluster ↑n/N↓ do
+  // header do drawer chama isto; J/K do teclado continuam funcionando igual.
+  const navTitulo = useCallback((dir: 1 | -1) => {
+    const ids = lancamentos.map((l) => l.id);
+    if (ids.length === 0 || selectedId === null) return;
+    const i = ids.indexOf(selectedId);
+    if (i < 0) return;
+    const j = Math.min(Math.max(i + dir, 0), ids.length - 1);
+    if (j !== i) setSelectedId(ids[j] ?? null);
+  }, [lancamentos, selectedId]);
+
   // Atalhos keyboard:
   //   ⌘K/Ctrl+K → palette
   //   / → busca focus
@@ -1098,9 +1197,20 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         favs.toggle(selectedId);
         return;
       }
+      // FA-5 9.75 P2 — R com drawer ABERTO liquida o título selecionado (Recebi/Paguei),
+      // espelhando o botão primário do footer. Sem drawer (ou já liquidado) → cai no
+      // atalho de novo recebimento abaixo. Precedência resolve a colisão R-global/R-drawer.
+      if (e.key === 'r' && !inEditable && selectedId !== null) {
+        const row = lancamentos.find((l) => l.id === selectedId);
+        if (row && (row.status === 'aberto' || row.status === 'atrasado' || row.status === 'vencendo')) {
+          e.preventDefault();
+          openBaixa(selectedId);
+          return;
+        }
+      }
       // PR G (2026-05-25) G6 auditoria — N/R/P atalhos novo lançamento.
       //   N = Novo recebimento (default — mais comum em ERP gráfico)
-      //   R = Receber explícito
+      //   R = Receber explícito (sem título selecionado)
       //   P = Pagar explícito
       if ((e.key === 'n' || e.key === 'r') && !inEditable) {
         e.preventDefault();
@@ -1159,7 +1269,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, favs, lancamentos, selectedRows, clearSelection, onBaixar]);
+  }, [selectedId, favs, lancamentos, selectedRows, clearSelection, onBaixar, openBaixa]);
 
   // Agrupamento por data de vencimento
   const grupos = useMemo(() => {
@@ -1718,7 +1828,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium flex items-center gap-2">
-                      <span>{selected.kind === 'receivable' ? 'A receber' : 'A pagar'} · #{selected.id}</span>
+                      <span className="inline-flex items-center gap-1">
+                        {selected.kind === 'receivable' ? 'A receber' : 'A pagar'} ·{' '}
+                        <CopyVal text={String(selected.numero || selected.id)}>#{selected.numero || selected.id}</CopyVal>
+                      </span>
                       {selected.conferido_at && (
                         <span className="text-[10px] text-emerald-700 font-medium normal-case tracking-normal">✓ conferido</span>
                       )}
@@ -1727,6 +1840,26 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       <FinCrossLinkify text={selected.descricao} />
                     </SheetTitle>
                   </div>
+                  {/* FA-5 N3 — posição na lista FILTRADA + nav J/K (cluster ↑n/N↓).
+                      mr-7 deixa folga pro X de fechar (shadcn SheetContent, absoluto). */}
+                  {(() => {
+                    const ids = lancamentos.map((l) => l.id);
+                    const i = ids.indexOf(selected.id);
+                    const total = ids.length;
+                    if (total <= 1) return null;
+                    const pos = i >= 0 ? i + 1 : 0;
+                    return (
+                      <div className="fin-dw-nav mr-7 shrink-0" title="Navegar entre títulos (J / K)">
+                        <button type="button" className="fin-dw-nav-btn" disabled={i <= 0} onClick={() => navTitulo(-1)} aria-label="Título anterior (K)">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="18 15 12 9 6 15" /></svg>
+                        </button>
+                        <span className="fin-dw-pos tabular-nums">{pos > 0 ? pos : '–'}<i>/</i>{total}</span>
+                        <button type="button" className="fin-dw-nav-btn" disabled={i < 0 || i >= total - 1} onClick={() => navTitulo(1)} aria-label="Próximo título (J)">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="6 9 12 15 18 9" /></svg>
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </SheetHeader>
 
@@ -1747,17 +1880,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 const [intPart, decPart] = (selected.valor ?? 0)
                   .toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                   .split(',');
-                // Urgência em palavras (uma linha calma, não pill redundante).
-                const hojeMs = new Date(new Date().toDateString()).getTime();
-                const vencMs = selected.vencimento ? new Date(`${selected.vencimento}T00:00:00`).getTime() : NaN;
-                const delta = Number.isNaN(vencMs) ? null : Math.round((vencMs - hojeMs) / 86400000);
-                const relText = settled || delta === null ? null
-                  : delta < 0 ? `${-delta} ${-delta === 1 ? 'dia' : 'dias'} em atraso`
-                  : delta === 0 ? 'vence hoje'
-                  : `em ${delta} ${delta === 1 ? 'dia' : 'dias'}`;
-                const relCls = delta !== null && delta < 0 ? 'text-destructive font-medium'
-                  : delta !== null && delta <= 3 ? 'text-warning-foreground font-medium'
-                  : 'text-muted-foreground';
+                // FA-5 R3 — urgência sai daqui (era "linha da data" duplicando o frescor);
+                // o chip FinPillFrescor passa a ser a única voz do tempo relativo.
                 const fmtBr = (d: string | null | undefined) => (d ? d.split('-').reverse().join('/') : '—');
                 // FSM compacto — etapas do ciclo do título (espelha finFsmStage do
                 // protótipo: liquidado=3 · conferido=1 · lançado=0; conciliação real
@@ -1765,7 +1889,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 const etapas = ['Lançado', 'Conferido', 'Conciliado', 'Liquidado'];
                 const stage = settled ? 3 : selected.conferido_at ? 1 : 0;
                 return (
-                  <div className="shrink-0 px-5 pt-3 pb-3.5 border-b border-border">
+                  <div className="shrink-0 px-5 pt-3 pb-3.5 border-b border-border fin-dw-hero">
                     <Inline align="end" justify="between" gap={3}>
                       <div className="min-w-0">
                         <div className={`text-[10.5px] uppercase tracking-[0.1em] font-semibold ${labelTone}`}>
@@ -1778,14 +1902,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         </Inline>
                       </div>
                       <Stack gap={1} align="end" className="gap-1.5 shrink-0 pb-0.5">
-                        <Inline gap={1} className="gap-1.5">
-                          <StatusPill s={selected.status} />
-                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
-                        </Inline>
+                        {/* FA-5 R3 — estado dito 1×: o label uppercase colorido (acima) já diz
+                            o estado; aqui fica só o frescor como chip calmo. StatusPill saiu. */}
+                        <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
                         <div className="text-[12.5px] text-muted-foreground tabular-nums whitespace-nowrap">
                           {settled
                             ? <>liq. <b className="font-medium text-foreground">{selected.liquidacao || '—'}</b></>
-                            : <>vence <b className="font-medium text-foreground">{fmtBr(selected.vencimento)}</b>{relText && <> · <span className={relCls}>{relText}</span></>}</>}
+                            : <>vence <b className="font-medium text-foreground">{fmtBr(selected.vencimento)}</b></>}
                         </div>
                       </Stack>
                     </Inline>
@@ -1884,7 +2007,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   <div className="border-t border-stone-100 pt-4 grid grid-cols-2 gap-y-3 gap-x-3">
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
-                      <div className="mt-0.5 font-medium text-stone-900">{selected.contraparte}</div>
+                      <div className="mt-0.5 font-medium text-stone-900"><CopyVal text={selected.contraparte}>{selected.contraparte}</CopyVal></div>
                       {selected.contraparte_doc && <div className="text-[11px] text-stone-500 font-mono">{selected.contraparte_doc}</div>}
                     </div>
                     <div>
@@ -1930,7 +2053,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>
                       <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
                         <Landmark className="h-4 w-4 text-stone-400" aria-hidden />
-                        <span>{selected.conta_bancaria || '—'}</span>
+                        <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
                       </div>
                     </div>
                     {/* Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe). Tokens
@@ -1981,7 +2104,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   {(() => {
                     const settled = selected.status === 'recebido' || selected.status === 'pago';
                     return (
-                      <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? '100% match' : 'aguardando'} tone={settled ? 'pos' : 'muted'}>
+                      <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? '100% match' : 'aguardando'} tone={settled ? 'pos' : 'muted'} hue={settled ? 'pos' : 'muted'}>
                         {settled ? (
                           <Inline align="start" gap={2} className="gap-2.5 rounded-md border border-border bg-muted px-3 py-2">
                             <span className="w-[18px] h-[18px] rounded-full grid place-items-center bg-success/15 text-success-foreground shrink-0 mt-px" aria-hidden>
@@ -2015,12 +2138,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     const iss = isIn ? (selected.valor ?? 0) * 0.05 : 0;
                     const das = isIn ? (selected.valor ?? 0) * 0.06 : 0;
                     return (
-                      <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? 'NF vinculada' : 'sem NF'} tone={hasNf ? 'pos' : 'warn'}>
+                      <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? 'NF vinculada' : 'sem NF'} tone={hasNf ? 'pos' : 'warn'} hue="warn">
                         <Grid cols={2} gap={0} className="gap-x-5">
                           <div>
                             <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">{isIn ? 'NF-e de saída' : 'Documento fiscal'}</div>
                             <div className="text-[13px] text-foreground font-medium truncate">
-                              {hasNf ? <span className="font-mono tabular-nums">{selected.nfe_numero}</span> : <span className="text-warning-foreground">não emitida</span>}
+                              {hasNf ? <CopyVal text={selected.nfe_numero ?? ''} mono>{selected.nfe_numero}</CopyVal> : <span className="text-warning-foreground">não emitida</span>}
                             </div>
                           </div>
                           <div>
@@ -2146,12 +2269,23 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   Ver NFe → Cobrar → Recebi/Paguei → Editar → Favoritar. */}
               {drawerTab === 'detalhes' && (
                 <div className="fin-drawer-footer fin-drawer-footer-sticky">
+                  {/* FA-5 P2 — teclas visíveis (J/K nav · R liquida). Some no mobile (<720px)
+                      e quando houver troubleshooter no footer (CSS :has). */}
+                  <span className="fin-dw-hint" title="J / K navegam entre títulos · R liquida · Esc fecha">
+                    <kbd className="fin-kbd">J</kbd><kbd className="fin-kbd">K</kbd><em>título</em>
+                  </span>
                   {selected.nfe_numero && (
                     <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
                       <Eye className="h-4 w-4" aria-hidden />
                       <span className="ml-1">Ver NFe</span>
                     </Button>
                   )}
+                  {/* FA-5 P5/S3 — recibo imprimível com identidade Oimpresso (client-side iframe;
+                      o módulo não tem rota server-side de recibo — verificado FA-5). */}
+                  <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Imprimir recibo (identidade Oimpresso)" onClick={() => printReciboTitulo(selected)}>
+                    <Printer className="h-4 w-4" aria-hidden />
+                    <span className="ml-1">Recibo</span>
+                  </Button>
                   {/* Gerar Boleto no drawer (2026-06-08) — emite boleto Inter pro
                       título SEM sair da Visão Unificada. Quando já emitido, vira
                       "Copiar boleto" (linha digitável persistida em metadata). */}
@@ -2183,9 +2317,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     )
                   )}
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                    <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn">
+                    <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn" title={selected.kind === 'receivable' ? 'Marcar recebido (atalho R)' : 'Marcar pago (atalho R)'}>
                       <span aria-hidden>✓</span>
                       <span className="ml-1">{selected.kind === 'receivable' ? 'Receber' : 'Pagar'}</span>
+                      <kbd className="fin-kbd fin-kbd-acc">R</kbd>
                     </Button>
                   )}
                   <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
