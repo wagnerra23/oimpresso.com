@@ -62,19 +62,31 @@
 //     faz terminal — Non-Goal charter; o botão faz, charter emendado v3).
 //   Sem dado fake (gate no-mock-in-prod): ETA-diag / "Encomendado: peça chega X" /
 //   "Pago" do protótipo NÃO têm campo real → omitidos (documentado no charter/PR).
-//   Onda 2 (PR separado): views Grade e Fila no toggle.
+//
+// ONDA 2 + polish toolbar [CC] 2026-06-11 (pedido [W] "fecha paridade Cowork"):
+//   1. Toggle + Visão MIGRARAM do header pra BARRA DA BUSCA (canon .ofc-view-toolbar):
+//      [busca + contador] | [toggle] | [Visão]. Header fica só [Imprimir fila] [Nova OS].
+//   2. Toggle vira Quadro · Lista · Grade · Fila. Quadro/Grade são in-page (estado
+//      `view` persistido em localStorage oficinaBoard.view); Lista/Fila NAVEGAM pra
+//      Index (Fila = ?view=fila — página já existe, NÃO duplica).
+//   3. GRADE (BoardGrade): varredura client-side veículo × etapa — linha = OS
+//      (MercosulPlate + modelo + cliente), colunas = etapas do payload `columns`,
+//      marca na célula da etapa atual (tom da coluna + glifo semântico gradeGlyph),
+//      legenda data-driven. Respeita busca + KPI-filtro + aba de box (cardVisible);
+//      independe do foco (Box/Mecânico é pivot só do Quadro). Sem heurística fake.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { Plus, Search, LayoutGrid, List as ListIcon, Printer, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Search, LayoutGrid, List as ListIcon, Table2, ListOrdered, Printer, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Segmented } from '@/Components/ui/segmented';
 import { Inline } from '@/Components/layout';
 import { printOficinaFila, type FilaPrintRow } from '@/Lib/printOficinaFila';
+import MercosulPlate from '@/Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate';
 import KanbanDndProvider from '@/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider';
 import DragConfirmDialog, {
   type PendingTransition,
@@ -82,7 +94,7 @@ import DragConfirmDialog, {
 import ServiceOrderRichSheet from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet';
 import ServiceOrderKanbanColumn from './_components/board/ServiceOrderKanbanColumn';
 import type { BoardDensity, ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
-import { kpiTone, type KpiTone } from './_components/board/boardTone';
+import { kpiTone, toneForColor, gradeGlyph, type KpiTone } from './_components/board/boardTone';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -148,8 +160,18 @@ const formatBRL = (value: number): string =>
 
 type BoardFoco = 'etapa' | 'box' | 'mecanico';
 
+// Onda 2 — view do toggle (Quadro · Lista · Grade · Fila). 'quadro' e 'grade' são
+// in-page (estado client-side persistido); 'lista' e 'fila' NAVEGAM pra Index
+// (Lista = tabela densa · Fila = ?view=fila master-detail) — a página já existe,
+// não duplica. Só as duas in-page persistem no localStorage.
+type BoardView = 'quadro' | 'grade';
+
 const FOCO_STORAGE_KEY = 'oficinaBoard.foco';
 const DENSIDADE_STORAGE_KEY = 'oficinaBoard.densidade';
+const VIEW_STORAGE_KEY = 'oficinaBoard.view';
+
+const ROUTE_LISTA = '/oficina-auto/ordens-servico';
+const ROUTE_FILA = '/oficina-auto/ordens-servico?view=fila';
 
 /** Coluna exibida no quadro — etapa FSM (foco Etapa) ou pivot Box/Mecânico. */
 interface DisplayColumn {
@@ -296,6 +318,18 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
   const setDensidade = useCallback((v: BoardDensity) => {
     setDensidadeState(v);
     try { window.localStorage.setItem(DENSIDADE_STORAGE_KEY, v); } catch { /* idem */ }
+  }, []);
+
+  // Onda 2 — view in-page (Quadro × Grade), persistida por operador. Lista/Fila
+  // não passam por aqui (navegam pra Index via <Link>).
+  const [view, setViewState] = useState<BoardView>(() => {
+    const v = typeof window !== 'undefined' ? window.localStorage.getItem(VIEW_STORAGE_KEY) : null;
+    return v === 'grade' ? 'grade' : 'quadro';
+  });
+  const setView = useCallback((v: BoardView) => {
+    setViewState(v);
+    setFocusedId(null);
+    try { window.localStorage.setItem(VIEW_STORAGE_KEY, v); } catch { /* idem */ }
   }, []);
 
   const kpiClick = useCallback((key: KpiFilterKey) => {
@@ -532,6 +566,18 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
   const visibleCards = useMemo(() => displayColumns.flatMap((c) => c.cards), [displayColumns]);
   const visibleCount = visibleCards.length;
 
+  // Onda 2 — linhas da Grade (veículo × etapa). Cada OS vira uma linha; a marca cai
+  // na coluna da etapa REAL (col.key), respeitando busca + KPI-filtro + aba de box
+  // (cardVisible). Independe do foco — Box/Mecânico é pivot só do Quadro; a Grade é
+  // sempre por etapa. Colunas = as etapas FSM do payload `columns` (data-driven).
+  const gradeRows = useMemo(() => {
+    const rows: Array<{ card: ServiceOrderCardData; stageKey: string }> = [];
+    columns.forEach((col) => col.cards.forEach((c) => {
+      if (cardVisible(c, col.key)) rows.push({ card: c, stageKey: col.key });
+    }));
+    return rows;
+  }, [columns, cardVisible]);
+
   // D-07 — atalhos de teclado (Larissa é teclado-first): N nova OS · / busca ·
   // setas navegam cards · Enter abre o drawer · Esc limpa o foco (Radix já fecha
   // drawer/popover no Esc). Ignora quando digitando em input/select/textarea.
@@ -618,65 +664,9 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
             <h1 className="text-lg font-semibold text-foreground">Oficina · Quadro de OS</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Fluxo de reparo do veículo — da recepção à retirada</p>
           </div>
+          {/* Header só com as ações de página (toggle de views + Visão migraram pra
+              barra da busca — canon .ofc-view-toolbar · pedido [W] 2026-06-11). */}
           <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-            <div className="inline-flex rounded border border-border bg-white overflow-hidden" role="group" aria-label="Visualização">
-              <button className="px-2.5 py-1 text-xs font-medium bg-primary text-white inline-flex items-center gap-1" disabled aria-pressed="true">
-                <LayoutGrid size={12} /> Quadro
-              </button>
-              <Link href="/oficina-auto/ordens-servico" className="px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted inline-flex items-center gap-1">
-                <ListIcon size={12} /> Lista
-              </Link>
-            </div>
-
-            {/* Menu Visão (canon .ofc-adjust do protótipo) — foco + densidade.
-                Pressão ficou FORA desta onda. */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={foco !== 'etapa' || densidade !== 'padrao' ? 'border-primary text-primary' : undefined}
-                  title="Ajustar visão (foco · densidade)"
-                  data-testid="board-visao-trigger"
-                >
-                  <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" /> Visão
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-72 space-y-3" role="menu" aria-label="Ajustar visão">
-                <div className="space-y-1.5">
-                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Foco</span>
-                  <Segmented
-                    value={foco}
-                    onValueChange={(v) => setFoco(v as BoardFoco)}
-                    options={[
-                      { value: 'etapa', label: 'Etapa' },
-                      { value: 'box', label: 'Box', disabled: filterOptions.boxes.length === 0 },
-                      { value: 'mecanico', label: 'Mecânico', disabled: filterOptions.mecanicos.length === 0 },
-                    ]}
-                    aria-label="Foco das colunas"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Densidade</span>
-                  <Segmented
-                    value={densidade}
-                    onValueChange={(v) => setDensidade(v as BoardDensity)}
-                    options={[
-                      { value: 'compacto', label: 'Compacto' },
-                      { value: 'padrao', label: 'Padrão' },
-                      { value: 'detalhe', label: 'Detalhe' },
-                    ]}
-                    aria-label="Densidade dos cards"
-                  />
-                </div>
-                {foco !== 'etapa' && (
-                  <p className="text-[11px] text-muted-foreground leading-snug">
-                    No foco {foco === 'box' ? 'Box' : 'Mecânico'} o arraste fica desligado — etapas mudam no foco Etapa ou pelo drawer da OS.
-                  </p>
-                )}
-              </PopoverContent>
-            </Popover>
-
             <Button variant="ghost" size="sm" onClick={handlePrintFila} data-testid="board-print-fila">
               <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir fila
             </Button>
@@ -743,11 +733,14 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </Inline>
         )}
 
-        {/* Filtro busca + chip do KPI ativo */}
+        {/* Barra de views (canon .ofc-view-toolbar) — [busca + contador] | [toggle
+            Quadro·Lista·Grade·Fila] | [Visão]. Toggle e Visão migraram do header pra
+            cá ([W] 2026-06-11). O contador "N OS · N atrasadas" fica à direita da busca. */}
         <div className="bg-white border-b border-border px-6 py-2.5 flex items-center gap-3 sticky top-0 z-10 flex-wrap">
-          <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md">
+          {/* Grupo busca (flex-1): input + limpar + chip KPI + contador à direita */}
+          <div className="flex items-center gap-2 flex-1 min-w-[240px]">
             <Search size={14} className="text-muted-foreground flex-shrink-0" />
-            <div className="relative flex-1">
+            <div className="relative flex-1 max-w-md">
               <Input
                 ref={searchRef}
                 type="search"
@@ -770,33 +763,131 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
                 </button>
               )}
             </div>
+
+            {/* D-05 — chip do KPI-filtro ativo (clicar limpa) */}
+            {kpiFilter && (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/15 whitespace-nowrap"
+                onClick={() => kpiClick(kpiFilter)}
+                data-testid="board-kpi-clear"
+              >
+                <X size={10} /> limpar filtro: {KPI_FILTER_LABEL[kpiFilter]}
+              </button>
+            )}
+
+            <span className="ml-auto pl-2 text-sm text-muted-foreground whitespace-nowrap" aria-live="polite">
+              <span className="font-medium text-foreground tabular-nums">{visibleCount} OS</span>
+              {kpiFilter && (<span className="ml-1 text-xs">de {kpis.total}</span>)}
+              {kpis.atrasadas > 0 && (<><span className="mx-1.5 text-muted-foreground">·</span><span className="font-medium text-destructive tabular-nums">{kpis.atrasadas} atrasada{kpis.atrasadas === 1 ? '' : 's'}</span></>)}
+            </span>
           </div>
 
-          {/* D-05 — chip do KPI-filtro ativo (clicar limpa) */}
-          {kpiFilter && (
+          {/* Toggle de views (canon .prod-view-toggle): Quadro · Lista · Grade · Fila.
+              Quadro/Grade são in-page (estado); Lista/Fila navegam pra Index. */}
+          <div className="inline-flex flex-shrink-0 rounded border border-border bg-white overflow-hidden" role="group" aria-label="Visualização">
             <button
               type="button"
-              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/15"
-              onClick={() => kpiClick(kpiFilter)}
-              data-testid="board-kpi-clear"
+              onClick={() => setView('quadro')}
+              aria-pressed={view === 'quadro'}
+              className={'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors ' + (view === 'quadro' ? 'bg-primary text-white' : 'text-foreground hover:bg-muted')}
+              data-testid="board-view-quadro"
             >
-              <X size={10} /> limpar filtro: {KPI_FILTER_LABEL[kpiFilter]}
+              <LayoutGrid size={12} /> Quadro
             </button>
-          )}
+            <Link
+              href={ROUTE_LISTA}
+              className="px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 text-foreground hover:bg-muted transition-colors border-l border-border"
+              data-testid="board-view-lista"
+            >
+              <ListIcon size={12} /> Lista
+            </Link>
+            <button
+              type="button"
+              onClick={() => setView('grade')}
+              aria-pressed={view === 'grade'}
+              className={'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors border-l border-border ' + (view === 'grade' ? 'bg-primary text-white' : 'text-foreground hover:bg-muted')}
+              data-testid="board-view-grade"
+            >
+              <Table2 size={12} /> Grade
+            </button>
+            <Link
+              href={ROUTE_FILA}
+              className="px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 text-foreground hover:bg-muted transition-colors border-l border-border"
+              data-testid="board-view-fila"
+            >
+              <ListOrdered size={12} /> Fila
+            </Link>
+          </div>
 
-          <span className="ml-auto text-sm text-muted-foreground" aria-live="polite">
-            <span className="font-medium text-foreground">{visibleCount} OS</span>
-            {kpiFilter && (<span className="ml-1 text-xs">de {kpis.total}</span>)}
-            {kpis.atrasadas > 0 && (<><span className="mx-1.5 text-muted-foreground">·</span><span className="font-medium text-destructive">{kpis.atrasadas} atrasada{kpis.atrasadas === 1 ? '' : 's'}</span></>)}
-          </span>
+          {/* Menu Visão (canon .ofc-adjust do protótipo) — foco + densidade.
+              Pressão ficou FORA desta onda. */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={'flex-shrink-0 ' + (foco !== 'etapa' || densidade !== 'padrao' ? 'border-primary text-primary' : '')}
+                title="Ajustar visão (foco · densidade)"
+                data-testid="board-visao-trigger"
+              >
+                <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" /> Visão
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-72 space-y-3" role="menu" aria-label="Ajustar visão">
+              <div className="space-y-1.5">
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Foco</span>
+                <Segmented
+                  value={foco}
+                  onValueChange={(v) => setFoco(v as BoardFoco)}
+                  options={[
+                    { value: 'etapa', label: 'Etapa' },
+                    { value: 'box', label: 'Box', disabled: filterOptions.boxes.length === 0 },
+                    { value: 'mecanico', label: 'Mecânico', disabled: filterOptions.mecanicos.length === 0 },
+                  ]}
+                  aria-label="Foco das colunas"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Densidade</span>
+                <Segmented
+                  value={densidade}
+                  onValueChange={(v) => setDensidade(v as BoardDensity)}
+                  options={[
+                    { value: 'compacto', label: 'Compacto' },
+                    { value: 'padrao', label: 'Padrão' },
+                    { value: 'detalhe', label: 'Detalhe' },
+                  ]}
+                  aria-label="Densidade dos cards"
+                />
+              </div>
+              {foco === 'etapa' ? (
+                view === 'grade' ? (
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    A Grade é sempre por etapa (veículo × etapa) — Foco e Densidade valem no Quadro.
+                  </p>
+                ) : null
+              ) : (
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  No foco {foco === 'box' ? 'Box' : 'Mecânico'} o arraste fica desligado — etapas mudam no foco Etapa ou pelo drawer da OS.
+                </p>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* Quadro — overflow-x-auto: o kanban rola por dentro, o shell nunca estoura
-            (espelha .prod-kanban do protótipo: overflow auto + minmax(228px, 1fr)) */}
-        <div className="p-6 overflow-x-auto">
-          {!process_seeded ? (
+        {/* Conteúdo — Quadro (kanban drag) OU Grade (veículo × etapa). Lista/Fila
+            navegam pra Index, então aqui só alterna Quadro × Grade. */}
+        {!process_seeded ? (
+          <div className="p-6">
             <EmptyProcessState />
-          ) : (
+          </div>
+        ) : view === 'grade' ? (
+          <BoardGrade columns={columns} rows={gradeRows} onRowClick={handleCardClick} />
+        ) : (
+          /* Quadro — overflow-x-auto: o kanban rola por dentro, o shell nunca estoura
+             (espelha .prod-kanban do protótipo: overflow auto + minmax(228px, 1fr)) */
+          <div className="p-6 overflow-x-auto">
             <KanbanDndProvider<ServiceOrderCardData, string> onMove={handleDragMove} renderPreview={renderPreview}>
               <div className="grid gap-4 items-start" style={boardGridStyle}>
                 {displayColumns.map((col) => (
@@ -820,8 +911,8 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
                 ))}
               </div>
             </KanbanDndProvider>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Drawer rico reusado (embute FsmActionPanel + DviPhotoGrid) */}
@@ -889,6 +980,101 @@ function KpiCard({ label, value, sub, tone, active = false, dimmed = false, onCl
   return (
     <div className={`rounded-lg border px-3 py-2 flex flex-col gap-0.5 ${t.wrapper}`}>
       {inner}
+    </div>
+  );
+}
+
+// ─── Grade (veículo × etapa · Onda 2) ────────────────────────────────────────
+// View de varredura client-side: cada linha é uma OS (placa + modelo + cliente),
+// cada coluna é uma etapa FSM (data-driven do payload `columns`); a marca cai na
+// célula da etapa ATUAL da OS. Tom da marca = tom da coluna (toneForColor), glifo
+// semântico por etapa (gradeGlyph). Port Tailwind do canon .ofc-grade do protótipo
+// Cowork. Sem dado fake — heurística sintoma×serviço do protótipo NÃO entra (gate
+// no-mock-in-prod): a Grade espelha a etapa real, não inventa cobertura de serviço.
+interface BoardGradeProps {
+  columns: BoardColumn[];
+  rows: Array<{ card: ServiceOrderCardData; stageKey: string }>;
+  onRowClick: (card: ServiceOrderCardData) => void;
+}
+
+function BoardGrade({ columns, rows, onRowClick }: BoardGradeProps) {
+  const headCls =
+    'bg-muted text-[9.5px] font-semibold uppercase tracking-[0.05em] text-muted-foreground border-b border-r border-border align-bottom';
+  return (
+    <div className="p-6 overflow-x-auto">
+      <table className="w-full border-separate border-spacing-0 text-[11.5px] bg-white border border-border rounded-lg overflow-hidden">
+        <thead>
+          <tr>
+            <th className={`${headCls} sticky left-0 z-[2] text-left w-[240px] px-3.5 py-2.5`}>
+              Veículo / Serviço
+            </th>
+            {columns.map((col) => (
+              <th key={col.key} className={`${headCls} px-1.5 py-2.5 text-center whitespace-nowrap last:border-r-0`}>
+                {col.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ card, stageKey }) => (
+            <tr
+              key={card.id}
+              onClick={() => onRowClick(card)}
+              className="group cursor-pointer"
+            >
+              <td className="sticky left-0 z-[1] bg-white group-hover:bg-muted/60 px-3.5 py-2.5 border-b border-r border-border flex items-center gap-2.5 font-medium">
+                {card.plate ? (
+                  <MercosulPlate plate={card.plate} size="sm" />
+                ) : (
+                  <span className="text-[10px] text-muted-foreground italic flex-shrink-0">sem placa</span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <span className="block text-[11.5px] font-semibold leading-tight truncate text-foreground">
+                    {card.vehicle_type ?? 'Veículo'}
+                  </span>
+                  <span className="block text-[10px] text-muted-foreground truncate">
+                    {card.cliente_nome ?? '—'} · <span className="font-mono">OS #{card.id}</span>
+                  </span>
+                </div>
+              </td>
+              {columns.map((col) => (
+                <td
+                  key={col.key}
+                  className="h-10 p-0 text-center border-b border-r border-border last:border-r-0 group-hover:bg-muted/40"
+                >
+                  {col.key === stageKey ? (
+                    <span
+                      className={`inline-grid place-items-center w-[22px] h-[22px] rounded-[5px] text-xs font-bold font-mono ${toneForColor(col.color).badge}`}
+                      title={col.name}
+                    >
+                      {gradeGlyph(col.key)}
+                    </span>
+                  ) : null}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {rows.length === 0 && (
+        <p className="text-center text-sm text-muted-foreground py-8">
+          Nenhuma OS no filtro atual.
+        </p>
+      )}
+
+      {/* Legenda data-driven — uma entrada por etapa do board (mesmo glifo/tom da célula) */}
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-border bg-muted/40 px-3.5 py-2.5 text-[11px] text-muted-foreground">
+        {columns.map((col) => (
+          <span key={col.key} className="inline-flex items-center gap-1.5">
+            <span className={`inline-grid place-items-center w-[18px] h-[18px] rounded-[5px] text-[10.5px] font-bold font-mono ${toneForColor(col.color).badge}`}>
+              {gradeGlyph(col.key)}
+            </span>
+            {col.name}
+          </span>
+        ))}
+        <span className="ml-auto italic text-muted-foreground/80">clique no veículo abre a OS</span>
+      </div>
     </div>
   );
 }
