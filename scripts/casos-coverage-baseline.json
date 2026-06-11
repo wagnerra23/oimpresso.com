@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "generated_at": "2026-06-11T18:29:12.949Z",
+    "generated_at": "2026-06-11T18:35:21.507Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "stats": {
       "pages": 275,
-      "casos_files": 4,
-      "ucs_declared": 14,
+      "casos_files": 5,
+      "ucs_declared": 15,
       "missing_charter": 144,
-      "missing_casos": 271,
+      "missing_casos": 270,
       "orphan_ucs": 0,
       "metadata_issues": 0,
       "stale_cases": 0,
@@ -263,7 +263,6 @@
     "trio:missing-casos:resources/js/Pages/Repair/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Repair/Status/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Caixa/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Sells/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Drafts.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Quotations.tsx",
