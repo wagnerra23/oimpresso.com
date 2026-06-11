@@ -1,0 +1,61 @@
+name: Components tree guard (árvore canônica de Components/)
+
+# Auditoria 2026-06-11 + PR #2539: domínio single-módulo saiu da global pra
+# Pages/<Mod>/_components/. Este gate impede a doença voltar — pasta/arquivo novo
+# no top-level de resources/js/Components/ exige editar a ALLOWLIST do script no
+# MESMO PR (decisão consciente, revisável no diff). Também trava a convenção
+# `_components` (com underscore) sob Pages/.
+#
+# Node puro (fs), sem deps, sem npm ci. Comando local: npm run components:check
+# Lei do projeto (ADR 0240): derivado + enforcado sobrevive.
+
+on:
+  push:
+    branches: [main, 6.7-react]
+    paths:
+      - 'resources/js/**'
+      - 'scripts/components-tree-guard.mjs'
+      - 'package.json'
+      - '.github/workflows/components-tree-guard.yml'
+  pull_request:
+    paths:
+      - 'resources/js/**'
+      - 'scripts/components-tree-guard.mjs'
+      - 'package.json'
+      - '.github/workflows/components-tree-guard.yml'
+
+concurrency:
+  group: components-tree-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  components-tree:
+    name: Components · árvore canônica (allowlist + _components)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Components tree guard (falha em pasta/arquivo fora da árvore canônica)
+        run: node scripts/components-tree-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Entrada nova fora da árvore canônica de resources/js/Components/."
+          echo ""
+          echo "Onde criar componente novo:"
+          echo "  - primitivo visual                → Components/ui/ (kebab-case + registrar em REGISTRY_DS_COMPONENTES.md)"
+          echo "  - composto cross-módulo (≥2 mods) → Components/shared/"
+          echo "  - domínio de 1 módulo só          → Pages/<Mod>/_components/"
+          echo ""
+          echo "Pasta cross-módulo nova de verdade? Adicione à ALLOWLIST em"
+          echo "scripts/components-tree-guard.mjs no MESMO PR, com justificativa no comentário."
+          echo ""
+          echo "Refs: ADR UI-0013 · ADR 0240 · .claude/rules/components.md · PR #2539"

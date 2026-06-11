@@ -20,6 +20,7 @@ Ver dossier: [`memory/sessions/2026-05-15-arte-claude-rules-path-scoped.md`](../
 | `routes.md` | `routes/web.php`, `routes/*.php` | FQCN obrigatório (sem string legacy) |
 | `commands.md` | `app/Console/Commands/**/*.php`, `Modules/**/Console/**/*.php` | `--detail` em vez de `--verbose` |
 | `reuse-check.md` | `resources/js/{Components,Lib,Hooks}/**`, `Modules/**/{Services,Entities,Models}/**/*.php` | `reuse:check` antes de criar símbolo (anti-duplicação · MANUAL #5) |
+| `components.md` | `resources/js/Components/**`, `resources/js/Pages/**/_components/**` | Árvore canônica (UI-0013 → pastas) + onde criar componente + catracas ativas |
 
 ## Convenções internas oimpresso
 
