@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://oimpresso.com/schemas/adr.schema.json",
   "title": "ADR Nygard frontmatter — oimpresso (ONDA 5 S1)",
-  "description": "Schema canônico do bloco YAML em memory/decisions/*.md. Espelha memory/decisions/_schema.json (fonte legada) + ONDA-5-DOSSIER §5 S1 (campos extras supersedes/superseded_by/related opcionais).",
+  "description": "Schema canônico do bloco YAML em memory/decisions/*.md — FONTE ÚNICA do vocabulário (auditoria gates 2026-06-11, ADR 0271). memory/decisions/_schema.json é ESPELHO derivado deste (não editar lá). O linter Pest (AdrFrontmatterLinterTest) tolera adicionalmente variantes legacy em ADRs aceitas pré-Constituição v2 (append-only impede reescrita) — para ADRs NOVAS, este schema (strict, validado pelo memory-schema-gate em changed files) é a lei.",
   "type": "object",
   "required": [
     "slug",
@@ -68,7 +68,18 @@
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
     },
     "module": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Vocabulário sincronizado com MODULE_VALIDOS do AdrFrontmatterLinterTest (fonte única — auditoria 2026-06-11). Canon = lowercase; variantes case são legacy append-only.",
+      "enum": [
+        "copiloto", "financeiro", "pontowr2", "memcofre",
+        "cms", "officeimpresso", "connector", "grow", "core", "infra",
+        "whatsapp", "ads", "governance", "nfebrasil", "recurringbilling",
+        "nfse", "projectmgmt", "repair", "consultaos",
+        "kb", "sells", "autopecas", "comissao", "pcp", "crm",
+        "Sells", "Autopecas", "Comissao", "Pcp", "Governance", "ADS",
+        "Infra", "jana", "design-system", "NfeBrasil", "_DesignSystem", "OficinaAuto",
+        null
+      ]
     },
     "supersedes": {
       "type": "array",

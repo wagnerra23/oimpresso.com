@@ -24,14 +24,11 @@ on:
       - 'resources/css/cockpit.css'
       - 'tests/Feature/Architecture/**'
       - '.github/workflows/ui-architecture-gate.yml'
+  # ⚠️ pull_request SEM paths: de propósito (2026-06-11, ADR 0271) — este check é
+  # required (ADR 0263); required + path-scoped = deadlock "Expected" em PR que não
+  # toca UI (mesmo incidente 2026-06-08 que destravou adr-lint/ui-lint/conformance).
+  # Os 3 testes são filesystem-puros e baratos — rodar sempre é seguro.
   pull_request:
-    paths:
-      - 'resources/js/Pages/**'
-      - 'resources/js/Layouts/AppShellV2.tsx'
-      - 'resources/js/Components/cockpit/**'
-      - 'resources/css/cockpit.css'
-      - 'tests/Feature/Architecture/**'
-      - '.github/workflows/ui-architecture-gate.yml'
 
 concurrency:
   group: ui-architecture-gate-${{ github.ref }}
