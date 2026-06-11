@@ -1,4 +1,8 @@
-// NumericInputPtBR — input numérico pt-BR safe.
+// NumericInputPtBR — input numérico pt-BR safe (canon ui/ · BR inputs).
+//
+// PROMOVIDO de Pages/Sells/_components → ui/ em 2026-06-11 (R-DS-001 regra-de-2:
+// PaymentRow + Sells/Create já consumiam; vira superfície canônica junto com
+// document-input + phone-input). Registrado em REGISTRY_DS_COMPONENTES.md.
 //
 // Origem (Bug R$ [redacted Tier 0]k Larissa 2026-05-27):
 //   <Input type="number" value={p.unit_price} onChange={Number(e.target.value)}> permitia
@@ -85,4 +89,5 @@ const NumericInputPtBR = forwardRef<HTMLInputElement, Props>(function NumericInp
   );
 });
 
+export { NumericInputPtBR };
 export default NumericInputPtBR;

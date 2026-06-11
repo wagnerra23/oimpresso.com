@@ -30,6 +30,9 @@
 | **Switch** | `@/Components/ui/switch` | ✅ | Radix | toggle hand-rolled / checkbox pra booleano de setting |
 | **Label** | `@/Components/ui/label` | ✅ | Radix | `<label className="text-xs …">` solto |
 | **Button** | `@/Components/ui/button` | ✅ | ✅ `variant="cowork-primary\|cowork-ghost"`, `size="cowork"` | `<button className="bg-… rounded-md px-…">` cru |
+| **NumericInputPtBR** (moeda/decimal) | `@/Components/ui/numeric-input-ptbr` | ✅ 2026-06-11 (promovido de Sells) | herda Input cowork | `<Input type="number" onChange={Number(...)}>` ← bug R$ Larissa 2026-05-27 (locale) |
+| **DocumentInput** (CPF/CNPJ) | `@/Components/ui/document-input` | ✅ 2026-06-11 | herda Input cowork | hand-wiring `maskCPF/maskCNPJ + validateCPF` repetido por tab (drawer Cliente Wave C-FE) |
+| **PhoneInput** (telefone BR) | `@/Components/ui/phone-input` | ✅ 2026-06-11 | herda Input cowork | hand-wiring `maskTel` + Input por tela |
 
 ## Overlays / navegação / feedback
 
