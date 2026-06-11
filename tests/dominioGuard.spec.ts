@@ -332,6 +332,7 @@ describe('dominio:check — termos proibidos user-facing (Salto #4, físico)', (
 // Vendas/estoque vivem em database/migrations (não Modules/<X>). O dict declara os paths
 // e REIVINDICA tabelas; undeclared-column não cobra tabela alheia do diretório compartilhado.
 describe('dominio:check — domínios core (Onda Q3, físico)', () => {
+  const coreMig2 = (file: string, php: string) => write(`database/migrations/${file}`, php);
   const coreMigration = (file: string, php: string) => write(`database/migrations/${file}`, php);
 
   it('SENSIBILIDADE: enum core divergente do dicionário (via migrations_paths) → undeclared-value', () => {
@@ -436,4 +437,33 @@ describe('dominio:check — domínios core (Onda Q3, físico)', () => {
     // 'novo' (timestamp 05_11) vence 'velho' (05_01) → dict bate com o estado atual.
     expect(run('--json')).toMatch(/"ok": true/);
   });
+
+  it("VOCAB (varchar sem constraint): coluna no vocab nao e cobrada como undeclared-column nem comparada valor-a-valor", () => {
+    // migrations legadas registram enum antigo; fisica virou varchar (caso transactions.type)
+    coreMig2('2026_01_01_000000_create_t.php', `<?php return new class { public function up(): void {
+      Schema::create('t', function ($t) { $t->enum('tipo', ['a', 'b']); });
+    } };`);
+    dict('CoreV', { }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['t'],
+      vocab: { 't.tipo': ['a', 'b', 'c_do_modulo'] },
+    });
+    expect(run('--json')).toMatch(/"ok": true/); // sem undeclared-column nem stale-dict-value
+  });
+
+  it('VOCAB alimenta o Salto #3: valor fora do vocabulario no codigo = violacao; dentro passa', () => {
+    coreMig2('2026_01_01_000000_create_t.php', `<?php return new class { public function up(): void {
+      Schema::create('t', function ($t) { $t->string('tipo'); });
+    } };`);
+    write('app/X.php', `<?php class X { function f($q) { return $q->where('tipo', 'fantasma'); } }`);
+    dict('CoreV', { }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['t'],
+      code_paths: ['app/X.php'],
+      vocab: { 't.tipo': ['a', 'b'] },
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:CoreV:tipo:fantasma/);
+  });
 });
+
