@@ -6,6 +6,18 @@ next_review: "2026-09-06"
 
 # Changelog · Design System
 
+## [0.6.11] - 2026-06-11 · components-tree-guard + rule components.md + deprecação sinalizada do shared/PageHeader
+
+### Added
+
+- **`scripts/components-tree-guard.mjs`** + **`.github/workflows/components-tree-guard.yml`** + npm `components:check`: allowlist do top-level de `Components/` (8 pastas + 4 arquivos raiz justificados) — entrada nova exige editar o script no MESMO PR. CHECK 2: convenção `_components` (com underscore) sob Pages (4 pré-existentes grandfathered). Lei ADR 0240: derivado + enforcado sobrevive.
+- **`.claude/rules/components.md`** (path-scoped `Components/**` + `Pages/**/_components/**`): tabela "onde criar componente" + catracas ativas + pegadinha baselines path-keyed em moves.
+- **`memory/decisions/proposals/2026-06-11-arvore-componentes-canonica.md`**: formaliza árvore (camadas UI-0013 → pastas) + roadmap `patterns/ListPage` (PT-01 como código — exige ADR própria + piloto + gate visual; adiado conscientemente: Slot 1 do PT-01 referencia header legacy enquanto F4 migra).
+
+### Changed
+
+- **`shared/PageHeader.tsx`**: `@deprecated` JSDoc apontando canon `@/Components/PageHeader` v3.8 + política F4 (zero mudança de comportamento — só sinalização no editor/LSP).
+
 ## [0.6.10] - 2026-06-11 · BR inputs canônicos em ui/ (NumericInputPtBR promovido + DocumentInput + PhoneInput)
 
 ### Added
