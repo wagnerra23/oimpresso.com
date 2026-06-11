@@ -72,10 +72,14 @@ class ServiceOrderController extends Controller
         $statusFilter = $request->string('status')->toString();
         $typeFilter   = $request->string('type')->toString();
         $stageFilter  = $request->string('stage')->toString();
+        $boxFilter    = $request->string('box')->toString();
         $q            = $request->string('q')->toString();
 
         // ──────── Base query (multi-tenant via global scope) ────────
-        $vehicleCols = ['id', 'plate', 'vehicle_type'];
+        // mileage_at_entry (km de entrada) entra pra coluna VEÍCULO da tabela rica
+        // (paridade Board — pedido [W] 2026-06-11). Guard de schema implícito (campo
+        // existe desde a migration de Vehicle; se ausente, o select ignora).
+        $vehicleCols = ['id', 'plate', 'vehicle_type', 'mileage_at_entry'];
         if ($hasVehicleNumber) {
             $vehicleCols[] = 'vehicle_number';
         }
@@ -86,6 +90,12 @@ class ServiceOrderController extends Controller
         $base = ServiceOrder::query()->with([
             'vehicle:' . implode(',', $vehicleCols),
         ]);
+
+        // Mecânico responsável (coluna MECÂNICO da tabela rica) — guard schema Wave 2.1.
+        $hasResourceSchema = Schema::hasColumn('service_orders', 'box_label');
+        if ($hasResourceSchema) {
+            $base->with('assignedUser:id,first_name,last_name,surname');
+        }
 
         // Coluna VALOR da listagem com dado REAL (polish canon Board 2026-06-11):
         // soma dos itens da OS (peças + mão-de-obra) via withSum — 1 subquery, sem N+1.
@@ -113,7 +123,7 @@ class ServiceOrderController extends Controller
                     break;
                 case 'atrasada':
                     // Atraso de REPARO (ADR 0265 — locação erradicada): OS não-terminal
-                    // com expected_completion vencida. Espelha buildServiceOrderKpisPayload.
+                    // com expected_completion vencida. Espelha buildListKpis (KPI Urgentes).
                     $qb->whereNotIn('status', ['concluida', 'cancelada'])
                         ->whereNotNull('expected_completion')
                         ->whereDate('expected_completion', '<', now()->toDateString());
@@ -145,6 +155,11 @@ class ServiceOrderController extends Controller
                 ->where('key', $stageFilter)
                 ->pluck('id');
             $qb->whereIn('current_stage_id', $stageIds);
+        });
+
+        // ──────── Filter box (abas de box/elevador — paridade Board [W] 2026-06-11) ────────
+        $base->when($boxFilter !== '' && $boxFilter !== 'all' && $hasResourceSchema, function ($qb) use ($boxFilter) {
+            $qb->where('box_label', $boxFilter);
         });
 
         // ──────── Search ────────
@@ -182,27 +197,35 @@ class ServiceOrderController extends Controller
         );
         $base->orderByDesc('id');
 
-        // Wave 26 D6 — Inertia::defer pro kpis payload (RUNBOOK-inertia-defer-pattern):
+        // Mapa stage_id → {key,name,color} do processo de mecânica (resolve a coluna
+        // ETAPA da tabela rica sem N+1). Paridade Board [W] 2026-06-11.
+        $stageMap = $hasCurrentStage ? $this->buildStageMap() : [];
+
+        // Paginação + transform: injeta etapa/mecânico/km/box em cada linha (tabela rica).
+        $orders = $base->paginate(25)->withQueryString();
+        $orders->through(fn ($o) => $this->shapeListRow($o, $stageMap));
+
+        // Wave 26 D6 — Inertia::defer pros payloads agregados (RUNBOOK-inertia-defer-pattern):
         // - orders eager (sempre tem; resposta partial reload `only:['orders']` espera direto)
-        // - kpis defer (4 COUNT queries — pula quando UI já tem cached/partial reload)
+        // - kpis/boxes defer (COUNT/DISTINCT — pula quando partial reload não pede)
         // - schemaFlags eager (booleanos baratos Schema::hasColumn cached)
-        // - filters eager (UI state)
-        // Rollback Wave L/W7 PR #963 estudado: defer só aplicado em payload que NÃO é target de partial reload + tem custo > 50ms.
         return Inertia::render('OficinaAuto/ServiceOrders/Index', [
-            'orders'  => $base->paginate(25)->withQueryString(),
+            'orders'  => $orders,
             'filters' => [
                 'status' => $statusFilter,
                 'type'   => $typeFilter,
                 'stage'  => $stageFilter,
+                'box'    => $boxFilter,
                 'q'      => $q,
             ],
-            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType)),
-            // Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear.
-            // Defer porque é COUNT por stage (~8 stages × cacamba_* processos).
+            // 6 KPIs do protótipo Cowork (paridade Board): contagem por etapa do pipeline
+            // (Recepção/Diagnóstico/Aguardando peças/Em execução), Urgentes (atrasadas) e
+            // Valor em curso (soma items_total das OS não-terminais). Clicáveis como filtro.
+            'kpis' => Inertia::defer(fn () => $this->buildListKpis($hasCurrentStage, $hasResourceSchema)),
+            // Abas de box/elevador (paridade Board) — distinct sobre as OS do business.
+            'boxes' => Inertia::defer(fn () => $this->buildListBoxOptions($hasResourceSchema)),
+            // Gap #3 — chips por stage (mantido pra retrocompat de quem usa ?stage=).
             'stages' => Inertia::defer(fn () => $this->buildStagesPayload($hasCurrentStage)),
-            // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager.
-            // Flags de locação (has_return_date/has_delivery_address/has_daily_rate)
-            // erradicadas (ADR 0265) — frontend não consome mais.
             'schemaFlags' => [
                 'has_order_type'      => $hasOrderType,
                 'has_number'          => $hasNumber,
@@ -211,8 +234,165 @@ class ServiceOrderController extends Controller
                 'has_current_stage'   => $hasCurrentStage,
                 'has_vehicle_number'  => $hasVehicleNumber,
                 'has_capacity_m3'     => $hasCapacityM3,
+                'has_resources'       => $hasResourceSchema,
             ],
         ]);
+    }
+
+    /**
+     * Mapa stage_id → {key,name,color} do processo oficina_mecanica_os do business.
+     * Resolve a coluna ETAPA da tabela rica (paridade Board) sem N+1.
+     *
+     * @return array<int, array{key:string, name:string, color:string|null}>
+     */
+    private function buildStageMap(): array
+    {
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+
+        return \App\Domain\Fsm\Models\SaleProcessStage::query()
+            ->whereHas('process', function ($p) use ($businessId) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->where('key', 'oficina_mecanica_os');
+            })
+            ->get(['id', 'key', 'name', 'color'])
+            ->keyBy('id')
+            ->map(fn ($s) => ['key' => $s->key, 'name' => $s->name, 'color' => $s->color])
+            ->all();
+    }
+
+    /**
+     * Shape de 1 linha da tabela rica da Lista (paridade Board [W] 2026-06-11).
+     * Adiciona etapa (key/name/color), box, mecânico e km de entrada ao payload que
+     * o frontend já consumia (campos básicos + items_total). Reusa accessor is_overdue
+     * via expected_completion (ADR 0265 — reparo).
+     *
+     * @param  array<int, array{key:string, name:string, color:string|null}>  $stageMap
+     * @return array<string, mixed>
+     */
+    private function shapeListRow(ServiceOrder $order, array $stageMap): array
+    {
+        $stageId = $order->getAttribute('current_stage_id');
+        $stage = $stageId !== null ? ($stageMap[(int) $stageId] ?? null) : null;
+
+        $mechanic = $order->relationLoaded('assignedUser') ? $order->assignedUser : null;
+        $mechanicName = $mechanic
+            ? trim(($mechanic->first_name ?? '') . ' ' . ($mechanic->last_name ?? ($mechanic->surname ?? '')))
+            : null;
+
+        $expected = $order->expected_completion;
+        $isOverdue = $expected !== null
+            && ! in_array($order->status, ['concluida', 'cancelada', 'entregue'], true)
+            && $expected->isPast();
+
+        $boxLabel = $order->getAttribute('box_label');
+        $km = $order->vehicle?->getAttribute('mileage_at_entry');
+
+        return [
+            'id'         => (int) $order->id,
+            'number'     => $order->getAttribute('number'),
+            'status'     => $order->status,
+            'order_type' => $order->getAttribute('order_type'),
+            'expected_completion' => $expected?->toIso8601String(),
+            'entered_at' => $order->entered_at?->toIso8601String(),
+            'started_at' => $order->getAttribute('started_at')?->toIso8601String(),
+            'notes'      => $order->notes,
+            'vehicle'    => $order->vehicle ? [
+                'id'             => (int) $order->vehicle->id,
+                'plate'          => $order->vehicle->getAttribute('plate'),
+                'vehicle_type'   => $order->vehicle->getAttribute('vehicle_type'),
+                'vehicle_number' => $order->vehicle->getAttribute('vehicle_number'),
+                'capacity_m3'    => $order->vehicle->getAttribute('capacity_m3'),
+            ] : null,
+            'contact'    => $order->relationLoaded('contact') && $order->contact
+                ? ['id' => (int) $order->contact->id, 'name' => $order->contact->name]
+                : null,
+            'is_overdue' => $isOverdue,
+            'items_total' => $order->getAttribute('items_total') !== null ? (float) $order->getAttribute('items_total') : null,
+            // Campos ricos (paridade Board): etapa FSM, box, mecânico, km de entrada.
+            'stage'       => $stage,
+            'box'         => is_string($boxLabel) && $boxLabel !== '' ? $boxLabel : null,
+            'mechanic_name' => $mechanicName !== null && $mechanicName !== '' ? $mechanicName : null,
+            'km'          => $km !== null ? (int) $km : null,
+        ];
+    }
+
+    /**
+     * 6 KPIs do protótipo Cowork pra Lista/Fila (paridade Board). Contagem por etapa do
+     * pipeline (Recepção/Diagnóstico/Aguardando peças/Em execução) + Urgentes (atrasadas)
+     * + Valor em curso (soma items_total das OS não-terminais). Multi-tenant Tier 0 via
+     * global scope ServiceOrder.
+     *
+     * @return array<string, int|float>
+     */
+    private function buildListKpis(bool $hasCurrentStage, bool $hasResourceSchema): array
+    {
+        $stageMap = $hasCurrentStage ? $this->buildStageMap() : [];
+        // stage_id por key (recepcao/em_diagnostico/aguardando_pecas/em_execucao).
+        $idsByKey = [];
+        foreach ($stageMap as $id => $info) {
+            $idsByKey[$info['key']][] = $id;
+        }
+
+        $countStage = function (string $key) use ($idsByKey): int {
+            $ids = $idsByKey[$key] ?? [];
+            if (empty($ids)) {
+                return 0;
+            }
+            return ServiceOrder::query()->whereIn('current_stage_id', $ids)->count();
+        };
+
+        $atrasadas = ServiceOrder::query()
+            ->whereNotIn('status', ['concluida', 'cancelada', 'entregue'])
+            ->whereNotNull('expected_completion')
+            ->whereDate('expected_completion', '<', now()->toDateString())
+            ->count();
+
+        // Valor em curso = soma items_total das OS não-terminais (faturamento previsto).
+        $valorEmCurso = (float) ServiceOrder::query()
+            ->whereNotIn('status', ['concluida', 'cancelada', 'entregue'])
+            ->withSum('items as t', 'valor_total')
+            ->get(['id'])
+            ->sum('t');
+
+        $boxesTotal = 0;
+        if ($hasResourceSchema) {
+            $boxesTotal = ServiceOrder::query()
+                ->whereNotNull('box_label')->where('box_label', '!=', '')
+                ->distinct()->count('box_label');
+        }
+
+        return [
+            'recepcao'        => $countStage('recepcao'),
+            'em_diagnostico'  => $countStage('em_diagnostico'),
+            'aguardando_pecas' => $countStage('aguardando_pecas'),
+            'em_execucao'     => $countStage('em_execucao'),
+            'atrasadas'       => $atrasadas,
+            'valor_em_curso'  => round($valorEmCurso, 2),
+            'boxes_total'     => $boxesTotal,
+        ];
+    }
+
+    /**
+     * Abas de box/elevador (paridade Board) — distinct box_label + contagem por box.
+     * Multi-tenant Tier 0 via global scope ServiceOrder.
+     *
+     * @return list<array{label:string, count:int}>
+     */
+    private function buildListBoxOptions(bool $hasResourceSchema): array
+    {
+        if (! $hasResourceSchema) {
+            return [];
+        }
+
+        return ServiceOrder::query()
+            ->whereNotNull('box_label')->where('box_label', '!=', '')
+            ->selectRaw('box_label, COUNT(*) as total')
+            ->groupBy('box_label')
+            ->orderBy('box_label')
+            ->get()
+            ->map(fn ($r) => ['label' => (string) $r->box_label, 'count' => (int) $r->total])
+            ->all();
     }
 
     /**
@@ -663,50 +843,6 @@ class ServiceOrderController extends Controller
             ->all();
     }
 
-    /**
-     * KPIs Index — 4 COUNT queries separadas (não afetadas por filtros).
-     *
-     * Extraído pra helper + Inertia::defer no index() pra pular execução quando
-     * partial reload `only:['orders']` não pede kpis (RUNBOOK-inertia-defer-pattern).
-     */
-    private function buildServiceOrderKpisPayload(bool $hasOrderType): array
-    {
-        $kpiBase = fn () => ServiceOrder::query();
-
-        if ($hasOrderType) {
-            $manutencaoAtivas = $kpiBase()
-                ->where('order_type', 'manutencao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count();
-        } else {
-            // Fallback pré-Wave 5-A: tudo ainda não tem tipo, agrupa em "manutenção"
-            $manutencaoAtivas = $kpiBase()
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count();
-        }
-
-        $concluidasMes = $kpiBase()
-            ->where('status', 'concluida')
-            ->whereMonth('updated_at', now()->month)
-            ->whereYear('updated_at', now()->year)
-            ->count();
-
-        // Atraso de REPARO (ADR 0265 — locação erradicada): OS não-terminal com
-        // expected_completion vencida. Mesma regra do filtro ?status=atrasada.
-        $atrasadas = $kpiBase()
-            ->whereNotIn('status', ['concluida', 'cancelada'])
-            ->whereNotNull('expected_completion')
-            ->whereDate('expected_completion', '<', now()->toDateString())
-            ->count();
-
-        // Key 'locacoes_ativas' REMOVIDA do contrato (ADR 0265 — o frontend já não
-        // renderiza o card; dívida P5 do RUNBOOK-erradicacao-locacao quitada aqui).
-        return [
-            'manutencao_ativas' => $manutencaoAtivas,
-            'concluidas_mes'    => $concluidasMes,
-            'atrasadas'         => $atrasadas,
-        ];
-    }
 
     public function create(): Response
     {

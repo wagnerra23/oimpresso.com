@@ -143,9 +143,10 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
         expect(file_exists($ctrlPath))->toBeTrue();
         $src = file_get_contents($ctrlPath);
 
-        // Wave 26 D6: defer no kpis (4 COUNT queries) — pula em partial reload `only:['orders']`
+        // Wave 26 D6: defer no kpis (COUNT queries) — pula em partial reload `only:['orders']`.
+        // Paridade Board 2026-06-11: o builder virou buildListKpis (6 KPIs do protótipo).
         expect($src)->toContain("'kpis' => Inertia::defer(");
-        expect($src)->toContain('buildServiceOrderKpisPayload');
+        expect($src)->toContain('buildListKpis');
     });
 
     it('D6: ServiceOrderController index() documenta razão do rollback Wave L/W7', function () {

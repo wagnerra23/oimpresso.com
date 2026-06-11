@@ -15,7 +15,7 @@ related_adrs:
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
   - 0265-oficina-reparo-erradica-locacao
 tier: A
-charter_version: 4
+charter_version: 5
 ---
 
 # Page Charter — /oficina-auto/service-orders
@@ -84,3 +84,4 @@ Dashboard operacional pra atendente/gerente da oficina decidir próxima ação e
 - **2026-05-26** (v2) — Cockpit Pattern V2; KPI "locações ativas" + colunas locação mantidos.
 - **2026-06-09** (v3) — sweep ADR 0265 no front ([sessão](../../../../../memory/sessions/2026-06-09-sweep-os-front-adr0265.md) · [avaliação CC](../../../../../prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md)): KPI "Locações ativas" **morto**; colunas/pills/badges de locação → reparo (`OrderType = {manutencao, mecanica}`); `formatBRL(null)` → "—". `mecanica` deixou de cair no ramo locação.
 - **2026-06-11** (v4) — polish canon Board (pedido [W], mesmo canon Cowork oficina-page/oficina-fila): header sem círculo decorativo; KPIs no `BoardKpiCard` (extraído do Board) clicáveis D-05 substituindo as abas de status; toolbar única (busca+limpar+contador · tipo · estágio FSM · toggle Quadro/Lista/Fila); VALOR real (`items_total` via withSum); dot vermelho de atraso removido (pill única). FILA: caixa cinza → meta-grid canon (label 11px/valor 13px tabular-nums, defeito full-row), `ServiceOrderTimeline` no canon `.ofc-timeline` (fio+dot+quem·quando, sem pills com seta), stepper com labels truncadas (flex-1 min-w-0). DRAWER (`ServiceOrderSheet`): header eyebrow "OS #N · etapa" + badge tipo fora do título + h2 17px veículo + p 12.5px cliente, MiniKpi → meta compacta (Entrada/Valor BRL à direita), seções border-top fino (mesmo Section do RichSheet), Cancelar OS vira outline destructive.
+- **2026-06-11** (v5) — **paridade TOTAL com o protótipo Cowork** (pedido [W] "resultado esperado" = nível do Board, após o v4 ficar aquém). LISTA reconstruída: **6 KPIs** (Recepção/Em diagnóstico/Aguardando peças/Em execução/Urgentes/**Valor em curso**) clicáveis (etapa via `?stage=`, urgentes via `?status=atrasada`, valor só-leitura); **abas de box/elevador** (`?box=` com contador); **tabela rica** (OS · PLACA Mercosul · VEÍCULO+km · CLIENTE · ETAPA dot+nome · BOX · MECÂNICO · PRAZO · VALOR). Header vira "Oficina Auto" + subtítulo "Recepção, diagnóstico, peças, execução e entrega de veículos". Backend `index()` enriquecido — `buildStageMap`/`shapeListRow`/`buildListKpis`/`buildListBoxOptions` (`buildServiceOrderKpisPayload` 3-KPI removido); etapa/box/mecânico/km com lastro real (`assignedUser`, `mileage_at_entry`, `current_stage_id`), "—" quando ausente (no-mock). FILA com detalhe rico inline = PR seguinte.
