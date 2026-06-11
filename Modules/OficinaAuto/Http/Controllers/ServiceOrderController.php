@@ -822,6 +822,31 @@ class ServiceOrderController extends Controller
         // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
         // JSON mas show() só retornava Inertia HTML (HTTP 404 percebido por drawer).
         if ($request->wantsJson()) {
+            // Etapa FSM atual pro eyebrow do drawer ("OS #103 · Em execução"). Mostra a
+            // ETAPA real do processo, não o status cru (paridade protótipo Cowork · polish
+            // [W] 2026-06-11). OS sem pipeline iniciado (current_stage_id null) cai na etapa
+            // INICIAL — espelha o $initialStageKey do board(). Mesmo guard multi-tenant do
+            // board: withoutGlobalScope no process + business_id explícito (ADR 0093).
+            $currentStage = null;
+            if (Schema::hasColumn('service_orders', 'current_stage_id')) {
+                $stageBaseQuery = \App\Domain\Fsm\Models\SaleProcessStage::query()
+                    ->whereHas('process', function ($p) use ($order) {
+                        $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                            ->where('business_id', $order->business_id)
+                            ->where('key', 'oficina_mecanica_os');
+                    });
+                $stageId = $order->getAttribute('current_stage_id');
+                $stage = $stageId !== null
+                    ? (clone $stageBaseQuery)->whereKey($stageId)->first(['id', 'key', 'name'])
+                    : null;
+                if ($stage === null) {
+                    $stage = (clone $stageBaseQuery)->where('is_initial', true)->first(['id', 'key', 'name']);
+                }
+                if ($stage !== null) {
+                    $currentStage = ['key' => $stage->key, 'name' => $stage->name];
+                }
+            }
+
             // Campos de locação (delivery_address/expected_return_date/daily_rate/
             // dias_locacao) ERRADICADOS do payload (ADR 0265) — colunas ficam no DB
             // como dado histórico; UI/contrato não.
@@ -829,6 +854,9 @@ class ServiceOrderController extends Controller
                 'id'                    => $order->id,
                 'number'                => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                 'status'                => $order->status,
+                // Etapa FSM atual (key + name PT) pro eyebrow do drawer — null se o processo
+                // oficina_mecanica_os não estiver seedado pro negócio.
+                'current_stage'         => $currentStage,
                 'order_type'            => $order->order_type,
                 'expected_completion'   => $order->expected_completion,
                 'valor_receber'         => $order->valor_receber ?? 0,

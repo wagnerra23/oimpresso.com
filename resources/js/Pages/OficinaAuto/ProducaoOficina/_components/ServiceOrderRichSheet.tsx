@@ -55,7 +55,6 @@ import {
 import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
-import ServiceOrderStatusBadge from '../../ServiceOrders/_components/ServiceOrderStatusBadge';
 import ServiceOrderTimeline from '../../ServiceOrders/_components/ServiceOrderTimeline';
 import ServiceOrderStageGate from '../../ServiceOrders/_components/ServiceOrderStageGate';
 import VendaDerivadaCard, { type VendaDerivada } from '@/Components/shared/VendaDerivadaCard';
@@ -112,6 +111,9 @@ interface ServiceOrderDetail {
   id: number;
   number: string | null;
   status: string;
+  // Etapa FSM atual (key + name PT) pro eyebrow do drawer — null quando o processo
+  // oficina_mecanica_os não está seedado pro negócio (cai no fallback de status).
+  current_stage?: { key: string; name: string } | null;
   order_type: OrderType;
   // Campos de locação (delivery_address/expected_return_date/daily_rate/dias_locacao)
   // erradicados do payload do show() — ADR 0265.
@@ -322,7 +324,7 @@ export default function ServiceOrderRichSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-xl flex flex-col p-0 overflow-hidden"
+        className="w-full sm:max-w-[480px] flex flex-col p-0 overflow-hidden"
       >
         {loading && (
           <div className="flex-1 flex items-center justify-center">
@@ -344,60 +346,64 @@ export default function ServiceOrderRichSheet({
 
         {!loading && data && (
           <>
-            {/* Header drawer — número OS + status badge cliente */}
-            <SheetHeader className="px-6 pt-6 pb-4 border-b border-border space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-xs text-muted-foreground">
-                  OS {data.number ?? `#${data.id}`}
-                </span>
-                <ServiceOrderStatusBadge status={data.status} orderType={data.order_type} />
+            {/* Header drawer (canon .prod-drawer-head) — eyebrow "OS #103 · <etapa>"
+                (etapa FSM real, não badge de status solto), h2 = veículo/modelo, p =
+                cliente. A placa vai pro bloco meta (card abaixo), não no título. */}
+            <SheetHeader className="px-5 pt-5 pb-4 border-b border-border space-y-0">
+              <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
+                <span className="font-mono">OS #{data.id}</span>
+                {' · '}
+                {data.current_stage?.name ?? capitalize(data.status)}
                 {data.is_overdue && (
-                  <span className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-[11px] font-medium text-destructive">
-                    <AlertTriangle size={10} className="mr-0.5" />
-                    Atrasada
-                  </span>
+                  <span className="ml-1.5 font-semibold text-destructive">· Atrasada</span>
                 )}
               </div>
-              <SheetTitle className="text-lg font-semibold tracking-tight text-foreground">
+              <SheetTitle className="text-[17px] font-semibold leading-tight tracking-tight text-foreground mt-1 mb-0.5">
                 {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
-                {' '}
-                {data.vehicle?.plate ?? '—'}
                 {data.vehicle?.model_year ? (
-                  <span className="text-sm font-normal text-muted-foreground ml-1.5">
+                  <span className="text-[13px] font-normal text-muted-foreground ml-1.5 tabular-nums">
                     · {data.vehicle.model_year}
                   </span>
                 ) : null}
               </SheetTitle>
-              <SheetDescription className="text-sm text-muted-foreground">
+              <SheetDescription className="text-[12.5px] text-muted-foreground">
                 {data.contact ? data.contact.name : 'Cliente não informado'}
               </SheetDescription>
             </SheetHeader>
 
-            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11) */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11).
+                Paddings 18/20 do canon (.prod-drawer-body); separadores por border-top
+                fino vêm de cada <Section> (não mais caixas empilhadas). */}
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+
+              {/* Bloco-topo (venda derivada · hero cliente/valor · datas) — respira junto,
+                  antes das seções com divisória. */}
+              <div className="space-y-4">
 
               {/* ─── SEÇÃO 2 (TRAVADA): Card Vendas×Oficina (D-09) ───
                   Acende só quando a OS gerou venda (etapa pronto/concluída + Transaction
                   derivada · ADR 0192). Reusa o componente shared VendaDerivadaCard (Total ·
                   Data · breakdown peças/serviços · badge fiscal NF-e · CTAs Abrir/Imprimir/
-                  Compartilhar). -mx-6 cancela o px-6 do scroll pra a margem mx-5 própria do
+                  Compartilhar). -mx-5 cancela o px-5 do scroll pra a margem mx-5 própria do
                   card render como desenhado. "Seções acendem por contexto" (regra travada). */}
               {data.venda_derivada && (
-                <div className="-mx-6">
+                <div className="-mx-5">
                   <VendaDerivadaCard venda={data.venda_derivada} />
                 </div>
               )}
 
-              {/* ─── SEÇÃO 3 (Hero): Veículo + KV grid de reparo (ADR 0265):
-                  Cliente / KM / Box / Mecânico / Valor (items_total) */}
+              {/* ─── SEÇÃO 3 (Hero · Card Cliente/Valor): canon .ofc-venda-card
+                  (gradiente sutil pos-soft→surface · valor BRL verde pos tabular-nums).
+                  Placa Mercosul mora aqui (bloco meta), não no título. KV de reparo:
+                  Cliente / KM / Box / Mecânico / Valor (items_total · ADR 0265). */}
               {data.vehicle && (
-                <div className="rounded-lg border border-border bg-muted p-3 grid grid-cols-[auto_1fr] gap-3">
+                <div className="rounded-[10px] border border-success/50 bg-gradient-to-br from-success/10 to-card px-[18px] py-4 grid grid-cols-[auto_1fr] gap-3.5 items-center">
                   <MercosulPlate plate={data.vehicle.plate} size="md" />
-                  <dl className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 text-[11.5px] self-end">
+                  <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11.5px] self-center">
                     {data.contact && (
                       <>
                         <dt className="text-muted-foreground">Cliente</dt>
-                        <dd className="text-foreground font-medium truncate">
+                        <dd className="text-foreground font-medium truncate text-right">
                           {data.contact.name}
                         </dd>
                       </>
@@ -405,7 +411,7 @@ export default function ServiceOrderRichSheet({
                     {data.mileage_at_service != null && (
                       <>
                         <dt className="text-muted-foreground">KM</dt>
-                        <dd className="text-foreground font-medium tabular-nums">
+                        <dd className="text-foreground font-medium tabular-nums text-right">
                           {data.mileage_at_service.toLocaleString('pt-BR')}
                         </dd>
                       </>
@@ -413,59 +419,44 @@ export default function ServiceOrderRichSheet({
                     {data.box_label && (
                       <>
                         <dt className="text-muted-foreground">Box</dt>
-                        <dd className="text-foreground">{data.box_label}</dd>
+                        <dd className="text-foreground text-right">{data.box_label}</dd>
                       </>
                     )}
                     {data.assigned_user && (
                       <>
                         <dt className="text-muted-foreground">Mecânico</dt>
-                        <dd className="text-foreground">{data.assigned_user.name}</dd>
+                        <dd className="text-foreground text-right truncate">{data.assigned_user.name}</dd>
                       </>
                     )}
-                    <dt className="text-muted-foreground">Valor</dt>
-                    <dd className="tabular-nums font-semibold text-success">
+                    <dt className="text-muted-foreground self-center">Valor</dt>
+                    <dd className="tabular-nums font-bold text-success text-right text-[15px]">
                       {formatBRL(data.items_total ?? 0)}
                     </dd>
                   </dl>
                 </div>
               )}
 
-              {/* Datas — início + prazo */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-md border border-border bg-muted/30 p-2.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Início
-                  </div>
-                  <div className="text-sm font-medium tabular-nums mt-0.5">
-                    {formatDateOnly(data.started_at ?? data.entered_at)}
-                  </div>
-                </div>
-                <div
+              {/* Datas — linha de meta compacta (label muted + valor tabular-nums à
+                  direita), não mais dois cartões gigantes. */}
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[12px] px-0.5">
+                <dt className="text-muted-foreground">Início</dt>
+                <dd className="text-foreground tabular-nums text-right">
+                  {formatDateOnly(data.started_at ?? data.entered_at)}
+                </dd>
+                <dt className={data.is_overdue ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+                  Prazo
+                </dt>
+                <dd
                   className={
-                    'rounded-md border p-2.5 ' +
-                    (data.is_overdue
-                      ? 'border-destructive/30 bg-destructive/10'
-                      : 'border-border bg-muted/30')
+                    'tabular-nums text-right ' +
+                    (data.is_overdue ? 'text-destructive font-semibold' : 'text-foreground')
                   }
                 >
-                  <div
-                    className={
-                      'text-[10px] font-semibold uppercase tracking-wider ' +
-                      (data.is_overdue ? 'text-destructive' : 'text-muted-foreground')
-                    }
-                  >
-                    Prazo
-                  </div>
-                  <div
-                    className={
-                      'text-sm font-medium tabular-nums mt-0.5 ' +
-                      (data.is_overdue ? 'text-destructive' : 'text-foreground')
-                    }
-                  >
-                    {formatDateOnly(data.expected_completion)}
-                  </div>
-                </div>
-              </div>
+                  {formatDateOnly(data.expected_completion)}
+                </dd>
+              </dl>
+
+              </div>{/* /bloco-topo */}
 
               {/* Cliente contatos — phone/email se houver */}
               {data.contact && (data.contact.mobile || data.contact.email) && (
@@ -701,9 +692,11 @@ function Section({
   icon?: typeof Truck;
   children: React.ReactNode;
 }) {
+  // Canon .ofc-drawer-section — separadas por border-top fino (não mais caixas
+  // empilhadas); h4 10.5px/600 uppercase ls .04em muted; conteúdo respira.
   return (
-    <section>
-      <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+    <section className="border-t border-border mt-2.5 pt-3.5 pb-1">
+      <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.04em] text-muted-foreground mb-2.5 flex items-center gap-1.5">
         {Icon && <Icon size={11} />}
         {title}
       </h3>
