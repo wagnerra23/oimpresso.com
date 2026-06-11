@@ -3,15 +3,18 @@ name: Visual Regression (Pest 4 Browser)
 # ADR 0108 — Camada Tier 2 de validação visual.
 # Roda Pest browser snapshot tests em PRs que tocam Pages Inertia.
 # Falha se diff > 0.1% sem update-snapshots aprovado.
+#
+# ADR 0271 (required-readiness): pull_request SEM paths (always-run) pra ser
+# promovível a required sem deadlock "Expected — waiting". O custo (MySQL +
+# composer + playwright + Pest browser ~3min) é evitado por skip-as-pass
+# interno (dorny/paths-filter) — PR que não toca UI/tests/Browser conclui
+# verde em segundos. Motivação: #2544 e #2548 mergearam com este check
+# VERMELHO (era advisory) e quebraram o gate de todos os PRs de UI por 24h.
+# NÃO reintroduzir `paths` no pull_request — quebraria a required-readiness.
 
 on:
   pull_request:
-    paths:
-      - 'resources/js/Pages/**/*.tsx'
-      - 'resources/js/Layouts/**/*.tsx'
-      - 'resources/js/Components/**/*.tsx'
-      - 'tests/Browser/**/*.php'
-      - '.github/workflows/visual-regression.yml'
+    branches: [main]
 
 permissions:
   contents: read
@@ -41,7 +44,24 @@ jobs:
         with:
           lfs: true
 
+      - name: Detectar mudanças de UI (skip-as-pass — ADR 0271)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ui:
+              - 'resources/js/Pages/**/*.tsx'
+              - 'resources/js/Layouts/**/*.tsx'
+              - 'resources/js/Components/**/*.tsx'
+              - 'tests/Browser/**/*.php'
+              - '.github/workflows/visual-regression.yml'
+
+      - name: Skip-as-pass (nada de UI mudou)
+        if: steps.changes.outputs.ui == 'false'
+        run: echo "✅ Sem mudanças em Pages/Layouts/Components/tests-Browser — skip-as-pass (required-ready, ADR 0271)."
+
       - name: Setup PHP
+        if: steps.changes.outputs.ui == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -53,6 +73,7 @@ jobs:
           coverage: none
 
       - name: Wait for MySQL ready
+        if: steps.changes.outputs.ui == 'true'
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
@@ -64,17 +85,20 @@ jobs:
           done
 
       - name: Setup Node
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
       - name: Cache Composer
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Cache Playwright browsers
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/cache@v4
         id: playwright-cache
         with:
@@ -85,9 +109,11 @@ jobs:
         # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
         # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
         # O pacote degrada gracioso sem a ext (hooks não registram).
+        if: steps.changes.outputs.ui == 'true'
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
+        if: steps.changes.outputs.ui == 'true'
         run: npm ci
 
       - name: Install Playwright npm client
@@ -98,10 +124,11 @@ jobs:
         # acerta mas o cliente JS está ausente → `PlaywrightNotInstalledException`.
         # `--no-save` evita drift no package.json/lock — declarar como devDep
         # propriamente fica pra PR follow-up.
+        if: steps.changes.outputs.ui == 'true'
         run: npm install playwright --no-save
 
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Setup Laravel
@@ -111,6 +138,7 @@ jobs:
         # copiloto_metas, FK INT×BIGINT nfse etc) que quebrava o setup. Só migrations
         # NOVAS (pós-staging) rodam por cima. `continue-on-error` REMOVIDO — agora o
         # migrate tem que passar de verdade (gate real). Regenerar schema: RUNBOOK US-GOV-013.
+        if: steps.changes.outputs.ui == 'true'
         run: |
           mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache
           cat > .env <<'EOF'
@@ -154,6 +182,7 @@ jobs:
         # MINIMAL (business 1 + location + admin id=1 + role spatie Admin#1), idempotente e
         # alinhado ao schema. Sem `|| echo` que mascarava: agora o seed é GATE REAL — se
         # quebrar, o job falha. Vide database/seeders/VisregTenantSeeder.php.
+        if: steps.changes.outputs.ui == 'true'
         run: |
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
@@ -163,6 +192,7 @@ jobs:
       - name: Build Inertia bundles
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
         # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
+        if: steps.changes.outputs.ui == 'true'
         continue-on-error: true
         run: npm run build:inertia
 
@@ -183,10 +213,11 @@ jobs:
         # ConformanceProbesTest (PACOTE-Q9 PR-3): espelho CI da semântica G2/G3/G4 do
         # qa-conformance.js v2 (Cowork) — computed-style no Chromium real, drawer Oficina
         # com o estado "adicionando" ABERTO (o que vazava), controle-negativo embutido (L-31).
+        if: steps.changes.outputs.ui == 'true'
         run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php
 
       - name: Upload screenshots on failure
-        if: failure() || steps.pest-browser.outputs.fail == '1'
+        if: steps.changes.outputs.ui == 'true' && (failure() || steps.pest-browser.outputs.fail == '1')
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-diff
@@ -194,7 +225,7 @@ jobs:
           retention-days: 7
 
       - name: Comment on PR if regression detected
-        if: failure() || steps.pest-browser.outputs.fail == '1'
+        if: steps.changes.outputs.ui == 'true' && (failure() || steps.pest-browser.outputs.fail == '1')
         uses: actions/github-script@v7
         with:
           script: |
