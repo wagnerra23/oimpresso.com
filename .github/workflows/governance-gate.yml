@@ -13,18 +13,11 @@ name: Governance Gate (pre-merge)
 # Triggers: pull_request em qualquer branch + paths-filter por job.
 
 on:
-  pull_request:
-    paths:
-      - 'memory/governance/CONSTITUTION.md'
-      - 'memory/governance/srs/**'
-      - 'memory/governance/audit-*.md'
-      - 'memory/decisions/**'
-      - 'memory/handoffs/**'
-      - 'Modules/**/Http/Controllers/**'
-      - 'Modules/**/SCOPE.md'
-      - 'Modules/**/Database/Migrations/**'
-      - '.github/workflows/governance-gate.yml'
-      - '.github/scripts/pii-scan.sh'
+  # ADR 0271 onda 2 (item 4 — required-readiness): pull_request SEM paths
+  # (always-run) pra ser promovível a required sem deadlock "Expected — waiting".
+  # Cada job compara o diff base...HEAD do PR → em PR sem arquivo canon o diff
+  # é vazio e os jobs passam (append-only/pii/scope nada a checar).
+  pull_request: {}
 
 permissions:
   contents: read

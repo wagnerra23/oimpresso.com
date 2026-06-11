@@ -114,7 +114,7 @@ Antes de F1 PLAN, **classificar o módulo alvo**. Diferentes tipos = diferentes 
 |---|---|---|
 | 1 | **Esta skill Tier A** | Lembra agent a cada sessão; recusa Edit/Write se F1 ou F2 incompleta |
 | 2 | **Hook PreToolUse** `block-mwart-violation.ps1` | Trava em runtime — `Edit` em `Pages/<Mod>/<Tela>.tsx` sem RUNBOOK = erro |
-| 3 | **CI workflow** `.github/workflows/mwart-gate.yml` | Trava no merge — PR sem RUNBOOK/SPEC/Pest baseline/audit≥70 = bloqueado |
+| 3 | **CI workflow** `.github/workflows/casos-gate` (required, ADR 0264) | Trava no merge — cobertura de tela. _(O antigo `mwart-gate.yml` era soft/teatro e foi deletado na ADR 0271 onda 2; a régua viva migrou pro casos-gate.)_ |
 
 Camadas 2 e 3 são US-MWART-001 e US-MWART-002 (próximo PR após este ADR mergear).
 

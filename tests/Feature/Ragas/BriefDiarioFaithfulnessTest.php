@@ -12,7 +12,7 @@ declare(strict_types=1);
  *
  * @group ragas
  *
- * NÃO roda em CI default — só sob `workflow_dispatch` (.github/workflows/ragas-gate.yml)
+ * NÃO roda em CI default — só sob `workflow_dispatch` (.github/workflows/jana-ragas-gate.yml)
  * ou local com `php artisan jana:ragas:eval` + OPENAI_API_KEY definido.
  *
  * Custo aprox por run: ~$0.005 (5 perguntas × 3 métricas × gpt-4o-mini judge).
