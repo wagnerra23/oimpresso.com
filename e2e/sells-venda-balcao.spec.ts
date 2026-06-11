@@ -1,0 +1,45 @@
+import { test, expect } from '@playwright/test';
+
+// E2E de comportamento — VENDA BALCÃO A PRAZO (Onda Q2 do mandato ONDAS-QUALIDADE,
+// ADR 0264 G-3). É o primeiro elo do fio que [W] protege: venda → faturamento → caixa
+// (o encadeamento backend CU-3→CU-5 é provado por tests/Feature/TravaSegunda/
+// RetencaoLoopE2ETest.php; aqui provamos o LADO DA TELA que a Larissa usa).
+//
+// Contrato: resources/js/Pages/Sells/Create.casos.md
+//   UC-S01 · venda balcão a prazo — adicionar produto, salvar SEM pagamento,
+//            sistema acusa saldo devedor (payment_status=due no backend).
+//
+// Harness: tela V2 Inertia (flag useV2SellsCreate cai no fallback default TRUE no CI
+// sem GrowthBook — FeatureFlagService::$fallbackDefaults). Produto E2E-0001 vem do
+// VisregTenantSeeder (enable_stock=0 → sem exigir saldo de estoque). Cliente default
+// Walk-In e location Matriz já chegam pré-selecionados (props do controller).
+// Locators RESILIENTES — role/label/placeholder, nunca classe CSS (L-24).
+
+test('UC-S01 · venda balcão a prazo — produto no carrinho, salvar sem pagamento', async ({ page }) => {
+  await page.goto('/sells/create');
+  await page.waitForLoadState('networkidle');
+
+  // Tela V2 carregada (botão de submit canônico visível).
+  const salvar = page.getByRole('button', { name: /Adicionar venda/i });
+  await expect(salvar).toBeVisible({ timeout: 15_000 });
+
+  // Busca o produto do seed e adiciona ao carrinho (dropdown role=option).
+  const busca = page.getByPlaceholder(/Buscar por nome, SKU/i);
+  await busca.fill('E2E-0001');
+  await page.getByRole('option', { name: /Produto E2E Balcão/i }).first().click();
+
+  // Linha entrou na tabela de produtos (nome + SKU visíveis).
+  await expect(page.getByText('Produto E2E Balcão').first()).toBeVisible();
+  await expect(page.getByText(/SKU E2E-0001/i)).toBeVisible();
+
+  // Venda a prazo: NENHUM pagamento informado → indicador de saldo devedor
+  // (decisão [W] 2026-05-27: fiado permitido, backend grava payment_status=due).
+  await expect(page.getByText(/Venda a prazo — saldo devedor/i)).toBeVisible();
+
+  // Salvar — POST /pos com is_direct_sale=1 (sem exigir caixa aberto).
+  await salvar.click();
+
+  // Sucesso REAL = saiu do formulário (redirect Inertia) sem erro de venda.
+  await expect(page).not.toHaveURL(/\/sells\/create/, { timeout: 20_000 });
+  await expect(page.getByText(/Falha|Erro ao|não pôde/i)).toHaveCount(0);
+});
