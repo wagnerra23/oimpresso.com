@@ -45,6 +45,18 @@ it('Drawer único (RichSheet) existe no path canônico', function () {
     expect(file_exists(base_path(SHEET_PATH)))->toBeTrue();
 });
 
+it('Corpo rico extraído (ServiceOrderRichBody) é compartilhado drawer × Fila inline (Onda 2 · zero duplicação)', function () {
+    // O corpo do drawer vira export nomeado pra a view Fila do workspace reusar inline,
+    // sem reimplementar as seções. Anti-regressão da unificação 2026-06-11.
+    $src = readFileSOS(SHEET_PATH);
+    expect($src)->toContain('export function ServiceOrderRichBody');
+    expect($src)->toContain('export default function ServiceOrderRichSheet');
+
+    // A Fila (Board.tsx) consome o body inline — não duplica as seções.
+    $board = readFileSOS('resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx');
+    expect($board)->toContain('ServiceOrderRichBody');
+});
+
 it('Drawer único usa shadcn Sheet (não Dialog ad-hoc)', function () {
     $src = readFileSOS(SHEET_PATH);
     expect($src)->toContain('@/Components/ui/sheet');

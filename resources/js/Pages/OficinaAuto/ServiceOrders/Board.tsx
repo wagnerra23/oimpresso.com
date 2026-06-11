@@ -91,11 +91,9 @@ import KanbanDndProvider from '@/Pages/OficinaAuto/ProducaoOficina/_components/K
 import DragConfirmDialog, {
   type PendingTransition,
 } from '@/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog';
-import ServiceOrderRichSheet from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet';
+import ServiceOrderRichSheet, { ServiceOrderRichBody } from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet';
 import ServiceOrderKanbanColumn from './_components/board/ServiceOrderKanbanColumn';
 import BoardKpiCard from './_components/board/BoardKpiCard';
-import ServiceOrderStagePipeline from './_components/ServiceOrderStagePipeline';
-import ServiceOrderTimeline from './_components/ServiceOrderTimeline';
 import type { BoardDensity, ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
 import { toneForColor, gradeGlyph } from './_components/board/boardTone';
 
@@ -677,13 +675,13 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
 
   return (
     <>
-      <Head title="Oficina · Quadro de OS" />
+      <Head title="Oficina Auto · Ordens de Serviço" />
       <div className="flex-1 bg-muted/40 @container/board">
         {/* Topbar */}
         <header className="bg-white border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-foreground">Oficina · Quadro de OS</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Fluxo de reparo do veículo — da recepção à retirada</p>
+            <h1 className="text-lg font-semibold text-foreground">Oficina Auto</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Recepção, diagnóstico, peças, execução e entrega de veículos</p>
           </div>
           {/* Header só com as ações de página (toggle de views + Visão migraram pra
               barra da busca — canon .ofc-view-toolbar · pedido [W] 2026-06-11). */}
@@ -897,7 +895,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         ) : view === 'lista' ? (
           <BoardLista rows={visibleCards} stageByCardId={stageByCardId} onRowClick={handleCardClick} />
         ) : view === 'fila' ? (
-          <BoardFila rows={visibleCards} stageByCardId={stageByCardId} onOpenFull={handleCardClick} />
+          <BoardFila rows={visibleCards} stageByCardId={stageByCardId} onOpenFull={handleCardClick} onOrderChanged={reloadBoard} />
         ) : (
           /* Quadro — overflow-x-auto: o kanban rola por dentro, o shell nunca estoura
              (espelha .prod-kanban do protótipo: overflow auto + minmax(228px, 1fr)) */
@@ -1135,16 +1133,18 @@ function BoardLista({ rows, stageByCardId, onRowClick }: BoardListaProps) {
 
 // ─── Fila (master-detail · tela unificada) ───────────────────────────────────
 // Lista persistente (esq) + detalhe inline (centro) + rail Apps Vinculados (dir),
-// sobre os MESMOS cards. Detalhe READ-ONLY (pipeline + meta + timeline ao vivo por
-// id); a edição completa (DVI/fotos/peças/checklist) abre o drawer rico via "Abrir
-// OS completa". O detalhe rico inline é a próxima onda.
+// sobre os MESMOS cards. Detalhe RICO INLINE (Onda 2 · [W] 2026-06-11): o centro
+// renderiza o ServiceOrderRichBody — o MESMO corpo do drawer (DVI/fotos/peças/
+// checklist/pipeline/timeline), editável inline. "Abrir OS completa" no rail abre
+// o drawer focado. onOrderChanged recarrega o board após transição FSM no inline.
 interface BoardFilaProps {
   rows: ServiceOrderCardData[];
   stageByCardId: StageInfoMap;
   onOpenFull: (card: ServiceOrderCardData) => void;
+  onOrderChanged: () => void;
 }
 
-function BoardFila({ rows, stageByCardId, onOpenFull }: BoardFilaProps) {
+function BoardFila({ rows, stageByCardId, onOpenFull, onOrderChanged }: BoardFilaProps) {
   const [selectedId, setSelectedId] = useState<number | null>(rows[0]?.id ?? null);
   const selected = useMemo(() => rows.find((c) => c.id === selectedId) ?? rows[0] ?? null, [rows, selectedId]);
 
@@ -1221,50 +1221,18 @@ function BoardFila({ rows, stageByCardId, onOpenFull }: BoardFilaProps) {
           </div>
         </div>
 
-        {/* Detalhe inline (centro) */}
+        {/* Detalhe inline (centro) — MESMO corpo rico do drawer (ServiceOrderRichBody):
+            DVI semáforo · Fotos & Laudo · Peças & mão-de-obra · Checklist de etapa ·
+            Pipeline FSM · Linha do tempo. Zero duplicação (Onda 2 · [W] 2026-06-11).
+            key={sel.id} re-seed o estado ao trocar de OS na fila. */}
         {sel ? (
-          <div className="flex min-h-0 flex-col rounded-lg border bg-card">
-            <header className="flex items-start justify-between gap-3 border-b px-4 py-3">
-              <div className="min-w-0">
-                <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-                  <span className="font-mono">{sel.number}</span>
-                  {' · '}{selStage?.name ?? '—'}
-                  {sel.is_overdue && <span className="ml-1.5 font-semibold text-destructive">· Atrasada</span>}
-                </div>
-                <h2 className="mt-1 truncate text-lg font-semibold text-foreground">
-                  {sel.vehicle_type ?? 'Veículo'}
-                </h2>
-                <p className="text-xs text-muted-foreground">{sel.cliente_nome ?? 'Cliente não informado'}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onOpenFull(sel)}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-              >
-                Abrir OS completa
-              </button>
-            </header>
-
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-              <ServiceOrderStagePipeline serviceOrderId={sel.id} enabled />
-
-              {/* Meta-grid canon */}
-              <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5 px-0.5">
-                {sel.plate && (<><dt className="text-[11px] text-muted-foreground">Placa</dt><dd className="font-mono text-[13px] text-foreground">{sel.plate}</dd></>)}
-                {sel.km != null && (<><dt className="text-[11px] text-muted-foreground">KM</dt><dd className="text-[13px] tabular-nums text-foreground">{sel.km.toLocaleString('pt-BR')}</dd></>)}
-                {sel.box && (<><dt className="text-[11px] text-muted-foreground">Box</dt><dd className="text-[13px] text-foreground">{sel.box}</dd></>)}
-                {sel.mechanic_name && (<><dt className="text-[11px] text-muted-foreground">Mecânico</dt><dd className="text-[13px] text-foreground">{sel.mechanic_name}</dd></>)}
-                <dt className={'text-[11px] ' + (sel.is_overdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>Prazo</dt>
-                <dd className={'text-[13px] tabular-nums ' + (sel.is_overdue ? 'font-semibold text-destructive' : 'text-foreground')}>{fmtFilaDate(sel.expected_completion)}{sel.is_overdue && ' ⚠'}</dd>
-                <dt className="text-[11px] text-muted-foreground">Valor</dt>
-                <dd className="text-[13px] tabular-nums font-semibold text-success">{sel.valor > 0 ? fmtBRL2(sel.valor) : '—'}</dd>
-              </dl>
-
-              <div>
-                <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Linha do tempo</h4>
-                <ServiceOrderTimeline serviceOrderId={sel.id} enabled />
-              </div>
-            </div>
+          <div className="flex min-h-0 flex-col rounded-lg border bg-card overflow-hidden">
+            <ServiceOrderRichBody
+              key={sel.id}
+              serviceOrderId={sel.id}
+              enabled
+              onOrderChanged={onOrderChanged}
+            />
           </div>
         ) : (
           <div className="flex items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
