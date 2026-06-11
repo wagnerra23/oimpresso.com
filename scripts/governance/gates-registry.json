@@ -198,6 +198,10 @@
       "nome": "Run FinanceiroDemoSeeder (one-shot)",
       "classe": "automacao"
     },
+    "run-financeiro-resync.yml": {
+      "nome": "Run financeiro:resync-from-core (one-shot · incidente num_uf)",
+      "classe": "automacao"
+    },
     "scope-guard.yml": {
       "nome": "Scope Guard (anti-drift)",
       "classe": "gate"
