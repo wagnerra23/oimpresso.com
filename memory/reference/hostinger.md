@@ -35,9 +35,9 @@ for i in 1 2 3 4 5; do
 done; echo
 ```
 
-> ⚠️ **O warm-up por curl bate na porta 443 (HTTP), NÃO na porta SSH (65002).** Quando a rota runner→Hostinger está fria *na porta SSH*, o `curl 443` retorna `200` mas o 1º `connect` SSH ainda dá `Connection timed out` → `exit 255` (incidente 2026-06-11, deploy run 27346860058: `php -v` timou 5 min e matou o deploy mesmo com warm-up curl). **Duas defesas obrigatórias** (já no `deploy.yml`):
-> 1. **Warm-up TCP na porta SSH de verdade** antes do 1º comando — sonda `bash -c "echo > /dev/tcp/$HOST/$PORT"` com `timeout` num loop, pra acordar a rota CERTA (não só a 443).
-> 2. **Retry no nível do comando SSH** (não confiar só no `ConnectionAttempts` interno do ssh): wrapper retenta a conexão até 5× espaçando ~15s, **só em `exit 255`** (connect timeout/refused/reset) — erro real do comando remoto (exit ≠ 255) propaga na hora. `ConnectTimeout=30 × ConnectionAttempts=2` por tentativa pra as 5 se espalharem no tempo e pegarem janelas boas, em vez de 1 tentativa-monolítica de 5 min num único momento ruim.
+> ⚠️ **NÃO encurtar o `ConnectTimeout` (lição cara 2026-06-11).** O handshake do Hostinger *leva minutos* — `ConnectTimeout` tem que ser ALTO (manual: 900; no CI bounded a 180 pelo job timeout de 30min). Em 2026-06-11 o CC tentou "consertar" o deploy flaky **encurtando** pra `ConnectTimeout=30 × ConnectionAttempts=2` + warm-up por TCP-probe de 8s + retry-loop externo. Resultado: PIOROU ("sempre quebra") — o SSH desistia ANTES do handshake completar, e o probe de 8s sempre falhava. **Reverter pro canon**: `ConnectTimeout=180+` (minutos), `ConnectionAttempts=3-5`, `ServerAliveInterval=3`, `ServerAliveCountMax=200`, `-4`. Warm-up = **curl 443 ×5** (só acorda a rota) + 1 `ssh true` tolerante (paga o 1º connect lento). **Não** martelar com retry-loop agressivo (risco de ban / "cuidado com hostinger" — Wagner 2026-06-11).
+>
+> **Quando o deploy falha mesmo com os flags canônicos:** geralmente é **queda real da rota SSH do Hostinger** (a 443 pode continuar 200 enquanto a 65002 está inalcançável). Foi o caso 2026-06-11 ~12:30→13:30 (deploys 11:25/12:06/12:16 passaram; depois a 65002 caiu ~1h). Nenhum timeout sobrevive a outage de 1h dentro de job de 30min — **esperar a rota voltar e re-disparar UMA vez**, não ficar martelando.
 
 ### SSH config robusto (não cortar nenhum flag)
 
