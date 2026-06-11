@@ -18,7 +18,7 @@ Inverte paradigma de detalhe de Cliente: `Show.tsx` full-page → **drawer 760px
 
 **Novos endpoints (10):** 5 PATCH autosave cadastral + 2 GET lookup CEP/CNPJ + 3 POST IA Copiloto + 1 GET score risco determinístico + 2 GET Auditoria (timeline + CSV export) + 1 GET /cliente/export CSV listagem.
 
-**Novos componentes frontend (12):** 5 tabs cadastrais (`_drawer/{Identificacao,Contato,Endereco,Comercial,Classificacao}Tab.tsx`) + OssTab/IATab/AuditoriaTab + Components/clientes/{Avatar HSL, Pills 4 componentes} + Lib/{br-mask, br-validate}.
+**Novos componentes frontend (12):** 5 tabs cadastrais (`_drawer/{Identificacao,Contato,Endereco,Comercial,Classificacao}Tab.tsx`) + OssTab/IATab/AuditoriaTab + Pages/Cliente/_components/{Avatar HSL, Pills 4 componentes} + Lib/{br-mask, br-validate}.
 
 **Novos endpoints backend (5):** Modules/Crm/Http/Controllers/{ClienteAutosaveController, ClienteLookupController, ClienteIaController, ClienteAuditoriaController}.php + Modules/Crm/Services/BrLookupService.php + 3 Modules/Crm/Ai/Agents/Cliente{Resumo,Segmento,ProximaAcao}Agent.php.
 

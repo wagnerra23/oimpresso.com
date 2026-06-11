@@ -1,4 +1,4 @@
-// Wave G — Components/clientes/Pills.tsx
+// Wave G — Pages/Cliente/_components/Pills.tsx
 //
 // Pills/chips semânticos da listagem de cliente:
 //   - TipoPill: PF (verde) | PJ (roxo)

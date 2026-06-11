@@ -29,7 +29,7 @@
 |---|---|---|---|---|---|
 | 1 | `c-btn` (primary/ghost/danger) | botão; ação primária = accent | `Button` `@/Components/ui/button` (`variant="cowork-primary\|cowork-ghost"`, `variant="destructive"`) | **Reusa** | — |
 | 2 | `c-pill` (pos/neg/warn/info) | status por significado | `Badge` `@/Components/ui/badge` + `StatusBadge` `@/Components/shared/StatusBadge.tsx` (mapping por domínio) | **Reusa** | — |
-| 3 | `c-stage` (etapa pipeline) | ponto da esteira, `--stage-*` | `OsStageBadge` `@/Components/ConsultaOs/OsStageBadge.tsx` + `board/badges.ts` (Kanban Oficina) | **Reusa** | — |
+| 3 | `c-stage` (etapa pipeline) | ponto da esteira, `--stage-*` | `OsStageBadge` `Pages/ConsultaOs/_components/OsStageBadge.tsx` + `board/badges.ts` (Kanban Oficina) | **Reusa** | — |
 | 4 | `c-kpi` (stat, tom semântico) | número grande mono | `KpiCard` `@/Components/shared/KpiCard.tsx` + `KpiGrid` + `KpiStripClickable` | **Reusa** | — |
 | 5 | `c-tabs` (segmentadas) | troca de visão | `Segmented` `@/Components/ui/segmented.tsx` (Radix ToggleGroup, `.cw-segmented`) + `PageHeaderTabs` | **Reusa** | — |
 | 6 | `c-plate` (placa Mercosul) | identidade do veículo, mono | `MercosulPlate` `@/Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate.tsx` (sm/md/lg) | **Reusa** | — |

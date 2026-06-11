@@ -1,10 +1,13 @@
 ---
 runbook: cliente-drawer-760px
-module: Crm/Cliente
+title: "RUNBOOK — Cliente drawer lateral 760px substitui Show.tsx full-page"
+module: "Crm/Cliente"
+owner: W
 adr: 0179
 charter: Pages/Cliente/Index.charter.md v3
-last_updated: 2026-05-21
-status: ready-for-execution
+last_updated: "2026-05-21"
+last_validated: "2026-06-11"
+status: ativo
 waves: 7 (+ Z fechamento)
 estimate_total: ~70h elapsed (~35h IA-pair + margem 2x ADR 0106)
 ---
@@ -78,7 +81,7 @@ Bloqueia C-F. Entregáveis:
 
 Maior wave (paralelizável com G se Felipe paralelizar). Entregáveis:
 
-- [ ] `resources/js/Lib/br-mask.ts` — máscaras CPF `000.000.000-00` / CNPJ `00.000.000/0000-00` / tel `(00) 0 0000-0000` / CEP `00000-000`
+- [ ] `resources/js/Lib/br-mask.ts` — máscaras CPF `000.000.000-00` / CNPJ `00.000.000/0000-00` / tel `(00) 0 0000-0000` / CEP `00000-000` <!-- pii-allowlist: placeholders de máscara 000.000.000-00, não PII real -->
 - [ ] `resources/js/Lib/br-validate.ts` — mod 11 (CPF/CNPJ) + regex email/site
 - [ ] `resources/js/Lib/avatar.ts` — `avatarFor(id)` HSL hash determinístico (`id % 360` · `hsl(hue, 60%, 55%)`)
 - [ ] `resources/js/Lib/relDate.ts` — "há Xd/Xh/Xm" formatter relativo
@@ -148,8 +151,8 @@ Entregáveis:
 
 Paralelizável com C se Felipe paralelizar. Entregáveis:
 
-- [ ] `resources/js/Components/clientes/Avatar.tsx` — avatar colorido-hash HSL determinístico via `avatarFor(id)` (Wave C Lib/avatar.ts)
-- [ ] `resources/js/Components/clientes/Pills.tsx` — StatusPill, TipoPill, TagChip (9 cores semânticas), FrescorPill (4 estados: fresco verde 0-30d, recente azul 31-90d, distante âmbar 91-180d, frio cinza 180d+)
+- [ ] `resources/js/Pages/Cliente/_components/Avatar.tsx` — avatar colorido-hash HSL determinístico via `avatarFor(id)` (Wave C Lib/avatar.ts)
+- [ ] `resources/js/Pages/Cliente/_components/Pills.tsx` — StatusPill, TipoPill, TagChip (9 cores semânticas), FrescorPill (4 estados: fresco verde 0-30d, recente azul 31-90d, distante âmbar 91-180d, frio cinza 180d+)
 - [ ] Substituir 4 pílulas radio (Todos/Ativos/Atrasados/Sem OS) por **6 FilterDropdown**: Tipo (PF/PJ) · Status (ativo/inativo/bloqueado) · UF (27) · Tags (multi) · Sem compra há (15d/30d/90d/180d/365d) · Com saldo (sim/não/devedor)
 - [ ] ActiveChip horizontal scrollable — remove filtro individual; sync URL via `router.get('/cliente', { ...filters })` debounced
 - [ ] Colunas tabela finais: [Avatar HSL · Nome+sub-nome (fantasia/cidade/UF) · TipoPill · Documento mascarado · Cidade/UF · FrescorPill+ÚltimaOS · Saldo colorido (`text-red-700 tabular-nums font-semibold` se devedor) · OS · Tags chips + Star pessoal localStorage · Ações ⋯]
@@ -208,7 +211,7 @@ resources/js/Pages/Cliente/
     ├── SubscriptionsTab.tsx
     └── RewardPointsTab.tsx
 
-resources/js/Components/clientes/          ← NOVO (Wave G)
+resources/js/Pages/Cliente/_components/    ← NOVO (Wave G · movido 2026-06-11)
 ├── Avatar.tsx                             (HSL hash determinístico)
 └── Pills.tsx                              (StatusPill/TipoPill/TagChip/FrescorPill)
 

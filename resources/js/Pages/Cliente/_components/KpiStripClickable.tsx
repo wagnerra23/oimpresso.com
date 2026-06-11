@@ -1,4 +1,4 @@
-// Components/clientes/KpiStripClickable.tsx
+// Pages/Cliente/_components/KpiStripClickable.tsx
 //
 // PTDP Onda 2 do Cliente · KPI strip clicável (5 cards-filtro · Cowork chat1 ref).
 // Substitui 4 KpiCard estáticos por 5 anchors filtráveis:
