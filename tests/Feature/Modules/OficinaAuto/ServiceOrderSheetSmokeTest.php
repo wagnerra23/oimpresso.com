@@ -24,7 +24,10 @@ declare(strict_types=1);
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
 
-const SHEET_PATH = 'resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderSheet.tsx';
+// Drawer ÚNICO de OS (consolidação 2026-06-11 · [W]): o ServiceOrderSheet simples
+// foi aposentado; o ServiceOrderRichSheet é o principal (mesmo do workspace e do
+// Vehicles). 1 drawer só.
+const SHEET_PATH = 'resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx';
 const PANEL_PATH = 'resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx';
 const VEHICLES_INDEX_PATH = 'resources/js/Pages/OficinaAuto/Vehicles/Index.tsx';
 // Tela unificada 2026-06-11: a Index (ServiceOrders/Index) foi aposentada; o
@@ -36,13 +39,13 @@ function readFileSOS(string $relative): string
     return file_get_contents(base_path($relative));
 }
 
-// ─── ServiceOrderSheet (drawer lateral) ───────────────────────────────────────
+// ─── ServiceOrderRichSheet (drawer ÚNICO de OS) ───────────────────────────────
 
-it('ServiceOrderSheet existe no path canônico _components', function () {
+it('Drawer único (RichSheet) existe no path canônico', function () {
     expect(file_exists(base_path(SHEET_PATH)))->toBeTrue();
 });
 
-it('ServiceOrderSheet usa shadcn Sheet (não Dialog ad-hoc)', function () {
+it('Drawer único usa shadcn Sheet (não Dialog ad-hoc)', function () {
     $src = readFileSOS(SHEET_PATH);
     expect($src)->toContain('@/Components/ui/sheet');
     expect($src)->toContain('SheetContent');
@@ -50,7 +53,7 @@ it('ServiceOrderSheet usa shadcn Sheet (não Dialog ad-hoc)', function () {
     expect($src)->toContain('SheetTitle');
 });
 
-it('ServiceOrderSheet declara Props canônicas (serviceOrderId, open, onOpenChange)', function () {
+it('Drawer único declara Props canônicas (serviceOrderId, open, onOpenChange)', function () {
     $src = readFileSOS(SHEET_PATH);
     expect($src)->toContain('serviceOrderId: number | null');
     expect($src)->toContain('open: boolean');
@@ -58,38 +61,38 @@ it('ServiceOrderSheet declara Props canônicas (serviceOrderId, open, onOpenChan
     expect($src)->toContain('onOrderChanged');
 });
 
-it('ServiceOrderSheet renderiza side="right" (drawer direita pattern Sells)', function () {
+it('Drawer único renderiza side="right" (drawer direita pattern Sells)', function () {
     $src = readFileSOS(SHEET_PATH);
     expect($src)->toMatch('/side="right"/');
 });
 
-it('ServiceOrderSheet inclui ServiceOrderFsmActionPanel (Pipeline FSM section)', function () {
+it('Drawer único inclui ServiceOrderFsmActionPanel (Pipeline FSM section)', function () {
     $src = readFileSOS(SHEET_PATH);
     expect($src)->toContain('ServiceOrderFsmActionPanel');
     expect($src)->toContain('Pipeline FSM');
 });
 
-it('ServiceOrderSheet usa useCallback no handler FSM (estabilizar identidade — lição PR #717)', function () {
+it('Drawer único usa useCallback no handler FSM (estabilizar identidade — lição PR #717)', function () {
     $src = readFileSOS(SHEET_PATH);
     expect($src)->toContain('useCallback');
     expect($src)->toContain('handleFsmTransition');
-    // Handler passado pro panel filho deve ser memoizado
     expect($src)->toMatch('/handleFsmTransition\\s*=\\s*useCallback/');
 });
 
-it('ServiceOrderSheet renderiza copy PT-BR canônica (Detalhes, Pipeline FSM, Histórico, Em breve)', function () {
+it('Drawer único renderiza as seções canônicas do reparo (RichSheet · ADR 0265)', function () {
     $src = readFileSOS(SHEET_PATH);
-    expect($src)->toContain('Detalhes');
+    // Seções do drawer rico (vocabulário de REPARO — locação erradicada ADR 0265).
+    expect($src)->toContain('Observação');
+    expect($src)->toContain('Vistoria Digital');
+    expect($src)->toContain('Peças & Mão de obra');
     expect($src)->toContain('Pipeline FSM');
-    expect($src)->toContain('Histórico');
-    expect($src)->toContain('Em breve');
+    expect($src)->toContain('Linha do tempo');
 });
 
-it('ServiceOrderSheet badge tipo (Locação/Manutenção)', function () {
+it('Drawer único NÃO usa vocabulário de locação (caçamba/Locação — erradicado ADR 0265)', function () {
     $src = readFileSOS(SHEET_PATH);
-    expect($src)->toContain('Locação');
-    expect($src)->toContain('Manutenção');
-    expect($src)->toContain('OrderTypeBadge');
+    // Anti-regressão: o drawer é 100% reparo (sub-vertical 4 ADR 0194/0265).
+    expect($src)->not->toContain('OrderTypeBadge');
 });
 
 // ─── ServiceOrderFsmActionPanel (botões dinâmicos FSM) ────────────────────────
@@ -165,10 +168,12 @@ it('ServiceOrderFsmActionPanel sinaliza side_effect com ícone Zap', function ()
 
 // ─── Integração nas Index pages ────────────────────────────────────────────────
 
-it('Vehicles/Index importa ServiceOrderSheet (drawer plugado)', function () {
+it('Vehicles/Index importa o drawer ÚNICO ServiceOrderRichSheet (consolidação 2026-06-11)', function () {
     $src = readFileSOS(VEHICLES_INDEX_PATH);
-    expect($src)->toContain('ServiceOrderSheet');
-    expect($src)->toContain("from '../ServiceOrders/_components/ServiceOrderSheet'");
+    expect($src)->toContain('ServiceOrderRichSheet');
+    expect($src)->toContain("from '../ProducaoOficina/_components/ServiceOrderRichSheet'");
+    // Anti-regressão: não pode voltar o drawer simples aposentado.
+    expect($src)->not->toContain("from '../ServiceOrders/_components/ServiceOrderSheet'");
 });
 
 it('Vehicles/Index abre drawer ao clicar caçamba locada (current_rental_id)', function () {

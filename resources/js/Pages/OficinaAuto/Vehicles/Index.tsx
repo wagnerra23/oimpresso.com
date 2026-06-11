@@ -28,7 +28,7 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import VehicleStatusBadge, { type VehicleStatus } from './_components/VehicleStatusBadge';
-import ServiceOrderSheet from '../ServiceOrders/_components/ServiceOrderSheet';
+import ServiceOrderRichSheet from '../ProducaoOficina/_components/ServiceOrderRichSheet';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -462,8 +462,9 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
         </div>
       </div>
 
-      {/* Drawer ServiceOrder — abre ao clicar em veículo com OS ativa */}
-      <ServiceOrderSheet
+      {/* Drawer ÚNICO de OS (ServiceOrderRichSheet — o principal, mesmo do workspace).
+          O ServiceOrderSheet simples foi aposentado (drawers consolidados · [W] 2026-06-11). */}
+      <ServiceOrderRichSheet
         serviceOrderId={openOsId}
         open={openOsId !== null}
         onOpenChange={handleSheetOpenChange}
