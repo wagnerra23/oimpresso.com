@@ -947,7 +947,7 @@ class ContactController extends Controller
                 // Consumidor/fornecedor padrão (walk-in) — front esconde "Excluir".
                 'is_default' => (bool) $contact->is_default,
                 // Wave G novos campos cadastrais.
-                // avatar_hash_seed = name (HSL hash determinístico Components/clientes/Avatar.tsx).
+                // avatar_hash_seed = name (HSL hash determinístico Pages/Cliente/_components/Avatar.tsx).
                 // Frontend usa name por default mas seed explícito permite estabilidade
                 // mesmo se name mudar futuramente.
                 'avatar_hash_seed' => (string) $contact->name,

@@ -89,15 +89,15 @@ import AuditoriaTab from './_drawer/AuditoriaTab';
 // Wagner 2026-05-27 iteracao 2: Placas promovido pra tab principal (botao header).
 import PlacasMainTab from './_drawer/PlacasMainTab';
 // Wave G — listagem turbinada (avatar HSL hash + Pills semânticos).
-import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
-import { ActiveChip } from '@/Components/clientes/ActiveChip';
-import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes/Pills';
+import { Avatar as ClienteAvatar } from './_components/Avatar';
+import { ActiveChip } from './_components/ActiveChip';
+import { TipoPill, TagChip, FrescorPill, SaldoCell } from './_components/Pills';
 // PTDP Onda 2 — KPI strip clicável (5 cards-filtro · substitui 4 KpiCard estáticos).
 import {
   KpiStripClickable,
   type KpiCardDef,
   type KpiKey,
-} from '@/Components/clientes/KpiStripClickable';
+} from './_components/KpiStripClickable';
 
 interface ClienteKpis {
   total: number;
@@ -1241,7 +1241,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           }}
                         >
                           <td className="px-4 py-2.5">
-                            {/* Wave G — Avatar HSL hash determinístico (Components/clientes/Avatar.tsx). */}
+                            {/* Wave G — Avatar HSL hash determinístico (Pages/Cliente/_components/Avatar.tsx). */}
                             <ClienteAvatar
                               name={row.name}
                               size={32}

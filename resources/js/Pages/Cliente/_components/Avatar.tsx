@@ -1,4 +1,4 @@
-// Wave G — Components/clientes/Avatar.tsx
+// Wave G — Pages/Cliente/_components/Avatar.tsx
 //
 // Avatar colorido determinístico via HSL hash do nome do cliente. Mesmo nome
 // sempre gera mesma cor — reconhecimento visual instantâneo na listagem.

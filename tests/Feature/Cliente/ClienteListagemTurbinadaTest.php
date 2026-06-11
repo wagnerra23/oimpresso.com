@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\Schema;
 
 // ─── GUARD 1: Avatar.tsx HSL hash deterministico criado ──────────────────────
 
-test('GUARD 1 — Components/clientes/Avatar.tsx tem gradients oklch deterministicos', function () {
-    $path = __DIR__ . '/../../../resources/js/Components/clientes/Avatar.tsx';
+test('GUARD 1 — Pages/Cliente/_components/Avatar.tsx tem gradients oklch deterministicos', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_components/Avatar.tsx';
     expect($path)->toBeReadableFile();
 
     $contents = file_get_contents($path);
@@ -45,8 +45,8 @@ test('GUARD 1 — Components/clientes/Avatar.tsx tem gradients oklch determinist
 
 // ─── GUARD 2: Pills.tsx tem 4 componentes Wave G ─────────────────────────────
 
-test('GUARD 2 — Components/clientes/Pills.tsx contem TipoPill + TagChip + FrescorPill + SaldoCell', function () {
-    $path = __DIR__ . '/../../../resources/js/Components/clientes/Pills.tsx';
+test('GUARD 2 — Pages/Cliente/_components/Pills.tsx contem TipoPill + TagChip + FrescorPill + SaldoCell', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_components/Pills.tsx';
     expect($path)->toBeReadableFile();
 
     $contents = file_get_contents($path);
@@ -78,8 +78,8 @@ test('GUARD 3 — Cliente/Index.tsx importa Avatar HSL + Pills + lucide Star/Dow
 
     $contents = file_get_contents($path);
     expect($contents)
-        ->toContain("from '@/Components/clientes/Avatar'")
-        ->toContain("from '@/Components/clientes/Pills'")
+        ->toContain("from './_components/Avatar'")
+        ->toContain("from './_components/Pills'")
         ->toContain('TipoPill')
         ->toContain('TagChip')
         ->toContain('FrescorPill')
@@ -277,7 +277,7 @@ test('GUARD 12 — /cliente/export bloqueia user nao autenticado (302 redirect l
 // ─── GUARD 13: 9 tag values whitelist + PT-BR microcopy ──────────────────────
 
 test('GUARD 13 — Pills.tsx tem 9 tag values whitelist + microcopy PT-BR', function () {
-    $path = __DIR__ . '/../../../resources/js/Components/clientes/Pills.tsx';
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_components/Pills.tsx';
     $contents = file_get_contents($path);
 
     // 9 tag values (HANDOFF_CLIENTES.md §2.5 + Wave C ClassificacaoTab).
