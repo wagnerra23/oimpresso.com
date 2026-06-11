@@ -67,17 +67,20 @@ test.describe.serial('UC-11 · OS funcional fim-a-fim (caminho da Larissa)', () 
     // só apareceu no drawer, 3 passos depois).
     await expect(page).toHaveURL(/\/oficina-auto\/ordens-servico\/\d+$/, { timeout: 15_000 });
 
-    // ── 3. Achar o card no kanban e abrir o documento vivo (drawer) ────────────
+    // ── 3. Achar o card no quadro e abrir o documento vivo (drawer) ────────────
+    // /producao-oficina virou redirect permanente pro Quadro de OS canônico
+    // (ServiceOrders/Board.tsx — workspace unificado #2551); o goto prova o redirect.
     await page.goto('/oficina-auto/producao-oficina');
     await page.waitForLoadState('networkidle');
-    const busca = page.getByPlaceholder(/Buscar OS, ve[ií]culo ou cliente/i);
+    const busca = page.getByPlaceholder(/Buscar OS, placa ou cliente/i);
     await expect(busca).toBeVisible();
     await busca.fill(PLACA);
 
     const recepcao = page.getByLabel('Coluna Recepção');
     await expect(recepcao).toBeVisible();
+    // Busca do Board é server-side (debounce + router.get) — timeout cobre o round-trip.
     const card = recepcao.getByRole('button').filter({ hasText: new RegExp(PLACA, 'i') }).first();
-    await expect(card, `card da OS recém-criada (${PLACA}) deve aparecer em Recepção`).toBeVisible();
+    await expect(card, `card da OS recém-criada (${PLACA}) deve aparecer em Recepção`).toBeVisible({ timeout: 15_000 });
     await card.click();
 
     // Drawer rico aberto — seções canônicas do charter visíveis.
