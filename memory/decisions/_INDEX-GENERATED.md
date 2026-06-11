@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **276** arquivos · **261** números únicos · máx **0271**
-- **ADRs ATIVOS (lifecycle ativo): 236** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 214 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 236 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **277** arquivos · **262** números únicos · máx **0272**
+- **ADRs ATIVOS (lifecycle ativo): 237** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 215 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 237 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (276)
+## Todas as ADRs (277)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -308,3 +308,4 @@ _(íntegra)_
 | 0269 | aceito | ativo | decision | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
 | 0270 | aceito | ativo | decision | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
 | 0271 | aceito | ativo | decision | Revisão dos 64 gates CI — estado real dos required (corrige drift da 0261), font |
+| 0272 | aceito | ativo | decision | Árvore canônica de componentes — camadas UI-0013 viram pastas enforçadas (allowl |
