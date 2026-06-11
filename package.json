@@ -63,6 +63,7 @@
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts",
     "test:adr-governance": "vitest run tests/governanceAdrScripts.spec.ts",
+    "test:memory-health": "vitest run tests/memoryHealth.spec.ts",
     "test:casos-guard": "vitest run tests/casosGuard.spec.ts",
     "test:casos-results": "vitest run tests/casosResultsCollect.spec.ts",
     "test:dominio-guard": "vitest run tests/dominioGuard.spec.ts"

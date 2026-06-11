@@ -227,6 +227,80 @@ function checkAntiResurrection() {
   }
 }
 
+// ── Check G: registry canônico de gates (Onda Q5 — o processo se autocobra) ─
+// "Regra que ninguém cobra morre" — gate novo entrava em .github/workflows sem
+// censo nenhum. TODO workflow DEVE estar em scripts/governance/gates-registry.json
+// (nome + classe + propósito). Workflow fora do registry = 🔴 (pega gate novo
+// mecanicamente); entrada órfã (workflow apagado) = 🟡.
+function checkGatesRegistry() {
+  const REGISTRY = 'scripts/governance/gates-registry.json';
+  const wfDir = '.github/workflows';
+  if (!exists(wfDir)) return;
+  if (!exists(REGISTRY)) {
+    fails.push({ check: 'G', kind: 'registry-ausente',
+      msg: `${REGISTRY} não existe — o censo de gates é obrigatório (Onda Q5). Recriar a partir do main.` });
+    return;
+  }
+  let reg;
+  try { reg = JSON.parse(read(REGISTRY)).workflows || {}; } catch {
+    fails.push({ check: 'G', kind: 'registry-ilegivel', msg: `${REGISTRY} não parseia como JSON.` });
+    return;
+  }
+  const files = readdirSync(join(ROOT, wfDir)).filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'));
+  const fora = files.filter((f) => !(f in reg));
+  if (fora.length) {
+    fails.push({ check: 'G', kind: 'workflow-fora-do-registry', count: fora.length,
+      msg: `workflow(s) NOVO(s) sem registro no censo de gates (${REGISTRY}): ${fora.join(', ')} — registre nome+classe+propósito no MESMO PR.` });
+  }
+  const orfas = Object.keys(reg).filter((f) => !files.includes(f));
+  if (orfas.length) {
+    warns.push({ check: 'G', kind: 'registry-entrada-orfa', count: orfas.length,
+      msg: `entrada(s) do registry sem workflow correspondente: ${orfas.join(', ')} — remova do censo.` });
+  }
+}
+
+// ── Check H: frescor de doc-cache "✓lido @main <data>" (Onda Q5) ────────────
+// Censos/tabelas derivadas carregam carimbo de leitura contra o main. Carimbo
+// >14 dias = a "verdade cacheada" provavelmente driftou → 🟡 revalidar.
+function checkLidoFreshness() {
+  const LIMIT_DAYS = 14;
+  const stamps = [];
+  for (const dir of ['memory', 'prototipo-ui']) {
+    for (const f of listFiles(dir, (p) => p.endsWith('.md'))) {
+      let content; try { content = read(f); } catch { continue; }
+      for (const m of content.matchAll(/✓\s*lido\s*@?main[^\d]{0,20}(\d{4}-\d{2}-\d{2})/gi)) {
+        stamps.push({ file: f, date: m[1] });
+      }
+    }
+  }
+  const today = new Date();
+  const old = stamps.filter((s) => (today - new Date(s.date)) / 86400000 > LIMIT_DAYS);
+  if (old.length) {
+    const sample = old.slice(0, 5).map((s) => `${s.file} (${s.date})`).join(' · ');
+    warns.push({ check: 'H', kind: 'doc-cache-stale', count: old.length,
+      msg: `carimbo(s) "✓lido @main" com mais de ${LIMIT_DAYS} dias: ${sample}${old.length > 5 ? ` … +${old.length - 5}` : ''} — revalidar contra o main e re-carimbar.` });
+  }
+}
+
+// ── Check I: lição sem asserção (Onda Q5) ───────────────────────────────────
+// Lição em memory/LICOES_CC.md que não aponta gate/G#/IT# nem se declara
+// `não-mecanizável:` é lição que vai morrer no tempo (DESIGN.md §16.2 provou).
+function checkLicaoSemAssercao() {
+  const FILE = 'memory/LICOES_CC.md';
+  if (!exists(FILE)) return;
+  const content = read(FILE);
+  const blocks = content.split(/^## (?=L-\d)/m).slice(1);
+  const sem = [];
+  for (const b of blocks) {
+    const id = (b.match(/^L-\d+[a-z]?/) || ['?'])[0];
+    if (!/\bG-?\d|\bIT-?\d|gate|guard|ratchet|catraca|não-mecanizável\s*:|nao-mecanizavel\s*:/i.test(b)) sem.push(id);
+  }
+  if (sem.length) {
+    warns.push({ check: 'I', kind: 'licao-sem-assercao', count: sem.length,
+      msg: `lição(ões) sem gate/G#/IT# nem marcador \`não-mecanizável:\`: ${sem.slice(0, 8).join(', ')}${sem.length > 8 ? ` … +${sem.length - 8}` : ''} — toda lição aponta o check que a mecaniza OU se declara não-mecanizável.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
@@ -234,6 +308,9 @@ checkSecretsInMemory();
 checkStaleCanon();
 checkAdrEnumDrift();
 checkAntiResurrection();
+checkGatesRegistry();
+checkLidoFreshness();
+checkLicaoSemAssercao();
 
 if (UPDATE_BASELINE) {
   writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile }, null, 2) + '\n');
