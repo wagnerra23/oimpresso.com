@@ -3,7 +3,7 @@ page: /oficina-auto/service-orders
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-09"
+last_validated: "2026-06-11"
 parent_module: OficinaAuto
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
@@ -15,7 +15,7 @@ related_adrs:
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
   - 0265-oficina-reparo-erradica-locacao
 tier: A
-charter_version: 3
+charter_version: 4
 ---
 
 # Page Charter — /oficina-auto/service-orders
@@ -33,8 +33,10 @@ Dashboard operacional pra atendente/gerente da oficina decidir próxima ação e
 ## Goals — Features (faz)
 
 - AppShellV2 + topnav padrão Cockpit V2 (ADR 0110)
-- `<PageHeader>` shared (h1 "Ordens de Serviço" + subtitle + ações Criar OS / Importer Firebird)
-- KpiGrid topo (reparo, ADR 0265): em diagnóstico, aguardando aprovação, em execução, atrasadas — **sem** "locações ativas"
+- `<PageHeader>` shared (h1 "Ordens de Serviço" + subtítulo descritivo, sem círculo decorativo de ícone — v4)
+- KPIs topo no canon do Board (`BoardKpiCard` — label uppercase + número tabular-nums + sublinha) e **clicáveis como filtro D-05** (clica filtra `?status=`, clica de novo limpa, chip "limpar filtro" na toolbar) — substituem as abas Todas/Em andamento/Concluídas mês/Atrasadas (v4)
+- Toolbar única canon `.ofc-view-toolbar`: busca com limpar (×) + contador "N OS", tipo (Mecânica/Manutenção), chips de estágio FSM, toggle **Quadro · Lista · Fila** (Quadro navega pro `/board` — simetria com o toggle do Board) (v4)
+- Coluna VALOR com dado real `items_total` (withSum dos itens da OS — `valor_receber` é accessor sempre-0 pós-ADR 0265); indicador de atraso único (pill "Atrasada", sem dot duplicado) (v4)
 - Listagem com filtros: status, order_type (manutencao/mecanica — **sem** locacao), vehicle.plate, contact, intervalo de datas
 - Badge status semântico (rose=atrasada, amber=orcamento aguardando, blue=em_servico, emerald=concluida)
 - Drawer detail (ServiceOrderSheet) ao clicar linha — FSM action panel + timeline append-only
@@ -81,3 +83,4 @@ Dashboard operacional pra atendente/gerente da oficina decidir próxima ação e
 
 - **2026-05-26** (v2) — Cockpit Pattern V2; KPI "locações ativas" + colunas locação mantidos.
 - **2026-06-09** (v3) — sweep ADR 0265 no front ([sessão](../../../../../memory/sessions/2026-06-09-sweep-os-front-adr0265.md) · [avaliação CC](../../../../../prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md)): KPI "Locações ativas" **morto**; colunas/pills/badges de locação → reparo (`OrderType = {manutencao, mecanica}`); `formatBRL(null)` → "—". `mecanica` deixou de cair no ramo locação.
+- **2026-06-11** (v4) — polish canon Board (pedido [W], mesmo canon Cowork oficina-page/oficina-fila): header sem círculo decorativo; KPIs no `BoardKpiCard` (extraído do Board) clicáveis D-05 substituindo as abas de status; toolbar única (busca+limpar+contador · tipo · estágio FSM · toggle Quadro/Lista/Fila); VALOR real (`items_total` via withSum); dot vermelho de atraso removido (pill única). FILA: caixa cinza → meta-grid canon (label 11px/valor 13px tabular-nums, defeito full-row), `ServiceOrderTimeline` no canon `.ofc-timeline` (fio+dot+quem·quando, sem pills com seta), stepper com labels truncadas (flex-1 min-w-0). DRAWER (`ServiceOrderSheet`): header eyebrow "OS #N · etapa" + badge tipo fora do título + h2 17px veículo + p 12.5px cliente, MiniKpi → meta compacta (Entrada/Valor BRL à direita), seções border-top fino (mesmo Section do RichSheet), Cancelar OS vira outline destructive.

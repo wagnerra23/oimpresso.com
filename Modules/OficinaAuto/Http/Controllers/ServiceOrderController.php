@@ -87,6 +87,12 @@ class ServiceOrderController extends Controller
             'vehicle:' . implode(',', $vehicleCols),
         ]);
 
+        // Coluna VALOR da listagem com dado REAL (polish canon Board 2026-06-11):
+        // soma dos itens da OS (peças + mão-de-obra) via withSum — 1 subquery, sem N+1.
+        // O accessor valor_receber é sempre 0.0 (locação erradicada, ADR 0265); o valor
+        // de reparo vive em oficina_service_order_items.valor_total (US-OFICINA-027).
+        $base->withSum('items as items_total', 'valor_total');
+
         if ($hasContact) {
             $base->with('contact:id,name');
         }

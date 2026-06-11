@@ -93,8 +93,9 @@ import DragConfirmDialog, {
 } from '@/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog';
 import ServiceOrderRichSheet from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet';
 import ServiceOrderKanbanColumn from './_components/board/ServiceOrderKanbanColumn';
+import BoardKpiCard from './_components/board/BoardKpiCard';
 import type { BoardDensity, ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
-import { kpiTone, toneForColor, gradeGlyph, type KpiTone } from './_components/board/boardTone';
+import { toneForColor, gradeGlyph } from './_components/board/boardTone';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -683,7 +684,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         <div className="bg-white border-b border-border px-6 py-3">
           <div className={'grid grid-cols-2 @[700px]/board:grid-cols-3 @[1100px]/board:grid-cols-6 gap-2'}>
             {kpiCards.map(({ id, filterKey, ...kpi }) => (
-              <KpiCard
+              <BoardKpiCard
                 key={id}
                 {...kpi}
                 active={filterKey !== null && kpiFilter === filterKey}
@@ -932,57 +933,8 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
 ServiceOrdersBoard.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
 // ─── Subcomponents ───────────────────────────────────────────────────────────
-
-interface KpiCardProps {
-  label: string;
-  value: string;
-  /** sublinha descritiva (paridade Cowork — ex.: "faturamento previsto") */
-  sub?: string;
-  tone: KpiTone;
-  /** D-05 — KPI ativo como filtro (anel primary + aria-pressed) */
-  active?: boolean;
-  /** D-05 — outro KPI está filtrando (esmaece este) */
-  dimmed?: boolean;
-  /** presente = KPI filtrável (vira role=button); ausente = só leitura (ex.: valor) */
-  onClick?: () => void;
-}
-
-function KpiCard({ label, value, sub, tone, active = false, dimmed = false, onClick }: KpiCardProps) {
-  const t = kpiTone(tone);
-
-  const inner = (
-    <>
-      <span className={`text-[10px] font-semibold uppercase tracking-wider truncate ${t.label}`}>{label}</span>
-      <span className={`text-xl @[1100px]/board:text-2xl font-bold tabular-nums ${t.value}`}>{value}</span>
-      {sub ? <span className="text-[10px] text-muted-foreground truncate leading-tight">{sub}</span> : null}
-    </>
-  );
-
-  // KPI filtrável é <button> de verdade (a11y nativa: foco, Enter/Space, aria-pressed)
-  if (onClick !== undefined) {
-    return (
-      <button
-        type="button"
-        className={
-          `rounded-lg border px-3 py-2 flex flex-col gap-0.5 text-left w-full cursor-pointer select-none transition-all hover:shadow-sm ${t.wrapper}`
-          + (active ? ' ring-2 ring-primary ring-offset-1' : '')
-          + (dimmed ? ' opacity-50' : '')
-        }
-        aria-pressed={active}
-        title={active ? 'Clique pra limpar o filtro' : `Filtrar o quadro: ${label}`}
-        onClick={onClick}
-      >
-        {inner}
-      </button>
-    );
-  }
-
-  return (
-    <div className={`rounded-lg border px-3 py-2 flex flex-col gap-0.5 ${t.wrapper}`}>
-      {inner}
-    </div>
-  );
-}
+// KpiCard extraído pra ./_components/board/BoardKpiCard (2026-06-11) — a Index
+// passou a usar o MESMO canon de KPI clicável; um único componente pros dois.
 
 // ─── Grade (veículo × etapa · Onda 2) ────────────────────────────────────────
 // View de varredura client-side: cada linha é uma OS (placa + modelo + cliente),
