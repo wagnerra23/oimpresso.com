@@ -327,3 +327,90 @@ describe('dominio:check — termos proibidos user-facing (Salto #4, físico)', (
     expect(out).not.toMatch(/forbidden-ui-term/);
   });
 });
+
+// ── Onda Q3 — domínios CORE (migrations_paths + tables_scope + code_paths) ─────────────
+// Vendas/estoque vivem em database/migrations (não Modules/<X>). O dict declara os paths
+// e REIVINDICA tabelas; undeclared-column não cobra tabela alheia do diretório compartilhado.
+describe('dominio:check — domínios core (Onda Q3, físico)', () => {
+  const coreMigration = (file: string, php: string) => write(`database/migrations/${file}`, php);
+
+  it('SENSIBILIDADE: enum core divergente do dicionário (via migrations_paths) → undeclared-value', () => {
+    coreMigration(
+      '2026_01_01_000000_create_transactions.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due', 'partial', 'fantasma']); });
+      } };`,
+    );
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due', 'partial'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-value:VendasCore:transactions\.payment_status:fantasma/);
+  });
+
+  it('ESPECIFICIDADE: tables_scope NÃO cobra tabela alheia do diretório compartilhado', () => {
+    coreMigration(
+      '2026_01_01_000000_create_core.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due']); });
+        Schema::create('users', function ($t) { $t->enum('marital_status', ['married', 'unmarried']); });
+      } };`,
+    );
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+    });
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/users\.marital_status/); // fora do scope reivindicado
+  });
+
+  it('SENSIBILIDADE: sem tables_scope, coluna enum não-declarada no diretório É cobrada (semântica original)', () => {
+    coreMigration(
+      '2026_01_01_000000_create_core.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid']); });
+        Schema::create('users', function ($t) { $t->enum('marital_status', ['married']); });
+      } };`,
+    );
+    dict('VendasCore', { 'transactions.payment_status': ['paid'] }, {
+      migrations_paths: ['database/migrations'],
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-column:VendasCore:users\.marital_status/);
+  });
+
+  it('SALTO #3 core: code_paths aceita ARQUIVO único e pega valor não-canônico', () => {
+    coreMigration(
+      '2026_01_01_000000_create_transactions.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due']); });
+      } };`,
+    );
+    write('app/Http/Controllers/SellController.php', `<?php class SellController { function f($q) { return $q->where('payment_status', 'estornado'); } }`);
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+      code_paths: ['app/Http/Controllers/SellController.php'],
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:VendasCore:payment_status:estornado/);
+  });
+
+  it('ESPECIFICIDADE core: valor canônico no code_path único passa limpo', () => {
+    coreMigration(
+      '2026_01_01_000000_create_transactions.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due']); });
+      } };`,
+    );
+    write('app/Http/Controllers/SellController.php', `<?php class SellController { function f($q) { return $q->where('payment_status', 'due'); } }`);
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+      code_paths: ['app/Http/Controllers/SellController.php'],
+    });
+    expect(run('--json')).toMatch(/"ok": true/);
+  });
+});
