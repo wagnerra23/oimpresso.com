@@ -55,7 +55,7 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
     <section
       ref={setNodeRef}
       className={'rounded-lg border border-t-2 transition-all ' + tone.topBorder + ' ' + emphasisBg + ' ' + overClasses}
-      aria-label={`Coluna ${name}`}
+      aria-label={`Etapa ${name}`}
       aria-dropeffect="move"
       data-testid={`board-column-${stageKey}`}
     >
