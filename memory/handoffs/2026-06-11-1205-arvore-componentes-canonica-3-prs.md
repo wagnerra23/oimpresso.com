@@ -1,7 +1,12 @@
 ---
 date: "2026-06-11"
-hour_brt: "12:05"
-topic: "Árvore de componentes canônica — auditoria 57/100 → 3 PRs mergeados + enforcement"
+time: "12:05"
+slug: "arvore-componentes-canonica-3-prs"
+tldr: "Auditoria componentes 57/100 → 3 PRs mergeados (#2539 moves domínio · #2540 BR inputs ui/ · #2542 components-tree-guard) + ADR proposal arvore-componentes-canonica aguarda Wagner. ListPage PT-01-as-code adiado consciente (F4 em curso)."
+decided_by: [Wagner]
+cycle: null
+prs: ["2539", "2540", "2542", "2543"]
+next_steps: ["Wagner aprova/edita memory/decisions/proposals/2026-06-11-arvore-componentes-canonica.md", "ListPage via ADR própria + piloto + gate visual (roadmap §3 da proposal)"]
 duration: "~3h"
 authors: [Wagner (aprovador), Claude Code]
 ---
