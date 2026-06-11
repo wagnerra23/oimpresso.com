@@ -662,7 +662,7 @@ function DrawerLens({ icon: Icon, title, status, tone = 'muted', children }: {
   );
 }
 
-function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void }) {
+function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void; periodLabel: string }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
@@ -699,13 +699,25 @@ function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: La
     const dd = parts[2] ?? '01';
     const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const mesAbrev = MES[parseInt(mm, 10) - 1] ?? '???';
-    return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte };
+    // FX-3 (print 06-11): o primeiro a pagar (vencimento ASC) pode já estar VENCIDO —
+    // rotular "próx." (= próximo/futuro) mente. Se vencido, vira "vencida há Nd" destructive.
+    const hojeISO = new Date().toISOString().slice(0, 10);
+    const overdue = first.status === 'atrasado' || first.vencimento < hojeISO;
+    const diasAtraso = overdue
+      ? Math.max(0, Math.round((Date.parse(hojeISO) - Date.parse(first.vencimento)) / 86400000))
+      : 0;
+    return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte, overdue, diasAtraso };
   }, [lancamentos]);
 
   // PR H (2026-05-25) US-FIN-023 — render badge delta_pct (↑+12% verde / ↓-5% rose / → 0% neutro).
   // Cores via classes canon `fin-num-pos`/`fin-num-neg`/`text-muted-foreground` (AP1 PRE-MERGE-UI).
-  const DeltaBadge = ({ pct }: { pct: number | null | undefined }) => {
+  // FX-5 (print 06-11): suprime ruído — delta com valor atual ~0 (ex.: Pago R$ 0,00 →
+  // "↓-100%") ou swing absurdo (>300%, base do mês anterior imaterial = "sem base
+  // comparável") não é informação, é ruído. Vira null = badge não renderiza.
+  const DeltaBadge = ({ pct, valor }: { pct: number | null | undefined; valor?: number }) => {
     if (pct === null || pct === undefined) return null;
+    if (valor !== undefined && Math.abs(valor) < 0.005) return null;
+    if (Math.abs(pct) > 300) return null;
     const isZero = Math.abs(pct) < 0.05;
     const isUp = pct > 0;
     const colorClass = isZero ? 'text-muted-foreground' : (isUp ? 'fin-num-pos' : 'fin-num-neg');
@@ -724,8 +736,10 @@ function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: La
   return (
     <div className="fin-stats">
       <button type="button" className="fin-stat fin-stat-hero" onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
-        <small>Saldo previsto · maio</small>
-        <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} /></b>
+        {/* FX-2 (print 06-11): mês do hero vinha hardcoded "maio"; agora usa periodLabel
+            (MESMA fonte do subtítulo da página — fonte única, sem drift de período). */}
+        <small>Saldo previsto · {periodLabel}</small>
+        <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} valor={kpis.saldo_previsto} /></b>
         <span className="fin-stat-hint">
           <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
         </span>
@@ -734,13 +748,13 @@ function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: La
 
       <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
         <small>Recebido</small>
-        <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} /></b>
+        <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} valor={kpis.recebido.valor} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
         <small>A receber</small>
-        <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} /></b>
+        <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} valor={kpis.a_receber.valor} /></b>
         {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
         <span className="fin-stat-hint">
           {atrasadoReceber > 0
@@ -751,17 +765,19 @@ function KpiBar({ kpis, lancamentos, onKpiSelect }: { kpis: Kpi; lancamentos: La
 
       <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
         <small>Pago</small>
-        <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} /></b>
+        <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} valor={kpis.pago.valor} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
       <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
         <small>A pagar</small>
-        <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} /></b>
+        <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} valor={kpis.a_pagar.valor} /></b>
         {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
         <span className="fin-stat-hint">
           {proxPagar
-            ? <>próx. <b>{proxPagar.label}</b> · {proxPagar.contraparte}</>
+            ? (proxPagar.overdue
+                ? <><span className="fin-num-neg">vencida há {proxPagar.diasAtraso}d</span> · {proxPagar.contraparte}</>
+                : <>próx. <b>{proxPagar.label}</b> · {proxPagar.contraparte}</>)
             : <>{kpis.a_pagar.qtd} títulos</>}
         </span>
       </button>
@@ -936,7 +952,8 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-destructive'}`}>
-        <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
+        {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
+        <span className="text-stone-400 mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
       <td className="pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
         {!settled ? (
@@ -1210,6 +1227,11 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               </button>
             ))}
           </div>
+          {/* FX-1 (print 06-11): divisor entre a LENTE (filtro grosso) e a SubNav
+              (navegação). Sem ele, "...A pagar | Caixa | Conciliação" lê-se como uma
+              régua de tabs só, com dois "Caixa" colados/ambíguos. Respiro + linha
+              deixam claro: filtro ≠ navegação. */}
+          <div className="w-px self-center h-6 bg-border shrink-0" aria-hidden="true" />
           {/* ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — header em UMA linha:
                 ghost tabs (esquerda) + ⋯ Mais (botões action features) + primary "+ Novo" (direita)
               - Ghost tabs ARIA navegação entre 13 sub-views do Financeiro
@@ -1263,7 +1285,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         </div>
       </div>
 
-      <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} />
+      <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} periodLabel={periodLabel} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
           Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
