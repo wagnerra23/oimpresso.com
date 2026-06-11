@@ -31,7 +31,7 @@
   font-weight: 600;
   color: oklch(0.32 0.13 145);
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-conferido-toggle:hover { background: oklch(0.94 0.06 145); }
 .fin-cowork .fin-curadoria .fin-conferido-toggle.on {
