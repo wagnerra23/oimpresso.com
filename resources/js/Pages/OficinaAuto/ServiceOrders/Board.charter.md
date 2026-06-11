@@ -3,7 +3,7 @@ page: /oficina-auto/ordens-servico/board
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-10"
+last_validated: "2026-06-11"
 parent_module: OficinaAuto
 related_adrs:
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
@@ -11,7 +11,7 @@ related_adrs:
   - 0129-state-machine-canonica-fsm-rbac
   - 0093-multi-tenant-isolation-tier-0
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Charter — Quadro (Kanban) de OS de Mecânica
@@ -44,6 +44,18 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
   Urgentes · **Valor em curso** = faturamento previsto), 5 clicáveis como filtro.
 - **Abas de box/elevador** (filtro client-side com contador) + menu Visão (Foco
   Etapa/Box/Mecânico · Densidade) — re-pivot client-side sem round-trip.
+- **Barra de views canon** (`.ofc-view-toolbar` · Onda 2 · [W] 2026-06-11): o toggle
+  de views + o botão **Visão** moram na **barra da busca** (`[busca + contador] |
+  [toggle] | [Visão]`), não no header — que fica só com `Imprimir fila` + `Nova OS`.
+- **Toggle de 4 views** (Onda 2): **Quadro** · **Lista** · **Grade** · **Fila**.
+  Quadro e **Grade** são in-page (estado `view` persistido em `localStorage`
+  `oficinaBoard.view`); **Lista** e **Fila** **navegam** pra Index (Fila = `?view=fila`,
+  página já existente — não duplica).
+- **Grade** (Onda 2 · canon `.ofc-grade`): varredura client-side **veículo × etapa**
+  — cada linha é uma OS (placa Mercosul + modelo + cliente), cada coluna é uma etapa
+  FSM do payload `columns`, e a **marca** cai na célula da **etapa atual** (tom da
+  coluna + glifo semântico). Respeita busca + KPI-filtro + aba de box; legenda
+  data-driven. Independe do foco (Box/Mecânico é pivot só do Quadro).
 - Densidade compacta @1280 (monitor do operador) via **@container** (não @media).
 - Reusar o canon: KanbanDndProvider, DragConfirmDialog, ServiceOrderRichSheet,
   MercosulPlate (estender, não recriar — §10.4).
@@ -51,7 +63,10 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 ## Non-Goals
 - NÃO cria OS inline pelo drag (usar "Nova OS").
 - NÃO emite documento fiscal nem dispara cobrança (fiscal real espera [W]).
-- NÃO substitui a Lista (Index) — é uma visão alternativa (toggle Quadro|Lista).
+- NÃO substitui a Lista (Index) — Quadro/Grade são visões alternativas in-page; o
+  toggle Lista/Fila apenas **navega** pra Index (não reimplementa a tabela/fila aqui).
+- A **Grade** NÃO inventa cobertura serviço×sintoma (a heurística do protótipo Cowork
+  fica fora · gate `no-mock-in-prod`): a marca espelha só a **etapa FSM real** da OS.
 - NÃO mexe no board de caçamba (ProducaoOficina) nem no processo `cacamba_*` legado.
 - NÃO faz **drag** pra etapas terminais (Entregue/Cancelado/Garantia). **EXCEÇÃO
   Onda 1.5** (emenda v3 · [W] 2026-06-10): o **botão "Entregar →"** do card em
