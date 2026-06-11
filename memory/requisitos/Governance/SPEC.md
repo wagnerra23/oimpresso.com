@@ -285,3 +285,22 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 **NÃO é bloqueador de agora** — Wagner não está exposto no meio-tempo (UI-Judge cobre o net semântico). ~6-8h, pode virar toca-de-coelho (migration-order). Priorizar quando quiser investir.
 
 **Refs:** ADR 0108 (regressão visual Pest Browser Tier 2) · `.github/workflows/visual-regression.yml` (linhas 100-164, notas INFRA-ONLY) · UI-0013 (Constituição UI v2) · sessão 2026-06-04 (PRs #2209/#2210/#2212/#2216).
+
+### US-GOV-015 · Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído)
+
+> owner: claude · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Task-âncora do **Zelador** — reconciliador-agente diário (scheduled run 07:00 BRT na máquina do Wagner). Charter canônico: `scripts/governance/ZELADOR.md`. Origem: sessão 2026-06-11, Wagner "estou sofrendo com sistema burro" → "ótimo faça".
+
+**O que ele faz toda manhã:** (1) reconcilia estado declarado (my-work doing/review, HITL, next_steps dos 3 handoffs recentes) vs realidade (gh/git/MCP) — fecha com prova, rebaixa o apodrecido; (2) decide pelo trilho invariante→sinal→meta; só resíduo genuíno escala pro Wagner como draft de 1 OK (máx 3/dia); (3) propõe demote de 1 fonte de ruído/dia (bot/check que não mudou decisão em 30d); (4) roda knowledge-drift.mjs como insumo.
+
+**Relatório diário = comentário NESTA task** (formato fixo no charter, ≤15 linhas). Zero doc novo.
+
+**Métricas do piloto (kill-switch dia 14 — 2026-06-26):**
+- M1 itens/dia que chegam ao Wagner → tem que CAIR
+- M2 idade média de `doing` → de ~520h (baseline brief #203 2026-06-11) pra <48h
+
+Se M1 e M2 não caírem, o zelador recomenda a própria morte e Wagner decide.
+
+**Poderes/limites:** herda matriz publication-policy (ADR 0040) — pode tasks-update/comment/branch própria/abrir PR; NUNCA mergeia main, não toca prod, não cria ADR/doc em memory/, não cria tasks novas.
