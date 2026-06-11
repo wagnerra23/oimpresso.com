@@ -1048,7 +1048,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             tabs ao lado de Filtros avançados — Wagner 2026-05-21). */}
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
-            <h1>Vendas</h1>
+            <h1 style={{ color: 'red' }}>Vendas</h1>
             {/* PR 1666 — header subtitle métrica live (paridade prototipo Cowork).
                 Substitui string estática por agregados do payload atual.
                 Fallback elegante quando rows ainda não carregaram. */}
