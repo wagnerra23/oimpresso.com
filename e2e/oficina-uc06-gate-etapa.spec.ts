@@ -85,7 +85,9 @@ test('UC-06 · gate de etapa opina no drop inválido (não avança)', async ({ p
 // estado DESABILITADO das opções (o pivot populado é validado quando houver seed).
 test('UC-04 · foco das colunas oferece Etapa/Box/Mecânico (desabilitados sem cadastro)', async ({ page }) => {
   await page.getByRole('button', { name: /Visão/i }).click();
-  const foco = page.getByRole('radiogroup', { name: 'Foco das colunas' });
+  // Radix ToggleGroup type=single: Root = role "group" (não radiogroup), itens = "radio"
+  // (verificado em node_modules/@radix-ui/react-toggle-group dist, run 27367221494).
+  const foco = page.getByRole('group', { name: 'Foco das colunas' });
   await expect(foco).toBeVisible();
   for (const opcao of ['Etapa', 'Box', 'Mecânico']) {
     await expect(foco.getByRole('radio', { name: opcao })).toBeAttached();
