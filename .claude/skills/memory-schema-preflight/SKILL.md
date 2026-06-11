@@ -301,3 +301,16 @@ E adicionar no corpo:
 - Sessão 2026-05-25 — origem do skill (4 PRs blocked + batch fix)
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (memory artifacts canônicos)
 - [ADR 0095](../../../memory/decisions/0095-skills-tiers-convencao-interna.md) — Skills tiers convenção interna
+
+## Pegadinhas validadas em CI real (2026-06-11 — 2 handoffs mergeados com gate vermelho)
+
+Reds não-required que viram CRUFT permanente (append-only proíbe fix-forward de handoff mergeado):
+
+| Doc | Campo | Regra EXATA (ajv) | Erro real pego |
+|---|---|---|---|
+| handoff | `prs` | array de **INTEIROS** — `prs: [2547, 2549]`, NUNCA `["2547"]` | `/prs/0 must be integer` (handoff 14:30) |
+| handoff | `date`/`slug`/`tldr` | os 3 são `required` — `hour_brt`/`topic` NÃO substituem | handoff 12:05 sem slug/tldr |
+| runbook | `title`/`owner`/`last_validated` | required; `owner` enum `W/F/M/L/E`; `status` enum `rascunho/ativo/arquivado/historical` (`ready-for-execution` é INVÁLIDO) | RUNBOOK Crm no #2539 |
+| todos | datas | SEMPRE string quoted `"2026-06-11"` | — |
+
+**Regra de ouro:** handoff é append-only DEPOIS do merge — validar é ANTES do push ou nunca. O gate roda só em arquivos changed, então o red é 1× por PR, mas fica pra sempre no histórico do PR.
