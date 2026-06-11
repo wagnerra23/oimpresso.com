@@ -115,6 +115,11 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // tipo expense (core UltimatePOS) → fin_titulos AP (Financeiro).
                 // Idempotente via UNIQUE(business_id, origem, origem_id, parcela_numero).
                 \Modules\Financeiro\Console\Commands\BridgeExpenseToTitulosCommand::class,
+                // Incidente num_uf #2279/#2280 — re-sincroniza fin_titulos inflados
+                // com o final_total JÁ CORRIGIDO do core. O fix do core (#2280) foi
+                // UPDATE direto (não dispara Observer), deixando o espelho fin_titulos
+                // congelado no valor-lixo. DRY-RUN default, --business Tier 0, append-only.
+                \Modules\Financeiro\Console\Commands\ResyncFromCoreCommand::class,
                 // Fase 2 ADR 0236 — backfill OFX (fin_bank_statement_lines) →
                 // fin_extrato_lancamentos (canônica). Idempotente, --business
                 // obrigatório (Tier 0), --dry default-seguro. Unifica external_id.
