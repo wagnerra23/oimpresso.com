@@ -221,7 +221,7 @@
     "resources/js/Pages/Jana/Regras/Index.tsx": 3,
     "resources/js/Pages/kb/_components/BlockRenderer.tsx": 1,
     "resources/js/Pages/kb/_components/CategorySidebar.tsx": 6,
-    "resources/js/Pages/kb/_components/CommandPalette.tsx": 3,
+    "resources/js/Pages/kb/_components/KbCommandPalette.tsx": 3,
     "resources/js/Pages/kb/_components/GraphFilters.tsx": 10,
     "resources/js/Pages/kb/_components/GraphLegend.tsx": 3,
     "resources/js/Pages/kb/_components/GraphNodeDetail.tsx": 11,
