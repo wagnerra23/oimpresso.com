@@ -5,28 +5,23 @@
 // (`prototipo-ui/prototipos/producao-oficina/visual-source.html`) E protótipo OS
 // mecânica CNAE 4520 Martinho (screenshot Wagner 2026-05-26 · sub-vertical 4 ADR 0194).
 //
+// UNIFICAÇÃO 2026-06-11 (Onda 2 · [W] "drawer são os mesmos"): o CORPO rico foi
+// extraído pro componente `ServiceOrderRichBody` (export nomeado) — usado por:
+//   - este drawer (RichSheet = wrapper Sheet fino + body)
+//   - a view Fila do workspace (detalhe inline, sem o Sheet) — ServiceOrders/Board.tsx
+// Zero duplicação: 1 corpo, 2 chrome (drawer × inline). O ServiceOrderSheet simples
+// foi aposentado nesta onda; este é o ÚNICO drawer de OS.
+//
 // 6 sections (reparo · ADR 0265):
 //   1. Header KV grid: Cliente / KM / Box / Mecânico / Valor (items_total)
 //   2. OBSERVAÇÃO (notes — italic se vazio)
-//   3. PEÇAS & MÃO DE OBRA — NOVA Wave 2.3 (data.items[] consumindo `oficina_service_order_items`
-//      via US-OFICINA-027 backend). Renderiza linha-a-linha com ícones tipo + qty + valor unit
-//      + valor total. Footer da section: TOTAL OS.
-//   4. FOTOS & LAUDO — grid 3 placeholders aspect-square + "Adicionar foto" (disabled V2)
-//   5. PIPELINE FSM — embed ServiceOrderFsmActionPanel (REUSO PR #729, não recria)
-//   6. LINHA DO TEMPO — placeholder skeleton derivada (V2: fetch sale_stage_history real)
-//
-// Footer Wave 2.4: "Conversa cliente" (WhatsApp Linker) / "Imprimir OS" / "Avançar etapa" embedded.
+//   3. PEÇAS & MÃO DE OBRA (data.items[] · US-OFICINA-027)
+//   4. FOTOS & LAUDO (Modules/Arquivos)
+//   5. PIPELINE FSM — embed ServiceOrderFsmActionPanel (REUSO PR #729)
+//   6. LINHA DO TEMPO — ServiceOrderTimeline (sale_stage_history real)
 //
 // CRÍTICO React 19 — useMemo/useCallback nos handlers descendentes (lição PR #717).
-//
-// Consumidores: ProducaoOficina/Index.tsx + ServiceOrders/Board.tsx — drawer abre ao clicar card kanban.
-// Multi-tenant Tier 0 [ADR 0093]: payload vem do endpoint show() que respeita global scope.
-//
-// 2026-06-09 sweep ADR 0265 (avaliação [CC]): ramo LOCAÇÃO erradicado — o branch
-// polimórfico tratava order_type='mecanica' como locação (título "Caçamba", Diárias,
-// timeline "Caçamba entregue ao cliente"). Agora o drawer é 100% reparo:
-// types {manutencao,mecanica}, timeline de oficina, erro "a OS" (não "a caçamba"),
-// formatBRL null→"—", status via ServiceOrderStatusBadge (label PT, não cru).
+// Multi-tenant Tier 0 [ADR 0093]: payload vem do endpoint show() (global scope).
 
 import { useCallback, useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
@@ -50,7 +45,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import MercosulPlate from './MercosulPlate';
@@ -111,12 +105,8 @@ interface ServiceOrderDetail {
   id: number;
   number: string | null;
   status: string;
-  // Etapa FSM atual (key + name PT) pro eyebrow do drawer — null quando o processo
-  // oficina_mecanica_os não está seedado pro negócio (cai no fallback de status).
   current_stage?: { key: string; name: string } | null;
   order_type: OrderType;
-  // Campos de locação (delivery_address/expected_return_date/daily_rate/dias_locacao)
-  // erradicados do payload do show() — ADR 0265.
   expected_completion: string | null;
   valor_receber: number | string | null;
   is_overdue?: boolean;
@@ -126,22 +116,14 @@ interface ServiceOrderDetail {
   notes: string | null;
   vehicle: VehicleRel | null;
   contact: ContactRel | null;
-  // Wave 2.1 US-OFICINA-027 — campos modo manutenção (sub-vertical 4 ADR 0194)
   box_label?: string | null;
   assigned_user?: AssignedUserRel | null;
   mileage_at_service?: number | null;
-  // Wave 2.3 US-OFICINA-027 — items lançados (peças + mão-de-obra + terceiros)
   items?: ServiceOrderItemRel[];
   items_total?: number | string;
-  // F3 OS-V2-2 — itens DVI (Vistoria Digital) pro semáforo inline editável.
   dvi_items?: DviInlineItem[];
-  // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo).
   laudo_photos?: LaudoPhoto[];
-  // F3 OS-V2-3 — estado do gate de aprovação (none/pending/approved/declined).
   approval?: ApprovalInfo | null;
-  // D-09 (charter §2 TRAVADO) — venda derivada da OS (origem oficina · ADR 0192).
-  // Backend ServiceOrderController::show() popula via shapeVendaDerivada() só quando
-  // a OS já gerou Transaction (transição → concluída/pronto). null no resto.
   venda_derivada?: VendaDerivada | null;
   urls?: {
     edit?: string | null;
@@ -149,11 +131,21 @@ interface ServiceOrderDetail {
   };
 }
 
+// Props do CORPO rico (compartilhado drawer × inline). `enabled` = a OS está visível
+// (drawer aberto OU view Fila ativa com esta OS selecionada) → dispara o fetch e os
+// sub-fetches (pipeline/timeline/gate).
+interface BodyProps {
+  serviceOrderId: number | null;
+  enabled: boolean;
+  onOrderChanged?: () => void;
+}
+
+// Props do DRAWER (wrapper Sheet). Interface inalterada (Board + Vehicles importam default).
 interface Props {
   serviceOrderId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Callback chamado quando OS muda (FSM transição etc) — Index pai pode refresh */
+  /** Callback chamado quando OS muda (FSM transição etc) — pai pode refresh */
   onOrderChanged?: () => void;
 }
 
@@ -190,20 +182,17 @@ const capitalize = (s: string | null | undefined) => {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 };
 
-export default function ServiceOrderRichSheet({
-  serviceOrderId,
-  open,
-  onOpenChange,
-  onOrderChanged,
-}: Props) {
+// ─── CORPO RICO (compartilhado drawer × Fila inline) ──────────────────────────
+// Todo o conteúdo do drawer (fetch + estado + handlers + seções + footer), SEM o
+// wrapper Sheet. O RichSheet embrulha num Sheet; a Fila renderiza inline.
+export function ServiceOrderRichBody({ serviceOrderId, enabled, onOrderChanged }: BodyProps) {
   const [data, setData] = useState<ServiceOrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [approvalSending, setApprovalSending] = useState(false);
-  // Bump em toda transição FSM (incl. "Iniciar pipeline") — força o StageGate refetchar
-  // (deps dele são só serviceOrderId/enabled; sem token ele fica stale — E2E UC-11).
+  // Bump em toda transição FSM (incl. "Iniciar pipeline") — força o StageGate refetchar.
   const [fsmRefresh, setFsmRefresh] = useState(0);
-  // F3 OS-V2-6 — lançar/editar/remover item inline sem fechar o drawer.
+  // F3 OS-V2-6 — lançar/editar/remover item inline.
   const [itemFormOpen, setItemFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ServiceOrderItemDto | null>(null);
   const [itemBusy, setItemBusy] = useState(false);
@@ -228,13 +217,13 @@ export default function ServiceOrderRichSheet({
   }, [serviceOrderId]);
 
   useEffect(() => {
-    if (!serviceOrderId || !open) {
+    if (!serviceOrderId || !enabled) {
       setData(null);
       setError(null);
       return;
     }
     fetchData();
-  }, [serviceOrderId, open, fetchData]);
+  }, [serviceOrderId, enabled, fetchData]);
 
   // Callback estável passada pro FsmActionPanel — evita re-render loop (lição PR #717).
   const handleFsmTransition = useCallback(() => {
@@ -243,7 +232,6 @@ export default function ServiceOrderRichSheet({
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
 
-  // F3 OS-V2-6 — abre o ServiceOrderItemFormSheet (nested) em modo criar/editar.
   const handleItemAdd = useCallback(() => {
     setEditingItem(null);
     setItemFormOpen(true);
@@ -254,7 +242,6 @@ export default function ServiceOrderRichSheet({
     setItemFormOpen(true);
   }, []);
 
-  // Após salvar (POST/PUT) refetch do drawer — items_total atualiza + Observer recompõe.
   const handleItemSaved = useCallback(() => {
     setItemFormOpen(false);
     setEditingItem(null);
@@ -262,7 +249,6 @@ export default function ServiceOrderRichSheet({
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
 
-  // Remover item: DELETE + refetch (Controller tem Policy update + scope Tier 0).
   const handleItemDelete = useCallback(
     async (item: ServiceOrderItemDto) => {
       if (!data) return;
@@ -294,11 +280,6 @@ export default function ServiceOrderRichSheet({
     [data, fetchData, onOrderChanged],
   );
 
-  // F3 OS-V2-2 — "Pedir aprovação" no editor DVI dispara o gate de aprovação
-  // (status → orcamento → ServiceOrderObserver despacha WhatsApp link + PIN).
-  // Reusa o pipeline existente de enviarAprovacao (espelha ApprovalGateCard via
-  // Inertia router.post pra processar o redirect/flash). Após sucesso, refetch
-  // pra refletir novo status no badge + Pipeline FSM.
   const handlePedirAprovacao = useCallback(() => {
     if (!data) return;
     router.post(
@@ -321,11 +302,7 @@ export default function ServiceOrderRichSheet({
 
   return (
     <>
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-[480px] flex flex-col p-0 overflow-hidden"
-      >
+      <div className="flex h-full min-h-0 flex-col">
         {loading && (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -346,10 +323,10 @@ export default function ServiceOrderRichSheet({
 
         {!loading && data && (
           <>
-            {/* Header drawer (canon .prod-drawer-head) — eyebrow "OS #103 · <etapa>"
-                (etapa FSM real, não badge de status solto), h2 = veículo/modelo, p =
-                cliente. A placa vai pro bloco meta (card abaixo), não no título. */}
-            <SheetHeader className="px-5 pt-5 pb-4 border-b border-border space-y-0">
+            {/* Header (canon .prod-drawer-head) — eyebrow "OS #103 · <etapa>", h2 =
+                veículo/modelo, p = cliente. Plain divs (sem Sheet*) pra funcionar
+                tanto no drawer quanto inline na Fila. */}
+            <div className="px-5 pt-5 pb-4 border-b border-border">
               <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
                 <span className="font-mono">OS #{data.id}</span>
                 {' · '}
@@ -358,44 +335,32 @@ export default function ServiceOrderRichSheet({
                   <span className="ml-1.5 font-semibold text-destructive">· Atrasada</span>
                 )}
               </div>
-              <SheetTitle className="text-[17px] font-semibold leading-tight tracking-tight text-foreground mt-1 mb-0.5">
+              <h2 className="text-[17px] font-semibold leading-tight tracking-tight text-foreground mt-1 mb-0.5">
                 {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
                 {data.vehicle?.model_year ? (
                   <span className="text-[13px] font-normal text-muted-foreground ml-1.5 tabular-nums">
                     · {data.vehicle.model_year}
                   </span>
                 ) : null}
-              </SheetTitle>
-              <SheetDescription className="text-[12.5px] text-muted-foreground">
+              </h2>
+              <p className="text-[12.5px] text-muted-foreground">
                 {data.contact ? data.contact.name : 'Cliente não informado'}
-              </SheetDescription>
-            </SheetHeader>
+              </p>
+            </div>
 
-            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11).
-                Paddings 18/20 do canon (.prod-drawer-body); separadores por border-top
-                fino vêm de cada <Section> (não mais caixas empilhadas). */}
+            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11). */}
             <div className="flex-1 overflow-y-auto px-5 py-5">
 
-              {/* Bloco-topo (venda derivada · hero cliente/valor · datas) — respira junto,
-                  antes das seções com divisória. */}
               <div className="space-y-4">
 
-              {/* ─── SEÇÃO 2 (TRAVADA): Card Vendas×Oficina (D-09) ───
-                  Acende só quando a OS gerou venda (etapa pronto/concluída + Transaction
-                  derivada · ADR 0192). Reusa o componente shared VendaDerivadaCard (Total ·
-                  Data · breakdown peças/serviços · badge fiscal NF-e · CTAs Abrir/Imprimir/
-                  Compartilhar). -mx-5 cancela o px-5 do scroll pra a margem mx-5 própria do
-                  card render como desenhado. "Seções acendem por contexto" (regra travada). */}
+              {/* SEÇÃO 2 (TRAVADA): Card Vendas×Oficina (D-09) — acende só quando a OS gerou venda. */}
               {data.venda_derivada && (
                 <div className="-mx-5">
                   <VendaDerivadaCard venda={data.venda_derivada} />
                 </div>
               )}
 
-              {/* ─── SEÇÃO 3 (Hero · Card Cliente/Valor): canon .ofc-venda-card
-                  (gradiente sutil pos-soft→surface · valor BRL verde pos tabular-nums).
-                  Placa Mercosul mora aqui (bloco meta), não no título. KV de reparo:
-                  Cliente / KM / Box / Mecânico / Valor (items_total · ADR 0265). */}
+              {/* SEÇÃO 3 (Hero · Card Cliente/Valor): placa Mercosul + KV de reparo. */}
               {data.vehicle && (
                 <div className="rounded-[10px] border border-success/50 bg-gradient-to-br from-success/10 to-card px-[18px] py-4 grid grid-cols-[auto_1fr] gap-3.5 items-center">
                   <MercosulPlate plate={data.vehicle.plate} size="md" />
@@ -436,8 +401,7 @@ export default function ServiceOrderRichSheet({
                 </div>
               )}
 
-              {/* Datas — linha de meta compacta (label muted + valor tabular-nums à
-                  direita), não mais dois cartões gigantes. */}
+              {/* Datas — linha de meta compacta. */}
               <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[12px] px-0.5">
                 <dt className="text-muted-foreground">Início</dt>
                 <dd className="text-foreground tabular-nums text-right">
@@ -478,7 +442,7 @@ export default function ServiceOrderRichSheet({
                 </Section>
               )}
 
-              {/* ─── SEÇÃO 2: OBSERVAÇÃO (notes) ─── */}
+              {/* SEÇÃO 2: OBSERVAÇÃO (notes) */}
               <Section title="Observação" icon={FileText}>
                 {data.notes ? (
                   <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
@@ -491,10 +455,7 @@ export default function ServiceOrderRichSheet({
                 )}
               </Section>
 
-              {/* ─── SEÇÃO VISTORIA DIGITAL · DVI (F3 OS-V2-2) ───
-                  Semáforo inline editável de 1 toque (DviInlineEditor). Alimenta
-                  o orçamento (peças) e o gate de aprovação. key={data.id} garante
-                  re-seed do estado local quando troca de OS. */}
+              {/* SEÇÃO VISTORIA DIGITAL · DVI (F3 OS-V2-2) — semáforo inline editável. */}
               <Section title="Vistoria Digital · DVI" icon={ClipboardCheck}>
                 <DviInlineEditor
                   key={data.id}
@@ -506,10 +467,7 @@ export default function ServiceOrderRichSheet({
                 />
               </Section>
 
-              {/* ─── SEÇÃO FOTOS & LAUDO (F3 OS-V2-1) ───
-                  Upload OS-level real (3 estados + lightbox) via Modules/Arquivos.
-                  Antes de Peças (ordem do protótipo: vistoria → fotos → orçamento).
-                  key={data.id} re-seed o estado local ao trocar de OS. */}
+              {/* SEÇÃO FOTOS & LAUDO (F3 OS-V2-1) */}
               <Section title="Fotos & Laudo" icon={Camera}>
                 <LaudoPhotoSection
                   key={data.id}
@@ -518,12 +476,7 @@ export default function ServiceOrderRichSheet({
                 />
               </Section>
 
-              {/* ─── SEÇÃO PEÇAS & MÃO DE OBRA (Wave 2.3 US-OFICINA-027) ───
-                  Consome `data.items[]` populado pelo endpoint ServiceOrderController::show()
-                  via relação ServiceOrder::items() (Wave 1.1). Lista peças + mão-de-obra +
-                  serviços terceiros lançados na OS com qty × valor_unitario = valor_total.
-                  Footer: TOTAL OS soma (espelha data.items_total backend) — alimentação direta
-                  do ServiceOrderObserver::computeFinalTotal (Wave 1.2). */}
+              {/* SEÇÃO PEÇAS & MÃO DE OBRA (Wave 2.3 US-OFICINA-027) */}
               <Section title="Peças & Mão de obra" icon={Package}>
                 {data.items && data.items.length > 0 ? (
                   <>
@@ -554,8 +507,6 @@ export default function ServiceOrderRichSheet({
                   </p>
                 )}
 
-                {/* F3 OS-V2-6 — lançar item inline (abre ServiceOrderItemFormSheet nested,
-                    sem fechar o drawer). Touch ≥44px (h-11). */}
                 <Button
                   type="button"
                   size="sm"
@@ -569,37 +520,30 @@ export default function ServiceOrderRichSheet({
                 </Button>
               </Section>
 
-              {/* ─── SEÇÃO CHECKLIST DE ETAPA (F3 OS-V2-5) ───
-                  Requisitos da próxima transição FSM (gate ENFORÇADO no servidor). Entre
-                  Peças e Pipeline FSM. CTA "Avançar" só habilita quando os bloqueantes
-                  passam; gerente/superadmin pode override (registrado na trilha). */}
+              {/* SEÇÃO CHECKLIST DE ETAPA (F3 OS-V2-5) */}
               <Section title="Checklist de etapa" icon={ListChecks}>
                 <ServiceOrderStageGate
                   serviceOrderId={data.id}
-                  enabled={open}
+                  enabled={enabled}
                   onChanged={handleFsmTransition}
                   refreshToken={fsmRefresh}
                 />
               </Section>
 
-              {/* ─── SEÇÃO 4: PIPELINE FSM (REUSO PR #729) ─── */}
+              {/* SEÇÃO 4: PIPELINE FSM (REUSO PR #729) */}
               <Section title="Pipeline FSM" icon={CheckCircle2}>
                 <ServiceOrderFsmActionPanel
                   serviceOrderId={data.id}
-                  enabled={open}
+                  enabled={enabled}
                   onTransition={handleFsmTransition}
                 />
               </Section>
 
-              {/* ─── SEÇÃO 5: LINHA DO TEMPO FSM AUDITÁVEL (F3 OS-V2-4) ───
-                  Histórico real de transições (quem · quando · de→pra com chips) lido de
-                  sale_stage_history via /service-orders/{id}/history. Eventos de aprovação
-                  e pipeline entram na trilha. OS antiga sem histórico cai na skeleton
-                  derivada das datas (fallback). */}
+              {/* SEÇÃO 5: LINHA DO TEMPO FSM AUDITÁVEL (F3 OS-V2-4) */}
               <Section title="Linha do tempo" icon={Clock}>
                 <ServiceOrderTimeline
                   serviceOrderId={data.id}
-                  enabled={open}
+                  enabled={enabled}
                   fallback={
                     <TimelineSkeleton
                       enteredAt={data.entered_at}
@@ -612,12 +556,7 @@ export default function ServiceOrderRichSheet({
               </Section>
             </div>
 
-            {/* Footer ações sticky (Wave 2.4 US-OFICINA-027) ───
-                3 botões espelhando protótipo Cowork canon (screenshot Wagner 2026-05-26):
-                - "Conversa cliente" → wa.me direct link (LGPD: sem mensagem pré-formatada com PII)
-                - "Imprimir OS" → printServiceOrder helper (IFRAME oculto + A4 nota-fiscal-like)
-                                  Gap 3 US-OFICINA-037 — substitui window.print() bare (AppShellV2 vazado).
-                - "Editar OS" → fallback href edit (Avançar etapa fica no Pipeline FSM section, não duplica) */}
+            {/* Footer ações sticky (Wave 2.4 US-OFICINA-027) */}
             <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2">
               {data.contact?.mobile && (
                 <Button size="sm" variant="ghost" asChild>
@@ -663,21 +602,49 @@ export default function ServiceOrderRichSheet({
             </div>
           </>
         )}
+      </div>
+
+      {/* F3 OS-V2-6 — drawer nested pra criar/editar item (não fecha o pai). */}
+      {data && (
+        <ServiceOrderItemFormSheet
+          serviceOrderId={data.id}
+          item={editingItem}
+          open={itemFormOpen}
+          onOpenChange={setItemFormOpen}
+          onSaved={handleItemSaved}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── DRAWER (wrapper Sheet fino) ──────────────────────────────────────────────
+// Mantém a interface pública (default export) que Board + Vehicles importam.
+// O conteúdo é o ServiceOrderRichBody acima — o MESMO da view Fila (zero duplicação).
+export default function ServiceOrderRichSheet({
+  serviceOrderId,
+  open,
+  onOpenChange,
+  onOrderChanged,
+}: Props) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-[480px] flex flex-col p-0 overflow-hidden"
+      >
+        {/* SheetTitle obrigatório pra a11y do Radix Dialog; o título visível vive no
+            header do body. sr-only mantém acessível sem duplicar visualmente. */}
+        <SheetHeader className="sr-only">
+          <SheetTitle>Ordem de serviço</SheetTitle>
+        </SheetHeader>
+        <ServiceOrderRichBody
+          serviceOrderId={serviceOrderId}
+          enabled={open}
+          onOrderChanged={onOrderChanged}
+        />
       </SheetContent>
     </Sheet>
-
-    {/* F3 OS-V2-6 — drawer nested pra criar/editar item (não fecha o drawer-mãe).
-        onSaved refaz o fetch do drawer (items_total atualiza). */}
-    {data && (
-      <ServiceOrderItemFormSheet
-        serviceOrderId={data.id}
-        item={editingItem}
-        open={itemFormOpen}
-        onOpenChange={setItemFormOpen}
-        onSaved={handleItemSaved}
-      />
-    )}
-    </>
   );
 }
 
@@ -692,8 +659,7 @@ function Section({
   icon?: typeof Truck;
   children: React.ReactNode;
 }) {
-  // Canon .ofc-drawer-section — separadas por border-top fino (não mais caixas
-  // empilhadas); h4 10.5px/600 uppercase ls .04em muted; conteúdo respira.
+  // Canon .ofc-drawer-section — separadas por border-top fino; h4 10.5px/600 uppercase.
   return (
     <section className="border-t border-border mt-2.5 pt-3.5 pb-1">
       <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.04em] text-muted-foreground mb-2.5 flex items-center gap-1.5">
@@ -707,8 +673,7 @@ function Section({
 
 /**
  * Timeline skeleton derivada dos campos disponíveis (entered_at, prazo,
- * completed_at, status). V2: fetch real via /oficina-auto/service-orders/{id}/fsm/history.
- * Vocabulário de REPARO (ADR 0265) — nada de "locação/caçamba/recolhimento".
+ * completed_at, status). Vocabulário de REPARO (ADR 0265).
  */
 function TimelineSkeleton({
   enteredAt,
@@ -731,7 +696,6 @@ function TimelineSkeleton({
     });
   }
 
-  // Estado intermediário (serviço em andamento)
   if (enteredAt && status !== 'aberta') {
     items.push({
       when: '—',
