@@ -25,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import { cn, formatMinutes } from '@/Lib/utils';
-import MonthHeatmap from '@/Components/shared/ponto/MonthHeatmap';
+import MonthHeatmap from '../_components/MonthHeatmap';
 
 interface Colaborador {
   id: number;
