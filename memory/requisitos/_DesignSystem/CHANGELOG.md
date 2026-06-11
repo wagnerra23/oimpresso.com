@@ -6,6 +6,10 @@ next_review: "2026-09-06"
 
 # Changelog · Design System
 
+## [0.6.14] - 2026-06-11 · DELETE shim MercosulPlate (ADR 0251 cumprida — fonte única shared/)
+
+- **DELETE** `Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate.tsx` (re-export shim de compat) — 3 consumidores (ServiceOrderRichSheet · Board · ServiceOrderKanbanCard) apontados direto pra `@/Components/shared/MercosulPlate`. Deleção amparada por ADR 0251 (shim era transitório) + ADR 0272 §roadmap (remoção pós-#2544). Última duplicata mecânica da auditoria 2026-06-11 fechada.
+
 ## [0.6.13] - 2026-06-11 · renames de colisão de nome + catraca reuse apertada 25→21
 
 Auditoria de duplicatas ("tem arquivos duplicados ainda?"): `Fiscal/_components/ModuleTopNav` (44 linhas) e `kb/_components/CommandPalette` (162 linhas) NÃO são cópias dos homônimos shared/global — são implementações próprias dividindo o nome. O erro é a colisão (confunde reuso e polui o sinal do reuse-index), não o conteúdo.

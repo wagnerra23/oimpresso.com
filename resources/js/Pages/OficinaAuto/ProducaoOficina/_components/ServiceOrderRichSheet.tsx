@@ -47,7 +47,7 @@ import {
   SheetTitle,
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
-import MercosulPlate from './MercosulPlate';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
 import ServiceOrderTimeline from '../../ServiceOrders/_components/ServiceOrderTimeline';
 import ServiceOrderStageGate from '../../ServiceOrders/_components/ServiceOrderStageGate';
