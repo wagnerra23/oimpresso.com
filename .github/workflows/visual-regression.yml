@@ -197,6 +197,11 @@ jobs:
         if: failure() || steps.pest-browser.outputs.fail == '1'
         uses: actions/github-script@v7
         with:
+          # 2026-06-11: seção "Override /mwart-override" REMOVIDA do comentário — era
+          # promessa morta: nenhum workflow processa issue_comment, então o comando não
+          # destrava nada (caso real PR #2544 — Wagner comentou e o check seguiu vermelho).
+          # Único caminho que deixa este check verde: atualizar a baseline de snapshots.
+          # Classe "papel promete o que a máquina não faz" — ADR 0271 (subtração de teatro).
           script: |
             const body = [
               '## 📸 Visual Regression Detected',
@@ -206,15 +211,14 @@ jobs:
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',
               '2. Comparar `actual.png` vs `expected.png` lado-a-lado',
-              '3. Se mudança intencional (refator visual aprovado em F1.5):',
+              '3. Se mudança intencional (refator visual aprovado em F1.5), atualizar a baseline neste PR:',
               '   ```bash',
               '   ./vendor/bin/pest tests/Browser/ --update-snapshots',
               '   git add tests/Browser/Screenshots/ && git commit',
               '   ```',
               '4. Se regressão não-intencional: revisar mudanças de código',
               '',
-              '### Override',
-              'Comentar `/mwart-override <razão>` se mudança visual é intencional mas baseline não foi atualizada.',
+              '> Atualizar a baseline é o **único** caminho que deixa este check verde — não existe override por comentário (ADR 0271).',
               '',
               '_Ver [ADR 0108](../../memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)._'
             ].join('\n');
