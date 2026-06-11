@@ -11,6 +11,9 @@
 //
 //   Fonte única por módulo: memory/dominio/<modulo>.md, bloco ```json com { module, enums }.
 //   enums = { "tabela.coluna": [valores canônicos], ... }.
+//   Onda Q3 (domínios core): + migrations_paths (dirs custom) · tables_scope (tabelas
+//   reivindicadas) · code_paths (Salto #3 estreito) · vocab (vocabulário de coluna
+//   VARCHAR sem constraint física — só col-index do Salto #3, sem comparação enum⇔schema).
 //
 // O guard deriva o ESTADO ATUAL de cada enum percorrendo as migrations do módulo
 // (last-write-wins por tabela.coluna, só a região up()) e compara com o dicionário.
@@ -118,6 +121,12 @@ function loadDicts() {
       migrations_paths: Array.isArray(parsed.migrations_paths) ? parsed.migrations_paths : null,
       code_paths: Array.isArray(parsed.code_paths) ? parsed.code_paths : null,
       tables_scope: Array.isArray(parsed.tables_scope) ? parsed.tables_scope : null,
+      // `vocab` (Onda Q3): vocabulário de coluna SEM constraint física (varchar) — o BD
+      // não constrange, o dicionário é a ÚNICA lei. Entra no col-index do Salto #3
+      // (código fora do vocab = violação) mas NÃO na comparação enum⇔schema (não há
+      // enum pra comparar). Caso real: transactions.type virou varchar(191) na física
+      // (módulos adicionam tipos como production_purchase sem ALTER).
+      vocab: parsed.vocab && typeof parsed.vocab === 'object' ? parsed.vocab : {},
       file: `memory/dominio/${e.name}`,
     };
   }
@@ -397,7 +406,10 @@ function computeViolations() {
   // Módulos COM dicionário → comparação valor-a-valor.
   for (const [mod, dict] of Object.entries(dicts)) {
     const actual = currentEnums(mod, dict);
-    const declaredCols = new Set(Object.keys(dict.enums));
+    // vocab conta como DECLARADA pro undeclared-column (migrations legadas podem registrar
+    // enum antigo de coluna que hoje é varchar — ex transactions.type) mas fica FORA da
+    // comparação valor-a-valor (não há constraint física pra comparar).
+    const declaredCols = new Set([...Object.keys(dict.enums), ...Object.keys(dict.vocab)]);
     const actualCols = new Set(Object.keys(actual));
 
     // Coluna enum no schema do módulo, fora do dicionário.
@@ -415,7 +427,8 @@ function computeViolations() {
     }
 
     // SALTO #3 — valores de domínio hardcoded no código de aplicação.
-    const { keys, occ } = codeValueViolations(mod, buildColIndex(dict.enums), dict);
+    // col-index = enums (constraint física) ∪ vocab (vocabulário de varchar — Onda Q3).
+    const { keys, occ } = codeValueViolations(mod, buildColIndex({ ...dict.enums, ...dict.vocab }), dict);
     for (const key of keys) { violations.push(key); occurrences[key] = occ[key]; stats.code_divergences++; }
 
     // SALTO #4 — termos PROIBIDOS user-facing (trava de regressão ADR 0265).
