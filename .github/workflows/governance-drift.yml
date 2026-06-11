@@ -1,22 +1,16 @@
 name: Governance Drift Framework — ADR 0216
 
 # Generaliza secrets-governance.yml (ADR 0215) — orquestra TODOS DriftCheckers
-# via governance:audit. Canary 7d: roda em paralelo com secrets-governance.yml
-# legacy. PR cleanup remove o legacy depois.
+# via governance:audit. (secrets-governance.yml legacy foi consolidado aqui
+# na ADR 0271 onda 2 — canary ADR 0216 encerrado.)
 
 on:
+  # ADR 0271 onda 2 (follow-up B — required-readiness): pull_request SEM paths
+  # (always-run) pra promover "ADR 0216 PR scan" a required sem deadlock
+  # "Expected — waiting". O --diff-only passa trivial em diff fora de escopo;
+  # o custo fixo (composer+npm ~2-3min) foi aceito por Wagner 2026-06-11.
   pull_request:
     branches: [main]
-    paths:
-      - 'memory/**'
-      - 'config/**'
-      - 'Modules/**'
-      - 'app/**'
-      - 'composer.json'
-      - 'composer.lock'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.env.example'
   schedule:
     # Daily 06:35 BRT (09:35 UTC) — Camada 3 ADR 0216 health-check + auto-PR
     - cron: '35 9 * * *'
