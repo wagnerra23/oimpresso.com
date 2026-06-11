@@ -27,7 +27,9 @@ declare(strict_types=1);
 const SHEET_PATH = 'resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderSheet.tsx';
 const PANEL_PATH = 'resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx';
 const VEHICLES_INDEX_PATH = 'resources/js/Pages/OficinaAuto/Vehicles/Index.tsx';
-const ORDERS_INDEX_PATH = 'resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx';
+// Tela unificada 2026-06-11: a Index (ServiceOrders/Index) foi aposentada; o
+// workspace (Board) é a tela única servida em /ordens-servico e usa o drawer RICO.
+const ORDERS_WORKSPACE_PATH = 'resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx';
 
 function readFileSOS(string $relative): string
 {
@@ -182,22 +184,19 @@ it('Vehicles/Index usa useCallback no handler row click (estabilidade)', functio
     expect($src)->toMatch('/handleVehicleRowClick\\s*=\\s*useCallback/');
 });
 
-it('ServiceOrders/Index importa ServiceOrderSheet (drawer plugado)', function () {
-    $src = readFileSOS(ORDERS_INDEX_PATH);
-    expect($src)->toContain('ServiceOrderSheet');
-    expect($src)->toContain("from './_components/ServiceOrderSheet'");
+it('Workspace (Board) importa o drawer rico ServiceOrderRichSheet', function () {
+    $src = readFileSOS(ORDERS_WORKSPACE_PATH);
+    expect($src)->toContain('ServiceOrderRichSheet');
+    expect($src)->toContain("from '@/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet'");
 });
 
-it('ServiceOrders/Index abre drawer direto (em vez de navegar pra show)', function () {
-    $src = readFileSOS(ORDERS_INDEX_PATH);
-    expect($src)->toContain('setOpenOsId(o.id)');
-    // Anti-regressão: não pode ter mais o router.visit pra show inline no row click
-    expect($src)->not->toMatch('/onClick=\\{[^}]*router\\.visit\\([^)]*ordens-servico\\/\\$\\{o\\.id\\}/');
+it('Workspace (Board) abre drawer direto via setOpenOsId (em vez de navegar pra show)', function () {
+    $src = readFileSOS(ORDERS_WORKSPACE_PATH);
+    expect($src)->toContain('setOpenOsId(c.id)');
 });
 
-it('ServiceOrders/Index refresh listagem após FSM transition (router.reload partial)', function () {
-    $src = readFileSOS(ORDERS_INDEX_PATH);
-    expect($src)->toContain('handleOrderChanged');
+it('Workspace (Board) refresh após FSM transition (router.reload partial only columns/kpis)', function () {
+    $src = readFileSOS(ORDERS_WORKSPACE_PATH);
     expect($src)->toContain('router.reload');
-    expect($src)->toContain("only: ['orders', 'kpis']");
+    expect($src)->toContain("only: ['columns', 'kpis']");
 });

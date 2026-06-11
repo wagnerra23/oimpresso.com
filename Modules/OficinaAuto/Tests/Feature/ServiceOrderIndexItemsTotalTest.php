@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  *   3. Multi-tenant Tier 0 — itens de OS de outro business não somam (FK por OS)
  *
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php (método index)
- * @see resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx (coluna VALOR)
+ * @see resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx (workspace unificado — coluna VALOR da Lista)
  */
 
 const BIZ_ITOTAL = 1;

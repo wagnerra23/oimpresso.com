@@ -34,7 +34,7 @@ const CORE_SCREENS = [
     'Fiscal/Nfe'                      => '/fiscal/nfe',                   // CU-4 NF-e (produto)
     'Fiscal/Nfse'                     => '/fiscal/nfse',                  // CU-4 NFS-e (serviço)
     'Financeiro/Unificado/Index'      => '/financeiro/unificado',        // CU-5 Financeiro
-    'OficinaAuto/ServiceOrders/Index' => '/oficina-auto/ordens-servico', // CU-6 Oficina (o wow)
+    'OficinaAuto/ServiceOrders/Board' => '/oficina-auto/ordens-servico', // CU-6 Oficina (o wow) — tela unificada (Index aposentado 2026-06-11)
     // — cobertura herdada (handoff Cowork 2026-06-02 §B) —
     'Compras/Index'                   => '/compras',
 ];
