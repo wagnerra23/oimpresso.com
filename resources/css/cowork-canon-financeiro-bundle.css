@@ -4030,7 +4030,7 @@
    FINANCEIRO · Drawer wide refluido (2026-05-18)
    ══════════════════════════════════════════ */
 /* Drawer mais largo (440→560px) + grid 2col em mais lugares */
-.fin-cowork .fin-drawer-wide { width: 560px !important; }
+.fin-cowork .fin-drawer-wide { width: 560px !important; box-shadow: var(--sh-2); } /* FA-5 R3: profundidade (sombra única Fundação) */
 .fin-cowork .fin-drawer-wide .grid-cols-2 { gap: 14px 24px; }
 .fin-cowork .fin-drawer-wide .fin-toggles-row {
   flex-wrap: wrap; gap: 8px;
@@ -4045,6 +4045,7 @@
 .fin-cowork .fin-drawer-footer {
   gap: 6px !important;
   padding: 0 14px !important;
+  overflow: hidden; /* FA-5 F2: footer nunca estoura */
 }
 /* Wagner 2026-05-25 — Footer sticky-bottom (irmão do body scrollable).
    Padrão drawer canon: header fixo + body scroll + footer fixo. */
@@ -4086,6 +4087,8 @@
   margin-right: 0;
   padding: 4px 9px 4px 4px;
   font-size: var(--fs-2);
+  min-width: 0; /* FA-5 F2: troubleshooter encolhe antes de estourar */
+  flex-shrink: 1;
 }
 .fin-cowork .fin-drawer-footer .fin-trouble-lbl {
   max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -4750,3 +4753,107 @@
    reflui heading multi-linha — nunca alarga nem quebra layout. Prosa ≤60ch (pretty +
    max-inline-size) fica por tela: precisa de QA visual por elemento, deferida. */
 .fin-cowork h1, .fin-cowork h2, .fin-cowork h3 { text-wrap: balance; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FA-5 · Drawer Financeiro 9.75 (F2-aprovado [W] 2026-06-11) — Método 9.75
+   (P2 atalhos visíveis · N3 nav J/K · P5 recibo) + Refinos R1/R3 + polish F2.
+   Tokens mapeados Cowork->live: o drawer é portal .fin-cowork FORA de .cockpit,
+   então só resolvem aqui os tokens do escopo .fin-cowork + Fundação (:root).
+     --text-2 -> --text-dim · --text-3 -> --text-mute · --sunken -> --bg-2
+     --hairline -> --border-2 · --sh-2/--ease/--t-1/--fs-* -> Fundação (FA-1)
+   Cor SEMÂNTICA (pos/warn/neg) NÃO entra aqui — vai por utilitário Tailwind no
+   JSX (espelha DrawerLensChip: bg-success/10 etc), pois --pos vive em cockpit.css
+   e não alcança o portal. Refs: ONDAS-FINANCEIRO FA-5.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* R3 — profundidade: box-shadow var(--sh-2) foi MERGEADO na regra-base .fin-drawer-wide
+   (acima) pra não criar dup-selector (stylelint no-duplicate-selectors).
+   Hero com luz sutil da identidade roxa (atmosfera local): */
+.fin-cowork .fin-dw-hero {
+  background:
+    radial-gradient(440px 150px at 88% -35%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 6%, var(--surface)) 0%, var(--surface) 92%);
+}
+
+/* N3 — navegação J/K: cluster (anterior) n/N (próximo) no header */
+.fin-cowork .fin-dw-nav { display: flex; align-items: center; gap: 1px; margin-right: 2px; }
+.fin-cowork .fin-dw-nav-btn {
+  width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 5px; color: var(--text-dim); background: transparent; border: 0; cursor: pointer;
+  transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-dw-nav-btn:hover { background: var(--bg-2); color: var(--text); }
+.fin-cowork .fin-dw-nav-btn:disabled { opacity: .3; pointer-events: none; }
+.fin-cowork .fin-dw-pos { font-size: var(--fs-2); color: var(--text-dim); padding: 0 3px; white-space: nowrap; }
+.fin-cowork .fin-dw-pos i { font-style: normal; opacity: .45; margin: 0 1px; }
+
+/* P2 — teclas visíveis: kbd no footer + R no botão primário */
+.fin-cowork .fin-kbd {
+  display: inline-grid; place-items: center;
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 4px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-1); font-weight: 600; line-height: 1; color: var(--text-dim);
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+}
+.fin-cowork .fin-kbd-acc {
+  /* currentColor (texto do botão) — nunca um token -fg como superfície (G3) */
+  color: inherit;
+  background: color-mix(in oklab, currentColor 18%, transparent);
+  border-color: color-mix(in oklab, currentColor 30%, transparent);
+  margin-left: 2px;
+}
+.fin-cowork .fin-dw-hint {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: var(--fs-1); color: var(--text-mute); white-space: nowrap;
+}
+.fin-cowork .fin-dw-hint em { font-style: normal; margin-left: 2px; }
+@media (max-width: 720px) { .fin-cowork .fin-dw-hint { display: none; } }
+
+/* R1 — copy ao hover (Stripe). Cor do ✓/hover vem por Tailwind no JSX (success/primary). */
+.fin-cowork .fin-copyval {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer; text-align: left;
+}
+.fin-cowork .fin-copyval-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fin-cowork .fin-copyval-ic {
+  opacity: 0; font-size: var(--fs-1); flex-shrink: 0;
+  transition: opacity var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-copyval:hover .fin-copyval-ic { opacity: 1; }
+.fin-cowork .fin-copyval:hover .fin-copyval-txt { color: var(--accent); }
+.fin-cowork .fin-copyval.ok .fin-copyval-ic { opacity: 1; }
+
+/* F2 — ficha de campos: cartão com lavanda sutil (label nunca flutua em branco · [W] 06-11) */
+.fin-cowork .fin-kv-card {
+  background: color-mix(in oklab, var(--accent) 2.5%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--accent) 10%, var(--border-2));
+  border-radius: 10px; padding: 10px 14px 12px;
+}
+
+/* R2 — Categoria editável inline (Canal segue read-only · decisão [W] 2026-06-11):
+   select vestido de valor + chevron ▾ via ::after (token, sem cor crua nem data-URI). */
+.fin-cowork .fin-kvedit { position: relative; display: inline-block; max-width: 100%; }
+.fin-cowork .fin-kvedit::after {
+  content: '▾'; position: absolute; right: 5px; top: 50%;
+  transform: translateY(-50%) scale(0.8); /* fs-1 encolhido — sem px cru fora do ramp */
+  font-size: var(--fs-1); color: var(--text-mute); pointer-events: none;
+}
+.fin-cowork .fin-kvedit select {
+  appearance: none; -webkit-appearance: none;
+  max-width: 100%; margin-left: -4px; padding: 1px 18px 1px 4px;
+  border: 1px solid transparent; border-radius: 5px; background: transparent;
+  color: var(--text); font: inherit; font-weight: 500; font-size: var(--fs-4);
+  cursor: pointer;
+  transition: border-color var(--t-1) var(--ease), background-color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-kvedit select:hover { border-color: var(--border); background-color: var(--bg-2); }
+.fin-cowork .fin-kvedit select:focus { outline: none; border-color: var(--accent); background-color: var(--surface); }
+
+/* F2 — footer NUNCA estoura: botões não quebram, hint some quando há troubleshooter.
+   (overflow:hidden e .fin-trouble-btn flex-shrink:1 foram MERGEADOS nas regras-base
+   .fin-drawer-footer / .fin-trouble-btn acima — sem dup-selector.) */
+.fin-cowork .fin-drawer-footer .fin-foot-icon-btn,
+.fin-cowork .fin-drawer-footer .fin-foot-mark-btn { flex-shrink: 0; }
+.fin-cowork .fin-drawer-footer:has(.fin-trouble-btn) .fin-dw-hint { display: none; }
