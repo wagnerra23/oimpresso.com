@@ -862,3 +862,34 @@ gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required
 ### new_design_memories
 - **gotcha**: tela substituída por redirect (workspace #2551) quebra E2E silenciosamente ENQUANTO o gate é manual — exatamente o intervalo que o flip pra `pull_request` fecha. Specs ancorados em tela morta = a 1ª coisa que um gate de comportamento pega.
 - **golden**: required-readiness = `pull_request` SEM `paths:` + dorny/paths-filter skip-as-pass interno (3ª aplicação: visual-regression #2553, governance-drift, agora e2e-gate). `paths:` no trigger de check required = deadlock.
+
+## 2026-06-11 [CL] -> [W] · ONDAS-FINANCEIRO (FA-1..FA-4) — tempero do Financeiro + achados deferidos
+
+Origem: PROMPT_PARA_CODE_ONDAS-FINANCEIRO ([CC] 2026-06-11, §10.4). [W]: "execute na integra ... validando tudo contra origin/main fresco antes". 4 ondas, 1 PR cada, merge autonomo com CI verde. Worktree dedicado off origin/main fresco a cada onda (fin-ondas-fa).
+
+### O que landou
+- **FA-1 #2569**: §TEMPERO na fundacao (--sh-1/2, --ease, --t-1/2, --atmo + atmosfera no .cockpit).
+- **FA-2 #2572**: snap tipografico (479 font-size px -> var(--fs-1..9); .fontramp-baseline desce).
+- **FA-3 #2574**: 18 sombras de elevacao + 58 transicoes -> tokens; text-wrap:balance nos titulos.
+- **FA-4 (este PR)**: 7 background:#fff -> var(--surface); desce stylelint+cor baseline do bundle.
+
+### Achados FA-4 DEFERIDOS — sessao com QA visual (mexem em LOGICA/LAYOUT do Unificado/Index.tsx, que e charter-gated; F3 — nao em token de css)
+| # | Achado (print live 06-11) | Conserto recomendado | Restricao |
+|---|---|---|---|
+| FX-1 | Segmented de lente colado no FinSubNav -> le-se "Caixa ... Caixa" (ambiguo) | separar visual: segmented a direita do header (intencao do os-page-h-r) OU gap+divisor. NAO renomear a lente (charter v14 [W]) | layout no Unificado, precisa QA visual |
+| FX-2 | Hero "SALDO PREVISTO · MAIO" com a pagina em "Junho 2026" | periodo do hero da MESMA fonte do subtitulo (fonte unica); verificar se e filtro ativo ou label stale | logica frontend Unificado |
+| FX-3 | KPI A pagar "prox. 5 jun" (data ja vencida, hoje 11/06) | "prox." = proxima obrigacao FUTURA; vencida vira "vencida ha Nd" (tom destructive) | logica KPI Unificado |
+| FX-4 | Linha "-0,00" (FELIPE — COMISSAO) | brl(0) sem sinal + investigar titulo zerado na origem | **SOBREPOE sessao paralela "Financial discrepancy adjustment"** — coordenar, nao duplicar |
+| FX-5 | DeltaBadge "↓-100.0%" / "↑+505.8%" gigantes com valor R$ 0,00 | suprimir delta quando valor=0 ou sem base comparavel (ruido) | logica DeltaBadge |
+
+### Outros gaps documentados (NAO implementados as cegas — regra do prompt)
+- **Breadcrumb**: "voltar" VERDE cru fora da identidade + telas Fluxo/Conciliacao sem o padrao de breadcrumb do modulo. NAO esta no css fin (e Page-level/Tailwind) -> unificar via token, conferir Fluxo/Conciliacao. Cross-page.
+- **Costura venda->titulo** (dominio backend; [CC] nao verificou): confirmar no live que venda faturada aparece no Unificado com vinculo navegavel; se nao, e gap real de pipeline. Verificacao pendente.
+- **bg opaco .fin-cowork** (fin-cowork.css:575 `background:#ffffff !important`): superficie solida que (a) COBRE o --atmo da FA-1 e (b) deixa o Financeiro BRANCO no dark (nao vira escuro). E o "bug .fin-body do prototipo" citado na FA-1 ("superficies de tela transparentes"). Conserto = transparent / surface semi-transparente, MAS muda muito o visual -> QA-gated.
+- **divida hex congelada**: ~28 hex coloridos (gold/terracota/navy/red) + 30 `color:#fff` (texto branco — sem token "sempre branco" limpo no DS; --accent-fg inverte no dark) ficam congelados; semantico por elemento + QA, sem sweep cego.
+
+### new_design_memories
+- **gotcha**: comentario CSS com `*/` (ex "--sh-*/--atmo") FECHA o comentario -> parse error. 2a ocorrencia (1a = DS v6 PR3 ".vd-*/.os-*"). Em comentario use "--sh-1/--sh-2", nunca glob com `*`.
+- **gotcha**: snap de box-shadow as cegas e PERIGOSO — `0 0 0 Npx var(--accent-soft)` e anel de FOCO, nao elevacao; virar var(--sh-1) = sombra cinza = regressao a11y. Tokenizar SO sombras de elevacao reais (offset+blur em elemento flutuante/assentado), nunca aneis/insets/hairlines.
+- **golden**: descer ratchet por-onda sem sweep — rodar `--all --update` e reverter (git checkout) os baselines/entries fora de escopo, deixando so o que a onda tocou (fontramp na FA-2; cor+stylelint do bundle na FA-4).
+- **gotcha**: superficie de tela opaca (`.fin-cowork{background:#fff !important}`) anula a atmosfera da fundacao E quebra o dark mode — atmosfera de shell exige telas transparentes por cima.
