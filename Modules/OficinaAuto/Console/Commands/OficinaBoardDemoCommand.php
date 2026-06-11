@@ -180,7 +180,7 @@ class OficinaBoardDemoCommand extends Command
             ServiceOrderItem::create([
                 'business_id'    => $biz,
                 'service_order_id' => $order->id,
-                'tipo'           => 'servico',
+                'tipo'           => 'mao_obra', // enum válido (peca|mao_obra|servico_terceiro)
                 'descricao'      => $spec['sintoma'],
                 'quantidade'     => 1,
                 'valor_unitario' => $spec['valor'],
