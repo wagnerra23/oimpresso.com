@@ -66,10 +66,27 @@ foreach ($screens as $nome => [$rota, $ancora]) {
             test()->markTestSkipped('Sem user no business seedado.');
         }
 
-        visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota))
-            ->assertSee($ancora)
-            // fullPage=false: viewport-only — full page em lista longa varia com o
-            // conteúdo do seed; o viewport é o contrato visual estável.
-            ->assertScreenshotMatches(fullPage: false);
+        $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
+        $page->assertSee($ancora);
+
+        // ESTABILIZAÇÃO (diagnóstico runs 27370651063/27370956421 — diff views):
+        // (a) controles NATIVOS (select / input date|datetime|time) pintam com variação
+        //     subpixel run-a-run E carregam valores vivos (Data da venda = agora) →
+        //     visibility:hidden preserva o layout e zera a variância;
+        // (b) settle explícito mata o early-paint (baseline de 2KB com "?" de fonte
+        //     não carregada que o networkidle+readyState do plugin não pegou).
+        $page->script(<<<'JS'
+            (() => {
+              const s = document.createElement('style');
+              s.textContent = 'select, input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }';
+              document.head.appendChild(s);
+              return true;
+            })()
+        JS);
+        $page->wait(1.5);
+
+        // fullPage=false: viewport-only — full page em lista longa varia com o
+        // conteúdo do seed; o viewport é o contrato visual estável.
+        $page->assertScreenshotMatches(fullPage: false);
     });
 }
