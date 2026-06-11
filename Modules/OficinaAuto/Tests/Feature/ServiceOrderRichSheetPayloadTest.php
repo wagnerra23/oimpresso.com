@@ -271,3 +271,29 @@ it('GET /service-orders/{id} OS sem DVI → dvi_items=[] (backward compat)', fun
     $response->assertOk();
     expect($response->json('dvi_items'))->toBeArray()->toHaveCount(0);
 })->afterEach(fn () => rich_cleanup('E'));
+
+// ---------------------------------------------------------------------------
+// Polish drawer 2026-06-11 — current_stage (etapa FSM) pro eyebrow "OS #103 · <etapa>"
+// ---------------------------------------------------------------------------
+
+it('GET /service-orders/{id} JSON inclui current_stage (etapa FSM pro eyebrow do drawer)', function () {
+    session(['user.business_id' => BIZ_RICH]);
+    $os = rich_criaOs('F');
+
+    $user = User::factory()->create(['business_id' => BIZ_RICH]);
+    $user->givePermissionTo('superadmin');
+
+    $response = $this->actingAs($user)
+        ->getJson("/oficina-auto/service-orders/{$os->id}");
+
+    $response->assertOk();
+    // Chave sempre presente; null quando o processo oficina_mecanica_os não está
+    // seedado pro negócio (frontend cai no fallback de status). Quando há etapa,
+    // o shape é { key, name } — o que o eyebrow consome.
+    $response->assertJsonStructure(['current_stage']);
+    $stage = $response->json('current_stage');
+    if ($stage !== null) {
+        expect($stage)->toHaveKeys(['key', 'name']);
+        expect($stage['name'])->toBeString();
+    }
+})->afterEach(fn () => rich_cleanup('F'));

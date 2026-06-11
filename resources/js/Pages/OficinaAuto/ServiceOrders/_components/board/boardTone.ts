@@ -60,3 +60,20 @@ const KPI_TONE: Record<KpiTone, KpiToneClasses> = {
 export function kpiTone(tone: KpiTone): KpiToneClasses {
   return KPI_TONE[tone] ?? KPI_TONE.default;
 }
+
+// Glifo da marca da Grade (view veículo × etapa · Onda 2). Uma marca na célula da
+// etapa atual da OS; a COR vem do tom da própria coluna (toneForColor) — data-driven,
+// consistente com o header da coluna. Glifo semântico por etapa FSM conhecida do
+// oficina_mecanica_os; fallback neutro pra processo customizado (canon .ofc-grade-mark).
+const GRADE_GLYPH: Record<string, string> = {
+  recepcao:             '·', // agendado / recém-recebido
+  em_diagnostico:       '?', // em diagnóstico técnico
+  aguardando_aprovacao: '◷', // aguardando OK do cliente
+  aguardando_pecas:     '◦', // aguardando peça física
+  em_execucao:          '●', // em execução
+  pronto_retirada:      '✓', // pronto pra retirar
+};
+
+export function gradeGlyph(stageKey: string): string {
+  return GRADE_GLYPH[stageKey] ?? '●';
+}
