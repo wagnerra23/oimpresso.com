@@ -27,8 +27,9 @@
 // checagem (rápida) evita o deadlock que o ADR 0261 proíbe.
 //
 // USO:
-//   node scripts/casos-results-collect.mjs                 # lê test-results/, grava manifesto
+//   node scripts/casos-results-collect.mjs                 # lê test-results/, MERGE per-UC no manifesto
 //   node scripts/casos-results-collect.mjs --results <dir> # diretório de results alternativo
+//   node scripts/casos-results-collect.mjs --no-merge      # sobrescreve o manifesto inteiro (reset consciente)
 //   node scripts/casos-results-collect.mjs --seed-empty    # cria manifesto vazio (bootstrap F1)
 //
 // Refs: ADR 0264 (G-5/G-7) · ADR 0261 (enforcement faseado, não-deadlock) · ADR 0256 (catraca).
@@ -41,6 +42,10 @@ const MANIFEST_PATH = resolve(ROOT, 'scripts/casos-test-results.json');
 
 const argv = process.argv.slice(2);
 const SEED_EMPTY = argv.includes('--seed-empty');
+// --no-merge: sobrescreve o manifesto inteiro (reset consciente). Default é MERGE
+// per-UC (Onda Q2): runners diferentes (Playwright e2e-gate · Pest financeiro-pest)
+// produzem vereditos em workflows separados — overwrite total apagaria a prova do outro.
+const NO_MERGE = argv.includes('--no-merge');
 const resultsIdx = argv.indexOf('--results');
 const RESULTS_DIR = resolve(ROOT, resultsIdx >= 0 ? argv[resultsIdx + 1] : 'test-results');
 
@@ -154,9 +159,29 @@ function main() {
     process.exit(0); // não-fatal: rodada vazia não é erro, só não atualiza.
   }
 
+  // MERGE per-UC (Onda Q2): o manifesto guarda o ÚLTIMO veredito conhecido POR UC
+  // (ran_at carrega o frescor; o G-7 stale-results pega tela-mudou-depois-do-teste).
+  // UC ausente da rodada atual preserva o veredito anterior — runner parcial
+  // (ex.: só o Pest do Financeiro) não apaga a prova do outro (Playwright e2e).
+  let preserved = 0;
+  if (!NO_MERGE && existsSync(MANIFEST_PATH)) {
+    try {
+      const prev = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'))?.ucs || {};
+      for (const [uc, entry] of Object.entries(prev)) {
+        if (!(uc in ucs)) {
+          ucs[uc] = entry;
+          preserved += 1;
+        }
+      }
+    } catch {
+      // manifesto anterior ilegível → segue só com a rodada atual (igual --no-merge)
+    }
+  }
+
   const stats = writeManifest(ucs, sources);
   console.log(
     `✅ Manifesto gravado: ${stats.ucs} UCs (${stats.pass} pass · ${stats.fail} fail · ${stats.skip} skip) ` +
+      (preserved ? `— ${preserved} preservado(s) de rodadas anteriores (merge per-UC; reset: --no-merge) ` : '') +
       `de ${sources.length} relatório(s) → ${norm(MANIFEST_PATH)}`,
   );
   process.exit(0);
