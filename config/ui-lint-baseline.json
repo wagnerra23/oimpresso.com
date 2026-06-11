@@ -59,18 +59,6 @@
         "resources\/js\/Components\/shared\/KpiCard.tsx": {
             "R1": 17
         },
-        "resources\/js\/Components\/shared\/ponto\/ActivityFeed.tsx": {
-            "R1": 9
-        },
-        "resources\/js\/Components\/shared\/ponto\/AlertInbox.tsx": {
-            "R1": 11
-        },
-        "resources\/js\/Components\/shared\/ponto\/MonthHeatmap.tsx": {
-            "R1": 12
-        },
-        "resources\/js\/Components\/shared\/ponto\/PresenceStrip.tsx": {
-            "R1": 6
-        },
         "resources\/js\/Components\/shared\/PwaInstallBanner.tsx": {
             "R1": 7
         },
