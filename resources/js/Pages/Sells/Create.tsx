@@ -35,7 +35,7 @@ import CustomerSearchAutocomplete, {
 } from './_components/CustomerSearchAutocomplete';
 import QuickAddVehicleSheet from './_components/QuickAddVehicleSheet';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
-import NumericInputPtBR from './_components/NumericInputPtBR';
+import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
 import {
   Select,

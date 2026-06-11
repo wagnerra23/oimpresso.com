@@ -6,6 +6,22 @@ next_review: "2026-09-06"
 
 # Changelog · Design System
 
+## [0.6.10] - 2026-06-11 · BR inputs canônicos em ui/ (NumericInputPtBR promovido + DocumentInput + PhoneInput)
+
+### Added
+
+- **`ui/document-input.tsx`** (`DocumentInput`): CPF/CNPJ com máscara progressiva + validação mod 11 UX-only (`valid: true|false|null` — null = incompleto, não acende erro). Compõe `Input` canon + `@/Lib/br-mask` + `br-validate`. `clampDigits` garante display === digits persistido. Backend `Rule\BR\CpfCnpj` segue a verdade (ADR 0093 Tier 0).
+- **`ui/phone-input.tsx`** (`PhoneInput`): telefone BR fixo/celular, pattern "9 separado" canon Cowork (aprovado Wagner sessão understand 2026-05-21). Emite `{ masked, digits }`.
+- **`tests/br-inputs.test.tsx`**: 11 testes — contratos de máscara/parse/valid + round-trip focus→edit→blur do numérico + axe runtime serious/critical=0 (idioma `a11y-primitives.test.tsx`).
+
+### Moved
+
+- **MOVE** `Pages/Sells/_components/NumericInputPtBR.tsx` → `Components/ui/numeric-input-ptbr.tsx` — promoção R-DS-001 (regra-de-2: PaymentRow + Sells/Create já consumiam). Named export adicionado; default preservado. Imports Sells atualizados.
+
+### Registry
+
+- `REGISTRY_DS_COMPONENTES.md` §Form controls: +3 linhas (NumericInputPtBR · DocumentInput · PhoneInput) — "se está aqui, não hand-rola".
+
 ## [0.6.9] - 2026-06-11 · MOVE componentes de domínio single-módulo pra Pages/<Mod>/_components
 
 Camada 4 (Módulo · UI-0013) sai da pasta global `Components/` quando só 1 módulo consome — alinha com convenção `_components/` já vigente (Sells, CaixaUnificada, ServiceOrders). `Components/` global fica reservada a: `ui/` (primitivos) · `shared/` (compostos cross-módulo) · `layout/` (ADR 0253) · `PageHeader/` (canon v3.8) · `cockpit/` (Shell) · `board/` (cross-módulo OficinaAuto+ProjectMgmt) · `Site/` (surface pública) · `NfeBrasil/` (domínio fiscal consumido por Sells).
