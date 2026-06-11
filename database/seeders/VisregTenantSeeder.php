@@ -159,6 +159,13 @@ class VisregTenantSeeder extends Seeder
             'default_purchase_price' => 50, 'dpp_inc_tax' => 50, 'profit_percent' => 0,
             'default_sell_price' => 100, 'sell_price_inc_tax' => 100,
         ]);
+
+        // Sem esta linha o produto NÃO aparece no /products/list: filterProduct
+        // aplica ->ForLocation($location_id) → whereHas product_locations
+        // (run 27368277842 — "Nenhum produto encontrado").
+        DB::table('product_locations')->insert([
+            'product_id' => $productId, 'location_id' => 1,
+        ]);
     }
 
     /**
