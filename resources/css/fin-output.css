@@ -24,7 +24,7 @@
   font-size: var(--fs-1);
   font-weight: 600;
   cursor: pointer;
-  transition: background .12s;
+  transition: background var(--t-1) var(--ease);
   vertical-align: baseline;
   margin: 0 1px;
 }
@@ -70,7 +70,7 @@
   max-height: 88vh;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 24px 64px oklch(0.20 0.005 240 / 0.25);
+  box-shadow: var(--sh-2);
   z-index: 101;
   display: flex;
   flex-direction: column;
@@ -115,7 +115,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   background: linear-gradient(90deg, oklch(0.45 0.18 145), oklch(0.55 0.13 240));
-  transition: width .28s ease;
+  transition: width var(--t-2) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-checklist-body {
   flex: 1;
@@ -149,7 +149,7 @@
   background: white;
   border: 1px solid var(--fin-line);
   border-radius: 6px;
-  transition: background .12s;
+  transition: background var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-checklist-step.done {
   background: oklch(0.97 0.03 145);
@@ -220,7 +220,7 @@
   font-size: var(--fs-2);
   font-weight: 600;
   cursor: pointer;
-  transition: background .12s;
+  transition: background var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-fechamento-trigger:hover { background: var(--fin-bg-soft); }
 .fin-cowork .fin-curadoria .fin-fechamento-trigger .fin-fechamento-badge {
@@ -250,7 +250,7 @@
   transform: translate(-50%, -50%);
   width: min(680px, 92vw); max-height: 88vh;
   background: white; border-radius: 12px;
-  box-shadow: 0 24px 64px oklch(0.20 0.005 240 / 0.25);
+  box-shadow: var(--sh-2);
   z-index: 101; display: flex; flex-direction: column; overflow: hidden;
 }
 .fin-cowork .fin-curadoria .fin-trouble-h {
@@ -273,13 +273,13 @@
   background: white;
   border: 1px solid oklch(0.92 0.04 var(--tr-hue));
   border-radius: 8px; padding: 14px 16px; cursor: pointer;
-  transition: all .15s; display: flex; flex-direction: column; gap: 6px;
+  transition: all var(--t-1) var(--ease); display: flex; flex-direction: column; gap: 6px;
 }
 .fin-cowork .fin-curadoria .fin-trouble-card:hover {
   background: oklch(0.98 0.02 var(--tr-hue));
   border-color: oklch(0.78 0.10 var(--tr-hue));
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px oklch(0.55 0.13 var(--tr-hue) / 0.10);
+  box-shadow: var(--sh-1);
 }
 .fin-cowork .fin-curadoria .fin-trouble-card-equip {
   font-size: var(--fs-1); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
@@ -313,7 +313,7 @@
 .fin-cowork .fin-curadoria .fin-trouble-answer {
   appearance: none; background: white; border: 2px solid var(--fin-line);
   border-radius: 6px; padding: 8px 32px;
-  font-family: inherit; font-size: var(--fs-3); font-weight: 600; cursor: pointer; transition: all .12s;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 600; cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-trouble-answer.yes { border-color: oklch(0.55 0.18 145); color: oklch(0.32 0.13 145); }
 .fin-cowork .fin-curadoria .fin-trouble-answer.yes:hover { background: oklch(0.96 0.05 145); }
@@ -459,7 +459,7 @@
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 20px;
   background: oklch(0.99 0 0); border-bottom: 1px solid oklch(0.90 0.005 80);
-  box-shadow: 0 1px 4px oklch(0 0 0 / 0.05);
+  box-shadow: var(--sh-1);
 }
 .fin-cowork .fin-transcript-bar-l { display: flex; align-items: baseline; gap: 8px; color: oklch(0.30 0.01 80); }
 .fin-cowork .fin-transcript-bar-l strong { font-size: var(--fs-4); }
@@ -468,7 +468,7 @@
 .fin-cowork .fin-transcript-btn {
   padding: 6px 14px; border-radius: 6px; font-size: var(--fs-3); font-weight: 500;
   background: white; color: oklch(0.30 0.01 80); border: 1px solid oklch(0.85 0.005 80);
-  cursor: pointer; transition: all 0.12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-transcript-btn:hover { background: oklch(0.97 0.005 80); border-color: oklch(0.75 0.005 80); }
 .fin-cowork .fin-transcript-btn.primary { background: oklch(0.30 0.06 240); color: white; border-color: oklch(0.30 0.06 240); }
@@ -479,7 +479,7 @@
   max-width: 760px;
   margin: 24px auto;
   padding: 40px 48px;
-  box-shadow: 0 4px 18px oklch(0 0 0 / 0.08);
+  box-shadow: var(--sh-1);
   font-family: ui-serif, Georgia, 'Times New Roman', serif;
   color: oklch(0.18 0 0);
   font-size: var(--fs-3);
@@ -576,7 +576,7 @@
   max-height: min(85vh, 800px);
   background: white;
   border-radius: 14px;
-  box-shadow: 0 20px 60px oklch(0 0 0 / 0.30);
+  box-shadow: var(--sh-2);
   display: flex; flex-direction: column;
   overflow: hidden;
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -605,7 +605,7 @@
   border: none; background: transparent; cursor: pointer;
   color: oklch(0.45 0 0); font-size: var(--fs-6); line-height: 1;
   display: grid; place-items: center;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-resume-x:hover { background: oklch(0.95 0 0); color: oklch(0.20 0 0); }
 .fin-cowork .fin-resume-body {
@@ -655,7 +655,7 @@
   font-size: var(--fs-3); font-weight: 500;
   background: white; color: oklch(0.30 0 0);
   border: 1px solid oklch(0.85 0 0);
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-resume-btn:hover { background: oklch(0.97 0 0); }
 .fin-cowork .fin-resume-btn.primary {
@@ -694,7 +694,7 @@
   font-weight: 500;
   color: oklch(0.50 0.01 80);
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -951,7 +951,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: filter .12s;
+  transition: filter var(--t-1) var(--ease);
 }
 .fin-cowork .fin-ageing-bar .seg:hover { filter: brightness(0.95); }
 /* s1 = 0-30d  verde fresh */
@@ -986,7 +986,7 @@
   font-size: var(--fs-3);
   font-weight: 500;
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   white-space: nowrap;
 }
 .fin-cowork .fin-subnav-tab:hover {
