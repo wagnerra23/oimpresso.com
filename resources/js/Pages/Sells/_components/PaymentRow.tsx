@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { dropdownEntries } from './dropdownEntries';
-import NumericInputPtBR from './NumericInputPtBR';
+import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 
 export interface Payment {
   amount: number;
