@@ -18,7 +18,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { ClipboardCheck, AlertTriangle, Clock, Wrench, Camera, Warehouse, ArrowRight, History } from 'lucide-react';
 import { Inline } from '@/Components/layout';
-import MercosulPlate from '@/Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 
 // Densidade do card (menu Visão — Onda 1 paridade Cowork): compacto esconde
 // sintoma+foto (triagem rápida de fila grande); detalhe respira (foto maior,

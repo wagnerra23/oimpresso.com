@@ -86,7 +86,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Segmented } from '@/Components/ui/segmented';
 import { Inline } from '@/Components/layout';
 import { printOficinaFila, type FilaPrintRow } from '@/Lib/printOficinaFila';
-import MercosulPlate from '@/Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import KanbanDndProvider from '@/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider';
 import DragConfirmDialog, {
   type PendingTransition,
