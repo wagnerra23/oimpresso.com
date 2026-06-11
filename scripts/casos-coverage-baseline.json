@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "generated_at": "2026-06-11T18:12:32.912Z",
+    "generated_at": "2026-06-11T18:29:12.949Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "stats": {
       "pages": 275,
-      "casos_files": 2,
-      "ucs_declared": 9,
+      "casos_files": 4,
+      "ucs_declared": 14,
       "missing_charter": 144,
-      "missing_casos": 273,
+      "missing_casos": 271,
       "orphan_ucs": 0,
       "metadata_issues": 0,
       "stale_cases": 0,
@@ -139,7 +139,6 @@
     "trio:missing-casos:resources/js/Pages/Financeiro/PlanoContas/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/ProvaViva.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Relatorios/Index.tsx",
-    "trio:missing-casos:resources/js/Pages/Financeiro/Unificado/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Financeiro/Unificado/Novo.tsx",
     "trio:missing-casos:resources/js/Pages/Fiscal/_lib/linkify.tsx",
     "trio:missing-casos:resources/js/Pages/Fiscal/Cockpit.tsx",
@@ -267,7 +266,6 @@
     "trio:missing-casos:resources/js/Pages/Sells/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Drafts.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Edit.tsx",
-    "trio:missing-casos:resources/js/Pages/Sells/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Quotations.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Show.tsx",
     "trio:missing-casos:resources/js/Pages/Sells/Subscriptions.tsx",

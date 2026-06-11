@@ -24,6 +24,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/Financeiro/**'
+      - 'tests/Feature/TravaSegunda/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/financeiro-pest.yml'
 
@@ -60,6 +61,7 @@ jobs:
           filters: |
             fin:
               - 'Modules/Financeiro/**'
+              - 'tests/Feature/TravaSegunda/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/financeiro-pest.yml'
 
@@ -162,6 +164,15 @@ jobs:
               ]);
               echo 'conta criada biz='.\$bizId.PHP_EOL;
             }
+            // Onda Q2 — RetencaoLoopE2ETest (UC-F01..03) exige location + contact (type != lead).
+            if (\$bizId && ! DB::table('business_locations')->where('business_id',\$bizId)->exists()) {
+              DB::table('business_locations')->insert(['business_id'=>\$bizId,'name'=>'Matriz CI','country'=>'BR','state'=>'SP','city'=>'SP','zip_code'=>'0','created_at'=>now(),'updated_at'=>now()]);
+              echo 'location criada'.PHP_EOL;
+            }
+            if (\$bizId && ! DB::table('contacts')->where('business_id',\$bizId)->where('type','!=','lead')->exists()) {
+              DB::table('contacts')->insert(['business_id'=>\$bizId,'type'=>'customer','name'=>'Cliente CI','contact_id'=>'CO0001','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
+              echo 'contact criado'.PHP_EOL;
+            }
           "
 
       - name: Stub Vite manifest (Inertia root view sem build do front)
@@ -195,7 +206,10 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: |
+          mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-financeiro-junit.xml \
+            tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php \
             Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php \
             Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php \
             Modules/Financeiro/Tests/Feature/AccountsLegacyMapMultiTenantTest.php \
@@ -214,3 +228,14 @@ jobs:
             Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoUpdateTest.php
+
+      # Onda Q2 (G-7 / Salto #2): o JUnit do Pest alimenta o manifesto por-UC
+      # (casos:results MERGE per-UC — vereditos UC-F01..03 do RetencaoLoopE2ETest).
+      # Roda mesmo em falha: a falha É o veredito que o G-7 registra.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() && steps.changes.outputs.fin == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-financeiro-junit
+          path: test-results/pest-financeiro-junit.xml
+          retention-days: 14
