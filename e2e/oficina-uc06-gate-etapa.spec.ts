@@ -5,10 +5,10 @@ import { test, expect, type Page } from '@playwright/test';
 // unificado (#2551) substituiu o kanban antigo de ProducaoOficina; a rota
 // /oficina-auto/producao-oficina sobrevive como REDIRECT permanente (menu antigo,
 // bookmarks, links em WhatsApp) e o goto daqui PROVA que ela segue viva.
-// Contrato de origem: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md
-// (re-ancoragem do casos.md pro Board fica na Onda Q2 do mandato ONDAS-QUALIDADE).
+// Contrato: resources/js/Pages/OficinaAuto/ServiceOrders/Board.casos.md (re-ancorado Onda Q2).
 //   UC-01 (ver o pátio: 5 colunas de reparo) · UC-02 (KPIs) · UC-03 (busca) ·
-//   UC-06 (avançar de etapa sem furar a regra — gate de etapa opina no drop).
+//   UC-04 (foco box/mecânico — mecanismo) · UC-05 (drawer documento vivo) ·
+//   UC-06 (gate de etapa opina no drop) · UC-07 (CTA Nova OS) · UC-09 (sem scroll @1280).
 //
 // Locators RESILIENTES — aria-label/role/text que já EXISTEM no componente
 // (ServiceOrderKanbanColumn expõe aria-label="Coluna {label}"). NUNCA classe CSS (L-24).
@@ -78,6 +78,51 @@ test('UC-06 · gate de etapa opina no drop inválido (não avança)', async ({ p
     page.getByText(/Transição não permitida|OS sem pipeline iniciado/i).first(),
     'gate deve dar veredito visível no drop inválido',
   ).toBeVisible({ timeout: 10_000 });
+});
+
+// UC-04 · reorganizar por box ou mecânico — prova o MECANISMO do pivot (Onda Q2).
+// O seed mínimo biz=1 não tem mecânico/box cadastrado → o contrato honesto aqui é o
+// estado DESABILITADO das opções (o pivot populado é validado quando houver seed).
+test('UC-04 · foco das colunas oferece Etapa/Box/Mecânico (desabilitados sem cadastro)', async ({ page }) => {
+  await page.getByRole('button', { name: /Visão/i }).click();
+  // Radix ToggleGroup type=single: Root = role "group" (não radiogroup), itens = "radio"
+  // (verificado em node_modules/@radix-ui/react-toggle-group dist, run 27367221494).
+  const foco = page.getByRole('group', { name: 'Foco das colunas' });
+  await expect(foco).toBeVisible();
+  for (const opcao of ['Etapa', 'Box', 'Mecânico']) {
+    await expect(foco.getByRole('radio', { name: opcao })).toBeAttached();
+  }
+  // Sem mecânico/box no seed → opções honestamente desabilitadas; Etapa sempre ativa.
+  await expect(foco.getByRole('radio', { name: 'Etapa' })).toBeEnabled();
+});
+
+// UC-05 · abrir a OS como documento vivo — card → drawer rico com as seções canônicas.
+test('UC-05 · clicar no card abre o drawer rico (Fotos & Laudo · Linha do tempo)', async ({ page }) => {
+  const card = page
+    .locator('[aria-roledescription="Card arrastável entre etapas"], [aria-roledescription="OS sem pipeline — clique pra iniciar"]')
+    .first();
+  test.skip((await card.count()) === 0, 'Sem card no quadro (DB sem seed biz=1) — drawer não exercitável aqui.');
+  await card.click();
+  const drawer = page.getByRole('dialog');
+  await expect(drawer.getByText('Fotos & Laudo')).toBeVisible({ timeout: 15_000 });
+  await expect(drawer.getByText('Linha do tempo')).toBeVisible();
+});
+
+// UC-07 · cadastrar um carro que chegou — CTA "Nova OS" leva à criação de OS.
+// (O caminho completo criar→card em Recepção é o UC-11 no spec funcional.)
+test('UC-07 · CTA Nova OS abre a criação de OS', async ({ page }) => {
+  await page.getByRole('button', { name: /Nova OS/i }).or(page.getByRole('link', { name: /Nova OS/i })).first().click();
+  await expect(page).toHaveURL(/\/oficina-auto\/ordens-servico\/create/, { timeout: 15_000 });
+  await expect(page.getByRole('combobox').filter({ hasText: /Selecione um veículo/i })).toBeVisible();
+});
+
+// UC-09 · ritmo de balcão — @1280 a página não tem scroll horizontal (chrome fixo #2551).
+test('UC-09 · sem scroll horizontal da página em 1280px', async ({ page }) => {
+  await expect(page.getByLabel('Coluna Recepção')).toBeVisible();
+  const semScrollH = await page.evaluate(
+    () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+  );
+  expect(semScrollH, 'página @1280 não pode ter scroll horizontal (UC-09)').toBe(true);
 });
 
 // Helper de arrasto compatível com dnd-kit (pointer events, não HTML5 drag).
