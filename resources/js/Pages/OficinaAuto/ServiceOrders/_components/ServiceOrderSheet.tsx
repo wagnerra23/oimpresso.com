@@ -58,11 +58,16 @@ interface ServiceOrderDetail {
   id: number;
   number: string | null;
   status: string;
+  // Etapa FSM atual (key + name PT) pro eyebrow do drawer — null quando o processo
+  // não está seedado pro negócio (cai no fallback de status). Mesmo payload do RichSheet.
+  current_stage?: { key: string; name: string } | null;
   order_type: OrderType;
   // Campos de locação (delivery_address/expected_return_date/daily_rate/dias_locacao)
   // erradicados do payload do show() — ADR 0265.
   expected_completion: string | null;
-  valor_receber: number | string | null;
+  // Soma real dos itens da OS (peças + mão-de-obra) — mesmo campo do RichSheet.
+  // valor_receber (accessor sempre-0 pós-ADR 0265) saiu da UI do drawer.
+  items_total?: number | string;
   is_overdue?: boolean;
   entered_at: string | null;
   started_at: string | null;
@@ -113,6 +118,11 @@ const formatDateOnly = (iso: string | null | undefined) => {
   const [y, m, d] = datePart.split('-');
   if (!y || !m || !d) return iso;
   return `${d}/${m}/${y}`;
+};
+
+const capitalize = (s: string | null | undefined) => {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 };
 
 export default function ServiceOrderSheet({
@@ -189,60 +199,56 @@ export default function ServiceOrderSheet({
 
         {!loading && data && (
           <>
-            {/* Header drawer — número OS + tipo badge + cliente */}
-            <SheetHeader className="px-6 pt-6 pb-4 border-b border-border space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {data.number ?? `#${data.id}`}
+            {/* Header drawer (canon .prod-drawer-head — MESMO vocabulário do
+                RichSheet): eyebrow 11px uppercase "OS #104 · <etapa>" + badge do
+                tipo ao lado (NÃO no título), h2 17px = veículo, p 12.5px = cliente. */}
+            <SheetHeader className="px-6 pt-6 pb-4 border-b border-border space-y-0">
+              <div className="flex items-center gap-2 flex-wrap text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
+                <span>
+                  <span className="font-mono">OS {data.number ?? `#${data.id}`}</span>
+                  {' · '}
+                  {data.current_stage?.name ?? capitalize(data.status)}
+                  {data.is_overdue && (
+                    <span className="ml-1.5 font-semibold text-destructive">· Atrasada</span>
+                  )}
                 </span>
                 <OrderTypeBadge type={data.order_type} />
-                {data.is_overdue && (
-                  <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-medium text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-300">
-                    <AlertTriangle size={10} className="mr-0.5" />
-                    Atrasada
-                  </span>
-                )}
               </div>
-              <SheetTitle className="text-xl font-semibold tracking-tight text-foreground">
-                {data.order_type === 'mecanica' ? 'Mecânica' : 'Manutenção'}{' '}
-                {data.number ?? `#${data.id}`}
+              <SheetTitle className="text-[17px] font-semibold leading-tight tracking-tight text-foreground mt-1 mb-0.5">
+                {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
+                {data.vehicle?.plate ? (
+                  <span className="text-[13px] font-normal font-mono text-muted-foreground ml-1.5">
+                    · {data.vehicle.plate}
+                  </span>
+                ) : null}
               </SheetTitle>
-              <SheetDescription className="text-sm text-muted-foreground">
-                {data.contact ? (
-                  <span>{data.contact.name}</span>
-                ) : (
-                  <span>Cliente não informado</span>
-                )}
+              <SheetDescription className="text-[12.5px] text-muted-foreground">
+                {data.contact ? data.contact.name : 'Cliente não informado'}
               </SheetDescription>
             </SheetHeader>
 
-            {/* Conteúdo scroll — seções verticais (mesmo pattern SaleSheet) */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+            {/* Conteúdo scroll — bloco-topo respira junto; seções seguem com
+                border-top fino (canon .ofc-drawer-section, MESMO do RichSheet). */}
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              <div className="space-y-4">
               {/* ADR 0192 — Integração Vendas × Oficina A1 KB-9.75.
-                  Card "Esta OS gerou venda #V-NNNN" renderiza acima dos KPIs
-                  quando ServiceOrderObserver (PR #1530) criou Transaction
-                  derivada na transição status='concluida'. Componente shared
-                  cross-módulo (vive em @/Components/shared/VendaDerivadaCard,
-                  reutilizado por Modules/Repair desde PR #1504 Onda 5). */}
+                  Card "Esta OS gerou venda #V-NNNN" renderiza no topo quando
+                  ServiceOrderObserver (PR #1530) criou Transaction derivada na
+                  transição status='concluida'. Componente shared cross-módulo. */}
               {data.venda_derivada && <VendaDerivadaCard venda={data.venda_derivada} />}
 
-              {/* KPIs mini horizontais — reparo (ADR 0265: Diárias/Diária eram locação) */}
-              <div className="grid grid-cols-2 gap-3">
-                <MiniKpi
-                  label="Entrada"
-                  value={formatDateOnly(data.started_at ?? data.entered_at)}
-                />
-                <MiniKpi
-                  label="A receber"
-                  value={formatBRL(data.valor_receber)}
-                  tone={
-                    data.is_overdue
-                      ? 'warning'
-                      : Number(data.valor_receber ?? 0) > 0
-                        ? 'warning'
-                        : 'success'
-                  }
-                />
+              {/* Entrada/Valor — linha de meta compacta (canon: label muted +
+                  valor tabular-nums à direita), não mais caixões MiniKpi. */}
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[12px] px-0.5">
+                <dt className="text-muted-foreground">Entrada</dt>
+                <dd className="text-foreground tabular-nums text-right">
+                  {formatDateOnly(data.started_at ?? data.entered_at)}
+                </dd>
+                <dt className="text-muted-foreground">Valor</dt>
+                <dd className="tabular-nums font-semibold text-right text-success">
+                  {formatBRL(data.items_total ?? 0)}
+                </dd>
+              </dl>
               </div>
 
               {/* Detalhes — campos básicos OS */}
@@ -379,6 +385,9 @@ export default function ServiceOrderSheet({
 
 // ─── Subcomponents ───────────────────────────────────────────────────────────
 
+// Canon .ofc-drawer-section (MESMO Section do RichSheet — um único vocabulário
+// de sheet): seções separadas por border-top fino, h4 10.5px/600 uppercase
+// ls .04em muted; sem caixas empilhadas (MiniKpi removido 2026-06-11).
 function Section({
   title,
   icon: Icon,
@@ -389,62 +398,13 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section>
-      <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+    <section className="border-t border-border mt-2.5 pt-3.5 pb-1">
+      <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.04em] text-muted-foreground mb-2.5 flex items-center gap-1.5">
         {Icon && <Icon size={11} />}
         {title}
       </h3>
       {children}
     </section>
-  );
-}
-
-function MiniKpi({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: 'success' | 'warning';
-}) {
-  return (
-    <div
-      className={
-        'rounded-md border p-2.5 ' +
-        (tone === 'warning'
-          ? 'border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/30'
-          : tone === 'success'
-            ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-950/30'
-            : 'border-border bg-muted/30')
-      }
-    >
-      <div
-        className={
-          'text-[10px] font-semibold uppercase tracking-wider ' +
-          (tone === 'warning'
-            ? 'text-amber-700 dark:text-amber-400'
-            : tone === 'success'
-              ? 'text-emerald-700 dark:text-emerald-400'
-              : 'text-muted-foreground')
-        }
-      >
-        {label}
-      </div>
-      <div
-        className={
-          'text-sm font-semibold tabular-nums mt-0.5 truncate ' +
-          (tone === 'warning'
-            ? 'text-amber-700 dark:text-amber-300'
-            : tone === 'success'
-              ? 'text-emerald-700 dark:text-emerald-300'
-              : 'text-foreground')
-        }
-        title={value}
-      >
-        {value}
-      </div>
-    </div>
   );
 }
 
