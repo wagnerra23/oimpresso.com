@@ -242,6 +242,15 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Upload diff views do pixel (quando o advisory falhou)
+        if: ${{ !cancelled() && steps.pixel-diff.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-diff-views
+          path: tests/Browser/Screenshots/ImageDiffView/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Veredito advisory do pixel-diff (visível no log)
         if: steps.changes.outputs.ui == 'true'
         run: |
