@@ -11,7 +11,7 @@ decided_by: [W]
 decided_at: "2026-06-11"
 accepted_at: ""
 accepted_via: "Wagner aprovou a DIREÇÃO no chat 2026-06-11 ('Acho que vou fazer todas faz muito sentido. É exatamente o que eu sinto. Faça'), após diagnóstico 'parece um elefante branco — ter mais não tá fácil de usar'. Ratificação formal = merge deste PR (sai de draft). Numeração/redação por [CL]."
-module: Jana
+module: copiloto
 quarter: 2026-Q2
 tags: [conhecimento, memoria, ciclo-de-vida, destilacao, decaimento, porta-unica, recall, time-decay, governanca, anti-elefante-branco]
 supersedes: []
