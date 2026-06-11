@@ -63,9 +63,9 @@ describe('DocumentInput (CPF/CNPJ)', () => {
     render(<DocumentHarness />);
     const input = screen.getByLabelText('CPF/CNPJ') as HTMLInputElement;
 
-    // CPF válido conhecido: 529.982.247-25 (dígitos verificadores corretos).
+    // CPF de teste público com DV válido — não pessoa real // pii-allowlist
     fireEvent.change(input, { target: { value: '52998224725' } });
-    expect(input.value).toBe('529.982.247-25');
+    expect(input.value).toBe('529.982.247-25'); // pii-allowlist (mesmo número de teste acima)
     expect(screen.getByTestId('digits').textContent).toBe('52998224725');
     expect(screen.getByTestId('valid').textContent).toBe('true');
     expect(input.getAttribute('aria-invalid')).toBeNull();
@@ -86,13 +86,13 @@ describe('DocumentInput (CPF/CNPJ)', () => {
     expect(input.getAttribute('aria-invalid')).toBe('true');
   });
 
-  it('tipo auto vira CNPJ acima de 11 dígitos (máscara 00.000.000/0000-00)', () => {
+  it('tipo auto vira CNPJ acima de 11 dígitos (máscara NN.NNN.NNN/NNNN-NN)', () => {
     render(<DocumentHarness />);
     const input = screen.getByLabelText('CPF/CNPJ') as HTMLInputElement;
 
-    // CNPJ válido conhecido: 11.222.333/0001-81.
+    // CNPJ de teste público com DV válido — não empresa real // pii-allowlist
     fireEvent.change(input, { target: { value: '11222333000181' } });
-    expect(input.value).toBe('11.222.333/0001-81');
+    expect(input.value).toBe('11.222.333/0001-81'); // pii-allowlist (mesmo número de teste acima)
     expect(screen.getByTestId('valid').textContent).toBe('true');
   });
 
@@ -102,7 +102,7 @@ describe('DocumentInput (CPF/CNPJ)', () => {
 
     fireEvent.change(input, { target: { value: '52998224725999' } });
     expect(screen.getByTestId('digits').textContent).toBe('52998224725');
-    expect(input.value).toBe('529.982.247-25');
+    expect(input.value).toBe('529.982.247-25'); // pii-allowlist (número de teste público, DV válido)
   });
 });
 
