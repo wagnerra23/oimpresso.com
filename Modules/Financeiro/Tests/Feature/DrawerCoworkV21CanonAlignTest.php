@@ -76,50 +76,54 @@ describe('Drawer V2.1 — CSS canon align (Cowork bundle)', function () {
     });
 });
 
-describe('Drawer V2.1 — Index.tsx 3 abas + Editar inline', function () {
-    it('drawerTab type unifies 3 abas: detalhes | ia | editar', function () {
+describe('Drawer 9.75 — Index.tsx 2 abas + Editar como botão (FA-5 · drawer-975)', function () {
+    // FA-5 2026-06-11 ([W] "esse seria o projeto / isso é o esperado" + AskUserQuestion
+    // "2 abas + botão Editar campos"): o protótipo Cowork 9.75 tem 2 abas (Detalhes · ✦ IA)
+    // e move a edição pra um botão "Editar campos" ao lado de Conferir, que abre o
+    // TituloEditSheet (editor completo). Substitui o canon V2.1 de 3 abas + FinEditPanel inline.
+    it('drawerTab type = 2 abas: detalhes | ia (Editar saiu das abas)', function () {
         $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
-        expect($src)->toContain("useState<'detalhes' | 'ia' | 'editar'>");
+        expect($src)->toContain("useState<'detalhes' | 'ia'>");
+        expect($src)->not->toContain("useState<'detalhes' | 'ia' | 'editar'>");
+        expect($src)->not->toContain("setDrawerTab('editar')");
     });
 
-    it('Nav renderiza 3 botões: Detalhes / ✦ IA / ✎ Editar', function () {
+    it('Nav renderiza 2 botões: Detalhes / ✦ IA', function () {
         $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
         expect($src)->toContain("setDrawerTab('detalhes')");
         expect($src)->toContain("setDrawerTab('ia')");
-        expect($src)->toContain("setDrawerTab('editar')");
         expect($src)->toContain('fin-drawer-tab-ai');
-        expect($src)->toContain('fin-drawer-tab-edit');
     });
 
-    it('Tab Detalhes usa fin-drawer-tab-ct (não badge antigo) + tag pra atrasado', function () {
+    it('Editar virou botão "Editar campos" (abre TituloEditSheet via setEditOpen)', function () {
+        $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
+        expect($src)->toContain('Editar campos');
+        expect($src)->toContain('setEditOpen(true)');
+    });
+
+    it('Tab Detalhes usa fin-drawer-tab-ct + tag pra atrasado', function () {
         $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
         expect($src)->toContain('fin-drawer-tab-ct');
         expect($src)->toContain('fin-drawer-tab-tag');
         expect($src)->toContain("selected.status === 'atrasado'");
     });
 
-    it('Tab Editar respeita valor_mutavel (disabled + tooltip ADR fin-tech/0002)', function () {
+    it('Vínculos: chips estruturados derivados da descrição + nfe_numero (FA-5)', function () {
         $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
-        expect($src)->toContain('disabled={!selected.valor_mutavel}');
-        expect($src)->toContain('ADR fin-tech/0002');
+        expect($src)->toContain('FinVinculosChips');
+        expect($src)->toContain('FIN_XLINK_DEFS');
     });
 
-    it('Aba Editar renderiza fin-edit-panel inline (não Sheet)', function () {
+    it('Ficha de identificação em fin-kv-card mantém os campos WR ([W] 2026-06-11)', function () {
         $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
-        $start = strpos($src, "drawerTab === 'editar'");
-        $end = strpos($src, '</Sheet>');
-        $editPanel = substr($src, $start, $end - $start);
-        expect($editPanel)->toContain('fin-edit-panel');
-        expect($editPanel)->toContain('fin-edit-h');
-        expect($editPanel)->toContain('fin-edit-grid');
-        expect($editPanel)->toContain('fin-edit-footer');
-        // Botão "Abrir formulário completo" delega ao TituloEditSheet existente (preserva validação)
-        expect($editPanel)->toContain('Abrir formulário completo');
+        expect($src)->toContain('fin-kv-card grid grid-cols-2');
+        // Paridade WR preservada (não enxugou os campos)
+        expect($src)->toContain('Valor em aberto');
     });
 
-    it('Caso valor_mutavel=false mostra empty state com mensagem ADR', function () {
+    it('Categoria editável inline (FinKVCategoriaInline); Canal segue read-only', function () {
         $src = file_get_contents(FIN_BASE_V21 . '/Index.tsx');
-        expect($src)->toContain('!selected.valor_mutavel');
-        expect($src)->toContain('Valor não-mutável');
+        expect($src)->toContain('FinKVCategoriaInline');
+        expect($src)->toContain("selected.canal || 'manual'");
     });
 });
