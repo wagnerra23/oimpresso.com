@@ -1,10 +1,13 @@
 ---
 runbook: cliente-drawer-760px
-module: Crm/Cliente
+title: "RUNBOOK — Cliente drawer lateral 760px substitui Show.tsx full-page"
+module: "Crm/Cliente"
+owner: W
 adr: 0179
 charter: Pages/Cliente/Index.charter.md v3
-last_updated: 2026-05-21
-status: ready-for-execution
+last_updated: "2026-05-21"
+last_validated: "2026-06-11"
+status: ativo
 waves: 7 (+ Z fechamento)
 estimate_total: ~70h elapsed (~35h IA-pair + margem 2x ADR 0106)
 ---
@@ -78,7 +81,7 @@ Bloqueia C-F. Entregáveis:
 
 Maior wave (paralelizável com G se Felipe paralelizar). Entregáveis:
 
-- [ ] `resources/js/Lib/br-mask.ts` — máscaras CPF `000.000.000-00` / CNPJ `00.000.000/0000-00` / tel `(00) 0 0000-0000` / CEP `00000-000`
+- [ ] `resources/js/Lib/br-mask.ts` — máscaras CPF `000.000.000-00` / CNPJ `00.000.000/0000-00` / tel `(00) 0 0000-0000` / CEP `00000-000` <!-- pii-allowlist: placeholders de máscara 000.000.000-00, não PII real -->
 - [ ] `resources/js/Lib/br-validate.ts` — mod 11 (CPF/CNPJ) + regex email/site
 - [ ] `resources/js/Lib/avatar.ts` — `avatarFor(id)` HSL hash determinístico (`id % 360` · `hsl(hue, 60%, 55%)`)
 - [ ] `resources/js/Lib/relDate.ts` — "há Xd/Xh/Xm" formatter relativo

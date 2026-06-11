@@ -26,19 +26,19 @@
         "resources\/js\/Components\/board\/TaskCard.tsx": {
             "R1": 10
         },
-        "resources\/js\/Components\/clientes\/ActiveChip.tsx": {
+        "resources\/js\/Pages\/Cliente\/_components\/ActiveChip.tsx": {
             "R1": 12
         },
-        "resources\/js\/Components\/clientes\/Pills.tsx": {
+        "resources\/js\/Pages\/Cliente\/_components\/Pills.tsx": {
             "R1": 117
         },
         "resources\/js\/Components\/CommandPalette.tsx": {
             "R1": 5
         },
-        "resources\/js\/Components\/ConsultaOs\/OsPipeline.tsx": {
+        "resources\/js\/Pages\/ConsultaOs\/_components\/OsPipeline.tsx": {
             "R1": 5
         },
-        "resources\/js\/Components\/ConsultaOs\/OsStageBadge.tsx": {
+        "resources\/js\/Pages\/ConsultaOs\/_components\/OsStageBadge.tsx": {
             "R1": 15
         },
         "resources\/js\/Components\/shared\/EmptyState.tsx": {
