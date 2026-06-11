@@ -736,9 +736,9 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         {/* Barra de views (canon .ofc-view-toolbar) — [busca + contador] | [toggle
             Quadro·Lista·Grade·Fila] | [Visão]. Toggle e Visão migraram do header pra
             cá ([W] 2026-06-11). O contador "N OS · N atrasadas" fica à direita da busca. */}
-        <div className="bg-white border-b border-border px-6 py-2.5 flex items-center gap-3 sticky top-0 z-10 flex-wrap">
+        <Inline wrap gap={3} className="bg-white border-b border-border px-6 py-2.5 sticky top-0 z-10">
           {/* Grupo busca (flex-1): input + limpar + chip KPI + contador à direita */}
-          <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+          <Inline gap={2} className="flex-1 min-w-[240px]">
             <Search size={14} className="text-muted-foreground flex-shrink-0" />
             <div className="relative flex-1 max-w-md">
               <Input
@@ -781,7 +781,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
               {kpiFilter && (<span className="ml-1 text-xs">de {kpis.total}</span>)}
               {kpis.atrasadas > 0 && (<><span className="mx-1.5 text-muted-foreground">·</span><span className="font-medium text-destructive tabular-nums">{kpis.atrasadas} atrasada{kpis.atrasadas === 1 ? '' : 's'}</span></>)}
             </span>
-          </div>
+          </Inline>
 
           {/* Toggle de views (canon .prod-view-toggle): Quadro · Lista · Grade · Fila.
               Quadro/Grade são in-page (estado); Lista/Fila navegam pra Index. */}
@@ -874,7 +874,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
               )}
             </PopoverContent>
           </Popover>
-        </div>
+        </Inline>
 
         {/* Conteúdo — Quadro (kanban drag) OU Grade (veículo × etapa). Lista/Fila
             navegam pra Index, então aqui só alterna Quadro × Grade. */}
