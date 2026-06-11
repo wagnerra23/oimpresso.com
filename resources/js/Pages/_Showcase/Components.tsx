@@ -18,10 +18,10 @@ import StatusBadge from '@/Components/shared/StatusBadge';
 import PageFilters from '@/Components/shared/PageFilters';
 import EmptyState from '@/Components/shared/EmptyState';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
-import PresenceStrip from '@/Components/shared/ponto/PresenceStrip';
-import ActivityFeed from '@/Components/shared/ponto/ActivityFeed';
-import AlertInbox from '@/Components/shared/ponto/AlertInbox';
-import MonthHeatmap from '@/Components/shared/ponto/MonthHeatmap';
+import PresenceStrip from '@/Pages/Ponto/_components/PresenceStrip';
+import ActivityFeed from '@/Pages/Ponto/_components/ActivityFeed';
+import AlertInbox from '@/Pages/Ponto/_components/AlertInbox';
+import MonthHeatmap from '@/Pages/Ponto/_components/MonthHeatmap';
 import { Plus, Download, CheckCheck } from 'lucide-react';
 import { formatMinutes } from '@/Lib/utils';
 

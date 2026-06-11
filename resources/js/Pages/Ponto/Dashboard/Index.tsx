@@ -21,9 +21,9 @@ import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
-import PresenceStrip from '@/Components/shared/ponto/PresenceStrip';
-import ActivityFeed from '@/Components/shared/ponto/ActivityFeed';
-import AlertInbox from '@/Components/shared/ponto/AlertInbox';
+import PresenceStrip from '../_components/PresenceStrip';
+import ActivityFeed from '../_components/ActivityFeed';
+import AlertInbox from '../_components/AlertInbox';
 
 interface Kpis {
   colaboradores_ativos: number;

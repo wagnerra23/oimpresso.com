@@ -6,6 +6,19 @@ next_review: "2026-09-06"
 
 # Changelog · Design System
 
+## [0.6.12] - 2026-06-11 · shared/ flat (CHECK 3 no guard) + MOVE shared/ponto → Pages/Ponto/_components
+
+Furo achado HORAS depois do guard nascer: subpasta de domínio DENTRO de `shared/` (`shared/ponto/`) escapava do CHECK 1, que só valida o top-level de `Components/`. Regra nova simples e enforçável: **shared/ é flat** — composto cross-módulo é arquivo direto; domínio de 1 módulo vai pra `Pages/<Mod>/_components/`.
+
+### Moved
+
+- **MOVE** `Components/shared/ponto/{ActivityFeed,AlertInbox,MonthHeatmap,PresenceStrip}.tsx` → `Pages/Ponto/_components/` (consumidores: Ponto/Dashboard · Ponto/Espelho · _Showcase)
+- Baselines re-keyed (move puro): eslint · layout-primitives · ui-lint (escapado `\/`)
+
+### Added
+
+- `components-tree-guard.mjs` **CHECK 3**: subpasta dentro de `shared/` = fail (sem grandfather — a única existente foi movida neste PR)
+
 ## [0.6.11] - 2026-06-11 · components-tree-guard + rule components.md + deprecação sinalizada do shared/PageHeader
 
 ### Added
