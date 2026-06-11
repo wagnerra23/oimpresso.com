@@ -19,9 +19,11 @@ test('UC-S01 · venda balcão a prazo — produto no carrinho, salvar sem pagame
   await page.goto('/sells/create');
   await page.waitForLoadState('networkidle');
 
-  // Tela V2 carregada (botão de submit canônico visível).
-  const salvar = page.getByRole('button', { name: /Adicionar venda/i });
-  await expect(salvar).toBeVisible({ timeout: 15_000 });
+  // Tela V2 carregada ("Adicionar venda" é o H1; o submit é "Salvar venda",
+  // que nasce DISABLED até ter produto — run 27367899441 pegou a confusão).
+  await expect(page.getByRole('heading', { name: 'Adicionar venda' })).toBeVisible({ timeout: 15_000 });
+  const salvar = page.getByRole('button', { name: /Salvar venda/i });
+  await expect(salvar).toBeDisabled();
 
   // Busca o produto do seed e adiciona ao carrinho (dropdown role=option).
   const busca = page.getByPlaceholder(/Buscar por nome, SKU/i);
@@ -37,6 +39,8 @@ test('UC-S01 · venda balcão a prazo — produto no carrinho, salvar sem pagame
   await expect(page.getByText(/Venda a prazo — saldo devedor/i)).toBeVisible();
 
   // Salvar — POST /pos com is_direct_sale=1 (sem exigir caixa aberto).
+  // Com produto no carrinho o submit habilita (canSubmit).
+  await expect(salvar).toBeEnabled();
   await salvar.click();
 
   // Sucesso REAL = saiu do formulário (redirect Inertia) sem erro de venda.
