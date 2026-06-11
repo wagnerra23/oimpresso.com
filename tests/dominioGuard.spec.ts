@@ -413,4 +413,27 @@ describe('dominio:check — domínios core (Onda Q3, físico)', () => {
     });
     expect(run('--json')).toMatch(/"ok": true/);
   });
+
+  it('CRONOLOGIA cross-dir: last-write-wins pelo TIMESTAMP da migration, não pelo path', () => {
+    // Caso real nfse_emissoes: módulo A cria (05_01), módulo B RE-cria depois (05_11).
+    // O estado atual é o de B, mesmo que o path de A ordene depois alfabeticamente.
+    write(
+      'pacotes/zfirst/migrations/2026_05_01_000000_create_t.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('t', function ($t) { $t->enum('status', ['velho']); });
+      } };`,
+    );
+    write(
+      'pacotes/afterz/migrations/2026_05_11_000000_create_t.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('t', function ($t) { $t->enum('status', ['novo']); });
+      } };`,
+    );
+    dict('FiscalX', { 't.status': ['novo'] }, {
+      migrations_paths: ['pacotes/zfirst/migrations', 'pacotes/afterz/migrations'],
+      tables_scope: ['t'],
+    });
+    // 'novo' (timestamp 05_11) vence 'velho' (05_01) → dict bate com o estado atual.
+    expect(run('--json')).toMatch(/"ok": true/);
+  });
 });

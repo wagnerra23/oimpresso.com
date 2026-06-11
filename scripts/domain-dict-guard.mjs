@@ -175,9 +175,15 @@ function currentEnums(moduleName, dict = null) {
   const dirs = dict?.migrations_paths?.length
     ? dict.migrations_paths.map((p) => resolve(ROOT, p))
     : [join(MODULES_DIR, moduleName, 'Database', 'Migrations')];
+  // Ordena pelo BASENAME (timestamp da migration) com comparação por codepoint —
+  // cross-dir o last-write-wins tem que ser CRONOLÓGICO (não path-alfabético) e
+  // determinístico entre Windows/CI (localeCompare é locale-dependente). Caso real:
+  // nfse_emissoes criada no NFSe (2026_05_01) e RE-criada no NfeBrasil (2026_05_11) —
+  // o estado atual é o do NfeBrasil.
+  const base = (p) => p.split(/[\\/]/).pop();
   const files = dirs
     .flatMap((d) => walk(d, (full, name) => name.endsWith('.php')))
-    .sort((a, b) => a.localeCompare(b));
+    .sort((a, b) => (base(a) < base(b) ? -1 : base(a) > base(b) ? 1 : 0));
   const scope = dict?.tables_scope?.length ? new Set(dict.tables_scope) : null;
   const state = {};
   for (const file of files) {
