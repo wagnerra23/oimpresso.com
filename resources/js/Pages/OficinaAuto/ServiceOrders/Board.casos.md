@@ -84,8 +84,8 @@ last_run: "2026-06-11"
 > Regra G-2: UC declarado sem teste citando o id = órfão. Estes dois ficam SEM token de UC
 > de propósito até existir teste real — visíveis, não esquecidos, sem virar dívida no baseline.
 
-- **[BACKLOG] Ver o que vira nota quando o carro fica pronto** — Dado stage=pronto + venda derivada · drawer mostra card Vendas×Oficina com Total · Peças(NF-e) · MO(NFS-e). Depende de venda derivada no harness (ex-UC-08, D-09).
-- **[BACKLOG] Trabalhar do jeito que prefere (Pressão calmo/pico)** — Pressão ficou **FORA** do Board por decisão [W] (comentários no Board.tsx); contrato era do protótipo ProducaoOficina (ex-UC-10). Reentra se o modo voltar ao escopo.
+- **[BACKLOG] Ver o que vira nota quando o carro fica pronto** — Dado stage=pronto + venda derivada · drawer mostra card Vendas×Oficina com Total · Peças(NF-e) · MO(NFS-e). Depende de venda derivada no harness (ex-caso 08, D-09).
+- **[BACKLOG] Trabalhar do jeito que prefere (Pressão calmo/pico)** — Pressão ficou **FORA** do Board por decisão [W] (comentários no Board.tsx); contrato era do protótipo ProducaoOficina (ex-caso 10). Reentra se o modo voltar ao escopo.
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate, gate de PR desde Onda Q1) — vereditos viram manifesto via `npm run casos:results`.
@@ -95,4 +95,4 @@ last_run: "2026-06-11"
 - 2026-06-02 · [CC] criou a suíte (10 UCs) a partir do inventário aprovado do charter (design).
 - 2026-06-04 · [CC] importado pro repo via handoff. Pointers `Index.*`; nota de mapeamento design→produção adicionada.
 - 2026-06-10 · [CL] UC-11 adicionado (PACOTE QUALIDADE-9 PR-1 — caminho fim-a-fim da Larissa) + spec Playwright `oficina-os-funcional-fluxo.spec.ts`.
-- 2026-06-11 · [CL] **Re-ancorado no Board canônico** (Onda Q2): movido de `ProducaoOficina/Index.casos.md` (tela substituída pelo workspace #2551, rota virou redirect). UC-04/05/07/09 ganharam teste e2e real; UC-06 re-contratado pro veredito no drop; ex-UC-08/10 → Backlog sem token (zero órfão novo); `Status: ✅` só com veredito `pass` no manifesto G-7.
+- 2026-06-11 · [CL] **Re-ancorado no Board canônico** (Onda Q2): movido de `ProducaoOficina/Index.casos.md` (tela substituída pelo workspace #2551, rota virou redirect). UC-04/05/07/09 ganharam teste e2e real; UC-06 re-contratado pro veredito no drop; ex-casos 08/10 → Backlog sem token (zero órfão novo); `Status: ✅` só com veredito `pass` no manifesto G-7.
