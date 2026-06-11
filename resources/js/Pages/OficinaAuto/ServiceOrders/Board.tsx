@@ -676,7 +676,11 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
   return (
     <>
       <Head title="Oficina Auto · Ordens de Serviço" />
-      <div className="flex-1 bg-muted/40 @container/board">
+      {/* Coluna flex que PREENCHE o .main-body (height 100vh - topbar, overflow-hidden
+          no shell): chrome (header/KPIs/abas/toolbar) FIXO e só o conteúdo (4 views)
+          rola por dentro. Sem isso, o .main-body rolava inteiro e os KPIs/toolbar
+          sumiam ao rolar — "a tela corta" ([W] 2026-06-11, sintoma sistêmico do shell). */}
+      <div className="flex-1 min-h-0 flex flex-col bg-muted/40 @container/board">
         {/* Topbar */}
         <header className="bg-white border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
@@ -885,9 +889,12 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           </Popover>
         </Inline>
 
-        {/* Conteúdo — as 4 views in-page sobre o mesmo payload (tela unificada). */}
+        {/* Área de conteúdo — flex-1 min-h-0 BOUNDA a altura (chrome acima fica fixo);
+            cada view preenche (h-full) e rola POR DENTRO. overflow-hidden aqui evita
+            o scroll duplo (shell × view). */}
+        <div className="flex-1 min-h-0 overflow-hidden">
         {!process_seeded ? (
-          <div className="p-6">
+          <div className="p-6 h-full overflow-y-auto">
             <EmptyProcessState />
           </div>
         ) : view === 'grade' ? (
@@ -897,9 +904,8 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         ) : view === 'fila' ? (
           <BoardFila rows={visibleCards} stageByCardId={stageByCardId} onOpenFull={handleCardClick} onOrderChanged={reloadBoard} />
         ) : (
-          /* Quadro — overflow-x-auto: o kanban rola por dentro, o shell nunca estoura
-             (espelha .prod-kanban do protótipo: overflow auto + minmax(228px, 1fr)) */
-          <div className="p-6 overflow-x-auto">
+          /* Quadro — h-full + overflow-auto: o kanban rola por dentro (X e Y), chrome fixo. */
+          <div className="p-6 h-full overflow-auto">
             <KanbanDndProvider<ServiceOrderCardData, string> onMove={handleDragMove} renderPreview={renderPreview}>
               <div className="grid gap-4 items-start" style={boardGridStyle}>
                 {displayColumns.map((col) => (
@@ -925,6 +931,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
             </KanbanDndProvider>
           </div>
         )}
+        </div>{/* /área de conteúdo */}
       </div>
 
       {/* Drawer rico reusado (embute FsmActionPanel + DviPhotoGrid) */}
@@ -964,7 +971,7 @@ function BoardGrade({ columns, rows, onRowClick }: BoardGradeProps) {
   const headCls =
     'bg-muted text-[9.5px] font-semibold uppercase tracking-[0.05em] text-muted-foreground border-b border-r border-border align-bottom';
   return (
-    <div className="p-6 overflow-x-auto">
+    <div className="p-6 h-full overflow-auto">
       <table className="w-full border-separate border-spacing-0 text-[11.5px] bg-white border border-border rounded-lg overflow-hidden">
         <thead>
           <tr>
@@ -1064,7 +1071,7 @@ const fmtBRL2 = (n: number): string =>
 
 function BoardLista({ rows, stageByCardId, onRowClick }: BoardListaProps) {
   return (
-    <div className="p-6 overflow-x-auto">
+    <div className="p-6 h-full overflow-auto">
       <table className="w-full text-sm bg-white border border-border rounded-lg overflow-hidden">
         <thead className="border-b bg-muted/50 text-[11px] uppercase tracking-wide text-muted-foreground">
           <tr>
@@ -1207,8 +1214,10 @@ function BoardFila({ rows, stageByCardId, onOpenFull, onOrderChanged }: BoardFil
   const selStage = sel ? stageByCardId.get(sel.id) : undefined;
 
   return (
-    <div className="p-6">
-      <div className="grid max-h-[72vh] grid-cols-1 gap-3 md:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_280px]">
+    // h-full: a Fila PREENCHE a área de conteúdo (chrome fixo acima); cada coluna
+    // (lista · detalhe rico · rail) rola por dentro. Sem max-h-[72vh] fixo — fluido.
+    <div className="p-6 h-full min-h-0">
+      <div className="grid h-full min-h-0 grid-cols-1 gap-3 md:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_280px]">
         {/* Lista (esquerda) */}
         <div className="flex min-h-0 flex-col rounded-lg border bg-muted/20">
           <div className="flex items-center justify-between border-b px-3 py-2.5">
