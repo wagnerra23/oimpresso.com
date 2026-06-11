@@ -46,7 +46,9 @@ export interface FilaOrder {
   } | null;
   contact?: { id: number; name: string } | null;
   is_overdue?: boolean;
-  valor_receber?: number | string | null;
+  // Soma REAL dos itens da OS (withSum no index do Controller — peças + mão-de-obra).
+  // Substitui valor_receber (accessor sempre-0 pós-ADR 0265).
+  items_total?: number | string | null;
 }
 
 interface Props {
@@ -214,37 +216,27 @@ function OsDetailInline({
         {/* Pipeline FSM ao vivo (mesmo componente do drawer) */}
         <ServiceOrderStagePipeline serviceOrderId={o.id} enabled />
 
-        {/* Resumo da OS */}
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-md border bg-muted/20 px-4 py-3 text-sm sm:grid-cols-3">
-          <div>
-            <dt className="text-xs text-muted-foreground">Tipo</dt>
-            <dd className="text-foreground">{typeLabel(o.order_type)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Veículo</dt>
-            <dd className="truncate font-mono text-foreground">{vehicleLabel(o)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Início</dt>
-            <dd className="tabular-nums text-foreground">{formatBRDate(inicio)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Prazo</dt>
-            <dd className={cn('tabular-nums', overdue ? 'font-medium text-destructive' : 'text-foreground')}>
-              {formatBRDate(prazo)}
-              {overdue && ' ⚠'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">A receber</dt>
-            <dd className={cn('tabular-nums', Number(o.valor_receber ?? 0) > 0 ? 'text-warning' : 'text-foreground')}>
-              {formatBRL(o.valor_receber)}
-            </dd>
-          </div>
+        {/* Resumo da OS — meta-grid canon (.ofc-veh-card dl do protótipo): grid
+            auto/1fr, label muted 11px + valor 13px tabular-nums; defeito em linha
+            própria full (col-span-2). A caixa cinza virou meta compacta. */}
+        <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1.5 px-0.5">
+          <dt className="text-[11px] text-muted-foreground">Tipo</dt>
+          <dd className="text-[13px] text-foreground">{typeLabel(o.order_type)}</dd>
+          <dt className="text-[11px] text-muted-foreground">Veículo</dt>
+          <dd className="truncate font-mono text-[13px] text-foreground">{vehicleLabel(o)}</dd>
+          <dt className="text-[11px] text-muted-foreground">Início</dt>
+          <dd className="text-[13px] tabular-nums text-foreground">{formatBRDate(inicio)}</dd>
+          <dt className={cn('text-[11px]', overdue ? 'font-medium text-destructive' : 'text-muted-foreground')}>Prazo</dt>
+          <dd className={cn('text-[13px] tabular-nums', overdue ? 'font-semibold text-destructive' : 'text-foreground')}>
+            {formatBRDate(prazo)}
+            {overdue && ' ⚠'}
+          </dd>
+          <dt className="text-[11px] text-muted-foreground">Valor</dt>
+          <dd className="text-[13px] tabular-nums text-foreground">{formatBRL(o.items_total)}</dd>
           {defeito && (
-            <div className="col-span-2 sm:col-span-3">
-              <dt className="text-xs text-muted-foreground">Defeito</dt>
-              <dd className="text-foreground">{o.notes}</dd>
+            <div className="col-span-2 mt-1 border-t border-border/60 pt-2">
+              <dt className="text-[11px] text-muted-foreground">Defeito</dt>
+              <dd className="text-[13px] leading-relaxed text-foreground">{o.notes}</dd>
             </div>
           )}
         </dl>
@@ -297,8 +289,8 @@ function AppsRail({
             <dd className={cn('tabular-nums', overdue ? 'font-medium text-destructive' : 'text-foreground')}>{formatBRDate(prazo)}</dd>
           </div>
           <div className="flex justify-between gap-2">
-            <dt className="text-muted-foreground">A receber</dt>
-            <dd className="font-mono tabular-nums text-foreground">{formatBRL(o.valor_receber)}</dd>
+            <dt className="text-muted-foreground">Valor</dt>
+            <dd className="font-mono tabular-nums text-foreground">{formatBRL(o.items_total)}</dd>
           </div>
         </dl>
         <button

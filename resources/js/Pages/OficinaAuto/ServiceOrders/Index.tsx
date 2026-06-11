@@ -6,17 +6,32 @@
 // null→"—" (antes vazava "R$ [redacted Tier 0]" literal na UI).
 // Espelha layout Vehicles Index (Wave 5-B).
 // RUNBOOK: memory/requisitos/OficinaAuto/RUNBOOK-index.md
+//
+// Polish canon Board [CC] 2026-06-11 (pedido [W] — alinhar Lista/Fila à língua
+// visual do Board aprovado, mesmo canon Cowork oficina-page/oficina-fila):
+//   1. Header sem círculo decorativo (PageHeader recebia ReactNode em prop string
+//      `icon` — renderizava caixa vazia): h1 + subtítulo descritivo, só Nova OS.
+//   2. KPIs no canon do Board (BoardKpiCard: label uppercase 10px + número grande
+//      tabular-nums + sublinha) e CLICÁVEIS como filtro D-05 (clica filtra ·
+//      clica de novo limpa · chip "limpar filtro" na toolbar).
+//   3. Abas Todas/Em andamento/Concluídas mês/Atrasadas REMOVIDAS (redundantes
+//      com os KPIs clicáveis). Toolbar única (canon .ofc-view-toolbar): busca com
+//      limpar (×) + contador, tipo, chips de estágio FSM e toggle de views.
+//   4. Coluna VALOR com dado REAL (items_total via withSum no Controller — o
+//      valor_receber é accessor sempre-0 pós-ADR 0265); indicador de atraso
+//      ÚNICO (pill "Atrasada" do StatusBadge; dot vermelho removido).
+//   5. Toggle Quadro · Lista · Fila — Quadro navega pro /board (simetria com o
+//      toggle do Board, que navega pra cá).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Wrench, Plus, Search, LayoutGrid, List, PanelLeft } from 'lucide-react';
+import { Plus, Search, LayoutGrid, List as ListIcon, ListOrdered, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import PageHeader from '@/Components/shared/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
-import KpiGrid from '@/Components/shared/KpiGrid';
-import KpiCard from '@/Components/shared/KpiCard';
+import BoardKpiCard from './_components/board/BoardKpiCard';
 import ServiceOrderStatusBadge from './_components/ServiceOrderStatusBadge';
 import ServiceOrderSheet from './_components/ServiceOrderSheet';
 import ServiceOrderFila from './_components/ServiceOrderFila';
@@ -64,7 +79,9 @@ interface ServiceOrder {
   vehicle?: VehicleRel | null;
   contact?: ContactRel | null;
   is_overdue?: boolean;
-  valor_receber?: number | string | null;
+  // Soma REAL dos itens da OS (withSum no index — peças + mão-de-obra). NULL
+  // quando a OS não tem item lançado. Substitui valor_receber (accessor sempre-0).
+  items_total?: number | string | null;
 }
 
 interface PaginatedOrders {
@@ -129,12 +146,18 @@ const EMPTY_KPIS: Kpis = {
 };
 
 // ──────── Helpers ────────
-const STATUS_PILLS: Array<{ key: string; label: string }> = [
-  { key: 'all', label: 'Todas' },
-  { key: 'manutencao_ativa', label: 'Em andamento' },
-  { key: 'concluida_mes', label: 'Concluídas mês' },
-  { key: 'atrasada', label: 'Atrasadas' },
+// D-05 — KPI clicável É o filtro de status (as abas Todas/Em andamento/Concluídas
+// mês/Atrasadas eram redundantes e foram removidas no polish canon Board 2026-06-11).
+// key = mesmo valor que o filtro ?status= do Controller (manutencao_ativa etc).
+const KPI_STATUS_FILTERS = [
+  { key: 'manutencao_ativa', label: 'Em andamento', sub: 'OS abertas em reparo', tone: 'indigo' as const },
+  { key: 'concluida_mes', label: 'Concluídas no mês', sub: 'finalizadas no mês corrente', tone: 'emerald' as const },
+  { key: 'atrasada', label: 'Atrasadas', sub: null, tone: 'rose' as const },
 ];
+
+const KPI_FILTER_LABEL: Record<string, string> = Object.fromEntries(
+  KPI_STATUS_FILTERS.map((k) => [k.key, k.label]),
+);
 
 const TYPE_PILLS: Array<{ key: string; label: string }> = [
   { key: 'all', label: 'Todos os tipos' },
@@ -254,30 +277,30 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
 
   const subtitle = `${kpis.manutencao_ativas} em andamento · ${kpis.concluidas_mes} concluídas no mês · ${kpis.atrasadas} atrasadas`;
 
+  // D-05 — filtro de status ativo (vem da querystring; KPI clicado = filtro aplicado)
+  const kpiStatusActive = filters.status && filters.status !== 'all' ? filters.status : null;
+  const kpiValueByKey: Record<string, number> = {
+    manutencao_ativa: kpis.manutencao_ativas,
+    concluida_mes: kpis.concluidas_mes,
+    atrasada: kpis.atrasadas,
+  };
+
   return (
     <AppShellV2>
       <Head title="Ordens de Serviço · Oficina Auto" />
       <div className="px-4 py-6 max-w-7xl mx-auto space-y-6">
+        {/* Header canon do Board: h1 + subtítulo descritivo, sem círculo decorativo.
+            "Quadro" saiu daqui — vive no toggle de views (simetria com o Board). */}
         <PageHeader
           title="Ordens de Serviço"
-          subtitle={subtitle}
-          icon={<Wrench className="size-5" />}
-          actions={
-            <div className="flex items-center gap-2">
-              {/* Quadro (Kanban) das OS de mecânica — fluxo real do carro ([W] 2026-06-02) */}
-              <Link href="/oficina-auto/ordens-servico/board">
-                <Button variant="outline">
-                  <LayoutGrid className="size-4 mr-1" />
-                  Quadro
-                </Button>
-              </Link>
-              <Link href="/oficina-auto/ordens-servico/create">
-                <Button>
-                  <Plus className="size-4 mr-1" />
-                  Nova OS
-                </Button>
-              </Link>
-            </div>
+          description={subtitle}
+          action={
+            <Link href="/oficina-auto/ordens-servico/create">
+              <Button>
+                <Plus className="size-4 mr-1" />
+                Nova OS
+              </Button>
+            </Link>
           }
         />
 
@@ -289,168 +312,189 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
           </div>
         )}
 
-        {/* KPIs — reparo (ADR 0265: KPI de locação morreu com o domínio) */}
-        <KpiGrid cols={3}>
-          <KpiCard
-            label="Em andamento"
-            value={kpis.manutencao_ativas}
-            tone="warning"
-            icon="wrench"
-          />
-          <KpiCard
-            label="Concluídas este mês"
-            value={kpis.concluidas_mes}
-            tone="success"
-            icon="check-circle-2"
-          />
-          <KpiCard
-            label="Atrasadas"
-            value={kpis.atrasadas}
-            tone="danger"
-            icon="alert-triangle"
-            description={kpis.atrasadas > 0 ? 'Cobrar imediatamente' : 'Tudo no prazo'}
-          />
-        </KpiGrid>
+        {/* KPIs canon do Board (BoardKpiCard) — CLICÁVEIS como filtro D-05:
+            clica filtra (?status=), clica de novo limpa; chip "limpar" na toolbar. */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {KPI_STATUS_FILTERS.map((kpi) => (
+            <BoardKpiCard
+              key={kpi.key}
+              label={kpi.label}
+              value={String(kpiValueByKey[kpi.key] ?? 0)}
+              sub={
+                kpi.key === 'atrasada'
+                  ? kpis.atrasadas > 0 ? 'cobrar imediatamente' : 'tudo no prazo'
+                  : kpi.sub ?? undefined
+              }
+              tone={kpi.tone}
+              active={kpiStatusActive === kpi.key}
+              dimmed={kpiStatusActive !== null && kpiStatusActive !== kpi.key}
+              onClick={() => applyFilter({ status: kpiStatusActive === kpi.key ? 'all' : kpi.key })}
+            />
+          ))}
+        </div>
 
-        {/* Toolbar: filter pills + tipo + search */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex rounded-md border border-border overflow-hidden">
-            {STATUS_PILLS.map((pill) => {
-              const active = (filters.status || 'all') === pill.key;
-              return (
+        {/* Toolbar única (canon .ofc-view-toolbar do Board): [busca + limpar + chip
+            KPI + contador] | [tipo] | [toggle Quadro·Lista·Fila] — as abas de status
+            foram absorvidas pelos KPIs clicáveis. Chips de estágio FSM logo abaixo. */}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <form onSubmit={handleSearchSubmit} className="flex flex-1 min-w-[240px] items-center gap-2">
+              <Search size={14} className="text-muted-foreground flex-shrink-0" />
+              <div className="relative flex-1 max-w-md">
+                <Input
+                  type="search"
+                  placeholder="Buscar OS, cliente ou placa…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="h-8 border-border pr-7"
+                  aria-label="Buscar OS, cliente ou placa"
+                />
+                {q !== '' && (
+                  <button
+                    type="button"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+                    onClick={() => setQ('')}
+                    aria-label="Limpar busca"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              {/* D-05 — chip do KPI-filtro ativo (clicar limpa) */}
+              {kpiStatusActive && KPI_FILTER_LABEL[kpiStatusActive] && (
                 <button
-                  key={pill.key}
                   type="button"
-                  onClick={() => applyFilter({ status: pill.key })}
-                  className={cn(
-                    'px-3 py-1.5 text-sm transition-colors',
-                    active
-                      ? 'bg-muted text-foreground font-medium'
-                      : 'bg-background text-muted-foreground hover:bg-muted/50',
-                  )}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 border border-primary/30 rounded-full px-2 py-0.5 hover:bg-primary/15 whitespace-nowrap"
+                  onClick={() => applyFilter({ status: 'all' })}
                 >
-                  {pill.label}
+                  <X size={10} /> limpar filtro: {KPI_FILTER_LABEL[kpiStatusActive]}
                 </button>
-              );
-            })}
+              )}
+
+              <span className="ml-auto pl-2 text-sm text-muted-foreground whitespace-nowrap" aria-live="polite">
+                <span className="font-medium text-foreground tabular-nums">{orders.total} OS</span>
+                {kpis.atrasadas > 0 && (
+                  <>
+                    <span className="mx-1.5">·</span>
+                    <span className="font-medium text-destructive tabular-nums">
+                      {kpis.atrasadas} atrasada{kpis.atrasadas === 1 ? '' : 's'}
+                    </span>
+                  </>
+                )}
+              </span>
+            </form>
+
+            {schemaFlags.has_order_type && (
+              <div className="inline-flex flex-shrink-0 rounded border border-border bg-white overflow-hidden" role="group" aria-label="Filtrar por tipo">
+                {TYPE_PILLS.map((pill, i) => {
+                  const active = (filters.type || 'all') === pill.key;
+                  return (
+                    <button
+                      key={pill.key}
+                      type="button"
+                      onClick={() => applyFilter({ type: pill.key })}
+                      aria-pressed={active}
+                      className={cn(
+                        'px-2.5 py-1 text-xs font-medium transition-colors',
+                        i > 0 && 'border-l border-border',
+                        active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted/50',
+                      )}
+                    >
+                      {pill.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Toggle de views (simetria com o Board): Quadro navega pro kanban;
+                Lista/Fila são in-page (?view=). */}
+            <div className="inline-flex flex-shrink-0 rounded border border-border bg-white overflow-hidden" role="group" aria-label="Visualização">
+              <Link
+                href="/oficina-auto/ordens-servico/board"
+                className="px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 text-foreground hover:bg-muted transition-colors"
+              >
+                <LayoutGrid size={12} /> Quadro
+              </Link>
+              <button
+                type="button"
+                onClick={() => changeView('lista')}
+                aria-pressed={view === 'lista'}
+                className={cn(
+                  'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors border-l border-border',
+                  view === 'lista' ? 'bg-primary text-white' : 'text-foreground hover:bg-muted',
+                )}
+              >
+                <ListIcon size={12} /> Lista
+              </button>
+              <button
+                type="button"
+                onClick={() => changeView('fila')}
+                aria-pressed={view === 'fila'}
+                className={cn(
+                  'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors border-l border-border',
+                  view === 'fila' ? 'bg-primary text-white' : 'text-foreground hover:bg-muted',
+                )}
+              >
+                <ListOrdered size={12} /> Fila
+              </button>
+            </div>
           </div>
 
-          {schemaFlags.has_order_type && (
-            <div className="inline-flex rounded-md border border-border overflow-hidden">
-              {TYPE_PILLS.map((pill) => {
-                const active = (filters.type || 'all') === pill.key;
+          {/* Gap #3 — chips de stage FSM estilo Linear (Wave 7-D). */}
+          {schemaFlags.has_current_stage && stages && stages.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mr-1">
+                Estágio FSM:
+              </span>
+              <button
+                type="button"
+                onClick={() => applyFilter({ stage: 'all' })}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                  (filters.stage || 'all') === 'all'
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border text-muted-foreground hover:bg-muted/50',
+                )}
+              >
+                Todos
+              </button>
+              {stages.map((stage) => {
+                const active = filters.stage === stage.key;
+                const colors = STAGE_CHIP_COLOR_MAP[stage.color ?? 'gray'] ?? STAGE_CHIP_FALLBACK;
                 return (
                   <button
-                    key={pill.key}
+                    key={`${stage.process_key}-${stage.key}`}
                     type="button"
-                    onClick={() => applyFilter({ type: pill.key })}
+                    onClick={() => applyFilter({ stage: stage.key })}
+                    title={stage.is_terminal ? `${stage.name} (terminal)` : stage.name}
                     className={cn(
-                      'px-3 py-1.5 text-sm transition-colors',
-                      active
-                        ? 'bg-muted text-foreground font-medium'
-                        : 'bg-background text-muted-foreground hover:bg-muted/50',
+                      'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                      active ? colors.active : colors.idle,
+                      stage.is_terminal && !active && 'opacity-70',
                     )}
                   >
-                    {pill.label}
+                    <span>{stage.name}</span>
+                    <span
+                      className={cn(
+                        'inline-flex min-w-[18px] justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums',
+                        active ? 'bg-background/40' : 'bg-background',
+                      )}
+                    >
+                      {stage.count}
+                    </span>
                   </button>
                 );
               })}
             </div>
           )}
-
-          <form onSubmit={handleSearchSubmit} className="ml-auto flex gap-2">
-            <Input
-              placeholder="Buscar OS, cliente ou placa…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="w-64"
-            />
-            <Button type="submit" variant="outline" size="sm">
-              <Search className="size-4" />
-            </Button>
-          </form>
-
-          {/* Toggle de view in-page: Lista (tabela densa) ↔ Fila (master-detail) */}
-          <div className="inline-flex overflow-hidden rounded-md border border-border" role="group" aria-label="Modo de visualização">
-            <button
-              type="button"
-              onClick={() => changeView('lista')}
-              aria-pressed={view === 'lista'}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors',
-                view === 'lista' ? 'bg-muted font-medium text-foreground' : 'bg-background text-muted-foreground hover:bg-muted/50',
-              )}
-            >
-              <List className="size-4" />
-              Lista
-            </button>
-            <button
-              type="button"
-              onClick={() => changeView('fila')}
-              aria-pressed={view === 'fila'}
-              className={cn(
-                'inline-flex items-center gap-1.5 border-l border-border px-3 py-1.5 text-sm transition-colors',
-                view === 'fila' ? 'bg-muted font-medium text-foreground' : 'bg-background text-muted-foreground hover:bg-muted/50',
-              )}
-            >
-              <PanelLeft className="size-4" />
-              Fila
-            </button>
-          </div>
         </div>
-
-        {/* Gap #3 — chips de stage FSM estilo Linear (Wave 7-D). */}
-        {schemaFlags.has_current_stage && stages && stages.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground mr-1">
-              Estágio FSM:
-            </span>
-            <button
-              type="button"
-              onClick={() => applyFilter({ stage: 'all' })}
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors',
-                (filters.stage || 'all') === 'all'
-                  ? 'border-foreground bg-foreground text-background'
-                  : 'border-border text-muted-foreground hover:bg-muted/50',
-              )}
-            >
-              Todos
-            </button>
-            {stages.map((stage) => {
-              const active = filters.stage === stage.key;
-              const colors = STAGE_CHIP_COLOR_MAP[stage.color ?? 'gray'] ?? STAGE_CHIP_FALLBACK;
-              return (
-                <button
-                  key={`${stage.process_key}-${stage.key}`}
-                  type="button"
-                  onClick={() => applyFilter({ stage: stage.key })}
-                  title={stage.is_terminal ? `${stage.name} (terminal)` : stage.name}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors',
-                    active ? colors.active : colors.idle,
-                    stage.is_terminal && !active && 'opacity-70',
-                  )}
-                >
-                  <span>{stage.name}</span>
-                  <span
-                    className={cn(
-                      'inline-flex min-w-[18px] justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums',
-                      active ? 'bg-background/40' : 'bg-background',
-                    )}
-                  >
-                    {stage.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
 
         {/* Tabela / Empty state */}
         {orders.data.length === 0 ? (
           <EmptyState
-            icon={<Wrench className="size-12" />}
+            icon="wrench"
             title="Nenhuma OS encontrada"
             description={
               filters.status || filters.type || filters.stage || filters.q
@@ -507,13 +551,9 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                         )}
                         onClick={() => setOpenOsId(o.id)}
                       >
+                        {/* Indicador de atraso ÚNICO: pill "Atrasada" do StatusBadge
+                            (o dot vermelho duplicava o sinal — removido 2026-06-11). */}
                         <td className="px-3 py-2.5 font-mono font-semibold">
-                          {overdue && (
-                            <span
-                              className="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5 align-middle"
-                              title="Atrasada"
-                            />
-                          )}
                           {o.number ?? `#${o.id}`}
                         </td>
                         <td className="px-3 py-2.5">
@@ -576,17 +616,14 @@ export default function ServiceOrdersIndex({ orders, filters, kpis = EMPTY_KPIS,
                         >
                           {formatBRDate(prazo)}
                         </td>
+                        {/* VALOR real (items_total — soma dos itens da OS via withSum). */}
                         <td
                           className={cn(
                             'px-3 py-2.5 text-right tabular-nums',
-                            overdue
-                              ? 'text-rose-700 font-medium'
-                              : Number(o.valor_receber ?? 0) > 0
-                                ? 'text-amber-700'
-                                : 'text-muted-foreground',
+                            Number(o.items_total ?? 0) > 0 ? 'text-foreground font-medium' : 'text-muted-foreground',
                           )}
                         >
-                          {formatBRL(o.valor_receber)}
+                          {formatBRL(o.items_total)}
                         </td>
                         <td className="px-3 py-2.5">
                           <ServiceOrderStatusBadge

@@ -95,6 +95,16 @@ function getCsrfToken(): string {
   return meta?.getAttribute('content') ?? '';
 }
 
+// Ação DESTRUTIVA (Cancelar OS etc) ≠ ação crítica positiva (Concluir/Aprovar).
+// Destrutiva vira outline discreto vermelho — não um sólido gigante competindo
+// com a ação primária da etapa (polish canon Board 2026-06-11).
+function isDestructiveAction(action: FsmAction): boolean {
+  return /cancel/i.test(action.key) || action.target_stage?.key === 'cancelada';
+}
+
+const DESTRUCTIVE_OUTLINE_CLASS =
+  'border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive';
+
 /**
  * Empty state quando OS ainda não tem current_stage_id (legada / pré-FSM).
  * Mostra botão "Iniciar pipeline FSM" que chama o endpoint backend Wave 7-A.
@@ -339,11 +349,12 @@ export default function ServiceOrderFsmActionPanel({
                   .map((r) => r.label)
                   .join(' · ')
               : '';
+            const destructive = isDestructiveAction(action);
             return (
               <Button
                 key={action.key}
                 size="sm"
-                variant={action.is_critical ? 'destructive' : 'default'}
+                variant={destructive ? 'outline' : 'default'}
                 onClick={() => executeAction(action)}
                 disabled={executing || gateBlocked}
                 title={
@@ -353,7 +364,7 @@ export default function ServiceOrderFsmActionPanel({
                       ? `Move pra: ${action.target_stage.name}`
                       : 'Ação que não transita stage'
                 }
-                className="text-xs"
+                className={'text-xs' + (destructive ? ` ${DESTRUCTIVE_OUTLINE_CLASS}` : '')}
               >
                 {gateBlocked ? (
                   <Lock size={12} className="mr-1" />
@@ -428,7 +439,7 @@ export default function ServiceOrderFsmActionPanel({
                 Cancelar
               </Button>
               <Button
-                variant={confirmAction.is_critical ? 'destructive' : 'default'}
+                variant={isDestructiveAction(confirmAction) ? 'destructive' : 'default'}
                 size="sm"
                 onClick={confirmExecute}
                 disabled={executing}
