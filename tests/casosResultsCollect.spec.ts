@@ -94,4 +94,30 @@ describe('casos:results — coletor de test-results → manifesto por-UC (físic
     const m = readManifest();
     expect(Object.keys(m.ucs)).toEqual(['UC-01']);
   });
+
+  // ── Onda Q2 — MERGE per-UC entre RODADAS (runners em workflows separados) ──────────
+  it('MERGE entre rodadas: UC ausente do XML atual PRESERVA veredito anterior', () => {
+    write(MANIFEST, JSON.stringify({ ucs: { 'UC-01': { verdict: 'pass', ran_at: '2026-06-01', tests: 1 } } }));
+    junit('pest.xml', suite(tcPass('UC-F01 título gerado')));
+    const out = run();
+    const m = readManifest();
+    expect(m.ucs['UC-F01'].verdict).toBe('pass'); // rodada atual entra
+    expect(m.ucs['UC-01'].verdict).toBe('pass'); // anterior preservado (runner parcial não apaga prova alheia)
+    expect(m.ucs['UC-01'].ran_at).toBe('2026-06-01');
+    expect(out).toMatch(/1 preservado/);
+  });
+
+  it('MERGE entre rodadas: UC presente no XML atual SOBRESCREVE o veredito antigo (fail novo vence pass velho)', () => {
+    write(MANIFEST, JSON.stringify({ ucs: { 'UC-01': { verdict: 'pass', ran_at: '2026-06-01', tests: 1 } } }));
+    junit('e2e.xml', suite(tcFail('UC-01 regrediu')));
+    run();
+    expect(readManifest().ucs['UC-01'].verdict).toBe('fail');
+  });
+
+  it('--no-merge: reset consciente sobrescreve o manifesto inteiro', () => {
+    write(MANIFEST, JSON.stringify({ ucs: { 'UC-01': { verdict: 'pass', ran_at: '2026-06-01', tests: 1 } } }));
+    junit('pest.xml', suite(tcPass('UC-F01 título gerado')));
+    run('--no-merge');
+    expect(Object.keys(readManifest().ucs)).toEqual(['UC-F01']); // UC-01 saiu
+  });
 });
