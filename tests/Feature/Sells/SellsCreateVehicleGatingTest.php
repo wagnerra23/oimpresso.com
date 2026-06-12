@@ -24,7 +24,7 @@ declare(strict_types=1);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse e mata o loader da suite inteira (FV-B4).
 
 function sellControllerSrc(): string
 {
