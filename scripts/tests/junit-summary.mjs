@@ -49,6 +49,10 @@ const norm = (p) => {
   if (!p) return null;
   let s = unesc(p).replace(/\\/g, '/');
   if (s.startsWith(cwdPrefix)) s = s.slice(cwdPrefix.length);
+  // Pest emite file="Path.php::it nome do teste" no <testcase> — corta o sufixo
+  // pra agregacao ser de fato POR ARQUIVO (validado no run 27415097837).
+  const sep = s.indexOf('::');
+  if (sep !== -1) s = s.slice(0, sep);
   return s;
 };
 
