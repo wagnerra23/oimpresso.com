@@ -2027,35 +2027,33 @@ function ClienteSheet({
             />
 
             <div className="flex-1 min-w-0">
-              {/* Wagner 2026-05-25 UX feedback: toggle PF/PJ duplicado removido.
-                  Toggle fantasma aqui no header só mudava state local (não persistia
-                  PATCH) · gerava confusão "qual está valendo?". Toggle REAL fica em
-                  IdentificacaoTab (`handleTipoChange` → PATCH /cliente/{id}/identificacao
-                  com autosave on blur). Aqui mantemos só o subtitle informativo. */}
-              <SheetTitle className="text-lg font-semibold leading-tight">
+              {/* Wagner UX: toggle PF/PJ duplicado removido (toggle REAL fica na
+                  IdentificacaoTab com autosave). Aqui só identidade informativa. */}
+              <SheetTitle className="text-lg font-semibold leading-tight truncate">
                 {contact?.name ?? 'Cliente'}
               </SheetTitle>
 
+              {/* Wagner 2026-06-12 — badge status (Sem OS/Ativo) movido pra ESTA linha
+                  de identidade. Antes ficava no canto direito ENCAVALADO com o X de
+                  fechar do Sheet; agora o topo-direito tem só o X. Inline-flex (não
+                  cria flex container novo) + cor tokenizada (era stone/emerald cru). */}
               <SheetDescription className="mt-0.5 text-xs">
                 {tipo === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física'}
                 {' · cadastrado '}
                 {/* Z-2.1: ContactController::index payload inclui created_at. */}
                 {relativeDate(contact?.created_at ?? null)}
+                <span
+                  className={
+                    'ml-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium align-middle ' +
+                    (contact?.status === 'idle'
+                      ? 'bg-muted text-muted-foreground border-border'
+                      : 'bg-success/10 text-success border-success/30')
+                  }
+                >
+                  {contact?.status === 'idle' ? 'Sem OS' : 'Ativo'}
+                </span>
               </SheetDescription>
             </div>
-
-            {/* Badge status -- "Ativo" se contact.status !== 'idle'; placeholder.
-                Wave G adiciona Inativo/Bloqueado via segmentStatus campo novo. */}
-            <span
-              className={
-                'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ' +
-                (contact?.status === 'idle'
-                  ? 'bg-stone-50 text-stone-700 border-stone-200 dark:bg-stone-950/40 dark:text-stone-300'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300')
-              }
-            >
-              {contact?.status === 'idle' ? 'Sem OS' : 'Ativo'}
-            </span>
           </div>
 
           {/* Botoes acao -- Imprimir + Copiloto. ADR UI-0015 (cowork canon). */}
