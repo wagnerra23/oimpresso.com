@@ -103,6 +103,10 @@ interface ClienteKpis {
   total: number;
   com_os_aberta: number;
   com_atraso: number;
+  // Onda 3 — counts reais server-side (antes estimados client-side sobre a página).
+  vips: number;
+  sem_compra_90d: number;
+  novos_mes: number;
   valor_total_aberto: number;
 }
 
@@ -687,32 +691,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     return r;
   }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
 
-  // PTDP Onda 2 — counts pros 5 KPI cards. Ativos + ComSaldo usam `kpis`
-  // reais do backend; VIPs + Sem90 + Novos vêm estimados das `rows` da página
-  // atual (Onda 3 plug backend dedicado quando volume de cadastros pedir).
-  const kpiCounts = useMemo(() => {
-    const now = Date.now();
-    const cutoff90 = now - 90 * 86400000;
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    const monthStartTs = monthStart.getTime();
-    let vipsCount = 0;
-    let sem90Count = 0;
-    let novosCount = 0;
-    for (const x of rows) {
-      if (x.vip) vipsCount++;
-      if (x.last_purchase_at) {
-        const t = new Date(x.last_purchase_at).getTime();
-        if (!Number.isNaN(t) && t < cutoff90) sem90Count++;
-      }
-      if (x.created_at) {
-        const t = new Date(x.created_at).getTime();
-        if (!Number.isNaN(t) && t >= monthStartTs) novosCount++;
-      }
-    }
-    return { vipsCount, sem90Count, novosCount };
-  }, [rows]);
+  // Onda 3 (2026-06-12) — os 5 counts dos KPI cards agora vêm TODOS reais do backend
+  // (`kpis.*`, scoped business_id). Removido o estimado client-side sobre as 50 rows da
+  // página (que mostrava "número sem prova": VIPs/Sem90/Novos da amostra, não do negócio).
 
   // KB-9.75 Slice A — reset row focus when the result set shrinks/changes.
   useEffect(() => {
@@ -1031,9 +1012,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <KpiStripClickable
           ativos={kpis?.com_os_aberta ?? 0}
           comSaldo={kpis?.com_atraso ?? 0}
-          vips={kpiCounts.vipsCount}
-          sem90={kpiCounts.sem90Count}
-          novos={kpiCounts.novosCount}
+          vips={kpis?.vips ?? 0}
+          sem90={kpis?.sem_compra_90d ?? 0}
+          novos={kpis?.novos_mes ?? 0}
           activeKey={activeKpiKey}
           onApply={applyKpiCard}
         />

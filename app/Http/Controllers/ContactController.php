@@ -633,11 +633,47 @@ class ContactController extends Controller
             ->whereIn('transactions.payment_status', ['due', 'partial'])
             ->sum(DB::raw("final_total - {$totalPaidSub}"));
 
+        // Onda 3 (2026-06-12) — counts reais server-side dos 3 KPIs que vinham
+        // estimados client-side sobre a página (50 rows): VIPs · Sem compra 90d · Novos.
+        // Fecha o "número sem prova" do placar (charter Goal "Onda 3 plug backend").
+        $vips = \Illuminate\Support\Facades\Schema::hasColumn('contacts', 'vip')
+            ? (clone $base)->where('contacts.vip', 1)->count()
+            : 0;
+
+        $novos_mes = (clone $base)
+            ->where('contacts.created_at', '>=', now()->startOfMonth())
+            ->count();
+
+        // "Sem compra 90d" (risco churn) = JÁ comprou (venda não-draft) mas NADA nos
+        // últimos 90d. Alinha com a FrescorPill (last_purchase_at = MAX(transaction_date
+        // WHERE status != 'draft')) — não conta nunca-comprou (esses são "sem histórico",
+        // não churn). Subquery scoped por business_id (Tier 0 explícito · ADR 0093).
+        $sem_compra_90d = (clone $base)
+            ->whereExists(function ($q) use ($business_id) {
+                $q->select(DB::raw(1))->from('transactions')
+                  ->whereColumn('transactions.contact_id', 'contacts.id')
+                  ->where('transactions.business_id', $business_id)
+                  ->where('transactions.type', 'sell')
+                  ->where('transactions.status', '!=', 'draft');
+            })
+            ->whereNotExists(function ($q) use ($business_id) {
+                $q->select(DB::raw(1))->from('transactions')
+                  ->whereColumn('transactions.contact_id', 'contacts.id')
+                  ->where('transactions.business_id', $business_id)
+                  ->where('transactions.type', 'sell')
+                  ->where('transactions.status', '!=', 'draft')
+                  ->where('transactions.transaction_date', '>=', now()->subDays(90));
+            })
+            ->count();
+
         return [
             'total' => (int) $total,
             'com_os_aberta' => (int) $com_os_aberta,
             'com_atraso' => (int) $com_atraso,
             'valor_total_aberto' => $valor_total_aberto,
+            'vips' => (int) $vips,
+            'sem_compra_90d' => (int) $sem_compra_90d,
+            'novos_mes' => (int) $novos_mes,
         ];
     }
 

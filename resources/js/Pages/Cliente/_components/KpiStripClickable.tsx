@@ -18,9 +18,9 @@
 //   - Constituição UI v2 · ADR UI-0013 (camada 4-Módulo)
 //   - PT-01 Slot 1 estende (não substitui PageHeader/KpiCard global)
 //
-// **Limitação atual (Onda 2):** counts de VIPs · Sem compra · Novos vêm
-// estimados das `rows` da página atual (Onda 3 plug backend real). Counts
-// de Ativos + Com saldo usam `kpis` reais já existentes.
+// **Onda 3 (2026-06-12 · fechada):** TODOS os 5 counts vêm reais do backend
+// (`kpis.*`, scoped business_id em ContactController::buildClienteIndexKpis). Antes,
+// VIPs/Sem-compra/Novos eram estimados sobre as 50 rows da página — "número sem prova".
 
 import type { ComponentType } from 'react';
 import { AlertCircle, Clock, Star, UserPlus, Users } from 'lucide-react';
@@ -52,11 +52,11 @@ export interface KpiStripClickableProps {
   ativos: number;
   /** Total real com saldo aberto (kpis.com_atraso). */
   comSaldo: number;
-  /** Estimado client-side (rows.filter vip). */
+  /** Total real VIP (kpis.vips · contacts.vip=1). */
   vips: number;
-  /** Estimado client-side (stale > 90d). */
+  /** Total real sem compra 90d / risco churn (kpis.sem_compra_90d). */
   sem90: number;
-  /** Estimado client-side (created_at >= mês atual). */
+  /** Total real novos no mês (kpis.novos_mes · created_at >= início do mês). */
   novos: number;
   /** Card ativo (null = nenhum). */
   activeKey: KpiKey | null;
