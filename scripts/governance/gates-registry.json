@@ -106,6 +106,10 @@
       "nome": "Force Clean Rebuild (one-shot)",
       "classe": "automacao"
     },
+    "foundation-ratchet.yml": {
+      "nome": "Foundation ratchet (advisory · catracas só-diminui da fundação de testes — SDD FV-Q1)",
+      "classe": "gate"
+    },
     "governance-drift.yml": {
       "nome": "Governance Drift Framework — ADR 0216",
       "classe": "gate"
