@@ -110,6 +110,10 @@
       "nome": "Foundation ratchet (advisory · catracas só-diminui da fundação de testes — SDD FV-Q1)",
       "classe": "gate"
     },
+    "gate-selftest.yml": {
+      "nome": "Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6)",
+      "classe": "meta"
+    },
     "governance-drift.yml": {
       "nome": "Governance Drift Framework — ADR 0216",
       "classe": "gate"
