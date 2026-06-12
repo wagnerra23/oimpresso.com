@@ -1,10 +1,12 @@
 ---
-page: resources/js/Pages/StockAdjustment/Index.tsx
+page: /stock-adjustments
+component: resources/js/Pages/StockAdjustment/Index.tsx
 tela: stock_adjustment/index
 tipo: LIST
 modulo: Inventory / StockAdjustment
 runbook: memory/requisitos/Inventory/RUNBOOK-stock-adjustment-index.md
-status: F3 implementado
+status: draft
+status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/visual-source.html

@@ -1,10 +1,12 @@
 ---
-page: resources/js/Pages/Purchase/Edit.tsx
+page: /purchases/{id}/edit
+component: resources/js/Pages/Purchase/Edit.tsx
 tela: purchase/edit
 tipo: FORM (EDIT)
 modulo: Purchase
 runbook: memory/requisitos/Inventory/RUNBOOK-purchase-edit.md
-status: F3 implementado
+status: draft
+status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/prototipos/compras/visual-source.html

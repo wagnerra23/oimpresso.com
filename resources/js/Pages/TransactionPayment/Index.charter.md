@@ -1,3 +1,9 @@
+---
+page: /payments/v2
+component: resources/js/Pages/TransactionPayment/Index.tsx
+status: draft
+---
+
 # Charter — `TransactionPayment/Index.tsx`
 
 > Rota Inertia: `/payments/v2` · Controller: `TransactionPaymentController::indexInertia` · Wave Blade T1 Migration B (2026-05-17).
