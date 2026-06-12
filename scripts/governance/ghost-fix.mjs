@@ -9,6 +9,8 @@
 //
 // ESCOPO HARDCODED: memory/requisitos/**/*.md — só a forma 'Modules/<Nome>' (mesma
 // token-boundary do knowledge-drift.mjs). Forma namespace 'Modules\<Nome>' fica fora do v1.
+// EXCLUSÃO HARD **/adr/**: ADR é registro histórico — referência a nome antigo é fato,
+// não ghost; reprovação auditor fase 1 2026-06-12. Ver skip no loop principal.
 //
 // Uso:
 //   node scripts/governance/ghost-fix.mjs            # dry-run (default) — relatório, 0 writes
@@ -64,10 +66,15 @@ const REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)((?:\/[A-Za-z0-9_.\-*{}]+)*)/g;
 
 const perModule = new Map(); // <Mod de memory/requisitos> -> stats
 const unknownGhosts = new Map(); // nome -> count (ghost sem entry no map — fila)
-let filesChanged = 0, totalMapped = 0, totalExcluded = 0, pathMissing = 0;
+let filesChanged = 0, totalMapped = 0, totalExcluded = 0, pathMissing = 0, adrSkipped = 0;
 
 for (const file of allMd(SCOPE)) {
   const rel = file.slice(ROOT.length + 1).split(sep).join('/');
+  // EXCLUSÃO HARD **/adr/**: ADR é registro histórico — referência a nome antigo
+  // num ADR (ex.: tabela De→Para de um rename) é FATO, não ghost. Codemod NUNCA
+  // reescreve ADR (append-only). Razão: reprovação auditor fase 1 2026-06-12
+  // (corrupção objetiva em memory/requisitos/MemCofre/adr/0008-rename-docvault-para-memcofre.md).
+  if (rel.includes('/adr/')) { adrSkipped++; continue; }
   const parts = rel.split('/');
   const mod = parts.length > 3 ? parts[2] : '(raiz)'; // memory/requisitos/<Mod>/... vs arquivo solto na raiz
   const txt = readFileSync(file, 'utf8');
@@ -111,6 +118,7 @@ const summary = {
   occurrences_unknown: [...unknownGhosts.values()].reduce((a, b) => a + b, 0),
   files_with_changes: filesChanged,
   mapped_target_subpath_missing: pathMissing,
+  adr_files_skipped: adrSkipped,
   unknown_names: Object.fromEntries(unknownGhosts),
 };
 
@@ -127,5 +135,6 @@ console.log('  ' + '─'.repeat(78));
 console.log(`\n  Ocorrências mapeáveis (Classe A):   ${totalMapped} em ${filesChanged} arquivos ${WRITE ? '— APLICADO' : '— nada escrito (dry-run)'}`);
 console.log(`  Excluídas pelo map (B/C/ambíguo):   ${totalExcluded}  → ficam pra lápide/reescrita/fila humana`);
 console.log(`  Ghosts NÃO catalogados no map:      ${summary.occurrences_unknown}  ${summary.occurrences_unknown ? JSON.stringify(summary.unknown_names) : ''}`);
-console.log(`  Subpath inexistente no destino:     ${pathMissing}  (nome corrige, mas o path interno precisa de revisão)\n`);
+console.log(`  Subpath inexistente no destino:     ${pathMissing}  (nome corrige, mas o path interno precisa de revisão)`);
+console.log(`  ADRs pulados (**/adr/** hard-skip): ${adrSkipped}  (ADR é registro histórico — nunca reescrito)\n`);
 if (!WRITE) console.log('  Aplicação real: --write (FASE 2 — só após Wagner aprovar governance/ghost-rename-map.json)\n');

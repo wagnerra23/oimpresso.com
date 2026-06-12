@@ -42,7 +42,7 @@ A relação é declarada no topo do `.tsx` via comentário `@docvault`:
 //   stories: US-PONTO-003, US-PONTO-004
 //   rules: R-PONTO-002, R-PONTO-005
 //   adrs: 0001, 0003
-//   tests: Modules/Ponto/Tests/Feature/PontoEspelhoTest
+//   tests: Modules/PontoWr2/Tests/Feature/PontoEspelhoTest
 ```
 
 Comando `php artisan docvault:sync-pages` varre arquivos, atualiza `docs_pages`.
@@ -65,7 +65,7 @@ memory/requisitos/{Modulo}/adr/
 Cada `R-*` em `SPEC.md` tem campo `**Testado em:**` que aponta pra arquivo+método:
 
 ```
-**Testado em:** `Modules/Ponto/Tests/Feature/PontoEspelhoTest::test_totalizador_dia`
+**Testado em:** `Modules/PontoWr2/Tests/Feature/PontoEspelhoTest::test_totalizador_dia`
 ```
 
 Comando `php artisan docvault:gen-test R-PONTO-002` lê o bloco Gherkin e gera stub PHPUnit/Pest com `$this->markTestIncomplete('implementar')`. Dev preenche o corpo.

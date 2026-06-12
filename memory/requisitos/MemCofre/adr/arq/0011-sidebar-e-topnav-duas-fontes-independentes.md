@@ -89,7 +89,7 @@ return [
 
 ## Piloto
 
-`Modules/Ponto/Resources/menus/topnav.php` com 10 items. 10 pages PontoWR2 (Dashboard, Espelho, Intercorrencias, Aprovacoes, BancoHoras, Colaboradores, Configuracoes, Escalas, Importacoes, Relatorios) consumem via `useModuleNav('PontoWr2')` e passam no `<AppShell moduleNav={...}>`.
+`Modules/PontoWr2/Resources/menus/topnav.php` com 10 items. 10 pages PontoWR2 (Dashboard, Espelho, Intercorrencias, Aprovacoes, BancoHoras, Colaboradores, Configuracoes, Escalas, Importacoes, Relatorios) consumem via `useModuleNav('PontoWr2')` e passam no `<AppShell moduleNav={...}>`.
 
 ## Alternativas consideradas
 
@@ -106,7 +106,7 @@ return [
 - [x] `useModuleNav()` hook
 - [x] `ModuleTopNav.tsx` componente
 - [x] `AppShell` aceita prop `moduleNav`
-- [x] `Modules/Ponto/Resources/menus/topnav.php` criado
+- [x] `Modules/PontoWr2/Resources/menus/topnav.php` criado
 - [x] 10 pages PontoWR2 aplicadas
 - [x] Build OK
 - [ ] Portar `nav.blade.php` dos outros 13 módulos (conforme forem migrando telas pra React)

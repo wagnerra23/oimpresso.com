@@ -138,7 +138,7 @@ export default function DashboardIndex({...}: Props) {
 - [x] `HandleInertiaRequests::share()` expõe `shell.topnavs`
 - [x] `SharedProps['shell']['topnavs']` tipado em TypeScript
 - [x] `useModuleNav()` atualizado pra preferir `topnavs` + fallback
-- [x] `Modules/Ponto/Resources/menus/topnav.php` criado (piloto, 10 items)
+- [x] `Modules/PontoWr2/Resources/menus/topnav.php` criado (piloto, 10 items)
 - [x] 10 pages PontoWR2 migradas pra usar `useModuleNav('PontoWr2')`
 - [ ] Portar `nav.blade.php` dos outros 13 módulos pra formato declarativo (sessões futuras)
 - [ ] Audit MemCofre ganha check `C16_HAS_TOPNAV` (opcional)

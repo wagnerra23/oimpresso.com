@@ -79,11 +79,11 @@ Comparação SOTA público (2026): Mem0/Letta/LangMem fazem auto-extração de f
 
 ## Plano de implementação
 
-1. `Modules/Jana/Ai/Agents/SinteseSemanalAgent.php` (instructions + prompt builder)
-2. `Modules/Jana/Services/MemoriaAutonoma/SinteseSemanalService.php` (coleta inputs + chama agent + salva)
-3. `Modules/Jana/Console/Commands/SinteseSemanalCommand.php` (CLI wrapper)
+1. `Modules/Copiloto/Ai/Agents/SinteseSemanalAgent.php` (instructions + prompt builder)
+2. `Modules/Copiloto/Services/MemoriaAutonoma/SinteseSemanalService.php` (coleta inputs + chama agent + salva)
+3. `Modules/Copiloto/Console/Commands/SinteseSemanalCommand.php` (CLI wrapper)
 4. `app/Console/Kernel.php` — schedule `->fridays()->at('18:00')` ambiente live
-5. `Modules/Jana/Tests/Feature/SinteseSemanalCommandTest.php` (golden + dry-run + idempotência)
+5. `Modules/Copiloto/Tests/Feature/SinteseSemanalCommandTest.php` (golden + dry-run + idempotência)
 
 ## Refs
 

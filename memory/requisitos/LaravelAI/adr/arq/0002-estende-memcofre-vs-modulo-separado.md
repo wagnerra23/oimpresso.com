@@ -29,7 +29,7 @@ Sobreposição grande. Pergunta: **construir LaravelAI separado ou estender MemC
 Estrutura:
 
 ```
-Modules/SRS/                    ← já existe; mantém estrutura
+Modules/MemCofre/                    ← já existe; mantém estrutura
 ├── (tabelas docs_*)
 ├── ChatAssistant.php                ← mantém (fallback offline)
 ├── MemoryReader.php                 ← mantém

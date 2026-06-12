@@ -77,7 +77,7 @@ Tudo que era do ADR arq/0009 foi removido:
 - `app/Services/LegacyMenuAdapter::buildTopNavs()` + `resolveLabel()` (métodos removidos)
 - `app/Services/ShellMenuBuilder::buildTopNavs()` (método removido)
 - `app/Http/Middleware/HandleInertiaRequests::share()['shell']['topnavs']` (prop removida)
-- `Modules/Ponto/Resources/menus/topnav.php` (arquivo removido)
+- `Modules/PontoWr2/Resources/menus/topnav.php` (arquivo removido)
 - Prop `moduleNav` de `AppShell.tsx` (removida)
 - 10 pages PontoWR2: imports e chamadas de `useModuleNav` limpos
 

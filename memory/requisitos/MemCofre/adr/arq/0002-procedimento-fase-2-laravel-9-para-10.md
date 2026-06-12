@@ -105,8 +105,8 @@ php artisan cache:clear
 php artisan view:clear
 
 # Testes
-vendor/bin/phpunit Modules/Ponto/Tests/Feature/MultiTenantIsolationTest.php
-vendor/bin/phpunit Modules/Ponto/Tests/Feature/SpatiePermissionsTest.php
+vendor/bin/phpunit Modules/PontoWr2/Tests/Feature/MultiTenantIsolationTest.php
+vendor/bin/phpunit Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest.php
 
 # Audit tem que ficar ≥ baseline (MemCofre 97, outros 88)
 php artisan docvault:audit-module --all
