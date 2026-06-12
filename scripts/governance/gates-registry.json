@@ -230,6 +230,10 @@
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
     },
+    "sdd-scorecard.yml": {
+      "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",
+      "classe": "meta"
+    },
     "stylelint-gate.yml": {
       "nome": "Stylelint CSS anti-drift (G5 · ADR 0209)",
       "classe": "gate"
