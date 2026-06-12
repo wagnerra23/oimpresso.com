@@ -271,7 +271,7 @@ export interface ClienteIndexPageProps {
 }
 
 type StatusFilter = '' | 'late' | 'active' | 'idle';
-type SortKey = 'name' | 'total_os' | 'valor_aberto' | 'last_os_at';
+type SortKey = 'recent' | 'name' | 'total_os' | 'valor_aberto' | 'last_os_at';
 type SortDir = 'asc' | 'desc';
 
 const STATUS_FILTER_STORAGE_KEY = 'oimpresso.cliente.lastStatus';
@@ -424,7 +424,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     }
     router.reload({
       only: ['customers'],
-      data: { q: search || undefined, page: 1, per_page: perPageRef.current },
+      data: { q: search || undefined, page: 1, per_page: perPageRef.current, sort: sortRef.current.key, dir: sortRef.current.dir },
       preserveScroll: true,
       preserveState: true,
     });
@@ -438,8 +438,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   // ao trocar página + mantém o tamanho de página ao buscar).
   const perPageRef = useRef(perPage);
   perPageRef.current = perPage;
-  const [sortKey, setSortKey] = useState<SortKey>('name');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  // Default 'recent' (id desc) — job-aligned, sem lixo alfabético de símbolo no topo.
+  const [sortKey, setSortKey] = useState<SortKey>('recent');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  // Lê o sort atual nos reloads sem virar dep (igual perPageRef).
+  const sortRef = useRef({ key: sortKey, dir: sortDir });
+  sortRef.current = { key: sortKey, dir: sortDir };
   const [openContactId, setOpenContactId] = useState<number | null>(null);
   // 2026-06-08 (Wagner "arrumar botões da contacts") — aba-alvo do drawer ao abrir.
   // Consolidação ADR 0179: o menu ⋮ da linha não manda mais pra Blade legacy
@@ -773,18 +777,21 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [paletteOpen, cheatOpen, filteredRows, focusedIndex, openDrawer]);
 
+  // Sort server-side (bug Wagner): antes só mexia state e NÃO re-buscava (cabeçalho
+  // morto, igual paginação). Agora manda sort/dir pro backend (whitelist) e reseta
+  // pra página 1. name=asc default; demais (recent/total_os/valor_aberto/last_os_at)=desc.
   const handleSort = useCallback((key: SortKey) => {
-    setSortKey((prevKey) => {
-      if (key === prevKey) return prevKey;
-      return key;
+    const newDir: SortDir = key === sortKey
+      ? (sortDir === 'asc' ? 'desc' : 'asc')
+      : (key === 'name' ? 'asc' : 'desc');
+    setSortKey(key);
+    setSortDir(newDir);
+    setPage(1);
+    router.reload({
+      only: ['customers'],
+      data: { q: search || undefined, page: 1, per_page: perPageRef.current, sort: key, dir: newDir },
     });
-    setSortDir((prevDir) => {
-      if (key === sortKey) {
-        return prevDir === 'asc' ? 'desc' : 'asc';
-      }
-      return key === 'last_os_at' || key === 'valor_aberto' ? 'desc' : 'asc';
-    });
-  }, [sortKey]);
+  }, [sortKey, sortDir, search]);
 
   // Wave G — pills array removido (substituído por 6 FilterDropdown — ver nav acima).
   // KPIs/contadores ficam no header (subtítulo inline) + count "X de Y" ao lado dos filtros.
@@ -1368,7 +1375,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 setPage(p);
                 router.reload({
                   only: ['customers'],
-                  data: { q: search || undefined, page: p, per_page: perPage },
+                  data: { q: search || undefined, page: p, per_page: perPage, sort: sortRef.current.key, dir: sortRef.current.dir },
                 });
               }}
               onPerPageChange={(n) => {
@@ -1376,7 +1383,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 setPage(1);
                 router.reload({
                   only: ['customers', 'kpis', 'tab_counts'],
-                  data: { q: search || undefined, page: 1, per_page: n },
+                  data: { q: search || undefined, page: 1, per_page: n, sort: sortRef.current.key, dir: sortRef.current.dir },
                 });
               }}
             />

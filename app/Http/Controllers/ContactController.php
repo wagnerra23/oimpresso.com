@@ -881,9 +881,44 @@ class ContactController extends Controller
             });
         }
 
+        // Sort server-side (ligado 2026-06-12 · bug Wagner "alfabético → lixo de
+        // símbolo primeiro"). Default job-aligned = RECENTES (id desc) em vez de
+        // alfabético (que jogava ".COM"/"@"/"&"/"+" no topo). Whitelist anti-injeção;
+        // colunas agregadas (count/sum/max de transactions) via leftJoinSub 1:1.
+        $sortInput = (string) request()->input('sort', 'recent');
+        $hasDir = request()->filled('dir');
+        $dir = strtolower((string) request()->input('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $AGG = ['total_os', 'valor_aberto', 'last_os_at'];
+        $DIRECT = ['recent' => 'contacts.id', 'name' => 'contacts.name'];
+
+        if (in_array($sortInput, $AGG, true)) {
+            $totalPaidSub = '(SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)';
+            $aggSub = Transaction::query()
+                ->where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->groupBy('contact_id')
+                ->select(
+                    'contact_id',
+                    DB::raw('COUNT(*) AS total_os'),
+                    DB::raw('MAX(transaction_date) AS last_os_at'),
+                    DB::raw("SUM(CASE WHEN payment_status IN ('due','partial') THEN (final_total - {$totalPaidSub}) ELSE 0 END) AS valor_aberto"),
+                );
+            // $sortInput é whitelisted (in_array $AGG) → seguro no orderByRaw.
+            $contactsQuery->leftJoinSub($aggSub, 'cli_agg', 'cli_agg.contact_id', '=', 'contacts.id')
+                ->orderByRaw("cli_agg.{$sortInput} IS NULL")   // sem histórico por último
+                ->orderBy("cli_agg.{$sortInput}", $dir);
+        } else {
+            $col = $DIRECT[$sortInput] ?? $DIRECT['recent'];
+            // Default dir: recent=desc (mais novo), name=asc (alfabético natural) salvo dir explícito.
+            if (! $hasDir) {
+                $dir = $col === 'contacts.name' ? 'asc' : 'desc';
+            }
+            $contactsQuery->orderBy($col, $dir);
+        }
+
         $contacts = $contactsQuery
             ->select($selectCols)
-            ->orderBy('contacts.name', 'asc')
+            ->orderBy('contacts.id', 'desc')   // tie-breaker determinístico (paginação estável)
             ->paginate($perPage)
             ->withQueryString();
 
