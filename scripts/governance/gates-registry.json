@@ -198,6 +198,10 @@
       "nome": "PHPStan / Larastan (ADR 0208)",
       "classe": "gate"
     },
+    "protection-drift.yml": {
+      "nome": "Protection Drift — baseline de required checks + watchdog de staleness (advisory PERENE · cron diário 10:10 UTC — GT-G4, ADR 0275 §5/§3)",
+      "classe": "meta"
+    },
     "quick-sync.yml": {
       "nome": "Quick Sync (manual escape — auto-deploy agora é deploy.yml)",
       "classe": "deploy"
