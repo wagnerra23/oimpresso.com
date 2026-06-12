@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "adr": "0273-referencia-adr-por-slug-alias-map-13-colisoes",
+    "adr": "0274-referencia-adr-por-slug-alias-map-13-colisoes",
     "rule": "Referência canônica a ADR é o SLUG completo (NNNN-titulo). Número cru (ex.: 'ADR 0178') só é não-ambíguo quando o número NÃO consta em 'collisions' abaixo. Doc/ADR novo citando número colidido SEM slug = violação (gate em fase 2, nasce ADVISORY).",
     "derived_from": "scripts/governance/adr-index-generate.mjs — seção 'Colisões de número (auto-detectadas)' do _INDEX-GENERATED.md",
     "verify": "node scripts/governance/adr-index-generate.mjs | sed -n '/Colisões de número/,/^$/p' — números e slugs devem bater 1:1 com 'collisions'",
