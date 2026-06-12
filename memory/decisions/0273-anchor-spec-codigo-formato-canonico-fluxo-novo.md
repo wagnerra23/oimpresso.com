@@ -3,7 +3,7 @@ slug: 0273-anchor-spec-codigo-formato-canonico-fluxo-novo
 number: 273
 title: "Anchor spec↔código — formato canônico do campo 'Implementado em', sentinela _pendente_ de 1ª classe, e regra do fluxo novo"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

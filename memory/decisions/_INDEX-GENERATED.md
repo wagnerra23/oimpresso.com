@@ -7,7 +7,7 @@
 ## Resumo
 - **278** arquivos · **263** números únicos · máx **0273**
 - **ADRs ATIVOS (lifecycle ativo): 238** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 215 · proposto 37 · superseded 23 · (vazio) 2 · rascunho 1
+- Por status: aceito 216 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
 - Por lifecycle: ativo 238 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -309,4 +309,4 @@ _(íntegra)_
 | 0270 | aceito | ativo | decision | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
 | 0271 | aceito | ativo | decision | Revisão dos 64 gates CI — estado real dos required (corrige drift da 0261), font |
 | 0272 | aceito | ativo | decision | Árvore canônica de componentes — camadas UI-0013 viram pastas enforçadas (allowl |
-| 0273 | proposto | ativo | decision | Anchor spec↔código — formato canônico do campo 'Implementado em', sentinela _pen |
+| 0273 | aceito | ativo | decision | Anchor spec↔código — formato canônico do campo 'Implementado em', sentinela _pen |
