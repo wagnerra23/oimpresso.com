@@ -20,5 +20,6 @@ return [
         ['label' => 'governance::governance.menu.audit',     'href' => '/governance/audit',    'icon' => 'Search',          'can' => 'governance.audit.view'],
         ['label' => 'governance::governance.menu.drift',     'href' => '/governance/drift',    'icon' => 'AlertTriangle',   'can' => 'governance.dashboard.view'],
         ['label' => 'Module Grades',                          'href' => '/governance/module-grades', 'icon' => 'Gauge',     'can' => 'governance.dashboard.view'],
+        ['label' => 'DS Rollout',                             'href' => '/governance/ds-rollout',    'icon' => 'Waves',     'can' => 'governance.dashboard.view'],
     ],
 ];
