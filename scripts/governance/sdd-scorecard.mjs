@@ -17,8 +17,11 @@
 // Uso (na raiz do repo):
 //   node scripts/governance/sdd-scorecard.mjs            # mede + escreve governance/sdd-scorecard.json
 //   node scripts/governance/sdd-scorecard.mjs --json     # mede + imprime no stdout (não escreve)
-//   node scripts/governance/sdd-scorecard.mjs --ratchet  # compara com o commitado; DESARMADO (exit 0)
-//                                                        # armar: SDD_RATCHET_ARM=1 (só após ADR do scorecard)
+//   node scripts/governance/sdd-scorecard.mjs --ratchet  # compara com governance/sdd-scorecard-baseline.json (GT-G3):
+//                                                        # métrica ARMADA (armed:true no baseline) que regrediu = exit 1;
+//                                                        # desarmada que regrediu = warn (exit 0). ADR 0275 §3: métrica só
+//                                                        # arma após 3 medições válidas consecutivas da fonte real.
+//                                                        # SDD_RATCHET_ARM=1 trata todas como armadas (simulação/selftest).
 // Node puro (fs + execSync). Sem deps, sem DB, sem PHP. Idioma: clone de knowledge-drift.mjs.
 
 import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
@@ -27,6 +30,7 @@ import { join } from 'node:path';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'governance', 'sdd-scorecard.json');
+const BASELINE = join(ROOT, 'governance', 'sdd-scorecard-baseline.json');
 const MODE_JSON = process.argv.includes('--json');
 const MODE_RATCHET = process.argv.includes('--ratchet');
 const ARMED = process.env.SDD_RATCHET_ARM === '1';
@@ -93,7 +97,10 @@ function buildScorecard() {
       determinismo: 'sem timestamps/sha no corpo — re-run sem mudança no repo = diff vazio',
       composta: 'v1 (fontes parciais) ≠ v2 (10/10 vivas) — regimes não comparáveis; composta NÃO é calculada enquanto houver not_yet_measured',
       anchor_coverage_regra: 'numerador = campos `**Implementado em:**` sem placeholder (TODO/_[path]_/_pendente_/a criar/_xx_) com ≥1 path existente no disco; denominador = headings `US-XXX-NNN` nos 57 SPECs',
-      ratchet: { armed: false, como_armar: 'SDD_RATCHET_ARM=1 node scripts/governance/sdd-scorecard.mjs --ratchet — armar SÓ via calendário de promoções do ADR do scorecard (GT-G1)' },
+      ratchet: {
+        baseline: 'governance/sdd-scorecard-baseline.json — armed POR MÉTRICA (ADR 0275 §3: arma após 3 medições válidas consecutivas da fonte real; armar/desarmar/piorar = PR editando o baseline, diff visível)',
+        simulacao: 'SDD_RATCHET_ARM=1 node scripts/governance/sdd-scorecard.mjs --ratchet — trata todas as medidas como armadas (selftest local)',
+      },
     },
     metrics: {
       anchor_coverage: {
@@ -132,20 +139,29 @@ function buildScorecard() {
   };
 }
 
-// ── ratchet (preparado, DESARMADO) ──────────────────────────────────────────
+// ── ratchet vs baseline VERSIONADO (GT-G3 meta-catraca) ─────────────────────
+// Compara a medição ATUAL com governance/sdd-scorecard-baseline.json — arquivo
+// commitado: piorar exige editar o baseline em diff VISÍVEL no PR (plano §2
+// GARANTIDA). Armed é POR MÉTRICA no baseline (ADR 0275 §3 — só arma após 3
+// medições válidas consecutivas da fonte real): armada que regrediu = exit 1;
+// desarmada que regrediu = warn (reporta, não pune).
 function ratchet(current) {
-  if (!existsSync(OUT)) { console.log('  --ratchet: sem baseline commitado em governance/sdd-scorecard.json — nada a comparar.'); return 0; }
-  const base = JSON.parse(readFileSync(OUT, 'utf8'));
-  const violations = [];
+  if (!existsSync(BASELINE)) { console.log('  --ratchet: sem baseline em governance/sdd-scorecard-baseline.json — nada a comparar.'); return 0; }
+  const base = JSON.parse(readFileSync(BASELINE, 'utf8'));
+  const red = [], warn = [];
   for (const [name, m] of Object.entries(current.metrics)) {
     const b = base.metrics?.[name];
-    if (!b || b.status !== 'measured' || m.status !== 'measured') continue;
-    if (m.direction === 'down' && m.value > b.value) violations.push(`${name}: ${b.value} → ${m.value} (só pode DESCER)`);
-    if (m.direction === 'up' && m.value < b.value) violations.push(`${name}: ${b.value} → ${m.value} (só pode SUBIR)`);
+    if (!b || typeof b.value !== 'number' || m.status !== 'measured') continue;
+    const worse = m.direction === 'down' ? m.value > b.value : m.value < b.value;
+    if (!worse) continue;
+    const msg = `${name}: baseline ${b.value} → ${m.value} (${m.direction === 'down' ? 'só pode DESCER' : 'só pode SUBIR'})`;
+    if (b.armed === true || ARMED) red.push(msg); else warn.push(msg);
   }
-  if (!violations.length) { console.log('  --ratchet: nenhuma regressão vs baseline commitado. ✓'); return 0; }
-  for (const v of violations) console.log(`  🔴 RATCHET: ${v}`);
-  if (!ARMED) { console.log('  (desarmado — exit 0; armar via SDD_RATCHET_ARM=1 quando o ADR do scorecard aprovar a promoção)'); return 0; }
+  if (!red.length && !warn.length) { console.log('  --ratchet: nenhuma regressão vs governance/sdd-scorecard-baseline.json. ✓'); return 0; }
+  for (const v of warn) console.log(`  ⚠️ RATCHET (desarmada — reporta, não pune · ADR 0275 §3): ${v}`);
+  for (const v of red) console.log(`  🔴 RATCHET (ARMADA): ${v}`);
+  if (!red.length) return 0;
+  console.log('  Piora intencional? Edite governance/sdd-scorecard-baseline.json no MESMO PR (diff visível) citando ADR 0275.');
   return 1;
 }
 
