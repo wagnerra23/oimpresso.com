@@ -424,14 +424,20 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     }
     router.reload({
       only: ['customers'],
-      data: { q: search || undefined, page: 1 },
+      data: { q: search || undefined, page: 1, per_page: perPageRef.current },
       preserveScroll: true,
       preserveState: true,
     });
   }, [search]);
 
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(25);
+  // Default 50 = default do backend (ContactController per_page). Antes era 25 e
+  // o placar mostrava "/ N" do servidor (50) divergindo do dropdown — bug Wagner.
+  const [perPage, setPerPage] = useState(50);
+  // Lê o perPage atual dentro do effect de busca sem virar dep (evita reload duplo
+  // ao trocar página + mantém o tamanho de página ao buscar).
+  const perPageRef = useRef(perPage);
+  perPageRef.current = perPage;
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [openContactId, setOpenContactId] = useState<number | null>(null);
@@ -1346,8 +1352,31 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           </div>
 
           {meta && meta.total > 0 && (
-            <Pagination meta={meta} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+            <Pagination
+              meta={meta}
+              perPage={perPage}
+              onPageChange={(p) => {
+                // Antes só atualizava o state (não buscava) → setas mortas. Agora
+                // manda page pro servidor (paginate() lê da query) — bug Wagner.
+                setPage(p);
+                router.reload({
+                  only: ['customers'],
+                  data: { q: search || undefined, page: p, per_page: perPage },
+                });
+              }}
+              onPerPageChange={(n) => {
+                setPerPage(n);
+                setPage(1);
+                router.reload({
+                  only: ['customers', 'kpis', 'tab_counts'],
+                  data: { q: search || undefined, page: 1, per_page: n },
+                });
+              }}
+            />
           )}
+          {/* Clearance pro FAB de atalhos (fixed bottom-4 right-4) não cobrir a
+              paginação quando rolado até o fim — bug "desalinhado" Wagner. */}
+          <div aria-hidden className="h-14" />
         </Deferred>
       </div>
 
