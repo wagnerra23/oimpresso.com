@@ -157,7 +157,7 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 ### US-VEST-009 · Sidebar/topnav adaptado por monitor 1280px `live`
 
 > **Área:** UX
-> **Implementado em:** [`Modules/Vestuario/Http/Controllers/DataController.php`](../../../Modules/Vestuario/Http/Controllers/DataController.php) **(a criar — hoje hooks vivem em DataController genérico via session)**
+> **Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: [`Modules/Vestuario/Http/Controllers/DataController.php`](../../../Modules/Vestuario/Http/Controllers/DataController.php) **(a criar — hoje hooks vivem em DataController genérico via session)**
 
 **Definition of Done (em prod, em forma genérica):**
 - [x] Locale pt-BR DataTables global

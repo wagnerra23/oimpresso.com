@@ -1004,7 +1004,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** `MeilisearchDriver` retornar score composto (relevance × 0.6 + recency × 0.3 com half-life 90d + importance × 0.1) com decay rate 0 pra ADR `lifecycle: accepted` e 0.5 pra `historical`/superseded
 **Para** documentos canônicos recentes vencerem antigos no recall — fechando gap Knowledge R5 (0%→75%) que hoje mistura regras vigentes com revogadas em queries multi-dia
 
-**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` — novo método `applyTemporalScoring()` aplicado após reranker (US-COPI-107) na chain hybrid recall
+**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` · `applyTemporalScoring()` · verificado@23392db (2026-06-12)
 
 **Definition of Done:**
 - [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
