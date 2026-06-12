@@ -1,6 +1,6 @@
 ---
-slug: 0273-referencia-adr-por-slug-alias-map-13-colisoes
-number: 273
+slug: 0274-referencia-adr-por-slug-alias-map-13-colisoes
+number: 274
 title: "Referência canônica a ADR = SLUG completo (NNNN-titulo) + alias map das 13 colisões de número — sem renumerar (append-only)"
 type: adr
 status: proposto
@@ -22,7 +22,7 @@ related:
   - 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
 ---
 
-# ADR 0273 — Referência canônica a ADR por SLUG completo + alias map das 13 colisões
+# ADR 0274 — Referência canônica a ADR por SLUG completo + alias map das 13 colisões
 
 > Frente KL-B1 da Semana 0 do plano [2026-06-12-plano-reestruturacao-sdd-ondas-paralelas](../sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md) (§1 "13 colisões ADR → referência canônica por slug + alias map (sem violar append-only)" + §4 frente KL). Origem: [audit SDD 2026-06-12](../sessions/2026-06-12-audit-sdd-pesquisa-reclassificacao.md).
 
