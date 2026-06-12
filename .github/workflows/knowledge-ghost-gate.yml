@@ -1,0 +1,47 @@
+name: Knowledge Ghost Gate (advisory)
+
+# Catraca anti-ghost — KL-A2 do plano SDD (memory/sessions/2026-06-12-plano-
+# reestruturacao-sdd-ondas-paralelas.md, Semana 0, frente KL).
+#
+# ADVISORY: nasce fora dos required (regra do projeto: gate novo nunca nasce
+# required). Vermelho e VISIVEL mas nao bloqueia merge ate promocao via
+# calendario (max 1 promocao/semana, criterios no ADR do scorecard).
+#
+# DIFF-ONLY por construcao: o baseline por modulo em
+# governance/knowledge-ghosts-baseline/ congela os ghosts LEGADOS (freeze
+# 2026-06-12: 39 modulos citantes / 27 nomes). O --check so falha se o PR
+# introduz nome-fantasma NOVO (doc citando Modules/<X> inexistente) fora do
+# baseline. Remover entrada do baseline = so diminui (ratchet); --write-baseline
+# recusa absorver ghost novo.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/requisitos/**'
+      - 'governance/knowledge-ghosts-baseline/**'
+      - 'scripts/governance/knowledge-drift.mjs'
+      - '.github/workflows/knowledge-ghost-gate.yml'
+      # Deletar/renomear modulo transforma citacoes vivas em ghosts:
+      - 'Modules/*/module.json'
+
+concurrency:
+  group: knowledge-ghost-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ghost-check:
+    name: anti-ghost ratchet (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Sem mascara de erro (precedente mutation-gate): se quebrar, fica
+      # vermelho visivel — advisory porque NAO e required, nao porque se esconde.
+      - name: knowledge-drift --check contra baseline por modulo
+        run: node scripts/governance/knowledge-drift.mjs --check --baseline governance/knowledge-ghosts-baseline
