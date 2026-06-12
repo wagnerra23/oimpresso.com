@@ -110,9 +110,9 @@ const BLOCO_C: Array<{ id: string; entrega: ReactNode; teste: ReactNode }> = [
 
 const MEDICAO_REAL: Array<{ item: ReactNode; estado: ReactNode; estadoTone: 'pos' | 'neg'; evidencia: ReactNode }> = [
   { item: <><b>Componentes do DS</b></>, estado: <>✓ usa</>, estadoTone: 'pos', evidencia: <><code>Input · Button · Label · Select · Card · Textarea</code> de <code>@/Components/ui</code> + <code>AppShellV2</code></> },
-  { item: <><b>Cor por token</b></>, estado: <>✗ crua</>, estadoTone: 'neg', evidencia: <><code>bg-stone-50 · text-stone-900 · border-stone-200 · text-rose-700</code> — Tailwind cru (stone/rose), não token semântico</> },
+  { item: <><b>Cor por token</b></>, estado: <>✗ crua</>, estadoTone: 'neg', evidencia: <><code>bg-stone-* · text-stone-* · border-stone-* · text-rose-*</code> — Tailwind cru (stone/rose), não token semântico</> },
   { item: <><b>PageHeader</b></>, estado: <>✗ à mão</>, estadoTone: 'neg', evidencia: <>header <code>sticky</code> hand-rolled, mesmo existindo <code>shared/PageHeader.tsx</code></> },
-  { item: <><b>Checkbox</b></>, estado: <>✗ cru</>, estadoTone: 'neg', evidencia: <><code>&lt;input type=checkbox className="rounded border-stone-300"&gt;</code>, existindo <code>ui/checkbox.tsx</code></> },
+  { item: <><b>Checkbox</b></>, estado: <>✗ cru</>, estadoTone: 'neg', evidencia: <><code>&lt;input type=checkbox className="rounded border-stone-*"&gt;</code>, existindo <code>ui/checkbox.tsx</code></> },
 ]
 
 const PROOFS: Array<{ icon: ReactNode; title: string; body: ReactNode }> = [

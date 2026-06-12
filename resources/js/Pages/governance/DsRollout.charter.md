@@ -3,7 +3,7 @@ page: /governance/ds-rollout
 component: resources/js/Pages/governance/DsRollout.tsx
 owner: wagner
 status: draft
-last_validated: 2026-06-12
+last_validated: "2026-06-12"
 parent_module: Governance
 related_adrs: [189, 190, 209, 239, 240, 114]
 tier: A
