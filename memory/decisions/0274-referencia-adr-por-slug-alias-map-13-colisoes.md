@@ -3,7 +3,7 @@ slug: 0274-referencia-adr-por-slug-alias-map-13-colisoes
 number: 274
 title: "Referência canônica a ADR = SLUG completo (NNNN-titulo) + alias map das 13 colisões de número — sem renumerar (append-only)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta

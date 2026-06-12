@@ -7,7 +7,7 @@
 ## Resumo
 - **279** arquivos · **264** números únicos · máx **0274**
 - **ADRs ATIVOS (lifecycle ativo): 239** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 216 · proposto 37 · superseded 23 · (vazio) 2 · rascunho 1
+- Por status: aceito 217 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
 - Por lifecycle: ativo 239 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -310,4 +310,4 @@ _(íntegra)_
 | 0271 | aceito | ativo | decision | Revisão dos 64 gates CI — estado real dos required (corrige drift da 0261), font |
 | 0272 | aceito | ativo | decision | Árvore canônica de componentes — camadas UI-0013 viram pastas enforçadas (allowl |
 | 0273 | aceito | ativo | decision | Anchor spec↔código — formato canônico do campo 'Implementado em', sentinela _pen |
-| 0274 | proposto | ativo | meta | Referência canônica a ADR = SLUG completo (NNNN-titulo) + alias map das 13 colis |
+| 0274 | aceito | ativo | meta | Referência canônica a ADR = SLUG completo (NNNN-titulo) + alias map das 13 colis |
