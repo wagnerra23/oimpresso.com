@@ -199,10 +199,12 @@ class MeilisearchDriver implements MemoriaContrato
         //   - MEMÓRIA (session/handoff/fato): mantém o decay já aplicado em 3.5
         //
         // SEGURANÇA MÁXIMA: passo guardado por feature-flag OFF por default
-        // (config('copiloto.peso_real.retrieval_enabled')). Com a flag OFF o pipeline
-        // é BYTE-IDÊNTICO ao legado — $candidatos flui intacto pro reranker.
-        // Wagner liga conscientemente em homolog após validação.
-        if (config('copiloto.peso_real.retrieval_enabled')) {
+        // (config('copiloto.peso_real.retrieval_enabled') — resolve não-null via
+        // mergeConfigFrom 'copiloto'; default explícito false cobre runtime com
+        // config publicada stale). Com a flag OFF o pipeline é BYTE-IDÊNTICO ao
+        // legado — $candidatos flui intacto pro reranker. Wagner liga
+        // conscientemente em homolog após validação (kill-switch KL-C1).
+        if ((bool) config('copiloto.peso_real.retrieval_enabled', false)) {
             $candidatos = $this->applyPesoReal($candidatos, $merged);
         }
 
