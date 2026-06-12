@@ -1247,19 +1247,26 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                                 </span>
                               )}
                             </div>
-                            {/* Sub-nome: fantasia (PJ) ou telefone (contato rápido). */}
-                            {(row.fantasia || row.mobile) && (
-                              <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5 flex items-center gap-1">
-                                {row.fantasia ? (
-                                  <span className="truncate">{row.fantasia}</span>
-                                ) : (
-                                  <>
-                                    <Phone size={9} className="opacity-60" />
-                                    <span className="tabular-nums">{row.mobile}</span>
-                                  </>
-                                )}
-                              </div>
-                            )}
+                            {/* Sub-nome: fantasia (PJ) ou telefone. Suprime quando a fantasia
+                                == razão social (legado preenche fantasia = nome → duplicava
+                                a identidade na lista, desperdiçando a linha. Bug Wagner). */}
+                            {(() => {
+                              const f = row.fantasia?.trim();
+                              const fant = f && f.toLowerCase() !== row.name.trim().toLowerCase() ? f : null;
+                              if (!fant && !row.mobile) return null;
+                              return (
+                                <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5 flex items-center gap-1">
+                                  {fant ? (
+                                    <span className="truncate">{fant}</span>
+                                  ) : (
+                                    <>
+                                      <Phone size={9} className="opacity-60" />
+                                      <span className="tabular-nums">{row.mobile}</span>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="px-4 py-2.5">
                             <TipoPill tipo={row.tipo ?? null} />
