@@ -134,6 +134,10 @@
       "nome": "jscpd ratchet (anti-duplicação de bloco copy-paste)",
       "classe": "gate"
     },
+    "knowledge-ghost-gate.yml": {
+      "nome": "Knowledge Ghost Gate (catraca anti-ghost · baseline por módulo · ADVISORY — KL-A2)",
+      "classe": "gate"
+    },
     "layout-primitives-guard.yml": {
       "nome": "Layout primitives guard (flex/grid solto)",
       "classe": "gate"
