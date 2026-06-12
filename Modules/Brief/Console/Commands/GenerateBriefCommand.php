@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\Brief\Services\BriefGeneratorService;
 use Modules\Brief\Services\BriefValidator;
+use Modules\Governance\Services\SddBriefLineService;
 use Throwable;
 
 /**
@@ -42,6 +43,12 @@ final class GenerateBriefCommand extends Command
 
             return self::FAILURE;
         }
+
+        // GT-G8 (ADR 0275) — linha SDD determinística (pós-LLM) na seção FLAGS:
+        // só aparece quando a composta mudou vs último snapshot da
+        // mcp_sdd_scorecard_history OU há alerta (armada regrediu/fonte
+        // vermelha). inject() é best-effort — brief nunca falha por causa dela.
+        $content = app(SddBriefLineService::class)->inject($content);
 
         $aggregatedHash = hash('sha256', $content);
 
