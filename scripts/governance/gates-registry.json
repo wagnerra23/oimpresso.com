@@ -18,6 +18,10 @@
       "nome": "A11y ratchet (acessibilidade = categoria protegida)",
       "classe": "gate"
     },
+    "anchor-drift.yml": {
+      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "classe": "gate"
+    },
     "adr-index-gate.yml": {
       "nome": "ADR Index Gate — ADR 0258",
       "classe": "gate"
