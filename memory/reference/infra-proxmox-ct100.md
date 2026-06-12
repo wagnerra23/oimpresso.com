@@ -48,6 +48,7 @@ type: reference
 - IP LAN: **`192.168.0.50/24`**
 - Tipo: LXC unprivileged Debian 12
 - Specs: **16 vCPU / 32 GB RAM (+ 4 GB swap) / 99 GB disk** (local-lvm) — verificado via SSH 2026-06-12 (disk 46% usado, uptime 43d). Criado com 4 vCPU / 8 GB / 60 GB em 2026-04-28 e expandido desde então.
+- **Isso é só a alocação do CT, não o teto:** o host Proxmox é a máquina física inteira (Xeon E5-2680v4 14C/28T, **128 GB RAM**, 2 TB — ver seção do host acima). Dá pra expandir o CT 100 via painel Proxmox quando a stack precisar.
 - Features: `nesting=1,keyctl=1` (Docker dentro)
 - onboot: 1 (auto-start no reboot Proxmox)
 - Senha root: **valor no Vaultwarden** (item `ct100-root`) — usar SSH key sempre que possível
