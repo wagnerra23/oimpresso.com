@@ -306,3 +306,16 @@ Se M1 e M2 não caírem, o zelador recomenda a própria morte e Wagner decide.
 **Cláusula de evolução (loop duplo):** todo domingo o run é META — o zelador aplica o próprio trilho a si mesmo (fechamentos que reabriram, reversões humanas, drafts ignorados) e propõe exatamente 1 emenda/semana ao charter via PR, com viés de subtração; emenda que não melhorar M1/M2 é revertida na META seguinte. Núcleo imutável (NÃO PODE + trilho + kill-switch + a própria cláusula) só muda por decisão explícita do Wagner.
 
 **Poderes/limites:** herda matriz publication-policy (ADR 0040) — pode tasks-update/comment/branch própria/abrir PR; NUNCA mergeia main, não toca prod, não cria ADR/doc em memory/, não cria tasks novas.
+
+### US-GOV-016 · Reestruturação SDD — Semana 0 (12 frentes paralelas)
+
+> owner: wagner · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+GO Wagner 2026-06-12. Executar o lote 1 do plano `memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md` (PR #2586) via workflow `sdd-semana-0`:
+
+- 3 ADRs draft: formato anchor spec↔código · referência ADR por slug (13 colisões) · scorecard SDD 10 métricas + calendário de promoções
+- 9 implementações: fix artefato JUnit · composite action pest-mysql · catracas quarentena · hook red-first (WARN) · catraca anti-ghost · codemod ghost-fix (dry-run) · agregador sdd-scorecard.mjs · protocolo refutador de backfill · backfill frontmatter charters · tabela triagem identidade pastas órfãs
+
+**DoD:** 12 PRs draft abertos + auditor adversarial aprova partição/evidência + fila consolidada pro Wagner (decisões: tabela de renames, tabela de identidade, aceite dos 3 ADRs).
+Emenda CT 100: nightly full-suite via cron no CT 100 (16 vCPU/32 GB ociosos) — afeta fase 1-2, não este lote.
