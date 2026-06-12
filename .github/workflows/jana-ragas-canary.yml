@@ -20,9 +20,18 @@ name: Jana RAGAS Canary (daily 06:00 UTC)
 #   3. Calcula delta percentual por métrica
 #   4. Falha se ANY métrica regrediu > REGRESSION_THRESHOLD_PCT
 #
-# Custo prod estimado (mock default):
-#   - Daily 06:00 UTC × mock = $0/dia
-#   - Real mode (workflow_dispatch): ~$0.06/run × 30 dias = ~$1.80/mês (aceitável)
+# Custo prod (re-derivado 2026-06-12: golden set 51 perguntas × 2 judge calls × $0.0004):
+#   - Sem secret OPENAI_API_KEY no repo: TODO run cai em mock = $0 (warning claro no summary)
+#   - Com secret: cron diário roda REAL ~$0.04/run × 30 dias = ~$1.22/mês (≤$1.80 conservador)
+#
+# SDD F1 KL-D1 (2026-06-12) — saída do mock-teatro:
+#   Antes, RAGAS_FORCE_MOCK=true era hardcoded no .env e JanaRagasCiCommand faz
+#   `$forceMock = $mode === 'mock' || env('RAGAS_FORCE_MOCK')` — dispatch com mode=real
+#   rodava MOCK silenciosamente. Agora o step `mode` resolve o modo EFETIVO:
+#   real só quando solicitado (input dispatch OU cron) E secret OPENAI_API_KEY existe.
+#   Sem secret → fallback mock + warning (nunca quebra). Cron SOLICITA real — vira real
+#   automaticamente quando Wagner adicionar o secret (1 clique, Settings → Secrets).
+#   Summary mostra em destaque qual modo RODOU (anti-teatro).
 #
 # Workflow_dispatch input `update_baseline: true` regrava baseline com run atual
 # (Wagner usa pra estabelecer baseline inicial + recalibrar após improvements aprovados).
@@ -69,6 +78,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # KL-D1 anti-teatro — resolve o modo EFETIVO antes de tudo:
+      #   workflow_dispatch → input `mode` (default mock)
+      #   schedule (cron)   → SOLICITA real; sem secret OPENAI_API_KEY cai em mock
+      #                       (= continua mock até Wagner adicionar o secret, 1 clique)
+      # real sem secret NUNCA roda (judge devolveria 0.0 em tudo) → fallback mock + warning.
+      - name: Resolve modo efetivo (mock|real)
+        id: mode
+        env:
+          REQUESTED_MODE: ${{ github.event_name == 'schedule' && 'real' || github.event.inputs.mode || 'mock' }}
+          HAS_OPENAI_KEY: ${{ secrets.OPENAI_API_KEY != '' }}
+        run: |
+          effective="${REQUESTED_MODE}"
+          fallback=""
+          if [ "${effective}" = "real" ] && [ "${HAS_OPENAI_KEY}" != "true" ]; then
+            effective="mock"
+            fallback="modo real solicitado, mas secret OPENAI_API_KEY ausente no repo — fallback pra MOCK (Settings → Secrets pra ligar; ~\$1.22/mês)"
+            echo "::warning::RAGAS canary: ${fallback}"
+          fi
+          {
+            echo "requested=${REQUESTED_MODE}"
+            echo "effective=${effective}"
+            echo "fallback=${fallback}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Modo solicitado: ${REQUESTED_MODE} | efetivo: ${effective}"
+
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
@@ -99,8 +133,14 @@ jobs:
       - name: Prepare Laravel storage dirs
         run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
 
-      - name: Create .env (mock-safe default)
+      # RAGAS_FORCE_MOCK condicional ao modo efetivo (KL-D1) — hardcoded true era o
+      # que tornava dispatch mode=real um teatro (JanaRagasCiCommand OR-eia com env).
+      - name: Create .env (RAGAS_FORCE_MOCK condicional ao modo efetivo)
+        env:
+          EFFECTIVE_MODE: ${{ steps.mode.outputs.effective }}
         run: |
+          force_mock=true
+          if [ "${EFFECTIVE_MODE}" = "real" ]; then force_mock=false; fi
           printf '%s\n' \
             'APP_NAME=oimpresso-jana-canary' \
             'APP_ENV=testing' \
@@ -118,14 +158,14 @@ jobs:
             'SCOUT_DRIVER=null' \
             'MCP_TOOLS_EXPOSED=false' \
             'RAGAS_ENABLED=true' \
-            'RAGAS_FORCE_MOCK=true' > .env
+            "RAGAS_FORCE_MOCK=${force_mock}" > .env
           php artisan key:generate
           php artisan package:discover --ansi
 
       - name: Run canary (PHP eval + Python diff vs baseline)
         id: canary
         env:
-          RAGAS_MODE: ${{ github.event.inputs.mode || 'mock' }}
+          RAGAS_MODE: ${{ steps.mode.outputs.effective }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           REGRESSION_THRESHOLD_PCT: ${{ github.event.inputs.regression_threshold_pct || '5.0' }}
         run: |
@@ -140,6 +180,9 @@ jobs:
 
       - name: Render GITHUB_STEP_SUMMARY
         if: always()
+        env:
+          REQUESTED_MODE: ${{ steps.mode.outputs.requested }}
+          MODE_FALLBACK: ${{ steps.mode.outputs.fallback }}
         run: |
           python3 - <<'PY'
           import json, os, pathlib
@@ -150,10 +193,26 @@ jobs:
           r = json.loads(out.read_text())
           gate = 'PASS' if r.get('gate_status') == 'pass' else 'FAIL'
           icon = ':white_check_mark:' if gate == 'PASS' else ':x:'
+          # Anti-teatro (KL-D1): banner usa o modo que RODOU de fato (report PHP),
+          # não o que o workflow pediu — impossível confundir mock com real.
+          ran_mode = r.get('mode', 'unknown')
+          requested = os.environ.get('REQUESTED_MODE', '?')
+          fallback = os.environ.get('MODE_FALLBACK', '')
+          if ran_mode == 'real':
+              banner = f"# :money_with_wings: MODO: REAL — LLM judge consumido (custo ${r.get('cost_usd', 0)})"
+          else:
+              banner = f"# :performing_arts: MODO: MOCK — scores fixos, zero LLM (NÃO é avaliação real)"
           lines = [
+              banner,
+              "",
+              f"Solicitado: `{requested}` · Rodou: `{ran_mode}`",
+          ]
+          if fallback:
+              lines += ["", f"> :warning: {fallback}"]
+          lines += [
+              "",
               f"## {icon} Jana RAGAS Canary — {gate}",
               "",
-              f"- Modo: `{r.get('mode')}` (custo `${r.get('cost_usd', 0)}`)",
               f"- Threshold regressão: `{r.get('regression_threshold_pct')}%`",
               f"- Perguntas avaliadas: `{r.get('n_questions')}` (baseline: `{r.get('baseline_n_questions', 'N/A')}`)",
               "",
@@ -188,10 +247,13 @@ jobs:
 
       - name: Update baseline (workflow_dispatch only)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.update_baseline == 'true' && steps.canary.outcome == 'success'
+        env:
+          # Sem isto, re-run em modo real judgaria 0.0 e gravaria baseline zerada
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           # Sobrescreve baseline com scores deste run (Wagner aprovou via dispatch flag)
           python3 scripts/jana-ragas-runner.py \
-            --mode="${{ github.event.inputs.mode || 'mock' }}" \
+            --mode="${{ steps.mode.outputs.effective }}" \
             --baseline=governance/jana-ragas-baseline.json \
             --threshold-pct="${{ github.event.inputs.regression_threshold_pct || '5.0' }}" \
             --output=canary-result.json \
