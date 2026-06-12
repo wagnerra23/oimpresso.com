@@ -22,6 +22,7 @@ import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
+import { Inline, Grid } from '@/Components/layout'
 import {
   GitCommitHorizontal,
   ScanLine,
@@ -134,11 +135,11 @@ function Code({ children }: { children: ReactNode }) {
 
 function GroupHeader({ tag, children, count }: { tag: string; children: ReactNode; count?: string }) {
   return (
-    <div className="mt-12 mb-4 flex items-center gap-2.5 border-b border-border pb-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+    <Inline align="center" gap={2} className="mt-12 mb-4 border-b border-border pb-2.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
       <span className="font-mono text-primary">{tag}</span>
       <span className="flex-1">{children}</span>
       {count && <span className="font-mono text-xs font-semibold normal-case tracking-normal text-muted-foreground">{count}</span>}
-    </div>
+    </Inline>
   )
 }
 
@@ -468,7 +469,7 @@ const DsRollout: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         </Card>
 
         {/* placar: medição real vs TODO */}
-        <div className="mt-3.5 flex items-center gap-3">
+        <Inline align="center" gap={3} className="mt-3.5">
           <span className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">{measured ? 'HOJE' : 'TODO'}</span>
           <div className="h-3 flex-1 overflow-hidden rounded-full border border-border bg-muted">
             <div
@@ -477,10 +478,10 @@ const DsRollout: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
             />
           </div>
           <span className="font-mono text-sm font-bold text-foreground tabular-nums">{pct}%</span>
-        </div>
+        </Inline>
 
         {/* carimbo: a tela só mostra número que veio de gate rodando */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        <Inline align="center" gap={2} wrap className="mt-2.5">
           {measured ? (
             <Badge variant="outline" className="border-success/30 bg-success/10 font-mono text-[10px] font-semibold text-success">
               ● medido @{census.measuredAgainstSha} · {census.generatedAt?.slice(0, 16).replace('T', ' ')} UTC
@@ -507,27 +508,27 @@ const DsRollout: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               {census.counts.done}/{census.counts.screens} telas verdes · {census.counts.references} referência
             </span>
           )}
-        </div>
+        </Inline>
 
         <p className="pt-2.5 text-xs leading-relaxed text-muted-foreground [&_b]:font-semibold [&_b]:text-foreground">
           <b>{census.progressLabel ?? 'adoção tokens + primitivos'}.</b> Cada onda acende as células da sua linha; a barra
           sobe sozinha. <b>100% = todas verdes</b> = a onda D (trava) liga o guard pra nunca regredir.
         </p>
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] text-muted-foreground/80">
+        <Inline align="center" gap={2} wrap className="mt-1.5 text-[10.5px] text-muted-foreground/80">
           <span className="font-semibold uppercase tracking-wide">Legenda</span>
           <span className="inline-flex items-center gap-1"><Ck state="yes" /> conforme</span>
           <span className="inline-flex items-center gap-1"><Ck state="no" /> falta</span>
           <span className="inline-flex items-center gap-1"><Ck state="ref" /> referência (o ouro)</span>
           <span className="inline-flex items-center gap-1"><Ck state="na" /> não medido — probe G1–13 + dark são Camada 2 (probe de browser), fora do censo estático</span>
-        </p>
+        </Inline>
 
         {/* BLOCO E — provas */}
         <GroupHeader tag="E">O teste de cada onda — 3 verdes objetivos</GroupHeader>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Grid min="md" gap={3}>
           {PROOFS.map((p, i) => (
             <Card key={i}>
               <CardContent className="p-4">
-                <div className="mb-2.5 grid h-7 w-7 place-items-center rounded-md bg-success/15 text-success">
+                <div className="mb-2.5 grid place-items-center h-7 w-7 rounded-md bg-success/15 text-success">
                   {p.icon}
                 </div>
                 <b className="mb-1 block text-[12.5px] font-semibold text-foreground">{p.title}</b>
@@ -537,7 +538,7 @@ const DsRollout: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               </CardContent>
             </Card>
           ))}
-        </div>
+        </Grid>
 
         {/* Footer */}
         <div className="mt-12 border-t border-border pt-5 text-[11.5px] leading-relaxed text-muted-foreground [&_b]:text-foreground">
@@ -549,15 +550,15 @@ const DsRollout: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
             <b>O teste de "tudo aplicado" é o Ledger</b> chegando a 100% verde — probe automático por tela +
             antes/depois + diff zero. Mecânico, não opinião.
           </p>
-          <p className="mt-3 flex flex-wrap items-center gap-1.5 text-muted-foreground/80">
+          <Inline align="center" gap={1} wrap className="mt-3 text-muted-foreground/80">
             <GitCommitHorizontal className="h-3.5 w-3.5" />
-            Oimpresso ERP · governança DS · rollout em ondas medíveis ·
+            <span>Oimpresso ERP · governança DS · rollout em ondas medíveis ·</span>
             {measured ? (
-              <> censo via <Code>scripts/ds-ledger.mjs</Code> @{census.measuredAgainstSha} (<ScanLine className="inline h-3 w-3" /> {census.counts?.screens ?? 0} telas)</>
+              <span>censo via <Code>scripts/ds-ledger.mjs</Code> @{census.measuredAgainstSha} (<ScanLine className="inline h-3 w-3" /> {census.counts?.screens ?? 0} telas)</span>
             ) : (
-              <> rode <Code>npm run ds:ledger -- --write</Code> pra medir (<ScanLine className="inline h-3 w-3" /> censo)</>
+              <span>rode <Code>npm run ds:ledger -- --write</Code> pra medir (<ScanLine className="inline h-3 w-3" /> censo)</span>
             )}
-          </p>
+          </Inline>
         </div>
       </div>
     </div>
