@@ -49,9 +49,6 @@ echo "=== ct100-fullsuite $TS (db=$DB_DATABASE host=$DB_HOST image=$IMAGE) ==="
 dphp() {
   docker run --rm --network "$NET" \
     -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
-    -v "$BASE/composer.phar":/composer.phar:ro \
-    -v "$BASE/.composer-cache":/composer-cache \
-    -e COMPOSER_CACHE_DIR=/composer-cache -e COMPOSER_ALLOW_SUPERUSER=1 \
     -w /workspace --entrypoint php "$IMAGE" "$@"
 }
 
@@ -67,12 +64,15 @@ SHA="$(git -C "$CODE" rev-parse --short HEAD)"
 echo "$SHA" > "$RUN_DIR/sha.txt"
 echo "HEAD: $SHA"
 
-echo "--- [2/7] composer install (php da imagem + composer.phar local)"
-mkdir -p "$BASE/.composer-cache"
-[ -f "$BASE/composer.phar" ] || curl -fsSL https://getcomposer.org/download/latest-2.x/composer.phar -o "$BASE/composer.phar"
-mkdir -p "$CODE/storage/framework/cache" "$CODE/storage/framework/sessions" \
+echo "--- [2/7] composer install (imagem composer:2 — myfatoorah/* e source-only, exige git)"
+# A imagem oimpresso/mcp nao tem composer nem git; composer:2 tem ambos. So
+# baixa deps (--no-scripts): nenhum codigo do app roda; runtime real e o mcp.
+mkdir -p "$BASE/.composer-cache" \
+         "$CODE/storage/framework/cache" "$CODE/storage/framework/sessions" \
          "$CODE/storage/framework/views" "$CODE/storage/logs" "$CODE/bootstrap/cache"
-dphp /composer.phar install --no-interaction --prefer-dist --no-progress --no-scripts
+docker run --rm --network "$NET" -v "$CODE":/app -w /app \
+  -v "$BASE/.composer-cache":/tmp/composer-cache -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
+  composer:2 composer install --no-interaction --prefer-dist --no-progress --no-scripts --ignore-platform-reqs
 
 echo "--- [3/7] recria DB de teste dedicada ($DB_DATABASE)"
 docker exec -i "$MYSQL_CONTAINER" sh -c 'MYSQL_PWD=$(cat /run/secrets/mysql_root) exec mysql -uroot' <<SQL

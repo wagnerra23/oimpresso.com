@@ -28,7 +28,7 @@ related_adrs:
 `/opt/oimpresso-fullsuite/ct100-fullsuite.sh` (cópia de [`scripts/tests/ct100-fullsuite.sh`](../../../scripts/tests/ct100-fullsuite.sh) — o versionado é a fonte; atualizar a cópia após merge, passo no frontmatter):
 
 1. `git fetch/reset` do clone público em `/opt/oimpresso-fullsuite/code` (origin/main);
-2. `composer install` usando o PHP da imagem `oimpresso/mcp:latest` + `composer.phar` local (imagem não tem composer/git/node; entrypoint octane sempre sobrescrito com `--entrypoint php`);
+2. `composer install` na imagem `composer:2` (a `oimpresso/mcp` não tem composer/git e `myfatoorah/*` é source-only; `--no-scripts` + `--ignore-platform-reqs` — só baixa deps, o runtime é o mcp, cujo entrypoint octane é sempre sobrescrito com `--entrypoint php`);
 3. **recria** a DB dedicada `oimpresso_fullsuite_test` no container `mysql-workers` (usuário `fullsuite` com GRANT **só** nesse schema — Tier 0 por construção);
 4. `.env` testing idêntico ao canon CI (`.github/actions/pest-mysql-setup`) + `migrate` via schema baseline (`database/schema/mysql-schema.sql`) + seed mínimo biz=1/biz=2;
 5. `vendor/bin/pest --log-junit` (suite inteira, timeout 4h, lock anti-overlap);
@@ -40,7 +40,7 @@ related_adrs:
 /opt/oimpresso-fullsuite/
 ├── ct100-fullsuite.sh      # cópia do versionado
 ├── .env.local              # creds DB de TESTE — NUNCA no repo (chmod 600)
-├── composer.phar           # baixado no 1º run
+├── .composer-cache/        # cache composer entre runs
 ├── code/                   # clone público, reset a cada run
 ├── cron.log                # stdout do cron
 └── runs/<YYYYMMDD-HHMMSS>/ # run.log + junit.xml + summary.json + sha.txt
