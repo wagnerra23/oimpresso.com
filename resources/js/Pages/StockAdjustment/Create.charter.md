@@ -1,10 +1,12 @@
 ---
-page: resources/js/Pages/StockAdjustment/Create.tsx
+page: /stock-adjustments/create
+component: resources/js/Pages/StockAdjustment/Create.tsx
 tela: stock_adjustment/create
 tipo: FORM CREATE
 modulo: Inventory / StockAdjustment
 runbook: memory/requisitos/Inventory/RUNBOOK-stock-adjustment-create.md
-status: F3 implementado
+status: draft
+status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/F1.html

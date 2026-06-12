@@ -1,8 +1,9 @@
 ---
-page: governance/ModuleGrades/Index
+page: /governance/module-grades
+component: resources/js/Pages/governance/ModuleGrades/Index.tsx
 route: /governance/module-grades
 status: live
-owner: [W]
+owner: wagner
 adrs: [0153, 0154, 0155]
 runbook: memory/requisitos/Governance/RUNBOOK-module-grades.md
 ---

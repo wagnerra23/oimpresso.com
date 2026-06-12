@@ -107,11 +107,11 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 
 ## Não-escopo (NÃO neste módulo)
 
-- ❌ Chat IA conversacional → `Modules/Copiloto`
+- ❌ Chat IA conversacional → `Modules/Jana`
 - ❌ Knowledge browsing (ADRs/sessions UI) → `Modules/KB`
 - ❌ Skills governance + Brain A/B → `Modules/ADS`
 - ❌ Policies executáveis runtime → `Modules/Governance` (Fase 5)
-- ❌ System Rules Spec → `Modules/MemCofre` (futuro SRS)
+- ❌ System Rules Spec → `Modules/SRS` (futuro SRS)
 
 ## Métricas de saúde
 

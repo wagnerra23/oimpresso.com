@@ -65,16 +65,16 @@ Pontuação 0-100 do dashboard = média de (% stories com página + % regras com
 Pontuação 0-100 gravada em `docs_validation_runs.health_score`. Calculado pelo `DocValidator` como `100 - penalidades`, onde cada issue tem peso definido no ADR 0005. Diferente de **Audit score** (per-módulo) e **Coverage score** (arquivos presentes).
 
 ## MemoryReader
-Service `Modules/MemCofre/Services/MemoryReader.php`. Lê as 3 fontes de memória do projeto (primer/project/Claude), expõe árvore navegável e preview controlado de arquivo. Whitelist: `md`, `txt`, `json`, `yaml`, `yml`.
+Service `Modules/SRS/Services/MemoryReader.php`. Lê as 3 fontes de memória do projeto (primer/project/Claude), expõe árvore navegável e preview controlado de arquivo. Whitelist: `md`, `txt`, `json`, `yaml`, `yml`.
 
 ## ModuleAuditor
-Service `Modules/MemCofre/Services/ModuleAuditor.php`. Implementa os 15 checks C01-C15 do ADR 0007. Ponto de entrada: `docvault:audit-module {Nome} [--save]`.
+Service `Modules/SRS/Services/ModuleAuditor.php`. Implementa os 15 checks C01-C15 do ADR 0007. Ponto de entrada: `docvault:audit-module {Nome} [--save]`.
 
 ## DocValidator
-Service `Modules/MemCofre/Services/DocValidator.php`. Implementa os 5 checks de integridade global (STORY_ORPHAN, RULE_NO_TEST, ADR_DANGLING, PAGE_NO_META, PAGE_STALE). Ponto de entrada: `docvault:validate [--module=X]`.
+Service `Modules/SRS/Services/DocValidator.php`. Implementa os 5 checks de integridade global (STORY_ORPHAN, RULE_NO_TEST, ADR_DANGLING, PAGE_NO_META, PAGE_STALE). Ponto de entrada: `docvault:validate [--module=X]`.
 
 ## ChatAssistant
-Service `Modules/MemCofre/Services/ChatAssistant.php`. Orquestra busca offline (keyword + scoring) e modo AI stub. Retorna `(answer, citations)`. Citações apontam `{módulo, arquivo, linha}` pra cada trecho usado.
+Service `Modules/SRS/Services/ChatAssistant.php`. Orquestra busca offline (keyword + scoring) e modo AI stub. Retorna `(answer, citations)`. Citações apontam `{módulo, arquivo, linha}` pra cada trecho usado.
 
 ## RequirementsFileReader
-Service `Modules/MemCofre/Services/RequirementsFileReader.php`. Parser central do formato de documentação. Detecta formato pasta vs plano, extrai frontmatter YAML, stories (US-XXX-NNN), regras (R-XXX-NNN), ADRs, auditorias.
+Service `Modules/SRS/Services/RequirementsFileReader.php`. Parser central do formato de documentação. Detecta formato pasta vs plano, extrai frontmatter YAML, stories (US-XXX-NNN), regras (R-XXX-NNN), ADRs, auditorias.

@@ -20,6 +20,7 @@ status: rascunho
 us_count: 0
 us_list: []
 related_adrs: []
+anchor_format: "v1"
 ---
 
 # Especificação funcional — {{Modulo}}
@@ -37,6 +38,7 @@ related_adrs: []
 
 > **Convenção:** `US-{{SIGLA}}-NNN` (sigla 2-8 letras UPPER, número 3-4 dígitos).
 > **DoD mínimo:** rota autorizada (403 se não), scope `business_id`, FormRequest, JSON `transform()`, Pest feature, dark mode, mobile responsivo, toast `sonner`.
+> **Anchor (ADR 0273, `anchor_format: v1`):** toda US tem 1 linha `**Implementado em:**` — `_pendente_` enquanto não construída; ao implementar vira `` `path` [· `Símbolo@metodo`] · verificado@<sha7> (<YYYY-MM-DD>) `` (sha7 = commit de origin/main em que o path foi verificado); `_parcial_ · path · verificado@... — o que falta` se incompleta. NUNCA `_[TODO]_`.
 
 ### US-{{MOD}}-001 · {{título curto}}
 - **Rota:** `GET /caminho`
@@ -44,10 +46,14 @@ related_adrs: []
 - **Como** {{persona}} **quero** {{ação}} **para** {{outcome}}.
 - **DoD extra:** {{aceite específico}}.
 
+**Implementado em:** _pendente_
+
 ### US-{{MOD}}-002 · {{título curto}}
 - **Rota:** `POST /caminho`
 - **Controller:** `{{Controller}}@{{action}}`
 - **Como** {{persona}} **quero** {{ação}} **para** {{outcome}}.
+
+**Implementado em:** _pendente_
 
 ## 3. Backlog ativo (P0/P1/P2/P3)
 

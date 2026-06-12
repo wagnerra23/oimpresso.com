@@ -1,6 +1,6 @@
 ---
 name: Proxmox + CT 100 — acesso, hardening, runtime
-description: Servidor Proxmox empresa (192.168.0.2) + CT 100 docker-host (192.168.0.50) — credenciais (no Vaultwarden), SSH key-only + fail2ban systemd backend, Tailscale 100.99.207.66, stack Docker (Traefik/Portainer/Vaultwarden/Centrifugo/Meilisearch), bootstrap services, Traefik labels pattern, autossh tunnel pra Hostinger MySQL
+description: Servidor Proxmox empresa (192.168.0.2) + CT 100 docker-host (192.168.0.50) — credenciais (no Vaultwarden), SSH key-only + fail2ban systemd backend, Tailscale 100.99.207.66, stack Docker (22 containers — Traefik/Portainer/Vaultwarden/Centrifugo/Meilisearch/Langfuse/Jaeger/GrowthBook/staging/whatsmeow), bootstrap services, Traefik labels pattern, autossh tunnel pra Hostinger MySQL
 type: reference
 ---
 
@@ -47,7 +47,8 @@ type: reference
 - Hostname: `docker-host`
 - IP LAN: **`192.168.0.50/24`**
 - Tipo: LXC unprivileged Debian 12
-- Specs: 4 vCPU / 8 GB RAM / 60 GB disk (local-lvm)
+- Specs: **16 vCPU / 32 GB RAM (+ 4 GB swap) / 99 GB disk** (local-lvm) — verificado via SSH 2026-06-12 (disk 46% usado, uptime 43d). Criado com 4 vCPU / 8 GB / 60 GB em 2026-04-28 e expandido desde então.
+- **Isso é só a alocação do CT, não o teto:** o host Proxmox é a máquina física inteira (Xeon E5-2680v4 14C/28T, **128 GB RAM**, 2 TB — ver seção do host acima). Dá pra expandir o CT 100 via painel Proxmox quando a stack precisar.
 - Features: `nesting=1,keyctl=1` (Docker dentro)
 - onboot: 1 (auto-start no reboot Proxmox)
 - Senha root: **valor no Vaultwarden** (item `ct100-root`) — usar SSH key sempre que possível
@@ -182,12 +183,12 @@ Quando todos os caminhos SSH falham (Tailscale down, LAN inacessível):
 
 ---
 
-## Stack Docker em /opt/docker-host (subiu 2026-04-28)
+## Stack Docker em /opt/docker-host (subiu 2026-04-28, cresceu desde então)
 
 - `compose.yml` versionado em [`infra/proxmox/docker-host/compose.yml`](../../infra/proxmox/docker-host/compose.yml)
 - `.env` no CT (gitignored): `TRAEFIK_DASHBOARD_AUTH` + `ACME_EMAIL=wagnerra@gmail.com` + `MEILI_MASTER_KEY=<Vaultwarden>` + `VAULTWARDEN_SIGNUPS_ALLOWED=false`
 - **Traefik 3.6** — Dashboard: `https://traefik.oimpresso.com/` BasicAuth (creds no Vaultwarden)
-- **Portainer CE LTS 2.39.1** em `https://portainer.oimpresso.com/`
+- **Portainer CE LTS** em `https://portainer.oimpresso.com/`
   - **Admin:** `admin` / senha no Vaultwarden (item `portainer-admin`)
   - **Endpoint Docker local** ID 1, nome `docker-host`, `unix:///var/run/docker.sock`
   - Se volume `portainer-data` perdido → reboot CT → POST /api/users/admin/init → readicionar endpoint
@@ -196,7 +197,20 @@ Quando todos os caminhos SSH falham (Tailscale down, LAN inacessível):
   - ADMIN_TOKEN: ver vaultwarden-credenciais.md
   - SIGNUPS: **false** (desabilitado após criação da conta)
 - ~~**Reverb (Laravel 8.4)** em `https://reverb.oimpresso.com/`~~ **(legado — substituído por Centrifugo, [ADR 0058](../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md))**
-- **Meilisearch v1.10.3** em `https://meilisearch.oimpresso.com/` (master key Vaultwarden)
+- **Meilisearch v1.43.0** em `https://meilisearch.oimpresso.com/` (master key Vaultwarden)
+
+### Containers ativos (verificado 2026-06-12 via `docker ps` — 22 containers)
+
+| Grupo | Containers (imagem) |
+|---|---|
+| Edge/core | `traefik` (traefik:v3.6) · `portainer` (portainer-ce:lts) · `vaultwarden` (1.35.8-alpine) · `centrifugo` (centrifugo:v6) · `meilisearch` (v1.43.0) |
+| Observabilidade | `langfuse-web` (langfuse:3) · `langfuse-worker` (langfuse-worker:3) · `postgres-langfuse` (postgres:16-alpine) · `redis-langfuse` (redis:7-alpine) · `clickhouse-langfuse` (clickhouse-server:24.3-alpine) · `minio-langfuse` (minio) · `jaeger` (all-in-one:1.60) |
+| IA local | `bge-reranker` (build local) · `ollama-embedder` (ollama) |
+| Experimentos | `growthbook` (growthbook) · `growthbook-mongo` (mongo:7) |
+| Dados | `mysql-workers` (mysql:8.0) |
+| App/MCP/staging | `oimpresso-mcp` (oimpresso/mcp:latest) · `oimpresso-staging` (oimpresso/mcp:latest) · `oimpresso-staging-db` (mariadb:11) |
+| WhatsApp | `whatsapp-whatsmeow` (asternic/wuzapi) |
+| Tailscale | `tsrecorder` (tailscale/tsrecorder:stable) |
 
 ---
 

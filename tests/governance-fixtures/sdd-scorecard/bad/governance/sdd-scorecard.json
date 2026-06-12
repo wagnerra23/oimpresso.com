@@ -1,0 +1,6 @@
+{
+  "_meta": "baseline da fixture RUIM — ghost_count 0 congelado; a fixture cita Modules/FantasmaRegressao → mede 1 > 0 → catraca morde",
+  "metrics": {
+    "ghost_count": { "status": "measured", "value": 0 }
+  }
+}

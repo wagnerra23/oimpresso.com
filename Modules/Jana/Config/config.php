@@ -714,21 +714,47 @@ return [
         // Valor DIRETO (sem env) — Larastan barra env() fora de config/ raiz,
         // mesmo padrão que a Área A adotou pro resto deste bloco.
         //
-        // NOTA de namespace: este arquivo é merged como `copiloto.*`
-        // (JanaServiceProvider::registerConfig). O driver lê via
-        // config('copiloto.peso_real.retrieval_enabled') — chave que HOJE resolve
-        // pra null em runtime real (não há mergeConfigFrom 'copiloto.peso_real'),
-        // ou seja: OFF por default em prod, garantido. Para LIGAR em homolog,
-        // Wagner registra o merge `copiloto.peso_real` OU seta via config() runtime.
-        // Os testes exercitam ON via config([...]) em runtime (independe do merge).
+        // NOTA de namespace (CORRIGIDA — KL-C1 2026-06-12, fim do "duplo-OFF"):
+        // este arquivo é merged como `copiloto.*` via JanaServiceProvider::
+        // registerConfig → mergeConfigFrom(config.php, 'copiloto'). A chave
+        // config('copiloto.peso_real.retrieval_enabled') resolve NÃO-NULL (= false)
+        // tanto em boot normal quanto sob `config:cache` (verificado via tinker
+        // 2026-06-12). O kill-switch é ESTA chave, funcional nos dois sentidos:
+        // pra ligar em homolog Wagner muda este valor (ou via config() runtime) —
+        // nenhum merge extra é necessário. O guard do driver lê com default
+        // explícito false (resiliente a config/copiloto.php publicado stale).
         'retrieval_enabled' => false,
 
         // (a) DECISÃO/ADR — multiplicador por lifecycle (não decai por tempo).
+        //
+        // KL-C1 (plano SDD 2026-06-12): vocabulário ALINHADO ao que o dado real
+        // carrega — antes a tabela só tinha o vocabulário ADR 0232 (accepted-
+        // historical/sunsetting), que NADA produz, e todo doc real caía no
+        // fallback 0.1 (aceito == superseded → viola ADR 0270 D-4 "o morto não
+        // volta no top-K com o mesmo peso do vigente"). Fontes do vocabulário:
+        //   - metadata['status'] EN normalizado (SeedAdrsCommand::normalizeStatus):
+        //     accepted | proposed | historical | superseded — mesmo vocabulário do
+        //     time_decay.status_multipliers (Wagner aprovou 2026-05-13).
+        //   - frontmatter canônico (scripts/memory-schemas/adr.schema.json, FONTE
+        //     ÚNICA): status proposto|aceito|...; lifecycle ativo|arquivado|
+        //     substituido|historical (applyPesoReal prefere metadata['lifecycle']).
+        // Pesos: vigente = 1.0 · historical = 0.5 · superseded/substituido/
+        // arquivado = 0.3. Desconhecido → fallback conservador 0.1 (não infla).
         'lifecycle_mult' => [
+            // vigente — peso cheio
             'accepted'            => 1.0,
+            'aceito'              => 1.0,
+            'ativo'               => 1.0,
+            'proposed'            => 1.0,
+            'proposto'            => 1.0,
+            // morto — decai por lifecycle (nunca por idade)
+            'historical'          => 0.5,
+            'superseded'          => 0.3,
+            'substituido'         => 0.3,
+            'arquivado'           => 0.3,
+            // legacy ADR 0232 (back-compat com fatos antigos)
             'accepted-historical' => 0.8,
             'sunsetting'          => 0.4,
-            'superseded'          => 0.1,
             'deprecated'          => 0.1,
         ],
 

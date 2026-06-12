@@ -4,10 +4,10 @@
   "date": "2026-06-12",
   "scope": "memory/requisitos/**/*.md — só referências na forma 'Modules/<Nome>' (mesma regex token-boundary do knowledge-drift.mjs); forma namespace 'Modules\\<Nome>' fica fora do v1",
   "renames": {
-    "Copiloto": { "to": "Jana", "class": "A", "evidence": ["ADR 0088 memory/decisions/0088-module-rename-php-only.md", "commit b502ea5c3 (Fase 3.7 PR-2)", "ADR 0092 (tabelas copiloto_*->jana_*)"] },
-    "PontoWr2": { "to": "Ponto", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] },
-    "MemCofre": { "to": "SRS", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] },
-    "DocVault": { "to": "SRS", "class": "A", "evidence": ["commit a80f31115 (DocVault->MemCofre)", "ADR 0088 + commit b502ea5c3 (MemCofre->SRS)"], "note": "cadeia transitiva DocVault->MemCofre->SRS" }
+    "Copiloto": { "to": "Jana", "class": "A", "evidence": ["ADR 0088 memory/decisions/0088-module-rename-php-only.md", "commit b502ea5c3 (Fase 3.7 PR-2)", "ADR 0092 (tabelas copiloto_*->jana_*)"], "applied": "2026-06-12" },
+    "PontoWr2": { "to": "Ponto", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"], "applied": "2026-06-12" },
+    "MemCofre": { "to": "SRS", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"], "applied": "2026-06-12" },
+    "DocVault": { "to": "SRS", "class": "A", "evidence": ["commit a80f31115 (DocVault->MemCofre)", "ADR 0088 + commit b502ea5c3 (MemCofre->SRS)"], "note": "cadeia transitiva DocVault->MemCofre->SRS", "applied": "2026-06-12" }
   },
   "excluded": {
     "Accounting": { "class": "C", "reason": "FUSAO no Financeiro (ADR 0172, drop Onda 5 commit 1611d3485) — nao e rename 1:1; subpaths Accounting/* nao existem sob Financeiro/*; reescrita com revisao humana" },

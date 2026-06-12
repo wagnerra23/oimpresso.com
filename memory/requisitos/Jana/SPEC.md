@@ -1035,7 +1035,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** novo `Modules/Copiloto/Http/Controllers/Admin/RoadmapController.php` + `Modules/Copiloto/Http/Resources/RoadmapTaskResource.php` + `resources/js/Pages/Admin/Roadmap/Index.tsx` + `_components/RoadmapGantt.tsx` + `_components/SubIssuesPanel.tsx` + `Index.charter.md`
+**Implementado em:** novo `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` + `Modules/Jana/Http/Resources/RoadmapTaskResource.php` + `resources/js/Pages/Admin/Roadmap/Index.tsx` + `_components/RoadmapGantt.tsx` + `_components/SubIssuesPanel.tsx` + `Index.charter.md`
 
 **Definition of Done:**
 - [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
