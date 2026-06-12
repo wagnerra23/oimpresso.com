@@ -18,6 +18,10 @@
       "nome": "A11y ratchet (acessibilidade = categoria protegida)",
       "classe": "gate"
     },
+    "anchor-drift.yml": {
+      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "classe": "gate"
+    },
     "adr-index-gate.yml": {
       "nome": "ADR Index Gate — ADR 0258",
       "classe": "gate"
@@ -109,6 +113,10 @@
     "foundation-ratchet.yml": {
       "nome": "Foundation ratchet (advisory · catracas só-diminui da fundação de testes — SDD FV-Q1)",
       "classe": "gate"
+    },
+    "gate-selftest.yml": {
+      "nome": "Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6)",
+      "classe": "meta"
     },
     "governance-drift.yml": {
       "nome": "Governance Drift Framework — ADR 0216",
@@ -221,6 +229,10 @@
     "screen-coverage-gate.yml": {
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
+    },
+    "sdd-scorecard.yml": {
+      "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",
+      "classe": "meta"
     },
     "stylelint-gate.yml": {
       "nome": "Stylelint CSS anti-drift (G5 · ADR 0209)",
