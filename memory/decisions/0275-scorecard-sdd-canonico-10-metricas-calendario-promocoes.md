@@ -1,6 +1,6 @@
 ---
-slug: 0274-scorecard-sdd-canonico-10-metricas-calendario-promocoes
-number: 274
+slug: 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
+number: 275
 title: "Scorecard SDD canônico — 10 métricas com catraca, composta v1/v2 (regimes não comparáveis), regra de armamento (3 medições) e calendário único de promoções a required"
 type: adr
 status: proposto
@@ -19,7 +19,7 @@ related: ["0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento", 
 pii: false
 ---
 
-# ADR 0274 — Scorecard SDD canônico: 10 métricas, composta v1/v2, armamento e calendário único de promoções
+# ADR 0275 — Scorecard SDD canônico: 10 métricas, composta v1/v2, armamento e calendário único de promoções
 
 ## Contexto
 
