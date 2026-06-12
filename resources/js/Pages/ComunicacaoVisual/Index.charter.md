@@ -1,3 +1,9 @@
+---
+page: /comunicacao-visual
+component: resources/js/Pages/ComunicacaoVisual/Index.tsx
+status: draft
+---
+
 # Charter — Pages/ComunicacaoVisual/Index.tsx
 
 > Charter MWART F1.5 (ADR 0107 visual-comparison gate) — Comunicação Visual landing.

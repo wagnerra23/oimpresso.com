@@ -1,11 +1,13 @@
 ---
+page: /fiscal
+component: resources/js/Pages/Fiscal/Cockpit.tsx
 page_id: fiscal-cockpit
 url: /fiscal
 module: Fiscal
 status: draft
 created: 2026-05-20
 owner: wagner
-related_adrs: [0093, 0094, 0101, 0104, 0114]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado]
 prototypes:
   - "prototipo-ui/.../fiscal-page.jsx §8 FiscalCockpit"
 ---
