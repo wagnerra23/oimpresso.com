@@ -1,0 +1,8 @@
+{
+  "nota": "baseline da fixture ruim — tudo 0 pra provar que SUBIR qualquer contador avermelha",
+  "counters": {
+    "n_quarantine": 0,
+    "n_refresh_database": 0,
+    "n_business_first": 0
+  }
+}
