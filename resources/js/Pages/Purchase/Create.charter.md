@@ -1,10 +1,12 @@
 ---
-page: resources/js/Pages/Purchase/Create.tsx
+page: /purchases/create
+component: resources/js/Pages/Purchase/Create.tsx
 tela: purchase/create
 tipo: FORM (CREATE)
 modulo: Purchase
 runbook: memory/requisitos/Inventory/RUNBOOK-purchase-create.md
-status: F3 implementado (aguarda smoke Wagner)
+status: draft
+status_note: "F3 implementado (aguarda smoke Wagner)"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/prototipos/compras/visual-source.html

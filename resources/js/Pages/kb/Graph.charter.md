@@ -1,15 +1,16 @@
 ---
-page: kb/Graph
+page: /kb/graph
+component: resources/js/Pages/kb/Graph.tsx
 controller: Modules\KB\Http\Controllers\KbGraphController@index (TODO Agent A — ONDA 5 backend)
 route: kb.graph
 status: draft
-owner: [W] Wagner
+owner: wagner
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1.0
 charter_at: 2026-05-15
 related_adrs:
-  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
