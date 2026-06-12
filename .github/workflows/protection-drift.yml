@@ -1,0 +1,67 @@
+name: Protection Drift (advisory)
+
+# Drift de branch protection + watchdog de staleness — GT-G4 do plano
+# (memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md §2
+# GARANTIDA) + ADR 0275 §5 (demoção exige PR + ADR) e §3 (fonte parada >48h).
+#
+# Fecha o único buraco real do sistema de gates: a DEMOÇÃO INVISÍVEL — admin
+# remove um required check em 1 clique e nenhum diff aparece. Diário, compara
+# o estado VIVO (gh api) com governance/required-checks-baseline.json:
+#   - required que SUMIU do vivo → 🔴 (demoção só via PR editando o baseline + ADR)
+#   - required NOVO no vivo      → 🟡 aviso (entrar é permitido; sugerir PR de baseline)
+#   - enforcement enfraquecido   → 🔴 (everyone → non_admins = admin bypass)
+#   - watchdog: métrica measured do sdd-scorecard-baseline com fonte sem run
+#     verde >48h → 🔴 (canário parado é regressão silenciosa)
+#
+# ADVISORY DE NASCENÇA (ADR 0261/0271/0275 — gate novo nunca nasce required):
+# o step roda com continue-on-error, vermelho vira annotation + job summary.
+# OBS: drift_alarms é alarme advisory PERENE (ADR 0275 métrica 9) — este
+# workflow NUNCA entra no calendário de promoções a required.
+#
+# Diff-aware no PR: roda quando o PR toca o baseline (caminho sancionado de
+# demoção/promoção) — se o PR adiciona context ainda não-vivo, o 🔴 esperado
+# sinaliza "flipar a protection junto do merge" (ADR 0275 §5 item 4).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'governance/required-checks-baseline.json'
+      - 'governance/sdd-scorecard-baseline.json' # watchdog lê as métricas measured daqui
+      - 'scripts/governance/protection-drift.mjs'
+      - '.github/workflows/protection-drift.yml'
+  schedule:
+    - cron: '10 10 * * *' # 07:10 BRT diário (pós sdd-scorecard 09:50 UTC)
+  workflow_dispatch:
+
+concurrency:
+  group: protection-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read # watchdog lê last run verde dos workflows-fonte
+
+jobs:
+  drift:
+    name: Protection drift + watchdog staleness (advisory)
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Drift required checks (vivo vs baseline) + watchdog staleness
+        continue-on-error: true
+        run: |
+          set +e
+          node scripts/governance/protection-drift.mjs | tee /tmp/drift.txt
+          rc=$?
+          { echo '## Protection Drift + Watchdog (GT-G4 · advisory)'; echo '```'; cat /tmp/drift.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ $rc -ne 0 ]; then
+            echo "::warning::protection-drift detectou 🔴 — required demovido/enforcement fraco/fonte stale. Ver job summary (advisory perene, ADR 0275 métrica 9)."
+          fi
+          exit $rc
