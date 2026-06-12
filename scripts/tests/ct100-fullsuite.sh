@@ -110,6 +110,12 @@ dphp artisan key:generate --force
 dphp artisan package:discover --ansi
 
 echo "--- [5/7] migrate (schema baseline) + seed minimo multi-tenant"
+# A imagem mcp nao tem o CLI mysql que `artisan migrate` invoca pra carregar o
+# schema dump ("Loading stored database schemas" → sh: mysql: not found).
+# Preload manual do baseline (820 migrations ja registradas no dump) usando o
+# client do proprio container mysql; o migrate entao so roda migrations novas.
+docker exec -i "$MYSQL_CONTAINER" sh -c "MYSQL_PWD=\$(cat /run/secrets/mysql_root) exec mysql -uroot $DB_DATABASE" \
+  < "$CODE/database/schema/mysql-schema.sql"
 dphp artisan migrate --force
 # seed identico ao canon CI (.github/actions/pest-mysql-setup): biz=1 fixture + biz=2 Tier 0
 cat > "$CODE/storage/fullsuite-seed.php" <<'PHPEOF'
