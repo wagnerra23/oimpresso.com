@@ -158,13 +158,29 @@ dphp artisan tinker --execute="require base_path('storage/fullsuite-seed.php');"
 
 echo "--- [6/7] pest full-suite (diagnostico — fail e DADO, nao erro; timeout ${TIMEOUT_S}s)"
 docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
+# Arquivo com uses(TestCase) file-level dentro de pasta ja vinculada no
+# tests/Pest.php ->in('Feature') MATA o loader da suite inteira (exit 255)
+# antes de executar 1 teste — 4 casos conhecidos em tests/Feature (2026-06-12).
+# Diagnostico nao pode morrer com isso: poe o arquivo de lado SO NO CLONE
+# descartavel, REGISTRA em loader-blockers.txt (vira dado pro triage Q2) e
+# re-tenta. Consertar os arquivos e das lanes de burn-down, nao desta.
 PEST_EXIT=0
-timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
-  --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
-  -w /workspace --entrypoint php "$IMAGE" -d memory_limit=2G \
-  vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never || PEST_EXIT=$?
+for attempt in $(seq 1 12); do
+  PEST_EXIT=0
+  timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
+    --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
+    -w /workspace --entrypoint php "$IMAGE" -d memory_limit=2G \
+    vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never \
+    2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
+  BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
+  [ -z "$BLOCKER" ] && break
+  echo "LOADER-BLOCKER ($attempt): $BLOCKER — movido pro lado no clone, registrado"
+  echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
+  mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")"
+  mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER"
+done
 docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
-echo "pest exit code: $PEST_EXIT"
+echo "pest exit code: $PEST_EXIT (loader-blockers: $(wc -l < "$RUN_DIR/loader-blockers.txt" 2>/dev/null || echo 0))"
 
 echo "--- [7/7] summary (junit-summary.mjs FV-F1 — tripwire artefato 0 bytes) + retencao"
 node "$CODE/scripts/tests/junit-summary.mjs" "$RUN_DIR/junit.xml" --out "$RUN_DIR/summary.json" \
