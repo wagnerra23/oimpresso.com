@@ -3,7 +3,7 @@ slug: 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
 number: 275
 title: "Scorecard SDD canônico — 10 métricas com catraca, composta v1/v2 (regimes não comparáveis), regra de armamento (3 medições) e calendário único de promoções a required"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
