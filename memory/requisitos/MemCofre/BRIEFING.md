@@ -13,7 +13,7 @@ Ferramenta **interna** (não-cliente, só Wagner) que ingere evidências (screen
 
 ## Por que esta pasta mente (sintoma de "não preparado pro tempo")
 
-- Os 33 docs aqui são **anteriores ao rename pra SRS** (2026-05-06) → ainda falam de `Modules/MemCofre/`, que **não existe**. O código real é `Modules/SRS/`.
+- Os 33 docs aqui são **anteriores ao rename pra SRS** (2026-05-06) → ainda falam de `Modules/SRS/`, que **não existe**. O código real é `Modules/SRS/`.
 - **Identidade tripla não-propagada:** pasta `SRS` · namespace `SRS` · mas URLs/permissions/Pages/config/lang todos `memcofre.*`.
 - **Dois grades elogiam o cadáver:** module-grade **73/100** · auto-audit **97/100** (medem doc/forma, não se o módulo está vivo).
 

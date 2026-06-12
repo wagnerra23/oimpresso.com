@@ -49,4 +49,4 @@ Caminho **2**. Módulo nwidart com:
 ## Referências
 
 - `auto-memória: reference_ultimatepos_integracao.md` — pattern hooks DataController
-- `Modules/PontoWr2/Providers/PontoWr2ServiceProvider.php` — exemplo do mesmo pattern já em produção
+- `Modules/Ponto/Providers/PontoWr2ServiceProvider.php` — exemplo do mesmo pattern já em produção

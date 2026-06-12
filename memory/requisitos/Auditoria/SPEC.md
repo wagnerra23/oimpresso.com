@@ -55,7 +55,7 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 | ID | Descrição | Prio | Esforço (IA-pair) | Dep |
 |---|---|---|---|---|
 | US-AUDIT-005 | Migration `2026_05_NN_add_causer_kind_and_revert_to_activity_log.php` — adiciona `causer_kind` ENUM, `agent_run_id` BIGINT NULL, `reverted_at` TIMESTAMP NULL, `reverted_by_user_id` BIGINT NULL, `revert_reason` VARCHAR(500) NULL + 2 índices compostos. Reversível. Smoke local: `php artisan migrate` + `migrate:rollback` | p0 | 1h | — |
-| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Copiloto/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
+| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Jana/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
 
 **Subtotal Sprint 2 — ~3h IA-pair**
 

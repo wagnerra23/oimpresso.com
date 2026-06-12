@@ -50,7 +50,7 @@ Add-on vertical de comércio de autopeças sobre o núcleo oimpresso — entrega
 - ❌ **Visão financeira AR/AP unificada** → vive em `Modules/Financeiro`
 - ❌ **Boleto/assinatura/cobrança recorrente** (crediário interno usa pipeline) → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- ❌ **Jana IA / memória persistente** → vive em `Modules/Copiloto`
+- ❌ **Jana IA / memória persistente** → vive em `Modules/Jana`
 - ❌ **OS de aplicação física** (mecânico aplica peça em veículo) → vive em `Modules/OficinaAuto` (US-AUTO-006 multi-mecânico)
 - ❌ **Diagnóstico mecânico assistido** (sintoma → hipóteses peça aplicável) → vive em `Modules/OficinaAuto` (US-AUTO-007). Autopecas só **consulta** catálogo, não diagnostica
 - ❌ **Tabela tempária Sindirepa** (mão-de-obra) → vive em `Modules/OficinaAuto`. Autopecas vende peça, não tempo de aplicação
@@ -135,7 +135,7 @@ Validação: **Vargas é candidato piloto qualificado** mas charter antecipatór
 
 ## 6. Automation hooks (onde Jana IA atua)
 
-> Jana = Modules/Copiloto. Hooks **propostos** — exigem sinal qualificado antes de virar US ativa.
+> Jana = Modules/Jana. Hooks **propostos** — exigem sinal qualificado antes de virar US ativa.
 
 - ✅ **Sugestão peça por aplicação** — balconista digita "Civic 2015 freio dianteiro", Jana sugere top 3 SKUs ranqueados (compatibilidade × estoque × margem)
 - ✅ **WhatsApp consulta peça por foto** (US-AP-011) — cliente oficina manda foto peça quebrada, Jana identifica + sugere SKU compatível + reserva 2h
@@ -173,11 +173,11 @@ Validação: **Vargas é candidato piloto qualificado** mas charter antecipatór
 | `Modules/NfeBrasil` | Listener `NFCeAutorizada` (venda balcão) + `NFeAutorizada` (transferência multi-depósito + crediário); pipeline TransactionBuilder | consome |
 | `Modules/RecurringBilling` | US-RB-044 boleto pago→NFe automática (crediário + B2B 30/60/90d) | consome |
 | `Modules/Financeiro` | Visão unificada AR/AP de vendas; DRE simplificado | consome |
-| `Modules/Copiloto` (Jana) | Chat contextual + alertas + brief diário + WhatsApp consulta peça (US-AP-011) | consome |
+| `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário + WhatsApp consulta peça (US-AP-011) | consome |
 | `Modules/Whatsapp` | Webhook Meta Cloud API pra US-AP-011 + opt-in cliente | consome |
 | `Modules/OficinaAuto` | **Reuso futuro shared infra** — catálogo `pecas` + `aplicacoes` (chassis/ano/modelo) extraível como pacote shared quando OficinaAuto ativar | consome (futuro) |
 | `Modules/Vestuario` | **Reuso UI/Controller patterns** — venda balcão padrão, variação SKU multi-atributo (~30-40% reuso) | imita (não consome direto) |
-| `Modules/MemCofre` | Cofre senhas (cert digital, login fornecedor, API DETRAN se ativar) | consome opcional |
+| `Modules/SRS` | Cofre senhas (cert digital, login fornecedor, API DETRAN se ativar) | consome opcional |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, `products`, `contacts` | base |
 | API Bosch / Nakata / Fras-le (catálogo OEM) | Connector — sync periódico catálogo OEM open data ou parceria | externa (opcional fase 2) |
 

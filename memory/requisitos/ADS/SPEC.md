@@ -39,7 +39,7 @@ O ADS é agnóstico de domínio. Estes módulos submetem eventos a ele:
 
 | Módulo | Papel no ADS |
 |---|---|
-| `Modules/Copiloto/` | MCP bus compartilhado; Copiloto Chat NÃO submete eventos ao ADS |
+| `Modules/Jana/` | MCP bus compartilhado; Copiloto Chat NÃO submete eventos ao ADS |
 | `EvolutionAgent/` | Submete eventos de oportunidade de evolução de codebase |
 | `Brain A daemon` | Submete eventos de monitoramento (git, logs, métricas) |
 | `TaskRegistry/` | Recebe tasks criadas pelo ADS; não submete eventos |

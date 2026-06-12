@@ -50,7 +50,7 @@ Trilha vs Decisão = views diferentes sobre o mesmo grafo. **Decisão pode gerar
 - `business_id` global scope em TODAS as tabelas `kb_*` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - `kb_nodes` bridge canônico (`is_editable=false`) NUNCA tem versionamento local — vem só do git ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md))
 - ADRs canon append-only via bridge — `kb_nodes.body_blocks IS NULL` pra type ADR; conteúdo vem do JOIN com `mcp_memory_documents.content_md`
-- IA RAG roteia via `Modules/Copiloto/Ai/` ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)) — laravel/ai SDK + MeilisearchDriver hybrid embedder. NÃO criar provider novo.
+- IA RAG roteia via `Modules/Jana/Ai/` ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)) — laravel/ai SDK + MeilisearchDriver hybrid embedder. NÃO criar provider novo.
 - Pest tests biz=1 + cross-tenant biz=99 obrigatórios ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
 - F3 do `Pages/kb/Index.tsx` segue MWART canônico 5 fases ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
 - Gate visual screenshot Wagner antes de F4 merge ([ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md))
@@ -75,7 +75,7 @@ ONDA 3 (2-3d, 1 agent)
    ↘ outputs: Composer.tsx + Editor visual KBTroubleEditor
 
 ONDA 4 (2-3d, 1 agent)
-   IA RAG sobre grafo completo (KbRagService → Modules/Copiloto/Ai/)
+   IA RAG sobre grafo completo (KbRagService → Modules/Jana/Ai/)
    ↘ outputs: Modules/KB/Services/KbRagService.php + endpoints /kb/ai/*
 
 ONDA 5 (2-3d, 1 agent)

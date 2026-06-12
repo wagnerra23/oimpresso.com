@@ -48,4 +48,4 @@ Caminho idêntico ao Financeiro: módulo nwidart isolado em `Modules/NfeBrasil/`
 
 - `Financeiro/adr/arq/0001` (mesma decisão)
 - `auto-memória: reference_ultimatepos_integracao.md`
-- `Modules/PontoWr2/Providers/PontoWr2ServiceProvider.php` (exemplo)
+- `Modules/Ponto/Providers/PontoWr2ServiceProvider.php` (exemplo)

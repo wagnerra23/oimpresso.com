@@ -79,7 +79,7 @@ related_adrs: [0104, 0106, 0153, 0154, 0155, 0156]
 - [ ] Telas <50 score viram tasks p2 explicitamente — Wagner decide ordem do refactor backlog
 - [ ] Próximas migrações já entram com RUNBOOK + SPEC desde o dia 1
 
-**Refs:** [CHECKLIST.md §G — Score 0-100](../../../.claude/skills/cockpit-runbook/CHECKLIST.md), dashboard existente em `Modules/Copiloto/Http/Controllers/Admin/QualidadeController.php`
+**Refs:** [CHECKLIST.md §G — Score 0-100](../../../.claude/skills/cockpit-runbook/CHECKLIST.md), dashboard existente em `Modules/Jana/Http/Controllers/Admin/QualidadeController.php`
 
 ### US-MWART-003 · Métricas de adoção do processo
 

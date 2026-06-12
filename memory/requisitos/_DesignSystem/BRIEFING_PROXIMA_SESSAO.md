@@ -47,7 +47,7 @@ related_adrs: [0235, 0249]
 - `resources/js/Layouts/AppShellV2.tsx` (shell único do ERP — AppShell legado removido em 2026-05-04)
 - `resources/js/Pages/Copiloto/` — Cockpit.tsx, Chat.tsx, Dashboard.tsx
 - `memory/requisitos/_DesignSystem/` — SPEC.md, BRIEFING, ARCHITECTURE, CHANGELOG, ADRs UI
-- `Modules/PontoWr2/Http/Controllers/DataController.php` — menu real Ponto
+- `Modules/Ponto/Http/Controllers/DataController.php` — menu real Ponto
 - `Modules/Financeiro/Http/Controllers/DataController.php` — menu real Financeiro
 - `Modules/Officeimpresso/Http/Controllers/DataController.php` — menu real Officeimpresso
 - `app/Services/LegacyMenuAdapter.php` — como o menu é montado
@@ -214,7 +214,7 @@ Padrão obrigatório:
 | DataTable | `resources/js/Components/shared/DataTable.tsx` |
 | KpiCard / KpiGrid | `resources/js/Components/shared/KpiCard.tsx` |
 | Cockpit page | `resources/js/Pages/Copiloto/Cockpit.tsx` |
-| Menu Ponto WR2 | `Modules/PontoWr2/Http/Controllers/DataController.php` |
+| Menu Ponto WR2 | `Modules/Ponto/Http/Controllers/DataController.php` |
 | Menu Financeiro | `Modules/Financeiro/Http/Controllers/DataController.php` |
 | Design System SPEC | `memory/requisitos/_DesignSystem/SPEC.md` |
 | ADR Cockpit | `memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md` |

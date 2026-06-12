@@ -38,7 +38,7 @@ Duas implementações iniciais:
 
 1. **`OpenAiDirectDriver`** (fallback, default em v1)
    - Usa `openai-php/laravel` já instalado (ver `composer.json` raiz).
-   - Prompt templates em `Modules/Copiloto/Resources/prompts/`.
+   - Prompt templates em `Modules/Jana/Resources/prompts/`.
    - JSON mode nativo do OpenAI pra propostas estruturadas.
    - Cache de briefing por hash de contexto (TTL 10min).
 

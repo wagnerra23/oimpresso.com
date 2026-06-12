@@ -23,7 +23,7 @@ Rebrand completo de identidade, mantendo schema de dados intocado:
 
 | Camada | De | Para |
 |---|---|---|
-| Pasta módulo | `Modules/DocVault/` | `Modules/MemCofre/` |
+| Pasta módulo | `Modules/SRS/` | `Modules/SRS/` |
 | Namespace PHP | `Modules\DocVault\*` | `Modules\SRS\*` |
 | Service Provider | `DocVaultServiceProvider` | `MemCofreServiceProvider` |
 | Pages React | `resources/js/Pages/DocVault/` | `resources/js/Pages/MemCofre/` |
@@ -51,7 +51,7 @@ Convenção adotada:
 - **Pasta/namespace/URL/comando**: `MemCofre` / `memcofre` (single-word, sem espaço)
 - **Label pro usuário** (sidebar, headers, breadcrumbs, page titles): **"Cofre de Memórias"** (com espaço, dois acentos)
 
-Ambos vivem no lang file `Modules/MemCofre/Resources/lang/pt/memcofre.php`.
+Ambos vivem no lang file `Modules/SRS/Resources/lang/pt/memcofre.php`.
 
 ## Consequências
 
