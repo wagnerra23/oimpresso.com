@@ -54,6 +54,9 @@ class DashboardController extends Controller
             'audit_highlights'  => $this->buildAuditHighlightsPayload(),
             'health_kpis'       => $health['kpis'],
             'narratives'        => $health['narratives'],
+            // GT-G7 — card SDD (ADR 0275). Deferred: Page TEM <Deferred> wrapper
+            // (diferente do rollback W7 #953 — aqui o frontend já nasce preparado).
+            'sdd'               => Inertia::defer(fn () => $this->buildSddPayload()),
             // Configs estáticas — eager (zero I/O).
             'actiongate_mode'   => config('governance.actiongate_mode', 'warn'),
             'next_review_at'    => config('governance.next_review_at'),
@@ -138,6 +141,48 @@ class DashboardController extends Controller
             'actors_registered'    => $actorsCount,
             'audit_highlights'     => $auditHighlightsCount,
             'compliance_pct'       => $compliancePct,
+        ];
+    }
+
+    /**
+     * GT-G7 — resumo SDD do último snapshot diário (mcp_sdd_scorecard_history)
+     * + Δ da composta vs snapshot anterior. Degrada graciosamente (tabela
+     * ausente ou sem rows → null; card mostra empty-state).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function buildSddPayload(): ?array
+    {
+        if (! Schema::hasTable('mcp_sdd_scorecard_history')) {
+            return null;
+        }
+
+        $rows = DB::table('mcp_sdd_scorecard_history')
+            ->orderByDesc('snapshot_date')
+            ->limit(2)
+            ->get();
+
+        $latest = $rows->first();
+        if ($latest === null) {
+            return null;
+        }
+
+        $previous = $rows->get(1);
+        $payload = json_decode((string) $latest->payload, true) ?: [];
+
+        $delta = null;
+        if ($latest->composta !== null && $previous !== null && $previous->composta !== null) {
+            $delta = round((float) $latest->composta - (float) $previous->composta, 1);
+        }
+
+        return [
+            'snapshot_date' => (string) $latest->snapshot_date,
+            'composta'      => $latest->composta !== null ? (float) $latest->composta : null,
+            'composta_k'    => (int) ($payload['composta_k'] ?? 0),
+            'delta'         => $delta,
+            'vivas'         => (int) ($payload['vivas'] ?? 0),
+            'metrics_total' => (int) ($payload['metrics_total'] ?? 10),
+            'alerts'        => array_values((array) ($payload['alerts'] ?? [])),
         ];
     }
 
