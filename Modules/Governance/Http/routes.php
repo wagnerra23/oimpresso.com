@@ -8,6 +8,7 @@ use Modules\Governance\Http\Controllers\PoliciesController;
 use Modules\Governance\Http\Controllers\AuditController;
 use Modules\Governance\Http\Controllers\DriftAlertsController;
 use Modules\Governance\Http\Controllers\ModuleGradeController;
+use Modules\Governance\Http\Controllers\DsRolloutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,13 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
             ->middleware('throttle:30,1')
             ->name('module-grades.show')
             ->where('name', '[A-Za-z0-9_-]+');
+
+        // DS Rollout — plano de portar o DS em ondas + Ledger de Conformidade
+        // (tradução F3 do protótipo Cowork · handoff claude.ai/design 2026-06-12).
+        // Static render → throttle leve 60/min.
+        Route::get('/ds-rollout', [DsRolloutController::class, 'index'])
+            ->middleware('throttle:60,1')
+            ->name('ds-rollout.index');
 
         // Install hooks (ADR 0024 — pattern padronizado BaseModuleInstallController)
         Route::get('install',           [InstallController::class, 'index'])

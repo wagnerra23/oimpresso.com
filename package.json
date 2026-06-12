@@ -26,6 +26,8 @@
     "pageheader:guard:write": "node scripts/pageheader-migration-guard.mjs --write",
     "ds:report": "node scripts/ds-report.mjs",
     "ds:report:write": "node scripts/ds-report.mjs --write",
+    "ds:ledger": "node scripts/ds-ledger.mjs",
+    "ds:ledger:write": "node scripts/ds-ledger.mjs --write",
     "design:review": "node prototipo-ui/audit/review-gen.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
