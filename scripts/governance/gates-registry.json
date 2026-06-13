@@ -66,6 +66,10 @@
       "nome": "CSS size ratchet (congelar sprawl · MANUAL-CSS-JS#1)",
       "classe": "gate"
     },
+    "ds-canon-color-guard.yml": {
+      "nome": "DS canon color guard (camada canônica sem paleta crua)",
+      "classe": "gate"
+    },
     "deploy.yml": {
       "nome": "Deploy to Hostinger",
       "classe": "deploy"
