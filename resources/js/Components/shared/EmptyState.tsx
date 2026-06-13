@@ -35,10 +35,10 @@ interface Props {
 }
 
 const variantStyles: Record<Variant, { icon: string; iconBg: string }> = {
-  default: { icon: 'text-muted-foreground',           iconBg: 'bg-muted' },
-  search:  { icon: 'text-blue-600 dark:text-blue-400', iconBg: 'bg-blue-500/10' },
-  error:   { icon: 'text-destructive',                 iconBg: 'bg-destructive/10' },
-  success: { icon: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/10' },
+  default: { icon: 'text-muted-foreground', iconBg: 'bg-muted' },
+  search:  { icon: 'text-info',             iconBg: 'bg-info/10' },
+  error:   { icon: 'text-destructive',      iconBg: 'bg-destructive/10' },
+  success: { icon: 'text-success',          iconBg: 'bg-success/10' },
 };
 
 export default function EmptyState({
