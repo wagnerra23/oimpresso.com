@@ -43,7 +43,7 @@ beforeEach(function () {
     config()->set('otel.enabled', false);
     config()->set('activitylog.enabled', false);
 
-    if (config('database.default') !== 'sqlite' && ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+    if (config('database.default') !== 'sqlite' || ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         $this->markTestSkipped('Customer Journey rodado apenas em SQLite in-memory.');
     }
 

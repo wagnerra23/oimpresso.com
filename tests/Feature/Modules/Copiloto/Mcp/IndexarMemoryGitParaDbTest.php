@@ -15,6 +15,13 @@ use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
 $repoTmp = null;
 
 beforeEach(function () use (&$repoTmp) {
+    // Quarentena Onda 2 SDD floor: mcp_memory_documents(_history) são REAIS-migradas;
+    // schema sintético manual + roda em MySQL persistente → corruptor. Pula no MySQL.
+    if (config('database.default') !== 'sqlite'
+        || ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('mcp_memory_documents', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->string('slug', 200)->unique();
@@ -55,8 +62,12 @@ beforeEach(function () use (&$repoTmp) {
 });
 
 afterEach(function () use (&$repoTmp) {
-    Schema::dropIfExists('mcp_memory_documents_history');
-    Schema::dropIfExists('mcp_memory_documents');
+    // afterEach roda mesmo em teste pulado (PHPUnit 12.5); mcp_memory_documents(_history) reais → só dropar em sqlite.
+    if (config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        Schema::dropIfExists('mcp_memory_documents_history');
+        Schema::dropIfExists('mcp_memory_documents');
+    }
 
     if ($repoTmp && is_dir($repoTmp)) {
         // Cleanup recursive
@@ -103,8 +114,8 @@ it('PII redactor redacta CPF + CNPJ + cartão e conta redactions', function () u
     file_put_contents("$repoTmp/memory/decisions/0001-pii.md", <<<MD
 # Doc com PII
 
-CPF do cliente: 123.456.789-00 e outro 12345678900.
-CNPJ empresa: 12.345.678/0001-90.
+CPF do cliente: 123.456.789-00 e outro 12345678900. # pii-allowlist
+CNPJ empresa: 12.345.678/0001-90. # pii-allowlist
 Cartão: 1234 5678 9012 3456.
 MD);
 
@@ -114,7 +125,7 @@ MD);
     expect($stats['redactions'])->toBe(4); // 2 CPFs + 1 CNPJ + 1 cartão
 
     $doc = McpMemoryDocument::where('slug', '0001-pii')->first();
-    expect($doc->content_md)->not->toContain('123.456.789-00');
+    expect($doc->content_md)->not->toContain('123.456.789-00'); // pii-allowlist
     expect($doc->content_md)->not->toContain('12345678900');
     expect($doc->content_md)->toContain('XXX.XXX.XXX-NN');
     expect($doc->content_md)->toContain('XX.XXX.XXX/XXXX-NN');
