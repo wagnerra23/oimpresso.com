@@ -72,9 +72,9 @@ it('com ctx Larissa, instructions inclui empresa + faturamento (3 ângulos) + cl
     expect($prompt)->toContain('LÍQUIDO');
     expect($prompt)->toContain('CAIXA');
     // Marcador de mês (2026-03 com 3 valores distintos: bruto/líquido/caixa)
-    expect($prompt)->toContain('2026-03: bruto R$ [redacted Tier 0] · líquido R$ [redacted Tier 0] · caixa R$ [redacted Tier 0]');
+    expect($prompt)->toContain('2026-03: bruto R$ 38.215,07 · líquido R$ 37.518,47 · caixa R$ 35.440,25');
     expect($prompt)->toContain('METAS ATIVAS');
-    expect($prompt)->toContain('Faturamento mensal: alvo R$ [redacted Tier 0] / realizado R$ [redacted Tier 0]');
+    expect($prompt)->toContain('Faturamento mensal: alvo R$ 80.000,00 / realizado R$ 31.513,29');
     expect($prompt)->toContain('MÓDULOS ATIVOS: Copiloto, Financeiro');
 });
 
@@ -94,9 +94,9 @@ it('MEM-FAT-1 — quando bruto≠líquido, o LLM vê 3 números distintos (não 
     $prompt = (string) $agent->instructions();
 
     // Os 3 valores devem aparecer literalmente — LLM NÃO pode reportar bruto pra "caixa"
-    expect($prompt)->toContain('R$ [redacted Tier 0]'); // bruto
-    expect($prompt)->toContain('R$ [redacted Tier 0]'); // líquido
-    expect($prompt)->toContain('R$ [redacted Tier 0]'); // caixa
+    expect($prompt)->toContain('R$ 38.215,07'); // bruto
+    expect($prompt)->toContain('R$ 37.518,47'); // líquido
+    expect($prompt)->toContain('R$ 35.440,25'); // caixa
     // Glossário no prompt deixa claro o que é cada um
     expect($prompt)->toContain('BRUTO    = total vendido');
     expect($prompt)->toContain('LÍQUIDO  = bruto menos devoluções');
@@ -121,7 +121,7 @@ it('MEM-FAT-1 BC-compat — registro antigo só com `valor` ainda funciona (fall
     $prompt = (string) $agent->instructions();
 
     // Fallback: bruto=liquido=caixa=valor (todos iguais ao único número disponível)
-    expect($prompt)->toContain('2026-01: bruto R$ [redacted Tier 0] · líquido R$ [redacted Tier 0] · caixa R$ [redacted Tier 0]');
+    expect($prompt)->toContain('2026-01: bruto R$ 4.140,82 · líquido R$ 4.140,82 · caixa R$ 4.140,82');
 });
 
 it('com ctx + memoria recall, ambos aparecem (ordem: base → ctx → memoria)', function () {
