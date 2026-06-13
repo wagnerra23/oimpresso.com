@@ -26,6 +26,10 @@ uses(Tests\TestCase::class);
  * @see Modules\Jana\Services\Lgpd\DsrEsquecimentoResult
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::dropIfExists('jana_mensagens');
     Schema::dropIfExists('jana_conversas');
     Schema::dropIfExists('jana_memoria_facts');
@@ -95,18 +99,20 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('jana_mensagens');
-    Schema::dropIfExists('jana_conversas');
-    Schema::dropIfExists('jana_memoria_facts');
-    Schema::dropIfExists('jana_cache_semantico');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('jana_mensagens');
+        Schema::dropIfExists('jana_conversas');
+        Schema::dropIfExists('jana_memoria_facts');
+        Schema::dropIfExists('jana_cache_semantico');
+    }
 });
 
 it('DsrService 001 — esquecerTitular() anonimiza refs cross-entities', function () {
-    // Seed: titular CPF 123.456.789-00 espalhado em 3 entities biz=1
+    // Seed: titular CPF 123.456.789-00 espalhado em 3 entities biz=1 # pii-allowlist
     $convId = DB::table('jana_conversas')->insertGetId([
         'business_id' => 1,
         'user_id' => 1,
-        'titulo' => 'Chat com cliente CPF 123.456.789-00',
+        'titulo' => 'Chat com cliente CPF 123.456.789-00', // pii-allowlist
         'status' => 'ativa',
         'created_at' => now(),
         'updated_at' => now(),
@@ -115,7 +121,7 @@ it('DsrService 001 — esquecerTitular() anonimiza refs cross-entities', functio
     DB::table('jana_mensagens')->insert([
         'conversa_id' => $convId,
         'role' => 'user',
-        'content' => 'Falei com cliente CPF 123.456.789-00 ontem',
+        'content' => 'Falei com cliente CPF 123.456.789-00 ontem', // pii-allowlist
         'created_at' => now(),
     ]);
 
@@ -131,8 +137,8 @@ it('DsrService 001 — esquecerTitular() anonimiza refs cross-entities', functio
         'cache_key' => 'cache-xyz',
         'business_id' => 1,
         'user_id' => 1,
-        'query_original' => 'sobre CPF 123.456.789-00',
-        'resposta' => 'cliente 123.456.789-00 tem 3 vendas',
+        'query_original' => 'sobre CPF 123.456.789-00', // pii-allowlist
+        'resposta' => 'cliente 123.456.789-00 tem 3 vendas', // pii-allowlist
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -140,7 +146,7 @@ it('DsrService 001 — esquecerTitular() anonimiza refs cross-entities', functio
     /** @var DsrService $dsr */
     $dsr = app(DsrService::class);
     $result = $dsr->esquecerTitular(
-        cpfOuCnpj: '123.456.789-00',
+        cpfOuCnpj: '123.456.789-00', // pii-allowlist
         businessId: 1,
         mode: 'anonymize',
     );
@@ -175,7 +181,7 @@ it('DsrService 002 — prazo legal LGPD <30d cumprido (latência síncrona <5s t
         $rows[] = [
             'business_id' => 1,
             'user_id' => 1,
-            'fato' => "Fato {$i} do CPF 987.654.321-00",
+            'fato' => "Fato {$i} do CPF 987.654.321-00", // pii-allowlist
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -185,7 +191,7 @@ it('DsrService 002 — prazo legal LGPD <30d cumprido (latência síncrona <5s t
     /** @var DsrService $dsr */
     $dsr = app(DsrService::class);
     $result = $dsr->esquecerTitular(
-        cpfOuCnpj: '987.654.321-00',
+        cpfOuCnpj: '987.654.321-00', // pii-allowlist
         businessId: 1,
         mode: 'anonymize',
     );
@@ -202,14 +208,14 @@ it('DsrService 003 — Tier 0: biz=1 esquecer NUNCA toca biz=99 (mesmo CPF)', fu
         [
             'business_id' => 1,
             'user_id' => 1,
-            'fato' => 'biz=1: CPF 555.444.333-22',
+            'fato' => 'biz=1: CPF 555.444.333-22', // pii-allowlist
             'created_at' => now(),
             'updated_at' => now(),
         ],
         [
             'business_id' => 99,
             'user_id' => 1,
-            'fato' => 'biz=99: CPF 555.444.333-22 NUNCA TOCAR',
+            'fato' => 'biz=99: CPF 555.444.333-22 NUNCA TOCAR', // pii-allowlist
             'created_at' => now(),
             'updated_at' => now(),
         ],
@@ -218,7 +224,7 @@ it('DsrService 003 — Tier 0: biz=1 esquecer NUNCA toca biz=99 (mesmo CPF)', fu
     /** @var DsrService $dsr */
     $dsr = app(DsrService::class);
     $result = $dsr->esquecerTitular(
-        cpfOuCnpj: '555.444.333-22',
+        cpfOuCnpj: '555.444.333-22', // pii-allowlist
         businessId: 1,
         mode: 'anonymize',
     );
@@ -227,7 +233,7 @@ it('DsrService 003 — Tier 0: biz=1 esquecer NUNCA toca biz=99 (mesmo CPF)', fu
 
     // biz=99 INTOCADA — Tier 0 IRREVOGÁVEL
     $biz99 = DB::table('jana_memoria_facts')->where('business_id', 99)->first();
-    expect($biz99->fato)->toBe('biz=99: CPF 555.444.333-22 NUNCA TOCAR')
+    expect($biz99->fato)->toBe('biz=99: CPF 555.444.333-22 NUNCA TOCAR') // pii-allowlist
         ->and($biz99->fato)->not->toContain('[REDACTED');
 
     // biz=1 anonimizada
@@ -255,7 +261,7 @@ it('DsrService 005 — modo hard delete remove rows (não anonimiza)', function 
     DB::table('jana_memoria_facts')->insert([
         'business_id' => 1,
         'user_id' => 1,
-        'fato' => 'CPF 111.111.111-11 antigo',
+        'fato' => 'CPF 111.111.111-11 antigo', // pii-allowlist
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -265,7 +271,7 @@ it('DsrService 005 — modo hard delete remove rows (não anonimiza)', function 
     /** @var DsrService $dsr */
     $dsr = app(DsrService::class);
     $result = $dsr->esquecerTitular(
-        cpfOuCnpj: '111.111.111-11',
+        cpfOuCnpj: '111.111.111-11', // pii-allowlist
         businessId: 1,
         mode: 'hard',
     );

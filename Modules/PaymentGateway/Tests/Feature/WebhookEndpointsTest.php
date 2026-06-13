@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
@@ -80,6 +81,9 @@ function teardownWhEndpSchema(): void
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     setupWhEndpSchema();
     // Credenciais ativas com secrets/token cadastrados pra signature passar.
     $this->credAsaas = PaymentGatewayCredential::query()->create([
@@ -120,7 +124,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    teardownWhEndpSchema();
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.x). Guardar o DDL por driver evita dropar as tabelas
+    // REAL-migradas (gateway_webhook_events, payment_gateway_credentials).
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        teardownWhEndpSchema();
+    }
 });
 
 /**

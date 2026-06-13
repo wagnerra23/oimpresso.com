@@ -25,6 +25,10 @@ uses(Tests\TestCase::class);
  * - memory/handoffs/2026-05-15-0700-whatsapp-maratona-fechamento-... (lição)
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['channels', 'whatsapp_baileys_auth_state'] as $t) {
         Schema::dropIfExists($t);
     }

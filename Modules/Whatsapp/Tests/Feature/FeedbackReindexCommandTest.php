@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contact;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Entities\ClientFeedback;
 use Modules\Whatsapp\Services\FeedbackIndexGenerator;
@@ -23,6 +24,10 @@ uses(Tests\TestCase::class);
  *   008. --business=X filtra apenas aquele tenant
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['clients_feedbacks', 'contacts', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }

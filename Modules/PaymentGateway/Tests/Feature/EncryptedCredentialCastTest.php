@@ -25,6 +25,9 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     // Cria schema mínimo on-the-fly em sqlite test env. Migrations canônicas
     // só rodam em CI/MySQL via loadMigrationsFrom no ServiceProvider (e mesmo
     // assim com enum que sqlite ignora). Aqui usamos string/json portáveis
@@ -67,10 +70,15 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    // Drop em vez de truncate — sqlite in-memory + sem cleanup entre tests
-    // se evitarmos o drop, o UNIQUE quebra na 2ª criação.
-    if (Schema::hasTable('payment_gateway_credentials')) {
-        Schema::drop('payment_gateway_credentials');
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.x). Guardar o DDL por driver evita dropar a tabela
+    // REAL-migrada `payment_gateway_credentials` no MySQL persistente do nightly.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        // Drop em vez de truncate — sqlite in-memory + sem cleanup entre tests
+        // se evitarmos o drop, o UNIQUE quebra na 2ª criação.
+        if (Schema::hasTable('payment_gateway_credentials')) {
+            Schema::drop('payment_gateway_credentials');
+        }
     }
 });
 

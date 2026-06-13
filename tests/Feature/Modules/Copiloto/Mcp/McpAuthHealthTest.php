@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Entities\Mcp\McpToken;
@@ -11,6 +12,10 @@ use Modules\Jana\Http\Middleware\McpAuthMiddleware;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('mcp_tokens', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedInteger('user_id');
@@ -54,8 +59,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('mcp_audit_log');
-    Schema::dropIfExists('mcp_tokens');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('mcp_audit_log');
+        Schema::dropIfExists('mcp_tokens');
+    }
 });
 
 it('McpAuth: header sem Bearer mcp_ → 401 + audit denied', function () {

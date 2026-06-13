@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\Plan;
 use Modules\RecurringBilling\Models\Subscription;
@@ -18,6 +19,10 @@ uses(Tests\TestCase::class);
  * Padrão SQLite-stub (mesmo DomainModelsTest) — UPos legacy quebra com migrations.
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach ([
         'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
         'rb_subscriptions', 'rb_plans', 'users', 'contacts',
@@ -136,11 +141,16 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach ([
-        'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
-        'rb_subscriptions', 'rb_plans', 'users', 'contacts',
-    ] as $t) {
-        Schema::dropIfExists($t);
+    // contacts/users + rb_* são reais-migradas; o afterEach roda mesmo em teste pulado
+    // (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las no MySQL
+    // persistente corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach ([
+            'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes',
+            'rb_subscriptions', 'rb_plans', 'users', 'contacts',
+        ] as $t) {
+            Schema::dropIfExists($t);
+        }
     }
 });
 

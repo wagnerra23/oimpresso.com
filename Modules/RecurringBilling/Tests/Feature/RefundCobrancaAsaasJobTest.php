@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -42,6 +43,10 @@ class FakeAsaasRefundChargeStub extends Model
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -123,8 +128,14 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_refund_charges', 'rb_boleto_credentials', 'users'] as $tbl) {
-        Schema::dropIfExists($tbl);
+    // Tabelas CORE reais-migradas (users/permissions/roles/transaction_documents) +
+    // rb_boleto_credentials; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_refund_charges', 'rb_boleto_credentials', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });

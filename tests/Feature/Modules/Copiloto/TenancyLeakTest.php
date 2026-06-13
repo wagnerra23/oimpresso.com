@@ -15,6 +15,15 @@ use Spatie\Permission\PermissionRegistrar;
  */
 
 beforeEach(function () {
+    // Quarentena Onda 2 SDD floor: jana_metas é tabela REAL-migrada (rename de
+    // copiloto_metas, migration 2026_05_06_120000). Este teste monta schema sintético
+    // manual + roda em MySQL persistente → corruptor. Pula no MySQL (transparente);
+    // roda normal em sqlite; burn-down converte depois.
+    if (config('database.default') !== 'sqlite'
+        || ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // CORE compartilhadas (users + tabelas spatie/laravel-permission): em MySQL
     // persistente (nightly) já existem via migrations — guards hasTable tornam
     // os creates no-op (não recriam, não dropam). NUNCA dropar essas tabelas:
@@ -107,9 +116,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    // Só a tabela de módulo (prefixo jana_). users + tabelas spatie (CORE) NÃO
-    // são dropadas — DDL em tabela compartilhada destruiria schema alheio.
-    Schema::dropIfExists('jana_metas');
+    // afterEach roda MESMO em teste pulado (PHPUnit 12.5). jana_metas é REAL-migrada —
+    // só dropar em sqlite, nunca no MySQL persistente (destruiria schema alheio).
+    if (config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        Schema::dropIfExists('jana_metas');
+    }
 
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });

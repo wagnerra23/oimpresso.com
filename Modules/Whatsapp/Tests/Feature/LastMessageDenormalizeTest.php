@@ -32,6 +32,10 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0135-omnichannel-inbox-arquitetura.md
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['messages', 'conversations', 'channels'] as $t) {
         Schema::dropIfExists($t);
     }

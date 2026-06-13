@@ -24,6 +24,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // Cria tabela manualmente (sem RefreshDatabase — migrations UltimatePOS
     // legadas não rodam em SQLite — ver BoletoServiceTest pra contexto)
     Schema::dropIfExists('pg_webhook_events');
@@ -41,7 +45,9 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('pg_webhook_events');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('pg_webhook_events');
+    }
 });
 
 it('aceita webhook novo, registra em pg_webhook_events e dispatcha job', function () {

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateway\Events\CobrancaPaga;
@@ -110,12 +111,20 @@ function teardownOrphanWebhookSchema(): void
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     setupOrphanWebhookSchema();
     session(['business.id' => 1]);
 });
 
 afterEach(function () {
-    teardownOrphanWebhookSchema();
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.x). Guardar o DDL por driver evita dropar as tabelas
+    // REAL-migradas (gateway_webhook_events, cobrancas) no MySQL persistente.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        teardownOrphanWebhookSchema();
+    }
 });
 
 it('GUARD 1: re-dispatcha CobrancaPaga quando órfão tem cobranca_id + evento paid', function () {

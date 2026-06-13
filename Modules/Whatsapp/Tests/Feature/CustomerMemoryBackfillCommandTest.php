@@ -20,6 +20,10 @@ uses(Tests\TestCase::class);
  *   5. --channel filtra por channel_id
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['customer_memory', 'messages', 'conversations', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
