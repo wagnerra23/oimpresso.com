@@ -120,7 +120,7 @@ export default function CriarOsButton({
           disabled={submitting}
           className="text-sm"
         >
-          <CheckCircle2 size={12} className="mr-2 text-emerald-600" />
+          <CheckCircle2 size={12} className="mr-2 text-success" />
           {MODE_LABEL.auto}
         </DropdownMenuItem>
         <DropdownMenuItem

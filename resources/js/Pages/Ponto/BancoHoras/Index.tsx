@@ -119,7 +119,7 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
                         <td className="p-3 font-medium">{s.nome}</td>
                         <td className={cn(
                           'p-3 text-right font-mono font-semibold tabular-nums',
-                          s.saldo_minutos > 0 && 'text-emerald-600 dark:text-emerald-400',
+                          s.saldo_minutos > 0 && 'text-success-fg',
                           s.saldo_minutos < 0 && 'text-destructive',
                         )}>
                           {formatMinutes(s.saldo_minutos)}

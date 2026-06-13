@@ -99,25 +99,25 @@ const SEVERITY_TOKENS: Record<
   { bg: string; text: string; ring: string; icon: LucideIcon; iconColor: string }
 > = {
   info: {
-    bg: 'bg-sky-50',
-    text: 'text-sky-800',
-    ring: 'ring-sky-200',
+    bg: 'bg-info-soft',
+    text: 'text-info-fg',
+    ring: 'ring-info/20',
     icon: Info,
-    iconColor: 'text-sky-600',
+    iconColor: 'text-info',
   },
   warn: {
-    bg: 'bg-amber-50',
-    text: 'text-amber-800',
-    ring: 'ring-amber-200',
+    bg: 'bg-warning-soft',
+    text: 'text-warning-fg',
+    ring: 'ring-warning/20',
     icon: AlertTriangle,
-    iconColor: 'text-amber-600',
+    iconColor: 'text-warning',
   },
   bad: {
-    bg: 'bg-rose-50',
-    text: 'text-rose-800',
-    ring: 'ring-rose-200',
+    bg: 'bg-destructive-soft',
+    text: 'text-destructive-fg',
+    ring: 'ring-destructive/20',
     icon: XCircle,
-    iconColor: 'text-rose-600',
+    iconColor: 'text-destructive',
   },
 };
 
@@ -266,7 +266,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
               <div className="flex items-center gap-3">
                 <span
                   className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${
-                    nfe_auto.ativo ? 'bg-emerald-500' : 'bg-stone-300'
+                    nfe_auto.ativo ? 'bg-success' : 'bg-stone-300'
                   }`}
                 >
                   <span
@@ -523,7 +523,7 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
               </div>
             </div>
             {g.ativo ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-emerald-200">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success-fg ring-1 ring-success/20">
                 <CheckCircle2 size={11} />
                 ativo
               </span>
@@ -598,7 +598,7 @@ function WebhookCard({ webhook }: { webhook: WebhookRow }) {
           onClick={handleCopy}
           className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
             copied
-              ? 'bg-emerald-600 text-white'
+              ? 'bg-success text-white'
               : 'bg-white text-stone-700 ring-1 ring-stone-200 hover:bg-stone-50'
           }`}
           title="Copiar URL pra área de transferência"

@@ -42,14 +42,14 @@ const tipoIconMap: Record<string, React.ComponentType<{ size?: number; className
 
 const severidadeStyles: Record<Severidade, { iconClass: string; bgClass: string; borderClass: string }> = {
   info: {
-    iconClass: 'text-blue-600 dark:text-blue-400',
-    bgClass: 'bg-blue-500/10',
-    borderClass: 'border-blue-500/20',
+    iconClass: 'text-info',
+    bgClass: 'bg-info/10',
+    borderClass: 'border-info/20',
   },
   warning: {
-    iconClass: 'text-amber-600 dark:text-amber-400',
-    bgClass: 'bg-amber-500/10',
-    borderClass: 'border-amber-500/20',
+    iconClass: 'text-warning',
+    bgClass: 'bg-warning/10',
+    borderClass: 'border-warning/20',
   },
   danger: {
     iconClass: 'text-destructive',
@@ -80,8 +80,8 @@ export default function AlertInbox({ alertas, title = 'O que precisa da sua aten
 
       {total === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
-            <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
+            <CheckCircle2 size={18} className="text-success" />
           </div>
           <p className="text-sm font-medium text-foreground">Tudo em dia</p>
           <p className="text-xs text-muted-foreground">Nada pendente no momento.</p>

@@ -282,7 +282,7 @@ function Contador({ accesses }: Props) {
                   <td className="px-4 py-3">{a.granted_at_label ?? '—'}</td>
                   <td className="px-4 py-3 text-xs">
                     {a.can_view_unificado && (
-                      <span className="mr-1 inline-block rounded bg-emerald-100 px-2 py-0.5 text-emerald-900">
+                      <span className="mr-1 inline-block rounded bg-success-soft px-2 py-0.5 text-success-fg">
                         Unificado
                       </span>
                     )}
@@ -292,7 +292,7 @@ function Contador({ accesses }: Props) {
                       </span>
                     )}
                     {!a.has_consent && (
-                      <span className="inline-block rounded bg-amber-100 px-2 py-0.5 text-amber-900">
+                      <span className="inline-block rounded bg-warning-soft px-2 py-0.5 text-warning-fg">
                         Sem consent
                       </span>
                     )}

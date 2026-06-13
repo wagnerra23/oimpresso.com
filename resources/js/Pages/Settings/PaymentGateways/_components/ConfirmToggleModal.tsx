@@ -31,7 +31,7 @@ export default function ConfirmToggleModal({ gateway, newValue, affectedCount = 
           <div className="flex items-start gap-3">
             <span className={cn(
               'w-9 h-9 rounded-md grid place-items-center shrink-0',
-              isDisabling ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700',
+              isDisabling ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success',
             )}>
               {isDisabling ? <AlertCircle className="h-4 w-4" /> : <Check className="h-4 w-4" />}
             </span>
@@ -46,14 +46,14 @@ export default function ConfirmToggleModal({ gateway, newValue, affectedCount = 
           </div>
 
           {isDisabling && affectedCount > 0 && (
-            <div className="mt-3 bg-rose-50 border border-rose-200 rounded p-3 text-[11.5px] text-rose-900">
+            <div className="mt-3 bg-destructive-soft border border-destructive/20 rounded p-3 text-[11.5px] text-destructive-fg">
               <strong>{affectedCount} cobrança(s) em aberto</strong> dependem deste gateway.
               Desativar bloqueia novas emissões — as existentes continuam pagas via webhook se o banco confirmar.
             </div>
           )}
 
           {!isDisabling && (
-            <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded p-3 text-[11.5px] text-emerald-900">
+            <div className="mt-3 bg-success-soft border border-success/20 rounded p-3 text-[11.5px] text-success-fg">
               Gateway disponível imediatamente pra emissão de cobranças. Health check rodará em 1min.
             </div>
           )}
@@ -64,7 +64,7 @@ export default function ConfirmToggleModal({ gateway, newValue, affectedCount = 
         </div>
         <div className="px-5 py-3 border-t border-stone-200 bg-stone-50 flex gap-2 justify-end">
           <Btn variant="outline" onClick={onClose}>Cancelar</Btn>
-          <Btn variant="primary" onClick={() => { onConfirm(); onClose(); }} className={isDisabling ? '!bg-rose-600 hover:!bg-rose-700 !border-rose-600' : ''}>
+          <Btn variant="primary" onClick={() => { onConfirm(); onClose(); }} className={isDisabling ? '!bg-destructive hover:!bg-destructive/90 !border-destructive' : ''}>
             <Check className="h-3 w-3" />{isDisabling ? 'Desativar' : 'Ativar'}
           </Btn>
         </div>

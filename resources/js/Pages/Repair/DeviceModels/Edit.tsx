@@ -68,7 +68,7 @@ export default function DeviceModelEdit({ model, brands, devices }: Props) {
       <div className="rounded-lg border border-border bg-card p-5 space-y-4">
         <div>
           <Label htmlFor="name">
-            Nome do modelo <span className="text-rose-600">*</span>
+            Nome do modelo <span className="text-destructive">*</span>
           </Label>
           <Input
             id="name"

@@ -331,7 +331,7 @@ function ResumoPanel({ resumo }: { resumo: Resumo }) {
       </div>
 
       {(resumo.a_receber.vencidos_qtd > 0 || resumo.a_pagar.vencidos_qtd > 0) && (
-        <Card className="border-amber-300 dark:border-amber-700">
+        <Card className="border-warning/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               Atenção: títulos vencidos

@@ -230,7 +230,7 @@ function StockTransferCreate({
               </div>
             </div>
             {origemDestinoIguais && (
-              <div className="mt-2 text-rose-700 text-[12px] flex items-center gap-1">
+              <div className="mt-2 text-destructive-fg text-[12px] flex items-center gap-1">
                 <AlertCircle className="h-3.5 w-3.5" />
                 Origem e destino não podem ser iguais.
               </div>
@@ -317,7 +317,7 @@ function StockTransferCreate({
                       </td>
                     )}
                     <td className="px-2 text-right">
-                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => removerLinha(idx)} title="Remover">
+                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removerLinha(idx)} title="Remover">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </td>

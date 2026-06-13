@@ -318,7 +318,7 @@ export default function FsmActionPanel({ saleId, enabled, onTransition }: Props)
 
             <div className="text-xs text-muted-foreground space-y-1">
               {confirmAction.is_critical && (
-                <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <p className="text-warning flex items-center gap-1">
                   <AlertTriangle size={12} />
                   Ação crítica — requer autorização explícita
                 </p>

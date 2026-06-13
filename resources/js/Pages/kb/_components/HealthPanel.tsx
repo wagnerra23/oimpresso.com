@@ -121,14 +121,14 @@ function Quadrant({
 }) {
   const toneClass = {
     bad: 'border-destructive/30 bg-destructive/5',
-    warn: 'border-amber-500/30 bg-amber-500/5',
-    ok: 'border-emerald-500/30 bg-emerald-500/5',
+    warn: 'border-warning/30 bg-warning/5',
+    ok: 'border-success/30 bg-success/5',
     default: 'border-border bg-muted/20',
   };
   const titleClass = {
     bad: 'text-destructive',
-    warn: 'text-amber-700 dark:text-amber-400',
-    ok: 'text-emerald-700 dark:text-emerald-400',
+    warn: 'text-warning-fg',
+    ok: 'text-success-fg',
     default: 'text-muted-foreground',
   };
 

@@ -127,8 +127,8 @@ export default function DashboardIndex({
             <p>
               {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
               {' · atualizado '}
-              <span className="inline-flex items-center gap-1 text-emerald-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+              <span className="inline-flex items-center gap-1 text-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" aria-hidden />
                 {server_time}
               </span>
             </p>
@@ -303,7 +303,7 @@ function ApprovalRow({ item }: { item: Aprovacao }) {
       href={`/ponto/intercorrencias/${item.id}`}
       className="flex items-start gap-2 p-2 -mx-2 rounded hover:bg-accent transition-colors"
     >
-      <AlertTriangle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+      <AlertTriangle size={14} className="text-warning mt-0.5 shrink-0" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium truncate">{item.colaborador.nome}</span>

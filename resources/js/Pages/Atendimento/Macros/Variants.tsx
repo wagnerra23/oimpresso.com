@@ -305,7 +305,7 @@ export default function MacroVariants({ macro, variants }: Props) {
                           variant="ghost"
                           onClick={() => destroy(v)}
                           aria-label={`Remover ${v.label}`}
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive-fg"
                         >
                           <Trash2 size={13} aria-hidden />
                         </Button>

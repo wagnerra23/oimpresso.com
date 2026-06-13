@@ -344,7 +344,7 @@ export default function Showcase() {
             ))}
           </div>
           <BulkActionBar selectedCount={selected.length} onClear={() => setSelected([])}>
-            <Button variant="default" size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+            <Button variant="default" size="sm" className="bg-success hover:bg-success/90">
               <CheckCheck size={14} className="mr-1" /> Aprovar em lote
             </Button>
             <Button variant="destructive" size="sm">

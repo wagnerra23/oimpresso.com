@@ -303,7 +303,7 @@ export default function SaleSheet({
         {error && !loading && (
           <div className="flex-1 flex items-center justify-center p-6 text-center">
             <div>
-              <AlertTriangle className="h-8 w-8 text-rose-500 mx-auto mb-2" />
+              <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
               <p className="text-sm text-foreground font-medium">Não foi possível carregar a venda</p>
               <p className="text-xs text-muted-foreground mt-1">{error}</p>
             </div>
@@ -318,7 +318,7 @@ export default function SaleSheet({
                 <span className="font-mono text-xs text-muted-foreground">#{data.invoice_no}</span>
                 <PaymentBadge status={data.payment_status} />
                 {data.shipping_status && data.shipping_status !== 'delivered' && (
-                  <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300">
+                  <span className="inline-flex items-center rounded-full border border-warning/20 bg-warning-soft px-2.5 py-0.5 text-[11px] font-medium text-warning-fg">
                     Frete: {data.shipping_status}
                   </span>
                 )}
@@ -558,7 +558,7 @@ export default function SaleSheet({
                       />
                     </div>
                     {paymentError && (
-                      <div className="rounded-md bg-rose-50 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/40 px-2.5 py-2 text-xs text-rose-700 dark:text-rose-300">
+                      <div className="rounded-md bg-destructive-soft border border-destructive/20 px-2.5 py-2 text-xs text-destructive-fg">
                         {paymentError}
                       </div>
                     )}
@@ -594,7 +594,7 @@ export default function SaleSheet({
                   <ul className="space-y-2">
                     {data.payments.map((p) => (
                       <li key={p.id} className="flex items-start gap-3 text-sm">
-                        <CheckCircle2 size={14} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 size={14} className="text-success mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline justify-between gap-2">
                             <span className="font-medium text-foreground tabular-nums">{formatBRL(p.amount)}</span>
@@ -889,9 +889,9 @@ function MiniKpi({
       className={
         'rounded-md border p-2.5 ' +
         (tone === 'warning'
-          ? 'border-amber-200 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/30'
+          ? 'border-warning/20 bg-warning-soft'
           : tone === 'success'
-            ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-950/30'
+            ? 'border-success/20 bg-success-soft'
             : 'border-border bg-muted/30')
       }
     >
@@ -899,9 +899,9 @@ function MiniKpi({
         className={
           'text-[10px] font-semibold uppercase tracking-wider ' +
           (tone === 'warning'
-            ? 'text-amber-700 dark:text-amber-400'
+            ? 'text-warning-fg'
             : tone === 'success'
-              ? 'text-emerald-700 dark:text-emerald-400'
+              ? 'text-success-fg'
               : 'text-muted-foreground')
         }
       >
@@ -911,9 +911,9 @@ function MiniKpi({
         className={
           'text-sm font-semibold tabular-nums mt-0.5 truncate ' +
           (tone === 'warning'
-            ? 'text-amber-700 dark:text-amber-300'
+            ? 'text-warning-fg'
             : tone === 'success'
-              ? 'text-emerald-700 dark:text-emerald-300'
+              ? 'text-success-fg'
               : 'text-foreground')
         }
         title={value}

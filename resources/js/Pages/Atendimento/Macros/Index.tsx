@@ -316,7 +316,7 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
                           variant="ghost"
                           onClick={() => destroy(m)}
                           aria-label={`Remover ${m.label}`}
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                          className="h-7 w-7 p-0 text-destructive hover:text-destructive-fg"
                         >
                           <Trash2 size={13} aria-hidden />
                         </Button>
@@ -447,7 +447,7 @@ export default function MacrosIndex({ macros, availableTags, availableStatuses }
                         size="sm"
                         variant="ghost"
                         onClick={() => removeAction(idx)}
-                        className="h-7 w-7 p-0 text-red-600"
+                        className="h-7 w-7 p-0 text-destructive"
                         aria-label="Remover ação"
                       >
                         <X size={13} aria-hidden />
