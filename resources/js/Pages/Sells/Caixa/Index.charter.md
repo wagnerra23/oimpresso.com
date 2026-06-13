@@ -2,10 +2,11 @@
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx
 owner: wagner
-status: rascunho
-last_validated: 2026-05-25
+status: draft
+status_detail: rascunho
+last_validated: "2026-05-25"
 parent_module: Sells
-related_adrs: [0093, 0094, 0104, 0107, 0114, 0143, 0178, 0192]
+related_adrs: [93, 94, 104, 107, 114, 143, 178, 192]
 tier: B
 charter_version: 1
 visual_source: prototipo-ui/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
