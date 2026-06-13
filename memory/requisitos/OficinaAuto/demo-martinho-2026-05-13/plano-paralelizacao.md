@@ -42,7 +42,7 @@
 
 **Módulos referência (imitar, não duplicar):**
 - `Modules/Repair/` — Kanban OS shared infrastructure
-- `Modules/Sells/` — FSM Pipeline ADR 0143 LIVE prod biz=1
+- Sells (núcleo UltimatePOS, não é módulo) — FSM Pipeline ADR 0143 LIVE prod biz=1
 - `scripts/legacy-migration/` (se existir importer Repair/Vargas — imitar)
 
 ---

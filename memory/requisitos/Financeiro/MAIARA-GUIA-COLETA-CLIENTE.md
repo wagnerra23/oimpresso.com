@@ -162,7 +162,7 @@ Marca call ou email longo com o responsável do cliente. **Não decidir nada soz
 **Bloco E — Dependências:**
 11. "Você usa o sistema pra que vertical? Gráfica / Comércio / Oficina / Outro?"
 12. "Suas NFs de entrada são importantes manter no novo sistema, ou só como referência?"
-13. "Tem mensalidade recorrente (Modules/FinanceiroAvancado) ou só contas pontuais?"
+13. "Tem mensalidade recorrente (módulo FinanceiroAvancado planejado — não existe) ou só contas pontuais?"
 
 **Bloco F — Segurança:**
 14. "Suas senhas de certificado A1, NFe, NFC-e — você prefere recadastrar no novo sistema ou trazer do Delphi?" (Recomendação: recadastrar — mais seguro)

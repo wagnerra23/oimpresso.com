@@ -98,7 +98,7 @@ Bench fonte: `prototipo-ui/prototipos/kb/Bench KB v2.html` (Cowork [CC] self-ass
 | Browser de ADRs/sessions com tri-pane Cockpit V2 | 9,0 | 1+2 | — |
 | Bridge `mcp_memory_documents` → `kb_nodes` (read-only) | n/a (infra) | 1 | — |
 | Visualização-grafo dos 143 ADRs + edges supersedes/charter-of/related | 9,5 | 5 | depende kb_edges populado (ONDA 1 bridge) |
-| RAG IA "perguntar ao KB" com citações de fonte | 9,0 | 4 | Modules/Copiloto OK (ADR 0035 ✅) |
+| RAG IA "perguntar ao KB" com citações de fonte | 9,0 | 4 | Modules/Jana OK (ADR 0035 ✅) |
 | Command palette ⌘K + keyboard nav | 9,5 | 2 | — |
 
 ### P1 (após primeiro release Wagner ok, antes da Larissa)
@@ -183,7 +183,7 @@ Detalhes completos do dossier em [`memory/sessions/2026-05-15-agent-d-estado-art
 - US-KB-024 Auto-tag IA no composer (kbSuggestMeta endpoint + UX) — P1, ~4h
 
 **ONDA 4 (IA RAG):**
-- US-KB-030 KbRagService consumindo Modules/Copiloto/Ai/ — P0, ~10h
+- US-KB-030 KbRagService consumindo Modules/Jana/Ai/ — P0, ~10h
 - US-KB-031 Endpoints /kb/ai/{ask,summarize,suggest-meta} — P0, ~6h
 - US-KB-032 UX "Perguntar ao KB" + citações clicáveis — P0, ~5h
 - US-KB-033 Cache de embeddings + cache de respostas curtas — P1, ~4h

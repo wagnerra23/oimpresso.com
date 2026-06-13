@@ -1,3 +1,11 @@
+---
+module: LaravelAI
+status: rascunho
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+---
+
 # Especificação funcional — LaravelAI
 
 > Convenção do ID: `US-AI-NNN` para user stories, `R-AI-NNN` para regras Gherkin.
@@ -189,7 +197,7 @@ Quando 31ª chega
 Então retorna 429 com header `Retry-After: 60`
 ```
 **Implementação:** Laravel RateLimiter `ai-chat:user:{id}`.
-**Testado em:** `Modules/LaravelAI/Tests/Feature/RateLimitTest` — 30 queries OK + 31ª retorna 429 com header.
+**Testado em:** `Tests/Feature/RateLimitTest` no módulo LaravelAI (planejado — não existe) — 30 queries OK + 31ª retorna 429 com header.
 
 ### R-AI-010 · Provider fallback (OpenAI down)
 ```gherkin

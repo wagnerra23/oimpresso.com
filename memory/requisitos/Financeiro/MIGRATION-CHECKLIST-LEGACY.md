@@ -63,7 +63,7 @@ A `FINANCEIRO` Delphi mistura 4 conceitos no mesmo registro. No oimpresso vira *
 | Campo | Vai pra | Dúvida |
 |---|---|---|
 | `CODIGO` | `accounts_legacy_map` | — |
-| `CODMENSALIDADE` | `fin_titulos.metadata.contrato_id` | Modules/FinanceiroAvancado tem contrato recorrente? Confirmar Wagner |
+| `CODMENSALIDADE` | `fin_titulos.metadata.contrato_id` | módulo FinanceiroAvancado (planejado — não existe) tem contrato recorrente? Confirmar Wagner |
 | `VALOR` / `DT_VENCTO` / `DT_EMISSAO` | direto | — |
 | `TIPOPAGTO` (string `'BOLETO'`/`'PIX'`) | `fin_titulo_baixas.meio_pagamento` | Valores que cliente usa? |
 | `PESSOA_RESPONSAVEL_CODIGO` | `fin_titulos.cliente_id` via JOIN | — |
@@ -71,7 +71,7 @@ A `FINANCEIRO` Delphi mistura 4 conceitos no mesmo registro. No oimpresso vira *
 
 ---
 
-## `CONTRATO` → `Modules/FinanceiroAvancado.subscription_contracts`
+## `CONTRATO` → `FinanceiroAvancado.subscription_contracts` (módulo planejado — não existe)
 
 | Campo | Vai pra | Dúvida |
 |---|---|---|
@@ -136,7 +136,7 @@ Mapeamento campo-a-campo já validado em [migracao-officeimpresso-pattern.md](..
 ### Bloco E — Dependências (Wagner+Felipe decidem)
 - [ ] Vertical do cliente: oficina (precisa Fase 2 vehicles), gráfica (skip vehicles), comércio puro?
 - [ ] NFs entrada (`CODNF_ENTRADA`) migram pro `Modules/Compras` ou só referência string?
-- [ ] Cliente usa `Modules/FinanceiroAvancado` (recurring/contratos) ou `Modules/Financeiro` básico?
+- [ ] Cliente usa `FinanceiroAvancado` (planejado — não existe; recurring/contratos) ou `Modules/Financeiro` básico?
 
 ### Bloco F — LGPD / segurança
 - [x] **Autorização LGPD: LIBERADA por Wagner 2026-05-21** — dados PII (CPF/CNPJ/email/HISTORICO) podem migrar do Firebird on-prem pro MySQL Hostinger

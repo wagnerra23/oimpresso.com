@@ -58,7 +58,7 @@ Add-on vertical de oficina mecânica automotiva sobre o núcleo oimpresso, **foc
 - ❌ **Visão financeira AR/AP unificada** → vive em `Modules/Financeiro`
 - ❌ **Boleto/assinatura/cobrança recorrente** (planos de revisão preventiva) → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- ❌ **Jana IA / memória persistente** → vive em `Modules/Copiloto`
+- ❌ **Jana IA / memória persistente** → vive em `Modules/Jana`
 - ❌ **OS de reparo genérico** (eletrônico, costureira, vestuário, etc) → vive em `Modules/Repair`. OficinaAuto **consome `RepairCore`** quando o refactor Caminho A do audit F29 entregar. Hoje, sem refactor, isto é bloqueador
 - ❌ **PCP de produção gráfica/têxtil** — fora do escopo automotivo
 - ❌ **E-commerce de peças / marketplace integration** (Mercado Livre Auto, etc) → fora do MVP
@@ -122,7 +122,7 @@ Validação: **NENHUM CLIENTE PILOTO** (charter antecipatório). Personas basead
 
 ## 6. Automation hooks (onde Jana IA atua)
 
-> Jana = Modules/Copiloto. Hooks **propostos** — exigem sinal qualificado antes de virar US ativa.
+> Jana = Modules/Jana. Hooks **propostos** — exigem sinal qualificado antes de virar US ativa.
 
 - ✅ **Sugestão de tempária Sindirepa** — ao adicionar serviço na OS, Jana propõe tempo do sindicato; mecânico aceita ou ajusta
 - ✅ **Alerta peça em estoque baixo** — quando mecânico vai usar peça e estoque já acabou, Jana avisa antes de fechar OS
@@ -157,7 +157,7 @@ Validação: **NENHUM CLIENTE PILOTO** (charter antecipatório). Personas basead
 | `Modules/Repair` (via `RepairCore` extraído) | Reusa OS base, status workflow, attachments, eventos. **Bloqueador:** depende do refactor Caminho A audit F29 (extração `RepairCore` shared). Pré-refactor, não inicia código. | consome (após refactor) |
 | `Modules/NfeBrasil` | Listener `NFSeAutorizada` (serviço) + `NFCeAutorizada` (venda de peça); pipeline TransactionBuilder | consome |
 | `Modules/Financeiro` | Visão unificada AR/AP de OSs; DRE simplificado | consome |
-| `Modules/Copiloto` (Jana) | Chat contextual + alertas + brief diário | consome |
+| `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário | consome |
 | `Modules/RecurringBilling` | Plano mensal da oficina (assinatura oimpresso) — não OSs finais | consome |
 | `Modules/MemCofre` | Cofre senhas (cert digital, login fornecedor de peças, API DETRAN) | consome opcional |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, products, contacts | base |

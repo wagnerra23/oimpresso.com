@@ -72,13 +72,13 @@ related_docs:
 - Maior GMV restante (Vargas removido pra Autopecas)
 - Vertical encaixe nominal: nome registry sugere LED/comunicação visual
 - Build Delphi atualizado (v1472, chama backend Connector) = receptivo a novidade
-- Volume FB alto (~85k vendas histórico) = operação madura testa Modules/CV com carga real
+- Volume FB alto (~85k vendas histórico) = operação madura testa Modules/ComunicacaoVisual com carga real
 
-**Plano discovery:** Wagner [W] + Felipe [F] técnico — call 45min após Sprint 1 Modules/CV verde.
+**Plano discovery:** Wagner [W] + Felipe [F] técnico — call 45min após Sprint 1 Modules/ComunicacaoVisual verde.
 
 **Risco:** concorrência Mubisys/Zênite pode ter mapeado paralelo (AFACOM+ centro-oeste). Acelerar Q3/26.
 
-**Pacote recomendado:** Enterprise R$ [redacted Tier 0]/m grandfathered 24m + setup R$ [redacted Tier 0] + 30% off 6m + Modules/CV completo (cálculo m² + spool plotter + PCP + NFe-de-boleto) + Jana ilimitada. Compromisso: depoimento escrito.
+**Pacote recomendado:** Enterprise R$ [redacted Tier 0]/m grandfathered 24m + setup R$ [redacted Tier 0] + 30% off 6m + Modules/ComunicacaoVisual completo (cálculo m² + spool plotter + PCP + NFe-de-boleto) + Jana ilimitada. Compromisso: depoimento escrito.
 
 ### 🥈 2. Cliente C (Zoom) — score 16/25 (+TBD geo)
 
@@ -92,7 +92,7 @@ related_docs:
 
 **Risco:** pode estar SATISFEITO DEMAIS com OfficeImpresso atual. Diferencial precisa ser CONCRETO (não preço — defender pelo wedge competitivo NFe-de-boleto automática + Jana 22h).
 
-**Pacote recomendado:** Enterprise R$ [redacted Tier 0]/m grandfathered 18m + setup R$ [redacted Tier 0] (50% off Enterprise) + Modules/CV completo. Q4/26 outubro outreach.
+**Pacote recomendado:** Enterprise R$ [redacted Tier 0]/m grandfathered 18m + setup R$ [redacted Tier 0] (50% off Enterprise) + Modules/ComunicacaoVisual completo. Q4/26 outubro outreach.
 
 ### 🥉 3. Cliente E (Mhundo) — score 15/25 (+TBD)
 
@@ -107,7 +107,7 @@ related_docs:
 
 **Risco:** GMV pequeno pode não justificar Pro R$ [redacted Tier 0] (margem cliente apertada). Avaliar tier R$ [redacted Tier 0] em discovery.
 
-**Pacote recomendado:** Pro R$ [redacted Tier 0]/m grandfathered 12m + setup R$ [redacted Tier 0] (entry-level) + Modules/CV lite (essenciais) + NFe + Jana 200 perguntas/m. Q1/27 março outreach.
+**Pacote recomendado:** Pro R$ [redacted Tier 0]/m grandfathered 12m + setup R$ [redacted Tier 0] (entry-level) + Modules/ComunicacaoVisual lite (essenciais) + NFe + Jana 200 perguntas/m. Q1/27 março outreach.
 
 ---
 
@@ -157,14 +157,14 @@ Cliente vira **Tier A** (top prioridade piloto) APENAS se:
 - ❌ Resposta "tá tudo bem, não tenho nenhuma dor" → cliente satisfeito, não vende
 - ❌ "Já fechei com Mubisys/Zênite contrato 24m" → respeitar contrato; outreach D+90 só se Mubisys deteriorar
 - ❌ Cliente menciona preço como ÚNICO critério → não fit (oimpresso vende confiança + diferencial, não preço)
-- ❌ Cliente exige feature que NÃO está no roadmap Modules/CV Sprint 1-4 → não forçar; backlog ADR feature-wish
+- ❌ Cliente exige feature que NÃO está no roadmap Modules/ComunicacaoVisual Sprint 1-4 → não forçar; backlog ADR feature-wish
 
 ---
 
 ## Pré-requisitos antes de qualquer outreach (Wagner aprova)
 
 1. ⏳ **Snapshot financeiro** dos 3 top candidatos via skill [officeimpresso-financial-snapshot](../../../.claude/skills/officeimpresso-financial-snapshot/SKILL.md) — confirma receita real + ticket pago histórico + recência updates Delphi
-2. ⏳ **Sprint 1 Modules/CV verde** (4 features P0: cálculo m² + cadastro substrato + NFe-de-boleto + PCP Kanban CV-vocabulário) — sem isso, demo frustra
+2. ⏳ **Sprint 1 Modules/ComunicacaoVisual verde** (4 features P0: cálculo m² + cadastro substrato + NFe-de-boleto + PCP Kanban CV-vocabulário) — sem isso, demo frustra
 3. ⏳ **Validar identidade Cliente B (Gold)** — registry vs Mubisys post-mortem 2026-05-09 ([04-gold-comvis](../../research/clientes-legacy-officeimpresso/04-gold-comvis/01-perfil.md))
 4. ⏳ **Confirmar vertical real** de cada candidato via Firebird `SELECT * FROM EMPRESA` (cidade/UF/CNAE inferido) — alguns aliases ambíguos
 5. ⏳ **Battle card atualizado** (Mubisys/Zênite/Calcgraf) — defender pelo wedge competitivo, não pelo preço
