@@ -237,7 +237,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           </KpiGrid>
         ) : (
           <p className="text-sm text-zinc-500">
-            Sem snapshot SDD ainda — cron `governance:sdd-scorecard-snapshot` roda 07:00 BRT.
+            Sem snapshot SDD ainda — cron `governance:sdd-scorecard-snapshot` roda 07:10 BRT.
           </p>
         )}
       </Deferred>
