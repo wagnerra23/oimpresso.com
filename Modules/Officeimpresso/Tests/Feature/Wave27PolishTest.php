@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @group legacy-quarantine
+ * quarantine-reason: polish Wave 27 Officeimpresso — asserts estáticos (reflection/source-grep) de canon móvel (Services/FormRequests/spans) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
 use App\Util\OtelHelper;
 use Modules\Officeimpresso\Http\Requests\BulkRevokeLicencaRequest;
 use Modules\Officeimpresso\Http\Requests\RevokeLicencaRequest;

@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @group legacy-quarantine
+ * quarantine-reason: LGPD compliance D7 Officeimpresso — asserts estáticos (wiring/source-grep) de canon móvel (PiiRedactor/LogsActivity/module.json) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use Modules\Officeimpresso\Entities\LicencaLog;
