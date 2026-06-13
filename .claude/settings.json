@@ -101,6 +101,10 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/warn-red-first.ps1"
+          },
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-test-without-red.ps1"
           }
         ]
       },
