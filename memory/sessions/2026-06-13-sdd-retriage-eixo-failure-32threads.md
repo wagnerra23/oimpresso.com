@@ -55,8 +55,17 @@ Reconfirmar no floor do run limpo (A.1+A.2 ativos). Ex: `DelphiOImpressoContract
 10. **Ponto/Wave18RetryEscalaTurnoTest** — confirmar se o checkout MySQL tinha o trait em Escala.
 11. **Utils/NumUfHeuristicPtBRTest** — não é bug (num_uf correto) nem alvo movido; fixture corrompida — checar origem.
 
-## Validação (floor)
-Run limpo `20260613-100035` (A.1+A.2 ativos) rodando — o floor real é a prova da Frente A + confirma os 33 env-coupled. _Atualizar aqui quando fechar._
+## Validação (floor) — MEDIDO, achado que reframe a Frente A
+Run `20260613-100035` (sha `3902f381` = merge da Frente A): **pass 7046 · fail 373 · error 1497 · skip 1536 → 1870 falhando**.
+
+Assinaturas: **mysql-not-found 0 · TLS-cert-fail 0 · Cannot-drop 0 · Base-table-not-found 530**.
+
+- ✅ **A.1 funcionou** (0 mysql-not-found, 0 TLS-cert) — o caminho CLI do migrate:fresh não erra mais.
+- ✅ **Eixo FAILURE = 373** ≈ os 385 que re-triei → escopo confirmado, determinístico.
+- ⚠️ **A.2 (FK-off) NÃO derrubou o floor — e provavelmente piorou.** `Loading stored database schemas` = **0** (o migrate:fresh não recarrega o dump pós-wipe) + as faltantes são CORE (`business` **200**, `activity_log` 73, `users` 46, `permissions` 25, `system` 24). Mecanismo: antes do FK-off, dropar uma tabela core referenciada FALHAVA (Cannot-drop 3730) e a tabela **sobrevivia**; com FK-off o drop **sucede → `business` some → 530 Base-table-not-found** pros testes seguintes. **A.2 só troca a classe de erro** (254 Cannot-drop → centenas de Base-table), floor inalterado (1870, na banda).
+- 🎯 **O verdadeiro lever é Frente C (isolamento de teste):** os testes mutam um DB MySQL **compartilhado/persistente** e o schema não é restaurado entre eles. Fix real = isolamento por-teste (RefreshDatabase com reload do dump REALMENTE funcionando — investigar por que `Loading stored database schemas`=0 — OU DatabaseTransactions OU DB-por-worker). **Reconsiderar A.2** (nightly-scoped, não toca prod, mas não ajuda o floor) no design da Frente C.
+
+> **1 run ≠ floor** (SPEC pede interseção de ≥2). Mas as assinaturas já contam a história: A.1 ok, A.2 inerte/contraproducente, Frente C é a alavanca.
 
 ## Adversarial (ADR 0276)
 O refutador derrubou **9 de 20 claims de bug** (eram stale/env), deixando os 11 sólidos. Padrão: a re-triage anterior (eixo ERROR) errou 2× por premissa; aqui o eixo FAILURE é estável e cada bug tem evidência arquivo:linha.
