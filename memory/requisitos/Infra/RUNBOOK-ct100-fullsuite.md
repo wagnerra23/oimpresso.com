@@ -3,7 +3,7 @@ title: "Full-suite Pest MySQL nightly no CT 100 (FV-F3 — diagnostica, nunca re
 module: "Infra"
 owner: "W"
 status: "ativo"
-last_validated: "2026-06-12"
+last_validated: "2026-06-13"
 preconditions:
   - "Acesso SSH root@100.99.207.66 (Tailscale, BatchMode)"
   - "Container mysql-workers up na rede docker-host_default"
@@ -78,5 +78,6 @@ ssh -o BatchMode=yes root@100.99.207.66 cat /opt/oimpresso-fullsuite/runs/latest
 | junit.xml 0 bytes / ausente | run morto antes do flush (OOM/timeout) — ver fim do `run.log`; subir `FULLSUITE_TIMEOUT` ou rodar chunked (abaixo) |
 | migrate falha | schema baseline mudou em main — rodar de novo (DB é recriada do zero a cada run) |
 | disco | retenção automática mantém 14 runs; clone+vendor ~2,5 GB |
+| **suite roda em sqlite e não MySQL** (`no such table` em massa, `near "MODIFY": syntax error`) | **C1 (corrigido 2026-06-13):** `phpunit.xml:72-73` tem `<env DB_CONNECTION=sqlite>` **sem `force=`** — o PHPUnit só seta se a var ainda não existir. O `docker run` do pest agora passa `-e DB_CONNECTION=mysql` + `DB_*` reais (passo 6), então o `<env>` sqlite é ignorado e o pest usa o MySQL seedado. Se reaparecer: conferir que os `-e DB_*` continuam no `docker run` do pest. Ver triage Q2 `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md`. |
 
 **Modo chunked** (fallback se a suite inteira estourar memória): rodar por diretório com um junit por chunk, ex. `--log-junit /artifacts/junit-unit.xml tests/Unit`, depois `Modules/<X>/Tests` um a um, e somar os summaries.
