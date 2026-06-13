@@ -468,9 +468,9 @@ function FinMultiSelectContas({
 function StatusPill({ s }: { s: LancamentoStatus }) {
   const tone = statusTone(s);
   const cls = {
-    success:     'bg-success-soft text-success-fg border-success/20',
-    warning:     'bg-warning-soft text-warning-fg border-warning/20',
-    destructive: 'bg-destructive-soft text-destructive-fg border-destructive/20',
+    success:     'bg-emerald-50 text-emerald-700 border-emerald-200',
+    warning:     'bg-amber-50 text-amber-800 border-amber-200',
+    destructive: 'bg-rose-50 text-rose-700 border-rose-200',
     default:     'bg-stone-50 text-stone-700 border-stone-200',
   }[tone];
   return (
@@ -487,9 +487,9 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
 function ApprovalPill({ s }: { s: 'pendente' | 'aprovado' | 'rejeitado' | null }) {
   if (!s) return null;
   const map = {
-    pendente:  { cls: 'bg-warning-soft text-warning-fg border-warning/20', icon: '⏳', label: 'Aprov?' },
-    aprovado:  { cls: 'bg-success-soft text-success-fg border-success/20', icon: '✓', label: 'Aprov.' },
-    rejeitado: { cls: 'bg-destructive-soft text-destructive-fg border-destructive/20', icon: '✗', label: 'Rejeit.' },
+    pendente:  { cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: '⏳', label: 'Aprov?' },
+    aprovado:  { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: '✓', label: 'Aprov.' },
+    rejeitado: { cls: 'bg-rose-50 text-rose-700 border-rose-200', icon: '✗', label: 'Rejeit.' },
   }[s];
   return (
     <span
@@ -2347,12 +2347,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         </div>
                       )}
                       {selected.aprovacao_status === 'aprovado' && (
-                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-success-soft text-success-fg border-success/20">
+                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200">
                           ✓ Aprovado — liberado pra pagamento
                         </span>
                       )}
                       {selected.aprovacao_status === 'rejeitado' && (
-                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-destructive-soft text-destructive-fg border-destructive/20">
+                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-rose-50 text-rose-700 border-rose-200">
                           ✗ Rejeitado — bloqueado pra pagamento
                         </span>
                       )}
