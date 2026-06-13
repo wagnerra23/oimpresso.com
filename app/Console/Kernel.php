@@ -227,6 +227,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD em
+        // mcp_sdd_scorecard_history (composta v1 + alertas) via agregador node
+        // determinístico. 1 row/dia, re-run substitui. 07:10 BRT — 10min após
+        // governance:scorecard-snapshot (07:00) pra evitar disputa DB (mesmo
+        // precedente do stagger 06:05 do module:grade-snapshot). O brief das
+        // 07h pega o snapshot de ontem; o das 11h pega o de hoje (GT-G8).
+        $schedule->command('governance:sdd-scorecard-snapshot')
+            ->dailyAt('07:10')
+            ->timezone('America/Sao_Paulo')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:sdd-scorecard-snapshot FALHOU — histórico SDD defasado (GT-G7)'
+                );
+            });
+
         // Wave 28 Agent 1 (2026-05-17) — Initiatives Cortex-style.
         // Sync diário Initiatives ↔ scorecards: abre breach (rule abaixo target),
         // fecha recuperadas (score_after >= target), expira deadlines passadas.
