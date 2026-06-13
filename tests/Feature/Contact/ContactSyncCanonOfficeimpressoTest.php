@@ -7,6 +7,7 @@ namespace Tests\Feature\Contact;
 use App\Business;
 use App\Contact;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -31,7 +32,7 @@ use Tests\TestCase;
  */
 class ContactSyncCanonOfficeimpressoTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_has_canon_sync_columns_officeimpresso_codigo_and_dt_alteracao(): void
     {
         $this->assertTrue(
@@ -44,7 +45,7 @@ class ContactSyncCanonOfficeimpressoTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_dropped_legacy_source_column_redundant(): void
     {
         $this->assertFalse(
@@ -54,7 +55,7 @@ class ContactSyncCanonOfficeimpressoTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_casts_officeimpresso_dt_alteracao_as_datetime(): void
     {
         $business = Business::first() ?? Business::create([
@@ -85,9 +86,8 @@ class ContactSyncCanonOfficeimpressoTest extends TestCase
 
     /**
      * Smoke test — pattern conflict detection do BaseApiController.
-     *
-     * @test
      */
+    #[Test]
     public function it_supports_base_api_controller_conflict_detection_pattern(): void
     {
         $business = Business::first() ?? Business::create([
@@ -129,7 +129,7 @@ class ContactSyncCanonOfficeimpressoTest extends TestCase
         $contact->forceDelete();
     }
 
-    /** @test */
+    #[Test]
     public function it_preserves_multi_tenant_scope_with_canon_sync_fields(): void
     {
         // Tier 0 IRREVOGAVEL (ADR 0093) — query scoped business_id NUNCA vaza.
@@ -176,7 +176,7 @@ class ContactSyncCanonOfficeimpressoTest extends TestCase
         $biz_b->delete();
     }
 
-    /** @test */
+    #[Test]
     public function it_supports_4_distinct_legacy_sync_fields_coexisting(): void
     {
         // Os 4 campos com propósitos distintos coexistem sem redundância:

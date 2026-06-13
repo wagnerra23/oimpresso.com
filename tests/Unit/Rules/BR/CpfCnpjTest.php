@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Rules\BR;
 
 use App\Rules\BR\CpfCnpj;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,37 +31,29 @@ class CpfCnpjTest extends TestCase
         return $error;
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function it_accepts_null_and_empty(): void
     {
         $this->assertNull($this->validate(null));
         $this->assertNull($this->validate(''));
     }
 
-    /**
-     * @test
-     * @dataProvider validCpfs
-     */
+    #[Test]
+    #[DataProvider('validCpfs')]
     public function it_accepts_valid_cpf(string $cpf): void
     {
         $this->assertNull($this->validate($cpf));
     }
 
-    /**
-     * @test
-     * @dataProvider validCnpjs
-     */
+    #[Test]
+    #[DataProvider('validCnpjs')]
     public function it_accepts_valid_cnpj(string $cnpj): void
     {
         $this->assertNull($this->validate($cnpj));
     }
 
-    /**
-     * @test
-     * @dataProvider invalidDocs
-     */
+    #[Test]
+    #[DataProvider('invalidDocs')]
     public function it_rejects_invalid_doc(string $doc): void
     {
         $this->assertNotNull($this->validate($doc));

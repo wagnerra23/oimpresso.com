@@ -10,6 +10,7 @@ use App\TransactionPayment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Financeiro\Models\TituloBaixa;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * ADR 0175 — Observer Financeiro permite baixa sem fin_contas_bancarias.
@@ -101,9 +102,7 @@ class Adr0175ObserverContaOpcionalTest extends FinanceiroTestCase
         parent::tearDown();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function observer_cria_titulo_baixa_mesmo_sem_fin_contas_bancarias()
     {
         // Pré-condição: biz=99 NÃO tem nenhuma fin_contas_bancarias
