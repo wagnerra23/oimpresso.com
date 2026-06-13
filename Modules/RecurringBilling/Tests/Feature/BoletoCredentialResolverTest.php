@@ -26,7 +26,7 @@ beforeEach(function () {
     // BoletoCredential::create disparar sem QueryException.
     config()->set('activitylog.enabled', false);
 
-    if (config('database.default') !== 'sqlite' && ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+    if (config('database.default') !== 'sqlite' || ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         $this->markTestSkipped('Smoke test rodado apenas em SQLite in-memory.');
     }
 
