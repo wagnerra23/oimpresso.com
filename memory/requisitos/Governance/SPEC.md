@@ -332,3 +332,34 @@ GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuaç
 **Fase 2 (dispara automaticamente na sequência):** triage Q2 do 1º run CT 100 → quarentena em massa Q3 → backfill mecânico de anchors (SA-A4) → burn-down por módulo (B1 Financeiro, B2 NfeBrasil, B4 tests/ raiz; B3 mini-onda) → batch IA de anchors com refutador (SA-A5) → CT 100: re-seed + flag decay + recall-eval cron (C3-C5) → G4/G7/G8.
 
 **Gated em Wagner:** tabela _TRIAGEM-IDENTIDADE (trilha E) · secret OPENAI_API_KEY (RAGAS real) · skim das queries do golden set.
+
+---
+
+### US-GOV-018 · P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema"
+
+> owner: — · priority: p0 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** retest adversarial POR REPRODUÇÃO (2026-06-13, CT 100, DB scratch byte-a-byte) sobre o nightly full-suite MySQL (run `20260613-003042`, sha d14f5436). 3 skeptics reproduziram e refutaram 2 diagnoses anteriores. Substitui a estratégia "quarentena em massa" (revertida) E o P0 "completar schema" (refutado). C1 (#2632, mergeado) flipou a suite pra MySQL e expôs a causa real.
+
+## Número honesto (medido, não estimado)
+- **Floor determinístico = 1514** (interseção test-a-test dos 2 runs MySQL code-equivalentes). NÃO é 1636 nem 2075 — esses são pontos ruidosos de runs únicos.
+- **Banda de não-determinismo = 683** (561 só-num-run + 122 no-outro). Faixa real **1514–2197**. O eixo que oscila é ERROR (−420 entre runs), não FAILURE: ruído **infraestrutural** (estratégia de DB), confirmando a causa.
+
+## Causa-raiz REAL (reproduzida — NÃO "schema incompleto")
+O dump `database/schema/mysql-schema.sql` tem **364 CREATE TABLE** incl. `system`/`permissions`/`business`/`activity_log`/`users` — TODAS presentes. Baseline completo (dump+migrate+seed) ainda deixou ~56% da amostra vermelho. "Completar schema" conserta ZERO.
+
+## 3 FRENTES (com impacto medido)
+**Frente A — harness/imagem [~850 falhas]:** a imagem `oimpresso/mcp` **não tem o binário `mysql`/`mariadb`** → o `migrate:fresh`/`schema:load` do RefreshDatabase não reaplica o dump → tabelas core (`business`/`activity_log`/`permissions`) **somem mid-run** pros testes seguintes (DB protegida vista com `business doesn't exist` durante o nightly). Soma: teardown sem `SET FOREIGN_KEY_CHECKS=0` → "Cannot drop ... referenced by FK" (508 ocorrências); + `migrate` PULA migrations Financeiro PSR-4-broken ("does not comply with psr-4... Skipping"). **DoD A:** instalar `mysql-client` na imagem `oimpresso/mcp` OU preload manual do dump no `ct100-fullsuite.sh` antes da suite; teardown com FK-off; consertar PSR-4 das migrations puladas.
+
+**Frente B — código [212 falhas]:** `payment_gateway_credentials.config_json` declarado `json` (strict no MySQL 8) mas o Model casta `encrypted:array` (blob AES base64). SQLite TEXT aceitava; MySQL rejeita com SQLSTATE 3140 "Invalid JSON text". Reproduzido byte-a-byte; counterfactual `ALTER ... LONGTEXT/TEXT` aceita. **DoD B:** ALTER `config_json` pra TEXT alinhado ao cast `encrypted:array` (migration idempotente + down()).
+
+**Frente C — testes era-sqlite [parte do floor]:** 231-476 arquivos montam `Schema::create` próprio e rodam contra MySQL persistente sem rollback → UniqueConstraint 1062, unknown-column 1054. **DoD C:** trait de reset uniforme (DatabaseTransactions/RefreshDatabase consistente) OU isolamento por-arquivo — pode virar sub-onda mecânica.
+
+## Validação
+Re-rodar o nightly full após A+B+C e medir o novo floor (interseção de ≥2 runs com seed fixo). Meta: floor cai de 1514 pra a casa das centenas.
+
+## FORA do escopo (backlog separado, não bloqueia)
+~385 ExpectationFailed (assertions reais) + ~105 app-bugs (ex `RetentionCleanupCommand.php:194 Undefined variable $businessId`) — dívida de teste/código genuína que NENHUM fix de harness toca.
+
+Ref: retest reproduzido na timeline US-GOV-017 (correção #2) · #2632 (C1) · triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md`.
