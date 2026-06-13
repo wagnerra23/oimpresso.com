@@ -176,6 +176,18 @@
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
+
+  /* Motion — Onda M1 (maturidade DS · dimensão D8). Vocabulário nomeado de duração
+     + easing. Antes: durations cruas espalhadas (150ms, .12s) sem easing nomeado.
+     Princípios: micro-interação (hover/focus/toggle) 120–150ms · overlay/sheet 240ms ·
+     nada acima de 360ms. Consumidor deve respeitar prefers-reduced-motion (M4 a11y). */
+  --duration-fast: 120ms;
+  --duration-base: 150ms;
+  --duration-slow: 240ms;
+  --duration-slower: 360ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);   /* default — entra e sai */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);         /* entrada (aparecer/expandir) */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);          /* saída (sumir/recolher) */
 }
 
 /* ==========================================================================
@@ -248,7 +260,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: background-color var(--duration-base) var(--ease-standard), color var(--duration-base) var(--ease-standard);
   }
 }
 
