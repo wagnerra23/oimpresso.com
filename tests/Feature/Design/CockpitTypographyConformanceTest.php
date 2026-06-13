@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 /**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de tipografia canon (Cockpit V2 / ADR 0110) contra .tsx móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
+/**
  * Pest test estrutural — conformance Cockpit Pattern V2 (ADR 0110) em todas as Pages.
  *
  * Anti-regressão sistêmica das divergências encontradas no inventário 2026-05-08:

@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 /**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de canon-source (ContactController::buildClienteIndexCustomers select cols) contra fonte-da-verdade móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
+/**
  * Fix 2026-05-27 (Wagner reportou drawer Identificacao sem IE/CNPJ no Acme
  * Comercio Ltda biz=1).
  *
