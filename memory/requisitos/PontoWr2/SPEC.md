@@ -1,3 +1,10 @@
+---
+module: PontoWr2
+owner: wagner
+version: "1.0"
+last_updated: "2026-06-13"
+---
+
 # Especificação funcional
 
 ## 3. User stories
@@ -15,7 +22,7 @@
 **Quero** ver o conjunto de Aprovacao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -37,7 +44,7 @@
 **Quero** ver o conjunto de Banco Horas  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -59,7 +66,7 @@
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -81,7 +88,7 @@
 **Quero** ver o conjunto de Colaborador  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -103,7 +110,7 @@
 **Quero** ver o conjunto de Configuracao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -125,7 +132,7 @@
 **Quero** ver o conjunto de Core  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -147,7 +154,7 @@
 **Quero** ver o conjunto de Espelho  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -169,7 +176,7 @@
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -191,7 +198,7 @@
 **Quero** ver o conjunto de Importacao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -213,7 +220,7 @@
 **Quero** criar um novo item em Importacao  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -235,7 +242,7 @@
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -257,7 +264,7 @@
 **Quero** ver o conjunto de Relatorio  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
