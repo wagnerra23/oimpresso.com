@@ -187,7 +187,7 @@ function StockAdjustmentCreate({
               <Label className="text-[12px] text-stone-600">Tipo de ajuste *</Label>
               <select
                 className={`mt-1 w-full h-9 px-2 rounded-md border text-[13px] ${
-                  form.data.adjustment_type === 'abnormal' ? 'border-rose-300 bg-rose-50/20' : 'border-stone-200'
+                  form.data.adjustment_type === 'abnormal' ? 'border-destructive/40 bg-destructive/5' : 'border-stone-200'
                 }`}
                 value={form.data.adjustment_type}
                 onChange={(e) => form.setData('adjustment_type', e.target.value as AdjustmentType)}
@@ -280,7 +280,7 @@ function StockAdjustmentCreate({
                       </td>
                     )}
                     <td className="px-2 text-right">
-                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => removerLinha(idx)} title="Remover">
+                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removerLinha(idx)} title="Remover">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </td>
@@ -305,12 +305,12 @@ function StockAdjustmentCreate({
                   <Input
                     type="number"
                     step="0.01"
-                    className={`mt-1 h-9 text-[13px] tabular-nums ${recuperadoExcede ? 'border-rose-300' : ''}`}
+                    className={`mt-1 h-9 text-[13px] tabular-nums ${recuperadoExcede ? 'border-destructive/40' : ''}`}
                     value={form.data.total_amount_recovered}
                     onChange={(e) => form.setData('total_amount_recovered', Number(e.target.value))}
                   />
                   {recuperadoExcede && (
-                    <p className="text-rose-700 text-[11px] mt-1 flex items-center gap-1">
+                    <p className="text-destructive-fg text-[11px] mt-1 flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       Recuperado não pode exceder o total ajustado ({brl(totalFinal)}).
                     </p>
@@ -318,10 +318,10 @@ function StockAdjustmentCreate({
                 </div>
                 <div className="space-y-1 text-[13px] pt-2 border-t border-stone-200">
                   <div className="flex justify-between"><span className="text-stone-500">Total ajustado</span><span className="tabular-nums">{brl(totalFinal)}</span></div>
-                  <div className="flex justify-between"><span className="text-stone-500">Recuperado</span><span className="tabular-nums text-emerald-700">- {brl(form.data.total_amount_recovered)}</span></div>
+                  <div className="flex justify-between"><span className="text-stone-500">Recuperado</span><span className="tabular-nums text-success-fg">- {brl(form.data.total_amount_recovered)}</span></div>
                   <div className="flex justify-between pt-2 mt-1 border-t border-stone-100">
                     <span className="font-semibold">Perda líquida</span>
-                    <span className="tabular-nums font-semibold text-[15px] text-rose-700">{brl(Math.max(0, totalFinal - (form.data.total_amount_recovered || 0)))}</span>
+                    <span className="tabular-nums font-semibold text-[15px] text-destructive-fg">{brl(Math.max(0, totalFinal - (form.data.total_amount_recovered || 0)))}</span>
                   </div>
                 </div>
               </>

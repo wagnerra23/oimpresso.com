@@ -279,10 +279,10 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                       'px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0 ' +
                       (isActive
                         ? danger
-                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200'
+                          ? 'bg-destructive-soft text-destructive-fg'
                           : 'bg-muted text-foreground'
                         : danger
-                          ? 'text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/30'
+                          ? 'text-destructive hover:bg-destructive/10'
                           : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground')
                     }
                     aria-current={isActive ? 'true' : undefined}
@@ -370,9 +370,9 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                       const rental = v.current_rental;
                       const isOverdue = Boolean(rental?.is_overdue);
                       const rowBg = isOverdue
-                        ? 'bg-rose-50/60 hover:bg-rose-50 dark:bg-rose-950/30 dark:hover:bg-rose-950/40'
+                        ? 'bg-destructive/10 hover:bg-destructive/15'
                         : v.current_status === 'manutencao'
-                          ? 'bg-amber-50/30 hover:bg-amber-50/50 dark:bg-amber-950/20 dark:hover:bg-amber-950/30'
+                          ? 'bg-warning/10 hover:bg-warning/15'
                           : 'hover:bg-muted/40';
                       return (
                         <tr
@@ -386,7 +386,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                           <td className="px-3 py-2.5 font-medium text-foreground whitespace-nowrap">
                             {isOverdue && (
                               <span
-                                className="inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5 align-middle"
+                                className="inline-block w-2 h-2 rounded-full bg-destructive mr-1.5 align-middle"
                                 title="Atrasado"
                                 aria-label="Veículo com OS atrasada"
                               />
@@ -416,10 +416,10 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                           <td className={
                             'px-3 py-2.5 text-right tabular-nums whitespace-nowrap ' +
                             (isOverdue
-                              ? 'text-rose-700 font-medium'
+                              ? 'text-destructive-fg font-medium'
                               : Number(rental?.valor_receber ?? 0) > 0
-                                ? 'text-amber-700 dark:text-amber-400'
-                                : 'text-emerald-700 dark:text-emerald-400')
+                                ? 'text-warning-fg'
+                                : 'text-success-fg')
                           }>
                             {formatBRL(rental?.valor_receber ?? 0)}
                           </td>
@@ -442,7 +442,7 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                           <span className="text-muted-foreground/70"> (de {meta.total})</span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 text-right tabular-nums font-bold text-amber-700 dark:text-amber-400">
+                      <td className="px-3 py-2.5 text-right tabular-nums font-bold text-warning-fg">
                         {formatBRL(pageTotals.receber)}
                       </td>
                       <td className="px-3 py-2.5 text-xs text-muted-foreground">

@@ -389,7 +389,7 @@ function PurchaseEdit({
                       {brl(linha.purchase_price_inc_tax * linha.quantity)}
                     </td>
                     <td className="px-2 text-right">
-                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => removerLinha(idx)} title="Remover">
+                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removerLinha(idx)} title="Remover">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </td>

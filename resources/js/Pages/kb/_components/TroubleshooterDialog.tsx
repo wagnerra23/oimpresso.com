@@ -261,8 +261,8 @@ function WizardView({
                   className={cn(
                     'font-semibold shrink-0',
                     p.answer
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-amber-700 dark:text-amber-400',
+                      ? 'text-success'
+                      : 'text-warning-fg',
                   )}
                 >
                   {p.answer ? 'Sim' : 'Não'}

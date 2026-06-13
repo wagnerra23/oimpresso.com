@@ -643,7 +643,7 @@ export default function IdentificacaoTab({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
           <Label htmlFor="id-nome" className="cw-label">
-            {isPJ ? 'Razão social' : 'Nome completo'} <span className="text-rose-600">*</span>
+            {isPJ ? 'Razão social' : 'Nome completo'} <span className="text-destructive">*</span>
           </Label>
           <Input
             variant="cowork"
@@ -660,7 +660,7 @@ export default function IdentificacaoTab({
               scheduleAutosave('nome', v, prev);
             }}
             onBlur={(e) => handleBlur('nome', e.target.value)}
-            className={nomeError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+            className={nomeError ? 'border-destructive focus-visible:ring-destructive' : ''}
           />
           <FieldStatus
             error={nomeError}
@@ -721,7 +721,7 @@ export default function IdentificacaoTab({
                 scheduleAutosave('doc', masked, prev);
               }}
               onBlur={(e) => handleBlur('doc', e.target.value)}
-              className={docError ? 'border-rose-500 focus-visible:ring-rose-400' : ''}
+              className={docError ? 'border-destructive focus-visible:ring-destructive' : ''}
             />
             {isPJ && (
               <Button
@@ -739,7 +739,7 @@ export default function IdentificacaoTab({
                   </>
                 ) : cnpjLookup === 'ok' ? (
                   <>
-                    <CheckCircle2 size={14} className="text-emerald-600" /> Encontrado
+                    <CheckCircle2 size={14} className="text-success-fg" /> Encontrado
                   </>
                 ) : (
                   <>
@@ -752,7 +752,7 @@ export default function IdentificacaoTab({
           {cnpjLookupMsg && (
             <p
               className={`mt-1 text-xs ${
-                cnpjLookup === 'error' ? 'text-rose-600' : 'text-emerald-600'
+                cnpjLookup === 'error' ? 'text-destructive' : 'text-success-fg'
               }`}
               role="status"
               aria-live="polite"
@@ -922,14 +922,14 @@ interface FieldStatusProps {
 function FieldStatus({ error, errorId, saving, saved, backendError }: FieldStatusProps) {
   if (error) {
     return (
-      <p id={errorId} className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+      <p id={errorId} className="mt-1 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
         <AlertCircle size={11} aria-hidden /> {error}
       </p>
     );
   }
   if (backendError) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
         <AlertCircle size={11} aria-hidden /> {backendError}
       </p>
     );
@@ -943,7 +943,7 @@ function FieldStatus({ error, errorId, saving, saved, backendError }: FieldStatu
   }
   if (saved) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600" aria-live="polite">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-success-fg" aria-live="polite">
         <CheckCircle2 size={11} aria-hidden /> Salvo
       </p>
     );

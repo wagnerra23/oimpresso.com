@@ -425,7 +425,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                   </span>
                 )}
                 {t?.is_blocked && (
-                  <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                  <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-destructive-soft text-destructive-fg">
                     <Lock size={10} /> blocked
                   </span>
                 )}
@@ -437,7 +437,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                 {t?.module && <span className="bg-muted px-1.5 py-0.5 rounded">{t.module}</span>}
                 {t?.owner && <span className="bg-muted px-1.5 py-0.5 rounded">@{t.owner}</span>}
                 {t?.due_date && (
-                  <span className={`inline-flex items-center gap-1 ${t.is_overdue ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
+                  <span className={`inline-flex items-center gap-1 ${t.is_overdue ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
                     {t.is_overdue ? <AlertCircle size={11} /> : <Calendar size={11} />}
                     {dueShort(t.due_date)}
                   </span>
@@ -497,7 +497,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
           )}
 
           {error && (
-            <div className="my-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200">
+            <div className="my-6 rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-sm text-destructive-fg">
               {error}
             </div>
           )}
@@ -572,7 +572,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                     />
 
                     {postError && (
-                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">{postError}</p>
+                      <p className="mt-2 text-xs text-destructive">{postError}</p>
                     )}
 
                     <div className="mt-2 flex justify-end">
@@ -707,7 +707,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                       </Button>
                     </div>
                     {subtaskError && (
-                      <p className="mt-2 text-xs text-red-600 dark:text-red-400">{subtaskError}</p>
+                      <p className="mt-2 text-xs text-destructive">{subtaskError}</p>
                     )}
                   </div>
                 </div>
@@ -720,7 +720,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                     <div className="flex items-center gap-2 text-xs">
                       {data.is_watching ? (
                         <>
-                          <Eye className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <Eye className="h-3.5 w-3.5 text-success-fg" />
                           <span>Você está seguindo esta task.</span>
                         </>
                       ) : (

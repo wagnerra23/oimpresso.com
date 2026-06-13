@@ -63,7 +63,7 @@ const ACTIONS: ActionConfig[] = [
       type: 'number',
       placeholder: 'auto = mais recente Wagner',
     }],
-    buttonClass: 'bg-amber-600 hover:bg-amber-700',
+    buttonClass: 'bg-warning hover:bg-warning/90',
   },
   {
     key: 'run_health',
@@ -72,7 +72,7 @@ const ACTIONS: ActionConfig[] = [
     description: 'Executa jana:health-check síncrono (cap 30s) + atualiza snapshot. W2/W4/W10 atualizam.',
     endpoint: '/admin/mutations/health-check/run-now',
     extraFields: [],
-    buttonClass: 'bg-green-600 hover:bg-green-700',
+    buttonClass: 'bg-success hover:bg-success/90',
   },
 ];
 
@@ -186,7 +186,7 @@ export default function WidgetMutations() {
 
             <label className="block">
               <span className="text-xs text-gray-600">
-                Razão (audit log) <span className="text-red-600">*obrigatório, ≥5 chars</span>
+                Razão (audit log) <span className="text-destructive">*obrigatório, ≥5 chars</span>
               </span>
               <textarea
                 value={reason}
@@ -222,7 +222,7 @@ export default function WidgetMutations() {
           {result && (
             <div
               className={`mt-3 p-2 rounded text-xs ${
-                result.ok ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900'
+                result.ok ? 'bg-success-soft text-success-fg' : 'bg-destructive-soft text-destructive-fg'
               }`}
             >
               <div className="font-semibold mb-1">{result.ok ? '✓ Sucesso' : '✗ Falha'}</div>

@@ -111,8 +111,8 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Saldo atual</p>
             <p className={cn(
               'text-4xl font-bold font-mono mt-1',
-              saldo.saldo_minutos > 0 && 'text-emerald-600 dark:text-emerald-400',
-              saldo.saldo_minutos < 0 && 'text-red-600 dark:text-red-400',
+              saldo.saldo_minutos > 0 && 'text-success-fg',
+              saldo.saldo_minutos < 0 && 'text-destructive-fg',
             )}>
               {formatMinutes(saldo.saldo_minutos)}
             </p>
@@ -203,8 +203,8 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                         </td>
                         <td className={cn(
                           'p-2 text-right font-mono font-semibold',
-                          m.minutos > 0 && 'text-emerald-600 dark:text-emerald-400',
-                          m.minutos < 0 && 'text-red-600 dark:text-red-400',
+                          m.minutos > 0 && 'text-success-fg',
+                          m.minutos < 0 && 'text-destructive-fg',
                         )}>
                           {formatMinutes(m.minutos)}
                         </td>

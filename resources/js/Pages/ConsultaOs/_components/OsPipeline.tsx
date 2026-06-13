@@ -27,9 +27,9 @@ export function OsPipeline({ currentStage }: Props) {
                   className={cn(
                     'absolute top-[13px] left-1/2 right-[-50%] h-0.5 z-0',
                     isDone
-                      ? 'bg-green-500'
+                      ? 'bg-success'
                       : isActive
-                      ? 'bg-gradient-to-r from-green-500 to-border'
+                      ? 'bg-gradient-to-r from-success to-border'
                       : 'bg-border',
                   )}
                 />
@@ -39,7 +39,7 @@ export function OsPipeline({ currentStage }: Props) {
                 className={cn(
                   'relative z-10 flex items-center justify-center w-7 h-7 rounded-full border-2 transition-all',
                   isDone
-                    ? 'bg-green-500 border-green-500'
+                    ? 'bg-success border-success'
                     : isActive
                     ? 'bg-primary border-primary ring-4 ring-primary/15'
                     : 'bg-background border-border',
@@ -56,7 +56,7 @@ export function OsPipeline({ currentStage }: Props) {
                 className={cn(
                   'mt-2 text-[10px] font-medium text-center leading-tight px-0.5',
                   isDone
-                    ? 'text-green-600'
+                    ? 'text-success'
                     : isActive
                     ? 'text-primary font-semibold'
                     : 'text-muted-foreground',

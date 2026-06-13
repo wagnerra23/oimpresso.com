@@ -549,9 +549,9 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                         <div className="flex items-center gap-2">
                           <span className={cn(
                             'inline-flex items-center justify-center w-4 h-4 rounded-full text-white text-[9px] shrink-0',
-                            e.processed_at && !e.error_message ? 'bg-emerald-500'
-                              : e.error_message ? 'bg-rose-500'
-                              : 'bg-amber-500',
+                            e.processed_at && !e.error_message ? 'bg-success'
+                              : e.error_message ? 'bg-destructive'
+                              : 'bg-warning',
                           )} title={e.processed_at && !e.error_message ? 'Processado' : e.error_message ? 'Erro' : 'Pendente'}>
                             {e.processed_at && !e.error_message ? <Check className="h-2.5 w-2.5" /> : e.error_message ? <X className="h-2.5 w-2.5" /> : '·'}
                           </span>
@@ -565,7 +565,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                           <span className="text-[10px] text-stone-400 tabular-nums shrink-0" title={e.when_iso}>{e.when}</span>
                         </div>
                         {e.error_message && (
-                          <div className="mt-1 ml-6 text-[10.5px] text-rose-700 truncate" title={e.error_message}>
+                          <div className="mt-1 ml-6 text-[10.5px] text-destructive-fg truncate" title={e.error_message}>
                             {e.error_message}
                           </div>
                         )}
@@ -614,7 +614,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 {testStatus === 'testando' ? 'Testando…' : 'Rodar health check agora'}
               </Btn>
               {testStatus === 'ok' && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded p-3 text-[11.5px] text-emerald-900 flex items-center gap-2">
+                <div className="bg-success-soft border border-success/20 rounded p-3 text-[11.5px] text-success-fg flex items-center gap-2">
                   <Check className="h-3.5 w-3.5" /><strong>Conexão OK</strong> · driver respondeu corretamente
                 </div>
               )}
@@ -696,7 +696,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-[12px] font-medium bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded text-[12px] font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60"
               >
                 <Trash2 className="h-3 w-3" />{deleting ? 'Excluindo…' : 'Sim, excluir'}
               </button>

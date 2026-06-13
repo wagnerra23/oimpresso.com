@@ -103,7 +103,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
         />
 
         {(semConfig || certAlerta) && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-yellow-900 dark:bg-yellow-950/40 dark:text-yellow-300">
+          <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning-soft px-4 py-3 text-sm text-warning-fg">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
             <div>
               {semConfig
@@ -115,7 +115,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
 
         {config?.cert_expira && config.cert_valido && (
           <div className="flex items-center gap-2 text-xs text-[color:var(--text-mute)]">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="inline-block h-2 w-2 rounded-full bg-success" />
             Certificado válido até {config.cert_expira}
           </div>
         )}

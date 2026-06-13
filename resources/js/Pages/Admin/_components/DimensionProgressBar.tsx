@@ -31,16 +31,16 @@ export default function DimensionProgressBar({
 
   const barClass =
     tone === 'ok'
-      ? 'bg-emerald-500/70 dark:bg-emerald-500/60'
+      ? 'bg-success/70'
       : tone === 'warn'
-        ? 'bg-amber-500/70 dark:bg-amber-500/60'
+        ? 'bg-warning/70'
         : 'bg-destructive/70';
 
   const labelTone =
     tone === 'ok'
-      ? 'text-emerald-700 dark:text-emerald-400'
+      ? 'text-success-fg'
       : tone === 'warn'
-        ? 'text-amber-700 dark:text-amber-400'
+        ? 'text-warning-fg'
         : 'text-destructive';
 
   return (
@@ -63,7 +63,7 @@ export default function DimensionProgressBar({
               className={cn(
                 'inline-flex items-center gap-0.5 rounded-md border px-1 py-0.5 text-[9px] font-medium',
                 dimension.paired_ok
-                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                  ? 'border-success/20 bg-success-soft text-success-fg'
                   : 'border-destructive/40 bg-destructive/10 text-destructive',
               )}
             >

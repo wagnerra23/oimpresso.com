@@ -61,7 +61,7 @@ const Review: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ dr
       />
 
       {flash && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
+        <div className="rounded-md border border-success/20 bg-success-soft px-4 py-2 text-sm text-success-fg">
           {flash}
         </div>
       )}
@@ -105,7 +105,7 @@ const Review: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ dr
                   {d.test_runs_count > 0 ? (
                     <span>Test runs: {d.test_runs_pass}/{d.test_runs_count} passed</span>
                   ) : (
-                    <span className="text-amber-600">⚠️ Sem test runs anexados</span>
+                    <span className="text-warning-fg">⚠️ Sem test runs anexados</span>
                   )}
                   <Link href={`/ads/admin/skills/${d.skill_slug}/test`} className="inline-flex items-center gap-1 text-primary hover:underline">
                     Testar primeiro <ExternalLink className="w-3 h-3" />

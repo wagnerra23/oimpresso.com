@@ -217,7 +217,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
                         <Printer className="h-3.5 w-3.5" />
                       </Button>
                       {permissions.delete && (
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => onDelete(r.id)} title="Excluir">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r.id)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}

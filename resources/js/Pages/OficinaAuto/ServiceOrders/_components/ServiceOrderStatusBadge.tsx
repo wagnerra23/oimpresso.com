@@ -22,7 +22,7 @@ function resolveBadge({ status, isOverdue }: ServiceOrderStatusBadgeProps): Badg
   if (isOverdue && !['concluida', 'cancelada', 'entregue'].includes(status)) {
     return {
       label: 'Atrasada',
-      classes: 'bg-rose-100 text-rose-700 border-rose-300',
+      classes: 'bg-destructive-soft text-destructive-fg border-destructive/20',
     };
   }
 
@@ -36,7 +36,7 @@ function resolveBadge({ status, isOverdue }: ServiceOrderStatusBadgeProps): Badg
   if (status === 'cancelada') {
     return {
       label: 'Cancelada',
-      classes: 'bg-slate-100 text-slate-600 border-slate-200',
+      classes: 'bg-muted text-muted-foreground border-border',
     };
   }
   if (status === 'entregue') {
@@ -51,7 +51,7 @@ function resolveBadge({ status, isOverdue }: ServiceOrderStatusBadgeProps): Badg
     case 'aberta':
       return {
         label: 'Aberta',
-        classes: 'bg-slate-50 text-slate-700 border-slate-200',
+        classes: 'bg-muted text-muted-foreground border-border',
       };
     case 'orcamento':
       return {
@@ -76,7 +76,7 @@ function resolveBadge({ status, isOverdue }: ServiceOrderStatusBadgeProps): Badg
     default:
       return {
         label: status,
-        classes: 'bg-slate-100 text-slate-700 border-slate-200',
+        classes: 'bg-muted text-muted-foreground border-border',
       };
   }
 }

@@ -164,7 +164,7 @@ export function FinOcrBoletoSheet({ open, onClose }: Props) {
 
         <div className="mt-6 space-y-6">
           {error && (
-            <div className="text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-3 py-2">
+            <div className="text-[13px] text-destructive-fg bg-destructive-soft border border-destructive/20 rounded px-3 py-2">
               {error}
             </div>
           )}
@@ -205,7 +205,7 @@ export function FinOcrBoletoSheet({ open, onClose }: Props) {
 
           {phase === 'preview' && extracted && (
             <div className="space-y-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded px-3 py-2 text-[12px] text-emerald-800">
+              <div className="bg-success-soft border border-success/20 rounded px-3 py-2 text-[12px] text-success-fg">
                 ✓ Extração bem-sucedida {extracted.confidence != null && (
                   <span className="ml-1 opacity-75">(confiança {Math.round(extracted.confidence * 100)}%)</span>
                 )}

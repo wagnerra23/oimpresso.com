@@ -300,7 +300,7 @@ function CancelDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive-soft text-destructive-fg">
             <AlertCircle size={20} />
           </div>
           <div className="min-w-0 flex-1">
@@ -344,7 +344,7 @@ function CancelDialog({
             type="button"
             onClick={() => onConfirm(motivo)}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-rose-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-destructive px-3 py-2 text-sm font-medium text-destructive-foreground shadow-sm hover:bg-destructive/90 disabled:opacity-50"
           >
             <Ban size={14} />
             {busy ? 'Cancelando…' : 'Confirmar cancelamento'}
@@ -660,7 +660,7 @@ export default function FaturasIndex(props: PageProps) {
                           <div>{dateBR(inv.vencimento)}</div>
                           <div
                             className={`mt-0.5 text-[11px] ${
-                              inv.is_overdue ? 'font-medium text-rose-600' : 'text-stone-500'
+                              inv.is_overdue ? 'font-medium text-destructive-fg' : 'text-stone-500'
                             }`}
                           >
                             {dueLabel(inv.dias_delta_venc)}
@@ -677,7 +677,7 @@ export default function FaturasIndex(props: PageProps) {
                             <button
                               type="button"
                               onClick={() => setCancelTarget(inv)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                              className="inline-flex items-center gap-1 rounded-lg border border-destructive/20 bg-white px-2.5 py-1 text-xs font-medium text-destructive-fg hover:bg-destructive-soft"
                               title="Cancelar fatura"
                             >
                               <Ban size={12} />

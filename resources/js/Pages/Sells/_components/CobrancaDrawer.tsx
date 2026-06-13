@@ -202,7 +202,7 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
           {!isView && (
             <div className="p-4 space-y-4">
               {state.kind === 'error' && state.cob?.erro_msg && (
-                <div className="bg-rose-50 border border-rose-200 rounded-md p-3 text-[11.5px] text-rose-900">
+                <div className="bg-destructive-soft border border-destructive/20 rounded-md p-3 text-[11.5px] text-destructive-fg">
                   <div className="font-medium">Tentativa anterior falhou</div>
                   <div className="font-mono text-[10.5px] mt-1">{state.cob.erro_msg}</div>
                 </div>
