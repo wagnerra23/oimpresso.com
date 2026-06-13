@@ -86,7 +86,7 @@ const CATRACAS = [
   {
     id: 'sdd-scorecard',
     run: runScorecard,
-    expect: { good: /nenhuma regressão/, bad: /RATCHET: ghost_count/ },
+    expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): ghost_count/ },
   },
 ];
 
