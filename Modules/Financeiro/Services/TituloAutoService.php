@@ -686,6 +686,7 @@ class TituloAutoService
             return null;
         }
 
+        // SUPERADMIN: sync CashRegister sem session — business_id deduzido do CashRegister recebido
         // P1 — idempotência (já lançado)
         $existente = Titulo::withoutGlobalScopes()
             ->where('business_id', $cr->business_id)
@@ -705,6 +706,7 @@ class TituloAutoService
         // P4 — detect location via primeira transaction linked
         $location = $this->detectLocationFromCashRegister($cr);
 
+        // SUPERADMIN: sync CashRegister sem session — conta-mãe filtrada por business_id do CashRegister
         // R3 — conta-mãe Caixa do business (criada via seed da migration PR A)
         $contaCaixa = ContaBancaria::withoutGlobalScopes()
             ->where('business_id', $cr->business_id)
@@ -724,6 +726,7 @@ class TituloAutoService
         $userId   = $cr->user_id;
         $userName = 'Sistema';
         if ($userId) {
+            // SUPERADMIN: sync sem session — resolve nome do user por id do CashRegister (label-only)
             $user = \App\User::withoutGlobalScopes()->find($userId);
             if ($user) {
                 $userName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
