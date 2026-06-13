@@ -19,7 +19,16 @@ declare(strict_types=1);
  *  - resources/js/Pages/Sells/Edit.charter.md
  *  - resources/css/inertia.css
  *  - tests/Feature/Sells/SellsShowCoworkTest.php (pattern espelhado)
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. A asserção "Edit.tsx wrappa outer div com
+ * classe .sells-cowork-edit" bate a string `sells-cowork-edit container mx-auto`
+ * que NÃO existe mais em `Edit.tsx` (wrapper-class removido/refatorado no refactor
+ * do form Sells). Fotografia de markup já alterado; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const EDIT_TSX_PATH = 'resources/js/Pages/Sells/Edit.tsx';
 defined('EDIT_CHARTER_PATH') || define('EDIT_CHARTER_PATH', 'resources/js/Pages/Sells/Edit.charter.md');

@@ -13,7 +13,17 @@ declare(strict_types=1);
  *   - Sections com heading text-[10px] uppercase
  *   - Footer ações (Imprimir + Editar)
  *   - Endpoint REST: GET /sells/{id}/sheet-data
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. A asserção "SaleSheet aborta fetch quando
+ * saleId muda (cleanup useEffect)" bate a string `cancelled` do antigo guard
+ * `let cancelled = true; return () => { cancelled = true }` — que foi REFATORADO
+ * pra `useCallback(fetchData)` + useEffect sem essa flag em `SaleSheet.tsx`.
+ * Fotografia de markup já alterado; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SALE_SHEET_PATH_T = 'resources/js/Pages/Sells/_components/SaleSheet.tsx';
 

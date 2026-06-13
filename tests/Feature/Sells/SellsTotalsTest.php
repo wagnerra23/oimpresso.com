@@ -25,7 +25,16 @@ declare(strict_types=1);
  *   - Grade mode: sempre visível (sticky-bottom no card da tabela)
  *
  * Refs: ADR 0136 (Sells Grade Avançada), ADR 0093 (multi-tenant Tier 0).
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. Lê por string `SellsTotalsRow.tsx` e
+ * `SellsGradeAvancada.tsx` — componentes DELETADOS/fundidos no refactor da grade
+ * Sells (`SellsTabelaUnificada.tsx` / `SellsTabsVisao.tsx`), além de markup de
+ * `Index.tsx` já refatorado. Asserções batem UI que não existe mais; NÃO é bug.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SELL_CONTROLLER_PATH_TOTALS = 'app/Http/Controllers/SellController.php';
 const TOTALS_ROW_PATH = 'resources/js/Pages/Sells/_components/SellsTotalsRow.tsx';

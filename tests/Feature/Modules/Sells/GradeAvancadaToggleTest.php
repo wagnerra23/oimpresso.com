@@ -31,7 +31,17 @@ declare(strict_types=1);
  *   - ADR 0093 (Multi-tenant Tier 0 IRREVOGÁVEL)
  *   - ADR 0110 (Cockpit Pattern V2)
  *   - feedback_test_biz_99_cross_tenant_convention (biz=1 default smoke)
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED (TDD de US-SELL-015/016/017 não mantida).
+ * Lê por string os componentes `SellsToggleViewMode.tsx` e `SellsGradeAvancada.tsx`
+ * (ambos DELETADOS/fundidos no refactor da grade Sells →
+ * `SellsTabelaUnificada.tsx` / `SellsTabsVisao.tsx`) e markup de `Index.tsx` já
+ * refatorado. Asserções batem UI que não existe mais; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const MIGRATION_PATH_015 = 'database/migrations/2026_05_12_180000_add_legacy_origin_to_business.php';
 const SEEDER_PATH_015 = 'database/seeders/BusinessLegacyOriginSeeder.php';

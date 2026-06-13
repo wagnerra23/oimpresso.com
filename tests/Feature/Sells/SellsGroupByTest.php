@@ -21,7 +21,17 @@ declare(strict_types=1);
  *   - PT-BR labels (Sem agrupamento/Cliente/Status pagamento/Mês emissão)
  *
  * Refs: ADR 0136 (Sells Grade Avançada), ADR 0093 (Tier 0).
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. Este teste lê por string os componentes
+ * `SellsGroupByDropdown.tsx`, `SellsGradeAvancada.tsx` e `SellsBulkActionsBar.tsx`
+ * — todos DELETADOS/fundidos no refactor da grade Sells (hoje em
+ * `SellsTabelaUnificada.tsx` / `SellsTabsVisao.tsx`). As asserções batem markup
+ * que não existe mais; NÃO é bug de produto, é fotografia de UI já refatorada.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const GROUP_BY_DROPDOWN_PATH = 'resources/js/Pages/Sells/_components/SellsGroupByDropdown.tsx';
 const GRADE_PATH_GROUPBY = 'resources/js/Pages/Sells/_components/SellsGradeAvancada.tsx';

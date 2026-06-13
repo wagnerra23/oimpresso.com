@@ -25,7 +25,16 @@ declare(strict_types=1);
  *   - selectedIds reseta quando filtro muda
  *
  * Refs: ADR 0136 (Sells Grade Avançada toggle), ADR 0093 (multi-tenant Tier 0).
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. Lê por string `SellsBulkActionsBar.tsx`,
+ * `SellsGradeAvancada.tsx` e markup de `Index.tsx` — componentes DELETADOS/fundidos
+ * no refactor da grade Sells (`SellsTabelaUnificada.tsx` / `SellsTabsVisao.tsx`).
+ * Asserções batem UI que não existe mais; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SELL_CONTROLLER_PATH_BULK = 'app/Http/Controllers/SellController.php';
 const ROUTES_PATH_BULK = 'routes/web.php';

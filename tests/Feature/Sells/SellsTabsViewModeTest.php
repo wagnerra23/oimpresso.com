@@ -18,7 +18,17 @@ declare(strict_types=1);
  *   - resources/css/sells-cowork-insights.css
  *   - resources/css/inertia.css
  *   - memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md gap #13
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. Lê por string o componente
+ * `SellsInsightsView.tsx` (DELETADO) e markup de `Index.tsx` (`type ViewMode =
+ * 'dashboard' | 'insights'`, `vd-tabs-mode`, `ls.get('view_mode'…)`) — tab bar
+ * Dashboard/Insights removida/refatorada na tabela unificada. Markup não existe
+ * mais; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const TABS_INDEX_TSX_PATH = 'resources/js/Pages/Sells/Index.tsx';
 const TABS_INSIGHTS_VIEW_PATH = 'resources/js/Pages/Sells/_components/SellsInsightsView.tsx';

@@ -21,7 +21,17 @@ declare(strict_types=1);
  *  - resources/js/Pages/Sells/Index.tsx
  *  - memory/requisitos/Sells/index-r1-visual-comparison.md (KB-9.75 mockup)
  *  - PR #1043 "NÃO INCLUI" (Onda 5 Polish — dados reais)
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. As asserções de frontend leem `Index.tsx`
+ * por string (`>Comissão</th>`, `vd-commission`, `.slice(0, 12)`, célula da coluna
+ * Comissão) — markup MOVIDO/refatorado pra tabela unificada
+ * (`SellsTabelaUnificada.tsx` / `SellsTabsVisao.tsx`). Markup não existe mais em
+ * `Index.tsx`; backend permanece — NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 defined('COMMISSION_SELL_CONTROLLER_PATH') || define('COMMISSION_SELL_CONTROLLER_PATH', 'app/Http/Controllers/SellController.php');
 const COMMISSION_INDEX_TSX_PATH = 'resources/js/Pages/Sells/Index.tsx';

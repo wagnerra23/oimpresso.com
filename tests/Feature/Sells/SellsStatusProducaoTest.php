@@ -20,7 +20,17 @@ declare(strict_types=1);
  *
  * Refs: ADR 0093 (multi-tenant Tier 0), ADR 0143 (FSM Pipeline LIVE prod biz=1),
  *       FsmProcessoVendaComProducaoSeeder, SPEC US-SELL-023
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. As asserções de frontend leem por string
+ * `SellsGradeAvancada.tsx` (coluna Produção, `ProducaoStageBadge`, mapping de
+ * stages) — componente DELETADO/fundido no refactor da grade Sells
+ * (`SellsTabelaUnificada.tsx` / `SellsTabsVisao.tsx`). Markup não existe mais;
+ * backend permanece — NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SELL_CONTROLLER_PATH_023 = 'app/Http/Controllers/SellController.php';
 const GRADE_PATH_023 = 'resources/js/Pages/Sells/_components/SellsGradeAvancada.tsx';

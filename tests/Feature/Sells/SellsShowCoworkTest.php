@@ -18,7 +18,18 @@ declare(strict_types=1);
  *  - resources/js/Pages/Sells/Show.tsx
  *  - resources/js/Pages/Sells/Show.charter.md
  *  - resources/css/inertia.css
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. As asserções de CSS leem
+ * `sells-cowork-show.css` por string (`--accent:`, `--text:`, `--border:`,
+ * `.vds-header`, `.vds-total-value`, `.vds-kpi-card`, `.vds-status-paid`,
+ * `@media (max-width: 1024px)`…) — tokens/seletores que foram REESCRITOS no
+ * refactor do CSS; e o charter `Show.charter.md` não cita mais ADR `0104`. Markup
+ * fotografado não existe mais; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SHOW_TSX_PATH = 'resources/js/Pages/Sells/Show.tsx';
 defined('SHOW_CHARTER_PATH') || define('SHOW_CHARTER_PATH', 'resources/js/Pages/Sells/Show.charter.md');

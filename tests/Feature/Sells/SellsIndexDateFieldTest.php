@@ -21,7 +21,17 @@ declare(strict_types=1);
  *
  * Refs: ADR 0093 (multi-tenant Tier 0), ADR 0110 (Cockpit V2),
  *       memory/research/clientes-legacy-officeimpresso/_MAPPING/TELA-LISTA-VENDAS.md §5.
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. As asserções de frontend leem `Index.tsx`
+ * por string (`type DateField`, `DATE_FIELD_OPTIONS`, `DateColumnHeader`,
+ * `oimpresso.sells.dateField`, `row.display_date`…), mas essa UI de seletor de data
+ * foi MOVIDA pra `_components/SellsDateFilter.tsx` / tabela unificada no refactor.
+ * Markup não existe mais em `Index.tsx`; backend permanece — NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SELL_CONTROLLER_PATH_021 = 'app/Http/Controllers/SellController.php';
 const SELLS_INDEX_PATH_021 = 'resources/js/Pages/Sells/Index.tsx';

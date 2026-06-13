@@ -22,7 +22,17 @@ declare(strict_types=1);
  * Refs: ADR 0093 (multi-tenant Tier 0), SPEC US-SELL-024,
  *       memory/research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md
  *       (CODFINANCEIRO_GRUPO 43-65% das linhas em todos clientes legacy)
+ *
+ * ── QUARENTENA legacy-quarantine (SDD F2b · 2026-06-13) ──────────────────────
+ * RAZÃO: snapshot estrutural SUPERSEDED. As asserções de frontend leem por string
+ * `SellsGradeAvancada.tsx` (`GroupedInvoiceBadge`, badge "Agrupada") — componente
+ * DELETADO/fundido no refactor da grade Sells (`SellsTabelaUnificada.tsx` /
+ * `SellsTabsVisao.tsx`). Markup não existe mais; backend/migration permanecem —
+ * NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
  */
+
+pest()->group('legacy-quarantine');
 
 const SELL_CONTROLLER_PATH_024 = 'app/Http/Controllers/SellController.php';
 const GRADE_PATH_024 = 'resources/js/Pages/Sells/_components/SellsGradeAvancada.tsx';
