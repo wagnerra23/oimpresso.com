@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
@@ -31,6 +32,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['whatsapp_messages', 'whatsapp_conversations', 'whatsapp_business_phones', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -162,14 +167,14 @@ function setupBotPhoneAndConv(int $businessId, string $body): WhatsappMessageRec
 it('redacta CPF do inbound_preview antes de logar', function () {
     Log::spy();
 
-    $event = setupBotPhoneAndConv(1, 'Olá meu CPF é 123.456.789-09 pra cadastro');
+    $event = setupBotPhoneAndConv(1, 'Olá meu CPF é 123.456.789-09 pra cadastro'); # pii-allowlist
     (new DispatchToJanaBot())->handle($event);
 
     Log::shouldHaveReceived('info')
         ->withArgs(function (string $message, array $context) {
             return str_starts_with($message, '[whatsapp.dispatch_to_jana_bot]')
                 && isset($context['inbound_preview'])
-                && ! str_contains($context['inbound_preview'], '123.456.789-09')
+                && ! str_contains($context['inbound_preview'], '123.456.789-09') # pii-allowlist
                 && str_contains($context['inbound_preview'], '[REDACTED:CPF]');
         })
         ->once();
@@ -178,13 +183,13 @@ it('redacta CPF do inbound_preview antes de logar', function () {
 it('redacta CNPJ do inbound_preview antes de logar', function () {
     Log::spy();
 
-    $event = setupBotPhoneAndConv(1, 'Faturar pro CNPJ 12.345.678/0001-90');
+    $event = setupBotPhoneAndConv(1, 'Faturar pro CNPJ 12.345.678/0001-90'); # pii-allowlist
     (new DispatchToJanaBot())->handle($event);
 
     Log::shouldHaveReceived('info')
         ->withArgs(function (string $message, array $context) {
             return str_starts_with($message, '[whatsapp.dispatch_to_jana_bot]')
-                && ! str_contains($context['inbound_preview'], '12.345.678/0001-90')
+                && ! str_contains($context['inbound_preview'], '12.345.678/0001-90') # pii-allowlist
                 && str_contains($context['inbound_preview'], '[REDACTED:CNPJ]');
         })
         ->once();
@@ -238,10 +243,10 @@ it('preserva texto não-PII normal sem alterar o preview', function () {
 it('multi-tenant Tier 0 — biz=1 redact isolado de biz=99', function () {
     Log::spy();
 
-    $eventBiz1 = setupBotPhoneAndConv(1, 'CPF 111.222.333-44 biz=1');
+    $eventBiz1 = setupBotPhoneAndConv(1, 'CPF 111.222.333-44 biz=1'); # pii-allowlist
     (new DispatchToJanaBot())->handle($eventBiz1);
 
-    $eventBiz99 = setupBotPhoneAndConv(99, 'CPF 555.666.777-88 biz=99');
+    $eventBiz99 = setupBotPhoneAndConv(99, 'CPF 555.666.777-88 biz=99'); # pii-allowlist
     (new DispatchToJanaBot())->handle($eventBiz99);
 
     // Cada biz registra 1 entrada redacted (não cross-tenant leak).
@@ -249,7 +254,7 @@ it('multi-tenant Tier 0 — biz=1 redact isolado de biz=99', function () {
         ->withArgs(function (string $message, array $context) {
             return str_starts_with($message, '[whatsapp.dispatch_to_jana_bot]')
                 && ($context['business_id'] ?? null) === 1
-                && ! str_contains($context['inbound_preview'], '111.222.333-44')
+                && ! str_contains($context['inbound_preview'], '111.222.333-44') # pii-allowlist
                 && str_contains($context['inbound_preview'], '[REDACTED:CPF]');
         })
         ->once();
@@ -258,7 +263,7 @@ it('multi-tenant Tier 0 — biz=1 redact isolado de biz=99', function () {
         ->withArgs(function (string $message, array $context) {
             return str_starts_with($message, '[whatsapp.dispatch_to_jana_bot]')
                 && ($context['business_id'] ?? null) === 99
-                && ! str_contains($context['inbound_preview'], '555.666.777-88')
+                && ! str_contains($context['inbound_preview'], '555.666.777-88') # pii-allowlist
                 && str_contains($context['inbound_preview'], '[REDACTED:CPF]');
         })
         ->once();

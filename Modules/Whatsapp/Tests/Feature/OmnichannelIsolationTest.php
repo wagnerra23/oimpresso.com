@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -27,6 +28,10 @@ uses(Tests\TestCase::class);
  *   - Channel types Fase 1-3 (Insta/Messenger/Email/ML) lançam NotImplementedDriverException
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['messages', 'conversations', 'channels'] as $t) {
         Schema::dropIfExists($t);
     }

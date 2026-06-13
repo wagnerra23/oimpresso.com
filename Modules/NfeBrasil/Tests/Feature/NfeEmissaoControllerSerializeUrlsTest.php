@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\ArquivosService;
@@ -29,8 +30,12 @@ uses(Tests\TestCase::class);
 // ── schema setup ─────────────────────────────────────────────────────────────
 
 beforeEach(function () {
-    // arquivos (módulo Arquivos) e nfe_emissoes (módulo NfeBrasil) são tabelas de
-    // módulo — drop+create idempotente é seguro mesmo no MySQL persistente.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
+    // arquivos (create_arquivos_table) e nfe_emissoes (create_nfe_emissoes_table) têm
+    // migration real — dropá-las/recriá-las à mão corrompe o MySQL persistente. Só sqlite.
     Schema::dropIfExists('arquivos');
     Schema::dropIfExists('nfe_emissoes');
 
@@ -101,9 +106,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    // Só tabelas de módulo. activity_log (CORE) NÃO é dropada — ver beforeEach.
-    Schema::dropIfExists('arquivos');
-    Schema::dropIfExists('nfe_emissoes');
+    // afterEach roda MESMO no teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.23) — guardar o DDL por driver. activity_log (CORE) NÃO é dropada.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('arquivos');
+        Schema::dropIfExists('nfe_emissoes');
+    }
 });
 
 // ── helpers ──────────────────────────────────────────────────────────────────

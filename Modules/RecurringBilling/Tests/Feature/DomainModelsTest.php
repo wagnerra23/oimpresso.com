@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\ChargeAttempt;
 use Modules\RecurringBilling\Models\Invoice;
@@ -19,6 +20,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -111,8 +116,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (['rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
-        Schema::dropIfExists($t);
+    // contacts/fin_contas_bancarias/rb_* são reais-migradas; o afterEach roda mesmo em
+    // teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las
+    // no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (['rb_charge_attempts', 'rb_invoices', 'rb_subscriptions', 'rb_plans', 'fin_contas_bancarias', 'contacts'] as $t) {
+            Schema::dropIfExists($t);
+        }
     }
 });
 

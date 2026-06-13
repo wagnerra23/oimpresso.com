@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Contact;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Services\Contacts\ConversationContactLinker;
 
@@ -26,6 +27,10 @@ uses(Tests\TestCase::class);
  * @see Modules/Whatsapp/Services/Contacts/ConversationContactLinker.php::forgetAttemptLinkCache
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::dropIfExists('contacts');
     Schema::create('contacts', function ($table) {
         $table->increments('id');

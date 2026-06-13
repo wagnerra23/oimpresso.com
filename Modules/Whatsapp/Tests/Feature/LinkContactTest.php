@@ -6,6 +6,7 @@ use App\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
@@ -27,6 +28,10 @@ uses(Tests\TestCase::class);
  *  006. linkContact null desvincula (contact_id = null)
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['conversations', 'channels', 'messages', 'contacts', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }

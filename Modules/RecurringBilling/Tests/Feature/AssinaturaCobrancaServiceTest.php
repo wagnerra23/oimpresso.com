@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
@@ -45,7 +46,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('rb_invoices');
+    // rb_invoices é real-migrada; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // tearDown gated só por hasMetRequirements), então dropá-la no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('rb_invoices');
+    }
 });
 
 /**

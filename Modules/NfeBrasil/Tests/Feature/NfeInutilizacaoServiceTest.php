@@ -35,6 +35,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // Spatie LogsActivity em NfeEmissao + NfeInutilizacao → INSERT em activity_log.
     Schema::create('activity_log', function (Blueprint $t) {
         $t->bigIncrements('id');
@@ -100,10 +104,15 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_inutilizacoes');
-    Schema::dropIfExists('nfe_emissoes');
-    Schema::dropIfExists('business');
-    Schema::dropIfExists('activity_log');
+    // afterEach roda MESMO no teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.23) — guardar TODO o DDL por driver. business/nfe_emissoes/
+    // nfe_inutilizacoes/activity_log são REAL-migradas: dropá-las em MySQL corrompe.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_inutilizacoes');
+        Schema::dropIfExists('nfe_emissoes');
+        Schema::dropIfExists('business');
+        Schema::dropIfExists('activity_log');
+    }
     \Mockery::close();
 });
 
