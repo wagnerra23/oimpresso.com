@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
+use Modules\Whatsapp\Console\Commands\AuditChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryBackfillCommand;
@@ -92,6 +93,7 @@ class WhatsappServiceProvider extends ServiceProvider
             $this->commands([
                 DriverHealthCheckAllCommand::class,
                 BackfillChannelAccessCommand::class,
+                AuditChannelAccessCommand::class,       // Wagner 2026-06-13 — auditor flip-flop revoke/reativação ACL canal
                 RegisterWhatsappPermissionsCommand::class,
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
