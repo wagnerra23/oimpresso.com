@@ -2,14 +2,14 @@
 module: Mwart
 doc_type: roadmap
 title: "Rota de migração do backbone Blade (UltimatePOS) — 10 ondas governadas por adversário e contrato de completude"
-status: proposto
+status: aceito
 owner: wagner
 author: "[CC]"
 decide: "[W]"
 created: "2026-06-13"
 parent_adr: 0104
 related_adrs: [0099, 0104, 0106, 0107, 0114, 0179, 0188, 0276]
-proposal_adr: "memory/decisions/proposals/2026-06-13-rota-migracao-blade-ondas-completude.md"
+adr: "memory/decisions/0277-rota-migracao-blade-ondas-completude.md"
 origin: "Claude Design F0 (chat51 'Migração em Ondas') — Wagner pediu estudar o produto em etapas, verificar funções das telas Blade e traçar rota que só pare depois de TODAS migradas, em ondas com adversários. Verificado contra routes/web.php@main nesta sessão."
 ---
 
@@ -21,7 +21,7 @@ origin: "Claude Design F0 (chat51 'Migração em Ondas') — Wagner pediu estuda
 > O *como* migrar cada tela é o processo canônico **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md), 5 fases F1→F5).
 > Este doc é o *quê / quando / em que ordem* — e a **régua de honestidade** que impede declarar "migrado" cedo demais.
 >
-> Origem: Claude Design F0 (`chat51`). Decisão de adoção: [proposta ADR 2026-06-13](../../decisions/proposals/2026-06-13-rota-migracao-blade-ondas-completude.md) · **[W] decide o que vira fila.**
+> Origem: Claude Design F0 (`chat51`). Decisão de adoção: [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md) (aceita 2026-06-13) · **[W] decide o que vira fila.**
 
 ## §0 · O contrato de completude — o que "migrado" significa
 
@@ -184,7 +184,7 @@ Censo e contrato **conferidos contra o repo real** (`routes/web.php`, `resources
 1. Esta Etapa 0 (este doc) = **censo + contrato**. Nada commitado vira execução sem [W].
 2. As 10 ondas viram **backlog rastreado** como `US-MWART-NNN` (uma por onda) — ver [SPEC.md](SPEC.md).
 3. Cada onda roda o ciclo **MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)): [CC] produz F1 no Cowork → [CD] roda F1.5 contra o **adversário da onda** → [CL] porta pro repo (5 fases) → [CX] (Onda 10) só assina quando o contador de routes Blade vivos chega a **zero**.
-4. A decisão de adotar o **contrato de completude** + ordenação + erradicação está na [proposta ADR 2026-06-13](../../decisions/proposals/2026-06-13-rota-migracao-blade-ondas-completude.md) — [W] promove a canon.
+4. A decisão de adotar o **contrato de completude** + ordenação + erradicação é canon em [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md) (aceita 2026-06-13).
 
 ---
 *Oimpresso ERP · [CC] · migração do backbone Blade UltimatePOS em ondas governadas. Contagens ≈ por família de controller, lidas de `routes/web.php@main`. Estimates recalibradas — [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md).*

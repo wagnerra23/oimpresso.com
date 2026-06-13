@@ -56,7 +56,7 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 > **Novo (2026-06-13).** Além do *meta-processo* (este BRIEFING), há agora a **rota macro** que aplica o MWART ao backbone Blade inteiro do UltimatePOS (653 `.blade.php`, ~50 controllers, nunca inventariado):
 > - 🗺️ [ROADMAP-ONDAS-BLADE-ADVERSARIOS.md](ROADMAP-ONDAS-BLADE-ADVERSARIOS.md) — censo 12 domínios + **contrato de completude** (route Blade morto/302, não "React existe") + **10 ondas** com adversário + erradicar Restaurante.
 > - 🥇 [ONDA-1-VENDAS-PDV-CAIXA-PLANO.md](ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) — Fase 1 (PLAN) da primeira onda.
-> - 📐 Decisão de adoção: [proposta ADR 2026-06-13](../../decisions/proposals/2026-06-13-rota-migracao-blade-ondas-completude.md) (contrato + ordenação + 2 camadas de adversário).
+> - 📐 Decisão canon: [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md) (contrato + ordenação + 2 camadas de adversário — aceita 2026-06-13).
 > - 📋 Backlog: `US-MWART-004…013` (1 por onda) — long-horizon (p1–p3), fora do cycle de Receita ativo.
 
 ## Próximo passo sugerido

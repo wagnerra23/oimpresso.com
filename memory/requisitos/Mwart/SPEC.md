@@ -115,7 +115,7 @@ last_updated: "2026-06-13"
 
 ## 3. User stories — ondas de migração do backbone Blade (roadmap)
 
-> **Origem:** [ROADMAP-ONDAS-BLADE-ADVERSARIOS.md](ROADMAP-ONDAS-BLADE-ADVERSARIOS.md) (2026-06-13) + [proposta ADR 2026-06-13](../../decisions/proposals/2026-06-13-rota-migracao-blade-ondas-completude.md).
+> **Origem:** [ROADMAP-ONDAS-BLADE-ADVERSARIOS.md](ROADMAP-ONDAS-BLADE-ADVERSARIOS.md) (2026-06-13) + [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md).
 > **Long-horizon (p1–p3) — fora do cycle de Receita ativo.** Cada onda = 1 onda do roadmap; acceptance = **critério de desligamento** (route Blade morto/302). Cada tela passa pelo ciclo MWART (F1→F5) + gate visual F1.5 contra o **adversário [CD]** da onda. [W] decide quando cada uma vira fila.
 
 ### US-MWART-004 · Onda 1 — migrar Vendas, PDV & Caixa e desligar Blade
