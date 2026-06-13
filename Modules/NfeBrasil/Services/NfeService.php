@@ -742,6 +742,7 @@ class NfeService
 
         // ── 2. Carregar NfeEmissao (sem global scope p/ cross-tenant guard
         //      explícito — defesa em profundidade ADR 0093) ────────────────
+        // SUPERADMIN: carrega cross-tenant de propósito pra validar business_id no passo 3
         $emissao = NfeEmissao::withoutGlobalScopes()->find($nfeEmissaoId);
         if (! $emissao) {
             throw new RuntimeException("NfeEmissao {$nfeEmissaoId} não encontrada.");
@@ -757,6 +758,7 @@ class NfeService
 
         // ── 4. Idempotência: já cancelada? ──────────────────────────────────
         if ($emissao->status === 'cancelada') {
+            // SUPERADMIN: idempotência pós-guard — business_id já validado, filtrado explícito abaixo
             $eventoExistente = NfeEvento::withoutGlobalScopes()
                 ->where('business_id', $businessId)
                 ->where('emissao_id', $emissao->id)
@@ -939,6 +941,7 @@ class NfeService
     private function retransmitirInterno(int $businessId, int $nfeEmissaoId): NfeEmissao
     {
         // ── 1. Carrega NfeEmissao sem global scope (cross-tenant guard explícito) ──
+        // SUPERADMIN: carrega cross-tenant de propósito pra validar business_id no passo 2
         $emissao = NfeEmissao::withoutGlobalScopes()->find($nfeEmissaoId);
         if (! $emissao) {
             throw new RuntimeException("NfeEmissao {$nfeEmissaoId} não encontrada.");
