@@ -182,7 +182,7 @@ it('R-WA-FBR-004 — INDEX inclui só HOT (score >= 70)', function () {
 
 it('R-WA-FBR-005 — INDEX é multi-tenant (separado por business)', function () {
     $c1 = Contact::create(['business_id' => 1, 'name' => 'C1', 'mobile' => '+1', 'type' => 'customer']);
-    $c2 = Contact::create(['business_id' => 4, 'name' => 'C4', 'mobile' => '+4', 'type' => 'customer']);
+    $c2 = Contact::create(['business_id' => 99, 'name' => 'C99', 'mobile' => '+99', 'type' => 'customer']);
 
     ClientFeedback::create([
         'business_id' => 1, 'contact_id' => $c1->id,
@@ -191,10 +191,10 @@ it('R-WA-FBR-005 — INDEX é multi-tenant (separado por business)', function ()
         'persona_slug' => 'kamila-martinho', 'modulo_afetado' => 'financeiro',
     ]);
     ClientFeedback::create([
-        'business_id' => 4, 'contact_id' => $c2->id,
-        'literal' => 'feedback business 4',
+        'business_id' => 99, 'contact_id' => $c2->id,
+        'literal' => 'feedback business 99',
         'severity_nng' => 4, 'recorrente_count' => 5,
-        'persona_slug' => 'larissa-rota-livre', 'modulo_afetado' => 'sells',
+        'persona_slug' => 'tenant-adversario', 'modulo_afetado' => 'sells',
     ]);
 
     $gen = app(FeedbackIndexGenerator::class);
@@ -202,7 +202,7 @@ it('R-WA-FBR-005 — INDEX é multi-tenant (separado por business)', function ()
     $content = file_get_contents($path);
 
     expect($content)->toContain('biz=1');
-    expect($content)->toContain('biz=4');
+    expect($content)->toContain('biz=99');
 });
 
 it('R-WA-FBR-006 — generateArchive() agrupa COLD sem incluir literal PII', function () {
