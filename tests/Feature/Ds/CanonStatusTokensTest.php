@@ -62,8 +62,23 @@ test('EmptyState — variantes search/success consomem info/success token', func
         ->not->toContain('text-emerald-600');
 });
 
-test('camada canônica de status — zero paleta crua nos 3 arquivos', function () use ($ui, $shared) {
-    $files = [$ui . '/badge.tsx', $shared . '/KpiCard.tsx', $shared . '/EmptyState.tsx'];
+test('StatusBadge — mapa de status app-wide consome success/warning/info (não emerald/amber/blue/orange)', function () use ($shared) {
+    $src = file_get_contents($shared . '/StatusBadge.tsx');
+    expect($src)
+        ->toContain('bg-success text-success-foreground hover:bg-success/90')
+        ->toContain('bg-warning text-warning-foreground hover:bg-warning/90')
+        ->toContain('bg-info text-info-foreground hover:bg-info/90')
+        // ramp de severidade: orange "Risco Alto" virou destructive; Crítico pulsa (ápice distinto)
+        ->toContain("Alto:    { variant: 'destructive', label: 'Risco Alto' }")
+        ->toContain("Crítico: { variant: 'destructive', label: 'Risco Crítico', className: 'animate-pulse' }")
+        ->not->toContain('bg-orange-600')
+        ->not->toContain('bg-emerald-600')
+        ->not->toContain('bg-amber-600')
+        ->not->toContain('bg-blue-600');
+});
+
+test('camada canônica de status — zero paleta crua nos 4 arquivos', function () use ($ui, $shared) {
+    $files = [$ui . '/badge.tsx', $shared . '/KpiCard.tsx', $shared . '/EmptyState.tsx', $shared . '/StatusBadge.tsx'];
     foreach ($files as $f) {
         $src = file_get_contents($f);
         // shades numéricos de paleta crua (emerald-500, sky-50, blue-600…) = 0
