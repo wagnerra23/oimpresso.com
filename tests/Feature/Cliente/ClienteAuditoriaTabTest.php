@@ -48,10 +48,7 @@ beforeEach(function () {
         $this->markTestSkipped('Coluna business_id ausente em activity_log -- rode migration 2021_03_16.');
     }
 
-    $this->business = \App\Business::first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
-    }
+    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     if (! $this->user) {
         $this->markTestSkipped('Sem user no business.');
@@ -170,8 +167,8 @@ test('GET timeline -- PII CPF aparecendo em properties e mascarado em descriptio
         $this->contactId,
         $this->business->id,
         'updated',
-        ['tax_number' => '111.444.777-35'],
-        ['tax_number' => '999.888.777-66'],
+        ['tax_number' => '111.444.777-35'], // pii-allowlist (sintético)
+        ['tax_number' => '999.888.777-66'], // pii-allowlist (sintético)
         $this->user->id
     );
 

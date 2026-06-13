@@ -30,10 +30,7 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory).');
     }
 
-    $this->business = \App\Business::first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
-    }
+    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     if (! $this->user) {
         $this->markTestSkipped('Sem user no business.');
