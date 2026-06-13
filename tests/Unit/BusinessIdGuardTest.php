@@ -28,21 +28,29 @@ use Symfony\Component\Finder\Finder;
 
 /**
  * Padrões de detecção. Cada regex pega o uso de `4` como business_id de forma
- * inequívoca — sem pegar `decimal(7, 4)`, `char(4)` ou strings literais.
+ * inequívoca — sem pegar `decimal(7, 4)`, `char(4)`, `business_id => 14/40`
+ * (word-boundary `\b4\b`) ou comparações `=== 4`/`!== 4` em strings de
+ * meta-asserção. Cobre: chave de array (incl. prefixo namespaced tipo
+ * `gen_ai.business_id`), property/atribuição snake_case e camelCase, named arg,
+ * fluent builder e session key.
  */
 const BIZ_GUARD_PATTERNS = [
-    // Array PHP: 'business_id' => 4 (qualquer espaçamento)
-    '/[\'"]business_id[\'"]\s*=>\s*4\b/',
+    // Array PHP key (com ou sem prefixo namespaced): 'business_id' => 4,
+    // 'user.business_id' => 4, 'gen_ai.business_id' => 4 (qualquer espaçamento).
+    // O `[\w.]*` opcional cobre chaves prefixadas tipo OTel/atributo namespaced
+    // sem deixar de pegar a forma simples (prefixo vazio).
+    '/[\'"][\w.]*business_id[\'"]\s*=>\s*4\b/',
     // Atribuição: $x->business_id = 4 ou $x->business_id=4
     '/->business_id\s*=\s*4\b/',
+    // Property/atribuição snake_case: public ?int $business_id = 4; ou $business_id = 4
+    // (single `=` só — não pega comparação === / !== em strings de meta-asserção)
+    '/\$business_id\s*=\s*4\b/',
     // Named arg PHP: businessId: 4
     '/businessId\s*:\s*4\b/',
-    // Atribuição variável: $businessId = 4
+    // Atribuição variável camelCase: $businessId = 4
     '/\$businessId\s*=\s*4\b/',
     // Fluent builder: business(4)  (TransactionBuilder etc)
     '/->business\(4\)/',
-    // Session put: 'user.business_id' => 4
-    '/[\'"]user\.business_id[\'"]\s*=>\s*4\b/',
     // session(['business.id' => 4])
     '/[\'"]business\.id[\'"]\s*=>\s*4\b/',
 ];
