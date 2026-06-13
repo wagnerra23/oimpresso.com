@@ -167,8 +167,16 @@ docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
 PEST_EXIT=0
 for attempt in $(seq 1 12); do
   PEST_EXIT=0
+  # C1 (triage Q2 2026-06-13): phpunit.xml <env DB_CONNECTION=sqlite> NAO tem force=,
+  # entao o PHPUnit so seta a var se ela ainda NAO existir no ambiente. Sem estes -e,
+  # o pest rodava contra sqlite :memory: VAZIO (sem schema/seed) — ~880 'no such table'
+  # / 'near MODIFY syntax error' (DDL MySQL-only). Passando DB_* como env REAL do
+  # container, o <env> sqlite e ignorado e o pest usa o MySQL seedado (mysql-schema.sql
+  # + migrate + seed biz=1/biz=2 dos passos 3-5). ADR 0101 (testes MySQL real, nao sqlite).
   timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
     --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
+    -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
+    -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
     -w /workspace --entrypoint php "$IMAGE" -d memory_limit=2G \
     vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
