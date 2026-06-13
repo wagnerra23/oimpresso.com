@@ -104,7 +104,7 @@ it('totalInteracoesDia conta apenas role=user no dia certo do business', functio
 
     $apurador = new MetricasApurador();
 
-    expect($apurador->totalInteracoesDia(4, $hoje))->toBe(2);
+    expect($apurador->totalInteracoesDia(1, $hoje))->toBe(2);
     expect($apurador->totalInteracoesDia(8, $hoje))->toBe(1);
     expect($apurador->totalInteracoesDia(null, $hoje))->toBe(3); // plataforma agregada
 });
@@ -129,7 +129,7 @@ it('tokensMedioInteracao calcula média de assistant (in+out) com filtro de busi
     $apurador = new MetricasApurador();
 
     // (150 + 300) / 2 = 225
-    expect($apurador->tokensMedioInteracao(4, $hoje))->toBe(225);
+    expect($apurador->tokensMedioInteracao(1, $hoje))->toBe(225);
 });
 
 it('totalMemoriasAtivas conta valid_until=null e exclui soft-deleted', function () {
@@ -150,7 +150,7 @@ it('totalMemoriasAtivas conta valid_until=null e exclui soft-deleted', function 
 
     $apurador = new MetricasApurador();
 
-    expect($apurador->totalMemoriasAtivas(4, $hoje))->toBe(2);
+    expect($apurador->totalMemoriasAtivas(1, $hoje))->toBe(2);
     expect($apurador->totalMemoriasAtivas(8, $hoje))->toBe(1);
     expect($apurador->totalMemoriasAtivas(null, $hoje))->toBe(3);
 });
@@ -176,7 +176,7 @@ it('memoryBloatRatio = % fatos com valid_from <= 30d / total ativos', function (
     $apurador = new MetricasApurador();
 
     // 3 recentes / 4 total = 0.750
-    expect($apurador->memoryBloatRatio(4, $hoje))->toBe(0.750);
+    expect($apurador->memoryBloatRatio(1, $hoje))->toBe(0.750);
 });
 
 it('memoryBloatRatio retorna null quando não há fatos ativos', function () {
@@ -186,7 +186,7 @@ it('memoryBloatRatio retorna null quando não há fatos ativos', function () {
 
 it('latenciaP95Ms retorna null quando log do dia não existe', function () {
     $apurador = new MetricasApurador('canal-inexistente-xyz');
-    expect($apurador->latenciaP95Ms(4, CarbonImmutable::parse('2026-04-29')))->toBeNull();
+    expect($apurador->latenciaP95Ms(1, CarbonImmutable::parse('2026-04-29')))->toBeNull();
 });
 
 it('latenciaP95Ms parseia log otel-gen-ai e calcula p95 filtrado por business_id', function () {
@@ -199,12 +199,12 @@ it('latenciaP95Ms parseia log otel-gen-ai e calcula p95 filtrado por business_id
         $dur = $i * 100;
         $event = json_encode([
             'gen_ai.system'               => 'openai',
-            'gen_ai.business_id'          => 4,
+            'gen_ai.business_id'          => 1,
             'gen_ai.response.duration_ms' => $dur,
         ]);
         $linhas[] = "[2026-04-29 10:00:00] live.INFO: gen_ai.span {$event}";
     }
-    // 5 entradas de outro business (não devem entrar no p95 do biz=4)
+    // 5 entradas de outro business (não devem entrar no p95 do biz=1)
     for ($i = 1; $i <= 5; $i++) {
         $event = json_encode([
             'gen_ai.system'               => 'openai',
@@ -220,7 +220,7 @@ it('latenciaP95Ms parseia log otel-gen-ai e calcula p95 filtrado por business_id
     $logChannel = basename($logPath, '-' . $data->toDateString() . '.log');
     $apurador = new MetricasApurador($logChannel);
 
-    expect($apurador->latenciaP95Ms(4, $data))->toBe(1900); // ceil(0.95 * 20) - 1 = 18 → 1900
+    expect($apurador->latenciaP95Ms(1, $data))->toBe(1900); // ceil(0.95 * 20) - 1 = 18 → 1900
     expect($apurador->latenciaP95Ms(8, $data))->toBe(99999);
 
     @unlink($logPath);
@@ -248,14 +248,14 @@ it('apurar grava 1 linha em copiloto_memoria_metricas e é idempotente (upsert)'
 
     $apurador = new MetricasApurador();
 
-    $linha1 = $apurador->apurar(4, '2026-04-29');
+    $linha1 = $apurador->apurar(1, '2026-04-29');
     expect($linha1)->toBeInstanceOf(MemoriaMetrica::class);
     expect($linha1->total_interacoes_dia)->toBe(1);
     expect($linha1->total_memorias_ativas)->toBe(1);
     expect($linha1->tokens_medio_interacao)->toBe(150);
 
     // Re-apurar mesmo dia/business → upsert (não cria nova linha)
-    $linha2 = $apurador->apurar(4, '2026-04-29');
+    $linha2 = $apurador->apurar(1, '2026-04-29');
     expect(MemoriaMetrica::count())->toBe(1);
     expect($linha2->id)->toBe($linha1->id);
 
@@ -283,5 +283,5 @@ it('apurar para plataforma (business_id=null) agrega tudo', function () {
     $linha = $apurador->apurar(null, '2026-04-29');
 
     expect($linha->business_id)->toBeNull();
-    expect($linha->total_interacoes_dia)->toBe(2); // 4 + 8 agregados
+    expect($linha->total_interacoes_dia)->toBe(2); // biz 1 + biz 8 agregados
 });

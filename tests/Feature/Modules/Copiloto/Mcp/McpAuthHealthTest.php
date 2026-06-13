@@ -98,7 +98,7 @@ it('McpAuth: token válido + user existe → 200 + audit ok', function () {
     $userMock = new class {
         public int $id = 1;
         public ?string $first_name = 'Wagner';
-        public ?int $business_id = 4;
+        public ?int $business_id = 1;
     };
 
     // Mock find
