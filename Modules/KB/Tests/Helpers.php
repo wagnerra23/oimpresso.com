@@ -45,10 +45,20 @@ use Illuminate\Support\Facades\Schema;
  *   - kb_* (carregadas via Modules/KB/Database/Migrations/2026_05_15_1000*.php)
  *
  * Idempotente — chama Schema::dropIfExists antes pra suportar reuso entre tests.
+ *
+ * MySQL-safe (era-sqlite floor fix 2026-06-13): em sqlite :memory: a DB nasce
+ * vazia por processo, então dropar/criar tabelas CORE COMPARTILHADAS (business,
+ * users, mcp_memory_documents, permissions/roles/model_has_*) era benigno. Na
+ * full-suite contra MySQL PERSISTENTE (nightly CT 100) esses drops DESTROEM o
+ * schema real compartilhado e estouram "Base table not found" em centenas de
+ * testes alheios. Regra: tabela CORE (sem prefixo de módulo) NUNCA é dropada;
+ * o create vira condicional via Schema::hasTable() → no-op no MySQL já-migrado,
+ * cria no sqlite fresco. Tabelas kb_* (módulo-prefixadas) seguem drop+create
+ * idempotente — não são compartilhadas. Ver ADR 0093 + ADR 0101.
  */
 function kbBootstrapSchema(): void
 {
-    // Externals mínimos — só campos usados nas FKs/queries.
+    // kb_* (módulo-prefixadas, NÃO compartilhadas): drop+create idempotente OK.
     Schema::dropIfExists('kb_bridge_state');
     Schema::dropIfExists('kb_comments');
     Schema::dropIfExists('kb_favorites');
@@ -62,72 +72,80 @@ function kbBootstrapSchema(): void
     Schema::dropIfExists('kb_subcategories');
     Schema::dropIfExists('kb_categories');
 
-    Schema::dropIfExists('mcp_memory_documents');
-    Schema::dropIfExists('users');
-    Schema::dropIfExists('business');
-
-    foreach (['model_has_roles', 'model_has_permissions', 'role_has_permissions', 'roles', 'permissions'] as $tbl) {
-        Schema::dropIfExists($tbl);
-    }
-
-    Schema::create('business', function (Blueprint $t) {
-        $t->increments('id');
-        $t->string('name', 200)->nullable();
-        $t->timestamps();
-    });
-
-    Schema::create('users', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->string('username')->nullable();
-        $t->string('email')->nullable();
-        $t->string('password')->nullable();
-        $t->integer('business_id')->unsigned()->nullable();
-        $t->rememberToken();
-        $t->softDeletes();
-        $t->timestamps();
-    });
-
-    Schema::create('mcp_memory_documents', function (Blueprint $t) {
-        $t->bigIncrements('id');
-        $t->integer('business_id')->unsigned()->nullable();
-        $t->string('type', 40)->nullable();
-        $t->string('slug', 180)->nullable();
-        $t->string('title', 255)->nullable();
-        $t->longText('content_md')->nullable();
-        $t->json('metadata')->nullable();
-        $t->string('git_sha', 64)->nullable();
-        $t->timestamp('deleted_at')->nullable();
-        $t->timestamps();
-    });
-
-    // Spatie tables (pra middleware can:* nos Controllers).
-    foreach (['permissions', 'roles'] as $tbl) {
-        Schema::create($tbl, function (Blueprint $t) {
-            $t->bigIncrements('id');
-            $t->string('name');
-            $t->string('guard_name');
-            $t->unsignedInteger('business_id')->nullable();
+    // Externals CORE COMPARTILHADAS — NUNCA dropar. Create só condicional:
+    // sqlite fresco cria; MySQL persistente (já migrado) vira no-op.
+    if (! Schema::hasTable('business')) {
+        Schema::create('business', function (Blueprint $t) {
+            $t->increments('id');
+            $t->string('name', 200)->nullable();
             $t->timestamps();
-            $t->unique(['name', 'guard_name']);
         });
     }
-    Schema::create('model_has_roles', function (Blueprint $t) {
-        $t->unsignedBigInteger('role_id');
-        $t->string('model_type');
-        $t->unsignedBigInteger('model_id');
-        $t->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk');
-    });
-    Schema::create('model_has_permissions', function (Blueprint $t) {
-        $t->unsignedBigInteger('permission_id');
-        $t->string('model_type');
-        $t->unsignedBigInteger('model_id');
-        $t->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk');
-    });
-    Schema::create('role_has_permissions', function (Blueprint $t) {
-        $t->unsignedBigInteger('permission_id');
-        $t->unsignedBigInteger('role_id');
-        $t->primary(['permission_id', 'role_id']);
-    });
+
+    if (! Schema::hasTable('users')) {
+        Schema::create('users', function (Blueprint $t) {
+            $t->bigIncrements('id');
+            $t->string('username')->nullable();
+            $t->string('email')->nullable();
+            $t->string('password')->nullable();
+            $t->integer('business_id')->unsigned()->nullable();
+            $t->rememberToken();
+            $t->softDeletes();
+            $t->timestamps();
+        });
+    }
+
+    if (! Schema::hasTable('mcp_memory_documents')) {
+        Schema::create('mcp_memory_documents', function (Blueprint $t) {
+            $t->bigIncrements('id');
+            $t->integer('business_id')->unsigned()->nullable();
+            $t->string('type', 40)->nullable();
+            $t->string('slug', 180)->nullable();
+            $t->string('title', 255)->nullable();
+            $t->longText('content_md')->nullable();
+            $t->json('metadata')->nullable();
+            $t->string('git_sha', 64)->nullable();
+            $t->timestamp('deleted_at')->nullable();
+            $t->timestamps();
+        });
+    }
+
+    // Spatie tables CORE COMPARTILHADAS (pra middleware can:* nos Controllers).
+    foreach (['permissions', 'roles'] as $tbl) {
+        if (! Schema::hasTable($tbl)) {
+            Schema::create($tbl, function (Blueprint $t) {
+                $t->bigIncrements('id');
+                $t->string('name');
+                $t->string('guard_name');
+                $t->unsignedInteger('business_id')->nullable();
+                $t->timestamps();
+                $t->unique(['name', 'guard_name']);
+            });
+        }
+    }
+    if (! Schema::hasTable('model_has_roles')) {
+        Schema::create('model_has_roles', function (Blueprint $t) {
+            $t->unsignedBigInteger('role_id');
+            $t->string('model_type');
+            $t->unsignedBigInteger('model_id');
+            $t->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk');
+        });
+    }
+    if (! Schema::hasTable('model_has_permissions')) {
+        Schema::create('model_has_permissions', function (Blueprint $t) {
+            $t->unsignedBigInteger('permission_id');
+            $t->string('model_type');
+            $t->unsignedBigInteger('model_id');
+            $t->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk');
+        });
+    }
+    if (! Schema::hasTable('role_has_permissions')) {
+        Schema::create('role_has_permissions', function (Blueprint $t) {
+            $t->unsignedBigInteger('permission_id');
+            $t->unsignedBigInteger('role_id');
+            $t->primary(['permission_id', 'role_id']);
+        });
+    }
 
     // Roda as 12 migrations KB em ordem.
     $kbMigrationDir = realpath(__DIR__ . '/../Database/Migrations');
@@ -143,6 +161,12 @@ function kbBootstrapSchema(): void
 
 /**
  * Drop em ordem reversa pra respeitar FKs.
+ *
+ * MySQL-safe (era-sqlite floor fix 2026-06-13): só dropa tabelas kb_*
+ * (módulo-prefixadas, não compartilhadas). As CORE COMPARTILHADAS
+ * (mcp_memory_documents, users, business, permissions/roles/model_has_*)
+ * NÃO são dropadas — em MySQL persistente isso destruía o schema real
+ * compartilhado e quebrava centenas de testes alheios. Ver ADR 0093 + 0101.
  */
 function kbTeardownSchema(): void
 {
@@ -150,10 +174,7 @@ function kbTeardownSchema(): void
               'kb_decision_tree_steps', 'kb_decision_trees',
               'kb_path_steps', 'kb_paths',
               'kb_edges', 'kb_nodes',
-              'kb_subcategories', 'kb_categories',
-              'mcp_memory_documents', 'role_has_permissions', 'model_has_roles',
-              'model_has_permissions', 'roles', 'permissions',
-              'users', 'business'] as $tbl) {
+              'kb_subcategories', 'kb_categories'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
 }

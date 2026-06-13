@@ -66,8 +66,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('activity_log');
-    Schema::dropIfExists('rb_boleto_credentials');
+    // rb_boleto_credentials é real-migrada; o afterEach roda mesmo em teste pulado
+    // (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-la no MySQL
+    // persistente corromperia testes irmãos do módulo. DDL só em sqlite :memory:.
+    if (config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        Schema::dropIfExists('rb_boleto_credentials');
+    }
 });
 
 /**

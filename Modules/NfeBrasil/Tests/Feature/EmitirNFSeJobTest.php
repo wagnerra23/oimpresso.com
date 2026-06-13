@@ -30,54 +30,72 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // nfse_emissoes é tabela do PRÓPRIO módulo (prefixo nfse_) — drop+create
+    // idempotente é seguro mesmo no MySQL persistente do nightly.
     Schema::dropIfExists('nfse_emissoes');
-    Schema::dropIfExists('users');
 
+    // users + tabelas Spatie Permission são CORE COMPARTILHADAS — NUNCA dropar
+    // no MySQL persistente (destrói schema de testes alheios → "Base table not
+    // found" em cascata). Cria só condicional (no-op em DB já-migrado).
     // Tabela users mínima — necessária pra Auth::loginUsingId() ativar
     // ScopeByBusiness (que confere auth()->check() antes de filtrar).
-    Schema::create('users', function ($table) {
-        $table->bigIncrements('id');
-        $table->unsignedInteger('business_id');
-        $table->string('email', 191)->unique();
-        $table->string('password', 191)->default('x');
-        $table->timestamps();
-        $table->softDeletes();
-    });
+    if (! Schema::hasTable('users')) {
+        Schema::create('users', function ($table) {
+            $table->bigIncrements('id');
+            $table->unsignedInteger('business_id');
+            // surname/first_name/username espelham o schema real (NOT NULL lá) pra
+            // o mesmo payload de seed funcionar em sqlite sintético E MySQL real.
+            $table->string('surname')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('username', 191)->unique();
+            $table->string('email', 191)->nullable();
+            $table->string('password', 191)->default('x');
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
 
     // Tabelas Spatie Permission mínimas — `ScopeByBusiness` chama
     // `$user->can('jana.superadmin')` que dispara queries em permissions.
-    foreach (['permissions', 'roles', 'model_has_permissions', 'model_has_roles', 'role_has_permissions'] as $t) {
-        Schema::dropIfExists($t);
+    if (! Schema::hasTable('permissions')) {
+        Schema::create('permissions', function ($table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('guard_name');
+            $table->timestamps();
+        });
     }
-    Schema::create('permissions', function ($table) {
-        $table->bigIncrements('id');
-        $table->string('name');
-        $table->string('guard_name');
-        $table->timestamps();
-    });
-    Schema::create('roles', function ($table) {
-        $table->bigIncrements('id');
-        $table->string('name');
-        $table->string('guard_name');
-        $table->timestamps();
-    });
-    Schema::create('model_has_permissions', function ($table) {
-        $table->unsignedBigInteger('permission_id');
-        $table->string('model_type');
-        $table->unsignedBigInteger('model_id');
-        $table->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk');
-    });
-    Schema::create('model_has_roles', function ($table) {
-        $table->unsignedBigInteger('role_id');
-        $table->string('model_type');
-        $table->unsignedBigInteger('model_id');
-        $table->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk');
-    });
-    Schema::create('role_has_permissions', function ($table) {
-        $table->unsignedBigInteger('permission_id');
-        $table->unsignedBigInteger('role_id');
-        $table->primary(['permission_id', 'role_id'], 'rhp_pk');
-    });
+    if (! Schema::hasTable('roles')) {
+        Schema::create('roles', function ($table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('guard_name');
+            $table->timestamps();
+        });
+    }
+    if (! Schema::hasTable('model_has_permissions')) {
+        Schema::create('model_has_permissions', function ($table) {
+            $table->unsignedBigInteger('permission_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+            $table->primary(['permission_id', 'model_id', 'model_type'], 'mhp_pk');
+        });
+    }
+    if (! Schema::hasTable('model_has_roles')) {
+        Schema::create('model_has_roles', function ($table) {
+            $table->unsignedBigInteger('role_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+            $table->primary(['role_id', 'model_id', 'model_type'], 'mhr_pk');
+        });
+    }
+    if (! Schema::hasTable('role_has_permissions')) {
+        Schema::create('role_has_permissions', function ($table) {
+            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('role_id');
+            $table->primary(['permission_id', 'role_id'], 'rhp_pk');
+        });
+    }
 
     Schema::create('nfse_emissoes', function ($table) {
         $table->bigIncrements('id');
@@ -181,20 +199,20 @@ it('multi-tenant: biz=1 NÃO enxerga emissão biz=99 (HasBusinessScope)', functi
     // ScopeByBusiness só ATIVA filtragem se auth()->check() retornar true.
     // Sem auth, scope retorna sem aplicar filter (intencional pra CLI/jobs).
     // Pra teste cross-tenant precisamos autenticar User real.
-    $userIdBiz1 = DB::table('users')->insertGetId([
-        'business_id' => 1,
-        'email'       => 'user-biz1@test.example',
-        'password'    => 'x',
-        'created_at'  => now(),
-        'updated_at'  => now(),
-    ]);
-    $userIdBiz99 = DB::table('users')->insertGetId([
-        'business_id' => 99,
-        'email'       => 'user-biz99@test.example',
-        'password'    => 'x',
-        'created_at'  => now(),
-        'updated_at'  => now(),
-    ]);
+    // updateOrInsert keyed por username (a coluna UNIQUE no schema real de users —
+    // email lá é nullable e NÃO-unique). Idempotente no MySQL persistente: reusa a
+    // linha de runs anteriores sem "Duplicate entry". surname/first_name preenchidos
+    // pois são NOT NULL na tabela real. Depois resolve o id pelo username.
+    DB::table('users')->updateOrInsert(
+        ['username' => 'nfse-test-user-biz1'],
+        ['business_id' => 1, 'surname' => 'Test', 'first_name' => 'Biz1', 'email' => 'user-biz1@test.example', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()],
+    );
+    DB::table('users')->updateOrInsert(
+        ['username' => 'nfse-test-user-biz99'],
+        ['business_id' => 99, 'surname' => 'Test', 'first_name' => 'Biz99', 'email' => 'user-biz99@test.example', 'password' => 'x', 'created_at' => now(), 'updated_at' => now()],
+    );
+    $userIdBiz1 = DB::table('users')->where('username', 'nfse-test-user-biz1')->value('id');
+    $userIdBiz99 = DB::table('users')->where('username', 'nfse-test-user-biz99')->value('id');
 
     // User do biz=1 SÓ deve ver biz=1
     Auth::loginUsingId($userIdBiz1);

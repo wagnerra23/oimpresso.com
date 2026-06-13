@@ -88,9 +88,12 @@ function setupOrphanWebhookSchema(): void
 
 function teardownOrphanWebhookSchema(): void
 {
+    // Só tabelas do MÓDULO PaymentGateway (gateway_webhook_events) + cobrancas
+    // (tabela própria do módulo, sem prefixo de outro domínio). NÃO dropar
+    // `activity_log`: é CORE COMPARTILHADA (Spatie activitylog) — em MySQL
+    // persistente do nightly o drop destruiria o schema usado por outros testes.
     Schema::dropIfExists('gateway_webhook_events');
     Schema::dropIfExists('cobrancas');
-    Schema::dropIfExists('activity_log');
 }
 
 /**
