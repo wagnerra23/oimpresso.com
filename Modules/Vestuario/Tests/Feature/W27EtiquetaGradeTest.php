@@ -96,7 +96,7 @@ it('gerarEtiqueta retorna ZPL com campos obrigatórios', function () {
             'colecao' => 'Verão 2026',
             'preco'   => 89.90,
             'sku'     => 'CAMI-042-M-AZU',
-            'businessId' => 4,
+            'businessId' => 1,
         ]
     );
 
@@ -106,7 +106,7 @@ it('gerarEtiqueta retorna ZPL com campos obrigatórios', function () {
     expect($result['zpl'])->toContain('TAM: M');
     expect($result['zpl'])->toContain('COR: Azul Marinho');
     expect($result['zpl'])->toContain('Verão 2026');
-    expect($result['zpl'])->toContain('R$ [redacted Tier 0]');
+    expect($result['zpl'])->toContain('R$ 89,90');
     expect($result['zpl'])->toContain('^BEN'); // EAN-13 barcode marker
     expect($result['zpl'])->toContain($result['ean13']);
     expect($result['zpl'])->toContain('CAMI-042-M-AZU');
@@ -114,7 +114,7 @@ it('gerarEtiqueta retorna ZPL com campos obrigatórios', function () {
     expect(strlen($result['ean13']))->toBe(13);
     expect($svc->validateEan13($result['ean13']))->toBeTrue();
 
-    expect($result['meta']['business_id'])->toBe(4);
+    expect($result['meta']['business_id'])->toBe(1);
     expect($result['meta']['product_id'])->toBe(42);
 });
 
