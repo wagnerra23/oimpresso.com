@@ -954,4 +954,74 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 ---
 
-**Última atualização:** 2026-05-31 — US-SELL-041/042/043 adicionadas (benchmark `tela-venda-arte` 2026-05-31, gaps P1 — G5 NFC-e inline no Create / G4 batch price-group / G6 CSS Cowork→tokens no Index). 2026-05-15 — US-SELL-036 adicionada (goal #3 CYCLE-06 FSM rollout). 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) + 1 P0 (US-036) = 22 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
+### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** revisão adversarial da triage Q2 Fase 2b SDD (2026-06-13). Contrato órfão de backend confirmado por leitura de `origin/main`.
+
+**Sintoma:** `SellController.php:1218-1229` (`inertiaList`) ainda computa e envia o payload `totals` (`sum_final_total`, `sum_total_paid`, `sum_due` via `clone($q)` pós-pill-filter + `COALESCE(SUM(...transaction_payments))` + `max(0,...)`), mas `resources/js/Pages/Sells/Index.tsx` faz `setTotals(json.totals)` (l.717) com `const [totals] = useState` (l.491) e **nunca lê** o getter `totals` nas 1807 linhas. Os KPIs `kpiToday`/`kpiAReceber` (l.800-852) têm semântica "hoje/scoped" — **não substituem** a soma sobre o filtro inteiro que o `SellsTotalsRow.tsx` (deletado) renderizava.
+
+**É remoção pela metade.** O teste `SellsTotalsTest` vermelho está **correto** ao sinalizar.
+
+**DECISÃO DE PRODUTO (Wagner):** (a) **Remover** o cálculo do controller + state morto (economiza query/request); OU (b) **Reexibir** o totalizador (rodapé soma do filtro inteiro — feature perdida).
+
+**DoD:** decisão tomada; backend+frontend consistentes; `SellsTotalsTest` reescrito (não quarentenado).
+
+Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase 2b.
+
+---
+
+### US-SELL-046 · Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** revisão adversarial da triage Q2 Fase 2b SDD (2026-06-13). Contrato multi-tenant órfão confirmado em `origin/main`.
+
+**Sintoma:** `app/Http/Middleware/HandleInertiaRequests.php:523-536` (`sellsViewModeDefault`) ainda retorna `viewMode='grade-avancada'` quando `business.legacy_origin === 'officeimpresso'`. Migration `2026_05_12_180000_add_legacy_origin_to_business` + `BusinessLegacyOriginSeeder` (6 clientes reais: Vargas/Extreme/Gold/Zoom/Fixar/Produart) vivos. **MAS** os componentes que consumiam (`SellsToggleViewMode.tsx` + `SellsGradeAvancada.tsx`) foram **deletados** no refactor Sells→SellsTabelaUnificada. `Index.tsx:654-655` trata `grade-avancada` só como localStorage legacy migrado pra `financeira`.
+
+**Resultado:** backend serve, pra 6 clientes pagantes legacy, um viewMode que o frontend não renderiza mais.
+
+**DECISÃO DE PRODUTO (Wagner):** (a) **Remover** o roteamento + migration/seeder (cai no default); OU (b) **Reimplementar** a grade-avançada na UI nova. **Afeta clientes reais — confirmar antes.**
+
+**DoD:** decisão tomada; middleware+frontend consistentes; teste reescrito.
+
+Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase 2b.
+
+---
+
+### US-SELL-047 · Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado por grep
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** revisão adversarial da triage Q2 Fase 2b SDD (2026-06-13). Achado CRÍTICO: a tela Sells **não tem nenhum teste que exerça isolamento de tenant** — os ~254 it() em `tests/Feature/Sells/*` são 100% `file_get_contents`+regex (medido: 0/254 fazem HTTP/render/DB).
+
+**Falso conforto:** os it() rotulados "multi-tenant Tier 0 (ADR 0093)" só **grepam o texto-fonte** (`->where('transactions.business_id'`, ordem `where...whereIn`, `not->toContain('withoutGlobalScopes')`). **Quebra-se a tenancy mantendo a string → passa verde.**
+
+**Escopo (comportamento real):** `GET /sells-list-json` `actingAs(biz=1)` vs `biz=2` → não vaza venda cross-tenant; `POST /sells/bulk-print|bulk-export` com IDs de outro business → nega; `inertiaList` com filtros → `clone($q)` preserva escopo; cenário biz=99.
+
+**DoD:** Pest com ≥1 caso que FALHA se removerem o `business_id` scope do `SellController` (provado mutando) — diferente dos greps que passam com tenancy quebrada. MySQL real (ADR 0101).
+
+Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase 2b.
+
+---
+
+### US-SELL-048 · Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gated no nº do nightly C1
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: US-GOV-017
+
+**Origem:** revisão adversarial da triage Q2 (2026-06-13) REVERTEU a recomendação de quarentena Q-A. Os ~254 it() de `tests/Feature/Sells/*` são snapshots `file_get_contents`+regex determinísticos-stale — **quarentena é a ferramenta errada** (`@group legacy-quarantine` tem 0 commits no repo vs 1.423 `markTestSkipped` nunca queimados).
+
+**Triagem por it() (rodar Pest por arquivo — NÃO confiar em classificação-prosa):** **DELETE ~28** (componente+feature mortos: groupBy TanStack, tab-bar/`SellsInsightsView`→Jana, toggle Lista|Grade) · **REWRITE/REPOINT ~45** (feature viva relocada: Comissão, `is_grouped_invoice`, bulk → `SellsTabelaUnificada`/`SellsTabsVisao`; `NumericInputPtBR`→`Components/ui/`; `SellsTabsViewModeTest`→`Jana/JanaCockpitV2.tsx`) · **KEEP+FIX ~20** (bug do teste, ex `bulkExport BOM UTF-8` byte-vs-literal) · **QUARANTINE ≈0**.
+
+**Pré-requisito DURO:** rodar o nightly com fix C1 (PR #2632) ISOLADO e re-medir — o nº de falhas de **comportamento** é o único baseline honesto. **Contradição a resolver antes:** plano dizia "4 arquivos intocados" (Totals/IndexDateField/StatusProducao/SaleSheet) mas estão TODOS vermelhos (~27 it()).
+
+Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · revisão adversarial 2026-06-13 · US-GOV-017 fase 2b.
+
+---
+
+**Última atualização:** 2026-06-13 — US-SELL-045/046/047/048 adicionadas (revisão adversarial da triage Q2 Fase 2b SDD: 2 bugs de contrato órfão de backend [`totals` morto, `grade-avancada`], 1 US de teste de isolamento real, 1 US de higiene dos snapshots-grep — quarentena Q-A revertida). 2026-05-31 — US-SELL-041/042/043 adicionadas (benchmark `tela-venda-arte` 2026-05-31, gaps P1 — G5 NFC-e inline no Create / G4 batch price-group / G6 CSS Cowork→tokens no Index). 2026-05-15 — US-SELL-036 adicionada (goal #3 CYCLE-06 FSM rollout). 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) + 1 P0 (US-036) = 22 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
