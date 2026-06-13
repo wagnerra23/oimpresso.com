@@ -169,7 +169,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                     <Input
                       value={data.tomador_cnpj}
                       onChange={(e) => setData('tomador_cnpj', e.target.value)}
-                      placeholder="00.000.000/0000-00"
+                      placeholder="00.000.000/0000-00" // pii-allowlist máscara visual de input
                       className="mt-1"
                     />
                     {errors.tomador_cnpj && <p className="text-xs text-destructive mt-1">{errors.tomador_cnpj}</p>}
@@ -180,7 +180,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                     <Input
                       value={data.tomador_cpf}
                       onChange={(e) => setData('tomador_cpf', e.target.value)}
-                      placeholder="000.000.000-00"
+                      placeholder="000.000.000-00" // pii-allowlist máscara visual de input
                       className="mt-1"
                     />
                     {errors.tomador_cpf && <p className="text-xs text-destructive mt-1">{errors.tomador_cpf}</p>}
