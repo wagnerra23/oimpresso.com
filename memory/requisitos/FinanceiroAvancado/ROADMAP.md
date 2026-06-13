@@ -1,11 +1,11 @@
 ---
-title: ROADMAP Modules/FinanceiroAvancado
+title: ROADMAP FinanceiroAvancado (planejado — não existe)
 date: 2026-05-12
 status: draft
 estimate_calibration: ADR 0106 (10x IA-pair + margem 2x)
 ---
 
-# ROADMAP — Modules/FinanceiroAvancado
+# ROADMAP — FinanceiroAvancado (planejado — não existe)
 
 > 5 fases. Estimates **calibrados ADR 0106** — fator 10x IA-pair + margem 2x. Cliente piloto **ROTA LIVRE biz=4** + **canary clientes legacy OfficeImpresso** (Martinho/Vargas/Extreme/Gold).
 > Sinal qualificado (ADR 0105): só ativar feature se cliente paga + reporta OU métrica detecta drift.
@@ -14,7 +14,7 @@ estimate_calibration: ADR 0106 (10x IA-pair + margem 2x)
 
 ## Fase 0 — Foundation (1 sprint = 1 semana)
 
-**Objetivo:** scaffold `Modules/FinanceiroAvancado` + bridge contracts + Pest fixtures.
+**Objetivo:** scaffold `FinanceiroAvancado (planejado — não existe)` + bridge contracts + Pest fixtures.
 
 **Stories:**
 - Scaffold módulo nWidart com 8 peças obrigatórias (skill `criar-modulo`)
@@ -85,7 +85,7 @@ estimate_calibration: ADR 0106 (10x IA-pair + margem 2x)
 
 **Cliente piloto:** ROTA LIVRE biz=4 (Larissa fecha mês com contador).
 
-**Gate:** contador externo Larissa aprova DRE 1 mês completo via token shareable. PDF tem cabeçalho fiscal correto (CNPJ 73.306.573/0001-11). Fluxo projetado 30d bate ±5% com realizado depois.
+**Gate:** contador externo Larissa aprova DRE 1 mês completo via token shareable. PDF tem cabeçalho fiscal correto (CNPJ 11.222.333/0001-81). <!-- pii-allowlist: CNPJ fake canônico de exemplo — substitui CNPJ real-looking de cliente no doc de planejamento --> Fluxo projetado 30d bate ±5% com realizado depois.
 
 **Estimate:** 8 dias-IA-pair (~16 dias calendário margem 2x).
 
@@ -107,7 +107,7 @@ estimate_calibration: ADR 0106 (10x IA-pair + margem 2x)
 - `Modules/Jana/Ai/Agents/CategorizationAgent` calibrado (Fase 1)
 - `InventoryCostResolver` service contract (Fase 0)
 - `RepairLaborResolver` quando OS linkada (Fase 0)
-- `Modules/Comissao` ainda não existe — usar fallback **valor fixo per-venda** (config tenant) até Comissao módulo nascer
+- `Comissao` (planejado — não existe) — usar fallback **valor fixo per-venda** (config tenant) até o módulo Comissao nascer
 
 **Cliente piloto:** ROTA LIVRE biz=4 (50k transactions histórico 24m) + canary Extreme legacy (PCP grafica industrial — margem analítica produto-a-produto fit ideal).
 

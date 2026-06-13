@@ -53,7 +53,7 @@
 | `reference_rag_estado_arte_2026.md` | 🟡 | `memory/requisitos/Copiloto/RAG-ESTADO-ARTE.md` (pesquisa profunda, citar papers) |
 | ~~`reference_pesquisa_wagner_2026_04_29.md`~~ | ✅ DONE 2026-05-09 | DELETED — virou ADRs 0048/0049/0050/0036 |
 
-**Trigger:** Edit/Read em `Modules/Copiloto/` ou termo "recall"/"hybrid"/"meilisearch hybrid embedder"/"HyDE".
+**Trigger:** Edit/Read em `Modules/Jana/` ou termo "recall"/"hybrid"/"meilisearch hybrid embedder"/"HyDE".
 
 ### A4. Cms
 
@@ -88,7 +88,7 @@
 |---|---|---|
 | `reference_ponto_evolucao_estado_arte.md` | 🟡 | `memory/requisitos/PontoWr2/CAPTERRA-FICHA.md` (apenda 8 capacidades + 10 moves) ou inline em `SPEC.md` |
 
-**Trigger:** Edit/Read em `Modules/PontoWr2/` ou termo "Marcacao"/"Apuracao"/"CLT"/"banco horas".
+**Trigger:** Edit/Read em `Modules/Ponto/` ou termo "Marcacao"/"Apuracao"/"CLT"/"banco horas".
 
 ---
 
