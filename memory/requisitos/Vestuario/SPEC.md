@@ -23,7 +23,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 | Campo | Valor |
 |-------|-------|
 | Razão social | LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME |
-| CNPJ | 73.306.573/0001-11 |
+| CNPJ | [REDACTED-CNPJ] |
 | Endereço único | BL0001 "ROTA LIVRE" — Termas do Gravatal, Gravatal/SC, CEP 88735-0 |
 | Telefone | (48) 3626-4806 |
 | Timezone | `America/Sao_Paulo` |

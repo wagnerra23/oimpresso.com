@@ -439,11 +439,11 @@ Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash d
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 10/10
 > blocked_by: —
 
-Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por regex PII (CPF, CNPJ, email, cartão) e bloqueia se achar. Avisa ao Claude com mensagem "[PII detectada em path:line] — substitua por [REDACTED] ou fixture fake (ex.: 123.456.789-09)".
+Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por regex PII (CPF, CNPJ, email, cartão) e bloqueia se achar. Avisa ao Claude com mensagem "[PII detectada em path:line] — substitua por [REDACTED] ou fixture fake (ex.: 123.456.789-09)". <!-- pii-allowlist (exemplo fake de formato, não PII real) -->
 
 **Por quê:** HOW_TO_ASK_CLAUDE §3.4. LGPD Art. 7º (princípio de minimização). Já houve incidente: log de prod com CPF real colado em prompt — risco de vazar em commit/transcript.
 
-**Acceptance:** `.claude/hooks/pii-redactor.ps1` testado · regex BR validados (CPF formato 000.000.000-00 e 00000000000; CNPJ idem; email RFC 5322 simplificado; cartão Luhn) · whitelist pra fixtures conhecidos (123.456.789-09, etc.) · documentação com lista de PIIs cobertos · zero falso-positivo em 50 commits validados.
+**Acceptance:** `.claude/hooks/pii-redactor.ps1` testado · regex BR validados (CPF formato 000.000.000-00 e 00000000000; CNPJ idem; email RFC 5322 simplificado; cartão Luhn) · whitelist pra fixtures conhecidos (123.456.789-09, etc.) · documentação com lista de PIIs cobertos · zero falso-positivo em 50 commits validados. <!-- pii-allowlist (exemplo fake de formato, não PII real) -->
 
 ### US-COPI-087 · Sprint 9c — Cross-encoder reranker (qwen3-reranker ou bge-reranker-v2-m3)
 

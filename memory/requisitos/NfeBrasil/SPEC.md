@@ -721,7 +721,7 @@ Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo 
 Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª NFC-e real cstat 100"). Pipeline US-NFE-002 server-side já fechado em main; biz=1 (WR2 Sistemas, Tubarão/SC) já está armada — confirmado via SSH 2026-05-09:
 
 **Estado pré-validado (não tocar):**
-- `business.cnpj`=36.613.150/0001-18, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0
+- `business.cnpj`=[REDACTED-CNPJ], `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0
 - `nfe_certificados.ativo`=1, `valido_ate`=2026-08-06
 - `nfe_business_configs`: `regime`=simples, `cfop`=5102, `csosn`=102, `auto_emission_enabled`=1
 - `.env` Hostinger: `NFEBRASIL_AUTO_EMISSION_NFCE=true`
