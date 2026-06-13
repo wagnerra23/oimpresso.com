@@ -489,9 +489,9 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
                     <span
                       aria-hidden
                       className={`h-1.5 w-1.5 rounded-full ${
-                        o.value === 'ativo'
+                        o.value === 'active'
                           ? 'bg-emerald-500'
-                          : o.value === 'inativo'
+                          : o.value === 'inactive'
                           ? 'bg-stone-400'
                           : 'bg-rose-500'
                       }`}
