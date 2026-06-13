@@ -118,20 +118,30 @@ class CustomerMemoryRebuilder
     {
         $extId = $this->normalizeExternalId($customerExternalId);
         $when = $when ?? now();
+        $nowStr = now()->format('Y-m-d H:i:s');
+        $whenStr = $when->format('Y-m-d H:i:s');
 
-        // Upsert defensivo — race-safe via INSERT ... ON DUPLICATE KEY UPDATE
-        DB::table('customer_memory')->updateOrInsert(
-            [
+        // Upsert race-safe e portável (ADR 0093) — query builder `upsert()` emite
+        // `ON DUPLICATE KEY UPDATE` (MySQL) ou `ON CONFLICT DO UPDATE` (SQLite).
+        // Versão anterior usava updateOrInsert + `COALESCE(first_interaction_at, ?)`
+        // dentro do VALUES do INSERT: MySQL tolera, mas SQLite quebra ("no such
+        // column" — não dá pra referenciar a própria coluna no INSERT ... VALUES).
+        //
+        // first_interaction_at e created_at ficam FORA da lista de update: na
+        // colisão são preservados (semântica first-seen), no insert recebem o valor
+        // da linha nova. Só last_interaction_at/phone_normalized/updated_at mudam.
+        DB::table('customer_memory')->upsert(
+            [[
                 'business_id' => $businessId,
                 'customer_external_id' => $extId,
-            ],
-            [
-                'last_interaction_at' => $when,
-                'first_interaction_at' => DB::raw("COALESCE(first_interaction_at, '" . $when->format('Y-m-d H:i:s') . "')"),
+                'last_interaction_at' => $whenStr,
+                'first_interaction_at' => $whenStr,
                 'phone_normalized' => preg_replace('/\D+/', '', $extId) ?: null,
-                'updated_at' => now(),
-                'created_at' => DB::raw('COALESCE(created_at, NOW())'),
-            ]
+                'created_at' => $nowStr,
+                'updated_at' => $nowStr,
+            ]],
+            ['business_id', 'customer_external_id'],
+            ['last_interaction_at', 'phone_normalized', 'updated_at'],
         );
     }
 
