@@ -22,6 +22,7 @@ use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\Tag;
+use Modules\Whatsapp\Jobs\DispatchCsatJob;
 use Modules\Whatsapp\Jobs\SendInteractiveJob;
 use Modules\Whatsapp\Jobs\SendMediaJob;
 use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
@@ -1056,6 +1057,10 @@ class InboxController extends Controller
             'bot_handling' => ['nullable', 'boolean'],
         ]);
 
+        // Captura status ANTES da mutação pra detectar a transição → resolved
+        // (CSAT dispara só na transição, não em re-save de conversa já resolvida).
+        $previousStatus = $conversation->status;
+
         if (isset($payload['status'])) {
             $conversation->status = $payload['status'];
         }
@@ -1066,6 +1071,22 @@ class InboxController extends Controller
             $conversation->bot_handling = (bool) $payload['bot_handling'];
         }
         $conversation->save();
+
+        // US-GOV-019: pesquisa CSAT pós-resolução. Dispara SOMENTE na transição
+        // !resolved → resolved (não em re-save de conversa já resolvida). Job em
+        // fila carrega business_id explícito (Tier 0 ADR 0093 — fila sem session)
+        // e CsatDispatcher é idempotente (no-op se já há pending nas últimas 24h).
+        if (
+            isset($payload['status'])
+            && $payload['status'] === Conversation::STATUS_RESOLVED
+            && $previousStatus !== Conversation::STATUS_RESOLVED
+        ) {
+            DispatchCsatJob::dispatch(
+                businessId: $businessId,
+                conversationId: (int) $conversation->id,
+                resolvedBy: $userId,
+            );
+        }
 
         return back()->with('success', 'Conversa atualizada.');
     }
