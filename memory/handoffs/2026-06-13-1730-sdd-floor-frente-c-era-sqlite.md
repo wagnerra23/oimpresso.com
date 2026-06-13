@@ -1,5 +1,7 @@
 ---
 date: "2026-06-13"
+slug: sdd-floor-frente-c-era-sqlite
+tldr: "Floor do nightly full-suite NÃO caiu (1928) após A.1/A.2/Frente C — o lever real é isolamento dos ~30 testes era-sqlite que dropam tabela CORE compartilhada. A.2 (FK-off) revertido (piorava). Fix-spec era-sqlite pronto (31 arq). Decisão pendente Wagner: piloto vs thread-all."
 hour: "17:30 BRT"
 topic: "SDD full-suite floor — cadeia de 4 root-causes (sqlite→mysql-client/TLS→trigger-DEFINER→era-sqlite isolation). Floor 1870→1928 (NÃO caiu); lever real = isolamento dos testes era-sqlite. A.1 mergeado, A.2 revertido, Frente C não-é-o-lever, era-sqlite fix-spec pronto pra implementar."
 duration: "~5h"
