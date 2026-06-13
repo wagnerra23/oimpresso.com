@@ -35,8 +35,16 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
-    if (! Schema::hasTable('mcp_actors')) {
-        $this->markTestSkipped('mcp_actors table missing — rode php artisan migrate primeiro (provider TeamMcp registra a migration).');
+    // Os testes rodam McpActorsSeeder, que cria actors via McpActor (LogsActivity →
+    // INSERT em activity_log). Schema parcial com mcp_actors presente mas activity_log
+    // ausente vira ERROR em vez de SKIP. Guard cobre o set completo do write-path.
+    foreach (['mcp_actors', 'activity_log'] as $tabela) {
+        if (! Schema::hasTable($tabela)) {
+            $this->markTestSkipped(
+                "Tabela {$tabela} ausente — rode migrate:fresh contra o dump completo ".
+                '(activity_log é dependência do trait LogsActivity em McpActor).'
+            );
+        }
     }
 });
 
