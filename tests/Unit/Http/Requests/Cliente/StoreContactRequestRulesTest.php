@@ -7,6 +7,7 @@ namespace Tests\Unit\Http\Requests\Cliente;
 use App\Http\Requests\Cliente\StoreContactRequest;
 use App\Http\Requests\Cliente\UpdateContactRequest;
 use App\Rules\BR\CpfCnpj;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,7 +20,7 @@ use PHPUnit\Framework\TestCase;
  */
 class StoreContactRequestRulesTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_has_br_canon_keys_on_store(): void
     {
         $rules = (new StoreContactRequest)->rules();
@@ -33,7 +34,7 @@ class StoreContactRequestRulesTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_has_br_canon_keys_on_update(): void
     {
         $rules = (new UpdateContactRequest)->rules();
@@ -47,7 +48,7 @@ class StoreContactRequestRulesTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function cpf_cnpj_uses_canonical_rule_on_store(): void
     {
         $rules = (new StoreContactRequest)->rules();
@@ -65,7 +66,7 @@ class StoreContactRequestRulesTest extends TestCase
         $this->assertTrue($hasCpfCnpjRule, 'cpf_cnpj deve usar App\\Rules\\BR\\CpfCnpj');
     }
 
-    /** @test */
+    #[Test]
     public function cpf_cnpj_uses_canonical_rule_on_update(): void
     {
         $rules = (new UpdateContactRequest)->rules();
@@ -82,7 +83,7 @@ class StoreContactRequestRulesTest extends TestCase
         $this->assertTrue($hasCpfCnpjRule, 'cpf_cnpj deve usar App\\Rules\\BR\\CpfCnpj');
     }
 
-    /** @test */
+    #[Test]
     public function indicador_ie_restricted_to_1_2_9(): void
     {
         $rules = (new StoreContactRequest)->rules();
@@ -90,14 +91,14 @@ class StoreContactRequestRulesTest extends TestCase
         $this->assertContains('integer', $rules['indicador_ie']);
     }
 
-    /** @test */
+    #[Test]
     public function regime_restricted_to_canonical_set(): void
     {
         $rules = (new StoreContactRequest)->rules();
         $this->assertContains('in:simples,presumido,real,mei', $rules['regime']);
     }
 
-    /** @test */
+    #[Test]
     public function messages_do_not_leak_recived_value(): void
     {
         $messages = (new StoreContactRequest)->messages();

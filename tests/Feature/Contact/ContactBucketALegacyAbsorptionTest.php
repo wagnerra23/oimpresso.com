@@ -9,6 +9,7 @@ use App\Contact;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -27,7 +28,7 @@ use Tests\TestCase;
  */
 class ContactBucketALegacyAbsorptionTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_has_all_bucket_a_columns(): void
     {
         $expected = [
@@ -54,7 +55,7 @@ class ContactBucketALegacyAbsorptionTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_has_self_fk_relations_defined_on_model(): void
     {
         $contact = new Contact();
@@ -79,7 +80,7 @@ class ContactBucketALegacyAbsorptionTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_casts_bucket_a_bool_decimal_date_fields_correctly(): void
     {
         $business = Business::first() ?? Business::create([
@@ -119,7 +120,7 @@ class ContactBucketALegacyAbsorptionTest extends TestCase
         $fresh->forceDelete();
     }
 
-    /** @test */
+    #[Test]
     public function it_resolves_parent_and_sales_rep_via_self_fk(): void
     {
         $business = Business::first() ?? Business::create([
@@ -158,7 +159,7 @@ class ContactBucketALegacyAbsorptionTest extends TestCase
         $rep->forceDelete();
     }
 
-    /** @test */
+    #[Test]
     public function it_preserves_multi_tenant_scope_with_bucket_a_self_fk(): void
     {
         // Tier 0 IRREVOGAVEL (ADR 0093) — query scoped por business_id NUNCA
