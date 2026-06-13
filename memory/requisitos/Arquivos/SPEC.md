@@ -1,3 +1,16 @@
+---
+slug: modules-arquivos-spec
+title: "Modules/Arquivos — SPEC"
+type: spec
+module: Arquivos
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
+related_adrs: [0123-modules-arquivos-backbone, 0093-multi-tenant-isolation-tier-0, 0122-admin-center-ct100, 0053-mcp-server-governanca-como-produto]
+---
+<!-- schema-allowlist: US ativas sob "## Sprint 1 — backbone" / "## Sprint 2..." / "## Sprint 3..." (tabelas US-ARQ-NNN por sprint); módulo a criar, backlog organizado por sprint em vez de heading canônico "## US ativas". -->
+
 # Arquivos — DMS backbone do oimpresso
 
 > Módulo Laravel: `Modules/Arquivos/` (a criar)

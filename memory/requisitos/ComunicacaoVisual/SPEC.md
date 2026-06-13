@@ -1,13 +1,17 @@
 ---
 module: ComunicacaoVisual
-status: em_construcao (planejado)
+version: "1.0"
+last_updated: "2026-06-13"
+status: rascunho
 piloto: Gold confirmado vertical comvis (perfil 04-gold-comvis) — Vargas REMOVIDO (autopeças confirmado 2026-05-10 → Modules/OficinaAuto)
 piloto_previsao: 2026-Q3
 cnae_principal: "1813-0/01"
-related_adrs: [0121, 0143, 0094, 0093, 0035, 0119, 0117, 0136, 0105, 0011, 0024]
+related_adrs: [0121-oimpresso-modular-especializado-por-vertical, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0, 0035-stack-ai-canonica-wagner-2026-04-26, 0119-migration-factory-capacidade-institucional, 0117-multiplos-numeros-whatsapp-por-business, 0136-sells-grade-avancada-modo-toggle, 0105-cliente-como-sinal-guiar-sem-mandar, 0011-alinhamento-padrao-jana, 0024-instalacao-1-clique-modulos]
 last_review: 2026-05-12
 owner: [W]
 ---
+
+<!-- schema-allowlist: US sob "## 3. Capacidades core (User Stories)"; heading numerado-com-sufixo do projeto não casa o regex literal do gate estendido (## N. User stories), mas as US-COMVIS-NNN estão todas lá. Heading preservado pra não reestruturar o corpo. -->
 
 # Especificação funcional — Modules/ComunicacaoVisual
 

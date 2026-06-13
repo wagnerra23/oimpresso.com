@@ -1,11 +1,16 @@
 ---
 module: Brief
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 na_justified:
   D3.a: "Brief é MCP tool por design (Daily Brief brief-fetch). Não tem US-XXX-NNN tradicional — funcionalidade é UMA tool: gerar snapshot ~3k tokens. Documentação canônica é ADR 0091."
   D3.b: "Brief não tem capacidades múltiplas pra um BRIEFING.md narrativo justificar. ADR 0091 já cumpre o papel de documento canônico do módulo."
   D9.b: "Brief é geração síncrona via tool MCP + cron daily 06:00 BRT (artisan command direto, não dispatch). Não usa fila Horizon/failed_jobs — execução é determinística single-shot. ADR 0091 §arquitetura."
-related_adrs: [0091, 0153, 0154]
+related_adrs: [0091-daily-brief, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado]
 ---
+<!-- schema-allowlist: sem seção de US — Brief é tool MCP atômica (não módulo de feature com US-XXX-NNN), conforme N/A justified D3.a + ADR 0091 (spec canônica). -->
 
 # SPEC — Modules/Brief
 
