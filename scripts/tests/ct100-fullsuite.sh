@@ -80,6 +80,16 @@ DROP DATABASE IF EXISTS \`$DB_DATABASE\`;
 CREATE DATABASE \`$DB_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USERNAME'@'%' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON \`$DB_DATABASE\`.* TO '$DB_USERNAME'@'%';
+-- US-GOV-020 Frente C: o dump database/schema/mysql-schema.sql tem triggers com DEFINER
+-- de PROD (ex trg_mcp_audit_log_no_update, append-only Art 9). O migrate:fresh do
+-- RefreshDatabase recarrega o dump COMO ESTE USUARIO (nao-root): sem estes 2, falha em
+-- ERROR 1419 (binlog) e depois 1227 (SET_USER_ID/DEFINER) e aborta o load em 188/364
+-- tabelas -> schema incompleto -> cascata Base-table-not-found pros testes seguintes.
+-- Provado no CT100: com os 2, o load do fullsuite vai de 188->377 tabelas / 0->4 triggers.
+-- log_bin_trust = GLOBAL (root) p/ funcoes/triggers deterministicos sob binlog; SET_USER_ID
+-- = privilegio dinamico MySQL 8 p/ criar objeto com DEFINER alheio (DB de TESTE dedicada).
+SET GLOBAL log_bin_trust_function_creators=1;
+GRANT SET_USER_ID ON *.* TO '$DB_USERNAME'@'%';
 FLUSH PRIVILEGES;
 SQL
 
