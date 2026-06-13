@@ -193,6 +193,7 @@ class NfeHealthCommand extends Command
     private function checkCertificado(int $bizId): array
     {
         try {
+            // SUPERADMIN: health-check CLI varre todos os businesses; filtra por $bizId explícito (sem session HTTP).
             $cert = NfeCertificado::withoutGlobalScopes()
                 ->where('business_id', $bizId)
                 ->ativos()
@@ -225,6 +226,7 @@ class NfeHealthCommand extends Command
     private function checkUltimaEmissao(int $bizId): array
     {
         try {
+            // SUPERADMIN: health-check CLI varre todos os businesses; filtra por $bizId explícito (sem session HTTP).
             $ultima = NfeEmissao::withoutGlobalScopes()
                 ->where('business_id', $bizId)
                 ->whereNotNull('emitido_em')
