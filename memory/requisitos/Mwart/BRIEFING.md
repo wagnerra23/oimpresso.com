@@ -13,7 +13,7 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 # BRIEFING — MWART (Module Web App React Transition)
 
 > **1-pager executivo** · Atualizado: 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado)
-> Canon: [SPEC.md](SPEC.md) · ADR mãe: [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · Skill mãe: [mwart-process](../../../.claude/skills/mwart-process/SKILL.md) Tier A always-on · Rubrica v3: [0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
+> Canon: [SPEC.md](SPEC.md) · ADR mãe: [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · Skill mãe: [mwart-process](../../../.claude/skills/mwart-process/SKILL.md) Tier A always-on · Rubrica v3: [0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) + [0156](../../decisions/0156-module-grade-v3-errata-otel-helper-na-justified.md)
 
 ## TL;DR
 
@@ -72,4 +72,4 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 - [0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) Visual comparison gate F3
 - [0109](../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md) Claude Design plugin integrado
 - [0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) Cowork loop formalizado
-- [0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) Rubrica v3 anti-injustiça
+- [0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) Rubrica v3 anti-injustiça

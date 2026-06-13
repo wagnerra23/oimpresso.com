@@ -19,6 +19,8 @@ related_adrs: [0104, 0107, 0114, 0093, 0143]
 > **estado React atual**, o **critério de desligamento** e o **scorecard do adversário** — NÃO o código.
 > As Fases 2–5 (Backend baseline → Frontend → QA → Cutover) são gated: cada tela passa pelo gate visual
 > F1.5/F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)/[0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)) e [W] aprova o **screenshot** antes do Edit.
+>
+> **⚠️ Verificado e CORRIGIDO por red-team [CX]:** ver **[ONDA-1-CUTOVER-LEDGER.md](ONDA-1-CUTOVER-LEDGER.md)** — o workflow adversarial achou que vários "desligamentos" simplistas abaixo são **perigosos** (sell-return e fechar-caixa **não têm twin React** → construir antes; links guest `/invoice|/quote|/pay/{token}` são públicos; PDFs/`pos.store`/FSM são `keep-api`, não `die`; e o Blade responde escondido por fallback `X-Inertia`/flag). **O ledger é a fonte de verdade dos destinos por rota.**
 
 ## 1. Por que esta onda é a primeira
 
@@ -50,12 +52,16 @@ Lido de `routes/web.php@main` nesta sessão. Os `resource()` abaixo são os **ro
 
 ## 4. Critério de desligamento (o fecho honesto da onda)
 
+> **Correção [CX] (ver [ledger §1-§3](ONDA-1-CUTOVER-LEDGER.md)):** Onda 1 **não é** "matar 3 resources" — é **construir 3 telas React faltantes** (PDV-balcão puro · Devolução · Fechar-caixa) e *depois* desligar. E "Inertia existe" ≠ "Blade morto" enquanto houver fallback `X-Inertia`/flag.
+
 A Onda 1 **só fecha** quando:
-1. `Route::resource('pos')` → removido ou 302 → tela Inertia de PDV.
-2. `Route::resource('sell-return')` → removido ou 302 → tela Inertia de devolução.
-3. `Route::resource('cash-register')` → 302 → `/vendas/caixa` e resource removido.
-4. `sell/*.blade` correspondentes viram lápide (sem rota autenticada servindo AdminLTE).
-5. Gate [CX] (Onda 10) confirma: **0 view Blade viva** na família Vendas/PDV/Caixa.
+1. **PDV-balcão puro** em React cobre `pos/index` (≠ Sells/Create) → então `resource('pos')` 302/removido; `pos.store` vira `keep-api` (submit) preservando flash.
+2. **Tela de Devolução** em React construída (hoje `sell-return.*` é 100% Blade, **zero twin**) → `sell-return` index/add/show 302/removidos; rotas órfãs `edit`/`update`/`get-product-row` removidas do roteador.
+3. **Fechar-caixa** em React (`/vendas/caixa` ainda não tem) → `cash-register` index/show 302 → `/vendas/caixa`; `close-register{GET,POST}` migrado; `edit`/`update`/`destroy` (sem método) removidos.
+4. **Fallbacks Blade removidos:** branch `return view(...)` apagado de `show/edit/getDrafts/getQuotations/create` **e** flag `useV2SellsCreate` 100% rollout (senão Blade responde a deep-link sem `X-Inertia`).
+5. **Links guest públicos** (`/invoice|/quote|/pay/{token}`) tratados por migração dedicada (distribuídos a clientes — não morrem no cutover interno).
+6. **10 rotas duplicadas** (`web.php` l.376-383 vs 449-456) resolvidas.
+7. Gate [CX] (Onda 10) confirma com probe **sem `X-Inertia`**: **0 view Blade viva** na família.
 
 ## 5. Adversário [CD] — scorecard F1.5
 

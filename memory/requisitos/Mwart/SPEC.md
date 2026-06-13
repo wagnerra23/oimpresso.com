@@ -123,13 +123,15 @@ last_updated: "2026-06-13"
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
-Domínios E (Vendas/PDV) + H (Caixa), ≈66 fn. Plano F1: [ONDA-1-VENDAS-PDV-CAIXA-PLANO.md](ONDA-1-VENDAS-PDV-CAIXA-PLANO.md). **Adversário [CD]:** Square POS + Stripe Checkout. **Já vivo em React:** Sells/Index, Create, Edit, Show, Drafts, Quotations, Subscriptions, Caixa/Index. Lacunas: PDV puro (`pos/index`) + devoluções (`sell-return`).
+Domínios E (Vendas/PDV) + H (Caixa), ≈66 fn. Plano F1: [ONDA-1-VENDAS-PDV-CAIXA-PLANO.md](ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) · **mapa verificado:** [ONDA-1-CUTOVER-LEDGER.md](ONDA-1-CUTOVER-LEDGER.md). **Adversário [CD]:** Square POS + Stripe Checkout. **Já vivo em React:** Sells/Index, Create, Edit, Show, Drafts, Quotations, Subscriptions, Caixa/Index. **Lacunas verificadas (red-team [CX]):** construir **3 telas React** — PDV-balcão puro (`pos/index` ≠ Sells/Create), **Devolução** (`sell-return` é 100% Blade, **zero twin**) e **Fechar-caixa** (`/vendas/caixa` não tem) — *depois* desligar.
 
-**Critério de desligamento (acceptance):**
-- [ ] `Route::resource('pos')` removido ou 302 → tela Inertia de PDV
-- [ ] `Route::resource('sell-return')` removido ou 302 → tela Inertia de devolução
-- [ ] `Route::resource('cash-register')` → 302 `/vendas/caixa` e resource removido
-- [ ] `sell/*.blade` da família viram lápide (0 rota autenticada servindo AdminLTE)
+**Critério de desligamento (acceptance — corrigido pelo ledger):**
+- [ ] PDV-balcão puro React cobre `pos/index` → `resource('pos')` 302/removido; `pos.store` = `keep-api`
+- [ ] Tela de Devolução React construída → `sell-return` 302/removido; rotas órfãs `edit`/`update`/`get-product-row` removidas do roteador
+- [ ] Fechar-caixa React → `resource('cash-register')` 302 → `/vendas/caixa`; `close-register` migrado
+- [ ] Fallbacks Blade removidos (`return view(...)` apagado de show/edit/drafts/quotations/create) **+ flag `useV2SellsCreate` 100%** (senão Blade responde a deep-link sem `X-Inertia`)
+- [ ] Links guest públicos (`/invoice|/quote|/pay/{token}`) tratados; 10 rotas duplicadas (l.376-383 vs 449-456) resolvidas
+- [ ] PDFs/print/FSM/`store` mantidos como `keep-api` (não matar — a tela React consome)
 - [ ] Pest baseline F2 antes de qualquer Edit no front; Tier 0 business_id ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 
 ### US-MWART-005 · Onda 2 — migrar Clientes & contatos e desligar /contacts
