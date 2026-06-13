@@ -63,6 +63,7 @@ class InterReconcilePixCommand extends Command
             $this->warn('[dry-run] Nenhuma cobrança será marcada paga.');
         }
 
+        // SUPERADMIN: cron/CLI sem sessão web; varre credenciais Inter ativas de todos os tenants (ou do --business filtrado) pra polling de reconciliação.
         $credsQuery = PaymentGatewayCredential::query()
             ->withoutGlobalScopes()
             ->where('gateway_key', 'inter')
@@ -85,6 +86,7 @@ class InterReconcilePixCommand extends Command
         $errors = 0;
 
         foreach ($creds as $cred) {
+            // SUPERADMIN: CLI sem sessão; lista cobranças PIX emitidas filtrando pelo business_id da credencial sendo reconciliada.
             $cobrancas = Cobranca::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', $cred->business_id)

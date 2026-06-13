@@ -91,6 +91,7 @@ class RetryOrphanWebhookJob implements ShouldQueue
     public function handle(): void
     {
         // Janela: órfãos entre 1h e 24h (espera fluxo original + cutoff manual)
+        // SUPERADMIN: cron job worker roda sem sessão web; varre webhook events órfãos de TODOS os tenants e re-dispatcha por business_id explícito de cada linha.
         $orphans = GatewayWebhookEvent::query()
             ->withoutGlobalScopes() // Job sem sessão — ADR 0093 explicit
             ->whereNull('processed_at')
@@ -143,6 +144,7 @@ class RetryOrphanWebhookJob implements ShouldQueue
             return;
         }
 
+        // SUPERADMIN: job worker sem sessão; resolve a Cobranca do evento órfão filtrando pelo business_id derivado da própria linha do webhook.
         $cobranca = Cobranca::withoutGlobalScopes()
             ->where('id', $orphan->cobranca_id)
             ->where('business_id', $businessId)
