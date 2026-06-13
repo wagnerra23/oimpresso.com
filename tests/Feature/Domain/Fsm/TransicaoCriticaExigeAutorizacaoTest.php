@@ -164,13 +164,13 @@ it('1. action is_critical=true SEM role cadastrada bloqueia execução (fail-sec
         'key' => 'reabrir_para_revisao',
         'label' => 'Reabrir para revisão',
         'target_stage_id' => $e->id,
-        'is_critical' => true, // FALHA HOJE — campo não existe
+        'is_critical' => true, // coluna criada por 2026_05_12_010001_add_is_critical_to_sale_stage_actions
     ]);
 
     $subject = fsmCriticalSubject(1, $a->id);
 
     expect(fn () => (new ExecuteStageActionService)->execute($subject, 'reabrir_para_revisao', fsmCriticalUser(1)))
-        ->toThrow(UnauthorizedActionException::class, 'crítica e exige role explícita');
+        ->toThrow(UnauthorizedActionException::class, 'exige role configurada');
 
     // current_stage_id permanece — transação rollback
     expect($subject->fresh()->current_stage_id)->toBe($a->id);
