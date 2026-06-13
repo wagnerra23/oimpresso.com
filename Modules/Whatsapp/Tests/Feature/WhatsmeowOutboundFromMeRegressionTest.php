@@ -113,20 +113,24 @@ beforeEach(function () {
     });
 
     // Spatie ActivityLog trait em Channel insere aqui em qualquer create()/update().
-    Schema::dropIfExists('activity_log');
-    Schema::create('activity_log', function ($table) {
-        $table->bigIncrements('id');
-        $table->string('log_name')->nullable();
-        $table->text('description')->nullable();
-        $table->unsignedBigInteger('subject_id')->nullable();
-        $table->string('subject_type')->nullable();
-        $table->unsignedBigInteger('causer_id')->nullable();
-        $table->string('causer_type')->nullable();
-        $table->string('event')->nullable();
-        $table->uuid('batch_uuid')->nullable();
-        $table->json('properties')->nullable();
-        $table->timestamps();
-    });
+    // `activity_log` é tabela CORE compartilhada (Spatie). NÃO dropar — em MySQL
+    // persistente (nightly CT 100) dropar destrói o schema real e quebra testes
+    // alheios. Cria só se não existe (sqlite fresco); no-op em MySQL já-migrado.
+    if (! Schema::hasTable('activity_log')) {
+        Schema::create('activity_log', function ($table) {
+            $table->bigIncrements('id');
+            $table->string('log_name')->nullable();
+            $table->text('description')->nullable();
+            $table->unsignedBigInteger('subject_id')->nullable();
+            $table->string('subject_type')->nullable();
+            $table->unsignedBigInteger('causer_id')->nullable();
+            $table->string('causer_type')->nullable();
+            $table->string('event')->nullable();
+            $table->uuid('batch_uuid')->nullable();
+            $table->json('properties')->nullable();
+            $table->timestamps();
+        });
+    }
 });
 
 function makeFromMeChannel(int $businessId, string $uuid, string $instanceName): Channel

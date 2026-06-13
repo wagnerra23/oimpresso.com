@@ -121,8 +121,14 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('rb_subscriptions');
-    Schema::dropIfExists('rb_plans');
+    // rb_* são reais-migradas; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite :memory:.
+    if (config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        Schema::dropIfExists('rb_subscriptions');
+        Schema::dropIfExists('rb_plans');
+    }
     session()->flush();
 });
 

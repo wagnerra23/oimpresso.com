@@ -85,9 +85,11 @@ function setupSigValSchema(): void
 
 function teardownSigValSchema(): void
 {
+    // Só tabelas do MÓDULO PaymentGateway (prefixo payment_gateway_* / gateway_*).
+    // NÃO dropar `activity_log`: é CORE COMPARTILHADA (Spatie activitylog) — em
+    // MySQL persistente do nightly o drop destruiria o schema usado por outros testes.
     Schema::dropIfExists('gateway_webhook_events');
     Schema::dropIfExists('payment_gateway_credentials');
-    Schema::dropIfExists('activity_log');
 }
 
 /**
