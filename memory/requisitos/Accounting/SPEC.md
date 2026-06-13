@@ -31,7 +31,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Budget  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -53,7 +53,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Chart Of Account  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -75,7 +75,7 @@ updated_at: 2026-05-16
 **Quero** criar um novo item em Chart Of Account  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -97,7 +97,7 @@ updated_at: 2026-05-16
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -119,7 +119,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Core  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -141,7 +141,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Journal Entry  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -163,7 +163,7 @@ updated_at: 2026-05-16
 **Quero** criar um novo item em Journal Entry  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -185,7 +185,7 @@ updated_at: 2026-05-16
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -207,7 +207,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Reconcile  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -229,7 +229,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Report  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)

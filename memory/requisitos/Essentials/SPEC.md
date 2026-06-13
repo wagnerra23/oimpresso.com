@@ -28,7 +28,7 @@ _[TODO — escrever user stories no formato abaixo.]_
 **Quero** [ação]  
 **Para** [objetivo de negócio]
 
-**Implementado em:** _[path]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[path]_
 
 **Definition of Done:**
 - [ ] [critério]

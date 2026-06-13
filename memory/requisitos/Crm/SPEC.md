@@ -358,7 +358,7 @@ Cron diário 08:00 BRT — pra cada user com perm `crm.access_own_leads`:
 **Quero** colunas pipeline em `contacts` (valor_estimado, sla_responder_em, lgpd_consent_at, score, tier, won_transaction_id, lost_motivo_id)
 **Para** habilitar todas US seguintes sem duplicar tabela paralela
 
-**Implementado em:** _Modules/Crm/Database/Migrations/2026_xx_add_pipeline_columns_to_contacts.php_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _Modules/Crm/Database/Migrations/2026_xx_add_pipeline_columns_to_contacts.php_
 
 **DoD:**
 - [ ] Migration up/down idempotente

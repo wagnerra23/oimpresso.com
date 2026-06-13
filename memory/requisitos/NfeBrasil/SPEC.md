@@ -56,7 +56,7 @@ na_justified:
 **Quero** clicar "Finalizar venda" no POS e o sistema emitir NFC-e em background, retornar DANFE imprimível em até 5s
 **Para** atender exigência fiscal sem fricção no balcão
 
-**Implementado em:** _[TODO — integração `/sells/create` finalizar + `resources/js/Pages/NfeBrasil/Emissao/Sucesso.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — integração `/sells/create` finalizar + `resources/js/Pages/NfeBrasil/Emissao/Sucesso.tsx`]_
 
 **Definition of Done:**
 - [ ] Listener escuta `App\Events\TransactionCompleted` (core) → dispatch job `EmitirNfceJob` na queue `nfe`
@@ -78,7 +78,7 @@ na_justified:
 **Quero** abrir nota emitida pela chave/número e baixar DANFE + XML
 **Para** reimprimir, enviar pra cliente, anexar em e-mail
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx`]_
 
 **Definition of Done:**
 - [ ] Mostra: chave acesso (44 dígitos formatado em 11 grupos), número, série, data emissão, valor, cStat, link DANFE PDF, link XML
@@ -97,7 +97,7 @@ na_justified:
 **Quero** cancelar uma NFC-e em até 24h ou NF-e em até 168h informando justificativa (15-255 chars)
 **Para** corrigir venda errada sem deixar rastro errado pra Receita
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão Cancelar)]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão Cancelar)]_
 
 **Definition of Done:**
 - [ ] Valida prazo legal antes de chamar SEFAZ (NFC-e: 24h; NF-e: 168h)
@@ -118,7 +118,7 @@ na_justified:
 **Quero** enviar CCe pra corrigir erro não-monetário (ex: nome do destinatário errado, transportadora) sem cancelar e re-emitir
 **Para** evitar custo de re-emissão e manter histórico
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão CCe)]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão CCe)]_
 
 **Definition of Done:**
 - [ ] Valida limite legal: máximo 20 CCe por NFe; correção 15-1000 chars; não permite mudar valor/quantidade/CNPJ
@@ -137,7 +137,7 @@ na_justified:
 **Quero** ativar contingência (EPEC pra NF-e, FS-DA pra NFC-e) e seguir vendendo offline
 **Para** não parar caixa quando SEFAZ está com problema
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Contingencia/Index.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/NfeBrasil/Contingencia/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] Detecção automática: `SefazHealthCheck` ping a cada 30s → se 3 falhas seguidas, sugerir contingência
@@ -158,7 +158,7 @@ na_justified:
 **Quero** dashboard com KPIs (autorizadas hoje, rejeitadas, contingência ativa, cert vencendo) + lista de rejeições com cStat + sugestão de correção
 **Para** atacar rejeições antes de o cliente perceber
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Monitor/Index.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/NfeBrasil/Monitor/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] KPIs: autorizadas (hoje/semana/mês), rejeitadas, em contingência, cert dias restantes
@@ -179,7 +179,7 @@ na_justified:
 **Quero** manifestar NFe recebida (Confirmação / Ciência / Desconhecimento / Operação não realizada)
 **Para** atender obrigação legal e gerar apropriação correta no DRE
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` · verificado@fd96258 (2026-06-12)
 
 **Definition of Done:**
 - [ ] Lista NFes destinadas (consulta `WS-NFeDistribuicaoDFe` periódica) com status manifestação
@@ -198,7 +198,7 @@ na_justified:
 **Quero** baixar arquivo SPED Fiscal pronto pra ECF do mês de competência
 **Para** entregar obrigação contábil sem ligar pra Larissa
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Sped/Index.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/NfeBrasil/Sped/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] Geração assíncrona via job (volume grande); progresso via broadcast
@@ -721,7 +721,7 @@ Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo 
 Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª NFC-e real cstat 100"). Pipeline US-NFE-002 server-side já fechado em main; biz=1 (WR2 Sistemas, Tubarão/SC) já está armada — confirmado via SSH 2026-05-09:
 
 **Estado pré-validado (não tocar):**
-- `business.cnpj`=36.613.150/0001-18, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0
+- `business.cnpj`=[REDACTED-CNPJ], `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0
 - `nfe_certificados.ativo`=1, `valido_ate`=2026-08-06
 - `nfe_business_configs`: `regime`=simples, `cfop`=5102, `csosn`=102, `auto_emission_enabled`=1
 - `.env` Hostinger: `NFEBRASIL_AUTO_EMISSION_NFCE=true`

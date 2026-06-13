@@ -45,7 +45,7 @@ owner: wagner
 **Quero** ver todos os títulos a receber em aberto, com filtro por aging e por cliente
 **Para** decidir quem ligar primeiro pra cobrar e quanto entra esta semana
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/ContasReceber/Index.tsx` · verificado@fd96258 (2026-06-12)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas com `financeiro.contas_receber.view` (`403` caso contrário)
@@ -68,7 +68,7 @@ owner: wagner
 **Quero** cadastrar título a receber sem venda associada (ex: aluguel sublocação, comissão extra)
 **Para** ter visão integral do que entra, mesmo o que não passa pelo POS
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Create.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Create.tsx`]_
 
 **Definition of Done:**
 - [ ] FormRequest valida: `cliente_id` ou `cliente_descricao` (livre); `valor>0`; `vencimento >= hoje` (ou flag `retroativo` true); `categoria_id` opcional; `plano_conta_id` opcional; `parcelas[]` se `parcelado=true`
@@ -89,7 +89,7 @@ owner: wagner
 **Quero** baixar título quando recebo o pagamento (parcial ou total) com data, valor, conta bancária e meio
 **Para** atualizar saldo da conta + status do título sem dupla digitação
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Show.tsx` (modal de baixa)]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Show.tsx` (modal de baixa)]_
 
 **Definition of Done:**
 - [ ] FormRequest valida: `valor_baixa > 0`, `valor_baixa <= titulo.valor_aberto`, `data_baixa <= hoje`, `conta_bancaria_id` exists business, `meio_pagamento` enum
@@ -111,7 +111,7 @@ owner: wagner
 **Quero** ver fornecedores a pagar com filtro "vence nos próximos 7 dias", "vencidos", "agendados"
 **Para** evitar juros por esquecimento e priorizar pagamentos críticos (ex: fornecedor que corta material)
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/ContasPagar/Index.tsx` · verificado@fd96258 (2026-06-12)
 
 **Definition of Done:**
 - [ ] Mesmo padrão US-FIN-001, ajustado para `tipo=pagar`
@@ -130,7 +130,7 @@ owner: wagner
 **Quero** anexar PDF/imagem do boleto e o sistema preencher fornecedor, valor, vencimento, linha digitável
 **Para** lançar 10 boletos em 5 minutos em vez de 25
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Create.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Create.tsx`]_
 
 **Definition of Done:**
 - [ ] Upload aceita `application/pdf`, `image/png`, `image/jpeg` até 5MB
@@ -151,7 +151,7 @@ owner: wagner
 **Quero** marcar título como pago indicando data, valor, conta bancária debitada e meio
 **Para** atualizar saldo + ter histórico auditável
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Show.tsx` (modal pagar)]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Show.tsx` (modal pagar)]_
 
 **Definition of Done:**
 - [ ] Cria `caixa_movimentos` row (saída) com `idempotency_key`
@@ -170,7 +170,7 @@ owner: wagner
 **Quero** ver gráfico de barras com saldo projetado dia-a-dia nos próximos 30/60/90 dias
 **Para** decidir antecipar recebível, pegar empréstimo, segurar pagamento, etc.
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Caixa/Projetado.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/Caixa/Projetado.tsx`]_
 
 **Definition of Done:**
 - [ ] Endpoint retorna shape `{dias: [{data, saldo_inicial, entradas, saidas, saldo_final, alertas[]}], saldo_atual, periodo}` (não Model)
@@ -192,7 +192,7 @@ owner: wagner
 **Quero** cadastrar contas bancárias do business com banco, agência, conta, saldo inicial
 **Para** segregar fluxo por conta e conciliar OFX por conta
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasBancarias/Form.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/ContasBancarias/Form.tsx`]_
 
 **Definition of Done:**
 - [ ] FormRequest valida: `banco_codigo` (FEBRABAN), `agencia`, `conta`, `digito`, `tipo` enum (cc/poup/inv/caixa), `saldo_inicial >= 0`, `saldo_data` (default hoje)
@@ -211,7 +211,7 @@ owner: wagner
 **Quero** subir o OFX que baixei do internet banking e o sistema mostrar match automático com meus títulos abertos
 **Para** dar baixa em lote sem digitar nada e fechar mês com saldo batendo
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Conciliacao/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/Conciliacao/Index.tsx` · verificado@fd96258 (2026-06-12)
 
 **Definition of Done:**
 - [ ] Upload `.ofx` até 10MB
@@ -234,7 +234,7 @@ owner: wagner
 **Quero** gerar boleto pra título a receber em 1 clique e mandar pro cliente por e-mail/WhatsApp
 **Para** não depender do sistema do banco
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Show.tsx` (botão "Emitir boleto")]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Show.tsx` (botão "Emitir boleto")]_
 
 **Definition of Done:**
 - [ ] BoletoService strategy: `CnabDirectStrategy` (lib `eduardokum/laravel-boleto`) OU `GatewayStrategy` (Asaas/Iugu) baseado em config do business
@@ -255,7 +255,7 @@ owner: wagner
 **Quero** DRE do período (mês/trimestre/ano) com receita, custo, despesa, lucro líquido
 **Para** declarar imposto / tomar decisão estratégica sem ligar pra Larissa
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Relatorios/Dre.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/Relatorios/Dre.tsx`]_
 
 **Definition of Done:**
 - [ ] Considera regime do business (`caixa` ou `competência`)
@@ -276,7 +276,7 @@ owner: wagner
 **Quero** ver quem deve, agrupado por bucket (`<30 / 30-60 / 60-90 / >90 / >180`) com total e detalhe
 **Para** atacar inadimplência da maior pra menor (régua manual ou via Dunning futuro)
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Relatorios/Aging.tsx`]_
+**Implementado em:** _pendente_ — backfill SA-A4 2026-06-12; era: _[TODO — `resources/js/Pages/Financeiro/Relatorios/Aging.tsx`]_
 
 **Definition of Done:**
 - [ ] Buckets configuráveis por tenant (default: 30/60/90/180)
@@ -295,7 +295,7 @@ owner: wagner
 **Quero** abrir o módulo e ver os 4 estados (a receber abertos, a pagar abertos, recebidos no mês, pagos no mês) **na mesma tela**, com drill-down por click
 **Para** ter overview do caixa em 5 segundos sem navegar entre 4 telas separadas
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Dashboard/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/Dashboard/Index.tsx` · verificado@fd96258 (2026-06-12)
 
 **Layout obrigatório (ADR ui/0002):**
 
