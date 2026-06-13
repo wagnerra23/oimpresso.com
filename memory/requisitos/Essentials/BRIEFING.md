@@ -33,7 +33,7 @@ Origem: módulo opcional UltimatePOS v6 — preservado intencionalmente como **s
 | HRM (allowance/deduction/shift/payroll) | 🟡 legacy | Usado biz=4 minimal; backlog ADR feature-wish para evolução |
 | Sales Target | 🟡 legacy | Pouco uso; possível candidato a desativar |
 | Holiday | ✅ em prod | Gestão de feriados por business |
-| KnowledgeBase | 🟡 legacy | Sobreposição com Modules/Kb candidato a migração |
+| KnowledgeBase | 🟡 legacy | Sobreposição com Modules/KB candidato a migração |
 | Message | 🟡 legacy | Mensagens internas — sobreposição com Modules/Jana ConvSidePanel |
 
 ## Arquitetura
