@@ -21,6 +21,7 @@ class KbBridgeStateService
 {
     public function getLastBridgeAt(int $businessId): ?Carbon
     {
+        // SUPERADMIN: estado do bridge é lido por cron/job sem sessão — business_id explícito no WHERE
         $state = KbBridgeState::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->first();
@@ -39,6 +40,7 @@ class KbBridgeStateService
             'edges_derived'   => $edgesDerived,
             'has_error'       => $error !== null,
         ], function () use ($businessId, $docsProcessed, $edgesDerived, $error) {
+            // SUPERADMIN: estado do bridge é gravado por cron/job sem sessão — business_id explícito na chave
             KbBridgeState::withoutGlobalScopes()->updateOrCreate(
                 ['business_id' => $businessId],
                 [
