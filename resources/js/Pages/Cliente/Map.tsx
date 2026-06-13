@@ -72,7 +72,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar cliente ou cidade…"
-                className="pl-9"
+                className="cw-input-icon-left"
               />
             </div>
 

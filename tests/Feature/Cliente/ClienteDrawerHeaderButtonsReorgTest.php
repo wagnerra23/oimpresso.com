@@ -45,33 +45,35 @@ test('GUARD 2 — Cliente/Index.tsx ClienteRow declara vehicles_count', function
 
 // ─── GUARD 3: DRAWER_TABS array reorganizado pra 6 tabs + types corretos
 
-test('GUARD 3 — DRAWER_TABS tem 6 entradas + operacoes (renamed oss) + sem ia/auditoria/placas', function () {
+test('GUARD 3 — DRAWER_TABS tem 6 entradas + operacoes (renamed oss) + chips placas/ia (auditoria saiu)', function () {
     $path = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
     $contents = file_get_contents($path);
 
     expect($contents)
         // 6 tabs principais (Identif/Contato/Endereco/Comercial/Classif/Operacoes)
         ->toContain("{ key: 'operacoes',     label: 'Operações' }")
-        // Type DrawerTab inclui novos valores acessados via botao header.
+        // Type DrawerTab inclui valores acessados via botao header.
         ->toContain("| 'operacoes'")
         ->toContain("| 'placas'")
         ->toContain("| 'ia'")
-        ->toContain("| 'auditoria'")
+        // Wagner 2026-06-13: 'auditoria' saiu do type top-level (virou sub-aba de Operações).
+        ->not->toContain("| 'auditoria'")
         // Removida entrada `oss` (renomeada).
         ->not->toContain("{ key: 'oss',           label: 'OSs' }");
 });
 
-// ─── GUARD 4: Botoes header (Placas/Auditoria/IA) ─────────────────────────
+// ─── GUARD 4: Botoes header (Placas/IA) — Auditoria saiu p/ rail Operações ──
 
-test('GUARD 4 — drawer header tem botoes Placas/Auditoria/IA com aria-pressed', function () {
+test('GUARD 4 — drawer header tem botoes Placas/IA com aria-pressed (sem chip Auditoria)', function () {
     $path = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
     $contents = file_get_contents($path);
 
     expect($contents)
-        // Botoes 3 com aria-pressed.
+        // Chips com aria-pressed.
         ->toContain("aria-pressed={activeTab === 'placas'}")
-        ->toContain("aria-pressed={activeTab === 'auditoria'}")
         ->toContain("aria-pressed={activeTab === 'ia'}")
+        // Wagner 2026-06-13: chip Auditoria removido (integrado ao rail de Operações).
+        ->not->toContain("aria-pressed={activeTab === 'auditoria'}")
         // Contador placas usa vehicles_count.
         ->toContain('contact?.vehicles_count ?? 0')
         // Gate OficinaAuto envolve botao Placas.
@@ -83,7 +85,7 @@ test('GUARD 4 — drawer header tem botoes Placas/Auditoria/IA com aria-pressed'
 
 // ─── GUARD 5: Renders pos-reorg corretos ──────────────────────────────────
 
-test('GUARD 5 — tab content renders operacoes/placas/ia/auditoria com gate OficinaAuto', function () {
+test('GUARD 5 — tab content renders operacoes/placas/ia com gate OficinaAuto', function () {
     $path = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
     $contents = file_get_contents($path);
 
@@ -107,14 +109,16 @@ test('GUARD 6 — OssTab.tsx removeu sub-tabs placas/activities + oficinaAutoEna
         ->not->toContain("{ key: 'activities'")
         ->not->toContain('PlacasSubTab')
         ->not->toContain('ActivitiesTab')
-        // Mantém 7 sub-tabs reais de OS (ledger/sales/payments/documents/persons/subscriptions/rewards).
+        // Mantém os sub-tabs reais de OS + Auditoria (integrada 2026-06-13):
+        // ledger/sales/payments/documents/persons/subscriptions/rewards/auditoria.
         ->toContain("{ key: 'ledger'")
         ->toContain("{ key: 'sales'")
         ->toContain("{ key: 'payments'")
         ->toContain("{ key: 'documents'")
         ->toContain("{ key: 'persons'")
         ->toContain("{ key: 'subscriptions'")
-        ->toContain("{ key: 'rewards'");
+        ->toContain("{ key: 'rewards'")
+        ->toContain("{ key: 'auditoria'");
 });
 
 // ─── GUARD 7: PlacasMainTab existe no novo local ──────────────────────────
@@ -205,4 +209,47 @@ test('GUARD 11 — OssTab.tsx expõe activeSubTab/onSubTabChange (controlado pel
         ->toContain('onSubTabChange?: (key: OssSubTabKey) => void')
         // active derivado: controle externo tem prioridade sobre estado interno.
         ->toContain('const active = activeSubTab ?? internalActive');
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// Wagner 2026-06-13 — "chips e abas são a mesma coisa, integrar isso".
+// Auditoria deixou de ser chip flutuante no header e virou SUB-ABA de Operações
+// (rail OssTab). Também removido o botao "Exportar log" da AuditoriaTab (acesso
+// LGPD Art.18 se dá pela própria timeline; rota /export segue no backend).
+// ════════════════════════════════════════════════════════════════════════
+
+// ─── GUARD 12: Auditoria integrada ao rail Operações (saiu do chip) ───────
+
+test('GUARD 12 — Auditoria é sub-aba de Operações no OssTab (não mais chip no Index)', function () {
+    $oss = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/OssTab.tsx');
+    $index = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx');
+
+    expect($oss)
+        // OssTab importa e renderiza a AuditoriaTab.
+        ->toContain("import AuditoriaTab from './AuditoriaTab'")
+        ->toContain("{ key: 'auditoria', label: 'Auditoria'")
+        ->toContain("active === 'auditoria' && <AuditoriaTab")
+        // Tipo da sub-aba inclui auditoria.
+        ->toContain("| 'auditoria'");
+
+    expect($index)
+        // Index não renderiza mais AuditoriaTab top-level nem importa o componente.
+        ->not->toContain("import AuditoriaTab")
+        ->not->toContain("<AuditoriaTab contact={{ id: contact.id }} />");
+});
+
+// ─── GUARD 13: AuditoriaTab sem cabeçalho (título + nota LGPD + Exportar log) ──
+
+test('GUARD 13 — AuditoriaTab.tsx removeu cabeçalho inteiro, mantém só a timeline', function () {
+    $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/AuditoriaTab.tsx';
+    $contents = file_get_contents($path);
+
+    expect($contents)
+        // Wagner 2026-06-13: "não quero isso" — cabeçalho inteiro fora.
+        ->not->toContain('Exportar log')
+        ->not->toContain('auditoria-export-btn')
+        ->not->toContain('Historico de alteracao')
+        ->not->toContain('Art. 18 da LGPD')
+        // Timeline (lista de eventos) permanece.
+        ->toContain('auditoria-tab-timeline');
 });
