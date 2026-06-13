@@ -173,12 +173,43 @@ for attempt in $(seq 1 12); do
   # / 'near MODIFY syntax error' (DDL MySQL-only). Passando DB_* como env REAL do
   # container, o <env> sqlite e ignorado e o pest usa o MySQL seedado (mysql-schema.sql
   # + migrate + seed biz=1/biz=2 dos passos 3-5). ADR 0101 (testes MySQL real, nao sqlite).
+  #
+  # US-GOV-018 Frente A (A.1 + A.2):
+  #  - A.1: a imagem oimpresso/mcp nao tem o binario CLI mysql que o migrate:fresh/
+  #    schema:load do RefreshDatabase invoca em "Loading stored database schemas" pra
+  #    recarregar o dump => 72x "mysql: not found" => schema some mid-run. O Dockerfile
+  #    da imagem ja ganhou mariadb-client (fix duravel); este apk-add e o fallback
+  #    imediato ate o rebuild+deploy da imagem ao CT 100 (no-op se ja presente).
+  #  - A.2: FULLSUITE_FK_OFF=1 liga o FK-off por-conexao em Tests\TestCase::setUp (so no
+  #    nightly): ~210 testes era-sqlite fazem Schema::dropIfExists em DB MySQL PERSISTENTE
+  #    e estouram errno 3730 "Cannot drop ... referenced by FK" (508 no run 003042). CI/
+  #    local NAO setam a flag => FK segue ON la (nao mascara bug de FK nos gates required).
   timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
     --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
     -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
     -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
-    -w /workspace --entrypoint php "$IMAGE" -d memory_limit=2G \
-    vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never \
+    -e FULLSUITE_FK_OFF=1 \
+    -w /workspace --entrypoint sh "$IMAGE" -c '
+      if ! command -v mysql >/dev/null 2>&1; then
+        apk add --no-cache mariadb-client >/dev/null 2>&1 \
+          || apk add --no-cache mysql-client >/dev/null 2>&1 || true
+      fi
+      if command -v mysql >/dev/null 2>&1; then
+        echo "[harness A.1] mysql client OK: $(mysql --version 2>&1 | head -1)"
+      else
+        echo "[harness A.1] WARN mysql client AUSENTE — migrate:fresh/RefreshDatabase vai envenenar o schema (sem reload do dump)"
+      fi
+      # A.1 (parte 2 — TLS): o mariadb-client VERIFICA o cert TLS de mysql-workers por
+      # DEFAULT, e o "mysql ... < dump" que o migrate:fresh/RefreshDatabase emite NAO passa
+      # flag de ssl (Laravel so emite --ssl=off se config options MYSQL_ATTR_SSL_VERIFY_
+      # SERVER_CERT===false, que o repo nao seta) => ERROR 2026 "Certificate verification
+      # failure" => o dump NAO recarrega. So o binario NAO basta (provado no CT100: bare
+      # load TLS-fail; com este config => OK). Desliga a verificacao SO neste container
+      # efemero do nightly (encriptacao mantida; o config NAO entra na imagem de prod).
+      mkdir -p /etc/my.cnf.d 2>/dev/null || true
+      printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
+      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
+    ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
   [ -z "$BLOCKER" ] && break
