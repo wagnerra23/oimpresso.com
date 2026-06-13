@@ -32,9 +32,14 @@ final class SddBriefLineService
      * Injeta a linha SDD como 1º bullet da seção `## FLAGS`. Best-effort:
      * qualquer falha (ou linha null) devolve o conteúdo intacto — o brief
      * NUNCA quebra por causa da linha SDD.
+     * Kill-switch: `governance.sdd_brief_line` false → no-op (default ON).
      */
     public function inject(string $content): string
     {
+        if (! (bool) config('governance.sdd_brief_line', true)) {
+            return $content;
+        }
+
         try {
             $line = $this->line();
         } catch (Throwable) {

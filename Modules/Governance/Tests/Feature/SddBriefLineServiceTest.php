@@ -84,6 +84,13 @@ it('alerta com composta estável → linha 🔴 com nome da métrica (+N quando 
         ->toContain('🔴 SDD: composta 12,5 (Δ0,0) · 2/10 vivas · alerta: ghost_count +1');
 });
 
+it('kill-switch OFF → inject vira no-op mesmo com alerta vermelho', function () {
+    config(['governance.sdd_brief_line' => false]);
+    sddG8Snapshot('2026-06-12', 12.5, alerts: ['ghost_count: 27 → 30 (armada — só pode descer)']);
+
+    expect((new SddBriefLineService())->inject(sddG8Brief()))->toBe(sddG8Brief());
+});
+
 it('inject coloca a linha como 1º bullet da seção FLAGS sem quebrar o markdown', function () {
     sddG8Snapshot('2026-06-12', 12.5, alerts: ['ghost_count: 27 → 30 (armada — só pode descer)']);
 
