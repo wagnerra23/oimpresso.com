@@ -199,6 +199,15 @@ for attempt in $(seq 1 12); do
       else
         echo "[harness A.1] WARN mysql client AUSENTE — migrate:fresh/RefreshDatabase vai envenenar o schema (sem reload do dump)"
       fi
+      # A.1 (parte 2 — TLS): o mariadb-client VERIFICA o cert TLS de mysql-workers por
+      # DEFAULT, e o "mysql ... < dump" que o migrate:fresh/RefreshDatabase emite NAO passa
+      # flag de ssl (Laravel so emite --ssl=off se config options MYSQL_ATTR_SSL_VERIFY_
+      # SERVER_CERT===false, que o repo nao seta) => ERROR 2026 "Certificate verification
+      # failure" => o dump NAO recarrega. So o binario NAO basta (provado no CT100: bare
+      # load TLS-fail; com este config => OK). Desliga a verificacao SO neste container
+      # efemero do nightly (encriptacao mantida; o config NAO entra na imagem de prod).
+      mkdir -p /etc/my.cnf.d 2>/dev/null || true
+      printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
       exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
