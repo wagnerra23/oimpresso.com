@@ -167,8 +167,8 @@ test('GET timeline -- PII CPF aparecendo em properties e mascarado em descriptio
         $this->contactId,
         $this->business->id,
         'updated',
-        ['tax_number' => '111.444.777-35'],
-        ['tax_number' => '999.888.777-66'],
+        ['tax_number' => '111.444.777-35'], // pii-allowlist (sintético)
+        ['tax_number' => '999.888.777-66'], // pii-allowlist (sintético)
         $this->user->id
     );
 
