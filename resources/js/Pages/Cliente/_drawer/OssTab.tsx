@@ -21,6 +21,7 @@
 
 import { useState } from 'react';
 import {
+  Activity,
   Banknote,
   FileText,
   Gift,
@@ -38,11 +39,14 @@ import DocumentsTab from '../_show/DocumentsTab';
 import PessoasContatoTab from '../_show/PessoasContatoTab';
 import SubscriptionsTab from '../_show/SubscriptionsTab';
 import RewardPointsTab from '../_show/RewardPointsTab';
+import AuditoriaTab from './AuditoriaTab';
 import type { ContactInfo } from './IdentificacaoTab';
 
 // Wagner 2026-05-27 -- iteracao 2: removido sub-tab `placas` (promovido pra
 // tab principal acessado via botao header) + removido sub-tab `activities`
-// (duplicava tab principal `Auditoria` -- mesma fonte `activity_log` Spatie).
+// (duplicava `Auditoria` -- mesma fonte `activity_log` Spatie).
+// Wagner 2026-06-13: `auditoria` ENTRA aqui como sub-aba de Operações (antes era
+// chip flutuante no header — "chips e abas são a mesma coisa, integrar").
 export type OssSubTabKey =
   | 'ledger'
   | 'sales'
@@ -50,7 +54,8 @@ export type OssSubTabKey =
   | 'documents'
   | 'persons'
   | 'subscriptions'
-  | 'rewards';
+  | 'rewards'
+  | 'auditoria';
 
 export interface OssTabProps {
   contact: ContactInfo;
@@ -86,6 +91,7 @@ const SUB_TABS: Array<{ key: OssSubTabKey; label: string; icon: LucideIcon }> = 
   { key: 'persons', label: 'Pessoas', icon: Users },
   { key: 'subscriptions', label: 'Assinaturas', icon: Recycle },
   { key: 'rewards', label: 'Pontos', icon: Gift },
+  { key: 'auditoria', label: 'Auditoria', icon: Activity },
 ];
 
 export default function OssTab({
@@ -195,6 +201,8 @@ export default function OssTab({
             em vez de ficar preso no skeleton "Carregando…"). */}
         {active === 'subscriptions' && <SubscriptionsTab contactId={contact.id} />}
         {active === 'rewards' && <RewardPointsTab contactId={contact.id} />}
+        {/* Wagner 2026-06-13: Auditoria integrada ao rail de Operações (saiu do chip). */}
+        {active === 'auditoria' && <AuditoriaTab contact={{ id: contact.id }} />}
       </div>
     </div>
   );
