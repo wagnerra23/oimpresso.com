@@ -12,7 +12,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   AlertTriangle,
   ArrowDown,
-  Activity,
   ArrowUp,
   ArrowUpDown,
   Briefcase,
@@ -85,7 +84,6 @@ import ClassificacaoTab from './_drawer/ClassificacaoTab';
 // Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
 import OssTab, { type OssSubTabKey } from './_drawer/OssTab';
 import IATab from './_drawer/IATab';
-import AuditoriaTab from './_drawer/AuditoriaTab';
 // Wagner 2026-05-27 iteracao 2: Placas promovido pra tab principal (botao header).
 import PlacasMainTab from './_drawer/PlacasMainTab';
 // Wave G — listagem turbinada (avatar HSL hash + Pills semânticos).
@@ -1100,9 +1098,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             </nav>
 
             {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema.
-                canon v3.8: h-9 → h-8 (mais fina) + bg-background (destaque branco sobre cream)
-                + border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
-                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet. */}
+                border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
+                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet.
+                Espaço pros ícones (lupa + X) via `.cw-input-search` — NÃO `pl-9/pr-9` tailwind,
+                que são ignorados pelo `.cw-input` unlayered no Tailwind v4 (ver cowork-fields.css). */}
             <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
@@ -1111,7 +1110,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
-                className="pl-9 pr-9 h-8 bg-background"
+                className="cw-input-icon-left cw-input-icon-right"
                 style={{ borderColor: 'oklch(0.9 0.004 90)' }}
                 aria-label="Buscar contato"
               />
@@ -1872,14 +1871,15 @@ type DrawerTab =
   | 'classificacao'
   | 'operacoes'
   | 'placas'
-  | 'ia'
-  | 'auditoria';
+  | 'ia';
 
 // Wagner 2026-05-27 iteracao 2 (Proposta F): 6 tabs principais focadas em
-// CADASTRO/OPERACOES editaveis. Tabs read-only (placas/auditoria/ia) viraram
-// BOTOES NO HEADER do drawer (acesso 1-clique sem poluir tab bar). Rename
-// oss→operacoes (semantica clara: OSs ficavam dentro mas agora so coisas
-// REAIS de OS — Extrato/Vendas/Pagamentos/Documentos/Pessoas/Assinaturas/Pontos).
+// CADASTRO/OPERACOES editaveis. Tabs read-only (placas/ia) viraram BOTOES NO
+// HEADER do drawer (acesso 1-clique sem poluir tab bar). Rename oss→operacoes
+// (semantica clara: OSs ficavam dentro mas agora so coisas REAIS de OS —
+// Extrato/Vendas/Pagamentos/Documentos/Pessoas/Assinaturas/Pontos/Auditoria).
+// Wagner 2026-06-13: Auditoria saiu do chip e virou sub-aba de Operações
+// ("chips e abas são a mesma coisa — integrar").
 const DRAWER_TABS: Array<{ key: DrawerTab; label: string }> = [
   { key: 'identificacao', label: 'Identificação' },
   { key: 'contato',       label: 'Contato' },
@@ -1979,7 +1979,7 @@ function ClienteSheet({
     if (!open) return;
     const TAB_ORDER: DrawerTab[] = [
       'identificacao', 'contato', 'endereco', 'comercial',
-      'classificacao', 'oss', 'ia', 'auditoria',
+      'classificacao', 'operacoes', 'ia', 'placas',
     ];
     const onKey = (e: KeyboardEvent) => {
       const target = e.target;
@@ -2079,9 +2079,10 @@ function ClienteSheet({
           </div>
 
           {/* Wagner 2026-05-27 iteracao 2 (Proposta F) -- Botoes header pra
-              entidades secundarias: Placas (gate OficinaAuto, contador) +
-              Auditoria + IA. Acesso 1-clique sem poluir tab bar (6 tabs
-              principais focadas em cadastro/operacoes editaveis). */}
+              entidades secundarias: Placas (gate OficinaAuto, contador) + IA.
+              Acesso 1-clique sem poluir tab bar (6 tabs principais focadas em
+              cadastro/operacoes editaveis). Auditoria saiu daqui 2026-06-13 →
+              virou sub-aba de Operações (rail). */}
           <div className="flex items-center gap-1 pt-1 flex-wrap" role="toolbar" aria-label="Atalhos do drawer">
             {oficinaAutoEnabled && (
               <button
@@ -2122,21 +2123,6 @@ function ClienteSheet({
               <Paperclip size={11} aria-hidden />
               <span>{liveAnexosCount ?? contact?.documents_count ?? 0}</span>
               <span>anexos</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('auditoria')}
-              className={
-                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
-                (activeTab === 'auditoria'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
-              }
-              aria-pressed={activeTab === 'auditoria'}
-              title="Linha do tempo de auditoria LGPD"
-            >
-              <Activity size={11} aria-hidden />
-              <span>Auditoria</span>
             </button>
             <button
               type="button"
@@ -2203,8 +2189,9 @@ function ClienteSheet({
                   Notion/Linear. Render-condicional anterior desmontava o componente,
                   matando state + cleanup clearTimeout matando debounces → user digita
                   CEP/número/etc e troca pra aba "Contato" em <800ms → valor sumia.
-                  Tabs read-only (oss/ia/auditoria) seguem condicionais — desmontar
-                  é OK pra elas (consultas pesadas, sem state user-editável). */}
+                  Tabs read-only (placas/ia) seguem condicionais — desmontar
+                  é OK pra elas (consultas pesadas, sem state user-editável).
+                  Auditoria agora é sub-aba de Operações (desmonta junto do OssTab). */}
               <div hidden={activeTab !== 'identificacao'}>
                 <IdentificacaoTab
                   contact={contact}
@@ -2252,9 +2239,6 @@ function ClienteSheet({
               )}
               {activeTab === 'ia' && (
                 <IATab contact={{ id: contact.id, name: contact.name }} />
-              )}
-              {activeTab === 'auditoria' && (
-                <AuditoriaTab contact={{ id: contact.id }} />
               )}
             </>
           )}
