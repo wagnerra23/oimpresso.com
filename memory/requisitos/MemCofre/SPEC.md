@@ -1,3 +1,14 @@
+---
+module: MemCofre
+slug: memcofre-spec
+title: "Especificação funcional · MemCofre"
+type: spec
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: arquivado
+---
+
 # Especificação funcional · MemCofre
 
 ## 1. Escopo

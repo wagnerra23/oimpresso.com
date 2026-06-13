@@ -1,3 +1,16 @@
+---
+module: MemoriaAutonoma
+slug: memoriaautonoma-spec
+title: "MemoriaAutonoma — SPEC"
+type: spec
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
+---
+
+<!-- schema-allowlist: US sob "### User stories" (h3 dentro de "## Fase 1 — Auto-síntese semanal") + IDs US-MA-001..003 e US-MEMORIAAUTONOMA-001/002 sob "## Tasks operacionais"; corpo legado não tem heading h2 "## User stories" que case o gate — não renomeado pra preservar estrutura de fases. -->
+
 # MemoriaAutonoma — SPEC
 
 > **Status**: Fase 1 em implementação (2026-04-30)
