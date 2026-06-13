@@ -254,7 +254,7 @@ export default function SalesTab({
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
                 placeholder="Nº fatura, ref…"
-                className="pl-9"
+                className="cw-input-icon-left"
                 data-testid="sales-search"
               />
             </div>
