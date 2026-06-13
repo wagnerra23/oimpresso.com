@@ -18,6 +18,10 @@ uses(Tests\TestCase::class);
  * manualmente (migrations UltimatePOS legadas não rodam em SQLite).
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Cache::flush();
 
     foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
@@ -71,8 +75,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
-        Schema::dropIfExists($tbl);
+    // business/rb_boleto_credentials/fin_* são reais-migradas; o afterEach roda mesmo em
+    // teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las
+    // no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
     foreach (glob(sys_get_temp_dir().'/inter_crt_*.pem') as $f) {
         @unlink($f);

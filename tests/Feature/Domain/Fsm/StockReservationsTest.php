@@ -36,6 +36,10 @@ class StockResTestSubject extends Model
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -112,13 +116,15 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    (require database_path('migrations/2026_05_12_080001_create_product_bom_table.php'))->down();
-    (require database_path('migrations/2026_05_11_130001_create_stock_reservations_table.php'))->down();
-    foreach (array_reverse(glob(database_path('migrations/2026_05_11_120*_create_sale_*.php')) ?: []) as $f) {
-        (require $f)->down();
-    }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'products', 'variation_location_details', 'fsm_test_subjects', 'users'] as $tbl) {
-        Schema::dropIfExists($tbl);
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        (require database_path('migrations/2026_05_12_080001_create_product_bom_table.php'))->down();
+        (require database_path('migrations/2026_05_11_130001_create_stock_reservations_table.php'))->down();
+        foreach (array_reverse(glob(database_path('migrations/2026_05_11_120*_create_sale_*.php')) ?: []) as $f) {
+            (require $f)->down();
+        }
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'products', 'variation_location_details', 'fsm_test_subjects', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });

@@ -30,8 +30,12 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
-    // nfse_emissoes é tabela do PRÓPRIO módulo (prefixo nfse_) — drop+create
-    // idempotente é seguro mesmo no MySQL persistente do nightly.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
+    // nfse_emissoes tem migration real (create_nfse_emissoes_table) — dropá-la/recriá-la
+    // à mão corrompe o schema do MySQL persistente. Só roda em sqlite isolado.
     Schema::dropIfExists('nfse_emissoes');
 
     // users + tabelas Spatie Permission são CORE COMPARTILHADAS — NUNCA dropar

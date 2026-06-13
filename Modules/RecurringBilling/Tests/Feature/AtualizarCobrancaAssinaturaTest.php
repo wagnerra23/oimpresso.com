@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
@@ -63,8 +64,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('rb_subscriptions');
-    Schema::dropIfExists('rb_boleto_credentials');
+    // rb_* são reais-migradas; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('rb_subscriptions');
+        Schema::dropIfExists('rb_boleto_credentials');
+    }
 });
 
 /**

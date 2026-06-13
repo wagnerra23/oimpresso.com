@@ -289,5 +289,5 @@ test('8. Logga SubscriptionEvent kind=event-charge', function () {
     expect($event->kind)->toBe(SubscriptionEvent::KIND_CHARGE);
     expect($event->by_actor)->toBe('system:rb:generate-invoices');
     expect($event->body)->toContain('Fatura RB-');
-    expect($event->body)->toContain('R$ [redacted Tier 0]');
+    expect($event->body)->toContain('R$ 100,00');
 });

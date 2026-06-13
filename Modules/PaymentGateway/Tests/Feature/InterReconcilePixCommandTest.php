@@ -172,6 +172,9 @@ function cobEmitida(PaymentGatewayCredential $cred, string $txid, array $attrs =
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     pgEnsureSchema();
 });
 

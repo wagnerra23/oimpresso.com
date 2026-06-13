@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver;
@@ -61,7 +62,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('rb_boleto_credentials');
+    // rb_boleto_credentials é real-migrada; o afterEach roda mesmo em teste pulado
+    // (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-la no MySQL
+    // persistente corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('rb_boleto_credentials');
+    }
 });
 
 it('D4 — resolve() retorna config decifrado com api_key plain', function () {
