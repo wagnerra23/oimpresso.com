@@ -84,10 +84,10 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
 
       {/* File lock conflicts */}
       {file_lock_conflicts.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
+        <Card className="border-warning/30 bg-warning-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileWarning className="w-5 h-5 text-amber-600" />
+              <FileWarning className="w-5 h-5 text-warning-fg" />
               File lock — decisões concorrentes
               <Badge className="ml-auto bg-amber-600">{file_lock_conflicts.length}</Badge>
             </CardTitle>
@@ -178,7 +178,7 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                     <div className="text-xs">
                       <span className="text-muted-foreground">IA apontou: </span>
                       {c.ai_issues.slice(0, 3).map((iss, j) => (
-                        <span key={j} className="text-red-700">{j > 0 && ', '}{iss}</span>
+                        <span key={j} className="text-destructive-fg">{j > 0 && ', '}{iss}</span>
                       ))}
                     </div>
                   )}

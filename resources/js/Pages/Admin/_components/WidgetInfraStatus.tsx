@@ -26,9 +26,9 @@ const labels: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  up:       'bg-green-500',
-  degraded: 'bg-amber-500',
-  down:     'bg-red-500',
+  up:       'bg-success',
+  degraded: 'bg-warning',
+  down:     'bg-destructive',
 };
 
 export default function WidgetInfraStatus({ data }: Props) {
@@ -47,7 +47,7 @@ export default function WidgetInfraStatus({ data }: Props) {
             />
             <span className="font-medium">{labels[key] ?? key}</span>
           </div>
-          <div className="text-gray-500">
+          <div className="text-muted-foreground">
             {host.status === 'up' && host.latency_ms != null
               ? `${host.latency_ms}ms`
               : host.status}

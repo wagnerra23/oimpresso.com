@@ -68,7 +68,7 @@ function makeAuthStateRow(string $instanceId, int $count = 1, ?\Carbon\Carbon $u
     for ($i = 0; $i < $count; $i++) {
         DB::table('whatsapp_baileys_auth_state')->insert([
             'instance_id' => $instanceId,
-            'key_id' => "key_$i_" . uniqid(),
+            'key_id' => "key_{$i}_" . uniqid(),
             'value_encrypted' => null,
             'updated_at' => $updatedAt,
         ]);

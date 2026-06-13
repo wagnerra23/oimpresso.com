@@ -434,7 +434,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                 {conferido && (
                   <p className="flex items-center gap-1.5 text-xs">
                     {Math.abs(conferido.total - totalLocal) < 0.01 ? (
-                      <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200">
+                      <Badge className="bg-success-soft text-success-fg border-success/20">
                         Conferido: {BRL.format(conferido.total)}
                       </Badge>
                     ) : (

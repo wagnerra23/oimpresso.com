@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Schema;
 use Modules\TeamMcp\Http\Requests\ExportUsageCsvRequest;
 use Modules\TeamMcp\Http\Requests\UpdateQuotaRequest;
 use Modules\TeamMcp\Services\McpTokenIssuer;
@@ -47,18 +48,36 @@ describe('Wave 18 — Services extracted (D4)', function () {
     });
 
     it('McpTokenIssuer::countActive retorna int >= 0 pra user inexistente', function () {
+        // Guard de schema: countActive faz SELECT em mcp_tokens. Sem a tabela
+        // (schema parcial / dump incompleto) o teste estourava QueryException
+        // (ERROR) em vez de SKIP. Os smokes de container/reflection acima NÃO
+        // tocam DB e seguem rodando — por isso o guard é por-teste, não no topo.
+        if (! Schema::hasTable('mcp_tokens')) {
+            $this->markTestSkipped('Tabela mcp_tokens ausente — rode migrate:fresh contra o dump completo.');
+        }
         $svc = app(McpTokenIssuer::class);
         $count = $svc->countActive(99999999); // user inexistente — sem tokens
         expect($count)->toBe(0);
     });
 
     it('McpTokenIssuer::revoke retorna false pra token inexistente (idempotência)', function () {
+        // revoke faz McpToken::find() (SELECT em mcp_tokens) antes de qualquer
+        // efeito — sem a tabela vira ERROR. Guard por-teste pelo mesmo motivo acima.
+        if (! Schema::hasTable('mcp_tokens')) {
+            $this->markTestSkipped('Tabela mcp_tokens ausente — rode migrate:fresh contra o dump completo.');
+        }
         $svc = app(McpTokenIssuer::class);
         $applied = $svc->revoke(99999999); // token inexistente
         expect($applied)->toBeFalse();
     });
 
     it('TeamUsageAggregator::globalStats retorna array com 4 chaves', function () {
+        // globalStats() faz 4 SELECTs em mcp_audit_log — mesma exposição de schema
+        // que countActive/revoke, só que em outra tabela. Guard por-teste pra SKIP
+        // limpo quando o dump não trouxe mcp_audit_log.
+        if (! Schema::hasTable('mcp_audit_log')) {
+            $this->markTestSkipped('Tabela mcp_audit_log ausente — rode migrate:fresh contra o dump completo.');
+        }
         // Wave 18 — só smoke estrutural, sem rodar pesado em mcp_audit_log
         $svc = app(TeamUsageAggregator::class);
         $stats = $svc->globalStats();

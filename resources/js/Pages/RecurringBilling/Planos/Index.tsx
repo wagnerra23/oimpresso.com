@@ -204,7 +204,7 @@ function CicloDistribuicao({ kpis }: { kpis: KpisPayload }) {
 
 function StatusBadge({ ativo }: { ativo: boolean }) {
   return ativo ? (
-    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-emerald-200">
+    <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success-fg ring-1 ring-success/20">
       <CheckCircle2 size={11} />
       ativo
     </span>
@@ -233,8 +233,8 @@ function FlashBanner({ flash }: { flash?: { success?: string; error?: string } }
     <div
       className={`mb-4 rounded-lg p-3 text-sm font-medium ring-1 ${
         isError
-          ? 'bg-rose-50 text-rose-800 ring-rose-200'
-          : 'bg-emerald-50 text-emerald-800 ring-emerald-200'
+          ? 'bg-destructive-soft text-destructive-fg ring-destructive/20'
+          : 'bg-success-soft text-success-fg ring-success/20'
       }`}
     >
       {msg}

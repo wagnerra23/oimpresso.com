@@ -381,7 +381,7 @@ function IaCard({
 
       {isError && (
         <div
-          className="mt-3 flex items-start gap-2 text-xs text-rose-700 dark:text-rose-400"
+          className="mt-3 flex items-start gap-2 text-xs text-destructive-fg"
           data-testid={`${testid}-error`}
         >
           <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
@@ -395,18 +395,18 @@ function IaCard({
 function UrgenciaPill({ urgencia }: { urgencia: 'alta' | 'media' | 'baixa' }) {
   const palette = {
     alta: {
-      bg: 'bg-rose-100 dark:bg-rose-950/40',
-      text: 'text-rose-700 dark:text-rose-300',
+      bg: 'bg-destructive-soft',
+      text: 'text-destructive-fg',
       label: 'ALTA',
     },
     media: {
-      bg: 'bg-amber-100 dark:bg-amber-950/40',
-      text: 'text-amber-700 dark:text-amber-300',
+      bg: 'bg-warning-soft',
+      text: 'text-warning-fg',
       label: 'MEDIA',
     },
     baixa: {
-      bg: 'bg-emerald-100 dark:bg-emerald-950/40',
-      text: 'text-emerald-700 dark:text-emerald-300',
+      bg: 'bg-success-soft',
+      text: 'text-success-fg',
       label: 'BAIXA',
     },
   }[urgencia] ?? {

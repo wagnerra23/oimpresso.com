@@ -1452,7 +1452,7 @@ function StatusIcon({ status }: { status: string }) {
     case 'sent':      return <Check size={11} className="opacity-70" aria-label="enviada" />;
     case 'delivered': return <CheckCheck size={11} className="opacity-70" aria-label="entregue" />;
     case 'read':      return <CheckCheck size={13} strokeWidth={2.5} className="text-cyan-500 dark:text-cyan-400" aria-label="lida" />;
-    case 'failed':    return <AlertTriangle size={11} className="text-red-500 dark:text-red-400" aria-label="falhou" />;
+    case 'failed':    return <AlertTriangle size={11} className="text-destructive" aria-label="falhou" />;
     default:          return <span className="text-[9px] opacity-70">{status}</span>;
   }
 }

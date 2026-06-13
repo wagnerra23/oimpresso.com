@@ -553,7 +553,7 @@ export default function InteractiveMessageDialog({
         {tab === 'cta_url' && (
           <div className="space-y-3" data-testid="interactive-form-cta">
             {!supportsCtaUrl && (
-              <div className="rounded-md bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-xs p-2">
+              <div className="rounded-md bg-warning-soft text-warning-fg text-xs p-2">
                 Botão CTA URL só está disponível em canais Meta Cloud. Este canal usa
                 <strong> {driverType}</strong> — selecione outra tab.
               </div>
