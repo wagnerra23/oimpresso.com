@@ -23,6 +23,12 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-049
  */
 beforeEach(function () {
+    // SELF-SCHEMA (cria/dropa tabelas vivas no afterEach) — SQLITE-ONLY.
+    // Contra MySQL real (staging CT 100) o afterEach DROPA tabelas vivas — incidente 2026-06-10.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema (cria/dropa tabelas vivas) — SQLite-only; vs MySQL real dropa staging. Incidente 2026-06-10.');
+    }
+
     foreach ([
         'macro_variants', 'macros',
         'model_has_permissions', 'model_has_roles', 'role_has_permissions',

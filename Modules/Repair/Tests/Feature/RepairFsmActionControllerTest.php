@@ -32,6 +32,12 @@ use Spatie\Permission\PermissionRegistrar;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    // SELF-SCHEMA (cria/dropa tabelas vivas no afterEach) — SQLITE-ONLY.
+    // Contra MySQL real (staging CT 100) o afterEach DROPA tabelas vivas — incidente 2026-06-10.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema (cria/dropa tabelas vivas) — SQLite-only; vs MySQL real dropa staging. Incidente 2026-06-10.');
+    }
+
     // JobSheet usa Spatie LogsActivity (FSM history + status). Sem `activity_log`
     // o teste explode em SQLSTATE 1. Schema espelha vendor/spatie/laravel-activitylog.
     Schema::create('activity_log', function (Blueprint $t) {

@@ -33,6 +33,12 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0135-omnichannel-inbox-arquitetura.md
  */
 beforeEach(function () {
+    // SELF-SCHEMA (cria/dropa tabelas vivas no afterEach) — SQLITE-ONLY.
+    // Contra MySQL real (staging CT 100) o afterEach DROPA tabelas vivas — incidente 2026-06-10.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema (cria/dropa tabelas vivas) — SQLite-only; vs MySQL real dropa staging. Incidente 2026-06-10.');
+    }
+
     foreach (['messages', 'conversations', 'channels', 'users'] as $t) {
         Schema::dropIfExists($t);
     }
