@@ -33,12 +33,9 @@ beforeEach(function () {
     // skip-graceful pra nao confundir com falha real. Padrao do projeto:
     // veja Modules/Financeiro/Tests/Feature/TransactionObserverIntegrationTest.
     try {
-        $this->business = \App\Business::first();
+        $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     } catch (\Throwable $e) {
         $this->markTestSkipped('Schema UltimatePOS ausente — rode local com DB_CONNECTION=mysql (dev) ou aguarde CI integration job.');
-    }
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB — rode seeder UltimatePOS antes.');
     }
 
     $this->user = \App\User::where('business_id', $this->business->id)->first();

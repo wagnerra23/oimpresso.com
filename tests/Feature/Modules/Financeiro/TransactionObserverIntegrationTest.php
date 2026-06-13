@@ -49,10 +49,7 @@ uses(DatabaseTransactions::class);
 
 beforeEach(function () {
     // Dependencias de DB
-    $this->business = \App\Business::first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB — rode seeder UltimatePOS antes.');
-    }
+    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
 
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     if (! $this->user) {

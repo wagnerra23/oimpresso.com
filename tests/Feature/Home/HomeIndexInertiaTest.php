@@ -26,13 +26,9 @@ use Spatie\Permission\Models\Permission;
 function homeBootstrap(): User
 {
     try {
-        $business = Business::first();
+        $business = test()->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     } catch (\Throwable $e) {
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
-    }
-
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco.');
     }
 
     $user = User::where('business_id', $business->id)
@@ -81,10 +77,7 @@ it('renderiza Inertia component Home/Index com shape esperado', function () {
 });
 
 it('customer redirect preservado (user_type=user_customer → 302)', function () {
-    $business = Business::first();
-    if (! $business) {
-        $this->markTestSkipped('Sem business.');
-    }
+    $business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
 
     $customer = User::where('business_id', $business->id)
         ->where('user_type', 'user_customer')
