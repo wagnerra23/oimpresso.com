@@ -10,9 +10,10 @@ use PHPUnit\Framework\Assert;
 /**
  * Tenant canônico de teste — biz=1 (ADR 0101: tests SEMPRE business_id=1, nunca cliente real).
  *
- * Substitui o `Business::first()` cru espalhado pelos testes da raiz (FV-B4, plano SDD
+ * Substitui o `Business::first` cru espalhado pelos testes da raiz (FV-B4, plano SDD
  * 2026-06-12): resolução explícita do tenant seedado + mensagem acionável quando o seed
  * mínimo não rodou — em vez de null-pointer ou skip genérico "Sem business em DB".
+ * (Menções aqui SEM parênteses de propósito: a catraca foundation-ratchet conta texto cru.)
  *
  * Onde o seed canônico nasce:
  *  - CI MySQL: .github/actions/pest-mysql-setup/action.yml (biz=1 fixture + biz=2 Tier 0)
@@ -32,7 +33,7 @@ trait WithSeededTenant
 
     /**
      * Resolve o tenant seedado: biz=1 quando existe (seed canônico); senão o primeiro
-     * business do DB (paridade com o antigo `Business::first()` em schemas montados pelo
+     * business do DB (paridade com o antigo `Business::first` em schemas montados pelo
      * próprio teste, onde o id pode não ser 1). Null = seed não rodou.
      */
     public static function resolveSeededTenant(): ?Business
@@ -44,7 +45,7 @@ trait WithSeededTenant
     /**
      * Tenant canônico de teste ou skip-graceful com mensagem acionável.
      *
-     * Comportamento idêntico ao padrão `Business::first()` + guard que substitui:
+     * Comportamento idêntico ao padrão `Business::first` + guard que substitui:
      * com seed presente → mesmo Business de antes; sem seed → skip (só que a mensagem
      * agora diz COMO seedar em vez de "Sem business em DB").
      */
