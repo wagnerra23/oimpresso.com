@@ -309,7 +309,7 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
               </SelectContent>
             </Select>
             {isHighSeverity && (
-              <p className="mt-1 text-[11px] text-amber-700 inline-flex items-center gap-1">
+              <p className="mt-1 text-[11px] text-warning-fg inline-flex items-center gap-1">
                 ⚡ Severity ≥ 3 — vai criar MCP task automaticamente.
               </p>
             )}
@@ -395,7 +395,7 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
 
           {/* Errors */}
           {error && (
-            <div className="rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-800 inline-flex items-center gap-2">
+            <div className="rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-xs text-destructive-fg inline-flex items-center gap-2">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -403,7 +403,7 @@ export default function CaptureFeedbackSheet({ open, onOpenChange, input, onSave
 
           {/* Success */}
           {savedOk && (
-            <div className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 inline-flex items-center gap-2">
+            <div className="rounded-md border border-success/20 bg-success-soft px-3 py-2 text-xs text-success-fg inline-flex items-center gap-2">
               <CheckCircle2 size={14} />
               Feedback salvo no canon. Persona + charter atualizados.
             </div>

@@ -70,7 +70,7 @@ export default function AiSuggestionPanel({
             const isUp = s.avg_delta > 0;
             const Arrow = isUp ? TrendingUp : TrendingDown;
             const toneCls = isUp
-              ? 'text-emerald-700 dark:text-emerald-400'
+              ? 'text-success-fg'
               : 'text-destructive';
             return (
               <li

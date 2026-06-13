@@ -145,7 +145,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
               Tokens <code>#V-</code> <code>#OS-</code> <code>#PC-</code> <code>#BL-</code> viram links clicáveis na lista.
             </p>
             {form.errors.cliente_descricao && (
-              <p className="text-[11px] text-rose-600">{form.errors.cliente_descricao}</p>
+              <p className="text-[11px] text-destructive">{form.errors.cliente_descricao}</p>
             )}
           </div>
 
@@ -168,7 +168,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
               </SelectContent>
             </Select>
             {form.errors.categoria_id && (
-              <p className="text-[11px] text-rose-600">{form.errors.categoria_id}</p>
+              <p className="text-[11px] text-destructive">{form.errors.categoria_id}</p>
             )}
           </div>
 
@@ -260,7 +260,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
               onChange={(e) => form.setData('vencimento', e.target.value)}
             />
             {form.errors.vencimento && (
-              <p className="text-[11px] text-rose-600">{form.errors.vencimento}</p>
+              <p className="text-[11px] text-destructive">{form.errors.vencimento}</p>
             )}
           </div>
 
@@ -287,7 +287,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
               </p>
             )}
             {form.errors.valor_total && (
-              <p className="text-[11px] text-rose-600">{form.errors.valor_total}</p>
+              <p className="text-[11px] text-destructive">{form.errors.valor_total}</p>
             )}
           </div>
 
@@ -304,7 +304,7 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
               className="w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-[13px] resize-none"
             />
             {form.errors.observacoes && (
-              <p className="text-[11px] text-rose-600">{form.errors.observacoes}</p>
+              <p className="text-[11px] text-destructive">{form.errors.observacoes}</p>
             )}
           </div>
 

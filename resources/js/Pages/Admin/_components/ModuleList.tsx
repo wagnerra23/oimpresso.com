@@ -259,9 +259,9 @@ function ModuleListItem({
   const statusTone = STATUS_TONE[module.status];
   const statusCls =
     module.status === 'ok'
-      ? 'text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40'
+      ? 'text-success-fg border-success/20 bg-success-soft'
       : module.status === 'warn'
-        ? 'text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40'
+        ? 'text-warning-fg border-warning/20 bg-warning-soft'
         : 'text-destructive border-destructive/40 bg-destructive/10';
 
   return (
@@ -317,7 +317,7 @@ function ModuleListItem({
             )}
             {module.paired_count > 0 && (
               <span
-                className="inline-flex items-center gap-0.5 rounded-md border border-amber-300 bg-amber-50 px-1 py-0.5 text-[9.5px] font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                className="inline-flex items-center gap-0.5 rounded-md border border-warning/20 bg-warning-soft px-1 py-0.5 text-[9.5px] font-medium text-warning-fg"
                 title="Paired violations (anti-Goodhart)"
               >
                 paired×{module.paired_count}

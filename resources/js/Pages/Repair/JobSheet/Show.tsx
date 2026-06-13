@@ -350,7 +350,7 @@ function JobSheetFsmPanel({ jobSheetId, endpoints, inPipelineInitial }: {
             <h3 className="font-semibold text-sm">Confirmar: {confirmAction.label}</h3>
             <div className="text-xs text-muted-foreground space-y-1">
               {confirmAction.is_critical && (
-                <p className="text-amber-600 flex items-center gap-1">
+                <p className="text-warning-fg flex items-center gap-1">
                   <AlertTriangle size={12} /> Ação crítica
                 </p>
               )}
@@ -513,7 +513,7 @@ export default function JobSheetShow({ job_sheet, fsm, permissions }: Props) {
                 <ul className="text-sm space-y-1">
                   {job_sheet.checklist.map((item, idx) => (
                     <li key={idx} className="flex items-center gap-2">
-                      <Check className="h-3 w-3 text-emerald-600" />
+                      <Check className="h-3 w-3 text-success-fg" />
                       {item}
                     </li>
                   ))}

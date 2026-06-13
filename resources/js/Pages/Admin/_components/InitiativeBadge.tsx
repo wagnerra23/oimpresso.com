@@ -55,7 +55,7 @@ export default function InitiativeBadge({ initiative, className, compact }: Prop
   const toneCls = (() => {
     switch (effectiveStatus) {
       case 'done':
-        return 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300';
+        return 'border-success/20 bg-success-soft text-success-fg';
       case 'overdue':
         return 'border-destructive/40 bg-destructive/10 text-destructive';
       case 'in_progress':

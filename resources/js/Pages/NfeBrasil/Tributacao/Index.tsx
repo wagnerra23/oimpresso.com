@@ -137,7 +137,7 @@ function Index({ regras, config, templates }: Props) {
         </header>
 
         {success && (
-          <div className="flex items-start gap-2 px-4 py-3 rounded-md bg-emerald-50 text-emerald-900 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800">
+          <div className="flex items-start gap-2 px-4 py-3 rounded-md bg-success-soft text-success-fg border border-success/20">
             <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0" />
             <p className="text-sm">{success}</p>
           </div>

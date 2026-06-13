@@ -224,9 +224,9 @@ export default function IntercorrenciasCreate({ colaboradores, tipos, ai_enabled
             )}
 
             {aiLastResult?.success && aiLastResult.data && (
-              <Alert className="border-emerald-500/40 bg-emerald-500/5">
-                <Sparkles size={14} className="text-emerald-600" />
-                <AlertTitle className="text-emerald-700 dark:text-emerald-400">
+              <Alert className="border-success/40 bg-success/5">
+                <Sparkles size={14} className="text-success-fg" />
+                <AlertTitle className="text-success-fg">
                   Classificado com {Math.round(aiLastResult.data.confianca * 100)}% de confiança
                   {aiLastResult.cached && ' (cache)'}
                 </AlertTitle>

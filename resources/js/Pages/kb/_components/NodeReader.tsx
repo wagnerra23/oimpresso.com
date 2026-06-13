@@ -222,16 +222,16 @@ export default function NodeReader({
             </span>
           )}
           {outdated && (
-            <span className="text-[9.5px] font-semibold lowercase text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/40 px-1.5 py-px rounded-sm">
+            <span className="text-[9.5px] font-semibold lowercase text-warning-fg bg-warning-soft px-1.5 py-px rounded-sm">
               precisa revisão
             </span>
           )}
           <span
             className={cn(
               'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-px rounded-sm',
-              fresh.level === 'fresh' && 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30',
+              fresh.level === 'fresh' && 'text-success-fg bg-success-soft',
               fresh.level === 'aging' && 'text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30',
-              fresh.level === 'stale' && 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/30',
+              fresh.level === 'stale' && 'text-warning-fg bg-warning-soft',
               fresh.level === 'expired' && 'text-destructive bg-destructive/10',
             )}
             title={`Última atualização ${fmtRelative(node.updated_at)}`}
@@ -392,7 +392,7 @@ export default function NodeReader({
         <button
           type="button"
           onClick={onVoteOutdated}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11.5px] font-medium text-amber-700 dark:text-amber-300 hover:border-amber-500/40 hover:bg-amber-500/5"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11.5px] font-medium text-warning-fg hover:border-warning/40 hover:bg-warning/5"
           title="Marcar como possivelmente desatualizado"
         >
           <AlertTriangle size={12} /> Desatualizado{' '}

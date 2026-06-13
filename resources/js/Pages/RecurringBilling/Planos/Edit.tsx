@@ -395,11 +395,11 @@ function Field({
   return (
     <div>
       <label className="mb-1 block text-xs font-medium text-stone-700">
-        {label} {required && <span className="text-rose-600">*</span>}
+        {label} {required && <span className="text-destructive">*</span>}
       </label>
       {children}
       {hint && !error && <div className="mt-1 text-[11px] text-stone-500">{hint}</div>}
-      {error && <div className="mt-1 text-[11px] font-medium text-rose-600">{error}</div>}
+      {error && <div className="mt-1 text-[11px] font-medium text-destructive-fg">{error}</div>}
     </div>
   );
 }

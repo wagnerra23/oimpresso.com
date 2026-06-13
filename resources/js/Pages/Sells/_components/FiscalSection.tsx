@@ -89,7 +89,7 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
       </h3>
 
       {error && (
-        <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 mb-2 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/40">
+        <div className="rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-xs text-destructive-fg mb-2">
           <AlertTriangle size={11} className="inline mr-1" />
           {error}
         </div>
@@ -100,8 +100,8 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
           className={
             'rounded-md border px-3 py-2 text-xs mb-2 ' +
             (actionMsg.tone === 'success'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/40'
-              : 'border-rose-200 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/40')
+              ? 'border-success/20 bg-success-soft text-success-fg'
+              : 'border-destructive/20 bg-destructive-soft text-destructive-fg')
           }
         >
           {actionMsg.tone === 'success' ? <CheckCircle2 size={11} className="inline mr-1" /> : <AlertTriangle size={11} className="inline mr-1" />}
@@ -198,7 +198,7 @@ function EmissaoRow({
             </div>
           )}
           {em.motivo && em.status !== 'autorizada' && (
-            <div className="text-xs text-rose-700 dark:text-rose-300 mt-1">{em.motivo}</div>
+            <div className="text-xs text-destructive-fg mt-1">{em.motivo}</div>
           )}
         </div>
       </div>

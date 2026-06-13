@@ -282,16 +282,15 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 function StatusPill({ isFinal }: { isFinal: number }) {
   if (isFinal) {
     return (
-      // eslint-disable-next-line no-restricted-syntax -- status pill dot-style (PT-01), não é mensagem de erro/validação de form
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-fg">
+        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
         Finalizada
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-warning-fg">
+      <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden />
       Pendente
     </span>
   );

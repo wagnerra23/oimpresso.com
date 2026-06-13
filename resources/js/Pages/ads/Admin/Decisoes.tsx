@@ -92,12 +92,12 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`text-xs px-3 py-1.5 rounded-md border transition-colors flex items-center gap-1.5 ${
               autoRefresh
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                : 'bg-zinc-50 text-zinc-500 border-zinc-300'
+                ? 'bg-success-soft text-success-fg border-success/30'
+                : 'bg-muted text-muted-foreground border-border'
             }`}
             title={autoRefresh ? 'Auto-refresh a cada 10s' : 'Clique para reativar auto-refresh'}
           >
-            <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'}`} />
+            <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-success animate-pulse' : 'bg-muted-foreground'}`} />
             {autoRefresh ? 'Live (10s)' : 'Pausado'}
           </button>
         )}
