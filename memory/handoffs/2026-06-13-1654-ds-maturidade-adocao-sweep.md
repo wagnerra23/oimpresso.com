@@ -1,7 +1,12 @@
 ---
-date: 2026-06-13
-hour: "16:54 BRT"
-topic: "DS — maturidade (Onda M1) + adoção em massa via threads paralelas + adversário"
+date: "2026-06-13"
+time: "16:54 BRT"
+slug: "ds-maturidade-adocao-sweep"
+tldr: "Auditoria sênior DS 61/100 → Onda M1 (6 PRs: catraca ds-canon-color-guard im-regressível + hsl→oklch pixel-idêntico + motion) → Cliente tela-linda (2 PRs, gate visual via widget pq render down) → adoção em massa via pipeline 68-agentes paralelos (35 varredura → 33 adversário matou ~9% → 327 edits/130 arq #2666). 169 incertos + Cliente mistos + Financeiro/Unificado pendentes (pedem app rodando)."
+decided_by: [W]
+cycle: CYCLE-08
+prs: ["2641", "2643", "2644", "2645", "2651", "2654", "2655", "2660", "2666"]
+next_steps: ["169 incertos da varredura (roadmap sessions/2026-06-13-ds-adoption-sweep-roadmap.md) — pedem app rodando (Wagner loga prod ou sobe Herd)", "Financeiro/Unificado/Index.tsx — fora do sweep (tem casos.md), tokeniza com re-prova", "Cliente mistos (IATab violet, KpiStripClickable, tabs blue) — olho do Wagner", "M2 (DTCG D2=15) ou M3 (VRT) — próximas ondas de maturidade"]
 duration: "~sessão épica (9 PRs + 3 workflows)"
 authors: [Wagner, Claude Code]
 ---
