@@ -16,7 +16,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         // US-GOV-018 Frente A (A.2) — FK-off no nightly full-suite, e SO no nightly.
-        // No nightly a suite roda contra MySQL PERSISTENTE sem RefreshDatabase; ~210
+        // No nightly a suite roda contra MySQL PERSISTENTE sem rollback por teste; ~210
         // testes era-sqlite fazem Schema::dropIfExists() em beforeEach/setUp. Tabelas
         // referenciadoras (ex whatsapp_jana_correcoes -> messages) sobrevivem entre
         // testes, e dropar a tabela-pai estoura errno 3730 "Cannot drop ... referenced
