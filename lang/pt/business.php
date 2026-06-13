@@ -97,4 +97,5 @@
      'tax_number2' => 'Número fiscal 2',
      'is_active' => 'Ativo',
      'created_by' => 'Criado por',
+     'select_invoice_scheme_and_layout' => 'Selecione o esquema e o layout de fatura (campos obrigatórios) antes de salvar a filial.',
  ];
