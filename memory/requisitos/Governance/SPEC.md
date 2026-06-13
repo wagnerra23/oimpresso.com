@@ -388,3 +388,21 @@ Saída da re-triage 32-thread do eixo FAILURE determinístico (155 arquivos, 385
 ## 11 unclear (decisão Wagner) — perguntas no doc.
 
 Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-positivos · ADR 0276.
+
+### US-GOV-020 · Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio)
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Root cause PROVADO** (repro byte-level CT100, run `20260613-100035` floor 1870). O verdadeiro lever do floor, sucede A.1/A.2 (US-GOV-018). Fix em **#2657**.
+
+## Mecanismo
+O `migrate:fresh` do RefreshDatabase roda "Loading stored database schemas" (A.1 destravou o CLI), mas o **load do dump FALHA em 188/364 tabelas**: `database/schema/mysql-schema.sql` tem triggers com **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
+
+## Fix PROVADO (188→377 tabelas, 0→4 triggers) — #2657
+`ct100-fullsuite.sh` passo 3 (root): `SET GLOBAL log_bin_trust_function_creators=1` + `GRANT SET_USER_ID ON *.* TO <fullsuite>`.
+
+## A.2 (FK-off) reavaliar
+Com o schema completo recarregando, reavaliar se `FULLSUITE_FK_OFF` ainda ajuda ou vira redundante — medir com/sem no re-run.
+
+Ref: floor `20260613-100035` · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 · #2640.
