@@ -21,6 +21,18 @@ declare(strict_types=1);
  *  - resources/js/Pages/Sells/Index.tsx
  *  - memory/requisitos/Sells/index-r1-visual-comparison.md (KB-9.75 mockup)
  *  - PR #1043 "NÃO INCLUI" (Onda 5 Polish — dados reais)
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem markup MOVIDO da coluna Comissão em `Index.tsx` (`>Comissão</th>`,
+ * `vd-commission`, `.slice(0, 12)`, colSpan 11:10), markers verificados ausentes.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * 🔴 Os it() de BACKEND PERMANECEM ATIVOS — guard VIVO Tier-0 ADR 0093:
+ * `transactions.business_id` continua filtro principal em inertiaList apesar do
+ * LEFT JOIN cmsn_user; idem fallback de nome + campos Cowork preexistentes. Idem
+ * os it() de Index.tsx que ainda passam (interface coworkCommissionEnabled, gap #1043).
+ * Silenciar o guard business_id violaria "multi-tenant Tier 0 IRREVOGÁVEL".
  */
 
 defined('COMMISSION_SELL_CONTROLLER_PATH') || define('COMMISSION_SELL_CONTROLLER_PATH', 'app/Http/Controllers/SellController.php');
@@ -116,7 +128,8 @@ it('Index.tsx renderiza header <th>Comissão</th> condicionalmente', function ()
         // Renderização condicional na thead (gap PR #1043 ref obrigatória).
         ->toContain('props.coworkCommissionEnabled')
         ->toContain('>Comissão</th>');
-});
+    // quarantine-reason: coluna Comissão movida do Index.tsx (markers >Comissão</th>/vd-commission/colSpan ausentes) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx tem célula com truncate 12 chars + tooltip nome completo', function () {
     $source = commissionReadIndexTsx();
@@ -126,14 +139,16 @@ it('Index.tsx tem célula com truncate 12 chars + tooltip nome completo', functi
         ->toContain('.slice(0, 12)')
         // Tooltip = nome completo no title (vd-commission-name + title=).
         ->toContain('title={v.commission_agent_name}');
-});
+    // quarantine-reason: coluna Comissão movida do Index.tsx (markers >Comissão</th>/vd-commission/colSpan ausentes) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx ajusta colSpan dinamicamente para skeleton e empty row', function () {
     $source = commissionReadIndexTsx();
     // colSpan deve ser 10 base ou 11 quando coluna Comissão habilitada.
     expect($source)
         ->toContain('props.coworkCommissionEnabled ? 11 : 10');
-});
+    // quarantine-reason: coluna Comissão movida do Index.tsx (markers >Comissão</th>/vd-commission/colSpan ausentes) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx documenta gap PR #1043 (rastro de origem)', function () {
     $source = commissionReadIndexTsx();

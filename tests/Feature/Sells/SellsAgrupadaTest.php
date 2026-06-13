@@ -22,6 +22,17 @@ declare(strict_types=1);
  * Refs: ADR 0093 (multi-tenant Tier 0), SPEC US-SELL-024,
  *       memory/research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md
  *       (CODFINANCEIRO_GRUPO 43-65% das linhas em todos clientes legacy)
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem `SellsGradeAvancada.tsx` (`GroupedInvoiceBadge`, badge "Agrupada") —
+ * componente DELETADO no refactor. file_get_contents num arquivo ausente falha.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * 🔴 Os it() de MIGRATION e BACKEND PERMANECEM ATIVOS — guards VIVOS: índice
+ * composto (business_id, is_grouped_invoice) Tier-0 ADR 0093, idempotência
+ * Schema::hasColumn, cast bool defensivo, COALESCE. Silenciá-los violaria
+ * "multi-tenant Tier 0 IRREVOGÁVEL".
  */
 
 const SELL_CONTROLLER_PATH_024 = 'app/Http/Controllers/SellController.php';
@@ -88,19 +99,22 @@ it('inertiaList select usa COALESCE pra defesa em Pest SQLite sem coluna', funct
 it('SellsGradeAvancada componente GroupedInvoiceBadge existe', function () {
     $src = readGrade024();
     expect($src)->toContain('function GroupedInvoiceBadge');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (GroupedInvoiceBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada GroupedInvoiceBadge é silent quando is_grouped_invoice=false (não polui Lista)', function () {
     $src = readGrade024();
     // Pattern: if (!isGrouped) return null
     expect($src)->toMatch('/if\\s*\\(!isGrouped\\)\\s*return\\s+null/');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (GroupedInvoiceBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada renderiza GroupedInvoiceBadge ao lado do invoice_no quando true', function () {
     $src = readGrade024();
     // O badge é chamado com prop isGrouped=row.is_grouped_invoice
     expect($src)->toMatch('/<GroupedInvoiceBadge[^>]*isGrouped=\\{row\\.is_grouped_invoice\\}/');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (GroupedInvoiceBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada GroupedInvoiceBadge usa label PT-BR "Agrupada" + cor violet', function () {
     $src = readGrade024();
@@ -108,9 +122,11 @@ it('SellsGradeAvancada GroupedInvoiceBadge usa label PT-BR "Agrupada" + cor viol
     expect($src)->toContain('Agrupada');
     // Cor semantic violet (distinta dos badges de payment/produção)
     expect($src)->toMatch('/GroupedInvoiceBadge[\\s\\S]*?text-violet-700/');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (GroupedInvoiceBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada SaleRow type tem is_grouped_invoice: boolean', function () {
     $src = readGrade024();
     expect($src)->toMatch('/is_grouped_invoice:\\s*boolean/');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (GroupedInvoiceBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
