@@ -1,4 +1,8 @@
 ---
+module: Manufacturing
+owner: wagner
+version: "1.0"
+last_updated: "2026-06-13"
 na_justified:
   D6.a: "Manufacturing usa pattern Blade legacy + 1 página Inertia v2 (Wave J Onda 1) — Inertia::defer aplicado parcialmente."
 ---
@@ -18,7 +22,7 @@ _[TODO — escrever user stories no formato abaixo.]_
 **Quero** [ação]  
 **Para** [objetivo de negócio]
 
-**Implementado em:** _[path]_
+**Implementado em:** _pendente_ — US-MANU-001 não escrita/construída (placeholder TODO)
 
 **Definition of Done:**
 - [ ] [critério]
