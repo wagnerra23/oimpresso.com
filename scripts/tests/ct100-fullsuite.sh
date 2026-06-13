@@ -173,12 +173,31 @@ for attempt in $(seq 1 12); do
   # / 'near MODIFY syntax error' (DDL MySQL-only). Passando DB_* como env REAL do
   # container, o <env> sqlite e ignorado e o pest usa o MySQL seedado (mysql-schema.sql
   # + migrate + seed biz=1/biz=2 dos passos 3-5). ADR 0101 (testes MySQL real, nao sqlite).
+  # C2 (triage Q2 2026-06-13): RefreshDatabase/migrate:fresh disparado POR TESTE roda
+  # "Loading stored database schemas", que invoca o CLI `mysql` pra carregar o dump
+  # database/schema/mysql-schema.sql. A imagem oimpresso/mcp NAO tem esse client (mesmo
+  # motivo do passo 5) => 72x `mysql: not found` no run pos-C1 (20260613-020001) => o
+  # fresh DROPA as 364 tabelas do baseline e NAO recarrega => cascata 'Base table or view
+  # not found' (business 173, users 42, activity_log 72...) em ~600 testes seguintes.
+  # Sem isto o nightly mede RUIDO DE HARNESS, nao debito real de teste. Fix: instalar
+  # mariadb-client (provê /usr/bin/mysql) no container descartavel ANTES do pest — a rede
+  # docker-host ja esta anexada (--network) e as creds sao os mesmos -e DB_*. ADR 0062.
   timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
     --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
     -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
     -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
-    -w /workspace --entrypoint php "$IMAGE" -d memory_limit=2G \
-    vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never \
+    -w /workspace --entrypoint sh "$IMAGE" -c '
+      if ! command -v mysql >/dev/null 2>&1; then
+        apk add --no-cache mariadb-client >/dev/null 2>&1 \
+          || apk add --no-cache mysql-client >/dev/null 2>&1 || true
+      fi
+      if command -v mysql >/dev/null 2>&1; then
+        echo "[harness C2] mysql client OK: $(mysql --version 2>&1 | head -1)"
+      else
+        echo "[harness C2] WARN mysql client AUSENTE — RefreshDatabase/migrate:fresh vai envenenar o schema (sem reload do dump)"
+      fi
+      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
+    ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
   [ -z "$BLOCKER" ] && break
