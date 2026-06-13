@@ -94,6 +94,8 @@ class ServiceOrderItemService
             ? (float) $data['valor_total']
             : round($quantidade * $valorUnitario, 2);
 
+        // SUPERADMIN: Service não confia em session (defesa em profundidade) — cria com
+        // business_id explícito já validado contra a OS dona (Tier 0, ADR 0093).
         return ServiceOrderItem::withoutGlobalScopes()->create([
             'business_id'      => $businessId,
             'service_order_id' => $osId,
@@ -136,6 +138,8 @@ class ServiceOrderItemService
             throw new InvalidArgumentException('business_id obrigatório (Tier 0 ADR 0093)');
         }
 
+        // SUPERADMIN: Service não confia em session — filtro explícito por business_id
+        // + service_order_id antes de mexer estoque (Tier 0, ADR 0093).
         $itens = ServiceOrderItem::withoutGlobalScopes()
             ->where('service_order_id', $osId)
             ->where('business_id', $businessId)
@@ -147,6 +151,8 @@ class ServiceOrderItemService
         $baixados = 0;
 
         foreach ($itens as $item) {
+            // SUPERADMIN: Service sem session — resolve produto com business_id explícito
+            // pra impedir baixar estoque de catálogo de outro tenant (Tier 0, ADR 0093).
             $product = \App\Product::withoutGlobalScopes()
                 ->where('id', $item->product_id)
                 ->where('business_id', $businessId)
@@ -204,6 +210,8 @@ class ServiceOrderItemService
      */
     public function breakdownPorTipo(int $osId): array
     {
+        // SUPERADMIN: agregado controlado por service_order_id (OS já é business-scoped
+        // pelo caller) — Service não depende de session (Tier 0, ADR 0093).
         $rows = ServiceOrderItem::withoutGlobalScopes()
             ->where('service_order_id', $osId)
             ->whereNull('deleted_at')
@@ -233,6 +241,8 @@ class ServiceOrderItemService
             throw new InvalidArgumentException("tipo inválido: '{$tipo}'");
         }
 
+        // SUPERADMIN: filtro estrito por service_order_id (OS já é business-scoped pelo
+        // caller) — Service não depende de session (Tier 0, ADR 0093).
         return ServiceOrderItem::withoutGlobalScopes()
             ->where('service_order_id', $osId)
             ->where('tipo', $tipo)

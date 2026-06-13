@@ -85,7 +85,8 @@ class EnviarLinkAprovacaoWhatsappJob implements ShouldQueue
             return;
         }
 
-        // Load ServiceOrder sem global scope (job sem session — Tier 0 guard manual)
+        // SUPERADMIN: job de fila roda sem session — bypass do global scope com filtro
+        // explícito por business_id (Tier 0 guard manual, ADR 0093).
         $so = ServiceOrder::query()
             ->withoutGlobalScopes()
             ->where('id', $this->serviceOrderId)

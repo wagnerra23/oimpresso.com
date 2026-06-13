@@ -236,6 +236,8 @@ class ImportFirebirdMartinhoCommand extends Command
         $vehicleType = $this->normalizeVehicleType($ordem['vehicle_type'] ?? null);
 
         // Vehicle: localiza por placa+biz OU cria stub
+        // SUPERADMIN: import CLI roda sem session — bypass do global scope com filtro
+        // explícito por business_id alvo da migração legacy (Tier 0, ADR 0093).
         $vehicle = Vehicle::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('plate', $placa)
@@ -247,6 +249,8 @@ class ImportFirebirdMartinhoCommand extends Command
                     $this->line("  + (dry-run) Vehicle stub: placa={$placa} tipo={$vehicleType}");
                 }
             } else {
+                // SUPERADMIN: import CLI sem session — cria Vehicle com business_id
+                // explícito do alvo da migração legacy (Tier 0, ADR 0093).
                 $vehicle = Vehicle::withoutGlobalScopes()->create([
                     'business_id'  => $businessId,
                     'plate'        => $placa,
@@ -290,6 +294,8 @@ class ImportFirebirdMartinhoCommand extends Command
             &$itensCriados,
             $detail
         ) {
+            // SUPERADMIN: import CLI sem session — cria ServiceOrder com business_id
+            // explícito do alvo da migração legacy (Tier 0, ADR 0093).
             $os = ServiceOrder::withoutGlobalScopes()->create([
                 'business_id'        => $businessId,
                 'vehicle_id'         => $vehicle->id,
