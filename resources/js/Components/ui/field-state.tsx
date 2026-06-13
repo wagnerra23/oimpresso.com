@@ -5,7 +5,8 @@ import { cn } from "@/Lib/utils"
 
 /**
  * Estados de campo canon Onda F — completam o trio da A2 + obrigatório.
- * Substituem os `<p className="text-rose-600">` / `text-emerald-600` soltos.
+ * Substituem os `<p>` de erro/sucesso soltos com cor crua por tokens semânticos
+ * (text-destructive / text-success), anunciados por screen reader.
  */
 
 /** Erro de validação. role=alert (anunciado por screen reader). Não renderiza vazio. */
