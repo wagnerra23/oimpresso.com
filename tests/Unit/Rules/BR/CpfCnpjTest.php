@@ -63,7 +63,7 @@ class CpfCnpjTest extends TestCase
     {
         return [
             'cpf-puro-digitos' => ['11144477735'],
-            'cpf-com-mascara' => ['111.444.777-35'],
+            'cpf-com-mascara' => ['111.444.777-35'], // pii-allowlist (vetor fake mod-11 do validador CpfCnpj, não PII real)
         ];
     }
 
@@ -71,7 +71,7 @@ class CpfCnpjTest extends TestCase
     {
         return [
             'cnpj-puro-digitos' => ['11444777000161'],
-            'cnpj-com-mascara' => ['11.444.777/0001-61'],
+            'cnpj-com-mascara' => ['11.444.777/0001-61'], // pii-allowlist (vetor fake mod-11 do validador CpfCnpj, não PII real)
         ];
     }
 
