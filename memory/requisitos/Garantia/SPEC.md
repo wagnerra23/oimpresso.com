@@ -2,26 +2,28 @@
 slug: garantia-spec
 module: Garantia
 type: spec
-status: discovery
+status: rascunho
 lifecycle: draft
 owner: [W]
+version: "1.0"
+last_updated: "2026-06-13"
 created_at: 2026-05-12
 updated_at: 2026-05-12
 authority: proposal
-related_adrs: [0143, 0129, 0093, 0094, 0104, 0105, 0106, 0121]
+related_adrs: [0143-fsm-pipeline-live-prod-marco-2026-05-12, 0129-state-machine-canonica-fsm-rbac, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho, 0105-cliente-como-sinal-guiar-sem-mandar, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0121-oimpresso-modular-especializado-por-vertical]
 related_modules: [OficinaAuto, Autopecas, Repair, ComunicacaoVisual, Vestuario, NfeBrasil, RecurringBilling, Financeiro]
 us_prefix: US-WARR
 pii: false
 ---
 
-# SPEC — Modules/Garantia (workflow cross-vertical)
+# SPEC — Garantia (planejado — não existe) (workflow cross-vertical)
 
 > **Status discovery 2026-05-12.** Esta SPEC é PROPOSTA. Wagner aprova → spawn implementador depois.
 > NÃO implementar código produção a partir deste doc — apenas leitura + revisão.
 
 ## §1 Visão
 
-**Modules/Garantia** é o módulo cross-vertical canônico do oimpresso que padroniza o workflow de garantia / warranty claim / RMA pra qualquer vertical (`OficinaAuto`, `Autopecas`, `Repair`, `ComunicacaoVisual`, futuras), integrando com:
+**Garantia (planejado — não existe)** é o módulo cross-vertical canônico do oimpresso que padroniza o workflow de garantia / warranty claim / RMA pra qualquer vertical (`OficinaAuto`, `Autopecas`, `Repair`, `ComunicacaoVisual`, futuras), integrando com:
 
 - **FSM canon LIVE** ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)) — pipeline `garantia_*` em cima do `ExecuteStageActionService`
 - **Multi-tenant Tier 0 IRREVOGÁVEL** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — `business_id` global scope em todas as 4 tabelas centrais + roles Spatie per-business
@@ -37,7 +39,7 @@ OficinaAuto+Autopecas+Repair já têm SPECs com tabelas `oficina_auto_garantias`
 - 3 implementações de "OS-filha sem cobrar cliente" — duplicação
 - ComVis, Vestuario, futuras verticais teriam que reinventar
 
-**Decisão recomendada (D1 ADR draft):** **schema único cross-vertical** `warranty_*` no `Modules/Garantia`, com `morphTo` pro item original (peça/serviço/banner/peça-eletrônica) e `parent_*_id` em cada vertical apontando OS-filha pra OS-pai.
+**Decisão recomendada (D1 ADR draft):** **schema único cross-vertical** `warranty_*` no `Garantia (planejado — não existe)`, com `morphTo` pro item original (peça/serviço/banner/peça-eletrônica) e `parent_*_id` em cada vertical apontando OS-filha pra OS-pai.
 
 ### Antecedentes nos SPECs existentes
 
@@ -47,7 +49,7 @@ OficinaAuto+Autopecas+Repair já têm SPECs com tabelas `oficina_auto_garantias`
 | `Autopecas/SPEC.md` US-AP-006 | `autopecas_garantias` com `tipo enum [loja/fabricante]`, fluxo RMA pendente→enviado→aprovado/rejeitado, `custo_loja_substituicao_pago` | Workflow RMA mais maduro que OficinaAuto → **virar referência** `warranty_reimbursements` |
 | `Repair/SPEC-FSM-WIREUP.md` §2.1 | Stage `garantia_acionada` terminal + action `acionar_garantia` (gerente) cria OS-filha via `parent_job_sheet_id` | Pipeline pioneiro → **manter mecânica** OS-filha (parent FK) |
 | `ComunicacaoVisual/SPEC.md` | NÃO menciona garantia (descoberto no discovery) | **GAP** — adicionar quando workflow estiver canônico (banner descolando = reimpressão) |
-| `Vestuario` | Não usa garantia (vestuário tem troca/devolução, não warranty) | Modules/Garantia é **opt-in per business** — Vestuario simplesmente não ativa |
+| `Vestuario` | Não usa garantia (vestuário tem troca/devolução, não warranty) | Garantia (planejado — não existe) é **opt-in per business** — Vestuario simplesmente não ativa |
 
 ## §2 Cenários de uso (Given/When/Then detalhados)
 
@@ -382,7 +384,7 @@ Refs base legal: [Portal Tributário — substituição em garantia](https://www
 |---|---|---|
 | **OficinaAuto** | Substitui `oa_garantias` por `warranty_claims_eligibility` (gerada no `concluir_producao` Sells FSM). Stage `garantia_acionada` legacy do OficinaAuto FSM **deprecado** — agora claim vive em FSM `warranty_standard` separado. OS-filha continua sendo `service_orders` com `os_pai_id` apontando OS-pai. | `claim.os_filha_id = nova_service_orders.id` |
 | **Autopecas** | Snapshot eligibility no `boleto_pago` venda balcão. Workflow troca-balcão (cenário B) NÃO cria OS-filha — apenas movimentação estoque. | `claim.os_filha_id NULL`, registra em `warranty_resolutions.tipo_resolucao=troca_balcao` |
-| **Repair** | Snapshot no `entregue_completo`. Action legacy `acionar_garantia` (SPEC-FSM-WIREUP §2.2) **redireciona pra Modules/Garantia** — não cria OS-filha direto, cria claim primeiro. | `claim.repair_job_sheet_filha_id = nova_repair_job_sheets.id` |
+| **Repair** | Snapshot no `entregue_completo`. Action legacy `acionar_garantia` (SPEC-FSM-WIREUP §2.2) **redireciona pra Garantia (planejado — não existe)** — não cria OS-filha direto, cria claim primeiro. | `claim.repair_job_sheet_filha_id = nova_repair_job_sheets.id` |
 | **ComVis** | Snapshot no fechamento OS impressão. Reinstalação = OS-filha em Modules/ComunicacaoVisual (a definir) ou Modules/Repair adaptado. | `claim.os_filha_id` apontando JobSheet ComVis |
 | **Vestuario** | NÃO ativa (troca/devolução tem fluxo próprio Modules/Vestuario futuro — não warranty) | N/A |
 | **NfeBrasil** | Emite NFe substituição CFOP 5.949 + entrada CFOP 1.949 quando aplicável. Hook em `MarcarTransactionHadClaim` listener. | — |
@@ -390,6 +392,10 @@ Refs base legal: [Portal Tributário — substituição em garantia](https://www
 | **RecurringBilling/Asaas** | NÃO afeta cobrança original (garantia ≠ estorno). | — |
 | **Whatsapp** | Notificações cliente (claim aberto, aprovado, rejeitado, concluído) + opt-in LGPD (ADR 0143 §LGPD). | — |
 | **Jana** | V4: visão computacional foto-laudo (`AnalisarFotoIa` job) detecta mau uso. V3: tool `buscar_garantias_ativas` MCP pra atendente perguntar via chat. | — |
+
+## US ativas
+
+> Backlog de user stories deste SPEC (convenção `US-WARR-NNN`). Detalhamento completo, fases e estimates na seção §8 abaixo.
 
 ## §8 Lista de US (US-WARR-001..020)
 

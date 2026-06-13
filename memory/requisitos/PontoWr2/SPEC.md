@@ -1,8 +1,8 @@
 ---
 module: PontoWr2
-owner: wagner
 version: "1.0"
 last_updated: "2026-06-13"
+owner: wagner
 ---
 
 # Especificação funcional
@@ -22,7 +22,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Aprovacao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -44,7 +44,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Banco Horas  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -66,7 +66,7 @@ last_updated: "2026-06-13"
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -88,7 +88,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Colaborador  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -110,7 +110,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Configuracao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -132,7 +132,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Core  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -154,7 +154,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Espelho  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -176,7 +176,7 @@ last_updated: "2026-06-13"
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -198,7 +198,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Importacao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -220,7 +220,7 @@ last_updated: "2026-06-13"
 **Quero** criar um novo item em Importacao  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -242,7 +242,7 @@ last_updated: "2026-06-13"
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -264,7 +264,7 @@ last_updated: "2026-06-13"
 **Quero** ver o conjunto de Relatorio  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _pendente_ — tela não construída (sem arquivo .tsx no repo)
+**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -290,7 +290,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/MultiTenantIsolationTest` (teste real — valida 10 rotas com scope + isolamento cross-business + session)
+**Testado em:** `Modules/Ponto/Tests/Feature/MultiTenantIsolationTest` (teste real — valida 10 rotas com scope + isolamento cross-business + session)
 
 ### R-PONT-002 · Autorização Spatie `ponto.access`
 
@@ -301,7 +301,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.access')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
+**Testado em:** `Modules/Ponto/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-003 · Autorização Spatie `ponto.colaboradores.manage`
 
@@ -312,7 +312,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.colaboradores.manage')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
+**Testado em:** `Modules/Ponto/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-004 · Autorização Spatie `ponto.aprovacoes.manage`
 
@@ -323,7 +323,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.aprovacoes.manage')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
+**Testado em:** `Modules/Ponto/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-005 · Autorização Spatie `ponto.relatorios.view`
 
@@ -334,7 +334,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.relatorios.view')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
+**Testado em:** `Modules/Ponto/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
 
 ### R-PONT-006 · Autorização Spatie `ponto.configuracoes.manage`
 
@@ -345,4 +345,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('ponto.configuracoes.manage')`  
-**Testado em:** `Modules/PontoWr2/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)
+**Testado em:** `Modules/Ponto/Tests/Feature/SpatiePermissionsTest` (real — 10 testes, 15 assertions, valida ambas direções: sem permissão bloqueia, com permissão passa)

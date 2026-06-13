@@ -1,8 +1,8 @@
 ---
 module: NfeBrasil
-owner: wagner
 version: "1.0"
 last_updated: "2026-06-13"
+owner: wagner
 na_justified:
   D7.a: "Fiscal compliance CONFAZ SINIEF 07/2005 — CPF/CNPJ em logs SEFAZ obrigatórios. PiiRedactor NÃO aplica em dados fiscais (XML original preservado). Detalhe em PII-LGPD-FISCAL.md."
 ---
@@ -60,7 +60,7 @@ na_justified:
 **Quero** clicar "Finalizar venda" no POS e o sistema emitir NFC-e em background, retornar DANFE imprimível em até 5s
 **Para** atender exigência fiscal sem fricção no balcão
 
-**Implementado em:** _pendente_ — integração `/sells/create` finalizar + tela `Pages/NfeBrasil/Emissao/Sucesso.tsx` não construída
+**Implementado em:** _[TODO — integração `/sells/create` finalizar + `resources/js/Pages/NfeBrasil/Emissao/Sucesso.tsx`]_
 
 **Definition of Done:**
 - [ ] Listener escuta `App\Events\TransactionCompleted` (core) → dispatch job `EmitirNfceJob` na queue `nfe`
@@ -82,7 +82,7 @@ na_justified:
 **Quero** abrir nota emitida pela chave/número e baixar DANFE + XML
 **Para** reimprimir, enviar pra cliente, anexar em e-mail
 
-**Implementado em:** _pendente_ — tela `Pages/NfeBrasil/Emissoes/Show.tsx` não construída
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx`]_
 
 **Definition of Done:**
 - [ ] Mostra: chave acesso (44 dígitos formatado em 11 grupos), número, série, data emissão, valor, cStat, link DANFE PDF, link XML
@@ -101,7 +101,7 @@ na_justified:
 **Quero** cancelar uma NFC-e em até 24h ou NF-e em até 168h informando justificativa (15-255 chars)
 **Para** corrigir venda errada sem deixar rastro errado pra Receita
 
-**Implementado em:** _pendente_ — tela `Pages/NfeBrasil/Emissoes/Show.tsx` (botão Cancelar) não construída
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão Cancelar)]_
 
 **Definition of Done:**
 - [ ] Valida prazo legal antes de chamar SEFAZ (NFC-e: 24h; NF-e: 168h)
@@ -122,7 +122,7 @@ na_justified:
 **Quero** enviar CCe pra corrigir erro não-monetário (ex: nome do destinatário errado, transportadora) sem cancelar e re-emitir
 **Para** evitar custo de re-emissão e manter histórico
 
-**Implementado em:** _pendente_ — tela `Pages/NfeBrasil/Emissoes/Show.tsx` (botão CCe) não construída
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão CCe)]_
 
 **Definition of Done:**
 - [ ] Valida limite legal: máximo 20 CCe por NFe; correção 15-1000 chars; não permite mudar valor/quantidade/CNPJ
@@ -141,7 +141,7 @@ na_justified:
 **Quero** ativar contingência (EPEC pra NF-e, FS-DA pra NFC-e) e seguir vendendo offline
 **Para** não parar caixa quando SEFAZ está com problema
 
-**Implementado em:** _pendente_ — tela `Pages/NfeBrasil/Contingencia/Index.tsx` não construída
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Contingencia/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] Detecção automática: `SefazHealthCheck` ping a cada 30s → se 3 falhas seguidas, sugerir contingência
@@ -162,7 +162,7 @@ na_justified:
 **Quero** dashboard com KPIs (autorizadas hoje, rejeitadas, contingência ativa, cert vencendo) + lista de rejeições com cStat + sugestão de correção
 **Para** atacar rejeições antes de o cliente perceber
 
-**Implementado em:** _pendente_ — tela `Pages/NfeBrasil/Monitor/Index.tsx` não construída
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Monitor/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] KPIs: autorizadas (hoje/semana/mês), rejeitadas, em contingência, cert dias restantes
@@ -183,7 +183,7 @@ na_justified:
 **Quero** manifestar NFe recebida (Confirmação / Ciência / Desconhecimento / Operação não realizada)
 **Para** atender obrigação legal e gerar apropriação correta no DRE
 
-**Implementado em:** `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` · verificado@fd96258 (2026-06-13)
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] Lista NFes destinadas (consulta `WS-NFeDistribuicaoDFe` periódica) com status manifestação
@@ -202,7 +202,7 @@ na_justified:
 **Quero** baixar arquivo SPED Fiscal pronto pra ECF do mês de competência
 **Para** entregar obrigação contábil sem ligar pra Larissa
 
-**Implementado em:** _pendente_ — tela `Pages/NfeBrasil/Sped/Index.tsx` não construída
+**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Sped/Index.tsx`]_
 
 **Definition of Done:**
 - [ ] Geração assíncrona via job (volume grande); progresso via broadcast
@@ -725,7 +725,7 @@ Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo 
 Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª NFC-e real cstat 100"). Pipeline US-NFE-002 server-side já fechado em main; biz=1 (WR2 Sistemas, Tubarão/SC) já está armada — confirmado via SSH 2026-05-09:
 
 **Estado pré-validado (não tocar):**
-- `business.cnpj`=11.222.333/0001-81, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0 <!-- pii-allowlist: CNPJ fake canônico de fixture, não é PII real -->
+- `business.cnpj`=36.613.150/0001-18, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0 <!-- pii-allowlist: fixture biz=1 WR2 Sistemas (própria empresa Wagner, ADR 0101 biz=1 nunca cliente) — homologação SEFAZ-SC -->
 - `nfe_certificados.ativo`=1, `valido_ate`=2026-08-06
 - `nfe_business_configs`: `regime`=simples, `cfop`=5102, `csosn`=102, `auto_emission_enabled`=1
 - `.env` Hostinger: `NFEBRASIL_AUTO_EMISSION_NFCE=true`
@@ -906,7 +906,7 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 
 **Candidatos naturais:**
 1. **Gold** (Comunicação Visual) — pós Manifestação Destinatário entregue (US-NFE-049/050/051/052 já done). Gold é gráfica grande, emite 100%.
-2. **Vargas** (Autopecas) — sinal qualificado real (R$ [redacted Tier 0]M GMV), mas Modules/Autopecas ainda em construção.
+2. **Vargas** (Autopecas) — sinal qualificado real (R$ [redacted Tier 0]M GMV), mas o módulo Autopecas (planejado — não existe) ainda não foi construído.
 3. **Modules/ComunicacaoVisual cliente novo** — qualquer um das 5 cartas warming (Extreme/Zoom/Fixar/Mhundo/Produart) que adotar oimpresso pós outreach.
 
 **Acceptance criteria (smoke fim-a-fim):**

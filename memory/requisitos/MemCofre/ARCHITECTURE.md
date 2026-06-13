@@ -5,7 +5,7 @@
 - **Backend**: Laravel 13.6 · PHP 8.4 (Herd em dev, hospedagem Hostinger em produção)
 - **Banco**: MySQL 8 (Herd MySQL local / Hostinger shared em produção)
 - **Front**: Inertia + React 19 + Tailwind 4 + shadcn/ui
-- **Padrão do módulo**: UltimatePOS via `nwidart/laravel-modules` (igual `Modules/PontoWr2`, `Modules/Officeimpresso`)
+- **Padrão do módulo**: UltimatePOS via `nwidart/laravel-modules` (igual `Modules/Ponto`, `Modules/Officeimpresso`)
 - **Ativação**: `MemCofre: true` em `modules_statuses.json`
 - **Scout driver**: `database` com fulltext MySQL (evita Meilisearch dedicado na Fase 4)
 

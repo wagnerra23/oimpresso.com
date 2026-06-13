@@ -78,7 +78,7 @@ adr_ref: ../../decisions/proposals/drafts/inventory-avancado-kits-batch-dimensio
 | **NetSuite** | ✅ Multi-level assembly | ✅ Lot+serial+bin numbered | ✅ Avançado | ✅ Subledger | ✅ Configurável | ⚠️ Add-on | USD 1k+/mês |
 | **Cin7 Core** | ✅ BOM + auto-kitting | ✅ Batch+serial+recall | ✅ Multi-unit | ✅ Real-time | ✅ Configurável | ✅✅ 700+ integrations | USD 350+/mês |
 | **Odoo Inventory** | ✅ BOM + approval | ✅ Lots+serial+traceability reports | ✅ Multi-unit | ✅ Forte | ✅ FEFO config | ✅ Add-on | EUR 0–24/usr |
-| **oimpresso (proposto V1)** | ✅✅ Multi-level + opcional + substituição | ✅ Lote+serial+defeito+RMA + cor-Pantone | ✅ + custo per unit + alerta % | ✅✅ Append-only triggers SQL | ✅ Per business + per produto override | ✅ Hook ready (Modules/Marketplaces) | R$ ?–? (pricing per ADR 0105) |
+| **oimpresso (proposto V1)** | ✅✅ Multi-level + opcional + substituição | ✅ Lote+serial+defeito+RMA + cor-Pantone | ✅ + custo per unit + alerta % | ✅✅ Append-only triggers SQL | ✅ Per business + per produto override | ✅ Hook ready (módulo Marketplaces planejado — não existe) | R$ ?–? (pricing per ADR 0105) |
 
 **Insight chave:** oimpresso Inventory V1 atinge **paridade SAP B1 / Cin7 Core em capacidades core**, supera Tiny/Bling em multi-level + audit + FEFO, e adiciona **2 features diferenciadas**: (a) cor-Pantone-per-lote ComVis, (b) lookup garantia fornecedor automático AutoPeças. Preço-alvo: 1/5 SAP B1 + paridade Bling Plus.
 
