@@ -9,6 +9,8 @@ use Carbon\CarbonImmutable;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
 /**
  * Pest GUARDs — GET /settings/payment-gateways/{id}/quota (Onda 4e gap #3).
  *
