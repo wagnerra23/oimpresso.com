@@ -55,14 +55,14 @@ function pmgBootstrapUser(): User
 function pmgGivePerm(User $user): void
 {
     Permission::firstOrCreate(['name' => 'copiloto.mcp.usage.all', 'guard_name' => 'web']);
-    if (! $user->hasPermissionTo('jana.mcp.usage.all')) {
+    if (! $user->hasPermissionTo('copiloto.mcp.usage.all')) {
         $user->givePermissionTo('copiloto.mcp.usage.all');
     }
 }
 
 function pmgRevokePerm(User $user): void
 {
-    if ($user->hasPermissionTo('jana.mcp.usage.all')) {
+    if ($user->hasPermissionTo('copiloto.mcp.usage.all')) {
         $user->revokePermissionTo('copiloto.mcp.usage.all');
     }
 }
