@@ -126,9 +126,14 @@ class OtelHelper
      */
     public static function spanBiz(string $name, callable $callback, array $extras = [])
     {
-        $bizId = session()->get('user.business_id')
-            ?? optional(auth()->user())->business_id
-            ?? 0;
+        // session() não existe em CLI, queue workers e Unit tests sem TestCase.
+        // try/catch evita "Target class [session] does not exist" nesses contextos.
+        try {
+            $bizId = session()->get('user.business_id');
+        } catch (\Throwable) {
+            $bizId = null;
+        }
+        $bizId ??= optional(auth()->user())->business_id ?? 0;
 
         // Convenção ResourceAttributes canon (config/otel.php): `oimpresso.tenant_id`.
         // Mantém também `business_id` legacy pra compat com call-sites antigos US-WA-083.
