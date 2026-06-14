@@ -248,8 +248,11 @@ final class WhatsmeowReconciler
      */
     public function resolveChannelByUserName(int $businessId, string $userName): ?Channel
     {
+        // Fluxo de webhook do daemon WuzAPI, que chega sem session de tenant —
+        // $businessId é resolvido pelo middleware e passado explícito; o
+        // where('business_id') abaixo garante isolamento Tier 0.
         return Channel::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: webhook sem session, escopado por business_id explícito (ADR 0093)
             ->where('business_id', $businessId)
             ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
             ->get()
@@ -269,8 +272,11 @@ final class WhatsmeowReconciler
      */
     public function resolveChannelForPendingPair(int $businessId): ?Channel
     {
+        // Fallback de webhook do daemon WuzAPI sem session de tenant — $businessId
+        // vem do middleware; where('business_id') mantém isolamento Tier 0 (nunca
+        // atravessa fronteira business).
         return Channel::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: webhook sem session, escopado por business_id explícito (ADR 0093)
             ->where('business_id', $businessId)
             ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
             ->whereIn('status', ['setup', 'disconnected'])

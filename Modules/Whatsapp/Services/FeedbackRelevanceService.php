@@ -165,7 +165,9 @@ class FeedbackRelevanceService
         if (! $fb->contact_id) {
             return false;
         }
-        // withoutGlobalScopes pra resilir scope quando rescore via cli sem session
+        // SUPERADMIN: rescore roda via CLI (feedback:reindex) sem session — resolve
+        // o Contact vinculado (FK do próprio feedback, mesmo business) pra checar se
+        // é cliente pagante. Sem leak: lookup por contact_id do feedback. ADR 0093.
         $contact = Contact::withoutGlobalScopes()->find($fb->contact_id);
         if (! $contact) {
             return false;

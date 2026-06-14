@@ -49,7 +49,7 @@ class FeedbackIndexGenerator
         $businesses = $businessId
             ? collect([$businessId])
             : ClientFeedback::query()
-                ->withoutGlobalScopes()
+                ->withoutGlobalScopes() // SUPERADMIN: CLI feedback:reindex sem session, enumera businesses pro índice de memória (ADR 0093)
                 ->select('business_id')
                 ->distinct()
                 ->orderBy('business_id')
@@ -60,7 +60,7 @@ class FeedbackIndexGenerator
 
         foreach ($businesses as $bizId) {
             $hot = ClientFeedback::query()
-                ->withoutGlobalScopes()
+                ->withoutGlobalScopes() // SUPERADMIN: CLI feedback:reindex sem session, escopado por business_id explícito (ADR 0093)
                 ->where('business_id', $bizId)
                 ->whereNull('deleted_at')
                 ->hot()
@@ -69,7 +69,7 @@ class FeedbackIndexGenerator
                 ->get();
 
             $active = ClientFeedback::query()
-                ->withoutGlobalScopes()
+                ->withoutGlobalScopes() // SUPERADMIN: CLI feedback:reindex sem session, escopado por business_id explícito (ADR 0093)
                 ->where('business_id', $bizId)
                 ->whereNull('deleted_at')
                 ->whereNotIn('status', [
@@ -163,7 +163,7 @@ class FeedbackIndexGenerator
 
         // Agrupa por (business, persona, modulo) os COLD
         $colds = ClientFeedback::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: CLI feedback:reindex sem session, digest COLD agregado por business_id (ADR 0093)
             ->whereBetween('created_at', [$qStart, $qEnd])
             ->cold()
             ->whereNull('deleted_at')
@@ -215,7 +215,7 @@ class FeedbackIndexGenerator
         $stats = ['processed' => 0, 'rescored' => 0, 'skipped' => 0];
 
         $query = ClientFeedback::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: CLI feedback:reindex sem session, rescore cross-business (filtro business_id opcional abaixo) (ADR 0093)
             ->whereNull('deleted_at');
 
         if ($businessId) {
@@ -248,7 +248,7 @@ class FeedbackIndexGenerator
     protected function emergentPatterns(int $businessId)
     {
         return ClientFeedback::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: CLI feedback:reindex sem session, escopado por business_id explícito (ADR 0093)
             ->where('business_id', $businessId)
             ->whereNotNull('signature')
             ->whereNull('deleted_at')
