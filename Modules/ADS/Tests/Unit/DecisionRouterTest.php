@@ -9,6 +9,8 @@ use Modules\ADS\Services\ConfidenceEngine;
 use Modules\ADS\Services\RoutingInput;
 use Modules\ADS\Services\RoutingDecision;
 
+uses(Tests\TestCase::class);
+
 // ARQ-0003 + ARQ-0010 — DecisionRouter: roteamento + hierarquia
 // Testes sem DB: substitui DecisionRouter por subclasse que não grava no banco
 
