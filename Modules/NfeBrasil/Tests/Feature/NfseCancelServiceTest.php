@@ -9,7 +9,7 @@ use Modules\NfeBrasil\Models\NfseEmissao;
 use Modules\NfeBrasil\Models\NfseEventoCancelamento;
 use Modules\NfeBrasil\Services\NfseCancelService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-NFSE-CANCEL-001 — NfseCancelService (Manager pattern + driver registry).

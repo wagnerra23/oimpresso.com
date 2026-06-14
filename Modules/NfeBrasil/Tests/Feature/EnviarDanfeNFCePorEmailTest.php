@@ -14,7 +14,7 @@ use Modules\NfeBrasil\Mail\DanfeNotaFiscalMail;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\DanfeService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-NFE-002 fase 2B · Listener EnviarDanfeNFCePorEmail.
