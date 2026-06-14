@@ -391,18 +391,21 @@ Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-posit
 
 ### US-GOV-020 · Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: review · type: story
 > blocked_by: —
 
-**Root cause PROVADO** (repro byte-level CT100, run `20260613-100035` floor 1870). O verdadeiro lever do floor, sucede A.1/A.2 (US-GOV-018). Fix em **#2657**.
+**Root cause PROVADO** (repro byte-level CT100, run `20260613-100035`). O `migrate:fresh` do RefreshDatabase carrega `database/schema/mysql-schema.sql`, cujos triggers têm **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
 
-## Mecanismo
-O `migrate:fresh` do RefreshDatabase roda "Loading stored database schemas" (A.1 destravou o CLI), mas o **load do dump FALHA em 188/364 tabelas**: `database/schema/mysql-schema.sql` tem triggers com **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
+## Fix (188→377 tabelas, 0→4 triggers)
+`ct100-fullsuite.sh` passo 3 (root): `SET GLOBAL log_bin_trust_function_creators=1` + `GRANT SET_USER_ID ON *.* TO <fullsuite>`. Provado isolado no CT100.
 
-## Fix PROVADO (188→377 tabelas, 0→4 triggers) — #2657
-`ct100-fullsuite.sh` passo 3 (root): `SET GLOBAL log_bin_trust_function_creators=1` + `GRANT SET_USER_ID ON *.* TO <fullsuite>`.
+## Por que re-landar (decisão Wagner 2026-06-14)
+O #2657 (grants + revert A.2) foi **fechado sem merge** quando se concluiu que Frente C "não é o lever" — o floor **não caiu** (1870→1928, run `20260613-115507`). **Mas o grant segue necessário**: sem ele o floor **não é reproduzível de clone limpo** (triggers DEFINER de prod + binlog ON abortam o `migrate:fresh`). Re-landado **nesta PR** sobre `origin/main` atual (cherry-pick de `98259e50f` + `7371db9ea`).
 
-## A.2 (FK-off) reavaliar
-Com o schema completo recarregando, reavaliar se `FULLSUITE_FK_OFF` ainda ajuda ou vira redundante — medir com/sem no re-run.
+## A.2 (FULLSUITE_FK_OFF) — REVERTIDO (resolvido)
+Reavaliação concluída: A.2 é **net-harmful** (run `20260613-115507`, floor 1928). O FK-off deixava ~30 testes era-sqlite **dropar tabela CORE compartilhada com sucesso** → cascata `Base table not found`. **DECISÃO: não ligar FK-off** — deixar o drop falhar-seguro (3730 só no teste ofensor; a tabela CORE sobrevive pro resto da suíte). Esta PR remove o `-e FULLSUITE_FK_OFF=1` do passo 6 (o bloco gated em `getenv` no `Tests\TestCase::setUp` fica inerte; reversível).
 
-Ref: floor `20260613-100035` · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 · #2640.
+## Lever real do floor
+**Não é harness** — é o isolamento dos ~19-30 testes "era-sqlite" que dropam tabela CORE numa base MySQL persistente compartilhada. Tratado em **US-GOV-021** (front-2). Frente C só torna o nightly **reproduzível**; não baixa o floor sozinha.
+
+Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 (closed) · #2640 (A.1/A.2 origem) · US-GOV-021.
