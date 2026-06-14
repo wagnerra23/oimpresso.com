@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 uses(Tests\TestCase::class);
 
+beforeEach(function () {
+    if (! is_dir(base_path('public/cowork-preview'))) {
+        test()->skip('legacy-quarantine: public/cowork-preview/ não existe neste env — arquivos removidos pós-Inertia F3');
+    }
+});
+
 /**
  * Mock Onda Comments + Audit DB — Bridges + Endpoints (Wagner 2026-05-18)
  *
