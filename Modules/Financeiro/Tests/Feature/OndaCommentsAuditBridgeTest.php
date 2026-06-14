@@ -82,7 +82,7 @@ describe('Mock Onda Comments DB — Bridge comments (estrutural)', function () {
         $src = file_get_contents(FIN_BRIDGE_COMMENTS);
         expect($src)->toContain('__OIMPRESSO_COMMENTS_DB__');
     });
-});
+})->skip('legacy-quarantine: _oimpresso-bridge-comments.js removido pós-Inertia F3 (snapshot superseded). Backend/HTTP describes seguem vivos.');
 
 describe('Mock Onda Audit DB — Bridge audit (estrutural)', function () {
     it('arquivo _oimpresso-bridge-audit.js existe', function () {
@@ -114,7 +114,7 @@ describe('Mock Onda Audit DB — Bridge audit (estrutural)', function () {
         expect($src)->toContain('__OIMPRESSO_AUDIT_DB__');
         expect($src)->toContain("'oimpresso:fin-audit-loaded'");
     });
-});
+})->skip('legacy-quarantine: _oimpresso-bridge-audit.js removido pós-Inertia F3 (snapshot superseded). Backend/HTTP describes seguem vivos.');
 
 describe('Mock Onda Comments + Audit — JSX dispatch events (modificações mínimas)', function () {
     it('financeiro-curation.jsx FinCommentsThread dispatch oimpresso:fin-comment-add', function () {
@@ -139,7 +139,7 @@ describe('Mock Onda Comments + Audit — JSX dispatch events (modificações mí
         // Nenhuma chamada fetch direta dentro do JSX (bridge faz isso)
         expect($src)->not->toContain('fetch(');
     });
-});
+})->skip('legacy-quarantine: financeiro-curation.jsx/financeiro-app.jsx Cowork removidos pós-Inertia F3 (snapshot superseded). Backend/HTTP describes seguem vivos.');
 
 describe('Mock Onda Comments + Audit — Backend Laravel (endpoints)', function () {
     it('UnificadoController tem 3 métodos novos: comments + addComment + auditTrail', function () {

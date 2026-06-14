@@ -10,6 +10,14 @@ use Modules\Whatsapp\Http\Requests\BusinessSettingsRequest;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    // QUARENTENA (snapshot superseded): a validação de driver/LGPD/fallback migrou
+    // de BusinessSettingsRequest (hoje stub — US-WA-067 + ADR 0135) para
+    // ChannelRequest::withValidator() com contrato incompatível (config.* nesting,
+    // type=whatsapp_zapi/baileys/whatsmeow, lgpd via required_if/accepted_if). As
+    // chaves bypass_business_ids / forbidden_drivers não existem mais.
+    // Cobertura viva: ChannelRequestUniqueIdentifierTest.
+    test()->markTestSkipped('Superseded por ADR 0135 — validação de drivers migrou p/ ChannelRequest; BusinessSettingsRequest é stub (US-WA-067).');
+
     // Reset bypass list — testes Tier 0 dependem de default vazio (gate ativo).
     // Testes de bypass setam [1] explicitamente.
     config()->set('whatsapp.fallback.bypass_business_ids', []);
