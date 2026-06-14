@@ -39,7 +39,7 @@ function payload(array $overrides = []): NfseEmissaoPayload
         rpsNumero: $overrides['rpsNumero'] ?? '000001',
         competencia: $overrides['competencia'] ?? Carbon::create(2026, 5, 1),
         tomadorNome: 'ROTA LIVRE LTDA',
-        tomadorCnpj: '12.345.678/0001-90',
+        tomadorCnpj: '12.345.678/0001-90', // pii-allowlist: fake CNPJ fixture de teste NFSe
         tomadorCpf: null,
         tomadorEmail: 'fiscal@rotalivrepress.com.br',
         descricao: 'Licença mensal sistema ERP',
@@ -112,7 +112,7 @@ it('retorna nota existente quando idempotency_key já existe com status emitida'
         'serie'           => 'RPS',
         'competencia'     => '2026-05-01',
         'tomador_nome'    => 'ROTA LIVRE LTDA',
-        'tomador_cnpj'    => '12.345.678/0001-90',
+        'tomador_cnpj'    => '12.345.678/0001-90', // pii-allowlist: fake CNPJ fixture de teste NFSe
         'descricao'       => 'Licença mensal sistema ERP',
         'valor_servicos'  => 1500.00,
         'valor_iss'       => 30.00,
