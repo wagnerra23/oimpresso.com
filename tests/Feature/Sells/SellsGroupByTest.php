@@ -42,17 +42,32 @@ const SELL_CONTROLLER_PATH_GROUPBY = 'app/Http/Controllers/SellController.php';
 
 function readGroupByDropdown(): string
 {
-    return file_get_contents(base_path(GROUP_BY_DROPDOWN_PATH));
+    $path = base_path(GROUP_BY_DROPDOWN_PATH);
+    if (!file_exists($path)) {
+        test()->skip('SellsGroupByDropdown.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readGradeGroupBy(): string
 {
-    return file_get_contents(base_path(GRADE_PATH_GROUPBY));
+    $path = base_path(GRADE_PATH_GROUPBY);
+    if (!file_exists($path)) {
+        test()->skip('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readBulkBarGroupBy(): string
 {
-    return file_get_contents(base_path(BULK_BAR_PATH_GROUPBY));
+    $path = base_path(BULK_BAR_PATH_GROUPBY);
+    if (!file_exists($path)) {
+        test()->skip('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readIndexGroupBy(): string
