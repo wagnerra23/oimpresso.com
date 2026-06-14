@@ -8,7 +8,7 @@ updated_at: 2026-05-12
 related: [SPEC.md, MATRIZ-ROI.md, garantia-cross-vertical-workflow]
 ---
 
-# ROADMAP — Modules/Garantia (cross-vertical workflow)
+# ROADMAP — Garantia (planejado — não existe) (cross-vertical workflow)
 
 > **Estimates ADR 0106** (10x IA-pair + 2x margem absoluta).
 > Wallclock humano-limitado (canary, smoke, cliente test) preserva relógio real.

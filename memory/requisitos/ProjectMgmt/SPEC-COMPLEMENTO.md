@@ -96,14 +96,14 @@ Atalhos teclado nível Linear pra trabalhar no Board sem mouse.
 ### US-PROJ-005 · Real-time presence via Centrifugo
 
 > owner: wagner · priority: p2 · estimate: 4-6h · status: backlog · type: feature
-> blocked_by: Modules/Copiloto Centrifugo SDK em prod
+> blocked_by: Modules/Jana Centrifugo SDK em prod
 
 Mostrar avatares de quem está com o Detail Sheet aberto na mesma task (ADR 0058).
 
 - [ ] CentrifugoPresenceService::publish(task_id, user_id) ao montar Detail Sheet
 - [ ] Frontend: `<PresenceAvatars taskId={...} />` componente — subscribe channel `task:{id}`
 - [ ] Cleanup: unmount → unsubscribe + Centrifugo expira presence em 30s
-- [ ] Pest: integração Centrifugo mockada (Modules/Copiloto/Centrifugo fixture)
+- [ ] Pest: integração Centrifugo mockada (Modules/Jana/Centrifugo fixture)
 
 **Refs**: ADR 0058 (Centrifugo > Reverb) · ADR 0062 (CT 100 runtime)
 

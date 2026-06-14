@@ -1,11 +1,16 @@
 ---
-modulo: ConsultaOs
-status: mock-only
-related_adrs: [0153, 0154, 0155]
+module: ConsultaOs
+version: "1.0"
+last_updated: "2026-06-13"
+status: rascunho
+owner: wagner
+related_adrs: [0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci]
 na_justified:
   D3.b: "ConsultaOs é módulo público de consulta OS (cliente final consulta status via número) — mock-only hoje. Migrar pra real (US-CONSULTA-001) está em backlog. BRIEFING.md prematuro até migração TODO."
   D6.a: "Portal público client-side state + fetch JSON API (não usa Inertia partial reload). Única `Inertia::render('ConsultaOs/Index')` retorna view sem props (página gerencia estado via React useState; busca via fetch('/consulta-os/buscar') retornando JsonResponse). Sem props paginadas/count()/with() eager — `Inertia::defer` inaplicável (análogo ao Connector REST API backend citado em ADR 0155 §188). Reavaliar após US-CONSULTA-001 (integrar Repair via Service read-only) caso payload passe a vir via Inertia props."
 ---
+
+<!-- schema-allowlist: US sob "## Roadmap (TODO migrar pra real)"; módulo mock-only/stub sem backlog ativo — as US-CONSULTA-NNN são itens de roadmap (migração futura pra real), não há "## User stories"/"## Backlog ativo" porque o módulo ainda não entrega valor de produto. Heading preservado pra não reestruturar o corpo. -->
 
 # SPEC — Modules/ConsultaOs
 

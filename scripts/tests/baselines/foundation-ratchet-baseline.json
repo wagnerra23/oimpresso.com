@@ -1,7 +1,7 @@
 {
   "generated_by": "scripts/tests/foundation-ratchet.mjs --write",
   "counters": {
-    "n_quarantine": 113,
+    "n_quarantine": 127,
     "n_refresh_database": 71,
     "n_business_first": 75
   }

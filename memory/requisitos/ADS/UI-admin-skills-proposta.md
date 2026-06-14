@@ -37,10 +37,10 @@
 │     Use ao trabalhar em Modules/ADS/...           hits 7d: 12    │
 │                                                                   │
 │  ✅ memoria-recall-flow       claude-code  copi     atualiz. 2d  │
-│     Use ao tocar Modules/Copiloto/Services/...    hits 7d: 8     │
+│     Use ao tocar Modules/Jana/Services/...    hits 7d: 8     │
 │                                                                   │
 │  ⚠️ copiloto-arch              claude-code  copi     drift 1d    │
-│     Use ao trabalhar em Modules/Copiloto/...      hits 7d: 23    │
+│     Use ao trabalhar em Modules/Jana/...      hits 7d: 23    │
 │     ↳ filesystem tem versão ≠ DB (rodar mcp:sync-skills)         │
 │                                                                   │
 │  ✅ criar-modulo               claude-code  infra    atualiz. 5d │

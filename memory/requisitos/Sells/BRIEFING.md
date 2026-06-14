@@ -27,7 +27,7 @@ Módulo de vendas — wrapper KB-9.75 sobre `Transaction(type='sell')` UltimateP
 ## Stack arquitetural
 
 - `app/Http/Controllers/SellController.php` — wrapper KB-9.75 + payload `/sells-list-json` expand items_list + fiscal (W2 PR #1510)
-- `Modules/Sells/` thin layer (rota + payload + service)
+- Sells (núcleo UltimatePOS, não é módulo) — thin layer (rota + payload + service)
 - `app/Transaction.php` model legacy UPOS — multi-tenant `business_id` global scope
 - Integração com `Modules/Repair`:
   - `JobSheetObserver@updated` auto-cria `Transaction(source='oficina')` em terminal transition

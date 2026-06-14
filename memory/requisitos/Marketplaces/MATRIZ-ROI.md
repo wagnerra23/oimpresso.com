@@ -7,7 +7,7 @@ related_proposal: ../../decisions/proposals/drafts/marketplaces-modulo-cross-ver
 last_review: 2026-05-12
 ---
 
-# MATRIZ-ROI Modules/Marketplaces — 25 features × score competitivo
+# MATRIZ-ROI Marketplaces (planejado — não existe) — 25 features × score competitivo
 
 > **Status:** antecipatório (status SPEC `feature-wish`). ROI calculado contra **Tiny ERP / Bling / Conta Azul / Olist / MagaluHub** ([SPEC §9](SPEC.md#9-concorrentes-research-consolidada-discovery)).
 >

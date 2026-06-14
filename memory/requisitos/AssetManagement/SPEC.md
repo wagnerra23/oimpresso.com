@@ -1,11 +1,16 @@
 ---
 module: AssetManagement
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 na_justified:
   D5: "Módulo legacy UltimatePOS de gestão de ativos (impressoras, máquinas, equipamentos). Cross-business interno — sem cliente externo pagante específico reportando dor. ADR 0121 §modular especializado legacy + ADR 0105 §cliente como sinal qualificado: módulo dormente sem sinal qualificado de cliente real ativo."
   D6.c: "Scaffold UltimatePOS v6 legacy — controllers usam DataTables server-side (yajra) com SQL determinístico simples, sem paginate Eloquent complexo nem eager-load com N+1 risk. Volume típico <2k assets/business — perf adequada sem otimização avançada."
   D9.b: "AssetManagement é módulo CRUD síncrono — sem jobs assíncronos Horizon. Operações de allocate/revoke/maintenance são single-shot via Controller. failed_jobs N/A por design."
-related_adrs: [0011, 0093, 0105, 0121, 0153, 0154, 0155, 0156]
+related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0, 0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified]
 ---
+<!-- schema-allowlist: US ativas sob "## Tabela de US" + backlog sob "## Backlog (feature wish...)"; SPEC legacy UltimatePOS usa heading "## Tabela de US" em vez do canônico "## US ativas". -->
 
 # SPEC — Modules/AssetManagement
 

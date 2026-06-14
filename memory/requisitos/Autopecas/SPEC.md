@@ -1,18 +1,20 @@
 ---
 module: Autopecas
-status: feature-wish
+version: "1.0"
+last_updated: "2026-06-13"
+status: rascunho
 lifecycle: aguarda-sinal-qualificado
-piloto: Vargas (candidato — sinal qualificado real, contrato pendente)
-piloto_previsao: depende de Vargas assinar pioneer Q4/26-Q1/27 (ADR 0105 enforcement)
-cnae_principal: "4530-7/03" (comércio a varejo de peças e acessórios novos para veículos automotores)
+piloto: "Vargas (candidato — sinal qualificado real, contrato pendente)"
+piloto_previsao: "depende de Vargas assinar pioneer Q4/26-Q1/27 (ADR 0105 enforcement)"
+cnae_principal: "4530-7/03 (comércio a varejo de peças e acessórios novos para veículos automotores)"
 cnae_secundarios: ["4530-7/01", "4530-7/02", "4530-7/04", "4530-7/05"]
-related_adrs: [0125, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0119]
+related_adrs: [0125-modules-autopecas-feature-wish, 0121-oimpresso-modular-especializado-por-vertical, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0, 0105-cliente-como-sinal-guiar-sem-mandar, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0035-stack-ai-canonica-wagner-2026-04-26, 0011-alinhamento-padrao-jana, 0089-capterra-driven-module-evolution, 0119-migration-factory-capacidade-institucional]
 related_proposals: []
 last_review: 2026-05-10
 owner: [W]
 ---
 
-# Especificação funcional — Modules/Autopecas
+# Especificação funcional — Autopecas (planejado — não existe)
 
 > Convenção do ID: `US-AP-NNN` para user stories, `R-AP-NNN` para regras Gherkin.
 > **Modulo NÃO existe em código.** Este SPEC é **antecipatório** — formaliza o contrato de construção SE/QUANDO Vargas (ou outro candidato autopeças saudável) assinar contrato pioneer ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) gatilho).
@@ -65,7 +67,9 @@ ERP vertical brasileiro pra **autopeças balcão SMB** (1-15 balconistas, 200-30
 
 **Conclusão:** Vargas é piloto realista. Roadmap deste SPEC é **CONDICIONAL** ao gatilho descrito em §9 (Vargas assina contrato).
 
-## 3. Capacidades core (User Stories)
+## 3. User Stories — Capacidades core
+
+> Backlog antecipatório (US-AP-*) — só ativa SE/QUANDO Vargas (ou candidato qualificado) assinar contrato pioneer (ADR 0105). Módulo não existe em código.
 
 Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima vs Auto Manager/Lokoz) · **P1** = competitivo vs líderes do nicho · **P2** = diferencial de longo prazo · **P3** = backlog/feature-wish.
 
@@ -437,7 +441,7 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 ### 6.1 Estrutura de diretórios (a criar SE/QUANDO ativado)
 
 ```
-Modules/Autopecas/           ← a criar (status: feature-wish até gatilho)
+Autopecas/                   ← a criar (planejado — não existe; status: feature-wish até gatilho)
 ├── Config/
 │   ├── config.php
 │   └── permissions.php       ← Spatie: autopecas.produto.*, autopecas.balcao.*, autopecas.devolucao.*, autopecas.garantia.*, autopecas.cotacao.*
@@ -522,7 +526,7 @@ Quando OficinaAuto ativar (sinal qualificado pendente), extrair:
 - `pecas` + `peca_aplicacoes` (chassis_ranges, ano, modelo, motor, montadora) → pacote shared `OimpressoCatalogPecas`
 - Ambos módulos consomem o pacote sem duplicação
 
-Por enquanto, Modules/Autopecas implementa standalone com tabelas `autopecas_produtos`, `autopecas_aplicacoes` — refactor pra shared quando OficinaAuto sinalizar piloto.
+Por enquanto, Autopecas (planejado — não existe) implementa standalone com tabelas `autopecas_produtos`, `autopecas_aplicacoes` — refactor pra shared quando OficinaAuto sinalizar piloto.
 
 ### 6.4 Schema essencial (resumo)
 
@@ -669,7 +673,7 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "Autopecas-ativ
 
 | Métrica | Baseline (M0 ativação) | M6 | M12 | Crítica |
 |---|---|---|---|---|
-| Clientes pagantes Modules/Autopecas | 1 (Vargas) | 2-3 | **5-10** | <3 = re-avaliar tese |
+| Clientes pagantes Autopecas (planejado — não existe) | 1 (Vargas) | 2-3 | **5-10** | <3 = re-avaliar tese |
 | ARR módulo (R$/ano) | R$ [redacted Tier 0]k (Vargas Enterprise) | R$ [redacted Tier 0]-54k | **R$ [redacted Tier 0]-180k** | <R$ [redacted Tier 0]k = pivotar |
 | US entregues (de 15 totais) | 7 (mínimo P0) | 10 (P0+P1) | **13** | <10 = stack mal calibrado |
 | Cases públicos clicáveis | 0 | 1 (Vargas) | **2** | (transparência radical) |
@@ -677,18 +681,18 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "Autopecas-ativ
 | Churn módulo | n/a | <5%/m | <8%/ano | (review trigger ADR 0121) |
 | NFC-e ágil p95 | <1500ms | <1000ms | <800ms | (ux competitivo balcão) |
 
-**Convergência [ADR 0022](../../decisions/0022-meta-5mi-ano-financeira.md):** Modules/Autopecas contribui R$ [redacted Tier 0]-180k ARR de R$ [redacted Tier 0]M total (1.8-3.6% no M12 pós-ativação). Multi-vertical é tese — autopeças é diversificação Vargas-driven, não substituição.
+**Convergência [ADR 0022](../../decisions/0022-meta-5mi-ano-financeira.md):** Autopecas (planejado — não existe) contribui R$ [redacted Tier 0]-180k ARR de R$ [redacted Tier 0]M total (1.8-3.6% no M12 pós-ativação). Multi-vertical é tese — autopeças é diversificação Vargas-driven, não substituição.
 
 ## 11. Anti-padrões — o que NÃO fazer
 
 1. ❌ **Construir SEM Vargas assinatura (ou 2º cliente qualificado)** — viola ADR 0105 explicitamente. Status `feature-wish` é proteção
 2. ❌ **Forçar Vargas a migrar** — princípio ADR 0105 "guiar sem mandar". Plano B mantém Vargas no OfficeImpresso se recusar
 3. ❌ **Copiar feature-set Auto Manager e cobrar 30% menos** — sem diferencial Jana + NFe-boleto + multi-tenant Tier 0, perde por base instalada
-4. ❌ **Hard-code vocabulário autopeças no núcleo UltimatePOS** — quebra ADR 0121 §P1. Tudo "aplicação/montadora/qualidade-peça" vai em `Modules/Autopecas/`
+4. ❌ **Hard-code vocabulário autopeças no núcleo UltimatePOS** — quebra ADR 0121 §P1. Tudo "aplicação/montadora/qualidade-peça" vai em `Autopecas` (planejado — não existe)
 5. ❌ **Esquecer `business_id` global scope em qualquer Model nova** — Tier 0 IRREVOGÁVEL (ADR 0093)
 6. ❌ **Implementar US-AP-011 (WhatsApp consulta) sem opt-in LGPD explícito** — mensagem comercial sem opt-in = TIM-style risco multa Anatel + LGPD Art. 7º
 7. ❌ **PII real (CPF/CNPJ cliente, placa) em PR/commit/log** — skill `commit-discipline` Tier A. `[REDACTED]` ou `PiiRedactor`
-8. ❌ **Fundir Modules/Autopecas com Modules/OficinaAuto** — persona/workflow/concorrência distintos. ADR 0125 §Alternativa B rejeitada
+8. ❌ **Fundir Autopecas (planejado — não existe) com Modules/OficinaAuto** — persona/workflow/concorrência distintos. ADR 0125 §Alternativa B rejeitada
 9. ❌ **Cobrar setup R$ [redacted Tier 0] de Vargas** — pioneer R$ [redacted Tier 0] Setup regular só pra clientes 3+ pós-piloto
 10. ❌ **Smoke test com `business_id=1`** (Wagner WR2) — ADR 0101 manda biz piloto Vargas
 11. ❌ **Migrar Vargas sem dry-run + Pattern 07** — banco Firebird Vargas pode ter quirks não-mapeados (triggers, procedures, customizações)
@@ -707,7 +711,7 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "Autopecas-ativ
 
 ## 13. Referências
 
-- ADR 0125 — Modules/Autopecas como feature-wish (mãe deste módulo)
+- ADR 0125 — Autopecas (planejado — não existe) como feature-wish (mãe deste módulo)
 - ADR 0121 — Modular especializado por vertical
 - ADR 0094 — Constituição v2 (princípios duros)
 - ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL

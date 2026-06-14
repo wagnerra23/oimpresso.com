@@ -66,6 +66,7 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
 
     public function handle(ReconciliarCobrancaService $reconciliador): void
     {
+        // SUPERADMIN: queue worker não tem session(); carrega o InterWebhookLog filtrando pelo business_id propagado no constructor (ADR 0093).
         $log = InterWebhookLog::withoutGlobalScopes()
             ->where('id', $this->interWebhookLogId)
             ->where('business_id', $this->businessId)
@@ -86,6 +87,7 @@ class ProcessarWebhookPixInterJob implements ShouldQueue
 
         try {
             // Resolve Cobranca pelo txid + credencial (mesmo gateway_external_id)
+            // SUPERADMIN: queue worker sem session(); resolve a Cobranca pelo business_id propagado no constructor.
             $cobranca = Cobranca::withoutGlobalScopes()
                 ->where('business_id', $this->businessId)
                 ->where('payment_gateway_credential_id', $log->payment_gateway_credential_id)

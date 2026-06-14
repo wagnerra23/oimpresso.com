@@ -3,9 +3,12 @@ slug: modules-auditoria-spec
 title: "Modules/Auditoria — SPEC"
 type: spec
 module: Auditoria
-status: accepted
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 authority: canonical
-related_adrs: [0093, 0094, 0127, 0153, 0154, 0156]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0127-modules-auditoria-undo-activity-log, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0156-module-grade-v3-errata-otel-helper-na-justified]
 na_justified:
   D5: "Governança transversal cross-tenant — módulo de audit log opera sobre todos businesses (activity_log reusado). Exceção formal ao Tier 0 multi-tenant ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) §SUPERADMIN exception + Constituição v2 Art. 6 [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md))."
 pii: false
@@ -39,6 +42,10 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 - Inertia v3 + React 19 (Pages padrão MWART, [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
 - Lib diff JSON: avaliar `react-diff-viewer-continued` na implementação (não decidido)
 
+## US ativas
+
+Backlog de user stories (US-AUDIT-*) organizado em 3 sub-sprints sequenciais.
+
 ## US Sprint 1 — Padronização Vestuario + Financeiro
 
 | ID | Descrição | Prio | Esforço (IA-pair) | Dep |
@@ -55,7 +62,7 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 | ID | Descrição | Prio | Esforço (IA-pair) | Dep |
 |---|---|---|---|---|
 | US-AUDIT-005 | Migration `2026_05_NN_add_causer_kind_and_revert_to_activity_log.php` — adiciona `causer_kind` ENUM, `agent_run_id` BIGINT NULL, `reverted_at` TIMESTAMP NULL, `reverted_by_user_id` BIGINT NULL, `revert_reason` VARCHAR(500) NULL + 2 índices compostos. Reversível. Smoke local: `php artisan migrate` + `migrate:rollback` | p0 | 1h | — |
-| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Copiloto/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
+| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Jana/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
 
 **Subtotal Sprint 2 — ~3h IA-pair**
 

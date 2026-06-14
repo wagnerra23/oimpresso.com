@@ -1,4 +1,4 @@
-# OBSERVABILITY — Modules/Sells
+# OBSERVABILITY — Sells (núcleo UltimatePOS, não é módulo)
 
 > Declaração canônica de pontos de hook OTel (D9.a Observability v3 — 2026-05-16).
 > Estratégia leve: documenta superfície de instrumentação SEM código novo. Quando SDK OTel full subir no CT 100 (`OTEL_FULL_SDK=true` — ver `config/otel.php`), services e use-cases serão envolvidos via decorator/middleware.

@@ -131,7 +131,7 @@ Então a exceção é documentada + referenciada na tabela "Exceções" do ADR U
 
 **Por quê**: consistência cross-módulo + velocidade de novo dev + facilita auditoria.
 
-**Testado em:** `Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest` (prova de conceito 2026-04-24). Check C16 futuro no `ModuleAuditor`: toda page em listagem importa de `@/Components/shared/`.
+**Testado em:** `Modules/Ponto/Tests/Feature/AprovacoesIndexTest` (prova de conceito 2026-04-24). Check C16 futuro no `ModuleAuditor`: toda page em listagem importa de `@/Components/shared/`.
 
 ### R-DS-009 · Telas core do ERP nascem dentro do Cockpit (AppShellV2)
 
