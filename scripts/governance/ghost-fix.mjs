@@ -7,8 +7,9 @@
 // Nome sem evidência fica em 'excluded' no map e NUNCA é tocado — vai pra fila humana.
 // Plano-mãe: memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md (§1 Classe A).
 //
-// ESCOPO HARDCODED: memory/requisitos/**/*.md — só a forma 'Modules/<Nome>' (mesma
-// token-boundary do knowledge-drift.mjs). Forma namespace 'Modules\<Nome>' fica fora do v1.
+// ESCOPO HARDCODED: memory/requisitos/**/*.md EXCETO **/adr/** (ADRs são append-only,
+// ADR 0094 Art.3 — um ADR de rename CITA o nome antigo como FATO). Só a forma 'Modules/<Nome>'
+// (mesma token-boundary do knowledge-drift.mjs). Forma namespace 'Modules\<Nome>' fica fora do v1.
 //
 // Uso:
 //   node scripts/governance/ghost-fix.mjs            # dry-run (default) — relatório, 0 writes
@@ -49,12 +50,17 @@ for (const [from, r] of Object.entries(renames)) {
 }
 
 // ── varre o escopo ───────────────────────────────────────────────────────────
+// ADRs são append-only (ADR 0094 Art.3): um ADR de rename CITA o nome antigo como FATO
+// (ex: memory/requisitos/MemCofre/adr/0008-rename-docvault-para-memcofre.md). O codemod
+// NUNCA pode reescrevê-lo — pula a subárvore adr/ inteira, em qualquer profundidade.
 function allMd(dir) {
   const out = [];
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, e.name);
-    if (e.isDirectory()) out.push(...allMd(p));
-    else if (e.name.endsWith('.md')) out.push(p);
+    if (e.isDirectory()) {
+      if (e.name === 'adr') continue; // hard-skip append-only — ver comentário acima
+      out.push(...allMd(p));
+    } else if (e.name.endsWith('.md')) out.push(p);
   }
   return out;
 }
@@ -105,7 +111,7 @@ const rows = [...perModule.entries()]
 
 const summary = {
   mode: WRITE ? 'WRITE' : 'DRY-RUN',
-  scope: 'memory/requisitos/**/*.md',
+  scope: 'memory/requisitos/**/*.md (exceto **/adr/** — append-only)',
   occurrences_mapped: totalMapped,
   occurrences_excluded_by_map: totalExcluded,
   occurrences_unknown: [...unknownGhosts.values()].reduce((a, b) => a + b, 0),
