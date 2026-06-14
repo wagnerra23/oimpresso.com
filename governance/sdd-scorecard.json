@@ -14,7 +14,7 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 2.8,
+      "value": 3.5,
       "unit": "%",
       "direction": "up",
       "target": 100,
@@ -22,11 +22,11 @@
       "detail": {
         "specs_total": 57,
         "specs_with_field": 15,
-        "us_total": 781,
+        "us_total": 799,
         "fields_total": 84,
-        "fields_placeholder": 50,
-        "fields_filled": 34,
-        "fields_anchored_strict": 22
+        "fields_placeholder": 45,
+        "fields_filled": 39,
+        "fields_anchored_strict": 28
       }
     },
     "full_suite_pass_rate": {
@@ -38,12 +38,15 @@
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)"
     },
     "n_quarantine": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 27,
+      "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
-      "source": "grep @group legacy-quarantine — grupo só passa a existir na quarentena FV-Q3",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)"
+      "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
+      "detail": {
+        "quarantined_files": 27
+      }
     },
     "coverage_pct": {
       "status": "not_yet_measured",
@@ -55,13 +58,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 27,
+      "value": 15,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 39
+        "citing_modules": 25
       }
     },
     "front_door_coverage": {
