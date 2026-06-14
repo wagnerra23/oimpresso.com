@@ -20,6 +20,17 @@ declare(strict_types=1);
  *
  * Refs: ADR 0093 (multi-tenant Tier 0), ADR 0143 (FSM Pipeline LIVE prod biz=1),
  *       FsmProcessoVendaComProducaoSeeder, SPEC US-SELL-023
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem `SellsGradeAvancada.tsx` (coluna Produção, `ProducaoStageBadge`) —
+ * componente DELETADO no refactor. file_get_contents num arquivo ausente falha.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * 🔴 Os it() de BACKEND (LEFT JOIN sale_process_stages) e o it() Tier-0
+ * (`inertiaList NÃO usa withoutGlobalScopes` — guard cross-tenant biz=99)
+ * PERMANECEM ATIVOS. Silenciar o guard withoutGlobalScopes violaria
+ * "multi-tenant Tier 0 IRREVOGÁVEL".
  */
 
 const SELL_CONTROLLER_PATH_023 = 'app/Http/Controllers/SellController.php';
@@ -69,7 +80,8 @@ it('SellsGradeAvancada declara mapping PRODUCAO_STAGE_LABEL com 11 stages canôn
     ] as $stage) {
         expect($src)->toContain("$stage:");
     }
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (coluna Produção/ProducaoStageBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada mapping de cores tem 7 estilos PT-BR canon (Aprovação/Em produção/Pronto/Faturada/Entregue/Cancelada/Em espera)', function () {
     $src = readGrade023();
@@ -80,13 +92,15 @@ it('SellsGradeAvancada mapping de cores tem 7 estilos PT-BR canon (Aprovação/E
     expect($src)->toContain("'Entregue'");
     expect($src)->toContain("'Cancelada'");
     expect($src)->toContain("'Em espera'");
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (coluna Produção/ProducaoStageBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada renderiza coluna "Produção" no thead (Grade only — Lista mode é enxuta)', function () {
     $src = readGrade023();
     // Coluna no thead
     expect($src)->toMatch('/<Th[^>]*>Produção<\\/Th>/');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (coluna Produção/ProducaoStageBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada componente ProducaoStageBadge existe + cobre stage_key NULL com "—" silencioso', function () {
     $src = readGrade023();
@@ -94,20 +108,23 @@ it('SellsGradeAvancada componente ProducaoStageBadge existe + cobre stage_key NU
     expect($src)->toContain('<ProducaoStageBadge');
     // Pattern fallback NULL: "if (!stageKey) return ... —"
     expect($src)->toMatch('/if\\s*\\(!stageKey\\)[\\s\\S]*?—/');
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (coluna Produção/ProducaoStageBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada in_production mapeia pra Em produção + cor âmbar', function () {
     $src = readGrade023();
     expect($src)->toMatch("/in_production:\\s*'Em produção'/");
     // Cor âmbar
     expect($src)->toMatch("/in_production:[\\s\\S]{0,200}?text-amber-700/");
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (coluna Produção/ProducaoStageBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada cancelled mapeia pra Cancelada + cor rose/destructive', function () {
     $src = readGrade023();
     expect($src)->toMatch("/cancelled:\\s*'Cancelada'/");
     expect($src)->toMatch("/cancelled:[\\s\\S]{0,200}?text-rose-700/");
-});
+    // quarantine-reason: SellsGradeAvancada.tsx deletado (coluna Produção/ProducaoStageBadge) (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Tier 0 multi-tenant — defesa simbólica ─────────────────────────────────
 

@@ -21,6 +21,19 @@ declare(strict_types=1);
  *
  * Refs: ADR 0093 (multi-tenant Tier 0), ADR 0110 (Cockpit V2),
  *       memory/research/clientes-legacy-officeimpresso/_MAPPING/TELA-LISTA-VENDAS.md §5.
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem `Index.tsx` por string (`type DateField`, `DATE_FIELD_OPTIONS`,
+ * `DateColumnHeader`, `oimpresso.sells.dateField`, `row.display_date`…). Essa UI
+ * de seletor de data foi MOVIDA pra `_components/SellsDateFilter.tsx` no refactor;
+ * markers verificados AUSENTES no `Index.tsx` vivo. NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * ⚠️ Os it() de BACKEND (SellController) e MIGRATION abaixo PERMANECEM ATIVOS —
+ * incluem guards Tier-0/segurança VIVOS (whitelist anti-SQL-injection do date_field,
+ * JOIN nfe filtrado por business_id, índices compostos com business_id). Silenciá-los
+ * violaria "multi-tenant Tier 0 IRREVOGÁVEL".
  */
 
 const SELL_CONTROLLER_PATH_021 = 'app/Http/Controllers/SellController.php';
@@ -162,7 +175,8 @@ it('Migration down() dropa as 4 colunas + 2 índices (reversível)', function ()
     expect($src)->toContain('dropIndex');
 });
 
-// ─── Frontend: Sells/Index.tsx ───────────────────────────────────────────────
+// ─── Frontend: Sells/Index.tsx (SUPERSEDED — UI movida p/ SellsDateFilter.tsx) ─
+// quarantine-reason: markup do seletor de data movido de Index.tsx p/ _components/SellsDateFilter.tsx (ver §4 Q-A da triage)
 
 it('Index.tsx declara type DateField com 7 opções canon', function () {
     $src = readIndex021();
@@ -174,59 +188,69 @@ it('Index.tsx declara type DateField com 7 opções canon', function () {
     expect($src)->toContain("'invoice_sent_at'");
     expect($src)->toContain("'competence_date'");
     expect($src)->toContain("'due_date'");
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx declara DATE_FIELD_OPTIONS array com 7 opções (renderiza dropdown)', function () {
     $src = readIndex021();
     expect($src)->toContain('DATE_FIELD_OPTIONS');
     expect($src)->toContain('DATE_FIELD_LABEL');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx tem DateColumnHeader component renderizado no thead', function () {
     $src = readIndex021();
     expect($src)->toContain('DateColumnHeader');
     expect($src)->toContain('<DateColumnHeader');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx passa date_field no fetch /sells-list-json (refetch + initial)', function () {
     $src = readIndex021();
     // params.set('date_field', dateField) — deve aparecer 2x (initial fetch + refetch)
     expect(substr_count($src, "params.set('date_field'"))->toBeGreaterThanOrEqual(2);
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx persiste dateField em localStorage (preserva entre sessões)', function () {
     $src = readIndex021();
     expect($src)->toContain('DATE_FIELD_STORAGE_KEY');
     expect($src)->toContain("'oimpresso.sells.dateField'");
     expect($src)->toContain('localStorage.setItem(DATE_FIELD_STORAGE_KEY');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx lê dateField de URL ?date_field= como deep-link (precedência)', function () {
     $src = readIndex021();
     expect($src)->toContain("URLSearchParams(window.location.search)");
     expect($src)->toContain("params.get('date_field')");
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx atualiza URL ao trocar dateField (history.replaceState, não Inertia visit)', function () {
     $src = readIndex021();
     // Mantém URL sincronizada mas sem trigger router (preserva drawer state)
     expect($src)->toContain('history.replaceState');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx exibe display_date (não transaction_date hardcoded) na coluna Data', function () {
     $src = readIndex021();
     // O cell render deve usar row.display_date
     expect($src)->toContain('row.display_date');
     expect($src)->toContain('formatDate(row.display_date)');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx SaleRow interface declara display_date como string|null (US-SELL-021)', function () {
     $src = readIndex021();
     expect($src)->toMatch('/display_date:\\s*string\\s*\\|\\s*null/');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx mostra tooltip indicando data exibida (ARIA + title)', function () {
     $src = readIndex021();
     // Tooltip de a11y — `Data exibida:` é o texto canon
     expect($src)->toContain('Data exibida:');
-});
+// quarantine-reason: seletor de data movido de Index.tsx p/ SellsDateFilter.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
