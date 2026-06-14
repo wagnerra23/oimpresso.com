@@ -49,7 +49,7 @@ class ExportZipCommand extends Command
 {
     protected $signature = 'arquivos:export-zip
         {--business= : business_id obrigatório (CLI sem session)}
-        {--output= : path absoluto do ZIP de output (default: storage/app/exports/biz-{N}-{date}.zip)}
+        {--output= : path absoluto do ZIP de output (default: storage/app/exports/biz-BIZID-DATE.zip)}
         {--include-vault : Incluir arquivos com bucket=sensitive (default false — vault sensitive precisa razão explícita)}
         {--include-deleted : Incluir soft-deleted rows (default false — só active)}
         {--dry-run : Não cria ZIP, só lista + log}';
