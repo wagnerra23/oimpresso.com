@@ -23,7 +23,10 @@ use Modules\NFSe\Models\NfseCertificado;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
 
-uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+// TestCase já é aplicado por tests/Pest.php (uses(TestCase)->in('Feature')) —
+// declarar de novo aqui dispara "already uses the test case" e vira loader-blocker.
+// Só DatabaseTransactions precisa ser anexado (RC-27 corrige RC-16).
+uses(Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
