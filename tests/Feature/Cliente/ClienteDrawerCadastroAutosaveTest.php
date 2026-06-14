@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Wave C-BE (ADR 0179) -- 5 endpoints PATCH cadastrais autosave + lookups.
@@ -62,6 +63,10 @@ beforeEach(function () {
     // ClienteAutosaveController::locateContact() verifica customer.update / supplier.update.
     // Seed não atribui permissões ao user seeded — precisa conceder aqui (RC-17).
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    // givePermissionTo com STRING exige a permission pré-existente (Spatie v6) —
+    // garante que existam mesmo se o PermissionsTableSeeder não rodou neste DB (RC-25 completa RC-17).
+    Permission::findOrCreate('customer.update', 'web');
+    Permission::findOrCreate('supplier.update', 'web');
     $this->user->givePermissionTo(['customer.update', 'supplier.update']);
 });
 
