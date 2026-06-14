@@ -8,7 +8,7 @@ use Modules\PaymentGateway\Models\Cobranca;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Pest — paymentgateway:emit-trial-expired (Onda 5.B cron daily).
