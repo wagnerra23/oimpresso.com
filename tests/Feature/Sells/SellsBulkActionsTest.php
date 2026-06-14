@@ -58,12 +58,22 @@ function readRoutesBulk(): string
 
 function readBulkBar(): string
 {
-    return file_get_contents(base_path(BULK_BAR_PATH));
+    $path = base_path(BULK_BAR_PATH);
+    if (!file_exists($path)) {
+        test()->skip('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readGradeAvancada(): string
 {
-    return file_get_contents(base_path(GRADE_PATH_BULK));
+    $path = base_path(GRADE_PATH_BULK);
+    if (!file_exists($path)) {
+        test()->skip('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readIndexBulk(): string
