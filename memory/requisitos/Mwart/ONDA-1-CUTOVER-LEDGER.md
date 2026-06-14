@@ -69,7 +69,7 @@ Legenda fate: `die` (Blade puro, já há twin React → remover) · `302` (redir
 | `GET /sells` (index), `/sells/{id}` (show), `/sells/create`, `/sells/{id}/edit`, `/sells/drafts`, `/sells/quotations`, `/vendas/caixa`, `/sells/subscriptions` | **already-inertia** | dual-render — **resta remover o branch `view(...)` Blade + 100% flag** (§1). |
 | `sells-list-json`, `sheet-data`, `draft-dt`, `quick-payment`, `emitir-cobranca`, `ai-ask`, `create-os`, `bulk-print`, `bulk-export`, `fsm-*`, `commission-split`, `history`, `timeline-unified`, `audit` | **keep-api** | endpoints que alimentam Index/Show/drawers. **Não matar.** |
 | `transcript.pdf` (`SellTranscriptPdfController`) | keep-api | gerador PDF Browsershot (não-tela). |
-| ⚠️ **10 rotas DUPLICADAS** (l.376-383 vs 449-456) | — | bug admitido no próprio `web.php` (comentário l.457-459) — **resolver antes do cutover** (qual middleware vence?). |
+| ✅ **9 rotas DUPLICADAS** (l.375-383 vs 448-456) | — | **RESOLVIDO (PR #2720)** — bloco 2 (após o resource, byte-a-byte) removido; bloco 1 (antes do resource) permanece. Era o que `web.php` já admitia no comentário l.457-459. |
 
 ### Adjacentes
 | rota | fate | onda |
@@ -83,15 +83,16 @@ Legenda fate: `die` (Blade puro, já há twin React → remover) · `302` (redir
 2. 🔴 **Links públicos guest** (`/invoice|/quote|/pay/{token}`) vivem fora do app autenticado, distribuídos a clientes. Migração dedicada, não morrem no cutover interno.
 3. ⚠️ **Fates `die` super-otimistas:** PDFs/print, `pos.store`, FSM actions são `keep-api` (a tela React os consome). Matar = quebrar botões do React.
 4. ⚠️ **Hidden-Blade por `X-Inertia`/flag** (§1) — o maior furo: o medidor "Inertia existe" não enxerga o Blade que ainda responde a deep-links.
-5. ⚠️ **10 rotas duplicadas** no `web.php` — resolver antes (não-determinismo de middleware).
+5. ✅ **9 rotas duplicadas** no `web.php` — **RESOLVIDO (PR #2720)** (bloco 2 byte-a-byte removido).
 
-## §4 · Tier 0 — itens a VERIFICAR na Fase 2 (não confirmados como bug)
+## §4 · Tier 0 — VERIFICADO (2 vazamentos confirmados e fechados · PR #2708)
 
-> O workflow **flagou**, não confirmou. Cada item exige checagem do global scope antes de virar fix.
-- `CashRegister` model tem `HasBusinessScope`/global scope? Se **não**, `store()` (l.81-87) e `postCloseRegister()` (l.219-221) precisam de `where('business_id')` explícito ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) Garantia 2).
-- `CashRegisterUtil::getRegisterDetails()` filtra por `business_id`?
-- `getProductSuggestion`/`getFeaturedProducts` validam `location_id ∈ business_id`?
-- Observer `CashRegisterClosed` → `fin_titulo` ([ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)) lê `cash_register` com escopo?
+> O workflow flagou; **verifiquei o código** e confirmei **2 vazamentos cross-tenant reais**. `CashRegister` (`app/CashRegister.php`) estende `Model` **sem global scope** — toda query precisa de `business_id` explícito ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) Garantia 2).
+- ✅ **RESOLVIDO (PR #2708)** — `postCloseRegister()` fechava o caixa por `where('user_id', $request->input('user_id'))` **sem business_id**. Como `user_id` vem do request → **WRITE cross-tenant** (fechar caixa de outro business + disparar `fin_titulo` no tenant errado). Fix: `where('business_id', session('user.business_id'))`.
+- ✅ **RESOLVIDO (PR #2708)** — `CashRegisterUtil::getRegisterDetails($id)` lia o caixa e os totais financeiros por `cash_registers.id` **sem business_id** → **READ cross-tenant** via `show()`/`getCloseRegister()`. Fix: `where('cash_registers.business_id', auth)`.
+- ✅ `store()` já setava `business_id` da session no create (guard de regressão no teste `CashRegisterTier0ScopeTest`).
+- 🟡 **Aberto** — `getProductSuggestion`/`getFeaturedProducts` validam `location_id ∈ business_id`? (não verificado)
+- 🟡 **Aberto** — Observer `CashRegisterClosed` → `fin_titulo` ([ADR 0192](../../decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)) lê `cash_register` com escopo? (não verificado)
 
 ## §5 · Baseline Pest (Fase 2) — spec dos casos
 
