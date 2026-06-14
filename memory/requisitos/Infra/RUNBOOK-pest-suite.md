@@ -48,10 +48,9 @@ Ou simplesmente: rodar `php artisan test` localmente — se o teste novo não ap
 ## Módulos já na suite (snapshot 2026-05-06)
 
 - ✅ `tests/Unit`, `tests/Feature` (raiz Laravel)
-- ✅ `Modules/PontoWr2/Tests/{Unit,Feature}`
+- ✅ `Modules/Ponto/Tests/{Unit,Feature}`
 - ✅ `Modules/Essentials/Tests/Feature`
 - ✅ `Modules/Cms/Tests/Feature`
-- ✅ `Modules/Copiloto/Tests/Feature`
 - ✅ `Modules/Jana/Tests/Feature` (adicionado 2026-05-06 com fix do MCP)
 - ✅ `Modules/RecurringBilling/Tests/Feature` (adicionado 2026-05-06 com US-RB-040)
 

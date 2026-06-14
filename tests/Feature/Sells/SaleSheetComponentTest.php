@@ -13,6 +13,18 @@ declare(strict_types=1);
  *   - Sections com heading text-[10px] uppercase
  *   - Footer ações (Imprimir + Editar)
  *   - Endpoint REST: GET /sells/{id}/sheet-data
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — APENAS o it() "aborta fetch
+ * quando saleId muda (cleanup useEffect)" bate a string `cancelled` do guard antigo
+ * `let cancelled = true; return () => { cancelled = true }` REFATORADO pra
+ * `useCallback(fetchData)`; marker `cancelled` verificado ausente no SaleSheet.tsx vivo.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * ✅ Todos os OUTROS it() PERMANECEM ATIVOS — SaleSheet.tsx existe e a cobertura viva
+ * (Sheet shadcn, 4 mini-KPIs, sections, fetch /sheet-data, loading/error, guard
+ * defensivo `data.customer ?` que evita expor PII quando customer null) continua
+ * verde. Quarentenar o arquivo inteiro silenciaria essa cobertura — NÃO foi feito.
  */
 
 const SALE_SHEET_PATH_T = 'resources/js/Pages/Sells/_components/SaleSheet.tsx';
@@ -161,7 +173,8 @@ it('SaleSheet aborta fetch quando saleId muda (cleanup useEffect)', function () 
     $source = readSheet();
     expect($source)->toContain('cancelled');
     expect($source)->toMatch('/return\\s*\\(\\)\\s*=>\\s*\\{\\s*cancelled\\s*=\\s*true/');
-});
+    // quarantine-reason: guard `cancelled` refatorado p/ useCallback no SaleSheet.tsx vivo (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Anti-padrões ────────────────────────────────────────────────────────────
 

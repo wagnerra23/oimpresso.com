@@ -1,5 +1,8 @@
 ---
 module: Mwart
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
 na_justified:
   D5: "Mwart é meta-processo de governança (enforcement do caminho canônico Blade→Inertia — ADR 0104) — NÃO é módulo de features cliente-facing. Não há biz=4 ROTA LIVRE consumindo features Mwart; consumidores são `Modules/*` que migram para Inertia. D5 cliente real não aplica por design."
   D4.b: "Mwart não tem state machine FSM (ADR 0143). É processo administrativo de gating (skill Tier A + hook PreToolUse + CI workflow), não fluxo de negócio com transições Eloquent. D4.b FSM canônica N/A."
@@ -12,8 +15,6 @@ related_adrs:
   - "0154-module-grade-v2-na-justificado"
   - "0155-module-grade-v3-sub-dimensoes-gate-ci"
   - "0156-module-grade-v3-errata-otel-helper-na-justified"
-version: "1.0"
-last_updated: "2026-06-13"
 ---
 
 # Especificação funcional — MWART (processo canônico)
@@ -87,7 +88,7 @@ last_updated: "2026-06-13"
 - [ ] Telas <50 score viram tasks p2 explicitamente — Wagner decide ordem do refactor backlog
 - [ ] Próximas migrações já entram com RUNBOOK + SPEC desde o dia 1
 
-**Refs:** [CHECKLIST.md §G — Score 0-100](../../../.claude/skills/cockpit-runbook/CHECKLIST.md), dashboard existente em `Modules/Copiloto/Http/Controllers/Admin/QualidadeController.php`
+**Refs:** [CHECKLIST.md §G — Score 0-100](../../../.claude/skills/cockpit-runbook/CHECKLIST.md), dashboard existente em `Modules/Jana/Http/Controllers/Admin/QualidadeController.php`
 
 ### US-MWART-003 · Métricas de adoção do processo
 

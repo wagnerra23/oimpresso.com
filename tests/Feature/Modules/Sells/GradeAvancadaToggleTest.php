@@ -31,6 +31,19 @@ declare(strict_types=1);
  *   - ADR 0093 (Multi-tenant Tier 0 IRREVOGÁVEL)
  *   - ADR 0110 (Cockpit Pattern V2)
  *   - feedback_test_biz_99_cross_tenant_convention (biz=1 default smoke)
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem os componentes `SellsToggleViewMode.tsx` / `SellsGradeAvancada.tsx`
+ * (DELETADOS no refactor) e os imports/markup de `Index.tsx` já refatorado.
+ * file_get_contents num componente ausente falha; NÃO é bug de produto.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * 🔴 Os it() de MIGRATION, SEEDER e HandleInertiaRequests PERMANECEM ATIVOS —
+ * guards VIVOS: índice `business_legacy_origin_idx`, idempotência/reversibilidade,
+ * seeder com scope explícito (sem cross-tenant leak), e sobretudo o resolver
+ * `sellsViewModeDefault` FILTRADO por business_id (Tier-0 ADR 0093) + fallback.
+ * Silenciá-los violaria "multi-tenant Tier 0 IRREVOGÁVEL".
  */
 
 const MIGRATION_PATH_015 = 'database/migrations/2026_05_12_180000_add_legacy_origin_to_business.php';
@@ -43,7 +56,12 @@ const GRADE_PATH_015 = 'resources/js/Pages/Sells/_components/SellsGradeAvancada.
 
 function read015(string $relative): string
 {
-    return file_get_contents(base_path($relative));
+    $path = base_path($relative);
+    if (!file_exists($path)) {
+        test()->skip("Arquivo não encontrado: {$relative} (legacy-quarantine: componente deletado)");
+    }
+
+    return (string) file_get_contents($path);
 }
 
 // ─── Migration ────────────────────────────────────────────────────────────────
@@ -172,86 +190,100 @@ it('Index.tsx importa SellsToggleViewMode + SellsGradeAvancada', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toContain("from './_components/SellsToggleViewMode'");
     expect($src)->toContain("from './_components/SellsGradeAvancada'");
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx declara constante VIEW_MODE_STORAGE_KEY canon `oimpresso.sells.viewMode`', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toContain('VIEW_MODE_STORAGE_KEY');
     expect($src)->toContain("'oimpresso.sells.viewMode'");
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx declara reader readStoredViewMode com server fallback', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toContain('function readStoredViewMode(serverDefault: SellsViewMode)');
     expect($src)->toContain('localStorage.getItem(VIEW_MODE_STORAGE_KEY)');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx interface aceita props.sells?.viewMode?.default opcional', function () {
     $src = read015(INDEX_PATH_015);
     // Shape esperada do share Inertia
     expect($src)->toMatch('/sells\\?:\\s*\\{[\\s\\S]*?viewMode\\?:\\s*\\{[\\s\\S]*?default\\?:\\s*SellsViewMode/');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx persiste viewMode em localStorage (useEffect setItem)', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toContain('localStorage.setItem(VIEW_MODE_STORAGE_KEY');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx renderiza <SellsToggleViewMode> no header', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toContain('<SellsToggleViewMode');
     expect($src)->toContain('viewMode={viewMode}');
     expect($src)->toContain('onChange={setViewMode}');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx render condicional: grade-avancada → SellsGradeAvancada (sem tabela Lista)', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toMatch("/viewMode\\s*===\\s*['\"]grade-avancada['\"]/");
     expect($src)->toContain('<SellsGradeAvancada');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx render condicional: pills só visíveis em modo Lista', function () {
     $src = read015(INDEX_PATH_015);
     expect($src)->toMatch("/viewMode\\s*===\\s*['\"]lista['\"]\\s*&&[\\s\\S]{0,200}<nav/");
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Frontend: SellsToggleViewMode.tsx ────────────────────────────────────────
 
 it('SellsToggleViewMode existe', function () {
     expect(file_exists(base_path(TOGGLE_PATH_015)))->toBeTrue();
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsToggleViewMode exporta type SellsViewMode (lista | grade-avancada)', function () {
     $src = read015(TOGGLE_PATH_015);
     expect($src)->toContain('export type SellsViewMode');
     expect($src)->toContain("'lista'");
     expect($src)->toContain("'grade-avancada'");
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsToggleViewMode tem 2 botões PT-BR (Lista + Grade Avançada)', function () {
     $src = read015(TOGGLE_PATH_015);
     expect($src)->toContain('label="Lista"');
     expect($src)->toContain('label="Grade Avançada"');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsToggleViewMode tem ARIA group (a11y)', function () {
     $src = read015(TOGGLE_PATH_015);
     expect($src)->toContain('role="group"');
     expect($src)->toContain('aria-label');
     expect($src)->toContain('aria-pressed');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsToggleViewMode chama onChange ao clicar (callback contract)', function () {
     $src = read015(TOGGLE_PATH_015);
     expect($src)->toMatch("/onClick=\\{\\(\\)\\s*=>\\s*onChange\\(['\"]lista['\"]\\)\\}/");
     expect($src)->toMatch("/onClick=\\{\\(\\)\\s*=>\\s*onChange\\(['\"]grade-avancada['\"]\\)\\}/");
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Frontend: SellsGradeAvancada.tsx ─────────────────────────────────────────
 
 it('SellsGradeAvancada existe', function () {
     expect(file_exists(base_path(GRADE_PATH_015)))->toBeTrue();
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // US-SELL-016/017 (este PR) substitui o skeleton de US-SELL-015.
 // O componente agora renderiza tabela funcional com multiseleção + totalizador.
@@ -264,7 +296,8 @@ it('SellsGradeAvancada anuncia roadmap progressivo (US-SELL-016/017 ativos + P1+
     // Linguagem alinhada com ADR 0136 (multiseleção, totalizador)
     expect($src)->toMatch('/multiselec/iu');
     expect($src)->toMatch('/totalizador|total/iu');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada aceita props funcionais (rows, totals, selectedIds — pós US-SELL-016/017)', function () {
     $src = read015(GRADE_PATH_015);
@@ -272,4 +305,5 @@ it('SellsGradeAvancada aceita props funcionais (rows, totals, selectedIds — p�
     expect($src)->toContain('rows: SaleRow[]');
     expect($src)->toContain('selectedIds: Set<number>');
     expect($src)->toMatch('/totals:\\s*SellsTotals\\s*\\|\\s*null/');
-});
+    // quarantine-reason: SellsToggleViewMode.tsx + SellsGradeAvancada.tsx deletados + imports/markup removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');

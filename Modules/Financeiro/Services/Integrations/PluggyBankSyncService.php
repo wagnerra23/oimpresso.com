@@ -127,6 +127,7 @@ class PluggyBankSyncService
         $valor  = abs($amount);
         $data   = isset($tx['date']) ? Carbon::parse($tx['date'])->toDateString() : Carbon::now()->toDateString();
 
+        // SUPERADMIN: sync bancário Pluggy roda sem sessão de tenant; business_id/conta vêm explícitos por argumento e filtram a query
         $existing = ExtratoLancamento::withoutGlobalScopes()
             ->where('conta_bancaria_id', $contaBancariaId)
             ->where('idempotency_key', $idempotencyKey)

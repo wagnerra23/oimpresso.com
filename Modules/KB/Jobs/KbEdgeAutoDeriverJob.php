@@ -48,6 +48,7 @@ class KbEdgeAutoDeriverJob implements ShouldQueue
     {
         $count = 0;
 
+        // SUPERADMIN: job em fila roda sem sessão — business_id explícito abaixo (vem do construtor)
         KbNode::withoutGlobalScopes()
             ->where('business_id', $this->businessId)
             ->whereNull('deleted_at')

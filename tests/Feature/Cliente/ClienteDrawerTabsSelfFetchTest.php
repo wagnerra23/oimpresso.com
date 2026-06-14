@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 /**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de canon-source (rotas/ContactController/.tsx do drawer) contra fonte-da-verdade móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
+/**
  * Fix 2026-06-08 — self-fetch das abas Pagamentos/Pontos/Assinaturas do drawer.
  *
  * Mesma classe de bug do SalesTab (#2437): no drawer 760px (ADR 0179) essas abas

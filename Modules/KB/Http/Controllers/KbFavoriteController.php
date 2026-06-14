@@ -33,6 +33,7 @@ class KbFavoriteController extends Controller
         $node = KbNode::query()->where('slug', $slug)->firstOrFail();
         $userId = Auth::id();
 
+        // SUPERADMIN: lookup limitado por user_id (autenticado) + node_id (já validado ao tenant via firstOrFail acima) — bypass evita depender do scope de business_id em kb_favorites
         $fav = KbFavorite::withoutGlobalScopes()
             ->where('user_id', $userId)
             ->where('node_id', $node->id)

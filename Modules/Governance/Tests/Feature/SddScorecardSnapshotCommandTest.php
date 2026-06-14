@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
  * @see Modules/Governance/Console/Commands/SddScorecardSnapshotCommand.php
  */
 
-uses(RefreshDatabase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 function sddG7ScorecardFixture(float $ghost = 27.0, float $door = 63.9): string
 {

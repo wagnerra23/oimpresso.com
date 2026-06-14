@@ -175,6 +175,7 @@ class SeedAdrsCommand extends Command
         // do índice). Com SCOUT_DRIVER=null (testes) searchable()/unsearchable() no-opam.
         $reindexados = 0;
         if (! $dryRun) {
+            // SUPERADMIN: comando CLI (schedule diário) roda sem session; business_id/user_id filtrados explicitamente mantêm isolamento Tier 0
             $facts = MemoriaFato::withoutGlobalScopes()
                 ->where('business_id', $businessId)
                 ->where('user_id', $userId)

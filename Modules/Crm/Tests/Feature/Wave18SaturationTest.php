@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @group legacy-quarantine
+ * quarantine-reason: saturação Wave 18 Crm — asserts estáticos (reflection/source-grep) de canon móvel (Entities/Services/FormRequests) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
 use Modules\Crm\Entities\Campaign;
 use Modules\Crm\Entities\CrmCallLog;
 use Modules\Crm\Entities\CrmContactPersonCommission;

@@ -29,7 +29,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 
 > 🚨 **Atualização 2026-05-10**: Wagner confirmou que Vargas é **autopeças** (CNAE 4530-X), não comunicação visual. Vargas portanto NÃO entra no plano migração ComunicacaoVisual.
 >
-> **Vargas vira candidato Modules/Autopecas** — vertical novo a ativar com base em sinal qualificado real (cliente saudável R$ [redacted Tier 0]M GMV, 26 anos relação, Wagner conhece direto). Tratamento separado em `memory/requisitos/Autopecas/PLANO-MIGRACAO-VARGAS.md` (a criar).
+> **Vargas vira candidato do módulo Autopecas (planejado — não existe)** — vertical novo a ativar com base em sinal qualificado real (cliente saudável R$ [redacted Tier 0]M GMV, 26 anos relação, Wagner conhece direto). Tratamento separado em `memory/requisitos/Autopecas/PLANO-MIGRACAO-VARGAS.md` (a criar).
 >
 > **Impacto neste plano**: top 1 piloto Modules/ComunicacaoVisual passa a ser **Extreme** (R$ [redacted Tier 0]M GMV, "EXTREMA LED" = com.visual nativo confirmado por nome).
 
@@ -118,7 +118,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 ### 3. Gold (R$ [redacted Tier 0]M GMV/ano) — biz_id legacy mapeado: ? (Gold no registry, versão 1466)
 
 **Status atual:**
-- ⚠️ **AMBIGUIDADE NOMENCLATURA** — *Gold* no registry WR Sistemas (versão 1466, banco "Gold") **pode OU não** ser o **Gold Comunicação** (Três Lagoas/MS, CNPJ 03.348.254/0001-93) que trocou pra Mubisys conforme [post-mortem](../../research/2026-05-prospeccao/07-post-mortem-gold-comunicacao-mubisys.md)
+- ⚠️ **AMBIGUIDADE NOMENCLATURA** — *Gold* no registry WR Sistemas (versão 1466, banco "Gold") **pode OU não** ser o **Gold Comunicação** (Três Lagoas/MS, CNPJ 11.222.333/0001-81) que trocou pra Mubisys conforme [post-mortem](../../research/2026-05-prospeccao/07-post-mortem-gold-comunicacao-mubisys.md) <!-- pii-allowlist: CNPJ real do cliente substituído pelo fake canônico (oimpresso) — LGPD -->
 - 🔴 **Hipótese 1:** mesmo cliente — Gold Comunicação Visual já churned pra Mubisys = perdido
 - 🟡 **Hipótese 2:** Gold no registry é cliente diferente (Goiás? Outra Gold?) — ainda saudável
 - **AÇÃO BLOQUEANTE:** Wagner valida qual Gold é qual antes de qualquer ação
@@ -325,7 +325,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 
 | Pessoa | Hora/cliente | × Clientes (5 ativos: Vargas, Extreme, Zoom, Fixar, Mhundo) | Total ano | Mensal |
 |--------|--------------|--------------------------------------------------:|----------:|-------:|
-| **Felipe [F]** dev IA-pair (migração + Modules/CV features sob demanda) | 16h | × 5 | 80h | 6,7h/m |
+| **Felipe [F]** dev IA-pair (migração + Modules/ComunicacaoVisual features sob demanda) | 16h | × 5 | 80h | 6,7h/m |
 | **Wagner [W]** discovery + decisão + go/no-go | 8h | × 5 + 4h Gold validação | 44h | 3,7h/m |
 | **Maiara [M]** suporte L1 + treinamento + migração assistida (Fixar/Mhundo/Produart) | 6h | × 5 | 30h | 2,5h/m |
 | **TOTAL TIME** | — | — | **154h** | **12,8h/m** |
@@ -366,8 +366,8 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 - **Pior caso:** confirma Hipótese 1 + zero migração subsequente Gold-style → Modules/ComunicacaoVisual fica com 5 candidatos efetivos
 
 ### 2. Modules/ComunicacaoVisual incompleto na hora da migração 1ª (Vargas Q3/26)
-- **Impacto:** Vargas espera Modules/CV completo (cálculo m² + spool plotter + PCP gráfico + NFe-de-boleto). Se Sprint 1 entregar só 2 de 4 features, piloto frustra
-- **Mitigação:** **gate-check Sprint 1 ANTES de assinar Vargas** — Felipe entrega Modules/CV Sprint 1 em julho/26, Wagner aprova baseado em demo, então abre outreach Vargas. Sem Sprint 1 verde, atrasar outreach
+- **Impacto:** Vargas espera Modules/ComunicacaoVisual completo (cálculo m² + spool plotter + PCP gráfico + NFe-de-boleto). Se Sprint 1 entregar só 2 de 4 features, piloto frustra
+- **Mitigação:** **gate-check Sprint 1 ANTES de assinar Vargas** — Felipe entrega Modules/ComunicacaoVisual Sprint 1 em julho/26, Wagner aprova baseado em demo, então abre outreach Vargas. Sem Sprint 1 verde, atrasar outreach
 - **Plano B:** se Sprint 1 atrasar 60d, postergar Vargas pra Q4/26 inteiro; Extreme passa a ser piloto Q3/26
 
 ### 3. Multi-tenant Tier 0 + Migration Factory cross-business risk
@@ -410,7 +410,7 @@ Por cada cliente migrado, executar checklist baseado em [`memory/dominios/_patte
 ### Cutover (D-Day)
 - [ ] **Parallel run** Delphi + oimpresso 30d pós-cutover (Pattern Strangler Fig — Delphi continua read-only, oimpresso é write canônico)
 - [ ] Smoke test **biz cliente real** (não biz=1, conforme [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
-- [ ] Treinamento Maiara [M] síncrono 2-8h conforme tier (cobre Modules/CV + Jana + NFe automática)
+- [ ] Treinamento Maiara [M] síncrono 2-8h conforme tier (cobre Modules/ComunicacaoVisual + Jana + NFe automática)
 - [ ] Rollback 30d documentado (cliente sabe pode voltar Delphi sem custo)
 
 ### Pós-migração (D+1 a D+90)

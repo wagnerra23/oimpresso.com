@@ -1,0 +1,90 @@
+name: Tier-0 guards (advisory)
+
+# US-GOV-019 — pluga 2 guards Tier-0 de segurança que existiam mas NÃO rodavam
+# em nenhum workflow ("armados mas não plugados"):
+#   - tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php
+#       varredura estática: toda `withoutGlobalScopes(` em produção exige
+#       `// SUPERADMIN: <razão>` na mesma linha ou nas 3 anteriores (ADR 0093).
+#   - tests/Unit/BusinessIdGuardTest.php
+#       varredura estática Tier-0: nenhum test/fixture usa `business_id = 4`
+#       (cliente RotaLivre) como default.
+#
+# ── ADVISORY-FIRST (ADR 0261: gate novo nasce advisory → enforcing) ──────────
+# Marcado `continue-on-error: true` em TODO o job: reporta status (🟡 quando há
+# violação) mas NÃO bloqueia merge. Motivo: ainda existem violações PRÉ-EXISTENTES
+# de WithoutGlobalScopes sendo corrigidas em PRs paralelas — bloquear agora deixaria
+# o main vermelho. Padrão "ratchet" do repo (vários gates já são advisory).
+#
+# PROMOVER A REQUIRED: quando as violações WithoutGlobalScopes zerarem no main
+# (BusinessId já costuma estar limpo), remover o `continue-on-error: true` e
+# adicionar o check ao branch protection. NÃO altera branch protection agora.
+#
+# Guards são varredura estática + unit (Symfony Finder sobre o filesystem): NÃO
+# precisam de MySQL/migrate. Por isso o setup mais leve disponível (sqlite :memory:),
+# idêntico ao de multi-tenant-gate.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tier0-guards-advisory-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guards:
+    name: Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)
+    runs-on: ubuntu-latest
+    # ADVISORY: job inteiro não bloqueia merge. Remover quando virar required.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-tier0guards-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-tier0guards-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare storage dirs + .env mínimo
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-tier0-guards
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          EOF
+          php artisan key:generate
+
+      - name: Pest — Tier-0 guards (ADVISORY)
+        # `continue-on-error` no job já garante não-bloqueio; mantido aqui também
+        # pros próximos steps rodarem mesmo com violação pré-existente.
+        continue-on-error: true
+        run: |
+          vendor/bin/pest \
+            tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php \
+            tests/Unit/BusinessIdGuardTest.php \
+            --no-coverage \
+            --colors=always
