@@ -60,7 +60,7 @@ function readBulkBar(): string
 {
     $path = base_path(BULK_BAR_PATH);
     if (!file_exists($path)) {
-        test()->skip('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
+        test()->markTestSkipped('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
     }
 
     return (string) file_get_contents($path);
@@ -70,7 +70,7 @@ function readGradeAvancada(): string
 {
     $path = base_path(GRADE_PATH_BULK);
     if (!file_exists($path)) {
-        test()->skip('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
+        test()->markTestSkipped('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
     }
 
     return (string) file_get_contents($path);

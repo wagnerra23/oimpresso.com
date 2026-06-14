@@ -45,7 +45,7 @@ function tabsReadInsightsView(): string
 {
     $path = base_path(TABS_INSIGHTS_VIEW_PATH);
     if (!file_exists($path)) {
-        test()->skip('SellsInsightsView.tsx não encontrado (legacy-quarantine: componente deletado)');
+        test()->markTestSkipped('SellsInsightsView.tsx não encontrado (legacy-quarantine: componente deletado)');
     }
 
     return (string) file_get_contents($path);
