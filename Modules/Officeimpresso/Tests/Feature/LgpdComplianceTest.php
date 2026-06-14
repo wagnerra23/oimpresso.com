@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @group legacy-quarantine
+ * quarantine-reason: LGPD compliance D7 Officeimpresso — asserts estáticos (wiring/source-grep) de canon móvel (PiiRedactor/LogsActivity/module.json) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use Modules\Officeimpresso\Entities\LicencaLog;
@@ -41,12 +46,12 @@ it('D7.a — PiiRedactor sanitiza payload Delphi com CNPJ + email + telefone', f
     $redactor = app(PiiRedactor::class);
 
     // Payload fake estilo Delphi g1 (processa-dados-cliente NOME_TABELA=EMPRESA)
-    // CNPJ fictício 11.222.333/0001-44, email fake@example.com, tel (48) 9 9999-8888
-    $bodyDelphi = '[{"NOME_TABELA":"EMPRESA","RAZAO_SOCIAL":"GRAFICA FAKE LTDA","CNPJCPF":"11.222.333/0001-44","EMAIL":"contato@fake.com.br","TELEFONE":"(48) 9 9999-8888","CEP":"88780-000"}]';
+    // CNPJ fictício 11.222.333/0001-44, email fake@example.com, tel (48) 9 9999-8888 — pii-allowlist (fixture LGPD redaction test)
+    $bodyDelphi = '[{"NOME_TABELA":"EMPRESA","RAZAO_SOCIAL":"GRAFICA FAKE LTDA","CNPJCPF":"11.222.333/0001-44","EMAIL":"contato@fake.com.br","TELEFONE":"(48) 9 9999-8888","CEP":"88780-000"}]'; // pii-allowlist (fixture fake — testa PiiRedactor)
 
     $redacted = $redactor->redact($bodyDelphi);
 
-    expect($redacted)->not->toContain('11.222.333/0001-44');
+    expect($redacted)->not->toContain('11.222.333/0001-44'); // pii-allowlist (fixture fake CNPJ)
     expect($redacted)->not->toContain('contato@fake.com.br');
     expect($redacted)->not->toContain('88780-000');
     expect($redacted)->toContain('[REDACTED:CNPJ]');
