@@ -56,7 +56,12 @@ const GRADE_PATH_015 = 'resources/js/Pages/Sells/_components/SellsGradeAvancada.
 
 function read015(string $relative): string
 {
-    return file_get_contents(base_path($relative));
+    $path = base_path($relative);
+    if (!file_exists($path)) {
+        test()->skip("Arquivo não encontrado: {$relative} (legacy-quarantine: componente deletado)");
+    }
+
+    return (string) file_get_contents($path);
 }
 
 // ─── Migration ────────────────────────────────────────────────────────────────

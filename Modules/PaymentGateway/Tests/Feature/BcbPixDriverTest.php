@@ -13,7 +13,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\BcbPixDriver;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Onda 4d.1 — ADR 0170.
