@@ -51,6 +51,7 @@ class SicoobApiWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        // SUPERADMIN: webhook externo (Sicoob API) sem sessão autenticada; resolve a credencial pelo businessId da rota e valida HMAC antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'sicoob_api')

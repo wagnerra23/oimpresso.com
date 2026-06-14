@@ -39,6 +39,7 @@ class BcbPixWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        // SUPERADMIN: webhook externo (BCB/PSP) sem sessão autenticada; resolve a credencial pelo businessId da rota e valida mTLS antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'bcb_pix')

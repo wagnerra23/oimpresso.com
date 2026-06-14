@@ -34,6 +34,7 @@ class AsaasWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        // SUPERADMIN: webhook externo (Asaas) chega sem sessão autenticada; resolve a credencial pelo businessId da rota e valida assinatura antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'asaas')

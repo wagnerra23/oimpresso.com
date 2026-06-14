@@ -57,6 +57,7 @@ class EmitTrialExpiredCobrancasCommand extends Command
 
         // 1. Pré-condições Wagner biz=1 — canon Onda 5 (Wagner 2026-05-19):
         // resolve via payment_gateway_credentials.conta_bancaria_id (wizard step 3)
+        // SUPERADMIN: cron diário sem sessão; resolve a credencial BCB de cobrança do operador (biz=1, Wagner) que emite as mensalidades SaaS.
         $credencial = PaymentGatewayCredential::query()
             ->withoutGlobalScopes()
             ->where('business_id', 1)
@@ -96,6 +97,7 @@ class EmitTrialExpiredCobrancasCommand extends Command
         $failed = 0;
 
         foreach ($candidates as $subscription) {
+            // SUPERADMIN: cron sem sessão; checa cobrança ativa da Subscription cross-tenant pela origem (cobrança vive em biz=1, Subscription pertence ao tenant alvo).
             $hasCobrancaAtiva = Cobranca::query()
                 ->withoutGlobalScopes()
                 ->where('origem_type', 'subscription_license')
@@ -119,6 +121,7 @@ class EmitTrialExpiredCobrancasCommand extends Command
 
             try {
                 DB::transaction(function () use ($subscription, $account): void {
+                    // SUPERADMIN: cross-tenant intencional — resolve o Business do tenant alvo (outro business_id) só pra montar o descritivo/payer da cobrança SaaS emitida por biz=1.
                     $tenant = Business::withoutGlobalScopes()->find($subscription->business_id);
                     if (!$tenant) {
                         throw new \RuntimeException('Business tenant #' . $subscription->business_id . ' não encontrado');

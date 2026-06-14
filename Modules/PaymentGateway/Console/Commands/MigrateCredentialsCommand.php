@@ -82,6 +82,7 @@ class MigrateCredentialsCommand extends Command
             }
 
             // Idempotência: tenta achar PG cred com mesma (business, gateway, ambiente).
+            // SUPERADMIN: comando de backfill CLI sem sessão; itera credenciais legacy de todos os tenants e checa duplicata por business_id de cada linha.
             $existing = PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', $row->business_id)

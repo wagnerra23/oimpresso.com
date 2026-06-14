@@ -43,6 +43,7 @@ class PagarmeWebhookController extends Controller
     {
         // 1. Resolve credencial Pagar.me ATIVA do business (withoutGlobalScopes —
         //    webhook não tem sessão autenticada).
+        // SUPERADMIN: webhook externo (Pagar.me) sem sessão autenticada; resolve a credencial pelo businessId da rota e valida HMAC antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'pagarme')
