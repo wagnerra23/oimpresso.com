@@ -8,6 +8,8 @@ use App\User;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Activitylog\Models\Activity;
 
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
 /**
  * Pest GUARDs — GET /settings/payment-gateways/{id}/history (Onda 4e.UI).
  *

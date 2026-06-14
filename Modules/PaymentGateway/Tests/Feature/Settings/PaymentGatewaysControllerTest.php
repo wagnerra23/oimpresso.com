@@ -8,6 +8,8 @@ use App\User;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Permission\Models\Permission;
 
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
 /**
  * Pest GUARDs — /settings/payment-gateways F3 PaymentGateway UI Tela 2.
  *
