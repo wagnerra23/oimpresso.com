@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
@@ -22,6 +23,11 @@ uses(Tests\TestCase::class);
  */
 function makeCred(array $configOverride = []): PaymentGatewayCredential
 {
+    $config = array_merge([
+        'secret_key'     => 'sk_test_fake_pagarme_token',
+        'webhook_secret' => 'whsec_fake_pagarme',
+    ], $configOverride);
+
     $cred = new PaymentGatewayCredential();
     $cred->setRawAttributes([
         'id'           => 99,
@@ -30,10 +36,8 @@ function makeCred(array $configOverride = []): PaymentGatewayCredential
         'ambiente'     => 'sandbox',
         'ativo'        => true,
         'nome_display' => 'Pagar.me Test',
-        'config_json'  => json_encode(array_merge([
-            'secret_key'     => 'sk_test_fake_pagarme_token',
-            'webhook_secret' => 'whsec_fake_pagarme',
-        ], $configOverride)),
+        // encrypted:array cast → decryptString(raw) on read; must store encryptString(json)
+        'config_json'  => Crypt::encryptString(json_encode($config)),
     ], true);
     $cred->exists = true;
 
