@@ -104,7 +104,7 @@ class NfseEmissaoService
         // D9.a Wave 14: span por emissão envolve adapter HTTP + idempotência + retries.
         return OtelHelper::spanBiz('nfse.emissao', function () use ($payload) {
             return $this->emitirInterno($payload);
-        }, $payload->businessId);
+        }, ['nfse.business_id' => $payload->businessId]);
     }
 
     private function emitirInterno(NfseEmissaoPayload $payload): NfseEmissao
