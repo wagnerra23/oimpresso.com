@@ -246,6 +246,10 @@
       "nome": "Stylelint CSS anti-drift (G5 · ADR 0209)",
       "classe": "gate"
     },
+    "tier0-guards-advisory.yml": {
+      "nome": "Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)",
+      "classe": "gate"
+    },
     "ui-architecture-gate.yml": {
       "nome": "UI architecture gate",
       "classe": "gate"
