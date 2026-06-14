@@ -236,6 +236,8 @@ class CertificadoService
         // Único lugar autorizado no codebase a escapar do tenant scope em nfe_certificados.
         // Pest test `CertificadoFallbackInstitucionalTest` valida que não há outras
         // ocorrências de `withoutGlobalScope(ScopeByBusiness::class)` apontando pra esse model.
+        // SUPERADMIN: cross-tenant DELIBERADO — lê cert institucional (biz=$fallbackBusinessId) pra
+        // tenants sem cert próprio; filtra por business_id explícito + audita em mcp_audit_log.
         $certInstitucional = NfeCertificado::withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
             ->where('business_id', $fallbackBusinessId)
             ->where('ativo', true)
