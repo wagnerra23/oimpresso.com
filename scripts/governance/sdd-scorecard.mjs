@@ -79,6 +79,30 @@ function measureAnchors() {
     fields_anchored_strict: anchored };
 }
 
+// ── fonte 3: quarentena FV-Q3 (convenção legacy-quarantine nos testes) ───────
+// Conta ARQUIVOS de teste quarentenados (n_quarantine só DESCE no burn-down). A convenção
+// aparece em 3 formas — @group legacy-quarantine (docblock), ->group('legacy-quarantine')
+// (Pest fluent, granular por teste) e skip('legacy-quarantine: ...') — todas cravam o MESMO
+// token. Casar só @group subcontava (14 de 27 reais). Determinístico: contagem por arquivo,
+// independe da ordem do readdir. Escopo = tests/ + Modules/*/Tests (onde vive o marcador).
+const QUARANTINE_RE = /legacy-quarantine/;
+function measureQuarantine() {
+  let files = 0;
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.php') && QUARANTINE_RE.test(readFileSync(p, 'utf8'))) files++;
+    }
+  };
+  walk(join(ROOT, 'tests'));
+  const mods = join(ROOT, 'Modules');
+  if (existsSync(mods)) for (const e of readdirSync(mods, { withFileTypes: true }))
+    if (e.isDirectory()) walk(join(mods, e.name, 'Tests'));
+  return { files };
+}
+
 // ── montagem do scorecard (ordem fixa = output determinístico) ──────────────
 function pct(num, den) { return den ? Math.round((1000 * num) / den) / 10 : null; }
 const notYet = (direction, target, source) => ({
@@ -89,6 +113,7 @@ const notYet = (direction, target, source) => ({
 function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
+  const q = measureQuarantine();
   return {
     _meta: {
       scorecard: 'SDD — sistema spec-anchored + verificação agêntica (plano 2026-06-12 §2)',
@@ -111,8 +136,12 @@ function buildScorecard() {
       },
       full_suite_pass_rate: notYet('up', '100% não-quarentenado',
         'nightly MySQL diagnóstica (FV-F3) — nenhum run full-repo MySQL jamais foi salvo'),
-      n_quarantine: notYet('down', 0,
-        'grep @group legacy-quarantine — grupo só passa a existir na quarentena FV-Q3'),
+      n_quarantine: {
+        status: 'measured', value: q.files, unit: 'arquivos de teste',
+        direction: 'down', target: 0,
+        source: 'convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)',
+        detail: { quarantined_files: q.files },
+      },
       coverage_pct: notYet('up', 'só sobe (catraca C2)',
         'pcov instrumentado em CI (P0-2) — hoje coverage: none'),
       ghost_count: {
