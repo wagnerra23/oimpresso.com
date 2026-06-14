@@ -161,6 +161,7 @@ class BaseController extends Controller
             // Canon Onda 5 (Wagner 2026-05-19) — credencial BCB ativa que TENHA
             // conta_bancaria_id vinculada via wizard step 3. Direção UNIFICADA —
             // não depende mais de FK reverso em fin_contas_bancarias.
+            // SUPERADMIN: credencial BCB da cobrança SaaS vive em biz=1 (Wagner); checagem cross-tenant pra decidir se mostra o gateway
             return \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)

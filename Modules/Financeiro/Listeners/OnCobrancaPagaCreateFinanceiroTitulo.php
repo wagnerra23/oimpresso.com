@@ -46,6 +46,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             return; // Onda 5 dogfooding processa só o business dono (SaaS)
         }
 
+        // SUPERADMIN: listener SaaS roda sem sessão; resolve a Cobranca pelo id do evento sem depender do scope de tenant
         $cobranca = Cobranca::withoutGlobalScopes()->find($event->cobrancaId);
         if (!$cobranca) {
             Log::error('[onda5][financeiro] CobrancaPaga sem registro Cobranca correspondente', [
@@ -229,6 +230,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
     {
         if ($cobranca->payment_gateway_credential_id !== null) {
             // 1. Canon: credencial → conta_bancaria_id (Account UPOS) → fin_contas_bancarias
+            // SUPERADMIN: credencial do gateway pertence a biz=1 (dono SaaS); lookup cross-tenant pra mapear a conta bancária da cobrança
             $accountId = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('id', $cobranca->payment_gateway_credential_id)
