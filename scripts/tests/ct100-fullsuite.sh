@@ -80,6 +80,16 @@ DROP DATABASE IF EXISTS \`$DB_DATABASE\`;
 CREATE DATABASE \`$DB_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USERNAME'@'%' IDENTIFIED BY '$DB_PASSWORD';
 GRANT ALL PRIVILEGES ON \`$DB_DATABASE\`.* TO '$DB_USERNAME'@'%';
+-- US-GOV-020 Frente C: o dump database/schema/mysql-schema.sql tem triggers com DEFINER
+-- de PROD (ex trg_mcp_audit_log_no_update, append-only Art 9). O migrate:fresh do
+-- RefreshDatabase recarrega o dump COMO ESTE USUARIO (nao-root): sem estes 2, falha em
+-- ERROR 1419 (binlog) e depois 1227 (SET_USER_ID/DEFINER) e aborta o load em 188/364
+-- tabelas -> schema incompleto -> cascata Base-table-not-found pros testes seguintes.
+-- Provado no CT100: com os 2, o load do fullsuite vai de 188->377 tabelas / 0->4 triggers.
+-- log_bin_trust = GLOBAL (root) p/ funcoes/triggers deterministicos sob binlog; SET_USER_ID
+-- = privilegio dinamico MySQL 8 p/ criar objeto com DEFINER alheio (DB de TESTE dedicada).
+SET GLOBAL log_bin_trust_function_creators=1;
+GRANT SET_USER_ID ON *.* TO '$DB_USERNAME'@'%';
 FLUSH PRIVILEGES;
 SQL
 
@@ -180,15 +190,17 @@ for attempt in $(seq 1 12); do
   #    recarregar o dump => 72x "mysql: not found" => schema some mid-run. O Dockerfile
   #    da imagem ja ganhou mariadb-client (fix duravel); este apk-add e o fallback
   #    imediato ate o rebuild+deploy da imagem ao CT 100 (no-op se ja presente).
-  #  - A.2: FULLSUITE_FK_OFF=1 liga o FK-off por-conexao em Tests\TestCase::setUp (so no
-  #    nightly): ~210 testes era-sqlite fazem Schema::dropIfExists em DB MySQL PERSISTENTE
-  #    e estouram errno 3730 "Cannot drop ... referenced by FK" (508 no run 003042). CI/
-  #    local NAO setam a flag => FK segue ON la (nao mascara bug de FK nos gates required).
+  #  - A.2 (FULLSUITE_FK_OFF) REVERTIDO: o floor empirico do run 20260613-115507 PROVOU
+  #    que o FK-off PIORAVA — deixava ~30 testes era-sqlite dropar tabelas CORE
+  #    compartilhadas (business sumiu 252x) que entao faltavam pros testes seguintes.
+  #    SEM o FK-off esses drops falham-seguro (Cannot-drop 3730 no proprio teste) e a
+  #    tabela CORE SOBREVIVE pro resto da suite. O isolamento real desses testes e a
+  #    US-GOV-021 front-2 (nao deixar teste dropar tabela compartilhada). Tests\TestCase
+  #    ::setUp fica inerte sem a flag (gated em getenv) — reversivel.
   timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
     --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
     -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
     -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
-    -e FULLSUITE_FK_OFF=1 \
     -w /workspace --entrypoint sh "$IMAGE" -c '
       if ! command -v mysql >/dev/null 2>&1; then
         apk add --no-cache mariadb-client >/dev/null 2>&1 \
