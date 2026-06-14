@@ -58,6 +58,11 @@ beforeEach(function () {
     // (canon UPOS -- pattern de tests/Feature/Cliente/RedirectLegacyContactsTest).
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id]);
+
+    // ClienteAutosaveController::locateContact() verifica customer.update / supplier.update.
+    // Seed não atribui permissões ao user seeded — precisa conceder aqui (RC-17).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->user->givePermissionTo(['customer.update', 'supplier.update']);
 });
 
 // ---------------------------------------------------------------------
