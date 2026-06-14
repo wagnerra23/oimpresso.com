@@ -16,7 +16,7 @@ use Modules\PaymentGateway\Models\CnabRetornoUpload;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Schema in-memory per test (pattern canon WebhookEndpointsTest — não usa
