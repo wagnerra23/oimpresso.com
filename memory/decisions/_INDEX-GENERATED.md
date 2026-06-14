@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **281** arquivos · **266** números únicos · máx **0276**
-- **ADRs ATIVOS (lifecycle ativo): 241** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 219 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 241 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **282** arquivos · **267** números únicos · máx **0277**
+- **ADRs ATIVOS (lifecycle ativo): 242** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 220 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 242 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (281)
+## Todas as ADRs (282)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -313,3 +313,4 @@ _(íntegra)_
 | 0274 | aceito | ativo | meta | Referência canônica a ADR = SLUG completo (NNNN-titulo) + alias map das 13 colis |
 | 0275 | aceito | ativo | decision | Scorecard SDD canônico — 10 métricas com catraca, composta v1/v2 (regimes não co |
 | 0276 | aceito | ativo | meta | Decisão pelo fluxo — 3 classes de decisão; pares adversariais substituem aprovaç |
+| 0277 | aceito | ativo | meta | Rota de migração do backbone Blade (UltimatePOS) — contrato de completude por ro |
