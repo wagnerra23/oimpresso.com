@@ -118,12 +118,12 @@ it('cache hit pula chamada HTTP na segunda vez', function () {
     $service = new BrasilApiService;
 
     // 1ª chamada — hit HTTP, popula cache.
-    $first = $service->lookupCnpj('11.444.777/0001-61');
+    $first = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
     expect($first['razao_social'])->toBe('CACHED LTDA');
     Http::assertSentCount(1);
 
     // 2ª chamada — cache hit, NÃO incrementa HTTP count.
-    $second = $service->lookupCnpj('11.444.777/0001-61');
+    $second = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
     expect($second['razao_social'])->toBe('CACHED LTDA');
     Http::assertSentCount(1); // ainda 1, sem nova chamada
 });
