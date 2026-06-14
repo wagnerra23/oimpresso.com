@@ -105,6 +105,9 @@ beforeEach(function () {
         $table->json('payload')->nullable();
         $table->string('status', 20);
         $table->timestamp('created_at')->useCurrent();
+        // WhatsappMessage tem timestamps on (cast updated_at) → create() insere updated_at.
+        // O schema sintético precisa da coluna senão "Unknown column 'updated_at'" (RC-31).
+        $table->timestamp('updated_at')->nullable();
     });
 });
 
