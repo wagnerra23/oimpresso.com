@@ -63,6 +63,7 @@ final class OnCobrancaVencidaBloqueaSubscription
         $subscription->status = 'declined';
         $subscription->save();
 
+        // SUPERADMIN: listener SaaS roda sem sessão de tenant; bloqueia o Business do assinante inadimplente cross-tenant
         $business = Business::withoutGlobalScopes()->find($subscription->business_id);
         if ($business && (bool) $business->officeimpresso_bloqueado === false) {
             $business->officeimpresso_bloqueado = true;
