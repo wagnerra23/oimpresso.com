@@ -23,7 +23,7 @@ use Modules\NFSe\Models\NfseCertificado;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
 
-uses(RefreshDatabase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
