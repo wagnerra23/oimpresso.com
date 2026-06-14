@@ -44,6 +44,8 @@ beforeEach(function () {
     if (! Schema::hasColumn('service_orders', 'box_label')) {
         $this->markTestSkipped('Rode migration 2026_05_26_120001 primeiro (box_label + assigned_user_id)');
     }
+    // Spatie permission cache persiste entre testes — limpar pra givePermissionTo funcionar (RC-20).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 function rich_criaOs(string $suffix, int $biz = BIZ_RICH): ServiceOrder
