@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Modules\ADS\Services\RiskEngine;
 
+uses(Tests\TestCase::class);
+
 // ARQ-0004 — RiskEngine: fórmula + priors + zonas
 
 it('eventos BLOCK_ALWAYS têm risco >= 0.9', function (string $eventType) {
