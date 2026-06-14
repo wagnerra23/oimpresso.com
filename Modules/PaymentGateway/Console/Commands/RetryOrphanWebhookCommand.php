@@ -36,6 +36,7 @@ class RetryOrphanWebhookCommand extends Command
         if ($dryRun) {
             $this->warn('[dry-run] Nenhum CobrancaPaga será dispatchado.');
 
+            // SUPERADMIN: comando CLI roda sem sessão web; --dry-run lista webhook events órfãos de todos os tenants pra Wagner inspecionar antes do cutover.
             $orphans = GatewayWebhookEvent::query()
                 ->withoutGlobalScopes()
                 ->whereNull('processed_at')

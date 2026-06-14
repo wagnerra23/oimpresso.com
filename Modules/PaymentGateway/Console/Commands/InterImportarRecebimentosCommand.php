@@ -50,6 +50,7 @@ class InterImportarRecebimentosCommand extends Command
             $this->warn('[dry-run] Nada será gravado no Financeiro.');
         }
 
+        // SUPERADMIN: comando CLI sem sessão web; resolve a credencial Inter do business_id passado via --business (default 1 = WR2).
         $cred = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'inter')
@@ -100,6 +101,7 @@ class InterImportarRecebimentosCommand extends Command
                 continue;
             }
 
+            // SUPERADMIN: CLI sem sessão; dedup do título importado filtrando pelo business_id do --business.
             $jaExiste = Titulo::withoutGlobalScopes()
                 ->where('business_id', $businessId)
                 ->where('metadata->inter_ref', $refId)
