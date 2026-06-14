@@ -132,6 +132,9 @@ class EmployeePerformanceRebuilder
     {
         if ($perf->user_id !== null) {
             try {
+                // SUPERADMIN: rebuild roda via CLI/job sem session — resolve o User
+                // (pelo user_id do scorecard já escopado a $businessId) só pra ler
+                // first_name/last_name de exibição. Sem leak cross-tenant. ADR 0093.
                 $user = User::query()->withoutGlobalScopes()->find($perf->user_id);
                 if ($user !== null) {
                     $name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));

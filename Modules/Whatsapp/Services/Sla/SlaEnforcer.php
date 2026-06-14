@@ -80,6 +80,9 @@ class SlaEnforcer
 
     private function doScanAndAlert(?int $businessId, bool $dryRun): array
     {
+        // SUPERADMIN: scan job de SLA roda sem session ($businessId=null = todos os
+        // businesses no cron). Cada SlaPolicy carrega seu próprio business_id; filtro
+        // opcional por business_id aplicado abaixo. Sem leak cross-tenant. ADR 0093.
         $policyQuery = SlaPolicy::withoutGlobalScopes()->active();
         if ($businessId !== null) {
             $policyQuery->where('business_id', $businessId);

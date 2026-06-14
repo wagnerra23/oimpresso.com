@@ -2090,6 +2090,9 @@ class InboxController extends Controller
         }
 
         try {
+            // SUPERADMIN: resolve o próprio operador autenticado ($userId = session
+            // user.id) pra prefixar *FirstName:* no corpo da mensagem. Lookup do
+            // próprio usuário da sessão; sem leak cross-tenant. ADR 0093.
             $user = \App\User::query()->withoutGlobalScopes()->find($userId);
         } catch (\Throwable) {
             return $body;
