@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-PG-001 (Audit Sênior 2026-05-25 — VULN P0-#1 SEC catastrófica).

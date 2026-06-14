@@ -14,7 +14,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Cnab\CnabBoletoAdapter;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Schema in-memory per test (não RefreshDatabase — migrations canon usam

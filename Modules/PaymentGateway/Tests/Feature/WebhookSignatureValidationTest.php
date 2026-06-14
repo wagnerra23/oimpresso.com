@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-PG-002 (audit-senior 2026-05-25 VULN SEC P0-#2 CATASTRÓFICA).

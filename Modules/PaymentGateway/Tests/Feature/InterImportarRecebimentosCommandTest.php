@@ -10,7 +10,7 @@ use Modules\Financeiro\Models\TituloBaixa;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-PG-008 — paymentgateway:inter-importar-recebimentos.

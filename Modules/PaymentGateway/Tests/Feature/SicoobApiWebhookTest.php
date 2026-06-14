@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-FIN-044 PR4 — Onda 4f.sicoob_api webhook receiver.

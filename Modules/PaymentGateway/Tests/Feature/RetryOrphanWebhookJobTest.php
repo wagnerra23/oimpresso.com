@@ -11,7 +11,7 @@ use Modules\PaymentGateway\Jobs\RetryOrphanWebhookJob;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Setup: cria SOMENTE `cobrancas` + `gateway_webhook_events` no SQLite in-memory.

@@ -10,7 +10,7 @@ use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Services\ReconciliarCobrancaService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * ReconciliarCobrancaService::marcarPaga() — lógica canônica "virou paga"

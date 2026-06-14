@@ -10,7 +10,7 @@ use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\InterWebhookLog;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-FIN-032 (Onda 26) — Cobertura webhook PIX Inter dedicado.
