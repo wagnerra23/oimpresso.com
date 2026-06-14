@@ -44,7 +44,7 @@ function readGroupByDropdown(): string
 {
     $path = base_path(GROUP_BY_DROPDOWN_PATH);
     if (!file_exists($path)) {
-        test()->skip('SellsGroupByDropdown.tsx não encontrado (legacy-quarantine: componente deletado)');
+        test()->markTestSkipped('SellsGroupByDropdown.tsx não encontrado (legacy-quarantine: componente deletado)');
     }
 
     return (string) file_get_contents($path);
@@ -54,7 +54,7 @@ function readGradeGroupBy(): string
 {
     $path = base_path(GRADE_PATH_GROUPBY);
     if (!file_exists($path)) {
-        test()->skip('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
+        test()->markTestSkipped('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
     }
 
     return (string) file_get_contents($path);
@@ -64,7 +64,7 @@ function readBulkBarGroupBy(): string
 {
     $path = base_path(BULK_BAR_PATH_GROUPBY);
     if (!file_exists($path)) {
-        test()->skip('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
+        test()->markTestSkipped('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
     }
 
     return (string) file_get_contents($path);
