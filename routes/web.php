@@ -445,18 +445,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/purchases/check_ref_number', [PurchaseController::class, 'checkRefNumber']);
     Route::resource('purchases', PurchaseController::class)->except(['show']);
 
-    Route::get('/toggle-subscription/{id}', [SellPosController::class, 'toggleRecurringInvoices']);
-    Route::post('/sells/pos/get-types-of-service-details', [SellPosController::class, 'getTypesOfServiceDetails']);
-    Route::get('/sells/subscriptions', [SellPosController::class, 'listSubscriptions']);
-    Route::get('/sells/duplicate/{id}', [SellController::class, 'duplicateSell']);
-    Route::get('/sells/drafts', [SellController::class, 'getDrafts']);
-    Route::get('/sells/convert-to-draft/{id}', [SellPosController::class, 'convertToInvoice']);
-    Route::get('/sells/convert-to-proforma/{id}', [SellPosController::class, 'convertToProforma']);
-    Route::get('/sells/quotations', [SellController::class, 'getQuotations']);
-    Route::get('/sells/draft-dt', [SellController::class, 'getDraftDatables']);
-    // Route::resource('sells', SellController::class)->except(['show']);
-    //   ^ Removido — duplicado com linha 259 acima (Route::resource('sells', 'SellController'))
-    //   route:cache falhava com "Another route has already been assigned name [sells.index]".
+    // As rotas /sells (subscriptions, drafts, quotations, duplicate, convert-to-draft,
+    // convert-to-proforma, draft-dt, get-types-of-service-details, toggle-subscription)
+    // e Route::resource('sells') já estão declaradas ACIMA, antes do resource. O bloco
+    // que existia aqui era duplicata byte-a-byte e, por ficar APÓS o resource, suas rotas
+    // GET eram sombreadas por /sells/{id}; redeclarar o resource aqui quebrava route:cache
+    // ("Another route has already been assigned name [sells.index]"). Bloco removido.
 
     Route::get('/import-sales', [ImportSalesController::class, 'index']);
     Route::post('/import-sales/preview', [ImportSalesController::class, 'preview']);
