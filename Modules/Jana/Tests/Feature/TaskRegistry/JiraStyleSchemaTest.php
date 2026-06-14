@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Jana\Entities\Mcp\McpCycle;
 use Modules\Jana\Entities\Mcp\McpCycleGoal;
 use Modules\Jana\Entities\Mcp\McpEpic;
@@ -23,7 +23,7 @@ use Modules\Jana\Entities\Mcp\McpTaskDependency;
  *   - Cycle.progressPercent calcula
  */
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 it('cria projeto + alloc identifier sequencial', function () {
     $proj = McpProject::create([

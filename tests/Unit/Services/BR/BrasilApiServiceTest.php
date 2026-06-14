@@ -6,6 +6,8 @@ use App\Services\BR\BrasilApiService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
+uses(Tests\TestCase::class);
+
 /**
  * Unit — App\Services\BR\BrasilApiService.
  *
@@ -29,7 +31,7 @@ it('retorna null pra CNPJ invalido sem hit HTTP', function () {
     ]);
 
     $service = new BrasilApiService;
-    $result = $service->lookupCnpj('11.111.111/1111-11'); // todos 1, falha mod-11
+    $result = $service->lookupCnpj('11.111.111/1111-11'); // pii-allowlist: fake CNPJ todos-1 que falha mod-11
 
     expect($result)->toBeNull();
     Http::assertNothingSent();
@@ -61,7 +63,7 @@ it('normaliza payload da BrasilAPI quando API retorna 200', function () {
     ]);
 
     $service = new BrasilApiService;
-    $result = $service->lookupCnpj('11.444.777/0001-61');
+    $result = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
 
     expect($result)
         ->toBeArray()
@@ -82,7 +84,7 @@ it('retorna null quando API responde 404', function () {
     ]);
 
     $service = new BrasilApiService;
-    $result = $service->lookupCnpj('11.444.777/0001-61');
+    $result = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
 
     expect($result)->toBeNull();
 });
@@ -93,7 +95,7 @@ it('retorna null quando API responde 5xx (graceful)', function () {
     ]);
 
     $service = new BrasilApiService;
-    $result = $service->lookupCnpj('11.444.777/0001-61');
+    $result = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
 
     expect($result)->toBeNull();
 });
@@ -116,12 +118,12 @@ it('cache hit pula chamada HTTP na segunda vez', function () {
     $service = new BrasilApiService;
 
     // 1ª chamada — hit HTTP, popula cache.
-    $first = $service->lookupCnpj('11.444.777/0001-61');
+    $first = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
     expect($first['razao_social'])->toBe('CACHED LTDA');
     Http::assertSentCount(1);
 
     // 2ª chamada — cache hit, NÃO incrementa HTTP count.
-    $second = $service->lookupCnpj('11.444.777/0001-61');
+    $second = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
     expect($second['razao_social'])->toBe('CACHED LTDA');
     Http::assertSentCount(1); // ainda 1, sem nova chamada
 });
@@ -136,7 +138,7 @@ it('trata payload com campos null/missing da API', function () {
     ]);
 
     $service = new BrasilApiService;
-    $result = $service->lookupCnpj('11.444.777/0001-61');
+    $result = $service->lookupCnpj('11.444.777/0001-61'); // pii-allowlist: fake CNPJ fixture BrasilAPI
 
     expect($result)
         ->toBeArray()
