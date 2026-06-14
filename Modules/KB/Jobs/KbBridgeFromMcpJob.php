@@ -147,6 +147,7 @@ class KbBridgeFromMcpJob implements ShouldQueue
         //  - senão, usa o business do job (docs globais nascem em cada biz)
         $bizForNode = $doc->business_id ?? $this->businessId;
 
+        // SUPERADMIN: job em fila bridge MCP→KB roda sem sessão — business_id ($bizForNode) explícito na chave
         $node = KbNode::withoutGlobalScopes()
             ->firstOrNew([
                 'business_id'   => $bizForNode,

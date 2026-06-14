@@ -63,6 +63,7 @@ class KbEdgeAutoDeriver
                 }
 
                 // Resolve o slug pra um kb_node já bridgeado.
+                // SUPERADMIN: rodando dentro do bridge job (sem sessão) — business_id explícito no WHERE
                 $targetNode = KbNode::withoutGlobalScopes()
                     ->where('business_id', $node->business_id)
                     ->where('slug', $slug)
@@ -116,6 +117,7 @@ class KbEdgeAutoDeriver
         ], function () use ($node, $tags) {
             // Encontra outros nodes do mesmo business com 2+ tags em comum.
             // SQL: lista nodes que tem JSON_CONTAINS pra qualquer das tags.
+            // SUPERADMIN: rodando dentro do bridge job (sem sessão) — business_id explícito no WHERE
             $candidates = KbNode::withoutGlobalScopes()
                 ->where('business_id', $node->business_id)
                 ->where('id', '<>', $node->id)
@@ -174,6 +176,7 @@ class KbEdgeAutoDeriver
 
         // Busca ADR cujo slug começa com NNNN-
         $padded = str_pad($needle, 4, '0', STR_PAD_LEFT);
+        // SUPERADMIN: rodando dentro do bridge job (sem sessão) — business_id explícito no WHERE
         $targetNode = KbNode::withoutGlobalScopes()
             ->where('business_id', $node->business_id)
             ->where('type', 'adr')
@@ -232,6 +235,7 @@ class KbEdgeAutoDeriver
             'node_id'     => $node->id,
             'refs_count'  => count($ids),
         ], function () use ($node, $ids) {
+            // SUPERADMIN: rodando dentro do bridge job (sem sessão) — business_id explícito no WHERE
             $targets = KbNode::withoutGlobalScopes()
                 ->where('business_id', $node->business_id)
                 ->whereIn('id', $ids)
@@ -275,6 +279,7 @@ class KbEdgeAutoDeriver
         }
 
         try {
+            // SUPERADMIN: upsert idempotente dentro do bridge job (sem sessão) — business_id explícito na chave
             KbEdge::withoutGlobalScopes()->updateOrCreate(
                 [
                     'business_id'  => $businessId,
