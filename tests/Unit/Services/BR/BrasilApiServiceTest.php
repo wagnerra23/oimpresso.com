@@ -6,6 +6,8 @@ use App\Services\BR\BrasilApiService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
+uses(Tests\TestCase::class);
+
 /**
  * Unit — App\Services\BR\BrasilApiService.
  *
