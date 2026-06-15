@@ -76,6 +76,9 @@ it('McpTokenIssuer::rotate gera novo token + revoga anterior atomicamente', func
     $oldReloaded = McpToken::withTrashed()->find($old->id);
     expect($oldReloaded->trashed())->toBeTrue();
     expect($oldReloaded->expires_at)->not->toBeNull();
+    // Audit LGPD completo (A+ 2026-06-14): rotate grava revoked_at/revoked_by.
+    expect($oldReloaded->revoked_at)->not->toBeNull('rotate deve gravar revoked_at no token antigo');
+    expect((int) $oldReloaded->revoked_by)->toBe((int) $user->id, 'revoked_by = dono que rotacionou');
 
     // Cleanup
     $result['new_token']->forceDelete();
@@ -433,5 +436,11 @@ it('countActive ignora tokens soft-deleted (consistente com rotate)', function (
     $issuer->revoke((int) $token->id);
     expect($issuer->countActive($user->id))->toBe($countInicial, 'após revoke, count volta ao inicial');
 
-    McpToken::withTrashed()->find($token->id)?->forceDelete();
+    // Audit LGPD completo (A+ 2026-06-14): revoke faz soft-delete + grava revoked_at/by.
+    $revoked = McpToken::withTrashed()->find($token->id);
+    expect($revoked->trashed())->toBeTrue('revoke faz soft-delete, não hard-delete');
+    expect($revoked->revoked_at)->not->toBeNull('revoke grava revoked_at (audit LGPD)');
+    expect((int) $revoked->revoked_by)->toBe((int) $user->id, 'self-revoke → revoked_by = dono');
+
+    $revoked?->forceDelete();
 });

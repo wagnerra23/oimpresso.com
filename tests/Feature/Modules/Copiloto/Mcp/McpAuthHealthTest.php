@@ -29,6 +29,7 @@ beforeEach(function () {
         $t->timestamp('revoked_at')->nullable();
         $t->unsignedInteger('revoked_by')->nullable();
         $t->timestamps();
+        $t->softDeletes(); // paridade com migration add_soft_deletes_to_mcp_tokens
     });
 
     Schema::create('mcp_audit_log', function (Blueprint $t) {
