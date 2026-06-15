@@ -1629,3 +1629,22 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 2. fin_titulos.created_by FK NOT NULL users(id).
 3. uk_titulo_origem UNIQUE impede fix em massa do bug 07/jun (3.372 fin_titulos origem_id=subscription_id em vez de invoice.id).
 4. shell_exec disabled Hostinger shared (fopen/fgets nativo).
+
+### US-FIN-055 · Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService)
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** triagem SDD floor burn-down (nightly 20260614-020001). PR #2744 (commit e2bc74e8a) já corrigiu o `BridgeExpenseToTitulosCommand` + seu teste. Esta US cobre o RESTO do blast radius da mesma coluna-fantasma.
+
+**Causa-raiz:** `transactions.total_remaining_amount` NUNCA existiu no UltimatePOS (ausente de `database/schema/mysql-schema.sql` + todas as migrations). O core deriva o restante como `final_total - total_paid` ([SellController.php:523], total_paid = Σ `transaction_payments.amount` não-estorno). DB de dev antigo tinha coluna avulsa que mascarava; nightly com MySQL limpo (SDD F2b) expõe o `Unknown column` (SQLSTATE 42S22).
+
+**Acceptance criteria:**
+- [ ] **Prod (mais importante):** `Modules/Financeiro/Services/TituloAutoService.php:100` deriva `valor_aberto` de `final_total − Σ transaction_payments(is_return=0)` em vez de `$tx->total_remaining_amount ?? final_total`. Hoje o atributo é SEMPRE null → `valor_aberto` de venda/compra `partial` nasce cheio (= final_total), só sendo corrigido depois por `recalcularTitulo`. Bug de correção latente.
+- [ ] Remover insert/uso da coluna-fantasma em: `ResyncFromCoreCommandTest:53`, `BoletoMockEmissaoTest:107`, `TituloAutoServiceTest:79,232`, `TituloAutoServiceExpenseTest:80,183`, `tests/Feature/Modules/Financeiro/TransactionPaymentObserverTest:78`, `tests/Feature/TravaSegunda/RetencaoLoopE2ETest` (confirmar uso).
+- [ ] Testes `partial` que dependiam da coluna passam a criar `transaction_payments` reais (mesmo padrão do caso partial adicionado no #2744).
+- [ ] Suíte Pest Financeiro (MySQL) + Unit verdes no CI.
+
+**Validação obrigatória:** toca lógica financeira de produção → confirmar regra de negócio do parcial (Opção 1: `final_total − Σ pagamentos`) com Wagner/Eliana + validar no CT100 antes do merge. 1 PR = 1 intent. Worktree limpo off origin/main (não na branch governance). Não fazer merge sem CT100.
+
+**Refs:** PR #2744, SellController.php:523, chip CC task_6fb304ba.
