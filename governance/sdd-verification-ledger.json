@@ -54,6 +54,23 @@
       "pii_hits": 0,
       "veredito": "aprovado",
       "evidencia": "refutador G5 sessao fresca 2026-06-15 — 5 BRIEFINGs destilados vs codigo real (71 claims load-bearing conferidos)"
+    },
+    {
+      "pr": 2761,
+      "lote_id": "KL-E2-estoque-reparte",
+      "data": "2026-06-15",
+      "tipo": "prosa",
+      "gerador": "opus-4.8",
+      "refutador": "opus-4.8",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 38,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0.0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "refutador G5 sessao fresca 2026-06-15 — reparticao cluster Estoque (34 docs move R100 + 4 stubs)"
     }
   ]
 }
