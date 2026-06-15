@@ -1,0 +1,29 @@
+# Allowlist da lane sqlite per-PR — lida pelo job "PHP / Pest (Unit)" do
+# .github/workflows/ci.yml. 1 path por linha (arquivo OU diretório de teste).
+#
+# POR QUE UM ARQUIVO (e não a linha única do pest dentro do ci.yml): a linha
+# única era editada por TODO PR que adiciona um teste → todo par de PRs conflitava
+# (o "conflito de ci.yml lane de 1 linha" do handoff SDD Leva 1). Este arquivo é
+# marcado `merge=union` em .gitattributes → PRs concorrentes que adicionam linhas
+# são UNIDOS automaticamente pelo git, sem conflito. O runner faz `sort -u`, então
+# ordem e duplicatas não importam.
+#
+# REGRA: só testes SQLITE-SAFE (rodam em :memory: sem migrate completo). NÃO
+# adicionar testes com RefreshDatabase/migrate:fresh que puxem migration MySQL-only
+# (ex ALTER TABLE ... ENUM) — esses pertencem à lane MySQL (financeiro-pest /
+# jana-pest), não aqui. Testes MySQL-only que dão markTestSkipped em sqlite podem
+# ficar (viram skip-as-pass), mas o lar deles é a lane MySQL.
+#
+# Comentários começam com # e linhas em branco são ignoradas.
+Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
+Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
+Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
+Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
+Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
+Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
+Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
+Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
+tests/Feature/Form
+tests/Feature/Services/FeatureFlagServiceTest.php
