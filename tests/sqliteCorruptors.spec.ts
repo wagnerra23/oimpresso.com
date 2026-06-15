@@ -51,6 +51,20 @@ it('algo', function () { $this->assertTrue(true); });`;
     expect(r.corruptsOnMysql).toBe(true);
   });
 
+  it('POLARIDADE: drop dentro de if(!== sqlite){...} RODA no MySQL → corrompe (não sub-contar)', () => {
+    // O guard de dual-mode NÃO pode confundir polaridade: `!== 'sqlite'` é TRUE no MySQL.
+    const src = `<?php
+beforeEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        Schema::dropIfExists('business');
+    }
+});
+it('algo', function () { $this->assertTrue(true); });`;
+    const r = classifySource(src, 'X/NegIfTest.php');
+    expect(r).not.toBeNull();
+    expect(r.corruptsOnMysql).toBe(true);
+  });
+
   it('CASO CRÍTICO: beforeEach guardado MAS afterEach SEM guarda ainda corrompe (Governance)', () => {
     const src = `<?php
 beforeEach(function () {
@@ -91,6 +105,45 @@ it('algo', function () { $this->assertTrue(true); });`;
     expect(r).not.toBeNull();
     expect(r.corruptsOnMysql).toBe(false);
     expect(r.quarantined).toBe(true);           // efetivamente guardado
+  });
+
+  it('dual-mode if(=== sqlite){DDL} else {row-delete} → seguro (DDL só no sqlite)', () => {
+    const src = `<?php
+beforeEach(function () {
+    if (config('database.default') === 'sqlite') {
+        Schema::dropIfExists('nfe_emissoes');
+        Schema::create('nfe_emissoes', function (Blueprint $t) { $t->id(); });
+    } else {
+        DB::table('nfe_emissoes')->whereIn('business_id', [1, 99])->delete();
+    }
+});
+it('algo', function () { $this->assertTrue(true); });`;
+    const r = classifySource(src, 'X/NfeDualModeTest.php');
+    expect(r).not.toBeNull();
+    expect(r.corruptsOnMysql).toBe(false);
+  });
+
+  it('guarda por variável-flag $isSqliteMemory (skip + afterEach return) → seguro', () => {
+    const src = `<?php
+beforeEach(function () {
+    $isSqliteMemory = config('database.default') === 'sqlite';
+    if (! $isSqliteMemory) {
+        $this->markTestSkipped('só sqlite');
+    }
+    Schema::dropIfExists('fin_titulos');
+    Schema::create('fin_titulos', function (Blueprint $t) { $t->id(); });
+});
+afterEach(function () {
+    $isSqliteMemory = config('database.default') === 'sqlite';
+    if (! $isSqliteMemory) {
+        return;
+    }
+    Schema::dropIfExists('fin_titulos');
+});
+it('algo', function () { $this->assertTrue(true); });`;
+    const r = classifySource(src, 'X/MultiTenantComprehensiveTest.php');
+    expect(r).not.toBeNull();
+    expect(r.corruptsOnMysql).toBe(false);
   });
 
   it('source-reader (DDL dentro de toContain) NÃO é corruptor → null', () => {

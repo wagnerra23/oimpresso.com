@@ -188,6 +188,52 @@ function blockRange(src, kw) {
   return [anchor, src.length];
 }
 
+// Condição de `if (...)` que é VERDADEIRA só no sqlite (dual-mode `if(sqlite){drop}else{...}`).
+// POLARIDADE IMPORTA: `=== 'sqlite'` / `:memory:` = positiva (DDL gated, não roda no MySQL);
+// `!== 'sqlite'` = roda no MySQL → NÃO é positiva (continua contando). Sem polaridade o
+// linter sub-contaria `if(!==sqlite){drop}` — travado no meta-teste.
+function isSqlitePositiveCond(cond) {
+  const c = cond.trim();
+  // negativa explícita → o bloco RODA no MySQL (não é gate sqlite)
+  if (/!==?\s*['"]sqlite['"]|['"]sqlite['"]\s*!==?/.test(c)) return false;
+  if (/^!\s*\$?\w*(?:isSqlite|sqliteMemory)\w*$/i.test(c)) return false; // `! $isSqliteMemory`
+  // positiva (literal driver/:memory: OU variável-flag tipo `$isSqliteMemory`)
+  if (/===?\s*['"]sqlite['"]|['"]sqlite['"]\s*===?|getDriverName\(\)\s*===?\s*['"]sqlite|:memory:/.test(c)) return true;
+  if (/^\$?\w*(?:isSqlite|sqliteMemory)\w*$/i.test(c)) return true; // `$isSqliteMemory`
+  return false;
+}
+
+// Ranges [start,end) de blocos `if (<cond sqlite-positiva>) { ... }` em CÓDIGO. DDL aqui
+// dentro só executa no sqlite → não corrompe o MySQL persistente do nightly.
+function sqlitePositiveIfRanges(src, spans) {
+  const ranges = [];
+  const re = /\bif\s*\(/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    if (inNonCode(m.index, spans)) continue;
+    const parenStart = m.index + m[0].length - 1; // posição do '('
+    let depth = 0;
+    let condEnd = -1;
+    for (let j = parenStart; j < src.length; j++) {
+      if (src[j] === '(') depth++;
+      else if (src[j] === ')') { depth--; if (depth === 0) { condEnd = j; break; } }
+    }
+    if (condEnd < 0) continue;
+    if (!isSqlitePositiveCond(src.slice(parenStart + 1, condEnd))) continue;
+    const open = src.indexOf('{', condEnd);
+    if (open < 0 || !/^\s*$/.test(src.slice(condEnd + 1, open))) continue; // `{` logo após a condição
+    let bd = 0;
+    let blockEnd = -1;
+    for (let j = open; j < src.length; j++) {
+      if (src[j] === '{') bd++;
+      else if (src[j] === '}') { bd--; if (bd === 0) { blockEnd = j + 1; break; } }
+    }
+    if (blockEnd < 0) continue;
+    ranges.push([m.index, blockEnd]);
+  }
+  return ranges;
+}
+
 // Classificador puro (testável) — recebe o source + caminho relativo.
 // Retorna null quando o arquivo NÃO faz DDL manual em código (não é corruptor).
 export function classifySource(src, rel = '') {
@@ -222,13 +268,20 @@ export function classifySource(src, rel = '') {
     ...rawDropMatches.map((m) => m.index),
   ];
 
+  // Dual-mode: DDL dentro de `if (sqlite-positiva) { ... }` só roda no sqlite → não corrompe.
+  const sqliteIfRanges = sqlitePositiveIfRanges(src, spans);
+  const inSqliteIf = (idx) => sqliteIfRanges.some(([s, e]) => idx >= s && idx < e);
+
   let teardownUnguardedDrop = false;
   let setupOrBodyDrop = false;
   for (const idx of dropIdxs) {
+    if (inSqliteIf(idx)) continue; // dual-mode — drop só executa no sqlite
     const td = inRanges(idx, teardownRanges);
     if (td) {
       const txt = src.slice(td[0], td[1]);
-      if (!GUARD_TOKEN.test(txt)) teardownUnguardedDrop = true;
+      // teardown guardado = early-return em não-sqlite (`if(!==sqlite){return}`) OU markTestSkipped.
+      const tdGuarded = /(!==?\s*['"]sqlite['"]|['"]sqlite['"]\s*!==?|!\s*\$?\w*(?:isSqlite|sqliteMemory)\w*)[\s\S]{0,40}\breturn\b/i.test(txt) || SKIP_CALL.test(txt);
+      if (!tdGuarded) teardownUnguardedDrop = true;
     } else {
       // está no setup ou no corpo do teste; só roda no MySQL se o setup NÃO guarda.
       setupOrBodyDrop = true;
