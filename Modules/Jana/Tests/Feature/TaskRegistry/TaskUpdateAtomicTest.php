@@ -87,12 +87,15 @@ it('update sob transação+lock persiste e loga (sqlite-safe — lockForUpdate n
 it('update multi-campo commita o conjunto inteiro (atomicidade da transação)', function () {
     seedAtomicTask('US-GOV-099');
 
-    app(TaskCrudService::class)->update('US-GOV-099', ['status' => 'doing', 'owner' => 'eliana', 'priority' => 'p1'], 'wagner');
+    // 3 campos sem side-effect externo (owner dispararia maybeNotifyAssignment →
+    // query em `users`, ausente do schema sintético). status/priority/sprint provam
+    // a atomicidade do commit do conjunto sem dependência de outras tabelas.
+    app(TaskCrudService::class)->update('US-GOV-099', ['status' => 'doing', 'priority' => 'p1', 'sprint' => 'S1'], 'wagner');
 
     $row = DB::table('mcp_tasks')->where('task_id', 'US-GOV-099')->first();
     expect($row->status)->toBe('doing')
-        ->and($row->owner)->toBe('eliana')
-        ->and($row->priority)->toBe('p1');
+        ->and($row->priority)->toBe('p1')
+        ->and($row->sprint)->toBe('S1');
 })->group('atomic-update', 'ci');
 
 it('campo inválido reverte a transação inteira — sem escrita parcial (rollback real)', function () {
