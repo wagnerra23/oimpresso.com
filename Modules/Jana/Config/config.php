@@ -322,6 +322,7 @@ return [
         \Modules\Jana\Services\Reconcile\Reconcilers\ContentReconciler::class,  // git→DB mcp_memory_documents
         \Modules\Jana\Services\Reconcile\Reconcilers\DeployReconciler::class,   // SHA deployado vs main
         \Modules\Jana\Services\Reconcile\Reconcilers\EvalReconciler::class,     // RAGAS pass-rate threshold
+        \Modules\Jana\Services\Reconcile\Reconcilers\TasksReconciler::class,    // detect-only: doing órfã / done sem acceptance_ref / blocked_by resolvido (ADR 0237 + 0278)
     ],
 
     'reranker' => [
