@@ -102,6 +102,18 @@ class TaskCrudService
 
             // Side-effects: started_at / completed_at autopopulate
             if ($field === 'status') {
+                // FSM mcp_tasks (ADR 0070) — barra transição ilegal ANTES de qualquer
+                // side-effect/assignment. Fecha o "teleport" todo→done (matriz tinha 0
+                // leitores). Throw dentro da DB::transaction => rollback automático.
+                $fromStatus = (string) $task->status;
+                $toStatus = (string) $newVal;
+                if (! McpTask::canTransition($fromStatus, $toStatus)) {
+                    throw new \RuntimeException(
+                        "Transição ilegal {$fromStatus} → {$toStatus} (FSM mcp_tasks). Permitidas: "
+                        . implode(', ', McpTask::TRANSITIONS[$fromStatus] ?? [])
+                    );
+                }
+
                 if ($newVal === 'doing' && ! $task->started_at) {
                     $task->started_at = now();
                 }

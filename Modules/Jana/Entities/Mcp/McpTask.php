@@ -87,6 +87,36 @@ class McpTask extends Model
     /** Status canônicos (ADR 0070 — backlog adicionado). */
     public const STATUSES = ['backlog', 'todo', 'doing', 'review', 'done', 'blocked', 'cancelled'];
 
+    /**
+     * FSM mcp_tasks — matriz de transições permitidas (single source-of-truth em código).
+     *
+     * Espelha EXATAMENTE o workflow default semeado em McpDefaultsSeeder::$defaultWorkflow
+     * ('transitions'). Antes a matriz só existia como dado de seed e tinha ZERO leitores —
+     * todo→done (teleport) passava silencioso. Agora o chokepoint applyLockedUpdate consulta
+     * esta const e rejeita transição ilegal (rollback automático dentro da DB::transaction).
+     *
+     * @var array<string, list<string>>
+     */
+    public const TRANSITIONS = [
+        'backlog'   => ['todo', 'cancelled'],
+        'todo'      => ['doing', 'blocked', 'cancelled'],
+        'doing'     => ['review', 'blocked', 'todo', 'cancelled'],
+        'review'    => ['done', 'doing', 'blocked'],
+        'blocked'   => ['todo', 'doing', 'cancelled'],
+        'done'      => ['review'],   // reabrir
+        'cancelled' => ['todo'],     // reabrir
+    ];
+
+    /**
+     * A transição $from → $to é permitida pela FSM?
+     *
+     * Estado desconhecido (fora de TRANSITIONS) => nenhuma transição permitida (fail-closed).
+     */
+    public static function canTransition(string $from, string $to): bool
+    {
+        return in_array($to, self::TRANSITIONS[$from] ?? [], true);
+    }
+
     /** Priorities canônicas. */
     public const PRIORITIES = ['p0', 'p1', 'p2', 'p3'];
 
