@@ -138,6 +138,10 @@
       "nome": "Infra Contract Required",
       "classe": "gate"
     },
+    "jana-pest.yml": {
+      "nome": "Jana · Pest (MySQL)",
+      "classe": "gate"
+    },
     "jana-ragas-canary.yml": {
       "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
       "classe": "automacao"
