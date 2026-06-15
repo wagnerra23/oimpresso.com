@@ -29,6 +29,12 @@ const E2E_BIZ_WAGNER = 1;
 const E2E_BIZ_OUTRO = 99;
 
 beforeEach(function () {
+    // era-sqlite: este teste cria schema manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso DROPA tabelas reais → corrompe os testes irmãos (lever do floor SDD).
+    // Cobertura real é na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
     config()->set('otel.enabled', false);
 
     foreach (['whatsapp_messages', 'whatsapp_business_phones'] as $t) {
