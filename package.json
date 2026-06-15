@@ -71,7 +71,8 @@
     "test:memory-health": "vitest run tests/memoryHealth.spec.ts",
     "test:casos-guard": "vitest run tests/casosGuard.spec.ts",
     "test:casos-results": "vitest run tests/casosResultsCollect.spec.ts",
-    "test:dominio-guard": "vitest run tests/dominioGuard.spec.ts"
+    "test:dominio-guard": "vitest run tests/dominioGuard.spec.ts",
+    "test:sqlite-corruptors": "vitest run tests/sqliteCorruptors.spec.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
