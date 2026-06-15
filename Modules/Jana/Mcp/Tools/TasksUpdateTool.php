@@ -57,10 +57,6 @@ class TasksUpdateTool extends Tool
 
     public function handle(Request $request): Response
     {
-        if ($deny = $this->authorizeMcpMutation($request, 'jana.mcp.tasks.write')) {
-            return $deny;
-        }
-
         $taskId = trim((string) $request->get('task_id', ''));
         if ($taskId === '') {
             return Response::text('❌ task_id é obrigatório.');
@@ -103,6 +99,18 @@ class TasksUpdateTool extends Tool
         // Valida priority se fornecida
         if (isset($campos['priority']) && ! in_array($campos['priority'], ['p0', 'p1', 'p2', 'p3'], true)) {
             return Response::text('❌ Priority inválida. Válidas: p0, p1, p2, p3.');
+        }
+
+        // A3 (ADR 0070/0278) — scope FINO advance vs close. Fechar (status→done/
+        // cancelled) é transição terminal → exige jana.mcp.tasks.close; qualquer
+        // outra mutação → jana.mcp.tasks.advance. Backward-safe: o umbrella legado
+        // jana.mcp.tasks.write autoriza AMBOS (tokens existentes não quebram).
+        // Checado AQUI (não no topo) porque advance/close depende do status parseado.
+        $terminal = isset($campos['status']) && in_array($campos['status'], ['done', 'cancelled'], true);
+        $scope = $terminal ? 'jana.mcp.tasks.close' : 'jana.mcp.tasks.advance';
+        $deny = $this->authorizeMcpMutation($request, $scope);
+        if ($deny !== null && $this->authorizeMcpMutation($request, 'jana.mcp.tasks.write') !== null) {
+            return $deny; // sem o scope fino E sem o umbrella legado → nega
         }
 
         try {
