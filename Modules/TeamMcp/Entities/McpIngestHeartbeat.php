@@ -19,6 +19,11 @@ use Illuminate\Database\Eloquent\Model;
  * scope de business aqui.
  *
  * @see Modules\TeamMcp\Http\Controllers\Mcp\CcIngestController (writer)
+ *
+ * @property string $host
+ * @property \Illuminate\Support\Carbon|null $last_ingest_at
+ * @property string|null $last_session_uuid
+ * @property int $msgs_acc
  */
 class McpIngestHeartbeat extends Model
 {
