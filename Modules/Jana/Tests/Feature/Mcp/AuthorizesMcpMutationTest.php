@@ -20,7 +20,6 @@ declare(strict_types=1);
     }
 })();
 
-use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Laravel\Mcp\Request as McpRequest;
 use Laravel\Mcp\Response as McpResponse;
@@ -70,12 +69,13 @@ afterEach(function () {
 
 /**
  * Stub de user que implementa só o necessário: Authenticatable (contrato que
- * Laravel\Mcp\Request::user() devolve) + Authorizable (provê can()). A decisão
- * de can() é injetada via $granted.
+ * Laravel\Mcp\Request::user() devolve) + um método can() (a trait chama via
+ * method_exists, NÃO pelo contrato Authorizable). A decisão de can() é injetada
+ * via $granted.
  */
 function makeMcpUser(bool $granted): Authenticatable
 {
-    return new class($granted) implements Authenticatable, Authorizable
+    return new class($granted) implements Authenticatable
     {
         public function __construct(private bool $granted) {}
 
