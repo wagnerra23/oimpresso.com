@@ -8,6 +8,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
+use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
@@ -18,6 +19,8 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  */
 class TasksCommentTool extends Tool
 {
+    use AuthorizesMcpMutation;
+
     protected string $name = 'tasks-comment';
 
     protected string $title = 'Comentar numa task';
@@ -40,6 +43,10 @@ class TasksCommentTool extends Tool
 
     public function handle(Request $request): Response
     {
+        if ($deny = $this->authorizeMcpMutation($request, 'jana.mcp.tasks.write')) {
+            return $deny;
+        }
+
         $taskId  = trim((string) $request->get('task_id', ''));
         $comment = trim((string) $request->get('comment', ''));
         $author  = trim((string) $request->get('author', 'wagner')) ?: 'wagner';
