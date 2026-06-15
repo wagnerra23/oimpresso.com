@@ -29,6 +29,7 @@
             <directory>./Modules/Admin/Tests/Feature</directory>
             <directory>./Modules/Arquivos/Tests/Feature</directory>
             <directory>./Modules/Ponto/Tests/Feature</directory>
+            <directory>./Modules/Ponto/Tests/Unit</directory>
             <directory>./Modules/ADS/Tests/Feature</directory>
             <directory>./Modules/ADS/Tests/Unit</directory>
             <directory>./Modules/Vestuario/Tests/Feature</directory>
