@@ -68,6 +68,14 @@ class TasksUpdateTool extends Tool
 
         $author = trim((string) $request->get('author', 'wagner')) ?: 'wagner';
 
+        // A5 (ADR 0278): principal CONFIÁVEL = dono do token MCP (não o $author
+        // auto-declarado/spoofável). Alimenta o sinal de mutação claim-less no
+        // TaskCrudService. Mesmo idiom do TasksClaimTool (human_principal do lease).
+        $user = $request->user();
+        $principal = $user !== null
+            ? (string) ($user->username ?? $user->email ?? ('user#' . $user->getAuthIdentifier()))
+            : null;
+
         $campos = [];
         foreach (['status', 'owner', 'sprint', 'priority', 'module', 'acceptance_ref'] as $field) {
             $val = $request->get($field);
@@ -98,7 +106,7 @@ class TasksUpdateTool extends Tool
         }
 
         try {
-            $result = app(TaskCrudService::class)->update($taskId, $campos, $author);
+            $result = app(TaskCrudService::class)->update($taskId, $campos, $author, $principal);
         } catch (\Throwable $e) {
             return Response::text('❌ ' . $e->getMessage());
         }
