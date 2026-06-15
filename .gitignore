@@ -80,3 +80,8 @@ tests/eval/results/*.json
 # Test-results JUnit (Salto #2 / G-7) — efêmero; o manifesto derivado (scripts/casos-test-results.json) é o que se commita
 test-results/
 playwright-report/
+
+# Artefato transitório do validador de schema de memória — escrito no CWD por
+# .github/scripts/validate-memory-schema.sh; o workflow memory-schema-gate.yml
+# também o gera e faz upload como artefato CI-only. Não versionar.
+violations.json
