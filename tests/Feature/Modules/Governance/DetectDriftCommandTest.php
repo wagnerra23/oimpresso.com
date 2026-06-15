@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Schema;
 
 beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
-        test()->skip('era-sqlite: Schema::dropIfExists/create mcp_alertas_eventos corrompe MySQL nightly — teste foi projetado pra SQLite in-memory');
+        $this->markTestSkipped('era-sqlite: Schema::dropIfExists/create mcp_alertas_eventos corrompe MySQL nightly — teste foi projetado pra SQLite in-memory');
     }
 
     // Schema mínimo replicando mcp_alertas_eventos (Modules/Jana/Database/Migrations/2026_04_29_600001_*).
@@ -56,6 +56,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_alertas_eventos');
 
     $fixtureBase = base_path('Modules/__DriftFixture__');
