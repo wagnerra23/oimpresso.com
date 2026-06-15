@@ -1,20 +1,34 @@
 ---
-status: proposta
-slug: arquitetura-rede-ia-duravel-anti-vazamento
-date: "2026-06-15"
-authors: [C]
-decided_by: pendente-W
-related_adrs:
-  - "0053-mcp-server-canonico"
-  - "0061-conhecimento-canonico-git-mcp-zero-automem"
-  - "0070-jira-style-task-management"
-  - "0091-daily-brief-fetch"
-  - "0119-whats-active-tier-1-alerta-passivo"
-  - "0256-knowledge-survival-catraca-sentinela"
-  - "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"
+slug: 0278-arquitetura-rede-ia-duravel-anti-vazamento
+number: 278
+title: "Arquitetura durável de automação multi-IA (anti-vazamento, thread-aware, em rede)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+kind: meta
+decided_by: [W]
+decided_at: "2026-06-15"
+module: governance
+tags: [governanca, automacao, multi-ia, anti-vazamento, lease, durabilidade, sdd]
+supersedes: []
+superseded_by: []
+related:
+  - 0053-mcp-server-canonico
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0070-jira-style-task-management
+  - 0091-daily-brief-fetch
+  - 0119-whats-active-tier-1-alerta-passivo
+  - 0256-knowledge-survival-catraca-sentinela
+  - 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
+  - 0276-decisao-pelo-fluxo-classes-pares-adversariais
 ---
 
-# Proposta — arquitetura durável de automação multi-IA (anti-vazamento, thread-aware, em rede)
+> **Numerado e aceito por [W] em 2026-06-15** (ADR 0238: numerar = aceitar). A
+> **versão mínima** (Fases 0+1) está implementada em **PR #2781** (D1 — `mcp_work_leases`).
+> Reconciler/gate-MCP (Fases 3-4) ficam para quando o lease provar valor (sinal qualificado, ADR 0105).
+
+# ADR 0278 — arquitetura durável de automação multi-IA (anti-vazamento, thread-aware, em rede)
 
 > **Pedido [W] 2026-06-15:** *"a lista está sempre furando sem estrutura, precisa ser constantemente relembrada do que foi decidido. Quero um plano de automatização que sobreviva ao tempo dessa automatização, que considere as threads sempre, que viva e sobreviva em rede de várias IAs de vários funcionários e entenda o mecanismo da empresa com frentes variadas. Planeje a estrutura, pesquise profundamente."*
 > **Método:** workflow `arq-rede-ia-duravel` (10 agents, ~1M tokens): 5 pesquisadores SOTA 2025-2026 + 3 inventários internos + síntese + **refutador adversarial** (ADR 0276). Esta proposta lidera pela versão **refutada** (sem os overclaims do blueprint). [W] numera se aceitar (ADR 0238).
