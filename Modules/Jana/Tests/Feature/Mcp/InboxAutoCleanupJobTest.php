@@ -16,6 +16,13 @@ uses(Tests\TestCase::class);
  * (migration usa enum, não funciona em SQLite — replicamos com string).
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     Schema::dropIfExists('mcp_inbox_notifications');
     Schema::create('mcp_inbox_notifications', function (Blueprint $t) {
         $t->bigIncrements('id');
@@ -31,6 +38,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_inbox_notifications');
 });
 

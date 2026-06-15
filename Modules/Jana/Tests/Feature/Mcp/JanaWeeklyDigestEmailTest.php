@@ -26,6 +26,13 @@ uses(Tests\TestCase::class);
  * (não tocados — esse arquivo aditivo cobre só o gap de envio email D8 #6).
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     Schema::dropIfExists('mcp_weekly_digests');
     Schema::create('mcp_weekly_digests', function (Blueprint $t) {
         $t->bigIncrements('id');
@@ -43,6 +50,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_weekly_digests');
     foreach (glob(base_path('memory/sessions/WEEKLY-DIGEST-9999-W*.md') ?: []) as $f) {
         @unlink($f);
