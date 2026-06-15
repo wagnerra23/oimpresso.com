@@ -1,6 +1,6 @@
 # BRIEFING — Produto
 
-Produto é o domínio **core** de cadastro de produto/variações do ERP (UltimatePOS herdado), **não** um `Modules/Produto`. O modelo é `App\Product` (em `app/`, global scope `business_id`) e o backend é `app/Http/Controllers/ProductController.php` (~2700 linhas, UPOS canon) + `app/Http/Controllers/ProdutoUnificadoController.php`. As telas React vivem em `resources/js/Pages/Produto/`. Controlado por Wagner (owner dos charters). A camada Inertia/React **coexiste** com o Blade legacy via branch dual no header `X-Inertia` (ADR 0104 MWART) — quando ausente, cai no Blade antigo.
+Produto é o domínio **core** de cadastro de produto/variações do ERP (UltimatePOS herdado), **não** um módulo nWidart próprio (não existe pasta `Modules/` com esse nome). O modelo é `App\Product` (em `app/`, global scope `business_id`) e o backend é `app/Http/Controllers/ProductController.php` (~2700 linhas, UPOS canon) + `app/Http/Controllers/ProdutoUnificadoController.php`. As telas React vivem em `resources/js/Pages/Produto/`. Controlado por Wagner (owner dos charters). A camada Inertia/React **coexiste** com o Blade legacy via branch dual no header `X-Inertia` (ADR 0104 MWART) — quando ausente, cai no Blade antigo.
 
 **Estado:** ativo (core), UI em **migração parcial** — telas React existem mas charters estão `status: draft` e as 8 estão `awaiting-smoke-browser` (nenhuma `live`). Backend Blade segue funcional como fallback.
 
