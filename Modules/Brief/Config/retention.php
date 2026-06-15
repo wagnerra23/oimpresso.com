@@ -112,4 +112,17 @@ return [
     | aplicável (time interno, ciência implícita via Termo de Uso).
     */
     'notice_period_days' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kill-switch C2+C3 (default ON) — bloco de leases ATIVOS no Daily Brief
+    |--------------------------------------------------------------------------
+    | SDD Leva 2 (ADR 0278). Quando true, LeaseBriefSectionService injeta sob
+    | `## EM VOO AGORA` a lista de leases de coordenação ativos + o nudge
+    | "claim antes de pegar". `BRIEF_LEASE_SECTION=false` no .env desliga o
+    | inject() sem deploy — o service devolve o brief intacto (zero bloco,
+    | zero query). Mesmo idioma do kill-switch GT-G8 (governance.sdd_brief_line).
+    | @see Modules\Brief\Services\LeaseBriefSectionService
+    */
+    'lease_section' => env('BRIEF_LEASE_SECTION', true),
 ];
