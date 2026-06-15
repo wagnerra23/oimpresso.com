@@ -48,35 +48,16 @@ function measureKnowledgeDrift() {
   return { ghost_count: names.size, ghost_citing_modules: citing, door_num: withDoor, door_den: rows.length };
 }
 
-// ── fonte 2: grep estrito dos SPECs ─────────────────────────────────────────
-const PLACEHOLDER_RE = /TODO|_\[path\]_|_pendente_|a criar|_xx_/i;
-const ANCHOR_PATH_RE = /(?:resources\/js|Modules|app|routes|tests|scripts|database|config|prototipo-ui)\/[A-Za-z0-9_\-./]+/g;
-const US_HEADING_RE = /^#{2,4}\s+.*US-[A-Z][A-Za-z0-9]*-\d/gm;
-const FIELD_RE = /\*\*Implementado em:\*\*[^\n]*/g;
-
+// ── fonte 2: anchor-lint --json (FONTE ÚNICA do anchor_coverage — ADR 0273 §2) ─
+// Antes media com grep estrito próprio (PLACEHOLDER_RE/ANCHOR_PATH_RE/US_HEADING_RE/
+// FIELD_RE) e divergia do anchor-lint: dois números pro mesmo conceito. Agora delega —
+// `summary.anchor_coverage_pct` do anchor-lint é a fonte única; este script só transporta.
 function measureAnchors() {
-  const REQ = join(ROOT, 'memory', 'requisitos');
-  const specs = readdirSync(REQ, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && existsSync(join(REQ, e.name, 'SPEC.md')))
-    .map((e) => join(REQ, e.name, 'SPEC.md'))
-    .sort();
-  let usTotal = 0, fields = 0, placeholder = 0, filled = 0, anchored = 0, specsWithField = 0;
-  for (const f of specs) {
-    const txt = readFileSync(f, 'utf8');
-    usTotal += (txt.match(US_HEADING_RE) || []).length;
-    const fl = txt.match(FIELD_RE) || [];
-    if (fl.length) specsWithField++;
-    for (const field of fl) {
-      fields++;
-      if (PLACEHOLDER_RE.test(field)) { placeholder++; continue; }
-      filled++;
-      const paths = field.match(ANCHOR_PATH_RE) || [];
-      if (paths.some((p) => existsSync(join(ROOT, p.replace(/[.,;:]+$/, ''))))) anchored++;
-    }
-  }
-  return { specs_total: specs.length, specs_with_field: specsWithField, us_total: usTotal,
-    fields_total: fields, fields_placeholder: placeholder, fields_filled: filled,
-    fields_anchored_strict: anchored };
+  const raw = execSync(`"${process.execPath}" scripts/governance/anchor-lint.mjs --json`, {
+    cwd: ROOT, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'],
+  }).toString();
+  const s = JSON.parse(raw).summary;
+  return { coverage_pct: s.anchor_coverage_pct, ...s };
 }
 
 // ── fonte 3: quarentena FV-Q3 (convenção legacy-quarantine nos testes) ───────
@@ -121,7 +102,7 @@ function buildScorecard() {
       plan: 'memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md',
       determinismo: 'sem timestamps/sha no corpo — re-run sem mudança no repo = diff vazio',
       composta: 'v1 (fontes parciais) ≠ v2 (10/10 vivas) — regimes não comparáveis; composta NÃO é calculada enquanto houver not_yet_measured',
-      anchor_coverage_regra: 'numerador = campos `**Implementado em:**` sem placeholder (TODO/_[path]_/_pendente_/a criar/_xx_) com ≥1 path existente no disco; denominador = headings `US-XXX-NNN` nos 57 SPECs',
+      anchor_coverage_regra: 'delegado a scripts/governance/anchor-lint.mjs (ADR 0273 §2 — fonte única): (anchored_ok + pendente + parcial) / us_total. Antes era grep estrito próprio (divergia); unificado no PR do ledger §A.',
       ratchet: {
         baseline: 'governance/sdd-scorecard-baseline.json — armed POR MÉTRICA (ADR 0275 §3: arma após 3 medições válidas consecutivas da fonte real; armar/desarmar/piorar = PR editando o baseline, diff visível)',
         simulacao: 'SDD_RATCHET_ARM=1 node scripts/governance/sdd-scorecard.mjs --ratchet — trata todas as medidas como armadas (selftest local)',
@@ -129,9 +110,9 @@ function buildScorecard() {
     },
     metrics: {
       anchor_coverage: {
-        status: 'measured', value: pct(an.fields_anchored_strict, an.us_total), unit: '%',
+        status: 'measured', value: an.coverage_pct, unit: '%',
         direction: 'up', target: 100,
-        source: 'grep estrito memory/requisitos/*/SPEC.md (este script)',
+        source: 'scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)',
         detail: an,
       },
       full_suite_pass_rate: notYet('up', '100% não-quarentenado',

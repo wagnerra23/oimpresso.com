@@ -5,7 +5,7 @@
     "plan": "memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md",
     "determinismo": "sem timestamps/sha no corpo — re-run sem mudança no repo = diff vazio",
     "composta": "v1 (fontes parciais) ≠ v2 (10/10 vivas) — regimes não comparáveis; composta NÃO é calculada enquanto houver not_yet_measured",
-    "anchor_coverage_regra": "numerador = campos `**Implementado em:**` sem placeholder (TODO/_[path]_/_pendente_/a criar/_xx_) com ≥1 path existente no disco; denominador = headings `US-XXX-NNN` nos 57 SPECs",
+    "anchor_coverage_regra": "delegado a scripts/governance/anchor-lint.mjs (ADR 0273 §2 — fonte única): (anchored_ok + pendente + parcial) / us_total. Antes era grep estrito próprio (divergia); unificado no PR do ledger §A.",
     "ratchet": {
       "baseline": "governance/sdd-scorecard-baseline.json — armed POR MÉTRICA (ADR 0275 §3: arma após 3 medições válidas consecutivas da fonte real; armar/desarmar/piorar = PR editando o baseline, diff visível)",
       "simulacao": "SDD_RATCHET_ARM=1 node scripts/governance/sdd-scorecard.mjs --ratchet — trata todas as medidas como armadas (selftest local)"
@@ -14,19 +14,30 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 3.5,
+      "value": 5.4,
       "unit": "%",
       "direction": "up",
       "target": 100,
-      "source": "grep estrito memory/requisitos/*/SPEC.md (este script)",
+      "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "specs_total": 57,
-        "specs_with_field": 15,
-        "us_total": 799,
+        "coverage_pct": 5.4,
+        "specs_total": 56,
+        "us_total": 775,
+        "anchor_coverage_pct": 5.4,
+        "by_state": {
+          "sem_campo": 696,
+          "placeholder": 22,
+          "pendente": 23,
+          "parcial": 0,
+          "anchored_ok": 19,
+          "anchored_dead": 15
+        },
         "fields_total": 84,
-        "fields_placeholder": 45,
-        "fields_filled": 39,
-        "fields_anchored_strict": 28
+        "fields_placeholder": 22,
+        "fields_grammar_ok": 28,
+        "orphan_fields": 5,
+        "v1_files": 0,
+        "v1_violations": "0"
       }
     },
     "full_suite_pass_rate": {
@@ -58,25 +69,25 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 15,
+      "value": 14,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 25
+        "citing_modules": 24
       }
     },
     "front_door_coverage": {
       "status": "measured",
-      "value": 63.9,
+      "value": 100,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 39,
-        "modules": 61
+        "with_door": 69,
+        "modules": 69
       }
     },
     "recall_eval_violations": {
