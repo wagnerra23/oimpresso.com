@@ -78,10 +78,11 @@ class IngestLivenessService
     }
 
     /**
-     * Todos os hosts com status + idade. Degrada gracioso (coleção vazia) se a tabela
-     * ainda não migrou — nunca estoura.
+     * Todos os hosts com status + idade. Cada item é um stdClass com:
+     * host (string), last_ingest_at (Carbon|null), status (string), age_minutes (int|null).
+     * Degrada gracioso (coleção vazia) se a tabela ainda não migrou — nunca estoura.
      *
-     * @return Collection<int, object{host: string, last_ingest_at: Carbon|null, status: string, age_minutes: int|null}>
+     * @return Collection<int, \stdClass>
      */
     public function all(): Collection
     {
