@@ -110,7 +110,7 @@ class TaskCrudService
                 if (! McpTask::canTransition($fromStatus, $toStatus)) {
                     throw new \RuntimeException(
                         "Transição ilegal {$fromStatus} → {$toStatus} (FSM mcp_tasks). Permitidas: "
-                        . implode(', ', McpTask::TRANSITIONS[$fromStatus] ?? [])
+                        . implode(', ', McpTask::TRANSITIONS[$fromStatus])
                     );
                 }
 
