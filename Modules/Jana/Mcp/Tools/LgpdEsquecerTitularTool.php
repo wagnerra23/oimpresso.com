@@ -50,7 +50,7 @@ class LgpdEsquecerTitularTool extends Tool
         return [
             'cpf_or_cnpj' => $schema->string()
                 ->required()
-                ->description('CPF (11 dígitos) ou CNPJ (14 dígitos). Aceita formatado (123.456.789-00) ou só dígitos.'),
+                ->description('CPF (11 dígitos) ou CNPJ (14 dígitos). Aceita formatado (123.456.789-00) ou só dígitos.'), // pii-allowlist (CPF de exemplo na doc do schema, não é dado real)
             'business_id' => $schema->integer()
                 ->required()
                 ->description('Tenant scope (Tier 0 IRREVOGÁVEL — explicit, não usa session).'),
