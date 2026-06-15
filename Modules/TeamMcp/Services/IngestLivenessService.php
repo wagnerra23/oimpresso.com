@@ -78,11 +78,10 @@ class IngestLivenessService
     }
 
     /**
-     * Todos os hosts com status + idade. Cada item é um stdClass com:
-     * host (string), last_ingest_at (Carbon|null), status (string), age_minutes (int|null).
+     * Todos os hosts com status + idade (DTO tipado IngestLivenessStatus).
      * Degrada gracioso (coleção vazia) se a tabela ainda não migrou — nunca estoura.
      *
-     * @return Collection<int, \stdClass>
+     * @return Collection<int, IngestLivenessStatus>
      */
     public function all(): Collection
     {
@@ -90,15 +89,15 @@ class IngestLivenessService
             return collect();
         }
 
-        return McpIngestHeartbeat::query()->get()->map(function (McpIngestHeartbeat $hb): object {
+        return McpIngestHeartbeat::query()->get()->map(function (McpIngestHeartbeat $hb): IngestLivenessStatus {
             $last = $hb->last_ingest_at;
 
-            return (object) [
-                'host'           => $hb->host,
-                'last_ingest_at' => $last,
-                'status'         => $this->classify($last),
-                'age_minutes'    => $last ? (int) $last->diffInMinutes(now()) : null,
-            ];
+            return new IngestLivenessStatus(
+                host: $hb->host,
+                lastIngestAt: $last,
+                status: $this->classify($last),
+                ageMinutes: $last ? (int) $last->diffInMinutes(now()) : null,
+            );
         });
     }
 
@@ -112,9 +111,9 @@ class IngestLivenessService
         $all = $this->all();
 
         return [
-            'fresh' => $all->where('status', 'fresh')->count(),
-            'stale' => $all->where('status', 'stale')->count(),
-            'dead'  => $all->where('status', 'dead')->count(),
+            'fresh' => $all->filter(fn (IngestLivenessStatus $r): bool => $r->status === 'fresh')->count(),
+            'stale' => $all->filter(fn (IngestLivenessStatus $r): bool => $r->status === 'stale')->count(),
+            'dead'  => $all->filter(fn (IngestLivenessStatus $r): bool => $r->status === 'dead')->count(),
         ];
     }
 }
