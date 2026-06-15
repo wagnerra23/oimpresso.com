@@ -20,6 +20,13 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     config()->set('copiloto.dry_run', true);
 
     Schema::dropIfExists('jana_health_narratives');
@@ -39,6 +46,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('jana_health_narratives');
 });
 

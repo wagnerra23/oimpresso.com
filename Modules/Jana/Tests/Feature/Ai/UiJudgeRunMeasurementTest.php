@@ -24,6 +24,13 @@ uses(Tests\TestCase::class);
  * @see Modules/Jana/Database/Migrations/2026_06_05_120000_create_jana_ui_judge_runs_table.php
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     Schema::dropIfExists('jana_ui_judge_runs');
     Schema::create('jana_ui_judge_runs', function (Blueprint $t) {
         $t->bigIncrements('id');
