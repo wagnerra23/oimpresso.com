@@ -98,7 +98,7 @@ class TaskCrudService
                 // (deferida até o lease provar valor, ADR 0105).
                 if ($newVal === 'done'
                     && empty($fields['acceptance_ref'])
-                    && empty($task->acceptance_ref)) {
+                    && empty($task->getAttribute('acceptance_ref'))) {
                     $events[] = McpTaskEvent::log(
                         taskId: $task->task_id,
                         eventType: 'field_updated',
