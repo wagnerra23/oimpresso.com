@@ -29,3 +29,4 @@ tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
 Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
+Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
