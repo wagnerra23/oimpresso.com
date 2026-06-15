@@ -90,6 +90,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // mcp_* são tabelas reais-migradas. O afterEach roda MESMO em teste pulado
+    // (PHPUnit 12: tearDown gated só por hasMetRequirements, true antes do
+    // beforeEach/markTestSkipped) — dropá-las no MySQL persistente do nightly
+    // corromperia os testes irmãos (Base table not found). DDL só em sqlite.
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
     Schema::dropIfExists('mcp_actors');
     Schema::dropIfExists('mcp_audit_log');
     Schema::dropIfExists('mcp_skill_versions');
