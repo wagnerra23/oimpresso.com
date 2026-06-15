@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\TeamMcp\Services;
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
 
@@ -78,28 +77,35 @@ class IngestLivenessService
     }
 
     /**
-     * Todos os hosts com status + idade. Cada item é um array tipado
-     * {host, last_ingest_at, status, age_minutes}. Degrada gracioso (coleção vazia)
-     * se a tabela ainda não migrou — nunca estoura.
+     * Todos os hosts com status + idade (array tipado por host). Degrada gracioso
+     * (lista vazia) se a tabela ainda não migrou — nunca estoura.
      *
-     * @return Collection<int, array{host: string, last_ingest_at: \Illuminate\Support\Carbon|null, status: string, age_minutes: int|null}>
+     * Retorna `array` (não Collection) de propósito: o generic de Collection::map é
+     * invariante no Larastan e rejeita até shapes idênticos; `list<array{...}>` é
+     * PHPStan-clean sem essa fricção.
+     *
+     * @return list<array{host: string, last_ingest_at: \Illuminate\Support\Carbon|null, status: string, age_minutes: int|null}>
      */
-    public function all(): Collection
+    public function all(): array
     {
         if (! Schema::hasTable(self::TABLE)) {
-            return collect();
+            return [];
         }
 
-        return McpIngestHeartbeat::query()->get()->map(function (McpIngestHeartbeat $hb): array {
+        $rows = [];
+
+        foreach (McpIngestHeartbeat::query()->get() as $hb) {
             $last = $hb->last_ingest_at;
 
-            return [
+            $rows[] = [
                 'host'           => $hb->host,
                 'last_ingest_at' => $last,
                 'status'         => $this->classify($last),
                 'age_minutes'    => $last ? (int) $last->diffInMinutes(now()) : null,
             ];
-        });
+        }
+
+        return $rows;
     }
 
     /**
@@ -112,9 +118,9 @@ class IngestLivenessService
         $all = $this->all();
 
         return [
-            'fresh' => $all->filter(fn (array $r): bool => $r['status'] === 'fresh')->count(),
-            'stale' => $all->filter(fn (array $r): bool => $r['status'] === 'stale')->count(),
-            'dead'  => $all->filter(fn (array $r): bool => $r['status'] === 'dead')->count(),
+            'fresh' => count(array_filter($all, static fn (array $r): bool => $r['status'] === 'fresh')),
+            'stale' => count(array_filter($all, static fn (array $r): bool => $r['status'] === 'stale')),
+            'dead'  => count(array_filter($all, static fn (array $r): bool => $r['status'] === 'dead')),
         ];
     }
 }
