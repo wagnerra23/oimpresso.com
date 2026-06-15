@@ -119,10 +119,11 @@ return [
     |--------------------------------------------------------------------------
     | SDD Leva 2 (ADR 0278). Quando true, LeaseBriefSectionService injeta sob
     | `## EM VOO AGORA` a lista de leases de coordenação ativos + o nudge
-    | "claim antes de pegar". `BRIEF_LEASE_SECTION=false` no .env desliga o
-    | inject() sem deploy — o service devolve o brief intacto (zero bloco,
-    | zero query). Mesmo idioma do kill-switch GT-G8 (governance.sdd_brief_line).
+    | "claim antes de pegar". Desligar = override de config (runtime/deploy) pra
+    | false → o service devolve o brief intacto (zero bloco, zero query). SEM env()
+    | aqui: Larastan barra env() fora do config/ root (NoEnvCallsOutsideOfConfig);
+    | o toggle vive em config('brief.lease_section') com default ON.
     | @see Modules\Brief\Services\LeaseBriefSectionService
     */
-    'lease_section' => env('BRIEF_LEASE_SECTION', true),
+    'lease_section' => true,
 ];
