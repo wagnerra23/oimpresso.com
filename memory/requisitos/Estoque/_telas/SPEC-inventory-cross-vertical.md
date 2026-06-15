@@ -541,7 +541,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 - 🚫 Não removar `variations.combo_variations` JSON em V1 (compat legacy UPos POS Blade)
 - 🚫 Não permitir UPDATE/DELETE em `stock_movements` — triggers MySQL bloqueiam
 - 🚫 Não habilitar flags `enable_bom`/`enable_batch_tracking` em biz=4 (ROTA LIVRE) sem aviso prévio + canary 7d ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) cutover discipline)
-- 🚫 Não criar `Modules/Inventory` separado — Inventory é **camada cross-vertical** que vive em `app/Domain/Inventory/` (perto de `app/Domain/Fsm/`); módulos verticais USAM via service/contract
+- 🚫 Não criar um módulo `Modules/` separado pra Inventory — é **camada cross-vertical** que vive em `app/Domain/Inventory/` (perto de `app/Domain/Fsm/`); módulos verticais USAM via service/contract
 
 ---
 
