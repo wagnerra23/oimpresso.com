@@ -272,8 +272,13 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
 
       {/* JanaCockpitV2 — conteúdo primário (movido de /sells Onda 2026-05-26).
           Wrapper .sells-cowork porque os tokens .vd-insights-* estão escopados
-          nesse seletor em resources/css/sells-cowork-insights.css. */}
-      <div className="sells-cowork px-6 pt-6">
+          nesse seletor em resources/css/sells-cowork-insights.css.
+          shrink-0: .main-body é flex-column + overflow-y:auto (cockpit.css) e
+          .sells-cowork carrega min-height:100% (sells-cowork.css). Sem shrink-0,
+          o flex encolhia este wrapper até o piso min-height (= altura do viewport)
+          e o conteúdo .vd-insights (mais alto) vazava por cima do bloco Metas
+          irmão — encavalamento reportado 2026-06-15. */}
+      <div className="sells-cowork px-6 pt-6 shrink-0">
         <JanaCockpitV2
           sellKpis={sellKpis}
           insightsAggregates={insightsAggregates}
@@ -285,8 +290,9 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
       </div>
 
       {/* Bloco secundário — Dashboard de Metas (continua acessível, mas não é
-          mais a face primária da /ia/dashboard). */}
-      <div className="space-y-6 p-6">
+          mais a face primária da /ia/dashboard). shrink-0 pelo mesmo motivo do
+          wrapper do cockpit acima (flex-column scroll container). */}
+      <div className="space-y-6 p-6 shrink-0">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
