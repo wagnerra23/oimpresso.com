@@ -98,7 +98,16 @@ jobs:
         # FV-F1: --log-junit adicionado SEM mudar o subset de testes acima.
         run: |
           mkdir -p test-results
-          vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php --no-coverage --log-junit test-results/junit.xml
+          # Alvos vêm de .github/ci-sqlite-pest.list (1 path/linha, merge=union via
+          # .gitattributes → PRs concorrentes que adicionam testes NÃO conflitam).
+          # sort -u torna ordem/duplicata irrelevantes. Adicionar teste = 1 linha
+          # naquele arquivo (NÃO editar este ci.yml).
+          mapfile -t PEST_TARGETS < <(grep -vE '^[[:space:]]*(#|$)' .github/ci-sqlite-pest.list | sort -u)
+          if [ "${#PEST_TARGETS[@]}" -eq 0 ]; then
+            echo "::error::.github/ci-sqlite-pest.list vazio — nenhum alvo de teste"; exit 1
+          fi
+          echo "Lane sqlite — ${#PEST_TARGETS[@]} alvos:"; printf '  %s\n' "${PEST_TARGETS[@]}"
+          vendor/bin/pest "${PEST_TARGETS[@]}" --no-coverage --log-junit test-results/junit.xml
 
       # FV-F1 (plano SDD 2026-06-12): coleta JUnit que SOBREVIVE a falha de teste.
       # A tentativa anterior rendeu artefato 0 bytes porque nada validava o XML
