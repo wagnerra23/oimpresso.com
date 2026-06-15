@@ -47,7 +47,7 @@ class TasksHeartbeatTool extends Tool
             return Response::text('❌ task_id é obrigatório.');
         }
 
-        $principal = (string) ($user->username ?? $user->email ?? ('user#' . $user->id));
+        $principal = (string) ($user->username ?? $user->email ?? ('user#' . $user->getAuthIdentifier()));
         $svc = app(WorkLeaseService::class);
 
         if (! $svc->heartbeat($taskId, $principal)) {

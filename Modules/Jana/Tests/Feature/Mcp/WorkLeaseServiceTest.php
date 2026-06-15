@@ -155,3 +155,19 @@ it('sweepExpired devolve lease estourado ao pool (TTL vive no Service)', functio
     expect($res['ok'])->toBeTrue()
         ->and($res['lease']->human_principal)->toBe('eliana');
 })->group('work-lease', 'ci');
+
+it('heartbeat de NÃO-dono é no-op (guard de posse anti-spoof)', function () {
+    $svc = app(WorkLeaseService::class);
+    $svc->claim('US-GOV-022', 'wagner');
+
+    expect($svc->heartbeat('US-GOV-022', 'intruso'))->toBeFalse()
+        ->and($svc->activeLeaseFor('US-GOV-022')->human_principal)->toBe('wagner');
+})->group('work-lease', 'ci');
+
+it('release de NÃO-dono é no-op (guard de posse anti-spoof)', function () {
+    $svc = app(WorkLeaseService::class);
+    $svc->claim('US-GOV-022', 'wagner');
+
+    expect($svc->release('US-GOV-022', 'intruso'))->toBeFalse()
+        ->and($svc->activeLeaseFor('US-GOV-022'))->not->toBeNull();
+})->group('work-lease', 'ci');

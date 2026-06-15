@@ -52,7 +52,7 @@ class TasksClaimTool extends Tool
             return Response::text('❌ task_id é obrigatório.');
         }
 
-        $principal = (string) ($user->username ?? $user->email ?? ('user#' . $user->id));
+        $principal = (string) ($user->username ?? $user->email ?? ('user#' . $user->getAuthIdentifier()));
         $agentId = trim((string) $request->get('agent_id', '')) ?: null;
 
         $svc = app(WorkLeaseService::class);
