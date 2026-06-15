@@ -55,13 +55,20 @@ class TasksClaimTool extends Tool
         $principal = (string) ($user->username ?? $user->email ?? ('user#' . $user->getAuthIdentifier()));
         $agentId = trim((string) $request->get('agent_id', '')) ?: null;
 
+        // Sessão Claude Code (R4: correlaciona lease ↔ mcp_audit_log/mcp_cc_sessions).
+        // Lida da HTTP Request via global helper — mesmo header que o McpAuthMiddleware
+        // consome (X-Claude-Code-Session, ~linha 126). $request aqui é o Laravel\Mcp\Request
+        // (protocolo MCP/args), não a HTTP Request — por isso o helper request().
+        // NÃO muda a chave de conflito (C1, signal-gated): só propaga o dado.
+        $session = trim((string) (request()->header('X-Claude-Code-Session') ?? '')) ?: null;
+
         $svc = app(WorkLeaseService::class);
 
         if (! $svc->taskExists($taskId)) {
             return Response::text("❌ Task `{$taskId}` não existe no cache mcp_tasks. Crie/sincronize a US antes de dar claim.");
         }
 
-        $res = $svc->claim($taskId, $principal, $agentId);
+        $res = $svc->claim($taskId, $principal, $agentId, $session);
 
         if (! $res['ok']) {
             $h = $res['holder'];

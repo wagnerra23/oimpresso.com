@@ -102,6 +102,29 @@ it('claim adquire lease quando a task está livre', function () {
         ->and($res['lease']->agent_id)->toBe('claude-code');
 })->group('work-lease', 'ci');
 
+it('claim com sessão setada grava claude_code_session (LEASE-HABITO — TasksClaimTool propaga)', function () {
+    // dim 4 (prep): a TasksClaimTool agora lê X-Claude-Code-Session da HTTP Request
+    // e propaga como 4º arg do claim(). Este guard prova o contrato do Service que a
+    // tool usa: $session → coluna claude_code_session (gera o PRIMEIRO sinal real da
+    // Raia C/reconciler). Não muda a chave de conflito (C1, signal-gated).
+    $svc = app(WorkLeaseService::class);
+    $res = $svc->claim('US-GOV-022', 'wagner', 'claude-code', 'sess-abc123');
+
+    expect($res['ok'])->toBeTrue()
+        ->and($res['lease']->claude_code_session)->toBe('sess-abc123')
+        ->and(DB::table('mcp_work_leases')
+            ->where('task_id', 'US-GOV-022')
+            ->value('claude_code_session'))->toBe('sess-abc123');
+})->group('work-lease', 'ci');
+
+it('claim sem sessão deixa claude_code_session NULL (default, retrocompat)', function () {
+    $svc = app(WorkLeaseService::class);
+    $res = $svc->claim('US-GOV-022', 'wagner', 'claude-code');
+
+    expect($res['ok'])->toBeTrue()
+        ->and($res['lease']->claude_code_session)->toBeNull();
+})->group('work-lease', 'ci');
+
 it('claim por outro principal numa task ativa retorna conflito held (não estoura)', function () {
     $svc = app(WorkLeaseService::class);
     $svc->claim('US-GOV-022', 'wagner');
