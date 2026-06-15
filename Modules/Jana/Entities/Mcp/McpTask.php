@@ -57,6 +57,7 @@ class McpTask extends Model
         'labels',
         'custom_fields',
         'blocked_by',
+        'acceptance_ref',
         'source_path',
         'source_git_sha',
         'parsed_at',

@@ -62,6 +62,7 @@ class TaskCrudService
             'type', 'story_points', 'estimate_unit', 'estimate_value',
             'estimate_h', 'due_date', 'labels', 'custom_fields',
             'title', 'description', 'module',
+            'acceptance_ref',
         ];
         $events = [];
 
@@ -90,6 +91,20 @@ class TaskCrudService
                 }
                 if (in_array($newVal, ['done', 'cancelled'], true) && ! $task->completed_at) {
                     $task->completed_at = now();
+                }
+
+                // Fase 2 (ADR 0278) — consumer SOFT: fechar (done) sem prova de DoD
+                // vira evento de AVISO auditável. NÃO throw — o hard-gate é a Fase 3
+                // (deferida até o lease provar valor, ADR 0105).
+                if ($newVal === 'done'
+                    && empty($fields['acceptance_ref'])
+                    && empty($task->acceptance_ref)) {
+                    $events[] = McpTaskEvent::log(
+                        taskId: $task->task_id,
+                        eventType: 'field_updated',
+                        author: $author,
+                        note: 'AVISO Fase 2 (ADR 0278): movida pra done SEM acceptance_ref — DoD não comprovado. Hard-gate (Fase 3) vai barrar.',
+                    );
                 }
             }
 

@@ -98,7 +98,7 @@ jobs:
         # FV-F1: --log-junit adicionado SEM mudar o subset de testes acima.
         run: |
           mkdir -p test-results
-          vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php --no-coverage --log-junit test-results/junit.xml
+          vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php --no-coverage --log-junit test-results/junit.xml
 
       # FV-F1 (plano SDD 2026-06-12): coleta JUnit que SOBREVIVE a falha de teste.
       # A tentativa anterior rendeu artefato 0 bytes porque nada validava o XML
