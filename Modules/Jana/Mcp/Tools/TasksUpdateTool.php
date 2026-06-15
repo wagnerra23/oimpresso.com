@@ -45,6 +45,8 @@ class TasksUpdateTool extends Tool
                 ->description('Nova prioridade: p0|p1|p2|p3'),
             'module' => $schema->string()
                 ->description('Mover task pra outro módulo (ex: COPI→JANA pós-rename ADR 0088). Use uppercase.'),
+            'acceptance_ref' => $schema->string()
+                ->description('Prova de DoD pra fechar a task (URL do PR / commit SHA / path de teste Pest / evidência smoke). Recomendado ao mover pra done — Fase 2 ADR 0278. Use "—" pra limpar.'),
             'author' => $schema->string()
                 ->description('Quem está fazendo a mudança (para audit log). Default: wagner.'),
         ];
@@ -60,7 +62,7 @@ class TasksUpdateTool extends Tool
         $author = trim((string) $request->get('author', 'wagner')) ?: 'wagner';
 
         $campos = [];
-        foreach (['status', 'owner', 'sprint', 'priority', 'module'] as $field) {
+        foreach (['status', 'owner', 'sprint', 'priority', 'module', 'acceptance_ref'] as $field) {
             $val = $request->get($field);
             if ($val !== null) {
                 $v = trim((string) $val);

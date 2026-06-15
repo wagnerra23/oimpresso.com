@@ -54,7 +54,23 @@ class TaskCrudService
      */
     protected function updateInner(string $taskId, array $fields, string $author = 'system'): array
     {
-        $task = $this->findTaskOrFail($taskId);
+        // Fase 2b (ADR 0278) — mutação ATÔMICA: transação + lock de linha fecham o
+        // lost-update (2 agentes na mesma task → last-write-wins silencioso = a causa
+        // literal do "a lista fura"). lockForUpdate serializa writers no MySQL; no
+        // sqlite da lane per-PR é no-op seguro (writes já são serializados).
+        return DB::transaction(fn (): array => $this->applyLockedUpdate($taskId, $fields, $author));
+    }
+
+    /**
+     * Corpo do update sob lock pessimista — chamado SEMPRE dentro de DB::transaction
+     * (por updateInner). O lockForUpdate de findTaskOrFail só tem efeito aqui dentro.
+     *
+     * @param  array<string,mixed> $fields
+     * @return array{task: McpTask, events: list<McpTaskEvent>}
+     */
+    protected function applyLockedUpdate(string $taskId, array $fields, string $author): array
+    {
+        $task = $this->findTaskOrFail($taskId, forUpdate: true);
 
         $allowed = [
             'status', 'owner', 'sprint', 'priority',
@@ -62,6 +78,7 @@ class TaskCrudService
             'type', 'story_points', 'estimate_unit', 'estimate_value',
             'estimate_h', 'due_date', 'labels', 'custom_fields',
             'title', 'description', 'module',
+            'acceptance_ref',
         ];
         $events = [];
 
@@ -90,6 +107,20 @@ class TaskCrudService
                 }
                 if (in_array($newVal, ['done', 'cancelled'], true) && ! $task->completed_at) {
                     $task->completed_at = now();
+                }
+
+                // Fase 2 (ADR 0278) — consumer SOFT: fechar (done) sem prova de DoD
+                // vira evento de AVISO auditável. NÃO throw — o hard-gate é a Fase 3
+                // (deferida até o lease provar valor, ADR 0105).
+                if ($newVal === 'done'
+                    && empty($fields['acceptance_ref'])
+                    && empty($task->getAttribute('acceptance_ref'))) {
+                    $events[] = McpTaskEvent::log(
+                        taskId: $task->task_id,
+                        eventType: 'field_updated',
+                        author: $author,
+                        note: 'AVISO Fase 2 (ADR 0278): movida pra done SEM acceptance_ref — DoD não comprovado. Hard-gate (Fase 3) vai barrar.',
+                    );
                 }
             }
 
@@ -327,11 +358,15 @@ class TaskCrudService
 
     // ---------- helpers ----------
 
-    protected function findTaskOrFail(string $taskId): McpTask
+    protected function findTaskOrFail(string $taskId, bool $forUpdate = false): McpTask
     {
-        $task = McpTask::where('task_id', strtoupper($taskId))->first()
-            ?? McpTask::where('task_id', $taskId)->first()
-            ?? McpTask::where('identifier', strtoupper($taskId))->first();
+        // forUpdate=true só dentro de DB::transaction (applyLockedUpdate) — pega lock
+        // pessimista de linha pra fechar o lost-update. Builder novo por tentativa.
+        $q = fn () => $forUpdate ? McpTask::query()->lockForUpdate() : McpTask::query();
+
+        $task = $q()->where('task_id', strtoupper($taskId))->first()
+            ?? $q()->where('task_id', $taskId)->first()
+            ?? $q()->where('identifier', strtoupper($taskId))->first();
 
         if (! $task) {
             throw new \RuntimeException("Task '{$taskId}' não encontrada.");

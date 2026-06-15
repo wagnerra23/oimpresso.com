@@ -24,6 +24,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — planejamento é da
  * plataforma. Sem `business_id` by design. Wave 25 SATURATION marker explícito
  * pra rubrica D1.c v3.2 hardened.
+ *
+ * @property string|null $acceptance_ref Prova de DoD pra fechar (Fase 2, ADR 0278).
+ *           Coluna adicionada via ALTER — declarada aqui pro Larastan reconhecer.
  */
 class McpTask extends Model
 {
@@ -57,6 +60,7 @@ class McpTask extends Model
         'labels',
         'custom_fields',
         'blocked_by',
+        'acceptance_ref',
         'source_path',
         'source_git_sha',
         'parsed_at',
