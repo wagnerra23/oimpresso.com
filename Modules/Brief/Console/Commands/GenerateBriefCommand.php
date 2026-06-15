@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\Brief\Services\BriefGeneratorService;
 use Modules\Brief\Services\BriefValidator;
+use Modules\Brief\Services\LeaseBriefSectionService;
 use Modules\Governance\Services\SddBriefLineService;
 use Throwable;
 
@@ -49,6 +50,12 @@ final class GenerateBriefCommand extends Command
         // mcp_sdd_scorecard_history OU há alerta (armada regrediu/fonte
         // vermelha). inject() é best-effort — brief nunca falha por causa dela.
         $content = app(SddBriefLineService::class)->inject($content);
+
+        // C2+C3 (SDD Leva 2, ADR 0278) — bloco de leases ATIVOS + nudge "claim
+        // antes de pegar", injetado sob `## EM VOO AGORA`. Best-effort (pós-LLM):
+        // sem leases / tabela ausente / qualquer erro → brief intacto. Roteia por
+        // WorkLeaseService::activeLeases() (varre expirados antes de listar).
+        $content = app(LeaseBriefSectionService::class)->inject($content);
 
         $aggregatedHash = hash('sha256', $content);
 
