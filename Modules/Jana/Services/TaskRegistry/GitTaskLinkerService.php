@@ -123,6 +123,11 @@ class GitTaskLinkerService
                         ]);
 
                         // Status auto se for fixes/closes/resolves
+                        // NOTA FSM (ADR 0070): este write DIRETO é um caminho de transição
+                        // de SISTEMA (PR-merge → done/review) intencionalmente FORA do guard
+                        // FSM de applyLockedUpdate — pode forçar done a partir de não-review e
+                        // passar pelo guard quebraria o git linking. Follow-up: modelar como
+                        // transição de sistema explícita em vez de bypass.
                         if ($linkAction === 'fixes') {
                             $newStatus = $isMain ? 'done' : 'review';
                             if (in_array($task->status, ['todo', 'doing', 'review', 'blocked'], true) && $task->status !== $newStatus) {

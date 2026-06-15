@@ -90,7 +90,7 @@ it('aceita acceptance_ref no update via service', function () {
 })->group('acceptance-ref', 'ci');
 
 it('grava acceptance_ref junto com status done + carimba completed_at', function () {
-    seedTask('US-GOV-099');
+    seedTask('US-GOV-099', 'review'); // review→done é legal na FSM (A1+A8); todo→done agora é barrado
 
     app(TaskCrudService::class)->update('US-GOV-099', ['status' => 'done', 'acceptance_ref' => 'commit abc123'], 'wagner');
 
@@ -100,7 +100,7 @@ it('grava acceptance_ref junto com status done + carimba completed_at', function
 })->group('acceptance-ref', 'ci');
 
 it('done SEM acceptance_ref registra evento de aviso (soft, nao throw)', function () {
-    seedTask('US-GOV-099');
+    seedTask('US-GOV-099', 'review'); // review→done é legal na FSM (A1+A8); todo→done agora é barrado
 
     app(TaskCrudService::class)->update('US-GOV-099', ['status' => 'done'], 'wagner'); // não lança
 
@@ -110,7 +110,7 @@ it('done SEM acceptance_ref registra evento de aviso (soft, nao throw)', functio
 })->group('acceptance-ref', 'ci');
 
 it('done COM acceptance_ref preexistente nao gera aviso', function () {
-    seedTask('US-GOV-099', 'todo', 'PR #1');
+    seedTask('US-GOV-099', 'review', 'PR #1'); // review→done é legal na FSM (A1+A8)
 
     app(TaskCrudService::class)->update('US-GOV-099', ['status' => 'done'], 'wagner');
 

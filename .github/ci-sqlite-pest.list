@@ -27,3 +27,4 @@ Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
