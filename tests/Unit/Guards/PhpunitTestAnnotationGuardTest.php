@@ -14,6 +14,10 @@ declare(strict_types=1);
  * **Histórico de recidiva:**
  * - PR #393: corrigiu 6 tests com `/** @test *\/`
  * - PR #437: corrigiu mais 35 tests com mesmo padrão
+ * - 2026-06: 39 tests (Ponto CLT + Contact/Cliente/CpfCnpj) escapavam — o regex
+ *   antigo só pegava `/** @test *\/` puro; furava em `/** @test descrição *\/`
+ *   (texto após a tag) e em bloco multi-line com descrição/@dataProvider antes
+ *   do @test. Guard endurecido pra um pattern único robusto (tempered dot).
  * - Sem guard automático, vai voltar.
  *
  * **Regra:** zero ocorrências de `/** @test *\/` em arquivos `*Test.php`
@@ -87,26 +91,22 @@ function phpunitGuardScan(array $files): array
 {
     $violations = [];
 
-    // Pattern 1: doc-comment single-line  /** @test */
-    $patternSingle = '/\/\*\*\s*@test\s*\*\//';
-
-    // Pattern 2: doc-comment multi-line
-    //   /**
-    //    * @test
-    //    */
-    // (qualquer indentação, qualquer linha extra antes/depois do @test no bloco doc)
-    $patternMulti = '/\/\*\*[^*\/]*?\*\s*@test\s*\R[^*]*?\*\//s';
+    // Um único pattern robusto: abre num `/**`, percorre o interior do bloco SEM
+    // cruzar o fechamento `*/` (tempered dot `(?:(?!\*\/).)*?`) e exige a tag
+    // `@test` seguida de espaço ou `*`. Cobre as 4 formas que já furaram o guard:
+    //   /** @test */                        single-line
+    //   /** @test Art. 58 ... */             single-line com texto (furou no Ponto, 2026-06)
+    //   /**\n * @test\n */                   multi-line limpo
+    //   /**\n * desc\n * @test\n */           multi-line com descrição/@dataProvider antes do @test
+    // O lookahead (?=\s|\*) evita falso-positivo em email (foo@test.local) e em
+    // tags vizinhas como @testdox/@testWith.
+    $pattern = '/\/\*\*(?:(?!\*\/).)*?@test(?=\s|\*)/s';
 
     foreach ($files as $file) {
-        $content = $file['content'];
+        $count = preg_match_all($pattern, $file['content']);
 
-        $countSingle = preg_match_all($patternSingle, $content, $mSingle);
-        $countMulti = preg_match_all($patternMulti, $content, $mMulti);
-
-        $total = ($countSingle ?: 0) + ($countMulti ?: 0);
-
-        if ($total > 0) {
-            $violations[] = sprintf('%s: %d ocorrência(s) de /** @test */', $file['relpath'], $total);
+        if ($count) {
+            $violations[] = sprintf('%s: %d ocorrência(s) de tag @test em doc-comment', $file['relpath'], $count);
         }
     }
 
