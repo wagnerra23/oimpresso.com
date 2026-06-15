@@ -86,6 +86,22 @@ class WhatsActiveTool extends Tool
             ->pluck('last_activity_at', 'session_id');
 
         if ($sessionIds->isEmpty()) {
+            // B-SPOF-WA (ADR 0278 dim 10): "nenhuma msg recente" só é all-clear CONFIÁVEL
+            // se o pipeline de ingest estiver VIVO. Se o heartbeat existe E nenhum host
+            // está fresco (fresh=0), estamos CEGOS (watcher de ingest caído) — blind ≠ safe.
+            // Se a tabela de heartbeat nem existe (feature não-deployada), não cria lobo:
+            // mantém o all-clear original (sem sinal de liveness pra contradizê-lo).
+            if (Schema::hasTable('mcp_ingest_heartbeat')) {
+                $ingest = app(\Modules\TeamMcp\Services\IngestLivenessService::class)->summary();
+                if ($ingest['fresh'] === 0) {
+                    return Response::text(
+                        "⚠️ Nenhuma sessão Claude Code vista nas últimas {$hours}h — MAS o pipeline de "
+                        . "ingest está SEM heartbeat fresco (fresh=0 · stale={$ingest['stale']} · dead={$ingest['dead']}).\n"
+                        . '_Posso estar CEGO (watcher de ingest caído): NÃO assuma escopo livre — confirme antes de pegar._'
+                    );
+                }
+            }
+
             return Response::text(
                 "✅ Nenhuma sessão Claude Code ativa nas últimas {$hours}h.\n" .
                 '_Pode pegar qualquer escopo sem risco de overlap._'
