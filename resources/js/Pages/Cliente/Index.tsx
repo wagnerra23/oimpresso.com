@@ -2322,24 +2322,24 @@ function Pagination({
   const canNext = current_page < last_page;
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1">
-      <div className="flex items-center gap-1.5">
+      <div className="text-xs text-muted-foreground">
         {/* Atalhos de teclado — discreto no canto do rodapé (Wagner 2026-06-15:
-            "não gostei dele flutuante, deve ficar mais discreto, só encaixar"). */}
+            "não gostei dele flutuante, deve ficar mais discreto, só encaixar").
+            Sem wrapper flex extra (ratchet de layout · ADR 0253): o botão já é
+            inline-flex e o texto flui inline ao lado. */}
         <button
           type="button"
           onClick={onShowShortcuts}
           aria-label="Atalhos de teclado"
           title="Atalhos de teclado (?)"
-          className="inline-flex items-center gap-1.5 -ml-1 rounded-md px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 align-middle -ml-1 mr-1.5 rounded-md px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Keyboard size={14} />
           <Kbd>?</Kbd>
         </button>
-        <span className="text-xs text-muted-foreground">
-          {total === 0
-            ? 'Nenhum cliente'
-            : `Mostrando ${from ?? 0}–${to ?? 0} de ${total.toLocaleString('pt-BR')}`}
-        </span>
+        {total === 0
+          ? 'Nenhum cliente'
+          : `Mostrando ${from ?? 0}–${to ?? 0} de ${total.toLocaleString('pt-BR')}`}
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
