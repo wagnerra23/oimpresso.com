@@ -47,6 +47,15 @@ class McpTasksSyncCommand extends Command
         $this->line("  Inseridas:    {$relatorio['inseridas']}");
         $this->line("  Atualizadas:  {$relatorio['atualizadas']}");
         $this->line("  Canceladas:   {$relatorio['canceladas']} (US sumiu do SPEC)");
+        // SDD C4 — visibilidade de drift descritivo (title/description) DB↔SPEC.
+        // git venceu o update (não muda quem é canon); só reportamos a divergência.
+        $divergentes = $relatorio['descritivos_divergentes'] ?? 0;
+        $linhaDivergentes = "  Divergências descritivas: {$divergentes} (title/description DB↔SPEC — git venceu)";
+        if ($divergentes > 0) {
+            $this->warn($linhaDivergentes);
+        } else {
+            $this->line($linhaDivergentes);
+        }
         if (! empty($relatorio['modulos'])) {
             $this->line('');
             $this->line('Módulos:');
