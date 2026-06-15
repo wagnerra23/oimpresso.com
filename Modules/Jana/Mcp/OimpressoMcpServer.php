@@ -90,6 +90,13 @@ class OimpressoMcpServer extends Server
         // ADR 0119 Tier 1 — coordenação entre sessões Claude (alerta passivo,
         // não lock). Agregação derivada de mcp_cc_sessions + mcp_cc_messages.
         Tools\WhatsActiveTool::class,
+        // ADR 0278 (D1, proposal #2766) Tier 2 — lease FORMAL de coordenação:
+        // compare-and-set real (no máx 1 por task, TTL 30min + heartbeat). O
+        // whats-active ALERTA; estes RESERVAM (mcp_work_leases). R3 anti-colisão
+        // + R4 estado canônico de quem-faz-o-quê (anti-vazamento).
+        Tools\TasksClaimTool::class,
+        Tools\TasksHeartbeatTool::class,
+        Tools\WhatsLockedTool::class,
         // ADR 0133 — System health audit canônico (5 dimensões: observability/evals/
         // ADR-stale/cost-agg/test-coverage). Wrapper sobre jana:system-audit --json.
         // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM call.
