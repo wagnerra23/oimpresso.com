@@ -37,6 +37,23 @@
       "pii_hits": 0,
       "evidencia": "refutador G5 sessao fresca 2026-06-15 — cobre PR #2750 (13 redirects FUNDIR) + PR #2751 (4 lapides + 5 wishes + 3 portas leves). 25/25 conferidos contra E1 + emenda #2748 + existencia das pastas-alvo.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 2754,
+      "lote_id": "KL-E3-briefings-genuinos",
+      "data": "2026-06-15",
+      "tipo": "prosa",
+      "gerador": "opus-4.8",
+      "refutador": "opus-4.8[1m]",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 71,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0.0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "refutador G5 sessao fresca 2026-06-15 — 5 BRIEFINGs destilados vs codigo real (71 claims load-bearing conferidos)"
     }
   ]
 }
