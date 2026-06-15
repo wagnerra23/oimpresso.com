@@ -49,15 +49,20 @@ class McpAuthMiddleware
         }
 
         // RBAC gate — MEM-MCP-1.d (ADR 0053): user precisa da permission
-        // `copiloto.mcp.use` mesmo com token válido. Sem isso → 403 + audit.
-        // Granularidade fina (decisions.read, governanca.financeiro, etc.)
-        // fica nos Tools individuais (cada Tool checa o scope via $user->can).
+        // `jana.mcp.use` mesmo com token válido. Sem isso → 403 + audit.
+        // Este é o gate GROSSO (acesso ao server). A granularidade fina por
+        // scope (jana.mcp.tasks.write, jana.mcp.cycles.manage, jana.mcp.memory.manage,
+        // etc.) é enforced nas tools que MUTAM estado via o trait
+        // AuthorizesMcpMutation (SDD Leva 2 · A4) — chamado como primeiro
+        // statement do handle() de cada tool mutadora. Tools de leitura só
+        // exigem este gate básico (e filtram resultado por scope quando aplicável,
+        // ex: CcSearchTool com jana.cc.read.all).
         if (method_exists($user, 'can') && ! $user->can('jana.mcp.use')) {
             return $this->denied(
                 $request,
                 $startedAt,
                 'no_permission',
-                "User não tem permission `copiloto.mcp.use`. Atribua via Spatie role/permission."
+                "User não tem permission `jana.mcp.use`. Atribua via Spatie role/permission."
             );
         }
 

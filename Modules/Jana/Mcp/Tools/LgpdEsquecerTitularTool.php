@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
+use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 use Modules\Jana\Services\Lgpd\DsrService;
 use Throwable;
 
@@ -36,6 +37,8 @@ use Throwable;
  */
 class LgpdEsquecerTitularTool extends Tool
 {
+    use AuthorizesMcpMutation;
+
     protected string $name = 'lgpd-esquecer-titular';
 
     protected string $title = 'LGPD Art. 18 §VI — direito de eliminação do titular';
@@ -63,6 +66,10 @@ class LgpdEsquecerTitularTool extends Tool
 
     public function handle(Request $request): Response
     {
+        if ($deny = $this->authorizeMcpMutation($request, 'jana.mcp.memory.manage')) {
+            return $deny;
+        }
+
         $doc = trim((string) $request->get('cpf_or_cnpj', ''));
         $businessId = (int) $request->get('business_id', 0);
         $mode = (string) $request->get('mode', 'anonymize');

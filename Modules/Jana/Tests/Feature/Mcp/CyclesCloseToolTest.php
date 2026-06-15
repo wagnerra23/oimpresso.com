@@ -137,6 +137,18 @@ beforeEach(function () {
         $t->text('body');
         $t->timestamps();
     });
+
+    // A4 (SDD Leva 2): CyclesCloseTool agora exige scope jana.mcp.cycles.manage
+    // via trait AuthorizesMcpMutation. Os cenários abaixo são do caminho FELIZ —
+    // injeta um user autorizado no auth userResolver (mesmo canal que o
+    // McpAuthMiddleware povoa + que Laravel\Mcp\Request::user() lê). A cobertura
+    // da NEGAÇÃO vive em AuthorizesMcpMutationTest.
+    app('auth')->resolveUsersUsing(fn ($guard = null) => new class {
+        public function can($abilities, $arguments = []): bool
+        {
+            return true;
+        }
+    });
 });
 
 afterEach(function () {
