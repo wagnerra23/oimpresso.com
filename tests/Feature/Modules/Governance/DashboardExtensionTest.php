@@ -17,6 +17,13 @@ use Illuminate\Support\Facades\Schema;
  */
 
 beforeEach(function () {
+    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
+    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
+    // sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     Schema::dropIfExists('jana_health_narratives');
     Schema::dropIfExists('jana_mensagens');
     Schema::dropIfExists('failed_jobs');
@@ -54,6 +61,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('jana_health_narratives');
     Schema::dropIfExists('jana_mensagens');
     Schema::dropIfExists('failed_jobs');

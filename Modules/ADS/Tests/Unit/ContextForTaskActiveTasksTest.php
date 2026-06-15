@@ -12,6 +12,15 @@ use Modules\ADS\Services\UserScopeService;
 
 uses(Tests\TestCase::class);
 
+beforeEach(function () {
+    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
+    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
+    // sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+});
+
 // US-COPI-077 — ContextForTaskService consome mcp_tasks no lugar de CURRENT.md.
 // Testes isolam o método novo (buildActiveTasks) via Reflection pra não
 // depender das outras tabelas mcp_* que buildContext() consulta.
@@ -49,6 +58,10 @@ function createMcpTasksSchema(): void
 }
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_tasks');
 });
 

@@ -33,6 +33,13 @@ use Tests\TestCase;
 uses(TestCase::class);
 
 beforeEach(function () {
+    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
+    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
+    // sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Tabela canônica do Wave 28 — cria direto pra evitar RefreshDatabase global
     Schema::dropIfExists('mcp_governance_initiatives');
     Schema::create('mcp_governance_initiatives', function (Blueprint $table) {
@@ -83,6 +90,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_governance_initiatives');
     Schema::dropIfExists('mcp_scorecard_runs');
     Schema::dropIfExists('mcp_alertas');
