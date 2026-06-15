@@ -8,6 +8,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
+use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
@@ -21,6 +22,8 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  */
 class TasksCreateTool extends Tool
 {
+    use AuthorizesMcpMutation;
+
     protected string $name = 'tasks-create';
 
     protected string $title = 'Criar nova task (US-*) no SPEC.md';
@@ -55,6 +58,10 @@ class TasksCreateTool extends Tool
 
     public function handle(Request $request): Response
     {
+        if ($deny = $this->authorizeMcpMutation($request, 'jana.mcp.tasks.write')) {
+            return $deny;
+        }
+
         $module = trim((string) $request->get('module', ''));
         $title  = trim((string) $request->get('title', ''));
 

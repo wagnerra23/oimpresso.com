@@ -94,6 +94,53 @@ beforeEach(function () {
         $t->uuid('batch_uuid')->nullable();
         $t->timestamps();
     });
+
+    // A4 (SDD Leva 2): a tool agora exige scope jana.mcp.memory.manage via
+    // AuthorizesMcpMutation. Estes cenários cobrem validações/happy-path, então
+    // injetam um user AUTORIZADO no auth userResolver (mesmo canal que
+    // Laravel\Mcp\Request::user() lê). A negação por scope vive em
+    // AuthorizesMcpMutationTest.
+    app('auth')->resolveUsersUsing(fn ($guard = null) => new class implements \Illuminate\Contracts\Auth\Authenticatable {
+        public function can($abilities, $arguments = []): bool
+        {
+            return true;
+        }
+
+        public function getAuthIdentifierName()
+        {
+            return 'id';
+        }
+
+        public function getAuthIdentifier()
+        {
+            return 42;
+        }
+
+        public function getAuthPasswordName()
+        {
+            return 'password';
+        }
+
+        public function getAuthPassword()
+        {
+            return '';
+        }
+
+        public function getRememberToken()
+        {
+            return '';
+        }
+
+        public function setRememberToken($value)
+        {
+            // no-op (stub)
+        }
+
+        public function getRememberTokenName()
+        {
+            return 'remember_token';
+        }
+    });
 });
 
 afterEach(function () {
