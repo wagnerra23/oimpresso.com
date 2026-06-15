@@ -93,20 +93,17 @@ class McpAuthMiddleware
         // Estimativa de custo (MEM-TEAM-1 Fase 4):
         //   - tokens_in:  Content-Length do request body / 4 (chars/token)
         //   - tokens_out: Content-Length do response body / 4
-        //   - custo_brl:  (in × $0.15/1M + out × $0.60/1M) × cambio
-        // Heurística é aproximada — superestima ~30% do custo real Claude API,
-        // mas suficiente pra enforcement de quota. Calls que tocam LLM
-        // (decisions-search com FULLTEXT) ficam mais caras (override em tool).
+        //   - custo_brl:  (in × input/1k + out × output/1k) × cambio
+        // Heurística é aproximada — superestima ~30% do custo real, mas
+        // suficiente pra enforcement de quota kind=brl (kind=calls/tokens não
+        // dependem deste valor). Calls que tocam LLM (decisions-search com
+        // FULLTEXT) ficam mais caras (override em tool).
         $reqBytes = (int) ($request->server('CONTENT_LENGTH') ?: strlen($request->getContent() ?? ''));
         $respContent = $response->getContent() ?? '';
         $respBytes = strlen($respContent);
         $tokensIn = (int) ceil($reqBytes / 4);
         $tokensOut = (int) ceil($respBytes / 4);
-        $modeloPricing = config('copiloto.openai.pricing.gpt-4o-mini', ['input' => 0.00000015, 'output' => 0.0000006]);
-        $cambio = (float) config('copiloto.ai.cambio_brl_usd', 5.5);
-        $custoUsd = ($tokensIn * (float) ($modeloPricing['input'] ?? 0))
-            + ($tokensOut * (float) ($modeloPricing['output'] ?? 0));
-        $custoBrl = round($custoUsd * $cambio, 6);
+        $custoBrl = self::estimarCustoBrl($tokensIn, $tokensOut);
 
         // Audit log de sucesso (best-effort, não quebra request se falhar)
         try {
@@ -130,6 +127,42 @@ class McpAuthMiddleware
         }
 
         return $response;
+    }
+
+    /**
+     * Estima custo_brl de uma chamada MCP a partir de tokens in/out.
+     *
+     * BUGFIX (SDD D-COST-FIX · ADR 0278): a versão anterior lia
+     * `config('copiloto.openai.pricing.*')` — chave INEXISTENTE — e por isso
+     * caía sempre no fallback hardcoded por-token, ignorando a config real.
+     * Pior: o pricing canônico (`copiloto.ai.pricing`) é cotado em USD POR 1k
+     * TOKENS, então multiplicar `tokens × input` direto inflava o custo em
+     * ~1000× (fator-de-mil). Aqui apontamos pra config certa E dividimos por
+     * 1000 pra casar a unidade. Resultado: custo_brl numericamente correto
+     * (≈ infra de uma query de DB, não de uma LLM-call).
+     *
+     * @param int $tokensIn  tokens estimados de entrada
+     * @param int $tokensOut tokens estimados de saída
+     * @return float custo em BRL (6 casas)
+     */
+    public static function estimarCustoBrl(int $tokensIn, int $tokensOut): float
+    {
+        $modelo = config('copiloto.ai.pricing_default_model', 'gpt-4o-mini');
+        // Pricing canônico vive em copiloto.ai.pricing (USD por 1k tokens).
+        $pricing = config(
+            "copiloto.ai.pricing.{$modelo}",
+            config('copiloto.ai.pricing.gpt-4o-mini', ['input' => 0.00015, 'output' => 0.0006])
+        );
+
+        $inputPer1k  = (float) ($pricing['input'] ?? 0);
+        $outputPer1k = (float) ($pricing['output'] ?? 0);
+        $cambio      = (float) config('copiloto.ai.cambio_brl_usd', 5.5);
+
+        // Unidade: pricing é POR 1k tokens → divide a contagem de tokens por 1000.
+        $custoUsd = (($tokensIn / 1000) * $inputPer1k)
+            + (($tokensOut / 1000) * $outputPer1k);
+
+        return round($custoUsd * $cambio, 6);
     }
 
     /**

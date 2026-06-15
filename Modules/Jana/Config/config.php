@@ -49,6 +49,10 @@ return [
     | env (default 5.50 BRL/USD) — pode evoluir pra fonte cotação automática.
     |
     | Referência: https://openai.com/api/pricing/ (snapshot 2026-04-27).
+    |
+    | ⚠️ Esta é a ÚNICA chave de pricing canônica: `copiloto.ai.pricing.*`.
+    | NÃO existe `copiloto.openai.pricing` — consumidores (ex.: McpAuthMiddleware
+    | via estimarCustoBrl()) DEVEM ler daqui. Unidade = USD por 1k tokens.
     */
     'ai' => [
         'pricing_default_model' => env('COPILOTO_PRICING_DEFAULT_MODEL', 'gpt-4o-mini'),
