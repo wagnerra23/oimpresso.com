@@ -80,9 +80,9 @@ class NumUfHeuristicPtBRTest extends TestCase
             '1329.0567 → 1329.0567'           => ['1329.0567', 1329.0567],
 
             // Símbolo de moeda + espaços (bug secundário antes retornava 0)
-            'R$ [redacted Tier 0] → 80'               => ['R$ [redacted Tier 0]', 80.0],
-            'R$ [redacted Tier 0] → 2500.80'       => ['R$ [redacted Tier 0]', 2500.80],
-            'R$ [redacted Tier 0] → 80'                  => ['R$ [redacted Tier 0]', 80.0],
+            'R$ 80,00 → 80'               => ['R$ 80,00', 80.0],
+            'R$ 2.500,80 → 2500.80'       => ['R$ 2.500,80', 2500.80],
+            'R$ 80 → 80'                  => ['R$ 80', 80.0],
 
             // Negativos (devolução, troco)
             '-80,00 → -80'                => ['-80,00', -80.0],
@@ -149,7 +149,7 @@ class NumUfHeuristicPtBRTest extends TestCase
 
         $this->assertSame(80.0, $this->util->num_uf('80,00'));
         $this->assertSame(80.0, $this->util->num_uf('80.00'));
-        $this->assertSame(2500.80, $this->util->num_uf('R$ [redacted Tier 0]'));
+        $this->assertSame(2500.80, $this->util->num_uf('R$ 2.500,80'));
         $this->assertSame(25000.0, $this->util->num_uf('25.000'));
     }
 }
