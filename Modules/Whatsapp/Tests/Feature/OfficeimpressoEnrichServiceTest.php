@@ -24,6 +24,12 @@ uses(Tests\TestCase::class);
  *   7. EnrichService — fail-open quando source unhealthy
  */
 beforeEach(function () {
+    // era-sqlite: este teste cria schema manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso DROPA tabelas reais → corrompe os testes irmãos (lever do floor SDD).
+    // Cobertura real é na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
     Schema::dropIfExists('customer_memory');
     Schema::create('customer_memory', function ($table) {
         $table->bigIncrements('id');
