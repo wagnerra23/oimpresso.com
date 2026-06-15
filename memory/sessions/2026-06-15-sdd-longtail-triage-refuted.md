@@ -18,6 +18,30 @@ prs: []
 3. **RC-1..31 quarentenou o B/C tail; o S-tier de maior raio quase não se moveu** (~30→29 não-quarentenados desde 06-13).
 4. **Doutrina correta:** CONVERT (RefreshDatabase/DatabaseTransactions, mantém cobertura) > QUARANTINE (`era-sqlite`, derruba o número mas a suíte mente). Vários "alvos" do linter são Tier-0/segurança — quarentenar = perder a garantia no único lugar que ela roda (MySQL).
 
+## ⚠️ CORREÇÃO pós-execução (2026-06-15) — CONVERT estava ERRADO; o certo é GUARD
+
+O item 4 acima (e a tabela "CONVERT" abaixo) foi **refutado na execução** e fica
+SUPERADO. Pré-flight provou:
+- a lane **per-PR roda em SQLITE** (`phpunit.xml` + `modules-pest.yml` → `DB_CONNECTION=sqlite`); só o nightly CT100 é MySQL;
+- as migrations são **MySQL-only** (`ci.yml`: *"RefreshDatabase esbarra na migration MySQL-only ALTER TABLE"*; não existe `sqlite-schema.sql`).
+
+→ CONVERT→RefreshDatabase **quebraria a lane sqlite**. A cobertura real desses testes
+é na lane sqlite (per-PR); no MySQL eles só **corrompiam**. O fix correto é **GUARD
+sqlite-only** (`markTestSkipped` não-sqlite no beforeEach + guarda no teardown) — mantém
+a cobertura sqlite e para a corrupção no nightly. CI-safe (comportamento sqlite inalterado).
+Vale inclusive pros Tier-0/segurança: guardar **preserva** a garantia na lane sqlite.
+
+**Executado (tudo mergeado):** PR #2746 Governance afterEach ×4 · PR #2749 linter v2
+(comportamento-no-MySQL, ~48% FP removido) · PR #2753 Whatsapp-A guard ×20 · PR #2756
+Jana/Mcp+Copiloto guard ×28 · PR linter v3 (dual-mode `if(sqlite){drop}` reconhecido).
+
+**Estado honesto do floor (corruptor-linter v3):** de 67 → **9 corruptores reais**
+(BomResolver, ReservarEstoqueBom [FSM/Inv]; ContextForTaskActiveTasks [ADS]; DetectOtelQuery,
+DashboardExtension, DetectDriftCommand, ObservabilitySnapshot, ScorecardSnapshot, Wave28
+[Governance-A]). Os "fantasmas" (NfeBrasil ×5 + RB RepositoryWave18 + outros dual-mode)
+saíram da conta — eram falso-positivo `if(driver==='sqlite'){DDL}else{row-delete}`.
+Contrato do linter travado em `tests/sqliteCorruptors.spec.ts` (2 lados, com polaridade).
+
 ## Conflito refutador↔analista — RESOLVIDO (esta é a razão de "use um refutador")
 As 4 telas Governance (`CrossTenantPolicy/GovernanceGate/MultiTenantGovernance/SmokeRoutes`): o refutador disse "já pulam no MySQL → deixar"; o analista disse "corruptor via afterEach". **Vencedor: analista.** `beforeEach` é guardado (L37 etc), **mas `afterEach` dropa `mcp_*` SEM guarda**. Prova no próprio repo: RB/Repair já-corrigidos carregam o comentário *"o afterEach roda MESMO em teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements, true antes do beforeEach/markTestSkipped)"*. → afterEach sem guarda dropa tabela real no MySQL persistente. O refutador só olhou o `beforeEach`. **Lição: refutar o refutador também.**
 
