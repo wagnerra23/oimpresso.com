@@ -34,10 +34,10 @@ class TaskCrudService
      * @param  array<string,mixed> $fields
      * @return array{task: McpTask, events: list<McpTaskEvent>}
      */
-    public function update(string $taskId, array $fields, string $author = 'system'): array
+    public function update(string $taskId, array $fields, string $author = 'system', ?string $principal = null): array
     {
-        return OtelHelper::spanBiz('project_mgmt.task_crud.update', function () use ($taskId, $fields, $author): array {
-            return $this->updateInner($taskId, $fields, $author);
+        return OtelHelper::spanBiz('project_mgmt.task_crud.update', function () use ($taskId, $fields, $author, $principal): array {
+            return $this->updateInner($taskId, $fields, $author, $principal);
         }, [
             'module'      => 'ProjectMgmt',
             'task_id'     => $taskId,
@@ -52,13 +52,13 @@ class TaskCrudService
      * @param  array<string,mixed> $fields
      * @return array{task: McpTask, events: list<McpTaskEvent>}
      */
-    protected function updateInner(string $taskId, array $fields, string $author = 'system'): array
+    protected function updateInner(string $taskId, array $fields, string $author = 'system', ?string $principal = null): array
     {
         // Fase 2b (ADR 0278) — mutação ATÔMICA: transação + lock de linha fecham o
         // lost-update (2 agentes na mesma task → last-write-wins silencioso = a causa
         // literal do "a lista fura"). lockForUpdate serializa writers no MySQL; no
         // sqlite da lane per-PR é no-op seguro (writes já são serializados).
-        return DB::transaction(fn (): array => $this->applyLockedUpdate($taskId, $fields, $author));
+        return DB::transaction(fn (): array => $this->applyLockedUpdate($taskId, $fields, $author, $principal));
     }
 
     /**
@@ -68,7 +68,7 @@ class TaskCrudService
      * @param  array<string,mixed> $fields
      * @return array{task: McpTask, events: list<McpTaskEvent>}
      */
-    protected function applyLockedUpdate(string $taskId, array $fields, string $author): array
+    protected function applyLockedUpdate(string $taskId, array $fields, string $author, ?string $principal = null): array
     {
         $task = $this->findTaskOrFail($taskId, forUpdate: true);
 
@@ -81,6 +81,24 @@ class TaskCrudService
             'acceptance_ref',
         ];
         $events = [];
+
+        // A5 (ADR 0278 Fase 2) — instrumenta o SINAL de mutação CLAIM-LESS: o mutador
+        // (principal do TOKEN, não o $author auto-declarado/spoofável) não segura o lease
+        // ativo da task. SOFT — só evento de AVISO, sem throw. O hard-gate (A7) é
+        // signal-gated (espera o sinal acumular, ADR 0105). $principal null = caller de
+        // sistema/bulk → sem sinal. Degrada gracioso se mcp_work_leases não migrou.
+        if ($principal !== null && \Illuminate\Support\Facades\Schema::hasTable('mcp_work_leases')) {
+            $lease = app(\Modules\Jana\Services\WorkLease\WorkLeaseService::class)->activeLeaseFor($taskId);
+            $leaseHolder = $lease ? data_get($lease, 'human_principal') : null;
+            if ($leaseHolder !== $principal) {
+                $events[] = McpTaskEvent::log(
+                    taskId: $task->task_id,
+                    eventType: 'field_updated',
+                    author: $author,
+                    note: "AVISO Fase 2 (ADR 0278): mutação SEM lease ativo do mutador ({$principal}) — claim antes de pegar (tasks-claim). Hard-gate A7 é signal-gated.",
+                );
+            }
+        }
 
         foreach ($fields as $field => $newVal) {
             if (! in_array($field, $allowed, true)) {
