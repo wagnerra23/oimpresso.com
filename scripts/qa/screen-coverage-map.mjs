@@ -68,14 +68,17 @@ const scorecards = new Set(
   ),
 );
 
-/** Uma tela é "referenciada" por um E2E se o caminho relativo do Page (Mod/Tela) aparece no body. */
+/**
+ * Uma tela é "referenciada" por um E2E se o caminho relativo do Page (Mod/Tela)
+ * aparece LITERALMENTE no body do teste — ex: `'Sells/Create'` no mapa do Pest Browser.
+ * NÃO casamos por basename solto ('Index', 'Create', 'Cockpit'): um único teste citando
+ * '/Index' creditaria todas as ~90 telas homônimas. Esse termo gerava 106 falsos-positivos
+ * (e2e inflado de 4 → 110); a contagem honesta é só quem cita o caminho exato. Ver ADR 0249.
+ */
 function e2eFor(relTsx) {
   const key = relTsx.replace(/\.tsx$/, ''); // ex: Sells/Create
-  const keyAlt = key.replace(/\//g, '\\');
-  const name = basename(key); // ex: Create
-  return browserCorpus.filter(
-    (b) => b.body.includes(key) || b.body.includes(keyAlt) || new RegExp(`['"\`/]${name}['"\`]`).test(b.body),
-  );
+  const keyAlt = key.replace(/\//g, '\\');  // idem em refs com separador Windows
+  return browserCorpus.filter((b) => b.body.includes(key) || b.body.includes(keyAlt));
 }
 
 const rows = screens.map((abs) => {
