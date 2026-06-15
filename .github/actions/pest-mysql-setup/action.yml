@@ -108,6 +108,22 @@ runs:
         php artisan key:generate --force
         php artisan package:discover --ansi
 
+    - name: Strip prod DEFINER do schema baseline (triggers funcionam no MySQL do CI)
+      # O dump database/schema/mysql-schema.sql carrega objetos (triggers de
+      # imutabilidade append-only de mcp_audit_log / ponto_marcacoes / etc)
+      # carimbados com DEFINER=`u906587222_oimpresso`@`localhost` — o usuário da
+      # PROD Hostinger. Esse usuário NÃO existe no container MySQL do CI; quando um
+      # trigger BEFORE UPDATE/DELETE dispara, o MySQL falha a resolução do security
+      # context do definer e estoura SQLSTATE 'HY000' ANTES de chegar no corpo
+      # (SIGNAL '45000'). Resultado: na prod o trigger enforça (definer existe), mas
+      # no CI ele falha com o erro ERRADO — mascarando se o append-only morde.
+      # Sem DEFINER, o objeto é criado sob CURRENT_USER (root do CI) e o SIGNAL
+      # '45000' aflora corretamente. Exposto pela lane jana-pest (furo #1 SDD Leva
+      # 1): ImmutabilityTriggersTest mcp_audit_log UPDATE/DELETE.
+      shell: bash
+      run: |
+        sed -i -E 's/DEFINER=`[^`]+`@`[^`]+`//g' database/schema/mysql-schema.sql
+
     - name: Migrate (carrega schema baseline + migrations novas)
       # Com database/schema/mysql-schema.sql presente, o Laravel carrega o
       # schema final + a tabela migrations (820 linhas) num passo, depois roda
