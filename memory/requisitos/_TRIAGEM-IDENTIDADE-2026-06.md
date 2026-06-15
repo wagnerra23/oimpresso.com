@@ -55,7 +55,7 @@
 | StockAdjustment | 1 | 2026-05-17 | ❌ (2 telas core; RUNBOOKs estão em Inventory) | FUNDIR em Estoque (P7) | ADIADO (cluster Estoque) |
 | StockTransfer | 1 | 2026-05-17 | ❌ (2 telas core; RUNBOOKs estão em Inventory) | FUNDIR em Estoque (P7) | ADIADO (cluster Estoque) |
 | Tarefas | 1 | 2026-05-17 | ❌ (`Pages/Tarefas/Index.tsx` é stub sem controller/backend) | MATAR com lápide — tarefas do time = MCP (ADR 0070); de cliente = ProjectMgmt/Essentials | ok |
-| TaskRegistry | 4 | 2026-05-29 | ❌ como `Modules/` (sistema vivo no MCP server — ADR 0070) | GENUÍNO — criar porta (alternativa: FUNDIR em TeamMcp) | ok — porta própria (não TeamMcp) |
+| TaskRegistry | 4 | 2026-05-29 | ❌ como `Modules/` (sistema vivo no MCP server — ADR 0070) | GENUÍNO — criar porta (alternativa: FUNDIR em TeamMcp) | EMENDA 2026-06-15 (Wagner): FUNDIR em TeamMcp — TaskRegistry roda dentro do MCP server |
 | _DesignSystem | 62 | 2026-06-11 | meta (prefixo `_`) | GENUÍNO — criar porta leve (62 docs, hops=62 no knowledge-drift) | ok |
 | _Ideias | 12 | 2026-04-24 | meta | GENUÍNO — porta leve índice da incubadora | ok |
 | _Showcase | 1 | 2026-05-17 | ❌ (2 telas demo do design system) | FUNDIR em _DesignSystem | ok |
@@ -73,7 +73,7 @@
 | P6 | Produto ↔ ProductCatalogue ↔ Inventory | docs de produto em 3 pastas; ProductCatalogue é módulo DISTINTO (catálogo público QR) | Produto = porta das telas core; ProductCatalogue intocado; Inventory reparte | ADIADO (cluster Estoque) |
 | P7 | Estoque ↔ Inventory ↔ StockAdjustment ↔ StockTransfer | 4 pastas pro domínio estoque; Estoque tem o DOC-RAIZ canônico (2026-06-04) | consolidar em Estoque | ADIADO — só porta Estoque agora; consolidação adiada |
 | P8 | Atendimento ↔ Whatsapp ↔ Chat | telas Atendimento são do Whatsapp; chat real é Jana | FUNDIR Atendimento→Whatsapp e Chat→Jana (alt.: RENOMEAR Whatsapp→Atendimento, nome de produto) | ok (FUNDIR Atendimento→Whatsapp + Chat→Jana; NÃO renomear módulo) |
-| P9 | Tarefas ↔ TaskRegistry ↔ ProjectMgmt | stub UI ≠ sistema MCP ≠ módulo cliente | MATAR stub Tarefas; porta TaskRegistry; ProjectMgmt intocado | ok (MATAR Tarefas; porta TaskRegistry) |
+| P9 | Tarefas ↔ TaskRegistry ↔ ProjectMgmt | stub UI ≠ sistema MCP ≠ módulo cliente | MATAR stub Tarefas; porta TaskRegistry; ProjectMgmt intocado | EMENDA 2026-06-15 (Wagner): MATAR Tarefas; TaskRegistry→FUNDIR em TeamMcp; ProjectMgmt intocado |
 | P10 | FinanceiroAvancado ↔ Financeiro | wish avançado duplica pasta do módulo real | FUNDIR→Financeiro | ok |
 | P11 | Orcamento ↔ Sells | quotation = `Transaction type:sell status:draft` (domínio Sells) | FUNDIR→Sells | ok |
 | P12 | Site ↔ Cms | telas públicas vs módulo de conteúdo público | FUNDIR Site→Cms | ok |
