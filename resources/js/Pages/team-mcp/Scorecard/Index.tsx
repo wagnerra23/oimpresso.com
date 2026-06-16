@@ -119,7 +119,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
           {facts!.top_tools_7d.length === 0 ? (
             <p className="text-xs italic text-muted-foreground">Sem chamadas registradas na janela.</p>
           ) : (
-            <ul className="flex flex-wrap gap-2">
+            <ul className="inline-flex w-full flex-wrap gap-2">
               {facts!.top_tools_7d.map((t) => (
                 <li key={t.tool} className="inline-flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-xs">
                   <span className="font-mono">{t.tool}</span>
@@ -145,7 +145,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
       ) : (
         <ul className="mt-2 overflow-hidden rounded-lg border bg-card" data-testid="scorecard-checks">
           {checkList.map((c, i) => (
-            <li key={i} className="flex items-start gap-3 border-b border-border/60 px-3 py-2.5 last:border-b-0">
+            <li key={i} className="inline-flex w-full items-start gap-3 border-b border-border/60 px-3 py-2.5 last:border-b-0">
               {c.ok
                 ? <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" aria-label="ok" />
                 : <AlertCircle size={16} className="mt-0.5 shrink-0 text-destructive" aria-label="falha" />}
