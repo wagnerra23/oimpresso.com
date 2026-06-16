@@ -64,6 +64,7 @@ import type {
   ChannelCatalogItem,
   Paginated,
   QueueConfig,
+  CustomerContext,
 } from './_components/helpers';
 
 interface Props {
@@ -100,6 +101,7 @@ interface Props {
   q: string;
   thread: CaixaUnifThread | null;
   messages: CaixaUnifMessage[] | null;
+  customerContext: CustomerContext | null;
   centrifugoConfig: CentrifugoConfig | null;
   queues: Record<string, QueueConfig>;
   defaultQueue: string;
@@ -110,7 +112,7 @@ export default function CaixaUnificadaIndex({
   queuesAdmin, canManageQueues,
   businessId: _businessId,
   statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
-  thread, messages, centrifugoConfig,
+  thread, messages, customerContext, centrifugoConfig,
   queues, defaultQueue: _defaultQueue,
   within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
 }: Props) {
@@ -194,7 +196,7 @@ export default function CaixaUnificadaIndex({
       {
         preserveScroll: true,
         preserveState: true,
-        only: ['thread', 'messages'],
+        only: ['thread', 'messages', 'customerContext'],
       },
     );
   }
@@ -546,6 +548,7 @@ export default function CaixaUnificadaIndex({
           <Deferred data="availableChannels" fallback={null}>
             <ContextSidebarV4
               thread={thread}
+              customerContext={customerContext}
               channels={availableChannels ?? []}
               queues={queues}
               availableTags={availableTags ?? []}
