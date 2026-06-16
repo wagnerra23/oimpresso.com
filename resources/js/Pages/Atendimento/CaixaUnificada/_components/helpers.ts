@@ -393,6 +393,21 @@ export const SLA_META: Record<Exclude<SlaState, null>, { label: string; pill: st
   },
 };
 
+// Onda 3 — contexto comercial do cliente da conversa (Saldo + Histórico),
+// agregado server-side de `transactions` (CaixaUnificadaController). `linked`
+// false = conversa sem Contact CRM vinculado.
+export interface CustomerContext {
+  linked: boolean;
+  sells_count: number;
+  ltv: number;
+  saldo_aberto: number;
+}
+
+/** Formata BRL pt-BR sem centavos (valores agregados): 1420 → "R$ 1.420". */
+export function formatBRL(value: number): string {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+}
+
 export function cuLsGet(key: string, fallback = ''): string {
   if (typeof window === 'undefined') return fallback;
   return localStorage.getItem(key) ?? fallback;

@@ -33,13 +33,16 @@ import type {
   ChannelCatalogItem,
   ConvTag,
   QueueConfig,
+  CustomerContext,
 } from './helpers';
-import { avatarHue, initials, relativeTimeBR } from './helpers';
+import { avatarHue, formatBRL, initials, relativeTimeBR } from './helpers';
 
 interface Props {
   thread: CaixaUnifThread;
   channels: ChannelCatalogItem[];
   queues: Record<string, QueueConfig>;
+  /** Onda 3 — contexto comercial do cliente (Saldo + Histórico). null = sem thread/contato. */
+  customerContext?: CustomerContext | null;
   /**
    * Wave 3 F1 (US-WA-095 paridade Inbox legacy): catálogo de tags do business
    * pro editor inline. Default [] quando deferred ainda não resolveu.
@@ -52,7 +55,7 @@ interface Props {
   availableAssignees?: AssigneeItem[];
 }
 
-export default function ContextSidebarV4({ thread, channels, queues, availableTags = [], availableAssignees = [] }: Props) {
+export default function ContextSidebarV4({ thread, customerContext, channels, queues, availableTags = [], availableAssignees = [] }: Props) {
   const channel = channels.find(c => c.id === thread.channel_type);
   const queueCfg = queues[thread.queue.slug] ?? null;
   const isPreview = thread.preview_only;
@@ -446,26 +449,38 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           {/* TODO US-WA-XXX: linkar Modules/Repair JobSheet via repair_jobsheet_id na conversa */}
         </div>
 
-        {/* 6. Saldo cliente — placeholder */}
+        {/* 6. Saldo cliente — Onda 3: a receber em aberto (transactions UPOS, due/partial) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
           <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Saldo cliente
           </small>
-          <b className="text-[12.5px] font-medium text-muted-foreground italic">
-            —
-          </b>
-          {/* TODO US-WA-XXX: integrar Modules/Financeiro Titulo (sum tipo=receber) */}
+          {!customerContext?.linked ? (
+            <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-saldo">—</b>
+          ) : customerContext.saldo_aberto > 0 ? (
+            <b className="text-[12.5px] font-semibold text-destructive" data-testid="caixa-unif-ctx-saldo">
+              {formatBRL(customerContext.saldo_aberto)} a receber
+            </b>
+          ) : (
+            <b className="text-[12.5px] font-medium text-muted-foreground" data-testid="caixa-unif-ctx-saldo">
+              {formatBRL(0)} · em dia
+            </b>
+          )}
         </div>
 
-        {/* 7. Histórico — placeholder */}
+        {/* 7. Histórico — Onda 3: pedidos + LTV (transactions, status != draft) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
           <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Histórico
           </small>
-          <b className="text-[12.5px] font-medium text-muted-foreground italic">
-            —
-          </b>
-          {/* TODO US-WA-XXX: agregar Transaction.count + sum(final_total) por contact_id */}
+          {customerContext?.linked && customerContext.sells_count > 0 ? (
+            <b className="text-[12.5px] font-medium" data-testid="caixa-unif-ctx-historico">
+              {customerContext.sells_count} {customerContext.sells_count === 1 ? 'pedido' : 'pedidos'} · {formatBRL(customerContext.ltv)} LTV
+            </b>
+          ) : (
+            <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-historico">
+              {customerContext?.linked ? 'sem pedidos ainda' : '—'}
+            </b>
+          )}
         </div>
 
         {/* 8. Último contato */}
