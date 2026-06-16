@@ -16,7 +16,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link } from '@inertiajs/react';
 import { type ReactNode } from 'react';
-import { Activity, Bell, History, Inbox, LayoutGrid, List, Plug, Search } from 'lucide-react';
+import { Activity, Bell, Code2, Columns3, History, Inbox, LayoutGrid, List, Plug, Search, Users } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
@@ -24,7 +24,6 @@ import ForjaTriage, { type ForjaTicket } from './_components/ForjaTriage';
 import ForjaBacklog, { type BacklogTask } from './_components/ForjaBacklog';
 import ForjaQuadro, { type QuadroData } from './_components/ForjaQuadro';
 import ForjaChangelog, { type ChangelogEntry } from './_components/ForjaChangelog';
-import ForjaSaude, { type SaudeData } from './_components/ForjaSaude';
 import ForjaMcp from './_components/ForjaMcp';
 
 interface Meta {
@@ -44,7 +43,6 @@ interface Props {
   backlog?: BacklogTask[];
   quadro?: QuadroData;
   changelog?: ChangelogEntry[];
-  saude?: SaudeData;
 }
 
 const COCKPIT_SUBTITLE =
@@ -54,12 +52,16 @@ const COCKPIT_SUBTITLE =
 // é dropdown no breadcrumb — não bate com a barra de abas do protótipo —, então a
 // faixa é renderizada aqui. Active por `tab`; Triagem mostra o contador vivo.
 const FORJA_TABS = [
-  { key: 'triagem',   label: 'Triagem',   href: '/forja',           icon: Inbox },
-  { key: 'backlog',   label: 'Backlog',   href: '/forja/backlog',   icon: List },
-  { key: 'quadro',    label: 'Quadro',    href: '/forja/quadro',    icon: LayoutGrid },
-  { key: 'changelog', label: 'Changelog', href: '/forja/changelog', icon: History },
-  { key: 'mcp',       label: 'MCP',       href: '/forja/mcp',        icon: Plug },
-  { key: 'saude',     label: 'Saúde',     href: '/forja/saude',      icon: Activity },
+  { key: 'triagem',   label: 'Triagem',     href: '/forja',                icon: Inbox },
+  { key: 'backlog',   label: 'Backlog',     href: '/forja/backlog',        icon: List },
+  { key: 'quadro',    label: 'Quadro',      href: '/forja/quadro',         icon: LayoutGrid },
+  { key: 'changelog', label: 'Changelog',   href: '/forja/changelog',      icon: History },
+  { key: 'mcp',       label: 'MCP',         href: '/forja/mcp',            icon: Plug },
+  // Telas TeamMcp absorvidas (fusão 2026-06-16) — reusam as canônicas ricas.
+  { key: 'tarefas',   label: 'Tarefas',     href: '/team-mcp/tasks',       icon: Columns3 },
+  { key: 'equipe',    label: 'Equipe',      href: '/team-mcp/team',        icon: Users },
+  { key: 'cc',        label: 'CC Sessions', href: '/team-mcp/cc-sessions', icon: Code2 },
+  { key: 'saude',     label: 'Saúde',       href: '/team-mcp/scorecard',   icon: Activity },
 ] as const;
 
 // Abre a command palette global (dona do AppShellV2, atalho ⌘K) sintetizando o
@@ -70,7 +72,7 @@ function openCommandPalette() {
   );
 }
 
-function ForjaCockpit({ tab, subtitle, tickets, triagemCount, backlog, quadro, changelog, saude }: Props) {
+function ForjaCockpit({ tab, subtitle, tickets, triagemCount, backlog, quadro, changelog }: Props) {
   const sinoBadge = tab === 'triagem' ? triagemCount : undefined;
 
   const loading = (txt: string) => (
@@ -180,11 +182,6 @@ function ForjaCockpit({ tab, subtitle, tickets, triagemCount, backlog, quadro, c
         {tab === 'changelog' && (
           <Deferred data={['changelog']} fallback={loading('changelog')}>
             <ForjaChangelog changelog={changelog} />
-          </Deferred>
-        )}
-        {tab === 'saude' && (
-          <Deferred data={['saude']} fallback={loading('saúde')}>
-            <ForjaSaude saude={saude} />
           </Deferred>
         )}
         {tab === 'mcp' && <ForjaMcp />}
