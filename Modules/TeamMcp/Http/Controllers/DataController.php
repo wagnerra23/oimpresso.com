@@ -163,6 +163,36 @@ class DataController extends Controller
                         ],
                     ]
                 )->order(91); // Logo após Copiloto (90)
+
+                // ---- Forja — cockpit do cowork loop (Onda Forja PR-A) ----
+                // Entry PRÓPRIA (não é ghost da Equipe): tem topnav próprio de 6
+                // abas (config/core_topnavs.php['Forja']) e raiz /forja. Mora no
+                // TeamMcp (absorção, não módulo novo). Read-only nesta onda.
+                $menu->dropdown(
+                    'Forja',
+                    function ($sub) {
+                        $sub->url('/forja',           'Triagem',   ['icon' => 'fa fas fa-inbox',     'active' => request()->path() === 'forja']);
+                        $sub->url('/forja/backlog',   'Backlog',   ['icon' => 'fa fas fa-list-ul',   'active' => request()->segment(2) === 'backlog']);
+                        $sub->url('/forja/quadro',    'Quadro',    ['icon' => 'fa fas fa-columns',   'active' => request()->segment(2) === 'quadro']);
+                        $sub->url('/forja/changelog', 'Changelog', ['icon' => 'fa fas fa-history',   'active' => request()->segment(2) === 'changelog']);
+                        $sub->url('/forja/mcp',       'MCP',       ['icon' => 'fa fas fa-plug',      'active' => request()->segment(2) === 'mcp']);
+                        $sub->url('/forja/saude',     'Saúde',     ['icon' => 'fa fas fa-heartbeat', 'active' => request()->segment(2) === 'saude']);
+                    },
+                    [
+                        'icon'     => 'fa fas fa-hammer',
+                        'active'   => request()->segment(1) === 'forja',
+                        'group'    => 'equipe',
+                        'shortcut' => 'G F',
+                        'ghosts'   => [
+                            ['key' => 'triagem',   'label' => 'Triagem',   'href' => '/forja'],
+                            ['key' => 'backlog',   'label' => 'Backlog',   'href' => '/forja/backlog'],
+                            ['key' => 'quadro',    'label' => 'Quadro',    'href' => '/forja/quadro'],
+                            ['key' => 'changelog', 'label' => 'Changelog', 'href' => '/forja/changelog'],
+                            ['key' => 'mcp',       'label' => 'MCP',       'href' => '/forja/mcp'],
+                            ['key' => 'saude',     'label' => 'Saúde',     'href' => '/forja/saude'],
+                        ],
+                    ]
+                )->order(92); // Logo após Equipe (91)
             }
         );
     }
