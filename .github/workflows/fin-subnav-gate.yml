@@ -1,0 +1,45 @@
+name: Fin SubNav Gate — abas por entry (anti-regressão ADR 0180 split)
+
+# Pós-ADR 0180 (2026-05-26) o grupo FINANÇAS virou 4 entries flat (Caixa / Cobrança /
+# Financeiro / Cobrança Recorrente). O FinanceiroSubNav fazia `.find(group === 'financas')`
+# → pegava SEMPRE a 1ª entry (Caixa), então /financeiro/unificado e Fluxo/DRE/Impostos/
+# Plano de Contas/Contas a Pagar/Cobrança mostravam as abas do CAIXA e não destacavam nada
+# (regressão silenciosa desde o split, detectada em prod 2026-06-16). `pickFinanceiroEntry`
+# agora escolhe a entry DONA do `active`. Este gate trava a volta da regressão.
+#
+# Path-scoped (faz npm ci): roda só quando o subnav, o helper, o spec ou este workflow mudam.
+# Comando manual local: npm run test:fin-subnav
+#
+# Refs: ADR 0180 (split FINANÇAS) · ADR 0258 (gate só vale se o controle-negativo roda no CI).
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx'
+      - 'resources/js/Pages/Financeiro/_shared/financeiroMenu.ts'
+      - 'tests/financeiroSubNav.spec.ts'
+      - '.github/workflows/fin-subnav-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx'
+      - 'resources/js/Pages/Financeiro/_shared/financeiroMenu.ts'
+      - 'tests/financeiroSubNav.spec.ts'
+
+concurrency:
+  group: fin-subnav-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fin-subnav:
+    name: Fin subnav · abas seguem a entry do active (não cair no Caixa)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: pickFinanceiroEntry — regressão (vitest)
+        run: npm run test:fin-subnav
