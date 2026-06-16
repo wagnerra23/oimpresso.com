@@ -21,6 +21,9 @@ import {
   avatarHue,
   dayGroupLabel,
   slaState,
+  slaWaitedMin,
+  slaWaitedShort,
+  SLA_META,
 } from './helpers';
 import ComposerV4 from './ComposerV4';
 import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
@@ -166,25 +169,25 @@ export default function ConversationThreadV4({
             )}
           </div>
         </div>
-        {/* Polish V2 §1 — pill SLA no header (cliente esperando além do alvo da fila) */}
-        {headerSla === 'breached' && (
-          <span
-            className="ml-auto font-mono text-[9.5px] font-bold px-2 py-px rounded-full bg-destructive/10 text-destructive border border-destructive/30 flex-shrink-0"
-            title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} estourado`}
-            data-testid="caixa-unif-thread-sla"
-          >
-            SLA estourado
-          </span>
-        )}
-        {headerSla === 'warning' && (
-          <span
-            className="ml-auto font-mono text-[9.5px] font-bold px-2 py-px rounded-full flex-shrink-0 bg-warning/15 text-warning-fg border border-warning/30"
-            title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} perto de estourar`}
-            data-testid="caixa-unif-thread-sla"
-          >
-            SLA
-          </span>
-        )}
+        {/* Onda 2 — pill SLA no header: 4 estados (fresh/aging/late/expired) +
+            dot animado (pulsa em aging/late/expired) + tempo esperando. */}
+        {headerSla && (() => {
+          const m = SLA_META[headerSla];
+          const waited = slaWaitedMin({
+            last_message_direction: lastRealMsg?.direction ?? null,
+            last_inbound_at: thread.last_inbound_at,
+          });
+          return (
+            <span
+              className={cn('ml-auto inline-block font-mono text-[9.5px] font-bold px-2 py-px rounded-full border flex-shrink-0', m.pill)}
+              title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} — ${m.label}`}
+              data-testid="caixa-unif-thread-sla"
+            >
+              <span className={cn('inline-block w-1.5 h-1.5 rounded-full align-middle mr-1', m.dot, m.pulse && 'animate-pulse')} aria-hidden />
+              {m.label}{waited != null ? ` ${slaWaitedShort(waited)}` : ''}
+            </span>
+          );
+        })()}
         {/* PR-9 — IA: Resumir / Perguntar (laravel/ai server-side, PII redigida) */}
         <button
           type="button"
