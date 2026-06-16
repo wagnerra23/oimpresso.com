@@ -31,6 +31,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { BarChart3, ClipboardList, Package, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { toast } from 'sonner';
@@ -248,6 +249,7 @@ function TeamIndex(props: Props) {
 
   return (
     <>
+      <ForjaHub active="equipe" />
 
       <PageHeader
         icon="users"
@@ -828,7 +830,7 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
 }
 
 TeamIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Time — Equipe (MCP)" breadcrumbItems={[{ label: 'Equipe' }, { label: 'Time' }]}>
+  <AppShellV2 title="Equipe — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'Equipe' }]}>
     {page}
   </AppShellV2>
 );
