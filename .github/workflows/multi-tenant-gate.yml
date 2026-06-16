@@ -54,7 +54,7 @@ jobs:
           echo "Base do diff: ${base}"
           changed="$(git diff --name-only "${base}" HEAD || true)"
           echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
-          if echo "${changed}" | grep -Eq '^(Modules/.*/Http/Controllers/|app/Http/Middleware/AdminSidebarMenu\.php|app/Http/Middleware/HandleInertiaRequests\.php|tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest\.php|\.github/workflows/multi-tenant-gate\.yml)'; then
+          if echo "${changed}" | grep -Eq '^(Modules/.*/Http/Controllers/|Modules/.*/Http/Middleware/|app/Http/Middleware/AdminSidebarMenu\.php|app/Http/Middleware/HandleInertiaRequests\.php|tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest\.php|\.github/workflows/multi-tenant-gate\.yml)'; then
             echo "relevant=true" >> "${GITHUB_OUTPUT}"
             echo "→ arquivo Tier 0 mudou: RODA o teste."
           else
