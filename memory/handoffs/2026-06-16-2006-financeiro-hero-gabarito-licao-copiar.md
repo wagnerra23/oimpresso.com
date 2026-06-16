@@ -2,7 +2,7 @@
 date: 2026-06-16
 time: "2006 BRT"
 slug: "financeiro-hero-gabarito-licao-copiar"
-tldr: "Financeiro cockpit reconciliado com o gabarito Cowork: hero escuro→claro (#2844), sub-nav corrigido (pegava abas do Caixa em vez do hub — regressão ADR 0180 split, #2847), realizado volta a tamanho de apoio (#2851), e hero bate PIXEL com o gabarito (#2856: --fs-2/--sh-2/spark/alarm). 4 PRs merged+deployados+verificados live (WR2 Sistemas). LIÇÃO-MÃE: parei de COPIAR o gabarito e fiquei ADIVINHANDO valores no olho (10.5px vs --fs-2, --sh-1 vs --sh-2) — Wagner perdeu a paciência. Aberto: drawer 'acabamentos' (lentes coloridas Vínculos/Conciliação/Fiscal — feature do gabarito ausente em prod, markup+CSS)."
+tldr: "Financeiro reconciliado com o gabarito Cowork: hero escuro→claro (#2844), sub-nav corrigido (pegava abas do Caixa, ADR 0180 split, #2847), realizado a tamanho de apoio (#2851), hero bate PIXEL com gabarito (#2856: --fs-2/--sh-2/spark/alarm). 4 PRs merged+deployados+verificados live. LICAO-MAE: parei de COPIAR o gabarito e ADIVINHEI valores (10.5px vs --fs-2; --sh-1 vs --sh-2) — Wagner perdeu a paciencia. Aberto: drawer acabamentos (lentes coloridas, ausente em prod)."
 decided_by: [W]
 cycle: "CYCLE-08"
 prs: [2844, 2847, 2851, 2856]
