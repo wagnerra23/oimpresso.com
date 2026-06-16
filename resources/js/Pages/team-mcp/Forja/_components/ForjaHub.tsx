@@ -78,8 +78,11 @@ export default function ForjaHub({ active, triagemCount }: { active: string; tri
         }
       />
 
-      {/* Tab-strip de 9 abas — idêntica em todas as telas do hub. */}
-      <nav className="mt-2 inline-flex w-full items-center gap-1 overflow-x-auto border-b px-6" data-testid="forja-tabs">
+      {/* Tab-strip de 9 abas — idêntica em todas as telas do hub.
+          shrink-0: o slot do AppShellV2 é flex-column de altura limitada; sem isto
+          o flex-shrink esmaga o nav (que tem overflow-x-auto) a ~3px nas telas
+          longas absorvidas (/team-mcp/*). Mantém o tab-strip sempre em altura cheia. */}
+      <nav className="mt-2 inline-flex w-full shrink-0 items-center gap-1 overflow-x-auto border-b px-6" data-testid="forja-tabs">
         {FORJA_TABS.map((t) => {
           const isActive = t.key === active;
           const Icon = t.icon;
