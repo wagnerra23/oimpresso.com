@@ -291,7 +291,11 @@ export default function ConversationThreadV4({
           messages.map((m, i) => {
             const showDay = i === 0 || dayGroupLabel(messages[i - 1]!.created_at) !== dayGroupLabel(m.created_at);
             return (
-              <div key={m.id}>
+              // Wrapper flex-col (canon Cowork `.om-msg-wrap`): sem pai flex o
+              // `self-start/self-end` + `ml-auto/mr-auto` da linha da bolha vira
+              // no-op e as enviadas (outbound) encostavam à esquerda junto das
+              // recebidas. Flex-col faz inbound→esquerda, outbound→direita.
+              <div key={m.id} className="flex flex-col">
                 {showDay && (
                   <div className="text-center my-3">
                     <span className="bg-card border rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
