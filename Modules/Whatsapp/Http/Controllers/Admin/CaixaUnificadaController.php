@@ -98,6 +98,7 @@ class CaixaUnificadaController extends Controller
         // Thread aberta?
         $thread = null;
         $messages = null;
+        $customerContext = null;
         if ($threadId) {
             $threadQuery = Conversation::query()
                 ->where('business_id', $businessId)
@@ -106,6 +107,11 @@ class CaixaUnificadaController extends Controller
             $threadModel = $threadQuery->find($threadId);
             if ($threadModel) {
                 $thread = $this->convToThreadArray($threadModel);
+                // Onda 3 — Saldo + Histórico do cliente (Tier 0; contact da conversa)
+                $customerContext = $this->buildCustomerContextPayload(
+                    $businessId,
+                    $threadModel->contact_id !== null ? (int) $threadModel->contact_id : null,
+                );
                 $messages = Message::query()
                     ->where('business_id', $businessId)
                     ->where('conversation_id', $threadId)
@@ -166,6 +172,9 @@ class CaixaUnificadaController extends Controller
             'activeTagIds' => array_values($activeTagIds),
             'thread' => $thread,
             'messages' => $messages,
+            // Onda 3 — contexto comercial do cliente (Saldo + Histórico); eager,
+            // refresca no thread switch via only:['customerContext'].
+            'customerContext' => $customerContext,
             'centrifugoConfig' => $centrifugoConfig,
 
             // US-WA-301 (ADR 0267) — filas agora vêm do DB (seed lazy do config
@@ -174,6 +183,46 @@ class CaixaUnificadaController extends Controller
             'defaultQueue' => (string) config('whatsapp.default_queue', 'comercial'),
             'canManageQueues' => (bool) (auth()->user()?->can('whatsapp.settings.manage') ?? false),
         ]);
+    }
+
+    /**
+     * Onda 3 — contexto comercial do cliente da conversa (Saldo + Histórico) pra
+     * sidebar. Reusa o agregador canônico do painel Cliente (ContactController):
+     * uma query group-by em `transactions`. Tier 0 ADR 0093 — escopado em
+     * `business_id`; o `contact_id` vem da conversa (já do business atual).
+     * `total_paid` não existe no schema → subquery em `transaction_payments`
+     * (mesma expressão do painel Cliente). Contagem/LTV só de venda real
+     * (`status != 'draft'`); saldo só de `due`/`partial`.
+     *
+     * @return array{linked: bool, sells_count: int, ltv: float, saldo_aberto: float}
+     */
+    protected function buildCustomerContextPayload(int $businessId, ?int $contactId): array
+    {
+        if ($contactId === null) {
+            return ['linked' => false, 'sells_count' => 0, 'ltv' => 0.0, 'saldo_aberto' => 0.0];
+        }
+
+        // DB::table (não Eloquent) — agregado puro, sem hidratar Model nem global
+        // scope; o filtro Tier 0 é explícito aqui.
+        $row = \DB::table('transactions')
+            ->where('business_id', $businessId)
+            ->where('contact_id', $contactId)
+            ->where('type', 'sell')
+            ->selectRaw("
+                SUM(CASE WHEN status != 'draft' THEN 1 ELSE 0 END) AS sells_count,
+                SUM(CASE WHEN status != 'draft' THEN final_total ELSE 0 END) AS ltv,
+                SUM(CASE WHEN status != 'draft' AND payment_status IN ('due','partial')
+                    THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id))
+                    ELSE 0 END) AS saldo_aberto
+            ")
+            ->first();
+
+        return [
+            'linked' => true,
+            'sells_count' => (int) ($row?->sells_count ?? 0),
+            'ltv' => (float) ($row?->ltv ?? 0),
+            'saldo_aberto' => (float) ($row?->saldo_aberto ?? 0),
+        ];
     }
 
     /** Cache per-request do mapa slug => QueueConfig (evita reler DB nos payloads). */

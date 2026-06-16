@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 12
+charter_version: 13
 permissao: whatsapp.access
 ---
 
@@ -146,8 +146,12 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 3. **Canal · Conta** — short label + handle mono.
 4. **Tags** — chips coloridos quando há tags aplicadas.
 5. **OS vinculada** — placeholder (TODO US-WA-XXX: linkar Repair).
-6. **Saldo cliente** — placeholder (TODO US-WA-XXX: Financeiro).
-7. **Histórico** — placeholder (TODO US-WA-XXX: agregar Transactions).
+6. **Saldo cliente** — a receber em aberto do cliente (Onda 3, US-WA-308):
+   soma de `transactions` UPOS `due`/`partial` (status != draft, − pagamentos via
+   subquery `transaction_payments`). Tier 0 escopado por `business_id`.
+7. **Histórico** — pedidos + LTV (Onda 3, US-WA-308): count + `SUM(final_total)`
+   de sells reais (status != draft) por `contact_id`. Tier 0. Eager,
+   refresca no thread switch via `only:['customerContext']`.
 8. **Último contato** — relativeTimeBR do `last_message_at`.
 9. **Ações** — 3 botões (Emitir cobrança · Enviar arte · Ligar) — placeholders.
 

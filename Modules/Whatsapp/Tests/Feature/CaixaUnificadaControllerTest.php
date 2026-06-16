@@ -44,7 +44,7 @@ beforeEach(function () {
     // activity_log, então desligar não enfraquece nenhuma checagem.
     config(['activitylog.enabled' => false]);
 
-    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues', 'whatsapp_broadcasts', 'contacts'] as $t) {
+    foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues', 'whatsapp_broadcasts', 'contacts', 'transactions', 'transaction_payments'] as $t) {
         Schema::dropIfExists($t);
     }
 
@@ -70,6 +70,24 @@ beforeEach(function () {
         $table->string('mobile', 30)->nullable();
         $table->timestamp('whatsapp_opt_in_at')->nullable();
         $table->softDeletes();
+        $table->timestamps();
+    });
+
+    // Onda 3 — Saldo + Histórico (transactions UPOS + transaction_payments p/ saldo)
+    Schema::create('transactions', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('business_id');
+        $table->unsignedInteger('contact_id')->nullable();
+        $table->string('type', 20)->default('sell');
+        $table->string('status', 20)->default('final');
+        $table->string('payment_status', 20)->default('paid');
+        $table->decimal('final_total', 22, 4)->default(0);
+        $table->timestamps();
+    });
+    Schema::create('transaction_payments', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedBigInteger('transaction_id');
+        $table->decimal('amount', 22, 4)->default(0);
         $table->timestamps();
     });
 
@@ -910,4 +928,63 @@ it('R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL cana
     $convAlien = cuctMakeConv(99, $chAlien->id);
     expect(fn () => $ai->summarize(cuctPostRequest("/atendimento/inbox/{$convAlien->id}/ai/summarize"), $convAlien->id))
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+});
+
+// ============================================================================
+// 13. Onda 3 — customerContext (Saldo + Histórico) agregado do contact, Tier 0
+// ============================================================================
+
+it('R-WA-CAIXA-UNIF-013 — customerContext agrega Saldo+Histórico do contact (Tier 0) + fallback sem contact', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-013-uuid');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    // Contact CRM do business 1
+    $contactId = (int) DB::table('contacts')->insertGetId([
+        'business_id' => 1, 'name' => 'Cliente A', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // Conversa vinculada ao contact (contact_id)
+    $conv = cuctMakeConv(1, $ch->id);
+    $conv->forceFill(['contact_id' => $contactId])->save();
+
+    // Vendas do contact (business 1):
+    //  - final paga: final 1000 (conta no LTV, sem saldo)
+    //  - final due:  final 420, pago 100 → saldo 320
+    //  - draft due:  final 9999 → IGNORADA (status='draft' fora de count/ltv/saldo)
+    DB::table('transactions')->insert([
+        'business_id' => 1, 'contact_id' => $contactId, 'type' => 'sell', 'status' => 'final',
+        'payment_status' => 'paid', 'final_total' => 1000, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $tDue = (int) DB::table('transactions')->insertGetId([
+        'business_id' => 1, 'contact_id' => $contactId, 'type' => 'sell', 'status' => 'final',
+        'payment_status' => 'due', 'final_total' => 420, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('transactions')->insert([
+        'business_id' => 1, 'contact_id' => $contactId, 'type' => 'sell', 'status' => 'draft',
+        'payment_status' => 'due', 'final_total' => 9999, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('transaction_payments')->insert([
+        'transaction_id' => $tDue, 'amount' => 100, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    // Tier 0 — venda do business 99 pro MESMO contact_id NÃO pode contar
+    DB::table('transactions')->insert([
+        'business_id' => 99, 'contact_id' => $contactId, 'type' => 'sell', 'status' => 'final',
+        'payment_status' => 'due', 'final_total' => 5000, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv->id]));
+
+    expect($props)->toHaveKey('customerContext');
+    $cc = $props['customerContext'];
+    expect($cc['linked'])->toBeTrue();
+    expect((int) $cc['sells_count'])->toBe(2);          // final paga + final due (draft fora)
+    expect((float) $cc['ltv'])->toBe(1420.0);           // 1000 + 420 (status != draft)
+    expect((float) $cc['saldo_aberto'])->toBe(320.0);   // due 420 − 100 pago; biz 99 fora (Tier 0)
+
+    // Fallback — conversa sem contact_id vinculado → linked false, zeros
+    $conv2 = cuctMakeConv(1, $ch->id);
+    $props2 = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['thread' => $conv2->id]));
+    expect($props2['customerContext']['linked'])->toBeFalse();
+    expect((int) $props2['customerContext']['sells_count'])->toBe(0);
+    expect((float) $props2['customerContext']['saldo_aberto'])->toBe(0.0);
 });
