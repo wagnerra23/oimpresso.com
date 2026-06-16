@@ -72,6 +72,28 @@ Route::group(
 );
 
 // ===========================================================================
+// 1b) Forja — cockpit do cowork loop (Onda Forja). Prefixo /forja (segmento
+//     PRÓPRIO: useAutoModuleNav casa o topnav por 1º segmento, e /team-mcp já é
+//     do hub Equipe — colidiria). Controller mora aqui no TeamMcp (absorção, não
+//     módulo novo). Permissão copiloto.mcp.usage.all (superadmin), igual Scorecard.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'forja',
+        'namespace'  => 'Modules\TeamMcp\Http\Controllers',
+    ],
+    function () {
+        Route::get('/',          'ForjaController@triagem')->name('forja.triagem');
+        Route::get('/backlog',   'ForjaController@backlog')->name('forja.backlog');
+        Route::get('/quadro',    'ForjaController@quadro')->name('forja.quadro');
+        Route::get('/changelog', 'ForjaController@changelog')->name('forja.changelog');
+        Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
+        Route::get('/saude',     'ForjaController@saude')->name('forja.saude');
+    }
+);
+
+// ===========================================================================
 // 2) Rotas de instalação 1-clique — prefixo /team-mcp/install
 // ===========================================================================
 Route::group(
