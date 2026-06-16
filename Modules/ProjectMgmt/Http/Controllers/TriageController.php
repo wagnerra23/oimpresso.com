@@ -401,6 +401,13 @@ class TriageController extends Controller
         }
 
         $author = $this->resolveAuthor($request);
+        // Cancela PRIMEIRO; só anota a fusão se o cancel passar a FSM (evita evento órfão
+        // quando o source não é cancelável, ex. done→cancelled — review PR-5a).
+        try {
+            app(TaskCrudService::class)->update($task->task_id, ['status' => 'cancelled'], $author);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
         McpTaskEvent::log(
             $task->task_id,
             'field_updated',
@@ -409,11 +416,6 @@ class TriageController extends Controller
             $author,
             "Fundida (duplicata) em {$alvo->getDisplayIdAttribute()}",
         );
-        try {
-            app(TaskCrudService::class)->update($task->task_id, ['status' => 'cancelled'], $author);
-        } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
 
         return response()->json(['ok' => true, 'task_id' => $task->task_id, 'fundida_em' => $alvo->task_id]);
     }
