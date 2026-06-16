@@ -1011,13 +1011,21 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
     paid_at: settled ? row.liquidacao : null,
     vencimento: row.vencimento,
   };
+  // #5 Tribunal Onda 2 (cadeira Victor/Saarinen) — acento de AÇÃO na borda esquerda da
+  // linha pra achar o que pede ação sem abrir: vencido = destructive, vencendo (não pago)
+  // = warning, resto = nada. box-shadow inset na 1ª <td> (border-collapse ignora
+  // border-left no <tr>); var(--color-*) do @theme Tailwind v4 (token, não cor crua).
+  const actAccent =
+    row.status === 'atrasado' ? 'inset 3px 0 0 var(--color-destructive)'
+    : (row.status === 'vencendo' && !settled) ? 'inset 3px 0 0 var(--color-warning)'
+    : undefined;
   return (
     <tr
       className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-primary/5' : ''}`}
       onClick={onSelect}
     >
       {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}
-      <td className="pl-4 pr-1" onClick={(e) => e.stopPropagation()}>
+      <td className="pl-4 pr-1" style={actAccent ? { boxShadow: actAccent } : undefined} onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={bulkSelected}
           onCheckedChange={onToggleBulk}
@@ -1962,6 +1970,22 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 // ainda não vive no shape → estágio 2 fica no caminho, não asserido).
                 const etapas = ['Lançado', 'Conferido', 'Conciliado', 'Liquidado'];
                 const stage = settled ? 3 : selected.conferido_at ? 1 : 0;
+                // #2 Tribunal Onda 2 (cadeira Tufte) — tira o número do isolamento: compara
+                // com a média dos PARES reais (mesma categoria + mesmo kind, valor>0) no
+                // conjunto carregado client-side. Anti-slop: só renderiza com ≥2 pares; tom
+                // NEUTRO (seta + %), sem valência verde/vermelho. É cross-sectional, ≠ do
+                // delta_pct temporal "+X% vs mês anterior" adiado em US-FIN-023 (charter).
+                const vsAvg = (() => {
+                  if (!selected.categoria) return null;
+                  const pares = lancamentos.filter(
+                    (r) => r.id !== selected.id && r.categoria === selected.categoria && r.kind === selected.kind && (r.valor ?? 0) > 0,
+                  );
+                  if (pares.length < 2) return null;
+                  const media = pares.reduce((s, r) => s + (r.valor ?? 0), 0) / pares.length;
+                  if (media <= 0) return null;
+                  const pct = Math.round((((selected.valor ?? 0) - media) / media) * 100);
+                  return { pct, n: pares.length + 1 };
+                })();
                 return (
                   <div className="shrink-0 px-5 pt-3 pb-3.5 border-b border-border fin-dw-hero">
                     <Inline align="end" justify="between" gap={3}>
@@ -1974,6 +1998,15 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                           <span className={`text-[length:var(--fs-9,38px)] leading-none font-semibold tracking-tight font-mono tabular-nums ${isIn ? 'text-success-foreground' : 'text-foreground'}`}>{intPart}</span>
                           <span className="text-[13.5px] text-muted-foreground font-mono">,{decPart}</span>
                         </Inline>
+                        {vsAvg && (
+                          <div
+                            className="mt-1 text-[11px] text-muted-foreground tabular-nums"
+                            title={`Comparação com a média de ${vsAvg.n} títulos de "${selected.categoria}" (${isIn ? 'a receber' : 'a pagar'})`}
+                          >
+                            <span aria-hidden>{vsAvg.pct > 0 ? '↑' : vsAvg.pct < 0 ? '↓' : '→'}</span>{' '}
+                            {vsAvg.pct > 0 ? '+' : ''}{vsAvg.pct}% vs média · {selected.categoria}
+                          </div>
+                        )}
                       </div>
                       <Stack gap={1} align="end" className="gap-1.5 shrink-0 pb-0.5">
                         {/* FA-5 R3 — estado dito 1×: o label uppercase colorido (acima) já diz o
@@ -1989,26 +2022,39 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         </div>
                       </Stack>
                     </Inline>
-                    <Inline gap={0} className="mt-3" role="img" aria-label={`Etapa do ciclo: ${etapas[stage]}`}>
-                      {etapas.map((lbl, i) => (
-                        <React.Fragment key={lbl}>
-                          {i > 0 && <span className={`h-px flex-1 mx-1.5 ${i <= stage ? 'bg-primary' : 'bg-border'}`} aria-hidden />}
-                          <span className="inline-flex items-center gap-1" aria-hidden>
-                            <span className={
-                              'w-[15px] h-[15px] rounded-full grid place-items-center text-[9px] font-semibold border ' +
-                              (i < stage
-                                ? 'bg-primary border-primary text-primary-foreground'
-                                : i === stage
-                                  ? 'bg-background border-primary text-primary shadow-[0_0_0_3px] shadow-primary/15'
-                                  : 'bg-background border-border text-muted-foreground')
-                            }>
-                              {i < stage ? '✓' : i + 1}
+                    {/* #4 Tribunal Onda 2 (Victor/Rams) — título liquidado não gasta ~80px com
+                        4 etapas todas marcadas: vira resumo de 1 linha. Aberto mantém o stepper
+                        completo. ("no prazo/atraso" omitido de propósito: `liquidacao` chega
+                        como "DD MMM" — sem data parseável pra asserir sem fabricar; a data da
+                        baixa já aparece no hero acima. Suffix vira proposta se o shape expor a
+                        data ISO da liquidação.) */}
+                    {settled ? (
+                      <Inline gap={2} className="mt-3 text-[11.5px] text-muted-foreground" role="img" aria-label={`Ciclo concluído: ${etapas.join(' → ')}`}>
+                        <span className="inline-grid place-items-center w-[15px] h-[15px] rounded-full bg-primary text-primary-foreground text-[9px] font-semibold shrink-0" aria-hidden>✓</span>
+                        <span><b className="font-medium text-foreground">{etapas[0]} → {etapas[etapas.length - 1]}</b> · {etapas.length} etapas</span>
+                      </Inline>
+                    ) : (
+                      <Inline gap={0} className="mt-3" role="img" aria-label={`Etapa do ciclo: ${etapas[stage]}`}>
+                        {etapas.map((lbl, i) => (
+                          <React.Fragment key={lbl}>
+                            {i > 0 && <span className={`h-px flex-1 mx-1.5 ${i <= stage ? 'bg-primary' : 'bg-border'}`} aria-hidden />}
+                            <span className="inline-flex items-center gap-1" aria-hidden>
+                              <span className={
+                                'w-[15px] h-[15px] rounded-full grid place-items-center text-[9px] font-semibold border ' +
+                                (i < stage
+                                  ? 'bg-primary border-primary text-primary-foreground'
+                                  : i === stage
+                                    ? 'bg-background border-primary text-primary shadow-[0_0_0_3px] shadow-primary/15'
+                                    : 'bg-background border-border text-muted-foreground')
+                              }>
+                                {i < stage ? '✓' : i + 1}
+                              </span>
+                              <span className={`text-[10.5px] ${i === stage ? 'text-primary font-semibold' : i < stage ? 'text-foreground' : 'text-muted-foreground'}`}>{lbl}</span>
                             </span>
-                            <span className={`text-[10.5px] ${i === stage ? 'text-primary font-semibold' : i < stage ? 'text-foreground' : 'text-muted-foreground'}`}>{lbl}</span>
-                          </span>
-                        </React.Fragment>
-                      ))}
-                    </Inline>
+                          </React.Fragment>
+                        ))}
+                      </Inline>
+                    )}
                   </div>
                 );
               })()}
@@ -2073,6 +2119,44 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   permite o footer (irmão, fora do scroll) ficar sticky-bottom. */}
               {drawerTab === 'detalhes' && (
                 <div className="mt-3 px-5 pb-4 space-y-5 text-[13px] flex-1 overflow-y-auto min-h-0">
+                  {/* #1 Veredito (Tribunal Onda 2 · cadeira Victor) — a tela conclui pelo usuário
+                      antes de qualquer varredura: 1ª coisa do corpo, acima dos Vínculos, 1 linha
+                      + sub. 100% derivado do estado do título (status/NF/vencimento) — sem mock.
+                      Tom por token semântico (success/warning/destructive/muted). vencimento é
+                      ISO YYYY-MM-DD → contagem de dias confiável. */}
+                  {(() => {
+                    const liq = selected.status === 'recebido' || selected.status === 'pago';
+                    const temNf = !!selected.nfe_numero;
+                    const hojeMs = (() => { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); })();
+                    const vp = (selected.vencimento || '').split('-');
+                    const vencMs = vp.length === 3 ? Date.UTC(+vp[0], +vp[1] - 1, +vp[2]) : null;
+                    const dias = vencMs != null ? Math.round((vencMs - hojeMs) / 86400000) : null;
+                    const v = liq
+                      ? (temNf
+                          ? { tone: 'pos' as const, glyph: '✓', head: 'Nada pendente.', sub: 'Pago, conciliado e com NF vinculada.' }
+                          : { tone: 'warn' as const, glyph: '!', head: 'Pago, mas sem NF.', sub: 'Falta vincular o documento fiscal.' })
+                      : selected.status === 'atrasado'
+                        ? { tone: 'neg' as const, glyph: '!', head: dias != null && dias <= -1 ? `Vencida há ${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'dia' : 'dias'} — cobrar.` : 'Vencida — cobrar.', sub: selected.contraparte || 'Cobrança pendente.' }
+                        : selected.status === 'vencendo'
+                          ? { tone: 'warn' as const, glyph: '!', head: dias != null && dias > 0 ? `Vence em ${dias} ${dias === 1 ? 'dia' : 'dias'}.` : 'Vence hoje — preparar cobrança.', sub: selected.contraparte || 'Prepare a cobrança.' }
+                          : { tone: 'muted' as const, glyph: '•', head: dias != null && dias > 0 ? `Em aberto — vence em ${dias} dias.` : 'Em aberto.', sub: 'Nada urgente por agora.' };
+                    const t = {
+                      pos: { box: 'bg-success/10 ring-success/25', ic: 'bg-success text-white' },
+                      warn: { box: 'bg-warning/10 ring-warning/30', ic: 'bg-warning text-white' },
+                      neg: { box: 'bg-destructive/10 ring-destructive/25', ic: 'bg-destructive text-white' },
+                      muted: { box: 'bg-muted ring-border', ic: 'bg-muted-foreground/25 text-muted-foreground' },
+                    }[v.tone];
+                    return (
+                      <div className={`flex items-start gap-2.5 rounded-md px-3 py-2.5 ring-1 ring-inset ${t.box}`}>
+                        <span className={`w-[22px] h-[22px] rounded-full grid place-items-center shrink-0 mt-px text-[12px] font-bold leading-none ${t.ic}`} aria-hidden>{v.glyph}</span>
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-semibold text-foreground leading-snug">{v.head}</div>
+                          <div className="text-[11.5px] text-muted-foreground leading-snug mt-0.5 truncate">{v.sub}</div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* FA-5 — Vínculos: chips estruturados derivados dos tokens #V-/#OS- da descrição
                       + nfe_numero (mesma fonte do FinCrossLinkify; não inventa dado). */}
                   <FinVinculosChips descricao={selected.descricao} nfeNumero={selected.nfe_numero} />
@@ -2178,8 +2262,11 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       check pequeno), não banda verde — padrão F2-aprovado [W]. */}
                   {(() => {
                     const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    // #3 Tribunal Onda 2 (Tufte/Rams) — selo de sucesso que só re-anuncia o corpo
+                    // = tinta não-dado. Liquidado: tira "100% match" do header (o box abaixo já
+                    // prova). Aberto mantém "aguardando" (info real).
                     return (
-                      <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? '100% match' : 'aguardando'} tone={settled ? 'pos' : 'muted'} hue={settled ? 'pos' : 'muted'}>
+                      <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? null : 'aguardando'} tone={settled ? 'pos' : 'muted'} hue={settled ? 'pos' : 'muted'}>
                         {settled ? (
                           <Inline align="start" gap={2} className="gap-2.5 rounded-md border border-border bg-muted px-3 py-2">
                             <span className="w-[18px] h-[18px] rounded-full grid place-items-center bg-success/15 text-success-foreground shrink-0 mt-px" aria-hidden>
@@ -2212,8 +2299,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     const hasNf = !!selected.nfe_numero;
                     const iss = isIn ? (selected.valor ?? 0) * 0.05 : 0;
                     const das = isIn ? (selected.valor ?? 0) * 0.06 : 0;
+                    // #3 — com NF: tira "NF vinculada" do header (o nº da NF aparece no corpo).
+                    // Sem NF: mantém "sem NF" (warn — buraco real).
                     return (
-                      <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? 'NF vinculada' : 'sem NF'} tone={hasNf ? 'pos' : 'warn'} hue="warn">
+                      <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? null : 'sem NF'} tone={hasNf ? 'pos' : 'warn'} hue="warn">
                         <Grid cols={2} gap={0} className="gap-x-5">
                           <div>
                             <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">{isIn ? 'NF-e de saída' : 'Documento fiscal'}</div>
@@ -2255,7 +2344,9 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     const settledCob = selected.status === 'recebido' || selected.status === 'pago';
                     const isInCob = selected.kind === 'receivable';
                     const hasBoleto = !!selected.boleto?.linha_digitavel;
-                    const cobStatus = settledCob ? 'encerrada' : selected.status === 'atrasado' ? 'em atraso' : hasBoleto ? 'boleto emitido' : 'a gerar';
+                    // #3 — liquidado: tira "encerrada" do header (o corpo diz "Título liquidado
+                    // — cobrança encerrada"). Aberto mantém "em atraso"/"boleto emitido"/"a gerar".
+                    const cobStatus = settledCob ? null : selected.status === 'atrasado' ? 'em atraso' : hasBoleto ? 'boleto emitido' : 'a gerar';
                     const cobTone: 'pos' | 'warn' | 'muted' = settledCob ? 'pos' : selected.status === 'atrasado' ? 'warn' : 'muted';
                     return (
                       <DrawerLens icon={Send} title="Cobrança" status={cobStatus} tone={cobTone} hue={settledCob ? 'pos' : selected.status === 'atrasado' ? 'warn' : 'accent'}>

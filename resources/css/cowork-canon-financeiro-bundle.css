@@ -4826,10 +4826,10 @@
 .fin-cowork .fin-copyval.ok .fin-copyval-ic { opacity: 1; }
 
 /* F2 — ficha de campos: cartão com lavanda sutil (label nunca flutua em branco · [W] 06-11) */
+/* #6 Tribunal Onda 2 ([W] "tirar cor, manter fios" 2026-06-16) — ficha sem caixa colorida: fios neutros agrupam, não flutuam (rationale: charter v16). */
 .fin-cowork .fin-kv-card {
-  background: color-mix(in oklab, var(--accent) 2.5%, var(--surface));
-  border: 1px solid color-mix(in oklab, var(--accent) 10%, var(--border-2));
-  border-radius: 10px; padding: 10px 14px 12px;
+  background: transparent; border: 0;
+  border-top: 1px solid var(--border-2); border-bottom: 1px solid var(--border-2); border-radius: 0; padding: 11px 0 12px;
 }
 
 /* R2 — Categoria editável inline (Canal segue read-only · decisão [W] 2026-06-11):
