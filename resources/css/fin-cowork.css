@@ -167,6 +167,24 @@
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.01 80); opacity: 0.85; }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.78 0.14 25); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: oklch(0.78 0.14 145); }
+/* CASO 03 (adversário Wave 1 · 2026-06-16) — chip "projeção negativa" no hero quando
+   saldo previsto < 0. Cor segue o neg-red do hero (linha acima, oklch 0.78 0.14 25 —
+   claro o bastante pro fundo warm-dark `oklch(0.22 0.01 80)`); NÃO var(--neg) cru, que
+   é dark-red (0.55) e some no fundo escuro. Mesmo raciocínio que .fin-num-neg do hero. */
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-hero-alarm {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 99px;
+  font-size: var(--fs-2);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: oklch(0.82 0.13 25);
+  background: color-mix(in oklab, oklch(0.78 0.14 25) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, oklch(0.78 0.14 25) 34%, transparent);
+}
 /* DARK-BACKFILL (2026-06-04 · DARK-BACKFILL-SWEEP #1) — o hero charcoal
    `oklch(0.22 0.01 80)` (warm "documento contábil") tem a MESMA luminosidade do
    page-bg dark (`oklch(0.22 …)`), então no escuro o card SOME (perde a borda e

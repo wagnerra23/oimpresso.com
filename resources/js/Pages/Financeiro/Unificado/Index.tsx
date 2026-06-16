@@ -883,7 +883,7 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; la
         className={`fin-delta-pct ml-1 text-[10px] font-medium tabular-nums ${colorClass}`}
         title={`vs mês anterior (${pct > 0 ? 'subiu' : 'caiu'} ${Math.abs(pct)}%)`}
       >
-        {arrow}{sign}{pct.toFixed(1)}%
+        {arrow}{sign}{pct.toFixed(1).replace('.', ',')}%
       </span>
     );
   };
@@ -893,8 +893,14 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; la
       <button type="button" className="fin-stat fin-stat-hero" onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         {/* FX-2 (print 06-11): mês do hero vinha hardcoded "maio"; agora usa periodLabel
             (MESMA fonte do subtítulo da página — fonte única, sem drift de período). */}
-        <small>Saldo previsto · {periodLabel}</small>
-        <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} valor={kpis.saldo_previsto} /></b>
+        <small>
+          Saldo previsto · {periodLabel}
+          {/* CASO 03 (adversário Wave 1) — alarme quando a projeção do período é negativa. */}
+          {kpis.saldo_previsto < 0 && <span className="fin-hero-alarm">projeção negativa</span>}
+        </small>
+        {/* CASO 03 — número do hero vira vermelho (canon `fin-num-neg`, já estilizado
+            pro fundo warm-dark via fin-cowork.css) quando o saldo previsto é negativo. */}
+        <b className={kpis.saldo_previsto < 0 ? 'fin-num-neg' : undefined}>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} valor={kpis.saldo_previsto} /></b>
         <span className="fin-stat-hint">
           <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
         </span>
