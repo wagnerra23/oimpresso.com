@@ -90,6 +90,18 @@ Route::group(
         Route::get('/changelog', 'ForjaController@changelog')->name('forja.changelog');
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
         Route::get('/saude',     'ForjaController@saude')->name('forja.saude');
+
+        // Triagem (aba 1) — dossiê do Analista (read-only) + ações [W] aprova.
+        // Espelha /project-mgmt/triage/{id}/{dossier,aprovar,rejeitar,fundir} (PR-5a).
+        // taskId aceita FORJA-150/identifier ou US-XXX legacy.
+        Route::get('/{taskId}/dossier',   'ForjaController@dossier')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.dossier');
+        Route::post('/{taskId}/aprovar',  'ForjaController@aprovar')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.aprovar');
+        Route::post('/{taskId}/rejeitar', 'ForjaController@rejeitar')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.rejeitar');
+        Route::post('/{taskId}/fundir',   'ForjaController@fundir')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.fundir');
     }
 );
 

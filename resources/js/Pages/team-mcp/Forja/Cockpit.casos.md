@@ -10,7 +10,7 @@ last_run: "2026-06-16"
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
-> Onda Forja **PR-A**: SHELL navegável (sidebar + 6 abas + rotas). As abas reais entram 1 PR cada (B–G). Persona: Wagner [W] (superadmin). Read-only nesta onda. Referência: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+> Onda Forja **PR-A**: SHELL navegável (sidebar + 6 abas + rotas) **+ Triagem REAL** (esta PR). As demais 5 abas seguem placeholder (1 PR cada, B–G). Persona: Wagner [W] (superadmin). A Triagem só muta sob confirmação [W]. Referência: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
 
 ## UC-FORJA-01 — As 6 rotas /forja respondem (shell no ar)
 Status: ⬜ (smoke pós-merge — abrir cada rota em prod)
@@ -46,3 +46,23 @@ PageHeader canon (`@/Components/PageHeader`), layout via `inline-flex`, tokens s
 Status: ⬜ (manual — rota sob `auth` + `copiloto.mcp.usage.all`)
 `ForjaController` exige login + `copiloto.mcp.usage.all` (mesma do Scorecard/Team). Repo-wide cross-business intencional (ADR 0093) pro superadmin.
 **Pronto quando:** usuário sem `copiloto.mcp.usage.all` recebe 403.
+
+## UC-FORJA-08 — Triagem lista as propostas FORJA fiéis ao protótipo
+Status: ⬜ (smoke pós-merge — depende do seeder rodar; sem DB no worktree)
+`/forja` projeta `mcp_tasks` project=FORJA em estado de triagem (`McpTask::triage()`) via `Inertia::defer` (`tickets`). Após `db:seed --class=…ForjaDemoTicketsSeeder`: FORJA-152 (Tela·KB·[CC]), FORJA-151 (Bug·Financeiro·[CC]), FORJA-150 (Refino·Atendimento·[CC]).
+**Pronto quando:** as 3 linhas aparecem com ID mono · badge de tipo colorido (Tela=roxo·Bug=âmbar·Refino=azul) · título · tag de módulo · selo `[CC]` · botão roxo Analisar; aba mostra badge 3.
+
+## UC-FORJA-09 — Analisar abre o dossiê lateral (Aprovar/Rejeitar/Fundir)
+Status: 🧪 (cobertura: endpoints `/forja/{id}/{dossier,aprovar,rejeitar,fundir}` espelham TriageController PR-5a; aguarda Pest verde)
+Clicar **Analisar** (ou `Enter` na linha em foco) abre `ForjaDossier` → `GET /forja/{id}/dossier` (valor×esforço sugerido, risco Tier-0 heurístico, duplicatas, docs/sessões). Aprovar→backlog (status→todo, exige dono+prio), Rejeitar (→cancelled), Fundir (duplicata + evento) — cada um sob dialog de confirmação [W].
+**Pronto quando:** dossiê carrega dados reais e as 3 ações respondem (Pest cobrindo `aprovar`/`rejeitar`/`fundir` como no TriageController).
+
+## UC-FORJA-10 — Triagem só muta sob confirmação [W]
+Status: ⬜ (manual)
+Listar e abrir o dossiê é read-only. Nenhuma escrita acontece sem o `AlertDialog` de confirmação (Aprovar/Rejeitar/Fundir). valor×esforço e risco Tier-0 são **sugestão derivada rotulada**, não dado medido.
+**Pronto quando:** não há mutação sem confirmação humana; nada inventado é apresentado como medido.
+
+## UC-FORJA-11 — Badge "3" da aba é estático (limitação documentada)
+Status: ⬜ (nota de fidelidade)
+O badge "3" da aba Triagem vem de `config/core_topnavs.php` (estático = nº de propostas-semente). O contador vivo da fila chega via prop deferida `triagemCount` (usada no badge do sino). O topnav não suporta badge por-request hoje (`LegacyMenuAdapter::buildTopNavs` lê config estática).
+**Pronto quando:** o "3" aparece na aba (fiel ao protótipo) e o sino reflete o contador vivo; quando o shell ganhar badge dinâmico, migrar o da aba.

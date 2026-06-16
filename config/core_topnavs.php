@@ -102,7 +102,11 @@ return [
         'label' => 'Forja',
         'icon'  => 'Hammer',
         'items' => [
-            ['label' => 'Triagem',   'href' => '/forja',           'icon' => 'Inbox',        'can' => 'copiloto.mcp.usage.all'],
+            // badge=3 = nº de propostas-semente da Triagem (FORJA-150/151/152). ESTÁTICO:
+            // core_topnavs.php é config carregada no boot, não tem dado por-request — o
+            // contador VIVO da fila chega via prop deferida `triagemCount` na própria aba.
+            // Quando o shell suportar badge dinâmico no topnav, trocar por esse contador.
+            ['label' => 'Triagem',   'href' => '/forja',           'icon' => 'Inbox',        'can' => 'copiloto.mcp.usage.all', 'badge' => 3],
             ['label' => 'Backlog',   'href' => '/forja/backlog',   'icon' => 'List',         'can' => 'copiloto.mcp.usage.all'],
             ['label' => 'Quadro',    'href' => '/forja/quadro',    'icon' => 'LayoutKanban', 'can' => 'copiloto.mcp.usage.all'],
             ['label' => 'Changelog', 'href' => '/forja/changelog', 'icon' => 'History',      'can' => 'copiloto.mcp.usage.all'],
