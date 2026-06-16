@@ -53,9 +53,12 @@ interface Props {
    * Default [] enquanto deferred não resolveu.
    */
   availableAssignees?: AssigneeItem[];
+  /** Caixa Unificada — Contexto recolhível (canon Cowork `.om-ctx`). */
+  open?: boolean;
+  onToggle?: () => void;
 }
 
-export default function ContextSidebarV4({ thread, customerContext, channels, queues, availableTags = [], availableAssignees = [] }: Props) {
+export default function ContextSidebarV4({ thread, customerContext, channels, queues, availableTags = [], availableAssignees = [], open = true, onToggle }: Props) {
   const channel = channels.find(c => c.id === thread.channel_type);
   const queueCfg = queues[thread.queue.slug] ?? null;
   const isPreview = thread.preview_only;
@@ -151,8 +154,42 @@ export default function ContextSidebarV4({ thread, customerContext, channels, qu
       className="flex flex-col bg-card border-l min-h-0 min-w-0"
       aria-label="Contexto da conversa"
     >
-      <div className="flex items-baseline gap-2 border-b px-3.5 pt-3 pb-2">
+      {/* Recolhido (canon Cowork `.om-ctx-expand`) — trilho 44px só no desktop;
+          no mobile a tab Contexto sempre mostra o painel cheio. */}
+      {!open && (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="hidden lg:block w-full h-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          title="Expandir contexto"
+          aria-label="Expandir contexto"
+          data-testid="caixa-unif-ctx-expand"
+        >
+          <Stack gap={2} align="center" justify="center" className="h-full py-3.5">
+            <span className="text-[15px] font-semibold leading-none" aria-hidden>‹</span>
+            <span
+              className="text-[10px] font-semibold uppercase tracking-[0.08em]"
+              style={{ writingMode: 'vertical-rl' }}
+            >
+              Contexto
+            </span>
+          </Stack>
+        </button>
+      )}
+
+      <Stack gap={0} className={`${open ? '' : 'lg:hidden'} flex-1 min-h-0 min-w-0`}>
+      <div className="flex items-center gap-2 border-b px-3.5 pt-3 pb-2">
         <b className="text-[13px] font-semibold text-foreground">Contexto</b>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="ml-auto hidden lg:block w-6 h-6 rounded-md border text-center text-[14px] leading-[20px] text-muted-foreground hover:text-foreground hover:border-muted-foreground transition-colors"
+          title="Recolher contexto"
+          aria-label="Recolher contexto"
+          data-testid="caixa-unif-ctx-toggle"
+        >
+          <span aria-hidden>›</span>
+        </button>
       </div>
 
       <div className="flex-1 overflow-auto px-4 py-3 flex flex-col gap-2.5">
@@ -574,6 +611,7 @@ export default function ContextSidebarV4({ thread, customerContext, channels, qu
           </button>
         </div>
       </div>
+      </Stack>
 
       {/* Wave 3-B F1 — Contact CRM picker modal (reusa legacy Pages/Whatsapp) */}
       <ContactPickerModal

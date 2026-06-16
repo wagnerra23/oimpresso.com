@@ -128,6 +128,16 @@ export default function CaixaUnificadaIndex({
   const [cheatOpen, setCheatOpen] = useState(false);
   // Polish V2 §5 — mobile tabs (<lg mostra 1 coluna por vez; desktop intacto)
   const [mobileView, setMobileView] = useState<MobileView>('list');
+  // Contexto recolhível (canon Cowork `.om-ctx`) — auto-recolhe < 1440px, lembra a escolha
+  const [ctxOpen, setCtxOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const saved = localStorage.getItem('oimpresso.caixa-unif.ctx-open');
+    if (saved !== null) return saved === '1';
+    return window.innerWidth >= 1440;
+  });
+  useEffect(() => {
+    try { localStorage.setItem('oimpresso.caixa-unif.ctx-open', ctxOpen ? '1' : '0'); } catch { /* ignore */ }
+  }, [ctxOpen]);
 
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
@@ -436,7 +446,9 @@ export default function CaixaUnificadaIndex({
       />
 
       {/* Shell 3-col */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[320px_1fr_300px] gap-0 min-h-0 overflow-hidden border rounded-md">
+      <div className={`flex-1 grid grid-cols-1 gap-0 min-h-0 overflow-hidden border rounded-md ${
+        thread ? (ctxOpen ? 'lg:grid-cols-[320px_1fr_300px]' : 'lg:grid-cols-[320px_1fr_44px]') : 'lg:grid-cols-[320px_1fr]'
+      }`}>
         {/* Lista esquerda — no mobile só aparece na tab Conversas */}
         <div className={mobileView === 'list' ? 'min-h-0 h-full' : 'min-h-0 h-full hidden lg:block'}>
         <Deferred
@@ -553,6 +565,8 @@ export default function CaixaUnificadaIndex({
               queues={queues}
               availableTags={availableTags ?? []}
               availableAssignees={availableAssignees ?? []}
+              open={ctxOpen}
+              onToggle={() => setCtxOpen((v) => !v)}
             />
           </Deferred>
           </div>
