@@ -51,6 +51,10 @@ Route::group(
         Route::patch('/tasks/{taskId}/status',       'TasksAdminController@updateStatus')
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('team-mcp.tasks.update-status');
+        // Forja PR-1 — drawer de issue (read-only): situação + atividade + vínculos + subtasks
+        Route::get('/tasks/{taskId}/detail',         'TasksAdminController@show')
+            ->where('taskId', '[A-Za-z0-9_\-]+')
+            ->name('team-mcp.tasks.detail');
 
         // ---- MEM-CC-UI-1 (SPEC-cc-sessions) — KB sessões Claude Code do time ----
         Route::get('/cc-sessions',                   'CcSessionsController@index')
