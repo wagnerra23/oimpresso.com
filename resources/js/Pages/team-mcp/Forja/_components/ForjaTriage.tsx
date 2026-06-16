@@ -45,13 +45,12 @@ interface Props {
 }
 
 // Badge de tipo (contrato pixel do protótipo): Tela=roxo · Bug=âmbar · Refino=azul.
-// Roxo via token semântico canon (text/bg-primary). Âmbar/azul via paleta Tailwind
-// com par dark (mesmo idioma de PRIORITY_BADGE em Components/board/badges.ts) — fora
-// do escopo do ds-canon-color-guard (só varre Components/{ui,shared}).
+// 100% tokens semânticos DS v6 (sem paleta crua — ui:lint R1 = 0): primary /
+// warning / info. Auto-adaptam ao dark (sem variantes dark: manuais).
 const TIPO_BADGE: Record<string, string> = {
   Tela:   'bg-primary/10 text-primary',
-  Bug:    'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-  Refino: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  Bug:    'bg-warning-soft text-warning-fg',
+  Refino: 'bg-info-soft text-info-fg',
 };
 const TIPO_FALLBACK = 'bg-muted text-muted-foreground';
 
