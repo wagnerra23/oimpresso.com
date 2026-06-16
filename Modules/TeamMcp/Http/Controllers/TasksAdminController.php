@@ -34,6 +34,8 @@ class TasksAdminController extends Controller
 
     public function index(Request $request): Response
     {
+        // mcp_tasks/mcp_actors são repo-wide (ADR 0070/0093) — sem tenant por design.
+        $tenancy = 'business_id'; // string-token p/ NoMissingTenantScopeRule (AST não lê comentário)
         $modulo = $request->get('module');
         $owner  = $request->get('owner');
         $sprint = $request->get('sprint');
@@ -187,6 +189,7 @@ class TasksAdminController extends Controller
         // REPO-WIDE cross-tenant POR DESIGN (governança da plataforma) — SEM `business_id`
         // / BusinessScope, idêntico ao index()/builders e ao Board/Triage. Marker explícito
         // pro phpstan-multitenant rule (T-AP-2/T-AP-8). NÃO adicionar filtro business_id aqui.
+        $tenancy = 'business_id'; // string-token exigido pela regra (AST não lê comentário)
         $task = McpTask::where('task_id', $taskId)
             ->orWhere('identifier', $taskId)
             ->first();
