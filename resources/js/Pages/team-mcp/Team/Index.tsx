@@ -482,7 +482,7 @@ function TeamIndex(props: Props) {
             <DialogTitle>Exportar CSV de uso MCP</DialogTitle>
             <DialogDescription>Deixe em branco pra exportar o mês corrente.</DialogDescription>
           </DialogHeader>
-          <div className="my-2 grid grid-cols-2 gap-3">
+          <div className="my-2 inline-grid w-full grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">De</Label>
               <Input type="date" value={csvDe} onChange={(e) => setCsvDe(e.target.value)} />

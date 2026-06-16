@@ -240,6 +240,10 @@ class TriageController extends Controller
      */
     public function dossier(Request $request, string $taskId): JsonResponse
     {
+        // Multi-tenant Tier 0 (ADR 0070 + ADR 0093): mcp_tasks / mcp_task_events /
+        // mcp_cc_sessions / mcp_memory_documents são REPO-WIDE cross-tenant POR DESIGN
+        // — SEM business_id / BusinessScope (governança da plataforma, igual index()/assign()).
+        // Marker pro phpstan-multitenant rule (T-AP-2/T-AP-8). NÃO filtrar por business_id aqui.
         $task = McpTask::where('task_id', $taskId)->orWhere('identifier', $taskId)->first();
         if (! $task) {
             return response()->json(['error' => 'Task não encontrada.'], 404);

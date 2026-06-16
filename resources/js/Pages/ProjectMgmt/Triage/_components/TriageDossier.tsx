@@ -113,9 +113,9 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
   return (
     <>
       <Sheet open={open} onOpenChange={(v) => { if (!v && !busy) onClose(); }}>
-        <SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-[600px]" data-testid="triage-dossier">
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-[600px]" data-testid="triage-dossier">
           <SheetHeader className="border-b">
-            <div className="flex items-center gap-2">
+            <div className="inline-flex w-full items-center gap-2">
               <FileText size={14} className="text-muted-foreground" aria-hidden />
               <span className="font-mono text-xs text-muted-foreground" data-testid="dossier-id">{t?.display_id ?? taskId}</span>
               {t?.module && <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{t.module}</span>}
@@ -123,7 +123,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
             <SheetTitle className="mt-1 text-base leading-snug" data-testid="dossier-title">
               {t?.title ?? (loading ? 'Carregando…' : 'Dossiê')}
             </SheetTitle>
-            <SheetDescription className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+            <SheetDescription className="mt-1 inline-flex w-full flex-wrap items-center gap-2 text-xs">
               <span>dono: <strong className="text-foreground">{t?.owner ?? '— sem dono —'}</strong></span>
               <span>prio: <strong className="text-foreground">{t?.priority_raw ? t.priority_raw.toUpperCase() : '— sem prio —'}</strong></span>
               <span>situação: {t?.status}</span>
@@ -132,7 +132,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
 
           <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
             {loading && (
-              <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+              <div className="inline-flex w-full items-center justify-center py-12 text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> montando dossiê…
               </div>
             )}
@@ -145,16 +145,16 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
             {!loading && data && t && (
               <>
                 {/* Valor × esforço + Risco */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="inline-grid w-full grid-cols-2 gap-3">
                   <div className="rounded-lg border bg-card p-3">
                     <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Valor × esforço <span className="normal-case">(sugerido)</span></div>
-                    <div className="mt-1 flex gap-2 text-xs">
+                    <div className="mt-1 inline-flex gap-2 text-xs">
                       <span className="rounded bg-muted px-1.5 py-0.5">valor: <strong>{ve?.valor}</strong></span>
                       <span className="rounded bg-muted px-1.5 py-0.5">esforço: <strong>{ve?.esforco}</strong></span>
                     </div>
                   </div>
                   <div className={cn('rounded-lg border p-3', risk?.tier0 ? 'border-destructive/30 bg-destructive-soft' : 'border-success/30 bg-success/10')}>
-                    <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    <div className="inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                       {risk?.tier0 ? <AlertTriangle size={12} className="text-destructive" /> : <ShieldCheck size={12} className="text-success" />}
                       Risco Tier-0 <span className="normal-case">(heurística)</span>
                     </div>
@@ -191,7 +191,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
                   ) : (
                     <ul className="space-y-1">
                       {data.duplicatas.map((d) => (
-                        <li key={d.task_id} className="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/50">
+                        <li key={d.task_id} className="inline-flex w-full items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/50">
                           <span className="font-mono text-muted-foreground">{d.display_id}</span>
                           <span className="min-w-0 flex-1 truncate">{d.title}</span>
                           <span className="shrink-0 text-[10px] text-muted-foreground">{d.status}</span>
@@ -222,7 +222,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
                   ) : (
                     <ul className="space-y-1">
                       {data.docs.map((d) => (
-                        <li key={d.slug} className="flex items-center gap-2 text-xs">
+                        <li key={d.slug} className="inline-flex w-full items-center gap-2 text-xs">
                           <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">{d.type === 'decision' ? 'ADR' : d.type}</span>
                           {d.path
                             ? <a href={GH + d.path} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-primary hover:underline">{d.title}</a>
@@ -239,7 +239,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
                     <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sessões CC que citam o módulo</h4>
                     <ul className="space-y-1">
                       {data.sessoes.map((s) => (
-                        <li key={s.session_uuid} className="flex items-start gap-2 text-xs">
+                        <li key={s.session_uuid} className="inline-flex w-full items-start gap-2 text-xs">
                           <span className="font-mono text-[10px] text-muted-foreground">{s.session_uuid.slice(0, 8)}</span>
                           <span className="min-w-0 flex-1 line-clamp-2 text-muted-foreground">{s.summary ?? '(sem summary)'}</span>
                         </li>
@@ -251,7 +251,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
                 {/* Atividade */}
                 {data.atividade.length > 0 && (
                   <div data-testid="dossier-atividade">
-                    <h4 className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><ActivityIcon size={12} /> Atividade</h4>
+                    <h4 className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><ActivityIcon size={12} /> Atividade</h4>
                     <ul className="space-y-1">
                       {data.atividade.slice(0, 12).map((e, i) => (
                         <li key={i} className="text-xs text-muted-foreground">
@@ -269,7 +269,7 @@ export default function TriageDossier({ taskId, onClose, onResolved }: Props) {
 
           {/* Ações [W] aprova */}
           {!loading && data && (
-            <div className="flex items-center gap-2 border-t px-4 py-3">
+            <div className="inline-flex w-full items-center gap-2 border-t px-4 py-3">
               <Button
                 className="flex-1"
                 disabled={busy || !data.pode_aprovar}
