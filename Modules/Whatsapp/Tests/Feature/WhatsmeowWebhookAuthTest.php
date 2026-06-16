@@ -164,3 +164,51 @@ it('business_uuid inexistente = 404', function () {
 
     $response->assertStatus(404);
 });
+
+/**
+ * CONTRATO REAL DO EMISSOR (incidente 2026-06-16 #2726).
+ *
+ * Os testes acima forjam a própria credencial (geram o HMAC com o secret que o
+ * middleware lê) — provam que a fechadura aceita a chave que ela mesma fabricou,
+ * mas ficariam VERDES mesmo com 100% do tráfego legítimo sendo recusado. O daemon
+ * WuzAPI (asternic/wuzapi) NÃO assina HMAC nem manda header Token — só a URL do
+ * webhook é configurável nele. Este caso reproduz o SHAPE REAL que o daemon emite
+ * (envelope {instanceName, jsonData}, ZERO header de auth) autenticado apenas pelo
+ * segredo no query string (?wh=). Teria sido VERMELHO no #2726 (sem a trilha ?wh=,
+ * o payload sem header → 401). É o red-first honesto: a suíte não pode ficar verde
+ * quando o emissor real está sendo recusado.
+ */
+it('contrato REAL do daemon: envelope sem HMAC/Token, autenticado só pela URL ?wh= = 200', function () {
+    config(['whatsapp.whatsmeow.webhook_url_secret' => 'url-secret-contract-0123']);
+    $uuid = Str::uuid()->toString();
+    wmAuthSeedBusiness($uuid);
+
+    // Envelope idêntico ao do WuzAPI: {instanceName, jsonData} e nenhum header de auth.
+    $body = json_encode([
+        'instanceName' => 'ch-deadbeef',
+        'jsonData' => json_encode(['event' => ['Info' => ['Chat' => '']], 'type' => 'Presence']),
+    ]);
+
+    $response = $this->call(
+        'POST',
+        "/api/whatsapp/webhook/whatsmeow/{$uuid}?wh=url-secret-contract-0123",
+        [], [], [],
+        ['CONTENT_TYPE' => 'application/json'],
+        (string) $body
+    );
+
+    $response->assertStatus(200);
+});
+
+it('segredo de URL errado, sem HMAC/Token = 401 (saber a rota não basta)', function () {
+    config(['whatsapp.whatsmeow.webhook_url_secret' => 'url-secret-contract-0123']);
+    $uuid = Str::uuid()->toString();
+    wmAuthSeedBusiness($uuid);
+
+    $response = $this->postJson(
+        "/api/whatsapp/webhook/whatsmeow/{$uuid}?wh=errado",
+        ['type' => 'Message'],
+    );
+
+    $response->assertStatus(401);
+});
