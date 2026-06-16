@@ -33,6 +33,9 @@ import {
   avatarHue,
   relativeTimeBR,
   slaState,
+  slaWaitedMin,
+  slaWaitedShort,
+  SLA_META,
 } from './helpers';
 import { useInboxFavs } from './useInboxFavs';
 
@@ -494,26 +497,22 @@ export default function ConversationListV4({
                       {relativeTimeBR(conv.last_message_at)}
                     </span>
                   </span>
-                  {/* Polish V2 §1 — pill SLA (âmbar ≥75%, vermelho estourado) */}
-                  {sla === 'breached' && (
-                    <span
-                      className="font-mono text-[9px] font-bold px-1.5 py-px rounded-full bg-destructive/10 text-destructive border border-destructive/30"
-                      title={`SLA ${conv.queue.sla} estourado — cliente aguardando resposta`}
-                      data-testid={`caixa-unif-sla-${conv.id}`}
-                    >
-                      SLA
-                    </span>
-                  )}
-                  {sla === 'warning' && (
-                    <span
-                      className="font-mono text-[9px] font-bold px-1.5 py-px rounded-full"
-                      style={{ background: 'oklch(0.95 0.06 80)', color: 'oklch(0.40 0.12 80)', border: '1px solid oklch(0.82 0.10 80)' }}
-                      title={`SLA ${conv.queue.sla} perto de estourar`}
-                      data-testid={`caixa-unif-sla-${conv.id}`}
-                    >
-                      SLA
-                    </span>
-                  )}
+                  {/* Onda 2 — pill SLA 4 estados (fresh/aging/late/expired) + dot
+                      animado; compacto na lista (dot + tempo, a cor diz o estado). */}
+                  {sla && (() => {
+                    const m = SLA_META[sla];
+                    const waited = slaWaitedMin(conv);
+                    return (
+                      <span
+                        className={cn('inline-block font-mono text-[9px] font-bold px-1.5 py-px rounded-full border', m.pill)}
+                        title={`SLA ${conv.queue.sla} — ${m.label}`}
+                        data-testid={`caixa-unif-sla-${conv.id}`}
+                      >
+                        <span className={cn('inline-block w-1 h-1 rounded-full align-middle mr-1', m.dot, m.pulse && 'animate-pulse')} aria-hidden />
+                        {waited != null ? slaWaitedShort(waited) : m.label}
+                      </span>
+                    );
+                  })()}
                   {conv.unread_count > 0 && (
                     <span
                       className="bg-primary text-primary-foreground font-mono text-[10px] font-bold px-1.5 py-px rounded-full"

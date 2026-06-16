@@ -316,28 +316,82 @@ export function parseSlaMinutes(sla: string | null | undefined): number | null {
   return minutes > 0 ? minutes : null;
 }
 
-export type SlaState = 'ok' | 'warning' | 'breached' | null;
+// Onda 2 — 4 níveis espelhando `.om-sla-pill` do protótipo (fresh/aging/late/expired).
+export type SlaState = 'fresh' | 'aging' | 'late' | 'expired' | null;
 
 /**
- * Polish V2 §1 — estado do SLA de 1ª resposta da conversa.
- *
- * Só conta quando o cliente falou por último (`last_message_direction ===
- * 'inbound'`) — depois que o atendente respondeu o relógio para. `warning`
- * a partir de 75% do SLA, `breached` ao estourar.
+ * Minutos que o cliente está esperando 1ª resposta. `null` quando não está
+ * esperando (atendente respondeu por último) ou sem timestamp inbound.
+ */
+export function slaWaitedMin(conv: {
+  last_message_direction: 'inbound' | 'outbound' | null;
+  last_inbound_at: string | null;
+}): number | null {
+  if (conv.last_message_direction !== 'inbound' || !conv.last_inbound_at) return null;
+  return (Date.now() - new Date(conv.last_inbound_at).getTime()) / 60000;
+}
+
+/** Duração compacta pra pill SLA: "12min" / "3h" / "2d". */
+export function slaWaitedShort(min: number): string {
+  if (min < 60) return `${Math.max(1, Math.round(min))}min`;
+  if (min < 1440) return `${Math.round(min / 60)}h`;
+  return `${Math.round(min / 1440)}d`;
+}
+
+/**
+ * Estado do SLA de 1ª resposta (4 níveis). Só conta enquanto o cliente espera
+ * (`last_message_direction === 'inbound'`) — quando o atendente responde, o
+ * relógio para. Limiares sobre o SLA da fila: fresh <60% · aging 60–90% ·
+ * late 90–100% · expired ≥100%.
  */
 export function slaState(conv: {
   last_message_direction: 'inbound' | 'outbound' | null;
   last_inbound_at: string | null;
   queue: { sla: string | null };
 }): SlaState {
-  if (conv.last_message_direction !== 'inbound' || !conv.last_inbound_at) return null;
+  const waitedMin = slaWaitedMin(conv);
+  if (waitedMin === null) return null;
   const slaMin = parseSlaMinutes(conv.queue.sla);
   if (slaMin === null) return null;
-  const waitedMin = (Date.now() - new Date(conv.last_inbound_at).getTime()) / 60000;
-  if (waitedMin >= slaMin) return 'breached';
-  if (waitedMin >= slaMin * 0.75) return 'warning';
-  return 'ok';
+  const pct = waitedMin / slaMin;
+  if (pct >= 1) return 'expired';
+  if (pct >= 0.9) return 'late';
+  if (pct >= 0.6) return 'aging';
+  return 'fresh';
 }
+
+/**
+ * Meta visual da pill SLA por estado — classes Tailwind dark-safe via tokens.
+ * `late` (laranja, hue 30) não tem token → oklch arbitrário dark-aware (flipa
+ * via ADR 0281); os demais usam success/warning/destructive. `pill` traz só
+ * bg+texto+cor-da-borda (o `border` em si vem no render).
+ */
+export const SLA_META: Record<Exclude<SlaState, null>, { label: string; pill: string; dot: string; pulse: boolean }> = {
+  fresh: {
+    label: 'no prazo',
+    pill: 'bg-success-soft text-success-fg border-success/25',
+    dot: 'bg-success',
+    pulse: false,
+  },
+  aging: {
+    label: 'atenção',
+    pill: 'bg-warning-soft text-warning-fg border-warning/30',
+    dot: 'bg-warning',
+    pulse: true,
+  },
+  late: {
+    label: 'atrasando',
+    pill: 'bg-[oklch(0.94_0.07_30)] text-[oklch(0.45_0.16_30)] border-[oklch(0.84_0.09_30)] dark:bg-[oklch(0.30_0.06_30)] dark:text-[oklch(0.82_0.13_30)] dark:border-[oklch(0.42_0.08_30)]',
+    dot: 'bg-[oklch(0.62_0.18_30)]',
+    pulse: true,
+  },
+  expired: {
+    label: 'estourado',
+    pill: 'bg-destructive/15 text-destructive border-destructive/30',
+    dot: 'bg-destructive',
+    pulse: true,
+  },
+};
 
 export function cuLsGet(key: string, fallback = ''): string {
   if (typeof window === 'undefined') return fallback;
