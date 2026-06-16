@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@custom-variant dark (&:where(.dark, .dark *));
+/* Dark ativa por DOIS mecanismos (ADR 0281): a classe `.dark` (legado shadcn,
+   nunca aplicada na prática) E `[data-theme="dark"]` — que é o que o AppShellV2
+   realmente seta no `.cockpit` (linha data-theme={userTheme}). Sem o segundo seletor
+   as utilities `dark:` nunca disparavam em produção (painel branco no escuro). */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 /* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
 @import "./sells-cowork.css";
@@ -191,11 +195,17 @@
 }
 
 /* ==========================================================================
-   Dark mode — ativa quando <html class="dark">
-   Anti-flash: script inline em layouts/inertia.blade.php aplica a classe
+   Dark mode — ativa por `.dark` (classe legado shadcn) OU `[data-theme="dark"]`.
+   ADR 0281: o AppShellV2 seta `data-theme={userTheme}` no `.cockpit`, NUNCA a
+   classe `.dark` — então sem `[data-theme="dark"]` aqui os tokens Tailwind
+   `--color-*` jamais flipavam e toda tela feita com utilities (bg-card,
+   text-foreground, warning-*, etc.) ficava branca no escuro. Os dois seletores
+   compartilham os MESMOS valores dark já afinados.
+   Anti-flash: script inline em layouts/inertia.blade.php aplica o tema
    ANTES do React hidratar, evitando "piscar" branco-para-escuro.
    ========================================================================== */
-.dark {
+.dark,
+[data-theme="dark"] {
   /* DS harmonizado 2026-06-13: dark fica COOL neutro (cream warm não inverte
      coerente — a tela já decidiu isso); só refina a neutralidade da borda. */
   --color-border: oklch(0.27 0.006 250);
