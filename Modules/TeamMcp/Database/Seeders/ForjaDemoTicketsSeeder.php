@@ -49,7 +49,7 @@ class ForjaDemoTicketsSeeder extends Seeder
     /**
      * 3 propostas-semente — espelho 1:1 do protótipo aprovado.
      *
-     * @var array<int,array{task_id:string,title:string,module:string,forja_tipo:string,forja_papel:string}>
+     * @return array<int,array{task_id:string,title:string,module:string,forja_tipo:string,forja_papel:string}>
      */
     private function tickets(): array
     {
