@@ -949,3 +949,23 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 - **golden (FA-5)**: F3 de protótipo Cowork = SEMPRE mapear token Cowork→live ANTES de colar CSS. O gabarito FA-5 referenciava `--text-2/--sunken/--pos-soft/--hairline` (vocabulário do protótipo) que não existe no live; e cor semântica no drawer vai por Tailwind `@theme`, não `var(--pos)` (o drawer é portal FORA de `.cockpit`, onde `--pos` de cockpit.css mora). Sintoma se ignorado: CSS "verde" que renderiza INCOLOR (var indefinida = sem cor). Resolve: tokens neutros do escopo `.fin-cowork` + Fundação (`--sh-2/--ease/--fs-*`); semântico via classe utilitária.
 - **gotcha (FA-5)**: colisão de atalho `R` — `R` era global "novo recebimento"; o 9.75 quer `R`=liquida no drawer. Resolvido por PRECEDÊNCIA (drawer aberto + título liquidável → `openBaixa`; senão cai no novo-lançamento). Mesmo guard de foco (INPUT/TEXTAREA/SELECT/contentEditable + meta/ctrl/alt).
 - **gotcha (FA-5)**: inline-edit (R2 KVEdit) precisa de rota de save POR CAMPO — `Canal` não tem (`UpdateTituloRequest` só aceita categoria_id/plano/venc/valor/forma/conta). Deferido em vez de inventar PATCH (T-AP-10). Regra: KVEdit inline só onde o campo já tem rota de update provada.
+
+---
+
+## 2026-06-16 [CL] → [W] — Integridade do handoff (TAREFA 2) · TAREFA 1 pulada (premissa stale)
+
+**Origem:** prompt colado [W]/Cowork (2 tarefas). Gate §10.4 contra `origin/main` fresco ANTES de codar mudou tudo. Worktree dedicado off `origin/main` (`D:/oimpresso-handoff`), 1 PR por onda.
+
+### TAREFA 1 — migrar headers `os-page-h` inline → `<PageHeader>`: **NÃO FEITO** ([W] confirmou "pular")
+Onda 0 (inventário) revelou que o pedido confundia 2 coisas distintas:
+- `os-page-h`/`fin-page-h` = **CSS canon** do bundle Cowork (Tier 0 `feedback-cowork-bundle-aplicar-inteiro`), **não** alvo de migração.
+- `@/Components/shared/PageHeader` = o **componente** que o `pageheader:guard` ratcheteia (104 baseline) — **verde**, não toca essas telas.
+
+Estado real no `main`: **Dre** e **ContasPagar** já migrados pra `<PageHeader>` (Wave 4, 25/mai) — "pendente" no prompt era **ref morta** (a doença que a TAREFA 2 cura). **Unificado** charter v15 (10/jun) re-afirma `os-page-h` como "Markup canon EXATO" + hero "3 lentes" aprovado [W]; **Dashboard** foi DELIBERADAMENTE movido PRA `os-page-h` (19/mai, "paridade Unificado"). Migrar = regressão Tier 0 charter-protegida. [W] decidiu **pular**. Caixa Unificada dark + H1 600×700 não tocados (já no main / espera [W]).
+
+### TAREFA 2 — gate de integridade do handoff: **FEITO** (2 ondas, 1 PR cada)
+A fila `COWORK_NOTES.md` apodrecia invisível (refs mortas pra `PROMPT_PARA_CODE_*` inexistentes + prompts órfãos) e nada travava.
+- **Onda 1 — regra (doc):** PR **#2864** — `PROCESSO_MEMORIA_CC.md` §16 (5 regras: sem órfão · auto-contido · linha d'água · "pousou" só pós-`main` · ondas) + IT8.
+- **Onda 2 — gate (CI):** PR **#2865** — `scripts/handoff-integrity-guard.mjs` (catraca acima da linha d'água `<!-- LINHA-DAGUA-HANDOFF -->`) + auto-teste controle-negativo (8 casos: órfão/ref-morta injetados → vermelho) + baseline 0/0 + workflow advisory (ADR 0271/0275, `paths:` na fila + dir handoffs) + npm scripts. **Home confirmado antes (Regra 7):** `cowork-inbox.py` é mover-de-conteúdo (não validador) → estendi a família `*-guard.mjs`, não dupliquei.
+
+**Status:** PRs **#2864** + **#2865** abertos, **aguardando merge [W]** (publication-policy). "Pousou" só vira `PROCESSADO → main` quando estiver no `main` (regra §16.4 deste próprio PR). Se a §16 virar ADR formal = Tier 0 = número é [W] (não cunhei).
