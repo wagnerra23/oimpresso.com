@@ -282,8 +282,31 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 
 **Veredito:** qualquer IT falho → estrutura **comprometida**: parar e consertar antes de evoluir (vira Reestruturação §12 se reincidir).
 
-## 16. Trilha do tempo
+## 16. Caçador de reincidência — classes de erro & condição de morte
+
+> As classes de erro que **se repetem neste loop** (Cowork → [CL] → git) têm todas a mesma cura: **máquina que recusa no instante da ação** — não regra que se lê (NÚCLEO #5 · §8 DS-GUARD · §15 Integridade). Catálogo **append-only**: classe nova de reincidência → +1 linha aqui **e** +1 trava (nunca só a linha). Cada classe morre por **ritual Cowork** (C1/C2/C6 — disciplina no momento de escrever) **ou** por **git-gate** (C3/C4/C5 — CI recusa o PR que toca a fila/handoffs).
+
+| # | Classe (o erro que reincide) | Condição de morte (a trava) | Onde mata |
+|---|---|---|---|
+| **C1** | **Prompt invisível / fora de onda** — prompt nasce solto (não entra na fila) → tarefa some do radar; ou trabalho num bloção em vez de ondas | todo prompt nasce **citado na fila, acima da LINHA D'ÁGUA**; trabalho **em ondas** (1 tela/arquivo = 1 PR) | ritual Cowork |
+| **C2** | **Prompt efêmero** — prompt durável aponta pra URL/contexto que evapora (chat, link, sessão) | prompt durável é **auto-contido, sem URL efêmera** — cola o que precisa, não linka o que some | ritual Cowork |
+| **C3** | **Cabeçalho de bloco fundido** — uma edição funde dois itens numa linha só → a fila vira sopa ilegível | nenhuma linha funde dois cabeçalhos — heurística `:** > **Artefato` (dois headers na mesma linha) = 🔴 | git-gate |
+| **C4** | **Órfão / ref morta** — prompt no diretório fora da fila (órfão); citação a arquivo que não existe no disco (ref morta) | acima da LINHA D'ÁGUA: prompt fora da fila = **ÓRFÃO 🔴**; citação sem arquivo correspondente = **REF MORTA 🔴**. _Já mecanizado no parente:_ `scripts/governance/ghost-fix.mjs` + `knowledge-ghost-gate` + §15 IT2·IT7 | git-gate |
+| **C5** | **Sem carimbo vs-main** — item enfileirado/ativo sem conferir o `main` → você coda em cima do que já mudou → retrabalho | todo item ativo (`> … → [CL]`) carrega **`verificado vs main @SHA`** no corpo; senão 🔴 | git-gate |
+| **C6** | **"Pousou" sem prova** — declara o item concluído sem o retorno aterrissar no canon | só **"pousou" depois de `CODE_NOTES@main`** (a prova vive no git, não na conversa) | ritual Cowork |
+
+**Regra-texto (a lei que as travas encodam):**
+1. Criar prompt **sem citá-lo acima da LINHA D'ÁGUA** = proibido (senão é invisível/órfão — C1/C4).
+2. Prompt durável é **auto-contido, sem URL efêmera** (C2).
+3. Item ativo carrega **`verificado vs main @SHA`** no corpo (C5).
+4. Só **"pousou" depois de `CODE_NOTES@main`** (C6).
+5. **Ondas por padrão** — 1 tela/arquivo = 1 PR (C1).
+
+**LINHA D'ÁGUA:** o que está **acima** é a fila viva (cobrada); o que está **abaixo** é histórico/morto (ignorado pelas travas). C3/C4/C5 só mordem acima da linha. Mecanização (Onda 2): gate CI no idioma §8/§15 — `paths:` cobrindo a fila + o diretório de handoffs, ratchet/baseline como os irmãos `scripts/*-guard.mjs`, e **auto-teste com controle-negativo** (pega cada caso ruim injetado **e** passa quando limpo). Se a fila viva morar só no Cowork (Tier 1, §14), a trava git cobre os **artefatos de handoff** que aterrissam no git; a fila-Cowork fica nos rituais C1/C2/C6.
+
+## 17. Trilha do tempo
 - 2026-06-02 · [CC] criou a raiz do processo. Rodou TESTE-01..04, achou 3 fraquezas, corrigiu 2 estruturalmente (§3, §5) e mitigou 1 (§4/§7). Modelo validado com a condição da §7.
 - 2026-06-02 · **1ª passada real (TESTE-05):** D-01 rodado Avaliar→Testar em produção; ciclo segurou ponta-a-ponta (nota 8.5). Regra de corte §6×Register adicionada. D-01 está 🧪 aguardando veredito [W].
 - 2026-06-02 · **DS-GUARD (TESTE-06):** check mecânico criado (§8) — pega L-02/L-21/L-23 nos arquivos tocados, sem depender de memória. Achou 2 fraquezas no próprio guard (ruído árvore-inteira + skip silencioso), corrigiu as duas. Defesa migrou de FRACA→FORTE. Gate visual entrou na Regra de Ouro do STATUS.
 - 2026-06-02 · **Bateria de Testes de Evolução (§9) + Manual de Evolução (§10):** regressão contra L-01…L-23 (cobertura conhecimento ~9.5, execução ~6 → confiança composta 7.5). 14 testes (5 duros), cobrindo todos os erros cometidos. Pendente pra subir a confiança: hooks auto (Cowork CI), construir guards propostos (L-07/11/14/21/22), changed-files automático, verificador rodando DS-GUARD sempre.
+- 2026-06-16 · **§16 Caçador de reincidência (Onda 1 · handoff TAREFA-2):** [CL] catalogou as 6 classes de erro recorrentes do loop (C1–C6) + condição de morte de cada uma (C1/C2/C6 ritual Cowork; C3/C4/C5 git-gate) + a regra-texto (5 leis). C4 (órfão/ref-morta) já mecanizado (`ghost-fix.mjs`/`knowledge-ghost-gate`); C3/C5 = Onda 2 (gate CI), pendente confirmar o path git da fila/handoffs (a fila viva é Cowork-only · §14). Encode-a-regra ANTES de armar a máquina — defesa que dispara > regra que se lê (NÚCLEO #5).
