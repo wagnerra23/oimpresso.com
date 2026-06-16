@@ -1,0 +1,49 @@
+name: Reincidência guard (advisory)
+
+# Catraca das classes C3 (cabeçalho de bloco fundido) + C4 (ref morta) do "Caçador de
+# reincidência" — prototipo-ui/PROCESSO_MEMORIA_CC.md §16 (handoff TAREFA-2 Onda 2).
+#
+# ADVISORY: gate novo nunca nasce required (regra do projeto). Vermelho VISÍVEL mas não
+# bloqueia merge até promoção via calendário (sem máscara de erro — advisory porque NÃO é
+# required, não porque se esconde).
+#
+# RATCHET diff-by-baseline: governance/reincidencia-baseline.json congela o legado; o
+# --check só falha em violação NOVA (fora do baseline). C5 (carimbo vs-main) DORMENTE —
+# a fila viva (`> … → [CL]` + LINHA D'ÁGUA) é Cowork-only (PROCESSO §14): sem artefato git.
+#
+# paths: cobre a fila + o diretório de handoffs (escopo do guard).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/handoffs/**'
+      - 'prototipo-ui/COWORK_NOTES*.md'
+      - 'prototipo-ui/CODE_NOTES*.md'
+      - 'governance/reincidencia-baseline.json'
+      - 'scripts/governance/reincidencia-guard.mjs'
+      - 'scripts/governance/reincidencia-guard.test.mjs'
+      - '.github/workflows/reincidencia-gate.yml'
+
+concurrency:
+  group: reincidencia-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  reincidencia-check:
+    name: reincidência ratchet (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Quem vigia os vigias (GT-G6): o controle-negativo roda ANTES. Se o guard parou de
+      # morder (caso ruim passa), avermelha aqui — antes mesmo de checar o repo.
+      - name: self-test (controle-negativo C3/C4)
+        run: node scripts/governance/reincidencia-guard.test.mjs
+      - name: reincidência-guard --check contra baseline
+        run: node scripts/governance/reincidencia-guard.mjs --check

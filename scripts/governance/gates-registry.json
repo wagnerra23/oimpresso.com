@@ -226,6 +226,10 @@
       "nome": "Repair shared vocabulary guard",
       "classe": "gate"
     },
+    "reincidencia-gate.yml": {
+      "nome": "Reincidência guard (C3 cabeçalho fundido + C4 ref-morta em fila/handoffs · advisory · §16)",
+      "classe": "gate"
+    },
     "reuse-gate.yml": {
       "nome": "Reuse duplicates ratchet (anti-duplicação de símbolo)",
       "classe": "gate"
