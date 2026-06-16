@@ -74,6 +74,26 @@ class VerifyWhatsmeowSignature
 
         $businessId = (int) $businessRow->id;
 
+        // ─── Defesa por segredo na URL (hotfix incidente 2026-06-16) ────
+        // O daemon WuzAPI (asternic/wuzapi) NÃO assina HMAC nem manda header
+        // de auth — a única coisa configurável nele é a URL do webhook. Um
+        // segredo compartilhado no query string `?wh=` trafega apenas via TLS
+        // daemon→app e NÃO é spoofável como o antigo IP-whitelist removido em
+        // #2726 (não depende de `X-Forwarded-For` sob `TrustProxies = '*'`).
+        // Restaura o recebimento preservando Tier 0 (ADR 0093). Inerte quando
+        // `WHATSMEOW_WEBHOOK_URL_SECRET` não está setado (fail-safe, timing-safe,
+        // sem downgrade silencioso). Substituível por HMAC quando/se o daemon
+        // ganhar suporte a assinatura.
+        $urlSecret = (string) config('whatsapp.whatsmeow.webhook_url_secret', '');
+        $providedUrlSecret = is_string($wh = $request->query('wh')) ? $wh : '';
+        if ($urlSecret !== '' && hash_equals($urlSecret, $providedUrlSecret)) {
+            $channel = $this->resolveChannel($request, $businessId);
+            $request->attributes->set('whatsapp.business_id', $businessId);
+            $request->attributes->set('whatsapp.channel', $channel);
+
+            return $next($request);
+        }
+
         // ─── Defesa primária: HMAC global SHA-256 (timing-safe) ─────────
         // Daemon assina cada POST com HMAC-SHA256(body, WUZAPI_GLOBAL_HMAC_KEY)
         // — ver daemon-go/docker-compose.yml (WUZAPI_GLOBAL_HMAC_KEY_FILE).
