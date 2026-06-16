@@ -33,3 +33,8 @@ Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
+# Whatsapp — Caixa Unificada V4: schema sintético em beforeEach + markTestSkipped
+# fora de sqlite. Whatsapp NÃO está no modules-pest.yml, então esta é a única lane
+# que executa as guards R-WA-CAIXA-UNIF-001..013 (inclui a regressão -013 dos chips
+# de canal whatsmeow, #2822). Até aqui o suite nunca rodava em CI ("✅ GUARD" sem mordida).
+Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
