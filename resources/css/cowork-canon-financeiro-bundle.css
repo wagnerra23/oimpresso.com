@@ -4826,10 +4826,17 @@
 .fin-cowork .fin-copyval.ok .fin-copyval-ic { opacity: 1; }
 
 /* F2 — ficha de campos: cartão com lavanda sutil (label nunca flutua em branco · [W] 06-11) */
+/* #6 Tribunal Onda 2 (cadeira Reichenstein · [W] "tirar cor, manter fios" 2026-06-16) —
+   a queixa era "caixa colorida fazendo o trabalho da tipografia". Tira a cor (fundo
+   lavanda + borda accent + radius) e mantém ESTRUTURA neutra discreta (fios topo/baixo)
+   pra a ficha não flutuar em branco (pedido [W] 06-11). Tipografia agrupa. Tokens only
+   (transparent + var(--border-2)) → não adiciona cor-crua ao conformance-gate. */
 .fin-cowork .fin-kv-card {
-  background: color-mix(in oklab, var(--accent) 2.5%, var(--surface));
-  border: 1px solid color-mix(in oklab, var(--accent) 10%, var(--border-2));
-  border-radius: 10px; padding: 10px 14px 12px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--border-2);
+  border-bottom: 1px solid var(--border-2);
+  border-radius: 0; padding: 11px 0 12px;
 }
 
 /* R2 — Categoria editável inline (Canal segue read-only · decisão [W] 2026-06-11):
