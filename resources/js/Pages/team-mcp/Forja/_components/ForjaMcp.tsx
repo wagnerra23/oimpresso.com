@@ -79,7 +79,7 @@ const AUDIT: AuditRow[] = [
   { ts: '14:21', ator: 'CC', acao: 'backlog.read', detalhe: 'onda=FA-1', resultado: 'ok', resultadoLabel: 'ok' },
   { ts: '14:19', ator: 'CC', acao: 'adr.propose', detalhe: '--origin-DEV', resultado: 'ok', resultadoLabel: 'proposta criada' },
   { ts: '13:50', ator: 'CL', acao: 'issue.transition', detalhe: 'FORJA-141 → F3', resultado: 'pendente', resultadoLabel: 'aguarda [W]' },
-  { ts: '12:30', ator: 'CC', acao: 'git.merge', detalhe: '#2417', resultado: 'negado', resultadoLabel: 'NEGADO — só [W2]' },
+  { ts: '12:30', ator: 'CC', acao: 'git.merge', detalhe: 'PR 2417', resultado: 'negado', resultadoLabel: 'NEGADO — só [W2]' },
   { ts: '11:05', ator: 'CD', acao: 'changelog.read', detalhe: 'desde 09/06', resultado: 'ok', resultadoLabel: 'ok' },
   { ts: '10:02', ator: 'CC', acao: 'constituicao.edit', detalhe: 'ADR 0235', resultado: 'negado', resultadoLabel: 'NEGADO — só [W]' },
 ];
