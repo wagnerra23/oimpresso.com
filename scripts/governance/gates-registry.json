@@ -206,6 +206,10 @@
       "nome": "PageHeader migration guard (F4 · congela header antigo)",
       "classe": "gate"
     },
+    "handoff-integrity.yml": {
+      "nome": "Handoff Integrity (advisory · fila ↔ prompts)",
+      "classe": "gate"
+    },
     "phpstan-baseline-regen.yml": {
       "nome": "PHPStan baseline regen (manual)",
       "classe": "automacao"

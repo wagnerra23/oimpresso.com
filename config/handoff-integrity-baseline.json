@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "generated_at": "2026-06-16T20:57:23.126Z",
+    "orphans": 0,
+    "dead_refs": 0,
+    "note": "Integridade do handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). Congela a dívida atual de órfãos/refs-mortas acima da linha d'água em COWORK_NOTES.md. Só NOVO trava. Marcador: LINHA-DAGUA-HANDOFF."
+  },
+  "orphans": [],
+  "dead_refs": []
+}
