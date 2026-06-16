@@ -241,3 +241,55 @@ Todo em PT-BR. ✅
 - [PROTOCOL.md](../../../prototipo-ui/PROTOCOL.md)
 - [prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx](../../../prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx) — fonte visual canônica (802 LOC)
 - [RUNBOOK-inertia-defer-pattern.md](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
+
+---
+
+## Revisão 2026-06-16 — deltas REAIS pós-dark-fix (Wagner pediu relação detalhada)
+
+> O resumo original ("12/15 alinhadas") era **otimista** — comparando os 2 screenshots
+> que [W] mandou (protótipo light+dark) com a prod live + `inbox-page.css`/`.os-btn`,
+> a implementação **derivou** em vários pontos. Catálogo real abaixo, agrupado pelo que
+> [W] citou (bolhas / cores / botões) + o resto. Fonte dos valores: `inbox-page.css`
+> + `styles.css` (.os-btn) vs `ConversationThreadV4.tsx`/`ContextSidebarV4.tsx`.
+
+### A. Bolhas — alinhamento e dimensão
+| Aspecto | Esperado (protótipo) | Atual (live) | Status |
+|---|---|---|---|
+| max-width | **68%** (`.om-bub` L499) | 78% (`max-w-[78%]`) | 🔧 batch-1 → 68% |
+| timestamp | `small` `display:block` mt 3px (esquerda) | `inline-flex self-end` mt-1 (direita) | 🔧 batch-1 → `self-start mt-[3px]` |
+| estrutura inbound | `align-self:flex-start` direto | wrapper `inline-flex` extra + botão captura-feedback | ⏳ (wrapper intencional ADR UI-0016) |
+| padding/radius/gap | 7×11 · r10+3px · gap 4px | iguais | ✅ |
+
+### B. Cores
+| Aspecto | Esperado | Atual | Status |
+|---|---|---|---|
+| fundo da thread | `oklch(0.97 0.013 145)` verde-WA quente (L421) | `bg-muted/15` neutro | 🔧 batch-1 → verde-tint dark-aware |
+| tom por canal | thread+bolha mudam de hue (email 280/IG 30/FB 250/ML 95) | não implementado | ⏳ batch-2 |
+| bolha enviada | `oklch(0.85 0.10 145)` / txt `0.18 145` | idêntico | ✅ |
+| nota/banner | literais hue 80 | tokenizado `warning-*` (dark-aware) | ✅ (+melhor no escuro, ADR 0281) |
+
+### C. Botões de ação — alinhamento
+| Aspecto | Esperado (`.os-btn`) | Atual | Status |
+|---|---|---|---|
+| baseline | classe única: **h 30px**, pad **0 12px**, 12.5px/500, `inline-flex items-center gap 6px` | Tailwind ad-hoc por botão (`px-2.5 py-1.5 text-[12px]`, altura variável) | ⏳ batch-2 — padronizar |
+| ações (`.om-actions`) | `justify-content:flex-start` + coluna gap 6px, **alturas iguais** | `text-left` flex-col gap-1.5, alturas desencontradas | ⏳ batch-2 |
+| header | `.os-btn`/ghost h 30px | `px-2 py-1 text-[11.5px]` | ⏳ batch-2 |
+
+### D. Contexto (conteúdo) — backend
+| Section | Esperado | Atual | Status |
+|---|---|---|---|
+| OS vinculada | `#4819 · Cardápios A4` + "Abrir OS" | "— nenhuma" | ⏳ batch-3 (Repair) |
+| Saldo cliente | `R$ 380 a receber` | "—" | ⏳ batch-3 (Financeiro) |
+| Histórico | `4 pedidos · R$ 1.420 LTV` | "—" | ⏳ batch-3 (Transactions) |
+| SLA | "SLA 1h · alternada" | "SLA 1h" | ⏳ batch-2 |
+| Customer 360 vazio | sem card grande | colapsado 1 linha | ✅ (PR #2818) |
+
+### E. Shell / nav
+| Aspecto | Esperado | Atual | Status |
+|---|---|---|---|
+| sidebar esquerda | escura | clara (UI-0009/0014) | ⛔ decisão [W] / ADR |
+| topnav | …Troubleshooters · Trilhas | …Broadcast · +Nova | ⏳ confirmar rotas |
+| SLA pill | fresh/aging/late/expired + dot animado | labels/estados diferentes | ⏳ batch-2 |
+| stripe de fila na lista | `border-left:3px` cor-da-fila | conferir | ⏳ |
+
+**Batch 1 (este PR — só visual, dark-safe):** bolha 78→68% · timestamp block-esquerda · fundo da thread verde-tint dark-aware. **Batch 2:** sistema `.os-btn` uniforme + SLA pill + tom-por-canal + stripe fila + "alternada". **Batch 3 (backend):** OS/Saldo/Histórico (Repair/Financeiro/Transactions). **Bloqueado:** sidebar escura (ADR).

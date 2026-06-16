@@ -109,7 +109,10 @@ export default function ConversationThreadV4({
     // referência → conteúdo empurrava layout 375px além viewport → `.cockpit` ancestor
     // tem overflow:hidden → cortado sem scrollbar. Fix: <div> semântico + h-full.
     <div
-      className="flex flex-col bg-muted/15 min-h-0 min-w-0 h-full"
+      // Fundo da thread: tom verde-WA suave do protótipo (.om-thread-c L421
+      // oklch(0.97 0.013 145)) no claro; neutro dark-aware no escuro (flipa via
+      // .dark/[data-theme=dark] — ADR 0281). Antes era bg-muted/15 cinza neutro.
+      className="flex flex-col bg-[oklch(0.97_0.013_145)] dark:bg-muted/15 min-h-0 min-w-0 h-full"
       aria-label="Thread da conversa"
       role="region"
     >
@@ -316,7 +319,7 @@ export default function ConversationThreadV4({
                 ) : (
                   <div
                     className={cn(
-                      'group/bubble inline-flex items-start gap-1.5 max-w-[78%]',
+                      'group/bubble inline-flex items-start gap-1.5 max-w-[68%]',
                       m.direction === 'inbound' ? 'self-start mr-auto' : 'self-end ml-auto flex-row-reverse',
                     )}
                   >
@@ -407,7 +410,7 @@ export default function ConversationThreadV4({
                     {!m.media_url && !m.body && (
                       <em className="text-muted-foreground">[mídia]</em>
                     )}
-                    <small className="text-[9.5px] opacity-60 mt-1 font-mono inline-flex items-center gap-1 self-end">
+                    <small className="text-[9.5px] opacity-60 mt-[3px] font-mono inline-flex items-center gap-1 self-start">
                       {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       {m.direction === 'outbound' && (
                         m.status === 'read' ? (
