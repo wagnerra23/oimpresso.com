@@ -178,6 +178,25 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Canário do webhook WhatsApp — Fase 1 perda-zero (proposta
+        // whatsapp-ingestao-perda-zero.md, camadas 1+5). Posta um Presence
+        // sintético na URL pública com ?wh= e confere 200; não-200 → ALERT + exit≠0.
+        // Cadência 5min em horário comercial BRT: detecta a classe do incidente
+        // #2726 (webhook recusando, 3 dias mudo) em <5min — dentro da janela de
+        // retry do daemon (~10-15min), logo ANTES de qualquer mensagem ser perdida.
+        // Só OBSERVA a via (Presence ACKa 200 sem criar mensagem) — baixo risco.
+        $schedule->command('whatsapp:webhook-canary')
+            ->everyFiveMinutes()
+            ->timezone('America/Sao_Paulo')
+            ->between('8:00', '20:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:webhook-canary FALHOU — recebimento WhatsApp pode estar parado (classe #2726)'
+                );
+            });
+
         // US-SELL-COWORK-R6-SMOKE — smoke automatizado Sells/Index Cowork.
         // 5 sinais críticos: schema essencial + multi-tenant biz=1/biz=4 com vendas 30d
         // + Vite manifest contém chunks Cowork (Sale*.tsx) + CSS scoped imports

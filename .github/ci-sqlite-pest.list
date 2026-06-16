@@ -38,3 +38,6 @@ Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
 # que executa as guards R-WA-CAIXA-UNIF-001..013 (inclui a regressão -013 dos chips
 # de canal whatsmeow, #2822). Até aqui o suite nunca rodava em CI ("✅ GUARD" sem mordida).
 Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
+# Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
+Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
+Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php

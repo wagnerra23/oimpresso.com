@@ -77,6 +77,27 @@ return [
         'request_timeout' => (int) env('WHATSMEOW_TIMEOUT', 15),
     ],
 
+    /*
+     * Canário do webhook (Fase 1 perda-zero — proposta whatsapp-ingestao-perda-zero.md).
+     *
+     * Cron `whatsapp:webhook-canary` (a cada 5min em horário comercial BRT) posta
+     * um Presence sintético na URL pública com `?wh=` e confere 200; não-200 →
+     * ALERT + exit≠0. Pega a classe do #2726 (webhook recusando) em <5min — dentro
+     * da janela de retry do daemon, ou seja, antes de qualquer mensagem ser perdida.
+     *
+     * `business_uuid` = endereço público da rota (NÃO segredo). Vazio = o comando
+     * deriva do primeiro channel whatsmeow ativo. WR2 (biz=1) =
+     * 29aa9931-108e-4f7d-a3ce-d15e4f35cbd4.
+     */
+    'canary' => [
+        'enabled' => (bool) env('WHATSAPP_CANARY_ENABLED', true),
+        'business_uuid' => env('WHATSAPP_CANARY_BUSINESS_UUID', ''),
+        'timeout_seconds' => (int) env('WHATSAPP_CANARY_TIMEOUT', 10),
+        // Idade máxima do último tick (min) pro jana:health-check considerar o
+        // canário "fresco". 15min = 3 ticks de 5min perdidos = cron claramente morto.
+        'freshness_max_age_minutes' => (int) env('WHATSAPP_CANARY_FRESHNESS_MAX_AGE_MIN', 15),
+    ],
+
     'health_check' => [
         'interval_seconds' => env('WHATSAPP_HEALTH_INTERVAL', 21600), // 6h
         'consecutive_failures_to_degrade' => 5,

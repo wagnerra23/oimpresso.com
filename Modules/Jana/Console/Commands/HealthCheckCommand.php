@@ -28,6 +28,10 @@ use Modules\Jana\Services\CharterHealthChecker;
  *   8b. Whatsapp inbound flow (sentinela de fluxo real · incidente 2026-06-16
  *       #2726) — por canal ativo com histórico, último inbound > Nh em horário
  *       comercial = ALERTA. Pega QUALQUER causa de silêncio no recebimento.
+ *   8c. Whatsapp inbound canary (auto-teste do alarme · Fase 1 perda-zero) — lê
+ *       o último tick do cron `whatsapp:webhook-canary`; stale/falha em horário
+ *       comercial = ALERTA. Prova que a VIA responde 200 E que o monitor não
+ *       apodreceu mentindo verde (raiz do #2726).
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
  *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
@@ -72,6 +76,7 @@ class HealthCheckCommand extends Command
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
             $this->checkWhatsappInboundFlow(),
+            $this->checkWhatsappInboundCanary(),
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
             $this->checkLessonLedgerGraduation(),
@@ -614,6 +619,104 @@ class HealthCheckCommand extends Command
         }
 
         return ['ok' => $mudos === [], 'vigiados' => $vigiados, 'mudos' => $mudos, 'fora_horario' => false];
+    }
+
+    /**
+     * Check 8c — Whatsapp INBOUND CANARY (auto-teste do alarme · camada 5 da
+     * proposta perda-zero · Fase 1).
+     *
+     * Onde o inbound_flow (8b) mede o RESULTADO (chegou mensagem?), este mede a
+     * VIA (o webhook responde 200?) — e, principalmente, prova que o próprio
+     * canário (`whatsapp:webhook-canary`, cron 5min) está VIVO. Sem isso o monitor
+     * pode apodrecer mentindo "verde" (a raiz do #2726: tudo verde com o
+     * recebimento morto). Lê o último tick do canário em cache:
+     *   - fresco + ok      → verde (caminho provado <maxAge)
+     *   - fresco + não-200 → ALERTA (webhook quebrado AGORA)
+     *   - velho (stale)    → ALERTA (cron do canário morreu = perdeu o sinal)
+     *   - cold (nunca rodou) → verde com grace (pós-deploy; o tick popula em ≤5min)
+     *
+     * Hard check em horário comercial BRT (mesma janela do canário); fora dela e
+     * em ambiente sem segredo (dev/CI) não acende.
+     */
+    protected function checkWhatsappInboundCanary(): array
+    {
+        $name = 'whatsapp_inbound_canary';
+        $maxAge = (int) config('whatsapp.canary.freshness_max_age_minutes', 15);
+        $configured = (bool) config('whatsapp.canary.enabled', true)
+            && (string) config('whatsapp.whatsmeow.webhook_url_secret', '') !== '';
+
+        try {
+            $last = \Illuminate\Support\Facades\Cache::get('whatsapp:webhook-canary:last');
+            $r = self::evaluateCanaryFreshness(
+                $configured,
+                is_array($last) ? $last : null,
+                now()->setTimezone('America/Sao_Paulo'),
+                $maxAge,
+            );
+
+            $messages = [
+                'nao-configurado' => 'Skipped (canário do webhook não configurado — dev/CI)',
+                'fora-horario' => 'Fora do horário comercial BRT — canário em pausa, não alarma agora',
+                'cold' => 'Canário ainda não reportou (cold-start pós-deploy — popula em ≤5min)',
+                'fresco' => "Webhook provado há {$r['age_min']}min (≤ {$maxAge}min) — caminho de recebimento vivo",
+                'stale' => "ALERTA: canário sem reportar há {$r['age_min']}min (> {$maxAge}min) — cron whatsapp:webhook-canary pode estar morto (sinal perdido, classe #2726)",
+                'falha' => 'ALERTA: último canário do webhook FALHOU — recebimento WhatsApp pode estar parado (classe #2726)',
+            ];
+
+            return [
+                'name' => $name,
+                'ok' => $r['ok'],
+                'value' => $r['age_min'] !== null ? "{$r['age_min']}min" : $r['state'],
+                'threshold' => "<= {$maxAge}min",
+                'message' => $messages[$r['state']] ?? $r['state'],
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => null,
+                'threshold' => "<= {$maxAge}min",
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Lógica pura do frescor do canário — pública e estática pra ser testável sem
+     * cache nem relógio real (mesmo padrão de evaluateInboundFlow).
+     *
+     * @param  array{ok?: bool, status?: ?int, reason?: string, at?: string}|null  $last
+     * @return array{ok: bool, state: string, age_min: ?int}
+     */
+    public static function evaluateCanaryFreshness(bool $configured, ?array $last, \Illuminate\Support\Carbon $nowBrt, int $maxAgeMinutes): array
+    {
+        if (! $configured) {
+            return ['ok' => true, 'state' => 'nao-configurado', 'age_min' => null];
+        }
+
+        // Mesma janela do cron do canário (08–20, seg–sáb). Fora dela ele não roda.
+        $horaComercial = $nowBrt->hour >= 8 && $nowBrt->hour < 20 && $nowBrt->dayOfWeek !== \Carbon\Carbon::SUNDAY;
+        if (! $horaComercial) {
+            return ['ok' => true, 'state' => 'fora-horario', 'age_min' => null];
+        }
+
+        // Cold-start: chave ausente = canário nunca reportou (pós-deploy). Grace
+        // pra não falso-alarmar antes do primeiro tick (≤5min). O cenário de
+        // apodrecimento (cron morre DEPOIS de rodar) cai em 'stale', não aqui.
+        if ($last === null || empty($last['at'])) {
+            return ['ok' => true, 'state' => 'cold', 'age_min' => null];
+        }
+
+        $at = \Illuminate\Support\Carbon::parse((string) $last['at']);
+        $ageMin = (int) abs($at->diffInMinutes($nowBrt));
+        if ($ageMin > $maxAgeMinutes) {
+            return ['ok' => false, 'state' => 'stale', 'age_min' => $ageMin];
+        }
+        if (($last['ok'] ?? false) !== true) {
+            return ['ok' => false, 'state' => 'falha', 'age_min' => $ageMin];
+        }
+
+        return ['ok' => true, 'state' => 'fresco', 'age_min' => $ageMin];
     }
 
     /**
