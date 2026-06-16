@@ -952,6 +952,31 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 
 ---
 
+## TAREFA 1 — PageHeader canon rollout (telas inline → componente)
+> **Reconciliação · sessões paralelas (2026-06-16):** esta sessão migrou Dashboard (#2863) por decisão [W] "Full canon" + "Keep #2863"; a entrada ACIMA pulou TAREFA 1 alegando `os-page-h` = Tier 0 Cowork-canon. **Verificado e resolvido a favor de #2863:** (1) o doc citado `feedback-cowork-bundle-aplicar-inteiro` é sobre ESTRATÉGIA de cópia de bundle CSS (copiar `styles.css` inteiro vs cherry-pick), **não** sobre proteger `os-page-h` de migração; (2) `ContasPagar` e `Dre` já migraram OFF `os-page-h` pra `<PageHeader>` (Wave 4, 25/mai) — direção estabelecida; (3) Dashboard não tem charter. Só **Unificado** é charter-locked em `os-page-h` (corretamente HELD nesta sessão). #2863 procede.
+_handoff 2026-06-16 · [CL] · 1 tela = 1 PR · verificado vs main @4d9726142_
+
+### Onda 0 — inventário (CORRIGE o handoff)
+| item | veredito | prova |
+|---|---|---|
+| Lista do handoff "Unificado/Dashboard/Dre pendentes" | **STALE** — `Dre` já migrado (Wave 4, 25/mai; o hit `fin-page-h` era só COMENTÁRIO, não markup vivo); `ContasPagar` done; `Unificado` = **HOLD** (rewrite staged na branch governance, −123/+26 não-header → migrar em paralelo = colisão); `Dashboard` = único pendente limpo vs main | grep os-page-h/fin-page-h (74 arquivos) + `git diff main` |
+| Escopo | módulo `Ponto/` inteiro tem header inline — FORA do escopo Financeiro do handoff (recipe importa `FinanceiroSubNav`) | grep |
+
+### Dashboard `/financeiro` → PageHeader canon — PR #2863
+| item | veredito | prova |
+|---|---|---|
+| Header inline → canon | `<header os-page-h fin-page-h>` → `<PageHeader>` v3.8 (ADR 0189), mesmo pattern de ContasPagar/Dre | +17/−9 · zero os-page-h/fin-page-h no arquivo |
+| Botão morto → honesto | primary "Novo título" (`.os-btn.primary` sem handler) → `<PageHeaderPrimary>` roxo (ADR 0190) wired `/financeiro/unificado/novo` (rota real dos irmãos) | diff |
+| Sem subnav (consciente) | Dashboard é o root `/financeiro`, sem ghost tab no DataController (ghosts: unificado/contas-pagar/fluxo/dre/…) — adicionar tab = mudança de IA no backend, fora de escopo | DataController.php:188-199 |
+| guard | `pageheader-migration-guard.mjs` **verde** (102/104; neutro a este PR — Dashboard nunca importou o shared antigo) | run local |
+| **Pendência [W]** | screenshot pra aprovação (gate MWART / PR UI Judge) antes do merge | — |
+
+### new_design_memories
+- **gotcha**: o handoff listou Dre como pendente, mas o único sinal (`grep fin-page-h`) batia num COMENTÁRIO, não no markup vivo — `fin-page-h` num arquivo ≠ header inline. Confirmar lendo o bloco, não só o grep count. (É exatamente o caso **C4 "ref morta"** que a TAREFA-2 vai mecanizar.)
+- **golden**: antes de migrar o header de uma tela, `git diff main -- <tela>` — se a tela está staged-reescrita noutra branch (Unificado), migrar em paralelo é colisão garantida; HOLD é o caminho. (Caso **C5 "carimbo vs-main"**.)
+
+---
+
 ## 2026-06-16 [CL] → [W] — Integridade do handoff (TAREFA 2) · TAREFA 1 pulada (premissa stale)
 
 **Origem:** prompt colado [W]/Cowork (2 tarefas). Gate §10.4 contra `origin/main` fresco ANTES de codar mudou tudo. Worktree dedicado off `origin/main` (`D:/oimpresso-handoff`), 1 PR por onda.
