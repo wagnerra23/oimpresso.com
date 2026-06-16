@@ -71,7 +71,7 @@ class CaixaUnificadaController extends Controller
             $tabFilter = $statusToTab[$legacyStatus] ?? 'all';
         }
         $statusFilter = $tabFilter; // legacy alias mantido pra evitar quebra props
-        $channelTypeFilter = $request->input('channel'); // type=whatsapp_baileys, etc
+        $channelTypeFilter = $request->input('channel'); // type=whatsapp_whatsmeow, etc
         $accountFilter = $request->has('account_id') && $request->input('account_id') !== ''
             ? (int) $request->input('account_id')
             : null;
@@ -489,9 +489,15 @@ class CaixaUnificadaController extends Controller
      */
     protected function buildAvailableChannelsPayload(int $businessId, int $userId): array
     {
-        // Catálogo canônico dos 7 tipos suportados (Cowork visual)
+        // Catálogo canônico dos 7 tipos suportados (Cowork visual).
+        // WhatsApp scan-QR LIVE = `whatsapp_whatsmeow` (WuzAPI/whatsmeow, ADR 0204) — é o
+        // type REAL de onde as conversas chegam. Baileys foi descontinuado e deletado
+        // (ADR 0202); uma row `whatsapp_baileys` jamais casaria com um Channel ativo
+        // (`$activeTypesCount[$row['id']]`), derrubando TODOS os chips pra 'em_breve' e
+        // escondendo o canal vivo. O `id` da row também é o valor do filtro `?channel=`
+        // (whereHas channel.type), então precisa bater com a constante canônica.
         $catalog = [
-            ['id' => 'whatsapp_baileys', 'label' => 'WhatsApp Baileys',    'short' => 'WA · Baileys',    'hue' => 145, 'glyph' => 'W'],
+            ['id' => 'whatsapp_whatsmeow', 'label' => 'WhatsApp', 'short' => 'WhatsApp', 'hue' => 145, 'glyph' => 'W'],
             ['id' => 'whatsapp_meta',    'label' => 'WhatsApp Meta Cloud', 'short' => 'WA · Meta Cloud', 'hue' => 145, 'glyph' => 'W'],
             ['id' => 'whatsapp_zapi',    'label' => 'WhatsApp Z-API',      'short' => 'WA · Z-API',      'hue' => 145, 'glyph' => 'W'],
             ['id' => 'instagram_dm',     'label' => 'Instagram DM',        'short' => 'Instagram',       'hue' => 0,   'glyph' => '◎'],
