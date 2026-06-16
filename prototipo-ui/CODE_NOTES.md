@@ -949,3 +949,24 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 - **golden (FA-5)**: F3 de protótipo Cowork = SEMPRE mapear token Cowork→live ANTES de colar CSS. O gabarito FA-5 referenciava `--text-2/--sunken/--pos-soft/--hairline` (vocabulário do protótipo) que não existe no live; e cor semântica no drawer vai por Tailwind `@theme`, não `var(--pos)` (o drawer é portal FORA de `.cockpit`, onde `--pos` de cockpit.css mora). Sintoma se ignorado: CSS "verde" que renderiza INCOLOR (var indefinida = sem cor). Resolve: tokens neutros do escopo `.fin-cowork` + Fundação (`--sh-2/--ease/--fs-*`); semântico via classe utilitária.
 - **gotcha (FA-5)**: colisão de atalho `R` — `R` era global "novo recebimento"; o 9.75 quer `R`=liquida no drawer. Resolvido por PRECEDÊNCIA (drawer aberto + título liquidável → `openBaixa`; senão cai no novo-lançamento). Mesmo guard de foco (INPUT/TEXTAREA/SELECT/contentEditable + meta/ctrl/alt).
 - **gotcha (FA-5)**: inline-edit (R2 KVEdit) precisa de rota de save POR CAMPO — `Canal` não tem (`UpdateTituloRequest` só aceita categoria_id/plano/venc/valor/forma/conta). Deferido em vez de inventar PATCH (T-AP-10). Regra: KVEdit inline só onde o campo já tem rota de update provada.
+
+---
+
+## TAREFA 2 — Guard da Reincidência
+_handoff 2026-06-16 · [CL] · verificado vs main @4d9726142_
+
+### Onda 1 — regra (doc) — PR #2866
+| item | veredito | prova |
+|---|---|---|
+| §16 Caçador de reincidência | C1–C6 + condição de morte (C1/C2/C6 ritual Cowork; C3/C4/C5 git-gate) + regra-texto (5 leis) + LINHA D'ÁGUA. Trilha §16→§17 | `integrity-check.mjs` §15 verde (IT1–IT7) |
+| C4 já mecanizado | `scripts/governance/ghost-fix.mjs` + `knowledge-ghost-gate` + §15 IT2/IT7 cobrem órfão/ref-morta | grep/ls |
+| **Correção do handoff** | (a) "home" `cowork-inbox.py` = COURIER (move p/ path whitelisted), **não** a fila — governança real em `scripts/governance/*`; (b) ref `prototipo-ui-patch/PROMPT_…INTEGRITY-GATE.md` = **arquivo morto** (não existe) = o próprio caso C4 | grep + ls |
+
+### Onda 2 — gate CI (C3/C5) — **PENDENTE [W]**
+| item | veredito | prova |
+|---|---|---|
+| Bloqueio honesto | a fila viva (`> … → [CL]` + LINHA D'ÁGUA) é **Cowork-only** (Tier 1, §14 — STATUS/MEMORY_INDEX fora do git). Gate git não tem o que varrer p/ C3/C5 sem um path da fila/handoffs **no git**. Construir contra path-chute = "gate que não morde" (o pecado do SDD). Aguarda [W] confirmar o path real. | §14 + grep `→ [CL]` (só GLOSSARY) |
+
+### new_design_memories
+- **gotcha**: handoff citou `cowork-inbox.py` como "home" do gate, mas é courier (target/append-to whitelist), não a fila. Confirmar o que o arquivo FAZ antes de "estender" — Regra 7 (não criar paralelo) pressupõe achar o irmão certo.
+- **golden**: o arquivo de referência do próprio handoff (`prototipo-ui-patch/PROMPT_…`) era ref morta — provei a tese da TAREFA-2 antes de codá-la. Escrevi a regra da prosa auto-contida; não inventei o que faltava.
