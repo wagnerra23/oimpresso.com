@@ -310,8 +310,13 @@ class TriageController extends Controller
         }
 
         // Valor × esforço SUGERIDO (derivado — não fantasma; rotular como sugestão na UI).
-        $valorMap = ['p0' => 'alto', 'p1' => 'alto', 'p2' => 'médio', 'p3' => 'baixo'];
-        $valor = $valorMap[$task->priority] ?? 'médio';
+        // priority é enum nullable (default p2); match cobre null/desconhecido via default
+        // (evita o ?? redundante que o Larastan acusa por inferir o enum como non-null).
+        $valor = match ($task->priority) {
+            'p0', 'p1' => 'alto',
+            'p3'       => 'baixo',
+            default    => 'médio', // p2 + null + qualquer outro
+        };
         $est = $task->estimate_h !== null ? (float) $task->estimate_h : null;
         $esforco = $est === null ? 'desconhecido' : ($est <= 4 ? 'baixo' : ($est <= 16 ? 'médio' : 'alto'));
 
@@ -332,7 +337,10 @@ class TriageController extends Controller
             'valor_esforco' => ['valor' => $valor, 'esforco' => $esforco],
             'risco_tier0'   => ['tier0' => ! empty($sinais), 'sinais' => $sinais],
             'charter_ref'   => $task->module ? 'memory/requisitos/' . $task->module . '/SPEC.md' : null,
-            'pode_aprovar'  => $task->owner !== null && $task->priority !== null,
+            // priority é enum nullable no banco; lê o valor cru (mixed) pra checar
+            // null — o Larastan infere o enum como non-null e acusaria !== null
+            // como "sempre verdadeiro". owner é nullable normal.
+            'pode_aprovar'  => $task->owner !== null && $task->getRawOriginal('priority') !== null,
         ]);
     }
 
