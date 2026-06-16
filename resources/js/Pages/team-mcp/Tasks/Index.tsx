@@ -221,7 +221,12 @@ function TasksIndex({
     })
       .then((r) => {
         if (r.ok) {
-          router.reload({ only: ['kanban', 'backlog', 'kpis'] });
+          // Limpa o otimismo só após o reload reconciliar: evita flicker E evita
+          // mascarar mudança real posterior de outro ator (review PR-1).
+          router.reload({
+            only: ['kanban', 'backlog', 'kpis'],
+            onFinish: () => setOptimistic((p) => { const n = { ...p }; delete n[taskId]; return n; }),
+          });
           return;
         }
         setOptimistic((p) => { const n = { ...p }; delete n[taskId]; return n; });
