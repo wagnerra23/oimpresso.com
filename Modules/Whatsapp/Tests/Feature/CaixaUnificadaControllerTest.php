@@ -253,7 +253,9 @@ function cuctMakeChannel(int $businessId, string $uuid, string $status = 'active
         'business_id' => $businessId,
         'channel_uuid' => $uuid,
         'label' => 'Suporte',
-        'type' => Channel::TYPE_WHATSAPP_BAILEYS,
+        // Type LIVE real (whatsmeow/WuzAPI, ADR 0204). Baileys foi deletado (ADR 0202) —
+        // seedar o type morto mascararia o bug dos chips (PARTE 4 caixa unificada).
+        'type' => Channel::TYPE_WHATSAPP_WHATSMEOW,
         'status' => $status,
     ]);
 }
@@ -337,17 +339,65 @@ it('R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivad
         ->and($convs['data'][0]['queue']['label'])->toBe('Financeiro')
         ->and($convs['data'][0]['queue']['hue'])->toBe(280);
 
-    // Channels catalog (7 tipos canônicos)
+    // Channels catalog (7 tipos canônicos — WhatsApp LIVE = whatsmeow, ADR 0204)
     $channels = cuctResolveDefer($props['availableChannels']);
     expect($channels)->toHaveCount(7)
         ->and(collect($channels)->pluck('id')->all())
-        ->toContain('whatsapp_baileys', 'whatsapp_meta', 'instagram_dm', 'email_imap', 'mercadolivre');
+        ->toContain('whatsapp_whatsmeow', 'whatsapp_meta', 'instagram_dm', 'email_imap', 'mercadolivre')
+        ->and(collect($channels)->pluck('id')->all())
+        ->not->toContain('whatsapp_baileys'); // Baileys morto (ADR 0202) saiu do catálogo
 
-    // Baileys deve estar 'ativo' (criamos 1 channel ativo), outros 'em_breve'
-    $baileysChan = collect($channels)->firstWhere('id', 'whatsapp_baileys');
-    expect($baileysChan['status'])->toBe('ativo');
+    // WhatsApp (whatsmeow) deve estar 'ativo' (criamos 1 channel ativo), outros 'em_breve'
+    $waChan = collect($channels)->firstWhere('id', 'whatsapp_whatsmeow');
+    expect($waChan['status'])->toBe('ativo');
     $metaChan = collect($channels)->firstWhere('id', 'whatsapp_meta');
     expect($metaChan['status'])->toBe('em_breve');
+});
+
+// ============================================================================
+// 1-bis. PARTE 4 (regressão) — canal WhatsApp LIVE (whatsmeow) vira chip 'ativo'
+// ============================================================================
+
+/**
+ * R-WA-CAIXA-UNIF-013 — BUG fix PARTE 4: o catálogo de chips definia o WhatsApp como
+ * `whatsapp_baileys` (provider morto, ADR 0202), então o Channel ATIVO real
+ * (`whatsapp_whatsmeow`, WuzAPI/whatsmeow ADR 0204) nunca casava com nenhuma row e
+ * TODOS os chips caíam em 'em_breve' — escondendo justamente o canal de onde as
+ * conversas chegam. Após o fix a row é `whatsapp_whatsmeow`: o chip mostra 'ativo' com
+ * a contagem real, e o filtro `?channel=whatsapp_whatsmeow` aplica via whereHas type.
+ *
+ * red-first: contra o catálogo antigo (row whatsapp_baileys) este teste FALHA — o chip
+ * whatsmeow inexistente → null no firstWhere; é o discriminador do bug, não tautológico.
+ */
+it('R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-013-uuid'); // type whatsmeow, status active
+    cuctMakeConv(1, $ch->id, ['vendas']);
+    cuctMakeConv(1, $ch->id, ['suporte']);
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    $channels = cuctResolveDefer($props['availableChannels']);
+
+    // O chip do canal LIVE existe e está 'ativo' com a contagem real (2 convs)
+    $wa = collect($channels)->firstWhere('id', 'whatsapp_whatsmeow');
+    expect($wa)->not->toBeNull()
+        ->and($wa['status'])->toBe('ativo')
+        ->and($wa['count'])->toBe(2);
+
+    // A row morta de Baileys não existe mais no catálogo (ADR 0202)
+    expect(collect($channels)->pluck('id')->all())->not->toContain('whatsapp_baileys');
+
+    // O `id` da row é o valor do filtro `?channel=` — whereHas channel.type bate certo
+    $filtered = cuctResolveDefer(
+        cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['channel' => 'whatsapp_whatsmeow']))['conversations']
+    );
+    expect($filtered['data'])->toHaveCount(2);
+
+    // Filtro por type inexistente devolve vazio (prova que filtra por type, não no-op)
+    $none = cuctResolveDefer(
+        cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['channel' => 'whatsapp_baileys']))['conversations']
+    );
+    expect($none['data'])->toHaveCount(0);
 });
 
 // ============================================================================
