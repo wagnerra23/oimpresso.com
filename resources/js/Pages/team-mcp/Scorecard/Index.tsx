@@ -14,7 +14,7 @@ import { router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { cn } from '@/Lib/utils';
@@ -64,6 +64,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
     function onKey(e: KeyboardEvent) {
       const tgt = e.target as HTMLElement | null;
       const typing = !!tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable);
+      if (e.ctrlKey || e.metaKey || e.altKey) return; // não sequestrar Ctrl/Cmd+R do browser
       if (!typing && (e.key === 'r' || e.key === 'R')) {
         e.preventDefault();
         router.reload({ only: ['facts', 'checks'] });
@@ -76,10 +77,9 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
   return (
     <>
       <PageHeader
-        icon="heart-pulse"
         title="Saúde do MCP"
-        description={`Facts + Checks · janela ${meta.period_days}d · fonte ${meta.source}`}
-        action={
+        subtitle={`Facts + Checks · janela ${meta.period_days}d · fonte ${meta.source}`}
+        actions={
           <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => router.reload({ only: ['facts', 'checks'] })}>
             <RefreshCw size={13} className="mr-1" /> Atualizar
           </Button>
