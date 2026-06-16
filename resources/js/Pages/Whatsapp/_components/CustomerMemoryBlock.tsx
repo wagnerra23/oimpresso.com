@@ -33,6 +33,7 @@ import {
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Separator } from '@/Components/ui/separator';
+import { Inline } from '@/Components/layout';
 
 interface Reclamacao {
   date: string;
@@ -200,10 +201,10 @@ export default function CustomerMemoryBlock({ customerExternalId }: Props) {
     !!m.flags?.length;
   if (!c && !hasEnrichment) {
     return (
-      <div className="px-1 py-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+      <Inline gap={1} className="px-1 py-1 text-xs text-muted-foreground">
         <User className="size-3.5 shrink-0" />
         <span>Sem cadastro de cliente vinculado.</span>
-      </div>
+      </Inline>
     );
   }
 
