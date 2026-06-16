@@ -504,7 +504,7 @@ export default function ConversationListV4({
                     const waited = slaWaitedMin(conv);
                     return (
                       <span
-                        className={cn('inline-block font-mono text-[9px] font-bold px-1.5 py-px rounded-full border', m.pill)}
+                        className={cn('inline-block font-mono text-[9px] font-bold px-1.5 py-px rounded-full border', m.pillSm)}
                         title={`SLA ${conv.queue.sla} — ${m.label}`}
                         data-testid={`caixa-unif-sla-${conv.id}`}
                       >
