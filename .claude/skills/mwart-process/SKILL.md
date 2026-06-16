@@ -120,9 +120,11 @@ Camadas 2 e 3 são US-MWART-001 e US-MWART-002 (próximo PR após este ADR merge
 
 ## Override (exceções autorizadas)
 
-Wagner pode autorizar exceção via comentário em PR: `/mwart-override <razão>`. Exceção fica registrada em ADR per-tela `memory/decisions/<NNNN>-mwart-excecao-<mod>-<tela>.md` (lifecycle `historical` — auditoria).
+Wagner pode autorizar exceção **de processo** via comentário em PR: `/mwart-override <razão>`. Exceção fica registrada em ADR per-tela `memory/decisions/<NNNN>-mwart-excecao-<mod>-<tela>.md` (lifecycle `historical` — auditoria).
 
-Sem `/mwart-override`, gates não cedem. Iniciante (`[L]`), esposa (`[E]`), Maíra, Felipe — todos passam pelo mesmo caminho. Wagner também (não pode skipar pra si).
+⚠️ **O comentário não mexe em check de CI.** Nenhum workflow processa `issue_comment` — `/mwart-override` é registro humano, não comando de máquina (caso real PR #2544, 2026-06-11: Wagner comentou override e o check `visual-regression` seguiu vermelho). Pra deixar `visual-regression` verde o único caminho é atualizar a baseline: `./vendor/bin/pest tests/Browser/ --update-snapshots` + commit dos screenshots (ADR 0271 — sem gate-teatro).
+
+Sem `/mwart-override`, gates de processo não cedem. Iniciante (`[L]`), esposa (`[E]`), Maíra, Felipe — todos passam pelo mesmo caminho. Wagner também (não pode skipar pra si).
 
 ## Refs
 
