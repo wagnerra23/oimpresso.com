@@ -10,7 +10,7 @@ last_run: "2026-06-16"
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde) · ⬜ não verificado · ❌ quebrou.
 
-> Onda Forja **PR-A**: SHELL navegável (sidebar + 6 abas + rotas) **+ Triagem REAL** (esta PR). As demais 5 abas seguem placeholder (1 PR cada, B–G). Persona: Wagner [W] (superadmin). A Triagem só muta sob confirmação [W]. Referência: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+> Onda Forja: cockpit completo — **as 6 abas reais** (Triagem · Backlog · Quadro F0→F3.5 · Changelog · MCP · Saúde), projetando `mcp_tasks` project=FORJA + git/ADR/sessão + gates (sem dado fantasma; MCP é MOCKADO por design). Persona: Wagner [W] (superadmin). A Triagem só muta sob confirmação [W]. Referência: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
 
 ## UC-FORJA-01 — As 6 rotas /forja respondem (shell no ar)
 Status: ⬜ (smoke pós-merge — abrir cada rota em prod)

@@ -16,11 +16,16 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link } from '@inertiajs/react';
 import { type ReactNode } from 'react';
-import { Activity, Bell, Construction, History, Inbox, LayoutGrid, List, Plug, Search } from 'lucide-react';
+import { Activity, Bell, History, Inbox, LayoutGrid, List, Plug, Search } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
 import { PageHeaderPrimary } from '@/Components/PageHeader/PageHeaderPrimary';
 import { cn } from '@/Lib/utils';
 import ForjaTriage, { type ForjaTicket } from './_components/ForjaTriage';
+import ForjaBacklog, { type BacklogTask } from './_components/ForjaBacklog';
+import ForjaQuadro, { type QuadroData } from './_components/ForjaQuadro';
+import ForjaChangelog, { type ChangelogEntry } from './_components/ForjaChangelog';
+import ForjaSaude, { type SaudeData } from './_components/ForjaSaude';
+import ForjaMcp from './_components/ForjaMcp';
 
 interface Meta {
   generated_at: string;
@@ -32,10 +37,14 @@ interface Props {
   tabLabel: string;
   subtitle: string;
   meta: Meta;
-  // Triagem (aba 1) — chegam via Inertia::defer só na aba triagem. Opcionais
-  // (undefined nas outras abas e no 1º paint da Triagem — default-guard).
+  // Props por aba — chegam via Inertia::defer só na aba ativa. Opcionais
+  // (undefined nas outras abas e no 1º paint — default-guard nos componentes).
   tickets?: ForjaTicket[];
   triagemCount?: number;
+  backlog?: BacklogTask[];
+  quadro?: QuadroData;
+  changelog?: ChangelogEntry[];
+  saude?: SaudeData;
 }
 
 const COCKPIT_SUBTITLE =
@@ -61,9 +70,14 @@ function openCommandPalette() {
   );
 }
 
-function ForjaCockpit({ tab, tabLabel, subtitle, tickets, triagemCount }: Props) {
-  const isTriagem = tab === 'triagem';
-  const sinoBadge = isTriagem ? triagemCount : undefined;
+function ForjaCockpit({ tab, subtitle, tickets, triagemCount, backlog, quadro, changelog, saude }: Props) {
+  const sinoBadge = tab === 'triagem' ? triagemCount : undefined;
+
+  const loading = (txt: string) => (
+    <div className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-dashed py-16 text-sm text-muted-foreground">
+      Carregando {txt}…
+    </div>
+  );
 
   return (
     <>
@@ -143,34 +157,37 @@ function ForjaCockpit({ tab, tabLabel, subtitle, tickets, triagemCount }: Props)
       </nav>
 
       <section className="px-6 pt-4" data-testid={`forja-tab-${tab}`}>
-        {isTriagem ? (
-          // Aba Triagem REAL — tickets deferidos (skeleton até resolver).
-          <Deferred
-            data={['tickets', 'triagemCount']}
-            fallback={
-              <div className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-dashed py-16 text-sm text-muted-foreground">
-                Carregando propostas…
-              </div>
-            }
-          >
+        {/* Intro da aba (texto-âncora). Triagem renderiza o seu próprio; MCP tem banner. */}
+        {tab !== 'triagem' && tab !== 'mcp' && (
+          <p className="text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
+        )}
+
+        {tab === 'triagem' && (
+          <Deferred data={['tickets', 'triagemCount']} fallback={loading('propostas')}>
             <ForjaTriage tickets={tickets} />
           </Deferred>
-        ) : (
-          // Demais abas: placeholder (cada uma vira 1 PR própria desta onda).
-          <>
-            <h2 className="text-sm font-semibold text-foreground">{tabLabel}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
-            <div className="mt-4 inline-flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/30 px-6 py-12 text-center">
-              <Construction size={22} className="text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Aba “{tabLabel}” em construção</p>
-              <p className="max-w-md text-xs text-muted-foreground">
-                O shell do cockpit (sidebar + 6 abas + rotas) está no ar. Cada aba entra como
-                uma PR própria desta onda, com seu gate visual — referência aprovada na
-                visual-comparison do cockpit Forja.
-              </p>
-            </div>
-          </>
         )}
+        {tab === 'backlog' && (
+          <Deferred data={['backlog']} fallback={loading('backlog')}>
+            <ForjaBacklog backlog={backlog} />
+          </Deferred>
+        )}
+        {tab === 'quadro' && (
+          <Deferred data={['quadro']} fallback={loading('quadro')}>
+            <ForjaQuadro quadro={quadro} />
+          </Deferred>
+        )}
+        {tab === 'changelog' && (
+          <Deferred data={['changelog']} fallback={loading('changelog')}>
+            <ForjaChangelog changelog={changelog} />
+          </Deferred>
+        )}
+        {tab === 'saude' && (
+          <Deferred data={['saude']} fallback={loading('saúde')}>
+            <ForjaSaude saude={saude} />
+          </Deferred>
+        )}
+        {tab === 'mcp' && <ForjaMcp />}
       </section>
     </>
   );

@@ -15,9 +15,9 @@ tier: A
 charter_version: 1
 ---
 
-# Page Charter — `/forja` cockpit (DRAFT · Onda Forja · shell + Triagem real)
+# Page Charter — `/forja` cockpit (DRAFT · Onda Forja · 6 abas reais)
 
-> Criado no PR **Forja PR-A** (2026-06-16, shell). **Forja PR-A · Triagem** (2026-06-16): a aba **Triagem** deixa de ser placeholder e vira **tela real** (projeta `mcp_tasks` project=FORJA em estado de triagem + dossiê lateral reusando o padrão Analista de ProjectMgmt apontando pros endpoints `/forja/*`). As outras 5 abas (backlog/quadro/changelog/mcp/saude) **seguem placeholder** — 1 PR cada (B–G). Cockpit do cowork loop (humano ↔ agente). **Absorção em TeamMcp** (não é módulo novo). Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Backend: `ForjaController` (TeamMcp). Ref: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+> Cockpit do cowork loop (humano ↔ agente) — **as 6 abas são reais**: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
 
 ## Mission
 
