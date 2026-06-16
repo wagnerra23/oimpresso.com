@@ -5,6 +5,11 @@ type: reference
 ---
 # Deploy + recovery patterns (Hostinger)
 
+> **⚠️ STATUS 2026-06-10 — o caminho de deploy MUDOU ([ADR 0269](../decisions/0269-deploy-automatico-build-no-runner.md)).** A partir de agora **`deploy.yml` dispara AUTOMÁTICO em push pra main** (exceto docs: `memory/**`, `**.md`, `prototipo-ui/**`, `cowork-inbox/**`), com o **JS buildado NO RUNNER** (ubuntu, não no Hostinger) + publish atômico + OPcache reset **obrigatório** + smoke que valida hash de bundle. **Merge agora = publicado** pra mudanças não-doc — some a pegadinha "merge ≠ publicado" das §2.1/§2.2 abaixo. Consequências práticas:
+> - **`quick-sync.yml` perdeu o trigger `push`** (virou `workflow_dispatch`-only). Toda referência abaixo a "quick-sync auto on push" está **superada** — quem auto-roda no merge é o `deploy.yml`.
+> - O **build no shared host** (causa raiz dos 500/hashes stale, §2.3) **saiu do fluxo normal** — só sobra no `force-clean-rebuild` (nuclear manual). **Não usar `force-clean-rebuild` no fluxo padrão** — ele rebuilda no Hostinger, exatamente o que o 0269 elimina.
+> - As receitas de **recovery manual abaixo continuam válidas como FALLBACK** quando o auto-deploy falha (SSH flaky, etc.) — mas confira primeiro `gh run list --workflow=deploy.yml --limit 1`, não o quick-sync.
+
 Consolidação de receitas operacionais que se entrelaçam em sessões de deploy. Validadas várias vezes em 2026-04-25 → 2026-05-10.
 
 > **⚠️ MUDANÇA DE POLÍTICA 2026-06-10 (ADR 0269) — ler antes do resto:** o auto-deploy canônico em push pra main passou a ser o **`deploy.yml`** (`Deploy to Hostinger`), que builda o JS **no runner** (ubuntu, determinístico) e publica os bundles via tar/ssh. O **`quick-sync.yml` perdeu o trigger `push`** (virou escape manual `workflow_dispatch`-only). Várias receitas abaixo (§2, §2.1-2.4, §5) descrevem o mundo "quick-sync auto + build no Hostinger" — continuam válidas como **recuperação manual** e pro escape `quick-sync`, mas o caminho-padrão agora é o auto-deploy do `deploy.yml`. Ver §8.
