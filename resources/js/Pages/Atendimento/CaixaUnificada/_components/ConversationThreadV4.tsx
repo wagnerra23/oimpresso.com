@@ -13,6 +13,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CheckCheck, ClipboardCheck, FileDown, Presentation, Sparkles } from 'lucide-react';
 import { cn } from '@/Lib/utils';
+import { Stack } from '@/Components/layout';
 import {
   type CaixaUnifMessage,
   type CaixaUnifThread,
@@ -291,11 +292,12 @@ export default function ConversationThreadV4({
           messages.map((m, i) => {
             const showDay = i === 0 || dayGroupLabel(messages[i - 1]!.created_at) !== dayGroupLabel(m.created_at);
             return (
-              // Wrapper flex-col (canon Cowork `.om-msg-wrap`): sem pai flex o
-              // `self-start/self-end` + `ml-auto/mr-auto` da linha da bolha vira
-              // no-op e as enviadas (outbound) encostavam à esquerda junto das
-              // recebidas. Flex-col faz inbound→esquerda, outbound→direita.
-              <div key={m.id} className="flex flex-col">
+              // Stack (flex-col · primitivo DS ADR 0253 · canon Cowork `.om-msg-wrap`):
+              // sem pai flex o `self-start/self-end` + `ml-auto/mr-auto` da linha da
+              // bolha vira no-op e as enviadas (outbound) encostavam à esquerda junto
+              // das recebidas. Stack faz inbound→esquerda, outbound→direita.
+              // gap={0}: espaçamento vem do `gap-1` do container + `my-3` do dia.
+              <Stack key={m.id} gap={0}>
                 {showDay && (
                   <div className="text-center my-3">
                     <span className="bg-card border rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
@@ -434,7 +436,7 @@ export default function ConversationThreadV4({
                   </div>
                   </div>
                 )}
-              </div>
+              </Stack>
             );
           })
         )}
