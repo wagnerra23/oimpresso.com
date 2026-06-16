@@ -6,7 +6,8 @@
 //   - grid 5-col `minmax(260px,1.6fr) repeat(4,1fr)` com reflow por CONTAINER
 //     (@container finbody: ≤1100px → 4col + hero full; ≤600px → 2col)
 //   - card branco, borda var(--fin-line), radius 8, pad 12/14, flex-col gap 2
-//   - variante `hero` "documento contábil" warm-dark + override dark-mode
+//   - variante `hero` CLARA (Onda 28) — gradiente accent 295 sobre var(--surface),
+//     theme-aware (em .dark o mesmo gradiente vira card raised escuro)
 //   - tons pos/neg (oklch canon do fin-cowork)
 //
 // ⚠️ USAR dentro de um ancestral `.fin-curadoria` — ele fornece os tokens
@@ -28,46 +29,47 @@ interface FinStatProps {
   hero?: boolean;
 }
 
-// Cor do número (`<b>`) por tom. Espelha .fin-num-pos / .fin-num-neg do fin-cowork,
-// com os valores mais claros quando dentro do hero (fundo escuro).
-function toneClass(tone: FinStatTone, hero: boolean): string {
-  if (tone === 'pos') return hero ? 'text-[oklch(0.78_0.14_145)]' : 'text-[oklch(0.45_0.18_145)]';
-  if (tone === 'neg') return hero ? 'text-[oklch(0.78_0.14_25)]' : 'text-[oklch(0.50_0.18_25)]';
-  return hero ? 'text-white' : 'text-[var(--fin-text)]';
+// Cor do número (`<b>`) por tom. Hero claro (Onda 28) usa os MESMOS tons dark-on-light
+// dos cards normais — o que distingue o hero é o CARD (gradiente accent + sombra), não
+// a cor do texto. Espelha .fin-num-pos / .fin-num-neg do fin-cowork.
+function toneClass(tone: FinStatTone): string {
+  if (tone === 'pos') return 'text-[oklch(0.45_0.18_145)]';
+  if (tone === 'neg') return 'text-[oklch(0.50_0.18_25)]';
+  return 'text-[var(--fin-text)]';
 }
+
+// Hero claro (Onda 28) — gradiente com leve luz da identidade (accent 295) sobre
+// var(--surface). Tokens são theme-aware: em dark-mode (.dark) --surface vira escuro,
+// então o MESMO gradiente vira um card raised escuro tingido de accent. Espelho de
+// fin-cowork.css `.fin-stat-hero` (manter os dois em sincronia).
+const HERO_STYLE = {
+  background:
+    'radial-gradient(540px 200px at 14% -45%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%),' +
+    ' linear-gradient(160deg, color-mix(in oklab, var(--accent) 8%, var(--surface)) 0%, var(--surface) 78%)',
+  border: '1px solid color-mix(in oklab, var(--accent) 18%, var(--border))',
+  boxShadow: 'var(--sh-1)',
+} as const;
 
 export function FinStat({ label, value, hint, tone = 'neutral', hero = false }: FinStatProps) {
   const card = hero
-    ? // .fin-stat-hero: warm-dark "documento contábil" + dark-backfill (raised surface)
-      'relative overflow-hidden border-0 bg-[oklch(0.22_0.01_80)] text-white ' +
-      'col-[1/-1] @max-[1100px]:col-span-full dark:border dark:border-[oklch(0.40_0.012_80)] dark:bg-[oklch(0.30_0.012_80)]'
+    ? 'relative overflow-hidden min-h-24 pb-[18px] col-[1/-1] @max-[1100px]:col-span-full'
     : 'border border-[var(--fin-line)] bg-white';
 
   return (
-    <div className={`flex min-w-0 flex-col gap-0.5 rounded-lg px-3.5 py-3 ${card}`}>
-      <small
-        className={`text-[10px] font-semibold uppercase tracking-[0.06em] ${
-          hero ? 'text-[oklch(0.75_0.01_80)] opacity-95' : 'text-[var(--fin-text-mute)]'
-        }`}
-      >
+    <div
+      className={`flex min-w-0 flex-col gap-0.5 rounded-lg px-3.5 py-3 ${card}`}
+      style={hero ? HERO_STYLE : undefined}
+    >
+      <small className="text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--fin-text-mute)]">
         {label}
       </small>
       <b
-        className={`font-mono font-bold tracking-[-0.01em] ${hero ? 'text-[26px]' : 'text-[22px]'} ${toneClass(
-          tone,
-          hero,
-        )}`}
+        className={`font-mono font-bold tracking-[-0.01em] ${hero ? 'text-[28px]' : 'text-[22px]'} ${toneClass(tone)}`}
       >
         {value}
       </b>
       {hint != null && (
-        <span
-          className={`text-[11px] ${
-            hero ? 'text-[oklch(0.72_0.01_80)] opacity-85' : 'text-[var(--fin-text-mute)]'
-          }`}
-        >
-          {hint}
-        </span>
+        <span className="text-[11px] text-[var(--fin-text-mute)]">{hint}</span>
       )}
     </div>
   );
