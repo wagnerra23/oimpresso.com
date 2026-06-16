@@ -92,4 +92,22 @@ return [
             ],
         ],
     ],
+
+    // Forja — cockpit do cowork loop (Onda Forja PR-A). Raiz /forja é segmento
+    // PRÓPRIO de propósito: useAutoModuleNav() casa o topnav pelo 1º segmento da
+    // URL, então /team-mcp/* (hub Equipe) e /forja/* não se sobrepõem. Controller
+    // mora em Modules/TeamMcp (absorção, não módulo novo).
+    // Ref: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
+    'Forja' => [
+        'label' => 'Forja',
+        'icon'  => 'Hammer',
+        'items' => [
+            ['label' => 'Triagem',   'href' => '/forja',           'icon' => 'Inbox',        'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Backlog',   'href' => '/forja/backlog',   'icon' => 'List',         'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Quadro',    'href' => '/forja/quadro',    'icon' => 'LayoutKanban', 'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Changelog', 'href' => '/forja/changelog', 'icon' => 'History',      'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'MCP',       'href' => '/forja/mcp',       'icon' => 'Plug',         'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Saúde',     'href' => '/forja/saude',     'icon' => 'Activity',     'can' => 'copiloto.mcp.usage.all'],
+        ],
+    ],
 ];
