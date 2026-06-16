@@ -32,7 +32,9 @@ interface Props {
   snapshot: HealthSnapshot | null;
 }
 
-function fmtRelative(iso: string | null): string {
+// Nome próprio (não `fmtRelative`): minutos arredondados + sem fallback de data
+// absoluta p/ >7d (mostra 'Xd atrás'), divergem do canônico @/Lib/datetime-br.
+function fmtAgoNoDate(iso: string | null): string {
   if (!iso) return 'nunca';
   const d = new Date(iso).getTime();
   if (Number.isNaN(d)) return 'nunca';
@@ -77,7 +79,7 @@ export default function HealthPanelV4({ open, onOpenChange, snapshot }: Props) {
               primary={
                 snapshot.scorecard_cron_ok ? 'Operacional' : 'Falha last_run'
               }
-              detail={`last run ${fmtRelative(snapshot.scorecard_last_run_at)}`}
+              detail={`last run ${fmtAgoNoDate(snapshot.scorecard_last_run_at)}`}
             />
             <HealthCard
               title="AI baseline 30d"
@@ -95,7 +97,7 @@ export default function HealthPanelV4({ open, onOpenChange, snapshot }: Props) {
               tone={snapshot.otel_collector_up ? 'ok' : 'bad'}
               icon={<Activity size={14} />}
               primary={snapshot.otel_collector_up ? 'Up' : 'Down'}
-              detail={`last ping ${fmtRelative(snapshot.otel_collector_last_ping_at)}`}
+              detail={`last ping ${fmtAgoNoDate(snapshot.otel_collector_last_ping_at)}`}
             />
             <HealthCard
               title="Cobertura buckets"
