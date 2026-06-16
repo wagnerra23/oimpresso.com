@@ -70,7 +70,7 @@ describe('fin-hero — o hero REAL é claro (Onda 28), não a caixa preta', () =
     const css = readFileSync(CSS, 'utf8');
     const rule = css.match(/\.fin-stat-hero \.fin-stat-hint b\s*\{([^}]*)\}/);
     expect(rule, 'falta a regra que reduz o <b> do hint').not.toBeNull();
-    expect(rule![1]).toMatch(/font-size:\s*var\(--fs-1\)/);
+    expect(rule![1]).toMatch(/font-size:\s*var\(--fs-[12]\)/); // pequeno (gabarito = --fs-2), nunca o --fs-8 do herói
     expect(rule![1]).not.toMatch(/--fs-8/);
   });
 });
