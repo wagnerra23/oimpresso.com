@@ -953,7 +953,7 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 ---
 
 ## TAREFA 1 — PageHeader canon rollout (telas inline → componente)
-> **Reconciliação · sessões paralelas (2026-06-16):** esta sessão migrou Dashboard (#2863) por decisão [W] "Full canon" + "Keep #2863"; a entrada ACIMA pulou TAREFA 1 alegando `os-page-h` = **Tier 0 Cowork-canon** (`feedback-cowork-bundle-aplicar-inteiro` + Unificado charter v15 "Markup canon EXATO"). ⚠️ **Contradição Tier 0 NÃO resolvida — [W] confirmar ANTES de mergear #2863.** Fato verificado: Dashboard NÃO tem charter próprio; mas a 1ª sessão alega que `os-page-h` é canon de bundle, não alvo. Se for, fechar #2863.
+> **Reconciliação · sessões paralelas (2026-06-16):** esta sessão migrou Dashboard (#2863) por decisão [W] "Full canon" + "Keep #2863"; a entrada ACIMA pulou TAREFA 1 alegando `os-page-h` = Tier 0 Cowork-canon. **Verificado e resolvido a favor de #2863:** (1) o doc citado `feedback-cowork-bundle-aplicar-inteiro` é sobre ESTRATÉGIA de cópia de bundle CSS (copiar `styles.css` inteiro vs cherry-pick), **não** sobre proteger `os-page-h` de migração; (2) `ContasPagar` e `Dre` já migraram OFF `os-page-h` pra `<PageHeader>` (Wave 4, 25/mai) — direção estabelecida; (3) Dashboard não tem charter. Só **Unificado** é charter-locked em `os-page-h` (corretamente HELD nesta sessão). #2863 procede.
 _handoff 2026-06-16 · [CL] · 1 tela = 1 PR · verificado vs main @4d9726142_
 
 ### Onda 0 — inventário (CORRIGE o handoff)
