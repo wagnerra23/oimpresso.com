@@ -19,7 +19,6 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
 use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
 use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
-use Modules\TeamMcp\Services\Forja\ForjaSaudeService;
 
 /**
  * ForjaController — cockpit do cowork loop (/forja).
@@ -119,14 +118,11 @@ class ForjaController extends Controller
         return $this->renderTab('mcp');
     }
 
-    public function saude(): Response
+    public function saude(): \Illuminate\Http\RedirectResponse
     {
-        $projectId = $this->resolveForjaProjectId();
-
-        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
-            $this->tabPayload('saude'),
-            ['saude' => Inertia::defer(fn () => app(ForjaSaudeService::class)->build($projectId))],
-        ));
+        // Fusão 2026-06-16: a aba Saúde reusa o Scorecard REAL (Facts+Checks) —
+        // a versão fina foi aposentada pra não competir com /team-mcp/scorecard.
+        return redirect()->route('team-mcp.scorecard.index');
     }
 
     // ---------- Triagem · payload ----------
