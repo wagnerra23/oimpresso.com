@@ -230,7 +230,7 @@ function CcSessionsIndex({ sessions, filters, kpis, devs, projects, permissions 
             description="O schema mcp_cc_* está pronto; falta o watcher Node nos devs (POST /api/cc/ingest)."
             action={
               <a
-                href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Copiloto/SPEC-cc-sessions.md"
+                href="https://github.com/wagnerra23/oimpresso.com/blob/main/memory/requisitos/Jana/SPEC-cc-sessions.md"
                 target="_blank" rel="noopener noreferrer"
                 className="text-sm text-primary hover:underline"
               >Ver SPEC do watcher →</a>
