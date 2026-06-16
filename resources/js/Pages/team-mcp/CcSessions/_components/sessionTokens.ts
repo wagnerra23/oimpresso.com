@@ -1,6 +1,10 @@
 // Forja PR-2 — tokens/helpers puros da tela CcSessions (sem JSX → react-refresh friendly).
 // DS v6: SEM cor crua. Bolhas/status via tokens semânticos.
 
+// fmtRelative é canônico em @/Lib/datetime-br (reuse > recria) — re-exportado
+// pra manter o import único `./sessionTokens` da tela CcSessions.
+export { fmtRelative } from '@/Lib/datetime-br';
+
 export type SessionStatus = 'active' | 'closed' | 'archived';
 
 export interface StatusMeta { label: string; dot: string }
@@ -25,16 +29,6 @@ export function fmtDateTime(iso: string | null): string {
   return new Date(iso).toLocaleString('pt-BR', {
     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
   });
-}
-
-export function fmtRelative(iso: string | null): string {
-  if (!iso) return '—';
-  const diffSec = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diffSec < 60) return 'agora';
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}min atrás`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h atrás`;
-  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)}d atrás`;
-  return fmtDateTime(iso);
 }
 
 export function fmtDuration(start: string | null, end: string | null): string {
