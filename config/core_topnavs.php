@@ -102,16 +102,20 @@ return [
         'label' => 'Forja',
         'icon'  => 'Hammer',
         'items' => [
-            // badge=3 = nº de propostas-semente da Triagem (FORJA-150/151/152). ESTÁTICO:
-            // core_topnavs.php é config carregada no boot, não tem dado por-request — o
-            // contador VIVO da fila chega via prop deferida `triagemCount` na própria aba.
-            // Quando o shell suportar badge dinâmico no topnav, trocar por esse contador.
-            ['label' => 'Triagem',   'href' => '/forja',           'icon' => 'Inbox',        'can' => 'copiloto.mcp.usage.all', 'badge' => 3],
-            ['label' => 'Backlog',   'href' => '/forja/backlog',   'icon' => 'List',         'can' => 'copiloto.mcp.usage.all'],
-            ['label' => 'Quadro',    'href' => '/forja/quadro',    'icon' => 'LayoutKanban', 'can' => 'copiloto.mcp.usage.all'],
-            ['label' => 'Changelog', 'href' => '/forja/changelog', 'icon' => 'History',      'can' => 'copiloto.mcp.usage.all'],
-            ['label' => 'MCP',       'href' => '/forja/mcp',       'icon' => 'Plug',         'can' => 'copiloto.mcp.usage.all'],
-            ['label' => 'Saúde',     'href' => '/forja/saude',     'icon' => 'Activity',     'can' => 'copiloto.mcp.usage.all'],
+            // Fusão 2026-06-16 (hub único): abas próprias da Forja (/forja/*) +
+            // telas TeamMcp absorvidas (/team-mcp/*). Como o topnav antigo do TeamMcp
+            // (Resources/menus/topnav.php) foi removido, este é o ÚNICO que casa
+            // /team-mcp/* no useAutoModuleNav — então a nav é a mesma em todo o hub.
+            // badge=3 ESTÁTICO (sementes FORJA); contador vivo via `triagemCount` na aba.
+            ['label' => 'Triagem',     'href' => '/forja',                'icon' => 'Inbox',        'can' => 'copiloto.mcp.usage.all', 'badge' => 3],
+            ['label' => 'Backlog',     'href' => '/forja/backlog',        'icon' => 'List',         'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Quadro',      'href' => '/forja/quadro',         'icon' => 'LayoutKanban', 'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Changelog',   'href' => '/forja/changelog',      'icon' => 'History',      'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'MCP',         'href' => '/forja/mcp',            'icon' => 'Plug',         'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Tarefas',     'href' => '/team-mcp/tasks',       'icon' => 'Columns',      'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Equipe',      'href' => '/team-mcp/team',        'icon' => 'Users',        'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions', 'icon' => 'Code2',        'can' => 'copiloto.cc.read.team'],
+            ['label' => 'Saúde',       'href' => '/team-mcp/scorecard',   'icon' => 'Activity',     'can' => 'copiloto.mcp.usage.all'],
         ],
     ],
 ];

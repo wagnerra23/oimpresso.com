@@ -104,7 +104,7 @@
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx": 2,
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx": 16,
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx": 9,
-    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx": 6,
+    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx": 7,
     "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx": 16,
     "resources/js/Pages/Atendimento/Channels/_components/ChannelUsersTab.tsx": 2,
     "resources/js/Pages/Atendimento/Channels/Index.tsx": 16,

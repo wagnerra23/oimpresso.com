@@ -19,7 +19,6 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
 use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
 use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
-use Modules\TeamMcp\Services\Forja\ForjaSaudeService;
 
 /**
  * ForjaController — cockpit do cowork loop (/forja).
@@ -60,7 +59,6 @@ class ForjaController extends Controller
         'quadro'    => ['label' => 'Quadro',    'subtitle' => 'Fluxo do cowork loop por fase: F0 Brief → F1 Design → F1.5 Critique → F2 Screenshot → F3 Code → F3.5 A11y.'],
         'changelog' => ['label' => 'Changelog', 'subtitle' => 'O que shippou — PRs, ADRs, sessões e ondas.'],
         'mcp'       => ['label' => 'MCP',       'subtitle' => 'Contrato de ferramentas, tokens e auditoria — design; o enforce real é do servidor TeamMcp.'],
-        'saude'     => ['label' => 'Saúde',     'subtitle' => 'Semáforo do loop — memory-health, baselines de gate e frescor. Cada métrica linka a uma ação.'],
     ];
 
     public function __construct()
@@ -117,16 +115,6 @@ class ForjaController extends Controller
     {
         // Aba MCP é estática/MOCKADO (o enforce real é do servidor TeamMcp) — sem deferred.
         return $this->renderTab('mcp');
-    }
-
-    public function saude(): Response
-    {
-        $projectId = $this->resolveForjaProjectId();
-
-        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
-            $this->tabPayload('saude'),
-            ['saude' => Inertia::defer(fn () => app(ForjaSaudeService::class)->build($projectId))],
-        ));
     }
 
     // ---------- Triagem · payload ----------
