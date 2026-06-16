@@ -162,21 +162,22 @@ function FinanceiroDashboard({
         title="Financeiro"
         suffix=" · Dashboard"
         subtitle={<>Visão geral das contas a pagar e a receber</>}
-      >
-        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-          <button
-            type="button"
-            className="os-btn ghost"
-            onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
-          >
-            Limpar filtros
-          </button>
-          <PageHeaderPrimary
-            label="Novo título"
-            onClick={() => router.visit('/financeiro/unificado/novo')}
-          />
-        </div>
-      </PageHeader>
+        actions={
+          <>
+            <button
+              type="button"
+              className="os-btn ghost"
+              onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
+            >
+              Limpar filtros
+            </button>
+            <PageHeaderPrimary
+              label="Novo título"
+              onClick={() => router.visit('/financeiro/unificado/novo')}
+            />
+          </>
+        }
+      />
 
       {/* Onda 15 (2026-05-19) — KPI grid canon fin-stats (substitui KpiCard shadcn) */}
       <Deferred data="kpis" fallback={<KpiGridSkeleton />}>
