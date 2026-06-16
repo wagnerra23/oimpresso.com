@@ -287,15 +287,16 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 
 > Por que existe: a fila ([`COWORK_NOTES.md`](COWORK_NOTES.md) → acima da linha d'água) apodrece de dois jeitos que ninguém vê na hora — **prompt citado que não existe mais** (link morto → [CL] erra o PR, faz a coisa errada) e **prompt criado que nunca entrou na fila** (tarefa invisível → nunca pousa). Memória manda no git; git é SSOT (ADR 0239) — então a fila e os `PROMPT_PARA_CODE_*.md` têm que casar. Defesa que dispara > regra que se lê (§5/NÚCLEO-5): a regra abaixo é a lei; o gate `handoff:check` é o dente.
 
-**As 5 regras (lei do handoff):**
+**As 6 regras (lei do handoff):**
 
 1. **Sem prompt órfão.** Criar um `PROMPT_PARA_CODE_<slug>.md` e **não** citá-lo na fila ativa = proibido. Prompt que existe no dir mas ninguém aponta = tarefa invisível (🔴 ÓRFÃO). Criou → cita na fila no mesmo passo.
 2. **Prompt durável é auto-contido.** O corpo não depende de URL efêmera (`claudeusercontent.com`/Cowork share expiram ~1h — L-09/§10.1). Todo contexto necessário pra executar mora no próprio arquivo, versionado no git. URL no corpo = só conveniência, nunca a fonte.
 3. **Linha d'água separa ativo de processado.** O marcador `<!-- LINHA-DAGUA-HANDOFF -->` em `COWORK_NOTES.md` corta a fila: **acima = ativo** (o gate vigia; toda referência tem que casar) · **abaixo = processado/histórico** (ignorado — append-only, não se mexe). Item que pousou **desce** pra baixo da linha; não some, vira histórico.
 4. **"Pousou" só depois do `main` confirmar.** Não declaro entregue/processado por ter aberto PR ou commitado (L-06: não afirmo commit). Um handoff só vira "processado" quando o retorno em [`CODE_NOTES.md`](CODE_NOTES.md) **no `main`** registra `PROCESSADO → main` (PR mergeado). Antes disso continua **ativo, acima da linha**.
 5. **Ondas por padrão.** 1 tela/arquivo = 1 PR (commit-discipline · 1 PR = 1 intent). Validar contra `origin/main` fresco **antes** de codar (Passo 0 · PROTOCOL §10.4) — se já está no main, não refaz.
+6. **Sem cabeçalho fundido.** Uma edição não pode fundir dois blocos numa linha só — `**…:** > **Outro:**` (heurística `:** > **`) deixa a fila/prompt ilegível (classe **C3**). Cada bloco na sua linha; quem funde, o gate recusa.
 
-**Mecanização (catraca · §5/§13):** [`scripts/handoff-integrity-guard.mjs`](../scripts/handoff-integrity-guard.mjs) lê a fila acima da linha d'água + os `PROMPT_PARA_CODE_*.md` do dir e falha em **NOVO** órfão ou **NOVA** ref morta. Baseline (`config/handoff-integrity-baseline.json`) congela a dívida atual — só o que entra novo trava. Auto-teste de controle-negativo prova que o dente morde (órfão injetado → vermelho; tudo citado → verde). Workflow advisory de nascença (ADR 0271/0275). Rodar: `npm run handoff:check`.
+**Mecanização (catraca · §5/§13):** [`scripts/handoff-integrity-guard.mjs`](../scripts/handoff-integrity-guard.mjs) lê a fila acima da linha d'água + os `PROMPT_PARA_CODE_*.md` do dir e falha em **NOVO** órfão, **NOVA** ref morta ou **NOVO** cabeçalho fundido (`:** > **` · C3). Baseline (`config/handoff-integrity-baseline.json`) congela a dívida atual — só o que entra novo trava. Auto-teste de controle-negativo prova que o dente morde (órfão/ref-morta/fundido injetado → vermelho; tudo limpo → verde). Workflow advisory de nascença (ADR 0271/0275). Rodar: `npm run handoff:check`.
 
 ## 17. Trilha do tempo
 - 2026-06-02 · [CC] criou a raiz do processo. Rodou TESTE-01..04, achou 3 fraquezas, corrigiu 2 estruturalmente (§3, §5) e mitigou 1 (§4/§7). Modelo validado com a condição da §7.

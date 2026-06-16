@@ -21,14 +21,14 @@ const run = (root, extra = [], env = {}) =>
 const out = (r) => (r.stdout || '') + (r.stderr || '');
 
 // Monta um root falso: prototipo-ui/{PROMPT_PARA_CODE_*.md, COWORK_NOTES.md} + config/baseline.json
-function makeRoot({ files = [], aboveCites = [], belowCites = [], baseline = { orphans: [], dead_refs: [] }, marker = true }) {
+function makeRoot({ files = [], aboveCites = [], belowCites = [], aboveRaw = '', belowRaw = '', baseline = { orphans: [], dead_refs: [] }, marker = true }) {
   const root = mkdtempSync(join(tmpdir(), 'hig-'));
   mkdirSync(join(root, 'prototipo-ui'), { recursive: true });
   mkdirSync(join(root, 'config'), { recursive: true });
   for (const f of files) writeFileSync(join(root, 'prototipo-ui', f), `# ${f}\n`);
   const above = aboveCites.map((c) => `- ativo: [${c}](${c})`).join('\n');
   const below = belowCites.map((c) => `- PROCESSED ${c} → main`).join('\n');
-  const queue = `# COWORK_NOTES (fixture)\n\n## ATIVOS\n${above}\n\n${marker ? MARKER : ''}\n\n## HISTÓRICO\n${below}\n`;
+  const queue = `# COWORK_NOTES (fixture)\n\n## ATIVOS\n${above}\n${aboveRaw}\n\n${marker ? MARKER : ''}\n\n## HISTÓRICO\n${below}\n${belowRaw}\n`;
   writeFileSync(join(root, 'prototipo-ui', 'COWORK_NOTES.md'), queue);
   writeFileSync(join(root, 'config', 'handoff-integrity-baseline.json'), JSON.stringify(baseline));
   return root;
@@ -110,7 +110,33 @@ const drop = (root) => rmSync(root, { recursive: true, force: true });
   drop(root); drop(tmp);
 }
 
+// 9. C3 — cabeçalho fundido na fila ativa (`:** > **`) → vermelho acusando C3/FUNDIDO.
+{
+  const root = makeRoot({ files: ['PROMPT_PARA_CODE_A.md'], aboveCites: ['PROMPT_PARA_CODE_A.md'], aboveRaw: '**Status:** > **Artefato:** x' });
+  const r = run(root);
+  check('fundido na fila ativa → exit 1', r.status === 1);
+  check('fundido → rotula FUNDIDO/C3', /FUNDIDO|C3/.test(out(r)));
+  drop(root);
+}
+
+// 10. C3 ABAIXO da linha d'água → ignorado (exit 0).
+{
+  const root = makeRoot({ files: ['PROMPT_PARA_CODE_A.md'], aboveCites: ['PROMPT_PARA_CODE_A.md'], belowRaw: '**Status:** > **Artefato:** x' });
+  check('fundido ABAIXO da linha → exit 0 (ignorado)', run(root).status === 0);
+  drop(root);
+}
+
+// 11. C3 no baseline → não trava (dívida congelada).
+{
+  const root = makeRoot({
+    files: ['PROMPT_PARA_CODE_A.md'], aboveCites: ['PROMPT_PARA_CODE_A.md'], aboveRaw: '**Status:** > **Artefato:** x',
+    baseline: { orphans: [], dead_refs: [], fused_headers: ['COWORK_NOTES.md::**Status:** > **Artefato:** x'] },
+  });
+  check('fundido no baseline → exit 0 (congelado)', run(root).status === 0);
+  drop(root);
+}
+
 console.log('');
-if (fails === 0) { console.log('[PASS] catraca de handoff MORDE — órfão novo = vermelho, ref morta nova = vermelho, baseline congela, abaixo-da-linha ignora.'); process.exit(0); }
+if (fails === 0) { console.log('[PASS] catraca de handoff MORDE — órfão/ref-morta/fundido novo = vermelho, baseline congela, abaixo-da-linha ignora.'); process.exit(0); }
 console.log(`[FAIL] ${fails} caso(s) — a catraca NÃO está garantida. NÃO mergear.`);
 process.exit(1);
