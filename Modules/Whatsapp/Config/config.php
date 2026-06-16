@@ -70,6 +70,10 @@ return [
         'daemon_url' => env('WHATSMEOW_DAEMON_URL', 'https://whatsapp-whatsmeow.oimpresso.com'),
         'api_key' => env('WHATSMEOW_API_KEY'),
         'hmac_secret' => env('WHATSMEOW_HMAC_SECRET'),
+        // Segredo compartilhado na URL do webhook (`?wh=`) — autentica o daemon
+        // WuzAPI que não consegue assinar HMAC nem mandar header. Hotfix incidente
+        // 2026-06-16 (recebimento parado pós-#2726). Não-spoofável (TLS-only).
+        'webhook_url_secret' => env('WHATSMEOW_WEBHOOK_URL_SECRET'),
         'request_timeout' => (int) env('WHATSMEOW_TIMEOUT', 15),
     ],
 
