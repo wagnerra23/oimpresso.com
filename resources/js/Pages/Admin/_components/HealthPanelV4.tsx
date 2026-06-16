@@ -14,6 +14,7 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react';
+import { fmtRelative } from '@/Lib/datetime-br';
 import { cn } from '@/Lib/utils';
 import type { HealthSnapshot } from './governanceV4Types';
 
@@ -30,19 +31,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   snapshot: HealthSnapshot | null;
-}
-
-// Nome próprio (não `fmtRelative`): minutos arredondados + sem fallback de data
-// absoluta p/ >7d (mostra 'Xd atrás'), divergem do canônico @/Lib/datetime-br.
-function fmtAgoNoDate(iso: string | null): string {
-  if (!iso) return 'nunca';
-  const d = new Date(iso).getTime();
-  if (Number.isNaN(d)) return 'nunca';
-  const diff = Math.round((Date.now() - d) / 60_000);
-  if (diff < 1) return 'agora';
-  if (diff < 60) return `${diff}min atrás`;
-  if (diff < 1440) return `${Math.round(diff / 60)}h atrás`;
-  return `${Math.round(diff / 1440)}d atrás`;
 }
 
 export default function HealthPanelV4({ open, onOpenChange, snapshot }: Props) {
@@ -79,7 +67,7 @@ export default function HealthPanelV4({ open, onOpenChange, snapshot }: Props) {
               primary={
                 snapshot.scorecard_cron_ok ? 'Operacional' : 'Falha last_run'
               }
-              detail={`last run ${fmtAgoNoDate(snapshot.scorecard_last_run_at)}`}
+              detail={`last run ${fmtRelative(snapshot.scorecard_last_run_at)}`}
             />
             <HealthCard
               title="AI baseline 30d"
@@ -97,7 +85,7 @@ export default function HealthPanelV4({ open, onOpenChange, snapshot }: Props) {
               tone={snapshot.otel_collector_up ? 'ok' : 'bad'}
               icon={<Activity size={14} />}
               primary={snapshot.otel_collector_up ? 'Up' : 'Down'}
-              detail={`last ping ${fmtAgoNoDate(snapshot.otel_collector_last_ping_at)}`}
+              detail={`last ping ${fmtRelative(snapshot.otel_collector_last_ping_at)}`}
             />
             <HealthCard
               title="Cobertura buckets"
