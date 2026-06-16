@@ -1,10 +1,10 @@
 ---
 name: memory-schema-preflight
-description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
+description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração) — incl. o `maxLength: 500` do `tldr` de handoff via `php artisan jana:validate-memory --schema=handoff --strict` (PR #2811 mergeou gate advisory vermelho por ~504 chars). Cobre também o campo anchor `**Implementado em:**` + key opcional `anchor_format` do fluxo novo de SPEC (ADR 0273, lint advisory `anchor-lint.mjs`). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
 tier: B
 trigger: description-matching
 parent_adr: 0094
-related_adrs: [0094, 0095]
+related_adrs: [0094, 0095, 0130, 0273]
 ---
 
 # memory-schema-preflight — Tier B auto-trigger
@@ -47,6 +47,7 @@ related_adrs:                       # LIST de slugs, NUNCA integers
 parent_adr: "NNNN-kebab-slug"       # opcional, mesmo pattern
 related_proposals:                  # opcional, lista de slugs proposal
   - "kebab-slug"
+anchor_format: "v1"                 # opcional (ADR 0273) — enum SÓ "v1"; SPEC novo nasce com ela; 57 legados sem a key OK (grace-period)
 ---
 ```
 
@@ -58,6 +59,20 @@ related_proposals:                  # opcional, lista de slugs proposal
 **Recomendadas** (warnings, não bloqueiam):
 - `## Histórico`
 - `## Referências`
+
+**Campo anchor `**Implementado em:**` (ADR 0273 · `anchor_format: "v1"`) — fluxo NOVO:**
+
+- A key `anchor_format: "v1"` no frontmatter é OPCIONAL (enum só `"v1"`). Grace-period: os 57 SPECs legados SEM a key continuam válidos (regra "campo novo opcional até backfill" do [README memory-schemas](../../../scripts/memory-schemas/README.md)). SPEC novo nasce com ela — já vem no [`_TEMPLATE_SPEC.md`](../../../memory/requisitos/_TEMPLATE_SPEC.md).
+- Toda US ganha **1 linha** `**Implementado em:**` no corpo — no mínimo `_pendente_` enquanto a tela não existe (sentinela de **1ª classe**, NÃO é dívida de anchor). Gramática quando construída:
+
+  ```
+  **Implementado em:** `path/relativo.tsx` [· `Símbolo@metodo`] · verificado@<sha7> (<YYYY-MM-DD>)
+  **Implementado em:** _parcial_ · `path` · verificado@<sha7> (<data>) — o que falta
+  **Implementado em:** _pendente_ — justificativa opcional
+  ```
+
+  `sha7` = commit de `origin/main` onde o path foi verificado (proveniência). NUNCA `_[TODO]_` / `_[path]_` / `(a criar)` — placeholder legado conta como **não-coberto**.
+- Divisão de responsabilidade: `spec.schema.json` valida só a **key** do frontmatter; o **corpo** (`**Implementado em:**`) é validado pelo `anchor-lint.mjs` (advisory na fase F1 — não bloqueia merge).
 
 ### RUNBOOK.md — `memory/requisitos/<Mod>/RUNBOOK*.md`
 
@@ -119,16 +134,24 @@ Seção obrigatória: `## TL;DR`
 
 Filename: `^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[a-z0-9-]+\.md$`
 
+Frontmatter (schema `scripts/memory-schemas/handoff.schema.json` — `required: [date, slug, tldr]`):
+
 ```yaml
 ---
-date: "YYYY-MM-DD"
-time: "HH:MM"
-type: handoff
-estado_mcp: cycles-active
+date: "YYYY-MM-DD"                  # required · STRING quoted
+time: "0831"                        # opcional · "0831" ou "08:31" (+ " BRT"/" UTC")
+slug: kebab-curto                   # required · ^[a-z0-9-]+$ · 3-80 chars
+tldr: "Resumo 1-2 linhas"           # required · 10-500 chars ⚠️ maxLength 500 ESTOURA FÁCIL
+prs: [2811]                         # opcional · array de INTEIROS (nunca ["2811"])
+us: ["US-COPI-084"]                 # opcional · ^US-[A-Z]{2,8}-[0-9]{3,4}$
+decided_by: ["W"]                   # opcional · enum W/F/M/L/E
+related_adrs: ["0130-handoff-append-only-mcp-first"]  # opcional · slugs
 ---
 ```
 
-Seção obrigatória: `## Estado MCP`
+> ⚠️ **`tldr` tem `maxLength: 500`** — é a pegadinha mais comum. PR #2811 estourou ~504 chars → gate advisory **Handoff** ficou vermelho **permanente** (append-only, ADR 0130, não deixa fix-forward depois do merge). **Sempre** rode o validador local (`php artisan jana:validate-memory --schema=handoff …`, abaixo) ANTES do commit.
+
+Seção `## Estado MCP no momento do fechamento` (ADR 0130 §6) é validada pelo **bash** `validate-memory-schema.sh handoff` (corpo markdown), **não** pelo JSON Schema. O JSON Schema (`jana:validate-memory` / AJV no CI) cobre só o frontmatter — incluindo o `tldr` maxLength. Rode os dois.
 
 ### Charter — `resources/js/Pages/<Mod>/<Tela>.charter.md`
 
@@ -157,46 +180,62 @@ Seções obrigatórias: `## Mission`, `## Goals`, `## Non-Goals`, `## UX targets
 | `/ must have required property 'last_validated'` (RUNBOOK) | adicionar `last_validated: "YYYY-MM-DD"` |
 | SPEC sem `## User stories \| ## Backlog ativo \| ## US ativas` | renomear seção existente OU criar nova com `## User stories — <contexto>` |
 | SPEC sem `## Histórico` ou `## Referências` | warning, não bloqueia merge (mas adicionar é boa prática) |
+| `/anchor_format must be equal to one of the allowed values` | `anchor_format: v2` → `anchor_format: "v1"` (único valor; AST v2 é evolução futura do ADR 0273) |
+| `/tldr must NOT have more than 500 characters` (AJV) / `tldr: must be at most 500 characters long.` (artisan) — handoff | encurtar `tldr` pra ≤500 chars ANTES do push — handoff é append-only (ADR 0130), red mergeado vira cruft permanente (PR #2811) |
+| `/slug must NOT have more than 80 characters` / `/slug must match pattern "^[a-z0-9-]+$"` (handoff) | encurtar slug ≤80 chars · só `[a-z0-9-]` (sem maiúscula/underscore/acento) |
+| `/prs/N must be integer` (handoff) | `prs: ["2811"]` → `prs: [2811]` (array de INTEIROS) |
+| anchor-lint `placeholder` / `anchored_dead` numa US | trocar `_[TODO]_` / path-morto por `_pendente_` (não construída) OU path real + `verificado@<sha7> (<data>)` — NUNCA inventar path (advisory, não bloqueia) |
 
 ## Validador local — rodar ANTES de commit
+
+### Canônico — `php artisan jana:validate-memory` (gate C local)
+
+**Este é o validador reutilizável a apontar.** Carrega os MESMOS `scripts/memory-schemas/*.schema.json` que o CI (gate A AJV — `.github/workflows/memory-schema-gate.yml`) e valida o frontmatter inteiro com `justinrainbow/json-schema`: enforce de `required` / `enum` / `pattern` / **`maxLength`** / type. Extrai o frontmatter via Symfony YAML (igual ao `gray-matter` do CI). Usa o vendor Laravel já presente — **sem `npm install`**. `--strict` = exit 1 se houver violação.
 
 ```bash
 cd D:/oimpresso.com
 
-# Tipo SPEC (sections + frontmatter custom)
-echo "memory/requisitos/<Mod>/SPEC.md" | xargs -r .github/scripts/validate-memory-schema.sh spec
+# 1 handoff específico — pega tldr > 500, slug malformado, prs como string, date sem aspas:
+php artisan jana:validate-memory --schema=handoff --path=memory/handoffs/<arquivo>.md --strict
 
-# JSON Schema via AJV (CI usa o mesmo)
-npx ajv validate -s scripts/memory-schemas/spec.schema.json -d memory/requisitos/<Mod>/SPEC.md
-npx ajv validate -s scripts/memory-schemas/runbook.schema.json -d memory/requisitos/<Mod>/RUNBOOK*.md
-npx ajv validate -s scripts/memory-schemas/adr.schema.json -d memory/decisions/NNNN-kebab.md
+# Todos os handoffs do diretório:
+php artisan jana:validate-memory --schema=handoff --strict
+
+# Tudo (auto-detecta schema por path) — varre memory/ + charters staged:
+php artisan jana:validate-memory --strict
+```
+
+Saída: tabela por bucket + violações `ERR <file> └─ <property>: <message>` (ex: `└─ tldr: must be at most 500 characters long.`). `--json` pra machine-readable. Exit 1 com `--strict` → fix antes do commit.
+
+> ⚠️ **NÃO use `npx ajv validate -d <arquivo>.md`** — o ajv-cli parseia o `.md` inteiro como dados e não extrai o frontmatter YAML, então passa "verde" sem checar nada (ou erra parse). Quem extrai frontmatter + AJV é o CI (gate A, via `gray-matter`); o equivalente local fiel é `jana:validate-memory` acima.
+
+### Checks de corpo markdown (complementam o JSON Schema)
+
+```bash
+cd D:/oimpresso.com
+
+# Filename + seções obrigatórias (handoff `## Estado MCP`, SPEC `## User stories`) — bash, sem deps
+.github/scripts/validate-memory-schema.sh handoff memory/handoffs/<arquivo>.md
+.github/scripts/validate-memory-schema.sh spec    memory/requisitos/<Mod>/SPEC.md
+
+# Anchor spec↔código (ADR 0273) — corpo `**Implementado em:**`, advisory, node puro <0.1s, sem deps
+node scripts/governance/anchor-lint.mjs memory/requisitos/<Mod>/SPEC.md   # diff-aware (só o SPEC passado)
 ```
 
 **Batch validar tudo modificado vs main antes de PR:**
 
 ```bash
 cd D:/oimpresso.com
+
+# 1 comando cobre todos os tipos (frontmatter + maxLength). --strict falha se houver erro.
+php artisan jana:validate-memory --strict
+
+# Seções de corpo dos arquivos staged (handoff `## Estado MCP`, SPEC sections):
 git diff --name-only origin/main HEAD | while read f; do
   case "$f" in
-    memory/requisitos/*/SPEC.md)
-      npx ajv validate -s scripts/memory-schemas/spec.schema.json -d "$f"
-      .github/scripts/validate-memory-schema.sh spec "$f"
-      ;;
-    memory/requisitos/**/RUNBOOK*.md)
-      npx ajv validate -s scripts/memory-schemas/runbook.schema.json -d "$f"
-      ;;
-    memory/decisions/*.md)
-      npx ajv validate -s scripts/memory-schemas/adr.schema.json -d "$f"
-      ;;
-    memory/sessions/*.md)
-      npx ajv validate -s scripts/memory-schemas/session.schema.json -d "$f"
-      ;;
-    memory/handoffs/*.md)
-      npx ajv validate -s scripts/memory-schemas/handoff.schema.json -d "$f"
-      ;;
-    resources/js/Pages/**/*.charter.md)
-      npx ajv validate -s scripts/memory-schemas/charter.schema.json -d "$f"
-      ;;
+    memory/requisitos/*/SPEC.md) .github/scripts/validate-memory-schema.sh spec    "$f" ;;
+    memory/sessions/*.md)        .github/scripts/validate-memory-schema.sh session "$f" ;;
+    memory/handoffs/*.md)        .github/scripts/validate-memory-schema.sh handoff "$f" ;;
   esac
 done
 ```
@@ -293,24 +332,29 @@ E adicionar no corpo:
 - `scripts/memory-schemas/runbook.schema.json` — RUNBOOK JSON Schema (owner enum)
 - `scripts/memory-schemas/adr.schema.json`
 - `scripts/memory-schemas/session.schema.json`
-- `scripts/memory-schemas/handoff.schema.json`
+- `scripts/memory-schemas/handoff.schema.json` — frontmatter handoff (`required: date/slug/tldr` · `tldr` maxLength 500)
 - `scripts/memory-schemas/charter.schema.json`
-- `.github/workflows/memory-schema-gate.yml` — CI gate principal (AJV)
+- `Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php` — **validador local canônico** `php artisan jana:validate-memory` (gate C; mesmo schema do CI; enforce maxLength)
+- `.github/workflows/memory-schema-gate.yml` — CI gate principal (AJV, gate A) — job "Handoff" usa `SCHEMA=scripts/memory-schemas/handoff.schema.json`
 - `.github/workflows/memory-schema-gate-extended.yml` — CI gate extended (sections + filename)
-- `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections)
+- `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections — NÃO checa maxLength, só presença)
+- `scripts/governance/anchor-lint.mjs` — lint do corpo `**Implementado em:**` (advisory F1) + `.github/workflows/anchor-drift.yml`
 - Sessão 2026-05-25 — origem do skill (4 PRs blocked + batch fix)
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (memory artifacts canônicos)
 - [ADR 0095](../../../memory/decisions/0095-skills-tiers-convencao-interna.md) — Skills tiers convenção interna
+- [ADR 0273](../../../memory/decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md) — formato anchor spec↔código + sentinela `_pendente_` + key `anchor_format` (fluxo novo de SPEC)
 
-## Pegadinhas validadas em CI real (2026-06-11 — 2 handoffs mergeados com gate vermelho)
+## Pegadinhas validadas em CI real (2026-06-11 · 2026-06-16 — handoffs mergeados com gate vermelho)
 
 Reds não-required que viram CRUFT permanente (append-only proíbe fix-forward de handoff mergeado):
 
 | Doc | Campo | Regra EXATA (ajv) | Erro real pego |
 |---|---|---|---|
+| handoff | `tldr` | `maxLength: 500` (+ `minLength: 10`) — 1-2 linhas, não um parágrafo | **PR #2811** (`2026-06-16-0831-foundation-ratchet-…`) — `tldr` ~504 chars → gate advisory **Handoff** vermelho, mergeou red |
 | handoff | `prs` | array de **INTEIROS** — `prs: [2547, 2549]`, NUNCA `["2547"]` | `/prs/0 must be integer` (handoff 14:30) |
+| handoff | `slug` | `^[a-z0-9-]+$` · 3-80 chars | — |
 | handoff | `date`/`slug`/`tldr` | os 3 são `required` — `hour_brt`/`topic` NÃO substituem | handoff 12:05 sem slug/tldr |
 | runbook | `title`/`owner`/`last_validated` | required; `owner` enum `W/F/M/L/E`; `status` enum `rascunho/ativo/arquivado/historical` (`ready-for-execution` é INVÁLIDO) | RUNBOOK Crm no #2539 |
 | todos | datas | SEMPRE string quoted `"2026-06-11"` | — |
 
-**Regra de ouro:** handoff é append-only DEPOIS do merge — validar é ANTES do push ou nunca. O gate roda só em arquivos changed, então o red é 1× por PR, mas fica pra sempre no histórico do PR.
+**Regra de ouro:** handoff é append-only DEPOIS do merge — validar é ANTES do push ou nunca. O gate roda só em arquivos changed, então o red é 1× por PR, mas fica pra sempre no histórico do PR. O `maxLength: 500` do `tldr` (e o resto do `handoff.schema.json`) é pego localmente por `php artisan jana:validate-memory --schema=handoff --path=<arquivo> --strict` — rode antes de `git commit`.
