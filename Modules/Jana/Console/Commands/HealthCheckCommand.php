@@ -25,6 +25,9 @@ use Modules\Jana\Services\CharterHealthChecker;
  *   6. Procedure drift (US-COPI-092) — hash deployed vs migration canônica
  *   7. Spec ID drift (ADR 0134) — colisão DB↔SPEC.md (mesmo ID, title diferente)
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
+ *   8b. Whatsapp inbound flow (sentinela de fluxo real · incidente 2026-06-16
+ *       #2726) — por canal ativo com histórico, último inbound > Nh em horário
+ *       comercial = ALERTA. Pega QUALQUER causa de silêncio no recebimento.
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
  *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
@@ -55,7 +58,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (10 checks SQL + ledger de lições + charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (11 checks SQL + ledger de lições + charter/loop advisory)';
 
     public function handle(): int
     {
@@ -68,6 +71,7 @@ class HealthCheckCommand extends Command
             $this->checkProcedureDrift(),
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
+            $this->checkWhatsappInboundFlow(),
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
             $this->checkLessonLedgerGraduation(),
@@ -488,6 +492,128 @@ class HealthCheckCommand extends Command
                 'message' => 'ERRO: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Check 8b — Whatsapp INBOUND FLOW (sentinela de fluxo real · incidente 2026-06-16 #2726).
+     *
+     * O #2726 (hardening de auth do webhook) deixou o recebimento de WhatsApp MORTO
+     * por 3 dias SEM ninguém ver: todo monitor media degradação DENTRO de um fluxo
+     * vivo (mídia órfã, SLA, custo), nunca a AUSÊNCIA do fluxo. Com 401 antes do
+     * dispatch, zero rows nasciam → zero órfãs → tudo "verde"; channel_health dizia
+     * "paired" (proxy de conexão, não de recebimento).
+     *
+     * Este check mede o que importa e é DRIVER-AGNÓSTICO: por canal ATIVO com
+     * histórico de inbound, a última mensagem recebida não pode ser mais velha que
+     * o threshold em horário comercial. Pega QUALQUER causa de silêncio
+     * (auth/rota/worker/firewall/daemon/UUID), sem depender de saber a causa. Hard
+     * check — derruba o exit code + dispara o ALERT do cron.
+     *
+     * Baseline por canal: só vigia quem JÁ recebeu inbound algum dia (evita
+     * falso-positivo em linha quieta/recém-criada). Fora do horário comercial BRT
+     * não acende (canal quieto à noite/domingo é normal).
+     */
+    protected function checkWhatsappInboundFlow(): array
+    {
+        $name = 'whatsapp_inbound_flow';
+        $thresholdHours = (int) config('whatsapp.inbound_silence_alert_hours', 6);
+
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('channels')
+                || ! \Illuminate\Support\Facades\Schema::hasTable('conversations')
+                || ! \Illuminate\Support\Facades\Schema::hasTable('messages')) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => "<= {$thresholdHours}h",
+                    'message' => 'Tabelas de canal ausentes — módulo Whatsapp não instalado',
+                ];
+            }
+
+            $channels = DB::table('channels')
+                ->where('status', 'active')
+                ->get(['id', 'label', 'business_id'])
+                ->map(fn ($ch) => [
+                    'label' => $ch->label ?? "canal {$ch->id}",
+                    'business_id' => (int) $ch->business_id,
+                    'last_inbound' => DB::table('messages')
+                        ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
+                        ->where('conversations.channel_id', $ch->id)
+                        ->where('messages.direction', 'inbound')
+                        ->max('messages.created_at'),
+                ])
+                ->all();
+
+            $r = self::evaluateInboundFlow($channels, now()->setTimezone('America/Sao_Paulo'), $thresholdHours);
+
+            if ($r['fora_horario']) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => 'fora-horário',
+                    'threshold' => "<= {$thresholdHours}h",
+                    'message' => 'Fora do horário comercial BRT — silêncio de inbound não alarma agora',
+                ];
+            }
+
+            $count = count($r['mudos']);
+
+            return [
+                'name' => $name,
+                'ok' => $count === 0,
+                'value' => $count === 0 ? "{$r['vigiados']} canal(is) com fluxo" : $count,
+                'threshold' => "<= {$thresholdHours}h",
+                'message' => $count === 0
+                    ? "Todos os {$r['vigiados']} canais ativos receberam inbound nas últimas {$thresholdHours}h"
+                    : 'ALERTA recebimento parado: ' . implode(' · ', $r['mudos'])
+                        . ' — checar webhook/daemon/auth (classe do incidente #2726)',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => null,
+                'threshold' => "<= {$thresholdHours}h",
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Lógica pura da sentinela de inbound — pública e estática pra ser testável sem
+     * tocar DB nem o relógio real (mesmo padrão de parseLessonLedger).
+     *
+     * @param  array<int, array{label: string, business_id: int, last_inbound: ?string}>  $channels
+     * @return array{ok: bool, vigiados: int, mudos: list<string>, fora_horario: bool}
+     */
+    public static function evaluateInboundFlow(array $channels, \Illuminate\Support\Carbon $nowBrt, int $thresholdHours): array
+    {
+        // Janela comercial BRT (08–20, seg–sáb). Fora dela, silêncio é normal.
+        $horaComercial = $nowBrt->hour >= 8 && $nowBrt->hour < 20 && $nowBrt->dayOfWeek !== \Carbon\Carbon::SUNDAY;
+        if (! $horaComercial) {
+            return ['ok' => true, 'vigiados' => 0, 'mudos' => [], 'fora_horario' => true];
+        }
+
+        $mudos = [];
+        $vigiados = 0;
+        foreach ($channels as $ch) {
+            $last = $ch['last_inbound'] ?? null;
+            if ($last === null || $last === '') {
+                continue; // sem histórico → sem baseline, não vigia
+            }
+            $vigiados++;
+            $lastBrt = \Illuminate\Support\Carbon::parse((string) $last, 'America/Sao_Paulo');
+            if ($lastBrt->greaterThanOrEqualTo($nowBrt)) {
+                continue; // timestamp futuro (clock skew) → trata como fresco
+            }
+            $idade = (int) $lastBrt->diffInHours($nowBrt);
+            if ($idade > $thresholdHours) {
+                $mudos[] = "{$ch['label']} (biz {$ch['business_id']}): {$idade}h sem inbound";
+            }
+        }
+
+        return ['ok' => $mudos === [], 'vigiados' => $vigiados, 'mudos' => $mudos, 'fora_horario' => false];
     }
 
     /**
