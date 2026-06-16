@@ -366,28 +366,35 @@ export function slaState(conv: {
  * via ADR 0281); os demais usam success/warning/destructive. `pill` traz só
  * bg+texto+cor-da-borda (o `border` em si vem no render).
  */
-export const SLA_META: Record<Exclude<SlaState, null>, { label: string; pill: string; dot: string; pulse: boolean }> = {
+// `pill` = header (pastel SÓLIDO, canon `.om-sla-pill`); `pillSm` = lista
+// (SÓ contorno, sem fundo — canon `.om-list li .om-sla-pill.sm`). O `bg/15`
+// translúcido do expired deixava a pill lavada/"desfocada" na lista.
+export const SLA_META: Record<Exclude<SlaState, null>, { label: string; pill: string; pillSm: string; dot: string; pulse: boolean }> = {
   fresh: {
     label: 'no prazo',
-    pill: 'bg-success-soft text-success-fg border-success/25',
+    pill: 'bg-success-soft text-success-fg border-success/40',
+    pillSm: 'text-success-fg border-success/50',
     dot: 'bg-success',
     pulse: false,
   },
   aging: {
     label: 'atenção',
-    pill: 'bg-warning-soft text-warning-fg border-warning/30',
+    pill: 'bg-warning-soft text-warning-fg border-warning/40',
+    pillSm: 'text-warning-fg border-warning/50',
     dot: 'bg-warning',
     pulse: true,
   },
   late: {
     label: 'atrasando',
     pill: 'bg-[oklch(0.94_0.07_30)] text-[oklch(0.45_0.16_30)] border-[oklch(0.84_0.09_30)] dark:bg-[oklch(0.30_0.06_30)] dark:text-[oklch(0.82_0.13_30)] dark:border-[oklch(0.42_0.08_30)]',
+    pillSm: 'text-[oklch(0.45_0.16_30)] border-[oklch(0.80_0.12_30)] dark:text-[oklch(0.82_0.13_30)] dark:border-[oklch(0.45_0.10_30)]',
     dot: 'bg-[oklch(0.62_0.18_30)]',
     pulse: true,
   },
   expired: {
     label: 'estourado',
-    pill: 'bg-destructive/15 text-destructive border-destructive/30',
+    pill: 'bg-destructive-soft text-destructive-fg border-destructive/40',
+    pillSm: 'text-destructive-fg border-destructive/50',
     dot: 'bg-destructive',
     pulse: true,
   },
