@@ -161,6 +161,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Sentinela de FLUXO de inbound WhatsApp — cadência HORÁRIA em horário
+        // comercial BRT (incidente 2026-06-16 #2726: recebimento morto 3 dias sem
+        // ninguém ver; o cron diário 06:00 só detectaria ~22h depois). Reusa o
+        // mesmo --notify/ALERT; o check whatsapp_inbound_flow só acende em horário
+        // comercial e ignora canal sem histórico de inbound (baseline por canal).
+        $schedule->command('jana:health-check --notify')
+            ->hourlyAt(7)
+            ->timezone('America/Sao_Paulo')
+            ->between('8:00', '20:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:health-check (horário · sentinela inbound) FALHOU'
+                );
+            });
+
         // US-SELL-COWORK-R6-SMOKE — smoke automatizado Sells/Index Cowork.
         // 5 sinais críticos: schema essencial + multi-tenant biz=1/biz=4 com vendas 30d
         // + Vite manifest contém chunks Cowork (Sale*.tsx) + CSS scoped imports
