@@ -34,6 +34,7 @@ use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
 use Modules\Whatsapp\Console\Commands\RetryRecentMediaDownloadsCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
 use Modules\Whatsapp\Console\Commands\SlaScanCommand;
+use Modules\Whatsapp\Console\Commands\WebhookCanaryCommand;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;
@@ -92,6 +93,7 @@ class WhatsappServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 DriverHealthCheckAllCommand::class,
+                WebhookCanaryCommand::class,            // Fase 1 perda-zero — canário webhook <5min (incidente #2726)
                 BackfillChannelAccessCommand::class,
                 AuditChannelAccessCommand::class,       // Wagner 2026-06-13 — auditor flip-flop revoke/reativação ACL canal
                 RegisterWhatsappPermissionsCommand::class,
