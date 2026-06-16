@@ -106,6 +106,10 @@
       "nome": "ESLint 9 (ADR 0209)",
       "classe": "gate"
     },
+    "fin-hero-gate.yml": {
+      "nome": "Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)",
+      "classe": "gate"
+    },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
       "classe": "gate"
