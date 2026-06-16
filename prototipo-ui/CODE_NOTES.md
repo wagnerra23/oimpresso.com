@@ -953,7 +953,8 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 ---
 
 ## TAREFA 1 — PageHeader canon rollout (telas inline → componente)
-_handoff 2026-06-16 · [CL] · branch base main · 1 tela = 1 PR · verificado vs main @4d9726142_
+> **Reconciliação · sessões paralelas (2026-06-16):** esta sessão migrou Dashboard (#2863) por decisão [W] "Full canon" + "Keep #2863"; a entrada ACIMA pulou TAREFA 1 alegando `os-page-h` = **Tier 0 Cowork-canon** (`feedback-cowork-bundle-aplicar-inteiro` + Unificado charter v15 "Markup canon EXATO"). ⚠️ **Contradição Tier 0 NÃO resolvida — [W] confirmar ANTES de mergear #2863.** Fato verificado: Dashboard NÃO tem charter próprio; mas a 1ª sessão alega que `os-page-h` é canon de bundle, não alvo. Se for, fechar #2863.
+_handoff 2026-06-16 · [CL] · 1 tela = 1 PR · verificado vs main @4d9726142_
 
 ### Onda 0 — inventário (CORRIGE o handoff)
 | item | veredito | prova |
@@ -973,3 +974,23 @@ _handoff 2026-06-16 · [CL] · branch base main · 1 tela = 1 PR · verificado v
 ### new_design_memories
 - **gotcha**: o handoff listou Dre como pendente, mas o único sinal (`grep fin-page-h`) batia num COMENTÁRIO, não no markup vivo — `fin-page-h` num arquivo ≠ header inline. Confirmar lendo o bloco, não só o grep count. (É exatamente o caso **C4 "ref morta"** que a TAREFA-2 vai mecanizar.)
 - **golden**: antes de migrar o header de uma tela, `git diff main -- <tela>` — se a tela está staged-reescrita noutra branch (Unificado), migrar em paralelo é colisão garantida; HOLD é o caminho. (Caso **C5 "carimbo vs-main"**.)
+
+---
+
+## 2026-06-16 [CL] → [W] — Integridade do handoff (TAREFA 2) · TAREFA 1 pulada (premissa stale)
+
+**Origem:** prompt colado [W]/Cowork (2 tarefas). Gate §10.4 contra `origin/main` fresco ANTES de codar mudou tudo. Worktree dedicado off `origin/main` (`D:/oimpresso-handoff`), 1 PR por onda.
+
+### TAREFA 1 — migrar headers `os-page-h` inline → `<PageHeader>`: **NÃO FEITO** ([W] confirmou "pular")
+Onda 0 (inventário) revelou que o pedido confundia 2 coisas distintas:
+- `os-page-h`/`fin-page-h` = **CSS canon** do bundle Cowork (Tier 0 `feedback-cowork-bundle-aplicar-inteiro`), **não** alvo de migração.
+- `@/Components/shared/PageHeader` = o **componente** que o `pageheader:guard` ratcheteia (104 baseline) — **verde**, não toca essas telas.
+
+Estado real no `main`: **Dre** e **ContasPagar** já migrados pra `<PageHeader>` (Wave 4, 25/mai) — "pendente" no prompt era **ref morta** (a doença que a TAREFA 2 cura). **Unificado** charter v15 (10/jun) re-afirma `os-page-h` como "Markup canon EXATO" + hero "3 lentes" aprovado [W]; **Dashboard** foi DELIBERADAMENTE movido PRA `os-page-h` (19/mai, "paridade Unificado"). Migrar = regressão Tier 0 charter-protegida. [W] decidiu **pular**. Caixa Unificada dark + H1 600×700 não tocados (já no main / espera [W]).
+
+### TAREFA 2 — gate de integridade do handoff: **FEITO** (2 ondas, 1 PR cada)
+A fila `COWORK_NOTES.md` apodrecia invisível (refs mortas pra `PROMPT_PARA_CODE_*` inexistentes + prompts órfãos) e nada travava.
+- **Onda 1 — regra (doc):** PR **#2864** — `PROCESSO_MEMORIA_CC.md` §16 (5 regras: sem órfão · auto-contido · linha d'água · "pousou" só pós-`main` · ondas) + IT8.
+- **Onda 2 — gate (CI):** PR **#2865** — `scripts/handoff-integrity-guard.mjs` (catraca acima da linha d'água `<!-- LINHA-DAGUA-HANDOFF -->`) + auto-teste controle-negativo (8 casos: órfão/ref-morta injetados → vermelho) + baseline 0/0 + workflow advisory (ADR 0271/0275, `paths:` na fila + dir handoffs) + npm scripts. **Home confirmado antes (Regra 7):** `cowork-inbox.py` é mover-de-conteúdo (não validador) → estendi a família `*-guard.mjs`, não dupliquei.
+
+**Status:** PRs **#2864** + **#2865** abertos, **aguardando merge [W]** (publication-policy). "Pousou" só vira `PROCESSADO → main` quando estiver no `main` (regra §16.4 deste próprio PR). Se a §16 virar ADR formal = Tier 0 = número é [W] (não cunhei).

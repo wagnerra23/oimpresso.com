@@ -10,6 +10,16 @@
 
 ---
 
+## 🟢 Handoffs ATIVOS — acima da linha d'água
+
+> Fila viva lida pelo gate `npm run handoff:check` (catraca · [`PROCESSO_MEMORIA_CC.md`](PROCESSO_MEMORIA_CC.md) §16 · IT8). Cada item ativo **cita** seu `PROMPT_PARA_CODE_<slug>.md` (que precisa existir em `prototipo-ui/`). Item que **pousou** (`CODE_NOTES.md@main` confirma) **desce** pra baixo da linha d'água — vira histórico, ignorado pelo gate. Lei: sem órfão · prompt auto-contido (sem URL efêmera) · ondas (1 arquivo = 1 PR).
+
+- **DS Roadmap até `ds/*=0`** — fila multi-onda ([`STATUS.md`](STATUS.md) "[PRONTO p/ disparar]"). Entrada: [`PROMPT_PARA_CODE_DS-ROADMAP-ATE-ZERO.md`](PROMPT_PARA_CODE_DS-ROADMAP-ATE-ZERO.md). Sub-filas: [`PROMPT_PARA_CODE_PR-C-WORKLIST.md`](PROMPT_PARA_CODE_PR-C-WORKLIST.md) (módulos · Sells lidera) · [`PROMPT_PARA_CODE_SWEEP-arbitrary-color.md`](PROMPT_PARA_CODE_SWEEP-arbitrary-color.md) · [`PROMPT_PARA_CODE_LOTE-BADGE.md`](PROMPT_PARA_CODE_LOTE-BADGE.md) · [`PROMPT_PARA_CODE_SWEEP-formsection.md`](PROMPT_PARA_CODE_SWEEP-formsection.md).
+
+<!-- LINHA-DAGUA-HANDOFF · acima = ATIVO (o gate vigia) · abaixo = processado/histórico (ignorado) · regra em PROCESSO_MEMORIA_CC.md §16 -->
+
+---
+
 ## 2026-05-09 — Setup inicial: 3 perguntas pra Claude Design responder
 
 Wagner [W] e Claude Code [CL] precisam que **Claude Design** (Cowork ou plugin) responda 3 perguntas que vão calibrar o protocolo. Resposta vai voltar pra nós dois (W + CL) lendo este arquivo abaixo.
