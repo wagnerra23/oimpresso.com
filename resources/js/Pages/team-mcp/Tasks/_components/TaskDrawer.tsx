@@ -3,7 +3,7 @@
 //   SEM dado fantasma: só situação (status) + atividade real (mcp_task_events) +
 //   vínculos (blocked_by resolvidos) + subtasks. Largura 560px (issue ≠ cadastro
 //   760px ADR 0185 — exceção registrada no visual-comparison).
-//   Locators resilientes via data-testid (NÚCLEO #7).
+//   Locators resilientes via data-testid (NÚCLEO #7). Layout via primitivos (ADR 0253).
 
 import { useEffect, useState } from 'react';
 import {
@@ -24,8 +24,9 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/Components/ui/sheet';
+import { Grid, Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
-import { ActorSeal, PriorityDot, StatusPill } from './taskBadges';
+import { ActorSeal, PriorityDot, TaskStatusPill } from './taskBadges';
 import { type Priority } from './taskTokens';
 
 interface TaskDetail {
@@ -175,10 +176,10 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
         data-testid="task-drawer"
       >
         <SheetHeader className="border-b">
-          <div className="flex items-start gap-2">
+          <Inline gap={2} align="start">
             <PriorityDot priority={t?.priority ?? 'p2'} className="mt-1.5" />
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
+              <Inline gap={2} wrap>
                 <span className="font-mono text-xs text-muted-foreground" data-testid="drawer-id">
                   {t?.display_id ?? taskId}
                 </span>
@@ -187,29 +188,31 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
                     {t.type}
                   </span>
                 )}
-                {t?.status && <StatusPill status={t.status} />}
+                {t?.status && <TaskStatusPill status={t.status} />}
                 {t?.is_blocked && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive">
                     <Lock size={10} /> bloqueada
                   </span>
                 )}
-              </div>
+              </Inline>
               <SheetTitle className="mt-1 text-base leading-snug" data-testid="drawer-title">
                 {t?.title ?? <span className="italic text-muted-foreground">(sem título)</span>}
               </SheetTitle>
-              <SheetDescription className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                {t?.module && <span className="rounded bg-muted px-1.5 py-0.5">{t.module}</span>}
-                {t && <ActorSeal owner={t.owner} agents={agents} />}
-                {t?.sprint && <span className="text-muted-foreground">onda {t.sprint}</span>}
-                {t?.estimate_h ? <span className="text-muted-foreground tabular-nums">{t.estimate_h}h</span> : null}
+              <SheetDescription asChild>
+                <Inline gap={2} wrap className="mt-1 text-xs">
+                  {t?.module && <span className="rounded bg-muted px-1.5 py-0.5">{t.module}</span>}
+                  {t && <ActorSeal owner={t.owner} agents={agents} />}
+                  {t?.sprint && <span className="text-muted-foreground">onda {t.sprint}</span>}
+                  {t?.estimate_h ? <span className="text-muted-foreground tabular-nums">{t.estimate_h}h</span> : null}
+                </Inline>
               </SheetDescription>
             </div>
-          </div>
+          </Inline>
         </SheetHeader>
 
         {!loading && data && (
           <div className="-mt-2 border-b px-4">
-            <div className="flex gap-1" role="tablist">
+            <Inline gap={1} role="tablist">
               {tabs.map((tabItem) => {
                 const Icon = tabItem.icon;
                 const isActive = tab === tabItem.key;
@@ -222,7 +225,7 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
                     data-testid={`drawer-tab-${tabItem.key}`}
                     onClick={() => setTab(tabItem.key)}
                     className={cn(
-                      'relative flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors',
+                      'relative inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors',
                       isActive
                         ? '-mb-px border-b-2 border-primary text-foreground'
                         : 'text-muted-foreground hover:text-foreground',
@@ -238,15 +241,15 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
                   </button>
                 );
               })}
-            </div>
+            </Inline>
           </div>
         )}
 
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           {loading && (
-            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+            <Inline justify="center" className="py-12 text-sm text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> carregando…
-            </div>
+            </Inline>
           )}
 
           {error && (
@@ -267,26 +270,26 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
                     )}
                   </div>
 
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                    <div><dt className="text-muted-foreground">Situação</dt><dd className="mt-0.5"><StatusPill status={t.status} /></dd></div>
-                    <div><dt className="text-muted-foreground">Prioridade</dt><dd className="mt-0.5 flex items-center gap-1.5"><PriorityDot priority={t.priority} />{t.priority.toUpperCase()}</dd></div>
-                    <div><dt className="text-muted-foreground">Responsável</dt><dd className="mt-0.5"><ActorSeal owner={t.owner} agents={agents} /></dd></div>
-                    <div><dt className="text-muted-foreground">Onda</dt><dd className="mt-0.5">{t.sprint ?? '—'}</dd></div>
-                    {t.story_points != null && <div><dt className="text-muted-foreground">Story points</dt><dd className="mt-0.5 tabular-nums">{t.story_points}</dd></div>}
-                    {t.due_date && <div><dt className="text-muted-foreground">Prazo</dt><dd className="mt-0.5 tabular-nums">{t.due_date}</dd></div>}
-                  </dl>
+                  <Grid cols={2} gap={2} className="text-xs">
+                    <div><div className="text-muted-foreground">Situação</div><div className="mt-0.5"><TaskStatusPill status={t.status} /></div></div>
+                    <div><div className="text-muted-foreground">Prioridade</div><div className="mt-0.5 inline-flex items-center gap-1.5"><PriorityDot priority={t.priority} />{t.priority.toUpperCase()}</div></div>
+                    <div><div className="text-muted-foreground">Responsável</div><div className="mt-0.5"><ActorSeal owner={t.owner} agents={agents} /></div></div>
+                    <div><div className="text-muted-foreground">Onda</div><div className="mt-0.5">{t.sprint ?? '—'}</div></div>
+                    {t.story_points != null && <div><div className="text-muted-foreground">Story points</div><div className="mt-0.5 tabular-nums">{t.story_points}</div></div>}
+                    {t.due_date && <div><div className="text-muted-foreground">Prazo</div><div className="mt-0.5 tabular-nums">{t.due_date}</div></div>}
+                  </Grid>
 
                   {data.blockers.length > 0 && (
                     <div data-testid="drawer-blockers">
-                      <h4 className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <h4 className="mb-2 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         <GitBranch size={12} /> Bloqueada por ({data.blockers.length})
                       </h4>
                       <ul className="space-y-1.5">
                         {data.blockers.map((b) => (
-                          <li key={b.task_id} className="flex items-center gap-2 text-xs">
+                          <li key={b.task_id} className="inline-flex w-full items-center gap-2 text-xs">
                             <span className="font-mono text-muted-foreground">{b.display_id}</span>
                             <span className="min-w-0 flex-1 truncate">{b.title}</span>
-                            <StatusPill status={b.status} className="shrink-0" />
+                            <TaskStatusPill status={b.status} className="shrink-0" />
                           </li>
                         ))}
                       </ul>
@@ -305,7 +308,7 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
                         const Icon = eventIcon(e.event_type);
                         const label = EVENT_LABEL[e.event_type] ?? e.event_type;
                         return (
-                          <li key={e.id} className="flex items-start gap-2 text-xs">
+                          <li key={e.id} className="inline-flex w-full items-start gap-2 text-xs">
                             <Icon size={13} className="mt-0.5 shrink-0 text-muted-foreground" />
                             <div className="min-w-0 flex-1">
                               <div>
@@ -340,11 +343,11 @@ export default function TaskDrawer({ taskId, agents, onClose }: Props) {
                       {data.subtasks.map((s) => {
                         const isDone = s.status === 'done' || s.status === 'cancelled';
                         return (
-                          <li key={s.task_id} className={cn('flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/50', isDone && 'opacity-60')}>
+                          <li key={s.task_id} className={cn('inline-flex w-full items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted/50', isDone && 'opacity-60')}>
                             <PriorityDot priority={s.priority} />
                             <span className="font-mono text-muted-foreground">{s.display_id}</span>
                             <span className={cn('min-w-0 flex-1 truncate', isDone && 'line-through')}>{s.title}</span>
-                            <StatusPill status={s.status} className="shrink-0" />
+                            <TaskStatusPill status={s.status} className="shrink-0" />
                           </li>
                         );
                       })}

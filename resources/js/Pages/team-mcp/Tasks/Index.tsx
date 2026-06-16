@@ -32,7 +32,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { cn } from '@/Lib/utils';
 import TaskDrawer from './_components/TaskDrawer';
-import { ActorSeal, PriorityDot, StatusPill } from './_components/taskBadges';
+import { ActorSeal, PriorityDot, TaskStatusPill } from './_components/taskBadges';
 import { PRIO_LABEL, STATUS_ORDER, statusMeta, type Priority } from './_components/taskTokens';
 
 interface Task {
@@ -397,7 +397,7 @@ function TasksIndex({
       />
 
       {flash && (
-        <div role="alert" className="mt-4 flex items-center justify-between rounded-md border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
+        <div role="alert" className="mt-4 inline-flex w-full items-center justify-between rounded-md border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
           <span>{flash}</span>
           <button type="button" onClick={() => setFlash(null)} className="text-xs font-medium underline-offset-2 hover:underline">ok</button>
         </div>
@@ -411,7 +411,7 @@ function TasksIndex({
       </KpiGrid>
 
       {/* Toolbar */}
-      <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border bg-card px-3 py-3">
+      <div className="mt-4 inline-flex w-full flex-wrap items-end gap-3 rounded-lg border bg-card px-3 py-3">
         {tab === 'backlog' && (
           <div>
             <Label className="text-xs">Agrupar por</Label>
@@ -478,7 +478,7 @@ function TasksIndex({
           <Button variant="ghost" onClick={() => { setSearch(''); clearFilter(); }} className="h-8 text-xs">Limpar</Button>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto inline-flex items-center gap-2">
           {tab === 'backlog' && (
             <button
               type="button"
@@ -506,7 +506,7 @@ function TasksIndex({
           ))}
         </div>
       ) : tab === 'quadro' ? (
-        <div className="mt-4 grid gap-3" style={{ gridTemplateColumns: `repeat(${KANBAN_COLS.length}, minmax(0, 1fr))` }} data-testid="quadro">
+        <div className="mt-4 inline-grid w-full gap-3" style={{ gridTemplateColumns: `repeat(${KANBAN_COLS.length}, minmax(0, 1fr))` }} data-testid="quadro">
           {KANBAN_COLS.map((col) => {
             const items = effectiveKanban[col.key] ?? [];
             return (
@@ -515,14 +515,14 @@ function TasksIndex({
                 onDragOver={(e) => { e.preventDefault(); setDragOver(col.key); }}
                 onDragLeave={() => setDragOver(null)}
                 onDrop={() => { const id = dragId.current; dragId.current = null; setDragOver(null); if (id) patchStatus(id, col.key); }}
-                className={cn('flex min-h-[280px] flex-col rounded-lg border bg-muted/30 p-2', dragOver === col.key && 'bg-muted/60 ring-2 ring-primary/50')}
+                className={cn('min-h-[280px] rounded-lg border bg-muted/30 p-2', dragOver === col.key && 'bg-muted/60 ring-2 ring-primary/50')}
                 data-testid={`kanban-col-${col.key}`}
               >
-                <div className="mb-2 flex items-center justify-between px-1">
-                  <StatusPill status={col.key} />
+                <div className="mb-2 inline-flex w-full items-center justify-between px-1">
+                  <TaskStatusPill status={col.key} />
                   <span className="text-xs tabular-nums text-muted-foreground">{items.length}</span>
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="inline-flex w-full flex-col gap-2">
                   {items.map((t) => (
                     <div
                       key={t.task_id}
@@ -536,13 +536,13 @@ function TasksIndex({
                         selectedId === t.task_id && 'ring-1 ring-primary')}
                       data-testid="kanban-card"
                     >
-                      <div className="mb-1 flex items-center gap-2">
+                      <div className="mb-1 inline-flex w-full items-center gap-2">
                         <PriorityDot priority={t.priority} />
                         <span className="font-mono text-[10px] text-muted-foreground">{t.display_id}</span>
                         {t.blocked_by.length > 0 && <Lock size={11} className="ml-auto text-destructive" aria-label="bloqueada" />}
                       </div>
                       <p className="mb-2 line-clamp-2 text-xs font-medium leading-tight">{t.title}</p>
-                      <div className="flex items-center gap-2">
+                      <div className="inline-flex w-full items-center gap-2">
                         <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{t.module}</span>
                         <ActorSeal owner={t.owner} agents={agents} className="ml-auto" />
                       </div>
@@ -574,7 +574,7 @@ function TasksIndex({
                 <button
                   type="button"
                   onClick={() => toggleCollapse(g)}
-                  className="flex w-full items-center gap-2 border-b border-border/60 bg-muted/40 px-3 py-1.5 text-left text-xs font-medium"
+                  className="inline-flex w-full items-center gap-2 border-b border-border/60 bg-muted/40 px-3 py-1.5 text-left text-xs font-medium"
                   data-testid="group-head"
                 >
                   <ChevronRight size={13} className={cn('shrink-0 transition-transform', !isCol && 'rotate-90')} />
@@ -592,7 +592,7 @@ function TasksIndex({
                       data-testid="task-row"
                       onClick={() => { setSelectedId(t.task_id); openDetail(t.task_id); }}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(t.task_id); openDetail(t.task_id); } }}
-                      className={cn('flex cursor-pointer items-center gap-3 border-b border-border/60 px-3 text-sm last:border-b-0', rowH,
+                      className={cn('inline-flex w-full cursor-pointer items-center gap-3 border-b border-border/60 px-3 text-sm last:border-b-0', rowH,
                         sel ? 'bg-primary/10' : 'hover:bg-muted/50', checked && !sel && 'bg-primary/5')}
                     >
                       <Checkbox
@@ -610,7 +610,7 @@ function TasksIndex({
                       <span className="hidden shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground sm:inline">{t.module}</span>
                       <span className="hidden w-28 shrink-0 sm:block"><ActorSeal owner={t.owner} agents={agents} /></span>
                       <span className="hidden w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground md:block">{t.estimate_h ? `${t.estimate_h}h` : ''}</span>
-                      <StatusPill status={t.status} className="hidden w-24 shrink-0 md:inline-flex" />
+                      <TaskStatusPill status={t.status} className="hidden w-24 shrink-0 md:inline-flex" />
                     </div>
                   );
                 })}
@@ -622,7 +622,7 @@ function TasksIndex({
 
       {/* Totalbar */}
       {!isLoading && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground" data-testid="totalbar">
+        <div className="mt-3 inline-flex w-full flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground" data-testid="totalbar">
           <span className="tabular-nums">
             {tab === 'quadro' ? `${flatKanban.length} no quadro` : `${flatBacklog.length} de ${(backlog ?? []).length} tasks`}
             {' · '}{k.done} concluídas · {k.cancelled} canceladas

@@ -18,8 +18,8 @@ export function PriorityDot({ priority, className }: { priority: Priority; class
   );
 }
 
-/** Status Stripe-style: dot colorido + label neutro (sem bg-fill). */
-export function StatusPill({ status, className }: { status: string; className?: string }) {
+/** Status Stripe-style: dot colorido + label neutro (sem bg-fill). Nome único (reuse-gate). */
+export function TaskStatusPill({ status, className }: { status: string; className?: string }) {
   const m = statusMeta(status);
   return (
     <span

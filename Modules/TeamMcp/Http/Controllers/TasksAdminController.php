@@ -183,6 +183,10 @@ class TasksAdminController extends Controller
      */
     public function show(Request $request, string $taskId): JsonResponse
     {
+        // Multi-tenant Tier 0 (ADR 0070 + ADR 0093): mcp_tasks / mcp_task_events são
+        // REPO-WIDE cross-tenant POR DESIGN (governança da plataforma) — SEM `business_id`
+        // / BusinessScope, idêntico ao index()/builders e ao Board/Triage. Marker explícito
+        // pro phpstan-multitenant rule (T-AP-2/T-AP-8). NÃO adicionar filtro business_id aqui.
         $task = McpTask::where('task_id', $taskId)
             ->orWhere('identifier', $taskId)
             ->first();
