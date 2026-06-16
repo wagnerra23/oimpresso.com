@@ -95,6 +95,20 @@ Route::group(
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('project-mgmt.triage.assign');
 
+        // ---- Triage Analista (Forja PR-5a) — dossiê read-only + ações [W] aprova ----
+        Route::get('/triage/{taskId}/dossier', 'TriageController@dossier')
+            ->where('taskId', '[A-Za-z0-9_\-]+')
+            ->name('project-mgmt.triage.dossier');
+        Route::post('/triage/{taskId}/aprovar', 'TriageController@aprovar')
+            ->where('taskId', '[A-Za-z0-9_\-]+')
+            ->name('project-mgmt.triage.aprovar');
+        Route::post('/triage/{taskId}/rejeitar', 'TriageController@rejeitar')
+            ->where('taskId', '[A-Za-z0-9_\-]+')
+            ->name('project-mgmt.triage.rejeitar');
+        Route::post('/triage/{taskId}/fundir', 'TriageController@fundir')
+            ->where('taskId', '[A-Za-z0-9_\-]+')
+            ->name('project-mgmt.triage.fundir');
+
         // ---- Inbox — US-TR-304..306 (SPEC-UI-FASE7 Onda 2) -----------------
         // Caixa de entrada dedicada (mcp_inbox_notifications do auth user).
         Route::get('/inbox', 'InboxController@index')
