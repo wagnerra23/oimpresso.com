@@ -16,6 +16,10 @@ use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
+use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
+use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
+use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
+use Modules\TeamMcp\Services\Forja\ForjaSaudeService;
 
 /**
  * ForjaController — cockpit do cowork loop (/forja).
@@ -83,27 +87,46 @@ class ForjaController extends Controller
 
     public function backlog(): Response
     {
-        return $this->renderTab('backlog');
+        $projectId = $this->resolveForjaProjectId();
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('backlog'),
+            ['backlog' => Inertia::defer(fn () => app(ForjaBacklogService::class)->build($projectId))],
+        ));
     }
 
     public function quadro(): Response
     {
-        return $this->renderTab('quadro');
+        $projectId = $this->resolveForjaProjectId();
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('quadro'),
+            ['quadro' => Inertia::defer(fn () => app(ForjaQuadroService::class)->build($projectId))],
+        ));
     }
 
     public function changelog(): Response
     {
-        return $this->renderTab('changelog');
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('changelog'),
+            ['changelog' => Inertia::defer(fn () => app(ForjaChangelogService::class)->build())],
+        ));
     }
 
     public function mcp(): Response
     {
+        // Aba MCP é estática/MOCKADO (o enforce real é do servidor TeamMcp) — sem deferred.
         return $this->renderTab('mcp');
     }
 
     public function saude(): Response
     {
-        return $this->renderTab('saude');
+        $projectId = $this->resolveForjaProjectId();
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('saude'),
+            ['saude' => Inertia::defer(fn () => app(ForjaSaudeService::class)->build($projectId))],
+        ));
     }
 
     // ---------- Triagem · payload ----------
