@@ -1,5 +1,5 @@
 ---
-date: 2026-06-16
+date: "2026-06-16"
 time: "2111 BRT"
 slug: "handoff-integrity-gate"
 tldr: "Prompt Cowork 2 tarefas. TAREFA 1 (headers os-page-h inline -> PageHeader) PULADA: premissa stale — os-page-h e CSS canon (nao alvo), Dre/ContasPagar ja migrados (ref morta), Unificado/Dashboard charter-protegidos; [W] confirmou. TAREFA 2 FEITA: gate de integridade do handoff (fila COWORK_NOTES <-> PROMPT_PARA_CODE) em 2 PRs — #2864 regra (PROCESSO_MEMORIA_CC §16 + IT8) + #2865 catraca (guard + auto-teste + baseline 0/0 + workflow advisory + censo). CI verde, NAO mergeado (aguarda [W])."
