@@ -63,6 +63,16 @@ describe('fin-hero — o hero REAL é claro (Onda 28), não a caixa preta', () =
     expect(tsx).not.toContain('bg-[oklch(0.22_0.01_80)]');
     expect(tsx).not.toContain('text-white');
   });
+
+  // Regressão 2026-06-16: o <b> "realizado" dentro do .fin-stat-hint herdava o --fs-8 (28px)
+  // da regra `.fin-stat-hero b` → ficava do tamanho do número-herói (dois números gigantes).
+  it('fin-cowork.css: o <b> do hint é reduzido (não fica do tamanho do número-herói)', () => {
+    const css = readFileSync(CSS, 'utf8');
+    const rule = css.match(/\.fin-stat-hero \.fin-stat-hint b\s*\{([^}]*)\}/);
+    expect(rule, 'falta a regra que reduz o <b> do hint').not.toBeNull();
+    expect(rule![1]).toMatch(/font-size:\s*var\(--fs-1\)/);
+    expect(rule![1]).not.toMatch(/--fs-8/);
+  });
 });
 
 describe('fin-hero — está VIVO (não passa vacuamente)', () => {
