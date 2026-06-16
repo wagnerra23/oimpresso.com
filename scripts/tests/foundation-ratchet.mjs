@@ -5,7 +5,9 @@
 // a full-suite nunca rodou verde em DB real. Antes da nightly diagnóstica medir, congelamos
 // 3 contadores REAIS (medidos no repo, não no plano — regra anti-stale) pra nenhum PR piorar:
 //   n_quarantine        — marcadores `legacy-quarantine` (burn-down: subir = regressão)
-//   n_refresh_database  — ARQUIVOS de teste com RefreshDatabase (alvo: DatabaseTransactions)
+//   n_refresh_database  — ARQUIVOS que APLICAM o trait RefreshDatabase — `uses(...RefreshDatabase::class)`
+//                         ou `use [...\]RefreshDatabase;` (alvo: DatabaseTransactions). MENÇÃO da palavra
+//                         em comentário/docstring/string de skip NÃO conta (conserto raiz FV-Q1, ADR 0275).
 //   n_business_first    — ocorrências de Business::first() cru em teste (alvo: trait WithSeededTenant)
 //
 // CONVENÇÃO QUARENTENA (hard-fail, independe de baseline): todo marcador exige
@@ -30,6 +32,18 @@ const BASELINE = opt('--baseline') || join(ROOT, 'scripts/tests/baselines/founda
 
 const MARKER = /@group\s+legacy-quarantine\b|#\[Group\(['"]legacy-quarantine['"]\)\]|->group\(['"]legacy-quarantine['"]/;
 const REASON = /quarantine-reason:\s*\S/;
+
+// USO REAL do trait RefreshDatabase (≠ MENÇÃO). Conta só quem APLICA o trait:
+//   `uses(...RefreshDatabase::class...)` (Pest) ou `use [...\]RefreshDatabase;` (import/trait-use).
+// Remove comentários antes (docblock /* */ + linha //) pra não casar a docstring que explica POR QUE o
+// teste EVITA o trait (padrão era-sqlite). String literal sobrevive ao strip (ex.: `->skip('… RefreshDatabase …')`)
+// mas não casa `uses(`/`use …;`, então não conta. Conserta a raiz do FV-Q1: o `\bRefreshDatabase\b` cru
+// contava ~50 falsos positivos (menção em comentário), medindo FORMA e não USO real (ADR 0275 — métrica honesta).
+function refreshDatabaseTraitUsed(src) {
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  return /\buses\s*\([^)]*\bRefreshDatabase\b/.test(code)
+    || /^\s*use\s+[\w\\]*\bRefreshDatabase\b/m.test(code);
+}
 
 // Roots canônicos: tests/ + Modules/<X>/Tests/. Comparação case-insensitive + readdir
 // (cada dir REAL visitado 1×) — imune ao alias NTFS Tests/tests que duplicaria contagem.
@@ -57,7 +71,7 @@ function measure(root) {
   const semRazao = [];
   for (const tr of testRoots(root)) for (const f of phpFiles(tr)) {
     const src = readFileSync(f, 'utf8');
-    if (/\bRefreshDatabase\b/.test(src)) counters.n_refresh_database++;
+    if (refreshDatabaseTraitUsed(src)) counters.n_refresh_database++;
     counters.n_business_first += (src.match(/\bBusiness::first\s*\(/g) || []).length;
     if (!MARKER.test(src)) continue;
     const lines = src.split('\n');
