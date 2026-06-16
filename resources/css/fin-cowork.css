@@ -170,6 +170,12 @@
 .fin-cowork .fin-curadoria .fin-stat-hero small { color: var(--text-mute); font-weight: 600; }
 .fin-cowork .fin-curadoria .fin-stat-hero b { color: var(--text); font-size: var(--fs-8); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: var(--text-mute); }
+/* O <b> "realizado" vive DENTRO do .fin-stat-hint (linha pequena de apoio) — NÃO é o
+   número-herói. Sem este override ele herda o --fs-8 (28px) da regra `.fin-stat-hero b`
+   acima e sai do MESMO tamanho do "saldo previsto" → dois números gigantes brigando no
+   hero (bug visto em prod 2026-06-16, ainda mais gritante depois do hero claro Onda 28).
+   Volta pro tamanho do hint (espelha o `<span class="mono">` dos demais cards). */
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint b { font-size: var(--fs-1); font-weight: 600; }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: var(--neg); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: var(--pos); }
 /* CASO 03 (adversário Wave 1 · 2026-06-16; re-tonalizado p/ hero claro Onda 28) —
