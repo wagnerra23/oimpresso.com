@@ -949,3 +949,22 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 - **golden (FA-5)**: F3 de protótipo Cowork = SEMPRE mapear token Cowork→live ANTES de colar CSS. O gabarito FA-5 referenciava `--text-2/--sunken/--pos-soft/--hairline` (vocabulário do protótipo) que não existe no live; e cor semântica no drawer vai por Tailwind `@theme`, não `var(--pos)` (o drawer é portal FORA de `.cockpit`, onde `--pos` de cockpit.css mora). Sintoma se ignorado: CSS "verde" que renderiza INCOLOR (var indefinida = sem cor). Resolve: tokens neutros do escopo `.fin-cowork` + Fundação (`--sh-2/--ease/--fs-*`); semântico via classe utilitária.
 - **gotcha (FA-5)**: colisão de atalho `R` — `R` era global "novo recebimento"; o 9.75 quer `R`=liquida no drawer. Resolvido por PRECEDÊNCIA (drawer aberto + título liquidável → `openBaixa`; senão cai no novo-lançamento). Mesmo guard de foco (INPUT/TEXTAREA/SELECT/contentEditable + meta/ctrl/alt).
 - **gotcha (FA-5)**: inline-edit (R2 KVEdit) precisa de rota de save POR CAMPO — `Canal` não tem (`UpdateTituloRequest` só aceita categoria_id/plano/venc/valor/forma/conta). Deferido em vez de inventar PATCH (T-AP-10). Regra: KVEdit inline só onde o campo já tem rota de update provada.
+
+---
+
+## TAREFA 2 — Onda 2 (gate CI) — PR #2868
+_handoff 2026-06-16 · [CL] · verificado vs main @4d9726142 · supersede o "PENDENTE" da Onda 1_
+
+Resolvi o bloqueio sem virar "gate que não morde": a fila viva é Cowork-only, mas os **artefatos de handoff existem no git** → gateei esses.
+
+| item | veredito | prova |
+|---|---|---|
+| `scripts/governance/reincidencia-guard.mjs` | C3 (cabeçalho fundido `:** > **`) + C4 (ref-morta link/`code`; exclui `Modules/<X>` = Regra 7). Escopo `memory/handoffs/**` + `prototipo-ui/{COWORK_NOTES,CODE_NOTES}*.md`. Resolver multi-base anti-FP | `--check` exit 0 |
+| C5 dormente | sem artefato git (fila Cowork-only §14) — esqueletado, reativa quando a fila pousar no git | — |
+| ratchet + self-test | baseline congela 200 legados (`--write`); `reincidencia-guard.test.mjs` = 9/9 controle-negativo (morde C3/C4, passa limpo/baseline/Modules) | run local |
+| workflow advisory | `reincidencia-gate.yml` (`paths:` fila+handoffs) roda self-test→`--check`; **registrado em `gates-registry.json`** (Check G verde) | memory-health |
+| Tier 0 | virar ADR = **[W] numera** (não cunhei número) | — |
+
+### new_design_memories
+- **golden**: bloqueio "fila Cowork-only" virou escopo honesto — gateei os **handoffs que existem no git** (`memory/handoffs/` + `COWORK_NOTES`/`CODE_NOTES`), C5 dormente documentado. Gate que morde > gate que finge.
+- **golden**: o baseline (200 legados) é a prova de que o guard VÊ o repo real, não um fixture; o self-test (9/9) é a prova de que MORDE. Os dois lados, padrão do repo (GT-G6).
