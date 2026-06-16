@@ -178,9 +178,9 @@ class DataController extends Controller
                             // /project-mgmt/{triage,inbox} (NÃO dobrar prefixo). Ao lado de My Work.
                             ['key' => 'board',       'label' => 'Board',       'href' => '/project-mgmt/board'],
                             ['key' => 'my-work',     'label' => 'My Work',     'href' => '/project-mgmt/my-work'],
-                            ['key' => 'triage',      'label' => 'Triagem',           'href' => '/project-mgmt/triage'],
+                            ['key' => 'triage',      'label' => 'Triagem (PM)',      'href' => '/project-mgmt/triage'],
                             ['key' => 'inbox',       'label' => 'Caixa de entrada',  'href' => '/project-mgmt/inbox'],
-                            ['key' => 'backlog',     'label' => 'Backlog',     'href' => '/project-mgmt/backlog'],
+                            ['key' => 'backlog',     'label' => 'Backlog (PM)',      'href' => '/project-mgmt/backlog'],
                             ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
                             ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
                             ['key' => 'roadmap',     'label' => 'Roadmap',     'href' => '/project-mgmt/roadmap'],
