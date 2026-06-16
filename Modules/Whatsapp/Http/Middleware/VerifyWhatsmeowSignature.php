@@ -85,7 +85,7 @@ class VerifyWhatsmeowSignature
         // sem downgrade silencioso). Substituível por HMAC quando/se o daemon
         // ganhar suporte a assinatura.
         $urlSecret = (string) config('whatsapp.whatsmeow.webhook_url_secret', '');
-        $providedUrlSecret = (string) $request->query('wh', '');
+        $providedUrlSecret = is_string($wh = $request->query('wh')) ? $wh : '';
         if ($urlSecret !== '' && hash_equals($urlSecret, $providedUrlSecret)) {
             $channel = $this->resolveChannel($request, $businessId);
             $request->attributes->set('whatsapp.business_id', $businessId);
