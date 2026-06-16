@@ -646,7 +646,7 @@ function TasksIndex({
 }
 
 TasksIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Tasks — Equipe" breadcrumbItems={[{ label: 'Equipe' }, { label: 'Tasks' }]}>
+  <AppShellV2 title="Tarefas — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'Tarefas' }]}>
     {page}
   </AppShellV2>
 );

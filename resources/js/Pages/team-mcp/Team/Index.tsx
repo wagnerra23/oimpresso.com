@@ -828,7 +828,7 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
 }
 
 TeamIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Time — Equipe (MCP)" breadcrumbItems={[{ label: 'Equipe' }, { label: 'Time' }]}>
+  <AppShellV2 title="Equipe — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'Equipe' }]}>
     {page}
   </AppShellV2>
 );

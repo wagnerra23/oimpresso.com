@@ -171,7 +171,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
 }
 
 ScorecardIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Saúde do MCP — Equipe" breadcrumbItems={[{ label: 'Equipe' }, { label: 'Saúde' }]}>
+  <AppShellV2 title="Saúde — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'Saúde' }]}>
     {page}
   </AppShellV2>
 );

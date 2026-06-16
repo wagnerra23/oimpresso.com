@@ -319,7 +319,7 @@ function CcSessionsIndex({ sessions, filters, kpis, devs, projects, permissions 
 }
 
 CcSessionsIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Atividade CC — Equipe" breadcrumbItems={[{ label: 'Equipe' }, { label: 'Atividade CC' }]}>
+  <AppShellV2 title="CC Sessions — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'CC Sessions' }]}>
     {page}
   </AppShellV2>
 );
