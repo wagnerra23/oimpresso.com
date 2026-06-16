@@ -27,7 +27,7 @@
 import { useEffect, useState } from 'react';
 import { router, Deferred, Head } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
-import { ChevronDown, Inbox as InboxIcon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
+import { ChevronDown, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Card } from '@/Components/ui/card';
@@ -313,10 +313,8 @@ export default function CaixaUnificadaIndex({
 
       {/* Header da página */}
       <div className="flex items-center justify-between gap-3 shrink-0 px-1">
+        {/* Sem ícone-caixa — canon Cowork `os-page-h-l` é só título + subtítulo. */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <InboxIcon size={16} aria-hidden />
-          </div>
           <div className="min-w-0">
             <h1 className="font-semibold text-[14px] leading-tight truncate">Caixa unificada</h1>
             <p className="text-[12.5px] text-muted-foreground truncate">
