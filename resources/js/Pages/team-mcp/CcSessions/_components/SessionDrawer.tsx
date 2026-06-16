@@ -67,7 +67,7 @@ function MessageBubble({ m }: { m: Message }) {
 
   return (
     <div className={cn('rounded-md border p-2', msgBubbleClass(m.msg_type))} data-testid="cc-message">
-      <div className="mb-1 flex items-center gap-2 text-[10px] text-muted-foreground">
+      <div className="mb-1 inline-flex w-full items-center gap-2 text-[10px] text-muted-foreground">
         <span className="font-mono font-medium uppercase">{m.msg_type}</span>
         {m.tool_name && (
           <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-foreground">
@@ -131,9 +131,9 @@ export default function SessionDrawer({ sessionUuid, onClose }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <SheetContent side="right" className="flex w-full flex-col overflow-hidden p-0 sm:max-w-[640px]" data-testid="session-drawer">
+      <SheetContent side="right" className="inline-flex w-full flex-col overflow-hidden p-0 sm:max-w-[640px]" data-testid="session-drawer">
         <SheetHeader className="border-b px-4">
-          <div className="flex items-center gap-2">
+          <div className="inline-flex w-full items-center gap-2">
             <User size={14} className="text-muted-foreground" aria-hidden />
             <SheetTitle className="text-base" data-testid="drawer-dev">
               {s?.user_nome ?? (loading ? 'Carregando…' : 'Sessão')}
@@ -146,7 +146,7 @@ export default function SessionDrawer({ sessionUuid, onClose }: Props) {
           </div>
           {s && (
             <SheetDescription className="space-y-1 text-xs">
-              <span className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex w-full flex-wrap items-center gap-2">
                 <span className="font-mono text-[10px] text-muted-foreground">{s.session_uuid.slice(0, 8)}</span>
                 {s.entrypoint && <span className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{s.entrypoint}</span>}
                 {s.git_branch && (
@@ -155,7 +155,7 @@ export default function SessionDrawer({ sessionUuid, onClose }: Props) {
                   </span>
                 )}
               </span>
-              <span className="flex items-center gap-1 text-muted-foreground">
+              <span className="inline-flex w-full items-center gap-1 text-muted-foreground">
                 <FolderOpen size={11} className="shrink-0" /> <span className="truncate font-mono">{s.project_path}</span>
               </span>
               <span className="block text-[11px] text-muted-foreground tabular-nums">
@@ -175,7 +175,7 @@ export default function SessionDrawer({ sessionUuid, onClose }: Props) {
 
         <div className="flex-1 overflow-auto px-3 py-3" ref={bodyRef}>
           {loading && (
-            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
+            <div className="inline-flex w-full items-center justify-center py-12 text-sm text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> carregando thread…
             </div>
           )}
