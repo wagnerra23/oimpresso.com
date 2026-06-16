@@ -14,7 +14,8 @@ const SCRIPT = join(__dirname, 'foundation-ratchet.mjs');
 const FIX = join(__dirname, 'fixtures', 'foundation-ratchet');
 
 let fails = 0;
-const check = (name, cond) => { console.log(`${cond ? '[OK]' : '[FAIL]'} ${name}`); if (!cond) fails++; };
+let ran = 0;
+const check = (name, cond) => { ran++; console.log(`${cond ? '[OK]' : '[FAIL]'} ${name}`); if (!cond) fails++; };
 const exec = (a, env = {}) => spawnSync('node', [SCRIPT, ...a], { encoding: 'utf8', env: { ...process.env, GITHUB_STEP_SUMMARY: '', ...env } });
 const run = (root, extra = [], env = {}) => exec(['--root', join(FIX, root), '--baseline', join(FIX, root, 'baseline.json'), ...extra], env);
 
@@ -56,7 +57,15 @@ run('bad', [], { GITHUB_STEP_SUMMARY: sum });
 const md = readFileSync(sum, 'utf8');
 check('summary → tabela com contadores + sem-razão', /n_quarantine/.test(md) && /quarantine-reason/.test(md));
 
+// 7. Conserto raiz FV-Q1 (ADR 0275): MENÇÃO da palavra (comentário/docstring/string de skip)
+//    NÃO conta; só USO real do trait conta. A fixture tem 2 arquivos com a palavra, 1 aplica o
+//    trait via `uses(RefreshDatabase::class)` e o outro só menciona → contagem honesta = 1.
+const cvu = run('comment-vs-uso');
+check('comment-vs-uso → exit 0 (uso real == baseline == 1)', cvu.status === 0);
+const jc = JSON.parse(run('comment-vs-uso', ['--json']).stdout);
+check('comment-vs-uso → mede 1 (ignora a menção, conta o uso Pest)', jc.counters.n_refresh_database === 1);
+
 console.log('');
-if (fails === 0) { console.log('[PASS] catraca MORDE — subir = vermelho, sem razão = vermelho, --write só desce. (10/10)'); process.exit(0); }
+if (fails === 0) { console.log(`[PASS] catraca MORDE — subir = vermelho, sem razão = vermelho, --write só desce, menção ≠ uso. (${ran}/${ran})`); process.exit(0); }
 console.log(`[FAIL] ${fails} caso(s) — a catraca NÃO está garantida. NÃO mergear.`);
 process.exit(1);
