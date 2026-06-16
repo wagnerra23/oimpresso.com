@@ -84,8 +84,10 @@ function fmtDate(iso: string | null): string {
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// G-DESIGN-04 — relativo PT-BR pra last_used_at no TokensListDialog
-function fmtRelative(iso: string | null): string {
+// G-DESIGN-04 — relativo PT-BR pra last_used_at no TokensListDialog.
+// Nome próprio (não `fmtRelative`): buckets meses/anos + null→'Nunca usado'
+// são contrato do charter (G-DESIGN-04), divergem do canônico @/Lib/datetime-br.
+function fmtLastUsed(iso: string | null): string {
   if (!iso) return 'Nunca usado';
   const d = new Date(iso).getTime();
   const diff = (Date.now() - d) / 1000;
@@ -685,7 +687,7 @@ function TokensListDialog({
                         title={t.last_used_at ? new Date(t.last_used_at).toLocaleString('pt-BR') : ''}
                       >
                         {t.last_used_at
-                          ? fmtRelative(t.last_used_at)
+                          ? fmtLastUsed(t.last_used_at)
                           : <span className="text-muted-foreground">Nunca usado</span>}
                       </td>
                       <td className="py-2 px-2 font-mono text-xs">
