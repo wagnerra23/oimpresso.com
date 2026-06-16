@@ -59,7 +59,6 @@ class ForjaController extends Controller
         'quadro'    => ['label' => 'Quadro',    'subtitle' => 'Fluxo do cowork loop por fase: F0 Brief → F1 Design → F1.5 Critique → F2 Screenshot → F3 Code → F3.5 A11y.'],
         'changelog' => ['label' => 'Changelog', 'subtitle' => 'O que shippou — PRs, ADRs, sessões e ondas.'],
         'mcp'       => ['label' => 'MCP',       'subtitle' => 'Contrato de ferramentas, tokens e auditoria — design; o enforce real é do servidor TeamMcp.'],
-        'saude'     => ['label' => 'Saúde',     'subtitle' => 'Semáforo do loop — memory-health, baselines de gate e frescor. Cada métrica linka a uma ação.'],
     ];
 
     public function __construct()
@@ -116,13 +115,6 @@ class ForjaController extends Controller
     {
         // Aba MCP é estática/MOCKADO (o enforce real é do servidor TeamMcp) — sem deferred.
         return $this->renderTab('mcp');
-    }
-
-    public function saude(): \Illuminate\Http\RedirectResponse
-    {
-        // Fusão 2026-06-16: a aba Saúde reusa o Scorecard REAL (Facts+Checks) —
-        // a versão fina foi aposentada pra não competir com /team-mcp/scorecard.
-        return redirect()->route('team-mcp.scorecard.index');
     }
 
     // ---------- Triagem · payload ----------

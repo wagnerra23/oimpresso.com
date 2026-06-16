@@ -89,7 +89,7 @@ Route::group(
         Route::get('/quadro',    'ForjaController@quadro')->name('forja.quadro');
         Route::get('/changelog', 'ForjaController@changelog')->name('forja.changelog');
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
-        Route::get('/saude',     'ForjaController@saude')->name('forja.saude');
+        // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
 
         // Triagem (aba 1) — dossiê do Analista (read-only) + ações [W] aprova.
         // Espelha /project-mgmt/triage/{id}/{dossier,aprovar,rejeitar,fundir} (PR-5a).
