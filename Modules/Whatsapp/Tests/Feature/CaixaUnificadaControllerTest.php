@@ -37,6 +37,13 @@ beforeEach(function () {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
 
+    // Channel/Conversation/ChannelUserAccess/WhatsappMessage usam Spatie LogsActivity:
+    // sem isto, todo ::create tenta `insert into activity_log` (tabela fora do schema
+    // sintético) e estoura QueryException. Mesmo pattern das guards Jana já na lane
+    // sqlite (AcceptanceRefTest, FsmTransitionGuardTest). O suite não asserta sobre
+    // activity_log, então desligar não enfraquece nenhuma checagem.
+    config(['activitylog.enabled' => false]);
+
     foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues', 'whatsapp_broadcasts', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -329,7 +336,11 @@ it('R-WA-CAIXA-UNIF-001 — happy path render com props básicas + queue derivad
         ->and($props)->toHaveKey('defaultQueue')
         ->and($props['defaultQueue'])->toBe('comercial')
         ->and($props)->toHaveKey('statusFilter')
-        ->and($props['statusFilter'])->toBe('abertas');
+        // Wave 2 F1: o filtro default virou a aba `tab=all` (7 abas substituíram os 4
+        // status). Sem `tab`/`status` no request, o controller resolve 'all' — o alias
+        // legacy `statusFilter` espelha isso. Antes do Wave 2 o default era 'abertas';
+        // a asserção ficou stale porque o suite nunca rodava em CI.
+        ->and($props['statusFilter'])->toBe('all');
 
     // Conversations payload (defer resolve)
     $convs = cuctResolveDefer($props['conversations']);
