@@ -162,7 +162,7 @@
     radial-gradient(540px 200px at 14% -45%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%),
     linear-gradient(160deg, color-mix(in oklab, var(--accent) 8%, var(--surface)) 0%, var(--surface) 78%);
   border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
-  box-shadow: var(--sh-1);
+  box-shadow: var(--sh-2);
   padding-bottom: 18px;
   min-height: 96px;
   overflow: hidden;
@@ -171,11 +171,11 @@
 .fin-cowork .fin-curadoria .fin-stat-hero b { color: var(--text); font-size: var(--fs-8); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: var(--text-mute); }
 /* O <b> "realizado" vive DENTRO do .fin-stat-hint (linha pequena de apoio) — NÃO é o
-   número-herói. Sem este override ele herda o --fs-8 (28px) da regra `.fin-stat-hero b`
-   acima e sai do MESMO tamanho do "saldo previsto" → dois números gigantes brigando no
-   hero (bug visto em prod 2026-06-16, ainda mais gritante depois do hero claro Onda 28).
-   Volta pro tamanho do hint (espelha o `<span class="mono">` dos demais cards). */
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint b { font-size: var(--fs-1); font-weight: 600; }
+   número-herói. Sem override ele herda o --fs-8 (28px) da regra `.fin-stat-hero b` e
+   sai do MESMO tamanho do "saldo previsto" → dois números gigantes brigando. Valor
+   COPIADO do gabarito Cowork fin-boletos.css `.fin-stat-hint b { font-size: var(--fs-2) }`
+   (handoff Claude Design 2026-06-16; antes eu tinha chutado --fs-1, 1 token menor). */
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint b { font-size: var(--fs-2); font-weight: 600; }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: var(--neg); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: var(--pos); }
 /* CASO 03 (adversário Wave 1 · 2026-06-16; re-tonalizado p/ hero claro Onda 28) —
@@ -185,15 +185,15 @@
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-hero-alarm {
   display: inline-flex;
   align-items: center;
-  margin-left: 8px;
-  padding: 1px 8px;
+  margin-left: 7px;
+  padding: 1px 7px;
   border-radius: 99px;
-  font-size: var(--fs-2);
+  font-size: var(--fs-1);
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   text-transform: none;
   color: var(--neg);
-  background: color-mix(in oklab, var(--neg) 12%, var(--surface));
+  background: color-mix(in oklab, var(--neg) 14%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 30%, transparent);
 }
 /* Dark-mode (ADR 0281 · `.dark` no <html>) — o mesmo gradiente sobre a surface
@@ -219,9 +219,9 @@
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark {
   position: relative;
   width: calc(100% + 24px);
-  margin: 8px -12px 0;
-  height: 32px;
-  opacity: 0.85;
+  margin: 10px -12px 0;
+  height: 34px;
+  opacity: 0.9;
   display: block;
 }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-spark circle {
