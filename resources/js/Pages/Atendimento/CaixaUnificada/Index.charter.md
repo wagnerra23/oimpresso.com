@@ -3,7 +3,7 @@ page: /atendimento/caixa-unificada
 component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-06-10"
+last_validated: "2026-06-16"
 cutover_at: "2026-05-15"
 supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 10
+charter_version: 11
 permissao: whatsapp.access
 ---
 
@@ -320,6 +320,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-06-16 | Claude Code (brief [CC] dark-mode) | **Fix MODO ESCURO + empty-state Customer 360.** Tokenização dark-aware das folhas que usavam cor clara crua (a tela foi portada antes da auditoria de escuro): bolha inbound `bg-white`→`bg-card`; nota interna, banner "em homologação", SLA-pill e chip de Tag → `warning-soft`/`warning-fg`/`warning` (flipam no `.dark`), corpo da nota `text-foreground` (contraste nos 2 temas); read-tick `text-blue-600`→`oklch` inline (passa R1). `CustomerMemoryBlock` colapsa o card vazio (sem Contact CRM **e** sem enriquecimento) numa linha — compartilhado com o Inbox legacy, sem prop nova (não regride). Repo ativa dark via `.dark` (não `[data-theme]`) → **zero token novo, zero override CSS**. Verificado por probe token-flip nos 2 temas. PARTE 4 (chips "em breve" — catálogo sem `whatsapp_whatsmeow`) fica em PR backend separado. Charter v11. |
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **IA na thread** (PR-9/10): validação pré-PR confirmou infra Jana (laravel/ai + Agents) → IA REAL. `InboxAssistAgent` + `InboxAiController` (summarize/ask/suggest-reply) com PII redigida (PiiRedactor), dry_run gateando custo, 503 gracioso. UI: header Resumir/Perguntar + composer ✦ Sugerir (humano revisa). Charter v10. Pest R-WA-CAIXA-UNIF-012. |
 | 2026-06-10 | Claude (mandato [W] "aplicar todas") | **Polish V2** (PR-8/10): SLA pill lista+thread (slaState 75%/estourado) · cheat-sheet `?` · lightbox MediaFullscreenModal reusado · mobile tabs <lg (InboxMobileTabs) · favoritos localStorage (useInboxFavs, sem DB) · transcript imprimível (notas fora por default) · modo apresentação (Esc). ⌘K = TODO honesto (palette global PMG-002 já existe; estender = US cross-módulo). 100% frontend — payloads cobertos por R-WA-CAIXA-UNIF-001/002. Charter v9. |
