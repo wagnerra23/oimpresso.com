@@ -487,7 +487,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             onClick={() => setPickerOpen(true)}
             disabled={isPreview}
-            className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1.5 text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             data-testid="caixa-unif-ctx-link-contact"
             title="Buscar e vincular Contact CRM existente"
           >
@@ -498,7 +498,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             onClick={createContactFromPhone}
             disabled={isPreview}
-            className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1.5 text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             data-testid="caixa-unif-ctx-create-contact"
             title="Cria registro novo no CRM a partir do número de telefone"
           >
@@ -513,7 +513,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             disabled={isPreview}
             data-testid="caixa-unif-ctx-action-billing"
-            className="text-left text-[12px] px-2.5 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             title="Emitir cobrança (em breve)"
           >
             Emitir cobrança
@@ -524,7 +524,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             disabled={isPreview}
             data-testid="caixa-unif-ctx-action-arte"
-            className="text-left text-[12px] px-2.5 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             title="Enviar arte (em breve)"
           >
             Enviar arte
@@ -535,7 +535,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             disabled={isPreview}
             data-testid="caixa-unif-ctx-action-ligar"
-            className="text-left text-[12px] px-2.5 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             title={`Ligar para ${thread.customer_external_id}`}
           >
             Ligar
@@ -547,7 +547,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             onClick={toggleBlock}
             data-testid="caixa-unif-ctx-action-block"
-            className={`inline-flex items-center gap-1.5 text-left text-[12px] px-2.5 py-1.5 border rounded transition-colors mt-1 ${
+            className={`inline-flex items-center gap-1.5 text-left text-[12.5px] font-medium px-3 py-1.5 border rounded transition-colors mt-1 ${
               thread.is_blocked
                 ? 'bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/15'
                 : 'bg-card border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/5'
