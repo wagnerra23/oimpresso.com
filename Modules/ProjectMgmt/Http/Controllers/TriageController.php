@@ -342,6 +342,7 @@ class TriageController extends Controller
      */
     public function aprovar(Request $request, string $taskId): JsonResponse
     {
+        $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_* repo-wide (ADR 0070/0093), sem tenant por design
         $task = McpTask::where('task_id', $taskId)->orWhere('identifier', $taskId)->first();
         if (! $task) {
             return response()->json(['error' => 'Task não encontrada.'], 404);
@@ -366,6 +367,7 @@ class TriageController extends Controller
     /** POST /rejeitar — cancela a proposta. [W] confirma. */
     public function rejeitar(Request $request, string $taskId): JsonResponse
     {
+        $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_* repo-wide (ADR 0070/0093), sem tenant por design
         $task = McpTask::where('task_id', $taskId)->orWhere('identifier', $taskId)->first();
         if (! $task) {
             return response()->json(['error' => 'Task não encontrada.'], 404);
@@ -381,6 +383,7 @@ class TriageController extends Controller
     /** POST /fundir — marca como duplicata de outra task (registra evento + cancela). [W] confirma. */
     public function fundir(Request $request, string $taskId): JsonResponse
     {
+        $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_* repo-wide (ADR 0070/0093), sem tenant por design
         $target = trim((string) $request->input('target_task_id', ''));
         if ($target === '') {
             return response()->json(['error' => 'Informe a task destino (target_task_id).'], 422);
