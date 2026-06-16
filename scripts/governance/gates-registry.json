@@ -110,6 +110,10 @@
       "nome": "Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)",
       "classe": "gate"
     },
+    "fin-subnav-gate.yml": {
+      "nome": "Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split)",
+      "classe": "gate"
+    },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
       "classe": "gate"
