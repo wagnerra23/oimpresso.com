@@ -949,3 +949,27 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 - **golden (FA-5)**: F3 de protótipo Cowork = SEMPRE mapear token Cowork→live ANTES de colar CSS. O gabarito FA-5 referenciava `--text-2/--sunken/--pos-soft/--hairline` (vocabulário do protótipo) que não existe no live; e cor semântica no drawer vai por Tailwind `@theme`, não `var(--pos)` (o drawer é portal FORA de `.cockpit`, onde `--pos` de cockpit.css mora). Sintoma se ignorado: CSS "verde" que renderiza INCOLOR (var indefinida = sem cor). Resolve: tokens neutros do escopo `.fin-cowork` + Fundação (`--sh-2/--ease/--fs-*`); semântico via classe utilitária.
 - **gotcha (FA-5)**: colisão de atalho `R` — `R` era global "novo recebimento"; o 9.75 quer `R`=liquida no drawer. Resolvido por PRECEDÊNCIA (drawer aberto + título liquidável → `openBaixa`; senão cai no novo-lançamento). Mesmo guard de foco (INPUT/TEXTAREA/SELECT/contentEditable + meta/ctrl/alt).
 - **gotcha (FA-5)**: inline-edit (R2 KVEdit) precisa de rota de save POR CAMPO — `Canal` não tem (`UpdateTituloRequest` só aceita categoria_id/plano/venc/valor/forma/conta). Deferido em vez de inventar PATCH (T-AP-10). Regra: KVEdit inline só onde o campo já tem rota de update provada.
+
+---
+
+## TAREFA 1 — PageHeader canon rollout (telas inline → componente)
+_handoff 2026-06-16 · [CL] · branch base main · 1 tela = 1 PR · verificado vs main @4d9726142_
+
+### Onda 0 — inventário (CORRIGE o handoff)
+| item | veredito | prova |
+|---|---|---|
+| Lista do handoff "Unificado/Dashboard/Dre pendentes" | **STALE** — `Dre` já migrado (Wave 4, 25/mai; o hit `fin-page-h` era só COMENTÁRIO, não markup vivo); `ContasPagar` done; `Unificado` = **HOLD** (rewrite staged na branch governance, −123/+26 não-header → migrar em paralelo = colisão); `Dashboard` = único pendente limpo vs main | grep os-page-h/fin-page-h (74 arquivos) + `git diff main` |
+| Escopo | módulo `Ponto/` inteiro tem header inline — FORA do escopo Financeiro do handoff (recipe importa `FinanceiroSubNav`) | grep |
+
+### Dashboard `/financeiro` → PageHeader canon — PR #2863
+| item | veredito | prova |
+|---|---|---|
+| Header inline → canon | `<header os-page-h fin-page-h>` → `<PageHeader>` v3.8 (ADR 0189), mesmo pattern de ContasPagar/Dre | +17/−9 · zero os-page-h/fin-page-h no arquivo |
+| Botão morto → honesto | primary "Novo título" (`.os-btn.primary` sem handler) → `<PageHeaderPrimary>` roxo (ADR 0190) wired `/financeiro/unificado/novo` (rota real dos irmãos) | diff |
+| Sem subnav (consciente) | Dashboard é o root `/financeiro`, sem ghost tab no DataController (ghosts: unificado/contas-pagar/fluxo/dre/…) — adicionar tab = mudança de IA no backend, fora de escopo | DataController.php:188-199 |
+| guard | `pageheader-migration-guard.mjs` **verde** (102/104; neutro a este PR — Dashboard nunca importou o shared antigo) | run local |
+| **Pendência [W]** | screenshot pra aprovação (gate MWART / PR UI Judge) antes do merge | — |
+
+### new_design_memories
+- **gotcha**: o handoff listou Dre como pendente, mas o único sinal (`grep fin-page-h`) batia num COMENTÁRIO, não no markup vivo — `fin-page-h` num arquivo ≠ header inline. Confirmar lendo o bloco, não só o grep count. (É exatamente o caso **C4 "ref morta"** que a TAREFA-2 vai mecanizar.)
+- **golden**: antes de migrar o header de uma tela, `git diff main -- <tela>` — se a tela está staged-reescrita noutra branch (Unificado), migrar em paralelo é colisão garantida; HOLD é o caminho. (Caso **C5 "carimbo vs-main"**.)
