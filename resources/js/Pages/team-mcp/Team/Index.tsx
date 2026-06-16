@@ -31,6 +31,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { BarChart3, ClipboardList, Package, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { toast } from 'sonner';
@@ -248,6 +249,7 @@ function TeamIndex(props: Props) {
 
   return (
     <>
+      <ForjaHub active="equipe" />
 
       <PageHeader
         icon="users"

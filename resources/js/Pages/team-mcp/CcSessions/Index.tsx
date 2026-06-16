@@ -19,6 +19,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -152,6 +153,8 @@ function CcSessionsIndex({ sessions, filters, kpis, devs, projects, permissions 
 
   return (
     <>
+      <ForjaHub active="cc" />
+
       <PageHeader
         icon="code-2"
         title="Atividade CC"

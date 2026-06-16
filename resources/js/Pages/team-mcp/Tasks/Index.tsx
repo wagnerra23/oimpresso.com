@@ -31,6 +31,7 @@ import BulkActionBar from '@/Components/shared/BulkActionBar';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { cn } from '@/Lib/utils';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import TaskDrawer from './_components/TaskDrawer';
 import { ActorSeal, PriorityDot, TaskStatusPill } from './_components/taskBadges';
 import { PRIO_LABEL, STATUS_ORDER, statusMeta, type Priority } from './_components/taskTokens';
@@ -364,6 +365,7 @@ function TasksIndex({
 
   return (
     <>
+      <ForjaHub active="tarefas" />
       <PageHeader
         icon="layout-kanban"
         title="Tasks"
