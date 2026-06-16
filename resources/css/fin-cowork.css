@@ -151,26 +151,31 @@
 }
 .fin-cowork .fin-curadoria .fin-num-pos { color: oklch(0.45 0.18 145); }
 .fin-cowork .fin-curadoria .fin-num-neg { color: oklch(0.50 0.18 25); }
-/* Onda 12.4 (2026-05-19) — KPI hero "warm dark" paridade EXATA canon REAL.
-   DOM forensics canon: oklch(0.22 0.01 80) — hue 80 warm (marrom/bege escuro).
-   Antes estava hue 240 cool (preto puro) que não tinha o tom "documento contábil
-   tradicional". */
+/* Onda 28 (2026-06-16) — KPI hero CLARO. Vira o "documento contábil" warm-dark
+   (`oklch(0.22 0.01 80)` = var(--text), a "caixa preta" do print do Wagner) pra uma
+   superfície clara com leve luz da identidade (accent 295). Aprovado por Wagner via
+   handoff Cowork "CONSERTAR-ELO". 100% token + color-mix(oklab) (foundation-guard).
+   Supersede a Onda 12.4 warm-dark. Espelho de FinStatStrip.tsx (sincronizar os dois). */
 .fin-cowork .fin-curadoria .fin-stat-hero {
   position: relative;
-  background: oklch(0.22 0.01 80);
-  color: white;
-  border: 0;
+  background:
+    radial-gradient(540px 200px at 14% -45%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in oklab, var(--accent) 8%, var(--surface)) 0%, var(--surface) 78%);
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  box-shadow: var(--sh-1);
+  padding-bottom: 18px;
+  min-height: 96px;
   overflow: hidden;
 }
-.fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.75 0.01 80); opacity: 0.95; font-weight: 600; }
-.fin-cowork .fin-curadoria .fin-stat-hero b { color: white; font-size: var(--fs-8); }
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.01 80); opacity: 0.85; }
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.78 0.14 25); }
-.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: oklch(0.78 0.14 145); }
-/* CASO 03 (adversário Wave 1 · 2026-06-16) — chip "projeção negativa" no hero quando
-   saldo previsto < 0. Cor segue o neg-red do hero (linha acima, oklch 0.78 0.14 25 —
-   claro o bastante pro fundo warm-dark `oklch(0.22 0.01 80)`); NÃO var(--neg) cru, que
-   é dark-red (0.55) e some no fundo escuro. Mesmo raciocínio que .fin-num-neg do hero. */
+.fin-cowork .fin-curadoria .fin-stat-hero small { color: var(--text-mute); font-weight: 600; }
+.fin-cowork .fin-curadoria .fin-stat-hero b { color: var(--text); font-size: var(--fs-8); }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: var(--text-mute); }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: var(--neg); }
+.fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: var(--pos); }
+/* CASO 03 (adversário Wave 1 · 2026-06-16; re-tonalizado p/ hero claro Onda 28) —
+   chip "projeção negativa" no hero quando saldo previsto < 0. Com o hero agora CLARO,
+   a cor é var(--neg) canon (dark-red 0.55), que contrasta no fundo claro. (No hero
+   warm-dark anterior usava-se light-red oklch(0.78 0.14 25) p/ não sumir no escuro.) */
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-hero-alarm {
   display: inline-flex;
   align-items: center;
@@ -181,20 +186,18 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: none;
-  color: oklch(0.82 0.13 25);
-  background: color-mix(in oklab, oklch(0.78 0.14 25) 16%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, oklch(0.78 0.14 25) 34%, transparent);
+  color: var(--neg);
+  background: color-mix(in oklab, var(--neg) 12%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 30%, transparent);
 }
-/* DARK-BACKFILL (2026-06-04 · DARK-BACKFILL-SWEEP #1) — o hero charcoal
-   `oklch(0.22 0.01 80)` (warm "documento contábil") tem a MESMA luminosidade do
-   page-bg dark (`oklch(0.22 …)`), então no escuro o card SOME (perde a borda e
-   funde no fundo). Eleva pra uma superfície warm-raised distinta + borda sutil,
-   preservando a identidade quente e o texto branco. Escopo `.dark` (classe no
-   <html>, ADR foundations) porque o hero renderiza tanto in-page quanto no Sheet
-   portalizado fora de `.cockpit`. ADITIVO: o claro fica 100% intocado (L-28). */
+/* Dark-mode (ADR 0281 · `.dark` no <html>) — o mesmo gradiente sobre a surface
+   escura vira um card "raised" levemente tingido de accent, distinto do page-bg
+   (mais accent 12% + borda mais marcada pra não sumir). ADITIVO (L-28). */
 .dark .fin-cowork .fin-curadoria .fin-stat-hero {
-  background: oklch(0.30 0.012 80);
-  border: 1px solid oklch(0.40 0.012 80);
+  background:
+    radial-gradient(540px 200px at 14% -45%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in oklab, var(--accent) 12%, var(--surface)) 0%, var(--surface) 80%);
+  border-color: color-mix(in oklab, var(--accent) 24%, var(--border));
 }
 .fin-cowork .fin-curadoria .fin-spark {
   margin-top: 8px;
