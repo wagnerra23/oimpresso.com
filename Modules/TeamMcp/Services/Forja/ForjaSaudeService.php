@@ -6,7 +6,6 @@ namespace Modules\TeamMcp\Services\Forja;
 
 use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
-use Modules\TeamMcp\Services\ScorecardBuilderService;
 
 /**
  * ForjaSaudeService — aba Saúde do cockpit Forja (/forja/saude).
@@ -38,11 +37,6 @@ class ForjaSaudeService
      * @var list<string>
      */
     private const FASES = ['F0', 'F1', 'F1.5', 'F2', 'F3', 'F3.5'];
-
-    public function __construct(
-        private readonly ScorecardBuilderService $scorecard,
-    ) {
-    }
 
     /**
      * Constrói o payload da aba Saúde (KPIs + WIP por fase + toggles + entregas).

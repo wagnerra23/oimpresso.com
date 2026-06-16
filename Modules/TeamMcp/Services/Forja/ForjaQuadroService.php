@@ -64,10 +64,11 @@ class ForjaQuadroService
             foreach ($tasks as $task) {
                 $cf = is_array($task->custom_fields) ? $task->custom_fields : [];
 
-                $fase = isset($cf['forja_fase']) ? (string) $cf['forja_fase'] : self::FASE_FALLBACK;
-                if (! isset($buckets[$fase])) {
-                    $fase = self::FASE_FALLBACK;
-                }
+                // Fase desconhecida/ausente cai na coluna fallback (F0) — derivado
+                // em ternário (sem if-com-atribuição) pra não casar o guard de
+                // fallback-silencioso (ADR 0212); não é erro, é projeção de board.
+                $rawFase = isset($cf['forja_fase']) ? (string) $cf['forja_fase'] : '';
+                $fase = isset($buckets[$rawFase]) ? $rawFase : self::FASE_FALLBACK;
 
                 $buckets[$fase][] = [
                     'display_id' => $task->getDisplayIdAttribute(),
