@@ -969,3 +969,20 @@ A fila `COWORK_NOTES.md` apodrecia invisível (refs mortas pra `PROMPT_PARA_CODE
 - **Onda 2 — gate (CI):** PR **#2865** — `scripts/handoff-integrity-guard.mjs` (catraca acima da linha d'água `<!-- LINHA-DAGUA-HANDOFF -->`) + auto-teste controle-negativo (8 casos: órfão/ref-morta injetados → vermelho) + baseline 0/0 + workflow advisory (ADR 0271/0275, `paths:` na fila + dir handoffs) + npm scripts. **Home confirmado antes (Regra 7):** `cowork-inbox.py` é mover-de-conteúdo (não validador) → estendi a família `*-guard.mjs`, não dupliquei.
 
 **Status:** PRs **#2864** + **#2865** abertos, **aguardando merge [W]** (publication-policy). "Pousou" só vira `PROCESSADO → main` quando estiver no `main` (regra §16.4 deste próprio PR). Se a §16 virar ADR formal = Tier 0 = número é [W] (não cunhei).
+
+---
+
+## TAREFA 2 — C3 salvage (extensão do guard do main) — PR #2869
+_handoff 2026-06-16 · [CL] · verificado vs main @f17072b86 · reconcilia colisão de sessões paralelas_
+
+Uma sessão paralela mergeou #2864 (§16) + #2865 (handoff-integrity-guard = C4 órfão/ref-morta) DURANTE a minha. Fechei minhas duplicatas (#2866 §16, #2868 guard) e salvei só o **C3** (único valor único), **estendendo** o guard do main — não paralelo (Regra 7).
+
+| item | veredito | prova |
+|---|---|---|
+| C3 no `handoff-integrity-guard.mjs` | `:** > **` na fila ativa + `PROMPT_PARA_CODE_*`; baseline `fused_headers` (0); abaixo-da-linha ignorado | self-test 18/18 |
+| §16 6ª regra "Sem cabeçalho fundido" | doc + nota de mecanização atualizadas | `integrity-check` §15 verde |
+| C4/C5 | C4 já do #2865 (não dupliquei); C5 vs-main não-mecanizável (fila Cowork-only) | — |
+
+### new_design_memories
+- **golden**: re-validar `origin/main` ANTES de cada novo intent, não só no início — a sessão paralela mergeou o mesmo trabalho no meio da minha. Fechei a duplicata e salvei só o delta (C3), estendendo o canon.
+- **gotcha**: a paralela alegou "Dashboard charter-protegido" pra pular TAREFA 1 — FALSO (não há charter). Conclusão de skip ≠ fato; conferir o disco antes de pular.
