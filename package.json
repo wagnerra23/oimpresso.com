@@ -68,6 +68,7 @@
     "test:conformance": "vitest run tests/conformanceGate.spec.ts",
     "test:foundation-guard": "vitest run tests/foundationGuard.spec.ts",
     "test:fin-hero": "vitest run tests/finHeroLight.spec.ts",
+    "test:fin-subnav": "vitest run tests/financeiroSubNav.spec.ts",
     "test:adr-governance": "vitest run tests/governanceAdrScripts.spec.ts",
     "test:memory-health": "vitest run tests/memoryHealth.spec.ts",
     "test:casos-guard": "vitest run tests/casosGuard.spec.ts",
