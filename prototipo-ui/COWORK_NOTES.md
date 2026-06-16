@@ -452,3 +452,20 @@ Mandato [W] "vamos aplicar todas" executado fim-a-fim no dia. Gate §10.4 contra
 Extra (incidente prod ~16:50 BRT, [W] "carregando canais erro 500"): deploy parcial deixou codigo pos-PR-3 sem migrate → queuesAdmin sem guard derrubava o grupo Inertia::defer inteiro. Hotfix #2515 (degrade gracioso, principio duro 8) + #2516 (workflow one-shot debug-caixa-logs.yml read-only). Diagnostico pos-fix: prod trackeia main com migrations aplicadas (whatsapp_queues [176] Ran, tabelas 1/1/1), ZERO production.ERROR no log. LICAO: payload deferred novo SEMPRE nasce com guard (deploy-ordering).
 
 Charter CaixaUnificada/Index.charter.md → v10 (historico PR-a-PR + metricas vivas R-WA-CAIXA-UNIF-001..012). Fase 2 do broadcast (Job rate-limited) e extensao do cmd-K global = proximas US com gate [W].
+
+---
+
+## 2026-06-16 [CL] · PROCESSED PROMPT_PARA_CODE_CAIXA-UNIFICADA-DARK-MODE — placar 4 partes
+
+Brief [CC]: tela aberta no tema escuro → painel da conversa branco + elementos do Contexto sem contraste (mesma classe de bug ja erradicada em Produtos/Oficina/Financeiro: cor clara crua que nao flipa no escuro; a Caixa Unificada foi portada antes da auditoria de escuro). Gate §10.4 contra main (origin/main `5253a776c`, alem do `dd09f96` que o [CC] leu — o repo venceu).
+
+Descoberta-chave que mudou a abordagem do brief: o repo ativa dark via **`<html class="dark">` (Tailwind `.dark`), NAO `[data-theme=dark]`** (inertia.css L97 confirma que data-theme nunca e ativado). Logo a correcao usa os pares de **token semantico que ja flipam** (`warning-soft`/`warning-fg`/`warning`, `card`, `info`) — **ZERO override CSS, ZERO token novo** (conformance/foundation intactos). A propagacao de tema NAO era o furo (o `bg-muted/15` da thread flipa OK no probe); o bug estava so nas FOLHAS com cor clara hardcoded.
+
+| Parte | Entrega | Status |
+|---|---|---|
+| 1 | `ConversationThreadV4`: bolha inbound `bg-white`→`bg-card` · read-tick `text-blue-600`→`oklch(0.55 0.18 250)` inline (passa R1) · nota interna + banner "em homologacao" + SLA-pill amber → `warning-soft`/`warning-fg`/`warning` · corpo da nota `text-foreground` (contraste nos 2 temas) · bolha verde-WA mantida (proposital) | feito — este PR |
+| 2 | `ContextSidebarV4`: chip de Tag aplicada (oklch claro cru) → `bg-warning-soft border-warning/30 text-foreground` (flipa; antes claro-no-claro no escuro) | feito — este PR |
+| 3 | `CustomerMemoryBlock` (compartilhado c/ Inbox legacy `ConversationSidebar`): sem Contact CRM **e** sem enriquecimento (reclamacoes/temas/fontes/notas/flags) → colapsa o card grande vazio numa linha ("Sem cadastro de cliente vinculado."), **sem prop nova** (nao regride o legacy) | feito — este PR |
+| 4 | Chips todos "em breve": o catalogo do `CaixaUnificadaController::buildAvailableChannelsPayload` so tem `whatsapp_baileys`; o canal LIVE e `whatsapp_whatsmeow` (WuzAPI, substituiu Baileys ADR 0202) → o type ATIVO nunca casa com row do catalogo. Fix = adicionar/mapear `whatsapp_whatsmeow` no catalogo (+ Pest) | **ABERTO** — PR separado (backend/config, nao bloqueia o dark) |
+
+Verificacao: probe token-flip standalone (tokens REAIS do inertia.css inlinados + markup pos-fix → headless-chrome screenshot LIGHT|DARK lado-a-lado) confirma flip correto e light intacto; ds-canon/conformance/foundation locais PASS; DS-GUARD limpo. Pest de unidade novo dispensado (dark e CSS/visual — guidance do proprio brief). Smoke vivo em prod fica pro pos-merge (`tela-smoke-pos-merge`).

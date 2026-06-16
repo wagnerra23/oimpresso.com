@@ -418,14 +418,12 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           {thread.tags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {thread.tags.map(t => (
-                // Cowork .om-tag — padding 1px 8px, font 10px mono, OKLCH §710
+                // Cowork .om-tag — âmbar-pastel. Dark-aware via warning-soft/warning
+                // (flipam no .dark); texto foreground mantém contraste nos 2 temas
+                // (antes: oklch claro cru → chip claro-no-claro no escuro).
                 <span
                   key={t.id}
-                  className="inline-block px-2 py-px text-[10px] font-mono rounded-full text-foreground"
-                  style={{
-                    background: 'oklch(0.94 0.03 80)',
-                    border: '1px solid oklch(0.86 0.06 80)',
-                  }}
+                  className="inline-block px-2 py-px text-[10px] font-mono rounded-full text-foreground bg-warning-soft border border-warning/30"
                   data-testid={`caixa-unif-ctx-tag-${t.slug}`}
                 >
                   {t.label}

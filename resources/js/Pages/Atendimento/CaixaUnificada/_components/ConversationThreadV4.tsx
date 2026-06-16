@@ -175,8 +175,7 @@ export default function ConversationThreadV4({
         )}
         {headerSla === 'warning' && (
           <span
-            className="ml-auto font-mono text-[9.5px] font-bold px-2 py-px rounded-full flex-shrink-0"
-            style={{ background: 'oklch(0.95 0.06 80)', color: 'oklch(0.40 0.12 80)', border: '1px solid oklch(0.82 0.10 80)' }}
+            className="ml-auto font-mono text-[9.5px] font-bold px-2 py-px rounded-full flex-shrink-0 bg-warning/15 text-warning-fg border border-warning/30"
             title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} perto de estourar`}
             data-testid="caixa-unif-thread-sla"
           >
@@ -239,27 +238,18 @@ export default function ConversationThreadV4({
       {/* Banner "em homologação" pra canal preview (Cowork .om-preview-banner — tokens OKLCH §467) */}
       {isPreview && channel && (
         <div
-          className="mx-4 mt-2.5 px-3.5 py-2.5 rounded-lg text-[11.5px] flex flex-col gap-0.5"
-          style={{
-            background: 'oklch(0.97 0.013 80)',
-            border: '1px solid oklch(0.88 0.04 80)',
-            color: 'oklch(0.32 0.06 80)',
-          }}
+          className="mx-4 mt-2.5 px-3.5 py-2.5 rounded-lg text-[11.5px] flex flex-col gap-0.5 bg-warning-soft border border-warning/25"
           role="status"
           data-testid="caixa-unif-preview-banner"
         >
-          <b
-            className="block text-[12.5px] font-semibold"
-            style={{ color: 'oklch(0.28 0.10 80)' }}
-          >
+          <b className="block text-[12.5px] font-semibold text-warning-fg">
             {channel.label} · em homologação.
           </b>
           <span>
             Conexão deste canal ainda não foi ativada. Esta conversa é uma prévia.{' '}
             <a
               href={route('atendimento.channels.index')}
-              className="underline"
-              style={{ color: 'oklch(0.40 0.13 250)' }}
+              className="underline text-info"
             >
               Ativar canal
             </a>
@@ -304,37 +294,22 @@ export default function ConversationThreadV4({
                   </div>
                 )}
                 {m.is_internal_note ? (
-                  // Cowork .om-internal — tokens OKLCH §525 (amarelo-pastel + dashed)
-                  <div
-                    className="self-center w-[92%] max-w-[560px] mx-auto my-1 rounded-lg px-3 py-2"
-                    style={{
-                      background: 'oklch(0.97 0.03 80)',
-                      border: '1px dashed oklch(0.78 0.10 80)',
-                    }}
-                  >
+                  // Cowork .om-internal — âmbar-pastel + dashed. Dark-aware via tokens
+                  // semânticos warning-soft/warning-fg (flipam no .dark); o corpo usa
+                  // text-foreground pra manter contraste nos 2 temas (erradicado o
+                  // "miolo branco no escuro" — mesma disciplina Produtos/Oficina/Fin).
+                  <div className="self-center w-[92%] max-w-[560px] mx-auto my-1 rounded-lg px-3 py-2 bg-warning-soft border border-dashed border-warning/40">
                     <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="text-[9.5px] uppercase tracking-[0.06em] font-semibold px-1.5 py-px rounded-full"
-                        style={{
-                          color: 'oklch(0.28 0.12 80)',
-                          background: 'oklch(0.90 0.08 80)',
-                        }}
-                      >
+                      <span className="text-[9.5px] uppercase tracking-[0.06em] font-semibold px-1.5 py-px rounded-full text-warning-fg bg-warning/20">
                         Nota interna
                       </span>
-                      <small
-                        className="text-[10px] font-mono"
-                        style={{ color: 'oklch(0.45 0.06 80)' }}
-                      >
+                      <small className="text-[10px] font-mono text-warning-fg/70">
                         {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} ·
                         {m.sender_user_name ? ` ${m.sender_user_name} · ` : ' '}
                         só a equipe vê
                       </small>
                     </div>
-                    <div
-                      className="text-[12.5px] whitespace-pre-wrap leading-[1.45]"
-                      style={{ color: 'oklch(0.22 0.10 80)' }}
-                    >
+                    <div className="text-[12.5px] whitespace-pre-wrap leading-[1.45] text-foreground">
                       {m.body}
                     </div>
                   </div>
@@ -364,7 +339,7 @@ export default function ConversationThreadV4({
                       // Tokens Cowork canon (inbox-page.css §498): max-w 75%, padding 7px 11px, radius 10px, font 12.5px, line-height 1.45
                       'px-[11px] py-[7px] rounded-[10px] text-[12.5px] leading-[1.45] whitespace-pre-wrap break-words flex flex-col flex-1 min-w-0',
                       m.direction === 'inbound'
-                        ? 'bg-white border border-border rounded-bl-[3px]'
+                        ? 'bg-card border border-border rounded-bl-[3px]'
                         : 'rounded-br-[3px]',
                     )}
                     style={
@@ -436,7 +411,9 @@ export default function ConversationThreadV4({
                       {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       {m.direction === 'outbound' && (
                         m.status === 'read' ? (
-                          <CheckCheck size={10} className="text-blue-600" aria-label="Lida" />
+                          // azul-tick WA — oklch fixo (passa R1, sem família -NNN);
+                          // fica sobre a bolha verde-WA que não flipa, legível nos 2 temas.
+                          <CheckCheck size={10} style={{ color: 'oklch(0.55 0.18 250)' }} aria-label="Lida" />
                         ) : m.status === 'delivered' ? (
                           <CheckCheck size={10} aria-label="Entregue" />
                         ) : m.status === 'sent' ? (
