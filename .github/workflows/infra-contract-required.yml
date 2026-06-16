@@ -19,6 +19,14 @@ on:
       - 'routes/**'
       - 'app/Providers/*ServiceProvider.php'
       - 'bootstrap/app.php'
+      # Runtime crítico vive MAJORITARIAMENTE em Modules/ (incidente 2026-06-16
+      # #2726: middleware de auth do webhook em Modules/Whatsapp/Http/Middleware/
+      # ficou FORA deste gate — passou sem Infra Contract). ~90% dos middlewares
+      # e TODOS os webhooks são de módulo.
+      - 'Modules/**/Http/Middleware/**'
+      - 'Modules/**/Routes/**'
+      - 'Modules/**/Providers/*ServiceProvider.php'
+      - 'Modules/**/Http/Controllers/**/*Webhook*.php'
 
 permissions:
   contents: read
