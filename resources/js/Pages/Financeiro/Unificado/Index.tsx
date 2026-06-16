@@ -2262,10 +2262,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       check pequeno), não banda verde — padrão F2-aprovado [W]. */}
                   {(() => {
                     const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    // #3 Tribunal Onda 2 (Tufte/Rams) — selo de sucesso que só re-anuncia o corpo
+                    // = tinta não-dado. Liquidado: tira "100% match" do header (o box abaixo já
+                    // prova). Aberto mantém "aguardando" (info real).
                     return (
-                      {/* #3 Tribunal Onda 2 (Tufte/Rams) — selo de sucesso que só re-anuncia o
-                          corpo = tinta não-dado. Liquidado: tira "100% match" do header (o box
-                          abaixo já prova). Aberto mantém "aguardando" (info real). */}
                       <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? null : 'aguardando'} tone={settled ? 'pos' : 'muted'} hue={settled ? 'pos' : 'muted'}>
                         {settled ? (
                           <Inline align="start" gap={2} className="gap-2.5 rounded-md border border-border bg-muted px-3 py-2">
@@ -2299,9 +2299,9 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     const hasNf = !!selected.nfe_numero;
                     const iss = isIn ? (selected.valor ?? 0) * 0.05 : 0;
                     const das = isIn ? (selected.valor ?? 0) * 0.06 : 0;
+                    // #3 — com NF: tira "NF vinculada" do header (o nº da NF aparece no corpo).
+                    // Sem NF: mantém "sem NF" (warn — buraco real).
                     return (
-                      {/* #3 — com NF: tira "NF vinculada" do header (o nº da NF aparece no corpo).
-                          Sem NF: mantém "sem NF" (warn — buraco real). */}
                       <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? null : 'sem NF'} tone={hasNf ? 'pos' : 'warn'} hue="warn">
                         <Grid cols={2} gap={0} className="gap-x-5">
                           <div>
