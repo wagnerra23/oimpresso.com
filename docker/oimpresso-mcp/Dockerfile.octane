@@ -28,6 +28,12 @@ RUN install-php-extensions \
         sockets \
         opentelemetry
 
+# git: o entrypoint-octane usa `git rev-parse HEAD` pra gravar o commit servido
+# (storage/app/deployed_commit.txt → /api/mcp/health/auth) — drift observability
+# (ADR 0256), lido pela sentinela mcp-drift-sentinel.yml. A base FrankenPHP-alpine
+# NÃO traz git; sem isto o entrypoint grava "unknown" → /health/auth sem commit.
+RUN apk add --no-cache git
+
 # OPcache + JIT em produção pra acelerar boot inicial e código quente
 COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini
 
