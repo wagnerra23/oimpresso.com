@@ -34,6 +34,7 @@ jobs:
           git config user.email "cowork-inbox@users.noreply.github.com"
 
       - name: Process inbox
+        id: process
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -42,12 +43,17 @@ jobs:
           BRANCH="cowork/inbox-${GITHUB_SHA::7}"
           git checkout -b "$BRANCH"
 
+          # Script writes `review_required=true|false` to $GITHUB_OUTPUT.
           python3 .github/scripts/cowork-inbox.py
 
           if [ -z "$(git status --porcelain)" ]; then
             echo "No changes after processing inbox; exiting."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
           git add -A
           git commit -m "chore(cowork): inbox processed"
@@ -59,4 +65,22 @@ jobs:
             --base main \
             --head "$BRANCH"
 
-          gh pr merge "$BRANCH" --squash --delete-branch
+      - name: Merge (doc/memory) or request review (code)
+        if: steps.process.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          BRANCH="${{ steps.process.outputs.branch }}"
+
+          if [ "${{ steps.process.outputs.review_required }}" = "true" ]; then
+            echo "Código presente (resources/js/**) → PR aberto para review humano + CI. NÃO auto-merge."
+            gh label create needs-review \
+              --color FBCA04 \
+              --description "Código autorado pelo Cowork; aguardando review do Wagner" \
+              2>/dev/null || true
+            gh pr edit "$BRANCH" --add-label needs-review --add-reviewer wagnerra23
+          else
+            echo "Somente doc/memória/protótipo → auto-merge quando os checks ficarem verdes."
+            gh pr merge "$BRANCH" --auto --squash --delete-branch
+          fi
