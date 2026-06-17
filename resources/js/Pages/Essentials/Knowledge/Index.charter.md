@@ -3,11 +3,11 @@ page: /essentials/knowledge-base
 component: resources/js/Pages/Essentials/Knowledge/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-17
+last_validated: "2026-06-17"
 parent_module: Essentials
-related_adrs: [0093, 0094, 0101, 0104]
+related_adrs: [93, 94, 101, 104]
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /essentials/knowledge-base (Base de conhecimento interna)
@@ -25,7 +25,7 @@ Organizar **manuais, procedimentos e artigos internos** em estrutura hierárquic
 ## Goals (faz)
 
 - Grid responsivo (1/2/3 cols) de cards "Livro" com:
-  - Título + content preview (HTML render via `dangerouslySetInnerHTML` — confiamos source autor admin)
+  - Título + content preview (HTML render via `dangerouslySetInnerHTML` — **NÃO** confiar no autor: autoria não é admin-only, qualquer user do tenant com assinatura `essentials_module` autora; `content` é sanitizado server-side no Controller via `App\Util\HtmlSanitizer::clean` (HTMLPurifier, mesma política do CMS) antes do Inertia — #2895)
   - Quick actions: Ver / Editar / Excluir / Adicionar seção (4 botões topo)
   - Lista colapsável de seções (collapse local `useState`)
   - Sub-lista artigos quando seção aberta (Ver / Editar / Excluir / Adicionar artigo)
