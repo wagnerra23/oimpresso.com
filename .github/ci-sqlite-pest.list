@@ -26,10 +26,11 @@ Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
 Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 # Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
-# (regressão do refactor que extraiu HandoffIngestService). Sintéticas em
-# beforeEach → sqlite-safe (sem migration MySQL-only).
+# (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
+# (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.
 Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php
 Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php
+Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php

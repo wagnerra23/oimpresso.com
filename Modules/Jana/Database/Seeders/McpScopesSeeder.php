@@ -239,6 +239,16 @@ class McpScopesSeeder extends Seeder
             'business_required' => false,
             'admin_only'        => false,
         ],
+        [
+            'slug'              => 'jana.mcp.handoff.lever',
+            'nome'              => 'Rotear estado de handoff na fila (handoff-lever)',
+            'descricao'         => 'Permite handoff-lever (PR-7, ADR 0283) — liga as levers da fila cowork_handoffs: re-disparar (pending parado re-arma), devolver (rejected reabre pra pending) e supersede (pending/applied vira obsoleto, append-only). Mutação auditada e idempotente (só morde no status de origem). SEM auto-merge — o merge segue 1-clique do [W]. Emitir token com este scope via McpTokenIssuer pro ator que gerencia a fila.',
+            'resources_pattern' => null,
+            'tools_pattern'     => 'handoff-lever',
+            'is_destructive'    => false,
+            'business_required' => false,
+            'admin_only'        => false,
+        ],
     ];
 
     public function run(): void
