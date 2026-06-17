@@ -248,6 +248,21 @@ jobs:
             composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
           "
 
+      - name: Boot smoke CONSOLE — falha o deploy AGORA se o artisan não bootar (ADR 0216 + incidente 2026-06-17)
+        # Gate DURO logo após o composer/dump-autoload, AINDA em maintenance ON e ANTES do migrate.
+        # Pega o modo de falha que o smoke web /login NÃO vê: um ServiceProvider que registra
+        # commands() dentro de runningInConsole() (ex. TeamMcpServiceProvider → handoff:stale-alert,
+        # PR #2906) referencia uma classe nova; se ela ficou fora do classmap-authoritative, TODO
+        # `php artisan` crasha com BindingResolutionException — incl. o `schedule:run` que o cron do
+        # Hostinger dispara a cada minuto — enquanto a WEB segue 200 (boot() só registra o comando
+        # quando runningInConsole). Resultado: deploy "verde" sobre um scheduler 100% quebrado, downtime
+        # silencioso no console até o próximo deploy bem-sucedido (mesmo padrão da ADR 0216, que checava
+        # só a web via curl /). `php artisan about` constrói o console Application → dispara
+        # resolveCommands() → instancia cada comando registrado → reproduz o crash AQUI, no ato, falhando
+        # o deploy antes de expor o cron quebrado. set -o pipefail: senão o exit do `about` é mascarado
+        # pelo `| tail` e o gate fica decorativo.
+        run: /tmp/ssh_exec.sh "set -o pipefail && cd $RDIR && php artisan about 2>&1 | tail -40"
+
       - name: Artisan migrate (se necessário)
         if: ${{ inputs.skip_migrate != 'true' }}
         # set -o pipefail: senão migrate --force que falha tem exit mascarado pelo | tail → deploy verde com schema drift.
