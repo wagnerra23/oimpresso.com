@@ -159,6 +159,11 @@ return [
         // Setar em .env: COPILOTO_MCP_SYNC_TOKEN=...
         'sync_webhook_token' => env('COPILOTO_MCP_SYNC_TOKEN'),
 
+        // === Drift sentinel (ADR 0256) — token dedicado do endpoint /api/mcp/version ===
+        // A sentinela externa (mcp-drift-sentinel.yml) lê o commit servido com este token.
+        // SEM user/RBAC: se vazar, só revela o SHA. Setar em .env: MCP_DRIFT_TOKEN=...
+        'drift_token' => env('MCP_DRIFT_TOKEN'),
+
         // === Audit log governança ===
         // Quanto tempo manter audit log antes de purgar (LGPD: mínimo 1 ano)
         'audit_retention_days' => env('COPILOTO_MCP_AUDIT_RETENTION_DAYS', 365),
