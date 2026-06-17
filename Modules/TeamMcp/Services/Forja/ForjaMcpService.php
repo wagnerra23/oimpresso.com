@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\TeamMcp\Services\Forja;
 
+use App\Util\OtelHelper;
 use Modules\TeamMcp\Entities\CoworkHandoff;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
 
@@ -21,6 +22,9 @@ use Modules\TeamMcp\Entities\McpIngestHeartbeat;
  * sem dado fantasma. Tier 0 (ADR 0093): `cowork_handoffs`/`mcp_ingest_heartbeat`
  * são REPO-WIDE (artefato do repo, não de tenant) — sem business_id por design,
  * igual {@see \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool}.
+ *
+ * Observability (ADR 0155 D9.a): cada leitura roda dentro de `OtelHelper::span`
+ * (zero-cost quando OTel off), igual {@see \Modules\TeamMcp\Services\GitMainResolver}.
  */
 class ForjaMcpService
 {
@@ -44,16 +48,18 @@ class ForjaMcpService
     {
         $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — cowork_handoffs é repo-wide (ADR 0093/0283), sem tenant por design
 
-        return CoworkHandoff::query()
-            ->where('status', '!=', 'superseded')
-            ->orderByDesc('version')
-            ->get()
-            ->unique('slug')               // maior version por slug (lista já vem version desc)
-            ->sortByDesc(fn (CoworkHandoff $h) => optional($h->created_at)->getTimestamp() ?? 0)
-            ->take(self::LIMIT)
-            ->map(fn (CoworkHandoff $h): array => $this->serialize($h))
-            ->values()
-            ->all();
+        return OtelHelper::span('teammcp.forja.handoffs', [], function () {
+            return CoworkHandoff::query()
+                ->where('status', '!=', 'superseded')
+                ->orderByDesc('version')
+                ->get()
+                ->unique('slug')               // maior version por slug (lista já vem version desc)
+                ->sortByDesc(fn (CoworkHandoff $h) => optional($h->created_at)->getTimestamp() ?? 0)
+                ->take(self::LIMIT)
+                ->map(fn (CoworkHandoff $h): array => $this->serialize($h))
+                ->values()
+                ->all();
+        });
     }
 
     /**
@@ -66,16 +72,18 @@ class ForjaMcpService
     {
         $tenancy = 'business_id'; // marker NoMissingTenantScopeRule — mcp_ingest_heartbeat é repo-wide (ADR 0093), sem tenant por design
 
-        $hb = McpIngestHeartbeat::query()->orderByDesc('last_ingest_at')->first();
-        $last = $hb?->last_ingest_at;
+        return OtelHelper::span('teammcp.forja.heartbeat', [], function () {
+            $hb = McpIngestHeartbeat::query()->orderByDesc('last_ingest_at')->first();
+            $last = $hb?->last_ingest_at;
 
-        return [
-            'last_ingest_at'    => optional($last)->toIso8601String(),
-            'last_ingest_human' => $last !== null ? $last->diffForHumans() : null,
-            'host'              => $hb?->host,
-            // "transporte sem sinal": sem heartbeat OU mudo além do teto.
-            'silent'            => $last === null || $last->lt(now()->subMinutes(self::HEARTBEAT_SILENT_MINUTES)),
-        ];
+            return [
+                'last_ingest_at'    => optional($last)->toIso8601String(),
+                'last_ingest_human' => $last !== null ? $last->diffForHumans() : null,
+                'host'              => $hb?->host,
+                // "transporte sem sinal": sem heartbeat OU mudo além do teto.
+                'silent'            => $last === null || $last->lt(now()->subMinutes(self::HEARTBEAT_SILENT_MINUTES)),
+            ];
+        });
     }
 
     /**
