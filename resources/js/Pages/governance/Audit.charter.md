@@ -3,9 +3,9 @@ page: /governance/audit
 component: resources/js/Pages/governance/Audit.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: Governance
-related_adrs: [0079, 0084, 0086, 0094, 0147]
+related_adrs: [79, 84, 86, 94, 147]
 tier: A
 charter_version: 1
 ---

@@ -3,10 +3,10 @@ page: /atendimento/channels
 component: resources/js/Pages/Atendimento/Channels/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md
-related_adrs: [0093, 0094, 0117, 0135]
+related_adrs: [93, 94, 117, 135]
 tier: A
 charter_version: 1
 ---

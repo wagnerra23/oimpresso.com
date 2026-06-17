@@ -3,10 +3,10 @@ page: /financeiro/caixa
 component: resources/js/Pages/Financeiro/Caixa/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-21
+last_validated: "2026-05-21"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
-related_adrs: [0093, 0094, 0104]
+related_adrs: [93, 94, 104]
 related_us: [US-FIN-CAIXA-F6-SOFT]
 related_prototype: n/a (F6 Soft wrapper — sem protótipo Cowork; reusa tabela cash_registers core UltimatePOS)
 related_decisions: memory/requisitos/Financeiro/caixa-visual-comparison.md (F6 Soft 2026-05-21)

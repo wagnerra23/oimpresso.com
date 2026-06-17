@@ -3,10 +3,10 @@ page: /atendimento/macros
 component: resources/js/Pages/Atendimento/Macros/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
-related_adrs: [0093, 0094, 0110]
+related_adrs: [93, 94, 110]
 tier: B
 charter_version: 1
 ---

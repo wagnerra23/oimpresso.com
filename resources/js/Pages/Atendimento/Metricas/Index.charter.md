@@ -3,10 +3,10 @@ page: /atendimento/metricas
 component: resources/js/Pages/Atendimento/Metricas/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
-related_adrs: [0052, 0093, 0094]
+related_adrs: [52, 93, 94]
 tier: B
 charter_version: 1
 ---

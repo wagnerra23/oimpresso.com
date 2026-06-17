@@ -3,9 +3,9 @@ page: /repair/job-sheet/{id}
 component: resources/js/Pages/Repair/JobSheet/Show.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-15
+last_validated: "2026-05-15"
 parent_module: Repair
-related_adrs: [0104, 0143, 0093, 0149]
+related_adrs: [104, 143, 93, 149]
 tier: A
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/prototipos/os/"
