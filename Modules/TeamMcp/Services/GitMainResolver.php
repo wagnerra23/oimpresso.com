@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\TeamMcp\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -47,7 +48,10 @@ class GitMainResolver
             return null;
         }
 
-        return Cache::remember("gitmain.head.{$branch}", now()->addSeconds(60), function () use ($branch, $token) {
+        // OTel span (ADR 0156): instrumenta a chamada externa à GitHub API — latência/erro
+        // do drift-check. Pass-through zero-cost quando OTel off (test/CLI). Mantém o
+        // contrato "nunca lança": o try/catch que degrada graciosamente fica DENTRO do callback.
+        return OtelHelper::span('teammcp.gitmain.head_sha', ['branch' => $branch], fn () => Cache::remember("gitmain.head.{$branch}", now()->addSeconds(60), function () use ($branch, $token) {
             try {
                 $r = Http::withToken($token)
                     ->withHeaders(['Accept' => 'application/vnd.github+json'])
@@ -64,7 +68,7 @@ class GitMainResolver
             } catch (Throwable) {
                 return null;
             }
-        });
+        }));
     }
 
     /**
@@ -86,24 +90,26 @@ class GitMainResolver
             return [];
         }
 
-        try {
-            $r = Http::withToken($token)
-                ->withHeaders(['Accept' => 'application/vnd.github+json'])
-                ->timeout(8)
-                ->get("https://api.github.com/repos/{$this->repo()}/compare/{$base}...{$head}");
+        return OtelHelper::span('teammcp.gitmain.files_changed', ['base' => $base, 'head' => $head], function () use ($base, $head, $files, $token) {
+            try {
+                $r = Http::withToken($token)
+                    ->withHeaders(['Accept' => 'application/vnd.github+json'])
+                    ->timeout(8)
+                    ->get("https://api.github.com/repos/{$this->repo()}/compare/{$base}...{$head}");
 
-            if (! $r->successful()) {
+                if (! $r->successful()) {
+                    return [];
+                }
+
+                $changed = array_filter(array_map(
+                    static fn ($f) => is_array($f) ? ($f['filename'] ?? '') : '',
+                    $r->json('files') ?? [],
+                ));
+
+                return array_values(array_intersect($files, $changed));
+            } catch (Throwable) {
                 return [];
             }
-
-            $changed = array_filter(array_map(
-                static fn ($f) => is_array($f) ? ($f['filename'] ?? '') : '',
-                $r->json('files') ?? [],
-            ));
-
-            return array_values(array_intersect($files, $changed));
-        } catch (Throwable) {
-            return [];
-        }
+        });
     }
 }
