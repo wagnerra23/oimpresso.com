@@ -1,6 +1,7 @@
-# STATUS.md — Espinha do Cowork (single source of truth)
+# STATUS.md — Espinha do Cowork (espelho de estado · cache derivado)
 
-> **LER ISTO PRIMEIRO em todo chat novo.** Espelho-fonte do `Painel Cowork - Estado Atual.html`.
+> **🔁 EMENDA Onda A (proposta #2874 · [W] aprovou 2026-06-16 · ADR a numerar por [W]):** a **fonte da verdade é o git** (history + `memory/decisions/` + `memory/sessions/` + canon no repo — ADR 0238/0239). Este arquivo é **cache de leitura derivado**: pode estar stale e **NUNCA bloqueia**. O rótulo antigo "single source of truth" está **superseded** (não deletado — anti-entropia · NÚCLEO 12): ver [`memory/decisions/proposals/protocolo-v2-onda-A-memoria-git-ssot.md`](../memory/decisions/proposals/protocolo-v2-onda-A-memoria-git-ssot.md). A metade *soberania-[W]* do piso (constituição/ADR/token = só [W]) **permanece intacta**.
+> **LER ISTO PRIMEIRO em todo chat novo** (segue always-read — NÚCLEO 1 / IT3), porém **como cache**: se divergir do git, **o git vence**. Espelho-fonte do `Painel Cowork - Estado Atual.html`.
 > **🌱 LER TAMBÉM (raiz do método, anti-regressão):** `PROCESSO_MEMORIA_CC.md` — duas velocidades (Register↔Charter↔ADR), anéis de decisão, e §5 REGRESSÕES PROIBIDAS. Conferir §5 ANTES de propor qualquer coisa. _REGRESSÃO É INACEITÁVEL._
 > Atualizar ao fim de cada sessão: estado de tela mudou? decisão tomada? → reflete aqui.
 > **2026-06-02 (b):** runner in-app de casos (D-09) generalizado (CasosRunner/CasosLauncher) — Oficina 7/7 live, Vendas wired. **Regressão L-24** (casos sumiram ao generalizar; pego por [W] = escape no benchmark) corrigida. **Decisão: estratégia de teste estado-da-arte** (`_PROPOSTA-0244`: locators resilientes + Playwright + Storybook + casos.md); runner DOM-grep = ponte. Handoff `PROMPT_PARA_CODE_CASOS-DE-USO.md` (3 partes + estratégia).
