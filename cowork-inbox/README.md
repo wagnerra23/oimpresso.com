@@ -84,3 +84,16 @@ audited_against: <SHA do main lido na auditoria>    # R1 ADR 0283
 Por que **inline** e não esperar o `handoff-sign-submit.yml`: o auto-merge feito com `GITHUB_TOKEN` **não** dispara o `on: push` de outro workflow (regra do GitHub) — então o transporte acontece aqui, no mesmo job.
 
 **Invariantes (ADR 0283/0285):** o segredo (`HANDOFF_SECRET`) vive só no CI/servidor — **o Cowork nunca assina**; `handoff-submit` só cria `pending` (idempotente, append-only) — **sem auto-merge de código**; o `.tsx` continua sendo o **1-clique de [W]**. Sem os secrets configurados, o passo degrada pra **skip-as-pass** (advisory).
+
+### Carteiro: `bin/cowork-postman.sh` (quem escreve na inbox)
+
+O Cowork é read-only no GitHub, então uma sessão **Claude Code** (com push) roda o carteiro 1× e o resto flui — fecha o gap "quem deposita em `cowork-inbox/`":
+
+```bash
+# de um arquivo / URL pública do Cowork / stdin:
+bin/cowork-postman.sh --slug caixa-mobile --tela Atendimento/CaixaUnificada \
+    --files "resources/js/Pages/Atendimento/Caixa.tsx" --file ./handoff.md
+bin/cowork-postman.sh --slug X --tela Y --files "a.tsx" --url https://cowork.../handoff.md
+```
+
+Monta o `cowork-inbox/handoff-<slug>.md` no formato canônico (header `cowork: target` + frontmatter) e abre o PR; ao mergear, este workflow assina+submete → `pending`. A URL é só **origem** do corpo — o canal é o repo (R2 ADR 0283). `--self-test` valida o formato sem git/rede. **Não assina** (quem assina é o CI) e **não** mergeia código.
