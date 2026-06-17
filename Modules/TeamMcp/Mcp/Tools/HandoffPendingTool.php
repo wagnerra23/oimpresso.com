@@ -146,9 +146,9 @@ class HandoffPendingTool extends Tool
     /** Arquivos do handoff como list<string> (cast 'array' no entity). */
     private function files(CoworkHandoff $h): array
     {
-        $files = $h->files_json;
-
-        return is_array($files) ? array_values(array_filter($files, 'is_string')) : [];
+        // files_json é cast 'array' (coluna NOT NULL) → sempre array; larastan
+        // sabe disso, então nada de is_array() redundante.
+        return array_values(array_filter($h->files_json, 'is_string'));
     }
 
     private function resolveHeadSha(): ?string
