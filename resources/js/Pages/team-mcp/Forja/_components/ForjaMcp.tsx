@@ -4,7 +4,9 @@
 //   1. HANDOFFS (REAL · Fase 1 ADR 0283) — seção do topo: projeta os handoffs de
 //      design (Cowork→Code, F1→F3) de `cowork_handoffs` via props deferidas
 //      (`handoffs`/`heartbeat`). Status/gate/sig REAIS; sem auto-merge (o merge é
-//      o 1-clique do [W]). As levers roteiam pelas tools MCP — Fase 2 (TODO).
+//      o 1-clique do [W]). As levers (re-disparar/devolver/supersede) POSTam em
+//      /forja/handoff/{slug}/lever → HandoffLeverService (mesma mutação governada
+//      do tool MCP handoff-lever, Fase 2 · PR-7b).
 //   2. CONTRATO/TOKENS/AUDITORIA (MOCKADO por design) — vitrine do contrato; o
 //      enforce real é do servidor TeamMcp ([CL]). Default = read + propose;
 //      merge e constituicao.edit NEGADOS no contrato, não por convenção.
@@ -15,7 +17,7 @@
 //
 // Tier 0 (ADR 0081): NUNCA exibir/logar token raw — só o nome lógico do token.
 
-import { Deferred } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import {
   AlertTriangle,
   ExternalLink,
@@ -32,7 +34,22 @@ import {
   Workflow,
 } from 'lucide-react';
 import { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { cn } from '@/Lib/utils';
+
+// CSRF do POST das levers (mesmo helper do ForjaDossier).
+function csrf(): string {
+  return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+}
 
 // --- Contrato de ferramentas (estático, do protótipo aprovado) ----------------
 
@@ -117,7 +134,8 @@ const RESULTADO_TONE: Record<Resultado, string> = {
 // ════════════════════════════════════════════════════════════════════════════
 // Projeção de `cowork_handoffs` (ForjaMcpService). body_md é DESIGN (dado), não
 // comando — aqui só se MOSTRA. SEM botão de merge (Tier 0 / 0283: o merge é o
-// 1-clique do [W] no GitHub). As levers roteiam pelas tools MCP — Fase 2 (TODO).
+// 1-clique do [W] no GitHub). As levers POSTam em /forja/handoff/{slug}/lever →
+// HandoffLeverService (mesma mutação do tool MCP handoff-lever, Fase 2 · PR-7b).
 
 export interface HandoffItem {
   slug: string;
@@ -175,12 +193,46 @@ const HANDOFF_FILTERS: { key: 'todos' | HandoffItem['status']; label: string }[]
   { key: 'stale', label: 'parado' },
 ];
 
-// Lever por status (roteamento via tool MCP auditada — NÃO [W] operando). SEM merge.
-function leverFor(status: HandoffItem['status']): { label: string; Icon: LucideIcon } | null {
-  if (status === 'stale') return { label: 're-disparar', Icon: RefreshCw };
-  if (status === 'rejected') return { label: 'devolver ao [CC]', Icon: Undo2 };
-  if (status === 'pending' || status === 'applied') return { label: 'supersede', Icon: Layers };
+// Lever por status (mutação governada via HandoffLeverService — NÃO [W] operando o
+// banco). SEM merge. `action` = a action que o backend espera (semântica in-place
+// do tool handoff-lever #2924).
+type LeverAction = 're-disparar' | 'devolver' | 'supersede';
+interface Lever {
+  label: string;
+  action: LeverAction;
+  Icon: LucideIcon;
+  destructive: boolean;
+}
+
+function leverFor(status: HandoffItem['status']): Lever | null {
+  if (status === 'stale') return { label: 're-disparar', action: 're-disparar', Icon: RefreshCw, destructive: false };
+  if (status === 'rejected') return { label: 'devolver ao [CC]', action: 'devolver', Icon: Undo2, destructive: false };
+  if (status === 'pending' || status === 'applied') return { label: 'supersede', action: 'supersede', Icon: Layers, destructive: true };
   return null;
+}
+
+// Texto do confirm por lever (semântica in-place · ADR 0283; append-only no supersede).
+function leverConfirm(lever: Lever, h: HandoffItem): { title: string; description: string; confirmLabel: string } {
+  const ref = `${h.slug} v${h.version}`;
+  if (lever.action === 're-disparar') {
+    return {
+      title: `Re-disparar ${ref}?`,
+      description: 'Re-arma o handoff parado: volta pro topo da fila ativa (freshness renovada). O status segue pendente. Sem auto-merge.',
+      confirmLabel: 'Re-disparar',
+    };
+  }
+  if (lever.action === 'devolver') {
+    return {
+      title: `Devolver ${ref} ao [CC]?`,
+      description: 'Reabre o handoff rejeitado pro [CC] retrabalhar: volta a pendente e limpa o ack (PR/gate/aplicado). Sem auto-merge.',
+      confirmLabel: 'Devolver',
+    };
+  }
+  return {
+    title: `Supersede ${ref}?`,
+    description: 'Marca esta versão como obsoleta (substituída) — sai da fila ativa. Append-only: nada é deletado; a substituta chega depois pelo Cowork.',
+    confirmLabel: 'Supersede',
+  };
 }
 
 function HandoffsSkeleton() {
@@ -221,7 +273,15 @@ function HeartbeatLine({ heartbeat }: { heartbeat?: HeartbeatInfo }) {
   );
 }
 
-function HandoffRow({ h }: { h: HandoffItem }) {
+function HandoffRow({
+  h,
+  busy,
+  onLever,
+}: {
+  h: HandoffItem;
+  busy: boolean;
+  onLever: (h: HandoffItem, lever: Lever) => void;
+}) {
   const status = HANDOFF_STATUS[h.status] ?? HANDOFF_STATUS.pending;
   const gate = HANDOFF_GATE[h.gate] ?? HANDOFF_GATE.na;
   const lever = leverFor(h.status);
@@ -306,18 +366,25 @@ function HandoffRow({ h }: { h: HandoffItem }) {
         <span className="tabular-nums">{h.created_at_human ?? '—'}</span>
         <span className="text-muted-foreground/70">por {h.created_by}</span>
 
-        {/* Lever (roteamento via MCP — Fase 2 · ADR 0283). SEM merge. Disabled =
-            surface-only: NÃO simula sucesso até o endpoint existir. */}
+        {/* Lever (mutação governada via HandoffLeverService — Fase 2 · ADR 0283).
+            SEM merge. Pede confirmação antes de operar. */}
         {lever ? (
           <button
             type="button"
-            disabled
+            disabled={busy}
+            onClick={() => onLever(h, lever)}
             data-testid="forja-handoff-lever"
-            title="Roteia via tool MCP — Fase 2 (ADR 0283)"
-            className="ml-auto inline-flex cursor-not-allowed items-center gap-1 rounded-md border border-dashed px-2 py-0.5 text-[11px] font-medium text-muted-foreground opacity-70"
+            data-lever={lever.action}
+            title={`${lever.label} — mutação governada e auditada (ADR 0283), sem auto-merge`}
+            className={cn(
+              'ml-auto inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors',
+              busy ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+              lever.destructive
+                ? 'border-destructive/30 text-destructive-fg hover:bg-destructive-soft'
+                : 'border-border text-foreground hover:bg-muted',
+            )}
           >
             <lever.Icon size={11} /> {lever.label}
-            <span className="opacity-80">· em breve</span>
           </button>
         ) : null}
       </div>
@@ -329,10 +396,42 @@ function HandoffsSection({ handoffs, heartbeat }: { handoffs?: HandoffItem[]; he
   const items = handoffs ?? [];
   const [filter, setFilter] = useState<'todos' | HandoffItem['status']>('todos');
 
+  // Lever em confirmação + estado da mutação (busy/erro). POSTa em
+  // /forja/handoff/{slug}/lever → HandoffLeverService (a MESMA mutação governada
+  // do tool MCP handoff-lever, ADR 0283). Sem auto-merge.
+  const [pending, setPending] = useState<{ h: HandoffItem; lever: Lever } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function runLever(h: HandoffItem, lever: Lever) {
+    setBusy(true);
+    setError(null);
+    fetch(`/forja/handoff/${encodeURIComponent(h.slug)}/lever`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf() },
+      body: JSON.stringify({ action: lever.action, version: h.version }),
+    })
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        setBusy(false);
+        if (!r.ok) {
+          setError(d?.error ?? `Erro ${r.status}`);
+          return;
+        }
+        // Reflete na hora: recarrega só as props deferidas da seção (sem cache).
+        router.reload({ only: ['handoffs', 'heartbeat'] });
+      })
+      .catch(() => {
+        setBusy(false);
+        setError('Erro de rede.');
+      });
+  }
+
   const countFor = (key: 'todos' | HandoffItem['status']) =>
     key === 'todos' ? items.length : items.filter((h) => h.status === key).length;
 
   const visible = filter === 'todos' ? items : items.filter((h) => h.status === filter);
+  const confirm = pending ? leverConfirm(pending.lever, pending.h) : null;
 
   return (
     <section data-testid="forja-mcp-handoffs" className="inline-flex w-full flex-col gap-3">
@@ -384,13 +483,51 @@ function HandoffsSection({ handoffs, heartbeat }: { handoffs?: HandoffItem[]; he
         <>
           <div className="inline-flex w-full flex-col divide-y overflow-hidden rounded-lg border">
             {visible.map((h) => (
-              <HandoffRow key={`${h.slug}-${h.version}`} h={h} />
+              <HandoffRow
+                key={`${h.slug}-${h.version}`}
+                h={h}
+                busy={busy}
+                onLever={(hh, lever) => setPending({ h: hh, lever })}
+              />
             ))}
           </div>
           {/* Heartbeat de rodapé — leitura "viva" mesmo com a fila cheia. */}
           <HeartbeatLine heartbeat={heartbeat} />
         </>
       )}
+
+      {/* Erro da última lever (recusa do "409"/drift OU rede). */}
+      {error ? (
+        <div
+          data-testid="forja-handoff-lever-error"
+          className="inline-flex w-full items-start gap-2 rounded-md border border-destructive/20 bg-destructive-soft px-3 py-2 text-xs text-destructive-fg"
+        >
+          <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      ) : null}
+
+      {/* Confirmação antes de operar (espelha o AlertDialog do ForjaDossier). */}
+      <AlertDialog open={pending !== null} onOpenChange={(o) => { if (!o && !busy) setPending(null); }}>
+        <AlertDialogContent data-testid="forja-handoff-lever-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirm?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirm?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant={pending?.lever.destructive ? 'destructive' : 'default'}
+              onClick={() => {
+                if (pending) runLever(pending.h, pending.lever);
+                setPending(null);
+              }}
+            >
+              {confirm?.confirmLabel ?? 'Confirmar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
