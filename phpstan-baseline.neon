@@ -27473,3 +27473,9 @@ parameters:
 			count: 1
 			path: app/Warranty.php
 
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/TeamMcp/Config/config.php

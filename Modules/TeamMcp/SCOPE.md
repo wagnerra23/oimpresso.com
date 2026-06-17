@@ -44,6 +44,7 @@ db_tables_owned:
   - mcp_user_module_access
   - mcp_actors (NOVA — Fase 4 ADR 0081)
   - mcp_audit_log (mantém append-only com trigger; UI Fase 5 fica em Modules/Governance)
+  - cowork_handoffs (NOVA — PR-1 loop handoff zero-paste Fase 0 ADR 0283; append-only por slug/version, cross-tenant)
   - mcp_cc_sessions / mcp_cc_messages / mcp_cc_blobs
   - mcp_tasks / mcp_epics / mcp_cycles / mcp_jira_projects (Jira-style)
   - mcp_inbox_notifications
