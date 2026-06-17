@@ -58,6 +58,10 @@
       "nome": "dSIH ratchet (anti-XSS · conteúdo em .tsx · oráculo parcela 1)",
       "classe": "gate"
     },
+    "scheme-gate.yml": {
+      "nome": "scheme ratchet (anti-XSS · href/scheme cru em .tsx · oráculo parcela 2)",
+      "classe": "gate"
+    },
     "cowork-inbox.yml": {
       "nome": "cowork-inbox",
       "classe": "automacao"
