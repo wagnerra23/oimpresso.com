@@ -322,10 +322,11 @@ export default function TodoShow({
             {todo.description && (
               <div className="md:col-span-3">
                 <div className="text-xs text-muted-foreground mb-0.5">Descrição</div>
-                <div
-                  className="text-sm whitespace-pre-wrap rounded bg-muted/30 p-3"
-                  dangerouslySetInnerHTML={{ __html: todo.description }}
-                />
+                <div className="text-sm whitespace-pre-wrap rounded bg-muted/30 p-3">
+                  {/* Segurança: render como TEXTO (React escapa) — NÃO dangerouslySetInnerHTML
+                      com input de usuário (era stored-XSS). <br> legado vira quebra de linha. */}
+                  {todo.description.replace(/<br\s*\/?>/gi, '\n')}
+                </div>
               </div>
             )}
           </CardContent>
