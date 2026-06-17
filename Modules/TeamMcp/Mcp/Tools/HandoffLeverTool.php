@@ -157,6 +157,9 @@ class HandoffLeverTool extends Tool
             ],
             // Obsoleto: sai da lista ativa (ForjaMcpService exclui superseded).
             'supersede' => ['status' => 'superseded'],
+            // Inalcançável: handle() já validou action contra ORIGINS antes de
+            // chamar. Arm exigido pelo PHPStan (match exaustivo).
+            default => throw new \InvalidArgumentException("action inválida: {$action}"),
         };
     }
 
