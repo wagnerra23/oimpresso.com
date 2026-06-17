@@ -97,6 +97,8 @@ interface SaleDetail {
   total_paid: number;
   tax_amount: number;
   discount_amount: number;
+  /** 'fixed' = R$ direto · 'percentage' = % sobre o subtotal. Espelha Create/Edit.tsx. */
+  discount_type: 'fixed' | 'percentage' | null;
   shipping_charges: number;
   payment_status: string;
   shipping_status: string | null;
@@ -142,6 +144,9 @@ function getCsrfToken(): string {
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+const formatPercent = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value) + '%';
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -287,6 +292,19 @@ export default function SaleSheet({
   };
 
   const saldoDevedor = data ? data.final_total - data.total_paid : 0;
+
+  // Resumo de valores — espelha a fórmula canônica de Sells/Create.tsx:
+  //   subtotalProdutos = Σ (qty × unit_price − desconto_linha)  [já vem pronto em l.subtotal]
+  //   descontoVenda    = type==='percentage' ? subtotal×amount/100 : amount  ('fixed')
+  // Display-only: o Total exibido é sempre o final_total autoritativo do backend (nunca recalculado).
+  const subtotalProdutos = data
+    ? data.lines.reduce((sum, l) => sum + l.subtotal, 0)
+    : 0;
+  const descontoVenda = data
+    ? data.discount_type === 'percentage'
+      ? (subtotalProdutos * data.discount_amount) / 100
+      : data.discount_amount
+    : 0;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -471,6 +489,51 @@ export default function SaleSheet({
                   </div>
                 )}
               </Section>
+
+              {/* Resumo de valores — subtotal · desconto · frete · impostos · total.
+                  Desconto da venda (discount_amount) antes só aparecia no Editar — agora visível
+                  no drawer. Frete/Impostos só viram linha quando > 0. Total = final_total do backend. */}
+              {data.lines.length > 0 && (
+                <Section title="Resumo de valores" icon={Receipt}>
+                  <div className="rounded-md border border-border divide-y divide-border text-sm">
+                    <div className="flex items-center justify-between px-3 py-2">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="tabular-nums text-foreground">{formatBRL(subtotalProdutos)}</span>
+                    </div>
+                    {descontoVenda > 0 && (
+                      <div className="flex items-center justify-between px-3 py-2">
+                        <span className="text-muted-foreground">
+                          Desconto
+                          {data.discount_type === 'percentage' && data.discount_amount > 0 && (
+                            <span className="ml-1 text-xs text-muted-foreground">
+                              ({formatPercent(data.discount_amount)})
+                            </span>
+                          )}
+                        </span>
+                        <span className="tabular-nums text-success">− {formatBRL(descontoVenda)}</span>
+                      </div>
+                    )}
+                    {data.shipping_charges > 0 && (
+                      <div className="flex items-center justify-between px-3 py-2">
+                        <span className="text-muted-foreground">Frete</span>
+                        <span className="tabular-nums text-foreground">+ {formatBRL(data.shipping_charges)}</span>
+                      </div>
+                    )}
+                    {data.tax_amount > 0 && (
+                      <div className="flex items-center justify-between px-3 py-2">
+                        <span className="text-muted-foreground">Impostos</span>
+                        <span className="tabular-nums text-foreground">+ {formatBRL(data.tax_amount)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-muted/30">
+                      <span className="font-medium text-foreground">Total</span>
+                      <span className="tabular-nums font-semibold text-foreground text-base">
+                        {formatBRL(data.final_total)}
+                      </span>
+                    </div>
+                  </div>
+                </Section>
+              )}
 
               {/* Histórico de pagamentos + ação rápida */}
               <section>
