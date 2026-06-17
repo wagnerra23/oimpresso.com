@@ -92,6 +92,15 @@ class McpAuthMiddleware
         $request->attributes->set('mcp_user', $user);
         $request->setUserResolver(fn () => $user);
 
+        // PR-7c FIX (ADR 0283/0081): laravel/mcp `Request::user()` resolve via o auth
+        // MANAGER (`auth()->userResolver()` → guard()->user()), NÃO via o resolver do
+        // request HTTP acima. Sem isto, `$request->user()` dentro das Tools é null e
+        // TODA mutação scopeada (handoff-ack/submit/lever, tasks-claim, lgpd-esquecer)
+        // cai em "autenticação ausente" no HTTP real — bug mascarado pelos testes, que
+        // stubam justamente o manager (`app('auth')->resolveUsersUsing`). setUser é
+        // guard-scoped (Octane faz flush entre requests) — sem vazamento cross-request.
+        app('auth')->setUser($user);
+
         // Continua a request
         $response = $next($request);
 
