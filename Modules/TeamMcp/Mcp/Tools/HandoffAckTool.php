@@ -126,7 +126,7 @@ class HandoffAckTool extends Tool
             && is_string($row->audited_against) && $row->audited_against !== ''
             && $auditedAgainst !== $row->audited_against;
 
-        $agentId = $this->agentId($request);
+        $agentId = $this->agentId();
 
         $row->update([
             'status'      => $outcome,
@@ -151,15 +151,14 @@ class HandoffAckTool extends Tool
         return Response::text((string) json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
-    private function agentId(Request $request): string
+    private function agentId(): string
     {
-        try {
-            $id = $request->header('X-MCP-Agent-Id');
+        // $request é o Laravel\Mcp\Request (protocolo/args) e NÃO tem header();
+        // os headers HTTP (X-MCP-Agent-Id, povoados pelo McpAuthMiddleware) vêm
+        // pelo helper global request() — mesmo padrão de TasksClaimTool.
+        $id = request()->header('X-MCP-Agent-Id');
 
-            return is_string($id) && $id !== '' ? $id : 'unknown';
-        } catch (Throwable) {
-            return 'unknown';
-        }
+        return is_string($id) && $id !== '' ? $id : 'unknown';
     }
 
     /** Audit best-effort rico (slug/outcome/drift) — não trava a resposta. */
