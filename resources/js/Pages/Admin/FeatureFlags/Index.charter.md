@@ -3,9 +3,9 @@ page: /admin/feature-flags
 component: resources/js/Pages/Admin/FeatureFlags/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-31
+last_validated: "2026-05-31"
 parent_module: Admin
-related_adrs: [0122, 0094, 0093, 0091, 0070]
+related_adrs: [122, 94, 93, 91, 70]
 tier: A
 charter_version: 1
 ---

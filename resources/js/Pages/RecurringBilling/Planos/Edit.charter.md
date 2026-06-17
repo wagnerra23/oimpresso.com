@@ -3,9 +3,9 @@ page: /recurring-billing/planos/{id}/editar
 component: resources/js/Pages/RecurringBilling/Planos/Edit.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-17
+last_validated: "2026-05-17"
 parent_module: RecurringBilling
-related_adrs: [0093, 0094, 0101, 0104, 0107, 0110]
+related_adrs: [93, 94, 101, 104, 107, 110]
 tier: A
 charter_version: 1
 sidebar_group: fin (FINANCEIRO)

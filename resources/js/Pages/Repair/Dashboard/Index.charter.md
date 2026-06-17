@@ -3,10 +3,10 @@ page: /repair/dashboard
 component: resources/js/Pages/Repair/Dashboard/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-07
+last_validated: "2026-05-07"
 parent_module: Repair
 parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
-related_adrs: [0101]
+related_adrs: [101]
 tier: A
 ---
 

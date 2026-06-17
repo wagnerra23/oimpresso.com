@@ -3,9 +3,9 @@ page: /orcamento
 component: resources/js/Pages/Orcamento/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-09
+last_validated: "2026-05-09"
 parent_module: Orcamento
-related_adrs: [0110, 0107, 0093]
+related_adrs: [110, 107, 93]
 tier: A
 charter_version: 1
 ---

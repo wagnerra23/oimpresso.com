@@ -3,9 +3,9 @@ page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-15
+last_validated: "2026-05-15"
 parent_module: Produto
-related_adrs: [0104, 0149, 0093, 0107]
+related_adrs: [104, 149, 93, 107]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:

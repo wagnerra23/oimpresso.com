@@ -3,9 +3,9 @@ page: /ia/pro
 component: resources/js/Pages/Jana/Pro.tsx
 owner: wagner
 status: live
-last_validated: 2026-06-01
+last_validated: "2026-06-01"
 parent_module: Jana
-related_adrs: [0140, 0110, 0190, 0093]
+related_adrs: [140, 110, 190, 93]
 tier: B
 charter_version: 1
 ---
