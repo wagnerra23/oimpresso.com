@@ -18,6 +18,9 @@ use Modules\Jana\Services\CharterHealthChecker;
  *
  * Checks:
  *   1. Multi-tenant Tier 0 (ADR 0093) — orfãos business_id IS NULL
+ *   1b. Sells value sanity (incidente "Guilherme" 2026-06-05) — venda com
+ *       final_total > total_before_tax+tax+shipping = valor corrompido (num_uf).
+ *       Detecção-only; correção human-gated via sells:final-total-audit.
  *   2. Brief uptime (S1) — ≥1 brief gerado nas últimas 24h
  *   3. Custo Brain B 24h — alvo ≤ R$ [redacted Tier 0]/dia
  *   4. PII leak detection (COPI-43) — mensagens user com regex CPF/email
@@ -64,10 +67,38 @@ class HealthCheckCommand extends Command
 
     protected $description = 'Health check diário Jana + Constituição v2 (11 checks SQL + ledger de lições + charter/loop advisory)';
 
+    /**
+     * Margem de segurança da invariante de valor (check 1b). Desconto só REDUZ;
+     * acima de (total_before_tax + tax + shipping) × margem = valor corrompido.
+     * 1.5 evita falso-positivo por arredondamento/edge. Const compartilhada entre
+     * o SQL (whereRaw) e o predicado puro `valueExceedsCeiling` — não divergem.
+     */
+    public const VALUE_SANITY_MARGIN = 1.5;
+
+    /**
+     * Predicado puro da invariante de valor do check 1b (incidente "Guilherme").
+     * Fonte da verdade do contrato — o SQL do check espelha esta regra via a mesma
+     * const. Testável sem DB (contrato, não tautologia da implementação).
+     */
+    public static function valueExceedsCeiling(
+        float $finalTotal,
+        float $totalBeforeTax,
+        float $tax = 0.0,
+        float $shipping = 0.0,
+    ): bool {
+        if ($totalBeforeTax <= 0 || $finalTotal <= 0) {
+            return false;
+        }
+        $ceiling = ($totalBeforeTax + $tax + $shipping) * self::VALUE_SANITY_MARGIN;
+
+        return $finalTotal > $ceiling;
+    }
+
     public function handle(): int
     {
         $checks = [
             $this->checkMultiTenant(),
+            $this->checkSellsValueSanity(),
             $this->checkBriefUptime(),
             $this->checkCustoBrainB(),
             $this->checkPiiLeak(),
@@ -154,6 +185,94 @@ class HealthCheckCommand extends Command
                 ? 'Zero órfãos business_id IS NULL'
                 : 'ALERTA Tier 0: ' . implode(' · ', $detalhes),
         ];
+    }
+
+    /**
+     * Check 1b — Sanidade de VALOR em vendas (sensor do incidente "Guilherme" 2026-06-05).
+     *
+     * Invariante dura: `final_total` NUNCA pode exceder
+     * `total_before_tax + tax_amount + shipping_charges` — desconto só REDUZ o total,
+     * jamais aumenta. Qualquer venda que viole isso tem valor corrompido (caso canônico:
+     * `Util::num_uf` strippando o ponto decimal de total fracionado → final_total inflado
+     * ~×100.000). Fator 1.5 de margem evita falso-positivo por arredondamento/edge.
+     *
+     * Por que existe: no incidente 2026-06-05 o erro só foi descoberto 8 dias depois,
+     * quando o cliente (Guilherme/Larissa) reportou no WhatsApp — apesar de a lógica de
+     * detecção JÁ existir no `App\Console\Commands\SellsFinalTotalAuditCommand` (Heurística A),
+     * que ninguém roda diariamente. Este check pluga essa detecção no sentinela 06:00 BRT:
+     * o valor corrompido se auto-identifica em ≤24h, ANTES do cliente perceber.
+     *
+     * DETECÇÃO-ONLY (read-only). A CORREÇÃO permanece human-gated per Regra Mestre Tier 0
+     * (`memory/proibicoes.md` §"CÁLCULO DE VALOR ou ESTOQUE") — via `sells:final-total-audit`
+     * com dupla confirmação + antes→depois + aprovação humana.
+     *
+     * @see app/Console/Commands/SellsFinalTotalAuditCommand.php (correção per-row)
+     * @see memory/sessions/2026-06-05-veiculo-na-venda-e-incidente-numuf-valor-inflado.md
+     */
+    protected function checkSellsValueSanity(): array
+    {
+        try {
+            $schema = \Illuminate\Support\Facades\Schema::class;
+            if (! $schema::hasTable('transactions') || ! $schema::hasColumn('transactions', 'final_total')) {
+                return [
+                    'name' => 'sells_value_sanity',
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 0,
+                    'message' => 'Tabela transactions ausente — UltimatePOS core não instalado',
+                ];
+            }
+
+            // Janela 48h pra cobrir vendas da véspera (cron 06:00). Invariante:
+            // final_total ≤ (total_before_tax + tax + shipping). Violação = corrupção.
+            $base = DB::table('transactions')
+                ->where('type', 'sell')
+                ->where('created_at', '>=', now()->subHours(48))
+                ->where('total_before_tax', '>', 0)
+                ->where('final_total', '>', 0)
+                ->whereRaw(
+                    'final_total > (total_before_tax + COALESCE(tax_amount, 0) + COALESCE(shipping_charges, 0)) * ?',
+                    [self::VALUE_SANITY_MARGIN],
+                );
+
+            $count = (int) (clone $base)->count();
+
+            if ($count === 0) {
+                return [
+                    'name' => 'sells_value_sanity',
+                    'ok' => true,
+                    'value' => 0,
+                    'threshold' => 0,
+                    'message' => 'Zero vendas com final_total acima do teto (invariante de desconto OK)',
+                ];
+            }
+
+            // Enriquecimento do alerta: quais businesses + pior exemplo (sem expor PII/valor literal).
+            $bizAfetados = (clone $base)
+                ->select('business_id', DB::raw('COUNT(*) as qtd'))
+                ->groupBy('business_id')
+                ->orderByDesc('qtd')
+                ->get()
+                ->map(fn ($r) => "biz={$r->business_id}({$r->qtd})")
+                ->implode(', ');
+
+            return [
+                'name' => 'sells_value_sanity',
+                'ok' => false,
+                'value' => $count,
+                'threshold' => 0,
+                'message' => "ALERTA Tier 0 VALOR: {$count} venda(s) 48h com final_total > teto — {$bizAfetados}. "
+                    . 'Rode `sells:final-total-audit --business=<id>` (DRY-RUN) p/ diagnóstico. Correção é human-gated (Regra Mestre).',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'sells_value_sanity',
+                'ok' => false,
+                'value' => null,
+                'threshold' => 0,
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
     }
 
     /**
