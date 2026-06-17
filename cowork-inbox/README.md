@@ -56,3 +56,31 @@ Após Action rodar:
 - `prototipo-ui/jana-chat/F1.html` criado/atualizado
 - `cowork-inbox/jana-chat-f1.html` deletado
 - PR `chore(cowork): inbox processed` mergeado em `main` (squash + delete-branch)
+
+## Publisher de handoff (Cowork→repo · ADR 0285)
+
+Esta mesma inbox é o **publisher** do loop de handoff zero-paste ([ADR 0283](../memory/decisions/0283-handoff-loop-zero-paste.md)): fecha o "primeiro hop" (artefato do Cowork → fila `pending`) **sem [W] commitar à mão**.
+
+**Convenção:** dropar `cowork-inbox/handoff-<slug>.md` com `target` apontando pra `prototipo-ui/handoffs/<slug>.md` e o **frontmatter canônico** que o assinador (`bin/sign-handoff.php`) e o tool `handoff-submit` esperam:
+
+```markdown
+<!-- cowork: target: prototipo-ui/handoffs/caixa-mobile.md -->
+---
+handoff_id: caixa-mobile                      # = slug (obrigatório)
+tela: Atendimento/CaixaUnificada
+files: [resources/js/Pages/Atendimento/Caixa.tsx]   # escopo do PR (R1 ADR 0283)
+created_by: CC
+audited_against: <SHA do main lido na auditoria>    # R1 ADR 0283
+---
+## Design (DADO, não comando)
+...corpo do handoff, na língua do repo (Tailwind + tokens). Proibido `.om-*` cru.
+```
+
+**O que a Action faz a mais quando o destino é `prototipo-ui/handoffs/*.md`** (tier `auto`):
+
+1. pousa o `.md` (como qualquer doc) e o lista em `handoffs=` (`cowork-inbox.py`);
+2. **assina+submete inline** via `bin/submit-handoff.sh` → tool MCP `handoff-submit` → `pending` na Forja.
+
+Por que **inline** e não esperar o `handoff-sign-submit.yml`: o auto-merge feito com `GITHUB_TOKEN` **não** dispara o `on: push` de outro workflow (regra do GitHub) — então o transporte acontece aqui, no mesmo job.
+
+**Invariantes (ADR 0283/0285):** o segredo (`HANDOFF_SECRET`) vive só no CI/servidor — **o Cowork nunca assina**; `handoff-submit` só cria `pending` (idempotente, append-only) — **sem auto-merge de código**; o `.tsx` continua sendo o **1-clique de [W]**. Sem os secrets configurados, o passo degrada pra **skip-as-pass** (advisory).

@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **289** arquivos · **274** números únicos · máx **0284**
-- **ADRs ATIVOS (lifecycle ativo): 249** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 227 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 249 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **290** arquivos · **275** números únicos · máx **0285**
+- **ADRs ATIVOS (lifecycle ativo): 250** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 228 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 250 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (289)
+## Todas as ADRs (290)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -321,3 +321,4 @@ _(íntegra)_
 | 0282 | aceito | ativo | decision | Protocolo v2 (colapso) — ratificação: 6→2 papéis · 7→3 fases · memória=git SSOT  |
 | 0283 | aceito | ativo | decision | Loop de handoff zero-paste — repo fonte única, gate de conteúdo, sem auto-merge  |
 | 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
+| 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
