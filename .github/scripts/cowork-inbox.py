@@ -17,6 +17,11 @@ Anything else, or any denied substring, is SKIPPED.
 
 If any processed file is "review" tier, this script writes `review_required=true` to $GITHUB_OUTPUT
 so the workflow opens the PR for review instead of auto-merging.
+
+PUBLISHER Cowork→repo (PR-7 · ADR 0285): files landed under prototipo-ui/handoffs/*.md are also
+emitted as `handoffs=<space-separated>` to $GITHUB_OUTPUT, so the workflow can sign+submit them to
+the MCP handoff-submit tool INLINE (the auto-merge done via GITHUB_TOKEN does NOT trigger the on-push
+handoff-sign-submit.yml). This closes the "first hop" without [W] committing by hand.
 """
 import os
 import re
@@ -27,6 +32,7 @@ INBOX = Path("cowork-inbox")
 ALLOWED_PREFIXES = ("prototipo-ui/", "memory/", "docs/")       # auto-merge once green
 ALLOWED_PREFIXES_REVIEW = ("resources/js/",)                   # code -> human review, never auto-merge
 DENY_SUBSTRINGS = ("..", ".github/", ".claude/")               # never reachable, even via review tier
+HANDOFFS_DIR = "prototipo-ui/handoffs/"                         # publisher target (ADR 0285) -> sign+submit
 MAX_SIZE_BYTES = 1_000_000
 SKIP_FILES = {"README.md", ".gitkeep"}
 
@@ -52,11 +58,11 @@ def classify_path(path: str) -> tuple[str | None, str | None]:
     return None, f"path {path!r} not in whitelist {ALLOWED_PREFIXES + ALLOWED_PREFIXES_REVIEW}"
 
 
-def process_file(filepath: Path) -> tuple[str, str | None]:
-    """Return (log_message, tier). tier is the written file's tier, or None when skipped."""
+def process_file(filepath: Path) -> tuple[str, str | None, str | None]:
+    """Return (log_message, tier, dest). tier/dest are None when the file is skipped."""
     size = filepath.stat().st_size
     if size > MAX_SIZE_BYTES:
-        return f"SKIP {filepath} (size {size} > {MAX_SIZE_BYTES})", None
+        return f"SKIP {filepath} (size {size} > {MAX_SIZE_BYTES})", None, None
 
     content = filepath.read_text(encoding="utf-8")
     headers = parse_headers(content)
@@ -66,14 +72,14 @@ def process_file(filepath: Path) -> tuple[str, str | None]:
     append_to = headers.get("append-to")
 
     if target and append_to:
-        return f"SKIP {filepath} (both target and append-to set)", None
+        return f"SKIP {filepath} (both target and append-to set)", None, None
     if not target and not append_to:
-        return f"SKIP {filepath} (no target/append-to header)", None
+        return f"SKIP {filepath} (no target/append-to header)", None, None
 
     dest = target or append_to
     tier, err = classify_path(dest)
     if tier is None:
-        return f"SKIP {filepath} ({err})", None
+        return f"SKIP {filepath} ({err})", None, None
 
     dest_path = Path(dest)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -89,22 +95,31 @@ def process_file(filepath: Path) -> tuple[str, str | None]:
         action = "APPEND"
 
     filepath.unlink()
-    return f"{action} [{tier}] {filepath} -> {dest}", tier
+    return f"{action} [{tier}] {filepath} -> {dest}", tier, dest
 
 
-def emit_review_flag(review_required: bool) -> None:
-    value = "true" if review_required else "false"
+def emit_output(key: str, value: str) -> None:
     gh_output = os.environ.get("GITHUB_OUTPUT")
     if gh_output:
         with open(gh_output, "a", encoding="utf-8") as fh:
-            fh.write(f"review_required={value}\n")
-    print(f"review_required={value}")
+            fh.write(f"{key}={value}\n")
+    print(f"{key}={value}")
+
+
+def emit_review_flag(review_required: bool) -> None:
+    emit_output("review_required", "true" if review_required else "false")
+
+
+def is_handoff(dest: str | None) -> bool:
+    """A landed file is a publisher handoff (ADR 0285) iff it lives in prototipo-ui/handoffs/*.md."""
+    return bool(dest) and dest.startswith(HANDOFFS_DIR) and dest.endswith(".md")
 
 
 def main() -> int:
     if not INBOX.exists():
         print("cowork-inbox/ does not exist; nothing to do")
         emit_review_flag(False)
+        emit_output("handoffs", "")
         return 0
 
     files = sorted(
@@ -113,21 +128,27 @@ def main() -> int:
     if not files:
         print("inbox empty; nothing to do")
         emit_review_flag(False)
+        emit_output("handoffs", "")
         return 0
 
     print(f"Found {len(files)} file(s) in inbox")
     tiers: list[str] = []
+    handoffs: list[str] = []
     for f in files:
         try:
-            result, tier = process_file(f)
+            result, tier, dest = process_file(f)
             print(f"  {result}")
             if tier is not None:
                 tiers.append(tier)
+            if is_handoff(dest):
+                handoffs.append(dest)
         except Exception as e:
             print(f"  ERROR processing {f}: {e}", file=sys.stderr)
             return 1
 
     emit_review_flag(any(t == "review" for t in tiers))
+    # Publisher (ADR 0285): handoffs landed -> workflow signs+submits them to handoff-submit.
+    emit_output("handoffs", " ".join(handoffs))
     return 0
 
 
