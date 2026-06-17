@@ -1,5 +1,7 @@
 # COWORK_NOTES.md — INBOX: Wagner → Claude Design
 
+> 🧊 **CONGELADA pra NOVOS itens** (Onda B · proposta #2874 · [W] aprovou 2026-06-16 · ADR a numerar por [W]). Intake novo de pedido/tarefa → **GitHub Issue** (form `cowork-intake` · label/assignee/notificação/link-pro-PR) ou drop em `cowork-inbox/`. **Não adicionar item novo aqui.** Os itens ativos abaixo continuam drenando pelo gate `handoff:check` até pousarem (`CODE_NOTES.md@main`); quando o último pousar, este arquivo vira histórico. Motivo: a fila markdown apodreceu (órfãos + refs mortas) e o nativo faz intake/notificação/link melhor. Reversível.
+
 > Wagner escreve aqui. Claude Design ([CD]/[CC]) lê aqui pra produzir protótipo + crítica.
 > **Append-only.** Não edita pedidos antigos — adiciona resposta abaixo.
 > Formato em [PROTOCOL.md §4](PROTOCOL.md).
