@@ -1,0 +1,55 @@
+name: Handoff Scope Guard (files_json)
+
+# PR-5 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — bloqueia um PR que APLICA
+# um handoff de design cujo diff toque arquivo fora do `files:` declarado em
+# prototipo-ui/handoffs/<slug>.md. Slug derivado do branch `handoff/<slug>`.
+# PR comum (branch não-handoff) → skip. DISTINTO de scope-guard.yml (que é
+# controller-vs-SCOPE.md, Art. 7).
+#
+# O job `selftest` roda SEMPRE (controle-negativo: prova que o gate morde o caso
+# ruim e passa o bom). O job `scope` só morde PRs `handoff/*`.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    name: handoff scope-guard self-test (controle-negativo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Self-test — o gate morde o caso ruim e passa o bom?
+        run: php bin/check-handoff-scope.php --self-test
+
+  scope:
+    name: handoff scope-guard (files_json)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # histórico completo pro diff base...head
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Deriva slug do branch handoff/* e roda o guard
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [[ "$HEAD_REF" =~ ^handoff/(.+)$ ]]; then
+            slug="${BASH_REMATCH[1]}"
+            echo "Handoff PR detectado: slug=$slug"
+            php bin/check-handoff-scope.php --slug="$slug" --base="$BASE_SHA" --head="$HEAD_SHA" --strict
+          else
+            echo "Branch '$HEAD_REF' não é handoff/* — scope-guard files_json não se aplica (skip)."
+          fi
