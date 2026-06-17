@@ -53,6 +53,7 @@ test('cada check tem campos canonicos', function () {
     // (subset), não igualdade exata.
     $duros = [
         'multi_tenant_isolation',
+        'sells_value_sanity',
         'brief_uptime_24h',
         'custo_brain_b_24h',
         'pii_leak_in_assistant_responses',
@@ -95,6 +96,37 @@ test('comando nao crasha mesmo se tabelas degraded', function () {
  * @see Modules/Jana/LICOES-OPERACAO.md
  */
 use Modules\Jana\Console\Commands\HealthCheckCommand;
+
+/**
+ * Check 1b — invariante de valor (sensor do incidente "Guilherme" 2026-06-05).
+ * Casos ancorados no CONTRATO (a invariante de desconto) + nos números reais do
+ * incidente — não derivados da implementação (anti-tautologia, proibicoes.md §5).
+ *
+ * @see memory/sessions/2026-06-05-veiculo-na-venda-e-incidente-numuf-valor-inflado.md
+ */
+test('invariante de valor: venda inflada do incidente Guilherme é flagada', function () {
+    // Caso real: calça 227,90, desconto 10,05% → esperado ~204,99; num_uf inflou
+    // final_total pra 20.499.605 (~×100k). Tem que ser pego.
+    expect(HealthCheckCommand::valueExceedsCeiling(20499605.0, 227.90))->toBeTrue();
+});
+
+test('invariante de valor: venda legítima com desconto NÃO é flagada', function () {
+    // Mesma venda, valor correto (desconto só reduz). final_total < total_before_tax.
+    expect(HealthCheckCommand::valueExceedsCeiling(204.99, 227.90))->toBeFalse();
+    // Sem desconto: final == total_before_tax.
+    expect(HealthCheckCommand::valueExceedsCeiling(80.0, 80.0))->toBeFalse();
+});
+
+test('invariante de valor: imposto/frete entram no teto sem virar falso-positivo', function () {
+    // total 100 + tax 18 = 118 legítimo; 200 é corrupção.
+    expect(HealthCheckCommand::valueExceedsCeiling(118.0, 100.0, 18.0))->toBeFalse();
+    expect(HealthCheckCommand::valueExceedsCeiling(400.0, 100.0, 18.0))->toBeTrue();
+});
+
+test('invariante de valor: total/final zerado ou negativo nunca flaga (sem dado)', function () {
+    expect(HealthCheckCommand::valueExceedsCeiling(0.0, 0.0))->toBeFalse();   // desconto 100%
+    expect(HealthCheckCommand::valueExceedsCeiling(500.0, 0.0))->toBeFalse(); // sem base de comparação
+});
 
 test('parser do ledger: lição MEC e JULG bem-formadas passam', function () {
     $md = <<<'MD'
