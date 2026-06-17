@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\Jana\Entities\Mcp\McpProject;
@@ -20,6 +21,7 @@ use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
 use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
 use Modules\TeamMcp\Services\Forja\ForjaMcpService;
 use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
+use Modules\TeamMcp\Services\HandoffLeverService;
 
 /**
  * ForjaController — cockpit do cowork loop (/forja).
@@ -128,6 +130,102 @@ class ForjaController extends Controller
                 'heartbeat' => Inertia::defer(fn () => $svc->heartbeat()),
             ],
         ));
+    }
+
+    /**
+     * POST /forja/handoff/{slug}/lever — opera uma lever do loop de handoff
+     * (re-disparar/devolver/supersede) sobre cowork_handoffs. Fecha o Gap 3 do
+     * adversário: as levers da aba MCP deixam de ser `disabled "em breve"`.
+     *
+     * MESMA mutação GOVERNADA do tool MCP `handoff-lever` — ambos delegam pra
+     * {@see HandoffLeverService} (fonte única, append-only · ADR 0283). Aqui o ator
+     * é o [W] na sessão web (gate copiloto.mcp.usage.all no __construct); lá é o
+     * agente via scope fino jana.mcp.handoff.lever. SEM auto-merge: o merge segue o
+     * 1-clique do [W] no GitHub. Audit em mcp_audit_log (best-effort).
+     *
+     * Delega 100% ao service (sem Eloquent direto aqui) — repo-wide por design
+     * (cowork_handoffs sem business_id, Tier 0 ADR 0093), igual mcp()/dossier().
+     */
+    public function handoffLever(Request $request, string $slug): JsonResponse
+    {
+        $action = trim((string) $request->input('action', ''));
+        if (! in_array($action, HandoffLeverService::ACTIONS, true)) {
+            return response()->json(['error' => 'Ação inválida.'], 422);
+        }
+
+        $versionInput = $request->input('version');
+        $expected = ($versionInput !== null && $versionInput !== '') ? (int) $versionInput : null;
+
+        $result = app(HandoffLeverService::class)->apply($action, $slug, $expected);
+
+        $this->auditHandoffLever($request, $action, $slug, $result);
+
+        if ($result['outcome'] === 'rejected') {
+            $status = match ($result['reason']) {
+                'not_found'  => 404,
+                'stale_view' => 409,
+                default      => 422,
+            };
+
+            return response()->json([
+                'error'  => $this->leverErrorMessage($action, (string) $result['reason'], (int) $result['version']),
+                'reason' => $result['reason'],
+            ], $status);
+        }
+
+        return response()->json([
+            'ok'                 => true,
+            'action'             => $action,
+            'slug'               => $result['slug'],
+            'version'            => (int) $result['version'],
+            'outcome'            => $result['outcome'],
+            'superseded_version' => $result['superseded_version'],
+        ]);
+    }
+
+    /** Mensagem de recusa legível (espelha HandoffLeverTool::rejectMessage). */
+    private function leverErrorMessage(string $action, string $reason, int $version): string
+    {
+        return match ($reason) {
+            'not_found'  => 'Handoff não encontrado.',
+            'stale_view' => "A fila mudou — a versão atual é v{$version}. Recarregue antes de operar.",
+            'state'      => match ($action) {
+                're-disparar' => 're-disparar só vale pra um handoff pendente (parado).',
+                'devolver'    => 'devolver só vale pra um handoff rejeitado.',
+                'supersede'   => 'supersede só vale pra um handoff pendente ou aplicado.',
+                default       => 'Lever fora do estado esperado.',
+            },
+            default      => 'Ação inválida.',
+        };
+    }
+
+    /**
+     * Audit best-effort da lever no mcp_audit_log (origem web/cockpit) — espelha
+     * HandoffLeverTool::audit; não trava a resposta.
+     *
+     * @param  array{outcome:string,reason:string|null,slug:string,version:int,superseded_version:int|null}  $result
+     */
+    private function auditHandoffLever(Request $request, string $action, string $slug, array $result): void
+    {
+        try {
+            $user = $request->user();
+            McpAuditLog::registrar([
+                'user_id'          => $user !== null ? (int) $user->getAuthIdentifier() : 0,
+                'endpoint'         => 'web/forja',
+                'tool_or_resource' => 'handoff-lever',
+                'status'           => $result['outcome'] === 'rejected' ? 'denied' : 'ok',
+                'payload_summary'  => [
+                    'action'  => $action,
+                    'slug'    => $slug,
+                    'version' => (int) $result['version'],
+                    'outcome' => $result['outcome'],
+                    'reason'  => $result['reason'],
+                    'origin'  => 'forja-web',
+                ],
+            ]);
+        } catch (\Throwable) {
+            // best-effort
+        }
     }
 
     // ---------- Triagem · payload ----------

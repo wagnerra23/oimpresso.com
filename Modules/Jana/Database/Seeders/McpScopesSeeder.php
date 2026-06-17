@@ -239,6 +239,16 @@ class McpScopesSeeder extends Seeder
             'business_required' => false,
             'admin_only'        => false,
         ],
+        [
+            'slug'              => 'jana.mcp.handoff.lever',
+            'nome'              => 'Operar levers de handoff (handoff-lever)',
+            'descricao'         => 'Permite handoff-lever (PR-7, ADR 0283) — as levers re-disparar/devolver/supersede sobre cowork_handoffs. Mutação GOVERNADA e append-only: re-disparar re-arma um pending parado, devolver manda um rejected de volta pro [CC], supersede dá lápide num pending|applied (NUNCA delete). Recusa lever fora do estado esperado (o "409") e drift de versão (A4). SEM auto-merge (o merge é o 1-clique do [W]). Ator-Code/operador — emitir token com este scope via McpTokenIssuer; o cockpit Forja (web) chama a MESMA mutação via HandoffLeverService gated por copiloto.mcp.usage.all.',
+            'resources_pattern' => null,
+            'tools_pattern'     => 'handoff-lever',
+            'is_destructive'    => false,
+            'business_required' => false,
+            'admin_only'        => false,
+        ],
     ];
 
     public function run(): void

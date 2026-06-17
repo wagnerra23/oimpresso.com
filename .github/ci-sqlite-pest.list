@@ -30,6 +30,9 @@ Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 # beforeEach → sqlite-safe (sem migration MySQL-only).
 Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php
 Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php
+# PR-7 levers (re-disparar/devolver/supersede) — append-only sobre cowork_handoffs.
+# Tabela sintética em beforeEach → sqlite-safe.
+Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php

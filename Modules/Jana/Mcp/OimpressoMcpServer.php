@@ -164,6 +164,11 @@ class OimpressoMcpServer extends Server
         // pending, sem [W] no transporte. Scope fino jana.mcp.handoff.submit (A7);
         // reusa HandoffIngestService (mesma validação do PR-1). Sem auto-merge.
         \Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool::class,
+        // PR-7 Loop de Handoff Zero-Paste (Fase 2 · ADR 0283) — as 3 levers do loop
+        // (re-disparar/devolver/supersede) que estavam disabled na Forja. Mutação
+        // GOVERNADA append-only (scope fino jana.mcp.handoff.lever A7), reusa
+        // HandoffLeverService (mesma regra do endpoint web do cockpit). Sem auto-merge.
+        \Modules\TeamMcp\Mcp\Tools\HandoffLeverTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */

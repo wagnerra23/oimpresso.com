@@ -91,6 +91,12 @@ Route::group(
         Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
         // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
 
+        // PR-7 (ADR 0283 · Fase 2) — levers do loop de handoff (re-disparar/devolver/
+        // supersede) da aba MCP. Mesma mutação governada do tool MCP handoff-lever
+        // (HandoffLeverService é a fonte única). 3 segmentos → não colide com /{taskId}/*.
+        Route::post('/handoff/{slug}/lever', 'ForjaController@handoffLever')
+            ->where('slug', '[A-Za-z0-9_\-]+')->name('forja.handoff.lever');
+
         // Triagem (aba 1) — dossiê do Analista (read-only) + ações [W] aprova.
         // Espelha /project-mgmt/triage/{id}/{dossier,aprovar,rejeitar,fundir} (PR-5a).
         // taskId aceita FORJA-150/identifier ou US-XXX legacy.
