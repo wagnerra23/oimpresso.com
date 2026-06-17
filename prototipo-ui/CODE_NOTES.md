@@ -1011,3 +1011,25 @@ Uma sessão paralela mergeou #2864 (§16) + #2865 (handoff-integrity-guard = C4 
 ### new_design_memories
 - **golden**: re-validar `origin/main` ANTES de cada novo intent, não só no início — a sessão paralela mergeou o mesmo trabalho no meio da minha. Fechei a duplicata e salvei só o delta (C3), estendendo o canon.
 - **gotcha**: a paralela alegou "Dashboard charter-protegido" pra pular TAREFA 1 — FALSO (não há charter). Conclusão de skip ≠ fato; conferir o disco antes de pular.
+
+---
+
+## 2026-06-16 [CL] → [W] — Prompt "Header / Reincidência / Caixa" (3 tarefas) — Wave 0 + entregas
+_sessão nova · verificado vs main @92adb692d · trabalhei em worktree `D:/oimpresso-cl` (branches off `main`), não na branch governance da cwd_
+
+Re-rodei o prompt validando **tudo** contra `origin/main` antes de codar (Regra 5/§16). Achado: ~70% já estava no main (sessões paralelas, hoje paradas) — não refiz. Refs `prototipo-ui-patch/PROMPT_PARA_CODE_*` do prompt **não existem** no checkout → trabalhei do texto do prompt + código + `inbox-page.jsx`.
+
+### Task 1 — `os-page-h` → `<PageHeader>`: **PULADO** ([W] confirmou 16/jun)
+Não é migração. `os-page-h`/`fin-page-h` = **markup canon do bundle Cowork**, não header inline: o `<PageHeader>` canon **nem emite** essas classes (grep) e o `pageheader:guard` ratcheteia outro eixo (`shared/PageHeader`→`Components/PageHeader`). O **charter v15 do Unificado** declara `os-page-h fin-page-h` como "Markup canon EXATO" + hero "3 lentes" aprovado [W]. Migrar Unificado/Dre = **regressão Tier 0 charter-protegida**. Dashboard já foi pro PageHeader via #2863.
+
+### Task 2 — Guard da Reincidência: **FECHADO (doc)**
+C3/C4 já no main (#2864/#2865/#2869). Faltava o **C5** → **#2872 (MERGEADO):** §16 Regra 7 (carimbo `verificado vs main @<SHA>`) + tabela "Caçador de reincidência" (git-gates C3/C4/C5 com condição de morte; C1/C2/C6 referenciadas **sem inventar** — Tier 0, def. canônica no handoff Cowork não-versionado). **Catraca do C5 pendente** — a fila real usa bullets `- **…**`, não `> … → [CL]` → mecanizar precisa de [W] confirmar o que é "item ativo" (+ o código-ref mora no patch Cowork ausente).
+
+### Task 3 — Caixa Unificada · filtros em 2 botões (ondas 1+2 aprovadas [W])
+- **Onda 1 #2875 (MERGEADO):** removida a faixa de canais (`ChannelChipsRow` + dead-code); `availableChannels/Accounts` + URL-sync `?channel=`/`?account_id=` intactos. Charter v14.
+- **Onda 2 #2879 (ABERTO):** `ConversationListV4` header vira **Status** (DropdownMenu 7-valor `?tab=`) + **Filtros** (Popover flutuante, não empurra a lista) com 9 grupos (Canal/Conta/Fila/Tags/Ordenar/Esperando há/Sem CRM/Janela 24h/Mídia 24h + Limpar). **Atribuição omitida** — sem param no `CaixaUnificadaController` (só a tab "Minhas" + picker da sidebar) → não inventei grupo morto (anti M-AP-2). Contrato backend intacto; `buildQuery` agora carrega channel/account_id/queue (persistem na navegação). Charter v15. **Verificado local:** `npm ci` + `tsc --noEmit` limpo nos 2 arquivos (restam só erros **pré-existentes** de `preserveScroll`) + `vite build:inertia` verde (4431 módulos). **Sem screenshot** (worktree sem dev server) → visual-regression CI + revisão [W].
+
+### new_design_memories
+- **golden**: `os-page-h` é canon (charter "Markup canon EXATO"), NÃO header a migrar — confirmar o charter antes de "migrar header", senão vira regressão Tier 0 (Task 1).
+- **golden**: mudança de design que toca um Goal de charter (Task 3 faixa de canais) = atualizar o charter **no mesmo PR** (v14/v15), pra charter ≡ realidade — o mesmo drift que a catraca §16 combate.
+- **gotcha**: grupo de filtro só entra se houver param backend real — "Atribuição" não tinha (anti M-AP-2). Conferir o controller antes de listar grupos.
