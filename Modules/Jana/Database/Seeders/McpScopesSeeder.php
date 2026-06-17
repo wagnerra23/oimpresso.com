@@ -219,6 +219,16 @@ class McpScopesSeeder extends Seeder
             'business_required' => false,
             'admin_only'        => false,
         ],
+        [
+            'slug'              => 'jana.mcp.handoff.ack',
+            'nome'              => 'Fechar handoff de design (handoff-ack)',
+            'descricao'         => 'Permite handoff-ack (applied/rejected) na fila cowork_handoffs — loop zero-paste (ADR 0283). Mutação: applied exige gate_status verde (conformance && critique_score>=80 && a11y). Só o ator-Code (A7 do adversário [AH]) — emitir token com este scope via McpTokenIssuer. handoff-pending é read (basta jana.mcp.use).',
+            'resources_pattern' => null,
+            'tools_pattern'     => 'handoff-ack',
+            'is_destructive'    => false,
+            'business_required' => false,
+            'admin_only'        => false,
+        ],
     ];
 
     public function run(): void

@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $source_hash
  * @property string $sig
  * @property string $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $applied_at
  * @property string|null $applied_by
  * @property string|null $pr_url
