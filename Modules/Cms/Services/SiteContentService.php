@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Services;
 
+use App\Util\HtmlSanitizer;
 use App\Util\OtelHelper;
 use Modules\Cms\Entities\CmsPage;
 use Modules\Cms\Entities\CmsSiteDetail;
@@ -50,19 +51,8 @@ class SiteContentService
             return '';
         }
 
-        return OtelHelper::spanBiz('cms.service.sanitize_html', function () use ($html) {
-            $cacheDir = storage_path('app/htmlpurifier');
-            if (! is_dir($cacheDir)) {
-                @mkdir($cacheDir, 0775, true);
-            }
-
-            $config = \HTMLPurifier_Config::createDefault();
-            $config->set('Cache.SerializerPath', $cacheDir);
-            $config->set('HTML.TargetBlank', true);
-            $config->set('Attr.AllowedFrameTargets', ['_blank']);
-
-            return (new \HTMLPurifier($config))->purify($html);
-        });
+        // Fonte unica do purifier vive em App\Util\HtmlSanitizer (reusado pela KB).
+        return OtelHelper::spanBiz('cms.service.sanitize_html', fn () => HtmlSanitizer::clean($html));
     }
 
     /**
