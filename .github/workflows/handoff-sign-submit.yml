@@ -53,6 +53,8 @@ jobs:
           php-version: '8.4'
       - name: O assinador morde? (determinismo · CRLF→LF · sig-bate · parse · envelope)
         run: php bin/sign-handoff.php --self-test
+      - name: O transporte morde? (skip-as-pass · vazio · arquivo inexistente · sem rede)
+        run: bash bin/submit-handoff.sh --self-test
 
   submit:
     name: sign & submit handoffs alterados → pending
@@ -78,13 +80,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Skip-as-pass enquanto o [W] não configurou os secrets (advisory).
-          if [ -z "${HANDOFF_SECRET}" ] || [ -z "${SUBMIT_TOKEN}" ]; then
-            echo "ℹ️  HANDOFF_SECRET/HANDOFF_SUBMIT_TOKEN ainda não configurados — skip-as-pass."
-            echo "    Configure-os (Settings → Secrets) pra ligar o transporte zero-paste (ADR 0283)."
-            exit 0
-          fi
-
           # Diff do push. Primeiro push/force (before=000…) → compara com o pai.
           BASE="${BEFORE_SHA}"
           if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
@@ -99,42 +94,6 @@ jobs:
             exit 0
           fi
 
-          fail=0
-          for f in "${FILES[@]}"; do
-            [ -f "$f" ] || continue
-            echo "── $f ──"
-
-            # Assina (HMAC) e monta o envelope JSON-RPC do tools/call handoff-submit.
-            if ! body="$(php bin/sign-handoff.php --file="$f")"; then
-              echo "🔴 falha ao assinar $f"; fail=1; continue
-            fi
-
-            # POST stateless no endpoint MCP (Mcp::web é síncrono — JSON de volta).
-            resp="$(mktemp)"
-            code="$(curl -sS -o "$resp" -w '%{http_code}' -X POST "${MCP_ENDPOINT}" \
-              -H "Authorization: Bearer ${SUBMIT_TOKEN}" \
-              -H 'Content-Type: application/json' \
-              -H 'Accept: application/json, text/event-stream' \
-              --data-binary "$body" || echo "000")"
-
-            # isError no resultado JSON-RPC (tool errou: sig inválida, sem scope…).
-            is_err="$(jq -r '.result.isError // (.error != null)' "$resp" 2>/dev/null || echo "true")"
-
-            if [ "$code" != "200" ] || [ "$is_err" = "true" ]; then
-              echo "🔴 submit falhou (HTTP $code · isError=$is_err):"
-              jq -r '.result.content[0].text // .error.message // .' "$resp" 2>/dev/null || cat "$resp"
-              fail=1
-            else
-              echo "🟢 submetido → pending:"
-              jq -r '.result.content[0].text // empty' "$resp" 2>/dev/null || true
-            fi
-            rm -f "$resp"
-          done
-
-          if [ "$fail" -ne 0 ]; then
-            echo ""
-            echo "❌ Um ou mais handoffs não entraram. Confira HANDOFF_SECRET (tem que bater o do servidor),"
-            echo "   o scope do HANDOFF_SUBMIT_TOKEN (jana.mcp.handoff.submit) e o MCP_ENDPOINT_URL."
-            exit 1
-          fi
-          echo "✅ Todos os handoffs do push viraram pending (sem auto-merge — merge é o 1-clique do [W])."
+          # bin/submit-handoff.sh = fonte única do sign+POST (reusada pelo publisher
+          # cowork-inbox.yml, ADR 0285). Skip-as-pass interno se faltar secret.
+          bash bin/submit-handoff.sh "${FILES[@]}"
