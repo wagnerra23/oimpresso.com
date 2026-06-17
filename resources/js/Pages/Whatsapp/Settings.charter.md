@@ -3,10 +3,10 @@ page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-27
+last_validated: "2026-05-27"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md
-related_adrs: [0093, 0094, 0096, 0117, 0135, 0202]
+related_adrs: [93, 94, 96, 117, 135, 202]
 related_adrs_ui: [UI-0013]
 tier: A
 charter_version: 2

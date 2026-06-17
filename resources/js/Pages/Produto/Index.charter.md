@@ -3,9 +3,9 @@ page: /products
 component: resources/js/Pages/Produto/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-15
+last_validated: "2026-05-15"
 parent_module: Produto
-related_adrs: [0110, 0107, 0093, 0104, 0149]
+related_adrs: [110, 107, 93, 104, 149]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:

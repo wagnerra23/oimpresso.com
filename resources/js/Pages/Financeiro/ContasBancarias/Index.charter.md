@@ -3,10 +3,10 @@ page: /financeiro/contas-bancarias
 component: resources/js/Pages/Financeiro/ContasBancarias/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-19
+last_validated: "2026-05-19"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
-related_adrs: [0101, 0144, 0170]
+related_adrs: [101, 144, 170]
 tier: A
 charter_version: 2
 ---

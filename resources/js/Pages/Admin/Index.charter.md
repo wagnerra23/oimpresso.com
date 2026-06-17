@@ -3,9 +3,9 @@ page: /admin
 component: resources/js/Pages/Admin/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-10
+last_validated: "2026-05-10"
 parent_module: Admin
-related_adrs: [0122, 0093, 0094, 0091, 0070, 0042, 0062]
+related_adrs: [122, 93, 94, 91, 70, 42, 62]
 tier: A
 charter_version: 1
 ---

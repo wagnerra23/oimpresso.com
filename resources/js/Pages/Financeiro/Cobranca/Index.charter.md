@@ -3,10 +3,10 @@ page: /financeiro/cobranca
 component: resources/js/Pages/Financeiro/Cobranca/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-19
+last_validated: "2026-05-19"
 parent_module: Financeiro
 sister_module: PaymentGateway
-related_adrs: [0093, 0094, 0104, 0114, 0144, 0170]
+related_adrs: [93, 94, 104, 114, 144, 170]
 related_us: [US-PG-F3-COBRANCA]
 related_prototype: prototipo Cowork "payment-gateway-ui" F1+F1.5 aprovado [W] 2026-05-19 (Chat Cowork live)
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 96/93/93)

@@ -3,9 +3,9 @@ page: /nfe-brasil/tributacao
 component: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-10
+last_validated: "2026-05-10"
 parent_module: NfeBrasil
-related_adrs: [0029, 0093, 0094]
+related_adrs: [29, 93, 94]
 related_us: [US-NFE-010, US-NFE-061]
 tier: A
 charter_version: 1

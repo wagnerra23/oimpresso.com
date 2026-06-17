@@ -3,10 +3,10 @@ page: /home
 component: resources/js/Pages/Home/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-22
+last_validated: "2026-05-22"
 parent_module: Dashboard
 parent_spec: memory/requisitos/Dashboard/SPEC.md
-related_adrs: [0093, 0094, 0101, 0104]
+related_adrs: [93, 94, 101, 104]
 related_us: [US-DASH-001, US-DASH-006]
 related_prototype: n/a (F6 Soft wrapper — sem protótipo Cowork; reusa session+queries core UltimatePOS)
 tier: A

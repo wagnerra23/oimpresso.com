@@ -3,10 +3,10 @@ page: /copiloto/admin/governanca
 component: resources/js/Pages/Jana/Admin/Governanca/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: Jana
 parent_adr: memory/decisions/0053-mcp-server-governanca-como-produto.md
-related_adrs: [0039, 0053, 0061, 0070, 0093, 0094, 0095, 0131]
+related_adrs: [39, 53, 61, 70, 93, 94, 95, 131]
 related_charters:
   - resources/js/Pages/Jana/Admin/Roadmap.charter.md
 related_specs:

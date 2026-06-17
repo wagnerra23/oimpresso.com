@@ -3,9 +3,9 @@ page: /governance
 component: resources/js/Pages/governance/Dashboard.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-09
+last_validated: "2026-05-09"
 parent_module: Governance
-related_adrs: [0110, 0079, 0094, 0114]
+related_adrs: [110, 79, 94, 114]
 tier: A
 charter_version: 2
 ---

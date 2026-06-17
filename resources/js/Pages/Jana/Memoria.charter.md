@@ -3,10 +3,10 @@ page: /copiloto/memoria
 component: resources/js/Pages/Jana/Memoria.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
-related_adrs: [0031, 0033, 0035, 0036, 0037, 0052, 0061, 0093, 0094, 0131]
+related_adrs: [31, 33, 35, 36, 37, 52, 61, 93, 94, 131]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
 related_specs:

@@ -3,9 +3,9 @@ page: /essentials/reminder
 component: resources/js/Pages/Essentials/Reminders/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-17
+last_validated: "2026-05-17"
 parent_module: Essentials
-related_adrs: [0093, 0094, 0101, 0104]
+related_adrs: [93, 94, 101, 104]
 tier: B
 charter_version: 1
 ---
