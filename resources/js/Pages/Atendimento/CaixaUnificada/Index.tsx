@@ -11,7 +11,7 @@
 // Caixa Unificada V4 — redesign Cowork da Inbox omnichannel.
 //
 // Diferenças vs /atendimento/inbox (legacy Cockpit V2):
-//   - Chips horizontais de canais ACIMA da shell 3-col (vs dropdown topbar)
+//   - Filtro de canal/conta no popover "Filtros" da lista (faixa horizontal removida — Onda 1/2 2026-06-16)
 //   - 4 status canônicos no dropdown da lista (Abertas/Pendentes/Aguardando/Resolvidas)
 //   - Banner amarelo "em homologação" pra canais preview-only
 //   - Sidebar direita 8 sections (Fila/Atribuído/Canal/Tags/OS/Saldo/Histórico/Último/Ações)
@@ -42,7 +42,6 @@ import {
 } from '@/Components/ui/dropdown-menu';
 
 import BroadcastSheet from './_components/BroadcastSheet';
-import ChannelChipsRow from './_components/ChannelChipsRow';
 import InboxCheatSheet from './_components/InboxCheatSheet';
 import InboxMobileTabs, { type MobileView } from './_components/InboxMobileTabs';
 import ChannelsDrawer from './_components/ChannelsDrawer';
@@ -414,26 +413,6 @@ export default function CaixaUnificadaIndex({
           </button>
         </div>
       </div>
-
-      {/* Chips horizontais de canais (filtro top) */}
-      <Deferred
-        data={['availableChannels', 'availableAccounts', 'conversations']}
-        fallback={(
-          <div className="border-b px-4 py-2 bg-muted/30 h-[42px] flex items-center">
-            <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
-              <Loader2 size={12} className="animate-spin" aria-hidden /> Carregando canais…
-            </span>
-          </div>
-        )}
-      >
-        <ChannelChipsRow
-          channels={availableChannels ?? []}
-          accounts={availableAccounts ?? []}
-          channelTypeFilter={channelTypeFilter}
-          accountFilter={accountFilter}
-          totalAll={conversations?.total ?? 0}
-        />
-      </Deferred>
 
       {/* Polish V2 §5 — tabs mobile (abaixo de lg; desktop 3-col intacto) */}
       <InboxMobileTabs
