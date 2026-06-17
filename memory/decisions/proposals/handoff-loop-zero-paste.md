@@ -145,11 +145,32 @@ só quando "confiar" virar "mecanismo provado" (os 5 controles auto-testados). R
 2. **Canal R2** = `COWORK_NOTES.md` agora + MCP/sync como norte — confirma?
 3. **Numerar/PR:** autoriza [CL] a numerar esta ADR e abrir PR (após `memory-schema-preflight`)?
 
-## 9. Histórico
+## 9. Rodada 2 do adversário — atacar a cura (veredito)
+
+> [AH] assumiu os **5 controles construídos** + `tier0` required e **quebrou de novo**. Log: `memory/sessions/2026-06-17-adversario-handoff-loop-r2.md`.
+
+| Controle | Veredito r2 |
+|---|---|
+| 1 lint render-only (denylist) | **FURADO** — `href={var}`, CSS revela-PII, efeito-no-pai escapam sem tocar token |
+| 2 scope-guard `files_json` | **MITIGA-PARCIAL** — limita topologia, não semântica (Context global/barrel/race) |
+| 3 assinatura nonce+exp+bind | **FURADO p/ auto-merge** — atesta origem, não qualidade; SECRET vive no Cowork |
+| 4 quarentena/canário | **MITIGA-PARCIAL** — atrasa sem decidir; canário em biz=4 expõe cliente real |
+| 5 digest fail-closed | **FURADO** — rubber-stamp solo + detecção pós-dano |
+
+**Conclusão:** os 5 controles validam **CANAL** (origem/topologia/tempo), não **CONTEÚDO**. Para `.tsx` neste ERP multi-tenant solo-founder, **humano-no-merge é estrutural** — a **Fase 0 (1-clique de [W]) é o ótimo real**.
+
+**Prova viva:** um **stored-XSS** já existia em produção (`Essentials/Messages/Index.tsx` `dangerouslySetInnerHTML` + controller `nl2br` sem escape) e **passou pelos 17 required checks** — nenhum gate morde conteúdo em `.tsx`. Corrigido no **PR #2891**.
+
+**Redireciona o ROI de [CL]:** antes dos 5 controles de canal, construir um **oráculo de conteúdo** — (a) **smoke autenticado cross-tenant** (assert isolamento entre 2 fixtures de business) + (b) **lint anti-`dangerouslySetInnerHTML`/href-cru** em `.tsx`. Seria o **primeiro gate a morder `.tsx`**.
+
+**Meio-termo (único auto-merge defensável):** apenas **cosmético** sob **allowlist sintática AST** — só string-literal em `className`/texto/`aria-label`; proibido qualquer `{expr}`/`href`/`src`/handler/ternário/import/prop não-literal. Canário **nunca** em tenant real.
+
+## 10. Histórico
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-09 | [W]+[CC] | PR #295 — PROTOCOL v1.0 |
 | 2026-06-17 | [W]+[CC] | ADR handoff-v2 + ORDENS zero-paste (propostas) |
 | 2026-06-17 | [CC] | v-corrigida — gate determinístico, tier0-required, auto-merge faseado |
-| 2026-06-17 | [CC]+[AH] | **v-red-team (esta):** E2 revertida (teatro), E1/E3/E4 insuficientes, +E5/E6, **auto-merge bloqueado até 5 controles auto-testados**; furos verificados em `multi-tenant-gate.yml:57`/`deploy.yml:12`/`scope-guard.yml` |
+| 2026-06-17 | [CC]+[AH] | v-red-team — E2 revertida (teatro), +E5/E6, auto-merge bloqueado até 5 controles auto-testados; furos em `multi-tenant-gate.yml:57`/`deploy.yml:12`/`scope-guard.yml` |
+| 2026-06-17 | [CC]+[AH] | **r2 (esta):** atacou a cura — 5 controles validam canal, não conteúdo; humano-no-merge estrutural; +oráculo de conteúdo + meio-termo AST; XSS vivo provado/corrigido (#2891) |
 | 2026-06-17 | [W] | _aguardando autorização_ |
