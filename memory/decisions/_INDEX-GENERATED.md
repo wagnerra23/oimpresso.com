@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **287** arquivos · **272** números únicos · máx **0282**
-- **ADRs ATIVOS (lifecycle ativo): 247** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 225 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 247 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **288** arquivos · **273** números únicos · máx **0283**
+- **ADRs ATIVOS (lifecycle ativo): 248** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 226 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 248 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -29,7 +29,7 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (287)
+## Todas as ADRs (288)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -319,3 +319,4 @@ _(íntegra)_
 | 0280 | aceito | ativo | meta | Postura multi-tenant das tabelas mcp_* — governança de plataforma é repo-wide (s |
 | 0281 | aceito | ativo | decision | Dark mode ativa por [data-theme=dark] (mecanismo real do AppShellV2), não só pel |
 | 0282 | aceito | ativo | decision | Protocolo v2 (colapso) — ratificação: 6→2 papéis · 7→3 fases · memória=git SSOT  |
+| 0283 | aceito | ativo | decision | Loop de handoff zero-paste — repo fonte única, gate de conteúdo, sem auto-merge  |
