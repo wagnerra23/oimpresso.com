@@ -4,7 +4,7 @@ module: Purchase
 tela: Purchase/Index
 owner: F
 status: ativo
-last_validated: 2026-06-17
+last_validated: "2026-06-17"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0093-multi-tenant-isolation-tier-0
