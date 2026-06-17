@@ -1033,3 +1033,28 @@ C3/C4 já no main (#2864/#2865/#2869). Faltava o **C5** → **#2872 (MERGEADO):*
 - **golden**: `os-page-h` é canon (charter "Markup canon EXATO"), NÃO header a migrar — confirmar o charter antes de "migrar header", senão vira regressão Tier 0 (Task 1).
 - **golden**: mudança de design que toca um Goal de charter (Task 3 faixa de canais) = atualizar o charter **no mesmo PR** (v14/v15), pra charter ≡ realidade — o mesmo drift que a catraca §16 combate.
 - **gotcha**: grupo de filtro só entra se houver param backend real — "Atribuição" não tinha (anti M-AP-2). Conferir o controller antes de listar grupos.
+
+---
+
+## 2026-06-17 [CL] → [W] — Caixa Unificada · sidebar mobile + scrollbar (handoff Cowork, ondas 1 & 3)
+_sessão nova · base `origin/main` @cb1a5467a · worktree `D:/oimpresso-shell-mobile` (branches off `main`), NÃO na branch governance (`feat/governance-ds-rollout-ledger`, ~1017 dirty) da cwd `frosty-greider-83ab2f` (dir órfão). Handoff colado por [W] (v1) — return aqui (v2 F3)._
+
+Handoff `[CC]→[CL]` "Sidebar flutuante no mobile + 3 ajustes da Caixa Unificada" (4 ondas). Validei **cada onda contra o app real** (§10.4): o handoff trazia código espelho do protótipo (`.app`/`.sb`/`hidden`-mode/`SidebarReopenHandle`/`.om-*`), que **não existe** no shell/tela reais (`.cockpit`/`.sb`/`data-sidebar`; Caixa é Tailwind+shadcn). Repo venceu onde divergiu.
+
+### Onda 1 — Sidebar flutuante no mobile (≤768px): **#2887 (ABERTO)**
+`AppShellV2.tsx` + `cockpit.css`. Em ≤768px a `.sb` sai do grid (260px) e vira drawer off-canvas (`position:fixed` + `translateX`) com hambúrguer fixo→✕ (desliza pra borda do drawer), backdrop `.42`, conteúdo full-width, fecha ao navegar (`page.url`), trava scroll do body. **Desktop ≥769px provadamente intocado:** todo CSS novo sob `@media (max-width:768px)`; no React `isMobile=false` ⇒ `renderSidebarMode===sidebarMode`, sem hambúrguer/backdrop no DOM, `data-mobile-menu="closed"` inerte, grid 260/rail 56 + ⌘\ preservados. Banda de 48px só em telas `hideTopbar` (default). `.apps` (LinkedApps) escondido no mobile.
+
+### Onda 3 — Scrollbar visível na lista e thread: **#2888 (ABERTO)**
+Não havia utilitário de scroll nem plugin `tailwind-scrollbar`; o repo tokeniza scrollbar por elemento em `cockpit.css` (`.sb-body`/`.linked-body`). Criei o utilitário reusável **`.cw-scroll-thin`** (`scrollbar-width:thin` + thumb webkit arredondado, cor por token `--text-mute`/hover `--text-dim` → flip claro/escuro automático) e apliquei no `<ul role=listbox>` (`ConversationListV4`) e no container de mensagens (`ConversationThreadV4`). `.om-list`/`.om-msgs` do protótipo não existem → containers reais.
+
+### Ondas 2 & 4 — NÃO se aplicam ([W] decidiu "Pular 2 & 4")
+Descrevem UI **só do protótipo Cowork**: (2) strip colapsável de Contexto a 44px no preto — `ContextSidebarV4` real não colapsa (sempre cheio; mobile = coluna inteira via `InboxMobileTabs`); (4) caixa de comentário inline na mensagem com botão "Comentar" — não existe (nota = toggle do composer; feedback = Sheet "Capturar feedback"). Aplicá-las seria CSS morto pra classe inexistente → **não fiz** (anti M-AP / regressão).
+
+### Verificação
+Toolchain JS **não instalado** nesta máquina (`node_modules` vazio — modelo CT100/CI), então `typecheck`/`eslint`/`stylelint`/`vite`/preview **não rodaram** local (diferente da entrada 06-16, que tinha `npm ci`). Mudanças mínimas, revisadas à mão + argumento de não-regressão desktop. Gates do CI de cada PR validam; **screenshot-gate [W]** mobile+desktop antes do merge dos 2 PRs de feature. Este return é doc → a11y-axe short-circuita verde (v2).
+
+### new_design_memories
+- **golden**: handoff Cowork mira classes do protótipo (`.om-*`/`.app`/`.sb`/`hidden`-mode) que NÃO existem no app real (Tailwind+shadcn / `.cockpit`). Traduzir intenção→containers reais e deixar o repo vencer (§10.4); nunca colar CSS de classe inexistente (vira morto).
+- **golden**: feature mobile no shell = todo CSS sob `@media (max-width:768px)` + gate `isMobile` no React ⇒ desktop provadamente intocado, sem re-testar o desktop inteiro.
+- **gotcha**: parte de um handoff pode descrever UI que só vive no protótipo (Caixa: strip de Contexto colapsável, comentário inline na bolha). Verificar contra o componente real ANTES de implementar; se não existe, reportar — não inventar nem encher de CSS morto.
+- **gotcha**: a cwd `frosty-greider-83ab2f` é dir órfão (não-worktree; `rev-parse` cai no repo na branch governance suja). Trabalhar em worktree limpo off `origin/main`, nunca na cwd.
