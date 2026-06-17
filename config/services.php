@@ -60,6 +60,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | GitHub API — PAT pra GitMainResolver (drift/stale guard handoff, ADR 0283)
+    |--------------------------------------------------------------------------
+    |
+    | Mesmo PAT scope `repo` de PublicarSkillNoGitService (ADR 0076). Vive em
+    | config/ raiz pra sobreviver a `config:cache` (igual openai acima); services
+    | leem via config('services.github.*'), nunca env() direto (larastan barra).
+    | Sem o token, GitMainResolver degrada: stale_warning = null (sem warning falso).
+    */
+    'github' => [
+        'token' => env('GITHUB_API_TOKEN'),
+        'repo'  => env('COPILOTO_PUBLISH_REPO', 'wagnerra23/oimpresso.com'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Asaas — flags de segurança financeira
     |--------------------------------------------------------------------------
     |
