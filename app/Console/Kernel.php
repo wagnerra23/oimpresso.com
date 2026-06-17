@@ -100,6 +100,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // PR-4 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — anti feedback-void:
+        // handoffs de design pendentes > 3d alertam o inbox ops (Wagner) pra
+        // reauditar/aplicar ou rejeitar. Daily 08:30 BRT, idempotente (1 digest/dia).
+        $schedule->command('handoff:stale-alert')
+            ->dailyAt('08:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule handoff:stale-alert FALHOU — handoffs pendentes velhos não alertados'
+                );
+            });
+
         // MEM-MET-3 (ADRs 0050+0051) — apura 8 métricas obrigatórias + 3 RAGAS
         // por business + plataforma, gravando 1 linha/dia em
         // copiloto_memoria_metricas via upsert idempotente.
