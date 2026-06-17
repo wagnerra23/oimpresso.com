@@ -153,6 +153,12 @@ class OimpressoMcpServer extends Server
         // ZERO LLM (varredura determinística). Fecha a simetria de governança:
         // decisões/tasks/skills/automações todos com registry MCP-queryable. Page 2.
         Tools\AutomationsListTool::class,
+        // PR-2 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — fila de design-handoffs
+        // Cowork→Code. handoff-pending puxa (stale/conflict guard A4/A5); handoff-ack
+        // fecha (gate verde A3 + scope jana.mcp.handoff.ack A7). Page 2+ (chamados após
+        // brief-fetch numa sessão de UI, fora dos 15 essenciais da página 1).
+        \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool::class,
+        \Modules\TeamMcp\Mcp\Tools\HandoffAckTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
