@@ -1,0 +1,64 @@
+name: scheme ratchet (anti-XSS · href/scheme cru em .tsx)
+
+# ORÁCULO DE CONTEÚDO (parcela 2). Bloqueia scheme de URL perigoso NOVO em resources/js/**/*.tsx:
+# javascript: / vbscript: / data:text/html. São sinks de XSS clássicos do React — o React NÃO
+# escapa o scheme de uma URL, então href/src com esses schemes executa script no clique/render.
+#
+# Motivo: red-team 2026-06-17 — nenhum gate mordia CONTEÚDO em .tsx. Parcela 1 (dsih-gate) fechou
+# dangerouslySetInnerHTML; esta fecha o href/scheme cru (ADR 0283 §9). Baseline nasce VAZIO
+# (a base não tem nenhum sink desses hoje) — logo é estrito desde o dia 1.
+#
+# Ratchet only-down: o teto (.scheme-baseline.json, versionado) só pode CAIR. Scheme novo = exit 1.
+# Determinístico, zero-dep, zero-flake. Self-test embutido roda ANTES (prova que o gate morde).
+#
+# SEM path filter no pull_request (ADR 0263): roda em TODO PR. É ratchet — sem .tsx novo passa
+# trivial. Rodar sempre permite torná-lo REQUIRED sem o deadlock de "Expected" em PR sem .tsx.
+#
+# Refs: proposals/handoff-loop-zero-paste.md (§9) · ADR 0283 · espelha dsih-gate.yml.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/**/*.tsx'
+      - 'scripts/scheme-gate.mjs'
+      - '.scheme-baseline.json'
+      - '.github/workflows/scheme-gate.yml'
+  pull_request:
+
+concurrency:
+  group: scheme-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scheme:
+    name: scheme ratchet vs baseline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Self-test (prova que o gate morde — quem vigia o vigia)
+        run: node scripts/scheme-gate.mjs --selftest
+
+      - name: scheme gate (falha só em javascript:/vbscript:/data:text/html NOVO vs baseline)
+        run: node scripts/scheme-gate.mjs --all
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "🔴 scheme gate: URL com scheme perigoso NOVO num .tsx (sink de XSS)."
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Use https: ou rota relativa/route() — nunca javascript:/vbscript:/data:text/html."
+          echo "     href=\"javascript:void(0)\" → use <button> ou onClick + preventDefault."
+          echo "  2. Se a URL vem de dado de usuário, valide o scheme (allowlist http/https/mailto/tel)."
+          echo "  3. Se REMOVEU um sink (baixou a contagem), re-crave o teto:"
+          echo "       node scripts/scheme-gate.mjs --update   (commit separado — diff do JSON é auditável)"
+          echo ""
+          echo "Refs: red-team 2026-06-17 · proposals/handoff-loop-zero-paste.md (§9 oráculo de conteúdo)."
