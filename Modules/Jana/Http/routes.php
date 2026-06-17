@@ -254,6 +254,11 @@ Route::group(
         Route::get('/health', 'HealthController@publico')
             ->name('jana.mcp.health');
 
+        // Drift sentinel (ADR 0256): token DEDICADO MCP_DRIFT_TOKEN checado no
+        // controller (sem mcp.auth/RBAC/user) — vazar revela só o SHA do commit.
+        Route::get('/version', 'HealthController@versao')
+            ->name('jana.mcp.version');
+
         // Autenticados via McpAuth
         Route::group(['middleware' => 'mcp.auth'], function () {
             Route::get('/health/auth', 'HealthController@autenticado')
