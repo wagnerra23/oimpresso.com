@@ -1058,3 +1058,32 @@ Toolchain JS **não instalado** nesta máquina (`node_modules` vazio — modelo 
 - **golden**: feature mobile no shell = todo CSS sob `@media (max-width:768px)` + gate `isMobile` no React ⇒ desktop provadamente intocado, sem re-testar o desktop inteiro.
 - **gotcha**: parte de um handoff pode descrever UI que só vive no protótipo (Caixa: strip de Contexto colapsável, comentário inline na bolha). Verificar contra o componente real ANTES de implementar; se não existe, reportar — não inventar nem encher de CSS morto.
 - **gotcha**: a cwd `frosty-greider-83ab2f` é dir órfão (não-worktree; `rev-parse` cai no repo na branch governance suja). Trabalhar em worktree limpo off `origin/main`, nunca na cwd.
+
+---
+
+## 2026-06-17 [CL] → [W] — Loop de handoff zero-paste · sync Cowork→repo (PR-6, ADR 0283)
+_sessão nova · base `origin/main` @`92ed49e8d` · worktree `D:/oimpresso-handoff-pr6` (off `origin/main`), NÃO na cwd órfã `frosty-greider-83ab2f` nem na branch governance (`feat/governance-ds-rollout-ledger`, 329/67 diverged · 1005 staged). Handoff colado por [W] via URL Cowork (`PROMPT_PARA_CODE_HANDOFF-SYNC-PR6.md`)._
+
+Handoff `[W]→[CL]` "PR-6 — o último passo pro zero-paste". Auditei contra o `main` fresco (§10.4): a Fase 0/1 já estava no `main` (ingest assinado, `cowork_handoffs`, tools `handoff-pending`/`handoff-ack`, Forja) — **só no `main`, não na branch da cwd**. Faltava o que **assina e dispara** sem o [W] no meio.
+
+### PR-6a — `handoff-submit` (landing-pad HTTP assinado): **#2921 (ABERTO)**
+Tool MCP de mutação (`Modules/TeamMcp/Mcp/Tools/HandoffSubmitTool.php`) que recebe o handoff assinado por HTTP e cria `pending`, sem SSH/commit. **Reusa** a validação via `HandoffIngestService` (extraí de `HandoffIngestCommand` — HMAC/`source_hash`/append-only viram fonte única pra arquivo OU HTTP; command passou a delegar, regressão coberta por `HandoffIngestTest`). Scope fino `jana.mcp.handoff.submit` (A7), `sig` inválida → recusa (A1), `source_hash` igual → no-op, revisão de `applied` → nova version + supersede. Audita em `mcp_audit_log` + pulsa `mcp_ingest_heartbeat` (Forja sai de "transporte sem sinal"). Registrado no `OimpressoMcpServer` + scope seedado no `McpScopesSeeder`. Pest `HandoffSubmitToolTest` (6 provas) + `submit`/`ingest` adicionados ao `.github/ci-sqlite-pest.list`.
+
+### PR-6b — Transporte on-push: **#2921 (ABERTO)**
+`bin/sign-handoff.php` (dependency-free, igual `check-handoff-scope`; assina `HMAC(body CRLF→LF)` + monta envelope JSON-RPC; `--self-test` sem segredo/rede/DB) + `.github/workflows/handoff-sign-submit.yml` (`selftest` sempre; `submit` no push de `prototipo-ui/handoffs/*.md` → POST stateless no `Mcp::web /api/mcp`; **skip-as-pass** sem secrets; advisory). Sem auto-merge.
+
+### [W] faz UMA VEZ (secrets — não consigo)
+`HANDOFF_SECRET` (= `.env` do servidor) + token scope `jana.mcp.handoff.submit` → secret `HANDOFF_SUBMIT_TOKEN` + (opc) var `MCP_ENDPOINT_URL`.
+
+### Resíduos → chips (não neste PR — 1 intent)
+Gap 3 levers (`re-disparar`/`devolver`/`supersede`) · Gap 2 badge `conflito` (ack vs required checks reais) · publisher Cowork→repo (zero-toque real — o Cowork é read-only no git, on-push é o piso até existir).
+
+### Verificação
+CI #2921 verde no que importa: **memory-health (enforce)**, **Pest (Unit)** [6 provas submit + regressão do refactor ingest], **PHPStan**, append-only, governance, ambos self-tests; job `submit` **skip** no evento PR (correto, `if: push`). Pest/PHPStan **não rodam local** (Windows sem DB; o `vendor` do `main` aponta pra outro worktree) — `php -l` limpo + `sign-handoff --self-test` 🟢 local. **NÃO mergeado** (1-clique do [W], ADR 0283) → segue **ativo/ABERTO**, não PROCESSADO (L-06).
+
+### new_design_memories
+- **golden**: handoff de INFRA (não-UI) também exige auditar o `main` fresco (§10.4) — a fundação (PR-1..5) vivia só no `main`, ausente da branch da cwd; abrir branch off `origin/main` ou a premissa inteira erra.
+- **golden**: validação que dois caminhos compartilham (ingest por arquivo + por HTTP) vira **Service extraído**, não cópia — uma fonte de verdade pro HMAC/append-only (`HandoffIngestService`), command e tool delegam.
+- **golden**: `Mcp::web` (laravel/mcp ^0.7) é JSON-RPC **síncrono e stateless** — `tools/call` num único POST, SEM handshake `initialize` (confirmado em `vendor/.../Server.php:198`). Por isso uma GitHub Action chama tool MCP por `curl`.
+- **gotcha**: teste de `Modules/TeamMcp` SÓ roda em CI se estiver no `.github/ci-sqlite-pest.list` (não há lane TeamMcp; `modules-pest.yml` não cobre). `HandoffIngestTest`/`HandoffToolsTest` (PR-1/2) NÃO estavam lá → nunca mordiam. Adicionei submit+ingest.
+- **gotcha**: workflow novo SEM registro em `scripts/governance/gates-registry.json` no MESMO PR → `memory-health` (enforce) 🔴 bloqueia ("censo de gates"). Registrar nome+classe.
