@@ -45,6 +45,13 @@ mkdir -p storage/framework/cache/data \
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
 
+# Drift observability (ADR 0256): grava o commit servido pra /api/mcp/health expor
+# (campo `commit`) e a sentinela externa mcp-drift-sentinel.yml detectar drift sem SSH.
+# safe.directory: o bind-mount /var/www/html pertence ao user do host, não ao root do
+# container — sem isso o git recusa por "dubious ownership". Best-effort (|| true).
+git config --global --add safe.directory /var/www/html 2>/dev/null || true
+(git -C /var/www/html rev-parse HEAD 2>/dev/null || echo unknown) > storage/app/deployed_commit.txt 2>/dev/null || true
+
 echo "[entrypoint-octane] Limpando caches stale..."
 # CADA artisan call com timeout 30s — alguns boot path do Laravel/módulos hangam
 # em queries SQL durante boot (visto em 29-abr, deps Spatie/Scout). Timeout
