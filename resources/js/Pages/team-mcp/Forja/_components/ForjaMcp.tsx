@@ -130,8 +130,9 @@ export interface HandoffItem {
   created_at: string | null;
   created_at_human: string | null;
   created_by: string;
-  // gate derivado do gate_status (mesma regra verde do handoff-ack).
-  gate: 'verde' | 'vermelho' | 'rodando' | 'na';
+  // gate do ack cruzado com os required checks REAIS do PR (Gap 2 · ADR 0283).
+  // 'conflito' = ack diz verde mas um required check está vermelho/pendente no GitHub.
+  gate: 'verde' | 'vermelho' | 'conflito' | 'rodando' | 'na';
   gate_status: { conformance?: boolean; critique_score?: number; a11y?: boolean } | null;
   signed: boolean;
   resumo: string;
@@ -154,9 +155,13 @@ const HANDOFF_STATUS: Record<HandoffItem['status'], { label: string; pill: strin
 };
 
 // Gate → rótulo + tom + cor do dot. 'na' = não-avaliado (pending/stale sem ack).
+// 'conflito' (Gap 2 · ADR 0283): ack reportou verde mas os required checks do PR
+// discordam — dot pulsando em destructive pra puxar o olho (mais grave que um vermelho
+// honesto, porque o ack está MENTINDO). Drill linka pro PR ver qual check diverge.
 const HANDOFF_GATE: Record<HandoffItem['gate'], { label: string; tone: string; dot: string }> = {
   verde: { label: 'gate ok', tone: 'text-success-fg', dot: 'bg-success' },
   vermelho: { label: 'gate falhou', tone: 'text-destructive-fg', dot: 'bg-destructive' },
+  conflito: { label: 'conflito ack×checks', tone: 'text-destructive-fg', dot: 'bg-destructive animate-pulse' },
   rodando: { label: 'gate rodando', tone: 'text-warning-fg', dot: 'bg-warning' },
   na: { label: 'sem gate', tone: 'text-muted-foreground', dot: 'bg-muted-foreground/40' },
 };
@@ -220,7 +225,13 @@ function HandoffRow({ h }: { h: HandoffItem }) {
   const status = HANDOFF_STATUS[h.status] ?? HANDOFF_STATUS.pending;
   const gate = HANDOFF_GATE[h.gate] ?? HANDOFF_GATE.na;
   const lever = leverFor(h.status);
-  const gateDrill = h.pr_url !== null && (h.gate === 'vermelho' || h.gate === 'verde');
+  const gateDrill =
+    h.pr_url !== null && (h.gate === 'vermelho' || h.gate === 'verde' || h.gate === 'conflito');
+  // 'conflito' precisa explicar a divergência no hover (o badge sozinho é críptico).
+  const gateHint =
+    h.gate === 'conflito'
+      ? 'Ack reportou verde, mas um required check do PR está vermelho/pendente no GitHub — abra o PR pra ver qual diverge.'
+      : undefined;
 
   return (
     <div data-testid="forja-handoff-item" className="inline-flex w-full flex-col gap-1.5 px-4 py-3">
@@ -257,13 +268,14 @@ function HandoffRow({ h }: { h: HandoffItem }) {
           <Files size={11} /> <span className="tabular-nums">{h.files_count}</span> arq
         </span>
 
-        {/* Gate — drill: vermelho/verde linka pro PR (e pro check que falhou) */}
+        {/* Gate — drill: vermelho/verde/conflito linka pro PR (e pro check que diverge) */}
         {gateDrill ? (
           <a
             href={h.pr_url ?? undefined}
             target="_blank"
             rel="noopener noreferrer"
             data-testid="forja-handoff-gate"
+            title={gateHint}
             className={cn('inline-flex items-center gap-1 hover:underline', gate.tone)}
           >
             <span className={cn('inline-block h-1.5 w-1.5 rounded-full', gate.dot)} /> {gate.label}
@@ -271,6 +283,7 @@ function HandoffRow({ h }: { h: HandoffItem }) {
         ) : (
           <span
             data-testid="forja-handoff-gate"
+            title={gateHint}
             className={cn('inline-flex items-center gap-1', gate.tone)}
           >
             <span className={cn('inline-block h-1.5 w-1.5 rounded-full', gate.dot)} /> {gate.label}

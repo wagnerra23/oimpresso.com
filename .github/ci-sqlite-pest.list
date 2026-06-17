@@ -31,6 +31,10 @@ Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php
 Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php
 Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php
+# Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
+# checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
+# sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
+Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php
 tests/Feature/Form
 tests/Feature/Services/FeatureFlagServiceTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
