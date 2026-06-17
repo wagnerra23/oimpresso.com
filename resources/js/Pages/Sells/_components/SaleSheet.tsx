@@ -36,6 +36,7 @@ import {
   SheetDescription,
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -496,12 +497,12 @@ export default function SaleSheet({
               {data.lines.length > 0 && (
                 <Section title="Resumo de valores" icon={Receipt}>
                   <div className="rounded-md border border-border divide-y divide-border text-sm">
-                    <div className="flex items-center justify-between px-3 py-2">
+                    <Inline justify="between" className="px-3 py-2">
                       <span className="text-muted-foreground">Subtotal</span>
                       <span className="tabular-nums text-foreground">{formatBRL(subtotalProdutos)}</span>
-                    </div>
+                    </Inline>
                     {descontoVenda > 0 && (
-                      <div className="flex items-center justify-between px-3 py-2">
+                      <Inline justify="between" className="px-3 py-2">
                         <span className="text-muted-foreground">
                           Desconto
                           {data.discount_type === 'percentage' && data.discount_amount > 0 && (
@@ -511,26 +512,26 @@ export default function SaleSheet({
                           )}
                         </span>
                         <span className="tabular-nums text-success">− {formatBRL(descontoVenda)}</span>
-                      </div>
+                      </Inline>
                     )}
                     {data.shipping_charges > 0 && (
-                      <div className="flex items-center justify-between px-3 py-2">
+                      <Inline justify="between" className="px-3 py-2">
                         <span className="text-muted-foreground">Frete</span>
                         <span className="tabular-nums text-foreground">+ {formatBRL(data.shipping_charges)}</span>
-                      </div>
+                      </Inline>
                     )}
                     {data.tax_amount > 0 && (
-                      <div className="flex items-center justify-between px-3 py-2">
+                      <Inline justify="between" className="px-3 py-2">
                         <span className="text-muted-foreground">Impostos</span>
                         <span className="tabular-nums text-foreground">+ {formatBRL(data.tax_amount)}</span>
-                      </div>
+                      </Inline>
                     )}
-                    <div className="flex items-center justify-between px-3 py-2.5 bg-muted/30">
+                    <Inline justify="between" className="px-3 py-2.5 bg-muted/30">
                       <span className="font-medium text-foreground">Total</span>
                       <span className="tabular-nums font-semibold text-foreground text-base">
                         {formatBRL(data.final_total)}
                       </span>
-                    </div>
+                    </Inline>
                   </div>
                 </Section>
               )}
