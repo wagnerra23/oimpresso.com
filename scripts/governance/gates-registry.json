@@ -54,6 +54,10 @@
       "nome": "Conformance Gate — cor-crua DS (Camada 1 · anti-regressão de contrato)",
       "classe": "gate"
     },
+    "dsih-gate.yml": {
+      "nome": "dSIH ratchet (anti-XSS · conteúdo em .tsx · oráculo parcela 1)",
+      "classe": "gate"
+    },
     "cowork-inbox.yml": {
       "nome": "cowork-inbox",
       "classe": "automacao"
