@@ -250,6 +250,10 @@
       "nome": "Scope Guard (anti-drift)",
       "classe": "gate"
     },
+    "handoff-scope-guard.yml": {
+      "nome": "Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0)",
+      "classe": "gate"
+    },
     "scorer-sync-gate.yml": {
       "nome": "Scorer sync (regex score-mechanized.mjs ↔ UiDeterministicScorer.php)",
       "classe": "gate"
