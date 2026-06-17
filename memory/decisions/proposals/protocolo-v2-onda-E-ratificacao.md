@@ -1,6 +1,6 @@
 # PROPOSTA · Protocolo v2 (colapso) — Onda E: RATIFICAÇÃO — só [W] numera
 
-> **Status:** PROPOSTA de ratificação. **NÃO é ADR numerado.** [CL] consolida; **[W] numera + ratifica** (Tier 0, constituição do loop · soberania [ADR 0238](../0238-soberania-constituicao-wagner.md)). Editar `PROTOCOL.md` pra "v2" é o passo que **só acontece quando [W] numerar este ADR**.
+> **Status:** ✅ **RATIFICADO como [ADR 0282](../0282-protocolo-v2-colapso-ratificacao.md)** (2026-06-17). _(Era proposta; o Code numerou sob autorização explícita de [W] — "pode numerar, eu autorizo". Soberania [ADR 0238](../0238-soberania-constituicao-wagner.md) preservada: [W] decide/autoriza, o Code cunha o número.)_ Este doc fica como rationale/histórico; o canon é a ADR 0282.
 > **Pai:** [`_PROPOSTA-protocolo-v2-colapso-W.md`](../_PROPOSTA-protocolo-v2-colapso-W.md) (#2871). Capstone das Ondas A–D, **todas já executadas** (evidência §3).
 
 ---
