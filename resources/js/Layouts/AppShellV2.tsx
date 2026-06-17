@@ -29,6 +29,7 @@ import {
   LayoutDashboard,
   List,
   type LucideIcon,
+  Menu,
   MessageSquare,
   Search,
   Settings,
@@ -40,6 +41,7 @@ import {
   Undo2,
   Users,
   Wrench,
+  X,
   Zap,
 } from 'lucide-react';
 
@@ -284,6 +286,32 @@ export default function AppShellV2({
   useEffect(() => { localStorage.setItem(LS.SB_MODE, sidebarMode); }, [sidebarMode]);
   const toggleSidebarMode = () => setSidebarMode((m) => (m === 'rail' ? 'expanded' : 'rail'));
 
+  // ── Mobile: sidebar vira drawer off-canvas (≤768px) — Wagner 2026-06-17
+  // (handoff Cowork). No celular o menu flutua por cima do conteúdo (não
+  // empurra); hambúrguer fixo + backdrop. Desktop (≥769px) intocado.
+  const [isMobile, setIsMobile] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
+  );
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  // Fecha o drawer ao navegar (Inertia troca page.url sem desmontar o shell).
+  useEffect(() => { setMobileMenuOpen(false); }, [page.url]);
+  // Trava o scroll do body enquanto o drawer está aberto.
+  useEffect(() => {
+    if (!(isMobile && mobileMenuOpen)) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMobile, mobileMenuOpen]);
+  // No mobile o drawer abre sempre EXPANDIDO (rail de 56px é inútil como menu).
+  const renderSidebarMode: SidebarMode = isMobile ? 'expanded' : sidebarMode;
+
   // ── Command Palette global (PMG-002, ADR 0100) — atalho Cmd/Ctrl+K
   const [paletteOpen, setPaletteOpen] = useState<boolean>(false);
 
@@ -437,6 +465,7 @@ export default function AppShellV2({
         className="cockpit"
         data-linked={!conversaFoco || linkedCollapsed ? 'off' : 'on'}
         data-sidebar={sidebarMode}
+        data-mobile-menu={mobileMenuOpen ? 'open' : 'closed'}
         data-vibe={vibe}
         data-density={densityLabel}
         data-theme={userTheme}
@@ -444,7 +473,7 @@ export default function AppShellV2({
       >
         {/* SIDEBAR — single-pane (UI-0011, 2026-05-05). Toggle Chat/Menu removido.
             Modos expanded/rail (Wagner 2026-05-16) — protótipo Cowork sidebar.jsx. */}
-        <aside className={`sb${sidebarMode === 'rail' ? ' sb--rail' : ''}`}>
+        <aside className={`sb${renderSidebarMode === 'rail' ? ' sb--rail' : ''}`}>
           <div className="sb-top">
             <CompanyPicker businesses={business.opcoes} fallbackNome={business.nome} />
           </div>
@@ -453,7 +482,7 @@ export default function AppShellV2({
               quando OK ou business não emite NFe. */}
           <NfeCertBadge />
           <div className="sb-body">
-            <SidebarMenu items={shellMenu} mode={sidebarMode} />
+            <SidebarMenu items={shellMenu} mode={renderSidebarMode} />
           </div>
           <SidebarFooter
             nome={user.nome}
@@ -478,6 +507,27 @@ export default function AppShellV2({
             {sidebarMode === 'rail' ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
           </button>
         </aside>
+
+        {/* Mobile (≤768px): hambúrguer flutuante + backdrop — Wagner 2026-06-17
+            (handoff Cowork). Só monta no mobile; no desktop não existe no DOM. */}
+        {isMobile && (
+          <button
+            type="button"
+            className="sb-mobile-toggle"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
+        {isMobile && mobileMenuOpen && (
+          <div
+            className="sb-mobile-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden
+          />
+        )}
 
         {/* MAIN COLUMN */}
         <div className="main" data-topbar={hideTopbar ? 'hidden' : 'on'}>
