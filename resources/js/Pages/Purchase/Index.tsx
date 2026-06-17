@@ -19,7 +19,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Plus, Eye, Edit, Trash2, Printer, RotateCcw, FileText } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Printer, RotateCcw, FileText, Barcode } from 'lucide-react';
 
 // ---------- Tipos ----------
 
@@ -296,6 +296,9 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
                           <Printer className="h-3.5 w-3.5" />
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/labels/show?purchase_id=${r.id}`, '_blank')} title="Imprimir etiquetas">
+                        <Barcode className="h-3.5 w-3.5" />
+                      </Button>
                       {permissions.update && (
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onEdit(r.id)} title="Editar">
                           <Edit className="h-3.5 w-3.5" />
