@@ -281,7 +281,7 @@ export default function ConversationThreadV4({
       {/* Mensagens */}
       <div
         ref={threadRef}
-        className="flex-1 overflow-auto p-4 flex flex-col gap-1"
+        className="flex-1 overflow-auto cw-scroll-thin p-4 flex flex-col gap-1"
         data-testid="caixa-unif-messages"
       >
         {messages.length === 0 ? (
