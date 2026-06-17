@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Entities\Mcp\McpAuditLog;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\Jana\Entities\Mcp\McpProject;
@@ -20,6 +21,7 @@ use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
 use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
 use Modules\TeamMcp\Services\Forja\ForjaMcpService;
 use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
+use Modules\TeamMcp\Services\HandoffLeverService;
 
 /**
  * ForjaController — cockpit do cowork loop (/forja).
@@ -128,6 +130,82 @@ class ForjaController extends Controller
                 'heartbeat' => Inertia::defer(fn () => $svc->heartbeat()),
             ],
         ));
+    }
+
+    /**
+     * POST /forja/handoff/{slug}/lever — opera uma lever do loop de handoff
+     * (re-disparar/devolver/supersede) a partir dos botões da aba MCP da Forja,
+     * que eram `disabled "em breve"` (Fase 2 · ADR 0283).
+     *
+     * MESMA mutação GOVERNADA do tool MCP `handoff-lever` (#2924) — ambos delegam
+     * pra {@see HandoffLeverService} (fonte única, in-place, idempotente por estado
+     * de origem). Aqui o ator é o [W] na sessão web (gate copiloto.mcp.usage.all no
+     * __construct); lá é o agente via scope fino jana.mcp.handoff.lever. SEM
+     * auto-merge. Audit em mcp_audit_log (origem forja-web).
+     *
+     * Delega 100% ao service (sem Eloquent direto aqui) — cowork_handoffs é repo-wide
+     * (Tier 0 ADR 0093/0283), igual mcp()/dossier().
+     */
+    public function handoffLever(Request $request, string $slug): JsonResponse
+    {
+        $action = trim((string) $request->input('action', ''));
+        if (! array_key_exists($action, HandoffLeverService::ORIGINS)) {
+            return response()->json(['error' => 'Ação inválida.'], 422);
+        }
+
+        $versionInput = $request->input('version');
+        $expected = ($versionInput !== null && $versionInput !== '') ? (int) $versionInput : null;
+
+        $result = app(HandoffLeverService::class)->apply($slug, $action, $expected);
+
+        if ($result === null) {
+            // "409": não há versão no estado de origem — lever idempotente.
+            $estados = implode('/', HandoffLeverService::ORIGINS[$action]);
+            $this->auditHandoffLever($request, $slug, 0, $action, null, null);
+
+            return response()->json([
+                'error' => "Este handoff não está em '{$estados}' — a lever '{$action}' não se aplica. Recarregue a fila.",
+            ], 409);
+        }
+
+        $this->auditHandoffLever($request, $slug, $result['version'], $action, $result['from'], $result['to']);
+
+        return response()->json([
+            'ok'          => true,
+            'slug'        => $slug,
+            'version'     => $result['version'],
+            'action'      => $action,
+            'from_status' => $result['from'],
+            'to_status'   => $result['to'],
+        ]);
+    }
+
+    /**
+     * Audit best-effort da lever no mcp_audit_log (origem web/cockpit) — espelha
+     * HandoffLeverTool::audit; não trava a resposta.
+     */
+    private function auditHandoffLever(Request $request, string $slug, int $version, string $action, ?string $from, ?string $to): void
+    {
+        try {
+            $user = $request->user();
+            McpAuditLog::registrar([
+                'user_id'          => $user !== null ? (int) $user->getAuthIdentifier() : 0,
+                'endpoint'         => 'web/forja',
+                'tool_or_resource' => 'handoff-lever',
+                'status'           => $to === null ? 'denied' : 'ok',
+                'payload_summary'  => [
+                    'slug'    => $slug,
+                    'version' => $version,
+                    'action'  => $action,
+                    'from'    => $from,
+                    'to'      => $to,
+                    'note'    => is_string($request->input('note')) ? mb_substr((string) $request->input('note'), 0, 200) : null,
+                    'origin'  => 'forja-web',
+                ],
+            ]);
+        } catch (\Throwable) {
+            // best-effort
+        }
     }
 
     // ---------- Triagem · payload ----------
