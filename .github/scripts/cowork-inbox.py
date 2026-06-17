@@ -6,18 +6,27 @@ Triggered by .github/workflows/cowork-inbox.yml on push to main touching cowork-
 Header syntax (HTML/markdown comment, anywhere in file):
     <!-- cowork: target: <path> -->        # write/overwrite at <path>
     <!-- cowork: append-to: <path> -->     # append (after newline) to <path>
-    <!-- cowork: commit: <message> -->     # optional commit message override
+    <!-- cowork: commit: <message> -->     # reserved; not yet wired (workflow hardcodes the message)
 
-Whitelist enforced — paths must start with one of ALLOWED_PREFIXES and must not contain '..'.
+Whitelist enforced — paths must start with an allowed prefix and must not contain a denied substring.
+
+Two tiers (Onda D):
+    ALLOWED_PREFIXES        -> "auto":   doc/memory/prototype, fast-path (--auto merge once CI is green).
+    ALLOWED_PREFIXES_REVIEW -> "review": code (resources/js/**), PR opened for human review — NEVER auto-merged.
+Anything else, or any denied substring, is SKIPPED.
+
+If any processed file is "review" tier, this script writes `review_required=true` to $GITHUB_OUTPUT
+so the workflow opens the PR for review instead of auto-merging.
 """
+import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 INBOX = Path("cowork-inbox")
-ALLOWED_PREFIXES = ("prototipo-ui/", "memory/", "docs/")
-DENY_SUBSTRINGS = ("..", ".github/", ".claude/")
+ALLOWED_PREFIXES = ("prototipo-ui/", "memory/", "docs/")       # auto-merge once green
+ALLOWED_PREFIXES_REVIEW = ("resources/js/",)                   # code -> human review, never auto-merge
+DENY_SUBSTRINGS = ("..", ".github/", ".claude/")               # never reachable, even via review tier
 MAX_SIZE_BYTES = 1_000_000
 SKIP_FILES = {"README.md", ".gitkeep"}
 
@@ -32,18 +41,22 @@ def strip_headers(content: str) -> str:
     return HEADER_RE.sub("", content).lstrip("\n")
 
 
-def validate_path(path: str) -> tuple[bool, str | None]:
+def classify_path(path: str) -> tuple[str | None, str | None]:
+    """Return (tier, error). tier is 'auto', 'review', or None when blocked."""
     if any(s in path for s in DENY_SUBSTRINGS):
-        return False, f"denied substring in {path!r}"
-    if not any(path.startswith(p) for p in ALLOWED_PREFIXES):
-        return False, f"path {path!r} not in whitelist {ALLOWED_PREFIXES}"
-    return True, None
+        return None, f"denied substring in {path!r}"
+    if any(path.startswith(p) for p in ALLOWED_PREFIXES):
+        return "auto", None
+    if any(path.startswith(p) for p in ALLOWED_PREFIXES_REVIEW):
+        return "review", None
+    return None, f"path {path!r} not in whitelist {ALLOWED_PREFIXES + ALLOWED_PREFIXES_REVIEW}"
 
 
-def process_file(filepath: Path) -> str:
+def process_file(filepath: Path) -> tuple[str, str | None]:
+    """Return (log_message, tier). tier is the written file's tier, or None when skipped."""
     size = filepath.stat().st_size
     if size > MAX_SIZE_BYTES:
-        return f"SKIP {filepath} (size {size} > {MAX_SIZE_BYTES})"
+        return f"SKIP {filepath} (size {size} > {MAX_SIZE_BYTES})", None
 
     content = filepath.read_text(encoding="utf-8")
     headers = parse_headers(content)
@@ -53,14 +66,14 @@ def process_file(filepath: Path) -> str:
     append_to = headers.get("append-to")
 
     if target and append_to:
-        return f"SKIP {filepath} (both target and append-to set)"
+        return f"SKIP {filepath} (both target and append-to set)", None
     if not target and not append_to:
-        return f"SKIP {filepath} (no target/append-to header)"
+        return f"SKIP {filepath} (no target/append-to header)", None
 
     dest = target or append_to
-    ok, err = validate_path(dest)
-    if not ok:
-        return f"SKIP {filepath} ({err})"
+    tier, err = classify_path(dest)
+    if tier is None:
+        return f"SKIP {filepath} ({err})", None
 
     dest_path = Path(dest)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,12 +89,22 @@ def process_file(filepath: Path) -> str:
         action = "APPEND"
 
     filepath.unlink()
-    return f"{action} {filepath} -> {dest}"
+    return f"{action} [{tier}] {filepath} -> {dest}", tier
+
+
+def emit_review_flag(review_required: bool) -> None:
+    value = "true" if review_required else "false"
+    gh_output = os.environ.get("GITHUB_OUTPUT")
+    if gh_output:
+        with open(gh_output, "a", encoding="utf-8") as fh:
+            fh.write(f"review_required={value}\n")
+    print(f"review_required={value}")
 
 
 def main() -> int:
     if not INBOX.exists():
         print("cowork-inbox/ does not exist; nothing to do")
+        emit_review_flag(False)
         return 0
 
     files = sorted(
@@ -89,17 +112,22 @@ def main() -> int:
     )
     if not files:
         print("inbox empty; nothing to do")
+        emit_review_flag(False)
         return 0
 
     print(f"Found {len(files)} file(s) in inbox")
+    tiers: list[str] = []
     for f in files:
         try:
-            result = process_file(f)
+            result, tier = process_file(f)
             print(f"  {result}")
+            if tier is not None:
+                tiers.append(tier)
         except Exception as e:
             print(f"  ERROR processing {f}: {e}", file=sys.stderr)
             return 1
 
+    emit_review_flag(any(t == "review" for t in tiers))
     return 0
 
 
