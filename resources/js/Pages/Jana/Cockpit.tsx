@@ -566,8 +566,12 @@ function MarkdownBubble({ m }: { m: MarkdownMsg }) {
       const linkMatch = text.slice(i).match(/^\[([^\]]+)\]\(([^)]+)\)/);
       if (linkMatch) {
         flush();
+        // Segurança: só schemes seguros (bloqueia javascript:/data: — XSS via href).
+        const safeHref = /^(https?:\/\/|mailto:|\/)/i.test(linkMatch[2].trim())
+          ? linkMatch[2].trim()
+          : '#';
         tokens.push(
-          <a key={key++} className="text-primary underline" href={linkMatch[2]}>
+          <a key={key++} className="text-primary underline" href={safeHref} rel="noopener noreferrer">
             {linkMatch[1]}
           </a>,
         );
