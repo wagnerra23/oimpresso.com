@@ -85,21 +85,21 @@ class ForjaMcpService
      */
     private function serialize(CoworkHandoff $h): array
     {
-        $files = is_array($h->files_json) ? $h->files_json : [];
-
+        // files_json: cast 'array' em coluna NOT NULL → sempre array (larastan sabe;
+        // sem is_array() redundante). sig é string (@property) → idem.
         return [
             'slug'             => $h->slug,
             'version'          => (int) $h->version,
             'tela'             => $h->tela,
             'status'           => $this->displayStatus($h),  // 'stale' derivado na leitura
-            'files_count'      => count($files),
+            'files_count'      => count($h->files_json),
             'pr_url'           => $h->pr_url,
             'created_at'       => optional($h->created_at)->toIso8601String(),
             'created_at_human' => optional($h->created_at)->diffForHumans(),
             'created_by'       => $h->created_by,
             'gate'             => $this->deriveGate($h),      // verde/vermelho/rodando/na
             'gate_status'      => is_array($h->gate_status) ? $h->gate_status : null,
-            'signed'           => is_string($h->sig) && $h->sig !== '',
+            'signed'           => $h->sig !== '',
             'resumo'           => $this->firstLine((string) $h->body_md),
         ];
     }
