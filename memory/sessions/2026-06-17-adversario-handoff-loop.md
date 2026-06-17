@@ -1,7 +1,7 @@
 ---
 title: "[AH] Red-team adversarial — loop handoff zero-paste (proposta handoff-loop-zero-paste)"
 type: session
-date: 2026-06-17
+date: "2026-06-17"
 topic: "[AH] red-team do loop handoff zero-paste — furos verificados + auto-merge bloqueado"
 authors: [C]
 related: [0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0261, 0269, 0271]
