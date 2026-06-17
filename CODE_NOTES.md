@@ -59,6 +59,12 @@ Não recriado nada da Fase 0.
   (skill `tela-smoke-pos-merge`, rota `/forja/mcp`) + os gates de CI (conformance/foundation/pageheader/
   a11y/visual-regression).
 
+### Pós-push (CI verde)
+- **PHPStan**: removidos `is_array($h->files_json)`/`is_string($h->sig)` redundantes (casts/`@property` — larastan resolve como sempre-true).
+- **Casos G-6** (ADR 0264): `last_run` de `Cockpit.casos.md` bumpado + UC-FORJA-12.
+- **Base atualizada**: merge de `origin/main` (PR #2914 entrou depois do branch — subiu o baseline TeamMcp 75→79 + OTel no GitMainResolver). Minha query repo-wide de `CoworkHandoff` é consistente com o novo `CoworkHandoffCrossTenantTest`.
+- **Module Grade D9.a** (ADR 0155): `ForjaMcpService` instrumentado com `OtelHelper::span` (observability real, igual GitMainResolver) — sem isso o service novo diluía a razão `services-com-OTel` e derrubava TeamMcp 79→78.
+
 ### Arquivos
 - `Modules/TeamMcp/Services/Forja/ForjaMcpService.php` (novo)
 - `Modules/TeamMcp/Http/Controllers/ForjaController.php` (mcp() + import; removido renderTab órfão)
