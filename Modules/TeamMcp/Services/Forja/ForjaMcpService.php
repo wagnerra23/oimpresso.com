@@ -7,6 +7,7 @@ namespace Modules\TeamMcp\Services\Forja;
 use App\Util\OtelHelper;
 use Modules\TeamMcp\Entities\CoworkHandoff;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
+use Modules\TeamMcp\Services\PrChecksResolver;
 
 /**
  * ForjaMcpService — projeção dos handoffs de design (Cowork→Code, F1→F3) pra aba
@@ -25,6 +26,12 @@ use Modules\TeamMcp\Entities\McpIngestHeartbeat;
  *
  * Observability (ADR 0155 D9.a): cada leitura roda dentro de `OtelHelper::span`
  * (zero-cost quando OTel off), igual {@see \Modules\TeamMcp\Services\GitMainResolver}.
+ *
+ * Gap 2 do adversário [AH] (ADR 0283): o `gate_status` é AUTO-REPORTADO pelo [CC] e
+ * pode divergir dos required checks REAIS do PR no GitHub. Por isso o gate verde do ack
+ * é cruzado com o estado real do PR via {@see PrChecksResolver} — se a realidade não
+ * está verde (vermelho/pendente), o badge vira `conflito`. Best-effort: sem token/rede
+ * o cruzamento degrada e o badge segue o `gate_status` (comportamento da Fase 1).
  */
 class ForjaMcpService
 {
@@ -36,6 +43,14 @@ class ForjaMcpService
 
     /** Heartbeat mais antigo que isto = "transporte sem sinal" (alerta, não "tudo calmo"). */
     private const HEARTBEAT_SILENT_MINUTES = 60;
+
+    private PrChecksResolver $prChecks;
+
+    /** Default-construível (`new ForjaMcpService()`) — o container injeta o resolver real. */
+    public function __construct(?PrChecksResolver $prChecks = null)
+    {
+        $this->prChecks = $prChecks ?? new PrChecksResolver();
+    }
 
     /**
      * Os handoffs projetados: o mais recente por slug (maior version), EXCLUINDO
@@ -127,15 +142,42 @@ class ForjaMcpService
     }
 
     /**
-     * Gate badge derivado do `gate_status` — MESMA regra verde do handoff-ack
-     * (conformance && critique_score>=80 && a11y). Nunca pinta verde sem ler.
+     * Gate badge: o gate do ACK cruzado com os required checks REAIS do PR (Gap 2 ·
+     * ADR 0283). O `gate_status` é auto-reportado pelo [CC]; só o estado `verde` faz
+     * uma afirmação positiva ("aplicado e bom") que vale conferir contra a realidade.
+     * Nos demais (vermelho/rodando/na) o badge já é cauteloso — não há reasseguramento
+     * falso a desmentir, então segue o ack direto.
      *
-     *   verde    = os 3 ok
-     *   vermelho = algum falhou
-     *   rodando  = applied mas sem gate_status reportado ainda
+     *   verde    = ack verde E os required checks do PR estão verdes (ou sem PR/ sem rede)
+     *   conflito = ack verde MAS um required check está vermelho/pendente no GitHub
+     *   vermelho = ack reprovou (algum dos 3 falhou)
+     *   rodando  = applied sem gate_status reportado ainda
      *   na       = não-avaliado (pending/stale sem ack)
      */
     private function deriveGate(CoworkHandoff $h): string
+    {
+        $ackGate = $this->deriveAckGate($h);
+
+        if ($ackGate !== 'verde' || $h->pr_url === null || $h->pr_url === '') {
+            return $ackGate;
+        }
+
+        // Cross-check best-effort. null = não deu pra ler o PR (sem token/rede/branch
+        // protection) → degrada pro ack (comportamento da Fase 1, sem conflito falso).
+        $real = $this->prChecks->verdict($h->pr_url);
+        if ($real === null) {
+            return $ackGate;
+        }
+
+        // Ack diz verde; se a realidade não está verde (vermelho OU pendente) → CONFLITO.
+        return $real === 'green' ? 'verde' : 'conflito';
+    }
+
+    /**
+     * Gate derivado SÓ do `gate_status` do ack — MESMA regra verde do handoff-ack
+     * (conformance && critique_score>=80 && a11y). Nunca pinta verde sem ler.
+     */
+    private function deriveAckGate(CoworkHandoff $h): string
     {
         $g = is_array($h->gate_status) ? $h->gate_status : null;
 
