@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
+import { Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 import {
   type AccountItem,
@@ -204,11 +205,11 @@ export default function ConversationListV4({
       aria-label="Lista de conversas"
     >
       {/* Header da coluna: título + count + Status (dropdown) + Filtros (popover) — Onda 2 */}
-      <div className="flex items-center justify-between gap-2 border-b px-3 pt-2.5 pb-2">
-        <div className="flex items-baseline gap-2 min-w-0">
+      <Inline align="center" justify="between" className="border-b px-3 pt-2.5 pb-2">
+        <Inline align="baseline" className="min-w-0">
           <b className="text-[13px] font-semibold text-foreground">Conversas</b>
           <span className="font-mono text-[11px] text-muted-foreground">{conversations.total}</span>
-        </div>
+        </Inline>
 
         <div className="flex items-center gap-1.5 shrink-0">
           {/* Status — 7 tabs canônicas num DropdownMenu (substitui a fileira de tabs) */}
@@ -277,7 +278,7 @@ export default function ConversationListV4({
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-72 p-0">
-              <div className="flex items-center justify-between px-3 py-2 border-b">
+              <Inline align="center" justify="between" className="px-3 py-2 border-b">
                 <span className="text-[12px] font-semibold">Filtros</span>
                 {activeFilterCount > 0 && (
                   <button
@@ -289,7 +290,7 @@ export default function ConversationListV4({
                     <X size={11} aria-hidden /> Limpar ({activeFilterCount})
                   </button>
                 )}
-              </div>
+              </Inline>
 
               <div className="max-h-[60vh] overflow-auto p-2.5 flex flex-col gap-3">
                 {channels.length > 0 && (
@@ -427,7 +428,7 @@ export default function ConversationListV4({
             </PopoverContent>
           </Popover>
         </div>
-      </div>
+      </Inline>
 
       {/* Busca inline */}
       <div className="relative border-b px-3.5 py-2">
