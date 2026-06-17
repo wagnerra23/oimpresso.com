@@ -1,15 +1,16 @@
 ---
-page: kb/Troubleshooter (dialog concept — não tem .tsx dedicado)
-controller: Modules\KB\Http\Controllers\KbDecisionTreeController
+page: /kb/decision-trees  # dialog concept — governa TroubleshooterDialog, sem .tsx de página dedicada
+component: resources/js/Pages/kb/_components/TroubleshooterDialog.tsx
+controller: 'Modules\KB\Http\Controllers\KbDecisionTreeController'
 route: kb.decision-trees.{index,show,store,update}
 status: draft
-owner: [W] Wagner
+owner: wagner
 persona_principal: Larissa / operacional gráfica (1280px balcão)
 persona_secundaria: Wagner / governança (1440px desktop)
-charter_version: 1.0
+charter_version: 1
 charter_at: 2026-05-16
 related_adrs:
-  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
 related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
