@@ -5,7 +5,6 @@
   "resources/js/Pages/Essentials/Knowledge/Index.tsx": 1,
   "resources/js/Pages/Essentials/Knowledge/Show.tsx": 1,
   "resources/js/Pages/Essentials/Todo/Index.tsx": 1,
-  "resources/js/Pages/Essentials/Todo/Show.tsx": 1,
   "resources/js/Pages/Financeiro/Dashboard/Index.tsx": 2,
   "resources/js/Pages/MemCofre/Inbox.tsx": 1,
   "resources/js/Pages/Ponto/Aprovacoes/Index.tsx": 1,
@@ -18,7 +17,6 @@
   "resources/js/Pages/Site/BlogPost.tsx": 1,
   "resources/js/Pages/Site/Page.tsx": 1,
   "resources/js/Pages/TransactionPayment/Index.tsx": 1,
-  "resources/js/Pages/TransactionPayment/Show.tsx": 1,
   "resources/js/Pages/kb/Index.tsx": 1,
   "resources/js/Pages/team-mcp/CcSessions/Index.tsx": 1
 }
