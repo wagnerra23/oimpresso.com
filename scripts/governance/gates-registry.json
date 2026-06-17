@@ -258,6 +258,10 @@
       "nome": "Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0)",
       "classe": "gate"
     },
+    "handoff-sign-submit.yml": {
+      "nome": "Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283)",
+      "classe": "automacao"
+    },
     "scorer-sync-gate.yml": {
       "nome": "Scorer sync (regex score-mechanized.mjs ↔ UiDeterministicScorer.php)",
       "classe": "gate"

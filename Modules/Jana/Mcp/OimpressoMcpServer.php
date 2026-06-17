@@ -159,6 +159,11 @@ class OimpressoMcpServer extends Server
         // brief-fetch numa sessão de UI, fora dos 15 essenciais da página 1).
         \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool::class,
         \Modules\TeamMcp\Mcp\Tools\HandoffAckTool::class,
+        // PR-6a Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — landing-pad HTTP
+        // assinado: a GitHub Action on-push assina (HMAC) e chama handoff-submit →
+        // pending, sem [W] no transporte. Scope fino jana.mcp.handoff.submit (A7);
+        // reusa HandoffIngestService (mesma validação do PR-1). Sem auto-merge.
+        \Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */
