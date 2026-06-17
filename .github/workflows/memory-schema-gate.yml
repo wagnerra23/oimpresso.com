@@ -159,7 +159,20 @@ jobs:
           const violations = [];
           for (const file of files) {
             const raw = fs.readFileSync(file, 'utf8');
-            const { data } = matter(raw);
+            // 2026-06-17: frontmatter YAML malformado (backslash não-escapado,
+            // flow-seq `[W]` com texto colado, multiline key, etc) faz gray-matter
+            // THROW. Sem este try/catch a exceção derruba o job inteiro (exit 1 +
+            // stack trace) em vez de reportar a violação por-arquivo e seguir
+            // validando o resto. Conta como erro (strict bloqueia merge).
+            let data;
+            try {
+              ({ data } = matter(raw));
+            } catch (e) {
+              failed++;
+              const reason = e && e.message ? e.message.split('\n')[0] : String(e);
+              violations.push({ file, level: 'error', errors: [`YAML parse error: ${reason}`] });
+              continue;
+            }
             // grace period: arquivos sem frontmatter (legacy) — só warning
             if (!data || Object.keys(data).length === 0) {
               violations.push({ file, level: 'warn', errors: ['frontmatter ausente (legacy)'] });
