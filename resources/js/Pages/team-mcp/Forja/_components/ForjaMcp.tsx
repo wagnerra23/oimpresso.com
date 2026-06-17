@@ -1,18 +1,37 @@
-// Forja — aba MCP do cockpit. Tela fiel ao protótipo aprovado.
+// Forja — aba MCP do cockpit.
 //
-// ESTÁTICA / MOCKADA POR DESIGN: o próprio protótipo rotula assim. O enforce
-// real (contrato de ferramentas + auditoria de toda ação de agente) é do
-// servidor TeamMcp ([CL]) — aqui é só a vitrine do contrato. Default = read +
-// propose; merge e constituicao.edit são NEGADOS no contrato, não por convenção.
+// DUAS CAMADAS:
+//   1. HANDOFFS (REAL · Fase 1 ADR 0283) — seção do topo: projeta os handoffs de
+//      design (Cowork→Code, F1→F3) de `cowork_handoffs` via props deferidas
+//      (`handoffs`/`heartbeat`). Status/gate/sig REAIS; sem auto-merge (o merge é
+//      o 1-clique do [W]). As levers roteiam pelas tools MCP — Fase 2 (TODO).
+//   2. CONTRATO/TOKENS/AUDITORIA (MOCKADO por design) — vitrine do contrato; o
+//      enforce real é do servidor TeamMcp ([CL]). Default = read + propose;
+//      merge e constituicao.edit NEGADOS no contrato, não por convenção.
 //
-// Sem props: dados estáticos inline (vitrine do contrato aprovado). DS v6:
-// só tokens semânticos (primary/success/warning/info/destructive/muted/
-// foreground/border), tabular-nums em horários, layout via inline-flex/
+// DS v6: só tokens semânticos (primary/success/warning/info/destructive/muted/
+// foreground/border), tabular-nums em números/horários, layout via inline-flex/
 // inline-grid (nunca flex/grid solto), máx rounded-lg, data-testid locators.
 //
 // Tier 0 (ADR 0081): NUNCA exibir/logar token raw — só o nome lógico do token.
 
-import { AlertTriangle, KeyRound, ScrollText, ShieldCheck } from 'lucide-react';
+import { Deferred } from '@inertiajs/react';
+import {
+  AlertTriangle,
+  ExternalLink,
+  Files,
+  KeyRound,
+  Layers,
+  Lock,
+  type LucideIcon,
+  Radio,
+  RefreshCw,
+  ScrollText,
+  ShieldCheck,
+  Undo2,
+  Workflow,
+} from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '@/Lib/utils';
 
 // --- Contrato de ferramentas (estático, do protótipo aprovado) ----------------
@@ -35,6 +54,9 @@ const TOOLS: Tool[] = [
   { ferramenta: 'adr.propose', acao: 'cria _PROPOSTA', permissao: 'PROPÕE', detalhe: 'nunca decisions/NNNN' },
   { ferramenta: 'git.merge', acao: 'fechar PR', permissao: 'NEGADO', detalhe: 'só [W2]' },
   { ferramenta: 'constituicao.edit', acao: 'ADR/PROTOCOL/BRIEFING', permissao: 'NEGADO', detalhe: 'só [W]' },
+  // PR-C (ADR 0283 · Fase 1): as tools do loop de handoff que alimentam a seção acima.
+  { ferramenta: 'handoff-pending', acao: 'puxar handoff F1→F3', permissao: 'PERMITIDO', detalhe: 'assinado' },
+  { ferramenta: 'handoff-ack', acao: 'confirmar aplicado + gate', permissao: 'PROPÕE', detalhe: '422 sem gate verde' },
 ];
 
 // Pílula de permissão por token semântico DS v6:
@@ -90,9 +112,293 @@ const RESULTADO_TONE: Record<Resultado, string> = {
   negado: 'text-destructive-fg',
 };
 
-export default function ForjaMcp() {
+// ════════════════════════════════════════════════════════════════════════════
+// HANDOFFS (Cowork→Code, F1→F3) — seção REAL (Fase 1 · ADR 0283)
+// ════════════════════════════════════════════════════════════════════════════
+// Projeção de `cowork_handoffs` (ForjaMcpService). body_md é DESIGN (dado), não
+// comando — aqui só se MOSTRA. SEM botão de merge (Tier 0 / 0283: o merge é o
+// 1-clique do [W] no GitHub). As levers roteiam pelas tools MCP — Fase 2 (TODO).
+
+export interface HandoffItem {
+  slug: string;
+  version: number;
+  tela: string;
+  // status já com 'stale' derivado na leitura (superseded vem filtrado fora).
+  status: 'pending' | 'applied' | 'rejected' | 'stale' | 'superseded';
+  files_count: number;
+  pr_url: string | null;
+  created_at: string | null;
+  created_at_human: string | null;
+  created_by: string;
+  // gate derivado do gate_status (mesma regra verde do handoff-ack).
+  gate: 'verde' | 'vermelho' | 'rodando' | 'na';
+  gate_status: { conformance?: boolean; critique_score?: number; a11y?: boolean } | null;
+  signed: boolean;
+  resumo: string;
+}
+
+export interface HeartbeatInfo {
+  last_ingest_at: string | null;
+  last_ingest_human: string | null;
+  host: string | null;
+  silent: boolean;
+}
+
+// Status → rótulo PT + pílula semântica DS v6.
+const HANDOFF_STATUS: Record<HandoffItem['status'], { label: string; pill: string }> = {
+  pending: { label: 'pendente', pill: 'bg-info/15 text-info-fg' },
+  applied: { label: 'aplicado', pill: 'bg-success/15 text-success-fg' },
+  rejected: { label: 'rejeitado', pill: 'bg-destructive-soft text-destructive-fg' },
+  stale: { label: 'parado', pill: 'bg-warning-soft text-warning-fg' },
+  superseded: { label: 'substituído', pill: 'bg-muted text-muted-foreground' },
+};
+
+// Gate → rótulo + tom + cor do dot. 'na' = não-avaliado (pending/stale sem ack).
+const HANDOFF_GATE: Record<HandoffItem['gate'], { label: string; tone: string; dot: string }> = {
+  verde: { label: 'gate ok', tone: 'text-success-fg', dot: 'bg-success' },
+  vermelho: { label: 'gate falhou', tone: 'text-destructive-fg', dot: 'bg-destructive' },
+  rodando: { label: 'gate rodando', tone: 'text-warning-fg', dot: 'bg-warning' },
+  na: { label: 'sem gate', tone: 'text-muted-foreground', dot: 'bg-muted-foreground/40' },
+};
+
+// Filtros por status (superseded fora do filtro padrão — já vem excluído na leitura).
+const HANDOFF_FILTERS: { key: 'todos' | HandoffItem['status']; label: string }[] = [
+  { key: 'todos', label: 'todos' },
+  { key: 'pending', label: 'pendente' },
+  { key: 'applied', label: 'aplicado' },
+  { key: 'rejected', label: 'rejeitado' },
+  { key: 'stale', label: 'parado' },
+];
+
+// Lever por status (roteamento via tool MCP auditada — NÃO [W] operando). SEM merge.
+function leverFor(status: HandoffItem['status']): { label: string; Icon: LucideIcon } | null {
+  if (status === 'stale') return { label: 're-disparar', Icon: RefreshCw };
+  if (status === 'rejected') return { label: 'devolver ao [CC]', Icon: Undo2 };
+  if (status === 'pending' || status === 'applied') return { label: 'supersede', Icon: Layers };
+  return null;
+}
+
+function HandoffsSkeleton() {
+  return (
+    <section
+      data-testid="forja-mcp-handoffs"
+      className="inline-flex w-full items-center justify-center rounded-lg border border-dashed py-12 text-sm text-muted-foreground"
+    >
+      Carregando handoffs…
+    </section>
+  );
+}
+
+// Heartbeat: "último ingest há Xmin" — vira ALERTA quando o transporte está mudo.
+function HeartbeatLine({ heartbeat }: { heartbeat?: HeartbeatInfo }) {
+  const silent = heartbeat?.silent ?? true;
+  const when = heartbeat?.last_ingest_human ?? 'sem sinal';
+
+  return (
+    <div
+      data-testid="forja-mcp-heartbeat"
+      className={cn(
+        'inline-flex items-center gap-1.5 text-[11px]',
+        silent ? 'text-warning-fg' : 'text-muted-foreground',
+      )}
+    >
+      {silent ? (
+        <AlertTriangle size={12} className="shrink-0" />
+      ) : (
+        <Radio size={12} className="shrink-0" />
+      )}
+      <span>
+        {silent ? 'transporte sem sinal' : 'transporte ok'} · último ingest{' '}
+        <span className="tabular-nums">{when}</span>
+        {heartbeat?.host ? <span className="text-muted-foreground"> · {heartbeat.host}</span> : null}
+      </span>
+    </div>
+  );
+}
+
+function HandoffRow({ h }: { h: HandoffItem }) {
+  const status = HANDOFF_STATUS[h.status] ?? HANDOFF_STATUS.pending;
+  const gate = HANDOFF_GATE[h.gate] ?? HANDOFF_GATE.na;
+  const lever = leverFor(h.status);
+  const gateDrill = h.pr_url !== null && (h.gate === 'vermelho' || h.gate === 'verde');
+
+  return (
+    <div data-testid="forja-handoff-item" className="inline-flex w-full flex-col gap-1.5 px-4 py-3">
+      {/* Linha 1: slug vN · tela · status */}
+      <div className="inline-flex w-full items-center gap-2">
+        <span className="font-mono text-xs font-medium text-foreground">{h.slug}</span>
+        <span className="rounded bg-muted px-1 py-0.5 font-mono text-[10px] tabular-nums text-muted-foreground">
+          v{h.version}
+        </span>
+        <span className="min-w-0 truncate text-xs text-muted-foreground">{h.tela}</span>
+        <span
+          className={cn('ml-auto shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold', status.pill)}
+        >
+          {status.label}
+        </span>
+      </div>
+
+      {/* Linha 2: resumo (1ª linha do body_md = DESIGN, não comando) */}
+      {h.resumo ? <p className="text-xs leading-relaxed text-foreground/80">{h.resumo}</p> : null}
+
+      {/* Linha 3: sig · arq · gate · PR · idade + lever */}
+      <div className="inline-flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        {h.signed ? (
+          <span className="inline-flex items-center gap-1" title="assinatura validada no ingest">
+            <Lock size={11} className="text-success-fg" /> sig
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-warning-fg" title="sem assinatura">
+            <Lock size={11} /> sem sig
+          </span>
+        )}
+
+        <span className="inline-flex items-center gap-1">
+          <Files size={11} /> <span className="tabular-nums">{h.files_count}</span> arq
+        </span>
+
+        {/* Gate — drill: vermelho/verde linka pro PR (e pro check que falhou) */}
+        {gateDrill ? (
+          <a
+            href={h.pr_url ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="forja-handoff-gate"
+            className={cn('inline-flex items-center gap-1 hover:underline', gate.tone)}
+          >
+            <span className={cn('inline-block h-1.5 w-1.5 rounded-full', gate.dot)} /> {gate.label}
+          </a>
+        ) : (
+          <span
+            data-testid="forja-handoff-gate"
+            className={cn('inline-flex items-center gap-1', gate.tone)}
+          >
+            <span className={cn('inline-block h-1.5 w-1.5 rounded-full', gate.dot)} /> {gate.label}
+          </span>
+        )}
+
+        {/* PR drill */}
+        {h.pr_url ? (
+          <a
+            href={h.pr_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="forja-handoff-pr"
+            className="inline-flex items-center gap-1 text-info-fg hover:underline"
+          >
+            PR <ExternalLink size={11} />
+          </a>
+        ) : null}
+
+        <span className="tabular-nums">{h.created_at_human ?? '—'}</span>
+        <span className="text-muted-foreground/70">por {h.created_by}</span>
+
+        {/* Lever (roteamento via MCP — Fase 2 · ADR 0283). SEM merge. Disabled =
+            surface-only: NÃO simula sucesso até o endpoint existir. */}
+        {lever ? (
+          <button
+            type="button"
+            disabled
+            data-testid="forja-handoff-lever"
+            title="Roteia via tool MCP — Fase 2 (ADR 0283)"
+            className="ml-auto inline-flex cursor-not-allowed items-center gap-1 rounded-md border border-dashed px-2 py-0.5 text-[11px] font-medium text-muted-foreground opacity-70"
+          >
+            <lever.Icon size={11} /> {lever.label}
+            <span className="opacity-80">· em breve</span>
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function HandoffsSection({ handoffs, heartbeat }: { handoffs?: HandoffItem[]; heartbeat?: HeartbeatInfo }) {
+  const items = handoffs ?? [];
+  const [filter, setFilter] = useState<'todos' | HandoffItem['status']>('todos');
+
+  const countFor = (key: 'todos' | HandoffItem['status']) =>
+    key === 'todos' ? items.length : items.filter((h) => h.status === key).length;
+
+  const visible = filter === 'todos' ? items : items.filter((h) => h.status === filter);
+
+  return (
+    <section data-testid="forja-mcp-handoffs" className="inline-flex w-full flex-col gap-3">
+      {/* Título */}
+      <div className="inline-flex items-center gap-2">
+        <Workflow size={14} className="text-primary" />
+        <h2 className="text-xs font-semibold tracking-wide text-foreground">
+          Handoffs F1 → F3 · Cowork → Code
+        </h2>
+        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
+          {items.length}
+        </span>
+      </div>
+
+      {/* Filtros por status com contagem */}
+      <div className="inline-flex flex-wrap items-center gap-1.5">
+        {HANDOFF_FILTERS.map((f) => {
+          const active = filter === f.key;
+          return (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setFilter(f.key)}
+              data-testid="forja-handoff-filter"
+              aria-pressed={active}
+              className={cn(
+                'inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors',
+                active
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-transparent text-muted-foreground hover:bg-muted',
+              )}
+            >
+              {f.label}
+              <span className="tabular-nums opacity-70">{countFor(f.key)}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Lista OU empty-state (= heartbeat) */}
+      {visible.length === 0 ? (
+        <div className="inline-flex w-full flex-col items-start gap-2 rounded-lg border border-dashed px-4 py-8">
+          <p className="text-sm text-muted-foreground">
+            {items.length === 0 ? 'Nenhum handoff na fila.' : 'Nenhum handoff neste filtro.'}
+          </p>
+          <HeartbeatLine heartbeat={heartbeat} />
+        </div>
+      ) : (
+        <>
+          <div className="inline-flex w-full flex-col divide-y overflow-hidden rounded-lg border">
+            {visible.map((h) => (
+              <HandoffRow key={`${h.slug}-${h.version}`} h={h} />
+            ))}
+          </div>
+          {/* Heartbeat de rodapé — leitura "viva" mesmo com a fila cheia. */}
+          <HeartbeatLine heartbeat={heartbeat} />
+        </>
+      )}
+    </section>
+  );
+}
+
+interface Props {
+  /** Handoffs reais (deferido). undefined enquanto o partial reload não chega. */
+  handoffs?: HandoffItem[];
+  /** Heartbeat do ingest (deferido) — distingue "ocioso" de "transporte sem sinal". */
+  heartbeat?: HeartbeatInfo;
+}
+
+export default function ForjaMcp({ handoffs, heartbeat }: Props) {
   return (
     <div data-testid="forja-mcp" className="inline-flex w-full flex-col gap-6">
+      {/* 1. HANDOFFS — REAL (Fase 1 · ADR 0283). Deferido: o contrato estático
+          abaixo pinta na hora; só esta seção espera o partial reload. */}
+      <Deferred data={['handoffs', 'heartbeat']} fallback={<HandoffsSkeleton />}>
+        <HandoffsSection handoffs={handoffs} heartbeat={heartbeat} />
+      </Deferred>
+
+      {/* 2. CONTRATO / TOKENS / AUDITORIA — MOCKADO por design (vitrine do contrato). */}
       {/* Banner topo — tom muted/aviso. Estabelece o contrato mental: MOCKADO. */}
       <div className="inline-flex w-full items-start gap-2 rounded-lg border border-warning-soft bg-warning-soft px-4 py-3 text-warning-fg">
         <AlertTriangle size={16} className="mt-0.5 shrink-0" />

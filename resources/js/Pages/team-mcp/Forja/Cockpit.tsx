@@ -17,7 +17,7 @@ import ForjaTriage, { type ForjaTicket } from './_components/ForjaTriage';
 import ForjaBacklog, { type BacklogTask } from './_components/ForjaBacklog';
 import ForjaQuadro, { type QuadroData } from './_components/ForjaQuadro';
 import ForjaChangelog, { type ChangelogEntry } from './_components/ForjaChangelog';
-import ForjaMcp from './_components/ForjaMcp';
+import ForjaMcp, { type HandoffItem, type HeartbeatInfo } from './_components/ForjaMcp';
 
 interface Meta {
   generated_at: string;
@@ -34,9 +34,21 @@ interface Props {
   backlog?: BacklogTask[];
   quadro?: QuadroData;
   changelog?: ChangelogEntry[];
+  handoffs?: HandoffItem[];
+  heartbeat?: HeartbeatInfo;
 }
 
-function ForjaCockpit({ tab, subtitle, tickets, triagemCount, backlog, quadro, changelog }: Props) {
+function ForjaCockpit({
+  tab,
+  subtitle,
+  tickets,
+  triagemCount,
+  backlog,
+  quadro,
+  changelog,
+  handoffs,
+  heartbeat,
+}: Props) {
   const loading = (txt: string) => (
     <div className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-dashed py-16 text-sm text-muted-foreground">
       Carregando {txt}…
@@ -73,7 +85,7 @@ function ForjaCockpit({ tab, subtitle, tickets, triagemCount, backlog, quadro, c
             <ForjaChangelog changelog={changelog} />
           </Deferred>
         )}
-        {tab === 'mcp' && <ForjaMcp />}
+        {tab === 'mcp' && <ForjaMcp handoffs={handoffs} heartbeat={heartbeat} />}
       </section>
     </>
   );
