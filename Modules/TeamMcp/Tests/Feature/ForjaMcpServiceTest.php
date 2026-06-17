@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\TeamMcp\Entities\CoworkHandoff;
 use Modules\TeamMcp\Entities\McpIngestHeartbeat;
@@ -18,6 +21,9 @@ uses(Tests\TestCase::class);
  *   - deriva 'stale' de pending velho (> 3d) na LEITURA (cron-independente);
  *   - deriva o gate do `gate_status` com a MESMA regra verde do handoff-ack
  *     (conformance && critique_score>=80 && a11y) — nunca pinta verde sem ler;
+ *   - Gap 2 (ADR 0283): cruza o ack VERDE com os required checks REAIS do PR via
+ *     PrChecksResolver (GitHub API mockada) — divergência vira 'conflito'; só o verde
+ *     é cruzado; degrada pro ack sem token/rede/branch-protection legível;
  *   - resume o body_md (1ª linha), conta arquivos, marca sig;
  *   - heartbeat distingue "transporte sem sinal" (mudo > 60min) de "ok".
  *
@@ -100,6 +106,40 @@ function forjaFind(array $handoffs, string $slug): ?array
     return null;
 }
 
+/**
+ * Stub da GitHub API que o PrChecksResolver consome (Gap 2 · ADR 0283), sem rede:
+ * PR (head SHA + base) → branch protection (1 required check) → check-runs → status
+ * legado (vazio). $checkState controla o estado do required no head SHA:
+ * 'success' | 'failure' | 'in_progress'.
+ */
+function forjaFakeGh(string $checkState = 'success', string $required = 'ci'): void
+{
+    Http::fake(function (Request $req) use ($checkState, $required) {
+        $url = $req->url();
+
+        return match (true) {
+            str_contains($url, '/pulls/') => Http::response(
+                ['head' => ['sha' => 'deadbeefcafe'], 'base' => ['ref' => 'main']],
+                200,
+            ),
+            str_contains($url, '/protection/required_status_checks') => Http::response(
+                ['checks' => [['context' => $required, 'app_id' => 1]], 'contexts' => [$required]],
+                200,
+            ),
+            str_contains($url, '/check-runs') => Http::response([
+                'total_count' => 1,
+                'check_runs'  => [
+                    $checkState === 'in_progress'
+                        ? ['name' => $required, 'status' => 'in_progress', 'conclusion' => null]
+                        : ['name' => $required, 'status' => 'completed', 'conclusion' => $checkState],
+                ],
+            ], 200),
+            // /commits/{sha}/status (legado) — vazio: o veredito vem dos check-runs.
+            default => Http::response(['state' => 'success', 'statuses' => []], 200),
+        };
+    });
+}
+
 beforeEach(function () {
     mkForjaHandoffTable();
     mkForjaHeartbeatTable();
@@ -176,6 +216,121 @@ it('gate na (não-avaliado) quando pending sem gate_status', function () {
     mkForjaHandoff('semgate');
 
     expect(forjaFind((new ForjaMcpService())->handoffs(), 'semgate')['gate'])->toBe('na');
+});
+
+// ─── gate CONFLITO: ack verde × required checks REAIS do PR (Gap 2 · ADR 0283) ──
+// O gate_status é auto-reportado pelo [CC]; só o ack VERDE é cruzado com o estado real
+// do PR no GitHub (PrChecksResolver). Divergência → 'conflito'. Best-effort: sem
+// token/rede/branch-protection legível → degrada pro ack (comportamento da Fase 1).
+
+it('gate conflito quando ack verde mas um required check do PR está vermelho', function () {
+    config()->set('services.github.token', 'ghp_test');
+    Cache::flush();
+    forjaFakeGh('failure');
+
+    mkForjaHandoff('mente', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2921',
+        'gate_status' => ['conformance' => true, 'critique_score' => 90, 'a11y' => true],
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'mente')['gate'])->toBe('conflito');
+});
+
+it('gate conflito quando ack verde mas um required check ainda está pendente', function () {
+    config()->set('services.github.token', 'ghp_test');
+    Cache::flush();
+    forjaFakeGh('in_progress');
+
+    mkForjaHandoff('pendente-pr', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2922',
+        'gate_status' => ['conformance' => true, 'critique_score' => 85, 'a11y' => true],
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'pendente-pr')['gate'])->toBe('conflito');
+});
+
+it('mantém verde quando ack verde E os required checks do PR estão verdes', function () {
+    config()->set('services.github.token', 'ghp_test');
+    Cache::flush();
+    forjaFakeGh('success');
+
+    mkForjaHandoff('honesto', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2923',
+        'gate_status' => ['conformance' => true, 'critique_score' => 95, 'a11y' => true],
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'honesto')['gate'])->toBe('verde');
+});
+
+it('NÃO cruza com o GitHub quando o ack não é verde (só verde afirma algo)', function () {
+    config()->set('services.github.token', 'ghp_test');
+    Cache::flush();
+    forjaFakeGh('failure'); // se cruzasse, viraria conflito — mas nem deve chamar a API
+
+    mkForjaHandoff('reprovado', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2924',
+        'gate_status' => ['conformance' => true, 'critique_score' => 70, 'a11y' => true], // < 80 → vermelho
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'reprovado')['gate'])->toBe('vermelho');
+    Http::assertNothingSent();
+});
+
+it('degrada pro ack (verde) quando não há token do GitHub', function () {
+    config()->set('services.github.token', '');
+    Cache::flush();
+    Http::fake(); // grava chamadas — não deve haver nenhuma
+
+    mkForjaHandoff('sem-token', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2925',
+        'gate_status' => ['conformance' => true, 'critique_score' => 90, 'a11y' => true],
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'sem-token')['gate'])->toBe('verde');
+    Http::assertNothingSent();
+});
+
+it('degrada pro ack (verde) quando a GitHub API falha (best-effort, nunca quebra)', function () {
+    config()->set('services.github.token', 'ghp_test');
+    Cache::flush();
+    Http::fake(fn () => Http::response(['message' => 'Bad credentials'], 401));
+
+    mkForjaHandoff('api-fora', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2926',
+        'gate_status' => ['conformance' => true, 'critique_score' => 90, 'a11y' => true],
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'api-fora')['gate'])->toBe('verde');
+});
+
+it('degrada pro ack quando não dá pra ler a branch protection (evita conflito por check advisory)', function () {
+    config()->set('services.github.token', 'ghp_test');
+    Cache::flush();
+    Http::fake(function (Request $req) {
+        $url = $req->url();
+        if (str_contains($url, '/pulls/')) {
+            return Http::response(['head' => ['sha' => 'abc123'], 'base' => ['ref' => 'main']], 200);
+        }
+        if (str_contains($url, '/protection/required_status_checks')) {
+            return Http::response(['message' => 'Not Found'], 404); // sem admin / sem proteção legível
+        }
+
+        return Http::response([], 200);
+    });
+
+    mkForjaHandoff('sem-protecao', [
+        'status'      => 'applied',
+        'pr_url'      => 'https://github.com/wagnerra23/oimpresso.com/pull/2927',
+        'gate_status' => ['conformance' => true, 'critique_score' => 90, 'a11y' => true],
+    ]);
+
+    expect(forjaFind((new ForjaMcpService())->handoffs(), 'sem-protecao')['gate'])->toBe('verde');
 });
 
 // ─── serialize ──────────────────────────────────────────────────────────────
