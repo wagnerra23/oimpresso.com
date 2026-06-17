@@ -3,7 +3,7 @@ casos: Forja · cockpit do cowork loop · /forja
 irmaos: Cockpit.charter.md (lei) · Cockpit.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-06-16"
+last_run: "2026-06-17"
 ---
 
 # Casos de uso — /forja (cockpit Forja · shell)
@@ -66,3 +66,8 @@ Listar e abrir o dossiê é read-only. Nenhuma escrita acontece sem o `AlertDial
 Status: ⬜ (nota de fidelidade)
 O badge "3" da aba Triagem vem de `config/core_topnavs.php` (estático = nº de propostas-semente). O contador vivo da fila chega via prop deferida `triagemCount` (usada no badge do sino). O topnav não suporta badge por-request hoje (`LegacyMenuAdapter::buildTopNavs` lê config estática).
 **Pronto quando:** o "3" aparece na aba (fiel ao protótipo) e o sino reflete o contador vivo; quando o shell ganhar badge dinâmico, migrar o da aba.
+
+## UC-FORJA-12 — Aba MCP lista os handoffs reais de `cowork_handoffs` (Fase 1 · ADR 0283)
+Status: 🧪 (cobertura: `ForjaMcpServiceTest` prova a projeção — exclui superseded, maior-version-por-slug, stale derivado, gate verde/vermelho/rodando/na, serialização, heartbeat; aguarda Pest verde + smoke visual pós-merge)
+A aba MCP deixou de ser 100% mock: `ForjaController@mcp` projeta `cowork_handoffs` (+ heartbeat do ingest) via `Inertia::defer` (`handoffs`/`heartbeat`) — `ForjaMcpService`. Status REAIS `pending/applied/rejected/stale/superseded`; `stale` derivado na leitura (>3d); gate derivado do `gate_status` com a MESMA regra verde do `handoff-ack` (`conformance && critique_score>=80 && a11y`). A seção fica no topo (`data-testid="forja-mcp-handoffs"`); contrato/tokens/auditoria seguem MOCKADO embaixo (sem regressão de 1º paint — `Deferred` só na seção nova).
+**Pronto quando:** `/forja/mcp` lista os handoffs reais (status correto + gate do `gate_status` + ⚿ sig + `N arq` + PR drill), filtros por status com contagem funcionam, empty-state mostra o heartbeat ("transporte sem sinal" vira alerta), e o contrato lista `handoff-pending`/`handoff-ack`. Levers (re-disparar/devolver/supersede) ficam `disabled`+TODO (Fase 2); **SEM merge** (1-clique do [W]).

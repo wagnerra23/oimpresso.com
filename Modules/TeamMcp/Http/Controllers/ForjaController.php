@@ -18,6 +18,7 @@ use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 use Modules\TeamMcp\Services\Forja\ForjaBacklogService;
 use Modules\TeamMcp\Services\Forja\ForjaChangelogService;
+use Modules\TeamMcp\Services\Forja\ForjaMcpService;
 use Modules\TeamMcp\Services\Forja\ForjaQuadroService;
 
 /**
@@ -113,8 +114,20 @@ class ForjaController extends Controller
 
     public function mcp(): Response
     {
-        // Aba MCP é estática/MOCKADO (o enforce real é do servidor TeamMcp) — sem deferred.
-        return $this->renderTab('mcp');
+        // Fase 1 (ADR 0283): a aba MCP deixa de ser 100% mock — projeta os handoffs
+        // REAIS de `cowork_handoffs` (+ heartbeat do ingest) via Inertia::defer,
+        // espelhando triagem()/quadro(). Contrato/tokens/auditoria seguem MOCKADO
+        // (vitrine de design); só a seção Handoffs é dado vivo. Sem auto-merge: as
+        // levers roteiam pelas tools MCP e o merge é o 1-clique do [W] (ADR 0283).
+        $svc = app(ForjaMcpService::class);
+
+        return Inertia::render('team-mcp/Forja/Cockpit', array_merge(
+            $this->tabPayload('mcp'),
+            [
+                'handoffs'  => Inertia::defer(fn () => $svc->handoffs()),
+                'heartbeat' => Inertia::defer(fn () => $svc->heartbeat()),
+            ],
+        ));
     }
 
     // ---------- Triagem · payload ----------
@@ -361,17 +374,8 @@ class ForjaController extends Controller
     // ---------- helpers ----------
 
     /**
-     * Renderiza o shell do cockpit com a aba ativa (abas ainda placeholder).
-     * A Triagem tem método próprio (triagem()) — projeta dados reais via defer.
-     */
-    private function renderTab(string $tab): Response
-    {
-        return Inertia::render('team-mcp/Forja/Cockpit', $this->tabPayload($tab));
-    }
-
-    /**
-     * Props base de toda aba (tab/label/subtitle/meta). A Triagem adiciona
-     * tickets/triagemCount por cima via Inertia::defer.
+     * Props base de toda aba (tab/label/subtitle/meta). Triagem e MCP adicionam
+     * suas props deferidas (tickets/triagemCount · handoffs/heartbeat) por cima.
      *
      * @return array<string,mixed>
      */
