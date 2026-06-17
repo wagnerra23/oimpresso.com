@@ -3,6 +3,7 @@
 > **Versão:** 1.1 — reconciliada com o modelo **autônomo** de 2026-05-31 (ver overlay no §2 + [AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)). Formalizado em [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md).
 > **Documento mãe:** [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 > **Última revisão:** 2026-05-31 (reconciliação [CL] — conteúdo base 1.0 = 2026-05-09)
+> **🔁 v2 (colapso) — ratificado em [ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) (2026-06-17):** 6→2 papéis · 7→3 fases · memória=git SSOT · intake=Issues/`cowork-inbox` · gates=CI (a11y-axe required) · code write-path com review-gate. **O overlay autônomo do §2 é o modelo principal da v2.** v1 preservado (append-only — o histórico fica).
 
 ## 1. Os 6 papéis
 
