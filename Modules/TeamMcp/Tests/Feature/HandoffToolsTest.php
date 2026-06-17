@@ -251,7 +251,25 @@ it('ack rejected sem note → erro', function () {
     expect(CoworkHandoff::where('slug', 'caixa-mobile')->value('status'))->toBe('pending');
 });
 
-it('HandoffAckTool NÃO usa Cache::flush() [A2 — grep no source]', function () {
+it('HandoffAckTool NÃO usa Cache::flush() no CÓDIGO (comentários removidos) [A2]', function () {
     $src = file_get_contents(dirname(__DIR__, 2) . '/Mcp/Tools/HandoffAckTool.php');
-    expect($src)->not->toContain('Cache::flush');
+
+    // A2 mira o CÓDIGO, não a prosa: o docblock do handler cita `Cache::flush()` de
+    // propósito (documenta por que NÃO o usa). Um grep cru na fonte casaria com esse
+    // comentário e o guard falharia sozinho. Tokeniza e descarta comentários/docblocks
+    // antes de procurar a chamada — ainda morde se alguém escrever Cache::flush() de
+    // verdade no handler (vira tokens T_STRING/T_DOUBLE_COLON, que sobram no código).
+    $codeOnly = '';
+    foreach (token_get_all($src) as $token) {
+        if (is_array($token)) {
+            if ($token[0] === T_COMMENT || $token[0] === T_DOC_COMMENT) {
+                continue;
+            }
+            $codeOnly .= $token[1];
+        } else {
+            $codeOnly .= $token;
+        }
+    }
+
+    expect($codeOnly)->not->toContain('Cache::flush');
 });
