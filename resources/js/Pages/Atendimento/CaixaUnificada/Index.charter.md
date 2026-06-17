@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 13
+charter_version: 14
 permissao: whatsapp.access
 ---
 
@@ -51,11 +51,12 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 ### Layout e navegação
 - **3-col limpa** (lista 320px · thread 1fr · contexto 300px) — responsivo
   para 1280px ROTA LIVRE.
-- **Chips horizontais de canais** acima da shell (vs dropdown topbar do
-  legacy). 1 chip "Todos" + 7 chips por TYPE de canal — count em mono,
-  tag "em breve" para canais inativos.
-- **Sub-row de contas** aparece quando user seleciona TYPE com 2+ contas
-  (ex: 3× Baileys com phones diferentes).
+- **Filtro de canal/conta no popover "Filtros" da lista** (direção [W] 2026-06-16):
+  substituiu a faixa horizontal de chips acima da shell (comprimia a tela em 1280px).
+  Grupo **Canal** (1 "Todos" + 7 TYPEs, count mono, "em breve" para inativos) e grupo
+  **Conta** (quando o TYPE tem 2+ contas) viram seções do popover Filtros (Onda 2).
+  Capacidade omnichannel e contrato `?channel=`/`?account_id=` intactos. Faixa
+  `ChannelChipsRow` removida na Onda 1.
 - **Dropdown de status** dentro do header da lista — 4 valores canônicos:
   Abertas / Pendentes / Aguardando / Resolvidas.
 - **Busca inline** com Enter pra aplicar, Esc pra limpar.
@@ -325,6 +326,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-06-16 | Claude Code [CL] (Caixa filtros 2-botões · Onda 1) | **Faixa de canais removida.** Direção [W] 2026-06-16: a faixa horizontal `ChannelChipsRow` acima da shell (comprimia 1280px) sai; Canal/Conta viram grupos do popover **Filtros** da lista (Onda 2). Onda 1: removida a faixa + `ChannelChipsRow.tsx` (dead-code, único consumidor era esta tela); `availableChannels`/`availableAccounts` (props), URL-sync `?channel=`/`?account_id=` e os demais consumidores (Thread/Sidebar/Drawers/Nova-conversa) **intactos**. Charter v14. PR off origin/main; CI verifica build/typecheck (worktree sem node_modules). Onda 2 adiciona os grupos no popover Filtros + Status em DropdownMenu. |
 | 2026-06-16 | Claude Code (brief [CC] PARTE 4) | **Fix chips de canal — WhatsApp LIVE sumia.** `buildAvailableChannelsPayload` listava o WhatsApp como `whatsapp_baileys` (provider deletado, ADR 0202); o Channel ativo real é `whatsapp_whatsmeow` (WuzAPI/whatsmeow, ADR 0204), então `$activeTypesCount[id]` nunca casava → TODOS os chips caíam em 'em_breve' e o canal vivo (de onde as conversas chegam) ficava escondido. Row trocada pra `whatsapp_whatsmeow` (label/short "WhatsApp", hue 145 verde, glyph W); `?channel=whatsapp_whatsmeow` filtra via whereHas channel.type. Helper Pest e R-WA-CAIXA-UNIF-001 seedavam o type morto (mascaravam o bug) → migrados pro LIVE; novo R-WA-CAIXA-UNIF-013 (regressão: chip 'ativo' + count real + filtro). Tier 0 multi-tenant preservado. Completa a PARTE 4 que o item dark-mode abaixo deixou pra PR backend. Charter v12. PR próprio off origin/main. |
 | 2026-06-16 | Claude Code (brief [CC] dark-mode) | **Fix MODO ESCURO + empty-state Customer 360.** Tokenização dark-aware das folhas que usavam cor clara crua (a tela foi portada antes da auditoria de escuro): bolha inbound `bg-white`→`bg-card`; nota interna, banner "em homologação", SLA-pill e chip de Tag → `warning-soft`/`warning-fg`/`warning` (flipam no `.dark`), corpo da nota `text-foreground` (contraste nos 2 temas); read-tick `text-blue-600`→`oklch` inline (passa R1). `CustomerMemoryBlock` colapsa o card vazio (sem Contact CRM **e** sem enriquecimento) numa linha — compartilhado com o Inbox legacy, sem prop nova (não regride). Repo ativa dark via `.dark` (não `[data-theme]`) → **zero token novo, zero override CSS**. Verificado por probe token-flip nos 2 temas. PARTE 4 (chips "em breve" — catálogo sem `whatsapp_whatsmeow`) fica em PR backend separado. Charter v11. |
 | 2026-05-15 | Wagner + Opus 4.7 (Agente D wave fix) | Charter inicial. Implementação F3-F5 do RUNBOOK `cowork-prototype-replication` ADR 0114. Fonte canônica `prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx` (802 LOC Cowork). Coexiste com `/atendimento/inbox` legacy durante canary 7d. Próximo gate: Wagner aprovar SCREENSHOT manual rodando localhost antes de canary começar. |
