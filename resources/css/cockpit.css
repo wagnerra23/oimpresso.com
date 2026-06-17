@@ -2320,8 +2320,11 @@
   }
   .cockpit[data-mobile-menu="open"] .sb { transform: translateX(0); }
 
-  /* alça de recolher/expandir é afordância de desktop — fora no mobile */
-  .cockpit .sb-collapse-handle { display: none !important; }
+  /* alça de recolher/expandir é afordância de desktop — fora no mobile.
+     Sem !important (ratchet declaration-no-important): empata em especificidade
+     (0,2,0) com a regra-base e vence por ordem de fonte; só a base define
+     `display` no handle (o hover mexe só em opacity). */
+  .cockpit .sb-collapse-handle { display: none; }
 
   /* banda no topo pro hambúrguer flutuante. Só nas telas SEM topbar (default
      hideTopbar) — telas que mantêm topbar já têm faixa própria e só precisam
