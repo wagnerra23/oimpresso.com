@@ -468,7 +468,7 @@ export default function ConversationListV4({
         </div>
       ) : (
         <ul
-          className="flex-1 overflow-auto p-1.5 flex flex-col gap-0.5"
+          className="flex-1 overflow-auto cw-scroll-thin p-1.5 flex flex-col gap-0.5"
           role="listbox"
           aria-label="Conversas"
         >
