@@ -2288,3 +2288,73 @@
   display: grid;
   place-items: center;
 }
+
+/* ────────────────── Mobile: sidebar off-canvas (≤768px) ──────────────────
+   Wagner 2026-06-17 (handoff Cowork "Sidebar flutuante no mobile"): no celular a
+   sidebar vira drawer flutuante por cima do conteúdo (não empurra), com hambúrguer
+   fixo + backdrop; conteúdo ocupa a largura toda. Desktop (≥769px) INTOCADO —
+   grid 260px / rail 56px, alça de recolher e atalho ⌘\ preservados. */
+.sb-mobile-toggle { display: none; }
+.sb-mobile-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  /* conteúdo full-width — a sidebar sai do grid via position:fixed */
+  .cockpit,
+  .cockpit[data-linked="off"],
+  .cockpit[data-sidebar="rail"],
+  .cockpit[data-sidebar="rail"][data-linked="off"] { grid-template-columns: 1fr; }
+
+  /* coluna direita (apps vinculados) não cabe no celular */
+  .cockpit > .apps,
+  .cockpit > .linked { display: none; }
+
+  /* Sidebar vira drawer off-canvas (fixed, fora do fluxo do grid) */
+  .cockpit .sb {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: min(290px, 84vw);
+    z-index: 90;
+    transform: translateX(-100%);
+    transition: transform .24s cubic-bezier(.2, .8, .2, 1);
+    box-shadow: 4px 0 28px oklch(0 0 0 / .34);
+  }
+  .cockpit[data-mobile-menu="open"] .sb { transform: translateX(0); }
+
+  /* alça de recolher/expandir é afordância de desktop — fora no mobile.
+     Sem !important (ratchet declaration-no-important): empata em especificidade
+     (0,2,0) com a regra-base e vence por ordem de fonte; só a base define
+     `display` no handle (o hover mexe só em opacity). */
+  .cockpit .sb-collapse-handle { display: none; }
+
+  /* banda no topo pro hambúrguer flutuante. Só nas telas SEM topbar (default
+     hideTopbar) — telas que mantêm topbar já têm faixa própria e só precisam
+     liberar a esquerda pro botão (evita banda dupla). */
+  .cockpit .main[data-topbar="hidden"] .main-body { padding-top: 48px; }
+  .cockpit .topbar { padding-left: 56px; }
+
+  /* backdrop semitransparente atrás do drawer */
+  .sb-mobile-backdrop {
+    display: block;
+    position: fixed; inset: 0;
+    background: oklch(0 0 0 / .42);
+    z-index: 85;
+    animation: sbBackdropIn .18s ease;
+  }
+  @keyframes sbBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* botão hambúrguer fixo no topo-esquerdo; vira X colado na borda do drawer aberto */
+  .sb-mobile-toggle {
+    display: grid; place-items: center;
+    position: fixed; top: 8px; left: 8px;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    z-index: 95; cursor: pointer; padding: 0;
+    box-shadow: 0 2px 10px oklch(0 0 0 / .16);
+    transition: left .24s cubic-bezier(.2, .8, .2, 1), background .12s;
+  }
+  .sb-mobile-toggle:hover { background: var(--bg-2); }
+  .cockpit[data-mobile-menu="open"] .sb-mobile-toggle { left: calc(min(290px, 84vw) + 8px); }
+}
