@@ -103,6 +103,22 @@ jobs:
             git log --oneline -1
           "
 
+      - name: Composer dump-autoload (registra classes novas — ADR 0216)
+        # CAUSA RAIZ catalogada (ADR 0216, reincidência 2026-06-17): este workflow fazia
+        # `git reset --hard` mas NÃO regenerava o autoload do Composer. Quando um PR adiciona
+        # CLASSE NOVA em app/, Modules/ ou database/ (ex. comando artisan, Service, Observer,
+        # Middleware), o classmap-authoritative de prod não a conhece → `php artisan` crasha
+        # com BindingResolutionException já nos steps seguintes (package:discover/config:cache),
+        # deixando prod com caches stale. Espelha o `dump-autoload` do deploy.yml pra que os dois
+        # caminhos de deploy produzam o MESMO estado de autoloader. set -o pipefail: senão o exit
+        # do composer é mascarado pelo `| tail` (deploy verde com classmap stale, incidente 2026-05-26).
+        run: |
+          /tmp/ssh_exec.sh "
+            set -o pipefail &&
+            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            composer dump-autoload -o --classmap-authoritative --no-scripts --no-interaction --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
+          "
+
       - name: npm ci (force)
         run: |
           /tmp/ssh_exec.sh "
