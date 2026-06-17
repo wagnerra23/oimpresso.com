@@ -229,6 +229,16 @@ class McpScopesSeeder extends Seeder
             'business_required' => false,
             'admin_only'        => false,
         ],
+        [
+            'slug'              => 'jana.mcp.handoff.submit',
+            'nome'              => 'Submeter handoff de design assinado (handoff-submit)',
+            'descricao'         => 'Permite handoff-submit (PR-6a, ADR 0283) — landing-pad HTTP que cria pending em cowork_handoffs a partir de um handoff ASSINADO (HMAC), sem SSH/commit. Mutação: sig inválida é recusada (A1), conteúdo idêntico é no-op, append-only por slug/version. SEM auto-merge. Só o ator-transporte (a GitHub Action on-push) — emitir token com este scope via McpTokenIssuer e guardá-lo como repo secret HANDOFF_SUBMIT_TOKEN.',
+            'resources_pattern' => null,
+            'tools_pattern'     => 'handoff-submit',
+            'is_destructive'    => false,
+            'business_required' => false,
+            'admin_only'        => false,
+        ],
     ];
 
     public function run(): void
