@@ -6,7 +6,7 @@ namespace Modules\TeamMcp\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
-use Modules\TeamMcp\Entities\CoworkHandoff;
+use Modules\TeamMcp\Services\HandoffIngestService;
 use Symfony\Component\Yaml\Yaml;
 use Throwable;
 
@@ -57,6 +57,11 @@ final class HandoffIngestCommand extends Command
         {--detail : Imprime o motivo de cada rejeição/skip}';
 
     protected $description = 'Ingere handoffs de design assinados (HMAC) → cowork_handoffs pending. Rejeita sem sig válida. Append-only por slug/version.';
+
+    public function __construct(private readonly HandoffIngestService $ingestService)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -121,7 +126,9 @@ final class HandoffIngestCommand extends Command
     }
 
     /**
-     * Processa um arquivo: parse frontmatter, valida HMAC, aplica append-only.
+     * Processa um arquivo: parse frontmatter, delega a validação/persistência ao
+     * {@see HandoffIngestService} (mesma lógica do tool HTTP) e traduz o desfecho
+     * pra stats + output PT-BR. O service é a fonte única — aqui só há I/O de arquivo.
      *
      * @param  array<string,int>  $stats  acumulador (by-ref)
      */
@@ -129,75 +136,59 @@ final class HandoffIngestCommand extends Command
     {
         [$fm, $body] = $this->parseFrontmatter((string) file_get_contents($file));
 
-        // A1: assinatura obrigatória — rejeita unsigned/forjado (timing-safe).
-        $expected = hash_hmac('sha256', $body, $secret);
-        $provided = (string) ($fm['sig'] ?? '');
-        if ($provided === '' || ! hash_equals($expected, $provided)) {
-            $stats['rejeitado']++;
-            $this->warn('REJEITADO (sig inválida): ' . basename($file));
-
-            return;
-        }
-
         $slug = (string) ($fm['handoff_id'] ?? $fm['slug'] ?? '');
-        if ($slug === '') {
-            $stats['rejeitado']++;
-            $this->warn('REJEITADO (sem handoff_id): ' . basename($file));
+        $base = basename($file);
 
-            return;
-        }
-
-        $hash = hash('sha256', $body);
-        $existing = CoworkHandoff::where('slug', $slug)->orderByDesc('version')->first();
-
-        // Re-ingest idêntico = no-op (dedup por source_hash).
-        if ($existing && $existing->source_hash === $hash) {
-            $stats['sem_mudanca']++;
-            if ($detail) {
-                $this->line("sem mudança: {$slug} v{$existing->version}");
-            }
-
-            return;
-        }
-
-        $version = $existing ? ((int) $existing->version + 1) : 1;
-        $isRevisao = (bool) $existing;
-        $supersede = $existing && $existing->status === 'applied';
-
-        if ($dryRun) {
-            $stats[$isRevisao ? 'revisao' : 'novo']++;
-            $this->line(sprintf(
-                '[plano] %s v%d (%s)%s',
-                $slug,
-                $version,
-                $isRevisao ? 'revisão' : 'novo',
-                $supersede ? ' + supersede anterior' : '',
-            ));
-
-            return;
-        }
-
-        // A6: revisão de algo já aplicado = lápide na anterior (append-only).
-        if ($existing !== null && $existing->status === 'applied') {
-            CoworkHandoff::where('id', $existing->id)->update(['status' => 'superseded']);
-        }
-
-        CoworkHandoff::create([
+        $result = $this->ingestService->ingest([
             'slug'            => $slug,
-            'version'         => $version,
-            'tela'            => (string) ($fm['tela'] ?? ''),
-            'status'          => 'pending',
-            'audited_against' => $fm['audited_against'] ?? null,
             'body_md'         => $body,
-            'files_json'      => (array) ($fm['files'] ?? []),
-            'source_hash'     => $hash,
-            'sig'             => $provided,
+            'sig'             => (string) ($fm['sig'] ?? ''),
+            'files'           => (array) ($fm['files'] ?? []),
+            'tela'            => (string) ($fm['tela'] ?? ''),
             'created_by'      => (string) ($fm['created_by'] ?? 'CC'),
-            'created_at'      => now(),
-        ]);
+            'audited_against' => $fm['audited_against'] ?? null,
+        ], $secret, $dryRun);
 
-        $stats[$isRevisao ? 'revisao' : 'novo']++;
-        $this->info(($isRevisao ? "revisão {$slug} v{$version}" : "novo {$slug} v{$version}") . ' → pending');
+        switch ($result['outcome']) {
+            case 'rejected':
+                $stats['rejeitado']++;
+                // A1: sig inválida (default) ou handoff_id ausente.
+                $this->warn($result['reason'] === 'slug'
+                    ? "REJEITADO (sem handoff_id): {$base}"
+                    : "REJEITADO (sig inválida): {$base}");
+
+                return;
+
+            case 'no_op':
+                $stats['sem_mudanca']++;
+                if ($detail) {
+                    $this->line("sem mudança: {$slug} v{$result['version']}");
+                }
+
+                return;
+
+            default: // 'created' | 'revised'
+                $isRevisao = $result['outcome'] === 'revised';
+                $stats[$isRevisao ? 'revisao' : 'novo']++;
+
+                if ($dryRun) {
+                    $this->line(sprintf(
+                        '[plano] %s v%d (%s)%s',
+                        $slug,
+                        $result['version'],
+                        $isRevisao ? 'revisão' : 'novo',
+                        $result['supersede'] ? ' + supersede anterior' : '',
+                    ));
+
+                    return;
+                }
+
+                $this->info(($isRevisao
+                    ? "revisão {$slug} v{$result['version']}"
+                    : "novo {$slug} v{$result['version']}") . ' → pending');
+
+                return;
+        }
     }
 
     /**
