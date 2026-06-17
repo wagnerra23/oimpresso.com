@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 14
+charter_version: 15
 permissao: whatsapp.access
 ---
 
@@ -112,6 +112,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - Filtra `input/textarea/contentEditable` + ignora com ctrl/meta/alt (defense in depth)
 
 ### Tabs filtro (Wave 2 F1 paridade Inbox legacy — 2026-05-15)
+> **Onda 2 (2026-06-16):** as 7 tabs passam a viver num **DropdownMenu "Status"** no header da lista (não mais fileira de pills) + um botão **"Filtros"** (popover flutuante) absorve os power-filters. Filtro segue 7-valor via `?tab=`; só a apresentação muda.
 - **7 tabs canônicas** substituem dropdown 4-status anterior:
   - `all` (Todas — exceto archived)
   - `unread` (Não lidas — `unread_count > 0`)
@@ -326,6 +327,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-06-16 | Claude Code [CL] (Caixa filtros 2-botões · Onda 2) | **Header da lista em 2 controles.** `ConversationListV4`: a fileira de 7 tabs + a fileira de power-filters (chips/selects) viram **Status** (DropdownMenu, 7-valor `?tab=`) + **Filtros** (botão funil `lucide Filter` + badge → Popover flutuante, não empurra a lista). Grupos do popover: Canal · Conta · Fila · Tags · Ordenar · Esperando há · Sem CRM · Janela 24h · Mídia 24h + "Limpar". **Atribuição omitida** — não há param backend (`CaixaUnificadaController` não filtra por assignee; só a tab "Minhas" + picker da sidebar) → não inventei grupo morto (anti M-AP-2). Contrato backend intacto (mesmos params na querystring; `buildQuery` agora carrega channel/account_id/queue → filtros persistem na navegação). Index.tsx passa accounts/channelTypeFilter/accountFilter/queues/queueFilter pra lista. Charter v15. **Verificado:** `tsc --noEmit` limpo nos 2 arquivos (só erros pré-existentes de `preserveScroll`) + `vite build:inertia` verde (4431 módulos, ConversationListV4 bundlou). Sem screenshot local (sem dev server no worktree) — visual-regression CI + revisão [W]. |
 | 2026-06-16 | Claude Code [CL] (Caixa filtros 2-botões · Onda 1) | **Faixa de canais removida.** Direção [W] 2026-06-16: a faixa horizontal `ChannelChipsRow` acima da shell (comprimia 1280px) sai; Canal/Conta viram grupos do popover **Filtros** da lista (Onda 2). Onda 1: removida a faixa + `ChannelChipsRow.tsx` (dead-code, único consumidor era esta tela); `availableChannels`/`availableAccounts` (props), URL-sync `?channel=`/`?account_id=` e os demais consumidores (Thread/Sidebar/Drawers/Nova-conversa) **intactos**. Charter v14. PR off origin/main; CI verifica build/typecheck (worktree sem node_modules). Onda 2 adiciona os grupos no popover Filtros + Status em DropdownMenu. |
 | 2026-06-16 | Claude Code (brief [CC] PARTE 4) | **Fix chips de canal — WhatsApp LIVE sumia.** `buildAvailableChannelsPayload` listava o WhatsApp como `whatsapp_baileys` (provider deletado, ADR 0202); o Channel ativo real é `whatsapp_whatsmeow` (WuzAPI/whatsmeow, ADR 0204), então `$activeTypesCount[id]` nunca casava → TODOS os chips caíam em 'em_breve' e o canal vivo (de onde as conversas chegam) ficava escondido. Row trocada pra `whatsapp_whatsmeow` (label/short "WhatsApp", hue 145 verde, glyph W); `?channel=whatsapp_whatsmeow` filtra via whereHas channel.type. Helper Pest e R-WA-CAIXA-UNIF-001 seedavam o type morto (mascaravam o bug) → migrados pro LIVE; novo R-WA-CAIXA-UNIF-013 (regressão: chip 'ativo' + count real + filtro). Tier 0 multi-tenant preservado. Completa a PARTE 4 que o item dark-mode abaixo deixou pra PR backend. Charter v12. PR próprio off origin/main. |
 | 2026-06-16 | Claude Code (brief [CC] dark-mode) | **Fix MODO ESCURO + empty-state Customer 360.** Tokenização dark-aware das folhas que usavam cor clara crua (a tela foi portada antes da auditoria de escuro): bolha inbound `bg-white`→`bg-card`; nota interna, banner "em homologação", SLA-pill e chip de Tag → `warning-soft`/`warning-fg`/`warning` (flipam no `.dark`), corpo da nota `text-foreground` (contraste nos 2 temas); read-tick `text-blue-600`→`oklch` inline (passa R1). `CustomerMemoryBlock` colapsa o card vazio (sem Contact CRM **e** sem enriquecimento) numa linha — compartilhado com o Inbox legacy, sem prop nova (não regride). Repo ativa dark via `.dark` (não `[data-theme]`) → **zero token novo, zero override CSS**. Verificado por probe token-flip nos 2 temas. PARTE 4 (chips "em breve" — catálogo sem `whatsapp_whatsmeow`) fica em PR backend separado. Charter v11. |

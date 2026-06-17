@@ -110,7 +110,7 @@ export default function CaixaUnificadaIndex({
   conversations, stats, availableChannels, availableAccounts, availableTags, availableAssignees, availableTemplates,
   queuesAdmin, canManageQueues,
   businessId: _businessId,
-  statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
+  statusFilter, channelTypeFilter, accountFilter, queueFilter, q,
   thread, messages, customerContext, centrifugoConfig,
   queues, defaultQueue: _defaultQueue,
   within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
@@ -456,6 +456,11 @@ export default function CaixaUnificadaIndex({
           <ConversationListV4
             conversations={conversations as Paginated<CaixaUnifConversation>}
             channels={availableChannels ?? []}
+            accounts={availableAccounts ?? []}
+            channelTypeFilter={channelTypeFilter}
+            accountFilter={accountFilter}
+            queues={queues}
+            queueFilter={queueFilter}
             stats={stats ?? null}
             selectedId={thread?.id ?? null}
             status={statusFilter}
