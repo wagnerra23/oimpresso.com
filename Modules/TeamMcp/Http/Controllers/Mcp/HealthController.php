@@ -45,6 +45,22 @@ class HealthController extends Controller
             $docsAcessiveis = null;
         }
 
+        // Drift observability (ADR 0256): o commit servido é escrito pelo entrypoint do
+        // container (deployed_commit.txt) a cada boot. Exposto SÓ aqui (endpoint
+        // AUTENTICADO) — não no /health público — porque o repo é público e o SHA exato
+        // num endpoint anônimo é disclosure de versão. A sentinela externa
+        // mcp-drift-sentinel.yml lê isto com um token read-only. Null se ausente.
+        $commit = null;
+        $deployedAt = null;
+        $commitPath = storage_path('app/deployed_commit.txt');
+        if (is_readable($commitPath)) {
+            $commit = trim((string) @file_get_contents($commitPath)) ?: null;
+            if ($commit === 'unknown') {
+                $commit = null;
+            }
+            $deployedAt = ($mtime = @filemtime($commitPath)) ? date('c', $mtime) : null;
+        }
+
         return response()->json([
             'status' => 'authenticated',
             'user'   => [
@@ -61,6 +77,9 @@ class HealthController extends Controller
                 'total'                  => $totalDocs,
                 'accessible_to_this_user' => $docsAcessiveis,
             ],
+            'commit'       => $commit,
+            'commit_short' => $commit ? substr($commit, 0, 9) : null,
+            'deployed_at'  => $deployedAt,
             'ts' => now()->toIso8601String(),
         ]);
     }
