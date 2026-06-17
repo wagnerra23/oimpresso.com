@@ -1011,3 +1011,14 @@ Uma sessão paralela mergeou #2864 (§16) + #2865 (handoff-integrity-guard = C4 
 ### new_design_memories
 - **golden**: re-validar `origin/main` ANTES de cada novo intent, não só no início — a sessão paralela mergeou o mesmo trabalho no meio da minha. Fechei a duplicata e salvei só o delta (C3), estendendo o canon.
 - **gotcha**: a paralela alegou "Dashboard charter-protegido" pra pular TAREFA 1 — FALSO (não há charter). Conclusão de skip ≠ fato; conferir o disco antes de pular.
+
+---
+
+## TAREFA 2 — Onda 1 doc: §16 Regra 7 (C5) + tabela Caçador de reincidência — PR #2872
+_2026-06-16 · [CL] · verificado vs main @0ab12e59b · sessão nova re-rodando o prompt_
+
+Validei contra `origin/main` antes de codar (Regra 5). Já no `main`: #2863 (Dashboard PageHeader), #2864/#2865/#2869 (§16 + guard C3/C4). O **C5** era o único delta de **doc** que faltava no §16.
+- §16 ganhou **Regra 7** (carimbo `verificado vs main @<SHA>` no item ativo = classe **C5**) + **tabela "Caçador de reincidência"** (C3/C4/C5 git-gate com condição de morte; C1/C2/C6 referenciadas **sem inventar** — Tier 0; ref `PROMPT_PARA_CODE_HANDOFF-INTEGRITY-GATE.md` não existe no checkout).
+- **Concordo** com a sessão C3-salvage: "C5 vs-main não-mecanizável (fila Cowork-only)". Esta onda só escreve a **regra** (doc), não a catraca. Confirmei: a fila real (`COWORK_NOTES.md`) usa bullets `- **…**` acima da linha; os `> … → [CL]` estão **abaixo** da linha. Mecanizar C5 precisa de [W] definir "item ativo".
+
+**Status:** PR #2872 aberto, aguardando merge [W] (publication-policy). Guards: handoff:check verde · self-test PASS · integrity-check sã · ds-guard limpo.
