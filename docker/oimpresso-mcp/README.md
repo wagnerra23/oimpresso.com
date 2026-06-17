@@ -164,7 +164,9 @@ rebuild (só se `docker/oimpresso-mcp/` mudou) → `up -d --force-recreate` → 
 
 ```bash
 # crontab -e (root no CT 100)
-*/15 * * * * flock -n /tmp/mcp-self-update.lock /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh >> /opt/oimpresso-mcp/logs/self-update.log 2>&1
+# NÃO use `flock` aqui: o self-update.sh já tem flock interno no mesmo lockfile
+# (/tmp/mcp-self-update.lock); um flock externo colidiria e o script no-op-aria todo run.
+*/15 * * * * /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh >> /opt/oimpresso-mcp/logs/self-update.log 2>&1
 ```
 
 ### Sentinela de drift (sem tailscale)
