@@ -38,6 +38,11 @@ jobs:
 
       - name: Run drift sentinel
         id: drift
+        env:
+          # Token read-only mcp_* — lê o commit servido no /health/auth (não-público).
+          # Gerar: php artisan mcp:token:gerar --user=<bot> --name="drift-sentinel" no
+          # Hostinger; adicionar como secret MCP_SENTINEL_TOKEN. Sem ele → WARN (não alarma).
+          MCP_SENTINEL_TOKEN: ${{ secrets.MCP_SENTINEL_TOKEN }}
         run: node scripts/governance/mcp-drift-sentinel.mjs
 
       - name: Alarme → issue no inbox ops (só em drift real)
@@ -46,20 +51,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          # Repo é PÚBLICO → corpo enxuto, sem runbook/host/paths (o procedimento de
+          # cura fica no README versionado, não numa issue world-readable).
           TITLE="[mcp-drift] MCP server servindo código velho"
           BODY=$(cat <<EOF
-          A sentinela detectou que **mcp.oimpresso.com** está servindo um commit atrás de \`main\`
-          além do limite tolerado. Provável: o cron \`self-update.sh\` no CT 100 parou de curar.
+          A sentinela detectou que **mcp.oimpresso.com** serve um commit atrás de \`main\`
+          além do limite tolerado (provável: o cron de cura no CT 100 parou).
 
           **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          **Como investigar / curar (via tailscale):**
-          \`\`\`
-          tailscale ssh root@ct100-mcp
-          tail -50 /opt/oimpresso-mcp/logs/self-update.log
-          bash /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh
-          \`\`\`
-          Refs: ADR 0062 · ADR 0256 · docker/oimpresso-mcp/README.md
+          Cura: \`docker/oimpresso-mcp/README.md\` → seção "Atualização". Refs: ADR 0062 · ADR 0256.
           EOF
           )
           gh label create mcp-drift --color B60205 --description "Drift do MCP server (CT 100) — ADR 0256" 2>/dev/null || true

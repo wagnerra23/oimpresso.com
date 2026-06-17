@@ -9,11 +9,12 @@
 // GRITA se a cura parar de funcionar — é o "loop fechado por métrica" aplicado ao
 // deploy: o drift nunca mais fica silencioso.
 //
-// COMO: compara o commit SERVIDO (campo `commit` de /api/mcp/health) com o HEAD de
-// main no checkout do runner. Não precisa de tailscale nem secret novo — só um curl
-// público + git local. Tolera o lag normal do cron (minutos) via janela de tempo
-// ENTRE commits (não relógio de parede), então período tranquilo no main não dá
-// falso-positivo.
+// COMO: compara o commit SERVIDO (campo `commit` de /api/mcp/health/auth) com o HEAD
+// de main no checkout do runner. Não precisa de tailscale; lê o endpoint AUTENTICADO
+// com um token read-only (MCP_SENTINEL_TOKEN, secret do GH) — o repo é público, então
+// o SHA exato NÃO fica num endpoint anônimo (disclosure de versão). Tolera o lag normal
+// do cron (minutos) via janela de tempo ENTRE commits (não relógio de parede), então
+// período tranquilo no main não dá falso-positivo.
 //
 // Uso:  node scripts/governance/mcp-drift-sentinel.mjs            (humano)
 //       node scripts/governance/mcp-drift-sentinel.mjs --json     (máquina)
@@ -23,7 +24,8 @@
 import { execSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 
-const HEALTH_URL = process.env.MCP_HEALTH_URL || 'https://mcp.oimpresso.com/api/mcp/health';
+const HEALTH_URL = process.env.MCP_HEALTH_URL || 'https://mcp.oimpresso.com/api/mcp/health/auth';
+const TOKEN = (process.env.MCP_SENTINEL_TOKEN || '').trim(); // token read-only mcp_* (GH secret)
 const MAX_LAG_HOURS = Number(process.env.MCP_DRIFT_MAX_LAG_HOURS || 6); // cron roda /15min; 6h = host parou de curar há horas
 const JSON_OUT = process.argv.includes('--json');
 
@@ -38,10 +40,14 @@ function isAncestor(sha) {
 function commitEpoch(sha) { const v = git(`show -s --format=%ct ${sha}`); return v ? Number(v) : null; }
 
 async function fetchServedCommit() {
+  if (!TOKEN) return { error: 'MCP_SENTINEL_TOKEN ausente (secret não configurado)' };
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 12000);
   try {
-    const r = await fetch(HEALTH_URL, { signal: ctrl.signal, headers: { 'user-agent': 'mcp-drift-sentinel' } });
+    const r = await fetch(HEALTH_URL, {
+      signal: ctrl.signal,
+      headers: { 'user-agent': 'mcp-drift-sentinel', authorization: `Bearer ${TOKEN}` },
+    });
     if (!r.ok) return { error: `HTTP ${r.status}` };
     const j = await r.json();
     return { commit: (j.commit || '').trim() || null, version: j.version ?? null };

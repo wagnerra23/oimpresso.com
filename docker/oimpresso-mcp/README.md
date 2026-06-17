@@ -167,12 +167,22 @@ rebuild (só se `docker/oimpresso-mcp/` mudou) → `up -d --force-recreate` → 
 */15 * * * * flock -n /tmp/mcp-self-update.lock /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh >> /opt/oimpresso-mcp/logs/self-update.log 2>&1
 ```
 
-### Sentinela de drift (não precisa de tailscale nem secret)
+### Sentinela de drift (sem tailscale)
 
-`.github/workflows/mcp-drift-sentinel.yml` roda no GitHub a cada 30min: compara o
-campo `commit` de `/api/mcp/health` com o HEAD de `main`. Se servido ficar > 6h atrás
-(`MCP_DRIFT_MAX_LAG_HOURS`), **alarma**: workflow vermelho + issue rotulada `mcp-drift`
-(o "inbox ops"). O commit servido é escrito pelo `entrypoint-octane.sh` a cada boot.
+`.github/workflows/mcp-drift-sentinel.yml` roda no GitHub a cada 30min: compara o campo
+`commit` de **`/api/mcp/health/auth`** (endpoint AUTENTICADO — o repo é público, então o
+SHA exato NÃO fica num endpoint anônimo) com o HEAD de `main`. Se servido ficar > 6h
+atrás (`MCP_DRIFT_MAX_LAG_HOURS`), **alarma**: workflow vermelho + issue `mcp-drift` (o
+"inbox ops"). O commit servido é escrito pelo `entrypoint-octane.sh` a cada boot.
+
+**Secret necessário (uma vez):** gere um token read-only e adicione como secret
+`MCP_SENTINEL_TOKEN` no repo:
+```bash
+# No Hostinger (DB compartilhada)
+php artisan mcp:token:gerar --user=<bot> --name="drift-sentinel"
+gh secret set MCP_SENTINEL_TOKEN   # cole o mcp_... gerado
+```
+Sem o secret a sentinela só emite `WARN` (não alarma) — graça de rollout.
 
 **NÃO usar Portainer Stacks** — Portainer fica só pra UI de logs/debug.
 Edição via UI gera divergência com o git (ver discussão sessão 29-abr-2026).
