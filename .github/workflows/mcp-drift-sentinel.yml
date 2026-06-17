@@ -1,0 +1,72 @@
+name: MCP Drift Sentinel — ADR 0256
+
+# Sentinela EXTERNA de drift do MCP server (mcp.oimpresso.com, container no CT 100).
+# O self-update.sh (cron no host) CURA o drift; esta sentinela roda no GitHub (fora do
+# tailnet, sem secret novo — só curl público + git) e ALARMA se a cura parar de funcionar.
+# Origem: incidente 2026-06-17 — ~17 dias de código velho servido em silêncio porque
+# os dados (DB compartilhada) ficavam frescos. ADR 0062 (Hostinger≠CT100) + ADR 0256.
+#
+# Alarme = workflow vermelho (GitHub notifica) + issue durável rotulada `mcp-drift`
+# (o "inbox ops"). Sem tailscale, sem secret além do GITHUB_TOKEN default.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # a cada 30min — watchdog do cron de cura (que roda /15min)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: mcp-drift-sentinel
+  cancel-in-progress: true
+
+jobs:
+  sentinel:
+    name: mcp-drift-sentinel (alarma se servido != main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # precisa da história p/ ancestralidade + data dos commits
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run drift sentinel
+        id: drift
+        run: node scripts/governance/mcp-drift-sentinel.mjs
+
+      - name: Alarme → issue no inbox ops (só em drift real)
+        if: failure() && steps.drift.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TITLE="[mcp-drift] MCP server servindo código velho"
+          BODY=$(cat <<EOF
+          A sentinela detectou que **mcp.oimpresso.com** está servindo um commit atrás de \`main\`
+          além do limite tolerado. Provável: o cron \`self-update.sh\` no CT 100 parou de curar.
+
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          **Como investigar / curar (via tailscale):**
+          \`\`\`
+          tailscale ssh root@ct100-mcp
+          tail -50 /opt/oimpresso-mcp/logs/self-update.log
+          bash /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh
+          \`\`\`
+          Refs: ADR 0062 · ADR 0256 · docker/oimpresso-mcp/README.md
+          EOF
+          )
+          gh label create mcp-drift --color B60205 --description "Drift do MCP server (CT 100) — ADR 0256" 2>/dev/null || true
+          EXISTING=$(gh issue list --label mcp-drift --state open --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "${EXISTING:-}" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+            echo "comentei na issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --label mcp-drift --body "$BODY"
+          fi

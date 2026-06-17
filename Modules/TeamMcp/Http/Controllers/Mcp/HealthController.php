@@ -23,12 +23,30 @@ class HealthController extends Controller
 {
     public function publico(Request $request): JsonResponse
     {
+        // Drift observability (ADR 0256): o commit servido é escrito pelo entrypoint
+        // do container (deployed_commit.txt) a cada boot. Expor aqui deixa a sentinela
+        // externa mcp-drift-sentinel.yml detectar drift sem SSH — pro ~17 dias de drift
+        // silencioso do incidente 2026-06-17 nunca mais acontecer. Null se ausente.
+        $commit = null;
+        $deployedAt = null;
+        $commitPath = storage_path('app/deployed_commit.txt');
+        if (is_readable($commitPath)) {
+            $commit = trim((string) @file_get_contents($commitPath)) ?: null;
+            if ($commit === 'unknown') {
+                $commit = null;
+            }
+            $deployedAt = ($mtime = @filemtime($commitPath)) ? date('c', $mtime) : null;
+        }
+
         return response()->json([
-            'status'   => 'ok',
-            'service'  => 'oimpresso-mcp',
-            'version'  => '0.1',
-            'spec_mcp' => '2025-06-18',
-            'ts'       => now()->toIso8601String(),
+            'status'       => 'ok',
+            'service'      => 'oimpresso-mcp',
+            'version'      => '0.1',
+            'spec_mcp'     => '2025-06-18',
+            'commit'       => $commit,
+            'commit_short' => $commit ? substr($commit, 0, 9) : null,
+            'deployed_at'  => $deployedAt,
+            'ts'           => now()->toIso8601String(),
         ]);
     }
 
