@@ -1,18 +1,18 @@
 ---
 proposal_id: handoff-loop-zero-paste
-status: proposed
+status: decided
 type: protocolo-handoff
 created: 2026-06-17
 proposed_by: claude-code
-decided_by: wagner            # PREENCHER-NO-ACEITE
-decided_at: PREENCHER-NO-ACEITE
+decided_by: wagner
+decided_at: "2026-06-17"
 parent_adr: "ADR 0114 (prototipo-ui/PROTOCOL.md)"
 related_adrs: [0114-prototipo-ui-cowork-loop-formalizado, 0107-emendation-0104-visual-comparison-gate-f3, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0]
-resulting_adr: "NNNN — a numerar no aceite ([CL])"
+resulting_adr: "0283-handoff-loop-zero-paste"
 title: "Loop de handoff zero-paste — repo fonte única, sem auto-merge até a rede existir"
 ---
 
-> **Ao ACEITAR:** [CL] converte pra ADR numerada (frontmatter `type: adr` + `slug`/`number`/`decided_at` per `scripts/memory-schemas/adr.schema.json`), move pra `memory/decisions/NNNN-…`, roda `memory-schema-preflight`.
+> ✅ **DECIDED 2026-06-17 — aceito por [W].** Formalizado em **[ADR 0283](../0283-handoff-loop-zero-paste.md)** (fonte única da decisão). Este doc fica como referência histórica da proposta + dossiês adversariais.
 
 # ADR NNNN — Loop de handoff zero-paste (repo-nativo · **sem auto-merge até a rede existir**)
 
