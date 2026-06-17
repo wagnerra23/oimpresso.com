@@ -1292,7 +1292,7 @@
 }
 .sells-cowork .origin-badge {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .04em;
   padding: 1px 5px;
@@ -1427,7 +1427,7 @@
 .sells-cowork .os-page-h-l { flex: 1 1 auto; min-width: 0; }
 .sells-cowork .os-page-h-l h1 {
   margin: 0 0 4px;
-  font-size: 24px;
+  font-size: var(--fs-7);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text);
@@ -1792,7 +1792,7 @@
 .sells-cowork .vendas-page .vd-total { font-weight:600; font-variant-numeric:tabular-nums; font-size:var(--fs-4); }
 .sells-cowork .vendas-page .vd-os-pill { display:inline-block; padding:1px 6px; border-radius:4px; background:oklch(0.95 0.01 250); font-family:var(--font-mono); font-size:var(--fs-1); margin-right:3px; color:oklch(0.40 0.04 250); }
 .sells-cowork .vendas-page .vd-no-os { font-size:var(--fs-2); color:oklch(0.55 0.02 250); font-style:italic; }
-.sells-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:9px; color:oklch(0.40 0.04 250); background:#fff; }
+.sells-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size: var(--fs-1); color:oklch(0.40 0.04 250); background:#fff; }
 /* Drawer venda */
 /* Stepper */
 .sells-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
@@ -2386,7 +2386,7 @@
   display: inline-flex; align-items: center; gap: 6px;
   font-family: inherit; cursor: pointer;
 }
-.sells-cowork .vendas-aplus .vd-views-btn::after { content: '▾'; font-size: 9px; color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-views-btn::after { content: '▾'; font-size: var(--fs-1); color: var(--text-mute); }
 .sells-cowork .vendas-aplus .vd-views-btn:hover { border-color: var(--text-mute); }
 .sells-cowork .vendas-aplus .vd-views-menu {
   position: absolute; top: calc(100% + 4px); right: 0;
@@ -2559,7 +2559,7 @@
 .sells-cowork .vendas-aplus .vd-fb-bad { background: var(--vd-bad-soft);    color: var(--neg); }
 .sells-cowork .vendas-aplus .vd-fb-canc { background: var(--vd-neutral-soft);color: var(--text-mute); }
 .sells-cowork .vendas-aplus .vd-fb-na { background: transparent; color: var(--text-mute); padding: 2px 4px; }
-.sells-cowork .vendas-aplus .vd-fb-ic { font-size: 9px; }
+.sells-cowork .vendas-aplus .vd-fb-ic { font-size: var(--fs-1); }
 .sells-cowork .vendas-aplus .vd-fb-tip {
   position: absolute; bottom: calc(100% + 6px); left: 50%;
   transform: translateX(-50%) translateY(4px);
@@ -2758,7 +2758,7 @@
 }
 .sells-cowork .vendas-aplus .vd-plate-top {
   background: oklch(0.30 0.12 240); color: #fff;
-  font-size: 6px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   text-align: center; padding: 1px 0;
   letter-spacing: 0.04em;
 }
@@ -2809,7 +2809,7 @@
   font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
   letter-spacing: 0.01em; white-space: nowrap;
 }
-.sells-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: 9px; line-height: 1; }
+.sells-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: var(--fs-1); line-height: 1; }
 .sells-cowork .vendas-aplus .vd-sla-fresh { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
 .sells-cowork .vendas-aplus .vd-sla-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60); }
 .sells-cowork .vendas-aplus .vd-sla-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25); }
@@ -2824,7 +2824,7 @@
   font-size: 10.5px; font-weight: 600;
   padding: 0; line-height: 1.5;
 }
-.sells-cowork .vendas-aplus .vd-sla-mini .ic { font-size: 8px; line-height: 1; margin-right: 4px; }
+.sells-cowork .vendas-aplus .vd-sla-mini .ic { font-size: var(--fs-1); line-height: 1; margin-right: 4px; }
 .sells-cowork .vendas-aplus .vd-sla-mini.fresh { color: oklch(0.45 0.13 145); }
 .sells-cowork .vendas-aplus .vd-sla-mini.warning { color: oklch(0.50 0.13 60); }
 .sells-cowork .vendas-aplus .vd-sla-mini.overdue { color: var(--neg); }
@@ -3318,7 +3318,7 @@
 .sells-cowork .vd-drawer-aplus .vd-item-c-comm .ct {
   position: absolute; top: -5px; right: -5px;
   background: oklch(0.55 0.13 240); color: white;
-  font-size: 9px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   padding: 1px 4px; border-radius: 99px;
   min-width: 14px; text-align: center;
   line-height: 1.4;
@@ -3565,7 +3565,7 @@
   display: inline-flex; align-items: center; gap: 5px;
 }
 .sells-cowork .vendas-aplus .vd-visoes-btn::after {
-  content: '▾'; font-size: 9px; color: var(--text-mute); margin-left: 2px;
+  content: '▾'; font-size: var(--fs-1); color: var(--text-mute); margin-left: 2px;
 }
 .sells-cowork .vendas-aplus .vd-visoes-btn:hover { border-color: var(--text-mute); color: var(--text); }
 .sells-cowork .vendas-aplus .vd-visoes-menu {
@@ -3727,7 +3727,7 @@
   transition: all .12s;
 }
 .sells-cowork .vendas-aplus .vd-toolbar .vd-views-btn::after {
-  content: '▾'; font-size: 9px; color: var(--text-mute); margin-left: 4px;
+  content: '▾'; font-size: var(--fs-1); color: var(--text-mute); margin-left: 4px;
 }
 .sells-cowork .vendas-aplus .vd-toolbar .vd-views-btn:hover {
   background: var(--bg-2); color: var(--text);
