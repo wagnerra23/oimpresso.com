@@ -1,17 +1,23 @@
 ---
+slug: 0284-pipeline-incidente-graduado-confianca
+number: 284
 title: "Pipeline de incidente graduado por confiança — porta única, redação cross-tenant, auto-resolve só não-valor"
-status: proposed
-date: "2026-06-17"
-decisores: [Wagner (aprova), Claude Code (autor)]
-related_adrs:
-  - 0093-multi-tenant-isolation-tier-0
-  - 0080-trust-tiers-operacional-audit-findings
-  - 0105-cliente-como-sinal-guiar-sem-mandar
-  - 0070-jira-style-task-management-current-md-removed
-origem: "Wagner 2026-06-17: duas frentes (sensor determinístico + atendimento autônomo que enriquece ticket e processa incidente), ancoradas no caso Guilherme (incidente num_uf 2026-06-05). Review adversário apontou que o desenho ingênuo (sensor cria mcp_task FORJA) abre 3ª porta de triagem, mistura confiança, vaza Tier 0 e promete auto-resolve onde a Regra Mestre proíbe."
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+kind: decision
+decided_by: [W]
+decided_at: "2026-06-17"
+module: governance
+related: [0093-multi-tenant-isolation-tier-0, 0080-trust-tiers-operacional-audit-findings, 0105-cliente-como-sinal-guiar-sem-mandar, 0070-jira-style-task-management-current-md-removed]
+supersedes: []
 ---
 
-# Pipeline de incidente graduado por confiança
+# ADR 0284 — Pipeline de incidente graduado por confiança
+
+> Aceita por Wagner em 2026-06-17 ("aceito"). Promovida da proposta
+> `proposals/2026-06-17-pipeline-incidente-graduado-confianca.md` (PR #2909).
 
 ## Contexto
 
@@ -26,7 +32,7 @@ Dois esforços convergem para o mesmo ecossistema:
 - **Frente 2 (atendimento autônomo):** cliente reporta no WhatsApp → o sistema enriquece
   o ticket e processa o incidente. Mercado 2026 (Sierra/Decagon/Resolve AI) trata isso
   como *vertical AI agent embutido no produto* com confidence+HITL+ação. Dossiê:
-  [`memory/sessions/2026-06-17-arte-atendimento-autonomo-incidente.md`](../../sessions/2026-06-17-arte-atendimento-autonomo-incidente.md).
+  [`memory/sessions/2026-06-17-arte-atendimento-autonomo-incidente.md`](../sessions/2026-06-17-arte-atendimento-autonomo-incidente.md).
 
 O desenho ingênuo — "o sensor cria um `mcp_task project=FORJA` em triagem" — **quebra em
 seis pontos** (review adversário):
@@ -48,7 +54,7 @@ seis pontos** (review adversário):
 6. **Idempotência.** 1 bug → N vendas afetadas não pode virar N tickets; e "resolvido" não
    é "o check passou hoje" (o bug para de gerar novas, mas as linhas corrompidas ficam).
 
-## Decisão proposta
+## Decisão
 
 Tratar o ecossistema como **um pipeline de incidente graduado por confiança**, com seis
 invariantes:
@@ -111,7 +117,7 @@ corrigido**, não "check verde hoje".
 - **Pipeline novo dedicado (tabela nova):** rejeitada — `clients_feedbacks` já cobre 80%;
   criar tabela nova é o anti-padrão "não duplicar".
 
-## Próximos passos (se aceita)
+## Próximos passos
 
 1. Migration: `clients_feedbacks` + `origem`, `trust`, flag `valor_redigido`.
 2. Sensor `sells_value_sanity` cria `clients_feedbacks` (origem=sensor, trust=alto,
