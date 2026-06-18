@@ -14,7 +14,8 @@ import type { UnhealthyChannel } from './helpers';
  * já existe em `/atendimento/canais/{id}`.
  *
  * Lê o prop EAGER `unhealthyChannels` (não-deferred) pra aparecer no first-paint.
- * Layout via primitivos `<Stack>`/`<Inline>` (ADR 0253).
+ * Layout via primitivos `<Stack>`/`<Inline>` (ADR 0253); cor de status via token
+ * semântico `text-destructive` (ds/no-adhoc-status-text).
  */
 const HEALTH_LABEL: Record<string, string> = {
   disconnected: 'desconectado',
@@ -41,19 +42,19 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
             className="rounded-md border border-red-300 bg-red-50 px-3.5 py-2.5 dark:border-red-900/60 dark:bg-red-950/40"
             data-testid={`caixa-unif-health-banner-${ch.id}`}
           >
-            <AlertTriangle size={18} className="shrink-0 text-red-600 dark:text-red-400" aria-hidden />
+            <AlertTriangle size={18} className="shrink-0 text-destructive" aria-hidden />
             <div className="min-w-0 flex-1 leading-tight">
-              <p className="text-[13px] font-semibold text-red-700 dark:text-red-300">
+              <p className="text-[13px] font-semibold text-destructive">
                 WhatsApp {ch.label} {label}
               </p>
-              <p className="text-[12px] text-red-700/80 dark:text-red-300/80">
+              <p className="text-[12px] text-destructive/80">
                 Novas mensagens não estão entrando até você religar
                 {caiu ? ` · caiu às ${caiu}` : ''}.
               </p>
             </div>
             <a
               href={route('atendimento.channels.show', ch.id)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-[12.5px] font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-transparent dark:text-red-300 dark:hover:bg-red-950"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-[12.5px] font-medium text-destructive transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-transparent dark:hover:bg-red-950"
               data-testid={`caixa-unif-health-banner-religar-${ch.id}`}
             >
               <QrCode size={15} aria-hidden />
