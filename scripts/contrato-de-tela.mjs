@@ -17,6 +17,11 @@
 //                             âncora `data-contract="<id>"` presente no alvo + copy literal presente
 //                             + ordem das âncoras = ordem do contrato. Sem render. A âncora é a ponte
 //                             Cowork-CSS↔Tailwind sem mapa-de-classes tautológico.
+//                             Catraca 2b (SEMÂNTICA · ADR 0286 §5): se o contrato declara
+//                             `acordos_estado`, prova que cada `state` do vocabulário acordado aparece
+//                             como literal nos DOIS lados — o backend que o EMITE e o frontend que o
+//                             TRATA. Backend-emite-mas-frontend-ignora = o bug paired≠connected
+//                             (2026-06-18) que a catraca de PRESENÇA não pegou. Ainda estático, sem render.
 //   --omission [base]         Catraca 3 INVERTIDA (pega o que o handoff OMITIU). Diff <base>...HEAD
 //                             nos arquivos-alvo; todo símbolo/rota/teste REMOVIDO que não for citado na
 //                             justificativa (commits da branch + --notes <arquivo>) = FALHA.
@@ -148,6 +153,97 @@ function checkContract(file) {
     for (const id of seq) { if (i < present.length && seq.includes(present[i]) && id === present[i]) i++; }
     if (i < present.length) { err(`ordem divergente — esperado ${JSON.stringify(present)} como subsequência das âncoras ${JSON.stringify(seq)}`); fail++; }
     else ok(`ordem das âncoras coerente com o contrato`);
+  }
+
+  // Catraca 2b — acordo de vocabulário de `state` backend↔frontend (ADR 0286 §5).
+  fail += checkStateAgreements(c, file);
+  return fail;
+}
+
+// ── Catraca 2b: acordo de estado backend↔frontend (catraca SEMÂNTICA · ADR 0286 §5) ──
+// A catraca de PRESENÇA (2a) garante a âncora + a copy, mas não o ACORDO DE VALORES: o `connect`
+// devolve `state:'paired'`, o `status` devolve `state:'connected'`, e o ReconnectModal só tratava
+// 'connected' → a resposta de sucesso caía no ramo de erro vermelho (incidente 2026-06-18). O
+// contrato estava estruturalmente presente e o comportamento quebrado — passou no gate.
+//
+// Cada `acordo` em `acordos_estado` declara um VOCABULÁRIO de `state` compartilhado (ex: o conjunto
+// que significa "sessão ativa = SUCESSO, não erro"). O gate prova que TODA palavra do acordo aparece
+// como literal entre aspas nos DOIS lados — o backend que a EMITE e o frontend que a TRATA:
+//   - `valores`  — os state-strings acordados (ex: ["paired","connected"]).
+//   - `backend`  — fonte(s) que emitem o state (arquivo/dir PHP; ex: ChannelsController.php).
+//   - `frontend` — fonte(s) que tratam o state (default = `alvo` do contrato; ex: reconnectState.ts).
+//   - `escopo`   — (opcional, default "global") a quem o acordo se aplica: global | vertical:<x>
+//                  | cliente:biz=<n> | persona:<p> | tela:<rota>. Default global = não vaza Tier 0.
+//   - `verdict`  — (opcional, default "aprovado") aprovado | recusado.
+// Veredito binário, derivado do CÓDIGO (comentário NÃO conta — senão é "backdoor de prosa", RUNBOOK §4)
+// e só em posição de VALOR (não a chave `'x' =>`). Sem render/auth/DB — mesmo idioma da catraca 2a.
+//   FALHA A: estado declarado que o backend NÃO emite (drift de contrato / valor morto).
+//   FALHA B: backend EMITE o estado mas o frontend NÃO o trata (divergência paired≠connected).
+//   FALHA C: `escopo` em formato inválido (typo que mis-escoparia o veredito).
+const SOURCE_EXTS = /\.(php|tsx?|jsx?|mjs|cjs)$/;
+const ESCOPO_RE = /^(global|vertical:[\w-]+|cliente:biz=\d+|persona:[\w-]+|tela:[\w./-]+)$/;
+// Remove comentários antes de casar o literal — um `state` citado em JSDoc/`//`/`#` NÃO prova que o
+// código o trata (era o furo do v0: "backdoor de prosa", RUNBOOK §4). Heurística suficiente p/ PHP+TS;
+// um `//` dentro de string vira falso-NEGATIVO (gate reclama, humano confere — direção segura).
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')   // bloco /* … */ (inclui JSDoc /** … */)
+    .replace(/\/\/[^\n]*/g, ' ')          // linha // …
+    .replace(/(^|\s)#[^\n]*/g, '$1 ');    // linha PHP # … (não casa '#fff' colado em aspas)
+}
+function readSourceBlob(paths) {
+  const files = [];
+  const walk = (p) => {
+    let st; try { st = statSync(p); } catch { return; }
+    if (st.isDirectory()) {
+      for (const name of readdirSync(p)) {
+        if (name === 'node_modules' || name.startsWith('.')) continue;
+        walk(join(p, name));
+      }
+    } else if (SOURCE_EXTS.test(p) && !/\.d\.ts$/.test(p)) {
+      files.push(p);
+    }
+  };
+  for (const p of (Array.isArray(paths) ? paths : [paths])) walk(resolve(ROOT, p));
+  const raw = files.map(f => readFileSync(f, 'utf8')).join('\n');
+  return { files: files.sort(), blob: raw, code: stripComments(raw) };
+}
+// state-string como literal entre aspas EM POSIÇÃO DE VALOR: 'v' | "v" | `v`, mas não a chave `'v' =>`
+// (senão `'paired' => true` faria o gate achar que o backend ainda emite 'paired' após renomear o state).
+// Recebe o `code` (já sem comentários) — não o blob cru.
+function hasStateLiteral(code, v) {
+  const e = String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('([\'"`])' + e + '\\1(?!\\s*=>)').test(code);
+}
+function checkStateAgreements(c, file) {
+  const acordos = c.acordos_estado;
+  if (acordos === undefined) return 0;                          // bloco opcional — sem acordo, nada a checar
+  if (!Array.isArray(acordos)) { err(`\`acordos_estado\` deve ser array (${file})`); return 1; }
+  let fail = 0;
+  for (const ac of acordos) {
+    if (!ac.id) { err(`acordo de estado sem id no contrato`); fail++; continue; }
+    if (!Array.isArray(ac.valores) || !ac.valores.length) { err(`acordo "${ac.id}" sem \`valores\` (array não-vazio)`); fail++; continue; }
+    if (!ac.backend) { err(`acordo "${ac.id}" sem \`backend\` (fonte que emite o state)`); fail++; continue; }
+    // escopo (default "global" = seguro, não vaza Tier 0) + verdict (default "aprovado") — base do eixo D5.
+    const escopo = ac.escopo ?? 'global';
+    if (!ESCOPO_RE.test(escopo)) { err(`acordo "${ac.id}": escopo inválido ${JSON.stringify(escopo)} — use global | vertical:<x> | cliente:biz=<n> | persona:<p> | tela:<rota>`); fail++; continue; }
+    const verdict = ac.verdict ?? 'aprovado';
+    if (!['aprovado', 'recusado'].includes(verdict)) { err(`acordo "${ac.id}": verdict inválido ${JSON.stringify(verdict)} — use aprovado | recusado`); fail++; continue; }
+    if (verdict === 'recusado') { ok(`acordo "${ac.id}" [escopo:${escopo}] — recusado (registrado, não enforçado)`); continue; }
+    const fePaths = ac.frontend ?? c.alvo;
+    const be = readSourceBlob(ac.backend);
+    const fe = readSourceBlob(fePaths);
+    if (!be.files.length) { err(`acordo "${ac.id}": backend não encontrado (${[].concat(ac.backend).join(', ')})`); fail++; continue; }
+    if (!fe.files.length) { err(`acordo "${ac.id}": frontend não encontrado (${[].concat(fePaths).join(', ')})`); fail++; continue; }
+    let local = 0;
+    for (const v of ac.valores) {
+      const inBe = hasStateLiteral(be.code, v);
+      const inFe = hasStateLiteral(fe.code, v);
+      if (!inBe) { err(`acordo "${ac.id}": estado ${JSON.stringify(v)} declarado mas o backend não emite (drift de contrato)`); local++; continue; }
+      if (!inFe) { err(`acordo "${ac.id}": backend emite ${JSON.stringify(v)} mas o frontend NÃO trata — divergência de vocabulário (catraca semântica · ADR 0286)`); local++; }
+    }
+    if (!local) ok(`acordo "${ac.id}" [escopo:${escopo}] — vocabulário {${ac.valores.join(', ')}} coerente backend↔frontend`);
+    fail += local;
   }
   return fail;
 }

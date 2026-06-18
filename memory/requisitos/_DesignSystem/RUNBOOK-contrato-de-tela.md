@@ -44,6 +44,8 @@ Cada tela ganha uma seção `## Contrato visual` no `*.charter.md` (declarada pe
 - **`estados`** (opcional) — nomes de estado (`empty`/`loading`/`selected`/`error`).
 - **`ordem`** — sequência das seções top→down.
 
+E, no nível do contrato (não da seção), `acordos_estado` (opcional) — o vocabulário de `state` que backend e frontend **têm de falar igual** (catraca semântica · §2.3b).
+
 ### 2.2 A ponte: âncoras `data-contract`
 
 O protótipo é Cowork-CSS (`.om-*`, `oklch()`); o prod é Tailwind + tokens semânticos. **Não existe match de classe↔classe não-tautológico.** A ponte é uma âncora explícita no JSX de produção:
@@ -64,6 +66,33 @@ Pra cada seção do contrato, contra os arquivos-alvo da tela (`.tsx`/`_componen
 3. **Ordem** — a sequência das âncoras no fonte = a `ordem` do contrato → senão **FALHA** (`ordem divergente`).
 
 Cor: **não** automatiza match OKLCH↔Tailwind (tautológico). Reaproveita `prototipo-ui/ds-guard.mjs` / `ds:canon:check` (sem hex cru + token semântico).
+
+### 2.3b Catraca semântica: acordo de `state` backend↔frontend ([ADR 0286](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md) §5)
+
+A catraca 2a valida **presença** (âncora + copy + ordem), não **semântica** — o acordo de *valores* entre backend e frontend. Buraco real (incidente 2026-06-18, [PR #2984](https://github.com/wagnerra23/oimpresso.com/pull/2984)): o `connect` devolve `state:'paired'`, o `status` devolve `state:'connected'`, e o `ReconnectModal` só reconhecia `'connected'` → a resposta de sucesso _"Canal já pareado — sessão ativa"_ caía no ramo de **erro vermelho**. Contrato estruturalmente presente, comportamento quebrado — **passou no gate**.
+
+O contrato pode declarar `acordos_estado`: um VOCABULÁRIO de `state` compartilhado por um conceito (ex: "sessão ativa = sucesso"). O gate prova que **cada `state` acordado aparece como literal entre aspas nos DOIS lados** — o `backend` que o EMITE e o `frontend` que o TRATA. Ainda estático/determinístico (regex sobre o fonte, sem render/auth/DB), mesmo idioma do check de copy:
+
+```json
+"acordos_estado": [
+  { "id": "sessao-ativa", "verdict": "aprovado", "escopo": "global",
+    "valores": ["paired", "connected"],
+    "backend":  "Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php",
+    "frontend": ["resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts"] }
+]
+```
+
+**Como casa (anti-teatro):** o literal só conta em **CÓDIGO** (comentários `/* */`/`//`/`#` são removidos antes — um `state` citado em JSDoc NÃO prova que o código o trata; senão é a "backdoor de prosa" que matou o v0, §4) e só em **posição de VALOR** (a chave `'paired' => true` não conta como emissão — senão um rename `paired→pareado` no backend passaria verde). `frontend` é opcional (default = `alvo`). `escopo` (default `global`) e `verdict` (default `aprovado`) ancoram o eixo de veredito-por-zona escopado por tenant (ver proposal veredito-ledger).
+
+Três modos de FALHA:
+
+4. **Vocabulário divergente** — o `backend` emite `<state>` mas o `frontend` NÃO o trata → **FALHA** (`backend emite "<state>" mas o frontend NÃO trata`). _É o bug `paired`≠`connected`._
+5. **Drift de contrato** — `valores` declara um `<state>` que o backend NÃO emite (valor morto / renomeado) → **FALHA** (`estado "<state>" declarado mas o backend não emite`).
+6. **Escopo inválido** — `escopo` fora do formato (`global` | `vertical:<x>` | `cliente:biz=<n>` | `persona:<p>` | `tela:<rota>`) → **FALHA** (typo que mis-escoparia o veredito · risco Tier 0).
+
+Travado por self-test: `4b.1` positivo, `4b.2` o bug, `4b.3` drift, **`4b.4` comment-blindness** (literal só em comentário não conta), **`4b.5` key-false-match** (`'x' =>` não conta), `4b.6/4b.7` escopo válido/inválido.
+
+> **Honestidade (o que a catraca É e NÃO é):** é uma **catraca de regressão** — trava o vocabulário que um humano JÁ declarou em `valores`; **não descobre** uma divergência nova ainda não-declarada. Prospectivamente ela não teria *achado* o bug de 2026-06-18 (ninguém tinha declarado o acordo); ela impede o **des-conserto** silencioso dele. O juízo comportamental forte continua sendo o vitest `tests/reconnect-session-active.test.ts` (#2984); esta catraca amarra a costura PHP↔TS que o vitest não enxerga.
 
 ### 2.4 Desvios legítimos: claim-evidence (não backdoor de prosa)
 
