@@ -61,6 +61,11 @@ function coletarFixtureRepo(): string
         'memory/governance/CONSTITUTION.md'           => "# Constitution\ndoc",
         'memory/governance/_README.md'                => "# Readme gov\nignore",
 
+        // governance/design-requests/ — Design Request Ledger (vereditos · Onda 3)
+        'memory/governance/design-requests/LEDGER.md'        => "# Ledger\nREQ-001 | tela | done",
+        'memory/governance/design-requests/REQ-001.md'       => "# REQ-001\nvocabulário de estado",
+        'memory/governance/design-requests/_TEMPLATE-REQ.md' => "# Template\nignore",
+
         // audits/ raiz (subpasta NÃO recursada)
         'memory/audits/AUDITORIA-MEMORIA-2026-05-15.md' => "# Auditoria\ndoc",
         'memory/audits/2026-05-pre-sales/sensivel.md'   => "# Pre-sales\nsensivel",
@@ -176,6 +181,30 @@ it('coleta sprints/, governance/ e _DesignSystem/ recursivos + audits/ raiz', fu
             fn ($a) => str_contains($a['path'], 'audits/2026-05-pre-sales')
         );
         expect($temPreSales)->toBeFalse();
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+// ── (g2) design-requests/ (Design Request Ledger · vereditos · Onda 3) ──────
+
+it('coleta governance/design-requests/ (ledger de vereditos · Onda 3) e pula o _TEMPLATE', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $map = coletarSlugMap(coletarInvoke($base));
+
+        // o ledger e o REQ chegam ao MCP (consultáveis via memoria-search · read-only ADR 0061)
+        expect($map)->toHaveKey('governance-design-requests-ledger');
+        expect($map)->toHaveKey('governance-design-requests-req-001');
+        expect($map['governance-design-requests-req-001']['type'])->toBe('reference');
+        expect($map['governance-design-requests-req-001']['path'])
+            ->toBe('memory/governance/design-requests/REQ-001.md');
+
+        // o _TEMPLATE-REQ NÃO vaza pro índice
+        $temTemplate = collect($map)->contains(
+            fn ($a) => str_contains($a['path'], 'design-requests/_TEMPLATE')
+        );
+        expect($temTemplate)->toBeFalse();
     } finally {
         coletarLimpar($base);
     }

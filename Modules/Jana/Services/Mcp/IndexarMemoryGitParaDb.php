@@ -289,7 +289,10 @@ class IndexarMemoryGitParaDb
             $arquivos[] = $info;
         }
 
-        // 4. Governance recursivo — CONSTITUTION, ENFORCEMENT, TRUST-TIERS, etc.
+        // 4. Governance recursivo — CONSTITUTION, ENFORCEMENT, TRUST-TIERS, design-requests/, etc.
+        //    Cobre `memory/governance/design-requests/` = o Design Request Ledger (vereditos · Onda 3):
+        //    REQ-NNN + LEDGER ficam consultáveis via memoria-search, READ-ONLY (git é SSOT · ADR 0061).
+        //    Travado por IndexarMemoryGitParaDbColetarTest (não regredir a cobertura dos vereditos).
         foreach ($this->coletarRecursivo("$base/memory/governance", $base, 'reference', 'governance') as $info) {
             $arquivos[] = $info;
         }
