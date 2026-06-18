@@ -1173,3 +1173,15 @@ O prompt propunha 4 ondas pra criar um banner de saúde de canal "porque a tela 
 Quer a opção A (Onda 2/3 — awareness in-thread + pausa de envio no `disconnected`) num handoff seguinte? É o único valor net-new que sobrou; precisa nascer com os estados reais.
 
 **PR:** https://github.com/wagnerra23/oimpresso.com/pull/2963
+
+---
+
+## 2026-06-18 [CL] → [W] — Caixa Unificada: banner movido pro topo da LISTA + layout via primitivos · **#2963 (atualização)**
+_Mesma PR #2963. Após você apontar o screenshot do protótipo ("esse seria o lugar correto? mantenha íntegro")._
+
+- **Posição corrigida:** o `ChannelHealthBanner` saiu do `Index.tsx` (full-width no topo da tela, herança do US-WA-308) e foi pro topo da **coluna de conversas**, logo após a busca — renderizado por `ConversationListV4`, fiel ao protótipo. O prop eager `unhealthyChannels` agora desce `Index → ConversationListV4 → banner`.
+- **Gate pegou:** a 1ª versão usava `<div className="flex/grid">` cru e o **layout-primitives ratchet (ADR 0253)** falhou no CI. Refeito 100% com `<Stack>`/`<Inline>`; a centragem do ícone usa o idioma permitido `grid place-items-center` (adjacente). `node scripts/layout-primitives-guard.mjs` verde local (sem regressão vs baseline).
+- Arquivos: `_components/ChannelHealthBanner.tsx` (refactor) + `_components/ConversationListV4.tsx` (import/prop/render) + `Index.tsx` (remove render full-width) + `Index.charter.md` (Histórico).
+
+### new_design_memories
+- **gotcha**: layout em `.tsx` de tela/componente NÃO pode ter `flex`/`grid` cru — o `layout-primitives-guard` (ADR 0253) é ratchet por-arquivo e falha se o arquivo GANHAR flex/grid solto vs baseline. Compor com `<Stack>`/`<Inline>`/`<Grid>`/`<Box>`. Exceção tolerada: `grid place-items-center` ADJACENTE (centrar 1 ícone) — só conta como permitido se `grid` vier colado em `place-`.
