@@ -1,0 +1,13 @@
+{
+  "_nota": "TEMPLATE/EXEMPLO — não é um contrato ativo. Roda com `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`. Aponta pra Caixa Unificada REAL de propósito: hoje FALHA (o prod ainda não tem âncoras data-contract = o gap de adoção). Vira contrato ativo quando (1) o design atual for versionado [fonte], (2) a tela for instrumentada com data-contract, (3) o charter declarar a seção `## Contrato visual`. Ver RUNBOOK-contrato-de-tela.md §5.",
+  "tela": "Atendimento/CaixaUnificada",
+  "fonte": "prototipo-ui/<bundle-do-design-versionado>/inbox-page.jsx",
+  "alvo": ["resources/js/Pages/Atendimento/CaixaUnificada"],
+  "secoes": [
+    { "id": "lista-conversas", "copy": ["Conversas"], "estados": ["empty", "loading"] },
+    { "id": "thread", "copy": ["Selecione uma conversa"], "estados": ["empty"] },
+    { "id": "composer", "copy": [], "estados": ["preview", "blocked"] },
+    { "id": "contexto", "copy": [], "estados": [] }
+  ],
+  "ordem": ["lista-conversas", "thread", "contexto"]
+}
