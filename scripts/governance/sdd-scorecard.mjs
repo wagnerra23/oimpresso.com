@@ -24,9 +24,10 @@
 //                                                        # SDD_RATCHET_ARM=1 trata todas como armadas (simulação/selftest).
 // Node puro (fs + execSync). Sem deps, sem DB, sem PHP. Idioma: clone de knowledge-drift.mjs.
 
-import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'governance', 'sdd-scorecard.json');
@@ -91,6 +92,38 @@ const notYet = (direction, target, source) => ({
   baseline_rule: '1ª medição real da fonte, nunca do plano (anti-stale)',
 });
 
+// ── fonte: floor do nightly CT100 (ADR 0279 — transporte Opção A · US-GOV-023) ─
+// Read-side do elo MEDIR→GOVERNAR. Lê governance/nightly-floor.json, que o write-side
+// (PR-2) escreve no CT100 via git-push [skip ci]. O artefato carrega floor_count =
+// INTERSEÇÃO dos arquivos-que-falham entre ≥2 runs (def US-GOV-018) + counts por run.
+// O schema NÃO traz passed/total, então a métrica mede o FLOOR (arquivos-que-falham,
+// DESCE pra 0); o nome histórico full_suite_pass_rate fica só pra casar a chave do
+// baseline. Fallback not_yet_measured se ausente/inválido — ZERO-RISCO até a 1ª escrita
+// do CT100 (nunca "mente 0"). Quando o write-side publicar, vira measured sozinha.
+export function measureFullSuiteFloor(floorPath = join(ROOT, 'governance', 'nightly-floor.json')) {
+  if (!existsSync(floorPath)) {
+    return notYet('down', 0,
+      'governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.');
+  }
+  let f;
+  try { f = JSON.parse(readFileSync(floorPath, 'utf8')); }
+  catch { return notYet('down', 0, 'governance/nightly-floor.json presente mas JSON inválido — write-side corrige; fallback honesto.'); }
+  if (typeof f.floor_count !== 'number') {
+    return notYet('down', 0, 'governance/nightly-floor.json sem floor_count numérico (schema ADR 0279) — fallback honesto.');
+  }
+  return {
+    status: 'measured', value: f.floor_count, unit: 'arquivos-que-falham (interseção ≥2 runs · ADR 0279)',
+    direction: 'down', target: 0,
+    source: 'governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)',
+    detail: {
+      floor_files_hash: f.floor_files_hash ?? null,
+      runs: Array.isArray(f.runs) ? f.runs : [],
+      computed_at: f.computed_at ?? null,
+      intersection_of: f.intersection_of ?? null,
+    },
+  };
+}
+
 function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
@@ -115,8 +148,7 @@ function buildScorecard() {
         source: 'scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)',
         detail: an,
       },
-      full_suite_pass_rate: notYet('up', '100% não-quarentenado',
-        'nightly MySQL diagnóstica (FV-F3) roda no CT100 (15+ runs reais; último OK 2026-06-15) — o que falta é o transporte CT100→scorecard publicar governance/nightly-floor.json. Ver ADR 0279 / proposal #2765'),
+      full_suite_pass_rate: measureFullSuiteFloor(),
       n_quarantine: {
         status: 'measured', value: q.files, unit: 'arquivos de teste',
         direction: 'down', target: 0,
@@ -175,16 +207,23 @@ function ratchet(current) {
   return 1;
 }
 
-// ── main ────────────────────────────────────────────────────────────────────
-const scorecard = buildScorecard();
-const body = JSON.stringify(scorecard, null, 2) + '\n';
+// ── main (só quando executado direto; importável p/ teste sem rodar) ────────
+const isMain = (() => {
+  try { return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); }
+  catch { return false; }
+})();
 
-if (MODE_JSON) { process.stdout.write(body); process.exit(0); }
-if (MODE_RATCHET) process.exit(ratchet(scorecard));
+if (isMain) {
+  const scorecard = buildScorecard();
+  const body = JSON.stringify(scorecard, null, 2) + '\n';
 
-writeFileSync(OUT, body, 'utf8');
-const measured = Object.entries(scorecard.metrics).filter(([, m]) => m.status === 'measured');
-const pending = Object.keys(scorecard.metrics).length - measured.length;
-console.log(`\n  SDD SCORECARD → governance/sdd-scorecard.json\n`);
-for (const [name, m] of measured) console.log(`  ✓ ${name.padEnd(22)} ${String(m.value).padStart(6)} ${m.unit}  (meta: ${m.target}, ${m.direction === 'up' ? 'sobe' : 'desce'})`);
-console.log(`  … ${pending} métricas not_yet_measured (fonte futura declarada no JSON — baseline na 1ª medição real)\n`);
+  if (MODE_JSON) { process.stdout.write(body); process.exit(0); }
+  if (MODE_RATCHET) process.exit(ratchet(scorecard));
+
+  writeFileSync(OUT, body, 'utf8');
+  const measured = Object.entries(scorecard.metrics).filter(([, m]) => m.status === 'measured');
+  const pending = Object.keys(scorecard.metrics).length - measured.length;
+  console.log(`\n  SDD SCORECARD → governance/sdd-scorecard.json\n`);
+  for (const [name, m] of measured) console.log(`  ✓ ${name.padEnd(22)} ${String(m.value).padStart(6)} ${m.unit}  (meta: ${m.target}, ${m.direction === 'up' ? 'sobe' : 'desce'})`);
+  console.log(`  … ${pending} métricas not_yet_measured (fonte futura declarada no JSON — baseline na 1ª medição real)\n`);
+}
