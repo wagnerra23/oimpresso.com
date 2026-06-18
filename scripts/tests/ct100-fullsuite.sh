@@ -237,6 +237,14 @@ for attempt in $(seq 1 12); do
     BLOCKER=$(grep -E 'Cannot (re)?declare' "$RUN_DIR/pest-out.txt" \
       | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
   fi
+  # Detector 3 — PHP "Parse error" no LOAD: arquivo com sintaxe quebrada tambem zera a
+  # suite (exit 255 + junit.xml 0 bytes) ANTES do 1o teste e nao cai em 1 nem 2. Mensagem:
+  # "PHP Parse error: ... in /workspace/<F> on line N" — mesmo formato de cauda do detector 2.
+  # (Salvo de #2954, sessao paralela 2026-06-18 — #2953 cobriu redeclare, este cobre parse.)
+  if [ -z "$BLOCKER" ] && grep -qE 'Parse error' "$RUN_DIR/pest-out.txt"; then
+    BLOCKER=$(grep -E 'Parse error' "$RUN_DIR/pest-out.txt" \
+      | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
+  fi
   [ -z "$BLOCKER" ] && break
   # Sanity: extracao errada de path NAO deve matar o run sob set -e — so quarentena o
   # arquivo que realmente existe no clone.
