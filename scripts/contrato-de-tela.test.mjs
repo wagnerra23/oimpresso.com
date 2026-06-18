@@ -217,6 +217,50 @@ const FE_BUG = `export function isSessionActive(d){ return d.state === 'connecte
   drop(root);
 }
 
+// ── Onda 2: resolução de escopo (não-vazamento Tier 0 · P0) ────────────────────
+function makeResolveRoot(acordos) {
+  const root = mkdtempSync(join(tmpdir(), 'contrato-resolve-'));
+  mkdirSync(join(root, 'tela'), { recursive: true });
+  writeFileSync(join(root, 'tela', 'Index.tsx'), `export default () => (<div data-contract="ok">x</div>);`);
+  writeFileSync(join(root, 'contrato.json'), JSON.stringify({
+    tela: 'R', alvo: ['tela'], secoes: [{ id: 'ok', copy: [] }], acordos_estado: acordos,
+  }));
+  return root;
+}
+// mesmo conceito `sessao-ativa` em 3 escopos (global / cliente:biz=4 / tela:R)
+const ACORDOS_MULTI = [
+  { id: 'sessao-ativa', escopo: 'global', valores: ['paired'], backend: 'tela/Index.tsx' },
+  { id: 'sessao-ativa', escopo: 'cliente:biz=4', valores: ['paired'], backend: 'tela/Index.tsx' },
+  { id: 'sessao-ativa', escopo: 'tela:R', valores: ['paired'], backend: 'tela/Index.tsx' },
+];
+
+// O2.1 — especificidade: ctx cliente:biz=4 (sem tela) → vence cliente:biz=4 (> global).
+{
+  const root = makeResolveRoot(ACORDOS_MULTI);
+  const r = node(root, ['--resolve', 'contrato.json', '--ctx', 'cliente:biz=4']);
+  check("resolução: ctx biz=4 → vence escopo cliente:biz=4 (> global)",
+    /vence \[escopo:cliente:biz=4\]/.test(out(r)), out(r));
+  drop(root);
+}
+
+// O2.2 — NÃO-VAZAMENTO TIER 0 (P0): ctx biz=7 → o veredito biz=4 NÃO aplica; cai pro global.
+{
+  const root = makeResolveRoot(ACORDOS_MULTI);
+  const r = node(root, ['--resolve', 'contrato.json', '--ctx', 'cliente:biz=7']);
+  check("NÃO-VAZAMENTO Tier 0: veredito cliente:biz=4 NÃO aplica a biz=7 (vence global)",
+    /vence \[escopo:global\]/.test(out(r)) && !/vence \[escopo:cliente:biz=4\]/.test(out(r)), out(r));
+  drop(root);
+}
+
+// O2.3 — tela > cliente: ctx tela:R + cliente:biz=4 → vence tela:R.
+{
+  const root = makeResolveRoot(ACORDOS_MULTI);
+  const r = node(root, ['--resolve', 'contrato.json', '--ctx', 'tela:R,cliente:biz=4']);
+  check("resolução: ctx tela:R+biz=4 → vence tela:R (tela > cliente)",
+    /vence \[escopo:tela:R\]/.test(out(r)), out(r));
+  drop(root);
+}
+
 // ── Omissão (git repo temporário) ─────────────────────────────────────────────
 function makeGitRepo() {
   const root = mkdtempSync(join(tmpdir(), 'contrato-omi-'));

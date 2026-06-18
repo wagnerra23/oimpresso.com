@@ -270,6 +270,71 @@ function checkStateAgreements(c, file) {
   return fail;
 }
 
+// ── Onda 2: resolução de escopo (veredito-por-tenant · NÃO-VAZAMENTO Tier 0) ───────────────
+// Vários vereditos do MESMO conceito (`id`) em escopos diferentes → resolve QUAL vale num contexto.
+// O mais ESPECÍFICO vence (later-wins em empate), igual a herança da Constituição UI ("herda, nunca
+// contradiz") e o `resolutionOrder` do W3C DTCG. PROPRIEDADE TIER 0 (P0): um veredito `cliente:biz=4`
+// NÃO aplica a `biz=7` — escopo que não casa o contexto é IGNORADO, então NÃO vaza entre tenants.
+const ESCOPO_SPEC = ['global', 'vertical:', 'persona:', 'cliente:biz=', 'tela:']; // índice = especificidade
+function escopoSpec(escopo) {
+  if (escopo === 'global') return 0;
+  for (let i = 1; i < ESCOPO_SPEC.length; i++) if (escopo.startsWith(ESCOPO_SPEC[i])) return i;
+  return -1;
+}
+function escopoAplica(escopo, ctx) {
+  if (escopo === 'global') return true;
+  if (escopo.startsWith('vertical:')) return ctx.vertical != null && ctx.vertical === escopo.slice(9);
+  if (escopo.startsWith('persona:')) return ctx.persona != null && ctx.persona === escopo.slice(8);
+  if (escopo.startsWith('cliente:biz=')) return ctx.cliente != null && String(ctx.cliente) === escopo.slice(12);
+  if (escopo.startsWith('tela:')) return ctx.tela != null && ctx.tela === escopo.slice(5);
+  return false;
+}
+// Resolve o veredito vencedor por `id` pra um contexto. Escopo que não casa o ctx é DESCARTADO
+// (não-vazamento). Entre os que casam, maior especificidade vence; empate → o último (later-wins).
+function resolveVereditos(vereditos, ctx) {
+  const win = new Map();
+  for (const v of vereditos) {
+    const escopo = v.escopo ?? 'global';
+    if (!escopoAplica(escopo, ctx)) continue;          // ← não-vazamento Tier 0
+    const spec = escopoSpec(escopo);
+    const cur = win.get(v.id);
+    if (!cur || spec >= cur._spec) win.set(v.id, { ...v, escopo, _spec: spec });
+  }
+  return [...win.values()];
+}
+// `--ctx cliente:biz=4,tela:Foo,vertical:vestuario,persona:larissa` → objeto de contexto.
+function parseCtx(s) {
+  const ctx = {};
+  for (const tok of (s || '').split(',').map(t => t.trim()).filter(Boolean)) {
+    if (tok.startsWith('cliente:biz=')) ctx.cliente = tok.slice(12);
+    else if (tok.startsWith('vertical:')) ctx.vertical = tok.slice(9);
+    else if (tok.startsWith('persona:')) ctx.persona = tok.slice(8);
+    else if (tok.startsWith('tela:')) ctx.tela = tok.slice(5);
+  }
+  return ctx;
+}
+// --resolve <contrato.json> --ctx <tokens>: imprime o veredito vencedor por conceito naquele contexto.
+function resolveContract(file, ctxStr) {
+  const c = loadContract(file);
+  const acordos = Array.isArray(c.acordos_estado) ? c.acordos_estado : [];
+  const ctx = parseCtx(ctxStr);
+  log(`tela: ${c.tela ?? file} · contexto: ${JSON.stringify(ctx)}`);
+  let fail = 0;
+  for (const ac of acordos) {
+    const escopo = ac.escopo ?? 'global';
+    if (!ESCOPO_RE.test(escopo)) { err(`acordo "${ac.id}": escopo inválido ${JSON.stringify(escopo)}`); fail++; }
+  }
+  if (fail) return fail;
+  if (!acordos.length) { log('(contrato sem `acordos_estado`)'); return 0; }
+  const ganho = new Map(resolveVereditos(acordos, ctx).map(g => [g.id, g]));
+  for (const id of [...new Set(acordos.map(a => a.id))]) {
+    const g = ganho.get(id);
+    if (g) ok(`conceito "${id}" → vence [escopo:${g.escopo}] verdict=${g.verdict ?? 'aprovado'}`);
+    else warn(`conceito "${id}" → nenhum veredito aplica ao contexto (cai pro default do código)`);
+  }
+  return 0;
+}
+
 // ── Catraca 3: omissão (inverte a fonte) ──────────────────────────────────────
 const SYMBOL_RES = [
   /export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class)\s+([A-Za-z0-9_]+)/,
@@ -324,9 +389,9 @@ function buildMap(doCheck) {
   const contracts = listContracts();
   let fail = 0;
   log('# Mapa protótipo → produção  ·  GERADO por `contrato-de-tela.mjs --map` — NÃO editar à mão\n');
-  log('| Tela | Fonte (protótipo) | Seções | Último commit no alvo | Estado |');
-  log('|---|---|---:|---|---|');
-  if (!contracts.length) log('| _(nenhum contrato ativo)_ | — | — | — | — |');
+  log('| Tela | Fonte (protótipo) | Seções | Vereditos (escopo) | Último commit no alvo | Estado |');
+  log('|---|---|---:|---|---|---|');
+  if (!contracts.length) log('| _(nenhum contrato ativo)_ | — | — | — | — | — |');
   for (const cf of contracts) {
     let c;
     try { c = JSON.parse(readFileSync(resolve(ROOT, cf), 'utf8')); }
@@ -338,11 +403,13 @@ function buildMap(doCheck) {
     const missing = secs.filter(s => !ids.has(s.id));
     const dev = hasDeviation(c.alvo);
     const last = git(`log -1 --format=%h -- ${(c.alvo || []).map(x => `"${x}"`).join(' ')}`) || '—';
+    const acordos = Array.isArray(c.acordos_estado) ? c.acordos_estado : [];
+    const vereditosCol = acordos.length ? acordos.map(a => `${a.id}[${a.escopo ?? 'global'}:${a.verdict ?? 'aprovado'}]`).join('<br>') : '—';
     const estado = !fonteOk ? '🔴 fonte quebrada'
       : missing.length === 0 ? '🟢 portado'
         : dev ? '⚠️ âncora-faltando (desvio declarado)'
           : '🔴 âncora-faltando';
-    log(`| ${tela} | \`${c.fonte ?? '—'}\` ${fonteOk ? '✓' : '✗'} | ${secs.length - missing.length}/${secs.length} | ${last} | ${estado} |`);
+    log(`| ${tela} | \`${c.fonte ?? '—'}\` ${fonteOk ? '✓' : '✗'} | ${secs.length - missing.length}/${secs.length} | ${vereditosCol} | ${last} | ${estado} |`);
     if (doCheck) {
       if (!fonteOk) { err(`${tela}: fonte aponta arquivo inexistente — ${c.fonte}`); fail++; }
       if (missing.length && !dev) { err(`${tela}: seção(ões) sem âncora e sem design-deviation — ${missing.map(s => s.id).join(', ')}`); fail++; }
@@ -367,11 +434,13 @@ function main() {
     let alvos = alvoFlag ? alvoFlag.split(',') : null;
     if (!alvos && contractFlag) alvos = loadContract(contractFlag).alvo;
     fail += checkOmission(base, alvos, argVal('--notes'));
+  } else if (a.includes('--resolve')) {
+    fail += resolveContract(argVal('--resolve'), argVal('--ctx'));
   } else if (a.includes('--map')) {
     fail += buildMap(a.includes('--check'));
     if (!a.includes('--check')) process.exit(0); // --map informativo: só a tabela, sem resumo
   } else {
-    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check]]');
+    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check] | --resolve <f.json> --ctx <cliente:biz=N,tela:X,…>]');
     process.exit(2);
   }
   if (fail) { log(`\n❌ ${fail} falha(s).`); process.exit(1); }
