@@ -22,7 +22,7 @@ use Symfony\Component\Yaml\Yaml;
 // Tests/TestCase já é aplicado pelo tests/Pest.php pra todo Feature/
 
 const SPEC_ADR_DIR             = 'memory/decisions';
-const SPEC_STATUS_VALIDOS      = ['proposto', 'aceito', 'deprecated', 'superseded', 'rascunho'];
+const SPEC_STATUS_VALIDOS      = ['proposto', 'aceito', 'recusado', 'deprecated', 'superseded', 'rascunho'];
 const SPEC_CAMPOS_OBRIGATORIOS = ['slug', 'number', 'title', 'type', 'status', 'decided_by', 'decided_at'];
 
 /**
