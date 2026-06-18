@@ -280,7 +280,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
       const t = setTimeout(() => setConnecting(null), 800);
       return () => clearTimeout(t);
     }
-  }, [channels, connecting?.id]);
+  }, [channels, connecting]);
 
   return (
     <div className="p-4 space-y-4">
