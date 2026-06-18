@@ -15,7 +15,9 @@
   "acordos_estado": [
     {
       "id": "sessao-ativa",
-      "descricao": "Vocabulário de `state` que significa sessão JÁ ATIVA = sucesso, não erro. O connect (ChannelsController::whatsmeowPairedResponse) emite state:'paired'+paired:true; o status (statusWhatsmeow) emite state:'connected'. O ReconnectModal só tratava 'connected' → 'paired' caía no ramo de erro vermelho. Fix #2984 unificou no predicado isSessionActive. Ver ADR 0286 §5.",
+      "verdict": "aprovado",
+      "escopo": "global",
+      "descricao": "Vocabulário de `state` que significa sessão JÁ ATIVA = sucesso, não erro. O connect (ChannelsController::whatsmeowPairedResponse) emite state:'paired'+paired:true; o status (statusWhatsmeow) emite state:'connected'. O ReconnectModal só tratava 'connected' → 'paired' caía no ramo de erro vermelho. Fix #2984 unificou no predicado isSessionActive. Ver ADR 0286 §5. Escopo global (vale a todo tenant) — default seguro do eixo D5.",
       "valores": ["paired", "connected"],
       "backend": "Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php",
       "frontend": ["resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts"]

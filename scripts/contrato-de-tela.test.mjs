@@ -137,6 +137,64 @@ const FE_BUG = `export function isSessionActive(d){ return d.state === 'connecte
   drop(root);
 }
 
+// 4b.4 NEGATIVO — comment-blindness: o frontend tem o BUG (só 'connected') mas CITA 'paired' num
+// comentário. Literal em prosa NÃO pode contar (senão é "backdoor de prosa", RUNBOOK §4) → exit 1.
+// (sem o strip de comentário isto passaria VERDE — era o furo achado pelo adversário no arquivo real.)
+{
+  const feBugCommented = `// Aceita 'paired' (connect) e 'connected' (status) — mas o código abaixo só trata um.\nexport function isSessionActive(d){ return d.state === 'connected'; }`;
+  const root = makeAgreementRoot({ frontendTs: feBugCommented });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check(
+    "comment-blindness: 'paired' só em comentário NÃO conta → exit 1 (anti backdoor-de-prosa)",
+    r.status === 1 && /paired/.test(out(r)) && /NÃO trata/.test(out(r)),
+    out(r),
+  );
+  drop(root);
+}
+
+// 4b.5 NEGATIVO — key-false-match: backend renomeou o state ('pareado') mas manteve a CHAVE booleana
+// `'paired' => true`. A chave não é emissão de state → backend "não emite" 'paired' → exit 1 (drift).
+{
+  const bePareado = `<?php\nreturn ['state' => 'pareado', 'paired' => true];\nreturn ['state' => 'connected'];\n`;
+  const root = makeAgreementRoot({ frontendTs: FE_GOOD, backendPhp: bePareado });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check(
+    "key-false-match: `'paired' => true` (chave) não conta como emissão → exit 1 (drift)",
+    r.status === 1 && /paired/.test(out(r)) && /backend não emite/.test(out(r)),
+    out(r),
+  );
+  drop(root);
+}
+
+// 4b.6 POSITIVO — escopo válido explícito (cliente:biz=4) + verdict aprovado → exit 0 (eixo D5).
+{
+  const root = mkdtempSync(join(tmpdir(), 'contrato-escopo-'));
+  mkdirSync(join(root, 'backend'), { recursive: true });
+  mkdirSync(join(root, 'tela'), { recursive: true });
+  writeFileSync(join(root, 'tela', 'Index.tsx'), `export default () => (<div data-contract="ok">Canal reconectado!</div>);`);
+  writeFileSync(join(root, 'tela', 'reconnectState.ts'), FE_GOOD);
+  writeFileSync(join(root, 'backend', 'C.php'), `<?php\nreturn ['state' => 'paired'];\nreturn ['state' => 'connected'];\n`);
+  writeFileSync(join(root, 'contrato.json'), JSON.stringify({
+    tela: 'Esc', alvo: ['tela'], secoes: [{ id: 'ok', copy: ['Canal reconectado!'] }],
+    acordos_estado: [{ id: 'sessao-ativa', verdict: 'aprovado', escopo: 'cliente:biz=4', valores: ['paired', 'connected'], backend: 'backend/C.php', frontend: ['tela/reconnectState.ts'] }],
+  }));
+  const r = node(root, ['--contract', 'contrato.json']);
+  check("escopo válido cliente:biz=4 + verdict aprovado → exit 0", r.status === 0 && /escopo:cliente:biz=4/.test(out(r)), out(r));
+  drop(root);
+}
+
+// 4b.7 NEGATIVO — escopo em formato inválido (typo) → exit 1 (não mis-escopa o veredito · Tier 0).
+{
+  const root = makeAgreementRoot({ frontendTs: FE_GOOD });
+  writeFileSync(join(root, 'contrato.json'), JSON.stringify({
+    tela: 'EscBad', alvo: ['tela'], secoes: [{ id: 'ok', copy: ['Canal reconectado!'] }],
+    acordos_estado: [{ id: 'sessao-ativa', escopo: 'cliente_biz_4', valores: ['paired', 'connected'], backend: 'backend/ChannelsController.php', frontend: ['tela/reconnectState.ts'] }],
+  }));
+  const r = node(root, ['--contract', 'contrato.json']);
+  check("escopo inválido 'cliente_biz_4' → exit 1 (formato)", r.status === 1 && /escopo inválido/.test(out(r)), out(r));
+  drop(root);
+}
+
 // ── Omissão (git repo temporário) ─────────────────────────────────────────────
 function makeGitRepo() {
   const root = mkdtempSync(join(tmpdir(), 'contrato-omi-'));

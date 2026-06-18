@@ -75,18 +75,24 @@ O contrato pode declarar `acordos_estado`: um VOCABULÁRIO de `state` compartilh
 
 ```json
 "acordos_estado": [
-  { "id": "sessao-ativa", "valores": ["paired", "connected"],
+  { "id": "sessao-ativa", "verdict": "aprovado", "escopo": "global",
+    "valores": ["paired", "connected"],
     "backend":  "Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php",
     "frontend": ["resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts"] }
 ]
 ```
 
-Dois modos de FALHA:
+**Como casa (anti-teatro):** o literal só conta em **CÓDIGO** (comentários `/* */`/`//`/`#` são removidos antes — um `state` citado em JSDoc NÃO prova que o código o trata; senão é a "backdoor de prosa" que matou o v0, §4) e só em **posição de VALOR** (a chave `'paired' => true` não conta como emissão — senão um rename `paired→pareado` no backend passaria verde). `frontend` é opcional (default = `alvo`). `escopo` (default `global`) e `verdict` (default `aprovado`) ancoram o eixo de veredito-por-zona escopado por tenant (ver proposal veredito-ledger).
 
-4. **Vocabulário divergente** — o `backend` emite `<state>` mas o `frontend` NÃO o trata → **FALHA** (`backend emite "<state>" mas o frontend NÃO trata`). _É exatamente o bug `paired`≠`connected`._
-5. **Drift de contrato** — `valores` declara um `<state>` que o backend NÃO emite (valor morto) → **FALHA** (`estado "<state>" declarado mas o backend não emite`).
+Três modos de FALHA:
 
-`frontend` é opcional (default = `alvo` do contrato). Travado por self-test (controles `4b.1` positivo, `4b.2` o bug, `4b.3` drift) — o `4b.2` roda o gate contra o `ReconnectModal` no estado pré-fix e exige exit 1.
+4. **Vocabulário divergente** — o `backend` emite `<state>` mas o `frontend` NÃO o trata → **FALHA** (`backend emite "<state>" mas o frontend NÃO trata`). _É o bug `paired`≠`connected`._
+5. **Drift de contrato** — `valores` declara um `<state>` que o backend NÃO emite (valor morto / renomeado) → **FALHA** (`estado "<state>" declarado mas o backend não emite`).
+6. **Escopo inválido** — `escopo` fora do formato (`global` | `vertical:<x>` | `cliente:biz=<n>` | `persona:<p>` | `tela:<rota>`) → **FALHA** (typo que mis-escoparia o veredito · risco Tier 0).
+
+Travado por self-test: `4b.1` positivo, `4b.2` o bug, `4b.3` drift, **`4b.4` comment-blindness** (literal só em comentário não conta), **`4b.5` key-false-match** (`'x' =>` não conta), `4b.6/4b.7` escopo válido/inválido.
+
+> **Honestidade (o que a catraca É e NÃO é):** é uma **catraca de regressão** — trava o vocabulário que um humano JÁ declarou em `valores`; **não descobre** uma divergência nova ainda não-declarada. Prospectivamente ela não teria *achado* o bug de 2026-06-18 (ninguém tinha declarado o acordo); ela impede o **des-conserto** silencioso dele. O juízo comportamental forte continua sendo o vitest `tests/reconnect-session-active.test.ts` (#2984); esta catraca amarra a costura PHP↔TS que o vitest não enxerga.
 
 ### 2.4 Desvios legítimos: claim-evidence (não backdoor de prosa)
 
