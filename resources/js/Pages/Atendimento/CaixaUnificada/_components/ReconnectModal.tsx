@@ -19,6 +19,8 @@ import {
 } from '@/Components/ui/dialog';
 import { Inline, Stack } from '@/Components/layout';
 
+import { isSessionActive } from './reconnectState';
+
 interface Props {
   channelId: number;
   /** Tipo/provider do canal — só 'meta_cloud'/'wa_meta' não tem QR. Default = QR (banner é Baileys/whatsmeow). */
@@ -42,7 +44,7 @@ export default function ReconnectModal({ channelId, channelType, label, handle, 
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [state, setState] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const connected = state === 'connected';
+  const connected = isSessionActive({ state });
 
   // 1) connect → QR PNG real (só pra canais QR)
   useEffect(() => {
@@ -64,7 +66,8 @@ export default function ReconnectModal({ channelId, channelType, label, handle, 
           setQrImage(data.qr_png_data_url || null);
           setPairingCode(data.pairing_code || null);
           setState(data.state || null);
-          if (!data.qr_png_data_url && !data.pairing_code && data.state !== 'connected') {
+          // Canal já pareado (connect → 'paired'/'paired:true') ou conectado = SUCESSO, não erro.
+          if (!isSessionActive(data) && !data.qr_png_data_url && !data.pairing_code) {
             setError(data.message || 'O canal respondeu sem QR nem código.');
           }
         }
@@ -88,7 +91,7 @@ export default function ReconnectModal({ channelId, channelType, label, handle, 
         });
         const data = await r.json();
         setState(data.state);
-        if (data.state === 'connected') {
+        if (isSessionActive(data)) {
           setTimeout(() => { onReconnected?.(); router.reload({ only: ['unhealthyChannels', 'conversations'] }); onClose(); }, 1500);
         }
       } catch { /* engole — próximo tick tenta de novo */ }
