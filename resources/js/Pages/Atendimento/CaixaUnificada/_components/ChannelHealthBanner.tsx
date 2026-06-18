@@ -1,5 +1,7 @@
 import { AlertTriangle, QrCode } from 'lucide-react';
 
+import { Inline, Stack } from '@/Components/layout';
+
 import type { UnhealthyChannel } from './helpers';
 
 /**
@@ -12,6 +14,7 @@ import type { UnhealthyChannel } from './helpers';
  * já existe em `/atendimento/canais/{id}`.
  *
  * Lê o prop EAGER `unhealthyChannels` (não-deferred) pra aparecer no first-paint.
+ * Layout via primitivos `<Stack>`/`<Inline>` (ADR 0253).
  */
 const HEALTH_LABEL: Record<string, string> = {
   disconnected: 'desconectado',
@@ -23,7 +26,7 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
   if (!channels || channels.length === 0) return null;
 
   return (
-    <div className="shrink-0 flex flex-col gap-1 px-1" data-testid="caixa-unif-health-banner">
+    <Stack gap={1} className="shrink-0 px-1" data-testid="caixa-unif-health-banner">
       {channels.map((ch) => {
         const label = HEALTH_LABEL[ch.channel_health] ?? 'desconectado';
         const caiu = ch.last_health_check_at
@@ -31,10 +34,11 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
           : null;
 
         return (
-          <div
+          <Inline
             key={ch.id}
+            gap={3}
             role="alert"
-            className="flex items-center gap-3 rounded-md border border-red-300 bg-red-50 px-3.5 py-2.5 dark:border-red-900/60 dark:bg-red-950/40"
+            className="rounded-md border border-red-300 bg-red-50 px-3.5 py-2.5 dark:border-red-900/60 dark:bg-red-950/40"
             data-testid={`caixa-unif-health-banner-${ch.id}`}
           >
             <AlertTriangle size={18} className="shrink-0 text-red-600 dark:text-red-400" aria-hidden />
@@ -55,9 +59,9 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
               <QrCode size={15} aria-hidden />
               Religar agora
             </a>
-          </div>
+          </Inline>
         );
       })}
-    </div>
+    </Stack>
   );
 }
