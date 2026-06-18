@@ -85,3 +85,8 @@ playwright-report/
 # .github/scripts/validate-memory-schema.sh; o workflow memory-schema-gate.yml
 # também o gera e faz upload como artefato CI-only. Não versionar.
 violations.json
+
+# Floor do nightly (ADR 0279 transporte Opção A): vive na branch órfã
+# governance/nightly-floor (escrito pelo write-side CT100); o scorecard o
+# MATERIALIZA no CWD em CI antes de medir. Nunca versionado no main.
+governance/nightly-floor.json
