@@ -466,7 +466,7 @@ export default function ConversationListV4({
       </div>
 
       {/* US-WA-308 (redesign Cowork) — banner saúde de canal no topo da lista, fiel ao protótipo */}
-      <ChannelHealthBanner channels={unhealthyChannels} />
+      <ChannelHealthBanner channels={unhealthyChannels} accounts={accounts} catalog={channels} />
 
       {/* Lista */}
       {conversations.data.length === 0 ? (

@@ -1,13 +1,12 @@
 import { useState } from 'react';
 
 import { router } from '@inertiajs/react';
-import { AlertTriangle, PlugZap, RefreshCw, X } from 'lucide-react';
+import { PlugZap, RefreshCw, WifiOff, X } from 'lucide-react';
 
 import { Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
-import { relativeTimeBR } from './helpers';
-import type { UnhealthyChannel } from './helpers';
+import type { AccountItem, ChannelCatalogItem, UnhealthyChannel } from './helpers';
 
 /**
  * ChannelHealthBanner — banner "canal caiu — reconectar" no topo da LISTA da Caixa.
@@ -17,13 +16,16 @@ import type { UnhealthyChannel } from './helpers';
  * a tela não avisava por ~3h. O `whatsmeow:health-probe` (cron 3min) passou a
  * convergir o health real e este banner o exibe.
  *
- * Redesign Cowork ([CC]→[CL] 2026-06-18, [W] escolheu trocar o visual E posicionar
+ * Design Cowork ([CC]→[CL] 2026-06-18, [W] escolheu trocar o visual + posicionar
  * no topo da COLUNA de conversas — fiel ao protótipo): tom graduado warn/err,
- * dispensável, resumo multi-canal e CTA Reconectar. Renderizado por
- * `ConversationListV4` (logo após a busca), alimentado pelo prop EAGER
- * `unhealthyChannels` (não-deferred → first-paint), mapeado aos estados REAIS do
- * probe — `disconnected`/`banned` (fora do ar, err) e `degraded` (instável, warn).
- * Não existe estado "down": o backend nunca o emite.
+ * dispensável, resumo multi-canal e CTA Reconectar.
+ *
+ * Fonte autoritativa = prop EAGER `unhealthyChannels` (cron-convergido, Tier 0 +
+ * ACL no Controller). Como ele não carrega contagem nem glyph, o banner ENRIQUECE
+ * `count` (conversas afetadas) e `short` (label do canal) a partir de `accounts` +
+ * `catalog` — os mesmos `availableAccounts`/`availableChannels` que a lista já
+ * recebe (zero backend novo). Estados REAIS do probe: `disconnected`/`banned`
+ * (fora do ar, err) e `degraded` (warn). Não existe estado "down".
  *
  * Layout por primitivos `<Stack>`/`<Inline>` (ADR 0253 — sem flex/grid solto; a
  * centragem de ícone usa o idioma permitido `grid place-items-center`). Cor 100%
@@ -35,13 +37,13 @@ const ERR_STATES = new Set(['disconnected', 'banned']);
 const STATE_VERB: Record<string, string> = {
   disconnected: 'está fora do ar',
   banned: 'foi bloqueado pela Meta',
-  degraded: 'está instável',
+  degraded: 'está degradado',
 };
 
 const STATE_LABEL: Record<string, string> = {
   disconnected: 'fora do ar',
   banned: 'bloqueado pela Meta',
-  degraded: 'instável',
+  degraded: 'degradado',
 };
 
 const isErr = (health: string) => ERR_STATES.has(health);
@@ -55,18 +57,23 @@ function providerName(type: string | null | undefined): string {
   return 'Canal';
 }
 
-/** "verificado há 5min" / "verificado agora" / "verificado 14:32" / "" */
-function checkLabel(iso: string | null): string {
-  const rel = relativeTimeBR(iso);
-  if (!rel) return '';
-  if (rel === 'agora') return 'verificado agora';
-  if (/^\d+min$/.test(rel)) return `verificado há ${rel}`;
-  return `verificado ${rel}`;
+const plural = (n: number) => (n === 1 ? 'conversa afetada' : 'conversas afetadas');
+
+interface Props {
+  channels: UnhealthyChannel[];
+  accounts?: AccountItem[];
+  catalog?: ChannelCatalogItem[];
 }
 
-export default function ChannelHealthBanner({ channels }: { channels: UnhealthyChannel[] }) {
+export default function ChannelHealthBanner({ channels, accounts = [], catalog = [] }: Props) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed || !channels || channels.length === 0) return null;
+
+  // Enriquecimento (count + short) a partir do que a lista já tem em mãos.
+  const countById = new Map(accounts.map((a) => [a.id, a.count]));
+  const shortByType = new Map(catalog.map((c) => [c.id, c.short]));
+  const nameOf = (ch: UnhealthyChannel) => shortByType.get(ch.type) ?? providerName(ch.type);
+  const countOf = (ch: UnhealthyChannel) => countById.get(ch.id) ?? 0;
 
   const worst = channels.some((c) => isErr(c.channel_health)) ? 'err' : 'warn';
   const multi = channels.length > 1;
@@ -78,7 +85,8 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
 
   const reconnect = (id: number) => router.visit(route('atendimento.channels.show', id));
   const c0 = channels[0]!;
-  const chk = checkLabel(c0.last_health_check_at);
+  const c0Count = countOf(c0);
+  const totalConvs = channels.reduce((sum, c) => sum + countOf(c), 0);
 
   return (
     <Stack
@@ -89,7 +97,7 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
     >
       <Inline align="start" className="gap-2.5">
         <span className={cn('mt-px grid place-items-center h-6 w-6 shrink-0 rounded-md', iconWrap)}>
-          {worst === 'err' ? <PlugZap size={14} aria-hidden /> : <AlertTriangle size={14} aria-hidden />}
+          {worst === 'err' ? <PlugZap size={14} aria-hidden /> : <WifiOff size={14} aria-hidden />}
         </span>
         <div className="min-w-0 flex-1">
           {multi ? (
@@ -98,19 +106,21 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
                 {channels.length} canais com problema de conexão
               </b>
               <span className="text-[11.5px] opacity-90">
-                Novas mensagens podem não estar entrando até você reconectar.
+                {totalConvs > 0
+                  ? `${totalConvs} ${totalConvs === 1 ? 'conversa pode' : 'conversas podem'} não receber mensagens novas.`
+                  : 'Conversas podem não receber mensagens novas.'}
               </span>
             </>
           ) : (
             <>
               <b className="block text-[12.5px] font-semibold">
-                {providerName(c0.type)} · {c0.label} {STATE_VERB[c0.channel_health] ?? 'está fora do ar'}.
+                {nameOf(c0)} · {c0.label} {STATE_VERB[c0.channel_health] ?? 'está fora do ar'}.
               </b>
               <span className="text-[11.5px] opacity-90">
                 {isErr(c0.channel_health)
-                  ? 'Novas mensagens não estão entrando até você reconectar.'
-                  : 'Sincronização instável — pode haver atraso na entrega.'}
-                {chk ? ` · ${chk}.` : ''}
+                  ? 'Mensagens novas não estão chegando.'
+                  : 'Sincronização lenta — pode haver atraso.'}
+                {c0Count > 0 ? ` ${c0Count} ${plural(c0Count)}.` : ''}
               </span>
             </>
           )}
@@ -145,31 +155,38 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
         </div>
       ) : (
         <Stack gap={1} className="pl-[34px]">
-          {channels.map((c) => (
-            <Inline key={c.id} className="gap-2 text-[11.5px]">
-              <span
-                className={cn(
-                  'h-1.5 w-1.5 shrink-0 animate-pulse rounded-full',
-                  isErr(c.channel_health) ? 'bg-destructive' : 'bg-warning',
-                )}
-                aria-hidden
-              />
-              <span className="min-w-0 flex-1 truncate">
-                <b className="font-semibold">
-                  {providerName(c.type)} · {c.label}
-                </b>
-                <span className="opacity-85"> — {STATE_LABEL[c.channel_health] ?? 'fora do ar'}</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => reconnect(c.id)}
-                className="shrink-0 font-semibold underline underline-offset-2 hover:opacity-80"
-                data-testid={`caixa-unif-health-reconnect-${c.id}`}
-              >
-                Reconectar
-              </button>
-            </Inline>
-          ))}
+          {channels.map((c) => {
+            const n = countOf(c);
+            return (
+              <Inline key={c.id} className="gap-2 text-[11.5px]">
+                <span
+                  className={cn(
+                    'h-1.5 w-1.5 shrink-0 animate-pulse rounded-full',
+                    isErr(c.channel_health) ? 'bg-destructive' : 'bg-warning',
+                  )}
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 truncate">
+                  <b className="font-semibold">
+                    {nameOf(c)} · {c.label}
+                  </b>
+                  <span className="opacity-85">
+                    {' '}
+                    — {STATE_LABEL[c.channel_health] ?? 'fora do ar'}
+                    {n > 0 ? `, ${n} conversas` : ''}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => reconnect(c.id)}
+                  className="shrink-0 font-semibold underline underline-offset-2 hover:opacity-80"
+                  data-testid={`caixa-unif-health-reconnect-${c.id}`}
+                >
+                  Reconectar
+                </button>
+              </Inline>
+            );
+          })}
         </Stack>
       )}
     </Stack>
