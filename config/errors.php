@@ -28,4 +28,39 @@ return [
     */
     'group_decay_days' => (int) env('ERROR_GROUP_DECAY_DAYS', 14),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Auto-resolução (Fase 2 · E-3) — retry / backoff / dead-letter
+    |--------------------------------------------------------------------------
+    |
+    | Os S1/S2 recuperáveis do Mapa (SEFAZ fora, webhook atrasado, Baileys off)
+    | se resolvem sozinhos sem acordar ninguém — sobe o "% auto-resolvido".
+    | S0 NUNCA auto-resolve (dinheiro/dado/segurança = humano · ADR 0284 §4).
+    | Sem retry infinito: esgotou → promove pra S1 e para.
+    |
+    | @see prototipo-ui/handoffs/erros-autoresolucao.md
+    */
+    'auto_resolve' => [
+        'enabled' => (bool) env('ERROR_AUTO_RESOLVE_ENABLED', true),
+
+        // Teto de tentativas — sem retry infinito (dead-letter promove pra S1).
+        'max_attempts' => (int) env('ERROR_AUTO_RESOLVE_MAX_ATTEMPTS', 5),
+
+        // Backoff exponencial: base · 2^(n-1), saturado no teto (segundos).
+        'backoff_base_seconds' => (int) env('ERROR_AUTO_RESOLVE_BACKOFF_BASE_SECONDS', 30),
+        'backoff_max_seconds' => (int) env('ERROR_AUTO_RESOLVE_BACKOFF_MAX_SECONDS', 900),
+
+        // Whitelist de donos/domínios recuperáveis (S1/S2). Fora disto → humano.
+        'whitelist_owners' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('ERROR_AUTO_RESOLVE_OWNERS', 'fiscal,cobranca,whatsapp,ingest'))
+        ))),
+
+        // Fila/conexão do reprocesso. Vazio → default do app. Em prod, aponte a
+        // conexão pra 'reprocess' (retry_after alto · @see config/queue.php) pra o
+        // worker não reclamar um job em backoff e duplicar efeito.
+        'connection' => env('ERROR_AUTO_RESOLVE_CONNECTION') ?: null,
+        'queue' => env('ERROR_AUTO_RESOLVE_QUEUE') ?: null,
+    ],
+
 ];
