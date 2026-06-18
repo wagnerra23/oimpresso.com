@@ -238,6 +238,10 @@
       "nome": "Quick Sync (manual escape — auto-deploy agora é deploy.yml)",
       "classe": "deploy"
     },
+    "reincidencia-guard.yml": {
+      "nome": "Reincidência Guard (advisory · C3/C4/C5 · sobrepõe handoff-integrity, consolidar Regra 7)",
+      "classe": "gate"
+    },
     "repair-shared-vocab.yml": {
       "nome": "Repair shared vocabulary guard",
       "classe": "gate"

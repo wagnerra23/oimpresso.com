@@ -1087,8 +1087,32 @@ Gap 3 levers · Gap 2 badge `conflito` · publisher Cowork→repo (zero-toque re
 
 ---
 
+## 2026-06-18 [CL] → [W] — Caçador de reincidência vira guard git (C3/C4/C5) · **#2950 (ABERTO · advisory)**
+_worktree `D:/oimpresso-reincid-guard` off `origin/main` @`e588a2429` (base `main`). Tarefa 2 do handoff "DS rollout". **Você escolheu explicitamente "build the standalone reincidencia-guard.mjs as written"** apesar do meu aviso de duplicação — segue feito, funcional e transparente._
+
+### Entregue (#2950)
+- `scripts/reincidencia-guard.mjs` — o sketch do handoff, com os `// confirmar` resolvidos pro real (`QUEUE=prototipo-ui/COWORK_NOTES.md`, `DIR=prototipo-ui`, marcador `LINHA-DAGUA-HANDOFF` — o `"LINHA D'ÁGUA"` do sketch era placeholder) + flags `--root/--write/--json` pra testabilidade. Detecta C3 fundido · C4 órfão/ref-morta · C5 item ativo sem `verificado vs main`.
+- `scripts/reincidencia-guard.test.mjs` — controle-negativo **18 casos** (morde C3/C4/C5 + não falso-positiva: C5-com-carimbo, baseline congelado, abaixo-da-linha).
+- `scripts/reincidencia-baseline.json` (`[]`, fila limpa hoje) · `.github/workflows/reincidencia-guard.yml` (**advisory** de nascença, ADR 0271/0275) · registrado em `gates-registry.json` (censo · memory-health check G) · 3 npm scripts.
+
+### Verificação
+`reincidencia:check` 🟢 · selftest 18/18 · `memory-health` **0 🔴** (censo OK). Node puro (roda sem `node_modules`).
+
+### ⚠️ Honestidade (Regra 7 — leia antes de mergear)
+**Duplica `handoff-integrity-guard.mjs` (#2869, no `main`):** C3 + C4 já estão mecanizados lá, **mesmo arquivo + mesmo marcador**, com baseline+selftest. A única classe nova é **C5**, mas a heurística `> … → [CL]` **casa zero** na fila real (bullets `- **…**`) → **no-op** hoje, até você confirmar a sintaxe de "item ativo" (PROCESSO §16 marca C5 🔜/[W]). **Recomendo** consolidar o C5 dentro do `handoff-integrity-guard` (fonte única) numa próxima onda em vez de manter 2 guards sobre o mesmo arquivo. Deixei advisory pra não brigar com o irmão.
+
+### Nota de merge
+Esta entrada e a do #2947 (Tarefa 1) **anexam no mesmo fim** do `CODE_NOTES.md` (ambas off `origin/main`) — o 2º PR a mergear pode pedir um resolve trivial (manter as duas entradas).
+
+### new_design_memories
+- **gotcha**: antes de "construir o guard X do sketch", `grep` por um guard irmão — `handoff-integrity-guard` já mecanizava C3/C4 no mesmo arquivo. Sketch pasteado ≠ greenfield; quase sempre há um home (Regra 7).
+- **gotcha**: o `WATER` do sketch (`"LINHA D'ÁGUA"`) era placeholder; o marcador real é `LINHA-DAGUA-HANDOFF`. `split`/`indexOf` no token errado → fila inteira vira "ativa" (silencioso). Confirmar o token real, não colar o do sketch.
+- **golden**: workflow novo PRECISA de entrada em `scripts/governance/gates-registry.json` no MESMO PR, senão `memory-health` (enforce, check G "censo de gates") 🔴 bloqueia.
+
+---
+
 ## 2026-06-18 [CL] → [W] — Financeiro/Unificado: header migra pro `<PageHeader>` canon v3.8 · **#2947 (ABERTO)**
-_worktree `D:/oimpresso-unif-ph` off `origin/main` @`724e7326a` (base `main`). NÃO na branch governance da cwd órfã `frosty-greider-83ab2f`. Tarefa 1 do handoff "DS rollout — header canon"._
+_worktree `D:/oimpresso-unif-ph` off `origin/main` @`724e7326a` (base `main`). Tarefa 1 do handoff "DS rollout — header canon". Re-landado AQUI (fim do arquivo) ao resolver o conflito de tail previsto com #2950 — as duas entradas preservadas (append-only)._
 
 Auditei vs `origin/main` fresco (§10.4): Unificado era a **última Page Financeiro fora do canon de header** — única ainda importando o deprecated `@/Components/shared/PageHeader` (`pageheader-gate` CONGELADO) + bloco inline `os-page-h fin-page-h`. Dashboard/Dre/ContasPagar **já no canon** no `main` (re-baseline do [CC] confere; não retoquei nenhuma).
 
@@ -1097,12 +1121,13 @@ Auditei vs `origin/main` fresco (§10.4): Unificado era a **última Page Finance
 - **Zona R preservada byte-a-byte** via `children` (escape hatch — mirror exato de Dre/ContasPagar): 3 lentes US-FIN-029 + divisor + `<FinanceiroSubNav hidePrimary>` (6 overflow) + dropdown "Novo título".
 - Remove 2 imports mortos (`shared/PageHeader` + `FinanceiroPrimaryButton`).
 - `pageheader-shared-baseline.json` regenerado **104→101** (absorveu 2 já-migradas sem refresh: `Jana/Brief`, `OficinaAuto/ServiceOrders/Index`).
+- G-6 (ADR 0264): `Unificado/Index.casos.md` revalidado (bump `last_run` → 2026-06-18) — header é só chrome; UC-F01..03 (fluxo backend venda→título→caixa) intocados, seguem ✅ pelo `RetencaoLoopE2ETest`.
 
 ### NÃO toquei (escopo travado)
 Lentes/filtros/baixa/KPI/footer/drawer · peso H1 600×700 (Tier 0, espera [W]) · Dashboard/Dre/ContasPagar.
 
 ### Verificação
-`pageheader:guard` + `components`/`layout`/`ds-canon`/`conformance`/`foundation` **verdes**. `tsc`/`eslint` via CI (toolchain local sem `node_modules`, modelo CT100/CI). **Screenshot-gate:** [W] aprovou **on-parity** (chrome idêntico ao `<PageHeader>` já live em `/dre` e `/contas-pagar`); confirmação de pixel via `tela-smoke-pos-merge` (prod @1280/@1440) pós-merge.
+`pageheader:guard` + `casos:check` + `components`/`layout`/`ds-canon`/`conformance`/`foundation` **verdes**. CI #2947: 0 fails (ESLint, Vite build, E2E, PHPStan, Pest, Governance/memory-health verdes). **Screenshot-gate:** [W] aprovou **on-parity** (chrome idêntico ao `<PageHeader>` já live em `/dre` e `/contas-pagar`); confirmação de pixel via `tela-smoke-pos-merge` (prod @1280/@1440) pós-merge.
 
 ### Resíduos (fora de escopo, não bloqueiam)
 - `Unificado/Novo.tsx` ainda no deprecated `shared/PageHeader` → 1 PR separado.
@@ -1111,4 +1136,5 @@ Lentes/filtros/baixa/KPI/footer/drawer · peso H1 600×700 (Tier 0, espera [W]) 
 ### new_design_memories
 - **golden**: migrar header pro canon = trocar SÓ o container; a Zona R (conteúdo da tela) sobrevive byte-a-byte via `children` do `<PageHeader>` (mirror Dre/ContasPagar). Nada de reescrever lentes/subnav/dropdown.
 - **gotcha**: o primary "Novo título" do Unificado é `DropdownMenuTrigger asChild` (Radix) — **não** vira `<PageHeaderPrimary>` (não forward ref/props do Radix → quebra o menu). O trigger `os-btn primary` já resolve roxo 295 (`var(--accent)`, ADR 0190), então o canon de cor já está atendido.
+- **gotcha**: editar o `.tsx` deixa o trio `Index.casos.md` STALE (G-6 · ADR 0264) — o `casos-gate` falha em CI mesmo se `casos:check` local passar. Bumpar `last_run` + linha na trilha (mudança só-UI → UCs de backend intocados).
 - **gotcha**: `pageheader-shared-baseline.json` estava **stale** no `origin/main` (count 104 vs real 102 — telas migraram sem `--write`). Regenerar (`--write`) cai pro real e absorve as órfãs; o ratchet só aperta → seguro, mas o diff do baseline mostra +1 tela que você não tocou.

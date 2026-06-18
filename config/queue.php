@@ -71,6 +71,22 @@ return [
             'after_commit' => false,
         ],
 
+        /*
+        | Conexão dedicada ao reprocesso da auto-resolução (Fase 2 · E-3).
+        | retry_after ALTO (> backoff_max + timeout do ReprocessJob) pra o worker
+        | NUNCA reclamar um job em backoff exponencial e re-executá-lo — duplicar
+        | NF-e/cobrança é proibido (idempotência). after_commit: o efeito externo
+        | só roda depois do commit do dado de origem.
+        | @see config/errors.php ('auto_resolve') · prototipo-ui/handoffs/erros-autoresolucao.md
+        */
+        'reprocess' => [
+            'driver' => 'database',
+            'table' => 'jobs',
+            'queue' => env('REPROCESS_QUEUE', 'reprocess'),
+            'retry_after' => (int) env('REPROCESS_RETRY_AFTER', 1200),
+            'after_commit' => true,
+        ],
+
     ],
 
     /*
