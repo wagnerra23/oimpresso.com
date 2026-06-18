@@ -1,4 +1,6 @@
 ---
+date: '2026-06-18'
+topic: "Estado da arte — libs WhatsApp não-oficiais (whatsmeow/WuzAPI vs Baileys/Evolution/WAHA) + decisão evoluir-vs-trocar"
 slug: arte-whatsapp-naoficiais
 title: "Estado da arte — libs WhatsApp não-oficiais (whatsmeow/WuzAPI vs Baileys vs Evolution vs WAHA) + decisão evoluir-vs-trocar"
 type: session
