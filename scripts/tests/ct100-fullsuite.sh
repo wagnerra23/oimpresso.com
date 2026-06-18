@@ -224,6 +224,20 @@ for attempt in $(seq 1 12); do
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
+  # US-GOV-018 hardening (2026-06-18): fatais de LOAD que zeram a suite inteira (junit 0
+  # bytes / pest exit 255) ANTES de 1 teste rodar — o detector de folder acima NAO os pega,
+  # entao 1 arquivo envenenado matava o nightly inteiro (06-16/17/18: redeclare insertAuditLog).
+  #  (a) "Cannot redeclare <fn>() (previously declared in /workspace/<PATH>:N)" — funcao
+  #      global duplicada entre 2 test files (Pest carrega tudo no mesmo escopo global).
+  #  (b) "Parse error ... in /workspace/<PATH> on line N" — arquivo com sintaxe quebrada.
+  # Quarentena o arquivo ofensor (registrado em loader-blockers.txt) e re-tenta, em vez de
+  # quebrar o run. Consertar o arquivo e das lanes de burn-down, nao desta.
+  if [ -z "$BLOCKER" ]; then
+    BLOCKER=$(grep -oP 'Cannot redeclare.*previously declared in /workspace/\K[^:)]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
+  fi
+  if [ -z "$BLOCKER" ]; then
+    BLOCKER=$(grep -oP 'Parse error[^\n]* in /workspace/\K[^ ]+(?= on line)' "$RUN_DIR/pest-out.txt" | head -1 || true)
+  fi
   [ -z "$BLOCKER" ] && break
   echo "LOADER-BLOCKER ($attempt): $BLOCKER — movido pro lado no clone, registrado"
   echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
