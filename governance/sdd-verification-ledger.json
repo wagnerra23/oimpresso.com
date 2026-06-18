@@ -32,7 +32,7 @@
       "amostra_pct": 100,
       "itens_verificados": 25,
       "erros_confirmados": 0,
-      "error_rate_pct": 0.0,
+      "error_rate_pct": 0,
       "pii_scan": true,
       "pii_hits": 0,
       "evidencia": "refutador G5 sessao fresca 2026-06-15 — cobre PR #2750 (13 redirects FUNDIR) + PR #2751 (4 lapides + 5 wishes + 3 portas leves). 25/25 conferidos contra E1 + emenda #2748 + existencia das pastas-alvo.",
@@ -49,7 +49,7 @@
       "amostra_pct": 100,
       "itens_verificados": 71,
       "erros_confirmados": 0,
-      "error_rate_pct": 0.0,
+      "error_rate_pct": 0,
       "pii_scan": true,
       "pii_hits": 0,
       "veredito": "aprovado",
@@ -66,11 +66,28 @@
       "amostra_pct": 100,
       "itens_verificados": 38,
       "erros_confirmados": 0,
-      "error_rate_pct": 0.0,
+      "error_rate_pct": 0,
       "pii_scan": true,
       "pii_hits": 0,
       "veredito": "aprovado",
       "evidencia": "refutador G5 sessao fresca 2026-06-15 — reparticao cluster Estoque (34 docs move R100 + 4 stubs)"
+    },
+    {
+      "pr": 2970,
+      "lote_id": "SA-A5-batch1-pg-pmg-kb",
+      "data": "2026-06-18",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (workflow A5 — agente Explore)",
+      "refutador": "opus-4.8 (workflow A5 — refutador G5 Explore adversarial)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 16,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "A5 motor (workflow wf_52d3c190-19c): gerador propos anchors (path real do codigo por US, existsSync-guarded); refutador G5 adversarial reverificou cada path (test -f + leu o arquivo, default=mentira se incerto) — 23 confirmados real / 0 mentira / 0 incerto. Aplicados 16 (headings US-XXX-NNN reconhecidos pelo anchor-lint: US-PG x3, US-TR x7, US-KB x6); 7 PMG-00x confirmados mas heading nao-canonico (PMG- nao US-) fora do lote. Verificado live: anchor-lint coverage 5.4->7.5%, anchored_ok 19->35, dead 15->15 (zero novo), orphan 5->5 (zero novo).",
+      "veredito": "aprovado"
     }
   ]
 }
