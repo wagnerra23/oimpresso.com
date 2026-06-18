@@ -1397,14 +1397,12 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 </tbody>
                 <tfoot className="bg-muted/30 border-t border-border">
                   <tr className="text-sm">
-                    <td colSpan={4} className="px-3 py-2">
-                      <div className="flex items-center justify-between gap-2">
-                        {/* Total de itens no próprio card — evita rolar até o KPI do topo (Wagner 2026-06-18). */}
-                        <span className="font-normal text-muted-foreground tabular-nums">
-                          {itensCount} {itensCount === 1 ? 'item' : 'itens'}
-                        </span>
-                        <span className="font-medium text-foreground">Subtotal</span>
-                      </div>
+                    {/* Total de itens no próprio card — evita rolar até o KPI do topo (Wagner 2026-06-18). */}
+                    <td className="px-3 py-2 text-muted-foreground tabular-nums">
+                      {itensCount} {itensCount === 1 ? 'item' : 'itens'}
+                    </td>
+                    <td colSpan={3} className="px-3 py-2 text-right font-medium text-foreground">
+                      Subtotal
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums font-semibold text-foreground">
                       {formatBRL(subtotalProdutos)}

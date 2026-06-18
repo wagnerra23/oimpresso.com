@@ -101,6 +101,7 @@
     "resources/js/Pages/ads/Admin/TeamScopes.tsx": 1,
     "resources/js/Pages/ads/Admin/Tools.tsx": 7,
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelChipsRow.tsx": 3,
+    "resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelHealthBanner.tsx": 5,
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx": 2,
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx": 16,
     "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx": 9,

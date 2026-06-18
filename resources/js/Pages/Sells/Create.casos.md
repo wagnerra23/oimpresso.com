@@ -4,7 +4,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-11"
+last_run: "2026-06-18"
 ---
 
 # Casos de Uso & Aceite — Venda balcão (Sells/Create)
@@ -24,7 +24,7 @@ last_run: "2026-06-11"
 - **Como usa:** abre a venda, busca o produto (nome/SKU/código de barras), confere a linha no carrinho, NÃO informa pagamento e salva. O sistema acusa o saldo devedor em vez de bloquear (decisão [W] 2026-05-27 — paridade com o POS Blade que sempre permitiu finalizar sem pagamento).
 - **Aceite:** Dado cliente default (Walk-In) + location pré-selecionada · Quando adiciona produto e salva sem pagamento · Então o indicador **"Venda a prazo — saldo devedor R$ X"** aparece antes do submit, o POST cria a venda (backend `payment_status=due`) e a tela sai do formulário sem erro.
 - **Teste:** `e2e/sells-venda-balcao.spec.ts` (Playwright, harness G-3 e2e-gate).
-- **Status: ✅**
+- **Status: 🧪** _(refactor só-de-layout 2026-06-18 — total de itens no rodapé + ordem desconto→pagamento; o fluxo venda-a-prazo não mudou. A prova de 2026-06-11 ficou anterior ao código; re-rodar o e2e + `npm run casos:results` restaura o ✅.)_
 
 ---
 
@@ -43,3 +43,4 @@ last_run: "2026-06-11"
 
 ## Trilha do tempo
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
+- 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).
