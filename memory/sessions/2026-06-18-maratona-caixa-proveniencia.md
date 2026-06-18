@@ -2,7 +2,6 @@
 date: 2026-06-18
 topic: "Maratona Caixa Unificada: port inbox-cur (Guia/Notas) + QR Reconectar + catraca Contrato de Tela + memória de proveniência design→código completa"
 tela: Atendimento/CaixaUnificada
-related_adrs: [0114, 0135, 0256, 0264]
 pii: false
 ---
 
