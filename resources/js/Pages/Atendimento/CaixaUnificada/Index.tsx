@@ -50,7 +50,6 @@ import QueuesSheet from './_components/QueuesSheet';
 import ConversationListV4 from './_components/ConversationListV4';
 import ConversationThreadV4 from './_components/ConversationThreadV4';
 import ContextSidebarV4 from './_components/ContextSidebarV4';
-import ChannelHealthBanner from './_components/ChannelHealthBanner';
 import type {
   AccountItem,
   AssigneeItem,
@@ -418,9 +417,6 @@ export default function CaixaUnificadaIndex({
         </div>
       </div>
 
-      {/* US-WA-308 — banner "canal caiu — religar" (incidente 2026-06-18) */}
-      <ChannelHealthBanner channels={unhealthyChannels ?? []} />
-
       {/* Polish V2 §5 — tabs mobile (abaixo de lg; desktop 3-col intacto) */}
       <InboxMobileTabs
         view={mobileView}
@@ -480,6 +476,7 @@ export default function CaixaUnificadaIndex({
             orderBy={orderBy}
             availableTags={availableTags ?? []}
             activeTagIds={activeTagIds ?? []}
+            unhealthyChannels={unhealthyChannels ?? []}
           />
         </Deferred>
         </div>
