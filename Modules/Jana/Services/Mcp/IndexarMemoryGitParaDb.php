@@ -550,7 +550,7 @@ class IndexarMemoryGitParaDb
         }
 
         return [
-            'status'        => $this->normalizarEnum($fm['status'] ?? null, ['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded']),
+            'status'        => $this->normalizarEnum($fm['status'] ?? null, ['rascunho', 'proposto', 'aceito', 'recusado', 'deprecated', 'superseded']),
             'authority'     => $this->normalizarEnum($fm['authority'] ?? null, ['canonical', 'reference', 'exploratory']),
             'lifecycle'     => $this->normalizarEnum($fm['lifecycle'] ?? null, ['ativo', 'arquivado', 'substituido']),
             'quarter'       => is_string($fm['quarter'] ?? null) ? $fm['quarter'] : null,
