@@ -38,6 +38,7 @@ import {
   type Paginated,
   type CaixaUnifStats,
   type QueueConfig,
+  type UnhealthyChannel,
   initials,
   avatarHue,
   relativeTimeBR,
@@ -47,6 +48,7 @@ import {
   SLA_META,
 } from './helpers';
 import { useInboxFavs } from './useInboxFavs';
+import ChannelHealthBanner from './ChannelHealthBanner';
 
 type InboundAging = '6h' | '12h' | '24h' | '48h' | '7d' | null;
 type OrderBy = 'last_message' | 'inbound';
@@ -76,6 +78,8 @@ interface Props {
   // Wave 5-B F1 — filtro tags multi-select
   availableTags?: ConvTag[];
   activeTagIds?: number[];
+  // US-WA-308 (redesign Cowork) — canais ativos com saúde caída (eager, first-paint)
+  unhealthyChannels?: UnhealthyChannel[];
 }
 
 const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; title?: string }[] = [
@@ -95,6 +99,7 @@ export default function ConversationListV4({
   within24h = null, unlinked = false, mediaInbound24h = false,
   inboundAging = null, orderBy = 'last_message',
   availableTags = [], activeTagIds = [],
+  unhealthyChannels = [],
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
   const tab = status as CaixaUnifTab;
@@ -459,6 +464,9 @@ export default function ConversationListV4({
           </button>
         )}
       </div>
+
+      {/* US-WA-308 (redesign Cowork) — banner saúde de canal no topo da lista, fiel ao protótipo */}
+      <ChannelHealthBanner channels={unhealthyChannels} accounts={accounts} catalog={channels} />
 
       {/* Lista */}
       {conversations.data.length === 0 ? (
