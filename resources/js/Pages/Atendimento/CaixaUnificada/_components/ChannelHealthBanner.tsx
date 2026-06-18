@@ -14,8 +14,8 @@ import type { UnhealthyChannel } from './helpers';
  * já existe em `/atendimento/canais/{id}`.
  *
  * Lê o prop EAGER `unhealthyChannels` (não-deferred) pra aparecer no first-paint.
- * Layout via primitivos `<Stack>`/`<Inline>` (ADR 0253); cor de status via token
- * semântico `text-destructive` (ds/no-adhoc-status-text).
+ * Layout via primitivos `<Stack>`/`<Inline>` (ADR 0253); cor 100% semântica via
+ * token `destructive` (ds/no-adhoc-status-text + ui:lint R1) — auto dark-mode.
  */
 const HEALTH_LABEL: Record<string, string> = {
   disconnected: 'desconectado',
@@ -39,7 +39,7 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
             key={ch.id}
             gap={3}
             role="alert"
-            className="rounded-md border border-red-300 bg-red-50 px-3.5 py-2.5 dark:border-red-900/60 dark:bg-red-950/40"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-3.5 py-2.5"
             data-testid={`caixa-unif-health-banner-${ch.id}`}
           >
             <AlertTriangle size={18} className="shrink-0 text-destructive" aria-hidden />
@@ -54,7 +54,7 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
             </div>
             <a
               href={route('atendimento.channels.show', ch.id)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-red-300 bg-white px-3 py-1.5 text-[12.5px] font-medium text-destructive transition-colors hover:bg-red-100 dark:border-red-900/60 dark:bg-transparent dark:hover:bg-red-950"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-destructive/40 bg-background px-3 py-1.5 text-[12.5px] font-medium text-destructive transition-colors hover:bg-destructive/10"
               data-testid={`caixa-unif-health-banner-religar-${ch.id}`}
             >
               <QrCode size={15} aria-hidden />
