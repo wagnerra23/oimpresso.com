@@ -1138,3 +1138,38 @@ Lentes/filtros/baixa/KPI/footer/drawer · peso H1 600×700 (Tier 0, espera [W]) 
 - **gotcha**: o primary "Novo título" do Unificado é `DropdownMenuTrigger asChild` (Radix) — **não** vira `<PageHeaderPrimary>` (não forward ref/props do Radix → quebra o menu). O trigger `os-btn primary` já resolve roxo 295 (`var(--accent)`, ADR 0190), então o canon de cor já está atendido.
 - **gotcha**: editar o `.tsx` deixa o trio `Index.casos.md` STALE (G-6 · ADR 0264) — o `casos-gate` falha em CI mesmo se `casos:check` local passar. Bumpar `last_run` + linha na trilha (mudança só-UI → UCs de backend intocados).
 - **gotcha**: `pageheader-shared-baseline.json` estava **stale** no `origin/main` (count 104 vs real 102 — telas migraram sem `--write`). Regenerar (`--write`) cai pro real e absorve as órfãs; o ratchet só aperta → seguro, mas o diff do baseline mostra +1 tela que você não tocou.
+
+---
+
+## 2026-06-18 [CL] → [W] — Caixa Unificada: `ChannelHealthBanner` ganha visual Cowork · **#2963 (ABERTO)**
+_worktree `D:/oimpresso-caixa-health` off `origin/main` @`9b4bfe295` (base `main`). Handoff `PROMPT_PARA_CODE_CHANNEL-HEALTH-BANNER`. **Não mergeei** (publication-policy) — aguarda screenshot [W]._
+
+### Validação vs `main` (§10.4) — a premissa do handoff estava stale
+O prompt propunha 4 ondas pra criar um banner de saúde de canal "porque a tela não avisa o operador". **Não procede:**
+- **Onda 1 (banner) + Onda 4 (backend agregado) já shipadas** por **#2956 (US-WA-308/309)** — no MESMO commit que o prompt citou como verificado (`fc04eddcf3a7`): banner no topo (`Index.tsx:422`), prop eager `unhealthyChannels` + `last_health_check_at` + cron `whatsmeow:health-probe`. O inventário do prompt olhou `ConversationListV4`/`ConversationThreadV4`/`ChannelsDrawer` e **não viu** que `Index.tsx` já renderiza o banner.
+- **Vocabulário errado:** prompt assume `channel_health ∈ {healthy,degraded,down,never_checked}`; o backend real emite `disconnected`/`banned`/`degraded`. **`down` nunca existe** → as branches `down` (incl. a pausa de envio da Onda 2) seriam **dead-code**.
+
+[W] decidiu (em vez de duplicar/sobrescrever cego): **trocar o visual** do banner US-WA-308 pelo design Cowork, **mantendo a arquitetura eager-prop**.
+
+### Entregue (#2963)
+- `_components/ChannelHealthBanner.tsx`: tom graduado **warn** (`degraded`) / **err** (`disconnected`/`banned`), **dispensável** (X), **resumo multi-canal** (dots pulsantes + Reconectar por linha), CTA **Reconectar** (`router.visit` → `/atendimento/canais/{id}`), "verificado há N min" via `relativeTimeBR`.
+- Cor 100% semântica (`warning`/`destructive` soft+fg, R1 + ADR 0281). **Mesmo prop** `channels: UnhealthyChannel[]` → `Index.tsx` **intocado**.
+- Charter v16→v17 (Histórico).
+
+### NÃO fiz (escopo travado pela escolha [W])
+- Onda 2 (marcador no header da thread + pausa de envio no composer) e Onda 3 (botão Reconectar no drawer) — eram a opção A. Ficam pra um handoff próprio, re-especificados pros estados reais (`disconnected`/`banned`, não `down`).
+- Backend: nada (Onda 4 já existe).
+
+### Verificação
+- `R-WA-CAIXA-UNIF-014` (payload `unhealthyChannels`) **intacto** — é teste de Controller, não DOM. Nenhum teste assertava o copy antigo ("Religar agora").
+- `tsc`/Vite/visual-regression no **CI** (worktree sem `node_modules`). ds-guard §8 não cobre `.tsx`.
+
+### new_design_memories
+- **golden**: "valide vs `main` antes de codar" (§10.4) pegou um handoff INTEIRO stale — banner + backend já existiam no commit citado como base. Sem isso eu teria duplicado um fix de incidente (US-WA-308) ou criado dead-code.
+- **gotcha**: o handoff modelava o health como `healthy|degraded|down|never_checked`; o `whatsmeow:health-probe` emite `disconnected`/`banned`/`degraded`. Mapear pro vocabulário REAL do backend (não o do protótipo) é obrigatório, senão `=== 'down'` vira branch morta.
+- **gotcha**: o componente que o prompt mandava CRIAR já existia (US-WA-308), consumido por `Index.tsx` — não por `ConversationListV4`, onde o inventário do prompt procurou. Inventário que só olha os consumidores citados perde componente já wired por outra tela.
+
+### Pergunta pra [CC]/[W]
+Quer a opção A (Onda 2/3 — awareness in-thread + pausa de envio no `disconnected`) num handoff seguinte? É o único valor net-new que sobrou; precisa nascer com os estados reais.
+
+**PR:** https://github.com/wagnerra23/oimpresso.com/pull/2963
