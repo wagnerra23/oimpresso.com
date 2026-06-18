@@ -74,6 +74,18 @@ final class WhatsmeowReconciler
             return WhatsmeowState::NOT_EXISTS;
         }
 
+        // 2b. Blindagem (Wagner 2026-06-18): a própria lista /admin/users já traz
+        // connected/loggedIn por sessão. Usa como fonte PRIMÁRIA de "pareado" —
+        // não depende do user_token salvo em config_json, que pode ter ficado
+        // stale e fazer /session/status retornar 401, travando o fechamento
+        // automático da tela do QR. Só decide PAIRED aqui; demais estados seguem
+        // o fluxo abaixo (token + /session/status) que distingue QR_PENDING etc.
+        $remoteConnected = (bool) ($remoteUser['connected'] ?? $remoteUser['Connected'] ?? false);
+        $remoteLoggedIn = (bool) ($remoteUser['loggedIn'] ?? $remoteUser['LoggedIn'] ?? false);
+        if ($remoteConnected && $remoteLoggedIn) {
+            return WhatsmeowState::PAIRED;
+        }
+
         // 3. Token user disponível pra consultar status?
         $cfg = $channel->config_json ?? [];
         $userToken = $cfg['whatsmeow_user_token'] ?? null;
