@@ -368,7 +368,18 @@ export default function ProductSearchAutocomplete({
   // Click fora fecha dropdown
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Element | null;
+      // Radix renderiza PopoverContent num Portal em document.body — FORA do
+      // containerRef. Sem este guard, o mousedown num item do popover de variação
+      // ("Escolha o tamanho") conta como "clique fora" e dispara setOpen(false) +
+      // setExpandedProductId(null) ANTES do onClick do <button> da variação rodar:
+      // o Popover desmonta e a seleção nunca chega em onSelect → a variação não é
+      // adicionada à venda (Larissa @ Rota Livre 2026-06-18: "ao selecionar o
+      // tamanho ele não é adicionado, está sendo preciso digitar o SKU"). Digitar
+      // o SKU funcionava porque cai no handler de teclado (Enter), sem clique no
+      // portal. Cobre também o popover de configurar-busca (mesmo wrapper Radix).
+      if (target?.closest('[data-radix-popper-content-wrapper]')) return;
+      if (containerRef.current && !containerRef.current.contains(target as Node)) {
         setOpen(false);
         setExpandedProductId(null);
       }
