@@ -33,6 +33,11 @@ on:
       - 'bin/sign-handoff.php'
       - '.github/workflows/handoff-sign-submit.yml'
   workflow_dispatch:
+    inputs:
+      handoff:
+        description: '(Re)submeter UM handoff já pousado → pending na Forja (ex: prototipo-ui/handoffs/foo.md). Pra handoffs que aterrissaram sem o submit rodar — ADR 0283/0285.'
+        required: true
+        type: string
 
 concurrency:
   group: handoff-sign-submit-${{ github.ref }}
@@ -58,7 +63,7 @@ jobs:
 
   submit:
     name: sign & submit handoffs alterados → pending
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -77,17 +82,29 @@ jobs:
           MCP_ENDPOINT: ${{ vars.MCP_ENDPOINT_URL || 'https://mcp.oimpresso.com/api/mcp' }}
           BEFORE_SHA: ${{ github.event.before }}
           AFTER_SHA: ${{ github.sha }}
+          DISPATCH_HANDOFF: ${{ github.event.inputs.handoff }}
         run: |
           set -euo pipefail
 
-          # Diff do push. Primeiro push/force (before=000…) → compara com o pai.
-          BASE="${BEFORE_SHA}"
-          if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
-            BASE="${AFTER_SHA}^"
-          fi
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            # Re-submit manual de UM handoff já pousado (input via env — sem injeção de shell).
+            FILES=( "${DISPATCH_HANDOFF}" )
+            [ -n "${FILES[0]}" ] || { echo "input 'handoff' vazio — nada a submeter."; exit 0; }
+            case "${FILES[0]}" in
+              prototipo-ui/handoffs/*.md) : ;;
+              *) echo "❌ 'handoff' tem que ser prototipo-ui/handoffs/*.md — recebi: ${FILES[0]}"; exit 1 ;;
+            esac
+            [ -f "${FILES[0]}" ] || { echo "❌ ${FILES[0]} não existe neste ref."; exit 1; }
+          else
+            # Diff do push. Primeiro push/force (before=000…) → compara com o pai.
+            BASE="${BEFORE_SHA}"
+            if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+              BASE="${AFTER_SHA}^"
+            fi
 
-          # Só handoffs que AINDA existem (added/modified; deletados são ignorados).
-          mapfile -t FILES < <(git diff --name-only --diff-filter=AM "${BASE}" "${AFTER_SHA}" -- 'prototipo-ui/handoffs/*.md' | sort -u)
+            # Só handoffs que AINDA existem (added/modified; deletados são ignorados).
+            mapfile -t FILES < <(git diff --name-only --diff-filter=AM "${BASE}" "${AFTER_SHA}" -- 'prototipo-ui/handoffs/*.md' | sort -u)
+          fi
 
           if [ "${#FILES[@]}" -eq 0 ]; then
             echo "Nenhum handoff novo/alterado neste push — nada a submeter."
