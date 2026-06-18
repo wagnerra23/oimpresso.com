@@ -24,12 +24,14 @@ use Modules\Whatsapp\Services\WhatsmeowReconciler;
  *
  * Este probe consulta o estado REAL do daemon (`Reconciler.reconcile()` →
  * `/session/status`) pra cada canal whatsmeow ATIVO e converge o DB:
- *   - LOGGED_OUT / NOT_EXISTS  → `markDisconnectedInDb` (sessão morreu → re-parear)
+ *   - LOGGED_OUT / NOT_EXISTS / PROVISION_PENDING → `markDisconnectedInDb` (canal
+ *     ATIVO com sessão não conectada = caiu → re-parear). PROVISION_PENDING incluído
+ *     no fix 2026-06-18: o daemon retorna Connected=false (não LOGGED_OUT) quando a
+ *     sessão morre — era a razão do canal 11 caído não ser detectado.
  *   - BANNED                   → `markDisconnectedInDb(banDetected: true)`
  *   - PAIRED                   → `markPairedInDb` (só re-marca se estava unhealthy)
- *   - DAEMON_UNREACHABLE / QR_PENDING / PROVISION_PENDING / ERROR → NÃO toca o
- *     health (queda transitória do daemon ou pareamento em curso não é logout —
- *     evita falso-positivo; `whatsapp:daemon-source-drift-check` cobre daemon down).
+ *   - DAEMON_UNREACHABLE / QR_PENDING / ERROR → NÃO toca o health (daemon down ou
+ *     pareamento em curso não é queda do canal — `daemon-source-drift-check` cobre).
  *
  * Idempotente (convergente, não acumulativo). Multi-tenant Tier 0 (ADR 0093):
  * varre cross-business (cron sem session), cada row carrega seu `business_id` e o
@@ -66,7 +68,11 @@ class WhatsmeowHealthProbeCommand extends Command
             $state = $reconciler->reconcile($channel);
             $healthBefore = (string) $channel->channel_health;
 
-            if (in_array($state, [WhatsmeowState::LOGGED_OUT, WhatsmeowState::NOT_EXISTS], true)) {
+            // PROVISION_PENDING incluído (fix 2026-06-18): pra um canal ATIVO, o
+            // daemon WuzAPI retorna Connected=false → reconcile() devolve
+            // PROVISION_PENDING (não LOGGED_OUT). Era a razão do canal 11 caído não
+            // ser detectado. Active + sessão não conectada = caiu → disconnected.
+            if (in_array($state, [WhatsmeowState::LOGGED_OUT, WhatsmeowState::NOT_EXISTS, WhatsmeowState::PROVISION_PENDING], true)) {
                 if ($healthBefore !== 'disconnected') {
                     $reconciler->markDisconnectedInDb($channel, "health-probe: {$state->value}");
                     $flipped++;
@@ -83,7 +89,8 @@ class WhatsmeowHealthProbeCommand extends Command
                     $flipped++;
                 }
             }
-            // DAEMON_UNREACHABLE / QR_PENDING / PROVISION_PENDING / ERROR → não muta health
+            // DAEMON_UNREACHABLE / QR_PENDING / ERROR → não muta (daemon down ou
+            // pareamento em curso, não é queda do canal — evita falso-positivo)
 
             if ($this->option('detail')) {
                 $this->line(sprintf(

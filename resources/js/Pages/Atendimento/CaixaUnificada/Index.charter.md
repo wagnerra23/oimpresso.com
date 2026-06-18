@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 16
+charter_version: 17
 permissao: whatsapp.access
 ---
 
@@ -282,7 +282,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-014 — canal ativo deslogado entra em unhealthyChannels + Tier 0` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saudável fora + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)` | mesmo arquivo |
 
 ---
@@ -328,6 +328,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-06-18 | Claude (incidente WhatsApp · follow-up) | **Banner business-wide + probe detecta `provision_pending`.** (1) `buildUnhealthyChannelsPayload` perde o filtro ACL-de-canal (Wagner 2026-06-18: o alerta de queda é pra todos com `whatsapp.access`, não só admin view-all — o business pode não ter grants de canal). (2) `whatsmeow:health-probe` marca `disconnected` também em `PROVISION_PENDING` — o daemon WuzAPI retorna `Connected=false` (não `LOGGED_OUT`) quando a sessão morre, e era a razão do canal 11 caído não ser detectado pelo probe. Renomeia o Pest `014→015` (colisão com o teste media_inbound_24h). Charter v17. |
 | 2026-06-18 | Claude (incidente WhatsApp atendimento) | **US-WA-308/309 banner "canal caiu — religar".** Origem: canal 11 (biz=1) deslogou "logged out from another device" às 07:50 sem webhook `LoggedOut` (WuzAPI não assina) → `channel_health` ficou `healthy`, a Caixa não avisou, linha caída ~3h sem ninguém ver. Fix: (1) prop eager `unhealthyChannels` no `CaixaUnificadaController` (ACL + Tier 0) + `ChannelHealthBanner` no topo da Caixa (clique → `/atendimento/canais/{id}` re-parear, QR já existente); (2) comando `whatsmeow:health-probe` (cron 3min, Kernel) que sonda `/session/status` real e converge disconnected/banned/healthy — fecha a lacuna do reconciler Baileys-only. Charter v16. Pest R-WA-CAIXA-UNIF-014. Sem dev server no worktree → build/typecheck/visual-regression no CI + screenshot [W] na prod (Wagner re-pareia e valida o fluxo real). |
 | 2026-06-16 | Claude Code [CL] (Caixa filtros 2-botões · Onda 2) | **Header da lista em 2 controles.** `ConversationListV4`: a fileira de 7 tabs + a fileira de power-filters (chips/selects) viram **Status** (DropdownMenu, 7-valor `?tab=`) + **Filtros** (botão funil `lucide Filter` + badge → Popover flutuante, não empurra a lista). Grupos do popover: Canal · Conta · Fila · Tags · Ordenar · Esperando há · Sem CRM · Janela 24h · Mídia 24h + "Limpar". **Atribuição omitida** — não há param backend (`CaixaUnificadaController` não filtra por assignee; só a tab "Minhas" + picker da sidebar) → não inventei grupo morto (anti M-AP-2). Contrato backend intacto (mesmos params na querystring; `buildQuery` agora carrega channel/account_id/queue → filtros persistem na navegação). Index.tsx passa accounts/channelTypeFilter/accountFilter/queues/queueFilter pra lista. Charter v15. **Verificado:** `tsc --noEmit` limpo nos 2 arquivos (só erros pré-existentes de `preserveScroll`) + `vite build:inertia` verde (4431 módulos, ConversationListV4 bundlou). Sem screenshot local (sem dev server no worktree) — visual-regression CI + revisão [W]. |
 | 2026-06-16 | Claude Code [CL] (Caixa filtros 2-botões · Onda 1) | **Faixa de canais removida.** Direção [W] 2026-06-16: a faixa horizontal `ChannelChipsRow` acima da shell (comprimia 1280px) sai; Canal/Conta viram grupos do popover **Filtros** da lista (Onda 2). Onda 1: removida a faixa + `ChannelChipsRow.tsx` (dead-code, único consumidor era esta tela); `availableChannels`/`availableAccounts` (props), URL-sync `?channel=`/`?account_id=` e os demais consumidores (Thread/Sidebar/Drawers/Nova-conversa) **intactos**. Charter v14. PR off origin/main; CI verifica build/typecheck (worktree sem node_modules). Onda 2 adiciona os grupos no popover Filtros + Status em DropdownMenu. |
