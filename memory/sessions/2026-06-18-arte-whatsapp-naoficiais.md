@@ -45,7 +45,7 @@ instáveis e/ou maior risco — não são upgrade.
 | **WuzAPI** ← *nosso wrapper* | whatsmeow | Go | herda whatsmeow | sim (simples) | **não assina `LoggedOut`; sem "All"** → sessão zumbi invisível; manutenção 1-dev | 🔴 2–8 sem |
 | **Baileys** | WA multidevice (WebSocket) | TS/Node | ★★★☆☆ auto-logout + memory-leak a escala | não (lib) | menos estável que whatsmeow | 🔴 2–8 sem |
 | **Evolution API** | Baileys (+Cloud API opcional) | TS/Node | ★★☆☆☆ "instance stuck", sync perdido pós-reboot, erro 515 | sim (completo) | instabilidade recorrente; **PROIBIDO Tier 0** (ADR 0096) | 🔴 alta |
-| **WAHA** | 3 motores: **GOWS=whatsmeow** / NOWEB=Baileys / WEBJS=browser | Go+Node | ★★★★☆ (GOWS) | sim (Docker 1-click, polido) | WAHA Plus é pago; +1 dependência | 🔴 alta (menor no WEBJS) |
+| **WAHA** | 3 motores: **GOWS=whatsmeow** / NOWEB=Baileys / WEBJS=browser | Go+Node | ★★★★☆ (GOWS) | sim (Docker 1-click, polido) | **Core = 1 sessão só** (multi-sessão = Plus pago); +1 dependência | 🔴 alta (menor no WEBJS) |
 | **wppconnect / Venom** | WA Web (browser/puppeteer) | TS/Node | ★★★☆☆ | sim | pesado (Chromium/sessão) | 🟠 1–3 meses (browser dura+) |
 | **Cloud API (Meta)** | oficial | — | ★★★★★ | oficial | custo/conversa + verificação Business | 🟢 ~zero |
 
@@ -111,6 +111,30 @@ custo/flexibilidade + oficial por criticidade**. Já é o default universal do a
 > real do oimpresso — inbox **humano** + broadcast **opt-in/HSM** — é o cenário de
 > **menor** risco. O perigo mora no disparo em massa (fase 2), não no atendimento.
 
+## POC WAHA-GOWS — resultados ao vivo (2026-06-18)
+
+Container WAHA Core isolado no CT 100 (`localhost:3001`, engine GOWS, **zero** contato com o WuzAPI de produção ou número real); desmontado ao fim.
+
+**Confirmado ao vivo:**
+- ✅ **GOWS roda no WAHA Core (grátis)** — `{"version":"2026.5.1","engine":"GOWS","tier":"CORE"}`. Só features premium (envio de mídia, Postgres/S3) pedem Plus.
+- ✅ **Ciclo de sessão real e observável**: `STARTING → SCAN_QR_CODE`, QR gerado (HTTP 200). GOWS sobe a sessão de ponta a ponta.
+- ✅ **`session.status` com estado `FAILED` no logout/unpair** (docs) — **fecha exatamente o gap do WuzAPI** (que não repassa `LoggedOut`). O app saberia da queda na hora.
+
+**Pontos de atenção descobertos:**
+- ⚠️ **WAHA Core só permite 1 sessão (`'default'`)** — multi-sessão exige **WAHA Plus (pago)**. Confirmado live: `422 "WAHA Core support only 'default' session"`. Como o oimpresso é **multi-tenant** (vários números/canais), migrar significaria **Plus** ou 1 container por tenant (pesado). O WuzAPI faz multi-sessão **grátis** — é a maior vantagem dele hoje. **Isso eleva a barra pra migrar e reforça "evoluir agora".**
+- ⚠️ Contrato da API mudou entre versões (start = `POST /api/sessions/start`, não `/{name}/start`) — migração exige mapear o contrato com cuidado.
+- ℹ️ A entrega do webhook `session.status` é feature padrão/documentada; não capturei o payload no harness do POC (rede container→host + shape de config) — valida-se no Phase 2 apontando pro webhook real do app.
+
+**Phase 2 (gate [W] + número descartável):** parear o número de teste → matar a sessão de outro device → ver o `session.status=FAILED` chegar no webhook = prova end-to-end do gap-closer.
+
+**Redeploy do POC (1 comando):**
+```
+docker run -d --name waha-poc -p 127.0.0.1:3001:3000 -e WHATSAPP_DEFAULT_ENGINE=GOWS -e WHATSAPP_API_KEY=<key> devlikeapro/waha:latest
+```
+(imagem 4GB já cacheada no CT 100; reclaim com `docker rmi devlikeapro/waha`.)
+
+**Veredito do POC:** WAHA-GOWS **fecha o gap do LoggedOut** e é a base certa (mesmo whatsmeow), MAS o limite **1-sessão-no-Core** torna a migração mais cara do que parecia pro nosso multi-tenant (exigiria Plus). Confirma o plano: **evoluir o WuzAPI/app agora**; WAHA-Plus vira candidato real só se/quando os gatilhos baterem.
+
 ## Como manter este doc vivo
 
 Revisar quando: (a) incidente de canal relevante; (b) WuzAPI/WAHA mudarem manutenção
@@ -119,6 +143,7 @@ acrescentar linha no log abaixo.
 
 ### Log de revisões
 - **2026-06-18** — criação. Pós-incidente falso "fora do ar"; veredito "evoluir, não trocar"; POC WAHA como plano B; Cloud API como hedge estratégico.
+- **2026-06-18 (POC)** — POC WAHA-GOWS rodado no CT 100 e desmontado. Confirmado: GOWS no Core grátis + `session.status=FAILED` fecha o gap do LoggedOut. Descoberto: **Core = 1 sessão só** (multi-tenant exigiria Plus pago) → eleva a barra pra migrar; reforça "evoluir agora".
 
 ## Fontes (2026-06)
 - whatsmeow — github.com/tulir/whatsmeow · disc #979 (whatsmeow > Baileys estabilidade) · issue #810 ("conta em risco" afeta ambos)
