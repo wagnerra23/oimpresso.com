@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-06T16:42:17.721Z",
-    "count": 104,
+    "generated_at": "2026-06-18T11:02:07.887Z",
+    "count": 101,
     "note": "F4 — ratchet do PageHeader antigo (shared/PageHeader). Contador só desce (migração pro canon @/Components/PageHeader). Tela nova nunca adota o antigo. Ver MANUAL-CSS-JS.md §5."
   },
   "files": [
@@ -46,7 +46,6 @@
     "resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx",
     "resources/js/Pages/Financeiro/Configuracoes/Contador.tsx",
     "resources/js/Pages/Financeiro/Extrato/Index.tsx",
-    "resources/js/Pages/Financeiro/Unificado/Index.tsx",
     "resources/js/Pages/Financeiro/Unificado/Novo.tsx",
     "resources/js/Pages/governance/Audit.tsx",
     "resources/js/Pages/governance/Dashboard.tsx",
@@ -54,7 +53,6 @@
     "resources/js/Pages/governance/ModuleGrades/Index.tsx",
     "resources/js/Pages/governance/ModuleGrades/Show.tsx",
     "resources/js/Pages/governance/Policies.tsx",
-    "resources/js/Pages/Jana/Brief/Index.tsx",
     "resources/js/Pages/Jana/Painel.tsx",
     "resources/js/Pages/Jana/Regras/Index.tsx",
     "resources/js/Pages/kb/Graph.tsx",
@@ -65,7 +63,6 @@
     "resources/js/Pages/Nfse/Emitir.tsx",
     "resources/js/Pages/Nfse/Index.tsx",
     "resources/js/Pages/Nfse/Show.tsx",
-    "resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx",
     "resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx",
     "resources/js/Pages/OficinaAuto/Vehicles/Create.tsx",
     "resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx",
