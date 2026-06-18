@@ -18,6 +18,6 @@
 ## Índice (o "já processei?")
 | REQ | data | tela / arquétipo | status | delta (resumo) | resultado |
 |---|---|---|---|---|---|
-| _(vazio)_ | — | — | — | _o 1º pedido cria `REQ-001`_ | — |
+| [REQ-001](REQ-001.md) | 2026-06-18 | Atendimento/CaixaUnificada · detalhe | processing | zona `saude-canal`: vocabulário de estado `{paired, connected}` travado (backend↔frontend) | [#2986](https://github.com/wagnerra23/oimpresso.com/pull/2986) em review · base [#2984](https://github.com/wagnerra23/oimpresso.com/pull/2984) · [ADR 0286 §5](../../decisions/0286-channel-health-corroborado-por-mensagem-real.md) |
 
 > Atualizar esta tabela faz parte do "pronto" de cada REQ — espelha a regra **"índice = fonte única"** do [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md).
