@@ -25,7 +25,7 @@ class S0Alert extends Notification
 {
     use Queueable;
 
-    public function __construct(public Classification $classification) {}
+    public function __construct(public Classification $classification, public ?int $count = null) {}
 
     /** Sem channel — usamos HTTP direto (ver ErrorReporter::dispatchS0Alert). */
     public function via(object $notifiable): array
@@ -56,6 +56,7 @@ class S0Alert extends Notification
                         'type' => 'mrkdwn',
                         'text' => "*Severidade:* {$c->severity->value}\n"
                             ."*Dono:* {$c->owner}\n"
+                            .($this->count !== null ? "*Ocorrências:* {$this->count} no grupo\n" : '')
                             ."*Grupo (dedup):* `{$c->dedupKey}`",
                     ],
                 ],

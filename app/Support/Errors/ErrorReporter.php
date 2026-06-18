@@ -30,9 +30,10 @@ class ErrorReporter
 {
     public function __construct(
         private ErrorClassifier $classifier = new ErrorClassifier(),
+        private ErrorGrouper $grouper = new ErrorGrouper(),
     ) {}
 
-    /** Classifica + audita + (só S0) alerta. Devolve a Classification (útil pro render()). */
+    /** Classifica + audita + dedup + (só S0) alerta. Devolve a Classification (útil pro render()). */
     public function report(Throwable $e, ?Request $request = null): Classification
     {
         $c = $this->classifier->classify($e, $request);
@@ -40,9 +41,16 @@ class ErrorReporter
         // Auditoria — todas as severidades vão pro log/dashboard (OTel + mcp_audit_log).
         $this->audit($c, $e);
 
-        // Só o S0 interrompe humano — cano do alerta, rate-limited por dedupKey.
+        // Fase 2 (E-2): deduplica em error_groups (1000 iguais = 1 linha + contador).
+        // Resiliente (null se DB fora) — não bloqueia o alerta da E-1.
+        $group = $this->grouper->record($c, [
+            'exception' => get_class($e),
+            'local'     => basename($e->getFile()).':'.$e->getLine(),
+        ]);
+
+        // Só o S0 interrompe humano — rate-limited; o alerta carrega o contador do grupo.
         if ($c->severity->interrompeHumano()) {
-            $this->dispatchS0Alert($c);
+            $this->dispatchS0Alert($c, $group?->count);
         }
 
         return $c;
@@ -106,7 +114,7 @@ class ErrorReporter
      * Reincidência na janela só não repete (Fase 2 incrementa contador).
      * Sem webhook configurado → degrada pra log (skip, sem crash).
      */
-    public function dispatchS0Alert(Classification $c): void
+    public function dispatchS0Alert(Classification $c, ?int $count = null): void
     {
         $windowMin = (int) config('errors.s0_window_minutes', 15);
 
@@ -129,7 +137,7 @@ class ErrorReporter
         }
 
         try {
-            Http::timeout(5)->post((string) $webhook, (new S0Alert($c))->toWebhookPayload());
+            Http::timeout(5)->post((string) $webhook, (new S0Alert($c, $count))->toWebhookPayload());
         } catch (Throwable $ex) {
             Log::channel('single')->warning('error.s0.webhook_failed', [
                 'error'     => $ex->getMessage(),

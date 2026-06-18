@@ -22,4 +22,10 @@ return [
     */
     's0_window_minutes' => (int) env('ERROR_S0_WINDOW_MINUTES', 15),
 
+    /*
+    | Janela de decaimento (dias) dos grupos de erro (Fase 2 · E-2): grupo aberto
+    | sem ocorrência há N dias → arquivado pelo cron errors:archive-stale-groups.
+    */
+    'group_decay_days' => (int) env('ERROR_GROUP_DECAY_DAYS', 14),
+
 ];
