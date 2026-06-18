@@ -43,6 +43,7 @@ import {
 
 import BroadcastSheet from './_components/BroadcastSheet';
 import InboxCheatSheet from './_components/InboxCheatSheet';
+import InboxGuiaDialog from './_components/InboxGuiaDialog';
 import InboxMobileTabs, { type MobileView } from './_components/InboxMobileTabs';
 import ChannelsDrawer from './_components/ChannelsDrawer';
 import NewConversationDialog from './_components/NewConversationDialog';
@@ -128,6 +129,8 @@ export default function CaixaUnificadaIndex({
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   // Polish V2 §3 — cheat-sheet "?" de atalhos
   const [cheatOpen, setCheatOpen] = useState(false);
+  // Guia (port inbox-cur) — troubleshooters + trilhas de onboarding
+  const [guiaOpen, setGuiaOpen] = useState(false);
   // Polish V2 §5 — mobile tabs (<lg mostra 1 coluna por vez; desktop intacto)
   const [mobileView, setMobileView] = useState<MobileView>('list');
   // Contexto recolhível (canon Cowork `.om-ctx`) — auto-recolhe < 1440px, lembra a escolha
@@ -404,6 +407,16 @@ export default function CaixaUnificadaIndex({
           >
             Broadcast
           </button>
+          {/* Guia (port inbox-cur) — troubleshooters + trilhas de onboarding */}
+          <button
+            type="button"
+            onClick={() => setGuiaOpen(true)}
+            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title="Guia — diagnóstico guiado de atendimento + trilhas de onboarding"
+            data-testid="caixa-unif-topnav-guia"
+          >
+            Guia
+          </button>
           {/* US-WA-307 — abre dialog (find-or-create + thread aberta) */}
           <button
             type="button"
@@ -561,6 +574,8 @@ export default function CaixaUnificadaIndex({
 
       {/* Polish V2 §3 — cheat-sheet de atalhos ("?") */}
       <InboxCheatSheet open={cheatOpen} onOpenChange={setCheatOpen} />
+      {/* Guia (port inbox-cur) — troubleshooters + trilhas */}
+      <InboxGuiaDialog open={guiaOpen} onOpenChange={setGuiaOpen} />
     </div>
   );
 }
