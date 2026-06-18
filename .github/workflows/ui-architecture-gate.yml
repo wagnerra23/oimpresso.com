@@ -9,6 +9,7 @@ name: UI architecture gate
 #   - AppShellUsageGateTest      (A1) toda tela Inertia usa AppShellV2
 #   - CockpitAccentCanonTest     (A2) accent = roxo canon 295 (não azul 220)
 #   - CoreScreensIntegrityTest   (B)  telas-núcleo: page + AppShellV2 + charter
+#   - CharterVisualSourceGateTest (C) visual_source de charter aponta pra arquivo vivo (frescor de design · Catraca Viva Fase 0)
 #
 # NOTA: NoHardcodeBusinessIdInModulesTest (guard Tier 0 business_id) NÃO está aqui
 # de propósito — hoje ele false-positiva no padrão legítimo `=== 0` (no-tenant guard).
@@ -84,4 +85,5 @@ jobs:
             tests/Feature/Architecture/AppShellUsageGateTest.php \
             tests/Feature/Architecture/CockpitAccentCanonTest.php \
             tests/Feature/Architecture/CoreScreensIntegrityTest.php \
+            tests/Feature/Architecture/CharterVisualSourceGateTest.php \
             --no-coverage
