@@ -20,9 +20,26 @@ jobs:
     # Loop guard: skip the commit this very workflow produces.
     if: "${{ !contains(github.event.head_commit.message, 'chore(cowork): inbox processed') }}"
     steps:
+      # PAT obrigatório (ADR 0283/0285): o branch novo carrega os .github/workflows/* do main.
+      # O GITHUB_TOKEN (GitHub App) NÃO tem o escopo `workflows` (não-concedível via permissions:),
+      # então o push do branch é rejeitado: "refusing to allow a GitHub App to create or update
+      # workflow ... without `workflows` permission". O COWORK_BOT_PAT (fine-grained: contents:write
+      # + pull_requests:write + workflows:write) é quem empurra o branch, abre e mergeia o PR.
+      - name: Preflight — COWORK_BOT_PAT presente
+        env:
+          COWORK_BOT_PAT: ${{ secrets.COWORK_BOT_PAT }}
+        run: |
+          if [ -z "${COWORK_BOT_PAT}" ]; then
+            echo "::error title=COWORK_BOT_PAT ausente::Configure um PAT fine-grained (contents:write + pull_requests:write + workflows:write) em Settings → Secrets → Actions → COWORK_BOT_PAT. O GITHUB_TOKEN não serve: sem o escopo 'workflows', o push de um branch que contém .github/workflows/* é rejeitado pelo GitHub."
+            exit 1
+          fi
+          echo "✓ COWORK_BOT_PAT presente."
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          # Persistido pro `git push origin $BRANCH` autenticar com o PAT (não o GITHUB_TOKEN).
+          token: ${{ secrets.COWORK_BOT_PAT }}
 
       - uses: actions/setup-python@v5
         with:
@@ -41,7 +58,7 @@ jobs:
       - name: Process inbox
         id: process
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
         run: |
           set -euo pipefail
 
@@ -90,7 +107,7 @@ jobs:
       - name: Merge (doc/memory) or request review (code)
         if: steps.process.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
         run: |
           set -euo pipefail
           BRANCH="${{ steps.process.outputs.branch }}"
