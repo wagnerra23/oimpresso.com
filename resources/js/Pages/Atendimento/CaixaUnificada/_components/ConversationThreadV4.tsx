@@ -33,6 +33,8 @@ import InboxTranscriptDialog from './InboxTranscriptDialog';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
 import MediaFullscreenModal from '@/Pages/Whatsapp/_components/MediaFullscreenModal';
 import type { ReadyTemplate } from '@/Pages/Whatsapp/_components/helpers';
+import MsgComments from './MsgComments';
+import { useMsgComments } from './useMsgComments';
 
 interface Props {
   thread: CaixaUnifThread;
@@ -106,6 +108,9 @@ export default function ConversationThreadV4({
 
   const isPreview = thread.preview_only;
   const isBlocked = thread.is_blocked;
+
+  // Notas internas por-mensagem (port inbox-cur) — localStorage per-user, "só equipe vê".
+  const msgComments = useMsgComments(thread.id);
 
   return (
     // Fix scroll incident 2026-05-28: era <main> sem h-full → <main> aninhado dentro
@@ -297,7 +302,7 @@ export default function ConversationThreadV4({
               // bolha vira no-op e as enviadas (outbound) encostavam à esquerda junto
               // das recebidas. Stack faz inbound→esquerda, outbound→direita.
               // gap={0}: espaçamento vem do `gap-1` do container + `my-3` do dia.
-              <Stack key={m.id} gap={0}>
+              <Stack key={m.id} gap={0} className="group/msg">
                 {showDay && (
                   <div className="text-center my-3">
                     <span className="bg-card border rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
@@ -435,6 +440,14 @@ export default function ConversationThreadV4({
                     </small>
                   </div>
                   </div>
+                )}
+                {!m.is_internal_note && (
+                  <MsgComments
+                    side={m.direction}
+                    comments={msgComments.forMsg(i)}
+                    onAdd={(t) => msgComments.add(i, t)}
+                    onRemove={(idx) => msgComments.remove(i, idx)}
+                  />
                 )}
               </Stack>
             );
