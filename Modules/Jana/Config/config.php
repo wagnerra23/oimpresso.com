@@ -691,7 +691,8 @@ return [
                 'NfeBrasil'        => 82,
 
                 // Tier 2 — diferencial, sem cliente pagante dedicado ainda.
-                'Copiloto'          => 65,
+                // 'Copiloto' removido: módulo renomeado pra Jana (ADR 0088). O nome morto
+                // pesava o recall (audit SDD 2026-06-18 risco KL); o peso vivo é a linha Jana.
                 'Jana'              => 62,
                 'LaravelAI'         => 62,
                 'Whatsapp'          => 60,
