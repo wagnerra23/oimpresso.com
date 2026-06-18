@@ -243,9 +243,9 @@ jobs:
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd $RDIR &&
-            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -20 &&
+            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
             echo '=== dump-autoload force ===' &&
-            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
+            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
           "
 
       - name: Boot smoke CONSOLE — falha o deploy AGORA se o artisan não bootar (ADR 0216 + incidente 2026-06-17)
@@ -427,7 +427,7 @@ jobs:
             /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
           else
             /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
-            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
+            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
             exit 1
           fi
 
