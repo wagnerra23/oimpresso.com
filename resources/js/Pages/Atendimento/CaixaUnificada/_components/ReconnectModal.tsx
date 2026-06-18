@@ -68,7 +68,7 @@ export default function ReconnectModal({ channelId, channelType, label, handle, 
             setError(data.message || 'O canal respondeu sem QR nem código.');
           }
         }
-      } catch (e) {
+      } catch {
         if (alive) setError('Erro de rede ao falar com o canal.');
       } finally {
         if (alive) setLoading(false);
