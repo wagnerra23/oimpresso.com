@@ -429,6 +429,43 @@ it('R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real
     expect($none['data'])->toHaveCount(0);
 });
 
+/**
+ * R-WA-CAIXA-UNIF-014 — US-WA-308 (incidente 2026-06-18): canal ATIVO com saúde
+ * caída entra no payload eager `unhealthyChannels` (banner "religar" no topo da
+ * Caixa); canal saudável NÃO entra; e o Tier 0 (ADR 0093) impede vazar canal caído
+ * de OUTRO business.
+ *
+ * red-first: sem o payload `unhealthyChannels` (ou filtrando health errado) o
+ * pluck/firstWhere não acha o canal → falha; é o discriminador, não tautológico.
+ */
+it('R-WA-CAIXA-UNIF-014 — canal ativo deslogado entra em unhealthyChannels + Tier 0', function () {
+    // biz=1 canal caído (logout) — DEVE aparecer
+    $down = cuctMakeChannel(1, 'caixa-unif-014-down');
+    $down->forceFill(['channel_health' => 'disconnected', 'last_health_message' => 'whatsmeow disconnected: logged_out'])->save();
+
+    // biz=1 canal saudável — NÃO deve aparecer
+    $ok = cuctMakeChannel(1, 'caixa-unif-014-ok');
+    $ok->forceFill(['channel_health' => 'healthy'])->save();
+
+    // biz=99 canal caído — Tier 0 impede vazar pra biz=1
+    $cross = cuctMakeChannel(99, 'caixa-unif-014-cross');
+    $cross->forceFill(['channel_health' => 'disconnected'])->save();
+
+    cuctSetUserAndGrant(1, 10, [$down->id, $ok->id]);
+
+    $props = cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest());
+    $unhealthy = cuctResolveDefer($props['unhealthyChannels']); // eager — array direto
+
+    $ids = collect($unhealthy)->pluck('id')->all();
+    expect($ids)->toContain($down->id)
+        ->and($ids)->not->toContain($ok->id)
+        ->and($ids)->not->toContain($cross->id);
+
+    $row = collect($unhealthy)->firstWhere('id', $down->id);
+    expect($row['channel_health'])->toBe('disconnected')
+        ->and($row['label'])->toBe('Suporte');
+});
+
 // ============================================================================
 // 2. Cross-tenant Tier 0 (ADR 0093) — biz=99 NUNCA vaza pra biz=1
 // ============================================================================

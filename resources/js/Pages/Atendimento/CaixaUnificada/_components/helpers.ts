@@ -59,6 +59,19 @@ export interface AccountItem {
 }
 
 /**
+ * US-WA-308 — canal ATIVO cuja sessão caiu (banner "religar" no topo da Caixa).
+ * Prop eager `unhealthyChannels` — health convergido pelo cron `whatsmeow:health-probe`.
+ */
+export interface UnhealthyChannel {
+  id: number;
+  label: string;
+  type: string;
+  channel_health: string;
+  last_health_message: string | null;
+  last_health_check_at: string | null;
+}
+
+/**
  * Fila — derivada (não persiste em DB). Heurística tag → fila no Controller.
  */
 export interface QueueDerived {
