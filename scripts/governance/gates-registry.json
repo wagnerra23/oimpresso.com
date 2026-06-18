@@ -54,6 +54,10 @@
       "nome": "Conformance Gate — cor-crua DS (Camada 1 · anti-regressão de contrato)",
       "classe": "gate"
     },
+    "contrato-de-tela.yml": {
+      "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
+      "classe": "gate"
+    },
     "dsih-gate.yml": {
       "nome": "dSIH ratchet (anti-XSS · conteúdo em .tsx · oráculo parcela 1)",
       "classe": "gate"
