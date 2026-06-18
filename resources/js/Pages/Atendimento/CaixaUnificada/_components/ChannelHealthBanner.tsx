@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { AlertTriangle, PlugZap, RefreshCw, X } from 'lucide-react';
 
+import { Box, Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
 import { relativeTimeBR } from './helpers';
@@ -87,10 +88,10 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
       )}
       data-testid="caixa-unif-health-banner"
     >
-      <div className="flex items-start gap-2.5">
-        <span className={cn('mt-px grid h-6 w-6 shrink-0 place-items-center rounded-md', iconWrap)}>
+      <Inline align="start" className="gap-2.5">
+        <Box rounded="md" className={cn('mt-px grid place-items-center h-6 w-6 shrink-0', iconWrap)}>
           {worst === 'err' ? <PlugZap size={14} aria-hidden /> : <AlertTriangle size={14} aria-hidden />}
-        </span>
+        </Box>
         <div className="min-w-0 flex-1">
           {multi ? (
             <>
@@ -118,14 +119,14 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
         <button
           type="button"
           onClick={() => setDismissed(true)}
-          className="grid h-5 w-5 shrink-0 place-items-center rounded opacity-60 hover:opacity-100"
+          className="grid place-items-center h-5 w-5 shrink-0 rounded opacity-60 hover:opacity-100"
           title="Dispensar até a próxima verificação"
           aria-label="Dispensar aviso"
           data-testid="caixa-unif-health-dismiss"
         >
           <X size={13} aria-hidden />
         </button>
-      </div>
+      </Inline>
 
       {!multi ? (
         <div className="pl-[34px]">
@@ -144,9 +145,9 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-1 pl-[34px]">
+        <Stack gap={1} className="pl-[34px]">
           {channels.map((c) => (
-            <div key={c.id} className="flex items-center gap-2 text-[11.5px]">
+            <Inline key={c.id} gap={2} className="text-[11.5px]">
               <span
                 className={cn(
                   'h-1.5 w-1.5 shrink-0 animate-pulse rounded-full',
@@ -168,9 +169,9 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
               >
                 Reconectar
               </button>
-            </div>
+            </Inline>
           ))}
-        </div>
+        </Stack>
       )}
     </div>
   );
