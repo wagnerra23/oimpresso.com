@@ -436,16 +436,17 @@ class CaixaUnificadaController extends Controller
             $convQuery->whereNull('contact_id');
         }
 
-        // mediaInbound24h: convs com mensagem inbound type=image/video/audio/document nas 24h
+        // mediaInbound24h: convs com mensagem inbound type=image/video/audio/document nas 24h.
+        // Lê da relação Conversation::messages (tabela `messages` do schema novo polimórfico,
+        // ADR 0135) — NÃO da tabela legacy `whatsapp_messages`, que não recebe os dados do
+        // schema novo: o join cross-schema `whatsapp_messages.conversation_id = conversations.id`
+        // não casava nenhuma row e o filtro voltava sempre vazio. Mesmo padrão correto do
+        // InboxController::index.
         if ($mediaInbound24h) {
-            $convQuery->whereExists(function ($q) {
-                $q->select(\DB::raw(1))
-                    ->from('whatsapp_messages')
-                    ->whereColumn('whatsapp_messages.conversation_id', 'conversations.id')
-                    ->where('direction', 'inbound')
-                    ->whereIn('type', ['image', 'video', 'audio', 'document'])
-                    ->where('created_at', '>=', now()->subHours(24));
-            });
+            $convQuery->whereHas('messages', fn ($q) => $q
+                ->where('direction', 'inbound')
+                ->whereIn('type', ['image', 'video', 'audio', 'document'])
+                ->where('created_at', '>=', now()->subHours(24)));
         }
 
         // inboundAging: aguardando resposta há mais de N horas

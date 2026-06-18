@@ -988,3 +988,65 @@ it('R-WA-CAIXA-UNIF-013 — customerContext agrega Saldo+Histórico do contact (
     expect((int) $props2['customerContext']['sells_count'])->toBe(0);
     expect((float) $props2['customerContext']['saldo_aberto'])->toBe(0.0);
 });
+
+// ============================================================================
+// 14. Filtro media_inbound_24h — schema novo (`messages`), NÃO legacy
+// ============================================================================
+
+/**
+ * R-WA-CAIXA-UNIF-014 — o filtro `?media_inbound_24h=1` deve casar mensagens da relação
+ * Conversation::messages (tabela `messages` do schema novo polimórfico, ADR 0135).
+ *
+ * BUG (pré-fix): o controller fazia `->from('whatsapp_messages')` (tabela LEGACY) e
+ * juntava `whatsapp_messages.conversation_id = conversations.id`. Como o schema novo grava
+ * em `messages`, o join cross-schema nunca casava e o filtro voltava SEMPRE vazio.
+ *
+ * red-first: contra o código antigo este teste FALHA de forma barulhenta — o schema
+ * sintético sequer cria `whatsapp_messages`, então a query estoura "no such table". É o
+ * discriminador do bug, não tautológico.
+ */
+function cuctMakeInboundMsg(int $businessId, int $convId, string $type, ?string $createdAt = null): void
+{
+    // DB::table direto pra controlar `created_at` (Eloquent reseta pra now()).
+    $ts = $createdAt ?? now()->toDateTimeString();
+    \DB::table('messages')->insert([
+        'business_id' => $businessId,
+        'conversation_id' => $convId,
+        'direction' => 'inbound',
+        'provider' => 'whatsapp_whatsmeow',
+        'type' => $type,
+        'status' => 'received',
+        'created_at' => $ts,
+        'updated_at' => $ts,
+    ]);
+}
+
+it('R-WA-CAIXA-UNIF-014 — media_inbound_24h filtra pela relação messages (schema novo), não whatsapp_messages legacy', function () {
+    $ch = cuctMakeChannel(1, 'caixa-unif-014-uuid');
+    cuctSetUserAndGrant(1, 10, [$ch->id]);
+
+    // Conv A — mídia inbound recente (< 24h) → DEVE aparecer no filtro
+    $convMedia = cuctMakeConv(1, $ch->id);
+    cuctMakeInboundMsg(1, $convMedia->id, 'image');
+
+    // Conv B — só texto inbound recente → NÃO aparece (filtra por type de mídia)
+    $convText = cuctMakeConv(1, $ch->id);
+    cuctMakeInboundMsg(1, $convText->id, 'text');
+
+    // Conv C — mídia inbound, mas há 25h (fora da janela 24h) → NÃO aparece
+    $convOld = cuctMakeConv(1, $ch->id);
+    cuctMakeInboundMsg(1, $convOld->id, 'audio', now()->subHours(25)->toDateTimeString());
+
+    // Sem filtro: as 3 convs aparecem (controle)
+    $all = cuctResolveDefer(
+        cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest())['conversations']
+    );
+    expect($all['data'])->toHaveCount(3);
+
+    // Com filtro: só a conv com mídia inbound nas últimas 24h
+    $filtered = cuctResolveDefer(
+        cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['media_inbound_24h' => '1']))['conversations']
+    );
+    expect($filtered['data'])->toHaveCount(1)
+        ->and($filtered['data'][0]['id'])->toBe($convMedia->id);
+});
