@@ -51,7 +51,7 @@ for (const file of readdirSync(join(ROOT, DIR)).sort()) {
   if (!m) continue;
   const [num, slug] = [m[1], `${m[1]}-${m[2]}`];
   const txt = readFileSync(join(ROOT, DIR, file), 'utf8');
-  let rec = { num, slug, title: '', status: '', lifecycle: '', kind: 'decision', supersedes: [], superseded_by: [], hasFrontmatter: false };
+  let rec = { num, slug, title: '', status: '', lifecycle: '', kind: 'decision', supersedes: [], superseded_by: [], rejected_at: '', rejected_reason: '', hasFrontmatter: false };
   if (txt.startsWith('---')) {
     const end = txt.indexOf('\n---', 3);
     const fm = end === -1 ? txt : txt.slice(0, end);
@@ -62,6 +62,8 @@ for (const file of readdirSync(join(ROOT, DIR)).sort()) {
     rec.kind = (field(fm, 'kind') || 'decision').toLowerCase();
     rec.supersedes = numbersFrom(fm, 'supersedes');
     rec.superseded_by = numbersFrom(fm, 'superseded_by');
+    rec.rejected_at = field(fm, 'rejected_at'); // o NÃO consultável (proposal recusado-com-motivo, 2026-06-11)
+    rec.rejected_reason = field(fm, 'rejected_reason');
   } else {
     // ADR formato-tabela legado (sem YAML frontmatter)
     rec.title = (txt.match(/^#\s*(.+)$/m) || [])[1] || slug;
@@ -85,6 +87,8 @@ const byStatus = tally(adrs, 'statusN');
 const byLifecycle = tally(adrs, 'lifecycleN');
 const ativos = adrs.filter((a) => a.lifecycleN === 'ativo').length;
 const semFrontmatter = adrs.filter((a) => !a.hasFrontmatter);
+// Recusadas: o NÃO consultável (proposal recusado-com-motivo, 2026-06-11) — anti-relitígio.
+const recusadas = adrs.filter((a) => a.statusN === 'recusado');
 
 // integridade de supersessão
 const exists = (n) => !!byNum[n];
@@ -119,6 +123,9 @@ ${collisions.length ? collisions.map(([n, v]) => `- **${n}** ×${v.length}: ${v.
 
 ## Integridade de supersessão (${supWarn.length} alertas)
 ${supWarn.length ? supWarn.map((w) => `- ⚠️ ${w}`).join('\n') : '_(íntegra)_'}
+
+## Recusadas (${recusadas.length}) — o NÃO consultável
+${recusadas.length ? recusadas.map((a) => `- **${a.num}** ${(a.title || a.slug).replace(/\|/g, '/').slice(0, 80)}${a.rejected_at ? ` · recusada ${a.rejected_at}` : ''}${a.rejected_reason ? ` — ${a.rejected_reason.replace(/\|/g, '/').slice(0, 120)}` : ''}`).join('\n') : '_(nenhuma — nenhum pedido recusado catalogado ainda)_'}
 
 ## Todas as ADRs (${adrs.length})
 | Nº | Status | Lifecycle | Kind | Título |
