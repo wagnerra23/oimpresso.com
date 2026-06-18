@@ -411,15 +411,25 @@ jobs:
           fi
           echo "✅ Smoke OK (frontend_changed=$FRONTEND_CHANGED)"
 
-      - name: Failsafe — nunca deixar o site preso em maintenance (always)
-        # Lição do 1º auto-deploy (2026-06-10): um step falhou DEPOIS do `php artisan
-        # down` e ANTES do `up`, deixando o site em 503 preso até intervenção manual.
-        # Auto-deploy roda sem supervisão → o invariante é "nunca ficar em maintenance".
-        # Este step roda SEMPRE (inclusive em falha) e garante o site no ar. Em sucesso
-        # é no-op (já está up). Fallback remove o flag na unha se o artisan estiver quebrado.
+      - name: Failsafe — site no ar SÓ se bootar; senão mantém maintenance (503 gracioso)
+        # Lição 2026-06-10: um step falhou entre `down` e `up`, deixando o site preso em 503
+        # até intervenção manual → invariante "nunca ficar preso em maintenance".
+        # Lição 2026-06-18: o failsafe forçava `up` INCONDICIONALMENTE, inclusive com código
+        # que NÃO boota — classmap autoritativo stale após deploy interrompido entre
+        # `git reset --hard` e `composer dump-autoload` → 500 em TODA rota por ~1h (web+console+cron),
+        # sem nada no laravel.log (falha antes do logger). Invariante corrigido: nunca preso em
+        # maintenance A MENOS que o código não boote — nesse caso 503 gracioso > 500, e o deploy
+        # falha (vermelho) + alerta pra investigar. `php artisan about` reproduz o boot do app
+        # (constrói o Handler + resolve binds) = mesmo gate do boot-smoke console.
         if: always()
         run: |
-          /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (failsafe)'"
+          if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
+            /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
+          else
+            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
+            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
+            exit 1
+          fi
 
       - name: Tail laravel.log (sempre — diagnose + post-mortem)
         if: always()
