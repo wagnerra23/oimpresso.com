@@ -1,68 +1,177 @@
-import { AlertTriangle, QrCode } from 'lucide-react';
+import { useState } from 'react';
 
-import { Inline, Stack } from '@/Components/layout';
+import { router } from '@inertiajs/react';
+import { AlertTriangle, PlugZap, RefreshCw, X } from 'lucide-react';
 
+import { cn } from '@/Lib/utils';
+
+import { relativeTimeBR } from './helpers';
 import type { UnhealthyChannel } from './helpers';
 
 /**
- * ChannelHealthBanner — banner "canal caiu — religar" no topo da Caixa Unificada.
+ * ChannelHealthBanner — banner "canal caiu — reconectar" no topo da Caixa Unificada.
  *
  * US-WA-308 (incidente 2026-06-18): canal whatsmeow deslogou ("401: logged out
  * from another device") e o app nunca soube → `channel_health` ficou `healthy` e
- * a tela não avisava. Agora o `whatsmeow:health-probe` (cron 3min) converge o
- * health real e este banner o exibe — com clique direto pro re-parear (QR) que
- * já existe em `/atendimento/canais/{id}`.
+ * a tela não avisava por ~3h. O `whatsmeow:health-probe` (cron 3min) passou a
+ * convergir o health real e este banner o exibe.
  *
- * Lê o prop EAGER `unhealthyChannels` (não-deferred) pra aparecer no first-paint.
- * Layout via primitivos `<Stack>`/`<Inline>` (ADR 0253); cor 100% semântica via
- * token `destructive` (ds/no-adhoc-status-text + ui:lint R1) — auto dark-mode.
+ * Redesign Cowork ([CC]→[CL] 2026-06-18, [W] escolheu trocar o visual): tom
+ * graduado warn/err, dispensável, resumo multi-canal e CTA Reconectar. Continua
+ * lendo o prop EAGER `unhealthyChannels` (não-deferred → aparece no first-paint),
+ * mapeado aos estados REAIS que o probe emite — `disconnected`/`banned` (fora do
+ * ar, err) e `degraded` (instável, warn). Não existe estado "down": o backend
+ * nunca o emite.
+ *
+ * Cor 100% via tokens semânticos `warning`/`destructive` (ds/no-adhoc-status-text
+ * + ui:lint R1 · ADR 0281) — flipam sozinhos no dark. Reconectar navega pra
+ * `/atendimento/canais/{id}` (re-parear/QR já existente).
  */
-const HEALTH_LABEL: Record<string, string> = {
-  disconnected: 'desconectado',
+const ERR_STATES = new Set(['disconnected', 'banned']);
+
+const STATE_VERB: Record<string, string> = {
+  disconnected: 'está fora do ar',
+  banned: 'foi bloqueado pela Meta',
+  degraded: 'está instável',
+};
+
+const STATE_LABEL: Record<string, string> = {
+  disconnected: 'fora do ar',
   banned: 'bloqueado pela Meta',
   degraded: 'instável',
 };
 
+const isErr = (health: string) => ERR_STATES.has(health);
+
+function providerName(type: string | null | undefined): string {
+  if (!type) return 'Canal';
+  if (type.startsWith('whatsapp')) return 'WhatsApp';
+  if (type.startsWith('email')) return 'Email';
+  if (type.startsWith('instagram')) return 'Instagram';
+  if (type.startsWith('messenger')) return 'Messenger';
+  return 'Canal';
+}
+
+/** "verificado há 5min" / "verificado agora" / "verificado 14:32" / "" */
+function checkLabel(iso: string | null): string {
+  const rel = relativeTimeBR(iso);
+  if (!rel) return '';
+  if (rel === 'agora') return 'verificado agora';
+  if (/^\d+min$/.test(rel)) return `verificado há ${rel}`;
+  return `verificado ${rel}`;
+}
+
 export default function ChannelHealthBanner({ channels }: { channels: UnhealthyChannel[] }) {
-  if (!channels || channels.length === 0) return null;
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed || !channels || channels.length === 0) return null;
+
+  const worst = channels.some((c) => isErr(c.channel_health)) ? 'err' : 'warn';
+  const multi = channels.length > 1;
+  const tone =
+    worst === 'err'
+      ? 'bg-destructive-soft text-destructive-fg border-destructive/40'
+      : 'bg-warning-soft text-warning-fg border-warning/40';
+  const iconWrap = worst === 'err' ? 'bg-destructive/15' : 'bg-warning/20';
+
+  const reconnect = (id: number) => router.visit(route('atendimento.channels.show', id));
+  const c0 = channels[0]!;
+  const chk = checkLabel(c0.last_health_check_at);
 
   return (
-    <Stack gap={1} className="shrink-0 px-1" data-testid="caixa-unif-health-banner">
-      {channels.map((ch) => {
-        const label = HEALTH_LABEL[ch.channel_health] ?? 'desconectado';
-        const caiu = ch.last_health_check_at
-          ? new Date(ch.last_health_check_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-          : null;
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        'mx-2.5 mb-0.5 mt-2.5 flex shrink-0 flex-col gap-1.5 rounded-lg border px-3 py-2.5',
+        tone,
+      )}
+      data-testid="caixa-unif-health-banner"
+    >
+      <div className="flex items-start gap-2.5">
+        <span className={cn('mt-px grid h-6 w-6 shrink-0 place-items-center rounded-md', iconWrap)}>
+          {worst === 'err' ? <PlugZap size={14} aria-hidden /> : <AlertTriangle size={14} aria-hidden />}
+        </span>
+        <div className="min-w-0 flex-1">
+          {multi ? (
+            <>
+              <b className="block text-[12.5px] font-semibold">
+                {channels.length} canais com problema de conexão
+              </b>
+              <span className="text-[11.5px] opacity-90">
+                Novas mensagens podem não estar entrando até você reconectar.
+              </span>
+            </>
+          ) : (
+            <>
+              <b className="block text-[12.5px] font-semibold">
+                {providerName(c0.type)} · {c0.label} {STATE_VERB[c0.channel_health] ?? 'está fora do ar'}.
+              </b>
+              <span className="text-[11.5px] opacity-90">
+                {isErr(c0.channel_health)
+                  ? 'Novas mensagens não estão entrando até você reconectar.'
+                  : 'Sincronização instável — pode haver atraso na entrega.'}
+                {chk ? ` · ${chk}.` : ''}
+              </span>
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          className="grid h-5 w-5 shrink-0 place-items-center rounded opacity-60 hover:opacity-100"
+          title="Dispensar até a próxima verificação"
+          aria-label="Dispensar aviso"
+          data-testid="caixa-unif-health-dismiss"
+        >
+          <X size={13} aria-hidden />
+        </button>
+      </div>
 
-        return (
-          <Inline
-            key={ch.id}
-            gap={3}
-            role="alert"
-            className="rounded-md border border-destructive/30 bg-destructive/10 px-3.5 py-2.5"
-            data-testid={`caixa-unif-health-banner-${ch.id}`}
+      {!multi ? (
+        <div className="pl-[34px]">
+          <button
+            type="button"
+            onClick={() => reconnect(c0.id)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11.5px] font-semibold transition-colors',
+              worst === 'err'
+                ? 'border-destructive/40 bg-destructive/10 hover:bg-destructive/20'
+                : 'border-warning/40 bg-warning/15 hover:bg-warning/25',
+            )}
+            data-testid="caixa-unif-health-reconnect"
           >
-            <AlertTriangle size={18} className="shrink-0 text-destructive" aria-hidden />
-            <div className="min-w-0 flex-1 leading-tight">
-              <p className="text-[13px] font-semibold text-destructive">
-                WhatsApp {ch.label} {label}
-              </p>
-              <p className="text-[12px] text-destructive/80">
-                Novas mensagens não estão entrando até você religar
-                {caiu ? ` · caiu às ${caiu}` : ''}.
-              </p>
+            <RefreshCw size={12} aria-hidden /> Reconectar canal
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1 pl-[34px]">
+          {channels.map((c) => (
+            <div key={c.id} className="flex items-center gap-2 text-[11.5px]">
+              <span
+                className={cn(
+                  'h-1.5 w-1.5 shrink-0 animate-pulse rounded-full',
+                  isErr(c.channel_health) ? 'bg-destructive' : 'bg-warning',
+                )}
+                aria-hidden
+              />
+              <span className="min-w-0 flex-1 truncate">
+                <b className="font-semibold">
+                  {providerName(c.type)} · {c.label}
+                </b>
+                <span className="opacity-85"> — {STATE_LABEL[c.channel_health] ?? 'fora do ar'}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => reconnect(c.id)}
+                className="shrink-0 font-semibold underline underline-offset-2 hover:opacity-80"
+                data-testid={`caixa-unif-health-reconnect-${c.id}`}
+              >
+                Reconectar
+              </button>
             </div>
-            <a
-              href={route('atendimento.channels.show', ch.id)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-destructive/40 bg-background px-3 py-1.5 text-[12.5px] font-medium text-destructive transition-colors hover:bg-destructive/10"
-              data-testid={`caixa-unif-health-banner-religar-${ch.id}`}
-            >
-              <QrCode size={15} aria-hidden />
-              Religar agora
-            </a>
-          </Inline>
-        );
-      })}
-    </Stack>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
