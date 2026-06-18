@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-16"
+last_run: "2026-06-18"
 ---
 
 # Casos de Uso & Aceite — Financeiro Unificado
@@ -55,3 +55,4 @@ last_run: "2026-06-16"
 ## Trilha do tempo
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE): UC-F01..03 espelham o RetencaoLoopE2ETest (CU-3→CU-5) no manifesto G-7; RetencaoLoop entrou na allowlist do financeiro-pest + JUnit artifact.
 - 2026-06-16 · [CL] revalidado (bump last_run) na onda "Financeiro adversário Wave 1": mudança é só de UI no hero/audit trail (% pt-BR + cor de saldo negativo); UC-F01..03 são do fluxo backend venda→título→caixa, intocados — seguem ✅ pelo mesmo RetencaoLoopE2ETest.
+- 2026-06-18 · [CL] revalidado (bump last_run): migração do header pro `<PageHeader>` canon (#2947) — mudança só de chrome do header (Zona R preservada: 3 lentes + divisor + FinanceiroSubNav + dropdown "Novo título"); UC-F01..03 são do fluxo backend venda→título→caixa, intocados — seguem ✅ pelo mesmo RetencaoLoopE2ETest.

@@ -1108,3 +1108,33 @@ Esta entrada e a do #2947 (Tarefa 1) **anexam no mesmo fim** do `CODE_NOTES.md` 
 - **gotcha**: antes de "construir o guard X do sketch", `grep` por um guard irmão — `handoff-integrity-guard` já mecanizava C3/C4 no mesmo arquivo. Sketch pasteado ≠ greenfield; quase sempre há um home (Regra 7).
 - **gotcha**: o `WATER` do sketch (`"LINHA D'ÁGUA"`) era placeholder; o marcador real é `LINHA-DAGUA-HANDOFF`. `split`/`indexOf` no token errado → fila inteira vira "ativa" (silencioso). Confirmar o token real, não colar o do sketch.
 - **golden**: workflow novo PRECISA de entrada em `scripts/governance/gates-registry.json` no MESMO PR, senão `memory-health` (enforce, check G "censo de gates") 🔴 bloqueia.
+
+---
+
+## 2026-06-18 [CL] → [W] — Financeiro/Unificado: header migra pro `<PageHeader>` canon v3.8 · **#2947 (ABERTO)**
+_worktree `D:/oimpresso-unif-ph` off `origin/main` @`724e7326a` (base `main`). Tarefa 1 do handoff "DS rollout — header canon". Re-landado AQUI (fim do arquivo) ao resolver o conflito de tail previsto com #2950 — as duas entradas preservadas (append-only)._
+
+Auditei vs `origin/main` fresco (§10.4): Unificado era a **última Page Financeiro fora do canon de header** — única ainda importando o deprecated `@/Components/shared/PageHeader` (`pageheader-gate` CONGELADO) + bloco inline `os-page-h fin-page-h`. Dashboard/Dre/ContasPagar **já no canon** no `main` (re-baseline do [CC] confere; não retoquei nenhuma).
+
+### Entregue (#2947)
+- Import deprecated → `import { PageHeader } from '@/Components/PageHeader'`. Header inline → `<PageHeader title="Financeiro" suffix=" · Visão unificada" subtitle={…}>`.
+- **Zona R preservada byte-a-byte** via `children` (escape hatch — mirror exato de Dre/ContasPagar): 3 lentes US-FIN-029 + divisor + `<FinanceiroSubNav hidePrimary>` (6 overflow) + dropdown "Novo título".
+- Remove 2 imports mortos (`shared/PageHeader` + `FinanceiroPrimaryButton`).
+- `pageheader-shared-baseline.json` regenerado **104→101** (absorveu 2 já-migradas sem refresh: `Jana/Brief`, `OficinaAuto/ServiceOrders/Index`).
+- G-6 (ADR 0264): `Unificado/Index.casos.md` revalidado (bump `last_run` → 2026-06-18) — header é só chrome; UC-F01..03 (fluxo backend venda→título→caixa) intocados, seguem ✅ pelo `RetencaoLoopE2ETest`.
+
+### NÃO toquei (escopo travado)
+Lentes/filtros/baixa/KPI/footer/drawer · peso H1 600×700 (Tier 0, espera [W]) · Dashboard/Dre/ContasPagar.
+
+### Verificação
+`pageheader:guard` + `casos:check` + `components`/`layout`/`ds-canon`/`conformance`/`foundation` **verdes**. CI #2947: 0 fails (ESLint, Vite build, E2E, PHPStan, Pest, Governance/memory-health verdes). **Screenshot-gate:** [W] aprovou **on-parity** (chrome idêntico ao `<PageHeader>` já live em `/dre` e `/contas-pagar`); confirmação de pixel via `tela-smoke-pos-merge` (prod @1280/@1440) pós-merge.
+
+### Resíduos (fora de escopo, não bloqueiam)
+- `Unificado/Novo.tsx` ainda no deprecated `shared/PageHeader` → 1 PR separado.
+- `Unificado/Index.charter.md` cita "os-page-h" num changelog histórico (Ondas 12-21) — débito de prosa; Dre tem o mesmo padrão pós-migração (precedente).
+
+### new_design_memories
+- **golden**: migrar header pro canon = trocar SÓ o container; a Zona R (conteúdo da tela) sobrevive byte-a-byte via `children` do `<PageHeader>` (mirror Dre/ContasPagar). Nada de reescrever lentes/subnav/dropdown.
+- **gotcha**: o primary "Novo título" do Unificado é `DropdownMenuTrigger asChild` (Radix) — **não** vira `<PageHeaderPrimary>` (não forward ref/props do Radix → quebra o menu). O trigger `os-btn primary` já resolve roxo 295 (`var(--accent)`, ADR 0190), então o canon de cor já está atendido.
+- **gotcha**: editar o `.tsx` deixa o trio `Index.casos.md` STALE (G-6 · ADR 0264) — o `casos-gate` falha em CI mesmo se `casos:check` local passar. Bumpar `last_run` + linha na trilha (mudança só-UI → UCs de backend intocados).
+- **gotcha**: `pageheader-shared-baseline.json` estava **stale** no `origin/main` (count 104 vs real 102 — telas migraram sem `--write`). Regenerar (`--write`) cai pro real e absorve as órfãs; o ratchet só aperta → seguro, mas o diff do baseline mostra +1 tela que você não tocou.
