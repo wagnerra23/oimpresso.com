@@ -1,4 +1,3 @@
-<!-- cowork: target: prototipo-ui/handoffs/erros-autoresolucao.md -->
 ---
 handoff_id: erros-autoresolucao
 tela: Plataforma/ErrorHandling
