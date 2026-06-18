@@ -34,10 +34,9 @@ import {
 } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { Grid, Inline, Stack } from '@/Components/layout';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -1381,17 +1380,16 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
   return (
     <div className="fin-curadoria">
-      {/* Onda 12.3 (2026-05-19) — markup canon EXATO `os-page-h` (DOM forensics
-          canon REAL). Bundle CSS canon inteiro importado em inertia.css garante
-          que classes existem (sem tree-shake como acontecia com cherry-pick). */}
-      <div className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>
-            Financeiro <span className="fin-hero-title-sub">· Visão unificada</span>
-          </h1>
-          <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
+      {/* Wave 4 (2026-06-18): migrado pra <PageHeader> canon v3.8 (ADR 0189/0190),
+          paridade com Dashboard/Dre/ContasPagar. O conteúdo da Zona R (3 lentes
+          US-FIN-029 + divisor + FinanceiroSubNav + dropdown "Novo título") é
+          preservado via children (escape hatch) — mirror do pattern Dre/ContasPagar. */}
+      <PageHeader
+        title="Financeiro"
+        suffix=" · Visão unificada"
+        subtitle={<>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</>}
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
           {/* US-FIN-029 (2026-06-10) — segmented 3 lentes (Caixa · A receber · A pagar),
               direção [W] 2026-05-31 (charter v14 + MWART unificado-3-lentes). Camada 1
               do filtro grosso; chips lifecycle refinam DENTRO da lente. Pattern visual =
@@ -1475,7 +1473,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </PageHeader>
 
       <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} periodLabel={periodLabel} />
 
