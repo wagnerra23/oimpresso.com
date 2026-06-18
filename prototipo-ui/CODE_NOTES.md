@@ -1084,3 +1084,27 @@ Gap 3 levers · Gap 2 badge `conflito` · publisher Cowork→repo (zero-toque re
 - **gotcha**: teste de `Modules/TeamMcp` SÓ roda em CI se estiver no `.github/ci-sqlite-pest.list` (não há lane TeamMcp; `modules-pest.yml` não cobre). PR-1/2 não estavam → não mordiam.
 - **gotcha**: workflow novo SEM registro em `scripts/governance/gates-registry.json` no MESMO PR → `memory-health` (enforce) 🔴 bloqueia ("censo de gates").
 - **gotcha**: **`--auto` merge durante lag do GitHub squasha o head que o *PR-object* enxerga, NÃO a ref real da branch.** O PR-object ficou preso 1 commit atrás (lag de minutos); o auto-merge squashou o head defasado e o último commit recém-pushado (este doc) ficou de fora. Pós-merge, conferir `git show --stat <mergeCommit>` e re-landar o que faltou. Esta entrada é o re-land.
+
+---
+
+## 2026-06-18 [CL] → [W] — Caçador de reincidência vira guard git (C3/C4/C5) · **#2950 (ABERTO · advisory)**
+_worktree `D:/oimpresso-reincid-guard` off `origin/main` @`e588a2429` (base `main`). Tarefa 2 do handoff "DS rollout". **Você escolheu explicitamente "build the standalone reincidencia-guard.mjs as written"** apesar do meu aviso de duplicação — segue feito, funcional e transparente._
+
+### Entregue (#2950)
+- `scripts/reincidencia-guard.mjs` — o sketch do handoff, com os `// confirmar` resolvidos pro real (`QUEUE=prototipo-ui/COWORK_NOTES.md`, `DIR=prototipo-ui`, marcador `LINHA-DAGUA-HANDOFF` — o `"LINHA D'ÁGUA"` do sketch era placeholder) + flags `--root/--write/--json` pra testabilidade. Detecta C3 fundido · C4 órfão/ref-morta · C5 item ativo sem `verificado vs main`.
+- `scripts/reincidencia-guard.test.mjs` — controle-negativo **18 casos** (morde C3/C4/C5 + não falso-positiva: C5-com-carimbo, baseline congelado, abaixo-da-linha).
+- `scripts/reincidencia-baseline.json` (`[]`, fila limpa hoje) · `.github/workflows/reincidencia-guard.yml` (**advisory** de nascença, ADR 0271/0275) · registrado em `gates-registry.json` (censo · memory-health check G) · 3 npm scripts.
+
+### Verificação
+`reincidencia:check` 🟢 · selftest 18/18 · `memory-health` **0 🔴** (censo OK). Node puro (roda sem `node_modules`).
+
+### ⚠️ Honestidade (Regra 7 — leia antes de mergear)
+**Duplica `handoff-integrity-guard.mjs` (#2869, no `main`):** C3 + C4 já estão mecanizados lá, **mesmo arquivo + mesmo marcador**, com baseline+selftest. A única classe nova é **C5**, mas a heurística `> … → [CL]` **casa zero** na fila real (bullets `- **…**`) → **no-op** hoje, até você confirmar a sintaxe de "item ativo" (PROCESSO §16 marca C5 🔜/[W]). **Recomendo** consolidar o C5 dentro do `handoff-integrity-guard` (fonte única) numa próxima onda em vez de manter 2 guards sobre o mesmo arquivo. Deixei advisory pra não brigar com o irmão.
+
+### Nota de merge
+Esta entrada e a do #2947 (Tarefa 1) **anexam no mesmo fim** do `CODE_NOTES.md` (ambas off `origin/main`) — o 2º PR a mergear pode pedir um resolve trivial (manter as duas entradas).
+
+### new_design_memories
+- **gotcha**: antes de "construir o guard X do sketch", `grep` por um guard irmão — `handoff-integrity-guard` já mecanizava C3/C4 no mesmo arquivo. Sketch pasteado ≠ greenfield; quase sempre há um home (Regra 7).
+- **gotcha**: o `WATER` do sketch (`"LINHA D'ÁGUA"`) era placeholder; o marcador real é `LINHA-DAGUA-HANDOFF`. `split`/`indexOf` no token errado → fila inteira vira "ativa" (silencioso). Confirmar o token real, não colar o do sketch.
+- **golden**: workflow novo PRECISA de entrada em `scripts/governance/gates-registry.json` no MESMO PR, senão `memory-health` (enforce, check G "censo de gates") 🔴 bloqueia.
