@@ -3,29 +3,32 @@ import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { AlertTriangle, PlugZap, RefreshCw, X } from 'lucide-react';
 
+import { Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
 import { relativeTimeBR } from './helpers';
 import type { UnhealthyChannel } from './helpers';
 
 /**
- * ChannelHealthBanner — banner "canal caiu — reconectar" no topo da Caixa Unificada.
+ * ChannelHealthBanner — banner "canal caiu — reconectar" no topo da LISTA da Caixa.
  *
  * US-WA-308 (incidente 2026-06-18): canal whatsmeow deslogou ("401: logged out
  * from another device") e o app nunca soube → `channel_health` ficou `healthy` e
  * a tela não avisava por ~3h. O `whatsmeow:health-probe` (cron 3min) passou a
  * convergir o health real e este banner o exibe.
  *
- * Redesign Cowork ([CC]→[CL] 2026-06-18, [W] escolheu trocar o visual): tom
- * graduado warn/err, dispensável, resumo multi-canal e CTA Reconectar. Continua
- * lendo o prop EAGER `unhealthyChannels` (não-deferred → aparece no first-paint),
- * mapeado aos estados REAIS que o probe emite — `disconnected`/`banned` (fora do
- * ar, err) e `degraded` (instável, warn). Não existe estado "down": o backend
- * nunca o emite.
+ * Redesign Cowork ([CC]→[CL] 2026-06-18, [W] escolheu trocar o visual E posicionar
+ * no topo da COLUNA de conversas — fiel ao protótipo): tom graduado warn/err,
+ * dispensável, resumo multi-canal e CTA Reconectar. Renderizado por
+ * `ConversationListV4` (logo após a busca), alimentado pelo prop EAGER
+ * `unhealthyChannels` (não-deferred → first-paint), mapeado aos estados REAIS do
+ * probe — `disconnected`/`banned` (fora do ar, err) e `degraded` (instável, warn).
+ * Não existe estado "down": o backend nunca o emite.
  *
- * Cor 100% via tokens semânticos `warning`/`destructive` (ds/no-adhoc-status-text
- * + ui:lint R1 · ADR 0281) — flipam sozinhos no dark. Reconectar navega pra
- * `/atendimento/canais/{id}` (re-parear/QR já existente).
+ * Layout por primitivos `<Stack>`/`<Inline>` (ADR 0253 — sem flex/grid solto; a
+ * centragem de ícone usa o idioma permitido `grid place-items-center`). Cor 100%
+ * via tokens semânticos `warning`/`destructive` (R1 + ADR 0281 → flip dark).
+ * Reconectar navega pra `/atendimento/canais/{id}` (re-parear/QR já existente).
  */
 const ERR_STATES = new Set(['disconnected', 'banned']);
 
@@ -78,17 +81,14 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
   const chk = checkLabel(c0.last_health_check_at);
 
   return (
-    <div
+    <Stack
       role="status"
       aria-live="polite"
-      className={cn(
-        'mx-2.5 mb-0.5 mt-2.5 flex shrink-0 flex-col gap-1.5 rounded-lg border px-3 py-2.5',
-        tone,
-      )}
+      className={cn('mx-2.5 mb-0.5 mt-2.5 shrink-0 gap-1.5 rounded-lg border px-3 py-2.5', tone)}
       data-testid="caixa-unif-health-banner"
     >
-      <div className="flex items-start gap-2.5">
-        <span className={cn('mt-px grid h-6 w-6 shrink-0 place-items-center rounded-md', iconWrap)}>
+      <Inline align="start" className="gap-2.5">
+        <span className={cn('mt-px grid place-items-center h-6 w-6 shrink-0 rounded-md', iconWrap)}>
           {worst === 'err' ? <PlugZap size={14} aria-hidden /> : <AlertTriangle size={14} aria-hidden />}
         </span>
         <div className="min-w-0 flex-1">
@@ -118,14 +118,14 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
         <button
           type="button"
           onClick={() => setDismissed(true)}
-          className="grid h-5 w-5 shrink-0 place-items-center rounded opacity-60 hover:opacity-100"
+          className="grid place-items-center h-5 w-5 shrink-0 rounded opacity-60 hover:opacity-100"
           title="Dispensar até a próxima verificação"
           aria-label="Dispensar aviso"
           data-testid="caixa-unif-health-dismiss"
         >
           <X size={13} aria-hidden />
         </button>
-      </div>
+      </Inline>
 
       {!multi ? (
         <div className="pl-[34px]">
@@ -144,9 +144,9 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-1 pl-[34px]">
+        <Stack gap={1} className="pl-[34px]">
           {channels.map((c) => (
-            <div key={c.id} className="flex items-center gap-2 text-[11.5px]">
+            <Inline key={c.id} className="gap-2 text-[11.5px]">
               <span
                 className={cn(
                   'h-1.5 w-1.5 shrink-0 animate-pulse rounded-full',
@@ -168,10 +168,10 @@ export default function ChannelHealthBanner({ channels }: { channels: UnhealthyC
               >
                 Reconectar
               </button>
-            </div>
+            </Inline>
           ))}
-        </div>
+        </Stack>
       )}
-    </div>
+    </Stack>
   );
 }
