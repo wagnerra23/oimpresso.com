@@ -66,6 +66,12 @@ jobs:
             node scripts/contrato-de-tela.mjs --contract "$c" || rc=1
           done
           exit $rc
+      - name: Mapa protótipo→prod (gerado) + --map --check (fonte existe + âncoras)
+        run: |
+          echo "::group::Mapa protótipo → produção (derivado · régua 5)"
+          node scripts/contrato-de-tela.mjs --map || true
+          echo "::endgroup::"
+          node scripts/contrato-de-tela.mjs --map --check
       - name: Diagnóstico em caso de falha
         if: failure()
         run: |
