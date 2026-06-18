@@ -116,7 +116,7 @@ function buildScorecard() {
         detail: an,
       },
       full_suite_pass_rate: notYet('up', '100% não-quarentenado',
-        'nightly MySQL diagnóstica (FV-F3) — nenhum run full-repo MySQL jamais foi salvo'),
+        'nightly MySQL diagnóstica (FV-F3) roda no CT100 (15+ runs reais; último OK 2026-06-15) — o que falta é o transporte CT100→scorecard publicar governance/nightly-floor.json. Ver ADR 0279 / proposal #2765'),
       n_quarantine: {
         status: 'measured', value: q.files, unit: 'arquivos de teste',
         direction: 'down', target: 0,
