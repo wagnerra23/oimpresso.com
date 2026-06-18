@@ -32,6 +32,8 @@ on:
       - 'governance/sdd-scorecard-baseline.json'
       - 'governance/nightly-floor.json'        # floor publicado pelo write-side CT100 (ADR 0279)
       - 'scripts/governance/sdd-floor-read.test.mjs'
+      - 'scripts/tests/floor-compute.mjs'
+      - 'scripts/tests/floor-compute.test.mjs'
       - '.github/workflows/sdd-scorecard.yml'
   schedule:
     - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
@@ -56,6 +58,18 @@ jobs:
 
       - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
         run: node scripts/governance/sdd-floor-read.test.mjs
+
+      - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
+        run: node scripts/tests/floor-compute.test.mjs
+
+      - name: Materializa o floor da branch governance/nightly-floor (ADR 0279 transporte)
+        run: |
+          if git fetch origin governance/nightly-floor --depth 1 2>/dev/null \
+             && git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json 2>/dev/null; then
+            echo "floor materializado da branch governance/nightly-floor:"; cat governance/nightly-floor.json
+          else
+            echo "branch/arquivo de floor ausente — read-side cai em not_yet_measured (esperado até o 1º write-side do CT100)"
+          fi
 
       - name: Medir — agregador escreve governance/sdd-scorecard.json
         run: |

@@ -265,4 +265,33 @@ node "$CODE/scripts/tests/junit-summary.mjs" "$RUN_DIR/junit.xml" --out "$RUN_DI
   || echo "junit-summary exit $? — XML ausente/incoerente (run morreu antes do flush?)"
 ln -sfn "$RUN_DIR" "$RUNS/latest"
 find "$RUNS" -maxdepth 1 -mindepth 1 -type d | sort | head -n "-$KEEP_RUNS" | xargs -r rm -rf
+
+# --- [floor] (ADR 0279 write-side · Opcao A) -------------------------------------
+# Computa o FLOOR = intersecao dos arquivos-que-falham entre >=2 nightlies VALIDOS
+# (def US-GOV-018) e publica governance/nightly-floor.json na branch ORFA
+# governance/nightly-floor via deploy key (/root/.ssh/oimpresso_floor_deploy; orfa =
+# imune a shallow + NAO toca a protecao do main). O scorecard materializa esse arquivo
+# no CI e mede full_suite. <2 runs validos => floor_count null => read-side fica
+# not_yet_measured (nunca mente 0). Falha aqui NAO derruba o run (o diagnostico ja rodou).
+FLOOR_KEY=/root/.ssh/oimpresso_floor_deploy
+if [ -f "$FLOOR_KEY" ]; then
+  FLOORDIR="$(mktemp -d)"
+  mkdir -p "$FLOORDIR/governance"
+  if node "$CODE/scripts/tests/floor-compute.mjs" --runs "$RUNS" --window 3 --out "$FLOORDIR/governance/nightly-floor.json"; then
+    ( cd "$FLOORDIR" \
+      && git init -q \
+      && git config core.sshCommand "ssh -i $FLOOR_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+      && git add governance/nightly-floor.json \
+      && git -c user.email=ct100-floor@oimpresso.local -c user.name="ct100-nightly-floor" commit -q -m "chore(sdd): nightly floor $TS [skip ci]" \
+      && git push -f git@github.com:wagnerra23/oimpresso.com.git HEAD:refs/heads/governance/nightly-floor 2>&1 | tail -2 ) \
+      && echo "[floor] publicado em governance/nightly-floor" \
+      || echo "[floor] push falhou (ver acima) — read-side fica notYet"
+  else
+    echo "[floor] floor-compute falhou — pulo publicacao"
+  fi
+  rm -rf "$FLOORDIR"
+else
+  echo "[floor] deploy key ausente ($FLOOR_KEY) — pulo publicacao (read-side notYet)"
+fi
+
 echo "=== done $TS sha=$SHA pest_exit=$PEST_EXIT artefatos=$RUN_DIR ==="
