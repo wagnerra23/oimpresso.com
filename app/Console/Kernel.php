@@ -750,6 +750,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // whatsmeow:health-probe (3 em 3 min) — fecha a lacuna que o reconciler
+        // Baileys-only NÃO cobre (incidente 2026-06-18, US-WA-308): canal whatsmeow
+        // "logged out from another device" sem webhook LoggedOut → channel_health
+        // ficava 'healthy' e a Caixa não avisava (linha caída ~3h sem ninguém ver).
+        // Probe consulta /session/status REAL e converge disconnected/banned/healthy.
+        $schedule->command('whatsmeow:health-probe')
+            ->everyThreeMinutes()
+            ->withoutOverlapping(3)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsmeow:health-probe FALHOU — queda de canal whatsmeow pode ficar invisível'
+                );
+            });
+
         // Worker da fila `whatsapp-history` (Wagner request 2026-05-14 02h):
         // "recebe tudo de maneira rapida... depois sincroniza com o banco,
         // sempre guarda para não perder". Cron everyMinute pra processar

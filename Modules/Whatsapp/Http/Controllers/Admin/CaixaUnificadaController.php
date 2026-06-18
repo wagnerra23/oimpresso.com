@@ -177,6 +177,12 @@ class CaixaUnificadaController extends Controller
             'customerContext' => $customerContext,
             'centrifugoConfig' => $centrifugoConfig,
 
+            // US-WA-308 (incidente 2026-06-18) — canais ATIVOS com saúde != healthy,
+            // eager (query trivial na tabela channels) pro banner "canal caiu —
+            // religar" aparecer no first-paint sem esperar o defer de
+            // availableAccounts. Tier 0 ADR 0093 + ACL canal=fila (US-WA-069).
+            'unhealthyChannels' => $this->buildUnhealthyChannelsPayload($businessId, $userId),
+
             // US-WA-301 (ADR 0267) — filas agora vêm do DB (seed lazy do config
             // na 1ª visita; fallback config se DB vazio). Shape QueueConfig compat.
             'queues' => $this->getQueuesConfig($businessId),
@@ -628,6 +634,41 @@ class CaixaUnificadaController extends Controller
             'channel_health' => $ch->channel_health,
             'count' => (int) ($convCounts[$ch->id] ?? 0),
         ])->all();
+    }
+
+    /**
+     * US-WA-308 (incidente 2026-06-18) — canais ATIVOS cuja sessão caiu, pro banner
+     * "canal desconectado — religar" no topo da Caixa Unificada.
+     *
+     * Eager (custo trivial: tabela `channels`, poucas rows) pra o aviso aparecer no
+     * first-paint — diferente de `availableAccounts` (deferred). Tier 0 ADR 0093 +
+     * ACL canal=fila (US-WA-069): só canais que o user pode ver. `degraded` entra
+     * junto de `disconnected`/`banned` porque já significa "não confiável agora".
+     *
+     * @return array<int, array{id: int, label: string, type: string, channel_health: string, last_health_message: ?string, last_health_check_at: ?string}>
+     */
+    protected function buildUnhealthyChannelsPayload(int $businessId, int $userId): array
+    {
+        $query = Channel::query()
+            ->where('business_id', $businessId)
+            ->where('status', 'active')
+            ->whereIn('channel_health', ['disconnected', 'banned', 'degraded']);
+        if (! $this->canSeeAllChannels()) {
+            $query->whereIn('id', $this->allowedChannelIdsSubquery($businessId, $userId));
+        }
+
+        return $query
+            ->orderBy('label')
+            ->get(['id', 'label', 'type', 'channel_health', 'last_health_message', 'last_health_check_at'])
+            ->map(fn (Channel $ch) => [
+                'id' => $ch->id,
+                'label' => $ch->label,
+                'type' => $ch->type,
+                'channel_health' => $ch->channel_health,
+                'last_health_message' => $ch->last_health_message,
+                'last_health_check_at' => optional($ch->last_health_check_at)->toIso8601String(),
+            ])
+            ->all();
     }
 
     /**
