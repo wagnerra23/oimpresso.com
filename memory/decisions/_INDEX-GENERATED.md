@@ -29,6 +29,9 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
+## Recusadas (0) — o NÃO consultável
+_(nenhuma — nenhum pedido recusado catalogado ainda)_
+
 ## Todas as ADRs (291)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
