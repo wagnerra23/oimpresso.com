@@ -119,7 +119,7 @@ const FE_BUG = `export function isSessionActive(d){ return d.state === 'connecte
   const r = node(root, ['--contract', 'contrato.json']);
   check(
     "paired≠connected: frontend ignora 'paired' → exit 1 (catraca semântica MORDE — faltou no #2974)",
-    r.status === 1 && /paired/.test(out(r)) && /NÃO trata/.test(out(r)),
+    r.status === 1 && /paired/.test(out(r)) && /NÃO menciona/.test(out(r)),
     out(r),
   );
   drop(root);
@@ -146,7 +146,7 @@ const FE_BUG = `export function isSessionActive(d){ return d.state === 'connecte
   const r = node(root, ['--contract', 'contrato.json']);
   check(
     "comment-blindness: 'paired' só em comentário NÃO conta → exit 1 (anti backdoor-de-prosa)",
-    r.status === 1 && /paired/.test(out(r)) && /NÃO trata/.test(out(r)),
+    r.status === 1 && /paired/.test(out(r)) && /NÃO menciona/.test(out(r)),
     out(r),
   );
   drop(root);
@@ -192,6 +192,28 @@ const FE_BUG = `export function isSessionActive(d){ return d.state === 'connecte
   }));
   const r = node(root, ['--contract', 'contrato.json']);
   check("escopo inválido 'cliente_biz_4' → exit 1 (formato)", r.status === 1 && /escopo inválido/.test(out(r)), out(r));
+  drop(root);
+}
+
+// 4b.8 POSITIVO — strip string-aware: `//` dentro de URL na MESMA linha do state NÃO vira comentário.
+// (regex naïve comia o resto da linha → falso-RED no `'state' => 'paired'`; o adversário pegou isso.)
+{
+  const beUrl = `<?php\nreturn ['url' => 'http://x//y/z', 'state' => 'paired'];\nreturn ['state' => 'connected'];\n`;
+  const root = makeAgreementRoot({ frontendTs: FE_GOOD, backendPhp: beUrl });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check("strip string-aware: '//' em URL não come o state na mesma linha → exit 0", r.status === 0, out(r));
+  drop(root);
+}
+
+// 4b.9 NEGATIVO — escopo com path-traversal (`tela:../../etc/passwd`) → exit 1 (Tier 0).
+{
+  const root = makeAgreementRoot({ frontendTs: FE_GOOD });
+  writeFileSync(join(root, 'contrato.json'), JSON.stringify({
+    tela: 'EscTrav', alvo: ['tela'], secoes: [{ id: 'ok', copy: ['Canal reconectado!'] }],
+    acordos_estado: [{ id: 'sessao-ativa', escopo: 'tela:../../etc/passwd', valores: ['paired', 'connected'], backend: 'backend/ChannelsController.php', frontend: ['tela/reconnectState.ts'] }],
+  }));
+  const r = node(root, ['--contract', 'contrato.json']);
+  check("escopo path-traversal 'tela:../../etc/passwd' → exit 1", r.status === 1 && /escopo inválido/.test(out(r)), out(r));
   drop(root);
 }
 

@@ -19,6 +19,7 @@ on:
       - 'prototipo-ui/contrato/**'
       - '**/*.contract.json'
       - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Pages/**/*.ts'
       - '.github/workflows/contrato-de-tela.yml'
 
 permissions:

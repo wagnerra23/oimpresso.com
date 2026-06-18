@@ -82,17 +82,17 @@ O contrato pode declarar `acordos_estado`: um VOCABULÁRIO de `state` compartilh
 ]
 ```
 
-**Como casa (anti-teatro):** o literal só conta em **CÓDIGO** (comentários `/* */`/`//`/`#` são removidos antes — um `state` citado em JSDoc NÃO prova que o código o trata; senão é a "backdoor de prosa" que matou o v0, §4) e só em **posição de VALOR** (a chave `'paired' => true` não conta como emissão — senão um rename `paired→pareado` no backend passaria verde). `frontend` é opcional (default = `alvo`). `escopo` (default `global`) e `verdict` (default `aprovado`) ancoram o eixo de veredito-por-zona escopado por tenant (ver proposal veredito-ledger).
+**Como casa (anti-teatro):** o literal só conta em **CÓDIGO** — comentários (`/* */`/`//`/`#`) são removidos antes, com strip **string-aware** (um `'http://x//y'` não é confundido com comentário) — e só em **posição de VALOR** (a chave `'paired' => true` não conta como emissão; senão um rename `paired→pareado` passaria verde). O gate prova **menção nos dois lados**, não *handling* (ver Honestidade abaixo). `frontend` é opcional (default = `alvo`). `escopo` (default `global`, sem `.` → sem path-traversal) e `verdict` (default `aprovado`) ancoram o eixo veredito-por-zona escopado por tenant (proposal veredito-ledger).
 
 Três modos de FALHA:
 
-4. **Vocabulário divergente** — o `backend` emite `<state>` mas o `frontend` NÃO o trata → **FALHA** (`backend emite "<state>" mas o frontend NÃO trata`). _É o bug `paired`≠`connected`._
+4. **Ignorância total** — o `backend` emite `<state>` mas o `frontend` NÃO o **menciona em código** → **FALHA** (`… o frontend NÃO menciona "<state>" em código`). _Pega a forma do bug `paired`≠`connected` (frontend totalmente sem o state) — não um handler errado que ainda menciona o state (isso é o vitest)._
 5. **Drift de contrato** — `valores` declara um `<state>` que o backend NÃO emite (valor morto / renomeado) → **FALHA** (`estado "<state>" declarado mas o backend não emite`).
-6. **Escopo inválido** — `escopo` fora do formato (`global` | `vertical:<x>` | `cliente:biz=<n>` | `persona:<p>` | `tela:<rota>`) → **FALHA** (typo que mis-escoparia o veredito · risco Tier 0).
+6. **Escopo inválido** — `escopo` fora do formato (`global` | `vertical:<x>` | `cliente:biz=<n>` | `persona:<p>` | `tela:<rota>`) → **FALHA** (typo/traversal que mis-escoparia o veredito · risco Tier 0).
 
-Travado por self-test: `4b.1` positivo, `4b.2` o bug, `4b.3` drift, **`4b.4` comment-blindness** (literal só em comentário não conta), **`4b.5` key-false-match** (`'x' =>` não conta), `4b.6/4b.7` escopo válido/inválido.
+Travado por self-test (17 controles): `4b.1` positivo, `4b.2` o bug, `4b.3` drift, **`4b.4` comment-blindness**, **`4b.5` key-false-match**, `4b.6/4b.7` escopo válido/inválido, **`4b.8` strip string-aware** (`//` em URL não come o state), **`4b.9` escopo path-traversal**.
 
-> **Honestidade (o que a catraca É e NÃO é):** é uma **catraca de regressão** — trava o vocabulário que um humano JÁ declarou em `valores`; **não descobre** uma divergência nova ainda não-declarada. Prospectivamente ela não teria *achado* o bug de 2026-06-18 (ninguém tinha declarado o acordo); ela impede o **des-conserto** silencioso dele. O juízo comportamental forte continua sendo o vitest `tests/reconnect-session-active.test.ts` (#2984); esta catraca amarra a costura PHP↔TS que o vitest não enxerga.
+> **Honestidade (o que a catraca É e NÃO é):** é uma **catraca de regressão** — trava o vocabulário que um humano JÁ declarou em `valores`; **não descobre** uma divergência nova ainda não-declarada. Prospectivamente ela não teria *achado* o bug de 2026-06-18 (ninguém tinha declarado o acordo); ela impede o **des-conserto** silencioso dele. **Limite conhecido (match léxico):** ela checa *menção*, não *handling* — um `'paired' | 'connected'` num tipo TS satisfaz o gate mesmo se o handler tratar só um. Quem prova o handling é o vitest `tests/reconnect-session-active.test.ts` (#2984); a catraca pega (a) drift/rename no **backend** e (b) **frontend totalmente ignorante** do state, e amarra a costura PHP↔TS que o vitest não enxerga.
 
 ### 2.4 Desvios legítimos: claim-evidence (não backdoor de prosa)
 

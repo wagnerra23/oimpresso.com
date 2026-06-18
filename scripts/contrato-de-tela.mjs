@@ -175,21 +175,43 @@ function checkContract(file) {
 //   - `escopo`   — (opcional, default "global") a quem o acordo se aplica: global | vertical:<x>
 //                  | cliente:biz=<n> | persona:<p> | tela:<rota>. Default global = não vaza Tier 0.
 //   - `verdict`  — (opcional, default "aprovado") aprovado | recusado.
-// Veredito binário, derivado do CÓDIGO (comentário NÃO conta — senão é "backdoor de prosa", RUNBOOK §4)
-// e só em posição de VALOR (não a chave `'x' =>`). Sem render/auth/DB — mesmo idioma da catraca 2a.
-//   FALHA A: estado declarado que o backend NÃO emite (drift de contrato / valor morto).
-//   FALHA B: backend EMITE o estado mas o frontend NÃO o trata (divergência paired≠connected).
-//   FALHA C: `escopo` em formato inválido (typo que mis-escoparia o veredito).
+// HONESTO — o que prova e o que NÃO prova: derivado do CÓDIGO (comentário NÃO conta), em posição de
+// VALOR (não a chave `'x' =>`), o gate prova que o vocabulário é MENCIONADO nos dois lados. Pega
+// "backend renomeou/sumiu o state" (FALHA A) e "frontend totalmente ignorante do state" (FALHA B, a
+// forma do bug 2026-06-18). NÃO prova que o frontend TRATA o state certo — um `'paired' | 'connected'`
+// num tipo TS menciona sem tratar; o handling é coberto pelo vitest `reconnect-session-active.test.ts`
+// (#2984). Catraca = costura PHP↔TS + ratchet de regressão, não detector de handling. Sem render/auth/DB.
+//   FALHA A: estado declarado que o backend NÃO emite (drift de contrato / renomeado / valor morto).
+//   FALHA B: backend EMITE o estado mas o frontend NÃO o MENCIONA em código (ignorância total).
+//   FALHA C: `escopo` em formato inválido (typo que mis-escoparia o veredito · Tier 0).
 const SOURCE_EXTS = /\.(php|tsx?|jsx?|mjs|cjs)$/;
-const ESCOPO_RE = /^(global|vertical:[\w-]+|cliente:biz=\d+|persona:[\w-]+|tela:[\w./-]+)$/;
-// Remove comentários antes de casar o literal — um `state` citado em JSDoc/`//`/`#` NÃO prova que o
-// código o trata (era o furo do v0: "backdoor de prosa", RUNBOOK §4). Heurística suficiente p/ PHP+TS;
-// um `//` dentro de string vira falso-NEGATIVO (gate reclama, humano confere — direção segura).
+// `tela:` sem `.` → mata path-traversal (`tela:../../x`). vertical/persona = slug; cliente = biz=N.
+const ESCOPO_RE = /^(global|vertical:[\w-]+|cliente:biz=\d+|persona:[\w-]+|tela:[\w/-]+)$/;
+// Remove comentários antes de casar o literal (um `state` citado em JSDoc/`//`/`#` NÃO prova handling).
+// String-aware: caminha char-a-char respeitando aspas, então `'http://x//y'` NÃO é confundido com
+// comentário de linha (o falso-positivo achado pelo adversário). `#` só conta como comentário PHP em
+// início de token (preserva `this.#campo` e `'#fff'`).
 function stripComments(src) {
-  return src
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')   // bloco /* … */ (inclui JSDoc /** … */)
-    .replace(/\/\/[^\n]*/g, ' ')          // linha // …
-    .replace(/(^|\s)#[^\n]*/g, '$1 ');    // linha PHP # … (não casa '#fff' colado em aspas)
+  let out = '', i = 0, q = null;
+  const n = src.length;
+  while (i < n) {
+    const c = src[i], d = src[i + 1];
+    if (q) {                                    // dentro de string: copia (trata escape), detecta fecho
+      out += c;
+      if (c === '\\') { out += d ?? ''; i += 2; continue; }
+      if (c === q) q = null;
+      i++; continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { q = c; out += c; i++; continue; }
+    if (c === '/' && d === '*') { const e = src.indexOf('*/', i + 2); out += ' '; i = e < 0 ? n : e + 2; continue; }
+    if (c === '/' && d === '/') { const e = src.indexOf('\n', i); out += ' '; i = e < 0 ? n : e; continue; }
+    if (c === '#') {                            // comentário PHP só em início de token (não `this.#x`/`'#fff'`)
+      const p = out.length ? out[out.length - 1] : '\n';
+      if (p === ' ' || p === '\n' || p === '\t' || p === '\r') { const e = src.indexOf('\n', i); out += ' '; i = e < 0 ? n : e; continue; }
+    }
+    out += c; i++;
+  }
+  return out;
 }
 function readSourceBlob(paths) {
   const files = [];
@@ -240,7 +262,7 @@ function checkStateAgreements(c, file) {
       const inBe = hasStateLiteral(be.code, v);
       const inFe = hasStateLiteral(fe.code, v);
       if (!inBe) { err(`acordo "${ac.id}": estado ${JSON.stringify(v)} declarado mas o backend não emite (drift de contrato)`); local++; continue; }
-      if (!inFe) { err(`acordo "${ac.id}": backend emite ${JSON.stringify(v)} mas o frontend NÃO trata — divergência de vocabulário (catraca semântica · ADR 0286)`); local++; }
+      if (!inFe) { err(`acordo "${ac.id}": backend emite ${JSON.stringify(v)} mas o frontend NÃO menciona ${JSON.stringify(v)} em código — divergência de vocabulário (catraca semântica · ADR 0286)`); local++; }
     }
     if (!local) ok(`acordo "${ac.id}" [escopo:${escopo}] — vocabulário {${ac.valores.join(', ')}} coerente backend↔frontend`);
     fail += local;
