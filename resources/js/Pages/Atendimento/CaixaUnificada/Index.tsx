@@ -50,6 +50,7 @@ import QueuesSheet from './_components/QueuesSheet';
 import ConversationListV4 from './_components/ConversationListV4';
 import ConversationThreadV4 from './_components/ConversationThreadV4';
 import ContextSidebarV4 from './_components/ContextSidebarV4';
+import ChannelHealthBanner from './_components/ChannelHealthBanner';
 import type {
   AccountItem,
   AssigneeItem,
@@ -64,6 +65,7 @@ import type {
   Paginated,
   QueueConfig,
   CustomerContext,
+  UnhealthyChannel,
 } from './_components/helpers';
 
 interface Props {
@@ -102,6 +104,8 @@ interface Props {
   messages: CaixaUnifMessage[] | null;
   customerContext: CustomerContext | null;
   centrifugoConfig: CentrifugoConfig | null;
+  /** US-WA-308 — canais ativos com sessão caída (banner "religar"). Eager. */
+  unhealthyChannels?: UnhealthyChannel[];
   queues: Record<string, QueueConfig>;
   defaultQueue: string;
 }
@@ -111,7 +115,7 @@ export default function CaixaUnificadaIndex({
   queuesAdmin, canManageQueues,
   businessId: _businessId,
   statusFilter, channelTypeFilter, accountFilter, queueFilter, q,
-  thread, messages, customerContext, centrifugoConfig,
+  thread, messages, customerContext, centrifugoConfig, unhealthyChannels,
   queues, defaultQueue: _defaultQueue,
   within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
 }: Props) {
@@ -413,6 +417,9 @@ export default function CaixaUnificadaIndex({
           </button>
         </div>
       </div>
+
+      {/* US-WA-308 — banner "canal caiu — religar" (incidente 2026-06-18) */}
+      <ChannelHealthBanner channels={unhealthyChannels ?? []} />
 
       {/* Polish V2 §5 — tabs mobile (abaixo de lg; desktop 3-col intacto) */}
       <InboxMobileTabs
