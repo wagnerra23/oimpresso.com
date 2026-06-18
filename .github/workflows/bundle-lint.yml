@@ -1,0 +1,49 @@
+name: Bundle lint (esteira ≠ armazém — advisory)
+
+# Régua 6 da memória de proveniência (RUNBOOK-contrato-de-tela.md + prototipo-ui/PROTOCOL.md):
+# o bundle do design (prototipo-ui/cowork-*/) é ESTEIRA — só app-vivo + screenshots +
+# handoff-ativo + orientação. Resíduo de processo (adversário/tribunal/avaliação,
+# _arquivo/benchmark/uploads, prompts GAPS_v*/FORCE_*) = peso morto: conclusão vai pro
+# memory/, o cru sai do git. ADVISORY (não-required — veredito do adversário): mostra
+# vermelho de verdade, mas não bloqueia; o "advisory" vem de não estar nos required checks.
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/bundle-lint.mjs'
+      - 'scripts/bundle-lint.test.mjs'
+      - 'prototipo-ui/cowork-**'
+      - '.github/workflows/bundle-lint.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    name: Self-test — bundle-lint morde resíduo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/bundle-lint.test.mjs
+
+  lint:
+    name: Bundle lint — resíduo no bundle do design
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/bundle-lint.mjs
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Resíduo de processo no bundle do design (esteira ≠ armazém)."
+          echo "   - Conclusão durável → memory/ no padrão do projeto (vira conhecimento MCP/RAGAS)."
+          echo "   - O arquivo cru sai do git (git rm). Ver RUNBOOK-contrato-de-tela.md + PROTOCOL.md."
