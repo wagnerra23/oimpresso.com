@@ -31,6 +31,25 @@ permissao: whatsapp.access
 
 ---
 
+## Decisões & reclamações da tela (memória viva — LER ANTES de perguntar)
+
+> Registro append-only de tudo que o Wagner já **decidiu / aprovou / recusou** sobre
+> ESTA tela. `charter-first` (Tier A) obriga ler o charter antes de editar o `.tsx` —
+> então **nunca re-perguntar** o que já está aqui. Reclamação nova → vira linha aqui.
+> Formato: `data · status · decisão`. Status: **LEI** (irrevogável) · **APLICADO** ·
+> **EM ANDAMENTO** · **PENDENTE** · **RECUSADO**.
+
+| Data | Status | Decisão |
+|---|---|---|
+| 2026-06-18 | **LEI** | **A Caixa é o OURO — não repintar.** Plano do design "Caixa Unificada → DS": _"nenhuma cor muda"_, _"extrair, não repintar"_. Mudança visual da Caixa exige prova `diff de computed-style = 0`. "Aplicar o design" = extrair o DS dela pras OUTRAS telas, NÃO mexer aqui. |
+| 2026-06-18 | **LEI** | **O verde do WhatsApp fica.** Vira token de canal governado (`--ch-wa`) com o mesmo valor; nunca trocado por roxo. |
+| 2026-06-18 | **APLICADO** | **Port `inbox-cur` (curadoria do protótipo) — escopo: TUDO; comentários por-mensagem em `localStorage` v1** (per-user, sem DB — mesmo anti-hook dos favoritos; DB compartilhado = US futura se a equipe precisar). Conteúdo dos troubleshooters/trilhas portado COMO ESTÁ (regra de negócio real). PR-1 "Guia" (troubleshooters + trilhas) = esta entrega. |
+| 2026-06-18 | **PENDENTE** | **Saúde de canal Onda 2/3** (handoff `CHANNEL-HEALTH-BANNER`, validado vs main): composer pausa em canal `disconnected`/`banned` + thread mostra `● fora do ar`; drawer Canais conserta `HEALTH_LABELS` stale + botão Reconectar. Banner US-WA-308 já é live. |
+| 2026-06-18 | **RECUSADO** | **`workspace-3` como padrão universal.** Só primitivo opcional pras telas mestre→corpo→aside (CRM, OS, atendimento). Forçar em cadastro/dashboard = anti-padrão (decisão [W], confirmada pelo design). |
+| 2026-06-18 | **RECUSADO** | **Trocar Cowork por Figma como ponte.** Figma só vale pro design SYSTEM e só com designer humano (não há). Caminho: DS-como-contrato + gerar-na-stack. Ver `memory/sessions/2026-06-18-arte-ponte-design-producao.md`. |
+
+---
+
 ## Mission
 
 Tela única que centraliza todas as conversas omnichannel do business num **3-col
