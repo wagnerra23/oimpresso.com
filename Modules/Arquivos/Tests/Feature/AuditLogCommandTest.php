@@ -38,7 +38,7 @@ uses(Tests\TestCase::class);
  *
  * @param array<string,mixed> $overrides
  */
-function insertAuditLog(array $overrides = []): int
+function insertArquivosAuditLog(array $overrides = []): int
 {
     $defaults = [
         'arquivo_id'  => 9901,
@@ -90,7 +90,7 @@ it('command arquivos:audit-log está registrado no artisan', function () {
 
 it('modo default lista logs das últimas 24h ordenado desc por created_at', function () {
     // Row recente (dentro da janela padrão de 24h).
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9901,
         'business_id' => 1,
         'action'      => 'upload',
@@ -98,7 +98,7 @@ it('modo default lista logs das últimas 24h ordenado desc por created_at', func
     ]);
 
     // Row fora da janela (25h atrás) — não deve aparecer.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9902,
         'business_id' => 1,
         'action'      => 'download',
@@ -129,7 +129,7 @@ it('modo default lista logs das últimas 24h ordenado desc por created_at', func
 
 it('--business=1 filtra logs e não vaza biz=2', function () {
     // Row biz=1 — deve aparecer.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9903,
         'business_id' => 1,
         'action'      => 'classify',
@@ -137,7 +137,7 @@ it('--business=1 filtra logs e não vaza biz=2', function () {
     ]);
 
     // Row biz=2 — NÃO deve aparecer com --business=1.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9904,
         'business_id' => 2,
         'action'      => 'classify',
@@ -170,7 +170,7 @@ it('--business=1 filtra logs e não vaza biz=2', function () {
 
 it('--action=signed_url_issued filtra apenas essa action', function () {
     // Row com action signed_url_issued — deve aparecer.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9905,
         'business_id' => 1,
         'action'      => 'signed_url_issued',
@@ -179,7 +179,7 @@ it('--action=signed_url_issued filtra apenas essa action', function () {
     ]);
 
     // Row com outra action — não deve aparecer com --action=signed_url_issued.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9906,
         'business_id' => 1,
         'action'      => 'soft_delete',
@@ -208,7 +208,7 @@ it('--action=signed_url_issued filtra apenas essa action', function () {
 it('--top-files agrega acessos e retorna total_acessos correto', function () {
     // Insere 4 logs pro mesmo arquivo (arquivo_id=9910).
     foreach (range(1, 4) as $i) {
-        insertAuditLog([
+        insertArquivosAuditLog([
             'arquivo_id'  => 9910,
             'business_id' => 1,
             'action'      => 'upload',
@@ -217,7 +217,7 @@ it('--top-files agrega acessos e retorna total_acessos correto', function () {
     }
 
     // Insere 1 log pra outro arquivo (arquivo_id=9911) — deve aparecer com count=1.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9911,
         'business_id' => 1,
         'action'      => 'upload',
@@ -247,7 +247,7 @@ it('--top-files agrega acessos e retorna total_acessos correto', function () {
 
 it('--suspicious detecta signed_url_issued sem user_id como padrão suspeito', function () {
     // Row suspeita: signed_url_issued SEM user_id (URL vazada / acesso anônimo).
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9920,
         'business_id' => 1,
         'action'      => 'signed_url_issued',
@@ -256,7 +256,7 @@ it('--suspicious detecta signed_url_issued sem user_id como padrão suspeito', f
     ]);
 
     // Row normal: signed_url_issued COM user_id — não deve ser flagrada.
-    insertAuditLog([
+    insertArquivosAuditLog([
         'arquivo_id'  => 9921,
         'business_id' => 1,
         'action'      => 'signed_url_issued',

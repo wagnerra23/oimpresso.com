@@ -223,8 +223,27 @@ for attempt in $(seq 1 12); do
       exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
+  # Detector 1 — Pest loader: uses(TestCase) file-level dentro de pasta ja vinculada
+  # ("can not be used. The folder [/workspace/...]").
   BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
+  # Detector 2 — PHP "Cannot redeclare" fatal no LOAD (helper/classe/const global com
+  # mesmo nome em 2 arquivos do escopo ->in()). PHP morre ANTES do 1o teste (exit 255 +
+  # junit.xml 0 bytes) e o detector 1 NAO pega. A mensagem nomeia o arquivo SENDO
+  # CARREGADO em "... in /workspace/<F> on line N"; quarentenar ESSE deixa a declaracao
+  # "previously declared in <outro>" sobreviver. Caso real 2026-06-16..18 (3 nights sem
+  # floor): insertAuditLog() em Jana/ImmutabilityTriggersTest vs Arquivos/AuditLogCommandTest.
+  # O loop re-tenta e pega colisao em cadeia (1 arquivo por volta, ate 12).
+  if [ -z "$BLOCKER" ] && grep -qE 'Cannot (re)?declare' "$RUN_DIR/pest-out.txt"; then
+    BLOCKER=$(grep -E 'Cannot (re)?declare' "$RUN_DIR/pest-out.txt" \
+      | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
+  fi
   [ -z "$BLOCKER" ] && break
+  # Sanity: extracao errada de path NAO deve matar o run sob set -e — so quarentena o
+  # arquivo que realmente existe no clone.
+  if [ ! -f "$CODE/$BLOCKER" ]; then
+    echo "LOADER-BLOCKER ($attempt): '$BLOCKER' detectado mas inexistente no clone — sem quarentena; abortando loop"
+    break
+  fi
   echo "LOADER-BLOCKER ($attempt): $BLOCKER — movido pro lado no clone, registrado"
   echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
   mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")"
