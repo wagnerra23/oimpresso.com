@@ -490,6 +490,7 @@ export default function CaixaUnificadaIndex({
             availableTags={availableTags ?? []}
             activeTagIds={activeTagIds ?? []}
             unhealthyChannels={unhealthyChannels ?? []}
+            canManageChannels={canManageQueues ?? false}
           />
         </Deferred>
         </div>
