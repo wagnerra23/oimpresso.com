@@ -118,14 +118,43 @@ Container WAHA Core isolado no CT 100 (`localhost:3001`, engine GOWS, **zero** c
 **Confirmado ao vivo:**
 - ✅ **GOWS roda no WAHA Core (grátis)** — `{"version":"2026.5.1","engine":"GOWS","tier":"CORE"}`. Só features premium (envio de mídia, Postgres/S3) pedem Plus.
 - ✅ **Ciclo de sessão real e observável**: `STARTING → SCAN_QR_CODE`, QR gerado (HTTP 200). GOWS sobe a sessão de ponta a ponta.
-- ✅ **`session.status` com estado `FAILED` no logout/unpair** (docs) — **fecha exatamente o gap do WuzAPI** (que não repassa `LoggedOut`). O app saberia da queda na hora.
+- ✅ **`session.status` com estado `FAILED` no logout/unpair** — **PROVADO end-to-end no Phase 2** (não mais só docs): payload real capturado no webhook. **Fecha exatamente o gap do WuzAPI** (que não repassa `LoggedOut`). O app saberia da queda na hora.
 
 **Pontos de atenção descobertos:**
 - ⚠️ **WAHA Core só permite 1 sessão (`'default'`)** — multi-sessão exige **WAHA Plus (pago)**. Confirmado live: `422 "WAHA Core support only 'default' session"`. Como o oimpresso é **multi-tenant** (vários números/canais), migrar significaria **Plus** ou 1 container por tenant (pesado). O WuzAPI faz multi-sessão **grátis** — é a maior vantagem dele hoje. **Isso eleva a barra pra migrar e reforça "evoluir agora".**
 - ⚠️ Contrato da API mudou entre versões (start = `POST /api/sessions/start`, não `/{name}/start`) — migração exige mapear o contrato com cuidado.
-- ℹ️ A entrega do webhook `session.status` é feature padrão/documentada; não capturei o payload no harness do POC (rede container→host + shape de config) — valida-se no Phase 2 apontando pro webhook real do app.
+- ✅ **Payload do webhook capturado no Phase 2** — a falha de captura do Phase 1 era só rede container→host + shape de config; resolvido com receptor em `0.0.0.0:3999` + URL `http://172.17.0.1:3999` (gateway do bridge docker) e **webhook global via env** (`WHATSAPP_HOOK_URL`/`WHATSAPP_HOOK_EVENTS`) em vez do config por-sessão.
 
-**Phase 2 (gate [W] + número descartável):** parear o número de teste → matar a sessão de outro device → ver o `session.status=FAILED` chegar no webhook = prova end-to-end do gap-closer.
+### Phase 2 — prova end-to-end (2026-06-18) ✅
+
+Número **dedicado da Jana** (não-cliente, conta "WR2 Sistemas") pareado na sessão WAHA-poc isolada; container WuzAPI de produção (`whatsapp-whatsmeow`) **intocado** o tempo todo (verificado `Up ... healthy` antes e depois). Sequência capturada **ao vivo no webhook**:
+
+`STARTING → SCAN_QR_CODE → WORKING → FAILED`
+
+Pareamento por **código de telefone** (`POST /api/{session}/auth/request-code`, 8 chars) — mais robusto que QR (o QR rotaciona a cada ~20s e a sessão dá timeout→`FAILED` em ~160s sem scan; o código vale minutos). Com a sessão `WORKING`, o **unpair de outro device** (celular → Aparelhos conectados → Desconectar) disparou o `session.status=FAILED` real:
+
+```json
+{
+  "event": "session.status",
+  "session": "default",
+  "me": { "id": "55XXXXXXXXXX@c.us", "pushName": "WR2 Sistemas" },
+  "payload": {
+    "status": "FAILED",
+    "statuses": [
+      { "status": "SCAN_QR_CODE", "timestamp": "..." },
+      { "status": "WORKING",      "timestamp": "..." },
+      { "status": "FAILED",       "timestamp": "..." }
+    ]
+  }
+}
+```
+
+O array `statuses` prova a linhagem **WORKING→FAILED** (logout remoto), **não** um timeout de QR. **Confirmado: o WAHA-GOWS emite o evento de `LoggedOut` que o WuzAPI não repassa** — exatamente o gap do falso "fora do ar" ([ADR 0286](../decisions/0286-channel-health-corroborado-por-mensagem-real.md)). Migrar pro WAHA-GOWS fecharia esse gap **nativamente**.
+
+**Aprendizados operacionais (pro plano B):**
+- Webhook por **env global** (`WHATSAPP_HOOK_URL` + `WHATSAPP_HOOK_EVENTS=session.status`) funcionou; o **config por-sessão via `POST /api/sessions` não aplicou** o webhook nessa versão (a sessão `default` é auto-provisionada → `create` vira `422`; exige `PUT` ou o env global).
+- Container (bridge) **não alcança `127.0.0.1` do host**: receptor bind em `0.0.0.0:3999`, URL `http://172.17.0.1:3999`.
+- Pareamento por **código > QR** pra fluxo assíncrono (QR vence em ~20s; código aguenta a coordenação humana).
 
 **Redeploy do POC (1 comando):**
 ```
@@ -133,7 +162,7 @@ docker run -d --name waha-poc -p 127.0.0.1:3001:3000 -e WHATSAPP_DEFAULT_ENGINE=
 ```
 (imagem 4GB já cacheada no CT 100; reclaim com `docker rmi devlikeapro/waha`.)
 
-**Veredito do POC:** WAHA-GOWS **fecha o gap do LoggedOut** e é a base certa (mesmo whatsmeow), MAS o limite **1-sessão-no-Core** torna a migração mais cara do que parecia pro nosso multi-tenant (exigiria Plus). Confirma o plano: **evoluir o WuzAPI/app agora**; WAHA-Plus vira candidato real só se/quando os gatilhos baterem.
+**Veredito do POC:** WAHA-GOWS **fecha o gap do LoggedOut** (provado end-to-end no Phase 2) e é a base certa (mesmo whatsmeow), MAS o limite **1-sessão-no-Core** torna a migração mais cara do que parecia pro nosso multi-tenant (exigiria Plus). Confirma o plano: **evoluir o WuzAPI/app agora**; WAHA-Plus vira candidato real só se/quando os gatilhos baterem.
 
 ## Como manter este doc vivo
 
@@ -144,6 +173,7 @@ acrescentar linha no log abaixo.
 ### Log de revisões
 - **2026-06-18** — criação. Pós-incidente falso "fora do ar"; veredito "evoluir, não trocar"; POC WAHA como plano B; Cloud API como hedge estratégico.
 - **2026-06-18 (POC)** — POC WAHA-GOWS rodado no CT 100 e desmontado. Confirmado: GOWS no Core grátis + `session.status=FAILED` fecha o gap do LoggedOut. Descoberto: **Core = 1 sessão só** (multi-tenant exigiria Plus pago) → eleva a barra pra migrar; reforça "evoluir agora".
+- **2026-06-18 (Phase 2)** — Prova end-to-end **capturada ao vivo**: número dedicado da Jana pareado (via código de telefone), unpair remoto disparou `session.status=FAILED` no webhook (linhagem `WORKING→FAILED`, não timeout de QR). Gap do `LoggedOut` confirmado fechável **nativamente** pelo WAHA-GOWS. Aprendizados: webhook por env global (config por-sessão não aplicou nessa versão), receptor em `172.17.0.1:3999` (bridge não alcança loopback do host), pareamento por código > QR. POC desmontado; WuzAPI prod intocado. **Não muda a decisão** (evoluir agora; WAHA-Plus só se gatilhos baterem) — só de-risca o plano B.
 
 ## Fontes (2026-06)
 - whatsmeow — github.com/tulir/whatsmeow · disc #979 (whatsmeow > Baileys estabilidade) · issue #810 ("conta em risco" afeta ambos)
