@@ -119,7 +119,7 @@ it('mcp_task_events: DELETE estoura QueryException 45000 (append-only)', functio
 
 // ─── mcp_audit_log (dívida histórica — nunca teve teste) ──────────────────────
 
-function insertAuditLog(): int
+function insertMcpAuditLog(): int
 {
     // user_id é FK NOT NULL → usa o primeiro user semeado pela lane (biz=1).
     $userId = (int) DB::table('users')->min('id');
@@ -140,14 +140,14 @@ function insertAuditLog(): int
 }
 
 it('mcp_audit_log: INSERT é permitido (append)', function () {
-    $id = insertAuditLog();
+    $id = insertMcpAuditLog();
 
     expect($id)->toBeGreaterThan(0)
         ->and(DB::table('mcp_audit_log')->where('id', $id)->exists())->toBeTrue();
 })->group('immutability', 'governance', 'ci');
 
 it('mcp_audit_log: UPDATE estoura QueryException 45000 (append-only)', function () {
-    $id = insertAuditLog();
+    $id = insertMcpAuditLog();
 
     try {
         DB::table('mcp_audit_log')->where('id', $id)->update(['status' => 'error']);
@@ -161,7 +161,7 @@ it('mcp_audit_log: UPDATE estoura QueryException 45000 (append-only)', function 
 })->group('immutability', 'governance', 'ci');
 
 it('mcp_audit_log: DELETE estoura QueryException 45000 (append-only)', function () {
-    $id = insertAuditLog();
+    $id = insertMcpAuditLog();
 
     try {
         DB::table('mcp_audit_log')->where('id', $id)->delete();
