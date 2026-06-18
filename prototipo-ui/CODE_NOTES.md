@@ -1187,3 +1187,22 @@ O #2963 foi mergeado com **só o 1º commit**, antes de 2 ajustes que já estava
 - **gotcha**: mergear um PR enquanto ainda há commits de ajuste não-mergeados na mesma branch deixa o `main` na versão antiga E órfã os commits seguintes (o PR fecha → eles não viram CI). Aqui o `main` ficou com a posição errada + layout-ratchet vermelho até este follow-up. Fechar a branch (verde) antes de mergear.
 
 **PR:** https://github.com/wagnerra23/oimpresso.com/pull/2968
+
+---
+
+## 2026-06-18 [CL] → [W] — Caixa Unificada: auditoria de fidelidade do banner (correções) · **#2968**
+_Você apontou "não está sendo fiel". Diff REAL vs protótipo (seu screenshot + TSX do handoff) → divergências e correções:_
+
+**Não-forçadas (erro meu — corrigidas):**
+- copy: "está instável" → **"está degradado"**; "Sincronização instável…" → **"Sincronização lenta — pode haver atraso."**; err → **"Mensagens novas não estão chegando."**
+- ícone warn: `AlertTriangle` → **`WifiOff`** (existe no lucide; cautela à toa).
+- removido o "verificado há N min" (não era do protótipo).
+
+**Forçadas pela escolha eager-prop (resolvidas sem backend):**
+- "N conversas afetadas" + label curto (`short`) sumiram porque `unhealthyChannels` é magro (id/label/type/health/check_at). Resolvi **enriquecendo** `count`+`short` do `accounts`+`catalog` que a `ConversationListV4` já recebe — sem voltar atrás no prop eager (saúde autoritativa do cron) e sem backend novo.
+
+### new_design_memories
+- **golden**: "fiel ao protótipo" = diff REAL contra screenshot/TSX, não "a ideia". Reescrever copy do protótipo ("melhorar de passagem") é regressão de fidelidade (regra de corte §10).
+- **gotcha**: o prop eager `unhealthyChannels` (US-WA-308) é autoritativo mas magro — sem `count`/`short`. Paridade visual com o protótipo = enriquecer client-side via `accounts`(count)+`catalog`(short). "Afetadas" EXATO (só convs abertas naquela conta) = campo backend `affected_open_count` (Onda 4); hoje usa `account.count` (proxy, como o protótipo Onda 1).
+
+**PR:** https://github.com/wagnerra23/oimpresso.com/pull/2968
