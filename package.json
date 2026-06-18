@@ -61,6 +61,8 @@
     "contrato:map": "node scripts/contrato-de-tela.mjs --map",
     "contrato:map:check": "node scripts/contrato-de-tela.mjs --map --check",
     "contrato:selftest": "node scripts/contrato-de-tela.test.mjs",
+    "bundle:lint": "node scripts/bundle-lint.mjs",
+    "bundle:lint:selftest": "node scripts/bundle-lint.test.mjs",
     "dominio:check": "node scripts/domain-dict-guard.mjs",
     "dominio:report": "node scripts/domain-dict-guard.mjs --report",
     "dominio:baseline:write": "node scripts/domain-dict-guard.mjs --write-baseline",

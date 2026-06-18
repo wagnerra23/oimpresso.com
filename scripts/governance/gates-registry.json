@@ -30,6 +30,10 @@
       "nome": "ADR frontmatter lint",
       "classe": "gate"
     },
+    "bundle-lint.yml": {
+      "nome": "Bundle lint — esteira ≠ armazém (resíduo no bundle do design · advisory · régua 6 proveniência)",
+      "classe": "gate"
+    },
     "casos-gate.yml": {
       "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
       "classe": "gate"
