@@ -35,14 +35,14 @@ const INBOX_TROUBLES: Trouble[] = [
     id: 'it-objpreco', title: 'Cliente diz que tá caro', when: 'objeção de preço aparece em qualquer etapa', hue: 60,
     steps: [
       { q: 'Cliente já fez orçamento com concorrente?', yes: 1, no: { fix: 'Pergunte de quanto é o orçamento dele. Sem comparação, é só percepção — explique custo de matéria-prima e prazo (sangria, acabamento, ICC). Ofereça opção mais simples (gramatura menor).' } },
-      { q: 'A diferença é maior que 20%?', yes: { fix: 'Provavelmente é gráfica online em massa, sem acabamento profissional. Mostre que entrega no balcão, retoque grátis, atendimento humano. Não bate preço. Veja #a13 (roteiro de comunicação).' }, no: { fix: 'Dá pra negociar até 10% à vista. Se passar disso, oferece parcelar no PIX em 2x. Anote a regra: nunca tomar a decisão sem o Wagner se passar de 15%.' } },
+      { q: 'A diferença é maior que 20%?', yes: { fix: 'Provavelmente é gráfica online em massa, sem acabamento profissional. Mostre que entrega no balcão, retoque grátis, atendimento humano. Não bate preço. Veja o artigo a13 (roteiro de comunicação).' }, no: { fix: 'Dá pra negociar até 10% à vista. Se passar disso, oferece parcelar no PIX em 2x. Anote a regra: nunca tomar a decisão sem o Wagner se passar de 15%.' } },
     ],
   },
   {
     id: 'it-cobranca', title: 'Cliente com boleto atrasado pede pra produzir novo pedido', when: 'tem saldo a receber e pediu orçamento novo', hue: 25,
     steps: [
-      { q: 'O atraso é maior que 15 dias?', yes: 1, no: { fix: 'Recebe o pedido, mas exige PIX antes de soltar produção. Lembra do boleto antigo no mesmo papo, sem culpar — "aproveitando que entrou em contato, ainda temos aquele boleto da OS X". Veja #a10.' } },
-      { q: 'Cliente recorrente (LTV > R$ 5k)?', yes: { fix: 'Tratamento VIP — Wagner negocia diretamente. Não bloquear nada antes dele decidir. Move conversa pra fila #q-fin com nota interna.' }, no: { fix: 'Cobrança em dia primeiro, produção depois. Sem exceção. Aplique macro /cobrar e mova pra fila #q-fin. Resposta padrão em #a10.' } },
+      { q: 'O atraso é maior que 15 dias?', yes: 1, no: { fix: 'Recebe o pedido, mas exige PIX antes de soltar produção. Lembra do boleto antigo no mesmo papo, sem culpar — "aproveitando que entrou em contato, ainda temos aquele boleto da OS X". Veja o artigo a10.' } },
+      { q: 'Cliente recorrente (LTV > R$ 5k)?', yes: { fix: 'Tratamento VIP — Wagner negocia diretamente. Não bloquear nada antes dele decidir. Move conversa pra fila #q-fin com nota interna.' }, no: { fix: 'Cobrança em dia primeiro, produção depois. Sem exceção. Aplique macro /cobrar e mova pra fila #q-fin. Resposta padrão no artigo a10.' } },
     ],
   },
   {
@@ -174,7 +174,7 @@ function PathsView({ progress, toggle }: { progress: Record<string, Record<numbe
           <h3 className="text-sm font-semibold mt-0.5">{active.title}</h3>
           <p className="text-[12px] text-muted-foreground mt-0.5">{active.desc}</p>
           <Inline gap={2} align="center" className="mt-2">
-            <div className="h-1.5 flex-1 rounded-full bg-black/10 overflow-hidden">
+            <div className="h-1.5 flex-1 rounded-full bg-foreground/15 overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${p.pct}%`, background: `oklch(0.52 0.13 ${active.hue})` }} />
             </div>
             <span className="font-mono text-[10.5px] text-muted-foreground">{p.done}/{p.total} · {p.pct}%</span>
