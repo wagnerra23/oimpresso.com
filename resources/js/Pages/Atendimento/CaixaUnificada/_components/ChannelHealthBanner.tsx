@@ -37,13 +37,13 @@ const ERR_STATES = new Set(['disconnected', 'banned']);
 const STATE_VERB: Record<string, string> = {
   disconnected: 'está fora do ar',
   banned: 'foi bloqueado pela Meta',
-  degraded: 'está degradado',
+  degraded: 'está instável',
 };
 
 const STATE_LABEL: Record<string, string> = {
   disconnected: 'fora do ar',
   banned: 'bloqueado pela Meta',
-  degraded: 'degradado',
+  degraded: 'instável',
 };
 
 const isErr = (health: string) => ERR_STATES.has(health);
