@@ -314,14 +314,14 @@ export default function CaixaUnificadaIndex({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-1" data-testid="caixa-unif-page">
-      <Head title="Caixa Unificada" />
+      <Head title="Atendimento" />
 
       {/* Header da página */}
       <div className="flex items-center justify-between gap-3 shrink-0 px-1">
         {/* Sem ícone-caixa — canon Cowork `os-page-h-l` é só título + subtítulo. */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <div className="min-w-0">
-            <h1 className="font-semibold text-[14px] leading-tight truncate">Caixa unificada</h1>
+            <h1 className="font-semibold text-[14px] leading-tight truncate">Atendimento</h1>
             <p className="text-[12.5px] text-muted-foreground truncate">
               {headerSub}
             </p>
