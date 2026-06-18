@@ -185,7 +185,7 @@ function checkStaleCanon() {
 // Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
 // editar ADR ratificada in-place — então normalizar é no leitor OU override
 // consciente; este check só IMPEDE PIORAR (flagga grafia/enum novo).
-const STATUS_OK = new Set(['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded']);
+const STATUS_OK = new Set(['rascunho', 'proposto', 'aceito', 'recusado', 'deprecated', 'superseded']);
 const LIFECYCLE_OK = new Set(['ativo', 'arquivado', 'substituido', 'historical']);
 function checkAdrEnumDrift() {
   const dir = 'memory/decisions';

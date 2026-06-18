@@ -28,9 +28,9 @@ class IndexarMemoryGitParaDb
 {
     /** Padrões para PII (regex BR — herda lógica de LaravelAiSdkDriver) */
     protected const PII_PATTERNS = [
-        // CPF: 000.000.000-00 ou 00000000000
+        // CPF: 000.000.000-00 ou 00000000000  (pii-allowlist: exemplo de FORMATO do próprio redator, não é PII real)
         '/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/' => 'XXX.XXX.XXX-NN',
-        // CNPJ: 00.000.000/0000-00 ou 00000000000000
+        // CNPJ: 00.000.000/0000-00 ou 00000000000000  (pii-allowlist: exemplo de FORMATO do próprio redator, não é PII real)
         '/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/' => 'XX.XXX.XXX/XXXX-NN',
         // Cartão de crédito (16 dígitos)
         '/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/' => '****-****-****-****',
@@ -550,7 +550,7 @@ class IndexarMemoryGitParaDb
         }
 
         return [
-            'status'        => $this->normalizarEnum($fm['status'] ?? null, ['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded']),
+            'status'        => $this->normalizarEnum($fm['status'] ?? null, ['rascunho', 'proposto', 'aceito', 'recusado', 'deprecated', 'superseded']),
             'authority'     => $this->normalizarEnum($fm['authority'] ?? null, ['canonical', 'reference', 'exploratory']),
             'lifecycle'     => $this->normalizarEnum($fm['lifecycle'] ?? null, ['ativo', 'arquivado', 'substituido']),
             'quarter'       => is_string($fm['quarter'] ?? null) ? $fm['quarter'] : null,
