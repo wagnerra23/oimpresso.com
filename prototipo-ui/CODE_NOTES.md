@@ -1084,3 +1084,31 @@ Gap 3 levers · Gap 2 badge `conflito` · publisher Cowork→repo (zero-toque re
 - **gotcha**: teste de `Modules/TeamMcp` SÓ roda em CI se estiver no `.github/ci-sqlite-pest.list` (não há lane TeamMcp; `modules-pest.yml` não cobre). PR-1/2 não estavam → não mordiam.
 - **gotcha**: workflow novo SEM registro em `scripts/governance/gates-registry.json` no MESMO PR → `memory-health` (enforce) 🔴 bloqueia ("censo de gates").
 - **gotcha**: **`--auto` merge durante lag do GitHub squasha o head que o *PR-object* enxerga, NÃO a ref real da branch.** O PR-object ficou preso 1 commit atrás (lag de minutos); o auto-merge squashou o head defasado e o último commit recém-pushado (este doc) ficou de fora. Pós-merge, conferir `git show --stat <mergeCommit>` e re-landar o que faltou. Esta entrada é o re-land.
+
+---
+
+## 2026-06-18 [CL] → [W] — Financeiro/Unificado: header migra pro `<PageHeader>` canon v3.8 · **#2947 (ABERTO)**
+_worktree `D:/oimpresso-unif-ph` off `origin/main` @`724e7326a` (base `main`). NÃO na branch governance da cwd órfã `frosty-greider-83ab2f`. Tarefa 1 do handoff "DS rollout — header canon"._
+
+Auditei vs `origin/main` fresco (§10.4): Unificado era a **última Page Financeiro fora do canon de header** — única ainda importando o deprecated `@/Components/shared/PageHeader` (`pageheader-gate` CONGELADO) + bloco inline `os-page-h fin-page-h`. Dashboard/Dre/ContasPagar **já no canon** no `main` (re-baseline do [CC] confere; não retoquei nenhuma).
+
+### Entregue (#2947)
+- Import deprecated → `import { PageHeader } from '@/Components/PageHeader'`. Header inline → `<PageHeader title="Financeiro" suffix=" · Visão unificada" subtitle={…}>`.
+- **Zona R preservada byte-a-byte** via `children` (escape hatch — mirror exato de Dre/ContasPagar): 3 lentes US-FIN-029 + divisor + `<FinanceiroSubNav hidePrimary>` (6 overflow) + dropdown "Novo título".
+- Remove 2 imports mortos (`shared/PageHeader` + `FinanceiroPrimaryButton`).
+- `pageheader-shared-baseline.json` regenerado **104→101** (absorveu 2 já-migradas sem refresh: `Jana/Brief`, `OficinaAuto/ServiceOrders/Index`).
+
+### NÃO toquei (escopo travado)
+Lentes/filtros/baixa/KPI/footer/drawer · peso H1 600×700 (Tier 0, espera [W]) · Dashboard/Dre/ContasPagar.
+
+### Verificação
+`pageheader:guard` + `components`/`layout`/`ds-canon`/`conformance`/`foundation` **verdes**. `tsc`/`eslint` via CI (toolchain local sem `node_modules`, modelo CT100/CI). **Screenshot-gate:** [W] aprovou **on-parity** (chrome idêntico ao `<PageHeader>` já live em `/dre` e `/contas-pagar`); confirmação de pixel via `tela-smoke-pos-merge` (prod @1280/@1440) pós-merge.
+
+### Resíduos (fora de escopo, não bloqueiam)
+- `Unificado/Novo.tsx` ainda no deprecated `shared/PageHeader` → 1 PR separado.
+- `Unificado/Index.charter.md` cita "os-page-h" num changelog histórico (Ondas 12-21) — débito de prosa; Dre tem o mesmo padrão pós-migração (precedente).
+
+### new_design_memories
+- **golden**: migrar header pro canon = trocar SÓ o container; a Zona R (conteúdo da tela) sobrevive byte-a-byte via `children` do `<PageHeader>` (mirror Dre/ContasPagar). Nada de reescrever lentes/subnav/dropdown.
+- **gotcha**: o primary "Novo título" do Unificado é `DropdownMenuTrigger asChild` (Radix) — **não** vira `<PageHeaderPrimary>` (não forward ref/props do Radix → quebra o menu). O trigger `os-btn primary` já resolve roxo 295 (`var(--accent)`, ADR 0190), então o canon de cor já está atendido.
+- **gotcha**: `pageheader-shared-baseline.json` estava **stale** no `origin/main` (count 104 vs real 102 — telas migraram sem `--write`). Regenerar (`--write`) cai pro real e absorve as órfãs; o ratchet só aperta → seguro, mas o diff do baseline mostra +1 tela que você não tocou.
