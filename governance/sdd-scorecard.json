@@ -43,9 +43,9 @@
     "full_suite_pass_rate": {
       "status": "not_yet_measured",
       "value": null,
-      "direction": "up",
-      "target": "100% não-quarentenado",
-      "source": "nightly MySQL diagnóstica (FV-F3) — nenhum run full-repo MySQL jamais foi salvo",
+      "direction": "down",
+      "target": 0,
+      "source": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)"
     },
     "n_quarantine": {
@@ -86,8 +86,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 69,
-        "modules": 69
+        "with_door": 70,
+        "modules": 70
       }
     },
     "recall_eval_violations": {

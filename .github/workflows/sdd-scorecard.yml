@@ -30,6 +30,8 @@ on:
       - 'scripts/governance/knowledge-drift.mjs'
       - 'governance/sdd-scorecard.json'
       - 'governance/sdd-scorecard-baseline.json'
+      - 'governance/nightly-floor.json'        # floor publicado pelo write-side CT100 (ADR 0279)
+      - 'scripts/governance/sdd-floor-read.test.mjs'
       - '.github/workflows/sdd-scorecard.yml'
   schedule:
     - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
@@ -51,6 +53,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
+        run: node scripts/governance/sdd-floor-read.test.mjs
 
       - name: Medir — agregador escreve governance/sdd-scorecard.json
         run: |
