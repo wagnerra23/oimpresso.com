@@ -253,11 +253,34 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             setConnecting(null);
             router.reload({ only: ['channels'] });
           }, 800);
+        } else {
+          // Blindagem (Wagner 2026-06-18): mantém o card de status vivo enquanto
+          // o diálogo está aberto. Faz o canal recém-pareado pelo webhook
+          // 'Connected' aparecer como `active` na lista, alimentando o effect
+          // abaixo que fecha o diálogo mesmo se este poll perder a janela.
+          router.reload({ only: ['channels'], preserveState: true, preserveScroll: true });
         }
       } catch { /* swallow — daemon transitório */ }
     }, intervalMs);
     return () => clearInterval(interval);
   }, [connecting?.id]);
+
+  // Blindagem do fechamento (Wagner 2026-06-18 — "conectou mas não fechou a tela
+  // do QR"). Caminho independente do poll /whatsmeow-status: assim que o canal
+  // que está conectando aparecer ATIVO/saudável na lista (marcado pelo webhook
+  // 'Connected' OU por qualquer reload), fecha o diálogo. Cobre a janela frágil
+  // logo após o scan, quando o daemon emite 'days_to_sync_history' e o poll
+  // pode não pegar o instante `loggedIn=true`.
+  useEffect(() => {
+    if (!connecting) return;
+    const fresh = channels?.find((c) => c.id === connecting.id);
+    if (fresh && (fresh.status === 'active' || fresh.channel_health === 'healthy')) {
+      setQrState('paired');
+      setQrImage(null);
+      const t = setTimeout(() => setConnecting(null), 800);
+      return () => clearTimeout(t);
+    }
+  }, [channels, connecting?.id]);
 
   return (
     <div className="p-4 space-y-4">
@@ -376,7 +399,12 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col items-stretch gap-2 sm:flex-col sm:space-x-0">
+            {qrImage && qrState !== 'paired' && qrState !== 'connected' && (
+              <p className="text-[11px] text-muted-foreground text-center">
+                Já apareceu "aparelho conectado" no celular? Pode fechar — a conexão conclui em segundo plano.
+              </p>
+            )}
             <Button variant="outline" onClick={() => { setConnecting(null); setQrImage(null); setPairingCode(null); }}>
               Fechar
             </Button>
