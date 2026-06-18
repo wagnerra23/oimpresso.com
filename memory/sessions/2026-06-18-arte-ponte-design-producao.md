@@ -1,4 +1,7 @@
 ---
+date: 2026-06-18
+topic: "Ponte design→produção 2026 — Figma vs gerar-na-stack vs DS-como-contrato (time 1-2 + IA-pair)"
+related_adrs: [0255, 0239, 0114, 0264]
 slug: arte-ponte-design-producao
 title: "Estado da arte 2026 — ponte design→produção: Figma vs gerar-na-stack vs DS-como-contrato (decisão aterrada pra time 1-2 + IA-pair)"
 type: session
