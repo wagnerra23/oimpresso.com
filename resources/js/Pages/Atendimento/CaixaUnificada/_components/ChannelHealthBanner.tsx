@@ -7,6 +7,7 @@ import { Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 
 import type { AccountItem, ChannelCatalogItem, UnhealthyChannel } from './helpers';
+import ReconnectModal from './ReconnectModal';
 
 /**
  * ChannelHealthBanner — banner "canal caiu — reconectar" no topo da LISTA da Caixa.
@@ -63,10 +64,13 @@ interface Props {
   channels: UnhealthyChannel[];
   accounts?: AccountItem[];
   catalog?: ChannelCatalogItem[];
+  /** whatsapp.settings.manage — habilita o QR de re-pareamento in-place (senão navega pra a página do canal). */
+  canManageChannels?: boolean;
 }
 
-export default function ChannelHealthBanner({ channels, accounts = [], catalog = [] }: Props) {
+export default function ChannelHealthBanner({ channels, accounts = [], catalog = [], canManageChannels = false }: Props) {
   const [dismissed, setDismissed] = useState(false);
+  const [reconnectCh, setReconnectCh] = useState<UnhealthyChannel | null>(null);
   if (dismissed || !channels || channels.length === 0) return null;
 
   // Enriquecimento (count + short) a partir do que a lista já tem em mãos.
@@ -83,7 +87,11 @@ export default function ChannelHealthBanner({ channels, accounts = [], catalog =
       : 'bg-warning-soft text-warning-fg border-warning/40';
   const iconWrap = worst === 'err' ? 'bg-destructive/15' : 'bg-warning/20';
 
-  const reconnect = (id: number) => router.visit(route('atendimento.channels.show', id));
+  // QR in-place pra quem pode gerenciar canal; fallback navega pra a página (paridade anterior).
+  const reconnect = (c: UnhealthyChannel) => {
+    if (canManageChannels) setReconnectCh(c);
+    else router.visit(route('atendimento.channels.show', c.id));
+  };
   const c0 = channels[0]!;
   const c0Count = countOf(c0);
   const totalConvs = channels.reduce((sum, c) => sum + countOf(c), 0);
@@ -141,7 +149,8 @@ export default function ChannelHealthBanner({ channels, accounts = [], catalog =
         <div className="pl-[34px]">
           <button
             type="button"
-            onClick={() => reconnect(c0.id)}
+            onClick={() => reconnect(c0)}
+            data-contract="reconnect-cta"
             className={cn(
               'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11.5px] font-semibold transition-colors',
               worst === 'err'
@@ -178,7 +187,7 @@ export default function ChannelHealthBanner({ channels, accounts = [], catalog =
                 </span>
                 <button
                   type="button"
-                  onClick={() => reconnect(c.id)}
+                  onClick={() => reconnect(c)}
                   className="shrink-0 font-semibold underline underline-offset-2 hover:opacity-80"
                   data-testid={`caixa-unif-health-reconnect-${c.id}`}
                 >
@@ -188,6 +197,15 @@ export default function ChannelHealthBanner({ channels, accounts = [], catalog =
             );
           })}
         </Stack>
+      )}
+      {reconnectCh && (
+        <ReconnectModal
+          channelId={reconnectCh.id}
+          channelType={reconnectCh.type}
+          label={reconnectCh.label}
+          handle={accounts.find((a) => a.id === reconnectCh.id)?.handle ?? null}
+          onClose={() => setReconnectCh(null)}
+        />
       )}
     </Stack>
   );

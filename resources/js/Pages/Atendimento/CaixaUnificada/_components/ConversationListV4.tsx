@@ -80,6 +80,8 @@ interface Props {
   activeTagIds?: number[];
   // US-WA-308 (redesign Cowork) — canais ativos com saúde caída (eager, first-paint)
   unhealthyChannels?: UnhealthyChannel[];
+  /** whatsapp.settings.manage — habilita o QR de re-pareamento in-place no banner de saúde. */
+  canManageChannels?: boolean;
 }
 
 const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; title?: string }[] = [
@@ -100,6 +102,7 @@ export default function ConversationListV4({
   inboundAging = null, orderBy = 'last_message',
   availableTags = [], activeTagIds = [],
   unhealthyChannels = [],
+  canManageChannels = false,
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
   const tab = status as CaixaUnifTab;
@@ -466,7 +469,7 @@ export default function ConversationListV4({
       </div>
 
       {/* US-WA-308 (redesign Cowork) — banner saúde de canal no topo da lista, fiel ao protótipo */}
-      <ChannelHealthBanner channels={unhealthyChannels} accounts={accounts} catalog={channels} />
+      <ChannelHealthBanner channels={unhealthyChannels} accounts={accounts} catalog={channels} canManageChannels={canManageChannels} />
 
       {/* Lista */}
       {conversations.data.length === 0 ? (

@@ -47,6 +47,13 @@ permissao: whatsapp.access
 | 2026-06-18 | **PENDENTE** | **Saúde de canal Onda 2/3** (handoff `CHANNEL-HEALTH-BANNER`, validado vs main): composer pausa em canal `disconnected`/`banned` + thread mostra `● fora do ar`; drawer Canais conserta `HEALTH_LABELS` stale + botão Reconectar. Banner US-WA-308 já é live. |
 | 2026-06-18 | **RECUSADO** | **`workspace-3` como padrão universal.** Só primitivo opcional pras telas mestre→corpo→aside (CRM, OS, atendimento). Forçar em cadastro/dashboard = anti-padrão (decisão [W], confirmada pelo design). |
 | 2026-06-18 | **RECUSADO** | **Trocar Cowork por Figma como ponte.** Figma só vale pro design SYSTEM e só com designer humano (não há). Caminho: DS-como-contrato + gerar-na-stack. Ver `memory/sessions/2026-06-18-arte-ponte-design-producao.md`. |
+| 2026-06-18 | **APLICADO** | **Reconectar canal via QR in-place** (port do design Cowork · `inbox-page.jsx` "Modal Reconectar"). O botão "Reconectar" do banner de saúde abre modal com o **QR REAL do backend** (reusa `atendimento.channels.connect`/`status`, gate `whatsapp.settings.manage` — NÃO a matriz fake do protótipo). Canal Meta Cloud = sem QR (token/webhook). **1º piloto da catraca Contrato de Tela** (contrato abaixo · gate ✅ passou). |
+
+---
+
+## Contrato visual (catraca Contrato de Tela)
+
+Contrato declarado em `prototipo-ui/contrato/caixa-unificada.contract.json` — âncoras `data-contract` + copy literal + ordem, checados pelo gate `contrato-de-tela.yml` (advisory na adoção · doc `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md`). Seções cobertas: `reconnect-cta`, `reconnect-modal`, `reconnect-qr`, `reconnect-meta`, `reconnect-ok`. Ao tocar essas seções, manter as âncoras + a copy literal (senão o gate acusa).
 
 ---
 
