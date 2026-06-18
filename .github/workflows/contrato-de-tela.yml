@@ -80,6 +80,8 @@ jobs:
           echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
           echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
           echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
+          echo "   - 'frontend NÃO trata' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
+          echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
           echo "   - 'branch atrás' → git rebase origin/main."
           echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"
           echo "     <!-- design-deviation: <o quê> → <por quê> (ADR/charter) -->"
