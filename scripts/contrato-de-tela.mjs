@@ -181,6 +181,58 @@ function checkOmission(base = 'origin/main', alvos, notesFile) {
 }
 
 // ── CLI ───────────────────────────────────────────────────────────────────────
+// ── --map: mapa protótipo→prod DERIVADO (régua 5: não-mantido-à-mão · mata o SYNC_LOG) ──
+// Gera on-demand de `*.contract.json` (.fonte) + âncoras `data-contract` + git log.
+// `--map`        = só imprime a tabela (informativo, exit 0).
+// `--map --check` = FALHA se `fonte` aponta arquivo inexistente OU seção sem âncora e
+//                   sem `<!-- design-deviation -->` no alvo.
+function listContracts() {
+  const out = git('ls-files "*.contract.json"');
+  return out ? out.split('\n').filter(p => p && !/EXEMPLO/i.test(p)) : [];
+}
+function anchorsOf(alvo) {
+  const ids = new Set();
+  for (const f of (alvo || []).flatMap(collectTargets)) {
+    const re = /data-contract\s*=\s*["'`]([^"'`]+)["'`]/g; let m;
+    const t = readFileSync(f, 'utf8');
+    while ((m = re.exec(t))) ids.add(m[1]);
+  }
+  return ids;
+}
+function hasDeviation(alvo) {
+  return (alvo || []).flatMap(collectTargets).some(f => readFileSync(f, 'utf8').includes('design-deviation'));
+}
+function buildMap(doCheck) {
+  const contracts = listContracts();
+  let fail = 0;
+  log('# Mapa protótipo → produção  ·  GERADO por `contrato-de-tela.mjs --map` — NÃO editar à mão\n');
+  log('| Tela | Fonte (protótipo) | Seções | Último commit no alvo | Estado |');
+  log('|---|---|---:|---|---|');
+  if (!contracts.length) log('| _(nenhum contrato ativo)_ | — | — | — | — |');
+  for (const cf of contracts) {
+    let c;
+    try { c = JSON.parse(readFileSync(resolve(ROOT, cf), 'utf8')); }
+    catch { err(`contrato ilegível: ${cf}`); fail++; continue; }
+    const tela = c.tela ?? cf;
+    const fonteOk = !!c.fonte && existsSync(resolve(ROOT, c.fonte));
+    const ids = anchorsOf(c.alvo);
+    const secs = c.secoes || [];
+    const missing = secs.filter(s => !ids.has(s.id));
+    const dev = hasDeviation(c.alvo);
+    const last = git(`log -1 --format=%h -- ${(c.alvo || []).map(x => `"${x}"`).join(' ')}`) || '—';
+    const estado = !fonteOk ? '🔴 fonte quebrada'
+      : missing.length === 0 ? '🟢 portado'
+        : dev ? '⚠️ âncora-faltando (desvio declarado)'
+          : '🔴 âncora-faltando';
+    log(`| ${tela} | \`${c.fonte ?? '—'}\` ${fonteOk ? '✓' : '✗'} | ${secs.length - missing.length}/${secs.length} | ${last} | ${estado} |`);
+    if (doCheck) {
+      if (!fonteOk) { err(`${tela}: fonte aponta arquivo inexistente — ${c.fonte}`); fail++; }
+      if (missing.length && !dev) { err(`${tela}: seção(ões) sem âncora e sem design-deviation — ${missing.map(s => s.id).join(', ')}`); fail++; }
+    }
+  }
+  return fail;
+}
+
 function argVal(flag) { const i = process.argv.indexOf(flag); return i >= 0 ? process.argv[i + 1] : null; }
 function main() {
   const a = process.argv.slice(2);
@@ -197,8 +249,11 @@ function main() {
     let alvos = alvoFlag ? alvoFlag.split(',') : null;
     if (!alvos && contractFlag) alvos = loadContract(contractFlag).alvo;
     fail += checkOmission(base, alvos, argVal('--notes'));
+  } else if (a.includes('--map')) {
+    fail += buildMap(a.includes('--check'));
+    if (!a.includes('--check')) process.exit(0); // --map informativo: só a tabela, sem resumo
   } else {
-    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f]]');
+    log('uso: node scripts/contrato-de-tela.mjs [--preflight [base] | --contract <f.json> | --omission [base] (--alvo a,b | --contract-alvo f.json) [--notes f] | --map [--check]]');
     process.exit(2);
   }
   if (fail) { log(`\n❌ ${fail} falha(s).`); process.exit(1); }

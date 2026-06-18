@@ -123,5 +123,39 @@ function makeGitRepo() {
   drop(root);
 }
 
+// 7. --map --check POSITIVO — fonte existe + seção ancorada → exit 0.
+{
+  const root = mkdtempSync(join(tmpdir(), 'contrato-map-'));
+  mkdirSync(join(root, 'tela'), { recursive: true });
+  mkdirSync(join(root, 'proto'), { recursive: true });
+  git(root, ['init', '-q']); git(root, ['config', 'user.email', 't@t.t']); git(root, ['config', 'user.name', 't']);
+  if (git(root, ['rev-parse', '--git-dir']).status !== 0) { console.log('[SKIP] --map (git indisponível)'); drop(root); }
+  else {
+    writeFileSync(join(root, 'proto', 'src.jsx'), '// fonte canônica\n');
+    writeFileSync(join(root, 'tela', 'Index.tsx'), 'export default () => (<div data-contract="hero">Olá</div>);');
+    writeFileSync(join(root, 'x.contract.json'), JSON.stringify({ tela: 'X', fonte: 'proto/src.jsx', alvo: ['tela'], secoes: [{ id: 'hero', copy: ['Olá'] }] }));
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    const r = node(root, ['--map', '--check']);
+    check('--map --check fonte+âncora ok → exit 0', r.status === 0, out(r));
+    drop(root);
+  }
+}
+
+// 8. --map --check NEGATIVO — fonte aponta arquivo inexistente → exit 1.
+{
+  const root = mkdtempSync(join(tmpdir(), 'contrato-map-'));
+  mkdirSync(join(root, 'tela'), { recursive: true });
+  git(root, ['init', '-q']); git(root, ['config', 'user.email', 't@t.t']); git(root, ['config', 'user.name', 't']);
+  if (git(root, ['rev-parse', '--git-dir']).status !== 0) { console.log('[SKIP] --map quebrada (git indisponível)'); drop(root); }
+  else {
+    writeFileSync(join(root, 'tela', 'Index.tsx'), 'export default () => (<div data-contract="hero">Olá</div>);');
+    writeFileSync(join(root, 'x.contract.json'), JSON.stringify({ tela: 'X', fonte: 'proto/NAO-EXISTE.jsx', alvo: ['tela'], secoes: [{ id: 'hero', copy: ['Olá'] }] }));
+    git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'base']);
+    const r = node(root, ['--map', '--check']);
+    check('--map --check fonte quebrada → exit 1', r.status === 1 && /fonte aponta arquivo inexistente/.test(out(r)), out(r));
+    drop(root);
+  }
+}
+
 console.log(fails ? `\n❌ ${fails} regressão(ões).` : `\n✅ todos os controles passam (gate morde e libera certo).`);
 process.exit(fails ? 1 : 0);
