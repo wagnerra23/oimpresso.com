@@ -29,6 +29,8 @@ owner: wagner
 
 ### US-PG-001 · [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
 
+**Implementado em:** `Modules/PaymentGateway/Models/PaymentGatewayCredential.php` · `Modules/PaymentGateway/Console/Commands/RewrapCredentialsCommand.php` · `Modules/PaymentGateway/Tests/Feature/EncryptedCredentialCastTest.php` · verificado@98cae0a (2026-06-18)
+
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
@@ -55,6 +57,8 @@ protected $casts = [
 **Refs:** ADR 0170 §G, [Laravel 12 Encrypted Casts](https://laravel-news.com/eloquent-encrypted-casting), [PCI-DSS 4.0](https://www.upguard.com/blog/pci-compliance)
 
 ### US-PG-002 · [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
+
+**Implementado em:** `Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/AsaasWebhookController.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/InterWebhookController.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/C6WebhookController.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/BcbPixWebhookController.php` · `Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php` · verificado@98cae0a (2026-06-18)
 
 > owner: — · priority: p0 · estimate: 12h · status: todo · type: story
 > blocked_by: —
@@ -122,6 +126,8 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 **Refs:** Audit dossier inline 2026-05-25 §PR-0 Doc-1/2/3
 
 ### US-PG-005 · Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
+
+**Implementado em:** `Modules/PaymentGateway/Services/Drivers/InterDriver.php` · `Modules/PaymentGateway/Console/Commands/RegisterInterWebhookCommand.php` · `Modules/PaymentGateway/Tests/Feature/InterDriverRegisterWebhookTest.php` · verificado@98cae0a (2026-06-18)
 
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: US-PG-006, US-PG-007
