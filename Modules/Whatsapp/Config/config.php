@@ -75,6 +75,10 @@ return [
         // 2026-06-16 (recebimento parado pós-#2726). Não-spoofável (TLS-only).
         'webhook_url_secret' => env('WHATSMEOW_WEBHOOK_URL_SECRET'),
         'request_timeout' => (int) env('WHATSMEOW_TIMEOUT', 15),
+        // Janela (min) de "inbound recente" que o health-probe usa como prova de
+        // "no ar" — suprime o falso "fora do ar" do loggedIn não-confiável do WuzAPI
+        // e auto-cura pra healthy (incidente 2026-06-18; martelo [W] = 10min).
+        'health_fresh_inbound_minutes' => (int) env('WHATSMEOW_HEALTH_FRESH_INBOUND_MINUTES', 10),
     ],
 
     /*
