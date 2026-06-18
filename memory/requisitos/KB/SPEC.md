@@ -23,6 +23,8 @@ Cérebro consultável da empresa sobre TODO conhecimento (ADRs, sessions, charte
 ## 2. User Stories canônicas
 
 ### US-KB-001 — Bridge canon dos 143 ADRs (ONDA 1, ✅ LIVE)
+
+**Implementado em:** `Modules/KB/Jobs/KbBridgeFromMcpJob.php` · `Modules/KB/Services/KbBridgeStateService.php` · `Modules/KB/Services/KbEdgeAutoDeriver.php` · `Modules/KB/Entities/KbNode.php` · `Modules/KB/Entities/KbEdge.php` · `Modules/KB/Entities/KbBridgeState.php` · `Modules/KB/Observers/KbNodeObserver.php` · `Modules/KB/Tests/Feature/Http/KbNodeControllerTest.php` · `Modules/KB/Tests/Unit/KbBridgeFromMcpJobTest.php` · verificado@98cae0a (2026-06-18)
 **Como** Wagner governance,
 **quero** ver os 143 ADRs do projeto como nós navegáveis no grafo KB,
 **para** poder consultar dependências (supersedes/related/charter-of) sem grep cego em filesystem.
@@ -35,6 +37,8 @@ Critérios:
 - Multi-tenant Tier 0: cada business vê seus próprios ADRs (business_id global scope)
 
 ### US-KB-002 — Artigo editável (Larissa Cowork, ONDA 3 parcial)
+
+**Implementado em:** `Modules/KB/Entities/KbNode.php` · `Modules/KB/Entities/KbNodeVersion.php` · `Modules/KB/Services/KbArticleService.php` · `Modules/KB/Http/Controllers/KbNodeController.php` · `Modules/KB/Observers/KbNodeObserver.php` · `resources/js/Pages/kb/Index.tsx` · `resources/js/Pages/kb/_components/BlockRenderer.tsx` · `Modules/KB/Tests/Feature/Http/KbNodeControllerTest.php` · `Modules/KB/Tests/Unit/KbArticleServiceUnitTest.php` · `Modules/KB/Tests/Feature/LgpdComplianceTest.php` · verificado@98cae0a (2026-06-18)
 **Como** Larissa operadora gráfica,
 **quero** criar artigo "Como trocar tinta Roland VS-540" com blocks (h1/p/img/code),
 **para** consolidar SOP do balcão sem depender de Wagner editar manualmente git.
@@ -47,6 +51,8 @@ Critérios:
 - Soft-delete pra reversibilidade
 
 ### US-KB-003 — Pergunta IA RAG sobre grafo (ONDA 4, ✅ LIVE)
+
+**Implementado em:** `Modules/KB/Services/KbRagService.php` · `Modules/KB/Services/KbBgeRerankerService.php` · `Modules/KB/Services/KbCorpusBuilder.php` · `Modules/KB/Services/Dtos/RagResult.php` · `Modules/KB/Http/Controllers/KbAiController.php` · `Modules/KB/Tests/Feature/KbRagServiceMultiTenantTest.php` · `Modules/KB/Tests/Unit/KbBgeRerankerServiceTest.php` · `Modules/KB/Tests/Unit/KbBgeRerankerServiceProdTest.php` · `Modules/KB/Tests/Feature/KbRagasEvalTest.php` · verificado@98cae0a (2026-06-18)
 **Como** Wagner ou Larissa,
 **quero** perguntar "qual ADR rege multi-tenant aqui?" e receber resposta com citações,
 **para** descobrir conhecimento sem precisar memorizar 143 slugs ADR.
@@ -59,6 +65,8 @@ Critérios:
 - Multi-tenant: pergunta de biz=1 nunca recupera nós de biz=4
 
 ### US-KB-004 — Trilha de aprendizado Larissa (ONDA 3+5)
+
+**Implementado em:** `Modules/KB/Entities/KbPath.php` · `Modules/KB/Entities/KbPathStep.php` · `Modules/KB/Http/Controllers/KbPathController.php` · `resources/js/Pages/kb/_components/PathsDialog.tsx` · `Modules/KB/Tests/Feature/Http/KbPathControllerTest.php` · `Modules/KB/Database/Factories/KbPathFactory.php` · `Modules/KB/Database/Factories/KbPathStepFactory.php` · verificado@98cae0a (2026-06-18)
 **Como** Larissa,
 **quero** trilha "Como abrir OS no balcão" com 7 passos em ordem,
 **para** treinar Mateus novo funcionário sem retrabalho de explicar oralmente.
@@ -70,6 +78,8 @@ Critérios:
 - Visualização tri-pane Cockpit V2 (Cowork [CC])
 
 ### US-KB-005 — Troubleshooter Q→Sim/Não→Fix (ONDA 3)
+
+**Implementado em:** `Modules/KB/Entities/KbDecisionTree.php` · `Modules/KB/Entities/KbDecisionTreeStep.php` · `Modules/KB/Http/Controllers/KbDecisionTreeController.php` · `Modules/KB/Observers/KbDecisionTreeStepObserver.php` · `resources/js/Pages/kb/_components/TroubleshooterDialog.tsx` · `Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php` · `Modules/KB/Tests/Unit/KbDecisionTreeStepTest.php` · `Modules/KB/Database/Factories/KbDecisionTreeFactory.php` · `Modules/KB/Database/Factories/KbDecisionTreeStepFactory.php` · verificado@98cae0a (2026-06-18)
 **Como** Mateus operando Roland VS-540,
 **quero** decision-tree "Roland não imprime?" com bifurcações até Fix,
 **para** resolver problema sem ligar pra Wagner.
@@ -80,6 +90,8 @@ Critérios:
 - Fix pode linkar artigo kb_node via `yes_fix_node_id` → edge `fix-of-decision`
 
 ### US-KB-006 — Visualização-grafo Cytoscape (ONDA 5)
+
+**Implementado em:** `Modules/KB/Http/Controllers/Admin/GraphController.php` · `resources/js/Pages/kb/Graph.tsx` · `resources/js/Pages/kb/_components/GraphCanvas.tsx` · `resources/js/Pages/kb/_components/GraphFilters.tsx` · `resources/js/Pages/kb/_components/GraphLegend.tsx` · `resources/js/Pages/kb/_components/GraphNodeDetail.tsx` · `Modules/KB/Entities/KbEdge.php` · verificado@98cae0a (2026-06-18)
 **Como** Wagner,
 **quero** ver os 143 ADRs num grafo navegável (Cytoscape.js) com edges supersedes/related,
 **para** entender dependências arquiteturais visualmente.
