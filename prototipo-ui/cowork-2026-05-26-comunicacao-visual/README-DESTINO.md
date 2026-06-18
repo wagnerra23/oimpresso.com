@@ -53,3 +53,9 @@ Conforme ADR 0104, F2/F3 só rodam após `visual-comparison.md` gerado e SCREENS
 - [ADR 0114 — Loop Cowork ↔ Claude Code formalizado](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - [prototipo-ui/PROTOCOL.md](../PROTOCOL.md) — operação do diretório
 - [PR #1638](https://github.com/wagnerra23/oimpresso.com/pull/1638) — bundle KB-9.75 Vendas aplicado (mesma sessão Cowork)
+
+---
+
+## ⚠️ Limpeza do bundle a cada export (esteira ≠ armazém)
+
+Antes de exportar, **apague do bundle** (já foram ingeridos no `memory/` do projeto OU são resíduo de processo): `Adversário*`/`Tribunal*`/`Avaliac*`, `_arquivo/`, `benchmark/`, `uploads/`, `.thumbnail`, `GAPS_v*`, `FORCE_*`, `PROMPT_*` marcados `[PROCESSADO]`. **Mantenha** só: app-vivo (o que `oimpresso.com.html` carrega) + `screenshots/` + `README/STATUS/COWORK_NOTES` + handoffs ativos. Planos de tela durables → o Code ingere pro `memory/` e aí saem daqui. Enforçado por `scripts/bundle-lint.mjs`. Ver `prototipo-ui/PROTOCOL.md §"Esteira ≠ armazém"`.
