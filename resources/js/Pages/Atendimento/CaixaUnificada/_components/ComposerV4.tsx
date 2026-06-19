@@ -584,7 +584,7 @@ export default function ComposerV4({
       )}
     <div
       className={cn(
-        'flex items-center gap-1.5 border-t px-3.5 py-2.5 transition-colors',
+        'flex flex-col gap-2 border-t px-3.5 py-2.5 transition-colors',
         !internalMode && 'bg-card',
       )}
       style={
@@ -598,6 +598,10 @@ export default function ComposerV4({
       }
       data-testid="caixa-unif-composer"
     >
+      {/* C1 (handoff 2026-06-19) — composer em 2 linhas (.om-composer coluna do
+          protótipo Cowork): ferramentas na 2ª linha (order-2); input + Enviar
+          sobem pro topo (order-1). Sem mudança de lógica — só layout. */}
+      <div className="flex items-center flex-wrap gap-1.5 order-2">
       {/* PR-9 — ✦ Sugerir resposta (IA preenche o input; humano revisa e envia) */}
       {!internalMode && (
         <button
@@ -788,7 +792,10 @@ export default function ComposerV4({
           <LayoutList size={12} aria-hidden />
         </button>
       )}
+      </div>
 
+      {/* C1 — 1ª linha: input + Enviar (.om-input-main), sobe via order-1 */}
+      <div className="flex items-center gap-2 order-1">
       {/* Input */}
       <input
         ref={inputRef}
@@ -855,6 +862,7 @@ export default function ComposerV4({
           </>
         )}
       </button>
+      </div>
     </div>
 
     {/* Wave 4-B F1 — Interactive message dialog (List/Button Meta) */}
