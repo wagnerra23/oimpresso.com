@@ -118,10 +118,11 @@ export default function ConversationThreadV4({
     // referência → conteúdo empurrava layout 375px além viewport → `.cockpit` ancestor
     // tem overflow:hidden → cortado sem scrollbar. Fix: <div> semântico + h-full.
     <div
-      // Fundo da thread: tom verde-WA suave do protótipo (.om-thread-c L421
-      // oklch(0.97 0.013 145)) no claro; neutro dark-aware no escuro (flipa via
-      // .dark/[data-theme=dark] — ADR 0281). Antes era bg-muted/15 cinza neutro.
-      className="flex flex-col bg-[oklch(0.97_0.013_145)] dark:bg-muted/15 min-h-0 min-w-0 h-full"
+      // Fundo da thread: token neutro `bg-muted` (flipa nativo light/dark pelos tokens
+      // canônicos — ADR 0281). Antes usava `bg-[oklch(0.97 0.013 145)]` (cor crua
+      // arbitrária — viola "cor = token") + `dark:bg-muted/15`, par que não flipava no
+      // toggle sem F5. Token único resolve a regra e o flip de uma vez.
+      className="flex flex-col bg-muted/30 min-h-0 min-w-0 h-full"
       aria-label="Thread da conversa"
       role="region"
     >
