@@ -63,8 +63,8 @@ class DesignMineRawCommand extends Command
     }
 
     /**
-     * Reúne o raw da tela: CHAT_TRANSCRIPT/*chat*/*transcript* do dir da tela +
-     * chats Cowork (cowork-*/chats/*.md) que CITAM a tela. Cap MAX_DOCS.
+     * Reúne o raw da tela: arquivos com "chat"/"transcript" no nome do dir da tela
+     * + chats Cowork (cowork-... chats) que CITAM a tela. Cap MAX_DOCS.
      *
      * @return list<array{path:string, content:string}>
      */
