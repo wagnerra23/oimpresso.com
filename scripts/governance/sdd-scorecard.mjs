@@ -92,6 +92,20 @@ const notYet = (direction, target, source) => ({
   baseline_rule: '1ª medição real da fonte, nunca do plano (anti-stale)',
 });
 
+// ── stream de cada métrica (a "cola" que une SDD + memória num só scorecard) ──
+// SA=spec-anchor · FV=full-suite/verificação · KL=knowledge/ghost · GT=garantia ·
+// MEM=memória-unificada (read-path do ADR 0270) como stream de 1ª classe.
+// É a peça 4 do keystone da união (ledger 2026-06-19-adversario-uniao-sdd-memoria.md):
+// um SÓ scorecard governa SDD e memória — não dois sistemas paralelos.
+const STREAM = {
+  anchor_coverage: 'SA',
+  full_suite_pass_rate: 'FV', n_quarantine: 'FV', coverage_pct: 'FV',
+  ghost_count: 'KL',
+  front_door_coverage: 'MEM', recall_eval_violations: 'MEM', ragas_real_uptime: 'MEM',
+  distiller_freshness: 'MEM', read_path_hops: 'MEM',
+  drift_alarms: 'GT', backfill_error_rate: 'GT',
+};
+
 // ── fonte: floor do nightly CT100 (ADR 0279 — transporte Opção A · US-GOV-023) ─
 // Read-side do elo MEDIR→GOVERNAR. Lê governance/nightly-floor.json, que o write-side
 // (PR-2) escreve no CT100 via git-push [skip ci]. O artefato carrega floor_count =
@@ -128,13 +142,14 @@ function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
   const q = measureQuarantine();
-  return {
+  const sc = {
     _meta: {
       scorecard: 'SDD — sistema spec-anchored + verificação agêntica (plano 2026-06-12 §2)',
       generator: 'scripts/governance/sdd-scorecard.mjs',
       plan: 'memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md',
       determinismo: 'sem timestamps/sha no corpo — re-run sem mudança no repo = diff vazio',
-      composta: 'v1 (fontes parciais) ≠ v2 (10/10 vivas) — regimes não comparáveis; composta NÃO é calculada enquanto houver not_yet_measured',
+      composta: 'v1 (fontes parciais) ≠ v2 (12/12 vivas) — regimes não comparáveis; composta NÃO é calculada enquanto houver not_yet_measured',
+      streams: 'cada métrica tem `stream` — SA/FV/KL/GT + MEM (memória-unificada · read-path do ADR 0270). Um só scorecard governa SDD e memória (peça 4 da união; ledger memory/sessions/2026-06-19-adversario-uniao-sdd-memoria.md)',
       anchor_coverage_regra: 'delegado a scripts/governance/anchor-lint.mjs (ADR 0273 §2 — fonte única): (anchored_ok + pendente + parcial) / us_total. Antes era grep estrito próprio (divergia); unificado no PR do ledger §A.',
       ratchet: {
         baseline: 'governance/sdd-scorecard-baseline.json — armed POR MÉTRICA (ADR 0275 §3: arma após 3 medições válidas consecutivas da fonte real; armar/desarmar/piorar = PR editando o baseline, diff visível)',
@@ -173,12 +188,19 @@ function buildScorecard() {
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
       ragas_real_uptime: notYet('up', '≥95%',
         'RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock'),
+      distiller_freshness: notYet('down', '< 7d em 100% das portas',
+        'ADR 0270 F3/D-5 — ProfileDistiller estendido p/ verdade-do-módulo; hoje só destila perfil comercial, NÃO escreve BRIEFING (instrumentação pendente — peça 2/3 do keystone)'),
+      read_path_hops: notYet('down', 1,
+        'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),
       drift_alarms: notYet('down', 'advisory perene',
         'protection-drift + watchdog de staleness (GT-G4)'),
       backfill_error_rate: notYet('down', '<2%',
         'ledger do protocolo refutador G5 — só existe após 1º lote IA refutado'),
     },
   };
+  // carimba o stream (SA/FV/KL/GT/MEM) em cada métrica — a "cola" da união num só scorecard
+  for (const [k, m] of Object.entries(sc.metrics)) m.stream = STREAM[k] ?? '?';
+  return sc;
 }
 
 // ── ratchet vs baseline VERSIONADO (GT-G3 meta-catraca) ─────────────────────
