@@ -11,7 +11,7 @@
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCheck, ClipboardCheck, FileDown, Presentation, Sparkles } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCheck, Sparkles, Star } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import { Stack } from '@/Components/layout';
 import {
@@ -28,8 +28,7 @@ import {
 } from './helpers';
 import ComposerV4 from './ComposerV4';
 import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
-import InboxPresenterMode from './InboxPresenterMode';
-import InboxTranscriptDialog from './InboxTranscriptDialog';
+import { useInboxFavs } from './useInboxFavs';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
 import MediaFullscreenModal from '@/Pages/Whatsapp/_components/MediaFullscreenModal';
 import type { ReadyTemplate } from '@/Pages/Whatsapp/_components/helpers';
@@ -81,9 +80,8 @@ export default function ConversationThreadV4({
   );
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Polish V2 §7/§8 — transcript print-friendly + modo apresentação
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
-  const [presenterOpen, setPresenterOpen] = useState(false);
+  // T2 (handoff 2026-06-19) — favoritos da thread (localStorage, port inbox-cur)
+  const { isFav, toggleFav } = useInboxFavs();
 
   // PR-9 — IA na thread (Resumir / Perguntar)
   const [aiMode, setAiMode] = useState<InboxAiMode | null>(null);
@@ -217,24 +215,18 @@ export default function ConversationThreadV4({
         >
           Perguntar
         </button>
-        {/* Polish V2 §7/§8 — transcript print + modo apresentação */}
+        {/* T2 — Favoritar (estrela no header · port inbox-cur · protótipo .om-fav-btn-h) */}
         <button
           type="button"
-          onClick={() => setTranscriptOpen(true)}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
-          title="Transcript imprimível / PDF"
-          data-testid="caixa-unif-thread-transcript"
+          onClick={() => toggleFav(thread.id)}
+          className="inline-flex items-center px-2 py-1 rounded transition-colors flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+          style={isFav(thread.id) ? { color: 'oklch(0.78 0.15 80)' } : undefined}
+          title={isFav(thread.id) ? 'Remover dos favoritos' : 'Favoritar conversa'}
+          aria-label={isFav(thread.id) ? 'Remover dos favoritos' : 'Favoritar conversa'}
+          aria-pressed={isFav(thread.id)}
+          data-testid="caixa-unif-thread-fav"
         >
-          <FileDown size={12} aria-hidden />
-        </button>
-        <button
-          type="button"
-          onClick={() => setPresenterOpen(true)}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
-          title="Modo apresentação (overlay limpo, Esc sai)"
-          data-testid="caixa-unif-thread-presenter"
-        >
-          <Presentation size={12} aria-hidden />
+          <Star size={13} fill={isFav(thread.id) ? 'currentColor' : 'none'} aria-hidden />
         </button>
         {!isPreview && !isBlocked && onResolve && (
           <button
@@ -473,22 +465,6 @@ export default function ConversationThreadV4({
           onClose={() => setLightboxIndex(null)}
         />
       )}
-
-      {/* Polish V2 §7 — transcript imprimível */}
-      <InboxTranscriptDialog
-        open={transcriptOpen}
-        onOpenChange={setTranscriptOpen}
-        thread={thread}
-        messages={messages}
-      />
-
-      {/* Polish V2 §8 — modo apresentação */}
-      <InboxPresenterMode
-        open={presenterOpen}
-        onClose={() => setPresenterOpen(false)}
-        thread={thread}
-        messages={messages}
-      />
 
       {/* PR-9 — IA Resumir/Perguntar */}
       {aiMode !== null && (
