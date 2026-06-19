@@ -11,7 +11,7 @@
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCheck, ClipboardCheck, Sparkles, Star } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCheck, Star } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import { Stack } from '@/Components/layout';
 import {
@@ -27,7 +27,6 @@ import {
   SLA_META,
 } from './helpers';
 import ComposerV4 from './ComposerV4';
-import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
 import { useInboxFavs } from './useInboxFavs';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
 import MediaFullscreenModal from '@/Pages/Whatsapp/_components/MediaFullscreenModal';
@@ -83,8 +82,7 @@ export default function ConversationThreadV4({
   // T2 (handoff 2026-06-19) — favoritos da thread (localStorage, port inbox-cur)
   const { isFav, toggleFav } = useInboxFavs();
 
-  // PR-9 — IA na thread (Resumir / Perguntar)
-  const [aiMode, setAiMode] = useState<InboxAiMode | null>(null);
+  // T1 — IA (Resumir/Perguntar) movida pro ContextSidebarV4 (seção Inteligência)
 
   // Polish V2 §1 — SLA no header (direção da última msg não-nota vem das messages)
   const lastRealMsg = useMemo(
@@ -193,33 +191,15 @@ export default function ConversationThreadV4({
             </span>
           );
         })()}
-        {/* PR-9 — IA: Resumir / Perguntar (laravel/ai server-side, PII redigida) */}
-        <button
-          type="button"
-          onClick={() => setAiMode('summarize')}
-          className={cn(
-            'inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0',
-            headerSla === null && 'ml-auto',
-          )}
-          title="Resumir conversa com IA"
-          data-testid="caixa-unif-thread-ai-summarize"
-        >
-          <Sparkles size={12} aria-hidden /> Resumir
-        </button>
-        <button
-          type="button"
-          onClick={() => setAiMode('ask')}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
-          title="Perguntar sobre a conversa (IA responde só com o transcript)"
-          data-testid="caixa-unif-thread-ai-ask"
-        >
-          Perguntar
-        </button>
+        {/* T1 — Resumir/Perguntar movidos pro Contexto (seção Inteligência) */}
         {/* T2 — Favoritar (estrela no header · port inbox-cur · protótipo .om-fav-btn-h) */}
         <button
           type="button"
           onClick={() => toggleFav(thread.id)}
-          className="inline-flex items-center px-2 py-1 rounded transition-colors flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+          className={cn(
+            'inline-flex items-center px-2 py-1 rounded transition-colors flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted',
+            headerSla === null && 'ml-auto',
+          )}
           style={isFav(thread.id) ? { color: 'oklch(0.78 0.15 80)' } : undefined}
           title={isFav(thread.id) ? 'Remover dos favoritos' : 'Favoritar conversa'}
           aria-label={isFav(thread.id) ? 'Remover dos favoritos' : 'Favoritar conversa'}
@@ -463,16 +443,6 @@ export default function ConversationThreadV4({
           filenames={imageMessages.map(m => m.media_filename ?? null)}
           currentIndex={Math.max(0, lightboxIndex)}
           onClose={() => setLightboxIndex(null)}
-        />
-      )}
-
-      {/* PR-9 — IA Resumir/Perguntar */}
-      {aiMode !== null && (
-        <InboxAiDialog
-          open={aiMode !== null}
-          onOpenChange={(o) => { if (!o) setAiMode(null); }}
-          mode={aiMode}
-          conversationId={thread.id}
         />
       )}
 
