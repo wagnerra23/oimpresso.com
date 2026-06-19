@@ -23,7 +23,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
-import { Braces, LayoutList, Loader2, Send, FileText, Paperclip, Slash, Sparkles, X } from 'lucide-react';
+import { Braces, LayoutList, Loader2, Send, FileText, Paperclip, Slash, Sparkles, X, Reply, Pencil } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import { Inline, Stack } from '@/Components/layout';
 import {
@@ -611,11 +611,16 @@ export default function ComposerV4({
           disabled={!canType || suggesting}
           title="IA sugere a próxima resposta — você revisa antes de enviar"
           data-testid="caixa-unif-composer-suggest"
-          className="h-6 px-2 rounded-md border bg-card inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+          className="h-6 px-2 rounded-md border border-transparent inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
         >
           {suggesting ? <Loader2 size={11} className="animate-spin" aria-hidden /> : <Sparkles size={11} aria-hidden />}
           Sugerir
         </button>
+      )}
+
+      {/* C4 — divisor após Sugerir (.om-tool-div do protótipo Cowork) */}
+      {!internalMode && (
+        <span className="w-px h-[18px] bg-border self-center shrink-0 mx-0.5" aria-hidden />
       )}
 
       {/* Toggle Resp / Nota — Cowork .om-mode-btn.on tokens OKLCH §589 */}
@@ -623,11 +628,13 @@ export default function ComposerV4({
         type="button"
         onClick={() => setInternalMode(v => !v)}
         title="Resposta cliente / Nota interna (⌘⇧N)"
+        aria-label={internalMode ? 'Modo nota interna ativo (⌘⇧N pra voltar)' : 'Alternar pra nota interna (⌘⇧N)'}
+        aria-pressed={internalMode}
         data-testid="caixa-unif-composer-toggle-mode"
         className={cn(
-          'h-6 px-2.5 rounded-md border text-[11px] font-semibold transition-colors flex-shrink-0',
+          'w-6 h-6 rounded-md border grid place-items-center transition-colors flex-shrink-0',
           !internalMode
-            ? 'bg-card border-border text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:border-muted-foreground'
+            ? 'border-transparent text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted'
             : 'opacity-100',
         )}
         style={
@@ -640,7 +647,7 @@ export default function ComposerV4({
             : undefined
         }
       >
-        {internalMode ? 'Nota' : 'Resp'}
+        {internalMode ? <Pencil size={12} aria-hidden /> : <Reply size={12} aria-hidden />}
       </button>
 
       {/* US-WA-303 — Templates do canal (TemplatePicker legacy reusado) */}
@@ -652,7 +659,7 @@ export default function ComposerV4({
           ? `Templates do canal (${channelTemplates.length} ${channelTemplates.length === 1 ? 'disponível' : 'disponíveis'})`
           : 'Canal não suporta templates'}
         data-testid="caixa-unif-composer-templates"
-        className="w-6 h-6 rounded-md border bg-card grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+        className="w-6 h-6 rounded-md border border-transparent grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
       >
         <FileText size={12} aria-hidden />
       </button>
@@ -671,7 +678,7 @@ export default function ComposerV4({
             disabled={internalMode || !canType}
             title="Macros — atalhos / com ações (digite / no input pra autocomplete)"
             data-testid="caixa-unif-composer-macros"
-            className="w-6 h-6 rounded-md border bg-card grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+            className="w-6 h-6 rounded-md border border-transparent grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
           >
             <Slash size={12} aria-hidden />
           </button>
@@ -725,7 +732,7 @@ export default function ComposerV4({
               disabled={!canType}
               title="Inserir variável no texto ({{nome}}, {{telefone}}, {{operador}})"
               data-testid="caixa-unif-composer-vars"
-              className="w-6 h-6 rounded-md border bg-card grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+              className="w-6 h-6 rounded-md border border-transparent grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
             >
               <Braces size={12} aria-hidden />
             </button>
@@ -768,7 +775,7 @@ export default function ComposerV4({
         disabled={internalMode || !canType}
         title="Anexar imagem, PDF ou áudio"
         data-testid="caixa-unif-composer-attach"
-        className="w-6 h-6 rounded-md border bg-card grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+        className="w-6 h-6 rounded-md border border-transparent grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
       >
         <Paperclip size={12} aria-hidden />
       </button>
@@ -788,7 +795,7 @@ export default function ComposerV4({
           disabled={internalMode || !canType}
           title="Enviar mensagem interativa (List/Button)"
           data-testid="caixa-unif-composer-interactive"
-          className="w-6 h-6 rounded-md border bg-card grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
+          className="w-6 h-6 rounded-md border border-transparent grid place-items-center text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed flex-shrink-0"
         >
           <LayoutList size={12} aria-hidden />
         </button>
