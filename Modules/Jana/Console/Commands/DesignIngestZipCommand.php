@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Jana\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Process;
 use Modules\Jana\Services\Memoria\DesignIngestPlanner;
 
 /**
@@ -13,7 +12,7 @@ use Modules\Jana\Services\Memoria\DesignIngestPlanner;
  *
  * `design:ingest-zip --zip=<x.zip> --tela=vendas` (prepare-only): descompacta SEMPRE
  * no mesmo lugar (`prototipo-ui/_incoming/<tela>/`, gitignored) → roteia contra o
- * `cowork-map.json` (DesignIngestPlanner) → `git diff --no-index` vs a tela commitada
+ * `cowork-map.json` (DesignIngestPlanner) → diff por conteúdo (sha) vs a tela commitada
  * → escreve os entregáveis em `_prepared/`: PLANO-MUDANCAS-<tela>.md + a memória de
  * sessão da ingestão. NADA é aplicado: a aplicação real (`prototipos/<tela>/`) é gate
  * Wagner/CT100 (ADR 0291 D-E). Raiz configurável (`jana.dossie_root`) p/ fixtures.
@@ -56,7 +55,10 @@ class DesignIngestZipCommand extends Command
 
         $map = $this->loadMap($root);
         $routing = DesignIngestPlanner::route($map, $files, $tela);
-        $diff = DesignIngestPlanner::parseDiff($this->diffNameStatus($root, $committedDir, $incomingDir, $files));
+        $diff = DesignIngestPlanner::diffByContent(
+            $this->hashDir($committedDir),
+            $this->hashDir($incomingDir),
+        );
 
         $plano = DesignIngestPlanner::renderPlano($tela, $routing, $diff);
         $session = DesignIngestPlanner::renderSession($tela, $routing, $diff, now()->toDateString());
@@ -121,24 +123,29 @@ class DesignIngestZipCommand extends Command
     }
 
     /**
-     * `git diff --no-index --name-status` da tela commitada vs a extraída. Se a tela
-     * ainda não existe commitada, tudo é "added" (deriva dos arquivos extraídos).
+     * Mapa relpath => sha1 dos arquivos de um diretório (pula `_prepared/`). Sem git —
+     * o diff é por conteúdo (DesignIngestPlanner::diffByContent). Dir inexistente → [].
      *
-     * @param  list<string>  $files
+     * @return array<string, string>
      */
-    private function diffNameStatus(string $root, string $committedDir, string $incomingDir, array $files): string
+    private function hashDir(string $dir): array
     {
-        if (! is_dir($committedDir)) {
-            return implode("\n", array_map(static fn ($f) => "A\t{$f}", $files));
+        if (! is_dir($dir)) {
+            return [];
         }
-        try {
-            $result = Process::path($root)->run([
-                'git', 'diff', '--no-index', '--name-status', '--', $committedDir, $incomingDir,
-            ]);
+        $out = [];
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $f) {
+            if (! $f instanceof \SplFileInfo || ! $f->isFile()) {
+                continue;
+            }
+            $rel = str_replace('\\', '/', ltrim(str_replace($dir, '', $f->getPathname()), '/\\'));
+            if (str_starts_with($rel, '_prepared')) {
+                continue;
+            }
+            $out[$rel] = sha1_file($f->getPathname()) ?: '';
+        }
 
-            return $result->output(); // exit 1 quando há diff — output válido mesmo assim
-        } catch (\Throwable) {
-            return implode("\n", array_map(static fn ($f) => "A\t{$f}", $files));
-        }
+        return $out;
     }
 }
