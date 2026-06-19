@@ -78,6 +78,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\DistillModuleTruthCommand::class, // ADR 0291 — distiller-módulo-verdade (diário→manual; reescreve BRIEFING.md)
                 \Modules\Jana\Console\Commands\DesignDossieCommand::class, // plano vectorized-badger PR-1 — dossiê de tela (read-view do curado, pré-aplicação)
                 \Modules\Jana\Console\Commands\DesignIngestZipCommand::class, // plano vectorized-badger PR-2 — ingestão de design-zip (prepare-only)
+                \Modules\Jana\Console\Commands\DesignMineRawCommand::class, // plano vectorized-badger PR-3 — minera raw→candidatos 🔍 (human-gated)
             ]);
         }
     }
