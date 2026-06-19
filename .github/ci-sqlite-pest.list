@@ -54,3 +54,7 @@ Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
 # Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
 Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
 Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php
+# Observabilidade SLO/SLI canal (ADR 0288) — snapshot + alerta canal-down 3 sinks
+# (Log + Centrifugo + mcp_alertas_eventos). Adicionado na Fase 2: o teste existia
+# desde #3005 mas NÃO estava nesta lane, logo nunca rodava em CI ("suite mente").
+Modules/Whatsapp/Tests/Feature/ChannelHealthSnapshotCommandTest.php
