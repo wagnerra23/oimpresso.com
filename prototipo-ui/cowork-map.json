@@ -11,6 +11,15 @@
         { "glob": "*.css", "to": "prototipo-ui/prototipos/vendas/" },
         { "glob": "*.html", "to": "prototipo-ui/prototipos/vendas/" }
       ]
+    },
+    "caixa-unificada": {
+      "module": "Atendimento",
+      "page_id": "atendimento-caixa-unificada",
+      "routes": [
+        { "glob": "*.jsx", "to": "prototipo-ui/prototipos/caixa-unificada/" },
+        { "glob": "*.css", "to": "prototipo-ui/prototipos/caixa-unificada/" },
+        { "glob": "*.html", "to": "prototipo-ui/prototipos/caixa-unificada/" }
+      ]
     }
   }
 }
