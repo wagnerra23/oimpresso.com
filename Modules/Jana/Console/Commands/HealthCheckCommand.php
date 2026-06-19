@@ -65,7 +65,7 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (11 checks SQL + ledger de lições + charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (12 checks DUROS incl. distiller_freshness + ledger de lições + charter/loop advisory)';
 
     /**
      * Margem de segurança da invariante de valor (check 1b). Desconto só REDUZ;
@@ -103,6 +103,7 @@ class HealthCheckCommand extends Command
             $this->checkCustoBrainB(),
             $this->checkPiiLeak(),
             $this->checkProfileDrift(),
+            $this->checkDistillerFreshness(),
             $this->checkProcedureDrift(),
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
@@ -417,6 +418,87 @@ class HealthCheckCommand extends Command
                 'message' => 'ERRO: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Check 5b — Distiller freshness (ADR 0291 D-D · peça 3 do keystone SDD×memória).
+     *
+     * Gêmeo DURO da métrica `distiller_freshness` do sdd-scorecard. Lá (commitado,
+     * determinístico) a staleness é medida contra a data-git do doc mais novo do
+     * módulo; AQUI (runtime, não-commitado) o alarme usa "hoje" — espelha
+     * checkProfileDrift (`gerado_em` < now()->subDays(7)). Conta portas
+     * memory/requisitos/<Mod>/BRIEFING.md cujo `distilled_at` ficou > 7d vs agora.
+     *
+     * Anti-stale: SKIP (ok) enquanto NENHUMA porta tiver `distilled_at` — o distiller
+     * (PR-C) só roda em prod sob gate Wagner/CT100; não acende vermelho antes do 1º
+     * carimbo. DURO (não-advisory): destilação que parou derruba o exit/cron (D-3).
+     *
+     * @see Modules/Jana/Services/Memoria/DistillerModuloVerdade.php (PR-C — escreve o carimbo)
+     */
+    protected function checkDistillerFreshness(): array
+    {
+        $name = 'distiller_freshness';
+        $reqDir = base_path('memory/requisitos');
+        if (! is_dir($reqDir)) {
+            return [
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d',
+                'message' => 'Skipped (memory/requisitos/ ausente)',
+            ];
+        }
+
+        $contents = array_map(
+            static fn ($f) => (string) @file_get_contents($f),
+            glob($reqDir . '/*/BRIEFING.md') ?: [],
+        );
+        $r = self::distillerFreshnessStats($contents, now()->toDateString());
+
+        if ($r['stamped'] === 0) {
+            return [
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d',
+                'message' => 'Skipped (nenhuma porta com distilled_at — distiller não rodou; gate Wagner/CT100 · ADR 0291 D-D)',
+            ];
+        }
+
+        return [
+            'name' => $name,
+            'ok' => $r['stale'] === 0,
+            'value' => $r['stale'],
+            'threshold' => 0,
+            'message' => $r['stale'] === 0
+                ? "Todas as {$r['stamped']} portas destiladas frescas (<= 7d)"
+                : "STALE: {$r['stale']}/{$r['stamped']} portas com distilled_at > 7d (mais velha: {$r['stalest_days']}d) — rodar jana:distill-module-truth",
+        ];
+    }
+
+    /**
+     * Estatística pura de frescor das portas (testável sem filesystem — espelha
+     * parseLessonLedger). Parseia `distilled_at:` do frontmatter de cada conteúdo
+     * de BRIEFING e conta carimbadas + as que ficaram > $staleDays vs $now.
+     *
+     * @param  array<int, string>  $briefingContents  conteúdo de cada BRIEFING.md
+     * @return array{total:int, stamped:int, stale:int, stalest_days:int}
+     */
+    public static function distillerFreshnessStats(array $briefingContents, string $now, int $staleDays = 7): array
+    {
+        $reference = \Carbon\Carbon::parse($now);
+        $cutoff = $reference->copy()->subDays($staleDays);
+        $stamped = 0;
+        $stale = 0;
+        $stalestDays = 0;
+
+        foreach ($briefingContents as $content) {
+            if (! preg_match('/^distilled_at:\s*["\']?(\d{4}-\d{2}-\d{2})/m', (string) $content, $m)) {
+                continue;
+            }
+            $stamped++;
+            $date = \Carbon\Carbon::parse($m[1]);
+            if ($date->lt($cutoff)) {
+                $stale++;
+                $stalestDays = max($stalestDays, (int) $date->diffInDays($reference));
+            }
+        }
+
+        return ['total' => count($briefingContents), 'stamped' => $stamped, 'stale' => $stale, 'stalest_days' => $stalestDays];
     }
 
     /**

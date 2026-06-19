@@ -119,8 +119,8 @@
       "status": "not_yet_measured",
       "value": null,
       "direction": "down",
-      "target": "< 7d em 100% das portas",
-      "source": "ADR 0270 F3/D-5 — ProfileDistiller estendido p/ verdade-do-módulo; hoje só destila perfil comercial, NÃO escreve BRIEFING (instrumentação pendente — peça 2/3 do keystone)",
+      "target": "< 7d atrás do doc mais novo em 100% das portas",
+      "source": "ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "MEM"
     },
