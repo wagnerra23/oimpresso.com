@@ -46,16 +46,6 @@ Definir SLIs + SLOs de disponibilidade de canal e um alerta — todos **por cana
 - ⚠️ Requer tabela de snapshot (append-only) + cron — **implementação após o aceite** (sequência: aceitar SLI/SLO aqui → codar a métrica).
 - 📝 `time-to-detect` só é honesto depois do `LoggedOut` nativo (#2994) + probe corrigido (#3003 / ADR 0287).
 
-## Implementação
-
-**Fase 1 (PR #3005):** `ChannelHealthSnapshotCommand` (`whatsapp:channel-health-snapshot`, cron 5min) grava série append-only em `channel_health_snapshots` e **alerta** canal `active` caído por > N min (`whatsapp.whatsmeow.health_alert_after_minutes`, default 10), **1×/streak** (decisão pura `shouldAlert()`). Limite: o alerta saía **só** como `Log::error` no `laravel.log` do Hostinger — não chegava em ninguém nem era verificável sem SSH.
-
-**Fase 2 (este PR):** no **mesmo ponto** do alerta (sem duplicar a dedup `shouldAlert`), além do Log, dois sinks best-effort:
-1. **Centrifugo** — publica em `whatsapp:business:{business_id}` com `event: whatsmeow.channel_alert` + `{channel_id, channel_health, down_minutes, threshold_minutes}` (espelha `WhatsmeowWebhookController::publish`). Surfacea na Caixa em realtime.
-2. **`mcp_alertas_eventos`** — a notificação disparada que **chega no humano** (distinta de `mcp_alertas`, que é só a regra/config). Reusa o store + padrão de insert idempotente de `DetectDriftCommand`/`WebhookCanaryCommand` — guard de schema, `chave_idempotencia` ancorada na origem da streak, `tipo=whatsapp_channel_down`, `severidade=high`, `business_id` real (Tier 0), sem PII. **Zero store novo** (ADR 0270).
-
-Efeito: o alerta deixa de "viver só no log do Hostinger" → avisa de verdade + **smoke verificável sem SSH**. Frontend que consome `whatsmeow.channel_alert` na UI fica como follow-up opcional (a Caixa já reage à saúde de canal via #3002).
-
 ## Anchor
 
-**Implementado em:** `Modules/Whatsapp/Console/Commands/ChannelHealthSnapshotCommand.php` (snapshot + alerta 3-sinks: Log + Centrifugo + `mcp_alertas_eventos`), tabela `channel_health_snapshots`. Fase 1 PR #3005; Fase 2 publica Centrifugo + grava `mcp_alertas_eventos`.
+**Implementado em:** (pendente — segue o aceite desta proposta) `Modules/Whatsapp/Console/Commands/` (snapshot + alerta), tabela `channel_health_snapshots`, `Modules/Whatsapp/Console/Commands/WhatsappObservabilityHealthCommand.php`.
