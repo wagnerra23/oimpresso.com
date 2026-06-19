@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\File;
 uses(Tests\TestCase::class);
 
 /**
- * PR-fix — fiação do comando design:ingest-zip, que os testes unit do Planner não cobrem.
- * Codifica o furo mais grave do smoke CT100: o diff via `git diff --no-index` saía VAZIO
- * no container (sem git) → PLANO dizia "sem mudanças" mesmo com arquivo novo. Agora o diff
- * é por CONTEÚDO (sha) — sem git. Fixture em tempdir (`jana.dossie_root`); zip real via
- * ZipArchive. Continua prepare-only: nada é aplicado no protótipo commitado.
+ * Fiação do comando design:ingest-zip (os testes unit do Planner não cobrem).
+ *
+ * Cobre os 2 descompassos achados ao ingerir o HANDOFF completo do Cowork (não um zip
+ * de 1 tela): (A) o diff é sobre os arquivos ROTEADOS (pelo nome final do destino), não
+ * o dump bruto — então um handoff aninhado (project/inbox-page.jsx) casa a baseline flat
+ * (inbox-page.jsx); (B) extras de OUTRA tela conhecida do map são agregados (ruído), só
+ * os DESCONHECIDOS são listados. Fixture em tempdir (jana.dossie_root); zip real; sem git.
  */
 
 beforeEach(function () {
@@ -35,7 +37,7 @@ function ingestSeed(string $rel, string $content): void
     File::put($abs, $content);
 }
 
-/** @param array<string,string> $files name => content */
+/** @param array<string,string> $files name(=path no zip) => content */
 function ingestZipFile(string $path, array $files): void
 {
     $z = new ZipArchive();
@@ -46,54 +48,88 @@ function ingestZipFile(string $path, array $files): void
     $z->close();
 }
 
+/** map com 2 telas + globs ESPECÍFICOS por prefixo (caixa=inbox-*, vendas=vendas-*). */
 function ingestSeedMap(): void
 {
     ingestSeed('prototipo-ui/cowork-map.json', json_encode([
-        'screens' => ['vendas' => ['module' => 'Sells', 'page_id' => 'sells-index', 'routes' => [
-            ['glob' => '*-page.jsx', 'to' => 'prototipo-ui/prototipos/vendas/'],
-            ['glob' => '*.css', 'to' => 'prototipo-ui/prototipos/vendas/'],
-        ]]],
+        'screens' => [
+            'caixa-unificada' => ['module' => 'Atendimento', 'page_id' => 'atendimento-caixa-unificada', 'routes' => [
+                ['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/prototipos/caixa-unificada/'],
+                ['glob' => 'inbox-*.css', 'to' => 'prototipo-ui/prototipos/caixa-unificada/'],
+            ]],
+            'vendas' => ['module' => 'Sells', 'page_id' => 'sells-index', 'routes' => [
+                ['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/prototipos/vendas/'],
+            ]],
+        ],
     ]));
 }
 
-test('diff por CONTEÚDO (sem git): add/mod/del + extra no PLANO', function () {
+function ingestPlano(string $tela): string
+{
+    return File::get(test()->root . "/prototipo-ui/_incoming/{$tela}/_prepared/PLANO-MUDANCAS-{$tela}.md");
+}
+
+test('diff é sobre os ROTEADOS: add/mod/del corretos; extra desconhecido listado', function () {
     ingestSeedMap();
-    // tela commitada: 1 arquivo que será modificado + 1 que será removido
-    ingestSeed('prototipo-ui/prototipos/vendas/vendas-page.jsx', 'v1');
-    ingestSeed('prototipo-ui/prototipos/vendas/old.css', 'x');
-    // zip do Cowork: page modificado + css novo + extra fora do map
+    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'v1'); // será modificado
+    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-old.css', 'x');   // será removido
     $zip = test()->root . '/export.zip';
     ingestZipFile($zip, [
-        'vendas-page.jsx' => 'v2',          // modified
-        'nova.css' => 'z',                  // added (roteado)
-        'NOTES-cowork.md' => 'ideia solta', // added + extra (fora do map)
+        'inbox-page.jsx' => 'v2',   // roteado → mod
+        'inbox-novo.css' => 'z',    // roteado → add
+        'lixo.txt' => 'nada',       // não casa NENHUMA tela → desconhecido
     ]);
 
-    $code = Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'vendas']);
-    expect($code)->toBe(0);
+    expect(Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'caixa-unificada']))->toBe(0);
 
-    $plano = File::get(test()->root . '/prototipo-ui/_incoming/vendas/_prepared/PLANO-MUDANCAS-vendas.md');
-    expect($plano)
-        ->toContain('| `vendas-page.jsx` | mod |')   // <- antes saía vazio (sem git)
-        ->toContain('| `nova.css` | add |')
-        ->toContain('| `NOTES-cowork.md` | add |')
-        ->toContain('| `old.css` | del |')
-        ->toContain('⚠️ `NOTES-cowork.md` — **fora do cowork-map**')
+    expect(ingestPlano('caixa-unificada'))
+        ->toContain('| `inbox-page.jsx` | mod |')
+        ->toContain('| `inbox-novo.css` | add |')
+        ->toContain('| `inbox-old.css` | del |')
+        ->toContain('⚠️ `lixo.txt` — **fora do cowork-map**')
         ->not->toContain('sem mudanças vs a tela commitada');
+});
+
+test('handoff ANINHADO idêntico → "sem mudanças"; arquivo de outra tela é agregado', function () {
+    ingestSeedMap();
+    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'CONTEUDO_A');
+    // zip no formato handoff: tudo sob oimpresso-x/project/, todas as telas juntas
+    $zip = test()->root . '/handoff.zip';
+    ingestZipFile($zip, [
+        'oimpresso-x/project/inbox-page.jsx' => 'CONTEUDO_A',   // IDÊNTICO à baseline
+        'oimpresso-x/project/vendas-page.jsx' => 'qualquer',    // de OUTRA tela (vendas)
+    ]);
+
+    expect(Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'caixa-unificada']))->toBe(0);
+
+    $plano = ingestPlano('caixa-unificada');
+    expect($plano)
+        ->toContain('sem mudanças vs a tela commitada')         // aninhado casou a baseline flat
+        ->toContain('de outras telas do handoff')               // vendas-page.jsx agregado
+        ->not->toContain('⚠️ `oimpresso-x/project/vendas-page.jsx`'); // NÃO listado como desconhecido
+});
+
+test('handoff ANINHADO modificado → o diff PEGA o arquivo modificado', function () {
+    ingestSeedMap();
+    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'CONTEUDO_A');
+    $zip = test()->root . '/handoff.zip';
+    ingestZipFile($zip, ['oimpresso-x/project/inbox-page.jsx' => 'CONTEUDO_B_MUDOU']);
+
+    expect(Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'caixa-unificada']))->toBe(0);
+
+    expect(ingestPlano('caixa-unificada'))->toContain('| `inbox-page.jsx` | mod |');
 });
 
 test('prepare-only: NÃO aplica no protótipo commitado', function () {
     ingestSeedMap();
-    ingestSeed('prototipo-ui/prototipos/vendas/vendas-page.jsx', 'v1');
-    $zip = test()->root . '/export.zip';
-    ingestZipFile($zip, ['vendas-page.jsx' => 'v2-NOVO']);
+    ingestSeed('prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx', 'v1');
+    $zip = test()->root . '/handoff.zip';
+    ingestZipFile($zip, ['oimpresso-x/project/inbox-page.jsx' => 'v2-NOVO']);
 
-    Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'vendas']);
+    Artisan::call('design:ingest-zip', ['--zip' => $zip, '--tela' => 'caixa-unificada']);
 
-    // o commitado segue intocado (a aplicação é gate Wagner/CT100)
-    expect(File::get(test()->root . '/prototipo-ui/prototipos/vendas/vendas-page.jsx'))->toBe('v1');
-    expect(File::exists(test()->root . '/prototipo-ui/prototipos/vendas/_prepared'))->toBeFalse();
-    // mas o PLANO + a memória de sessão foram preparados
-    expect(File::exists(test()->root . '/prototipo-ui/_incoming/vendas/_prepared/PLANO-MUDANCAS-vendas.md'))->toBeTrue();
-    expect(File::exists(test()->root . '/prototipo-ui/_incoming/vendas/_prepared/SESSION-design-ingest-vendas.md'))->toBeTrue();
+    // commitado intocado (aplicação é gate Wagner/CT100)
+    expect(File::get(test()->root . '/prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx'))->toBe('v1');
+    expect(File::exists(test()->root . '/prototipo-ui/_incoming/caixa-unificada/_prepared/PLANO-MUDANCAS-caixa-unificada.md'))->toBeTrue();
+    expect(File::exists(test()->root . '/prototipo-ui/_incoming/caixa-unificada/_prepared/SESSION-design-ingest-caixa-unificada.md'))->toBeTrue();
 });

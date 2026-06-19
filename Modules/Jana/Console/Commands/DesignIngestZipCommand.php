@@ -55,25 +55,32 @@ class DesignIngestZipCommand extends Command
 
         $map = $this->loadMap($root);
         $routing = DesignIngestPlanner::route($map, $files, $tela);
-        $diff = DesignIngestPlanner::diffByContent(
-            $this->hashDir($committedDir),
-            $this->hashDir($incomingDir),
-        );
+        // diff dos arquivos ROTEADOS (pelo nome final do destino) vs a baseline commitada —
+        // NÃO o dump bruto do zip: o handoff vem aninhado (project/inbox-page.jsx) e a baseline
+        // é flat (inbox-page.jsx); casar pelo basename do destino faz add/mod/del baterem.
+        $incomingMap = [];
+        foreach ($routing['routed'] as $r) {
+            $incomingMap[basename($r['to'])] = sha1_file("{$incomingDir}/{$r['from']}") ?: '';
+        }
+        $diff = DesignIngestPlanner::diffByContent($this->hashDir($committedDir), $incomingMap);
+        // extras: separa "de outra tela conhecida do handoff" (ruído, agrega) de "desconhecido" (avaliar)
+        $extras = DesignIngestPlanner::classifyExtras($map, $routing['extras'], $tela);
 
-        $plano = DesignIngestPlanner::renderPlano($tela, $routing, $diff);
-        $session = DesignIngestPlanner::renderSession($tela, $routing, $diff, now()->toDateString());
+        $plano = DesignIngestPlanner::renderPlano($tela, $routing, $diff, $extras);
+        $session = DesignIngestPlanner::renderSession($tela, $routing, $diff, now()->toDateString(), $extras);
 
         @mkdir($preparedDir, 0o775, true);
         file_put_contents("{$preparedDir}/PLANO-MUDANCAS-{$tela}.md", $plano);
         file_put_contents("{$preparedDir}/SESSION-design-ingest-{$tela}.md", $session);
 
         $this->info("✓ Ingestão preparada (NADA aplicado) em {$preparedDir}:");
-        $this->line("  • PLANO-MUDANCAS-{$tela}.md — " . count($routing['routed']) . " roteados, " . count($routing['extras']) . " extra(s)");
+        $this->line('  • PLANO-MUDANCAS-' . $tela . '.md — ' . count($routing['routed']) . ' roteados, '
+            . count($extras['desconhecidos']) . ' a avaliar, ' . count($extras['outras_telas']) . ' de outras telas');
         $this->line("  • SESSION-design-ingest-{$tela}.md — memória da ingestão");
-        if ($routing['extras'] !== []) {
-            $this->warn('  ⚠ ' . count($routing['extras']) . ' arquivo(s) fora do cowork-map — avaliar antes de aplicar.');
+        if ($extras['desconhecidos'] !== []) {
+            $this->warn('  ⚠ ' . count($extras['desconhecidos']) . ' arquivo(s) desconhecido(s) fora do cowork-map — avaliar antes de aplicar.');
         }
-        $this->line('  Aplicar é decisão do Wagner (gate CT100) — esta estação só prepara.');
+        $this->line('  Aplicar = mover os roteados pra prototipos/' . $tela . '/ via PR (gate Wagner/CT100) — esta estação só prepara.');
 
         return self::SUCCESS;
     }
