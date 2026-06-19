@@ -38,7 +38,7 @@ class DecisionsSearchTool extends Tool
                 ->description('Quantos resultados retornar (default 5, max 20)'),
             'include_archived' => $schema->boolean()
                 ->default(false)
-                ->description('Se true, inclui ADRs superseded/deprecated/sunsetting na busca. Default false (só accepted + accepted-historical).'),
+                ->description('Se true, inclui ADRs superseded/deprecated/sunsetting na busca. Default false (ativas + recusadas: accepted/accepted-historical/recusado — o NÃO consultável).'),
         ];
     }
 
@@ -94,7 +94,7 @@ class DecisionsSearchTool extends Tool
 
         $scopeNote = $includeArchived
             ? '(incluindo superseded/deprecated)'
-            : '(só ativas — aceito/accepted/accepted-historical)';
+            : '(ativas + recusadas — aceito/accepted/accepted-historical/recusado)';
 
         $output = "Encontrados " . $rows->count() . " ADR(s) pra \"$query\" $scopeNote:\n\n";
         foreach ($rows as $doc) {
