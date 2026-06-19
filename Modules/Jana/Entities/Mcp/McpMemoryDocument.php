@@ -192,10 +192,13 @@ class McpMemoryDocument extends Model
         return $query->where(function ($q) {
             $q->whereNull('metadata')
               ->orWhereRaw("JSON_EXTRACT(metadata, '$.status') IS NULL")
-              ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.status')) IN (?, ?, ?)", [
+              ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.status')) IN (?, ?, ?, ?)", [
                   'aceito',
                   'accepted',
                   'accepted-historical',
+                  // o NÃO é terminal-mas-VISÍVEL: `recusado` existe pra ser ACHADO (anti-relitígio),
+                  // senão a busca esconde a decisão que evita re-propor. Proposal recusado-com-motivo.
+                  'recusado',
               ]);
         });
     }
