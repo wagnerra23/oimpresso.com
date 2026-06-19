@@ -80,8 +80,30 @@ test('renderSession() tem frontmatter de sessão + contagens', function () {
         ->toContain('date: "2026-06-19"')
         ->toContain('authors: [C]')
         ->toContain('Roteados: **2**')
-        ->toContain('Extras (fora do map): **1**')
+        ->toContain('A avaliar (desconhecidos): **1**')
         ->toContain('**1** add · **1** mod · **0** del');
+});
+
+test('classifyExtras() separa "de outra tela conhecida" de "desconhecido"', function () {
+    $map = ['screens' => [
+        'caixa-unificada' => ['routes' => [['glob' => 'inbox-*.jsx', 'to' => 'prototipo-ui/prototipos/caixa-unificada/']]],
+        'vendas' => ['routes' => [['glob' => 'vendas-*.jsx', 'to' => 'prototipo-ui/prototipos/vendas/']]],
+    ]];
+    // extras de --tela=caixa-unificada: vendas-page.jsx casa OUTRA tela (vendas); lixo.txt não casa nada
+    $r = DesignIngestPlanner::classifyExtras($map, ['oimpresso-x/project/vendas-page.jsx', 'lixo.txt'], 'caixa-unificada');
+    expect($r['outras_telas'])->toBe(['oimpresso-x/project/vendas-page.jsx']);
+    expect($r['desconhecidos'])->toBe(['lixo.txt']);
+});
+
+test('renderPlano() com extras classificados: agrega outras telas, lista só desconhecidos', function () {
+    $routing = ['routed' => [], 'extras' => ['vendas-page.jsx', 'lixo.txt']];
+    $diff = ['added' => [], 'modified' => [], 'removed' => []];
+    $extras = ['outras_telas' => ['vendas-page.jsx'], 'desconhecidos' => ['lixo.txt']];
+    $plano = DesignIngestPlanner::renderPlano('caixa-unificada', $routing, $diff, $extras);
+    expect($plano)
+        ->toContain('⚠️ `lixo.txt` — **fora do cowork-map**')
+        ->toContain('+1 arquivo(s) de outras telas do handoff')
+        ->not->toContain('⚠️ `vendas-page.jsx`'); // agregado, não listado individualmente
 });
 
 test('é DETERMINÍSTICO — route/parseDiff/render idênticos em re-run', function () {
