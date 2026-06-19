@@ -174,6 +174,7 @@ class PaymentGatewaysController extends Controller
         }
 
         // Anti-dupla — (business_id, gateway_key, ambiente) é unique no schema
+        // SUPERADMIN: checa a UNIQUE (business_id, gateway_key, ambiente) reaplicando o business_id derivado da sessão (NUNCA do payload), pra a mensagem casar exatamente com a constraint do banco.
         $duplicate = PaymentGatewayCredential::query()
             ->withoutGlobalScopes()
             ->where('business_id', $businessId)

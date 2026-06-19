@@ -166,14 +166,14 @@ if (! empty($roleNames) && (! $user || ! $user->hasAnyRole($roleNames))) {
 
 **Given**
 - Processo `Venda Padrão` biz=1 com stages [`rascunho` → `orcamento_enviado` → `aprovado_cliente`]
-- Action `voltar_para_orcamento` (de `aprovado_cliente` → `orcamento_enviado`) marcada como `is_critical=true` (campo novo)
+- Action `voltar_para_orcamento` (de `aprovado_cliente` → `orcamento_enviado`) marcada como `is_critical=true` (coluna criada por `2026_05_12_010001_add_is_critical_to_sale_stage_actions`)
 - `sale_stage_action_roles` **sem nenhuma role** cadastrada pra essa action
 
 **When**
 - User `caixa@empresa.com` (sem nenhuma role) chama `ExecuteStageActionService::execute($venda, 'voltar_para_orcamento', $user)`
 
-**Then (esperado, hoje NÃO ocorre)**
-- Lança `UnauthorizedActionException` com mensagem: *"Action 'voltar_para_orcamento' é crítica e exige role explícita — nenhuma role configurada bloqueia execução por segurança"*
+**Then (implementado — US-SELL-031, live prod biz=1)**
+- Lança `UnauthorizedActionException` com mensagem: *"Action crítica 'voltar_para_orcamento' exige role configurada em sale_stage_action_roles. Adicione role no seeder ou via UI antes de executar (fail-secure US-SELL-031)."*
 - Audit log em `sale_stage_history` **não é criado** (transação rollback)
 
 **Caso correlato — action não-crítica continua aberta**
@@ -181,14 +181,15 @@ if (! empty($roleNames) && (! $user || ! $user->hasAnyRole($roleNames))) {
 - When: qualquer user autenticado executa
 - Then: passa (comportamento atual preservado pra actions não-críticas)
 
-### Fix proposto
-1. Migration `add_is_critical_to_sale_stage_actions` (default `false`)
-2. Em `ExecuteStageActionService::execute()`:
+### Fix implementado (US-SELL-031 + short-circuit `grantsByPermission` do ADR 0265)
+1. Migration `2026_05_12_010001_add_is_critical_to_sale_stage_actions` (default `false`)
+2. Em [`ExecuteStageActionService::execute()`](../../../app/Domain/Fsm/Services/ExecuteStageActionService.php#L93):
    ```php
-   if (empty($roleNames) && $action->is_critical) {
+   if (! $grantedByPermission && empty($roleNames) && ($action->is_critical ?? false)) {
        throw new UnauthorizedActionException(
-           "Action '{$actionKey}' é crítica e exige role explícita — " .
-           "nenhuma role configurada bloqueia execução por segurança"
+           "Action crítica '{$actionKey}' exige role configurada em " .
+           "sale_stage_action_roles. Adicione role no seeder ou via UI " .
+           "antes de executar (fail-secure US-SELL-031)."
        );
    }
    ```

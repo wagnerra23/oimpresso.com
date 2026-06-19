@@ -3,9 +3,18 @@ slug: modules-accounting-spec
 title: "Modules/Accounting — SPEC"
 type: spec
 module: Accounting
-status: legacy
+owner: wagner
+version: "1.0"
+last_updated: "2026-05-16"
+status: arquivado
 authority: canonical
-related_adrs: [0093, 0094, 0104, 0153, 0154, 0156]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0153-module-grade-rubrica-v1
+  - 0154-module-grade-v2-na-justificado
+  - 0156-module-grade-v3-errata-otel-helper-na-justified
 na_justified:
   D5: "Módulo herdado UltimatePOS — 12 Controllers Blade legacy compartilhados cross-business sem cliente alvo isolado (Budget/Journal/COA genéricos contabilidade). Sem onboarding Larissa/ROTA LIVRE direto, ferramenta backoffice transversal ([memory/proibicoes.md](../../proibicoes.md) §Multi-tenant Tier 0)."
   D6.a: "Stack legacy UltimatePOS — 12 Controllers Blade puros, ZERO Inertia::render por design. Migração MWART [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) ainda não iniciada (sem cliente sinal qualificado — [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Inertia::defer N/A enquanto Blade."
@@ -31,7 +40,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Budget  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -53,7 +62,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Chart Of Account  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -75,7 +84,7 @@ updated_at: 2026-05-16
 **Quero** criar um novo item em Chart Of Account  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -97,7 +106,7 @@ updated_at: 2026-05-16
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -119,7 +128,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Core  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -141,7 +150,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Journal Entry  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -163,7 +172,7 @@ updated_at: 2026-05-16
 **Quero** criar um novo item em Journal Entry  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -185,7 +194,7 @@ updated_at: 2026-05-16
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -207,7 +216,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Reconcile  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -229,7 +238,7 @@ updated_at: 2026-05-16
 **Quero** ver o conjunto de Report  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** _pendente_ — tela não construída (módulo Blade legacy, ZERO Inertia; migração MWART não iniciada)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)

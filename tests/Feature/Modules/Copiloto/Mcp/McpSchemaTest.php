@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpAlerta;
 use Modules\Jana\Entities\Mcp\McpAuditLog;
@@ -20,6 +21,10 @@ use Modules\Jana\Entities\Mcp\McpUserScope;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // Schema mínimo replicando as 9 migrations (sem FK reais — SQLite
     // bate em foreign references a `users`/`business`/`mcp_tokens`).
 
@@ -61,6 +66,7 @@ beforeEach(function () {
         $t->timestamp('revoked_at')->nullable();
         $t->unsignedInteger('revoked_by')->nullable();
         $t->timestamps();
+        $t->softDeletes(); // paridade com migration add_soft_deletes_to_mcp_tokens
     });
 
     Schema::create('mcp_quotas', function (Blueprint $t) {
@@ -172,18 +178,20 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach ([
-        'mcp_memory_documents_history',
-        'mcp_memory_documents',
-        'mcp_alertas',
-        'mcp_usage_diaria',
-        'mcp_audit_log',
-        'mcp_quotas',
-        'mcp_tokens',
-        'mcp_user_scopes',
-        'mcp_scopes',
-    ] as $tabela) {
-        Schema::dropIfExists($tabela);
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach ([
+            'mcp_memory_documents_history',
+            'mcp_memory_documents',
+            'mcp_alertas',
+            'mcp_usage_diaria',
+            'mcp_audit_log',
+            'mcp_quotas',
+            'mcp_tokens',
+            'mcp_user_scopes',
+            'mcp_scopes',
+        ] as $tabela) {
+            Schema::dropIfExists($tabela);
+        }
     }
 });
 

@@ -25,7 +25,7 @@
 }
 .fin-cowork .fin-curadoria .fin-page-h-l h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--fs-7);
   font-weight: 600;
   color: var(--fin-text);
   letter-spacing: -0.01em;
@@ -35,14 +35,14 @@
 .fin-cowork .fin-curadoria .fin-page-h-l .fin-hero-title-sub {
   font-weight: 400;
   color: var(--fin-text-mute);
-  font-size: 13.5px;
+  font-size: var(--fs-4);
   margin-left: 6px;
   letter-spacing: 0;
   vertical-align: middle;
 }
 .fin-cowork .fin-curadoria .fin-page-h-l p {
   margin: 2px 0 0;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   color: var(--fin-text-mute);
 }
 .fin-cowork .fin-curadoria .fin-page-h-r {
@@ -62,10 +62,10 @@
   background: white;
   color: var(--fin-text);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-2);
   font-weight: 500;
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   white-space: nowrap;
 }
 .fin-cowork .fin-curadoria .fin-btn:hover { background: var(--fin-bg-soft); border-color: oklch(0.85 0.005 240); }
@@ -78,7 +78,7 @@
 .fin-cowork .fin-curadoria .fin-btn.primary:hover { background: var(--accent-2); }
 .fin-cowork .fin-curadoria .fin-btn kbd {
   font-family: ui-monospace, monospace;
-  font-size: 10px;
+  font-size: var(--fs-1);
   color: var(--fin-text-mute);
   padding: 1px 4px;
   border-radius: 3px;
@@ -99,7 +99,7 @@
 .fin-cowork .fin-curadoria .fin-btn-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 600;
   padding: 0 5px;
   height: 16px;
@@ -132,21 +132,21 @@
   min-width: 0;
 }
 .fin-cowork .fin-curadoria .fin-stat small {
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fin-text-mute);
 }
 .fin-cowork .fin-curadoria .fin-stat b {
-  font-size: 22px;
+  font-size: var(--fs-7);
   font-weight: 700;
   font-family: ui-monospace, monospace;
   color: var(--fin-text);
   letter-spacing: -0.01em;
 }
 .fin-cowork .fin-curadoria .fin-stat .fin-stat-hint {
-  font-size: 11px;
+  font-size: var(--fs-1);
   color: var(--fin-text-mute);
 }
 .fin-cowork .fin-curadoria .fin-num-pos { color: oklch(0.45 0.18 145); }
@@ -163,7 +163,7 @@
   overflow: hidden;
 }
 .fin-cowork .fin-curadoria .fin-stat-hero small { color: oklch(0.75 0.01 80); opacity: 0.95; font-weight: 600; }
-.fin-cowork .fin-curadoria .fin-stat-hero b { color: white; font-size: 26px; }
+.fin-cowork .fin-curadoria .fin-stat-hero b { color: white; font-size: var(--fs-8); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-stat-hint { color: oklch(0.72 0.01 80); opacity: 0.85; }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-neg { color: oklch(0.78 0.14 25); }
 .fin-cowork .fin-curadoria .fin-stat-hero .fin-num-pos { color: oklch(0.78 0.14 145); }
@@ -256,11 +256,11 @@
      scan rápido do user). */
   border: 1px solid oklch(0.92 0.04 var(--cb-hue, 240));
   background: white;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   font-weight: 500;
   color: var(--fin-text-mute);
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   user-select: none;
   --cb-hue: 240;
 }
@@ -296,12 +296,12 @@
   display: grid;
   place-items: center;
   color: white;
-  font-size: 9px;
+  font-size: var(--fs-1);
   font-weight: 700;
 }
 .fin-cowork .fin-curadoria .fin-filter-ct {
   font-family: ui-monospace, monospace;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 600;
   padding: 0 5px;
   border-radius: 99px;
@@ -317,7 +317,7 @@
   background: transparent;
   border: 0;
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--fs-1);
   color: var(--fin-text-mute);
   padding: 3px 8px;
   border-radius: 4px;
@@ -341,7 +341,7 @@
   border-radius: 4px;
   border: 1px solid var(--fin-line);
   background: white;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   font-weight: 500;
   color: var(--fin-text-mute);
   cursor: pointer;
@@ -400,7 +400,7 @@
   outline: 0;
   background: transparent;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   color: var(--fin-text);
 }
 .fin-cowork .fin-curadoria .fin-search-wrap input::placeholder { color: var(--fin-text-mute); }
@@ -422,8 +422,8 @@
   background: white;
   border: 1px solid var(--fin-line);
   border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
-  font-size: 12.5px;
+  box-shadow: var(--sh-1);
+  font-size: var(--fs-3);
   color: var(--fin-text-mute);
   display: flex;
   align-items: center;
@@ -437,7 +437,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   color: var(--fin-text);
 }
 .fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-summary b {
@@ -454,7 +454,7 @@
 .fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }
 .fin-cowork .fin-curadoria .fin-footer-tips kbd {
   font-family: ui-monospace, monospace;
-  font-size: 10px;
+  font-size: var(--fs-1);
   padding: 1px 5px;
   border-radius: 3px;
   background: white;
@@ -534,7 +534,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--fs-2);
   line-height: 1;
   min-width: 12px;
 }
@@ -604,8 +604,8 @@
   border-radius: 6px;
   background: oklch(1 0 0);
   color: oklch(0.40 0.01 80);
-  font-size: 12px; font-weight: 500; font-family: inherit; line-height: 1.4;
-  box-sizing: border-box; cursor: pointer; transition: border-color .12s;
+  font-size: var(--fs-2); font-weight: 500; font-family: inherit; line-height: 1.4;
+  box-sizing: border-box; cursor: pointer; transition: border-color var(--t-1) var(--ease);
 }
 .fin-curadoria .fin-toolbar .fin-filter-group input[type="date"]:hover,
 .fin-curadoria .fin-toolbar input.fin-date-input:hover {
@@ -631,22 +631,22 @@
   border-radius: 6px;
   background-color: oklch(1 0 0);
   color: oklch(0.40 0.01 80);
-  font-size: 12px; font-weight: 500; font-family: inherit; line-height: 1.4;
-  box-sizing: border-box; cursor: pointer; transition: border-color .12s;
+  font-size: var(--fs-2); font-weight: 500; font-family: inherit; line-height: 1.4;
+  box-sizing: border-box; cursor: pointer; transition: border-color var(--t-1) var(--ease);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='gray' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
   background-position: right 9px center;
 }
 .fin-curadoria .fin-toolbar select.fin-filter-select:hover { border-color: oklch(0.70 0.01 80); }
 .fin-cowork .fin-toolbar .fin-date-sep {
-  color: var(--text-mute); font-size: 12px; padding: 0 1px; user-select: none;
+  color: var(--text-mute); font-size: var(--fs-2); padding: 0 1px; user-select: none;
 }
 .fin-cowork .fin-toolbar .fin-date-clear {
   display: inline-grid; place-items: center;
   width: 24px; height: 26px; padding: 0;
   border-radius: 5px; border: 1px solid transparent; background: transparent;
-  color: var(--text-mute); font-size: 15px; line-height: 1;
-  cursor: pointer; transition: all .12s;
+  color: var(--text-mute); font-size: var(--fs-5); line-height: 1;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-toolbar .fin-date-clear:hover {
   background: var(--surface); border-color: var(--border); color: var(--text);

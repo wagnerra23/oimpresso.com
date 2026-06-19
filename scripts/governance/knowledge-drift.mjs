@@ -15,9 +15,11 @@
 //
 // NÃO recomenda ADICIONAR — toda nota ruim aponta pra DESTILAR/FUNDIR/APAGAR.
 // Uso:  node scripts/governance/knowledge-drift.mjs [--json]
+//       node scripts/governance/knowledge-drift.mjs --check [--baseline <dir>]
+//       node scripts/governance/knowledge-drift.mjs --write-baseline [--baseline <dir>]
 // Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP.
 
-import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 
@@ -48,6 +50,96 @@ function gitDate(file) {
 
 const TRUTH_RE = /^(SPEC|README|ARCHITECTURE|BRIEFING|CAPTERRA.*|CAPTERRA-INVENTARIO|AUDIT.*|AUDITORIA.*)\.md$/i;
 const MOD_REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)/g;
+
+// ---------------------------------------------------------------------------
+// CATRACA ANTI-GHOST (KL-A2 — plano SDD 2026-06-12, Semana 0).
+// Baseline POR MÓDULO em governance/knowledge-ghosts-baseline/<Mod>.json
+// (1 arquivo por módulo citante — anti conflito entre streams paralelos).
+//   --write-baseline : congela os ghosts ATUAIS. Se já existe baseline do
+//                      módulo, o rewrite é a INTERSEÇÃO (só diminui) — ghost
+//                      novo NUNCA é absorvido: o write recusa e manda corrigir.
+//   --check          : exit 1 SÓ se algum doc cita ghost NOVO fora do baseline.
+//                      Ghost legado (no baseline) passa; entrada que deixou de
+//                      ser ghost vira aviso de limpeza (rodar --write-baseline).
+// Scan leve: só ghosts, sem git log (rápido o bastante pra rodar em todo PR).
+// ---------------------------------------------------------------------------
+const CHECK = process.argv.includes('--check');
+const WRITE_BASELINE = process.argv.includes('--write-baseline');
+const bIdx = process.argv.indexOf('--baseline');
+const BASELINE_DIR = bIdx > -1 && process.argv[bIdx + 1]
+  ? join(ROOT, process.argv[bIdx + 1])
+  : join(ROOT, 'governance', 'knowledge-ghosts-baseline');
+
+function scanGhostsByModule() {
+  const map = new Map(); // mod -> [ghosts sorted]
+  for (const mod of readdirSync(REQ, { withFileTypes: true })) {
+    if (!mod.isDirectory()) continue;
+    const ghosts = new Set();
+    for (const d of allMd(join(REQ, mod.name))) {
+      const txt = readFileSync(d, 'utf8');
+      for (const m of txt.matchAll(MOD_REF_RE)) {
+        if (!existsSync(join(ROOT, 'Modules', m[1]))) ghosts.add(m[1]);
+      }
+    }
+    if (ghosts.size) map.set(mod.name, [...ghosts].sort());
+  }
+  return map;
+}
+
+function readBaseline(mod) {
+  const f = join(BASELINE_DIR, `${mod}.json`);
+  if (!existsSync(f)) return null;
+  try { return JSON.parse(readFileSync(f, 'utf8')).ghosts ?? []; } catch { return null; }
+}
+
+if (WRITE_BASELINE) {
+  mkdirSync(BASELINE_DIR, { recursive: true });
+  const current = scanGhostsByModule();
+  let refused = 0;
+  for (const [mod, ghosts] of current) {
+    const old = readBaseline(mod);
+    let frozen = ghosts;
+    if (old !== null) {
+      frozen = old.filter(g => ghosts.includes(g)); // catraca: só interseção (diminui)
+      const novos = ghosts.filter(g => !old.includes(g));
+      if (novos.length) {
+        refused++;
+        console.error(`  RECUSADO ${mod}: ghost NOVO [${novos.join(', ')}] não entra no baseline — corrija o doc (ou crie Modules/${novos[0]}).`);
+      }
+    }
+    writeFileSync(join(BASELINE_DIR, `${mod}.json`), JSON.stringify({ module: mod, ghosts: frozen }) + '\n');
+  }
+  console.log(`  Baseline anti-ghost escrito em ${BASELINE_DIR} — ${current.size} módulos citantes.`);
+  process.exit(refused ? 1 : 0);
+}
+
+if (CHECK) {
+  const current = scanGhostsByModule();
+  const news = [];   // ghost fora do baseline => FAIL
+  let legacy = 0;    // ghost congelado no baseline => passa
+  for (const [mod, ghosts] of current) {
+    const base = readBaseline(mod) ?? [];
+    for (const g of ghosts) (base.includes(g) ? legacy++ : news.push({ mod, g }));
+  }
+  const cleanups = []; // entrada de baseline que não é mais ghost => aviso
+  if (existsSync(BASELINE_DIR)) {
+    for (const f of readdirSync(BASELINE_DIR)) {
+      if (!f.endsWith('.json')) continue;
+      const mod = f.slice(0, -5);
+      const gone = (readBaseline(mod) ?? []).filter(g => !(current.get(mod) ?? []).includes(g));
+      if (gone.length) cleanups.push(`${mod}: ${gone.join(', ')}`);
+    }
+  }
+  console.log(`\n  CATRACA ANTI-GHOST — ${current.size} módulos citantes · ${legacy} ghosts legados (baseline) · ${news.length} NOVOS\n`);
+  for (const n of news) console.log(`  FAIL ${n.mod}: cita Modules/${n.g} que NÃO existe e NÃO está no baseline.`);
+  for (const c of cleanups) console.log(`  aviso ${c} — não é mais ghost; rode --write-baseline pra encolher a catraca.`);
+  if (news.length) {
+    console.log('\n  Corrija o doc (nome real do módulo) ou marque "(planejado — não existe)" — NUNCA adicione ao baseline.\n');
+    process.exit(1);
+  }
+  console.log('  OK — nenhum ghost novo fora do baseline.\n');
+  process.exit(0);
+}
 
 const rows = [];
 for (const mod of readdirSync(REQ, { withFileTypes: true })) {

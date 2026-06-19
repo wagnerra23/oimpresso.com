@@ -9,21 +9,21 @@ $hook = Join-Path $base 'pii-redactor.ps1'
 
 $cases = @(
     # Comandos NAO-commit nunca bloqueiam (mudanca da opcao B) ---------------
-    @{ name='T1 echo CPF real (nao-commit)';   cmd='echo "CPF do cliente: 987.654.321-00"';         expectBlock=$false }
-    @{ name='T2 echo CPF fake';                cmd='echo "CPF: 123.456.789-09"';                    expectBlock=$false }
+    @{ name='T1 echo CPF real (nao-commit)';   cmd='echo "CPF do cliente: 987.654.321-00"';         expectBlock=$false } # pii-allowlist
+    @{ name='T2 echo CPF fake';                cmd='echo "CPF: 123.456.789-09"';                    expectBlock=$false } # pii-allowlist
     @{ name='T5 grep cartao em log (nao-commit)'; cmd='grep "4532-1488-0343-6467" log.txt';          expectBlock=$false }
     @{ name='T6 cartao Visa fixture';          cmd='echo "test card 4111-1111-1111-1111"';          expectBlock=$false }
     @{ name='T7 ls -la';                       cmd='ls -la';                                        expectBlock=$false }
     @{ name='T9 echo email so';                cmd='echo "contato: ana@example.com"';               expectBlock=$false }
-    @{ name='T10 cat|grep CPF (nao-commit)';   cmd='cat log.txt | grep "098.765.432-11"';           expectBlock=$false }
-    @{ name='T13 mysql WHERE cpf (debug ERP)'; cmd="mysql -e ""SELECT * FROM contacts WHERE cpf='987.654.321-00'"""; expectBlock=$false }
+    @{ name='T10 cat|grep CPF (nao-commit)';   cmd='cat log.txt | grep "098.765.432-11"';           expectBlock=$false } # pii-allowlist
+    @{ name='T13 mysql WHERE cpf (debug ERP)'; cmd="mysql -e ""SELECT * FROM contacts WHERE cpf='987.654.321-00'"""; expectBlock=$false } # pii-allowlist
 
     # git commit continua protegido (mensagem + staged diff) -----------------
     @{ name='T3 git commit message OK';        cmd='git commit -m "feat: adiciona campo idade"';    expectBlock=$false }
-    @{ name='T4 commit -m com CNPJ real';      cmd='git commit -m "fix: cliente CNPJ 12.345.678/0001-90 nao importa"'; expectBlock=$true }
-    @{ name='T8 commit + cnpj 0000 fake';      cmd='git commit -m "test 00.000.000/0000-00"';       expectBlock=$false }
-    @{ name='T11 commit -m com CPF real';      cmd='git commit -m "ajuste do CPF 987.654.321-00"';  expectBlock=$true }
-    @{ name='T12 commit --allow-pii bypass';   cmd='git commit --allow-pii -m "CPF 987.654.321-00 autorizado por Wagner"'; expectBlock=$false }
+    @{ name='T4 commit -m com CNPJ real';      cmd='git commit -m "fix: cliente CNPJ 12.345.678/0001-90 nao importa"'; expectBlock=$true } # pii-allowlist
+    @{ name='T8 commit + cnpj 0000 fake';      cmd='git commit -m "test 00.000.000/0000-00"';       expectBlock=$false } # pii-allowlist
+    @{ name='T11 commit -m com CPF real';      cmd='git commit -m "ajuste do CPF 987.654.321-00"';  expectBlock=$true } # pii-allowlist
+    @{ name='T12 commit --allow-pii bypass';   cmd='git commit --allow-pii -m "CPF 987.654.321-00 autorizado por Wagner"'; expectBlock=$false } # pii-allowlist
 )
 
 $pass = 0; $fail = 0

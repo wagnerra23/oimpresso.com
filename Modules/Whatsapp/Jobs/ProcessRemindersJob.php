@@ -62,11 +62,10 @@ class ProcessRemindersJob implements ShouldQueue
         $published = 0;
         $failed = 0;
 
-        // SUPERADMIN: job assíncrono sem session() — bypass global scope
-        // pra varrer reminders de TODOS businesses. Cada row traz seu
-        // próprio business_id; canal Centrifugo é per-user (user:{id}),
-        // sem leak cross-tenant.
-        $query = WhatsappReminder::withoutGlobalScopes()
+        // Job assíncrono sem session() — varre reminders de TODOS businesses.
+        // Cada row traz seu próprio business_id; canal Centrifugo é per-user
+        // (user:{id}), sem leak cross-tenant.
+        $query = WhatsappReminder::withoutGlobalScopes() // SUPERADMIN: cron sem session, cada row escopa seu business_id (ADR 0093)
             ->where('status', WhatsappReminder::STATUS_PENDING)
             ->where('due_at', '<=', now())
             ->whereNull('notified_at')

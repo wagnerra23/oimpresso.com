@@ -28,6 +28,13 @@ class InvBomSubject extends Model
 }
 
 beforeEach(function () {
+    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
+    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
+    // sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     Schema::create('fsm_inv_bom_subjects', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedInteger('business_id');
@@ -58,6 +65,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     (require database_path('migrations/2026_05_12_080001_create_product_bom_table.php'))->down();
     (require database_path('migrations/2026_05_11_130001_create_stock_reservations_table.php'))->down();
     foreach (['variations', 'products', 'fsm_inv_bom_subjects'] as $tbl) {

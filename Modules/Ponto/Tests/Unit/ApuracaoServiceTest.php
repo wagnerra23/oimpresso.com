@@ -33,7 +33,8 @@ class ApuracaoServiceTest extends TestCase
         $this->service = new ApuracaoService(new BancoHorasService());
     }
 
-    /** @test Art. 58 §1º — atraso dentro da tolerância não conta */
+    /** Art. 58 §1º — atraso dentro da tolerância não conta */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function atraso_dentro_da_tolerancia_nao_registra()
     {
         config(['pontowr2.clt.tolerancia_minutos_por_marcacao' => 5]);
@@ -48,7 +49,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(0, $a->atraso_minutos);
     }
 
-    /** @test Art. 58 §1º — atraso além da tolerância registra */
+    /** Art. 58 §1º — atraso além da tolerância registra */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function atraso_alem_da_tolerancia_registra()
     {
         config(['pontowr2.clt.tolerancia_minutos_por_marcacao' => 5]);
@@ -62,7 +64,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(7, $a->atraso_minutos);
     }
 
-    /** @test Art. 71 — intrajornada insuficiente em jornada > 6h registra violação */
+    /** Art. 71 — intrajornada insuficiente em jornada > 6h registra violação */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function intrajornada_insuficiente_em_jornada_longa_registra_violacao()
     {
         config(['pontowr2.clt.intrajornada_minima_minutos' => 60]);
@@ -76,7 +79,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(30, $a->intrajornada_violacao_minutos);
     }
 
-    /** @test Art. 71 — jornada curta não exige intrajornada mínima */
+    /** Art. 71 — jornada curta não exige intrajornada mínima */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function jornada_curta_nao_exige_intrajornada_minima()
     {
         config(['pontowr2.clt.intrajornada_minima_minutos' => 60]);
@@ -90,7 +94,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(0, $a->intrajornada_violacao_minutos);
     }
 
-    /** @test Art. 59 — HE até 2h/dia */
+    /** Art. 59 — HE até 2h/dia */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function he_separa_diurna_e_noturna()
     {
         $a = $this->novaApuracaoBase();
@@ -107,7 +112,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(120, $total);
     }
 
-    /** @test Divisão diurno/noturno com janela inteiramente na madrugada */
+    /** Divisão diurno/noturno com janela inteiramente na madrugada */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function divisao_diurno_noturno_madrugada_inteira()
     {
         $inicio = Carbon::parse('2026-04-15 23:00:00');
@@ -119,7 +125,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(0,   $d['diurno_minutos']);
     }
 
-    /** @test Divisão diurno/noturno com cruzamento das 22h */
+    /** Divisão diurno/noturno com cruzamento das 22h */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function divisao_diurno_noturno_cruza_22h()
     {
         $inicio = Carbon::parse('2026-04-15 20:00:00');
@@ -131,7 +138,8 @@ class ApuracaoServiceTest extends TestCase
         $this->assertEquals(60,  $d['noturno_minutos']);
     }
 
-    /** @test Divisão diurno/noturno inteiramente diurna */
+    /** Divisão diurno/noturno inteiramente diurna */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function divisao_diurno_noturno_inteiramente_diurna()
     {
         $inicio = Carbon::parse('2026-04-15 09:00:00');

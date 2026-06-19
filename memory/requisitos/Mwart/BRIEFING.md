@@ -13,7 +13,7 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 # BRIEFING — MWART (Module Web App React Transition)
 
 > **1-pager executivo** · Atualizado: 2026-05-16 (pós-PR3 governance-v3-docs `na_justified` declarado)
-> Canon: [SPEC.md](SPEC.md) · ADR mãe: [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · Skill mãe: [mwart-process](../../../.claude/skills/mwart-process/SKILL.md) Tier A always-on · Rubrica v3: [0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
+> Canon: [SPEC.md](SPEC.md) · ADR mãe: [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · Skill mãe: [mwart-process](../../../.claude/skills/mwart-process/SKILL.md) Tier A always-on · Rubrica v3: [0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) + [0156](../../decisions/0156-module-grade-v3-errata-otel-helper-na-justified.md)
 
 ## TL;DR
 
@@ -51,6 +51,14 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 - 🟡 **F2 BACKEND BASELINE Pest 5+** sem ele = regressão silenciosa garantida
 - 🟢 **Loop Cowork ↔ Claude Code** formalizado em `prototipo-ui/PROTOCOL.md` (ADR 0114)
 
+## Roadmap de migração do backbone Blade (UltimatePOS)
+
+> **Novo (2026-06-13).** Além do *meta-processo* (este BRIEFING), há agora a **rota macro** que aplica o MWART ao backbone Blade inteiro do UltimatePOS (653 `.blade.php`, ~50 controllers, nunca inventariado):
+> - 🗺️ [ROADMAP-ONDAS-BLADE-ADVERSARIOS.md](ROADMAP-ONDAS-BLADE-ADVERSARIOS.md) — censo 12 domínios + **contrato de completude** (route Blade morto/302, não "React existe") + **10 ondas** com adversário + erradicar Restaurante.
+> - 🥇 [ONDA-1-VENDAS-PDV-CAIXA-PLANO.md](ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) — Fase 1 (PLAN) da primeira onda.
+> - 📐 Decisão canon: [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md) (contrato + ordenação + 2 camadas de adversário — aceita 2026-06-13).
+> - 📋 Backlog: `US-MWART-004…013` (1 por onda) — long-horizon (p1–p3), fora do cycle de Receita ativo.
+
 ## Próximo passo sugerido
 
 1. Wagner desbloquear US-MWART-001 (1.5h IA-pair) → hook + CI ficam ativos
@@ -64,4 +72,4 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 - [0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) Visual comparison gate F3
 - [0109](../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md) Claude Design plugin integrado
 - [0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) Cowork loop formalizado
-- [0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) Rubrica v3 anti-injustiça
+- [0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) Rubrica v3 anti-injustiça

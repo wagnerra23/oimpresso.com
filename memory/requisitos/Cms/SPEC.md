@@ -1,3 +1,15 @@
+---
+module: Cms
+slug: cms-spec
+title: "SPEC — Modules/Cms"
+type: spec
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0101-tests-business-id-1-nunca-cliente, 0104-processo-mwart-canonico-unico-caminho, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0121-oimpresso-modular-especializado-por-vertical]
+---
+
 # SPEC — Modules/Cms
 
 > **Estado:** rascunho v1 — criado 2026-05-16 (Wave Massive 12-agents).

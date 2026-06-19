@@ -39,6 +39,13 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Schema minimal pra SQLite (mcp_cycles, mcp_projects, mcp_tasks, events, comments)
     Schema::dropIfExists('mcp_jira_projects');
     Schema::create('mcp_jira_projects', function (Blueprint $t) {
@@ -133,6 +140,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_task_comments');
     Schema::dropIfExists('mcp_task_events');
     Schema::dropIfExists('mcp_tasks');

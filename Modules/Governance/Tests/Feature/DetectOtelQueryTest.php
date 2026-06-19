@@ -28,10 +28,21 @@ use Tests\TestCase;
 uses(TestCase::class);
 
 beforeEach(function () {
+    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
+    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
+    // sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     $this->eval = new ScopedScorecardEvaluator();
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     // Limpa tabela de teste se criada (sqlite in-memory normalmente já drop ao fim).
     if (Schema::hasTable('mcp_observability_aggregates_daily')) {
         Schema::drop('mcp_observability_aggregates_daily');

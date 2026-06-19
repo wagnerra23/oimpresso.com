@@ -12,8 +12,8 @@ const variantClasses: Record<string, string> = {
   warning:     'bg-amber-50 text-amber-700 border-amber-200',
   info:        'bg-violet-50 text-violet-700 border-violet-200',
   cyan:        'bg-cyan-50 text-cyan-700 border-cyan-200',
-  success:     'bg-green-50 text-green-700 border-green-200',
-  destructive: 'bg-red-50 text-red-700 border-red-200',
+  success:     'bg-success-soft text-success-fg border-success/20',
+  destructive: 'bg-destructive-soft text-destructive-fg border-destructive/20',
 }
 
 export function OsStageBadge({ stage, className }: Props) {

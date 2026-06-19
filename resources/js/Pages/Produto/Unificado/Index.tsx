@@ -188,7 +188,7 @@ function Kpi({ label, value, sub, tone = 'default', emphasize = false }: {
   label: string; value: string | number; sub?: string;
   tone?: 'default' | 'pos' | 'neg'; emphasize?: boolean;
 }) {
-  const toneClass = tone === 'pos' ? 'text-emerald-700' : tone === 'neg' ? 'text-rose-700' : 'text-foreground';
+  const toneClass = tone === 'pos' ? 'text-success-fg' : tone === 'neg' ? 'text-destructive-fg' : 'text-foreground';
   return (
     <div className={`px-5 py-4 ${emphasize ? 'bg-primary text-primary-foreground' : 'bg-card'}`}>
       <div className={`text-[10px] uppercase tracking-widest font-medium ${emphasize ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{label}</div>
@@ -239,7 +239,7 @@ function TabelaProdutos({ rows, tweaks, onOpen }: { rows: ProdutoRow[]; tweaks: 
               {tweaks.showCost && (
                 <td className="pr-3 text-[12px] text-right tabular-nums">
                   <div className="text-foreground">{fmtBRL(r.cost)}</div>
-                  <div className={r.margin >= 0.5 ? 'text-emerald-700 text-[11px]' : r.margin >= 0.3 ? 'text-muted-foreground text-[11px]' : 'text-rose-700 text-[11px]'}>
+                  <div className={r.margin >= 0.5 ? 'text-success-fg text-[11px]' : r.margin >= 0.3 ? 'text-muted-foreground text-[11px]' : 'text-destructive-fg text-[11px]'}>
                     {fmtPct(r.margin)}
                   </div>
                 </td>
@@ -344,7 +344,7 @@ function ListaTabelas({ rows, produtos }: { rows: TabelaRow[]; produtos: Produto
                     <td className="text-[13px] font-medium">{p.name}</td>
                     <td className="text-[12.5px] text-right text-muted-foreground tabular-nums">{fmtBRL(p.price)}</td>
                     <td className="text-[13px] text-right font-semibold tabular-nums">{fmtBRL(tab)}</td>
-                    <td className={`pr-6 text-[12.5px] text-right tabular-nums ${m >= 0.4 ? 'text-emerald-700' : m >= 0.15 ? 'text-foreground' : 'text-rose-700'}`}>{fmtPct(m)}</td>
+                    <td className={`pr-6 text-[12.5px] text-right tabular-nums ${m >= 0.4 ? 'text-success-fg' : m >= 0.15 ? 'text-foreground' : 'text-destructive-fg'}`}>{fmtPct(m)}</td>
                   </tr>
                 );
               })}

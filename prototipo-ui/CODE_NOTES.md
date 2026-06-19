@@ -826,3 +826,126 @@ Origem: PROMPT_PARA_CODE_PACOTE-QUALIDADE-9-OS ([CC] 2026-06-10). Validação §
 ### new_design_memories
 - **gotcha**: PR stacked + fila de merge com `--delete-branch` = squash pode entrar NA BASE deletada (conteudo some do main sem erro). Confirmar `baseRefName=main` ANTES de mergear o filho.
 - **golden**: gate novo (fontramp) nasce como RATCHET com baseline congelada — adoção tela-a-tela depois, fundacao nunca força sweep.
+
+---
+
+## 2026-06-11 [CL] → [W] · ONDA Q1 — G-3 E2E Playwright vira gate de PR (mandato ONDAS-QUALIDADE-GOVERNANCA)
+
+Origem: PROMPT_PARA_CODE_ONDAS-QUALIDADE-GOVERNANCA ([CC] 2026-06-11, proposta §10.4). Validação Passo 0 contra origin/main 642836124 ANTES de agir.
+
+### Validação §10.4 (estado real vs premissas do prompt)
+| Premissa [CC] | Estado real @main | Veredito |
+|---|---|---|
+| e2e-gate workflow_dispatch não-required | confirmado | EXECUTADO Q1 |
+| harness estável (2 verdes 06-10) | runs 27277134411 + 27277247743 ✓ | mas main MUDOU (ver bug abaixo) |
+| visual-regression "ainda stub" | DESATUALIZADO: já required (15 contexts, #2553) e roda Pest Browser real | Q4 re-escopado: falta pixel-baseline núcleo-6, não o gate |
+| casos:check não marca unverified | DESATUALIZADO: já marca (8 `status:unverified` no baseline) | Q2.1 SUPERADO |
+| governance-drift/memory-health não-auditados | auditados agora: ADR 0216 (DriftCheckers+daily) + ADR 0256 (6 checks A-F) substantivos | Q5 re-escopado: faltam registry+frescor+licao_sem_assercao |
+
+### Placar Q1
+| passo | prova |
+|---|---|
+| Re-validação em main ANTES do flip | run 27364711144 🔴 — **3/5 UCs quebrados**: workspace unificado #2551 matou a tela ProducaoOficina (virou redirect 301 pro Board) e os specs ancoravam nela. O gate fez o trabalho dele ANTES de nascer required. |
+| Conserto de CAUSA (nunca retry-até-passar, ADR 0261) | PR #2561 MERGED — specs re-ancorados no Board canônico (busca `placa ou cliente`; UC-06: veredito preditivo de arrasto não existe no Board → gate opina no DROP, toast `Transição não permitida`/`OS sem pipeline` + mouse.up no helper) |
+| 2 runs verdes seguidos em main pós-fix | 27365585787 ✓ + 27365775694 ✓ |
+| Flip workflow_dispatch → pull_request | PR #2560 MERGED — always-run + skip-as-pass dorny/paths-filter (padrão required-readiness ADR 0271 onda 2, idêntico visual-regression #2553). **Desvio consciente do prompt**: `paths:` no trigger criaria deadlock "Expected — waiting" quando required; o repo já tem o padrão provado. workflow_dispatch mantido pra re-validação manual. Context novo: `E2E Playwright · UCs críticos`. |
+| Prova sensibilidade (lado 🔴) | PR #2563 (DRAFT, NÃO-MERGEAR): aria-label `Coluna→Etapa` sintético → e2e-gate run 27365999451 🔴, fechado após prova |
+| Prova especificidade (lado 🟢) | este PR (docs-only) → e2e-gate skip-as-pass 🟢 em ~1-2min sem pagar boot |
+| Required (1 clique [W]) | PREPARADO, aguardando clique — comando no fim desta entrada. Não-bloqueante: segui pra Q2 (regra do mandato). |
+
+### Clique do [W] — promover a required (16º context)
+```
+gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks/contexts" -f "contexts[]=E2E Playwright · UCs críticos"
+```
+(ou Settings → Branches → main → Require status checks → adicionar `E2E Playwright · UCs críticos`)
+
+### new_design_memories
+- **gotcha**: tela substituída por redirect (workspace #2551) quebra E2E silenciosamente ENQUANTO o gate é manual — exatamente o intervalo que o flip pra `pull_request` fecha. Specs ancorados em tela morta = a 1ª coisa que um gate de comportamento pega.
+- **golden**: required-readiness = `pull_request` SEM `paths:` + dorny/paths-filter skip-as-pass interno (3ª aplicação: visual-regression #2553, governance-drift, agora e2e-gate). `paths:` no trigger de check required = deadlock.
+
+## 2026-06-11 [CL] -> [W] · ONDAS-FINANCEIRO (FA-1..FA-4) — tempero do Financeiro + achados deferidos
+
+Origem: PROMPT_PARA_CODE_ONDAS-FINANCEIRO ([CC] 2026-06-11, §10.4). [W]: "execute na integra ... validando tudo contra origin/main fresco antes". 4 ondas, 1 PR cada, merge autonomo com CI verde. Worktree dedicado off origin/main fresco a cada onda (fin-ondas-fa).
+
+### O que landou
+- **FA-1 #2569**: §TEMPERO na fundacao (--sh-1/2, --ease, --t-1/2, --atmo + atmosfera no .cockpit).
+- **FA-2 #2572**: snap tipografico (479 font-size px -> var(--fs-1..9); .fontramp-baseline desce).
+- **FA-3 #2574**: 18 sombras de elevacao + 58 transicoes -> tokens; text-wrap:balance nos titulos.
+- **FA-4 (este PR)**: 7 background:#fff -> var(--surface); desce stylelint+cor baseline do bundle.
+
+### Achados FA-4 DEFERIDOS — sessao com QA visual (mexem em LOGICA/LAYOUT do Unificado/Index.tsx, que e charter-gated; F3 — nao em token de css)
+| # | Achado (print live 06-11) | Conserto recomendado | Restricao |
+|---|---|---|---|
+| FX-1 | Segmented de lente colado no FinSubNav -> le-se "Caixa ... Caixa" (ambiguo) | separar visual: segmented a direita do header (intencao do os-page-h-r) OU gap+divisor. NAO renomear a lente (charter v14 [W]) | layout no Unificado, precisa QA visual |
+| FX-2 | Hero "SALDO PREVISTO · MAIO" com a pagina em "Junho 2026" | periodo do hero da MESMA fonte do subtitulo (fonte unica); verificar se e filtro ativo ou label stale | logica frontend Unificado |
+| FX-3 | KPI A pagar "prox. 5 jun" (data ja vencida, hoje 11/06) | "prox." = proxima obrigacao FUTURA; vencida vira "vencida ha Nd" (tom destructive) | logica KPI Unificado |
+| FX-4 | Linha "-0,00" (FELIPE — COMISSAO) | brl(0) sem sinal + investigar titulo zerado na origem | **SOBREPOE sessao paralela "Financial discrepancy adjustment"** — coordenar, nao duplicar |
+| FX-5 | DeltaBadge "↓-100.0%" / "↑+505.8%" gigantes com valor R$ 0,00 | suprimir delta quando valor=0 ou sem base comparavel (ruido) | logica DeltaBadge |
+
+### Outros gaps documentados (NAO implementados as cegas — regra do prompt)
+- **Breadcrumb**: "voltar" VERDE cru fora da identidade + telas Fluxo/Conciliacao sem o padrao de breadcrumb do modulo. NAO esta no css fin (e Page-level/Tailwind) -> unificar via token, conferir Fluxo/Conciliacao. Cross-page.
+- **Costura venda->titulo** (dominio backend; [CC] nao verificou): confirmar no live que venda faturada aparece no Unificado com vinculo navegavel; se nao, e gap real de pipeline. Verificacao pendente.
+- **bg opaco .fin-cowork** (fin-cowork.css:575 `background:#ffffff !important`): superficie solida que (a) COBRE o --atmo da FA-1 e (b) deixa o Financeiro BRANCO no dark (nao vira escuro). E o "bug .fin-body do prototipo" citado na FA-1 ("superficies de tela transparentes"). Conserto = transparent / surface semi-transparente, MAS muda muito o visual -> QA-gated.
+- **divida hex congelada**: ~28 hex coloridos (gold/terracota/navy/red) + 30 `color:#fff` (texto branco — sem token "sempre branco" limpo no DS; --accent-fg inverte no dark) ficam congelados; semantico por elemento + QA, sem sweep cego.
+
+### new_design_memories
+- **gotcha**: comentario CSS com `*/` (ex "--sh-*/--atmo") FECHA o comentario -> parse error. 2a ocorrencia (1a = DS v6 PR3 ".vd-*/.os-*"). Em comentario use "--sh-1/--sh-2", nunca glob com `*`.
+- **gotcha**: snap de box-shadow as cegas e PERIGOSO — `0 0 0 Npx var(--accent-soft)` e anel de FOCO, nao elevacao; virar var(--sh-1) = sombra cinza = regressao a11y. Tokenizar SO sombras de elevacao reais (offset+blur em elemento flutuante/assentado), nunca aneis/insets/hairlines.
+- **golden**: descer ratchet por-onda sem sweep — rodar `--all --update` e reverter (git checkout) os baselines/entries fora de escopo, deixando so o que a onda tocou (fontramp na FA-2; cor+stylelint do bundle na FA-4).
+- **gotcha**: superficie de tela opaca (`.fin-cowork{background:#fff !important}`) anula a atmosfera da fundacao E quebra o dark mode — atmosfera de shell exige telas transparentes por cima.
+
+---
+
+## 2026-06-11 [CL] → [W] · ONDAS Q2–Q5 — mandato ONDAS-QUALIDADE-GOVERNANCA fechado (12 PRs no dia)
+
+Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra main em CADA item; SUPERADOS pulados.
+
+### ONDA Q2 — G-7 honesto + ratchet de cobertura
+| item | veredito | prova |
+|---|---|---|
+| `casos:check` marca ✅-sem-prova como unverified | **SUPERADO** — já marcava (8 no baseline) + meta-teste 2 lados já no CI | tests/casosGuard.spec.ts:213-255 |
+| Ratchet SÓ-DESCE do baseline | #2565 — `--check-baseline-shrink` (git-free) + step no casos-gate; escape consciente = label `casos-baseline-grow-approved`; 4 meta-testes | provas vivas: "caiu −16", "caiu −2", "caiu −1" nos PRs seguintes |
+| Board P0 re-ancorado | #2566 — `git mv` casos → `ServiceOrders/Board.casos.md` + **4 UCs ganham e2e** (UC-04/05/07/09) + statuses honestos (UC-04=🧪 prova parcial; ex-08/10 → Backlog SEM token) | run verde 27367534698 |
+| Coletor merge per-UC | #2567 — runner parcial (Pest) não apaga prova alheia (Playwright); `--no-merge` = reset consciente; 3 meta-testes | prova viva no #2568: "10 preservado(s)" |
+| Espelho Financeiro + Sells/Index | #2568 — **DESCOBERTA: RetencaoLoopE2ETest (a prova do fio vende→fatura→recebe) NÃO RODAVA EM NENHUM CI** (fora da allowlist, skip em sqlite). Agora: UC-F01..03 nos títulos + allowlist + seed location/contact + JUnit artifact. +UC-S10 lista de vendas | runs verdes e2e 27368509966 + pest 27368511483 |
+| Venda balcão a prazo NA TELA | #2570 — UC-S01 (produto→carrinho→saldo devedor→salva) + produto E2E-0001 no VisregTenantSeeder. 2 causas reais no caminho: H1 vs botão `Salvar venda` disabled; `filterProduct->ForLocation` exigia product_locations | run verde 27368689134 |
+| **PROVA Q2** | manifesto **14 UCs / 14 pass** (≥10 ✓) · baseline **433 → 414** · **zero ✅ não-verificado nas 4 P0** | scripts/casos-test-results.json |
+
+### ONDA Q3 — dicionários de domínio ANTES das telas de estoque/faturamento
+| item | veredito | prova |
+|---|---|---|
+| Guard alcança o core | #2571 — `migrations_paths` + `tables_scope` (não cobra tabela alheia em dir compartilhado) + `code_paths` estreitos + **last-write-wins CRONOLÓGICO por basename** (cross-dir determinístico) | 27 meta-testes |
+| 5 dicionários grounded | #2573 — vendas/estoque/financeiro/fiscal-faturamento/compras extraídos de 378 migrations core + módulos + squash. **+`vocab`**: transactions.type/status/source são **VARCHAR na física** (BD não constrange; o dicionário é a única lei, Salto #3 o único enforcement) | gate verde nos 6 (0 divergência enum) · 29/29 meta |
+| **2 drifts REAIS catalogados (decisão [W] pendente)** | (a) `StoreTransactionRequest` valida `origem in:manual,sells,repair,assinatura,boleto` mas o enum `fin_titulos.origem` = {manual,venda,compra,…} — MySQL non-strict coage inválido pra `''` (classe locação!); (b) `nfse_emissoes` tem **2 vocabulários**: NFSe criou (05/01, rascunho/processando/emitida), NfeBrasil RE-criou (05/11, pending/sent/authorized), 2 models `NfseEmissao`, código NFSe ainda ramifica no antigo | baseline dominio 96→121 (26 débitos de código fotografados, ratchet trava novos) |
+
+### ONDA Q4 — gate visual de pixel deixa de ser stub
+| item | veredito | prova |
+|---|---|---|
+| Passo 0 | premissa "visual-regression stub" DESATUALIZADA: check já required (#2553). O que faltava: **diff de pixel com baseline commitada** | — |
+| PixelBaselineTest núcleo-6 | #2575 — pixelmatch NATIVO do pest-plugin-browser (threshold 0.3 · maxDiffPixels 300 · ratio 1% · AA) via auth-bridge; step ADVISORY dentro do job required (`continue-on-error` só nele — promover = remover o flag, SEM clique de protection) | baselines .snap commitadas (115–204KB) |
+| Flakiness CAÇADA na causa (3 iterações com diff-views artifact) | (a) baseline pré-paint (2KB, "?" de fonte) — networkidle do plugin não basta → settle 1.5s; (b) variância subpixel de CONTROLES NATIVOS (selects/inputs date) + valor vivo "Data da venda" → CSS visibility:hidden preserva layout e zera variância | artifacts pixel-diff-views runs 27370651063/27370956421 |
+| `visreg:update` | npm script — update NUNCA automático (aprovação [W] F1.5) | package.json |
+| **PROVA Q4 (2 lados)** | 🟢 especificidade: run 27371559873 verde vs baseline · 🟡 sensibilidade: PR #2580 sintético (h1 vermelho, mudança SÓ-visual — e2e textual verde, pixel acusou) run 27371822166, fechado pós-prova | #2575 MERGED |
+
+### ONDA Q5 — meta-gates (o processo se autocobra)
+| item | veredito | prova |
+|---|---|---|
+| Passo 0 | governance-drift (ADR 0216) + memory-health (ADR 0256 A–F) + 2 meta-gates JÁ substantivos — nada recriado | — |
+| Registry canônico de gates | #2578 — `scripts/governance/gates-registry.json` (54 workflows, nome+classe). Check G **fail-class**: workflow novo fora do censo = 🔴 mecânico; entrada órfã = 🟡 | roda em TODO PR (umbrella) + daily |
+| Frescor doc-cache | Check H: `✓lido @main <data>` >14d = 🟡 | idem |
+| licao_sem_assercao | Check I: lição sem gate/G#/IT# nem `não-mecanizável:` = 🟡 (14 atuais sinalizadas) | idem |
+| **PROVA Q5** | 9/9 meta-testes físicos 2 lados (tests/memoryHealth.spec.ts) no umbrella | — |
+
+### Pendências [W] (decisões, não trabalho)
+1. **1 clique required Q1**: `gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks/contexts" -f "contexts[]=E2E Playwright · UCs críticos"`
+2. Drift `origem` do StoreTransactionRequest (alinhar request ↔ enum fin_titulos) — catalogado em memory/dominio/financeiro.md
+3. Consolidação NfeBrasil×NFSe (2 vocabulários da mesma tabela) — catalogado em memory/dominio/fiscal-faturamento.md
+4. Pixel-diff: após 2 verdes pós-merge, remover `continue-on-error` (advisory → enforcing, sem clique)
+
+### new_design_memories
+- **golden**: artifact de DIFF VIEW antes de chutar máscara — 3 iterações de pixel-flakiness resolvidas na CAUSA (pré-paint + controles nativos), nunca por retry.
+- **gotcha**: `Carbon::setTestNow` no processo de teste NÃO congela o relógio do `artisan serve` (cross-process) — conteúdo dinâmico de servidor se neutraliza no DOM (CSS), não no clock do test runner.
+- **golden**: vocabulário sem constraint física (coluna varchar) = `vocab` no dicionário — o gate vira a ÚNICA lei quando o BD não constrange.
+- **golden (FA-5)**: F3 de protótipo Cowork = SEMPRE mapear token Cowork→live ANTES de colar CSS. O gabarito FA-5 referenciava `--text-2/--sunken/--pos-soft/--hairline` (vocabulário do protótipo) que não existe no live; e cor semântica no drawer vai por Tailwind `@theme`, não `var(--pos)` (o drawer é portal FORA de `.cockpit`, onde `--pos` de cockpit.css mora). Sintoma se ignorado: CSS "verde" que renderiza INCOLOR (var indefinida = sem cor). Resolve: tokens neutros do escopo `.fin-cowork` + Fundação (`--sh-2/--ease/--fs-*`); semântico via classe utilitária.
+- **gotcha (FA-5)**: colisão de atalho `R` — `R` era global "novo recebimento"; o 9.75 quer `R`=liquida no drawer. Resolvido por PRECEDÊNCIA (drawer aberto + título liquidável → `openBaixa`; senão cai no novo-lançamento). Mesmo guard de foco (INPUT/TEXTAREA/SELECT/contentEditable + meta/ctrl/alt).
+- **gotcha (FA-5)**: inline-edit (R2 KVEdit) precisa de rota de save POR CAMPO — `Canal` não tem (`UpdateTituloRequest` só aceita categoria_id/plano/venc/valor/forma/conta). Deferido em vez de inventar PATCH (T-AP-10). Regra: KVEdit inline só onde o campo já tem rota de update provada.

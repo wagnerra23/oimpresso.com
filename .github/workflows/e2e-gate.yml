@@ -1,12 +1,15 @@
-name: E2E Playwright (UCs críticos) — G-3 NÃO-required
+name: E2E Playwright (UCs críticos) — G-3
 
 # Gate G-3 da Governança executável (ADR 0264): E2E de comportamento nos UCs críticos.
 #
-# ⚠️ workflow_dispatch (MANUAL) por enquanto — o harness boota o app real (PHP+DB+build+serve)
-# e o primeiro run verde está sendo validado. Manter MANUAL + NÃO-required evita travar todo
-# merge num gate ainda-não-estável (lição dura ADR 0261). Quando verde-estável (2 runs verdes
-# seguidos): trocar `workflow_dispatch` → `pull_request` + promover a required junto de
-# casos/dominio (ADR 0264 T2).
+# FLIP 2026-06-11 (Onda Q1 — ADR 0264 T2): harness estabilizou com 2 runs verdes seguidos
+# (27277134411 + 27277247743 em 2026-06-10) → `workflow_dispatch` virou `pull_request`.
+# REQUIRED-READINESS (padrão ADR 0271 onda 2, idêntico ao visual-regression.yml):
+# `pull_request` SEM `paths:` (always-run) pra ser promovível a required sem deadlock
+# "Expected — waiting". O custo (~10min de boot PHP+DB+build+serve) é evitado por
+# skip-as-pass interno: dorny/paths-filter detecta se algo de app/E2E mudou; se não,
+# pula o pesado e conclui verde (~1-2min). `workflow_dispatch` mantido pra re-validação
+# manual do harness.
 #
 # Boot do app: MESMO padrão PROVADO do visual-regression.yml (gate verde em main) —
 # MySQL 8.0 service + schema-squash (database/schema/mysql-schema.sql) + seed mínimo de
@@ -16,6 +19,8 @@ name: E2E Playwright (UCs críticos) — G-3 NÃO-required
 # subscription/trial do form de login UltimatePOS (robusto cross-process).
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -24,7 +29,7 @@ concurrency:
 
 jobs:
   e2e:
-    name: E2E Playwright · UCs críticos (não-required)
+    name: E2E Playwright · UCs críticos
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -53,7 +58,37 @@ jobs:
         with:
           lfs: true
 
+      - name: Detectar mudanças de app (skip-as-pass — required-readiness)
+        id: changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            app:
+              - 'resources/js/**'
+              - 'Modules/**'
+              - 'routes/**'
+              - 'app/**'
+              - 'database/**'
+              - 'config/**'
+              - 'composer.json'
+              - 'composer.lock'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'e2e/**'
+              - 'playwright.config.ts'
+              - '.github/workflows/e2e-gate.yml'
+
+      - name: Decidir execução (dispatch roda sempre; PR só quando app/E2E mudou)
+        id: decide
+        run: echo "run=${{ github.event_name != 'pull_request' || steps.changes.outputs.app == 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip-as-pass (nada de app/E2E mudou)
+        if: steps.decide.outputs.run != 'true'
+        run: echo "✅ Sem mudanças de app/E2E — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
+
       - name: Setup PHP 8.4
+        if: steps.decide.outputs.run == 'true'
         uses: shivammathur/setup-php@v2
         with:
           # SEM `opentelemetry`: a auto-instrumentação opentelemetry-auto-laravel acessa
@@ -64,6 +99,7 @@ jobs:
           coverage: none
 
       - name: Wait for MySQL ready
+        if: steps.decide.outputs.run == 'true'
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then echo "MySQL ready"; break; fi
@@ -71,11 +107,13 @@ jobs:
           done
 
       - uses: actions/setup-node@v4
+        if: steps.decide.outputs.run == 'true'
         with:
           node-version: '24'
           cache: npm
 
       - name: Cache Composer
+        if: steps.decide.outputs.run == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
@@ -83,14 +121,17 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: Composer install
+        if: steps.decide.outputs.run == 'true'
         # --ignore-platform-req=ext-opentelemetry: o pacote exige a ext no platform check
         # mas a removemos de propósito (Setup PHP). Degrada gracioso sem ela.
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: NPM ci
+        if: steps.decide.outputs.run == 'true'
         run: npm ci
 
       - name: App bootstrap (.env + key + schema-squash migrate + seed biz=1)
+        if: steps.decide.outputs.run == 'true'
         # SCHEMA-SQUASH: `migrate` carrega database/schema/mysql-schema.sql (squash do staging
         # saudável) ANTES de replayar — bypassa a podridão de fresh-migrate (mesma estratégia
         # provada do visual-regression / financeiro-pest). Seed mínimo do tenant biz=1 (ADR 0101).
@@ -136,27 +177,30 @@ jobs:
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count();"
 
       - name: Build Inertia
+        if: steps.decide.outputs.run == 'true'
         run: npm run build:inertia
 
       - name: Playwright install (chromium)
+        if: steps.decide.outputs.run == 'true'
         run: npm run e2e:install
 
       - name: Serve app + run E2E
+        if: steps.decide.outputs.run == 'true'
         run: |
           php artisan serve --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
           npx wait-on http://127.0.0.1:8000 --timeout 90000
           npm run e2e:check
 
       # Salto #2 / G-7: coleta o JUnit do Playwright (test-results/) → manifesto por-UC.
-      # Roda SEMPRE (mesmo se o E2E falhou: a falha É o veredito que o G-7 quer registrar).
-      # Sobe como ARTIFACT — NÃO commita (o manifesto commitado é atualizado conscientemente
-      # pelo dev via `npm run casos:results`, idioma baseline/ratchet; ADR 0264 G-7).
+      # Roda SEMPRE que o E2E rodou (mesmo se falhou: a falha É o veredito que o G-7 quer
+      # registrar). Sobe como ARTIFACT — NÃO commita (o manifesto commitado é atualizado
+      # conscientemente pelo dev via `npm run casos:results`, idioma baseline/ratchet; G-7).
       - name: Coletar veredito por-UC (casos:results)
-        if: always()
+        if: ${{ !cancelled() && steps.decide.outputs.run == 'true' }}
         run: npm run casos:results || true
 
       - name: Upload manifesto de veredito (casos-test-results)
-        if: always()
+        if: ${{ !cancelled() && steps.decide.outputs.run == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: casos-test-results

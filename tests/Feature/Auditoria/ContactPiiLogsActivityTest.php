@@ -23,12 +23,9 @@ uses(DatabaseTransactions::class);
 
 beforeEach(function () {
     try {
-        $this->business = \App\Business::first();
+        $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     } catch (\Throwable $e) {
         $this->markTestSkipped('Schema UltimatePOS ausente — rode local com DB_CONNECTION=mysql (dev) ou aguarde CI integration job.');
-    }
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
     }
 
     $this->user = \App\User::where('business_id', $this->business->id)->first();
@@ -77,7 +74,7 @@ it('cenario 2: update tax_number_1 NAO gera entry (campo NAO logado pra PII LGPD
         ->count();
 
     // tax_number_1 NAO esta no logOnly por design — PII nao auditada
-    $this->contact->tax_number_1 = '123.456.789-00'; // formato CPF deliberado pro test
+    $this->contact->tax_number_1 = '123.456.789-00'; // formato CPF deliberado pro test # pii-allowlist
     $this->contact->save();
 
     $countAfter = Activity::query()
@@ -91,7 +88,7 @@ it('cenario 2: update tax_number_1 NAO gera entry (campo NAO logado pra PII LGPD
 it('cenario 3: PII regex assert — properties JSON NUNCA contem CPF/CNPJ mesmo em update completo', function () {
     // Update mistura campo logado + campo PII — properties so deve ter campo logado
     $this->contact->name = 'Cliente Teste Audit-003';
-    $this->contact->tax_number_1 = '12.345.678/0001-99'; // CNPJ formato deliberado
+    $this->contact->tax_number_1 = '12.345.678/0001-99'; // CNPJ formato deliberado # pii-allowlist
     $this->contact->mobile = '(11) 99999-8888';
     $this->contact->save();
 

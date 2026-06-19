@@ -1,4 +1,8 @@
 ---
+module: NfeBrasil
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
 na_justified:
   D7.a: "Fiscal compliance CONFAZ SINIEF 07/2005 — CPF/CNPJ em logs SEFAZ obrigatórios. PiiRedactor NÃO aplica em dados fiscais (XML original preservado). Detalhe em PII-LGPD-FISCAL.md."
 ---
@@ -721,7 +725,7 @@ Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo 
 Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª NFC-e real cstat 100"). Pipeline US-NFE-002 server-side já fechado em main; biz=1 (WR2 Sistemas, Tubarão/SC) já está armada — confirmado via SSH 2026-05-09:
 
 **Estado pré-validado (não tocar):**
-- `business.cnpj`=36.613.150/0001-18, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0
+- `business.cnpj`=36.613.150/0001-18, `ncm_padrao`=49111090, `ambiente`=2, `ultimo_numero_nfce`=0 <!-- pii-allowlist: fixture biz=1 WR2 Sistemas (própria empresa Wagner, ADR 0101 biz=1 nunca cliente) — homologação SEFAZ-SC -->
 - `nfe_certificados.ativo`=1, `valido_ate`=2026-08-06
 - `nfe_business_configs`: `regime`=simples, `cfop`=5102, `csosn`=102, `auto_emission_enabled`=1
 - `.env` Hostinger: `NFEBRASIL_AUTO_EMISSION_NFCE=true`
@@ -902,7 +906,7 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 
 **Candidatos naturais:**
 1. **Gold** (Comunicação Visual) — pós Manifestação Destinatário entregue (US-NFE-049/050/051/052 já done). Gold é gráfica grande, emite 100%.
-2. **Vargas** (Autopecas) — sinal qualificado real (R$ [redacted Tier 0]M GMV), mas Modules/Autopecas ainda em construção.
+2. **Vargas** (Autopecas) — sinal qualificado real (R$ [redacted Tier 0]M GMV), mas o módulo Autopecas (planejado — não existe) ainda não foi construído.
 3. **Modules/ComunicacaoVisual cliente novo** — qualquer um das 5 cartas warming (Extreme/Zoom/Fixar/Mhundo/Produart) que adotar oimpresso pós outreach.
 
 **Acceptance criteria (smoke fim-a-fim):**

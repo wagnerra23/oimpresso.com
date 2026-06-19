@@ -23,6 +23,12 @@ uses(Tests\TestCase::class);
  * @see Modules/Whatsapp/Http/Middleware/VerifyBaileysWebhookHmac.php
  */
 beforeEach(function () {
+    // era-sqlite: este teste cria schema manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso DROPA tabelas reais → corrompe os testes irmãos (lever do floor SDD).
+    // Cobertura real é na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
     Schema::dropIfExists('webhook_nonces');
     Schema::create('webhook_nonces', function ($table) {
         $table->bigIncrements('id');

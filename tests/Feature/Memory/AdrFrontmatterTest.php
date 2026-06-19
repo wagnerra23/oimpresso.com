@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de canon-source (frontmatter dos ADRs em memory/decisions) contra fonte-da-verdade móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
+/**
  * Camada 1 — Eval Suite (Opção C).
  *
  * Tests de frontmatter complementares ao AdrFrontmatterLinterTest existente,

@@ -46,7 +46,7 @@ Add-on vertical de comunicação visual / gráfica rápida sobre o núcleo oimpr
 - ❌ **Visão financeira AR/AP unificada / DRE** → vive em `Modules/Financeiro`
 - ❌ **Boleto/assinatura/cobrança recorrente** → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- ❌ **Jana IA / memória persistente** → vive em `Modules/Copiloto`
+- ❌ **Jana IA / memória persistente** → vive em `Modules/Jana`
 - ❌ **Cofre de senhas/credenciais (cert digital A1)** → vive em `Modules/MemCofre`
 - ❌ **Estoque por SKU+tamanho+cor / etiqueta de preço de balcão** — isso é de `Modules/Vestuario`
 - ❌ **Kanban genérico drag-drop** — `Modules/Repair` é shared infra ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)); ComunicacaoVisual consome com vocabulário gráfico (etapa/OS, não placa/veículo)
@@ -113,7 +113,7 @@ Add-on vertical de comunicação visual / gráfica rápida sobre o núcleo oimpr
 
 ## 6. Automation hooks (onde Jana IA atua)
 
-> Jana = Modules/Copiloto. Hooks abaixo são **propostos** — exigem sinal qualificado ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) antes de virar US ativa.
+> Jana = Modules/Jana. Hooks abaixo são **propostos** — exigem sinal qualificado ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) antes de virar US ativa.
 
 - ✅ **Wizard onboarding CNAE 1813** (US-COMVIS-006) — Jana detecta CNAE da empresa e pré-popula NCM/CFOP/CSOSN sem precisar contador
 - ✅ **Bulk update material via chat** (US-COMVIS-013) — "aumenta 5% em todo lona 440g" → preview + confirmação humana + audit log
@@ -150,7 +150,7 @@ Add-on vertical de comunicação visual / gráfica rápida sobre o núcleo oimpr
 | `Modules/NfeBrasil` | Listener `BoletoPago` → `EmitirNfceJob` (US-COMVIS-009 reuso US-RB-044); CFOP/CSOSN/NCM seed CNAE 1813 (US-COMVIS-006) | consome |
 | `Modules/NFSe` (a criar) | NFSe automática pra serviço de instalação (US-COMVIS-008) | consome (dependência futura) |
 | `Modules/Financeiro` | AR/AP boletos, DRE simplificado, comissão folha (US-COMVIS-011) | consome |
-| `Modules/Copiloto` (Jana) | Chat contextual + 3 ângulos faturamento + bulk update materiais + brief diário | consome |
+| `Modules/Jana` (Jana) | Chat contextual + 3 ângulos faturamento + bulk update materiais + brief diário | consome |
 | `Modules/RecurringBilling` | Trigger boleto pago → NFe automática (US-COMVIS-009) | consome |
 | `Modules/Repair` | Kanban drag-drop multi-etapa (US-COMVIS-003) — Repair é shared infra com override de labels gráfico | consome shared infra |
 | `Modules/MemCofre` | Cofre cert digital A1, login fornecedor (Roland/Mimaki SDK futuro), webservice prefeitura NFSe | consome opcional |

@@ -3,9 +3,20 @@ slug: modules-essentials-spec
 title: "Modules/Essentials — SPEC"
 type: spec
 module: Essentials
-status: stub
+owner: wagner
+version: "1.0"
+last_updated: "2026-06-13"
+status: rascunho
 authority: canonical
-related_adrs: [0093, 0094, 0105, 0143, 0153, 0154, 0155, 0156]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0153-module-grade-rubrica-v1
+  - 0154-module-grade-v2-na-justificado
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
+  - 0156-module-grade-v3-errata-otel-helper-na-justified
 na_justified:
   D5: "Utilitários backend compartilhados HRM/legado UltimatePOS — sem cliente direto Larissa/biz=4. Módulo transversal cross-business (helpers, traits, mailables compartilhados) seguindo proibições Tier 0 [memory/proibicoes.md](../../proibicoes.md) §Multi-tenant + Constituição v2 [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)."
   D4.b: "Essentials é utilitário compartilhado backend HRM/Todo herdado UltimatePOS v6 — usa enum status simples em `essentials_leaves.status` (pending/approved/rejected) e `essentials_to_dos.status` (sem máquina de estados canônica FSM). Pipeline FSM canônico ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)) aplica a Sells/Repair (vendas + OS), não a HRM legacy. Migração futura possível via ADR de feature wish ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) §cliente sinal qualificado: dormente sem dor real)."
@@ -28,7 +39,7 @@ _[TODO — escrever user stories no formato abaixo.]_
 **Quero** [ação]  
 **Para** [objetivo de negócio]
 
-**Implementado em:** _[path]_
+**Implementado em:** _pendente_ — US TODO, tela não construída
 
 **Definition of Done:**
 - [ ] [critério]

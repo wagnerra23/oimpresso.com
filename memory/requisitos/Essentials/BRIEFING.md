@@ -29,11 +29,11 @@ Origem: módulo opcional UltimatePOS v6 — preservado intencionalmente como **s
 | Leave Request (ausências) | ✅ em prod | Workflow pending → approved/rejected, ActivityLog Spatie |
 | Documents + Share | ✅ em prod | Upload + share por usuário |
 | Reminder | ✅ em prod | CRUD calendário pessoal |
-| Attendance (ponto) | 🟡 legacy | Coexiste com Modules/PontoWr2 canônico (Portaria 671/2021) — em PontoWr2 fica trabalho novo |
+| Attendance (ponto) | 🟡 legacy | Coexiste com Modules/Ponto canônico (Portaria 671/2021) — em Ponto fica trabalho novo |
 | HRM (allowance/deduction/shift/payroll) | 🟡 legacy | Usado biz=4 minimal; backlog ADR feature-wish para evolução |
 | Sales Target | 🟡 legacy | Pouco uso; possível candidato a desativar |
 | Holiday | ✅ em prod | Gestão de feriados por business |
-| KnowledgeBase | 🟡 legacy | Sobreposição com Modules/Kb candidato a migração |
+| KnowledgeBase | 🟡 legacy | Sobreposição com Modules/KB candidato a migração |
 | Message | 🟡 legacy | Mensagens internas — sobreposição com Modules/Jana ConvSidePanel |
 
 ## Arquitetura

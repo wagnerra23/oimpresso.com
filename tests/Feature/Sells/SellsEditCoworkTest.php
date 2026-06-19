@@ -19,6 +19,18 @@ declare(strict_types=1);
  *  - resources/js/Pages/Sells/Edit.charter.md
  *  - resources/css/inertia.css
  *  - tests/Feature/Sells/SellsShowCoworkTest.php (pattern espelhado)
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() cujos markers
+ * foram verificados AUSENTES no refactor: wrapper `sells-cowork-edit container
+ * mx-auto` removido de Edit.tsx; seletores CSS `.vde-header/.vde-footer/.vde-field*`,
+ * footer sticky, responsive media e o ADR `0104` do charter reescritos.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * ✅ Os it() de FUNCIONALIDADE VIVA PERMANECEM ATIVOS — Edit.tsx existe; cobertura
+ * que ainda passa: AppShellV2, useForm+Deferred, atalho Cmd+Enter + guard
+ * `permissions.update`, e o guard de SEGURANÇA FSM (ADR 0143) "Edit.tsx NUNCA seta
+ * current_stage_id". Quarentenar o arquivo inteiro silenciaria o guard FSM — NÃO foi feito.
  */
 
 const EDIT_TSX_PATH = 'resources/js/Pages/Sells/Edit.tsx';
@@ -97,7 +109,8 @@ it('CSS sells-cowork-edit.css cobre blocos essenciais (header/section/field/foot
         ->toContain('.sells-cowork-edit .vde-section-num')
         ->toContain('.sells-cowork-edit .vde-field')
         ->toContain('.sells-cowork-edit .vde-footer');
-});
+    // quarantine-reason: CSS .vde-*/footer/responsive reescritos, wrapper removido do Edit.tsx, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('CSS sells-cowork-edit.css define form states (focus/error/disabled — semantic)', function () {
     $source = editRead(EDIT_CSS_PATH);
@@ -107,7 +120,8 @@ it('CSS sells-cowork-edit.css define form states (focus/error/disabled — seman
         ->toContain('.vde-field:focus')
         ->toContain('.vde-field:disabled')
         ->toContain('.vde-field-error');
-});
+    // quarantine-reason: CSS .vde-*/footer/responsive reescritos, wrapper removido do Edit.tsx, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('CSS sells-cowork-edit.css define footer sticky com botões Cancelar/Salvar', function () {
     $source = editRead(EDIT_CSS_PATH);
@@ -115,14 +129,16 @@ it('CSS sells-cowork-edit.css define footer sticky com botões Cancelar/Salvar',
         ->toContain('position: sticky')
         ->toContain('.vde-btn')
         ->toContain('.vde-btn-primary');
-});
+    // quarantine-reason: CSS .vde-*/footer/responsive reescritos, wrapper removido do Edit.tsx, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('CSS sells-cowork-edit.css tem responsive ≤1024px + print media', function () {
     $source = editRead(EDIT_CSS_PATH);
     expect($source)
         ->toContain('@media (max-width: 1024px)')
         ->toContain('@media print');
-});
+    // quarantine-reason: CSS .vde-*/footer/responsive reescritos, wrapper removido do Edit.tsx, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Inertia.css importa ──────────────────────────────────────────────
 
@@ -136,7 +152,8 @@ it('inertia.css importa sells-cowork-edit.css', function () {
 it('Edit.tsx wrappa outer div com classe .sells-cowork-edit', function () {
     $source = editRead(EDIT_TSX_PATH);
     expect($source)->toContain('sells-cowork-edit container mx-auto');
-});
+    // quarantine-reason: CSS .vde-*/footer/responsive reescritos, wrapper removido do Edit.tsx, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Edit.tsx tem marker comentário US-SELL-EDIT-COWORK', function () {
     $source = editRead(EDIT_TSX_PATH);
@@ -207,4 +224,5 @@ it('Edit.charter.md mantém parent_module + related_adrs 0104/0143/0093/0149 (go
         ->toContain('0143')
         ->toContain('0093')
         ->toContain('0149');
-});
+    // quarantine-reason: CSS .vde-*/footer/responsive reescritos, wrapper removido do Edit.tsx, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');

@@ -107,15 +107,43 @@ it('flag OFF (default) NÃO reordena — saída idêntica ao applyTimeDecay (nã
     expect(array_column($resultado, 'id'))->toBe([1, 2]); // ordem do applyTimeDecay preservada
 });
 
-it('config default de retrieval_enabled é false (segurança máxima)', function () {
-    // Não sobrescreve config — lê o valor real do config.php carregado.
-    // Como o arquivo é merged sob `copiloto`, a chave `jana.*` resolve null em
-    // runtime real → falsy → OFF. Ambos os caminhos garantem OFF por default.
-    $copiloto = config('copiloto.peso_real.retrieval_enabled');
-    $jana     = config('copiloto.peso_real.retrieval_enabled');
+it('KL-C1 — config resolve NÃO-NULL: retrieval_enabled === false e lifecycle_mult populado (fim do duplo-OFF)', function () {
+    // Não sobrescreve config — lê o valor REAL merged (JanaServiceProvider::
+    // registerConfig → mergeConfigFrom 'copiloto'). O "duplo-OFF" era: flag false
+    // no arquivo + chave resolvendo null em runtime (kill-switch não-funcional).
+    // Agora a chave resolve false ESTRITO (não null) — a flag é a única porta.
+    expect(config('copiloto.peso_real.retrieval_enabled'))->toBeFalse()
+        ->and(config('copiloto.peso_real.lifecycle_mult'))->toBeArray()
+        // Vocabulário canônico alinhado (status EN normalizado + frontmatter PT):
+        ->and(config('copiloto.peso_real.lifecycle_mult.aceito'))->toBe(1.0)
+        ->and(config('copiloto.peso_real.lifecycle_mult.ativo'))->toBe(1.0)
+        ->and(config('copiloto.peso_real.lifecycle_mult.proposed'))->toBe(1.0)
+        ->and(config('copiloto.peso_real.lifecycle_mult.historical'))->toBe(0.5)
+        ->and(config('copiloto.peso_real.lifecycle_mult.superseded'))->toBe(0.3);
+});
 
-    expect((bool) $copiloto)->toBeFalse();
-    expect((bool) $jana)->toBeFalse();
+it('KL-C1 — flag AUSENTE (null, ex.: config publicada stale) continua OFF: kill-switch resiliente', function () {
+    // Simula o runtime degradado que motivou o "duplo-OFF": copiloto.peso_real
+    // inteiro resolvendo null. O guard do driver lê com default explícito false
+    // → applyPesoReal NUNCA roda → pipeline byte-idêntico ao legado.
+    config(['copiloto.peso_real' => null]);
+
+    $driver = new MeilisearchDriver();
+
+    $merged = collect([
+        pesoMakeFato(1, 'ADR superseded', ['doc_type' => 'adr', 'status' => 'superseded'], ageDays: 30),
+        pesoMakeFato(2, 'ADR aceito',     ['doc_type' => 'adr', 'status' => 'accepted'],   ageDays: 30),
+    ]);
+
+    $candidatos = pesoInvokeTimeDecay($driver, $merged);
+
+    // Mesma expressão do guard em buscarInterno (default explícito false).
+    $resultado = (bool) config('copiloto.peso_real.retrieval_enabled', false)
+        ? pesoInvokePesoReal($driver, $candidatos, $merged)
+        : $candidatos;
+
+    expect(config('copiloto.peso_real.retrieval_enabled'))->toBeNull() // cenário degradado reproduzido
+        ->and($resultado)->toBe($candidatos);                          // OFF: saída idêntica
 });
 
 // ── 2. flag ON — Peso Real reordena decisões por lifecycle (sem decay) ─────
@@ -133,7 +161,7 @@ it('flag ON — ADR accepted reordena ACIMA de ADR superseded (decisão evergree
 
     // Input em ordem "errada": superseded primeiro (id 1), accepted depois (id 2).
     // Mesmo age → o time-decay sozinho não inverteria forte; o Peso Real (decisão)
-    // usa lifecycle_mult (accepted=1.0 vs superseded=0.1) e deve trazer o accepted
+    // usa lifecycle_mult (accepted=1.0 vs superseded=0.3) e deve trazer o accepted
     // pro topo independente da idade.
     $merged = collect([
         pesoMakeFato(1, 'ADR superseded', ['doc_type' => 'adr', 'status' => 'superseded'], ageDays: 5),
@@ -148,9 +176,56 @@ it('flag ON — ADR accepted reordena ACIMA de ADR superseded (decisão evergree
     expect($reordenado[0]['id'])->toBe(2);
     expect($reordenado[1]['id'])->toBe(1);
 
-    // peso(accepted) = 70 × 1.0 = 70 ; peso(superseded) = 70 × 0.1 = 7
+    // peso(accepted) = 70 × 1.0 = 70 ; peso(superseded) = 70 × 0.3 = 21 (KL-C1)
     expect($reordenado[0]['score'])->toEqualWithDelta(70.0, 0.01);
-    expect($reordenado[1]['score'])->toEqualWithDelta(7.0, 0.01);
+    expect($reordenado[1]['score'])->toEqualWithDelta(21.0, 0.01);
+});
+
+it('flag ON — vocabulário real do seeder (proposed/historical/superseded) ordena 1.0 > 0.5 > 0.3', function () {
+    // KL-C1: metadata['status'] real vem EN-normalizado do SeedAdrsCommand
+    // (accepted|proposed|historical|superseded). ANTES, proposed e historical
+    // não existiam na lifecycle_mult → caíam no fallback 0.1 = peso de morto.
+    config(['copiloto.peso_real.retrieval_enabled' => true]);
+    config(['copiloto.time_decay.enabled' => true]);
+
+    $driver = new MeilisearchDriver();
+
+    $merged = collect([
+        pesoMakeFato(1, 'ADR superseded', ['doc_type' => 'adr', 'status' => 'superseded'], ageDays: 1),
+        pesoMakeFato(2, 'ADR historical', ['doc_type' => 'adr', 'status' => 'historical'], ageDays: 1),
+        pesoMakeFato(3, 'ADR proposed',   ['doc_type' => 'adr', 'status' => 'proposed'],   ageDays: 1),
+    ]);
+
+    $candidatos = pesoInvokeTimeDecay($driver, $merged);
+    $reordenado = pesoInvokePesoReal($driver, $candidatos, $merged);
+
+    expect(array_column($reordenado, 'id'))->toBe([3, 2, 1]);
+    // pesos: proposed 70×1.0=70 · historical 70×0.5=35 · superseded 70×0.3=21
+    expect($reordenado[0]['score'])->toEqualWithDelta(70.0, 0.01);
+    expect($reordenado[1]['score'])->toEqualWithDelta(35.0, 0.01);
+    expect($reordenado[2]['score'])->toEqualWithDelta(21.0, 0.01);
+});
+
+it('flag ON — lifecycle canônico do frontmatter (ativo/substituido) é preferido e não cai no fallback', function () {
+    // applyPesoReal prefere metadata['lifecycle'] sobre metadata['status'].
+    // Vocabulário canônico (scripts/memory-schemas/adr.schema.json):
+    // ativo|arquivado|substituido|historical. ADR 0270 D-4: vigente > morto.
+    config(['copiloto.peso_real.retrieval_enabled' => true]);
+    config(['copiloto.time_decay.enabled' => true]);
+
+    $driver = new MeilisearchDriver();
+
+    $merged = collect([
+        pesoMakeFato(1, 'ADR substituido', ['doc_type' => 'adr', 'lifecycle' => 'substituido', 'status' => 'superseded'], ageDays: 1),
+        pesoMakeFato(2, 'ADR ativo',       ['doc_type' => 'adr', 'lifecycle' => 'ativo',       'status' => 'aceito'],     ageDays: 1),
+    ]);
+
+    $candidatos = pesoInvokeTimeDecay($driver, $merged);
+    $reordenado = pesoInvokePesoReal($driver, $candidatos, $merged);
+
+    expect(array_column($reordenado, 'id'))->toBe([2, 1]);
+    expect($reordenado[0]['score'])->toEqualWithDelta(70.0, 0.01); // ativo 70×1.0
+    expect($reordenado[1]['score'])->toEqualWithDelta(21.0, 0.01); // substituido 70×0.3
 });
 
 it('flag ON — respeita relevancia_meta do metadata quando a Área B já populou', function () {

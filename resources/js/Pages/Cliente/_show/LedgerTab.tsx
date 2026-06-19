@@ -299,10 +299,10 @@ export default function LedgerTab({
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-foreground">{line.description}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-rose-700 dark:text-rose-400">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-destructive-fg">
                         {line.debit > 0 ? formatBRL(line.debit) : '—'}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-emerald-700 dark:text-emerald-400">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-success-fg">
                         {line.credit > 0 ? formatBRL(line.credit) : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums font-medium text-foreground">{formatBRL(line.balance)}</td>
@@ -339,7 +339,7 @@ export default function LedgerTab({
               aria-label="E-mail destinatário"
             />
             {emailFeedback && (
-              <p className={'text-xs mt-2 ' + (emailFeedback.startsWith('Falha') ? 'text-rose-700' : 'text-emerald-700')}>
+              <p className={'text-xs mt-2 ' + (emailFeedback.startsWith('Falha') ? 'text-destructive-fg' : 'text-success-fg')}>
                 {emailFeedback}
               </p>
             )}
@@ -381,18 +381,18 @@ function SummaryCardInner({
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div>
           <div className="text-[10px] uppercase text-muted-foreground">Débito</div>
-          <div className="font-medium tabular-nums text-rose-700 dark:text-rose-400">{formatBRL(debit)}</div>
+          <div className="font-medium tabular-nums text-destructive-fg">{formatBRL(debit)}</div>
         </div>
         <div>
           <div className="text-[10px] uppercase text-muted-foreground">Crédito</div>
-          <div className="font-medium tabular-nums text-emerald-700 dark:text-emerald-400">{formatBRL(credit)}</div>
+          <div className="font-medium tabular-nums text-success-fg">{formatBRL(credit)}</div>
         </div>
         <div>
           <div className="text-[10px] uppercase text-muted-foreground">Saldo</div>
           <div
             className={
               'font-semibold tabular-nums ' +
-              (isNegative ? 'text-rose-700 dark:text-rose-400' : 'text-foreground')
+              (isNegative ? 'text-destructive-fg' : 'text-foreground')
             }
           >
             {formatBRL(balance)}

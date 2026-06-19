@@ -39,6 +39,7 @@
 // MODOS (idioma dos guards existentes):
 //   node scripts/casos-coverage-guard.mjs                  # valida vs baseline (exit 1 se piorou)
 //   node scripts/casos-coverage-guard.mjs --write-baseline  # (re)grava baseline (uso consciente)
+//   node scripts/casos-coverage-guard.mjs --check-baseline-shrink <ref.json>  # só-desce: baseline commitado não pode crescer vs referência (Onda Q2)
 //   node scripts/casos-coverage-guard.mjs --report          # imprime o relatório de dívida (humano)
 //   node scripts/casos-coverage-guard.mjs --json            # saída JSON pra CI
 //
@@ -56,6 +57,12 @@ const MANIFEST_PATH = resolve(ROOT, 'scripts/casos-test-results.json'); // G-7: 
 const TEST_DIRS = ['Modules', 'tests', 'app', 'e2e']; // onde um UC-id pode ser referenciado por teste
 
 const MODE_WRITE = process.argv.includes('--write-baseline');
+// --check-baseline-shrink <old-baseline.json> — Onda Q2 (ratchet só-desce): o ARQUIVO
+// de baseline commitado só pode ENCOLHER vs a referência (main). Crescimento consciente
+// (refactor que move tela com dívida) = label `casos-baseline-grow-approved` no PR
+// (o workflow pula este check). Git-free: o CI extrai a referência via `git show`.
+const SHRINK_IDX = process.argv.indexOf('--check-baseline-shrink');
+const SHRINK_REF_PATH = SHRINK_IDX >= 0 ? process.argv[SHRINK_IDX + 1] || null : null;
 const MODE_REPORT = process.argv.includes('--report');
 const MODE_JSON = process.argv.includes('--json');
 
@@ -355,6 +362,36 @@ function loadBaseline() {
 // Main
 // ---------------------------------------------------------------------------
 function main() {
+  // Modo só-desce compara baseline ATUAL (commitado no PR) vs baseline de REFERÊNCIA
+  // (main) — não varre o repo. Roda ANTES de computeViolations (barato, sem I/O de Pages).
+  if (SHRINK_IDX >= 0) {
+    if (!SHRINK_REF_PATH || !existsSync(SHRINK_REF_PATH)) {
+      console.log('ℹ️ Baseline de referência ausente (bootstrap) — só-desce sem efeito. OK.');
+      process.exit(0);
+    }
+    const cur = loadBaseline();
+    if (!cur) {
+      console.error(`❌ Baseline atual ausente (${norm(BASELINE_PATH)}). Rode: npm run casos:baseline:write`);
+      process.exit(1);
+    }
+    const refSet = new Set(JSON.parse(readFileSync(SHRINK_REF_PATH, 'utf8')).violations || []);
+    const grew = (cur.violations || []).filter((v) => !refSet.has(v));
+    if (grew.length) {
+      console.error(`\n❌ Baseline CRESCEU: ${grew.length} entrada(s) nova(s) vs referência (só-desce, Onda Q2):\n`);
+      for (const v of grew.slice(0, 30)) console.error('  🆕 ' + v);
+      if (grew.length > 30) console.error(`  … +${grew.length - 30}`);
+      console.error(
+        '\nO baseline de cobertura de casos é catraca: ENCOLHER é sempre OK, crescer não.' +
+          '\nFeche o trio/teste da tela em vez de fotografar a dívida nova.' +
+          '\nMudança consciente (refactor move tela com dívida legada): label `casos-baseline-grow-approved` no PR.',
+      );
+      process.exit(1);
+    }
+    const shrunk = refSet.size - (cur.violations || []).length;
+    console.log(`✅ Baseline só-desce OK (${shrunk > 0 ? `caiu −${shrunk}` : 'estável'} vs referência).`);
+    process.exit(0);
+  }
+
   const { violations, stats } = computeViolations();
 
   if (MODE_JSON) {

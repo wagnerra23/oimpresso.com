@@ -8,7 +8,7 @@ use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\SicoobApiDriver;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Onda 4f.sicoob_api US-FIN-046 — mTLS reusa NfeCertificado canon.

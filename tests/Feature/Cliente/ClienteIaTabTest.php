@@ -37,10 +37,7 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory) -- rode com DB_CONNECTION=mysql (dev) ou CI integration job.');
     }
 
-    $this->business = \App\Business::first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
-    }
+    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     if (! $this->user) {
         $this->markTestSkipped('Sem user no business.');
@@ -274,7 +271,7 @@ test('com mock mode ativo, controller nao instancia Agent real (fixture fallback
 test('response da IA nao inclui tax_number plain do contact (defesa LGPD ADR 0093)', function () {
     // Atualiza contact com tax_number plain.
     DB::table('contacts')->where('id', $this->contactId)->update([
-        'tax_number' => '111.444.777-35',
+        'tax_number' => '111.444.777-35', // pii-allowlist (sintético)
     ]);
 
     $r = $this->postJson("/cliente/{$this->contactId}/ia/resumo");
@@ -282,5 +279,5 @@ test('response da IA nao inclui tax_number plain do contact (defesa LGPD ADR 009
 
     $body = $r->json();
     $bodyJson = json_encode($body);
-    expect($bodyJson)->not->toContain('111.444.777-35');
+    expect($bodyJson)->not->toContain('111.444.777-35'); // pii-allowlist (sintético)
 });

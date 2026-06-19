@@ -99,8 +99,8 @@ export default function IntercorrenciasShow({ intercorrencia: i }: Props) {
         )}
 
         {i.estado === 'APROVADA' && i.aprovador.nome && (
-          <Alert className="border-emerald-500/40">
-            <Check size={14} className="text-emerald-600" />
+          <Alert className="border-success/40">
+            <Check size={14} className="text-success-fg" />
             <AlertTitle>Aprovada por {i.aprovador.nome}</AlertTitle>
             <AlertDescription>Aprovada em {i.updated_at}</AlertDescription>
           </Alert>

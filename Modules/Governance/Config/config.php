@@ -118,4 +118,12 @@ return [
      * Substitui `governance:secrets` (ADR 0215) — mas trait permite override por checker.
      */
     'drift_centrifugo_channel' => env('GOVERNANCE_DRIFT_CHANNEL', 'governance:drift'),
+
+    /*
+     * Kill-switch GT-G8 (default ON) — linha SDD determinística no Daily Brief.
+     * `GOVERNANCE_SDD_BRIEF_LINE=false` no .env desliga o inject() sem deploy:
+     * SddBriefLineService devolve o brief intacto (zero linha, zero query).
+     * @see Modules\Governance\Services\SddBriefLineService
+     */
+    'sdd_brief_line' => env('GOVERNANCE_SDD_BRIEF_LINE', true),
 ];

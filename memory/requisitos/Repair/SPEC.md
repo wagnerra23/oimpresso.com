@@ -1,3 +1,10 @@
+---
+module: Repair
+owner: wagner
+version: "1.0"
+last_updated: "2026-06-13"
+---
+
 # Especificação funcional
 
 ## 3. User stories
@@ -13,7 +20,7 @@ _[TODO — escrever user stories no formato abaixo.]_
 **Quero** [ação]  
 **Para** [objetivo de negócio]
 
-**Implementado em:** _[path]_
+**Implementado em:** _pendente_ — US-REPA-001 não escrita (placeholder TODO)
 
 **Definition of Done:**
 - [ ] [critério]

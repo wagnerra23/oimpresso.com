@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 use Modules\Jana\Mcp\OimpressoMcpServer;
@@ -19,6 +20,10 @@ use Modules\Jana\Mcp\Tools\TasksCurrentTool;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('mcp_memory_documents', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->string('slug', 200)->unique();
@@ -40,7 +45,9 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('mcp_memory_documents');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('mcp_memory_documents');
+    }
 });
 
 it('TasksCurrentTool retorna conteúdo de CURRENT.md indexado', function () {

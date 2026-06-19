@@ -265,7 +265,7 @@ export default function MicRecorder({ disabled, onSend }: Props) {
           : <Mic size={14} aria-hidden />}
       </Button>
       {error && (
-        <span className="text-[10px] text-red-600 dark:text-red-400 max-w-[160px] truncate" title={error}>
+        <span className="text-[10px] text-destructive max-w-[160px] truncate" title={error}>
           {error}
         </span>
       )}

@@ -33,6 +33,8 @@ export function TipoPill({ tipo }: TipoPillProps) {
   if (!tipo) {
     return <span className="text-xs text-muted-foreground/50" aria-hidden="true">—</span>;
   }
+  // PF verde / PJ violeta = COR DE CATEGORIA (identidade binária do protótipo Cowork),
+  // não estado → exceção documentada (decisão "B"), mantida crua de propósito.
   const cls =
     tipo === 'PJ'
       ? 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300'
@@ -52,6 +54,10 @@ export function TipoPill({ tipo }: TipoPillProps) {
 
 // ─── TagChip ─────────────────────────────────────────────────────────────────
 
+// ⚠️ EXCEÇÃO DE COR DE CATEGORIA (documentada · decisão Wagner "B"): as 9 cores
+// abaixo são IDENTIDADE (distinguir 9 tipos de tag de relance), não estado semântico.
+// Colapsar em success/warning/info/destructive destruiria a distinção → NÃO tokenizar.
+// Allowlist consciente vs a catraca de cor crua. (TipoPill PF/PJ idem, mais abaixo.)
 const TAG_COLORS: Record<string, string> = {
   varejo:
     'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40',
@@ -123,15 +129,13 @@ export function calcFrescor(iso: string | null | undefined): FrescorState {
   return 'distante';
 }
 
+// Frescor é ESTADO semântico (saúde do relacionamento) → tokens -soft/-fg do DS
+// elevado (extraídos desta exata tela, #2639). Trocam light+dark sozinhos.
 const FRESCOR_STYLE: Record<FrescorState, string> = {
-  fresc:
-    'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/40',
-  recente:
-    'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40',
-  frio:
-    'bg-stone-50 text-stone-600 border-stone-200 dark:bg-stone-950/40 dark:text-stone-400 dark:border-stone-800',
-  distante:
-    'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/40',
+  fresc: 'bg-success-soft text-success-fg border-success/20',
+  recente: 'bg-warning-soft text-warning-fg border-warning/20',
+  frio: 'bg-muted text-muted-foreground border-border',
+  distante: 'bg-destructive-soft text-destructive-fg border-destructive/20',
 };
 
 const FRESCOR_LABEL: Record<FrescorState, string> = {
@@ -210,9 +214,8 @@ export function SaldoCell({ valor }: SaldoCellProps) {
     <span
       className={
         'tabular-nums font-medium ' +
-        (isDevedor
-          ? 'text-rose-700 dark:text-rose-300'
-          : 'text-emerald-700 dark:text-emerald-300')
+        // Devedor = vermelho / crédito = verde — ESTADO semântico → token -fg.
+        (isDevedor ? 'text-destructive-fg' : 'text-success-fg')
       }
       title={isDevedor ? 'Cliente em débito' : 'Cliente com crédito (adiantamento)'}
     >
@@ -225,17 +228,18 @@ export function SaldoCell({ valor }: SaldoCellProps) {
 
 export type StatusValue = 'ativo' | 'inativo' | 'bloqueado' | string;
 
+// Status do cliente é ESTADO semântico → tokens -soft/-fg (light+dark no token).
 const STATUS_STYLE_MAP: Record<string, { bg: string; label: string }> = {
   ativo: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+    bg: 'bg-success-soft text-success-fg border-success/20',
     label: 'Ativo',
   },
   inativo: {
-    bg: 'bg-stone-50 text-stone-700 border-stone-200 dark:bg-stone-950/40 dark:text-stone-300',
+    bg: 'bg-muted text-muted-foreground border-border',
     label: 'Inativo',
   },
   bloqueado: {
-    bg: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+    bg: 'bg-destructive-soft text-destructive-fg border-destructive/20',
     label: 'Bloqueado',
   },
 };

@@ -1,6 +1,6 @@
 # EVAL_PROTOCOL.md — Governança do comportamento dos agentes (ondas EVAL-001/002/003)
 
-> **Status:** ✅ CANON — congelado por [W] (Wagner) 2026-06-13 · proposto [CC] 2026-06-09. Mudança a partir daqui = novo PR aprovado por [W] (append-only). Destrava EVAL-002/003.
+> **Status:** PROPOSTA [CC] 2026-06-09 · vira canon no merge aprovado por [W] (ato de congelamento).
 > **Princípio:** o sistema atual governa ARTEFATOS (PRs, tokens, telas) com gates de CI. Este protocolo governa o COMPORTAMENTO dos agentes com evals replayáveis — e separa quem gera de quem avalia.
 > **Regra-mãe:** quem gera não escreve a própria régua. Golden set é congelado por [W]; agentes propõem casos, nunca os editam.
 

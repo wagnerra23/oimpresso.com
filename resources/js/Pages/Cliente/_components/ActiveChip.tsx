@@ -33,7 +33,7 @@ export function ActiveChip({ label, value, onRemove, variant = 'default' }: Acti
 
   const colors =
     variant === 'danger'
-      ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/40'
+      ? 'bg-destructive-soft text-destructive-fg border-destructive/20'
       : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/40';
 
   return (

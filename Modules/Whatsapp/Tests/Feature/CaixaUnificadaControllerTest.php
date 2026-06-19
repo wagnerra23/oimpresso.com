@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -32,6 +33,10 @@ uses(Tests\TestCase::class);
  * NUNCA usar biz=4 (ROTA LIVRE cliente real) em tests — ADR 0101.
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['messages', 'channel_user_access', 'whatsapp_conversation_tags', 'whatsapp_tags', 'conversations', 'channels', 'users', 'whatsapp_templates', 'whatsapp_queues', 'whatsapp_broadcasts', 'contacts'] as $t) {
         Schema::dropIfExists($t);
     }

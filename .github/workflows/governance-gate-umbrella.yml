@@ -39,6 +39,21 @@ jobs:
         run: node scripts/governance/memory-health.mjs
       - name: Meta-teste dos scripts de governança (controle-negativo)
         run: npm run test:adr-governance
+      - name: Meta-teste dos checks G/H/I do memory-health (Onda Q5 — controle-negativo)
+        run: npm run test:memory-health
+      # ADVISORY (GT-G5 · ledger §D): refutação adversarial de lote-IA de BRIEFINGs/SPECs
+      # (PROTOCOLO-REFUTADOR-BACKFILL). Sem --enforce → exit 0 sempre nesta fase; promover a
+      # required = adicionar --enforce após o protocolo assentar. Só em PR (precisa nº + base_ref).
+      - name: ledger-check — refutação de lote IA (advisory · GT-G5)
+        if: github.event_name == 'pull_request'
+        run: node scripts/governance/ledger-check.mjs --pr ${{ github.event.pull_request.number }} --base origin/${{ github.base_ref }} --head HEAD
+        continue-on-error: true
+      # ADVISORY (nasce sem morder — ONDAS-QUALIDADE regra 2): controle-negativo do
+      # auditor de corruptores SQLite (sensibilidade + especificidade). Promover a
+      # required = remover continue-on-error após 2 verdes. Ref: sessão 2026-06-15.
+      - name: Meta-teste do auditor de corruptores SQLite (advisory · 2 lados)
+        run: npm run test:sqlite-corruptors
+        continue-on-error: true
 
   # Segredo NOVO em QUALQUER arquivo do diff (API key, token, senha) — fecha o gap
   # entre o memory-health (só memory/) e o secrets:audit (só scheduled, não barra PR).

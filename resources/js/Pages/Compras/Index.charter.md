@@ -2,11 +2,12 @@
 page: /compras
 component: resources/js/Pages/Compras/Index.tsx
 owner: wagner
-status: scaffold
-last_validated: 2026-05-25
+status: draft
+status_detail: scaffold
+last_validated: "2026-05-25"
 parent_module: Compras
 parent_spec: memory/requisitos/Compras/SPEC.md
-related_adrs: [0093, 0094, 0101, 0104, 0107, 0114, 0141, 0149]
+related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]
 related_prototype: public/cowork-preview/erp-shell-v2/compras-page.jsx
 tier: A

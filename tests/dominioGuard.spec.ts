@@ -327,3 +327,143 @@ describe('dominio:check — termos proibidos user-facing (Salto #4, físico)', (
     expect(out).not.toMatch(/forbidden-ui-term/);
   });
 });
+
+// ── Onda Q3 — domínios CORE (migrations_paths + tables_scope + code_paths) ─────────────
+// Vendas/estoque vivem em database/migrations (não Modules/<X>). O dict declara os paths
+// e REIVINDICA tabelas; undeclared-column não cobra tabela alheia do diretório compartilhado.
+describe('dominio:check — domínios core (Onda Q3, físico)', () => {
+  const coreMig2 = (file: string, php: string) => write(`database/migrations/${file}`, php);
+  const coreMigration = (file: string, php: string) => write(`database/migrations/${file}`, php);
+
+  it('SENSIBILIDADE: enum core divergente do dicionário (via migrations_paths) → undeclared-value', () => {
+    coreMigration(
+      '2026_01_01_000000_create_transactions.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due', 'partial', 'fantasma']); });
+      } };`,
+    );
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due', 'partial'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-value:VendasCore:transactions\.payment_status:fantasma/);
+  });
+
+  it('ESPECIFICIDADE: tables_scope NÃO cobra tabela alheia do diretório compartilhado', () => {
+    coreMigration(
+      '2026_01_01_000000_create_core.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due']); });
+        Schema::create('users', function ($t) { $t->enum('marital_status', ['married', 'unmarried']); });
+      } };`,
+    );
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+    });
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/users\.marital_status/); // fora do scope reivindicado
+  });
+
+  it('SENSIBILIDADE: sem tables_scope, coluna enum não-declarada no diretório É cobrada (semântica original)', () => {
+    coreMigration(
+      '2026_01_01_000000_create_core.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid']); });
+        Schema::create('users', function ($t) { $t->enum('marital_status', ['married']); });
+      } };`,
+    );
+    dict('VendasCore', { 'transactions.payment_status': ['paid'] }, {
+      migrations_paths: ['database/migrations'],
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-column:VendasCore:users\.marital_status/);
+  });
+
+  it('SALTO #3 core: code_paths aceita ARQUIVO único e pega valor não-canônico', () => {
+    coreMigration(
+      '2026_01_01_000000_create_transactions.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due']); });
+      } };`,
+    );
+    write('app/Http/Controllers/SellController.php', `<?php class SellController { function f($q) { return $q->where('payment_status', 'estornado'); } }`);
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+      code_paths: ['app/Http/Controllers/SellController.php'],
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:VendasCore:payment_status:estornado/);
+  });
+
+  it('ESPECIFICIDADE core: valor canônico no code_path único passa limpo', () => {
+    coreMigration(
+      '2026_01_01_000000_create_transactions.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('transactions', function ($t) { $t->enum('payment_status', ['paid', 'due']); });
+      } };`,
+    );
+    write('app/Http/Controllers/SellController.php', `<?php class SellController { function f($q) { return $q->where('payment_status', 'due'); } }`);
+    dict('VendasCore', { 'transactions.payment_status': ['paid', 'due'] }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['transactions'],
+      code_paths: ['app/Http/Controllers/SellController.php'],
+    });
+    expect(run('--json')).toMatch(/"ok": true/);
+  });
+
+  it('CRONOLOGIA cross-dir: last-write-wins pelo TIMESTAMP da migration, não pelo path', () => {
+    // Caso real nfse_emissoes: módulo A cria (05_01), módulo B RE-cria depois (05_11).
+    // O estado atual é o de B, mesmo que o path de A ordene depois alfabeticamente.
+    write(
+      'pacotes/zfirst/migrations/2026_05_01_000000_create_t.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('t', function ($t) { $t->enum('status', ['velho']); });
+      } };`,
+    );
+    write(
+      'pacotes/afterz/migrations/2026_05_11_000000_create_t.php',
+      `<?php return new class { public function up(): void {
+        Schema::create('t', function ($t) { $t->enum('status', ['novo']); });
+      } };`,
+    );
+    dict('FiscalX', { 't.status': ['novo'] }, {
+      migrations_paths: ['pacotes/zfirst/migrations', 'pacotes/afterz/migrations'],
+      tables_scope: ['t'],
+    });
+    // 'novo' (timestamp 05_11) vence 'velho' (05_01) → dict bate com o estado atual.
+    expect(run('--json')).toMatch(/"ok": true/);
+  });
+
+  it("VOCAB (varchar sem constraint): coluna no vocab nao e cobrada como undeclared-column nem comparada valor-a-valor", () => {
+    // migrations legadas registram enum antigo; fisica virou varchar (caso transactions.type)
+    coreMig2('2026_01_01_000000_create_t.php', `<?php return new class { public function up(): void {
+      Schema::create('t', function ($t) { $t->enum('tipo', ['a', 'b']); });
+    } };`);
+    dict('CoreV', { }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['t'],
+      vocab: { 't.tipo': ['a', 'b', 'c_do_modulo'] },
+    });
+    expect(run('--json')).toMatch(/"ok": true/); // sem undeclared-column nem stale-dict-value
+  });
+
+  it('VOCAB alimenta o Salto #3: valor fora do vocabulario no codigo = violacao; dentro passa', () => {
+    coreMig2('2026_01_01_000000_create_t.php', `<?php return new class { public function up(): void {
+      Schema::create('t', function ($t) { $t->string('tipo'); });
+    } };`);
+    write('app/X.php', `<?php class X { function f($q) { return $q->where('tipo', 'fantasma'); } }`);
+    dict('CoreV', { }, {
+      migrations_paths: ['database/migrations'],
+      tables_scope: ['t'],
+      code_paths: ['app/X.php'],
+      vocab: { 't.tipo': ['a', 'b'] },
+    });
+    const out = runJsonExpectFail();
+    expect(out).toMatch(/dominio:undeclared-code-value:CoreV:tipo:fantasma/);
+  });
+});
+

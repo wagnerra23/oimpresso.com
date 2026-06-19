@@ -1,3 +1,11 @@
+---
+module: KB
+status: ativo
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+---
+
 # KB — SPEC canônico (Knowledge Base unificada)
 
 > Especificação técnica do **Módulo IA Central** `Modules/KB/`.
@@ -44,7 +52,7 @@ Critérios:
 **para** descobrir conhecimento sem precisar memorizar 143 slugs ADR.
 
 Critérios:
-- `KbRagService` roteia via `Modules/Copiloto/Ai/` (laravel/ai SDK + MeilisearchDriver hybrid embedder)
+- `KbRagService` roteia via `Modules/Jana/Ai/` (laravel/ai SDK + MeilisearchDriver hybrid embedder)
 - Retorna `RagResult` DTO com summary + array de `CitationResult` (node_id + score)
 - Reranker BGE (`KbBgeRerankerService`) ordena resultados por relevância semântica
 - Cache 5min via `cache()->remember()` reduz custo IA

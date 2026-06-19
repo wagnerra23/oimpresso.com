@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Eduardokum\LaravelBoleto\Boleto\Banco\Cresol as CresolBoleto;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
@@ -12,7 +13,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Cnab\Drivers\CresolCnabDriver;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Onda 4f.cnab/Cresol — ADR 0170-bancos-nativos-top5-drivers-separados (v3).
@@ -66,6 +67,9 @@ function setupCresolCnabSchema(): void
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     setupCresolCnabSchema();
     session(['business.id' => 1]);
     Storage::fake('local');

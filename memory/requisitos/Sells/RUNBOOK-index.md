@@ -51,7 +51,7 @@ Lista vendas (pedidos · faturamento · NF-e/NFS-e) do business com 4 KPIs opera
 - Modules/NfeBrasil ativo se for usar Emit modais (FISCAL section drawer)
 - `business_settings.fiscal_certificate_active=1` + certificado A1 instalado se emissão real (sandbox/produção SEFAZ)
 - Modules/Whatsapp ativo + sessão Meta Cloud autenticada se for usar contextos mensagem
-- Modules/Copiloto ativo se botão `+IA` no drawer for usado
+- Modules/Jana ativo se botão `+IA` no drawer for usado
 
 ## 4. Fluxo principal (golden path)
 
@@ -129,7 +129,7 @@ Lista vendas (pedidos · faturamento · NF-e/NFS-e) do business com 4 KPIs opera
 - `SellController::messageContextPayload($id, $context)` — WhatsApp preview text com variáveis substituídas
 - `SellController::printInvoice($id)` — receipt HTML pra IFRAME imprimir (modo invoice/packing_slip/delivery_note via `printSaleReceipt.ts`)
 - `Modules/NfeBrasil/Http/Controllers/NfeController` — endpoint emit single (NFe/NFCe/NFSe)
-- `Modules/Copiloto` — botão +IA dispara contexto venda → Brain A/B
+- `Modules/Jana` — botão +IA dispara contexto venda → Brain A/B
 - `App\Transaction` model (type='sell'): global scope `business_id` (UPOS canon)
 
 ## 9. Multi-tenant + LGPD
@@ -217,7 +217,7 @@ curl -sv 'https://oimpresso.com/sells' -H 'X-Inertia: true' -H 'X-Inertia-Partia
 - **Modules/NfeBrasil** — emissão SEFAZ (NFe/NFCe/NFSe single + bulk)
 - **Modules/PaymentGateway** — emitir cobrança boleto/PIX/cartão (Onda 4f.0 PR #1587)
 - **Modules/Whatsapp** — preview + envio mensagem contextual
-- **Modules/Copiloto** (Jana) — botão +IA Brain A/B contextual venda
+- **Modules/Jana** (Jana) — botão +IA Brain A/B contextual venda
 - **Modules/Repair** — Criar OS cross-module (1 venda → N OS)
 - **Modules/Fiscal** — config certificado A1 + ambient (sandbox/prod SEFAZ)
 - **Modules/Auditoria** — append-only HISTÓRICO via ActivityLog

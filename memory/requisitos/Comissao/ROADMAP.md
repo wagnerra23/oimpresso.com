@@ -104,7 +104,7 @@
 | US | Feature | Estimate | Trigger |
 |----|---------|----------|---------|
 | US-COMM-010 | Multi-mecânico Repair/OficinaAuto split apontamentos | 3d | Sinal cliente OficinaAuto chega ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) |
-| US-COMM-011 | Comissão sobre líquido marketplace (após taxa ML/iFood) | 2d | Modules/Marketplaces existir com `marketplace_net_amount` |
+| US-COMM-011 | Comissão sobre líquido marketplace (após taxa ML/iFood) | 2d | módulo Marketplaces (planejado — não existe) com `marketplace_net_amount` |
 | US-COMM-013 | Mobile self-service vendedor (PWA `/comissao/minhas`) | 2d | Vendedor delegado pede (não Larissa-dona) |
 | US-COMM-014 | Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` (backfill 90d) | 2d | Reclamação cliente "perdi histórico" — ainda não houve |
 
@@ -117,7 +117,7 @@
 
 ### Bloqueadores potenciais
 
-- Dependências externas (Modules/Marketplaces backlog)
+- Dependências externas (módulo Marketplaces planejado — não existe, em backlog)
 - Sem sinal cliente → feature fica em backlog ADR feature-wish
 
 ---
@@ -149,7 +149,7 @@ Cycle N+2 (1 cycle + 7d observação)
 Cycle N+3+ (variable, sinal-driven)
 └─ Fase 4 — Extras (2-9d à demanda)
    ├─ US-COMM-010 (Repair/Oficina) - quando sinal
-   ├─ US-COMM-011 (marketplace) - quando Modules/Marketplaces existir
+   ├─ US-COMM-011 (marketplace) - quando módulo Marketplaces (planejado — não existe) for criado
    ├─ US-COMM-013 (mobile) - quando vendedor delegado pedir
    └─ US-COMM-014 (migration) - se reclamarem
 ```

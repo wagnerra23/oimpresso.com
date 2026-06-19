@@ -222,7 +222,7 @@ export function FinEditPanel({ lancamento, categorias, onClose }: FinEditPanelPr
       </div>
 
       {form.hasErrors && (
-        <div className="rounded-md border border-rose-300 bg-rose-50 px-3 py-2 mt-3 text-[12px] text-rose-800">
+        <div className="rounded-md border border-destructive/30 bg-destructive-soft px-3 py-2 mt-3 text-[12px] text-destructive-fg">
           {Object.entries(form.errors).map(([key, msg]) => (
             <div key={key}>
               <b>{key}:</b> {msg as string}

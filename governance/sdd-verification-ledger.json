@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "doc": "memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md",
+    "regra": "Todo PR-de-lote de backfill IA (>10 arquivos em memory/requisitos/**) exige 1 entry AQUI antes do merge (plano-mae SDD 2026-06-12, frente GT-G5). Append-only: corrigir = nova entry, nunca editar a antiga. Validado por scripts/governance/ledger-check.mjs (advisory; fase 2 pluga no workflow do scorecard).",
+    "schema_entry": {
+      "pr": "integer — numero do PR do lote",
+      "lote_id": "string — ex: SA-A5-financeiro-01, KL-E3-briefings-02",
+      "data": "string YYYY-MM-DD da refutacao",
+      "tipo": "anchors | prosa",
+      "gerador": "string contendo haiku|sonnet|opus — modelo que gerou o lote",
+      "refutador": "string contendo haiku|sonnet|opus — modelo refutador, rank >= gerador",
+      "sessao_fresca": "boolean — refutador SEM contexto do gerador (obrigatorio true)",
+      "amostra_pct": "number — anchors exige 100; prosa exige >= 30",
+      "itens_verificados": "integer — universo verificado pelo refutador",
+      "erros_confirmados": "integer — itens REFUTADOS com evidencia",
+      "error_rate_pct": "number — erros/itens*100; aceite < 2",
+      "pii_scan": "boolean — CPF/CNPJ/nomes de cliente verificados no diff (repo publico; obrigatorio true)",
+      "pii_hits": "integer — obrigatorio 0",
+      "evidencia": "string — path do artefato de refutacao (session log ou comment do PR)",
+      "veredito": "aprovado | reprovado"
+    }
+  },
+  "entries": [
+    {
+      "pr": 2750,
+      "lote_id": "KL-E2-portas",
+      "data": "2026-06-15",
+      "tipo": "prosa",
+      "gerador": "opus-4.8",
+      "refutador": "opus-4.8",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 25,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0.0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutador G5 sessao fresca 2026-06-15 — cobre PR #2750 (13 redirects FUNDIR) + PR #2751 (4 lapides + 5 wishes + 3 portas leves). 25/25 conferidos contra E1 + emenda #2748 + existencia das pastas-alvo.",
+      "veredito": "aprovado"
+    },
+    {
+      "pr": 2754,
+      "lote_id": "KL-E3-briefings-genuinos",
+      "data": "2026-06-15",
+      "tipo": "prosa",
+      "gerador": "opus-4.8",
+      "refutador": "opus-4.8[1m]",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 71,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0.0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "refutador G5 sessao fresca 2026-06-15 — 5 BRIEFINGs destilados vs codigo real (71 claims load-bearing conferidos)"
+    },
+    {
+      "pr": 2761,
+      "lote_id": "KL-E2-estoque-reparte",
+      "data": "2026-06-15",
+      "tipo": "prosa",
+      "gerador": "opus-4.8",
+      "refutador": "opus-4.8",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 38,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0.0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "refutador G5 sessao fresca 2026-06-15 — reparticao cluster Estoque (34 docs move R100 + 4 stubs)"
+    }
+  ]
+}

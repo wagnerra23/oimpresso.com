@@ -71,6 +71,7 @@ class EmitirNFSeJob implements ShouldQueue
         ]);
 
         // STEP 1 · cria registro multi-tenant (scope global garante biz match)
+        // SUPERADMIN: job em fila sem session; business_id => $this->businessId explícito (constructor).
         $emissao = NfseEmissao::withoutGlobalScope(ScopeByBusiness::class)->create([
             'business_id'    => $this->businessId,
             'transaction_id' => $this->transactionId,
@@ -103,6 +104,7 @@ class EmitirNFSeJob implements ShouldQueue
         ]);
 
         if ($this->emissaoId !== null) {
+            // SUPERADMIN: callback failed() em fila sem session; atualiza emissão criada por este próprio job.
             NfseEmissao::withoutGlobalScope(ScopeByBusiness::class)
                 ->where('id', $this->emissaoId)
                 ->update([

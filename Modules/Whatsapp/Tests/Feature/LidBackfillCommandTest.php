@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\LidPhoneMap;
@@ -22,6 +23,10 @@ uses(Tests\TestCase::class);
  *  104. Idempotência — rodar 2× não duplica row (UNIQUE business+lid)
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['messages', 'whatsapp_lid_pn_map'] as $t) {
         Schema::dropIfExists($t);
     }

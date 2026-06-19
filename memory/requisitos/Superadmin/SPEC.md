@@ -1,11 +1,21 @@
 ---
 module: Superadmin
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 na_justified:
   D5: "Cross-tenant intencional Wagner-only — superadmin opera FORA do multi-tenant por design (ADR 0093 §exceções + ADR 0094 Constituição Art. 6). Cliente externo biz=4 ROTA LIVRE não é alvo; gate `is_superadmin` bloqueia tudo que não seja Wagner. Penalizar D5 distorce ranking de módulo de backoffice."
   D4.c: "Blade legacy intencional (não MWART). Herdado UltimatePOS v6, contém ~50 views Blade que serão preservadas sem migração Inertia/React — superadmin Wagner-only não precisa do investimento MWART (ADR 0104 escopo só fronts cliente). Nenhuma decisão futura prevê reescrita."
 na_justified_v3:
   D8.b: "Superadmin não expõe rotas em `VerifyCsrfToken::except` — todas rotas passam pelo CSRF middleware UltimatePOS padrão. D8.b não aplica por design — não há route do módulo no `except`."
-related_adrs: [0093, 0094, 0104, 0153, 0154, 0155]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0153-module-grade-rubrica-v1
+  - 0154-module-grade-v2-na-justificado
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
 ---
 
 # SPEC — Modules/Superadmin

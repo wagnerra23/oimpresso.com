@@ -155,7 +155,7 @@ export default function AuditoriaTab({ contact }: AuditoriaTabProps) {
       {/* Error state */}
       {error && (
         <div
-          className="p-4 text-xs text-rose-700 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50"
+          className="p-4 text-xs text-destructive-fg flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive-soft"
           data-testid="auditoria-tab-error"
         >
           <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />

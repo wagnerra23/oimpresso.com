@@ -10,6 +10,8 @@ use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Permission\Models\Permission;
 
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
 /**
  * Pest GUARDs — Sells drawer chip cobrança F3 PaymentGateway UI Tela 3.
  *

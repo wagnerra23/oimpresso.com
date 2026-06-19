@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contact;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Entities\ClientFeedback;
 use Modules\Whatsapp\Services\FeedbackIndexGenerator;
@@ -23,6 +24,10 @@ uses(Tests\TestCase::class);
  *   008. --business=X filtra apenas aquele tenant
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['clients_feedbacks', 'contacts', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -182,7 +187,7 @@ it('R-WA-FBR-004 — INDEX inclui só HOT (score >= 70)', function () {
 
 it('R-WA-FBR-005 — INDEX é multi-tenant (separado por business)', function () {
     $c1 = Contact::create(['business_id' => 1, 'name' => 'C1', 'mobile' => '+1', 'type' => 'customer']);
-    $c2 = Contact::create(['business_id' => 4, 'name' => 'C4', 'mobile' => '+4', 'type' => 'customer']);
+    $c2 = Contact::create(['business_id' => 99, 'name' => 'C99', 'mobile' => '+99', 'type' => 'customer']);
 
     ClientFeedback::create([
         'business_id' => 1, 'contact_id' => $c1->id,
@@ -191,10 +196,10 @@ it('R-WA-FBR-005 — INDEX é multi-tenant (separado por business)', function ()
         'persona_slug' => 'kamila-martinho', 'modulo_afetado' => 'financeiro',
     ]);
     ClientFeedback::create([
-        'business_id' => 4, 'contact_id' => $c2->id,
-        'literal' => 'feedback business 4',
+        'business_id' => 99, 'contact_id' => $c2->id,
+        'literal' => 'feedback business 99',
         'severity_nng' => 4, 'recorrente_count' => 5,
-        'persona_slug' => 'larissa-rota-livre', 'modulo_afetado' => 'sells',
+        'persona_slug' => 'tenant-adversario', 'modulo_afetado' => 'sells',
     ]);
 
     $gen = app(FeedbackIndexGenerator::class);
@@ -202,7 +207,7 @@ it('R-WA-FBR-005 — INDEX é multi-tenant (separado por business)', function ()
     $content = file_get_contents($path);
 
     expect($content)->toContain('biz=1');
-    expect($content)->toContain('biz=4');
+    expect($content)->toContain('biz=99');
 });
 
 it('R-WA-FBR-006 — generateArchive() agrupa COLD sem incluir literal PII', function () {

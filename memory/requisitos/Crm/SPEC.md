@@ -1,18 +1,30 @@
 ---
 module: Crm
+owner: wagner
 alias: crm
-status: draft-proposal
+version: "1.0"
+last_updated: "2026-06-13"
+status: rascunho
 proposal_date: 2026-05-12
 proposed_by: opus-4.7 (discovery + research)
 needs_wagner_approval: true
 parent_adr_proposal: memory/decisions/proposals/drafts/crm-pre-venda-pipeline.md
-related_adrs: [0093, 0094, 0096, 0105, 0117, 0121, 0143]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0096-modulo-whatsapp-meta-cloud-api-direto
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0117-multiplos-numeros-whatsapp-por-business
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 related_modules: [Whatsapp, Sells (FSM canon), Jana, Repair, RecurringBilling]
 fsm_handoff: lead_won → transactions.current_stage_id = "quote_draft" (US-SELL-033 processo "Venda Com Produção")
 na_justified:
   D6.a: "Crm é módulo Blade legacy (21 controllers AJAX), sem Inertia::render — Inertia::defer N/A (migração MWART em backlog)."
   D8.b: "Crm Blade tem @csrf padrão preservado — auto-pattern UltimatePOS legacy."
 ---
+
+<!-- schema-allowlist: módulo draft-proposal — US propostas sob "## §6 — User Stories (US-CRM-NNN propostas)"; sem "## US ativas"/"## Backlog ativo" até a ADR-mãe aprovar -->
 
 # Especificação funcional — Crm/Pipeline Pré-venda
 
@@ -358,7 +370,7 @@ Cron diário 08:00 BRT — pra cada user com perm `crm.access_own_leads`:
 **Quero** colunas pipeline em `contacts` (valor_estimado, sla_responder_em, lgpd_consent_at, score, tier, won_transaction_id, lost_motivo_id)
 **Para** habilitar todas US seguintes sem duplicar tabela paralela
 
-**Implementado em:** _Modules/Crm/Database/Migrations/2026_xx_add_pipeline_columns_to_contacts.php_
+**Implementado em:** _pendente_ — migration `2026_xx_add_pipeline_columns_to_contacts.php` não construída (US proposta, aguarda ADR-mãe)
 
 **DoD:**
 - [ ] Migration up/down idempotente

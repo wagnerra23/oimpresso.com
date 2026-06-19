@@ -11,6 +11,9 @@
 //
 //   Fonte única por módulo: memory/dominio/<modulo>.md, bloco ```json com { module, enums }.
 //   enums = { "tabela.coluna": [valores canônicos], ... }.
+//   Onda Q3 (domínios core): + migrations_paths (dirs custom) · tables_scope (tabelas
+//   reivindicadas) · code_paths (Salto #3 estreito) · vocab (vocabulário de coluna
+//   VARCHAR sem constraint física — só col-index do Salto #3, sem comparação enum⇔schema).
 //
 // O guard deriva o ESTADO ATUAL de cada enum percorrendo as migrations do módulo
 // (last-write-wins por tabela.coluna, só a região up()) e compara com o dicionário.
@@ -64,7 +67,7 @@
 //
 // Refs: ADR 0264 (G-4 + Salto #3 cobertura de código) · ADR 0265 (erradica locação) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca).
 
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 
 const ROOT = process.cwd();
@@ -111,6 +114,19 @@ function loadDicts() {
       enums: parsed.enums,
       forbidden_ui_terms: parsed.forbidden_ui_terms || [],
       forbidden_ui_paths: parsed.forbidden_ui_paths || [],
+      // Onda Q3 — domínios CORE (vendas/estoque vivem em database/migrations + app/,
+      // não em Modules/<X>): paths explícitos substituem os defaults por-módulo.
+      // tables_scope restringe o undeclared-column check às tabelas que o domínio
+      // REIVINDICA (sem ele, um dict core seria cobrado por users.marital_status etc).
+      migrations_paths: Array.isArray(parsed.migrations_paths) ? parsed.migrations_paths : null,
+      code_paths: Array.isArray(parsed.code_paths) ? parsed.code_paths : null,
+      tables_scope: Array.isArray(parsed.tables_scope) ? parsed.tables_scope : null,
+      // `vocab` (Onda Q3): vocabulário de coluna SEM constraint física (varchar) — o BD
+      // não constrange, o dicionário é a ÚNICA lei. Entra no col-index do Salto #3
+      // (código fora do vocab = violação) mas NÃO na comparação enum⇔schema (não há
+      // enum pra comparar). Caso real: transactions.type virou varchar(191) na física
+      // (módulos adicionam tipos como production_purchase sem ALTER).
+      vocab: parsed.vocab && typeof parsed.vocab === 'object' ? parsed.vocab : {},
       file: `memory/dominio/${e.name}`,
     };
   }
@@ -158,13 +174,26 @@ function extractEnumDefs(upRegion) {
   return defs.sort((a, b) => a.index - b.index);
 }
 
-// Para um módulo: percorre migrations sorted, last-write-wins por tab.col.
+// Para um domínio: percorre migrations sorted, last-write-wins por tab.col.
+// Default: Modules/<module>/Database/Migrations. Domínio CORE (Onda Q3) declara
+// `migrations_paths` (ex.: ["database/migrations"]) e opcionalmente `tables_scope`
+// (só as tabelas reivindicadas entram no estado → undeclared-column não cobra
+// tabela alheia num diretório compartilhado).
 // Retorna map: "tab.col" -> [valores atuais].
-function currentEnums(moduleName) {
-  const dir = join(MODULES_DIR, moduleName, 'Database', 'Migrations');
-  const files = walk(dir, (full, name) => name.endsWith('.php')).sort((a, b) =>
-    a.localeCompare(b),
-  );
+function currentEnums(moduleName, dict = null) {
+  const dirs = dict?.migrations_paths?.length
+    ? dict.migrations_paths.map((p) => resolve(ROOT, p))
+    : [join(MODULES_DIR, moduleName, 'Database', 'Migrations')];
+  // Ordena pelo BASENAME (timestamp da migration) com comparação por codepoint —
+  // cross-dir o last-write-wins tem que ser CRONOLÓGICO (não path-alfabético) e
+  // determinístico entre Windows/CI (localeCompare é locale-dependente). Caso real:
+  // nfse_emissoes criada no NFSe (2026_05_01) e RE-criada no NfeBrasil (2026_05_11) —
+  // o estado atual é o do NfeBrasil.
+  const base = (p) => p.split(/[\\/]/).pop();
+  const files = dirs
+    .flatMap((d) => walk(d, (full, name) => name.endsWith('.php')))
+    .sort((a, b) => (base(a) < base(b) ? -1 : base(a) > base(b) ? 1 : 0));
+  const scope = dict?.tables_scope?.length ? new Set(dict.tables_scope) : null;
   const state = {};
   for (const file of files) {
     const content = readFileSync(file, 'utf8');
@@ -173,6 +202,7 @@ function currentEnums(moduleName) {
     // pra o ALTER...ENUM voltar a ser uma sequência contígua antes do regex.
     const glued = upRegion.replace(/['"]\s*\.\s*['"]/g, '');
     for (const def of extractEnumDefs(glued)) {
+      if (scope && !scope.has(def.table)) continue; // tabela não-reivindicada (Onda Q3)
       state[`${def.table}.${def.col}`] = def.values; // last write wins
     }
   }
@@ -214,8 +244,24 @@ function buildColIndex(enums) {
   return idx;
 }
 
-// Arquivos de CÓDIGO de aplicação do módulo (exclui data-setup e testes — ver header).
-function moduleCodeFiles(moduleName) {
+// Arquivos de CÓDIGO de aplicação do domínio (exclui data-setup e testes — ver header).
+// Default: Modules/<module>. Domínio CORE declara `code_paths` ESTREITOS (colunas
+// genéricas tipo `status`/`tipo` super-casam — escopo largo em app/ = ruído).
+function moduleCodeFiles(moduleName, dict = null) {
+  if (dict?.code_paths) {
+    const wanted = (full, name) => {
+      if (!name.endsWith('.php') && !name.endsWith('.tsx') && !name.endsWith('.ts')) return false;
+      const rel = norm(full);
+      return !/\/(Database|Tests|tests)\//.test(rel);
+    };
+    return dict.code_paths.flatMap((p) => {
+      const full = resolve(ROOT, p);
+      if (!existsSync(full)) return [];
+      // path pode ser um ARQUIVO único (controller específico) ou diretório.
+      if (statSync(full).isFile()) return wanted(full, full.split(/[\\/]/).pop()) ? [full] : [];
+      return walk(full, wanted);
+    });
+  }
   const dir = join(MODULES_DIR, moduleName);
   return walk(dir, (full, name) => {
     if (!name.endsWith('.php')) return false;
@@ -271,11 +317,11 @@ const lineOf = (content, index) => content.slice(0, index).split('\n').length;
 
 // Viola se a coluna é GOVERNADA pelo dicionário e o valor NÃO é canônico.
 // Retorna { keys:Set, occ:{ key -> [{file,line}] } }.
-function codeValueViolations(moduleName, colIndex) {
+function codeValueViolations(moduleName, colIndex, dict = null) {
   const keys = new Set();
   const occ = {};
   if (!Object.keys(colIndex).length) return { keys, occ };
-  for (const file of moduleCodeFiles(moduleName)) {
+  for (const file of moduleCodeFiles(moduleName, dict)) {
     const content = readFileSync(file, 'utf8');
     for (const { col, value, index } of codeValueRefs(content)) {
       const allowed = colIndex[col];
@@ -359,8 +405,11 @@ function computeViolations() {
 
   // Módulos COM dicionário → comparação valor-a-valor.
   for (const [mod, dict] of Object.entries(dicts)) {
-    const actual = currentEnums(mod);
-    const declaredCols = new Set(Object.keys(dict.enums));
+    const actual = currentEnums(mod, dict);
+    // vocab conta como DECLARADA pro undeclared-column (migrations legadas podem registrar
+    // enum antigo de coluna que hoje é varchar — ex transactions.type) mas fica FORA da
+    // comparação valor-a-valor (não há constraint física pra comparar).
+    const declaredCols = new Set([...Object.keys(dict.enums), ...Object.keys(dict.vocab)]);
     const actualCols = new Set(Object.keys(actual));
 
     // Coluna enum no schema do módulo, fora do dicionário.
@@ -378,7 +427,8 @@ function computeViolations() {
     }
 
     // SALTO #3 — valores de domínio hardcoded no código de aplicação.
-    const { keys, occ } = codeValueViolations(mod, buildColIndex(dict.enums));
+    // col-index = enums (constraint física) ∪ vocab (vocabulário de varchar — Onda Q3).
+    const { keys, occ } = codeValueViolations(mod, buildColIndex({ ...dict.enums, ...dict.vocab }), dict);
     for (const key of keys) { violations.push(key); occurrences[key] = occ[key]; stats.code_divergences++; }
 
     // SALTO #4 — termos PROIBIDOS user-facing (trava de regressão ADR 0265).

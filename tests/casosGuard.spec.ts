@@ -276,3 +276,47 @@ describe('casos:check — G-7 status derivado do verde (físico)', () => {
     expect(out).toMatch(/status:lies:resources\/js\/Pages\/R\/Index\.casos\.md#UC-02/);
   });
 });
+
+// ── Onda Q2 — ratchet SÓ-DESCE do arquivo de baseline (--check-baseline-shrink) ────────
+// O ratchet padrão pega violação nova no repo; este modo impede o BASELINE COMMITADO de
+// crescer vs a referência (main). Método ADR 0258: visto FALHAR (cresceu) e PASSAR (encolheu).
+describe('casos:check — só-desce do baseline (Onda Q2, físico)', () => {
+  const baselineWith = (rel: string, violations: string[]) =>
+    write(rel, JSON.stringify({ _meta: { gate: 'fixture' }, violations }, null, 2));
+
+  it('SENSIBILIDADE: baseline com entrada NOVA vs referência → exit 1 citando a entrada', () => {
+    baselineWith('ref/baseline-main.json', ['trio:missing-casos:resources/js/Pages/A/Index.tsx']);
+    baselineWith('scripts/casos-coverage-baseline.json', [
+      'trio:missing-casos:resources/js/Pages/A/Index.tsx',
+      'trio:missing-casos:resources/js/Pages/B/Index.tsx', // dívida NOVA fotografada
+    ]);
+    const out = runExpectFail('--check-baseline-shrink ref/baseline-main.json');
+    expect(out).toMatch(/Baseline CRESCEU/);
+    expect(out).toMatch(/trio:missing-casos:resources\/js\/Pages\/B\/Index\.tsx/);
+    expect(out).toMatch(/casos-baseline-grow-approved/); // caminho consciente documentado
+  });
+
+  it('ESPECIFICIDADE: baseline ENCOLHEU vs referência → passa reportando a queda', () => {
+    baselineWith('ref/baseline-main.json', [
+      'trio:missing-casos:resources/js/Pages/A/Index.tsx',
+      'trio:missing-casos:resources/js/Pages/B/Index.tsx',
+    ]);
+    baselineWith('scripts/casos-coverage-baseline.json', [
+      'trio:missing-casos:resources/js/Pages/A/Index.tsx',
+    ]);
+    const out = run('--check-baseline-shrink ref/baseline-main.json');
+    expect(out).toMatch(/só-desce OK/);
+    expect(out).toMatch(/caiu −1/);
+  });
+
+  it('ESPECIFICIDADE: baseline idêntico → estável, passa', () => {
+    baselineWith('ref/baseline-main.json', ['x:1']);
+    baselineWith('scripts/casos-coverage-baseline.json', ['x:1']);
+    expect(run('--check-baseline-shrink ref/baseline-main.json')).toMatch(/estável/);
+  });
+
+  it('GRACIOSO: referência ausente (bootstrap) → exit 0 sem efeito', () => {
+    baselineWith('scripts/casos-coverage-baseline.json', ['x:1']);
+    expect(run('--check-baseline-shrink ref/nao-existe.json')).toMatch(/bootstrap/);
+  });
+});

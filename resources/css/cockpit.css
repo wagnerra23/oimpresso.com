@@ -151,7 +151,8 @@
   font-family: var(--font-sans);
   font-size: 13.5px;
   color: var(--text);
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--atmo);   /* atmosfera do ERP — §TEMPERO (foundations.css); par dark via [data-theme]. Telas por cima ficam transparentes pra deixar passar. */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

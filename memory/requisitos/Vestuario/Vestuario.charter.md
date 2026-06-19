@@ -45,7 +45,7 @@ Add-on vertical de moda/vestuário sobre o núcleo oimpresso — entrega estoque
 - ❌ **Visão financeira AR/AP unificada** → vive em `Modules/Financeiro`
 - ❌ **Boleto/assinatura/cobrança recorrente** → vive em `Modules/RecurringBilling`
 - ❌ **Multi-tenant `business_id` global scope** → infraestrutura núcleo Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- ❌ **Jana IA / memória persistente** → vive em `Modules/Copiloto`
+- ❌ **Jana IA / memória persistente** → vive em `Modules/Jana`
 - ❌ **Cofre de senhas/credenciais** → vive em `Modules/MemCofre`
 - ❌ **PCP de produção** (planejamento, ordem de produção, BOM gráfico) — isso é de `Modules/ComunicacaoVisual`
 - ❌ **OS de reparo/ajuste de roupa** — Modules/Repair atende, vestuário só consome se cliente quiser
@@ -93,7 +93,7 @@ Validação: ROTA LIVRE biz=4, 17.251+ vendas, 99% volume sistema, em prod desde
 
 ## 6. Automation hooks (onde Jana IA atua)
 
-> Jana = Modules/Copiloto. Hooks abaixo são **propostos** — exigem sinal qualificado ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) antes de virar US ativa.
+> Jana = Modules/Jana. Hooks abaixo são **propostos** — exigem sinal qualificado ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) antes de virar US ativa.
 
 - ✅ **Alerta estoque baixo por variant** — quando `qty_available < min_stock` por SKU+tamanho+cor, Jana sugere reposição no chat contextual
 - ✅ **Comparativo semanal de vendas** — Larissa pergunta "como foi essa semana vs anterior?" → ContextoNegocio responde com 3 ângulos faturamento ([ADR 0052](../../decisions/0052-contexto-negocio-3-angulos-faturamento.md))
@@ -125,7 +125,7 @@ Validação: ROTA LIVRE biz=4, 17.251+ vendas, 99% volume sistema, em prod desde
 |---|---|---|
 | `Modules/NfeBrasil` | Listener `NFCeAutorizada` ao finalizar venda; pipeline TransactionBuilder | consome |
 | `Modules/Financeiro` | Visão unificada AR/AP de boletos da loja, DRE simplificado | consome |
-| `Modules/Copiloto` (Jana) | Chat contextual + alertas + brief diário | consome |
+| `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário | consome |
 | `Modules/RecurringBilling` | Plano mensal da loja (assinatura oimpresso) — não vendas finais | consome |
 | `Modules/Repair` | OS de ajuste/conserto de roupa (opcional, se cliente ativar) | consome opcional |
 | `Modules/MemCofre` | Cofre senhas (cert digital, login fornecedor) | consome opcional |

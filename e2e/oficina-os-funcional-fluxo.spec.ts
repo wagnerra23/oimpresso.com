@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 // E2E de comportamento — OS FUNCIONAL fim-a-fim (PACOTE QUALIDADE-9 PR-1 · ADR 0264 G-3).
-// Fonte do contrato: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md
+// Fonte do contrato: resources/js/Pages/OficinaAuto/ServiceOrders/Board.casos.md (re-ancorado Onda Q2)
 //   UC-11 (caminho da Larissa): criar OS (cliente+veículo) → DVI com semáforo → foto no
 //   laudo → pedir aprovação → avançar etapa (executar) → imprimir A4.
 //

@@ -1,9 +1,13 @@
 ---
 module: Spreadsheet
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: arquivado
 na_justified:
   D5: "Utilitário backend de import/export planilhas cross-business. Não tem cliente externo direto — serve todos businesses como infraestrutura compartilhada (mesma natureza Brief/MCP tools — ADR 0094 §SoC brutal). ADR 0105 (cliente como sinal qualificado): função é infraestrutura interna, não produto cliente-facing."
   D9.b: "Spreadsheet é módulo CRUD síncrono — sem jobs assíncronos. CRUD de sheets + shares opera direto via Controller. failed_jobs N/A por design (sem owner ativo, manutenção bug-fix only)."
-related_adrs: [0093, 0094, 0105, 0153, 0154, 0155, 0156]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified]
 ---
 
 # SPEC — Modules/Spreadsheet

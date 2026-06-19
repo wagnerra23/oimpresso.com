@@ -280,7 +280,7 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
                   <td className="px-2"><PaymentPill s={r.payment_status} /></td>
                   <td className="px-2 text-right tabular-nums font-medium">{brl(r.final_total)}</td>
                   <td className="px-2 text-right tabular-nums">
-                    <span className={r.payment_due > 0 ? 'text-rose-700 font-medium' : 'text-stone-400'}>
+                    <span className={r.payment_due > 0 ? 'text-destructive-fg font-medium' : 'text-stone-400'}>
                       {brl(r.payment_due)}
                     </span>
                   </td>
@@ -302,7 +302,7 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
                         </Button>
                       )}
                       {permissions.delete && (
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => onDelete(r.id)} title="Excluir">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r.id)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}

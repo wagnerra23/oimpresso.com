@@ -3,10 +3,10 @@ page: /financeiro/fluxo
 component: resources/js/Pages/Financeiro/Fluxo/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-21
+last_validated: "2026-05-21"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
-related_adrs: [arq/0005, ui/0114, 0093, 0094, 0104]
+related_adrs: [0005-financeiro-vs-accounting-paralelo, 0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho]
 related_us: [US-FIN-014, US-FIN-014c]
 related_prototype: prototipo Cowork "Fluxo de Caixa" (Financeiro.html), aprovado [W] 2026-05-09
 related_decisions: memory/requisitos/Financeiro/fluxo-visual-comparison.md (Q1-Q4 aprovadas [W] 2026-05-14)

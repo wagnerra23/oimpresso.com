@@ -14,6 +14,10 @@ use Modules\Jana\Mcp\Tools\WhatsActiveTool;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('mcp_cc_sessions', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->string('session_uuid', 36)->unique();
@@ -71,9 +75,11 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('mcp_cc_messages');
-    Schema::dropIfExists('mcp_cc_sessions');
-    Schema::dropIfExists('users');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('mcp_cc_messages');
+        Schema::dropIfExists('mcp_cc_sessions');
+        Schema::dropIfExists('users');
+    }
 });
 
 function makeUser(array $attrs = []): \App\User

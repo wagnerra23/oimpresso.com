@@ -622,7 +622,7 @@ function TokensListDialog({
         </DialogHeader>
 
         {loading && <div className="py-6 text-sm text-muted-foreground">Carregando tokens…</div>}
-        {error && <div className="py-6 text-sm text-red-600">{error}</div>}
+        {error && <div className="py-6 text-sm text-destructive-fg">{error}</div>}
         {!loading && !error && tokens && tokens.length === 0 && (
           <div className="py-8 text-center text-sm text-muted-foreground">
             Nenhum token registrado pra esse dev ainda.

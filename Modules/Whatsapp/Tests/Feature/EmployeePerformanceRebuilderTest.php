@@ -24,6 +24,10 @@ uses(Tests\TestCase::class);
  *   9. SLA breach contado quando >4h
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['employee_performance', 'customer_memory', 'messages', 'conversations', 'users', 'business'] as $t) {
         Schema::dropIfExists($t);
     }

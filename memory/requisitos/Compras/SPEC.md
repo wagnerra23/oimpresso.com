@@ -75,7 +75,7 @@ Motivação: comparativo Compras × Sells 2026-05-25 (sessão `frosty-greider-83
 **Status:** in_progress (Wave 1 scaffold = 2026-05-21)
 **Persona:** todo user com permission `compras.view` (admin biz, financeiro, gestor compras)
 **Esforço:** ~6-8h IA-pair (Waves 1-5 já dimensionadas)
-**Implementado em:** `resources/js/Pages/Compras/Index.tsx` (a criar Wave 4)
+**Implementado em:** `resources/js/Pages/Compras/Index.tsx` · verificado@fd96258 (2026-06-13)
 
 Como user com permission `compras.view`, quero acessar `/compras` e ver cockpit completo das compras do meu business com 4 KPIs (aberto/trânsito/mês/fornecedor) e lista paginada filtrável por estágio FSM, pra poder priorizar conferência/pagamento sem precisar abrir cada compra.
 

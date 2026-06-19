@@ -25,6 +25,17 @@ declare(strict_types=1);
  *   - Grade mode: sempre visível (sticky-bottom no card da tabela)
  *
  * Refs: ADR 0136 (Sells Grade Avançada), ADR 0093 (multi-tenant Tier 0).
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem `SellsTotalsRow.tsx` / `SellsGradeAvancada.tsx` (DELETADOS) e o markup do
+ * toggle "Mostrar totais" de `Index.tsx` (markers verificados ausentes). NÃO é bug.
+ * Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * 🔴 Os it() de BACKEND (inertiaList totals) PERMANECEM ATIVOS — guards VIVOS que
+ * passam hoje: clone do builder preserva TODOS os filtros (inclui business_id ADR
+ * 0093), COALESCE(SUM) anti-null, sum_due nunca negativo, subquery anti-regressão
+ * US-SELL-008. Idem o it() de Index.tsx que ainda passa (captura json.totals).
  */
 
 const SELL_CONTROLLER_PATH_TOTALS = 'app/Http/Controllers/SellController.php';
@@ -113,7 +124,8 @@ it('inertiaList total_paid sum usa subquery transaction_payments (NÃO coluna di
 
 it('SellsTotalsRow.tsx existe', function () {
     expect(file_exists(base_path(TOTALS_ROW_PATH)))->toBeTrue();
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsTotalsRow tem 4 labels canon PT-BR (Qtd, Total, Pago, A receber)', function () {
     $src = readTotalsRow();
@@ -121,24 +133,28 @@ it('SellsTotalsRow tem 4 labels canon PT-BR (Qtd, Total, Pago, A receber)', func
     expect($src)->toContain('Total');
     expect($src)->toContain('Pago');
     expect($src)->toContain('A receber');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsTotalsRow tem 2 modos: compact (Lista opt-in) + sticky-bottom (Grade default)', function () {
     $src = readTotalsRow();
     expect($src)->toContain('compact');
     expect($src)->toContain('sticky bottom-0');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsTotalsRow money formatter usa pt-BR / BRL (vírgula decimal, ponto milhar)', function () {
     $src = readTotalsRow();
     expect($src)->toMatch("/Intl\\.NumberFormat\\([\\s'\"]+pt-BR[\\s'\"]+,[\\s\\S]*?style:\\s*[\'\"]currency[\'\"]/");
     expect($src)->toContain("currency: 'BRL'");
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsTotalsRow Pago é semantic emerald (verde) e A receber é amber (amarelo) — Cockpit V2', function () {
     $src = readTotalsRow();
     expect($src)->toMatch('/text-emerald-700[\\s\\S]*?text-amber-700/');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Frontend: Index.tsx (Lista mode toggle "Mostrar totais") ───────────────
 
@@ -146,23 +162,27 @@ it('Index.tsx tem toggle "Mostrar totais" em Lista mode (US-SELL-017)', function
     $src = readIndexTotals();
     expect($src)->toContain('Mostrar totais');
     expect($src)->toContain('Esconder totais');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx toggle "Mostrar totais" persiste em localStorage com prefix oimpresso. (charter ADR 0110)', function () {
     $src = readIndexTotals();
     expect($src)->toContain('oimpresso.sells.showTotalsLista');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx toggle "Mostrar totais" default OFF (não polui Lista limpa)', function () {
     $src = readIndexTotals();
     // Pattern: getItem('oimpresso.sells.showTotalsLista') === '1' (false se nunca setou)
     expect($src)->toMatch('/showTotalsLista[\\s\\S]*?===\\s*[\'"]1[\'"]/');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx renderiza SellsTotalsRow compact em Lista mode quando toggle ativo', function () {
     $src = readIndexTotals();
     expect($src)->toMatch('/showTotalsLista\\s*&&[\\s\\S]*?SellsTotalsRow[\\s\\S]*?compact/');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx captura totals do JSON response (refetch + initial)', function () {
     $src = readIndexTotals();
@@ -176,4 +196,5 @@ it('SellsGradeAvancada renderiza SellsTotalsRow sempre (não opt-in — Grade é
     expect($src)->toContain('<SellsTotalsRow');
     // Sem flag condicional — sempre renderiza
     expect($src)->toMatch('/<SellsTotalsRow\\s+totals=/');
-});
+    // quarantine-reason: SellsTotalsRow/SellsGradeAvancada deletados ou toggle Mostrar totais removido do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');

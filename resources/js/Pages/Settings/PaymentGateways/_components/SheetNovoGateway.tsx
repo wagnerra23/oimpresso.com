@@ -218,10 +218,10 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
 
                     {/* Onda 4e.UI #7 — destaque bancos com API moderna disponível (futuros drivers nativos PaymentGateway Onda 4f).
                         Tier S de maturidade Open Finance + Pix Cobrança REST, dados de WebSearch oficial 2026-05-23. */}
-                    <div className="mt-2 bg-amber-50/60 border border-amber-200 rounded px-2 py-1.5 text-[10px] text-amber-900 leading-snug">
+                    <div className="mt-2 bg-warning-soft border border-warning/20 rounded px-2 py-1.5 text-[10px] text-warning-fg leading-snug">
                       <span className="font-medium">Bancos com API moderna disponível</span> (futuros drivers nativos):
                       <div className="font-semibold mt-0.5">🔥 Bradesco · Itaú · BB · Sicredi · Sicoob · Santander · Caixa · BTG</div>
-                      <div className="text-[9.5px] text-amber-700 mt-0.5 italic">(hoje via CNAB — driver nativo + webhook em backlog Onda 4f)</div>
+                      <div className="text-[9.5px] text-warning-fg mt-0.5 italic">(hoje via CNAB — driver nativo + webhook em backlog Onda 4f)</div>
                     </div>
 
                     <div className="text-[10px] text-stone-500 mt-1.5">
@@ -474,7 +474,7 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
                     )}
                   </div>
                 ) : (
-                  <div className="bg-amber-50 border border-amber-200 rounded p-2.5 text-[10.5px] text-amber-900">
+                  <div className="bg-warning-soft border border-warning/20 rounded p-2.5 text-[10.5px] text-warning-fg">
                     <div className="font-semibold mb-0.5">⚠️ Cadastre o certificado A1 da empresa em Fiscal</div>
                     Sicoob API exige cert ICP-Brasil A1 do CNPJ — mesmo que NFe SEFAZ usa.{' '}
                     <a href="/fiscal/configuracao/certificado" target="_blank" rel="noopener noreferrer" className="underline font-medium">
@@ -562,7 +562,7 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
                 Webhook URL será gerada automaticamente — cole no painel do {d.nome} após criação.
               </div>
               {error && (
-                <div className="bg-rose-50 border border-rose-200 rounded p-2.5 text-[11px] text-rose-800">
+                <div className="bg-destructive-soft border border-destructive/20 rounded p-2.5 text-[11px] text-destructive-fg">
                   {error}
                 </div>
               )}

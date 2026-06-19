@@ -85,10 +85,10 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
 
       {/* Candidatos a promoção */}
       {candidates.length > 0 && (
-        <Card className="border-emerald-500/30 bg-emerald-500/5">
+        <Card className="border-success/30 bg-success-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-emerald-600" />
+              <Lightbulb className="w-5 h-5 text-success-fg" />
               Padrões prontos pra promoção
               <Badge className="ml-auto bg-emerald-600">{candidates.length}</Badge>
             </CardTitle>
@@ -109,7 +109,7 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
                       LB {c.wilson_lower_bound.toFixed(3)}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground pl-2 border-l-2 border-emerald-300">
+                  <p className="text-xs text-muted-foreground pl-2 border-l-2 border-success/30">
                     {c.recommendation}
                   </p>
                 </li>

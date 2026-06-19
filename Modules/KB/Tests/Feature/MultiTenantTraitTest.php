@@ -31,6 +31,8 @@ beforeEach(function () {
 
     // Tabela activity_log (Spatie) — KbNode/KbComment usam LogsActivity (Wave 11).
     // Schema mínimo só pros tests; Modules/KB/Tests/Helpers.php é shared (compatibilidade).
+    // CORE COMPARTILHADA: create só condicional (no-op em MySQL já-migrado, cria
+    // no sqlite fresco); NUNCA dropada no afterEach (era-sqlite floor fix 2026-06-13).
     if (! \Schema::hasTable('activity_log')) {
         \Schema::create('activity_log', function (\Illuminate\Database\Schema\Blueprint $t) {
             $t->bigIncrements('id');
@@ -49,7 +51,8 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    \Schema::dropIfExists('activity_log');
+    // activity_log é CORE COMPARTILHADA — NÃO dropar (quebraria testes alheios
+    // na full-suite MySQL persistente). Só limpa kb_* via kbTeardownSchema().
     kbTeardownSchema();
 });
 

@@ -264,7 +264,7 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                             <div
-                              className={`h-full ${m.trace_score >= 80 ? 'bg-emerald-500' : m.trace_score >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                              className={`h-full ${m.trace_score >= 80 ? 'bg-success' : m.trace_score >= 40 ? 'bg-warning' : 'bg-destructive'}`}
                               style={{ width: `${Math.min(100, m.trace_score)}%` }}
                             />
                           </div>
@@ -278,7 +278,7 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
                           <div className="flex items-center gap-2">
                             <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                               <div
-                                className={`h-full ${m.audit_score >= 80 ? 'bg-emerald-500' : m.audit_score >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                className={`h-full ${m.audit_score >= 80 ? 'bg-success' : m.audit_score >= 50 ? 'bg-warning' : 'bg-destructive'}`}
                                 style={{ width: `${Math.min(100, m.audit_score)}%` }}
                               />
                             </div>
@@ -294,7 +294,7 @@ export default function MemCofreDashboard({ stats, modules, recent_sources, cove
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                             <div
-                              className={`h-full ${m.dod_pct >= 80 ? 'bg-emerald-500' : m.dod_pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                              className={`h-full ${m.dod_pct >= 80 ? 'bg-success' : m.dod_pct >= 40 ? 'bg-warning' : 'bg-destructive'}`}
                               style={{ width: `${Math.min(100, m.dod_pct)}%` }}
                             />
                           </div>
@@ -394,7 +394,7 @@ function CoverageDots({ coverage }: { coverage: Coverage | null }) {
         <div
           key={i}
           title={`${d.label}: ${d.on ? 'ok' : 'faltando'}`}
-          className={`w-2 h-2 rounded-full ${d.on ? 'bg-emerald-500' : 'bg-muted'}`}
+          className={`w-2 h-2 rounded-full ${d.on ? 'bg-success' : 'bg-muted'}`}
         />
       ))}
       <span className="ml-1 text-[10px] text-muted-foreground font-mono">{coverage.score}</span>

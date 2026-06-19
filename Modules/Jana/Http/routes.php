@@ -108,11 +108,12 @@ Route::group(
         Route::delete('/memoria/{id}',                     [\Modules\KB\Http\Controllers\MemoriaController::class, 'destroy'])->name('jana.memoria.destroy');
 
         // ---- Ghosts canon ADR 0182 + GUIA-SIDEBAR-V3 (Wagner 2026-05-21) -----
-        // 5 destinos canon do hub IA: Copiloto / Brief / Memórias / KB / Regras.
-        // Brief e Regras são stubs "Em construção" (telas dedicadas vêm em onda
-        // futura); Memórias e KB redirecionam pras rotas existentes preservando
-        // o ghost clicável no header canon.
-        Route::get('/brief',                               'BriefController@index')->name('jana.brief.index');
+        // Destinos canon do hub IA: Copiloto / Memórias / KB / Regras.
+        // Regras é stub "Em construção" (tela dedicada vem em onda futura);
+        // Memórias e KB redirecionam pras rotas existentes preservando o ghost
+        // clicável no header canon.
+        // /brief removido 2026-06-15 (Wagner): stub redundante com o brief já
+        // entregue via chat + brief-fetch (MCP) + seção "Brief diário" do dashboard.
         Route::get('/regras',                              'RegrasController@index')->name('jana.regras.index');
 
         // ---- Superadmin (metas da plataforma, ver adr/arq/0001) ------------

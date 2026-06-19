@@ -15,6 +15,15 @@ use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
+    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
+    // sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+});
+
 it('governance:scorecard-snapshot persiste rows em mcp_scorecard_runs', function () {
     expect(Schema::hasTable('mcp_scorecard_runs'))->toBeTrue();
 

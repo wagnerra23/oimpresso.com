@@ -26,12 +26,9 @@ uses(DatabaseTransactions::class);
 
 beforeEach(function () {
     try {
-        $this->business = \App\Business::first();
+        $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     } catch (\Throwable $e) {
         $this->markTestSkipped('Schema UltimatePOS ausente — rode local com DB_CONNECTION=mysql (dev) ou aguarde CI integration job.');
-    }
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
     }
 
     $this->user = \App\User::where('business_id', $this->business->id)->first();

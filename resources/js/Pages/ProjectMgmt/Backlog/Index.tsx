@@ -340,7 +340,7 @@ function BacklogIndex({
                     className={[
                       'border-b transition-colors',
                       sel ? 'bg-primary/5' : 'hover:bg-muted/40',
-                      t.is_blocked ? 'bg-red-50/40 dark:bg-red-950/10' : '',
+                      t.is_blocked ? 'bg-destructive-soft/40' : '',
                     ].filter(Boolean).join(' ')}
                   >
                     <td className="py-1.5 px-3">
@@ -367,7 +367,7 @@ function BacklogIndex({
                     </td>
                     <td className="py-1.5 px-3 text-center">
                       {t.due_date ? (
-                        <span className={`inline-flex items-center gap-1 text-[10px] ${t.is_overdue ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
+                        <span className={`inline-flex items-center gap-1 text-[10px] ${t.is_overdue ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
                           {t.is_overdue ? <AlertCircle size={10} /> : <Calendar size={10} />}
                           {fmtDate(t.due_date)}
                         </span>

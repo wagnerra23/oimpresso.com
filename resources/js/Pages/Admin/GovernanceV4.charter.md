@@ -1,9 +1,10 @@
 ---
-page: Admin/GovernanceV4
+page: /admin/governance/v4
+component: resources/js/Pages/Admin/GovernanceV4.tsx
 controller: Modules\Admin\Http\Controllers\GovernanceV4DashboardController@indexV2
 route: admin.governance.v4
 status: draft
-owner: [W] Wagner
+owner: wagner
 persona_principal: Wagner / governance command center (1440px desktop)
 persona_secundaria: time MCP futuro (Felipe/Maiara — read-only ONDA 7+)
 charter_version: 1.0

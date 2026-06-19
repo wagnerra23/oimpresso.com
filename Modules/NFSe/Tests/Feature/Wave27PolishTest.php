@@ -203,7 +203,7 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
 
         // PII tomador rastreado pra LGPD Art. 37 (registro operações tratamento dados)
         foreach (['tomador_cnpj', 'tomador_cpf', 'tomador_nome', 'tomador_email'] as $pii) {
-            expect($fillable)->toContain($pii, "PII {$pii} deve estar em logFillable pra audit LGPD");
+            expect($fillable)->toContain($pii);
         }
     });
 
@@ -211,7 +211,7 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
         $fillable = (new NfseEmissao())->getFillable();
 
         foreach (['valor_servicos', 'valor_iss', 'aliquota_iss', 'lc116_codigo', 'iss_retido'] as $fiscal) {
-            expect($fillable)->toContain($fiscal, "Campo fiscal {$fiscal} deve estar em audit trail");
+            expect($fillable)->toContain($fiscal);
         }
     });
 

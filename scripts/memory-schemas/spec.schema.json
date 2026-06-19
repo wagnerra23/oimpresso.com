@@ -54,6 +54,11 @@
       "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
       "uniqueItems": true,
       "default": []
+    },
+    "anchor_format": {
+      "type": "string",
+      "enum": ["v1"],
+      "description": "ADR 0273 (SA-A1) — declara que TODO campo '**Implementado em:**' do corpo segue a gramática canônica v1 (path + verificado@sha7 + sentinelas _pendente_/_parcial_). Key OPCIONAL (grace-period: 57 SPECs legados sem a key continuam válidos — regra 'campo novo opcional até backfill' do README). SPEC novo nasce com ela (template _TEMPLATE_SPEC.md). Corpo é validado pelo anchor-lint.mjs (passo SA seguinte), não por este schema."
     }
   }
 }

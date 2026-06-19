@@ -1,16 +1,18 @@
 ---
-title: SPEC — Modules/FinanceiroAvancado
-status: draft
+title: SPEC — FinanceiroAvancado (planejado — não existe)
+status: rascunho
 date: 2026-05-12
+last_updated: "2026-06-13"
+version: "1.0"
 owner: wagner
 module: FinanceiroAvancado
 parent_modules: [Financeiro, Accounting, RecurringBilling, NfeBrasil, Inventory]
 convention_id: US-FINA-NNN
-related_adrs: [0093, 0094, 0104, 0143]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 proposal_adr: financeiro-avancado-dre-fluxo-conciliacao
 ---
 
-# SPEC — Modules/FinanceiroAvancado
+# SPEC — FinanceiroAvancado (planejado — não existe)
 
 > **NÃO** é módulo novo "do zero". É **camada de aprofundamento analítico** sobre `Modules/Financeiro` (operacional) + `Modules/Accounting` (contábil formal) + `Modules/RecurringBilling` (cobrança Asaas/Inter) + `Modules/NfeBrasil` (fiscal). Foco: **DRE realista por competência/caixa**, **fluxo de caixa projetado com IA**, **conciliação bancária automática** (extrato Inter/Asaas/OFX → títulos abertos), **plano de contas configurável BR**, **margem real por venda** e **categorização IA Jana**.
 
@@ -50,7 +52,7 @@ Auditoria executada em `Modules/Financeiro/` (12 controllers, 10 Models, 12 migr
 
 ## §1 — Visão
 
-`Modules/FinanceiroAvancado` adiciona ao stack financeiro existente:
+`FinanceiroAvancado (planejado — não existe)` adiciona ao stack financeiro existente:
 
 1. **Conciliação automática multi-banco** (Inter/Asaas/C6/Sicoob/BTG/Cora/OFX) com match score IA Jana (>95% auto-aceita, 80-95% sugere, <80% rejeita)
 2. **DRE BR estrutura formal completa** (10 linhas) por **regime tenant** (caixa/competência) com **drill-down** + **export PDF/Excel** + **token shareable 7d pro contador**
@@ -73,7 +75,7 @@ Larissa abre `/financeiro-avancado/dre?mes=2026-05&regime=caixa`:
 - (-) CMV: R$ [redacted Tier 0] (somatório `transaction_sell_lines.product.purchase_price` × qty — bridge `Inventory`)
 - (=) Lucro Bruto: R$ [redacted Tier 0] (62%)
 - (-) Despesas operacionais: R$ [redacted Tier 0]k (`fin_titulos tipo=pagar status=quitado` + classificado em plano contas `4.x.x Despesas`)
-- (-) Comissões: R$ [redacted Tier 0]k (bridge `Modules/Comissao` — futuro; hoje manual em plano contas)
+- (-) Comissões: R$ [redacted Tier 0]k (bridge com módulo `Comissao` (planejado — não existe) — futuro; hoje manual em plano contas)
 - (=) EBITDA: R$ [redacted Tier 0] (30%)
 - (-) D&A: R$ [redacted Tier 0] (Larissa não usa Accounting formal)
 - (-) IRPJ/CSLL: R$ [redacted Tier 0] (Simples Nacional — incluso na DAS já deduzida)
@@ -140,10 +142,14 @@ Tabelas novas (todas `business_id` indexado + FK + global scope):
 | **Modules/Accounting** | Read `accounting_account_transactions` quando tenant `accounting_sync_enabled=true`. Write zero (Accounting é autoritário formal). | Bridge listener `SyncDreToAccounting` opt-in (ADR ARQ-0005). |
 | **Modules/RecurringBilling** | Read `Services/Banking/InterBankingClient` extrato; `Services/Boleto/Drivers/AsaasDriver` extrato Asaas. Write zero. | Job diário `SyncBankStatementsJob` (existente) atualiza `extrato_lancamentos`. |
 | **Modules/NfeBrasil** | Listener `NfeEmitida` → cria entry contábil `accounting_account_transactions` (se sync ON) + atualiza projeção. | Event `NfeEmitida(transaction_id, xml, valor)`. |
-| **Modules/Inventory** | Read `products.purchase_price` + `purchase_lines.exp_date`/`lot_number` pra `fina_margin_analysis`. Write zero. | Service contract `InventoryCostResolver::resolveForSell($transactionId)`. |
+| **Inventory** (núcleo UltimatePOS, não é módulo) | Read `products.purchase_price` + `purchase_lines.exp_date`/`lot_number` pra `fina_margin_analysis`. Write zero. | Service contract `InventoryCostResolver::resolveForSell($transactionId)`. |
 | **Modules/Repair** | Read `repair_jobs.total_labor_cost` quando venda tem OS linkada. Write zero. | Service contract `RepairLaborResolver::resolveForSell($transactionId)`. |
 | **Modules/Jana (Copiloto)** | Tool `categorizar_transacao_extrato(extrato_id)` retorna `{plano_conta_id, confidence}`. Tool `sugerir_acao_fluxo_caixa(business_id, horizonte)` retorna cenários ranked. | MCP tool exposed CT 100. |
 | **FSM canônico ADR 0143** | Action `marcar_pago` (transição `aprovado→pago`) dispara `CashMovementCreatedEvent` → invalida projeção + atualiza DRE snapshot. | Event hook em `FsmEngine::transition()`. |
+
+## US ativas
+
+> Backlog de user stories deste SPEC (convenção `US-FINA-NNN`). Detalhamento completo na seção §5 abaixo.
 
 ## §5 — User Stories US-FINA-NNN
 
@@ -206,7 +212,7 @@ Tabelas novas (todas `business_id` indexado + FK + global scope):
 
 ## §6 — Decisões pendentes top 3
 
-1. **Extender Modules/Financeiro vs criar Modules/FinanceiroAvancado separado?** Argumento separar: SoC brutal (ADR 0094 §5); Financeiro = operacional, FinanceiroAvancado = analítico/IA. Argumento juntar: 1 módulo só pra Larissa entender. **Proposta:** separar (ADR D1).
+1. **Extender Modules/Financeiro vs criar FinanceiroAvancado (planejado — não existe) separado?** Argumento separar: SoC brutal (ADR 0094 §5); Financeiro = operacional, FinanceiroAvancado = analítico/IA. Argumento juntar: 1 módulo só pra Larissa entender. **Proposta:** separar (ADR D1).
 2. **DRE realtime calc vs snapshot mensal congelado?** Realtime mais atual; snapshot mais auditável + LGPD-friendly (sem recompute histórico). **Proposta:** híbrido — realtime exibição + snapshot ao fechar mês (ADR D2).
 3. **Auto-aceitar match conciliação threshold?** 95% suficiente? 99%? Trade-off precisão × velocidade. ROTA LIVRE 99% volume — não pode quebrar. **Proposta:** 95% + janela reverter 24h (ADR D6).
 

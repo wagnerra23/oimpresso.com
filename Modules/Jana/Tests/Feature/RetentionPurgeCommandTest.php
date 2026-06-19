@@ -29,6 +29,10 @@ uses(Tests\TestCase::class);
  * @see Modules\Jana\Config\retention.php
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // Força enabled=true via runtime — não toca .env real.
     config(['jana.retention.enabled' => true]);
     config(['jana.retention.strategy' => 'anonymize']);
@@ -99,10 +103,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('jana_mensagens');
-    Schema::dropIfExists('jana_conversas');
-    Schema::dropIfExists('jana_memoria_facts');
-    Schema::dropIfExists('business');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('jana_mensagens');
+        Schema::dropIfExists('jana_conversas');
+        Schema::dropIfExists('jana_memoria_facts');
+        Schema::dropIfExists('business');
+    }
 });
 
 it('RetentionPurge 001 — anonimiza memoria_fato fora do TTL preservando row (default strategy)', function () {
@@ -111,7 +117,7 @@ it('RetentionPurge 001 — anonimiza memoria_fato fora do TTL preservando row (d
         [
             'business_id' => 1,
             'user_id' => 1,
-            'fato' => 'Cliente CPF 123.456.789-00 prefere boleto',
+            'fato' => 'Cliente CPF 123.456.789-00 prefere boleto', // pii-allowlist
             'created_at' => now()->subDays(2000),
             'updated_at' => now()->subDays(2000),
         ],
@@ -159,7 +165,7 @@ it('RetentionPurge 002 — dry-run não persiste nada', function () {
     DB::table('jana_memoria_facts')->insert([
         'business_id' => 1,
         'user_id' => 1,
-        'fato' => 'Cliente CPF 111.222.333-44 fato antigo',
+        'fato' => 'Cliente CPF 111.222.333-44 fato antigo', // pii-allowlist
         'created_at' => now()->subDays(2000),
         'updated_at' => now()->subDays(2000),
     ]);
@@ -174,7 +180,7 @@ it('RetentionPurge 002 — dry-run não persiste nada', function () {
 
     // Dry-run não muda o conteúdo — CPF deve continuar intacto
     $row = DB::table('jana_memoria_facts')->where('business_id', 1)->first();
-    expect($row->fato)->toBe('Cliente CPF 111.222.333-44 fato antigo')
+    expect($row->fato)->toBe('Cliente CPF 111.222.333-44 fato antigo') // pii-allowlist
         ->and($row->fato)->not->toContain('[REDACTED');
 });
 
@@ -184,14 +190,14 @@ it('RetentionPurge 003 — Tier 0: biz=1 purge NUNCA toca biz=99 (cross-tenant i
         [
             'business_id' => 1,
             'user_id' => 1,
-            'fato' => 'biz=1: cliente CPF 123.456.789-00',
+            'fato' => 'biz=1: cliente CPF 123.456.789-00', // pii-allowlist
             'created_at' => now()->subDays(2000),
             'updated_at' => now()->subDays(2000),
         ],
         [
             'business_id' => 99,
             'user_id' => 1,
-            'fato' => 'biz=99: cliente CPF 123.456.789-00 NUNCA TOCAR',
+            'fato' => 'biz=99: cliente CPF 123.456.789-00 NUNCA TOCAR', // pii-allowlist
             'created_at' => now()->subDays(2000),
             'updated_at' => now()->subDays(2000),
         ],
@@ -206,7 +212,7 @@ it('RetentionPurge 003 — Tier 0: biz=1 purge NUNCA toca biz=99 (cross-tenant i
 
     // biz=99 deve estar INTOCADA mesmo com a mesma PII + mesma idade
     $biz99 = DB::table('jana_memoria_facts')->where('business_id', 99)->first();
-    expect($biz99->fato)->toBe('biz=99: cliente CPF 123.456.789-00 NUNCA TOCAR')
+    expect($biz99->fato)->toBe('biz=99: cliente CPF 123.456.789-00 NUNCA TOCAR') // pii-allowlist
         ->and($biz99->fato)->not->toContain('[REDACTED');
 
     // biz=1 deve estar anonimizada

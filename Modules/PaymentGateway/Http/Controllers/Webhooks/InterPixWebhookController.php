@@ -54,6 +54,7 @@ class InterPixWebhookController extends Controller
     public function handle(Request $request, int $credentialId): JsonResponse
     {
         // 1. Resolve credencial (withoutGlobalScopes — webhook não tem sessão)
+        // SUPERADMIN: webhook externo (Inter PIX) sem sessão autenticada; resolve a credencial pelo credentialId da rota e valida HMAC antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('id', $credentialId)
             ->where('gateway_key', 'inter')

@@ -89,7 +89,7 @@ function TaskCard({ task, onDragStart }: { task: Task; onDragStart: (id: string)
         {task.owner && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{task.owner}</span>}
         {task.estimate_h && <span className="text-[10px] text-muted-foreground">{task.estimate_h}h</span>}
         {task.blocked_by.length > 0 && (
-          <span className="text-[10px] text-red-500">blk:{task.blocked_by.join(',')}</span>
+          <span className="text-[10px] text-destructive">blk:{task.blocked_by.join(',')}</span>
         )}
       </div>
     </div>

@@ -23,16 +23,16 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   intercorrencia: {
     rascunho:  { variant: 'outline',     label: 'Rascunho' },
     pendente:  { variant: 'secondary',   label: 'Pendente' },
-    aprovada:  { variant: 'default',     label: 'Aprovada',  className: 'bg-emerald-600 hover:bg-emerald-700' },
+    aprovada:  { variant: 'default',     label: 'Aprovada',  className: 'bg-success text-success-foreground hover:bg-success/90' },
     rejeitada: { variant: 'destructive', label: 'Rejeitada' },
-    aplicada:  { variant: 'default',     label: 'Aplicada',  className: 'bg-blue-600 hover:bg-blue-700' },
+    aplicada:  { variant: 'default',     label: 'Aplicada',  className: 'bg-info text-info-foreground hover:bg-info/90' },
     cancelada: { variant: 'outline',     label: 'Cancelada' },
   },
   aprovacao: {
     pendente:  { variant: 'secondary',   label: 'Pendente' },
-    aprovada:  { variant: 'default',     label: 'Aprovada',  className: 'bg-emerald-600 hover:bg-emerald-700' },
+    aprovada:  { variant: 'default',     label: 'Aprovada',  className: 'bg-success text-success-foreground hover:bg-success/90' },
     rejeitada: { variant: 'destructive', label: 'Rejeitada' },
-    aprovada_em_lote: { variant: 'default', label: 'Lote OK', className: 'bg-emerald-600' },
+    aprovada_em_lote: { variant: 'default', label: 'Lote OK', className: 'bg-success text-success-foreground' },
   },
   prioridade: {
     baixa:   { variant: 'outline',     label: 'Baixa' },
@@ -42,27 +42,27 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   },
   payment: {
     pending:        { variant: 'secondary',   label: 'Pendente' },
-    partial:        { variant: 'default',     label: 'Parcial',    className: 'bg-amber-600 hover:bg-amber-700' },
-    paid:           { variant: 'default',     label: 'Pago',       className: 'bg-emerald-600 hover:bg-emerald-700' },
+    partial:        { variant: 'default',     label: 'Parcial',    className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    paid:           { variant: 'default',     label: 'Pago',       className: 'bg-success text-success-foreground hover:bg-success/90' },
     due:            { variant: 'destructive', label: 'Vencido' },
     overdue:        { variant: 'destructive', label: 'Atrasado' },
   },
   financeiro_titulo: {
     aberto:    { variant: 'secondary',   label: 'Aberto' },
-    parcial:   { variant: 'default',     label: 'Parcial',   className: 'bg-amber-600 hover:bg-amber-700' },
-    quitado:   { variant: 'default',     label: 'Quitado',   className: 'bg-emerald-600 hover:bg-emerald-700' },
+    parcial:   { variant: 'default',     label: 'Parcial',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    quitado:   { variant: 'default',     label: 'Quitado',   className: 'bg-success text-success-foreground hover:bg-success/90' },
     cancelado: { variant: 'outline',     label: 'Cancelado' },
   },
   importacao: {
     pendente:    { variant: 'secondary', label: 'Pendente' },
-    processando: { variant: 'default',   label: 'Processando', className: 'bg-blue-600' },
-    sucesso:     { variant: 'default',   label: 'Sucesso',     className: 'bg-emerald-600' },
+    processando: { variant: 'default',   label: 'Processando', className: 'bg-info text-info-foreground' },
+    sucesso:     { variant: 'default',   label: 'Sucesso',     className: 'bg-success text-success-foreground' },
     erro:        { variant: 'destructive', label: 'Erro' },
   },
   nfse: {
     rascunho:    { variant: 'outline',     label: 'Rascunho' },
-    processando: { variant: 'default',     label: 'Processando', className: 'bg-blue-600 hover:bg-blue-700' },
-    emitida:     { variant: 'default',     label: 'Emitida',     className: 'bg-emerald-600 hover:bg-emerald-700' },
+    processando: { variant: 'default',     label: 'Processando', className: 'bg-info text-info-foreground hover:bg-info/90' },
+    emitida:     { variant: 'default',     label: 'Emitida',     className: 'bg-success text-success-foreground hover:bg-success/90' },
     cancelada:   { variant: 'outline',     label: 'Cancelada' },
     erro:        { variant: 'destructive', label: 'Erro' },
   },
@@ -73,30 +73,33 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   },
   // Onda 1 PR D 2026-05-26 — status de Vehicle (OficinaAuto). Frota Martinho.
   vehicle: {
-    active:         { variant: 'default',     label: 'Ativo',           className: 'bg-emerald-600 hover:bg-emerald-700' },
-    in_service:     { variant: 'default',     label: 'Em serviço',      className: 'bg-blue-600 hover:bg-blue-700' },
-    awaiting_parts: { variant: 'default',     label: 'Aguardando peças', className: 'bg-amber-600 hover:bg-amber-700' },
+    active:         { variant: 'default',     label: 'Ativo',           className: 'bg-success text-success-foreground hover:bg-success/90' },
+    in_service:     { variant: 'default',     label: 'Em serviço',      className: 'bg-info text-info-foreground hover:bg-info/90' },
+    awaiting_parts: { variant: 'default',     label: 'Aguardando peças', className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
     inactive:       { variant: 'outline',     label: 'Inativo' },
     written_off:    { variant: 'destructive', label: 'Baixado' },
   },
   ads_destination: {
     blocked:        { variant: 'destructive', label: 'Bloqueado' },
-    pending_wagner: { variant: 'default',     label: 'Aguardando você', className: 'bg-amber-600 hover:bg-amber-700' },
-    brain_b:        { variant: 'default',     label: 'Brain B',          className: 'bg-blue-600 hover:bg-blue-700' },
-    brain_a:        { variant: 'default',     label: 'Brain A',          className: 'bg-emerald-600 hover:bg-emerald-700' },
+    pending_wagner: { variant: 'default',     label: 'Aguardando você', className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    brain_b:        { variant: 'default',     label: 'Brain B',          className: 'bg-info text-info-foreground hover:bg-info/90' },
+    brain_a:        { variant: 'default',     label: 'Brain A',          className: 'bg-success text-success-foreground hover:bg-success/90' },
     queued:         { variant: 'outline',     label: 'Na fila' },
   },
+  // Ramp de severidade de 4 níveis SEM token "orange" (Onda M1): colapsa nos 3
+  // semânticos (success→warning→destructive); o ÁPICE (Crítico) pulsa pra ficar
+  // visualmente distinto do Alto. Ambos vermelhos, label reforça. DS-puro.
   ads_risco: {
-    Baixo:   { variant: 'default',     label: 'Risco Baixo',   className: 'bg-emerald-600 hover:bg-emerald-700' },
-    Médio:   { variant: 'default',     label: 'Risco Médio',   className: 'bg-amber-600 hover:bg-amber-700' },
-    Alto:    { variant: 'default',     label: 'Risco Alto',    className: 'bg-orange-600 hover:bg-orange-700' },
-    Crítico: { variant: 'destructive', label: 'Risco Crítico' },
+    Baixo:   { variant: 'default',     label: 'Risco Baixo',   className: 'bg-success text-success-foreground hover:bg-success/90' },
+    Médio:   { variant: 'default',     label: 'Risco Médio',   className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
+    Alto:    { variant: 'destructive', label: 'Risco Alto' },
+    Crítico: { variant: 'destructive', label: 'Risco Crítico', className: 'animate-pulse' },
   },
   mcp_status: {
-    ok:             { variant: 'default',     label: 'ok',             className: 'bg-emerald-600 hover:bg-emerald-700' },
-    denied:         { variant: 'default',     label: 'denied',         className: 'bg-amber-600 hover:bg-amber-700' },
+    ok:             { variant: 'default',     label: 'ok',             className: 'bg-success text-success-foreground hover:bg-success/90' },
+    denied:         { variant: 'default',     label: 'denied',         className: 'bg-warning text-warning-foreground hover:bg-warning/90' },
     error:          { variant: 'destructive', label: 'error' },
-    quota_exceeded: { variant: 'default',     label: 'quota_exceeded', className: 'bg-orange-600 hover:bg-orange-700' },
+    quota_exceeded: { variant: 'destructive', label: 'quota_exceeded' },
   },
   // Admin Center (Centro de Operações) — semáforo green/yellow/red dos health
   // snapshots + estado online/offline de infra. Substitui bg-(green|amber|red)-100

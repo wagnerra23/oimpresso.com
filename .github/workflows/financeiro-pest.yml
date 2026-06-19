@@ -1,7 +1,8 @@
 name: Financeiro · Pest (MySQL)
 
 # Lane dedicado pra rodar a suíte Pest do Modules/Financeiro contra MySQL REAL
-# + seed mínimo (biz=1). Existe porque ci.yml e modules-pest.yml rodam SQLite
+# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+# Existe porque ci.yml e modules-pest.yml rodam SQLite
 # :memory: SEM migrate — e os testes Feature do Financeiro dependem de schema
 # completo + business semeado (Business::first()), então lá eles dariam skip
 # (falsa cobertura). Aqui executam de verdade. (US-FIN-052)
@@ -24,8 +25,10 @@ on:
     branches: [main]
     paths:
       - 'Modules/Financeiro/**'
+      - 'tests/Feature/TravaSegunda/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/financeiro-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
 
 concurrency:
   group: financeiro-pest-${{ github.ref }}
@@ -60,109 +63,23 @@ jobs:
           filters: |
             fin:
               - 'Modules/Financeiro/**'
+              - 'tests/Feature/TravaSegunda/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/financeiro-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
 
       - name: Skip-as-pass (nada do Financeiro mudou)
         if: steps.changes.outputs.fin == 'false'
         run: echo "✅ Sem mudanças no Modules/Financeiro — skip-as-pass (required-ready, ADR 0271 onda 2)."
 
-      - name: Setup PHP 8.4
+      # FV-F2 (plano SDD 2026-06-12): setup extraído pra composite action reusável
+      # pelas lanes de burn-down por módulo. PHP + Composer + .env + migrate
+      # (schema baseline) + seed mínimo (biz=1 fixture completa + biz=2 Tier 0
+      # cross-tenant). O service container MySQL permanece DECLARADO ACIMA no job
+      # (composite action não pode declarar services — limitação GitHub Actions).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
         if: steps.changes.outputs.fin == 'true'
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_mysql, tokenizer, xml, zip, gd, opentelemetry
-          tools: composer:v2
-          coverage: none
-
-      - name: Cache Composer
-        if: steps.changes.outputs.fin == 'true'
-        uses: actions/cache@v4
-        with:
-          path: ~/.composer/cache
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-
-
-      - name: Prepare dirs
-        if: steps.changes.outputs.fin == 'true'
-        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
-
-      - name: Install PHP deps
-        if: steps.changes.outputs.fin == 'true'
-        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
-
-      - name: Wait for MySQL
-        if: steps.changes.outputs.fin == 'true'
-        run: |
-          for i in $(seq 1 30); do
-            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then echo "MySQL up"; break; fi
-            echo "waiting mysql ($i)"; sleep 2
-          done
-
-      - name: Create .env (MySQL)
-        if: steps.changes.outputs.fin == 'true'
-        run: |
-          cat > .env <<'EOF'
-          APP_NAME=oimpresso-fin
-          APP_ENV=testing
-          APP_KEY=
-          APP_DEBUG=true
-          APP_URL=http://localhost
-          LOG_CHANNEL=stderr
-          DB_CONNECTION=mysql
-          DB_HOST=127.0.0.1
-          DB_PORT=3306
-          DB_DATABASE=oimpresso_test
-          DB_USERNAME=root
-          DB_PASSWORD=root
-          CACHE_DRIVER=array
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=array
-          MAIL_MAILER=array
-          BCRYPT_ROUNDS=4
-          TELESCOPE_ENABLED=false
-          SCOUT_DRIVER=null
-          MCP_TOOLS_EXPOSED=false
-          EOF
-          php artisan key:generate --force
-          php artisan package:discover --ansi
-
-      - name: Migrate (carrega schema baseline + migrations novas)
-        if: steps.changes.outputs.fin == 'true'
-        # Com database/schema/mysql-schema.sql presente, o Laravel carrega o
-        # schema final + a tabela migrations (820 linhas) num passo, depois roda
-        # só as migrations posteriores ao dump. Sem replay fresh-install.
-        run: php artisan migrate --force
-
-      - name: Seed mínimo (biz=1 + user + conta bancária)
-        if: steps.changes.outputs.fin == 'true'
-        # DummyBusinessSeeder é stale (insere colunas removidas do schema real, ex
-        # contacts.first_name). Em vez dele, semeamos o MÍNIMO que os testes precisam
-        # (Business::first() + um user + uma conta), com as colunas NOT NULL atuais do
-        # schema baseline, resolvendo o FK circular business.owner_id ↔ users.business_id.
-        run: |
-          php artisan db:seed --class="Database\\Seeders\\CurrenciesTableSeeder" --force || true
-          php artisan db:seed --class="Database\\Seeders\\PermissionsTableSeeder" --force || true
-          php artisan tinker --execute="
-            use Illuminate\\Support\\Facades\\DB;
-            \$curId = optional(DB::table('currencies')->first())->id ?? 1;
-            if (! DB::table('business')->where('id', 1)->exists()) {
-              \$uid = DB::table('users')->insertGetId(['first_name'=>'CI','username'=>'ci_admin','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
-              \$bid = DB::table('business')->insertGetId(['name'=>'CI Biz','currency_id'=>\$curId,'owner_id'=>\$uid,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
-              DB::table('users')->where('id', \$uid)->update(['business_id'=>\$bid]);
-              echo 'seed biz='.\$bid.' user='.\$uid.PHP_EOL;
-            }
-            DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
-            \$bizId = optional(DB::table('business')->first())->id;
-            if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {
-              \Modules\Financeiro\Models\ContaBancaria::create([
-                'business_id'=>\$bizId,'account_id'=>999001,'agencia'=>'0001','carteira'=>'0',
-                'beneficiario_documento'=>'00000000000000','beneficiario_razao_social'=>'CI Test','saldo_cached'=>0,
-              ]);
-              echo 'conta criada biz='.\$bizId.PHP_EOL;
-            }
-          "
+        uses: ./.github/actions/pest-mysql-setup
 
       - name: Stub Vite manifest (Inertia root view sem build do front)
         if: steps.changes.outputs.fin == 'true'
@@ -195,7 +112,10 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: root
         run: |
+          mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-financeiro-junit.xml \
+            tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php \
             Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php \
             Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php \
             Modules/Financeiro/Tests/Feature/AccountsLegacyMapMultiTenantTest.php \
@@ -214,3 +134,14 @@ jobs:
             Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoUpdateTest.php
+
+      # Onda Q2 (G-7 / Salto #2): o JUnit do Pest alimenta o manifesto por-UC
+      # (casos:results MERGE per-UC — vereditos UC-F01..03 do RetencaoLoopE2ETest).
+      # Roda mesmo em falha: a falha É o veredito que o G-7 registra.
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() && steps.changes.outputs.fin == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-financeiro-junit
+          path: test-results/pest-financeiro-junit.xml
+          retention-days: 14

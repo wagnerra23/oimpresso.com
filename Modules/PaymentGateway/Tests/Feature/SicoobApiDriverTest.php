@@ -16,7 +16,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\SicoobApiDriver;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Onda 4f.sicoob_api US-FIN-044 + US-FIN-046 refactor.

@@ -78,7 +78,7 @@ export default function StatusIndex({ statuses }: PageProps) {
                     {s.is_completed_status === 1 ? (
                       <Icon
                         name="circle-check"
-                        className="inline h-4 w-4 text-emerald-600 dark:text-emerald-400"
+                        className="inline h-4 w-4 text-success-fg"
                         aria-label="Status de conclusão"
                       />
                     ) : (

@@ -347,7 +347,7 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
 
               {Array.isArray(chain.review_breakdown.issues) && chain.review_breakdown.issues.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-red-700">Issues identificadas:</div>
+                  <div className="text-xs font-medium text-destructive-fg">Issues identificadas:</div>
                   <ul className="text-xs space-y-0.5 mt-1">
                     {chain.review_breakdown.issues.slice(0, 5).map((iss: string, i: number) => (
                       <li key={i} className="text-muted-foreground">• {iss}</li>
@@ -358,7 +358,7 @@ function DrillDownChain({ decision: d, chain }: { decision: Decision; chain: Cha
 
               {Array.isArray(chain.review_breakdown.strengths) && chain.review_breakdown.strengths.length > 0 && (
                 <div>
-                  <div className="text-xs font-medium text-emerald-700">Pontos positivos:</div>
+                  <div className="text-xs font-medium text-success-fg">Pontos positivos:</div>
                   <ul className="text-xs space-y-0.5 mt-1">
                     {chain.review_breakdown.strengths.slice(0, 5).map((s: string, i: number) => (
                       <li key={i} className="text-muted-foreground">• {s}</li>

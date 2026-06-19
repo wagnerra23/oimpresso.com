@@ -14,7 +14,7 @@ use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\DanfeService;
 use Modules\RecurringBilling\Models\Invoice;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-NFE-044 fase 2 · Listener EnviarDanfePorEmail.

@@ -68,7 +68,7 @@ const formatDateTime = (v: string) => {
 
 const TYPE_PILL: Record<AdjustmentType, string> = {
   normal: 'bg-stone-50 text-stone-700 border-stone-200',
-  abnormal: 'bg-rose-50 text-rose-700 border-rose-200',
+  abnormal: 'bg-destructive-soft text-destructive-fg border-destructive/20',
 };
 
 const TYPE_LABEL: Record<AdjustmentType, string> = {
@@ -180,7 +180,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                     {permissions.view_purchase_price ? brl(r.final_total) : '—'}
                   </td>
                   <td className="px-2 text-right tabular-nums">
-                    <span className={r.total_amount_recovered > 0 ? 'text-emerald-700' : 'text-stone-400'}>
+                    <span className={r.total_amount_recovered > 0 ? 'text-success-fg' : 'text-stone-400'}>
                       {permissions.view_purchase_price ? brl(r.total_amount_recovered) : '—'}
                     </span>
                   </td>
@@ -191,7 +191,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       {permissions.delete && (
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => onDelete(r.id)} title="Excluir">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r.id)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}

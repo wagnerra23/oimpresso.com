@@ -79,7 +79,7 @@ php artisan tinker
 **Causa**: Hash SHA256 do registro foi gerado com algoritmo/seed errado.
 
 **Correção**:
-- Verificar `Modules/PontoWr2/Services/HashService.php` — usa concatenação `PIS|data|hora|hash_anterior`.
+- Verificar `Modules/Ponto/Services/HashService.php` — usa concatenação `PIS|data|hora|hash_anterior`.
 - ART registrada com chave diferente da usada no código = rejeição.
 - Revalidar com `php artisan ponto:validar-cadeia-hash --business=1`.
 

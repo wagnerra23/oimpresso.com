@@ -22,6 +22,10 @@ uses(Tests\TestCase::class);
  *  007. Graceful degradation — tabela ausente retorna `ok:false, reason:table_missing`
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['transactions', 'transaction_payments', 'conversations', 'messages', 'channels', 'contacts', 'nfe_emissoes', 'transaction_sell_lines', 'products'] as $t) {
         Schema::dropIfExists($t);
     }

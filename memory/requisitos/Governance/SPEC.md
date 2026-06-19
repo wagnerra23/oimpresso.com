@@ -306,3 +306,106 @@ Se M1 e M2 não caírem, o zelador recomenda a própria morte e Wagner decide.
 **Cláusula de evolução (loop duplo):** todo domingo o run é META — o zelador aplica o próprio trilho a si mesmo (fechamentos que reabriram, reversões humanas, drafts ignorados) e propõe exatamente 1 emenda/semana ao charter via PR, com viés de subtração; emenda que não melhorar M1/M2 é revertida na META seguinte. Núcleo imutável (NÃO PODE + trilho + kill-switch + a própria cláusula) só muda por decisão explícita do Wagner.
 
 **Poderes/limites:** herda matriz publication-policy (ADR 0040) — pode tasks-update/comment/branch própria/abrir PR; NUNCA mergeia main, não toca prod, não cria ADR/doc em memory/, não cria tasks novas.
+
+### US-GOV-016 · Reestruturação SDD — Semana 0 (12 frentes paralelas)
+
+> owner: wagner · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+GO Wagner 2026-06-12. Executar o lote 1 do plano `memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md` (PR #2586) via workflow `sdd-semana-0`:
+
+- 3 ADRs draft: formato anchor spec↔código · referência ADR por slug (13 colisões) · scorecard SDD 10 métricas + calendário de promoções
+- 9 implementações: fix artefato JUnit · composite action pest-mysql · catracas quarentena · hook red-first (WARN) · catraca anti-ghost · codemod ghost-fix (dry-run) · agregador sdd-scorecard.mjs · protocolo refutador de backfill · backfill frontmatter charters · tabela triagem identidade pastas órfãs
+
+**DoD:** 12 PRs draft abertos + auditor adversarial aprova partição/evidência + fila consolidada pro Wagner (decisões: tabela de renames, tabela de identidade, aceite dos 3 ADRs).
+Emenda CT 100: nightly full-suite via cron no CT 100 (16 vCPU/32 GB ociosos) — afeta fase 1-2, não este lote.
+
+### US-GOV-017 · Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down)
+
+> owner: wagner · priority: p1 · estimate: 40h · status: todo · type: story
+> blocked_by: —
+
+GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuação da US-GOV-016 (Semana 0, done).
+
+**Fase 1 (workflow sdd-fase-1, em execução):** anchor-lint + workflow advisory (gramática ADR 0273) · codemod --write dos 4 renames aprovados · infra nightly full-suite MySQL no CT 100 (cron + 1º run) · meta-catraca scorecard · gate-selftest com fixtures · fix peso_real flag-OFF (decay ADR 0270 D-4) · comando jana:recall-eval + golden set · RAGAS modo real destravado (aguarda secret).
+
+**Fase 2 (dispara automaticamente na sequência):** triage Q2 do 1º run CT 100 → quarentena em massa Q3 → backfill mecânico de anchors (SA-A4) → burn-down por módulo (B1 Financeiro, B2 NfeBrasil, B4 tests/ raiz; B3 mini-onda) → batch IA de anchors com refutador (SA-A5) → CT 100: re-seed + flag decay + recall-eval cron (C3-C5) → G4/G7/G8.
+
+**Gated em Wagner:** tabela _TRIAGEM-IDENTIDADE (trilha E) · secret OPENAI_API_KEY (RAGAS real) · skim das queries do golden set.
+
+---
+
+### US-GOV-018 · P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema"
+
+> owner: — · priority: p0 · estimate: 12h · status: review · type: story
+> blocked_by: —
+
+**Origem:** retest adversarial POR REPRODUÇÃO (2026-06-13, CT 100, DB scratch byte-a-byte) sobre o nightly full-suite MySQL (run `20260613-003042`, sha d14f5436). 3 skeptics reproduziram e refutaram 2 diagnoses anteriores. Substitui a estratégia "quarentena em massa" (revertida) E o P0 "completar schema" (refutado). C1 (#2632, mergeado) flipou a suite pra MySQL e expôs a causa real.
+
+## Número honesto (medido, não estimado)
+- **Floor determinístico = 1514** (interseção test-a-test dos 2 runs MySQL code-equivalentes). NÃO é 1636 nem 2075 — esses são pontos ruidosos de runs únicos.
+- **Banda de não-determinismo = 683** (561 só-num-run + 122 no-outro). Faixa real **1514–2197**. O eixo que oscila é ERROR (−420 entre runs), não FAILURE: ruído **infraestrutural** (estratégia de DB), confirmando a causa.
+
+## Causa-raiz REAL (reproduzida — NÃO "schema incompleto")
+O dump `database/schema/mysql-schema.sql` tem **364 CREATE TABLE** incl. `system`/`permissions`/`business`/`activity_log`/`users` — TODAS presentes. Baseline completo (dump+migrate+seed) ainda deixou ~56% da amostra vermelho. "Completar schema" conserta ZERO.
+
+## 3 FRENTES (com impacto medido)
+**Frente A — harness/imagem [~688 `Base table not found` (variável 529–688) + 254 testes 3730 + 72 `mysql: not found`; tudo eixo ERROR, banda 1514–2197, NÃO o floor de 1514]:** a imagem `oimpresso/mcp` **não tem o binário `mysql`/`mariadb`** → o `migrate:fresh`/`schema:load` do RefreshDatabase não reaplica o dump → tabelas core (`business`/`activity_log`/`permissions`) **somem mid-run**. ⚠️ **Refutação adversarial (ADR 0276): só instalar o client NÃO basta** — o `mysql … < dump` que o Laravel emite falha em TLS cert verify (`ERROR 2026`), pois o mariadb-client verifica TLS por default e o repo não seta `MYSQL_ATTR_SSL_VERIFY_SERVER_CERT`. Soma: teardown sem FK-off → "Cannot drop … referenced by FK" (**254 testes**; "508" eram menções raw 2×/testcase no junit). A 3ª sub-causa do brief (migrate PULA migrations PSR-4) foi **REFUTADA** — as skipadas são 100% pré-dump/registradas no INSERT, 0 nomeadas pós-cutoff → **no-op**. **DoD A (implementado em #2640):** `mariadb-client` na imagem (+ apk no harness como fallback) **+ `ssl-verify-server-cert=0`** no container do pest; ~~teardown com FK-off escopado ao nightly (`FULLSUITE_FK_OFF=1`)~~ (REVERTIDO — net-harmful, ver US-GOV-020 A.2; bloco removido do `Tests\TestCase` no ledger §E); ~~consertar PSR-4~~ (refutado, não fazer).
+
+**Frente B — código [212 falhas]:** `payment_gateway_credentials.config_json` declarado `json` (strict no MySQL 8) mas o Model casta `encrypted:array` (blob AES base64). SQLite TEXT aceitava; MySQL rejeita com SQLSTATE 3140 "Invalid JSON text". Reproduzido byte-a-byte; counterfactual `ALTER ... LONGTEXT/TEXT` aceita. **DoD B:** ALTER `config_json` pra TEXT alinhado ao cast `encrypted:array` (migration idempotente + down()).
+
+**Frente C — testes era-sqlite [parte do floor]:** 231-476 arquivos montam `Schema::create` próprio e rodam contra MySQL persistente sem rollback → UniqueConstraint 1062, unknown-column 1054. **DoD C:** trait de reset uniforme (DatabaseTransactions/RefreshDatabase consistente) OU isolamento por-arquivo — pode virar sub-onda mecânica.
+
+## Validação
+Re-rodar o nightly full após A+B+C e medir o novo floor (interseção de ≥2 runs com seed fixo). Meta: floor cai de 1514 pra a casa das centenas. **Atenção:** o 1514 é o baseline do estado **QUEBRADO** (nenhum dos runs medidos exercitou os fixes) — a redução é predição até um run validado. Frente A landed em **#2640** (par adversarial ADR 0276 corrigiu A.1 pra incluir TLS-off); Frente B em **#2636**; Frente C segue sub-onda.
+
+## FORA do escopo (backlog separado, não bloqueia)
+~385 ExpectationFailed (assertions reais) + ~105 app-bugs (ex `RetentionCleanupCommand.php:194 Undefined variable $businessId`) — dívida de teste/código genuína que NENHUM fix de harness toca.
+
+Ref: retest reproduzido na timeline US-GOV-017 (correção #2) · #2632 (C1) · triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md`.
+
+### US-GOV-019 · Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+Saída da re-triage 32-thread do eixo FAILURE determinístico (155 arquivos, 385 ExpectationFailed) com refutador adversarial ADR 0276. Doc: `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md`. **4 quick-wins já em PR** (ads:health #2649, superadmin:health #2647, macro_variant_id #2646, biz=4→1 fixtures #2652) — fora desta task.
+
+## 7 bugs confirmados que precisam de design (sobreviveram ao refutador)
+- [ ] **ChannelUserAccess** (Tier 0): `UNIQUE` em coluna nullable → invariante "1 grant ativo por (channel,user)" não enforced (`2026_05_12_160000_create_channel_user_access_table.php:55-58`; fix = generated column). Teste: `ChannelUserAccessTest` R-WA-068-005.
+- [ ] **CSAT**: `InboxController::updateStatus:1042-1071` não dispara `DispatchCsatJob` em open→resolved. Teste: `CsatFlowTest`.
+- [ ] **Vestuario DataController** (ADR 0024): criar `Modules/Vestuario/Http/Controllers/DataController.php` (etiquetas sem entrada no sidebar). Teste: `ModuleScaffoldingTest`.
+- [ ] **WithoutGlobalScopes** (Tier 0): bypass de business_id sem `// SUPERADMIN:` em `KbCorpusBuilder.php:164,190`, `TituloAutoService.php:690,709,727`, `NfeService.php:745,760,942`. Teste: `WithoutGlobalScopesCommentGuardTest`.
+- [ ] **NFSe cancelar()**: falta `OtelHelper::spanBiz` em `NfseEmissaoService.php:198` (confirmar se Wave 28 exige). Teste: `Wave28NfsePolishTest`.
+- [ ] **DESIGN.md**: link local quebrado (alvo movido). Teste: `DesignEntryPointAndTombstonesTest`.
+- [ ] **PhpunitTestAnnotationGuard**: migrar `/** @test */` → `#[Test]` nos flagrados. Teste: `PhpunitTestAnnotationGuardTest`.
+
+## 91 quarentena (teste stale, produto OK)
+`@group legacy-quarantine` com razão. tests/Feature 46 · Financeiro 14 · Whatsapp 11 · Governance 3 · Jana 3 · PaymentGateway 3 · Officeimpresso 2 · tests/Unit 2 · Vestuario 2 · Cms/Connector/ConsultaOs/OficinaAuto/Ponto 1. **Nuance:** alguns são test-FIX rápido (não quarentena cega) — ver doc.
+
+## 33 env-coupled → reconfirmar no floor do run limpo `20260613-100035`.
+
+## 11 unclear (decisão Wagner) — perguntas no doc.
+
+Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-positivos · ADR 0276.
+
+### US-GOV-020 · Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio)
+
+> owner: — · priority: p0 · estimate: 6h · status: review · type: story
+> blocked_by: —
+
+**Root cause PROVADO** (repro byte-level CT100, run `20260613-100035`). O `migrate:fresh` do RefreshDatabase carrega `database/schema/mysql-schema.sql`, cujos triggers têm **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
+
+## Fix (188→377 tabelas, 0→4 triggers)
+`ct100-fullsuite.sh` passo 3 (root): `SET GLOBAL log_bin_trust_function_creators=1` + `GRANT SET_USER_ID ON *.* TO <fullsuite>`. Provado isolado no CT100.
+
+## Por que re-landar (decisão Wagner 2026-06-14)
+O #2657 (grants + revert A.2) foi **fechado sem merge** quando se concluiu que Frente C "não é o lever" — o floor **não caiu** (1870→1928, run `20260613-115507`). **Mas o grant segue necessário**: sem ele o floor **não é reproduzível de clone limpo** (triggers DEFINER de prod + binlog ON abortam o `migrate:fresh`). Re-landado **nesta PR** sobre `origin/main` atual (cherry-pick de `98259e50f` + `7371db9ea`).
+
+## A.2 (FULLSUITE_FK_OFF) — REVERTIDO (resolvido)
+Reavaliação concluída: A.2 é **net-harmful** (run `20260613-115507`, floor 1928). O FK-off deixava ~30 testes era-sqlite **dropar tabela CORE compartilhada com sucesso** → cascata `Base table not found`. **DECISÃO: não ligar FK-off** — deixar o drop falhar-seguro (3730 só no teste ofensor; a tabela CORE sobrevive pro resto da suíte). Esta PR remove o `-e FULLSUITE_FK_OFF=1` do passo 6. (O bloco gated em `getenv` no `Tests\TestCase::setUp` — antes deixado inerte — foi REMOVIDO como dead-code no ledger §E, já que a flag nunca mais é setada.)
+
+## Lever real do floor
+**Não é harness** — é o isolamento dos ~19-30 testes "era-sqlite" que dropam tabela CORE numa base MySQL persistente compartilhada. Tratado em **US-GOV-021** (front-2). Frente C só torna o nightly **reproduzível**; não baixa o floor sozinha.
+
+Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 (closed) · #2640 (A.1/A.2 origem) · US-GOV-021.

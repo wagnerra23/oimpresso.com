@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -23,6 +24,10 @@ uses(Tests\TestCase::class);
  * @see Modules/Whatsapp/Observers/ChannelObserver.php::resolveInstanceId()
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::dropIfExists('channels');
     Schema::create('channels', function ($table) {
         $table->bigIncrements('id');

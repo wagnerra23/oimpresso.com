@@ -1,15 +1,16 @@
 ---
-page: kb/Index.v2
+page: /kb/v2
+component: resources/js/Pages/kb/Index.v2.tsx
 controller: Modules\KB\Http\Controllers\KbController@indexV2
 route: kb.v2
 status: draft
-owner: [W] Wagner
+owner: wagner
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1.0
 charter_at: 2026-05-16
 related_adrs:
-  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
   - 0039-ui-chat-cockpit-padrao
   - 0104-processo-mwart-canonico-unico-caminho
   - 0107-emendation-0104-visual-comparison-gate-f3

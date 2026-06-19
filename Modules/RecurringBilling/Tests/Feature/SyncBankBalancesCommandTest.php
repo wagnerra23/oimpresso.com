@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Jobs\SyncBankBalancesJob;
 
@@ -17,6 +18,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: dropa/recria fin_contas_bancarias (real-migrada) à mão — incompatível com MySQL persistente; quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     if (! Schema::hasTable('fin_contas_bancarias')) {
         Schema::create('fin_contas_bancarias', function (Blueprint $t) {
             $t->bigIncrements('id');
@@ -32,7 +37,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('fin_contas_bancarias');
+    // fin_contas_bancarias é real-migrada; o afterEach roda mesmo em teste pulado (PHPUnit
+    // 12: tearDown gated só por hasMetRequirements), então dropá-la no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('fin_contas_bancarias');
+    }
 });
 
 it('rb:sync-bank-balances aborta com FAILURE se fin_contas_bancarias ausente', function () {

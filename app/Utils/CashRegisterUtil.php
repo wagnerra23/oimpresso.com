@@ -242,6 +242,10 @@ class CashRegisterUtil extends Util
             '=',
             'cash_registers.location_id'
         );
+        // Tier 0 (ADR 0093): CashRegister não tem global scope — escopar business_id
+        // sempre. Sem isto, getRegisterDetails($id) leria o caixa (e os totais
+        // financeiros) de qualquer tenant passando um id alheio.
+        $query->where('cash_registers.business_id', auth()->user()->business_id);
         if (empty($register_id)) {
             $user_id = auth()->user()->id;
             $query->where('user_id', $user_id)

@@ -1,4 +1,6 @@
 ---
+page: /jana/painel
+component: resources/js/Pages/Jana/Painel.tsx
 status: live
 versao: 1.0
 adrs: [0035, 0039, 0093, 0114]

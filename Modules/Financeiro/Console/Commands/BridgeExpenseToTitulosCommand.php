@@ -25,8 +25,12 @@ use Illuminate\Support\Facades\DB;
  *    (business_id, origem, origem_id, parcela_numero) — ADR TECH-0001
  *  - Mapeia payment_status → status fin_titulo:
  *      'paid'    → 'quitado'  (valor_aberto = 0)
- *      'partial' → 'parcial'  (valor_aberto = total_remaining_amount)
+ *      'partial' → 'parcial'  (valor_aberto = final_total − Σ transaction_payments)
  *      'due'     → 'aberto'   (valor_aberto = final_total)
+ *    NOTA: `transactions` NÃO tem coluna total_remaining_amount (nunca existiu no
+ *    UltimatePOS). O restante é DERIVADO igual ao core — SellController calcula
+ *    `final_total - total_paid` (total_paid = Σ pagamentos não-estorno). Ver a
+ *    subquery correlacionada `valor_remaining` na query abaixo.
  *  - plano_conta_id default = '5.1.99.999 Despesas (a classificar)' (mesma
  *    convenção do BackfillPlanoContaCommand). Eliana reatribui via UI depois.
  *  - origem = 'despesa' (já no ENUM da migration)
@@ -110,7 +114,6 @@ class BridgeExpenseToTitulosCommand extends Command
                 't.id',
                 't.business_id',
                 't.final_total',
-                't.total_remaining_amount',
                 't.transaction_date',
                 't.payment_status',
                 't.contact_id',
@@ -118,6 +121,18 @@ class BridgeExpenseToTitulosCommand extends Command
                 't.additional_notes',
                 't.created_by',
                 't.invoice_no',
+            )
+            // Restante derivado: `transactions` não tem total_remaining_amount
+            // (coluna nunca existiu no UltimatePOS). Igual ao core (SellController:
+            // final_total - total_paid), total_paid = Σ pagamentos não-estorno.
+            // Subquery escopada por business_id (Tier 0 ADR 0093, belt-and-suspenders).
+            ->selectRaw(
+                '(t.final_total - COALESCE(('
+                .' SELECT SUM(tp.amount) FROM transaction_payments tp'
+                .' WHERE tp.transaction_id = t.id'
+                .' AND tp.business_id = t.business_id'
+                .' AND tp.is_return = 0'
+                .'), 0)) as valor_remaining'
             );
 
         if ($since) {
@@ -206,7 +221,9 @@ class BridgeExpenseToTitulosCommand extends Command
     private function montarLinha(object $tx, int $businessId, int $planoContaId): array
     {
         $valorTotal = (float) ($tx->final_total ?? 0.0);
-        $valorRemaining = (float) ($tx->total_remaining_amount ?? $tx->final_total ?? 0.0);
+        // valor_remaining vem da subquery (final_total − Σ pagamentos). Clamp >= 0
+        // pra blindar contra over-payment (Σ pagamentos > final_total → negativo).
+        $valorRemaining = max(0.0, (float) ($tx->valor_remaining ?? $tx->final_total ?? 0.0));
         $paymentStatus = (string) ($tx->payment_status ?? 'due');
 
         $status = match ($paymentStatus) {

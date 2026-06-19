@@ -164,7 +164,7 @@ function StatusBadges({
       )}
       {approved > 0 && (
         <span
-          className="rounded-md border border-emerald-300 bg-emerald-50 px-1 py-0.5 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200"
+          className="rounded-md border border-success/20 bg-success-soft px-1 py-0.5 text-success-fg"
           title="Aprovadas"
         >
           {approved} apv
@@ -172,7 +172,7 @@ function StatusBadges({
       )}
       {iterate > 0 && (
         <span
-          className="rounded-md border border-amber-300 bg-amber-50 px-1 py-0.5 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+          className="rounded-md border border-warning/20 bg-warning-soft px-1 py-0.5 text-warning-fg"
           title="Em iteração"
         >
           {iterate} iter

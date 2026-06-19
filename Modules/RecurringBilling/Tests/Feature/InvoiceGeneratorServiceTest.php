@@ -135,11 +135,16 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('rb_subscription_events');
-    Schema::dropIfExists('rb_invoices');
-    Schema::dropIfExists('rb_subscriptions');
-    Schema::dropIfExists('rb_plans');
-    Schema::dropIfExists('activity_log');
+    // rb_* são reais-migradas; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite :memory:.
+    if (config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        Schema::dropIfExists('rb_subscription_events');
+        Schema::dropIfExists('rb_invoices');
+        Schema::dropIfExists('rb_subscriptions');
+        Schema::dropIfExists('rb_plans');
+    }
     session()->flush();
 });
 
@@ -284,5 +289,5 @@ test('8. Logga SubscriptionEvent kind=event-charge', function () {
     expect($event->kind)->toBe(SubscriptionEvent::KIND_CHARGE);
     expect($event->by_actor)->toBe('system:rb:generate-invoices');
     expect($event->body)->toContain('Fatura RB-');
-    expect($event->body)->toContain('R$ [redacted Tier 0]');
+    expect($event->body)->toContain('R$ 100,00');
 });

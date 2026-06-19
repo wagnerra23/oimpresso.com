@@ -163,7 +163,7 @@ function FinanceiroConciliacao({ linhas, stats, contas, filters }: Props) {
               className="text-[13px]"
             />
             {uploadForm.errors.arquivo && (
-              <p className="text-[11px] text-rose-600 mt-1">{uploadForm.errors.arquivo}</p>
+              <p className="text-[11px] text-destructive mt-1">{uploadForm.errors.arquivo}</p>
             )}
           </div>
           {contas.length > 0 && (

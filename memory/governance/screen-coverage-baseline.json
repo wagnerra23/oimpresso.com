@@ -2,10 +2,10 @@
   "generated_note": "baseline da catraca de cobertura — NÃO editar à mão",
   "aggregates": {
     "total": 275,
-    "charter": 131,
+    "charter": 132,
     "e2e": 4,
     "a11y": 1,
-    "scorecard": 219
+    "scorecard": 218
   },
   "by_module": {
     "Admin": {
@@ -86,8 +86,8 @@
       "scorecard": 7
     },
     "governance": {
-      "total": 6,
-      "charter": 6,
+      "total": 7,
+      "charter": 7,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 6
@@ -100,11 +100,11 @@
       "scorecard": 1
     },
     "Jana": {
-      "total": 17,
+      "total": 16,
       "charter": 8,
-      "e2e": 1,
+      "e2e": 0,
       "a11y": 0,
-      "scorecard": 11
+      "scorecard": 10
     },
     "kb": {
       "total": 3,
@@ -200,7 +200,7 @@
     "Sells": {
       "total": 8,
       "charter": 8,
-      "e2e": 1,
+      "e2e": 2,
       "a11y": 0,
       "scorecard": 8
     },

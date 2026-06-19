@@ -70,6 +70,7 @@ class NfeCartaCorrecaoService
     ): NfeEvento {
         $this->validarEntrada($businessId, $textoCorrecao, $nSeqEvento);
 
+        // SUPERADMIN: $businessId vem por parâmetro (não session); cross-tenant guard explícito abaixo (linha ~78).
         $emissao = NfeEmissao::withoutGlobalScopes()->find($nfeEmissaoId);
         if (! $emissao) {
             throw new RuntimeException("NfeEmissao {$nfeEmissaoId} não encontrada.");
@@ -96,6 +97,7 @@ class NfeCartaCorrecaoService
         }
 
         // Idempotência: mesma (emissao_id, n_seq_evento) → retorna evento existente autorizado
+        // SUPERADMIN: filtra por $businessId explícito (param, não session) — defesa em profundidade ADR 0093.
         $eventoExistente = NfeEvento::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('emissao_id', $emissao->id)

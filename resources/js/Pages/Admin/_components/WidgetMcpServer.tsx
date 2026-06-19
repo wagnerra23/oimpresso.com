@@ -48,7 +48,7 @@ export default function WidgetMcpServer({ data }: Props) {
       <div className="flex items-center gap-2">
         <span
           className={`inline-block w-2.5 h-2.5 rounded-full ${
-            data.ping.reachable ? 'bg-green-500' : 'bg-red-500'
+            data.ping.reachable ? 'bg-success' : 'bg-destructive'
           }`}
         />
         <span className="font-medium">
@@ -60,7 +60,7 @@ export default function WidgetMcpServer({ data }: Props) {
       </div>
 
       {data.ping.error && (
-        <div className="text-xs text-red-700 bg-red-50 p-2 rounded">
+        <div className="text-xs text-destructive-fg bg-destructive-soft p-2 rounded">
           {data.ping.error}
         </div>
       )}

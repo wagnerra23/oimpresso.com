@@ -154,7 +154,7 @@ export default function EtiquetasIndex({ config }: Props) {
             <Badge variant="outline">{config.dpi} dpi</Badge>
             <Badge variant="outline">margem {config.margin_dots} dots</Badge>
             {config.qr_enabled ? (
-              <Badge className="bg-emerald-100 text-emerald-900">
+              <Badge className="bg-success-soft text-success-fg">
                 <QrCode className="mr-1 h-3 w-3" /> QR ativo
               </Badge>
             ) : (
@@ -254,14 +254,14 @@ export default function EtiquetasIndex({ config }: Props) {
                     disabled={items.length === 1}
                     aria-label="Remover item"
                   >
-                    <Trash2 className="h-4 w-4 text-rose-600" />
+                    <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
               </div>
             ))}
 
             {error && (
-              <div className="rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">
+              <div className="rounded border border-destructive/20 bg-destructive-soft px-3 py-2 text-sm text-destructive-fg">
                 {error}
               </div>
             )}

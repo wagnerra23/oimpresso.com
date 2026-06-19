@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Utils;
 
 use App\Utils\Util;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -56,7 +57,7 @@ class IncidentValorInfladoNumUfTest extends TestCase
         return (string) $rounded;
     }
 
-    /** @test */
+    #[Test]
     public function num_uf_nao_trata_decimal_de_mais_de_2_casas_como_milhar(): void
     {
         // O valor EXATO que quebrou em prod (227,90 − 10,05% = 204.99605).
@@ -80,9 +81,8 @@ class IncidentValorInfladoNumUfTest extends TestCase
     /**
      * GUARD end-to-end (frontend round + backend num_uf): venda com desconto %
      * NUNCA pode gerar final_total inflado. Casos REAIS do incidente.
-     *
-     * @test
      */
+    #[Test]
     public function venda_com_desconto_percentual_nao_infla_o_final_total(): void
     {
         // [total_before_tax, desconto %, esperado] — vendas reais corrigidas em prod.

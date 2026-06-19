@@ -31,10 +31,7 @@ beforeEach(function () {
         $this->markTestSkipped('Migration 2026_05_21_140000 ainda não rodou neste ambiente.');
     }
 
-    $this->business = \App\Business::first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
-    }
+    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     if (! $this->user) {
         $this->markTestSkipped('Sem user no business.');
@@ -55,12 +52,12 @@ beforeEach(function () {
 
     $this->cpfValidoId = DB::table('contacts')->insertGetId(array_merge($base, [
         'name' => 'PF Backfill Test Valido',
-        'tax_number' => '111.444.777-35', // CPF válido mod-11
+        'tax_number' => '111.444.777-35', // CPF válido mod-11 # pii-allowlist
     ]));
 
     $this->cnpjValidoId = DB::table('contacts')->insertGetId(array_merge($base, [
         'name' => 'PJ Backfill Test Valido',
-        'tax_number' => '11.444.777/0001-61', // CNPJ válido mod-11
+        'tax_number' => '11.444.777/0001-61', // CNPJ válido mod-11 # pii-allowlist
     ]));
 
     $this->cpfInvalidoId = DB::table('contacts')->insertGetId(array_merge($base, [
@@ -140,7 +137,7 @@ it('respeita filtro --business-id (Tier 0)', function () {
         'created_by' => $otherUser->id,
         'type' => 'customer',
         'name' => 'Contact em outro business',
-        'tax_number' => '111.444.777-35', // CPF válido — DEVE ser ignorado pelo filtro
+        'tax_number' => '111.444.777-35', // CPF válido — DEVE ser ignorado pelo filtro # pii-allowlist
         'mobile' => '11888888888',
         'cpf_cnpj' => null,
         'created_at' => now(),
@@ -169,7 +166,7 @@ it('NAO sobrescreve cpf_cnpj ja populado (Wagner guard 2026-05-21)', function ()
         'created_by' => $this->user->id,
         'type' => 'customer',
         'name' => 'Contact com cpf_cnpj LEGADO populado',
-        'tax_number' => '111.444.777-35', // CPF valido — TENTARIA backfill, mas tem cpf_cnpj
+        'tax_number' => '111.444.777-35', // CPF valido — TENTARIA backfill, mas tem cpf_cnpj # pii-allowlist
         'cpf_cnpj' => $existingValue,
         'mobile' => '11777777777',
         'created_at' => now(),
@@ -188,7 +185,7 @@ it('NAO sobrescreve cpf_cnpj ja populado (Wagner guard 2026-05-21)', function ()
 
     // E o tax_number original tambem preservado (back-compat).
     $taxNumberFinal = DB::table('contacts')->where('id', $contactComCpfCnpjPopuladoId)->value('tax_number');
-    expect($taxNumberFinal)->toBe('111.444.777-35');
+    expect($taxNumberFinal)->toBe('111.444.777-35'); // pii-allowlist (CPF/CNPJ sintético mod-11 de teste)
 });
 
 it('log JSON nao grava tax_number plain (LGPD)', function () {
@@ -210,9 +207,9 @@ it('log JSON nao grava tax_number plain (LGPD)', function () {
 
     // PII redacted — não pode aparecer nenhum tax_number completo no log.
     expect($content)->not->toContain('11144477735');
-    expect($content)->not->toContain('111.444.777-35');
+    expect($content)->not->toContain('111.444.777-35'); // pii-allowlist (CPF/CNPJ sintético mod-11 de teste)
     expect($content)->not->toContain('11444777000161');
-    expect($content)->not->toContain('11.444.777/0001-61');
+    expect($content)->not->toContain('11.444.777/0001-61'); // pii-allowlist (CPF/CNPJ sintético mod-11 de teste)
 
     // Mas tem o resumo numérico
     expect($content)->toContain('"valid_mod11": 2');

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -34,6 +35,10 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Whatsapp/runbooks/migrar-baileys-7x.md
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['messages', 'conversations', 'channels'] as $t) {
         Schema::dropIfExists($t);
     }

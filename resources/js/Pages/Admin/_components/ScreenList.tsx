@@ -265,7 +265,7 @@ function ScreenListItem({
           )}
           {screen.desvios_count > 0 && (
             <span
-              className="rounded-md border border-amber-300 bg-amber-50 px-1 py-0.5 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+              className="rounded-md border border-warning/20 bg-warning-soft px-1 py-0.5 text-warning-fg"
               title="Desvios catalogados último round"
             >
               {screen.desvios_count} desvios

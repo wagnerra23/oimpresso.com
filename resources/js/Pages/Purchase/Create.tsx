@@ -398,7 +398,7 @@ function PurchaseCreate({
                         type="button"
                         size="sm"
                         variant="ghost"
-                        className="h-7 w-7 p-0 text-rose-600"
+                        className="h-7 w-7 p-0 text-destructive"
                         onClick={() => removerLinha(idx)}
                         title="Remover"
                       >

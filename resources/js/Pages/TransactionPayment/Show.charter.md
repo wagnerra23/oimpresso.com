@@ -1,3 +1,9 @@
+---
+page: /payments/v2/{id}
+component: resources/js/Pages/TransactionPayment/Show.tsx
+status: draft
+---
+
 # Charter — `TransactionPayment/Show.tsx`
 
 > Rota Inertia: `/payments/v2/{id}` · Controller: `TransactionPaymentController::showInertia` · Equivalente `viewPayment()` modal Blade.

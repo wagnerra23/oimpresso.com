@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Models\NfeEmissao;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-NFE-002 fase 2C · Endpoint JSON polling-friendly de status NFC-e.

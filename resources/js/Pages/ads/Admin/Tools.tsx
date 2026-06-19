@@ -95,7 +95,7 @@ const Tools: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ too
               {recent_executions.map(e => (
                 <li key={e.id} className="px-4 py-2 text-sm flex items-center gap-3">
                   {e.ok
-                    ? <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    ? <CheckCircle2 className="w-4 h-4 text-success-fg" />
                     : <XCircle className="w-4 h-4 text-destructive" />}
                   <code className="text-xs">{e.tool_name}</code>
                   {e.is_read_only && <Badge variant="outline" className="text-xs">read</Badge>}
@@ -207,16 +207,16 @@ function ToolCard({ tool }: { tool: ToolItem }) {
                 )}
               </Button>
               {! tool.is_read_only && (
-                <span className="text-xs text-amber-600 inline-flex items-center gap-1">
+                <span className="text-xs text-warning-fg inline-flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" /> Tool de escrita — confirmação será solicitada
                 </span>
               )}
             </div>
             {result && (
-              <div className={`text-xs rounded p-2 ${result.ok ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
+              <div className={`text-xs rounded p-2 ${result.ok ? 'bg-success-soft border border-success/20' : 'bg-destructive-soft border border-destructive/20'}`}>
                 <div className="flex items-center gap-1 font-medium mb-1">
                   {result.ok
-                    ? <><CheckCircle2 className="w-3 h-3 text-emerald-600" /> OK</>
+                    ? <><CheckCircle2 className="w-3 h-3 text-success-fg" /> OK</>
                     : <><XCircle className="w-3 h-3 text-destructive" /> Erro</>}
                 </div>
                 <pre className="whitespace-pre-wrap break-all text-[10px]">{JSON.stringify(result, null, 2).slice(0, 2000)}</pre>

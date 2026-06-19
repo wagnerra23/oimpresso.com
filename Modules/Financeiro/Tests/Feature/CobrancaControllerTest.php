@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Permission\Models\Permission;
+
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Pest GUARDs — /financeiro/cobranca F3 PaymentGateway UI Tela 1.

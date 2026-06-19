@@ -367,7 +367,7 @@ Antes de criar componente custom, **buscar** em `resources/js/Components/`. Patt
 
 ### 16.8. Anti-padrões V2 (testes Pest CI varre)
 
-- ❌ `<AppShell>` sem V2 ([preferência](memory/claude/preference_persistent_layouts.md))
+- ❌ `<AppShell>` sem V2 (use o shell canônico [`AppShellV2.tsx`](resources/js/Layouts/AppShellV2.tsx))
 - ❌ `sessionStorage` (use `localStorage` com prefixo `oimpresso.`)
 - ❌ `bg-(gray|indigo|purple|pink|yellow|red|green)-[0-9]+`
 - ❌ `font-bold/extrabold/black` em h1-h3

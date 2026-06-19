@@ -163,7 +163,7 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAt
       {hasWarn && (
         <div className="px-6 pt-3">
           <div className="bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start gap-3 text-[11.5px]">
-            <AlertCircle className="h-4 w-4 text-amber-700 mt-0.5" />
+            <AlertCircle className="h-4 w-4 text-warning-fg mt-0.5" />
             <div className="flex-1 text-amber-900">
               <strong>Credencial(is) precisam de atenção</strong> — verifique no drawer de cada gateway abaixo (warn label).
             </div>
@@ -226,9 +226,9 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAt
                       <td className="px-2 py-2.5">
                         <span className={cn(
                           'inline-flex items-center gap-1 text-[10.5px] font-medium px-1.5 py-0.5 rounded border',
-                          g.ambiente === 'production' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200',
+                          g.ambiente === 'production' ? 'bg-success-soft text-success-fg border-success/20' : 'bg-warning-soft text-warning-fg border-warning/20',
                         )}>
-                          <span className={cn('w-1 h-1 rounded-full', g.ambiente === 'production' ? 'bg-emerald-500' : 'bg-amber-500')} />
+                          <span className={cn('w-1 h-1 rounded-full', g.ambiente === 'production' ? 'bg-success' : 'bg-warning')} />
                           {g.ambiente === 'production' ? 'Produção' : 'Sandbox'}
                         </span>
                       </td>

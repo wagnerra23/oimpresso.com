@@ -150,8 +150,8 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
 
         {/* Alerta divergências */}
         {totais.divergencias > 0 && (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
-            <AlertTriangle size={16} className="text-amber-600" />
+          <div className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/5 p-3 text-sm">
+            <AlertTriangle size={16} className="text-warning-fg" />
             <span>
               <strong>{totais.divergencias}</strong> dia(s) com divergência detectada na apuração.
               Dias destacados em âmbar abaixo (heatmap e tabela).
@@ -198,7 +198,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                       id={`dia-${l.data}`}
                       className={cn(
                         'hover:bg-accent/30 transition-all scroll-mt-20',
-                        l.divergencia && 'bg-amber-500/5',
+                        l.divergencia && 'bg-warning/5',
                         l.is_weekend && 'text-muted-foreground',
                       )}
                     >
@@ -225,10 +225,10 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                         )}
                       </td>
                       <td className="p-2 text-right font-mono">{formatMinutes(l.trabalhado)}</td>
-                      <td className={cn('p-2 text-right font-mono', l.atraso > 0 && 'text-amber-600')}>
+                      <td className={cn('p-2 text-right font-mono', l.atraso > 0 && 'text-warning-fg')}>
                         {formatMinutes(l.atraso)}
                       </td>
-                      <td className={cn('p-2 text-right font-mono', l.falta > 0 && 'text-red-600')}>
+                      <td className={cn('p-2 text-right font-mono', l.falta > 0 && 'text-destructive-fg')}>
                         {formatMinutes(l.falta)}
                       </td>
                       <td className={cn('p-2 text-right font-mono', l.he > 0 && 'text-violet-600')}>

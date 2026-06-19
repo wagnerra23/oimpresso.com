@@ -1,0 +1,37 @@
+name: Gate Selftest (advisory)
+
+# QUEM VIGIA OS VIGIAS — frente GT-G6 do plano SDD (memory/sessions/
+# 2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md §2, "TESTADA nível 2").
+#
+# Roda cada catraca de governança contra fixtures VERSIONADAS boa+ruim
+# (tests/governance-fixtures/) e falha se alguma parou de morder (caso ruim
+# passou) ou se a fixture boa avermelhou. Catracas: knowledge-drift --check ·
+# foundation-ratchet · ledger-check --enforce · sdd-scorecard --ratchet ARMADO.
+#
+# ADVISORY de nascença (gates novos nunca nascem required — ADR 0271/0275):
+# não está no branch protection. Always-run sem paths = required-ready.
+# Node puro, sem deps/DB/rede — segundos (<60s garantido).
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: gate-selftest-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    name: gate selftest (advisory · fixtures boa/ruim por catraca)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Selftest — 4 catracas × 2 fixtures (+ tabela no job summary)
+        run: node scripts/governance/gate-selftest.mjs

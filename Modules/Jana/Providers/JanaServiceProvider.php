@@ -74,6 +74,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\MeilisearchIndexSetupCommand::class, // 2026-05-29 — config-as-code dos embedders Meilisearch (Sprint 9b se perdeu)
                 \Modules\Jana\Console\Commands\ReconcileCommand::class, // ADR 0237 — jana:reconcile loop único (orquestra Reconcilers index/settings/content/deploy/eval)
                 \Modules\Jana\Console\Commands\UiJudgeTrendCommand::class, // parecer PR #2270 — medição do PR UI Judge (trend score/verdict/custo)
+                \Modules\Jana\Console\Commands\JanaRecallEvalCommand::class, // KL-C2 SDD F1 — eval determinístico de recall (golden set expected/violations, ADR 0270 D-4/D-5 + 0274 + 0275)
             ]);
         }
     }

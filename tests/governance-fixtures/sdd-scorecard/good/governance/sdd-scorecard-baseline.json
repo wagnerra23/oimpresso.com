@@ -1,0 +1,8 @@
+{
+  "_meta": "baseline da fixture BOA — bate com a medição do sandbox (nenhuma regressão → exit 0 mesmo ARMADO via SDD_RATCHET_ARM=1)",
+  "metrics": {
+    "anchor_coverage": { "status": "measured", "value": 100 },
+    "ghost_count": { "status": "measured", "value": 0 },
+    "front_door_coverage": { "status": "measured", "value": 100 }
+  }
+}

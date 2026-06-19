@@ -49,7 +49,7 @@ class ExportZipCommand extends Command
 {
     protected $signature = 'arquivos:export-zip
         {--business= : business_id obrigatório (CLI sem session)}
-        {--output= : path absoluto do ZIP de output (default: storage/app/exports/biz-{N}-{date}.zip)}
+        {--output= : path absoluto do ZIP de output (default: storage/app/exports/biz-BIZID-DATE.zip)}
         {--include-vault : Incluir arquivos com bucket=sensitive (default false — vault sensitive precisa razão explícita)}
         {--include-deleted : Incluir soft-deleted rows (default false — só active)}
         {--dry-run : Não cria ZIP, só lista + log}';
@@ -296,7 +296,7 @@ class ExportZipCommand extends Command
             if (! Storage::disk($diskName)->exists($row->storage_path)) {
                 $stats['missing_file']++;
                 // D7 LGPD (Wave 10): path/filename pode conter CPF/CNPJ embutido
-                // ("biz-1/2026/05/ab12.../contrato-123.456.789-00.pdf") — redact.
+                // ("biz-1/2026/05/ab12.../contrato-123.456.789-00.pdf") — redact. // pii-allowlist: exemplo docs
                 Log::warning('arquivos.export_zip.file_missing', [
                     'arquivo_id'  => $row->id,
                     'business_id' => $row->business_id,
@@ -451,7 +451,7 @@ class ExportZipCommand extends Command
     /**
      * D7 LGPD (Wave 10) — redactor seguro pra paths/filenames em logs.
      *
-     * Filename original pode trazer PII embutida (ex: "rg-123.456.789-00.pdf",
+     * Filename original pode trazer PII embutida (ex: "rg-123.456.789-00.pdf", // pii-allowlist: exemplo docs
      * "contrato-cnpj-12.345.678-0001-90.pdf", "boleto-email-foo@bar.com.pdf").
      * Fail-open: se PiiRedactor não resolver (boot/teardown), retorna input.
      */

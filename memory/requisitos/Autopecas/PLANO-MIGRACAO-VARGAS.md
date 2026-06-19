@@ -1,8 +1,8 @@
-# Plano Migração Vargas → Modules/Autopecas — 2026-05-10
+# Plano Migração Vargas → Autopecas (planejado — não existe) — 2026-05-10
 
 > **Autor:** Claude (sub-agent migration engineer + customer success) sob direção Wagner [W]
 > **Status:** `draft` — Wagner valida antes de qualquer outreach
-> **Tier:** plano operacional (não ADR), subordinado a [ADR 0125](../../decisions/0125-modules-autopecas-feature-wish.md) (Modules/Autopecas feature-wish) + [ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md) (Migration Factory) + [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (modular por vertical) + [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado)
+> **Tier:** plano operacional (não ADR), subordinado a [ADR 0125](../../decisions/0125-modules-autopecas-feature-wish.md) (Autopecas (planejado — não existe) feature-wish) + [ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md) (Migration Factory) + [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) (modular por vertical) + [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado)
 > **Pasta canônica:** `memory/requisitos/Autopecas/` — primeiro doc operacional do módulo (vertical em feature-wish)
 > **Origem:** removido do `PLANO-MIGRACAO-6-SAUDAVEIS.md` (Modules/ComunicacaoVisual) após Wagner confirmar 2026-05-10 que Vargas é **autopeças** (CNAE 4530-X), não comunicação visual
 
@@ -17,7 +17,7 @@
 - **Esforço migração:** ~24h IA-pair Felipe [F] + 12h Wagner [W] (calls + decisão + presencial) + 4h Maiara [M] (suporte L1 + treinamento) = **~40h total** ([ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) recalibração 10x já aplicada)
 - **ROI alvo:** 1 cliente Enterprise R$ [redacted Tier 0]/m × 12 = **R$ [redacted Tier 0]k/ano novo** (cap teórico Enterprise+ R$ [redacted Tier 0]-100k/ano se add-ons + multi-business)
 - **Capacidade time:** ~40h ao longo de 6m = **~7h/m** = sustentável sem comprometer Sprint principal
-- **Gatilho ADR 0125:** Vargas assinatura pioneer **DESBLOQUEIA** Modules/Autopecas `feature-wish` → `em_construcao`. Sem assinatura, módulo permanece dormente
+- **Gatilho ADR 0125:** Vargas assinatura pioneer **DESBLOQUEIA** Autopecas (planejado — não existe) `feature-wish` → `em_construcao`. Sem assinatura, módulo permanece dormente
 
 ### Premissa-chave (declarada — Wagner valida)
 
@@ -54,7 +54,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 
 ## Riscos específicos Vargas
 
-- 🔴 **Maior cliente saudável WR Sistemas — perda massiva.** R$ [redacted Tier 0]M GMV é 30% do agregado. Se migração der ruim, churn de Vargas inviabiliza Modules/Autopecas como vertical comercial + abala 26 anos relação
+- 🔴 **Maior cliente saudável WR Sistemas — perda massiva.** R$ [redacted Tier 0]M GMV é 30% do agregado. Se migração der ruim, churn de Vargas inviabiliza Autopecas (planejado — não existe) como vertical comercial + abala 26 anos relação
 - 🔴 **Build Delphi desatualizado** = cliente conservador, não corre pra novidade. Resistência natural a mudança. Pode interpretar "novo sistema" como "mais um upgrade que não preciso"
 - 🟡 **Vertical confirmado mas detalhe a aprofundar** — "autopeças" é amplo (varejo balcão? atacado? marketplace?). Confirmar via banco antes de positionar produto
 - 🟡 **Concorrência potencial** — Auto Manager / Lokoz / Linx Microvix podem ter mapeado Vargas como prospect (R$ [redacted Tier 0]M GMV é alvo natural mid-market)
@@ -74,7 +74,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 ### Quando
 
 - **Q4/26 outubro-dezembro** — após Modules/ComunicacaoVisual ter Sprint 1 entregue + 1ª piloto comvisual estabilizado em prod (Q3/26)
-- **Não antes** — sem Modules/CV piloto verde, demo Vargas frustra ("você diz que tem ERP mas só ROTA LIVRE vestuário existe")
+- **Não antes** — sem Modules/ComunicacaoVisual piloto verde, demo Vargas frustra ("você diz que tem ERP mas só ROTA LIVRE vestuário existe")
 - **Janela ideal:** **out-nov 2026** — Vargas ainda no clima de planejamento 2027, antes do recesso fim de ano BR
 
 ### Como (tática)
@@ -93,7 +93,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 3. **Follow-up técnico (45min Felipe + Wagner):**
    - Migration Factory demo: como banco Firebird Vargas migra preservando 100% histórico
    - Strangler Fig + parallel run 30d explicado: Delphi continua read-only enquanto oimpresso vira write canônico, rollback grátis 30d
-   - Roadmap Modules/Autopecas Sprint 1 (4 meses) + commitment release date
+   - Roadmap Autopecas (planejado — não existe) Sprint 1 (4 meses) + commitment release date
 
 4. **Decisão (semana +4 a +8):**
    - Vargas decide com cônjuge/sócio (provável) — dar tempo
@@ -112,7 +112,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
   - **Cálculo total ano-2:** R$ [redacted Tier 0]/m × 12m = **R$ [redacted Tier 0] ano-2**
   - **Total 24m grandfathered:** R$ [redacted Tier 0]
 - **Migração full** (Migration Factory pattern Strangler Fig + parallel run 30d Delphi+oimpresso lado a lado)
-- **Modules/Autopecas completo** quando entregue:
+- **Autopecas (planejado — não existe) completo** quando entregue:
   - Catálogo SKU + tabela aplicação por veículo
   - Venda balcão p95<1500ms
   - NFC-e ágil + NFe-de-boleto auto
@@ -140,10 +140,10 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 | **Q3/26 jul-set** | Modules/ComunicacaoVisual Sprint 1 entregue + 1ª piloto comvisual estabilizado | **gate-check** antes outreach Vargas |
 | **Q4/26 out (semana 1-2)** | Snapshot financeiro Vargas + Wagner prepara pitch | 4-8h Felipe + 4h Wagner |
 | **Q4/26 out (semana 3-4)** | Call discovery Wagner direto | 60min sync + 30min preparação Wagner |
-| **Q4/26 nov** | Follow-up técnico + demo Modules/Autopecas roadmap | 45min Felipe + Wagner |
+| **Q4/26 nov** | Follow-up técnico + demo Autopecas (planejado — não existe) roadmap | 45min Felipe + Wagner |
 | **Q4/26 dez** | Decisão Vargas (sim/não/postergar) | Vargas + sócio decidem |
-| **Q1/27 jan** | Se SIM: assinatura contrato + ADR ativação Modules/Autopecas (`feature-wish` → `em_construcao`) | Wagner aprova; Felipe scaffolda módulo |
-| **Q1/27 jan-mar** | Modules/Autopecas Sprint 1 (6 features mínimas US-AP-001..006) | ~10-12 dias úteis Felipe IA-pair + 6h Wagner aprovação |
+| **Q1/27 jan** | Se SIM: assinatura contrato + ADR ativação Autopecas (planejado — não existe) (`feature-wish` → `em_construcao`) | Wagner aprova; Felipe scaffolda módulo |
+| **Q1/27 jan-mar** | Autopecas (planejado — não existe) Sprint 1 (6 features mínimas US-AP-001..006) | ~10-12 dias úteis Felipe IA-pair + 6h Wagner aprovação |
 | **Q1/27 mar** | Snapshot financeiro Vargas re-rodado + Pattern 07 dry-run banco Firebird local | 1-2 dias Felipe |
 | **Q2/27 abr-mai** | Migração Vargas: cutover + parallel run 30d Delphi+oimpresso | 2-4 semanas wallclock + smoke biz Vargas + canary 7d |
 | **Q2/27 jun** | Vargas estabilizado em prod + survey NPS D+30 | 2-4 calls Maiara |
@@ -161,7 +161,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 1. **NÃO churnar Vargas do OfficeImpresso por pressão** — princípio [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) "guiar sem mandar"
 2. **Manter Vargas no OfficeImpresso, sem forçar** — releases manutenção legacy WR Sistemas continuam pago as-is
 3. **Re-tentar em 12-18 meses** com case público de outro cliente migrado já estabilizado (idealmente 2º cliente autopeças OU Vargas vê ROTA LIVRE+ComunicacaoVisual prosperando)
-4. **Modules/Autopecas permanece `feature-wish`** até 2º cliente autopeças saudável sinalizar interesse (ADR 0125 §Trigger Cenário B)
+4. **Autopecas (planejado — não existe) permanece `feature-wish`** até 2º cliente autopeças saudável sinalizar interesse (ADR 0125 §Trigger Cenário B)
 5. **Registrar resposta de Vargas** em `memory/research/vargas-2026-Q4-outreach-resultado.md` pra calibrar abordagens futuras (o quê funcionou? o quê travou?)
 
 ### Cenário: Vargas pede tempo (>3 meses sem decisão)
@@ -175,7 +175,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 1. **Aceitar perda como dado de mercado** — não foi por preço, foi por timing/produto/posicionamento
 2. Solicitar exit interview: "o que faltou no oimpresso pra ganhar você?"
 3. Documentar em post-mortem `memory/research/2026-Q?-post-mortem-vargas.md` (mesmo padrão Gold Comunicação Mubisys)
-4. **Modules/Autopecas vira `historical`** se Vargas era único candidato qualificado (ADR 0125 §review_trigger #5: "12 meses sem sinal Vargas + sem 2º cliente autopeças")
+4. **Autopecas (planejado — não existe) vira `historical`** se Vargas era único candidato qualificado (ADR 0125 §review_trigger #5: "12 meses sem sinal Vargas + sem 2º cliente autopeças")
 
 ---
 
@@ -204,7 +204,7 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
   - aplicação peças: aplicações Delphi → tabela `autopecas_aplicacoes` com integridade referencial
 - [ ] **Pest test multi-tenant verde local** (Felipe roda; Wagner exige conforme [feedback 2026-05-09](../../../C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md))
 - [ ] Vargas notificado por escrito (Wagner email + WhatsApp) data exata cutover + comunicação 7d antes ([proibicoes.md](../../proibicoes.md) §F5 CUTOVER sem aviso prévio)
-- [ ] **Treinamento Vargas equipe** agendado D-7 a D-1 (Maiara síncrono 4-8h cobrindo Modules/Autopecas + Jana + NFC-e ágil)
+- [ ] **Treinamento Vargas equipe** agendado D-7 a D-1 (Maiara síncrono 4-8h cobrindo Autopecas (planejado — não existe) + Jana + NFC-e ágil)
 
 ### Cutover (D-Day)
 
@@ -229,14 +229,14 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
   - landing `oimpresso.com/cases/vargas` ([Modules/Cms](../Cms/) cms_pages)
   - autoriza menção em battle card oimpresso vs Auto Manager/Lokoz/Linx Microvix
 - [ ] **Aposentar Delphi WR Sistemas pro Vargas** (status `🔒 retired` em [`_index.md`](../../clientes-legacy/_index.md))
-- [ ] **Modules/Autopecas promovido `em_construcao` → `piloto`** (ADR 0125 lifecycle)
+- [ ] **Autopecas (planejado — não existe) promovido `em_construcao` → `piloto`** (ADR 0125 lifecycle)
 
 ---
 
 ## Riscos sistêmicos específicos Vargas
 
 ### 1. Maior cliente legacy = single point of failure
-- **Impacto:** se Vargas migrar e voltar pro Delphi em <30d, Modules/Autopecas vira módulo morto + 26 anos relação Wagner-Vargas abalada
+- **Impacto:** se Vargas migrar e voltar pro Delphi em <30d, Autopecas (planejado — não existe) vira módulo morto + 26 anos relação Wagner-Vargas abalada
 - **Mitigação:** Migration Factory Pattern Strangler Fig + parallel run 30d garante rollback grátis; Pest validators count/totals match (Pattern 07); Wagner presencial cutover (se viável geo)
 - **Ativação review_trigger ADR 0119 #4** se voltar <30d
 
@@ -250,9 +250,9 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 - **Mitigação:** **defender pelo vínculo Wagner-Vargas 26y** (intransferível) + diferencial Jana IA + NFe-de-boleto-pago + multi-tenant Tier 0 + stack moderna
 - **Plano B:** se Vargas sinalizar "Auto Manager me ofereceu R$ [redacted Tier 0]/m", Wagner não baixa preço — defende valor Migration Factory + relação
 
-### 4. Modules/Autopecas Sprint 1 atrasado quando Vargas estiver pronto
+### 4. Autopecas (planejado — não existe) Sprint 1 atrasado quando Vargas estiver pronto
 - **Impacto:** Vargas assina out/26 mas Sprint 1 entrega só mar/27 = 5 meses esperando — pode esfriar
-- **Mitigação:** Modules/Autopecas Sprint 1 **só começa após Vargas assinar** (ADR 0125 enforced). Vargas espera 2-3 meses pós-assinatura é normal pra pioneer; comunicar honesto: "você é o primeiro, vamos construir juntos"
+- **Mitigação:** Autopecas (planejado — não existe) Sprint 1 **só começa após Vargas assinar** (ADR 0125 enforced). Vargas espera 2-3 meses pós-assinatura é normal pra pioneer; comunicar honesto: "você é o primeiro, vamos construir juntos"
 - **Plano B:** se atrasar >6 meses pós-assinatura, oferecer compensação (3 meses adicionais grandfathered grátis)
 
 ### 5. Localização Vargas longe Wagner (BR é grande)
@@ -261,7 +261,7 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 - **Plano B:** se geografia inviabilizar suporte presencial mensal, ajustar pricing? Não — pricing é pricing. Comprometer com suporte remoto premium (SLA 4h vs 24h)
 
 ### 6. Pest local exigência Wagner pode atrasar PRs multi-tenant
-- **Impacto:** [Wagner feedback 2026-05-09](../../../C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md) exige Pest verde **rodado localmente pelo dev** antes de PR multi-tenant. Modules/Autopecas tem ~7 Models multi-tenant novos
+- **Impacto:** [Wagner feedback 2026-05-09](../../../C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/feedback_tenancy_changes_require_pest_local.md) exige Pest verde **rodado localmente pelo dev** antes de PR multi-tenant. Autopecas (planejado — não existe) tem ~7 Models multi-tenant novos
 - **Mitigação:** Felipe roda Pest local em cada PR Sprint 1 (não delegar pra CI); inclui no estimate ~2h/PR adicional
 - **Plano B:** se virar gargalo Felipe, Wagner aprova batch parcial em PR menores
 
@@ -288,14 +288,14 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 
 | Métrica | Alvo | Como medir |
 |---------|------|------------|
-| **Vargas em prod pagando Modules/Autopecas** | ✅ sim | `business[vargas].vertical_id = autopecas` AND `subscription_status = active` |
+| **Vargas em prod pagando Autopecas (planejado — não existe)** | ✅ sim | `business[vargas].vertical_id = autopecas` AND `subscription_status = active` |
 | **ARR Vargas year-1** | R$ [redacted Tier 0] (com 50% off 6m) | sum(monthly_revenue × meses) |
 | **Churn Vargas 90d pós-migração** | 0% (não voltar pro Delphi) | review_trigger ADR 0119 #4 |
 | **NPS Vargas D+90** | ≥40 | survey clássico 0-10 |
 | **Tempo migração (signature → cutover)** | ≤120 dias | `cutover_date - contract_signed_date` |
 | **Case público Vargas autorizado** | ≥1 | `oimpresso.com/cases/vargas` no ar com autorização |
 | **Performance balcão Vargas (US-AP-002)** | p95 <1500ms | Pest browser-test prod biz Vargas |
-| **Modules/Autopecas promovido `piloto`** | ✅ sim D+90 | ADR 0125 lifecycle |
+| **Autopecas (planejado — não existe) promovido `piloto`** | ✅ sim D+90 | ADR 0125 lifecycle |
 
 ### Sinais de alerta (revisão imediata se baterem)
 
@@ -315,8 +315,8 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 4. **Confirmar localização Vargas** (SC/SP/MG/RJ) via banco — define geografia presencial
 5. **Confirmar vertical autopeças** via sample 100 produtos no banco Firebird Vargas
 6. **Definir gate-check Modules/ComunicacaoVisual Sprint 1** — Felipe + Wagner alinham 4 features mínimas comvisual pra abrir outreach Vargas Q4/26
-7. **Registrar Vargas como candidato piloto Modules/Autopecas** em `memory/clientes-legacy/_index.md` (status `🟡 candidato Modules/Autopecas`)
-8. **NÃO criar tasks MCP Modules/Autopecas ainda** — gatilho Vargas assinatura (ADR 0125) é pré-requisito; criar tasks viola ADR 0105
+7. **Registrar Vargas como candidato piloto Autopecas (planejado — não existe)** em `memory/clientes-legacy/_index.md` (status `🟡 candidato Autopecas (planejado — não existe)`)
+8. **NÃO criar tasks MCP Autopecas (planejado — não existe) ainda** — gatilho Vargas assinatura (ADR 0125) é pré-requisito; criar tasks viola ADR 0105
 
 ---
 
@@ -328,9 +328,9 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 - [ADR 0118](../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md) — Segregação domínios externos
 - [ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md) — Migration Factory (mãe deste plano)
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — Modular especializado por vertical
-- [ADR 0125](../../decisions/0125-modules-autopecas-feature-wish.md) — Modules/Autopecas feature-wish (mãe deste plano)
-- [SPEC Modules/Autopecas](SPEC.md) — contrato funcional do módulo
-- [Charter Modules/Autopecas](Autopecas.charter.md) — charter v1 antecipatório
+- [ADR 0125](../../decisions/0125-modules-autopecas-feature-wish.md) — Autopecas (planejado — não existe) feature-wish (mãe deste plano)
+- [SPEC Autopecas (planejado — não existe)](SPEC.md) — contrato funcional do módulo
+- [Charter Autopecas (planejado — não existe)](Autopecas.charter.md) — charter v1 antecipatório
 - [PLANO-MIGRACAO-6-SAUDAVEIS.md](../ComunicacaoVisual/PLANO-MIGRACAO-6-SAUDAVEIS.md) — Vargas removido pro autopeças, plano comvisual atualizado
 - [memory/clientes-legacy/_index.md](../../clientes-legacy/_index.md) — matriz 49 clientes Delphi
 - [memory/sales/2026-05/06-pricing-tiers.md](../../sales/2026-05/06-pricing-tiers.md) — tiers oficiais (Starter/Pro/Enterprise)

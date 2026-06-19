@@ -1,5 +1,7 @@
 ---
-page_id: admin.screen-review.dashboard
+page: /admin/screen-review/dashboard
+component: resources/js/Pages/Admin/ScreenReviewDashboard.tsx
+page_id: admin-screen-review-dashboard
 route: /admin/screen-review/dashboard
 status: live
 owner: wagner

@@ -1,3 +1,9 @@
+---
+page: /auditoria
+component: resources/js/Pages/Auditoria/Index.tsx
+status: draft
+---
+
 # Charter — Pages/Auditoria/Index.tsx
 
 > Charter F1.5 obrigatório (ADR 0107 + ADR 0114). Atualizado Wave 25 (2026-05-16) — adiciona Export flow + Bulk action panel + edge cases catalogados.

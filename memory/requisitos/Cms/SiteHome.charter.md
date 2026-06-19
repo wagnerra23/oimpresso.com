@@ -26,7 +26,7 @@ Home pública do tenant `oimpresso.com` (e mirrors por business) — landing pag
 ## Non-Goals
 
 - ❌ Catálogo de produtos público (vai virar `/c/produtos` charter separada — Modules/Vestuario/ComunicacaoVisual)
-- ❌ Auth flow (Login/Register são charters próprias em Modules/Auth)
+- ❌ Auth flow (Login/Register são charters próprias em Auth — núcleo UltimatePOS, não é módulo)
 - ❌ Checkout/pricing dinâmico (charter `Site/Pricing` separada — `SitePricingDinamicoTest` cobre)
 - ❌ Hidratar copy de fontes externas (Sanity/Strapi/Contentful) — DB próprio é canon
 

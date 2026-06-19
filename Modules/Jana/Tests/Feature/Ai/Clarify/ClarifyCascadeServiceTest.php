@@ -28,6 +28,13 @@ uses(Tests\TestCase::class);
  *  009. fail-open — exceção no disambiguador → responde (chat nunca quebra)
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     foreach (['jana_conversas', 'jana_mensagens'] as $t) {
         Schema::dropIfExists($t);
     }

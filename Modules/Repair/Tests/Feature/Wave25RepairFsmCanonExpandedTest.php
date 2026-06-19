@@ -8,6 +8,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageActionRole;
 use App\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Repair\Entities\JobSheet;
@@ -50,6 +51,10 @@ use Spatie\Permission\PermissionRegistrar;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -128,18 +133,23 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('activity_log');
-    Schema::dropIfExists('repair_job_sheets');
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12: $hasMetRequirements já é true antes do hook). DDL guardado por
+    // driver pra não dropar tabelas REAL-migradas/CORE no MySQL persistente do nightly.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('activity_log');
+        Schema::dropIfExists('repair_job_sheets');
 
-    $isCriticalAlter = database_path('migrations/2026_05_12_010001_add_is_critical_to_sale_stage_actions.php');
-    if (file_exists($isCriticalAlter)) {
-        try { (require $isCriticalAlter)->down(); } catch (\Throwable $e) { /* opcional */ }
-    }
-    foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
-        (require $f)->down();
-    }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'] as $tbl) {
-        Schema::dropIfExists($tbl);
+        $isCriticalAlter = database_path('migrations/2026_05_12_010001_add_is_critical_to_sale_stage_actions.php');
+        if (file_exists($isCriticalAlter)) {
+            try { (require $isCriticalAlter)->down(); } catch (\Throwable $e) { /* opcional */ }
+        }
+        foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
+            (require $f)->down();
+        }
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
 
     app(PermissionRegistrar::class)->forgetCachedPermissions();

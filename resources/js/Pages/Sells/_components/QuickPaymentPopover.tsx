@@ -209,7 +209,7 @@ export default function QuickPaymentPopover({
             />
           </div>
           {paymentError && (
-            <div className="rounded-md bg-rose-50 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/40 px-2.5 py-2 text-xs text-rose-700 dark:text-rose-300">
+            <div className="rounded-md bg-destructive-soft border border-destructive/20 px-2.5 py-2 text-xs text-destructive-fg">
               {paymentError}
             </div>
           )}

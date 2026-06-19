@@ -1,0 +1,9 @@
+{
+  "_meta": "fixture RUIM do gate-selftest — entry viola 5 regras (veredito, sessao_fresca, error_rate, pii_hits, refutador < gerador); com --enforce TEM que dar exit 1",
+  "entries": [
+    { "pr": 9999, "lote_id": "GT-G6-selftest-bad", "data": "2026-06-12", "tipo": "anchors",
+      "gerador": "sonnet", "refutador": "haiku", "sessao_fresca": false, "amostra_pct": 100,
+      "itens_verificados": 40, "erros_confirmados": 2, "error_rate_pct": 5, "pii_scan": true,
+      "pii_hits": 2, "evidencia": "tests/governance-fixtures/README.md", "veredito": "reprovado" }
+  ]
+}

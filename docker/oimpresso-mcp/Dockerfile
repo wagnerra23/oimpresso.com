@@ -11,6 +11,11 @@
 FROM php:8.4-fpm-alpine
 
 # Instala Nginx + supervisor + extensões PHP do Laravel
+# mariadb-client (US-GOV-018 Frente A): provê o binário /usr/bin/mysql que o
+# `artisan migrate:fresh`/RefreshDatabase invoca em "Loading stored database
+# schemas" pra recarregar database/schema/mysql-schema.sql. Sem ele, o nightly
+# full-suite (que reusa esta imagem) envenenava o schema mid-run. Benigno em
+# prod (só um client CLI; o runtime MCP usa pdo_mysql, não o binário).
 RUN apk add --no-cache \
         nginx \
         supervisor \
@@ -19,6 +24,7 @@ RUN apk add --no-cache \
         git \
         zip \
         unzip \
+        mariadb-client \
         oniguruma-dev \
         libxml2-dev \
         libzip-dev \

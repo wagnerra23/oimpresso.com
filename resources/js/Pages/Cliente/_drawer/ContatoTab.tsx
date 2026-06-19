@@ -61,7 +61,7 @@ function getCsrfToken(): string {
 
 // Onda 1 PR B' 2026-05-26 — Extraído pra constante única (atende UI Lint ratchet).
 // Evita 3 ocorrências literais idênticas (email/email_billing/email_nfe).
-const INVALID_INPUT_CLASS = 'border-rose-500 focus-visible:ring-rose-400';
+const INVALID_INPUT_CLASS = 'border-destructive focus-visible:ring-destructive';
 
 export default function ContatoTab({ contact, onSaved, disabled = false }: ContatoTabProps) {
   // Resolve tel inicial: prioriza `tel` (nova coluna Wave B), fallback pra mobile/landline UPOS legacy
@@ -477,14 +477,14 @@ interface FieldStatusProps {
 function FieldStatus({ error, errorId, saving, saved, backendError }: FieldStatusProps) {
   if (error) {
     return (
-      <p id={errorId} className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+      <p id={errorId} className="mt-1 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
         <AlertCircle size={11} aria-hidden /> {error}
       </p>
     );
   }
   if (backendError) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
         <AlertCircle size={11} aria-hidden /> {backendError}
       </p>
     );
@@ -498,7 +498,7 @@ function FieldStatus({ error, errorId, saving, saved, backendError }: FieldStatu
   }
   if (saved) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600" aria-live="polite">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-success-fg" aria-live="polite">
         <CheckCircle2 size={11} aria-hidden /> Salvo
       </p>
     );

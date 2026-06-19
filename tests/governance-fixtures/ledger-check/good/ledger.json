@@ -1,0 +1,9 @@
+{
+  "_meta": "fixture BOA do gate-selftest — entry que passa TODAS as regras do validateEntry (ledger-check.mjs)",
+  "entries": [
+    { "pr": 9999, "lote_id": "GT-G6-selftest-good", "data": "2026-06-12", "tipo": "anchors",
+      "gerador": "haiku", "refutador": "sonnet", "sessao_fresca": true, "amostra_pct": 100,
+      "itens_verificados": 40, "erros_confirmados": 0, "error_rate_pct": 0, "pii_scan": true,
+      "pii_hits": 0, "evidencia": "tests/governance-fixtures/README.md", "veredito": "aprovado" }
+  ]
+}

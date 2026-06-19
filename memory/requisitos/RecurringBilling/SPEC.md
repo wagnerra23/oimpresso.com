@@ -1,3 +1,16 @@
+---
+module: RecurringBilling
+slug: recurring-billing-spec
+title: Especificação funcional — RecurringBilling
+type: spec
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
+---
+
+<!-- schema-allowlist: US ativas sob "## 2. User stories" (US-RB-NNN canônicas, casa o gate); blocos stub legados §7-bis/§8 carregam ID auto-gerado malformado US-RECURRINGBILLING-001 (duplicatas das US-RB-040..044) — manter intacto evita restruturar corpo; IDs canônicos são os US-RB-NNN -->
+
 # Especificação funcional — RecurringBilling
 
 > Convenção do ID: `US-RB-NNN` para user stories, `R-RB-NNN` para regras Gherkin.

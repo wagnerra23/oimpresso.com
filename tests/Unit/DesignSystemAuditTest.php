@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 /**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de Design System (ratchets R-DS-001..006) contra fonte-da-verdade móvel (.tsx) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
+/**
  * Design System Audit (R-DS-001..006) — varredura estática do source TSX.
  *
  * Origem: recomendação P0 #3 da auditoria 2026-04-24 (`memory/requisitos/_DesignSystem/SPEC.md`

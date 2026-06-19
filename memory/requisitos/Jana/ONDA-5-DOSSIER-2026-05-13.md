@@ -53,7 +53,7 @@ Os 5 gaps Onda 5 têm áreas isoladas confirmadas (zero overlap entre paths) →
 ```
 spawn paralelo (1 worktree, 5 agents):
   ├─ agent-K1: Modules/Jana/Services/Memoria/* (driver + score function)
-  ├─ agent-V1: Modules/Copiloto/Http/Controllers/Admin/Roadmap* + resources/js/Pages/Admin/Roadmap/*
+  ├─ agent-V1: Modules/Jana/Http/Controllers/Admin/Roadmap* + resources/js/Pages/Admin/Roadmap/*
   ├─ agent-H1: Modules/Jana/Mcp/Tools/HandoffDraftTool.php + Services/Handoff/HandoffDrafterService.php
   ├─ agent-S1: scripts/validate-frontmatter.* + .github/workflows/memory-schema-lint.yml + memory/decisions/_SCHEMA.md
   └─ agent-A1: Modules/Jana/Mcp/Support/DocSummarizer.php (decorator) + Modules/Jana/Ai/Services/ChunkedSummarizerService.php
@@ -179,13 +179,13 @@ NÃO necessário (refactor interno service, não nova tela). Mas atualizar [RETR
 
 ### Áreas isoladas (paths exatos pra agent V1)
 
-- **Create:** `Modules/Copiloto/Http/Controllers/Admin/RoadmapController.php` — `@index()` lê `mcp_tasks` + `mcp_cycles` + `mcp_task_links` (blocked_by[])
-- **Create:** `Modules/Copiloto/Http/Resources/RoadmapTaskResource.php` — shape compatível com SVAR Gantt task object
+- **Create:** `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` — `@index()` lê `mcp_tasks` + `mcp_cycles` + `mcp_task_links` (blocked_by[])
+- **Create:** `Modules/Jana/Http/Resources/RoadmapTaskResource.php` — shape compatível com SVAR Gantt task object
 - **Create:** `resources/js/Pages/Admin/Roadmap/Index.tsx` — page Inertia consumindo Resource
 - **Create:** `resources/js/Pages/Admin/Roadmap/_components/RoadmapGantt.tsx` — wrapper SVAR
 - **Create:** `resources/js/Pages/Admin/Roadmap/_components/SubIssuesPanel.tsx` — hierarchy view (parent_task_id)
 - **Create:** `resources/js/Pages/Admin/Roadmap/Index.charter.md` — charter MWART canon
-- **Edit:** `Modules/Copiloto/Resources/views/sidebar.blade.php` ou DataController hook — adicionar entry sidebar "Roadmap" ([sidebar-menu-arch](../../../.claude/skills/sidebar-menu-arch/SKILL.md))
+- **Edit:** `Modules/Jana/Resources/views/sidebar.blade.php` ou DataController hook — adicionar entry sidebar "Roadmap" ([sidebar-menu-arch](../../../.claude/skills/sidebar-menu-arch/SKILL.md))
 - **Edit:** `routes/admin.php` (Copiloto) — `Route::get('/copiloto/admin/roadmap', RoadmapController::class)->middleware(['web','auth',...])`
 - **Migration:** `mcp_tasks` JÁ tem `parent_task_id` ou similar? Auditar — se não, ADD COLUMN nullable
 - **Composer/npm:** `npm i @svar-widgets/react-gantt`

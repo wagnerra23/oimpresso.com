@@ -55,7 +55,7 @@ function SitePricing({ packages }: SitePricingProps) {
               }`}
             >
               Anual
-              <span className="ml-2 rounded-full bg-green-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-green-600">
+              <span className="ml-2 rounded-full bg-success/20 px-1.5 py-0.5 text-[10px] font-semibold text-success">
                 −20%
               </span>
             </button>

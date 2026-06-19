@@ -29,6 +29,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach ([
         'transactions',
         'contacts',

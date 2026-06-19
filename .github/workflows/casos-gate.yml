@@ -44,6 +44,21 @@ jobs:
       - name: Casos ratchet (falha em violação NOVA de trio/rastreabilidade)
         run: node scripts/casos-coverage-guard.mjs
 
+      # Onda Q2 (mandato ONDAS-QUALIDADE 2026-06-11) — ratchet SÓ-DESCE do arquivo de
+      # baseline: o ratchet acima pega violação nova no REPO, mas não impedia o próprio
+      # baseline commitado de CRESCER via `--write-baseline` (fotografar dívida nova).
+      # Crescimento consciente (refactor move tela com dívida legada) = label
+      # `casos-baseline-grow-approved` no PR (decisão visível, não default).
+      - name: Baseline só-desce (cobertura de casos nunca regride)
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'casos-baseline-grow-approved')
+        run: |
+          git fetch --no-tags origin main
+          if git show origin/main:scripts/casos-coverage-baseline.json > /tmp/casos-baseline-main.json 2>/dev/null; then
+            node scripts/casos-coverage-guard.mjs --check-baseline-shrink /tmp/casos-baseline-main.json
+          else
+            echo "baseline ausente no main (bootstrap) — skip"
+          fi
+
       - name: Diagnóstico em caso de falha
         if: failure()
         run: |

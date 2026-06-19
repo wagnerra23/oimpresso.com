@@ -8,6 +8,7 @@ use App\Business;
 use App\Contact;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -33,7 +34,7 @@ use Tests\TestCase;
  */
 class ContactBucketBLegacyRawJsonTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_has_legacy_source_and_legacy_raw_columns(): void
     {
         $this->assertTrue(
@@ -46,7 +47,7 @@ class ContactBucketBLegacyRawJsonTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_casts_legacy_raw_as_array_round_trip(): void
     {
         $business = Business::first() ?? Business::create([
@@ -92,7 +93,7 @@ class ContactBucketBLegacyRawJsonTest extends TestCase
         $fresh->forceDelete();
     }
 
-    /** @test */
+    #[Test]
     public function it_queries_via_json_extract_forensic(): void
     {
         $business = Business::first() ?? Business::create([
@@ -140,7 +141,7 @@ class ContactBucketBLegacyRawJsonTest extends TestCase
         $new->forceDelete();
     }
 
-    /** @test */
+    #[Test]
     public function it_exposes_cliente_desde_accessor_for_ui_storytelling(): void
     {
         $business = Business::first() ?? Business::create([
@@ -170,7 +171,7 @@ class ContactBucketBLegacyRawJsonTest extends TestCase
         $native->forceDelete();
     }
 
-    /** @test */
+    #[Test]
     public function it_preserves_multi_tenant_scope_with_legacy_raw(): void
     {
         $biz_a = Business::create([
@@ -219,7 +220,7 @@ class ContactBucketBLegacyRawJsonTest extends TestCase
         $biz_b->delete();
     }
 
-    /** @test */
+    #[Test]
     public function it_rejects_invalid_legacy_source_enum(): void
     {
         $business = Business::first() ?? Business::create([

@@ -75,6 +75,7 @@ class NfseCancelService
 
         // ── 2. Carregar emissão SEM global scope pra fazer cross-tenant guard
         //      explícito (defesa em profundidade ADR 0093) ───────────────────
+        // SUPERADMIN: $businessId vem por parâmetro (não session); cross-tenant guard explícito abaixo (linha ~83).
         $nfse = NfseEmissao::withoutGlobalScopes()->find($nfseEmissaoId);
         if (! $nfse) {
             throw new RuntimeException("NfseEmissao {$nfseEmissaoId} não encontrada.");
@@ -89,6 +90,7 @@ class NfseCancelService
 
         // ── 3. Idempotência — emissão já cancelled retorna evento existente ─
         if ($nfse->status === NfseEmissao::STATUS_CANCELLED) {
+            // SUPERADMIN: $nfse já validado no guard cross-tenant acima; filtra por nfse_emissao_id desse tenant.
             $existente = NfseEventoCancelamento::withoutGlobalScopes()
                 ->where('nfse_emissao_id', $nfse->id)
                 ->where('status', NfseEventoCancelamento::STATUS_AUTORIZADO)

@@ -311,7 +311,7 @@ function CcSessionsIndex(props: Props) {
                         <td className="py-1.5 px-2 align-top">
                           {s.status === 'active' && <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px]">ativa</Badge>}
                           {s.status === 'closed' && <Badge variant="outline" className="text-[10px]">fechada</Badge>}
-                          {s.status === 'archived' && <Badge variant="outline" className="bg-gray-50 text-gray-700 text-[10px]">arquivada</Badge>}
+                          {s.status === 'archived' && <Badge variant="outline" className="bg-muted text-muted-foreground text-[10px]">arquivada</Badge>}
                         </td>
                       )}
                     </tr>

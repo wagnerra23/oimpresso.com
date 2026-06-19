@@ -153,7 +153,7 @@ export default function ReviewReader({ screen, onAction, onResmoke, className }:
       {screen.desvios_count > 0 && (
         <div
           role="status"
-          className="flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11.5px] text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
+          className="flex items-center gap-2 rounded-md border border-warning/20 bg-warning-soft px-3 py-2 text-[11.5px] text-warning-fg"
         >
           <AlertTriangle size={13} className="shrink-0" />
           <span>

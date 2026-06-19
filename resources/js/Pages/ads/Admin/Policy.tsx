@@ -50,9 +50,9 @@ const Policy: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ ru
         description="Regras imutáveis do firewall. Read-only — mudança só via PR no git, aprovado por Wagner (ARQ-0006)."
       />
 
-      <Card className="border-amber-500/30 bg-amber-500/5">
+      <Card className="border-warning/30 bg-warning-soft">
         <CardContent className="py-4 flex items-start gap-3">
-          <Lock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <Lock className="w-5 h-5 text-warning-fg shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-medium">Firewall imutável</p>
             <p className="text-muted-foreground">

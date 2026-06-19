@@ -13,6 +13,10 @@ on:
       - 'memory/**'
       - 'scripts/governance/memory-health.mjs'
       - 'scripts/governance/.memory-health-baseline.json'
+      # Onda Q5 — Check G (registry canônico de gates): workflow novo/alterado
+      # tem que passar pelo censo; o umbrella (always-run) também cobre.
+      - '.github/workflows/**'
+      - 'scripts/governance/gates-registry.json'
   schedule:
     # Daily 06h30 BRT (09h30 UTC) — batimento cardíaco da memória (após health-check dados).
     - cron: '30 9 * * *'

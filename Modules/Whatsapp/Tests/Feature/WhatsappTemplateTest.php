@@ -19,6 +19,12 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // era-sqlite: este teste cria schema whatsapp_* manual (sqlite-friendly). No MySQL
+    // persistente do nightly isso DROPA tabelas reais → corrompe os testes irmãos
+    // (lever do floor SDD). Cobertura real é na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
     Schema::dropIfExists('whatsapp_templates');
     Schema::create('whatsapp_templates', function ($table) {
         $table->bigIncrements('id');

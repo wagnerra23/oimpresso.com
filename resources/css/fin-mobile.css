@@ -58,7 +58,7 @@
   /* Footer summary compacto */
   .fin-cowork .fin-footer-tips {
     flex-wrap: wrap;
-    font-size: 11px;
+    font-size: var(--fs-1);
   }
   /* Drawer occupy full width em mobile */
   .fin-cowork [role="dialog"] {

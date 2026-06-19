@@ -1,6 +1,6 @@
 # GOLDEN_SET.md — Casos canônicos de comportamento dos agentes
 
-> **Status:** ✅ CONGELADO por [W] (Wagner) 2026-06-13 — imutável (GS-01..12 AS-IS). Caso novo ou alteração = PR dedicado aprovado por [W].
+> **Status:** PROPOSTA até [W] mergear este PR — o merge É o ato de congelamento.
 > **Regra de imutabilidade:** após congelado, NENHUM agente edita este arquivo. Caso novo ou alteração = PR dedicado aprovado por [W]. NUNCA atualizar a partir das saídas dos próprios agentes (contaminação do avaliador).
 > **Formato:** GS-NN · contexto · comportamento exigido · como verificar.
 

@@ -344,7 +344,7 @@ function MetaSkillEditor({ onClose }: { onClose: () => void }) {
           </div>
 
           {validation && (
-            <div className={`text-xs rounded p-2 border ${validation.ok ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+            <div className={`text-xs rounded p-2 border ${validation.ok ? 'bg-success-soft border-success/20' : 'bg-destructive-soft border-destructive/20'}`}>
               {validation.ok ? (
                 <>
                   <strong>✓ Condição válida:</strong> {validation.samples_matched}/{validation.samples_total} patterns matchariam.

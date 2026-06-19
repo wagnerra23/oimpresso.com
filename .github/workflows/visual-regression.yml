@@ -219,6 +219,48 @@ jobs:
         # com o estado "adicionando" ABERTO (o que vazava), controle-negativo embutido (L-31).
         run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php
 
+      # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
+      # FASE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing):
+      # `continue-on-error` SÓ neste step — o resto do job continua required-real.
+      # Promover = remover o continue-on-error (sem clique de branch protection: o
+      # check `visual-regression` já é required). Baseline = snapshot Pest COMMITADO
+      # (tests/.pest/snapshots), gerado NESTE runner (rendering determinístico) — a
+      # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
+      # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
+      - name: Pixel-diff núcleo-6 (ADVISORY — Onda Q4)
+        if: steps.changes.outputs.ui == 'true'
+        id: pixel-diff
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php
+
+      - name: Upload baseline/snapshots de pixel (sempre que rodou)
+        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-snapshots
+          path: tests/.pest/snapshots/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload diff views do pixel (quando o advisory falhou)
+        if: ${{ !cancelled() && steps.pixel-diff.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-diff-views
+          path: tests/Browser/Screenshots/ImageDiffView/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Veredito advisory do pixel-diff (visível no log)
+        if: steps.changes.outputs.ui == 'true'
+        run: |
+          if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
+            echo "🟡 PIXEL-DIFF ADVISORY FALHOU — diff > threshold contra baseline (ver artifact pixel-snapshots)."
+            echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing."
+          else
+            echo "✅ pixel-diff núcleo-6 OK (advisory)."
+          fi
+
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
         uses: actions/upload-artifact@v4

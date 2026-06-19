@@ -13,7 +13,7 @@
 #   nao deve ser bloqueado. A versao anterior bloqueava esses comandos sem bypass.
 #
 # Bypass: adicione --allow-pii ao git commit (E confirme com Wagner).
-# Whitelist: PIIs reconhecidamente fake/fixture (123.456.789-09, 11.222.333/0001-81, etc).
+# Whitelist: PIIs reconhecidamente fake/fixture (ver array $fakeWhitelist abaixo).
 
 $ErrorActionPreference = 'Stop'
 $rawInput = [Console]::In.ReadToEnd()

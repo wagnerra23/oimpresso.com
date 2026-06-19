@@ -1368,6 +1368,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             <Pagination
               meta={meta}
               perPage={perPage}
+              onShowShortcuts={() => setCheatOpen(true)}
               onPageChange={(p) => {
                 // Antes só atualizava o state (não buscava) → setas mortas. Agora
                 // manda page pro servidor (paginate() lê da query) — bug Wagner.
@@ -1387,9 +1388,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               }}
             />
           )}
-          {/* Clearance pro FAB de atalhos (fixed bottom-4 right-4) não cobrir a
-              paginação quando rolado até o fim — bug "desalinhado" Wagner. */}
-          <div aria-hidden className="h-14" />
         </Deferred>
       </div>
 
@@ -1434,16 +1432,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         />
       )}
       {cheatOpen && <CheatSheet onClose={() => setCheatOpen(false)} />}
-      <button
-        type="button"
-        onClick={() => setCheatOpen(true)}
-        aria-label="Atalhos de teclado"
-        title="Atalhos de teclado (?)"
-        className="fixed bottom-4 right-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
-      >
-        <Keyboard size={14} />
-        <Kbd>?</Kbd>
-      </button>
 
       {/* 2026-06-08 — confirmação de exclusão (ação destrutiva → AlertDialog,
           nunca delete num clique só). Soft delete server-side; reversível. */}
@@ -2320,11 +2308,14 @@ function Pagination({
   perPage,
   onPageChange,
   onPerPageChange,
+  onShowShortcuts,
 }: {
   meta: ListMeta;
   perPage: number;
   onPageChange: (p: number) => void;
   onPerPageChange: (n: number) => void;
+  /** Abre o cheat-sheet de atalhos — encaixado no rodapé (antes era FAB flutuante). */
+  onShowShortcuts: () => void;
 }) {
   const { current_page, last_page, total, from, to } = meta;
   const canPrev = current_page > 1;
@@ -2332,6 +2323,20 @@ function Pagination({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1">
       <div className="text-xs text-muted-foreground">
+        {/* Atalhos de teclado — discreto no canto do rodapé (Wagner 2026-06-15:
+            "não gostei dele flutuante, deve ficar mais discreto, só encaixar").
+            Sem wrapper flex extra (ratchet de layout · ADR 0253): o botão já é
+            inline-flex e o texto flui inline ao lado. */}
+        <button
+          type="button"
+          onClick={onShowShortcuts}
+          aria-label="Atalhos de teclado"
+          title="Atalhos de teclado (?)"
+          className="inline-flex items-center gap-1.5 align-middle -ml-1 mr-1.5 rounded-md px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <Keyboard size={14} />
+          <Kbd>?</Kbd>
+        </button>
         {total === 0
           ? 'Nenhum cliente'
           : `Mostrando ${from ?? 0}–${to ?? 0} de ${total.toLocaleString('pt-BR')}`}

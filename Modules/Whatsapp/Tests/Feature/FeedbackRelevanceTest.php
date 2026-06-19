@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Entities\ClientFeedback;
 use Modules\Whatsapp\Http\Controllers\Admin\ClientFeedbackController;
@@ -25,6 +26,10 @@ uses(Tests\TestCase::class);
  *   008. cross-tenant: signature inclui business_id (mesma frase em biz=1 e biz=2 → hashes diferentes)
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['clients_feedbacks', 'contacts', 'activity_log'] as $t) {
         Schema::dropIfExists($t);
     }

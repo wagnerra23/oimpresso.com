@@ -151,10 +151,13 @@ describe('Onda 10 — CSS canon (fin-ageing + fin-subnav)', function () {
 });
 
 describe('Onda 10 — wire-up Index.tsx (REVISADO 2026-05-18 Wagner: FinSubNav/FinAgeing removidos)', function () {
-    it('Index.tsx importa FinEditPanel (FinSubNav e FinAgeing REMOVIDOS — Wagner duplicação)', function () {
+    it('Index.tsx NÃO importa mais FinEditPanel inline (FA-5: Editar virou botão → TituloEditSheet)', function () {
         $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
-        expect($src)->toContain("from './_components/FinEditPanel'");
-        // Wagner pediu remoção: sidebar já navega + ageing é insight contextual
+        // FA-5 2026-06-11 ([W] "2 abas + botão Editar campos" via AskUserQuestion): o FinEditPanel
+        // inline (aba Editar da Onda 10) foi superado pelo botão "Editar campos" → TituloEditSheet
+        // (editor completo). O componente FinEditPanel.tsx segue preservado em _components/.
+        expect($src)->not->toContain("from './_components/FinEditPanel'");
+        // FinSubNav e FinAgeing seguem removidos (Wagner duplicação)
         expect($src)->not->toContain("from './_components/FinSubNav'");
         expect($src)->not->toContain("from './_components/FinAgeing'");
     });
@@ -174,12 +177,12 @@ describe('Onda 10 — wire-up Index.tsx (REVISADO 2026-05-18 Wagner: FinSubNav/F
         expect(file_exists(FIN_BASE_10 . '/_components/FinAgeing.tsx'))->toBeTrue();
     });
 
-    it('Aba Editar usa FinEditPanel (form real, não preview readOnly)', function () {
+    it('Editar virou botão "Editar campos" → TituloEditSheet (supersede FinEditPanel inline · FA-5)', function () {
         $src = file_get_contents(FIN_BASE_10 . '/Index.tsx');
-        expect($src)->toContain('<FinEditPanel');
-        // Preview readOnly da V2.1 removido
-        expect($src)->not->toContain('Abrir formulário completo →');
-        expect($src)->not->toContain('Preview inline · edição validada acontece no Sheet separado');
+        expect($src)->toContain('Editar campos');
+        expect($src)->toContain('setEditOpen(true)');
+        // FinEditPanel inline saiu do Index (componente preservado em _components/ pra histórico)
+        expect($src)->not->toContain('<FinEditPanel');
     });
 
     it('Status label "aberto" → "Pendente" (Cowork STATUS_STYLES canon)', function () {

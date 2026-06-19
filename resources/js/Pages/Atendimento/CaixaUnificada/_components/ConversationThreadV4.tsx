@@ -270,11 +270,11 @@ export default function ConversationThreadV4({
       {/* Banner contato bloqueado */}
       {isBlocked && (
         <div
-          className="mx-4 mt-2.5 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-md text-[11.5px] text-red-900"
+          className="mx-4 mt-2.5 px-3.5 py-2.5 bg-destructive-soft border border-destructive/20 rounded-md text-[11.5px] text-destructive-fg"
           role="status"
           data-testid="caixa-unif-blocked-banner"
         >
-          <b className="block text-[12.5px] font-semibold text-red-950">
+          <b className="block text-[12.5px] font-semibold text-destructive-fg">
             Contato bloqueado.
           </b>
           <span>Mensagens deste número são descartadas. Desbloqueie pelo painel de Contexto.</span>

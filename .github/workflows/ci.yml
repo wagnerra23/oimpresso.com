@@ -4,6 +4,9 @@ on:
   push:
     branches: [main, 6.7-react]
   pull_request:
+  # FV-F1 (plano SDD 2026-06-12 semana 0): dispatch manual pra provar a coleta
+  # JUnit sem depender de PR (artefato pest-ci-junit >0 bytes).
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -92,7 +95,30 @@ jobs:
         # OpenAI; ex "mentira do Sonnet", parecer PR #2270). Modules/Jana nao
         # esta no modules-pest.yml, entao ancoramos a
         # catraca aqui pra ela rodar de fato em todo PR.
-        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php --no-coverage
+        # FV-F1: --log-junit adicionado SEM mudar o subset de testes acima.
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php --no-coverage --log-junit test-results/junit.xml
+
+      # FV-F1 (plano SDD 2026-06-12): coleta JUnit que SOBREVIVE a falha de teste.
+      # A tentativa anterior rendeu artefato 0 bytes porque nada validava o XML
+      # antes do upload. Agora: sumário JSON por arquivo de teste com n_testcases
+      # checado contra o declarado no <testsuite> raiz (exit!=0 se XML ausente,
+      # 0 bytes ou incoerente) + upload com if: always() e if-no-files-found: error.
+      - name: Sumario JUnit por arquivo (junit-summary.mjs)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/junit.xml --out test-results/junit-summary.json
+
+      - name: Upload JUnit + sumario (sempre — a falha E o dado)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-ci-junit
+          path: |
+            test-results/junit.xml
+            test-results/junit-summary.json
+          retention-days: 14
+          if-no-files-found: error
 
   frontend:
     name: Frontend / Vite build

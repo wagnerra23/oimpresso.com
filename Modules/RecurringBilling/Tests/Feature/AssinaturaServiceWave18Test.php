@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
@@ -26,7 +27,7 @@ beforeEach(function () {
     config()->set('otel.enabled', false);
     config()->set('activitylog.enabled', false);
 
-    if (config('database.default') !== 'sqlite' && ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+    if (config('database.default') !== 'sqlite' || ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         $this->markTestSkipped('Smoke test rodado apenas em SQLite in-memory.');
     }
 
@@ -126,9 +127,14 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('rb_invoices');
-    Schema::dropIfExists('rb_subscriptions');
-    Schema::dropIfExists('rb_plans');
+    // rb_* são reais-migradas; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
+    // corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('rb_invoices');
+        Schema::dropIfExists('rb_subscriptions');
+        Schema::dropIfExists('rb_plans');
+    }
 });
 
 function makeAssinaturaService(): AssinaturaService

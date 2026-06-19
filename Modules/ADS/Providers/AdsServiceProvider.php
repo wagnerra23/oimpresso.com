@@ -20,6 +20,7 @@ use Modules\ADS\Services\DecisionLinksService;
 use Modules\ADS\Services\UserScopeService;
 use Modules\ADS\Services\ContextForTaskService;
 use Modules\ADS\Http\Middleware\AdsApiAuth;
+use Modules\ADS\Console\Commands\AdsHealthCommand;
 use Modules\ADS\Console\Commands\ProcessBrainBCommand;
 use Modules\ADS\Console\Commands\LearnPatternsCommand;
 use Modules\ADS\Console\Commands\ReviewDecisionsCommand;
@@ -44,6 +45,7 @@ class AdsServiceProvider extends ServiceProvider
                 AutoGenerateTasksCommand::class,
                 PlanDecisionsCommand::class,
                 SkillScaffoldCommand::class,
+                AdsHealthCommand::class,
             ]);
         }
     }

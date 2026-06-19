@@ -336,7 +336,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
               </>
             )}
             {!qrLoading && qrError && (
-              <div className="text-sm text-red-700 dark:text-red-400 text-center px-4">
+              <div className="text-sm text-destructive-fg text-center px-4">
                 <AlertTriangle size={20} className="inline mr-2" aria-hidden />
                 {qrError}
               </div>
@@ -345,7 +345,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             {!qrLoading && (qrState === 'paired' || qrState === 'connected') && !qrError && (
               <>
                 <CheckCircle2 size={48} className="text-emerald-600" aria-hidden />
-                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                <p className="text-sm font-medium text-success-fg">
                   Canal pareado com sucesso!
                 </p>
                 <p className="text-xs text-muted-foreground">Fechando…</p>

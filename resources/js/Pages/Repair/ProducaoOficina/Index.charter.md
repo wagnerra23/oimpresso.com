@@ -2,10 +2,11 @@
 page: /repair/producao-oficina
 component: resources/js/Pages/Repair/ProducaoOficina/Index.tsx
 owner: wagner
-status: rascunho
-last_validated: 2026-05-10
+status: draft
+status_detail: rascunho
+last_validated: "2026-05-10"
 parent_module: Repair
-related_adrs: [0094, 0101, 0114, 0121, 0093, 0192]
+related_adrs: [94, 101, 114, 121, 93, 192]
 related_prototype: prototipo-ui/prototipos/producao-oficina/F1.html
 tier: A
 ---

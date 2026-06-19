@@ -32,17 +32,17 @@ const LABELS: Record<string, string> = {
 
 const STYLES: Record<string, string> = {
   disponivel:
-    'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800',
+    'bg-muted text-muted-foreground border-border',
   locada:
     'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/40',
   locada_paga:
-    'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/40',
+    'bg-success-soft text-success-fg border-success/20',
   manutencao:
-    'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900/40',
+    'bg-warning-soft text-warning-fg border-warning/20',
   indisponivel:
-    'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900/60 dark:text-slate-400 dark:border-slate-800',
+    'bg-muted text-muted-foreground border-border',
   atrasada:
-    'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/50',
+    'bg-destructive-soft text-destructive-fg border-destructive/20',
 };
 
 export default function VehicleStatusBadge({ status, isOverdue = false, isPaid = false }: Props) {

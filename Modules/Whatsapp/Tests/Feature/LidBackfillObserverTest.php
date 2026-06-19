@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Contact;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -28,6 +29,10 @@ uses(Tests\TestCase::class);
  *  T4. Tier 0: job biz=1 não toca convs biz=99 com mesmo lid (cross-tenant)
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach ([
         'conversations', 'channels', 'contacts', 'whatsapp_lid_pn_map',
         'activity_log', 'ref_count_details',

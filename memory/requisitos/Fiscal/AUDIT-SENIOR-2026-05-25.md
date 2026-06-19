@@ -441,7 +441,7 @@ Onda 4 (cert/contingência) e Onda 7 (chaos) ficam pra próximas auditorias.
 
 | # | Gap | Áreas isoladas (paths) | Pré-req | Esforço |
 |---|---|---|---|---|
-| 1 | Habilitar biz=4 + permissões | `Modules/UltimatePos/Database/Seeders/PermissionsTableSeeder.php` + admin UI Spatie | Larissa briefing 30min | 1d |
+| 1 | Habilitar biz=4 + permissões | `Database/Seeders/PermissionsTableSeeder.php` (núcleo UltimatePOS, não é módulo) + admin UI Spatie | Larissa briefing 30min | 1d |
 | 2 | Cache KPIs + palette anti-DOS | `Modules/Fiscal/Http/Controllers/CockpitController.php` + `Modules/Fiscal/Http/Controllers/PaletteSearchController.php` + event listeners NFeAutorizada/NFCeAutorizada | nenhum | 1d |
 | 5 | Onda 3 fixtures cStat (6 testes propostos) | `Modules/NfeBrasil/Tests/Feature/Rejeicao*Test.php` + `Modules/NfeBrasil/Tests/Fixtures/SefazResponses/cstat-*.xml` + `Modules/NfeBrasil/Tests/Helpers/RejeicaoFixture.php` | Wagner aprovar 6 fixtures XML | 2-3d |
 

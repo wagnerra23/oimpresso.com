@@ -134,25 +134,26 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
   const tier: 'healthy' | 'warn' | 'high' =
     score <= 3 ? 'healthy' : score <= 6 ? 'warn' : 'high';
 
+  // Ramp de risco = ESTADO semântico → tokens -soft/-fg (light+dark no token).
   const palette = {
     healthy: {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-      text: 'text-emerald-700 dark:text-emerald-300',
-      border: 'border-emerald-200 dark:border-emerald-900/40',
+      bg: 'bg-success-soft',
+      text: 'text-success-fg',
+      border: 'border-success/20',
       Icon: CheckCircle2,
       label: 'Saudavel',
     },
     warn: {
-      bg: 'bg-amber-50 dark:bg-amber-950/30',
-      text: 'text-amber-700 dark:text-amber-300',
-      border: 'border-amber-200 dark:border-amber-900/40',
+      bg: 'bg-warning-soft',
+      text: 'text-warning-fg',
+      border: 'border-warning/20',
       Icon: AlertCircle,
       label: 'Atencao',
     },
     high: {
-      bg: 'bg-rose-50 dark:bg-rose-950/30',
-      text: 'text-rose-700 dark:text-rose-300',
-      border: 'border-rose-200 dark:border-rose-900/40',
+      bg: 'bg-destructive-soft',
+      text: 'text-destructive-fg',
+      border: 'border-destructive/20',
       Icon: AlertTriangle,
       label: 'Alto risco',
     },
@@ -188,10 +189,10 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
           className={
             'h-full rounded-full transition-all ' +
             (tier === 'healthy'
-              ? 'bg-emerald-500'
+              ? 'bg-success'
               : tier === 'warn'
-              ? 'bg-amber-500'
-              : 'bg-rose-500')
+              ? 'bg-warning'
+              : 'bg-destructive')
           }
           style={{ width: `${(score / 10) * 100}%` }}
           aria-hidden
@@ -213,7 +214,7 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
         </ul>
       ) : (
         <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5">
-          <CheckCircle2 size={12} className="text-emerald-600 flex-shrink-0" />
+          <CheckCircle2 size={12} className="text-success flex-shrink-0" />
           Nenhum sinal de risco detectado.
         </p>
       )}

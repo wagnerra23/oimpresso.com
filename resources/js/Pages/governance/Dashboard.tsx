@@ -3,7 +3,7 @@
 //   adrs: 0079 (Constituição Art. 8+9), 0086 (Fase 5 MVP)
 
 import React, { type ReactNode } from 'react'
-import { Link } from '@inertiajs/react'
+import { Deferred, Link } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -51,7 +51,18 @@ interface HealthKpis {
   last_narrative: { severity: 'info' | 'warning' | 'critical'; message: string; generated_at: string } | null
 }
 
+interface SddPayload {
+  snapshot_date: string
+  composta: number | null
+  composta_k: number
+  delta: number | null
+  vivas: number
+  metrics_total: number
+  alerts: string[]
+}
+
 interface Props {
+  sdd?: SddPayload | null
   kpis: {
     pending_adrs: number
     active_policies: number
@@ -117,6 +128,7 @@ function truncate(text: string, max: number): string {
 }
 
 const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
+  sdd,
   kpis,
   pending_adrs,
   audit_highlights,
@@ -189,6 +201,46 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           description={`v1.1.0 — próx revisão ${next_review_at}`}
         />
       </KpiGrid>
+
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-4">
+        SDD — Reestruturação (ADR 0275)
+      </h2>
+
+      <Deferred data="sdd" fallback={<p className="text-sm text-zinc-400">Carregando scorecard SDD…</p>}>
+        {sdd ? (
+          <KpiGrid cols={3}>
+            <KpiCard
+              icon="gauge"
+              tone={sdd.delta !== null && sdd.delta < 0 ? 'danger' : 'info'}
+              label={`Composta v1 (k=${sdd.composta_k})`}
+              value={sdd.composta === null ? '—' : sdd.composta.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+              description={
+                sdd.delta === null
+                  ? `snapshot ${sdd.snapshot_date} — sem Δ (1º snapshot ou composta nula)`
+                  : `Δ vs ontem: ${sdd.delta > 0 ? '+' : ''}${sdd.delta.toLocaleString('pt-BR')} · ${sdd.snapshot_date}`
+              }
+            />
+            <KpiCard
+              icon="activity"
+              tone="info"
+              label="Métricas vivas"
+              value={`${sdd.vivas}/${sdd.metrics_total}`}
+              description="fontes medindo de verdade (status measured)"
+            />
+            <KpiCard
+              icon="alert-triangle"
+              tone={sdd.alerts.length > 0 ? 'danger' : 'success'}
+              label="Alertas SDD"
+              value={sdd.alerts.length.toString()}
+              description={sdd.alerts.length > 0 ? truncate(sdd.alerts[0], 70) : 'nenhuma métrica armada regrediu'}
+            />
+          </KpiGrid>
+        ) : (
+          <p className="text-sm text-zinc-500">
+            Sem snapshot SDD ainda — cron `governance:sdd-scorecard-snapshot` roda 07:10 BRT.
+          </p>
+        )}
+      </Deferred>
 
       <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-4">
         Saúde do ecossistema
