@@ -1,0 +1,16 @@
+{
+  "version": "1",
+  "_doc": "Map de roteamento da ingestão de design-zip (plano vectorized-badger PR-2). Para cada tela, routes[].glob casa o NOME do arquivo extraído do zip → .to (destino no repo; se .to termina em '/', preserva o nome do arquivo). Arquivo sem rota = EXTRA (reportado no PLANO-MUDANCAS pra avaliar antes de aplicar). 1 projeto Cowork hoje (não há contas múltiplas). Destinos seguem PROTOCOL-F3-COWORK-CODE.md §4 (prototipos/<tela>/).",
+  "screens": {
+    "vendas": {
+      "module": "Sells",
+      "page_id": "sells-index",
+      "routes": [
+        { "glob": "*-page.jsx", "to": "prototipo-ui/prototipos/vendas/" },
+        { "glob": "*-data.jsx", "to": "prototipo-ui/prototipos/vendas/" },
+        { "glob": "*.css", "to": "prototipo-ui/prototipos/vendas/" },
+        { "glob": "*.html", "to": "prototipo-ui/prototipos/vendas/" }
+      ]
+    }
+  }
+}

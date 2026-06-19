@@ -1,6 +1,11 @@
 /node_modules
 /public/hot
 /public/storage
+
+# Estação de ingestão de design (plano vectorized-badger PR-2): staging volátil
+# do unzip + artefatos preparados (PLANO-MUDANCAS, SESSION). Read-view efêmera,
+# nunca canon — o que vira verdade entra via prototipos/<tela>/ sob gate Wagner.
+/prototipo-ui/_incoming/
 /storage/*.key
 /storage/
 /vendor
