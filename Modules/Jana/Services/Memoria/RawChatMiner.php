@@ -28,7 +28,7 @@ final class RawChatMiner
     public function __construct(private PiiRedactor $pii) {}
 
     /**
-     * @param  list<array{path:string, content:string}>  $rawDocs
+     * @param  list<array<string, mixed>>  $rawDocs
      * @return array{status:string, written:bool, candidates?:string, pii?:array<string,int>}
      *         status ∈ {written, dry, refused_pii, no_raw}
      */
@@ -70,7 +70,7 @@ final class RawChatMiner
     /**
      * Monta o doc de candidatos 🔍 (PROPOSTA, não lei) + proveniência do raw. PURO.
      *
-     * @param  list<array{path:string, content:string}>  $rawDocs
+     * @param  list<array<string, mixed>>  $rawDocs
      */
     public static function renderCandidates(string $tela, string $llmBody, array $rawDocs): string
     {
@@ -111,7 +111,7 @@ final class RawChatMiner
         PROMPT;
     }
 
-    /** @param list<array{path:string, content:string}> $rawDocs */
+    /** @param list<array<string, mixed>> $rawDocs */
     private function userPrompt(array $rawDocs): string
     {
         $blocos = [];
