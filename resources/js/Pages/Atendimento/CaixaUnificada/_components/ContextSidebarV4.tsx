@@ -18,7 +18,7 @@
 
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Ban, Check, Link as LinkIcon, Plus, UserMinus, UserPlus } from 'lucide-react';
+import { Ban, Check, Link as LinkIcon, Plus, Sparkles, UserMinus, UserPlus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -36,6 +36,7 @@ import type {
   CustomerContext,
 } from './helpers';
 import { avatarHue, formatBRL, initials, relativeTimeBR } from './helpers';
+import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
 
 interface Props {
   thread: CaixaUnifThread;
@@ -82,6 +83,8 @@ export default function ContextSidebarV4({ thread, customerContext, channels, qu
 
   // US-WA-302 — atribuir/remover operador (PATCH /atendimento/inbox/{id}/assign)
   const [assignPopOpen, setAssignPopOpen] = useState(false);
+  // T1 (handoff 2026-06-19) — IA movida do header da thread pra cá (seção Inteligência)
+  const [aiMode, setAiMode] = useState<InboxAiMode | null>(null);
   function assignTo(assigneeId: number | null) {
     router.patch(
       route('atendimento.inbox.assign', thread.id),
@@ -200,6 +203,29 @@ export default function ContextSidebarV4({ thread, customerContext, channels, qu
             external_sources Firebird OfficeImpresso, flags VIP/frágil, LGPD. */}
         {thread.customer_external_id && (
           <CustomerMemoryBlock customerExternalId={thread.customer_external_id} />
+        )}
+
+        {/* T1 — Inteligência (Resumir/Perguntar movidos do header da thread · protótipo .om-ctx-ai) */}
+        {!thread.preview_only && (
+          <Stack gap={1} className="pb-2.5 border-b border-border/50">
+            <span className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">Inteligência</span>
+            <button
+              type="button"
+              onClick={() => setAiMode('summarize')}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-transparent hover:bg-muted text-[12px] text-foreground transition-colors text-left"
+              data-testid="caixa-unif-thread-ai-summarize"
+            >
+              <Sparkles size={13} className="text-primary" aria-hidden /> Resumir conversa
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiMode('ask')}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-transparent hover:bg-muted text-[12px] text-foreground transition-colors text-left"
+              data-testid="caixa-unif-thread-ai-ask"
+            >
+              <Sparkles size={13} className="text-primary" aria-hidden /> Perguntar ao histórico
+            </button>
+          </Stack>
         )}
 
         {/* 1. Fila — US-WA-305: select de override manual (vence heurística tag→fila) */}
@@ -621,6 +647,16 @@ export default function ContextSidebarV4({ thread, customerContext, channels, qu
         onSelect={linkContact}
         customerPhone={thread.customer_external_id}
       />
+
+      {/* T1 — IA Resumir/Perguntar (movido do header da thread) */}
+      {aiMode !== null && (
+        <InboxAiDialog
+          open={aiMode !== null}
+          onOpenChange={(o) => { if (!o) setAiMode(null); }}
+          mode={aiMode}
+          conversationId={thread.id}
+        />
+      )}
     </aside>
   );
 }
