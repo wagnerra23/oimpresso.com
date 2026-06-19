@@ -138,6 +138,88 @@ export function measureFullSuiteFloor(floorPath = join(ROOT, 'governance', 'nigh
   };
 }
 
+// ── fonte: distilled_at das portas BRIEFING (ADR 0291 D-D — peça 3 do keystone) ─
+// Lê o carimbo `distilled_at:` do frontmatter de cada memory/requisitos/<Mod>/BRIEFING.md
+// (o distiller-módulo-verdade — PR-C — escreve esse carimbo ao reescrever a porta).
+// DETERMINÍSTICO por contrato (_meta.determinismo): a "frescura" é medida contra a
+// data-git do doc MAIS NOVO do módulo (fato imutável da história), NÃO contra "hoje"
+// (senão o JSON commitado mudaria todo dia). Mede "o distiller ficou pra trás dos
+// eventos?" = D-3 do 0270 ("destilação que para = porta envelhece"). O alarme DURO
+// >7d-vs-hoje vive no jana:health-check (runtime, não-commitado — ADR 0291 D-D).
+//
+// Anti-stale (espelha measureFullSuiteFloor): ZERO portas carimbadas → not_yet_measured
+// (honesto — distiller nunca rodou; gate Wagner/CT100). ≥1 carimbada → measured: value =
+// nº de portas carimbadas atrás do doc mais novo por > staleDays. Portas SEM carimbo
+// entram só no detail (cobertura pendente), NÃO como stale (rollout não-punitivo, espelha
+// front_door 62%→100%). `reqDir`/`newestDocDate` injetáveis pra teste sem git/FS real.
+const STALE_DAYS_DISTILLER = 7;
+const DISTILLED_AT_RE = /^distilled_at:\s*["']?(\d{4}-\d{2}-\d{2})/m;
+
+function gitDateOf(file) {
+  try {
+    return execSync(`git log -1 --format=%cs -- "${file}"`, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString().trim() || null;
+  } catch { return null; }
+}
+
+// Data-git (committer %cs) do doc .md mais novo do módulo, EXCETO a própria BRIEFING.
+// Só é chamada pras portas carimbadas → barato no rollout (poucas portas têm carimbo).
+function gitNewestModuleDocDate(modDir) {
+  let newest = null;
+  const briefing = join(modDir, 'BRIEFING.md');
+  const walk = (d) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const p = join(d, e.name);
+      if (e.isDirectory()) { walk(p); continue; }
+      if (!e.name.endsWith('.md') || p === briefing) continue;
+      const dt = gitDateOf(p);
+      if (dt && (!newest || dt > newest)) newest = dt;
+    }
+  };
+  try { walk(modDir); } catch { /* módulo sem docs legíveis — ignora */ }
+  return newest;
+}
+
+// dias que `toDate` está À FRENTE de `fromDate` (ambas YYYY-MM-DD fixas → determinístico).
+function daysAhead(fromDate, toDate) {
+  return (Date.parse(toDate) - Date.parse(fromDate)) / 86400000;
+}
+
+export function measureDistillerFreshness(
+  reqDir = join(ROOT, 'memory', 'requisitos'),
+  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER } = {},
+) {
+  const FRESH_TARGET = '< 7d atrás do doc mais novo em 100% das portas';
+  if (!existsSync(reqDir)) {
+    return notYet('down', FRESH_TARGET, 'ADR 0291 D-D — memory/requisitos/ ausente; nada a medir.');
+  }
+  let total = 0, stamped = 0, stale = 0, oldest = null;
+  for (const mod of readdirSync(reqDir, { withFileTypes: true })) {
+    if (!mod.isDirectory()) continue;
+    const modDir = join(reqDir, mod.name);
+    const briefing = join(modDir, 'BRIEFING.md');
+    if (!existsSync(briefing)) continue;
+    total++;
+    const m = readFileSync(briefing, 'utf8').match(DISTILLED_AT_RE);
+    if (!m) continue; // porta sem carimbo → cobertura pendente, não stale
+    stamped++;
+    const distilledAt = m[1];
+    if (!oldest || distilledAt < oldest) oldest = distilledAt;
+    const newest = newestDocDate(modDir);
+    if (newest && daysAhead(distilledAt, newest) > staleDays) stale++;
+  }
+  if (stamped === 0) {
+    return notYet('down', FRESH_TARGET,
+      'ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.');
+  }
+  return {
+    status: 'measured', value: stale, unit: 'portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)',
+    direction: 'down', target: 0,
+    source: 'memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)',
+    detail: { portas: total, carimbadas: stamped, sem_carimbo: total - stamped, stale, oldest_distilled_at: oldest },
+  };
+}
+
 function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
@@ -188,8 +270,7 @@ function buildScorecard() {
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
       ragas_real_uptime: notYet('up', '≥95%',
         'RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock'),
-      distiller_freshness: notYet('down', '< 7d em 100% das portas',
-        'ADR 0270 F3/D-5 — ProfileDistiller estendido p/ verdade-do-módulo; hoje só destila perfil comercial, NÃO escreve BRIEFING (instrumentação pendente — peça 2/3 do keystone)'),
+      distiller_freshness: measureDistillerFreshness(),
       read_path_hops: notYet('down', 1,
         'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),
       drift_alarms: notYet('down', 'advisory perene',
