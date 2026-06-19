@@ -54,6 +54,49 @@ Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
 # Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
 Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
 Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php
+# ── Whatsapp sqlite-safe (auditoria cobertura-CI 2026-06-19) ──────────────────
+# Modules/Whatsapp tem 120 testes Feature mas só 2 rodavam em CI (CaixaUnificada +
+# WebhookCanary acima): os outros ~118 nunca eram exercidos em lane nenhuma
+# (Whatsapp NÃO está em modules-pest.yml e nenhum outro workflow roda esses pest).
+# Estes 33 montam schema sintético em beforeEach + markTestSkipped fora de sqlite
+# (mesmo idioma do CaixaUnificada) e passam verde local rodados juntos em 3 seeds
+# distintos (271 passed, 0 fail, 3 skip). AutoLinkContactTest ficou DE FORA: passa
+# isolado (17/17) mas R-WA-078-008 falha order-dependente em grupo (flaky → fix à parte).
+# Os ~84 restantes precisam de activity_log sintético (Spatie LogsActivity) ou do
+# schema MySQL real — ficam de fora desta lane até decisão (relatório da audit).
+Modules/Whatsapp/Tests/Feature/AutoPrefixSenderNameTest.php
+Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php
+Modules/Whatsapp/Tests/Feature/CentrifugoTokenIssuerTest.php
+Modules/Whatsapp/Tests/Feature/CustomerMemoryBackfillCommandTest.php
+Modules/Whatsapp/Tests/Feature/CustomerMemoryRebuilderTest.php
+Modules/Whatsapp/Tests/Feature/DispatchToJanaBotPiiRedactionTest.php
+Modules/Whatsapp/Tests/Feature/E2EJourneyBiz1Test.php
+Modules/Whatsapp/Tests/Feature/EmbeddedSignupFlowTest.php
+Modules/Whatsapp/Tests/Feature/FeedbackReindexCommandTest.php
+Modules/Whatsapp/Tests/Feature/FetchTemplatesTest.php
+Modules/Whatsapp/Tests/Feature/LegacyConversationsRemovedTest.php
+Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php
+Modules/Whatsapp/Tests/Feature/MessageHasArquivosTraitTest.php
+Modules/Whatsapp/Tests/Feature/MetricsSnapshotBuilderTest.php
+Modules/Whatsapp/Tests/Feature/ObservabilityTest.php
+Modules/Whatsapp/Tests/Feature/OfficeimpressoEnrichServiceTest.php
+Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
+Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
+Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave26WhatsappSaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave27WhatsappSaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php
+Modules/Whatsapp/Tests/Feature/WebhookBackpressureTest.php
+Modules/Whatsapp/Tests/Feature/WebhookReplayProtectionTest.php
+Modules/Whatsapp/Tests/Feature/WebhookSignatureCheckerTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowAuthHeaderTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowChannelIsolationTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowInboundTimezoneTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowReconcilerTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php
 # Observabilidade SLO/SLI canal (ADR 0288) — snapshot + alerta canal-down 3 sinks
 # (Log + Centrifugo + mcp_alertas_eventos). Adicionado na Fase 2: o teste existia
 # desde #3005 mas NÃO estava nesta lane, logo nunca rodava em CI ("suite mente").
