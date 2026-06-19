@@ -36,6 +36,7 @@ use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
 use Modules\Whatsapp\Console\Commands\SlaScanCommand;
 use Modules\Whatsapp\Console\Commands\WebhookCanaryCommand;
 use Modules\Whatsapp\Console\Commands\WhatsmeowHealthProbeCommand;
+use Modules\Whatsapp\Console\Commands\WhatsmeowResubscribeEventsCommand;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;
@@ -110,6 +111,7 @@ class WhatsappServiceProvider extends ServiceProvider
                 MetricsAggregateCommand::class,         // US-WA-021/041 — snapshot diário métricas (CYCLE-07 PR-3)
                 ChannelsReconcilerCommand::class,       // 2026-05-13 — auto-fix drift channels↔daemon (cron 5min)
                 WhatsmeowHealthProbeCommand::class,      // US-WA-308 — detecta queda sessão whatsmeow (cron 3min, incidente 2026-06-18)
+                WhatsmeowResubscribeEventsCommand::class, // Fase B — re-assina LoggedOut em canais já provisionados (one-off, mecanismo D)
                 ChannelResetCommand::class,             // 2026-05-13 — reset 1-comando channel travado
                 CleanupWebhookNoncesCommand::class,     // US-WA-082 — purga nonces >24h (replay protection cleanup)
                 CleanupStaleJobsCommand::class,         // US-WA-084 — purga jobs presos da fila whatsapp-history (>6h)
