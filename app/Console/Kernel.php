@@ -765,6 +765,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // whatsapp:channel-health-snapshot (5 em 5 min) — série temporal append-only de
+        // channel_health (ADR 0288): habilita uptime%/time-to-detect (SLIs) e ALERTA
+        // canal-down > N min (1× por streak). Fecha o pilar de observabilidade (não
+        // depende de ninguém olhar a tela).
+        $schedule->command('whatsapp:channel-health-snapshot')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:channel-health-snapshot FALHOU — observabilidade de canal pode estar cega'
+                );
+            });
+
         // Worker da fila `whatsapp-history` (Wagner request 2026-05-14 02h):
         // "recebe tudo de maneira rapida... depois sincroniza com o banco,
         // sempre guarda para não perder". Cron everyMinute pra processar

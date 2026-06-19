@@ -79,6 +79,9 @@ return [
         // "no ar" — suprime o falso "fora do ar" do loggedIn não-confiável do WuzAPI
         // e auto-cura pra healthy (incidente 2026-06-18; martelo [W] = 10min).
         'health_fresh_inbound_minutes' => (int) env('WHATSMEOW_HEALTH_FRESH_INBOUND_MINUTES', 10),
+        // Minutos que um canal `active` pode ficar caído antes do alerta canal-down
+        // (ADR 0288, observabilidade). Alerta dispara 1× por streak (no cruzamento).
+        'health_alert_after_minutes' => (int) env('WHATSMEOW_HEALTH_ALERT_AFTER_MINUTES', 10),
     ],
 
     /*
