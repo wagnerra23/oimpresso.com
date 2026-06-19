@@ -20,6 +20,10 @@ on:
       - '**/*.contract.json'
       - 'resources/js/Pages/**/*.tsx'
       - 'resources/js/Pages/**/*.ts'
+      # backends que a catraca semântica (2b) inspeciona — em sync com os campos `backend` dos
+      # *.contract.json. Sem isto, um rename de state:'paired' SÓ no backend não dispara o gate
+      # (blind-spot achado pelo painel adversarial final · ADR 0286 §5).
+      - 'Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php'
       - '.github/workflows/contrato-de-tela.yml'
 
 permissions:
@@ -81,7 +85,7 @@ jobs:
           echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
           echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
           echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
-          echo "   - 'frontend NÃO trata' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
+          echo "   - 'frontend NÃO menciona' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
           echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
           echo "   - 'branch atrás' → git rebase origin/main."
           echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"

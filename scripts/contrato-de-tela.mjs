@@ -275,6 +275,11 @@ function checkStateAgreements(c, file) {
 // O mais ESPECÍFICO vence (later-wins em empate), igual a herança da Constituição UI ("herda, nunca
 // contradiz") e o `resolutionOrder` do W3C DTCG. PROPRIEDADE TIER 0 (P0): um veredito `cliente:biz=4`
 // NÃO aplica a `biz=7` — escopo que não casa o contexto é IGNORADO, então NÃO vaza entre tenants.
+//
+// ⚠️ DORMENTE (invariante PRÉ-CABEADA, não load-bearing): hoje nenhum contrato real tem veredito
+// multi-escopo (o único é `global`) e NADA consome `--resolve` pra gatear por tenant — é infra +
+// trava P0 armada ANTES do consumidor. Honesto chamar de pré-cabeada, não "enforcement vivo". Vira
+// load-bearing quando a 2ª tela escopada existir (mesmo critério que adiou a herança de zona · #2995).
 const ESCOPO_SPEC = ['global', 'vertical:', 'persona:', 'cliente:biz=', 'tela:']; // índice = especificidade
 function escopoSpec(escopo) {
   if (escopo === 'global') return 0;
