@@ -1,8 +1,11 @@
 ---
 topic: "Resgate de backlog não-commitado (US-WA-308..311) da drift do checkout do CT 100 + nota de deploy"
 date: "2026-06-19"
-autor: "Claude Code (sessão veredito-ledger / deploy MCP)"
-related_adrs: [0286, 0062, 0256, 0202]
+authors: ["Claude Code"]
+related_adrs:
+  - 0286-channel-health-corroborado-por-mensagem-real
+  - 0062-separacao-runtime-hostinger-ct100
+  - 0202-whatsapp-profissionalizacao-baileys-out
 ---
 
 # Resgate da drift do CT 100 — backlog US-WA-308..311 + lição de deploy
