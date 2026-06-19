@@ -43,27 +43,38 @@ git fetch --quiet origin main || { log "FATAL: git fetch falhou"; exit 1; }
 LOCAL="$(git rev-parse HEAD)"
 REMOTE="$(git rev-parse origin/main)"
 
-if [ "$LOCAL" = "$REMOTE" ]; then
-  log "já em origin/main (${REMOTE:0:9}) — nada a fazer (heartbeat ok)"
+# SHA que o CONTAINER está rodando (gravado após cada recreate OK). O trigger do recreate é
+# "container != origin/main", NÃO "checkout atrás de origin" — porque o systemd
+# oimpresso-git-sync já dá `git pull` e adianta o HEAD, então comparar checkout vs origin fazia
+# o force-recreate NUNCA disparar (container servia código velho · incidentes 2026-06-17 e -19).
+STATE="${MCP_DEPLOYED_SHA:-$BK/deployed-sha.txt}"
+DEPLOYED="$(cat "$STATE" 2>/dev/null || echo none)"
+
+if [ "$LOCAL" = "$REMOTE" ] && [ "$REMOTE" = "$DEPLOYED" ]; then
+  log "já em origin/main (${REMOTE:0:9}) e container em dia — heartbeat ok"
   exit 0
 fi
 
-log "drift detectado: ${LOCAL:0:9} -> ${REMOTE:0:9} — atualizando"
+log "deploy: checkout ${LOCAL:0:9} · container ${DEPLOYED:0:9} -> origin/main ${REMOTE:0:9}"
 TS="$(date +%Y%m%d-%H%M%S)"
-printf 'OLD_HEAD=%s\nNEW_HEAD=%s\nWHEN=%s\n' "$LOCAL" "$REMOTE" "$TS" > "$BK/rollback-$TS.txt"
+printf 'OLD_HEAD=%s\nNEW_HEAD=%s\nDEPLOYED=%s\nWHEN=%s\n' "$LOCAL" "$REMOTE" "$DEPLOYED" "$TS" > "$BK/rollback-$TS.txt"
 
-# Backup dos dirty files ANTES do reset --hard (clobber). Memory/ + artefatos manuais.
-git status --porcelain | sed 's/^...//' > "$BK/dirty-$TS.list"
-if [ -s "$BK/dirty-$TS.list" ]; then
-  tar czf "$BK/dirty-$TS.tar.gz" -T "$BK/dirty-$TS.list" 2>/dev/null \
-    && log "backup dos dirty files em $BK/dirty-$TS.tar.gz" \
-    || log "WARN: backup parcial dos dirty files (não-fatal)"
+# Sincroniza o checkout só se atrás (o git-sync pode já ter puxado). Backup dos dirty antes do reset.
+if [ "$LOCAL" != "$REMOTE" ]; then
+  git status --porcelain | sed 's/^...//' > "$BK/dirty-$TS.list"
+  if [ -s "$BK/dirty-$TS.list" ]; then
+    tar czf "$BK/dirty-$TS.tar.gz" -T "$BK/dirty-$TS.list" 2>/dev/null \
+      && log "backup dos dirty files em $BK/dirty-$TS.tar.gz" \
+      || log "WARN: backup parcial dos dirty files (não-fatal)"
+  fi
+  git reset --hard origin/main || { log "FATAL: reset --hard falhou"; exit 1; }
 fi
 
-git reset --hard origin/main || { log "FATAL: reset --hard falhou"; exit 1; }
+# Diff base = o SHA que o container roda (DEPLOYED), não o HEAD local. Fallback p/ LOCAL se sem estado.
+DIFFBASE="$DEPLOYED"; [ "$DIFFBASE" = "none" ] && DIFFBASE="$LOCAL"
 
 # composer install só se composer.lock/json mudou (host não tem composer → via container).
-if ! git diff --quiet "$LOCAL" "$REMOTE" -- composer.lock composer.json; then
+if ! git diff --quiet "$DIFFBASE" "$REMOTE" -- composer.lock composer.json; then
   log "composer.lock/json mudou — composer install via container composer:2"
   docker run --rm -v "$REPO_DIR":/var/www/html -w /var/www/html composer:2 \
     install --no-interaction --optimize-autoloader --ignore-platform-reqs 2>&1 | tail -5 \
@@ -71,7 +82,7 @@ if ! git diff --quiet "$LOCAL" "$REMOTE" -- composer.lock composer.json; then
 fi
 
 # rebuild da imagem só se docker/oimpresso-mcp mudou (Dockerfile/compose/entrypoint).
-if ! git diff --quiet "$LOCAL" "$REMOTE" -- docker/oimpresso-mcp/; then
+if ! git diff --quiet "$DIFFBASE" "$REMOTE" -- docker/oimpresso-mcp/; then
   log "docker/oimpresso-mcp mudou — rebuild da imagem"
   docker compose -f "$COMPOSE_FILE" build 2>&1 | tail -5 \
     || log "WARN: build falhou (segue com imagem atual; recreate aplica código novo)"
@@ -88,7 +99,8 @@ for i in $(seq 1 15); do
   if curl -fsS --max-time 6 "$HEALTH_URL" 2>/dev/null | grep -q '"status":"ok"'; then ok=1; break; fi
 done
 if [ -n "$ok" ]; then
-  log "OK: deploy ${REMOTE:0:9} saudável ($HEALTH_URL)"
+  echo "$REMOTE" > "$STATE"
+  log "OK: deploy ${REMOTE:0:9} saudável ($HEALTH_URL) — SHA gravado em $STATE"
   exit 0
 fi
 log "ALARME: smoke falhou após deploy ${REMOTE:0:9} — ver 'docker logs oimpresso-mcp'."
