@@ -181,7 +181,7 @@ class CaixaUnificadaController extends Controller
             // eager (query trivial na tabela channels) pro banner "canal caiu —
             // religar" aparecer no first-paint sem esperar o defer de
             // availableAccounts. Tier 0 ADR 0093 + ACL canal=fila (US-WA-069).
-            'unhealthyChannels' => $this->buildUnhealthyChannelsPayload($businessId, $userId),
+            'unhealthyChannels' => $this->buildUnhealthyChannelsPayload($businessId),
 
             // US-WA-301 (ADR 0267) — filas agora vêm do DB (seed lazy do config
             // na 1ª visita; fallback config se DB vazio). Shape QueueConfig compat.
@@ -641,23 +641,22 @@ class CaixaUnificadaController extends Controller
      * "canal desconectado — religar" no topo da Caixa Unificada.
      *
      * Eager (custo trivial: tabela `channels`, poucas rows) pra o aviso aparecer no
-     * first-paint — diferente de `availableAccounts` (deferred). Tier 0 ADR 0093 +
-     * ACL canal=fila (US-WA-069): só canais que o user pode ver. `degraded` entra
-     * junto de `disconnected`/`banned` porque já significa "não confiável agora".
+     * first-paint — diferente de `availableAccounts` (deferred). Tier 0 ADR 0093
+     * (escopado por `business_id`). **Business-wide** (Wagner 2026-06-18): um alerta
+     * "seu WhatsApp caiu" aparece pra QUALQUER pessoa com acesso ao atendimento (a
+     * página já gateia por `whatsapp.access`), não só admin view-all — ainda mais
+     * porque o business pode não ter grants de canal. `degraded` entra junto.
      *
      * @return array<int, array{id: int, label: string, type: string, channel_health: string, last_health_message: ?string, last_health_check_at: ?string}>
      */
-    protected function buildUnhealthyChannelsPayload(int $businessId, int $userId): array
+    protected function buildUnhealthyChannelsPayload(int $businessId): array
     {
-        $query = Channel::query()
+        // SEM filtro ACL-de-canal de propósito (business-wide). Tier 0 preservado
+        // pelo `business_id`. A página já exige permissão `whatsapp.access`.
+        return Channel::query()
             ->where('business_id', $businessId)
             ->where('status', 'active')
-            ->whereIn('channel_health', ['disconnected', 'banned', 'degraded']);
-        if (! $this->canSeeAllChannels()) {
-            $query->whereIn('id', $this->allowedChannelIdsSubquery($businessId, $userId));
-        }
-
-        return $query
+            ->whereIn('channel_health', ['disconnected', 'banned', 'degraded'])
             ->orderBy('label')
             ->get(['id', 'label', 'type', 'channel_health', 'last_health_message', 'last_health_check_at'])
             ->map(fn (Channel $ch) => [

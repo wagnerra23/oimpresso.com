@@ -182,6 +182,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
+        // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário→manual).
+        // COMENTADO DE PROPÓSITO: D-E exige gate Wagner/CT100 (smoke skim 10min/lote) —
+        // a destilação chama LLM e MUTA memória canônica PÚBLICA; não pode auto-rodar sem
+        // supervisão. O comando existe e roda manual (`php artisan jana:distill-module-truth
+        // --all [--dry-run]`); o Wagner DESCOMENTA aqui quando o processo de skim estiver de pé.
+        // $schedule->command('jana:distill-module-truth --all')
+        //     ->dailyAt('05:30')
+        //     ->withoutOverlapping()
+        //     ->environments(['live'])
+        //     ->onFailure(function () {
+        //         \Illuminate\Support\Facades\Log::channel('single')->error(
+        //             'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
+        //         );
+        //     });
+
         // Sentinela de FLUXO de inbound WhatsApp — cadência HORÁRIA em horário
         // comercial BRT (incidente 2026-06-16 #2726: recebimento morto 3 dias sem
         // ninguém ver; o cron diário 06:00 só detectaria ~22h depois). Reusa o
@@ -784,13 +800,15 @@ class Kernel extends ConsoleKernel
         // sempre guarda para não perder". Cron everyMinute pra processar
         // PersistHistorySyncBatchJob da tabela `jobs` (queue=database).
         //
-        // --max-time=55 sai antes do próximo tick. --stop-when-empty para
-        // quando fila vazia (não fica 55s ocioso). Pior caso: 1min latência
-        // pra primeira msg histórica aparecer no Inbox após pareamento.
+        // --max-time=55 sai antes do próximo tick. SEM --stop-when-empty
+        // (2026-06-19): o worker fica vivo os 55s pegando os batches em ~1-3s em
+        // vez de morrer assim que a fila esvazia (antes: até 1min de latência pra
+        // 1ª msg histórica aparecer pós-pareamento). withoutOverlapping(1) mantém
+        // 1 processo/fila (respeita o limite de LSPHP do shared hosting).
         //
         // Hostinger shared hosting sem supervisor — cron é o workaround
         // padrão pra rodar queue worker.
-        $schedule->command('queue:work database --queue=whatsapp-history --max-time=55 --stop-when-empty --tries=3')
+        $schedule->command('queue:work database --queue=whatsapp-history --max-time=55 --tries=3')
             ->everyMinute()
             ->withoutOverlapping(1)
             ->environments(['live'])
@@ -808,11 +826,15 @@ class Kernel extends ConsoleKernel
         // healthy e fix de código aplicado (PR #1825). Webhook chegava, job
         // enfileirado, ninguém executava. Worker manual processou 54 jobs em 2s.
         //
-        // Mesmo padrão Hostinger shared hosting cron-based: --max-time=55 +
-        // --stop-when-empty + everyMinute + runInBackground evita CPU ocioso
-        // e respeita limite de processos LSPHP. Tries=3 cobre retry transient
-        // (DB lock, OTel sidecar momentâneo).
-        $schedule->command('queue:work database --queue=whatsapp --max-time=55 --stop-when-empty --tries=3')
+        // Hostinger shared hosting cron-based (sem supervisor). SEM --stop-when-empty
+        // (2026-06-19): antes o worker morria assim que a fila esvaziava, deixando a
+        // maior parte do minuto SEM worker → a msg entrante esperava o próximo tick
+        // (0-60s, ~30s médio; reclamação real "~20s pra um oi" chegar na Caixa).
+        // Agora fica vivo os 55s do --max-time e pega o webhook em ~1-3s. Custo:
+        // poll leve do DB durante os 55s — limitado por --max-time=55 +
+        // withoutOverlapping(1) (1 processo/fila → respeita LSPHP). Tries=3 cobre
+        // retry transient (DB lock, OTel sidecar momentâneo).
+        $schedule->command('queue:work database --queue=whatsapp --max-time=55 --tries=3')
             ->everyMinute()
             ->withoutOverlapping(1)
             ->environments(['live'])

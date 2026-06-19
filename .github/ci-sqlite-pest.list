@@ -97,3 +97,35 @@ Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowInboundTimezoneTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowReconcilerTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php
+# Observabilidade SLO/SLI canal (ADR 0288) — snapshot + alerta canal-down 3 sinks
+# (Log + Centrifugo + mcp_alertas_eventos). Adicionado na Fase 2: o teste existia
+# desde #3005 mas NÃO estava nesta lane, logo nunca rodava em CI ("suite mente").
+Modules/Whatsapp/Tests/Feature/ChannelHealthSnapshotCommandTest.php
+# ── Whatsapp LogsActivity sqlite-safe (auditoria cobertura-CI 2026-06-19) ─────
+# Estes 21 falhavam só por "no such table: activity_log" (models com Spatie
+# LogsActivity, 341 falhas na audit). O beforeEach scoped ao dir Whatsapp em
+# tests/Pest.php agora provisiona a tabela (idioma do bloco RecurringBilling).
+# Verde determinístico em 4 seeds rodados juntos (152 passed) + 3 seeds no
+# combinado dos 57 Whatsapp da lane (431 passed, 0 fail). FORA: DispatchToJanaBot
+# e PhoneResolutionWebhook (flaky order-dependente em grupo, fix à parte).
+Modules/Whatsapp/Tests/Feature/AuditChannelAccessCommandTest.php
+Modules/Whatsapp/Tests/Feature/ChannelBaileysInstanceIdHelperTest.php
+Modules/Whatsapp/Tests/Feature/ChannelBaileysWebhookIdempotencyTest.php
+Modules/Whatsapp/Tests/Feature/ChannelRequestUniqueIdentifierTest.php
+Modules/Whatsapp/Tests/Feature/ChannelUserAccessTest.php
+Modules/Whatsapp/Tests/Feature/CsatFlowTest.php
+Modules/Whatsapp/Tests/Feature/GuardiaoMidiaTest.php
+Modules/Whatsapp/Tests/Feature/HistorySyncQueueArchitectureTest.php
+Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php
+Modules/Whatsapp/Tests/Feature/InternalNoteTest.php
+Modules/Whatsapp/Tests/Feature/LastMessageDenormalizeTest.php
+Modules/Whatsapp/Tests/Feature/MacroVariantPickerTest.php
+Modules/Whatsapp/Tests/Feature/MediaMessageTest.php
+Modules/Whatsapp/Tests/Feature/MetricsAggregateCommandTest.php
+Modules/Whatsapp/Tests/Feature/PersistContactsFromHistorySyncJobTest.php
+Modules/Whatsapp/Tests/Feature/ReparseMediaFromPayloadCommandTest.php
+Modules/Whatsapp/Tests/Feature/SlaScanCommandTest.php
+Modules/Whatsapp/Tests/Feature/SlashConfigTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappMessageObserverTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowCicloE2ETest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowResubscribeEventsCommandTest.php
