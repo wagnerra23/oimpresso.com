@@ -60,7 +60,7 @@ count/chat/oldest-id) → emite eventos `HistorySync`. Plano:
 
 > ⚠️ **Não confundir dois backlogs distintos:** (1) **mensagens perdidas** (#2726, webhook
 > recusado) = esta Camada 2. (2) **mídia não-baixada** de mensagens que *chegaram* normalmente
-> (48.569 em `media_download_status='pending'`, incidente DNS 2026-06-19) = **Camada 6** abaixo.
+> (backlog real = **10.134**, todo do driver Baileys descomissionado) = **Camada 6** abaixo.
 > A mensagem existe na Caixa; só a mídia não desceu. Mecanismos e causas-raiz diferentes.
 
 ### Camada 3 — Auto-cura
@@ -81,45 +81,41 @@ no CT 100 testando o caminho daemon→app (rede), não só app→app.
 
 ### Camada 6 — resiliência do download de mídia + alarme de daemon-inalcançável (era o "US-WA-311")
 
-**Incidente 2026-06-19 (root cause provado):** **48.569** mensagens em
-`media_download_status='pending'` (vs 659 `success`, 14 `failed_permanent`) acumuladas desde
-~12/jun. Diagnóstico read-only (handoff `2026-06-19-1103-midia-dns-rootcause`):
+**Incidente 2026-06-19 — dois achados separados** (diagnóstico read-only + verificação na app prod; handoff `2026-06-19-1103-midia-dns-rootcause`):
 
-- O A record **`whatsapp-whatsmeow.oimpresso.com` sumiu da zona DNS Hostinger** → **NXDOMAIN**
-  (DoH `dns.google` Status 3 + `getent` do próprio CT 100; SOA serial `2026061801`).
-- O daemon (CT 100, `177.74.67.30`) está **`Up 3 semanas (healthy)`**; Traefik **casa o `Host()` rule**
-  (loopback → `http_404`, não-000 = rota OK) e o daemon serve `/health` `http_200` direto.
-- `DownloadMediaJob::fetchViaWhatsmeowDownload` (roda no **Hostinger**) chama
-  `config('whatsapp.whatsmeow.daemon_url')` = o host que NXDOMAINa → **soft-fail silencioso** →
-  fica `pending` pra sempre. Webhooks inbound seguem OK (vão pro `oimpresso.com`, que resolve).
+**Achado A — A record do daemon sumiu (corrigido).** `whatsapp-whatsmeow.oimpresso.com` estava
+**NXDOMAIN** (removido da zona Hostinger; DoH `dns.google` Status 3 + `getent` do CT 100; SOA
+`2026061801`). O daemon (CT 100, `177.74.67.30`) está **`Up 3 semanas (healthy)`** e o Traefik
+**casa o `Host()` rule** (loopback → `http_404`; daemon direto → `http_200`). Como o
+`DownloadMediaJob` roda no **Hostinger** e chama `config('whatsapp.whatsmeow.daemon_url')`, o
+caminho app→daemon ficou morto. **Recriei o A record** (→ `177.74.67.30`, [ADR 0045](../0045-hostinger-dns-api-endpoint-canonico.md),
+`overwrite:false`; `dig`+DoH confirmam). Hygiene de infra **necessária** (health-probe ADR 0286,
+admin do daemon, mídia whatsmeow futura) — **mas não era a causa de um backlog**: ver Achado B.
 
-→ **Não é bug de código.** O worker, o endpoint e o env estão corretos. Quebrou **1 entrada de DNS**.
+**Achado B — o "48k mídia travada" era um número inflado.** `media_download_status` tem
+**default `'pending'` pra TODA mensagem** (texto incluso). Filtrando só tipos de mídia, o backlog
+**real é 10.134** — e **100% são `whatsapp_baileys`** (driver descomissionado [ADR 0202](../0202-whatsapp-profissionalizacao-baileys-out.md),
+27/mai: daemon de decrypt morto + URLs `.enc` expiradas = **undownloadable**). **Mídia whatsmeow
+pending = 0** (teste síncrono na app: pipeline em dia). Ou seja: o DNS estava quebrado, mas não
+havia backlog de mídia whatsmeow esperando por ele.
 
-**Fix imediato (PROD/DNS — Wagner aprova/executa, publication-policy):** recriar o A record via
-Hostinger DNS API ([ADR 0045](../0045-hostinger-dns-api-endpoint-canonico.md)), `overwrite:false`:
+→ **Não é bug de código.** Worker/endpoint/env corretos. (1) A record: corrigido. (2) os 10.134
+Baileys: **dead-letter** — recomendado marcar `failed_permanent` (decisão de dados do Wagner; mutação
+de 10k linhas não foi aplicada sozinha).
 
-```bash
-curl -s -X PUT -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  "https://developers.hostinger.com/api/dns/v1/zones/oimpresso.com" \
-  -d '{"overwrite":false,"zone":[{"name":"whatsapp-whatsmeow","type":"A","ttl":300,"records":[{"content":"177.74.67.30"}]}]}'
-```
-
-**Drain (pós-DNS, idempotente):** `php artisan whatsapp:backfill-media-download --business=all --since=2026-06-01`
-em lotes (`--limit`); a Camada 4 (`RetryFailedMediaDownloadsJob`, hourly) também redreca sozinha.
-
-**O gap durável (o que o US-WA-311 pedia — observabilidade):** o daemon ficou inalcançável ~7 dias
-**sem nenhum alarme**. Proposta: **sentinela "daemon whatsmeow alcançável"** —
+**O gap durável (o que o US-WA-311 pedia — observabilidade):** um A record sumir em silêncio e
+ninguém ver é a classe de falha que precisa de alarme (mesmo que desta vez não tenha gerado
+backlog). Proposta: **sentinela "daemon whatsmeow alcançável"** —
 1. checagem ativa (resolve DNS + `GET /health` via Traefik) no `jana:health-check`, OU
 2. detecção passiva: N soft-fails de download consecutivos **business-wide** na mesma janela →
    `mcp_alertas` ALERT em <5min (não 1 por mensagem — agregado, anti-ruído).
 
-Isso transforma "48k mídias presas em silêncio por uma semana" em "alerta em minutos". Tier 0
-preservado (agregação por `business_id`). Pareia com a Camada 1 (canário) — mesma filosofia
+Tier 0 preservado (agregação por `business_id`). Pareia com a Camada 1 (canário) — mesma filosofia
 aplicada ao caminho **app→daemon** (download), que hoje não tem canário.
 
 ## Faseamento (cada fase = 1 PR testado, pode parar entre fases)
-0. **Mídia/DNS (Camada 6)** — hotfix DNS (imediato, destrava 48k) + drain; depois a sentinela de
-   alcançabilidade (baixo risco, só observa). Independente das demais.
+0. **Mídia/DNS (Camada 6)** — A record já recriado; resta dead-letter dos 10.134 Baileys + a
+   sentinela de alcançabilidade do daemon (baixo risco, só observa). Independente das demais.
 1. **Canário** (camada 1+5) — maior salto isolado: detecção <5min + perda-zero pra
    maioria das falhas. Baixo risco (só observa, não toca a via de recebimento).
 2. **Backfill/HistorySync** (camada 2) — perda-zero pra qualquer duração + recupera os 3 dias.
