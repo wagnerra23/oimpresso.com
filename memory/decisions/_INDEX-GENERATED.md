@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **295** arquivos · **280** números únicos · máx **0290**
-- **ADRs ATIVOS (lifecycle ativo): 255** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 228 · proposto 40 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 255 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **296** arquivos · **281** números únicos · máx **0291**
+- **ADRs ATIVOS (lifecycle ativo): 256** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 228 · proposto 41 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 256 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -32,7 +32,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (295)
+## Todas as ADRs (296)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -330,3 +330,4 @@ _(íntegra)_
 | 0288 | proposto | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
 | 0289 | proposto | ativo | decision | failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficia |
 | 0290 | recusado | ativo | decision | v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  |
+| 0291 | proposto | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
