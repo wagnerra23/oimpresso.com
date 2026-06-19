@@ -25,7 +25,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
 import { Braces, LayoutList, Loader2, Send, FileText, Paperclip, Slash, Sparkles, X } from 'lucide-react';
 import { cn } from '@/Lib/utils';
-import { Inline } from '@/Components/layout';
+import { Inline, Stack } from '@/Components/layout';
 import {
   Popover,
   PopoverContent,
@@ -582,9 +582,10 @@ export default function ComposerV4({
           ))}
         </div>
       )}
-    <div
+    <Stack
+      gap={2}
       className={cn(
-        'flex items-center gap-1.5 border-t px-3.5 py-2.5 transition-colors',
+        'border-t px-3.5 py-2.5 transition-colors',
         !internalMode && 'bg-card',
       )}
       style={
@@ -598,6 +599,10 @@ export default function ComposerV4({
       }
       data-testid="caixa-unif-composer"
     >
+      {/* C1 (handoff 2026-06-19) — composer em 2 linhas (.om-composer coluna do
+          protótipo Cowork): ferramentas na 2ª linha (order-2); input + Enviar
+          sobem pro topo (order-1). Sem mudança de lógica — só layout. */}
+      <Inline wrap className="gap-1.5 order-2">
       {/* PR-9 — ✦ Sugerir resposta (IA preenche o input; humano revisa e envia) */}
       {!internalMode && (
         <button
@@ -788,7 +793,10 @@ export default function ComposerV4({
           <LayoutList size={12} aria-hidden />
         </button>
       )}
+      </Inline>
 
+      {/* C1 — 1ª linha: input + Enviar (.om-input-main), sobe via order-1 */}
+      <Inline gap={2} className="order-1">
       {/* Input */}
       <input
         ref={inputRef}
@@ -855,7 +863,8 @@ export default function ComposerV4({
           </>
         )}
       </button>
-    </div>
+      </Inline>
+    </Stack>
 
     {/* Wave 4-B F1 — Interactive message dialog (List/Button Meta) */}
     {supportsInteractive && (
