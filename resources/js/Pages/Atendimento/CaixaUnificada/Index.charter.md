@@ -19,7 +19,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 18
+charter_version: 19
 permissao: whatsapp.access
 ---
 
@@ -308,7 +308,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 | ✅ | `R-WA-CAIXA-UNIF-010 — startConversation: cria, reabre (não duplica) + guards canal/phone` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-011 — broadcast pre-flight: opt-in LGPD + janela 24h + draft auditável` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-012 — inbox AI: dry_run devolve fixture sem LLM + ACL canal fail-loud` | mesmo arquivo |
-| ✅ | `R-WA-CAIXA-UNIF-014 — canal ativo deslogado entra em unhealthyChannels + Tier 0` | mesmo arquivo |
+| ✅ | `R-WA-CAIXA-UNIF-015 — canal caído entra business-wide (sem grant) + saudável fora + Tier 0` | mesmo arquivo |
 | ✅ | `R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo com count real (PARTE 4)` | mesmo arquivo |
 
 ---
@@ -354,6 +354,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-06-19 | Claude Code [CL] (rebase de #2964 · direção [W] "qualquer conta pode ver") | **Banner de saúde business-wide.** `buildUnhealthyChannelsPayload` perde o filtro ACL-de-canal (assinatura cai pra `(int $businessId)`): o alerta "seu WhatsApp caiu" aparece pra QUALQUER conta com `whatsapp.access`, não só admin `view-all-phones` — o business pode não ter grants de canal e ninguém via o banner. Tier 0 preservado por `business_id`. Pest renomeado `R-WA-CAIXA-UNIF-014 (health) → 015` (business-wide; resolve a colisão com o `014 media_inbound_24h` pré-existente no main). A parte "probe detecta provision_pending" do #2964 original foi **descartada**: o main já cobre via ADR 0287 (`decideAction` com guard `healthBefore==healthy` + supressão por inbound recente) — superior. Charter v19. |
 | 2026-06-18 | Claude Code [CL] (follow-up de #2963 · direção [W]) | **Banner de saúde movido pro topo da LISTA + layout via primitivos.** Após [W] apontar o screenshot do protótipo ("esse seria o lugar correto? mantenha íntegro"), o `ChannelHealthBanner` saiu do `Index.tsx` (full-width no topo da tela) e foi pro topo da **coluna de conversas** (renderizado por `ConversationListV4`, logo após a busca — fiel ao protótipo). Prop eager `unhealthyChannels` desce `Index → ConversationListV4 → banner`. **Também conserta o `main`:** o #2963 mergeou só o 1º commit (versão com `<div className="flex/grid">` cru) e o **layout-primitives ratchet (ADR 0253)** ficou vermelho no `main` — refeito 100% com `<Stack>`/`<Inline>` (centragem de ícone via idioma permitido `grid place-items-center`); `node scripts/layout-primitives-guard.mjs` verde. `R-WA-CAIXA-UNIF-014` (payload) intacto. Charter v18. |
 | 2026-06-18 | Claude Code [CL] (handoff Cowork [CC]→[CL] · escolha [W]) | **Redesign visual do `ChannelHealthBanner` (Cowork).** O handoff `PROMPT_PARA_CODE_CHANNEL-HEALTH-BANNER` chegou com premissa stale ("a tela não avisa") — validei vs `main` (§10.4) e o banner US-WA-308 já estava live no topo (`Index.tsx:422`), e o agregado backend (`unhealthyChannels` + `last_health_check_at`) já existia (a "Onda 4" do prompt). [W] escolheu **trocar o visual** pelo design Cowork mantendo a arquitetura: tom graduado warn/err, dispensável, resumo multi-canal e CTA Reconectar. Adaptado aos estados REAIS do `whatsmeow:health-probe` — `disconnected`/`banned` (err) + `degraded` (warn); o prompt assumia um estado `down` que o backend **nunca emite** (seria dead-code). Único arquivo de produção: `_components/ChannelHealthBanner.tsx` (mesmo prop `channels: UnhealthyChannel[]` → `Index.tsx` intocado). Cor 100% semântica (tokens `warning`/`destructive`, R1 + ADR 0281). `R-WA-CAIXA-UNIF-014` (payload) intacto. Charter v17. |
 | 2026-06-18 | Claude (incidente WhatsApp atendimento) | **US-WA-308/309 banner "canal caiu — religar".** Origem: canal 11 (biz=1) deslogou "logged out from another device" às 07:50 sem webhook `LoggedOut` (WuzAPI não assina) → `channel_health` ficou `healthy`, a Caixa não avisou, linha caída ~3h sem ninguém ver. Fix: (1) prop eager `unhealthyChannels` no `CaixaUnificadaController` (ACL + Tier 0) + `ChannelHealthBanner` no topo da Caixa (clique → `/atendimento/canais/{id}` re-parear, QR já existente); (2) comando `whatsmeow:health-probe` (cron 3min, Kernel) que sonda `/session/status` real e converge disconnected/banned/healthy — fecha a lacuna do reconciler Baileys-only. Charter v16. Pest R-WA-CAIXA-UNIF-014. Sem dev server no worktree → build/typecheck/visual-regression no CI + screenshot [W] na prod (Wagner re-pareia e valida o fluxo real). |
