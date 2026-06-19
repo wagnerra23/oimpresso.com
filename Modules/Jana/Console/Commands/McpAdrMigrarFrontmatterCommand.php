@@ -47,6 +47,8 @@ class McpAdrMigrarFrontmatterCommand extends Command
         'proposed'    => 'proposto',
         'proposto'    => 'proposto',
         'proposta'    => 'proposto',
+        'recusado'    => 'recusado',   // o NÃO canônico — sem esta linha, normalizarStatus→null e o
+        'recusada'    => 'recusado',   // caller cai pro `?? 'aceito'`, CORROMPENDO um ADR recusado.
         'draft'       => 'rascunho',
         'rascunho'    => 'rascunho',
         'wip'         => 'rascunho',

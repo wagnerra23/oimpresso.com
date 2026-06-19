@@ -23,7 +23,7 @@ class DecisionsSearchTool extends Tool
 
     protected string $title = 'Buscar ADRs do projeto';
 
-    protected string $description = 'Busca full-text nas 90+ ADRs (decisões arquiteturais) do oimpresso. Retorna top 5 matches com slug, título e trecho relevante. Por padrão filtra ADRs ativas (aceito/accepted/accepted-historical) — use include_archived=true pra ver superseded/deprecated. Triagem 2026-05-06 ([_INDEX-LIFECYCLE](memory/decisions/_INDEX-LIFECYCLE.md)).';
+    protected string $description = 'Busca full-text nas 90+ ADRs (decisões arquiteturais) do oimpresso. Retorna top 5 matches com slug, título e trecho relevante. Por padrão retorna ADRs ativas (aceito/accepted/accepted-historical) + recusadas (o NÃO consultável — responde "por que não temos X?", anti-relitígio) — use include_archived=true pra ver superseded/deprecated. Triagem 2026-05-06 ([_INDEX-LIFECYCLE](memory/decisions/_INDEX-LIFECYCLE.md)).';
 
     public function schema(JsonSchema $schema): array
     {
