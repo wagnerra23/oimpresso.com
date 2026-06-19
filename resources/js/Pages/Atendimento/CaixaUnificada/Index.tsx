@@ -152,6 +152,24 @@ export default function CaixaUnificadaIndex({
     const sub = c.newSubscription(centrifugoConfig.channel);
 
     sub.on('publication', (ctx: { data: Record<string, unknown> }) => {
+      // US-WA-308 realtime — saúde de canal: o webhook publica `whatsmeow.*` em
+      // `data.event` (mensagens usam `data.type`). Queda/volta de sessão recarrega
+      // só a prop do banner "religar" (+ contas) — servidor segue source of truth,
+      // sem duplicar a lógica de channel_health no client. (Phase B · Centrifugo ADR 0058.)
+      const healthEvent = ctx.data?.event as string | undefined;
+      if (
+        healthEvent === 'whatsmeow.disconnected' ||
+        healthEvent === 'whatsmeow.ban_detected' ||
+        healthEvent === 'whatsmeow.paired'
+      ) {
+        router.reload({
+          only: ['unhealthyChannels', 'availableAccounts'],
+          preserveScroll: true,
+          preserveState: true,
+        });
+        return;
+      }
+
       const eventType = ctx.data?.type as string | undefined;
       if (eventType !== 'message.received' && eventType !== 'message.sent') return;
       const incomingConvId = ctx.data?.conversation_id as number | undefined;
