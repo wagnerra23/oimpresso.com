@@ -362,6 +362,38 @@ class WhatsmeowDriver implements DriverInterface
     }
 
     /**
+     * Re-assina os eventos do canal no daemon incluindo `LoggedOut` (Fase B · mecanismo D).
+     *
+     * Para canais já provisionados ANTES da Fase B (events sem LoggedOut). Usa o
+     * endpoint `POST /webhook` (UPDATE `users.events` no daemon + refresh do cache)
+     * — NÃO reconecta nem re-pareia, zero impacto na sessão viva. Idempotente
+     * (convergente). Mantém a webhook URL atual. Validado em canário 2026-06-18.
+     *
+     * @return array{ok: bool, status?: int, reason?: string}
+     */
+    public function resubscribeEvents(Channel $channel): array
+    {
+        $userToken = $this->resolveUserTokenFromChannel($channel);
+        if ($userToken === null) {
+            return ['ok' => false, 'reason' => 'no_token'];
+        }
+
+        $cfg = $channel->config_json ?? [];
+        $webhookUrl = (string) ($cfg['whatsmeow_webhook_url'] ?? '');
+        if ($webhookUrl === '') {
+            return ['ok' => false, 'reason' => 'no_webhook_url'];
+        }
+
+        $response = $this->client($userToken)->post('/webhook', [
+            'webhookurl' => $webhookUrl,
+            // Mesma lista canon de provisionSession/connect (inclui LoggedOut).
+            'events' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected', 'LoggedOut'],
+        ]);
+
+        return ['ok' => $response->successful(), 'status' => $response->status()];
+    }
+
+    /**
      * Resolve user_token do channel (cifrado em config_json).
      *
      * Channel-based driver (ADR 0135). Recebe config como WhatsappBusinessConfig
