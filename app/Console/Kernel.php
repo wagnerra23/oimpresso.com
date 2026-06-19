@@ -182,6 +182,22 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
+        // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário→manual).
+        // COMENTADO DE PROPÓSITO: D-E exige gate Wagner/CT100 (smoke skim 10min/lote) —
+        // a destilação chama LLM e MUTA memória canônica PÚBLICA; não pode auto-rodar sem
+        // supervisão. O comando existe e roda manual (`php artisan jana:distill-module-truth
+        // --all [--dry-run]`); o Wagner DESCOMENTA aqui quando o processo de skim estiver de pé.
+        // $schedule->command('jana:distill-module-truth --all')
+        //     ->dailyAt('05:30')
+        //     ->withoutOverlapping()
+        //     ->environments(['live'])
+        //     ->onFailure(function () {
+        //         \Illuminate\Support\Facades\Log::channel('single')->error(
+        //             'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
+        //         );
+        //     });
+
         // Sentinela de FLUXO de inbound WhatsApp — cadência HORÁRIA em horário
         // comercial BRT (incidente 2026-06-16 #2726: recebimento morto 3 dias sem
         // ninguém ver; o cron diário 06:00 só detectaria ~22h depois). Reusa o
