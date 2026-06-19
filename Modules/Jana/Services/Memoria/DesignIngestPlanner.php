@@ -13,8 +13,12 @@ namespace Modules\Jana\Services\Memoria;
  * de aplicar) e a memória de sessão da ingestão.
  *
  * Tudo PURO/determinístico (sem FS/git/zip/LLM/timestamp gerado): o comando (PR-2b)
- * faz unzip via ZipArchive + `git diff --no-index` via Process e injeta as strings aqui.
- * `now` é injetado (determinismo no teste).
+ * faz unzip via ZipArchive + lê os arquivos commitados/extraídos e injeta os hashes
+ * aqui (`diffByContent`). `now` é injetado (determinismo no teste).
+ *
+ * Diff por CONTEÚDO (sha), NÃO via `git diff`: o runtime alvo (container CT100) não
+ * tem `git` (git fica no host) — depender dele fazia o diff sair vazio e o PLANO
+ * reportar "sem mudanças" mesmo havendo arquivos novos. Calcular aqui é robusto.
  */
 final class DesignIngestPlanner
 {
@@ -82,6 +86,37 @@ final class DesignIngestPlanner
                 $removed[] = $path;
             }
         }
+
+        return ['added' => $added, 'modified' => $modified, 'removed' => $removed];
+    }
+
+    /**
+     * Diff por CONTEÚDO (sha) — tela commitada vs extraída. PURO, sem git: o container
+     * CT100 não tem git, então o comando lê os arquivos e injeta os mapas aqui.
+     * Determinístico (listas ordenadas).
+     *
+     * @param  array<string, string>  $committed  relpath => hash (da pasta commitada)
+     * @param  array<string, string>  $incoming   relpath => hash (do zip extraído)
+     * @return array{added: list<string>, modified: list<string>, removed: list<string>}
+     */
+    public static function diffByContent(array $committed, array $incoming): array
+    {
+        $added = $modified = $removed = [];
+        foreach ($incoming as $path => $hash) {
+            if (! array_key_exists($path, $committed)) {
+                $added[] = $path;
+            } elseif ($committed[$path] !== $hash) {
+                $modified[] = $path;
+            }
+        }
+        foreach ($committed as $path => $hash) {
+            if (! array_key_exists($path, $incoming)) {
+                $removed[] = $path;
+            }
+        }
+        sort($added);
+        sort($modified);
+        sort($removed);
 
         return ['added' => $added, 'modified' => $modified, 'removed' => $removed];
     }

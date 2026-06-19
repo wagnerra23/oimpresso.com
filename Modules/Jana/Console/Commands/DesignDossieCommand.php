@@ -42,9 +42,7 @@ class DesignDossieCommand extends Command
         $dossie = DesignDossieAssembler::assemble([
             'tela' => $tela,
             'module' => $module,
-            // page_id vem do charter (verdade); fallback ao slug derivado se ausente
-            'page_id' => $this->pageIdFromCharter($sources['charter']['content'] ?? null)
-                ?? mb_strtolower("{$module}-{$tela}"),
+            'page_id' => $this->resolvePageId($module, $tela, $sources['charter']['content'] ?? null),
             'sources' => $sources,
             'personas' => $this->resolvePersonas($module),
             'feedback' => $this->resolveFeedback($module),
@@ -71,24 +69,31 @@ class DesignDossieCommand extends Command
     /** @return array<string, array{path:string, content:?string}> */
     private function resolveSources(string $module, string $tela): array
     {
-        $telaLower = mb_strtolower($tela);
+        // tela aninhada (ex: "CaixaUnificada/Index") → slug sem `/` pra não virar
+        // subpasta em RUNBOOK-/decisoes/visual-comparison. charter+casos usam o path real.
+        $telaSlug = str_replace('/', '-', mb_strtolower($tela));
         $rel = [
             'charter' => "resources/js/Pages/{$module}/{$tela}.charter.md",
             'casos' => "resources/js/Pages/{$module}/{$tela}.casos.md",
-            'runbook' => "memory/requisitos/{$module}/RUNBOOK-{$telaLower}.md",
+            'runbook' => "memory/requisitos/{$module}/RUNBOOK-{$telaSlug}.md",
             'briefing' => "memory/requisitos/{$module}/BRIEFING.md",
         ];
         $sources = [];
         foreach ($rel as $key => $path) {
             $sources[$key] = ['path' => $path, 'content' => $this->read($path)];
         }
-        // best-effort por glob (nomes variam): decisoes do protótipo + visual-comparison
-        $sources['decisoes'] = $this->firstGlob([
-            "prototipo-ui/prototipos/{$telaLower}/decisoes.md",
-            "prototipo-ui/prototipos/" . mb_strtolower($module) . "/decisoes.md",
-        ]);
+        // decisoes do protótipo: a pasta vem do cowork-map (Sells → vendas), não do nome
+        // da tela (Index ≠ vendas). Fallback ao slug + ao módulo se o map não casar.
+        $decisoes = [];
+        foreach ($this->prototypeDirsForModule($module) as $dir) {
+            $decisoes[] = "prototipo-ui/prototipos/{$dir}/decisoes.md";
+        }
+        $decisoes[] = "prototipo-ui/prototipos/{$telaSlug}/decisoes.md";
+        $decisoes[] = 'prototipo-ui/prototipos/' . mb_strtolower($module) . '/decisoes.md';
+        $sources['decisoes'] = $this->firstGlob($decisoes);
+
         $sources['visual_comparison'] = $this->firstGlob([
-            "memory/requisitos/{$module}/*{$telaLower}*visual-comparison.md", // prioriza a tela
+            "memory/requisitos/{$module}/*{$telaSlug}*visual-comparison.md", // prioriza a tela
             "memory/requisitos/{$module}/*visual-comparison.md",
         ]);
 
@@ -137,6 +142,18 @@ class DesignDossieCommand extends Command
         return $found;
     }
 
+    /**
+     * page_id na ordem de verdade: `page_id:` do charter → `page:` do charter (slug) →
+     * page_id do cowork-map (entrada do módulo) → slug normalizado SEM `/` (último caso).
+     */
+    private function resolvePageId(string $module, string $tela, ?string $charter): string
+    {
+        return $this->pageIdFromCharter($charter)
+            ?? $this->pageFromCharter($charter)
+            ?? $this->pageIdFromMap($module)
+            ?? str_replace('/', '-', mb_strtolower("{$module}-{$tela}"));
+    }
+
     /** Lê o `page_id:` real do frontmatter do charter (não fabrica). */
     private function pageIdFromCharter(?string $charter): ?string
     {
@@ -145,6 +162,61 @@ class DesignDossieCommand extends Command
         }
 
         return preg_match('/^page_id:\s*(.+?)\s*$/m', $charter, $m) ? trim($m[1]) : null;
+    }
+
+    /** Deriva page_id do `page:` do charter (ex: `/atendimento/caixa-unificada` → `atendimento-caixa-unificada`). */
+    private function pageFromCharter(?string $charter): ?string
+    {
+        if ($charter === null || ! preg_match('/^page:\s*(.+?)\s*$/m', $charter, $m)) {
+            return null;
+        }
+        $slug = trim(str_replace('/', '-', mb_strtolower(trim($m[1]))), '-');
+
+        return $slug !== '' ? $slug : null;
+    }
+
+    /** page_id da 1ª entrada do cowork-map cujo `module` casa (best-effort quando 1 tela/módulo). */
+    private function pageIdFromMap(string $module): ?string
+    {
+        foreach ($this->coworkScreens() as $screen) {
+            if (mb_strtolower((string) ($screen['module'] ?? '')) === mb_strtolower($module)) {
+                $pid = trim((string) ($screen['page_id'] ?? ''));
+                if ($pid !== '') {
+                    return $pid;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Chaves do cowork-map cujo `module` casa = pasta(s) de protótipo do módulo (Sells → vendas).
+     *
+     * @return list<string>
+     */
+    private function prototypeDirsForModule(string $module): array
+    {
+        $dirs = [];
+        foreach ($this->coworkScreens() as $key => $screen) {
+            if (mb_strtolower((string) ($screen['module'] ?? '')) === mb_strtolower($module)) {
+                $dirs[] = (string) $key;
+            }
+        }
+
+        return $dirs;
+    }
+
+    /** @return array<string, array<string, mixed>> screens do cowork-map (keyed por tela). */
+    private function coworkScreens(): array
+    {
+        $path = $this->root() . '/prototipo-ui/cowork-map.json';
+        if (! is_file($path)) {
+            return [];
+        }
+        $decoded = json_decode((string) file_get_contents($path), true);
+
+        return is_array($decoded) ? (array) ($decoded['screens'] ?? []) : [];
     }
 
     private function read(string $rel): ?string
