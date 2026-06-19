@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **291** arquivos · **276** números únicos · máx **0286**
-- **ADRs ATIVOS (lifecycle ativo): 251** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 228 · proposto 37 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 251 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **294** arquivos · **279** números únicos · máx **0289**
+- **ADRs ATIVOS (lifecycle ativo): 254** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 228 · proposto 40 · superseded 23 · (vazio) 2 · rascunho 1
+- Por lifecycle: ativo 254 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -32,7 +32,7 @@ _(íntegra)_
 ## Recusadas (0) — o NÃO consultável
 _(nenhuma — nenhum pedido recusado catalogado ainda)_
 
-## Todas as ADRs (291)
+## Todas as ADRs (294)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
@@ -326,3 +326,6 @@ _(nenhuma — nenhum pedido recusado catalogado ainda)_
 | 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
 | 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
 | 0286 | proposto | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
+| 0287 | proposto | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
+| 0288 | proposto | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
+| 0289 | proposto | ativo | decision | failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficia |

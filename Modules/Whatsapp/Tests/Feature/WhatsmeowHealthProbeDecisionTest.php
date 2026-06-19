@@ -49,10 +49,21 @@ it('estados transitórios (daemon down / pareando) não mutam health', function 
     foreach ([
         WhatsmeowState::DAEMON_UNREACHABLE,
         WhatsmeowState::QR_PENDING,
-        WhatsmeowState::PROVISION_PENDING,
         WhatsmeowState::ERROR,
     ] as $s) {
         expect(Probe::decideAction($s, 'healthy', false))->toBe(Probe::ACTION_NONE);
         expect(Probe::decideAction($s, 'disconnected', false))->toBe(Probe::ACTION_NONE);
     }
+});
+
+it('PROVISION_PENDING num canal que estava healthy = QUEDA real (ADR 0287 — fim da queda invisível)', function () {
+    // connected=false num canal que estava no ar: a Jana sumiu sem o app marcar.
+    expect(Probe::decideAction(WhatsmeowState::PROVISION_PENDING, 'healthy', false))->toBe(Probe::ACTION_DISCONNECTED);
+    // inbound recente prova "no ar" → suprime o falso disconnected (corroboração ADR 0286).
+    expect(Probe::decideAction(WhatsmeowState::PROVISION_PENDING, 'healthy', true))->toBe(Probe::ACTION_NONE);
+});
+
+it('PROVISION_PENDING em canal nunca-pareado / já caído segue transitório (não marca)', function () {
+    expect(Probe::decideAction(WhatsmeowState::PROVISION_PENDING, 'never_checked', false))->toBe(Probe::ACTION_NONE);
+    expect(Probe::decideAction(WhatsmeowState::PROVISION_PENDING, 'disconnected', false))->toBe(Probe::ACTION_NONE);
 });
