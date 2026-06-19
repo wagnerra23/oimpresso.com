@@ -25,20 +25,25 @@ final class DesignDossieAssembler
     public const EXCERPT_LINES = 18;
 
     /**
+     * Chaves opcionais de propósito (acesso defensivo com `??` — o comando pode
+     * omitir fontes greenfield). Valores de fonte são `array<string, string|null>`
+     * (path/content podem faltar) pra justificar o coalescing sem o strict-rule
+     * "offset always exists" reclamar.
+     *
      * @param array{
-     *   tela:string,
-     *   module:string,
+     *   tela?:string,
+     *   module?:string,
      *   page_id?:?string,
-     *   sources: array<string, array{path:string, content:?string}>,
-     *   personas?: array{primary?:?string, secondary?:array<int,string>, files?:array<string,string>},
-     *   feedback?: array<int, array{path:string, content:?string}>,
+     *   sources?: array<string, array<string, string|null>>,
+     *   personas?: array{primary?:?string, secondary?:array<int,string>},
+     *   feedback?: array<int, array<string, string|null>>,
      *   padroes?: array<int, string>
      * } $ctx
      */
     public static function assemble(array $ctx): string
     {
-        $tela = (string) ($ctx['tela'] ?? '?');
-        $module = (string) ($ctx['module'] ?? '?');
+        $tela = $ctx['tela'] ?? '?';
+        $module = $ctx['module'] ?? '?';
         $pageId = $ctx['page_id'] ?? null;
         $src = $ctx['sources'] ?? [];
 
@@ -149,7 +154,7 @@ final class DesignDossieAssembler
         }
         preg_match_all('/^\s*-\s*(.+?)\s*$/m', $m[1], $items);
 
-        return array_map('trim', $items[1] ?? []);
+        return array_map('trim', $items[1]);
     }
 
     private static function excerptOrAusente(?array $s): string
