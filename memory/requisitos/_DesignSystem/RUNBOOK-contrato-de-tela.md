@@ -90,7 +90,9 @@ Três modos de FALHA:
 5. **Drift de contrato** — `valores` declara um `<state>` que o backend NÃO emite (valor morto / renomeado) → **FALHA** (`estado "<state>" declarado mas o backend não emite`).
 6. **Escopo inválido** — `escopo` fora do formato (`global` | `vertical:<x>` | `cliente:biz=<n>` | `persona:<p>` | `tela:<rota>`) → **FALHA** (typo/traversal que mis-escoparia o veredito · risco Tier 0).
 
-Travado por self-test (17 controles): `4b.1` positivo, `4b.2` o bug, `4b.3` drift, **`4b.4` comment-blindness**, **`4b.5` key-false-match**, `4b.6/4b.7` escopo válido/inválido, **`4b.8` strip string-aware** (`//` em URL não come o state), **`4b.9` escopo path-traversal**.
+Travado por self-test (20 controles): `4b.1` positivo, `4b.2` o bug, `4b.3` drift, **`4b.4` comment-blindness**, **`4b.5` key-false-match**, `4b.6/4b.7` escopo válido/inválido, **`4b.8` strip string-aware** (`//` em URL não come o state), **`4b.9` escopo path-traversal**, **`O2.1-O2.3` resolução de escopo** (incl. o não-vazamento Tier 0).
+
+> **⚠️ Resolução de escopo (`--resolve`, Onda 2) está DORMENTE.** É invariante pré-cabeada: hoje nenhum contrato real tem veredito multi-escopo (só `global`) e nada consome a resolução pra gatear por tenant. Os campos `escopo`/`verdict` (validados, default seguro) ficam; o **motor** só vira load-bearing quando existir a 2ª tela escopada — mesmo critério que adiou a herança de zona.
 
 > **Honestidade (o que a catraca É e NÃO é):** é uma **catraca de regressão** — trava o vocabulário que um humano JÁ declarou em `valores`; **não descobre** uma divergência nova ainda não-declarada. Prospectivamente ela não teria *achado* o bug de 2026-06-18 (ninguém tinha declarado o acordo); ela impede o **des-conserto** silencioso dele. **Limite conhecido (match léxico):** ela checa *menção*, não *handling* — um `'paired' | 'connected'` num tipo TS satisfaz o gate mesmo se o handler tratar só um. Quem prova o handling é o vitest `tests/reconnect-session-active.test.ts` (#2984); a catraca pega (a) drift/rename no **backend** e (b) **frontend totalmente ignorante** do state, e amarra a costura PHP↔TS que o vitest não enxerga.
 
