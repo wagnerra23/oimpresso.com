@@ -206,7 +206,8 @@ class WhatsmeowWebhookController extends Controller
     private function handleDisconnected(Channel $channel, array $payload): JsonResponse
     {
         $reason = (string) ($payload['Data']['Reason'] ?? $payload['reason'] ?? 'unknown');
-        $banKeywords = ['banned', 'forbidden', 'logged_out', 'multidevice_mismatch'];
+        // 'logged_out' (re-pareável) NÃO é ban — vira `disconnected` (ADR 0287).
+        $banKeywords = ['banned', 'forbidden', 'multidevice_mismatch'];
         $banDetected = false;
         foreach ($banKeywords as $kw) {
             if (str_contains(strtolower($reason), $kw)) {

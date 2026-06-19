@@ -92,7 +92,9 @@ class WhatsmeowHealthProbeCommand extends Command
             $healthBefore = (string) $channel->channel_health;
 
             // Só corrobora com mensagem real no ramo "caído" — é onde o loggedIn do WuzAPI mente.
-            $isDownState = in_array($state, [WhatsmeowState::LOGGED_OUT, WhatsmeowState::NOT_EXISTS], true);
+            // PROVISION_PENDING num canal que estava `healthy` = queda (connected=false), ADR 0287.
+            $isDownState = in_array($state, [WhatsmeowState::LOGGED_OUT, WhatsmeowState::NOT_EXISTS], true)
+                || ($state === WhatsmeowState::PROVISION_PENDING && $healthBefore === 'healthy');
             $freshInbound = $isDownState && $this->hasRecentInbound($channel, $freshMinutes);
 
             $action = self::decideAction($state, $healthBefore, $freshInbound);
@@ -163,7 +165,13 @@ class WhatsmeowHealthProbeCommand extends Command
      */
     public static function decideAction(WhatsmeowState $state, string $healthBefore, bool $freshInbound): string
     {
-        if (in_array($state, [WhatsmeowState::LOGGED_OUT, WhatsmeowState::NOT_EXISTS], true)) {
+        // Ramo "caído". PROVISION_PENDING (connected=false) entra AQUI só quando o
+        // canal estava `healthy` — sessão que estava no ar e caiu = queda real
+        // (ADR 0287); num canal nunca-pareado segue transitório (cai no NONE abaixo).
+        $isDown = in_array($state, [WhatsmeowState::LOGGED_OUT, WhatsmeowState::NOT_EXISTS], true)
+            || ($state === WhatsmeowState::PROVISION_PENDING && $healthBefore === 'healthy');
+
+        if ($isDown) {
             if ($freshInbound) {
                 // Falso "fora do ar": daemon diz caído, mas mensagens chegando.
                 return $healthBefore === 'healthy' ? self::ACTION_NONE : self::ACTION_PAIRED;
@@ -180,7 +188,7 @@ class WhatsmeowHealthProbeCommand extends Command
             return $healthBefore === 'healthy' ? self::ACTION_NONE : self::ACTION_PAIRED;
         }
 
-        // DAEMON_UNREACHABLE / QR_PENDING / PROVISION_PENDING / ERROR → não muta.
+        // DAEMON_UNREACHABLE / QR_PENDING / PROVISION_PENDING(nunca-pareado) / ERROR → não muta.
         return self::ACTION_NONE;
     }
 
