@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Console\Commands\ChannelHealthSnapshotCommand as Snap;
 use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Services\Centrifugo\CentrifugoPublisher;
 
 uses(Tests\TestCase::class);
 
@@ -15,6 +17,9 @@ uses(Tests\TestCase::class);
  *
  * Cobre a decisão PURA do alerta (catraca shouldAlert) + o snapshot append-only +
  * o alerta no cruzamento do limiar. Schema sintético espelha HealthProbeChannelsCommandTest.
+ *
+ * FASE 2 (ADR 0288): além do Log, o alerta publica no Centrifugo (realtime) e grava
+ * em `mcp_alertas_eventos` (a notificação que chega no humano) — coberto abaixo.
  */
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -55,7 +60,51 @@ beforeEach(function () {
         $table->timestamp('recorded_at')->nullable();
     });
 
+    // FASE 2 — store de eventos disparados (subset suficiente; schema canônico da
+    // migration Jana 2026_04_29_600001). É o destino do alerta que chega no humano.
+    Schema::dropIfExists('mcp_alertas_eventos');
+    Schema::create('mcp_alertas_eventos', function ($table) {
+        $table->bigIncrements('id');
+        $table->unsignedInteger('user_id')->nullable();
+        $table->unsignedInteger('business_id')->nullable();
+        $table->string('tipo', 50);
+        $table->string('severidade', 20)->default('medium');
+        $table->string('titulo', 200);
+        $table->text('descricao')->nullable();
+        $table->string('chave_idempotencia', 200)->unique();
+        $table->json('metadata')->nullable();
+        $table->enum('status', ['aberto', 'notificado', 'ack', 'arquivado'])->default('aberto');
+        $table->timestamp('criado_em')->nullable();
+        $table->timestamp('notificado_em')->nullable();
+        $table->timestamp('ack_em')->nullable();
+        $table->unsignedInteger('ack_by_user_id')->nullable();
+        $table->timestamps();
+    });
+
+    // Channel usa Spatie LogsActivity → o 1º create insere em `activity_log`.
+    // Schema sintético não migra essa tabela; cria-a guardada (idioma do projeto,
+    // ver tests/Pest.php RecurringBilling).
+    if (! Schema::hasTable('activity_log')) {
+        Schema::create('activity_log', function ($t) {
+            $t->id();
+            $t->string('log_name')->nullable();
+            $t->text('description')->nullable();
+            $t->unsignedBigInteger('subject_id')->nullable();
+            $t->string('subject_type')->nullable();
+            $t->unsignedBigInteger('causer_id')->nullable();
+            $t->string('causer_type')->nullable();
+            $t->json('properties')->nullable();
+            $t->string('event')->nullable();
+            $t->uuid('batch_uuid')->nullable();
+            $t->timestamps();
+        });
+    }
+
     config(['whatsapp.whatsmeow.health_alert_after_minutes' => 10]);
+});
+
+afterEach(function () {
+    Carbon::setTestNow(); // garante que nenhum freeze de tempo vaze entre testes
 });
 
 function makeSnapChannel(int $bizId, string $health = 'healthy'): Channel
@@ -122,4 +171,51 @@ it('--dry-run não grava nem alerta', function () {
     // só o snapshot seed (1), nenhum novo gravado
     expect(DB::table('channel_health_snapshots')->count())->toBe(1);
     expect(\Artisan::output())->toContain('(dry-run)');
+});
+
+// ── FASE 2: sinks Centrifugo + mcp_alertas_eventos ──────────────────────
+it('FASE 2: publica o alerta no Centrifugo (canal do business + event channel_alert)', function () {
+    $spy = Mockery::spy(CentrifugoPublisher::class);
+    app()->instance(CentrifugoPublisher::class, $spy);
+
+    $ch = makeSnapChannel(7, 'disconnected');
+    DB::table('channel_health_snapshots')->insert([
+        'business_id' => 7, 'channel_id' => $ch->id, 'channel_health' => 'disconnected',
+        'recorded_at' => now()->subMinutes(12), // cruza o limiar (12 >= 10)
+    ]);
+
+    \Artisan::call('whatsapp:channel-health-snapshot');
+
+    $spy->shouldHaveReceived('publish')
+        ->withArgs(function (string $channel, array $data) use ($ch) {
+            return $channel === "whatsapp:business:{$ch->business_id}"
+                && ($data['event'] ?? null) === 'whatsmeow.channel_alert'
+                && (int) ($data['channel_id'] ?? 0) === (int) $ch->id
+                && ($data['channel_health'] ?? null) === 'disconnected'
+                && (int) ($data['threshold_minutes'] ?? 0) === 10;
+        })
+        ->once();
+});
+
+it('FASE 2: grava o alerta em mcp_alertas_eventos e não duplica na mesma streak', function () {
+    Carbon::setTestNow(now()); // congela: 2ª rodada cai na MESMA streak → mesma chave
+
+    $ch = makeSnapChannel(3, 'disconnected');
+    DB::table('channel_health_snapshots')->insert([
+        'business_id' => 3, 'channel_id' => $ch->id, 'channel_health' => 'disconnected',
+        'recorded_at' => now()->subMinutes(12),
+    ]);
+
+    \Artisan::call('whatsapp:channel-health-snapshot');
+
+    $ev = DB::table('mcp_alertas_eventos')->where('tipo', 'whatsapp_channel_down')->first();
+    expect($ev)->not->toBeNull();
+    expect((int) $ev->business_id)->toBe(3);  // Tier 0: tenant real do canal
+    expect($ev->severidade)->toBe('high');
+    expect($ev->status)->toBe('aberto');
+
+    // rodar de novo na mesma streak NÃO duplica (dedup primária = shouldAlert;
+    // chave_idempotencia ancorada no down-since = rede de segurança).
+    \Artisan::call('whatsapp:channel-health-snapshot');
+    expect(DB::table('mcp_alertas_eventos')->where('tipo', 'whatsapp_channel_down')->count())->toBe(1);
 });
