@@ -1,5 +1,5 @@
 ---
-date: 2026-06-19
+date: "2026-06-19"
 time: "0730 BRT"
 slug: "decisoes-pendentes-dns-midia-us-309"
 tldr: "2 decisões abertas pós-sessão veredito-ledger, pra resolver FRIO. (1) DNS: o endpoint de download de mídia `whatsapp-whatsmeow.oimpresso.com` NÃO resolve (curl 6, no CT100) → ~48k mídias pending desde ~12/jun. Decidir: dobrar no proposal ingestao-perda-zero (já referencia US-WA-311) OU numerar US própria. (2) US-WA-309 (banner 'canal caiu' na Caixa) preservada no session log do #3009 — decidir se formaliza no SPEC (pode já estar feito via branches caixa-banner)."
