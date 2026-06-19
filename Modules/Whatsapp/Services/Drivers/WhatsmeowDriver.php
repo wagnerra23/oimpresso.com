@@ -264,7 +264,12 @@ class WhatsmeowDriver implements DriverInterface
                 'name' => $userName,
                 'token' => $userToken,
                 'webhook' => $webhookUrl,
-                'events' => 'Message,ReadReceipt,Connected,Disconnected',
+                // LoggedOut assinado (Fase B · incidente 2026-06-18 / POC WAHA-GOWS Phase 2):
+                // o WuzAPI RECEBE "logged out from another device" mas só repassa o webhook
+                // se o tipo estiver assinado. Sem ele, logout remoto some → channel_health
+                // fica healthy eternamente (raiz do falso "fora do ar", ADR 0286). O app já
+                // roteia LoggedOut → handleDisconnected (WhatsmeowWebhookController).
+                'events' => 'Message,ReadReceipt,Connected,Disconnected,LoggedOut',
             ]);
 
         if (! $response->successful()) {
@@ -309,7 +314,7 @@ class WhatsmeowDriver implements DriverInterface
             // POST /session/connect (gera/refresh QR)
             $connectResponse = $this->client($userToken)
                 ->post('/session/connect', [
-                    'Subscribe' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected'],
+                    'Subscribe' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected', 'LoggedOut'],
                     'Immediate' => false,
                 ]);
 
