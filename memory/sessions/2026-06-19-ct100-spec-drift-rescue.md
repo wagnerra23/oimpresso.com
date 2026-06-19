@@ -1,7 +1,7 @@
 ---
 topic: "Resgate de backlog não-commitado (US-WA-308..311) da drift do checkout do CT 100 + nota de deploy"
 date: "2026-06-19"
-authors: ["Claude Code"]
+authors: ["C"]
 related_adrs:
   - 0286-channel-health-corroborado-por-mensagem-real
   - 0062-separacao-runtime-hostinger-ct100
