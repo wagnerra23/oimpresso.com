@@ -13,7 +13,7 @@
 - **status:** ativo  <!-- proposto→ativo: [W] aprovou ordem ROI 2026-06-20 (merge #3064 + aceite ADR 0294). em-execução só quando houver task MCP parent_plan -->
 - **owner:** W
 - **criado:** 2026-06-20 · **reviewed_at:** 2026-06-20 · **próxima-revisão:** 2026-07-20
-- **cycle:** CYCLE-08 · **execução:** `parent_plan=plano-atendimento-automatico` (tasks a criar — MCP não conectado nesta sessão)
+- **cycle:** off-CYCLE-08 (cycle ativo = receita/carteira legacy) · **execução:** `parent_plan=plano-atendimento-automatico` — US-WA-311 criada (backlog); E1/E3 (JANA Pro) + E4/E5 a criar
 - **gate-de-saída (DoD):** E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR 0140)
 - **kill-condition:** mês 2 com < 2 conversões trial→pago → congela (review_triggers ADR 0140)
 - **verdade-viva:** este doc
@@ -21,7 +21,7 @@
 | Etapa | Task MCP (`parent_plan=plano-atendimento-automatico`) | Status | % |
 |---|---|---|---|
 | E1 JANA Pro MVP (brief operador) | US-COPI-201..205 | a criar | 0 |
-| E2 Triagem no inbox | US-WA-TRIAGE-001 | a criar | 0 |
+| E2 Triagem no inbox | US-WA-311 | todo | 0 |
 | E3 Cobrança Asaas + 5 beta | US-COPI-211..215 | a criar | 0 |
 | E4 Bot responde cliente | US-WA-BOT-001 | adiada (§6) | 0 |
 | E5 Entidade ticket | — | não agora (decisão §7) | 0 |
