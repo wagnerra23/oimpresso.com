@@ -34,6 +34,20 @@ function field(fm, key) {
   const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'mi'));
   return m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
 }
+// Decodifica scalar YAML `!!binary <base64>` (PyYAML codificou ~56 titulos de ADR
+// legados, com chars especiais, como binario). Sem isto o indice mostra o base64 cru.
+// O byte-prefix corrompido (em-dash quebrado vira U+FFFD) e podado ate a 1a letra.
+function decodeBinaryScalar(val) {
+  const m = val.match(/^!!binary\s+(\S+)/);
+  if (!m) return val;
+  try {
+    const s = Buffer.from(m[1], 'base64').toString('utf8');
+    const clean = s.replace(/^[�‐-―\s]+/, '').trim();
+    return clean || val;
+  } catch {
+    return val;
+  }
+}
 function numbersFrom(fm, key) {
   // captura [0028] inline OU lista multilinha "- '0028'".
   // Pega só o nº do ITEM (após [ ou após -), ignorando comentários (#) e anos/hues
@@ -56,7 +70,7 @@ for (const file of readdirSync(join(ROOT, DIR)).sort()) {
     const end = txt.indexOf('\n---', 3);
     const fm = end === -1 ? txt : txt.slice(0, end);
     rec.hasFrontmatter = true;
-    rec.title = field(fm, 'title');
+    rec.title = decodeBinaryScalar(field(fm, 'title'));
     rec.status = (field(fm, 'status') || '').toLowerCase();
     rec.lifecycle = (field(fm, 'lifecycle') || '').toLowerCase();
     rec.kind = (field(fm, 'kind') || 'decision').toLowerCase();

@@ -35,66 +35,66 @@ _(íntegra)_
 ## Todas as ADRs (298)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
-| 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
-| 0002 | superseded | substituido | decision | !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHV |
-| 0003 | aceito | ativo | decision | !!binary gJQgTWFyY2HDp8O1ZXMgYXBwZW5kLW9ubHkgY29tIHRyaWdnZXJzIE15U1FMICsgcHJvdGX |
-| 0004 | aceito | ativo | decision | !!binary gJQgVGFiZWxhIGJyaWRnZSBgcG9udG9fY29sYWJvcmFkb3JfY29uZmlnYA== |
-| 0005 | superseded | substituido | decision | !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3V |
-| 0006 | aceito | ativo | decision | !!binary gJQgTXVsdGktdGVuYW5jeSBsw7NnaWNhIHZpYSBgYnVzaW5lc3NfaWRg |
-| 0007 | aceito | ativo | decision | !!binary gJQgQmFuY28gZGUgaG9yYXMgY29tbyBsZWRnZXIgYXBwZW5kLW9ubHk= |
-| 0008 | superseded | substituido | decision | !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJ |
-| 0009 | aceito | ativo | decision | !!binary gJQgUHJvdMOzdGlwb3MgdmlzdWFpcyBlbSBIVE1MICsgVGFpbHdpbmQgKyBDaGFydC5qcyA |
-| 0010 | superseded | substituido | decision | !!binary gJQgU2lzdGVtYSBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvIChDTEFVREUubWQgKyAvbWVtb3J |
-| 0011 | aceito | ativo | decision | !!binary gJQgQWxpbmhhbWVudG8gY29tIG8gcGFkcsOjbyBKYW5hIChVbHRpbWF0ZVBPUyk= |
+| 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
+| 0002 | superseded | substituido | decision | Usar nWidart/laravel-modules como sistema de módulos |
+| 0003 | aceito | ativo | decision | Marcações append-only com triggers MySQL + proteção na aplicação |
+| 0004 | aceito | ativo | decision | Tabela bridge `ponto_colaborador_config` |
+| 0005 | superseded | substituido | decision | UUID para entidades auditáveis, BigInt para lookups |
+| 0006 | aceito | ativo | decision | Multi-tenancy lógica via `business_id` |
+| 0007 | aceito | ativo | decision | Banco de horas como ledger append-only |
+| 0008 | superseded | substituido | decision | Sidebar com 1 item + menu horizontal em abas dentro do módulo |
+| 0009 | aceito | ativo | decision | Protótipos visuais em HTML + Tailwind + Chart.js (não React) |
+| 0010 | superseded | substituido | decision | Sistema de memória do projeto (CLAUDE.md + /memory/) |
+| 0011 | aceito | ativo | decision | Alinhamento com o padrão Jana (UltimatePOS) |
 | 0013 | aceito | arquivado | decision | Ecossistema de Módulos: Inventário, Categorias e Padrões |
 | 0014 | aceito | arquivado | decision | Integração PontoWR2 × Essentials (HRM) |
 | 0015 | aceito | arquivado | decision | Connector: API Gateway para Integrações Externas |
 | 0016 | aceito | arquivado | decision | Plano de Otimização e Roadmap PontoWR2 |
-| 0017 | aceito | ativo | decision | !!binary gJQgT2ZmaWNlaW1wcmVzc28gcmVzdGF1cmFkbyBkYSAzLjcgY29tbyBtw7NkdWxvIFN1cGV |
-| 0018 | aceito | arquivado | decision | !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l |
-| 0019 | aceito | ativo | decision | !!binary gJQgRGVscGhpIGxlZ2FkbyBuw6NvIGF1dGVudGljYSBhcMOzcyB1cGdyYWRlIDMuN+KGkjY |
-| 0020 | proposto | ativo | decision | !!binary gJQgR3J1cG8gZWNvbsO0bWljbyAobWF0cml6ICsgZmlsaWFpcykgbm8gT2ZmaWNlaW1wcmV |
-| 0021 | aceito | ativo | decision | !!binary gJQgQ29udHJhdG8gcmVhbCBkYSBBUEkgY29uc3VtaWRhIHBlbG8gRGVscGhp |
-| 0022 | aceito | ativo | decision | !!binary gJQgTWV0YSBmaW5hbmNlaXJhIG9pbXByZXNzbzogUiQgNSBtaWxow7Vlcy9hbm8= |
-| 0023 | aceito | ativo | decision | !!binary gJQgVXBncmFkZSBwYXJhIEluZXJ0aWEuanMgdjM= |
-| 0024 | aceito | ativo | decision | !!binary gJQgSW5zdGFsYcOnw6NvIDEtY2xpcXVlIHBhZHJvbml6YWRhIHBhcmEgdG9kb3Mgb3MgbcO |
-| 0025 | aceito | ativo | decision | !!binary gJQgUmVkZXNpZ24gZGEgbGFuZGluZyBww7pibGljYSAoYE1vZHVsZXMvQ21zYCkgZW0gSW5 |
-| 0026 | aceito | ativo | decision | !!binary gJQgUG9zaWNpb25hbWVudG8gZXN0cmF0w6lnaWNvOiBFUlAgZGUgQ29tdW5pY2HDp8OjbyB |
-| 0027 | aceito | ativo | decision | !!binary gJQgR2VzdMOjbyBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvOiBwYXDDqWlzIGNsYXJvcyBwb3I |
-| 0028 | superseded | substituido | decision | !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA= |
-| 0029 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBJbmVydGlhICsgUmVhY3QgKyBVbHRpbWF0ZVBPUyBwcmEgbcOzZHVsb3M |
-| 0030 | aceito | ativo | decision | !!binary gJQgQ3JlZGVuY2lhaXMgc2Vuc8OtdmVpczogbnVuY2EgZW0gZ2l0 |
-| 0031 | superseded | substituido | decision | !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGB |
-| 0032 | superseded | substituido | decision | !!binary gJQgVml6cmEgQURLICsgUHJpc20gUEhQIGNvbW8gY2FtYWRhIGRlIG9ycXVlc3RyYcOnw6N |
-| 0033 | superseded | substituido | decision | !!binary gJQgVmVjdG9yIHN0b3JlIC8gc2VhcmNoIGJhY2tlbmQgZG8gb2ltcHJlc3NvOiBwZ3ZlY3R |
-| 0034 | aceito | ativo | decision | !!binary gJQgTGFyYXZlbCBBSSBlY29zeXN0ZW0gMjAyNjogU0RLIG9maWNpYWwgKyBCb29zdCArIE1 |
-| 0035 | superseded | substituido | decision | !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bml |
-| 0036 | superseded | substituido | decision | !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWV |
-| 0037 | aceito | ativo | decision | !!binary gJQgUm9hZG1hcCBkZSBldm9sdcOnw6NvIHDDs3MtU3ByaW50IDU6IFRpZXIgNS02IOKGkiB |
-| 0038 | aceito | ativo | decision | !!binary gJQgUHJvbW/Dp8OjbyBkZSBgNi43LWJvb3RzdHJhcGAgcGFyYSBgbWFpbmAgY29tbyBicmF |
-| 0039 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBkZSBVSSAiQ2hhdCBDb2NrcGl0IiAoMyBjb2x1bmFzKSBwYXJhIG8gRVJ |
-| 0040 | aceito | ativo | decision | !!binary gJQgUG9saWN5IGRlIHB1YmxpY2HDp8OjbzogQ2xhdWRlIHN1cGVydmlzaW9uYSwgV2FnbmV |
-| 0041 | aceito | ativo | decision | !!binary gJQgU3RhY2sgZGUgUUEgZGUgSUE6IFZpenJhIEFESyBldmFsICsgTGFuZ2Z1c2Ugc2VsZi1 |
-| 0042 | superseded | substituido | decision | !!binary gJQgUmV2ZXJiIChzZWxmLWhvc3RlZCkgc3Vic3RpdHVpIFB1c2hlciBDbG91ZCBjb21vIGJ |
-| 0043 | aceito | ativo | decision | !!binary gJQgRG9ja2VyICsgVHJhZWZpayArIFBvcnRhaW5lciBudW0gTFhDLCBlbSB2ZXogZGUgTiB |
-| 0044 | superseded | substituido | decision | !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw= |
-| 0045 | aceito | ativo | decision | !!binary gJQgRW5kcG9pbnQgY2Fuw7RuaWNvIGRhIEhvc3RpbmdlciBETlMgQVBJIFYx |
-| 0046 | aceito | ativo | decision | !!binary gJQgYENoYXRDb3BpbG90b0FnZW50YCBwcmVjaXNhIGRlIGNvbnRleHRvIHJpY28gKyB0b29 |
-| 0047 | aceito | ativo | decision | !!binary gJQgV2FnbmVyIHNvbG86IHNwcmludCBtZW3Ds3JpYSBkbyBhZ2VudGUgKHRva2VuIGVjb25 |
-| 0048 | aceito | ativo | decision | !!binary gJQgRnJhbWV3b3JrIGRlIGFnZW50ZXMgSUE6IGBsYXJhdmVsL2FpYCAoVml6cmEgQURLIHJ |
-| 0049 | aceito | ativo | decision | !!binary gJQgQ2FtYWRhcyBkZSBtZW3Ds3JpYSBkbyBhZ2VudGU6IGxpZ2FyIGZhc2UgcG9yIGZhc2U |
-| 0050 | aceito | ativo | decision | !!binary gJQgOCBtw6l0cmljYXMgb2JyaWdhdMOzcmlhcyBkZSBtZW3Ds3JpYSArIHRhYmVsYSBgbWV |
-| 0051 | aceito | ativo | decision | !!binary gJQgU2NoZW1hIHByw7NwcmlvICsgYWRhcHRlciBwYXR0ZXJuICsgZW1pc3PDo28gT3BlblR |
-| 0052 | aceito | ativo | decision | !!binary gJQgYENvbnRleHRvTmVnb2Npb2AgZGV2ZSBleHBvciBtw7psdGlwbG9zIMOibmd1bG9zIHB |
-| 0053 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBkYSBlbXByZXNhOiBnb3Zlcm5hbsOnYSBjb21vIHByb2R1dG8sIG7 |
-| 0054 | superseded | substituido | decision | !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICs |
-| 0055 | aceito | ativo | decision | !!binary gJQgU2VsZi1ob3N0IFRlYW0gcGxhbiBlcXVpdmFsZW50ZSBhbyBBbnRocm9waWMgVGVhbS9 |
-| 0056 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBjb21vIGZvbnRlIMO6bmljYSBkZSBtZW3Ds3JpYSBwcm8gQ29waWx |
-| 0057 | aceito | ativo | decision | !!binary gJQgVGVsYSBgL3RlYW0tbWNwL3RlYW1gOiByZWdyYXMgZGUgZ292ZXJuYW7Dp2EgZGUgdG9 |
-| 0058 | aceito | ativo | decision | !!binary gJQgUmV2ZXJiIHN1YnN0aXR1w61kbyBwb3IgQ2VudHJpZnVnbyArIEZyYW5rZW5QSFA= |
-| 0059 | aceito | ativo | decision | !!binary gJQgR292ZXJuYW7Dp2EgZGEgbWVtw7NyaWEgZXN0aWxvIEFudGhyb3BpYyBUZWFtIHBsYW4 |
-| 0060 | aceito | ativo | decision | !!binary gJQgSUEgKyB3b3JrZXJzIHBlc2Fkb3MgbmEgcmVkZSBpbnRlcm5hIChQcm94bW94KSwgYXB |
-| 0061 | aceito | ativo | decision | !!binary gJQgQ29uaGVjaW1lbnRvIGNhbsO0bmljbyBlbSBnaXQvTUNQLCBaRVJPIGF1dG8tbWVtIHB |
+| 0017 | aceito | ativo | decision | Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo |
+| 0018 | aceito | arquivado | decision | Log de acesso do desktop via triggers MySQL (passivo) |
+| 0019 | aceito | ativo | decision | Delphi legado não autentica após upgrade 3.7→6.7 (investigação) |
+| 0020 | proposto | ativo | decision | Grupo econômico (matriz + filiais) no Officeimpresso |
+| 0021 | aceito | ativo | decision | Contrato real da API consumida pelo Delphi |
+| 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ 5 milhões/ano |
+| 0023 | aceito | ativo | decision | Upgrade para Inertia.js v3 |
+| 0024 | aceito | ativo | decision | Instalação 1-clique padronizada para todos os módulos |
+| 0025 | aceito | ativo | decision | Redesign da landing pública (`Modules/Cms`) em Inertia/React |
+| 0026 | aceito | ativo | decision | Posicionamento estratégico: ERP de Comunicação Visual com IA |
+| 0027 | aceito | ativo | decision | Gestão de memória do projeto: papéis claros por função |
+| 0028 | superseded | substituido | decision | ADRs com numeração monotônica e formato Nygard |
+| 0029 | aceito | ativo | decision | Padrão Inertia + React + UltimatePOS pra módulos novos |
+| 0030 | aceito | ativo | decision | Credenciais sensíveis: nunca em git |
+| 0031 | superseded | substituido | decision | `MemoriaContrato` interface PHP + driver default `Mem0RestDriver` |
+| 0032 | superseded | substituido | decision | Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto |
+| 0033 | superseded | substituido | decision | Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem |
+| 0034 | aceito | ativo | decision | Laravel AI ecosystem 2026: SDK oficial + Boost + MCP + Vizra ADK + alternativas |
+| 0035 | superseded | substituido | decision | Stack-alvo de IA do Copiloto: declaração canônica |
+| 0036 | superseded | substituido | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
+| 0037 | aceito | ativo | decision | Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval |
+| 0038 | aceito | ativo | decision | Promoção de `6.7-bootstrap` para `main` como branch principal |
+| 0039 | aceito | ativo | decision | Padrão de UI "Chat Cockpit" (3 colunas) para o ERP |
+| 0040 | aceito | ativo | decision | Policy de publicação: Claude supervisiona, Wagner escala |
+| 0041 | aceito | ativo | decision | Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B |
+| 0042 | superseded | substituido | decision | Reverb (self-hosted) substitui Pusher Cloud como broadcaster |
+| 0043 | aceito | ativo | decision | Docker + Traefik + Portainer num LXC, em vez de N LXCs nativos |
+| 0044 | superseded | substituido | decision | Vaultwarden self-hosted como cofre de credenciais |
+| 0045 | aceito | ativo | decision | Endpoint canônico da Hostinger DNS API V1 |
+| 0046 | aceito | ativo | decision | `ChatCopilotoAgent` precisa de contexto rico + tools (gap descoberto) |
+| 0047 | aceito | ativo | decision | Wagner solo: sprint memória do agente (token economy + assertividade) |
+| 0048 | aceito | ativo | decision | Framework de agentes IA: `laravel/ai` (Vizra ADK rejeitada oficialmente) |
+| 0049 | aceito | ativo | decision | Camadas de memória do agente: ligar fase por fase, medir antes de evoluir |
+| 0050 | aceito | ativo | decision | 8 métricas obrigatórias de memória + tabela `memory_metrics` |
+| 0051 | aceito | ativo | decision | Schema próprio + adapter pattern + emissão OpenTelemetry GenAI |
+| 0052 | aceito | ativo | decision | `ContextoNegocio` deve expor múltiplos ângulos por métrica (não 1 número) |
+| 0053 | aceito | ativo | decision | MCP server da empresa: governança como produto, não overhead |
+| 0054 | superseded | substituido | decision | Pacote enterprise de busca de memória: por quê + como evolui |
+| 0055 | aceito | ativo | decision | Self-host Team plan equivalente ao Anthropic Team/Enterprise |
+| 0056 | aceito | ativo | decision | MCP server como fonte única de memória pro Copiloto chat + Claude Code |
+| 0057 | aceito | ativo | decision | Tela `/team-mcp/team`: regras de governança de tokens MCP e distribuição via `.d |
+| 0058 | aceito | ativo | decision | Reverb substituído por Centrifugo + FrankenPHP |
+| 0059 | aceito | ativo | decision | Governança da memória estilo Anthropic Team plan adaptado |
+| 0060 | aceito | ativo | decision | IA + workers pesados na rede interna (Proxmox), app principal continua Hostinger |
+| 0061 | aceito | ativo | decision | Conhecimento canônico em git/MCP, ZERO auto-mem privada |
 | 0062 | aceito | ativo | decision | Separação dura de runtime: Hostinger ≠ CT 100 Proxmox |
 | 0063 | aceito | ativo | decision | Prevenir composer.lock drift permanentemente |
 | 0064 | aceito | ativo | decision | Modularização — split TeamMcp + KB + Superadmin 360° |
