@@ -1,5 +1,5 @@
 ---
-date: 2026-06-20
+date: "2026-06-20"
 topic: "SDD floor — JÁ funciona (correção da revisão 30-threads) + plano de hardening PR-A/PR-B; estado do swarm de governança e limite de sessão"
 authors: [W, C]
 related_adrs:
