@@ -113,3 +113,26 @@ describe('memory-health — Check I: lição sem asserção (Onda Q5, físico)',
     expect(out).not.toMatch(/licao-sem-assercao/);
   });
 });
+
+describe('memory-health — Check K: decisão em session log sem âncora (Onda armar-gates, físico)', () => {
+  it('SENSIBILIDADE: session log >30d com `## Decisão` sem ADR aceito/BRIEFING → 🟡 K, não bloqueia', () => {
+    write('memory/sessions/2026-01-01-perdido.md', '---\ndate: "2026-01-01"\n---\n\n# Sessão\n\n## Decisão\n\nFazer X. US-FOO-001 em rollout por ondas.\n');
+    const out = run();
+    expect(out).toMatch(/session-decisao-sem-ancora/);
+    expect(out).toMatch(/2026-01-01-perdido\.md/);
+    expect(out).toMatch(/"ok": true/); // warn não bloqueia
+  });
+
+  it('ESPECIFICIDADE: referencia ADR ACEITO existente → sem warn K', () => {
+    write('memory/decisions/0294-metodo.md', '---\nstatus: aceito\nlifecycle: ativo\n---\n\n# ADR 0294\n');
+    write('memory/sessions/2026-01-02-ancorado.md', '---\ndate: "2026-01-02"\n---\n\n# Sessão\n\n## Decisão\n\nDecisão landou na ADR 0294. rollout ok.\n');
+    const out = run();
+    expect(out).not.toMatch(/session-decisao-sem-ancora/);
+  });
+
+  it('ESPECIFICIDADE: session log RECENTE (<30d) com decisão → sem warn K (filtro de idade)', () => {
+    write('memory/sessions/2026-06-19-fresco.md', '---\ndate: "2026-06-19"\n---\n\n# Sessão\n\n## Decisão\n\nDecidiu Y. rollout amanhã.\n');
+    const out = run();
+    expect(out).not.toMatch(/session-decisao-sem-ancora/);
+  });
+});
