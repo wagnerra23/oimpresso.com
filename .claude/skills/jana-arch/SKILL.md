@@ -1,6 +1,6 @@
 ---
 name: copiloto-arch
-description: Use ao trabalhar em Modules/Copiloto/ ou ao tocar memória/IA do projeto. Carrega arquitetura canônica do Copiloto (ADRs 0035-0053): laravel/ai SDK, MeilisearchDriver hybrid, ContextoNegocio com 3 ângulos faturamento, OTel GenAI, MCP server governança, tabela copiloto_memoria_metricas. Substitui leitura repetida de 18+ ADRs.
+description: Use ao trabalhar em Modules/Jana/ ou ao tocar memória/IA do projeto. Carrega arquitetura canônica do Copiloto (ADRs 0035-0053): laravel/ai SDK, MeilisearchDriver hybrid, ContextoNegocio com 3 ângulos faturamento, OTel GenAI, MCP server governança, tabela copiloto_memoria_metricas. Substitui leitura repetida de 18+ ADRs.
 trust_level: L1
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
@@ -43,7 +43,7 @@ parent_adr: 0095
 ## Arquivos-chave
 
 ```
-Modules/Copiloto/
+Modules/Jana/
 ├── Services/
 │   ├── Ai/LaravelAiSdkDriver.php        # canônico, fallback OpenAiDirectDriver
 │   ├── Memoria/MeilisearchDriver.php    # hybrid embedder via Scout callback
