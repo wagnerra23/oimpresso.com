@@ -115,7 +115,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-jana-junit.xml \
-            Modules/Jana/Tests/Feature/Mcp/ImmutabilityTriggersTest.php
+            Modules/Jana/Tests/Feature/Mcp/ImmutabilityTriggersTest.php \
+            Modules/Jana/Tests/Feature/Memoria/BuscarHistoricoTest.php
 
       - name: Upload JUnit (Jana · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.jana == 'true' }}
