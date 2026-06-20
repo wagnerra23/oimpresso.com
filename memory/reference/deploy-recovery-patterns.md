@@ -464,3 +464,30 @@ Refs SSH: hostinger.md (IP, key, repo path).
 3. **Bundles do servidor sobrevivem.** `git reset --hard` NÃO toca arquivos gitignored → `public/build-inertia/` e `public/css/` do último build válido permanecem. Por isso destravar o maintenance já restaura o site funcional, mesmo com o publish do deploy falho.
 
 Refs: ADR 0269; `.github/workflows/deploy.yml`; `public/_ops_opcache_reset.php`.
+
+## 9. Deploy "preso" 15-30min / falso-sucesso — flake do SSH Hostinger no Pré-deploy check (RECORRENTE · lição 2026-06-20)
+
+> Modo de falha MAIS comum do auto-deploy. Bateu **3x numa sessão só** (2026-06-20). É a **65002 (porta SSH) flakando**, NÃO bug do código que você acabou de mergear.
+
+### Assinatura (reconhecer em 30s)
+- Deploy `in_progress` por **15-30min+** (normal é ~7min).
+- `gh run view <id> --json jobs`: passo **"Pré-deploy check — server state" = failure**, e TODOS os passos de deploy (Backup / Maintenance mode ON / Git pull / Composer / Publicar bundles / Smoke) = **skipped**; o run fica preso no **"Failsafe" (`if: always()`)** que faz SSH e trava.
+- **Prod 200 (saudável) no build ANTIGO** — o fail-safe funcionou: NADA foi aplicado.
+- Prova de que NÃO subiu: `curl https://oimpresso.com/build-inertia/manifest.json` -> ache o chunk (`Index-XXXX.js` / `ComposerV4-XXXX.js`) -> `grep` do marcador novo (testid/string da mudança) = **0**.
+
+### Causa-raiz
+A rota SSH do Hostinger (**porta 65002**) cai/flaka intermitente **enquanto a 443/HTTPS segue 200** (por isso o site responde mas o deploy não conecta). O Pré-deploy check faz SSH via `ssh_exec.sh` (`-4 ConnectTimeout=180 ConnectionAttempts=3`) e falha quando a 65002 está fora na janela. Mesmo flake de `hostinger.md` §"warm-up + retry".
+
+### Recuperação (canon — NÃO martelar = risco de ban)
+1. Confirme a assinatura (pré-check failure + steps skipped + prod 200 antigo + chunk vivo sem o marcador).
+2. Probe da rota: `timeout 12 bash -c 'cat </dev/null >/dev/tcp/148.135.133.115/65002'` -> conectou = rota voltou.
+3. `gh run cancel <id>` no run preso (nada aplicado -> cancelar é seguro). O Failsafe ignora o cancel por ~min até o GitHub forçar; o deploy enfileirado assume.
+4. **Re-disparar UMA vez** com a rota de pé: `gh run rerun <id>` ou `gh workflow run deploy.yml --ref main`. Passa de primeira quando a 65002 está no ar.
+5. **NÃO** re-disparar em loop. **NÃO** encurtar ConnectTimeout (lição cara 2026-06-11 — piorou; ver `hostinger.md`).
+
+### Por que recorre + fix SEGURO proposto (deploy.yml)
+É inerente: 65002 flaky + design fail-safe (correto — não aplica nada se o server não responde). O deploy **falhar** está certo; o que incomoda é (a) **travar ~30min no Failsafe** e (b) recuperação manual.
+- **Fix seguro (sem encurtar timeout, sem hammering):** o Failsafe (`if: always()`) só precisa de SSH se o deploy chegou a ligar maintenance. Quando o Pré-deploy check falha, **maintenance NUNCA ligou -> site já está up -> o Failsafe não precisa SSHar**. Gatear o SSH do Failsafe pra só rodar se o passo "Maintenance mode ON" tiver executado (dar `id:` ao passo e usar `if: always() && steps.<id>.outcome == 'success'`). Assim, flake no pré-check = run **falha rápido** (sem pendurar 30min), sem tocar em timeout.
+- **NÃO** encurtar o ConnectTimeout do Failsafe: se a rota está só LENTA (não DOWN), ele precisa do tempo pra rodar `php artisan up` e não deixar o site em 503 (motivo de existir — §8 / 2026-06-10).
+
+Cross-ref: `hostinger.md` (flags SSH canônicos · "esperar a rota voltar e re-disparar UMA vez").
