@@ -49,6 +49,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Parse-check de TODO hook .ps1 (PS 5.1, deterministico, sem depender de payload)
+        shell: powershell
+        run: |
+          $fail = Get-ChildItem .claude/hooks -Filter *.ps1 |
+            Where-Object { $_.Name -notmatch '\.test\.ps1$' -and $_.Name -notmatch '^test-' } |
+            Where-Object {
+              $e = $null
+              [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$e)
+              if ($e -and $e.Count -gt 0) { Write-Host ("PARSE FAIL: " + $_.Name); $e | ForEach-Object { Write-Host ("  " + $_.Message) }; $true } else { Write-Host ("ok " + $_.Name); $false }
+            }
+          if (@($fail).Count -gt 0) { Write-Error ([string]@($fail).Count + " hook(s) .ps1 com erro de parse PS 5.1"); exit 1 }
+          Write-Host "OK: todos os .ps1 parseiam limpo (PS 5.1; cobre TODOS os hooks, nao so os 12 com payload no smoke)."
       - name: PowerShell hooks smoke (compat PS 5.1 — encoding/reserved-var)
         shell: powershell
         run: .\.claude\hooks\test-all-hooks-smoke.ps1
