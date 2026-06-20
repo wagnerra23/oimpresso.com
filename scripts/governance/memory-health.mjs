@@ -322,9 +322,9 @@ function checkPlanHealth() {
   const issues = [];
   for (const rel of files) {
     let txt; try { txt = read(rel); } catch { continue; }
-    if (!/##\s*Status vivo/i.test(txt)) { issues.push(`${rel}: sem bloco \`## Status vivo\` (ADR 0294)`); continue; }
-    const block = (txt.split(/##\s*Status vivo/i)[1] || '').split(/\n##\s/)[0];
-    const status = (block.match(/status:?\**\s*([^\s<·*\n]+)/i) || [])[1]?.toLowerCase();
+    if (!/\n##\s*Status vivo/i.test(txt)) { issues.push(`${rel}: sem bloco \`## Status vivo\` (ADR 0294)`); continue; }
+    const block = (txt.split(/\n##\s*Status vivo/i)[1] || '').split(/\n##\s/)[0];
+    const status = (block.match(/(?:^|\n)[-*\s]*\**status:\**\s*([^\s<·*\n]+)/i) || [])[1]?.toLowerCase();
     const rev = (block.match(/reviewed[_ -]?at:?\**\s*["']?(\d{4}-\d{2}-\d{2})/i) || [])[1];
     const hasParent = /parent_plan\s*[=:]\s*[a-z0-9-]+/i.test(block);
     if (!status) issues.push(`${rel}: Status vivo sem \`status\``);
