@@ -599,10 +599,80 @@ export default function ComposerV4({
       }
       data-testid="caixa-unif-composer"
     >
-      {/* C1 (handoff 2026-06-19) — composer em 2 linhas (.om-composer coluna do
-          protótipo Cowork): ferramentas na 2ª linha (order-2); input + Enviar
-          sobem pro topo (order-1). Sem mudança de lógica — só layout. */}
-      <Inline wrap className="gap-1.5 order-2">
+      {/* C1 + a11y (2026-06-20): composer em 2 linhas (.om-composer coluna). Input + Enviar
+          PRIMEIRO no DOM (1ª linha) → ordem de foco do teclado = ordem visual (WCAG 2.4.3);
+          ferramentas na 2ª linha. Sem `order` (a ordem do DOM já é a visual). */}
+      <Inline gap={2}>
+      {/* Input */}
+      <input
+        ref={inputRef}
+        type="text"
+        value={form.data.body}
+        onChange={e => {
+          form.setData('body', e.target.value);
+          // US-WA-303 — digitar de novo reabre autocomplete dispensado com Esc
+          if (slashDismissed) setSlashDismissed(false);
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Escape' && slashOpen) {
+            e.preventDefault();
+            setSlashDismissed(true);
+            return;
+          }
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            // US-WA-303 — com autocomplete aberto, Enter aplica a 1ª macro
+            if (slashOpen && slashMatches.length > 0) {
+              applyMacro(slashMatches[0]!);
+              return;
+            }
+            send();
+          }
+        }}
+        placeholder={placeholder}
+        disabled={!canType}
+        data-testid="caixa-unif-composer-input"
+        className={cn(
+          'flex-1 h-8 px-3 text-[12.5px] rounded-full border outline-none',
+          internalMode
+            ? 'bg-amber-100/50 border-amber-300 focus:border-amber-500'
+            : 'bg-muted/30 border-border focus:bg-card focus:border-primary',
+          !canType && 'opacity-60 cursor-not-allowed',
+        )}
+      />
+
+      {/* Enviar / Anotar — Wave 4 F1: aceita arquivo OR texto */}
+      <button
+        type="button"
+        onClick={send}
+        disabled={
+          (!form.data.body.trim() && !pendingFile) ||
+          !canType ||
+          form.processing ||
+          uploading
+        }
+        data-testid="caixa-unif-composer-send"
+        className={cn(
+          'h-8 px-4 rounded-full text-[12px] font-semibold transition-colors flex-shrink-0 inline-flex items-center gap-1.5',
+          internalMode
+            ? 'bg-amber-400 text-amber-950 hover:bg-amber-500'
+            : 'bg-primary text-primary-foreground hover:bg-primary/90',
+          'disabled:opacity-45 disabled:cursor-not-allowed',
+        )}
+      >
+        {form.processing || uploading ? (
+          'Enviando…'
+        ) : (
+          <>
+            <Send size={11} aria-hidden />
+            {internalMode ? 'Anotar' : (pendingFile ? 'Enviar mídia' : 'Enviar')}
+          </>
+        )}
+      </button>
+      </Inline>
+
+      {/* Ferramentas — 2ª linha (.om-input-tools) */}
+      <Inline wrap className="gap-1.5">
       {/* PR-9 — ✦ Sugerir resposta (IA preenche o input; humano revisa e envia) */}
       {!internalMode && (
         <button
@@ -800,76 +870,6 @@ export default function ComposerV4({
           <LayoutList size={12} aria-hidden />
         </button>
       )}
-      </Inline>
-
-      {/* C1 — 1ª linha: input + Enviar (.om-input-main), sobe via order-1 */}
-      <Inline gap={2} className="order-1">
-      {/* Input */}
-      <input
-        ref={inputRef}
-        type="text"
-        value={form.data.body}
-        onChange={e => {
-          form.setData('body', e.target.value);
-          // US-WA-303 — digitar de novo reabre autocomplete dispensado com Esc
-          if (slashDismissed) setSlashDismissed(false);
-        }}
-        onKeyDown={e => {
-          if (e.key === 'Escape' && slashOpen) {
-            e.preventDefault();
-            setSlashDismissed(true);
-            return;
-          }
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            // US-WA-303 — com autocomplete aberto, Enter aplica a 1ª macro
-            if (slashOpen && slashMatches.length > 0) {
-              applyMacro(slashMatches[0]!);
-              return;
-            }
-            send();
-          }
-        }}
-        placeholder={placeholder}
-        disabled={!canType}
-        data-testid="caixa-unif-composer-input"
-        className={cn(
-          'flex-1 h-8 px-3 text-[12.5px] rounded-full border outline-none',
-          internalMode
-            ? 'bg-amber-100/50 border-amber-300 focus:border-amber-500'
-            : 'bg-muted/30 border-border focus:bg-card focus:border-primary',
-          !canType && 'opacity-60 cursor-not-allowed',
-        )}
-      />
-
-      {/* Enviar / Anotar — Wave 4 F1: aceita arquivo OR texto */}
-      <button
-        type="button"
-        onClick={send}
-        disabled={
-          (!form.data.body.trim() && !pendingFile) ||
-          !canType ||
-          form.processing ||
-          uploading
-        }
-        data-testid="caixa-unif-composer-send"
-        className={cn(
-          'h-8 px-4 rounded-full text-[12px] font-semibold transition-colors flex-shrink-0 inline-flex items-center gap-1.5',
-          internalMode
-            ? 'bg-amber-400 text-amber-950 hover:bg-amber-500'
-            : 'bg-primary text-primary-foreground hover:bg-primary/90',
-          'disabled:opacity-45 disabled:cursor-not-allowed',
-        )}
-      >
-        {form.processing || uploading ? (
-          'Enviando…'
-        ) : (
-          <>
-            <Send size={11} aria-hidden />
-            {internalMode ? 'Anotar' : (pendingFile ? 'Enviar mídia' : 'Enviar')}
-          </>
-        )}
-      </button>
       </Inline>
     </Stack>
 
