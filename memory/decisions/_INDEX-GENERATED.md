@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **298** arquivos · **283** números únicos · máx **0293**
-- **ADRs ATIVOS (lifecycle ativo): 258** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 228 · proposto 43 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 258 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **299** arquivos · **284** números únicos · máx **0294**
+- **ADRs ATIVOS (lifecycle ativo): 259** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 229 · proposto 43 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 259 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (13) — auto-detectadas
@@ -32,7 +32,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (298)
+## Todas as ADRs (299)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -333,3 +333,4 @@ _(íntegra)_
 | 0291 | proposto | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
 | 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
 | 0293 | proposto | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
+| 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
