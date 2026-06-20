@@ -35,3 +35,22 @@ jobs:
           node-version: '20'
       - name: Selftest — 4 catracas × 2 fixtures (+ tabela no job summary)
         run: node scripts/governance/gate-selftest.mjs
+
+  # GT-G6 (cont.) — os ~50 hooks Claude Code (camada que bloqueia o agente em
+  # tempo real) só rodavam LOCAL (test-all-hooks-smoke.ps1). Em mai/2026 isso
+  # deixou 4 hooks quebrarem em prod sem CI pegar. Roda em windows-latest porque
+  # o smoke valida compat PS 5.1 (encoding/BOM/$input reservada) — Windows-coupled.
+  hooks-selftest:
+    name: hooks selftest (advisory · PS 5.1 smoke + node hook tests)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: PowerShell hooks smoke (compat PS 5.1 — encoding/reserved-var)
+        shell: powershell
+        run: .\.claude\hooks\test-all-hooks-smoke.ps1
+      - name: Node hook tests (*.test.mjs)
+        run: node --test .claude/hooks/
