@@ -116,6 +116,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-jana-junit.xml \
             Modules/Jana/Tests/Feature/Mcp/ImmutabilityTriggersTest.php \
+            Modules/Jana/Tests/Feature/Memoria/BuscarHistoricoTest.php \
             Modules/Jana/Tests/Feature/Memoria/SupersedeConsolidacaoTest.php
 
       - name: Upload JUnit (Jana · MySQL)
