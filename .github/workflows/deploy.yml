@@ -221,6 +221,7 @@ jobs:
           "
 
       - name: Maintenance mode ON
+        id: maint_on
         run: /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 || true"
 
       - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
@@ -421,7 +422,11 @@ jobs:
         # maintenance A MENOS que o código não boote — nesse caso 503 gracioso > 500, e o deploy
         # falha (vermelho) + alerta pra investigar. `php artisan about` reproduz o boot do app
         # (constrói o Handler + resolve binds) = mesmo gate do boot-smoke console.
-        if: always()
+        # Lição #9 (2026-06-20 · deploy-recovery-patterns.md): gateado em `maint_on`. Se o
+        # Pré-deploy check flakou (rota SSH 65002 down), maintenance NUNCA ligou → o site já
+        # está up → não faz sentido SSHar aqui (route down faria pendurar ~30min). Quando o
+        # deploy entrou em maintenance de verdade, este step roda normal (invariante mantido).
+        if: always() && steps.maint_on.outcome == 'success'
         run: |
           if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
             /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
@@ -431,8 +436,10 @@ jobs:
             exit 1
           fi
 
-      - name: Tail laravel.log (sempre — diagnose + post-mortem)
-        if: always()
+      - name: Tail laravel.log (sempre que houve deploy real — diagnose + post-mortem)
+        # Lição #9: gateado em maint_on (igual ao Failsafe) — sem deploy real (pré-check
+        # flakou) não há o que tailar e a rota down penduraria o SSH.
+        if: always() && steps.maint_on.outcome == 'success'
         run: |
           echo "=== Last 80 lines storage/logs/laravel.log ==="
           /tmp/ssh_exec.sh "cd $RDIR && tail -80 storage/logs/laravel.log 2>&1 || echo '(log vazio ou ausente)'"
