@@ -17,9 +17,9 @@
 ## Pendentes de `## Status vivo` (16) — backfill dirigido pela sentinela
 | Plano | Módulo |
 |---|---|
-| [DEPRECATION-PLAN — Modules/Accounting](../Accounting/DEPRECATION-PLAN.md) | Accounting |
+| [DEPRECATION-PLAN — Accounting](../Accounting/DEPRECATION-PLAN.md) | Accounting |
 | [Plano Migração Vargas → Autopecas (planejado — não existe) — 2026-05-1](../Autopecas/PLANO-MIGRACAO-VARGAS.md) | Autopecas |
-| [Plano Migração 6 Saudáveis OfficeImpresso → Modules/ComunicacaoVisual ](../ComunicacaoVisual/PLANO-MIGRACAO-6-SAUDAVEIS.md) | ComunicacaoVisual |
+| [Plano Migração 6 Saudáveis OfficeImpresso → ComunicacaoVisual ](../ComunicacaoVisual/PLANO-MIGRACAO-6-SAUDAVEIS.md) | ComunicacaoVisual |
 | [JANA Pro — Product Plan executivo (32 US, 4 sprints, 90 dias)](../Copiloto/JANA-PRO-PRODUCT-PLAN.md) | Copiloto |
 | [Fase 1 — Conciliação passa a enxergar o extrato da API](../Financeiro/PLANO-FASE1-CONCILIACAO-LE-EXTRATO-API.md) | Financeiro |
 | [Fase 2 — Migração de dados: unificar extrato OFX → tabela canônica](../Financeiro/PLANO-FASE2-MIGRACAO-EXTRATO-UNIFICADO.md) | Financeiro |
@@ -30,7 +30,7 @@
 | [Onda 1 — Vendas, PDV & Caixa · PLANO (MWART Fase 1)](../Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) | Mwart |
 | [Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)](../OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) | OficinaAuto |
 | [PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adici](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway |
-| [DEPRECATION-PLAN — Modules/SRS](../SRS/DEPRECATION-PLAN.md) | SRS |
+| [DEPRECATION-PLAN — SRS](../SRS/DEPRECATION-PLAN.md) | SRS |
 | [ADR ARQ-0001 (TaskRegistry) · Sistema de tasks MCP-native, não Plane s](../TaskRegistry/adr/arq/0001-mcp-native-vs-plane.md) | TaskRegistry |
 | [Índice de Planos Vivos (gerado)](_PLANS-INDEX-GENERATED.md) | _processo |
 
