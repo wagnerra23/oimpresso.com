@@ -14,7 +14,7 @@ related_adrs: ["0256-knowledge-survival-meia-vida-catraca-sentinela", "0070-jira
 
 ## 🚩 Saúde (snapshot 2026-06-20)
 
-- **15 planos** · `reviewed_at` no frontmatter: **0/15** (nenhum plano carrega o campo; este índice começa a rastrear) · vinculados a task MCP (`parent_plan`): **0/15**.
+- **16 planos** · `reviewed_at` no frontmatter: **1/16** (só o SDD, revisado 2026-06-20 pela avaliação adversarial 30-threads) · vinculados a task MCP (`parent_plan`): **0/16** (o SDD liga via US-GOV-016/017/018, não via `parent_plan` formal).
 - **Achado:** nenhum plano declara `reviewed_at` e nenhum liga formalmente ao backlog — por isso "se perdem". Ações de triagem na coluna 🚩.
 - **A revisar com urgência:** 3 planos com estado provavelmente desatualizado (migração auto-mem, demo Martinho, conciliação Fase 1) — confirmar se já concluíram e arquivar.
 
@@ -22,6 +22,7 @@ related_adrs: ["0256-knowledge-survival-meia-vida-catraca-sentinela", "0070-jira
 
 | Plano | Módulo | Status | Owner | Última data | reviewed_at | Tasks MCP | 🚩 Próxima ação |
 |---|---|---|---|---|---|---|---|
+| [Reestruturação SDD (ondas paralelas)](../../sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md) | Governance | em-execução | W | 2026-06-12 | 2026-06-20 | US-GOV-016/017/018 | **programa mais ativo do projeto.** Revisão adversarial 30-threads (2026-06-20): composto **65/100**, ~2/3 construído mas **0 gates SDD required**. Caminho crítico: transporte floor CT100→main + pcov. Ver session log `../../sessions/2026-06-20-sdd-avaliacao-30threads.md` (PR #3066) |
 | [PLANO-ATENDIMENTO-AUTOMATICO](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | proposto | W | 2026-06-20 | — | — | aprovar ordem ROI (E1+E2) e criar tasks `parent_plan` |
 | [JANA-PRO-PRODUCT-PLAN](../Copiloto/JANA-PRO-PRODUCT-PLAN.md) | Copiloto | ativo (aprovado) | W | 2026-05-11 | nunca | — | é o E1 do plano acima; iniciar JANA-A ou marcar pausado |
 | [PLANO_DETALHADO](../Financeiro/PLANO_DETALHADO.md) | Financeiro | em-execução | W | — | nunca | — | "Onda 1 quase fechada" — fechar categorias/plano-contas ou marcar concluído |
