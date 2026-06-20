@@ -41,6 +41,11 @@ jobs:
         run: npm run test:adr-governance
       - name: Meta-teste dos checks G/H/I do memory-health (Onda Q5 — controle-negativo)
         run: npm run test:memory-health
+      - name: Teste canário do gerador de planos (controle-negativo · ADR 0294)
+        run: node scripts/governance/plans-index.test.mjs
+      - name: Índice de Planos em dia (advisory · ADR 0294 · nasce advisory ADR 0271)
+        continue-on-error: true
+        run: node scripts/governance/plans-index.mjs --check
       # ADVISORY (GT-G5 · ledger §D): refutação adversarial de lote-IA de BRIEFINGs/SPECs
       # (PROTOCOLO-REFUTADOR-BACKFILL). Sem --enforce → exit 0 sempre nesta fase; promover a
       # required = adicionar --enforce após o protocolo assentar. Só em PR (precisa nº + base_ref).
