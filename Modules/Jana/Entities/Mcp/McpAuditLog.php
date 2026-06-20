@@ -19,6 +19,9 @@ use Modules\Jana\Services\Mcp\AuditChainService;
  * (defesa em profundidade — leitura nunca cruza tenant). INSERT via
  * `registrar()` factory grava business_id explicitamente (jobs/CLI sem auth
  * → scope fail-open, sem regressão).
+ *
+ * @property string|null $hash           Hash SHA-256 da linha (hash-chain, ADR 0294)
+ * @property string|null $hash_anterior  Hash da linha N-1 (elo da cadeia, ADR 0294)
  */
 class McpAuditLog extends Model
 {

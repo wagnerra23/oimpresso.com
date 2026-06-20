@@ -51,7 +51,7 @@ class AuditChainService
             $d['hash_anterior']    ?? '',
         ];
 
-        return implode('|', array_map(static fn ($v) => (string) ($v ?? ''), $partes));
+        return implode('|', array_map(static fn ($v) => (string) $v, $partes));
     }
 
     /**
