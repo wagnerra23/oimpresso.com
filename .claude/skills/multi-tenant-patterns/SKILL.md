@@ -32,7 +32,7 @@ $table->foreign('business_id')->references('id')->on('business')->onDelete('casc
 
 ### 2. Model — global scope no `booted()`
 
-Referência canônica: [Modules/Copiloto/Scopes/ScopeByBusiness.php](../../Modules/Copiloto/Scopes/ScopeByBusiness.php)
+Referência canônica: [Modules/Jana/Scopes/ScopeByBusiness.php](../../Modules/Jana/Scopes/ScopeByBusiness.php)
 
 ```php
 class MinhaEntidade extends Model

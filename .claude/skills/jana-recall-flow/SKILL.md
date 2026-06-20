@@ -1,6 +1,6 @@
 ---
 name: memoria-recall-flow
-description: Use ao tocar Modules/Copiloto/Services/Memoria/, ContextSnapshotService, recall hybrid (Meilisearch + HyDE + reranker), MCP memory sync (git→DB→Scout), ou tabela copiloto_memoria_facts/memoria_metricas. Carrega contrato MemoriaContrato + 3 ângulos faturamento (ADR 0052) + os 14 gotchas catalogados em RETRIEVAL-GOTCHAS.md (Sprint 9). Skill mais específica que copiloto-arch — ativa só em retrieval/recall, não em IA-em-geral.
+description: Use ao tocar Modules/Jana/Services/Memoria/, ContextSnapshotService, recall hybrid (Meilisearch + HyDE + reranker), MCP memory sync (git→DB→Scout), ou tabela copiloto_memoria_facts/memoria_metricas. Carrega contrato MemoriaContrato + 3 ângulos faturamento (ADR 0052) + os 14 gotchas catalogados em RETRIEVAL-GOTCHAS.md (Sprint 9). Skill mais específica que copiloto-arch — ativa só em retrieval/recall, não em IA-em-geral.
 trust_level: L1
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
@@ -13,9 +13,9 @@ parent_adr: 0095
 
 ## Quando ativa
 
-- Edit/Write em `Modules/Copiloto/Services/Memoria/` (drivers, HyDE, reranker, cache)
-- Edit/Write em [`ContextSnapshotService.php`](Modules/Copiloto/Services/ContextSnapshotService.php)
-- Mexer em `Modules/Copiloto/Services/Mcp/IndexarMemoryGitParaDb.php` ou `McpSyncMemoryCommand`
+- Edit/Write em `Modules/Jana/Services/Memoria/` (drivers, HyDE, reranker, cache)
+- Edit/Write em [`ContextSnapshotService.php`](Modules/Jana/Services/ContextSnapshotService.php)
+- Mexer em `Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php` ou `McpSyncMemoryCommand`
 - Migração / query em `copiloto_memoria_facts` ou `copiloto_memoria_metricas` ou `mcp_memory_documents`
 - Mudar config Scout / Meilisearch / Ollama / qwen3-embedding
 - Pergunta com termos: "recall", "hybrid search", "embedding", "HyDE", "reranker", "RAGAS", "negative cache", "ContextoNegocio"
@@ -34,17 +34,17 @@ query → NegativeCache.miss? → HyDE.expandir → Meilisearch hybrid (semantic
 
 | Estágio | Service | Por quê existe |
 |---|---|---|
-| 1. Negative cache | [`NegativeCacheService`](Modules/Copiloto/Services/Memoria/NegativeCacheService.php) | Query anterior retornou 0; evita re-buscar mesmo termo em janela TTL |
-| 2. HyDE | [`HydeQueryExpander`](Modules/Copiloto/Services/Memoria/HydeQueryExpander.php) | Gera "fato hipotético" → embedda; sobe recall@5 ~15% |
-| 3. Hybrid | [`MeilisearchDriver`](Modules/Copiloto/Services/Memoria/MeilisearchDriver.php) | BM25 + vector via callback Scout (`semanticRatio` configurável) |
-| 4. Rerank | [`LlmReranker`](Modules/Copiloto/Services/Memoria/LlmReranker.php) | LLM pequeno re-ordena top-K bruto pra top-K final |
+| 1. Negative cache | [`NegativeCacheService`](Modules/Jana/Services/Memoria/NegativeCacheService.php) | Query anterior retornou 0; evita re-buscar mesmo termo em janela TTL |
+| 2. HyDE | [`HydeQueryExpander`](Modules/Jana/Services/Memoria/HydeQueryExpander.php) | Gera "fato hipotético" → embedda; sobe recall@5 ~15% |
+| 3. Hybrid | [`MeilisearchDriver`](Modules/Jana/Services/Memoria/MeilisearchDriver.php) | BM25 + vector via callback Scout (`semanticRatio` configurável) |
+| 4. Rerank | [`LlmReranker`](Modules/Jana/Services/Memoria/LlmReranker.php) | LLM pequeno re-ordena top-K bruto pra top-K final |
 | 5. Persistência | tabela `copiloto_memoria_facts` (`Searchable + SoftDeletes`) | Append-only; `valid_until` setado = superseded |
 
-**Ingress (sync git→DB):** [`IndexarMemoryGitParaDb`](Modules/Copiloto/Services/Mcp/IndexarMemoryGitParaDb.php) lê `memory/*` do worktree, faz upsert em `mcp_memory_documents` com PII redactor automático, dispara Scout observer pra re-embedar. Comando wrapper: [`McpSyncMemoryCommand`](Modules/Copiloto/Console/Commands/McpSyncMemoryCommand.php).
+**Ingress (sync git→DB):** [`IndexarMemoryGitParaDb`](Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php) lê `memory/*` do worktree, faz upsert em `mcp_memory_documents` com PII redactor automático, dispara Scout observer pra re-embedar. Comando wrapper: [`McpSyncMemoryCommand`](Modules/Jana/Console/Commands/McpSyncMemoryCommand.php).
 
 ## §Crítico — ContextoNegocio expõe 3 ângulos (ADR 0052)
 
-[`ContextSnapshotService::faturamento90d()`](Modules/Copiloto/Services/ContextSnapshotService.php) retorna **3 valores distintos** por mês — não 1:
+[`ContextSnapshotService::faturamento90d()`](Modules/Jana/Services/ContextSnapshotService.php) retorna **3 valores distintos** por mês — não 1:
 
 | Ângulo | Fonte SQL | Significado |
 |---|---|---|
@@ -76,14 +76,14 @@ Antes de mexer em retrieval, **ler RETRIEVAL-GOTCHAS.md inteiro** — 14 itens, 
 
 ## §Crítico — Ingress sync git→DB (`mcp:sync-memory`)
 
-**Fluxo:** webhook GitHub → roda `php artisan mcp:sync-memory` no CT 100 → [`IndexarMemoryGitParaDb`](Modules/Copiloto/Services/Mcp/IndexarMemoryGitParaDb.php) → upsert em `mcp_memory_documents` → Scout observer → embedding → Meilisearch index.
+**Fluxo:** webhook GitHub → roda `php artisan mcp:sync-memory` no CT 100 → [`IndexarMemoryGitParaDb`](Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php) → upsert em `mcp_memory_documents` → Scout observer → embedding → Meilisearch index.
 
 | Etapa | Onde |
 |---|---|
 | Source-of-truth | git (`memory/*.md`) |
 | Cache governado | `mcp_memory_documents` (tabela) |
 | Index buscável | Meilisearch (CT 100, FrankenPHP) |
-| Quota / governança | [`QuotaEnforcer`](Modules/Copiloto/Services/Mcp/QuotaEnforcer.php) |
+| Quota / governança | [`QuotaEnforcer`](Modules/Jana/Services/Mcp/QuotaEnforcer.php) |
 | Audit | `mcp_audit_log` (IMUTÁVEL — só INSERT) |
 
 **Latência alvo:** webhook → tools MCP enxergarem doc novo < 60s.
@@ -108,7 +108,7 @@ Tabela `copiloto_memoria_metricas` (14 colunas):
 - `answer_relevance`
 - + 3 derivadas
 
-**Apurador:** [`MetricasApurador`](Modules/Copiloto/Services/Metricas/MetricasApurador.php) → cron 23:55 daily via [`ApurarMetricasCommand`](Modules/Copiloto/Console/Commands/ApurarMetricasCommand.php) `--business=all`.
+**Apurador:** [`MetricasApurador`](Modules/Jana/Services/Metricas/MetricasApurador.php) → cron 23:55 daily via [`ApurarMetricasCommand`](Modules/Jana/Console/Commands/ApurarMetricasCommand.php) `--business=all`.
 
 ## Pegadinhas críticas
 
@@ -117,7 +117,7 @@ Tabela `copiloto_memoria_metricas` (14 colunas):
 - ❌ **NÃO confiar que LLM deriva matemática que ContextoNegocio não fornece.** Princípio ADR 0052: expor todos os ângulos legítimos como dados; o LLM só precisa escolher qual citar.
 - ❌ **NÃO fazer `DELETE` em `copiloto_memoria_facts`.** Append-only — usar `valid_until = now()`. Esquecer LGPD = SoftDelete (`esquecer()`).
 - ❌ **NÃO testar com `RefreshDatabase`** — migrations core UltimatePOS quebram em SQLite. Usar `beforeEach` com `Schema::create` da tabela alvo.
-- ❌ **NÃO mascarar PII na ponta do LLM e esquecer no log.** Sanitizar via [`LaravelAiSdkDriver::mascararDocumentos()`](Modules/Copiloto/Services/Ai/LaravelAiSdkDriver.php) ANTES de qualquer call (LLM, log, audit).
+- ❌ **NÃO mascarar PII na ponta do LLM e esquecer no log.** Sanitizar via [`LaravelAiSdkDriver::mascararDocumentos()`](Modules/Jana/Services/Ai/LaravelAiSdkDriver.php) ANTES de qualquer call (LLM, log, audit).
 
 ## Multi-tenant (skill `multi-tenant-patterns`)
 
@@ -130,10 +130,10 @@ Todo recall é **scoped por business_id + user_id**:
 
 ```bash
 # 1. Lint
-php -l Modules/Copiloto/Services/Memoria/MeilisearchDriver.php
+php -l Modules/Jana/Services/Memoria/MeilisearchDriver.php
 
 # 2. Suite Copiloto inteira
-vendor/bin/pest Modules/Copiloto/Tests/
+vendor/bin/pest Modules/Jana/Tests/
 
 # 3. Recall sanity check (precisa de Meilisearch + golden set)
 php artisan copiloto:gabarito:avaliar --business=4 --top=5
