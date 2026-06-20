@@ -1772,3 +1772,21 @@ Botão "+ Nova conversa" no topnav direita hoje é placeholder. Implementação:
 
 **Anti-padrões:** **NÃO** inventar `StartConversationService` antes de checar `InboxController::send` flow — reusar pattern de envio + criar Conversation row.
 
+### US-WA-311 · Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1)
+
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 12h IA-pair · status: backlog · type: story
+
+parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../../decisions/0294-metodo-dual-track-shapeup-catraca.md)). Triagem **L1** ao chegar conversa: `TriageService` (Modules/Jana, porta runtime do skill `ticket-triage`) gera score 0-100 + prioridade P1-P4 + sugestão de ação; listener `TriageOnInbound` (Modules/Whatsapp) na 1ª inbound; persiste como tag P1-P4 (`whatsapp_tags`) + badge na Caixa Unificada (ordenar fila). L1 = analisa, **NÃO** responde/atribui/resolve.
+
+**AC:**
+- Conversa nova recebe prioridade + score + sugestão em < 5s do inbound.
+- L1: triagem só anota; não atribui, não responde, não resolve.
+- PII redigida antes da chamada LLM e em qualquer log (vetor `inbound_preview`).
+- Tier 0: `TriageService` + listener filtram `business_id`; teste cross-tenant não vaza.
+- Re-triagem idempotente; falha do LLM → fila sem prioridade (degradado), nunca trava o inbound.
+- Flag `copiloto.triage.inbox_enabled` (default off) → canary biz=4 (ROTA LIVRE).
+- Testes Pest R-WA-TRIAGE-001..007 + cross-tenant; eval advisory `triage-gold-set.json`.
+
+**Refs:** AC completos em [PLANO-ATENDIMENTO-AUTOMATICO.md](./PLANO-ATENDIMENTO-AUTOMATICO.md) §5. **NOTA:** off-CYCLE-08 (cycle ativo = receita/carteira legacy) — backlog até atendimento virar prioridade de cycle.
+
+**Anti-padrões:** cérebro de IA mora em Modules/Jana; inbox (listener/badge) em Modules/Whatsapp. **NÃO** reusar o ADS PolicyEngine como guardrail conversacional (é firewall de ações de código, não de respostas).
