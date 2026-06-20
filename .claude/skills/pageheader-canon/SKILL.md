@@ -2,6 +2,7 @@
 name: pageheader-canon
 description: ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182/0189/0190) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padronizar header do <Modulo>", "/pageheader-canon <Modulo>", "header v3 nas telas Y", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>/Index.tsx` que tenha sub-navegação (sub-views no DataController). **2 modos** — (A) **Index/Show modo NAV** com SubNav + primary roxo universal (3 zonas) e (B) **Edit/Create modo FOCO** sem SubNav (página de form sem distração lateral, pattern Notion/Linear, Fase 4-bis). Skill carrega — (1) **algoritmo de descoberta** do módulo (cruzar DataController.php + Pages/<Mod>/**/*.tsx pra mapear sub-views + primary contextual + ações features), (2) **tabela de decisão** dos botões (duplicado-com-ghost REMOVE / features → extraOverflowItems / primary "Nova X" → Zona R / per-linha INTACTO), (3) **naming convention** de labels (≤2 palavras, sem repetir nome do módulo), (4) **PRIMARY UNIVERSAL ROXO 295** — `oklch(0.55 0.15 295)` bg + `oklch(0.45 0.15 295)` border (ADR 0190 2026-05-25 supersede hue-per-grupo do primary), (5) **validação POST-implementação OBRIGATÓRIA** via browser MCP (script JS valida labels curtos + auto-promove + primary roxo 295 NÃO outro hue + bg NÃO magenta 330) e (6) **gate ✓/⚠️** que FALHA o PR se alguma tela não passar. Tier B auto-trigger por description.
 supersedes_partially_via_adr: [0180, 0190]
+tier: B
 ---
 
 > ⚠️ **RECONCILIADO 2026-05-25 — ADR 0190 supersede parcial:** Esta skill anteriormente

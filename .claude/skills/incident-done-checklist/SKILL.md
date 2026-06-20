@@ -1,6 +1,7 @@
 ---
 name: incident-done-checklist
 description: BLOQUEADOR — ATIVAR antes de declarar "incident fechado" / "está pronto" / "feature funcionando" / encerrar sessão de fix em prod. Skill carrega a Definition of Done canônica (DoD-v1) que EXIGE smoke real prod end-to-end pra cada fix antes de marcar pronto. Funciona como gate procedural — sem TODOS os checks ✅, status fica `awaiting-smoke` no commit/PR/handoff, NÃO `done`. Aprende incident 2026-05-28 onde declarei "10 PRs fechados" com 3 fixes (M1/M2/M3 mídia) NUNCA validados por smoke real → 10.144 mídias ainda órfãs prod descoberto pelo Wagner depois. Operacional Tier A — DEVE ativar SEMPRE que agente escreve "está pronto", "fechado", "completou", "deployed", "validado" em mensagem ao Wagner. Bloco D (Reflexion runtime): quando o incidente foi erro de OPERAÇÃO da Jana (≠ saída do LLM), registrar a lição em Modules/Jana/LICOES-OPERACAO.md + graduar (MEC→check jana:health-check / JULG→regra). Refs PATTERN-INCIDENT-RESPONSE-VELOCITY.md passo 4, ADR 0093, skill commit-discipline.
+tier: A
 ---
 
 # Incident Done Checklist — Definition of Done bloqueante (DoD-v1)

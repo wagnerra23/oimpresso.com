@@ -1,6 +1,7 @@
 ---
 name: hostinger-dns-autonomy
 description: BLOQUEADOR Tier A — ATIVAR antes de pedir Wagner pra criar/editar DNS record, qualquer ação Hostinger painel/UI, OU sempre que agente cogitar "pode você fazer isso no hPanel". Skill canon que IMPEDE escalar pro Wagner ações que tem API/CLI automatizadas. Carrega receita ADR 0045 (DNS API canônica) + lista de 6 paths onde token Hostinger pode estar + receita Vaultwarden API + fallback "se realmente impossível, registra como Tier 0 gap, NÃO pede Wagner". Inclui anti-padrão formal "pedir Wagner ação automatizável = erro de protocolo Tier A". Aprende falha 2026-05-28 17:55 quando agente pediu Wagner criar A record minio.oimpresso.com no hPanel em vez de via API. Ref PROTOCOLO-WAGNER-SEMPRE regra 1, ADR 0045, skill publication-policy.
+tier: A
 ---
 
 # Autonomia Hostinger DNS — Tier A bloqueante

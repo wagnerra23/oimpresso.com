@@ -1,6 +1,7 @@
 ---
 name: feedback-capture
 description: ATIVAR quando Wagner colar feedback de cliente real OU disser "Daniela reclamou X", "Larissa pediu Y", "Kamila falou que Z", "Jair quer W", "via WhatsApp <pessoa> reportou", "/feedback ..." OU mencionar reclamação/pedido alteração/sugestão de cliente real do oimpresso. Estrutura captura em 7 campos canônicos (canal, persona, literal, JTBD, workaround, severity NN/g 0-4, frequência) + grava append-only em memory/clientes/<cliente>/feedback/YYYY-MM-DD-<slug>.md + atualiza persona.fricoes + atualiza charter.fricoes_conhecidas + cria MCP task quando severity ≥ 3. Skill Tier B auto-trigger. Refs ADR UI-0016, ADR 0105.
+tier: B
 ---
 
 # feedback-capture — Captura estruturada de feedback de cliente
