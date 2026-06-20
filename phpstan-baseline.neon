@@ -6446,6 +6446,12 @@ parameters:
 			path: Modules/Jana/Config/retention.php
 
 		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 5
+			path: Modules/Jana/Config/memoria.php
+
+		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$config_json\.$#'
 			identifier: property.notFound
 			count: 1
