@@ -182,6 +182,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Parte B do T7 (auditoria IA OS) — loop telemetria→tier de skills (ADR 0095).
+        // Trimestral: emite relatório APPEND-ONLY em memory/governance/skill-tier-review-AAAA-QN.md
+        // com sugestões de promoção/rebaixamento. NÃO auto-aplica (sem --apply-suggestions):
+        // B→A exige ADR, C→arquivar exige ADR HISTORICAL. quarterlyOn(1, '06:40') = 1º dia de
+        // cada trimestre, ancorado no eixo 06:00-06:50 BRT (após jana:health-check 06:00).
+        // Cross-tenant intencional (mcp_skill_telemetry é governança, sem business_id — ADR 0093).
+        // Hostinger ≠ CT 100 (ADR 0062): só artisan + schedule, sem daemon.
+        $schedule->command('skills:tier-review')
+            ->quarterlyOn(1, '06:40')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule skills:tier-review FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
         // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
         // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário→manual).
         // COMENTADO DE PROPÓSITO: D-E exige gate Wagner/CT100 (smoke skim 10min/lote) —
