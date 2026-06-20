@@ -10,25 +10,25 @@ related_adrs: ["0256-knowledge-survival-meia-vida-catraca-sentinela", "0070-jira
 
 > **O que é:** registro fonte-única de **todos** os PLANOs estratégicos do projeto, com status real, frescor e ligação com a execução (MCP). Resolve "meus planos estão se perdendo": um lugar só pra ver o que está vivo, parado, ou morto sem ninguém ter avisado.
 > **Princípio:** plano é artefato de 1ª classe na máquina de sobrevivência ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP, não no markdown ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)).
-> **Legenda status:** `proposto` (escrito, não aprovado) · `ativo` (aprovado, sem execução corrente) · `em-execução` · `pausado` · `concluído` · `abandonado` · `superseded`.
+> **Legenda status:** `proposto` (escrito, não aprovado) · `ativo` (aprovado, sem execução corrente) · `em-execução` · `pausado` · `concluído` · `abandonado` · `superseded` · `revisar` (estado provavelmente desatualizado — triar).
 
 ## 🚩 Saúde (snapshot 2026-06-20)
 
-- **15 planos** · `reviewed_at` preenchido: **1/15** (este índice é o 1º a marcar) · vinculados a task MCP (`parent_plan`): **0/15**.
+- **15 planos** · `reviewed_at` no frontmatter: **0/15** (nenhum plano carrega o campo; este índice começa a rastrear) · vinculados a task MCP (`parent_plan`): **0/15**.
 - **Achado:** nenhum plano declara `reviewed_at` e nenhum liga formalmente ao backlog — por isso "se perdem". Ações de triagem na coluna 🚩.
-- **A revisar com urgência:** 4 planos com estado provavelmente desatualizado (migração auto-mem, demo Martinho, conciliação Fase 1/2) — confirmar se já concluíram e arquivar.
+- **A revisar com urgência:** 3 planos com estado provavelmente desatualizado (migração auto-mem, demo Martinho, conciliação Fase 1) — confirmar se já concluíram e arquivar.
 
 ## Registro
 
 | Plano | Módulo | Status | Owner | Última data | reviewed_at | Tasks MCP | 🚩 Próxima ação |
 |---|---|---|---|---|---|---|---|
-| [PLANO-ATENDIMENTO-AUTOMATICO](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | proposto | W | 2026-06-20 | 2026-06-20 | — | aprovar ordem ROI (E1+E2) e criar tasks `parent_plan` |
+| [PLANO-ATENDIMENTO-AUTOMATICO](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | proposto | W | 2026-06-20 | — | — | aprovar ordem ROI (E1+E2) e criar tasks `parent_plan` |
 | [JANA-PRO-PRODUCT-PLAN](../Copiloto/JANA-PRO-PRODUCT-PLAN.md) | Copiloto | ativo (aprovado) | W | 2026-05-11 | nunca | — | é o E1 do plano acima; iniciar JANA-A ou marcar pausado |
 | [PLANO_DETALHADO](../Financeiro/PLANO_DETALHADO.md) | Financeiro | em-execução | W | — | nunca | — | "Onda 1 quase fechada" — fechar categorias/plano-contas ou marcar concluído |
 | [PLANO-ONDA5-SIMPLIFICADA](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway | em-execução | W | — | nunca | — | status diz "executado-aguardando-smoke" → rodar smoke e fechar |
 | [ONDA-1-VENDAS-PDV-CAIXA-PLANO](../Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) | Mwart | em-execução (F1) | W | — | nunca | — | confirmar fase MWART atual vs doc |
-| [PLANO-FASE1-CONCILIACAO-LE-EXTRATO-API](../Financeiro/PLANO-FASE1-CONCILIACAO-LE-EXTRATO-API.md) | Financeiro | revisar | W | 2026-05-31 | nunca | — | ADR 0236 proposto — confirmar se executou; risco de colisão ADR 0236/0246 |
-| [PLANO-FASE2-MIGRACAO-EXTRATO-UNIFICADO](../Financeiro/PLANO-FASE2-MIGRACAO-EXTRATO-UNIFICADO.md) | Financeiro | proposto | W | 2026-05-31 | — | ADR 0236 aceita — agendar ou pausar |
+| [PLANO-FASE1-CONCILIACAO-LE-EXTRATO-API](../Financeiro/PLANO-FASE1-CONCILIACAO-LE-EXTRATO-API.md) | Financeiro | revisar | W | 2026-05-31 | nunca | — | ADR `0236-extrato-conciliacao` **aceita** (2026-05-31) — confirmar execução; nº 0236 tem **colisão tripla registrada** (extrato/governanca/scorecard) → citar por slug |
+| [PLANO-FASE2-MIGRACAO-EXTRATO-UNIFICADO](../Financeiro/PLANO-FASE2-MIGRACAO-EXTRATO-UNIFICADO.md) | Financeiro | proposto | W | 2026-05-31 | nunca | — | ADR `0236-extrato-conciliacao` aceita — agendar ou pausar |
 | [PLAN-MWART-metas](../Jana/PLAN-MWART-metas.md) | Jana | proposto | W | 2026-05-09 | nunca | — | "draft aguardando aprovação" há ~6 semanas → decidir ou abandonar |
 | [PLANO-TESTES-FISCAL](../Fiscal/PLANO-TESTES-FISCAL.md) | Fiscal | proposto (draft) | W | — | nunca | — | promover a ativo ou arquivar |
 | [PLANO-MIGRACAO-VARGAS](../Autopecas/PLANO-MIGRACAO-VARGAS.md) | Autopecas | proposto (draft) | W | 2026-05-10 | nunca | — | depende de sinal de cliente (ADR 0105) |

@@ -12,11 +12,11 @@
 
 - `DispatchToJanaBot.php` (linha 108) ainda é um bloco `// SPRINT 3:` comentado. Ele detecta phone + marca `bot_handling=true` + loga, mas **não chama `decide()` nem dispara resposta**.
 - Não existe nenhum caminho `sender_kind='bot'` em `Modules/Whatsapp/Jobs/*` — só `human` (UI) e `system` (templates/CSAT/notificações). Grep confirmou.
-- O `COMPARATIVO-MERCADO-2026-05-12-v2.md` afirma "auto-handoff bot Jana → humano JÁ IMPLEMENTADO" — **isso está stale/aspiracional**. O listener existe; a geração de resposta não.
+- O `COMPARATIVO-MERCADO-2026-05-12-v2.md` lista "bot Jana" como item da suíte (C-101, alvo Sprint 3) mas **não afirma** que o bot gera resposta nem que há auto-handoff implementado. O listener existe; a geração de resposta não. (Conferido por grep: "handoff"/"implementad" = 0 ocorrências no doc — correção de uma aspa fabricada que constava aqui antes.)
 
 **Correção de premissa importante:** o `Modules/ADS/PolicyEngine` (ALLOW_BRAIN_A / REQUIRE_BRAIN_B / REQUIRE_HUMAN_REVIEW / BLOCK_ALWAYS) **não governa respostas ao cliente**. É um firewall de **ações de código** do Jana/Claude Code — os event types são `env_production`, `db_schema_change`, `pii_direct_exposure`, `billing_financial_flow`. Não há classificador de intenção de mensagem de cliente nem confidence de resposta. Tratar o ADS como "guardrail conversacional" é erro de categoria. Quando o bot de cliente nascer, ele precisa de um **PolicyEngine conversacional próprio** (espelhando o padrão, não reusando as listas).
 
-**Tradução:** o oimpresso tem uma suíte de **atendimento humano-assistido Chatwoot-tier muito forte** (inbox, SLA, macros A/B, CSAT, customer-memory, transcrição de áudio, anti-ban, LID, ERP nativo). O que **falta** é a camada que define "estado-da-arte 2026": o **AI agent que resolve sozinho** (deflection real). Hoje o `deflection_pct` existe como coluna mas mede ~0 porque nada deflete automaticamente além de templates transacionais.
+**Tradução:** o oimpresso tem uma suíte de **atendimento humano-assistido Chatwoot-tier muito forte** (inbox, SLA, macros A/B, CSAT, customer-memory, transcrição de áudio, anti-ban, LID, ERP nativo). O que **falta** é a camada que define "estado-da-arte 2026": o **AI agent que resolve sozinho** (deflection real). E o `deflection_pct` **nem existe como coluna** — está só na prosa da `ARCHITECTURE.md`; a migration de métricas não o tem (conferido: grep "deflection" nas migrations = 0). Mediria ~0 de qualquer forma, porque nada deflete automaticamente além de templates transacionais.
 
 ---
 
@@ -51,7 +51,7 @@ Inventário muito mais rico do que o brief sugeria. Tudo abaixo é código shipa
 - **Eval harness Jana (interno) state-of-the-art** — `Modules/Jana/Tests/Feature/Ai/HallucinationEvalTest.php` (100 golden questions, 6 categorias, strict mustContain/mustNotContain), `JanaRagasCiCommand` + `RagasEvalCITest` + `jana-gold-set.json` + `Modules/KB/Tests/Feature/KbRagasEvalTest.php`. **Isto é nível Sierra/Fin** — mas aponta pro copiloto interno e KB, **não** pro bot de cliente.
 - **ADS** — PolicyEngine + DecisionRouter + PatternLearning (Wilson score) + GovernanceRulesService + AutoTaskGenerator + Planner. Maquinaria séria de **governança de ações de código**.
 
-> ⚠️ Nota de drift documental: `ARCHITECTURE.md` ainda descreve Baileys/§16 daemon Node como plano; o código real já usa `WhatsmeowDriver` (Go whatsmeow) + `Channel` entity. A doc está ~1 geração atrás. Não corrigi (fora do escopo deste agente), mas registro pra curadoria.
+> ⚠️ Nota de drift documental: `ARCHITECTURE.md` §16 (Baileys daemon Node) já está marcada **DEPRECATED** (ADR 0202) e §1 diz que NÃO roda Baileys; o gap real é que o driver atual `WhatsmeowDriver` (Go whatsmeow, ADR 0204/0206) + `Channel` entity **não está documentado em lugar nenhum**. A doc está ~1 geração atrás. Não corrigi (fora do escopo deste agente), mas registro pra curadoria.
 
 ### Tabela comparativa por dimensão
 
@@ -68,7 +68,7 @@ Inventário muito mais rico do que o brief sugeria. Tudo abaixo é código shipa
 | **CSAT / qualidade percebida** | padrão | `CsatDispatcher` + parser | **paridade** |
 | **Customer 360 / memória** | unificado, com sinais | `CustomerMemory` com esqueleto; inferências IA não populadas | **média** |
 | **Omnichannel** | Zendesk/Chatwoot: email+IG+FB+SMS+voz | WhatsApp-first (Meta Cloud + Z-API + whatsmeow). Outros canais fora de escopo | **média** (deliberada) |
-| **Analytics de qualidade por fonte** | Zendesk "contact reasons" por KB source | `whatsapp_conversation_metricas` (deflection_pct, p50/p95, custo) — bom em **volume/custo**, fraco em **qualidade de resposta** | **média** |
+| **Analytics de qualidade por fonte** | Zendesk "contact reasons" por KB source | `whatsapp_conversation_metricas` (conversas abertas/resolvidas, msgs in/out, custo, avg first-response/resolution) — bom em **volume/custo**; `deflection_pct`/p50/p95 são **só spec (ARCHITECTURE), não migrados**; fraco em **qualidade de resposta** | **média** |
 | **Observabilidade (OTel GenAI)** | gen_ai.* spans, custo/token, multi-turn trace | OTel `whatsapp.*` + spans por serviço (SLA/CSAT/memory). **Sem** convenção `gen_ai.*` nem trace multi-turn de raciocínio (porque não há bot) | **média** |
 | **Outcome pricing (pago por resolução)** | Fin/Zendesk/Gorgias | N/A — pricing é por plano ERP. Não é gap de produto, é de modelo | **n/a** |
 | **ERP nativo transacional** | nenhum (Decagon integra via API) | **Diferencial único** — ledger Financeiro, NFe, OS Repair nativos | **supera o mercado** |
@@ -89,7 +89,7 @@ Inventário muito mais rico do que o brief sugeria. Tudo abaixo é código shipa
 | 6 | **Analytics de qualidade por fonte/intent** (não só volume/custo: resolution rate real, por que escalou, qual KB falhou) | **médio** | ~4-6h | Depende de #1 + #6 ter dados | `whatsapp_conversation_metricas` + nova `bot_reply_outcomes` |
 | 7 | **Populando inferências de Customer Memory** (sentimento, churn_risk, temas) — "Onda 3" já modelada | **médio** | ~6-8h | Não | `CustomerMemoryRebuilder` (campos já existem, falta job de inferência) |
 | 8 | **Convenção OTel `gen_ai.*` + trace multi-turn** do bot (custo/token/raciocínio por resposta) | **médio** | ~3-5h | Depende de #1 | `OtelHelper` + spans no BotReplyService |
-| 9 | **Drift doc:** `ARCHITECTURE.md` §16 Baileys vs whatsmeow real | **baixo** (governança) | ~1h | Não | curadoria, fora deste agente |
+| 9 | **Drift doc:** `WhatsmeowDriver` (ADR 0204/0206) não documentado; §16 Baileys já marcada DEPRECATED | **baixo** (governança) | ~1h | Não | curadoria, fora deste agente |
 
 ### Recomendação concreta
 
@@ -107,7 +107,7 @@ Pesos somam 100. Métrica objetiva por dimensão. Nota = 0-100.
 
 | Dimensão | Peso | Como medir (métrica objetiva) | Nota oimpresso | Justificativa (1 linha) |
 |---|---:|---|---:|---|
-| **Resolução autônoma (deflection real)** | 22 | % conversas fechadas só por bot sem humano (`deflection_pct` com bot ligado) | **8** | Coluna existe, mede ~0; bot não responde (placeholder). |
+| **Resolução autônoma (deflection real)** | 22 | % conversas fechadas só por bot sem humano (`deflection_pct` — a CRIAR; hoje não existe a coluna) | **8** | Métrica é só spec (não migrada); bot não responde (placeholder). |
 | **Ações agênticas** | 14 | nº de tipos de tarefa que o bot executa sozinho com sucesso | **5** | Macros existem mas atendente dispara; bot executa zero. |
 | **Ingestão de conhecimento** | 12 | fontes de KB do tenant ancoradas + freshness; RAGAS faithfulness | **30** | KB + RAGAS existem (Jana interno); não ligados ao cliente. |
 | **Guardrails de resposta** | 12 | % respostas que passam por gate (PII/tom/escopo) + taxa de bloqueio correto | **35** | PII redaction forte; sem guardrail conversacional (PolicyEngine é de código). |
@@ -132,7 +132,7 @@ Cruzando com o framework **Knowledge Survival do projeto (ADR 0256 — catraca +
 | # | Item de sobrevivência | Status no oimpresso | O que falta pra ser durável |
 |---|---|---|---|
 | 1 | **Eval de resposta como CATRACA** | Harness RAGAS/golden existe (Jana) | Estender ao bot de cliente + **gate CI que barra deploy** se faithfulness/resolution cai abaixo do baseline. Sem isso, qualidade do bot apodrece silenciosa. **(crítico)** |
-| 2 | **SENTINELA de deflection drift** | `jana:health-check` tem 5 checks SQL; `whatsapp.conversations.deflection_rate` é gauge OTel | Adicionar check #6: alarme se `deflection_pct` cai >X% semana-a-semana OU se escalação humana sobe — sinal de KB apodrecendo ou modelo degradando. **(crítico)** |
+| 2 | **SENTINELA de deflection drift** | `jana:health-check` tem 5 checks SQL; `deflection` ainda **não é coluna nem gauge registrado** (só spec na ARCHITECTURE) | Primeiro **criar** a coluna/gauge `deflection_pct`; depois check #6: alarme se cai >X% semana-a-semana OU se escalação humana sobe — sinal de KB apodrecendo ou modelo degradando. **(crítico)** |
 | 3 | **Conhecimento que alimenta o bot não apodrece** | KB module + Meilisearch; freshness checker existe (`DesignDocsFreshnessChecker` é doc-only) | Learning loop estilo Zendesk: toda escalação humana vira sinal ("o que o bot não soube") → fila de revisão de KB. Cadência de curadoria do KB por business. **(alto)** |
 | 4 | **Guardrail imutável + versionado** | ADS PolicyEngine é "só muda via PR Wagner" (bom padrão a copiar) | ReplyPolicy conversacional deve nascer com a mesma regra append-only + teste que falha se alguém afrouxa o gate de `billing_financial_flow` no bot. **(alto)** |
 | 5 | **Observabilidade de custo por resposta** | OTel `whatsapp.cost.centavos`; custo_brain_b no health-check | Span `gen_ai.*` por resposta com tokens/custo + alarme de custo/conversa — Decagon/Fin vivem disso. Evita "bot ficou caro sem ninguém notar". **(médio)** |

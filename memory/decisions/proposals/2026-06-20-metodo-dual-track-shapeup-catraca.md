@@ -51,7 +51,7 @@ Adotar **dual-track travado por catraca**: descoberta e entrega são trilhas sep
 ### As invariantes mecânicas (a catraca — por que sobrevive)
 
 - **A parede é o `status` enum:** `proposto` = incubadora; `ativo`/`em-execução` = cruzou a membrana. *Um plano só vira `em-execução` quando existe task MCP `parent_plan` num cycle.* Essa frase É a parede.
-- **WIP cap no cycle:** máx N planos `em-execução` por cycle (contagem no [PLANS-INDEX](../../requisitos/_processo/PLANS-INDEX.md)). Incubadora é ilimitada; a linha de produção, não.
+- **WIP cap no cycle:** máx **3** planos `em-execução` por cycle (default; ajuste por capacidade — contagem no [PLANS-INDEX](../../requisitos/_processo/PLANS-INDEX.md)). Incubadora é ilimitada; a linha de produção, não.
 - **Descoberta é off-cycle por padrão:** pesquisa nunca entra nos goals do cycle direto — só pela membrana.
 - **Sentinela `plan-health`** (estende `memory-health.mjs`, [ADR 0256](../0256-knowledge-survival-meia-vida-catraca-sentinela.md) Onda 1): flaga `status` ausente, `reviewed_at` > 30d, plano órfão (sem `parent_plan`), drift (status ≠ realidade das tasks), `superseded` sem ponteiro. Sai no Daily Brief + gate advisory no CI.
 - **Declaração de modo:** todo pedido/sessão declara **EXPLORAR** (diverge, nada entra no cycle) ou **EXECUTAR** (converge, cria task). Default = EXPLORAR (mais seguro).
@@ -80,6 +80,7 @@ Síntese de: **dual-track development** (Desirée Sy 2007; Cagan/Patton) + **Dou
 - **Kanban puro (fluxo contínuo, sem cycles)** — ⚠️ flui, mas sem *shaping* a divergência nunca fecha. WIP limit **adotado**, o resto não.
 - **"Só se organizar mais"** — ❌ depende de força de vontade; é exatamente o estado que falhou.
 - **Não fazer nada** — ❌ o "fica louco" continua e os planos seguem se perdendo.
+- **Não formalizar / escrever menos** — ⚠️ o steelman mais forte: o sintoma é *excesso e perda de docs*, então adicionar ADR + índice + convenção pode piorar. Resposta: estes artefatos são **mecânicos** (status enum + sentinela geram/checam sozinhos) e **substituem** o rastreio manual disperso — 1 índice gerado < 16 planos órfãos. **Porém**: se a sentinela `plan-health` (Onda 1) não for construída, esta crítica procede e isto vira só mais papel — logo a Onda 1 é condição de validade do método, não opcional.
 
 ## Implementação (ondas)
 
