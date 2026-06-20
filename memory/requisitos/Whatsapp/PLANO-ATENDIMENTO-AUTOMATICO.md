@@ -3,7 +3,30 @@
 > **Origem:** pedido [W] 2026-06-20 ("concluir o plano de atendimento automático — abrir suporte") + estado-da-arte [`sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md`](../../sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md) + estudo de ROI (este doc, §0).
 > **Escopo:** atendimento automático no inbox (Caixa Unificada V4) — **triagem** (analisa/prioriza pro operador) e **resposta** (bot fala com o cliente) — + escalação humana ("abrir suporte"). Atendimento vive em `Modules/Whatsapp` (fusão KL-E2 2026-06-15); o cérebro de IA vive em `Modules/Jana` (o nome antigo "Copiloto" sobrevive só como pasta de docs `requisitos/Copiloto/`; o módulo de código foi renomeado pra Jana — ADR 0088/0092).
 > **Invariante:** resposta automática ao cliente SEMPRE atrás de flag + guardrail + eval. Triagem é L1 (analisa, operador decide). Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) e PII redaction ([COMPLIANCE](COMPLIANCE.md) · [PII-REDACTION](PII-REDACTION.md)) inegociáveis. Fallback (princípio duro 8): IA fora → fila humana, nunca silêncio.
-> **Status:** proposto — ordem **ROI-first** (§0). Aguarda [W] aprovar começar por E1+E2.
+> **Status:** ver **`## Status vivo`** abaixo (fonte única do estado deste plano).
+
+---
+
+## Status vivo
+
+<!-- catraca: não regride sem mudar status conscientemente · ADR 0294 -->
+- **status:** ativo  <!-- proposto→ativo: [W] aprovou ordem ROI 2026-06-20 (merge #3064 + aceite ADR 0294). em-execução só quando houver task MCP parent_plan -->
+- **owner:** W
+- **criado:** 2026-06-20 · **reviewed_at:** 2026-06-20 · **próxima-revisão:** 2026-07-20
+- **cycle:** CYCLE-08 · **execução:** `parent_plan=plano-atendimento-automatico` (tasks a criar — MCP não conectado nesta sessão)
+- **gate-de-saída (DoD):** E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR 0140)
+- **kill-condition:** mês 2 com < 2 conversões trial→pago → congela (review_triggers ADR 0140)
+- **verdade-viva:** este doc
+
+| Etapa | Task MCP (`parent_plan=plano-atendimento-automatico`) | Status | % |
+|---|---|---|---|
+| E1 JANA Pro MVP (brief operador) | US-COPI-201..205 | a criar | 0 |
+| E2 Triagem no inbox | US-WA-TRIAGE-001 | a criar | 0 |
+| E3 Cobrança Asaas + 5 beta | US-COPI-211..215 | a criar | 0 |
+| E4 Bot responde cliente | US-WA-BOT-001 | adiada (§6) | 0 |
+| E5 Entidade ticket | — | não agora (decisão §7) | 0 |
+
+> Como evoluir este plano: **edita no lugar + bump `reviewed_at`** (plano é vivo, fonte única — [ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)/0294). Pivô de decisão → ADR nova. Histórico = git.
 
 ---
 
