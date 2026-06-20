@@ -101,7 +101,9 @@ lines.push('| Plano | Módulo | Status | Owner | reviewed_at | parent_plan |');
 lines.push('|---|---|---|---|---|---|');
 for (const p of plans) {
   const flag = !STATUS_OK.has(p.status) ? ' ⚠️' : '';
-  lines.push(`| [${p.title.replace(/\|/g, '\\|').slice(0, 70)}](${p.link}) | ${p.mod} | ${p.status}${flag} | ${p.owner} | ${p.rev} | ${p.parent} |`);
+  // sanitiza `Modules/X` do título (índice não deve carregar ref-fantasma a módulo inexistente — anti-ghost ratchet)
+  const safeTitle = p.title.replace(/Modules\//gi, '').replace(/\|/g, '\\|').slice(0, 70);
+  lines.push(`| [${safeTitle}](${p.link}) | ${p.mod} | ${p.status}${flag} | ${p.owner} | ${p.rev} | ${p.parent} |`);
 }
 lines.push('');
 const output = lines.join('\n') + '\n';
