@@ -1,6 +1,6 @@
 ---
 date: "2026-06-20"
-topic: "Scorecard adversarial dos planos pendentes — 30 céticos verificaram o estado REAL de cada plano contra origin/main @ 1819d0912 (git+gh+código, sem confiar em docs). Resultado: 6 REAL · 13 PARCIAL · 8 PROMETIDO-NÃO-EXISTE · 3 BLOQUEADO. Prontidão média ~44/100. Achado-chave: o refutador de 19/jun e a MEMORY.md já estão parcialmente STALE — várias peças SDD landaram entre 19→20/jun."
+topic: "Scorecard adversarial dos planos pendentes — 30 céticos verificaram estado real vs origin/main: 6 REAL, 13 PARCIAL, 8 prometido-não-existe, 3 bloqueado (~44/100). Parte do refutador de 19/jun já está stale (SDD landou 19→20/jun)."
 authors: [C]
 related_adrs: ["0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento", "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes", "0279-sdd-medir-governar-floor-nightly", "0281-dark-mode-bridge-data-theme-tokens", "0291-distiller-modulo-verdade-contrato-emenda-0270-f3"]
 prs: []
