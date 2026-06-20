@@ -142,6 +142,15 @@
         ]
       },
       {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-pr-without-approval.mjs"
+          }
+        ]
+      },
+      {
         "matcher": "mcp__computer-use__screenshot|mcp__Claude_in_Chrome__.*",
         "hooks": [
           {
