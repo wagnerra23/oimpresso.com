@@ -86,13 +86,31 @@ check('override env → ALLOW', runHook(PUSH, { OIMPRESSO_PR_APPROVAL_OVERRIDE: 
 
 // 9. "merge" do Wagner aprova → gh pr merge passa.
 clearFlag();
-runHook(prompt('merge'));
+runHook(prompt('pode mergear'));
 check('"merge" aprova → gh pr merge ALLOW', runHook({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'gh pr merge 1908 --admin' } }).code === 0);
+
+// 10. FALSO-POSITIVO corrigido: 'merge' incidental em conversa NAO aprova publicacao.
+clearFlag();
+runHook(prompt('qual a estrategia de merge antes?'));
+check('"estrategia de merge" NAO aprova (falso-positivo) -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+
+// 11. Gap PowerShell fechado: push via tool PowerShell sem aprovacao -> BLOCK.
+clearFlag();
+check('PowerShell push sem aprovacao -> BLOCK', runHook({ hook_event_name: 'PreToolUse', tool_name: 'PowerShell', tool_input: { command: 'git push' } }).code === 2);
+
+// 12. PowerShell push COM aprovacao -> ALLOW.
+clearFlag();
+runHook(prompt('pode pushar'));
+check('PowerShell push com aprovacao -> ALLOW', runHook({ hook_event_name: 'PreToolUse', tool_name: 'PowerShell', tool_input: { command: 'git push -u origin HEAD' } }).code === 0);
+
+// 13. publishPatterns ancorado: 'git push' embebido em comando de busca NAO bloqueia.
+clearFlag();
+check('busca com "git push" embebido (rg) -> ALLOW (nao e publicacao)', runHook({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: "rg 'git push' .claude/hooks" } }).code === 0);
 
 clearFlag();
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] R10 enforçada pela MÁQUINA — sobrevive sem a skill. (9/9)');
+  console.log('[PASS] R10 enforçada pela MÁQUINA — sobrevive sem a skill. (13/13)');
   process.exit(0);
 } else {
   console.log(`[FAIL] ${fails} caso(s) — R10 NÃO está garantida pela máquina. NÃO rebaixar a skill.`);

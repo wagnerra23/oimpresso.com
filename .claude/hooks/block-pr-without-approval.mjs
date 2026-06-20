@@ -37,11 +37,13 @@ const TTL_MIN = 15;
 
 // Sinais FORTES de aprovação de publicação (não qualquer "sim" solto).
 const approvePatterns = [
-  /\bpode\s+(fazer|commitar|comitar|pushar|push|subir|mergear|merge|criar|abrir)\b/i,
+  /\bpode\s+(fazer|commitar|comitar|pushar|push|subir|mergear|merge|criar|abrir|publicar|mandar)\b/i,
   /\b(faça|faz|abre|abra|cria|crie)\s+o\s+pr\b/i,
-  /\b(merge|mergeia|mergear|mergeie)\b/i,
-  /\b(aprovado|autorizado|pode\s+mandar|manda\s+ver)\b/i,
-  /\b(suba|sobe|publica|publique|pode\s+publicar)\b/i,
+  // 'merge' SO com verbo de ordem — nao casa 'merge' incidental ("estrategia de merge", "merge conflict")
+  /\b(pode\s+mergear|faz(?:\s+o)?\s+merge|mergeia\s+(?:o|os|esse|essa|a|isso|agora)|manda\s+(?:o\s+)?merge|aprovo\s+o\s+merge)\b/i,
+  /\b(aprovado|autorizado|manda\s+ver)\b/i,
+  // publicar/subir SO com objeto/ordem — nao 'publica/suba' solto incidental
+  /\b(suba|sobe|publica|publique)\s+(?:o|os|essa|esse|isso|pra|agora|tudo)\b/i,
   /\bvai\s+em\s+frente\b/i,
   /^\s*(pode|sim,?\s*pode|ok,?\s*pode)\b/i,
 ];
@@ -58,7 +60,10 @@ function isApproval(text) {
   return approvePatterns.some((r) => r.test(text));
 }
 
-const publishPatterns = [/gh\s+pr\s+create/i, /gh\s+pr\s+merge/i, /git\s+push/i];
+// Ancorados no inicio efetivo do comando (apos ; & |) com limite de palavra —
+// evita falso-bloqueio quando a frase aparece dentro de string/comentario/arg de busca
+// (ex: rg 'git push', history | grep 'git push').
+const publishPatterns = [/(^|[;&|]\s*)gh\s+pr\s+(create|merge)(\s|$)/i, /(^|[;&|]\s*)git\s+push(\s|$)/i];
 function isPublish(cmd) {
   return !!cmd && publishPatterns.some((r) => r.test(cmd));
 }
@@ -101,8 +106,9 @@ async function readStdin() {
     process.exit(0);
   }
 
-  // 2. PreToolUse Bash → exige aprovação válida pra publicar
-  if (event === 'PreToolUse' && p.tool_name === 'Bash') {
+  // 2. PreToolUse Bash/PowerShell → exige aprovação válida pra publicar
+  //    (PowerShell e o shell primario deste ambiente — sem isto o R10 era contornavel)
+  if (event === 'PreToolUse' && (p.tool_name === 'Bash' || p.tool_name === 'PowerShell')) {
     const cmd = p.tool_input?.command || '';
     if (!isPublish(cmd)) process.exit(0);
 
