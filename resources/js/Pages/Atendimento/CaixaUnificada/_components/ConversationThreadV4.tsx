@@ -11,7 +11,7 @@
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCheck, ClipboardCheck, Star } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCheck, PanelRight, Star } from 'lucide-react';
 import { cn } from '@/Lib/utils';
 import { Stack } from '@/Components/layout';
 import {
@@ -39,12 +39,14 @@ interface Props {
   messages: CaixaUnifMessage[];
   channels: ChannelCatalogItem[];
   onResolve?: () => void;
+  /** Contexto-drawer ([W] 2026-06-19) — abre o painel de Contexto como drawer lateral. */
+  onOpenContext?: () => void;
   /** US-WA-303 — templates ready do business (picker do composer). */
   templates?: ReadyTemplate[];
 }
 
 export default function ConversationThreadV4({
-  thread, messages, channels, onResolve, templates = [],
+  thread, messages, channels, onResolve, onOpenContext, templates = [],
 }: Props) {
   const threadRef = useRef<HTMLDivElement>(null);
 
@@ -208,6 +210,18 @@ export default function ConversationThreadV4({
         >
           <Star size={13} fill={isFav(thread.id) ? 'currentColor' : 'none'} aria-hidden />
         </button>
+        {/* Contexto-drawer — abre o painel de Contexto (some a coluna fixa · [W] 2026-06-19) */}
+        {onOpenContext && (
+          <button
+            type="button"
+            onClick={onOpenContext}
+            className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
+            title="Ver contexto da conversa"
+            data-testid="caixa-unif-ctx-open"
+          >
+            <PanelRight size={12} aria-hidden /> Contexto
+          </button>
+        )}
         {!isPreview && !isBlocked && onResolve && (
           <button
             type="button"
