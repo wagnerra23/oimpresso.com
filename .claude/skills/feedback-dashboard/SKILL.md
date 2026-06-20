@@ -1,6 +1,7 @@
 ---
 name: feedback-dashboard
 description: ATIVAR quando Wagner pedir "/feedback-dashboard", "mostra feedback", "como está o feedback", "que feedback tem aberto", "feedback do <cliente>", "feedback da <persona>", "feedback do mês", OU quando Wagner abrir sessão pra review de backlog feedback. Gera relatório agregado do estado atual: pendentes por persona/cliente/severity/módulo + RICE ranking top 10 + patterns emergentes (3+ clientes reportaram similar) + métricas SLA + comparação período. Lê memory/clientes/*/feedback/*.md append-only e calcula. Skill Tier B. Refs ADR UI-0016.
+tier: B
 ---
 
 # feedback-dashboard — Estado atual do feedback canon

@@ -11,6 +11,7 @@ description: >
   stream, lista modos de falha, e escreve um session log `YYYY-MM-DD-sdd-avaliacao-*.md`.
   É o sistema imunológico do SDD: caça "a suite mente" (gate que não morde, baseline
   nunca armado, métrica de forma não de correção, feito-que-depende-de-algo-que-nunca-rodou).
+tier: C
 ---
 
 # sdd-avaliar — avaliador adversarial do processo SDD

@@ -1,6 +1,7 @@
 ---
 name: memory-first-secret-search
 description: BLOQUEADOR Tier A — ATIVAR ANTES de qualquer busca por token / API key / password / SSH key / credential / secret. Skill canon que IMPEDE busca disgrega em paths aleatórios (.env, containers, etc) sem consultar PRIMEIRO o índice canônico `memory/_INDEX-SECRETS.md`. Origem falha 2026-05-28 18:30: agente declarou Tier 0 gap "token Hostinger inacessível" sem ter pesquisado memory canon (o token estava catalogado, o agente é que não consultou o índice). Wagner cobrou "tem api da hostinger na memoria". Skill força ordem fixa: (1) Read memory/_INDEX-SECRETS.md (2) follow ponteiro (3) se expired/missing registra rotação. NÃO escala Wagner se ponteiro existe.
+tier: A
 ---
 
 # Memory-First Secret Search — Tier A bloqueante

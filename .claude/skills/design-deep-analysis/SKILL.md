@@ -1,6 +1,7 @@
 ---
 name: design-deep-analysis
 description: ATIVAR quando Wagner pedir /design-deep <persona-slug>, "analisar visualmente tela X pra persona Y", "design profundo da tela <Z>", OU em refator visual de tela que afeta cliente paga + reportou fricção. Skill canônica de análise contextualizada por persona — carrega persona YAML de memory/clientes/<cliente>/personas/, invoca design:* skills Anthropic em paralelo (critique + system + ux-copy + accessibility-review + research-synthesis), score 15 dimensões com ponderação por persona, entrega 3 alternativas A/B/C com diff de código preparado + métrica antes/depois. Refs ADR UI-0016, framework-15-dimensoes.md, RUNBOOK-design-deep.md.
+tier: B
 ---
 
 # design-deep-analysis — Análise contextualizada de tela por persona

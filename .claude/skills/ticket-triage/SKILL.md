@@ -33,6 +33,7 @@ does_not_trigger_on:
   - "marcar resolvido" (action ≠ análise)
   - "enviar mensagem" (composer ≠ triagem)
   - perguntas conversacionais sem ID/cliente alvo
+tier: B
 ---
 
 # ticket-triage — Skill de triagem de atendimento
