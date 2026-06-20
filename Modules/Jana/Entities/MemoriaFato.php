@@ -20,6 +20,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Indexa em Meilisearch via Scout. toSearchableArray controla o que vai pro index.
  *
  * Ver ADRs 0031/0033/0036/0090.
+ *
+ * Colunas bi-temporais (ADR 0295) ainda fora do schema-dump que o Larastan lê;
+ * anotadas aqui pra resolução de tipo (event-time + link de supersede).
+ *
+ * @property \Illuminate\Support\Carbon|null $event_valid_from  event-time: quando passou a valer no mundo
+ * @property \Illuminate\Support\Carbon|null $event_valid_until event-time: quando deixou de valer no mundo
+ * @property int|null                        $supersedes_id     link explícito pro fato que este substitui
  */
 class MemoriaFato extends Model
 {

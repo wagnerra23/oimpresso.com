@@ -86,6 +86,10 @@ class OimpressoMcpServer extends Server
         // ─── PAGE 2 (cliente precisa paginar pra carregar) ───
         Tools\ClaudeCodeUsageSelfTool::class,
         Tools\MemoriaSearchTool::class,
+        // ADR 0295 (T4 slice 2) — time-travel bi-temporal: "o que valia em as_of?".
+        // Espelha memoria-search mas via Eloquent direto (HistoricoMemoriaService),
+        // pra alcançar fatos superseded que ficam fora do index Meilisearch.
+        Tools\MemoriaHistoricaTool::class,
         Tools\CcSearchTool::class,
         // ADR 0119 Tier 1 — coordenação entre sessões Claude (alerta passivo,
         // não lock). Agregação derivada de mcp_cc_sessions + mcp_cc_messages.
