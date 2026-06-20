@@ -339,6 +339,62 @@ function checkPlanHealth() {
   }
 }
 
+// ── Check K: decisão em session log sem âncora (detector dos "155 perdidos") ─
+// Adversário 2026-06-20 (memory/sessions/2026-06-20-adversario-convergencia-sistema.md):
+// decisão/rollout escrito num session log que NUNCA virou ADR aceito nem entrou num
+// BRIEFING "se perde" — converge só pela atenção manual. Este check flagga session log
+// >30d com marcador de decisão (`## Decisão`, `US-`, `rollout`, `### Passo`) que NÃO
+// referencia nenhum ADR ACEITO nem um BRIEFING. Warn-only (advisory): é fila de triagem,
+// não bloqueio — promover a ADR/BRIEFING OU registrar resolução. Complementa Check J
+// (que cuida de PLANOs vivos, ADR 0294); aqui o alvo é o session log histórico.
+const SESSION_DECISION_STALE_DAYS = 30;
+function acceptedAdrNums() {
+  const dir = 'memory/decisions';
+  const set = new Set();
+  if (!exists(dir)) return set;
+  for (const f of readdirSync(join(ROOT, dir))) {
+    const m = f.match(/^(\d{4})-.+\.md$/);
+    if (!m) continue;
+    let txt; try { txt = read(`${dir}/${f}`); } catch { continue; }
+    const st = (txt.match(/^status:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    if (st && /^(aceito|accepted|aceita)/.test(st)) set.add(m[1]);
+  }
+  return set;
+}
+function checkSessionDecisionAnchor() {
+  const dir = 'memory/sessions';
+  if (!exists(dir)) return;
+  const accepted = acceptedAdrNums();
+  const today = new Date(gitLastDate('.') || '2026-06-20'); // determinismo CI (sem Date.now)
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - SESSION_DECISION_STALE_DAYS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const files = listFiles(dir, (rel) => rel.endsWith('.md') && !/_TEMPLATE|README/i.test(rel));
+  const lost = [];
+  for (const rel of files) {
+    let txt; try { txt = read(rel); } catch { continue; }
+    // marcador de decisão/rollout (lista do adversário 2026-06-20)
+    const hasDecision = /^##\s*Decis[aã]o\b/im.test(txt)
+      || /^###\s*Passo\b/im.test(txt)
+      || /\bUS-[A-Z0-9]{2,}/.test(txt)
+      || /\brollout\b/i.test(txt);
+    if (!hasDecision) continue;
+    // idade: `date:` do frontmatter (quando a sessão ocorreu) → fallback git
+    const when = (txt.match(/^date:\s*["']?(\d{4}-\d{2}-\d{2})/mi) || [])[1] || gitLastDate(rel);
+    if (!when || when >= cutoffStr) continue; // só >30d
+    // âncora: referencia algum ADR ACEITO (nº existente + status aceito) OU um BRIEFING
+    const refs = new Set();
+    for (const m of txt.matchAll(/\bADR[\s-]*(\d{3,4})\b/gi)) refs.add(m[1].padStart(4, '0'));
+    for (const m of txt.matchAll(/\b(\d{4})-[a-z]{2,}/g)) refs.add(m[1]); // slug related_adrs / link decisions/NNNN
+    const anchoredByAdr = [...refs].some((n) => accepted.has(n));
+    const anchoredByBriefing = /BRIEFING/i.test(txt);
+    if (!anchoredByAdr && !anchoredByBriefing) lost.push(`${rel} (${when})`);
+  }
+  if (lost.length) {
+    warns.push({ check: 'K', kind: 'session-decisao-sem-ancora', count: lost.length, sample: lost.slice(0, 12),
+      msg: `${lost.length} session log(s) >${SESSION_DECISION_STALE_DAYS}d com marcador de decisão (\`## Decisão\`/\`US-\`/\`rollout\`/\`### Passo\`) SEM link pra ADR aceito nem BRIEFING — os "planos perdidos" (adversário 2026-06-20). Triagem: promover a ADR/BRIEFING ou registrar resolução.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
@@ -350,6 +406,7 @@ checkGatesRegistry();
 checkLidoFreshness();
 checkLicaoSemAssercao();
 try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-health-error', msg: 'plan-health falhou (não bloqueia): ' + e.message }); }
+try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 
 if (UPDATE_BASELINE) {
   writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile }, null, 2) + '\n');
