@@ -5,13 +5,13 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **300** arquivos · **285** números únicos · máx **0295**
-- **ADRs ATIVOS (lifecycle ativo): 260** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 229 · proposto 44 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 260 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **301** arquivos · **285** números únicos · máx **0295**
+- **ADRs ATIVOS (lifecycle ativo): 261** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 229 · proposto 45 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 261 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
-## Colisões de número (13) — auto-detectadas
+## Colisões de número (14) — auto-detectadas
 - **0101** ×2: 0101-sistema-charter-capterra-governanca-escopo · 0101-tests-business-id-1-nunca-cliente
 - **0102** ×2: 0102-nfce-status-polling-vs-broadcast · 0102-s6-charter-capterra-postmortem-s7-backlog
 - **0119** ×2: 0119-migration-factory-capacidade-institucional · 0119-paralelismo-sessoes-whats-active-tier-1
@@ -25,6 +25,7 @@
 - **0235** ×2: 0235-ds-v4-accent-roxo-universal · 0235-staging-ct100-clone-anonimizado
 - **0236** ×3: 0236-extrato-conciliacao-modelo-unificado · 0236-governanca-evolucao-doc-design · 0236-scorecard-universal-entidade-arbitraria
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
+- **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
 
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
@@ -32,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (300)
+## Todas as ADRs (301)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -333,5 +334,6 @@ _(íntegra)_
 | 0291 | proposto | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
 | 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
 | 0293 | proposto | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
+| 0294 | proposto | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
 | 0295 | proposto | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |

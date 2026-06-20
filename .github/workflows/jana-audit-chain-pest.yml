@@ -1,0 +1,87 @@
+name: Jana audit-chain Pest (T5)
+
+# ADR 0294 — verifica a LOGICA pura do hash-chain do mcp_audit_log no CI.
+# Escopo ESTREITO de proposito: roda SO o AuditChainServiceTest (pura-logica,
+# sem DB), NAO o modulo Jana inteiro — Jana nunca esteve no CI e jogar tudo de
+# uma vez exporia debito pre-existente que nao e deste PR. Cobertura CI completa
+# de Jana fica como follow-up. O trigger MySQL real (append-only) roda no CT 100.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Modules/Jana/Services/Mcp/AuditChainService.php'
+      - 'Modules/Jana/Entities/Mcp/McpAuditLog.php'
+      - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
+      - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
+      - '.github/workflows/jana-audit-chain-pest.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: jana-audit-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pest:
+    name: Pest AuditChainService (logica pura)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run Pest (AuditChainService)
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        run: |
+          vendor/bin/pest Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
+            --no-coverage \
+            --colors=always
