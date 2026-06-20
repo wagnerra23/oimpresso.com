@@ -20,6 +20,7 @@ triggers_on:
   - "renomear módulo baseline"
   - "diagnosticar falha CI module grades"
   - "/module-grades-gate"
+tier: C
 ---
 
 # Module Grades Gate — anti-regressão da rubrica v3

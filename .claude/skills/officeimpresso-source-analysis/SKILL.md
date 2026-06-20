@@ -4,6 +4,7 @@ description: ATIVAR quando precisar entender comportamento real de uma tela/feat
 type: tier-b-auto-trigger
 status: draft
 date: 2026-05-11
+tier: B
 ---
 
 # officeimpresso-source-analysis — análise via código-fonte Delphi

@@ -10,6 +10,7 @@ description: >
   Mantém o INDEX-DESIGN-MEMORIAS.md vivo SEM quebrar a estrutura — append-only +
   ratchet + freshness + idempotente. Tier B auto-trigger. Refs ADR proposto
   governanca-evolucao-doc-design, ADR 0230/0231/0233, INDEX-DESIGN-MEMORIAS.md.
+tier: B
 ---
 
 # design-memoria-reprocess — reprocessar a doc de design sem quebrar a estrutura

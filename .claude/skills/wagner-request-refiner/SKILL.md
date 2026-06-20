@@ -1,6 +1,7 @@
 ---
 name: wagner-request-refiner
 description: ATIVAR quando Wagner manda múltiplos pedidos curtos não-estruturados num mesmo turno (ex: lista com 3+ items, "todo: a) b) c)", bullets numerados, screenshots com várias anotações simultâneas, ou texto corrido com várias intenções misturadas). Decompõe em tasks atômicas, infere owner/priority/module/estimate cruzando com SPEC.md + MCP, propõe estrutura ANTES de criar via MCP ou editar código. Anti-pattern: pegar tudo de uma vez e implementar sem cruzar dependências. Wagner valoriza economia de crédito + escopo confirmado antes de execução massiva.
+tier: B
 ---
 
 # wagner-request-refiner — refina pedidos vagos em US estruturadas

@@ -1,6 +1,7 @@
 ---
 name: personas-resolve
 description: BLOQUEADOR Tier A — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em arquivos de `resources/js/Pages/**/*.tsx` ou criação de tela nova. Resolve a(s) persona(s) alvo da tela em 3 níveis de fallback (1) charter da tela `<Tela>.charter.md` campo `personas_alvo`; (2) mapping módulo em `memory/requisitos/_DesignSystem/personas-por-modulo.yml`; (3) pergunta interativa ao Wagner. Carrega persona YAML completa de `memory/clientes/<cliente>/personas/<slug>.yml` no contexto antes de codar. Sem persona resolvida = NÃO procede com edit visual. Reforça ADR UI-0016 (design contextualizado por persona). NUNCA usar persona hipotética sem cliente real (ADR 0105).
+tier: B
 ---
 
 # personas-resolve — Auto-load persona alvo da tela (Tier A bloqueador)

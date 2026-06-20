@@ -1,6 +1,7 @@
 ---
 name: curador
 description: ATIVAR quando user pedir "ingerir conhecimento", "triar D:\\Conhecimento", "organizar arquivos do computador", "ler tudo e classificar", "/curador <subcomando>", OU mencionar ingestão de batch de docs/manuais/PDFs pra alimentar Jana/oimpresso. Pipeline 5-fase (DISCOVER→CLASSIFY→REPORT→REVIEW→APPLY) com heurística-first (70-80% determinístico) e Claude-second (só itens ambíguos). Estado persistente em `scripts/curador/db/files.jsonl` (sobrevive /clear, /compact, reboot). NUNCA aplica sem aprovação humana batch-a-batch. Sensitive (.env, .pfx, .rdp, .key, XML cliente) BLOQUEIA commit. Multi-usuário consent-first (LGPD). ADR 0124.
+tier: B
 ---
 
 # Curador — pipeline canônico de ingestão
