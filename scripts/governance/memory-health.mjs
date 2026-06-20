@@ -301,6 +301,44 @@ function checkLicaoSemAssercao() {
   }
 }
 
+// ── Check J: plan-health (ADR 0294 — planos vivos) ─────────────────────────
+// Espelha a catraca/sentinela do ADR 0256 apontada pra PLANOs. Warn-only (advisory):
+// plano sem `## Status vivo`, sem reviewed_at / stale (>30d), status fora do enum, ou
+// `em-execução` sem `parent_plan` (a membrana — task MCP). NUNCA bloqueia (só sinaliza).
+const PLAN_STATUS_OK = new Set(['proposto', 'ativo', 'em-execução', 'em-execucao', 'pausado', 'concluído', 'concluido', 'abandonado', 'superseded', 'revisar']);
+const PLAN_STALE_DAYS = 30;
+function checkPlanHealth() {
+  const base = 'memory/requisitos';
+  if (!exists(base)) return;
+  const isPlan = (rel) => rel.endsWith('.md')
+    && /plan/i.test(rel.split('/').pop())
+    && !/PLANS-INDEX|_TEMPLATE/i.test(rel)
+    && !/\/(adr|arq)\//.test(rel);
+  const files = listFiles(base, isPlan);
+  if (!files.length) return;
+  const today = new Date(gitLastDate('.') || '2026-06-20');
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - PLAN_STALE_DAYS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const issues = [];
+  for (const rel of files) {
+    let txt; try { txt = read(rel); } catch { continue; }
+    if (!/##\s*Status vivo/i.test(txt)) { issues.push(`${rel}: sem bloco \`## Status vivo\` (ADR 0294)`); continue; }
+    const block = (txt.split(/##\s*Status vivo/i)[1] || '').split(/\n##\s/)[0];
+    const status = (block.match(/status:?\**\s*([^\s<·*\n]+)/i) || [])[1]?.toLowerCase();
+    const rev = (block.match(/reviewed[_ -]?at:?\**\s*["']?(\d{4}-\d{2}-\d{2})/i) || [])[1];
+    const hasParent = /parent_plan\s*[=:]\s*[a-z0-9-]+/i.test(block);
+    if (!status) issues.push(`${rel}: Status vivo sem \`status\``);
+    else if (!PLAN_STATUS_OK.has(status)) issues.push(`${rel}: status "${status}" fora do enum (ADR 0294)`);
+    if (!rev) issues.push(`${rel}: Status vivo sem \`reviewed_at\``);
+    else if (rev < cutoffStr) issues.push(`${rel}: reviewed_at ${rev} > ${PLAN_STALE_DAYS}d — revisar + bump`);
+    if ((status === 'em-execução' || status === 'em-execucao') && !hasParent) issues.push(`${rel}: \`em-execução\` sem \`parent_plan\` (membrana ADR 0294)`);
+  }
+  if (issues.length) {
+    warns.push({ check: 'J', kind: 'plan-health', count: issues.length, sample: issues.slice(0, 12),
+      msg: `${issues.length} achado(s) de plano-vivo (ADR 0294): plano sem \`## Status vivo\` / \`reviewed_at\` stale / \`em-execução\` órfão. Edita o plano no lugar + bump reviewed_at (fonte única).` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
@@ -311,6 +349,7 @@ checkAntiResurrection();
 checkGatesRegistry();
 checkLidoFreshness();
 checkLicaoSemAssercao();
+try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-health-error', msg: 'plan-health falhou (não bloqueia): ' + e.message }); }
 
 if (UPDATE_BASELINE) {
   writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile }, null, 2) + '\n');

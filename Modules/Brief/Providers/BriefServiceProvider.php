@@ -4,6 +4,7 @@ namespace Modules\Brief\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Modules\Brief\Console\Commands\GenerateBriefCommand;
+use Modules\Brief\Console\Commands\SkillTierReviewCommand;
 
 /**
  * ServiceProvider do módulo Brief.
@@ -35,6 +36,7 @@ class BriefServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 GenerateBriefCommand::class,
+                SkillTierReviewCommand::class,
             ]);
         }
     }

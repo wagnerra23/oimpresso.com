@@ -4,7 +4,9 @@ namespace Modules\Jana\Entities\Mcp;
 
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Jana\Services\Mcp\AuditChainService;
 
 /**
  * MEM-MCP-1.a (ADR 0053) — Audit log IMUTÁVEL de chamadas MCP.
@@ -17,6 +19,9 @@ use Illuminate\Support\Str;
  * (defesa em profundidade — leitura nunca cruza tenant). INSERT via
  * `registrar()` factory grava business_id explicitamente (jobs/CLI sem auth
  * → scope fail-open, sem regressão).
+ *
+ * @property string|null $hash           Hash SHA-256 da linha (hash-chain, ADR 0294)
+ * @property string|null $hash_anterior  Hash da linha N-1 (elo da cadeia, ADR 0294)
  */
 class McpAuditLog extends Model
 {
@@ -34,6 +39,7 @@ class McpAuditLog extends Model
         'custo_brl', 'duration_ms',
         'ip', 'user_agent', 'claude_code_session', 'mcp_token_id',
         'payload_summary', 'created_at',
+        'hash_anterior', 'hash', // hash-chain tamper-evidence (ADR 0294)
     ];
 
     protected $casts = [
@@ -64,7 +70,20 @@ class McpAuditLog extends Model
             );
         }
 
-        return static::create($atributos);
+        // Hash-chain tamper-evident GLOBAL (ADR 0294). Transacao + lock no SELECT
+        // da ultima linha mitiga corrida (dois INSERTs concorrentes lendo o mesmo N-1).
+        return DB::transaction(function () use ($atributos) {
+            $ultimo = static::withoutGlobalScopes() // cadeia GLOBAL cross-tenant (SUPERADMIN, ADR 0294)
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
+
+            $hashAnterior = $ultimo?->hash;
+            $atributos['hash_anterior'] = $hashAnterior;
+            $atributos['hash'] = AuditChainService::hash($atributos, $hashAnterior);
+
+            return static::create($atributos);
+        });
     }
 
     public function isErro(): bool
