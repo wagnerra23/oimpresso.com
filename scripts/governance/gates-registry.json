@@ -158,6 +158,10 @@
       "nome": "Governance Gate (pre-merge)",
       "classe": "gate"
     },
+    "governance-script-tests.yml": {
+      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
+      "classe": "gate"
+    },
     "infra-contract-required.yml": {
       "nome": "Infra Contract Required",
       "classe": "gate"
