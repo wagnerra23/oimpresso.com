@@ -55,12 +55,18 @@ class MemoriaFato extends Model
         'metadata',
         'valid_from',
         'valid_until',
+        'event_valid_from',  // event-time bi-temporal (ADR 0295)
+        'event_valid_until',
+        'supersedes_id',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'valid_from' => 'datetime',
         'valid_until' => 'datetime',
+        'event_valid_from' => 'datetime',  // ADR 0295
+        'event_valid_until' => 'datetime',
+        'supersedes_id' => 'integer',
     ];
 
     public function searchableAs(): string
