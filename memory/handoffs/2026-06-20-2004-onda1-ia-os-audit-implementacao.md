@@ -1,5 +1,5 @@
 ---
-date: 2026-06-20
+date: "2026-06-20"
 time: "2004 BRT"
 slug: "onda1-ia-os-audit-implementacao"
 tldr: "Partiu de 'analisa meu IA OS vs o melhor'. Auditoria multi-agente (9 dims, ~80/100, CONSOLIDAR) + reconferencia adversarial. Implementei a Onda 1 inteira: 10 PRs mergeados (T1 decoder !!binary, T2+parse-29-hooks, T3+R10-hardening, T6 drift, T7-A tier, testes, T5 hash-chain audit ADR 0294->0296, T4 bi-temporal slice-1 ADR 0295, T7-B). T4 slice-2 #3078 aberto + slice-3 em curso. Licoes: colisao de numero ADR em sessoes paralelas; Check G do censo de gates; extensoes Pest."
