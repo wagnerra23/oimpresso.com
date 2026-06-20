@@ -3,6 +3,7 @@
 namespace Modules\Jana\Services\Memoria;
 
 use Illuminate\Support\Facades\Log;
+use Laravel\Ai\Responses\StructuredAgentResponse;
 use Modules\Jana\Ai\Agents\DetectarSupersedeAgent;
 use Modules\Jana\Entities\MemoriaFato;
 
@@ -132,7 +133,7 @@ class SupersedeDetector
      * gpt-4o-mini via `openai`. Qualquer falha → null (FAILSAFE).
      *
      * @param  array<int, string>  $candidatos
-     * @return array<string, mixed>|null
+     * @return array<array-key, mixed>|null
      */
     protected function perguntarAoLlm(string $novoFato, array $candidatos): ?array
     {
@@ -152,9 +153,11 @@ class SupersedeDetector
 
         foreach ($tentativas as [$provider, $model]) {
             try {
+                // HasStructuredOutput → prompt() devolve um StructuredAgentResponse
+                // (subclasse de AgentResponse) com o JSON do schema em ->toArray().
                 $resp = $agent->prompt($prompt, provider: $provider, model: $model);
-                if (is_array($resp)) {
-                    return $resp;
+                if ($resp instanceof StructuredAgentResponse) {
+                    return $resp->toArray();
                 }
             } catch (\Throwable $e) {
                 Log::channel('copiloto-ai')->warning('SupersedeDetector: tentativa LLM falhou', [
