@@ -1,6 +1,6 @@
 ---
 date: "2026-06-20"
-topic: "Reclassificação COMPLETA de planos do oimpresso — varredura de 61 docs-plano + 257 sessions/handoffs via 39 agentes adversariais (status real verificado contra git). Achado-mãe: o universo real de planos é ~43 docs + ~155 iniciativas PERDIDAS em session logs (nunca viraram doc rastreado), vs apenas 15 no PLANS-INDEX hand-made. Recomenda tornar o índice GERADO + triagem da cauda perdida."
+topic: "Reclassificação completa de planos: 61 docs + 257 sessions/handoffs via 39 agentes (status verificado em git). Universo real ~43 docs + ~155 iniciativas perdidas em sessions, vs 15 no PLANS-INDEX. Recomenda índice gerado + triagem da cauda."
 authors: [C]
 related_adrs: ["0256-knowledge-survival-meia-vida-catraca-sentinela", "0070-jira-style-task-management-current-md-removed", "0105-cliente-como-sinal-guiar-sem-mandar"]
 prs: []

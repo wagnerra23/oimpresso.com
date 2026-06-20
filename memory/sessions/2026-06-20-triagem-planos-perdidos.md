@@ -1,6 +1,6 @@
 ---
 date: "2026-06-20"
-topic: "Triagem das 155 iniciativas-plano perdidas (estado real vs git + sinal ADR-0105). Resultado: 19 descartar (já feito/obsoleto) · 58 park-wish (desejo sem sinal) · 34 backlog-now (sinal qualificado) · 44 decide-W (estratégico/ambíguo). A cauda 'perdida' é majoritariamente wish/done; só 34 são acionáveis com sinal."
+topic: "Triagem das 155 iniciativas-plano perdidas (estado real vs git + sinal ADR-0105): 19 descartar, 58 park-wish, 34 backlog-now, 44 decide-W. Cauda majoritariamente wish/done; só 34 acionáveis com sinal."
 authors: [C]
 related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0070-jira-style-task-management-current-md-removed", "0256-knowledge-survival-meia-vida-catraca-sentinela"]
 prs: []
