@@ -1,18 +1,25 @@
 name: Jana bi-temporal Pest (T4)
 
-# ADR 0295 — verifica a LOGICA pura do predicado event-time (BiTemporalResolver) no CI.
-# Escopo ESTREITO: roda SO o BiTemporalResolverTest (pura-logica, sem DB), NAO o
-# modulo Jana inteiro nem o dir Unit todo — Jana so tem allowlist MySQL (jana-pest.yml)
-# e jogar tudo exporia debito alheio a este PR. A traducao pra SQL (buscarHistorico)
-# e exercitada no CT 100 nos slices seguintes. Extensoes casam com modules-pest.yml
-# (composer.lock exige opentelemetry/gd/pdo_mysql).
+# ADR 0295 — verifica a LOGICA pura do event-time no CI (sem DB):
+#   - slice 1: predicado BiTemporalResolver (BiTemporalResolverTest)
+#   - slice 3: DECISAO de supersede SupersedeDetector::decidir (SupersedeDetectorTest,
+#     mocka o LLM — threshold, guard multi-tenant id∈candidatos, FAILSAFE)
+# Escopo ESTREITO: roda SO esses 2 arquivos (pura-logica), NAO o modulo Jana inteiro
+# nem o dir Unit todo — Jana so tem allowlist MySQL (jana-pest.yml) e jogar tudo
+# exporia debito alheio a este PR. A consolidacao no banco (event-time + supersedes_id)
+# e MySQL-only e roda na lane jana-pest.yml (SupersedeConsolidacaoTest). Extensoes
+# casam com modules-pest.yml (composer.lock exige opentelemetry/gd/pdo_mysql).
 
 on:
   pull_request:
     branches: [main]
     paths:
       - 'Modules/Jana/Services/Memoria/BiTemporalResolver.php'
+      - 'Modules/Jana/Services/Memoria/SupersedeDetector.php'
+      - 'Modules/Jana/Ai/Agents/DetectarSupersedeAgent.php'
       - 'Modules/Jana/Tests/Unit/BiTemporalResolverTest.php'
+      - 'Modules/Jana/Tests/Unit/SupersedeDetectorTest.php'
+      - 'Modules/Jana/Config/memoria.php'
       - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - '.github/workflows/jana-bitemporal-pest.yml'
   workflow_dispatch:
@@ -26,7 +33,7 @@ permissions:
 
 jobs:
   pest:
-    name: Pest BiTemporalResolver (logica pura)
+    name: Pest event-time (logica pura · predicado + supersede)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +80,7 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (BiTemporalResolver)
+      - name: Run Pest (event-time logica pura)
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
@@ -82,6 +89,8 @@ jobs:
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
         run: |
-          vendor/bin/pest Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
+          vendor/bin/pest \
+            Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
+            Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
             --no-coverage \
             --colors=always

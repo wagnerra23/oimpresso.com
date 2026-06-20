@@ -271,6 +271,14 @@ class JanaServiceProvider extends ServiceProvider
             __DIR__ . '/../Config/retention.php',
             'jana.retention',
         );
+
+        // ADR 0295 slice 3 — namespace jana.memoria.* (chaves novas no nome final).
+        // Habilita config('jana.memoria.supersede_detection.enabled', false) —
+        // flag OFF por default (SupersedeDetector / ExtrairFatosDaConversaJob).
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/memoria.php',
+            'jana.memoria',
+        );
     }
 
     /**
