@@ -162,6 +162,10 @@
       "nome": "Infra Contract Required",
       "classe": "gate"
     },
+    "jana-bitemporal-pest.yml": {
+      "nome": "Jana bi-temporal Pest (T4 · predicado event-time BiTemporalResolver · ADR 0295)",
+      "classe": "gate"
+    },
     "jana-pest.yml": {
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
