@@ -1,7 +1,7 @@
 # Plano — Atendimento Automático (WhatsApp / Caixa Unificada)
 
 > **Origem:** pedido [W] 2026-06-20 ("concluir o plano de atendimento automático — abrir suporte") + estado-da-arte [`sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md`](../../sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md) + estudo de ROI (este doc, §0).
-> **Escopo:** atendimento automático no inbox (Caixa Unificada V4) — **triagem** (analisa/prioriza pro operador) e **resposta** (bot fala com o cliente) — + escalação humana ("abrir suporte"). Atendimento vive em `Modules/Whatsapp` (fusão KL-E2 2026-06-15); o cérebro de IA vive em `Modules/Jana` (a pasta de docs/requisitos é `Copiloto/`; **não existe `Modules/Copiloto`** — renomeado pra Jana, ADR 0088/0092).
+> **Escopo:** atendimento automático no inbox (Caixa Unificada V4) — **triagem** (analisa/prioriza pro operador) e **resposta** (bot fala com o cliente) — + escalação humana ("abrir suporte"). Atendimento vive em `Modules/Whatsapp` (fusão KL-E2 2026-06-15); o cérebro de IA vive em `Modules/Jana` (o nome antigo "Copiloto" sobrevive só como pasta de docs `requisitos/Copiloto/`; o módulo de código foi renomeado pra Jana — ADR 0088/0092).
 > **Invariante:** resposta automática ao cliente SEMPRE atrás de flag + guardrail + eval. Triagem é L1 (analisa, operador decide). Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) e PII redaction ([COMPLIANCE](COMPLIANCE.md) · [PII-REDACTION](PII-REDACTION.md)) inegociáveis. Fallback (princípio duro 8): IA fora → fila humana, nunca silêncio.
 > **Status:** proposto — ordem **ROI-first** (§0). Aguarda [W] aprovar começar por E1+E2.
 
