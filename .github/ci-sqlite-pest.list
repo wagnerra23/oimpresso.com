@@ -43,6 +43,8 @@ Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
 # Source-ratchet (sem DB) → sqlite-safe.
 Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
 Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
+# Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
