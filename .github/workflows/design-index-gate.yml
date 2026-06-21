@@ -7,6 +7,12 @@ name: Design index single-source gate
 # Antes deste workflow o teste só rodava local — não gateava PR (gap corrigido 2026-05-30).
 
 on:
+  # REQUIRED-READINESS (padrão short-circuit ADR 0282 / a11y-axe #2885): o gatilho
+  # `pull_request` roda SEM `paths:` (always-run) pra ser promovível a required sem
+  # deadlock "Expected — waiting" (ADR 0261/0271). O custo (PHP+composer+Pest) é
+  # evitado por short-circuit por `git diff` DENTRO do job: se nada de design-index
+  # mudou, o check conclui verde sem instalar nada. Promover a required = flip [W]
+  # no protection + baseline (NÃO feito aqui — isto é só a fase advisory always-run).
   push:
     branches: [main, 6.7-react]
     paths:
@@ -16,12 +22,7 @@ on:
       - 'tests/Feature/Design/DesignIndexSingleSourceTest.php'
       - '.github/workflows/design-index-gate.yml'
   pull_request:
-    paths:
-      - 'memory/requisitos/_DesignSystem/**'
-      - 'memory/decisions/**'
-      - 'prototipo-ui/**'
-      - 'tests/Feature/Design/DesignIndexSingleSourceTest.php'
-      - '.github/workflows/design-index-gate.yml'
+    branches: [main]
 
 concurrency:
   group: design-index-gate-${{ github.ref }}
@@ -34,8 +35,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # short-circuit precisa do diff vs base
+
+      - name: Detectar mudança design-index-relevante (short-circuit)
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"   # push já é filtrado por paths
+            exit 0
+          fi
+          base="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$base"...HEAD | grep -qE '^(memory/requisitos/_DesignSystem/|memory/decisions/|prototipo-ui/|tests/Feature/Design/DesignIndexSingleSourceTest\.php|\.github/workflows/design-index-gate\.yml)'; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            echo "Nada de design-index mudou → short-circuit: check passa sem PHP/composer/Pest."
+          fi
 
       - name: Setup PHP 8.4
+        if: steps.scope.outputs.relevant == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -44,6 +63,7 @@ jobs:
           tools: composer:v2
 
       - name: Cache composer
+        if: steps.scope.outputs.relevant == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
@@ -51,9 +71,11 @@ jobs:
           restore-keys: composer-design-index-${{ runner.os }}-
 
       - name: Install PHP deps
+        if: steps.scope.outputs.relevant == 'true'
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
       - name: Prepare storage dirs + .env mínimo
+        if: steps.scope.outputs.relevant == 'true'
         run: |
           mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
           cat > .env <<'EOF'
@@ -72,4 +94,5 @@ jobs:
           php artisan key:generate
 
       - name: Pest — Design index single-source (a links · b docs-canon · c regras-design)
+        if: steps.scope.outputs.relevant == 'true'
         run: vendor/bin/pest tests/Feature/Design/DesignIndexSingleSourceTest.php --no-coverage
