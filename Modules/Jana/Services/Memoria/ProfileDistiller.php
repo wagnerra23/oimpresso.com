@@ -91,19 +91,10 @@ class ProfileDistiller
                 now()->addDay()
             );
 
-            DB::table('jana_business_profile')->updateOrInsert(
-                ['business_id' => $businessId],
-                [
-                    'profile_text' => $profileText,
-                    'tokens_estimated' => (int) (mb_strlen($profileText) / 4),
-                    'raw_context_tokens' => $rawTokens,
-                    'gerado_em' => now(),
-                    'updated_at' => now(),
-                    'created_at' => now(),
-                ]
-            );
-
             $estTokens = (int) (mb_strlen($profileText) / 4);
+
+            $this->persistirProfile($businessId, $profileText, $estTokens, $rawTokens);
+
             $ratio = $rawTokens > 0 ? round($rawTokens / max(1, $estTokens), 2) : 0;
 
             Log::channel('copiloto-ai')->info('ProfileDistiller: gerado', [
@@ -132,6 +123,41 @@ class ProfileDistiller
                 'error' => $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Persiste o profile destilado de forma idempotente SEM zerar `created_at`.
+     *
+     * `updateOrInsert($attrs, $values)` aplica `$values` nos dois caminhos (INSERT
+     * e UPDATE). Com `created_at => now()` no array, todo regen sobrescrevia a data
+     * real de 1ª criação — inócuo enquanto o distiller nunca rodava, mas o schedule
+     * diário (COPI-26, 04:50 BRT) zeraria `created_at = gerado_em` a cada noite.
+     * Aqui `created_at` só entra no caminho de INSERT; UPDATE preserva o original.
+     *
+     * Tier 0 multi-tenant (ADR 0093): filtro sempre por `business_id`.
+     */
+    protected function persistirProfile(int $businessId, string $profileText, int $estTokens, int $rawTokens): void
+    {
+        $values = [
+            'profile_text' => $profileText,
+            'tokens_estimated' => $estTokens,
+            'raw_context_tokens' => $rawTokens,
+            'gerado_em' => now(),
+            'updated_at' => now(),
+        ];
+
+        $query = DB::table('jana_business_profile')->where('business_id', $businessId);
+
+        if ($query->exists()) {
+            $query->update($values);
+
+            return;
+        }
+
+        DB::table('jana_business_profile')->insert($values + [
+            'business_id' => $businessId,
+            'created_at' => now(),
+        ]);
     }
 
     /**

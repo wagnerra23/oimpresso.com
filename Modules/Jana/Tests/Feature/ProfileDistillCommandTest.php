@@ -90,17 +90,10 @@ function fakeDistiller(array $throwFor = []): ProfileDistiller
             }
 
             $texto = "Perfil destilado do business {$businessId}.";
-            DB::table('jana_business_profile')->updateOrInsert(
-                ['business_id' => $businessId],
-                [
-                    'profile_text' => $texto,
-                    'tokens_estimated' => 10,
-                    'raw_context_tokens' => 20,
-                    'gerado_em' => now(),
-                    'updated_at' => now(),
-                    'created_at' => now(),
-                ],
-            );
+            // Delega à persistência REAL (herdada) — é o caminho que o COPI-26 fix
+            // corrige (created_at só no INSERT). Assim o teste 005 exercita o código
+            // de produção, não uma cópia da lógica dentro do fake.
+            $this->persistirProfile($businessId, $texto, 10, 20);
 
             return [
                 'profile_text' => $texto,
@@ -173,4 +166,25 @@ it('ProfileDistill 004 — falha de UM business não aborta o batch (exit FAILUR
     expect(DB::table('jana_business_profile')->where('business_id', 1)->exists())->toBeTrue()
         ->and(DB::table('jana_business_profile')->where('business_id', 99)->exists())->toBeTrue()
         ->and(DB::table('jana_business_profile')->where('business_id', 4)->exists())->toBeFalse();
+});
+
+it('ProfileDistill 005 — regen NÃO sobrescreve created_at original (COPI-26 data-quality)', function () {
+    $fake = fakeDistiller();
+    app()->instance(ProfileDistiller::class, $fake);
+
+    // 1ª geração: INSERT (created_at = data real de criação).
+    Artisan::call('jana:profile-distill', ['--business' => '4']);
+    $original = DB::table('jana_business_profile')->where('business_id', 4)->first();
+
+    // Relógio avança; o regen diário roda de novo (UPDATE da mesma row).
+    $this->travel(2)->days();
+    Artisan::call('jana:profile-distill', ['--business' => '4']);
+    $regen = DB::table('jana_business_profile')->where('business_id', 4)->first();
+
+    // created_at IMUTÁVEL (data de 1ª criação preservada); gerado_em/updated_at bumparam.
+    expect($regen->created_at)->toBe($original->created_at)
+        ->and($regen->gerado_em)->not->toBe($original->gerado_em)
+        ->and($regen->updated_at)->not->toBe($original->updated_at);
+
+    $this->travelBack();
 });
