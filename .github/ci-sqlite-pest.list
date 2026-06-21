@@ -18,6 +18,8 @@
 Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
 Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
+# Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
+Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
 Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
