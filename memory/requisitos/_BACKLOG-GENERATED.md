@@ -2,26 +2,27 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **696 tarefas abertas** em **44 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **744 tarefas abertas** em **45 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
-| [`Jana`](#jana) | 53 | 2 | 0 | 0 | 50 |
-| [`Financeiro`](#financeiro) | 47 | 0 | 1 | 0 | 45 |
+| [`Jana`](#jana) | 58 | 2 | 0 | 0 | 55 |
+| [`Financeiro`](#financeiro) | 48 | 0 | 1 | 0 | 46 |
 | [`OficinaAuto`](#oficinaauto) | 47 | 0 | 5 | 0 | 41 |
-| [`Whatsapp`](#whatsapp) | 43 | 1 | 2 | 0 | 40 |
-| [`Sells`](#sells) | 37 | 0 | 0 | 0 | 37 |
-| [`Infra`](#infra) | 33 | 0 | 0 | 0 | 31 |
-| [`RecurringBilling`](#recurringbilling) | 33 | 0 | 0 | 0 | 33 |
+| [`Whatsapp`](#whatsapp) | 47 | 1 | 2 | 0 | 44 |
+| [`Sells`](#sells) | 39 | 0 | 0 | 0 | 39 |
+| [`Infra`](#infra) | 38 | 0 | 0 | 0 | 36 |
+| [`RecurringBilling`](#recurringbilling) | 35 | 0 | 0 | 0 | 35 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
+| [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
+| [`Governance`](#governance) | 22 | 0 | 2 | 0 | 20 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 20 | 0 | 0 | 0 | 20 |
 | [`Fiscal`](#fiscal) | 19 | 0 | 0 | 0 | 17 |
-| [`Governance`](#governance) | 19 | 0 | 2 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
@@ -37,10 +38,10 @@
 | [`Ponto`](#ponto) | 10 | 0 | 0 | 0 | 10 |
 | [`Superadmin`](#superadmin) | 10 | 0 | 0 | 0 | 10 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
-| [`ProjectMgmt`](#projectmgmt) | 8 | 0 | 7 | 0 | 1 |
+| [`PaymentGateway`](#paymentgateway) | 8 | 0 | 0 | 0 | 8 |
+| [`ProjectMgmt`](#projectmgmt) | 8 | 0 | 1 | 0 | 7 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`KB`](#kb) | 7 | 0 | 0 | 0 | 7 |
-| [`PaymentGateway`](#paymentgateway) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
@@ -70,6 +71,11 @@
 - **US-COPI-115** — LGPD jana:retention-purge artisan + DSR Art. 18 §VI + tool MCP lgpd-esquecer-titular _(`p0`)_
 - **US-COPI-116** — RAGAS canary CI daily 06:00 UTC + 30 golden questions gate _(`p0`)_
 - **US-COPI-117** — Deploy Langfuse self-host CT 100 (ADR 0132) _(`p0`)_
+- **US-COPI-123** — Remover startMockStream da rota live /ia/dashboard (Cockpit responde mock) _(`p0`)_
+- **US-COPI-124** — Escopar delete do ContentReconciler por business_id (healable=false, Tier-0) _(`p0`)_
+- **US-COPI-125** — Adicionar kb_node_visibility + filtro ACL pre-retrieval no KbRagService (LGPD) _(`p0`)_
+- **US-COPI-126** — Propagar renames Copiloto→Jana / MemCofre→SRS nos ~112 PHP em Modules/ _(`p0`)_
+- **US-COPI-127** — Criar view cliente /copiloto/decisoes/{id}/revisao (LGPD Art.20) _(`p0`)_
 - **US-COPI-079** — Demo Maiara real — Claude Code + /team-mcp + tela 360° _(`p1` · @wagner · sprint 2026-W19)_
 - **US-COPI-087** — Sprint 9c — Cross-encoder reranker (qwen3-reranker ou bge-reranker-v2-m3) _(`p1` · @wagner · sprint 2026-W20)_
 - **US-COPI-092** — GUARD-01 — Schema snapshot Pest test + procedure_drift health-check _(`p1` · @wagner · sprint 2026-W20)_
@@ -143,6 +149,7 @@
 - **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
 - **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
 - **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
+- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
 - **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
 - **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
 - **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
@@ -256,6 +263,7 @@
 - **US-WA-056** — Omnichannel Fase 0 — schema polimórfico (channels + conversations + messages) _(`p0` · @wagner · sprint CYCLE-06)_
 - **US-WA-066** — Polling fallback 5s SEMPRE + bloquear contato _(`p0` · @wagner · sprint CYCLE-06)_
 - **US-WA-094** — Anti-cross-contact P0 (incident 2026-05-14) _(`p0` · @wagner)_
+- **US-WA-315** — Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow) _(`p0`)_
 - **US-WA-041** — Métricas conversation (custo/deflection/tempo) — acelerar US-WA-021 _(`p1` · @wagner)_
 - **US-WA-042** — Mídia outbound — anexar imagem/PDF na conversa (UI upload) _(`p1` · @wagner)_
 - **US-WA-043** — Mídia inbound — processar foto/PDF/audio recebido do cliente _(`p1` · @wagner)_
@@ -268,6 +276,8 @@
 - **US-WA-078** — Fix banDetector falso positivo loggedOut/forbidden vira 'session_expired' _(`p1`)_
 - **US-WA-079** — Fix daemon SIGTERM revoga session (sock.logout → sock.end) preserva pareamento em restart _(`p1`)_
 - **US-WA-093** — LID resolution custom + backfill (workaround pré-Baileys 7.x) _(`p1` · @wagner · sprint CYCLE-07)_
+- **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente) _(`p1`)_
+- **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4) _(`p1`)_
 - **US-WA-021** — Métricas conversation (custo, deflection, tempo resposta) _(`p2` · @wagner · sprint 3)_
 - **US-WA-045** — Botões interativos (HSM com CTAs) _(`p2` · @wagner)_
 - **US-WA-046** — List messages (cardápio: orçar / acompanhar OS / segunda via) _(`p2` · @wagner)_
@@ -294,6 +304,7 @@
 - **US-WA-305** — Mover conversa entre filas (override manual da heurística tag→fila) _(`p2` · @wagner · sprint TBD)_
 - **US-WA-306** — Broadcast cross-canal real (janela 24h Meta + opt-in LGPD) _(`p2` · @wagner · sprint TBD)_
 - **US-WA-307** — + Nova conversa (ContactPickerModal + template inicial + novo channel) _(`p2` · @wagner · sprint TBD)_
+- **US-WA-311** — Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1) _(`p2` · @wagner · sprint TBD)_
 
 ## Sells
 
@@ -311,6 +322,7 @@
 - **US-SELL-030** — NfeInutilizacaoService — chama SEFAZ + persiste em `nfe_inutilizacoes` · **P0 fiscal** _(`p0`)_
 - **US-SELL-033** — Processo seed "Venda Com Produção" canônico (9 stages + 12 actions + roles) · **P0 negócio** _(`p0`)_
 - **US-SELL-036** — FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start-pipeline + canary 7d _(`p0` · @wagner)_
+- **US-SELL-051** — Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE _(`p0`)_
 - **US-SELL-001** — Epic — Migrar /sells/create pra MWART _(`p1` · @wagner)_
 - **US-SELL-002** — Backend dual Inertia/Blade + feature flag + Pest _(`p1` · @wagner)_
 - **US-SELL-003** — Frontend skeleton + AppShellV2 + props contract _(`p1` · @wagner)_
@@ -328,6 +340,7 @@
 - **US-SELL-042** — Batch no handlePriceGroupChange — elimina N+1 em /products/list _(`p1` · @wagner)_
 - **US-SELL-043** — Migrar CSS Cowork (.sells-cowork / vd-*) → tokens DS no Sells/Index _(`p1` · @wagner)_
 - **US-SELL-047** — Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado por grep _(`p1`)_
+- **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado) _(`p1`)_
 - **US-SELL-020** — Especificação campo "Status" (financeiro vs produção vs fiscal — badges separados) · **P2 (rebaixado)** _(`p2`)_
 - **US-SELL-022** — Sub-linha de produtos por venda (expandir linha) · **P2 confirmado** _(`p2`)_
 - **US-SELL-026** — Impressão batch de vendas selecionadas (PDF consolidado) · **P2 (subido)** _(`p2`)_
@@ -374,6 +387,11 @@
 - **US-INFRA-030** — health-check audits_with_orphan_findings — auditoria periódica _(`p2`)_
 - **US-INFRA-032** — Triar 11 hardcodes $businessId === N flagados pelo NoHardcodeBusinessIdInModulesTest (guard Tier 0 agora ativo) _(`p2`)_
 - **US-INFRA-035** — Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18) _(`p2` · @claude)_
+- **US-INFRA-036** — CSS hex drift fase 2 — tokenizar 61 valores hex crus restantes _(`p2`)_
+- **US-INFRA-037** — Roadmap redução de CSS manual (~28k → ~20k linhas) _(`p2`)_
+- **US-INFRA-038** — SDD: promover os 3 steps de continue-on-error a required (gate-required) _(`p2`)_
+- **US-INFRA-039** — SDD KL E2/E3 — aplicar os 27 renames classe A _(`p2`)_
+- **US-INFRA-040** — SDD — burn-down dos 237 corruptores SQLite _(`p2`)_
 
 ### in-progress
 
@@ -395,18 +413,20 @@
 - **US-RB-050** — Inter PJ — PIX cobrança imediata (CYCLE-06 G1 wiring Martinho) _(`p0` · @wagner · sprint cycle-06)_
 - **US-RB-051** — Inter PJ — webhook PIX receiver (CYCLE-06 G1 wiring Martinho) _(`p0` · @wagner · sprint cycle-06)_
 - **US-RECURRINGBILLING-001** — Escopo 0 — PaymentGateway + adapter Asaas (pré-requisito cobrança) _(`p0` · @wagner)_
-- **US-RECURRINGBILLING-001** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job) _(`p0` · @wagner)_
-- **US-RECURRINGBILLING-001** — Escopo 2 — Boleto impresso via Asaas _(`p0` · @wagner)_
-- **US-RECURRINGBILLING-001** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
-- **US-RECURRINGBILLING-001** — Test de retry idempotente do ProcessAsaasWebhookJob _(`p0`)_
-- **US-RECURRINGBILLING-001** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
+- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job) _(`p0` · @wagner)_
+- **US-RECURRINGBILLING-003** — Escopo 2 — Boleto impresso via Asaas _(`p0` · @wagner)_
+- **US-RECURRINGBILLING-005** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
+- **US-RECURRINGBILLING-006** — Test de retry idempotente do ProcessAsaasWebhookJob _(`p0`)_
+- **US-RECURRINGBILLING-007** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
 - **US-RB-043** — [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations _(`p1`)_
 - **US-RB-046** — Inter PJ — extrato sync diário + tela /financeiro/extrato (Fase 2) _(`p1` · @wagner)_
 - **US-RB-047** — Inter PJ — PIX cob imediata + webhook receiver (Fase 3) _(`p1` · @wagner)_
 - **US-RB-049** — Permissions UI: plans.manage, contracts.manage, webhooks.view (US-RB-001..005) _(`p1` · sprint cycle-04)_
-- **US-RECURRINGBILLING-001** — Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter) _(`p1` · @wagner)_
-- **US-RECURRINGBILLING-001** — [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations _(`p1`)_
-- **US-RECURRINGBILLING-001** — Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail _(`p1`)_
+- **US-RB-052** — Ativar gateway nas 109 assinaturas com gateway=NULL (cobranças dormentes) _(`p1`)_
+- **US-RB-055** — Aplicar recalibração de pricing (setup · trial · anual) — 3 ajustes _(`p1`)_
+- **US-RECURRINGBILLING-004** — Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter) _(`p1` · @wagner)_
+- **US-RECURRINGBILLING-008** — [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations _(`p1`)_
+- **US-RECURRINGBILLING-009** — Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail _(`p1`)_
 - **US-RB-001** — Cadastrar plano de assinatura
 - **US-RB-002** — Criar contrato (subscription)
 - **US-RB-003** — Gerar faturas em ciclo (job)
@@ -458,6 +478,37 @@
 - **US-NFE-008** — Manifestar NF-e recebida (destinatário)
 - **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
 - **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
+
+## Inventory
+
+
+### todo
+
+- **US-INV-001** — Schema `product_bom` + `product_kits` + flags business — **P0**
+- **US-INV-002** — UI Inertia cadastro BOM (drag-drop componentes) — **P0**
+- **US-INV-003** — Resolver BOM em `ReservarEstoque` (recursivo multi-level) — **P0**
+- **US-INV-004** — Resolver BOM em `ConsumirEstoque` + `LiberarReserva` (v2) — **P0**
+- **US-INV-005** — NFe55 composição (1 linha pai vs N filhas — D4 dependente) — **P0**
+- **US-INV-006** — Schema `product_batches` + flags + relação `purchase_lines` — **P0**
+- **US-INV-007** — `RegistrarEntradaBatch` side-effect (FSM purchase) — **P0**
+- **US-INV-008** — UI Inventory/Batches listagem + busca + filtro status/expiração — **P0**
+- **US-INV-009** — Batch picker em PDV/OS (vincular lote consumido) — **P0**
+- **US-INV-010** — Lookup garantia fornecedor (batch → clientes que receberam) — **P1**
+- **US-INV-011** — `products.base_unit_id_inv` separado de venda unit — **P1**
+- **US-INV-012** — UI custo per ml/kg/m² + cálculo custo real OS — **P1**
+- **US-INV-013** — Alerta cartucho/rolo baixo (% restante) — **P1**
+- **US-INV-014** — Apontamento máquina decrementa batch ml automatic (hook US-COMVIS-004) — **P1**
+- **US-INV-015** — Conversão unit automática em side-effects (kg → g, L → ml) — **P2**
+- **US-INV-016** — Schema `stock_movements` + triggers append-only — **P0**
+- **US-INV-017** — Backfill incremental stock_movements a partir UPos legacy — **P0**
+- **US-INV-018** — Hook automático em todos side-effects existentes (Reservar/Consumir/Liberar) — **P0**
+- **US-INV-019** — UI relatório movements per produto/batch/period — **P1**
+- **US-INV-020** — Comando `inventory:reconcile` daily 04:00 BRT (drift vs `variation_location_details`) — **P0**
+- **US-INV-021** — Negative inventory opt-in + UI sinalização — **P2**
+- **US-INV-022** — FEFO consumo policy (business.consumption_policy='fefo') — **P2**
+- **US-INV-023** — Job daily `inventory:expire-batches` (batch.expires_at < today → status=expired) — **P2**
+- **US-INV-024** — Dashboard analytics estoque (giro, lead-time, ruptura, custo real per categoria) — **P3**
+- **US-INV-025** — Multi-location transfer com batch preservation — **P3**
 
 ## Marketplaces
 
@@ -518,6 +569,37 @@
 - **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H _(@felipe)_
+
+## Governance
+
+
+### review
+
+- **US-GOV-018** — P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema" _(`p0`)_
+- **US-GOV-020** — Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio) _(`p0`)_
+
+### todo
+
+- **US-GOV-011** — [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9) _(`p0`)_
+- **US-GOV-012** — Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real) _(`p1`)_
+- **US-GOV-015** — Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído) _(`p1` · @claude)_
+- **US-GOV-016** — Reestruturação SDD — Semana 0 (12 frentes paralelas) _(`p1` · @wagner)_
+- **US-GOV-017** — Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down) _(`p1` · @wagner)_
+- **US-GOV-019** — Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear _(`p1`)_
+- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
+- **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
+- **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
+- **US-GOV-030** — Screen-QA dim16 — adicionar workflow sentinela ausente no CI _(`p2`)_
+- **US-GOV-001** — Dashboard consolidado `/governance` ✅ DONE
+- **US-GOV-002** — Policies listagem + toggle ativo/inativo 🟡 PARCIAL
+- **US-GOV-003** — Audit log drill-down filtrável 🟡 PARCIAL
+- **US-GOV-004** — Drift alerts (Module Charter Art. 7) 🟡 PARCIAL
+- **US-GOV-005** — ActionGate middleware (modo warn/strict) ✅ DONE (warn)
+- **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
+- **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
+- **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
+- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
+- **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
 
 ## Pcp
 
@@ -601,34 +683,6 @@
 ### done (fase 1 — fallback safe entregue
 
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR _(`p0` · @wagner)_
-
-## Governance
-
-
-### review
-
-- **US-GOV-018** — P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema" _(`p0`)_
-- **US-GOV-020** — Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio) _(`p0`)_
-
-### todo
-
-- **US-GOV-011** — [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9) _(`p0`)_
-- **US-GOV-012** — Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real) _(`p1`)_
-- **US-GOV-015** — Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído) _(`p1` · @claude)_
-- **US-GOV-016** — Reestruturação SDD — Semana 0 (12 frentes paralelas) _(`p1` · @wagner)_
-- **US-GOV-017** — Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down) _(`p1` · @wagner)_
-- **US-GOV-019** — Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear _(`p1`)_
-- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
-- **US-GOV-001** — Dashboard consolidado `/governance` ✅ DONE
-- **US-GOV-002** — Policies listagem + toggle ativo/inativo 🟡 PARCIAL
-- **US-GOV-003** — Audit log drill-down filtrável 🟡 PARCIAL
-- **US-GOV-004** — Drift alerts (Module Charter Art. 7) 🟡 PARCIAL
-- **US-GOV-005** — ActionGate middleware (modo warn/strict) ✅ DONE (warn)
-- **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
-- **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
-- **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
-- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
-- **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
 
 ## ComunicacaoVisual
 
@@ -905,22 +959,36 @@
 - **US-TR-206** — Burndown chart _(`p2` · @wagner)_
 - **US-TR-302** — tasks-suggest-* (D2 AI-native) _(`p2` · @wagner)_
 
+## PaymentGateway
+
+
+### todo
+
+- **US-PG-003** — [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache _(`p0`)_
+- **US-PG-004** — Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider _(`p1`)_
+- **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa) _(`p1`)_
+- **US-PG-006** — Corrigir autenticação do webhook Inter (mTLS em vez de HMAC x-inter-signature) _(`p2` · @eliana)_
+- **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100) _(`p2` · @eliana)_
+- **US-PG-001** — [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
+- **US-PG-002** — [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
+- **US-PG-005** — Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
+
 ## ProjectMgmt
 
 
 ### review
 
-- **US-TR-301** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
-- **US-TR-302** — Triage — atribuir owner + prioridade inline _(`p1` · @wagner)_
-- **US-TR-304** — Inbox — lista de não-lidas _(`p1` · @wagner)_
-- **US-TR-305** — Inbox — marcar lido (individual + todas) _(`p1` · @wagner)_
-- **US-TR-306** — Inbox — deep-link pra task/DetailSheet _(`p1` · @wagner)_
-- **US-TR-303** — Triage — mover cycle/epic _(`p2` · @wagner)_
-- **US-TR-307** — Operador não-técnico usa sem treino _(`p2` · @wagner)_
+- **US-TR-309** — Triage — lista de tasks órfãs _(`p1` · @wagner)_
 
 ### todo
 
 - **US-TR-308** — Chips de ADRs/SPECs relacionados (memory-linked) _(`p2` · @wagner)_
+- **US-TR-304** — Inbox — lista de não-lidas
+- **US-TR-305** — Inbox — marcar lido (individual + todas)
+- **US-TR-306** — Inbox — deep-link pra task/DetailSheet
+- **US-TR-307** — Operador não-técnico usa sem treino
+- **US-TR-310** — Triage — atribuir owner + prioridade inline
+- **US-TR-311** — Triage — mover cycle/epic
 
 ## EvolutionAgent
 
@@ -947,19 +1015,6 @@
 - **US-KB-005** — Troubleshooter Q→Sim/Não→Fix (ONDA 3)
 - **US-KB-006** — Visualização-grafo Cytoscape (ONDA 5)
 - **US-KB-007** — Imprimir SOP balcão físico (ONDA 5)
-
-## PaymentGateway
-
-
-### todo
-
-- **US-PG-001** — [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest _(`p0`)_
-- **US-PG-002** — [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest _(`p0`)_
-- **US-PG-003** — [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache _(`p0`)_
-- **US-PG-004** — Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider _(`p1`)_
-- **US-PG-005** — Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook) _(`p2` · @eliana)_
-- **US-PG-006** — Corrigir autenticação do webhook Inter (mTLS em vez de HMAC x-inter-signature) _(`p2` · @eliana)_
-- **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100) _(`p2` · @eliana)_
 
 ## TeamMcp
 
