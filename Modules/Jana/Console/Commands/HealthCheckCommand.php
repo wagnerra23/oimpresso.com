@@ -111,6 +111,7 @@ class HealthCheckCommand extends Command
             $this->checkWhatsappInboundCanary(),
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
+            $this->checkDbWriteCanary(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -1127,6 +1128,99 @@ class HealthCheckCommand extends Command
                     . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
         }
+    }
+
+    /** Tabela-alvo do write-canary (check 10b). @see migration create_jana_health_write_canary_table. */
+    public const WRITE_CANARY_TABLE = 'jana_health_write_canary';
+
+    /** Mensagem-sentinela que força o rollback da transação de prova (não é erro real). */
+    private const WRITE_CANARY_ROLLBACK = '__jana_write_canary_rollback__';
+
+    /**
+     * Check 10b — DB write canary (incidente 2026-06-21 · GRANT INSERT revogado).
+     *
+     * Prova que o usuário de DB consegue ESCREVER. Nenhum outro check faz isso — são
+     * SELECTs (multi-tenant, PII, drift) ou degradam gracioso. Quando o usuário de prod
+     * `u906587222_oimpresso` perdeu INSERT/UPDATE no Hostinger (20/jun ~22:50), os 17
+     * checks seguiram VERDES enquanto TODA gravação do app falhava com MySQL 1142
+     * (~8.9k erros em 2h) — o anti-padrão "a suíte mente" que a auditoria de sentinelas
+     * (2026-06-20) caça. Este check fecha esse buraco.
+     *
+     * Mecânica: INSERT de prova numa tabela-alvo dedicada DENTRO de uma transação
+     * SEMPRE revertida — prova o privilégio sem persistir linha, sem tocar tabela de
+     * negócio nem disparar Observer. Check DURO: escrita morta derruba o exit code e
+     * dispara o ALERT do cron 06:00 — exatamente o que faltou no incidente.
+     *
+     * Driver-agnóstico (MySQL prod + SQLite CI). Skip gracioso se a tabela ainda não
+     * existe (pré-migração/instalação nova — ela própria precisa de CREATE, que o
+     * mesmo GRANT revoga; por isso o fix do grant vem ANTES do deploy deste guard).
+     */
+    protected function checkDbWriteCanary(): array
+    {
+        $name = 'db_write_canary';
+
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable(self::WRITE_CANARY_TABLE)) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 'writable',
+                    'message' => 'Skipped (tabela canário ausente — pré-migração/instalação nova)',
+                ];
+            }
+
+            try {
+                DB::transaction(function (): void {
+                    DB::table(self::WRITE_CANARY_TABLE)->insert([
+                        'probe' => self::WRITE_CANARY_ROLLBACK,
+                        'pinged_at' => now(),
+                    ]);
+
+                    // Rollback intencional: a prova é o INSERT ter sido ACEITO; a linha
+                    // nunca persiste. Sentinela revertida pelo próprio DB::transaction.
+                    throw new \RuntimeException(self::WRITE_CANARY_ROLLBACK);
+                });
+            } catch (\Throwable $e) {
+                if ($e->getMessage() !== self::WRITE_CANARY_ROLLBACK) {
+                    throw $e; // falha REAL de escrita — trata no catch externo
+                }
+                // INSERT aceito e revertido → escrita OK.
+            }
+
+            return [
+                'name' => $name,
+                'ok' => true,
+                'value' => 'writable',
+                'threshold' => 'writable',
+                'message' => 'INSERT de prova aceito (revertido) — usuário de DB pode escrever',
+            ];
+        } catch (\Throwable $e) {
+            $denied = self::isWriteDenied($e->getMessage());
+
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => $denied ? 'denied' : 'error',
+                'threshold' => 'writable',
+                'message' => $denied
+                    ? 'ALERTA Tier 0 ESCRITA: INSERT negado (' . mb_substr($e->getMessage(), 0, 90)
+                        . ') — usuário de DB sem privilégio de escrita; toda gravação do app falha. Restaurar GRANT INSERT/UPDATE no hPanel Hostinger.'
+                    : 'ERRO no canário de escrita: ' . mb_substr($e->getMessage(), 0, 90),
+            ];
+        }
+    }
+
+    /**
+     * Predicado puro: a mensagem de erro indica negação de privilégio de escrita?
+     * MySQL reporta GRANT faltando como `SQLSTATE[42000] ... 1142 ... command denied`
+     * (mascarado como "Syntax error or access violation"). Público + estático pra ser
+     * testável sem DB (mesmo padrão de allChecksOk / evaluateInboundFlow).
+     */
+    public static function isWriteDenied(string $message): bool
+    {
+        return str_contains($message, '1142')
+            || stripos($message, 'command denied') !== false;
     }
 
     /**

@@ -63,6 +63,7 @@ test('cada check tem campos canonicos', function () {
         'whatsapp_media_pending_1h',
         'mcp_webhook_5xx_2h',
         'memoria_recall_backend',
+        'db_write_canary',
         'jana_lesson_ledger_graduation',
     ];
 
