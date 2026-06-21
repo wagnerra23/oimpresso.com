@@ -1,0 +1,5 @@
+FIXTURE — arquivo de "código" dummy do caso bad do gate-selftest.
+A presença DESTE arquivo no mesmo commit que afrouxa o baseline (sem
+BASELINE-ABSORB) é o que faz o tamper-guard MORDER (exit 1) — vetor #2848.
+Não é .php/.mjs/.json de propósito: nenhum scanner de governança o conta.
+Conteúdo 100% fictício, zero PII.
