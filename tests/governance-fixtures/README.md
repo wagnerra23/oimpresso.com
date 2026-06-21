@@ -13,8 +13,11 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 | `ledger-check --enforce` | `ledger-check/files.txt` compartilhado + `{good,bad}/ledger.json` |
 | `sdd-scorecard --ratchet` | `sdd-scorecard/{good,bad}/` (sandbox temp + scripts reais copiados) |
 | `memory-health` | `memory-health/{good,bad}/` (sandbox temp + script real copiado) — Check A colisão ADR não-registrada |
+| `baseline-tamper-guard` | `baseline-tamper-guard/{base,good,bad}/` (sandbox **git** real: commit base apertado → commit head afrouxado; bad pareia com `code-touched.txt`) — anti-grandfather, vetor #2848 |
 | `anchor-lint --check` | `anchor-lint/{good,bad}/` (sandbox via cwd) — good = anchor p/ path existente (anchored_ok); bad = anchor p/ path morto (anchored_dead · ADR 0273 §2 · P08) |
 
 REGRA DURA: NENHUM `.php` aqui — o foundation-ratchet real varre `tests/`
 recursivamente e contaria fixture como teste do repo (poluiria os contadores).
 Conteúdo 100% fictício (DemoMod/RealDemo/Ghost*) — zero PII, repo é público.
+O caso `bad` do tamper-guard usa `.txt` (não `.php`/`.mjs`) de propósito como
+"código tocado" — sinaliza o pareamento sem virar teste/símbolo de nenhum scanner.
