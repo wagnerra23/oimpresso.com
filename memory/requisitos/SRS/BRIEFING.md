@@ -4,7 +4,7 @@
 
 ## O que é
 
-**SRS = Software Requirements System.** Ferramenta interna do Wagner pra ingerir documentação (PDF/Markdown/HTML/URL), indexar em FULLTEXT MySQL, fazer search hybrid + chat assistido sobre o corpus e gerar relatórios de cobertura de requisitos. Convive com prefix `memcofre` por herança da fase anterior (cofre de docs antes do `Modules/MemCofre` virar gerenciador de senhas).
+**SRS = Software Requirements System.** Ferramenta interna do Wagner pra ingerir documentação (PDF/Markdown/HTML/URL), indexar em FULLTEXT MySQL, fazer search hybrid + chat assistido sobre o corpus e gerar relatórios de cobertura de requisitos. Convive com prefix `memcofre` por herança da fase anterior (cofre de docs na época em que a pasta ainda se chamava `MemCofre`, antes do rename pra `Modules/SRS`).
 
 ## Por que existe
 
