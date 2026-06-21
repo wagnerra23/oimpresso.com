@@ -20,21 +20,9 @@
       "ADR 0264",
       "ADR 0261",
       "ADR 0256"
-    ],
-    "grandfathered": {
-      "pr": "#3096",
-      "reason": "Drift PRE-EXISTENTE herdado do branch feat (telas OficinaAuto/ProducaoOficina + Financeiro/Unificado), NAO introduzido por este PR backend. Aceito conscientemente (label casos-baseline-grow-approved) para desbloquear. Reconciliacao real (teste citando UC-08/UC-10, baixar Status de UC-10 pra honesto, bumpar last_run Financeiro) e do dono das telas.",
-      "entries": [
-        "stale:resources/js/Pages/Financeiro/Unificado/Index.casos.md",
-        "status:unverified:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-10",
-        "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-08",
-        "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-10"
-      ]
-    }
+    ]
   },
   "violations": [
-    "stale:resources/js/Pages/Financeiro/Unificado/Index.casos.md",
-    "status:unverified:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-10",
     "trio:missing-casos:resources/js/Pages/_Showcase/Components.tsx",
     "trio:missing-casos:resources/js/Pages/_Showcase/OndaF.tsx",
     "trio:missing-casos:resources/js/Pages/Admin/FeatureFlags/Index.tsx",
@@ -448,8 +436,6 @@
     "trio:missing-charter:resources/js/Pages/team-mcp/CcSessions/Index.tsx",
     "trio:missing-charter:resources/js/Pages/team-mcp/Tasks/Index.tsx",
     "trio:missing-charter:resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
-    "trio:missing-charter:resources/js/Pages/Whatsapp/Templates/Index.tsx",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-08",
-    "uc-orphan:resources/js/Pages/OficinaAuto/ProducaoOficina/Index.casos.md#UC-10"
+    "trio:missing-charter:resources/js/Pages/Whatsapp/Templates/Index.tsx"
   ]
 }

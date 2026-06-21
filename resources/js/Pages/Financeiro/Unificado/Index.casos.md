@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-11"
+last_run: "2026-06-20"
 ---
 
 # Casos de Uso & Aceite — Financeiro Unificado
@@ -54,3 +54,4 @@ last_run: "2026-06-11"
 
 ## Trilha do tempo
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE): UC-F01..03 espelham o RetencaoLoopE2ETest (CU-3→CU-5) no manifesto G-7; RetencaoLoop entrou na allowlist do financeiro-pest + JUnit artifact.
+- 2026-06-20 · [CL] **Revalidado (G-6 frescor):** `Index.tsx` mudou em 2026-06-19 (commit `82f005341` — drawer FA-5 R3: prop `hue` no `DrawerLens` + ícones por domínio, mudança puramente visual do drawer). UC-F01/F02/F03 são contratos da CADEIA backend (venda→título→caixa via Observers, provados por `RetencaoLoopE2ETest`, ainda `pass` no manifesto G-7) — a mudança de drawer não toca a cadeia de dados. Casos seguem válidos; `last_run` bumpado.
