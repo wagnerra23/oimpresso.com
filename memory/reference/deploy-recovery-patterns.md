@@ -491,3 +491,43 @@ A rota SSH do Hostinger (**porta 65002**) cai/flaka intermitente **enquanto a 44
 - **NÃO** encurtar o ConnectTimeout do Failsafe: se a rota está só LENTA (não DOWN), ele precisa do tempo pra rodar `php artisan up` e não deixar o site em 503 (motivo de existir — §8 / 2026-06-10).
 
 Cross-ref: `hostinger.md` (flags SSH canônicos · "esperar a rota voltar e re-disparar UMA vez").
+
+## 10. Merge-flurry → janela "source à frente do classmap" → cron `schedule:run` crasha (2026-06-20)
+
+> Achado durante o incidente `procedure_drift` ([session 2026-06-20](../sessions/2026-06-20-incidente-procedure-drift-false-positivo.md)). **Web 200 o tempo todo, mas TODO `php artisan` — incluindo o cron — fatala no boot.** Não é deploy quebrado; é uma **janela transitória** que se repete durante um flurry de merges.
+
+### Assinatura (reconhecer em 30s)
+- `php artisan <qualquer>` (incl. cron `schedule:run` a cada minuto, e `jana:health-check` 06:00) fatala:
+  `Illuminate\Contracts\Container\BindingResolutionException — Target class [Modules\…\AlgumCommand] does not exist`.
+- `grep -c AlgumCommand vendor/composer/autoload_classmap.php` = **0**, **enquanto** o arquivo `.php` existe em disco e o namespace/PSR-4 estão corretos.
+- **`/login` (web) segue 200** — comandos são lazy no kernel HTTP; o crash é só no console.
+- **A classe que falha MUDA entre observações** (segue o último merge: 20/06 foi `McpTasksOrphansCommand` #3106 → depois `ProfileDistillCommand` #3115). Janela móvel ≠ deploy único interrompido.
+
+### Causa-raiz
+O `deploy.yml` faz `git reset --hard origin/main` (avança o **source** pro tip atual de main) e **só depois**, num passo separado e mais lento, `composer dump-autoload -o --classmap-authoritative` (regenera o **classmap**). Numa **rajada de merges** (20/06: ~12 deploys em ~40min) com Hostinger lento (~min/deploy), o source roda à frente do classmap. Como o classmap é **authoritative** (PSR-4 fallback **desligado**), classe nova fora dele é **irresolvível**. O OS cron dispara `php artisan schedule:run` a cada minuto e cai na janela. O crash é no **boot do console kernel** (resolve `commands([...])` do provider via `Artisan::starting`→`resolveCommands`→`make()`) — **antes** de qualquer checagem de maintenance mode, então `php artisan down` **não** protege o cron.
+
+### Por que o boot-smoke (§deploy, #2912/#2952) NÃO cobre
+O boot-smoke console (`php artisan about` pós-dump-autoload) + o failsafe boot-gated garantem que o **deploy** não declare sucesso sobre um classmap stale (falha vermelho / segura 503). Mas a janela vulnerável é **durante/entre os deploys do flurry**, e o **cron externo não passa pelo deploy**. O guard protege o sinal do deploy, não o runtime do cron.
+
+### Recuperação
+- **Preferir DEIXAR a fila drenar.** Cada deploy roda seu próprio `dump-autoload` contra o source final → o classmap casa e o crash para sozinho (self-heal confirmado 20/06). Confirmar: `php artisan about` boota + `grep -c <Command> vendor/composer/autoload_classmap.php` = 1.
+- **Só reconciliar manual se ficar stale com a fila VAZIA** (após warm-up curl 5×, receita `hostinger.md`):
+  ```bash
+  composer dump-autoload -o --classmap-authoritative --no-scripts \
+    --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium
+  ```
+  **Mirror do canon do deploy** — NÃO usar `-o` puro (desliga authoritative, diverge do estado canônico até o próximo deploy). `--ignore-platform-req` evita o abort do dump-autoload standalone (lição 2026-06-10, §2.4/`deploy.yml`).
+- **CUIDADO com deploy in_progress:** rodar composer manual concorrente ao composer do deploy pode correr na escrita de `vendor/composer/autoload_classmap.php`. Se há deploy rodando, deixe-o terminar.
+
+### Revisão do modelo de concorrência (pedido Wagner 2026-06-20)
+- `deploy.yml` usa `concurrency: { group: deploy-production, cancel-in-progress: false }`. Serializa e **descarta runs PENDENTES superados** (só o mais novo pendente sobrevive); o in_progress sempre completa. Na prática os ~12 triggers de 20/06 rodaram ~4 deploys reais (resto cancelado pendente) — o modelo **já coalesce** razoável.
+- **NÃO trocar pra `cancel-in-progress: true`** num deploy de PROD. Cancelar um deploy no meio (git reset / composer dump / swap de bundle / maintenance ON) deixa estado parcial — inclusive o próprio classmap **corrompido** (a falha deste incidente). O `false` é proposital.
+- **Causa comportamental raiz = cadência de merge.** 12 merges code-touching em ~40min num shared host lento garante janelas sobrepostas. **Mitigação primária (zero código): serializar/bachar merges** — mergear, deixar `gh run watch` do deploy fechar (~7min), só então o próximo. Crítico à noite/madrugada quando ninguém observa o cron.
+- **Defesa-em-profundidade (opcional): gatear o cron.** Como o crash é no boot, o único jeito de poupar o cron na janela é um guard **shell** (sem bootar artisan) na linha do crontab do Hostinger, que pula quando o app está em maintenance:
+  ```bash
+  [ -f storage/framework/down ] || [ -f storage/framework/maintenance.php ] || /usr/bin/php artisan schedule:run
+  ```
+  (confirmar o flag exato em prod). Silencia o cron **durante** deploys (que ligam maintenance) — não cobre janela fora de maintenance, mas mata o ruído/jobs-perdidos do caso comum.
+- **Anti-padrão:** NÃO adicionar `dump-autoload` ao deploy (já roda, incondicional) nem outro boot-smoke (já existe, #2912/#2952). O gap é **runtime/cadência**, não deploy-time.
+
+Cross-ref: `hostinger.md` (SSH/composer/php paths) · [session 2026-06-20](../sessions/2026-06-20-incidente-procedure-drift-false-positivo.md) · `deploy.yml` (boot-smoke console #2912 · failsafe boot-gated #2952).

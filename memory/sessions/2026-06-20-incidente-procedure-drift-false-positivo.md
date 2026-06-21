@@ -64,3 +64,20 @@ ssh … "cd domains/oimpresso.com/public_html && /usr/local/bin/composer dump-au
 ```
 
 (`dump-autoload` regenera só o autoloader, sem mexer em pacotes — baixo risco; mesmo assim é mudança em prod → escala pro Wagner por publication-policy.)
+
+## Atualização 2026-06-20 (≈23:40 BRT; deploys carimbados 2026-06-21 0x:xx UTC) — achado secundário RESOLVIDO + RCA corrigida
+
+**Status: RESOLVIDO.** Reconciliado o autoloader em prod (aprovação Wagner). `php artisan --version`, `php artisan about` e `jana:health-check` voltaram a bootar (tabela renderiza, `Maintenance Mode: OFF`, `Environment: live`); `grep -c McpTasksOrphansCommand vendor/composer/autoload_classmap.php` = **1**. Cron `schedule:run` / `jana:health-check` 06:00 restaurado.
+
+**A RCA do bloco acima estava incompleta** — não foi um único "`git reset --hard` sem `composer dump-autoload`". A causa real foi uma **janela durante o merge-flurry desta madrugada** (≈12 deploys 02:03→02:41 UTC, PRs #3106→#3105). Cada deploy faz `git reset --hard origin/main` (avança o **source** pro tip atual) e **só depois** roda `composer dump-autoload -o --classmap-authoritative` (regenera o classmap). Com merges chegando mais rápido que o composer termina (Hostinger lento, ~min/deploy), o **source fica à frente do classmap**; como o classmap é authoritative (PSR-4 fallback **desligado**), classe nova fora dele é irresolvível, e o **cron `schedule:run` (a cada minuto) cai na janela** → `BindingResolutionException`. O crash é no **boot do console kernel** (resolve `commands([...])` do provider) — **antes** de qualquer gate de maintenance mode, então `php artisan down` não poupa o cron. Prova de janela móvel: a classe que falhava **mudou ao longo da noite** — `McpTasksOrphansCommand` (#3106) → `ProfileDistillCommand` (#3115) — seguindo o último merge.
+
+**O guard JÁ EXISTE** (eu havia lido um `deploy.yml` de branch stale ao dizer que faltava): boot-smoke console `php artisan about` pós-`dump-autoload` (#2912, 17/06) + failsafe boot-gated 503 (#2952, 18/06). Ele protege o **sucesso do deploy** (falha vermelho / segura 503 se o código não boota), mas **não cobre o cron na janela intra-deploy** — o cron externo não passa pelo deploy. O `deploy.yml` também **já roda `composer dump-autoload` incondicional** — a "causa sistêmica" proposta no bloco acima (adicionar dump-autoload ao deploy) é no-op.
+
+**Remediação aplicada (mirror do canon do deploy, não o `-o` puro do plano):**
+```bash
+composer dump-autoload -o --classmap-authoritative --no-scripts \
+  --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium
+```
+(`-o` puro **desligaria** o authoritative e divergiria do estado canônico; `--ignore-platform-req` evita o abort de platform-req do dump-autoload standalone, lição 2026-06-10.) Self-heal confirmado: os próprios deploys em voo reconciliaram o classmap sozinhos quando a fila drenou — a remediação manual só antecipou.
+
+**Análise de concorrência + recomendações:** ver [`deploy-recovery-patterns.md` §10](../reference/deploy-recovery-patterns.md). Correção factual ao "Achado secundário" acima: o PR #3113 (este doc) **já está em main**; a referência a "branch fix/jana-procedure-drift-normalize-backtick" está superada.
