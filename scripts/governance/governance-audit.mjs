@@ -41,6 +41,9 @@ const BATTERY = [
   { id: 'jana:system-audit',   runtime: 'php',  kind: 'advisory', cmd: ['jana:system-audit', '--json'] },
   { id: 'jana:validate-memory',runtime: 'php',  kind: 'advisory', cmd: ['jana:validate-memory', '--json'] },
   { id: 'mem:audit',           runtime: 'php',  kind: 'advisory', cmd: ['mem:audit', '--candidates-only'] },
+  // drift-sentinel: probe --status (armed vs dormant) — NÃO roda o canary pago real
+  // (esse é o cron semanal). Sem chave OPENAI sai dormant → ⊘ aqui (honesto, não silêncio).
+  { id: 'jana:drift-sentinel', runtime: 'php',  kind: 'advisory', cmd: ['jana:drift-sentinel', '--status', '--json'] },
 ];
 
 function run(entry) {
@@ -67,12 +70,19 @@ function interpret(entry, r) {
   // Prefere o campo ok do JSON quando o sentinela o emite; senão usa exit code.
   let ok = r.status === 0;
   let summary = '';
+  let dormant = false;
   const jStart = out.indexOf('{');
   if (jStart !== -1) {
     try {
       const j = JSON.parse(out.slice(jStart));
       if (typeof j.ok === 'boolean') ok = j.ok;
-      if (Array.isArray(j.fails) || Array.isArray(j.warns)) {
+      // Estado DORMANT (ex: drift-sentinel sem OPENAI_API_KEY) → ⊘, nem pass nem fail.
+      if (j.status === 'dormant') {
+        dormant = true;
+        summary = `dormant: ${j.reason || 'sem chave'}`;
+      } else if (j.status === 'armed') {
+        summary = 'armado (OPENAI_API_KEY presente)';
+      } else if (Array.isArray(j.fails) || Array.isArray(j.warns)) {
         summary = `${(j.fails || []).length} fail · ${(j.warns || []).length} warn`;
       } else if (Array.isArray(j.cases)) {
         const bad = j.cases.filter((c) => !c.ok).length;
@@ -85,6 +95,7 @@ function interpret(entry, r) {
       }
     } catch { /* não era JSON — cai no fallback */ }
   }
+  if (dormant) return { status: 'skip', summary: summary.slice(0, 90), exit: r.status };
   if (!summary) {
     const lines = out.split('\n').map((l) => l.trim()).filter(Boolean);
     summary = (lines[lines.length - 1] || '').slice(0, 90);

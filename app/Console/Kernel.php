@@ -388,10 +388,13 @@ class Kernel extends ConsoleKernel
         // Compara faithfulness atual vs baseline canon; ALERT se >10% das perguntas
         // divergirem. RELIGADO 2026-06-20 (auditoria de sentinelas): o docblock do
         // comando afirmava "Schedule weekly Sun 06:00" mas NÃO existia entry aqui —
-        // ghost canary (existe + tem teste de mordida, nunca rodava). Requer
-        // OPENAI_API_KEY no servidor; sem a chave o run falha e o onFailure registra
-        // (sinal honesto de "canary cego", não silêncio). Domingo cedo pra não
-        // disputar DB com os health-checks diários (06:00-06:30).
+        // ghost canary (existe + tem teste de mordida, nunca rodava).
+        //
+        // Skip-guard honesto (2026-06-20): SEM OPENAI_API_KEY o canary NÃO falha o
+        // cron toda semana (era ruído / falso "DRIFT 100%") — sai DORMANT (exit 0,
+        // status=dormant), visível como ⊘ no agregador governance-audit.mjs. O
+        // onFailure abaixo só dispara em drift REAL acima do threshold. Domingo cedo
+        // pra não disputar DB com os health-checks diários (06:00-06:30).
         $schedule->command('jana:drift-sentinel')
             ->weeklyOn(0, '06:00')
             ->timezone('America/Sao_Paulo')
@@ -399,8 +402,8 @@ class Kernel extends ConsoleKernel
             ->environments(['live'])
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
-                    'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold ' .
-                    'OU canary não rodou (checar OPENAI_API_KEY). Ver storage/logs.'
+                    'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold. ' .
+                    'Ver storage/logs (canary sem OPENAI_API_KEY sai DORMANT, não falha).'
                 );
             });
 
