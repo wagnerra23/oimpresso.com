@@ -3,7 +3,7 @@ slug: 0236-scorecard-universal-entidade-arbitraria
 number: 236
 title: "Scorecard Universal — entidade avaliável arbitrária (blueprint pattern): temas/capacidades como cidadãos de primeira classe ao lado de módulos"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

@@ -3,7 +3,7 @@ slug: 0286-channel-health-corroborado-por-mensagem-real
 number: 286
 title: "channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inbound recente suprime o falso 'fora do ar' do loggedIn não-confiável do WuzAPI"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
