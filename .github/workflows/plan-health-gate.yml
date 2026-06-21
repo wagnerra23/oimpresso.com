@@ -1,0 +1,50 @@
+name: Plan Health Gate (advisory)
+
+# ADR 0294 Onda 1 — catraca da membrana dual-track. Sentinela de PLANOS órfãos/
+# podres (scripts/governance/plan-health.mjs) plugada no CI: quando um PR toca um
+# *PLAN*.md (ou o próprio Índice de Planos Vivos), valida o índice + o bloco
+# `## Status vivo` de cada plano (status no enum, frescor reviewed_at ≤30d, órfão
+# em-execução sem parent_plan, superseded sem ponteiro, índice dangling).
+#
+# ── ADVISORY DE NASCENÇA (ADR 0271 / 0275: gate novo NUNCA nasce required) ─────
+# `continue-on-error: true` no job inteiro: roda `--check` (exit 1 quando há
+# achado → status 🟡 visível na PR), mas NÃO bloqueia merge. Padrão ratchet do
+# repo — espelha tier0-guards-advisory.yml + anchor-drift.yml. Promoção a required
+# só pelo CALENDÁRIO DE PROMOÇÕES (ADR 0275): remover o `continue-on-error` e
+# adicionar ao branch protection — nunca editando este arquivo direto.
+#
+# Sentinela é Node puro, sem deps, sem rede → setup mínimo (checkout + setup-node).
+# No-op gracioso: PLANS-INDEX ausente → exit 0 (a própria sentinela trata).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/requisitos/**/*PLAN*.md'
+      - 'memory/requisitos/**/*plano*.md'
+      - 'memory/requisitos/_processo/PLANS-INDEX.md'
+      - 'scripts/governance/plan-health.mjs'
+      - '.github/workflows/plan-health-gate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: plan-health-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan-health:
+    name: plan-health ADR 0294 (advisory)
+    runs-on: ubuntu-latest
+    # ADVISORY: job inteiro não bloqueia merge. Remover quando virar required
+    # (calendário de promoções ADR 0275).
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: plan-health --check (morde, mas advisory via continue-on-error)
+        run: node scripts/governance/plan-health.mjs --check
