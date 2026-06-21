@@ -115,7 +115,7 @@ describe('memory-health — Check I: lição sem asserção (Onda Q5, físico)',
 });
 
 describe('memory-health — Check K: decisão em session log sem âncora (Onda armar-gates, físico)', () => {
-  it('SENSIBILIDADE: session log >30d com `## Decisão` sem ADR aceito/BRIEFING → 🟡 K, não bloqueia', () => {
+  it('SENSIBILIDADE: session log >30d com `## Decisão` sem âncora → 🟡 K, não bloqueia', () => {
     write('memory/sessions/2026-01-01-perdido.md', '---\ndate: "2026-01-01"\n---\n\n# Sessão\n\n## Decisão\n\nFazer X. US-FOO-001 em rollout por ondas.\n');
     const out = run();
     expect(out).toMatch(/session-decisao-sem-ancora/);
@@ -123,9 +123,24 @@ describe('memory-health — Check K: decisão em session log sem âncora (Onda a
     expect(out).toMatch(/"ok": true/); // warn não bloqueia
   });
 
-  it('ESPECIFICIDADE: referencia ADR ACEITO existente → sem warn K', () => {
+  it('SENSIBILIDADE: idade vem do NOME do arquivo quando falta `date:` (fix do mascaramento gitLastDate)', () => {
+    write('memory/sessions/2026-01-03-sem-data-fm.md', '# Sessão\n\n## Decisão\n\nFez Z. rollout.\n'); // sem frontmatter
+    const out = run();
+    expect(out).toMatch(/session-decisao-sem-ancora/);
+    expect(out).toMatch(/2026-01-03-sem-data-fm\.md/);
+  });
+
+  it('SENSIBILIDADE: menção solta a ADR aceito em PROSA não ancora (anti name-dropping) → 🟡 K', () => {
     write('memory/decisions/0294-metodo.md', '---\nstatus: aceito\nlifecycle: ativo\n---\n\n# ADR 0294\n');
-    write('memory/sessions/2026-01-02-ancorado.md', '---\ndate: "2026-01-02"\n---\n\n# Sessão\n\n## Decisão\n\nDecisão landou na ADR 0294. rollout ok.\n');
+    write('memory/sessions/2026-01-04-prosa.md', '---\ndate: "2026-01-04"\n---\n\n# Sessão\n\n## Decisão\n\nDiferente da ADR 0294, decidimos Y. rollout.\n');
+    const out = run();
+    expect(out).toMatch(/session-decisao-sem-ancora/);
+    expect(out).toMatch(/2026-01-04-prosa\.md/);
+  });
+
+  it('ESPECIFICIDADE: âncora ESTRUTURAL (related_adrs → ADR aceito) → sem warn K', () => {
+    write('memory/decisions/0294-metodo.md', '---\nstatus: aceito\nlifecycle: ativo\n---\n\n# ADR 0294\n');
+    write('memory/sessions/2026-01-02-ancorado.md', '---\ndate: "2026-01-02"\nrelated_adrs: ["0294-metodo"]\n---\n\n# Sessão\n\n## Decisão\n\nDecisão registrada. rollout ok.\n');
     const out = run();
     expect(out).not.toMatch(/session-decisao-sem-ancora/);
   });
