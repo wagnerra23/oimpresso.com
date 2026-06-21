@@ -66,10 +66,18 @@ function bumpHeartbeatViaController(string $host, string $sessionUuid, int $inse
 }
 
 beforeEach(function () {
+    // era-sqlite: tabela sintética só roda no sqlite :memory:. No MySQL persistente
+    // do nightly o Schema::drop corromperia o schema compartilhado (US-GOV-021).
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabela sintética mcp_ingest_heartbeat só roda no sqlite');
+    }
     ensureHeartbeatTable();
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
+    }
     if (Schema::hasTable('mcp_ingest_heartbeat')) {
         Schema::drop('mcp_ingest_heartbeat');
     }

@@ -92,6 +92,11 @@ function writeHandoff(string $dir, string $slug, string $body, ?string $secret =
 }
 
 beforeEach(function () {
+    // era-sqlite: tabela sintética só roda no sqlite :memory:. No MySQL persistente
+    // do nightly o Schema::drop corromperia o schema compartilhado (US-GOV-021).
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabela sintética cowork_handoffs só roda no sqlite');
+    }
     ensureCoworkHandoffsTable();
     config(['teammcp.handoff_secret' => HANDOFF_TEST_SECRET]);
     $this->handoffDir = sys_get_temp_dir() . '/handoff-ingest-test-' . uniqid();
@@ -101,6 +106,9 @@ beforeEach(function () {
 afterEach(function () {
     if (isset($this->handoffDir) && is_dir($this->handoffDir)) {
         File::deleteDirectory($this->handoffDir);
+    }
+    if (config('database.default') !== 'sqlite') {
+        return; // não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
     }
     if (Schema::hasTable('cowork_handoffs')) {
         Schema::drop('cowork_handoffs');

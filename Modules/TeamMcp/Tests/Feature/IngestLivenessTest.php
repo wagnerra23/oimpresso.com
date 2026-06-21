@@ -50,12 +50,20 @@ function seedHeartbeat(string $host, ?Carbon $lastIngestAt): void
 }
 
 beforeEach(function () {
+    // era-sqlite: tabela sintética só roda no sqlite :memory:. No MySQL persistente
+    // do nightly o Schema::drop corromperia o schema compartilhado (US-GOV-021).
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabela sintética mcp_ingest_heartbeat só roda no sqlite');
+    }
     Carbon::setTestNow(Carbon::parse('2026-06-15 12:00:00'));
     ensureLivenessTable();
 });
 
 afterEach(function () {
     Carbon::setTestNow();
+    if (config('database.default') !== 'sqlite') {
+        return; // não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
+    }
     if (Schema::hasTable('mcp_ingest_heartbeat')) {
         Schema::drop('mcp_ingest_heartbeat');
     }
