@@ -1,7 +1,7 @@
 ---
 module: Fiscal
 status: ativo
-version: 1.9.0
+version: "1.9.0"
 last_updated: "2026-05-25"
 piloto: oimpresso biz=1 (Wagner empresa) — depende de NfeBrasil já produção
 last_review: "2026-05-25"

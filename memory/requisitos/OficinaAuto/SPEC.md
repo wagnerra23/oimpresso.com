@@ -1,6 +1,6 @@
 ---
 module: OficinaAuto
-version: 0.2.0
+version: "0.2.0"
 last_updated: "2026-06-09"
 status: ativo
 lifecycle: ativo
