@@ -1670,7 +1670,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-FIN-059 · Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit
 
-> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
 **Origem:** auditoria de saúde/integridade 2026-06-21 (risco #5). Complementa `US-FIN-040` (health-check detecta gaps da bridge).
