@@ -253,6 +253,68 @@ export function measureDistillerFreshness(
   };
 }
 
+// ── fonte GT: error_rate agregado do ledger refutador (GT-G5 · P08) ──────────
+// Lê governance/sdd-verification-ledger.json (4+ entries, todas error_rate_pct:0 ·
+// PRs 2750/2754/2761/2970). Espelha measureFullSuiteFloor (anti-stale honesto):
+// ausente/inválido/sem entries `aprovado` → not_yet_measured (NUNCA mente 0). Senão
+// measured, value = MAX(error_rate_pct) das entries aprovadas. Por que MAX e não média:
+// é o número conservador — 1 lote ruim já estoura o <2% (kill-criteria do plano P08).
+export function measureBackfillErrorRate(ledgerPath = join(ROOT, 'governance', 'sdd-verification-ledger.json')) {
+  if (!existsSync(ledgerPath)) {
+    return notYet('down', '<2%',
+      'governance/sdd-verification-ledger.json ausente — protocolo refutador G5 nunca rodou; fallback honesto.');
+  }
+  let l;
+  try { l = JSON.parse(readFileSync(ledgerPath, 'utf8')); }
+  catch { return notYet('down', '<2%', 'governance/sdd-verification-ledger.json presente mas JSON inválido — fallback honesto.'); }
+  const entries = Array.isArray(l.entries) ? l.entries : [];
+  const aprovadas = entries.filter((e) => e.veredito === 'aprovado' && typeof e.error_rate_pct === 'number');
+  if (!aprovadas.length) {
+    return notYet('down', '<2%',
+      'governance/sdd-verification-ledger.json sem entry `aprovado` com error_rate_pct numérico — só existe após 1º lote IA refutado; fallback honesto.');
+  }
+  const rates = aprovadas.map((e) => e.error_rate_pct);
+  const value = Math.max(...rates);
+  const last = aprovadas[aprovadas.length - 1];
+  return {
+    status: 'measured', value, unit: '% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)',
+    direction: 'down', target: '<2%',
+    source: 'governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)',
+    detail: { entries_aprovadas: aprovadas.length, max_error_rate_pct: value, last_pr: last.pr ?? null, last_lote: last.lote_id ?? null },
+  };
+}
+
+// ── fonte GT: drift_alarms via protection-drift.mjs --json (GT-G4 · P08) ──────
+// Executa protection-drift.mjs --json (igual measureKnowledgeDrift exec'a a fonte).
+// O script depende de `gh api` (rede + GITHUB_TOKEN). Dois desfechos legítimos:
+//   - sucesso (exit 0, reds=[]) OU drift detectado (exit 1 COM JSON válido no stdout):
+//     measured, value = json.reds.length (alarmes DUROS). reds>0 é estado real, não erro.
+//   - `gh` ausente/sem token: execSync lança SEM JSON parseável → not_yet_measured honesto
+//     (NUNCA exit 1 por falha de rede — espelha o fallback de measureFullSuiteFloor).
+export function measureDriftAlarms() {
+  let raw = null;
+  try {
+    raw = execSync(`"${process.execPath}" scripts/governance/protection-drift.mjs --json`, {
+      cwd: ROOT, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'],
+    }).toString();
+  } catch (e) {
+    // exit 1 COM JSON no stdout = drift real (reds>0), não falha de rede → aproveita o JSON.
+    raw = e?.stdout ? e.stdout.toString() : null;
+  }
+  let json = null;
+  if (raw) { try { json = JSON.parse(raw); } catch { json = null; } }
+  if (!json || !Array.isArray(json.reds)) {
+    return notYet('down', 'advisory perene (0 alarmes duros)',
+      'gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.');
+  }
+  return {
+    status: 'measured', value: json.reds.length, unit: 'alarmes duros (reds do protection-drift · GT-G4)',
+    direction: 'down', target: 'advisory perene (0 alarmes duros)',
+    source: 'scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)',
+    detail: { reds: json.reds, warns: Array.isArray(json.warns) ? json.warns.length : null, verdict: json.verdict ?? null },
+  };
+}
+
 function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
@@ -305,10 +367,8 @@ function buildScorecard() {
       distiller_freshness: measureDistillerFreshness(),
       read_path_hops: notYet('down', 1,
         'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),
-      drift_alarms: notYet('down', 'advisory perene',
-        'protection-drift + watchdog de staleness (GT-G4)'),
-      backfill_error_rate: notYet('down', '<2%',
-        'ledger do protocolo refutador G5 — só existe após 1º lote IA refutado'),
+      drift_alarms: measureDriftAlarms(),
+      backfill_error_rate: measureBackfillErrorRate(),
     },
   };
   // carimba o stream (SA/FV/KL/GT/MEM) em cada métrica — a "cola" da união num só scorecard

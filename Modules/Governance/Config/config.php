@@ -80,7 +80,51 @@ return [
         \Modules\Governance\Services\Checkers\RoutesZombieChecker::class,        // ADR 0221
         \Modules\Governance\Services\Checkers\MeilisearchSettingsDriftChecker::class, // 2026-05-29 — embedder do índice se perdeu 2× (recall degrada)
         \Modules\Governance\Services\Checkers\DeployDriftChecker::class,         // 2026-05-29 — código deployado != main (1302-commits cego)
+        \Modules\Governance\Services\Checkers\McpServedDriftChecker::class,      // 2026-06-21 Onda 1 — commit servido por env remoto != main (CT100→main, ~19d cego)
+        \Modules\Governance\Services\Checkers\McpIndexFreshnessChecker::class,   // 2026-06-21 Onda 1 — índice mcp_memory_documents defasado vs git memory/
     ],
+
+    /*
+     * Onda 1 (sentinela transporte CT100→main) — envs que o McpServedDriftChecker
+     * consulta via GET <url>/api/mcp/version (ADR 0256) pra comparar o commit SERVIDO
+     * por cada um com GitHub main. Cada item: {nome, url} (sem trailing slash).
+     *
+     * Default cobre só o MCP público (mcp.oimpresso.com). Override por env
+     * GOVERNANCE_DEPLOY_DRIFT_ENVS (JSON: [{"nome":"...","url":"https://..."}]) —
+     * ex pra adicionar o app Hostinger quando ele expuser /api/mcp/version.
+     *
+     * Hostinger ≠ CT 100 (ADR 0062) — adicionar Hostinger só quando tiver endpoint próprio.
+     * Auth: Bearer config('copiloto.mcp.drift_token') (env MCP_DRIFT_TOKEN), o mesmo
+     * token dedicado do endpoint. Falha de rede/HTTP NÃO derruba o audit (finding low/info).
+     */
+    'deploy_drift_envs' => (function () {
+        $raw = env('GOVERNANCE_DEPLOY_DRIFT_ENVS');
+        if (is_string($raw) && trim($raw) !== '') {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return [
+            ['nome' => 'mcp', 'url' => 'https://mcp.oimpresso.com'],
+        ];
+    })(),
+
+    /*
+     * Onda 1 — lag máximo tolerado (horas) entre o último commit que tocou git memory/
+     * e o doc mais recente em mcp_memory_documents (McpIndexFreshnessChecker). Acima
+     * disso = índice defasado (sync IndexarMemoryGitParaDb falhou calado?). Default 6h.
+     */
+    'mcp_index_freshness_max_lag_hours' => env('GOVERNANCE_MCP_INDEX_FRESHNESS_MAX_LAG_HOURS', 6),
+
+    /*
+     * Onda 1 — escalonamento por persistência (trait PersistsDriftAlert). Se o MESMO
+     * drift segue ABERTO há mais de N dias, a severidade efetiva do alerta é elevada
+     * 1 nível (warn→high / high→critical) + flag escalated=true no metadata, pra que
+     * `governance:audit --notify` dispare alerta ATIVO em vez de só log diário. Default 3.
+     */
+    'drift_escalation_days' => env('GOVERNANCE_DRIFT_ESCALATION_DAYS', 3),
 
     /*
      * Allowlist multi-tenant: Models legítimos sem HasBusinessScope.
