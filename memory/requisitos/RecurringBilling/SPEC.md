@@ -986,3 +986,39 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 **Out of scope:** PIX automático JRC, PIX saída, dashboards de webhooks (futuro UI sob `recurringbilling.webhooks.view` perm — US-RB-049).
 
 **Refs:** ADR 0093 Multi-tenant Tier 0 · ADR 0094 §6 · pattern `Modules/RecurringBilling/Http/Controllers/AsaasWebhookController.php` · tabela `pg_webhook_events` (idempotência shared) · US-RB-044 listener NFe automática boleto pago (reusado).
+
+### US-RB-052 · Ativar gateway nas 109 assinaturas com gateway=NULL (cobranças dormentes)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: recurring-billing-gateway-ativacao` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** receita parada — 109 assinaturas ativas com `gateway=NULL` não geram cobrança (36 C6 + 51 Inter + 22 Cora). Maior ROI do batch.
+
+**DoD:**
+- Mapear as 109 subscriptions `gateway IS NULL` por business + provider preferencial.
+- Definir/atribuir gateway por assinatura (idempotente, com audit log).
+- Re-ativar a régua de cobrança das assinaturas destravadas; smoke de 1 ciclo.
+- Multi-tenant Tier 0: filtro `business_id` em toda query (ADR 0093).
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-RB-055 · Aplicar recalibração de pricing (setup · trial · anual) — 3 ajustes
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: pricing-3-ajustes-urgentes` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** Martinho com compra ativa (cliente pagante) — recalibração de pricing em 3 eixos: setup, trial, anual.
+
+**⚠️ Módulo:** colocado em RecurringBilling (domínio de Plans/assinatura — US-RB-001/043). Se a recalibração for da **página pública de pricing** (cycle "pricing público no ar"), re-homear pra Grow/Infra.
+
+**DoD:**
+- Aplicar os 3 ajustes (setup, trial, anual) nos planos/config.
+- Validar reflexo na cobrança e na página de pricing.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

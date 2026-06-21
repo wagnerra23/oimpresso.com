@@ -715,3 +715,85 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 **Última atualização (US-INFRA-014..030):** 2026-05-28 — adicionadas 17 tasks Onda prevenção bugs MWART (ADRs 0208-0213 propostos no PR #1837). Atacam R7/R8/R9/R10-class via enforcement passivo (Larastan, Wayfinder, Zod, hooks audit-to-backlog).
 
 **Última atualização (US-INFRA-013):** 2026-05-27 — adicionada implementação contract-test-gate GH Action ADR 0207 (entrega da decisão promovida pela sessão 4 waves paralelas)
+
+### US-INFRA-036 · CSS hex drift fase 2 — tokenizar 61 valores hex crus restantes
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: css-hex-drift-fase2` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** 61 valores hex crus restantes (fase 2 do drift de cor do DS).
+**Dedup:** distinto de US-INFRA-035 (fusão dos 4 gates de cor) e US-SELL-043 (CSS Cowork → tokens no Sells).
+
+**DoD:**
+- Substituir os 61 hex por tokens DS canônicos.
+- Gate de cor verde.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-037 · Roadmap redução de CSS manual (~28k → ~20k linhas)
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: manual-css-js-roadmap` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** CSS manual ~28k linhas, meta ~20k (redução via tokens/DS).
+
+**DoD:**
+- Roadmap de redução por área (maiores ofensores primeiro).
+- Execução incremental + métrica de linhas trackada.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-038 · SDD: promover os 3 steps de continue-on-error a required (gate-required)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: sdd-gate-required` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** 3 steps do gate SDD estão em `continue-on-error` (não mordem — "a suite mente").
+
+**DoD:**
+- Promover os 3 steps a required conforme calendário ADR 0275.
+- Baseline armado antes de morder (rodar `sdd-avaliar`).
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-039 · SDD KL E2/E3 — aplicar os 27 renames classe A
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: sdd-kl-e2-e3` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** stream KL do SDD — 27 renames classe A pendentes (E2/E3).
+
+**DoD:**
+- Aplicar os 27 renames classe A.
+- Suíte Pest verde pós-rename.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-040 · SDD — burn-down dos 237 corruptores SQLite
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: sdd-sqlite-corruptors` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** 237 testes "corruptores" de SQLite a eliminar (burn-down do SDD).
+**Relacionado:** US-INFRA-031 (colisões const/function em tests/Feature que bloqueiam a suíte Pest).
+
+**DoD:**
+- Reduzir os 237 corruptores a 0 (burn-down trackado).
+- Suíte SQLite estável.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

@@ -177,3 +177,21 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 - [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — Extração camada cobrança (drift §G detectado)
 - [PLANO-ONDA5-SIMPLIFICADA.md](PLANO-ONDA5-SIMPLIFICADA.md)
 - [RUNBOOK-settings-gateways.md](RUNBOOK-settings-gateways.md)
+
+### US-PG-009 · Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: paymentgateway-onda-5-dogfooding` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** código da Onda 5 já feito (PR #1148); restam pendências **humano-limitadas** (relógio do mundo real, ADR 0106): smoke biz=1 + canary Larissa biz=4.
+**Dedup:** distinto de US-PG-002/003 (SEC webhooks) e US-PG-005/006/007 (webhook Inter).
+
+**DoD:**
+- Roteiro de smoke real biz=1.
+- Canary controlado Larissa.
+- Evidência (screenshots/logs) anexada.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

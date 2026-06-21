@@ -1790,3 +1790,58 @@ parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../
 **Refs:** AC completos em [PLANO-ATENDIMENTO-AUTOMATICO.md](./PLANO-ATENDIMENTO-AUTOMATICO.md) §5. **NOTA:** off-CYCLE-08 (cycle ativo = receita/carteira legacy) — backlog até atendimento virar prioridade de cycle.
 
 **Anti-padrões:** cérebro de IA mora em Modules/Jana; inbox (listener/badge) em Modules/Whatsapp. **NÃO** reusar o ADS PolicyEngine como guardrail conversacional (é firewall de ações de código, não de respostas).
+
+### US-WA-315 · Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow)
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: whatsapp-channel-reliability-roadmap` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 confiabilidade):** 7/10 gaps do channel-reliability fechados (probe #3055 nesta sessão). Restam #6 nonce/dedup-key, #9 failover, #10 circuit-breaker. Relacionado ADR 0288.
+**Dedup:** distinto de US-WA-058/059 (inbox omnichannel) e US-WA-078/079 (banDetector/SIGTERM).
+
+**DoD:**
+- #6: design da dedup-key (nonce) + impl.
+- #9: failover de canal.
+- #10: circuit-breaker no daemon.
+- Testes de reliability.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-WA-316 · Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
+
+> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: voz-cliente-5-ondas` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** `customer_memory` shipou (onda 1). Ondas 2-5 abertas: Customer 360 sidebar + inferência IA.
+**⚠️ Dedup parcial:** `customer-360-sidebar` aparece como *done* na triagem — confirmar o que de fato resta antes de escopar.
+
+**DoD:**
+- Sidebar Customer 360 (consolidado por contato).
+- Inferência IA sobre o histórico.
+- Validar overlap com customer_memory já shipado.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-WA-317 · VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
+
+> owner: — · priority: p1 · estimate: 10h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: voc-omnichannel-gaps` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** `whatsapp_consent` + `customer_memory` shipparam. Restam Gap#3 (ContactProfile acumulativo) + Gap#4 (auto-tag IA + dashboard VoC).
+**Relacionado:** US-WA-316 (voz-cliente ondas 2-5) — coordenar pra não duplicar.
+
+**DoD:**
+- ContactProfile acumulativo por contato.
+- Auto-tag IA das conversas.
+- Dashboard VoC.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
