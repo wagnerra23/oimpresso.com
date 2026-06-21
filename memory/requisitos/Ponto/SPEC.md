@@ -1,7 +1,7 @@
 ---
 module: Ponto
 status: ativo
-version: 1.1.0
+version: "1.1.0"
 last_updated: "2026-05-25"
 owners: [W, E]
 parent_adr: 0094-constituicao-v2-7-camadas-8-principios
