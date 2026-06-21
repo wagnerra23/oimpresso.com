@@ -139,3 +139,20 @@ it('exit SUCCESS quando não há órfã, FAILURE quando há', function () {
     $this->artisan('mcp:tasks:orphans', ['--module' => '__TestOrphanCmd'])
         ->assertExitCode(1);
 });
+
+it('reconhece US declarada em heading #### (não vira falso-positivo de órfã)', function () {
+    // Regressão dos 70 falsos-positivos (2026-06-21): Cms usa "#### US-CMS-NNN" e o
+    // regex antigo (^###) não casava → toda US #### virava "órfã".
+    orphanWriteSpec('__TestOrphanCmd', "# SPEC\n\n#### US-ZZORPHCMD-001 — quatro hashes\n");
+
+    orphanSeed('US-ZZORPHCMD-001'); // declarada via #### → NÃO órfã
+    orphanSeed('US-ZZORPHCMD-099'); // não declarada em lugar nenhum → órfã
+
+    $ids = array_map(
+        fn ($o) => $o['task_id'],
+        (new McpTasksOrphansCommand())->detectarOrfas('__TestOrphanCmd', false),
+    );
+
+    expect($ids)->not->toContain('US-ZZORPHCMD-001')
+        ->and($ids)->toContain('US-ZZORPHCMD-099');
+});
