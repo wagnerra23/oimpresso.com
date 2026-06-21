@@ -277,7 +277,9 @@ jobs:
             const body = [
               '## 📸 Visual Regression Detected',
               '',
-              'Screenshots têm diff > threshold contra baseline. Este check é REQUIRED — o PR não mergeia vermelho.',
+              'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
+              '',
+              '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) é **ADVISORY** (`continue-on-error`) e **não bloqueia merge sozinho** — só vira enforcing após 2 verdes. Se a falha foi apenas dele, o veredito sai no log do step "Veredito advisory do pixel-diff", não neste comentário.',
               '',
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',
