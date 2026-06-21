@@ -1,20 +1,24 @@
 ---
-adr: 0123
-title: Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui)
-status: proposed
-date: 2026-05-09
-deciders: [Wagner]
+slug: 0123-modules-arquivos-backbone
+number: 123
+title: "Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-09"
+module: null
 supersedes: []
-references:
-  - 0042-proxmox-docker-host-canonico.md
-  - 0053-mcp-server-governanca-como-produto.md
-  - 0061-conhecimento-canonico-git-mcp-zero-automem.md
-  - 0062-separacao-runtime-hostinger-ct100.md
-  - 0093-multi-tenant-isolation-tier-0.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0124-curador-conhecimento-pipeline.md
-  - 0122-admin-center-ct100.md
-lifecycle: active
+related:
+  - 0042-proxmox-docker-host-canonico
+  - 0053-mcp-server-governanca-como-produto
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0062-separacao-runtime-hostinger-ct100
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0124-curador-conhecimento-pipeline
+  - 0122-admin-center-ct100
 ---
 
 ## Contexto
