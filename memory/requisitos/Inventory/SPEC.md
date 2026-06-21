@@ -417,7 +417,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 
 ---
 
-## §7 User Stories
+## 7. User Stories
 
 ### Fase 1 — Kits/BOM fundação
 
