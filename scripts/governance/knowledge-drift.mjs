@@ -64,6 +64,7 @@ function allMdLive(dir) {
     const p = join(dir, e.name);
     if (e.isDirectory()) {
       if (e.name === 'adr') continue; // hard-skip append-only — espelha ghost-fix.mjs:60-61
+      if (e.name === 'roadmap' && p.includes('_Governanca')) continue; // US-GOV-035: planos do roadmap citam módulos legados/renomeados em contexto de planejamento (não ghost vivo)
       out.push(...allMdLive(p));
     } else if (e.name.endsWith('.md')) out.push(p);
   }
