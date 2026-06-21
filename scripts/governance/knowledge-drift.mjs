@@ -35,7 +35,12 @@ function allMd(dir) {
   const out = [];
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, e.name);
-    if (e.isDirectory()) out.push(...allMd(p));
+    if (e.isDirectory()) {
+      // US-GOV-035: planos do roadmap citam módulos legados/renomeados em
+      // contexto de planejamento (não são ghost vivo) — isenta _Governanca/roadmap/.
+      if (e.name === "roadmap" && p.includes("_Governanca")) continue;
+      out.push(...allMd(p));
+    }
     else if (e.name.endsWith('.md')) out.push(p);
   }
   return out;
