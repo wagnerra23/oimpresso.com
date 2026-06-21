@@ -5,8 +5,8 @@ type: spec
 module: Sells
 status: ativo
 owner: wagner
-version: 1.0.0
-last_updated: 2026-05-31
+version: "1.0.0"
+last_updated: "2026-05-31"
 ---
 
 # Especificação funcional — Sells (migração MWART de /sells/create)
