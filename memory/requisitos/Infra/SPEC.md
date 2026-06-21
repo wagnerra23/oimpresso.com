@@ -802,3 +802,34 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Suíte SQLite estável.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-041 · Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #0 — o mais grave). Afina/supersede o vago `INFRA-5` (INF-008 backup pré-deploy "formalizar").
+
+**Achado:** o passo `Backup (arquivos + DB)` do `deploy.yml` faz só `tar czf` e **NÃO contém nenhum `mysqldump`** (grep: zero no deploy inteiro). Grava no **mesmo host** Hostinger (`~/`), sem cópia off-host, com `skip_backup:true` disponível como input, e **sem nenhum teste de restore**. Houve **incidente de cota de disco em 2026-06-21**. Resultado: RPO desconhecido, RTO não testado — perda de dados é o único risco pior que vazamento cross-tenant.
+
+**Acceptance:**
+- `deploy.yml` faz `mysqldump` do banco antes do deploy.
+- Cópia do dump para fora do host (storage externo / bucket).
+- ≥1 restore testado e documentado (RUNBOOK).
+- RPO/RTO definidos por escrito.
+- Hostinger ≠ CT 100 respeitado (ADR 0062).
+
+### US-INFRA-042 · Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente)
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #1). Complementa `US-INFRA-011` (rotação senha MySQL) e os PRs #3148/#3151 (gitleaks full-history — que ESCANEIA, não rotaciona).
+
+**Achado:** o repo `wagnerra23/oimpresso.com` é **público**. A Meilisearch master key (controle admin total do search multi-tenant) está em arquivos rastreados no HEAD; o histórico append-only retém ela + token DNS Hostinger + os 12 segredos do incidente 2026-05-15. Editar o HEAD não resolve — git é append-only; a rotação é a única remediação real.
+
+**Acceptance:**
+- Rotacionar `MEILI_MASTER_KEY` no host + token DNS Hostinger + os 12 do incidente.
+- Atualizar status por item no `_INDEX-SECRETS.md`.
+- Avaliar tornar o repo privado.
+- Ativar `core.hooksPath .githooks` (pre-commit de segredos).
