@@ -1,0 +1,163 @@
+name: Jana Recall Eval (mock gate)
+
+# P12 (roadmap SDD · decay-real-ragas-recall) — tira o ghost-command do limbo.
+#
+# CONTEXTO (DIVERGÊNCIA confirmada 2026-06-21): o comando
+# `php artisan jana:recall-eval` EXISTE, é robusto e tem golden set + testes,
+# mas NÃO rodava em LUGAR NENHUM — nem CI (grep `.github/**` vazio), nem schedule
+# (`app/Console/Kernel.php` sem entry `recall`). Comando 100% órfão de pipeline.
+# Este workflow é o passo 2 do plano P12: agenda o `--mode=mock` como gate de PR.
+#
+# Por que MOCK roda em CI (vs RAGAS que precisa de secret):
+#   --mode=mock é AUTO-SUFICIENTE — só toca disco/YAML (parse do golden set,
+#   slug existe em memory/decisions ou memory/requisitos, violations de fato
+#   superseded/historical, pares colididos batem com governance/adr-alias-map.json).
+#   ZERO Meilisearch, ZERO LLM, ZERO custo. Roda em ubuntu-latest sem CT 100.
+#
+#   --mode=real (consulta Meilisearch read-only no CT 100, fase 2) NÃO roda aqui.
+#   O caminho real fica pronto-pra-ligar via schedule em app/Console/Kernel.php
+#   (environments=['live'], CT 100) — ver bloco `jana:recall-eval` lá. Liga quando
+#   o índice `mcp_memory_documents` for alcançável do cron prod. Depende de
+#   janela CT 100 (decisão de infra), NÃO de secret.
+#
+# COMO O GATE MORDE (counterfactual — plano P12 §Gate):
+#   adicionar ao golden set (tests/eval/recall-golden.yaml) uma query cujo
+#   `expected` aponta um slug que não existe no disco
+#   → JanaRecallEvalCommand.php:177 ("slug não existe no disco") empurra pra
+#     $this->errors → gate_status='fail' → self::FAILURE (exit 1) → job VERMELHO.
+#   Mesmo vale pra violation sem status superseded (linha 189) e par colidido
+#   fora do alias map (linha 200). Hoje esse exit 1 não reprova nada porque o
+#   comando não roda em pipeline; com este workflow, reprova o PR.
+#
+# MODO ADVISORY (continue-on-error) — calendário de promoção a required: ADR 0275.
+#   Começa advisory pra estabilizar (não trava merge), aparece como job no PR.
+#   Promover a required pela cadência do scorecard SDD (ADR 0275), nunca direto.
+#
+# SoC brutal (§5 Constituição v2): NÃO reimplementa a lógica de recall — chama o
+# artisan command (PHP é a fonte da verdade). Workflow é só o agendador.
+#
+# Refs: ADR 0270 D-4/D-5 (decaimento + medir caminho de leitura) · ADR 0274
+# (referência por slug · alias map) · ADR 0275 (scorecard SDD · calendário) ·
+# roadmap memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md.
+
+on:
+  # always-run (sem paths) pra ser promovível a required sem deadlock
+  # "Expected — waiting" (mesmo padrão do governance-gate.yml).
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: jana-recall-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  recall-eval-mock:
+    name: Jana recall-eval (mock — golden set determinístico)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # ADVISORY: não bloqueia merge até estabilizar. Promover a required pela
+    # cadência do scorecard SDD (ADR 0275), nunca direto. O exit 1 do comando
+    # ainda marca o STEP como falho (visível no PR) — só não falha o JOB.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml, zip, opentelemetry
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Composer install
+        run: composer install --no-progress --prefer-dist --no-interaction --no-scripts
+
+      - name: Prepare Laravel storage dirs
+        run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      # --mode=mock só lê disco/YAML — não precisa de DB real, Meilisearch nem LLM.
+      # SQLite :memory: + drivers array bastam pro framework bootar o artisan.
+      - name: Create minimal .env (mock — zero serviço externo)
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-jana-recall' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=false' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run recall-eval (mock — exit 1 reprova o golden set)
+        id: eval
+        run: |
+          set -o pipefail
+          php artisan jana:recall-eval --mode=mock --json | tee recall-eval-result.json
+
+      - name: Render GITHUB_STEP_SUMMARY
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          out = pathlib.Path('recall-eval-result.json')
+          if not out.exists():
+              print('recall-eval-result.json ausente — artisan falhou antes de gerar output')
+              raise SystemExit(0)
+          # O --json do comando escreve o report puro; tee preserva exatamente.
+          try:
+              r = json.loads(out.read_text(encoding='utf-8'))
+          except Exception as e:
+              print(f'não consegui parsear o JSON: {e}')
+              raise SystemExit(0)
+          gate = 'PASS' if r.get('gate_status') == 'pass' else 'FAIL'
+          icon = ':white_check_mark:' if gate == 'PASS' else ':x:'
+          errors = r.get('errors', []) or []
+          lines = [
+              f"# {icon} Jana recall-eval (mock) — {gate}",
+              "",
+              f"- Modo: `{r.get('mode', '?')}` (golden set determinístico, zero LLM)",
+              f"- Golden set: `{r.get('golden_path', '?')}`",
+              f"- Queries: `{r.get('n_queries', 0)}` · pares colididos: `{r.get('n_collision_queries', 0)}` · com violations: `{r.get('n_queries_with_violations', 0)}`",
+              "",
+              "> **Advisory** — não bloqueia merge (calendário de promoção: ADR 0275). "
+              "O `--mode=real` (Meilisearch/CT 100) roda via schedule em "
+              "`app/Console/Kernel.php`, não aqui.",
+          ]
+          if errors:
+              lines += ["", f"### :rotating_light: Erros ({len(errors)})"]
+              lines += [f"- {e}" for e in errors[:30]]
+          summary = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary:
+              pathlib.Path(summary).write_text('\n'.join(lines), encoding='utf-8')
+          print('\n'.join(lines))
+          PY
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jana-recall-eval-${{ github.run_id }}
+          path: recall-eval-result.json
+          retention-days: 90

@@ -71,6 +71,21 @@ function detectSddScorecard(base, head) {
   return out;
 }
 
+// Ratchet homogêneo { "path": <nº de violações toleradas> }: afrouxar = teto
+// subiu numa key existente OU key nova grandfatherada com tolerância > 0.
+// Compartilhado pelos baselines de mesmo schema (conformance cor-crua, fontramp,
+// foundation-guard, dsih, scheme). Key removida ou teto que baixou = melhora (ok).
+function detectCountRatchet(base, head) {
+  const out = [];
+  const b = base || {}, h = head || {};
+  for (const [f, n] of Object.entries(h)) {
+    if (typeof n !== 'number') continue;
+    const prev = typeof b[f] === 'number' ? b[f] : 0;
+    if (n > prev) out.push(`teto subiu: ${f} (${prev}→${n})`);
+  }
+  return out;
+}
+
 // governance/knowledge-ghosts-baseline/<Mod>.json — schema { module, ghosts:[...] }.
 // Recebe (base, head) de UM módulo já parseados (a engine expande o diretório em
 // arquivos — ver loop). Afrouxamento = ghost presente em head e ausente em base =
@@ -107,9 +122,16 @@ function detectRequiredChecks(base, head) {
 // dois lados: arquivo NOVO no head conta como base vazia).
 const GUARDED = {
   'scripts/governance/.memory-health-baseline.json': detectMemoryHealth,
+  // baselines SDD (P05 · fecha o vetor #2848 grandfather)
   'governance/sdd-scorecard-baseline.json': detectSddScorecard,
   'governance/required-checks-baseline.json': detectRequiredChecks,
   'governance/knowledge-ghosts-baseline/': detectKnowledgeGhosts,
+  // baselines-ratchet de UI/cor-crua (main · ratchet homogêneo { path: nº })
+  '.conformance-baseline.json': detectCountRatchet,
+  '.fontramp-baseline.json': detectCountRatchet,
+  '.foundation-guard-baseline.json': detectCountRatchet,
+  '.dsih-baseline.json': detectCountRatchet,
+  '.scheme-baseline.json': detectCountRatchet,
 };
 
 // ── resolver base do diff ─────────────────────────────────────────────────────

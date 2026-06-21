@@ -1,0 +1,37 @@
+# gitleaks config — oimpresso
+# Compartilhado pelos dois portões gitleaks:
+#   - secret-scan (PR diff)         · .github/workflows/governance-gate-umbrella.yml
+#   - gitleaks-history (full scan)  · .github/workflows/gitleaks-history.yml
+# Completa o "four-gate model" da governança de segredos (ADR 0215, camada 1).
+#
+# REGRA: o allowlist abaixo cobre SÓ falso-positivo determinístico (lock files,
+# exemplos, fixtures). NÃO inclui arquivos que carregam segredo REAL — esses
+# DEVEM flagar pra rotação (ex: memory/_INDEX-SECRETS.md, dívida 2026-06-07).
+
+title = "oimpresso gitleaks"
+
+[extend]
+# Herda as ~170 regras default do gitleaks (AKIA, Bearer, PEM, etc).
+useDefault = true
+
+[allowlist]
+description = "Falsos-positivos conhecidos — NÃO mascara segredo real."
+
+# Arquivos de exemplo/template e lock files (nunca carregam segredo vivo).
+paths = [
+  '''\.env\.example$''',
+  '''\.env - Copia\.example$''',
+  '''\.env\.[a-z]+\.example$''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)pnpm-lock\.yaml$''',
+  '''(^|/)composer\.lock$''',
+  '''(^|/)yarn\.lock$''',
+  '''(^|/).*\.(test|spec)\.(php|ts|tsx|mjs|js)$''',
+  '''(^|/)tests?/.*[Ff]ixtures?/''',
+  '''(^|/)scripts/legacy-migration/\.venv/''',
+]
+
+# Marcadores explícitos de valor fake em fixtures/docs (placeholder, exemplo).
+regexes = [
+  '''(?i)(example|exemplo|fake|dummy|placeholder|changeme|your[-_]?token|xxx+|<[a-z_]+>)''',
+]

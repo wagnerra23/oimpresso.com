@@ -155,12 +155,20 @@ function submitArgs(string $slug, string $body, array $over = []): array
 }
 
 beforeEach(function () {
+    // era-sqlite: tabelas sintéticas só rodam no sqlite :memory:. No MySQL persistente
+    // do nightly o Schema::drop corromperia o schema compartilhado (US-GOV-021).
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabelas sintéticas cowork_handoffs/heartbeat só rodam no sqlite');
+    }
     mkSubmitTables();
     config(['teammcp.handoff_secret' => HANDOFF_SUBMIT_SECRET]);
     actSubmitUser(mkSubmitUser(granted: true));
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // não dropar tabelas compartilhadas no MySQL persistente (US-GOV-021)
+    }
     app('auth')->resolveUsersUsing(fn ($guard = null) => null);
     foreach (['cowork_handoffs', 'mcp_ingest_heartbeat'] as $t) {
         if (Schema::hasTable($t)) {

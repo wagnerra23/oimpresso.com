@@ -15,7 +15,8 @@
 // memory-health (Check A colisão ADR não-registrada — único .mjs que MORDE no merge
 // via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival) ·
 // baseline-tamper-guard (anti-grandfather, vetor #2848: afrouxa baseline + toca código
-// no MESMO PR — sandbox git real, P05 fecha o grandfather dos 4 baselines-ratchet).
+// no MESMO PR — sandbox git real, P05 fecha o grandfather dos baselines-ratchet) ·
+// anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08).
 //
 // USO (na raiz do repo):
 //   node scripts/governance/gate-selftest.mjs              # N catracas × 2 fixtures
@@ -152,6 +153,16 @@ const CATRACAS = [
       good: /afrouxamento isolado|nenhum baseline guardado afrouxado/,
       bad: /baseline AFROUXADO no mesmo PR que toca código/,
     },
+  },
+  {
+    // anchor-lint --check resolve segmento-paths contra process.cwd() (anchor-lint.mjs:33,72) →
+    // a fixture é um SANDBOX por cwd (igual knowledge-drift): good = anchor p/ path existente
+    // (anchored_ok, exit 0), bad = anchor p/ path inexistente (anchored_dead, exit 1 · ADR 0273 §2).
+    // good regex: linha-resumo sempre impressa no exit 0. bad regex: a LÁPIDE 💀 da US morta —
+    // específica do anchored_dead (a legenda genérica "💀 anchored_dead =" sai nos dois; a US não).
+    id: 'anchor-lint',
+    run: (kind) => runNode(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), ['--check'], join(FIX, 'anchor-lint', kind)),
+    expect: { good: /ANCHOR COVERAGE GLOBAL/, bad: /💀 US-DA-001/ },
   },
 ];
 
