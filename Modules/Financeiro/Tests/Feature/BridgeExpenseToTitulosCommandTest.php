@@ -66,7 +66,6 @@ it('dry-run não escreve em fin_titulos', function () {
         'business_id' => $business->id,
         'type' => 'expense',
         'final_total' => 100.00,
-        'total_remaining_amount' => 100.00,
         'transaction_date' => '2026-05-20 12:00:00',
         'payment_status' => 'due',
         'created_by' => $userId,
@@ -107,7 +106,6 @@ it('cria fin_titulo pra expense status=due (status=aberto, valor_aberto=valor_to
         'business_id' => $business->id,
         'type' => 'expense',
         'final_total' => 250.50,
-        'total_remaining_amount' => 250.50,
         'transaction_date' => '2026-05-15 10:00:00',
         'payment_status' => 'due',
         'created_by' => $userId,
@@ -148,7 +146,6 @@ it('cria fin_titulo pra expense status=paid (status=quitado, valor_aberto=0)', f
         'business_id' => $business->id,
         'type' => 'expense',
         'final_total' => 99.90,
-        'total_remaining_amount' => 0.00,
         'transaction_date' => '2026-05-10 14:00:00',
         'payment_status' => 'paid',
         'created_by' => $userId,
@@ -174,6 +171,60 @@ it('cria fin_titulo pra expense status=paid (status=quitado, valor_aberto=0)', f
     DB::table('transactions')->where('id', $txId)->delete();
 });
 
+it('cria fin_titulo pra expense status=partial (valor_aberto = final_total − Σ pagamentos)', function () {
+    $business = bridgeExpenseBootstrap();
+    $userId = DB::table('users')->where('business_id', $business->id)->value('id');
+    if (! $userId) {
+        $this->markTestSkipped('Sem user.');
+    }
+
+    // Despesa R$ 500 com R$ 300 já pagos (1 transaction_payment não-estorno).
+    // Restante CANÔNICO = 500 − 300 = 200, derivado da subquery (sem coluna
+    // total_remaining_amount fabricada). Mesma fórmula do core (final_total − total_paid).
+    $txId = DB::table('transactions')->insertGetId([
+        'business_id' => $business->id,
+        'type' => 'expense',
+        'final_total' => 500.00,
+        'transaction_date' => '2026-05-12 11:00:00',
+        'payment_status' => 'partial',
+        'created_by' => $userId,
+        'status' => 'final',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $tpId = DB::table('transaction_payments')->insertGetId([
+        'business_id' => $business->id,
+        'transaction_id' => $txId,
+        'amount' => 300.00,
+        'method' => 'cash',
+        'is_return' => 0,
+        'paid_on' => '2026-05-12 11:00:00',
+        'created_by' => $userId,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->artisan("financeiro:bridge-expense-to-titulos --business={$business->id}")
+        ->assertExitCode(0);
+
+    $titulo = DB::table('fin_titulos')
+        ->where('business_id', $business->id)
+        ->where('origem', 'despesa')
+        ->where('origem_id', $txId)
+        ->first();
+
+    expect($titulo)->not->toBeNull();
+    expect($titulo->status)->toBe('parcial');
+    expect((float) $titulo->valor_total)->toBe(500.00);
+    expect((float) $titulo->valor_aberto)->toBe(200.00); // 500 − 300 derivado
+
+    // Cleanup
+    DB::table('fin_titulos')->where('id', $titulo->id)->delete();
+    DB::table('transaction_payments')->where('id', $tpId)->delete();
+    DB::table('transactions')->where('id', $txId)->delete();
+});
+
 it('é idempotente — re-rodar não duplica fin_titulos', function () {
     $business = bridgeExpenseBootstrap();
     $userId = DB::table('users')->where('business_id', $business->id)->value('id');
@@ -185,7 +236,6 @@ it('é idempotente — re-rodar não duplica fin_titulos', function () {
         'business_id' => $business->id,
         'type' => 'expense',
         'final_total' => 42.00,
-        'total_remaining_amount' => 42.00,
         'transaction_date' => '2026-04-01 09:00:00',
         'payment_status' => 'due',
         'created_by' => $userId,
@@ -242,7 +292,6 @@ it('não bridja transactions de outro business (Tier 0 multi-tenant)', function 
         'business_id' => $otherBusiness->id,
         'type' => 'expense',
         'final_total' => 999.00,
-        'total_remaining_amount' => 999.00,
         'transaction_date' => '2026-05-01 10:00:00',
         'payment_status' => 'due',
         'created_by' => $userId,

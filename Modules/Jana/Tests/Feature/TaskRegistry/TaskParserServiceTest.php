@@ -105,6 +105,41 @@ it('aceita blocked_by com múltiplas tasks', function () {
     expect($cand->first()['blocked_by'])->toBe(['US-NFSE-001', 'US-NFSE-002']);
 });
 
+it('roteia parent_plan da meta-line > pra custom_fields (contrato plano-perdido · ADR 0294 Onda 2)', function () {
+    // Espelha o formato pós-edição dos 22 US plano-perdido: parent_plan numa
+    // meta-line `>` (chave não-canônica → custom_fields), labels seguem no corpo.
+    // Fecha a "ponte transitória" do regex-na-description (PlanDriftCommand::resolveParentPlan).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-PG-009 · Smoke humano-limitado Onda 5
+
+    > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+    > blocked_by: —
+    > parent_plan: paymentgateway-onda-5-dogfooding
+
+    **Iniciativa-plano perdida** recuperada pro backlog.
+    labels: `plano-perdido`, `backlog-2026-06-20`
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'PaymentGateway');
+    expect($cand)->toHaveCount(1)
+        ->and($cand->first()['custom_fields'])->toBe(['parent_plan' => 'paymentgateway-onda-5-dogfooding'])
+        // labels no corpo (não em meta-line `>`) NÃO viram custom field nem campo labels
+        ->and($cand->first()['labels'])->toBeNull();
+});
+
+it('aceita parent_plan com `=` e junto na meta-line de owner', function () {
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-X-009 · Variações de sintaxe
+
+    > owner: wagner · parent_plan = sells-v2-paridade-blade-biz4
+
+    desc
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'X');
+    expect($cand->first()['custom_fields'])->toBe(['parent_plan' => 'sells-v2-paridade-blade-biz4']);
+});
+
 it('ignora valores —/- como vazios', function () {
     $spec = escreverSpec($this->tmp, <<<MD
     ### US-X-001 · Teste
@@ -155,4 +190,47 @@ it('retorna empty se SPEC nao tem nenhuma US', function () {
 it('retorna empty se path nao existe', function () {
     $cand = $this->svc->parseSpec('/tmp/nao-existe-x99.md', 'X');
     expect($cand)->toHaveCount(0);
+});
+
+it('captura sub-letra como id distinto (US-WA-NNNx) — não colapsa no id-base', function () {
+    // Contrato: o esquema sub-letra do WhatsApp gera ids PRÓPRIOS, sem vazar a
+    // letra pro título. Antes da correção, US-WA-010b colapsava em US-WA-010 com
+    // título "b · Receber webhook Z-API" (colisão spec_id_drift 2026-06-20).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-WA-010 · Receber webhook Meta + assinatura HMAC
+
+    > owner: wagner · status: todo
+
+    canônica
+
+    ### US-WA-010b · Receber webhook Z-API
+
+    > owner: wagner · status: todo
+
+    variante
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'Whatsapp');
+    expect($cand)->toHaveCount(2)
+        ->and($cand->pluck('task_id')->all())->toBe(['US-WA-010', 'US-WA-010b'])
+        ->and($cand[0]['title'])->toBe('Receber webhook Meta + assinatura HMAC')
+        ->and($cand[1]['title'])->toBe('Receber webhook Z-API'); // sem "b · " vazado
+});
+
+it('título não carrega byte órfão do separador `·` (raiz dos "? " no cache)', function () {
+    // Contrato: o `·` (U+00B7 = 2 bytes C2 B7) é consumido INTEIRO. Sem a flag
+    // `u`, a classe bytewise comia só 1 byte e o B7 órfão grudava no título →
+    // virava `? Listar Budget` ao gravar (751 títulos poluídos, incidente 2026-06-20).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-ACCO-001 · Listar Budget
+
+    > owner: wagner · status: todo
+
+    desc
+    MD);
+
+    $title = $this->svc->parseSpec($spec, 'Accounting')->first()['title'];
+    expect($title)->toBe('Listar Budget')
+        ->and(bin2hex($title))->toBe('4c697374617220427564676574') // sem prefixo b7
+        ->and(bin2hex($title))->not->toContain('b7');
 });

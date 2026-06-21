@@ -70,8 +70,8 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
         $ref = new ReflectionMethod(ServiceOrderSummaryService::class, 'kpisDashboard');
         $docComment = $ref->getDocComment();
 
-        // 4 KPIs canon
-        foreach (['locacao_ativa', 'manutencao_ativa', 'concluida_mes', 'atrasada'] as $kpi) {
+        // 3 KPIs canon (locacao_ativa erradicado — ADR 0265)
+        foreach (['manutencao_ativa', 'concluida_mes', 'atrasada'] as $kpi) {
             expect(str_contains((string) $docComment, $kpi))->toBeTrue("KPI '{$kpi}' deve estar declarado no docblock");
         }
     });
@@ -138,22 +138,25 @@ describe('Wave 26 OficinaAuto POLISH 77→88', function () {
         expect($src)->toContain('HMAC');
     });
 
-    it('D6: ServiceOrderController index() usa Inertia::defer pro kpis (RUNBOOK pattern)', function () {
+    it('D6: ServiceOrderController index() delega pro workspace unificado (tela única)', function () {
         $ctrlPath = base_path('Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php');
         expect(file_exists($ctrlPath))->toBeTrue();
         $src = file_get_contents($ctrlPath);
 
-        // Wave 26 D6: defer no kpis (4 COUNT queries) — pula em partial reload `only:['orders']`
-        expect($src)->toContain("'kpis' => Inertia::defer(");
-        expect($src)->toContain('buildServiceOrderKpisPayload');
+        // Unificação 2026-06-11 ([W]): /ordens-servico e /board servem a MESMA tela
+        // (workspace com toggle Kanban·Lista·Grade·Fila in-page). index() delega pro
+        // board() — zero duplicação. Os KPIs saem de buildBoardKpis (sobre as colunas
+        // já montadas, zero query extra — defer não é mais necessário).
+        expect($src)->toContain('return $this->board($request);');
+        expect($src)->toContain('buildBoardKpis');
     });
 
-    it('D6: ServiceOrderController index() documenta razão do rollback Wave L/W7', function () {
+    it('D6: ServiceOrderController board() documenta a tela unificada (toggle 4 views)', function () {
         $src = file_get_contents(base_path('Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php'));
 
-        // Documentação do Wave 26 D6 fazendo defer cuidadoso (lição do rollback)
-        expect($src)->toContain('Wave 26 D6');
-        expect($src)->toContain('Rollback Wave L/W7');
+        // A unificação (tela única servida em /ordens-servico e /board) fica documentada
+        // no controller pra não regredir pra 2 páginas duplicadas.
+        expect($src)->toContain('workspace com toggle');
     });
 
     it('D6: spans oficinaauto.* preservam exception (fail-loud)', function () {

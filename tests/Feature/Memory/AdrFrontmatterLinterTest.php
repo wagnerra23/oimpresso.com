@@ -29,7 +29,7 @@ const ADR_DIR_REL = 'memory/decisions';
 // IRREVOGÁVEL append-only — nao podemos reescrever frontmatter das aceitas sem ADR superseded).
 const STATUS_VALIDOS    = [
     // canon PT-BR
-    'rascunho', 'proposto', 'aceito', 'deprecated', 'superseded',
+    'rascunho', 'proposto', 'aceito', 'recusado', 'deprecated', 'superseded',
     // legacy English (ADRs 0122-0164 escritas durante migração module-grade v3)
     'accepted', 'proposed', 'aceita',
 ];
@@ -217,6 +217,13 @@ it('vocabulário controlado de status/authority/lifecycle/decided_by é respeita
     expect($erros)->toBeEmpty(
         "Vocabulário controlado violado:\n  - " . implode("\n  - ", $erros)
     );
+});
+
+it('status `recusado` está no vocabulário controlado (sync com adr.schema.json · #2989)', function () {
+    // O NÃO consultável (proposal recusado-com-motivo). Sem isto, a 1ª ADR `status: recusado`
+    // passa o gate AJV (scripts/memory-schemas/adr.schema.json) mas FALHA este gate REQUIRED
+    // com "status inválido `recusado`" → merge bloqueado. Este teste trava o sync dos dois enums.
+    expect(in_array('recusado', STATUS_VALIDOS, true))->toBeTrue();
 });
 
 it('slug do frontmatter casa com nome do arquivo', function () {

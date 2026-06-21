@@ -1,15 +1,16 @@
 ---
-page: kb/Node (drawer concept — não tem .tsx dedicado)
-controller: Modules\KB\Http\Controllers\KbNodeController
+page: /kb/nodes  # drawer concept — governa NodeReader/NodeList, sem .tsx de página dedicada
+component: resources/js/Pages/kb/_components/NodeReader.tsx
+controller: 'Modules\KB\Http\Controllers\KbNodeController'
 route: kb.nodes.{index,show,store,update,destroy,restore,reverify}
 status: draft
-owner: [W] Wagner
+owner: wagner
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
-charter_version: 1.0
+charter_version: 1
 charter_at: 2026-05-16
 related_adrs:
-  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central (proposta)
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0104-processo-mwart-canonico-unico-caminho

@@ -74,6 +74,18 @@ final class WhatsmeowReconciler
             return WhatsmeowState::NOT_EXISTS;
         }
 
+        // 2b. Blindagem (Wagner 2026-06-18): a própria lista /admin/users já traz
+        // connected/loggedIn por sessão. Usa como fonte PRIMÁRIA de "pareado" —
+        // não depende do user_token salvo em config_json, que pode ter ficado
+        // stale e fazer /session/status retornar 401, travando o fechamento
+        // automático da tela do QR. Só decide PAIRED aqui; demais estados seguem
+        // o fluxo abaixo (token + /session/status) que distingue QR_PENDING etc.
+        $remoteConnected = (bool) ($remoteUser['connected'] ?? $remoteUser['Connected'] ?? false);
+        $remoteLoggedIn = (bool) ($remoteUser['loggedIn'] ?? $remoteUser['LoggedIn'] ?? false);
+        if ($remoteConnected && $remoteLoggedIn) {
+            return WhatsmeowState::PAIRED;
+        }
+
         // 3. Token user disponível pra consultar status?
         $cfg = $channel->config_json ?? [];
         $userToken = $cfg['whatsmeow_user_token'] ?? null;
@@ -248,8 +260,11 @@ final class WhatsmeowReconciler
      */
     public function resolveChannelByUserName(int $businessId, string $userName): ?Channel
     {
+        // Fluxo de webhook do daemon WuzAPI, que chega sem session de tenant —
+        // $businessId é resolvido pelo middleware e passado explícito; o
+        // where('business_id') abaixo garante isolamento Tier 0.
         return Channel::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: webhook sem session, escopado por business_id explícito (ADR 0093)
             ->where('business_id', $businessId)
             ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
             ->get()
@@ -269,8 +284,11 @@ final class WhatsmeowReconciler
      */
     public function resolveChannelForPendingPair(int $businessId): ?Channel
     {
+        // Fallback de webhook do daemon WuzAPI sem session de tenant — $businessId
+        // vem do middleware; where('business_id') mantém isolamento Tier 0 (nunca
+        // atravessa fronteira business).
         return Channel::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: webhook sem session, escopado por business_id explícito (ADR 0093)
             ->where('business_id', $businessId)
             ->where('type', Channel::TYPE_WHATSAPP_WHATSMEOW)
             ->whereIn('status', ['setup', 'disconnected'])

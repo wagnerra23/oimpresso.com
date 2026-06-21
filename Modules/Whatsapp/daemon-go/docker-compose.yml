@@ -30,7 +30,9 @@ services:
     # Imagem oficial mantida por asternic — REST API Go wrapping tulir/whatsmeow
     # Pin em SHA digest exato pra reprodutibilidade (NÃO usar `:latest` em prod).
     # Atualizar via PR explícita pós smoke test em staging.
-    image: asternic/wuzapi:latest
+    # Pinado 2026-06-16 (incidente #2726): `:latest` mascarava QUAL build rodava —
+    # e este build NÃO implementa assinatura HMAC (ver WUZAPI_GLOBAL_HMAC_KEY abaixo).
+    image: asternic/wuzapi@sha256:86b0b26c6b778ed6805a254c023ea368d46fa8bcab615d1ee3d0343d021ee1c3
     container_name: whatsapp-whatsmeow
     restart: unless-stopped
 
@@ -59,9 +61,15 @@ services:
       # Timezone consistente com app Laravel (ADR 0035 baseline America/Sao_Paulo)
       - TZ=America/Sao_Paulo
 
-      # HMAC global signature pra todos webhooks (defesa em profundidade
-      # contra spoof — daemon assina cada POST com SHA-256 do payload).
-      # Backend valida via middleware VerifyWhatsmeowSignature.
+      # ⚠️ INERTE (verificado 2026-06-16, incidente #2726): este build do
+      # asternic/wuzapi NÃO implementa assinatura de webhook — esta env é
+      # IGNORADA pelo binário (não emite header x-hmac-signature). A doc anterior
+      # afirmava "daemon assina cada POST" como FATO; era ASPIRACIONAL e foi citada
+      # como "confirmação" pra remover a única auth em uso (IP) → 3 dias mudo.
+      # Auth EFETIVA hoje: segredo na URL do webhook (?wh=, ver
+      # VerifyWhatsmeowSignature + WHATSMEOW_WEBHOOK_URL_SECRET) + IP allowlist no
+      # edge (Traefik). Mantida só pra quando/se um build com HMAC for adotado
+      # (aí pinar o SHA novo + religar via teste de contrato real).
       - WUZAPI_GLOBAL_HMAC_KEY_FILE=/run/secrets/whatsmeow_hmac_secret
 
     # Health check interno — daemon healthy se /health responde 200

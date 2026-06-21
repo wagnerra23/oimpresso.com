@@ -148,7 +148,7 @@ export default function PlacasMainTab({ contactId }: PlacasMainTabProps) {
 
   if (error) {
     return (
-      <div className="p-8 text-center text-sm text-rose-600" role="alert">
+      <div className="p-8 text-center text-sm text-destructive" role="alert">
         {error}
       </div>
     );

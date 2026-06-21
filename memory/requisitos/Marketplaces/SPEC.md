@@ -1,17 +1,31 @@
 ---
 module: Marketplaces
-status: feature-wish
+status: rascunho
+version: "1.0"
+last_updated: "2026-06-13"
 lifecycle: aguarda-sinal-qualificado
 piloto: ROTA LIVRE (Modules/Vestuario — sinal natural se Larissa ativar venda ML) OU 1º OfficeImpresso saudável com venda ML ativa (Vargas/Mhundo)
 piloto_previsao: depende de (a) Larissa confirmar interesse ML/Shopee OU (b) 1º cliente OfficeImpresso reportar "vendo em ML, quero integrar"
 cnae_aplicavel: cross-vertical (qualquer cliente que vende online — não tem CNAE próprio)
-related_adrs: [0143, 0121, 0094, 0093, 0105, 0106, 0035, 0011, 0089, 0117, 0119, 0129]
+related_adrs:
+  - "0143-fsm-pipeline-live-prod-marco-2026-05-12"
+  - "0121-oimpresso-modular-especializado-por-vertical"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0105-cliente-como-sinal-guiar-sem-mandar"
+  - "0106-recalibracao-velocidade-fator-10x-ia-pair"
+  - "0035-stack-ai-canonica-wagner-2026-04-26"
+  - "0011-alinhamento-padrao-jana"
+  - "0089-capterra-driven-module-evolution"
+  - "0117-multiplos-numeros-whatsapp-por-business"
+  - "0119-migration-factory-capacidade-institucional"
+  - "0129-state-machine-canonica-fsm-rbac"
 related_proposals: [proposals/drafts/marketplaces-modulo-cross-vertical.md]
 last_review: 2026-05-12
 owner: [W]
 ---
 
-# Especificação funcional — Modules/Marketplaces (cross-vertical)
+# Especificação funcional — Marketplaces (planejado — não existe) (cross-vertical)
 
 > Convenção do ID: `US-MKT-NNN` para user stories, `R-MKT-NNN` para regras Gherkin.
 > **Modulo NÃO existe em código.** SPEC **antecipatório** — formaliza contrato de construção SE/QUANDO (a) Larissa (ROTA LIVRE biz=4 ativa) reportar venda marketplace OU (b) 1+ OfficeImpresso saudável (Vargas/Extreme/Gold/Mhundo) confirmar "vendo em ML/Shopee, preciso integrar com NFe" ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) gatilho).
@@ -19,7 +33,7 @@ owner: [W]
 
 ## 1. Visão
 
-`Modules/Marketplaces` é o módulo **cross-vertical canônico** que permite **qualquer vertical** oimpresso (Vestuario / OficinaAuto / Autopecas / ComunicacaoVisual / futuras) vender via **marketplaces brasileiros** (Mercado Livre, Shopee, Amazon BR, Magalu Hub, Americanas, futuros) com:
+`Marketplaces (planejado — não existe)` é o módulo **cross-vertical canônico** que permite **qualquer vertical** oimpresso (Vestuario / OficinaAuto / Autopecas / ComunicacaoVisual / futuras) vender via **marketplaces brasileiros** (Mercado Livre, Shopee, Amazon BR, Magalu Hub, Americanas, futuros) com:
 
 - **OAuth2 per-business** (cada `business_id` tem credenciais próprias — Tier 0 [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - **Webhooks orders → FSM canon stage `pedido_ml_recebido`** ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md))
@@ -30,7 +44,7 @@ owner: [W]
 - **Disputas/claims workflow** (Mercado Livre claims, Shopee returns)
 - **Jana IA** responde "quantos pedidos ML hoje?" / "qual SKU mais vendido ML mês?"
 
-**Tese de entrada:** Brasil tem **gap concreto** entre ERPs especializados por vertical (oimpresso modular) e hubs marketplace generalistas (Tiny/Bling/Olist). Cliente oimpresso vertical (vestuário/auto/comvisual) que também vende ML hoje **sai do oimpresso pra Tiny** pra ter integração. Modules/Marketplaces evita perda + entrega Jana IA + multi-tenant Tier 0 que nenhum hub atual tem.
+**Tese de entrada:** Brasil tem **gap concreto** entre ERPs especializados por vertical (oimpresso modular) e hubs marketplace generalistas (Tiny/Bling/Olist). Cliente oimpresso vertical (vestuário/auto/comvisual) que também vende ML hoje **sai do oimpresso pra Tiny** pra ter integração. Marketplaces (planejado — não existe) evita perda + entrega Jana IA + multi-tenant Tier 0 que nenhum hub atual tem.
 
 **Status atual:** **NÃO em construção.** Sem sinal qualificado (Larissa ou 1º OfficeImpresso saudável), **viola ADR 0105**. Tiny/Bling cobrem ~95% do que o mercado pede — só faz sentido construir se cliente oimpresso reportar dor real.
 
@@ -506,7 +520,7 @@ Sob demanda sinal cliente — driver pattern facilita adição.
 
 ## 10. Riscos top
 
-1. **Tiny/Bling cobrem 95% do que mercado pede** — construir Modules/Marketplaces sem sinal qualificado é desperdício. ADR 0105 enforcement crítico aqui
+1. **Tiny/Bling cobrem 95% do que mercado pede** — construir Marketplaces (planejado — não existe) sem sinal qualificado é desperdício. ADR 0105 enforcement crítico aqui
 2. **API ML mudanças frequentes** — Mercado Livre faz 5-10 breaking changes/ano. Manter driver atualizado tem custo recorrente
 3. **Rate limit 1500/min mais agressivo do que parece** — bulk operations precisam queue + debounce; mass sync 5000 produtos em 1 click = bloqueio app
 4. **Mercado Pago split D+0 a D+60 cria descasamento caixa** — financeiro precisa modelar "recebível futuro garantido" sem inflar AR. Reconciliação errada gera relatório errado
@@ -539,7 +553,7 @@ Sob demanda sinal cliente — driver pattern facilita adição.
 
 ### 11.3 Capacidade time
 
-WIP atual (~Q2/26): 5 pessoas com Vestuario live, ComVis em construção, OficinaAuto V0, MWART Financeiro. Modules/Marketplaces ativa **só após** ComVis ter 1ª piloto verde + sinal Larissa/OfficeImpresso (Q4/26 estimado).
+WIP atual (~Q2/26): 5 pessoas com Vestuario live, ComVis em construção, OficinaAuto V0, MWART Financeiro. Marketplaces (planejado — não existe) ativa **só após** ComVis ter 1ª piloto verde + sinal Larissa/OfficeImpresso (Q4/26 estimado).
 
 ### 11.4 ADR de ativação
 

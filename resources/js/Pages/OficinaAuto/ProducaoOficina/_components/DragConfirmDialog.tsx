@@ -5,7 +5,7 @@
 //   - Confirmar = variant "default" (cinza-escuro) ou "destructive" (vermelho) se isCritical
 //   - "Esta ação é irreversível" exibido só quando isCritical=true
 //
-// Uso (Index.tsx):
+// Uso (ServiceOrders/Board.tsx):
 //   const [pending, setPending] = useState<PendingTransition|null>(null)
 //   <DragConfirmDialog
 //     pending={pending}
@@ -26,8 +26,8 @@ import {
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 
 export interface PendingTransition {
-  cacambaId: number;
-  rentalId: number | null;
+  /** ID do subject FSM (a OS no Quadro de OS — usado no endpoint /fsm/execute). */
+  subjectId: number;
   fromColumn: string;
   toColumn: string;
   actionKey: string;
@@ -39,8 +39,7 @@ export interface PendingTransition {
   plate?: string;
   cliente_nome?: string | null;
   valor_receber?: number | null;
-  dias_locacao?: number | null;
-  /** Rótulo do campo da placa (default 'Caçamba'; carro usa 'Veículo'). 2026-06-02 */
+  /** Rótulo do campo da placa (default 'Veículo' — vocabulário reparo, ADR 0265). */
   subjectLabel?: string;
 }
 
@@ -90,7 +89,7 @@ export default function DragConfirmDialog({
           <div className="rounded-md border border-border bg-muted px-3 py-2.5 text-xs text-foreground space-y-1">
             {pending.plate ? (
               <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">{pending.subjectLabel ?? 'Caçamba'}</span>
+                <span className="text-muted-foreground">{pending.subjectLabel ?? 'Veículo'}</span>
                 <span className="font-mono font-medium text-foreground">
                   {pending.plate}
                 </span>
@@ -101,14 +100,6 @@ export default function DragConfirmDialog({
                 <span className="text-muted-foreground">Cliente</span>
                 <span className="font-medium text-foreground truncate max-w-[60%]">
                   {pending.cliente_nome}
-                </span>
-              </div>
-            ) : null}
-            {pending.dias_locacao != null ? (
-              <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">Diárias</span>
-                <span className="font-medium text-foreground tabular-nums">
-                  {pending.dias_locacao}
                 </span>
               </div>
             ) : null}

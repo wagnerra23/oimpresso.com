@@ -14,14 +14,22 @@
 
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Clock, Paperclip, Search, Tag, UserPlus, X } from 'lucide-react';
+import { Check, ChevronDown, Clock, Filter, Paperclip, Search, Star, UserPlus, X } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/Components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import { Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
 import {
+  type AccountItem,
   type CaixaUnifConversation,
   type CaixaUnifStatus,
   type CaixaUnifTab,
@@ -29,10 +37,18 @@ import {
   type ConvTag,
   type Paginated,
   type CaixaUnifStats,
+  type QueueConfig,
+  type UnhealthyChannel,
   initials,
   avatarHue,
   relativeTimeBR,
+  slaState,
+  slaWaitedMin,
+  slaWaitedShort,
+  SLA_META,
 } from './helpers';
+import { useInboxFavs } from './useInboxFavs';
+import ChannelHealthBanner from './ChannelHealthBanner';
 
 type InboundAging = '6h' | '12h' | '24h' | '48h' | '7d' | null;
 type OrderBy = 'last_message' | 'inbound';
@@ -47,6 +63,12 @@ interface Props {
   status: CaixaUnifStatus | CaixaUnifTab;
   q: string;
   onSelect: (id: number) => void;
+  // Onda 2 (filtros 2-botões) — canal/conta/fila migraram da faixa pro popover Filtros
+  channelTypeFilter?: string | null;
+  accounts?: AccountItem[];
+  accountFilter?: number | null;
+  queues?: Record<string, QueueConfig>;
+  queueFilter?: string | null;
   // Wave 5 F1 — filtros power-user (sincronizam URL)
   within24h?: boolean | null;
   unlinked?: boolean;
@@ -56,6 +78,10 @@ interface Props {
   // Wave 5-B F1 — filtro tags multi-select
   availableTags?: ConvTag[];
   activeTagIds?: number[];
+  // US-WA-308 (redesign Cowork) — canais ativos com saúde caída (eager, first-paint)
+  unhealthyChannels?: UnhealthyChannel[];
+  /** whatsapp.settings.manage — habilita o QR de re-pareamento in-place no banner de saúde. */
+  canManageChannels?: boolean;
 }
 
 const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; title?: string }[] = [
@@ -70,12 +96,23 @@ const TABS: { id: CaixaUnifTab; label: string; statKey?: keyof CaixaUnifStats; t
 
 export default function ConversationListV4({
   conversations, channels, stats, selectedId, status, q, onSelect,
+  channelTypeFilter = null, accounts = [], accountFilter = null,
+  queues = {}, queueFilter = null,
   within24h = null, unlinked = false, mediaInbound24h = false,
   inboundAging = null, orderBy = 'last_message',
   availableTags = [], activeTagIds = [],
+  unhealthyChannels = [],
+  canManageChannels = false,
 }: Props) {
   const [searchInput, setSearchInput] = useState(q);
   const tab = status as CaixaUnifTab;
+
+  // Polish V2 §6 — favoritos localStorage ordenam no topo (ordem original preservada dentro dos grupos)
+  const { isFav, toggleFav } = useInboxFavs();
+  const orderedConvs = useMemo(() => {
+    const data = conversations?.data ?? [];
+    return [...data.filter(c => isFav(c.id)), ...data.filter(c => !isFav(c.id))];
+  }, [conversations?.data, isFav]);
 
   const channelsById = useMemo(() => {
     const map = new Map<string, ChannelCatalogItem>();
@@ -88,6 +125,9 @@ export default function ConversationListV4({
     return {
       tab,
       q: q || undefined,
+      channel: channelTypeFilter ?? undefined,
+      account_id: accountFilter ?? undefined,
+      queue: queueFilter ?? undefined,
       within24h: within24h !== null ? (within24h ? '1' : '0') : undefined,
       unlinked: unlinked ? '1' : undefined,
       media_inbound_24h: mediaInbound24h ? '1' : undefined,
@@ -137,6 +177,9 @@ export default function ConversationListV4({
   }
 
   const activeFilterCount = [
+    !!channelTypeFilter,
+    accountFilter !== null,
+    !!queueFilter,
     within24h !== null,
     unlinked,
     mediaInbound24h,
@@ -149,204 +192,251 @@ export default function ConversationListV4({
     red: 0, emerald: 145, blue: 220, purple: 280, amber: 80, cyan: 200, slate: 60,
   };
 
+  // Onda 2 — derivados pro dropdown Status + popover Filtros
+  const activeTab = TABS.find(t => t.id === tab) ?? TABS[0]!;
+  const activeTabCount = activeTab.statKey && stats ? stats[activeTab.statKey] : undefined;
+  const visibleAccounts = channelTypeFilter
+    ? accounts.filter(a => a.channel_type === channelTypeFilter)
+    : accounts;
+  const queueEntries = Object.entries(queues);
+  function clearAllFilters() {
+    applyFilter({
+      channel: undefined, account_id: undefined, queue: undefined,
+      within24h: undefined, unlinked: undefined, media_inbound_24h: undefined,
+      inbound_aging: undefined, order_by: undefined, tags: undefined,
+    });
+  }
+
   return (
     <aside
       className="flex flex-col bg-card border-r min-h-0 min-w-0"
       aria-label="Lista de conversas"
     >
-      {/* Header coluna */}
-      <div className="flex items-baseline gap-2 border-b px-3.5 pt-3 pb-2">
-        <b className="text-[13px] font-semibold text-foreground">Conversas</b>
-        <span className="font-mono text-[11px] text-muted-foreground">{conversations.total}</span>
-      </div>
+      {/* Header da coluna: título + count + Status (dropdown) + Filtros (popover) — Onda 2 */}
+      <Inline align="center" justify="between" className="border-b px-3 pt-2.5 pb-2">
+        <Inline align="baseline" className="min-w-0">
+          <b className="text-[13px] font-semibold text-foreground">Conversas</b>
+          <span className="font-mono text-[11px] text-muted-foreground">{conversations.total}</span>
+        </Inline>
 
-      {/* Wave 2 F1 — 7 tabs canônicas paridade Inbox legacy */}
-      <div
-        className="flex gap-0.5 px-2 py-1.5 border-b overflow-x-auto"
-        role="tablist"
-        aria-label="Filtrar conversas por tab"
-      >
-        {TABS.map(t => {
-          const count = t.statKey && stats ? stats[t.statKey] : undefined;
-          const isActive = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => applyTab(t.id)}
-              title={t.title}
-              data-testid={`caixa-unif-tab-${t.id}`}
-              className={cn(
-                'inline-flex items-center gap-1 px-2 h-7 rounded text-[11.5px] font-medium transition-colors shrink-0',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-              )}
-            >
-              {t.label}
-              {count !== undefined && count > 0 && (
-                <span
-                  className={cn(
-                    'inline-flex items-center justify-center min-w-[15px] h-3.5 px-1 text-[9.5px] font-mono rounded-full',
-                    isActive
-                      ? 'bg-primary-foreground/25 text-primary-foreground'
-                      : 'bg-primary text-primary-foreground',
-                  )}
-                >
-                  {count > 99 ? '99+' : count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Status — 7 tabs canônicas num DropdownMenu (substitui a fileira de tabs) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                data-testid="caixa-unif-status-trigger"
+                title="Filtrar por status"
+                className="inline-flex items-center gap-1 h-7 px-2.5 rounded border border-border bg-card text-[11.5px] font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                {activeTab.label}
+                {activeTabCount !== undefined && activeTabCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[15px] h-3.5 px-1 text-[9.5px] font-mono rounded-full bg-primary text-primary-foreground">
+                    {activeTabCount > 99 ? '99+' : activeTabCount}
+                  </span>
+                )}
+                <ChevronDown size={12} aria-hidden />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {TABS.map(t => {
+                const count = t.statKey && stats ? stats[t.statKey] : undefined;
+                const isActive = tab === t.id;
+                return (
+                  <DropdownMenuItem
+                    key={t.id}
+                    onClick={() => applyTab(t.id)}
+                    title={t.title}
+                    data-testid={`caixa-unif-tab-${t.id}`}
+                    className="flex items-center gap-2 text-[12px] cursor-pointer"
+                  >
+                    <Check size={13} className={cn('shrink-0', isActive ? 'opacity-100 text-primary' : 'opacity-0')} aria-hidden />
+                    <span className="flex-1">{t.label}</span>
+                    {count !== undefined && count > 0 && (
+                      <span className="font-mono text-[10px] text-muted-foreground">{count > 99 ? '99+' : count}</span>
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-      {/* Wave 5 F1 — Filtros power-user (3 chips + 2 dropdowns) */}
-      <div className="flex flex-wrap items-center gap-1 px-2 py-1.5 border-b text-[11px]">
-        <FilterChip
-          active={unlinked}
-          onClick={() => applyFilter({ unlinked: !unlinked ? '1' : undefined })}
-          icon={<UserPlus size={11} aria-hidden />}
-          label="Sem CRM"
-          title="Conversas sem Contact CRM vinculado (oportunidade de cadastro)"
-        />
-        <FilterChip
-          active={within24h !== null}
-          onClick={cycleWithin24h}
-          icon={<Clock size={11} aria-hidden />}
-          label={within24h === false ? '24h fechada' : within24h === true ? '24h aberta' : 'Janela 24h'}
-          title="Janela Meta 24h — clique alterna aberta → fechada → sem filtro"
-        />
-        <FilterChip
-          active={mediaInbound24h}
-          onClick={() => applyFilter({ media_inbound_24h: !mediaInbound24h ? '1' : undefined })}
-          icon={<Paperclip size={11} aria-hidden />}
-          label="Mídia 24h"
-          title="Só conversas com foto/áudio/vídeo/doc recebidos nas últimas 24h"
-        />
-
-        {/* Aging dropdown */}
-        <select
-          value={inboundAging ?? ''}
-          onChange={e => applyFilter({ inbound_aging: e.target.value || undefined })}
-          aria-label="Esperando resposta há mais de"
-          data-testid="caixa-unif-filter-aging"
-          className={cn(
-            'h-6 px-1.5 text-[11px] rounded border bg-card cursor-pointer hover:bg-muted focus:outline-none focus:border-primary',
-            inboundAging ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground',
-          )}
-        >
-          <option value="">Esperando há…</option>
-          <option value="6h">&gt; 6h</option>
-          <option value="12h">&gt; 12h</option>
-          <option value="24h">&gt; 24h</option>
-          <option value="48h">&gt; 48h</option>
-          <option value="7d">&gt; 7 dias</option>
-        </select>
-
-        {/* OrderBy dropdown */}
-        <select
-          value={orderBy}
-          onChange={e => applyFilter({ order_by: e.target.value === 'last_message' ? undefined : e.target.value })}
-          aria-label="Ordenar por"
-          data-testid="caixa-unif-filter-orderby"
-          className={cn(
-            'h-6 px-1.5 text-[11px] rounded border bg-card cursor-pointer hover:bg-muted focus:outline-none focus:border-primary',
-            orderBy !== 'last_message' ? 'border-primary text-primary font-medium' : 'border-border text-muted-foreground',
-          )}
-        >
-          <option value="last_message">Última msg</option>
-          <option value="inbound">Último inbound</option>
-        </select>
-
-        {/* Wave 5-B F1 — Tags multi-select Popover */}
-        {availableTags.length > 0 && (
+          {/* Filtros — popover flutuante (não empurra a lista) com todos os power-filters em grupos */}
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                aria-pressed={activeTagIds.length > 0}
-                data-testid="caixa-unif-filter-tags"
-                title="Filtrar por tags"
+                aria-pressed={activeFilterCount > 0}
+                data-testid="caixa-unif-filtros-trigger"
+                title="Filtros avançados"
                 className={cn(
-                  'inline-flex items-center gap-1 h-6 px-2 rounded-full border text-[10.5px] font-medium transition-colors',
-                  activeTagIds.length > 0
+                  'inline-flex items-center gap-1 h-7 px-2.5 rounded border text-[11.5px] font-medium transition-colors',
+                  activeFilterCount > 0
                     ? 'bg-primary/10 border-primary text-primary'
-                    : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+                    : 'border-border bg-card text-foreground hover:bg-muted',
                 )}
               >
-                <Tag size={11} aria-hidden />
-                Tags
-                {activeTagIds.length > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[14px] h-3.5 px-1 text-[9px] font-mono rounded-full bg-primary text-primary-foreground">
-                    {activeTagIds.length}
+                <Filter size={12} aria-hidden />
+                Filtros
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[15px] h-3.5 px-1 text-[9.5px] font-mono rounded-full bg-primary text-primary-foreground">
+                    {activeFilterCount}
                   </span>
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-56 p-1.5">
-              <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
-                Filtrar por tag
-              </div>
-              <ul className="max-h-64 overflow-auto">
-                {availableTags.map(t => {
-                  const active = activeTagIds.includes(t.id);
-                  return (
-                    <li key={t.id}>
-                      <button
-                        type="button"
+            <PopoverContent align="end" className="w-72 p-0">
+              <Inline align="center" justify="between" className="px-3 py-2 border-b">
+                <span className="text-[12px] font-semibold">Filtros</span>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    data-testid="caixa-unif-filter-clear"
+                    className="inline-flex items-center gap-0.5 text-[10.5px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X size={11} aria-hidden /> Limpar ({activeFilterCount})
+                  </button>
+                )}
+              </Inline>
+
+              <div className="max-h-[60vh] overflow-auto p-2.5 flex flex-col gap-3">
+                {channels.length > 0 && (
+                  <FilterSection label="Canal">
+                    <OptionRow
+                      label="Todos os canais"
+                      active={!channelTypeFilter}
+                      onClick={() => applyFilter({ channel: undefined, account_id: undefined })}
+                    />
+                    {channels.map(c => (
+                      <OptionRow
+                        key={c.id}
+                        label={c.short || c.label}
+                        hue={c.hue}
+                        count={c.count}
+                        muted={c.status === 'em_breve'}
+                        active={channelTypeFilter === c.id}
+                        onClick={() => applyFilter({
+                          channel: channelTypeFilter === c.id ? undefined : c.id,
+                          account_id: undefined,
+                        })}
+                        testId={`caixa-unif-filter-channel-${c.id}`}
+                      />
+                    ))}
+                  </FilterSection>
+                )}
+
+                {visibleAccounts.length > 0 && (
+                  <FilterSection label="Conta">
+                    <OptionRow
+                      label="Todas as contas"
+                      active={accountFilter === null}
+                      onClick={() => applyFilter({ account_id: undefined })}
+                    />
+                    {visibleAccounts.map(a => (
+                      <OptionRow
+                        key={a.id}
+                        label={a.label}
+                        sub={a.handle}
+                        count={a.count}
+                        muted={a.status === 'em_breve'}
+                        active={accountFilter === a.id}
+                        onClick={() => applyFilter({ account_id: accountFilter === a.id ? undefined : a.id })}
+                        testId={`caixa-unif-filter-account-${a.id}`}
+                      />
+                    ))}
+                  </FilterSection>
+                )}
+
+                {queueEntries.length > 0 && (
+                  <FilterSection label="Fila">
+                    <OptionRow
+                      label="Todas as filas"
+                      active={!queueFilter}
+                      onClick={() => applyFilter({ queue: undefined })}
+                    />
+                    {queueEntries.map(([slug, qc]) => (
+                      <OptionRow
+                        key={slug}
+                        label={qc.label}
+                        hue={qc.hue}
+                        active={queueFilter === slug}
+                        onClick={() => applyFilter({ queue: queueFilter === slug ? undefined : slug })}
+                        testId={`caixa-unif-filter-queue-${slug}`}
+                      />
+                    ))}
+                  </FilterSection>
+                )}
+
+                {availableTags.length > 0 && (
+                  <FilterSection label="Tags">
+                    {availableTags.map(t => (
+                      <OptionRow
+                        key={t.id}
+                        label={t.label}
+                        hue={tagColorHue[t.color] ?? 60}
+                        active={activeTagIds.includes(t.id)}
                         onClick={() => toggleTagFilter(t.id)}
-                        data-testid={`caixa-unif-filter-tag-${t.slug}`}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={active}
-                          readOnly
-                          className="pointer-events-none"
-                          aria-hidden
-                        />
-                        <span
-                          className="inline-block w-2 h-2 rounded-full"
-                          style={{ background: `oklch(0.62 0.13 ${tagColorHue[t.color] ?? 60})` }}
-                          aria-hidden
-                        />
-                        <span className="flex-1">{t.label}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-              {activeTagIds.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => applyFilter({ tags: undefined })}
-                  className="w-full mt-1 px-2 py-1 text-[10.5px] text-muted-foreground hover:text-foreground hover:bg-muted rounded text-center transition-colors"
-                >
-                  Limpar tags
-                </button>
-              )}
+                        testId={`caixa-unif-filter-tag-${t.slug}`}
+                      />
+                    ))}
+                  </FilterSection>
+                )}
+
+                <FilterSection label="Ordenar por">
+                  <OptionRow
+                    label="Última mensagem"
+                    active={orderBy === 'last_message'}
+                    onClick={() => applyFilter({ order_by: undefined })}
+                  />
+                  <OptionRow
+                    label="Último recebido (inbound)"
+                    active={orderBy === 'inbound'}
+                    onClick={() => applyFilter({ order_by: 'inbound' })}
+                  />
+                </FilterSection>
+
+                <FilterSection label="Esperando resposta há">
+                  <OptionRow label="Qualquer tempo" active={!inboundAging} onClick={() => applyFilter({ inbound_aging: undefined })} />
+                  {(['6h', '12h', '24h', '48h', '7d'] as const).map(a => (
+                    <OptionRow
+                      key={a}
+                      label={a === '7d' ? '> 7 dias' : `> ${a}`}
+                      active={inboundAging === a}
+                      onClick={() => applyFilter({ inbound_aging: inboundAging === a ? undefined : a })}
+                      testId={`caixa-unif-filter-aging-${a}`}
+                    />
+                  ))}
+                </FilterSection>
+
+                <FilterSection label="Outros">
+                  <ToggleRow
+                    icon={<UserPlus size={12} aria-hidden />}
+                    label="Sem CRM vinculado"
+                    active={unlinked}
+                    onClick={() => applyFilter({ unlinked: !unlinked ? '1' : undefined })}
+                    testId="caixa-unif-filter-unlinked"
+                  />
+                  <ToggleRow
+                    icon={<Clock size={12} aria-hidden />}
+                    label={within24h === false ? 'Janela 24h fechada' : within24h === true ? 'Janela 24h aberta' : 'Janela 24h (qualquer)'}
+                    active={within24h !== null}
+                    onClick={cycleWithin24h}
+                    testId="caixa-unif-filter-within24h"
+                  />
+                  <ToggleRow
+                    icon={<Paperclip size={12} aria-hidden />}
+                    label="Mídia recebida 24h"
+                    active={mediaInbound24h}
+                    onClick={() => applyFilter({ media_inbound_24h: !mediaInbound24h ? '1' : undefined })}
+                    testId="caixa-unif-filter-media24h"
+                  />
+                </FilterSection>
+              </div>
             </PopoverContent>
           </Popover>
-        )}
-
-        {activeFilterCount > 0 && (
-          <button
-            type="button"
-            onClick={() => applyFilter({
-              within24h: undefined, unlinked: undefined, media_inbound_24h: undefined,
-              inbound_aging: undefined, order_by: undefined, tags: undefined,
-            })}
-            className="ml-auto inline-flex items-center gap-0.5 text-[10.5px] text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="caixa-unif-filter-clear"
-            title={`Limpar ${activeFilterCount} filtro${activeFilterCount > 1 ? 's' : ''}`}
-          >
-            <X size={11} aria-hidden /> limpar
-          </button>
-        )}
-      </div>
+        </div>
+      </Inline>
 
       {/* Busca inline */}
       <div className="relative border-b px-3.5 py-2">
@@ -378,6 +468,9 @@ export default function ConversationListV4({
         )}
       </div>
 
+      {/* US-WA-308 (redesign Cowork) — banner saúde de canal no topo da lista, fiel ao protótipo */}
+      <ChannelHealthBanner channels={unhealthyChannels} accounts={accounts} catalog={channels} canManageChannels={canManageChannels} />
+
       {/* Lista */}
       {conversations.data.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-1 p-6 text-center text-muted-foreground">
@@ -386,14 +479,16 @@ export default function ConversationListV4({
         </div>
       ) : (
         <ul
-          className="flex-1 overflow-auto p-1.5 flex flex-col gap-0.5"
+          className="flex-1 overflow-auto cw-scroll-thin p-1.5 flex flex-col gap-0.5"
           role="listbox"
           aria-label="Conversas"
         >
-          {conversations.data.map(conv => {
+          {orderedConvs.map(conv => {
             const ch = conv.channel_type ? channelsById.get(conv.channel_type) : undefined;
             const isSel = selectedId === conv.id;
             const isGhost = conv.preview_only;
+            const sla = slaState(conv);
+            const fav = isFav(conv.id);
             return (
               <li
                 key={conv.id}
@@ -461,11 +556,44 @@ export default function ConversationListV4({
                   </small>
                 </div>
 
-                {/* Lado direito — tempo + unread */}
+                {/* Lado direito — fav + tempo + SLA + unread */}
                 <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {relativeTimeBR(conv.last_message_at)}
+                  <span className="inline-flex items-center gap-1">
+                    {/* Polish V2 §6 — favorito (localStorage, ordena no topo) */}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleFav(conv.id); }}
+                      className={cn(
+                        'p-0.5 rounded transition-colors',
+                        !fav && 'text-muted-foreground/40 hover:text-muted-foreground',
+                      )}
+                      style={fav ? { color: 'oklch(0.75 0.15 80)' } : undefined}
+                      title={fav ? 'Remover dos favoritos' : 'Favoritar (fica no topo da lista)'}
+                      aria-pressed={fav}
+                      data-testid={`caixa-unif-fav-${conv.id}`}
+                    >
+                      <Star size={11} fill={fav ? 'currentColor' : 'none'} aria-hidden />
+                    </button>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {relativeTimeBR(conv.last_message_at)}
+                    </span>
                   </span>
+                  {/* Onda 2 — pill SLA 4 estados (fresh/aging/late/expired) + dot
+                      animado; compacto na lista (dot + tempo, a cor diz o estado). */}
+                  {sla && (() => {
+                    const m = SLA_META[sla];
+                    const waited = slaWaitedMin(conv);
+                    return (
+                      <span
+                        className={cn('inline-block font-mono text-[9px] font-bold px-1.5 py-px rounded-full border', m.pillSm)}
+                        title={`SLA ${conv.queue.sla} — ${m.label}`}
+                        data-testid={`caixa-unif-sla-${conv.id}`}
+                      >
+                        <span className={cn('inline-block w-1 h-1 rounded-full align-middle mr-1', m.dot, m.pulse && 'animate-pulse')} aria-hidden />
+                        {waited != null ? slaWaitedShort(waited) : m.label}
+                      </span>
+                    );
+                  })()}
                   {conv.unread_count > 0 && (
                     <span
                       className="bg-primary text-primary-foreground font-mono text-[10px] font-bold px-1.5 py-px rounded-full"
@@ -484,31 +612,81 @@ export default function ConversationListV4({
   );
 }
 
-// Wave 5 F1 — FilterChip compacto (pattern Inbox legacy ConversationList.tsx)
-function FilterChip({
-  active, onClick, icon, label, title,
+// Onda 2 — blocos do popover Filtros (seção + linha-opção single/multi + toggle)
+function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-1 pb-0.5">
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function OptionRow({
+  label, sub, hue, count, muted, active, onClick, testId,
 }: {
+  label: string;
+  sub?: string;
+  hue?: number;
+  count?: number;
+  muted?: boolean;
   active: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  title?: string;
+  testId?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      title={title}
+      data-testid={testId}
       aria-pressed={active}
       className={cn(
-        'inline-flex items-center gap-1 h-6 px-2 rounded-full border text-[10.5px] font-medium transition-colors',
-        active
-          ? 'bg-primary/10 border-primary text-primary'
-          : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground',
+        'w-full flex items-center gap-2 px-2 py-1.5 rounded text-left text-[11.5px] transition-colors',
+        active ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-foreground',
+        muted && !active && 'text-muted-foreground',
       )}
     >
-      {icon}
-      {label}
+      <Check size={13} className={cn('shrink-0', active ? 'opacity-100' : 'opacity-0')} aria-hidden />
+      {hue !== undefined && (
+        <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{ background: `oklch(0.62 0.13 ${hue})` }} aria-hidden />
+      )}
+      <span className="flex-1 min-w-0 truncate">
+        {label}
+        {sub && <span className="text-muted-foreground font-mono"> · {sub}</span>}
+      </span>
+      {count !== undefined && count > 0 && (
+        <span className="font-mono text-[10px] text-muted-foreground shrink-0">{count > 99 ? '99+' : count}</span>
+      )}
+      {muted && <span className="text-[9px] text-muted-foreground border rounded-full px-1 shrink-0">em breve</span>}
+    </button>
+  );
+}
+
+function ToggleRow({
+  icon, label, active, onClick, testId,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  testId?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid={testId}
+      aria-pressed={active}
+      className={cn(
+        'w-full flex items-center gap-2 px-2 py-1.5 rounded text-left text-[11.5px] transition-colors',
+        active ? 'bg-primary/10 text-primary' : 'hover:bg-muted text-foreground',
+      )}
+    >
+      <span className={cn('shrink-0', active ? 'text-primary' : 'text-muted-foreground')}>{icon}</span>
+      <span className="flex-1 min-w-0 truncate">{label}</span>
+      <Check size={13} className={cn('shrink-0', active ? 'opacity-100' : 'opacity-0')} aria-hidden />
     </button>
   );
 }

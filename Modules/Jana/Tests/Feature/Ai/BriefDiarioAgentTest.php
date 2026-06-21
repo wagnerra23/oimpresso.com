@@ -29,6 +29,10 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['transactions', 'transaction_payments', 'conversations', 'messages', 'channels', 'contacts', 'nfe_emissoes', 'transaction_sell_lines', 'products'] as $t) {
         Schema::dropIfExists($t);
     }

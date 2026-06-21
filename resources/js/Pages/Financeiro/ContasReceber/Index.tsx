@@ -38,8 +38,8 @@ interface Props {
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof Circle }> = {
   aberto: { label: 'Aberto', color: 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-200', icon: Circle },
-  parcial: { label: 'Parcial', color: 'bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200', icon: Hourglass },
-  quitado: { label: 'Quitado', color: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200', icon: CheckCircle2 },
+  parcial: { label: 'Parcial', color: 'bg-warning-soft text-warning-fg', icon: Hourglass },
+  quitado: { label: 'Quitado', color: 'bg-success-soft text-success-fg', icon: CheckCircle2 },
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground', icon: AlertTriangle },
 };
 

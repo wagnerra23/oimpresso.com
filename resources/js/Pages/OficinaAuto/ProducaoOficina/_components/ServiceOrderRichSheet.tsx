@@ -5,36 +5,37 @@
 // (`prototipo-ui/prototipos/producao-oficina/visual-source.html`) E protótipo OS
 // mecânica CNAE 4520 Martinho (screenshot Wagner 2026-05-26 · sub-vertical 4 ADR 0194).
 //
-// 6 sections polimórficas (branching por `data.order_type`):
-//   1. Header KV grid:
-//        - locação: Cliente / Capacidade / Endereço / Diárias / Valor
-//        - manutenção: KM / Box / Mecânico / Valor (items_total) — ADR 0194 mecânica pesada
-//   2. OBSERVAÇÃO (notes — italic se vazio)
-//   3. PEÇAS & MÃO DE OBRA — NOVA Wave 2.3 (data.items[] consumindo `oficina_service_order_items`
-//      via US-OFICINA-027 backend). Renderiza linha-a-linha com ícones tipo + qty + valor unit
-//      + valor total. Footer da section: TOTAL OS.
-//   4. FOTOS & LAUDO — grid 3 placeholders aspect-square + "Adicionar foto" (disabled V2)
-//   5. PIPELINE FSM — embed ServiceOrderFsmActionPanel (REUSO PR #729, não recria)
-//   6. LINHA DO TEMPO — placeholder skeleton derivada (V2: fetch sale_stage_history real)
+// UNIFICAÇÃO 2026-06-11 (Onda 2 · [W] "drawer são os mesmos"): o CORPO rico foi
+// extraído pro componente `ServiceOrderRichBody` (export nomeado) — usado por:
+//   - este drawer (RichSheet = wrapper Sheet fino + body)
+//   - a view Fila do workspace (detalhe inline, sem o Sheet) — ServiceOrders/Board.tsx
+// Zero duplicação: 1 corpo, 2 chrome (drawer × inline). O ServiceOrderSheet simples
+// foi aposentado nesta onda; este é o ÚNICO drawer de OS.
 //
-// Footer Wave 2.4: "Conversa cliente" (WhatsApp Linker) / "Imprimir OS" / "Avançar etapa" embedded.
+// 6 sections (reparo · ADR 0265):
+//   1. Header KV grid: Cliente / KM / Box / Mecânico / Valor (items_total)
+//   2. OBSERVAÇÃO (notes — italic se vazio)
+//   3. PEÇAS & MÃO DE OBRA (data.items[] · US-OFICINA-027)
+//   4. FOTOS & LAUDO (Modules/Arquivos)
+//   5. PIPELINE FSM — embed ServiceOrderFsmActionPanel (REUSO PR #729)
+//   6. LINHA DO TEMPO — ServiceOrderTimeline (sale_stage_history real)
 //
 // CRÍTICO React 19 — useMemo/useCallback nos handlers descendentes (lição PR #717).
-//
-// Consumidores: ProducaoOficina/Index.tsx — drawer abre ao clicar card kanban.
-// Multi-tenant Tier 0 [ADR 0093]: payload vem do endpoint show() que respeita global scope.
+// Multi-tenant Tier 0 [ADR 0093]: payload vem do endpoint show() (global scope).
 
 import { useCallback, useEffect, useState } from 'react';
+import { router } from '@inertiajs/react';
 import {
   AlertTriangle,
   Camera,
   CheckCircle2,
+  ClipboardCheck,
   Clock,
   Edit,
   ExternalLink,
   FileText,
+  ListChecks,
   Loader2,
-  MapPin,
   Phone,
   Truck,
   User,
@@ -44,17 +45,25 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
-import MercosulPlate from './MercosulPlate';
+import MercosulPlate from '@/Components/shared/MercosulPlate';
 import ServiceOrderFsmActionPanel from '../../ServiceOrders/_components/ServiceOrderFsmActionPanel';
+import ServiceOrderTimeline from '../../ServiceOrders/_components/ServiceOrderTimeline';
+import ServiceOrderStageGate from '../../ServiceOrders/_components/ServiceOrderStageGate';
 import VendaDerivadaCard, { type VendaDerivada } from '@/Components/shared/VendaDerivadaCard';
-import { MessageCircle, Printer, Wrench, Package, UserCog } from 'lucide-react';
+import { MessageCircle, Printer, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { printServiceOrder } from '@/Lib/printServiceOrder';
+import DviInlineEditor, { type DviInlineItem, type ApprovalInfo } from './DviInlineEditor';
+import LaudoPhotoSection, { type LaudoPhoto } from './LaudoPhotoSection';
+import ServiceOrderItemRow, {
+  type ServiceOrderItemDto,
+} from '../../ServiceOrders/_components/ServiceOrderItemRow';
+import ServiceOrderItemFormSheet from '../../ServiceOrders/_components/ServiceOrderItemFormSheet';
+import { Plus } from 'lucide-react';
 
-type OrderType = 'locacao' | 'manutencao' | null;
+type OrderType = 'manutencao' | 'mecanica' | null;
 
 type ItemTipo = 'peca' | 'mao_obra' | 'servico_terceiro';
 
@@ -96,12 +105,9 @@ interface ServiceOrderDetail {
   id: number;
   number: string | null;
   status: string;
+  current_stage?: { key: string; name: string } | null;
   order_type: OrderType;
-  delivery_address: string | null;
-  expected_return_date: string | null;
   expected_completion: string | null;
-  daily_rate: number | string | null;
-  dias_locacao: number | null;
   valor_receber: number | string | null;
   is_overdue?: boolean;
   entered_at: string | null;
@@ -110,16 +116,14 @@ interface ServiceOrderDetail {
   notes: string | null;
   vehicle: VehicleRel | null;
   contact: ContactRel | null;
-  // Wave 2.1 US-OFICINA-027 — campos modo manutenção (sub-vertical 4 ADR 0194)
   box_label?: string | null;
   assigned_user?: AssignedUserRel | null;
   mileage_at_service?: number | null;
-  // Wave 2.3 US-OFICINA-027 — items lançados (peças + mão-de-obra + terceiros)
   items?: ServiceOrderItemRel[];
   items_total?: number | string;
-  // D-09 (charter §2 TRAVADO) — venda derivada da OS (origem oficina · ADR 0192).
-  // Backend ServiceOrderController::show() popula via shapeVendaDerivada() só quando
-  // a OS já gerou Transaction (transição → concluída/pronto). null no resto.
+  dvi_items?: DviInlineItem[];
+  laudo_photos?: LaudoPhoto[];
+  approval?: ApprovalInfo | null;
   venda_derivada?: VendaDerivada | null;
   urls?: {
     edit?: string | null;
@@ -127,18 +131,28 @@ interface ServiceOrderDetail {
   };
 }
 
+// Props do CORPO rico (compartilhado drawer × inline). `enabled` = a OS está visível
+// (drawer aberto OU view Fila ativa com esta OS selecionada) → dispara o fetch e os
+// sub-fetches (pipeline/timeline/gate).
+interface BodyProps {
+  serviceOrderId: number | null;
+  enabled: boolean;
+  onOrderChanged?: () => void;
+}
+
+// Props do DRAWER (wrapper Sheet). Interface inalterada (Board + Vehicles importam default).
 interface Props {
   serviceOrderId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Callback chamado quando OS muda (FSM transição etc) — Index pai pode refresh */
+  /** Callback chamado quando OS muda (FSM transição etc) — pai pode refresh */
   onOrderChanged?: () => void;
 }
 
 const formatBRL = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined || value === '') return 'R$ [redacted Tier 0]';
+  if (value === null || value === undefined || value === '') return '—';
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (Number.isNaN(num)) return 'R$ [redacted Tier 0]';
+  if (Number.isNaN(num)) return '—';
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 };
 
@@ -168,33 +182,20 @@ const capitalize = (s: string | null | undefined) => {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 };
 
-const ITEM_TIPO_LABEL: Record<ItemTipo, string> = {
-  peca: 'Peça',
-  mao_obra: 'Mão de obra',
-  servico_terceiro: 'Serviço terceiro',
-};
-
-const ITEM_TIPO_ICON: Record<ItemTipo, typeof Wrench> = {
-  peca: Package,
-  mao_obra: Wrench,
-  servico_terceiro: UserCog,
-};
-
-const toFloat = (value: number | string | null | undefined): number => {
-  if (value === null || value === undefined || value === '') return 0;
-  const n = typeof value === 'string' ? parseFloat(value) : value;
-  return Number.isNaN(n) ? 0 : n;
-};
-
-export default function ServiceOrderRichSheet({
-  serviceOrderId,
-  open,
-  onOpenChange,
-  onOrderChanged,
-}: Props) {
+// ─── CORPO RICO (compartilhado drawer × Fila inline) ──────────────────────────
+// Todo o conteúdo do drawer (fetch + estado + handlers + seções + footer), SEM o
+// wrapper Sheet. O RichSheet embrulha num Sheet; a Fila renderiza inline.
+export function ServiceOrderRichBody({ serviceOrderId, enabled, onOrderChanged }: BodyProps) {
   const [data, setData] = useState<ServiceOrderDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [approvalSending, setApprovalSending] = useState(false);
+  // Bump em toda transição FSM (incl. "Iniciar pipeline") — força o StageGate refetchar.
+  const [fsmRefresh, setFsmRefresh] = useState(0);
+  // F3 OS-V2-6 — lançar/editar/remover item inline.
+  const [itemFormOpen, setItemFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ServiceOrderItemDto | null>(null);
+  const [itemBusy, setItemBusy] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!serviceOrderId) return;
@@ -216,26 +217,92 @@ export default function ServiceOrderRichSheet({
   }, [serviceOrderId]);
 
   useEffect(() => {
-    if (!serviceOrderId || !open) {
+    if (!serviceOrderId || !enabled) {
       setData(null);
       setError(null);
       return;
     }
     fetchData();
-  }, [serviceOrderId, open, fetchData]);
+  }, [serviceOrderId, enabled, fetchData]);
 
   // Callback estável passada pro FsmActionPanel — evita re-render loop (lição PR #717).
   const handleFsmTransition = useCallback(() => {
     void fetchData();
+    setFsmRefresh((n) => n + 1);
     onOrderChanged?.();
   }, [fetchData, onOrderChanged]);
 
+  const handleItemAdd = useCallback(() => {
+    setEditingItem(null);
+    setItemFormOpen(true);
+  }, []);
+
+  const handleItemEdit = useCallback((item: ServiceOrderItemDto) => {
+    setEditingItem(item);
+    setItemFormOpen(true);
+  }, []);
+
+  const handleItemSaved = useCallback(() => {
+    setItemFormOpen(false);
+    setEditingItem(null);
+    void fetchData();
+    onOrderChanged?.();
+  }, [fetchData, onOrderChanged]);
+
+  const handleItemDelete = useCallback(
+    async (item: ServiceOrderItemDto) => {
+      if (!data) return;
+      setItemBusy(true);
+      try {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        const res = await fetch(
+          `/oficina-auto/ordens-servico/${data.id}/items/${item.id}`,
+          {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: {
+              Accept: 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': meta?.getAttribute('content') ?? '',
+            },
+          },
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        toast.success('Item removido.');
+        void fetchData();
+        onOrderChanged?.();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Falha ao remover item.');
+      } finally {
+        setItemBusy(false);
+      }
+    },
+    [data, fetchData, onOrderChanged],
+  );
+
+  const handlePedirAprovacao = useCallback(() => {
+    if (!data) return;
+    router.post(
+      `/oficina-auto/ordens-servico/${data.id}/enviar-aprovacao`,
+      {},
+      {
+        preserveScroll: true,
+        preserveState: true,
+        onStart: () => setApprovalSending(true),
+        onSuccess: () => {
+          toast.success('Orçamento da vistoria enviado para aprovação do cliente.');
+          void fetchData();
+          onOrderChanged?.();
+        },
+        onError: () => toast.error('Não foi possível enviar o pedido de aprovação.'),
+        onFinish: () => setApprovalSending(false),
+      },
+    );
+  }, [data, fetchData, onOrderChanged]);
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-xl flex flex-col p-0 overflow-hidden"
-      >
+    <>
+      <div className="flex h-full min-h-0 flex-col">
         {loading && (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -247,7 +314,7 @@ export default function ServiceOrderRichSheet({
             <div>
               <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
               <p className="text-sm text-foreground font-medium">
-                Não foi possível carregar a caçamba
+                Não foi possível carregar a OS
               </p>
               <p className="text-xs text-muted-foreground mt-1">{error}</p>
             </div>
@@ -256,179 +323,104 @@ export default function ServiceOrderRichSheet({
 
         {!loading && data && (
           <>
-            {/* Header drawer — número OS + status badge cliente */}
-            <SheetHeader className="px-6 pt-6 pb-4 border-b border-border space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-xs text-muted-foreground">
-                  OS {data.number ?? `#${data.id}`}
-                </span>
-                <StatusBadge status={data.status} orderType={data.order_type} />
+            {/* Header (canon .prod-drawer-head) — eyebrow "OS #103 · <etapa>", h2 =
+                veículo/modelo, p = cliente. Plain divs (sem Sheet*) pra funcionar
+                tanto no drawer quanto inline na Fila. */}
+            <div className="px-5 pt-5 pb-4 border-b border-border">
+              <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
+                <span className="font-mono">OS #{data.id}</span>
+                {' · '}
+                {data.current_stage?.name ?? capitalize(data.status)}
                 {data.is_overdue && (
-                  <span className="inline-flex items-center rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-[11px] font-medium text-destructive">
-                    <AlertTriangle size={10} className="mr-0.5" />
-                    Atrasada
-                  </span>
+                  <span className="ml-1.5 font-semibold text-destructive">· Atrasada</span>
                 )}
               </div>
-              <SheetTitle className="text-lg font-semibold tracking-tight text-foreground">
-                {data.order_type === 'manutencao' ? (
-                  <>
-                    {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
-                    {' '}
-                    {data.vehicle?.plate ?? '—'}
-                    {data.vehicle?.model_year ? (
-                      <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                        · {data.vehicle.model_year}
-                      </span>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    Caçamba {data.vehicle?.vehicle_number ?? data.vehicle?.plate ?? '—'}
-                    {data.vehicle?.capacity_m3 ? (
-                      <span className="text-sm font-normal text-muted-foreground ml-1.5">
-                        · {data.vehicle.capacity_m3}m³
-                      </span>
-                    ) : null}
-                  </>
-                )}
-              </SheetTitle>
-              <SheetDescription className="text-sm text-muted-foreground">
+              <h2 className="text-[17px] font-semibold leading-tight tracking-tight text-foreground mt-1 mb-0.5">
+                {data.vehicle?.vehicle_type ? capitalize(data.vehicle.vehicle_type) : 'Veículo'}
+                {data.vehicle?.model_year ? (
+                  <span className="text-[13px] font-normal text-muted-foreground ml-1.5 tabular-nums">
+                    · {data.vehicle.model_year}
+                  </span>
+                ) : null}
+              </h2>
+              <p className="text-[12.5px] text-muted-foreground">
                 {data.contact ? data.contact.name : 'Cliente não informado'}
-              </SheetDescription>
-            </SheetHeader>
+              </p>
+            </div>
 
-            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11) */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+            {/* Conteúdo scroll — sections empilhadas (ordem TRAVADA · charter §1-§11). */}
+            <div className="flex-1 overflow-y-auto px-5 py-5">
 
-              {/* ─── SEÇÃO 2 (TRAVADA): Card Vendas×Oficina (D-09) ───
-                  Acende só quando a OS gerou venda (etapa pronto/concluída + Transaction
-                  derivada · ADR 0192). Reusa o componente shared VendaDerivadaCard (Total ·
-                  Data · breakdown peças/serviços · badge fiscal NF-e · CTAs Abrir/Imprimir/
-                  Compartilhar). -mx-6 cancela o px-6 do scroll pra a margem mx-5 própria do
-                  card render como desenhado. "Seções acendem por contexto" (regra travada). */}
+              <div className="space-y-4">
+
+              {/* SEÇÃO 2 (TRAVADA): Card Vendas×Oficina (D-09) — acende só quando a OS gerou venda. */}
               {data.venda_derivada && (
-                <div className="-mx-6">
+                <div className="-mx-5">
                   <VendaDerivadaCard venda={data.venda_derivada} />
                 </div>
               )}
 
-              {/* ─── SEÇÃO 3 (Hero): Veículo + KV grid polimórfico (Wave 2.2 US-OFICINA-027) ───
-                  - manutenção (Martinho sub-vertical 4 CNAE 4520): KM / Box / Mecânico / Valor (items_total)
-                  - locação    (sub-vertical 3 hipotético CNAE 4581): Cliente / Capacidade / Endereço / Diárias / Valor */}
+              {/* SEÇÃO 3 (Hero · Card Cliente/Valor): placa Mercosul + KV de reparo. */}
               {data.vehicle && (
-                <div className="rounded-lg border border-border bg-muted p-3 grid grid-cols-[auto_1fr] gap-3">
+                <div className="rounded-[10px] border border-success/50 bg-gradient-to-br from-success/10 to-card px-[18px] py-4 grid grid-cols-[auto_1fr] gap-3.5 items-center">
                   <MercosulPlate plate={data.vehicle.plate} size="md" />
-                  <dl className="grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-1 text-[11.5px] self-end">
-                    {data.order_type === 'manutencao' ? (
+                  <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11.5px] self-center">
+                    {data.contact && (
                       <>
-                        {data.mileage_at_service != null && (
-                          <>
-                            <dt className="text-muted-foreground">KM</dt>
-                            <dd className="text-foreground font-medium tabular-nums">
-                              {data.mileage_at_service.toLocaleString('pt-BR')}
-                            </dd>
-                          </>
-                        )}
-                        {data.box_label && (
-                          <>
-                            <dt className="text-muted-foreground">Box</dt>
-                            <dd className="text-foreground">{data.box_label}</dd>
-                          </>
-                        )}
-                        {data.assigned_user && (
-                          <>
-                            <dt className="text-muted-foreground">Mecânico</dt>
-                            <dd className="text-foreground">{data.assigned_user.name}</dd>
-                          </>
-                        )}
-                        <dt className="text-muted-foreground">Valor</dt>
-                        <dd className="tabular-nums font-semibold text-success">
-                          {formatBRL(data.items_total ?? 0)}
-                        </dd>
-                      </>
-                    ) : (
-                      <>
-                        {data.contact && (
-                          <>
-                            <dt className="text-muted-foreground">Cliente</dt>
-                            <dd className="text-foreground font-medium truncate">
-                              {data.contact.name}
-                            </dd>
-                          </>
-                        )}
-                        {data.vehicle.capacity_m3 && (
-                          <>
-                            <dt className="text-muted-foreground">Capacidade</dt>
-                            <dd className="text-foreground tabular-nums">
-                              {data.vehicle.capacity_m3}m³
-                            </dd>
-                          </>
-                        )}
-                        {data.delivery_address && (
-                          <>
-                            <dt className="text-muted-foreground">Endereço</dt>
-                            <dd className="text-foreground truncate" title={data.delivery_address}>
-                              {data.delivery_address}
-                            </dd>
-                          </>
-                        )}
-                        <dt className="text-muted-foreground">Diárias</dt>
-                        <dd className="text-foreground tabular-nums">
-                          {data.dias_locacao ?? 0}d ×{' '}
-                          <span className="text-muted-foreground">{formatBRL(data.daily_rate)}</span>
-                        </dd>
-                        <dt className="text-muted-foreground">Valor</dt>
-                        <dd
-                          className={
-                            'tabular-nums font-semibold ' +
-                            (data.is_overdue ? 'text-destructive' : 'text-success')
-                          }
-                        >
-                          {formatBRL(data.valor_receber)}
+                        <dt className="text-muted-foreground">Cliente</dt>
+                        <dd className="text-foreground font-medium truncate text-right">
+                          {data.contact.name}
                         </dd>
                       </>
                     )}
+                    {data.mileage_at_service != null && (
+                      <>
+                        <dt className="text-muted-foreground">KM</dt>
+                        <dd className="text-foreground font-medium tabular-nums text-right">
+                          {data.mileage_at_service.toLocaleString('pt-BR')}
+                        </dd>
+                      </>
+                    )}
+                    {data.box_label && (
+                      <>
+                        <dt className="text-muted-foreground">Box</dt>
+                        <dd className="text-foreground text-right">{data.box_label}</dd>
+                      </>
+                    )}
+                    {data.assigned_user && (
+                      <>
+                        <dt className="text-muted-foreground">Mecânico</dt>
+                        <dd className="text-foreground text-right truncate">{data.assigned_user.name}</dd>
+                      </>
+                    )}
+                    <dt className="text-muted-foreground self-center">Valor</dt>
+                    <dd className="tabular-nums font-bold text-success text-right text-[15px]">
+                      {formatBRL(data.items_total ?? 0)}
+                    </dd>
                   </dl>
                 </div>
               )}
 
-              {/* Datas — início + prazo */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-md border border-border bg-muted/30 p-2.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Início
-                  </div>
-                  <div className="text-sm font-medium tabular-nums mt-0.5">
-                    {formatDateOnly(data.started_at ?? data.entered_at)}
-                  </div>
-                </div>
-                <div
+              {/* Datas — linha de meta compacta. */}
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[12px] px-0.5">
+                <dt className="text-muted-foreground">Início</dt>
+                <dd className="text-foreground tabular-nums text-right">
+                  {formatDateOnly(data.started_at ?? data.entered_at)}
+                </dd>
+                <dt className={data.is_overdue ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+                  Prazo
+                </dt>
+                <dd
                   className={
-                    'rounded-md border p-2.5 ' +
-                    (data.is_overdue
-                      ? 'border-destructive/30 bg-destructive/10'
-                      : 'border-border bg-muted/30')
+                    'tabular-nums text-right ' +
+                    (data.is_overdue ? 'text-destructive font-semibold' : 'text-foreground')
                   }
                 >
-                  <div
-                    className={
-                      'text-[10px] font-semibold uppercase tracking-wider ' +
-                      (data.is_overdue ? 'text-destructive' : 'text-muted-foreground')
-                    }
-                  >
-                    Prazo
-                  </div>
-                  <div
-                    className={
-                      'text-sm font-medium tabular-nums mt-0.5 ' +
-                      (data.is_overdue ? 'text-destructive' : 'text-foreground')
-                    }
-                  >
-                    {formatDateOnly(data.expected_return_date ?? data.expected_completion)}
-                  </div>
-                </div>
-              </div>
+                  {formatDateOnly(data.expected_completion)}
+                </dd>
+              </dl>
+
+              </div>{/* /bloco-topo */}
 
               {/* Cliente contatos — phone/email se houver */}
               {data.contact && (data.contact.mobile || data.contact.email) && (
@@ -450,16 +442,7 @@ export default function ServiceOrderRichSheet({
                 </Section>
               )}
 
-              {/* Endereço extra (se NÃO mostrado em KV grid acima por truncate) */}
-              {data.delivery_address && data.delivery_address.length > 40 && (
-                <Section title="Endereço de entrega" icon={MapPin}>
-                  <p className="text-sm text-muted-foreground break-words leading-relaxed">
-                    {data.delivery_address}
-                  </p>
-                </Section>
-              )}
-
-              {/* ─── SEÇÃO 2: OBSERVAÇÃO (rental.notes) ─── */}
+              {/* SEÇÃO 2: OBSERVAÇÃO (notes) */}
               <Section title="Observação" icon={FileText}>
                 {data.notes ? (
                   <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
@@ -472,43 +455,41 @@ export default function ServiceOrderRichSheet({
                 )}
               </Section>
 
-              {/* ─── SEÇÃO PEÇAS & MÃO DE OBRA (Wave 2.3 US-OFICINA-027) ───
-                  Consome `data.items[]` populado pelo endpoint ServiceOrderController::show()
-                  via relação ServiceOrder::items() (Wave 1.1). Lista peças + mão-de-obra +
-                  serviços terceiros lançados na OS com qty × valor_unitario = valor_total.
-                  Footer: TOTAL OS soma (espelha data.items_total backend) — alimentação direta
-                  do ServiceOrderObserver::computeFinalTotal (Wave 1.2). */}
+              {/* SEÇÃO VISTORIA DIGITAL · DVI (F3 OS-V2-2) — semáforo inline editável. */}
+              <Section title="Vistoria Digital · DVI" icon={ClipboardCheck}>
+                <DviInlineEditor
+                  key={data.id}
+                  serviceOrderId={data.id}
+                  initialItems={data.dvi_items ?? []}
+                  onPedirAprovacao={handlePedirAprovacao}
+                  approvalSending={approvalSending}
+                  approval={data.approval ?? null}
+                />
+              </Section>
+
+              {/* SEÇÃO FOTOS & LAUDO (F3 OS-V2-1) */}
+              <Section title="Fotos & Laudo" icon={Camera}>
+                <LaudoPhotoSection
+                  key={data.id}
+                  serviceOrderId={data.id}
+                  initialPhotos={data.laudo_photos ?? []}
+                />
+              </Section>
+
+              {/* SEÇÃO PEÇAS & MÃO DE OBRA (Wave 2.3 US-OFICINA-027) */}
               <Section title="Peças & Mão de obra" icon={Package}>
                 {data.items && data.items.length > 0 ? (
                   <>
                     <ul className="divide-y divide-border border border-border rounded-md overflow-hidden bg-white">
-                      {data.items.map((item) => {
-                        const Icon = ITEM_TIPO_ICON[item.tipo];
-                        const qtd = toFloat(item.quantidade);
-                        const vu = toFloat(item.valor_unitario);
-                        const total = toFloat(item.valor_total);
-                        return (
-                          <li
-                            key={item.id}
-                            className="px-3 py-2 grid grid-cols-[auto_1fr_auto] gap-2 items-center text-[11.5px]"
-                          >
-                            <Icon size={14} className="text-muted-foreground shrink-0" aria-hidden />
-                            <div className="min-w-0">
-                              <div className="text-foreground font-medium truncate">
-                                {item.descricao}
-                              </div>
-                              <div className="text-muted-foreground text-[10.5px]">
-                                {ITEM_TIPO_LABEL[item.tipo]} · {qtd.toLocaleString('pt-BR', { maximumFractionDigits: 3 })}
-                                {' × '}
-                                {formatBRL(vu)}
-                              </div>
-                            </div>
-                            <div className="text-foreground tabular-nums font-medium">
-                              {formatBRL(total)}
-                            </div>
-                          </li>
-                        );
-                      })}
+                      {data.items.map((item) => (
+                        <ServiceOrderItemRow
+                          key={item.id}
+                          item={item}
+                          onEdit={handleItemEdit}
+                          onDelete={handleItemDelete}
+                          busy={itemBusy}
+                        />
+                      ))}
                     </ul>
                     <div className="mt-2 flex items-center justify-between px-1">
                       <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
@@ -525,53 +506,57 @@ export default function ServiceOrderRichSheet({
                     {data.order_type === 'manutencao' ? ' (cobrança não fechará automática)' : ''}
                   </p>
                 )}
-              </Section>
 
-              {/* ─── SEÇÃO 3: FOTOS & LAUDO (placeholders V2) ─── */}
-              <Section title="Fotos & Laudo" icon={Camera}>
-                <div className="grid grid-cols-3 gap-1.5">
-                  <PhotoPlaceholder label="entrega" />
-                  <PhotoPlaceholder label="local" />
-                  <PhotoPlaceholder label="assinatura" />
-                </div>
                 <Button
+                  type="button"
                   size="sm"
-                  variant="ghost"
-                  className="mt-2 text-xs h-7"
-                  disabled
-                  title="Upload de foto — disponível em V2 (Modules/Arquivos integration)"
+                  variant="outline"
+                  className="mt-2 h-11 w-full gap-1.5 sm:h-9"
+                  onClick={handleItemAdd}
+                  disabled={itemBusy}
                 >
-                  <Camera size={11} className="mr-1.5" />
-                  + Adicionar foto
+                  <Plus size={14} aria-hidden />
+                  Adicionar item
                 </Button>
               </Section>
 
-              {/* ─── SEÇÃO 4: PIPELINE FSM (REUSO PR #729) ─── */}
+              {/* SEÇÃO CHECKLIST DE ETAPA (F3 OS-V2-5) */}
+              <Section title="Checklist de etapa" icon={ListChecks}>
+                <ServiceOrderStageGate
+                  serviceOrderId={data.id}
+                  enabled={enabled}
+                  onChanged={handleFsmTransition}
+                  refreshToken={fsmRefresh}
+                />
+              </Section>
+
+              {/* SEÇÃO 4: PIPELINE FSM (REUSO PR #729) */}
               <Section title="Pipeline FSM" icon={CheckCircle2}>
                 <ServiceOrderFsmActionPanel
                   serviceOrderId={data.id}
-                  enabled={open}
+                  enabled={enabled}
                   onTransition={handleFsmTransition}
                 />
               </Section>
 
-              {/* ─── SEÇÃO 5: LINHA DO TEMPO (placeholder skeleton V2) ─── */}
+              {/* SEÇÃO 5: LINHA DO TEMPO FSM AUDITÁVEL (F3 OS-V2-4) */}
               <Section title="Linha do tempo" icon={Clock}>
-                <TimelineSkeleton
-                  enteredAt={data.entered_at}
-                  expectedReturn={data.expected_return_date}
-                  completedAt={data.completed_at}
-                  status={data.status}
+                <ServiceOrderTimeline
+                  serviceOrderId={data.id}
+                  enabled={enabled}
+                  fallback={
+                    <TimelineSkeleton
+                      enteredAt={data.entered_at}
+                      expectedReturn={data.expected_completion}
+                      completedAt={data.completed_at}
+                      status={data.status}
+                    />
+                  }
                 />
               </Section>
             </div>
 
-            {/* Footer ações sticky (Wave 2.4 US-OFICINA-027) ───
-                3 botões espelhando protótipo Cowork canon (screenshot Wagner 2026-05-26):
-                - "Conversa cliente" → wa.me direct link (LGPD: sem mensagem pré-formatada com PII)
-                - "Imprimir OS" → printServiceOrder helper (IFRAME oculto + A4 nota-fiscal-like)
-                                  Gap 3 US-OFICINA-037 — substitui window.print() bare (AppShellV2 vazado).
-                - "Editar OS" → fallback href edit (Avançar etapa fica no Pipeline FSM section, não duplica) */}
+            {/* Footer ações sticky (Wave 2.4 US-OFICINA-027) */}
             <div className="border-t border-border px-6 py-3 bg-background flex items-center justify-end gap-2">
               {data.contact?.mobile && (
                 <Button size="sm" variant="ghost" asChild>
@@ -617,6 +602,47 @@ export default function ServiceOrderRichSheet({
             </div>
           </>
         )}
+      </div>
+
+      {/* F3 OS-V2-6 — drawer nested pra criar/editar item (não fecha o pai). */}
+      {data && (
+        <ServiceOrderItemFormSheet
+          serviceOrderId={data.id}
+          item={editingItem}
+          open={itemFormOpen}
+          onOpenChange={setItemFormOpen}
+          onSaved={handleItemSaved}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── DRAWER (wrapper Sheet fino) ──────────────────────────────────────────────
+// Mantém a interface pública (default export) que Board + Vehicles importam.
+// O conteúdo é o ServiceOrderRichBody acima — o MESMO da view Fila (zero duplicação).
+export default function ServiceOrderRichSheet({
+  serviceOrderId,
+  open,
+  onOpenChange,
+  onOrderChanged,
+}: Props) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-[480px] flex flex-col p-0 overflow-hidden"
+      >
+        {/* SheetTitle obrigatório pra a11y do Radix Dialog; o título visível vive no
+            header do body. sr-only mantém acessível sem duplicar visualmente. */}
+        <SheetHeader className="sr-only">
+          <SheetTitle>Ordem de serviço</SheetTitle>
+        </SheetHeader>
+        <ServiceOrderRichBody
+          serviceOrderId={serviceOrderId}
+          enabled={open}
+          onOrderChanged={onOrderChanged}
+        />
       </SheetContent>
     </Sheet>
   );
@@ -633,9 +659,10 @@ function Section({
   icon?: typeof Truck;
   children: React.ReactNode;
 }) {
+  // Canon .ofc-drawer-section — separadas por border-top fino; h4 10.5px/600 uppercase.
   return (
-    <section>
-      <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+    <section className="border-t border-border mt-2.5 pt-3.5 pb-1">
+      <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.04em] text-muted-foreground mb-2.5 flex items-center gap-1.5">
         {Icon && <Icon size={11} />}
         {title}
       </h3>
@@ -644,50 +671,9 @@ function Section({
   );
 }
 
-function PhotoPlaceholder({ label }: { label: string }) {
-  return (
-    <div
-      className="aspect-square rounded border border-border grid place-items-center text-center font-mono text-[9px] text-muted-foreground/60 leading-tight p-2"
-      style={{
-        background:
-          'repeating-linear-gradient(45deg, oklch(0.92 0.005 90) 0 8px, oklch(0.95 0.005 90) 8px 16px)',
-      }}
-      role="img"
-      aria-label={`Placeholder foto ${label}`}
-    >
-      FOTO
-      <br />·{label}
-    </div>
-  );
-}
-
-function StatusBadge({
-  status,
-  orderType,
-}: {
-  status: string;
-  orderType: OrderType;
-}) {
-  const isLocacao = orderType === 'locacao';
-  const cls = isLocacao
-    ? 'border-[var(--stage-blue)]/30 bg-[var(--stage-blue)]/10 text-[var(--stage-blue)]'
-    : 'border-warning/30 bg-warning/10 text-warning-foreground';
-  return (
-    <span
-      className={
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium ' +
-        cls
-      }
-    >
-      {isLocacao ? <Truck size={10} className="mr-1" /> : null}
-      {status}
-    </span>
-  );
-}
-
 /**
- * Timeline skeleton derivada dos campos disponíveis (entered_at, expected_return,
- * completed_at, status). V2: fetch real via /oficina-auto/service-orders/{id}/fsm/history.
+ * Timeline skeleton derivada dos campos disponíveis (entered_at, prazo,
+ * completed_at, status). Vocabulário de REPARO (ADR 0265).
  */
 function TimelineSkeleton({
   enteredAt,
@@ -705,24 +691,23 @@ function TimelineSkeleton({
   if (enteredAt) {
     items.push({
       when: formatDate(enteredAt),
-      what: 'Locação iniciada',
+      what: 'OS aberta — veículo recebido',
       state: 'done',
     });
   }
 
-  // Estado intermediário (entrega presumida)
   if (enteredAt && status !== 'aberta') {
     items.push({
       when: '—',
-      what: 'Caçamba entregue ao cliente',
+      what: 'Serviço em andamento na oficina',
       state: 'done',
     });
   }
 
   if (expectedReturn) {
     items.push({
-      when: formatDate(expectedReturn + 'T18:00:00'),
-      what: 'Prazo de devolução',
+      when: formatDate(expectedReturn.length <= 10 ? expectedReturn + 'T18:00:00' : expectedReturn),
+      what: 'Previsão de entrega',
       state: completedAt ? 'done' : 'future',
     });
   }
@@ -730,13 +715,13 @@ function TimelineSkeleton({
   if (completedAt) {
     items.push({
       when: formatDate(completedAt),
-      what: 'Locação concluída',
+      what: 'Serviço concluído',
       state: 'done',
     });
   } else {
     items.push({
       when: 'agora',
-      what: 'Aguardando recolhimento…',
+      what: 'Aguardando próxima etapa…',
       state: 'now',
     });
   }

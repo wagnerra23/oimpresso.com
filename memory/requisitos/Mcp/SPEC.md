@@ -1,9 +1,18 @@
 ---
 module: Mcp
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 na_justified:
   D5: "MCP server (`mcp.oimpresso.com`) é tools/governança consumida pelo TIME INTERNO (Wagner/Felipe/Maiara/Eliana/Luiz) e por Claude Code via protocol MCP — NÃO é módulo de features cliente. Cliente externo biz=4 ROTA LIVRE não consome tools MCP (não tem acesso ao server CT 100). D5 cliente real não aplica por design (mesma justificativa de TeamMcp/Brief — ADR 0094 Constituição §infraestrutura interna)."
   D4.b: "MCP server é bounded context de tools governança (entries em `OimpressoMcpServer::$tools`) — sem state machine FSM (ADR 0143) por design. Tools são funções idempotentes invocáveis; não há fluxo de negócio com transições Eloquent. D4.b FSM canônica N/A."
-related_adrs: [0053, 0094, 0130, 0153, 0154]
+related_adrs:
+  - 0053-mcp-server-governanca-como-produto
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0130-handoff-append-only-mcp-first
+  - 0153-module-grade-rubrica-v1
+  - 0154-module-grade-v2-na-justificado
 ---
 
 # Especificação funcional — MCP (bounded context tools/governança)
@@ -60,14 +69,14 @@ related_adrs: [0053, 0094, 0130, 0153, 0154]
 
 ## 4. ADRs aplicáveis
 
-- [ADR 0053](../../decisions/0053-mcp-server-laravel-mcp.md) — MCP server laravel/mcp como entry point
+- [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) — MCP server laravel/mcp como entry point
 - [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) — Jira-style tasks via tools MCP
 - [ADR 0091](../../decisions/0091-daily-brief.md) — Daily Brief (brief-fetch Tier A always-on)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 isolation
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (princípio 2 tiered cost)
 - [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) — whats-active Tier 1
 - [ADR 0130](../../decisions/0130-handoff-append-only-mcp-first.md) — handoff append-only (event stream)
-- [ADR 0133](../../decisions/0133-system-health-audit.md) — System health audit canônico
+- [ADR 0133](../../decisions/0133-system-health-audit-canonico.md) — System health audit canônico
 
 ## 5. Notas
 

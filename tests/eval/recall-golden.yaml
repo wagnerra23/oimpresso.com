@@ -1,0 +1,188 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# recall-golden.yaml — golden set DETERMINÍSTICO de recall (sem judge LLM).
+#
+# Frente KL-C2 (plano memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md).
+# Consumido por: php artisan jana:recall-eval (--mode=mock local | --mode=real CT 100 fase 2).
+#
+# Contrato por query:
+#   expected:   slugs que DEVEM aparecer no top-K (meta.top_k) do recall
+#   violations: slugs historical/superseded que NÃO podem aparecer no top-N
+#               (meta.violation_window) — ADR 0270 D-4 (decaimento) + ADR 0275
+#               métrica recall_eval_violations (→ 0)
+#   collision_number + must_resolve_slug: par colidido do alias map (ADR 0274) —
+#               a query DEVE resolver pro slug certo do par, nunca pro irmão
+#
+# Resolução de slug → disco (validada em --mode=mock):
+#   NNNN-titulo       → memory/decisions/<slug>.md
+#   briefing:<Modulo> → memory/requisitos/<Modulo>/BRIEFING.md (porta única, ADR 0270 D-2)
+#
+# Regra anti-stale: todo slug daqui foi verificado contra o disco no commit que
+# o introduziu; o comando re-verifica a cada run (slug morto = gate fail).
+# ─────────────────────────────────────────────────────────────────────────────
+
+meta:
+  version: "1"
+  top_k: 5
+  violation_window: 3
+  adr_dir: "memory/decisions"
+  briefing_dir: "memory/requisitos"
+  alias_map: "governance/adr-alias-map.json"
+  meilisearch_index: "mcp_memory_documents"
+  refs:
+    - "0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"
+    - "0274-referencia-adr-por-slug-alias-map-13-colisoes"
+    - "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"
+
+queries:
+  # ─── Pares colididos (ADR 0274 — número igual, assunto diferente) ───
+  - id: colisao-0178-campos-fiscais
+    query: "Onde ficam os campos fiscais brasileiros do cadastro de clientes (contacts)?"
+    collision_number: "0178"
+    must_resolve_slug: "0178-restauracao-campos-fiscais-br-canon"
+    expected: ["0178-restauracao-campos-fiscais-br-canon"]
+    violations: []
+
+  - id: colisao-0178-sells-tabs
+    query: "Como a tela Sells unificou Lista e Grade com tabs de Visão?"
+    collision_number: "0178"
+    must_resolve_slug: "0178-sells-unified-tabs-visao-supersede-0136"
+    expected: ["0178-sells-unified-tabs-visao-supersede-0136"]
+    violations: ["0136-sells-grade-avancada-modo-toggle"]
+
+  - id: colisao-0235-accent-roxo
+    query: "Qual é o accent de cor universal do design system v4?"
+    collision_number: "0235"
+    must_resolve_slug: "0235-ds-v4-accent-roxo-universal"
+    expected: ["0235-ds-v4-accent-roxo-universal"]
+    violations: []
+
+  - id: colisao-0235-staging
+    query: "Como funciona o ambiente de staging clone anonimizado da produção no CT 100?"
+    collision_number: "0235"
+    must_resolve_slug: "0235-staging-ct100-clone-anonimizado"
+    expected: ["0235-staging-ct100-clone-anonimizado"]
+    violations: []
+
+  - id: colisao-0101-tests-business-id
+    query: "Qual business_id os testes Pest devem usar?"
+    collision_number: "0101"
+    must_resolve_slug: "0101-tests-business-id-1-nunca-cliente"
+    expected: ["0101-tests-business-id-1-nunca-cliente"]
+    violations: []
+
+  - id: colisao-0180-sidebar
+    query: "Qual é o padrão canônico atual do sidebar (grupos e ghosts no header)?"
+    collision_number: "0180"
+    must_resolve_slug: "0180-sidebar-v3-5-grupos-ghosts-header"
+    expected: ["0180-sidebar-v3-5-grupos-ghosts-header"]
+    violations: ["0008-sidebar-unica-tabs-horizontais"]
+
+  # ─── Vigente vs superseded (ADR 0270 D-4: o morto não volta no top-3) ───
+  - id: runtime-broadcast
+    query: "Qual runtime de websocket/broadcast roda em produção hoje?"
+    expected: ["0058-reverb-substituido-por-centrifugo-frankenphp"]
+    violations: ["0042-reverb-substitui-pusher-cloud"]
+
+  - id: framework-agentes-ia
+    query: "Qual framework de agentes IA o projeto usa?"
+    expected: ["0048-framework-agentes-laravel-ai-vizra-rejeitada"]
+    violations: ["0032-vizra-adk-prism-php-orquestracao"]
+
+  - id: memoria-vector-store
+    query: "Onde vive o índice semântico dos docs canônicos (vector store da memória)?"
+    expected: ["0053-mcp-server-governanca-como-produto"]
+    violations:
+      - "0033-vector-store-meilisearch-pgvector-mem0"
+      - "0031-memoriacontrato-mem0-default"
+
+  - id: task-management
+    query: "Como gerencio tasks do projeto (backlog, cycles, stories)?"
+    expected: ["0070-jira-style-task-management-current-md-removed"]
+    violations: ["0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated"]
+
+  - id: processo-adr
+    query: "Qual é o processo canônico pra criar ADR (numeração, índice gerado, supersede)?"
+    expected: ["0258-processo-adr-estado-arte-indice-gerado-supersede-atomico"]
+    violations: ["0028-adrs-numeracao-monotonica"]
+
+  - id: rename-modulo
+    query: "Como renomear um módulo do projeto (ex.: Copiloto para Jana)?"
+    expected: ["0092-tabela-rename-copiloto-para-jana"]
+    violations: ["0088-module-rename-php-only"]
+
+  - id: conhecimento-canonico
+    query: "Onde vive o conhecimento canônico do projeto? Auto-memória privada é permitida?"
+    expected: ["0061-conhecimento-canonico-git-mcp-zero-automem"]
+    violations: ["0010-sistema-memoria-projeto"]
+
+  - id: team-plan-selfhost
+    query: "Temos equivalente self-host do Team plan da Anthropic?"
+    expected: ["0055-self-host-team-plan-equivalente-anthropic"]
+    violations: ["0054-pacote-enterprise-busca-memoria-evolucao"]
+
+  # ─── Recall de ADR ativa (fundações Tier 0 + Semana 0 SDD) ───
+  - id: multi-tenant-tier0
+    query: "Qual é a regra de isolamento multi-tenant do projeto?"
+    expected: ["0093-multi-tenant-isolation-tier-0"]
+    violations: []
+
+  - id: constituicao-v2
+    query: "Quais são as camadas e os princípios duros da Constituição v2?"
+    expected: ["0094-constituicao-v2-7-camadas-8-principios"]
+    violations: []
+
+  - id: mwart-processo
+    query: "Qual é o processo único de migração Blade para Inertia/React?"
+    expected: ["0104-processo-mwart-canonico-unico-caminho"]
+    violations: []
+
+  - id: daily-brief
+    query: "Como funciona o Daily Brief consolidado da Jana?"
+    expected: ["0091-daily-brief"]
+    violations: []
+
+  - id: ciclo-vida-informacao
+    query: "Como é o ciclo de vida da informação (porta única, destilação, decaimento)?"
+    expected: ["0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"]
+    violations: []
+
+  - id: anchor-spec-codigo
+    query: "Qual é o formato canônico do anchor SPEC↔código pra fluxo novo?"
+    expected: ["0273-anchor-spec-codigo-formato-canonico-fluxo-novo"]
+    violations: []
+
+  - id: alias-map-colisoes
+    query: "Como referenciar uma ADR cujo número está colidido?"
+    expected: ["0274-referencia-adr-por-slug-alias-map-13-colisoes"]
+    violations: []
+
+  - id: scorecard-sdd
+    query: "Quais são as 10 métricas do scorecard SDD e o calendário de promoções?"
+    expected: ["0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"]
+    violations: []
+
+  - id: handoff-protocolo
+    query: "Qual é a regra de handoff entre sessões de trabalho?"
+    expected: ["0130-handoff-append-only-mcp-first"]
+    violations: []
+
+  - id: tres-angulos-faturamento
+    query: "Quais são os três ângulos de faturamento que a Jana sabe responder?"
+    expected: ["0052-contextonegocio-expor-multiplos-angulos"]
+    violations: []
+
+  # ─── Porta da frente por módulo (ADR 0270 D-2: BRIEFING = a porta) ───
+  - id: porta-modulo-jana
+    query: "Qual é o estado atual consolidado do módulo Jana?"
+    expected: ["briefing:Jana"]
+    violations: []
+
+  - id: porta-modulo-financeiro
+    query: "Qual é o estado atual consolidado do módulo Financeiro?"
+    expected: ["briefing:Financeiro"]
+    violations: []
+
+  - id: porta-modulo-whatsapp
+    query: "Qual é o estado atual consolidado do módulo Whatsapp?"
+    expected: ["briefing:Whatsapp"]
+    violations: []

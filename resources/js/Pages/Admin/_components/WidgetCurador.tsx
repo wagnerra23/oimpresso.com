@@ -54,7 +54,7 @@ export default function WidgetCurador({ data }: Props) {
           <div className="text-xs text-gray-500">total ativo</div>
         </div>
         <div className="border rounded p-2">
-          <div className="text-2xl font-semibold text-red-700">{data.sensitive_count}</div>
+          <div className="text-2xl font-semibold text-destructive-fg">{data.sensitive_count}</div>
           <div className="text-xs text-gray-500">sensitive vault</div>
         </div>
         <div className="border rounded p-2">

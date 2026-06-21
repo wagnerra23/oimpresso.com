@@ -3,6 +3,8 @@
 namespace Modules\TeamMcp\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\TeamMcp\Console\Commands\HandoffIngestCommand;
+use Modules\TeamMcp\Console\Commands\HandoffStaleAlertCommand;
 use Modules\TeamMcp\Console\Commands\RotateTokenCommand;
 use Modules\TeamMcp\Console\Commands\SeedActorsCommand;
 
@@ -33,6 +35,12 @@ class TeamMcpServiceProvider extends ServiceProvider
             $this->commands([
                 SeedActorsCommand::class,
                 RotateTokenCommand::class,
+                // handoff:ingest — PR-1 loop handoff zero-paste (Fase 0 ADR 0283):
+                // ingere handoffs de design assinados (HMAC) → cowork_handoffs pending.
+                HandoffIngestCommand::class,
+                // handoff:stale-alert — PR-4: handoffs pending > 3d alertam o inbox ops
+                // (anti feedback-void). Schedule daily em app/Console/Kernel.php.
+                HandoffStaleAlertCommand::class,
             ]);
         }
     }

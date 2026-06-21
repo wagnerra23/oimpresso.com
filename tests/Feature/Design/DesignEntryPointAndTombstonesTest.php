@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 /**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de canon-source (links DESIGN.md + lápides frontmatter) contra fonte-da-verdade móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
+/**
  * Garante que o sistema de design REVITALIZADO (2026-06-06) fica HONESTO pra sempre.
  *
  * Origem: a porta da frente (`DESIGN.md`) apontava pro CEMITÉRIO — `ui_kits/cowork-2026-04-27/`

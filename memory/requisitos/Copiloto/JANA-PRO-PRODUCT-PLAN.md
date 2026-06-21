@@ -34,8 +34,8 @@ webhook sincroniza pro DB).
 estruturado.
 
 **AC:**
-- `Modules/Copiloto/Agents/BriefDiarioAgent.php` namespace `agents.brief_diario`
-- 5 PHP tools em `Modules/Copiloto/Services/JanaPro/Tools/`:
+- `Modules/Jana/Agents/BriefDiarioAgent.php` namespace `agents.brief_diario`
+- 5 PHP tools em `Modules/Jana/Services/JanaPro/Tools/`:
   - `VendasPeriodoTool` — transactions sell GROUP BY day vs período anterior + ticket médio
   - `InadimplenciaBucketsTool` — buckets 0-30 / 30-60 / 60-90 / >90d com valores
   - `TicketsPriorizadosTool` — reusa skill ticket-triage, top 5 P1/P2
@@ -54,7 +54,7 @@ estruturado.
 **Owner:** wagner · **Priority:** p1 · **Estimate:** 2h
 
 **AC:**
-- `Modules/Copiloto/Jobs/BriefDiarioJob.php` queue `jana-pro` Horizon CT 100
+- `Modules/Jana/Jobs/BriefDiarioJob.php` queue `jana-pro` Horizon CT 100
 - Schedule `app/Console/Kernel.php` cron 8h BRT segunda-sábado (domingo skip por default)
 - Itera business com flag `jana_pro_active=true` (US-COPI-204)
 - Timeout 60s + retry 3x backoff exponential
@@ -70,7 +70,7 @@ estruturado.
 daemon Baileys CT 100 já conectado.
 
 **AC:**
-- `Modules/Copiloto/Services/JanaPro/Delivery/WhatsappBriefDelivery.php`
+- `Modules/Jana/Services/JanaPro/Delivery/WhatsappBriefDelivery.php`
 - Format markdown → texto Whatsapp formatado (lista bullet + bold via *...*)
 - Reusa `ChannelDriverFactory` + `BaileysDriver::send()`
 - Idempotência: 1 envio por business+date (UNIQUE constraint `mcp_briefs.delivery_key`)
@@ -212,7 +212,7 @@ Escuta eventos críticos via Laravel events + decide se vale alertar/agir.
 **AC:**
 - `App\Events\TransactionPaid` (já pode existir — verificar)
 - `App\Events\NfeRejeitada` (novo — disparado pelo Modules/NfeBrasil)
-- Listeners registrados em `Modules/Copiloto/Providers/JanaProServiceProvider.php`
+- Listeners registrados em `Modules/Jana/Providers/JanaProServiceProvider.php`
 - Multi-tenant Tier 0: listeners propagam `$businessId` async
 
 ---
@@ -371,7 +371,7 @@ não-modificadas, conversations resolvidas). Cache namespace
 - Métrica: % cache hit vs miss (target ≥ 60%)
 - Custo LLM reduz de R$ [redacted Tier 0] → R$ [redacted Tier 0] por brief (margem sobe pra 97%)
 
-**Refs:** Sprint 9 retrieval flow Modules/Copiloto (ADR 0036)
+**Refs:** Sprint 9 retrieval flow Modules/Jana (ADR 0036)
 
 ---
 

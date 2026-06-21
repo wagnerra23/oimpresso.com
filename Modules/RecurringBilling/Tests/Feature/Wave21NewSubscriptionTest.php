@@ -108,9 +108,15 @@ beforeEach(function () {
 
 afterEach(function () {
     session()->flush();
-    Schema::dropIfExists('rb_subscriptions');
-    Schema::dropIfExists('rb_plans');
-    Schema::dropIfExists('contacts');
+    // rb_subscriptions/rb_plans são reais-migradas; o afterEach roda mesmo em teste
+    // pulado (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las no
+    // MySQL persistente do nightly corromperia testes irmãos do módulo. DDL só em
+    // sqlite :memory: (espelha o skip-guard do beforeEach).
+    if (config('database.default') === 'sqlite'
+        && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        Schema::dropIfExists('rb_subscriptions');
+        Schema::dropIfExists('rb_plans');
+    }
 });
 
 function validateStoreAssinatura(array $payload): \Illuminate\Contracts\Validation\Validator

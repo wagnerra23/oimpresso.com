@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@custom-variant dark (&:where(.dark, .dark *));
+/* Dark ativa por DOIS mecanismos (ADR 0281): a classe `.dark` (legado shadcn,
+   nunca aplicada na prática) E `[data-theme="dark"]` — que é o que o AppShellV2
+   realmente seta no `.cockpit` (linha data-theme={userTheme}). Sem o segundo seletor
+   as utilities `dark:` nunca disparavam em produção (painel branco no escuro). */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 /* Sells/Index Cowork visual — escopado em .sells-cowork (ver scripts/scope-sells-cowork-css.py) */
 @import "./sells-cowork.css";
@@ -108,12 +112,13 @@
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Light (default) — shadcn new-york slate */
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(222.2 84% 4.9%);
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(222.2 84% 4.9%);
+  /* Light (default) — DS harmonizado 2026-06-13: borda warm hue 90 extraída da
+     tela-ouro Cliente (era slate frio shadcn). Casa com --color-page-cream. */
+  --color-border: oklch(0.92 0.006 90);
+  --color-input: oklch(0.92 0.006 90);
+  --color-ring: oklch(0.137 0.036 258.5);
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.137 0.036 258.5);
 
   /* canon v3.4 (Wagner 2026-05-25): fundo cream warm hue 90 pra Index canon v3.x.
      Espelha `.cockpit` em /sells (Cowork canon · oklch(0.985 0.003 90)).
@@ -125,29 +130,46 @@
   /* DS v4 — primary universal ROXO (era hsl(221) azul). Canon ADR 0190: oklch(0.55 0.15 295).
      `bg-primary`/`text-primary`/`border-primary` em todas as Pages Inertia (inclusive OS) seguem este token. */
   --color-primary: oklch(0.55 0.15 295);
-  --color-primary-foreground: hsl(210 40% 98%);
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(222.2 84% 4.9%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(222.2 84% 4.9%);
+  --color-primary-foreground: oklch(0.984 0.003 247.9);
+  --color-secondary: oklch(0.968 0.007 247.9);
+  --color-secondary-foreground: oklch(0.208 0.04 265.7);
+  --color-muted: oklch(0.97 0.004 90);
+  --color-muted-foreground: oklch(0.55 0.012 90);
+  --color-accent: oklch(0.968 0.007 247.9);
+  --color-accent-foreground: oklch(0.208 0.04 265.7);
+  --color-destructive: oklch(0.58 0.20 18);
+  --color-destructive-foreground: oklch(0.984 0.003 247.9);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.137 0.036 258.5);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.137 0.036 258.5);
 
   /* Semantic status tokens — adicionados 2026-05-27 pra ADR 0202 Settings WhatsApp
      + qualquer Page que precise green/yellow/red sem cair em violação UI lint R1.
      Constituição UI v2 ([ADR UI-0013]) — tokens semânticos > cores hardcoded.
      Geram utilities `bg-success`, `text-success-foreground`, `bg-warning`, etc
      via Tailwind v4 (@theme directive). */
-  --color-success: hsl(142 71% 45%);
-  --color-success-foreground: hsl(143 64% 24%);
-  --color-warning: hsl(38 92% 50%);
-  --color-warning-foreground: hsl(26 90% 30%);
+  --color-success: oklch(0.62 0.13 162);
+  --color-success-foreground: oklch(0.51 0.12 162);
+  --color-warning: oklch(0.70 0.13 75);
+  --color-warning-foreground: oklch(0.55 0.12 75);
+
+  /* ── DS harmonizado 2026-06-13 — pares soft(fundo)+fg(texto) extraídos da
+     tela-ouro Cliente (Pills -50/-700) + token `info` novo (preenche o gap azul)
+     + `page` oficial. Filosofia "extrair, não repintar" (DsRollout). Permite
+     tokenizar status (bg-success-soft text-success-fg) sem cor crua, mantendo a
+     beleza. Geram utilities bg/text/border-{success,warning,destructive,info}-{soft,fg}. */
+  --color-destructive-soft: oklch(0.97 0.02 18);
+  --color-destructive-fg: oklch(0.51 0.19 18);
+  --color-success-soft: oklch(0.97 0.02 162);
+  --color-success-fg: oklch(0.51 0.12 162);
+  --color-warning-soft: oklch(0.97 0.03 75);
+  --color-warning-fg: oklch(0.55 0.12 75);
+  --color-info: oklch(0.58 0.13 244);
+  --color-info-foreground: oklch(0.98 0 0);
+  --color-info-soft: oklch(0.97 0.02 244);
+  --color-info-fg: oklch(0.50 0.13 244);
+  --color-page: oklch(0.985 0.003 90);
 
   /* Brand Meta (Facebook OAuth) — token específico do botão "Conectar com Meta"
      no Embedded Signup v4. Cor oficial Facebook (#1877F2 hover #166FE5)
@@ -158,44 +180,77 @@
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
+
+  /* Motion — Onda M1 (maturidade DS · dimensão D8). Vocabulário nomeado de duração
+     + easing. Antes: durations cruas espalhadas (150ms, .12s) sem easing nomeado.
+     Princípios: micro-interação (hover/focus/toggle) 120–150ms · overlay/sheet 240ms ·
+     nada acima de 360ms. Consumidor deve respeitar prefers-reduced-motion (M4 a11y). */
+  --duration-fast: 120ms;
+  --duration-base: 150ms;
+  --duration-slow: 240ms;
+  --duration-slower: 360ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);   /* default — entra e sai */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);         /* entrada (aparecer/expandir) */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);          /* saída (sumir/recolher) */
 }
 
 /* ==========================================================================
-   Dark mode — ativa quando <html class="dark">
-   Anti-flash: script inline em layouts/inertia.blade.php aplica a classe
+   Dark mode — ativa por `.dark` (classe legado shadcn) OU `[data-theme="dark"]`.
+   ADR 0281: o AppShellV2 seta `data-theme={userTheme}` no `.cockpit`, NUNCA a
+   classe `.dark` — então sem `[data-theme="dark"]` aqui os tokens Tailwind
+   `--color-*` jamais flipavam e toda tela feita com utilities (bg-card,
+   text-foreground, warning-*, etc.) ficava branca no escuro. Os dois seletores
+   compartilham os MESMOS valores dark já afinados.
+   Anti-flash: script inline em layouts/inertia.blade.php aplica o tema
    ANTES do React hidratar, evitando "piscar" branco-para-escuro.
    ========================================================================== */
-.dark {
-  --color-border: hsl(217.2 32.6% 17.5%);
-  --color-input: hsl(217.2 32.6% 17.5%);
-  --color-ring: hsl(212.7 26.8% 83.9%);
-  --color-background: hsl(222.2 84% 4.9%);
-  --color-foreground: hsl(210 40% 98%);
+.dark,
+[data-theme="dark"] {
+  /* DS harmonizado 2026-06-13: dark fica COOL neutro (cream warm não inverte
+     coerente — a tela já decidiu isso); só refina a neutralidade da borda. */
+  --color-border: oklch(0.27 0.006 250);
+  --color-input: oklch(0.27 0.006 250);
+  --color-ring: oklch(0.869 0.02 252.8);
+  --color-background: oklch(0.137 0.036 258.5);
+  --color-foreground: oklch(0.984 0.003 247.9);
 
   /* canon v3.4 dark mode: cream warm não inverte coerente — usa slate-950 neutro */
-  --color-page-cream: hsl(222.2 84% 4.9%);
+  --color-page-cream: oklch(0.137 0.036 258.5);
 
   /* DS v4 — primary ROXO dark (era hsl(217) azul). Mais claro que o light pra contraste em fundo escuro. */
   --color-primary: oklch(0.62 0.15 295);
-  --color-primary-foreground: hsl(222.2 47.4% 11.2%);
-  --color-secondary: hsl(217.2 32.6% 17.5%);
-  --color-secondary-foreground: hsl(210 40% 98%);
-  --color-muted: hsl(217.2 32.6% 17.5%);
-  --color-muted-foreground: hsl(215 20.2% 65.1%);
-  --color-accent: hsl(217.2 32.6% 17.5%);
-  --color-accent-foreground: hsl(210 40% 98%);
-  --color-destructive: hsl(0 62.8% 30.6%);
-  --color-destructive-foreground: hsl(210 40% 98%);
-  --color-card: hsl(222.2 47.4% 11.2%);
-  --color-card-foreground: hsl(210 40% 98%);
-  --color-popover: hsl(222.2 84% 4.9%);
-  --color-popover-foreground: hsl(210 40% 98%);
+  --color-primary-foreground: oklch(0.208 0.04 265.7);
+  --color-secondary: oklch(0.28 0.037 260);
+  --color-secondary-foreground: oklch(0.984 0.003 247.9);
+  --color-muted: oklch(0.28 0.037 260);
+  --color-muted-foreground: oklch(0.68 0.01 250);
+  --color-accent: oklch(0.28 0.037 260);
+  --color-accent-foreground: oklch(0.984 0.003 247.9);
+  --color-destructive: oklch(0.55 0.17 18);
+  --color-destructive-foreground: oklch(0.984 0.003 247.9);
+  --color-card: oklch(0.208 0.04 265.7);
+  --color-card-foreground: oklch(0.984 0.003 247.9);
+  --color-popover: oklch(0.137 0.036 258.5);
+  --color-popover-foreground: oklch(0.984 0.003 247.9);
 
   /* Semantic status tokens — dark mode (mais saturado pra contraste em fundo escuro) */
-  --color-success: hsl(142 71% 45%);
-  --color-success-foreground: hsl(143 70% 78%);
-  --color-warning: hsl(38 92% 55%);
-  --color-warning-foreground: hsl(35 90% 78%);
+  --color-success: oklch(0.68 0.13 162);
+  --color-success-foreground: oklch(0.78 0.11 162);
+  --color-warning: oklch(0.74 0.13 75);
+  --color-warning-foreground: oklch(0.80 0.10 75);
+
+  /* DS harmonizado 2026-06-13 — pares soft/fg dark: soft = L baixo (~0.27, o -950/40
+     da tela), fg = L alto (~0.78, o -300). Hue idêntico ao light. + info dark. */
+  --color-destructive-soft: oklch(0.26 0.07 18);
+  --color-destructive-fg: oklch(0.74 0.13 18);
+  --color-success-soft: oklch(0.27 0.06 162);
+  --color-success-fg: oklch(0.78 0.11 162);
+  --color-warning-soft: oklch(0.27 0.06 75);
+  --color-warning-fg: oklch(0.80 0.10 75);
+  --color-info: oklch(0.66 0.13 244);
+  --color-info-foreground: oklch(0.20 0.02 244);
+  --color-info-soft: oklch(0.27 0.05 244);
+  --color-info-fg: oklch(0.78 0.11 244);
 
   /* Brand Meta — mantém Facebook color cross-theme (identidade visível em ambos) */
   --color-brand-meta: hsl(215 89% 53%);
@@ -215,7 +270,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    transition: background-color 150ms ease, color 150ms ease;
+    transition: background-color var(--duration-base) var(--ease-standard), color var(--duration-base) var(--ease-standard);
   }
 }
 

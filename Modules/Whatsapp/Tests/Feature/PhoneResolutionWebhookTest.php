@@ -28,6 +28,12 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // era-sqlite: este teste cria schema manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso DROPA tabelas reais → corrompe os testes irmãos (lever do floor SDD).
+    // Cobertura real é na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
     foreach (['whatsapp_messages', 'whatsapp_conversations', 'whatsapp_business_phones', 'whatsapp_business_configs'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -105,6 +111,9 @@ beforeEach(function () {
         $table->json('payload')->nullable();
         $table->string('status', 20);
         $table->timestamp('created_at')->useCurrent();
+        // WhatsappMessage tem timestamps on (cast updated_at) → create() insere updated_at.
+        // O schema sintético precisa da coluna senão "Unknown column 'updated_at'" (RC-31).
+        $table->timestamp('updated_at')->nullable();
     });
 });
 

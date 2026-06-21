@@ -3,11 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Onda 3 — ADR 0170. US-PG-002 audit-senior 2026-05-25 (VULN SEC P0-#2):
@@ -72,12 +73,17 @@ function setupWhEndpSchema(): void
 
 function teardownWhEndpSchema(): void
 {
+    // Só tabelas do MÓDULO PaymentGateway (prefixo payment_gateway_* / gateway_*).
+    // NÃO dropar `activity_log`: é CORE COMPARTILHADA (Spatie activitylog) — em
+    // MySQL persistente do nightly o drop destruiria o schema usado por outros testes.
     Schema::dropIfExists('gateway_webhook_events');
     Schema::dropIfExists('payment_gateway_credentials');
-    Schema::dropIfExists('activity_log');
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     setupWhEndpSchema();
     // Credenciais ativas com secrets/token cadastrados pra signature passar.
     $this->credAsaas = PaymentGatewayCredential::query()->create([
@@ -118,7 +124,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    teardownWhEndpSchema();
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.x). Guardar o DDL por driver evita dropar as tabelas
+    // REAL-migradas (gateway_webhook_events, payment_gateway_credentials).
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        teardownWhEndpSchema();
+    }
 });
 
 /**

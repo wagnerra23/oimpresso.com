@@ -6,6 +6,7 @@ use App\Domain\Fsm\Models\TransactionDocument;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Spatie\Permission\PermissionRegistrar;
@@ -33,6 +34,10 @@ class FakeFiscalDoc extends Model
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -90,11 +95,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (array_reverse(glob(database_path('migrations/2026_05_11_140001_create_transaction_documents_table.php')) ?: []) as $f) {
-        (require $f)->down();
-    }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_fiscal_docs', 'users'] as $tbl) {
-        Schema::dropIfExists($tbl);
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (array_reverse(glob(database_path('migrations/2026_05_11_140001_create_transaction_documents_table.php')) ?: []) as $f) {
+            (require $f)->down();
+        }
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_fiscal_docs', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });

@@ -143,15 +143,6 @@ class Vehicle extends Model
     }
 
     /**
-     * Histórico de locações (apenas order_type=locacao).
-     */
-    public function rentals(): HasMany
-    {
-        return $this->hasMany(ServiceOrder::class, 'vehicle_id')
-                    ->where('order_type', 'locacao');
-    }
-
-    /**
      * Histórico de manutenções (apenas order_type=manutencao).
      */
     public function maintenances(): HasMany
@@ -221,29 +212,5 @@ class Vehicle extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('oficinaauto.vehicle');
-    }
-
-    // ------------------------------------------------------------------
-    // Scopes
-    // ------------------------------------------------------------------
-
-    /**
-     * Veículos com locação ativa em atraso (expected_return_date passou).
-     *
-     * Join com service_orders pra detectar OS locação não-concluída onde
-     * expected_return_date < hoje.
-     */
-    public function scopeOverdue(Builder $query): Builder
-    {
-        return $query->whereExists(function ($sub) {
-            $sub->select(\DB::raw(1))
-                ->from('service_orders')
-                ->whereColumn('service_orders.vehicle_id', 'vehicles.id')
-                ->where('service_orders.order_type', 'locacao')
-                ->whereNotIn('service_orders.status', ['concluida', 'cancelada', 'recolhida'])
-                ->whereNotNull('service_orders.expected_return_date')
-                ->whereDate('service_orders.expected_return_date', '<', now()->toDateString())
-                ->whereNull('service_orders.deleted_at');
-        });
     }
 }

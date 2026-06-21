@@ -45,6 +45,10 @@ class InutilizarFaixaTestSubject extends Model
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('business', function (Blueprint $t) {
         $t->increments('id');
         $t->string('name')->nullable();
@@ -103,10 +107,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('inutilizar_faixa_test_subjects');
-    Schema::dropIfExists('nfe_inutilizacoes');
-    Schema::dropIfExists('nfe_emissoes');
-    Schema::dropIfExists('business');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('inutilizar_faixa_test_subjects');
+        Schema::dropIfExists('nfe_inutilizacoes');
+        Schema::dropIfExists('nfe_emissoes');
+        Schema::dropIfExists('business');
+    }
     \Mockery::close();
 });
 

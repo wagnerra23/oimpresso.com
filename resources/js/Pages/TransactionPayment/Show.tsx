@@ -114,10 +114,10 @@ function Show({ single_payment_line, transaction, payment_types }: Props) {
                 <div className="text-sm text-muted-foreground">{transaction.contact.supplier_business_name}</div>
               )}
               {transaction.contact.contact_address && (
-                <div
-                  className="text-sm mt-2"
-                  dangerouslySetInnerHTML={{ __html: transaction.contact.contact_address }}
-                />
+                <div className="text-sm mt-2 whitespace-pre-wrap">
+                  {/* Segurança: render como TEXTO — endereço é dado do cliente; HTML cru executaria (XSS). */}
+                  {transaction.contact.contact_address.replace(/<br\s*\/?>/gi, '\n')}
+                </div>
               )}
               <div className="text-sm mt-2 space-y-1">
                 {transaction.contact.tax_number && (

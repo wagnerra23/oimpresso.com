@@ -21,10 +21,10 @@
   background: var(--fin-bg-soft);
   color: var(--fin-text);
   font-family: ui-monospace, monospace;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 600;
   cursor: pointer;
-  transition: background .12s;
+  transition: background var(--t-1) var(--ease);
   vertical-align: baseline;
   margin: 0 1px;
 }
@@ -70,7 +70,7 @@
   max-height: 88vh;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 24px 64px oklch(0.20 0.005 240 / 0.25);
+  box-shadow: var(--sh-2);
   z-index: 101;
   display: flex;
   flex-direction: column;
@@ -84,21 +84,21 @@
 }
 .fin-cowork .fin-curadoria .fin-checklist-h h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-5);
   font-weight: 700;
   color: var(--fin-text);
 }
 .fin-cowork .fin-curadoria .fin-checklist-h small {
   display: block;
   margin-top: 2px;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   color: var(--fin-text-mute);
 }
 .fin-cowork .fin-curadoria .fin-checklist-x {
   margin-left: auto;
   background: transparent;
   border: 0;
-  font-size: 20px;
+  font-size: var(--fs-6);
   color: var(--fin-text-mute);
   cursor: pointer;
   padding: 0 8px;
@@ -115,7 +115,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   background: linear-gradient(90deg, oklch(0.45 0.18 145), oklch(0.55 0.13 240));
-  transition: width .28s ease;
+  transition: width var(--t-2) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-checklist-body {
   flex: 1;
@@ -127,7 +127,7 @@
 }
 .fin-cowork .fin-curadoria .fin-checklist-group h3 {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -149,7 +149,7 @@
   background: white;
   border: 1px solid var(--fin-line);
   border-radius: 6px;
-  transition: background .12s;
+  transition: background var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-checklist-step.done {
   background: oklch(0.97 0.03 145);
@@ -165,7 +165,7 @@
   background: white;
   color: oklch(0.32 0.13 145);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--fs-3);
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -177,7 +177,7 @@
 .fin-cowork .fin-curadoria .fin-checklist-step-body { flex: 1; min-width: 0; }
 .fin-cowork .fin-curadoria .fin-checklist-step-body b {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-3);
   font-weight: 600;
   color: var(--fin-text);
 }
@@ -187,11 +187,11 @@
 }
 .fin-cowork .fin-curadoria .fin-checklist-step-body small {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-1);
   color: var(--fin-text-mute);
 }
 .fin-cowork .fin-curadoria .fin-checklist-when {
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   color: var(--fin-text-mute);
   font-family: ui-monospace, monospace;
   flex-shrink: 0;
@@ -203,7 +203,7 @@
   text-align: right;
 }
 .fin-cowork .fin-curadoria .fin-checklist-f small {
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   color: var(--fin-text-mute);
 }
 /* Trigger button no header da página (☑ Fechamento) */
@@ -217,10 +217,10 @@
   background: white;
   color: var(--fin-text);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   font-weight: 600;
   cursor: pointer;
-  transition: background .12s;
+  transition: background var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-fechamento-trigger:hover { background: var(--fin-bg-soft); }
 .fin-cowork .fin-curadoria .fin-fechamento-trigger .fin-fechamento-badge {
@@ -233,7 +233,7 @@
   border-radius: 99px;
   background: oklch(0.45 0.18 145);
   color: white;
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 700;
 }
 /* ─────────────────────────────────────────────────────────────
@@ -250,18 +250,18 @@
   transform: translate(-50%, -50%);
   width: min(680px, 92vw); max-height: 88vh;
   background: white; border-radius: 12px;
-  box-shadow: 0 24px 64px oklch(0.20 0.005 240 / 0.25);
+  box-shadow: var(--sh-2);
   z-index: 101; display: flex; flex-direction: column; overflow: hidden;
 }
 .fin-cowork .fin-curadoria .fin-trouble-h {
   display: flex; align-items: flex-start;
   padding: 16px 20px 12px; border-bottom: 1px solid var(--fin-line);
 }
-.fin-cowork .fin-curadoria .fin-trouble-h h2 { margin: 0; font-size: 16px; font-weight: 700; }
-.fin-cowork .fin-curadoria .fin-trouble-h small { display: block; margin-top: 2px; font-size: 11.5px; color: var(--fin-text-mute); }
+.fin-cowork .fin-curadoria .fin-trouble-h h2 { margin: 0; font-size: var(--fs-5); font-weight: 700; }
+.fin-cowork .fin-curadoria .fin-trouble-h small { display: block; margin-top: 2px; font-size: var(--fs-2); color: var(--fin-text-mute); }
 .fin-cowork .fin-curadoria .fin-trouble-x {
   margin-left: auto; background: transparent; border: 0;
-  font-size: 20px; color: var(--fin-text-mute); cursor: pointer; padding: 0 8px; line-height: 1;
+  font-size: var(--fs-6); color: var(--fin-text-mute); cursor: pointer; padding: 0 8px; line-height: 1;
 }
 .fin-cowork .fin-curadoria .fin-trouble-list {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -273,47 +273,47 @@
   background: white;
   border: 1px solid oklch(0.92 0.04 var(--tr-hue));
   border-radius: 8px; padding: 14px 16px; cursor: pointer;
-  transition: all .15s; display: flex; flex-direction: column; gap: 6px;
+  transition: all var(--t-1) var(--ease); display: flex; flex-direction: column; gap: 6px;
 }
 .fin-cowork .fin-curadoria .fin-trouble-card:hover {
   background: oklch(0.98 0.02 var(--tr-hue));
   border-color: oklch(0.78 0.10 var(--tr-hue));
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px oklch(0.55 0.13 var(--tr-hue) / 0.10);
+  box-shadow: var(--sh-1);
 }
 .fin-cowork .fin-curadoria .fin-trouble-card-equip {
-  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: var(--fs-1); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: oklch(0.45 0.18 var(--tr-hue));
 }
-.fin-cowork .fin-curadoria .fin-trouble-card h3 { margin: 2px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.3; }
-.fin-cowork .fin-curadoria .fin-trouble-card small { font-size: 11px; color: var(--fin-text-mute); font-style: italic; }
+.fin-cowork .fin-curadoria .fin-trouble-card h3 { margin: 2px 0 0; font-size: var(--fs-4); font-weight: 600; line-height: 1.3; }
+.fin-cowork .fin-curadoria .fin-trouble-card small { font-size: var(--fs-1); color: var(--fin-text-mute); font-style: italic; }
 .fin-cowork .fin-curadoria .fin-trouble-card-arrow {
   position: absolute; right: 12px; bottom: 12px;
   color: oklch(0.55 0.13 var(--tr-hue));
-  font-size: 14px; opacity: 0.7;
+  font-size: var(--fs-4); opacity: 0.7;
 }
 .fin-cowork .fin-curadoria .fin-trouble-flow, .fin-cowork .fin-curadoria .fin-trouble-resolution { padding: 16px 20px 20px; overflow-y: auto; }
 .fin-cowork .fin-curadoria .fin-trouble-flow-h {
   display: flex; align-items: center; gap: 12px;
   margin-bottom: 12px; border-bottom: 1px dashed var(--fin-line); padding-bottom: 10px;
 }
-.fin-cowork .fin-curadoria .fin-trouble-flow-h h3 { margin: 0; font-size: 14px; font-weight: 600; color: oklch(0.36 0.13 var(--tr-hue, 240)); flex: 1; }
-.fin-cowork .fin-curadoria .fin-trouble-flow-h small { font-size: 11px; color: var(--fin-text-mute); }
+.fin-cowork .fin-curadoria .fin-trouble-flow-h h3 { margin: 0; font-size: var(--fs-4); font-weight: 600; color: oklch(0.36 0.13 var(--tr-hue, 240)); flex: 1; }
+.fin-cowork .fin-curadoria .fin-trouble-flow-h small { font-size: var(--fs-1); color: var(--fin-text-mute); }
 .fin-cowork .fin-curadoria .fin-trouble-back {
   appearance: none; background: transparent; border: 0;
-  color: oklch(0.36 0.13 240); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0;
+  color: oklch(0.36 0.13 240); font-family: inherit; font-size: var(--fs-2); font-weight: 600; cursor: pointer; padding: 0;
 }
 .fin-cowork .fin-curadoria .fin-trouble-back:hover { text-decoration: underline; }
 .fin-cowork .fin-curadoria .fin-trouble-step {
   background: var(--fin-bg-soft); border-radius: 8px;
   padding: 20px; text-align: center;
 }
-.fin-cowork .fin-curadoria .fin-trouble-q { margin: 0 0 16px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.fin-cowork .fin-curadoria .fin-trouble-q { margin: 0 0 16px; font-size: var(--fs-5); font-weight: 600; line-height: 1.4; }
 .fin-cowork .fin-curadoria .fin-trouble-answers { display: flex; gap: 10px; justify-content: center; }
 .fin-cowork .fin-curadoria .fin-trouble-answer {
   appearance: none; background: white; border: 2px solid var(--fin-line);
   border-radius: 6px; padding: 8px 32px;
-  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .12s;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 600; cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-curadoria .fin-trouble-answer.yes { border-color: oklch(0.55 0.18 145); color: oklch(0.32 0.13 145); }
 .fin-cowork .fin-curadoria .fin-trouble-answer.yes:hover { background: oklch(0.96 0.05 145); }
@@ -329,23 +329,23 @@
   display: grid; place-items: center;
   width: 32px; height: 32px; border-radius: 50%;
   background: oklch(0.55 0.18 var(--tr-hue));
-  color: white; font-size: 16px; font-weight: 700; flex-shrink: 0;
+  color: white; font-size: var(--fs-5); font-weight: 700; flex-shrink: 0;
 }
-.fin-cowork .fin-curadoria .fin-trouble-fix p { margin: 0; flex: 1; font-size: 13px; line-height: 1.5; color: oklch(0.22 0.06 145); }
+.fin-cowork .fin-curadoria .fin-trouble-fix p { margin: 0; flex: 1; font-size: var(--fs-3); line-height: 1.5; color: oklch(0.22 0.06 145); }
 .fin-cowork .fin-curadoria .fin-trouble-footer { display: flex; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--fin-line); }
 .fin-cowork .fin-curadoria .fin-trouble-restart {
   appearance: none; background: var(--fin-bg-soft); border: 1px solid var(--fin-line);
-  padding: 6px 12px; border-radius: 4px; font-family: inherit; font-size: 12px; cursor: pointer;
+  padding: 6px 12px; border-radius: 4px; font-family: inherit; font-size: var(--fs-2); cursor: pointer;
 }
 .fin-cowork .fin-curadoria .fin-trouble-trigger {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 10px; height: 26px; border-radius: 4px;
   border: 1px solid oklch(0.78 0.10 60); background: oklch(0.97 0.04 60);
-  color: oklch(0.42 0.13 60); font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer;
+  color: oklch(0.42 0.13 60); font-family: inherit; font-size: var(--fs-2); font-weight: 600; cursor: pointer;
 }
 .fin-cowork .fin-curadoria .fin-trouble-trigger:hover { background: oklch(0.94 0.06 60); }
 .fin-cowork .fin-curadoria .fin-trouble-count {
-  font-family: ui-monospace, monospace; font-size: 10px;
+  font-family: ui-monospace, monospace; font-size: var(--fs-1);
   padding: 1px 5px; border-radius: 99px;
   background: oklch(0.55 0.13 60); color: white;
 }
@@ -361,25 +361,25 @@
   display: flex; align-items: center; gap: 20px;
   padding: 20px 32px; border-bottom: 1px solid oklch(0.40 0.06 240 / 0.4);
 }
-.fin-cowork .fin-present-h h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
-.fin-cowork .fin-present-h p { margin: 2px 0 0; font-size: 13px; color: oklch(0.85 0.04 240); }
+.fin-cowork .fin-present-h h1 { margin: 0; font-size: var(--fs-7); font-weight: 600; letter-spacing: -0.01em; }
+.fin-cowork .fin-present-h p { margin: 2px 0 0; font-size: var(--fs-3); color: oklch(0.85 0.04 240); }
 .fin-cowork .fin-present-nav { margin-left: auto; display: flex; gap: 4px; }
 .fin-cowork .fin-present-nav button {
   appearance: none; background: transparent;
   border: 1px solid oklch(0.45 0.08 240); color: oklch(0.85 0.04 240);
-  padding: 6px 14px; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+  padding: 6px 14px; border-radius: 6px; font-family: inherit; font-size: var(--fs-2); font-weight: 500; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
 }
 .fin-cowork .fin-present-nav button:hover { background: oklch(0.30 0.06 240); }
 .fin-cowork .fin-present-nav button.on { background: white; color: oklch(0.22 0.06 240); border-color: white; }
 .fin-cowork .fin-present-nav button kbd {
-  font-family: ui-monospace, monospace; font-size: 10px; padding: 0 4px;
+  font-family: ui-monospace, monospace; font-size: var(--fs-1); padding: 0 4px;
   border-radius: 3px; background: oklch(0.40 0.06 240); color: white; border: 0;
 }
 .fin-cowork .fin-present-nav button.on kbd { background: oklch(0.92 0.04 240); color: oklch(0.22 0.06 240); }
 .fin-cowork .fin-present-close {
   appearance: none; background: transparent; border: 0;
-  color: white; font-size: 24px; cursor: pointer; padding: 0 8px; line-height: 1; opacity: 0.7;
+  color: white; font-size: var(--fs-7); cursor: pointer; padding: 0 8px; line-height: 1; opacity: 0.7;
 }
 .fin-cowork .fin-present-close:hover { opacity: 1; }
 .fin-cowork .fin-present-body { flex: 1; overflow-y: auto; padding: 40px 32px; }
@@ -389,16 +389,16 @@
   background: oklch(0.30 0.06 240 / 0.5); border: 1px solid oklch(0.45 0.08 240); border-radius: 16px;
 }
 .fin-cowork .fin-present-hero small {
-  display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
+  display: block; font-size: var(--fs-3); text-transform: uppercase; letter-spacing: 0.1em;
   color: oklch(0.85 0.04 240); margin-bottom: 8px;
 }
 .fin-cowork .fin-present-hero h2 {
-  margin: 0; font-size: 64px; font-weight: 700;
+  margin: 0; font-size: 64px; font-weight: 700; /* exceção ao ramp: hero de apresentação (.fin-present, análogo .vd-pres) */
   font-family: ui-monospace, monospace; letter-spacing: -0.02em;
 }
 .fin-cowork .fin-present-hero h2.pos { color: oklch(0.85 0.18 145); }
 .fin-cowork .fin-present-hero h2.neg { color: oklch(0.78 0.20 25); }
-.fin-cowork .fin-present-hero p { margin: 16px 0 0; font-size: 16px; color: oklch(0.92 0.02 240); }
+.fin-cowork .fin-present-hero p { margin: 16px 0 0; font-size: var(--fs-5); color: oklch(0.92 0.02 240); }
 .fin-cowork .fin-present-hero b.pos { color: oklch(0.85 0.18 145); }
 .fin-cowork .fin-present-hero b.neg { color: oklch(0.78 0.20 25); }
 .fin-cowork .fin-present-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
@@ -406,19 +406,19 @@
   background: oklch(0.30 0.06 240 / 0.5); border: 1px solid oklch(0.45 0.08 240);
   border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px;
 }
-.fin-cowork .fin-present-card small { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: oklch(0.85 0.04 240); }
-.fin-cowork .fin-present-card b { font-size: 32px; font-weight: 700; font-family: ui-monospace, monospace; }
-.fin-cowork .fin-present-card i { font-style: normal; font-size: 12px; color: oklch(0.85 0.04 240); }
+.fin-cowork .fin-present-card small { font-size: var(--fs-2); text-transform: uppercase; letter-spacing: 0.08em; color: oklch(0.85 0.04 240); }
+.fin-cowork .fin-present-card b { font-size: 32px; /* exceção ao ramp: número de apresentação */ font-weight: 700; font-family: ui-monospace, monospace; }
+.fin-cowork .fin-present-card i { font-style: normal; font-size: var(--fs-2); color: oklch(0.85 0.04 240); }
 .fin-cowork .fin-present-card.in b { color: oklch(0.85 0.18 145); }
 .fin-cowork .fin-present-card.open b { color: oklch(0.92 0.02 240); }
 .fin-cowork .fin-present-card.out b { color: oklch(0.85 0.10 240); }
 .fin-cowork .fin-present-card.late b { color: oklch(0.78 0.20 25); }
 .fin-cowork .fin-present-table { max-width: 1100px; margin: 0 auto; }
-.fin-cowork .fin-present-table h2 { margin: 0 0 20px; font-size: 24px; font-weight: 600; }
-.fin-cowork .fin-present-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.fin-cowork .fin-present-table h2 { margin: 0 0 20px; font-size: var(--fs-7); font-weight: 600; }
+.fin-cowork .fin-present-table table { width: 100%; border-collapse: collapse; font-size: var(--fs-4); }
 .fin-cowork .fin-present-table th {
   text-align: left; padding: 10px 14px; background: oklch(0.30 0.06 240 / 0.5);
-  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: var(--fs-1); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: oklch(0.85 0.04 240); border-bottom: 1px solid oklch(0.45 0.08 240);
 }
 .fin-cowork .fin-present-table td { padding: 12px 14px; border-bottom: 1px solid oklch(0.40 0.06 240 / 0.4); font-family: ui-monospace, monospace; }
@@ -426,9 +426,9 @@
 .fin-cowork .fin-present-table td.pos { color: oklch(0.85 0.18 145); }
 .fin-cowork .fin-present-table td.neg { color: oklch(0.78 0.20 25); }
 .fin-cowork .fin-present-f { padding: 12px 32px; border-top: 1px solid oklch(0.40 0.06 240 / 0.4); text-align: center; }
-.fin-cowork .fin-present-f small { font-size: 11.5px; color: oklch(0.75 0.04 240); }
+.fin-cowork .fin-present-f small { font-size: var(--fs-2); color: oklch(0.75 0.04 240); }
 .fin-cowork .fin-present-f kbd {
-  font-family: ui-monospace, monospace; font-size: 10px;
+  font-family: ui-monospace, monospace; font-size: var(--fs-1);
   padding: 1px 5px; border-radius: 3px;
   background: oklch(0.30 0.06 240); color: white; margin: 0 2px;
 }
@@ -442,7 +442,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--fs-2);
   color: oklch(0.72 0.16 75);
   margin-left: 4px;
   line-height: 1;
@@ -459,16 +459,16 @@
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 20px;
   background: oklch(0.99 0 0); border-bottom: 1px solid oklch(0.90 0.005 80);
-  box-shadow: 0 1px 4px oklch(0 0 0 / 0.05);
+  box-shadow: var(--sh-1);
 }
 .fin-cowork .fin-transcript-bar-l { display: flex; align-items: baseline; gap: 8px; color: oklch(0.30 0.01 80); }
-.fin-cowork .fin-transcript-bar-l strong { font-size: 13.5px; }
-.fin-cowork .fin-transcript-bar-l small { font-size: 12px; color: oklch(0.50 0.01 80); }
+.fin-cowork .fin-transcript-bar-l strong { font-size: var(--fs-4); }
+.fin-cowork .fin-transcript-bar-l small { font-size: var(--fs-2); color: oklch(0.50 0.01 80); }
 .fin-cowork .fin-transcript-bar-r { display: flex; gap: 8px; }
 .fin-cowork .fin-transcript-btn {
-  padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
+  padding: 6px 14px; border-radius: 6px; font-size: var(--fs-3); font-weight: 500;
   background: white; color: oklch(0.30 0.01 80); border: 1px solid oklch(0.85 0.005 80);
-  cursor: pointer; transition: all 0.12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-transcript-btn:hover { background: oklch(0.97 0.005 80); border-color: oklch(0.75 0.005 80); }
 .fin-cowork .fin-transcript-btn.primary { background: oklch(0.30 0.06 240); color: white; border-color: oklch(0.30 0.06 240); }
@@ -479,10 +479,10 @@
   max-width: 760px;
   margin: 24px auto;
   padding: 40px 48px;
-  box-shadow: 0 4px 18px oklch(0 0 0 / 0.08);
+  box-shadow: var(--sh-1);
   font-family: ui-serif, Georgia, 'Times New Roman', serif;
   color: oklch(0.18 0 0);
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   line-height: 1.55;
 }
 .fin-cowork .fin-transcript-h {
@@ -492,39 +492,39 @@
 }
 .fin-cowork .fin-transcript-h h1 {
   font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.01em;
+  font-size: var(--fs-6); font-weight: 700; margin: 0; letter-spacing: -0.01em;
 }
-.fin-cowork .fin-transcript-h p { font-size: 11.5px; color: oklch(0.45 0 0); margin: 4px 0 0; font-family: ui-sans-serif, system-ui; }
+.fin-cowork .fin-transcript-h p { font-size: var(--fs-2); color: oklch(0.45 0 0); margin: 4px 0 0; font-family: ui-sans-serif, system-ui; }
 .fin-cowork .fin-transcript-totals { text-align: right; }
-.fin-cowork .fin-transcript-totals small { display: block; font-size: 10px; color: oklch(0.50 0 0); text-transform: uppercase; letter-spacing: 0.08em; font-family: ui-sans-serif, system-ui; }
+.fin-cowork .fin-transcript-totals small { display: block; font-size: var(--fs-1); color: oklch(0.50 0 0); text-transform: uppercase; letter-spacing: 0.08em; font-family: ui-sans-serif, system-ui; }
 .fin-cowork .fin-transcript-totals b {
-  font-size: 22px; font-weight: 700; font-family: ui-monospace, monospace;
+  font-size: var(--fs-7); font-weight: 700; font-family: ui-monospace, monospace;
   color: oklch(0.18 0 0); letter-spacing: -0.02em;
 }
 /* Tabela jurídica clean */
 .fin-cowork .fin-transcript-tbl {
   width: 100%; border-collapse: collapse; margin-bottom: 32px;
-  font-size: 11.5px; font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--fs-2); font-family: ui-sans-serif, system-ui, sans-serif;
 }
 .fin-cowork .fin-transcript-tbl thead th {
   text-align: left; padding: 8px 6px; border-bottom: 1.5px solid oklch(0.20 0 0);
-  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: var(--fs-1); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   color: oklch(0.30 0 0);
 }
 .fin-cowork .fin-transcript-tbl tbody td { padding: 7px 6px; border-bottom: 1px solid oklch(0.92 0 0); vertical-align: top; }
 .fin-cowork .fin-transcript-tbl tbody tr:hover { background: oklch(0.98 0 0); }
 .fin-cowork .fin-transcript-tbl tbody td b { font-weight: 600; }
-.fin-cowork .fin-transcript-tbl .mono { font-family: ui-monospace, monospace; font-size: 11px; color: oklch(0.30 0 0); }
+.fin-cowork .fin-transcript-tbl .mono { font-family: ui-monospace, monospace; font-size: var(--fs-1); color: oklch(0.30 0 0); }
 .fin-cowork .fin-transcript-tbl .right { text-align: right; }
 .fin-cowork .fin-transcript-tbl .pos { color: oklch(0.40 0.13 145); }
 .fin-cowork .fin-transcript-tbl .neg { color: oklch(0.50 0.18 25); }
-.fin-cowork .fin-transcript-nfe { font-size: 10.5px; color: oklch(0.50 0 0); font-weight: 400; }
+.fin-cowork .fin-transcript-nfe { font-size: var(--fs-1); color: oklch(0.50 0 0); font-weight: 400; }
 .fin-cowork .fin-transcript-tbl tfoot td {
   padding: 8px 6px; border-bottom: none;
-  font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
+  font-family: ui-sans-serif, system-ui, sans-serif; font-size: var(--fs-2);
 }
 .fin-cowork .fin-transcript-tbl tfoot tr:last-child td {
-  border-top: 1.5px solid oklch(0.20 0 0); padding-top: 10px; font-size: 13px;
+  border-top: 1.5px solid oklch(0.20 0 0); padding-top: 10px; font-size: var(--fs-3);
 }
 /* Rodapé com 2 assinaturas */
 .fin-cowork .fin-transcript-f {
@@ -534,12 +534,12 @@
 .fin-cowork .fin-transcript-sig { text-align: center; }
 .fin-cowork .fin-transcript-sig-line { height: 1px; background: oklch(0.30 0 0); margin-bottom: 6px; }
 .fin-cowork .fin-transcript-sig small {
-  font-size: 11px; color: oklch(0.30 0 0); font-family: ui-sans-serif, system-ui;
+  font-size: var(--fs-1); color: oklch(0.30 0 0); font-family: ui-sans-serif, system-ui;
   text-transform: uppercase; letter-spacing: 0.08em;
 }
 .fin-cowork .fin-transcript-foot-meta {
   margin-top: 32px; padding-top: 12px;
-  text-align: center; font-size: 10px; color: oklch(0.55 0 0);
+  text-align: center; font-size: var(--fs-1); color: oklch(0.55 0 0);
   font-family: ui-sans-serif, system-ui;
   border-top: 1px solid oklch(0.92 0 0);
 }
@@ -576,7 +576,7 @@
   max-height: min(85vh, 800px);
   background: white;
   border-radius: 14px;
-  box-shadow: 0 20px 60px oklch(0 0 0 / 0.30);
+  box-shadow: var(--sh-2);
   display: flex; flex-direction: column;
   overflow: hidden;
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -593,19 +593,19 @@
   background: linear-gradient(135deg, oklch(0.97 0.06 280 / 0.5), oklch(0.99 0 0));
 }
 .fin-cowork .fin-resume-h h2 {
-  margin: 0; font-size: 15.5px; font-weight: 600;
+  margin: 0; font-size: var(--fs-5); font-weight: 600;
   color: oklch(0.30 0.10 280); letter-spacing: -0.005em;
 }
 .fin-cowork .fin-resume-h small {
   display: block; margin-top: 3px;
-  font-size: 11.5px; color: oklch(0.50 0.04 280); line-height: 1.4;
+  font-size: var(--fs-2); color: oklch(0.50 0.04 280); line-height: 1.4;
 }
 .fin-cowork .fin-resume-x {
   width: 28px; height: 28px; border-radius: 8px;
   border: none; background: transparent; cursor: pointer;
-  color: oklch(0.45 0 0); font-size: 20px; line-height: 1;
+  color: oklch(0.45 0 0); font-size: var(--fs-6); line-height: 1;
   display: grid; place-items: center;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-resume-x:hover { background: oklch(0.95 0 0); color: oklch(0.20 0 0); }
 .fin-cowork .fin-resume-body {
@@ -621,13 +621,13 @@
 .fin-cowork .fin-resume-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
 .fin-cowork .fin-resume-block h3 {
   margin: 0 0 8px;
-  font-size: 12.5px; font-weight: 600;
+  font-size: var(--fs-3); font-weight: 600;
   color: oklch(0.25 0 0); letter-spacing: -0.003em;
   text-transform: none;
 }
 .fin-cowork .fin-resume-block ul {
   list-style: none; padding: 0; margin: 0;
-  font-size: 13px; line-height: 1.55; color: oklch(0.30 0 0);
+  font-size: var(--fs-3); line-height: 1.55; color: oklch(0.30 0 0);
 }
 .fin-cowork .fin-resume-block li {
   padding: 3px 0 3px 16px;
@@ -647,15 +647,15 @@
   background: oklch(0.98 0.003 80);
 }
 .fin-cowork .fin-resume-f small {
-  font-size: 11px; color: oklch(0.50 0 0); font-style: italic;
+  font-size: var(--fs-1); color: oklch(0.50 0 0); font-style: italic;
 }
 .fin-cowork .fin-resume-f-actions { display: flex; gap: 8px; }
 .fin-cowork .fin-resume-btn {
   padding: 7px 14px; border-radius: 7px;
-  font-size: 12.5px; font-weight: 500;
+  font-size: var(--fs-3); font-weight: 500;
   background: white; color: oklch(0.30 0 0);
   border: 1px solid oklch(0.85 0 0);
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-resume-btn:hover { background: oklch(0.97 0 0); }
 .fin-cowork .fin-resume-btn.primary {
@@ -690,11 +690,11 @@
   border-bottom: 2px solid transparent;
   padding: 12px 14px;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 500;
   color: oklch(0.50 0.01 80);
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -709,7 +709,7 @@
 /* Count badge canônico (.fin-drawer-tab-ct — substitui o badge antigo) */
 .fin-cowork .fin-drawer-tab-ct {
   font-family: ui-monospace, monospace;
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 600;
   background: white;
   color: oklch(0.50 0.01 80);
@@ -797,10 +797,10 @@
   margin-bottom: 12px;
 }
 .fin-cowork .fin-edit-h h4 {
-  margin: 0; font-size: 13.5px; font-weight: 700;
+  margin: 0; font-size: var(--fs-4); font-weight: 700;
   color: oklch(0.32 0.18 60);
 }
-.fin-cowork .fin-edit-h small { font-size: 11px; color: oklch(0.50 0.04 60); }
+.fin-cowork .fin-edit-h small { font-size: var(--fs-1); color: oklch(0.50 0.04 60); }
 .fin-cowork .fin-edit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -809,14 +809,14 @@
 .fin-cowork .fin-edit-wide { grid-column: 1 / -1; }
 .fin-cowork .fin-edit-grid label {
   display: block;
-  font-size: 11px; font-weight: 600;
+  font-size: var(--fs-1); font-weight: 600;
   color: oklch(0.40 0.04 60); margin-bottom: 4px;
   text-transform: uppercase; letter-spacing: 0.04em;
 }
 .fin-cowork .fin-edit-grid input, .fin-cowork .fin-edit-grid select, .fin-cowork .fin-edit-grid textarea {
   width: 100%; padding: 6px 10px; border-radius: 6px;
   border: 1px solid oklch(0.85 0.05 60);
-  background: white; font-size: 12.5px; font-family: inherit;
+  background: white; font-size: var(--fs-3); font-family: inherit;
   color: oklch(0.18 0 0);
 }
 .fin-cowork .fin-edit-grid input:focus, .fin-cowork .fin-edit-grid select:focus, .fin-cowork .fin-edit-grid textarea:focus {
@@ -832,13 +832,13 @@
   background: var(--accent); color: white;
   font-weight: 600;
   padding: 6px 14px; border: none; border-radius: 6px;
-  font-size: 12.5px; cursor: pointer;
+  font-size: var(--fs-3); cursor: pointer;
 }
 .fin-cowork .fin-edit-close:hover { background: var(--accent-2); }
 .fin-cowork .fin-edit-cancel {
   background: white; color: oklch(0.40 0 0);
   padding: 6px 14px; border: 1px solid oklch(0.85 0 0);
-  border-radius: 6px; font-size: 12.5px; cursor: pointer;
+  border-radius: 6px; font-size: var(--fs-3); cursor: pointer;
 }
 .fin-cowork .fin-edit-cancel:hover { background: oklch(0.97 0 0); }
 /* Anomalia wrapper (Cowork v2 — substitui card flat) */
@@ -852,14 +852,14 @@
   justify-content: space-between;
   margin-bottom: 8px;
 }
-.fin-cowork .fin-comments-h h4 { margin: 0; font-size: 13px; font-weight: 700; color: oklch(0.20 0 0); }
-.fin-cowork .fin-comments-h small { font-size: 11px; color: oklch(0.50 0 0); }
+.fin-cowork .fin-comments-h h4 { margin: 0; font-size: var(--fs-3); font-weight: 700; color: oklch(0.20 0 0); }
+.fin-cowork .fin-comments-h small { font-size: var(--fs-1); color: oklch(0.50 0 0); }
 .fin-cowork .fin-comment {
   padding: 6px 10px;
   border-radius: 8px;
   background: oklch(0.97 0.005 80);
   margin-bottom: 6px;
-  font-size: 12px;
+  font-size: var(--fs-2);
   line-height: 1.4;
 }
 
@@ -870,7 +870,7 @@
   gap: 4px;
   padding: 2px 7px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 500;
   line-height: 1.3;
 }
@@ -893,7 +893,7 @@
 /* fin-audit-row hover state (já existe em fin-curadoria.css, mas reforço pra drawer) */
 .fin-cowork .fin-curadoria .fin-audit-row:hover { background: oklch(0.97 0.005 80); }
 /* fin-frescor inside drawer — sutil padding adjustment */
-.fin-cowork .fin-drawer-tabs + div .fin-frescor { font-size: 11px; padding: 2px 6px; }
+.fin-cowork .fin-drawer-tabs + div .fin-frescor { font-size: var(--fs-1); padding: 2px 6px; }
 /* Wide drawer breakpoint — em telas grandes, drawer pode expandir */
 @media (min-width: 1280px) {
 .fin-cowork .fin-drawer-wide { padding-left: 22px; padding-right: 22px; }
@@ -919,7 +919,7 @@
 }
 .fin-cowork .fin-ageing-l small {
   display: block;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   color: oklch(0.50 0 0);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -927,7 +927,7 @@
 }
 .fin-cowork .fin-ageing-l b {
   font-family: ui-monospace, monospace;
-  font-size: 14px;
+  font-size: var(--fs-4);
   color: oklch(0.20 0 0);
   letter-spacing: -0.01em;
 }
@@ -945,13 +945,13 @@
   align-items: center;
   justify-content: center;
   padding: 0 8px;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: filter .12s;
+  transition: filter var(--t-1) var(--ease);
 }
 .fin-cowork .fin-ageing-bar .seg:hover { filter: brightness(0.95); }
 /* s1 = 0-30d  verde fresh */
@@ -983,10 +983,10 @@
   border-bottom: 2px solid transparent;
   color: oklch(0.50 0.01 80);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 500;
   cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   white-space: nowrap;
 }
 .fin-cowork .fin-subnav-tab:hover {

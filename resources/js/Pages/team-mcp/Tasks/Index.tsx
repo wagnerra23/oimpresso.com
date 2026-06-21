@@ -1,27 +1,50 @@
-// tela: /team-mcp/tasks
-// module: TeamMcp (split do Copiloto) — TaskRegistry F2 (US-TR-007)
-// permissao: copiloto.mcp.usage.all
+// @memcofre
+//   tela: /team-mcp/tasks
+//   module: TeamMcp (split do Copiloto) — TaskRegistry F2 (US-TR-007)
+//   forja: PR-1 re-skin DS v6 — visual-comparison em
+//          memory/requisitos/TeamMcp/tasks-visual-comparison.md (approved [W] 2026-06-16)
+//   permissao: copiloto.mcp.usage.all
+//
+// Atalhos (PT-01):
+//   J / K    navegar linha (próxima / anterior)
+//   Enter    abre drawer da linha selecionada
+//   X        marca/desmarca seleção em lote
+//   /        foca a busca local
+//   Esc      fecha drawer / limpa seleção
+//   ⌘K       command palette global (AppShellV2 — não re-montar aqui)
+//
+// Persistência localStorage (prefixo oimpresso.teammcp.tasks.*):
+//   groupBy · tab · density · search · collapsed
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
-import { useRef, useState, useEffect, type ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ChevronRight, LayoutGrid, ListTree, Lock } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { ScrollArea } from '@/Components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import BulkActionBar from '@/Components/shared/BulkActionBar';
+import EmptyState from '@/Components/shared/EmptyState';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { cn } from '@/Lib/utils';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
+import TaskDrawer from './_components/TaskDrawer';
+import { ActorSeal, PriorityDot, TaskStatusPill } from './_components/taskBadges';
+import { PRIO_LABEL, STATUS_ORDER, statusMeta, type Priority } from './_components/taskTokens';
 
 interface Task {
   task_id: string;
+  display_id: string;
   title: string;
   module: string;
   owner: string | null;
   sprint: string | null;
-  priority: 'p0' | 'p1' | 'p2' | 'p3';
+  priority: Priority;
+  type: string | null;
   estimate_h: number | null;
   blocked_by: string[];
   status: string;
@@ -38,300 +61,594 @@ interface Kpis {
 }
 
 interface Props {
-  kanban: Record<string, Task[]>;
-  backlog: Task[];
-  kpis: Kpis;
-  modulos: string[];
-  owners: string[];
-  sprints: string[];
+  // Props deferidas (Inertia::defer) → undefined no 1º paint. Default-guard no
+  // destructuring evita tela branca (skill inertia-defer-default, espelha Board).
+  kanban?: Record<string, Task[]>;
+  backlog?: Task[];
+  kpis?: Kpis;
+  modulos?: string[];
+  owners?: string[];
+  sprints?: string[];
+  agents?: string[];
   filters: { module: string | null; owner: string | null; sprint: string | null };
 }
 
-const COLUNAS: { key: string; label: string; color: string }[] = [
-  { key: 'todo',   label: 'A fazer',   color: 'border-slate-400' },
-  { key: 'doing',  label: 'Fazendo',   color: 'border-blue-500' },
-  { key: 'review', label: 'Revisão',   color: 'border-amber-500' },
-  { key: 'done',   label: 'Concluído', color: 'border-emerald-500' },
+const ALL = '__all__';
+const NONE = '__none__';
+
+const LS = {
+  GROUP: 'oimpresso.teammcp.tasks.groupBy',
+  TAB: 'oimpresso.teammcp.tasks.tab',
+  DENSITY: 'oimpresso.teammcp.tasks.density',
+  SEARCH: 'oimpresso.teammcp.tasks.search',
+  COLLAPSED: 'oimpresso.teammcp.tasks.collapsed',
+} as const;
+
+type GroupKey = 'sprint' | 'status' | 'owner' | 'priority' | 'module';
+type Tab = 'backlog' | 'quadro';
+type Density = 'compact' | 'normal';
+
+const GROUP_OPTIONS: { key: GroupKey; label: string }[] = [
+  { key: 'sprint', label: 'Onda' },
+  { key: 'status', label: 'Fase' },
+  { key: 'owner', label: 'Papel' },
+  { key: 'priority', label: 'Prioridade' },
+  { key: 'module', label: 'Módulo' },
 ];
 
-const PRIORITY_BADGE: Record<string, string> = {
-  p0: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-  p1: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
-  p2: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
-  p3: 'bg-slate-50 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500',
-};
+const KANBAN_COLS: { key: string; label: string }[] = [
+  { key: 'todo', label: 'A fazer' },
+  { key: 'doing', label: 'Fazendo' },
+  { key: 'review', label: 'Revisão' },
+  { key: 'done', label: 'Concluído' },
+];
 
-const STATUS_BADGE: Record<string, string> = {
-  todo:      'bg-slate-100 text-slate-600',
-  doing:     'bg-blue-100 text-blue-700',
-  review:    'bg-amber-100 text-amber-700',
-  done:      'bg-emerald-100 text-emerald-700',
-  blocked:   'bg-red-100 text-red-700',
-  cancelled: 'bg-slate-200 text-slate-400',
-};
+const PRIO_ORDER: Record<string, number> = { p0: 0, p1: 1, p2: 2, p3: 3 };
 
-function TaskCard({ task, onDragStart }: { task: Task; onDragStart: (id: string) => void }) {
-  return (
-    <div
-      draggable
-      onDragStart={() => onDragStart(task.task_id)}
-      className="bg-card border rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow select-none"
-    >
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <span className="text-[10px] font-mono text-muted-foreground">{task.task_id}</span>
-        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${PRIORITY_BADGE[task.priority] ?? PRIORITY_BADGE.p2}`}>
-          {task.priority.toUpperCase()}
-        </span>
-      </div>
-      <p className="text-xs font-medium leading-tight mb-2">{task.title}</p>
-      <div className="flex flex-wrap gap-1">
-        <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{task.module}</span>
-        {task.owner && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{task.owner}</span>}
-        {task.estimate_h && <span className="text-[10px] text-muted-foreground">{task.estimate_h}h</span>}
-        {task.blocked_by.length > 0 && (
-          <span className="text-[10px] text-red-500">blk:{task.blocked_by.join(',')}</span>
-        )}
-      </div>
-    </div>
-  );
+function lsGet(key: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback;
+  return localStorage.getItem(key) ?? fallback;
 }
 
-function KanbanView({ kanban }: { kanban: Record<string, Task[]> }) {
-  const dragId = useRef<string | null>(null);
-  const [draggingOver, setDraggingOver] = useState<string | null>(null);
-  const [optimistic, setOptimistic] = useState<Record<string, string>>({});
+function groupOf(t: Task, key: GroupKey): string {
+  if (key === 'priority') return t.priority ?? 'p2';
+  if (key === 'status') return t.status;
+  const v = key === 'sprint' ? t.sprint : key === 'owner' ? t.owner : t.module;
+  return v && v.length ? v : NONE;
+}
 
-  function handleDrop(targetStatus: string) {
-    const id = dragId.current;
-    if (!id) return;
-    setDraggingOver(null);
-    dragId.current = null;
-    setOptimistic(prev => ({ ...prev, [id]: targetStatus }));
-
-    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
-    fetch(`/team-mcp/tasks/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-      body: JSON.stringify({ status: targetStatus, author: 'wagner' }),
-    }).then(r => {
-      if (!r.ok) setOptimistic(prev => { const n = { ...prev }; delete n[id]; return n; });
-    }).catch(() => {
-      setOptimistic(prev => { const n = { ...prev }; delete n[id]; return n; });
-    });
+function groupLabel(key: GroupKey, val: string): string {
+  if (val === NONE) {
+    return key === 'sprint' ? '— sem onda —' : key === 'owner' ? '— sem dono —' : '— sem módulo —';
   }
+  if (key === 'priority') return PRIO_LABEL[val as Priority] ?? val;
+  if (key === 'status') return statusMeta(val).label;
+  return val;
+}
 
-  // Build effective task lists applying optimistic updates
-  const effective: Record<string, Task[]> = {};
-  COLUNAS.forEach(c => { effective[c.key] = []; });
-  COLUNAS.forEach(c => {
-    (kanban[c.key] ?? []).forEach(t => {
-      const status = optimistic[t.task_id] ?? t.status;
-      if (effective[status]) effective[status].push({ ...t, status });
-    });
+function groupSortValue(key: GroupKey, val: string): number | string {
+  if (key === 'priority') return PRIO_ORDER[val] ?? 9;
+  if (key === 'status') { const i = STATUS_ORDER.indexOf(val); return i < 0 ? 99 : i; }
+  return val === NONE ? '￿' : val.toLowerCase();
+}
+
+function sortTasks(a: Task, b: Task): number {
+  const sa = STATUS_ORDER.indexOf(a.status);
+  const sb = STATUS_ORDER.indexOf(b.status);
+  if (sa !== sb) return (sa < 0 ? 99 : sa) - (sb < 0 ? 99 : sb);
+  const pa = PRIO_ORDER[a.priority] ?? 9;
+  const pb = PRIO_ORDER[b.priority] ?? 9;
+  if (pa !== pb) return pa - pb;
+  return a.display_id.localeCompare(b.display_id);
+}
+
+function TasksIndex({
+  kanban,
+  backlog,
+  kpis,
+  modulos = [],
+  owners = [],
+  sprints = [],
+  agents = [],
+  filters,
+}: Props) {
+  const isLoading = kpis === undefined || backlog === undefined;
+  const k: Kpis = kpis ?? { total: 0, p0: 0, doing: 0, blocked: 0, done: 0, cancelled: 0, total_h: 0 };
+
+  // ── UI state (persistido)
+  const [tab, setTab] = useState<Tab>(() => (lsGet(LS.TAB, 'backlog') === 'quadro' ? 'quadro' : 'backlog'));
+  const [groupBy, setGroupBy] = useState<GroupKey>(() => lsGet(LS.GROUP, 'sprint') as GroupKey);
+  const [density, setDensity] = useState<Density>(() => (lsGet(LS.DENSITY, 'normal') === 'compact' ? 'compact' : 'normal'));
+  const [search, setSearch] = useState<string>(() => lsGet(LS.SEARCH, ''));
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    try { return new Set<string>(JSON.parse(lsGet(LS.COLLAPSED, '[]'))); }
+    catch { return new Set<string>(); }
   });
 
-  return (
-    <div className="grid grid-cols-4 gap-4 mt-4">
-      {COLUNAS.map(col => (
-        <div
-          key={col.key}
-          className={`rounded-xl border-t-4 ${col.color} bg-muted/30 p-3 min-h-[300px] transition-colors ${draggingOver === col.key ? 'bg-muted/60 ring-2 ring-primary/60' : ''}`}
-          onDragOver={e => { e.preventDefault(); setDraggingOver(col.key); }}
-          onDragLeave={() => setDraggingOver(null)}
-          onDrop={() => handleDrop(col.key)}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold uppercase tracking-wide">{col.label}</span>
-            <span className="text-xs text-muted-foreground">{effective[col.key]?.length ?? 0}</span>
-          </div>
-          <div className="flex flex-col gap-2">
-            {(effective[col.key] ?? []).map(t => (
-              <TaskCard key={t.task_id} task={t} onDragStart={id => { dragId.current = id; }} />
-            ))}
-            {(effective[col.key] ?? []).length === 0 && (
-              <div className="text-xs text-muted-foreground text-center py-8 border-2 border-dashed rounded-lg">
-                vazio
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+  useEffect(() => { localStorage.setItem(LS.TAB, tab); }, [tab]);
+  useEffect(() => { localStorage.setItem(LS.GROUP, groupBy); }, [groupBy]);
+  useEffect(() => { localStorage.setItem(LS.DENSITY, density); }, [density]);
+  useEffect(() => { localStorage.setItem(LS.SEARCH, search); }, [search]);
+  useEffect(() => { localStorage.setItem(LS.COLLAPSED, JSON.stringify(Array.from(collapsed))); }, [collapsed]);
 
-function BacklogView({ backlog }: { backlog: Task[] }) {
-  return (
-    <Card className="mt-4">
-      <CardContent className="p-0">
-        <ScrollArea className="max-h-[600px]">
-          <table className="w-full text-xs">
-            <thead className="sticky top-0 bg-background z-10 border-b">
-              <tr>
-                <th className="text-left py-2 px-3 font-medium">ID</th>
-                <th className="text-left py-2 px-3 font-medium">Título</th>
-                <th className="text-left py-2 px-3 font-medium">Módulo</th>
-                <th className="text-left py-2 px-3 font-medium">Owner</th>
-                <th className="text-left py-2 px-3 font-medium">Sprint</th>
-                <th className="text-center py-2 px-3 font-medium">Prio</th>
-                <th className="text-center py-2 px-3 font-medium">Est.</th>
-                <th className="text-center py-2 px-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {backlog.map(t => (
-                <tr key={t.task_id} className="border-b hover:bg-muted/40">
-                  <td className="py-1.5 px-3 font-mono text-[10px] text-muted-foreground whitespace-nowrap">{t.task_id}</td>
-                  <td className="py-1.5 px-3 max-w-[300px] truncate">{t.title}</td>
-                  <td className="py-1.5 px-3">{t.module}</td>
-                  <td className="py-1.5 px-3">{t.owner ?? '—'}</td>
-                  <td className="py-1.5 px-3">{t.sprint ?? '—'}</td>
-                  <td className="py-1.5 px-3 text-center">
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${PRIORITY_BADGE[t.priority] ?? PRIORITY_BADGE.p2}`}>
-                      {t.priority.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="py-1.5 px-3 text-center text-muted-foreground">{t.estimate_h ? `${t.estimate_h}h` : '—'}</td>
-                  <td className="py-1.5 px-3 text-center">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${STATUS_BADGE[t.status] ?? ''}`}>
-                      {t.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {backlog.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="text-center py-12 text-muted-foreground">
-                    Nenhuma task encontrada. Rode <code className="font-mono">php artisan mcp:tasks:sync</code>.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </ScrollArea>
-      </CardContent>
-    </Card>
-  );
-}
+  // ── Filtros server-side (module/owner/sprint)
+  const [modulo, setModulo] = useState(filters.module ?? ALL);
+  const [owner, setOwner] = useState(filters.owner ?? ALL);
+  const [sprint, setSprint] = useState(filters.sprint ?? ALL);
 
-function TasksIndex({ kanban, backlog, kpis, modulos, owners, sprints, filters }: Props) {
-  const [tab, setTab] = useState<'kanban' | 'backlog'>('kanban');
-  const [modulo, setModulo] = useState(filters.module ?? '__all__');
-  const [owner,  setOwner]  = useState(filters.owner  ?? '__all__');
-  const [sprint, setSprint] = useState(filters.sprint  ?? '__all__');
+  // ── Seleção / navegação
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // Polling: atualiza kanban+kpis a cada 10s e ao focar a janela
+  // ── Drag-drop otimista
+  const dragId = useRef<string | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+  const [optimistic, setOptimistic] = useState<Record<string, string>>({});
+  const [flash, setFlash] = useState<string | null>(null);
+
+  // ── Drawer via URL ?task=ID
+  const [openId, setOpenId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return new URLSearchParams(window.location.search).get('task');
+  });
+
+  function openDetail(id: string) {
+    setOpenId(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set('task', id);
+    window.history.replaceState({}, '', url.toString());
+  }
+  function closeDetail() {
+    setOpenId(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('task');
+    window.history.replaceState({}, '', url.toString());
+  }
+
   useEffect(() => {
-    const reload = () => router.reload({ only: ['kanban', 'kpis', 'backlog'], preserveScroll: true });
+    if (!flash) return;
+    const tid = setTimeout(() => setFlash(null), 5000);
+    return () => clearTimeout(tid);
+  }, [flash]);
+
+  function patchStatus(taskId: string, status: string) {
+    setOptimistic((p) => ({ ...p, [taskId]: status }));
+    const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+    fetch(`/team-mcp/tasks/${taskId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+      body: JSON.stringify({ status, author: 'wagner' }),
+    })
+      .then((r) => {
+        if (r.ok) {
+          // Limpa o otimismo só após o reload reconciliar: evita flicker E evita
+          // mascarar mudança real posterior de outro ator (review PR-1).
+          router.reload({
+            only: ['kanban', 'backlog', 'kpis'],
+            onFinish: () => setOptimistic((p) => { const n = { ...p }; delete n[taskId]; return n; }),
+          });
+          return;
+        }
+        setOptimistic((p) => { const n = { ...p }; delete n[taskId]; return n; });
+        setFlash(r.status === 403 ? 'Sem permissão para mover tasks.' : 'Falha ao atualizar status.');
+      })
+      .catch(() => {
+        setOptimistic((p) => { const n = { ...p }; delete n[taskId]; return n; });
+        setFlash('Erro de rede. Tenta novamente.');
+      });
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }
+  function toggleCollapse(g: string) {
+    setCollapsed((prev) => { const n = new Set(prev); if (n.has(g)) n.delete(g); else n.add(g); return n; });
+  }
+  function bulkSetStatus(status: string) {
+    selected.forEach((id) => patchStatus(id, status));
+    setSelected(new Set());
+  }
+
+  // ── Backlog efetivo (otimista + busca + sort)
+  const searchLower = search.trim().toLowerCase();
+  const visibleBacklog = useMemo(() => {
+    return (backlog ?? [])
+      .map((t) => ({ ...t, status: optimistic[t.task_id] ?? t.status }))
+      .filter((t) => !searchLower || `${t.display_id} ${t.title} ${t.owner ?? ''} ${t.module}`.toLowerCase().includes(searchLower))
+      .sort(sortTasks);
+  }, [backlog, optimistic, searchLower]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    for (const t of visibleBacklog) {
+      const g = groupOf(t, groupBy);
+      if (!map.has(g)) map.set(g, []);
+      map.get(g)!.push(t);
+    }
+    return Array.from(map.entries()).sort((a, b) => {
+      const av = groupSortValue(groupBy, a[0]);
+      const bv = groupSortValue(groupBy, b[0]);
+      if (typeof av === 'number' && typeof bv === 'number') return av - bv;
+      return String(av).localeCompare(String(bv));
+    });
+  }, [visibleBacklog, groupBy]);
+
+  const flatBacklog = useMemo(() => {
+    const out: Task[] = [];
+    for (const [g, items] of grouped) if (!collapsed.has(g)) out.push(...items);
+    return out;
+  }, [grouped, collapsed]);
+
+  // ── Kanban efetivo (otimista)
+  const effectiveKanban = useMemo(() => {
+    const out: Record<string, Task[]> = {};
+    KANBAN_COLS.forEach((c) => { out[c.key] = []; });
+    Object.values(kanban ?? {}).forEach((list) => {
+      (list ?? []).forEach((t) => {
+        const st = optimistic[t.task_id] ?? t.status;
+        if (out[st]) out[st].push({ ...t, status: st });
+      });
+    });
+    return out;
+  }, [kanban, optimistic]);
+
+  const flatKanban = useMemo(() => {
+    const o: Task[] = [];
+    KANBAN_COLS.forEach((c) => o.push(...(effectiveKanban[c.key] ?? [])));
+    return o;
+  }, [effectiveKanban]);
+
+  const flatVisible = tab === 'quadro' ? flatKanban : flatBacklog;
+
+  useEffect(() => {
+    if (selectedId && !flatVisible.find((t) => t.task_id === selectedId)) setSelectedId(null);
+  }, [flatVisible, selectedId]);
+
+  // ── Atalhos
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tgt = e.target as HTMLElement | null;
+      const typing = !!tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable);
+      if (e.key === '/' && !typing) { e.preventDefault(); searchRef.current?.focus(); return; }
+      if (e.key === 'Escape') {
+        if (openId) closeDetail();
+        else if (selected.size) setSelected(new Set());
+        return;
+      }
+      if (typing) return;
+      const idx = selectedId ? flatVisible.findIndex((t) => t.task_id === selectedId) : -1;
+      const cur = idx >= 0 ? flatVisible[idx] : null;
+      if (e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        const n = idx < 0 ? 0 : Math.min(flatVisible.length - 1, idx + 1);
+        setSelectedId(flatVisible[n]?.task_id ?? null);
+      } else if (e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        const p = idx <= 0 ? 0 : idx - 1;
+        setSelectedId(flatVisible[p]?.task_id ?? null);
+      } else if (e.key === 'Enter') {
+        if (cur) { e.preventDefault(); openDetail(cur.task_id); }
+      } else if (e.key === 'x' || e.key === 'X') {
+        if (cur) { e.preventDefault(); toggleSelect(cur.task_id); }
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [flatVisible, selectedId, openId, selected]);
+
+  // ── Polling 10s + on-focus
+  useEffect(() => {
+    const reload = () => router.reload({ only: ['kanban', 'backlog', 'kpis'] });
     const interval = setInterval(reload, 10_000);
     window.addEventListener('focus', reload);
     return () => { clearInterval(interval); window.removeEventListener('focus', reload); };
   }, []);
 
-  function applyFilter() {
+  function applyFilter(patch: Partial<{ module: string; owner: string; sprint: string }>) {
+    const m = patch.module ?? modulo;
+    const o = patch.owner ?? owner;
+    const s = patch.sprint ?? sprint;
     const params: Record<string, string> = {};
-    if (modulo !== '__all__') params.module = modulo;
-    if (owner  !== '__all__') params.owner  = owner;
-    if (sprint !== '__all__') params.sprint = sprint;
-    router.get('/team-mcp/tasks', params, { preserveScroll: true, preserveState: true });
+    if (m !== ALL) params.module = m;
+    if (o !== ALL) params.owner = o;
+    if (s !== ALL) params.sprint = s;
+    router.get('/team-mcp/tasks', params, { preserveScroll: true, preserveState: true, replace: true });
+  }
+  function clearFilter() {
+    setModulo(ALL); setOwner(ALL); setSprint(ALL);
+    router.get('/team-mcp/tasks', {}, { preserveScroll: true, preserveState: true, replace: true });
   }
 
-  function clearFilter() {
-    setModulo('__all__'); setOwner('__all__'); setSprint('__all__');
-    router.get('/team-mcp/tasks', {}, { preserveScroll: true, preserveState: true });
-  }
+  const hasServerFilter = modulo !== ALL || owner !== ALL || sprint !== ALL;
+  const rowH = density === 'compact' ? 'h-8' : 'h-9';
 
   return (
     <>
+      <ForjaHub active="tarefas" />
       <PageHeader
         icon="layout-kanban"
-        title="Task Board"
-        description={`${kpis.total} tasks · ${kpis.total_h.toFixed(0)}h estimadas · TaskRegistry F2 (US-TR-007)`}
+        title="Tasks"
+        description={`${isLoading ? '—' : k.total} tasks · ${isLoading ? '—' : k.total_h.toFixed(0)}h estimadas · ${isLoading ? '—' : k.doing} fazendo`}
+        action={
+          <div className="inline-flex rounded-lg border bg-muted/40 p-0.5" role="tablist" aria-label="Visão">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'backlog'}
+              data-testid="view-backlog"
+              onClick={() => setTab('backlog')}
+              className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                tab === 'backlog' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              <ListTree size={14} /> Backlog
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'quadro'}
+              data-testid="view-quadro"
+              onClick={() => setTab('quadro')}
+              className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                tab === 'quadro' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              <LayoutGrid size={14} /> Quadro
+            </button>
+          </div>
+        }
       />
 
-      {/* KPIs */}
-      <KpiGrid cols={4} className="mt-4">
-        <KpiCard icon="list" tone="default"     label="Total"    value={String(kpis.total)} />
-        <KpiCard icon="alert-circle" tone={kpis.p0 > 0 ? 'danger' : 'success'} label="P0 abertas" value={String(kpis.p0)} />
-        <KpiCard icon="loader" tone="default"   label="Doing"    value={String(kpis.doing)} />
-        <KpiCard icon="lock" tone={kpis.blocked > 0 ? 'warning' : 'success'} label="Bloqueadas" value={String(kpis.blocked)} />
-      </KpiGrid>
-
-      {/* Filtros */}
-      <Card className="mt-4">
-        <CardContent className="py-3 flex flex-wrap items-end gap-3">
-          <div className="w-36">
-            <Label className="text-xs">Módulo</Label>
-            <Select value={modulo} onValueChange={setModulo}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">Todos</SelectItem>
-                {modulos.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-32">
-            <Label className="text-xs">Owner</Label>
-            <Select value={owner} onValueChange={setOwner}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">Todos</SelectItem>
-                {owners.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-28">
-            <Label className="text-xs">Sprint</Label>
-            <Select value={sprint} onValueChange={setSprint}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">Todos</SelectItem>
-                {sprints.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={applyFilter} className="h-8 text-xs">Filtrar</Button>
-          {(filters.module || filters.owner || filters.sprint) && (
-            <Button variant="ghost" onClick={clearFilter} className="h-8 text-xs">Limpar</Button>
-          )}
-
-          {/* Tab switcher */}
-          <div className="ml-auto flex gap-1">
-            <Button
-              variant={tab === 'kanban' ? 'default' : 'ghost'}
-              className="h-8 text-xs"
-              onClick={() => setTab('kanban')}
-            >
-              Kanban
-            </Button>
-            <Button
-              variant={tab === 'backlog' ? 'default' : 'ghost'}
-              className="h-8 text-xs"
-              onClick={() => setTab('backlog')}
-            >
-              Backlog ({backlog.length})
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {tab === 'kanban' ? (
-        <KanbanView kanban={kanban} />
-      ) : (
-        <BacklogView backlog={backlog} />
+      {flash && (
+        <div role="alert" className="mt-4 inline-flex w-full items-center justify-between rounded-md border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
+          <span>{flash}</span>
+          <button type="button" onClick={() => setFlash(null)} className="text-xs font-medium underline-offset-2 hover:underline">ok</button>
+        </div>
       )}
 
-      <div className="mt-4 text-xs text-muted-foreground">
-        Drag-drop atualiza status e registra evento em <code className="font-mono">mcp_task_events</code>.
-        Editar campos detalhados: <code className="font-mono">tasks-update</code> via MCP ou edite o SPEC e rode{' '}
-        <code className="font-mono">php artisan mcp:tasks:sync</code>.
+      <KpiGrid cols={4} className="mt-4">
+        <KpiCard icon="list" tone="default" label="Total" value={isLoading ? '—' : String(k.total)} />
+        <KpiCard icon="alert-circle" tone={k.p0 > 0 ? 'danger' : 'success'} label="P0 abertas" value={isLoading ? '—' : String(k.p0)} />
+        <KpiCard icon="loader" tone="default" label="Fazendo" value={isLoading ? '—' : String(k.doing)} />
+        <KpiCard icon="lock" tone={k.blocked > 0 ? 'warning' : 'success'} label="Bloqueadas" value={isLoading ? '—' : String(k.blocked)} />
+      </KpiGrid>
+
+      {/* Toolbar */}
+      <div className="mt-4 inline-flex w-full flex-wrap items-end gap-3 rounded-lg border bg-card px-3 py-3">
+        {tab === 'backlog' && (
+          <div>
+            <Label className="text-xs">Agrupar por</Label>
+            <div className="mt-1 inline-flex rounded-md border bg-muted/40 p-0.5" role="group" data-testid="groupby">
+              {GROUP_OPTIONS.map((g) => (
+                <button
+                  key={g.key}
+                  type="button"
+                  onClick={() => setGroupBy(g.key)}
+                  className={cn('rounded px-2 py-1 text-xs font-medium transition-colors',
+                    groupBy === g.key ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="w-36">
+          <Label className="text-xs">Módulo</Label>
+          <Select value={modulo} onValueChange={(v) => { setModulo(v); applyFilter({ module: v }); }}>
+            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todos</SelectItem>
+              {modulos.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-32">
+          <Label className="text-xs">Owner</Label>
+          <Select value={owner} onValueChange={(v) => { setOwner(v); applyFilter({ owner: v }); }}>
+            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todos</SelectItem>
+              {owners.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-28">
+          <Label className="text-xs">Onda</Label>
+          <Select value={sprint} onValueChange={(v) => { setSprint(v); applyFilter({ sprint: v }); }}>
+            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Todas</SelectItem>
+              {sprints.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-48">
+          <Label className="text-xs">Buscar</Label>
+          <Input
+            ref={searchRef}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar (/)…"
+            className="h-8 text-xs"
+            data-testid="search"
+          />
+        </div>
+
+        {(hasServerFilter || search) && (
+          <Button variant="ghost" onClick={() => { setSearch(''); clearFilter(); }} className="h-8 text-xs">Limpar</Button>
+        )}
+
+        <div className="ml-auto inline-flex items-center gap-2">
+          {tab === 'backlog' && (
+            <button
+              type="button"
+              onClick={() => setDensity(density === 'compact' ? 'normal' : 'compact')}
+              className="rounded-md border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+              data-testid="density"
+            >
+              {density === 'compact' ? 'Densidade: compacta' : 'Densidade: normal'}
+            </button>
+          )}
+          <span className="hidden text-[11px] text-muted-foreground lg:inline">
+            <kbd className="rounded bg-muted px-1 py-0.5">J</kbd>/<kbd className="rounded bg-muted px-1 py-0.5">K</kbd> navegar ·{' '}
+            <kbd className="rounded bg-muted px-1 py-0.5">↵</kbd> abrir ·{' '}
+            <kbd className="rounded bg-muted px-1 py-0.5">X</kbd> marcar ·{' '}
+            <kbd className="rounded bg-muted px-1 py-0.5">⌘K</kbd> palette
+          </span>
+        </div>
       </div>
+
+      {/* Conteúdo */}
+      {isLoading ? (
+        <div className="mt-4 space-y-2" data-testid="tasks-skeleton">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-9 animate-pulse rounded-md bg-muted/50" />
+          ))}
+        </div>
+      ) : tab === 'quadro' ? (
+        <div className="mt-4 inline-grid w-full gap-3" style={{ gridTemplateColumns: `repeat(${KANBAN_COLS.length}, minmax(0, 1fr))` }} data-testid="quadro">
+          {KANBAN_COLS.map((col) => {
+            const items = effectiveKanban[col.key] ?? [];
+            return (
+              <div
+                key={col.key}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(col.key); }}
+                onDragLeave={() => setDragOver(null)}
+                onDrop={() => { const id = dragId.current; dragId.current = null; setDragOver(null); if (id) patchStatus(id, col.key); }}
+                className={cn('min-h-[280px] rounded-lg border bg-muted/30 p-2', dragOver === col.key && 'bg-muted/60 ring-2 ring-primary/50')}
+                data-testid={`kanban-col-${col.key}`}
+              >
+                <div className="mb-2 inline-flex w-full items-center justify-between px-1">
+                  <TaskStatusPill status={col.key} />
+                  <span className="text-xs tabular-nums text-muted-foreground">{items.length}</span>
+                </div>
+                <div className="inline-flex w-full flex-col gap-2">
+                  {items.map((t) => (
+                    <div
+                      key={t.task_id}
+                      role="button"
+                      tabIndex={0}
+                      draggable
+                      onDragStart={() => { dragId.current = t.task_id; setSelectedId(t.task_id); }}
+                      onClick={() => { setSelectedId(t.task_id); openDetail(t.task_id); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(t.task_id); openDetail(t.task_id); } }}
+                      className={cn('cursor-grab select-none rounded-lg border bg-card p-2.5 shadow-sm transition-shadow hover:shadow-md active:cursor-grabbing',
+                        selectedId === t.task_id && 'ring-1 ring-primary')}
+                      data-testid="kanban-card"
+                    >
+                      <div className="mb-1 inline-flex w-full items-center gap-2">
+                        <PriorityDot priority={t.priority} />
+                        <span className="font-mono text-[10px] text-muted-foreground">{t.display_id}</span>
+                        {t.blocked_by.length > 0 && <Lock size={11} className="ml-auto text-destructive" aria-label="bloqueada" />}
+                      </div>
+                      <p className="mb-2 line-clamp-2 text-xs font-medium leading-tight">{t.title}</p>
+                      <div className="inline-flex w-full items-center gap-2">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{t.module}</span>
+                        <ActorSeal owner={t.owner} agents={agents} className="ml-auto" />
+                      </div>
+                    </div>
+                  ))}
+                  {items.length === 0 && (
+                    <div className="rounded-lg border-2 border-dashed border-border py-6 text-center text-xs text-muted-foreground">vazio</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : flatBacklog.length === 0 && grouped.length === 0 ? (
+        <div className="mt-4">
+          <EmptyState
+            icon={search ? 'search' : 'inbox'}
+            variant={search ? 'search' : 'default'}
+            title={search ? `Nada pra "${search}"` : 'Nenhuma task encontrada'}
+            description={search ? 'Tenta ajustar a busca ou os filtros.' : 'Rode mcp:tasks:sync ou crie via tasks-create no MCP.'}
+          />
+        </div>
+      ) : (
+        <div className="mt-4 overflow-hidden rounded-lg border bg-card" data-testid="backlog">
+          {grouped.map(([g, items]) => {
+            const isCol = collapsed.has(g);
+            return (
+              <div key={g}>
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(g)}
+                  className="inline-flex w-full items-center gap-2 border-b border-border/60 bg-muted/40 px-3 py-1.5 text-left text-xs font-medium"
+                  data-testid="group-head"
+                >
+                  <ChevronRight size={13} className={cn('shrink-0 transition-transform', !isCol && 'rotate-90')} />
+                  <span>{groupLabel(groupBy, g)}</span>
+                  <span className="rounded-full bg-background px-1.5 text-[10px] tabular-nums text-muted-foreground">{items.length}</span>
+                </button>
+                {!isCol && items.map((t) => {
+                  const sel = selectedId === t.task_id;
+                  const checked = selected.has(t.task_id);
+                  return (
+                    <div
+                      key={t.task_id}
+                      role="button"
+                      tabIndex={0}
+                      data-testid="task-row"
+                      onClick={() => { setSelectedId(t.task_id); openDetail(t.task_id); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedId(t.task_id); openDetail(t.task_id); } }}
+                      className={cn('inline-flex w-full cursor-pointer items-center gap-3 border-b border-border/60 px-3 text-sm last:border-b-0', rowH,
+                        sel ? 'bg-primary/10' : 'hover:bg-muted/50', checked && !sel && 'bg-primary/5')}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onClick={(e) => e.stopPropagation()}
+                        onCheckedChange={() => toggleSelect(t.task_id)}
+                        className="shrink-0"
+                        aria-label={`Selecionar ${t.display_id}`}
+                        data-testid="row-check"
+                      />
+                      <PriorityDot priority={t.priority} />
+                      <span className="w-20 shrink-0 truncate font-mono text-[11px] text-muted-foreground">{t.display_id}</span>
+                      <span className="min-w-0 flex-1 truncate">{t.title}</span>
+                      {t.blocked_by.length > 0 && <Lock size={12} className="shrink-0 text-destructive" aria-label="bloqueada" />}
+                      <span className="hidden shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground sm:inline">{t.module}</span>
+                      <span className="hidden w-28 shrink-0 sm:block"><ActorSeal owner={t.owner} agents={agents} /></span>
+                      <span className="hidden w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground md:block">{t.estimate_h ? `${t.estimate_h}h` : ''}</span>
+                      <TaskStatusPill status={t.status} className="hidden w-24 shrink-0 md:inline-flex" />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Totalbar */}
+      {!isLoading && (
+        <div className="mt-3 inline-flex w-full flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground" data-testid="totalbar">
+          <span className="tabular-nums">
+            {tab === 'quadro' ? `${flatKanban.length} no quadro` : `${flatBacklog.length} de ${(backlog ?? []).length} tasks`}
+            {' · '}{k.done} concluídas · {k.cancelled} canceladas
+          </span>
+          <span>
+            Drag no Quadro atualiza status (registra <code className="font-mono">mcp_task_events</code>). Edição:{' '}
+            <code className="font-mono">tasks-update</code> via MCP.
+          </span>
+        </div>
+      )}
+
+      <BulkActionBar selectedCount={selected.size} onClear={() => setSelected(new Set())} label="tasks">
+        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('doing')}>→ Fazendo</Button>
+        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('review')}>→ Revisão</Button>
+        <Button size="sm" variant="ghost" onClick={() => bulkSetStatus('done')}>→ Concluído</Button>
+      </BulkActionBar>
+
+      <TaskDrawer taskId={openId} agents={agents} onClose={closeDetail} />
     </>
   );
 }
 
 TasksIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Task Board — Copiloto" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Tasks' }]}>
+  <AppShellV2 title="Tarefas — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'Tarefas' }]}>
     {page}
   </AppShellV2>
 );

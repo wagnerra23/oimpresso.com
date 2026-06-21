@@ -315,7 +315,7 @@ export default function ServiceOrdersShow({ order }: Props) {
 
           {items.length > 0 ? (
             <>
-              <ul className="divide-y divide-slate-100 border border-slate-200 rounded-md overflow-hidden bg-white">
+              <ul className="divide-y divide-border border border-border rounded-md overflow-hidden bg-card">
                 {items.map((item) => (
                   <ServiceOrderItemRow
                     key={item.id}
@@ -330,13 +330,13 @@ export default function ServiceOrdersShow({ order }: Props) {
                 <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
                   Total OS
                 </span>
-                <span className="text-sm tabular-nums font-semibold text-emerald-700">
+                <span className="text-sm tabular-nums font-semibold text-success">
                   {formatBRL(totalOs)}
                 </span>
               </div>
             </>
           ) : (
-            <div className="rounded-md border border-dashed border-slate-200 p-6 text-center">
+            <div className="rounded-md border border-dashed border-border p-6 text-center">
               <Package className="size-5 mx-auto text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">
                 Nenhum item lançado ainda.

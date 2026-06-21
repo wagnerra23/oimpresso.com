@@ -9,6 +9,8 @@ name: UI architecture gate
 #   - AppShellUsageGateTest      (A1) toda tela Inertia usa AppShellV2
 #   - CockpitAccentCanonTest     (A2) accent = roxo canon 295 (não azul 220)
 #   - CoreScreensIntegrityTest   (B)  telas-núcleo: page + AppShellV2 + charter
+#   - CharterVisualSourceGateTest (C) visual_source de charter aponta pra arquivo vivo (frescor de design · Catraca Viva Fase 0)
+#   - OrphanRenderGateTest        (D) Inertia::render aponta pra page viva (anti tela órfã/morta · Catraca Viva Fase 1)
 #
 # NOTA: NoHardcodeBusinessIdInModulesTest (guard Tier 0 business_id) NÃO está aqui
 # de propósito — hoje ele false-positiva no padrão legítimo `=== 0` (no-tenant guard).
@@ -24,14 +26,11 @@ on:
       - 'resources/css/cockpit.css'
       - 'tests/Feature/Architecture/**'
       - '.github/workflows/ui-architecture-gate.yml'
+  # ⚠️ pull_request SEM paths: de propósito (2026-06-11, ADR 0271) — este check é
+  # required (ADR 0263); required + path-scoped = deadlock "Expected" em PR que não
+  # toca UI (mesmo incidente 2026-06-08 que destravou adr-lint/ui-lint/conformance).
+  # Os 3 testes são filesystem-puros e baratos — rodar sempre é seguro.
   pull_request:
-    paths:
-      - 'resources/js/Pages/**'
-      - 'resources/js/Layouts/AppShellV2.tsx'
-      - 'resources/js/Components/cockpit/**'
-      - 'resources/css/cockpit.css'
-      - 'tests/Feature/Architecture/**'
-      - '.github/workflows/ui-architecture-gate.yml'
 
 concurrency:
   group: ui-architecture-gate-${{ github.ref }}
@@ -87,4 +86,6 @@ jobs:
             tests/Feature/Architecture/AppShellUsageGateTest.php \
             tests/Feature/Architecture/CockpitAccentCanonTest.php \
             tests/Feature/Architecture/CoreScreensIntegrityTest.php \
+            tests/Feature/Architecture/CharterVisualSourceGateTest.php \
+            tests/Feature/Architecture/OrphanRenderGateTest.php \
             --no-coverage

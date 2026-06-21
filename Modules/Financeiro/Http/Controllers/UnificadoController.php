@@ -104,12 +104,26 @@ class UnificadoController extends Controller
         // Filtro por campo de data (default vencimento = comportamento anterior preservado).
         $this->aplicarFiltroData($q, $filters['data_campo'], $start->toDateString(), $end->toDateString());
 
+        // US-FIN-029 (2026-06-10) — lente (Caixa · A receber · A pagar) é a camada 1 do
+        // filtro grosso; chips lifecycle refinam DENTRO da lente (charter v14, direção
+        // [W] 2026-05-31). Interseção vazia = lente inteira (chip incompatível enviado
+        // por bookmark/tampering não derruba a query — defense in depth, o frontend já
+        // esconde chips incompatíveis).
+        $lenteSets = [
+            'caixa' => ['ar', 're', 'ap', 'pa'],
+            'receber' => ['ar', 're'],
+            'pagar' => ['ap', 'pa'],
+        ];
+        $lenteSet = $lenteSets[$filters['lente']] ?? $lenteSets['caixa'];
+
         // Onda Polish 2026-05-18 — lifecycle multi-select + toggle overdue independente.
         // Lifecycle items combinam via OR (union); overdue é AND multiplicativo.
-        // Back-compat: se vazio + tab legacy presente, fallback pro mapping antigo.
-        if (! $arq && ! empty($filters['lifecycle'])) {
-            $q->where(function ($qq) use ($filters) {
-                foreach ($filters['lifecycle'] as $lc) {
+        // Back-compat: se vazio + tab legacy presente, fallback pro mapping antigo
+        // (só na lente default caixa — lente explícita tem precedência sobre tab).
+        if (! $arq && (! empty($filters['lifecycle']) || $filters['lente'] !== 'caixa')) {
+            $lifecycleEfetivo = array_values(array_intersect($filters['lifecycle'], $lenteSet)) ?: $lenteSet;
+            $q->where(function ($qq) use ($lifecycleEfetivo) {
+                foreach ($lifecycleEfetivo as $lc) {
                     $qq->orWhere(function ($qqq) use ($lc) {
                         match ($lc) {
                             'ar' => $qqq->where('tipo', 'receber')->whereIn('status', ['aberto', 'parcial']),
@@ -1160,6 +1174,11 @@ class UnificadoController extends Controller
         return [
             'tab' => in_array($request->string('tab')->toString(), $tabsValidas, true)
                 ? $request->string('tab')->toString() : 'all',
+            // US-FIN-029 (2026-06-10) — lente do header (segmented Caixa · A receber ·
+            // A pagar). Camada 1 do filtro; chips lifecycle refinam DENTRO da lente.
+            // Clamp default 'caixa' (mesmo padrão ?tab= do Fluxo) — deep-link funciona.
+            'lente' => in_array($request->string('lente')->toString(), ['receber', 'pagar'], true)
+                ? $request->string('lente')->toString() : 'caixa',
             'lifecycle' => $lifecycle,
             'aprovacao_status' => $aprovacao,
             'aging' => $aging,

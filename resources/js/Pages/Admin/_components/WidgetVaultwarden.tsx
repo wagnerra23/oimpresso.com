@@ -31,7 +31,7 @@ export default function WidgetVaultwarden({ data }: Props) {
       <div className="flex items-center gap-2">
         <span
           className={`inline-block w-2.5 h-2.5 rounded-full ${
-            data.reachable ? 'bg-green-500' : 'bg-red-500'
+            data.reachable ? 'bg-success' : 'bg-destructive'
           }`}
         />
         <span className="font-medium">{data.url}</span>
@@ -47,7 +47,7 @@ export default function WidgetVaultwarden({ data }: Props) {
         <div className="border rounded p-2">
           <div
             className={`text-2xl font-semibold ${
-              (data.expiring_30d ?? 0) > 0 ? 'text-amber-700' : 'text-green-700'
+              (data.expiring_30d ?? 0) > 0 ? 'text-warning-fg' : 'text-success-fg'
             }`}
           >
             {data.expiring_30d ?? 0}

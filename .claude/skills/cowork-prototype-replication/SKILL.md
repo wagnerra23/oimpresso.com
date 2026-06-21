@@ -2,6 +2,7 @@
 name: cowork-prototype-replication
 description: ATIVAR quando user pedir "fazer layout estado-da-arte", "replicar protótipo Cowork", "espelhar visual-source.html", "transformar prototipo-ui/* em Inertia React", "usar layout do cockpit pra módulo X", OU em Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` quando existe `prototipo-ui/prototipos/<tela>/visual-source.html` ou `F1.html` correspondente. Carrega processo canônico de 7 fases (F0 sync + F1 mapping vocabulário vertical + F2 mapping CSS Cowork→Tailwind + F3 component hierarchy + F4 useMemo/useCallback + F5 Pest + F6 deploy + F7 smoke INTERATIVO) — RUNBOOK detalhado em [memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md](../../memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md). Caso real validado: Kanban Producao Oficina Caçambas 2026-05-13 (PRs #735→#740 madrugada pré-Martinho 10h).
 trigger_intensity: B
+tier: B
 ---
 
 # Skill `cowork-prototype-replication` — replicar protótipo Cowork pra Inertia React (Tier B)

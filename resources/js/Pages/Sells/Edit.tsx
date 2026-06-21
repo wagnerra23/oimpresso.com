@@ -48,16 +48,22 @@ interface EditProductLine {
 }
 
 // Tipo do row sellDetails que o backend serializer devolve (pré-fill).
+// ⚠️ CONTRATO REAL: SellController@edit serializa o resultado CRU do join SQL
+// com aliases FLAT (product_name, quantity_ordered, sell_price_inc_tax…),
+// NÃO objetos aninhados. Decimais MySQL chegam como string ("2.5000").
+// Guard backend: tests/Feature/Sells/SellsEditPrefillContractTest.php.
 interface BackendSellDetail {
   id?: number;
+  transaction_sell_lines_id?: number;
   product_id?: number;
-  variation_id?: number | null;
-  quantity?: number;
-  unit_price_inc_tax?: number;
-  unit_price?: number;
-  line_discount_amount?: number;
-  product?: { name?: string; sku?: string };
-  variations?: { sub_sku?: string };
+  variation_id?: number | string | null;
+  product_name?: string;
+  sub_sku?: string | null;
+  quantity_ordered?: number | string;
+  sell_price_inc_tax?: number | string;
+  default_sell_price?: number | string;
+  line_discount_amount?: number | string | null;
+  line_discount_type?: 'fixed' | 'percentage' | null;
 }
 
 interface Headline {
@@ -183,16 +189,20 @@ export default function SellsEdit(props: SellsEditPageProps) {
     if (props.form?.transaction) {
       const tx = props.form.transaction;
       // PR #1657 — converte sellDetails do backend pra EditProductLine[].
+      // Fix 2026-06-10 (bug "venda em branco" ROTA LIVRE): ler os aliases FLAT
+      // reais do join SQL — antes lia sl.product?.name / sl.quantity /
+      // sl.unit_price_inc_tax (inexistentes) e TODA linha caía no fallback
+      // ('—', qtd 1, R$ 0,00). Também honra line_discount_type real.
       const productsFromBackend: EditProductLine[] = (props.form.sellDetails as BackendSellDetail[] | undefined)?.map((sl) => ({
-        sell_line_id: sl.id ?? null,
+        sell_line_id: sl.transaction_sell_lines_id ?? sl.id ?? null,
         product_id: sl.product_id ?? 0,
-        variation_id: sl.variation_id ?? null,
-        name: sl.product?.name ?? '—',
-        sku: sl.variations?.sub_sku ?? sl.product?.sku ?? '',
-        quantity: Number(sl.quantity ?? 1),
-        unit_price: Number(sl.unit_price_inc_tax ?? sl.unit_price ?? 0),
+        variation_id: sl.variation_id != null ? Number(sl.variation_id) : null,
+        name: sl.product_name ?? '—',
+        sku: sl.sub_sku ?? '',
+        quantity: Number(sl.quantity_ordered ?? 1),
+        unit_price: Number(sl.sell_price_inc_tax ?? sl.default_sell_price ?? 0),
         discount: Number(sl.line_discount_amount ?? 0),
-        discount_type: 'fixed' as const,
+        discount_type: sl.line_discount_type === 'percentage' ? ('percentage' as const) : ('fixed' as const),
       })) ?? [];
       setData({
         transaction_date: tx.transaction_date,
@@ -441,7 +451,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
     <>
       <Head title={`Editar venda #${headline.invoice_no}`} />
 
-      <div className="sells-cowork-edit -m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
+      <div className="sells-cowork-edit flex-1 bg-muted/30 flex flex-col">
         {/* Header sticky no topo + filter pills (KB-9.75 paridade Create pattern) */}
         <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
           <div className="container mx-auto px-8 pt-6 pb-3 max-w-7xl">

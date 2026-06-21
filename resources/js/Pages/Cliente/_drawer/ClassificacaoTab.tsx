@@ -97,9 +97,9 @@ const TAG_OPTIONS = [
 // legado nasceu PT-BR (`ativo`/`inativo`/`bloqueado`). Normaliza EN canon
 // (sem migration retroativa de dados).
 const STATUS_OPTIONS: Array<{ value: 'active' | 'inactive' | 'blocked'; label: string; color: string }> = [
-  { value: 'active', label: 'Ativo', color: 'text-emerald-700' },
-  { value: 'inactive', label: 'Inativo', color: 'text-stone-700' },
-  { value: 'blocked', label: 'Bloqueado', color: 'text-rose-700' },
+  { value: 'active', label: 'Ativo', color: 'text-success-fg' },
+  { value: 'inactive', label: 'Inativo', color: 'text-muted-foreground' },
+  { value: 'blocked', label: 'Bloqueado', color: 'text-destructive-fg' },
 ];
 
 // Mapeamento alias PT-BR -> EN canon UPOS (cadastros pre-canon).
@@ -489,11 +489,11 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
                     <span
                       aria-hidden
                       className={`h-1.5 w-1.5 rounded-full ${
-                        o.value === 'ativo'
-                          ? 'bg-emerald-500'
-                          : o.value === 'inativo'
-                          ? 'bg-stone-400'
-                          : 'bg-rose-500'
+                        o.value === 'active'
+                          ? 'bg-success'
+                          : o.value === 'inactive'
+                          ? 'bg-muted-foreground'
+                          : 'bg-destructive'
                       }`}
                     />
                     {o.label}
@@ -583,7 +583,7 @@ interface FieldStatusProps {
 function FieldStatus({ saving, saved, backendError }: FieldStatusProps) {
   if (backendError) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
         <AlertCircle size={11} aria-hidden /> {backendError}
       </p>
     );
@@ -597,7 +597,7 @@ function FieldStatus({ saving, saved, backendError }: FieldStatusProps) {
   }
   if (saved) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600" aria-live="polite">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-success-fg" aria-live="polite">
         <CheckCircle2 size={11} aria-hidden /> Salvo
       </p>
     );

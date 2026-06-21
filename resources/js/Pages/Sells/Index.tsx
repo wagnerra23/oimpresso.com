@@ -1572,10 +1572,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
               // (que só conhece JobSheet · resultaria em kanban vazio).
               //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
-              //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/producao-oficina
+              //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/ordens-servico/board (ADR 0265)
               const isOficinaAuto = osRef.startsWith('SO-');
               const targetPath = isOficinaAuto
-                ? '/oficina-auto/producao-oficina'
+                ? '/oficina-auto/ordens-servico/board'
                 : '/repair/producao-oficina';
               window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
             }}

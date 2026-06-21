@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contact;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\Conversation;
@@ -26,6 +27,10 @@ uses(Tests\TestCase::class);
  * `memory/sessions/2026-05-14-whatsapp-incident-inbox-lid-cross-contact.md`.
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['conversations', 'channels', 'messages', 'contacts', 'whatsapp_lid_pn_map'] as $t) {
         Schema::dropIfExists($t);
     }

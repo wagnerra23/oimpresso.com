@@ -165,7 +165,7 @@ export function FinAuditTrail({ row }: FinAuditTrailProps) {
                   <span className="diff-to">{brl(e.diff.to)}</span>
                   <span className={`diff-pct ${e.diff.pct < 0 ? 'neg' : 'pos'}`}>
                     {e.diff.pct > 0 ? '+' : ''}
-                    {e.diff.pct.toFixed(1)}%
+                    {e.diff.pct.toFixed(1).replace('.', ',')}%
                   </span>
                 </div>
               )}

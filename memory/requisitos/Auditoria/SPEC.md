@@ -3,9 +3,12 @@ slug: modules-auditoria-spec
 title: "Modules/Auditoria — SPEC"
 type: spec
 module: Auditoria
-status: accepted
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 authority: canonical
-related_adrs: [0093, 0094, 0127, 0153, 0154, 0156]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0127-modules-auditoria-undo-activity-log, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0156-module-grade-v3-errata-otel-helper-na-justified]
 na_justified:
   D5: "Governança transversal cross-tenant — módulo de audit log opera sobre todos businesses (activity_log reusado). Exceção formal ao Tier 0 multi-tenant ([ADR 0127](../../decisions/0127-modules-auditoria-undo-activity-log.md) §SUPERADMIN exception + Constituição v2 Art. 6 [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md))."
 pii: false
@@ -33,11 +36,15 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 
 ## Stack
 
-- **`spatie/laravel-activitylog ^4.8`** — já em [composer.json:47](../../composer.json#L47)
+- **`spatie/laravel-activitylog ^4.8`** — já em [composer.json:47](../../../composer.json#L47)
 - Tabela `activity_log` — já existe + `business_id` (migrations 2019/2021/2023)
-- Padrão de configuração canônico do projeto: [Modules/Financeiro/Models/Titulo.php:28-35](../../Modules/Financeiro/Models/Titulo.php#L28) — `LogOptions::defaults()->logOnly([...])->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('domain.subdomain')`
+- Padrão de configuração canônico do projeto: [Modules/Financeiro/Models/Titulo.php:28-35](../../../Modules/Financeiro/Models/Titulo.php#L28) — `LogOptions::defaults()->logOnly([...])->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('domain.subdomain')`
 - Inertia v3 + React 19 (Pages padrão MWART, [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
 - Lib diff JSON: avaliar `react-diff-viewer-continued` na implementação (não decidido)
+
+## US ativas
+
+Backlog de user stories (US-AUDIT-*) organizado em 3 sub-sprints sequenciais.
 
 ## US Sprint 1 — Padronização Vestuario + Financeiro
 
@@ -46,7 +53,7 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 | US-AUDIT-001 | Trait `LogsActivity` em `App\Transaction` com `logOnly(['status','total_before_tax','final_total','contact_id','location_id','transaction_date','payment_status'])` + `useLogName('sales.transaction')`. Pest test: criar venda → entry em `activity_log` com `event=created` + `properties.attributes` preenchidas | p0 | 1.5h | — |
 | US-AUDIT-002 | Trait em `App\TransactionSellLine` + `App\TransactionPayment` (`logOnly` campos críticos: `quantity`, `unit_price_inc_tax`, `amount`, `method`). Pest: alterar pagamento → log com diff | p0 | 1h | US-AUDIT-001 |
 | US-AUDIT-003 | Trait em `App\Product` + `App\VariationLocationDetails` (estoque) — `logOnly(['sku','name','sell_price_inc_tax','enable_stock'])` no Product e `logOnly(['qty_available'])` no VLD. Pest: ajuste de estoque → log linha por VLD afetada | p1 | 1.5h | — |
-| US-AUDIT-004 | Trait em `App\Contact` com `logOnly(['name','email','mobile','contact_type','customer_group_id'])` — **`tax_number_1` NÃO entra** (PII LGPD). Pest assert: dump de log não contém CPF/CNPJ. Substitui `activity()->log('add_contact')` manual em [ContactController.php](../../app/Http/Controllers/ContactController.php) | p0 | 2h | — |
+| US-AUDIT-004 | Trait em `App\Contact` com `logOnly(['name','email','mobile','contact_type','customer_group_id'])` — **`tax_number_1` NÃO entra** (PII LGPD). Pest assert: dump de log não contém CPF/CNPJ. Substitui `activity()->log('add_contact')` manual em [ContactController.php](../../../app/Http/Controllers/ContactController.php) | p0 | 2h | — |
 
 **Subtotal Sprint 1 — ~6h IA-pair**
 
@@ -55,7 +62,7 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 | ID | Descrição | Prio | Esforço (IA-pair) | Dep |
 |---|---|---|---|---|
 | US-AUDIT-005 | Migration `2026_05_NN_add_causer_kind_and_revert_to_activity_log.php` — adiciona `causer_kind` ENUM, `agent_run_id` BIGINT NULL, `reverted_at` TIMESTAMP NULL, `reverted_by_user_id` BIGINT NULL, `revert_reason` VARCHAR(500) NULL + 2 índices compostos. Reversível. Smoke local: `php artisan migrate` + `migrate:rollback` | p0 | 1h | — |
-| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Copiloto/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
+| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Jana/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
 
 **Subtotal Sprint 2 — ~3h IA-pair**
 

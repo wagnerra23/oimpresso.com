@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\KB\Entities\KbComment;
 use Modules\KB\Entities\KbNode;
@@ -35,6 +36,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     kbBootstrapSchema();
     kbCreateBusinessRow(1);
 
@@ -57,8 +62,15 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    \Schema::dropIfExists('activity_log');
-    kbTeardownSchema();
+    // O afterEach roda MESMO no teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.23: $hasMetRequirements já é true antes do hook). Por isso
+    // o DDL é guardado por driver — em MySQL persistente dropar activity_log
+    // (CORE real-migrada) destruiria o schema compartilhado e cascataria
+    // 'Base table not found' em testes alheios. Ver ADR 0093 + 0101.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        \Schema::dropIfExists('activity_log');
+        kbTeardownSchema();
+    }
 });
 
 // ------------------------------------------------------------------
@@ -72,19 +84,19 @@ it('PiiRedactor service resolve via container (DI)', function () {
 
 it('PiiRedactor redacta CPF brasileiro em query do user', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'Procurar contrato do CPF 123.456.789-00 da Larissa';
+    $input = 'Procurar contrato do CPF 123.456.789-00 da Larissa'; # pii-allowlist
     $output = $redactor->redact($input);
 
-    expect($output)->not->toContain('123.456.789-00');
+    expect($output)->not->toContain('123.456.789-00'); # pii-allowlist
     expect($output)->toContain('[REDACTED:CPF]');
 });
 
 it('PiiRedactor redacta CNPJ + email + telefone em texto livre KB', function () {
     $redactor = app(PiiRedactor::class);
-    $input = 'CNPJ 12.345.678/0001-90 contato suporte@oimpresso.com.br tel +55 11 98765-4321';
+    $input = 'CNPJ 12.345.678/0001-90 contato suporte@oimpresso.com.br tel +55 11 98765-4321'; # pii-allowlist
     $output = $redactor->redact($input);
 
-    expect($output)->not->toContain('12.345.678/0001-90');
+    expect($output)->not->toContain('12.345.678/0001-90'); # pii-allowlist
     expect($output)->not->toContain('suporte@oimpresso.com.br');
     expect($output)->toContain('[REDACTED:CNPJ]');
     expect($output)->toContain('[REDACTED:EMAIL]');

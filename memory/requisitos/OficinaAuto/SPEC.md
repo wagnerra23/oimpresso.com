@@ -1,7 +1,7 @@
 ---
 module: OficinaAuto
-version: 0.2.0
-last_updated: "2026-06-02"
+version: "0.2.0"
+last_updated: "2026-06-09"
 status: ativo
 lifecycle: ativo
 piloto: Vargas + Martinho (sinal qualificado em ADR 0137 — 2 de 4 candidatos OfficeImpresso saudáveis são oficina/recapagem)
@@ -1368,6 +1368,32 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 - [x] Renderiza só quando há itens
 - ℹ️ Status fiscal LIVE (badge reativo) quando OS expor transaction fiscal — US futura (converge `FiscalStatusBadge`)
 
+### US-OFICINA-046 · Dívida F3: repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas"
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: follow-up erradicação ADR 0265 (PR #2475) · 2026-06-09
+> blocked_by: —
+
+**Origem:** follow-up da erradicação de `order_type=locacao` (ADR 0265) — PR #2475. Aquele PR removeu as 11 ramificações de dead-code mas, pra respeitar o limite Tier 0 do RUNBOOK (FSM keys `disponivel/locada` = dívida F3 charter v4), deixou o kanban de Caçambas (`ProducaoOficina`) com comportamento de atraso INERTE.
+
+**O que ficou pendente (dívida consciente):**
+
+1. **`ServiceOrder::getIsOverdueAttribute`** está hard-coded `false` (era `order_type==='locacao'` + `expected_return_date`). O kanban `ProducaoOficinaController` usa esse accessor pra rotear `current_status=locada` + overdue → coluna `aguardando`. Hoje nada cai em `aguardando` (em prod já era assim — nenhuma OS `locacao`). **Decidir** se o atraso do kanban passa a usar `expected_completion` (atraso de reparo, consistente com o que o ServiceOrders Index já faz) e repontuar o accessor + o fallback V3 do controller.
+
+2. **`ServiceOrder::getValorReceberAttribute`** está hard-coded `0.0` (era `daily_rate × dias_locacao`). KPI `valor_em_curso` do kanban soma isso → sempre 0. Decidir o modelo de valor do reparo (provável: `total_items`) e repontuar.
+
+3. **UI (RUNBOOK P5)** — remover o card/chip "Locações ativas" da `ServiceOrders/Index.tsx` e o KPI `locacoes_ativas` do payload do controller (hoje fixado em `0` só pelo contrato do frontend). Idem labels stale ("Caçambas" no topnav, comentários `Routes/web.php`).
+
+4. **Reativar os testes skipados** (apontam pra esta dívida):
+   - `ProducaoOficinaIndexTest`: "caçamba locada overdue cai em aguardando"
+   - `ProducaoOficinaRichUITest`: "valor_em_curso soma valor_receber" + "V3 fallback overdue → aguardando"
+   Converter os fixtures de `expected_return_date` → `expected_completion` ao reativar.
+
+**Tier 0:** mexe nas FSM keys `disponivel/locada`/`current_status` + componentes CacambaCard/Kanban — exige decisão de domínio do Wagner + provavelmente ADR própria (charter v4 `ProducaoOficina/Index.charter.md` declara isso como dívida F3).
+
+**Validação:** `php artisan test --filter=OficinaAuto` em MySQL local (os testes dão skip no SQLite do CI).
+
+**Refs:** ADR 0265 · RUNBOOK memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md (P5) · PR #2475 · charter ProducaoOficina/Index.charter.md (v4)
+
 ---
 
-**Última atualização:** 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).
+**Última atualização:** 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).

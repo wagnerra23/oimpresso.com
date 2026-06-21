@@ -39,6 +39,10 @@ use Modules\NfeBrasil\Services\NfeService;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // ── Schema mínimo SQLite in-memory ─────────────────────────────────────
     Schema::create('business', function (Blueprint $t) {
         $t->increments('id');
@@ -96,9 +100,11 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('nfe_inutilizacoes');
-    Schema::dropIfExists('nfe_emissoes');
-    Schema::dropIfExists('business');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('nfe_inutilizacoes');
+        Schema::dropIfExists('nfe_emissoes');
+        Schema::dropIfExists('business');
+    }
     \Mockery::close();
 });
 

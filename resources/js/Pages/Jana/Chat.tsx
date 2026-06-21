@@ -23,7 +23,7 @@ import {
   Mensagem as CockpitMensagem,
   Rotina,
 } from '@/Components/cockpit/shared';
-import { JanaAssistantUiChat } from '@/Components/jana/AssistantUiChat';
+import { JanaAssistantUiChat } from './_components/AssistantUiChat';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import {

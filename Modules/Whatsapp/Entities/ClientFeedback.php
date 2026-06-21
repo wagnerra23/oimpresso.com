@@ -224,6 +224,9 @@ class ClientFeedback extends Model
             ];
         }
 
+        // SUPERADMIN: qualificação pode rodar via CLI/job sem session — resolve o
+        // Contact vinculado (relação FK do próprio feedback, mesmo business) pra
+        // checar type. Lookup pela relação contact_id, sem leak cross-tenant. ADR 0093.
         $contact = $this->contact()->withoutGlobalScopes()->first();
         if (! $contact) {
             return [

@@ -43,6 +43,13 @@ spl_autoload_register(function (string $class) {
  */
 
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Worktree fix: registra o command manualmente caso o ServiceProvider em
     // execução (carregado da main repo via vendor symlink) ainda não conheça
     // o arquivo da worktree. Em CI/prod o command é auto-discovered.
@@ -153,6 +160,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_task_comments');
     Schema::dropIfExists('mcp_task_events');
     Schema::dropIfExists('mcp_tasks');

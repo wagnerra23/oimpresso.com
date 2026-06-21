@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -31,6 +32,10 @@ uses(Tests\TestCase::class);
  * @see Modules/Whatsapp/Console/Commands/HealthProbeChannelsCommand.php
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::dropIfExists('channels');
 
     Schema::create('channels', function ($table) {
@@ -80,6 +85,36 @@ function makeHpChannel(int $bizId, string $label = 'Test', string $health = 'nev
         'status' => 'active',
         'channel_health' => $health,
         'channel_health_consecutive_failures' => $failures,
+    ]);
+}
+
+/**
+ * Helper — cria Channel Whatsmeow active com token provisionado + UUID conhecido.
+ * Retorna [channel, userName] — userName = ch-{uuid sem hífens} (whatsmeowUserName()).
+ */
+function makeWmChannel(int $bizId, string $uuid, string $health = 'never_checked', int $failures = 0): array
+{
+    $channel = Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
+        'business_id' => $bizId,
+        'channel_uuid' => $uuid,
+        'label' => 'WM Test',
+        'type' => Channel::TYPE_WHATSAPP_WHATSMEOW,
+        'status' => 'active',
+        'channel_health' => $health,
+        'channel_health_consecutive_failures' => $failures,
+        'config_json' => ['whatsmeow_user_token' => 'user_token_xyz'],
+    ]);
+
+    return [$channel, 'ch-' . str_replace('-', '', $uuid)];
+}
+
+/** Liga o daemon whatsmeow no config (os testes Baileys não setam isso). */
+function configureWhatsmeowDaemon(): void
+{
+    config([
+        'whatsapp.whatsmeow.daemon_url' => 'https://wm-test.local',
+        'whatsapp.whatsmeow.api_key' => 'wm-admin-token-1234567890',
+        'whatsapp.whatsmeow.request_timeout' => 5,
     ]);
 }
 
@@ -255,4 +290,89 @@ it('HP-008 — sem canais ativos → exit 0 graceful', function () {
     $exitCode = \Artisan::call('whatsapp:health-probe-channels');
 
     expect($exitCode)->toBe(0);
+});
+
+// ─── Whatsmeow (detect-only via WhatsmeowReconciler) — gap b channel-reliability 2026-06-18 ───
+
+it('WM-001 — whatsmeow connected=False → channel_health=disconnected + failures++ (a queda deixa de ser invisível)', function () {
+    configureWhatsmeowDaemon();
+    [$channel, $userName] = makeWmChannel(1, 'wm000001-0000-0000-0000-000000000001', 'healthy', failures: 0);
+
+    Http::fake([
+        '*/admin/users' => Http::response(['data' => [['name' => $userName]]], 200),
+        '*/session/status' => Http::response(['data' => ['Connected' => false, 'LoggedIn' => false]], 200),
+    ]);
+
+    $exitCode = \Artisan::call('whatsapp:health-probe-channels', ['--business' => '1']);
+
+    expect($exitCode)->toBe(0);
+
+    $channel->refresh();
+    expect($channel->channel_health)->toBe('disconnected');
+    expect($channel->channel_health_consecutive_failures)->toBe(1);
+    expect($channel->last_health_message)->toContain('whatsmeow desconectado');
+
+    // Detect-only: NUNCA chama /connect pra whatsmeow (re-pareamento exige QR humano)
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), '/connect'));
+});
+
+it('WM-002 — whatsmeow paired (Connected+LoggedIn) → healthy + reset failures', function () {
+    configureWhatsmeowDaemon();
+    [$channel, $userName] = makeWmChannel(1, 'wm000002-0000-0000-0000-000000000002', 'disconnected', failures: 4);
+
+    Http::fake([
+        '*/admin/users' => Http::response(['data' => [['name' => $userName]]], 200),
+        '*/session/status' => Http::response(['data' => ['Connected' => true, 'LoggedIn' => true, 'Jid' => '5511@s.whatsapp.net']], 200),
+    ]);
+
+    $exitCode = \Artisan::call('whatsapp:health-probe-channels', ['--business' => '1']);
+
+    expect($exitCode)->toBe(0);
+
+    $channel->refresh();
+    expect($channel->channel_health)->toBe('healthy');
+    expect($channel->channel_health_consecutive_failures)->toBe(0);
+});
+
+it('WM-003 — whatsmeow daemon unreachable → saúde inalterada (sem falso-alarme)', function () {
+    configureWhatsmeowDaemon();
+    [$channel] = makeWmChannel(1, 'wm000003-0000-0000-0000-000000000003', 'healthy', failures: 0);
+
+    Http::fake(function () {
+        throw new \Illuminate\Http\Client\ConnectionException('connection timeout');
+    });
+
+    $exitCode = \Artisan::call('whatsapp:health-probe-channels', ['--business' => '1']);
+
+    expect($exitCode)->toBe(0);
+
+    $channel->refresh();
+    // Daemon caiu, não o canal — não penaliza (health/failures intactos)
+    expect($channel->channel_health)->toBe('healthy');
+    expect($channel->channel_health_consecutive_failures)->toBe(0);
+    expect($channel->last_health_message)->toContain('inconclusivo');
+});
+
+it('WM-004 — multi-tenant: --business=99 não toca whatsmeow de biz=1', function () {
+    configureWhatsmeowDaemon();
+    [$ch1] = makeWmChannel(1, 'wm000004-0000-0000-0000-000000000041', 'disconnected', failures: 3);
+    [$ch99, $userName99] = makeWmChannel(99, 'wm000004-0000-0000-0000-000000000099', 'disconnected', failures: 3);
+
+    Http::fake([
+        '*/admin/users' => Http::response(['data' => [['name' => $userName99]]], 200),
+        '*/session/status' => Http::response(['data' => ['Connected' => true, 'LoggedIn' => true]], 200),
+    ]);
+
+    \Artisan::call('whatsapp:health-probe-channels', ['--business' => '99']);
+
+    $ch1->refresh();
+    $ch99->refresh();
+
+    // biz=1 intocado (Tier 0)
+    expect($ch1->channel_health)->toBe('disconnected');
+    expect($ch1->channel_health_consecutive_failures)->toBe(3);
+
+    // biz=99 processado → healthy
+    expect($ch99->channel_health)->toBe('healthy');
+    expect($ch99->channel_health_consecutive_failures)->toBe(0);
 });

@@ -10,7 +10,7 @@
 
 > Síntese estado-da-arte. O resto do arquivo é **detalhe sob demanda**. Isto é o always-read.
 
-1. **Espinha sempre lida:** STATUS + este NÚCLEO + LICOES + o `charter` da tela em foco — antes de propor/mexer.
+1. **Espinha sempre lida:** STATUS + este NÚCLEO + LICOES + o `charter` da tela em foco — antes de propor/mexer. _(🔁 Emenda Onda A #2874: a **autoridade** da espinha é o **git/SSOT** — ADR 0238/0239; STATUS/MEMORY_INDEX seguem always-read mas como **cache derivado**, não autoridade. Ver §13.3 + §17.)_
 2. **3 planos:** Sistema (DS/tokens) ⊃ Tela (`charter` lei · `decisoes` debate · `casos` contrato) ⊃ Processo. Camada de cima herda e **nunca contradiz**.
 3. **Anéis, fonte única:** 🔍Avaliar→🧪Testar→✅Adotar→⛔Descartar. Adotar→`charter`+`casos`; Descartar→anti-pattern+L-NN. Cada decisão num lugar autoritativo só.
 4. **Casos = contrato de não-regressão.** Mudou a tela → roda os casos. Quebrou um ✅ → **PARA, revisa o pensamento, não força** (conserto silencioso proibido).
@@ -244,6 +244,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 1. **Medir é inegociável:** toda sessão loga o Benchmark. Sem medição → processo "não-verificado", não confiar nele.
 2. **Catraca de defesa:** defesa só **sobe** de tier (FRACA→FORTE), nunca desce. Falhou 2× → auto-upgrade (§12).
 3. **Piso intocável:** posso reescrever o processo, **nunca abaixo do piso** — espinha always-read (STATUS→PROCESSO) + soberania de [W] (constituição/ADR/token = só [W]).
+   > **🔁 Emenda Onda A (proposta #2874 · [W] aprovou 2026-06-16 · ratificado em ADR 0282):** a **autoridade** da espinha migra pro **git (SSOT — ADR 0238/0239)**; `STATUS.md`/`MEMORY_INDEX.md` continuam **always-read** porém **cache derivado, não-autoritativo** (divergiu do git → o git vence). **O limite (anti-regressão TESTE-02):** (a) a metade **soberania-[W]** deste piso **NÃO muda** — constituição/ADR/token seguem só-[W]; (b) "always-read" **não** vira "pode parar de ler" — continua obrigatório, só perde o status de *autoridade*. Reversível: `git revert` + restaurar header do `STATUS.md`. Carve-outs: `memory-health` (segredo+colisão-ADR) fica ligado; nenhuma "Regra 6" removida.
 4. **Anti-entropia:** doc não-lido/não-medido vira peso morto → arquiva com lápide (L-22). Memória concentra sinal, não acumula lixo.
 5. **A bateria respira:** erro novo → +1 teste; classe sem falha há N sessões → compacta (vira check silencioso). O processo fica **pequeno o bastante pra ser lido** — se ficar grande demais pra ler, ele se mata sozinho (volta ao item 1).
 
@@ -279,11 +280,45 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | IT5 | Benchmark (§11) tem linha da última sessão | sem medição (Sobrevivência #1) |
 | IT6 | DS-GUARD limpo nos arquivos canônicos do DS | DS contaminado |
 | IT7 | Nenhum doc referenciado na espinha que não exista (link morto) | rastro quebrado |
+| IT8 | Fila ativa ↔ prompts de handoff consistentes (§16 · gate `handoff:check`) | tarefa invisível / PR errado |
 
 **Veredito:** qualquer IT falho → estrutura **comprometida**: parar e consertar antes de evoluir (vira Reestruturação §12 se reincidir).
 
-## 16. Trilha do tempo
+## 16. Integridade do handoff (fila ↔ prompts)
+
+> Por que existe: a fila ([`COWORK_NOTES.md`](COWORK_NOTES.md) → acima da linha d'água) apodrece de dois jeitos que ninguém vê na hora — **prompt citado que não existe mais** (link morto → [CL] erra o PR, faz a coisa errada) e **prompt criado que nunca entrou na fila** (tarefa invisível → nunca pousa). Memória manda no git; git é SSOT (ADR 0239) — então a fila e os `PROMPT_PARA_CODE_*.md` têm que casar. Defesa que dispara > regra que se lê (§5/NÚCLEO-5): a regra abaixo é a lei; o gate `handoff:check` é o dente.
+
+**As 7 regras (lei do handoff):**
+
+1. **Sem prompt órfão.** Criar um `PROMPT_PARA_CODE_<slug>.md` e **não** citá-lo na fila ativa = proibido. Prompt que existe no dir mas ninguém aponta = tarefa invisível (🔴 ÓRFÃO). Criou → cita na fila no mesmo passo.
+2. **Prompt durável é auto-contido.** O corpo não depende de URL efêmera (`claudeusercontent.com`/Cowork share expiram ~1h — L-09/§10.1). Todo contexto necessário pra executar mora no próprio arquivo, versionado no git. URL no corpo = só conveniência, nunca a fonte.
+3. **Linha d'água separa ativo de processado.** O marcador `<!-- LINHA-DAGUA-HANDOFF -->` em `COWORK_NOTES.md` corta a fila: **acima = ativo** (o gate vigia; toda referência tem que casar) · **abaixo = processado/histórico** (ignorado — append-only, não se mexe). Item que pousou **desce** pra baixo da linha; não some, vira histórico.
+4. **"Pousou" só depois do `main` confirmar.** Não declaro entregue/processado por ter aberto PR ou commitado (L-06: não afirmo commit). Um handoff só vira "processado" quando o retorno em [`CODE_NOTES.md`](CODE_NOTES.md) **no `main`** registra `PROCESSADO → main` (PR mergeado). Antes disso continua **ativo, acima da linha**.
+5. **Ondas por padrão.** 1 tela/arquivo = 1 PR (commit-discipline · 1 PR = 1 intent). Validar contra `origin/main` fresco **antes** de codar (Passo 0 · PROTOCOL §10.4) — se já está no main, não refaz.
+6. **Sem cabeçalho fundido.** Uma edição não pode fundir dois blocos numa linha só — `**…:** > **Outro:**` (heurística `:** > **`) deixa a fila/prompt ilegível (classe **C3**). Cada bloco na sua linha; quem funde, o gate recusa.
+7. **Carimbo verificado-vs-`main`.** Todo item ativo (acima da linha) leva no corpo `verificado vs main @<SHA>` — a prova de que foi conferido contra `origin/main` fresco **antes** de virar fila (Regra 5 · PROTOCOL §10.4). Item ativo sem o carimbo = enfileirado às cegas → retrabalho (classe **C5**); o gate recusa.
+
+### Caçador de reincidência — classes de erro & condição de morte
+
+Os erros que reincidem no loop de handoff têm a mesma cura: **uma máquina que recusa no instante da ação** (§5 / NÚCLEO-5 — defesa que dispara > regra que se lê). Seis classes; o corte é por **onde a trava vive**.
+
+**C1 · C2 · C6 — rituais Cowork.** Classes curadas por ritual do lado Cowork (não git-mecanizáveis por gate de PR). A definição canônica vive no handoff Cowork (`PROMPT_PARA_CODE_HANDOFF-INTEGRITY-GATE.md`) — ⚠️ ainda **não versionado no git**; backfill pendente (não invento canon · Tier 0 — ver [`CODE_NOTES.md`](CODE_NOTES.md)).
+
+**C3 · C4 · C5 — git-gates.** Mecanizáveis no CI:
+
+| Classe | Erro recorrente | Condição de morte (a trava) | Estado |
+|---|---|---|---|
+| **C3** | edição funde dois cabeçalhos numa linha (`:** > **`) → bloco ilegível, [CL] erra o PR | gate recusa **NOVO** fundido | ✅ [`handoff-integrity-guard.mjs`](../scripts/handoff-integrity-guard.mjs) |
+| **C4** | órfão (prompt criado sem citação) · ref morta (citação sem arquivo) acima da linha → tarefa invisível / PR errado | gate recusa **NOVO** órfão/ref-morta | ✅ `handoff-integrity-guard.mjs` + `memory-health` CHECK 8 (Cowork) |
+| **C5** | item enfileirado sem conferir `main` fresco → retrabalho | item ativo carrega `verificado vs main @<SHA>`; senão 🔴 | 🔜 regra escrita (Regra 7, esta onda) · catraca **pendente** (próxima onda) |
+
+**Mecanização (catraca · §5/§13):** [`scripts/handoff-integrity-guard.mjs`](../scripts/handoff-integrity-guard.mjs) lê a fila acima da linha d'água + os `PROMPT_PARA_CODE_*.md` do dir e falha em **NOVO** órfão, **NOVA** ref morta ou **NOVO** cabeçalho fundido (`:** > **` · C3). Baseline (`config/handoff-integrity-baseline.json`) congela a dívida atual — só o que entra novo trava. Auto-teste de controle-negativo prova que o dente morde (órfão/ref-morta/fundido injetado → vermelho; tudo limpo → verde). Workflow advisory de nascença (ADR 0271/0275). Rodar: `npm run handoff:check`.
+
+## 17. Trilha do tempo
 - 2026-06-02 · [CC] criou a raiz do processo. Rodou TESTE-01..04, achou 3 fraquezas, corrigiu 2 estruturalmente (§3, §5) e mitigou 1 (§4/§7). Modelo validado com a condição da §7.
 - 2026-06-02 · **1ª passada real (TESTE-05):** D-01 rodado Avaliar→Testar em produção; ciclo segurou ponta-a-ponta (nota 8.5). Regra de corte §6×Register adicionada. D-01 está 🧪 aguardando veredito [W].
 - 2026-06-02 · **DS-GUARD (TESTE-06):** check mecânico criado (§8) — pega L-02/L-21/L-23 nos arquivos tocados, sem depender de memória. Achou 2 fraquezas no próprio guard (ruído árvore-inteira + skip silencioso), corrigiu as duas. Defesa migrou de FRACA→FORTE. Gate visual entrou na Regra de Ouro do STATUS.
 - 2026-06-02 · **Bateria de Testes de Evolução (§9) + Manual de Evolução (§10):** regressão contra L-01…L-23 (cobertura conhecimento ~9.5, execução ~6 → confiança composta 7.5). 14 testes (5 duros), cobrindo todos os erros cometidos. Pendente pra subir a confiança: hooks auto (Cowork CI), construir guards propostos (L-07/11/14/21/22), changed-files automático, verificador rodando DS-GUARD sempre.
+- 2026-06-16 · **§16 Integridade do handoff (Onda 1):** lei do handoff escrita (5 regras: sem órfão · prompt auto-contido · linha d'água · "pousou" só pós-`main` · ondas) + IT8. Origem: fila `COWORK_NOTES.md` apodreceu (refs mortas pra `PROMPT_PARA_CODE_*` inexistentes + prompts nunca citados). Onda 2 mecaniza via `handoff:check` (catraca + baseline + auto-teste controle-negativo).
+- 2026-06-16 · **§16 Regra 7 (C5) + Caçador de reincidência (doc):** escrita a regra do carimbo `verificado vs main @<SHA>` no item ativo (classe C5 · cura do "enfileirou sem conferir o `main` → retrabalho") + tabela das classes git-gate C3/C4/C5 com condição de morte. C1/C2/C6 (rituais Cowork) ficam referenciadas sem invenção — def. canônica no handoff Cowork não-versionado (Tier 0: não cunho canon). Mecanização do C5 (catraca) é a próxima onda — depende de [W] confirmar a heurística de "item ativo" (a fila real usa bullets `- **…**`, não `> … → [CL]`).
+- 2026-06-16 · **Emenda Onda A — memória git=SSOT (proposta #2874, aprovada por [W]):** demovida a **autoridade** da espinha (`STATUS.md`/`MEMORY_INDEX.md`) a **cache derivado** always-read; **git** vira a fonte da verdade (ADR 0238/0239). Editado NÚCLEO 1 + §13.3 (piso) de forma **aditiva/atribuída** (NÚCLEO 4 "conserto silencioso proibido" / NÚCLEO 12 "nunca hard-delete" / §13.2 catraca). Carve-outs preservados: `memory-health` (segredo+colisão-ADR) **ligado** · nenhuma "Regra 6" removida · soberania-[W] do piso **intacta** · **zero código de produto**. ADR a **numerar por [W]** (não cunho número — soberania, L-09). PR-A2 (draft, sem auto-merge).

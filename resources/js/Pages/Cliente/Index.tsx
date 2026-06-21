@@ -12,7 +12,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   AlertTriangle,
   ArrowDown,
-  Activity,
   ArrowUp,
   ArrowUpDown,
   Briefcase,
@@ -85,24 +84,27 @@ import ClassificacaoTab from './_drawer/ClassificacaoTab';
 // Wave D/E/F — OSs wrapper, IA 4 cards, Auditoria timeline LGPD (ADR 0179).
 import OssTab, { type OssSubTabKey } from './_drawer/OssTab';
 import IATab from './_drawer/IATab';
-import AuditoriaTab from './_drawer/AuditoriaTab';
 // Wagner 2026-05-27 iteracao 2: Placas promovido pra tab principal (botao header).
 import PlacasMainTab from './_drawer/PlacasMainTab';
 // Wave G — listagem turbinada (avatar HSL hash + Pills semânticos).
-import { Avatar as ClienteAvatar } from '@/Components/clientes/Avatar';
-import { ActiveChip } from '@/Components/clientes/ActiveChip';
-import { TipoPill, TagChip, FrescorPill, SaldoCell } from '@/Components/clientes/Pills';
+import { Avatar as ClienteAvatar } from './_components/Avatar';
+import { ActiveChip } from './_components/ActiveChip';
+import { TipoPill, TagChip, FrescorPill, SaldoCell } from './_components/Pills';
 // PTDP Onda 2 — KPI strip clicável (5 cards-filtro · substitui 4 KpiCard estáticos).
 import {
   KpiStripClickable,
   type KpiCardDef,
   type KpiKey,
-} from '@/Components/clientes/KpiStripClickable';
+} from './_components/KpiStripClickable';
 
 interface ClienteKpis {
   total: number;
   com_os_aberta: number;
   com_atraso: number;
+  // Onda 3 — counts reais server-side (antes estimados client-side sobre a página).
+  vips: number;
+  sem_compra_90d: number;
+  novos_mes: number;
   valor_total_aberto: number;
 }
 
@@ -267,7 +269,7 @@ export interface ClienteIndexPageProps {
 }
 
 type StatusFilter = '' | 'late' | 'active' | 'idle';
-type SortKey = 'name' | 'total_os' | 'valor_aberto' | 'last_os_at';
+type SortKey = 'recent' | 'name' | 'total_os' | 'valor_aberto' | 'last_os_at';
 type SortDir = 'asc' | 'desc';
 
 const STATUS_FILTER_STORAGE_KEY = 'oimpresso.cliente.lastStatus';
@@ -420,16 +422,26 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     }
     router.reload({
       only: ['customers'],
-      data: { q: search || undefined, page: 1 },
+      data: { q: search || undefined, page: 1, per_page: perPageRef.current, sort: sortRef.current.key, dir: sortRef.current.dir },
       preserveScroll: true,
       preserveState: true,
     });
   }, [search]);
 
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(25);
-  const [sortKey, setSortKey] = useState<SortKey>('name');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  // Default 50 = default do backend (ContactController per_page). Antes era 25 e
+  // o placar mostrava "/ N" do servidor (50) divergindo do dropdown — bug Wagner.
+  const [perPage, setPerPage] = useState(50);
+  // Lê o perPage atual dentro do effect de busca sem virar dep (evita reload duplo
+  // ao trocar página + mantém o tamanho de página ao buscar).
+  const perPageRef = useRef(perPage);
+  perPageRef.current = perPage;
+  // Default 'recent' (id desc) — job-aligned, sem lixo alfabético de símbolo no topo.
+  const [sortKey, setSortKey] = useState<SortKey>('recent');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  // Lê o sort atual nos reloads sem virar dep (igual perPageRef).
+  const sortRef = useRef({ key: sortKey, dir: sortDir });
+  sortRef.current = { key: sortKey, dir: sortDir };
   const [openContactId, setOpenContactId] = useState<number | null>(null);
   // 2026-06-08 (Wagner "arrumar botões da contacts") — aba-alvo do drawer ao abrir.
   // Consolidação ADR 0179: o menu ⋮ da linha não manda mais pra Blade legacy
@@ -687,32 +699,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     return r;
   }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
 
-  // PTDP Onda 2 — counts pros 5 KPI cards. Ativos + ComSaldo usam `kpis`
-  // reais do backend; VIPs + Sem90 + Novos vêm estimados das `rows` da página
-  // atual (Onda 3 plug backend dedicado quando volume de cadastros pedir).
-  const kpiCounts = useMemo(() => {
-    const now = Date.now();
-    const cutoff90 = now - 90 * 86400000;
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    const monthStartTs = monthStart.getTime();
-    let vipsCount = 0;
-    let sem90Count = 0;
-    let novosCount = 0;
-    for (const x of rows) {
-      if (x.vip) vipsCount++;
-      if (x.last_purchase_at) {
-        const t = new Date(x.last_purchase_at).getTime();
-        if (!Number.isNaN(t) && t < cutoff90) sem90Count++;
-      }
-      if (x.created_at) {
-        const t = new Date(x.created_at).getTime();
-        if (!Number.isNaN(t) && t >= monthStartTs) novosCount++;
-      }
-    }
-    return { vipsCount, sem90Count, novosCount };
-  }, [rows]);
+  // Onda 3 (2026-06-12) — os 5 counts dos KPI cards agora vêm TODOS reais do backend
+  // (`kpis.*`, scoped business_id). Removido o estimado client-side sobre as 50 rows da
+  // página (que mostrava "número sem prova": VIPs/Sem90/Novos da amostra, não do negócio).
 
   // KB-9.75 Slice A — reset row focus when the result set shrinks/changes.
   useEffect(() => {
@@ -786,18 +775,21 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [paletteOpen, cheatOpen, filteredRows, focusedIndex, openDrawer]);
 
+  // Sort server-side (bug Wagner): antes só mexia state e NÃO re-buscava (cabeçalho
+  // morto, igual paginação). Agora manda sort/dir pro backend (whitelist) e reseta
+  // pra página 1. name=asc default; demais (recent/total_os/valor_aberto/last_os_at)=desc.
   const handleSort = useCallback((key: SortKey) => {
-    setSortKey((prevKey) => {
-      if (key === prevKey) return prevKey;
-      return key;
+    const newDir: SortDir = key === sortKey
+      ? (sortDir === 'asc' ? 'desc' : 'asc')
+      : (key === 'name' ? 'asc' : 'desc');
+    setSortKey(key);
+    setSortDir(newDir);
+    setPage(1);
+    router.reload({
+      only: ['customers'],
+      data: { q: search || undefined, page: 1, per_page: perPageRef.current, sort: key, dir: newDir },
     });
-    setSortDir((prevDir) => {
-      if (key === sortKey) {
-        return prevDir === 'asc' ? 'desc' : 'asc';
-      }
-      return key === 'last_os_at' || key === 'valor_aberto' ? 'desc' : 'asc';
-    });
-  }, [sortKey]);
+  }, [sortKey, sortDir, search]);
 
   // Wave G — pills array removido (substituído por 6 FilterDropdown — ver nav acima).
   // KPIs/contadores ficam no header (subtítulo inline) + count "X de Y" ao lado dos filtros.
@@ -828,7 +820,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
        warm hue 90 espelha `.cockpit` /sells canon Cowork. Cria afinidade visual com cards
        brancos (mesma família temperatura) sem competir com filtros coloridos.
        Token `--color-page-cream` definido em resources/css/inertia.css @theme block. */
-    <div className="-m-6 bg-page-cream min-h-[calc(100vh-3rem)] py-4">
+    <div className="flex-1 bg-page-cream py-4">
      {/* Fluid layout — Wagner 2026-05-25: tabela contatos usa 100% da largura disponível
          (pattern Linear/Notion/Stripe Dashboard em listas). `w-full px-6` (24px respiro
          lateral) + `py-4` (16px respiro topo+rodapé) — Wagner pediu "respiro nas laterais
@@ -1031,9 +1023,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <KpiStripClickable
           ativos={kpis?.com_os_aberta ?? 0}
           comSaldo={kpis?.com_atraso ?? 0}
-          vips={kpiCounts.vipsCount}
-          sem90={kpiCounts.sem90Count}
-          novos={kpiCounts.novosCount}
+          vips={kpis?.vips ?? 0}
+          sem90={kpis?.sem_compra_90d ?? 0}
+          novos={kpis?.novos_mes ?? 0}
           activeKey={activeKpiKey}
           onApply={applyKpiCard}
         />
@@ -1106,9 +1098,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             </nav>
 
             {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema.
-                canon v3.8: h-9 → h-8 (mais fina) + bg-background (destaque branco sobre cream)
-                + border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
-                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet. */}
+                border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
+                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet.
+                Espaço pros ícones (lupa + X) via `.cw-input-search` — NÃO `pl-9/pr-9` tailwind,
+                que são ignorados pelo `.cw-input` unlayered no Tailwind v4 (ver cowork-fields.css). */}
             <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
@@ -1117,7 +1110,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
-                className="pl-9 pr-9 h-8 bg-background"
+                className="cw-input-icon-left cw-input-icon-right"
                 style={{ borderColor: 'oklch(0.9 0.004 90)' }}
                 aria-label="Buscar contato"
               />
@@ -1241,7 +1234,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           }}
                         >
                           <td className="px-4 py-2.5">
-                            {/* Wave G — Avatar HSL hash determinístico (Components/clientes/Avatar.tsx). */}
+                            {/* Wave G — Avatar HSL hash determinístico (Pages/Cliente/_components/Avatar.tsx). */}
                             <ClienteAvatar
                               name={row.name}
                               size={32}
@@ -1260,19 +1253,26 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                                 </span>
                               )}
                             </div>
-                            {/* Sub-nome: fantasia (PJ) ou telefone (contato rápido). */}
-                            {(row.fantasia || row.mobile) && (
-                              <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5 flex items-center gap-1">
-                                {row.fantasia ? (
-                                  <span className="truncate">{row.fantasia}</span>
-                                ) : (
-                                  <>
-                                    <Phone size={9} className="opacity-60" />
-                                    <span className="tabular-nums">{row.mobile}</span>
-                                  </>
-                                )}
-                              </div>
-                            )}
+                            {/* Sub-nome: fantasia (PJ) ou telefone. Suprime quando a fantasia
+                                == razão social (legado preenche fantasia = nome → duplicava
+                                a identidade na lista, desperdiçando a linha. Bug Wagner). */}
+                            {(() => {
+                              const f = row.fantasia?.trim();
+                              const fant = f && f.toLowerCase() !== row.name.trim().toLowerCase() ? f : null;
+                              if (!fant && !row.mobile) return null;
+                              return (
+                                <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5 flex items-center gap-1">
+                                  {fant ? (
+                                    <span className="truncate">{fant}</span>
+                                  ) : (
+                                    <>
+                                      <Phone size={9} className="opacity-60" />
+                                      <span className="tabular-nums">{row.mobile}</span>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="px-4 py-2.5">
                             <TipoPill tipo={row.tipo ?? null} />
@@ -1365,7 +1365,28 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           </div>
 
           {meta && meta.total > 0 && (
-            <Pagination meta={meta} perPage={perPage} onPageChange={setPage} onPerPageChange={setPerPage} />
+            <Pagination
+              meta={meta}
+              perPage={perPage}
+              onShowShortcuts={() => setCheatOpen(true)}
+              onPageChange={(p) => {
+                // Antes só atualizava o state (não buscava) → setas mortas. Agora
+                // manda page pro servidor (paginate() lê da query) — bug Wagner.
+                setPage(p);
+                router.reload({
+                  only: ['customers'],
+                  data: { q: search || undefined, page: p, per_page: perPage, sort: sortRef.current.key, dir: sortRef.current.dir },
+                });
+              }}
+              onPerPageChange={(n) => {
+                setPerPage(n);
+                setPage(1);
+                router.reload({
+                  only: ['customers', 'kpis', 'tab_counts'],
+                  data: { q: search || undefined, page: 1, per_page: n, sort: sortRef.current.key, dir: sortRef.current.dir },
+                });
+              }}
+            />
           )}
         </Deferred>
       </div>
@@ -1411,16 +1432,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         />
       )}
       {cheatOpen && <CheatSheet onClose={() => setCheatOpen(false)} />}
-      <button
-        type="button"
-        onClick={() => setCheatOpen(true)}
-        aria-label="Atalhos de teclado"
-        title="Atalhos de teclado (?)"
-        className="fixed bottom-4 right-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors"
-      >
-        <Keyboard size={14} />
-        <Kbd>?</Kbd>
-      </button>
 
       {/* 2026-06-08 — confirmação de exclusão (ação destrutiva → AlertDialog,
           nunca delete num clique só). Soft delete server-side; reversível. */}
@@ -1848,14 +1859,15 @@ type DrawerTab =
   | 'classificacao'
   | 'operacoes'
   | 'placas'
-  | 'ia'
-  | 'auditoria';
+  | 'ia';
 
 // Wagner 2026-05-27 iteracao 2 (Proposta F): 6 tabs principais focadas em
-// CADASTRO/OPERACOES editaveis. Tabs read-only (placas/auditoria/ia) viraram
-// BOTOES NO HEADER do drawer (acesso 1-clique sem poluir tab bar). Rename
-// oss→operacoes (semantica clara: OSs ficavam dentro mas agora so coisas
-// REAIS de OS — Extrato/Vendas/Pagamentos/Documentos/Pessoas/Assinaturas/Pontos).
+// CADASTRO/OPERACOES editaveis. Tabs read-only (placas/ia) viraram BOTOES NO
+// HEADER do drawer (acesso 1-clique sem poluir tab bar). Rename oss→operacoes
+// (semantica clara: OSs ficavam dentro mas agora so coisas REAIS de OS —
+// Extrato/Vendas/Pagamentos/Documentos/Pessoas/Assinaturas/Pontos/Auditoria).
+// Wagner 2026-06-13: Auditoria saiu do chip e virou sub-aba de Operações
+// ("chips e abas são a mesma coisa — integrar").
 const DRAWER_TABS: Array<{ key: DrawerTab; label: string }> = [
   { key: 'identificacao', label: 'Identificação' },
   { key: 'contato',       label: 'Contato' },
@@ -1955,7 +1967,7 @@ function ClienteSheet({
     if (!open) return;
     const TAB_ORDER: DrawerTab[] = [
       'identificacao', 'contato', 'endereco', 'comercial',
-      'classificacao', 'oss', 'ia', 'auditoria',
+      'classificacao', 'operacoes', 'ia', 'placas',
     ];
     const onKey = (e: KeyboardEvent) => {
       const target = e.target;
@@ -2003,35 +2015,33 @@ function ClienteSheet({
             />
 
             <div className="flex-1 min-w-0">
-              {/* Wagner 2026-05-25 UX feedback: toggle PF/PJ duplicado removido.
-                  Toggle fantasma aqui no header só mudava state local (não persistia
-                  PATCH) · gerava confusão "qual está valendo?". Toggle REAL fica em
-                  IdentificacaoTab (`handleTipoChange` → PATCH /cliente/{id}/identificacao
-                  com autosave on blur). Aqui mantemos só o subtitle informativo. */}
-              <SheetTitle className="text-lg font-semibold leading-tight">
+              {/* Wagner UX: toggle PF/PJ duplicado removido (toggle REAL fica na
+                  IdentificacaoTab com autosave). Aqui só identidade informativa. */}
+              <SheetTitle className="text-lg font-semibold leading-tight truncate">
                 {contact?.name ?? 'Cliente'}
               </SheetTitle>
 
+              {/* Wagner 2026-06-12 — badge status (Sem OS/Ativo) movido pra ESTA linha
+                  de identidade. Antes ficava no canto direito ENCAVALADO com o X de
+                  fechar do Sheet; agora o topo-direito tem só o X. Inline-flex (não
+                  cria flex container novo) + cor tokenizada (era stone/emerald cru). */}
               <SheetDescription className="mt-0.5 text-xs">
                 {tipo === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física'}
                 {' · cadastrado '}
                 {/* Z-2.1: ContactController::index payload inclui created_at. */}
                 {relativeDate(contact?.created_at ?? null)}
+                <span
+                  className={
+                    'ml-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium align-middle ' +
+                    (contact?.status === 'idle'
+                      ? 'bg-muted text-muted-foreground border-border'
+                      : 'bg-success/10 text-success border-success/30')
+                  }
+                >
+                  {contact?.status === 'idle' ? 'Sem OS' : 'Ativo'}
+                </span>
               </SheetDescription>
             </div>
-
-            {/* Badge status -- "Ativo" se contact.status !== 'idle'; placeholder.
-                Wave G adiciona Inativo/Bloqueado via segmentStatus campo novo. */}
-            <span
-              className={
-                'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ' +
-                (contact?.status === 'idle'
-                  ? 'bg-stone-50 text-stone-700 border-stone-200 dark:bg-stone-950/40 dark:text-stone-300'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300')
-              }
-            >
-              {contact?.status === 'idle' ? 'Sem OS' : 'Ativo'}
-            </span>
           </div>
 
           {/* Botoes acao -- Imprimir + Copiloto. ADR UI-0015 (cowork canon). */}
@@ -2057,9 +2067,10 @@ function ClienteSheet({
           </div>
 
           {/* Wagner 2026-05-27 iteracao 2 (Proposta F) -- Botoes header pra
-              entidades secundarias: Placas (gate OficinaAuto, contador) +
-              Auditoria + IA. Acesso 1-clique sem poluir tab bar (6 tabs
-              principais focadas em cadastro/operacoes editaveis). */}
+              entidades secundarias: Placas (gate OficinaAuto, contador) + IA.
+              Acesso 1-clique sem poluir tab bar (6 tabs principais focadas em
+              cadastro/operacoes editaveis). Auditoria saiu daqui 2026-06-13 →
+              virou sub-aba de Operações (rail). */}
           <div className="flex items-center gap-1 pt-1 flex-wrap" role="toolbar" aria-label="Atalhos do drawer">
             {oficinaAutoEnabled && (
               <button
@@ -2100,21 +2111,6 @@ function ClienteSheet({
               <Paperclip size={11} aria-hidden />
               <span>{liveAnexosCount ?? contact?.documents_count ?? 0}</span>
               <span>anexos</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('auditoria')}
-              className={
-                'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ' +
-                (activeTab === 'auditoria'
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted/40')
-              }
-              aria-pressed={activeTab === 'auditoria'}
-              title="Linha do tempo de auditoria LGPD"
-            >
-              <Activity size={11} aria-hidden />
-              <span>Auditoria</span>
             </button>
             <button
               type="button"
@@ -2181,8 +2177,9 @@ function ClienteSheet({
                   Notion/Linear. Render-condicional anterior desmontava o componente,
                   matando state + cleanup clearTimeout matando debounces → user digita
                   CEP/número/etc e troca pra aba "Contato" em <800ms → valor sumia.
-                  Tabs read-only (oss/ia/auditoria) seguem condicionais — desmontar
-                  é OK pra elas (consultas pesadas, sem state user-editável). */}
+                  Tabs read-only (placas/ia) seguem condicionais — desmontar
+                  é OK pra elas (consultas pesadas, sem state user-editável).
+                  Auditoria agora é sub-aba de Operações (desmonta junto do OssTab). */}
               <div hidden={activeTab !== 'identificacao'}>
                 <IdentificacaoTab
                   contact={contact}
@@ -2230,9 +2227,6 @@ function ClienteSheet({
               )}
               {activeTab === 'ia' && (
                 <IATab contact={{ id: contact.id, name: contact.name }} />
-              )}
-              {activeTab === 'auditoria' && (
-                <AuditoriaTab contact={{ id: contact.id }} />
               )}
             </>
           )}
@@ -2314,11 +2308,14 @@ function Pagination({
   perPage,
   onPageChange,
   onPerPageChange,
+  onShowShortcuts,
 }: {
   meta: ListMeta;
   perPage: number;
   onPageChange: (p: number) => void;
   onPerPageChange: (n: number) => void;
+  /** Abre o cheat-sheet de atalhos — encaixado no rodapé (antes era FAB flutuante). */
+  onShowShortcuts: () => void;
 }) {
   const { current_page, last_page, total, from, to } = meta;
   const canPrev = current_page > 1;
@@ -2326,6 +2323,20 @@ function Pagination({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1">
       <div className="text-xs text-muted-foreground">
+        {/* Atalhos de teclado — discreto no canto do rodapé (Wagner 2026-06-15:
+            "não gostei dele flutuante, deve ficar mais discreto, só encaixar").
+            Sem wrapper flex extra (ratchet de layout · ADR 0253): o botão já é
+            inline-flex e o texto flui inline ao lado. */}
+        <button
+          type="button"
+          onClick={onShowShortcuts}
+          aria-label="Atalhos de teclado"
+          title="Atalhos de teclado (?)"
+          className="inline-flex items-center gap-1.5 align-middle -ml-1 mr-1.5 rounded-md px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <Keyboard size={14} />
+          <Kbd>?</Kbd>
+        </button>
         {total === 0
           ? 'Nenhum cliente'
           : `Mostrando ${from ?? 0}–${to ?? 0} de ${total.toLocaleString('pt-BR')}`}

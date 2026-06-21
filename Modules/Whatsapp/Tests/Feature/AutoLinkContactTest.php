@@ -6,6 +6,7 @@ use App\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
@@ -32,6 +33,10 @@ uses(Tests\TestCase::class);
  *  009. Phone curto (<8 dígitos) NÃO faz query (anti false-positive)
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // Bridge events do MessageObserver / Conversation observers que disparam
     // em save() — em test isolado sem MessageObserver registrado, evita
     // surprise side-effects.

@@ -4,6 +4,9 @@ on:
   push:
     branches: [main, 6.7-react]
   pull_request:
+  # FV-F1 (plano SDD 2026-06-12 semana 0): dispatch manual pra provar a coleta
+  # JUnit sem depender de PR (artefato pest-ci-junit >0 bytes).
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -26,7 +29,14 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, intl, gd, pdo_mysql, zip, opentelemetry
-          coverage: none
+          # SDD P07 (ADR 0275 coverage_pct): pcov disponível no rail de CI (paridade
+          # com mutation-gate.yml). O scorecard NÃO mede coverage AQUI — o lane abaixo é
+          # um SUBCONJUNTO curado sqlite (.github/ci-sqlite-pest.list), e medir cobertura
+          # nele daria número falso-baixo ("métrica de forma" proibida — ADR 0275:68).
+          # A fonte HONESTA do coverage_pct é a suíte INTEIRA na nightly CT100
+          # (ct100-fullsuite.sh + governance/nightly-coverage.json). Por isso o pest
+          # abaixo mantém --no-coverage; pcov fica só disponível pra uso ad-hoc/local.
+          coverage: pcov
           tools: composer:v2
 
       - name: Validate composer.json + lock em sync (gate anti-drift)
@@ -92,7 +102,42 @@ jobs:
         # OpenAI; ex "mentira do Sonnet", parecer PR #2270). Modules/Jana nao
         # esta no modules-pest.yml, entao ancoramos a
         # catraca aqui pra ela rodar de fato em todo PR.
-        run: vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php --no-coverage
+        # FV-F1: --log-junit adicionado SEM mudar o subset de testes acima.
+        run: |
+          mkdir -p test-results
+          # Alvos vêm de .github/ci-sqlite-pest.list (1 path/linha, merge=union via
+          # .gitattributes → PRs concorrentes que adicionam testes NÃO conflitam).
+          # sort -u torna ordem/duplicata irrelevantes. Adicionar teste = 1 linha
+          # naquele arquivo (NÃO editar este ci.yml).
+          mapfile -t PEST_TARGETS < <(grep -vE '^[[:space:]]*(#|$)' .github/ci-sqlite-pest.list | sort -u)
+          if [ "${#PEST_TARGETS[@]}" -eq 0 ]; then
+            echo "::error::.github/ci-sqlite-pest.list vazio — nenhum alvo de teste"; exit 1
+          fi
+          echo "Lane sqlite — ${#PEST_TARGETS[@]} alvos:"; printf '  %s\n' "${PEST_TARGETS[@]}"
+          # --no-coverage MANTIDO de propósito (SDD P07): mesmo com pcov disponível no
+          # setup-php acima, este lane é um subconjunto curado — coverage aqui = número
+          # falso-baixo. O coverage_pct honesto vem da suíte inteira na nightly CT100.
+          vendor/bin/pest "${PEST_TARGETS[@]}" --no-coverage --log-junit test-results/junit.xml
+
+      # FV-F1 (plano SDD 2026-06-12): coleta JUnit que SOBREVIVE a falha de teste.
+      # A tentativa anterior rendeu artefato 0 bytes porque nada validava o XML
+      # antes do upload. Agora: sumário JSON por arquivo de teste com n_testcases
+      # checado contra o declarado no <testsuite> raiz (exit!=0 se XML ausente,
+      # 0 bytes ou incoerente) + upload com if: always() e if-no-files-found: error.
+      - name: Sumario JUnit por arquivo (junit-summary.mjs)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/junit.xml --out test-results/junit-summary.json
+
+      - name: Upload JUnit + sumario (sempre — a falha E o dado)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-ci-junit
+          path: |
+            test-results/junit.xml
+            test-results/junit-summary.json
+          retention-days: 14
+          if-no-files-found: error
 
   frontend:
     name: Frontend / Vite build

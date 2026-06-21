@@ -74,9 +74,16 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('repair_job_sheets');
-    Schema::dropIfExists('repair_statuses');
-    Schema::dropIfExists('activity_log');
+    // afterEach roda MESMO em teste pulado (PHPUnit 12: tearDown gated só por
+    // hasMetRequirements, que já é true antes do beforeEach/markTestSkipped).
+    // repair_statuses/repair_job_sheets são reais-migradas e activity_log é CORE —
+    // dropá-las no MySQL persistente do nightly corromperia o schema compartilhado.
+    // DDL só em sqlite (espelha o skip-guard do beforeEach).
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('repair_job_sheets');
+        Schema::dropIfExists('repair_statuses');
+        Schema::dropIfExists('activity_log');
+    }
 });
 
 test('JobSheet biz=1 não vaza pra query biz=99 (cross-tenant scope)', function () {

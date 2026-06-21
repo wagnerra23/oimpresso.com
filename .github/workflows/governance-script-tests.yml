@@ -1,0 +1,35 @@
+name: Governance script tests (advisory)
+
+# Roda os testes de regressao dos scripts de governanca (scripts/governance/*.test.mjs).
+# Fecha o gap "test local-only" (auditoria IA OS Onda 1, gap #2) para os scripts de
+# governanca: ate aqui esses .test.mjs so rodavam na maquina do dev.
+#   - adr-index-generate.test.mjs       decoder de titulo !!binary (Onda 1, gap #1, PR #3056)
+#   - settings-r10-registration.test.mjs R10 registrado em settings.json (gap #3, PR #3058)
+# Node puro, sem deps/DB/rede -- segundos. Advisory de nascenca (gates novos nunca
+# nascem required -- ADR 0271/0275); nao entra em branch protection.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: governance-script-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: governance script tests (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Decoder de titulo !!binary (adr-index-generate)
+        run: node scripts/governance/adr-index-generate.test.mjs
+      - name: Registro R10 em settings.json
+        run: node scripts/governance/settings-r10-registration.test.mjs

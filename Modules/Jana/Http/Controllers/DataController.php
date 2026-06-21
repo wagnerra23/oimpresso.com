@@ -241,7 +241,9 @@ class DataController extends Controller
                             // DashboardController@index redirect "sem metas → chat" (removido).
                             ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => '/ia/dashboard'],
                             ['key' => 'copiloto',  'label' => 'Copiloto',  'href' => '/ia'],
-                            ['key' => 'brief',     'label' => 'Brief',     'href' => '/ia/brief'],
+                            // Ghost 'brief' removido 2026-06-15 (Wagner): /ia/brief era stub
+                            // redundante (brief vive no chat + brief-fetch MCP + seção "Brief
+                            // diário" do dashboard). Rota + BriefController + Page apagados.
                             ['key' => 'memorias',  'label' => 'Memórias',  'href' => '/ia/memorias'],
                             ['key' => 'kb',        'label' => 'KB',        'href' => '/ia/kb'],
                             ['key' => 'regras',    'label' => 'Regras',    'href' => '/ia/regras'],

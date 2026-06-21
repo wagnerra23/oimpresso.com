@@ -211,12 +211,17 @@ class CashRegisterController extends Controller
 
             $input = $request->only(['closing_amount', 'total_card_slips', 'total_cheques', 'closing_note']);
             $input['closing_amount'] = $this->cashRegisterUtil->num_uf($input['closing_amount']);
+            $business_id = $request->session()->get('user.business_id');
             $user_id = $request->input('user_id');
             $input['closed_at'] = \Carbon::now()->format('Y-m-d H:i:s');
             $input['status'] = 'close';
             $input['denominations'] = ! empty(request()->input('denominations')) ? json_encode(request()->input('denominations')) : null;
 
-            CashRegister::where('user_id', $user_id)
+            // Tier 0 (ADR 0093): CashRegister não tem global scope e $user_id vem do request.
+            // Sem o filtro business_id, um tenant fecharia o caixa de outro business
+            // passando um user_id alheio. business_id vem SEMPRE da session, nunca do input.
+            CashRegister::where('business_id', $business_id)
+                                ->where('user_id', $user_id)
                                 ->where('status', 'open')
                                 ->update($input);
             $output = ['success' => 1,

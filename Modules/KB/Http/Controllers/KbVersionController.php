@@ -67,6 +67,7 @@ class KbVersionController extends Controller
             ], 422);
         }
 
+        // SUPERADMIN: lookup limitado por node_id (já validado ao tenant via firstOrFail acima) + version_id — bypass evita depender do scope de business_id em kb_node_versions
         $version = KbNodeVersion::withoutGlobalScopes()
             ->where('id', $data['version_id'])
             ->where('node_id', $node->id)

@@ -26,6 +26,13 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Copiloto/JANA-PRO-PRODUCT-PLAN.md
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Setup mínimo de schema pra Conversa
     foreach (['jana_conversas', 'jana_mensagens'] as $t) {
         Schema::dropIfExists($t);

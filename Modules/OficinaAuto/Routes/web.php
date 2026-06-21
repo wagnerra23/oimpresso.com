@@ -8,6 +8,7 @@ use Modules\OficinaAuto\Http\Controllers\ProducaoOficinaController;
 use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderItemController;
+use Modules\OficinaAuto\Http\Controllers\ServiceOrderPhotoController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -33,9 +34,10 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->prefix('oficina-auto')
     ->group(function () {
         // ─────────────────────────────────────────────────────────────────────
-        // Produção · Oficina — Kanban estado das caçambas (Martinho 13/maio 2026).
-        // Espelha 1:1 prototipo-ui/prototipos/producao-oficina/F1.html adaptado
-        // pra caçambas (5 colunas: disponivel/locada/aguardando/manutencao/pronta).
+        // Produção · Oficina — Kanban de REPARO (5 etapas: Recepção → Diagnóstico →
+        // Aguardando peças → Em execução → Pronto). Convergência visual landada no
+        // PR #2417. As keys FSM internas seguem como dívida F3 (charter v4). Oficina =
+        // reparo, não locação (ADR 0265 — order_type ∈ {manutencao, mecanica}).
         // ─────────────────────────────────────────────────────────────────────
         Route::get('producao-oficina',
             [ProducaoOficinaController::class, 'index'])
@@ -44,6 +46,12 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // CRUD Vehicle
         Route::get('veiculos',                     [VehicleController::class, 'index'])->name('oficinaauto.vehicles.index');
         Route::get('veiculos/create',              [VehicleController::class, 'create'])->name('oficinaauto.vehicles.create');
+        // Consulta de placa (AJAX) — digita placa → dados técnicos do veículo.
+        // ANTES de veiculos/{vehicle} pra 'consulta-placa' não virar parâmetro.
+        // Throttle 20/min anti-abuse (consulta externa pode ter custo por chamada).
+        Route::post('veiculos/consulta-placa',     [VehicleController::class, 'consultaPlaca'])
+            ->middleware('throttle:20,1')
+            ->name('oficinaauto.vehicles.consulta-placa');
         // D8 Security Wave 15: throttle 60 req/min nas mutações autenticadas (anti-bot+anti-abuse).
         Route::post('veiculos',                    [VehicleController::class, 'store'])
             ->middleware('throttle:60,1')
@@ -155,6 +163,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->name('oficinaauto.service_orders.history');
 
         // ─────────────────────────────────────────────────────────────────────
+        // F3 OS-V2-5 — Gate (checklist de etapa) da próxima transição da OS.
+        // Frontend ServiceOrderStageGate.tsx consome no drawer (entre Peças e
+        // Pipeline FSM). O servidor enforça a mesma regra no fsm/execute (422).
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('service-orders/{order}/fsm/gate',
+            [ServiceOrderFsmActionController::class, 'gate'])
+            ->name('oficinaauto.service_orders.fsm.gate');
+
+        // ─────────────────────────────────────────────────────────────────────
         // Wave 3 — DVI (Vistoria Digital) US-OFICINA-035.
         // CAPTERRA-FICHA Repair gap #3 — wedge competitivo vs RepairShopr/mHelpDesk.
         // UI consumirá via fetch JSON em Wave 3b (depende drawer ServiceOrderRichSheet PR #1624).
@@ -197,6 +214,32 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [DviInspectionController::class, 'deletePhoto'])
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.dvi.photo.delete');
+
+        // ─────────────────────────────────────────────────────────────────────
+        // F3 OS-V2-1 — Fotos & Laudo OS-level (anexo da própria ServiceOrder via
+        // HasArquivos · distinto da foto POR item DVI acima). Entram no laudo A4
+        // impresso ("Fotos da vistoria"). Protótipo Cowork aprovado [W] 2026-06-09:
+        // zona drag&drop (vazio/enviando/preenchido) + lightbox com legenda editável.
+        // Multi-tenant Tier 0 (ADR 0093) via ArquivosService + cross-owner guard.
+        // ─────────────────────────────────────────────────────────────────────
+        Route::get('ordens-servico/{order}/fotos',
+            [ServiceOrderPhotoController::class, 'index'])
+            ->name('oficinaauto.orders.fotos.index');
+
+        Route::post('ordens-servico/{order}/fotos',
+            [ServiceOrderPhotoController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.fotos.store');
+
+        Route::patch('ordens-servico/{order}/fotos/{arquivo}',
+            [ServiceOrderPhotoController::class, 'updateLabel'])
+            ->middleware('throttle:60,1')
+            ->name('oficinaauto.orders.fotos.update');
+
+        Route::delete('ordens-servico/{order}/fotos/{arquivo}',
+            [ServiceOrderPhotoController::class, 'destroy'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.fotos.destroy');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────

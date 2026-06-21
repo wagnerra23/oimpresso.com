@@ -1,0 +1,93 @@
+name: Contrato de Tela (fidelidade visual — advisory na adoção)
+
+# A perna de fidelidade visual do trio-de-tela (charter/casos/Pest já mecanizados).
+# Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md
+#
+# REGRA ANTI-TEATRO (veredito dos adversários, sessão 2026-06-18):
+#  - SEM `continue-on-error`, SEM skip-as-pass via paths-filter mal-calibrado.
+#  - O "advisory" da fase de adoção vem de NÃO estar nos required checks (branch
+#    protection — decisão [W]), NÃO de esconder o vermelho. O job mostra vermelho
+#    de verdade; só não BLOQUEIA o merge até ser promovido.
+#  - Promoção a required (sob enforce_admins) = quando ≥1 tela estiver instrumentada
+#    e o falso-positivo medido = 0 por 1–2 semanas. Ver RUNBOOK §3 condição 2 + §5.
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/contrato-de-tela.mjs'
+      - 'scripts/contrato-de-tela.test.mjs'
+      - 'prototipo-ui/contrato/**'
+      - '**/*.contract.json'
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Pages/**/*.ts'
+      # backends que a catraca semântica (2b) inspeciona — em sync com os campos `backend` dos
+      # *.contract.json. Sem isto, um rename de state:'paired' SÓ no backend não dispara o gate
+      # (blind-spot achado pelo painel adversarial final · ADR 0286 §5).
+      - 'Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php'
+      - '.github/workflows/contrato-de-tela.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  # Integridade do próprio gate — HARD (se o gate não morde, nada disto vale).
+  selftest:
+    name: Self-test — o gate morde e libera certo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: node scripts/contrato-de-tela.test.mjs
+        run: node scripts/contrato-de-tela.test.mjs
+
+  # Preflight de base + contratos de tela ativos. Exit code real (sem mascarar).
+  contratos:
+    name: Preflight + contratos ativos
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # preflight/omissão precisam de origin/main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Preflight de base (branch ancestral de origin/main)
+        run: node scripts/contrato-de-tela.mjs --preflight origin/main
+      - name: Contratos de tela ativos (ignora EXEMPLO/template)
+        run: |
+          set -euo pipefail
+          mapfile -t contratos < <(git ls-files '*.contract.json' | grep -v EXEMPLO || true)
+          if [ "${#contratos[@]}" -eq 0 ]; then
+            echo "Nenhum contrato de tela ativo ainda (fase de adoção — ver RUNBOOK §5)."
+            exit 0
+          fi
+          rc=0
+          for c in "${contratos[@]}"; do
+            echo "== $c =="
+            node scripts/contrato-de-tela.mjs --contract "$c" || rc=1
+          done
+          exit $rc
+      - name: Mapa protótipo→prod (gerado) + --map --check (fonte existe + âncoras)
+        run: |
+          echo "::group::Mapa protótipo → produção (derivado · régua 5)"
+          node scripts/contrato-de-tela.mjs --map || true
+          echo "::endgroup::"
+          node scripts/contrato-de-tela.mjs --map --check
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Contrato de Tela divergente OU base atrás de origin/main."
+          echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
+          echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
+          echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."
+          echo "   - 'frontend NÃO menciona' → backend e frontend usam vocabulários de 'state' diferentes (ex: paired≠connected). Ver ADR 0286 §5."
+          echo "   - 'backend não emite' → 'valores' do acordo declara um state morto (drift de contrato)."
+          echo "   - 'branch atrás' → git rebase origin/main."
+          echo "   Desvio INTENCIONAL do protótipo? declare no corpo do PR:"
+          echo "     <!-- design-deviation: <o quê> → <por quê> (ADR/charter) -->"
+          echo "   Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md"

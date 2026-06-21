@@ -6,7 +6,7 @@
 import * as React from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import PageHeader from '@/Components/shared/PageHeader';
+import { Inline } from '@/Components/layout';
 
 interface Props {
   vehicleTypes: Record<string, string>;
@@ -58,6 +59,82 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
     notes: '',
   });
 
+  // Consulta de placa (charter v2): digita placa → busca dados técnicos do veículo.
+  // Só dados técnicos — proprietário NÃO é consultado nem preenchido (escopo LGPD).
+  const [lookupLoading, setLookupLoading] = React.useState(false);
+  const [lookupFeedback, setLookupFeedback] = React.useState<{
+    kind: 'success' | 'info' | 'error';
+    text: string;
+  } | null>(null);
+
+  async function handlePlateLookup() {
+    const plate = data.plate.trim();
+    if (!plate) {
+      setLookupFeedback({ kind: 'error', text: 'Digite a placa antes de buscar.' });
+      return;
+    }
+
+    setLookupLoading(true);
+    setLookupFeedback(null);
+
+    try {
+      const csrf =
+        (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+
+      const response = await fetch('/oficina-auto/veiculos/consulta-placa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ plate }),
+      });
+
+      const json = await response.json().catch(() => null);
+
+      if (!json) {
+        setLookupFeedback({ kind: 'error', text: 'Consulta indisponível. Preencha os dados manualmente.' });
+        return;
+      }
+
+      if (!json.found) {
+        setLookupFeedback({
+          kind: response.ok ? 'info' : 'error',
+          text: json.message ?? 'Nenhum dado encontrado para esta placa.',
+        });
+        return;
+      }
+
+      // Auto-preenche os campos técnicos retornados (só colunas existentes).
+      const fields = (json.data?.fields ?? {}) as Record<string, string | number>;
+      const updates: Record<string, string> = {};
+      Object.entries(fields).forEach(([key, value]) => {
+        updates[key] = String(value);
+      });
+
+      const label: string | undefined = json.data?.brand_model_label ?? undefined;
+
+      setData((previous) => ({
+        ...previous,
+        ...(updates as Partial<typeof previous>),
+        // Marca/modelo não têm coluna V0 — registra em notes só se estiver vazio.
+        notes: previous.notes || label || previous.notes,
+      }));
+
+      setLookupFeedback({
+        kind: 'success',
+        text: label ? `Dados encontrados: ${label}.` : 'Dados do veículo preenchidos.',
+      });
+    } catch {
+      setLookupFeedback({ kind: 'error', text: 'Erro de rede na consulta. Preencha os dados manualmente.' });
+    } finally {
+      setLookupLoading(false);
+    }
+  }
+
   // Foca + rola até o primeiro campo inválido quando o servidor responde com erros.
   React.useEffect(() => {
     const firstInvalid = FIELD_ORDER.find((field) => errors[field]);
@@ -96,15 +173,54 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="plate">Placa principal *</Label>
-              <Input
-                id="plate"
-                value={data.plate}
-                onChange={(e) => setData('plate', e.target.value.toUpperCase())}
-                maxLength={10}
-                required
-                aria-invalid={!!errors.plate}
-              />
+              <Inline gap={2} align="start">
+                <Input
+                  id="plate"
+                  value={data.plate}
+                  onChange={(e) => setData('plate', e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handlePlateLookup();
+                    }
+                  }}
+                  maxLength={10}
+                  required
+                  className="flex-1"
+                  aria-invalid={!!errors.plate}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void handlePlateLookup()}
+                  disabled={lookupLoading || !data.plate}
+                  title="Buscar dados do veículo pela placa"
+                >
+                  {lookupLoading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Search className="size-4" />
+                  )}
+                  <span className="ml-1">Buscar</span>
+                </Button>
+              </Inline>
               {errors.plate && <p className="text-sm text-destructive mt-1">{errors.plate}</p>}
+              {lookupFeedback && (
+                <p
+                  className={
+                    'text-sm mt-1 ' +
+                    (lookupFeedback.kind === 'success'
+                      ? 'text-success'
+                      : lookupFeedback.kind === 'error'
+                        ? 'text-destructive'
+                        : 'text-muted-foreground')
+                  }
+                  role="status"
+                  aria-live="polite"
+                >
+                  {lookupFeedback.text}
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="secondary_plate">Placa secundária (cavalo+reboque)</Label>

@@ -109,9 +109,9 @@ Idempotente, com tag `classified_by='backfill-us-arq-NNN'` pra rastreio. Padrão
 | **NFe XML autorizado** | application/xml `.xml` | archive | nfe-xml | arquivos | false | `Modules/NfeBrasil/Services/NfeService::writeArquivoXml` |
 | **DANFE PDF** | application/pdf `.pdf` | archive | nfe-danfe | arquivos | false | `Modules/NfeBrasil/Services/DanfeService::salvar` |
 | **Foto OS Repair** | image/jpeg, image/png | active | repair-foto | arquivos | false | `Modules/Repair/Http/Controllers/JobSheetController::uploadFoto` |
-| **Contrato cliente PDF** | application/pdf | sensitive | contrato | **vault** | **true** | `Modules/Contratos/...` (futuro) |
+| **Contrato cliente PDF** | application/pdf | sensitive | contrato | **vault** | **true** | Contratos (planejado — não existe) |
 | **Comprovante pagamento** | image/* ou pdf | active | comprovante-pagamento | arquivos | false | `Modules/Financeiro/...` |
-| **Anexo ticket suporte** | qualquer | active | ticket-anexo | arquivos | false | `Modules/Suporte/...` (futuro) |
+| **Anexo ticket suporte** | qualquer | active | ticket-anexo | arquivos | false | Suporte (planejado — não existe) |
 | **NFSe XML** | application/xml | archive | nfse-xml | arquivos | false | `Modules/NfeBrasil/Services/NfseService` |
 | **Boleto-pago PDF** | application/pdf | archive | boleto-recibo | arquivos | false | `Modules/RecurringBilling/...` |
 | **`.env` / `.key` / `.pfx`** | qualquer | — | — | — | — | **❌ BLOQUEAR** (CuradorEngine flag `sensitive_env_real` → throw) |

@@ -126,7 +126,7 @@ function nodeData(n: GraphNode, icon: ReactNode): any {
         <div className="text-xs">{icon}</div>
         <div className="font-semibold text-xs leading-tight">{n.data.label}</div>
         {lines.length > 0 && (
-          <div className="text-[9px] text-zinc-500 mt-0.5">{lines.join(' · ')}</div>
+          <div className="text-[9px] text-muted-foreground mt-0.5">{lines.join(' · ')}</div>
         )}
       </div>
     ),

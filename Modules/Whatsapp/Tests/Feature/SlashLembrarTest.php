@@ -39,6 +39,10 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-074
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['messages', 'conversations', 'channels', 'jana_memoria_facts'] as $t) {
         Schema::dropIfExists($t);
     }

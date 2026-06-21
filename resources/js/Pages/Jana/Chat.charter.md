@@ -3,9 +3,9 @@ page: /jana/chat
 component: resources/js/Pages/Jana/Chat.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-18
+last_validated: "2026-05-18"
 parent_module: Jana
-related_adrs: [0110, 0094, 0107, 0114]
+related_adrs: [110, 94, 107, 114]
 tier: A
 charter_version: 2
 ---

@@ -5,7 +5,14 @@ type: reference
 ---
 # Deploy + recovery patterns (Hostinger)
 
+> **⚠️ STATUS 2026-06-10 — o caminho de deploy MUDOU ([ADR 0269](../decisions/0269-deploy-automatico-build-no-runner.md)).** A partir de agora **`deploy.yml` dispara AUTOMÁTICO em push pra main** (exceto docs: `memory/**`, `**.md`, `prototipo-ui/**`, `cowork-inbox/**`), com o **JS buildado NO RUNNER** (ubuntu, não no Hostinger) + publish atômico + OPcache reset **obrigatório** + smoke que valida hash de bundle. **Merge agora = publicado** pra mudanças não-doc — some a pegadinha "merge ≠ publicado" das §2.1/§2.2 abaixo. Consequências práticas:
+> - **`quick-sync.yml` perdeu o trigger `push`** (virou `workflow_dispatch`-only). Toda referência abaixo a "quick-sync auto on push" está **superada** — quem auto-roda no merge é o `deploy.yml`.
+> - O **build no shared host** (causa raiz dos 500/hashes stale, §2.3) **saiu do fluxo normal** — só sobra no `force-clean-rebuild` (nuclear manual). **Não usar `force-clean-rebuild` no fluxo padrão** — ele rebuilda no Hostinger, exatamente o que o 0269 elimina.
+> - As receitas de **recovery manual abaixo continuam válidas como FALLBACK** quando o auto-deploy falha (SSH flaky, etc.) — mas confira primeiro `gh run list --workflow=deploy.yml --limit 1`, não o quick-sync.
+
 Consolidação de receitas operacionais que se entrelaçam em sessões de deploy. Validadas várias vezes em 2026-04-25 → 2026-05-10.
+
+> **⚠️ MUDANÇA DE POLÍTICA 2026-06-10 (ADR 0269) — ler antes do resto:** o auto-deploy canônico em push pra main passou a ser o **`deploy.yml`** (`Deploy to Hostinger`), que builda o JS **no runner** (ubuntu, determinístico) e publica os bundles via tar/ssh. O **`quick-sync.yml` perdeu o trigger `push`** (virou escape manual `workflow_dispatch`-only). Várias receitas abaixo (§2, §2.1-2.4, §5) descrevem o mundo "quick-sync auto + build no Hostinger" — continuam válidas como **recuperação manual** e pro escape `quick-sync`, mas o caminho-padrão agora é o auto-deploy do `deploy.yml`. Ver §8.
 
 ## 1. composer install OBRIGATÓRIO pós-push em main (se composer.json/lock muda)
 
@@ -435,3 +442,92 @@ public function show(Request $request, ServiceOrder $order)
 **Lição:** flag `__debug_diagnose_task_N` no payload + status 200 (não 500) permite distinguir "endpoint corrigido" vs "wrapper ainda ativo" no smoke pós-fix. Caso real PR #1209 (diagnose) → PR #1211 (fix authorize trait).
 
 Refs SSH: hostinger.md (IP, key, repo path).
+
+## 8. Merge ≠ publicado — auto-deploy unificado + build no runner (2026-06-10, ADR 0269)
+
+**Lição central:** *"Merge ≠ publicado"*. Até 2026-06-10 publicar em prod exigia orquestrar workflows na mão — `deploy.yml` (manual: composer/migrate, mas **não** buildava JS) + `force-clean-rebuild` — e **o JS buildava no shared host** (npm no Hostinger), causa raiz dos hashes stale (20/05) e do 500 por estouro de threads (§2.3, 03/06). O `quick-sync.yml` até auto-disparava, mas era leve (sem composer/migrate) e também buildava no servidor.
+
+**O que mudou (ADR 0269):**
+- **Auto-trigger:** push em main (exceto `memory/**`, `**.md`, `prototipo-ui/**`, `cowork-inbox/**`) dispara o `deploy.yml` sozinho. Merge na main = publicado.
+- **Build no runner:** job `build` em ubuntu-latest (node 24 + `npm ci` + `build:inertia` + `build`) → artefato → job `deploy` envia via **tar/ssh + swap atômico** (`.new` → `mv`, mantém `.old` pra rollback). Acabou o build frágil no Hostinger.
+- **`quick-sync.yml`** perdeu o `push` (escape manual only) pra não rodar deploy concorrente (mesma concurrency `deploy-production`).
+- **OPcache reset OBRIGATÓRIO** (warning → falha): secret `OPCACHE_RESET_TOKEN` criado; deploy grava o token em `storage/app/opcache_reset_token` (fora do git/webroot, sobrevive a `git reset --hard`); `_ops_opcache_reset.php` lê dessa fonte (script PHP cru não lê o `.env` via `getenv()` no LSPHP). Só tolera `OPCACHE_UNAVAILABLE`.
+- **Smoke valida hash de bundle:** compara `/assets/` servidos antes×depois; se `resources/js|css` mudou no push mas o hash não mudou → deploy vermelho (publicação não chegou).
+
+**Pegadinha catalogada hoje (10/06):** ao rodar deploy.yml + force-clean manualmente pra "destravar", os **hashes dos bundles vieram idênticos** antes×depois (`app-PfSk7SD1.js` / `inertia-Bawe61gt.css`). Isso **não é bug** — hash do Vite é determinístico do conteúdo: um cold rebuild do `main` reproduzir o mesmo hash **prova que o prod já servia o `main` atual**. Hash idêntico após rebuild = prod já estava publicado, não há o que "republicar" no nível do bundle. Se o operador ainda vê tela velha com hash igual, o problema **não é o bundle** (é dado server-side, OPcache, ou cache de navegador) — investigar lá, não rebuildar de novo.
+
+**Redes de segurança mantidas:** backup com rotação (5 mais recentes), maintenance on/off, composer (sem `--no-dev` — Faker em prod), migrate, caches (sem `route:cache`, hotfix 27/05), smoke estrito.
+
+**Incidente do 1º auto-deploy (10/06, corrigido no mesmo dia):**
+1. **`npm run build` NÃO sai em `public/build/`.** O build legado (vite.config.js) emite **`public/css/tailwind.css`** (e nada em `public/build/`). O publish do deploy testava `test -d artifact/build` sob `set -e` → falhou em ~6ms. **Os dois artefatos a publicar são `public/build-inertia/` (dir Inertia) + `public/css/` (Tailwind legado)** — ambos gitignored (`/public/build-inertia/` + `/public/css/`). `build-inertia` faz swap de diretório; `css` é copiado por cima.
+2. **Site preso em 503.** O publish falhou DEPOIS do `php artisan down` e ANTES do `up` → maintenance preso até intervenção manual. **Restauração rápida** (sem precisar consertar o bug): `gh workflow run deploy.yml -f skip_backup=true -f skip_migrate=true -f extra_artisan=up` — o step `Artisan extra` roda `php artisan up` antes do publish quebrar. **Fix permanente:** step `Failsafe` com `if: always()` que garante `php artisan up` em qualquer saída (invariante "auto-deploy nunca deixa o site em maintenance").
+3. **Bundles do servidor sobrevivem.** `git reset --hard` NÃO toca arquivos gitignored → `public/build-inertia/` e `public/css/` do último build válido permanecem. Por isso destravar o maintenance já restaura o site funcional, mesmo com o publish do deploy falho.
+
+Refs: ADR 0269; `.github/workflows/deploy.yml`; `public/_ops_opcache_reset.php`.
+
+## 9. Deploy "preso" 15-30min / falso-sucesso — flake do SSH Hostinger no Pré-deploy check (RECORRENTE · lição 2026-06-20)
+
+> Modo de falha MAIS comum do auto-deploy. Bateu **3x numa sessão só** (2026-06-20). É a **65002 (porta SSH) flakando**, NÃO bug do código que você acabou de mergear.
+
+### Assinatura (reconhecer em 30s)
+- Deploy `in_progress` por **15-30min+** (normal é ~7min).
+- `gh run view <id> --json jobs`: passo **"Pré-deploy check — server state" = failure**, e TODOS os passos de deploy (Backup / Maintenance mode ON / Git pull / Composer / Publicar bundles / Smoke) = **skipped**; o run fica preso no **"Failsafe" (`if: always()`)** que faz SSH e trava.
+- **Prod 200 (saudável) no build ANTIGO** — o fail-safe funcionou: NADA foi aplicado.
+- Prova de que NÃO subiu: `curl https://oimpresso.com/build-inertia/manifest.json` -> ache o chunk (`Index-XXXX.js` / `ComposerV4-XXXX.js`) -> `grep` do marcador novo (testid/string da mudança) = **0**.
+
+### Causa-raiz
+A rota SSH do Hostinger (**porta 65002**) cai/flaka intermitente **enquanto a 443/HTTPS segue 200** (por isso o site responde mas o deploy não conecta). O Pré-deploy check faz SSH via `ssh_exec.sh` (`-4 ConnectTimeout=180 ConnectionAttempts=3`) e falha quando a 65002 está fora na janela. Mesmo flake de `hostinger.md` §"warm-up + retry".
+
+### Recuperação (canon — NÃO martelar = risco de ban)
+1. Confirme a assinatura (pré-check failure + steps skipped + prod 200 antigo + chunk vivo sem o marcador).
+2. Probe da rota: `timeout 12 bash -c 'cat </dev/null >/dev/tcp/148.135.133.115/65002'` -> conectou = rota voltou.
+3. `gh run cancel <id>` no run preso (nada aplicado -> cancelar é seguro). O Failsafe ignora o cancel por ~min até o GitHub forçar; o deploy enfileirado assume.
+4. **Re-disparar UMA vez** com a rota de pé: `gh run rerun <id>` ou `gh workflow run deploy.yml --ref main`. Passa de primeira quando a 65002 está no ar.
+5. **NÃO** re-disparar em loop. **NÃO** encurtar ConnectTimeout (lição cara 2026-06-11 — piorou; ver `hostinger.md`).
+
+### Por que recorre + fix SEGURO proposto (deploy.yml)
+É inerente: 65002 flaky + design fail-safe (correto — não aplica nada se o server não responde). O deploy **falhar** está certo; o que incomoda é (a) **travar ~30min no Failsafe** e (b) recuperação manual.
+- **Fix seguro (sem encurtar timeout, sem hammering):** o Failsafe (`if: always()`) só precisa de SSH se o deploy chegou a ligar maintenance. Quando o Pré-deploy check falha, **maintenance NUNCA ligou -> site já está up -> o Failsafe não precisa SSHar**. Gatear o SSH do Failsafe pra só rodar se o passo "Maintenance mode ON" tiver executado (dar `id:` ao passo e usar `if: always() && steps.<id>.outcome == 'success'`). Assim, flake no pré-check = run **falha rápido** (sem pendurar 30min), sem tocar em timeout.
+- **NÃO** encurtar o ConnectTimeout do Failsafe: se a rota está só LENTA (não DOWN), ele precisa do tempo pra rodar `php artisan up` e não deixar o site em 503 (motivo de existir — §8 / 2026-06-10).
+
+Cross-ref: `hostinger.md` (flags SSH canônicos · "esperar a rota voltar e re-disparar UMA vez").
+
+## 10. Merge-flurry → janela "source à frente do classmap" → cron `schedule:run` crasha (2026-06-20)
+
+> Achado durante o incidente `procedure_drift` ([session 2026-06-20](../sessions/2026-06-20-incidente-procedure-drift-false-positivo.md)). **Web 200 o tempo todo, mas TODO `php artisan` — incluindo o cron — fatala no boot.** Não é deploy quebrado; é uma **janela transitória** que se repete durante um flurry de merges.
+
+### Assinatura (reconhecer em 30s)
+- `php artisan <qualquer>` (incl. cron `schedule:run` a cada minuto, e `jana:health-check` 06:00) fatala:
+  `Illuminate\Contracts\Container\BindingResolutionException — Target class [Modules\…\AlgumCommand] does not exist`.
+- `grep -c AlgumCommand vendor/composer/autoload_classmap.php` = **0**, **enquanto** o arquivo `.php` existe em disco e o namespace/PSR-4 estão corretos.
+- **`/login` (web) segue 200** — comandos são lazy no kernel HTTP; o crash é só no console.
+- **A classe que falha MUDA entre observações** (segue o último merge: 20/06 foi `McpTasksOrphansCommand` #3106 → depois `ProfileDistillCommand` #3115). Janela móvel ≠ deploy único interrompido.
+
+### Causa-raiz
+O `deploy.yml` faz `git reset --hard origin/main` (avança o **source** pro tip atual de main) e **só depois**, num passo separado e mais lento, `composer dump-autoload -o --classmap-authoritative` (regenera o **classmap**). Numa **rajada de merges** (20/06: ~12 deploys em ~40min) com Hostinger lento (~min/deploy), o source roda à frente do classmap. Como o classmap é **authoritative** (PSR-4 fallback **desligado**), classe nova fora dele é **irresolvível**. O OS cron dispara `php artisan schedule:run` a cada minuto e cai na janela. O crash é no **boot do console kernel** (resolve `commands([...])` do provider via `Artisan::starting`→`resolveCommands`→`make()`) — **antes** de qualquer checagem de maintenance mode, então `php artisan down` **não** protege o cron.
+
+### Por que o boot-smoke (§deploy, #2912/#2952) NÃO cobre
+O boot-smoke console (`php artisan about` pós-dump-autoload) + o failsafe boot-gated garantem que o **deploy** não declare sucesso sobre um classmap stale (falha vermelho / segura 503). Mas a janela vulnerável é **durante/entre os deploys do flurry**, e o **cron externo não passa pelo deploy**. O guard protege o sinal do deploy, não o runtime do cron.
+
+### Recuperação
+- **Preferir DEIXAR a fila drenar.** Cada deploy roda seu próprio `dump-autoload` contra o source final → o classmap casa e o crash para sozinho (self-heal confirmado 20/06). Confirmar: `php artisan about` boota + `grep -c <Command> vendor/composer/autoload_classmap.php` = 1.
+- **Só reconciliar manual se ficar stale com a fila VAZIA** (após warm-up curl 5×, receita `hostinger.md`):
+  ```bash
+  composer dump-autoload -o --classmap-authoritative --no-scripts \
+    --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium
+  ```
+  **Mirror do canon do deploy** — NÃO usar `-o` puro (desliga authoritative, diverge do estado canônico até o próximo deploy). `--ignore-platform-req` evita o abort do dump-autoload standalone (lição 2026-06-10, §2.4/`deploy.yml`).
+- **CUIDADO com deploy in_progress:** rodar composer manual concorrente ao composer do deploy pode correr na escrita de `vendor/composer/autoload_classmap.php`. Se há deploy rodando, deixe-o terminar.
+
+### Revisão do modelo de concorrência (pedido Wagner 2026-06-20)
+- `deploy.yml` usa `concurrency: { group: deploy-production, cancel-in-progress: false }`. Serializa e **descarta runs PENDENTES superados** (só o mais novo pendente sobrevive); o in_progress sempre completa. Na prática os ~12 triggers de 20/06 rodaram ~4 deploys reais (resto cancelado pendente) — o modelo **já coalesce** razoável.
+- **NÃO trocar pra `cancel-in-progress: true`** num deploy de PROD. Cancelar um deploy no meio (git reset / composer dump / swap de bundle / maintenance ON) deixa estado parcial — inclusive o próprio classmap **corrompido** (a falha deste incidente). O `false` é proposital.
+- **Causa comportamental raiz = cadência de merge.** 12 merges code-touching em ~40min num shared host lento garante janelas sobrepostas. **Mitigação primária (zero código): serializar/bachar merges** — mergear, deixar `gh run watch` do deploy fechar (~7min), só então o próximo. Crítico à noite/madrugada quando ninguém observa o cron.
+- **Defesa-em-profundidade (opcional): gatear o cron.** Como o crash é no boot, o único jeito de poupar o cron na janela é um guard **shell** (sem bootar artisan) na linha do crontab do Hostinger, que pula quando o app está em maintenance:
+  ```bash
+  [ -f storage/framework/down ] || [ -f storage/framework/maintenance.php ] || /usr/bin/php artisan schedule:run
+  ```
+  (confirmar o flag exato em prod). Silencia o cron **durante** deploys (que ligam maintenance) — não cobre janela fora de maintenance, mas mata o ruído/jobs-perdidos do caso comum.
+- **Anti-padrão:** NÃO adicionar `dump-autoload` ao deploy (já roda, incondicional) nem outro boot-smoke (já existe, #2912/#2952). O gap é **runtime/cadência**, não deploy-time.
+
+Cross-ref: `hostinger.md` (SSH/composer/php paths) · [session 2026-06-20](../sessions/2026-06-20-incidente-procedure-drift-false-positivo.md) · `deploy.yml` (boot-smoke console #2912 · failsafe boot-gated #2952).

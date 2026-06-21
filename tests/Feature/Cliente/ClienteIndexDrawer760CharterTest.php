@@ -66,7 +66,7 @@ test('GUARD 3 — Cliente/Index.tsx ClienteSheet renderiza com w-[760px]', funct
 
 // ─── GUARD 4: 8 tabs presentes no DOM ────────────────────────────────────────
 
-test('GUARD 4 — Cliente/Index.tsx contem 8 tabs drawer (Identificacao..Auditoria)', function () {
+test('GUARD 4 — Cliente/Index.tsx tem 6 abas principais + chips; Auditoria migrou p/ OssTab', function () {
     $tsxPath = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
     $contents = file_get_contents($tsxPath);
 
@@ -76,12 +76,16 @@ test('GUARD 4 — Cliente/Index.tsx contem 8 tabs drawer (Identificacao..Auditor
         ->toContain('Endereço')
         ->toContain('Comercial')
         ->toContain('Classificação')
-        ->toContain('OSs')
+        ->toContain('Operações')
         ->toContain('IA')
-        ->toContain('Auditoria')
         ->toContain("'identificacao'")
-        ->toContain("'auditoria'")
-        ->toContain('DRAWER_TABS');
+        ->toContain('DRAWER_TABS')
+        // Wagner 2026-06-13: 'auditoria' saiu do Index (virou sub-aba de Operações).
+        ->not->toContain("'auditoria'");
+
+    // Auditoria agora vive no rail de Operações (OssTab).
+    $oss = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/OssTab.tsx');
+    expect($oss)->toContain("{ key: 'auditoria', label: 'Auditoria'");
 });
 
 // ─── GUARD 5: cross-tenant biz=1 nao ve contact biz=99 (404) ─────────────────

@@ -140,12 +140,13 @@ export default function ServiceOrderStagePipeline({ serviceOrderId, enabled, ref
       <div className="relative flex items-center justify-between">
         {/* Linha de fundo cobrindo todo o range */}
         <div className="absolute top-3 left-3 right-3 h-0.5 bg-border" aria-hidden="true" />
-        {/* Linha de progresso até o stage atual */}
+        {/* Linha de progresso até o stage atual — colunas flex-1 centram o dot em
+            (i + 0.5)/n da largura (não mais justify-between em i/(n-1)). */}
         {currentIdx > 0 && (
           <div
             className="absolute top-3 left-3 h-0.5 bg-foreground/40 transition-all"
             style={{
-              width: `calc(${(Math.min(currentIdx, mainPath.length - 1) / Math.max(mainPath.length - 1, 1)) * 100}% - ${currentIdx === mainPath.length - 1 ? '0.75rem' : '0px'})`,
+              width: `${((Math.min(currentIdx, mainPath.length - 1) + 0.5) / Math.max(mainPath.length, 1)) * 100}%`,
             }}
             aria-hidden="true"
           />
@@ -158,7 +159,9 @@ export default function ServiceOrderStagePipeline({ serviceOrderId, enabled, ref
           const colors = STAGE_DOT_COLOR_MAP[stage.color ?? 'gray'] ?? FALLBACK_COLOR;
 
           return (
-            <div key={stage.key} className="relative z-10 flex flex-col items-center gap-1.5">
+            // flex-1 min-w-0 + label truncate: cada etapa ocupa fatia igual e o
+            // nome NUNCA invade a vizinha (nome completo no title/tooltip).
+            <div key={stage.key} className="relative z-10 flex flex-1 min-w-0 flex-col items-center gap-1.5 px-0.5">
               <div
                 className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-full ring-4 transition-colors',
@@ -179,9 +182,10 @@ export default function ServiceOrderStagePipeline({ serviceOrderId, enabled, ref
               </div>
               <span
                 className={cn(
-                  'max-w-[80px] text-center text-[10px] leading-tight',
+                  'w-full truncate text-center text-[10px] leading-tight',
                   isCurrent ? 'font-semibold text-foreground' : 'text-muted-foreground',
                 )}
+                title={stage.name}
               >
                 {stage.name}
               </span>

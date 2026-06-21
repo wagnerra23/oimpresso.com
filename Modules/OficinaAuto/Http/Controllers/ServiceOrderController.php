@@ -40,191 +40,28 @@ class ServiceOrderController extends Controller
     /**
      * Index dashboard de Ordens de Serviço (V0.5 — pré-reunião Martinho 13/maio).
      *
-     * Combina locação + manutenção numa visão única com 4 KPIs + filtros + tabela rica.
-     * Espelha layout de Vehicles Index (Wave 5-B) e mockup
+     * Visão única de REPARO (ADR 0265 — locação erradicada): 3 KPIs + filtros +
+     * tabela rica. Espelha layout de Vehicles Index (Wave 5-B) e mockup
      * memory/requisitos/OficinaAuto/demo-martinho-2026-05-13/mockup.html
      *
-     * Schema::hasColumn fallback porque colunas Wave 5-A (order_type / delivery_address /
-     * expected_return_date / daily_rate) podem não estar migradas ainda nessa branch.
+     * Schema::hasColumn fallback porque colunas Wave 5-A (order_type / number /
+     * started_at) podem não estar migradas ainda nessa branch.
      *
-     * Filtros aceitos:
-     *  - ?status=locacao_ativa | manutencao_ativa | concluida_mes | atrasada | all
-     *  - ?type=locacao | manutencao | all
+     * Filtros aceitos (locação erradicada — ADR 0265):
+     *  - ?status=manutencao_ativa | concluida_mes | atrasada | all
+     *    (atrasada = OS não-terminal com expected_completion vencida — atraso de reparo)
+     *  - ?type=manutencao | mecanica | all
      *  - ?q=<busca em number/cliente/vehicle>
      */
     public function index(Request $request): Response
     {
-        abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('oficinaauto.service_order.view'),
-            403
-        );
-
-        $hasOrderType   = Schema::hasColumn('service_orders', 'order_type');
-        $hasReturnDate  = Schema::hasColumn('service_orders', 'expected_return_date');
-        $hasDeliveryAddr = Schema::hasColumn('service_orders', 'delivery_address');
-        $hasDailyRate   = Schema::hasColumn('service_orders', 'daily_rate');
-        $hasNumber      = Schema::hasColumn('service_orders', 'number');
-        $hasStartedAt   = Schema::hasColumn('service_orders', 'started_at');
-        $hasContact     = Schema::hasColumn('service_orders', 'contact_id');
-        $hasCurrentStage = Schema::hasColumn('service_orders', 'current_stage_id');
-        $hasVehicleNumber = Schema::hasColumn('vehicles', 'vehicle_number');
-        $hasCapacityM3  = Schema::hasColumn('vehicles', 'capacity_m3');
-
-        $statusFilter = $request->string('status')->toString();
-        $typeFilter   = $request->string('type')->toString();
-        $stageFilter  = $request->string('stage')->toString();
-        $q            = $request->string('q')->toString();
-
-        // ──────── Base query (multi-tenant via global scope) ────────
-        $vehicleCols = ['id', 'plate', 'vehicle_type'];
-        if ($hasVehicleNumber) {
-            $vehicleCols[] = 'vehicle_number';
-        }
-        if ($hasCapacityM3) {
-            $vehicleCols[] = 'capacity_m3';
-        }
-
-        $base = ServiceOrder::query()->with([
-            'vehicle:' . implode(',', $vehicleCols),
-        ]);
-
-        if ($hasContact) {
-            $base->with('contact:id,name');
-        }
-
-        // ──────── Filter status (semântico) ────────
-        $base->when($statusFilter !== '' && $statusFilter !== 'all', function ($qb) use ($statusFilter, $hasOrderType, $hasReturnDate) {
-            switch ($statusFilter) {
-                case 'locacao_ativa':
-                    if ($hasOrderType) {
-                        $qb->where('order_type', 'locacao');
-                    }
-                    $qb->whereNotIn('status', ['concluida', 'cancelada']);
-                    break;
-                case 'manutencao_ativa':
-                    if ($hasOrderType) {
-                        $qb->where('order_type', 'manutencao');
-                    }
-                    $qb->whereNotIn('status', ['concluida', 'cancelada']);
-                    break;
-                case 'concluida_mes':
-                    $qb->where('status', 'concluida')
-                        ->whereMonth('updated_at', now()->month)
-                        ->whereYear('updated_at', now()->year);
-                    break;
-                case 'atrasada':
-                    if ($hasOrderType) {
-                        $qb->where('order_type', 'locacao');
-                    }
-                    $qb->whereNotIn('status', ['concluida', 'cancelada']);
-                    if ($hasReturnDate) {
-                        $qb->whereNotNull('expected_return_date')
-                            ->whereDate('expected_return_date', '<', now()->toDateString());
-                    } else {
-                        // Fallback: sem expected_return_date usa expected_completion
-                        $qb->whereNotNull('expected_completion')
-                            ->whereDate('expected_completion', '<', now()->toDateString());
-                    }
-                    break;
-                default:
-                    // status livre legado: aberta/em_servico/etc
-                    $qb->where('status', $statusFilter);
-            }
-        });
-
-        // ──────── Filter type ────────
-        $base->when($typeFilter !== '' && $typeFilter !== 'all' && $hasOrderType, function ($qb) use ($typeFilter) {
-            $qb->where('order_type', $typeFilter);
-        });
-
-        // ──────── Filter stage (Gap #3 — chips por current_stage_id estilo Linear) ────────
-        // UI manda stage.key (ex 'disponivel'), backend resolve pra stage_id via JOIN
-        // com sale_process_stages dos processos cacamba_*. Multi-tenant Tier 0 (ADR 0093)
-        // preservado via global scope ServiceOrder + filter business_id em SaleProcess.
-        $base->when($stageFilter !== '' && $stageFilter !== 'all' && $hasCurrentStage, function ($qb) use ($stageFilter) {
-            $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
-            $stageIds = \App\Domain\Fsm\Models\SaleProcessStage::query()
-                ->whereHas('process', function ($p) use ($businessId) {
-                    $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
-                        ->where('business_id', $businessId)
-                        ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
-                })
-                ->where('key', $stageFilter)
-                ->pluck('id');
-            $qb->whereIn('current_stage_id', $stageIds);
-        });
-
-        // ──────── Search ────────
-        $base->when($q !== '', function ($qb) use ($q, $hasNumber, $hasContact) {
-            $like = '%' . $q . '%';
-            $qb->where(function ($w) use ($like, $q, $hasNumber, $hasContact) {
-                if ($hasNumber) {
-                    $w->orWhere('number', 'like', $like);
-                }
-                if (ctype_digit($q)) {
-                    $w->orWhere('id', (int) $q);
-                }
-                $w->orWhereHas('vehicle', function ($v) use ($like) {
-                    $v->where('plate', 'like', $like);
-                });
-                if ($hasContact) {
-                    $w->orWhereHas('contact', function ($c) use ($like) {
-                        $c->where('name', 'like', $like);
-                    });
-                }
-            });
-        });
-
-        // ──────── Sort: ativas primeiro, atrasadas no topo das ativas ────────
-        // CASE: cancelada/concluida = 2, atrasada = 0, ativa normal = 1
-        if ($hasReturnDate) {
-            $base->orderByRaw(
-                "CASE
-                    WHEN status IN ('concluida', 'cancelada') THEN 2
-                    WHEN expected_return_date IS NOT NULL AND expected_return_date < CURDATE() THEN 0
-                    ELSE 1
-                END ASC"
-            );
-        } else {
-            $base->orderByRaw(
-                "CASE WHEN status IN ('concluida', 'cancelada') THEN 1 ELSE 0 END ASC"
-            );
-        }
-        $base->orderByDesc('id');
-
-        // Wave 26 D6 — Inertia::defer pro kpis payload (RUNBOOK-inertia-defer-pattern):
-        // - orders eager (sempre tem; resposta partial reload `only:['orders']` espera direto)
-        // - kpis defer (4 COUNT queries — pula quando UI já tem cached/partial reload)
-        // - schemaFlags eager (booleanos baratos Schema::hasColumn cached)
-        // - filters eager (UI state)
-        // Rollback Wave L/W7 PR #963 estudado: defer só aplicado em payload que NÃO é target de partial reload + tem custo > 50ms.
-        return Inertia::render('OficinaAuto/ServiceOrders/Index', [
-            'orders'  => $base->paginate(25)->withQueryString(),
-            'filters' => [
-                'status' => $statusFilter,
-                'type'   => $typeFilter,
-                'stage'  => $stageFilter,
-                'q'      => $q,
-            ],
-            'kpis' => Inertia::defer(fn () => $this->buildServiceOrderKpisPayload($hasOrderType, $hasReturnDate)),
-            // Gap #3 estado-da-arte FSM screen — chips por stage estilo Linear.
-            // Defer porque é COUNT por stage (~8 stages × cacamba_* processos).
-            'stages' => Inertia::defer(fn () => $this->buildStagesPayload($hasCurrentStage)),
-            // schemaFlags: booleanos baratos (Schema::hasColumn cached) — mantém eager
-            'schemaFlags' => [
-                'has_order_type'      => $hasOrderType,
-                'has_return_date'     => $hasReturnDate,
-                'has_delivery_address' => $hasDeliveryAddr,
-                'has_daily_rate'      => $hasDailyRate,
-                'has_number'          => $hasNumber,
-                'has_started_at'      => $hasStartedAt,
-                'has_contact'         => $hasContact,
-                'has_current_stage'   => $hasCurrentStage,
-                'has_vehicle_number'  => $hasVehicleNumber,
-                'has_capacity_m3'     => $hasCapacityM3,
-            ],
-        ]);
+        // Tela unificada "Oficina Auto" (pedido [W] 2026-06-11): /ordens-servico e
+        // /ordens-servico/board servem a MESMA tela (workspace com toggle Kanban·Lista·
+        // Grade·Fila in-page, KPIs/abas/toolbar compartilhados). index() delega pro
+        // board() — zero duplicação de payload ou de componentes. A antiga listagem
+        // paginada separada (componente OficinaAuto/ServiceOrders/Index) foi aposentada;
+        // as 4 views derivam do mesmo payload `columns`.
+        return $this->board($request);
     }
 
     /**
@@ -256,6 +93,11 @@ class ServiceOrderController extends Controller
 
         $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
         $q = $request->string('q')->toString();
+        // Filtros do quadro (mesmo eixo Box/Mecânico que o RichSheet mostra).
+        // box_label/assigned_user_id chegaram na Wave 2.1 (US-OFICINA-027) — guard de schema.
+        $hasResourceSchema = Schema::hasColumn('service_orders', 'box_label');
+        $mecanico = $request->integer('mecanico') ?: null;
+        $box      = $request->string('box')->toString();
 
         // Stages do processo real do carro, ordenados (multi-tenant via business_id).
         $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
@@ -273,23 +115,38 @@ class ServiceOrderController extends Controller
         $stageKeyById = $stages->pluck('key', 'id');
         $boardStageIds = $boardStages->pluck('id');
 
-        // OS do carro: em pipeline (stage de board) OU recém-criadas sem pipeline
-        // (order_type=mecanica, current_stage_id null) — estas caem na coluna inicial
-        // com in_pipeline=false (drag desabilitado até abrir a OS e iniciar o pipeline).
+        // Membership do quadro: OS em pipeline (stage de board) OU recém-criadas sem
+        // pipeline (order_type=mecanica, current_stage_id null) — estas caem na coluna
+        // inicial com in_pipeline=false (drag desabilitado até abrir a OS e iniciar).
+        // Closure reusada pra montar as opções de filtro sobre o MESMO universo.
+        $boardMembership = function ($w) use ($boardStageIds) {
+            $w->whereIn('current_stage_id', $boardStageIds)
+                ->orWhere(function ($w2) {
+                    $w2->where('order_type', 'mecanica')->whereNull('current_stage_id');
+                });
+        };
+
+        // Opções dos selects (Box/Mecânico) — distinct sobre o universo do quadro, ANTES
+        // de aplicar box/mecanico (senão o select encolheria pra própria seleção).
+        [$boxOptions, $mecanicoOptions] = $this->buildBoardFilterOptions(
+            $boardMembership,
+            $businessId,
+            $hasResourceSchema,
+        );
+
         $orders = ServiceOrder::query()
             ->with([
-                'vehicle:id,plate,vehicle_type',
+                'vehicle:id,plate,vehicle_type,mileage_at_entry',
                 'contact:id,name',
                 'assignedUser:id,first_name,last_name,surname',
                 'dviInspectionItems',
                 'dviInspectionItems.arquivos',
             ])
-            ->where(function ($w) use ($boardStageIds) {
-                $w->whereIn('current_stage_id', $boardStageIds)
-                    ->orWhere(function ($w2) {
-                        $w2->where('order_type', 'mecanica')->whereNull('current_stage_id');
-                    });
-            })
+            ->where($boardMembership)
+            // Filtro por mecânico (assigned_user_id) e/ou box (texto livre) — query (canon
+            // charter), não client-side. Guard de schema pra ambiente pré-Wave 2.1.
+            ->when($hasResourceSchema && $mecanico !== null, fn ($qb) => $qb->where('assigned_user_id', $mecanico))
+            ->when($hasResourceSchema && $box !== '', fn ($qb) => $qb->where('box_label', $box))
             ->when($q !== '', function ($qb) use ($q) {
                 $like = '%' . $q . '%';
                 $qb->where(function ($w) use ($like, $q) {
@@ -303,6 +160,12 @@ class ServiceOrderController extends Controller
             ->orderByDesc('id')
             ->limit(300)
             ->get();
+
+        // "Último" de cada OS — 1 query bulk no audit FSM (sale_stage_history),
+        // filtrada pelo processo oficina_mecanica_os pra não colidir com o
+        // transaction_id de vendas (a coluna é compartilhada por convenção legada).
+        // Paridade card Cowork (linha "últ.") com dado REAL de auditoria.
+        $lastActivityByOsId = $this->buildLastActivityMap($orders->pluck('id')->all(), $businessId);
 
         // Agrupa cards por stage_key (null → coluna inicial).
         $cardsByStage = [];
@@ -318,7 +181,11 @@ class ServiceOrderController extends Controller
             if ($stageKey === null || ! array_key_exists($stageKey, $cardsByStage)) {
                 continue;
             }
-            $cardsByStage[$stageKey][] = $this->shapeBoardCard($order, $currentStageId !== null);
+            $cardsByStage[$stageKey][] = $this->shapeBoardCard(
+                $order,
+                $currentStageId !== null,
+                $lastActivityByOsId[$order->id] ?? null,
+            );
         }
 
         $columns = $boardStages->map(fn ($s) => [
@@ -331,10 +198,130 @@ class ServiceOrderController extends Controller
 
         return Inertia::render('OficinaAuto/ServiceOrders/Board', [
             'columns'      => $columns,
-            'kpis'         => $this->buildBoardKpis($columns),
+            'kpis'         => $this->buildBoardKpis($columns, count($boxOptions)),
             'process_seeded' => $boardStages->isNotEmpty(),
-            'filters'      => ['q' => $q],
+            'filters'      => ['q' => $q, 'mecanico' => $mecanico, 'box' => $box !== '' ? $box : null],
+            'filterOptions' => ['boxes' => $boxOptions, 'mecanicos' => $mecanicoOptions],
         ]);
+    }
+
+    /**
+     * Mapa osId → "última atividade" (linha "últ." do card, paridade Cowork).
+     *
+     * 1 query bulk no audit append-only sale_stage_history (ADR 0129), juntando
+     * stage destino + label da ação. Filtrado por process key oficina_mecanica_os
+     * (a coluna transaction_id é compartilhada com vendas por convenção legada —
+     * sem o filtro de processo, uma venda com mesmo id colidiria). Multi-tenant
+     * Tier 0 (ADR 0093) via business_id explícito.
+     *
+     * @param  list<int>  $osIds
+     * @return array<int, array{label: string, at: string}>
+     */
+    private function buildLastActivityMap(array $osIds, int $businessId): array
+    {
+        if (empty($osIds)) {
+            return [];
+        }
+
+        // Stage IDs do processo de mecânica deste negócio — guarda contra colisão
+        // de transaction_id com pipelines de venda.
+        $mecanicaStageIds = \App\Domain\Fsm\Models\SaleProcessStage::query()
+            ->whereHas('process', function ($p) use ($businessId) {
+                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                    ->where('business_id', $businessId)
+                    ->where('key', 'oficina_mecanica_os');
+            })
+            ->pluck('id');
+
+        if ($mecanicaStageIds->isEmpty()) {
+            return [];
+        }
+
+        // Histórico das OS do quadro, mais recente primeiro. Pega o 1º (latest) por OS.
+        $rows = \App\Domain\Fsm\Models\SaleStageHistory::query()
+            ->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->whereIn('transaction_id', $osIds)
+            ->whereIn('to_stage_id', $mecanicaStageIds)
+            ->with(['toStage:id,name', 'action:id,label'])
+            ->orderByDesc('executed_at')
+            ->get(['id', 'transaction_id', 'action_id', 'to_stage_id', 'executed_at']);
+
+        $map = [];
+        foreach ($rows as $row) {
+            // getAttribute (não acesso a propriedade dinâmica) — evita property.notFound
+            // do PHPStan sobre transaction_id (guarded, sem @property) e sobre o Model
+            // genérico das relações belongsTo. Checagem explícita (sem ?? sobre mixed)
+            // pra não tropeçar no "left side not nullable".
+            $osId = (int) $row->getAttribute('transaction_id');
+            if (isset($map[$osId])) {
+                continue; // já temos o mais recente (ordenação desc)
+            }
+            $actionLabel = $row->action?->getAttribute('label');
+            $stageName = $row->toStage?->getAttribute('name');
+            $label = is_string($actionLabel) && $actionLabel !== ''
+                ? $actionLabel
+                : 'Etapa: ' . (is_string($stageName) && $stageName !== '' ? $stageName : '—');
+            $executedAt = $row->getAttribute('executed_at');
+            $map[$osId] = [
+                'label' => $label,
+                'at'    => $executedAt instanceof \Carbon\CarbonInterface ? $executedAt->toIso8601String() : '',
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Opções dos selects de filtro do quadro — boxes (texto livre) + mecânicos distintos
+     * entre as OS do universo do quadro (closure $membership). Mesmo eixo Box/Mecânico que
+     * o ServiceOrderRichSheet mostra. Global scope ServiceOrder já filtra business_id;
+     * mecânicos resolvidos com scope explícito por business (User não tem global scope).
+     *
+     * @param  \Closure  $membership  filtro de pertencimento ao quadro (reusa o do board)
+     * @return array{0: list<string>, 1: list<array{id:int, nome:string}>}
+     */
+    private function buildBoardFilterOptions(\Closure $membership, int $businessId, bool $hasResourceSchema): array
+    {
+        if (! $hasResourceSchema) {
+            return [[], []];
+        }
+
+        $boxes = ServiceOrder::query()
+            ->where($membership)
+            ->whereNotNull('box_label')
+            ->where('box_label', '!=', '')
+            ->distinct()
+            ->orderBy('box_label')
+            ->pluck('box_label')
+            ->values()
+            ->all();
+
+        $mechanicIds = ServiceOrder::query()
+            ->where($membership)
+            ->whereNotNull('assigned_user_id')
+            ->distinct()
+            ->pluck('assigned_user_id')
+            ->all();
+
+        $mecanicos = [];
+        if (! empty($mechanicIds)) {
+            $users = \App\User::query()
+                ->whereIn('id', $mechanicIds)
+                ->when($businessId > 0, fn ($qb) => $qb->where('business_id', $businessId))
+                ->orderBy('first_name')
+                ->get(['id', 'first_name', 'last_name', 'surname', 'username']);
+
+            foreach ($users as $u) {
+                $nome = trim((string) ($u->first_name ?? '') . ' ' . (string) ($u->last_name ?? ''));
+                if ($nome === '') {
+                    $nome = (string) ($u->surname ?? $u->username ?? '');
+                }
+                $mecanicos[] = ['id' => (int) $u->id, 'nome' => $nome !== '' ? $nome : '—'];
+            }
+        }
+
+        return [$boxes, $mecanicos];
     }
 
     /**
@@ -345,7 +332,7 @@ class ServiceOrderController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function shapeBoardCard(ServiceOrder $order, bool $inPipeline): array
+    private function shapeBoardCard(ServiceOrder $order, bool $inPipeline, ?array $lastActivity = null): array
     {
         $dvi = $order->dviInspectionItems;
         $dviTotal = $dvi->count();
@@ -382,6 +369,18 @@ class ServiceOrderController extends Controller
             && ! in_array($order->status, ['concluida', 'cancelada', 'entregue'], true)
             && $expected->isPast();
 
+        // box_label/assigned_user_id (Wave 2.1) podem não existir pré-migração — SELECT *
+        // não traz a coluna ausente e getAttribute devolve null (guard implícito).
+        $boxLabel = $order->getAttribute('box_label');
+
+        // Progresso (barra do card · paridade Cowork): % de itens DVI decididos pelo
+        // cliente sobre o total. Derivado de dado REAL (sem campo "progress" fake);
+        // null quando não há DVI (frontend esconde a barra).
+        $progress = $dviTotal > 0 ? (int) round($dviDone / $dviTotal * 100) : null;
+
+        // KM de entrada (mileage_at_entry do veículo) — campo real, null se ausente.
+        $km = $order->vehicle?->getAttribute('mileage_at_entry');
+
         return [
             'id'                => (int) $order->id,
             'number'            => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
@@ -394,11 +393,21 @@ class ServiceOrderController extends Controller
             'dvi_total'         => $dviTotal,
             'dvi_critico'       => $dviCritico,
             'valor'             => (float) $order->total_items,
+            // box + mechanic_id alimentam o re-pivot client-side do quadro (menu Visão:
+            // Foco Box/Mecânico) e a capacidade "x/y boxes" — Onda 1 paridade Cowork.
+            'box'               => is_string($boxLabel) && $boxLabel !== '' ? $boxLabel : null,
+            'mechanic_id'       => $order->getAttribute('assigned_user_id') !== null ? (int) $order->getAttribute('assigned_user_id') : null,
             'mechanic_name'     => $mechanicName ?: null,
             'mechanic_initials' => $mechanicInitials ?: null,
+            // Onda 1.5 paridade Cowork — campos do card rico (todos com lastro real):
+            'km'                => $km !== null ? (int) $km : null,
+            'progress'          => $progress,
             'entered_at'        => $order->entered_at?->toIso8601String(),
+            'completed_at'      => $order->completed_at?->toIso8601String(),
             'expected_completion' => $expected?->toIso8601String(),
             'is_overdue'        => $isOverdue,
+            // Linha "últ." — última transição FSM auditada (null se nunca transitou).
+            'last_activity'     => $lastActivity,
             'notes'             => $order->notes,
             'urls'              => [
                 'show' => '/oficina-auto/ordens-servico/' . $order->id,
@@ -408,17 +417,22 @@ class ServiceOrderController extends Controller
     }
 
     /**
-     * KPIs compactos do board (densidade @1280 — [W] mod #3). Derivados das colunas
-     * já montadas (zero query extra).
+     * KPIs compactos do board (densidade @1280). Derivados das colunas já montadas
+     * (zero query extra). Onda 1.5: set do protótipo Cowork — Recepção, Em
+     * diagnóstico, Aguardando peças, Em execução, Urgentes (atrasadas) e Valor em
+     * curso (faturamento previsto = soma do valor das OS não-terminais). Mantém as
+     * chaves antigas (backward-compat) e adiciona as novas.
      *
      * @param  array<int, array{key:string, count:int, cards:array<int,array<string,mixed>>}>  $columns
-     * @return array<string, int>
+     * @param  int  $boxesTotal  nº de boxes/elevadores distintos (sublabel "N boxes")
+     * @return array<string, int|float>
      */
-    private function buildBoardKpis(array $columns): array
+    private function buildBoardKpis(array $columns, int $boxesTotal = 0): array
     {
         $byKey = [];
         $total = 0;
         $atrasadas = 0;
+        $valorEmCurso = 0.0;
         foreach ($columns as $col) {
             $byKey[$col['key']] = $col['count'];
             $total += $col['count'];
@@ -426,121 +440,24 @@ class ServiceOrderController extends Controller
                 if (! empty($card['is_overdue'])) {
                     $atrasadas++;
                 }
+                $valorEmCurso += (float) ($card['valor'] ?? 0);
             }
         }
 
         return [
             'total'                => $total,
+            'recepcao'             => $byKey['recepcao'] ?? 0,
+            'em_diagnostico'       => $byKey['em_diagnostico'] ?? 0,
             'aguardando_aprovacao' => $byKey['aguardando_aprovacao'] ?? 0,
             'aguardando_pecas'     => $byKey['aguardando_pecas'] ?? 0,
             'em_execucao'          => $byKey['em_execucao'] ?? 0,
             'pronto_retirada'      => $byKey['pronto_retirada'] ?? 0,
             'atrasadas'            => $atrasadas,
+            'valor_em_curso'       => round($valorEmCurso, 2),
+            'boxes_total'          => $boxesTotal,
         ];
     }
 
-    /**
-     * Stages payload pros chips de filtro (Gap #3 estado-da-arte FSM screen).
-     *
-     * Retorna lista de stages dos processos cacamba_locacao + cacamba_manutencao
-     * do business atual com contador de OS em cada stage. Multi-tenant Tier 0
-     * (ADR 0093) via global scope ServiceOrder + filter business_id em SaleProcess.
-     *
-     * @return list<array{key:string, name:string, color:string|null, count:int, is_terminal:bool, process_key:string}>
-     */
-    private function buildStagesPayload(bool $hasCurrentStage): array
-    {
-        if (! $hasCurrentStage) {
-            return [];
-        }
-
-        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
-
-        $stages = \App\Domain\Fsm\Models\SaleProcessStage::query()
-            ->whereHas('process', function ($p) use ($businessId) {
-                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
-                    ->where('business_id', $businessId)
-                    ->whereIn('key', ['cacamba_locacao', 'cacamba_manutencao']);
-            })
-            ->with(['process' => function ($p) {
-                $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class);
-            }])
-            ->orderBy('sort_order')
-            ->get();
-
-        // 1 query bulk: counts por stage_id (multi-tenant via global scope ServiceOrder)
-        $countsByStageId = ServiceOrder::query()
-            ->whereIn('current_stage_id', $stages->pluck('id'))
-            ->selectRaw('current_stage_id, COUNT(*) as total')
-            ->groupBy('current_stage_id')
-            ->pluck('total', 'current_stage_id');
-
-        return $stages->map(fn ($stage) => [
-            'key'         => $stage->key,
-            'name'        => $stage->name,
-            'color'       => $stage->color,
-            'count'       => (int) ($countsByStageId[$stage->id] ?? 0),
-            'is_terminal' => (bool) $stage->is_terminal,
-            'process_key' => $stage->process->key,
-        ])->all();
-    }
-
-    /**
-     * KPIs Index — 4 COUNT queries separadas (não afetadas por filtros).
-     *
-     * Extraído pra helper + Inertia::defer no index() pra pular execução quando
-     * partial reload `only:['orders']` não pede kpis (RUNBOOK-inertia-defer-pattern).
-     */
-    private function buildServiceOrderKpisPayload(bool $hasOrderType, bool $hasReturnDate): array
-    {
-        $kpiBase = fn () => ServiceOrder::query();
-
-        if ($hasOrderType) {
-            $locacoesAtivas = $kpiBase()
-                ->where('order_type', 'locacao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count();
-
-            $manutencaoAtivas = $kpiBase()
-                ->where('order_type', 'manutencao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count();
-        } else {
-            // Fallback pré-Wave 5-A: tudo ainda não tem tipo, agrupa em "manutenção"
-            $locacoesAtivas = 0;
-            $manutencaoAtivas = $kpiBase()
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count();
-        }
-
-        $concluidasMes = $kpiBase()
-            ->where('status', 'concluida')
-            ->whereMonth('updated_at', now()->month)
-            ->whereYear('updated_at', now()->year)
-            ->count();
-
-        if ($hasReturnDate && $hasOrderType) {
-            $atrasadas = $kpiBase()
-                ->where('order_type', 'locacao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->whereNotNull('expected_return_date')
-                ->whereDate('expected_return_date', '<', now()->toDateString())
-                ->count();
-        } else {
-            $atrasadas = $kpiBase()
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->whereNotNull('expected_completion')
-                ->whereDate('expected_completion', '<', now()->toDateString())
-                ->count();
-        }
-
-        return [
-            'locacoes_ativas'   => $locacoesAtivas,
-            'manutencao_ativas' => $manutencaoAtivas,
-            'concluidas_mes'    => $concluidasMes,
-            'atrasadas'         => $atrasadas,
-        ];
-    }
 
     public function create(): Response
     {
@@ -555,9 +472,23 @@ class ServiceOrderController extends Controller
             ->limit(500)
             ->get(['id', 'plate', 'secondary_plate', 'vehicle_type']);
 
+        // Clientes (donos dos caminhões de terceiros) pro combobox do Create — charter
+        // exige (sem cliente o gate de aprovação WhatsApp não tem destinatário). Sweep
+        // ADR 0265: Create.tsx renderiza o campo só quando a prop `contacts` chega.
+        // Multi-tenant Tier 0 (ADR 0093): business_id EXPLÍCITO + scopes Contact canon
+        // (onlyCustomers/active). Contact não tem global scope (pattern UltimatePOS).
+        $businessId = (int) (session('user.business_id') ?? session('business.id') ?? 0);
+        $contacts = \App\Contact::where('contacts.business_id', $businessId)
+            ->onlyCustomers()
+            ->active()
+            ->orderBy('contacts.name')
+            ->limit(500)
+            ->get(['contacts.id', 'contacts.name']);
+
         return Inertia::render('OficinaAuto/ServiceOrders/Create', [
             'vehicles' => $vehicles,
             'statuses' => self::statuses(),
+            'contacts' => $contacts,
         ]);
     }
 
@@ -576,7 +507,43 @@ class ServiceOrderController extends Controller
             $validated['entered_at'] = now();
         }
 
+        // ADR 0265 — order_type é nullable no request (API/imports), mas o fio usável
+        // exige a OS nascendo no pipeline certo: default DELIBERADO 'mecanica' (fluxo
+        // real de reparo) quando não informado. Create.tsx já manda 'mecanica'.
+        $validated['order_type'] ??= 'mecanica';
+
         $order = ServiceOrder::create($validated);
+
+        // UC-07/UC-11 (casos.md Produção/Oficina): a OS recém-criada é o "documento vivo"
+        // do veículo no kanban. Sem este vínculo o card fica "sem OS" (bucket disponivel não
+        // tem fallback V3 em ProducaoOficinaController::loadRentalFallbacks) e o drawer rico
+        // não abre — bug pego pelo E2E UC-11 (run 27273605033). Só vincula se o veículo está
+        // LIVRE (não clobbera OS ativa de outro fluxo). Tier 0 (ADR 0093): além do global
+        // scope do Model (Vehicle::booted), filtro explícito por tenant (defense-in-depth).
+        $vehicle = Vehicle::query()
+            ->where('business_id', (int) (session('user.business_id') ?? session('business.id') ?? 0))
+            ->find($order->vehicle_id);
+        if ($vehicle !== null && $vehicle->current_rental_id === null) {
+            $vehicle->update(['current_rental_id' => $order->id]);
+        }
+
+        // ADR 0265 (fio usável) — auto-start do pipeline FSM: a OS nasce JÁ no quadro
+        // (stage inicial do processo resolvido pelo order_type — 'mecanica' →
+        // oficina_mecanica_os/recepcao). Antes nascia com current_stage_id=null e
+        // dependia de clique manual em start-pipeline, que podia cair no processo
+        // errado (OS-00004 órfã em locação). Falha aqui NÃO aborta o create (OS fica
+        // fora de pipeline como antes, botão manual continua existindo) — só loga.
+        try {
+            app(\Modules\OficinaAuto\Services\ServiceOrderPipelineStarter::class)
+                ->start($order, null, auth()->id());
+        } catch (\Throwable $e) {
+            \Log::warning('ServiceOrderController@store: auto-start pipeline falhou', [
+                'business_id'      => $order->business_id,
+                'service_order_id' => $order->id,
+                'order_type'       => $order->order_type,
+                'error'            => $e->getMessage(),
+            ]);
+        }
 
         return redirect('/oficina-auto/ordens-servico/' . $order->id)
             ->with('status', ['success' => 1, 'msg' => 'Ordem de Serviço criada.']);
@@ -604,22 +571,51 @@ class ServiceOrderController extends Controller
             'assignedUser:id,first_name,last_name,surname',
             // US-OFICINA-040 — itens DVI pra seção "Vistoria → orçamento" no Show
             'dviInspectionItems',
+            // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo) pro drawer + print
+            'arquivos',
         ]);
 
         // Accept-aware: drawer ServiceOrderSheet faz fetch JSON via header.
         // Hotfix Wave 7+ — drawer chamava /oficina-auto/service-orders/{id} esperando
         // JSON mas show() só retornava Inertia HTML (HTTP 404 percebido por drawer).
         if ($request->wantsJson()) {
+            // Etapa FSM atual pro eyebrow do drawer ("OS #103 · Em execução"). Mostra a
+            // ETAPA real do processo, não o status cru (paridade protótipo Cowork · polish
+            // [W] 2026-06-11). OS sem pipeline iniciado (current_stage_id null) cai na etapa
+            // INICIAL — espelha o $initialStageKey do board(). Mesmo guard multi-tenant do
+            // board: withoutGlobalScope no process + business_id explícito (ADR 0093).
+            $currentStage = null;
+            if (Schema::hasColumn('service_orders', 'current_stage_id')) {
+                $stageBaseQuery = \App\Domain\Fsm\Models\SaleProcessStage::query()
+                    ->whereHas('process', function ($p) use ($order) {
+                        $p->withoutGlobalScope(\Modules\Jana\Scopes\ScopeByBusiness::class)
+                            ->where('business_id', $order->business_id)
+                            ->where('key', 'oficina_mecanica_os');
+                    });
+                $stageId = $order->getAttribute('current_stage_id');
+                $stage = $stageId !== null
+                    ? (clone $stageBaseQuery)->whereKey($stageId)->first(['id', 'key', 'name'])
+                    : null;
+                if ($stage === null) {
+                    $stage = (clone $stageBaseQuery)->where('is_initial', true)->first(['id', 'key', 'name']);
+                }
+                if ($stage !== null) {
+                    $currentStage = ['key' => $stage->key, 'name' => $stage->name];
+                }
+            }
+
+            // Campos de locação (delivery_address/expected_return_date/daily_rate/
+            // dias_locacao) ERRADICADOS do payload (ADR 0265) — colunas ficam no DB
+            // como dado histórico; UI/contrato não.
             return response()->json([
                 'id'                    => $order->id,
                 'number'                => 'OS-' . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                 'status'                => $order->status,
+                // Etapa FSM atual (key + name PT) pro eyebrow do drawer — null se o processo
+                // oficina_mecanica_os não estiver seedado pro negócio.
+                'current_stage'         => $currentStage,
                 'order_type'            => $order->order_type,
-                'delivery_address'      => $order->delivery_address,
-                'expected_return_date'  => $order->expected_return_date,
                 'expected_completion'   => $order->expected_completion,
-                'daily_rate'            => $order->daily_rate,
-                'dias_locacao'          => $order->dias_locacao ?? 0,
                 'valor_receber'         => $order->valor_receber ?? 0,
                 'is_overdue'            => $order->is_overdue ?? false,
                 'entered_at'            => $order->entered_at,
@@ -667,6 +663,51 @@ class ServiceOrderController extends Controller
                     'notes'          => $item->notes,
                 ])->values()->all(),
                 'items_total' => (float) $order->total_items,
+                // F3 OS-V2-3 — estado do gate de aprovação (none/pending/approved/declined)
+                // + timestamps. O drawer (DviInlineEditor · DviGateFoot) deriva a barra de
+                // 4 estados DESTE payload — nunca de simulação client-side. `total` espelha o
+                // total recomendado da DVI (atenção+crítico), o número que o cliente aprovou.
+                'approval' => [
+                    'state'        => $order->approval_state,
+                    'total'        => (float) $order->dvi_breakdown['total_recomendado'],
+                    'requested_at' => $order->approval_requested_at?->toIso8601String(),
+                    'decided_at'   => $order->approval_decided_at?->toIso8601String(),
+                    'decision'     => $order->approval_decision,
+                ],
+                // F3 OS-V2-2 — itens DVI (Vistoria Digital) pra o semáforo inline editável
+                // do drawer ServiceOrderRichSheet (DviInlineEditor). Mesmo shape do branch
+                // Inertia (Show), + sort_order pra ordenação estável. `budget_item_id` (em
+                // metadata) sinaliza item já convertido em linha de orçamento.
+                'dvi_items' => $order->dviInspectionItems
+                    ->sortBy([['sort_order', 'asc'], ['id', 'asc']])
+                    ->map(fn (OaInspectionItem $dvi) => [
+                        'id'                => (int) $dvi->id,
+                        'categoria'         => (string) $dvi->categoria,
+                        'descricao'         => (string) $dvi->descricao,
+                        'severity'          => (string) $dvi->severity,
+                        'recomendacao'      => $dvi->recomendacao,
+                        'valor_recomendado' => $dvi->valor_recomendado !== null ? (float) $dvi->valor_recomendado : null,
+                        'sort_order'        => (int) $dvi->sort_order,
+                        'budget_item_id'    => is_array($dvi->metadata) ? ($dvi->metadata['budget_item_id'] ?? null) : null,
+                    ])->values()->all(),
+                // F3 OS-V2-1 — fotos do laudo OS-level (Fotos & Laudo) pra o drawer.
+                // `label` = original_name (legenda editável no lightbox). display_url
+                // é signed quando bucket=sensitive (defesa em profundidade).
+                'laudo_photos' => $order->arquivos
+                    ->sortBy([['created_at', 'asc'], ['id', 'asc']])
+                    ->map(function ($a) {
+                        // closure sem tipo no param + @var: relação HasArquivos é MorphMany
+                        // sem generic (Larastan tipa Model, não Arquivo — dívida US-ARQ-TYPE).
+                        /** @var \Modules\Arquivos\Entities\Arquivo $a */
+                        return [
+                            'id'          => (int) $a->id,
+                            'label'       => (string) ($a->original_name ?? ''),
+                            'mime_type'   => (string) $a->mime_type,
+                            'size_bytes'  => (int) $a->size_bytes,
+                            'display_url' => (string) $a->display_url,
+                            'created_at'  => $a->created_at?->toIso8601String(),
+                        ];
+                    })->values()->all(),
                 // ADR 0192 · V0 core shape (Onda 5). FASE B (items_list / items_summary /
                 // fiscal NF-e) fica pra wave futura — exige join sell_lines + NfeBrasil
                 // que já existe no equivalente Modules/Repair/ProducaoOficinaController
@@ -787,8 +828,28 @@ class ServiceOrderController extends Controller
             ]);
         }
 
-        // status → orcamento dispara o Observer (WhatsApp link + PIN ao cliente).
-        $order->update(['status' => 'orcamento']);
+        // F3 OS-V2-3 — distingue 1º envio de RE-envio ("Cobrar" / "Revisar e reenviar").
+        // O ServiceOrderObserver só dispara o WhatsApp quando o status MUDA pra orcamento;
+        // num re-envio (já em orcamento) precisamos disparar manualmente + limpar a chave
+        // de idempotência de 7d do Job pra forçar um novo envio.
+        $jaEmOrcamento = $order->status === 'orcamento';
+
+        // Carimba o gate: pending (requested_at) + zera decisão anterior (caso reenvio
+        // pós-declined → volta pra pending). status → orcamento (Observer envia WhatsApp).
+        $order->forceFill([
+            'status'                => 'orcamento',
+            'approval_requested_at' => now(),
+            'approval_decided_at'   => null,
+            'approval_decision'     => null,
+        ])->save();
+
+        if ($jaEmOrcamento) {
+            \Illuminate\Support\Facades\Cache::forget("oficina:approval_dispatched:{$order->id}");
+            \Modules\OficinaAuto\Jobs\EnviarLinkAprovacaoWhatsappJob::dispatch(
+                (int) $order->business_id,
+                (int) $order->id,
+            );
+        }
 
         return back()->with('status', [
             'success' => 1,
@@ -887,6 +948,8 @@ class ServiceOrderController extends Controller
                 'items',
                 'dviInspectionItems',
                 'assignedUser:id,first_name,last_name,surname',
+                // F3 OS-V2-1 — fotos do laudo OS-level entram na folha A4 ("Fotos da vistoria")
+                'arquivos',
             ]);
 
             $business = \App\Business::find($businessId);

@@ -107,7 +107,7 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
   };
 
   return (
-    <div className="-m-6 min-h-[calc(100vh-3rem)] bg-muted/30">
+    <div className="flex-1 bg-muted/30">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto max-w-5xl px-8 pb-4 pt-6">
           <a

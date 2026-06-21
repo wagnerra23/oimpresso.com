@@ -28,8 +28,7 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
  *   (a) skip se `$so->transaction_id !== null` (já tem venda derivada)
  *   (b) skip se Transaction::where('os_ref', "SO-{id}")->where('business_id', X) existe
  *
- * Cálculo `final_total`:
- *   - locação (order_type='locacao'): `daily_rate × dias_locacao` (accessor `valor_receber`)
+ * Cálculo `final_total` (locação erradicada — ADR 0265, só fluxo de reparo):
  *   - manutenção (order_type='manutencao'): `sum(items.valor_total)` agregando peças +
  *     mão-de-obra + serviços terceiros via `ServiceOrder::items()` hasMany (US-OFICINA-027
  *     2026-05-26 · ADR 0194 §"Critério validação"). Backward compat: OS sem items lançados
@@ -108,7 +107,7 @@ class ServiceOrderObserver
             return;
         }
 
-        // Compute final_total: locação usa accessor valor_receber · manutenção zero (manual depois).
+        // Compute final_total: reparo soma items (peças + mão-de-obra); 0 se sem items (manual depois).
         $finalTotal = $this->computeFinalTotal($so);
 
         try {
@@ -181,11 +180,7 @@ class ServiceOrderObserver
 
     private function computeFinalTotal(ServiceOrder $so): float
     {
-        if ($so->order_type === 'locacao') {
-            // Accessor `valor_receber` = daily_rate × dias_locacao (definido na entity)
-            return (float) ($so->valor_receber ?? 0);
-        }
-
+        // Locação erradicada (ADR 0265): só existe o caminho de reparo.
         // order_type='manutencao' (Martinho sub-vertical 4 mecânica pesada CNAE 4520 — ADR 0194):
         // soma valor_total de todos itens (peça + mão-de-obra + serviço terceiro) via
         // hasMany ServiceOrder::items() — schema oficina_service_order_items entregue em

@@ -21,6 +21,10 @@ use Modules\Jana\Scopes\ScopeByBusiness;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::create('fsm_test_subjects', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->unsignedInteger('business_id');
@@ -33,11 +37,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
-        (require $f)->down();
-    }
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
+            (require $f)->down();
+        }
 
-    Schema::dropIfExists('fsm_test_subjects');
+        Schema::dropIfExists('fsm_test_subjects');
+    }
 });
 
 function scanCmdSetup(int $bizId): array

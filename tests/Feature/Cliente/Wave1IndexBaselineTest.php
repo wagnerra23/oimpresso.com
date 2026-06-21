@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de canon-source (ContactController::index + config/mwart) contra fonte-da-verdade móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
 // W1-B3 F2 Baseline — structural verification do ContactController::index().
 // Pattern: structural via file_get_contents (sem boot Laravel) — ambiente worktree compat.
 

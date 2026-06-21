@@ -116,7 +116,7 @@ Mapping inicial sugerido (compatibilidade): user com `job_sheet.edit` ganha toda
 |---|---|---|---|
 | `ReservarEstoque` | `registrar_aprovacao_cliente` | Cria linha em `stock_reservations` por peça do `parts` JSON; reduz `available_stock` virtual | Upsert por `(job_sheet_id, variation_id)` |
 | `LiberarReservaEstoque` | `registrar_rejeicao_cliente` / `cancelar_os` | Soft-delete `stock_reservations` da OS | Idempotente — múltiplos calls não-op |
-| `ConsumirEstoque` | `concluir_execucao` | Converte reserva → baixa real (`Modules/Stock/Services/ConsumeReservation::handle`) | Lock advisory por `job_sheet_id` |
+| `ConsumirEstoque` | `concluir_execucao` | Converte reserva → baixa real (`Stock/Services/ConsumeReservation::handle` — Stock é núcleo UltimatePOS, não é módulo) | Lock advisory por `job_sheet_id` |
 | `NotificarOrcamentoWhatsapp` | `enviar_orcamento` (action sem transição) | Dispatcha job `SendRepairQuoteJob` (Whatsapp daemon CT 100) | Hash do payload — repetir mesmo orçamento não envia 2x |
 | `NotificarClienteWhatsapp` | `concluir_execucao` | Reaproveita `NotifyRepairCustomer` Listener existente (ADR Repair tech/0001) — passa a ser disparado pelo Service em vez do controller | Status name = `concluido_aguardando_retirada` na matriz auto-SMS |
 | `EmitirCupomServico` | `entregar_ao_cliente` | Opcional — gera Transaction tipo `repair_invoice` se `parts.length > 0` | Lookup por `job_sheet_id` |

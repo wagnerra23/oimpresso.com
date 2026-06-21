@@ -307,6 +307,7 @@ class SubscriptionController extends BaseController
             // 2. Resolve Account Wagner via credencial BCB ativa
             // Canon Onda 5 (Wagner 2026-05-19): direção payment_gateway_credentials.conta_bancaria_id
             // (capturada pelo wizard step 3). Não depende mais de FK reverso em fin_contas_bancarias.
+            // SUPERADMIN: cobrança SaaS é sempre de Wagner (biz=1); resolve credencial BCB cross-tenant a partir do contexto do tenant pagador
             $credBcb = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
                 ->where('business_id', 1)
@@ -372,6 +373,7 @@ class SubscriptionController extends BaseController
      */
     protected function resolveTenantPayerContact(int $tenantBusinessId): ?\App\Contact
     {
+        // SUPERADMIN: Superadmin resolve o Business do tenant pagador cross-tenant pra montar a cobrança SaaS
         $business = \App\Business::withoutGlobalScopes()->find($tenantBusinessId);
         if (!$business) {
             return null;
@@ -382,6 +384,7 @@ class SubscriptionController extends BaseController
             return null;
         }
 
+        // SUPERADMIN: localiza o Contact do tenant dentro da carteira de Wagner (biz=1) cross-tenant pra vincular o pagador
         return \App\Contact::withoutGlobalScopes()
             ->where('business_id', 1)
             ->where('tax_number', $tax)

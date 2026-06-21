@@ -7,6 +7,7 @@ contains:
   - "AuditController — drill-down mcp_audit_log filtrável (período/actor/endpoint/status)"
   - "DriftAlertsController — runtime scan SCOPE.md vs filesystem real + persisted alerts cron"
   - "ModuleGradeController — /governance/module-grades Index ranking 34 módulos + Show drill-down 9 dimensões v3 + dossier markdown (ADR 0155 + Charter Goal 9 2026-05-17)"
+  - "DsRolloutController — /governance/ds-rollout plano de portar o DS em ondas + Ledger de Conformidade DS (tradução F3 protótipo Cowork · census via scripts/ds-ledger.mjs)"
   - "InstallController — install/uninstall hooks (ADR 0024)"
   - "DataController — sidebar/permissions hooks (UltimatePOS pattern)"
   - "ActionGate middleware — runtime gate (modo warn|strict por config)"
@@ -39,6 +40,7 @@ routes:
   - "GET  /governance/drift                        → DriftAlertsController@index         (governance.drift.index)"
   - "GET  /governance/module-grades                → ModuleGradeController@index         (governance.module-grades.index)"
   - "GET  /governance/module-grades/{name}         → ModuleGradeController@show          (governance.module-grades.show)"
+  - "GET  /governance/ds-rollout                    → DsRolloutController@index           (governance.ds-rollout.index)"
   - "GET  /governance/install{,/uninstall,/update} → InstallController@*                 (governance.install.*)"
 db_tables_owned:
   - mcp_governance_rules (compartilha com ADS — ActionGate lê, ADS write rules de decision flow)

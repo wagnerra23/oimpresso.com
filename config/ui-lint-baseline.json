@@ -3,7 +3,7 @@
         "generated_at": "2026-05-27T17:12:28-03:00",
         "tool": "ui:lint",
         "files_scanned": 1433,
-        "total_violations": 7556,
+        "total_violations": 7594,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -26,19 +26,31 @@
         "resources\/js\/Components\/board\/TaskCard.tsx": {
             "R1": 10
         },
-        "resources\/js\/Components\/clientes\/ActiveChip.tsx": {
+        "resources\/js\/Pages\/Cliente\/_components\/ActiveChip.tsx": {
             "R1": 12
         },
-        "resources\/js\/Components\/clientes\/Pills.tsx": {
+        "resources\/js\/Pages\/Cliente\/_components\/Pills.tsx": {
             "R1": 117
+        },
+        "resources\/js\/Pages\/Ponto\/_components\/ActivityFeed.tsx": {
+            "R1": 9
+        },
+        "resources\/js\/Pages\/Ponto\/_components\/AlertInbox.tsx": {
+            "R1": 11
+        },
+        "resources\/js\/Pages\/Ponto\/_components\/MonthHeatmap.tsx": {
+            "R1": 12
+        },
+        "resources\/js\/Pages\/Ponto\/_components\/PresenceStrip.tsx": {
+            "R1": 6
         },
         "resources\/js\/Components\/CommandPalette.tsx": {
             "R1": 5
         },
-        "resources\/js\/Components\/ConsultaOs\/OsPipeline.tsx": {
+        "resources\/js\/Pages\/ConsultaOs\/_components\/OsPipeline.tsx": {
             "R1": 5
         },
-        "resources\/js\/Components\/ConsultaOs\/OsStageBadge.tsx": {
+        "resources\/js\/Pages\/ConsultaOs\/_components\/OsStageBadge.tsx": {
             "R1": 15
         },
         "resources\/js\/Components\/shared\/EmptyState.tsx": {
@@ -46,18 +58,6 @@
         },
         "resources\/js\/Components\/shared\/KpiCard.tsx": {
             "R1": 17
-        },
-        "resources\/js\/Components\/shared\/ponto\/ActivityFeed.tsx": {
-            "R1": 9
-        },
-        "resources\/js\/Components\/shared\/ponto\/AlertInbox.tsx": {
-            "R1": 11
-        },
-        "resources\/js\/Components\/shared\/ponto\/MonthHeatmap.tsx": {
-            "R1": 12
-        },
-        "resources\/js\/Components\/shared\/ponto\/PresenceStrip.tsx": {
-            "R1": 6
         },
         "resources\/js\/Components\/shared\/PwaInstallBanner.tsx": {
             "R1": 7

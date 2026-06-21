@@ -264,7 +264,12 @@ class WhatsmeowDriver implements DriverInterface
                 'name' => $userName,
                 'token' => $userToken,
                 'webhook' => $webhookUrl,
-                'events' => 'Message,ReadReceipt,Connected,Disconnected',
+                // LoggedOut assinado (Fase B · incidente 2026-06-18 / POC WAHA-GOWS Phase 2):
+                // o WuzAPI RECEBE "logged out from another device" mas só repassa o webhook
+                // se o tipo estiver assinado. Sem ele, logout remoto some → channel_health
+                // fica healthy eternamente (raiz do falso "fora do ar", ADR 0286). O app já
+                // roteia LoggedOut → handleDisconnected (WhatsmeowWebhookController).
+                'events' => 'Message,ReadReceipt,Connected,Disconnected,LoggedOut',
             ]);
 
         if (! $response->successful()) {
@@ -309,7 +314,7 @@ class WhatsmeowDriver implements DriverInterface
             // POST /session/connect (gera/refresh QR)
             $connectResponse = $this->client($userToken)
                 ->post('/session/connect', [
-                    'Subscribe' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected'],
+                    'Subscribe' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected', 'LoggedOut'],
                     'Immediate' => false,
                 ]);
 
@@ -359,6 +364,38 @@ class WhatsmeowDriver implements DriverInterface
         }
 
         $this->client($userToken)->post('/session/logout');
+    }
+
+    /**
+     * Re-assina os eventos do canal no daemon incluindo `LoggedOut` (Fase B · mecanismo D).
+     *
+     * Para canais já provisionados ANTES da Fase B (events sem LoggedOut). Usa o
+     * endpoint `POST /webhook` (UPDATE `users.events` no daemon + refresh do cache)
+     * — NÃO reconecta nem re-pareia, zero impacto na sessão viva. Idempotente
+     * (convergente). Mantém a webhook URL atual. Validado em canário 2026-06-18.
+     *
+     * @return array{ok: bool, status?: int, reason?: string}
+     */
+    public function resubscribeEvents(Channel $channel): array
+    {
+        $userToken = $this->resolveUserTokenFromChannel($channel);
+        if ($userToken === null) {
+            return ['ok' => false, 'reason' => 'no_token'];
+        }
+
+        $cfg = $channel->config_json ?? [];
+        $webhookUrl = (string) ($cfg['whatsmeow_webhook_url'] ?? '');
+        if ($webhookUrl === '') {
+            return ['ok' => false, 'reason' => 'no_webhook_url'];
+        }
+
+        $response = $this->client($userToken)->post('/webhook', [
+            'webhookurl' => $webhookUrl,
+            // Mesma lista canon de provisionSession/connect (inclui LoggedOut).
+            'events' => ['Message', 'ReadReceipt', 'Connected', 'Disconnected', 'LoggedOut'],
+        ]);
+
+        return ['ok' => $response->successful(), 'status' => $response->status()];
     }
 
     /**

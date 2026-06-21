@@ -3,6 +3,7 @@ slug: financeiro
 title: "Especificação funcional — Financeiro"
 type: spec
 module: Financeiro
+project: COPI
 status: ativo
 related_adrs:
   - 0154-rubrica-module-grade-v2
@@ -45,7 +46,7 @@ owner: wagner
 **Quero** ver todos os títulos a receber em aberto, com filtro por aging e por cliente
 **Para** decidir quem ligar primeiro pra cobrar e quanto entra esta semana
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/ContasReceber/Index.tsx` · verificado@09767fc (2026-06-13)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas com `financeiro.contas_receber.view` (`403` caso contrário)
@@ -68,7 +69,7 @@ owner: wagner
 **Quero** cadastrar título a receber sem venda associada (ex: aluguel sublocação, comissão extra)
 **Para** ter visão integral do que entra, mesmo o que não passa pelo POS
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Create.tsx`]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Create.tsx` não construída)
 
 **Definition of Done:**
 - [ ] FormRequest valida: `cliente_id` ou `cliente_descricao` (livre); `valor>0`; `vencimento >= hoje` (ou flag `retroativo` true); `categoria_id` opcional; `plano_conta_id` opcional; `parcelas[]` se `parcelado=true`
@@ -89,7 +90,7 @@ owner: wagner
 **Quero** baixar título quando recebo o pagamento (parcial ou total) com data, valor, conta bancária e meio
 **Para** atualizar saldo da conta + status do título sem dupla digitação
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Show.tsx` (modal de baixa)]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Show.tsx` modal de baixa não construída)
 
 **Definition of Done:**
 - [ ] FormRequest valida: `valor_baixa > 0`, `valor_baixa <= titulo.valor_aberto`, `data_baixa <= hoje`, `conta_bancaria_id` exists business, `meio_pagamento` enum
@@ -111,7 +112,7 @@ owner: wagner
 **Quero** ver fornecedores a pagar com filtro "vence nos próximos 7 dias", "vencidos", "agendados"
 **Para** evitar juros por esquecimento e priorizar pagamentos críticos (ex: fornecedor que corta material)
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/ContasPagar/Index.tsx` · verificado@09767fc (2026-06-13)
 
 **Definition of Done:**
 - [ ] Mesmo padrão US-FIN-001, ajustado para `tipo=pagar`
@@ -130,7 +131,7 @@ owner: wagner
 **Quero** anexar PDF/imagem do boleto e o sistema preencher fornecedor, valor, vencimento, linha digitável
 **Para** lançar 10 boletos em 5 minutos em vez de 25
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Create.tsx`]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasPagar/Create.tsx` não construída)
 
 **Definition of Done:**
 - [ ] Upload aceita `application/pdf`, `image/png`, `image/jpeg` até 5MB
@@ -151,7 +152,7 @@ owner: wagner
 **Quero** marcar título como pago indicando data, valor, conta bancária debitada e meio
 **Para** atualizar saldo + ter histórico auditável
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasPagar/Show.tsx` (modal pagar)]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasPagar/Show.tsx` modal pagar não construída)
 
 **Definition of Done:**
 - [ ] Cria `caixa_movimentos` row (saída) com `idempotency_key`
@@ -170,7 +171,7 @@ owner: wagner
 **Quero** ver gráfico de barras com saldo projetado dia-a-dia nos próximos 30/60/90 dias
 **Para** decidir antecipar recebível, pegar empréstimo, segurar pagamento, etc.
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Caixa/Projetado.tsx`]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/Caixa/Projetado.tsx` não construída)
 
 **Definition of Done:**
 - [ ] Endpoint retorna shape `{dias: [{data, saldo_inicial, entradas, saidas, saldo_final, alertas[]}], saldo_atual, periodo}` (não Model)
@@ -192,7 +193,7 @@ owner: wagner
 **Quero** cadastrar contas bancárias do business com banco, agência, conta, saldo inicial
 **Para** segregar fluxo por conta e conciliar OFX por conta
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasBancarias/Form.tsx`]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasBancarias/Form.tsx` não construída)
 
 **Definition of Done:**
 - [ ] FormRequest valida: `banco_codigo` (FEBRABAN), `agencia`, `conta`, `digito`, `tipo` enum (cc/poup/inv/caixa), `saldo_inicial >= 0`, `saldo_data` (default hoje)
@@ -211,7 +212,7 @@ owner: wagner
 **Quero** subir o OFX que baixei do internet banking e o sistema mostrar match automático com meus títulos abertos
 **Para** dar baixa em lote sem digitar nada e fechar mês com saldo batendo
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Conciliacao/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/Conciliacao/Index.tsx` · verificado@09767fc (2026-06-13)
 
 **Definition of Done:**
 - [ ] Upload `.ofx` até 10MB
@@ -234,7 +235,7 @@ owner: wagner
 **Quero** gerar boleto pra título a receber em 1 clique e mandar pro cliente por e-mail/WhatsApp
 **Para** não depender do sistema do banco
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/ContasReceber/Show.tsx` (botão "Emitir boleto")]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Show.tsx` botão "Emitir boleto" não construída)
 
 **Definition of Done:**
 - [ ] BoletoService strategy: `CnabDirectStrategy` (lib `eduardokum/laravel-boleto`) OU `GatewayStrategy` (Asaas/Iugu) baseado em config do business
@@ -255,7 +256,7 @@ owner: wagner
 **Quero** DRE do período (mês/trimestre/ano) com receita, custo, despesa, lucro líquido
 **Para** declarar imposto / tomar decisão estratégica sem ligar pra Larissa
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Relatorios/Dre.tsx`]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/Relatorios/Dre.tsx` não construída)
 
 **Definition of Done:**
 - [ ] Considera regime do business (`caixa` ou `competência`)
@@ -276,7 +277,7 @@ owner: wagner
 **Quero** ver quem deve, agrupado por bucket (`<30 / 30-60 / 60-90 / >90 / >180`) com total e detalhe
 **Para** atacar inadimplência da maior pra menor (régua manual ou via Dunning futuro)
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Relatorios/Aging.tsx`]_
+**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/Relatorios/Aging.tsx` não construída)
 
 **Definition of Done:**
 - [ ] Buckets configuráveis por tenant (default: 30/60/90/180)
@@ -295,7 +296,7 @@ owner: wagner
 **Quero** abrir o módulo e ver os 4 estados (a receber abertos, a pagar abertos, recebidos no mês, pagos no mês) **na mesma tela**, com drill-down por click
 **Para** ter overview do caixa em 5 segundos sem navegar entre 4 telas separadas
 
-**Implementado em:** _[TODO — `resources/js/Pages/Financeiro/Dashboard/Index.tsx`]_
+**Implementado em:** `resources/js/Pages/Financeiro/Dashboard/Index.tsx` · verificado@fd96258 (2026-06-13)
 
 **Layout obrigatório (ADR ui/0002):**
 
@@ -1629,3 +1630,71 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 2. fin_titulos.created_by FK NOT NULL users(id).
 3. uk_titulo_origem UNIQUE impede fix em massa do bug 07/jun (3.372 fin_titulos origem_id=subscription_id em vez de invoice.id).
 4. shell_exec disabled Hostinger shared (fopen/fgets nativo).
+
+### US-FIN-055 · Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService)
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** triagem SDD floor burn-down (nightly 20260614-020001). PR #2744 (commit e2bc74e8a) já corrigiu o `BridgeExpenseToTitulosCommand` + seu teste. Esta US cobre o RESTO do blast radius da mesma coluna-fantasma.
+
+**Causa-raiz:** `transactions.total_remaining_amount` NUNCA existiu no UltimatePOS (ausente de `database/schema/mysql-schema.sql` + todas as migrations). O core deriva o restante como `final_total - total_paid` ([SellController.php:523], total_paid = Σ `transaction_payments.amount` não-estorno). DB de dev antigo tinha coluna avulsa que mascarava; nightly com MySQL limpo (SDD F2b) expõe o `Unknown column` (SQLSTATE 42S22).
+
+**Acceptance criteria:**
+- [ ] **Prod (mais importante):** `Modules/Financeiro/Services/TituloAutoService.php:100` deriva `valor_aberto` de `final_total − Σ transaction_payments(is_return=0)` em vez de `$tx->total_remaining_amount ?? final_total`. Hoje o atributo é SEMPRE null → `valor_aberto` de venda/compra `partial` nasce cheio (= final_total), só sendo corrigido depois por `recalcularTitulo`. Bug de correção latente.
+- [ ] Remover insert/uso da coluna-fantasma em: `ResyncFromCoreCommandTest:53`, `BoletoMockEmissaoTest:107`, `TituloAutoServiceTest:79,232`, `TituloAutoServiceExpenseTest:80,183`, `tests/Feature/Modules/Financeiro/TransactionPaymentObserverTest:78`, `tests/Feature/TravaSegunda/RetencaoLoopE2ETest` (confirmar uso).
+- [ ] Testes `partial` que dependiam da coluna passam a criar `transaction_payments` reais (mesmo padrão do caso partial adicionado no #2744).
+- [ ] Suíte Pest Financeiro (MySQL) + Unit verdes no CI.
+
+**Validação obrigatória:** toca lógica financeira de produção → confirmar regra de negócio do parcial (Opção 1: `final_total − Σ pagamentos`) com Wagner/Eliana + validar no CT100 antes do merge. 1 PR = 1 intent. Worktree limpo off origin/main (não na branch governance). Não fazer merge sem CT100.
+
+**Refs:** PR #2744, SellController.php:523, chip CC task_6fb304ba.
+
+### US-FIN-058 · Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: migracao-firebird-boletos-contratos
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** handoff 2026-06-08 — 59 boletos órfãos + 3.372 `fin_titulos` com `origem_id` incorreto (resíduo da migração Firebird).
+**Dedup:** distinto de US-FIN-039 (vincular-baixas-sem-conta), US-FIN-040 (health-check) e US-FIN-042 (backfill cliente_descricao).
+
+**DoD:**
+- Script idempotente de reparo dos 59 boletos + 3.372 origem_id.
+- Reconciliação + audit log.
+- Multi-tenant Tier 0: filtro `business_id` (ADR 0093).
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-FIN-059 · Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #5). Complementa `US-FIN-040` (health-check detecta gaps da bridge).
+
+**Achado:** `TransactionObserver` e `TransactionPaymentObserver` chamam o `TituloAutoService` **síncrono, SEM try/catch** (grep confirmou zero). Uma exceção no espelho Financeiro (deadlock de numeração, constraint, contact malformado) propaga pro `App\Transaction::save()` e **estoura o commit do core UltimatePOS** — exatamente o BUG-2 que bloqueou pagamentos da Larissa. Só o caminho CashRegister tem o try/catch protetor. Financeiro é módulo OPCIONAL derrubando o fluxo de venda do core.
+
+**Acceptance:**
+- Envolver as chamadas dos 2 Observers em try/catch que loga + `report()` e **nunca** propaga (espelhar o Listener do CashRegister).
+- Idealmente mover a sincronização para Job em fila `afterCommit`.
+- **Caveat antes de codar:** confirmar se o `save()` do core roda dentro de `DB::transaction` (se rodar, o rollback abrange o título e a severidade muda).
+
+### US-FIN-060 · Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** sweep de roadmap do mês 2026-06-21 (`memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md:19`, batch #2 — passou o filtro ADR-0105 mas não foi materializado no #3090).
+
+**Problema:** a chave/projeto OpenAI usada pelo `BoletoOcrService` não tem acesso ao modelo Vision (gpt-4o) → o OCR de boleto retorna **403 silencioso em prod**. Eliana usa o fluxo. A ação é no **dashboard OpenAI** (não-código), por isso escapou dos batches de PR.
+
+**Acceptance:**
+1. Confirmar que o 403 ainda ocorre em prod (smoke com 1 boleto real / Eliana) — pode ter sido resolvido fora do git.
+2. Reabilitar acesso ao gpt-4o no dashboard/projeto OpenAI.
+3. `BoletoOcrService::extract()` retorna JSON estruturado em prod, sem 403, validado com boleto real.
+
+Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250

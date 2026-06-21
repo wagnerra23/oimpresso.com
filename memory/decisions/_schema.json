@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oimpresso.com/schemas/adr-frontmatter.schema.json",
-  "title": "ADR frontmatter — oimpresso",
-  "description": "Schema canônico do bloco YAML de frontmatter em memory/decisions/*.md. Ver _SCHEMA.md.",
+  "$id": "https://oimpresso.com/schemas/decisions/_schema.json",
+  "title": "ADR Nygard frontmatter — oimpresso (ONDA 5 S1)",
+  "description": "Espelho derivado do schema canônico executado (scripts/memory-schemas/adr.schema.json via memory-schema-gate). Mantido porque AdrFrontmatterLinterTest verifica sua existência.",
   "type": "object",
   "required": [
     "slug",
@@ -25,8 +25,7 @@
     "number": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 9999,
-      "description": "Prefixo numérico do filename — ex 0053 → 53"
+      "maximum": 9999
     },
     "title": {
       "type": "string",
@@ -39,21 +38,53 @@
     },
     "status": {
       "type": "string",
-      "enum": ["rascunho", "proposto", "aceito", "deprecated", "superseded"]
+      "enum": [
+        "rascunho",
+        "proposto",
+        "aceito",
+        "recusado",
+        "deprecated",
+        "superseded"
+      ]
     },
     "authority": {
       "type": "string",
-      "enum": ["canonical", "reference", "exploratory"]
+      "enum": [
+        "canonical",
+        "reference",
+        "exploratory"
+      ]
     },
     "lifecycle": {
       "type": "string",
-      "enum": ["ativo", "arquivado", "substituido"]
+      "enum": [
+        "ativo",
+        "arquivado",
+        "substituido",
+        "historical"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "description": "Eixo ortogonal de categoria da ADR (ADR 0257). Default decision. feature-wish = hipótese parqueada (ADR 0105); errata = corrige outra ADR; meta = sobre o processo de ADR.",
+      "enum": [
+        "decision",
+        "feature-wish",
+        "errata",
+        "meta"
+      ]
     },
     "decided_by": {
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["W", "F", "M", "L", "E"]
+        "enum": [
+          "W",
+          "F",
+          "M",
+          "L",
+          "E"
+        ]
       },
       "minItems": 1,
       "uniqueItems": true
@@ -64,7 +95,11 @@
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
     },
     "module": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Vocabulário sincronizado com MODULE_VALIDOS do AdrFrontmatterLinterTest (fonte única — auditoria 2026-06-11). Canon = lowercase; variantes case são legacy append-only.",
       "enum": [
         "copiloto",
         "financeiro",
@@ -76,78 +111,128 @@
         "grow",
         "core",
         "infra",
+        "whatsapp",
+        "ads",
+        "governance",
+        "nfebrasil",
+        "recurringbilling",
+        "nfse",
+        "projectmgmt",
+        "repair",
+        "consultaos",
+        "kb",
+        "sells",
+        "autopecas",
+        "comissao",
+        "pcp",
+        "crm",
+        "Sells",
+        "Autopecas",
+        "Comissao",
+        "Pcp",
+        "Governance",
+        "ADS",
+        "Infra",
+        "jana",
+        "design-system",
+        "NfeBrasil",
+        "_DesignSystem",
+        "OficinaAuto",
         null
       ]
     },
-    "quarter": {
-      "type": "string",
-      "pattern": "^[0-9]{4}-Q[1-4]$"
-    },
-    "tags": {
+    "supersedes": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[a-z0-9_-]+$"
+        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
       },
-      "uniqueItems": true
-    },
-    "supersedes": {
-      "type": "array",
-      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
-      "uniqueItems": true,
-      "default": []
-    },
-    "supersedes_partially": {
-      "type": "array",
-      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
       "uniqueItems": true,
       "default": []
     },
     "superseded_by": {
       "type": "array",
-      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+      },
       "uniqueItems": true,
       "default": []
     },
     "related": {
       "type": "array",
-      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+      },
       "uniqueItems": true,
       "default": []
     },
-    "cites": {
-      "type": "array",
-      "items": { "type": "string" },
-      "default": []
+    "rejected_at": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Data da recusa (YYYY-MM-DD). Obrigatório quando status=recusado (proposal recusado-com-motivo, 2026-06-11)."
     },
-    "pii": {
-      "type": "boolean",
-      "default": false
+    "rejected_via": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Rito do NÃO — mesmo padrão de accepted_via: 'Wagner DATA no chat: <palavras textuais>'. Obrigatório quando status=recusado."
     },
-    "review_triggers": {
-      "type": "array",
-      "items": { "type": "string" },
-      "default": []
-    },
-    "scope_required": {
-      "type": ["string", "null"],
-      "default": null
-    },
-    "admin_only": {
-      "type": "boolean",
-      "default": false
+    "rejected_reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "1-3 frases: por que NÃO — e o que faria reabrir (sinal que faltou, coerente com ADR 0105). Obrigatório quando status=recusado."
     }
   },
   "allOf": [
     {
-      "if": { "properties": { "status": { "const": "superseded" } } },
-      "then": {
-        "required": ["superseded_by"],
+      "if": {
         "properties": {
-          "superseded_by": { "minItems": 1 },
-          "lifecycle": { "const": "substituido" }
+          "status": {
+            "const": "superseded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "superseded_by"
+        ],
+        "properties": {
+          "superseded_by": {
+            "minItems": 1
+          },
+          "lifecycle": {
+            "enum": [
+              "substituido",
+              "arquivado"
+            ]
+          }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "recusado"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "rejected_at",
+          "rejected_via",
+          "rejected_reason"
+        ]
+      }
     }
-  ]
+  ],
+  "$comment": "ESPELHO GERADO de scripts/memory-schemas/adr.schema.json — FONTE ÚNICA (auditoria gates 2026-06-11, ADR 0271). NÃO editar à mão; regenerar via: node -e <script do commit 0271>. Antes desta data este arquivo divergia da fonte executada (enum module com 10 valores vs ~37, não aceitava governance) e não era executado por nenhum gate — só checado por existência."
 }

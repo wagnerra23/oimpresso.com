@@ -350,7 +350,7 @@ export default function DocumentsTab({
                     aria-label={`Excluir ${d.file_name}`}
                     data-testid={`document-delete-${d.id}`}
                   >
-                    <Trash2 size={14} className="text-rose-600 dark:text-rose-400" />
+                    <Trash2 size={14} className="text-destructive" />
                   </Button>
                 )}
               </li>
@@ -367,8 +367,8 @@ function AutosaveBadge({ status }: { status: 'idle' | 'saving' | 'saved' | 'erro
   // status já estreitado pra 'saving' | 'saved' | 'error' após o early return.
   const styles: Record<'saving' | 'saved' | 'error', string> = {
     saving: 'text-muted-foreground',
-    saved: 'text-emerald-700 dark:text-emerald-400',
-    error: 'text-rose-700 dark:text-rose-400',
+    saved: 'text-success-fg',
+    error: 'text-destructive-fg',
   };
   const labels: Record<'saving' | 'saved' | 'error', string> = {
     saving: 'Salvando…',

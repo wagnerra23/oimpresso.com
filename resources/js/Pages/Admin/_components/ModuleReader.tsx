@@ -83,7 +83,7 @@ export default function ModuleReader({
   const statusTone = STATUS_TONE[module.status];
   const delta = module.score - module.meta;
   const TrendIcon = delta >= 0 ? TrendingUp : TrendingDown;
-  const trendCls = delta >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-destructive';
+  const trendCls = delta >= 0 ? 'text-success-fg' : 'text-destructive';
 
   const moduleInitiatives = initiatives.filter((i) => i.module === module.slug);
   const moduleSuggestions = aiSuggestions.filter((s) => s.module === module.slug);
@@ -285,7 +285,7 @@ export default function ModuleReader({
         {module.paired_count > 0 && (
           <section
             aria-label="Paired violations"
-            className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11.5px] text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
+            className="flex items-start gap-2 rounded-md border border-warning/20 bg-warning-soft px-3 py-2 text-[11.5px] text-warning-fg"
           >
             <Sparkles size={13} className="mt-0.5 shrink-0" />
             <div>
@@ -314,9 +314,9 @@ function Kpi({
   const toneCls = !tone
     ? 'text-foreground'
     : tone === 'ok'
-      ? 'text-emerald-700 dark:text-emerald-400'
+      ? 'text-success-fg'
       : tone === 'warn'
-        ? 'text-amber-700 dark:text-amber-400'
+        ? 'text-warning-fg'
         : 'text-destructive';
   return (
     <div className="rounded-md border border-border bg-background px-2.5 py-1.5">

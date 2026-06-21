@@ -55,7 +55,8 @@ $screens = [
     'Fiscal/NF-e'          => ['/fiscal/nfe',                 'fiscal.nfe.access',           'NF-e'],          // CU-4
     'Fiscal/NFS-e'         => ['/fiscal/nfse',                'fiscal.nfse.access',          'NFS-e'],         // CU-4
     'Financeiro/Unificado' => ['/financeiro/unificado',      'financeiro.unificado.access', 'Financeiro'],   // CU-5
-    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',   'Ordens'],       // CU-6
+    // Âncora = H1 do workspace unificado (#2544) — renderiza mesmo sem o FSM seedado.
+    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',   'Oficina Auto'],  // CU-6
     // — cobertura herdada (handoff Cowork 2026-06-02 §B) —
     'Compras'              => ['/compras',                    'compras.view',                'Compras'],
 ];

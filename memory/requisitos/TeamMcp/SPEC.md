@@ -1,9 +1,13 @@
 ---
+module: TeamMcp
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
 na_justified:
   D1.a: "Tabela `mcp_actors` é cross-tenant POR DESIGN (sem `business_id`) — Identity Mesh governa time INTERNO oimpresso (Wagner/Felipe/Maiara/Eliana/Luiz), não clientes externos. Demais tabelas TeamMcp (`mcp_tokens`, `mcp_scopes`, `mcp_audit_log`) herdam `business_id` via `user_id` FK ou são repo-wide governance ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) MCP server canon + [ADR 0081](../../decisions/0081-identity-mesh-mcp-actors.md) Identity Mesh + Constituição v2 Art. 6)."
   D5: "TeamMcp é módulo INTERNO de gestão de tokens MCP do time (Wagner/Felipe/Maiara/Luiz/Eliana). Cliente biz=4 ROTA LIVRE não usa por design — é ferramenta da equipe, não produto pra cliente final. ADR 0081 documenta como módulo team-internal."
   D8.b: "TeamMcp já nasceu Inertia/React (sem Blade legacy). CSRF é aplicado via middleware web padrão Laravel — não há views Blade pra auditar paridade."
-related_adrs: [0053, 0081, 0093, 0094, 0105, 0153, 0154, 0155]
+related_adrs: [0053-mcp-server-governanca-como-produto, 0081-identity-mesh-mcp-actors, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci]
 ---
 
 # SPEC — Modules/TeamMcp
@@ -15,7 +19,7 @@ related_adrs: [0053, 0081, 0093, 0094, 0105, 0153, 0154, 0155]
 
 ## Missão
 
-Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom ([ADR 0059](../../decisions/0059-self-host-team-plan-anthropic-rejeitado.md)). Concentra governança: tokens MCP do time, Identity Mesh (mcp_actors), audit log append-only, webhooks git→DB, ingest Claude Code sessions, tools registry, Kanban tasks/cycles.
+Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom ([ADR 0059](../../decisions/0059-governanca-memoria-estilo-anthropic-team.md)). Concentra governança: tokens MCP do time, Identity Mesh (mcp_actors), audit log append-only, webhooks git→DB, ingest Claude Code sessions, tools registry, Kanban tasks/cycles.
 
 ## Tabelas owned (DB)
 
@@ -107,11 +111,11 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 
 ## Não-escopo (NÃO neste módulo)
 
-- ❌ Chat IA conversacional → `Modules/Copiloto`
+- ❌ Chat IA conversacional → `Modules/Jana`
 - ❌ Knowledge browsing (ADRs/sessions UI) → `Modules/KB`
 - ❌ Skills governance + Brain A/B → `Modules/ADS`
 - ❌ Policies executáveis runtime → `Modules/Governance` (Fase 5)
-- ❌ System Rules Spec → `Modules/MemCofre` (futuro SRS)
+- ❌ System Rules Spec → `Modules/SRS` (futuro SRS)
 
 ## Métricas de saúde
 

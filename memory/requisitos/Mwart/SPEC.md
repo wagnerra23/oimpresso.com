@@ -1,11 +1,20 @@
 ---
 module: Mwart
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
 na_justified:
   D5: "Mwart é meta-processo de governança (enforcement do caminho canônico Blade→Inertia — ADR 0104) — NÃO é módulo de features cliente-facing. Não há biz=4 ROTA LIVRE consumindo features Mwart; consumidores são `Modules/*` que migram para Inertia. D5 cliente real não aplica por design."
   D4.b: "Mwart não tem state machine FSM (ADR 0143). É processo administrativo de gating (skill Tier A + hook PreToolUse + CI workflow), não fluxo de negócio com transições Eloquent. D4.b FSM canônica N/A."
 na_justified_v3:
   D6.a: "Mwart é meta-processo (enforcement skill + hook + CI) — sem Controllers Inertia próprios. Inertia::defer N/A por ausência de telas geradas pelo módulo."
-related_adrs: [0104, 0106, 0153, 0154, 0155, 0156]
+related_adrs:
+  - "0104-processo-mwart-canonico-unico-caminho"
+  - "0106-recalibracao-velocidade-fator-10x-ia-pair"
+  - "0153-module-grade-rubrica-v1"
+  - "0154-module-grade-v2-na-justificado"
+  - "0155-module-grade-v3-sub-dimensoes-gate-ci"
+  - "0156-module-grade-v3-errata-otel-helper-na-justified"
 ---
 
 # Especificação funcional — MWART (processo canônico)
@@ -79,7 +88,7 @@ related_adrs: [0104, 0106, 0153, 0154, 0155, 0156]
 - [ ] Telas <50 score viram tasks p2 explicitamente — Wagner decide ordem do refactor backlog
 - [ ] Próximas migrações já entram com RUNBOOK + SPEC desde o dia 1
 
-**Refs:** [CHECKLIST.md §G — Score 0-100](../../../.claude/skills/cockpit-runbook/CHECKLIST.md), dashboard existente em `Modules/Copiloto/Http/Controllers/Admin/QualidadeController.php`
+**Refs:** [CHECKLIST.md §G — Score 0-100](../../../.claude/skills/cockpit-runbook/CHECKLIST.md), dashboard existente em `Modules/Jana/Http/Controllers/Admin/QualidadeController.php`
 
 ### US-MWART-003 · Métricas de adoção do processo
 
@@ -105,6 +114,137 @@ related_adrs: [0104, 0106, 0153, 0154, 0155, 0156]
 
 **Refs:** [ADR 0094 — Constituição V2 §Loop fechado por métrica](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), [ADR 0091 — Daily Brief](../../decisions/0091-daily-brief.md)
 
+## 3. User stories — ondas de migração do backbone Blade (roadmap)
+
+> **Origem:** [ROADMAP-ONDAS-BLADE-ADVERSARIOS.md](ROADMAP-ONDAS-BLADE-ADVERSARIOS.md) (2026-06-13) + [ADR 0277](../../decisions/0277-rota-migracao-blade-ondas-completude.md).
+> **Long-horizon (p1–p3) — fora do cycle de Receita ativo.** Cada onda = 1 onda do roadmap; acceptance = **critério de desligamento** (route Blade morto/302). Cada tela passa pelo ciclo MWART (F1→F5) + gate visual F1.5 contra o **adversário [CD]** da onda. [W] decide quando cada uma vira fila.
+
+### US-MWART-004 · Onda 1 — migrar Vendas, PDV & Caixa e desligar Blade
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: —
+
+Domínios E (Vendas/PDV) + H (Caixa), ≈66 fn. Plano F1: [ONDA-1-VENDAS-PDV-CAIXA-PLANO.md](ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) · **mapa verificado:** [ONDA-1-CUTOVER-LEDGER.md](ONDA-1-CUTOVER-LEDGER.md). **Adversário [CD]:** Square POS + Stripe Checkout. **Já vivo em React:** Sells/Index, Create, Edit, Show, Drafts, Quotations, Subscriptions, Caixa/Index. **Lacunas verificadas (red-team [CX]):** construir **3 telas React** — PDV-balcão puro (`pos/index` ≠ Sells/Create), **Devolução** (`sell-return` é 100% Blade, **zero twin**) e **Fechar-caixa** (`/vendas/caixa` não tem) — *depois* desligar.
+
+**Critério de desligamento (acceptance — corrigido pelo ledger):**
+- [ ] PDV-balcão puro React cobre `pos/index` → `resource('pos')` 302/removido; `pos.store` = `keep-api`
+- [ ] Tela de Devolução React construída → `sell-return` 302/removido; rotas órfãs `edit`/`update`/`get-product-row` removidas do roteador
+- [ ] Fechar-caixa React → `resource('cash-register')` 302 → `/vendas/caixa`; `close-register` migrado
+- [ ] Fallbacks Blade removidos (`return view(...)` apagado de show/edit/drafts/quotations/create) **+ flag `useV2SellsCreate` 100%** (senão Blade responde a deep-link sem `X-Inertia`)
+- [ ] Links guest públicos (`/invoice|/quote|/pay/{token}`) tratados; 10 rotas duplicadas (l.376-383 vs 449-456) resolvidas
+- [ ] PDFs/print/FSM/`store` mantidos como `keep-api` (não matar — a tela React consome)
+- [ ] Pest baseline F2 antes de qualquer Edit no front; Tier 0 business_id ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
+
+### US-MWART-005 · Onda 2 — migrar Clientes & contatos e desligar /contacts
+
+> owner: — · priority: p2 · estimate: 10h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: —
+
+Domínio C, ≈26 fn. **Adversário [CD]:** Attio (ficha viva, contexto sem cliques). **Já vivo:** `/cliente` drawer 760px ([ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)/[0188](../../decisions/0188-contacts-multi-type-flag-aditiva.md)) + abas anexos/vendas/pagamentos/assinaturas.
+
+**Critério de desligamento (acceptance):**
+- [ ] `resource('contacts')` redireciona pra `/cliente` nos 6 tipos (customer/supplier/employee/representative…)
+- [ ] ledger, import, mapa, customer-group, lookup CNPJ portados
+- [ ] `contact/*.blade` lápide
+- [ ] Depende leve da Onda 1 (venda referencia cliente) — pode rodar em paralelo
+
+### US-MWART-006 · Onda 3 — migrar Produtos & catálogo e desligar Blade
+
+> owner: — · priority: p2 · estimate: 24h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: —
+
+Domínio D (o maior), ≈55 fn. **Adversário [CD]:** Linear (densidade) + Shopify Admin (editor de produto/variações). **Já vivo:** `/products/unificado` (5 sub-telas) + `produtos-page` Cowork.
+
+**Critério de desligamento (acceptance):**
+- [ ] `resource('products')`, `taxonomies`, `brands`, `units`, `barcodes`, `discount` e satélites desligados
+- [ ] editor de variação cobre 100% do que `product/edit.blade` fazia (variações, selling-prices, BOM, combo, labels, import)
+- [ ] pré-requisito de qualidade das Ondas 1/4/8 (não bloqueia a 1 — catálogo Blade serve enquanto isso)
+
+### US-MWART-007 · Onda 4 — migrar Estoque & inventário e desligar Blade
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: US-MWART-006
+
+Domínio G, ≈14 fn. **Adversário [CD]:** Linear + Cron (registro auditável em 2 cliques). **Já vivo:** nada (100% Blade) — reusa DataGrid shared candidato da Onda 3.
+
+**Critério de desligamento (acceptance):**
+- [ ] `resource('stock-adjustments')` e `resource('stock-transfers')` desligados (+ print, update-status, opening-stock)
+- [ ] movimentos preservam append-only/auditoria
+- [ ] **depende da Onda 3** (produto é a entidade do movimento)
+
+### US-MWART-008 · Onda 5 — migrar Compras & suprimentos e desligar Blade
+
+> owner: — · priority: p2 · estimate: 14h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: US-MWART-006, US-MWART-007
+
+Domínio F, ≈22 fn. **Adversário [CD]:** Ramp / procurement moderno (fluxo aprovação + recebimento costurado). **Já vivo:** protótipo `compras-page.jsx` no Cowork; repo 100% Blade.
+
+**Critério de desligamento (acceptance):**
+- [ ] `resource('purchases')`, `purchase-order`, `purchase-return`, requisition, combined-return desligados
+- [ ] entrada de compra alimenta o estoque da Onda 4
+- [ ] **depende das Ondas 3 + 4** (produto + estoque)
+
+### US-MWART-009 · Onda 6 — migrar Contábil & tesouraria (camada Account) e desligar Blade
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: US-MWART-004, US-MWART-008
+
+Domínio I, ≈30 fn. **Distinta do módulo Financeiro React já migrado** — é a camada `Account` do UltimatePOS. **Adversário [CD]:** Mercury + QuickBooks (saldo/fluxo calmo + balancete/conciliação).
+
+**Critério de desligamento (acceptance):**
+- [ ] `resource('account')` (+ fund-transfer, deposit, cash-flow, balance-sheet, trial-balance, link-account), `account-types`, `payments`, `expenses` desligados
+- [ ] balancete e cash-flow nativos no cockpit
+- [ ] **depende de Vendas (1) + Compras (5)** pra fonte de lançamentos
+
+### US-MWART-010 · Onda 7 — migrar Configurações, admin & documentos e desligar Blade
+
+> owner: — · priority: p3 · estimate: 20h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: —
+
+Domínios K + L, ≈55 fn. **Adversário [CD]:** Stripe Settings + Vercel (busca + agrupamento, nunca muro de toggles AdminLTE). **Já vivo:** Gerenciador de Módulos React + preferências tema/sidebar.
+
+**Critério de desligamento (acceptance):**
+- [ ] cada `resource()` de settings desligado por grupo (business/location/invoice-layouts/schemes/tax-rates/printers/notification/backup/roles/users)
+- [ ] `settings_custom_labels.blade` (37 KB) reescrito como tela de busca; note-documents/mídia portados
+- [ ] tax-rates/invoice-schemes (pré-requisito fiscal de 1 e 6) — Blade serve até portar
+
+### US-MWART-011 · Onda 8 — migrar Relatórios (a represa) e desligar Blade
+
+> owner: — · priority: p2 · estimate: 24h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: US-MWART-004, US-MWART-005, US-MWART-006, US-MWART-007, US-MWART-008, US-MWART-009, US-MWART-010
+
+Domínio J, ≈45 fn que leem TODOS os domínios. **Adversário [CD]:** Metabase + Stripe Sigma (filtro vivo + drill-down + export que o contador aceita). **Não pode vir antes:** relatório que lê dado de domínio não-migrado mente.
+
+**Critério de desligamento (acceptance):**
+- [ ] todos os `/reports/*` desligados (lucro/perda, estoque, fiscal, vendedor, lote…)
+- [ ] números batem com os domínios já migrados (1–7) — **prova de integridade da rota inteira**
+- [ ] **depende de TODAS as Ondas 1–7** — é onde a rota "só para depois de todas migradas"
+
+### US-MWART-012 · Onda 9 — migrar Acesso & onboarding e remover /login/old
+
+> owner: — · priority: p3 · estimate: 8h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: —
+
+Domínio A, ≈10 fn. **Adversário [CD]:** WorkOS + Linear (login limpo, social, sem AdminLTE). Baixa frequência → tarde, mas é a primeira impressão.
+
+**Critério de desligamento (acceptance):**
+- [ ] `/login/old` removido; register e password reset em React
+- [ ] business-register (+ checks), social-auth (Google/Microsoft), install wizard portados
+- [ ] `auth/*.blade` e `install/*` lápide — independente, pode rodar em paralelo
+
+### US-MWART-013 · Onda 10 — gate de zero-Blade (prova de honestidade [CX])
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: roadmap-ondas-blade
+> blocked_by: US-MWART-004, US-MWART-005, US-MWART-006, US-MWART-007, US-MWART-008, US-MWART-009, US-MWART-010, US-MWART-011, US-MWART-012
+
+A onda que torna a rota verdadeira. **Adversário [CX] — o permanente:** red-team do processo, "qual route Blade ainda responde escondido atrás do React?".
+
+**Critério de desligamento (acceptance):**
+- [ ] grep no `web.php` por `resource()` e `view()` Blade vivos → cada um vira lápide ou 302
+- [ ] **Gate de CI: 0 view AdminLTE servida em rota autenticada**
+- [ ] smoke `/_smoke-probe` + visual-regression (US-GOV-013) atravessam todas as rotas sem cair em layout legado
+- [ ] **contador de routes Blade vivos = 0** → a rota PAROU. Antes disso, nenhuma onda anterior pode ser chamada de "concluída"
+
 ---
 
-**Última atualização:** 2026-05-08
+**Última atualização:** 2026-06-13 — adicionadas US-MWART-004…013 (ondas de migração do backbone Blade · roadmap 2026-06-13). Histórico meta-processo: 2026-05-08.

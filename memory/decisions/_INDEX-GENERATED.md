@@ -5,13 +5,13 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **268** arquivos · **253** números únicos · máx **0263**
-- **ADRs ATIVOS (lifecycle ativo): 228** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 208 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1
-- Por lifecycle: ativo 228 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **303** arquivos · **287** números únicos · máx **0297**
+- **ADRs ATIVOS (lifecycle ativo): 263** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 242 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 263 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
-## Colisões de número (13) — auto-detectadas
+## Colisões de número (14) — auto-detectadas
 - **0101** ×2: 0101-sistema-charter-capterra-governanca-escopo · 0101-tests-business-id-1-nunca-cliente
 - **0102** ×2: 0102-nfce-status-polling-vs-broadcast · 0102-s6-charter-capterra-postmortem-s7-backlog
 - **0119** ×2: 0119-migration-factory-capacidade-institucional · 0119-paralelismo-sessoes-whats-active-tier-1
@@ -25,73 +25,77 @@
 - **0235** ×2: 0235-ds-v4-accent-roxo-universal · 0235-staging-ct100-clone-anonimizado
 - **0236** ×3: 0236-extrato-conciliacao-modelo-unificado · 0236-governanca-evolucao-doc-design · 0236-scorecard-universal-entidade-arbitraria
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
+- **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
 
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Todas as ADRs (268)
+## Recusadas (1) — o NÃO consultável
+- **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
+
+## Todas as ADRs (303)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
-| 0001 | superseded | substituido | decision | !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZ |
-| 0002 | superseded | substituido | decision | !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHV |
-| 0003 | aceito | ativo | decision | !!binary gJQgTWFyY2HDp8O1ZXMgYXBwZW5kLW9ubHkgY29tIHRyaWdnZXJzIE15U1FMICsgcHJvdGX |
-| 0004 | aceito | ativo | decision | !!binary gJQgVGFiZWxhIGJyaWRnZSBgcG9udG9fY29sYWJvcmFkb3JfY29uZmlnYA== |
-| 0005 | superseded | substituido | decision | !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3V |
-| 0006 | aceito | ativo | decision | !!binary gJQgTXVsdGktdGVuYW5jeSBsw7NnaWNhIHZpYSBgYnVzaW5lc3NfaWRg |
-| 0007 | aceito | ativo | decision | !!binary gJQgQmFuY28gZGUgaG9yYXMgY29tbyBsZWRnZXIgYXBwZW5kLW9ubHk= |
-| 0008 | superseded | substituido | decision | !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJ |
-| 0009 | aceito | ativo | decision | !!binary gJQgUHJvdMOzdGlwb3MgdmlzdWFpcyBlbSBIVE1MICsgVGFpbHdpbmQgKyBDaGFydC5qcyA |
-| 0010 | superseded | substituido | decision | !!binary gJQgU2lzdGVtYSBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvIChDTEFVREUubWQgKyAvbWVtb3J |
-| 0011 | aceito | ativo | decision | !!binary gJQgQWxpbmhhbWVudG8gY29tIG8gcGFkcsOjbyBKYW5hIChVbHRpbWF0ZVBPUyk= |
+| 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
+| 0002 | superseded | substituido | decision | Usar nWidart/laravel-modules como sistema de módulos |
+| 0003 | aceito | ativo | decision | Marcações append-only com triggers MySQL + proteção na aplicação |
+| 0004 | aceito | ativo | decision | Tabela bridge `ponto_colaborador_config` |
+| 0005 | superseded | substituido | decision | UUID para entidades auditáveis, BigInt para lookups |
+| 0006 | aceito | ativo | decision | Multi-tenancy lógica via `business_id` |
+| 0007 | aceito | ativo | decision | Banco de horas como ledger append-only |
+| 0008 | superseded | substituido | decision | Sidebar com 1 item + menu horizontal em abas dentro do módulo |
+| 0009 | aceito | ativo | decision | Protótipos visuais em HTML + Tailwind + Chart.js (não React) |
+| 0010 | superseded | substituido | decision | Sistema de memória do projeto (CLAUDE.md + /memory/) |
+| 0011 | aceito | ativo | decision | Alinhamento com o padrão Jana (UltimatePOS) |
 | 0013 | aceito | arquivado | decision | Ecossistema de Módulos: Inventário, Categorias e Padrões |
 | 0014 | aceito | arquivado | decision | Integração PontoWR2 × Essentials (HRM) |
 | 0015 | aceito | arquivado | decision | Connector: API Gateway para Integrações Externas |
 | 0016 | aceito | arquivado | decision | Plano de Otimização e Roadmap PontoWR2 |
-| 0017 | aceito | ativo | decision | !!binary gJQgT2ZmaWNlaW1wcmVzc28gcmVzdGF1cmFkbyBkYSAzLjcgY29tbyBtw7NkdWxvIFN1cGV |
-| 0018 | aceito | arquivado | decision | !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l |
-| 0019 | aceito | ativo | decision | !!binary gJQgRGVscGhpIGxlZ2FkbyBuw6NvIGF1dGVudGljYSBhcMOzcyB1cGdyYWRlIDMuN+KGkjY |
-| 0020 | proposto | ativo | decision | !!binary gJQgR3J1cG8gZWNvbsO0bWljbyAobWF0cml6ICsgZmlsaWFpcykgbm8gT2ZmaWNlaW1wcmV |
-| 0021 | aceito | ativo | decision | !!binary gJQgQ29udHJhdG8gcmVhbCBkYSBBUEkgY29uc3VtaWRhIHBlbG8gRGVscGhp |
-| 0022 | aceito | ativo | decision | !!binary gJQgTWV0YSBmaW5hbmNlaXJhIG9pbXByZXNzbzogUiQgNSBtaWxow7Vlcy9hbm8= |
-| 0023 | aceito | ativo | decision | !!binary gJQgVXBncmFkZSBwYXJhIEluZXJ0aWEuanMgdjM= |
-| 0024 | aceito | ativo | decision | !!binary gJQgSW5zdGFsYcOnw6NvIDEtY2xpcXVlIHBhZHJvbml6YWRhIHBhcmEgdG9kb3Mgb3MgbcO |
-| 0025 | aceito | ativo | decision | !!binary gJQgUmVkZXNpZ24gZGEgbGFuZGluZyBww7pibGljYSAoYE1vZHVsZXMvQ21zYCkgZW0gSW5 |
-| 0026 | aceito | ativo | decision | !!binary gJQgUG9zaWNpb25hbWVudG8gZXN0cmF0w6lnaWNvOiBFUlAgZGUgQ29tdW5pY2HDp8OjbyB |
-| 0027 | aceito | ativo | decision | !!binary gJQgR2VzdMOjbyBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvOiBwYXDDqWlzIGNsYXJvcyBwb3I |
-| 0028 | superseded | substituido | decision | !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA= |
-| 0029 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBJbmVydGlhICsgUmVhY3QgKyBVbHRpbWF0ZVBPUyBwcmEgbcOzZHVsb3M |
-| 0030 | aceito | ativo | decision | !!binary gJQgQ3JlZGVuY2lhaXMgc2Vuc8OtdmVpczogbnVuY2EgZW0gZ2l0 |
-| 0031 | superseded | substituido | decision | !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGB |
-| 0032 | superseded | substituido | decision | !!binary gJQgVml6cmEgQURLICsgUHJpc20gUEhQIGNvbW8gY2FtYWRhIGRlIG9ycXVlc3RyYcOnw6N |
-| 0033 | superseded | substituido | decision | !!binary gJQgVmVjdG9yIHN0b3JlIC8gc2VhcmNoIGJhY2tlbmQgZG8gb2ltcHJlc3NvOiBwZ3ZlY3R |
-| 0034 | aceito | ativo | decision | !!binary gJQgTGFyYXZlbCBBSSBlY29zeXN0ZW0gMjAyNjogU0RLIG9maWNpYWwgKyBCb29zdCArIE1 |
-| 0035 | superseded | substituido | decision | !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bml |
-| 0036 | superseded | substituido | decision | !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWV |
-| 0037 | aceito | ativo | decision | !!binary gJQgUm9hZG1hcCBkZSBldm9sdcOnw6NvIHDDs3MtU3ByaW50IDU6IFRpZXIgNS02IOKGkiB |
-| 0038 | aceito | ativo | decision | !!binary gJQgUHJvbW/Dp8OjbyBkZSBgNi43LWJvb3RzdHJhcGAgcGFyYSBgbWFpbmAgY29tbyBicmF |
-| 0039 | aceito | ativo | decision | !!binary gJQgUGFkcsOjbyBkZSBVSSAiQ2hhdCBDb2NrcGl0IiAoMyBjb2x1bmFzKSBwYXJhIG8gRVJ |
-| 0040 | aceito | ativo | decision | !!binary gJQgUG9saWN5IGRlIHB1YmxpY2HDp8OjbzogQ2xhdWRlIHN1cGVydmlzaW9uYSwgV2FnbmV |
-| 0041 | aceito | ativo | decision | !!binary gJQgU3RhY2sgZGUgUUEgZGUgSUE6IFZpenJhIEFESyBldmFsICsgTGFuZ2Z1c2Ugc2VsZi1 |
-| 0042 | superseded | substituido | decision | !!binary gJQgUmV2ZXJiIChzZWxmLWhvc3RlZCkgc3Vic3RpdHVpIFB1c2hlciBDbG91ZCBjb21vIGJ |
-| 0043 | aceito | ativo | decision | !!binary gJQgRG9ja2VyICsgVHJhZWZpayArIFBvcnRhaW5lciBudW0gTFhDLCBlbSB2ZXogZGUgTiB |
-| 0044 | superseded | substituido | decision | !!binary gJQgVmF1bHR3YXJkZW4gc2VsZi1ob3N0ZWQgY29tbyBjb2ZyZSBkZSBjcmVkZW5jaWFpcw= |
-| 0045 | aceito | ativo | decision | !!binary gJQgRW5kcG9pbnQgY2Fuw7RuaWNvIGRhIEhvc3RpbmdlciBETlMgQVBJIFYx |
-| 0046 | aceito | ativo | decision | !!binary gJQgYENoYXRDb3BpbG90b0FnZW50YCBwcmVjaXNhIGRlIGNvbnRleHRvIHJpY28gKyB0b29 |
-| 0047 | aceito | ativo | decision | !!binary gJQgV2FnbmVyIHNvbG86IHNwcmludCBtZW3Ds3JpYSBkbyBhZ2VudGUgKHRva2VuIGVjb25 |
-| 0048 | aceito | ativo | decision | !!binary gJQgRnJhbWV3b3JrIGRlIGFnZW50ZXMgSUE6IGBsYXJhdmVsL2FpYCAoVml6cmEgQURLIHJ |
-| 0049 | aceito | ativo | decision | !!binary gJQgQ2FtYWRhcyBkZSBtZW3Ds3JpYSBkbyBhZ2VudGU6IGxpZ2FyIGZhc2UgcG9yIGZhc2U |
-| 0050 | aceito | ativo | decision | !!binary gJQgOCBtw6l0cmljYXMgb2JyaWdhdMOzcmlhcyBkZSBtZW3Ds3JpYSArIHRhYmVsYSBgbWV |
-| 0051 | aceito | ativo | decision | !!binary gJQgU2NoZW1hIHByw7NwcmlvICsgYWRhcHRlciBwYXR0ZXJuICsgZW1pc3PDo28gT3BlblR |
-| 0052 | aceito | ativo | decision | !!binary gJQgYENvbnRleHRvTmVnb2Npb2AgZGV2ZSBleHBvciBtw7psdGlwbG9zIMOibmd1bG9zIHB |
-| 0053 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBkYSBlbXByZXNhOiBnb3Zlcm5hbsOnYSBjb21vIHByb2R1dG8sIG7 |
-| 0054 | superseded | substituido | decision | !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICs |
-| 0055 | aceito | ativo | decision | !!binary gJQgU2VsZi1ob3N0IFRlYW0gcGxhbiBlcXVpdmFsZW50ZSBhbyBBbnRocm9waWMgVGVhbS9 |
-| 0056 | aceito | ativo | decision | !!binary gJQgTUNQIHNlcnZlciBjb21vIGZvbnRlIMO6bmljYSBkZSBtZW3Ds3JpYSBwcm8gQ29waWx |
-| 0057 | aceito | ativo | decision | !!binary gJQgVGVsYSBgL3RlYW0tbWNwL3RlYW1gOiByZWdyYXMgZGUgZ292ZXJuYW7Dp2EgZGUgdG9 |
-| 0058 | aceito | ativo | decision | !!binary gJQgUmV2ZXJiIHN1YnN0aXR1w61kbyBwb3IgQ2VudHJpZnVnbyArIEZyYW5rZW5QSFA= |
-| 0059 | aceito | ativo | decision | !!binary gJQgR292ZXJuYW7Dp2EgZGEgbWVtw7NyaWEgZXN0aWxvIEFudGhyb3BpYyBUZWFtIHBsYW4 |
-| 0060 | aceito | ativo | decision | !!binary gJQgSUEgKyB3b3JrZXJzIHBlc2Fkb3MgbmEgcmVkZSBpbnRlcm5hIChQcm94bW94KSwgYXB |
-| 0061 | aceito | ativo | decision | !!binary gJQgQ29uaGVjaW1lbnRvIGNhbsO0bmljbyBlbSBnaXQvTUNQLCBaRVJPIGF1dG8tbWVtIHB |
+| 0017 | aceito | ativo | decision | Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo |
+| 0018 | aceito | arquivado | decision | Log de acesso do desktop via triggers MySQL (passivo) |
+| 0019 | aceito | ativo | decision | Delphi legado não autentica após upgrade 3.7→6.7 (investigação) |
+| 0020 | proposto | ativo | decision | Grupo econômico (matriz + filiais) no Officeimpresso |
+| 0021 | aceito | ativo | decision | Contrato real da API consumida pelo Delphi |
+| 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ 5 milhões/ano |
+| 0023 | aceito | ativo | decision | Upgrade para Inertia.js v3 |
+| 0024 | aceito | ativo | decision | Instalação 1-clique padronizada para todos os módulos |
+| 0025 | aceito | ativo | decision | Redesign da landing pública (`Modules/Cms`) em Inertia/React |
+| 0026 | aceito | ativo | decision | Posicionamento estratégico: ERP de Comunicação Visual com IA |
+| 0027 | aceito | ativo | decision | Gestão de memória do projeto: papéis claros por função |
+| 0028 | superseded | substituido | decision | ADRs com numeração monotônica e formato Nygard |
+| 0029 | aceito | ativo | decision | Padrão Inertia + React + UltimatePOS pra módulos novos |
+| 0030 | aceito | ativo | decision | Credenciais sensíveis: nunca em git |
+| 0031 | superseded | substituido | decision | `MemoriaContrato` interface PHP + driver default `Mem0RestDriver` |
+| 0032 | superseded | substituido | decision | Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto |
+| 0033 | superseded | substituido | decision | Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem |
+| 0034 | aceito | ativo | decision | Laravel AI ecosystem 2026: SDK oficial + Boost + MCP + Vizra ADK + alternativas |
+| 0035 | superseded | substituido | decision | Stack-alvo de IA do Copiloto: declaração canônica |
+| 0036 | superseded | substituido | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
+| 0037 | aceito | ativo | decision | Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval |
+| 0038 | aceito | ativo | decision | Promoção de `6.7-bootstrap` para `main` como branch principal |
+| 0039 | aceito | ativo | decision | Padrão de UI "Chat Cockpit" (3 colunas) para o ERP |
+| 0040 | aceito | ativo | decision | Policy de publicação: Claude supervisiona, Wagner escala |
+| 0041 | aceito | ativo | decision | Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B |
+| 0042 | superseded | substituido | decision | Reverb (self-hosted) substitui Pusher Cloud como broadcaster |
+| 0043 | aceito | ativo | decision | Docker + Traefik + Portainer num LXC, em vez de N LXCs nativos |
+| 0044 | superseded | substituido | decision | Vaultwarden self-hosted como cofre de credenciais |
+| 0045 | aceito | ativo | decision | Endpoint canônico da Hostinger DNS API V1 |
+| 0046 | aceito | ativo | decision | `ChatCopilotoAgent` precisa de contexto rico + tools (gap descoberto) |
+| 0047 | aceito | ativo | decision | Wagner solo: sprint memória do agente (token economy + assertividade) |
+| 0048 | aceito | ativo | decision | Framework de agentes IA: `laravel/ai` (Vizra ADK rejeitada oficialmente) |
+| 0049 | aceito | ativo | decision | Camadas de memória do agente: ligar fase por fase, medir antes de evoluir |
+| 0050 | aceito | ativo | decision | 8 métricas obrigatórias de memória + tabela `memory_metrics` |
+| 0051 | aceito | ativo | decision | Schema próprio + adapter pattern + emissão OpenTelemetry GenAI |
+| 0052 | aceito | ativo | decision | `ContextoNegocio` deve expor múltiplos ângulos por métrica (não 1 número) |
+| 0053 | aceito | ativo | decision | MCP server da empresa: governança como produto, não overhead |
+| 0054 | superseded | substituido | decision | Pacote enterprise de busca de memória: por quê + como evolui |
+| 0055 | aceito | ativo | decision | Self-host Team plan equivalente ao Anthropic Team/Enterprise |
+| 0056 | aceito | ativo | decision | MCP server como fonte única de memória pro Copiloto chat + Claude Code |
+| 0057 | aceito | ativo | decision | Tela `/team-mcp/team`: regras de governança de tokens MCP e distribuição via `.d |
+| 0058 | aceito | ativo | decision | Reverb substituído por Centrifugo + FrankenPHP |
+| 0059 | aceito | ativo | decision | Governança da memória estilo Anthropic Team plan adaptado |
+| 0060 | aceito | ativo | decision | IA + workers pesados na rede interna (Proxmox), app principal continua Hostinger |
+| 0061 | aceito | ativo | decision | Conhecimento canônico em git/MCP, ZERO auto-mem privada |
 | 0062 | aceito | ativo | decision | Separação dura de runtime: Hostinger ≠ CT 100 Proxmox |
 | 0063 | aceito | ativo | decision | Prevenir composer.lock drift permanentemente |
 | 0064 | aceito | ativo | decision | Modularização — split TeamMcp + KB + Superadmin 360° |
@@ -154,8 +158,8 @@ _(íntegra)_
 | 0120 | aceito | ativo | decision | Supersession metadata housekeeping — fix 0079 + documenta drift de direção forwa |
 | 0121 | aceito | ativo | decision | oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Ver |
 | 0122 | proposto | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
-| 0123 | proposto | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
-| 0124 | proposto | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
+| 0123 | aceito | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
+| 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | historical | decision | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
 | 0126 | proposto | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
 | 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
@@ -222,7 +226,7 @@ _(íntegra)_
 | 0186 | aceito | ativo | decision | Chain de certificado A1 + SEFAZ ConsultaCadastro merge paralelo — IRREVOGÁVEL |
 | 0187 | aceito | ativo | decision | Constituição UI v2 — ponteiro canon (hierarquia 4 camadas + regra-mestre + PT-01 |
 | 0188 | aceito | ativo | decision | Contatos multi-type · flags aditivas is_customer/is_supplier/is_employee/is_repr |
-| 0189 | proposto | ativo | decision | PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo m |
+| 0189 | aceito | ativo | decision | PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo m |
 | 0190 | superseded | substituido | decision | Primary button interno = roxo médio universal oklch(0.55 0.15 295) — hue per gru |
 | 0191 | aceito | ativo | decision | Microsoft Clarity como ferramenta canon de session replay + heatmap LGPD-complia |
 | 0192 | aceito | ativo | decision | Auto-faturar OS → Venda via JobSheetObserver (Integração Vendas × Oficina A1 KB- |
@@ -271,7 +275,7 @@ _(íntegra)_
 | 0235 | aceito | ativo | decision | Ambiente de Staging no CT 100 — clone anonimizado da produção |
 | 0236 | aceito | ativo | decision | Extrato bancário + Conciliação: modelo unificado (origem como atributo, concilia |
 | 0236 | aceito | ativo | decision | Governança de evolução da documentação de design — append-only + índice fonte-ún |
-| 0236 | proposto | ativo | decision | Scorecard Universal — entidade avaliável arbitrária (blueprint pattern): temas/c |
+| 0236 | aceito | ativo | decision | Scorecard Universal — entidade avaliável arbitrária (blueprint pattern): temas/c |
 | 0237 | aceito | ativo | decision | jana:reconcile — loop de reconciliação único (git == índice == MCP == settings = |
 | 0238 | aceito | ativo | decision | Soberania de [W] sobre a constituição — modificação autorizada e versionada |
 | 0239 | aceito | ativo | decision | Governança do Design System — git é fonte única; mudança flui Cowork→Code→git co |
@@ -290,13 +294,48 @@ _(íntegra)_
 | 0251 | aceito | ativo | decision | Veículo na venda direta de oficina (transactions.vehicle_id) — extensão da Integ |
 | 0252 | aceito | ativo | decision | Provider LLM default da camada A = OpenAI (gpt-4o-mini / gpt-4o) |
 | 0253 | aceito | ativo | decision | Primitivos de layout (Components/layout/): Box/Stack/Inline/Grid/Container/Text  |
-| 0254 | proposto | ativo | decision | Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (end |
+| 0254 | aceito | ativo | decision | Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (end |
 | 0255 | aceito | ativo | decision | Contrato de view determinístico: charter (intenção) + design-spec.json derivado  |
-| 0256 | proposto | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
-| 0257 | proposto | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
-| 0258 | proposto | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
+| 0256 | aceito | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
+| 0257 | aceito | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
+| 0258 | aceito | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
 | 0259 | aceito | ativo | errata | Errata 0091 — modelo do Brief é gpt-4o-mini (não Sonnet); §Geração superseded po |
 | 0260 | aceito | ativo | errata | Errata 0182 — cor primária do PageHeader é roxo universal 295 (não hue-per-grupo |
 | 0261 | aceito | ativo | decision | Enforcement faseado dos gates de CI: required-checks por níveis + skip-as-pass + |
 | 0262 | aceito | ativo | decision | Governança escala com o time: review opcional pra dev solo + evolução = mais fác |
 | 0263 | aceito | ativo | decision | Identidade de cor vira gate bloqueante no main: chrome roxo único + semântica go |
+| 0264 | aceito | ativo | meta | Governança executável: trio-de-tela + caso↔teste + domínio + E2E viram gates de  |
+| 0265 | aceito | ativo | errata | Oficina = reparo é o único domínio; erradicar resíduo de order_type=locacao; 'Ca |
+| 0266 | aceito | ativo | meta | Evals de comportamento dos agentes — golden set + replay cases + escada de auton |
+| 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
+| 0268 | proposto | ativo | decision | whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; dispa |
+| 0269 | aceito | ativo | decision | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
+| 0270 | aceito | ativo | decision | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
+| 0271 | aceito | ativo | decision | Revisão dos 64 gates CI — estado real dos required (corrige drift da 0261), font |
+| 0272 | aceito | ativo | decision | Árvore canônica de componentes — camadas UI-0013 viram pastas enforçadas (allowl |
+| 0273 | aceito | ativo | decision | Anchor spec↔código — formato canônico do campo 'Implementado em', sentinela _pen |
+| 0274 | aceito | ativo | meta | Referência canônica a ADR = SLUG completo (NNNN-titulo) + alias map das 13 colis |
+| 0275 | aceito | ativo | decision | Scorecard SDD canônico — 10 métricas com catraca, composta v1/v2 (regimes não co |
+| 0276 | aceito | ativo | meta | Decisão pelo fluxo — 3 classes de decisão; pares adversariais substituem aprovaç |
+| 0277 | aceito | ativo | meta | Rota de migração do backbone Blade (UltimatePOS) — contrato de completude por ro |
+| 0278 | aceito | ativo | meta | Arquitetura durável de automação multi-IA (anti-vazamento, thread-aware, em rede |
+| 0279 | aceito | ativo | meta | Fechar o elo MEDIR→GOVERNAR do floor (transporte CT100 → scorecard, Opção A) |
+| 0280 | aceito | ativo | meta | Postura multi-tenant das tabelas mcp_* — governança de plataforma é repo-wide (s |
+| 0281 | aceito | ativo | decision | Dark mode ativa por [data-theme=dark] (mecanismo real do AppShellV2), não só pel |
+| 0282 | aceito | ativo | decision | Protocolo v2 (colapso) — ratificação: 6→2 papéis · 7→3 fases · memória=git SSOT  |
+| 0283 | aceito | ativo | decision | Loop de handoff zero-paste — repo fonte única, gate de conteúdo, sem auto-merge  |
+| 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
+| 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
+| 0286 | aceito | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
+| 0287 | proposto | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
+| 0288 | proposto | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
+| 0289 | proposto | ativo | decision | failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficia |
+| 0290 | recusado | ativo | decision | v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  |
+| 0291 | aceito | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
+| 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
+| 0293 | proposto | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
+| 0294 | aceito | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
+| 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
+| 0295 | aceito | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
+| 0296 | proposto | ativo | infra | Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement  |
+| 0297 | aceito | ativo | meta | Exceção append-only: migração legacy→canônico de frontmatter de ADR sob label, c |

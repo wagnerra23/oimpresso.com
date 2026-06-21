@@ -14,6 +14,7 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react';
+import { fmtRelative } from '@/Lib/datetime-br';
 import { cn } from '@/Lib/utils';
 import type { HealthSnapshot } from './governanceV4Types';
 
@@ -30,17 +31,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   snapshot: HealthSnapshot | null;
-}
-
-function fmtRelative(iso: string | null): string {
-  if (!iso) return 'nunca';
-  const d = new Date(iso).getTime();
-  if (Number.isNaN(d)) return 'nunca';
-  const diff = Math.round((Date.now() - d) / 60_000);
-  if (diff < 1) return 'agora';
-  if (diff < 60) return `${diff}min atrás`;
-  if (diff < 1440) return `${Math.round(diff / 60)}h atrás`;
-  return `${Math.round(diff / 1440)}d atrás`;
 }
 
 export default function HealthPanelV4({ open, onOpenChange, snapshot }: Props) {
@@ -126,9 +116,9 @@ function HealthCard({
 }) {
   const toneCls =
     tone === 'ok'
-      ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+      ? 'border-success/20 bg-success-soft text-success-fg'
       : tone === 'warn'
-        ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+        ? 'border-warning/20 bg-warning-soft text-warning-fg'
         : 'border-destructive/40 bg-destructive/10 text-destructive';
 
   return (

@@ -1,4 +1,4 @@
-// Drag-and-drop provider pro Kanban Produção · Oficina (Martinho 13/maio).
+// Drag-and-drop provider pro Kanban da Oficina (Quadro de OS — ADR 0265).
 //
 // Wrapper @dnd-kit/core (DndContext + sensors + DragOverlay):
 //   - PointerSensor com activationConstraint distance:8 → evita drag acidental
@@ -7,10 +7,14 @@
 //   - DragOverlay flutuante renderiza preview do card sendo arrastado
 //
 // Callback contract:
-//   onMove(cacambaId, fromColumn, toColumn, dragData)
-//     - Index decide se mapping é permitido (mappingTable)
+//   onMove(subjectId, fromColumn, toColumn, subject)
+//     - Consumidor decide se mapping é permitido (STAGE_TRANSITIONS)
 //     - Se sim, abre DragConfirmDialog
 //     - Se não, mostra toast warning
+//
+// Genérico subject-neutral (2026-06-10 · unificação ADR 0265): o card de caçamba
+// (CacambaCardData) morreu junto com o kanban de locação — o provider agora exige
+// `renderPreview` do consumidor (Board passa o dele) e não conhece o shape do card.
 //
 // CRÍTICO React 19 — useCallback nos handlers (lição PR #717).
 
@@ -31,7 +35,6 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { CacambaCardData, CacambaStatus } from './CacambaCard';
 // D-01 — context/hook/tipos do feedback preditivo moram em módulo sem componente
 // (Fast Refresh feliz: este arquivo exporta só o componente default).
 import {
@@ -40,70 +43,31 @@ import {
   type KanbanDragState,
 } from './kanbanDrag';
 
-// Genérico (2026-06-02 · port Kanban do carro): o provider DnD canon é reusado por
-// múltiplas verticais (caçamba ProducaoOficina + OS de mecânica ServiceOrders/Board).
-// Generics com default = tipos da caçamba → call sites legados compilam SEM mudança.
-// O ServiceOrders/Board passa `renderPreview` próprio (sem a palavra "Caçamba").
 interface DraggedData<T, C extends string> {
-  cacambaId: number;
+  subjectId: number;
   currentColumn: C;
-  cacamba: T;
+  subject: T;
 }
 
 interface KanbanDndProviderProps<T, C extends string> {
   children: ReactNode;
   onMove: (
-    cacambaId: number,
+    subjectId: number,
     fromColumn: C,
     toColumn: C,
-    cacamba: T,
+    subject: T,
   ) => void;
-  /** Preview flutuante durante o drag. Default = preview da caçamba (compat). */
-  renderPreview?: (cacamba: T) => ReactNode;
+  /** Preview flutuante durante o drag (obrigatório — provider não conhece o card). */
+  renderPreview: (subject: T) => ReactNode;
   /**
-   * D-01 — avalia (puro/síncrono) o desfecho de soltar `cacamba` de `from` em `to`.
-   * Reusa a máquina de mapping do consumidor (ex.: resolveDragMapping do Index) pra
+   * D-01 — avalia (puro/síncrono) o desfecho de soltar `subject` de `from` em `to`.
+   * Reusa a máquina de mapping do consumidor (ex.: STAGE_TRANSITIONS do Board) pra
    * pintar verde/âmbar nas colunas. Opcional: sem ele o feedback preditivo desliga.
    */
-  evaluateDrop?: (from: C, to: C, cacamba: T) => DropVerdict;
+  evaluateDrop?: (from: C, to: C, subject: T) => DropVerdict;
 }
 
-/**
- * Renderiza preview leve do card durante drag — não duplica CacambaCard
- * (evita re-render hierarquia + custo). Mostra placa + cliente + capacidade.
- */
-function CardDragPreview({ cacamba }: { cacamba: CacambaCardData }) {
-  return (
-    <div
-      className="bg-white border-2 border-primary rounded shadow-lg p-3 max-w-[260px] cursor-grabbing rotate-2 opacity-95"
-      role="presentation"
-      aria-hidden="true"
-    >
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[11px] bg-foreground text-background px-1.5 py-0.5 rounded">
-          {cacamba.plate}
-        </span>
-        <div className="flex flex-col min-w-0">
-          <span className="text-[12.5px] font-medium text-foreground truncate">
-            {cacamba.capacity_m3 != null
-              ? `Caçamba ${Number(cacamba.capacity_m3)}m³`
-              : 'Caçamba'}
-          </span>
-          {cacamba.cliente_nome ? (
-            <span className="text-[10.5px] text-muted-foreground truncate">
-              {cacamba.cliente_nome}
-            </span>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function KanbanDndProvider<
-  T = CacambaCardData,
-  C extends string = CacambaStatus,
->({
+export default function KanbanDndProvider<T, C extends string = string>({
   children,
   onMove,
   renderPreview,
@@ -122,7 +86,7 @@ export default function KanbanDndProvider<
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const data = event.active.data.current as DraggedData<T, C> | undefined;
-    if (data && typeof data.cacambaId === 'number') {
+    if (data && typeof data.subjectId === 'number') {
       setActiveData(data);
     }
   }, []);
@@ -150,10 +114,10 @@ export default function KanbanDndProvider<
       if (dragData.currentColumn === overData.columnStatus) return;
 
       onMove(
-        dragData.cacambaId,
+        dragData.subjectId,
         dragData.currentColumn,
         overData.columnStatus,
-        dragData.cacamba,
+        dragData.subject,
       );
     },
     [onMove],
@@ -173,7 +137,7 @@ export default function KanbanDndProvider<
       verdictFor: (to: string) => {
         if (!activeData || !evaluateDrop) return null;
         if (activeData.currentColumn === to) return null; // origem = destino
-        return evaluateDrop(activeData.currentColumn, to as C, activeData.cacamba);
+        return evaluateDrop(activeData.currentColumn, to as C, activeData.subject);
       },
     };
   }, [activeData, overColumn, evaluateDrop]);
@@ -190,11 +154,7 @@ export default function KanbanDndProvider<
         {children}
       </KanbanDragContext.Provider>
       <DragOverlay dropAnimation={null}>
-        {activeData
-          ? renderPreview
-            ? renderPreview(activeData.cacamba)
-            : <CardDragPreview cacamba={activeData.cacamba as unknown as CacambaCardData} />
-          : null}
+        {activeData ? renderPreview(activeData.subject) : null}
       </DragOverlay>
     </DndContext>
   );

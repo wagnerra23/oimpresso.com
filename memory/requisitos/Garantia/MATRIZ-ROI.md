@@ -8,7 +8,7 @@ updated_at: 2026-05-12
 related: [SPEC.md, ROADMAP.md, garantia-cross-vertical-workflow]
 ---
 
-# MATRIZ-ROI — Modules/Garantia (cross-vertical workflow)
+# MATRIZ-ROI — Garantia (planejado — não existe) (cross-vertical workflow)
 
 > **Score:** Impacto (1-5) × Esforço inverso (1-5, sendo 5=fácil) = ROI (1-25).
 > Categorização ADR 0106 (estimates IA-pair 10x recalibrados).

@@ -33,6 +33,7 @@ import {
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Separator } from '@/Components/ui/separator';
+import { Inline } from '@/Components/layout';
 
 interface Reclamacao {
   date: string;
@@ -186,6 +187,26 @@ export default function CustomerMemoryBlock({ customerExternalId }: Props) {
 
   const m = data.memory!;
   const c = data.contact;
+
+  // Empty-state enxuto — sem Contact CRM vinculado E sem nenhum enriquecimento
+  // (reclamações/temas/fontes externas/notas/flags), o card grande fica "vazio" e
+  // redundante com o header da thread (que já mostra nome/telefone). Colapsa numa
+  // linha em vez do card. Compartilhado com o Inbox legacy (ConversationSidebar) —
+  // mesma colapsagem nos dois consumidores, sem prop nova (não regride o legacy).
+  const hasEnrichment =
+    (m.total_reclamacoes ?? 0) > 0 ||
+    !!m.inferences?.temas_recorrentes?.length ||
+    !!m.external_sources?.length ||
+    !!m.notes?.notas_jana ||
+    !!m.flags?.length;
+  if (!c && !hasEnrichment) {
+    return (
+      <Inline gap={1} className="px-1 py-1 text-xs text-muted-foreground">
+        <User className="size-3.5 shrink-0" />
+        <span>Sem cadastro de cliente vinculado.</span>
+      </Inline>
+    );
+  }
 
   const severityBadge = (sev: Reclamacao['severity']) => {
     const map = {

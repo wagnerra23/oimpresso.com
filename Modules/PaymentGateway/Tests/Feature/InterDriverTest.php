@@ -14,7 +14,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Onda 4a — ADR 0170.

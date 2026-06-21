@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\Brief\Services\BriefGeneratorService;
 use Modules\Brief\Services\BriefValidator;
+use Modules\Brief\Services\LeaseBriefSectionService;
+use Modules\Governance\Services\PlanHealthBriefLineService;
+use Modules\Governance\Services\SddBriefLineService;
 use Throwable;
 
 /**
@@ -42,6 +45,25 @@ final class GenerateBriefCommand extends Command
 
             return self::FAILURE;
         }
+
+        // GT-G8 (ADR 0275) — linha SDD determinística (pós-LLM) na seção FLAGS:
+        // só aparece quando a composta mudou vs último snapshot da
+        // mcp_sdd_scorecard_history OU há alerta (armada regrediu/fonte
+        // vermelha). inject() é best-effort — brief nunca falha por causa dela.
+        $content = app(SddBriefLineService::class)->inject($content);
+
+        // ADR 0294 Onda 1 — linha de SAÚDE DOS PLANOS (pós-LLM, determinística) na
+        // seção FLAGS: shell-out de scripts/governance/plan-health.mjs --json e
+        // injeta "Planos: N vivos · X órfãos · Y a revisar". Best-effort: `node`
+        // ausente / índice não-deployado → brief intacto. Catraca-irmã do gate CI
+        // plan-health-gate.yml (PLANS-INDEX §"Como manter vivo" item 2).
+        $content = app(PlanHealthBriefLineService::class)->inject($content);
+
+        // C2+C3 (SDD Leva 2, ADR 0278) — bloco de leases ATIVOS + nudge "claim
+        // antes de pegar", injetado sob `## EM VOO AGORA`. Best-effort (pós-LLM):
+        // sem leases / tabela ausente / qualquer erro → brief intacto. Roteia por
+        // WorkLeaseService::activeLeases() (varre expirados antes de listar).
+        $content = app(LeaseBriefSectionService::class)->inject($content);
 
         $aggregatedHash = hash('sha256', $content);
 

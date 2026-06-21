@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\Repair\Events\RepairStatusChanged;
+use Modules\Whatsapp\Console\Commands\AuditChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\AutoLinkConversationContactsCommand;
 use Modules\Whatsapp\Console\Commands\BackfillChannelAccessCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryBackfillCommand;
@@ -16,6 +17,7 @@ use Modules\Whatsapp\Console\Commands\CustomerMemoryRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\EmployeePerformanceBackfillCommand;
 use Modules\Whatsapp\Console\Commands\EmployeePerformanceRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
+use Modules\Whatsapp\Console\Commands\ChannelHealthSnapshotCommand;
 use Modules\Whatsapp\Console\Commands\ChannelResetCommand;
 use Modules\Whatsapp\Console\Commands\CleanupStaleJobsCommand;
 use Modules\Whatsapp\Console\Commands\CleanupWebhookNoncesCommand;
@@ -33,6 +35,9 @@ use Modules\Whatsapp\Console\Commands\ReparseMediaFromPayloadCommand;
 use Modules\Whatsapp\Console\Commands\RetryRecentMediaDownloadsCommand;
 use Modules\Whatsapp\Console\Commands\ScanMediaDriftCommand;
 use Modules\Whatsapp\Console\Commands\SlaScanCommand;
+use Modules\Whatsapp\Console\Commands\WebhookCanaryCommand;
+use Modules\Whatsapp\Console\Commands\WhatsmeowHealthProbeCommand;
+use Modules\Whatsapp\Console\Commands\WhatsmeowResubscribeEventsCommand;
 use Modules\Whatsapp\Entities\Message;
 use Modules\Whatsapp\Entities\WhatsappMessage;
 use Modules\Whatsapp\Events\OmnichannelMessageReceived;
@@ -91,7 +96,9 @@ class WhatsappServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 DriverHealthCheckAllCommand::class,
+                WebhookCanaryCommand::class,            // Fase 1 perda-zero — canário webhook <5min (incidente #2726)
                 BackfillChannelAccessCommand::class,
+                AuditChannelAccessCommand::class,       // Wagner 2026-06-13 — auditor flip-flop revoke/reativação ACL canal
                 RegisterWhatsappPermissionsCommand::class,
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
@@ -104,6 +111,9 @@ class WhatsappServiceProvider extends ServiceProvider
                 SlaScanCommand::class,                  // CYCLE-07 PR-2 — scan SLA policies + alertas escalation
                 MetricsAggregateCommand::class,         // US-WA-021/041 — snapshot diário métricas (CYCLE-07 PR-3)
                 ChannelsReconcilerCommand::class,       // 2026-05-13 — auto-fix drift channels↔daemon (cron 5min)
+                WhatsmeowHealthProbeCommand::class,      // US-WA-308 — detecta queda sessão whatsmeow (cron 3min, incidente 2026-06-18)
+                WhatsmeowResubscribeEventsCommand::class, // Fase B — re-assina LoggedOut em canais já provisionados (one-off, mecanismo D)
+                ChannelHealthSnapshotCommand::class,    // ADR 0288 — snapshot channel_health + alerta canal-down > N min (cron 5min, observabilidade)
                 ChannelResetCommand::class,             // 2026-05-13 — reset 1-comando channel travado
                 CleanupWebhookNoncesCommand::class,     // US-WA-082 — purga nonces >24h (replay protection cleanup)
                 CleanupStaleJobsCommand::class,         // US-WA-084 — purga jobs presos da fila whatsapp-history (>6h)

@@ -39,6 +39,10 @@ use Modules\OficinaAuto\Entities\Vehicle;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // ── Schema mínimo SQLite in-memory (já com colunas Wave 5-A pra testar contrato) ──
 
     Schema::create('vehicles', function (Blueprint $t) {
@@ -69,8 +73,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('service_orders');
-    Schema::dropIfExists('vehicles');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('service_orders');
+        Schema::dropIfExists('vehicles');
+    }
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -108,7 +114,7 @@ function oaSideHelperServiceOrder(int $bizId, int $vehicleId, string $status = '
 
 it('1. IniciarLocacaoCacamba — vehicle vira locada + current_rental_id = SO.id', function () {
     $vehicle = oaSideHelperVehicle(1, 'LOC1001');
-    $so = oaSideHelperServiceOrder(1, $vehicle->id, 'aberta', 'locacao');
+    $so = oaSideHelperServiceOrder(1, $vehicle->id, 'aberta', 'manutencao');
 
     Log::spy();
 
@@ -127,7 +133,7 @@ it('1. IniciarLocacaoCacamba — vehicle vira locada + current_rental_id = SO.id
 
 it('2. RecolherCacamba — vehicle vira disponivel + current_rental_id null', function () {
     $vehicle = oaSideHelperVehicle(1, 'REC1001', 'locada');
-    $so = oaSideHelperServiceOrder(1, $vehicle->id, 'em_servico', 'locacao');
+    $so = oaSideHelperServiceOrder(1, $vehicle->id, 'em_servico', 'manutencao');
     DB::table('vehicles')->where('id', $vehicle->id)->update(['current_rental_id' => $so->id]);
 
     Log::spy();
@@ -252,7 +258,7 @@ it('8. cross-tenant — SideEffect biz=99 NÃO afeta vehicles biz=1 (Tier 0 isol
 
     // Setup biz=99 + SO biz=99 referenciando vehicle biz=99
     $vehicle99 = oaSideHelperVehicle(99, 'BIZ9901', 'disponivel');
-    $so99 = oaSideHelperServiceOrder(99, $vehicle99->id, 'aberta', 'locacao');
+    $so99 = oaSideHelperServiceOrder(99, $vehicle99->id, 'aberta', 'manutencao');
 
     (new IniciarLocacaoCacamba())->execute($so99);
 
@@ -276,7 +282,7 @@ it('8b. cross-tenant — SideEffect bloqueia se ServiceOrder.business_id != Vehi
     $so->vehicle_id = $vehicle1->id; // ← cross-tenant violation
     $so->status = 'aberta';
     $so->save();
-    DB::table('service_orders')->where('id', $so->id)->update(['order_type' => 'locacao']);
+    DB::table('service_orders')->where('id', $so->id)->update(['order_type' => 'manutencao']);
     $so->refresh();
 
     expect(fn () => (new IniciarLocacaoCacamba())->execute($so))
@@ -289,7 +295,7 @@ it('8b. cross-tenant — SideEffect bloqueia se ServiceOrder.business_id != Vehi
 
 it('9. idempotência — chamar 2× IniciarLocacaoCacamba resulta no mesmo state', function () {
     $vehicle = oaSideHelperVehicle(1, 'IDP1001');
-    $so = oaSideHelperServiceOrder(1, $vehicle->id, 'aberta', 'locacao');
+    $so = oaSideHelperServiceOrder(1, $vehicle->id, 'aberta', 'manutencao');
 
     (new IniciarLocacaoCacamba())->execute($so);
     $first = DB::table('vehicles')->where('id', $vehicle->id)->first();

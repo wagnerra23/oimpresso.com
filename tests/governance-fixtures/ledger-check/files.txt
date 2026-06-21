@@ -1,0 +1,11 @@
+memory/requisitos/DemoMod/SPEC.md
+memory/requisitos/DemoMod/BRIEFING.md
+memory/requisitos/DemoMod/RUNBOOK-demo.md
+memory/requisitos/DemoMod/CAPTERRA-FICHA.md
+memory/requisitos/DemoMod/casos/caso-01.md
+memory/requisitos/DemoMod/casos/caso-02.md
+memory/requisitos/OutroMod/SPEC.md
+memory/requisitos/OutroMod/BRIEFING.md
+memory/requisitos/OutroMod/casos/caso-01.md
+memory/requisitos/OutroMod/casos/caso-02.md
+memory/requisitos/OutroMod/casos/caso-03.md

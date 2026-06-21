@@ -206,11 +206,14 @@ export default function MessagesIndex({
                           )}
                         </div>
                         <div
-                          className={`inline-block px-3 py-2 rounded-lg text-sm max-w-full break-words ${
+                          className={`inline-block px-3 py-2 rounded-lg text-sm max-w-full break-words whitespace-pre-wrap ${
                             mine ? 'bg-primary text-primary-foreground' : 'bg-muted'
                           }`}
-                          dangerouslySetInnerHTML={{ __html: m.message }}
-                        />
+                        >
+                          {/* Segurança: render como TEXTO (React escapa) — NUNCA dangerouslySetInnerHTML
+                              com conteúdo de usuário (era stored-XSS). <br> legado vira quebra de linha. */}
+                          {m.message.replace(/<br\s*\/?>/gi, '\n')}
+                        </div>
                       </div>
                     </li>
                   );

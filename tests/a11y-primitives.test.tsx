@@ -23,6 +23,13 @@ import { Checkbox } from "@/Components/ui/checkbox"
 import { Textarea } from "@/Components/ui/textarea"
 import { Badge } from "@/Components/ui/badge"
 import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card"
+import { Popover, PopoverTrigger, PopoverContent } from "@/Components/ui/popover"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/Components/ui/dropdown-menu"
 
 afterEach(cleanup)
 
@@ -63,6 +70,28 @@ describe("a11y axe (jsdom) — componentes canon, uso válido, 0 violações ser
           Conteúdo do cartão <Badge>novo</Badge>
         </CardContent>
       </Card>,
+    )
+    expect(await impactfulViolations(container)).toEqual([])
+  })
+
+  it("overlays canon (gatilho fechado): Popover + DropdownMenu com nome acessível", async () => {
+    const { container } = render(
+      <div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button>Filtros</Button>
+          </PopoverTrigger>
+          <PopoverContent>conteúdo do popover</PopoverContent>
+        </Popover>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>Status</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Todas</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>,
     )
     expect(await impactfulViolations(container)).toEqual([])
   })

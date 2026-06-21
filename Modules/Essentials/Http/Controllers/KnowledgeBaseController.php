@@ -3,6 +3,7 @@
 namespace Modules\Essentials\Http\Controllers;
 
 use App\User;
+use App\Util\HtmlSanitizer;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -150,7 +151,7 @@ class KnowledgeBaseController extends Controller
             'item' => [
                 'id'         => $obj->id,
                 'title'      => $obj->title,
-                'content'    => $obj->content,
+                'content'    => HtmlSanitizer::clean($obj->content),
                 'kb_type'    => $obj->kb_type,
                 'share_with' => $obj->share_with,
                 'shared_users' => $obj->users->map(fn ($u) => $u->user_full_name)->values(),
@@ -241,14 +242,14 @@ class KnowledgeBaseController extends Controller
         return [
             'id'          => $k->id,
             'title'       => $k->title,
-            'content'     => $k->content,
+            'content'     => HtmlSanitizer::clean($k->content),
             'kb_type'     => $k->kb_type,
             'share_with'  => $k->share_with,
             'children'    => $k->relationLoaded('children')
                 ? $k->children->map(fn ($section) => [
                     'id'       => $section->id,
                     'title'    => $section->title,
-                    'content'  => $section->content,
+                    'content'  => HtmlSanitizer::clean($section->content),
                     'kb_type'  => $section->kb_type,
                     'children' => $section->relationLoaded('children')
                         ? $section->children->map(fn ($article) => [

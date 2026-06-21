@@ -104,7 +104,7 @@ class NfseEmissaoService
         // D9.a Wave 14: span por emissão envolve adapter HTTP + idempotência + retries.
         return OtelHelper::spanBiz('nfse.emissao', function () use ($payload) {
             return $this->emitirInterno($payload);
-        }, $payload->businessId);
+        }, ['nfse.business_id' => $payload->businessId]);
     }
 
     private function emitirInterno(NfseEmissaoPayload $payload): NfseEmissao
@@ -196,6 +196,19 @@ class NfseEmissaoService
     }
 
     public function cancelar(NfseEmissao $emissao, string $motivo): void
+    {
+        // OtelHelper::spanBiz — observability webservice prefeitura SOAP cancelamento
+        // (HTTP externo p99 crítico igual emissão). D9 Wave 28: span `nfse.cancelar`
+        // na mesma família `nfse.*` do emitir, business_id do tenant (Tier 0).
+        // 3º arg = $extras (array<string,mixed>): tenant_id base já é auto-resolvido
+        // dentro do spanBiz; aqui anexamos o business_id da nota (cancelar pode rodar
+        // em job sem sessão, onde a auto-resolução cai em 0).
+        OtelHelper::spanBiz('nfse.cancelar', function () use ($emissao, $motivo) {
+            $this->cancelarInterno($emissao, $motivo);
+        }, ['nfse.business_id' => $emissao->business_id]);
+    }
+
+    private function cancelarInterno(NfseEmissao $emissao, string $motivo): void
     {
         if ($emissao->isCancelada()) {
             throw new \Modules\NFSe\Exceptions\NfseJaCanceladaException($emissao->numero ?? '');

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Eduardokum\LaravelBoleto\Boleto\Banco\Bradesco as BradescoBoleto;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\PaymentGateway\Dto\CardToken;
@@ -13,7 +14,7 @@ use Modules\PaymentGateway\Exceptions\DriverNotSupportedException;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Cnab\CnabBoletoAdapter;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Schema in-memory per test (não RefreshDatabase — migrations canon usam
@@ -94,6 +95,9 @@ class FakeBradescoCnabDriver extends CnabBoletoAdapter
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     setupCnabContractSchema();
     session(['business.id' => 1]);
     Storage::fake('local');

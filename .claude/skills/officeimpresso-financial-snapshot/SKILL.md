@@ -4,6 +4,7 @@ description: ATIVAR quando user pedir "analisar receita do cliente X", "snapshot
 type: tier-b-auto-trigger
 status: draft
 date: 2026-05-09
+tier: B
 ---
 
 # officeimpresso-financial-snapshot — Skill

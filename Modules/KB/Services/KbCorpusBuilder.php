@@ -161,7 +161,7 @@ class KbCorpusBuilder
 
         // 2) Artigos editáveis (is_editable=true) — body_text = serialize blocks
         $editableQuery = KbNode::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: indexador roda CLI sem sessão — business_id explícito abaixo
             ->where('business_id', $this->businessId)
             ->whereNull('deleted_at')
             ->where('is_editable', true);
@@ -187,7 +187,7 @@ class KbCorpusBuilder
     public function count(): int
     {
         return (int) KbNode::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes() // SUPERADMIN: count em CLI/health-check sem sessão — business_id explícito abaixo
             ->where('business_id', $this->businessId)
             ->whereNull('deleted_at')
             ->count();

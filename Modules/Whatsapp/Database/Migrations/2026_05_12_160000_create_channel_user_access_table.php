@@ -14,9 +14,14 @@ use Illuminate\Support\Facades\Schema;
  * `whatsapp_business_phones`) — não migra, não substitui. Filtragem de inbox
  * por canais permitidos vai pra US-WA-069.
  *
- * Soft revoke (revoked_at NULL = ativo) preserva audit history. UNIQUE inclui
- * revoked_at pra permitir re-grant após revoke (1 par canal/user pode ter N
- * rows históricas mas só 1 com revoked_at IS NULL).
+ * Soft revoke (revoked_at NULL = ativo) preserva audit history.
+ *
+ * ⚠️ CORRIGIDO em 2026_06_13_120000_enforce_single_active_channel_user_access:
+ * o UNIQUE(channel_id, user_id, revoked_at) abaixo NÃO garante "só 1 row
+ * revoked_at=NULL por par" — NULLs são DISTINTOS em índice UNIQUE (MySQL/MariaDB/
+ * SQLite/SQL padrão), então dois grants ativos não colidiam. O enforcement real
+ * vive na migration corretiva (coluna gerada `revoked_marker` + UNIQUE). Mantido
+ * aqui como histórico append-only; não confie neste UNIQUE pro invariante.
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093) — `business_id` global scope
  * via trait HasBusinessScope no Model.
@@ -45,9 +50,10 @@ return new class extends Migration
             $table->timestamps();
 
             // UNIQUE inclui revoked_at — permite re-grant após revoke.
-            // MySQL trata NULLs como distintos em UNIQUE → múltiplas rows
-            // revoked_at != NULL podem coexistir; apenas 1 row revoked_at=NULL
-            // por (channel_id, user_id).
+            // ⚠️ NÃO enforça "1 ativo por par": NULLs são distintos em UNIQUE,
+            // então dois revoked_at=NULL coexistem. Invariante real é garantido
+            // pela migration 2026_06_13_120000 (coluna gerada + UNIQUE), que
+            // também DROPA este índice. Mantido aqui só como histórico.
             $table->unique(
                 ['channel_id', 'user_id', 'revoked_at'],
                 'cua_channel_user_unq'

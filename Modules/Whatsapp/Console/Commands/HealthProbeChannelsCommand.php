@@ -10,15 +10,23 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Services\Drivers\WhatsmeowState;
+use Modules\Whatsapp\Services\WhatsmeowReconciler;
 
 /**
- * Camada 2 — health probe + auto-recovery de canais Baileys (self-healing).
+ * Camada 2 — health probe self-healing de canais WhatsApp não-oficiais.
+ *
+ * Dois drivers, dois comportamentos:
+ *   - **Baileys** (auto-recovery): pinga daemon /instances/{id}/status e, se
+ *     não `connected`, tenta `POST /connect` em 3 retries com backoff [1,5,30]s.
+ *   - **Whatsmeow** (detect-only): consulta o estado canon via
+ *     `WhatsmeowReconciler::reconcile()` (/admin/users + /session/status, ADR 0206)
+ *     e reflete em `channel_health`. NÃO auto-reconecta — re-pareamento whatsmeow
+ *     exige QR humano (invariante "reconnect tímido"; estudo channel-reliability
+ *     2026-06-18, gap b: antes o whatsmeow nem era probado → queda invisível).
  *
  * Roda diariamente 03:30 (schedule em app/Console/Kernel.php). Itera Channels
- * com type=whatsapp_baileys e status='active', pinga daemon CT 100 /status,
- * e se algum não estiver `connected` tenta `POST /connect` em 3 retries com
- * backoff exponencial (1s/5s/30s). Cobre falhas do bootstrap auto-reconnect
- * da Camada 1 daemon-side.
+ * status='active' de cada driver.
  *
  * Multi-tenant Tier 0 (ADR 0093):
  * - Job cross-business — `withoutGlobalScope(ScopeByBusiness)` com SUPERADMIN
@@ -58,7 +66,7 @@ class HealthProbeChannelsCommand extends Command
                             {--only-disconnected : Só processa canais já marcados disconnected/banned}
                             {--dry-run : Preview sem chamar daemon nem atualizar DB}';
 
-    protected $description = 'Probe Baileys daemon + auto-recover canais com falha (Camada 2 self-healing).';
+    protected $description = 'Probe saúde de canais WhatsApp: Baileys (auto-recovery) + Whatsmeow (detect-only) — Camada 2 self-healing.';
 
     /** Backoff exponencial entre tentativas de connect (segundos). */
     protected const RETRY_BACKOFF_SECONDS = [1, 5, 30];
@@ -74,11 +82,16 @@ class HealthProbeChannelsCommand extends Command
 
     public function handle(): int
     {
-        $daemonUrl = (string) config('whatsapp.baileys.daemon_url', '');
-        $apiKey = (string) config('whatsapp.baileys.api_key', '');
+        $baileysUrl = (string) config('whatsapp.baileys.daemon_url', '');
+        $baileysKey = (string) config('whatsapp.baileys.api_key', '');
+        $whatsmeowUrl = (string) config('whatsapp.whatsmeow.daemon_url', '');
+        $whatsmeowKey = (string) config('whatsapp.whatsmeow.api_key', '');
 
-        if ($daemonUrl === '' || $apiKey === '') {
-            $this->warn('WHATSAPP_BAILEYS_DAEMON_URL/_API_KEY ausentes no .env — skip global.');
+        $baileysReady = $baileysUrl !== '' && $baileysKey !== '';
+        $whatsmeowReady = $whatsmeowUrl !== '' && $whatsmeowKey !== '';
+
+        if (! $baileysReady && ! $whatsmeowReady) {
+            $this->warn('Nenhum daemon configurado (baileys/whatsmeow _DAEMON_URL/_API_KEY ausentes) — skip global.');
             Log::warning('[whatsapp.health_probe.skipped_no_daemon_config]');
             return self::SUCCESS;
         }
@@ -87,35 +100,10 @@ class HealthProbeChannelsCommand extends Command
         $onlyDisconnected = (bool) $this->option('only-disconnected');
         $dryRun = (bool) $this->option('dry-run');
 
-        // SUPERADMIN: probe cross-business — bypass scope explícito (ADR 0093)
-        $query = Channel::query()
-            ->withoutGlobalScope(ScopeByBusiness::class)
-            ->where('type', Channel::TYPE_WHATSAPP_BAILEYS)
-            ->where('status', 'active');
-
-        if ($businessOption !== 'all') {
-            $bizId = (int) $businessOption;
-            if ($bizId <= 0) {
-                $this->error("--business='{$businessOption}' inválido. Use 'all' ou ID numérico.");
-                return self::FAILURE;
-            }
-            $query->where('business_id', $bizId);
+        if ($businessOption !== 'all' && (int) $businessOption <= 0) {
+            $this->error("--business='{$businessOption}' inválido. Use 'all' ou ID numérico.");
+            return self::FAILURE;
         }
-
-        if ($onlyDisconnected) {
-            $query->whereIn('channel_health', ['disconnected', 'banned', 'never_checked']);
-        }
-
-        $channels = $query->orderBy('business_id')->orderBy('id')->get();
-        $total = $channels->count();
-
-        if ($total === 0) {
-            $this->info('Nenhum canal Baileys ativo pra probe.');
-            return self::SUCCESS;
-        }
-
-        $this->info("Probe {$total} canal(is) Baileys (dry-run=" . ($dryRun ? 'sim' : 'não') . ")");
-        $this->newLine();
 
         $rows = [];
         $stats = [
@@ -126,21 +114,32 @@ class HealthProbeChannelsCommand extends Command
             'skipped' => 0,
         ];
 
-        foreach ($channels as $channel) {
-            $result = $this->probeChannel($channel, $daemonUrl, $apiKey, $dryRun);
-
-            $rows[] = [
-                'ch_id' => $channel->id,
-                'biz' => $channel->business_id,
-                'label' => mb_strimwidth((string) $channel->label, 0, 22, '...'),
-                'before' => $result['before_health'],
-                'after' => $result['after_health'],
-                'attempts' => $result['attempts'],
-                'duration_ms' => $result['duration_ms'],
-            ];
-
-            $stats[$result['outcome']] = ($stats[$result['outcome']] ?? 0) + 1;
+        // ── Pass 1 — Baileys: probe /status + auto-recovery via /connect ──
+        if ($baileysReady) {
+            foreach ($this->channelsToProbe(Channel::TYPE_WHATSAPP_BAILEYS, $businessOption, $onlyDisconnected) as $channel) {
+                $result = $this->probeChannel($channel, $baileysUrl, $baileysKey, $dryRun);
+                $rows[] = $this->toRow($channel, $result);
+                $stats[$result['outcome']] = ($stats[$result['outcome']] ?? 0) + 1;
+            }
         }
+
+        // ── Pass 2 — Whatsmeow: probe via Reconciler (/session/status), detect-only ──
+        if ($whatsmeowReady) {
+            $reconciler = app(WhatsmeowReconciler::class);
+            foreach ($this->channelsToProbe(Channel::TYPE_WHATSAPP_WHATSMEOW, $businessOption, $onlyDisconnected) as $channel) {
+                $result = $this->probeWhatsmeowChannel($channel, $reconciler, $dryRun);
+                $rows[] = $this->toRow($channel, $result);
+                $stats[$result['outcome']] = ($stats[$result['outcome']] ?? 0) + 1;
+            }
+        }
+
+        if ($rows === []) {
+            $this->info('Nenhum canal WhatsApp ativo pra probe.');
+            return self::SUCCESS;
+        }
+
+        $this->info(count($rows) . ' canal(is) probado(s) (dry-run=' . ($dryRun ? 'sim' : 'não') . ')');
+        $this->newLine();
 
         $this->table(
             ['ch_id', 'biz', 'label', 'before', 'after', 'attempts', 'duration_ms'],
@@ -154,13 +153,56 @@ class HealthProbeChannelsCommand extends Command
         }
 
         Log::info('[whatsapp.health_probe.completed]', [
-            'total' => $total,
+            'total' => count($rows),
             'dry_run' => $dryRun,
             'business_filter' => $businessOption,
             'only_disconnected' => $onlyDisconnected,
         ] + $stats);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Query canônica de canais a probar de um driver. SUPERADMIN cross-business —
+     * bypass de scope explícito (ADR 0093); o filtro --business mantém Tier 0.
+     *
+     * @return \Illuminate\Support\Collection<int, Channel>
+     */
+    protected function channelsToProbe(string $type, string $businessOption, bool $onlyDisconnected): \Illuminate\Support\Collection
+    {
+        $query = Channel::query()
+            ->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('type', $type)
+            ->where('status', 'active');
+
+        if ($businessOption !== 'all') {
+            $query->where('business_id', (int) $businessOption);
+        }
+
+        if ($onlyDisconnected) {
+            $query->whereIn('channel_health', ['disconnected', 'banned', 'never_checked']);
+        }
+
+        return $query->orderBy('business_id')->orderBy('id')->get();
+    }
+
+    /**
+     * Monta uma linha da tabela de saída a partir do resultado de um probe.
+     *
+     * @param  array{before_health:string, after_health:string, attempts:int, duration_ms:int, outcome:string}  $result
+     * @return array<string, mixed>
+     */
+    protected function toRow(Channel $channel, array $result): array
+    {
+        return [
+            'ch_id' => $channel->id,
+            'biz' => $channel->business_id,
+            'label' => mb_strimwidth((string) $channel->label, 0, 22, '...'),
+            'before' => $result['before_health'],
+            'after' => $result['after_health'],
+            'attempts' => $result['attempts'],
+            'duration_ms' => $result['duration_ms'],
+        ];
     }
 
     /**
@@ -356,6 +398,132 @@ class HealthProbeChannelsCommand extends Command
             'after_health' => 'disconnected',
             'attempts' => $attempts,
             'duration_ms' => (int) ((microtime(true) - $start) * 1000),
+            'outcome' => 'disconnected',
+        ];
+    }
+
+    /**
+     * Probe de 1 canal whatsmeow via WhatsmeowReconciler (detect-only).
+     *
+     * Diferente do Baileys: NÃO tenta auto-recovery — re-pareamento whatsmeow
+     * exige QR humano (invariante "reconnect tímido"). Só lê o estado canon
+     * (Reconciler ADR 0206 → /admin/users + /session/status) e reflete em
+     * channel_health. Mapeamento:
+     *   - PAIRED                                        → healthy (reset failures)
+     *   - BANNED                                        → banned (failures++)
+     *   - NOT_EXISTS/PROVISION_PENDING/QR_PENDING/LOGGED_OUT → disconnected (failures++)
+     *   - DAEMON_UNREACHABLE/ERROR                      → inconclusivo: saúde inalterada
+     *     (a falha é do daemon/config, não do canal — penalizar geraria falso-alarme)
+     *
+     * Corrige o gap b do estudo channel-reliability 2026-06-18: antes o probe
+     * só cobria Baileys, então uma queda real do whatsmeow (connected=False)
+     * nunca virava channel_health=disconnected — ficava invisível na UI.
+     *
+     * @return array{before_health:string, after_health:string, attempts:int, duration_ms:int, outcome:string}
+     */
+    protected function probeWhatsmeowChannel(
+        Channel $channel,
+        WhatsmeowReconciler $reconciler,
+        bool $dryRun,
+    ): array {
+        $start = microtime(true);
+        $beforeHealth = (string) $channel->channel_health;
+        $elapsed = static fn (): int => (int) ((microtime(true) - $start) * 1000);
+
+        $state = $reconciler->reconcile($channel); // read-only — não muta nada
+
+        // PAIRED → saudável
+        if ($state === WhatsmeowState::PAIRED) {
+            if (! $dryRun) {
+                $channel->channel_health = 'healthy';
+                $channel->channel_health_consecutive_failures = 0;
+                $channel->last_health_check_at = now();
+                $channel->last_health_message = 'whatsmeow state=paired';
+                $channel->save();
+            }
+            return [
+                'before_health' => $beforeHealth,
+                'after_health' => 'healthy',
+                'attempts' => 0,
+                'duration_ms' => $elapsed(),
+                'outcome' => 'healthy',
+            ];
+        }
+
+        // BANNED → banido (sem recovery — escalation manual, igual Baileys)
+        if ($state === WhatsmeowState::BANNED) {
+            if (! $dryRun) {
+                $channel->channel_health = 'banned';
+                $channel->channel_health_consecutive_failures++;
+                $channel->last_health_check_at = now();
+                $channel->last_health_message = 'whatsmeow state=banned (recriar manualmente / Meta Cloud)';
+                $channel->save();
+            }
+            Log::warning('[whatsapp.health_probe.whatsmeow_banned]', [
+                'channel_id' => $channel->id,
+                'business_id' => $channel->business_id,
+            ]);
+            return [
+                'before_health' => $beforeHealth,
+                'after_health' => 'banned',
+                'attempts' => 0,
+                'duration_ms' => $elapsed(),
+                'outcome' => 'banned',
+            ];
+        }
+
+        // DAEMON_UNREACHABLE / ERROR → inconclusivo: NÃO mexe na saúde do canal
+        // (a falha é do daemon/config, não do canal — penalizar = falso-alarme).
+        if ($state === WhatsmeowState::DAEMON_UNREACHABLE || $state === WhatsmeowState::ERROR) {
+            if (! $dryRun) {
+                $channel->last_health_check_at = now();
+                $channel->last_health_message = "whatsmeow probe inconclusivo (state={$state->value}) — saúde inalterada";
+                $channel->save();
+            }
+            Log::warning('[whatsapp.health_probe.whatsmeow_inconclusive]', [
+                'channel_id' => $channel->id,
+                'business_id' => $channel->business_id,
+                'state' => $state->value,
+            ]);
+            return [
+                'before_health' => $beforeHealth,
+                'after_health' => $beforeHealth,
+                'attempts' => 0,
+                'duration_ms' => $elapsed(),
+                'outcome' => 'skipped',
+            ];
+        }
+
+        // NOT_EXISTS / PROVISION_PENDING / QR_PENDING / LOGGED_OUT → desconectado.
+        // Detect-only: re-pareamento exige novo QR (humano).
+        if ($dryRun) {
+            return [
+                'before_health' => $beforeHealth,
+                'after_health' => "[dry-run marcaria disconnected (state={$state->value})]",
+                'attempts' => 0,
+                'duration_ms' => $elapsed(),
+                'outcome' => 'skipped',
+            ];
+        }
+
+        $channel->channel_health = 'disconnected';
+        $channel->channel_health_consecutive_failures++;
+        $channel->last_health_check_at = now();
+        $channel->last_health_message = "whatsmeow desconectado (state={$state->value}) — re-pareamento exige novo QR";
+        $channel->save();
+
+        Log::warning('[whatsapp.health_probe.whatsmeow_disconnected]', [
+            'channel_id' => $channel->id,
+            'business_id' => $channel->business_id,
+            'state' => $state->value,
+            'consecutive_failures' => $channel->channel_health_consecutive_failures,
+        ]);
+
+        return [
+            'before_health' => $beforeHealth,
+            'after_health' => 'disconnected',
+            'attempts' => 0,
+            'duration_ms' => $elapsed(),
             'outcome' => 'disconnected',
         ];
     }

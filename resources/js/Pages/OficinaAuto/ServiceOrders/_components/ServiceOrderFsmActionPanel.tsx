@@ -1,5 +1,5 @@
 // Wire-up UI FSM ServiceOrder — botões dinâmicos no drawer ServiceOrderSheet
-// pra executar transições FSM (Iniciar locação, Recolher caçamba, Concluir, etc).
+// pra executar transições FSM do reparo (Iniciar diagnóstico, Concluir etc · ADR 0265).
 //
 // Refs: Wave 7-A backend (ServiceOrderFsmActionController),
 //       Pages/Sells/_components/FsmActionPanel.tsx (pattern canon pós-PR #717),
@@ -14,6 +14,7 @@ import {
   Check,
   CircleSlash,
   Loader2,
+  Lock,
   Play,
   Zap,
   X,
@@ -30,6 +31,15 @@ interface FsmStage {
   is_terminal?: boolean;
 }
 
+// F3 OS-V2-5 — gate (checklist de etapa) da action, vindo do backend.
+interface FsmActionGate {
+  requirements: Array<{ key: string; label: string; type: string; ok: boolean; blocking: boolean }>;
+  blocking_unmet: number;
+  total: number;
+  done: number;
+  satisfied: boolean;
+}
+
 interface FsmAction {
   key: string;
   label: string;
@@ -38,6 +48,8 @@ interface FsmAction {
   requires_confirmation: boolean;
   has_side_effect: boolean;
   can_execute: boolean;
+  /** F3 OS-V2-5 — gate da transição (UI desabilita o botão quando não satisfeito). */
+  gate?: FsmActionGate;
 }
 
 interface ActionsResponse {
@@ -82,6 +94,16 @@ function getCsrfToken(): string {
   const meta = document.querySelector('meta[name="csrf-token"]');
   return meta?.getAttribute('content') ?? '';
 }
+
+// Ação DESTRUTIVA (Cancelar OS etc) ≠ ação crítica positiva (Concluir/Aprovar).
+// Destrutiva vira outline discreto vermelho — não um sólido gigante competindo
+// com a ação primária da etapa (polish canon Board 2026-06-11).
+function isDestructiveAction(action: FsmAction): boolean {
+  return /cancel/i.test(action.key) || action.target_stage?.key === 'cancelada';
+}
+
+const DESTRUCTIVE_OUTLINE_CLASS =
+  'border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive';
 
 /**
  * Empty state quando OS ainda não tem current_stage_id (legada / pré-FSM).
@@ -129,7 +151,7 @@ function StartPipelineEmptyState({
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">
-        Esta OS ainda não está em pipeline FSM (Recebido → Em locação → Recolhido → Concluído).
+        Esta OS ainda não está em pipeline FSM (Recepção → Diagnóstico → Execução → Pronto p/ retirar).
         Inicie pra rastrear o ciclo completo via timeline auditável.
       </p>
       <Button
@@ -284,7 +306,17 @@ export default function ServiceOrderFsmActionPanel({
   }
 
   if (!data || !data.in_pipeline) {
-    return <StartPipelineEmptyState serviceOrderId={serviceOrderId} onStarted={fetchActions} />;
+    return (
+      <StartPipelineEmptyState
+        serviceOrderId={serviceOrderId}
+        onStarted={() => {
+          void fetchActions();
+          // Iniciar pipeline muda o estágio da OS — avisa o pai pro StageGate (checklist)
+          // refetchar; sem isso ele fica stale até reabrir o drawer (E2E UC-11, run 27276374828).
+          onTransition?.();
+        }}
+      />
+    );
   }
 
   const stage = data.current_stage;
@@ -307,29 +339,45 @@ export default function ServiceOrderFsmActionPanel({
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {actionsExecutable.map((action) => (
-            <Button
-              key={action.key}
-              size="sm"
-              variant={action.is_critical ? 'destructive' : 'default'}
-              onClick={() => executeAction(action)}
-              disabled={executing}
-              title={
-                action.target_stage
-                  ? `Move pra: ${action.target_stage.name}`
-                  : 'Ação que não transita stage'
-              }
-              className="text-xs"
-            >
-              {action.is_critical ? (
-                <AlertTriangle size={12} className="mr-1" />
-              ) : (
-                <Play size={12} className="mr-1" />
-              )}
-              {action.label}
-              {action.has_side_effect && <Zap size={12} className="ml-1 opacity-70" />}
-            </Button>
-          ))}
+          {actionsExecutable.map((action) => {
+            // F3 OS-V2-5 — gate não satisfeito desabilita o botão + tooltip do que falta.
+            // O avanço (com override quando aplicável) acontece na seção "Checklist de etapa".
+            const gateBlocked = action.gate ? !action.gate.satisfied : false;
+            const unmetLabels = action.gate
+              ? action.gate.requirements
+                  .filter((r) => r.blocking && !r.ok)
+                  .map((r) => r.label)
+                  .join(' · ')
+              : '';
+            const destructive = isDestructiveAction(action);
+            return (
+              <Button
+                key={action.key}
+                size="sm"
+                variant={destructive ? 'outline' : 'default'}
+                onClick={() => executeAction(action)}
+                disabled={executing || gateBlocked}
+                title={
+                  gateBlocked
+                    ? `Checklist de etapa pendente: ${unmetLabels}`
+                    : action.target_stage
+                      ? `Move pra: ${action.target_stage.name}`
+                      : 'Ação que não transita stage'
+                }
+                className={'text-xs' + (destructive ? ` ${DESTRUCTIVE_OUTLINE_CLASS}` : '')}
+              >
+                {gateBlocked ? (
+                  <Lock size={12} className="mr-1" />
+                ) : action.is_critical ? (
+                  <AlertTriangle size={12} className="mr-1" />
+                ) : (
+                  <Play size={12} className="mr-1" />
+                )}
+                {action.label}
+                {action.has_side_effect && <Zap size={12} className="ml-1 opacity-70" />}
+              </Button>
+            );
+          })}
         </div>
       )}
 
@@ -353,7 +401,7 @@ export default function ServiceOrderFsmActionPanel({
 
             <div className="text-xs text-muted-foreground space-y-1">
               {confirmAction.is_critical && (
-                <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <p className="text-warning flex items-center gap-1">
                   <AlertTriangle size={12} />
                   Ação crítica — requer autorização explícita
                 </p>
@@ -391,7 +439,7 @@ export default function ServiceOrderFsmActionPanel({
                 Cancelar
               </Button>
               <Button
-                variant={confirmAction.is_critical ? 'destructive' : 'default'}
+                variant={isDestructiveAction(confirmAction) ? 'destructive' : 'default'}
                 size="sm"
                 onClick={confirmExecute}
                 disabled={executing}

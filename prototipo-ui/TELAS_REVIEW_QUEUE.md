@@ -102,6 +102,23 @@
 
 ---
 
+## 🟡 F0 batch — Drawer de OS V2 (ServiceOrderRichSheet · Oficina) (2026-06-09)
+
+> Pedido completo no bloco F0 de [`COWORK_NOTES.md`](COWORK_NOTES.md) (`[2026-06-09] F0 — Fila V2 do drawer de OS`). Origem: avaliação F1.5 [`AVALIACAO_OS_GIT_2026-06-09.md`](AVALIACAO_OS_GIT_2026-06-09.md) + conferência pós-merge [#2477](https://github.com/wagnerra23/oimpresso.com/pull/2477). Vinculado [ADR 0265](../memory/decisions/0265-oficina-reparo-erradica-locacao.md). O drawer `ServiceOrderRichSheet` já espelha o protótipo canon; os 6 itens abaixo são os gaps V2 (4 originais + V2-5/V2-6 abertos no batch 2 de 2026-06-09). **Fechamento total landado: OS-V2-1..6 todos `[x]`.** Prioridade por impacto no balcão do Martinho (biz=164 LIVE).
+
+| Status | Tela | Prioridade | Refs |
+|---|---|---|---|
+| `[x]` | OS-V2-1 · Fotos & Laudo reais no drawer | **P1** | ✅ F3 [CC] 2026-06-09 — upload OS-level real (3 estados + progresso XHR + lightbox legenda editável) via `ServiceOrderPhotoController` (HasArquivos morphTo OS) + seção "Fotos da vistoria" no print A4. Persona Técnico Repair (touch ≥44px). |
+| `[x]` | OS-V2-2 · DVI inline com severidade | **P1** | ✅ F3 [CC] 2026-06-09 — semáforo radiogroup 1-toque (ok/atenção/crítico, tokens DS) no drawer via `DviInlineEditor` + `dvi_items` no payload; CRUD reusa `DviInspectionController` + CTA "Pedir aprovação" (gate WhatsApp). |
+| `[x]` | OS-V2-3 · Gate "Pedir aprovação" com ciclo de estados | **P1** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — `DviGateFoot` 4 estados (none→pending→approved\|declined) no `DviInlineEditor`, derivados do backend (`ServiceOrder::approval_state` + colunas `approval_requested_at`/`approval_decided_at`/`approval_decision`). "Cobrar" re-dispara WhatsApp; "Revisar e reenviar" volta pra pending. Sem botões de simulação. |
+| `[x]` | OS-V2-4 · Linha do tempo FSM auditável | **P1** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — `ServiceOrderTimeline` real (quem/quando/de→pra com chips) via endpoint existente `/service-orders/{id}/history`; fallback skeleton derivado quando OS antiga sem histórico. |
+| `[x]` | OS-V2-5 · StageGate — checklist de bloqueio por etapa | **P1** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — seção "Checklist de etapa" (`ServiceOrderStageGate`) entre Peças e Pipeline FSM; requisitos data-driven por transição (`StageGateEvaluator`), gate ENFORÇADO no servidor (`fsm/execute` → 422) + UI espelho (FsmActionPanel desabilita). Override gerente/superadmin registrado na trilha. |
+| `[x]` | OS-V2-6 · Lançar item inline no drawer | **P2** | ✅ F3 [CC] 2026-06-09 (F2 [W]) — "+ Adicionar item" abre `ServiceOrderItemFormSheet` nested (sem fechar o drawer) + Editar/Remover por item (`ServiceOrderItemRow`); refetch atualiza Total OS. Touch ≥44px. |
+
+> **Residual técnico (chore, não-UI):** backfill `order_type='locacao'\|null → 'mecanica'` nas OS legadas (badge "—" na lista) · renomear LABELS (não keys) dos estágios FSM `cacamba_locacao` pro vocabulário de reparo.
+
+---
+
 ## Critérios pra mover de coluna
 
 - `[ ] → [~]`: charter draft criado OU Wagner adicionou em [COWORK_NOTES.md](COWORK_NOTES.md) com pedido completo
@@ -111,3 +128,41 @@
 ## Reordenação
 
 Wagner pode subir P2/P3 pra P0/P1 a qualquer momento — basta editar este arquivo na PR e justificar em [SYNC_LOG.md](SYNC_LOG.md).
+
+---
+
+## 🎯 Régua ≥9 — programa contínuo (PACOTE-Q9 PR-4 · 2026-06-10)
+
+> **Fonte única do placar:** [`audit/CONSOLIDADO.md`](audit/CONSOLIDADO.md) (GERADO por `score-mechanized.mjs` + `consolidate.mjs` — rodar a cada onda; não duplicar números aqui).
+> Run 2026-06-10 @main `c8caaec01`: **242 telas · média 87/100 · 16 abaixo de 70 · golden validado (cache Cowork dizia 86, real 87)**.
+> Regra: **toda tela <90 (=nota 9) entra na fila** com o gap nomeado (R# do [`audit/GOLDEN-REFERENCE.md`](audit/GOLDEN-REFERENCE.md)). Identidade única: `--accent` fora do roxo 250–330 = **ZERO sobrou** (conformance-gate `--all` verde 2026-06-10 — item 3 do PR-4 já conforme).
+
+### Onda W2 — Financeiro (pior gap conhecido, espelha Cowork "Reestruturação Identidade Única e Qualidade 9")
+
+9 das 16 telas <70 são do Financeiro — confirma o W2 do Cowork (8.3):
+
+| Tela | Nota | Gap nomeado |
+|---|--:|---|
+| `Financeiro/Unificado/Index` | 46 | R1 cor crua · R2 nativos · R4 ícones · R6 emoji · R7 bg-fill status |
+| `Financeiro/Fluxo/Index` | 61 | R1 · R2 · R7 |
+| `Financeiro/Caixa/Index` | 62 | R1 · R2 · R7 |
+| `RecurringBilling/Index` | 62 | R1 · R2 · R4 · R7 |
+| `RecurringBilling/Faturas/Index` | 65 | R1 · R2 · R7 |
+| `RecurringBilling/Planos/Index` | 66 | R1 · R2 · R7 |
+| `Financeiro/Conciliacao/Index` | 67 | R1 · R2 · R7 |
+| `Financeiro/ContasBancarias/Index` | 68 | R1 · R2 · R7 |
+| `Financeiro/ContasReceber/Index` | 68 | R1 · R2 · R7 |
+
+### Fora do Financeiro (<70)
+
+| Tela | Nota | Gap nomeado |
+|---|--:|---|
+| `Jana/Cockpit` | 56 | R1 · R2 · R4 · R6 · R7 |
+| `Cliente/Index` | 57 | R1 · R2 · R6 · R7 |
+| `Jana/Admin/Qualidade/Index` | 66 | R1 · R2 · R4 · R6 |
+| `Sells/Edit` | 67 | R1 · R2 · R7 |
+| `Admin/GovernanceV4Dashboard` | 68 | R1 · R4 · R7 |
+| `Repair/Index` | 68 | R1 · R2 · R7 |
+| `Financeiro/Dre/Index` | 68 | R1 · R2 |
+
+**Cadência:** 1 onda por vez, W2 Financeiro primeiro (US-FIN-029 3 lentes + pilar fiscal). Telas 70–89 (faixa Advanced/Leader) entram via CONSOLIDADO conforme as ondas avançam — a fila inline carrega só o bottom-16 pra não drifar do gerado.

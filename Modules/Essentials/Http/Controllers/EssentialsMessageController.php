@@ -73,7 +73,9 @@ class EssentialsMessageController extends Controller
         // authorize() do StoreMessageRequest já checa permission essentials.create_message
 
         $userId = $request->user()->id;
-        $text   = nl2br($request->string('message'));
+        // Segurança: armazena texto CRU (sem nl2br/HTML). O render escapa como texto
+        // (whitespace-pre-wrap) — evita stored-XSS. Ver Messages/Index.tsx.
+        $text   = (string) $request->string('message');
         $locId  = $request->input('location_id') ?: null;
 
         $lastMessage = EssentialsMessage::where('business_id', $businessId)

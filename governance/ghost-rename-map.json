@@ -1,0 +1,38 @@
+{
+  "_doc": "Tabela CURADA de renames de módulo pro codemod ghost-fix (scripts/governance/ghost-fix.mjs). REGRA: só entra em 'renames' nome com evidência dura (ADR + commit verificado em origin/main). Nome sem evidência de rename fica em 'excluded' com motivo — o codemod NUNCA toca esses. Plano-mãe: memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md (Semana 0, frente KL). Classes: A=rename 1:1 mecânico · B=nunca construído (lápide, não substituição) · C=namespace legacy/fusão (reescrita com revisão humana) · AMBIGUO=fila humana.",
+  "version": "1.0.0",
+  "date": "2026-06-12",
+  "scope": "memory/requisitos/**/*.md — só referências na forma 'Modules/<Nome>' (mesma regex token-boundary do knowledge-drift.mjs); forma namespace 'Modules\\<Nome>' fica fora do v1",
+  "renames": {
+    "Copiloto": { "to": "Jana", "class": "A", "evidence": ["ADR 0088 memory/decisions/0088-module-rename-php-only.md", "commit b502ea5c3 (Fase 3.7 PR-2)", "ADR 0092 (tabelas copiloto_*->jana_*)"] },
+    "PontoWr2": { "to": "Ponto", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] },
+    "MemCofre": { "to": "SRS", "class": "A", "evidence": ["ADR 0088", "commit b502ea5c3 (Fase 3.7 PR-2)"] },
+    "DocVault": { "to": "SRS", "class": "A", "evidence": ["commit a80f31115 (DocVault->MemCofre)", "ADR 0088 + commit b502ea5c3 (MemCofre->SRS)"], "note": "cadeia transitiva DocVault->MemCofre->SRS" }
+  },
+  "excluded": {
+    "Accounting": { "class": "C", "reason": "FUSAO no Financeiro (ADR 0172, drop Onda 5 commit 1611d3485) — nao e rename 1:1; subpaths Accounting/* nao existem sob Financeiro/*; reescrita com revisao humana" },
+    "Sells": { "class": "C", "reason": "nunca foi Modules/Sells — telas de venda legacy UltimatePOS vivem em app/ + resources/views (ADRs 0136/0178/0248 tratam Sells como TELA); corrigir referencia manualmente" },
+    "Project": { "class": "AMBIGUO", "reason": "Modules/Project legacy UltimatePOS foi DELETADO (commit f341a146f, Fase 3.8); ProjectMgmt foi criado NOVO (#91) — citacao pode ser o modulo morto OU abreviacao de ProjectMgmt; fila humana" },
+    "CV": { "class": "AMBIGUO", "reason": "provavel abreviacao de ComunicacaoVisual (criado ja com esse nome, #392) — sem ADR/commit de rename CV->ComunicacaoVisual; fila humana" },
+    "NfseBrasil": { "class": "AMBIGUO", "reason": "nunca existiu — NFSe foi scaffolded direto como Modules/NFSe (#85); provavel analogia com NfeBrasil; fila humana" },
+    "LaravelAI": { "class": "C", "reason": "REMOVIDO, nao renomeado — 'Copiloto substitui' (commit d9b48d190); substituicao de produto, reescrita com revisao" },
+    "UltimatePos": { "class": "C", "reason": "namespace do produto upstream — nunca foi Modules/UltimatePos neste repo; reescrita com revisao" },
+    "IProduction": { "class": "B", "reason": "prototipo removido sem sucessor (commit 7b6328a0a)" },
+    "Pcp": { "class": "B", "reason": "feature wish, nunca construido (ADR 0152)" },
+    "Autopecas": { "class": "B", "reason": "feature wish, nunca construido (ADR 0125)" },
+    "Comissao": { "class": "B", "reason": "feature wish, nunca construido (ADR 0151)" },
+    "Marketplaces": { "class": "B", "reason": "backlog, nunca construido" },
+    "Inventory": { "class": "B", "reason": "conceito cross-vertical discutido em doc, nunca construido como modulo" },
+    "FinanceiroAvancado": { "class": "B", "reason": "hipotese em doc, nunca construido" },
+    "EvolutionAgent": { "class": "B", "reason": "path planejado em doc, nunca construido" },
+    "Garantia": { "class": "B", "reason": "workflow cross-vertical planejado, nunca construido" },
+    "Contratos": { "class": "B", "reason": "exemplo/placeholder em doc, nunca construido" },
+    "Suporte": { "class": "B", "reason": "exemplo/placeholder em doc, nunca construido" },
+    "CrmPipeline": { "class": "B", "reason": "alternativa REJEITADA em doc (viola D1 + ADR 0121), nunca construido" },
+    "Vendor": { "class": "B", "reason": "citacao generica em doc, nunca construido" },
+    "Chat": { "class": "C", "reason": "referencia legacy de config em doc, nunca foi Modules/Chat aqui" },
+    "Stock": { "class": "C", "reason": "referencia a service externo/legacy, nunca foi Modules/Stock aqui" },
+    "Auth": { "class": "C", "reason": "citacao generica de framework, nunca foi Modules/Auth aqui" },
+    "Officeimpresso1": { "class": "C", "reason": "referencia HISTORICA correta — dir movido pra backup fora do repo em 2026-04-23, codigo restaurado em Modules/Officeimpresso via ADR 0017 (memory/requisitos/Officeimpresso1.md:17); nao tocar" }
+  }
+}

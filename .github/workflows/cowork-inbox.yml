@@ -20,13 +20,35 @@ jobs:
     # Loop guard: skip the commit this very workflow produces.
     if: "${{ !contains(github.event.head_commit.message, 'chore(cowork): inbox processed') }}"
     steps:
+      # PAT obrigatório (ADR 0283/0285): o branch novo carrega os .github/workflows/* do main.
+      # O GITHUB_TOKEN (GitHub App) NÃO tem o escopo `workflows` (não-concedível via permissions:),
+      # então o push do branch é rejeitado: "refusing to allow a GitHub App to create or update
+      # workflow ... without `workflows` permission". O COWORK_BOT_PAT (fine-grained: contents:write
+      # + pull_requests:write + workflows:write) é quem empurra o branch, abre e mergeia o PR.
+      - name: Preflight — COWORK_BOT_PAT presente
+        env:
+          COWORK_BOT_PAT: ${{ secrets.COWORK_BOT_PAT }}
+        run: |
+          if [ -z "${COWORK_BOT_PAT}" ]; then
+            echo "::error title=COWORK_BOT_PAT ausente::Configure um PAT fine-grained (contents:write + pull_requests:write + workflows:write) em Settings → Secrets → Actions → COWORK_BOT_PAT. O GITHUB_TOKEN não serve: sem o escopo 'workflows', o push de um branch que contém .github/workflows/* é rejeitado pelo GitHub."
+            exit 1
+          fi
+          echo "✓ COWORK_BOT_PAT presente."
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          # Persistido pro `git push origin $BRANCH` autenticar com o PAT (não o GITHUB_TOKEN).
+          token: ${{ secrets.COWORK_BOT_PAT }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      # PHP pro assinador (bin/sign-handoff.php) do publisher de handoff (ADR 0285).
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
 
       - name: Configure git
         run: |
@@ -34,20 +56,26 @@ jobs:
           git config user.email "cowork-inbox@users.noreply.github.com"
 
       - name: Process inbox
+        id: process
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
         run: |
           set -euo pipefail
 
           BRANCH="cowork/inbox-${GITHUB_SHA::7}"
           git checkout -b "$BRANCH"
 
+          # Script writes `review_required=true|false` to $GITHUB_OUTPUT.
           python3 .github/scripts/cowork-inbox.py
 
           if [ -z "$(git status --porcelain)" ]; then
             echo "No changes after processing inbox; exiting."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
           git add -A
           git commit -m "chore(cowork): inbox processed"
@@ -59,4 +87,39 @@ jobs:
             --base main \
             --head "$BRANCH"
 
-          gh pr merge "$BRANCH" --squash --delete-branch
+      # PUBLISHER Cowork→repo (PR-7 · ADR 0285): fecha o 1º hop SEM [W] commitar à mão.
+      # Os handoffs já pousaram em prototipo-ui/handoffs/*.md (no working tree); assina+submete
+      # INLINE porque o auto-merge via GITHUB_TOKEN NÃO dispara o on-push do handoff-sign-submit.yml.
+      # Reusa bin/submit-handoff.sh (fonte única do transporte) — skip-as-pass sem os secrets.
+      - name: Assina & submete handoffs pousados → pending (publisher · ADR 0285)
+        if: steps.process.outputs.handoffs != ''
+        env:
+          HANDOFFS: ${{ steps.process.outputs.handoffs }}
+          HANDOFF_SECRET: ${{ secrets.HANDOFF_SECRET }}
+          SUBMIT_TOKEN: ${{ secrets.HANDOFF_SUBMIT_TOKEN }}
+          MCP_ENDPOINT: ${{ vars.MCP_ENDPOINT_URL || 'https://mcp.oimpresso.com/api/mcp' }}
+        run: |
+          set -euo pipefail
+          # Paths são slug-only (sem espaço): word-split intencional em args.
+          # shellcheck disable=SC2086
+          bash bin/submit-handoff.sh $HANDOFFS
+
+      - name: Merge (doc/memory) or request review (code)
+        if: steps.process.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+        run: |
+          set -euo pipefail
+          BRANCH="${{ steps.process.outputs.branch }}"
+
+          if [ "${{ steps.process.outputs.review_required }}" = "true" ]; then
+            echo "Código presente (resources/js/**) → PR aberto para review humano + CI. NÃO auto-merge."
+            gh label create needs-review \
+              --color FBCA04 \
+              --description "Código autorado pelo Cowork; aguardando review do Wagner" \
+              2>/dev/null || true
+            gh pr edit "$BRANCH" --add-label needs-review --add-reviewer wagnerra23
+          else
+            echo "Somente doc/memória/protótipo → auto-merge quando os checks ficarem verdes."
+            gh pr merge "$BRANCH" --auto --squash --delete-branch
+          fi

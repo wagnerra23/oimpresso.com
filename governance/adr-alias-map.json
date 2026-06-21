@@ -1,0 +1,71 @@
+{
+  "_meta": {
+    "adr": "0274-referencia-adr-por-slug-alias-map-13-colisoes",
+    "rule": "Referência canônica a ADR é o SLUG completo (NNNN-titulo). Número cru (ex.: 'ADR 0178') só é não-ambíguo quando o número NÃO consta em 'collisions' abaixo. Doc/ADR novo citando número colidido SEM slug = violação (gate em fase 2, nasce ADVISORY).",
+    "derived_from": "scripts/governance/adr-index-generate.mjs — seção 'Colisões de número (auto-detectadas)' do _INDEX-GENERATED.md",
+    "verify": "node scripts/governance/adr-index-generate.mjs | sed -n '/Colisões de número/,/^$/p' — números e slugs devem bater 1:1 com 'collisions'",
+    "source_commit": "afecf98f6",
+    "generated_at": "2026-06-12",
+    "policy": "Append-only (ADR 0094 Art. 3 + precedente 0180-drift-numero-adr-0178-conflito-paralelo): NUNCA renumerar/renomear ADR colidida. Colisão nova (se o pior acontecer) ENTRA aqui no mesmo PR; entrada existente nunca sai. 'hint' é o desambiguador curado pra resolver referências legadas por contexto."
+  },
+  "collisions": {
+    "0101": [
+      { "slug": "0101-sistema-charter-capterra-governanca-escopo", "hint": "governança de escopo Charter-Capterra (2 níveis × 3 eixos)" },
+      { "slug": "0101-tests-business-id-1-nunca-cliente", "hint": "tests SEMPRE business_id=1, nunca cliente real, guard CI" }
+    ],
+    "0102": [
+      { "slug": "0102-nfce-status-polling-vs-broadcast", "hint": "NFC-e: UI de status via polling JSON (broadcast adiado)" },
+      { "slug": "0102-s6-charter-capterra-postmortem-s7-backlog", "hint": "sprint S6 postmortem + backlog S7" }
+    ],
+    "0119": [
+      { "slug": "0119-migration-factory-capacidade-institucional", "hint": "Migration Factory — ingerir cliente de qualquer ERP legacy" },
+      { "slug": "0119-paralelismo-sessoes-whats-active-tier-1", "hint": "paralelismo de sessões Claude — whats-active Tier 1" }
+    ],
+    "0126": [
+      { "slug": "0126-mcp-jira-projects-modulos-verticais", "hint": "MCP projects: ComunicacaoVisual/Vestuario/OficinaAuto" },
+      { "slug": "0126-vault-chunked-encryption-sprint-2", "hint": "Vault chunked encryption Sprint 2" }
+    ],
+    "0141": [
+      { "slug": "0141-agents-tool-use-pattern-claude-code", "hint": "agents IA com tool use loop (Camada B v2)" },
+      { "slug": "0141-skill-migracao-blade-react", "hint": "skill migracao-blade-react (Cowork→Inertia)" }
+    ],
+    "0170": [
+      { "slug": "0170-bancos-nativos-top5-drivers-separados", "hint": "PaymentGateway: top-5 bancos BR, drivers REST/CNAB separados" },
+      { "slug": "0170-onda5-simplificada", "hint": "PaymentGateway onda 5: dogfooding SaaS via 6º gateway" },
+      { "slug": "0170-paymentgateway-extracao-camada-cobranca", "hint": "extração do Modules/PaymentGateway (camada técnica de cobrança)" }
+    ],
+    "0178": [
+      { "slug": "0178-restauracao-campos-fiscais-br-canon", "hint": "Cliente BR: campos fiscais em contacts (regressão UPOS 6.7)" },
+      { "slug": "0178-sells-unified-tabs-visao-supersede-0136", "hint": "Sells: Lista + Grade unificadas com tabs de Visão" }
+    ],
+    "0180": [
+      { "slug": "0180-drift-numero-adr-0178-conflito-paralelo", "hint": "meta-ADR que documenta o drift do número 0178" },
+      { "slug": "0180-sidebar-v3-5-grupos-ghosts-header", "hint": "sidebar v3: 5 grupos canônicos + ghosts no header" }
+    ],
+    "0195": [
+      { "slug": "0195-feedback-relevance-scoring-decay-adaptativo", "hint": "feedback indexing: relevance scoring + decay adaptativo" },
+      { "slug": "0195-tabs-autosave-mount-sempre-hidden", "hint": "tabs com autosave ficam mount-sempre (hidden via CSS)" }
+    ],
+    "0216": [
+      { "slug": "0216-deploy-webhook-rodar-composer-dump-autoload", "hint": "deploy webhook Hostinger: composer dump-autoload + optimize" },
+      { "slug": "0216-governance-drift-framework-driftchecker-plugavel", "hint": "Governance Drift Framework — DriftChecker plugável" }
+    ],
+    "0235": [
+      { "slug": "0235-ds-v4-accent-roxo-universal", "hint": "DS v4: accent roxo universal oklch(0.55 0.15 295)" },
+      { "slug": "0235-staging-ct100-clone-anonimizado", "hint": "staging no CT 100: clone anonimizado da produção" }
+    ],
+    "0236": [
+      { "slug": "0236-extrato-conciliacao-modelo-unificado", "hint": "Financeiro: extrato + conciliação modelo unificado" },
+      { "slug": "0236-governanca-evolucao-doc-design", "hint": "governança de evolução da doc de design (append-only + ratchet)" },
+      { "slug": "0236-scorecard-universal-entidade-arbitraria", "hint": "Scorecard Universal — entidade avaliável arbitrária" }
+    ],
+    "0246": [
+      { "slug": "0246-sessao-2026-05-30-ds-harmonizacao", "hint": "harmonização DS sem perder qualidade + caminho v4.2" },
+      { "slug": "0246-tipo-outros-default-migracoes-legacy", "hint": "tipo 'Outros' como default em migrações legacy" }
+    ],
+    "0294": [
+      { "slug": "0294-mcp-audit-log-hash-chain-tamper-evident", "hint": "mcp_audit_log tamper-evident por hash-chain SHA-256 (emenda 0084, padrão Ponto)" },
+      { "slug": "0294-metodo-dual-track-shapeup-catraca", "hint": "método de planejamento: dual-track + Shape Up travado por catraca" }
+    ]
+  }
+}

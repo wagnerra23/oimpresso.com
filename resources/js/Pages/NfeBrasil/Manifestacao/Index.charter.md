@@ -3,9 +3,9 @@ page: /nfe-brasil/manifestacao
 component: resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-10
+last_validated: "2026-05-10"
 parent_module: NfeBrasil
-related_adrs: [0029, 0039, 0093, 0094, 0116]
+related_adrs: [29, 39, 93, 94, 116]
 related_us: [US-NFE-052, US-NFE-061]
 tier: A
 charter_version: 1

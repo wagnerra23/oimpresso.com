@@ -2,13 +2,14 @@
 page: /jana/cockpit
 component: resources/js/Pages/Jana/Cockpit.tsx
 owner: wagner
-status: spec-ahead-of-impl
-last_validated: 2026-05-15
+status: draft
+status_detail: spec-ahead-of-impl
+last_validated: "2026-05-15"
 parent_module: Jana
 parent_adr: memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md
-visual_source: prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx
+visual_source: prototipo-ui/cowork-2026-05-26-comunicacao-visual/project/chat-jana.jsx
 visual_critique: prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md
-related_adrs: [0035, 0039, 0094, 0104, 0107, 0110, 0114]
+related_adrs: [35, 39, 94, 104, 107, 110, 114]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
   - resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md

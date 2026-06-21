@@ -1,0 +1,155 @@
+{
+  "_meta": {
+    "scorecard": "SDD — sistema spec-anchored + verificação agêntica (plano 2026-06-12 §2)",
+    "generator": "scripts/governance/sdd-scorecard.mjs",
+    "plan": "memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md",
+    "determinismo": "sem timestamps/sha no corpo — re-run sem mudança no repo = diff vazio",
+    "composta": "v1 (fontes parciais) ≠ v2 (12/12 vivas) — regimes não comparáveis; composta NÃO é calculada enquanto houver not_yet_measured",
+    "streams": "cada métrica tem `stream` — SA/FV/KL/GT + MEM (memória-unificada · read-path do ADR 0270). Um só scorecard governa SDD e memória (peça 4 da união; ledger memory/sessions/2026-06-19-adversario-uniao-sdd-memoria.md)",
+    "anchor_coverage_regra": "delegado a scripts/governance/anchor-lint.mjs (ADR 0273 §2 — fonte única): (anchored_ok + pendente + parcial) / us_total. Antes era grep estrito próprio (divergia); unificado no PR do ledger §A.",
+    "ratchet": {
+      "baseline": "governance/sdd-scorecard-baseline.json — armed POR MÉTRICA (ADR 0275 §3: arma após 3 medições válidas consecutivas da fonte real; armar/desarmar/piorar = PR editando o baseline, diff visível)",
+      "simulacao": "SDD_RATCHET_ARM=1 node scripts/governance/sdd-scorecard.mjs --ratchet — trata todas as medidas como armadas (selftest local)"
+    }
+  },
+  "metrics": {
+    "anchor_coverage": {
+      "status": "measured",
+      "value": 7.5,
+      "unit": "%",
+      "direction": "up",
+      "target": 100,
+      "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
+      "detail": {
+        "coverage_pct": 7.5,
+        "specs_total": 56,
+        "us_total": 775,
+        "anchor_coverage_pct": 7.5,
+        "by_state": {
+          "sem_campo": 680,
+          "placeholder": 22,
+          "pendente": 23,
+          "parcial": 0,
+          "anchored_ok": 35,
+          "anchored_dead": 15
+        },
+        "fields_total": 100,
+        "fields_placeholder": 22,
+        "fields_grammar_ok": 44,
+        "orphan_fields": 5,
+        "v1_files": 0,
+        "v1_violations": "0"
+      },
+      "stream": "SA"
+    },
+    "full_suite_pass_rate": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "target": 0,
+      "source": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "FV"
+    },
+    "n_quarantine": {
+      "status": "measured",
+      "value": 27,
+      "unit": "arquivos de teste",
+      "direction": "down",
+      "target": 0,
+      "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
+      "detail": {
+        "quarantined_files": 27
+      },
+      "stream": "FV"
+    },
+    "coverage_pct": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "up",
+      "target": "só sobe (catraca C2)",
+      "source": "pcov instrumentado em CI (P0-2) — hoje coverage: none",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "FV"
+    },
+    "ghost_count": {
+      "status": "measured",
+      "value": 14,
+      "unit": "nomes distintos",
+      "direction": "down",
+      "target": 0,
+      "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
+      "detail": {
+        "citing_modules": 24
+      },
+      "stream": "KL"
+    },
+    "front_door_coverage": {
+      "status": "measured",
+      "value": 100,
+      "unit": "%",
+      "direction": "up",
+      "target": 100,
+      "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
+      "detail": {
+        "with_door": 70,
+        "modules": 70
+      },
+      "stream": "MEM"
+    },
+    "recall_eval_violations": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "target": 0,
+      "source": "golden set recall (KL-C2) — depende do alias map das 13 colisões ADR",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "MEM"
+    },
+    "ragas_real_uptime": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "up",
+      "target": "≥95%",
+      "source": "RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "MEM"
+    },
+    "distiller_freshness": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "target": "< 7d atrás do doc mais novo em 100% das portas",
+      "source": "ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "MEM"
+    },
+    "read_path_hops": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "target": 1,
+      "source": "ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "MEM"
+    },
+    "drift_alarms": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "target": "advisory perene",
+      "source": "protection-drift + watchdog de staleness (GT-G4)",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "GT"
+    },
+    "backfill_error_rate": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "target": "<2%",
+      "source": "ledger do protocolo refutador G5 — só existe após 1º lote IA refutado",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "GT"
+    }
+  }
+}

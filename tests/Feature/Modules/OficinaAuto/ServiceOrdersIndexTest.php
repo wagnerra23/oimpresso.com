@@ -12,10 +12,11 @@ use Modules\OficinaAuto\Entities\Vehicle;
 /**
  * ServiceOrders Index Dashboard — KPIs, filtros e cross-tenant.
  *
- * Cobre o método `index()` reescrito pra dashboard de OS (locação + manutenção)
- * pré-reunião Martinho 13/maio. Usa Schema::hasColumn fallbacks porque colunas
- * Wave 5-A (order_type / expected_return_date / etc) podem não estar migradas
- * em todas branches durante consolidação paralela.
+ * Cobre o método `index()` do dashboard de OS de reparo (locação erradicada — ADR 0265).
+ * KPIs pós-erradicação: manutencao_ativas, concluidas_mes, atrasadas (atraso de reparo
+ * via expected_completion). A chave `locacoes_ativas` foi REMOVIDA do contrato
+ * (dívida P5 do RUNBOOK-erradicacao-locacao quitada — frontend não consome mais).
+ * Usa Schema::hasColumn fallbacks porque colunas Wave 5-A podem não estar migradas.
  *
  * Convenção: biz=1 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0101).
  *
@@ -68,43 +69,31 @@ function cleanupSOI(string $platePrefix): void
     }
 }
 
-it('Index retorna 4 KPIs corretos (locacoes_ativas, manutencao_ativas, concluidas_mes, atrasadas)', function () {
+it('Index retorna 3 KPIs corretos (manutencao_ativas, concluidas_mes, atrasadas — locacoes_ativas fora do contrato)', function () {
     session(['user.business_id' => BIZ_WAGNER_SOI]);
 
-    $hasOrderType  = Schema::hasColumn('service_orders', 'order_type');
-    $hasReturnDate = Schema::hasColumn('service_orders', 'expected_return_date');
+    $hasOrderType = Schema::hasColumn('service_orders', 'order_type');
 
     $v = makeVehicleSOI('SOI001');
 
-    // Locação ativa, no prazo
-    $loc = makeOrderSOI([
+    // Manutenção ativa, no prazo
+    $man1 = makeOrderSOI([
         'vehicle_id' => $v->id,
         'status'     => 'em_servico',
     ]);
-    if ($hasOrderType)  { $loc->order_type = 'locacao'; }
-    if ($hasReturnDate) { $loc->expected_return_date = now()->addDays(5); }
-    $loc->save();
+    if ($hasOrderType) { $man1->order_type = 'manutencao'; }
+    $man1->expected_completion = now()->addDays(5);
+    $man1->save();
 
-    // Locação ATRASADA
+    // Manutenção ativa ATRASADA — atraso de REPARO via expected_completion (ADR 0265,
+    // locação erradicada; não há mais expected_return_date/locação como conceito)
     $atr = makeOrderSOI([
         'vehicle_id' => $v->id,
         'status'     => 'em_servico',
     ]);
-    if ($hasOrderType)  { $atr->order_type = 'locacao'; }
-    if ($hasReturnDate) {
-        $atr->expected_return_date = now()->subDays(3);
-    } else {
-        $atr->expected_completion = now()->subDays(3);
-    }
+    if ($hasOrderType) { $atr->order_type = 'manutencao'; }
+    $atr->expected_completion = now()->subDays(3);
     $atr->save();
-
-    // Manutenção ativa
-    $man = makeOrderSOI([
-        'vehicle_id' => $v->id,
-        'status'     => 'em_servico',
-    ]);
-    if ($hasOrderType) { $man->order_type = 'manutencao'; }
-    $man->save();
 
     // Concluída esse mês
     $con = makeOrderSOI([
@@ -116,14 +105,10 @@ it('Index retorna 4 KPIs corretos (locacoes_ativas, manutencao_ativas, concluida
     // Força updated_at no mês corrente
     DB::table('service_orders')->where('id', $con->id)->update(['updated_at' => now()]);
 
-    // Replica a lógica de KPI do controller (HTTP-test-free — sem Spatie/Auth setup).
-    // Pra evitar acoplamento com middleware, validamos as queries que o controller usa.
+    // Replica a lógica de KPI do controller pós-erradicação (ADR 0265):
+    //  - locacoes_ativas NÃO existe mais no contrato (chave removida do payload)
+    //  - atrasadas = ativas com expected_completion vencida (atraso de reparo)
     $kpis = [
-        'locacoes_ativas' => $hasOrderType
-            ? ServiceOrder::where('order_type', 'locacao')
-                ->whereNotIn('status', ['concluida', 'cancelada'])
-                ->count()
-            : 0,
         'manutencao_ativas' => $hasOrderType
             ? ServiceOrder::where('order_type', 'manutencao')
                 ->whereNotIn('status', ['concluida', 'cancelada'])
@@ -133,49 +118,46 @@ it('Index retorna 4 KPIs corretos (locacoes_ativas, manutencao_ativas, concluida
             ->whereMonth('updated_at', now()->month)
             ->whereYear('updated_at', now()->year)
             ->count(),
+        'atrasadas' => ServiceOrder::whereNotIn('status', ['concluida', 'cancelada'])
+            ->whereNotNull('expected_completion')
+            ->whereDate('expected_completion', '<', now()->toDateString())
+            ->count(),
     ];
 
-    if ($hasOrderType) {
-        // Esperado: 2 locações ativas (loc + atr), 1 manutenção ativa, 1 concluída.
-        expect($kpis['locacoes_ativas'])->toBeGreaterThanOrEqual(2);
-        expect($kpis['manutencao_ativas'])->toBeGreaterThanOrEqual(1);
-    } else {
-        // Sem order_type: 3 ativas total (loc+atr+man) e 1 concluída
-        expect($kpis['manutencao_ativas'])->toBeGreaterThanOrEqual(3);
-    }
+    // Locação erradicada → chave fora do contrato. 2 manutenções ativas (man1 + atr), 1 atrasada (atr), 1 concluída.
+    expect($kpis)->not->toHaveKey('locacoes_ativas');
+    expect($kpis['manutencao_ativas'])->toBeGreaterThanOrEqual(2);
+    expect($kpis['atrasadas'])->toBeGreaterThanOrEqual(1);
     expect($kpis['concluidas_mes'])->toBeGreaterThanOrEqual(1);
 })->afterEach(function () {
     cleanupSOI('SOI001');
 });
 
-it('Filter ?status=atrasada retorna apenas OS overdue', function () {
+it('Filter ?status=atrasada retorna apenas OS overdue (expected_completion vencida)', function () {
     session(['user.business_id' => BIZ_WAGNER_SOI]);
 
-    $hasOrderType  = Schema::hasColumn('service_orders', 'order_type');
-    $hasReturnDate = Schema::hasColumn('service_orders', 'expected_return_date');
-
-    if (! $hasOrderType || ! $hasReturnDate) {
-        $this->markTestSkipped('order_type ou expected_return_date ausentes — Wave 5-A não migrada');
+    if (! Schema::hasColumn('service_orders', 'order_type')) {
+        $this->markTestSkipped('order_type ausente — Wave 5-A não migrada');
     }
 
     $v = makeVehicleSOI('SOI002');
 
     // No prazo
     $ok = makeOrderSOI(['vehicle_id' => $v->id, 'status' => 'em_servico']);
-    $ok->order_type = 'locacao';
-    $ok->expected_return_date = now()->addDays(2);
+    $ok->order_type = 'manutencao';
+    $ok->expected_completion = now()->addDays(2);
     $ok->save();
 
-    // Atrasada
+    // Atrasada (atraso de REPARO — ADR 0265)
     $late = makeOrderSOI(['vehicle_id' => $v->id, 'status' => 'em_servico']);
-    $late->order_type = 'locacao';
-    $late->expected_return_date = now()->subDays(2);
+    $late->order_type = 'manutencao';
+    $late->expected_completion = now()->subDays(2);
     $late->save();
 
-    $atrasadas = ServiceOrder::where('order_type', 'locacao')
-        ->whereNotIn('status', ['concluida', 'cancelada'])
-        ->whereNotNull('expected_return_date')
-        ->whereDate('expected_return_date', '<', now()->toDateString())
+    // Mesma regra do controller pós-erradicação: ativa + expected_completion vencida
+    $atrasadas = ServiceOrder::whereNotIn('status', ['concluida', 'cancelada'])
+        ->whereNotNull('expected_completion')
+        ->whereDate('expected_completion', '<', now()->toDateString())
         ->pluck('id')
         ->toArray();
 
@@ -185,7 +167,7 @@ it('Filter ?status=atrasada retorna apenas OS overdue', function () {
     cleanupSOI('SOI002');
 });
 
-it('Filter ?type=locacao filtra apenas locações', function () {
+it('Filter ?type=manutencao filtra apenas manutenções (mecanica fora)', function () {
     session(['user.business_id' => BIZ_WAGNER_SOI]);
 
     if (! Schema::hasColumn('service_orders', 'order_type')) {
@@ -194,18 +176,19 @@ it('Filter ?type=locacao filtra apenas locações', function () {
 
     $v = makeVehicleSOI('SOI003');
 
-    $loc = makeOrderSOI(['vehicle_id' => $v->id, 'status' => 'em_servico']);
-    $loc->order_type = 'locacao';
-    $loc->save();
-
+    // order_type ∈ {manutencao, mecanica} pós-erradicação (ADR 0265) — locacao não existe mais
     $man = makeOrderSOI(['vehicle_id' => $v->id, 'status' => 'em_servico']);
     $man->order_type = 'manutencao';
     $man->save();
 
-    $somenteLocacao = ServiceOrder::where('order_type', 'locacao')->pluck('id')->toArray();
+    $mec = makeOrderSOI(['vehicle_id' => $v->id, 'status' => 'em_servico']);
+    $mec->order_type = 'mecanica';
+    $mec->save();
 
-    expect($somenteLocacao)->toContain($loc->id);
-    expect($somenteLocacao)->not->toContain($man->id);
+    $somenteManutencao = ServiceOrder::where('order_type', 'manutencao')->pluck('id')->toArray();
+
+    expect($somenteManutencao)->toContain($man->id);
+    expect($somenteManutencao)->not->toContain($mec->id);
 })->afterEach(function () {
     cleanupSOI('SOI003');
 });

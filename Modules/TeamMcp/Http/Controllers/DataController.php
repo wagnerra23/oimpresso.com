@@ -102,8 +102,15 @@ class DataController extends Controller
                 // permanecem enforce nos sub-itens — gate global hasThePermissionInSubscription
                 // já cobre módulo on/off na entry principal.
                 $menu->dropdown(
-                    __('teammcp::teammcp.module_label'),
+                    'Forja',
                     function ($sub) {
+                        // Fusão 2026-06-16 (Wagner: "não pode ficar duas concorrentes"):
+                        // hub ÚNICO. Abas próprias da Forja + telas TeamMcp absorvidas.
+                        $sub->url('/forja',           'Triagem',   ['icon' => 'fa fas fa-inbox',    'active' => request()->path() === 'forja']);
+                        $sub->url('/forja/backlog',   'Backlog',   ['icon' => 'fa fas fa-list-ul',  'active' => request()->segment(2) === 'backlog']);
+                        $sub->url('/forja/quadro',    'Quadro',    ['icon' => 'fa fas fa-columns',  'active' => request()->segment(2) === 'quadro']);
+                        $sub->url('/forja/changelog', 'Changelog', ['icon' => 'fa fas fa-history',  'active' => request()->segment(2) === 'changelog']);
+                        $sub->url('/forja/mcp',       'MCP',       ['icon' => 'fa fas fa-plug',     'active' => request()->segment(2) === 'mcp']);
                         if (auth()->user()->can('superadmin') || auth()->user()->can('jana.mcp.usage.all')) {
                             $sub->url(
                                 route('team-mcp.team.index'),
@@ -136,16 +143,33 @@ class DataController extends Controller
                                 ]
                             );
                         }
+
+                        if (auth()->user()->can('superadmin') || auth()->user()->can('jana.mcp.usage.all')) {
+                            $sub->url(
+                                route('team-mcp.scorecard.index'),
+                                'Saúde',
+                                [
+                                    'icon'   => 'fa fas fa-heartbeat',
+                                    'active' => request()->segment(2) == 'scorecard',
+                                ]
+                            );
+                        }
                     },
                     [
-                        'icon'     => 'fa fas fa-users-cog',
+                        'icon'     => 'fa fas fa-hammer',
                         'style'    => 'background-color:' . $background_color,
-                        'active'   => $segmento_ativo,
+                        'active'   => request()->segment(1) === 'forja' || $segmento_ativo,
                         'group'    => 'equipe',
-                        'shortcut' => 'G E',
+                        'shortcut' => 'G F',
                         'ghosts'   => [
-                            ['key' => 'team',        'label' => 'Team',        'href' => '/team-mcp/team'],
-                            ['key' => 'tasks',       'label' => 'Tasks',       'href' => '/team-mcp/tasks'],
+                            ['key' => 'triagem',     'label' => 'Triagem',     'href' => '/forja'],
+                            ['key' => 'backlog-f',   'label' => 'Backlog',     'href' => '/forja/backlog'],
+                            ['key' => 'quadro',      'label' => 'Quadro',      'href' => '/forja/quadro'],
+                            ['key' => 'changelog',   'label' => 'Changelog',   'href' => '/forja/changelog'],
+                            ['key' => 'mcp',         'label' => 'MCP',         'href' => '/forja/mcp'],
+                            ['key' => 'scorecard',   'label' => 'Saúde',       'href' => '/team-mcp/scorecard'],
+                            ['key' => 'team',        'label' => 'Equipe',      'href' => '/team-mcp/team'],
+                            ['key' => 'tasks',       'label' => 'Tarefas',     'href' => '/team-mcp/tasks'],
                             ['key' => 'cc-sessions', 'label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions'],
                             // Wagner 2026-05-22 P0: ProjectMgmt absorvido como ghosts do hub Equipe.
                             // Zera 6 órfãs da matriz. PageHeaderTabs auto-overflow após 5 ghosts.
@@ -154,15 +178,15 @@ class DataController extends Controller
                             // /project-mgmt/{triage,inbox} (NÃO dobrar prefixo). Ao lado de My Work.
                             ['key' => 'board',       'label' => 'Board',       'href' => '/project-mgmt/board'],
                             ['key' => 'my-work',     'label' => 'My Work',     'href' => '/project-mgmt/my-work'],
-                            ['key' => 'triage',      'label' => 'Triagem',           'href' => '/project-mgmt/triage'],
+                            ['key' => 'triage',      'label' => 'Triagem (PM)',      'href' => '/project-mgmt/triage'],
                             ['key' => 'inbox',       'label' => 'Caixa de entrada',  'href' => '/project-mgmt/inbox'],
-                            ['key' => 'backlog',     'label' => 'Backlog',     'href' => '/project-mgmt/backlog'],
+                            ['key' => 'backlog',     'label' => 'Backlog (PM)',      'href' => '/project-mgmt/backlog'],
                             ['key' => 'activity',    'label' => 'Activity',    'href' => '/project-mgmt/activity'],
                             ['key' => 'burndown',    'label' => 'Burndown',    'href' => '/project-mgmt/burndown'],
                             ['key' => 'roadmap',     'label' => 'Roadmap',     'href' => '/project-mgmt/roadmap'],
                         ],
                     ]
-                )->order(91); // Logo após Copiloto (90)
+                )->order(91); // Logo após Copiloto (90) — hub único Forja (fusão 2026-06-16)
             }
         );
     }

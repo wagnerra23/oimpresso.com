@@ -42,8 +42,9 @@ const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
 // acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
 const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
-const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {} };
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [] };
 let checkCByFile = {};
+let checkLSlugs = []; // Check L (ADR vivo-mas-proposto): slugs detectados nesta run
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -185,7 +186,7 @@ function checkStaleCanon() {
 // Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
 // editar ADR ratificada in-place — então normalizar é no leitor OU override
 // consciente; este check só IMPEDE PIORAR (flagga grafia/enum novo).
-const STATUS_OK = new Set(['rascunho', 'proposto', 'aceito', 'deprecated', 'superseded']);
+const STATUS_OK = new Set(['rascunho', 'proposto', 'aceito', 'recusado', 'deprecated', 'superseded']);
 const LIFECYCLE_OK = new Set(['ativo', 'arquivado', 'substituido', 'historical']);
 function checkAdrEnumDrift() {
   const dir = 'memory/decisions';
@@ -227,6 +228,223 @@ function checkAntiResurrection() {
   }
 }
 
+// ── Check G: registry canônico de gates (Onda Q5 — o processo se autocobra) ─
+// "Regra que ninguém cobra morre" — gate novo entrava em .github/workflows sem
+// censo nenhum. TODO workflow DEVE estar em scripts/governance/gates-registry.json
+// (nome + classe + propósito). Workflow fora do registry = 🔴 (pega gate novo
+// mecanicamente); entrada órfã (workflow apagado) = 🟡.
+function checkGatesRegistry() {
+  const REGISTRY = 'scripts/governance/gates-registry.json';
+  const wfDir = '.github/workflows';
+  if (!exists(wfDir)) return;
+  if (!exists(REGISTRY)) {
+    fails.push({ check: 'G', kind: 'registry-ausente',
+      msg: `${REGISTRY} não existe — o censo de gates é obrigatório (Onda Q5). Recriar a partir do main.` });
+    return;
+  }
+  let reg;
+  try { reg = JSON.parse(read(REGISTRY)).workflows || {}; } catch {
+    fails.push({ check: 'G', kind: 'registry-ilegivel', msg: `${REGISTRY} não parseia como JSON.` });
+    return;
+  }
+  const files = readdirSync(join(ROOT, wfDir)).filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'));
+  const fora = files.filter((f) => !(f in reg));
+  if (fora.length) {
+    fails.push({ check: 'G', kind: 'workflow-fora-do-registry', count: fora.length,
+      msg: `workflow(s) NOVO(s) sem registro no censo de gates (${REGISTRY}): ${fora.join(', ')} — registre nome+classe+propósito no MESMO PR.` });
+  }
+  const orfas = Object.keys(reg).filter((f) => !files.includes(f));
+  if (orfas.length) {
+    warns.push({ check: 'G', kind: 'registry-entrada-orfa', count: orfas.length,
+      msg: `entrada(s) do registry sem workflow correspondente: ${orfas.join(', ')} — remova do censo.` });
+  }
+}
+
+// ── Check H: frescor de doc-cache "✓lido @main <data>" (Onda Q5) ────────────
+// Censos/tabelas derivadas carregam carimbo de leitura contra o main. Carimbo
+// >14 dias = a "verdade cacheada" provavelmente driftou → 🟡 revalidar.
+function checkLidoFreshness() {
+  const LIMIT_DAYS = 14;
+  const stamps = [];
+  for (const dir of ['memory', 'prototipo-ui']) {
+    for (const f of listFiles(dir, (p) => p.endsWith('.md'))) {
+      let content; try { content = read(f); } catch { continue; }
+      for (const m of content.matchAll(/✓\s*lido\s*@?main[^\d]{0,20}(\d{4}-\d{2}-\d{2})/gi)) {
+        stamps.push({ file: f, date: m[1] });
+      }
+    }
+  }
+  const today = new Date();
+  const old = stamps.filter((s) => (today - new Date(s.date)) / 86400000 > LIMIT_DAYS);
+  if (old.length) {
+    const sample = old.slice(0, 5).map((s) => `${s.file} (${s.date})`).join(' · ');
+    warns.push({ check: 'H', kind: 'doc-cache-stale', count: old.length,
+      msg: `carimbo(s) "✓lido @main" com mais de ${LIMIT_DAYS} dias: ${sample}${old.length > 5 ? ` … +${old.length - 5}` : ''} — revalidar contra o main e re-carimbar.` });
+  }
+}
+
+// ── Check I: lição sem asserção (Onda Q5) ───────────────────────────────────
+// Lição em memory/LICOES_CC.md que não aponta gate/G#/IT# nem se declara
+// `não-mecanizável:` é lição que vai morrer no tempo (DESIGN.md §16.2 provou).
+function checkLicaoSemAssercao() {
+  const FILE = 'memory/LICOES_CC.md';
+  if (!exists(FILE)) return;
+  const content = read(FILE);
+  const blocks = content.split(/^## (?=L-\d)/m).slice(1);
+  const sem = [];
+  for (const b of blocks) {
+    const id = (b.match(/^L-\d+[a-z]?/) || ['?'])[0];
+    if (!/\bG-?\d|\bIT-?\d|gate|guard|ratchet|catraca|não-mecanizável\s*:|nao-mecanizavel\s*:/i.test(b)) sem.push(id);
+  }
+  if (sem.length) {
+    warns.push({ check: 'I', kind: 'licao-sem-assercao', count: sem.length,
+      msg: `lição(ões) sem gate/G#/IT# nem marcador \`não-mecanizável:\`: ${sem.slice(0, 8).join(', ')}${sem.length > 8 ? ` … +${sem.length - 8}` : ''} — toda lição aponta o check que a mecaniza OU se declara não-mecanizável.` });
+  }
+}
+
+// ── Check J: plan-health (ADR 0294 — planos vivos) ─────────────────────────
+// Espelha a catraca/sentinela do ADR 0256 apontada pra PLANOs. Warn-only (advisory):
+// plano sem `## Status vivo`, sem reviewed_at / stale (>30d), status fora do enum, ou
+// `em-execução` sem `parent_plan` (a membrana — task MCP). NUNCA bloqueia (só sinaliza).
+const PLAN_STATUS_OK = new Set(['proposto', 'ativo', 'em-execução', 'em-execucao', 'pausado', 'concluído', 'concluido', 'abandonado', 'superseded', 'revisar']);
+const PLAN_STALE_DAYS = 30;
+function checkPlanHealth() {
+  const base = 'memory/requisitos';
+  if (!exists(base)) return;
+  const isPlan = (rel) => rel.endsWith('.md')
+    && /plan/i.test(rel.split('/').pop())
+    && !/PLANS-INDEX|_TEMPLATE/i.test(rel)
+    && !/\/(adr|arq)\//.test(rel);
+  const files = listFiles(base, isPlan);
+  if (!files.length) return;
+  const today = new Date(gitLastDate('.') || '2026-06-20');
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - PLAN_STALE_DAYS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const issues = [];
+  for (const rel of files) {
+    let txt; try { txt = read(rel); } catch { continue; }
+    if (!/\n##\s*Status vivo/i.test(txt)) { issues.push(`${rel}: sem bloco \`## Status vivo\` (ADR 0294)`); continue; }
+    const block = (txt.split(/\n##\s*Status vivo/i)[1] || '').split(/\n##\s/)[0];
+    const status = (block.match(/(?:^|\n)[-*\s]*\**status:\**\s*([^\s<·*\n]+)/i) || [])[1]?.toLowerCase();
+    const rev = (block.match(/reviewed[_ -]?at:?\**\s*["']?(\d{4}-\d{2}-\d{2})/i) || [])[1];
+    const hasParent = /parent_plan\s*[=:]\s*[a-z0-9-]+/i.test(block);
+    if (!status) issues.push(`${rel}: Status vivo sem \`status\``);
+    else if (!PLAN_STATUS_OK.has(status)) issues.push(`${rel}: status "${status}" fora do enum (ADR 0294)`);
+    if (!rev) issues.push(`${rel}: Status vivo sem \`reviewed_at\``);
+    else if (rev < cutoffStr) issues.push(`${rel}: reviewed_at ${rev} > ${PLAN_STALE_DAYS}d — revisar + bump`);
+    if ((status === 'em-execução' || status === 'em-execucao') && !hasParent) issues.push(`${rel}: \`em-execução\` sem \`parent_plan\` (membrana ADR 0294)`);
+  }
+  if (issues.length) {
+    warns.push({ check: 'J', kind: 'plan-health', count: issues.length, sample: issues.slice(0, 12),
+      msg: `${issues.length} achado(s) de plano-vivo (ADR 0294): plano sem \`## Status vivo\` / \`reviewed_at\` stale / \`em-execução\` órfão. Edita o plano no lugar + bump reviewed_at (fonte única).` });
+  }
+}
+
+// ── Check K: decisão em session log sem âncora (detector dos "155 perdidos") ─
+// Adversário 2026-06-20 (memory/sessions/2026-06-20-adversario-convergencia-sistema.md):
+// decisão/rollout escrito num session log que NUNCA virou ADR aceito nem entrou num
+// BRIEFING "se perde" — converge só pela atenção manual. Este check flagga session log
+// >30d com marcador de decisão (`## Decisão`, `US-`, `rollout`, `### Passo`) que NÃO
+// referencia nenhum ADR ACEITO nem um BRIEFING. Warn-only (advisory): é fila de triagem,
+// não bloqueio — promover a ADR/BRIEFING OU registrar resolução. Complementa Check J
+// (que cuida de PLANOs vivos, ADR 0294); aqui o alvo é o session log histórico.
+const SESSION_DECISION_STALE_DAYS = 30;
+function acceptedAdrNums() {
+  const dir = 'memory/decisions';
+  const set = new Set();
+  if (!exists(dir)) return set;
+  for (const f of readdirSync(join(ROOT, dir))) {
+    const m = f.match(/^(\d{4})-.+\.md$/);
+    if (!m) continue;
+    let txt; try { txt = read(`${dir}/${f}`); } catch { continue; }
+    const st = (txt.match(/^status:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    if (st && /^(aceito|accepted|aceita)/.test(st)) set.add(m[1]);
+  }
+  return set;
+}
+function checkSessionDecisionAnchor() {
+  const dir = 'memory/sessions';
+  if (!exists(dir)) return;
+  const accepted = acceptedAdrNums();
+  const today = new Date(gitLastDate('.') || '2026-06-20'); // determinismo CI (sem Date.now)
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - SESSION_DECISION_STALE_DAYS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const files = listFiles(dir, (rel) => rel.endsWith('.md') && !/_TEMPLATE|README/i.test(rel));
+  const lost = [];
+  for (const rel of files) {
+    let txt; try { txt = read(rel); } catch { continue; }
+    // marcador de decisão/rollout (lista do adversário 2026-06-20)
+    const hasDecision = /^##\s*Decis[aã]o\b/im.test(txt)
+      || /^###\s*Passo\b/im.test(txt)
+      || /\bUS-[A-Z0-9]{2,}/.test(txt)
+      || /\brollout\b/i.test(txt);
+    if (!hasDecision) continue;
+    // idade: nome do arquivo `YYYY-MM-DD-…` é a fonte PRIMÁRIA — ~50% dos logs não têm
+    // `date:` no frontmatter, e `gitLastDate` "rejuvenesce" o doc no touch em massa
+    // (mascarava ~46 logs antigos como recentes). Ordem: slug → frontmatter `date:` → git.
+    const when = (rel.match(/(?:^|\/)(\d{4}-\d{2}-\d{2})-/) || [])[1]
+      || (txt.match(/^date:\s*["']?(\d{4}-\d{2}-\d{2})/mi) || [])[1]
+      || gitLastDate(rel);
+    if (!when || when >= cutoffStr) continue; // só >30d
+    // âncora ESTRUTURAL (não menção solta em prosa, que premiava name-dropping):
+    //   ADR aceito referenciado no FRONTMATTER (related_adrs/supersedes/superseded_by)
+    //   OU link `decisions/NNNN-…` no corpo  ·  BRIEFING pelo arquivo real (BRIEFING.md).
+    const fmEnd = txt.startsWith('---') ? txt.indexOf('\n---', 3) : -1;
+    const fm = fmEnd === -1 ? '' : txt.slice(0, fmEnd);
+    const refs = new Set();
+    for (const m of fm.matchAll(/\b(\d{4})-[a-z]{2,}/g)) refs.add(m[1]);         // slug em related_adrs/supersedes
+    for (const m of txt.matchAll(/decisions\/(\d{4})-[a-z]/gi)) refs.add(m[1]);  // link pro arquivo do ADR
+    const anchoredByAdr = [...refs].some((n) => accepted.has(n));
+    const anchoredByBriefing = /BRIEFING\.md/i.test(txt);
+    if (!anchoredByAdr && !anchoredByBriefing) lost.push(`${rel} (${when})`);
+  }
+  if (lost.length) {
+    warns.push({ check: 'K', kind: 'session-decisao-sem-ancora', count: lost.length, sample: lost.slice(0, 12),
+      msg: `${lost.length} session log(s) >${SESSION_DECISION_STALE_DAYS}d com marcador de decisão (\`## Decisão\`/\`US-\`/\`rollout\`/\`### Passo\`) SEM âncora ESTRUTURAL (related_adrs/link decisions pra ADR aceito, ou BRIEFING.md) — os "planos perdidos" (adversário 2026-06-20). Triagem: promover a ADR/BRIEFING ou registrar resolução.` });
+  }
+}
+
+// ── Check L: ADR vivo-mas-proposto (proposto vs realizado) ──────────────────
+// "Declarado ≠ realizado": ADR com status proposto/rascunho cujo NÚMERO já é citado
+// por código que RODA (scripts/** ou .github/workflows/**) — o processo depende da
+// decisão, mas a metadata diz que ela não foi aceita. Ratchet (como Check C): os
+// offenders conhecidos ficam no baseline (.checkL); só ADR NOVO vivo-mas-proposto
+// acima do baseline 🔴 falha. Ratificar (proposto→aceito) tira do offender list
+// sozinho — o débito encolhe à vista. É o teste de integridade do proposto vs
+// realizado pedido por Wagner (2026-06-21). Refs: ADR 0256/0258.
+const UNRATIFIED_STATUS = new Set(['proposto', 'rascunho', 'proposed', 'draft']);
+function checkAdrVivoMasProposto() {
+  const dir = 'memory/decisions';
+  if (!exists(dir)) return;
+  // corpus = "código que roda". NÃO inclui memory/** (lá é doc, não execução) nem o
+  // próprio baseline (senão o grandfather vira citação circular auto-confirmante).
+  const isCode = (rel) => /\.(mjs|js|ts|php|json)$/.test(rel) && !rel.includes('.memory-health-baseline');
+  const corpusFiles = [
+    ...listFiles('scripts', isCode),
+    ...(exists('.github/workflows') ? listFiles('.github/workflows', (p) => /\.ya?ml$/.test(p)) : []),
+  ];
+  let corpus = '';
+  for (const f of corpusFiles) { try { corpus += '\n' + read(f); } catch {} }
+  for (const f of readdirSync(join(ROOT, dir))) {
+    const m = f.match(/^(\d{4})-.+\.md$/);
+    if (!m) continue;
+    const num = m[1];
+    let txt; try { txt = read(`${dir}/${f}`); } catch { continue; }
+    const st = (txt.match(/^status:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    if (!st || !UNRATIFIED_STATUS.has(st)) continue;
+    // citado como dependência viva: "ADR 0256" · "0256-slug" · "decisions/0256-"
+    const cited = new RegExp(`(ADR[ _-]?${num}\\b|\\b${num}-[a-z]|decisions/${num}-)`, 'i').test(corpus);
+    if (cited) checkLSlugs.push(f.replace(/\.md$/, ''));
+  }
+  if (UPDATE_BASELINE) return; // no modo update só capturamos; nada de fail
+  const grandfathered = new Set(baseline.checkL || []);
+  const novos = checkLSlugs.filter((slug) => !grandfathered.has(slug));
+  if (novos.length) {
+    fails.push({ check: 'L', kind: 'adr-vivo-mas-proposto', count: novos.length, sample: novos.slice(0, 15),
+      msg: `ADR(s) com status proposto/rascunho mas JÁ citado(s) por código que roda (scripts/** ou .github/workflows/**) — "proposto vs realizado": o processo já depende da decisão mas a metadata diz que não foi aceita. Ratifique (proposto→aceito via PR) ou corte a dependência. Se legítimo, rode --update-baseline. (ADR 0256 Check L · Wagner 2026-06-21)` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
@@ -234,10 +452,16 @@ checkSecretsInMemory();
 checkStaleCanon();
 checkAdrEnumDrift();
 checkAntiResurrection();
+checkGatesRegistry();
+checkLidoFreshness();
+checkLicaoSemAssercao();
+checkAdrVivoMasProposto(); // Check L (fail-class) — proposto vs realizado
+try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-health-error', msg: 'plan-health falhou (não bloqueia): ' + e.message }); }
+try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 
 if (UPDATE_BASELINE) {
-  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile }, null, 2) + '\n');
-  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (${Object.keys(checkCByFile).length} arquivos com Check C aceitos)`);
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort() }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto grandfathered)`);
   process.exit(0);
 }
 

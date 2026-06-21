@@ -3,8 +3,8 @@ page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.client
 component: resources/js/Pages/Cliente/Index.tsx
 owner: wagner
 status: live
-last_validated: '2026-06-08'
-charter_version: 9
+last_validated: '2026-06-13'
+charter_version: 10
 parent_module: Cliente / Crm
 related_adrs:
   - '0093-multi-tenant-isolation-tier-0'
@@ -49,7 +49,9 @@ drawer_pattern:
   position: lateral-right
   trigger: "Click linha tabela OU deeplink /cliente/{id} → router.visit('/cliente?contact_id={id}&tab=identificacao')"
   close: "X · Esc · click backdrop"
-  tabs: [identificacao, contato, endereco, comercial, classificacao, oss, ia, auditoria]
+  tabs: [identificacao, contato, endereco, comercial, classificacao, operacoes]
+  header_chips: [placas, ia]   # auditoria saiu do chip → sub-aba de operacoes (2026-06-13)
+  operacoes_subtabs: [ledger, sales, payments, documents, persons, subscriptions, rewards, auditoria]
 ---
 
 # Page Charter — /cliente (Index + Drawer 760px)
@@ -69,7 +71,7 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - ~~**PTDP Onda 1 (v4 · 2026-05-24):**~~ ❌ **REVOGADA (v6 · 2026-05-24)** · Wagner reprovou BrunaGreeting + SavedViews em validação visual produção · removidos `Components/clientes/BrunaGreeting.tsx` e `SavedViews.tsx` · charter mantém histórico (append-only)
 - **PTDP Onda 2 (v5 · 2026-05-24):** `<KpiStripClickable>` 5 cards-filtro (Clientes ativos · VIPs · Com saldo · Sem compra 90d · Novos este mês) substitui 4 KpiCard estáticos Wave G · clique aplica filtro substitutivo · toggle 2x desativa · counts client-side pros estimados (vips/sem90/novos · Onda 3 plug backend dedicado). **v6 nota:** mutex com SavedViews removido (não há mais SavedViews)
 
-## Goals (Drawer 760px — 8 tabs)
+## Goals (Drawer 760px — 6 tabs principais + chips Placas/IA)
 
 - **Header drawer**: avatar grande, toggle PF/PJ, nome + "Pessoa jurídica · cadastrado há Xd", badge Ativo/Inativo/Bloqueado, botões "Imprimir ficha" + "Falar com Copiloto →" (= `/jana/chat?context=cliente:{id}`)
 - **Tab Identificação**: Razão social/Nome, Fantasia (PJ), CNPJ + "Buscar CNPJ" (BrasilAPI proxy server-side), IE (PJ), Contato principal (PJ), Cargo (PJ), CPF/Nascimento/RG (PF) — máscaras + mod 11 + autosave on blur
@@ -77,9 +79,9 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - **Tab Endereço**: CEP + ViaCEP proxy server-side ao blur autopreenche, endereço/número/complemento/bairro/cidade/UF — autosave on blur
 - **Tab Comercial**: limite crédito, prazo padrão (dias), tabela preço (padrao/varejo/atacado/parceiro), pgto padrão (pix/boleto/cartão/dinheiro/transferência), obs comercial textarea — autosave on blur
 - **Tab Classificação**: segmento (radio: varejo/atacado/agência/corporativo/evento/governo), tags multi-select (9 valores), status (ativo/inativo/bloqueado), VIP toggle — autosave on blur
-- **Tab OSs**: wrapper das 8 sub-tabs Wave Final (`_show/LedgerTab`, `SalesTab`, `PaymentsTab`, `DocumentsTab`, `ActivitiesTab`, `PessoasContatoTab`, `SubscriptionsTab`, `RewardPointsTab`) via sub-tabs aninhadas verticais (decisão final layout na Wave D)
-- **Tab IA**: 4 cards Copiloto (Resumo relacionamento / Reavaliar segmento+tags / Próxima ação / Score risco determinístico) — default ON pra todos (sem gate quota)
-- **Tab Auditoria**: timeline Spatie ActivityLog v4.8 com 6+ tipos eventos + botão Exportar log — `forSubject(Contact $contact)` filtrado por business_id
+- **Tab Operações** (`OssTab`): rail vertical com sub-abas `_show/LedgerTab`, `SalesTab`, `PaymentsTab`, `DocumentsTab`, `PessoasContatoTab`, `SubscriptionsTab`, `RewardPointsTab` + **Auditoria** (`_drawer/AuditoriaTab` — integrada 2026-06-13). `ActivitiesTab` removido (duplicava Auditoria — mesma fonte Spatie)
+- **Chip IA**: 4 cards Copiloto (Resumo relacionamento / Reavaliar segmento+tags / Próxima ação / Score risco determinístico) — default ON pra todos (sem gate quota)
+- **Sub-aba Auditoria** (em Operações): timeline Spatie ActivityLog v4.8 com 6+ tipos eventos — `forSubject(Contact $contact)` filtrado por business_id. Wagner 2026-06-13: saiu do chip (virou sub-aba de Operações) + **botão "Exportar log" removido** (acesso LGPD Art.18 pela própria timeline; rota `/auditoria/export` mantida no backend)
 
 ## Non-Goals
 
@@ -120,8 +122,8 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - `_drawer/IATab.tsx` (Wave E)
 - `_drawer/AuditoriaTab.tsx` (Wave F)
 - `_show/*` (8 arquivos Wave Final 2026-05-21 — reusados via OssTab wrapper)
-- `Components/clientes/Pills.tsx` (StatusPill, TipoPill, TagChip, FrescorPill)
-- `Components/clientes/Avatar.tsx` (HSL hash determinístico)
+- `Pages/Cliente/_components/Pills.tsx` (StatusPill, TipoPill, TagChip, FrescorPill)
+- `Pages/Cliente/_components/Avatar.tsx` (HSL hash determinístico)
 - `Lib/br-mask.ts` · `Lib/br-validate.ts` · `Lib/avatar.ts` · `Lib/relDate.ts`
 
 ## Refs

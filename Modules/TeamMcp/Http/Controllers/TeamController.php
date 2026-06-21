@@ -327,8 +327,13 @@ JS;
         // de credencial MCP, equivale a operação Tier 0 governança).
         return OtelHelper::spanBiz('teammcp.token.revoke', function () use ($tokenId) {
             $token = McpToken::findOrFail($tokenId);
-            $token->update(['expires_at' => now()]);
-            $token->delete();
+            // Audit LGPD (ADR 0081): grava revoked_at/revoked_by ANTES do soft-delete.
+            $token->update([
+                'expires_at' => now(),
+                'revoked_at' => now(),
+                'revoked_by' => auth()->id() ?? 0,
+            ]);
+            $token->delete(); // soft-delete (SoftDeletes) — a row sobrevive pro audit
 
             return response()->json(['ok' => true]);
         }, ['module' => 'TeamMcp', 'token_id' => $tokenId]);

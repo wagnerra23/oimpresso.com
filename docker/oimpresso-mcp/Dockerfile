@@ -11,6 +11,11 @@
 FROM php:8.4-fpm-alpine
 
 # Instala Nginx + supervisor + extensões PHP do Laravel
+# mariadb-client (US-GOV-018 Frente A): provê o binário /usr/bin/mysql que o
+# `artisan migrate:fresh`/RefreshDatabase invoca em "Loading stored database
+# schemas" pra recarregar database/schema/mysql-schema.sql. Sem ele, o nightly
+# full-suite (que reusa esta imagem) envenenava o schema mid-run. Benigno em
+# prod (só um client CLI; o runtime MCP usa pdo_mysql, não o binário).
 RUN apk add --no-cache \
         nginx \
         supervisor \
@@ -19,6 +24,7 @@ RUN apk add --no-cache \
         git \
         zip \
         unzip \
+        mariadb-client \
         oniguruma-dev \
         libxml2-dev \
         libzip-dev \
@@ -35,8 +41,14 @@ RUN apk add --no-cache \
         opcache \
     && pecl install redis \
     && docker-php-ext-enable redis \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov \
     && apk del $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
+# pcov (SDD P07 — ADR 0275 coverage_pct): habilita medição de cobertura na nightly
+# full-suite CT100. docker-php-ext-enable deixa pcov DESLIGADO por default
+# (pcov.enabled=0) — runtime de prod não paga overhead; o nightly liga com
+# `-d pcov.enabled=1`. NUNCA no Hostinger (ADR 0062 — coverage só no CT100).
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

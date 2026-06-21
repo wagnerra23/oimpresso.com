@@ -35,12 +35,12 @@ export default function DriftAlertBanner({
       <div
         role="status"
         className={cn(
-          'flex items-center justify-between gap-3 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200',
+          'flex items-center justify-between gap-3 rounded-md border border-success/20 bg-success-soft px-3 py-2 text-[12px] text-success-fg',
           className,
         )}
       >
         <span className="flex items-center gap-2">
-          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-success" />
           Sem drifts &gt;{thresholdPts}pts nos últimos 7 dias — saúde estável.
         </span>
       </div>

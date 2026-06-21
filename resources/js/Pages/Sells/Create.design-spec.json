@@ -1,7 +1,7 @@
 {
   "screen": "Sells/Create",
   "path": "resources/js/Pages/Sells/Create.tsx",
-  "measured_against_sha": "5c6c557f5",
+  "measured_against_sha": "56edc6f70",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
@@ -16,6 +16,7 @@
       "Checkbox",
       "Input",
       "Label",
+      "NumericInputPtBR",
       "Textarea"
     ],
     "shared": [
@@ -24,7 +25,6 @@
     ],
     "layout": [],
     "local": [
-      "NumericInputPtBR (./_components/NumericInputPtBR)",
       "PaymentRow (./_components/PaymentRow)",
       "QuickAddVehicleSheet (./_components/QuickAddVehicleSheet)",
       "dropdownEntries (./_components/dropdownEntries)",
@@ -44,8 +44,8 @@
     "native_input": 1
   },
   "totals": {
-    "canon_components": 11,
-    "local_components": 5,
+    "canon_components": 12,
+    "local_components": 4,
     "uses_layout_primitives": false,
     "structural_violations": 7
   }

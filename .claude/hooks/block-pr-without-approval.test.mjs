@@ -86,13 +86,66 @@ check('override env → ALLOW', runHook(PUSH, { OIMPRESSO_PR_APPROVAL_OVERRIDE: 
 
 // 9. "merge" do Wagner aprova → gh pr merge passa.
 clearFlag();
-runHook(prompt('merge'));
+runHook(prompt('pode mergear'));
 check('"merge" aprova → gh pr merge ALLOW', runHook({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'gh pr merge 1908 --admin' } }).code === 0);
+
+// 10. FALSO-POSITIVO corrigido: 'merge' incidental em conversa NAO aprova publicacao.
+clearFlag();
+runHook(prompt('qual a estrategia de merge antes?'));
+check('"estrategia de merge" NAO aprova (falso-positivo) -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+
+// 11. Gap PowerShell fechado: push via tool PowerShell sem aprovacao -> BLOCK.
+clearFlag();
+check('PowerShell push sem aprovacao -> BLOCK', runHook({ hook_event_name: 'PreToolUse', tool_name: 'PowerShell', tool_input: { command: 'git push' } }).code === 2);
+
+// 12. PowerShell push COM aprovacao -> ALLOW.
+clearFlag();
+runHook(prompt('pode pushar'));
+check('PowerShell push com aprovacao -> ALLOW', runHook({ hook_event_name: 'PreToolUse', tool_name: 'PowerShell', tool_input: { command: 'git push -u origin HEAD' } }).code === 0);
+
+// 13. publishPatterns ancorado: 'git push' embebido em comando de busca NAO bloqueia.
+clearFlag();
+check('busca com "git push" embebido (rg) -> ALLOW (nao e publicacao)', runHook({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: "rg 'git push' .claude/hooks" } }).code === 0);
+
+// --- Bypasses fechados no review adversarial 2026-06-20 (sem aprovacao -> BLOCK) ---
+const bash = (command) => ({ hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command } });
+
+// 14. gh api -X POST .../pulls (cria PR via API) -> BLOCK.
+clearFlag();
+check('gh api -X POST /pulls -> BLOCK', runHook(bash('gh api -X POST repos/o/r/pulls -f title=x -f head=b -f base=main')).code === 2);
+
+// 15. gh api --method PUT .../pulls/N/merge (merge via API) -> BLOCK.
+clearFlag();
+check('gh api PUT /pulls/N/merge -> BLOCK', runHook(bash('gh api --method PUT repos/o/r/pulls/5/merge')).code === 2);
+
+// 16. gh api .../pulls -f (POST implicito por campo) -> BLOCK.
+clearFlag();
+check('gh api /pulls -f (POST implicito) -> BLOCK', runHook(bash('gh api repos/o/r/pulls -f title=x')).code === 2);
+
+// 17. git -c k=v push (flag entre git e push) -> BLOCK.
+clearFlag();
+check('git -c k=v push -> BLOCK', runHook(bash('git -c http.sslVerify=false push origin HEAD')).code === 2);
+
+// 18. ENV="a b" git push (prefixo de env com aspas) -> BLOCK.
+clearFlag();
+check('ENV="a b" git push -> BLOCK', runHook(bash('GIT_SSH_COMMAND="ssh -i k" git push')).code === 2);
+
+// 19. FALSO-POSITIVO: gh api GET em /pulls (listar PRs, read) -> ALLOW.
+clearFlag();
+check('gh api /pulls (GET read) -> ALLOW', runHook(bash('gh api repos/o/r/pulls')).code === 0);
+
+// 20. FALSO-POSITIVO: gh api comentario em PR (/pulls/N/comments) -> ALLOW.
+clearFlag();
+check('gh api /pulls/N/comments (comentario) -> ALLOW', runHook(bash('gh api repos/o/r/pulls/5/comments -f body=oi')).code === 0);
+
+// 21. FALSO-POSITIVO: git -c k=v log (nao e push) -> ALLOW.
+clearFlag();
+check('git -c k=v log (nao-push) -> ALLOW', runHook(bash('git -c core.pager=cat log --oneline')).code === 0);
 
 clearFlag();
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] R10 enforçada pela MÁQUINA — sobrevive sem a skill. (9/9)');
+  console.log('[PASS] R10 enforçada pela MÁQUINA — sobrevive sem a skill. (21/21)');
   process.exit(0);
 } else {
   console.log(`[FAIL] ${fails} caso(s) — R10 NÃO está garantida pela máquina. NÃO rebaixar a skill.`);

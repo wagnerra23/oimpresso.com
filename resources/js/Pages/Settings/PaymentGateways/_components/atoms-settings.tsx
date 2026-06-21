@@ -40,7 +40,7 @@ export function Toggle({ on, onConfirm, title }: { on: boolean; onConfirm: (newV
     <button
       onClick={e => { e.stopPropagation(); onConfirm(!on); }}
       title={title || (on ? 'Desativar' : 'Ativar')}
-      className={cn('inline-flex w-9 h-5 rounded-full p-0.5 transition cursor-pointer', on ? 'bg-emerald-500' : 'bg-stone-300')}
+      className={cn('inline-flex w-9 h-5 rounded-full p-0.5 transition cursor-pointer', on ? 'bg-success' : 'bg-stone-300')}
       aria-pressed={on}
       aria-label={on ? 'Ativo — clique pra desativar' : 'Inativo — clique pra ativar'}
     >
@@ -69,7 +69,7 @@ export function FileField({
       <div className={cn(
         'h-8 border rounded flex items-center gap-2 px-2 text-[11.5px] transition',
         hasFile
-          ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+          ? 'bg-success-soft border-success/30 text-success-fg'
           : 'bg-white border-stone-300 border-dashed text-stone-500 hover:border-stone-500',
       )}>
         <Upload className="h-3 w-3" />

@@ -85,6 +85,7 @@ class ReconciliarCobrancaService
      */
     private function marcarTitulosQuitados(int $businessId, int $cobrancaId): void
     {
+        // SUPERADMIN: chamado por job/command sem sessão (caller passa businessId explícito); quita títulos vinculados filtrando por esse business_id.
         $titulos = Titulo::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('origem', 'manual')

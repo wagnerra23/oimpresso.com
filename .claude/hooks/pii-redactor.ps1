@@ -1,13 +1,19 @@
-# Hook PreToolUse - BLOQUEIA Bash que vai commitar/printar PII (CPF/CNPJ/cartao).
+# Hook PreToolUse - BLOQUEIA git commit que levaria PII real (CPF/CNPJ/cartao) pro repo.
 # US-COPI-086 (Cycle 01) - LGPD Art. 7 (principio de minimizacao).
 #
-# Escaneia commands de git commit OR scripts que produzem output.
-# Em particular, blocking matrix:
-#   - git commit -m "..." com PII no message
-#   - git commit + git diff --staged contendo PII (escaneia o staged)
-#   - cat/tail/grep de log com PII detectada na saida esperada
+# Escopo (opcao B, 2026-06-13 - ver memory/sessions deste dia):
+#   SO inspeciona `git commit`. Escaneia:
+#     - a mensagem do commit (texto do comando, ex: -m "...")
+#     - o staged diff (git diff --staged)
+#   Ambos acabam no historico git -> sincronizam pro MCP server visivel ao time.
 #
-# Whitelist: PIIs reconhecidamente fake/fixture (123.456.789-09, 11.222.333/0001-81)
+#   Comandos NAO-commit (mysql/grep/ssh/echo/cat ...) NAO sao mais inspecionados,
+#   mesmo contendo CPF/CNPJ. Num ERP brasileiro, debug legitimo por CPF/CNPJ
+#   (consultar producao, grep de log, snapshot Firebird) e operacao normal e
+#   nao deve ser bloqueado. A versao anterior bloqueava esses comandos sem bypass.
+#
+# Bypass: adicione --allow-pii ao git commit (E confirme com Wagner).
+# Whitelist: PIIs reconhecidamente fake/fixture (ver array $fakeWhitelist abaixo).
 
 $ErrorActionPreference = 'Stop'
 $rawInput = [Console]::In.ReadToEnd()
@@ -25,6 +31,11 @@ if ($tool -ne 'Bash') { exit 0 }
 $cmd = $payload.tool_input.command
 if (-not $cmd) { exit 0 }
 
+# Opcao B: so age em git commit. Qualquer outro comando passa direto (sem inspecao).
+if ($cmd -notmatch '^\s*git\s+commit\b') { exit 0 }
+# Bypass justificado.
+if ($cmd -match '--allow-pii') { exit 0 }
+
 # Fixtures fake bem conhecidos (whitelist)
 $fakeWhitelist = @(
     '123\.456\.789-09',
@@ -36,14 +47,14 @@ $fakeWhitelist = @(
     '5555[\s-]?5555[\s-]?5555[\s-]?4444'   # Mastercard test
 )
 
-# Padrões PII reais (regex)
+# Padroes PII reais (regex)
 $piiPatterns = @{
-    'cpf'   = '\b\d{3}\.\d{3}\.\d{3}-\d{2}\b'
-    'cnpj'  = '\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b'
+    'cpf'    = '\b\d{3}\.\d{3}\.\d{3}-\d{2}\b'
+    'cnpj'   = '\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b'
     'cartao' = '\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'
 }
 
-# Função: dado um texto, retorna lista de PIIs detectadas (não-whitelisted)
+# Funcao: dado um texto, retorna lista de PIIs detectadas (nao-whitelisted)
 function Find-Pii([string]$text) {
     $found = @()
     foreach ($key in $piiPatterns.Keys) {
@@ -63,40 +74,27 @@ function Find-Pii([string]$text) {
     return $found
 }
 
-# 1) Verifica PII no proprio comando (commit -m, echo, etc.)
-$piiInCmd = @(Find-Pii $cmd)
-if ($piiInCmd.Count -gt 0) {
-    $first = $piiInCmd[0]
+# Monta o corpo a escanear: mensagem do commit (texto do comando) + staged diff.
+$textoAEscanear = $cmd
+try {
+    $stagedDiff = & git diff --staged 2>$null
+    if ($stagedDiff) {
+        $textoAEscanear += "`n" + ($stagedDiff -join "`n")
+    }
+} catch {
+    # git falhou (nao eh repo, sem permissao) - escaneia so a mensagem do commit
+}
+
+$piiFound = @(Find-Pii $textoAEscanear)
+if ($piiFound.Count -gt 0) {
+    $first = $piiFound[0]
     $exemplo = $first.valor.Substring(0, [Math]::Min(6, $first.valor.Length)) + '...'
     @{
         decision      = 'deny'
-        reason        = "[pii-redactor] PII real detectada no comando: $($first.tipo) '$exemplo'"
-        systemMessage = "[pii-redactor] LGPD Art. 7 - comando contem $($piiInCmd.Count) PII real ($(($piiInCmd | ForEach-Object { $_.tipo }) -join ', ')). NUNCA commitar/printar PII real. Substitua por: CPF fake = 123.456.789-09; CNPJ fake = 11.222.333/0001-81; cartao fake = 4111-1111-1111-1111. Se for log de producao, sanitize com sed antes de colar (HOW_TO_ASK_CLAUDE secao 3.4)."
+        reason        = "[pii-redactor] git commit BLOQUEADO: $($first.tipo) '$exemplo' (mensagem ou staged diff)"
+        systemMessage = "[pii-redactor] LGPD Art. 7 - git commit contem $($piiFound.Count) PII real ($(($piiFound | ForEach-Object { $_.tipo }) -join ', ')) na mensagem e/ou no staged diff. Antes de commitar: 1) remova a PII da mensagem do commit; 2) git restore --staged <arquivo> + edite (use [REDACTED] ou fixtures fake) + re-stage. Bypass justificado: adicione --allow-pii ao comando E confirme com Wagner."
     } | ConvertTo-Json -Compress
     exit 0
-}
-
-# 2) Verifica se eh git commit (qualquer flavor) - escanear staged diff
-if ($cmd -match '^\s*git\s+commit\b' -and $cmd -notmatch '--allow-pii') {
-    # Tenta capturar `git diff --staged` no diretorio atual
-    try {
-        $stagedDiff = & git diff --staged 2>$null
-        if ($stagedDiff) {
-            $piiInDiff = @(Find-Pii ($stagedDiff -join "`n"))
-            if ($piiInDiff.Count -gt 0) {
-                $first = $piiInDiff[0]
-                $exemplo = $first.valor.Substring(0, [Math]::Min(6, $first.valor.Length)) + '...'
-                @{
-                    decision      = 'deny'
-                    reason        = "[pii-redactor] git commit BLOQUEADO: $($first.tipo) '$exemplo' no staged diff"
-                    systemMessage = "[pii-redactor] LGPD: git diff --staged contem $($piiInDiff.Count) PII real ($(($piiInDiff | ForEach-Object { $_.tipo }) -join ', ')). Antes de commitar: 1) git restore --staged <arquivo>; 2) edite removendo PII (use [REDACTED] ou fixtures fake); 3) re-stage. Bypass justificado: adicione --allow-pii ao comando E confirme com Wagner."
-                } | ConvertTo-Json -Compress
-                exit 0
-            }
-        }
-    } catch {
-        # git falhou (nao eh repo, sem permissao) - nao bloqueia
-    }
 }
 
 exit 0

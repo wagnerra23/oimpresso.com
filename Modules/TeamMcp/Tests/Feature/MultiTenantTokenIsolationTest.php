@@ -25,7 +25,8 @@ uses(Tests\TestCase::class);
  * Convenções:
  *   - biz=1 sempre (Wagner-superadmin), nunca biz=4 (ROTA LIVRE — ADR 0101)
  *   - Tokens fake (string aleatoria) — NUNCA token MCP real do servidor
- *   - SQLite guard pra schema completo (mcp_actors + mcp_tokens)
+ *   - Guard de schema completo: mcp_actors + activity_log (este NUNCA é tocado
+ *     diretamente, mas McpActor usa LogsActivity e grava nele a cada create)
  *   - PII Tier 0: zero email/credencial real
  *
  * @see Modules/TeamMcp/Entities/McpActor.php
@@ -36,11 +37,24 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
-    if (! Schema::hasTable('mcp_actors')) {
-        $this->markTestSkipped(
-            'mcp_actors table missing — rode php artisan migrate '.
-            '(provider TeamMcp registra a migration P0.4 ADR 0081).'
-        );
+    // O write-path destes testes toca DUAS tabelas, não uma: McpActor::create()
+    // grava em `mcp_actors` E em `activity_log` — McpActor usa o trait Spatie
+    // LogsActivity, que dispara um INSERT no activity_log a cada create/update
+    // (ACTIVITY_LOGGER_ENABLED default=true; não há override em phpunit.xml).
+    //
+    // Um guard de tabela única deixava passar o estado de schema PARCIAL onde
+    // `mcp_actors` existe mas `activity_log` não (ex: dump incompleto pré-Frente-C,
+    // 188 tabelas) — aí o INSERT no activity_log estourava QueryException (ERROR)
+    // em vez do markTestSkipped (SKIP), tornando a semântica do guard enganosa.
+    // Cobrir o set completo de tabelas do write-path restaura o SKIP limpo.
+    foreach (['mcp_actors', 'activity_log'] as $tabela) {
+        if (! Schema::hasTable($tabela)) {
+            $this->markTestSkipped(
+                "Tabela {$tabela} ausente — rode migrate:fresh contra o dump completo. ".
+                '(TeamMcp registra mcp_actors via ADR 0081; activity_log é dependência '.
+                'do trait LogsActivity em McpActor — ADR 0093/D7 LGPD.)'
+            );
+        }
     }
 });
 
@@ -234,7 +248,13 @@ it('mcp_actors table NAO tem coluna business_id — cross-tenant por design ADR 
 // ------------------------------------------------------------------
 
 afterEach(function () {
-    DB::table('mcp_actors')
-        ->whereIn('slug', ['test-dev-a-isolacao', 'test-dev-b-isolacao'])
-        ->delete();
+    // O afterEach roda MESMO quando o beforeEach deu markTestSkipped (Pest executa
+    // o teardown após skip). Sem o hasTable aqui, a limpeza estoura "no such table:
+    // mcp_actors" e o teste vira FAILED em vez de SKIPPED — exatamente o sintoma de
+    // guard enganoso que esta cleanup corrige. Guard => no-op quando schema ausente.
+    if (Schema::hasTable('mcp_actors')) {
+        DB::table('mcp_actors')
+            ->whereIn('slug', ['test-dev-a-isolacao', 'test-dev-b-isolacao'])
+            ->delete();
+    }
 });

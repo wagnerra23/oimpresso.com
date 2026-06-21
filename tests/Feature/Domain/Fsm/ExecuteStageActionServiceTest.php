@@ -13,6 +13,7 @@ use App\Domain\Fsm\Services\ExecuteStageActionService;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
@@ -45,6 +46,14 @@ class FsmTestEvent
 }
 
 beforeEach(function () {
+    // SELF-SCHEMA (cria E dropa users/roles/permissions/sale_* no tearDown) — SQLITE-ONLY.
+    // Contra MySQL real o afterEach DROPA tabelas vivas: incidente staging 2026-06-10
+    // (sale_stage_actions/sale_stage_action_roles/sale_stage_history dropadas do
+    // oimpresso_staging; restauradas via up() + re-seed). CI (sqlite) continua cobrindo.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Self-schema test — SQLite-only (vs MySQL real dropa tabelas vivas; incidente staging 2026-06-10)');
+    }
+
     Schema::create('users', function (Blueprint $t) {
         $t->increments('id');
         $t->string('username')->unique();
@@ -101,11 +110,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
-        (require $f)->down();
-    }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fsm_test_subjects', 'users'] as $tbl) {
-        Schema::dropIfExists($tbl);
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
+            (require $f)->down();
+        }
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fsm_test_subjects', 'users'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 });

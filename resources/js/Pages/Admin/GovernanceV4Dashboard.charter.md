@@ -3,9 +3,9 @@ page: /admin/governance-v4
 component: resources/js/Pages/Admin/GovernanceV4Dashboard.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-17
+last_validated: "2026-05-17"
 parent_module: Admin
-related_adrs: [0160, 0156, 0122, 0094, 0093, 0101]
+related_adrs: [160, 156, 122, 94, 93, 101]
 tier: A
 charter_version: 2
 ---

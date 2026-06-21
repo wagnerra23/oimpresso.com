@@ -160,10 +160,10 @@ export default function RewardPointsTab({ reward_points: rewardProp, contactId }
                   </td>
                   <td className="px-4 py-3 text-xs font-medium text-foreground">{h.invoice_no || '—'}</td>
                   <td className="px-4 py-3 text-xs text-right tabular-nums text-foreground">{formatBRL(h.final_total)}</td>
-                  <td className="px-4 py-3 text-xs text-right tabular-nums text-emerald-700 dark:text-emerald-400">
+                  <td className="px-4 py-3 text-xs text-right tabular-nums text-success-fg">
                     {h.rp_earned > 0 ? `+${h.rp_earned}` : '—'}
                   </td>
-                  <td className="px-4 py-3 text-xs text-right tabular-nums text-amber-700 dark:text-amber-400">
+                  <td className="px-4 py-3 text-xs text-right tabular-nums text-warning-fg">
                     {h.rp_redeemed > 0 ? `-${h.rp_redeemed}` : '—'}
                   </td>
                   <td className="px-4 py-3 text-xs text-right tabular-nums text-muted-foreground">
@@ -193,7 +193,7 @@ function SummaryCard({
   value: number;
   accent: 'default' | 'muted' | 'success';
 }) {
-  const tone = accent === 'success' ? 'text-emerald-700 dark:text-emerald-300' : accent === 'muted' ? 'text-muted-foreground' : 'text-foreground';
+  const tone = accent === 'success' ? 'text-success-fg' : accent === 'muted' ? 'text-muted-foreground' : 'text-foreground';
   return (
     <div className="rounded-md border border-border bg-background p-3">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</div>

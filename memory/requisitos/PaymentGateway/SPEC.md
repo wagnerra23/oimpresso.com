@@ -29,6 +29,8 @@ owner: wagner
 
 ### US-PG-001 · [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
 
+**Implementado em:** `Modules/PaymentGateway/Models/PaymentGatewayCredential.php` · `Modules/PaymentGateway/Console/Commands/RewrapCredentialsCommand.php` · `Modules/PaymentGateway/Tests/Feature/EncryptedCredentialCastTest.php` · verificado@98cae0a (2026-06-18)
+
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
@@ -55,6 +57,8 @@ protected $casts = [
 **Refs:** ADR 0170 §G, [Laravel 12 Encrypted Casts](https://laravel-news.com/eloquent-encrypted-casting), [PCI-DSS 4.0](https://www.upguard.com/blog/pci-compliance)
 
 ### US-PG-002 · [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
+
+**Implementado em:** `Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/AsaasWebhookController.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/InterWebhookController.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/C6WebhookController.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/BcbPixWebhookController.php` · `Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php` · verificado@98cae0a (2026-06-18)
 
 > owner: — · priority: p0 · estimate: 12h · status: todo · type: story
 > blocked_by: —
@@ -123,6 +127,8 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-005 · Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
 
+**Implementado em:** `Modules/PaymentGateway/Services/Drivers/InterDriver.php` · `Modules/PaymentGateway/Console/Commands/RegisterInterWebhookCommand.php` · `Modules/PaymentGateway/Tests/Feature/InterDriverRegisterWebhookTest.php` · verificado@98cae0a (2026-06-18)
+
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: US-PG-006, US-PG-007
 
@@ -171,3 +177,22 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 - [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — Extração camada cobrança (drift §G detectado)
 - [PLANO-ONDA5-SIMPLIFICADA.md](PLANO-ONDA5-SIMPLIFICADA.md)
 - [RUNBOOK-settings-gateways.md](RUNBOOK-settings-gateways.md)
+
+### US-PG-009 · Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+> parent_plan: paymentgateway-onda-5-dogfooding
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** código da Onda 5 já feito (PR #1148); restam pendências **humano-limitadas** (relógio do mundo real, ADR 0106): smoke biz=1 + canary Larissa biz=4.
+**Dedup:** distinto de US-PG-002/003 (SEC webhooks) e US-PG-005/006/007 (webhook Inter).
+
+**DoD:**
+- Roteiro de smoke real biz=1.
+- Canary controlado Larissa.
+- Evidência (screenshots/logs) anexada.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

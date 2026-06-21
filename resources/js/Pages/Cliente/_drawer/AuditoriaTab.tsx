@@ -31,7 +31,6 @@ import {
   Trash2,
   Shield,
   Tag,
-  Download,
   Loader2,
   AlertCircle,
 } from 'lucide-react';
@@ -138,28 +137,9 @@ export default function AuditoriaTab({ contact }: AuditoriaTabProps) {
 
   return (
     <div className="space-y-4" data-testid="auditoria-tab-root">
-      {/* Header LGPD Art. 18 + botao exportar */}
-      <div className="rounded-lg border border-border bg-muted/30 p-3 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-            Historico de alteracao
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Tudo o que aconteceu com essa ficha. Atende ao Art. 18 da LGPD (direito de
-            acesso aos dados pessoais).
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm" data-testid="auditoria-export-btn">
-          <a
-            href={`/cliente/${contact.id}/auditoria/export?format=csv`}
-            download
-            rel="nofollow"
-          >
-            <Download size={14} className="mr-1" />
-            Exportar log
-          </a>
-        </Button>
-      </div>
+      {/* Wagner 2026-06-13: cabeçalho (título + nota de privacidade + export CSV)
+          removido a pedido — a aba renderiza só a timeline. Acesso LGPD segue
+          garantido pelos dados + rota de export no backend. */}
 
       {/* Loading state */}
       {loading && events.length === 0 && (
@@ -175,7 +155,7 @@ export default function AuditoriaTab({ contact }: AuditoriaTabProps) {
       {/* Error state */}
       {error && (
         <div
-          className="p-4 text-xs text-rose-700 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50"
+          className="p-4 text-xs text-destructive-fg flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive-soft"
           data-testid="auditoria-tab-error"
         >
           <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />

@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-06T22:57:15.089Z",
-    "total_violations": 487,
+    "generated_at": "2026-06-11T19:01:28.014Z",
+    "total_violations": 420,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -10,10 +10,9 @@
     "resources/css/cockpit.css|color-no-hex": 18,
     "resources/css/cockpit.css|declaration-no-important": 3,
     "resources/css/cockpit.css|no-duplicate-selectors": 33,
-    "resources/css/cowork-canon-financeiro-bundle.css|color-no-hex": 69,
+    "resources/css/cowork-canon-financeiro-bundle.css|color-no-hex": 62,
     "resources/css/cowork-canon-financeiro-bundle.css|declaration-no-important": 15,
     "resources/css/cowork-canon-financeiro-bundle.css|no-duplicate-selectors": 29,
-    "resources/css/cowork-compras-bundle.css|color-no-hex": 51,
     "resources/css/cowork-fields.css|color-no-hex": 4,
     "resources/css/cowork-payment-gateway-bundle.css|color-no-hex": 2,
     "resources/css/fin-cowork.css|color-no-hex": 3,
@@ -30,7 +29,7 @@
     "resources/css/sells-cowork-quotations.css|color-no-hex": 1,
     "resources/css/sells-cowork-show.css|color-no-hex": 10,
     "resources/css/sells-cowork-show.css|declaration-no-important": 2,
-    "resources/css/sells-cowork.css|color-no-hex": 69,
+    "resources/css/sells-cowork.css|color-no-hex": 60,
     "resources/css/sells-cowork.css|declaration-no-important": 11,
     "resources/css/sells-cowork.css|no-duplicate-selectors": 24,
     "resources/css/sells-kb975-cheatsheet.css|color-no-hex": 25,

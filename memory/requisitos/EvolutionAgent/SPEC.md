@@ -1,3 +1,11 @@
+---
+module: EvolutionAgent
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
+---
+
 # EvolutionAgent — Especificação
 
 > Status: **spec-ready** (sem código ainda)
@@ -141,7 +149,7 @@ Indexação: `php artisan evolution:index` percorre `memory/`, gera embeddings V
 - [ ] Output: relatório markdown + score 0-100
 - [ ] Salva baseline em `memory/evolution/baseline.json` (commitado)
 - [ ] Falha CI se score cair >5% vs baseline anterior
-- [ ] GH Actions roda em PR que toca `app/Services/Evolution/**` ou `Modules/EvolutionAgent/**`
+- [ ] GH Actions roda em PR que toca `app/Services/Evolution/**` ou os arquivos do módulo EvolutionAgent (planejado — não existe)
 
 ### US-EVOL-005 · Subagent CC `evolucao.md`
 

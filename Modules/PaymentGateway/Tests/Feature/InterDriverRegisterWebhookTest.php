@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Cobertura do gap descoberto 2026-06-03 — `InterDriver` faltava método

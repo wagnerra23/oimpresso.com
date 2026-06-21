@@ -1,0 +1,350 @@
+{
+  "_meta": {
+    "gate": "memory-health Check G (Onda Q5 — registry canonico de gates, ADR 0256)",
+    "nota": "TODO workflow em .github/workflows DEVE estar registrado aqui (nome + classe + proposito). Workflow novo fora do registry = FAIL no memory-health (umbrella, todo PR). Tirar workflow = remover a entrada junto (entrada orfa = warn).",
+    "classes": {
+      "gate": "bloqueia/valida PR",
+      "meta": "testa os proprios gates",
+      "automacao": "cron/scheduled/dispatch utilitario",
+      "deploy": "entrega"
+    }
+  },
+  "workflows": {
+    "baseline-tamper-guard.yml": {
+      "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
+      "classe": "gate"
+    },
+    "jana-audit-chain-pest.yml": {
+      "nome": "Jana audit-chain Pest (T5 · hash-chain mcp_audit_log lógica pura · ADR 0294)",
+      "classe": "gate"
+    },
+    "gitleaks-history.yml": {
+      "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
+      "classe": "automacao"
+    },
+    "a11y-axe-gate.yml": {
+      "nome": "A11y axe runtime (jsdom · componentes canon)",
+      "classe": "gate"
+    },
+    "a11y-gate.yml": {
+      "nome": "A11y ratchet (acessibilidade = categoria protegida)",
+      "classe": "gate"
+    },
+    "anchor-drift.yml": {
+      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "classe": "gate"
+    },
+    "plan-health-gate.yml": {
+      "nome": "Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1)",
+      "classe": "gate"
+    },
+    "adr-index-gate.yml": {
+      "nome": "ADR Index Gate — ADR 0258",
+      "classe": "gate"
+    },
+    "adr-lint.yml": {
+      "nome": "ADR frontmatter lint",
+      "classe": "gate"
+    },
+    "bundle-lint.yml": {
+      "nome": "Bundle lint — esteira ≠ armazém (resíduo no bundle do design · advisory · régua 6 proveniência)",
+      "classe": "gate"
+    },
+    "casos-gate.yml": {
+      "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
+      "classe": "gate"
+    },
+    "casos-meta-gate.yml": {
+      "nome": "Casos-guard meta-teste (vitest)",
+      "classe": "meta"
+    },
+    "ci.yml": {
+      "nome": "CI",
+      "classe": "gate"
+    },
+    "components-tree-guard.yml": {
+      "nome": "Components tree guard (árvore canônica de Components/)",
+      "classe": "gate"
+    },
+    "composer-lock-sync.yml": {
+      "nome": "Composer lock sync",
+      "classe": "automacao"
+    },
+    "conformance-gate.yml": {
+      "nome": "Conformance Gate — cor-crua DS (Camada 1 · anti-regressão de contrato)",
+      "classe": "gate"
+    },
+    "contrato-de-tela.yml": {
+      "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
+      "classe": "gate"
+    },
+    "dsih-gate.yml": {
+      "nome": "dSIH ratchet (anti-XSS · conteúdo em .tsx · oráculo parcela 1)",
+      "classe": "gate"
+    },
+    "scheme-gate.yml": {
+      "nome": "scheme ratchet (anti-XSS · href/scheme cru em .tsx · oráculo parcela 2)",
+      "classe": "gate"
+    },
+    "cowork-inbox.yml": {
+      "nome": "cowork-inbox",
+      "classe": "automacao"
+    },
+    "create-test-business.yml": {
+      "nome": "Create Test Business (biz 99 · one-shot)",
+      "classe": "automacao"
+    },
+    "css-size-gate.yml": {
+      "nome": "CSS size ratchet (congelar sprawl · MANUAL-CSS-JS#1)",
+      "classe": "gate"
+    },
+    "ds-canon-color-guard.yml": {
+      "nome": "DS canon color guard (camada canônica sem paleta crua)",
+      "classe": "gate"
+    },
+    "deploy.yml": {
+      "nome": "Deploy to Hostinger",
+      "classe": "deploy"
+    },
+    "design-identity-gate.yml": {
+      "nome": "Design Identity Gate (soft)",
+      "classe": "gate"
+    },
+    "design-index-gate.yml": {
+      "nome": "Design index single-source gate",
+      "classe": "gate"
+    },
+    "design-return-gate.yml": {
+      "nome": "Design return gate (§10.2 pós-merge)",
+      "classe": "automacao"
+    },
+    "design-spec-gate.yml": {
+      "nome": "Design-spec por-tela (contrato estrutural determinístico)",
+      "classe": "gate"
+    },
+    "dominio-gate.yml": {
+      "nome": "Dominio-dict ratchet (coerência de domínio)",
+      "classe": "gate"
+    },
+    "dominio-meta-gate.yml": {
+      "nome": "Dominio-guard meta-teste (vitest)",
+      "classe": "meta"
+    },
+    "e2e-gate.yml": {
+      "nome": "E2E Playwright (UCs críticos) — G-3",
+      "classe": "gate"
+    },
+    "eslint-gate.yml": {
+      "nome": "ESLint 9 (ADR 0209)",
+      "classe": "gate"
+    },
+    "fin-hero-gate.yml": {
+      "nome": "Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)",
+      "classe": "gate"
+    },
+    "fin-subnav-gate.yml": {
+      "nome": "Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split)",
+      "classe": "gate"
+    },
+    "financeiro-pest.yml": {
+      "nome": "Financeiro · Pest (MySQL)",
+      "classe": "gate"
+    },
+    "force-clean-rebuild-trigger.yml": {
+      "nome": "Force Clean Rebuild (one-shot)",
+      "classe": "automacao"
+    },
+    "foundation-ratchet.yml": {
+      "nome": "Foundation ratchet (advisory · catracas só-diminui da fundação de testes — SDD FV-Q1)",
+      "classe": "gate"
+    },
+    "gate-selftest.yml": {
+      "nome": "Gate selftest (advisory · quem vigia os vigias — fixtures boa/ruim por catraca, SDD GT-G6)",
+      "classe": "meta"
+    },
+    "governance-drift.yml": {
+      "nome": "Governance Drift Framework — ADR 0216",
+      "classe": "gate"
+    },
+    "governance-gate-umbrella.yml": {
+      "nome": "Governance Gate (umbrella)",
+      "classe": "gate"
+    },
+    "governance-gate.yml": {
+      "nome": "Governance Gate (pre-merge)",
+      "classe": "gate"
+    },
+    "governance-script-tests.yml": {
+      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
+      "classe": "gate"
+    },
+    "infra-contract-required.yml": {
+      "nome": "Infra Contract Required",
+      "classe": "gate"
+    },
+    "jana-bitemporal-pest.yml": {
+      "nome": "Jana bi-temporal Pest (T4 · predicado event-time BiTemporalResolver · ADR 0295)",
+      "classe": "gate"
+    },
+    "jana-bitemporal-slice2-pest.yml": {
+      "nome": "Jana bi-temporal Pest (T4 slice 2 · HistoricoMemoriaService normalizarAsOf/violacaoCrossTenant · ADR 0295)",
+      "classe": "gate"
+    },
+    "jana-pest.yml": {
+      "nome": "Jana · Pest (MySQL)",
+      "classe": "gate"
+    },
+    "jana-ragas-canary.yml": {
+      "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
+      "classe": "automacao"
+    },
+    "jana-ragas-gate.yml": {
+      "nome": "Jana RAGAS Eval Gate",
+      "classe": "gate"
+    },
+    "jana-recall-eval.yml": {
+      "nome": "Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD)",
+      "classe": "gate"
+    },
+    "jscpd-gate.yml": {
+      "nome": "jscpd ratchet (anti-duplicação de bloco copy-paste)",
+      "classe": "gate"
+    },
+    "knowledge-ghost-gate.yml": {
+      "nome": "Knowledge Ghost Gate (catraca anti-ghost · baseline por módulo · ADVISORY — KL-A2)",
+      "classe": "gate"
+    },
+    "layout-primitives-guard.yml": {
+      "nome": "Layout primitives guard (flex/grid solto)",
+      "classe": "gate"
+    },
+    "mcp-drift-sentinel.yml": {
+      "nome": "MCP Drift Sentinel — servido vs main (ADR 0256 + 0062)",
+      "classe": "automacao"
+    },
+    "memory-health.yml": {
+      "nome": "Memory Health — ADR 0256",
+      "classe": "gate"
+    },
+    "memory-schema-gate-extended.yml": {
+      "nome": "Memory schema gate EXTENDED (D6 #4)",
+      "classe": "gate"
+    },
+    "memory-schema-gate.yml": {
+      "nome": "Memory schema gate (ONDA 5 S1)",
+      "classe": "gate"
+    },
+    "module-grades-gate.yml": {
+      "nome": "Module Grades Gate (anti-regressão)",
+      "classe": "gate"
+    },
+    "modules-pest.yml": {
+      "nome": "Modules Pest",
+      "classe": "gate"
+    },
+    "multi-tenant-gate.yml": {
+      "nome": "Multi-tenant gate",
+      "classe": "gate"
+    },
+    "mutation-gate.yml": {
+      "nome": "Mutation Gate (advisory)",
+      "classe": "gate"
+    },
+    "no-mock-gate.yml": {
+      "nome": "No-mock-in-prod ratchet (stub/mock em controller)",
+      "classe": "gate"
+    },
+    "pageheader-gate.yml": {
+      "nome": "PageHeader migration guard (F4 · congela header antigo)",
+      "classe": "gate"
+    },
+    "handoff-integrity.yml": {
+      "nome": "Handoff Integrity (advisory · fila ↔ prompts)",
+      "classe": "gate"
+    },
+    "phpstan-baseline-regen.yml": {
+      "nome": "PHPStan baseline regen (manual)",
+      "classe": "automacao"
+    },
+    "phpstan-gate.yml": {
+      "nome": "PHPStan / Larastan (ADR 0208)",
+      "classe": "gate"
+    },
+    "protection-drift.yml": {
+      "nome": "Protection Drift — baseline de required checks + watchdog de staleness (advisory PERENE · cron diário 10:10 UTC — GT-G4, ADR 0275 §5/§3)",
+      "classe": "meta"
+    },
+    "quick-sync.yml": {
+      "nome": "Quick Sync (manual escape — auto-deploy agora é deploy.yml)",
+      "classe": "deploy"
+    },
+    "reincidencia-guard.yml": {
+      "nome": "Reincidência Guard (advisory · C3/C4/C5 · sobrepõe handoff-integrity, consolidar Regra 7)",
+      "classe": "gate"
+    },
+    "repair-shared-vocab.yml": {
+      "nome": "Repair shared vocabulary guard",
+      "classe": "gate"
+    },
+    "reuse-gate.yml": {
+      "nome": "Reuse duplicates ratchet (anti-duplicação de símbolo)",
+      "classe": "gate"
+    },
+    "run-financeiro-demo-seeder.yml": {
+      "nome": "Run FinanceiroDemoSeeder (one-shot)",
+      "classe": "automacao"
+    },
+    "run-financeiro-resync.yml": {
+      "nome": "Run financeiro:resync-from-core (one-shot · incidente num_uf)",
+      "classe": "automacao"
+    },
+    "scope-guard.yml": {
+      "nome": "Scope Guard (anti-drift)",
+      "classe": "gate"
+    },
+    "handoff-scope-guard.yml": {
+      "nome": "Handoff Scope Guard (files_json · escopo duro do handoff de design, ADR 0283 Fase 0)",
+      "classe": "gate"
+    },
+    "handoff-sign-submit.yml": {
+      "nome": "Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283)",
+      "classe": "automacao"
+    },
+    "scorer-sync-gate.yml": {
+      "nome": "Scorer sync (regex score-mechanized.mjs ↔ UiDeterministicScorer.php)",
+      "classe": "gate"
+    },
+    "screen-coverage-gate.yml": {
+      "nome": "Screen Coverage Gate (catraca de cobertura)",
+      "classe": "gate"
+    },
+    "sdd-scorecard-publish.yml": {
+      "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
+      "classe": "automacao"
+    },
+    "sdd-scorecard.yml": {
+      "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",
+      "classe": "meta"
+    },
+    "stylelint-gate.yml": {
+      "nome": "Stylelint CSS anti-drift (G5 · ADR 0209)",
+      "classe": "gate"
+    },
+    "tier0-guards-advisory.yml": {
+      "nome": "Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)",
+      "classe": "gate"
+    },
+    "ui-architecture-gate.yml": {
+      "nome": "UI architecture gate",
+      "classe": "gate"
+    },
+    "ui-lint.yml": {
+      "nome": "UI Lint (Constituição UI v2)",
+      "classe": "gate"
+    },
+    "visual-regression.yml": {
+      "nome": "Visual Regression (Pest 4 Browser)",
+      "classe": "gate"
+    }
+  }
+}

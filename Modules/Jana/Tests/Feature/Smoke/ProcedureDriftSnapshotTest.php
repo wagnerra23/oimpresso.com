@@ -22,10 +22,15 @@ uses(Tests\TestCase::class);
  * Refs: US-COPI-092, ADR 0094 §5, memory/proibicoes.md
  */
 
-/** Normaliza SQL para comparação: remove DEFINER, colapsa espaços, lowercase. */
+/** Normaliza SQL para comparação: remove DEFINER + backticks, colapsa espaços, lowercase. */
 function normalizeProcSql(string $sql): string
 {
+    // Strip DEFINER first (its regex anchors on backticks), then drop all remaining
+    // backticks: MySQL's SHOW CREATE backtick-quotes the routine name + identifiers,
+    // the migration source declares them bare. Quoting is never semantic drift —
+    // leaving the backticks made an unchanged procedure read as drift (US-COPI-092).
     $sql = preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`\s*/i', '', $sql);
+    $sql = str_replace('`', '', $sql);
 
     return preg_replace('/\s+/', ' ', strtolower(trim($sql)));
 }

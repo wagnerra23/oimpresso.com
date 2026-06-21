@@ -39,7 +39,7 @@ it('skipa todas chamadas quando LANGFUSE_ENABLED=false', function () {
     $client = new LangfuseClient;
     $traceId = $client->startTrace([
         'name' => 'jana-chat',
-        'business_id' => 4,
+        'business_id' => 1,
         'user_id' => 1,
         'input' => 'oi',
     ]);
@@ -58,7 +58,7 @@ it('em modo log NÃO chama Http nem dispatch fila', function () {
     $client = new LangfuseClient;
     $client->startTrace([
         'name' => 'jana-chat',
-        'business_id' => 4,
+        'business_id' => 1,
         'user_id' => 1,
         'input' => 'pergunta',
     ]);
@@ -75,7 +75,7 @@ it('em modo queue dispara LangfuseTraceJob com batch events', function () {
     $client = new LangfuseClient;
     $traceId = $client->startTrace([
         'name' => 'kb-answer',
-        'business_id' => 4,
+        'business_id' => 1,
         'user_id' => 1,
         'input' => 'qual é o faturamento?',
         'tool' => 'kb-answer',
@@ -87,7 +87,7 @@ it('em modo queue dispara LangfuseTraceJob com batch events', function () {
         return count($job->events) === 1
             && $job->events[0]['type'] === 'trace-create'
             && $job->events[0]['body']['name'] === 'kb-answer'
-            && $job->events[0]['body']['metadata']['business_id'] === 4
+            && $job->events[0]['body']['metadata']['business_id'] === 1
             && $job->events[0]['body']['metadata']['tool'] === 'kb-answer';
     });
 });
@@ -154,7 +154,7 @@ it('fail-open quando Http retorna 500 — não lança exception', function () {
     // Não deve lançar exception
     $traceId = $client->startTrace([
         'name' => 'jana-chat',
-        'business_id' => 4,
+        'business_id' => 1,
         'user_id' => 1,
         'input' => 'oi',
     ]);
@@ -221,7 +221,7 @@ it('skipa emissão quando sample_rate=0 (off por amostragem)', function () {
     $client = new LangfuseClient;
     $client->startTrace([
         'name' => 'jana-chat',
-        'business_id' => 4,
+        'business_id' => 1,
         'user_id' => 1,
         'input' => 'oi',
     ]);

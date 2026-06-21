@@ -30,6 +30,7 @@ class C6WebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        // SUPERADMIN: webhook externo (C6) sem sessão autenticada; resolve a credencial pelo businessId da rota e valida HMAC antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'c6')

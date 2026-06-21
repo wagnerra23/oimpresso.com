@@ -35,6 +35,7 @@ class InterWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
+        // SUPERADMIN: webhook externo (Inter legacy) sem sessão autenticada; resolve a credencial pelo businessId da rota e valida HMAC antes de qualquer write.
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', 'inter')

@@ -225,7 +225,7 @@ it('blade vestuario::etiquetas.pdf compila e renderiza HTML válido', function (
     expect($html)->toContain('TAM:</strong> M');
     expect($html)->toContain('Azul');
     expect($html)->toContain('Verão 2026');
-    expect($html)->toContain('R$ [redacted Tier 0]');
+    expect($html)->toContain('R$ 49,90');
     expect($html)->toContain('7891000000014');
     expect($html)->toContain('CAMI-001-M-AZU');
     expect($html)->toContain('biz #1');

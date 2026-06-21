@@ -787,3 +787,422 @@ Gate `sells-index-dsv6-visual-comparison.md` aprovado [W] ("tudo do gabarito" + 
 
 ### new_design_memories
 - **golden**: re-skin de tela madura por token = redirecionar a camada semântica local (--vd-*/--vd-src-*) na DEFINIÇÃO, não caçar cada oklch — cobertura ampla, diff mínimo, CI-verde.
+
+---
+
+## 2026-06-10 [CL] → [W] · PACOTE-Q9 — execução dos 4 PRs (validados contra main)
+
+Origem: PROMPT_PARA_CODE_PACOTE-QUALIDADE-9-OS ([CC] 2026-06-10). Validação §10.4 mostrou o cache Cowork ATRÁS do repo — PR-1 itens 1-3 e PR-2 item 1 já estavam landados (#2482/#2484/#2485 + dedup bundles 2026-06-02). Executado só o gap real de cada PR.
+
+| PR do pacote | PR GitHub | O que sobrou de real |
+|---|---|---|
+| PR-1 OS funcional | #2488 | E2E UC-11 caminho Larissa + **bug real pego**: store() não vinculava OS ao veículo (card "sem OS") → fix + 2 Pest |
+| PR-3 gates | #2489 | token-role invariante (Camada 1+META 22/22 ✅) + probes G2/G3/G4 browser c/ controle-negativo |
+| PR-2 css | #2490 | família morta .os-art* (13 regras, 10 hex) + catraca desce 661→337 / 487→427 / 20213→20204 |
+| PR-4 régua | (este) | scorer 242 telas média 87 · fila bottom-16 nomeada · W2=Financeiro (9/16) · accent fora roxo = zero |
+
+### new_design_memories
+- **decisão** · [W] 2026-06-10: piso de qualidade = 9; CSS 1-arquivo-por-superfície; duplicata estrutural proibida (espelho/snapshot) — Cowork já deletou 575 e criou IT8. Lado Code: dedup bundles ✅ (2026-06-02), dead-CSS 1-família/PR em curso (fila: vd-drawer 9).
+- **anti-padrão** · token `-fg` como superfície / `-bg` como texto → gate PR-3 (#2489): invariante absoluto no conformance-gate.mjs (repo medido 0) + probe DOM-matched no browser. Caso real: barra de progresso marrom com `--origin-MFG-fg` de fill.
+- **golden** · probe G1–G6 (classes genéricas, controle-negativo embutido) = espelho Cowork da camada-2 portado por SEMÂNTICA (não arquivo): estático onde dá (G3 regex), browser onde precisa (G2 computed accent-color, G4 overflow com estado "adicionando" ABERTO).
+
+---
+
+## 2026-06-10 [CL] → [CC]/[W] · PACOTE-FINANCEIRO-F2 — 4 PRs MERGED (+1 re-land)
+
+| PR | o que | nota |
+|---|---|---|
+| #2493 | Type ramp `--fs-1..9` (fundacao + gate) | `foundations.css` NASCE (Camada Fundacoes ADR UI-0013, ja previsto no foundation-guard); `Text` (ADR 0253) consome o ramp 1:1 xs→fs-1…5xl→fs-9; ratchet `fontramp` no conformance-gate (espelho G8), 814 dividas congeladas; SEM sweep global |
+| #2494 | US-FIN-029 · 3 lentes no Unificado | `?lente=` clamp caixa · chips refinam DENTRO · KPI-click seta lente · charter v14 · MWART commitado · `UnificadoLentesGuardTest` 6 GUARDs. Menu ··· e topnav JA estavam live (FinanceiroSubNav) — nao refeito |
+| #2497 | Drawer 3 camadas (re-land do #2495) | hero FIXO fora do scroll (fs-9 mono + urgencia em palavras + FSM compacto 4 etapas) · DrawerLens primary/10 · conciliada = box discreto · Lente Fiscal ISS 5%/DAS ≈6% + link /financeiro/impostos · 2 white→var(--accent-fg) |
+| #2496 | Impostos & obrigacoes | tela nova /financeiro/impostos 100%% derivada (zero tabela): DAS ≈6%% s/ RECEBIDO (regime caixa, espelha kpisCore) · Lancar a pagar idempotente (`metadata.guia`, valor server-side) · NF↔titulo · charter v1 + casos 7 UCs + `ImpostosGuardTest` |
+
+**Divergencias da spec (registradas nos PRs):** contadores por lente FORA (1280px ja carrega ghosts+lentes+primary; qtd vive nos KPIs/chips) · `<FinModuleTopnav>` nao criado (FinanceiroSubNav ja e o shared em uso) · FGTS/DCTFWeb sem folha no sistema = so historico de titulos lancados (honesto, zero mock).
+
+**Gates que morderam no ciclo (e como resolvemos):** ui:lint R1 (+3 stone no segmented → tokens semanticos) · layout-primitives (Δ+8 drawer / +8 Impostos → Inline/Stack/Grid ADR 0253; `grid place-items-center` e idioma permitido) · css-size (comentario de 4 linhas no bundle → 1 linha inline, delta 0) · casos-coverage (frontmatter owner+last_run + `Status:` por UC) · check-scope strict (ImpostosController no SCOPE.md) · layout test do Text atualizado pro ramp (GUARD nunca deletado).
+
+**Fica de [W]:** screenshots F1.5 @1280/@1440 das telas (lentes/drawer/impostos) no staging quando subir — mergeado por ordem explicita "merge" com CI verde; visual fica validavel no staging.
+
+### new_design_memories
+- **gotcha**: PR stacked + fila de merge com `--delete-branch` = squash pode entrar NA BASE deletada (conteudo some do main sem erro). Confirmar `baseRefName=main` ANTES de mergear o filho.
+- **golden**: gate novo (fontramp) nasce como RATCHET com baseline congelada — adoção tela-a-tela depois, fundacao nunca força sweep.
+
+---
+
+## 2026-06-11 [CL] → [W] · ONDA Q1 — G-3 E2E Playwright vira gate de PR (mandato ONDAS-QUALIDADE-GOVERNANCA)
+
+Origem: PROMPT_PARA_CODE_ONDAS-QUALIDADE-GOVERNANCA ([CC] 2026-06-11, proposta §10.4). Validação Passo 0 contra origin/main 642836124 ANTES de agir.
+
+### Validação §10.4 (estado real vs premissas do prompt)
+| Premissa [CC] | Estado real @main | Veredito |
+|---|---|---|
+| e2e-gate workflow_dispatch não-required | confirmado | EXECUTADO Q1 |
+| harness estável (2 verdes 06-10) | runs 27277134411 + 27277247743 ✓ | mas main MUDOU (ver bug abaixo) |
+| visual-regression "ainda stub" | DESATUALIZADO: já required (15 contexts, #2553) e roda Pest Browser real | Q4 re-escopado: falta pixel-baseline núcleo-6, não o gate |
+| casos:check não marca unverified | DESATUALIZADO: já marca (8 `status:unverified` no baseline) | Q2.1 SUPERADO |
+| governance-drift/memory-health não-auditados | auditados agora: ADR 0216 (DriftCheckers+daily) + ADR 0256 (6 checks A-F) substantivos | Q5 re-escopado: faltam registry+frescor+licao_sem_assercao |
+
+### Placar Q1
+| passo | prova |
+|---|---|
+| Re-validação em main ANTES do flip | run 27364711144 🔴 — **3/5 UCs quebrados**: workspace unificado #2551 matou a tela ProducaoOficina (virou redirect 301 pro Board) e os specs ancoravam nela. O gate fez o trabalho dele ANTES de nascer required. |
+| Conserto de CAUSA (nunca retry-até-passar, ADR 0261) | PR #2561 MERGED — specs re-ancorados no Board canônico (busca `placa ou cliente`; UC-06: veredito preditivo de arrasto não existe no Board → gate opina no DROP, toast `Transição não permitida`/`OS sem pipeline` + mouse.up no helper) |
+| 2 runs verdes seguidos em main pós-fix | 27365585787 ✓ + 27365775694 ✓ |
+| Flip workflow_dispatch → pull_request | PR #2560 MERGED — always-run + skip-as-pass dorny/paths-filter (padrão required-readiness ADR 0271 onda 2, idêntico visual-regression #2553). **Desvio consciente do prompt**: `paths:` no trigger criaria deadlock "Expected — waiting" quando required; o repo já tem o padrão provado. workflow_dispatch mantido pra re-validação manual. Context novo: `E2E Playwright · UCs críticos`. |
+| Prova sensibilidade (lado 🔴) | PR #2563 (DRAFT, NÃO-MERGEAR): aria-label `Coluna→Etapa` sintético → e2e-gate run 27365999451 🔴, fechado após prova |
+| Prova especificidade (lado 🟢) | este PR (docs-only) → e2e-gate skip-as-pass 🟢 em ~1-2min sem pagar boot |
+| Required (1 clique [W]) | PREPARADO, aguardando clique — comando no fim desta entrada. Não-bloqueante: segui pra Q2 (regra do mandato). |
+
+### Clique do [W] — promover a required (16º context)
+```
+gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks/contexts" -f "contexts[]=E2E Playwright · UCs críticos"
+```
+(ou Settings → Branches → main → Require status checks → adicionar `E2E Playwright · UCs críticos`)
+
+### new_design_memories
+- **gotcha**: tela substituída por redirect (workspace #2551) quebra E2E silenciosamente ENQUANTO o gate é manual — exatamente o intervalo que o flip pra `pull_request` fecha. Specs ancorados em tela morta = a 1ª coisa que um gate de comportamento pega.
+- **golden**: required-readiness = `pull_request` SEM `paths:` + dorny/paths-filter skip-as-pass interno (3ª aplicação: visual-regression #2553, governance-drift, agora e2e-gate). `paths:` no trigger de check required = deadlock.
+
+## 2026-06-11 [CL] -> [W] · ONDAS-FINANCEIRO (FA-1..FA-4) — tempero do Financeiro + achados deferidos
+
+Origem: PROMPT_PARA_CODE_ONDAS-FINANCEIRO ([CC] 2026-06-11, §10.4). [W]: "execute na integra ... validando tudo contra origin/main fresco antes". 4 ondas, 1 PR cada, merge autonomo com CI verde. Worktree dedicado off origin/main fresco a cada onda (fin-ondas-fa).
+
+### O que landou
+- **FA-1 #2569**: §TEMPERO na fundacao (--sh-1/2, --ease, --t-1/2, --atmo + atmosfera no .cockpit).
+- **FA-2 #2572**: snap tipografico (479 font-size px -> var(--fs-1..9); .fontramp-baseline desce).
+- **FA-3 #2574**: 18 sombras de elevacao + 58 transicoes -> tokens; text-wrap:balance nos titulos.
+- **FA-4 (este PR)**: 7 background:#fff -> var(--surface); desce stylelint+cor baseline do bundle.
+
+### Achados FA-4 DEFERIDOS — sessao com QA visual (mexem em LOGICA/LAYOUT do Unificado/Index.tsx, que e charter-gated; F3 — nao em token de css)
+| # | Achado (print live 06-11) | Conserto recomendado | Restricao |
+|---|---|---|---|
+| FX-1 | Segmented de lente colado no FinSubNav -> le-se "Caixa ... Caixa" (ambiguo) | separar visual: segmented a direita do header (intencao do os-page-h-r) OU gap+divisor. NAO renomear a lente (charter v14 [W]) | layout no Unificado, precisa QA visual |
+| FX-2 | Hero "SALDO PREVISTO · MAIO" com a pagina em "Junho 2026" | periodo do hero da MESMA fonte do subtitulo (fonte unica); verificar se e filtro ativo ou label stale | logica frontend Unificado |
+| FX-3 | KPI A pagar "prox. 5 jun" (data ja vencida, hoje 11/06) | "prox." = proxima obrigacao FUTURA; vencida vira "vencida ha Nd" (tom destructive) | logica KPI Unificado |
+| FX-4 | Linha "-0,00" (FELIPE — COMISSAO) | brl(0) sem sinal + investigar titulo zerado na origem | **SOBREPOE sessao paralela "Financial discrepancy adjustment"** — coordenar, nao duplicar |
+| FX-5 | DeltaBadge "↓-100.0%" / "↑+505.8%" gigantes com valor R$ 0,00 | suprimir delta quando valor=0 ou sem base comparavel (ruido) | logica DeltaBadge |
+
+### Outros gaps documentados (NAO implementados as cegas — regra do prompt)
+- **Breadcrumb**: "voltar" VERDE cru fora da identidade + telas Fluxo/Conciliacao sem o padrao de breadcrumb do modulo. NAO esta no css fin (e Page-level/Tailwind) -> unificar via token, conferir Fluxo/Conciliacao. Cross-page.
+- **Costura venda->titulo** (dominio backend; [CC] nao verificou): confirmar no live que venda faturada aparece no Unificado com vinculo navegavel; se nao, e gap real de pipeline. Verificacao pendente.
+- **bg opaco .fin-cowork** (fin-cowork.css:575 `background:#ffffff !important`): superficie solida que (a) COBRE o --atmo da FA-1 e (b) deixa o Financeiro BRANCO no dark (nao vira escuro). E o "bug .fin-body do prototipo" citado na FA-1 ("superficies de tela transparentes"). Conserto = transparent / surface semi-transparente, MAS muda muito o visual -> QA-gated.
+- **divida hex congelada**: ~28 hex coloridos (gold/terracota/navy/red) + 30 `color:#fff` (texto branco — sem token "sempre branco" limpo no DS; --accent-fg inverte no dark) ficam congelados; semantico por elemento + QA, sem sweep cego.
+
+### new_design_memories
+- **gotcha**: comentario CSS com `*/` (ex "--sh-*/--atmo") FECHA o comentario -> parse error. 2a ocorrencia (1a = DS v6 PR3 ".vd-*/.os-*"). Em comentario use "--sh-1/--sh-2", nunca glob com `*`.
+- **gotcha**: snap de box-shadow as cegas e PERIGOSO — `0 0 0 Npx var(--accent-soft)` e anel de FOCO, nao elevacao; virar var(--sh-1) = sombra cinza = regressao a11y. Tokenizar SO sombras de elevacao reais (offset+blur em elemento flutuante/assentado), nunca aneis/insets/hairlines.
+- **golden**: descer ratchet por-onda sem sweep — rodar `--all --update` e reverter (git checkout) os baselines/entries fora de escopo, deixando so o que a onda tocou (fontramp na FA-2; cor+stylelint do bundle na FA-4).
+- **gotcha**: superficie de tela opaca (`.fin-cowork{background:#fff !important}`) anula a atmosfera da fundacao E quebra o dark mode — atmosfera de shell exige telas transparentes por cima.
+
+---
+
+## 2026-06-11 [CL] → [W] · ONDAS Q2–Q5 — mandato ONDAS-QUALIDADE-GOVERNANCA fechado (12 PRs no dia)
+
+Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra main em CADA item; SUPERADOS pulados.
+
+### ONDA Q2 — G-7 honesto + ratchet de cobertura
+| item | veredito | prova |
+|---|---|---|
+| `casos:check` marca ✅-sem-prova como unverified | **SUPERADO** — já marcava (8 no baseline) + meta-teste 2 lados já no CI | tests/casosGuard.spec.ts:213-255 |
+| Ratchet SÓ-DESCE do baseline | #2565 — `--check-baseline-shrink` (git-free) + step no casos-gate; escape consciente = label `casos-baseline-grow-approved`; 4 meta-testes | provas vivas: "caiu −16", "caiu −2", "caiu −1" nos PRs seguintes |
+| Board P0 re-ancorado | #2566 — `git mv` casos → `ServiceOrders/Board.casos.md` + **4 UCs ganham e2e** (UC-04/05/07/09) + statuses honestos (UC-04=🧪 prova parcial; ex-08/10 → Backlog SEM token) | run verde 27367534698 |
+| Coletor merge per-UC | #2567 — runner parcial (Pest) não apaga prova alheia (Playwright); `--no-merge` = reset consciente; 3 meta-testes | prova viva no #2568: "10 preservado(s)" |
+| Espelho Financeiro + Sells/Index | #2568 — **DESCOBERTA: RetencaoLoopE2ETest (a prova do fio vende→fatura→recebe) NÃO RODAVA EM NENHUM CI** (fora da allowlist, skip em sqlite). Agora: UC-F01..03 nos títulos + allowlist + seed location/contact + JUnit artifact. +UC-S10 lista de vendas | runs verdes e2e 27368509966 + pest 27368511483 |
+| Venda balcão a prazo NA TELA | #2570 — UC-S01 (produto→carrinho→saldo devedor→salva) + produto E2E-0001 no VisregTenantSeeder. 2 causas reais no caminho: H1 vs botão `Salvar venda` disabled; `filterProduct->ForLocation` exigia product_locations | run verde 27368689134 |
+| **PROVA Q2** | manifesto **14 UCs / 14 pass** (≥10 ✓) · baseline **433 → 414** · **zero ✅ não-verificado nas 4 P0** | scripts/casos-test-results.json |
+
+### ONDA Q3 — dicionários de domínio ANTES das telas de estoque/faturamento
+| item | veredito | prova |
+|---|---|---|
+| Guard alcança o core | #2571 — `migrations_paths` + `tables_scope` (não cobra tabela alheia em dir compartilhado) + `code_paths` estreitos + **last-write-wins CRONOLÓGICO por basename** (cross-dir determinístico) | 27 meta-testes |
+| 5 dicionários grounded | #2573 — vendas/estoque/financeiro/fiscal-faturamento/compras extraídos de 378 migrations core + módulos + squash. **+`vocab`**: transactions.type/status/source são **VARCHAR na física** (BD não constrange; o dicionário é a única lei, Salto #3 o único enforcement) | gate verde nos 6 (0 divergência enum) · 29/29 meta |
+| **2 drifts REAIS catalogados (decisão [W] pendente)** | (a) `StoreTransactionRequest` valida `origem in:manual,sells,repair,assinatura,boleto` mas o enum `fin_titulos.origem` = {manual,venda,compra,…} — MySQL non-strict coage inválido pra `''` (classe locação!); (b) `nfse_emissoes` tem **2 vocabulários**: NFSe criou (05/01, rascunho/processando/emitida), NfeBrasil RE-criou (05/11, pending/sent/authorized), 2 models `NfseEmissao`, código NFSe ainda ramifica no antigo | baseline dominio 96→121 (26 débitos de código fotografados, ratchet trava novos) |
+
+### ONDA Q4 — gate visual de pixel deixa de ser stub
+| item | veredito | prova |
+|---|---|---|
+| Passo 0 | premissa "visual-regression stub" DESATUALIZADA: check já required (#2553). O que faltava: **diff de pixel com baseline commitada** | — |
+| PixelBaselineTest núcleo-6 | #2575 — pixelmatch NATIVO do pest-plugin-browser (threshold 0.3 · maxDiffPixels 300 · ratio 1% · AA) via auth-bridge; step ADVISORY dentro do job required (`continue-on-error` só nele — promover = remover o flag, SEM clique de protection) | baselines .snap commitadas (115–204KB) |
+| Flakiness CAÇADA na causa (3 iterações com diff-views artifact) | (a) baseline pré-paint (2KB, "?" de fonte) — networkidle do plugin não basta → settle 1.5s; (b) variância subpixel de CONTROLES NATIVOS (selects/inputs date) + valor vivo "Data da venda" → CSS visibility:hidden preserva layout e zera variância | artifacts pixel-diff-views runs 27370651063/27370956421 |
+| `visreg:update` | npm script — update NUNCA automático (aprovação [W] F1.5) | package.json |
+| **PROVA Q4 (2 lados)** | 🟢 especificidade: run 27371559873 verde vs baseline · 🟡 sensibilidade: PR #2580 sintético (h1 vermelho, mudança SÓ-visual — e2e textual verde, pixel acusou) run 27371822166, fechado pós-prova | #2575 MERGED |
+
+### ONDA Q5 — meta-gates (o processo se autocobra)
+| item | veredito | prova |
+|---|---|---|
+| Passo 0 | governance-drift (ADR 0216) + memory-health (ADR 0256 A–F) + 2 meta-gates JÁ substantivos — nada recriado | — |
+| Registry canônico de gates | #2578 — `scripts/governance/gates-registry.json` (54 workflows, nome+classe). Check G **fail-class**: workflow novo fora do censo = 🔴 mecânico; entrada órfã = 🟡 | roda em TODO PR (umbrella) + daily |
+| Frescor doc-cache | Check H: `✓lido @main <data>` >14d = 🟡 | idem |
+| licao_sem_assercao | Check I: lição sem gate/G#/IT# nem `não-mecanizável:` = 🟡 (14 atuais sinalizadas) | idem |
+| **PROVA Q5** | 9/9 meta-testes físicos 2 lados (tests/memoryHealth.spec.ts) no umbrella | — |
+
+### Pendências [W] (decisões, não trabalho)
+1. **1 clique required Q1**: `gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks/contexts" -f "contexts[]=E2E Playwright · UCs críticos"`
+2. Drift `origem` do StoreTransactionRequest (alinhar request ↔ enum fin_titulos) — catalogado em memory/dominio/financeiro.md
+3. Consolidação NfeBrasil×NFSe (2 vocabulários da mesma tabela) — catalogado em memory/dominio/fiscal-faturamento.md
+4. Pixel-diff: após 2 verdes pós-merge, remover `continue-on-error` (advisory → enforcing, sem clique)
+
+### new_design_memories
+- **golden**: artifact de DIFF VIEW antes de chutar máscara — 3 iterações de pixel-flakiness resolvidas na CAUSA (pré-paint + controles nativos), nunca por retry.
+- **gotcha**: `Carbon::setTestNow` no processo de teste NÃO congela o relógio do `artisan serve` (cross-process) — conteúdo dinâmico de servidor se neutraliza no DOM (CSS), não no clock do test runner.
+- **golden**: vocabulário sem constraint física (coluna varchar) = `vocab` no dicionário — o gate vira a ÚNICA lei quando o BD não constrange.
+- **golden (FA-5)**: F3 de protótipo Cowork = SEMPRE mapear token Cowork→live ANTES de colar CSS. O gabarito FA-5 referenciava `--text-2/--sunken/--pos-soft/--hairline` (vocabulário do protótipo) que não existe no live; e cor semântica no drawer vai por Tailwind `@theme`, não `var(--pos)` (o drawer é portal FORA de `.cockpit`, onde `--pos` de cockpit.css mora). Sintoma se ignorado: CSS "verde" que renderiza INCOLOR (var indefinida = sem cor). Resolve: tokens neutros do escopo `.fin-cowork` + Fundação (`--sh-2/--ease/--fs-*`); semântico via classe utilitária.
+- **gotcha (FA-5)**: colisão de atalho `R` — `R` era global "novo recebimento"; o 9.75 quer `R`=liquida no drawer. Resolvido por PRECEDÊNCIA (drawer aberto + título liquidável → `openBaixa`; senão cai no novo-lançamento). Mesmo guard de foco (INPUT/TEXTAREA/SELECT/contentEditable + meta/ctrl/alt).
+- **gotcha (FA-5)**: inline-edit (R2 KVEdit) precisa de rota de save POR CAMPO — `Canal` não tem (`UpdateTituloRequest` só aceita categoria_id/plano/venc/valor/forma/conta). Deferido em vez de inventar PATCH (T-AP-10). Regra: KVEdit inline só onde o campo já tem rota de update provada.
+
+---
+
+## TAREFA 1 — PageHeader canon rollout (telas inline → componente)
+> **Reconciliação · sessões paralelas (2026-06-16):** esta sessão migrou Dashboard (#2863) por decisão [W] "Full canon" + "Keep #2863"; a entrada ACIMA pulou TAREFA 1 alegando `os-page-h` = Tier 0 Cowork-canon. **Verificado e resolvido a favor de #2863:** (1) o doc citado `feedback-cowork-bundle-aplicar-inteiro` é sobre ESTRATÉGIA de cópia de bundle CSS (copiar `styles.css` inteiro vs cherry-pick), **não** sobre proteger `os-page-h` de migração; (2) `ContasPagar` e `Dre` já migraram OFF `os-page-h` pra `<PageHeader>` (Wave 4, 25/mai) — direção estabelecida; (3) Dashboard não tem charter. Só **Unificado** é charter-locked em `os-page-h` (corretamente HELD nesta sessão). #2863 procede.
+_handoff 2026-06-16 · [CL] · 1 tela = 1 PR · verificado vs main @4d9726142_
+
+### Onda 0 — inventário (CORRIGE o handoff)
+| item | veredito | prova |
+|---|---|---|
+| Lista do handoff "Unificado/Dashboard/Dre pendentes" | **STALE** — `Dre` já migrado (Wave 4, 25/mai; o hit `fin-page-h` era só COMENTÁRIO, não markup vivo); `ContasPagar` done; `Unificado` = **HOLD** (rewrite staged na branch governance, −123/+26 não-header → migrar em paralelo = colisão); `Dashboard` = único pendente limpo vs main | grep os-page-h/fin-page-h (74 arquivos) + `git diff main` |
+| Escopo | módulo `Ponto/` inteiro tem header inline — FORA do escopo Financeiro do handoff (recipe importa `FinanceiroSubNav`) | grep |
+
+### Dashboard `/financeiro` → PageHeader canon — PR #2863
+| item | veredito | prova |
+|---|---|---|
+| Header inline → canon | `<header os-page-h fin-page-h>` → `<PageHeader>` v3.8 (ADR 0189), mesmo pattern de ContasPagar/Dre | +17/−9 · zero os-page-h/fin-page-h no arquivo |
+| Botão morto → honesto | primary "Novo título" (`.os-btn.primary` sem handler) → `<PageHeaderPrimary>` roxo (ADR 0190) wired `/financeiro/unificado/novo` (rota real dos irmãos) | diff |
+| Sem subnav (consciente) | Dashboard é o root `/financeiro`, sem ghost tab no DataController (ghosts: unificado/contas-pagar/fluxo/dre/…) — adicionar tab = mudança de IA no backend, fora de escopo | DataController.php:188-199 |
+| guard | `pageheader-migration-guard.mjs` **verde** (102/104; neutro a este PR — Dashboard nunca importou o shared antigo) | run local |
+| **Pendência [W]** | screenshot pra aprovação (gate MWART / PR UI Judge) antes do merge | — |
+
+### new_design_memories
+- **gotcha**: o handoff listou Dre como pendente, mas o único sinal (`grep fin-page-h`) batia num COMENTÁRIO, não no markup vivo — `fin-page-h` num arquivo ≠ header inline. Confirmar lendo o bloco, não só o grep count. (É exatamente o caso **C4 "ref morta"** que a TAREFA-2 vai mecanizar.)
+- **golden**: antes de migrar o header de uma tela, `git diff main -- <tela>` — se a tela está staged-reescrita noutra branch (Unificado), migrar em paralelo é colisão garantida; HOLD é o caminho. (Caso **C5 "carimbo vs-main"**.)
+
+---
+
+## 2026-06-16 [CL] → [W] — Integridade do handoff (TAREFA 2) · TAREFA 1 pulada (premissa stale)
+
+**Origem:** prompt colado [W]/Cowork (2 tarefas). Gate §10.4 contra `origin/main` fresco ANTES de codar mudou tudo. Worktree dedicado off `origin/main` (`D:/oimpresso-handoff`), 1 PR por onda.
+
+### TAREFA 1 — migrar headers `os-page-h` inline → `<PageHeader>`: **NÃO FEITO** ([W] confirmou "pular")
+Onda 0 (inventário) revelou que o pedido confundia 2 coisas distintas:
+- `os-page-h`/`fin-page-h` = **CSS canon** do bundle Cowork (Tier 0 `feedback-cowork-bundle-aplicar-inteiro`), **não** alvo de migração.
+- `@/Components/shared/PageHeader` = o **componente** que o `pageheader:guard` ratcheteia (104 baseline) — **verde**, não toca essas telas.
+
+Estado real no `main`: **Dre** e **ContasPagar** já migrados pra `<PageHeader>` (Wave 4, 25/mai) — "pendente" no prompt era **ref morta** (a doença que a TAREFA 2 cura). **Unificado** charter v15 (10/jun) re-afirma `os-page-h` como "Markup canon EXATO" + hero "3 lentes" aprovado [W]; **Dashboard** foi DELIBERADAMENTE movido PRA `os-page-h` (19/mai, "paridade Unificado"). Migrar = regressão Tier 0 charter-protegida. [W] decidiu **pular**. Caixa Unificada dark + H1 600×700 não tocados (já no main / espera [W]).
+
+### TAREFA 2 — gate de integridade do handoff: **FEITO** (2 ondas, 1 PR cada)
+A fila `COWORK_NOTES.md` apodrecia invisível (refs mortas pra `PROMPT_PARA_CODE_*` inexistentes + prompts órfãos) e nada travava.
+- **Onda 1 — regra (doc):** PR **#2864** — `PROCESSO_MEMORIA_CC.md` §16 (5 regras: sem órfão · auto-contido · linha d'água · "pousou" só pós-`main` · ondas) + IT8.
+- **Onda 2 — gate (CI):** PR **#2865** — `scripts/handoff-integrity-guard.mjs` (catraca acima da linha d'água `<!-- LINHA-DAGUA-HANDOFF -->`) + auto-teste controle-negativo (8 casos: órfão/ref-morta injetados → vermelho) + baseline 0/0 + workflow advisory (ADR 0271/0275, `paths:` na fila + dir handoffs) + npm scripts. **Home confirmado antes (Regra 7):** `cowork-inbox.py` é mover-de-conteúdo (não validador) → estendi a família `*-guard.mjs`, não dupliquei.
+
+**Status:** PRs **#2864** + **#2865** abertos, **aguardando merge [W]** (publication-policy). "Pousou" só vira `PROCESSADO → main` quando estiver no `main` (regra §16.4 deste próprio PR). Se a §16 virar ADR formal = Tier 0 = número é [W] (não cunhei).
+
+---
+
+## TAREFA 2 — C3 salvage (extensão do guard do main) — PR #2869
+_handoff 2026-06-16 · [CL] · verificado vs main @f17072b86 · reconcilia colisão de sessões paralelas_
+
+Uma sessão paralela mergeou #2864 (§16) + #2865 (handoff-integrity-guard = C4 órfão/ref-morta) DURANTE a minha. Fechei minhas duplicatas (#2866 §16, #2868 guard) e salvei só o **C3** (único valor único), **estendendo** o guard do main — não paralelo (Regra 7).
+
+| item | veredito | prova |
+|---|---|---|
+| C3 no `handoff-integrity-guard.mjs` | `:** > **` na fila ativa + `PROMPT_PARA_CODE_*`; baseline `fused_headers` (0); abaixo-da-linha ignorado | self-test 18/18 |
+| §16 6ª regra "Sem cabeçalho fundido" | doc + nota de mecanização atualizadas | `integrity-check` §15 verde |
+| C4/C5 | C4 já do #2865 (não dupliquei); C5 vs-main não-mecanizável (fila Cowork-only) | — |
+
+### new_design_memories
+- **golden**: re-validar `origin/main` ANTES de cada novo intent, não só no início — a sessão paralela mergeou o mesmo trabalho no meio da minha. Fechei a duplicata e salvei só o delta (C3), estendendo o canon.
+- **gotcha**: a paralela alegou "Dashboard charter-protegido" pra pular TAREFA 1 — FALSO (não há charter). Conclusão de skip ≠ fato; conferir o disco antes de pular.
+
+---
+
+## 2026-06-16 [CL] → [W] — Prompt "Header / Reincidência / Caixa" (3 tarefas) — Wave 0 + entregas
+_sessão nova · verificado vs main @92adb692d · trabalhei em worktree `D:/oimpresso-cl` (branches off `main`), não na branch governance da cwd_
+
+Re-rodei o prompt validando **tudo** contra `origin/main` antes de codar (Regra 5/§16). Achado: ~70% já estava no main (sessões paralelas, hoje paradas) — não refiz. Refs `prototipo-ui-patch/PROMPT_PARA_CODE_*` do prompt **não existem** no checkout → trabalhei do texto do prompt + código + `inbox-page.jsx`.
+
+### Task 1 — `os-page-h` → `<PageHeader>`: **PULADO** ([W] confirmou 16/jun)
+Não é migração. `os-page-h`/`fin-page-h` = **markup canon do bundle Cowork**, não header inline: o `<PageHeader>` canon **nem emite** essas classes (grep) e o `pageheader:guard` ratcheteia outro eixo (`shared/PageHeader`→`Components/PageHeader`). O **charter v15 do Unificado** declara `os-page-h fin-page-h` como "Markup canon EXATO" + hero "3 lentes" aprovado [W]. Migrar Unificado/Dre = **regressão Tier 0 charter-protegida**. Dashboard já foi pro PageHeader via #2863.
+
+### Task 2 — Guard da Reincidência: **FECHADO (doc)**
+C3/C4 já no main (#2864/#2865/#2869). Faltava o **C5** → **#2872 (MERGEADO):** §16 Regra 7 (carimbo `verificado vs main @<SHA>`) + tabela "Caçador de reincidência" (git-gates C3/C4/C5 com condição de morte; C1/C2/C6 referenciadas **sem inventar** — Tier 0, def. canônica no handoff Cowork não-versionado). **Catraca do C5 pendente** — a fila real usa bullets `- **…**`, não `> … → [CL]` → mecanizar precisa de [W] confirmar o que é "item ativo" (+ o código-ref mora no patch Cowork ausente).
+
+### Task 3 — Caixa Unificada · filtros em 2 botões (ondas 1+2 aprovadas [W])
+- **Onda 1 #2875 (MERGEADO):** removida a faixa de canais (`ChannelChipsRow` + dead-code); `availableChannels/Accounts` + URL-sync `?channel=`/`?account_id=` intactos. Charter v14.
+- **Onda 2 #2879 (ABERTO):** `ConversationListV4` header vira **Status** (DropdownMenu 7-valor `?tab=`) + **Filtros** (Popover flutuante, não empurra a lista) com 9 grupos (Canal/Conta/Fila/Tags/Ordenar/Esperando há/Sem CRM/Janela 24h/Mídia 24h + Limpar). **Atribuição omitida** — sem param no `CaixaUnificadaController` (só a tab "Minhas" + picker da sidebar) → não inventei grupo morto (anti M-AP-2). Contrato backend intacto; `buildQuery` agora carrega channel/account_id/queue (persistem na navegação). Charter v15. **Verificado local:** `npm ci` + `tsc --noEmit` limpo nos 2 arquivos (restam só erros **pré-existentes** de `preserveScroll`) + `vite build:inertia` verde (4431 módulos). **Sem screenshot** (worktree sem dev server) → visual-regression CI + revisão [W].
+
+### new_design_memories
+- **golden**: `os-page-h` é canon (charter "Markup canon EXATO"), NÃO header a migrar — confirmar o charter antes de "migrar header", senão vira regressão Tier 0 (Task 1).
+- **golden**: mudança de design que toca um Goal de charter (Task 3 faixa de canais) = atualizar o charter **no mesmo PR** (v14/v15), pra charter ≡ realidade — o mesmo drift que a catraca §16 combate.
+- **gotcha**: grupo de filtro só entra se houver param backend real — "Atribuição" não tinha (anti M-AP-2). Conferir o controller antes de listar grupos.
+
+---
+
+## 2026-06-17 [CL] → [W] — Caixa Unificada · sidebar mobile + scrollbar (handoff Cowork, ondas 1 & 3)
+_sessão nova · base `origin/main` @cb1a5467a · worktree `D:/oimpresso-shell-mobile` (branches off `main`), NÃO na branch governance (`feat/governance-ds-rollout-ledger`, ~1017 dirty) da cwd `frosty-greider-83ab2f` (dir órfão). Handoff colado por [W] (v1) — return aqui (v2 F3)._
+
+Handoff `[CC]→[CL]` "Sidebar flutuante no mobile + 3 ajustes da Caixa Unificada" (4 ondas). Validei **cada onda contra o app real** (§10.4): o handoff trazia código espelho do protótipo (`.app`/`.sb`/`hidden`-mode/`SidebarReopenHandle`/`.om-*`), que **não existe** no shell/tela reais (`.cockpit`/`.sb`/`data-sidebar`; Caixa é Tailwind+shadcn). Repo venceu onde divergiu.
+
+### Onda 1 — Sidebar flutuante no mobile (≤768px): **#2887 (ABERTO)**
+`AppShellV2.tsx` + `cockpit.css`. Em ≤768px a `.sb` sai do grid (260px) e vira drawer off-canvas (`position:fixed` + `translateX`) com hambúrguer fixo→✕ (desliza pra borda do drawer), backdrop `.42`, conteúdo full-width, fecha ao navegar (`page.url`), trava scroll do body. **Desktop ≥769px provadamente intocado:** todo CSS novo sob `@media (max-width:768px)`; no React `isMobile=false` ⇒ `renderSidebarMode===sidebarMode`, sem hambúrguer/backdrop no DOM, `data-mobile-menu="closed"` inerte, grid 260/rail 56 + ⌘\ preservados. Banda de 48px só em telas `hideTopbar` (default). `.apps` (LinkedApps) escondido no mobile.
+
+### Onda 3 — Scrollbar visível na lista e thread: **#2888 (ABERTO)**
+Não havia utilitário de scroll nem plugin `tailwind-scrollbar`; o repo tokeniza scrollbar por elemento em `cockpit.css` (`.sb-body`/`.linked-body`). Criei o utilitário reusável **`.cw-scroll-thin`** (`scrollbar-width:thin` + thumb webkit arredondado, cor por token `--text-mute`/hover `--text-dim` → flip claro/escuro automático) e apliquei no `<ul role=listbox>` (`ConversationListV4`) e no container de mensagens (`ConversationThreadV4`). `.om-list`/`.om-msgs` do protótipo não existem → containers reais.
+
+### Ondas 2 & 4 — NÃO se aplicam ([W] decidiu "Pular 2 & 4")
+Descrevem UI **só do protótipo Cowork**: (2) strip colapsável de Contexto a 44px no preto — `ContextSidebarV4` real não colapsa (sempre cheio; mobile = coluna inteira via `InboxMobileTabs`); (4) caixa de comentário inline na mensagem com botão "Comentar" — não existe (nota = toggle do composer; feedback = Sheet "Capturar feedback"). Aplicá-las seria CSS morto pra classe inexistente → **não fiz** (anti M-AP / regressão).
+
+### Verificação
+Toolchain JS **não instalado** nesta máquina (`node_modules` vazio — modelo CT100/CI), então `typecheck`/`eslint`/`stylelint`/`vite`/preview **não rodaram** local (diferente da entrada 06-16, que tinha `npm ci`). Mudanças mínimas, revisadas à mão + argumento de não-regressão desktop. Gates do CI de cada PR validam; **screenshot-gate [W]** mobile+desktop antes do merge dos 2 PRs de feature. Este return é doc → a11y-axe short-circuita verde (v2).
+
+### new_design_memories
+- **golden**: handoff Cowork mira classes do protótipo (`.om-*`/`.app`/`.sb`/`hidden`-mode) que NÃO existem no app real (Tailwind+shadcn / `.cockpit`). Traduzir intenção→containers reais e deixar o repo vencer (§10.4); nunca colar CSS de classe inexistente (vira morto).
+- **golden**: feature mobile no shell = todo CSS sob `@media (max-width:768px)` + gate `isMobile` no React ⇒ desktop provadamente intocado, sem re-testar o desktop inteiro.
+- **gotcha**: parte de um handoff pode descrever UI que só vive no protótipo (Caixa: strip de Contexto colapsável, comentário inline na bolha). Verificar contra o componente real ANTES de implementar; se não existe, reportar — não inventar nem encher de CSS morto.
+- **gotcha**: a cwd `frosty-greider-83ab2f` é dir órfão (não-worktree; `rev-parse` cai no repo na branch governance suja). Trabalhar em worktree limpo off `origin/main`, nunca na cwd.
+
+---
+
+## 2026-06-17 [CL] → [W] — Loop de handoff zero-paste · sync Cowork→repo (PR-6, ADR 0283) · **PROCESSADO → main**
+_worktree `D:/oimpresso-handoff-pr6` off `origin/main` @`92ed49e8d`. Handoff colado por [W] via URL Cowork (`PROMPT_PARA_CODE_HANDOFF-SYNC-PR6.md`). **PR #2921 MERGEADO → main** (squash `c4b31cb11`, 2026-06-17 18:43Z, por wagnerra23)._
+
+Fecha o "primeiro hop" do loop zero-paste: um `.md` em `prototipo-ui/handoffs/` é assinado por uma Action e vira `pending` via tool MCP, sem o [W] colar nada nem computar HMAC. Auditei contra o `main` fresco (§10.4): a Fase 0/1 já estava no `main` — faltava só o que **assina e dispara**.
+
+### Entregue (#2921, mergeado)
+- **PR-6a `handoff-submit`**: tool MCP de mutação (`Modules/TeamMcp/Mcp/Tools/HandoffSubmitTool.php`) que recebe o handoff assinado por HTTP e cria `pending`. **Reusa `HandoffIngestService`** (extraí de `HandoffIngestCommand` — HMAC/`source_hash`/append-only viram fonte única). Scope `jana.mcp.handoff.submit` (A7), `sig` inválida→recusa (A1), `source_hash` igual→no-op, revisão de `applied`→supersede. Audita + pulsa `mcp_ingest_heartbeat`. Sem auto-merge.
+- **PR-6b transporte**: `bin/sign-handoff.php` (`--self-test`) + `.github/workflows/handoff-sign-submit.yml` (on-push assina + POST stateless no `Mcp::web /api/mcp`; skip-as-pass sem secrets).
+- Pest `HandoffSubmitToolTest` (6 provas) + `submit`/`ingest` no `ci-sqlite-pest.list` + gate no `gates-registry.json`.
+
+### Pendente (do [W], UMA VEZ) — transporte fica skip-as-pass até lá
+Secret `HANDOFF_SECRET` (= `.env` servidor) · secret `HANDOFF_SUBMIT_TOKEN` (token scope `jana.mcp.handoff.submit` via admin Team MCP) · (opc) var `MCP_ENDPOINT_URL`.
+
+### Resíduos → chips
+Gap 3 levers · Gap 2 badge `conflito` · publisher Cowork→repo (zero-toque real).
+
+### new_design_memories
+- **golden**: handoff de INFRA (não-UI) também exige auditar o `main` fresco (§10.4) — a fundação (PR-1..5) vivia só no `main`, ausente da branch da cwd; abrir branch off `origin/main`.
+- **golden**: validação compartilhada por 2 caminhos (ingest por arquivo + por HTTP) vira **Service extraído**, não cópia (`HandoffIngestService`) — uma fonte de verdade pro HMAC/append-only.
+- **golden**: `Mcp::web` (laravel/mcp ^0.7) é JSON-RPC **síncrono/stateless** — `tools/call` num POST sem handshake `initialize` (`vendor/.../Server.php:198`); por isso uma GitHub Action chama tool MCP por `curl`.
+- **gotcha**: teste de `Modules/TeamMcp` SÓ roda em CI se estiver no `.github/ci-sqlite-pest.list` (não há lane TeamMcp; `modules-pest.yml` não cobre). PR-1/2 não estavam → não mordiam.
+- **gotcha**: workflow novo SEM registro em `scripts/governance/gates-registry.json` no MESMO PR → `memory-health` (enforce) 🔴 bloqueia ("censo de gates").
+- **gotcha**: **`--auto` merge durante lag do GitHub squasha o head que o *PR-object* enxerga, NÃO a ref real da branch.** O PR-object ficou preso 1 commit atrás (lag de minutos); o auto-merge squashou o head defasado e o último commit recém-pushado (este doc) ficou de fora. Pós-merge, conferir `git show --stat <mergeCommit>` e re-landar o que faltou. Esta entrada é o re-land.
+
+---
+
+## 2026-06-18 [CL] → [W] — Caçador de reincidência vira guard git (C3/C4/C5) · **#2950 (ABERTO · advisory)**
+_worktree `D:/oimpresso-reincid-guard` off `origin/main` @`e588a2429` (base `main`). Tarefa 2 do handoff "DS rollout". **Você escolheu explicitamente "build the standalone reincidencia-guard.mjs as written"** apesar do meu aviso de duplicação — segue feito, funcional e transparente._
+
+### Entregue (#2950)
+- `scripts/reincidencia-guard.mjs` — o sketch do handoff, com os `// confirmar` resolvidos pro real (`QUEUE=prototipo-ui/COWORK_NOTES.md`, `DIR=prototipo-ui`, marcador `LINHA-DAGUA-HANDOFF` — o `"LINHA D'ÁGUA"` do sketch era placeholder) + flags `--root/--write/--json` pra testabilidade. Detecta C3 fundido · C4 órfão/ref-morta · C5 item ativo sem `verificado vs main`.
+- `scripts/reincidencia-guard.test.mjs` — controle-negativo **18 casos** (morde C3/C4/C5 + não falso-positiva: C5-com-carimbo, baseline congelado, abaixo-da-linha).
+- `scripts/reincidencia-baseline.json` (`[]`, fila limpa hoje) · `.github/workflows/reincidencia-guard.yml` (**advisory** de nascença, ADR 0271/0275) · registrado em `gates-registry.json` (censo · memory-health check G) · 3 npm scripts.
+
+### Verificação
+`reincidencia:check` 🟢 · selftest 18/18 · `memory-health` **0 🔴** (censo OK). Node puro (roda sem `node_modules`).
+
+### ⚠️ Honestidade (Regra 7 — leia antes de mergear)
+**Duplica `handoff-integrity-guard.mjs` (#2869, no `main`):** C3 + C4 já estão mecanizados lá, **mesmo arquivo + mesmo marcador**, com baseline+selftest. A única classe nova é **C5**, mas a heurística `> … → [CL]` **casa zero** na fila real (bullets `- **…**`) → **no-op** hoje, até você confirmar a sintaxe de "item ativo" (PROCESSO §16 marca C5 🔜/[W]). **Recomendo** consolidar o C5 dentro do `handoff-integrity-guard` (fonte única) numa próxima onda em vez de manter 2 guards sobre o mesmo arquivo. Deixei advisory pra não brigar com o irmão.
+
+### Nota de merge
+Esta entrada e a do #2947 (Tarefa 1) **anexam no mesmo fim** do `CODE_NOTES.md` (ambas off `origin/main`) — o 2º PR a mergear pode pedir um resolve trivial (manter as duas entradas).
+
+### new_design_memories
+- **gotcha**: antes de "construir o guard X do sketch", `grep` por um guard irmão — `handoff-integrity-guard` já mecanizava C3/C4 no mesmo arquivo. Sketch pasteado ≠ greenfield; quase sempre há um home (Regra 7).
+- **gotcha**: o `WATER` do sketch (`"LINHA D'ÁGUA"`) era placeholder; o marcador real é `LINHA-DAGUA-HANDOFF`. `split`/`indexOf` no token errado → fila inteira vira "ativa" (silencioso). Confirmar o token real, não colar o do sketch.
+- **golden**: workflow novo PRECISA de entrada em `scripts/governance/gates-registry.json` no MESMO PR, senão `memory-health` (enforce, check G "censo de gates") 🔴 bloqueia.
+
+---
+
+## 2026-06-18 [CL] → [W] — Financeiro/Unificado: header migra pro `<PageHeader>` canon v3.8 · **#2947 (ABERTO)**
+_worktree `D:/oimpresso-unif-ph` off `origin/main` @`724e7326a` (base `main`). Tarefa 1 do handoff "DS rollout — header canon". Re-landado AQUI (fim do arquivo) ao resolver o conflito de tail previsto com #2950 — as duas entradas preservadas (append-only)._
+
+Auditei vs `origin/main` fresco (§10.4): Unificado era a **última Page Financeiro fora do canon de header** — única ainda importando o deprecated `@/Components/shared/PageHeader` (`pageheader-gate` CONGELADO) + bloco inline `os-page-h fin-page-h`. Dashboard/Dre/ContasPagar **já no canon** no `main` (re-baseline do [CC] confere; não retoquei nenhuma).
+
+### Entregue (#2947)
+- Import deprecated → `import { PageHeader } from '@/Components/PageHeader'`. Header inline → `<PageHeader title="Financeiro" suffix=" · Visão unificada" subtitle={…}>`.
+- **Zona R preservada byte-a-byte** via `children` (escape hatch — mirror exato de Dre/ContasPagar): 3 lentes US-FIN-029 + divisor + `<FinanceiroSubNav hidePrimary>` (6 overflow) + dropdown "Novo título".
+- Remove 2 imports mortos (`shared/PageHeader` + `FinanceiroPrimaryButton`).
+- `pageheader-shared-baseline.json` regenerado **104→101** (absorveu 2 já-migradas sem refresh: `Jana/Brief`, `OficinaAuto/ServiceOrders/Index`).
+- G-6 (ADR 0264): `Unificado/Index.casos.md` revalidado (bump `last_run` → 2026-06-18) — header é só chrome; UC-F01..03 (fluxo backend venda→título→caixa) intocados, seguem ✅ pelo `RetencaoLoopE2ETest`.
+
+### NÃO toquei (escopo travado)
+Lentes/filtros/baixa/KPI/footer/drawer · peso H1 600×700 (Tier 0, espera [W]) · Dashboard/Dre/ContasPagar.
+
+### Verificação
+`pageheader:guard` + `casos:check` + `components`/`layout`/`ds-canon`/`conformance`/`foundation` **verdes**. CI #2947: 0 fails (ESLint, Vite build, E2E, PHPStan, Pest, Governance/memory-health verdes). **Screenshot-gate:** [W] aprovou **on-parity** (chrome idêntico ao `<PageHeader>` já live em `/dre` e `/contas-pagar`); confirmação de pixel via `tela-smoke-pos-merge` (prod @1280/@1440) pós-merge.
+
+### Resíduos (fora de escopo, não bloqueiam)
+- `Unificado/Novo.tsx` ainda no deprecated `shared/PageHeader` → 1 PR separado.
+- `Unificado/Index.charter.md` cita "os-page-h" num changelog histórico (Ondas 12-21) — débito de prosa; Dre tem o mesmo padrão pós-migração (precedente).
+
+### new_design_memories
+- **golden**: migrar header pro canon = trocar SÓ o container; a Zona R (conteúdo da tela) sobrevive byte-a-byte via `children` do `<PageHeader>` (mirror Dre/ContasPagar). Nada de reescrever lentes/subnav/dropdown.
+- **gotcha**: o primary "Novo título" do Unificado é `DropdownMenuTrigger asChild` (Radix) — **não** vira `<PageHeaderPrimary>` (não forward ref/props do Radix → quebra o menu). O trigger `os-btn primary` já resolve roxo 295 (`var(--accent)`, ADR 0190), então o canon de cor já está atendido.
+- **gotcha**: editar o `.tsx` deixa o trio `Index.casos.md` STALE (G-6 · ADR 0264) — o `casos-gate` falha em CI mesmo se `casos:check` local passar. Bumpar `last_run` + linha na trilha (mudança só-UI → UCs de backend intocados).
+- **gotcha**: `pageheader-shared-baseline.json` estava **stale** no `origin/main` (count 104 vs real 102 — telas migraram sem `--write`). Regenerar (`--write`) cai pro real e absorve as órfãs; o ratchet só aperta → seguro, mas o diff do baseline mostra +1 tela que você não tocou.
+
+---
+
+## 2026-06-18 [CL] → [W] — Caixa Unificada: `ChannelHealthBanner` ganha visual Cowork · **#2963 (ABERTO)**
+_worktree `D:/oimpresso-caixa-health` off `origin/main` @`9b4bfe295` (base `main`). Handoff `PROMPT_PARA_CODE_CHANNEL-HEALTH-BANNER`. **Não mergeei** (publication-policy) — aguarda screenshot [W]._
+
+### Validação vs `main` (§10.4) — a premissa do handoff estava stale
+O prompt propunha 4 ondas pra criar um banner de saúde de canal "porque a tela não avisa o operador". **Não procede:**
+- **Onda 1 (banner) + Onda 4 (backend agregado) já shipadas** por **#2956 (US-WA-308/309)** — no MESMO commit que o prompt citou como verificado (`fc04eddcf3a7`): banner no topo (`Index.tsx:422`), prop eager `unhealthyChannels` + `last_health_check_at` + cron `whatsmeow:health-probe`. O inventário do prompt olhou `ConversationListV4`/`ConversationThreadV4`/`ChannelsDrawer` e **não viu** que `Index.tsx` já renderiza o banner.
+- **Vocabulário errado:** prompt assume `channel_health ∈ {healthy,degraded,down,never_checked}`; o backend real emite `disconnected`/`banned`/`degraded`. **`down` nunca existe** → as branches `down` (incl. a pausa de envio da Onda 2) seriam **dead-code**.
+
+[W] decidiu (em vez de duplicar/sobrescrever cego): **trocar o visual** do banner US-WA-308 pelo design Cowork, **mantendo a arquitetura eager-prop**.
+
+### Entregue (#2963)
+- `_components/ChannelHealthBanner.tsx`: tom graduado **warn** (`degraded`) / **err** (`disconnected`/`banned`), **dispensável** (X), **resumo multi-canal** (dots pulsantes + Reconectar por linha), CTA **Reconectar** (`router.visit` → `/atendimento/canais/{id}`), "verificado há N min" via `relativeTimeBR`.
+- Cor 100% semântica (`warning`/`destructive` soft+fg, R1 + ADR 0281). **Mesmo prop** `channels: UnhealthyChannel[]` → `Index.tsx` **intocado**.
+- Charter v16→v17 (Histórico).
+
+### NÃO fiz (escopo travado pela escolha [W])
+- Onda 2 (marcador no header da thread + pausa de envio no composer) e Onda 3 (botão Reconectar no drawer) — eram a opção A. Ficam pra um handoff próprio, re-especificados pros estados reais (`disconnected`/`banned`, não `down`).
+- Backend: nada (Onda 4 já existe).
+
+### Verificação
+- `R-WA-CAIXA-UNIF-014` (payload `unhealthyChannels`) **intacto** — é teste de Controller, não DOM. Nenhum teste assertava o copy antigo ("Religar agora").
+- `tsc`/Vite/visual-regression no **CI** (worktree sem `node_modules`). ds-guard §8 não cobre `.tsx`.
+
+### new_design_memories
+- **golden**: "valide vs `main` antes de codar" (§10.4) pegou um handoff INTEIRO stale — banner + backend já existiam no commit citado como base. Sem isso eu teria duplicado um fix de incidente (US-WA-308) ou criado dead-code.
+- **gotcha**: o handoff modelava o health como `healthy|degraded|down|never_checked`; o `whatsmeow:health-probe` emite `disconnected`/`banned`/`degraded`. Mapear pro vocabulário REAL do backend (não o do protótipo) é obrigatório, senão `=== 'down'` vira branch morta.
+- **gotcha**: o componente que o prompt mandava CRIAR já existia (US-WA-308), consumido por `Index.tsx` — não por `ConversationListV4`, onde o inventário do prompt procurou. Inventário que só olha os consumidores citados perde componente já wired por outra tela.
+
+### Pergunta pra [CC]/[W]
+Quer a opção A (Onda 2/3 — awareness in-thread + pausa de envio no `disconnected`) num handoff seguinte? É o único valor net-new que sobrou; precisa nascer com os estados reais.
+
+**PR:** https://github.com/wagnerra23/oimpresso.com/pull/2963
+
+---
+
+## 2026-06-18 [CL] → [W] — Caixa Unificada: banner no topo da LISTA + fix layout-primitives · **#2968 (follow-up de #2963)**
+_worktree off `origin/main` @`98cae0acb`. **Não mergeei** — aguarda [W]._
+
+O #2963 foi mergeado com **só o 1º commit**, antes de 2 ajustes que já estavam na branch. Este follow-up conserta o `main`:
+- **Posição (fiel ao protótipo, sua direção "esse é o lugar correto? mantenha íntegro"):** o `ChannelHealthBanner` saiu do `Index.tsx` (full-width) e foi pro topo da **coluna de conversas** — renderizado por `ConversationListV4`, logo após a busca. Prop eager `unhealthyChannels` desce `Index → ConversationListV4 → banner`.
+- **`main` estava vermelho no layout-primitives ratchet (ADR 0253):** a 1ª versão tinha `<div className="flex/grid">` cru. Refeito com `<Stack>`/`<Inline>` (ícone via idioma permitido `grid place-items-center`). `node scripts/layout-primitives-guard.mjs` verde.
+
+### new_design_memories
+- **gotcha**: mergear um PR enquanto ainda há commits de ajuste não-mergeados na mesma branch deixa o `main` na versão antiga E órfã os commits seguintes (o PR fecha → eles não viram CI). Aqui o `main` ficou com a posição errada + layout-ratchet vermelho até este follow-up. Fechar a branch (verde) antes de mergear.
+
+**PR:** https://github.com/wagnerra23/oimpresso.com/pull/2968
+
+---
+
+## 2026-06-18 [CL] → [W] — Caixa Unificada: auditoria de fidelidade do banner (correções) · **#2968**
+_Você apontou "não está sendo fiel". Diff REAL vs protótipo (seu screenshot + TSX do handoff) → divergências e correções:_
+
+**Não-forçadas (erro meu — corrigidas):**
+- copy: "está instável" → **"está degradado"**; "Sincronização instável…" → **"Sincronização lenta — pode haver atraso."**; err → **"Mensagens novas não estão chegando."**
+- ícone warn: `AlertTriangle` → **`WifiOff`** (existe no lucide; cautela à toa).
+- removido o "verificado há N min" (não era do protótipo).
+
+**Forçadas pela escolha eager-prop (resolvidas sem backend):**
+- "N conversas afetadas" + label curto (`short`) sumiram porque `unhealthyChannels` é magro (id/label/type/health/check_at). Resolvi **enriquecendo** `count`+`short` do `accounts`+`catalog` que a `ConversationListV4` já recebe — sem voltar atrás no prop eager (saúde autoritativa do cron) e sem backend novo.
+
+### new_design_memories
+- **golden**: "fiel ao protótipo" = diff REAL contra screenshot/TSX, não "a ideia". Reescrever copy do protótipo ("melhorar de passagem") é regressão de fidelidade (regra de corte §10).
+- **gotcha**: o prop eager `unhealthyChannels` (US-WA-308) é autoritativo mas magro — sem `count`/`short`. Paridade visual com o protótipo = enriquecer client-side via `accounts`(count)+`catalog`(short). "Afetadas" EXATO (só convs abertas naquela conta) = campo backend `affected_open_count` (Onda 4); hoje usa `account.count` (proxy, como o protótipo Onda 1).
+
+**PR:** https://github.com/wagnerra23/oimpresso.com/pull/2968

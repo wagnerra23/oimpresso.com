@@ -45,14 +45,16 @@ class BackfillChannelAccessCommand extends Command
 {
     protected $signature = 'whatsapp:backfill-channel-access
                             {--business=all : business_id alvo (default: all)}
-                            {--dry-run : Só conta, não persiste}';
+                            {--dry-run : Só conta, não persiste}
+                            {--force : Re-concede mesmo a quem teve revoke HUMANO (ignora o tombstone). Só pra re-provisionamento intencional.}';
 
-    protected $description = 'Backfill channel_user_access pra users com whatsapp.send/access (idempotente)';
+    protected $description = 'Backfill channel_user_access pra users com whatsapp.send/access (idempotente, respeita revoke humano)';
 
     public function handle(): int
     {
         $businessOpt = (string) $this->option('business');
         $dryRun = (bool) $this->option('dry-run');
+        $force = (bool) $this->option('force');
 
         if ($dryRun) {
             $this->warn('[dry-run] Nenhuma row será persistida.');
@@ -86,16 +88,14 @@ class BackfillChannelAccessCommand extends Command
         $usersPerBusiness = [];
         $totalGranted = 0;
         $totalSkipped = 0;
+        $totalRespected = 0;
         $totalChannelsSkipped = 0;
 
         foreach ($channels as $channel) {
             /** @var Channel $channel */
             $bizId = (int) $channel->business_id;
 
-            if (! isset($usersPerBusiness[$bizId])) {
-                $usersPerBusiness[$bizId] = $this->fetchWhatsappUsers($bizId);
-            }
-
+            $usersPerBusiness[$bizId] ??= $this->fetchWhatsappUsers($bizId);
             $users = $usersPerBusiness[$bizId];
 
             if ($users->isEmpty()) {
@@ -114,6 +114,7 @@ class BackfillChannelAccessCommand extends Command
 
             $grantedNow = 0;
             $skippedNow = 0;
+            $respectedNow = 0;
 
             foreach ($users as $user) {
                 $userId = (int) $user->id;
@@ -133,6 +134,33 @@ class BackfillChannelAccessCommand extends Command
                 if ($existingActive) {
                     $skippedNow++;
                     continue;
+                }
+
+                // Causa-raiz do flip-flop (Wagner 2026-06-13 "removido/reativado por?"):
+                // conceder a TODO user com whatsapp.send/access DESFAZ revokes deliberados.
+                // Respeita o tombstone — se o ÚLTIMO registro do par foi revogado por um
+                // HUMANO (revoked_by_user_id > 0), NÃO re-concede (salvo --force). Sem
+                // active (já filtrado acima), o registro de maior id é o último estado.
+                if (! $force) {
+                    $latest = ChannelUserAccess::query()
+                        ->withoutGlobalScope(ScopeByBusiness::class)
+                        ->where('business_id', $bizId)
+                        ->where('channel_id', $channel->id)
+                        ->where('user_id', $userId)
+                        ->orderByDesc('id')
+                        ->first(['id', 'revoked_at', 'revoked_by_user_id']);
+
+                    if ($latest !== null
+                        && $latest->revoked_at !== null
+                        && (int) $latest->revoked_by_user_id > 0) {
+                        $respectedNow++;
+                        Log::info('[whatsapp.backfill_channel_access.respected_revoke]', [
+                            'business_id' => $bizId,
+                            'channel_id' => $channel->id,
+                            'user_id' => $userId,
+                        ]);
+                        continue;
+                    }
                 }
 
                 if (! $dryRun) {
@@ -155,36 +183,45 @@ class BackfillChannelAccessCommand extends Command
 
             $action = $dryRun ? 'would grant' : 'granted';
             $this->line(sprintf(
-                '  Canal #%d (biz=%d) "%s": %s %d user(s) · skipped %d (já ativos)',
+                '  Canal #%d (biz=%d) "%s": %s %d user(s) · skipped %d (já ativos) · %d respeitando revoke',
                 $channel->id,
                 $bizId,
                 $channel->label,
                 $action,
                 $grantedNow,
-                $skippedNow
+                $skippedNow,
+                $respectedNow
             ));
 
             $totalGranted += $grantedNow;
             $totalSkipped += $skippedNow;
+            $totalRespected += $respectedNow;
         }
 
         $this->newLine();
         $this->info(sprintf(
-            '✓ Resumo: %d canal(is) processado(s), %d canal(is) sem users elegíveis · %s %d grant(s) · %d já ativos',
+            '✓ Resumo: %d canal(is) processado(s), %d canal(is) sem users elegíveis · %s %d grant(s) · %d já ativos · %d respeitando revoke humano',
             $totalChannels - $totalChannelsSkipped,
             $totalChannelsSkipped,
             $dryRun ? 'WOULD grant' : 'granted',
             $totalGranted,
-            $totalSkipped
+            $totalSkipped,
+            $totalRespected
         ));
+
+        if ($totalRespected > 0 && ! $force) {
+            $this->comment("  ({$totalRespected} user(s) não re-grantado(s) por terem revoke humano — use --force pra re-provisionar.)");
+        }
 
         Log::info('[whatsapp.backfill_channel_access.completed]', [
             'business_filter' => $businessOpt,
             'dry_run' => $dryRun,
+            'force' => $force,
             'channels_total' => $totalChannels,
             'channels_skipped' => $totalChannelsSkipped,
             'grants_created' => $totalGranted,
             'grants_skipped_existing' => $totalSkipped,
+            'grants_respected_revoke' => $totalRespected,
         ]);
 
         return self::SUCCESS;

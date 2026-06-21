@@ -16,6 +16,7 @@ use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DreController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
+use Modules\Financeiro\Http\Controllers\ImpostosController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
 use Modules\Financeiro\Http\Controllers\ProvaVivaController;
@@ -131,6 +132,13 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Fluxo de caixa projetado — Cockpit V2 (US-FIN-014) — protótipo Cowork 2026-05-09
         // Q1-Q4 aprovadas [W] 2026-05-14. Read-only. Ver Index.charter.md + fluxo-visual-comparison.md.
         Route::get('/fluxo', [FluxoController::class, 'index'])->name('fluxo.index');
+
+        // Impostos & obrigações — F2 PR-2 ([W] 2026-06-10). Estimativa visual
+        // Simples Nacional regime caixa; apuração oficial = módulo Fiscal.
+        // 'Lançar a pagar' cria título payable no Unificado (idempotente por
+        // metadata.guia). Valor recalculado server-side (anti tampering).
+        Route::get('/impostos', [ImpostosController::class, 'index'])->name('impostos.index');
+        Route::post('/impostos/lancar', [ImpostosController::class, 'lancar'])->name('impostos.lancar');
 
         // Prova viva dos primitivos de layout (ADR 0253 — critério de pronto).
         // Read-only, dados MOCK no .tsx (prova de layout, não consulta DB).

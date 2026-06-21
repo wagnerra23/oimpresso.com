@@ -181,6 +181,12 @@
 - **Regra:** quando a melhor ação é **clara, reversível e não-Tier-0**, **faço direto** e reporto — sem opção. Só pergunto quando é genuinamente **subjetivo/Tier-0** (estética, estratégia, prioridade, dinheiro, lei) **ou** ambíguo de verdade. "Quer que eu…?" em ação óbvia = erro meu.
 - **Ref:** L-15 (auto-gerar ponte sem perguntar); CLAUDE.md zero-touch; ADR 0243 R8 (Tier-0 = [W]; resto [CC] age).
 
+## L-26 — Margem negativa no root de página AppShellV2 "cancelando" padding que o shell NÃO tem = tela cortada sob a sidebar
+- **Erro (2026-06-10):** `Board.tsx` (OficinaAuto) com `-m-6 min-h-[calc(100vh-3rem)]` no root, assumindo que o AppShellV2 envolve a página com `p-6` — mas `.main-body` (cockpit.css) é flex column **sem padding**, e a topbar 3rem está extinta (hideTopbar default desde 2026-05-17). Margem negativa em scroll container cria overflow **inalcançável** à esquerda/topo → header, KPIs e 1ª coluna do kanban permanentemente cortados sob a sidebar. Descoberto por **[W] na tela, de novo** (escape de mecanismo — nenhum guard pegou). Sweep achou o mesmo padrão órfão em **11 telas** (Cliente/*, Modules/Index, Sells/*, Vehicles/Index).
+- **Sintoma:** tela "não encaixa" / cortada sob a sidebar em produção; scrollbar horizontal no main-body; conteúdo inalcançável mesmo rolando. O protótipo Cowork estava certo — a divergência era no port.
+- **Regra:** página de AppShellV2 **NUNCA** usa margem negativa no root pra "cancelar" padding do shell — o `.main-body` **não tem padding**. Kanban/grid largo **SEMPRE** rola por dentro (wrapper `overflow-x-auto` + `repeat(n, minmax(Xpx, 1fr))`), nunca estoura o shell. Antes de assumir padding/altura do shell, **ler cockpit.css** (canon `.prod-kanban` do protótipo: oficina-page.css).
+- **Ref:** [memory/sessions/2026-06-10-board-oficina-corte.md](sessions/2026-06-10-board-oficina-corte.md); PR #2508 (fix + sweep 11 telas); cockpit.css l.145-190; canon `.prod-kanban` (prototipo-ui styles.css l.3798); L-24 (escape pego por [W], não por mecanismo).
+
 > 1ª aplicação do loop da camada 5. Cada lição classificada: **MEC** (vira check) ou **JULG** (vira regra-carregada) + destino + status. Achado: **a maioria já se graduou** sem o loop ser nomeado; o valor agora é fechar as **pendentes** e comprimir o resto.
 
 | L | Classe | Destino da graduação | Status |

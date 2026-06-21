@@ -42,7 +42,7 @@ it('creates kb_node for each mcp_memory_document of the business', function () {
     // Roda job
     $jobClass = guessKbBridgeJobClass();
     $job = new $jobClass(1);
-    $job->handle();
+    app()->call([$job, 'handle']);
 
     expect(\DB::table('kb_nodes')->count())->toBe(3);
 
@@ -58,7 +58,7 @@ it('updates existing kb_node when mcp_doc is updated', function () {
     $adrId = kbCreateMcpDoc(1, 'adr', ['slug' => '0149-kb', 'title' => 'Title V1']);
 
     $jobClass = guessKbBridgeJobClass();
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
 
     expect(\DB::table('kb_nodes')->where('source_doc_id', $adrId)->value('title'))->toBe('Title V1');
 
@@ -69,7 +69,7 @@ it('updates existing kb_node when mcp_doc is updated', function () {
     ]);
 
     // 2ª run do job atualiza (não duplica)
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
 
     expect(\DB::table('kb_nodes')->count())->toBe(1)
         ->and(\DB::table('kb_nodes')->where('source_doc_id', $adrId)->value('title'))->toBe('Title V2 (updated)');
@@ -83,7 +83,7 @@ it('sets is_editable=false for all bridge nodes (Tier 0 invariante)', function (
     kbCreateMcpDoc(1, 'runbook');
 
     $jobClass = guessKbBridgeJobClass();
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
 
     $editable = \DB::table('kb_nodes')->where('is_editable', true)->count();
     expect($editable)->toBe(0);
@@ -97,7 +97,7 @@ it('cascades mcp_doc soft-delete into kb_node status=deleted', function () {
     $docId = kbCreateMcpDoc(1, 'adr');
 
     $jobClass = guessKbBridgeJobClass();
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
 
     expect(\DB::table('kb_nodes')->where('source_doc_id', $docId)->value('status'))->toBe('ok');
 
@@ -107,7 +107,7 @@ it('cascades mcp_doc soft-delete into kb_node status=deleted', function () {
         'updated_at' => now()->addMinute(),
     ]);
 
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
 
     expect(\DB::table('kb_nodes')->where('source_doc_id', $docId)->value('status'))->toBe('deleted');
 });
@@ -129,7 +129,7 @@ it('derives supersedes edges from frontmatter metadata', function () {
     ]);
 
     $jobClass = guessKbBridgeJobClass();
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
 
     // Espera edge `supersedes` from=newNode to=oldNode
     $newNodeId = \DB::table('kb_nodes')->where('source_doc_id', $newAdrId)->value('id');
@@ -151,9 +151,9 @@ it('is idempotent (run 2x does not duplicate)', function () {
     kbCreateMcpDoc(1, 'session');
 
     $jobClass = guessKbBridgeJobClass();
-    (new $jobClass(1))->handle();
-    (new $jobClass(1))->handle();
-    (new $jobClass(1))->handle();
+    app()->call([new $jobClass(1), 'handle']);
+    app()->call([new $jobClass(1), 'handle']);
+    app()->call([new $jobClass(1), 'handle']);
 
     expect(\DB::table('kb_nodes')->count())->toBe(2);
 });
@@ -165,7 +165,7 @@ it('respects business scope (biz=1 NAO toca docs biz=99)', function () {
     kbCreateMcpDoc(99, 'adr');
 
     $jobClass = guessKbBridgeJobClass();
-    (new $jobClass(1))->handle();  // só biz=1
+    app()->call([new $jobClass(1), 'handle']);  // só biz=1
 
     expect(\DB::table('kb_nodes')->count())->toBe(1)
         ->and(\DB::table('kb_nodes')->where('business_id', 99)->count())->toBe(0);

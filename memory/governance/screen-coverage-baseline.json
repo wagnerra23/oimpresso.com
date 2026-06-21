@@ -3,9 +3,9 @@
   "aggregates": {
     "total": 275,
     "charter": 132,
-    "e2e": 3,
-    "a11y": 0,
-    "scorecard": 222
+    "e2e": 4,
+    "a11y": 1,
+    "scorecard": 218
   },
   "by_module": {
     "Admin": {
@@ -23,11 +23,11 @@
       "scorecard": 19
     },
     "Atendimento": {
-      "total": 9,
-      "charter": 6,
+      "total": 8,
+      "charter": 5,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 9
+      "scorecard": 8
     },
     "Auditoria": {
       "total": 2,
@@ -72,8 +72,8 @@
       "scorecard": 13
     },
     "Financeiro": {
-      "total": 23,
-      "charter": 12,
+      "total": 26,
+      "charter": 14,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 19
@@ -86,8 +86,8 @@
       "scorecard": 7
     },
     "governance": {
-      "total": 6,
-      "charter": 6,
+      "total": 7,
+      "charter": 7,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 6
@@ -100,11 +100,11 @@
       "scorecard": 1
     },
     "Jana": {
-      "total": 17,
+      "total": 16,
       "charter": 8,
-      "e2e": 1,
+      "e2e": 0,
       "a11y": 0,
-      "scorecard": 11
+      "scorecard": 10
     },
     "kb": {
       "total": 3,
@@ -137,8 +137,8 @@
     "NfeBrasil": {
       "total": 6,
       "charter": 4,
-      "e2e": 0,
-      "a11y": 0,
+      "e2e": 1,
+      "a11y": 1,
       "scorecard": 6
     },
     "Nfse": {
@@ -149,11 +149,11 @@
       "scorecard": 3
     },
     "OficinaAuto": {
-      "total": 11,
-      "charter": 11,
+      "total": 9,
+      "charter": 9,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 10
+      "scorecard": 8
     },
     "Ponto": {
       "total": 22,
@@ -200,7 +200,7 @@
     "Sells": {
       "total": 8,
       "charter": 8,
-      "e2e": 1,
+      "e2e": 2,
       "a11y": 0,
       "scorecard": 8
     },

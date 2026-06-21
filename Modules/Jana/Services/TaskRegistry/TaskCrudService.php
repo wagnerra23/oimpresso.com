@@ -34,10 +34,10 @@ class TaskCrudService
      * @param  array<string,mixed> $fields
      * @return array{task: McpTask, events: list<McpTaskEvent>}
      */
-    public function update(string $taskId, array $fields, string $author = 'system'): array
+    public function update(string $taskId, array $fields, string $author = 'system', ?string $principal = null): array
     {
-        return OtelHelper::spanBiz('project_mgmt.task_crud.update', function () use ($taskId, $fields, $author): array {
-            return $this->updateInner($taskId, $fields, $author);
+        return OtelHelper::spanBiz('project_mgmt.task_crud.update', function () use ($taskId, $fields, $author, $principal): array {
+            return $this->updateInner($taskId, $fields, $author, $principal);
         }, [
             'module'      => 'ProjectMgmt',
             'task_id'     => $taskId,
@@ -52,9 +52,25 @@ class TaskCrudService
      * @param  array<string,mixed> $fields
      * @return array{task: McpTask, events: list<McpTaskEvent>}
      */
-    protected function updateInner(string $taskId, array $fields, string $author = 'system'): array
+    protected function updateInner(string $taskId, array $fields, string $author = 'system', ?string $principal = null): array
     {
-        $task = $this->findTaskOrFail($taskId);
+        // Fase 2b (ADR 0278) — mutação ATÔMICA: transação + lock de linha fecham o
+        // lost-update (2 agentes na mesma task → last-write-wins silencioso = a causa
+        // literal do "a lista fura"). lockForUpdate serializa writers no MySQL; no
+        // sqlite da lane per-PR é no-op seguro (writes já são serializados).
+        return DB::transaction(fn (): array => $this->applyLockedUpdate($taskId, $fields, $author, $principal));
+    }
+
+    /**
+     * Corpo do update sob lock pessimista — chamado SEMPRE dentro de DB::transaction
+     * (por updateInner). O lockForUpdate de findTaskOrFail só tem efeito aqui dentro.
+     *
+     * @param  array<string,mixed> $fields
+     * @return array{task: McpTask, events: list<McpTaskEvent>}
+     */
+    protected function applyLockedUpdate(string $taskId, array $fields, string $author, ?string $principal = null): array
+    {
+        $task = $this->findTaskOrFail($taskId, forUpdate: true);
 
         $allowed = [
             'status', 'owner', 'sprint', 'priority',
@@ -62,8 +78,27 @@ class TaskCrudService
             'type', 'story_points', 'estimate_unit', 'estimate_value',
             'estimate_h', 'due_date', 'labels', 'custom_fields',
             'title', 'description', 'module',
+            'acceptance_ref',
         ];
         $events = [];
+
+        // A5 (ADR 0278 Fase 2) — instrumenta o SINAL de mutação CLAIM-LESS: o mutador
+        // (principal do TOKEN, não o $author auto-declarado/spoofável) não segura o lease
+        // ativo da task. SOFT — só evento de AVISO, sem throw. O hard-gate (A7) é
+        // signal-gated (espera o sinal acumular, ADR 0105). $principal null = caller de
+        // sistema/bulk → sem sinal. Degrada gracioso se mcp_work_leases não migrou.
+        if ($principal !== null && \Illuminate\Support\Facades\Schema::hasTable('mcp_work_leases')) {
+            $lease = app(\Modules\Jana\Services\WorkLease\WorkLeaseService::class)->activeLeaseFor($taskId);
+            $leaseHolder = $lease ? data_get($lease, 'human_principal') : null;
+            if ($leaseHolder !== $principal) {
+                $events[] = McpTaskEvent::log(
+                    taskId: $task->task_id,
+                    eventType: 'field_updated',
+                    author: $author,
+                    note: "AVISO Fase 2 (ADR 0278): mutação SEM lease ativo do mutador ({$principal}) — claim antes de pegar (tasks-claim). Hard-gate A7 é signal-gated.",
+                );
+            }
+        }
 
         foreach ($fields as $field => $newVal) {
             if (! in_array($field, $allowed, true)) {
@@ -85,11 +120,37 @@ class TaskCrudService
 
             // Side-effects: started_at / completed_at autopopulate
             if ($field === 'status') {
+                // FSM mcp_tasks (ADR 0070) — barra transição ilegal ANTES de qualquer
+                // side-effect/assignment. Fecha o "teleport" todo→done (matriz tinha 0
+                // leitores). Throw dentro da DB::transaction => rollback automático.
+                $fromStatus = (string) $task->status;
+                $toStatus = (string) $newVal;
+                if (! McpTask::canTransition($fromStatus, $toStatus)) {
+                    throw new \RuntimeException(
+                        "Transição ilegal {$fromStatus} → {$toStatus} (FSM mcp_tasks). Permitidas: "
+                        . implode(', ', McpTask::TRANSITIONS[$fromStatus])
+                    );
+                }
+
                 if ($newVal === 'doing' && ! $task->started_at) {
                     $task->started_at = now();
                 }
                 if (in_array($newVal, ['done', 'cancelled'], true) && ! $task->completed_at) {
                     $task->completed_at = now();
+                }
+
+                // Fase 2 (ADR 0278) — consumer SOFT: fechar (done) sem prova de DoD
+                // vira evento de AVISO auditável. NÃO throw — o hard-gate é a Fase 3
+                // (deferida até o lease provar valor, ADR 0105).
+                if ($newVal === 'done'
+                    && empty($fields['acceptance_ref'])
+                    && empty($task->getAttribute('acceptance_ref'))) {
+                    $events[] = McpTaskEvent::log(
+                        taskId: $task->task_id,
+                        eventType: 'field_updated',
+                        author: $author,
+                        note: 'AVISO Fase 2 (ADR 0278): movida pra done SEM acceptance_ref — DoD não comprovado. Hard-gate (Fase 3) vai barrar.',
+                    );
                 }
             }
 
@@ -327,11 +388,15 @@ class TaskCrudService
 
     // ---------- helpers ----------
 
-    protected function findTaskOrFail(string $taskId): McpTask
+    protected function findTaskOrFail(string $taskId, bool $forUpdate = false): McpTask
     {
-        $task = McpTask::where('task_id', strtoupper($taskId))->first()
-            ?? McpTask::where('task_id', $taskId)->first()
-            ?? McpTask::where('identifier', strtoupper($taskId))->first();
+        // forUpdate=true só dentro de DB::transaction (applyLockedUpdate) — pega lock
+        // pessimista de linha pra fechar o lost-update. Builder novo por tentativa.
+        $q = fn () => $forUpdate ? McpTask::query()->lockForUpdate() : McpTask::query();
+
+        $task = $q()->where('task_id', strtoupper($taskId))->first()
+            ?? $q()->where('task_id', $taskId)->first()
+            ?? $q()->where('identifier', strtoupper($taskId))->first();
 
         if (! $task) {
             throw new \RuntimeException("Task '{$taskId}' não encontrada.");
@@ -466,7 +531,9 @@ class TaskCrudService
         $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
         if (is_file($specPath)) {
             $content = (string) @file_get_contents($specPath);
-            if (preg_match('/^###\s+US-([A-Z]+)-\d+/m', $content, $m)) {
+            // #{2,4}: SPECs variam entre ### e #### por US (Cms usa ####); o parser
+            // canônico (US_HEADING_REGEX) usa #{2,4}, então casamos igual.
+            if (preg_match('/^#{2,4}\s+US-([A-Z]+)-\d+/m', $content, $m)) {
                 return $m[1]; // ex: "RB", "NFE", "COPI"
             }
         }
@@ -478,29 +545,64 @@ class TaskCrudService
         $prefix = $this->detectarPrefixoSpec($module);
         $prefixo = "US-{$prefix}-";
 
-        $ultimoDb = McpTask::where('task_id', 'LIKE', $prefixo . '%')
-            ->orderByRaw('CAST(SUBSTRING(task_id, ' . (strlen($prefixo) + 1) . ') AS UNSIGNED) DESC')
-            ->value('task_id');
-        $nDb = $ultimoDb ? (int) substr($ultimoDb, strlen($prefixo)) : 0;
+        // max(DB, SPEC) cobre os 2 sentidos de drift:
+        //   - DB ATRÁS do SPEC: webhook ainda não rodou pro último push, OU o
+        //     operador escreveu US-XX-NNN à mão no SPEC.
+        //   - DB À FRENTE do SPEC: row órfã criada direto no DB / ad-hoc que nunca
+        //     entrou no SPEC. Incidente US-RB-052 (2026-06-20): wagner criou a row
+        //     em 2026-05-16 fora do SPEC; reusar o 052 fez o webhook sync casar por
+        //     task_id e UPDATE-ar a órfã (ADR 0144), sobrescrevendo title/description
+        //     em silêncio. Triagem das órfãs já existentes: `mcp:tasks:orphans`.
+        $n = max($this->maiorSequencialNoDb($prefixo), $this->maiorSequencialNoSpec($module, $prefixo)) + 1;
 
-        // Cobre o caso DB out-of-sync: webhook ainda não rodou pro último push
-        // OU o operador escreveu US-RB-NNN à mão no SPEC. Pegamos max(DB, SPEC).
-        // Captura 2 formatos (ADR 0134):
-        //   1. "### US-XX-NNN ·" (story detalhada — section header)
-        //   2. "- US-XX-NNN —" (placeholder em out-of-scope ou backlog futuro)
-        // Antes só pegava headers → 2026-05-11 deu drift em US-WA-053 (placeholder
-        // bullet no SPEC.md Whatsapp linha 572 colidiu com tasks-create).
-        $nSpec = 0;
+        // Guarda final de colisão: garante por CONSTRUÇÃO que o ID gerado não existe
+        // no DB. A aritmética acima pode ser furada por buraco de numeração ou
+        // mismatch de prefixo, e confirmar é barato. Avança até achar um slot livre —
+        // IDs nunca são reciclados (nem de tasks cancelled/done).
+        do {
+            $taskId = $prefixo . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
+            $n++;
+        } while (McpTask::where('task_id', $taskId)->exists());
+
+        return $taskId;
+    }
+
+    /**
+     * Maior NNN já presente no DB pro prefixo — inclui rows órfãs criadas direto
+     * no DB / ad-hoc que nunca entraram no SPEC, e tasks cancelled/done (IDs não
+     * são reciclados). Calcula o max em PHP (não em SQL) pra ser portável entre
+     * MySQL e SQLite: o `CAST(SUBSTRING(...) AS UNSIGNED)` anterior era MySQL-only,
+     * o que deixava esta lógica sem cobertura de teste no CI sqlite.
+     */
+    protected function maiorSequencialNoDb(string $prefixo): int
+    {
+        $len = strlen($prefixo);
+
+        return (int) McpTask::where('task_id', 'LIKE', $prefixo . '%')
+            ->pluck('task_id')
+            ->map(fn (string $id): int => (int) substr($id, $len))
+            ->max();
+    }
+
+    /**
+     * Maior NNN declarado no SPEC.md pro prefixo. Captura 2 formatos (ADR 0134):
+     *   1. "### US-XX-NNN ·" (story detalhada — section header)
+     *   2. "- US-XX-NNN —"   (placeholder em out-of-scope ou backlog futuro)
+     * Antes só pegava headers → 2026-05-11 deu drift em US-WA-053 (placeholder
+     * bullet no SPEC.md Whatsapp colidiu com tasks-create).
+     */
+    protected function maiorSequencialNoSpec(string $module, string $prefixo): int
+    {
         $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
-        if (is_file($specPath)) {
-            $content = (string) @file_get_contents($specPath);
-            if (preg_match_all('/(?:^###|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
-                $nSpec = max(array_map('intval', $matches[1]));
-            }
+        if (! is_file($specPath)) {
+            return 0;
         }
-
-        $n = max($nDb, $nSpec) + 1;
-        return $prefixo . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
+        $content = (string) @file_get_contents($specPath);
+        // #{2,4} cobre ### E #### (Cms usa ####) — idem US_HEADING_REGEX do parser.
+        if (preg_match_all('/(?:^#{2,4}|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
+            return max(array_map('intval', $matches[1]));
+        }
+        return 0;
     }
 
     protected function stringValue(mixed $v): string

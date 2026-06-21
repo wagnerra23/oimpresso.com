@@ -3,9 +3,9 @@ page: /recurring-billing/configuracoes
 component: resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-17
+last_validated: "2026-05-17"
 parent_module: RecurringBilling
-related_adrs: [0093, 0094, 0101, 0104, 0107, 0110, 0114, 0143]
+related_adrs: [93, 94, 101, 104, 107, 110, 114, 143]
 tier: A
 charter_version: 1
 visual_source: prototipo-ui/prototipos/recurring/recurring-page.jsx (tab Configurações — Onda 8)

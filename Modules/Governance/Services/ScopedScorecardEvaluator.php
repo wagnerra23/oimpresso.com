@@ -392,6 +392,56 @@ class ScopedScorecardEvaluator
     }
 
     /**
+     * glob com expansão de chaves `{a,b}` resiliente a plataformas sem GLOB_BRACE.
+     *
+     * A imagem de teste do nightly (oimpresso/mcp, base Alpine/musl) NÃO define a
+     * constante GLOB_BRACE — `glob($p, GLOB_BRACE)` lançava Error "Undefined constant
+     * GLOB_BRACE" e derrubava detects do Module Grade v4 (triage Q2 2026-06-13). Onde
+     * a constante existe (glibc/dev/CI), o comportamento é idêntico ao anterior; onde
+     * não existe, a expansão de chaves é feita manualmente (mesmo resultado, sem fatal).
+     *
+     * @return list<string>
+     */
+    private function globBrace(string $pattern): array
+    {
+        if (defined('GLOB_BRACE')) {
+            return glob($pattern, GLOB_BRACE) ?: [];
+        }
+        if (! str_contains($pattern, '{') || ! str_contains($pattern, '}')) {
+            return glob($pattern) ?: [];
+        }
+        $files = [];
+        foreach (self::expandBraces($pattern) as $expanded) {
+            foreach (glob($expanded) ?: [] as $f) {
+                $files[$f] = true;
+            }
+        }
+        return array_keys($files);
+    }
+
+    /**
+     * Expande chaves de glob `{a,b,c}` (recursivo; múltiplas/aninhadas) — polyfill de
+     * GLOB_BRACE pra musl. Ex: `a/{x,y}/*.php` → [`a/x/*.php`, `a/y/*.php`].
+     *
+     * @return list<string>
+     */
+    private static function expandBraces(string $pattern): array
+    {
+        if (! preg_match('/\{([^{}]*)\}/', $pattern, $m, PREG_OFFSET_CAPTURE)) {
+            return [$pattern];
+        }
+        $pre  = substr($pattern, 0, $m[0][1]);
+        $post = substr($pattern, $m[0][1] + strlen($m[0][0]));
+        $out = [];
+        foreach (explode(',', $m[1][0]) as $alt) {
+            foreach (self::expandBraces($pre . $alt . $post) as $expanded) {
+                $out[] = $expanded;
+            }
+        }
+        return $out;
+    }
+
+    /**
      * grep — match regex em todos arquivos do path (glob).
      */
     public function detectGrep(string $module, array $detect): bool
@@ -399,7 +449,7 @@ class ScopedScorecardEvaluator
         $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
         $expect = (string) ($detect['expect'] ?? '');
         $target = (int) ($detect['coverage_target'] ?? 1);
-        $files = glob(base_path($path), GLOB_BRACE) ?: [];
+        $files = $this->globBrace(base_path($path));
         $matches = 0;
         foreach ($files as $f) {
             if (! is_file($f)) continue;
@@ -432,8 +482,8 @@ class ScopedScorecardEvaluator
      */
     public function detectRatio(string $module, array $detect): bool
     {
-        $num = glob(base_path($this->resolveModulePath($module, (string) ($detect['numerator'] ?? ''))), GLOB_BRACE) ?: [];
-        $den = glob(base_path($this->resolveModulePath($module, (string) ($detect['denominator'] ?? ''))), GLOB_BRACE) ?: [];
+        $num = $this->globBrace(base_path($this->resolveModulePath($module, (string) ($detect['numerator'] ?? ''))));
+        $den = $this->globBrace(base_path($this->resolveModulePath($module, (string) ($detect['denominator'] ?? ''))));
         $target = (float) ($detect['coverage_target'] ?? 1);
         $denCount = max(count($den), 1);
         return (count($num) / $denCount) >= $target;
@@ -463,7 +513,7 @@ class ScopedScorecardEvaluator
         $path = $this->resolveModulePath($module, (string) ($detect['path'] ?? ''));
         $expect = (string) ($detect['expect'] ?? '');
         $coverageTarget = (float) ($detect['coverage_target'] ?? 1);
-        $files = glob(base_path($path), GLOB_BRACE) ?: [];
+        $files = $this->globBrace(base_path($path));
 
         if (empty($files)) {
             // Sem files = N/A se justificado; senão false
@@ -545,7 +595,7 @@ class ScopedScorecardEvaluator
         $assertion = (string) ($detect['assertion'] ?? '');
         $target = (int) ($detect['coverage_target'] ?? 1);
 
-        $files = glob(base_path($path), GLOB_BRACE) ?: [];
+        $files = $this->globBrace(base_path($path));
         $hits = 0;
         foreach ($files as $f) {
             if (! is_file($f)) continue;

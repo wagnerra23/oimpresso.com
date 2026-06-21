@@ -1,0 +1,8 @@
+{
+  "nota": "baseline da fixture boa — bate com a medição (1 quarentena com razão · 1 RefreshDatabase · 1 Business::first)",
+  "counters": {
+    "n_quarantine": 1,
+    "n_refresh_database": 1,
+    "n_business_first": 1
+  }
+}

@@ -3,10 +3,10 @@ page: /financeiro/extrato/{contaId}
 component: resources/js/Pages/Financeiro/Extrato/Index.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-07
+last_validated: "2026-05-07"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
-related_adrs: [0101]
+related_adrs: [101]
 tier: A
 charter_version: 1
 ---

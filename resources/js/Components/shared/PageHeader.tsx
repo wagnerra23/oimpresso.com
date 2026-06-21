@@ -6,6 +6,13 @@ import { cn } from '@/Lib/utils';
 /**
  * PageHeader — cabeçalho padronizado de tela operacional.
  *
+ * @deprecated CONGELADO em migração F4 (MANUAL-CSS-JS.md §5) — tela NOVA usa o canon
+ * `@/Components/PageHeader` (v3.8 flat 3 zonas · ADR 0189/0190). O ratchet
+ * `pageheader-gate` (config/pageheader-shared-baseline.json) falha o CI se uma tela
+ * nova importar este arquivo. Tela EXISTENTE migra o header no mesmo PR em que for
+ * tocada (aprovação visual por tela). Este arquivo só é deletado quando o contador
+ * zerar — até lá segue funcional pras ~104 telas atuais.
+ *
  * Layout:
  *   [icon] Titulo grande [⌄ moduleNav]      [slot action]
  *          Descricao opcional abaixo

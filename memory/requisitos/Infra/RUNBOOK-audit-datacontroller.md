@@ -40,7 +40,7 @@ Qualquer `-` em `DC` ou `menu` = módulo invisível mesmo se instalado.
 ## Como aplicar
 
 - **Antes de declarar módulo como "instalado/funcionando"**: SEMPRE checar `Modules/<Nome>/Http/Controllers/DataController.php` existe E tem `user_permissions()` E `modifyAdminMenu()`.
-- **Pra criar DataController novo**: usar `Modules/PontoWr2/` ou `Modules/Crm/` como template (foram refatorados em 2026-04-25 e estão limpos).
+- **Pra criar DataController novo**: usar `Modules/Ponto/` ou `Modules/Crm/` como template (foram refatorados em 2026-04-25 e estão limpos).
 - **Permissions Spatie**: `user_permissions()` no DataController só **DECLARA** pro UltimatePOS UI; ainda precisa SEEDER (`Permission::firstOrCreate(['name' => 'x.y.z', 'guard_name' => 'web'])`) pra Spatie reconhecer no `can:'x.y.z'` do Blade/middleware.
 - **Wire seeder no Install**: sobrescrever `postInstallCommand()` no `InstallController` retornando `'<modulo>:seed-permissions'` (Artisan command custom). Pattern do `Modules/Financeiro/`.
 - **Audit periódico**: rodar a receita acima toda vez que adicionar módulo novo, OU integrar em CI como sanity check.

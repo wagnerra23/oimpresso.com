@@ -11,8 +11,9 @@
 // Empty state quando thread=null (mantém UX Cockpit V2 do legacy Inbox).
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCheck, ClipboardCheck } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCheck, PanelRight, Star } from 'lucide-react';
 import { cn } from '@/Lib/utils';
+import { Stack } from '@/Components/layout';
 import {
   type CaixaUnifMessage,
   type CaixaUnifThread,
@@ -20,19 +21,32 @@ import {
   initials,
   avatarHue,
   dayGroupLabel,
+  slaState,
+  slaWaitedMin,
+  slaWaitedShort,
+  SLA_META,
 } from './helpers';
 import ComposerV4 from './ComposerV4';
+import { useInboxFavs } from './useInboxFavs';
 import CaptureFeedbackSheet, { type CaptureFeedbackInput } from '@/Pages/Whatsapp/_components/CaptureFeedbackSheet';
+import MediaFullscreenModal from '@/Pages/Whatsapp/_components/MediaFullscreenModal';
+import type { ReadyTemplate } from '@/Pages/Whatsapp/_components/helpers';
+import MsgComments from './MsgComments';
+import { useMsgComments } from './useMsgComments';
 
 interface Props {
   thread: CaixaUnifThread;
   messages: CaixaUnifMessage[];
   channels: ChannelCatalogItem[];
   onResolve?: () => void;
+  /** Contexto-drawer ([W] 2026-06-19) — abre o painel de Contexto como drawer lateral. */
+  onOpenContext?: () => void;
+  /** US-WA-303 — templates ready do business (picker do composer). */
+  templates?: ReadyTemplate[];
 }
 
 export default function ConversationThreadV4({
-  thread, messages, channels, onResolve,
+  thread, messages, channels, onResolve, onOpenContext, templates = [],
 }: Props) {
   const threadRef = useRef<HTMLDivElement>(null);
 
@@ -60,6 +74,29 @@ export default function ConversationThreadV4({
     [channels, thread.channel_type],
   );
 
+  // Polish V2 §4 — lightbox in-app (MediaFullscreenModal reusado) em vez de window.open
+  const imageMessages = useMemo(
+    () => messages.filter(m => m.type === 'image' && m.media_url),
+    [messages],
+  );
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // T2 (handoff 2026-06-19) — favoritos da thread (localStorage, port inbox-cur)
+  const { isFav, toggleFav } = useInboxFavs();
+
+  // T1 — IA (Resumir/Perguntar) movida pro ContextSidebarV4 (seção Inteligência)
+
+  // Polish V2 §1 — SLA no header (direção da última msg não-nota vem das messages)
+  const lastRealMsg = useMemo(
+    () => [...messages].reverse().find(m => !m.is_internal_note),
+    [messages],
+  );
+  const headerSla = slaState({
+    last_message_direction: lastRealMsg?.direction ?? null,
+    last_inbound_at: thread.last_inbound_at,
+    queue: thread.queue,
+  });
+
   // Auto-scroll para baixo no mount + nova msg
   useEffect(() => {
     if (threadRef.current) {
@@ -70,13 +107,20 @@ export default function ConversationThreadV4({
   const isPreview = thread.preview_only;
   const isBlocked = thread.is_blocked;
 
+  // Notas internas por-mensagem (port inbox-cur) — localStorage per-user, "só equipe vê".
+  const msgComments = useMsgComments(thread.id);
+
   return (
     // Fix scroll incident 2026-05-28: era <main> sem h-full → <main> aninhado dentro
     // do <main> do AppShellV2 (HTML5 inválido) + filho overflow-auto sem altura de
     // referência → conteúdo empurrava layout 375px além viewport → `.cockpit` ancestor
     // tem overflow:hidden → cortado sem scrollbar. Fix: <div> semântico + h-full.
     <div
-      className="flex flex-col bg-muted/15 min-h-0 min-w-0 h-full"
+      // Fundo da thread: token neutro `bg-muted` (flipa nativo light/dark pelos tokens
+      // canônicos — ADR 0281). Antes usava `bg-[oklch(0.97 0.013 145)]` (cor crua
+      // arbitrária — viola "cor = token") + `dark:bg-muted/15`, par que não flipava no
+      // toggle sem F5. Token único resolve a regra e o flip de uma vez.
+      className="flex flex-col bg-muted/30 min-h-0 min-w-0 h-full"
       aria-label="Thread da conversa"
       role="region"
     >
@@ -130,11 +174,59 @@ export default function ConversationThreadV4({
             )}
           </div>
         </div>
+        {/* Onda 2 — pill SLA no header: 4 estados (fresh/aging/late/expired) +
+            dot animado (pulsa em aging/late/expired) + tempo esperando. */}
+        {headerSla && (() => {
+          const m = SLA_META[headerSla];
+          const waited = slaWaitedMin({
+            last_message_direction: lastRealMsg?.direction ?? null,
+            last_inbound_at: thread.last_inbound_at,
+          });
+          return (
+            <span
+              className={cn('ml-auto inline-block font-mono text-[9.5px] font-bold px-2 py-px rounded-full border flex-shrink-0', m.pill)}
+              title={`SLA ${thread.queue.sla} da fila ${thread.queue.label} — ${m.label}`}
+              data-testid="caixa-unif-thread-sla"
+            >
+              <span className={cn('inline-block w-1.5 h-1.5 rounded-full align-middle mr-1', m.dot, m.pulse && 'animate-pulse')} aria-hidden />
+              {m.label}{waited != null ? ` ${slaWaitedShort(waited)}` : ''}
+            </span>
+          );
+        })()}
+        {/* T1 — Resumir/Perguntar movidos pro Contexto (seção Inteligência) */}
+        {/* T2 — Favoritar (estrela no header · port inbox-cur · protótipo .om-fav-btn-h) */}
+        <button
+          type="button"
+          onClick={() => toggleFav(thread.id)}
+          className={cn(
+            'inline-flex items-center px-2 py-1 rounded transition-colors flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted',
+            headerSla === null && 'ml-auto',
+          )}
+          style={isFav(thread.id) ? { color: 'oklch(0.78 0.15 80)' } : undefined}
+          title={isFav(thread.id) ? 'Remover dos favoritos' : 'Favoritar conversa'}
+          aria-label={isFav(thread.id) ? 'Remover dos favoritos' : 'Favoritar conversa'}
+          aria-pressed={isFav(thread.id)}
+          data-testid="caixa-unif-thread-fav"
+        >
+          <Star size={13} fill={isFav(thread.id) ? 'currentColor' : 'none'} aria-hidden />
+        </button>
+        {/* Contexto-drawer — abre o painel de Contexto (some a coluna fixa · [W] 2026-06-19) */}
+        {onOpenContext && (
+          <button
+            type="button"
+            onClick={onOpenContext}
+            className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
+            title="Ver contexto da conversa"
+            data-testid="caixa-unif-ctx-open"
+          >
+            <PanelRight size={12} aria-hidden /> Contexto
+          </button>
+        )}
         {!isPreview && !isBlocked && onResolve && (
           <button
             type="button"
             onClick={onResolve}
-            className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors flex-shrink-0"
             data-testid="caixa-unif-resolve-btn"
           >
             <Check size={12} aria-hidden /> Resolver
@@ -145,27 +237,18 @@ export default function ConversationThreadV4({
       {/* Banner "em homologação" pra canal preview (Cowork .om-preview-banner — tokens OKLCH §467) */}
       {isPreview && channel && (
         <div
-          className="mx-4 mt-2.5 px-3.5 py-2.5 rounded-lg text-[11.5px] flex flex-col gap-0.5"
-          style={{
-            background: 'oklch(0.97 0.013 80)',
-            border: '1px solid oklch(0.88 0.04 80)',
-            color: 'oklch(0.32 0.06 80)',
-          }}
+          className="mx-4 mt-2.5 px-3.5 py-2.5 rounded-lg text-[11.5px] flex flex-col gap-0.5 bg-warning-soft border border-warning/25"
           role="status"
           data-testid="caixa-unif-preview-banner"
         >
-          <b
-            className="block text-[12.5px] font-semibold"
-            style={{ color: 'oklch(0.28 0.10 80)' }}
-          >
+          <b className="block text-[12.5px] font-semibold text-warning-fg">
             {channel.label} · em homologação.
           </b>
           <span>
             Conexão deste canal ainda não foi ativada. Esta conversa é uma prévia.{' '}
             <a
               href={route('atendimento.channels.index')}
-              className="underline"
-              style={{ color: 'oklch(0.40 0.13 250)' }}
+              className="underline text-info"
             >
               Ativar canal
             </a>
@@ -176,11 +259,11 @@ export default function ConversationThreadV4({
       {/* Banner contato bloqueado */}
       {isBlocked && (
         <div
-          className="mx-4 mt-2.5 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-md text-[11.5px] text-red-900"
+          className="mx-4 mt-2.5 px-3.5 py-2.5 bg-destructive-soft border border-destructive/20 rounded-md text-[11.5px] text-destructive-fg"
           role="status"
           data-testid="caixa-unif-blocked-banner"
         >
-          <b className="block text-[12.5px] font-semibold text-red-950">
+          <b className="block text-[12.5px] font-semibold text-destructive-fg">
             Contato bloqueado.
           </b>
           <span>Mensagens deste número são descartadas. Desbloqueie pelo painel de Contexto.</span>
@@ -190,7 +273,7 @@ export default function ConversationThreadV4({
       {/* Mensagens */}
       <div
         ref={threadRef}
-        className="flex-1 overflow-auto p-4 flex flex-col gap-1"
+        className="flex-1 overflow-auto cw-scroll-thin p-4 flex flex-col gap-1"
         data-testid="caixa-unif-messages"
       >
         {messages.length === 0 ? (
@@ -201,7 +284,12 @@ export default function ConversationThreadV4({
           messages.map((m, i) => {
             const showDay = i === 0 || dayGroupLabel(messages[i - 1]!.created_at) !== dayGroupLabel(m.created_at);
             return (
-              <div key={m.id}>
+              // Stack (flex-col · primitivo DS ADR 0253 · canon Cowork `.om-msg-wrap`):
+              // sem pai flex o `self-start/self-end` + `ml-auto/mr-auto` da linha da
+              // bolha vira no-op e as enviadas (outbound) encostavam à esquerda junto
+              // das recebidas. Stack faz inbound→esquerda, outbound→direita.
+              // gap={0}: espaçamento vem do `gap-1` do container + `my-3` do dia.
+              <Stack key={m.id} gap={0} className="group/msg">
                 {showDay && (
                   <div className="text-center my-3">
                     <span className="bg-card border rounded-full px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
@@ -210,44 +298,29 @@ export default function ConversationThreadV4({
                   </div>
                 )}
                 {m.is_internal_note ? (
-                  // Cowork .om-internal — tokens OKLCH §525 (amarelo-pastel + dashed)
-                  <div
-                    className="self-center w-[92%] max-w-[560px] mx-auto my-1 rounded-lg px-3 py-2"
-                    style={{
-                      background: 'oklch(0.97 0.03 80)',
-                      border: '1px dashed oklch(0.78 0.10 80)',
-                    }}
-                  >
+                  // Cowork .om-internal — âmbar-pastel + dashed. Dark-aware via tokens
+                  // semânticos warning-soft/warning-fg (flipam no .dark); o corpo usa
+                  // text-foreground pra manter contraste nos 2 temas (erradicado o
+                  // "miolo branco no escuro" — mesma disciplina Produtos/Oficina/Fin).
+                  <div className="self-center w-[92%] max-w-[560px] mx-auto my-1 rounded-lg px-3 py-2 bg-warning-soft border border-dashed border-warning/40">
                     <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="text-[9.5px] uppercase tracking-[0.06em] font-semibold px-1.5 py-px rounded-full"
-                        style={{
-                          color: 'oklch(0.28 0.12 80)',
-                          background: 'oklch(0.90 0.08 80)',
-                        }}
-                      >
+                      <span className="text-[9.5px] uppercase tracking-[0.06em] font-semibold px-1.5 py-px rounded-full text-warning-fg bg-warning/20">
                         Nota interna
                       </span>
-                      <small
-                        className="text-[10px] font-mono"
-                        style={{ color: 'oklch(0.45 0.06 80)' }}
-                      >
+                      <small className="text-[10px] font-mono text-warning-fg/70">
                         {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} ·
                         {m.sender_user_name ? ` ${m.sender_user_name} · ` : ' '}
                         só a equipe vê
                       </small>
                     </div>
-                    <div
-                      className="text-[12.5px] whitespace-pre-wrap leading-[1.45]"
-                      style={{ color: 'oklch(0.22 0.10 80)' }}
-                    >
+                    <div className="text-[12.5px] whitespace-pre-wrap leading-[1.45] text-foreground">
                       {m.body}
                     </div>
                   </div>
                 ) : (
                   <div
                     className={cn(
-                      'group/bubble inline-flex items-start gap-1.5 max-w-[78%]',
+                      'group/bubble inline-flex items-start gap-1.5 max-w-[68%]',
                       m.direction === 'inbound' ? 'self-start mr-auto' : 'self-end ml-auto flex-row-reverse',
                     )}
                   >
@@ -270,7 +343,7 @@ export default function ConversationThreadV4({
                       // Tokens Cowork canon (inbox-page.css §498): max-w 75%, padding 7px 11px, radius 10px, font 12.5px, line-height 1.45
                       'px-[11px] py-[7px] rounded-[10px] text-[12.5px] leading-[1.45] whitespace-pre-wrap break-words flex flex-col flex-1 min-w-0',
                       m.direction === 'inbound'
-                        ? 'bg-white border border-border rounded-bl-[3px]'
+                        ? 'bg-card border border-border rounded-bl-[3px]'
                         : 'rounded-br-[3px]',
                     )}
                     style={
@@ -299,7 +372,8 @@ export default function ConversationThreadV4({
                       <img
                         src={m.media_thumbnail_url || m.media_url}
                         alt={m.media_filename || 'imagem'}
-                        onClick={() => window.open(m.media_url!, '_blank')}
+                        // Polish V2 §4 — lightbox in-app em vez de aba nova
+                        onClick={() => setLightboxIndex(imageMessages.findIndex(im => im.id === m.id))}
                         className="rounded-md max-w-full max-h-64 cursor-pointer object-cover mb-1"
                         loading="lazy"
                       />
@@ -337,11 +411,13 @@ export default function ConversationThreadV4({
                     {!m.media_url && !m.body && (
                       <em className="text-muted-foreground">[mídia]</em>
                     )}
-                    <small className="text-[9.5px] opacity-60 mt-1 font-mono inline-flex items-center gap-1 self-end">
+                    <small className="text-[9.5px] opacity-60 mt-[3px] font-mono inline-flex items-center gap-1 self-start">
                       {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       {m.direction === 'outbound' && (
                         m.status === 'read' ? (
-                          <CheckCheck size={10} className="text-blue-600" aria-label="Lida" />
+                          // azul-tick WA — oklch fixo (passa R1, sem família -NNN);
+                          // fica sobre a bolha verde-WA que não flipa, legível nos 2 temas.
+                          <CheckCheck size={10} style={{ color: 'oklch(0.55 0.18 250)' }} aria-label="Lida" />
                         ) : m.status === 'delivered' ? (
                           <CheckCheck size={10} aria-label="Entregue" />
                         ) : m.status === 'sent' ? (
@@ -352,7 +428,15 @@ export default function ConversationThreadV4({
                   </div>
                   </div>
                 )}
-              </div>
+                {!m.is_internal_note && (
+                  <MsgComments
+                    side={m.direction}
+                    comments={msgComments.forMsg(i)}
+                    onAdd={(t) => msgComments.add(i, t)}
+                    onRemove={(idx) => msgComments.remove(i, idx)}
+                  />
+                )}
+              </Stack>
             );
           })
         )}
@@ -366,6 +450,16 @@ export default function ConversationThreadV4({
         input={feedbackInput}
       />
 
+      {/* Polish V2 §4 — lightbox in-app (MediaFullscreenModal reusado US-WA-072) */}
+      {lightboxIndex !== null && imageMessages.length > 0 && (
+        <MediaFullscreenModal
+          urls={imageMessages.map(m => m.media_url!)}
+          filenames={imageMessages.map(m => m.media_filename ?? null)}
+          currentIndex={Math.max(0, lightboxIndex)}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
       {/* Composer */}
       <ComposerV4
         conversationId={thread.id}
@@ -374,6 +468,9 @@ export default function ConversationThreadV4({
         channelShort={channel?.short ?? thread.channel_label ?? 'Canal'}
         channelLabel={thread.channel_label ?? ''}
         channelType={thread.channel_type}
+        templates={templates}
+        contactName={thread.contact_name}
+        contactPhone={thread.customer_external_id}
       />
     </div>
   );

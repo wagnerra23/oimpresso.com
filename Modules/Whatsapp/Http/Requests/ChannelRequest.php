@@ -113,8 +113,11 @@ class ChannelRequest extends FormRequest
             $normalized = $this->normalizeIdentifier($identifier);
             $channelId = $this->route('channel') ?? $this->route('id'); // edit ignora self
 
+            // Uniqueness cross-business de display_identifier — dois channels com
+            // mesmo número em businesses distintos disputam a sessão WhatsApp Web
+            // (incidente 2026-05-13). Check de plataforma sem leak de dados.
             $exists = Channel::query()
-                ->withoutGlobalScopes()
+                ->withoutGlobalScopes() // SUPERADMIN: check de plataforma, só existência por type+identifier (ADR 0093)
                 ->whereIn('type', [
                     Channel::TYPE_WHATSAPP_META,
                     Channel::TYPE_WHATSAPP_ZAPI,

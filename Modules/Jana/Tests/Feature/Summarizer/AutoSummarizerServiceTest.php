@@ -30,6 +30,13 @@ uses(Tests\TestCase::class);
  * Tabela mcp_doc_summaries criada in-test (SQLite-compat).
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     Schema::dropIfExists('mcp_doc_summaries');
     Schema::create('mcp_doc_summaries', function (Blueprint $t) {
         $t->bigIncrements('id');
@@ -60,6 +67,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_doc_summaries');
 });
 

@@ -73,7 +73,7 @@
 .fin-cowork, .fin-cowork, .fin-cowork { height: 100%; margin: 0; }
 .fin-cowork {
   font-family: var(--font-sans);
-  font-size: 13.5px;
+  font-size: var(--fs-4);
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -86,7 +86,7 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  transition: grid-template-columns .18s ease-out;
+  transition: grid-template-columns var(--t-1) var(--ease);
 }
 .fin-cowork .app.app--sb-rail { --sb-w: 56px; }
 .fin-cowork .app.app--sb-hidden { --sb-w: 0px; }
@@ -122,7 +122,7 @@
 .fin-cowork .topbar-tab.active svg { opacity: 1; }
 
 /* legados breadcrumb — manter caso algum ponto ainda use */
-.fin-cowork .bc { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); }
+.fin-cowork .bc { display: flex; align-items: center; gap: 8px; font-size: var(--fs-3); color: var(--text-dim); }
 
 .fin-cowork .bc-sep { color: var(--text-mute); }
 
@@ -155,7 +155,7 @@
   align-items: center;
   gap: 8px;
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 500;
   cursor: default;
   width: 100%;
@@ -165,7 +165,7 @@
   width: 20px; height: 20px;
   border-radius: 4px;
   color: #fff;
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 700;
   display: grid; place-items: center;
   flex: 0 0 auto;
@@ -179,13 +179,13 @@
   background: oklch(0.20 0 0);
   border: 1px solid var(--sb-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-pop);
+  box-shadow: var(--sh-2);
   padding: 6px;
   z-index: 50;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
 }
 .fin-cowork .sb-dd-h {
-  font-size: 10px; font-weight: 600;
+  font-size: var(--fs-1); font-weight: 600;
   letter-spacing: .08em; text-transform: uppercase;
   color: var(--sb-text-dim);
   padding: 6px 8px 4px;
@@ -204,7 +204,7 @@
   padding: 7px 8px;
   border-radius: var(--radius-sm);
   color: var(--sb-text-dim);
-  font-size: 12px;
+  font-size: var(--fs-2);
   cursor: default;
 }
 .fin-cowork .sb-dd-foot:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
@@ -237,7 +237,7 @@
   height: 30px;
   border-radius: var(--radius-sm);
   color: var(--sb-text);
-  font-size: 13px;
+  font-size: var(--fs-3);
   cursor: default;
 }
 .fin-cowork .sb-action:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
@@ -245,11 +245,11 @@
 .fin-cowork .sb-action span { flex: 1 1 auto; }
 .fin-cowork .sb-action .kbd {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   color: var(--sb-text-dim);
 }
 .fin-cowork .sb-action .kbd-badge {
-  font-size: 10px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   background: oklch(0.55 0.15 30);
   color: #fff;
   padding: 1px 5px;
@@ -258,7 +258,7 @@
   text-align: center;
 }
 .fin-cowork .sb-action .beta {
-  font-size: 9.5px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -268,7 +268,7 @@
   border-radius: 3px;
 }
 .fin-cowork .sb-section-h {
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -290,7 +290,7 @@
   height: 30px;
   border-radius: var(--radius-sm);
   color: var(--sb-text);
-  font-size: 13px;
+  font-size: var(--fs-3);
   cursor: default;
 }
 .fin-cowork .sb-conv:hover { background: var(--sb-hover); color: var(--sb-text-hi); }
@@ -303,7 +303,7 @@
 /* ── Aba MENU ── */
 
 .fin-cowork .sb-group-h {
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -322,7 +322,7 @@
   height: var(--row-h);
   border-radius: var(--radius-sm);
   color: var(--sb-text);
-  font-size: 13px;
+  font-size: var(--fs-3);
   cursor: default;
   position: relative;
 }
@@ -343,7 +343,7 @@
 .fin-cowork .sb-item .ic { width: 16px; height: 16px; flex: 0 0 auto; opacity: .85; }
 .fin-cowork .sb-item .label { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fin-cowork .sb-item .badge {
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 600;
   background: var(--accent);
   color: #fff;
@@ -380,7 +380,7 @@
   border-radius: 50%;
   background: linear-gradient(135deg, oklch(0.65 0.12 30), oklch(0.55 0.15 10));
   color: #fff;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   font-weight: 700;
   display: grid; place-items: center;
   flex: 0 0 auto;
@@ -400,13 +400,13 @@
   display: block;
   color: var(--sb-text-hi);
   font-weight: 500;
-  font-size: 13px;
+  font-size: var(--fs-3);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .fin-cowork .sb-user-btn .who small {
   display: block;
   color: var(--sb-text-dim);
-  font-size: 11px;
+  font-size: var(--fs-1);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .fin-cowork .sb-user-btn .chev { width: 14px; height: 14px; opacity: .6; flex: 0 0 auto; }
@@ -418,10 +418,10 @@
   background: oklch(0.22 0 0);
   border: 1px solid var(--sb-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-pop);
+  box-shadow: var(--sh-2);
   padding: 6px;
   z-index: 60;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
 }
 /* No rail, abre pra direita do botão (não pra dentro do sidebar) */
 .fin-cowork .sb--rail .sb-user-rail .user-menu {
@@ -445,7 +445,7 @@
   display: grid; place-items: center;
 }
 .fin-cowork .user-menu-head .meta b { display: block; color: var(--sb-text-hi); font-weight: 500; }
-.fin-cowork .user-menu-head .meta small { display: block; color: var(--sb-text-dim); font-size: 11.5px; }
+.fin-cowork .user-menu-head .meta small { display: block; color: var(--sb-text-dim); font-size: var(--fs-2); }
 .fin-cowork .um-item {
   display: flex; align-items: center; gap: 10px;
   padding: 7px 8px;
@@ -456,8 +456,8 @@
 .fin-cowork .um-item:hover { background: var(--sb-hover); }
 .fin-cowork .um-item .ic { width: 14px; height: 14px; opacity: .8; flex: 0 0 auto; }
 .fin-cowork .um-item .label { flex: 1 1 auto; }
-.fin-cowork .um-item .kbd { font-family: var(--font-mono); font-size: 10.5px; color: var(--sb-text-dim); }
-.fin-cowork .um-item .arrow { font-size: 10px; color: var(--sb-text-dim); }
+.fin-cowork .um-item .kbd { font-family: var(--font-mono); font-size: var(--fs-1); color: var(--sb-text-dim); }
+.fin-cowork .um-item .arrow { font-size: var(--fs-1); color: var(--sb-text-dim); }
 .fin-cowork .um-status { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
 .fin-cowork .um-sep { height: 1px; background: var(--sb-border); margin: 4px 2px; }
 /* ────────────────── TAREFAS — master/detail ────────────────── */
@@ -482,12 +482,12 @@
   display: flex; align-items: baseline; gap: 8px;
 }
 .fin-cowork .tk-list-h h2 {
-  font-size: 16px; font-weight: 600; margin: 0;
+  font-size: var(--fs-5); font-weight: 600; margin: 0;
   letter-spacing: -0.01em;
 }
 .fin-cowork .tk-list-h-sub {
   margin: -6px 0 0;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   color: var(--text-dim);
   line-height: 1.4;
 }
@@ -515,7 +515,7 @@
   display: flex; flex-direction: column; gap: 1px;
 }
 .fin-cowork .tk-kpi b {
-  font-size: 18px;
+  font-size: var(--fs-6);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
@@ -523,7 +523,7 @@
   line-height: 1.1;
 }
 .fin-cowork .tk-kpi small {
-  font-size: 10px;
+  font-size: var(--fs-1);
   text-transform: uppercase;
   letter-spacing: .06em;
   color: var(--text-mute);
@@ -550,14 +550,14 @@
 }
 .fin-cowork .tk-search input {
   appearance: none; border: 0; background: transparent;
-  font: inherit; font-size: 12px;
+  font: inherit; font-size: var(--fs-2);
   color: var(--text);
   flex: 1 1 auto; min-width: 0;
   outline: none;
 }
 .fin-cowork .tk-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .fin-cowork .tk-count {
-  font-size: 12px;
+  font-size: var(--fs-2);
   color: var(--text-mute);
   font-variant-numeric: tabular-nums;
 }
@@ -573,7 +573,7 @@
   background: transparent;
   color: var(--text-dim);
   font: inherit;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   padding: 3px 9px;
   border-radius: 999px;
   cursor: default;
@@ -594,7 +594,7 @@
 .fin-cowork .tk-group { margin-top: 6px; }
 .fin-cowork .tk-group-h {
   display: flex; align-items: center;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -607,7 +607,7 @@
   color: var(--text-dim);
   padding: 1px 6px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-variant-numeric: tabular-nums;
 }
 .fin-cowork .tk-card {
@@ -632,18 +632,18 @@
 }
 .fin-cowork .tk-card-h {
   display: flex; align-items: center; gap: 6px;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
 }
 .fin-cowork .tk-origin {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .04em;
   padding: 1px 6px;
   border-radius: 3px;
 }
 .fin-cowork .tk-origin.lg {
-  font-size: 11px;
+  font-size: var(--fs-1);
   padding: 3px 8px;
   border-radius: 4px;
 }
@@ -659,19 +659,19 @@
 }
 .fin-cowork .tk-card.urgent .tk-when { color: oklch(0.55 0.18 25); font-weight: 600; }
 .fin-cowork .tk-title {
-  font-size: 13px;
+  font-size: var(--fs-3);
   font-weight: 600;
   letter-spacing: -0.005em;
   line-height: 1.35;
 }
 .fin-cowork .tk-sub {
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   color: var(--text-dim);
   line-height: 1.4;
 }
 .fin-cowork .tk-foot {
   display: flex; gap: 6px;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   color: var(--text-mute);
   margin-top: 2px;
 }
@@ -681,8 +681,8 @@
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   color: var(--text-mute);
 }
-.fin-cowork .tk-empty b { font-size: 13px; color: var(--text); }
-.fin-cowork .tk-empty small { font-size: 11.5px; color: var(--text-dim); }
+.fin-cowork .tk-empty b { font-size: var(--fs-3); color: var(--text); }
+.fin-cowork .tk-empty small { font-size: var(--fs-2); color: var(--text-dim); }
 .fin-cowork .tk-empty-ico {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -705,12 +705,12 @@
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   text-align: center; max-width: 320px;
 }
-.fin-cowork .tk-empty-state b { font-size: 15px; color: var(--text); margin-top: 6px; }
-.fin-cowork .tk-empty-state small { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+.fin-cowork .tk-empty-state b { font-size: var(--fs-5); color: var(--text); margin-top: 6px; }
+.fin-cowork .tk-empty-state small { font-size: var(--fs-2); color: var(--text-dim); line-height: 1.5; }
 .fin-cowork .tk-shortcuts {
   margin-top: 18px;
   display: flex; gap: 14px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   color: var(--text-dim);
 }
 .fin-cowork .tk-shortcuts kbd {
@@ -722,7 +722,7 @@
   padding: 1px 6px;
   margin-right: 3px;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   color: var(--text);
 }
 
@@ -741,7 +741,7 @@
 }
 .fin-cowork .tk-detail-bc {
   display: flex; align-items: center; gap: 6px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   color: var(--text-mute);
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -752,7 +752,7 @@
 .fin-cowork .tk-bc-spacer { flex: 1 1 auto; }
 .fin-cowork .tk-bc-pos {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   background: var(--bg-2);
   border: 1px solid var(--border);
   padding: 2px 8px;
@@ -767,7 +767,7 @@
 .fin-cowork .tk-detail-title-row h1 {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 19px;
+  font-size: var(--fs-6);
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.015em;
@@ -780,7 +780,7 @@
 }
 .fin-cowork .tk-detail-meta {
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
-  font-size: 12px;
+  font-size: var(--fs-2);
   color: var(--text);
 }
 .fin-cowork .tk-detail-meta .t-mute { color: var(--text-mute); margin-right: 3px; }
@@ -864,7 +864,7 @@
   color: var(--text-dim);
 }
 .fin-cowork .vw-btn.ghost:hover { background: var(--border-2); color: var(--text); }
-.fin-cowork .vw-btn.sm { height: 26px; padding: 0 10px; font-size: 11.5px; }
+.fin-cowork .vw-btn.sm { height: 26px; padding: 0 10px; font-size: var(--fs-2); }
 /* ────────────────── Module stub (rich migration page) ────────────────── */
 
 .cockpit[data-theme="dark"] .fin-cowork .mod-stub {
@@ -898,8 +898,8 @@
 }
 .fin-cowork .mod-stub-action.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
 
-.fin-cowork .mod-stub-dl dd.mono { font-family: var(--font-mono); font-size: 12px; }
-.fin-cowork .mod-stub-dl dd.mono.small { font-size: 11px; color: var(--text-dim); word-break: break-all; }
+.fin-cowork .mod-stub-dl dd.mono { font-family: var(--font-mono); font-size: var(--fs-2); }
+.fin-cowork .mod-stub-dl dd.mono.small { font-size: var(--fs-1); color: var(--text-dim); word-break: break-all; }
 
 .fin-cowork .mod-stub-roadmap li .step {
   width: 22px; height: 22px;
@@ -908,7 +908,7 @@
   border: 1px solid var(--border);
   color: var(--text-mute);
   display: grid; place-items: center;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -941,10 +941,10 @@
   width: 34px; height: 34px;
   border-radius: 50%;
   display: grid; place-items: center;
-  color: #fff; font-weight: 600; font-size: 13px;
+  color: #fff; font-weight: 600; font-size: var(--fs-3);
 }
-.fin-cowork .th-head .who b { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-.fin-cowork .th-head .who small { display: block; font-size: 11.5px; color: var(--text-dim); }
+.fin-cowork .th-head .who b { display: block; font-size: var(--fs-4); font-weight: 600; letter-spacing: -0.01em; }
+.fin-cowork .th-head .who small { display: block; font-size: var(--fs-2); color: var(--text-dim); }
 .fin-cowork .th-head .who small .dot {
   display: inline-block; width: 6px; height: 6px; border-radius: 50%;
   background: oklch(0.72 0.18 145);
@@ -956,7 +956,7 @@
   border-bottom: 1px solid var(--border);
   padding: 8px 18px;
   display: flex; align-items: center; gap: 14px;
-  font-size: 12px;
+  font-size: var(--fs-2);
   color: var(--text-dim);
 }
 .fin-cowork .th-context b { color: var(--text); font-weight: 600; }
@@ -966,7 +966,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-1);
   color: var(--text);
 }
 .fin-cowork .th-context .stage {
@@ -975,7 +975,7 @@
   background: var(--origin-OS-bg);
   color: var(--origin-OS-fg);
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 500;
 }
 .fin-cowork .msgs {
@@ -994,7 +994,7 @@
 }
 .fin-cowork .day-sep {
   align-self: center;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -1012,7 +1012,7 @@
   border-radius: 50%;
   display: grid; place-items: center;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 600;
   flex: 0 0 auto;
   margin-top: 2px;
@@ -1026,7 +1026,7 @@
   padding: 8px 12px;
   border-radius: 14px;
   border-top-left-radius: 4px;
-  font-size: 13.5px;
+  font-size: var(--fs-4);
   line-height: 1.45;
   max-width: 100%;
   word-wrap: break-word;
@@ -1042,7 +1042,7 @@
 .fin-cowork .row.me.continued .bubble { border-top-right-radius: 14px; }
 .fin-cowork .bubble .meta {
   display: block;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   margin-top: 3px;
   opacity: .65;
   font-variant-numeric: tabular-nums;
@@ -1051,7 +1051,7 @@
 .fin-cowork .row.me .bubble .meta { color: rgba(255,255,255,.85); }
 .fin-cowork .bubble .author {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 600;
   margin-bottom: 2px;
   color: var(--accent);
@@ -1060,7 +1060,7 @@
   background: oklch(0.96 0.04 80);
   color: oklch(0.32 0.06 70);
   border: 1px dashed oklch(0.80 0.08 80);
-  font-size: 12.5px;
+  font-size: var(--fs-3);
 }
 .cockpit[data-theme="dark"] .fin-cowork .bubble.note {
   background: oklch(0.26 0.04 80);
@@ -1076,8 +1076,8 @@
   display: grid; place-items: center;
   flex: 0 0 auto;
 }
-.fin-cowork .bubble.file b { display: block; font-size: 13px; }
-.fin-cowork .bubble.file small { display: block; font-size: 11.5px; opacity: .7; font-family: var(--font-mono); }
+.fin-cowork .bubble.file b { display: block; font-size: var(--fs-3); }
+.fin-cowork .bubble.file small { display: block; font-size: var(--fs-2); opacity: .7; font-family: var(--font-mono); }
 .fin-cowork .typing {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 10px 14px;
@@ -1113,7 +1113,7 @@
   outline: none;
   width: 100%;
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--fs-4);
   line-height: 1.45;
   color: var(--text);
   min-height: 22px;
@@ -1128,10 +1128,10 @@
 }
 .fin-cowork .composer-toolbar .icon-btn:hover { background: var(--border-2); color: var(--text); }
 .fin-cowork .composer-toolbar .spacer { flex: 1 1 auto; }
-.fin-cowork .composer-toolbar .hint { font-size: 11px; color: var(--text-mute); margin-right: 4px; }
+.fin-cowork .composer-toolbar .hint { font-size: var(--fs-1); color: var(--text-mute); margin-right: 4px; }
 .fin-cowork .composer-toolbar .hint kbd {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: 3px;
@@ -1147,7 +1147,7 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 600;
   cursor: default;
   display: inline-flex;
@@ -1177,7 +1177,7 @@
   display: grid;
   place-items: center;
   color: var(--text-mute);
-  font-size: 13px;
+  font-size: var(--fs-3);
   text-align: center;
   padding: 40px;
 }
@@ -1223,7 +1223,7 @@
   background: transparent;
   color: var(--text-dim);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-2);
   font-weight: 500;
   padding: 4px 14px;
   border-radius: 999px;
@@ -1257,7 +1257,7 @@
   background: transparent;
   flex: 1 1 auto;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-2);
   color: var(--text);
   min-width: 0;
 }
@@ -1274,7 +1274,7 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  transition: width .15s;
+  transition: width var(--t-1) var(--ease);
 }
 
 .fin-cowork .linked-h .icon-btn {
@@ -1304,18 +1304,18 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: var(--fs-2);
   cursor: default;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 .fin-cowork .lblock.collapsed .lblock-h { border-bottom: 0; }
 .fin-cowork .lblock-h:hover { background: var(--bg-2); }
-.fin-cowork .lblock-h b { font-weight: 600; font-size: 12px; color: var(--text); }
+.fin-cowork .lblock-h b { font-weight: 600; font-size: var(--fs-2); color: var(--text); }
 .fin-cowork .lblock-h .spacer { flex: 1 1 auto; }
 .fin-cowork .lblock-chev {
   color: var(--text-mute);
-  transition: transform .15s;
+  transition: transform var(--t-1) var(--ease);
   transform: rotate(0deg);
 }
 .fin-cowork .lblock-chev.open { transform: rotate(90deg); }
@@ -1327,7 +1327,7 @@
 }
 .fin-cowork .origin-badge {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .04em;
   padding: 1px 5px;
@@ -1341,17 +1341,17 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--fs-2);
   padding: 2px 0;
 }
 .fin-cowork .lkv span:first-child {
   color: var(--text-mute);
-  font-size: 11px;
+  font-size: var(--fs-1);
   min-width: 76px;
   flex: 0 0 auto;
 }
 .fin-cowork .lkv b { color: var(--text); font-weight: 500; flex: 1 1 auto; min-width: 0; }
-.fin-cowork .lkv b.mono { font-family: var(--font-mono); font-size: 11.5px; }
+.fin-cowork .lkv b.mono { font-family: var(--font-mono); font-size: var(--fs-2); }
 .fin-cowork .lkv.col { flex-direction: column; gap: 2px; }
 .fin-cowork .lstage {
   display: inline-flex;
@@ -1359,10 +1359,10 @@
   color: var(--origin-OS-fg);
   padding: 1px 7px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 500;
 }
-.fin-cowork .lhint { font-size: 11.5px; color: var(--text-dim); line-height: 1.4; }
+.fin-cowork .lhint { font-size: var(--fs-2); color: var(--text-dim); line-height: 1.4; }
 .fin-cowork .lrow-btns {
   display: flex;
   gap: 6px;
@@ -1378,7 +1378,7 @@
   padding: 0 10px;
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   cursor: default;
   display: inline-flex;
   align-items: center;
@@ -1395,7 +1395,7 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-2);
   font-weight: 600;
   cursor: default;
   margin-top: 4px;
@@ -1426,13 +1426,13 @@
   border-radius: var(--radius-sm);
 }
 .fin-cowork .latt-body { flex: 1 1 auto; min-width: 0; }
-.fin-cowork .latt-body b { display: block; font-size: 11.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fin-cowork .latt-body small { display: block; font-size: 10.5px; color: var(--text-mute); font-family: var(--font-mono); }
+.fin-cowork .latt-body b { display: block; font-size: var(--fs-2); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fin-cowork .latt-body small { display: block; font-size: var(--fs-1); color: var(--text-mute); font-family: var(--font-mono); }
 .fin-cowork .lhist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
 .fin-cowork .lhist li {
   display: flex;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
   padding: 5px 0;
   border-bottom: 1px solid var(--border-2);
 }
@@ -1441,7 +1441,7 @@
   flex: 0 0 auto;
   color: var(--text-mute);
   font-variant-numeric: tabular-nums;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   padding-top: 1px;
 }
 .fin-cowork .lhist-who { flex: 1 1 auto; color: var(--text-dim); line-height: 1.35; }
@@ -1463,14 +1463,14 @@
 .fin-cowork .os-page-h-l { flex: 1 1 auto; min-width: 0; }
 .fin-cowork .os-page-h-l h1 {
   margin: 0 0 4px;
-  font-size: 24px;
+  font-size: var(--fs-7);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text);
 }
 .fin-cowork .os-page-h-l p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-3);
   color: var(--text-dim);
   line-height: 1.5;
 }
@@ -1487,7 +1487,7 @@
   border-color: oklch(0.40 0.10 25);
 }
 .cockpit[data-theme="dark"] .fin-cowork .os-stat.warn b { color: oklch(0.78 0.16 25); }
-.fin-cowork .os-stat.muted b { color: var(--text-dim); font-size: 18px; }
+.fin-cowork .os-stat.muted b { color: var(--text-dim); font-size: var(--fs-6); }
 /* Toolbar */
 
 .fin-cowork .os-tabs {
@@ -1499,7 +1499,7 @@
   background: transparent;
   color: var(--text-dim);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 500;
   padding: 6px 11px;
   border-radius: var(--radius-sm);
@@ -1517,7 +1517,7 @@
 .fin-cowork .os-tab.warn { color: oklch(0.55 0.18 25); }
 .fin-cowork .os-tab.warn.active { border-color: oklch(0.85 0.08 25); }
 .fin-cowork .os-tab-n {
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-variant-numeric: tabular-nums;
   background: var(--border-2);
   color: var(--text-dim);
@@ -1540,7 +1540,7 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 500;
   cursor: default;
   display: inline-flex; align-items: center; gap: 6px;
@@ -1552,7 +1552,7 @@
 .fin-cowork .os-btn.ghost:hover { background: var(--border-2); color: var(--text); }
 .fin-cowork .os-btn.ghost.danger { color: oklch(0.55 0.18 25); }
 .fin-cowork .os-btn.ghost.danger:hover { background: oklch(0.96 0.04 25); }
-.fin-cowork .os-btn.sm { height: 26px; padding: 0 10px; font-size: 11.5px; }
+.fin-cowork .os-btn.sm { height: 26px; padding: 0 10px; font-size: var(--fs-2); }
 /* Table */
 .fin-cowork .os-table-wrap {
   flex: 1 1 auto;
@@ -1563,13 +1563,13 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
+  font-size: var(--fs-3);
 }
 .fin-cowork .os-table thead th {
   position: sticky; top: 0;
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -1587,7 +1587,7 @@
   vertical-align: middle;
   color: var(--text);
 }
-.fin-cowork .os-row { cursor: default; transition: background .08s; }
+.fin-cowork .os-row { cursor: default; transition: background var(--t-1) var(--ease); }
 .fin-cowork .os-row:hover { background: var(--bg-2); }
 .fin-cowork .os-row.selected { background: var(--accent-soft); }
 .fin-cowork .os-row.selected td { background: var(--accent-soft); }
@@ -1595,11 +1595,11 @@
 
 .fin-cowork .os-cell-num .mono {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-2);
   color: var(--text-dim);
 }
 
-.fin-cowork .os-resp-av.lg { width: 36px; height: 36px; font-size: 12px; }
+.fin-cowork .os-resp-av.lg { width: 36px; height: 36px; font-size: var(--fs-2); }
 
 .fin-cowork .os-cell-deadline.urgent { color: oklch(0.55 0.18 25); font-weight: 600; }
 
@@ -1607,7 +1607,7 @@
   border-top: 2px solid var(--border);
   background: var(--bg-2);
   padding: 12px 14px;
-  font-size: 12px;
+  font-size: var(--fs-2);
   font-weight: 600;
 }
 
@@ -1618,7 +1618,7 @@
   display: inline-flex; align-items: center;
   padding: 3px 9px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--fs-1);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1818,7 +1818,7 @@
 }
 
 .fin-cowork .prod-equip-tab .count {
-  font-size: 11px;
+  font-size: var(--fs-1);
   background: var(--bg-3, var(--bg));
   padding: 1px 5px;
   border-radius: 3px;
@@ -1877,7 +1877,7 @@
 /* ════════════════════════ CLIENTES PAGE ════════════════════════ */
 .fin-cowork .cli-page .os-table th, .fin-cowork .cli-page .os-table td { padding: 10px 12px; }
 
-.fin-cowork .cli-avatar.lg { width: 48px; height: 48px; font-size: 16px; }
+.fin-cowork .cli-avatar.lg { width: 48px; height: 48px; font-size: var(--fs-5); }
 
 .fin-cowork .cli-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .fin-cowork .cli-table .value { font-weight: 600; color: var(--ink-1); }
@@ -1894,16 +1894,16 @@
 .fin-cowork .cli-fin-row b.danger { color: #b91c1c; }
 
 /* ════════════ VENDAS ════════════ */
-.fin-cowork .vendas-page .vd-id { font-family:var(--font-mono); font-size:12px; color:oklch(0.40 0.04 250); font-weight:600; }
-.fin-cowork .vendas-page .vd-date { font-size:11px; }
-.fin-cowork .vendas-page .vd-time { font-size:10px; color:oklch(0.55 0.02 250); }
-.fin-cowork .vendas-page .vd-client-name { font-weight:600; font-size:13px; }
-.fin-cowork .vendas-page .vd-notes { font-size:11px; color:oklch(0.50 0.02 250); }
-.fin-cowork .vendas-page .vd-pay > div:first-child { font-weight:500; font-size:12px; }
-.fin-cowork .vendas-page .vd-transp { font-size:11.5px; }
+.fin-cowork .vendas-page .vd-id { font-family:var(--font-mono); font-size:var(--fs-2); color:oklch(0.40 0.04 250); font-weight:600; }
+.fin-cowork .vendas-page .vd-date { font-size:var(--fs-1); }
+.fin-cowork .vendas-page .vd-time { font-size:var(--fs-1); color:oklch(0.55 0.02 250); }
+.fin-cowork .vendas-page .vd-client-name { font-weight:600; font-size:var(--fs-3); }
+.fin-cowork .vendas-page .vd-notes { font-size:var(--fs-1); color:oklch(0.50 0.02 250); }
+.fin-cowork .vendas-page .vd-pay > div:first-child { font-weight:500; font-size:var(--fs-2); }
+.fin-cowork .vendas-page .vd-transp { font-size:var(--fs-2); }
 .fin-cowork .vendas-page .vd-transp-pill {
   display:inline-flex; align-items:center; gap:4px;
-  font-size:11px; font-weight:500;
+  font-size:var(--fs-1); font-weight:500;
   padding:2px 8px; border-radius:99px;
   background:oklch(0.93 0.02 240);
   color:oklch(0.38 0.07 240);
@@ -1917,17 +1917,17 @@
   background:oklch(0.94 0.04 60);
   color:oklch(0.38 0.10 60);
 }
-.fin-cowork .vendas-page .vd-inst { font-size:10px; color:oklch(0.50 0.02 250); }
+.fin-cowork .vendas-page .vd-inst { font-size:var(--fs-1); color:oklch(0.50 0.02 250); }
 .fin-cowork .vendas-page .vd-items { text-align:center; font-variant-numeric:tabular-nums; }
-.fin-cowork .vendas-page .vd-total { font-weight:600; font-variant-numeric:tabular-nums; font-size:13px; }
-.fin-cowork .vendas-page .vd-os-pill { display:inline-block; padding:1px 6px; border-radius:4px; background:oklch(0.95 0.01 250); font-family:var(--font-mono); font-size:10px; margin-right:3px; color:oklch(0.40 0.04 250); }
-.fin-cowork .vendas-page .vd-no-os { font-size:11px; color:oklch(0.55 0.02 250); font-style:italic; }
-.fin-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:9px; color:oklch(0.40 0.04 250); background:#fff; }
+.fin-cowork .vendas-page .vd-total { font-weight:600; font-variant-numeric:tabular-nums; font-size:var(--fs-3); }
+.fin-cowork .vendas-page .vd-os-pill { display:inline-block; padding:1px 6px; border-radius:4px; background:oklch(0.95 0.01 250); font-family:var(--font-mono); font-size:var(--fs-1); margin-right:3px; color:oklch(0.40 0.04 250); }
+.fin-cowork .vendas-page .vd-no-os { font-size:var(--fs-1); color:oklch(0.55 0.02 250); font-style:italic; }
+.fin-cowork .kbd-hint { display:inline-block; padding:1px 5px; margin-left:4px; border:1px solid oklch(0.85 0.02 250); border-radius:3px; font-family:var(--font-mono); font-size:var(--fs-1); color:oklch(0.40 0.04 250); background:var(--surface); }
 /* Drawer venda */
 
 /* Stepper */
 
-.fin-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+.fin-cowork .vd-step.active { color:oklch(0.30 0.10 240); font-weight:600; background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,0.04); }
 .fin-cowork .vd-step.done { color:oklch(0.45 0.12 145); }
 
 .fin-cowork .vd-step.active .vd-step-num { background:oklch(0.55 0.14 240); color:#fff; }
@@ -1952,7 +1952,7 @@
 /* ──── CAIXA DO DIA ──── */
 .fin-cowork .vc-page .vc-date {
   padding:5px 8px; border:1px solid oklch(0.85 0.02 250); border-radius:6px;
-  font-size:12px; font-family:var(--font-mono);
+  font-size:var(--fs-2); font-family:var(--font-mono);
 }
 .fin-cowork .vc-grid {
   display:grid; grid-template-columns:1.3fr 1fr; gap:14px;
@@ -1960,7 +1960,7 @@
 }
 .fin-cowork .vc-grid > .vc-card:nth-child(3) { grid-column: 1 / -1; }
 .fin-cowork .vc-card {
-  background:#fff; border:1px solid oklch(0.93 0.01 250); border-radius:8px;
+  background:var(--surface); border:1px solid oklch(0.93 0.01 250); border-radius:8px;
   overflow:hidden;
 }
 .fin-cowork .vc-card-h {
@@ -1968,16 +1968,16 @@
   padding:12px 16px; border-bottom:1px solid oklch(0.95 0.01 250);
 }
 .fin-cowork .vc-card-h h3 {
-  margin:0; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;
+  margin:0; font-size:var(--fs-2); text-transform:uppercase; letter-spacing:0.04em;
   color:oklch(0.30 0.02 250); font-weight:600;
 }
-.fin-cowork .vc-muted { font-size:11px; color:oklch(0.55 0.02 250); }
-.fin-cowork .vc-pay-table { width:100%; border-collapse:collapse; font-size:13px; }
+.fin-cowork .vc-muted { font-size:var(--fs-1); color:oklch(0.55 0.02 250); }
+.fin-cowork .vc-pay-table { width:100%; border-collapse:collapse; font-size:var(--fs-3); }
 .fin-cowork .vc-pay-table th, .fin-cowork .vc-pay-table td {
   padding:9px 16px; text-align:left; border-bottom:1px solid oklch(0.96 0.01 250);
 }
 .fin-cowork .vc-pay-table th {
-  font-weight:500; font-size:11px; color:oklch(0.50 0.02 250);
+  font-weight:500; font-size:var(--fs-1); color:oklch(0.50 0.02 250);
   background:oklch(0.98 0.005 250);
 }
 .fin-cowork .vc-pay-icon { display:inline-block; margin-right:6px; }
@@ -1991,7 +1991,7 @@
 .fin-cowork .vc-move-amount.pos { color:oklch(0.45 0.14 145); }
 .fin-cowork .vc-move-amount.neg { color:oklch(0.50 0.16 25); }
 
-.fin-cowork .vc-counter-summary .strong { font-weight:600; font-size:14px; padding-top:6px; border-top:1px solid oklch(0.90 0.01 250); }
+.fin-cowork .vc-counter-summary .strong { font-weight:600; font-size:var(--fs-4); padding-top:6px; border-top:1px solid oklch(0.90 0.01 250); }
 /* ──── DEVOLUÇÕES ──── */
 
 .fin-cowork .vdv-tl-dot.ok { background:oklch(0.55 0.14 145); }
@@ -2024,7 +2024,7 @@
 .fin-cowork .nfe-review-card.span { grid-column:1 / -1; }
 
 .fin-cowork .nfe-review-card .mono { font-family:var(--font-mono); }
-.fin-cowork .nfe-review-card .small { font-size:10px; word-break:break-all; line-height:1.4; }
+.fin-cowork .nfe-review-card .small { font-size:var(--fs-1); word-break:break-all; line-height:1.4; }
 
 @media print {
 .fin-cowork body > * { display:none !important; }
@@ -2037,21 +2037,21 @@
   display:flex; align-items:flex-start; justify-content:space-between;
   gap:16px; padding:24px 24px 14px; flex-wrap:wrap;
 }
-.fin-cowork .os-head-l h1 { margin:0 0 4px; font-size:22px; letter-spacing:-0.01em; color:var(--text); }
-.fin-cowork .os-head-l p { margin:0; font-size:13px; color:var(--text-dim); }
+.fin-cowork .os-head-l h1 { margin:0 0 4px; font-size:var(--fs-7); letter-spacing:-0.01em; color:var(--text); }
+.fin-cowork .os-head-l p { margin:0; font-size:var(--fs-3); color:var(--text-dim); }
 .fin-cowork .os-head-r { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .fin-cowork .os-kpis {
   display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
   gap:10px; padding:0 24px 14px;
 }
 .fin-cowork .os-kpi {
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border, oklch(0.93 0.01 250));
   border-radius:8px; padding:12px 14px;
   display:flex; flex-direction:column; gap:4px;
 }
-.fin-cowork .os-kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:600; }
-.fin-cowork .os-kpi-value { font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); }
-.fin-cowork .os-kpi-sub { font-size:11px; color:var(--text-dim, oklch(0.55 0.02 250)); }
+.fin-cowork .os-kpi-label { font-size:var(--fs-1); text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:600; }
+.fin-cowork .os-kpi-value { font-size:var(--fs-7); font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); }
+.fin-cowork .os-kpi-sub { font-size:var(--fs-1); color:var(--text-dim, oklch(0.55 0.02 250)); }
 
 .fin-cowork .os-kpi-alert .os-kpi-value { color:oklch(0.50 0.14 70); }
 .fin-cowork .os-tabs {
@@ -2061,14 +2061,14 @@
 .fin-cowork .os-tab {
   display:inline-flex; align-items:center; gap:6px;
   padding:8px 12px; border:none; background:transparent; cursor:pointer;
-  font-size:12px; color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:500;
-  border-bottom:2px solid transparent; transition:all .12s;
+  font-size:var(--fs-2); color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:500;
+  border-bottom:2px solid transparent; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .os-tab:hover { color:var(--text); }
 .fin-cowork .os-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 .fin-cowork .os-tab .count {
   display:inline-block; padding:1px 6px; border-radius:8px;
-  background:oklch(0.95 0.01 250); font-size:10px; font-weight:600;
+  background:oklch(0.95 0.01 250); font-size:var(--fs-1); font-weight:600;
   color:oklch(0.40 0.02 250);
 }
 .fin-cowork .os-tab.active .count { background:oklch(0.94 0.06 var(--accent-h, 220)); color:var(--accent); }
@@ -2076,35 +2076,35 @@
 .fin-cowork .os-table-wrap { padding:14px 24px 20px; overflow:auto; }
 .fin-cowork .os-table {
   width:100%; border-collapse:collapse;
-  background:#fff; border:1px solid var(--border, oklch(0.93 0.01 250));
+  background:var(--surface); border:1px solid var(--border, oklch(0.93 0.01 250));
   border-radius:8px; overflow:hidden;
 }
 .fin-cowork .os-table thead th {
   padding:10px 12px; text-align:left;
-  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;
+  font-size:var(--fs-1); font-weight:600; text-transform:uppercase; letter-spacing:0.04em;
   color:var(--text-dim, oklch(0.45 0.02 250));
   background:oklch(0.98 0.005 250);
   border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
 }
-.fin-cowork .os-table td { padding:10px 12px; border-bottom:1px solid oklch(0.96 0.01 250); font-size:13px; vertical-align:top; }
+.fin-cowork .os-table td { padding:10px 12px; border-bottom:1px solid oklch(0.96 0.01 250); font-size:var(--fs-3); vertical-align:top; }
 .fin-cowork .os-table tbody tr:last-child td { border-bottom:none; }
-.fin-cowork .os-row { cursor:pointer; transition:background .1s; }
+.fin-cowork .os-row { cursor:pointer; transition: background var(--t-1) var(--ease); }
 .fin-cowork .os-row:hover { background:oklch(0.98 0.01 var(--accent-h, 220)); }
 .fin-cowork .os-row.urgent { box-shadow:inset 3px 0 0 oklch(0.60 0.16 25); }
 
 .fin-cowork .os-stage {
   display:inline-block; padding:2px 8px; border-radius:10px;
-  font-size:11px; font-weight:500;
+  font-size:var(--fs-1); font-weight:500;
 }
 .fin-cowork .os-drawer-head {
   display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px; padding:18px 20px; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
-  background:#fff;
+  background:var(--surface);
 }
 .fin-cowork .os-drawer-head-l { flex:1; min-width:0; }
 
-.fin-cowork .os-drawer-head-l h2 { margin:4px 0 4px; font-size:18px; }
-.fin-cowork .os-drawer-head-l p { margin:0; font-size:12px; color:var(--text-dim); }
+.fin-cowork .os-drawer-head-l h2 { margin:4px 0 4px; font-size:var(--fs-6); }
+.fin-cowork .os-drawer-head-l p { margin:0; font-size:var(--fs-2); color:var(--text-dim); }
 
 .fin-cowork .os-drawer-body { flex:1; overflow:auto; }
 .fin-cowork .icon-btn {
@@ -2137,7 +2137,7 @@
   background: transparent;
   color: var(--text-mute, #8b8580);
   font-family: var(--mono, ui-monospace, SFMono-Regular, monospace);
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 400;
   padding: 0;
   min-width: auto;
@@ -2150,7 +2150,7 @@
   padding: 6px 16px;
   border-bottom: 1px solid var(--border, #e5e0d3);
   background: var(--panel, #fff);
-  font-size: 12px;
+  font-size: var(--fs-2);
   flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -2178,7 +2178,7 @@
   cursor: pointer;
   border-radius: 4px;
   user-select: none;
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2199,7 +2199,7 @@
   text-overflow: ellipsis;
 }
 .fin-cowork .sb-group-n {
-  font-size: 9.5px;
+  font-size: var(--fs-1);
   font-family: var(--mono, ui-monospace, SFMono-Regular, monospace);
   color: var(--text-mute);
   font-weight: 500;
@@ -2239,7 +2239,7 @@
   cursor: pointer;
   z-index: 30;
   opacity: 0;
-  transition: opacity .12s, color .12s, background .12s, transform .12s;
+  transition: opacity var(--t-1) var(--ease), color var(--t-1) var(--ease), background var(--t-1) var(--ease), transform var(--t-1) var(--ease);
   padding: 0;
 }
 .fin-cowork .sb:hover .sb-collapse-handle, .fin-cowork .sb-collapse-handle:focus-visible, .fin-cowork .sb-collapse-handle:hover {
@@ -2289,7 +2289,7 @@
   cursor: pointer;
   position: relative;
   padding: 0;
-  transition: background .1s, color .1s;
+  transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
 }
 .fin-cowork .sb-rail-btn:hover {
   background: var(--sb-hover);
@@ -2341,7 +2341,7 @@
   place-items: center;
   color: #fff;
   font-weight: 700;
-  font-size: 11px;
+  font-size: var(--fs-1);
 }
 .fin-cowork .sb--rail .sb-user-rail-btn .avatar {
   border-radius: 50%;
@@ -2361,15 +2361,15 @@
   padding: 6px 10px;
   background: oklch(0.18 0 0);
   color: oklch(0.96 0 0);
-  font-size: 12px;
+  font-size: var(--fs-2);
   font-weight: 500;
   white-space: nowrap;
   border-radius: 6px;
   pointer-events: none;
   opacity: 0;
-  transition: opacity .12s .12s, transform .12s .12s;
+  transition: opacity var(--t-1) var(--ease) .12s, transform var(--t-1) var(--ease) .12s;
   z-index: 60;
-  box-shadow: 0 4px 14px oklch(0 0 0 / 0.22);
+  box-shadow: var(--sh-2);
 }
 .fin-cowork .sb--rail [data-tip]:hover::after {
   opacity: 1;
@@ -2382,11 +2382,11 @@
   border: 1px solid oklch(0.72 0.10 var(--gh, 220) / 0.55);
   border-left: 3px solid oklch(0.62 0.13 var(--gh, 220));
   padding: 7px 12px 7px 11px;
-  font-size: 12.5px;
+  font-size: var(--fs-3);
   font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: uppercase;
-  box-shadow: 0 6px 18px oklch(0 0 0 / 0.18);
+  box-shadow: var(--sh-2);
 }
 /* Esconde tooltip enquanto o flyout do grupo está aberto */
 .fin-cowork .sb--rail .sb-rail-btn.open[data-tip]::after {
@@ -2398,7 +2398,7 @@
   background: var(--sb-bg);
   border: 1px solid var(--sb-border);
   border-radius: 10px;
-  box-shadow: 0 12px 32px oklch(0 0 0 / 0.28);
+  box-shadow: var(--sh-2);
   padding: 6px;
   min-width: 220px;
   max-width: 260px;
@@ -2414,7 +2414,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px 6px;
-  font-size: 10.5px;
+  font-size: var(--fs-1);
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -2422,7 +2422,7 @@
 .fin-cowork .sb-rail-flyout-h .sb-group-n {
   margin-left: auto;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
-  font-size: 10px;
+  font-size: var(--fs-1);
   font-weight: 500;
   color: var(--sb-text-dim);
   letter-spacing: 0;
@@ -2473,13 +2473,13 @@
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 6px; padding: 6px 10px;
   color: var(--text-mute); cursor: pointer;
-  font: inherit; font-size: 12.5px;
-  transition: border-color .12s;
+  font: inherit; font-size: var(--fs-3);
+  transition: border-color var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-cmdk:hover { border-color: var(--text-mute); }
 .fin-cowork .vendas-aplus .vd-cmdk span { flex: 1; text-align: left; }
 .fin-cowork .vendas-aplus .vd-cmdk kbd {
-  font-family: var(--font-mono); font-size: 9.5px; padding: 1px 5px;
+  font-family: var(--font-mono); font-size: var(--fs-1); padding: 1px 5px;
   border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
   background: var(--bg-2); color: var(--text-dim);
 }
@@ -2490,10 +2490,10 @@
 }
 .fin-cowork .vendas-aplus .vd-vista button {
   border: 0; background: transparent;
-  padding: 4px 12px; font-size: 11.5px; font-weight: 600;
+  padding: 4px 12px; font-size: var(--fs-2); font-weight: 600;
   color: var(--text-mute); border-radius: 4px;
   letter-spacing: 0.02em; cursor: pointer; font-family: inherit;
-  transition: all .15s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-vista button.on {
   background: var(--surface); color: var(--vd-green);
@@ -2504,29 +2504,29 @@
 .fin-cowork .vendas-aplus .vd-views-btn {
   background: var(--surface); border: 1px solid var(--border);
   padding: 6px 10px; border-radius: 5px;
-  font-size: 12px; font-weight: 600; color: var(--text);
+  font-size: var(--fs-2); font-weight: 600; color: var(--text);
   display: inline-flex; align-items: center; gap: 6px;
   font-family: inherit; cursor: pointer;
 }
-.fin-cowork .vendas-aplus .vd-views-btn::after { content: '▾'; font-size: 9px; color: var(--text-mute); }
+.fin-cowork .vendas-aplus .vd-views-btn::after { content: '▾'; font-size: var(--fs-1); color: var(--text-mute); }
 .fin-cowork .vendas-aplus .vd-views-btn:hover { border-color: var(--text-mute); }
 .fin-cowork .vendas-aplus .vd-views-menu {
   position: absolute; top: calc(100% + 4px); right: 0;
   min-width: 240px; background: var(--surface);
   border: 1px solid var(--border); border-radius: 8px;
-  box-shadow: 0 8px 24px -8px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.02);
+  box-shadow: var(--sh-2);
   padding: 4px; z-index: 30;
 }
 .fin-cowork .vendas-aplus .vd-views-item {
   display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; font-size: 12.5px; cursor: pointer;
+  padding: 7px 10px; font-size: var(--fs-3); cursor: pointer;
   border-radius: 4px;
 }
 .fin-cowork .vendas-aplus .vd-views-item:hover { background: var(--bg-2); }
 .fin-cowork .vendas-aplus .vd-views-item.active { color: var(--vd-green); font-weight: 600; }
 .fin-cowork .vendas-aplus .vd-views-item .ct {
   margin-left: auto;
-  color: var(--text-mute); font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); padding: 1px 6px; border-radius: 99px;
 }
 .fin-cowork .vendas-aplus .vd-views-item.active .ct { background: var(--vd-green-soft); color: var(--vd-green); }
@@ -2543,7 +2543,7 @@
 .fin-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; }
 .fin-cowork .vendas-aplus .vd-delta-up { color: var(--vd-ok) !important; display: inline-flex; align-items: center; gap: 4px; }
 .fin-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: oklch(0.78 0.10 155) !important; }
-.fin-cowork .vendas-aplus .os-kpi-value small { font-size: 13px; color: var(--text-mute); font-weight: 500; margin-left: 2px; }
+.fin-cowork .vendas-aplus .os-kpi-value small { font-size: var(--fs-3); color: var(--text-mute); font-weight: 500; margin-left: 2px; }
 .fin-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: oklch(0.65 0.04 155); }
 /* ageing 3 bars */
 .fin-cowork .vendas-aplus .vd-ageing {
@@ -2564,7 +2564,7 @@
 .fin-cowork .vendas-aplus .vd-ag-lbls {
   grid-column: 1 / -1;
   display: flex; justify-content: space-between;
-  font-size: 9.5px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
   margin-top: 2px; font-family: var(--font-mono);
 }
 /* PIX progress */
@@ -2590,14 +2590,14 @@
   margin-top: 6px;
 }
 .fin-cowork .vendas-aplus .vd-rank-info {
-  flex: 1; font-size: 11.5px; line-height: 1.3;
+  flex: 1; font-size: var(--fs-2); line-height: 1.3;
 }
 .fin-cowork .vendas-aplus .vd-rank-info > div:first-child {
   display: flex; justify-content: space-between;
   font-weight: 600; margin-bottom: 2px;
 }
 .fin-cowork .vendas-aplus .vd-rank-info > div:first-child span:last-child {
-  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); font-weight: 500;
+  font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-dim); font-weight: 500;
 }
 .fin-cowork .vendas-aplus .vd-rank-bar {
   height: 3px; border-radius: 99px;
@@ -2608,7 +2608,7 @@
 .fin-cowork .vendas-aplus .vd-av {
   display: inline-grid; place-items: center;
   width: 24px; height: 24px; border-radius: 50%;
-  font-size: 10.5px; font-weight: 700; color: #fff;
+  font-size: var(--fs-1); font-weight: 700; color: #fff;
   font-family: var(--font-mono); letter-spacing: 0.02em;
   flex-shrink: 0;
 }
@@ -2617,10 +2617,10 @@
 .fin-cowork .vendas-aplus .vd-av-3 { background: oklch(0.55 0.13 290); }
 .fin-cowork .vendas-aplus .vd-av-4 { background: oklch(0.50 0.13 120); }
 /* ── Table: tweaks A+ ── */
-.fin-cowork .vendas-aplus .vd-aplus-table { font-size: 12.5px; }
+.fin-cowork .vendas-aplus .vd-aplus-table { font-size: var(--fs-3); }
 .fin-cowork .vendas-aplus .vd-aplus-table thead th {
   background: var(--bg-2); color: var(--text-mute);
-  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: var(--fs-1); text-transform: uppercase; letter-spacing: 0.06em;
   font-weight: 600; padding: 9px 12px;
 }
 .fin-cowork .vendas-aplus .vd-aplus-table tbody td {
@@ -2631,9 +2631,9 @@
 .fin-cowork .vendas-aplus .vd-aplus-table .os-row.urgent td:first-child { box-shadow: inset 3px 0 0 var(--vd-bad); }
 .fin-cowork .vendas-aplus .vd-seller-cell { display: flex; align-items: center; gap: 8px; }
 .fin-cowork .vendas-aplus .vd-seller-info { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-.fin-cowork .vendas-aplus .vd-seller-info b { font-size: 12px; font-weight: 600; }
+.fin-cowork .vendas-aplus .vd-seller-info b { font-size: var(--fs-2); font-weight: 600; }
 .fin-cowork .vendas-aplus .vd-seller-info small {
-  font-size: 10.5px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
   font-family: var(--font-mono); text-transform: lowercase;
 }
 /* commission column shown only on vista=comissao */
@@ -2647,7 +2647,7 @@
 }
 .fin-cowork .vendas-aplus .vd-stp-dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--border); transition: all .15s;
+  background: var(--border); transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-stp-dot.done { background: var(--vd-green); }
 .fin-cowork .vendas-aplus .vd-stp-dot.current {
@@ -2656,7 +2656,7 @@
   transform: scale(1.3);
 }
 .fin-cowork .vendas-aplus .vd-stp-lbl {
-  font-size: 10px; color: var(--text-mute); margin-left: 4px;
+  font-size: var(--fs-1); color: var(--text-mute); margin-left: 4px;
   font-family: var(--font-mono); text-transform: uppercase;
   letter-spacing: 0.04em; font-weight: 600;
 }
@@ -2664,7 +2664,7 @@
 .fin-cowork .vendas-aplus .vd-fc { display: inline-flex; gap: 4px; flex-wrap: wrap; }
 .fin-cowork .vendas-aplus .vd-fb {
   display: inline-flex; align-items: center; gap: 3px;
-  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 700;
   padding: 2px 6px; border-radius: 3px;
   letter-spacing: 0.02em;
   position: relative; cursor: help;
@@ -2674,15 +2674,15 @@
 .fin-cowork .vendas-aplus .vd-fb-bad { background: var(--vd-bad-soft);    color: oklch(0.42 0.13 20); }
 .fin-cowork .vendas-aplus .vd-fb-canc { background: var(--vd-neutral-soft);color: var(--text-mute); }
 .fin-cowork .vendas-aplus .vd-fb-na { background: transparent; color: var(--text-mute); padding: 2px 4px; }
-.fin-cowork .vendas-aplus .vd-fb-ic { font-size: 9px; }
+.fin-cowork .vendas-aplus .vd-fb-ic { font-size: var(--fs-1); }
 .fin-cowork .vendas-aplus .vd-fb-tip {
   position: absolute; bottom: calc(100% + 6px); left: 50%;
   transform: translateX(-50%) translateY(4px);
   background: var(--text); color: oklch(0.97 0.005 90);
   padding: 5px 9px; border-radius: 5px;
-  font-size: 10px; font-family: var(--font-mono); font-weight: 500;
+  font-size: var(--fs-1); font-family: var(--font-mono); font-weight: 500;
   white-space: nowrap; pointer-events: none;
-  opacity: 0; transition: all .12s;
+  opacity: 0; transition: all var(--t-1) var(--ease);
   z-index: 20;
   box-shadow: 0 4px 12px rgba(0,0,0,.20);
 }
@@ -2697,24 +2697,24 @@
   transform: translateX(-50%) translateY(120px);
   background: var(--text); color: oklch(0.97 0.005 90);
   border-radius: 10px;
-  box-shadow: 0 12px 32px -8px rgba(0,0,0,.30);
+  box-shadow: var(--sh-2);
   padding: 10px 14px;
   display: flex; align-items: center; gap: 6px;
   z-index: 30; opacity: 0;
-  transition: all .22s ease-out;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-bulk.on {
   opacity: 1; transform: translateX(-50%) translateY(0);
 }
 .fin-cowork .vendas-aplus .vd-bulk-ct {
-  font-size: 12px; font-weight: 600;
+  font-size: var(--fs-2); font-weight: 600;
   padding: 2px 8px; background: rgba(255,255,255,.12); border-radius: 99px;
 }
 .fin-cowork .vendas-aplus .vd-bulk-btn {
   background: transparent; color: oklch(0.97 0.005 90);
   border: 1px solid rgba(255,255,255,.20);
   padding: 5px 10px; border-radius: 5px;
-  font-size: 11.5px; font-weight: 500; font-family: inherit; cursor: pointer;
+  font-size: var(--fs-2); font-weight: 500; font-family: inherit; cursor: pointer;
   display: inline-flex; align-items: center; gap: 5px;
 }
 .fin-cowork .vendas-aplus .vd-bulk-btn:hover { background: rgba(255,255,255,.10); }
@@ -2725,7 +2725,7 @@
 .fin-cowork .vendas-aplus .vd-bulk-close {
   background: transparent; border: 0;
   color: oklch(0.75 0.005 90); padding: 4px 6px;
-  cursor: pointer; font-size: 13px;
+  cursor: pointer; font-size: var(--fs-3);
 }
 /* ── ⌘K Palette ── */
 .fin-cowork .vendas-aplus .vd-pal-bd {
@@ -2735,15 +2735,15 @@
   display: grid; place-items: start center;
   padding-top: 12vh;
   opacity: 0; pointer-events: none;
-  transition: opacity .14s;
+  transition: opacity var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-pal-bd.on { opacity: 1; pointer-events: auto; }
 .fin-cowork .vendas-aplus .vd-pal {
   width: 560px; max-width: 92vw;
   background: var(--surface); border-radius: 12px;
-  box-shadow: 0 24px 64px -12px rgba(0,0,0,.40);
+  box-shadow: var(--sh-2);
   overflow: hidden;
-  transform: scale(0.96); transition: transform .14s;
+  transform: scale(0.96); transition: transform var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-pal-bd.on .vd-pal { transform: scale(1); }
 .fin-cowork .vendas-aplus .vd-pal-in {
@@ -2752,25 +2752,25 @@
 }
 .fin-cowork .vendas-aplus .vd-pal-in input {
   flex: 1; border: 0; background: transparent;
-  font: inherit; font-size: 15px;
+  font: inherit; font-size: var(--fs-5);
   color: var(--text); outline: none;
 }
 .fin-cowork .vendas-aplus .vd-pal-in input::placeholder { color: var(--text-mute); }
 .fin-cowork .vendas-aplus .vd-pal-in kbd {
-  font-family: var(--font-mono); font-size: 10px; padding: 1px 5px;
+  font-family: var(--font-mono); font-size: var(--fs-1); padding: 1px 5px;
   border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
   background: var(--bg-2); color: var(--text-dim);
 }
 .fin-cowork .vendas-aplus .vd-pal-list { max-height: 50vh; overflow-y: auto; padding: 6px; }
 .fin-cowork .vendas-aplus .vd-pal-grp {
-  padding: 6px 12px 4px; font-size: 9.5px;
+  padding: 6px 12px 4px; font-size: var(--fs-1);
   text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-mute); font-weight: 700;
 }
 .fin-cowork .vendas-aplus .vd-pal-it {
   display: flex; align-items: center; gap: 12px;
   padding: 8px 12px; border-radius: 6px; cursor: pointer;
-  font-size: 13px;
+  font-size: var(--fs-3);
 }
 .fin-cowork .vendas-aplus .vd-pal-it.sel { background: var(--vd-green-soft); }
 .fin-cowork .vendas-aplus .vd-pal-ic {
@@ -2781,26 +2781,26 @@
 .fin-cowork .vendas-aplus .vd-pal-it.sel .vd-pal-ic { background: var(--vd-green); color: #fff; }
 .fin-cowork .vendas-aplus .vd-pal-tx { flex: 1; min-width: 0; }
 .fin-cowork .vendas-aplus .vd-pal-tx b { display: block; font-weight: 600; }
-.fin-cowork .vendas-aplus .vd-pal-tx small { font-size: 11px; color: var(--text-mute); }
+.fin-cowork .vendas-aplus .vd-pal-tx small { font-size: var(--fs-1); color: var(--text-mute); }
 .fin-cowork .vendas-aplus .vd-pal-it kbd {
   margin-left: auto;
-  font-family: var(--font-mono); font-size: 10px; padding: 1px 5px;
+  font-family: var(--font-mono); font-size: var(--fs-1); padding: 1px 5px;
   border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
   background: var(--bg-2); color: var(--text-dim);
 }
 .fin-cowork .vendas-aplus .vd-pal-empty {
   padding: 24px; text-align: center;
-  color: var(--text-mute); font-size: 12.5px;
+  color: var(--text-mute); font-size: var(--fs-3);
 }
 .fin-cowork .vendas-aplus .vd-pal-ft {
   padding: 10px 16px; border-top: 1px solid var(--border);
-  display: flex; gap: 16px; font-size: 11px; color: var(--text-mute);
+  display: flex; gap: 16px; font-size: var(--fs-1); color: var(--text-mute);
 }
 .fin-cowork .vendas-aplus .vd-pal-ft span {
   display: inline-flex; align-items: center; gap: 4px;
 }
 .fin-cowork .vendas-aplus .vd-pal-ft kbd {
-  font-family: var(--font-mono); font-size: 9.5px; padding: 1px 4px;
+  font-family: var(--font-mono); font-size: var(--fs-1); padding: 1px 4px;
   border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
   background: var(--bg-2); color: var(--text-dim);
 }
@@ -2882,7 +2882,7 @@
 .fin-cowork .vendas-aplus .vd-plate {
   display: inline-flex; flex-direction: column; align-items: stretch;
   width: 78px; flex-shrink: 0;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid oklch(0.30 0 0); border-radius: 3px;
   overflow: hidden;
   font-family: var(--font-mono);
@@ -2890,12 +2890,12 @@
 }
 .fin-cowork .vendas-aplus .vd-plate-top {
   background: oklch(0.30 0.12 240); color: #fff;
-  font-size: 6px; font-weight: 700;
+  font-size: 6px; font-weight: 700; /* exceção ao ramp: micro-texto da placa Mercosul skeuomórfica */
   text-align: center; padding: 1px 0;
   letter-spacing: 0.04em;
 }
 .fin-cowork .vendas-aplus .vd-plate-num {
-  font-size: 13px; font-weight: 700; color: oklch(0.18 0 0);
+  font-size: var(--fs-3); font-weight: 700; color: oklch(0.18 0 0);
   text-align: center; padding: 3px 0;
   letter-spacing: 0.06em;
 }
@@ -2922,12 +2922,12 @@
 /* ── F1.5 iter1: empty state com kbd hints ── */
 .fin-cowork .vendas-aplus .os-empty {
   padding: 40px 20px; text-align: center;
-  color: var(--text-mute); font-size: 12.5px;
+  color: var(--text-mute); font-size: var(--fs-3);
 }
 .fin-cowork .vendas-aplus .os-empty kbd {
   display: inline-block; padding: 1px 5px; margin: 0 2px;
   border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 3px;
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); color: var(--text-dim);
 }
 /* ═══════════════════════════════════════════════════════════════════
@@ -2938,10 +2938,10 @@
 .fin-cowork .vendas-aplus .vd-sla {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 7px; border-radius: 4px;
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   letter-spacing: 0.01em; white-space: nowrap;
 }
-.fin-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: 9px; line-height: 1; }
+.fin-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: var(--fs-1); line-height: 1; }
 .fin-cowork .vendas-aplus .vd-sla-fresh { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
 .fin-cowork .vendas-aplus .vd-sla-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60); }
 .fin-cowork .vendas-aplus .vd-sla-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25); }
@@ -2953,10 +2953,10 @@
 }
 .fin-cowork .vendas-aplus .vd-sla-mini {
   display: inline-flex; align-items: center;
-  font-size: 10.5px; font-weight: 600;
+  font-size: var(--fs-1); font-weight: 600;
   padding: 0; line-height: 1.5;
 }
-.fin-cowork .vendas-aplus .vd-sla-mini .ic { font-size: 8px; line-height: 1; margin-right: 4px; }
+.fin-cowork .vendas-aplus .vd-sla-mini .ic { font-size: 8px; /* exceção ao ramp: glifo de ícone, não texto */ line-height: 1; margin-right: 4px; }
 .fin-cowork .vendas-aplus .vd-sla-mini.fresh { color: oklch(0.45 0.13 145); }
 .fin-cowork .vendas-aplus .vd-sla-mini.warning { color: oklch(0.50 0.13 60); }
 .fin-cowork .vendas-aplus .vd-sla-mini.overdue { color: oklch(0.55 0.18 25); }
@@ -2969,7 +2969,7 @@
 }
 .fin-cowork .vendas-aplus .vd-pay .vd-pay-top > span:first-child { font-weight: 600; color: var(--text); }
 .fin-cowork .vendas-aplus .vd-pay .vd-inst {
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); color: var(--text-mute);
   padding: 1px 5px; border-radius: 3px;
 }
@@ -2989,7 +2989,7 @@
 /* favorito ★ */
 .fin-cowork .vendas-aplus .vd-fav {
   color: oklch(0.65 0.16 70);
-  margin-right: 3px; font-size: 11px;
+  margin-right: 3px; font-size: var(--fs-1);
 }
 /* ── Tree-view saved views ── */
 .fin-cowork .vendas-aplus .vd-views-menu.vd-tree {
@@ -2999,12 +2999,12 @@
 .fin-cowork .vendas-aplus .vd-tree-row {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 8px; border-radius: 4px;
-  font-size: 12.5px; cursor: pointer; user-select: none;
+  font-size: var(--fs-3); cursor: pointer; user-select: none;
 }
 .fin-cowork .vendas-aplus .vd-tree-row:hover { background: var(--bg-2); }
 .fin-cowork .vendas-aplus .vd-tree-row.l0 { font-weight: 500; }
 .fin-cowork .vendas-aplus .vd-tree-row.l1 {
-  padding-left: 28px; font-size: 11.5px; color: var(--text-dim);
+  padding-left: 28px; font-size: var(--fs-2); color: var(--text-dim);
 }
 .fin-cowork .vendas-aplus .vd-tree-row.active {
   background: var(--vd-green-soft); color: var(--vd-green); font-weight: 600;
@@ -3012,15 +3012,15 @@
 .fin-cowork .vendas-aplus .vd-tree-row.active .ct { background: white; color: var(--vd-green); }
 .fin-cowork .vendas-aplus .vd-tree-arr {
   width: 12px; flex-shrink: 0; text-align: center;
-  font-size: 10px; color: var(--text-mute);
-  transition: transform 0.12s;
+  font-size: var(--fs-1); color: var(--text-mute);
+  transition: transform var(--t-1) var(--ease);
   cursor: pointer;
 }
 .fin-cowork .vendas-aplus .vd-tree-arr.open { transform: rotate(90deg); }
 .fin-cowork .vendas-aplus .vd-tree-arr.empty { visibility: hidden; }
 .fin-cowork .vendas-aplus .vd-tree-lbl { flex: 1; }
 .fin-cowork .vendas-aplus .vd-tree-row .ct {
-  font-family: var(--font-mono); font-size: 10.5px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); color: var(--text-mute);
   padding: 1px 6px; border-radius: 99px;
 }
@@ -3036,7 +3036,7 @@
 .fin-cowork .vd-cheat {
   background: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+  box-shadow: var(--sh-2);
   width: 100%; max-width: 760px;
   max-height: 86vh; overflow: auto;
   display: flex; flex-direction: column;
@@ -3058,17 +3058,17 @@
   width: 38px; height: 38px;
   background: var(--vd-green); color: white;
   border-radius: 8px;
-  font-size: 19px;
+  font-size: var(--fs-6);
   align-self: center;
 }
 .fin-cowork .vd-cheat-h h2 {
   grid-area: title;
-  margin: 0; font-size: 17px; font-weight: 700;
+  margin: 0; font-size: var(--fs-6); font-weight: 700;
   letter-spacing: -0.01em;
 }
 .fin-cowork .vd-cheat-h p {
   grid-area: sub;
-  margin: 0; font-size: 12.5px; color: var(--text-mute);
+  margin: 0; font-size: var(--fs-3); color: var(--text-mute);
 }
 .fin-cowork .vd-cheat-x {
   grid-area: x;
@@ -3078,7 +3078,7 @@
   align-self: center;
 }
 .fin-cowork .vd-cheat-x kbd {
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   border: none; padding: 0; background: transparent;
 }
 .fin-cowork .vd-cheat-grid {
@@ -3087,28 +3087,28 @@
 }
 .fin-cowork .vd-cheat-sec h4 {
   margin: 0 0 10px;
-  font-size: 10px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--vd-green);
 }
 .fin-cowork .vd-cs-row {
   display: grid; grid-template-columns: 130px 1fr; gap: 12px;
   padding: 5px 0; align-items: center;
-  font-size: 12px; color: var(--text-dim);
+  font-size: var(--fs-2); color: var(--text-dim);
 }
 .fin-cowork .vd-cs-row + .vd-cs-row { border-top: 1px solid var(--border-2); }
 .fin-cowork .vd-cs-keys { display: flex; gap: 4px; align-items: center; }
 .fin-cowork .vd-cs-keys kbd {
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-bottom-width: 2px;
   border-radius: 4px;
   padding: 2px 7px; min-width: 24px; text-align: center;
 }
-.fin-cowork .vd-cs-plus { font-size: 10px; color: var(--text-mute); }
+.fin-cowork .vd-cs-plus { font-size: var(--fs-1); color: var(--text-mute); }
 .fin-cowork .vd-cs-lbl b { color: var(--text); font-weight: 600; }
 .fin-cowork .vd-cs-lbl code {
-  font-family: var(--font-mono); font-size: 10.5px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); padding: 1px 4px;
   border-radius: 3px; color: var(--vd-green);
 }
@@ -3116,16 +3116,16 @@
   padding: 14px 26px;
   border-top: 1px solid var(--border);
   background: var(--bg-2);
-  font-size: 11px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
 }
 /* ── ⌘K palette: prefix hint no footer ── */
 .fin-cowork .vendas-aplus .vd-pal-prefix {
   display: inline-flex; gap: 6px; flex-wrap: wrap;
-  color: var(--text-mute); font-size: 10.5px;
+  color: var(--text-mute); font-size: var(--fs-1);
 }
 .fin-cowork .vendas-aplus .vd-pal-prefix kbd {
-  font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   background: var(--bg-2); border: 1px solid var(--border);
   border-radius: 3px; padding: 1px 5px;
   margin-right: 2px;
@@ -3134,7 +3134,7 @@
 @media (max-width: 1100px) {
 .fin-cowork .vendas-aplus .vd-col-commission { display: none; }
 .fin-cowork .vendas-aplus .vd-cmdk { flex: 0 1 240px; min-width: 180px; }
-.fin-cowork .vendas-aplus .vd-cmdk span { font-size: 11px; }
+.fin-cowork .vendas-aplus .vd-cmdk span { font-size: var(--fs-1); }
 .fin-cowork .vendas-aplus .vd-aplus-table .vd-seller-info small { display: none; }
 .fin-cowork .vendas-aplus .vd-stp-lbl { display: none; }
 /* só dots */
@@ -3168,7 +3168,7 @@
 /* ── Painel IA · banner topo ── */
 .fin-cowork .vd-ai-panel h3 {
   margin: 18px 0 8px;
-  font-size: 11px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.07em; text-transform: uppercase;
   color: var(--vd-ai); opacity: 0.85;
 }
@@ -3186,11 +3186,11 @@
   width: 32px; height: 32px;
   background: var(--vd-ai); color: white;
   border-radius: 7px;
-  font-size: 17px;
+  font-size: var(--fs-6);
   flex-shrink: 0;
 }
-.fin-cowork .vd-ai-banner b { display: block; font-size: 13px; color: var(--vd-ai-text); }
-.fin-cowork .vd-ai-banner small { display: block; font-size: 11.5px; color: var(--text-dim); line-height: 1.4; }
+.fin-cowork .vd-ai-banner b { display: block; font-size: var(--fs-3); color: var(--vd-ai-text); }
+.fin-cowork .vd-ai-banner small { display: block; font-size: var(--fs-2); color: var(--text-dim); line-height: 1.4; }
 /* ── Bloco IA genérico ── */
 .fin-cowork .vd-ai-block {
   background: white;
@@ -3212,28 +3212,28 @@
   width: 26px; height: 26px;
   background: var(--vd-ai-soft); color: var(--vd-ai);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: var(--fs-4);
   flex-shrink: 0;
 }
 .fin-cowork .vd-ai-block-tx { flex: 1; min-width: 0; }
-.fin-cowork .vd-ai-block-tx b { display: block; font-size: 12.5px; font-weight: 600; }
+.fin-cowork .vd-ai-block-tx b { display: block; font-size: var(--fs-3); font-weight: 600; }
 .fin-cowork .vd-ai-block-tx small {
-  display: block; font-size: 11px; color: var(--text-dim);
+  display: block; font-size: var(--fs-1); color: var(--text-dim);
   line-height: 1.45;
 }
 .fin-cowork .vd-ai-cta {
   background: var(--vd-ai); color: white;
   border: none; padding: 6px 12px;
-  border-radius: 5px; font-size: 11.5px; font-weight: 600;
+  border-radius: 5px; font-size: var(--fs-2); font-weight: 600;
   cursor: pointer; flex-shrink: 0;
-  transition: background .1s;
+  transition: background var(--t-1) var(--ease);
 }
 .fin-cowork .vd-ai-cta:hover { background: oklch(0.46 0.20 295); }
 .fin-cowork .vd-ai-retry {
   background: transparent; border: 1px solid var(--border);
   color: var(--vd-ai);
   width: 26px; height: 26px; border-radius: 5px;
-  cursor: pointer; font-size: 14px;
+  cursor: pointer; font-size: var(--fs-4);
 }
 .fin-cowork .vd-ai-retry:hover { background: var(--vd-ai-soft); }
 /* ── Loader dots ── */
@@ -3269,13 +3269,13 @@
   margin-top: 10px; padding: 10px 12px;
   background: var(--vd-ai-soft);
   border-radius: 6px;
-  font-size: 12.5px; line-height: 1.55;
+  font-size: var(--fs-3); line-height: 1.55;
   color: var(--text);
   white-space: pre-wrap;
 }
 .fin-cowork .vd-ai-out.err {
   background: oklch(0.96 0.04 25); color: oklch(0.45 0.18 25);
-  font-family: var(--font-mono); font-size: 11.5px;
+  font-family: var(--font-mono); font-size: var(--fs-2);
 }
 /* ── História: stats grid ── */
 
@@ -3286,12 +3286,12 @@
 }
 
 .fin-cowork .vd-ai-prods .ct {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   color: var(--vd-ai); background: var(--vd-ai-soft);
   padding: 1px 6px; border-radius: 99px; text-align: center;
 }
 .fin-cowork .vd-ai-prods .px {
-  font-family: var(--font-mono); font-size: 11px; color: var(--text-mute);
+  font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-mute);
 }
 /* ── Sugestão parseada ── */
 .fin-cowork .vd-ai-suggest {
@@ -3304,18 +3304,18 @@
   display: grid; place-items: center;
   width: 30px; height: 30px;
   background: var(--vd-ai); color: white;
-  border-radius: 6px; font-size: 15px;
+  border-radius: 6px; font-size: var(--fs-5);
   flex-shrink: 0;
 }
 .fin-cowork .vd-ai-suggest-h b {
-  display: block; font-size: 13.5px; font-weight: 700;
+  display: block; font-size: var(--fs-4); font-weight: 700;
 }
 .fin-cowork .vd-ai-suggest-h small {
   display: block; font-family: var(--font-mono);
-  font-size: 11.5px; color: var(--vd-ai);
+  font-size: var(--fs-2); color: var(--vd-ai);
 }
 .fin-cowork .vd-ai-suggest p {
-  margin: 4px 0 0; font-size: 12px; line-height: 1.5;
+  margin: 4px 0 0; font-size: var(--fs-2); line-height: 1.5;
   color: var(--text-dim);
   padding-left: 40px;
 }
@@ -3333,7 +3333,7 @@
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-cta:hover {
   border-style: solid;
@@ -3343,20 +3343,20 @@
   display: grid; place-items: center;
   width: 30px; height: 30px;
   background: var(--vd-ai); color: white;
-  border-radius: 7px; font-size: 15px;
+  border-radius: 7px; font-size: var(--fs-5);
   flex-shrink: 0;
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-tx { flex: 1; text-align: left; }
 .fin-cowork .vendas-aplus .vd-pal-ai-tx b {
-  display: block; font-size: 13px; font-weight: 600;
+  display: block; font-size: var(--fs-3); font-weight: 600;
   color: var(--vd-ai-text);
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-tx small {
-  display: block; font-size: 11.5px; color: var(--text-dim);
+  display: block; font-size: var(--fs-2); color: var(--text-dim);
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-tx i { color: var(--vd-ai); font-style: normal; font-weight: 500; }
 .fin-cowork .vendas-aplus .vd-pal-ai-cta kbd {
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: white; border: 1px solid var(--vd-ai-border);
   border-bottom-width: 2px; border-radius: 4px;
   padding: 2px 7px; color: var(--vd-ai);
@@ -3366,7 +3366,7 @@
   padding: 14px;
   background: var(--vd-ai-soft);
   border-radius: 8px;
-  font-size: 12.5px; color: var(--vd-ai-text);
+  font-size: var(--fs-3); color: var(--vd-ai-text);
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-dots {
   display: inline-flex; gap: 3px; margin-left: auto;
@@ -3389,19 +3389,19 @@
   margin-bottom: 8px;
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-answer header .vd-pal-ai-ic {
-  width: 22px; height: 22px; font-size: 12px; border-radius: 5px;
+  width: 22px; height: 22px; font-size: var(--fs-2); border-radius: 5px;
 }
-.fin-cowork .vendas-aplus .vd-pal-ai-answer header b { color: var(--vd-ai-text); font-size: 12.5px; }
+.fin-cowork .vendas-aplus .vd-pal-ai-answer header b { color: var(--vd-ai-text); font-size: var(--fs-3); }
 .fin-cowork .vendas-aplus .vd-pal-ai-answer header span {
-  font-size: 11px; color: var(--text-mute); margin-left: auto;
+  font-size: var(--fs-1); color: var(--text-mute); margin-left: auto;
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-answer p {
-  margin: 0; font-size: 12.5px; line-height: 1.55;
+  margin: 0; font-size: var(--fs-3); line-height: 1.55;
   color: var(--text);
 }
 .fin-cowork .vendas-aplus .vd-pal-ai-answer small {
   display: block; margin-top: 8px;
-  font-size: 10.5px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
   border-top: 1px solid var(--border-2);
   padding-top: 6px;
 }
@@ -3420,7 +3420,7 @@
   display: flex; flex-direction: column;
   background: white; border: 1px solid var(--border);
   border-radius: 8px; overflow: hidden;
-  transition: border-color .12s;
+  transition: border-color var(--t-1) var(--ease);
 }
 .fin-cowork .vd-drawer-aplus .vd-item-cur.has-comments {
   border-color: oklch(0.82 0.10 240);
@@ -3456,11 +3456,11 @@
   width: 28px; height: 28px;
   background: transparent; border: 1px solid var(--border);
   border-radius: 5px;
-  font-size: 13px; cursor: pointer;
+  font-size: var(--fs-3); cursor: pointer;
   position: relative;
   display: grid; place-items: center;
   color: var(--text-mute);
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vd-drawer-aplus .vd-item-c-comm:hover {
   border-color: oklch(0.55 0.13 240);
@@ -3478,7 +3478,7 @@
 .fin-cowork .vd-drawer-aplus .vd-item-c-comm .ct {
   position: absolute; top: -5px; right: -5px;
   background: oklch(0.55 0.13 240); color: white;
-  font-size: 9px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   padding: 1px 4px; border-radius: 99px;
   min-width: 14px; text-align: center;
   line-height: 1.4;
@@ -3501,21 +3501,21 @@
   display: grid; place-items: center;
   width: 18px; height: 18px;
   background: oklch(0.55 0.13 240); color: white;
-  border-radius: 50%; font-size: 10px; font-weight: 700;
+  border-radius: 50%; font-size: var(--fs-1); font-weight: 700;
 }
-.fin-cowork .vd-drawer-aplus .vd-item-comment-h b { font-size: 12px; font-weight: 600; }
+.fin-cowork .vd-drawer-aplus .vd-item-comment-h b { font-size: var(--fs-2); font-weight: 600; }
 .fin-cowork .vd-drawer-aplus .vd-item-comment-when {
-  font-size: 10.5px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
 }
 .fin-cowork .vd-drawer-aplus .vd-item-comment-x {
   margin-left: auto;
   background: transparent; border: none;
-  color: var(--text-mute); font-size: 14px;
+  color: var(--text-mute); font-size: var(--fs-4);
   cursor: pointer; padding: 0 4px;
 }
 .fin-cowork .vd-drawer-aplus .vd-item-comment-x:hover { color: var(--vd-bad); }
 .fin-cowork .vd-drawer-aplus .vd-item-comment p {
-  margin: 0; font-size: 12px; line-height: 1.5;
+  margin: 0; font-size: var(--fs-2); line-height: 1.5;
   color: var(--text);
 }
 .fin-cowork .vd-drawer-aplus .vd-item-comment-new {
@@ -3524,7 +3524,7 @@
 }
 .fin-cowork .vd-drawer-aplus .vd-item-comment-new textarea {
   width: 100%; border: none; outline: none; resize: vertical;
-  font-family: inherit; font-size: 12px; line-height: 1.5;
+  font-family: inherit; font-size: var(--fs-2); line-height: 1.5;
   background: transparent;
   min-height: 50px;
 }
@@ -3533,7 +3533,7 @@
   margin-top: 6px;
 }
 .fin-cowork .vd-drawer-aplus .vd-item-comment-row small {
-  flex: 1; font-size: 10.5px; color: var(--text-mute);
+  flex: 1; font-size: var(--fs-1); color: var(--text-mute);
 }
 /* ── Audit trail ── */
 .fin-cowork .vd-drawer-aplus .vd-audit-h {
@@ -3541,10 +3541,10 @@
   margin-bottom: 14px;
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-h h4 {
-  margin: 0; font-size: 14px; font-weight: 700;
+  margin: 0; font-size: var(--fs-4); font-weight: 700;
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-h small {
-  font-size: 11px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-list {
   list-style: none; margin: 0; padding: 0;
@@ -3570,7 +3570,7 @@
   width: 26px; height: 26px;
   border-radius: 50%;
   background: var(--bg-2); color: var(--text-mute);
-  font-size: 12px; font-weight: 700;
+  font-size: var(--fs-2); font-weight: 700;
   position: relative; z-index: 1;
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-create .vd-audit-ic { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
@@ -3581,22 +3581,22 @@
   display: flex; align-items: baseline; gap: 8px;
   margin-bottom: 2px;
 }
-.fin-cowork .vd-drawer-aplus .vd-audit-body header b { font-size: 12.5px; font-weight: 600; }
+.fin-cowork .vd-drawer-aplus .vd-audit-body header b { font-size: var(--fs-3); font-weight: 600; }
 .fin-cowork .vd-drawer-aplus .vd-audit-action {
-  font-size: 11px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-body header time {
   margin-left: auto;
-  font-family: var(--font-mono); font-size: 10.5px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   color: var(--text-mute);
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-body p {
-  margin: 0; font-size: 12px; color: var(--text-dim); line-height: 1.45;
+  margin: 0; font-size: var(--fs-2); color: var(--text-dim); line-height: 1.45;
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-diff {
   margin-top: 5px;
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 11px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); padding: 3px 8px; border-radius: 4px;
 }
 .fin-cowork .vd-drawer-aplus .vd-audit-diff .diff-from { color: var(--text-mute); text-decoration: line-through; }
@@ -3609,10 +3609,10 @@
 /* ── Cross-link pills (#V #OS #CLI #orc) ── */
 .fin-cowork .vd-link {
   display: inline-flex; align-items: center;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   padding: 1px 6px; border-radius: 4px;
   text-decoration: none; line-height: 1.5;
-  transition: opacity .12s;
+  transition: opacity var(--t-1) var(--ease);
 }
 .fin-cowork .vd-link:hover { opacity: 0.75; }
 .fin-cowork .vd-link-venda { background: var(--vd-green-soft); color: var(--vd-green); }
@@ -3647,7 +3647,7 @@
 }
 .fin-cowork .vendas-aplus .vd-tree-row.vd-tree-fav.active .vd-tree-lbl { color: oklch(0.42 0.13 60); }
 .fin-cowork .vendas-aplus .vd-tree-row.vd-tree-fav small {
-  font-size: 10px; font-weight: 400;
+  font-size: var(--fs-1); font-weight: 400;
   color: var(--text-mute); margin-left: 4px;
 }
 /* ── Botão Apresentar no drawer footer ── */
@@ -3658,12 +3658,12 @@
 
 .fin-cowork .vd-trans-items .num, .fin-cowork .vd-trans-fiscal .num { text-align: right; font-variant-numeric: tabular-nums; }
 .fin-cowork .vd-trans-items .strong, .fin-cowork .vd-trans-fiscal .strong { font-weight: 700; }
-.fin-cowork .vd-trans-items .mono, .fin-cowork .vd-trans-fiscal .mono, .fin-cowork .vd-trans-audit .mono { font-family: var(--font-mono); font-size: 10px; }
+.fin-cowork .vd-trans-items .mono, .fin-cowork .vd-trans-fiscal .mono, .fin-cowork .vd-trans-audit .mono { font-family: var(--font-mono); font-size: var(--fs-1); }
 
-.fin-cowork .vd-trans-fiscal .small { font-size: 9.5px; color: #888; margin-top: 2px; }
+.fin-cowork .vd-trans-fiscal .small { font-size: var(--fs-1); color: #888; margin-top: 2px; }
 .fin-cowork .vd-trans-fiscal .fail { color: oklch(0.45 0.18 25); margin-top: 4px; }
 
-.fin-cowork .vd-trans-comment .mono { font-family: var(--font-mono); font-size: 9.5px; color: #888; }
+.fin-cowork .vd-trans-comment .mono { font-family: var(--font-mono); font-size: var(--fs-1); color: #888; }
 
 /* @media print — só mostra o transcript */
 
@@ -3701,7 +3701,7 @@
   margin-bottom: 12px;
 }
 .fin-cowork .vd-drawer-aplus .vd-msg-vars small {
-  font-size: 10px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--text-mute); margin-right: 4px;
 }
@@ -3721,7 +3721,7 @@
   background: oklch(0.95 0.05 145);
   border-radius: 8px 8px 8px 2px;
   padding: 10px 14px;
-  font-size: 12.5px; line-height: 1.55;
+  font-size: var(--fs-3); line-height: 1.55;
   color: oklch(0.20 0.04 145);
   max-width: 92%;
   white-space: pre-wrap;
@@ -3748,23 +3748,23 @@
 .fin-cowork .vendas-aplus .vd-visoes-btn {
   background: var(--surface); border: 1px solid var(--border);
   padding: 6px 10px; border-radius: 5px;
-  font-family: inherit; font-size: 12px; font-weight: 500;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
   cursor: pointer; color: var(--text-dim);
   display: inline-flex; align-items: center; gap: 5px;
 }
 .fin-cowork .vendas-aplus .vd-visoes-btn::after {
-  content: '▾'; font-size: 9px; color: var(--text-mute); margin-left: 2px;
+  content: '▾'; font-size: var(--fs-1); color: var(--text-mute); margin-left: 2px;
 }
 .fin-cowork .vendas-aplus .vd-visoes-btn:hover { border-color: var(--text-mute); color: var(--text); }
 .fin-cowork .vendas-aplus .vd-visoes-menu {
   position: absolute; top: calc(100% + 4px); right: 0;
   min-width: 240px; background: var(--surface);
   border: 1px solid var(--border); border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: var(--sh-2);
   padding: 6px; z-index: 30;
 }
 .fin-cowork .vendas-aplus .vd-visoes-grp {
-  font-size: 9.5px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-mute);
   padding: 6px 10px 4px;
@@ -3772,7 +3772,7 @@
 .fin-cowork .vendas-aplus .vd-visoes-item {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 10px; border-radius: 4px;
-  font-size: 12.5px; cursor: pointer;
+  font-size: var(--fs-3); cursor: pointer;
 }
 .fin-cowork .vendas-aplus .vd-visoes-item:hover { background: var(--bg-2); }
 .fin-cowork .vendas-aplus .vd-visoes-item.active {
@@ -3784,7 +3784,7 @@
 }
 .fin-cowork .vendas-aplus .vd-visoes-dot.pdv { background: oklch(0.55 0.13 240); }
 .fin-cowork .vendas-aplus .vd-visoes-here {
-  margin-left: auto; font-size: 9.5px; font-weight: 700;
+  margin-left: auto; font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--vd-green); opacity: 0.7;
 }
@@ -3797,7 +3797,7 @@
 .fin-cowork .vendas-aplus .vd-visoes-item.primary:hover { background: oklch(0.96 0.04 240); }
 .fin-cowork .vendas-aplus .vd-visoes-item kbd {
   margin-left: auto;
-  font-family: var(--font-mono); font-size: 10px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); border: 1px solid var(--border);
   border-bottom-width: 2px; border-radius: 3px;
   padding: 1px 6px;
@@ -3807,7 +3807,7 @@
 /* ── Vista → "Foco" label inline ── */
 .fin-cowork .vendas-aplus .vd-vista { display: inline-flex; align-items: center; }
 .fin-cowork .vendas-aplus .vd-vista-lbl {
-  font-size: 10px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--text-mute);
   padding: 0 8px 0 4px;
@@ -3826,7 +3826,7 @@
   width: 30px; height: 26px;
   border-radius: 4px;
   color: var(--text-mute); cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   display: inline-grid; place-items: center;
 }
 .fin-cowork .fin-toolbar .fin-density button:hover { color: var(--text); background: oklch(0 0 0 / 0.04); }
@@ -3842,8 +3842,8 @@
   border: 1px solid var(--border); background: var(--surface);
   /* font: inherit — chip virou <button> no #1982; sem isso o UA stylesheet
      aplica fonte/line-height próprios do button e desalinha vs resto da toolbar. */
-  font: inherit; font-size: 12px; font-weight: 500; color: var(--text-dim);
-  cursor: pointer; user-select: none; transition: all .12s;
+  font: inherit; font-size: var(--fs-2); font-weight: 500; color: var(--text-dim);
+  cursor: pointer; user-select: none; transition: all var(--t-1) var(--ease);
   position: relative;
 }
 .fin-cowork .fin-toolbar .fin-filter-cb:hover {
@@ -3857,7 +3857,7 @@
   border: 1.5px solid var(--text-mute);
   border-radius: 3px;
   display: inline-grid; place-items: center;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   flex-shrink: 0;
 }
 .fin-cowork .fin-toolbar .fin-filter-cb.on {
@@ -3884,7 +3884,7 @@
 .fin-cowork .fin-toolbar .fin-filter-clear {
   margin-left: 4px;
   background: transparent; border: none;
-  color: var(--text-mute); font-family: inherit; font-size: 11.5px;
+  color: var(--text-mute); font-family: inherit; font-size: var(--fs-2);
   cursor: pointer; padding: 5px 8px; border-radius: 4px;
   text-decoration: underline; text-decoration-style: dotted;
   text-underline-offset: 3px;
@@ -3909,9 +3909,9 @@
   padding: 6px 12px 6px 8px; border-radius: 6px;
   border: 1.5px solid oklch(0.85 0.10 60);
   background: white;
-  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 600;
   color: oklch(0.42 0.13 60);
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-edit-btn:hover { background: oklch(0.96 0.06 60); }
 .fin-cowork .fin-edit-btn.has-edits {
@@ -3932,7 +3932,7 @@
   margin-bottom: 10px;
 }
 .fin-cowork .fin-edit-h h4 {
-  margin: 0; font-size: 13px; font-weight: 700;
+  margin: 0; font-size: var(--fs-3); font-weight: 700;
   color: oklch(0.42 0.13 60);
 }
 
@@ -3940,7 +3940,7 @@
   background: var(--accent); border: none;
   color: white;
   padding: 4px 12px; border-radius: 5px;
-  font-family: inherit; font-size: 11.5px; font-weight: 600;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
   cursor: pointer;
 }
 .fin-cowork .fin-edit-close:hover { background: var(--accent-2); }
@@ -3952,22 +3952,22 @@
 }
 .fin-cowork .fin-edit-grid label.fin-edit-wide { grid-column: 1 / -1; }
 .fin-cowork .fin-edit-grid label > span {
-  font-size: 10px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-mute);
 }
 .fin-cowork .fin-edit-grid input, .fin-cowork .fin-edit-grid select {
   background: white; border: 1px solid var(--border);
   padding: 6px 9px; border-radius: 5px;
-  font-family: inherit; font-size: 12.5px;
+  font-family: inherit; font-size: var(--fs-3);
   color: var(--text);
   outline: none;
-  transition: border-color .12s;
+  transition: border-color var(--t-1) var(--ease);
 }
 .fin-cowork .fin-edit-grid input[type="number"] { font-family: var(--font-mono); }
 .fin-cowork .fin-edit-grid input:focus, .fin-cowork .fin-edit-grid select:focus { border-color: oklch(0.62 0.13 60); box-shadow: 0 0 0 2px oklch(0.94 0.06 60); }
 .fin-cowork .fin-edit-grid label small {
-  font-size: 10.5px; line-height: 1.3;
+  font-size: var(--fs-1); line-height: 1.3;
 }
 .fin-cowork .fin-edit-grid label small.pos { color: oklch(0.42 0.13 145); font-weight: 600; }
 .fin-cowork .fin-edit-grid label small.neg { color: oklch(0.55 0.18 25); font-weight: 600; }
@@ -3995,11 +3995,11 @@
   display: flex; flex-direction: column;
   align-items: center; gap: 4px;
   position: relative;
-  font-size: 11px;
+  font-size: var(--fs-1);
 }
 
 .fin-cowork .fsm-stepper.fsm-full .fsm-step.done .fsm-step-num {
-  background: var(--fsm-color); color: white; border-color: var(--fsm-color);
+  background: var(--fsm-color); color: var(--accent-fg, white); border-color: var(--fsm-color); /* PR-3 F2: white→token, fallback keyword (portal fora de .cockpit) */
 }
 .fin-cowork .fsm-stepper.fsm-full .fsm-step.current .fsm-step-num {
   background: var(--surface); color: var(--fsm-color-dim);
@@ -4030,7 +4030,7 @@
    FINANCEIRO · Drawer wide refluido (2026-05-18)
    ══════════════════════════════════════════ */
 /* Drawer mais largo (440→560px) + grid 2col em mais lugares */
-.fin-cowork .fin-drawer-wide { width: 560px !important; }
+.fin-cowork .fin-drawer-wide { width: 560px !important; box-shadow: var(--sh-2); } /* FA-5 R3: profundidade (sombra única Fundação) */
 .fin-cowork .fin-drawer-wide .grid-cols-2 { gap: 14px 24px; }
 .fin-cowork .fin-drawer-wide .fin-toggles-row {
   flex-wrap: wrap; gap: 8px;
@@ -4040,11 +4040,12 @@
 }
 .fin-cowork .fin-drawer-wide .fin-edit-wide { grid-column: 1 / -1; }
 .fin-cowork .fin-drawer-wide .fsm-stepper.fsm-full { padding: 12px 20px; }
-.fin-cowork .fin-drawer-wide .fsm-stepper.fsm-full .fsm-step-lbl { font-size: 11px; }
+.fin-cowork .fin-drawer-wide .fsm-stepper.fsm-full .fsm-step-lbl { font-size: var(--fs-1); }
 /* Footer reorganizado — botões iguais lado a lado */
 .fin-cowork .fin-drawer-footer {
   gap: 6px !important;
   padding: 0 14px !important;
+  overflow: hidden; /* FA-5 F2: footer nunca estoura */
 }
 /* Wagner 2026-05-25 — Footer sticky-bottom (irmão do body scrollable).
    Padrão drawer canon: header fixo + body scroll + footer fixo. */
@@ -4063,9 +4064,9 @@
   border: 1px solid var(--border);
   border-radius: 6px;
   background: white;
-  font-family: inherit; font-size: 11.5px; font-weight: 500;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
   color: var(--text-dim); cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   white-space: nowrap;
 }
 .fin-cowork .fin-foot-icon-btn:hover { background: var(--bg-2); color: var(--text); border-color: var(--text-mute); }
@@ -4076,8 +4077,8 @@
   border: none;
   border-radius: 6px;
   background: oklch(0.55 0.13 145); color: white;
-  font-family: inherit; font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: background .12s;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
+  cursor: pointer; transition: background var(--t-1) var(--ease);
   white-space: nowrap;
 }
 .fin-cowork .fin-foot-mark-btn:hover { background: oklch(0.48 0.13 145); }
@@ -4085,16 +4086,18 @@
 .fin-cowork .fin-drawer-footer .fin-trouble-btn {
   margin-right: 0;
   padding: 4px 9px 4px 4px;
-  font-size: 11.5px;
+  font-size: var(--fs-2);
+  min-width: 0; /* FA-5 F2: troubleshooter encolhe antes de estourar */
+  flex-shrink: 1;
 }
 .fin-cowork .fin-drawer-footer .fin-trouble-lbl {
   max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font-size: 11px;
+  font-size: var(--fs-1);
 }
 .fin-cowork .fin-drawer-footer .fin-trouble-lbl b {
   display: inline; max-width: 100%;
 }
-.fin-cowork .fin-drawer-footer .fin-trouble-ic { width: 20px; height: 20px; font-size: 12px; }
+.fin-cowork .fin-drawer-footer .fin-trouble-ic { width: 20px; height: 20px; font-size: var(--fs-2); }
 .fin-cowork .fin-drawer-footer .fin-trouble-ct { display: none; }
 /* Histórico audit row — menos vertical, mais largo */
 .fin-cowork .fin-drawer-wide .fin-audit-row {
@@ -4105,7 +4108,7 @@
   flex-wrap: wrap; gap: 4px 8px;
 }
 .fin-cowork .fin-drawer-wide .fin-audit-body header time {
-  font-size: 10px;
+  font-size: var(--fs-1);
 }
 /* Conferir + Editar lado a lado em vez de empilhados */
 .fin-cowork .fin-drawer-wide .fin-conferido-toggle, .fin-cowork .fin-drawer-wide .fin-edit-btn {
@@ -4124,10 +4127,10 @@
 .fin-cowork .fin-drawer-tab {
   background: transparent; border: none;
   padding: 12px 14px; font-family: inherit;
-  font-size: 12.5px; font-weight: 500;
+  font-size: var(--fs-3); font-weight: 500;
   color: var(--text-mute); cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
   display: inline-flex; align-items: center; gap: 6px;
   position: relative;
 }
@@ -4138,7 +4141,7 @@
   background: var(--surface);
 }
 .fin-cowork .fin-drawer-tab-ct {
-  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   background: var(--surface); color: var(--text-mute);
   padding: 1px 6px; border-radius: 99px;
 }
@@ -4187,7 +4190,7 @@
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: none; }
 }
-.fin-cowork .fin-drawer-wide .fin-edit-h h4 { font-size: 13.5px; color: oklch(0.32 0.18 60); }
+.fin-cowork .fin-drawer-wide .fin-edit-h h4 { font-size: var(--fs-4); color: oklch(0.32 0.18 60); }
 .fin-cowork .fin-drawer-wide .fin-edit-grid {
   grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
@@ -4203,9 +4206,9 @@
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 12px 6px 6px; border-radius: 6px;
   border: 1.5px solid oklch(0.78 0.10 145); background: oklch(0.97 0.04 145);
-  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 600;
   color: oklch(0.32 0.13 145);
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-conferido-toggle:hover { background: oklch(0.94 0.06 145); }
 .fin-cowork .fin-conferido-toggle.on {
@@ -4217,7 +4220,7 @@
   width: 22px; height: 22px; border-radius: 4px;
   background: white; color: oklch(0.55 0.13 145);
   border: 1.5px solid oklch(0.78 0.10 145);
-  font-size: 13px; font-weight: 700;
+  font-size: var(--fs-3); font-weight: 700;
 }
 .fin-cowork .fin-conferido-toggle.on .fin-conf-check {
   background: white; color: oklch(0.55 0.13 145);
@@ -4225,7 +4228,7 @@
 }
 .fin-cowork .fin-conferido-toggle .fin-conf-lbl { font-weight: 600; }
 .fin-cowork .fin-conferido-toggle small {
-  font-size: 10.5px; font-weight: 400; opacity: 0.7;
+  font-size: var(--fs-1); font-weight: 400; opacity: 0.7;
   margin-left: -3px;
 }
 .fin-cowork .fin-conferido-toggle.on small { display: none; }
@@ -4233,19 +4236,19 @@
 .fin-cowork .fin-frescor {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 7px; border-radius: 4px;
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
   letter-spacing: 0.01em; white-space: nowrap;
 }
-.fin-cowork .fin-frescor-ic { font-size: 9px; line-height: 1; }
+.fin-cowork .fin-frescor-ic { font-size: var(--fs-1); line-height: 1; }
 
 /* Audit trail */
-.fin-cowork .fin-audit { font-size: 12px; }
+.fin-cowork .fin-audit { font-size: var(--fs-2); }
 .fin-cowork .fin-audit-h {
   display: flex; align-items: baseline; gap: 10px;
   margin-bottom: 12px;
 }
-.fin-cowork .fin-audit-h h4 { margin: 0; font-size: 13px; font-weight: 700; }
-.fin-cowork .fin-audit-h small { font-size: 11px; color: var(--text-mute); }
+.fin-cowork .fin-audit-h h4 { margin: 0; font-size: var(--fs-3); font-weight: 700; }
+.fin-cowork .fin-audit-h small { font-size: var(--fs-1); color: var(--text-mute); }
 .fin-cowork .fin-audit-list {
   list-style: none; margin: 0; padding: 0;
   display: flex; flex-direction: column;
@@ -4267,7 +4270,7 @@
   display: grid; place-items: center;
   width: 24px; height: 24px; border-radius: 50%;
   background: var(--bg-2); color: var(--text-mute);
-  font-size: 11px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   position: relative; z-index: 1;
 }
 .fin-cowork .fin-audit-create .fin-audit-ic { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
@@ -4279,22 +4282,22 @@
   display: flex; align-items: baseline; gap: 8px;
   margin-bottom: 2px;
 }
-.fin-cowork .fin-audit-body header b { font-size: 12px; font-weight: 600; }
+.fin-cowork .fin-audit-body header b { font-size: var(--fs-2); font-weight: 600; }
 .fin-cowork .fin-audit-action {
-  font-size: 11px; color: var(--text-mute);
+  font-size: var(--fs-1); color: var(--text-mute);
 }
 .fin-cowork .fin-audit-body header time {
   margin-left: auto;
-  font-family: var(--font-mono); font-size: 10.5px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   color: var(--text-mute);
 }
 .fin-cowork .fin-audit-body p {
-  margin: 0; font-size: 12px; color: var(--text-dim); line-height: 1.45;
+  margin: 0; font-size: var(--fs-2); color: var(--text-dim); line-height: 1.45;
 }
 .fin-cowork .fin-audit-diff {
   margin-top: 4px;
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 11px;
+  font-family: var(--font-mono); font-size: var(--fs-1);
   background: var(--bg-2); padding: 2px 7px; border-radius: 4px;
 }
 .fin-cowork .fin-audit-diff .diff-from { color: var(--text-mute); text-decoration: line-through; }
@@ -4307,8 +4310,8 @@
   display: flex; align-items: baseline; gap: 10px;
   margin-bottom: 10px;
 }
-.fin-cowork .fin-comments-h h4 { margin: 0; font-size: 13px; font-weight: 700; }
-.fin-cowork .fin-comments-h small { font-size: 11px; color: var(--text-mute); }
+.fin-cowork .fin-comments-h h4 { margin: 0; font-size: var(--fs-3); font-weight: 700; }
+.fin-cowork .fin-comments-h small { font-size: var(--fs-1); color: var(--text-mute); }
 .fin-cowork .fin-comments-list {
   list-style: none; margin: 0 0 12px; padding: 0;
   display: flex; flex-direction: column; gap: 8px;
@@ -4324,27 +4327,27 @@
   display: grid; place-items: center;
   width: 22px; height: 22px; border-radius: 50%;
   background: oklch(0.55 0.13 240); color: white;
-  font-size: 11px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   align-self: start; margin-top: 2px;
 }
 .fin-cowork .fin-comment-body header {
   display: flex; align-items: baseline; gap: 6px;
   margin-bottom: 3px;
 }
-.fin-cowork .fin-comment-body header b { font-size: 12px; font-weight: 600; }
+.fin-cowork .fin-comment-body header b { font-size: var(--fs-2); font-weight: 600; }
 .fin-cowork .fin-comment-body header time {
-  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-mute);
+  font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-mute);
 }
 .fin-cowork .fin-comment-x {
   margin-left: auto;
   background: transparent; border: none;
-  color: var(--text-mute); font-size: 14px;
+  color: var(--text-mute); font-size: var(--fs-4);
   cursor: pointer; padding: 0 4px;
   line-height: 1;
 }
 .fin-cowork .fin-comment-x:hover { color: oklch(0.55 0.18 25); }
 .fin-cowork .fin-comment-body p {
-  margin: 0; font-size: 12px; line-height: 1.5; color: var(--text);
+  margin: 0; font-size: var(--fs-2); line-height: 1.5; color: var(--text);
 }
 .fin-cowork .fin-comment-new {
   display: flex; flex-direction: column; gap: 6px;
@@ -4354,15 +4357,15 @@
 }
 .fin-cowork .fin-comment-new textarea {
   width: 100%; border: none; outline: none; resize: vertical;
-  font-family: inherit; font-size: 12px; line-height: 1.5;
+  font-family: inherit; font-size: var(--fs-2); line-height: 1.5;
   background: transparent;
   min-height: 44px;
 }
 .fin-cowork .fin-comment-new button {
   align-self: flex-end;
-  background: var(--accent); color: white;
+  background: var(--accent); color: var(--accent-fg, white); /* PR-3 F2: white→token */
   border: none; padding: 5px 12px; border-radius: 5px;
-  font-family: inherit; font-size: 11.5px; font-weight: 600;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
   cursor: pointer;
 }
 .fin-cowork .fin-comment-new button:hover { background: var(--accent-2); }
@@ -4377,7 +4380,7 @@
 /* Painel IA dentro do drawer */
 .fin-cowork .fin-ai-panel h3 {
   margin: 12px 0 8px;
-  font-size: 11px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.07em; text-transform: uppercase;
   color: oklch(0.42 0.13 295); opacity: 0.85;
 }
@@ -4390,7 +4393,7 @@
   border-radius: 14px;
   width: 100%; max-width: 760px;
   max-height: 88vh; overflow: auto;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.18);
+  box-shadow: var(--sh-2);
   display: flex; flex-direction: column;
   animation: finDigestUp 0.22s ease-out;
 }
@@ -4418,21 +4421,21 @@
 }
 .fin-cowork .fin-digest-card small {
   display: block;
-  font-size: 9.5px; font-weight: 700;
+  font-size: var(--fs-1); font-weight: 700;
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-mute); margin-bottom: 3px;
 }
 .fin-cowork .fin-digest-card b {
   display: block;
   font-family: var(--font-mono);
-  font-size: 22px; font-weight: 700;
+  font-size: var(--fs-7); font-weight: 700;
   letter-spacing: -0.015em; line-height: 1.1;
 }
-.fin-cowork .fin-digest-card.primary b { font-size: 26px; }
+.fin-cowork .fin-digest-card.primary b { font-size: var(--fs-8); }
 .fin-cowork .fin-digest-card b.pos { color: oklch(0.42 0.13 145); }
 .fin-cowork .fin-digest-card b.neg { color: oklch(0.55 0.18 25); }
 .fin-cowork .fin-digest-card span {
-  display: block; font-size: 10.5px;
+  display: block; font-size: var(--fs-1);
   color: var(--text-dim); margin-top: 3px;
 }
 
@@ -4477,8 +4480,8 @@
   padding: 5px 10px; border-radius: 5px;
   border: 1px dashed var(--border); background: var(--surface);
   /* font: inherit — toggle virou <button> no #1982 (vd .fin-filter-cb). */
-  font: inherit; font-size: 12px; font-weight: 500; color: var(--text-dim);
-  cursor: pointer; user-select: none; transition: all .12s;
+  font: inherit; font-size: var(--fs-2); font-weight: 500; color: var(--text-dim);
+  cursor: pointer; user-select: none; transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .fin-toolbar .fin-filter-toggle:hover {
   border-color: var(--text-mute); color: var(--text);
@@ -4491,9 +4494,9 @@
   padding: 5px 26px 5px 10px;
   border-radius: 5px;
   border: 1px solid var(--border); background: var(--surface);
-  font-size: 12px; font-weight: 500; color: var(--text-dim);
+  font-size: var(--fs-2); font-weight: 500; color: var(--text-dim);
   font-family: inherit; line-height: 1.4;
-  cursor: pointer; transition: all .12s;
+  cursor: pointer; transition: all var(--t-1) var(--ease);
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%2378716c' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
@@ -4531,7 +4534,7 @@
 /* Hero title sub + botões ativos no header */
 .fin-cowork .fin-root .fin-hero-title-sub {
   color: var(--text-mute); font-weight: 400;
-  font-size: 18px; margin-left: 4px;
+  font-size: var(--fs-6); margin-left: 4px;
 }
 .fin-cowork .fin-root .os-page-h-r .os-btn.on {
   background: oklch(0.94 0.05 145);
@@ -4542,26 +4545,26 @@
 .fin-cowork .vd-subpage .vd-bcrumb {
   display: flex; align-items: center; gap: 6px;
   padding: 4px 0 12px;
-  font-size: 12px; color: var(--text-mute);
+  font-size: var(--fs-2); color: var(--text-mute);
   margin-bottom: 0;
 }
 .fin-cowork .vd-subpage .vd-bcrumb-back {
   display: inline-flex; align-items: center; gap: 5px;
   background: transparent; border: 1px solid transparent;
   padding: 4px 9px 4px 6px; border-radius: 5px;
-  font-family: inherit; font-size: 12px; font-weight: 500;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
   color: var(--vd-green, oklch(0.50 0.14 155)); cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vd-subpage .vd-bcrumb-back:hover {
   background: var(--vd-green-soft, oklch(0.94 0.05 155));
   border-color: var(--vd-green-soft, oklch(0.94 0.05 155));
 }
-.fin-cowork .vd-subpage .vd-bcrumb-back svg { flex-shrink: 0; transition: transform .12s; }
+.fin-cowork .vd-subpage .vd-bcrumb-back svg { flex-shrink: 0; transition: transform var(--t-1) var(--ease); }
 .fin-cowork .vd-subpage .vd-bcrumb-back:hover svg { transform: translateX(-2px); }
 .fin-cowork .vd-subpage .vd-bcrumb-sep {
   color: var(--text-mute); opacity: 0.5;
-  font-size: 13px;
+  font-size: var(--fs-3);
 }
 .fin-cowork .vd-subpage .vd-bcrumb-here {
   font-weight: 500; color: var(--text);
@@ -4573,11 +4576,11 @@
   align-items: center; gap: 16px;
 }
 .fin-cowork .vendas-aplus .vd-head-clean .os-head-l h1 {
-  margin: 0; font-size: 22px; font-weight: 700;
+  margin: 0; font-size: var(--fs-7); font-weight: 700;
   letter-spacing: -0.018em;
 }
 .fin-cowork .vendas-aplus .vd-head-clean .os-head-l p {
-  margin: 2px 0 0; font-size: 12px; color: var(--text-mute);
+  margin: 2px 0 0; font-size: var(--fs-2); color: var(--text-mute);
 }
 .fin-cowork .vendas-aplus .vd-head-clean .os-head-r {
   display: inline-flex; gap: 8px; align-items: center;
@@ -4603,9 +4606,9 @@
   display: inline-flex; align-items: center; gap: 5px;
   background: transparent; border: none;
   padding: 5px 9px; border-radius: 5px;
-  font-family: inherit; font-size: 12px; font-weight: 500;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
   color: var(--text-dim); cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-toolbar-act:hover {
   background: var(--bg-2); color: var(--text);
@@ -4618,14 +4621,14 @@
 }
 .fin-cowork .vendas-aplus .vd-toolbar .vd-vista-lbl {
   padding: 0 8px 0 6px;
-  font-size: 9.5px;
+  font-size: var(--fs-1);
 }
 .fin-cowork .vendas-aplus .vd-toolbar .vd-vista button {
   border: none; background: transparent;
   padding: 4px 10px; border-radius: 4px;
-  font-family: inherit; font-size: 11.5px; font-weight: 500;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
   color: var(--text-dim); cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-toolbar .vd-vista button:hover { color: var(--text); }
 .fin-cowork .vendas-aplus .vd-toolbar .vd-vista button.on {
@@ -4637,12 +4640,12 @@
 .fin-cowork .vendas-aplus .vd-toolbar .vd-views-btn {
   background: transparent; border: 1px solid transparent;
   padding: 5px 9px; border-radius: 5px;
-  font-family: inherit; font-size: 12px; font-weight: 500;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
   color: var(--text-dim); cursor: pointer;
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-toolbar .vd-views-btn::after {
-  content: '▾'; font-size: 9px; color: var(--text-mute); margin-left: 4px;
+  content: '▾'; font-size: var(--fs-1); color: var(--text-mute); margin-left: 4px;
 }
 .fin-cowork .vendas-aplus .vd-toolbar .vd-views-btn:hover {
   background: var(--bg-2); color: var(--text);
@@ -4668,7 +4671,7 @@
   display: inline-flex; gap: 2px;
   margin-left: 6px;
   opacity: 0; transform: translateX(-4px);
-  transition: opacity .12s, transform .12s;
+  transition: opacity var(--t-1) var(--ease), transform var(--t-1) var(--ease);
   vertical-align: middle;
 }
 .fin-cowork .vendas-aplus .os-row:hover .vd-row-actions, .fin-cowork .vendas-aplus .os-row.row-focused .vd-row-actions {
@@ -4680,7 +4683,7 @@
   border-radius: 4px; cursor: pointer;
   display: inline-grid; place-items: center;
   color: var(--text-mute);
-  transition: all .12s;
+  transition: all var(--t-1) var(--ease);
 }
 .fin-cowork .vendas-aplus .vd-row-act:hover {
   border-color: var(--vd-green); color: var(--vd-green);
@@ -4690,10 +4693,10 @@
    VENDAS · TWEAKS via data-attrs
    ═══════════════════════════════════════════════════════════════════ */
 /* Densidade */
-.fin-cowork .vendas-aplus[data-vd-density="compact"]  .vd-aplus-table td { padding: 5px 8px; font-size: 11.5px; }
+.fin-cowork .vendas-aplus[data-vd-density="compact"]  .vd-aplus-table td { padding: 5px 8px; font-size: var(--fs-2); }
 .fin-cowork .vendas-aplus[data-vd-density="compact"]  .vd-aplus-table th { padding: 5px 8px; }
 .fin-cowork .vendas-aplus[data-vd-density="compact"]  .vd-item-cur .vd-item-c-main { padding: 6px 10px; }
-.fin-cowork .vendas-aplus[data-vd-density="spacious"] .vd-aplus-table td { padding: 14px 14px; font-size: 13.5px; }
+.fin-cowork .vendas-aplus[data-vd-density="spacious"] .vd-aplus-table td { padding: 14px 14px; font-size: var(--fs-4); }
 .fin-cowork .vendas-aplus[data-vd-density="spacious"] .vd-aplus-table th { padding: 12px 14px; }
 .fin-cowork .vendas-aplus[data-vd-density="spacious"] .vd-item-cur .vd-item-c-main { padding: 14px 16px; }
 /* Drawer largura */
@@ -4712,7 +4715,7 @@
 .fin-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-warning .vd-sla-ic { background: oklch(0.62 0.13 60); }
 .fin-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-overdue .vd-sla-ic { background: var(--vd-bad); }
 .fin-cowork .vendas-aplus[data-vd-sla="dot"] .vd-pay-sla .vd-sla-lbl {
-  color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; font-weight: 500;
+  color: var(--text-dim); font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 500;
 }
 .fin-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla {
   display: block; margin-top: 4px;
@@ -4722,7 +4725,7 @@
 }
 .fin-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla .vd-sla-ic { display: none; }
 .fin-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla .vd-sla-lbl {
-  display: block; font-size: 10px; color: var(--text-mute); margin-bottom: 3px;
+  display: block; font-size: var(--fs-1); color: var(--text-mute); margin-bottom: 3px;
 }
 .fin-cowork .vendas-aplus[data-vd-sla="bar"] .vd-pay-sla::after {
   content: ''; display: block; height: 3px; border-radius: 99px;
@@ -4745,3 +4748,112 @@
   --vd-green: oklch(0.52 0.14 60);
   --vd-green-soft: oklch(0.95 0.06 60);
 }
+
+/* Medida de linha (§TEMPERO FA-3): título com quebra equilibrada. text-wrap:balance só
+   reflui heading multi-linha — nunca alarga nem quebra layout. Prosa ≤60ch (pretty +
+   max-inline-size) fica por tela: precisa de QA visual por elemento, deferida. */
+.fin-cowork h1, .fin-cowork h2, .fin-cowork h3 { text-wrap: balance; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FA-5 · Drawer Financeiro 9.75 (F2-aprovado [W] 2026-06-11) — Método 9.75
+   (P2 atalhos visíveis · N3 nav J/K · P5 recibo) + Refinos R1/R3 + polish F2.
+   Tokens mapeados Cowork->live: o drawer é portal .fin-cowork FORA de .cockpit,
+   então só resolvem aqui os tokens do escopo .fin-cowork + Fundação (:root).
+     --text-2 -> --text-dim · --text-3 -> --text-mute · --sunken -> --bg-2
+     --hairline -> --border-2 · --sh-2/--ease/--t-1/--fs-* -> Fundação (FA-1)
+   Cor SEMÂNTICA (pos/warn/neg) NÃO entra aqui — vai por utilitário Tailwind no
+   JSX (espelha DrawerLensChip: bg-success/10 etc), pois --pos vive em cockpit.css
+   e não alcança o portal. Refs: ONDAS-FINANCEIRO FA-5.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* R3 — profundidade: box-shadow var(--sh-2) foi MERGEADO na regra-base .fin-drawer-wide
+   (acima) pra não criar dup-selector (stylelint no-duplicate-selectors).
+   Hero com luz sutil da identidade roxa (atmosfera local): */
+.fin-cowork .fin-dw-hero {
+  background:
+    radial-gradient(440px 150px at 88% -35%, color-mix(in oklab, var(--accent) 12%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 6%, var(--surface)) 0%, var(--surface) 92%);
+}
+
+/* N3 — navegação J/K: cluster (anterior) n/N (próximo) no header */
+.fin-cowork .fin-dw-nav { display: flex; align-items: center; gap: 1px; margin-right: 2px; }
+.fin-cowork .fin-dw-nav-btn {
+  width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 5px; color: var(--text-dim); background: transparent; border: 0; cursor: pointer;
+  transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-dw-nav-btn:hover { background: var(--bg-2); color: var(--text); }
+.fin-cowork .fin-dw-nav-btn:disabled { opacity: .3; pointer-events: none; }
+.fin-cowork .fin-dw-pos { font-size: var(--fs-2); color: var(--text-dim); padding: 0 3px; white-space: nowrap; }
+.fin-cowork .fin-dw-pos i { font-style: normal; opacity: .45; margin: 0 1px; }
+
+/* P2 — teclas visíveis: kbd no footer + R no botão primário */
+.fin-cowork .fin-kbd {
+  display: inline-grid; place-items: center;
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 4px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-1); font-weight: 600; line-height: 1; color: var(--text-dim);
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+}
+.fin-cowork .fin-kbd-acc {
+  /* currentColor (texto do botão) — nunca um token -fg como superfície (G3) */
+  color: inherit;
+  background: color-mix(in oklab, currentColor 18%, transparent);
+  border-color: color-mix(in oklab, currentColor 30%, transparent);
+  margin-left: 2px;
+}
+.fin-cowork .fin-dw-hint {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: var(--fs-1); color: var(--text-mute); white-space: nowrap;
+}
+.fin-cowork .fin-dw-hint em { font-style: normal; margin-left: 2px; }
+@media (max-width: 720px) { .fin-cowork .fin-dw-hint { display: none; } }
+
+/* R1 — copy ao hover (Stripe). Cor do ✓/hover vem por Tailwind no JSX (success/primary). */
+.fin-cowork .fin-copyval {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer; text-align: left;
+}
+.fin-cowork .fin-copyval-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fin-cowork .fin-copyval-ic {
+  opacity: 0; font-size: var(--fs-1); flex-shrink: 0;
+  transition: opacity var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-copyval:hover .fin-copyval-ic { opacity: 1; }
+.fin-cowork .fin-copyval:hover .fin-copyval-txt { color: var(--accent); }
+.fin-cowork .fin-copyval.ok .fin-copyval-ic { opacity: 1; }
+
+/* F2 — ficha de campos: cartão com lavanda sutil (label nunca flutua em branco · [W] 06-11) */
+/* #6 Tribunal Onda 2 ([W] "tirar cor, manter fios" 2026-06-16) — ficha sem caixa colorida: fios neutros agrupam, não flutuam (rationale: charter v16). */
+.fin-cowork .fin-kv-card {
+  background: transparent; border: 0;
+  border-top: 1px solid var(--border-2); border-bottom: 1px solid var(--border-2); border-radius: 0; padding: 11px 0 12px;
+}
+
+/* R2 — Categoria editável inline (Canal segue read-only · decisão [W] 2026-06-11):
+   select vestido de valor + chevron ▾ via ::after (token, sem cor crua nem data-URI). */
+.fin-cowork .fin-kvedit { position: relative; display: inline-block; max-width: 100%; }
+.fin-cowork .fin-kvedit::after {
+  content: '▾'; position: absolute; right: 5px; top: 50%;
+  transform: translateY(-50%) scale(0.8); /* fs-1 encolhido — sem px cru fora do ramp */
+  font-size: var(--fs-1); color: var(--text-mute); pointer-events: none;
+}
+.fin-cowork .fin-kvedit select {
+  appearance: none; -webkit-appearance: none;
+  max-width: 100%; margin-left: -4px; padding: 1px 18px 1px 4px;
+  border: 1px solid transparent; border-radius: 5px; background: transparent;
+  color: var(--text); font: inherit; font-weight: 500; font-size: var(--fs-4);
+  cursor: pointer;
+  transition: border-color var(--t-1) var(--ease), background-color var(--t-1) var(--ease);
+}
+.fin-cowork .fin-kvedit select:hover { border-color: var(--border); background-color: var(--bg-2); }
+.fin-cowork .fin-kvedit select:focus { outline: none; border-color: var(--accent); background-color: var(--surface); }
+
+/* F2 — footer NUNCA estoura: botões não quebram, hint some quando há troubleshooter.
+   (overflow:hidden e .fin-trouble-btn flex-shrink:1 foram MERGEADOS nas regras-base
+   .fin-drawer-footer / .fin-trouble-btn acima — sem dup-selector.) */
+.fin-cowork .fin-drawer-footer .fin-foot-icon-btn,
+.fin-cowork .fin-drawer-footer .fin-foot-mark-btn { flex-shrink: 0; }
+.fin-cowork .fin-drawer-footer:has(.fin-trouble-btn) .fin-dw-hint { display: none; }

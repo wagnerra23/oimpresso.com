@@ -1,11 +1,13 @@
 ---
+page: /fiscal/dfe
+component: resources/js/Pages/Fiscal/Dfe.tsx
 page_id: fiscal-dfe
 url: /fiscal/dfe
 module: Fiscal
 status: draft
 created: 2026-05-20
 owner: wagner
-related_adrs: [0093, 0094, 0101, 0104, 0116]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0104-processo-mwart-canonico-unico-caminho, 0116-pivot-gold-manifestacao-destinatario-emenda-0115]
 prototypes:
   - "prototipo-ui/.../fiscal-data.jsx DFE_PENDENTE/DFE_HISTORICO"
 ---

@@ -1,0 +1,415 @@
+{
+  "ledger": [
+    {
+      "screen": "Atendimento",
+      "note": "o ouro · referência",
+      "reference": true,
+      "cells": {
+        "tokens": "ref",
+        "primitivos": "ref",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Admin",
+      "note": "36 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Auditoria",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Cliente",
+      "note": "39 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Essentials",
+      "note": "13 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "NfeBrasil",
+      "note": "9 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Sells",
+      "note": "44 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Settings",
+      "note": "8 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "superadmin",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Tarefas",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Whatsapp",
+      "note": "15 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "ComunicacaoVisual",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Financeiro",
+      "note": "61 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Fiscal",
+      "note": "23 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "governance",
+      "note": "7 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Jana",
+      "note": "18 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Manufacturing",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Nfse",
+      "note": "3 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "OficinaAuto",
+      "note": "32 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "ProjectMgmt",
+      "note": "9 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Purchase",
+      "note": "4 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "RecurringBilling",
+      "note": "16 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "Repair",
+      "note": "13 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
+      "screen": "TransactionPayment",
+      "note": "3 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Vestuario",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "ads",
+      "note": "19 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Compras",
+      "note": "5 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "ConsultaOs",
+      "note": "5 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "kb",
+      "note": "26 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "MemCofre",
+      "note": "6 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Ponto",
+      "note": "26 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Produto",
+      "note": "8 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Site",
+      "note": "7 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "StockAdjustment",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "StockTransfer",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "team-mcp",
+      "note": "3 arquivo(s)",
+      "cells": {
+        "tokens": "no",
+        "primitivos": "no",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    }
+  ],
+  "progressPct": 9,
+  "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
+  "measured": true,
+  "measuredAgainstSha": "b04b1e411",
+  "generatedAt": "2026-06-12T19:24:28.427Z",
+  "treeGuard": {
+    "pass": true,
+    "violations": 0
+  },
+  "counts": {
+    "screens": 35,
+    "done": 3,
+    "references": 1
+  }
+}

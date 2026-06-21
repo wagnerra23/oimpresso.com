@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @group legacy-quarantine
+ * quarantine-reason: assert estático de canon-source (DocumentsTab.tsx estrutura/endpoints) contra fonte-da-verdade móvel — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
+ */
+
 // Wave D — US-CRM-066 Tab Documents & Note
 // Restrição Tier 0 ADR 0093: DocumentAndNoteController filtra business_id global scope.
 // notable_type='App\Contact' é polimórfico canon.

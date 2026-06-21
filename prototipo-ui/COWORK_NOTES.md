@@ -1,5 +1,7 @@
 # COWORK_NOTES.md — INBOX: Wagner → Claude Design
 
+> 🧊 **CONGELADA pra NOVOS itens** (Onda B · proposta #2874 · [W] aprovou 2026-06-16 · ADR a numerar por [W]). Intake novo de pedido/tarefa → **GitHub Issue** (form `cowork-intake` · label/assignee/notificação/link-pro-PR) ou drop em `cowork-inbox/`. **Não adicionar item novo aqui.** Os itens ativos abaixo continuam drenando pelo gate `handoff:check` até pousarem (`CODE_NOTES.md@main`); quando o último pousar, este arquivo vira histórico. Motivo: a fila markdown apodreceu (órfãos + refs mortas) e o nativo faz intake/notificação/link melhor. Reversível.
+
 > Wagner escreve aqui. Claude Design ([CD]/[CC]) lê aqui pra produzir protótipo + crítica.
 > **Append-only.** Não edita pedidos antigos — adiciona resposta abaixo.
 > Formato em [PROTOCOL.md §4](PROTOCOL.md).
@@ -7,6 +9,16 @@
 > ⚠️ **LEITURA OBRIGATÓRIA antes de qualquer F3:** [`LICOES_F3_FINANCEIRO_REJEITADO.md`](LICOES_F3_FINANCEIRO_REJEITADO.md) — 6 meta-anti-padrões + 15 técnicos + pré-flight checklist + tabela convenções pt-BR. Sessão 2026-05-09 batch Financeiro rejeitado pré-merge. Aplicar literalmente em Estoque/Vendas/RH/Suprimentos/Crédito.
 
 > 🌱 **RAIZ DO MÉTODO (anti-regressão · always-read):** [`PROCESSO_MEMORIA_CC.md`](PROCESSO_MEMORIA_CC.md) — como a memória de design evolui sem regredir (3 planos · anéis 🔍Avaliar→🧪Testar→✅Adotar→⛔Descartar · §5 REGRESSÕES PROIBIDAS · DS-GUARD §8 · Bateria §9 · Benchmark §11). Ler no início de todo chat junto com `STATUS.md` + [`memory/LICOES_CC.md`](../memory/LICOES_CC.md) (L-01..L-25). Guards rodáveis: `node prototipo-ui/ds-guard.mjs <arquivos tocados>` · `node prototipo-ui/integrity-check.mjs`. _REGRESSÃO É INACEITÁVEL._
+
+---
+
+## 🟢 Handoffs ATIVOS — acima da linha d'água
+
+> Fila viva lida pelo gate `npm run handoff:check` (catraca · [`PROCESSO_MEMORIA_CC.md`](PROCESSO_MEMORIA_CC.md) §16 · IT8). Cada item ativo **cita** seu `PROMPT_PARA_CODE_<slug>.md` (que precisa existir em `prototipo-ui/`). Item que **pousou** (`CODE_NOTES.md@main` confirma) **desce** pra baixo da linha d'água — vira histórico, ignorado pelo gate. Lei: sem órfão · prompt auto-contido (sem URL efêmera) · ondas (1 arquivo = 1 PR).
+
+- **DS Roadmap até `ds/*=0`** — fila multi-onda ([`STATUS.md`](STATUS.md) "[PRONTO p/ disparar]"). Entrada: [`PROMPT_PARA_CODE_DS-ROADMAP-ATE-ZERO.md`](PROMPT_PARA_CODE_DS-ROADMAP-ATE-ZERO.md). Sub-filas: [`PROMPT_PARA_CODE_PR-C-WORKLIST.md`](PROMPT_PARA_CODE_PR-C-WORKLIST.md) (módulos · Sells lidera) · [`PROMPT_PARA_CODE_SWEEP-arbitrary-color.md`](PROMPT_PARA_CODE_SWEEP-arbitrary-color.md) · [`PROMPT_PARA_CODE_LOTE-BADGE.md`](PROMPT_PARA_CODE_LOTE-BADGE.md) · [`PROMPT_PARA_CODE_SWEEP-formsection.md`](PROMPT_PARA_CODE_SWEEP-formsection.md).
+
+<!-- LINHA-DAGUA-HANDOFF · acima = ATIVO (o gate vigia) · abaixo = processado/histórico (ignorado) · regra em PROCESSO_MEMORIA_CC.md §16 -->
 
 ---
 
@@ -102,6 +114,12 @@ Razão: ADR 0109 introduziu plugin Claude Design (capability). ADR 0114 formaliz
 - `ds:report` (G4) **já existe no main** · canais já reancorados (05-30) · loop **0-humano** (ADR 0241) **supera o G3** · `REGRAS_DS_LINT`+ESLint `ds/*` já existem (G5 metade DONE, ADR 0209) · `REGRAS_STYLELINT_CSS.md` **não existe** (G5-`.css` é trabalho novo).
 - 🆕 **Achado novo (não coberto pela fila §10.4 das 07:00):** são **6 motores de score**, em 2 camadas — cara/LLM `design:*` **DORMANTE** (`mwart-comparative` último 05-17 · `design-deep-analysis` **0 disparos** · `a11y-report.md` nunca) vs barata/estática **VIVA** (`screen-grade` 222 telas · `module:grade` · `ds/*`). PROTOCOL descreve só a dormante.
 - ⏸️ **Sobra real:** **G1/G2/G6** (consolidar motores — religar `mwart-comparative` como aprofundamento sob demanda do `screen-grade`, não skill nova) + **G5-`.css`**. Ordem = decisão [W].
+
+## 2026-06-09 [CC] → [CL] · EVAL-001 — fundação de evals de comportamento dos agentes
+
+**[PROCESSADO]** EVAL-001 — PR #2478 aguardando merge [W]. Ondas 2 e 3 descritas em [`prototipo-ui/evals/EVAL_PROTOCOL.md`](evals/EVAL_PROTOCOL.md) (EVAL-002 = outcome metrics + rubrica [W]; EVAL-003 = red-team + US-GOV-013).
+
+Processado por [CL] 2026-06-09, gate §10.4 contra `origin/main` (Passo 0: worktree fresco, `0 0` ahead). Entregue: `prototipo-ui/evals/{EVAL_PROTOCOL,GOLDEN_SET,REPLAY_CASES,AUTONOMY_LADDER}.md` + `results/.gitkeep` + ADR **0266** (status proposto, próximo livre após 0265). **Classe A1** pela própria AUTONOMY_LADDER → **NÃO merge autônomo**: o merge de [W] é o ato de congelamento do golden set.
 
 ## 2026-05-09 16:45 [W] → [CC]
 
@@ -344,3 +362,124 @@ Fallback aceito se `bg-primary` ficar pesado em densidade alta da lista de conve
 
 **F3 UI = parte da Onda 4 backend** — PaymentGatewayController + CobrancaController + Pages Inertia/React virão depois de F2 (screenshot Wagner aprova). Sequência travada conforme chat11.md Cowork.
 
+
+---
+
+## [2026-06-09] F0 — Fila V2 do drawer de OS (RichSheet) · pedido [W] via Cowork
+
+> Origem: avaliação F1.5 `prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md` + conferência pós-merge
+> #2477. O drawer `ServiceOrderRichSheet` já espelha o protótipo canon nas seções principais
+> (MercosulPlate, KV hero, Peças & Mão de obra, FSM, timeline de reparo, footer 3 ações).
+> Os 4 itens abaixo são os gaps V2 declarados no próprio código — [W] autorizou virarem fila.
+> Ordem de prioridade definida por impacto no balcão do Martinho (biz=164 LIVE).
+
+### OS-V2-1 · Fotos & Laudo reais no drawer — P1
+- **Hoje:** grid 3 placeholders hachurados + botão "Adicionar foto" disabled.
+- **Quero:** upload real (câmera no celular do mecânico + arquivo no desktop) via
+  Modules/Arquivos; thumbnails no grid; lightbox ao clicar; foto vira anexo da OS
+  e sai no print A4 (seção opcional).
+- **Persona:** Técnico Repair (tablet/celular, mãos sujas — touch ≥44px, fluxo de 1 toque).
+- **F1:** [CC] protótipo do estado preenchido + vazio + uploading no drawer canon.
+
+### OS-V2-2 · DVI inline com severidade — P1
+- **Hoje:** drawer não tem o checklist DVI; protótipo canon tem itens com severidade
+  ok/atenção/crítico e valor por item.
+- **Quero:** seção DVI no drawer: lista de inspeção com badge de severidade, valor
+  sugerido por item crítico/atenção, e o subtotal alimentando o gate de aprovação.
+- **Depende:** endpoint DVI por OS (DviInspectionController já existe — verificar shape).
+- **F1:** [CC] já tem o padrão visual no protótipo `producao-oficina` — extrair pro drawer.
+
+### OS-V2-3 · Gate "Pedir aprovação" hero no drawer — P2
+- **Hoje:** ApprovalGateCard existe no fluxo mas discreto; protótipo canon tem barra
+  preta "Total recomendado R$ X" + CTA primário "Pedir aprovação" (WhatsApp).
+- **Quero:** quando a OS está em diagnóstico com itens recomendados sem aprovação,
+  o drawer mostra a barra de total + CTA hero. LGPD: link wa.me sem PII na mensagem.
+- **F1:** [CC] portar a barra do protótipo pro vocabulário do DS (token, não preto cru).
+
+### OS-V2-4 · Linha do tempo FSM auditável — P2
+- **Hoje:** TimelineSkeleton derivada de entered_at/expected/completed_at.
+- **Quero:** timeline real via histórico de transições FSM (quem, quando, de→pra),
+  já exposto em endpoint (`fsm/history` previsto no código). Mantém vocabulário de reparo.
+- **Valor:** auditoria — Wagner vê quem travou a OS e onde o lead time estoura.
+
+### Residual técnico (não-UI, registrar como chore)
+- Backfill `order_type='locacao'|null → 'mecanica'` nas OS legadas (badge "—" na lista).
+- Renomear LABELS (não keys) dos estágios FSM `cacamba_locacao` pra vocabulário de reparo.
+
+---
+
+## [2026-06-09] F0/F2 — Drawer de OS: fechamento total (batch 2) · aprovado [W]
+
+> Comparação drawer protótipo × `ServiceOrderRichSheet` real pós-#2482 (~85%).
+> [W] deu F2 nos F1 verificados de OS-V2-3/V2-4 e aprovou registrar + executar os 2 gaps novos.
+> Ponte F3 única gerada pra [CL] com os 4 itens.
+
+### OS-V2-3 · Gate "Pedir aprovação" com ciclo de estados — P1 · F2 ✓
+Barra hero abaixo da DVI: none (escura "Total recomendado"+CTA) → pending (âmbar
+"Aguardando · WhatsApp há X" + Cobrar) → approved (verde "Autorizado") | declined
+(vermelha "Revisar e reenviar" → reabre). Estado real vem do status da OS /
+approval_requested_at / approval_decided_at — sem botões de simulação (demo-only).
+
+### OS-V2-4 · Linha do tempo FSM auditável — P1 (era P2; subiu com F2) · F2 ✓
+Substituir TimelineSkeleton pelo fetch do histórico FSM real
+(`/oficina-auto/service-orders/{id}/fsm/history` — criar se não existir, lendo
+sale_stage_history/equivalente): quem · quando · de→pra com chips de transição.
+Eventos de aprovação (enviado/aprovado/recusado) e fotos entram na trilha.
+
+### OS-V2-5 · StageGate — checklist de bloqueio por etapa — P1 · NOVO
+Seção "Checklist de etapa" no drawer: requisitos pra avançar a etapa atual
+(ex.: Diagnóstico→orçamento exige DVI com ≥1 item e foto; Aguardando aprovação→
+execução exige aprovação registrada). Itens com check verde/pendente; botão
+"Avançar etapa" desabilitado com tooltip do que falta. Regras data-driven por
+transição (config no FSM/seeder), não hardcoded no componente.
+
+### OS-V2-6 · Lançar item inline no drawer — P2 · NOVO
+Na seção Peças & Mão de obra: botão "+ Adicionar item" abrindo o
+ServiceOrderItemFormSheet (já existe) sem sair do drawer; editar/remover item
+existente inline (kebab ou swipe). Total OS atualiza via refetch.
+
+### Residual conhecido (não bloqueia)
+- "Observação" vs "Sintoma reportado" — cosmético, campo único no schema.
+
+---
+
+## 2026-06-10 [CL] · PROCESSED PROMPT_PARA_CODE_CAIXA-UNIFICADA-COMPLETA — placar PR-1..10
+
+Mandato [W] "vamos aplicar todas" executado fim-a-fim no dia. Gate §10.4 contra origin/main ANTES de codar mudou 2 PRs: macros backend JA EXISTIA completo (US-WA-048 MacrosController list+apply+variantes → PR-2 reusou, ZERO tabela nova) e o redirect 301 do cutover JA estava no main desde 2026-05-15 (PR-10 virou so charter historical).
+
+| PR | Entrega | Status |
+|---|---|---|
+| sync | 6 prototipos V2 → prototipo-ui/prototipos/caixa-unificada/ (recria path canon do charter) | MERGED #2504 |
+| PR-1 | US-WA-302 assignee picker (PATCH inbox/{id}/assign Tier 0 + availableAssignees) | MERGED #2503 |
+| PR-2 | US-WA-303 composer: TemplatePicker reusado por provider + macros "/" autocomplete (backend US-WA-048 reusado) + variaveis nome/telefone/operador com preview | MERGED #2506 |
+| PR-3 | US-WA-301 filas DB: ADR 0267 + whatsapp_queues + seed lazy do config + QueuesSheet CRUD + heuristica le DB c/ fallback | MERGED #2507 |
+| PR-4 | US-WA-305 queue_override (vence heuristica sem re-tagar; null volta; slug orfao cai no fallback) | MERGED #2509 |
+| PR-5 | US-WA-304 ChannelsDrawer in-place (ZERO backend novo — reusa payloads) | MERGED #2511 |
+| PR-6 | US-WA-307 + Nova conversa (find-or-create REABRE thread; msg inicial reusa pipeline send) | MERGED #2512 |
+| PR-7 | US-WA-306 broadcast FASE 1 (corte previsto no brief): ADR 0268 + whatsapp_broadcasts + contacts.whatsapp_opt_in_at LGPD + pre-flight real + draft auditavel; Disparar=disabled (fase 2 gate [W]) | MERGED #2514 |
+| PR-8 | Polish V2 — 7/8: SLA pill, cheat-sheet "?", lightbox, mobile tabs, favoritos LS, transcript print, modo apresentacao. cmd-K = TODO honesto (palette global PMG-002 ja existe; estender = US cross-modulo) | MERGED #2517 |
+| PR-9 | IA na thread REAL (validacao pre-PR: laravel/ai + Agents Jana existem): InboxAssistAgent + 3 endpoints (summarize/ask/suggest-reply), PiiRedactor antes do provider, dry_run gateia custo | MERGED #2518 |
+| PR-10 | §6 cutover — charter Inbox legacy → deprecated/historical (3 dos 4 itens JA estavam no main) | ABERTO #2513 — GATE [W], NAO mergear sem OK |
+
+Extra (incidente prod ~16:50 BRT, [W] "carregando canais erro 500"): deploy parcial deixou codigo pos-PR-3 sem migrate → queuesAdmin sem guard derrubava o grupo Inertia::defer inteiro. Hotfix #2515 (degrade gracioso, principio duro 8) + #2516 (workflow one-shot debug-caixa-logs.yml read-only). Diagnostico pos-fix: prod trackeia main com migrations aplicadas (whatsapp_queues [176] Ran, tabelas 1/1/1), ZERO production.ERROR no log. LICAO: payload deferred novo SEMPRE nasce com guard (deploy-ordering).
+
+Charter CaixaUnificada/Index.charter.md → v10 (historico PR-a-PR + metricas vivas R-WA-CAIXA-UNIF-001..012). Fase 2 do broadcast (Job rate-limited) e extensao do cmd-K global = proximas US com gate [W].
+
+---
+
+## 2026-06-16 [CL] · PROCESSED PROMPT_PARA_CODE_CAIXA-UNIFICADA-DARK-MODE — placar 4 partes
+
+Brief [CC]: tela aberta no tema escuro → painel da conversa branco + elementos do Contexto sem contraste (mesma classe de bug ja erradicada em Produtos/Oficina/Financeiro: cor clara crua que nao flipa no escuro; a Caixa Unificada foi portada antes da auditoria de escuro). Gate §10.4 contra main (origin/main `5253a776c`, alem do `dd09f96` que o [CC] leu — o repo venceu).
+
+Descoberta-chave que mudou a abordagem do brief: o repo ativa dark via **`<html class="dark">` (Tailwind `.dark`), NAO `[data-theme=dark]`** (inertia.css L97 confirma que data-theme nunca e ativado). Logo a correcao usa os pares de **token semantico que ja flipam** (`warning-soft`/`warning-fg`/`warning`, `card`, `info`) — **ZERO override CSS, ZERO token novo** (conformance/foundation intactos). A propagacao de tema NAO era o furo (o `bg-muted/15` da thread flipa OK no probe); o bug estava so nas FOLHAS com cor clara hardcoded.
+
+| Parte | Entrega | Status |
+|---|---|---|
+| 1 | `ConversationThreadV4`: bolha inbound `bg-white`→`bg-card` · read-tick `text-blue-600`→`oklch(0.55 0.18 250)` inline (passa R1) · nota interna + banner "em homologacao" + SLA-pill amber → `warning-soft`/`warning-fg`/`warning` · corpo da nota `text-foreground` (contraste nos 2 temas) · bolha verde-WA mantida (proposital) | feito — este PR |
+| 2 | `ContextSidebarV4`: chip de Tag aplicada (oklch claro cru) → `bg-warning-soft border-warning/30 text-foreground` (flipa; antes claro-no-claro no escuro) | feito — este PR |
+| 3 | `CustomerMemoryBlock` (compartilhado c/ Inbox legacy `ConversationSidebar`): sem Contact CRM **e** sem enriquecimento (reclamacoes/temas/fontes/notas/flags) → colapsa o card grande vazio numa linha ("Sem cadastro de cliente vinculado."), **sem prop nova** (nao regride o legacy) | feito — este PR |
+| 4 | Chips todos "em breve": o catalogo do `CaixaUnificadaController::buildAvailableChannelsPayload` so tem `whatsapp_baileys`; o canal LIVE e `whatsapp_whatsmeow` (WuzAPI, substituiu Baileys ADR 0202) → o type ATIVO nunca casa com row do catalogo. Fix = trocar a row morta `whatsapp_baileys` pela canonica `whatsapp_whatsmeow` no catalogo (+ Pest) | **PR #2822** (off origin/main) — row morta trocada; helper Pest + R-WA-CAIXA-UNIF-001 migrados pro type LIVE (mascaravam o bug); novo R-WA-CAIXA-UNIF-013 (regressao); Tier 0 preservado. Aguardando gates/merge. |
+
+Verificacao: probe token-flip standalone (tokens REAIS do inertia.css inlinados + markup pos-fix → headless-chrome screenshot LIGHT|DARK lado-a-lado) confirma flip correto e light intacto; ds-canon/conformance/foundation locais PASS; DS-GUARD limpo. Pest de unidade novo dispensado (dark e CSS/visual — guidance do proprio brief). Smoke vivo em prod fica pro pos-merge (`tela-smoke-pos-merge`).
+
+PARTE 4 (chips de canal) saiu em PR backend proprio **#2822** (branch `fix/caixa-unif-canal-chips-whatsmeow`, off origin/main pos-#2818): `buildAvailableChannelsPayload` cataloga `whatsapp_whatsmeow` (LIVE, ADR 0204) no lugar da row morta `whatsapp_baileys` (ADR 0202) — o chip do canal vivo volta a 'ativo' com count real e `?channel=whatsapp_whatsmeow` filtra via whereHas channel.type. Raiz do mascaramento: o helper Pest `cuctMakeChannel` e o R-WA-CAIXA-UNIF-001 seedavam o type morto, deixando o teste verde contra um type que nunca existe em dado real — migrados pro LIVE; novo R-WA-CAIXA-UNIF-013 (regressao). Charter v12. Fecha as 4 partes do brief (PARTEs 1-3 dark via #2818).

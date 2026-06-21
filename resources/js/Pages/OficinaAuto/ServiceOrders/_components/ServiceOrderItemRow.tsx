@@ -35,15 +35,21 @@ interface Props {
   busy?: boolean;
 }
 
-const TIPO_LABEL: Record<ItemTipo, string> = {
+// Record<string> (não Record<ItemTipo>) + lookup com fallback: blinda contra um
+// `tipo` fora do enum vindo do backend/dado legado. Sem isso, um tipo não-mapeado
+// faz TIPO_ICON[tipo] = undefined → <Icon/> = React #130 = TELA BRANCA na OS
+// inteira (incidente 2026-06-10 — item com tipo='servico' fora do enum).
+const TIPO_LABEL: Record<string, string> = {
   peca: 'Peça',
   mao_obra: 'Mão de obra',
+  servico: 'Serviço',
   servico_terceiro: 'Serviço terceiro',
 };
 
-const TIPO_ICON: Record<ItemTipo, typeof Wrench> = {
+const TIPO_ICON: Record<string, typeof Wrench> = {
   peca: Package,
   mao_obra: Wrench,
+  servico: Wrench,
   servico_terceiro: UserCog,
 };
 
@@ -59,7 +65,8 @@ function formatBRL(value: number | string | null | undefined): string {
 }
 
 export default function ServiceOrderItemRow({ item, onEdit, onDelete, busy = false }: Props) {
-  const Icon = TIPO_ICON[item.tipo];
+  const Icon = TIPO_ICON[item.tipo] ?? Wrench;
+  const tipoLabel = TIPO_LABEL[item.tipo] ?? item.tipo;
   const qtd = toFloat(item.quantidade);
   const vu = toFloat(item.valor_unitario);
   const total = toFloat(item.valor_total);
@@ -75,7 +82,7 @@ export default function ServiceOrderItemRow({ item, onEdit, onDelete, busy = fal
         <Box className="min-w-0 flex-1">
           <div className="text-foreground font-medium truncate">{item.descricao}</div>
           <div className="text-muted-foreground text-[10.5px]">
-            {TIPO_LABEL[item.tipo]} ·{' '}
+            {tipoLabel} ·{' '}
             {qtd.toLocaleString('pt-BR', { maximumFractionDigits: 3 })} × {formatBRL(vu)}
           </div>
         </Box>

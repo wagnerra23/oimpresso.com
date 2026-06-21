@@ -2,14 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\InstallController;
+use Modules\Whatsapp\Http\Controllers\Admin\BroadcastController;
 use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 use Modules\Whatsapp\Http\Controllers\Admin\ChannelsController;
 use Modules\Whatsapp\Http\Controllers\Admin\CsatController;
 use Modules\Whatsapp\Http\Controllers\Admin\ClientFeedbackController;
+use Modules\Whatsapp\Http\Controllers\Admin\InboxAiController;
 use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacrosController;
 use Modules\Whatsapp\Http\Controllers\Admin\MacroVariantsController;
 use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
+use Modules\Whatsapp\Http\Controllers\Admin\QueuesController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 use Modules\Whatsapp\Http\Controllers\Api\CustomerProfileController;
@@ -172,6 +175,51 @@ Route::group([
         ->middleware('can:whatsapp.send')
         ->name('atendimento.inbox.update_status');
 
+    // US-WA-302: assignee picker — atribui conversa a operador específico
+    // (updateStatus só aceita assigned_to_me boolean; este aceita qualquer
+    // user do MESMO business — Tier 0 validado no Controller).
+    Route::patch('/inbox/{id}/assign', [InboxController::class, 'assign'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.assign');
+
+    // US-WA-305: mover conversa entre filas (override manual vence heurística;
+    // null volta pra automática) — ADR 0267.
+    Route::patch('/inbox/{id}/queue', [InboxController::class, 'moveQueue'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.move_queue');
+
+    // US-WA-307: + Nova conversa — find-or-create + mensagem inicial opcional
+    // (reusa pipeline send). Tier 0: canal ativo do business + ACL.
+    Route::post('/inbox/conversations', [InboxController::class, 'startConversation'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.start_conversation');
+
+    // US-WA-306 (ADR 0268) — broadcast FASE 1: pre-flight real (opt-in LGPD +
+    // janela 24h) + draft auditável. Disparo em massa = fase 2 gate [W].
+    Route::post('/broadcast/preflight', [BroadcastController::class, 'preflight'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.preflight');
+    Route::post('/broadcast', [BroadcastController::class, 'store'])
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.store');
+
+    // PR-9 brief [CC] — IA na thread (laravel/ai, mesma infra dos Agents Jana).
+    // dry_run da Jana gateia custo; PII redigida antes do provider (LGPD).
+    Route::post('/inbox/{id}/ai/summarize', [InboxAiController::class, 'summarize'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.ai.summarize');
+    Route::post('/inbox/{id}/ai/ask', [InboxAiController::class, 'ask'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.ai.ask');
+    Route::post('/inbox/{id}/ai/suggest-reply', [InboxAiController::class, 'suggestReply'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.inbox.ai.suggest_reply');
+
     // Wagner 2026-05-27 — Voice of Customer in-app capture (ADR UI-0016).
     // Captura feedback diretamente de mensagens do inbox WhatsApp.
     Route::post('/feedback/capture', [ClientFeedbackController::class, 'capture'])
@@ -331,6 +379,20 @@ Route::group([
         ->whereNumber('macro')->whereNumber('variant')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.macros.variants.mark_winner');
+
+    // US-WA-301 (ADR 0267) — CRUD de filas do painel "Filas" da Caixa Unificada.
+    // Leitura vai nos props do CaixaUnificadaController; aqui só mutações.
+    Route::post('/filas', [QueuesController::class, 'store'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.filas.store');
+    Route::put('/filas/{id}', [QueuesController::class, 'update'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.filas.update');
+    Route::delete('/filas/{id}', [QueuesController::class, 'destroy'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.filas.destroy');
 
     // US-WA-021/041 (CYCLE-07 PR-3) — Dashboard métricas omnichannel
     // (gap P0 #4 do COMPARATIVO-MERCADO-2026-05-12). Lê snapshot diário

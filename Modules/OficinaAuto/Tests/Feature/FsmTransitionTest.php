@@ -55,7 +55,7 @@ it('Cenário 1 — fluxo Simples Martinho: aberta → em_servico → concluida (
     $os = ServiceOrder::create([
         'business_id' => BIZ_WAGNER_FSM,
         'vehicle_id'  => $vehicle->id,
-        'order_type'  => 'locacao',
+        'order_type'  => 'manutencao', // locação erradicada (ADR 0265); cenário testa fluxo de status, não o tipo
         'status'      => 'aberta',
         'entered_at'  => now(),
         'daily_rate'  => '150.00',
@@ -110,54 +110,11 @@ it('Cenário 2 — fluxo Complexa Vargas: aberta → orcamento → aprovada → 
     Vehicle::withoutGlobalScopes()->where('plate', 'FSM002')->forceDelete();
 });
 
-it('Cenário 3 — locação ativa retorna is_overdue=true quando expected_return_date passada', function () {
-    session(['user.business_id' => BIZ_WAGNER_FSM]);
-
-    $vehicle = createFsmVehicle('FSM003');
-    $os = ServiceOrder::create([
-        'business_id'          => BIZ_WAGNER_FSM,
-        'vehicle_id'           => $vehicle->id,
-        'order_type'           => 'locacao',
-        'status'               => 'em_servico',
-        'entered_at'           => now()->subDays(10),
-        'expected_return_date' => now()->subDays(2)->toDateString(),
-        'daily_rate'           => '180.00',
-    ]);
-
-    expect($os->fresh()->is_overdue)->toBeTrue();
-
-    // Após terminal status, is_overdue volta a false
-    $os->update(['status' => 'concluida', 'completed_at' => now()]);
-    expect($os->fresh()->is_overdue)->toBeFalse();
-})->afterEach(function () {
-    ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'FSM003'))->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'FSM003')->forceDelete();
-});
-
-it('Cenário 4 — accessor valor_receber calcula daily_rate × dias_locacao em locação ativa', function () {
-    session(['user.business_id' => BIZ_WAGNER_FSM]);
-
-    $vehicle = createFsmVehicle('FSM004');
-    $os = ServiceOrder::create([
-        'business_id' => BIZ_WAGNER_FSM,
-        'vehicle_id'  => $vehicle->id,
-        'order_type'  => 'locacao',
-        'status'      => 'em_servico',
-        'entered_at'  => now()->subDays(7),
-        'daily_rate'  => '200.00',
-    ]);
-
-    $fresh = $os->fresh();
-    expect($fresh->dias_locacao)->toBe(7);
-    expect($fresh->valor_receber)->toBe(1400.00);
-
-    // Após terminal status, valor_receber zera (locação encerrada)
-    $os->update(['status' => 'concluida', 'completed_at' => now()]);
-    expect($os->fresh()->valor_receber)->toBe(0.0);
-})->afterEach(function () {
-    ServiceOrder::withoutGlobalScopes()->whereHas('vehicle', fn ($q) => $q->withoutGlobalScopes()->where('plate', 'FSM004'))->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'FSM004')->forceDelete();
-});
+// Cenários 3 e 4 (is_overdue / valor_receber de locação ativa) REMOVIDOS — locação
+// erradicada (ADR 0265). Os accessors `is_overdue`/`valor_receber` agora são sempre
+// false/0.0 (cobertura do estado pós-erradicação fica em CacambaSchemaTest, casos
+// order_type=manutencao). Atraso de reparo vive no ServiceOrderController via
+// expected_completion. Repontuar o kanban de Caçambas é dívida F3 charter v4.
 
 it('Cenário 5 — isolamento multi-tenant: transição em biz=1 não vaza pra biz=99', function () {
     session(['user.business_id' => BIZ_WAGNER_FSM]);

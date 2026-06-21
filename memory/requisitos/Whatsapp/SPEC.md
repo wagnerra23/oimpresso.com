@@ -1772,3 +1772,95 @@ Botão "+ Nova conversa" no topnav direita hoje é placeholder. Implementação:
 
 **Anti-padrões:** **NÃO** inventar `StartConversationService` antes de checar `InboxController::send` flow — reusar pattern de envio + criar Conversation row.
 
+### US-WA-311 · Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1)
+
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 12h IA-pair · status: backlog · type: story
+
+parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../../decisions/0294-metodo-dual-track-shapeup-catraca.md)). Triagem **L1** ao chegar conversa: `TriageService` (Modules/Jana, porta runtime do skill `ticket-triage`) gera score 0-100 + prioridade P1-P4 + sugestão de ação; listener `TriageOnInbound` (Modules/Whatsapp) na 1ª inbound; persiste como tag P1-P4 (`whatsapp_tags`) + badge na Caixa Unificada (ordenar fila). L1 = analisa, **NÃO** responde/atribui/resolve.
+
+**AC:**
+- Conversa nova recebe prioridade + score + sugestão em < 5s do inbound.
+- L1: triagem só anota; não atribui, não responde, não resolve.
+- PII redigida antes da chamada LLM e em qualquer log (vetor `inbound_preview`).
+- Tier 0: `TriageService` + listener filtram `business_id`; teste cross-tenant não vaza.
+- Re-triagem idempotente; falha do LLM → fila sem prioridade (degradado), nunca trava o inbound.
+- Flag `copiloto.triage.inbox_enabled` (default off) → canary biz=4 (ROTA LIVRE).
+- Testes Pest R-WA-TRIAGE-001..007 + cross-tenant; eval advisory `triage-gold-set.json`.
+
+**Refs:** AC completos em [PLANO-ATENDIMENTO-AUTOMATICO.md](./PLANO-ATENDIMENTO-AUTOMATICO.md) §5. **NOTA:** off-CYCLE-08 (cycle ativo = receita/carteira legacy) — backlog até atendimento virar prioridade de cycle.
+
+**Anti-padrões:** cérebro de IA mora em Modules/Jana; inbox (listener/badge) em Modules/Whatsapp. **NÃO** reusar o ADS PolicyEngine como guardrail conversacional (é firewall de ações de código, não de respostas).
+
+### US-WA-315 · Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow)
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: whatsapp-channel-reliability-roadmap
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 confiabilidade):** 7/10 gaps do channel-reliability fechados (probe #3055 nesta sessão). Restam #6 nonce/dedup-key, #9 failover, #10 circuit-breaker. Relacionado ADR 0288.
+**Dedup:** distinto de US-WA-058/059 (inbox omnichannel) e US-WA-078/079 (banDetector/SIGTERM).
+
+**DoD:**
+- #6: design da dedup-key (nonce) + impl.
+- #9: failover de canal.
+- #10: circuit-breaker no daemon.
+- Testes de reliability.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-WA-316 · Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
+
+> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+> parent_plan: voz-cliente-5-ondas
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** `customer_memory` shipou (onda 1). Ondas 2-5 abertas: Customer 360 sidebar + inferência IA.
+**⚠️ Dedup parcial:** `customer-360-sidebar` aparece como *done* na triagem — confirmar o que de fato resta antes de escopar.
+
+**DoD:**
+- Sidebar Customer 360 (consolidado por contato).
+- Inferência IA sobre o histórico.
+- Validar overlap com customer_memory já shipado.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-WA-317 · VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
+
+> owner: — · priority: p1 · estimate: 10h · status: todo · type: story
+> blocked_by: —
+> parent_plan: voc-omnichannel-gaps
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** `whatsapp_consent` + `customer_memory` shipparam. Restam Gap#3 (ContactProfile acumulativo) + Gap#4 (auto-tag IA + dashboard VoC).
+**Relacionado:** US-WA-316 (voz-cliente ondas 2-5) — coordenar pra não duplicar.
+
+**DoD:**
+- ContactProfile acumulativo por contato.
+- Auto-tag IA das conversas.
+- Dashboard VoC.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-WA-318 · DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** handoff `2026-06-19-0730-decisoes-pendentes-dns-midia-us-309.md` (Decisão 1) — deixado como decisão Wagner; agora autorizado ("faça sim", 2026-06-21).
+
+**Problema:** o endpoint `whatsapp-whatsmeow.oimpresso.com` não resolve (curl exit 6 no CT100) → download de mídia quebrado → backlog de **~48k mídias pending** desde ~12/jun. `US-WA-311` já estava tomado (por isso ficou sem número até agora).
+
+**Acceptance:**
+1. DNS de `whatsapp-whatsmeow.oimpresso.com` resolve (registro + verificação no CT100).
+2. Worker drena o dead-letter das ~48k mídias pending (idempotente, multi-tenant Tier 0).
+3. Reconciliar com os proposals existentes (`whatsapp-fila-inbound-worker-ct100.md` / `whatsapp-ingestao-perda-zero.md`) — esta US é a execução, não duplicar escopo.
+
+Refs: ROADMAP-SDD (sweep do mês)

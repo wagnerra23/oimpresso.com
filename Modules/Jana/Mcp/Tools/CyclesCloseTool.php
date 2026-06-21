@@ -14,6 +14,7 @@ use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
 use Modules\Jana\Entities\Mcp\McpTaskEvent;
 use Modules\Jana\Entities\Mcp\McpTaskComment;
+use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 
 /**
  * ADR 0070 — fecha cycle ativo. Por DEFAULT faz rollover Linear-style de
@@ -31,6 +32,8 @@ use Modules\Jana\Entities\Mcp\McpTaskComment;
  */
 class CyclesCloseTool extends Tool
 {
+    use AuthorizesMcpMutation;
+
     protected string $name = 'cycles-close';
 
     protected string $title = 'Fechar cycle ativo';
@@ -53,6 +56,10 @@ class CyclesCloseTool extends Tool
 
     public function handle(Request $request): Response
     {
+        if ($deny = $this->authorizeMcpMutation($request, 'jana.mcp.cycles.manage')) {
+            return $deny;
+        }
+
         $key = strtoupper((string) $request->get('project', 'COPI'));
         $project = McpProject::where('key', $key)->first();
         if (! $project) {

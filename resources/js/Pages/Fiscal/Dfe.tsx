@@ -10,7 +10,7 @@ import { Check, CheckCircle2, Eye, FileSearch, Info, Inbox, ShieldAlert, XCircle
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
-import ModuleTopNav from './_components/ModuleTopNav';
+import FiscalModuleTopNav from './_components/FiscalModuleTopNav';
 import { brl, formatDoc, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -140,7 +140,7 @@ export default function Dfe({ filters: initialFilters, counts, rows, historicoMo
         }
       >
         {/* ModuleTopNav — Onda 2 G — tabs Pendentes / Histórico */}
-        <ModuleTopNav
+        <FiscalModuleTopNav
           items={[
             { id: 'pendente',  label: 'Aguardando ciência', icon: <Inbox size={12} />,          count: counts.pendentes, tone: counts.pendentes > 0 ? 'warn' : null },
             { id: 'historico', label: 'Histórico',          icon: <CheckCircle2 size={12} />, count: historicoMock.length },

@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Link as LinkIcon, Eye, FileText } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +34,9 @@ import {
 } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
-import FinanceiroPrimaryButton from '@/Pages/Financeiro/_shared/FinanceiroPrimaryButton';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
@@ -60,7 +60,6 @@ import { FinMonthResumeDialog } from './_components/FinMonthResume';
 // Onda 10 (canon 100%) — Edit panel inline real (FinSubNav + FinAgeing REMOVIDOS
 // 2026-05-18 Wagner: visualmente duplicados — sidebar já navega entre Fluxo/DRE/etc,
 // e ageing bar é insight contextual no drawer, não strip permanente).
-import { FinEditPanel } from './_components/FinEditPanel';
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
 import { TituloCreateSheet } from './_components/TituloCreateSheet';
@@ -157,6 +156,10 @@ type TabId = 'all' | 'open' | 'rec' | 'pay' | 'received' | 'paid' | 'late';
 //  ap = A pagar   (kind=payable, status aberto/parcial/atrasado/vencendo)
 //  pa = Pagas     (kind=payable, status quitado)
 type LifecycleId = 'ar' | 're' | 'ap' | 'pa';
+// US-FIN-029 (2026-06-10) — lente do header (segmented Caixa · A receber · A pagar).
+// Camada 1 do filtro grosso (direção [W] 2026-05-31, charter v14); chips lifecycle
+// refinam DENTRO da lente. `?lente=` clamp default caixa (padrão ?tab= do Fluxo).
+type LenteId = 'caixa' | 'receber' | 'pagar';
 // US-FIN-027 (Onda 22) — workflow aprovação multi-select.
 //  pendente / aprovado / rejeitado / sem_workflow (NULL aprovacao_status)
 type ApprovalStatusId = 'pendente' | 'aprovado' | 'rejeitado' | 'sem_workflow';
@@ -166,7 +169,8 @@ type AgingBucketId = 'lt30' | '30-60' | '60-90' | 'gt90' | 'gt180';
 
 interface Filters {
   tab: TabId;              // Legacy — preservado pra back-compat de bookmarks.
-  lifecycle: LifecycleId[]; // Onda Polish — multi-select.
+  lente: LenteId;          // US-FIN-029 — camada 1 do filtro (segmented header).
+  lifecycle: LifecycleId[]; // Onda Polish — multi-select (refina dentro da lente).
   aprovacao_status: ApprovalStatusId[]; // US-FIN-027 (Onda 22).
   aging: AgingBucketId[];  // PR E US-FIN-022 — vencidos por bucket
   overdue: boolean;        // Toggle "Só atrasados" independente.
@@ -241,6 +245,20 @@ const FILTER_LIFECYCLE: { id: LifecycleId; label: string; hue: number }[] = [
   { id: 're', label: 'Recebidas',  hue: 145 }, // verde (lifecycle complementar)
   { id: 'ap', label: 'A pagar',    hue: 25  }, // rose
   { id: 'pa', label: 'Pagas',      hue: 295 }, // roxo accent v4 — estado ativo = roxo (azul 240 não era semântico de status)
+];
+
+// US-FIN-029 (2026-06-10) — 3 lentes do header (direção [W] 2026-05-31, MWART
+// unificado-3-lentes-visual-comparison.md). LENTE_SETS = chips lifecycle compatíveis
+// por lente: chip incompatível com a lente NÃO renderiza (menos ruído, não desabilitado).
+const LENTE_SETS: Record<LenteId, LifecycleId[]> = {
+  caixa: ['ar', 're', 'ap', 'pa'],
+  receber: ['ar', 're'],
+  pagar: ['ap', 'pa'],
+};
+const FIN_LENTES: { id: LenteId; label: string }[] = [
+  { id: 'caixa',   label: 'Caixa' },
+  { id: 'receber', label: 'A receber' },
+  { id: 'pagar',   label: 'A pagar' },
 ];
 
 // PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
@@ -603,7 +621,202 @@ function useSparkline30d(): SparkPoint[] | null {
   return points;
 }
 
-function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancamentos: Lancamento[]; onLifecycleSelect: (lifecycle: LifecycleId[]) => void }) {
+// US-FIN-029 — KPI-click agora seta lente + lifecycle coerentes (clicar "A pagar"
+// entra na lente pagar refinada em 'ap'). Drill-down ADR ui/0002 preservado.
+// ── Drawer F2 (PACOTE-FINANCEIRO-F2 PR-3, [W] "aprovado" 2026-06-10) ──────────────────
+// Seção "lente de domínio" do drawer: ícone em quadradinho primary/10 + título sm
+// semibold + chip de status calmo à direita. Referência F1: LensSection em
+// financeiro-page.jsx do protótipo Cowork. Tokens semânticos do @theme (inertia.css) —
+// o drawer é portal FORA de .cockpit, então var(--accent) etc não resolvem aqui.
+function DrawerLensChip({ tone, children }: { tone: 'pos' | 'warn' | 'muted'; children: ReactNode }) {
+  const cls = {
+    pos: 'bg-success/10 text-success-foreground',
+    warn: 'bg-warning/10 text-warning-foreground',
+    muted: 'bg-muted text-muted-foreground',
+  }[tone];
+  return <span className={`inline-flex items-center h-[19px] px-2 rounded-full text-[10.5px] font-medium ${cls}`}>{children}</span>;
+}
+
+function DrawerLens({ icon: Icon, title, status, tone = 'muted', hue = 'accent', children }: {
+  icon: LucideIcon;
+  title: string;
+  status?: string | null;
+  tone?: 'pos' | 'warn' | 'muted';
+  // FA-5 R3 — cor do ícone por domínio (complementar à identidade roxa).
+  // Tailwind @theme (drawer é portal fora de .cockpit — var(--pos) não resolve aqui).
+  hue?: 'accent' | 'pos' | 'warn' | 'neg' | 'muted';
+  children: ReactNode;
+}) {
+  const hueCls = {
+    accent: 'bg-primary/10 text-primary',
+    pos: 'bg-success/10 text-success-foreground',
+    warn: 'bg-warning/10 text-warning-foreground',
+    neg: 'bg-destructive/10 text-destructive',
+    muted: 'bg-muted text-muted-foreground',
+  }[hue];
+  return (
+    <section className="border-t border-border/60 pt-4">
+      <Inline asChild gap={2} className="mb-2.5">
+        <header>
+          <span className={`w-[22px] h-[22px] rounded-md grid place-items-center shrink-0 ${hueCls}`} aria-hidden>
+            <Icon size={12} />
+          </span>
+          <h4 className="text-[12.5px] font-semibold text-foreground">{title}</h4>
+          {status && <span className="ml-auto"><DrawerLensChip tone={tone}>{status}</DrawerLensChip></span>}
+        </header>
+      </Inline>
+      {children}
+    </section>
+  );
+}
+
+// FA-5 R1 (Stripe) — valor copiável: ⧉ no hover · 1 clique copia · ✓ 1.4s.
+// stopPropagation pra não mexer no drawer. Cor do ✓/hover por Tailwind (success/primary).
+function CopyVal({ text, children, mono = false }: { text: string; children?: ReactNode; mono?: boolean }) {
+  const [ok, setOk] = useState(false);
+  return (
+    <button
+      type="button"
+      className={'fin-copyval' + (ok ? ' ok' : '')}
+      title="Copiar"
+      onClick={(e) => {
+        e.stopPropagation();
+        try { navigator.clipboard?.writeText(String(text)); } catch { /* clipboard indisponível */ }
+        setOk(true);
+        window.setTimeout(() => setOk(false), 1400);
+      }}
+    >
+      <span className={'fin-copyval-txt' + (mono ? ' font-mono tabular-nums' : '')}>{children ?? text}</span>
+      <span className={'fin-copyval-ic ' + (ok ? 'text-success-foreground' : 'text-muted-foreground')} aria-hidden>
+        {ok ? '✓' : '⧉'}
+      </span>
+    </button>
+  );
+}
+
+// FA-5 P5/S3 — saída no mundo real: recibo imprimível com identidade Oimpresso
+// (iframe oculto · Georgia 12pt · valor 24pt mono · "documento sem valor fiscal").
+// Client-side: o módulo Financeiro não tem rota server-side de recibo (verificado FA-5).
+function printReciboTitulo(t: Lancamento) {
+  const isIn = t.kind === 'receivable';
+  const settled = t.status === 'recebido' || t.status === 'pago';
+  const fmtLong = (iso: string | null | undefined) => {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    const MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+    return `${parseInt(d ?? '1', 10)} de ${MES[parseInt(m ?? '1', 10) - 1] ?? ''} de ${y}`;
+  };
+  const esc = (s: string | null | undefined) =>
+    String(s ?? '—').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string));
+  const f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(f);
+  const d = f.contentDocument;
+  if (!d) { f.remove(); return; }
+  const ident = esc(t.numero || String(t.id));
+  const titulo = settled ? 'Recibo' : isIn ? 'Cobrança' : 'Aviso de pagamento';
+  const sinal = (t.valor ?? 0) === 0 ? '' : isIn ? '+ ' : '− ';
+  d.open();
+  d.write(
+    `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo ${ident}</title>` +
+    `<style>body{font:12pt/1.5 Georgia,serif;color:#111;margin:48px}` +
+    `.brand{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:12px}` +
+    `.brand b{font-size:16pt;letter-spacing:.04em}.brand span{font-size:10pt;color:#555}` +
+    `h1{font-size:13pt;margin:24px 0 4px;text-transform:uppercase;letter-spacing:.08em}` +
+    `.valor{font-size:24pt;font-family:ui-monospace,monospace;margin:8px 0 20px}` +
+    `table{width:100%;border-collapse:collapse;font-size:11pt}` +
+    `td{padding:6px 0;border-bottom:1px solid #ddd;vertical-align:top}td:first-child{color:#555;width:170px}` +
+    `.foot{margin-top:36px;font-size:9pt;color:#777}</style></head><body>` +
+    `<div class="brand"><b>OIMPRESSO</b><span>Comunicação Visual</span></div>` +
+    `<h1>${titulo} · ${ident}</h1>` +
+    `<div class="valor">${sinal}${esc(brl(t.valor ?? 0))}</div>` +
+    `<table>` +
+    `<tr><td>Descrição</td><td>${esc(t.descricao)}</td></tr>` +
+    `<tr><td>Contraparte</td><td>${esc(t.contraparte)}</td></tr>` +
+    `<tr><td>Categoria</td><td>${esc(t.categoria)}${t.canal ? ' · ' + esc(t.canal) : ''}</td></tr>` +
+    `<tr><td>${settled ? 'Liquidado em' : 'Vencimento'}</td><td>${fmtLong(settled ? t.liquidacao : t.vencimento)}</td></tr>` +
+    (t.nfe_numero ? `<tr><td>Nota fiscal</td><td>${esc(t.nfe_numero)}</td></tr>` : '') +
+    `</table>` +
+    `<div class="foot">Emitido pelo Oimpresso ERP · documento sem valor fiscal.</div>` +
+    `</body></html>`,
+  );
+  d.close();
+  window.setTimeout(() => {
+    try { f.contentWindow?.focus(); f.contentWindow?.print(); } catch { /* print bloqueado */ }
+    window.setTimeout(() => f.remove(), 800);
+  }, 60);
+}
+
+// FA-5 — Vínculos: chips estruturados derivados dos MESMOS tokens do FinCrossLinkify
+// (#V-/#OS-/#PC-/#BL- na descrição) + nfe_numero. Não inventa dado — estrutura o que já existe.
+const FIN_XLINK_DEFS = [
+  { kind: 'venda', re: /#V-(\d{1,8})/g, label: (n: string) => `Venda #${n}`, href: (n: string) => `/sells/${n}`, Icon: ShoppingBag, cls: 'text-primary' },
+  { kind: 'os', re: /#OS-(\d{1,8})/g, label: (n: string) => `OS #${n}`, href: (n: string) => `/repair/job/${n}`, Icon: Wrench, cls: 'text-warning-foreground' },
+  { kind: 'compra', re: /#PC-(\d{1,8})/g, label: (n: string) => `Compra #${n}`, href: (n: string) => `/compras/${n}`, Icon: Package, cls: 'text-success-foreground' },
+  { kind: 'boleto', re: /#BL-(\d{1,8})/g, label: (n: string) => `Boleto #${n}`, href: (n: string) => `/financeiro/boletos/${n}`, Icon: Receipt, cls: 'text-muted-foreground' },
+] as const;
+
+function FinVinculosChips({ descricao, nfeNumero }: { descricao: string; nfeNumero: string | null }) {
+  const chips: { key: string; label: string; href: string; Icon: LucideIcon; cls: string }[] = [];
+  for (const def of FIN_XLINK_DEFS) {
+    for (const m of (descricao ?? '').matchAll(def.re)) {
+      chips.push({ key: `${def.kind}-${m[1]}`, label: def.label(m[1]), href: def.href(m[1]), Icon: def.Icon, cls: def.cls });
+    }
+  }
+  if (nfeNumero) chips.push({ key: `nf-${nfeNumero}`, label: `NFe ${nfeNumero}`, href: `/fiscal/nfe?numero=${nfeNumero}`, Icon: FileText, cls: 'text-muted-foreground' });
+  if (chips.length === 0) return null;
+  return (
+    <section className="border-t border-stone-100 pt-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden><Link2 size={12} /></span>
+        <h4 className="text-[12.5px] font-semibold text-foreground mr-1">Vínculos</h4>
+        {chips.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => router.visit(c.href)}
+            className="inline-flex items-center gap-1.5 h-7 pl-2 pr-2.5 rounded-md border border-border text-[11.5px] text-foreground transition-colors hover:bg-muted"
+          >
+            <c.Icon size={12} className={c.cls} aria-hidden />
+            <span>{c.label}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// FA-5 — Categoria editável inline (Canal fica read-only — sem rota de save no backend,
+// decisão [W] 2026-06-11). Espelha EXATAMENTE o payload do TituloEditSheet (proven) só
+// trocando categoria_id, pra não nular contraparte/forma/conta (o controller fill()
+// sobrescreve esses campos no update).
+function FinKVCategoriaInline({ selected, categorias }: { selected: Lancamento; categorias: { id: number; nome: string }[] }) {
+  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoriaId = e.target.value === '' ? null : Number(e.target.value);
+    if (categoriaId === (selected.categoria_id ?? null)) return;
+    const data: Record<string, unknown> = {
+      cliente_descricao: selected.contraparte === '—' ? null : selected.contraparte,
+      observacoes: selected.observacao || null,
+      categoria_id: categoriaId,
+      plano_conta_id: selected.plano_conta_id ?? null,
+      vencimento: selected.vencimento,
+      conta_bancaria_id: selected.conta_bancaria_id ?? null,
+    };
+    if (selected.valor_mutavel) data.valor_total = selected.valor;
+    if (!selected.forma_pagamento_realizada) data.forma_pagamento = selected.forma_pagamento || null;
+    router.put(`/financeiro/unificado/${selected.id}`, data as Record<string, never>, { preserveScroll: true });
+  };
+  return (
+    <span className="fin-kvedit">
+      <select value={selected.categoria_id ?? ''} onChange={onChange} title="Editar categoria — salva no lançamento" aria-label="Categoria">
+        <option value="">(Sem categoria)</option>
+        {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+      </select>
+    </span>
+  );
+}
+
+function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void; periodLabel: string }) {
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
@@ -640,13 +853,25 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
     const dd = parts[2] ?? '01';
     const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const mesAbrev = MES[parseInt(mm, 10) - 1] ?? '???';
-    return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte };
+    // FX-3 (print 06-11): o primeiro a pagar (vencimento ASC) pode já estar VENCIDO —
+    // rotular "próx." (= próximo/futuro) mente. Se vencido, vira "vencida há Nd" destructive.
+    const hojeISO = new Date().toISOString().slice(0, 10);
+    const overdue = first.status === 'atrasado' || first.vencimento < hojeISO;
+    const diasAtraso = overdue
+      ? Math.max(0, Math.round((Date.parse(hojeISO) - Date.parse(first.vencimento)) / 86400000))
+      : 0;
+    return { label: `${parseInt(dd, 10)} ${mesAbrev}`, contraparte: first.contraparte, overdue, diasAtraso };
   }, [lancamentos]);
 
   // PR H (2026-05-25) US-FIN-023 — render badge delta_pct (↑+12% verde / ↓-5% rose / → 0% neutro).
   // Cores via classes canon `fin-num-pos`/`fin-num-neg`/`text-muted-foreground` (AP1 PRE-MERGE-UI).
-  const DeltaBadge = ({ pct }: { pct: number | null | undefined }) => {
+  // FX-5 (print 06-11): suprime ruído — delta com valor atual ~0 (ex.: Pago R$ 0,00 →
+  // "↓-100%") ou swing absurdo (>300%, base do mês anterior imaterial = "sem base
+  // comparável") não é informação, é ruído. Vira null = badge não renderiza.
+  const DeltaBadge = ({ pct, valor }: { pct: number | null | undefined; valor?: number }) => {
     if (pct === null || pct === undefined) return null;
+    if (valor !== undefined && Math.abs(valor) < 0.005) return null;
+    if (Math.abs(pct) > 300) return null;
     const isZero = Math.abs(pct) < 0.05;
     const isUp = pct > 0;
     const colorClass = isZero ? 'text-muted-foreground' : (isUp ? 'fin-num-pos' : 'fin-num-neg');
@@ -657,31 +882,39 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
         className={`fin-delta-pct ml-1 text-[10px] font-medium tabular-nums ${colorClass}`}
         title={`vs mês anterior (${pct > 0 ? 'subiu' : 'caiu'} ${Math.abs(pct)}%)`}
       >
-        {arrow}{sign}{pct.toFixed(1)}%
+        {arrow}{sign}{pct.toFixed(1).replace('.', ',')}%
       </span>
     );
   };
 
   return (
     <div className="fin-stats">
-      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onLifecycleSelect(['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
-        <small>Saldo previsto · maio</small>
-        <b>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} /></b>
+      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
+        {/* FX-2 (print 06-11): mês do hero vinha hardcoded "maio"; agora usa periodLabel
+            (MESMA fonte do subtítulo da página — fonte única, sem drift de período). */}
+        <small>
+          Saldo previsto · {periodLabel}
+          {/* CASO 03 (adversário Wave 1) — alarme quando a projeção do período é negativa. */}
+          {kpis.saldo_previsto < 0 && <span className="fin-hero-alarm">projeção negativa</span>}
+        </small>
+        {/* CASO 03 — número do hero vira vermelho (canon `fin-num-neg`, já estilizado
+            pro fundo warm-dark via fin-cowork.css) quando o saldo previsto é negativo. */}
+        <b className={kpis.saldo_previsto < 0 ? 'fin-num-neg' : undefined}>{brl(kpis.saldo_previsto)}<DeltaBadge pct={kpis.delta_pct?.saldo_previsto} valor={kpis.saldo_previsto} /></b>
         <span className="fin-stat-hint">
           <b className="mono">{brl(kpis.recebido.valor - kpis.pago.valor)}</b> realizado · <span className={pendente >= 0 ? 'fin-num-pos' : 'fin-num-neg'}>{brl(pendente)}</span> pendente
         </span>
         <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} points={sparkPoints} />
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['re'])} aria-label="Filtrar recebidas">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
         <small>Recebido</small>
-        <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} /></b>
+        <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} valor={kpis.recebido.valor} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ar'])} aria-label="Filtrar a receber">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
         <small>A receber</small>
-        <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} /></b>
+        <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} valor={kpis.a_receber.valor} /></b>
         {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
         <span className="fin-stat-hint">
           {atrasadoReceber > 0
@@ -690,19 +923,21 @@ function KpiBar({ kpis, lancamentos, onLifecycleSelect }: { kpis: Kpi; lancament
         </span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['pa'])} aria-label="Filtrar pagas">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
         <small>Pago</small>
-        <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} /></b>
+        <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} valor={kpis.pago.valor} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onLifecycleSelect(['ap'])} aria-label="Filtrar a pagar">
+      <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
         <small>A pagar</small>
-        <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} /></b>
+        <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} valor={kpis.a_pagar.valor} /></b>
         {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
         <span className="fin-stat-hint">
           {proxPagar
-            ? <>próx. <b>{proxPagar.label}</b> · {proxPagar.contraparte}</>
+            ? (proxPagar.overdue
+                ? <><span className="fin-num-neg">vencida há {proxPagar.diasAtraso}d</span> · {proxPagar.contraparte}</>
+                : <>próx. <b>{proxPagar.label}</b> · {proxPagar.contraparte}</>)
             : <>{kpis.a_pagar.qtd} títulos</>}
         </span>
       </button>
@@ -775,13 +1010,21 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
     paid_at: settled ? row.liquidacao : null,
     vencimento: row.vencimento,
   };
+  // #5 Tribunal Onda 2 (cadeira Victor/Saarinen) — acento de AÇÃO na borda esquerda da
+  // linha pra achar o que pede ação sem abrir: vencido = destructive, vencendo (não pago)
+  // = warning, resto = nada. box-shadow inset na 1ª <td> (border-collapse ignora
+  // border-left no <tr>); var(--color-*) do @theme Tailwind v4 (token, não cor crua).
+  const actAccent =
+    row.status === 'atrasado' ? 'inset 3px 0 0 var(--color-destructive)'
+    : (row.status === 'vencendo' && !settled) ? 'inset 3px 0 0 var(--color-warning)'
+    : undefined;
   return (
     <tr
       className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-primary/5' : ''}`}
       onClick={onSelect}
     >
       {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}
-      <td className="pl-4 pr-1" onClick={(e) => e.stopPropagation()}>
+      <td className="pl-4 pr-1" style={actAccent ? { boxShadow: actAccent } : undefined} onClick={(e) => e.stopPropagation()}>
         <Checkbox
           checked={bulkSelected}
           onCheckedChange={onToggleBulk}
@@ -877,7 +1120,8 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-destructive'}`}>
-        <span className="text-stone-400 mr-0.5">{isIn ? '+' : '−'}</span>{brl(row.valor).replace('R$', '').trim()}
+        {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
+        <span className="text-stone-400 mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
       <td className="pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
         {!settled ? (
@@ -962,7 +1206,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
   // (Anthropic API design fetch 2026-05-18). 3 abas canônicas:
   //   detalhes (verde 145, default) / ia (roxo 295) / editar (amber 60, inline)
   // Reset pra 'detalhes' ao trocar de linha.
-  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia' | 'editar'>('detalhes');
+  const [drawerTab, setDrawerTab] = useState<'detalhes' | 'ia'>('detalhes');
   useEffect(() => { setDrawerTab('detalhes'); }, [selectedId]);
   // Onda Edit 2026-05-18 — Edit Sheet state (separate from detail drawer).
   const [editOpen, setEditOpen] = useState(false);
@@ -982,12 +1226,33 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     });
   }, [filters]);
 
+  // US-FIN-029 — lente ativa (clamp client-side espelha o backend) + chips
+  // compatíveis. Trocar de lente RE-ARMA os chips pro conjunto da lente
+  // (espelha applyLente do protótipo F1 financeiro-page.jsx).
+  const lente: LenteId = LENTE_SETS[filters.lente] ? filters.lente : 'caixa';
+  const lenteSet = LENTE_SETS[lente];
+  const applyLente = useCallback((id: LenteId, lifecycle?: LifecycleId[]) => {
+    aplicar({ lente: id, lifecycle: lifecycle ?? LENTE_SETS[id] });
+  }, [aplicar]);
+
   const onBaixar = (id: number) => {
     router.post(`/financeiro/unificado/${id}/baixar`, {}, {
       preserveScroll: true,
       onSuccess: () => { /* toast tratado no flash */ },
     });
   };
+
+  // FA-5 N3 — navega prev/next título na lista FILTRADA sem fechar o drawer
+  // (clamp, não wrap; espelha o handler J/K já existente). O cluster ↑n/N↓ do
+  // header do drawer chama isto; J/K do teclado continuam funcionando igual.
+  const navTitulo = useCallback((dir: 1 | -1) => {
+    const ids = lancamentos.map((l) => l.id);
+    if (ids.length === 0 || selectedId === null) return;
+    const i = ids.indexOf(selectedId);
+    if (i < 0) return;
+    const j = Math.min(Math.max(i + dir, 0), ids.length - 1);
+    if (j !== i) setSelectedId(ids[j] ?? null);
+  }, [lancamentos, selectedId]);
 
   // Atalhos keyboard:
   //   ⌘K/Ctrl+K → palette
@@ -1013,9 +1278,20 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         favs.toggle(selectedId);
         return;
       }
+      // FA-5 9.75 P2 — R com drawer ABERTO liquida o título selecionado (Recebi/Paguei),
+      // espelhando o botão primário do footer. Sem drawer (ou já liquidado) → cai no
+      // atalho de novo recebimento abaixo. Precedência resolve a colisão R-global/R-drawer.
+      if (e.key === 'r' && !inEditable && selectedId !== null) {
+        const row = lancamentos.find((l) => l.id === selectedId);
+        if (row && (row.status === 'aberto' || row.status === 'atrasado' || row.status === 'vencendo')) {
+          e.preventDefault();
+          openBaixa(selectedId);
+          return;
+        }
+      }
       // PR G (2026-05-25) G6 auditoria — N/R/P atalhos novo lançamento.
       //   N = Novo recebimento (default — mais comum em ERP gráfico)
-      //   R = Receber explícito
+      //   R = Receber explícito (sem título selecionado)
       //   P = Pagar explícito
       if ((e.key === 'n' || e.key === 'r') && !inEditable) {
         e.preventDefault();
@@ -1074,7 +1350,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, favs, lancamentos, selectedRows, clearSelection, onBaixar]);
+  }, [selectedId, favs, lancamentos, selectedRows, clearSelection, onBaixar, openBaixa]);
 
   // Agrupamento por data de vencimento
   const grupos = useMemo(() => {
@@ -1104,17 +1380,48 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
   return (
     <div className="fin-curadoria">
-      {/* Onda 12.3 (2026-05-19) — markup canon EXATO `os-page-h` (DOM forensics
-          canon REAL). Bundle CSS canon inteiro importado em inertia.css garante
-          que classes existem (sem tree-shake como acontecia com cherry-pick). */}
-      <div className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>
-            Financeiro <span className="fin-hero-title-sub">· Visão unificada</span>
-          </h1>
-          <p>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
+      {/* Wave 4 (2026-06-18): migrado pra <PageHeader> canon v3.8 (ADR 0189/0190),
+          paridade com Dashboard/Dre/ContasPagar. O conteúdo da Zona R (3 lentes
+          US-FIN-029 + divisor + FinanceiroSubNav + dropdown "Novo título") é
+          preservado via children (escape hatch) — mirror do pattern Dre/ContasPagar. */}
+      <PageHeader
+        title="Financeiro"
+        suffix=" · Visão unificada"
+        subtitle={<>{periodLabel}{businessName ? ` · ${businessName}` : ''} · caixa unificado</>}
+      >
+        <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
+          {/* US-FIN-029 (2026-06-10) — segmented 3 lentes (Caixa · A receber · A pagar),
+              direção [W] 2026-05-31 (charter v14 + MWART unificado-3-lentes). Camada 1
+              do filtro grosso; chips lifecycle refinam DENTRO da lente. Pattern visual =
+              pill segmented do Fluxo/Index.tsx (TabSwitcher), consistência declarada no
+              charter do Fluxo. Deep-link ?lente= clamp caixa. */}
+          <div
+            className="inline-flex shrink-0 bg-muted rounded-md p-0.5 border border-border"
+            role="group"
+            aria-label="Lente do fluxo (camada 1 do filtro)"
+          >
+            {FIN_LENTES.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => { if (l.id !== lente) applyLente(l.id); }}
+                aria-pressed={lente === l.id}
+                className={
+                  'h-7 px-3 rounded text-[12px] flex items-center transition tabular-nums ' +
+                  (lente === l.id
+                    ? 'bg-background shadow-sm font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground')
+                }
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+          {/* FX-1 (print 06-11): divisor entre a LENTE (filtro grosso) e a SubNav
+              (navegação). Sem ele, "...A pagar | Caixa | Conciliação" lê-se como uma
+              régua de tabs só, com dois "Caixa" colados/ambíguos. Respiro + linha
+              deixam claro: filtro ≠ navegação. */}
+          <div className="w-px self-center h-6 bg-border shrink-0" aria-hidden="true" />
           {/* ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — header em UMA linha:
                 ghost tabs (esquerda) + ⋯ Mais (botões action features) + primary "+ Novo" (direita)
               - Ghost tabs ARIA navegação entre 13 sub-views do Financeiro
@@ -1166,9 +1473,9 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </PageHeader>
 
-      <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
+      <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} periodLabel={periodLabel} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
           Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
@@ -1183,8 +1490,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             rose  25  = A pagar/Atraso (saída cash + alerta)
             azul  240 = Pagas (saída liquidada) */}
       <div className="fin-toolbar mt-4">
+        {/* US-FIN-029 — chips refinam DENTRO da lente: chip incompatível com a lente
+            ativa NÃO renderiza (some, não desabilitado — menos ruído, MWART dim 4). */}
         <div className="fin-filter-group" role="group" aria-label="Filtros por ciclo de vida">
-          {FILTER_LIFECYCLE.map((lc) => {
+          {FILTER_LIFECYCLE.filter((lc) => lenteSet.includes(lc.id)).map((lc) => {
             const on = filters.lifecycle.includes(lc.id);
             const count = countByLifecycle(lc.id, lancamentos);
             const toggle = () => {
@@ -1599,7 +1908,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium flex items-center gap-2">
-                      <span>{selected.kind === 'receivable' ? 'A receber' : 'A pagar'} · #{selected.id}</span>
+                      <span className="inline-flex items-center gap-1">
+                        {selected.kind === 'receivable' ? 'A receber' : 'A pagar'} ·{' '}
+                        <CopyVal text={String(selected.numero || selected.id)}>#{selected.numero || selected.id}</CopyVal>
+                      </span>
                       {selected.conferido_at && (
                         <span className="text-[10px] text-emerald-700 font-medium normal-case tracking-normal">✓ conferido</span>
                       )}
@@ -1608,10 +1920,154 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       <FinCrossLinkify text={selected.descricao} />
                     </SheetTitle>
                   </div>
+                  {/* FA-5 N3 — posição na lista FILTRADA + nav J/K (cluster ↑n/N↓).
+                      mr-7 deixa folga pro X de fechar (shadcn SheetContent, absoluto). */}
+                  {(() => {
+                    const ids = lancamentos.map((l) => l.id);
+                    const i = ids.indexOf(selected.id);
+                    const total = ids.length;
+                    if (total <= 1) return null;
+                    const pos = i >= 0 ? i + 1 : 0;
+                    return (
+                      <div className="fin-dw-nav mr-7 shrink-0" title="Navegar entre títulos (J / K)">
+                        <button type="button" className="fin-dw-nav-btn" disabled={i <= 0} onClick={() => navTitulo(-1)} aria-label="Título anterior (K)">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="18 15 12 9 6 15" /></svg>
+                        </button>
+                        <span className="fin-dw-pos tabular-nums">{pos > 0 ? pos : '–'}<i>/</i>{total}</span>
+                        <button type="button" className="fin-dw-nav-btn" disabled={i < 0 || i >= total - 1} onClick={() => navTitulo(1)} aria-label="Próximo título (J)">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="6 9 12 15 18 9" /></svg>
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </SheetHeader>
 
-              {/* Nav de abas — Cowork canon V2.1 (3 abas: Detalhes/IA/Editar) */}
+              {/* PR-3 F2 ([W] "aprovado" 2026-06-10) — Camada 1 "O FATO" FIXA fora do
+                  scroll (ordem canon: header → hero → tabs → corpo). Gabarito Prova
+                  Viva 9.75 / protótipo financeiro-page.jsx Drawer: label de estado
+                  uppercase (destructive se atrasado) · valor mono tabular grande com
+                  prefixo/centavos pequenos (whitespace-nowrap no prefixo) · chip +
+                  vencimento à direita · FSM compacto. Substitui o hero que rolava
+                  junto com o corpo. */}
+              {(() => {
+                const settled = selected.status === 'recebido' || selected.status === 'pago';
+                const isIn = selected.kind === 'receivable';
+                const labelTone =
+                  selected.status === 'atrasado' ? 'text-destructive'
+                  : selected.status === 'vencendo' ? 'text-warning-foreground'
+                  : 'text-muted-foreground';
+                const [intPart, decPart] = (selected.valor ?? 0)
+                  .toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  .split(',');
+                // FA-5 R3 — urgência sai daqui (era "linha da data" duplicando o frescor);
+                // o chip FinPillFrescor passa a ser a única voz do tempo relativo.
+                const fmtBr = (d: string | null | undefined) => (d ? d.split('-').reverse().join('/') : '—');
+                // FSM compacto — etapas do ciclo do título (espelha finFsmStage do
+                // protótipo: liquidado=3 · conferido=1 · lançado=0; conciliação real
+                // ainda não vive no shape → estágio 2 fica no caminho, não asserido).
+                const etapas = ['Lançado', 'Conferido', 'Conciliado', 'Liquidado'];
+                const stage = settled ? 3 : selected.conferido_at ? 1 : 0;
+                // #2 Tribunal Onda 2 (cadeira Tufte) — tira o número do isolamento: compara
+                // com a média dos PARES reais (mesma categoria + mesmo kind, valor>0) no
+                // conjunto carregado client-side. Anti-slop: só renderiza com ≥2 pares; tom
+                // NEUTRO (seta + %), sem valência verde/vermelho. É cross-sectional, ≠ do
+                // delta_pct temporal "+X% vs mês anterior" adiado em US-FIN-023 (charter).
+                const vsAvg = (() => {
+                  if (!selected.categoria) return null;
+                  const pares = lancamentos.filter(
+                    (r) => r.id !== selected.id && r.categoria === selected.categoria && r.kind === selected.kind && (r.valor ?? 0) > 0,
+                  );
+                  if (pares.length < 2) return null;
+                  const media = pares.reduce((s, r) => s + (r.valor ?? 0), 0) / pares.length;
+                  if (media <= 0) return null;
+                  const pct = Math.round((((selected.valor ?? 0) - media) / media) * 100);
+                  return { pct, n: pares.length + 1 };
+                })();
+                return (
+                  <div className="shrink-0 px-5 pt-3 pb-3.5 border-b border-border fin-dw-hero">
+                    <Inline align="end" justify="between" gap={3}>
+                      <div className="min-w-0">
+                        <div className={`text-[10.5px] uppercase tracking-[0.1em] font-semibold ${labelTone}`}>
+                          {settled ? 'Liquidado' : isIn ? 'A receber' : 'A pagar'}
+                        </div>
+                        <Inline align="baseline" gap={0} className="mt-0.5">
+                          <span className="text-[13.5px] text-muted-foreground font-mono whitespace-nowrap mr-1">{isIn ? '+ R$' : '− R$'}</span>
+                          <span className={`text-[length:var(--fs-9,38px)] leading-none font-semibold tracking-tight font-mono tabular-nums ${isIn ? 'text-success-foreground' : 'text-foreground'}`}>{intPart}</span>
+                          <span className="text-[13.5px] text-muted-foreground font-mono">,{decPart}</span>
+                        </Inline>
+                        {vsAvg && (
+                          <div
+                            className="mt-1 text-[11px] text-muted-foreground tabular-nums"
+                            title={`Comparação com a média de ${vsAvg.n} títulos de "${selected.categoria}" (${isIn ? 'a receber' : 'a pagar'})`}
+                          >
+                            <span aria-hidden>{vsAvg.pct > 0 ? '↑' : vsAvg.pct < 0 ? '↓' : '→'}</span>{' '}
+                            {vsAvg.pct > 0 ? '+' : ''}{vsAvg.pct}% vs média · {selected.categoria}
+                          </div>
+                        )}
+                      </div>
+                      <Stack gap={1} align="end" className="gap-1.5 shrink-0 pb-0.5">
+                        {/* FA-5 R3 — estado dito 1×: o label uppercase colorido (acima) já diz o
+                            estado; o frescor fica só como chip calmo e SOME quando liquidado
+                            (protótipo: hero do liquidado mostra só a data). StatusPill saiu. */}
+                        {!settled && (
+                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: null, vencimento: selected.vencimento }} />
+                        )}
+                        <div className="text-[12.5px] text-muted-foreground tabular-nums whitespace-nowrap">
+                          {settled
+                            ? <>liq. <b className="font-medium text-foreground">{selected.liquidacao || '—'}</b></>
+                            : <>vence <b className="font-medium text-foreground">{fmtBr(selected.vencimento)}</b></>}
+                        </div>
+                      </Stack>
+                    </Inline>
+                    {/* #4 Tribunal Onda 2 (Victor/Rams) — título liquidado não gasta ~80px com
+                        4 etapas todas marcadas: vira resumo de 1 linha. Aberto mantém o stepper
+                        completo. ("no prazo/atraso" omitido de propósito: `liquidacao` chega
+                        como "DD MMM" — sem data parseável pra asserir sem fabricar; a data da
+                        baixa já aparece no hero acima. Suffix vira proposta se o shape expor a
+                        data ISO da liquidação.) */}
+                    {settled ? (
+                      <Inline gap={2} className="mt-3 text-[11.5px] text-muted-foreground" role="img" aria-label={`Ciclo concluído: ${etapas.join(' → ')}`}>
+                        <span className="inline-grid place-items-center w-[15px] h-[15px] rounded-full bg-primary text-primary-foreground text-[9px] font-semibold shrink-0" aria-hidden>✓</span>
+                        <span><b className="font-medium text-foreground">{etapas[0]} → {etapas[etapas.length - 1]}</b> · {etapas.length} etapas</span>
+                      </Inline>
+                    ) : (
+                      <Inline gap={0} className="mt-3" role="img" aria-label={`Etapa do ciclo: ${etapas[stage]}`}>
+                        {etapas.map((lbl, i) => (
+                          <React.Fragment key={lbl}>
+                            {i > 0 && <span className={`h-px flex-1 mx-1.5 ${i <= stage ? 'bg-primary' : 'bg-border'}`} aria-hidden />}
+                            <span className="inline-flex items-center gap-1" aria-hidden>
+                              <span className={
+                                'w-[15px] h-[15px] rounded-full grid place-items-center text-[9px] font-semibold border ' +
+                                (i < stage
+                                  ? 'bg-primary border-primary text-primary-foreground'
+                                  : i === stage
+                                    ? 'bg-background border-primary text-primary shadow-[0_0_0_3px] shadow-primary/15'
+                                    : 'bg-background border-border text-muted-foreground')
+                              }>
+                                {i < stage ? '✓' : i + 1}
+                              </span>
+                              <span className={`text-[10.5px] ${i === stage ? 'text-primary font-semibold' : i < stage ? 'text-foreground' : 'text-muted-foreground'}`}>{lbl}</span>
+                            </span>
+                          </React.Fragment>
+                        ))}
+                      </Inline>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* FA-5/9.75 — Conferir + Editar campos viram BOTÕES (protótipo: edição fora das
+                  abas). Linha entre o hero (fixo) e as abas. */}
+              <div className="shrink-0 px-5 pt-2.5 flex items-center gap-2 fin-toggles-row">
+                <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+                <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)} title="Editar campos do lançamento">
+                  <span aria-hidden>✎</span>
+                  <span className="ml-1">Editar campos</span>
+                </Button>
+              </div>
+
+              {/* Nav de abas — 9.75 (2 abas: Detalhes / ✦ IA; Editar virou botão acima) */}
               <nav className="fin-drawer-tabs" role="tablist" aria-label="Visualização do título">
                 <button
                   type="button"
@@ -1654,17 +2110,6 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     );
                   })()}
                 </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={false}
-                  className="fin-drawer-tab fin-drawer-tab-edit"
-                  onClick={() => setEditOpen(true)}
-                  title="Editar lançamento"
-                >
-                  <span className="fin-drawer-tab-glyph" aria-hidden>✎</span>
-                  <span>Editar</span>
-                </button>
               </nav>
 
               {/* Aba Detalhes — info + audit + comments + actions
@@ -1672,51 +2117,59 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   permite o footer (irmão, fora do scroll) ficar sticky-bottom. */}
               {drawerTab === 'detalhes' && (
                 <div className="mt-3 px-5 pb-4 space-y-5 text-[13px] flex-1 overflow-y-auto min-h-0">
-                  {/* Onda 17 (2026-05-20) — Hierarquia visual canon: UPPERCASE label colorido
-                      por status + date 22px BIG + amount 34px BIG (verde se receivable, stone
-                      se payable) + StatusPill + FrescorPill inline.
-                      Match prototype financeiro-app.jsx:772-806. */}
+                  {/* #1 Veredito (Tribunal Onda 2 · cadeira Victor) — a tela conclui pelo usuário
+                      antes de qualquer varredura: 1ª coisa do corpo, acima dos Vínculos, 1 linha
+                      + sub. 100% derivado do estado do título (status/NF/vencimento) — sem mock.
+                      Tom por token semântico (success/warning/destructive/muted). vencimento é
+                      ISO YYYY-MM-DD → contagem de dias confiável. */}
                   {(() => {
-                    const settled = selected.status === 'recebido' || selected.status === 'pago';
-                    const labelTone =
-                      selected.status === 'atrasado' ? 'text-rose-700'
-                      : selected.status === 'vencendo' ? 'text-amber-700'
-                      : 'text-stone-500';
+                    const liq = selected.status === 'recebido' || selected.status === 'pago';
+                    const temNf = !!selected.nfe_numero;
+                    const hojeMs = (() => { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); })();
+                    const vp = (selected.vencimento || '').split('-');
+                    const vencMs = vp.length === 3 ? Date.UTC(+vp[0], +vp[1] - 1, +vp[2]) : null;
+                    const dias = vencMs != null ? Math.round((vencMs - hojeMs) / 86400000) : null;
+                    const v = liq
+                      ? (temNf
+                          ? { tone: 'pos' as const, glyph: '✓', head: 'Nada pendente.', sub: 'Pago, conciliado e com NF vinculada.' }
+                          : { tone: 'warn' as const, glyph: '!', head: 'Pago, mas sem NF.', sub: 'Falta vincular o documento fiscal.' })
+                      : selected.status === 'atrasado'
+                        ? { tone: 'neg' as const, glyph: '!', head: dias != null && dias <= -1 ? `Vencida há ${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'dia' : 'dias'} — cobrar.` : 'Vencida — cobrar.', sub: selected.contraparte || 'Cobrança pendente.' }
+                        : selected.status === 'vencendo'
+                          ? { tone: 'warn' as const, glyph: '!', head: dias != null && dias > 0 ? `Vence em ${dias} ${dias === 1 ? 'dia' : 'dias'}.` : 'Vence hoje — preparar cobrança.', sub: selected.contraparte || 'Prepare a cobrança.' }
+                          : { tone: 'muted' as const, glyph: '•', head: dias != null && dias > 0 ? `Em aberto — vence em ${dias} dias.` : 'Em aberto.', sub: 'Nada urgente por agora.' };
+                    const t = {
+                      pos: { box: 'bg-success/10 ring-success/25', ic: 'bg-success text-white' },
+                      warn: { box: 'bg-warning/10 ring-warning/30', ic: 'bg-warning text-white' },
+                      neg: { box: 'bg-destructive/10 ring-destructive/25', ic: 'bg-destructive text-white' },
+                      muted: { box: 'bg-muted ring-border', ic: 'bg-muted-foreground/25 text-muted-foreground' },
+                    }[v.tone];
                     return (
-                      <div>
-                        <div className={`text-[11px] uppercase tracking-widest font-medium ${labelTone}`}>
-                          {settled ? 'Liquidado' : 'Vencimento'}
-                        </div>
-                        <div className="mt-1 flex items-baseline gap-2">
-                          <div className="text-[22px] font-semibold tracking-tight tabular-nums">
-                            {settled && selected.liquidacao ? selected.liquidacao : selected.vencimento_label}
-                          </div>
-                        </div>
-                        <div className="mt-3 flex items-baseline gap-2 flex-wrap">
-                          <div className={`text-[34px] font-semibold tracking-tight tabular-nums ${selected.kind === 'receivable' ? 'text-emerald-700' : 'text-destructive'}`}>
-                            {selected.kind === 'receivable' ? '+ ' : '− '}{brl(selected.valor)}
-                          </div>
-                          <StatusPill s={selected.status} />
-                          <FinPillFrescor row={{ due: selected.vencimento, paid_at: settled ? selected.liquidacao : null, vencimento: selected.vencimento }} />
+                      <div className={`flex items-start gap-2.5 rounded-md px-3 py-2.5 ring-1 ring-inset ${t.box}`}>
+                        <span className={`w-[22px] h-[22px] rounded-full grid place-items-center shrink-0 mt-px text-[12px] font-bold leading-none ${t.ic}`} aria-hidden>{v.glyph}</span>
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-semibold text-foreground leading-snug">{v.head}</div>
+                          <div className="text-[11.5px] text-muted-foreground leading-snug mt-0.5 truncate">{v.sub}</div>
                         </div>
                       </div>
                     );
                   })()}
 
-                  <FinConferidoToggle rowId={selected.id} conferido={conferido} />
+                  {/* FA-5 — Vínculos: chips estruturados derivados dos tokens #V-/#OS- da descrição
+                      + nfe_numero (mesma fonte do FinCrossLinkify; não inventa dado). */}
+                  <FinVinculosChips descricao={selected.descricao} nfeNumero={selected.nfe_numero} />
 
-                  {/* Onda 18 (2026-05-20) — Grid 2-col canon match prototype financeiro-app.jsx:808-831.
-                      Cells: Contraparte / Categoria / Canal / Documento (col-1) + Conta col-span-2
-                      com bank icon. Labels UPPERCASE tracking-widest text-stone-500. */}
-                  <div className="border-t border-stone-100 pt-4 grid grid-cols-2 gap-y-3 gap-x-3">
+                  {/* FA-5 — ficha de identificação em fin-kv-card (lavanda sutil); MANTÉM os 17
+                      campos WR ([W] 2026-06-11). Onda 18 grid 2-col canon. */}
+                  <div className="fin-kv-card grid grid-cols-2 gap-y-3 gap-x-3">
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
-                      <div className="mt-0.5 font-medium text-stone-900">{selected.contraparte}</div>
+                      <div className="mt-0.5 font-medium text-stone-900"><CopyVal text={selected.contraparte}>{selected.contraparte}</CopyVal></div>
                       {selected.contraparte_doc && <div className="text-[11px] text-stone-500 font-mono">{selected.contraparte_doc}</div>}
                     </div>
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Categoria</div>
-                      <div className="mt-0.5 text-stone-700">{selected.categoria || '—'}</div>
+                      <div className="mt-0.5 text-stone-700"><FinKVCategoriaInline selected={selected} categorias={categorias} /></div>
                     </div>
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Canal</div>
@@ -1757,7 +2210,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>
                       <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
                         <Landmark className="h-4 w-4 text-stone-400" aria-hidden />
-                        <span>{selected.conta_bancaria || '—'}</span>
+                        <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
                       </div>
                     </div>
                     {/* Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe). Tokens
@@ -1802,31 +2255,118 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
                   )}
 
-                  {/* Onda 19 (2026-05-20) — Bloco Conciliação extrato canon match prototype
-                      financeiro-app.jsx:833-851. Settled = green card "Conciliado com extrato",
-                      not settled = stone card "Sem match. Ao liquidar...". */}
+                  {/* PR-3 F2 (2026-06-10) — Conciliação vira LENTE (ícone primary/10 +
+                      chip de status) e o estado conciliado vira box DISCRETO (bg muted +
+                      check pequeno), não banda verde — padrão F2-aprovado [W]. */}
                   {(() => {
                     const settled = selected.status === 'recebido' || selected.status === 'pago';
+                    // #3 Tribunal Onda 2 (Tufte/Rams) — selo de sucesso que só re-anuncia o corpo
+                    // = tinta não-dado. Liquidado: tira "100% match" do header (o box abaixo já
+                    // prova). Aberto mantém "aguardando" (info real).
                     return (
-                      <div className="border-t border-stone-100 pt-4">
-                        <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conciliação extrato</div>
+                      <DrawerLens icon={Landmark} title="Conciliação extrato" status={settled ? null : 'aguardando'} tone={settled ? 'pos' : 'muted'} hue={settled ? 'pos' : 'muted'}>
                         {settled ? (
-                          <div className="mt-2 rounded-md border border-emerald-200 bg-emerald-50/60 px-3 py-2.5 flex items-start gap-2.5">
-                            <LinkIcon className="h-4 w-4 text-emerald-700 mt-0.5" aria-hidden />
-                            <div className="text-[12.5px]">
-                              <div className="text-emerald-800 font-medium">Conciliado com extrato bancário</div>
-                              <div className="text-emerald-700/80">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
+                          <Inline align="start" gap={2} className="gap-2.5 rounded-md border border-border bg-muted px-3 py-2">
+                            <span className="w-[18px] h-[18px] rounded-full grid place-items-center bg-success/15 text-success-foreground shrink-0 mt-px" aria-hidden>
+                              <Check size={11} />
+                            </span>
+                            <div className="text-[12.5px] min-w-0">
+                              <div className="font-medium text-foreground">Conciliado com extrato bancário</div>
+                              <div className="text-muted-foreground tabular-nums">{selected.liquidacao || '—'} · {brl(selected.valor)} · 100% match</div>
                             </div>
-                          </div>
+                          </Inline>
                         ) : (
-                          <div className="mt-2 rounded-md border border-stone-200 px-3 py-2.5 text-[12.5px] text-stone-600 flex items-start gap-2.5">
-                            <span className="text-stone-500 mt-0.5" aria-hidden>✦</span>
+                          <div className="rounded-md border border-border px-3 py-2.5 text-[12.5px] text-muted-foreground flex items-start gap-2.5">
+                            <span className="text-muted-foreground mt-0.5" aria-hidden>✦</span>
                             <div>
                               Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ [redacted Tier 0] e ±2 dias) e sugere conciliação automática.
                             </div>
                           </div>
                         )}
-                      </div>
+                      </DrawerLens>
+                    );
+                  })()}
+
+                  {/* PR-3 F2 (2026-06-10) — Lente FISCAL: NF + impostos estimados (Simples
+                      Nacional, regime caixa). Estimativa VISUAL — apuração oficial no módulo
+                      Fiscal; guia consolidada na sub-tela Impostos & obrigações (F2 PR-2).
+                      Referência F1: LenteFiscal em financeiro-page.jsx (ISS 5% serviços
+                      gráficos · DAS ≈6% sobre o recebido). */}
+                  {(() => {
+                    const isIn = selected.kind === 'receivable';
+                    const hasNf = !!selected.nfe_numero;
+                    const iss = isIn ? (selected.valor ?? 0) * 0.05 : 0;
+                    const das = isIn ? (selected.valor ?? 0) * 0.06 : 0;
+                    // #3 — com NF: tira "NF vinculada" do header (o nº da NF aparece no corpo).
+                    // Sem NF: mantém "sem NF" (warn — buraco real).
+                    return (
+                      <DrawerLens icon={Percent} title="Fiscal" status={hasNf ? null : 'sem NF'} tone={hasNf ? 'pos' : 'warn'} hue="warn">
+                        <Grid cols={2} gap={0} className="gap-x-5">
+                          <div>
+                            <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">{isIn ? 'NF-e de saída' : 'Documento fiscal'}</div>
+                            <div className="text-[13px] text-foreground font-medium truncate">
+                              {hasNf ? <CopyVal text={selected.nfe_numero ?? ''} mono>{selected.nfe_numero}</CopyVal> : <span className="text-warning-foreground">não emitida</span>}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground">Regime</div>
+                            <div className="text-[13px] text-foreground font-medium">Simples Nacional</div>
+                          </div>
+                        </Grid>
+                        {isIn && (
+                          <div className="mt-1.5 border-t border-border/60">
+                            <Inline align="baseline" justify="between" gap={0} className="py-[5px] border-b border-border/60">
+                              <span className="text-[12.5px] text-muted-foreground">ISS retido · 5%</span>
+                              <span className="text-[12.5px] font-mono tabular-nums font-medium">{brl(iss)}</span>
+                            </Inline>
+                            <Inline align="baseline" justify="between" gap={0} className="py-[5px]">
+                              <span className="text-[12.5px] text-muted-foreground">No DAS do mês · ≈ 6%</span>
+                              <span className="text-[12.5px] font-mono tabular-nums font-medium text-warning-foreground">{brl(das)}</span>
+                            </Inline>
+                          </div>
+                        )}
+                        <p className="text-[10.5px] text-muted-foreground pt-1.5 leading-relaxed">
+                          Estimativa — apuração e guia na sub-tela{' '}
+                          <button type="button" className="font-medium underline underline-offset-2 hover:text-primary" onClick={() => router.visit('/financeiro/impostos')}>
+                            Impostos &amp; obrigações
+                          </button>{' '}
+                          · oficial no módulo Fiscal.
+                        </p>
+                      </DrawerLens>
+                    );
+                  })()}
+
+                  {/* FA-5 — Lente Cobrança (protótipo): ciclo título⇄cobrança. Reusa o
+                      endpoint de boleto Inter que já existe; sem PIX (não há gerador no live). */}
+                  {(() => {
+                    const settledCob = selected.status === 'recebido' || selected.status === 'pago';
+                    const isInCob = selected.kind === 'receivable';
+                    const hasBoleto = !!selected.boleto?.linha_digitavel;
+                    // #3 — liquidado: tira "encerrada" do header (o corpo diz "Título liquidado
+                    // — cobrança encerrada"). Aberto mantém "em atraso"/"boleto emitido"/"a gerar".
+                    const cobStatus = settledCob ? null : selected.status === 'atrasado' ? 'em atraso' : hasBoleto ? 'boleto emitido' : 'a gerar';
+                    const cobTone: 'pos' | 'warn' | 'muted' = settledCob ? 'pos' : selected.status === 'atrasado' ? 'warn' : 'muted';
+                    return (
+                      <DrawerLens icon={Send} title="Cobrança" status={cobStatus} tone={cobTone} hue={settledCob ? 'pos' : selected.status === 'atrasado' ? 'warn' : 'accent'}>
+                        {settledCob ? (
+                          <Inline gap={2} className="gap-2 text-[12.5px]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" aria-hidden />
+                            <span className="text-foreground">Título liquidado — cobrança encerrada.</span>
+                          </Inline>
+                        ) : !isInCob ? (
+                          <div className="text-[12.5px] text-muted-foreground">Saída — registre a baixa quando pagar (sem cobrança a emitir).</div>
+                        ) : hasBoleto ? (
+                          <div className="text-[12.5px] text-muted-foreground">Boleto emitido (Banco Inter). Linha digitável no rodapé — “Copiar boleto”.</div>
+                        ) : (
+                          <div>
+                            <p className="text-[12.5px] text-muted-foreground mb-2">Nenhuma cobrança emitida. Gere um boleto — o status volta pra cá quando o cliente pagar.</p>
+                            <Button variant="outline" size="sm" onClick={() => router.post(`/financeiro/unificado/${selected.id}/boleto`, {}, { preserveScroll: true })}>
+                              <FileText className="h-3.5 w-3.5" aria-hidden />
+                              <span className="ml-1">Gerar boleto</span>
+                            </Button>
+                          </div>
+                        )}
+                      </DrawerLens>
                     );
                   })()}
 
@@ -1925,12 +2465,26 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   Ver NFe → Cobrar → Recebi/Paguei → Editar → Favoritar. */}
               {drawerTab === 'detalhes' && (
                 <div className="fin-drawer-footer fin-drawer-footer-sticky">
+                  {/* FA-5 — troubleshooter contextual (protótipo: "Resolver..."). Reusa o
+                      FinTroubleshooterDialog já montado na página (setTroubleOpen). */}
+                  <FinTroubleButton onClick={() => setTroubleOpen(true)} label="? Resolver" />
+                  {/* FA-5 P2 — teclas visíveis (J/K nav · R liquida). Some no mobile (<720px)
+                      e quando houver troubleshooter no footer (CSS :has). */}
+                  <span className="fin-dw-hint" title="J / K navegam entre títulos · R liquida · Esc fecha">
+                    <kbd className="fin-kbd">J</kbd><kbd className="fin-kbd">K</kbd><em>título</em>
+                  </span>
                   {selected.nfe_numero && (
                     <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Ver NFe" onClick={() => router.visit(`/fiscal/nfe?numero=${selected.nfe_numero}`)}>
                       <Eye className="h-4 w-4" aria-hidden />
                       <span className="ml-1">Ver NFe</span>
                     </Button>
                   )}
+                  {/* FA-5 P5/S3 — recibo imprimível com identidade Oimpresso (client-side iframe;
+                      o módulo não tem rota server-side de recibo — verificado FA-5). */}
+                  <Button variant="outline" size="sm" className="fin-foot-icon-btn" title="Imprimir recibo (identidade Oimpresso)" onClick={() => printReciboTitulo(selected)}>
+                    <Printer className="h-4 w-4" aria-hidden />
+                    <span className="ml-1">Recibo</span>
+                  </Button>
                   {/* Gerar Boleto no drawer (2026-06-08) — emite boleto Inter pro
                       título SEM sair da Visão Unificada. Quando já emitido, vira
                       "Copiar boleto" (linha digitável persistida em metadata). */}
@@ -1962,20 +2516,14 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     )
                   )}
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
-                    <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn">
+                    <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn" title={selected.kind === 'receivable' ? 'Marcar recebido (atalho R)' : 'Marcar pago (atalho R)'}>
                       <span aria-hidden>✓</span>
                       <span className="ml-1">{selected.kind === 'receivable' ? 'Receber' : 'Pagar'}</span>
+                      <kbd className="fin-kbd fin-kbd-acc">R</kbd>
                     </Button>
                   )}
-                  <Button variant="outline" size="sm" className="fin-edit-btn" onClick={() => setEditOpen(true)}>Editar</Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => favs.toggle(selected.id)}
-                    title="Atalho: B (com a linha selecionada)"
-                  >
-                    {favs.has(selected.id) ? '★ Favoritado' : '☆ Favoritar'}
-                  </Button>
+                  {/* FA-5 — Editar saiu do footer (virou botão 'Editar campos' no topo, ao lado de
+                      Conferir); Favoritar continua pelo atalho B. Footer enxuto = protótipo. */}
                 </div>
               )}
 
@@ -2017,16 +2565,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 </div>
               )}
 
-              {/* Aba Editar — Onda 10 canon 100%: form INLINE real (PUT /financeiro/unificado/{id}) */}
-              {drawerTab === 'editar' && (
-                <div className="mt-3 px-5">
-                  <FinEditPanel
-                    lancamento={selected}
-                    categorias={categorias}
-                    onClose={() => setDrawerTab('detalhes')}
-                  />
-                </div>
-              )}
+              {/* FA-5/9.75 — a aba 'Editar' virou o botão 'Editar campos' (topo) que abre o
+                  TituloEditSheet (editor completo, mais campos que o painel inline antigo). */}
             </>
           )}
         </SheetContent>

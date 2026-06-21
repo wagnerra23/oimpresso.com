@@ -1,0 +1,47 @@
+name: "Pedido de design/tela (intake Cowork)"
+description: "Intake canônico de pedido pro loop Cowork↔Code (substitui a fila markdown COWORK_NOTES — Onda B, proposta #2874)."
+title: "[intake] "
+labels: ["cowork-intake"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Este é o **intake nativo** (Onda B do Protocolo v2): pedido vira Issue
+        (label · assignee · notificação · link-pro-PR), em vez de linha na fila
+        `COWORK_NOTES.md`. O loop segue o `PROTOCOL.md` (F0→F1→...). Git = SSOT.
+  - type: input
+    id: tela
+    attributes:
+      label: "Tela / módulo"
+      description: "Ex.: Sells/Create, Financeiro/Conciliacao, módulo inteiro."
+      placeholder: "Mod/Tela"
+    validations:
+      required: true
+  - type: dropdown
+    id: prioridade
+    attributes:
+      label: "Prioridade"
+      options: ["P0 — agora", "P1 — esta semana", "P2 — backlog próximo", "P3 — quando der"]
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: "Contexto"
+      description: "O que precisa, pra quem (persona/cliente), por quê. Sinal qualificado (ADR 0105) se houver."
+    validations:
+      required: true
+  - type: textarea
+    id: restricoes
+    attributes:
+      label: "Restrições / não-fazer"
+      description: "Proibições, invariantes, o que NÃO pode mudar. Multi-tenant Tier 0 se aplicável."
+    validations:
+      required: false
+  - type: input
+    id: charter
+    attributes:
+      label: "Charter / protótipo existente (se houver)"
+      description: "Link/caminho pro .charter.md, prototipos/<tela>/ ou proposta relacionada."
+    validations:
+      required: false

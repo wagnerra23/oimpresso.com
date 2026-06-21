@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Contact;
 
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -27,9 +28,7 @@ use Tests\TestCase;
  */
 class ContactBrFieldsRestoredTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function it_has_all_br_fiscal_fields(): void
     {
         $expectedColumns = [

@@ -9,7 +9,7 @@ related_matrix: MATRIZ-ROI.md
 last_review: 2026-05-12
 ---
 
-# ROADMAP Modules/Marketplaces — 5 fases CONDICIONAL
+# ROADMAP Marketplaces (planejado — não existe) — 5 fases CONDICIONAL
 
 > ⚠️ **NÃO IMPLEMENTAR.** Roadmap antecipatório — só vira backlog ativo quando gatilho [SPEC §11.1](SPEC.md#111-sinal-qualificado-de-mercado-adr-0105) for satisfeito (sinal qualificado [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). Sem cliente piloto pagante, **viola ADR 0105**.
 >

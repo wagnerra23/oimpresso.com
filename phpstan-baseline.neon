@@ -6220,7 +6220,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 5
+			count: 10
 			path: Modules/Governance/Config/config.php
 
 		-
@@ -6436,7 +6436,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 79
+			count: 80
 			path: Modules/Jana/Config/config.php
 
 		-
@@ -6444,6 +6444,12 @@ parameters:
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
 			path: Modules/Jana/Config/retention.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 5
+			path: Modules/Jana/Config/memoria.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$config_json\.$#'
@@ -8648,6 +8654,12 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 7
+			path: Modules/OficinaAuto/Config/config.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
 			path: Modules/OficinaAuto/Config/retention.php
 
@@ -8656,12 +8668,6 @@ parameters:
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 1
 			path: Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php
-
-		-
-			message: '#^Constant Modules\\OficinaAuto\\Entities\\ServiceOrder\:\:RENTAL_ACTIVE_STATUSES is unused\.$#'
-			identifier: classConstant.unused
-			count: 1
-			path: Modules/OficinaAuto/Entities/ServiceOrder.php
 
 		-
 			message: '#^Property Modules\\OficinaAuto\\Entities\\ServiceOrderItem\:\:\$valor_total \(string\) does not accept float\.$#'
@@ -8774,12 +8780,6 @@ parameters:
 		-
 			message: '#^Fallback silencioso detectado\: `if \(empty/isset\)` com atribuição sem `Log\:\:warning` no mesmo bloco\. Adicione `\\Log\:\:warning\(''\<contexto\>'', \[\.\.\.\]\);` ANTES do assignment pra rastreabilidade\. Ver ADR 0212 Camada 2 \(pattern canon\) \+ AP\-18 no LICOES_F3\.$#'
 			identifier: oimpresso.silentFallback
-			count: 1
-			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
-
-		-
-			message: '#^Método `Modules\\OficinaAuto\\Http\\Controllers\\ServiceOrderController\:\:create\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
 			count: 1
 			path: Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
 
@@ -13022,7 +13022,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 49
+			count: 56
 			path: Modules/Whatsapp/Config/config.php
 
 		-
@@ -15728,7 +15728,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Transaction\:\:\$location_name\.$#'
 			identifier: property.notFound
-			count: 2
+			count: 3
 			path: app/Http/Controllers/ContactController.php
 
 		-
@@ -15757,6 +15757,30 @@ parameters:
 
 		-
 			message: '#^Access to an undefined property App\\Transaction\:\:\$valor_aberto\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$invoice_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$parent_payment_ref_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$ref_no\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\TransactionPayment\:\:\$transaction_type\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/ContactController.php
@@ -15986,6 +16010,12 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Transaction\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
+			count: 2
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\TransactionPayment\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
 			count: 1
 			path: app/Http/Controllers/ContactController.php
 
@@ -16023,6 +16053,12 @@ parameters:
 			message: '#^Strict comparison using \!\=\= between bool and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 2
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between int\<0, max\> and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
 			path: app/Http/Controllers/ContactController.php
 
 		-
@@ -21788,7 +21824,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$color\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 6
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-
@@ -21800,7 +21836,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$key\.$#'
 			identifier: property.notFound
-			count: 6
+			count: 7
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-
@@ -21812,7 +21848,13 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 6
+			path: app/Http/Controllers/ServiceOrderFsmActionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
 			path: app/Http/Controllers/ServiceOrderFsmActionController.php
 
 		-
@@ -27437,3 +27479,9 @@ parameters:
 			count: 1
 			path: app/Warranty.php
 
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/TeamMcp/Config/config.php

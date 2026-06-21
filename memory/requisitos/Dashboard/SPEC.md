@@ -1,13 +1,17 @@
 ---
 module: Dashboard
-status: live
+status: ativo
 phase: F6 Soft wrapper (entrega 2026-05-21)
 parent_route: /home
-version: 1.0.0
+version: "1.0.0"
 owner: wagner
-last_updated: 2026-05-21
-last_validated: 2026-05-21
-related_adrs: [0093, 0094, 0101, 0104]
+last_updated: "2026-05-21"
+last_validated: "2026-05-21"
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0104-processo-mwart-canonico-unico-caminho
 ---
 
 # SPEC — Dashboard (tela inicial pós-login `/home`)

@@ -43,7 +43,7 @@ export function emphasisClass(emphasis: ColumnEmphasis): string {
 
 // Tons dos KPIs do board (label/value/wrapper). default usa tokens neutros;
 // status usam paleta (em .ts, não flagada por R1) pra manter a cor exata aprovada.
-export type KpiTone = 'default' | 'amber' | 'rose' | 'emerald' | 'violet';
+export type KpiTone = 'default' | 'amber' | 'rose' | 'emerald' | 'violet' | 'blue' | 'indigo';
 
 export interface KpiToneClasses { wrapper: string; label: string; value: string }
 
@@ -53,8 +53,27 @@ const KPI_TONE: Record<KpiTone, KpiToneClasses> = {
   rose:    { wrapper: 'bg-rose-50 border-rose-200',   label: 'text-rose-700',         value: 'text-rose-900' },
   emerald: { wrapper: 'bg-emerald-50 border-emerald-200', label: 'text-emerald-700',  value: 'text-emerald-900' },
   violet:  { wrapper: 'bg-violet-50 border-violet-200', label: 'text-violet-700',     value: 'text-violet-900' },
+  blue:    { wrapper: 'bg-blue-50 border-blue-200',   label: 'text-blue-700',         value: 'text-blue-900' },
+  indigo:  { wrapper: 'bg-indigo-50 border-indigo-200', label: 'text-indigo-700',     value: 'text-indigo-900' },
 };
 
 export function kpiTone(tone: KpiTone): KpiToneClasses {
   return KPI_TONE[tone] ?? KPI_TONE.default;
+}
+
+// Glifo da marca da Grade (view veículo × etapa · Onda 2). Uma marca na célula da
+// etapa atual da OS; a COR vem do tom da própria coluna (toneForColor) — data-driven,
+// consistente com o header da coluna. Glifo semântico por etapa FSM conhecida do
+// oficina_mecanica_os; fallback neutro pra processo customizado (canon .ofc-grade-mark).
+const GRADE_GLYPH: Record<string, string> = {
+  recepcao:             '·', // agendado / recém-recebido
+  em_diagnostico:       '?', // em diagnóstico técnico
+  aguardando_aprovacao: '◷', // aguardando OK do cliente
+  aguardando_pecas:     '◦', // aguardando peça física
+  em_execucao:          '●', // em execução
+  pronto_retirada:      '✓', // pronto pra retirar
+};
+
+export function gradeGlyph(stageKey: string): string {
+  return GRADE_GLYPH[stageKey] ?? '●';
 }

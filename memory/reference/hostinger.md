@@ -35,6 +35,10 @@ for i in 1 2 3 4 5; do
 done; echo
 ```
 
+> ⚠️ **NÃO encurtar o `ConnectTimeout` (lição cara 2026-06-11).** O handshake do Hostinger *leva minutos* — `ConnectTimeout` tem que ser ALTO (manual: 900; no CI bounded a 180 pelo job timeout de 30min). Em 2026-06-11 o CC tentou "consertar" o deploy flaky **encurtando** pra `ConnectTimeout=30 × ConnectionAttempts=2` + warm-up por TCP-probe de 8s + retry-loop externo. Resultado: PIOROU ("sempre quebra") — o SSH desistia ANTES do handshake completar, e o probe de 8s sempre falhava. **Reverter pro canon**: `ConnectTimeout=180+` (minutos), `ConnectionAttempts=3-5`, `ServerAliveInterval=3`, `ServerAliveCountMax=200`, `-4`. Warm-up = **curl 443 ×5** (só acorda a rota) + 1 `ssh true` tolerante (paga o 1º connect lento). **Não** martelar com retry-loop agressivo (risco de ban / "cuidado com hostinger" — Wagner 2026-06-11).
+>
+> **Quando o deploy falha mesmo com os flags canônicos:** geralmente é **queda real da rota SSH do Hostinger** (a 443 pode continuar 200 enquanto a 65002 está inalcançável). Foi o caso 2026-06-11 ~12:30→13:30 (deploys 11:25/12:06/12:16 passaram; depois a 65002 caiu ~1h). Nenhum timeout sobrevive a outage de 1h dentro de job de 30min — **esperar a rota voltar e re-disparar UMA vez**, não ficar martelando.
+
 ### SSH config robusto (não cortar nenhum flag)
 
 ```bash
@@ -81,9 +85,11 @@ ssh -4 [...flags...] u906587222@148.135.133.115 \
 ```
 Validado 2026-04-27: Sprint 2 quebrou /memcofre+/copiloto em 5min, rollback em ~30s.
 
-### Workflows GitHub Actions
+### Workflows GitHub Actions (atualizado 2026-06-10 — ADR 0269)
 
-`.github/workflows/deploy.yml` é manual (`workflow_dispatch`). `quick-sync.yml` está QUEBRADO desde 2026-04-26 (falha Setup SSH). Hostinger NÃO recebe deploys automáticos — sempre pull manual via SSH após merge.
+`.github/workflows/deploy.yml` **auto-deploya em push pra main** (paths-ignore docs) — build no runner + bundles via tar/ssh + OPcache reset confirmado + smoke de hash. `workflow_dispatch` mantido como fallback. `quick-sync.yml` virou **escape manual** (`workflow_dispatch`-only); `force-clean-rebuild-trigger.yml` segue como nuclear manual.
+
+> **Os helpers SSH desses workflows usam os flags canônicos desta página** (`-4` IPv4, `ConnectTimeout`, `ConnectionAttempts=5`, `ServerAlive`) + warm-up curl 5× antes do 1º SSH. Sem o `-4` o runner tentava IPv6 e dava `Connection timed out` em massa (incidente 2026-06-10). **ControlMaster (multiplexing) continua proibido** — falha `mux_client_request_session`; é 1 conexão por comando mesmo.
 
 ## hPanel acesso humano
 

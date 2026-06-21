@@ -14,6 +14,17 @@ use Modules\Jana\Mcp\Tools\WhatsActiveTool;
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
+    // Idempotente: este teste agora roda na lane sqlite compartilhada (:memory:) ao
+    // lado de outros — limpa antes de criar pra não estourar "table already exists".
+    Schema::dropIfExists('mcp_cc_messages');
+    Schema::dropIfExists('mcp_cc_sessions');
+    Schema::dropIfExists('users');
+    Schema::dropIfExists('mcp_ingest_heartbeat');
+
     Schema::create('mcp_cc_sessions', function (Blueprint $t) {
         $t->bigIncrements('id');
         $t->string('session_uuid', 36)->unique();
@@ -71,9 +82,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('mcp_cc_messages');
-    Schema::dropIfExists('mcp_cc_sessions');
-    Schema::dropIfExists('users');
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('mcp_cc_messages');
+        Schema::dropIfExists('mcp_cc_sessions');
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('mcp_ingest_heartbeat'); // B-SPOF-WA: criada só no teste de liveness
+    }
 });
 
 function makeUser(array $attrs = []): \App\User
@@ -140,6 +154,37 @@ it('WhatsActiveTool retorna mensagem amigável quando ninguém ativo', function 
         ->assertOk()
         ->assertSee('Nenhuma sessão Claude Code ativa');
 });
+
+it('WhatsActiveTool NÃO dá all-clear falso quando o pipeline de ingest está cego (B-SPOF-WA)', function () {
+    // Heartbeat EXISTE mas o último ingest foi há 3h (> STALE_MINUTES=60) → fresh=0:
+    // o watcher de ingest está caído, então "nenhuma sessão" pode ser CEGUEIRA, não calmaria.
+    Schema::create('mcp_ingest_heartbeat', function (Blueprint $t) {
+        $t->bigIncrements('id');
+        $t->string('host', 500)->unique();
+        $t->timestamp('last_ingest_at')->nullable();
+        $t->string('last_session_uuid', 36)->nullable();
+        $t->unsignedBigInteger('msgs_acc')->default(0);
+        $t->timestamps();
+    });
+    DB::table('mcp_ingest_heartbeat')->insert([
+        'host' => 'D:\\oimpresso.com',
+        'last_ingest_at' => now()->subHours(3)->toDateTimeString(),
+        'msgs_acc' => 5,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $user = makeUser();
+
+    // Sem mensagens recentes (isEmpty) MAS pipeline cego → resposta de INCERTEZA.
+    // BITE: se a guarda B-SPOF-WA regredir, volta o all-clear ("Pode pegar qualquer
+    // escopo") que NÃO contém estas frases → assertSee falha.
+    OimpressoMcpServer::actingAs($user)
+        ->tool(WhatsActiveTool::class)
+        ->assertOk()
+        ->assertSee('NÃO assuma escopo livre')
+        ->assertSee('fresh=0');
+})->group('ci');
 
 it('WhatsActiveTool lista 2 sessões ativas com paths overlapping', function () {
     $wagner = makeUser(['id' => 1, 'username' => 'wagner', 'first_name' => 'Wagner']);

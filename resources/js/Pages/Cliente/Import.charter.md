@@ -3,9 +3,9 @@ page: /contacts/import
 component: resources/js/Pages/Cliente/Import.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-15
+last_validated: "2026-05-15"
 parent_module: Cliente
-related_adrs: [0110, 0107, 0093, 0094, 0104, 0149]
+related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:

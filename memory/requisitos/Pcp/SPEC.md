@@ -1,15 +1,28 @@
 ---
 module: Pcp
-status: dormente (feature-wish — ADR 0152)
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
+status_nota: dormente (feature-wish — ADR 0152)
 type: spec
 scope: cross-vertical (OficinaAuto + ComunicacaoVisual + Repair + Vestuario)
 piloto_previsto: Vargas (recapagem multi-mecânico) OU Extreme (ComVis multi-plotter) — sinal qualificado pendente
-related_adrs: [0093, 0094, 0104, 0121, 0129, 0143, 0137, 0152]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0129-state-machine-canonica-fsm-rbac
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0137-modules-oficinaauto-qualificada
+  - 0152-modules-pcp-feature-wish
 related_specs: [ComunicacaoVisual/SPEC.md (US-COMVIS-003 PCP), OficinaAuto/SPEC.md (US-OFICINA-004), Repair/SPEC.md, Manufacturing/SPEC.md]
 related_research: [research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md]
-owner: [W]
 last_review: 2026-05-15
 ---
+
+<!-- schema-allowlist: US sob "## §7 — User Stories (US-PCP-001..020 — 20 propostas)"; SPEC dormente (feature-wish ADR 0152) com numeração de seções §0..§9 do blueprint original — heading US mantido pra não quebrar links internos. -->
 
 # SPEC — PCP / Apontamento de Produção (cross-vertical)
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Events\CobrancaVencida;
+use Modules\Superadmin\Console\SuperadminHealthCommand;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
 use Modules\Superadmin\Listeners\OnCobrancaPagaUpdateSubscription;
@@ -45,6 +46,12 @@ class SuperadminServiceProvider extends ServiceProvider
         $this->registerScheduleCommands();
         $this->registerPaymentGatewayListeners();
         $this->registerBusinessAutoSubscriptionObserver();
+
+        // Wave 23 D9.c — registra o health-check command (espelha ConnectorServiceProvider).
+        // Sem este registro o comando superadmin:health nunca aparece em Artisan::all().
+        $this->commands([
+            SuperadminHealthCommand::class,
+        ]);
 
         view::composer('superadmin::layouts.partials.active_subscription', function ($view) {
             $business_id = session()->get('user.business_id');

@@ -15,6 +15,7 @@ contains:
   # Fase 4 (NOVA, ADR 0081):
   - "ActorsController (NOVO) — Identity Mesh: CRUD de mcp_actors com manifest YAML"
   - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
+  - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
   - "Chat IA conversacional → Modules/Copiloto"
   - "Knowledge browsing → Modules/KB"
@@ -43,6 +44,7 @@ db_tables_owned:
   - mcp_user_module_access
   - mcp_actors (NOVA — Fase 4 ADR 0081)
   - mcp_audit_log (mantém append-only com trigger; UI Fase 5 fica em Modules/Governance)
+  - cowork_handoffs (NOVA — PR-1 loop handoff zero-paste Fase 0 ADR 0283; append-only por slug/version, cross-tenant)
   - mcp_cc_sessions / mcp_cc_messages / mcp_cc_blobs
   - mcp_tasks / mcp_epics / mcp_cycles / mcp_jira_projects (Jira-style)
   - mcp_inbox_notifications

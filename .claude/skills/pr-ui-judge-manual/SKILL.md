@@ -1,6 +1,6 @@
 ---
 name: pr-ui-judge-manual
-description: Use quando Wagner pedir "avaliar PR <número> contra Constituição UI v2", "rodar judge no PR X", "review semântico do PR Y", "/pr-ui-judge <PR#>", "score UI do PR Z", OU quando workflow CI `pr-ui-judge.yml` estiver desligado (default) e Wagner quiser rodar manualmente sem ativar quota Brain B globalmente. Carrega o comando canônico `php artisan ui:judge-pr <PR#>` + opções (--post-comment, --strict, --save-to, --repo) + custos esperados (~$0.034/PR · ~$0.005 após cache). NÃO substitui ui-lint.yml (sintático/lexical) — complementa com análise semântica LLM Brain B (Claude Sonnet 4.5) que detecta drawer modal sobre modal, slot inventado custom, layout violando PT-01 mesmo com componentes corretos, atalho duplicado, copy semântica errada. Substitui leitura repetida da docs do PrUiJudgeAgent.
+description: Use quando Wagner pedir "avaliar PR <número> contra Constituição UI v2", "rodar judge no PR X", "review semântico do PR Y", "/pr-ui-judge <PR#>", "score UI do PR Z", OU quando Wagner quiser rodar o judge manualmente (o workflow CI `pr-ui-judge.yml` foi deletado na ADR 0271 onda 2 — judge agora é exclusivamente manual via esta skill). Carrega o comando canônico `php artisan ui:judge-pr <PR#>` + opções (--post-comment, --strict, --save-to, --repo) + custos esperados (~$0.034/PR · ~$0.005 após cache). NÃO substitui ui-lint.yml (sintático/lexical) — complementa com análise semântica LLM Brain B (Claude Sonnet 4.5) que detecta drawer modal sobre modal, slot inventado custom, layout violando PT-01 mesmo com componentes corretos, atalho duplicado, copy semântica errada. Substitui leitura repetida da docs do PrUiJudgeAgent.
 tier: C
 status: active
 version: 1.0
@@ -16,7 +16,7 @@ authority: support
 - Wagner pede explicitamente: "avaliar PR 1438 contra Constituição UI v2"
 - Slash invoke: `/pr-ui-judge 1438`
 - Pedido "score UI do PR X" · "review semântico do PR Y" · "rodar judge no PR Z"
-- Workflow `pr-ui-judge.yml` está DESLIGADO (default · `PR_UI_JUDGE_ENABLED=false`) e Wagner quer rodar pontual sem ativar quota global
+- O workflow CI `pr-ui-judge.yml` foi **deletado** na ADR 0271 onda 2 (era dormente, kill-switch OFF) — o judge agora é **só manual** via esta skill (`php artisan ui:judge-pr <PR#>`)
 
 ## Comando canônico
 
@@ -97,7 +97,7 @@ php artisan ui:judge-pr 1438 --post-comment --save-to=storage/review-1438.json
 
 - **Agent**: [`Modules/Jana/Ai/Agents/PrUiJudgeAgent.php`](../../Modules/Jana/Ai/Agents/PrUiJudgeAgent.php)
 - **Command**: [`app/Console/Commands/UiJudgePrCommand.php`](../../app/Console/Commands/UiJudgePrCommand.php)
-- **Workflow CI**: [`.github/workflows/pr-ui-judge.yml`](../../.github/workflows/pr-ui-judge.yml) (default OFF)
+- **Workflow CI**: ~~`.github/workflows/pr-ui-judge.yml`~~ deletado na ADR 0271 onda 2 (dormente) — judge agora é só manual via esta skill
 - **ADR-mãe**: [UI-0013 Constituição UI v2](../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)
 - **AUTOMATION-ROADMAP**: [Onda 4](../../memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md)
 - **Skills correlatas**: `constituicao-ui-aware` (Tier A · carrega Constituição antes de codar) · `ultrareview` (review adversarial genérico)

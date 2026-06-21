@@ -27,6 +27,13 @@ uses(Tests\TestCase::class);
  * Mock: Process::fake() pra `gh` e `git`. Stubs em mcp_tasks/mcp_cycles via DB direto.
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Tabela cache (replica migration em SQLite)
     Schema::dropIfExists('mcp_handoff_diffs');
     Schema::create('mcp_handoff_diffs', function (Blueprint $t) {
@@ -72,6 +79,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     if (isset(test()->tempDir) && File::isDirectory(test()->tempDir)) {
         File::deleteDirectory(test()->tempDir);
     }

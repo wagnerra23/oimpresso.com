@@ -147,19 +147,20 @@ describe('Wave 25 OficinaAuto POLISH', function () {
         expect($found)->toBeTrue();
     });
 
-    it('D6: ProducaoOficinaController usa Inertia::render (não Blade legado)', function () {
+    it('D6: ProducaoOficinaController é redirect pro board canônico (ADR 0265 — não Blade, não Inertia próprio)', function () {
         $ctrlPath = base_path('Modules/OficinaAuto/Http/Controllers/ProducaoOficinaController.php');
         expect(file_exists($ctrlPath))->toBeTrue();
         $src = file_get_contents($ctrlPath);
-        expect($src)->toContain('Inertia::render');
+        expect($src)->toContain('ordens-servico/board')
+            ->and($src)->toContain('RedirectResponse');
     });
 
     it('D5: ServiceOrderSummaryService kpisDashboard retorna shape canon documentado', function () {
         $ref = new ReflectionMethod(ServiceOrderSummaryService::class, 'kpisDashboard');
         $docComment = $ref->getDocComment();
 
-        expect($docComment)->toContain('locacao_ativa')
-            ->and($docComment)->toContain('manutencao_ativa')
+        // locacao_ativa erradicado (ADR 0265) — KPI de locação removido.
+        expect($docComment)->toContain('manutencao_ativa')
             ->and($docComment)->toContain('concluida_mes')
             ->and($docComment)->toContain('atrasada');
     });

@@ -253,11 +253,34 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             setConnecting(null);
             router.reload({ only: ['channels'] });
           }, 800);
+        } else {
+          // Blindagem (Wagner 2026-06-18): mantém o card de status vivo enquanto
+          // o diálogo está aberto. Faz o canal recém-pareado pelo webhook
+          // 'Connected' aparecer como `active` na lista, alimentando o effect
+          // abaixo que fecha o diálogo mesmo se este poll perder a janela.
+          router.reload({ only: ['channels'], preserveState: true, preserveScroll: true });
         }
       } catch { /* swallow — daemon transitório */ }
     }, intervalMs);
     return () => clearInterval(interval);
   }, [connecting?.id]);
+
+  // Blindagem do fechamento (Wagner 2026-06-18 — "conectou mas não fechou a tela
+  // do QR"). Caminho independente do poll /whatsmeow-status: assim que o canal
+  // que está conectando aparecer ATIVO/saudável na lista (marcado pelo webhook
+  // 'Connected' OU por qualquer reload), fecha o diálogo. Cobre a janela frágil
+  // logo após o scan, quando o daemon emite 'days_to_sync_history' e o poll
+  // pode não pegar o instante `loggedIn=true`.
+  useEffect(() => {
+    if (!connecting) return;
+    const fresh = channels?.find((c) => c.id === connecting.id);
+    if (fresh && (fresh.status === 'active' || fresh.channel_health === 'healthy')) {
+      setQrState('paired');
+      setQrImage(null);
+      const t = setTimeout(() => setConnecting(null), 800);
+      return () => clearTimeout(t);
+    }
+  }, [channels, connecting]);
 
   return (
     <div className="p-4 space-y-4">
@@ -336,7 +359,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
               </>
             )}
             {!qrLoading && qrError && (
-              <div className="text-sm text-red-700 dark:text-red-400 text-center px-4">
+              <div className="text-sm text-destructive-fg text-center px-4">
                 <AlertTriangle size={20} className="inline mr-2" aria-hidden />
                 {qrError}
               </div>
@@ -345,7 +368,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             {!qrLoading && (qrState === 'paired' || qrState === 'connected') && !qrError && (
               <>
                 <CheckCircle2 size={48} className="text-emerald-600" aria-hidden />
-                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                <p className="text-sm font-medium text-success-fg">
                   Canal pareado com sucesso!
                 </p>
                 <p className="text-xs text-muted-foreground">Fechando…</p>
@@ -376,7 +399,12 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col items-stretch gap-2 sm:flex-col sm:space-x-0">
+            {qrImage && qrState !== 'paired' && qrState !== 'connected' && (
+              <p className="text-[11px] text-muted-foreground text-center">
+                Já apareceu "aparelho conectado" no celular? Pode fechar — a conexão conclui em segundo plano.
+              </p>
+            )}
             <Button variant="outline" onClick={() => { setConnecting(null); setQrImage(null); setPairingCode(null); }}>
               Fechar
             </Button>

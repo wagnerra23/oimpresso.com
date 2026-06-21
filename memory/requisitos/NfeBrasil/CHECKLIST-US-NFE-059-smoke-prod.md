@@ -11,7 +11,7 @@
 | Candidato | Pros | Contras |
 |---|---|---|
 | **Gold** (Comunicação Visual) | Manifestação Destinatário entregue (US-NFE-049/050/051/052 done); gráfica grande, emite 100% | Precisa explicar mudança pré-execução |
-| **Vargas** (Autopecas) | Sinal qualificado real R$ [redacted Tier 0]M GMV | Modules/Autopecas em construção; arquitetura ainda não cobre OS auto |
+| **Vargas** (Autopecas) | Sinal qualificado real R$ [redacted Tier 0]M GMV | módulo Autopecas (planejado — não existe); arquitetura ainda não cobre OS auto |
 | **Cliente novo CV** (Extreme/Zoom/Fixar/Mhundo/Produart) | Onboarding limpo desde início | Depende adoção pós outreach (sem ETA) |
 
 **Recomendado: Gold** (caminho mais curto pra evidência real).

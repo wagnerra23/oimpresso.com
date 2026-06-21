@@ -31,7 +31,7 @@ export default function WidgetAdrTier0({ data }: Props) {
 
   if (data.tier_0_alerts.length === 0) {
     return (
-      <div className="flex items-center gap-2 text-green-700">
+      <div className="flex items-center gap-2 text-success-fg">
         <span>✅</span>
         <span className="text-sm">Nenhuma ADR Tier 0 violada — sistema saudável.</span>
       </div>
@@ -40,17 +40,17 @@ export default function WidgetAdrTier0({ data }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="text-sm text-red-700 font-medium">
+      <div className="text-sm text-destructive-fg font-medium">
         {data.tier_0_alerts.length} violação(ões) detectada(s)
       </div>
       <ul className="space-y-2">
         {data.tier_0_alerts.map((alert, idx) => (
           <li
             key={`${alert.check}-${idx}`}
-            className="border-l-4 border-red-500 bg-red-50 p-3 text-sm"
+            className="border-l-4 border-destructive bg-destructive-soft p-3 text-sm"
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-red-900">{alert.check}</span>
+              <span className="font-mono text-xs text-destructive-fg">{alert.check}</span>
               <a
                 href={`https://github.com/wagnerra23/oimpresso.com/blob/main/memory/decisions/${alert.adr}-*`}
                 target="_blank"
@@ -65,7 +65,7 @@ export default function WidgetAdrTier0({ data }: Props) {
             )}
             <div className="text-xs text-gray-500 mt-1">
               status:{' '}
-              <span className="font-medium text-red-700">{alert.status}</span>
+              <span className="font-medium text-destructive-fg">{alert.status}</span>
               {alert.last_run && ` · último run: ${alert.last_run}`}
             </div>
           </li>

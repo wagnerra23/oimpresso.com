@@ -236,6 +236,8 @@ class ImportFirebirdMartinhoCommand extends Command
         $vehicleType = $this->normalizeVehicleType($ordem['vehicle_type'] ?? null);
 
         // Vehicle: localiza por placa+biz OU cria stub
+        // SUPERADMIN: import CLI roda sem session — bypass do global scope com filtro
+        // explícito por business_id alvo da migração legacy (Tier 0, ADR 0093).
         $vehicle = Vehicle::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('plate', $placa)
@@ -247,6 +249,8 @@ class ImportFirebirdMartinhoCommand extends Command
                     $this->line("  + (dry-run) Vehicle stub: placa={$placa} tipo={$vehicleType}");
                 }
             } else {
+                // SUPERADMIN: import CLI sem session — cria Vehicle com business_id
+                // explícito do alvo da migração legacy (Tier 0, ADR 0093).
                 $vehicle = Vehicle::withoutGlobalScopes()->create([
                     'business_id'  => $businessId,
                     'plate'        => $placa,
@@ -290,6 +294,8 @@ class ImportFirebirdMartinhoCommand extends Command
             &$itensCriados,
             $detail
         ) {
+            // SUPERADMIN: import CLI sem session — cria ServiceOrder com business_id
+            // explícito do alvo da migração legacy (Tier 0, ADR 0093).
             $os = ServiceOrder::withoutGlobalScopes()->create([
                 'business_id'        => $businessId,
                 'vehicle_id'         => $vehicle->id,
@@ -364,19 +370,18 @@ class ImportFirebirdMartinhoCommand extends Command
     }
 
     /**
-     * Mapeia order_type legacy → {locacao|manutencao|mecanica}.
+     * Mapeia order_type legacy → {manutencao|mecanica}.
      *
-     * Default 'manutencao' = bucket do legado (migration 2026_06_02_000001 decidiu
-     * "novo processo mecanica não mexe no legado"). OS históricas importadas ficam
-     * em 'manutencao'. [W] decide se quer reclassificar pra 'mecanica' (ver CODE_NOTES).
+     * `locacao` ERRADICADO (ADR 0265 — Oficina = reparo, não locação): qualquer valor
+     * legado de locação cai no default 'manutencao' (mesmo bucket que o importer já
+     * aplicava a status legado). Default 'manutencao' = OS histórica importada.
      */
     private function normalizeOrderType(mixed $raw): string
     {
         $v = strtolower(trim((string) ($raw ?? '')));
         return match (true) {
             $v === 'mecanica'  => 'mecanica',
-            $v === 'locacao'   => 'locacao',
-            default            => 'manutencao',
+            default            => 'manutencao', // locacao erradicado → manutencao (ADR 0265)
         };
     }
 

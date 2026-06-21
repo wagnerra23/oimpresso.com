@@ -36,7 +36,7 @@ function callClarityShare(array $opts = []): ?array
     return $method->invoke($middleware, $request);
 }
 
-function fakeUser(string $userType = 'user', int $businessId = 4): object
+function fakeUser(string $userType = 'user', int $businessId = 1): object
 {
     return new class($userType, $businessId) {
         public function __construct(public string $user_type, public int $business_id) {}
@@ -102,13 +102,13 @@ test('clarityShare retorna null quando cookie consent ausente', function () {
 
 test('clarityShare retorna config completa quando todos guards passam', function () {
     $result = callClarityShare([
-        'user' => fakeUser('user', 4),
+        'user' => fakeUser('user', 1),
         'cookie' => consentCookieAnalytics(true),
     ]);
 
     expect($result)->toBeArray()
         ->and($result['project_id'])->toBe('abc1234567')
-        ->and($result['business_id'])->toBe('4')
+        ->and($result['business_id'])->toBe('1')
         ->and($result['user_type'])->toBe('user')
         ->and($result['mask_strategy'])->toBe('mask-all');
 });

@@ -23,7 +23,8 @@ import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { PRIORITY_BADGE, type Priority } from '@/Components/board/badges';
-import { CheckCircle2, HelpCircle, Inbox as InboxIcon, Layers, UserX } from 'lucide-react';
+import { CheckCircle2, FileSearch, HelpCircle, Inbox as InboxIcon, Layers, UserX } from 'lucide-react';
+import TriageDossier from './_components/TriageDossier';
 
 interface TriageTask {
   task_id: string;
@@ -115,6 +116,8 @@ function TriageIndex({
   const [pending, setPending] = useState<Set<string>>(new Set());
   // Linha em foco pra navegação J/K (mesma mecânica do Board/MyWork).
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Forja PR-5a — drawer do dossiê do Analista.
+  const [dossierId, setDossierId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!errorMsg) return;
@@ -253,7 +256,7 @@ function TriageIndex({
       {errorMsg && (
         <div
           role="alert"
-          className="mt-4 flex items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200"
+          className="mt-4 flex items-center justify-between rounded-md border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg"
         >
           <span>{errorMsg}</span>
           <button type="button" onClick={() => setErrorMsg(null)} className="text-xs font-medium underline-offset-2 hover:underline">
@@ -332,6 +335,14 @@ function TriageIndex({
                           </span>
                         )}
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setDossierId(t.task_id)}
+                        className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                        data-testid="analisar"
+                      >
+                        <FileSearch size={12} /> Analisar
+                      </button>
                     </div>
 
                     {/* Owner inline */}
@@ -434,6 +445,16 @@ function TriageIndex({
         Mesma fila da tool MCP <code className="font-mono">triage</code>. Atribuir dono/prioridade registra evento em{' '}
         <code className="font-mono">mcp_task_events</code> e notifica o dono. Task some daqui quando deixa de ser órfã.
       </p>
+
+      {/* Forja PR-5a — dossiê do Analista (agente propõe, [W] aprova) */}
+      <TriageDossier
+        taskId={dossierId}
+        onClose={() => setDossierId(null)}
+        onResolved={(id) => {
+          setResolved((prev) => new Set(prev).add(id));
+          router.reload({ only: ['tasks', 'kpis'], preserveScroll: true });
+        }}
+      />
     </>
   );
 }

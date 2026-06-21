@@ -5,7 +5,7 @@ controller: Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController@
 persona: eliana
 status: draft
 created: 2026-05-31
-us: US-FIN-037
+related_us: [US-FIN-037]
 onda: 31
 component: resources/js/Pages/Financeiro/Advisor/Dashboard.tsx
 owner: eliana

@@ -53,6 +53,7 @@ test('cada check tem campos canonicos', function () {
     // (subset), não igualdade exata.
     $duros = [
         'multi_tenant_isolation',
+        'sells_value_sanity',
         'brief_uptime_24h',
         'custo_brain_b_24h',
         'pii_leak_in_assistant_responses',
@@ -62,6 +63,8 @@ test('cada check tem campos canonicos', function () {
         'whatsapp_media_pending_1h',
         'mcp_webhook_5xx_2h',
         'memoria_recall_backend',
+        'db_write_canary',
+        'db_storage_quota',
         'jana_lesson_ledger_graduation',
     ];
 
@@ -95,6 +98,37 @@ test('comando nao crasha mesmo se tabelas degraded', function () {
  * @see Modules/Jana/LICOES-OPERACAO.md
  */
 use Modules\Jana\Console\Commands\HealthCheckCommand;
+
+/**
+ * Check 1b — invariante de valor (sensor do incidente "Guilherme" 2026-06-05).
+ * Casos ancorados no CONTRATO (a invariante de desconto) + nos números reais do
+ * incidente — não derivados da implementação (anti-tautologia, proibicoes.md §5).
+ *
+ * @see memory/sessions/2026-06-05-veiculo-na-venda-e-incidente-numuf-valor-inflado.md
+ */
+test('invariante de valor: venda inflada do incidente Guilherme é flagada', function () {
+    // Caso real: calça 227,90, desconto 10,05% → esperado ~204,99; num_uf inflou
+    // final_total pra 20.499.605 (~×100k). Tem que ser pego.
+    expect(HealthCheckCommand::valueExceedsCeiling(20499605.0, 227.90))->toBeTrue();
+});
+
+test('invariante de valor: venda legítima com desconto NÃO é flagada', function () {
+    // Mesma venda, valor correto (desconto só reduz). final_total < total_before_tax.
+    expect(HealthCheckCommand::valueExceedsCeiling(204.99, 227.90))->toBeFalse();
+    // Sem desconto: final == total_before_tax.
+    expect(HealthCheckCommand::valueExceedsCeiling(80.0, 80.0))->toBeFalse();
+});
+
+test('invariante de valor: imposto/frete entram no teto sem virar falso-positivo', function () {
+    // total 100 + tax 18 = 118 legítimo; 200 é corrupção.
+    expect(HealthCheckCommand::valueExceedsCeiling(118.0, 100.0, 18.0))->toBeFalse();
+    expect(HealthCheckCommand::valueExceedsCeiling(400.0, 100.0, 18.0))->toBeTrue();
+});
+
+test('invariante de valor: total/final zerado ou negativo nunca flaga (sem dado)', function () {
+    expect(HealthCheckCommand::valueExceedsCeiling(0.0, 0.0))->toBeFalse();   // desconto 100%
+    expect(HealthCheckCommand::valueExceedsCeiling(500.0, 0.0))->toBeFalse(); // sem base de comparação
+});
 
 test('parser do ledger: lição MEC e JULG bem-formadas passam', function () {
     $md = <<<'MD'
@@ -140,4 +174,43 @@ test('ledger canônico Modules/Jana/LICOES-OPERACAO.md está todo graduado', fun
     expect($r['total'])->toBeGreaterThanOrEqual(3);
     expect($r['overdue'])->toBe([]);
     expect($r['malformed'])->toBe([]);
+});
+
+/**
+ * Check 7 — titleDriftKey: chave de comparação DB↔SPEC do spec_id_drift.
+ *
+ * Casos ancorados no CONTRATO (cosmético-inicial ≠ drift / divergência de
+ * conteúdo = drift) + nos dados REAIS do incidente prod 2026-06-20 (646 alvo 0),
+ * não derivados da implementação (anti-tautologia, proibicoes.md §5).
+ *
+ * @see Modules/Jana/Console/Commands/HealthCheckCommand::titleDriftKey
+ */
+test('titleDriftKey: emoji corrompido "? " no DB não conta como drift (631 falso-pos)', function () {
+    // Caso real: mcp_tasks.title trunca emoji 4-byte pra `?` (utf8mb3); SPEC limpo.
+    expect(HealthCheckCommand::titleDriftKey('? Listar Budget'))
+        ->toBe(HealthCheckCommand::titleDriftKey('Listar Budget'));
+    expect(HealthCheckCommand::titleDriftKey('? Criar Journal Entry'))
+        ->toBe(HealthCheckCommand::titleDriftKey('Criar Journal Entry'));
+    // Prefixo simétrico em ambos os lados também colapsa.
+    expect(HealthCheckCommand::titleDriftKey('? [Epic] Models + migrations'))
+        ->toBe(HealthCheckCommand::titleDriftKey('[Epic] Models + migrations'));
+});
+
+test('titleDriftKey: colisão dura genuína continua diferente (15 reais não somem)', function () {
+    // RecurringBilling-001: 9 headers no 001; DB tem o "Listener", SPEC pede "Escopo 0".
+    expect(HealthCheckCommand::titleDriftKey('? Listener InvoicePaid em NfeBrasil'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('Escopo 0 — PaymentGateway + adapter Asaas'));
+    // SELL-010 duplicado dentro do mesmo SPEC.
+    expect(HealthCheckCommand::titleDriftKey('? Investigar State Machines existentes'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('FieldError por campo + auto-open details em erro'));
+    // WA: sub-letra vazada no título do DB (`b · …`) vs header canônico.
+    expect(HealthCheckCommand::titleDriftKey('b · Receber webhook Z-API'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('Receber webhook Meta + assinatura HMAC'));
+});
+
+test('titleDriftKey: títulos idênticos e variações de espaço são iguais', function () {
+    expect(HealthCheckCommand::titleDriftKey('Listar Core'))->toBe('Listar Core');
+    expect(HealthCheckCommand::titleDriftKey('  Listar Core  '))->toBe('Listar Core');
+    expect(HealthCheckCommand::titleDriftKey('Listar Core'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('Criar Core'));
 });

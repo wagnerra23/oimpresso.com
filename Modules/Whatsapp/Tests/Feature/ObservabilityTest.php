@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Schema;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    // era-sqlite: este teste cria schema manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso DROPA tabelas reais → corrompe os testes irmãos (lever do floor SDD).
+    // Cobertura real é na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
     // Schema mínimo pro command rodar — só duas tabelas usadas
     foreach (['whatsapp_business_phones', 'whatsapp_messages'] as $t) {
         Schema::dropIfExists($t);

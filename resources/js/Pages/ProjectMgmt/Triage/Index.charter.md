@@ -40,6 +40,12 @@ Dar ao time não-técnico (e futuros clientes B2B) uma tela dedicada pra **triar
 - Atalhos canônicos (PT-01 + Board/MyWork): **J/K** navega linha · **Enter** abre no Board · **⌘K** palette global (dono do AppShellV2, PMG-002)
 - Polling 30s + on-focus reload (re-sincroniza fila)
 
+### Analista (Forja PR-5a, 2026-06-16)
+
+- Botão **Analisar** por linha → drawer **dossiê** (`GET /triage/{id}/dossier`, read-only, SÓ dado real): valor×esforço *sugerido* · risco Tier-0 *heurística* · requisitos (link SPEC) · duplicatas (mesmo módulo) · histórico de decisão (docs/ADRs `mcp_memory_documents`) · sessões CC (`mcp_cc_sessions`) · atividade (`mcp_task_events`).
+- Ações **"agente propõe, [W] aprova"** (AlertDialog confirma): **Aprovar** (`POST /aprovar` → backlog `todo`, exige dono+prio) · **Rejeitar** (`POST /rejeitar` → cancelled) · **Fundir** (`POST /fundir` → cancela + evento de duplicata). Todas via `TaskCrudService` (FSM + eventos).
+- Escopo **enxuto** ([W] 2026-06-16): "proposta" sem novo enum/schema (Tier-0 intocado). RAG leve (cross-link por módulo, sem ranking semântico). PR-5b futuro = estado F0 real + RAG semântico.
+
 ---
 
 ## Non-Goals — Features (NÃO faz)

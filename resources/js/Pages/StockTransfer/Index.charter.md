@@ -1,10 +1,12 @@
 ---
-page: resources/js/Pages/StockTransfer/Index.tsx
+page: /stock-transfers
+component: resources/js/Pages/StockTransfer/Index.tsx
 tela: stock_transfers/index
 tipo: LIST
 modulo: Inventory / StockTransfer
 runbook: memory/requisitos/Inventory/RUNBOOK-stock-transfer-index.md
-status: F3 implementado
+status: draft
+status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/prototipos/inventario-migracao/visual-source.html

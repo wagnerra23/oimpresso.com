@@ -8,6 +8,15 @@
 // <textarea> notes → Textarea DS, combobox de veículo (Popover + Command) com busca
 // de placa/tipo (lista até 500 — <option> plano trava). Erros do useForm em TODOS
 // os campos + auto-scroll pro 1º inválido.
+// 2026-06-09 (sweep ADR 0265 front · avaliação [CC]):
+//   - "Locação" removida do select de tipo (backend valida in:manutencao,mecanica
+//     — a opção quebrava o submit com erro de validação).
+//   - Select de Status removido da UI — status nasce 'aberta'; quem move é o FSM
+//     (canon GUARD: nunca setar estágio manualmente).
+//   - Combobox de Cliente (contact) — charter exige; renderiza quando o controller
+//     passar `contacts` (graceful: sem prop, campo não aparece).
+//   - Copy dev ("V0 — vínculo OS↔Vehicle obrigatório, status livre") trocada por
+//     copy cliente-facing.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -54,9 +63,17 @@ interface Vehicle {
   vehicle_type: string;
 }
 
+interface ContactOption {
+  id: number;
+  name: string;
+}
+
 interface Props {
   vehicles: Vehicle[];
   statuses: Record<string, string>;
+  /** Clientes pro combobox (charter: Martinho atende caminhões de terceiros).
+      Opcional — campo só renderiza quando o controller enviar. */
+  contacts?: ContactOption[];
 }
 
 function vehicleLabel(v: Vehicle): string {
@@ -64,13 +81,26 @@ function vehicleLabel(v: Vehicle): string {
   return `${v.plate}${secondary} (${v.vehicle_type})`;
 }
 
-export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
+export default function ServiceOrdersCreate({ vehicles, statuses, contacts }: Props) {
   // Sheet abre por default (rota /create dedicada); fechar volta pra lista/producao
   const [open, setOpen] = useState(true);
   const [vehiclePickerOpen, setVehiclePickerOpen] = useState(false);
+  const [contactPickerOpen, setContactPickerOpen] = useState(false);
+  void statuses; // mantido na assinatura por compat — status é do FSM, não da UI
+
+  // Prefill via ?vehicle={id} (CTA "Abrir OS" do kanban Produção — ADR 0265).
+  // Só aceita id presente na lista `vehicles` (já scoped por business_id no
+  // controller — Tier 0 ADR 0093): id de outro tenant simplesmente não prefilla.
+  const prefillVehicleId = (() => {
+    if (typeof window === 'undefined') return '';
+    const raw = new URLSearchParams(window.location.search).get('vehicle');
+    if (!raw) return '';
+    return vehicles.some((v) => String(v.id) === raw) ? raw : '';
+  })();
 
   const { data, setData, post, processing, errors } = useForm({
-    vehicle_id: '',
+    vehicle_id: prefillVehicleId,
+    contact_id: '',
     // Tipo de OS — 'mecanica' é o fluxo real de reparo de caminhão (ADR 0194),
     // default pra oficina do Martinho. Roda no pipeline FSM oficina_mecanica_os.
     order_type: 'mecanica',
@@ -87,6 +117,11 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
   const selectedVehicle = useMemo(
     () => vehicles.find((v) => String(v.id) === data.vehicle_id) ?? null,
     [vehicles, data.vehicle_id],
+  );
+
+  const selectedContact = useMemo(
+    () => (contacts ?? []).find((c) => String(c.id) === data.contact_id) ?? null,
+    [contacts, data.contact_id],
   );
 
   // Foco/scroll no 1º campo inválido quando o backend devolve erros de validação.
@@ -134,7 +169,7 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
               Nova Ordem de Serviço
             </SheetTitle>
             <SheetDescription className="text-xs">
-              V0 — vínculo OS↔Vehicle obrigatório, status livre
+              Check-in do veículo — a OS abre em Recepção e segue o quadro de etapas.
             </SheetDescription>
           </SheetHeader>
 
@@ -217,7 +252,6 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
                 <SelectContent>
                   <SelectItem value="mecanica">Mecânica / Reparo (caminhão)</SelectItem>
                   <SelectItem value="manutencao">Manutenção simples</SelectItem>
-                  <SelectItem value="locacao">Locação</SelectItem>
                 </SelectContent>
               </Select>
               {errors.order_type && (
@@ -228,28 +262,67 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div data-field="status">
-                <Label htmlFor="status">Status *</Label>
-                <Select
-                  value={data.status}
-                  onValueChange={(value) => setData('status', value)}
-                >
-                  <SelectTrigger id="status" aria-invalid={!!errors.status}>
-                    <SelectValue placeholder="Selecione o status…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statuses).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.status && (
-                  <p className="text-sm text-destructive mt-1">{errors.status}</p>
+            {/* Cliente — dono do caminhão (terceiro). Só renderiza quando o controller
+                envia `contacts`; obrigatório pro gate de aprovação WhatsApp ter destinatário. */}
+            {contacts && contacts.length > 0 && (
+              <div data-field="contact_id">
+                <Label htmlFor="contact_id">Cliente *</Label>
+                <Popover open={contactPickerOpen} onOpenChange={setContactPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="contact_id"
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={contactPickerOpen}
+                      aria-invalid={!!errors.contact_id}
+                      className="w-full justify-between font-normal"
+                    >
+                      <span className={cn(!selectedContact && 'text-muted-foreground')}>
+                        {selectedContact ? selectedContact.name : 'Selecione o cliente…'}
+                      </span>
+                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[var(--radix-popover-trigger-width)] p-0"
+                    align="start"
+                  >
+                    <Command>
+                      <CommandInput placeholder="Buscar cliente…" />
+                      <CommandList>
+                        <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                        <CommandGroup>
+                          {contacts.map((c) => (
+                            <CommandItem
+                              key={c.id}
+                              value={c.name}
+                              onSelect={() => {
+                                setData('contact_id', String(c.id));
+                                setContactPickerOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 size-4',
+                                  data.contact_id === String(c.id) ? 'opacity-100' : 'opacity-0',
+                                )}
+                              />
+                              {c.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {errors.contact_id && (
+                  <p className="text-sm text-destructive mt-1">{errors.contact_id}</p>
                 )}
               </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
               <div data-field="mileage_at_service">
                 <Label htmlFor="mileage_at_service">KM na entrada</Label>
                 <Input
@@ -264,9 +337,6 @@ export default function ServiceOrdersCreate({ vehicles, statuses }: Props) {
                   <p className="text-sm text-destructive mt-1">{errors.mileage_at_service}</p>
                 )}
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div data-field="entered_at">
                 <Label htmlFor="entered_at">Data entrada</Label>
                 <Input

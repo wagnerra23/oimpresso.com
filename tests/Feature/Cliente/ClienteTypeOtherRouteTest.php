@@ -58,13 +58,9 @@ test('controller $types e $inertiaTypes também aceitam other (3 camadas alinhad
  */
 test('GET /cliente?type=other renderiza Inertia com activeType=other (não customer)', function () {
     try {
-        $business = Business::first();
+        $business = test()->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     } catch (\Throwable $e) {
         test()->markTestSkipped('DB indisponível: ' . $e->getMessage());
-    }
-
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco.');
     }
 
     $user = User::where('business_id', $business->id)

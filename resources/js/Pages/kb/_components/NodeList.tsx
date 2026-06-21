@@ -206,7 +206,7 @@ export default function NodeList({
                     </span>
                   )}
                   {outdated && (
-                    <span className="text-[9.5px] font-semibold lowercase text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/40 px-1.5 py-px rounded-sm">
+                    <span className="text-[9.5px] font-semibold lowercase text-warning-fg bg-warning-soft px-1.5 py-px rounded-sm">
                       revisar
                     </span>
                   )}

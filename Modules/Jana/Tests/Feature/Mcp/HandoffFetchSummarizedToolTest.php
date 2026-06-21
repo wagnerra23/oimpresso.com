@@ -29,6 +29,13 @@ uses(Tests\TestCase::class);
  * Isolamento de prod: usa temp dir via config('jana.handoffs_dir').
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Cria tabela cache (replica migration em SQLite)
     Schema::dropIfExists('mcp_handoff_summaries');
     Schema::create('mcp_handoff_summaries', function (Blueprint $t) {
@@ -69,6 +76,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     if (isset(test()->tempDir) && File::isDirectory(test()->tempDir)) {
         File::deleteDirectory(test()->tempDir);
     }

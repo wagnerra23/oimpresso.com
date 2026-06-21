@@ -1,0 +1,227 @@
+{
+  "version": "2",
+  "_doc": "Map de roteamento da ingestão de design-zip do Cowork (plano vectorized-badger PR-2 · v2 do handoff completo). Para cada tela, routes[].glob casa o BASENAME do arquivo extraído → .to (destino; se termina em '/', preserva o nome). Arquivo sem rota = EXTRA: o ingestor separa 'casa o glob de OUTRA tela' (agregado) de 'desconhecido' (listado p/ avaliar). REGRAS v2: (1) glob por PREFIXO da tela (inbox-*, vendas-*), NUNCA por sufixo (*-page.jsx colide entre telas num handoff que traz todas juntas); (2) data files (data-os.jsx, data-orc-prod.jsx) NÃO seguem o prefixo da tela → listados explicitamente; (3) chave-tela = pasta destino prototipos/<chave>/. Telas marcadas (aspiracional) ainda não têm Page Inertia — o page_id é o destino pretendido. Bloco oficina/produção curado por adversário (Tese C): oficina-page=produção/kanban, oficina-os-page=Nova OS (canon separa os dois), os/orc/producao=gráfica ComunicacaoVisual (compartilham OS_DATA/ORC_DATA), norte=app-demo North-Star, prod-*=Produto (armadilha de naming, 'prod'≠produção). _handoff-* não são telas: docs de processo + shared/dev vão pra prototipo-ui/cowork-handoff/.",
+  "screens": {
+    "caixa-unificada": {
+      "module": "Atendimento",
+      "page_id": "atendimento-caixa-unificada",
+      "routes": [
+        { "glob": "inbox-*.jsx", "to": "prototipo-ui/prototipos/caixa-unificada/" },
+        { "glob": "inbox-*.css", "to": "prototipo-ui/prototipos/caixa-unificada/" }
+      ]
+    },
+    "vendas": {
+      "module": "Sells",
+      "page_id": "sells-index",
+      "routes": [
+        { "glob": "vendas-*.jsx", "to": "prototipo-ui/prototipos/vendas/" },
+        { "glob": "vendas-*.css", "to": "prototipo-ui/prototipos/vendas/" },
+        { "glob": "vendas.css", "to": "prototipo-ui/prototipos/vendas/" },
+        { "glob": "data-vendas.jsx", "to": "prototipo-ui/prototipos/vendas/" }
+      ]
+    },
+    "clientes": {
+      "module": "Crm",
+      "page_id": "crm-clientes",
+      "routes": [
+        { "glob": "clientes-*.jsx", "to": "prototipo-ui/prototipos/clientes/" },
+        { "glob": "clientes-*.css", "to": "prototipo-ui/prototipos/clientes/" },
+        { "glob": "data-clientes.jsx", "to": "prototipo-ui/prototipos/clientes/" }
+      ]
+    },
+    "crm": {
+      "module": "Crm",
+      "page_id": "crm-index",
+      "routes": [
+        { "glob": "crm-*.jsx", "to": "prototipo-ui/prototipos/crm/" },
+        { "glob": "crm-*.css", "to": "prototipo-ui/prototipos/crm/" }
+      ]
+    },
+    "compras": {
+      "module": "Compras",
+      "page_id": "compras-index",
+      "routes": [
+        { "glob": "compras-*.jsx", "to": "prototipo-ui/prototipos/compras/" },
+        { "glob": "compras-*.css", "to": "prototipo-ui/prototipos/compras/" }
+      ]
+    },
+    "producao-oficina": {
+      "module": "OficinaAuto",
+      "page_id": "oficinaauto-producao-oficina",
+      "routes": [
+        { "glob": "oficina-page.*", "to": "prototipo-ui/prototipos/producao-oficina/" },
+        { "glob": "oficina-fila.*", "to": "prototipo-ui/prototipos/producao-oficina/" },
+        { "glob": "oficina-forms.jsx", "to": "prototipo-ui/prototipos/producao-oficina/" },
+        { "glob": "oficina-print.*", "to": "prototipo-ui/prototipos/producao-oficina/" },
+        { "glob": "oficina-norte.*", "to": "prototipo-ui/prototipos/producao-oficina/" }
+      ]
+    },
+    "oficina-os": {
+      "module": "OficinaAuto",
+      "page_id": "oficinaauto-serviceorders",
+      "routes": [
+        { "glob": "oficina-os-page.*", "to": "prototipo-ui/prototipos/oficina-os/" }
+      ]
+    },
+    "comunicacao-visual": {
+      "module": "ComunicacaoVisual",
+      "page_id": "comunicacao-visual-index",
+      "_nota": "aspiracional — OS/Orçamento/Produção da gráfica ainda não têm Page Inertia (schema órfão por BRIEFING). os/orc/producao agregados aqui pois compartilham OS_DATA/ORC_DATA.",
+      "routes": [
+        { "glob": "os-page.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
+        { "glob": "orc-page.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
+        { "glob": "producao-page.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
+        { "glob": "data-os.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
+        { "glob": "data-orc-prod.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" }
+      ]
+    },
+    "norte": {
+      "module": "_Showcase",
+      "page_id": "norte-northstar-demo",
+      "_nota": "app-demo North-Star do ERP inteiro (shell+board+7 cenas) — NÃO é tela de módulo; transversal/vision.",
+      "routes": [
+        { "glob": "norte-*.jsx", "to": "prototipo-ui/prototipos/norte/" },
+        { "glob": "norte-*.css", "to": "prototipo-ui/prototipos/norte/" }
+      ]
+    },
+    "financeiro": {
+      "module": "Financeiro",
+      "page_id": "financeiro-index",
+      "routes": [
+        { "glob": "financeiro-*.jsx", "to": "prototipo-ui/prototipos/financeiro/" },
+        { "glob": "financeiro-*.css", "to": "prototipo-ui/prototipos/financeiro/" },
+        { "glob": "financeiro.css", "to": "prototipo-ui/prototipos/financeiro/" },
+        { "glob": "fin-*.css", "to": "prototipo-ui/prototipos/financeiro/" }
+      ]
+    },
+    "cobranca": {
+      "module": "RecurringBilling",
+      "page_id": "recurring-index",
+      "routes": [
+        { "glob": "cobranca-*.jsx", "to": "prototipo-ui/prototipos/cobranca/" },
+        { "glob": "cobranca-*.css", "to": "prototipo-ui/prototipos/cobranca/" }
+      ]
+    },
+    "boletos": {
+      "module": "Financeiro",
+      "page_id": "financeiro-boletos",
+      "routes": [
+        { "glob": "boletos-*.jsx", "to": "prototipo-ui/prototipos/boletos/" },
+        { "glob": "boletos-*.css", "to": "prototipo-ui/prototipos/boletos/" }
+      ]
+    },
+    "kb": {
+      "module": "KB",
+      "page_id": "kb-index",
+      "routes": [
+        { "glob": "kb-*.jsx", "to": "prototipo-ui/prototipos/kb/" },
+        { "glob": "kb-*.css", "to": "prototipo-ui/prototipos/kb/" }
+      ]
+    },
+    "payment-gateway": {
+      "module": "PaymentGateway",
+      "page_id": "payment-gateway-index",
+      "routes": [
+        { "glob": "pg-*.jsx", "to": "prototipo-ui/prototipos/payment-gateway/" },
+        { "glob": "pg-*.css", "to": "prototipo-ui/prototipos/payment-gateway/" }
+      ]
+    },
+    "cockpit": {
+      "module": "Jana",
+      "page_id": "jana-cockpit",
+      "routes": [
+        { "glob": "chat-*.jsx", "to": "prototipo-ui/prototipos/cockpit/" },
+        { "glob": "chat-*.css", "to": "prototipo-ui/prototipos/cockpit/" }
+      ]
+    },
+    "forja": {
+      "module": "Forja",
+      "page_id": "forja-index",
+      "_nota": "aspiracional — Forja é o módulo de desenvolvimento/governança (sem Page Inertia consolidada).",
+      "routes": [
+        { "glob": "forja-*.jsx", "to": "prototipo-ui/prototipos/forja/" },
+        { "glob": "forja-*.css", "to": "prototipo-ui/prototipos/forja/" }
+      ]
+    },
+    "equipe": {
+      "module": "Ponto",
+      "page_id": "ponto-equipe",
+      "routes": [
+        { "glob": "equipe-*.jsx", "to": "prototipo-ui/prototipos/equipe/" },
+        { "glob": "equipe-*.css", "to": "prototipo-ui/prototipos/equipe/" },
+        { "glob": "data-people.jsx", "to": "prototipo-ui/prototipos/equipe/" }
+      ]
+    },
+    "produto": {
+      "module": "ProductCatalogue",
+      "page_id": "produto-index",
+      "routes": [
+        { "glob": "produtos-*.jsx", "to": "prototipo-ui/prototipos/produto/" },
+        { "glob": "produtos-*.css", "to": "prototipo-ui/prototipos/produto/" },
+        { "glob": "prod-*.css", "to": "prototipo-ui/prototipos/produto/" }
+      ]
+    },
+    "_handoff-docs": {
+      "module": "_Handoff",
+      "page_id": "handoff-docs",
+      "_nota": "NÃO é tela: documentos/chats de processo do Cowork (.html + .md: Adversário/Tribunal/Auditoria/Estado-da-Arte). Preservados num lugar só; agregados (não listados como desconhecidos) no ingest de telas.",
+      "routes": [
+        { "glob": "*.html", "to": "prototipo-ui/cowork-handoff/docs/" },
+        { "glob": "*.md", "to": "prototipo-ui/cowork-handoff/docs/" }
+      ]
+    },
+    "_handoff-assets": {
+      "module": "_Handoff",
+      "page_id": "handoff-assets",
+      "_nota": "NÃO é tela: screenshots e binários do handoff (~530 .png). Preservados pra evidência visual.",
+      "routes": [
+        { "glob": "*.png", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.jpg", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.jpeg", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.gif", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.svg", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.webp", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.ico", "to": "prototipo-ui/cowork-handoff/assets/" },
+        { "glob": "*.thumbnail", "to": "prototipo-ui/cowork-handoff/assets/" }
+      ]
+    },
+    "_handoff-telas-tsx": {
+      "module": "_Handoff",
+      "page_id": "handoff-telas-tsx",
+      "_nota": "PENDENTE: 2ª geração de telas (.tsx em subpastas — financeiro novo: Unificado/, Dre/, Fluxo/, ContasPagar/, Advisor/…). O roteador casa por BASENAME, não por subpasta, então estas ainda não viram telas próprias. Agregadas aqui pra não virar ruído; mapear por path é trabalho futuro (estender route() ou globs por subpasta).",
+      "routes": [
+        { "glob": "*.tsx", "to": "prototipo-ui/cowork-handoff/telas-tsx-a-mapear/" }
+      ]
+    },
+    "_handoff-shared": {
+      "module": "_Handoff",
+      "page_id": "handoff-shared",
+      "_nota": "NÃO é tela: shell/shared/dev do projeto Cowork (app, data, sidebar, icons, painéis de dev) + CSS globais + scripts/config (.json/.js/.mjs/.ts/.php/.sql/.py/.sh) + jsx avulsos sem prefixo de tela.",
+      "routes": [
+        { "glob": "app.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "data.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "sidebar.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "icons.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "fsm-stepper.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "viewers.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "linked-apps.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "tasks.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "chat.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "laravel-panel.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "tweaks-panel.jsx", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "mockup-pages.*", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "styles.css", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "mobile-*.css", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "web-*.css", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.json", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.js", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.mjs", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.ts", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.php", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.sql", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.py", "to": "prototipo-ui/cowork-handoff/shared/" },
+        { "glob": "*.sh", "to": "prototipo-ui/cowork-handoff/shared/" }
+      ]
+    }
+  }
+}

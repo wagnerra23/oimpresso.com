@@ -249,7 +249,7 @@ class AdminSidebarMenu
             if (in_array('purchases', $enabled_modules) && (auth()->user()->can('purchase.view') || auth()->user()->can('purchase.create') || auth()->user()->can('purchase.update'))) {
                 $menu->dropdown(
                     __('purchase.purchases'),
-                    function ($sub) use ($common_settings) {
+                    function ($sub) use ($common_settings, $enabled_modules) {
                         if (!empty($common_settings['enable_purchase_requisition']) && (auth()->user()->can('purchase_requisition.view_all') || auth()->user()->can('purchase_requisition.view_own'))) {
                             $sub->url(
                                 action([\App\Http\Controllers\PurchaseRequisitionController::class, 'index']),
@@ -265,18 +265,24 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'purchase-order']
                             );
                         }
-                        // Wagner 2026-05-22 P3: entry "List Purchase" → /purchases REMOVIDA.
-                        // Duplicava com Modules/Compras canon (entry "Compras" → /compras).
-                        // Rota /purchases continua funcionando (tela Blade legacy + sub-rotas
-                        // create/edit/return/etc preservadas abaixo). Apenas o item no menu
-                        // some pra evitar 2 "Compras" no sidebar.
-                        // if (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase')) {
-                        //     $sub->url(
-                        //         action([\App\Http\Controllers\PurchaseController::class, 'index']),
-                        //         __('purchase.list_purchase'),
-                        //         ['icon' => '', 'active' => request()->segment(1) == 'purchases' && request()->segment(2) == null]
-                        //     );
-                        // }
+                        // "Lista de compras" → /purchases (tela Blade legacy).
+                        // Wagner 2026-05-22 removeu este item achando que a entry canônica
+                        // "Compras" → /compras (Modules/Compras DataController) já substituía —
+                        // mas essa entry só aparece com `compras_module` ON. Pros businesses com
+                        // a flag OFF (ex: ROTA LIVRE biz=4) isso apagou o ÚNICO caminho de menu
+                        // pra consulta de compras (bug reportado 2026-06-17).
+                        // Fix: re-exibe GATED — some só quando o módulo canônico está ON (mesmo
+                        // gate `in_array(..., $enabled_modules)` usado nos outros dropdowns deste
+                        // arquivo, espelha isModuleEnabled('compras_module') do DataController),
+                        // então nunca dá 2 "Compras" no sidebar.
+                        // R-COM-301 (SPEC Compras): flag controla VISIBILIDADE, não bloqueia /purchases.
+                        if (! in_array('compras_module', $enabled_modules) && (auth()->user()->can('purchase.view') || auth()->user()->can('view_own_purchase'))) {
+                            $sub->url(
+                                action([\App\Http\Controllers\PurchaseController::class, 'index']),
+                                __('purchase.list_purchase'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'purchases' && request()->segment(2) == null]
+                            );
+                        }
                         if (auth()->user()->can('purchase.create')) {
                             $sub->url(
                                 action([\App\Http\Controllers\PurchaseController::class, 'create']),

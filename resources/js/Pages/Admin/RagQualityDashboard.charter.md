@@ -3,9 +3,9 @@ page: /admin/rag-quality
 component: resources/js/Pages/Admin/RagQualityDashboard.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-31
+last_validated: "2026-05-31"
 parent_module: Admin
-related_adrs: [0160, 0122, 0094, 0093, 0058, 0035]
+related_adrs: [160, 122, 94, 93, 58, 35]
 tier: A
 charter_version: 1
 ---

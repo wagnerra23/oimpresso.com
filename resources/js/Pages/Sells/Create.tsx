@@ -35,7 +35,7 @@ import CustomerSearchAutocomplete, {
 } from './_components/CustomerSearchAutocomplete';
 import QuickAddVehicleSheet from './_components/QuickAddVehicleSheet';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
-import NumericInputPtBR from './_components/NumericInputPtBR';
+import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
 import {
   Select,
@@ -964,7 +964,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   }, []);
 
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)] flex flex-col">
+    <div className="flex-1 bg-muted/30 flex flex-col">
       {/* Header sticky no topo + abas seção (pattern Office/OS canon) */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-8 pt-6 pb-3 max-w-7xl">
@@ -987,8 +987,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
             {[
               { id: 'sec-dados', label: 'Dados', icon: FileText, count: undefined as number | undefined },
               { id: 'sec-produtos', label: 'Produtos', icon: Package, count: itensCount > 0 ? itensCount : undefined },
-              { id: 'sec-pagamento', label: 'Pagamento', icon: CreditCard, count: undefined },
+              // Desconto (card Resumo) antes do Pagamento — aplica desconto e vê o total
+              // correto ANTES de lançar a parte financeira (Wagner 2026-06-18).
               { id: 'sec-resumo', label: 'Resumo', icon: Receipt, count: undefined },
+              { id: 'sec-pagamento', label: 'Pagamento', icon: CreditCard, count: undefined },
               { id: 'sec-mais-opcoes', label: 'Mais opções', icon: Settings2, count: undefined },
             ].map((tab) => {
               const isActive = activeSection === tab.id;
@@ -1395,7 +1397,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                 </tbody>
                 <tfoot className="bg-muted/30 border-t border-border">
                   <tr className="text-sm">
-                    <td colSpan={4} className="px-3 py-2 text-right font-medium text-foreground">
+                    {/* Total de itens no próprio card — evita rolar até o KPI do topo (Wagner 2026-06-18). */}
+                    <td className="px-3 py-2 text-muted-foreground tabular-nums">
+                      {itensCount} {itensCount === 1 ? 'item' : 'itens'}
+                    </td>
+                    <td colSpan={3} className="px-3 py-2 text-right font-medium text-foreground">
                       Subtotal
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums font-semibold text-foreground">
@@ -1405,66 +1411,6 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   </tr>
                 </tfoot>
               </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Bloco pagamentos — split de pagamento + indicador saldo (US-SELL-006) */}
-      <Card id="sec-pagamento" className="shadow-sm bg-background border-border scroll-mt-32">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Pagamento</CardTitle>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddPayment}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Adicionar pagamento
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {data.payments.map((p, idx) => (
-            <PaymentRow
-              key={idx}
-              payment={p}
-              index={idx}
-              paymentTypes={props.paymentTypes}
-              accounts={props.accounts}
-              defaultDatetime={props.defaultDatetime}
-              onChange={handlePaymentChange}
-              onRemove={handleRemovePayment}
-              removable={data.payments.length > 1}
-            />
-          ))}
-
-          {/* Indicador saldo de pagamento */}
-          {totalGeral > 0 && (
-            <div
-              className={
-                'rounded-md border p-3 text-sm flex items-center justify-between ' +
-                (pagamentoStatus === 'falta'
-                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                  : pagamentoStatus === 'troco'
-                    ? 'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300'
-                    : 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300')
-              }
-            >
-              <div>
-                <div className="font-medium">
-                  {pagamentoStatus === 'exato' && 'Total pago confere com a venda'}
-                  {pagamentoStatus === 'falta' &&
-                    `Falta ${formatBRL(Math.abs(saldoPagamento))} pra fechar`}
-                  {pagamentoStatus === 'troco' &&
-                    `Troco de ${formatBRL(saldoPagamento)}`}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Pago {formatBRL(totalPago)} · Total venda {formatBRL(totalGeral)}
-                </div>
-              </div>
             </div>
           )}
         </CardContent>
@@ -1606,6 +1552,66 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               <span className="tabular-nums">{formatBRL(totalGeral)}</span>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Bloco pagamentos — split de pagamento + indicador saldo (US-SELL-006) */}
+      <Card id="sec-pagamento" className="shadow-sm bg-background border-border scroll-mt-32">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Pagamento</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddPayment}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Adicionar pagamento
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {data.payments.map((p, idx) => (
+            <PaymentRow
+              key={idx}
+              payment={p}
+              index={idx}
+              paymentTypes={props.paymentTypes}
+              accounts={props.accounts}
+              defaultDatetime={props.defaultDatetime}
+              onChange={handlePaymentChange}
+              onRemove={handleRemovePayment}
+              removable={data.payments.length > 1}
+            />
+          ))}
+
+          {/* Indicador saldo de pagamento */}
+          {totalGeral > 0 && (
+            <div
+              className={
+                'rounded-md border p-3 text-sm flex items-center justify-between ' +
+                (pagamentoStatus === 'falta'
+                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                  : pagamentoStatus === 'troco'
+                    ? 'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300'
+                    : 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300')
+              }
+            >
+              <div>
+                <div className="font-medium">
+                  {pagamentoStatus === 'exato' && 'Total pago confere com a venda'}
+                  {pagamentoStatus === 'falta' &&
+                    `Falta ${formatBRL(Math.abs(saldoPagamento))} pra fechar`}
+                  {pagamentoStatus === 'troco' &&
+                    `Troco de ${formatBRL(saldoPagamento)}`}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Pago {formatBRL(totalPago)} · Total venda {formatBRL(totalGeral)}
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

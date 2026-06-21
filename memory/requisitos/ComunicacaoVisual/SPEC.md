@@ -1,13 +1,17 @@
 ---
 module: ComunicacaoVisual
-status: em_construcao (planejado)
+version: "1.0"
+last_updated: "2026-06-13"
+status: rascunho
 piloto: Gold confirmado vertical comvis (perfil 04-gold-comvis) — Vargas REMOVIDO (autopeças confirmado 2026-05-10 → Modules/OficinaAuto)
 piloto_previsao: 2026-Q3
 cnae_principal: "1813-0/01"
-related_adrs: [0121, 0143, 0094, 0093, 0035, 0119, 0117, 0136, 0105, 0011, 0024]
+related_adrs: [0121-oimpresso-modular-especializado-por-vertical, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0, 0035-stack-ai-canonica-wagner-2026-04-26, 0119-migration-factory-capacidade-institucional, 0117-multiplos-numeros-whatsapp-por-business, 0136-sells-grade-avancada-modo-toggle, 0105-cliente-como-sinal-guiar-sem-mandar, 0011-alinhamento-padrao-jana, 0024-instalacao-1-clique-modulos]
 last_review: 2026-05-12
 owner: [W]
 ---
+
+<!-- schema-allowlist: US sob "## 3. Capacidades core (User Stories)"; heading numerado-com-sufixo do projeto não casa o regex literal do gate estendido (## N. User stories), mas as US-COMVIS-NNN estão todas lá. Heading preservado pra não reestruturar o corpo. -->
 
 # Especificação funcional — Modules/ComunicacaoVisual
 
@@ -46,7 +50,7 @@ ERP vertical brasileiro pra gráfica rápida e comunicação visual (lona, facha
 
 ### 6 saudáveis OfficeImpresso candidatos a migrar (piloto)
 
-Vargas, Extreme, Gold, Zoom, Fixar, Mhundo, Produart — todos em produção Delphi legacy WR Sistemas com R$ [redacted Tier 0]k–R$ [redacted Tier 0]M GMV/ano. Migration Factory ([ADR 0119](../../decisions/0119-migration-factory.md)) move cada um.
+Vargas, Extreme, Gold, Zoom, Fixar, Mhundo, Produart — todos em produção Delphi legacy WR Sistemas com R$ [redacted Tier 0]k–R$ [redacted Tier 0]M GMV/ano. Migration Factory ([ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md)) move cada um.
 
 ## 3. Capacidades core (User Stories)
 
@@ -157,7 +161,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 - [ ] Relatório export Excel/PDF
 - [ ] Atende **dor #4 do top 10** (relatório margem por OS)
 
-**Concorrência:** **Calcgraf ✅** (único com pós-cálculo formal). Mubisys/Zênite/Visua ❌. **oimpresso pode entregar via Modules/Financeiro + Jana 3 ângulos** ([ADR 0052](../../decisions/0052-faturamento-3-angulos.md)).
+**Concorrência:** **Calcgraf ✅** (único com pós-cálculo formal). Mubisys/Zênite/Visua ❌. **oimpresso pode entregar via Modules/Financeiro + Jana 3 ângulos** ([ADR 0052](../../decisions/0052-contextonegocio-expor-multiplos-angulos.md)).
 
 ---
 
@@ -333,7 +337,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **DoD:**
 - [ ] Contexto vertical comvis: faturamento por categoria material, margem por cliente, OS atrasadas no PCP
-- [ ] 3 ângulos faturamento (recebido/faturado/orçado) — [ADR 0052](../../decisions/0052-faturamento-3-angulos.md)
+- [ ] 3 ângulos faturamento (recebido/faturado/orçado) — [ADR 0052](../../decisions/0052-contextonegocio-expor-multiplos-angulos.md)
 - [ ] Resposta com query SQL auditável anexa
 - [ ] Atende **dor #1 wedge** do research (transparência radical + IA)
 
@@ -382,7 +386,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 ### US-COMVIS-017 · Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 
 > **Área:** Onboarding
-> **Reusa:** [Migration Factory ADR 0119](../../decisions/0119-migration-factory.md)
+> **Reusa:** [Migration Factory ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md)
 
 **Como** dono migrando do OfficeImpresso Delphi
 **Quero** trazer clientes (CPF/CNPJ + endereço + histórico OS) + produtos + saldos abertos AR/AP em 1 clique
@@ -543,7 +547,7 @@ Modules/ComunicacaoVisual/   ← a criar
 └── composer.json
 ```
 
-Frontend Inertia em `resources/js/Pages/ComunicacaoVisual/` seguindo Cockpit Pattern V2 ([ADR 0110](../../decisions/0110-cockpit-pattern-v2.md)) com `.charter.md` ao lado de cada Page (S4+).
+Frontend Inertia em `resources/js/Pages/ComunicacaoVisual/` seguindo Cockpit Pattern V2 ([ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)) com `.charter.md` ao lado de cada Page (S4+).
 
 ### 6.2 Extensions UltimatePOS
 
@@ -618,7 +622,7 @@ Todos com `business_id` indexado + FK + global scope (Tier 0 IRREVOGÁVEL).
 
 ## 8. Estratégia de migração — 6 saudáveis OfficeImpresso
 
-Base [Migration Factory ADR 0119](../../decisions/0119-migration-factory.md). Receita por cliente:
+Base [Migration Factory ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md). Receita por cliente:
 
 | Etapa | Owner | Esforço |
 |---|---|---|
@@ -671,7 +675,7 @@ Quando snapshot financeiro de cada um estiver pronto, priorizar quem tem:
 11. ❌ **Cálculo m² em frontend** sem servidor validar — rule R-COMVIS-001: server-side authoritative pra evitar manipulação preço.
 12. ❌ **App mobile nativo M1-M6** — adiável 12m se Inertia/React mobile-first (Tailwind 4 responsive) + PWA cobrir o caso de uso "vendedor in-loco".
 13. ❌ **Onboarding sem wizard Jana** — gráficas pequenas não pagam consultor implantação. Jana detecta CNAE 1813 e pré-popula. Caso contrário, churn alto.
-14. ❌ **Esquecer `php artisan module:install` rotas obrigatórias** — RUNBOOK-criar-modulo §3 rotas Install (status, install, uninstall) senão botão fica sem ação ([ADR 0024](../../decisions/0024-module-install-routes-canonical.md)).
+14. ❌ **Esquecer `php artisan module:install` rotas obrigatórias** — RUNBOOK-criar-modulo §3 rotas Install (status, install, uninstall) senão botão fica sem ação ([ADR 0024](../../decisions/0024-instalacao-1-clique-modulos.md)).
 15. ❌ **Migrar 6 pilotos em paralelo** — escala humana 5 pessoas. Migration Factory rolling: 1 piloto por mês, depois 2/mês após M6 (curva aprendizado).
 
 ---
@@ -1010,7 +1014,7 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 - [ ] Implementa interface `NfseDriver` em `Modules/NfeBrasil/Services/NfseDrivers/NfseDriverFloripa.php`
 - [ ] SOAP request ABRASF v2.04 → endpoint sandbox Floripa
 - [ ] Retry exponencial 24h se SEFAZ/prefeitura down
-- [ ] Cert A1 lido de `Modules/MemCofre`
+- [ ] Cert A1 lido de `Modules/SRS`
 - [ ] Pest: mock SOAP success path + 3 error paths (cert vencido, payload inválido, rejeitada)
 - [ ] Smoke biz=gold real (se SC) ou biz=99 sandbox
 

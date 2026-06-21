@@ -1,0 +1,44 @@
+name: Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)
+
+# O hero `.fin-stat-hero` do Financeiro virou de escuro ("caixa preta" oklch(0.22 0.01 80))
+# pra superfície CLARA na Onda 28 (handoff Cowork CONSERTAR-ELO, aprovado Wagner). Este gate
+# trava a regressão: se o hero voltar a ser escuro — em fin-cowork.css (telas raw markup) ou
+# em FinStatStrip.tsx (componente) — o controle-negativo estático falha e bloqueia o merge.
+#
+# Path-scoped (faz npm ci): roda só quando o hero, o spec ou este workflow mudam.
+# Comando manual local: npm run test:fin-hero
+#
+# Refs: handoff Passo 4 ("TRAVAR com teste de regressão") · ADR 0258 (gate só vale se o
+# controle-negativo roda no CI) · ADR 0281 (.dark bridge).
+
+on:
+  pull_request:
+    paths:
+      - 'resources/css/fin-cowork.css'
+      - 'resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx'
+      - 'tests/finHeroLight.spec.ts'
+      - '.github/workflows/fin-hero-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/css/fin-cowork.css'
+      - 'resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx'
+      - 'tests/finHeroLight.spec.ts'
+
+concurrency:
+  group: fin-hero-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fin-hero:
+    name: Fin hero claro · não pode voltar a ser caixa preta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: Controle-negativo do hero claro (estático · vitest)
+        run: npm run test:fin-hero

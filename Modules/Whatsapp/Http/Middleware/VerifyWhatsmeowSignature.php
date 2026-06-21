@@ -33,8 +33,16 @@ use Symfony\Component\HttpFoundation\Response;
  * autenticação acontece NESTE middleware via HMAC + token. Após pass, request
  * attributes carregam `whatsapp.config` e `whatsapp.channel` pro controller.
  *
+ * **Fail-closed (2026-06-14):** sem assinatura HMAC válida NEM Token válido →
+ * 401. O antigo fallback de IP whitelist (`177.74.67.30` + `10.0.0.0/8`) foi
+ * REMOVIDO: `$request->ip()` reflete `X-Forwarded-For` sob `TrustProxies = '*'`
+ * (app/Http/Middleware/TrustProxies.php), logo qualquer cliente da Internet
+ * burlava a assinatura só omitindo o header e forjando o IP. IP allowlist do
+ * daemon agora vive no edge (firewall Hostinger / Traefik), não em PHP.
+ *
  * @see memory/decisions/0204-whatsmeow-driver-substituto-baileys.md
  * @see Modules/Whatsapp/Http/Controllers/Api/WhatsmeowWebhookController.php
+ * @see Modules/Whatsapp/daemon-go/docker-compose.yml (WUZAPI_GLOBAL_HMAC_KEY)
  * @see https://github.com/asternic/wuzapi (HMAC global)
  */
 class VerifyWhatsmeowSignature
@@ -66,13 +74,46 @@ class VerifyWhatsmeowSignature
 
         $businessId = (int) $businessRow->id;
 
-        // ─── Verificação HMAC global (defesa primária) ──────────────────
-        // Daemon assina cada POST com HMAC-SHA256(body, WUZAPI_GLOBAL_HMAC_KEY).
-        // Laravel valida com mesma chave (env WHATSMEOW_HMAC_SECRET).
+        // ─── Defesa por segredo na URL (hotfix incidente 2026-06-16) ────
+        // O daemon WuzAPI (asternic/wuzapi) NÃO assina HMAC nem manda header
+        // de auth — a única coisa configurável nele é a URL do webhook. Um
+        // segredo compartilhado no query string `?wh=` trafega apenas via TLS
+        // daemon→app e NÃO é spoofável como o antigo IP-whitelist removido em
+        // #2726 (não depende de `X-Forwarded-For` sob `TrustProxies = '*'`).
+        // Restaura o recebimento preservando Tier 0 (ADR 0093). Inerte quando
+        // `WHATSMEOW_WEBHOOK_URL_SECRET` não está setado (fail-safe, timing-safe,
+        // sem downgrade silencioso). Substituível por HMAC quando/se o daemon
+        // ganhar suporte a assinatura.
+        $urlSecret = (string) config('whatsapp.whatsmeow.webhook_url_secret', '');
+        $providedUrlSecret = is_string($wh = $request->query('wh')) ? $wh : '';
+        if ($urlSecret !== '' && hash_equals($urlSecret, $providedUrlSecret)) {
+            $channel = $this->resolveChannel($request, $businessId);
+            $request->attributes->set('whatsapp.business_id', $businessId);
+            $request->attributes->set('whatsapp.channel', $channel);
+
+            return $next($request);
+        }
+
+        // ─── Defesa primária: HMAC global SHA-256 (timing-safe) ─────────
+        // Daemon assina cada POST com HMAC-SHA256(body, WUZAPI_GLOBAL_HMAC_KEY)
+        // — ver daemon-go/docker-compose.yml (WUZAPI_GLOBAL_HMAC_KEY_FILE).
+        // Laravel valida com a mesma chave (env WHATSMEOW_HMAC_SECRET).
         $hmacSecret = (string) config('whatsapp.whatsmeow.hmac_secret', '');
         $providedSignature = (string) $request->header('x-hmac-signature', '');
 
-        if ($hmacSecret !== '' && $providedSignature !== '') {
+        if ($providedSignature !== '') {
+            // Fail-closed: assinatura presente mas secret não configurado NÃO
+            // pode fazer downgrade silencioso pra auth mais fraca — recusa alto
+            // e claro (misconfig vira 401 + log, não bypass).
+            if ($hmacSecret === '') {
+                \Log::warning('[whatsapp.webhook.whatsmeow] x-hmac-signature recebida mas WHATSMEOW_HMAC_SECRET ausente', [
+                    'business_id' => $businessId,
+                    'business_uuid' => $businessUuid,
+                    'ip' => $request->ip(),
+                ]);
+                return response()->json(['error' => 'hmac_not_configured'], 401);
+            }
+
             // Daemon envia formato "sha256=<hex>" ou puro "<hex>" — aceita ambos
             $expectedHash = hash_hmac('sha256', (string) $request->getContent(), $hmacSecret);
             $providedHash = str_starts_with($providedSignature, 'sha256=')
@@ -96,40 +137,25 @@ class VerifyWhatsmeowSignature
             return $next($request);
         }
 
-        // ─── Fallback 1: Token header (sem HMAC global) ─────────────────
-        // Cenário: HMAC global não setado no daemon — valida via user_token
-        // matching algum channel ativo do business. Timing-safe compare.
+        // ─── Defesa secundária: Token header (segredo per-channel) ──────
+        // Daemon configurado pra enviar o user_token no header `Token` em vez
+        // de assinar via HMAC global. Match timing-safe contra
+        // channels.config_json.whatsmeow_user_token — segredo real, não IP.
         $providedToken = (string) $request->header('Token', '');
 
-        // ─── Fallback 2: IP whitelist CT 100 (WuzAPI outbound) ──────────
-        // Quando WuzAPI manda webhook outbound sem HMAC nem Token header
-        // (config padrão atual em /admin/users HasHmac=false), aceita request
-        // se vem do IP whitelist do CT 100 (Tier 1 defesa: rede privada).
-        // Sessão 2026-05-27: business_uuid path já valida tenant; channel
-        // resolvido por payload Username (resolveChannel) ou fallback default
-        // ativo. ADR 0205 Reconciler completo vai substituir esse fallback.
-        $allowedDaemonIps = (array) config('whatsapp.whatsmeow.allowed_daemon_ips', [
-            '177.74.67.30', // CT 100 público (Traefik egress)
-            '10.0.0.0/8',   // Tailscale interno
-        ]);
-        $remoteIp = (string) $request->ip();
-        $ipAllowed = $this->ipMatchesAny($remoteIp, $allowedDaemonIps);
-
-        if ($providedToken === '' && ! $ipAllowed) {
-            \Log::warning('[whatsapp.webhook.whatsmeow] sem HMAC nem Token nem IP whitelist', [
+        if ($providedToken === '') {
+            // Sem HMAC nem Token = recusa (fail-closed).
+            //
+            // O fallback de IP whitelist (177.74.67.30 + 10.0.0.0/8) foi
+            // REMOVIDO 2026-06-14: era spoofável via X-Forwarded-For sob
+            // TrustProxies '*' — qualquer cliente entrava só omitindo a
+            // assinatura. IP allowlist do daemon vive no edge, não em PHP.
+            \Log::warning('[whatsapp.webhook.whatsmeow] sem HMAC nem Token — recusado', [
                 'business_id' => $businessId,
                 'business_uuid' => $businessUuid,
-                'ip' => $remoteIp,
+                'ip' => $request->ip(),
             ]);
             return response()->json(['error' => 'invalid_signature'], 401);
-        }
-
-        if ($providedToken === '' && $ipAllowed) {
-            // IP whitelist OK — resolve channel via payload Username
-            $channel = $this->resolveChannel($request, $businessId);
-            $request->attributes->set('whatsapp.business_id', $businessId);
-            $request->attributes->set('whatsapp.channel', $channel);
-            return $next($request);
         }
 
         // SUPERADMIN: busca channels do business sem global scope (pré-auth)
@@ -157,31 +183,6 @@ class VerifyWhatsmeowSignature
         $request->attributes->set('whatsapp.channel', $channel);
 
         return $next($request);
-    }
-
-    /**
-     * Match IP contra lista de patterns (CIDR ou exato).
-     * Suporta strings simples ("177.74.67.30") + CIDR ("10.0.0.0/8").
-     */
-    private function ipMatchesAny(string $ip, array $patterns): bool
-    {
-        foreach ($patterns as $pattern) {
-            if (str_contains($pattern, '/')) {
-                [$subnet, $bits] = explode('/', $pattern, 2);
-                $ipBin = ip2long($ip);
-                $subnetBin = ip2long($subnet);
-                if ($ipBin === false || $subnetBin === false) {
-                    continue;
-                }
-                $mask = -1 << (32 - (int) $bits);
-                if (($ipBin & $mask) === ($subnetBin & $mask)) {
-                    return true;
-                }
-            } elseif ($ip === $pattern) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

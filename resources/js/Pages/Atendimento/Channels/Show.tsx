@@ -329,7 +329,7 @@ function ConfigTab({ channel }: { channel: ChannelUi }) {
       </dl>
 
       {channel.last_health_message && (
-        <div className="text-xs text-amber-700 dark:text-amber-400 flex items-start gap-1 border-t pt-2">
+        <div className="text-xs text-warning-fg flex items-start gap-1 border-t pt-2">
           <AlertTriangle size={12} className="mt-0.5 shrink-0" aria-hidden />
           {channel.last_health_message}
         </div>
@@ -386,7 +386,7 @@ function ConfigTab({ channel }: { channel: ChannelUi }) {
                 </>
               )}
               {!qrLoading && qrError && (
-                <div className="text-sm text-red-700 dark:text-red-400 text-center px-4">
+                <div className="text-sm text-destructive-fg text-center px-4">
                   <AlertTriangle size={20} className="inline mr-2" aria-hidden />
                   {qrError}
                 </div>

@@ -6,24 +6,24 @@ namespace App\Http\Controllers;
 
 use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
-use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
-use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Services\ServiceOrderPipelineStarter;
+use Modules\OficinaAuto\Services\StageGateEvaluator;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Wire-up UI FSM ServiceOrder (Wave 7-A — espelha SaleFsmActionController).
  *
  * Endpoints pra UI listar/executar transições FSM duma Ordem de Serviço
- * (locação caçamba OU manutenção caçamba — ADR 0137 + ADR 0143).
+ * (reparo/mecânica — ADR 0137 + ADR 0143 + ADR 0265).
  *
  * Rotas (Modules/OficinaAuto/Routes/web.php):
  *   GET  /oficina-auto/service-orders/{order}/fsm/actions
@@ -31,35 +31,25 @@ use Symfony\Component\HttpFoundation\Response;
  *   POST /oficina-auto/service-orders/{order}/fsm/start-pipeline
  *
  * Multi-tenant Tier 0 (ADR 0093): ServiceOrder global scope filtra business_id.
- * RBAC: ExecuteStageActionService valida internamente (Spatie hasAnyRole).
+ * RBAC: ExecuteStageActionService valida internamente (permission module-level
+ * OU Spatie hasAnyRole — ADR 0265 fio usável, roles são camada adicional).
  *
- * Process key resolution: $serviceOrder->order_type
- *   - 'locacao'    → 'cacamba_locacao'    (4 stages, 4 actions)
- *   - 'manutencao' → 'cacamba_manutencao' (4 stages, 3 actions)
+ * Process key resolution: $serviceOrder->order_type (ver
+ * ServiceOrderPipelineStarter::ORDER_TYPE_TO_PROCESS — mapa único compartilhado
+ * com o auto-start do store()). 'locacao' ERRADICADO (ADR 0265): OS nova nunca
+ * entra no pipeline de locação; órfãs do legado re-apontadas pela migration
+ * 2026_06_10_000001.
  *
  * Defensivo: column `current_stage_id` em service_orders pode ainda não existir
  * (migration FSM dedicated Wave 5/6 owns). Trata como null → in_pipeline=false.
  *
  * @see app/Http/Controllers/SaleFsmActionController.php (pattern canônico)
  * @see Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php (processos cadastrados)
+ * @see Modules/OficinaAuto/Services/ServiceOrderPipelineStarter.php (start compartilhado)
  * @see memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md
  */
 class ServiceOrderFsmActionController extends Controller
 {
-    /**
-     * Map order_type → process_key cadastrado em OficinaAutoFsmSeeder.
-     *
-     * @var array<string, string>
-     */
-    private const ORDER_TYPE_TO_PROCESS = [
-        'locacao'    => 'cacamba_locacao',
-        'manutencao' => 'cacamba_manutencao',
-        // Fluxo REAL da oficina de mecânica pesada do carro (Martinho) — confirmado [W]
-        // 2026-06-02. OS de carro NOVAS usam order_type='mecanica' → 6 etapas
-        // (recepcao→…→pronto_retirada). Não remapeia OS 'manutencao' legadas
-        // (preservam cacamba_manutencao, sem orfanar current_stage_id).
-        'mecanica'   => 'oficina_mecanica_os',
-    ];
 
     /**
      * Lista actions disponíveis no stage atual da OS.
@@ -97,8 +87,13 @@ class ServiceOrderFsmActionController extends Controller
 
         $user = auth()->user();
         $policy = app(StageActionPolicy::class);
+        $gateEvaluator = app(StageGateEvaluator::class);
 
-        $payload = $actions->map(function (SaleStageAction $a) use ($policy, $user, $order) {
+        $payload = $actions->map(function (SaleStageAction $a) use ($policy, $user, $order, $processKey, $gateEvaluator) {
+            // F3 OS-V2-5 — gate por action: a UI desabilita o botão de avançar + tooltip
+            // do que falta. O servidor enforça a MESMA regra em execute() (gate é servidor).
+            $gate = $gateEvaluator->evaluate($order, $processKey, $a->key);
+
             return [
                 'key' => $a->key,
                 'label' => $a->label,
@@ -111,6 +106,7 @@ class ServiceOrderFsmActionController extends Controller
                 'requires_confirmation' => (bool) $a->requires_confirmation,
                 'has_side_effect' => ! empty($a->side_effect_class),
                 'can_execute' => $policy->canExecute($user, $order, $a->key),
+                'gate' => $gate,
             ];
         });
 
@@ -152,7 +148,7 @@ class ServiceOrderFsmActionController extends Controller
     /**
      * Executa uma transição FSM na OS.
      */
-    public function execute(Request $request, ServiceOrder $order, ExecuteStageActionService $service): JsonResponse
+    public function execute(Request $request, ServiceOrder $order, ExecuteStageActionService $service, StageGateEvaluator $gateEvaluator): JsonResponse
     {
         if (! auth()->check()) {
             abort(Response::HTTP_UNAUTHORIZED);
@@ -167,14 +163,45 @@ class ServiceOrderFsmActionController extends Controller
         $validated = $request->validate([
             'action_key' => 'required|string|max:80',
             'payload'    => 'sometimes|array',
+            'override'   => 'sometimes|boolean',
         ]);
+
+        $payload = $validated['payload'] ?? [];
+
+        // F3 OS-V2-5 — gate de etapa ENFORÇADO no servidor (UI é espelho). Bloqueia 422
+        // quando há requisito bloqueante pendente, salvo override explícito de
+        // gerente/superadmin (registrado na trilha sale_stage_history).
+        $gate = $gateEvaluator->evaluate($order, $this->resolveProcessKey($order), $validated['action_key']);
+        if (! $gate['satisfied']) {
+            $user = auth()->user();
+            $canOverride = $user->can('superadmin')
+                || $user->hasRole(['gerente', 'gerente#' . $order->business_id]);
+            $override = (bool) ($validated['override'] ?? false);
+
+            if (! $override || ! $canOverride) {
+                return response()->json([
+                    'error'        => 'Checklist de etapa incompleto — ' . $gate['blocking_unmet'] . ' requisito(s) pendente(s).',
+                    'gate'         => $gate,
+                    'can_override' => $canOverride,
+                ], 422);
+            }
+
+            // Override autorizado — carimba na trilha (payload_snapshot) pra auditoria.
+            $payload['gate_override'] = true;
+            $payload['gate_unmet'] = collect($gate['requirements'])
+                ->where('blocking', true)
+                ->where('ok', false)
+                ->pluck('key')
+                ->values()
+                ->all();
+        }
 
         try {
             $history = $service->execute(
                 $order,
                 $validated['action_key'],
                 auth()->user(),
-                $validated['payload'] ?? [],
+                $payload,
             );
 
             return response()->json([
@@ -205,14 +232,11 @@ class ServiceOrderFsmActionController extends Controller
     /**
      * Inicia pipeline FSM numa OS legada (current_stage_id IS NULL).
      *
-     * Resolve o processo correto via order_type:
-     *  - locacao    → cacamba_locacao    (initial stage: disponivel)
-     *  - manutencao → cacamba_manutencao (initial stage: aberta)
-     *
-     * Cria entrada em sale_stage_history pra rastreabilidade ("pipeline iniciado").
-     * Permite override de process_key via request body (edge cases superadmin).
+     * OS NOVAS já nascem em pipeline (auto-start no ServiceOrderController::store —
+     * ADR 0265); este endpoint sobrevive pro backlog legado e edge cases (override
+     * de process_key superadmin). Lógica compartilhada em ServiceOrderPipelineStarter.
      */
-    public function startPipeline(Request $request, ServiceOrder $order): JsonResponse
+    public function startPipeline(Request $request, ServiceOrder $order, ServiceOrderPipelineStarter $starter): JsonResponse
     {
         if (! auth()->check()) {
             abort(Response::HTTP_UNAUTHORIZED);
@@ -228,70 +252,15 @@ class ServiceOrderFsmActionController extends Controller
             'process_key' => 'sometimes|string|max:80',
         ]);
 
-        $processKey = $validated['process_key'] ?? $this->resolveProcessKey($order);
-
-        if ($processKey === null) {
-            return response()->json([
-                'error' => "OS sem order_type definido — não foi possível inferir processo FSM. " .
-                    'Informe process_key explicitamente.',
-            ], 422);
+        try {
+            $stage = $starter->start($order, $validated['process_key'] ?? null, auth()->id());
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
-
-        if (($order->current_stage_id ?? null) !== null) {
-            return response()->json([
-                'error' => 'OS já está em pipeline FSM (stage_id=' . $order->current_stage_id . ')',
-            ], 422);
-        }
-
-        $businessId = (int) $order->business_id;
-
-        $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
-            ->where('business_id', $businessId)
-            ->where('key', $processKey)
-            ->where('active', true)
-            ->first();
-
-        if (! $process) {
-            return response()->json([
-                'error' => "Processo '{$processKey}' não cadastrado pro business {$businessId}. " .
-                    'Rode o seeder OficinaAutoFsmSeeder.',
-            ], 422);
-        }
-
-        $stage = $process->stages()->where('is_initial', true)->first();
-
-        if (! $stage) {
-            return response()->json([
-                'error' => "Processo '{$processKey}' não tem stage inicial cadastrado.",
-            ], 422);
-        }
-
-        // Marca flag autorizativa + atualiza current_stage_id
-        FsmAuthorizationFlag::mark($order::class, $order->getKey());
-        $order->current_stage_id = $stage->id;
-        $order->save();
-
-        // Audit log: registra entrada no pipeline
-        SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->create([
-            'business_id'      => $businessId,
-            'transaction_id'   => $order->id,  // subject_id polimórfico — usa ID da OS
-            'action_id'        => null,
-            'from_stage_id'    => null,
-            'to_stage_id'      => $stage->id,
-            'user_id'          => auth()->id(),
-            'payload_snapshot' => [
-                'pipeline_started' => true,
-                'subject_type'     => ServiceOrder::class,
-                'service_order_id' => $order->id,
-                'process_key'      => $processKey,
-                'order_type'       => $order->order_type ?? null,
-            ],
-            'executed_at' => now(),
-        ]);
 
         return response()->json([
             'ok'             => true,
-            'process_key'    => $processKey,
+            'process_key'    => ($validated['process_key'] ?? null) ?? $starter->resolveProcessKey($order),
             'new_stage_id'   => $stage->id,
             'stage' => [
                 'key'   => $stage->key,
@@ -328,7 +297,13 @@ class ServiceOrderFsmActionController extends Controller
         );
 
         $businessId = (int) $order->business_id;
-        $processKeys = array_values(self::ORDER_TYPE_TO_PROCESS);
+        // Inclui 'cacamba_locacao' SÓ pra leitura de histórico legado (OS antigas têm
+        // transições reais nesse processo — timeline não pode sumir). Roteamento de OS
+        // nova NUNCA cai nele (ORDER_TYPE_TO_PROCESS não tem 'locacao' — ADR 0265).
+        $processKeys = array_merge(
+            array_values(ServiceOrderPipelineStarter::ORDER_TYPE_TO_PROCESS),
+            ['cacamba_locacao'],
+        );
 
         $items = SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)
             ->where('business_id', $businessId)
@@ -392,11 +367,110 @@ class ServiceOrderFsmActionController extends Controller
     }
 
     /**
-     * Resolve process_key a partir do order_type da OS.
+     * F3 OS-V2-5 — Gate (checklist de etapa) da PRÓXIMA transição da OS.
+     *
+     * Resolve a action de avanço natural do stage atual (menor target sort_order > atual,
+     * incluindo o terminal positivo "entregue"; cancelamentos/garantia ficam de fora por
+     * terem sort_order maior que o avanço positivo) e devolve os requisitos do gate dela.
+     * O drawer (ServiceOrderStageGate) renderiza a checklist + CTA "Avançar" desta resposta.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): ServiceOrder via global scope + permission view.
+     */
+    public function gate(ServiceOrder $order, StageGateEvaluator $gateEvaluator): JsonResponse
+    {
+        if (! auth()->check()) {
+            abort(Response::HTTP_UNAUTHORIZED);
+        }
+
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('oficinaauto.service_order.view'),
+            Response::HTTP_FORBIDDEN
+        );
+
+        $processKey = $this->resolveProcessKey($order);
+        $currentStageId = $order->current_stage_id ?? null;
+
+        if ($processKey === null || $currentStageId === null) {
+            return response()->json([
+                'service_order_id' => $order->id,
+                'in_pipeline'      => false,
+                'current_stage'    => null,
+                'forward_action'   => null,
+                'requirements'     => [],
+                'blocking_unmet'   => 0,
+                'total'            => 0,
+                'done'             => 0,
+                'satisfied'        => true,
+                'can_override'     => false,
+            ]);
+        }
+
+        $currentStage = SaleProcessStage::find($currentStageId);
+
+        // Action de avanço natural = menor target.sort_order ENTRE os maiores que o atual.
+        $forward = SaleStageAction::with('targetStage')
+            ->where('stage_id', $currentStageId)
+            ->get()
+            ->filter(fn (SaleStageAction $a) => $a->targetStage
+                && (int) $a->targetStage->sort_order > (int) ($currentStage?->sort_order ?? -1))
+            ->sortBy(fn (SaleStageAction $a) => (int) $a->targetStage->sort_order)
+            ->first();
+
+        if ($forward === null) {
+            return response()->json([
+                'service_order_id' => $order->id,
+                'in_pipeline'      => true,
+                'current_stage'    => [
+                    'key'         => $currentStage?->key,
+                    'name'        => $currentStage?->name,
+                    'color'       => $currentStage?->color,
+                    'is_terminal' => (bool) $currentStage?->is_terminal,
+                ],
+                'forward_action'   => null,
+                'requirements'     => [],
+                'blocking_unmet'   => 0,
+                'total'            => 0,
+                'done'             => 0,
+                'satisfied'        => true,
+                'can_override'     => false,
+            ]);
+        }
+
+        $gate = $gateEvaluator->evaluate($order, $processKey, $forward->key);
+
+        $user = auth()->user();
+        $canOverride = $user->can('superadmin')
+            || $user->hasRole(['gerente', 'gerente#' . $order->business_id]);
+
+        return response()->json(array_merge($gate, [
+            'service_order_id' => $order->id,
+            'in_pipeline'      => true,
+            'current_stage'    => [
+                'key'         => $currentStage?->key,
+                'name'        => $currentStage?->name,
+                'color'       => $currentStage?->color,
+                'is_terminal' => (bool) $currentStage?->is_terminal,
+            ],
+            'forward_action'   => [
+                'key'          => $forward->key,
+                'label'        => $forward->label,
+                'is_critical'  => (bool) ($forward->is_critical ?? false),
+                'target_stage' => $forward->targetStage ? [
+                    'key'   => $forward->targetStage->key,
+                    'name'  => $forward->targetStage->name,
+                    'color' => $forward->targetStage->color,
+                ] : null,
+            ],
+            'can_override'     => $canOverride,
+        ]));
+    }
+
+    /**
+     * Resolve process_key a partir do order_type da OS (mapa único no starter).
      */
     private function resolveProcessKey(ServiceOrder $order): ?string
     {
-        $orderType = $order->order_type ?? null;
-        return self::ORDER_TYPE_TO_PROCESS[$orderType] ?? null;
+        return app(ServiceOrderPipelineStarter::class)->resolveProcessKey($order);
     }
 }

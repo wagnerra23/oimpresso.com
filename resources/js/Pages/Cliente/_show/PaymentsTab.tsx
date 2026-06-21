@@ -139,7 +139,7 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
 
   if (error) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 p-6 text-sm text-amber-800 dark:text-amber-200">
+      <div className="rounded-lg border border-warning/20 bg-warning-soft p-6 text-sm text-warning-fg">
         <p className="font-medium">Aguardando wiring</p>
         <p className="text-xs mt-1 opacity-80">{error}</p>
         <p className="text-xs mt-2">Parent (Show.tsx) deve passar <code className="font-mono">payments</code> via Inertia::defer.</p>
@@ -191,7 +191,7 @@ export default function PaymentsTab({ contactId, payments: paymentsProp, canView
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-right tabular-nums">
-                    <span className={p.is_return ? 'text-rose-700' : 'text-emerald-700'}>
+                    <span className={p.is_return ? 'text-destructive-fg' : 'text-success-fg'}>
                       {p.is_return ? '−' : ''}
                       {formatBRL(p.amount)}
                     </span>

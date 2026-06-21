@@ -1,6 +1,6 @@
 {
   "resources/css/cockpit.css": 0,
-  "resources/css/cowork-canon-financeiro-bundle.css": 326,
+  "resources/css/cowork-canon-financeiro-bundle.css": 215,
   "resources/css/cowork-compras-bundle.css": 0,
   "resources/css/cowork-fields.css": 0,
   "resources/css/cowork-payment-gateway-bundle.css": 15,
@@ -22,7 +22,7 @@
   "resources/css/sells-cowork-quotations.css": 14,
   "resources/css/sells-cowork-show.css": 29,
   "resources/css/sells-cowork-subscriptions.css": 15,
-  "resources/css/sells-cowork.css": 661,
+  "resources/css/sells-cowork.css": 337,
   "resources/css/sells-kb975-cheatsheet.css": 26,
   "resources/css/sells-kb975-emit-modals.css": 70,
   "resources/css/sells-kb975-next-action.css": 40,

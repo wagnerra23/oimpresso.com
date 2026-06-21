@@ -11,7 +11,7 @@
 // Caixa Unificada V4 — redesign Cowork da Inbox omnichannel.
 //
 // Diferenças vs /atendimento/inbox (legacy Cockpit V2):
-//   - Chips horizontais de canais ACIMA da shell 3-col (vs dropdown topbar)
+//   - Filtro de canal/conta no popover "Filtros" da lista (faixa horizontal removida — Onda 1/2 2026-06-16)
 //   - 4 status canônicos no dropdown da lista (Abertas/Pendentes/Aguardando/Resolvidas)
 //   - Banner amarelo "em homologação" pra canais preview-only
 //   - Sidebar direita 8 sections (Fila/Atribuído/Canal/Tags/OS/Saldo/Histórico/Último/Ações)
@@ -24,10 +24,10 @@
 // Reusa endpoints backend do legacy: POST /atendimento/inbox/{id}/send,
 // PATCH /atendimento/inbox/{id}, etc — sem duplicar contrato.
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { router, Deferred, Head } from '@inertiajs/react';
 import { Centrifuge } from 'centrifuge';
-import { ChevronDown, Inbox as InboxIcon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
+import { ChevronDown, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Card } from '@/Components/ui/card';
@@ -41,12 +41,19 @@ import {
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
 
-import ChannelChipsRow from './_components/ChannelChipsRow';
+import BroadcastSheet from './_components/BroadcastSheet';
+import InboxCheatSheet from './_components/InboxCheatSheet';
+import InboxGuiaDialog from './_components/InboxGuiaDialog';
+import InboxMobileTabs, { type MobileView } from './_components/InboxMobileTabs';
+import ChannelsDrawer from './_components/ChannelsDrawer';
+import NewConversationDialog from './_components/NewConversationDialog';
+import QueuesSheet from './_components/QueuesSheet';
 import ConversationListV4 from './_components/ConversationListV4';
 import ConversationThreadV4 from './_components/ConversationThreadV4';
 import ContextSidebarV4 from './_components/ContextSidebarV4';
 import type {
   AccountItem,
+  AssigneeItem,
   CaixaUnifConversation,
   CaixaUnifMessage,
   CaixaUnifStats,
@@ -57,6 +64,8 @@ import type {
   ChannelCatalogItem,
   Paginated,
   QueueConfig,
+  CustomerContext,
+  UnhealthyChannel,
 } from './_components/helpers';
 
 interface Props {
@@ -66,6 +75,13 @@ interface Props {
   availableChannels?: ChannelCatalogItem[];
   availableAccounts?: AccountItem[];
   availableTags?: { id: number; slug: string; label: string; color: string }[];
+  /** US-WA-302 — operadores atribuíveis (assignee picker da sidebar). */
+  availableAssignees?: AssigneeItem[];
+  /** US-WA-303 — templates ready do business (picker ⌘T do composer). */
+  availableTemplates?: import('@/Pages/Whatsapp/_components/helpers').ReadyTemplate[];
+  /** US-WA-301 (ADR 0267) — rows completas pro painel Filas (Sheet CRUD). */
+  queuesAdmin?: import('./_components/helpers').QueueAdminItem[];
+  canManageQueues?: boolean;
 
   businessId: number;
   /**
@@ -86,19 +102,41 @@ interface Props {
   q: string;
   thread: CaixaUnifThread | null;
   messages: CaixaUnifMessage[] | null;
+  customerContext: CustomerContext | null;
   centrifugoConfig: CentrifugoConfig | null;
+  /** US-WA-308 — canais ativos com sessão caída (banner "religar"). Eager. */
+  unhealthyChannels?: UnhealthyChannel[];
   queues: Record<string, QueueConfig>;
   defaultQueue: string;
 }
 
 export default function CaixaUnificadaIndex({
-  conversations, stats, availableChannels, availableAccounts, availableTags,
+  conversations, stats, availableChannels, availableAccounts, availableTags, availableAssignees, availableTemplates,
+  queuesAdmin, canManageQueues,
   businessId: _businessId,
-  statusFilter, channelTypeFilter, accountFilter, queueFilter: _queueFilter, q,
-  thread, messages, centrifugoConfig,
+  statusFilter, channelTypeFilter, accountFilter, queueFilter, q,
+  thread, messages, customerContext, centrifugoConfig, unhealthyChannels,
   queues, defaultQueue: _defaultQueue,
   within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
 }: Props) {
+  // US-WA-301 — painel Filas (Sheet in-place)
+  const [filasOpen, setFilasOpen] = useState(false);
+  // US-WA-304 — drawer Canais e contas (Sheet in-place, charter §5)
+  const [canaisOpen, setCanaisOpen] = useState(false);
+  // US-WA-307 — dialog + Nova conversa
+  const [novaConvOpen, setNovaConvOpen] = useState(false);
+  // US-WA-306 — broadcast fase 1 (pre-flight + draft; disparo é fase 2 ADR 0268)
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  // Polish V2 §3 — cheat-sheet "?" de atalhos
+  const [cheatOpen, setCheatOpen] = useState(false);
+  // Guia (port inbox-cur) — troubleshooters + trilhas de onboarding
+  const [guiaOpen, setGuiaOpen] = useState(false);
+  // Polish V2 §5 — mobile tabs (<lg mostra 1 coluna por vez; desktop intacto)
+  const [mobileView, setMobileView] = useState<MobileView>('list');
+  // Contexto-drawer ([W] 2026-06-19): some a coluna fixa de Contexto; abre como drawer
+  // lateral (overlay) por um botão na thread. Supersede o recolhível #2858.
+  const [ctxDrawerOpen, setCtxDrawerOpen] = useState(false);
+
   // Centrifugo real-time (US-WA-068 anti-flash com preserveScroll + preserveState)
   useEffect(() => {
     if (!centrifugoConfig) return;
@@ -107,6 +145,24 @@ export default function CaixaUnificadaIndex({
     const sub = c.newSubscription(centrifugoConfig.channel);
 
     sub.on('publication', (ctx: { data: Record<string, unknown> }) => {
+      // US-WA-308 realtime — saúde de canal: o webhook publica `whatsmeow.*` em
+      // `data.event` (mensagens usam `data.type`). Queda/volta de sessão recarrega
+      // só a prop do banner "religar" (+ contas) — servidor segue source of truth,
+      // sem duplicar a lógica de channel_health no client. (Phase B · Centrifugo ADR 0058.)
+      const healthEvent = ctx.data?.event as string | undefined;
+      if (
+        healthEvent === 'whatsmeow.disconnected' ||
+        healthEvent === 'whatsmeow.ban_detected' ||
+        healthEvent === 'whatsmeow.paired'
+      ) {
+        router.reload({
+          only: ['unhealthyChannels', 'availableAccounts'],
+          preserveScroll: true,
+          preserveState: true,
+        });
+        return;
+      }
+
       const eventType = ctx.data?.type as string | undefined;
       if (eventType !== 'message.received' && eventType !== 'message.sent') return;
       const incomingConvId = ctx.data?.conversation_id as number | undefined;
@@ -149,6 +205,8 @@ export default function CaixaUnificadaIndex({
   }, [thread?.id]);
 
   function selectThread(id: number) {
+    // Polish V2 §5 — no mobile, abrir conversa salta pra tab Thread
+    setMobileView('thread');
     // Mesma estratégia perf do Inbox legacy: `conversations` NÃO precisa rebuscar
     // ao trocar thread — só thread+messages no `only:[]`.
     router.get(
@@ -164,7 +222,7 @@ export default function CaixaUnificadaIndex({
       {
         preserveScroll: true,
         preserveState: true,
-        only: ['thread', 'messages'],
+        only: ['thread', 'messages', 'customerContext'],
       },
     );
   }
@@ -244,6 +302,12 @@ export default function CaixaUnificadaIndex({
         setAwaitingHuman();
         return;
       }
+      // Polish V2 §3 — "?" abre/fecha o guia de atalhos
+      if (e.key === '?') {
+        e.preventDefault();
+        setCheatOpen(v => !v);
+        return;
+      }
     }
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -261,16 +325,14 @@ export default function CaixaUnificadaIndex({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-1" data-testid="caixa-unif-page">
-      <Head title="Caixa Unificada" />
+      <Head title="Atendimento" />
 
       {/* Header da página */}
       <div className="flex items-center justify-between gap-3 shrink-0 px-1">
+        {/* Sem ícone-caixa — canon Cowork `os-page-h-l` é só título + subtítulo. */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <InboxIcon size={16} aria-hidden />
-          </div>
           <div className="min-w-0">
-            <h1 className="font-semibold text-[14px] leading-tight truncate">Caixa unificada</h1>
+            <h1 className="font-semibold text-[14px] leading-tight truncate">Atendimento</h1>
             <p className="text-[12.5px] text-muted-foreground truncate">
               {headerSub}
             </p>
@@ -325,37 +387,53 @@ export default function CaixaUnificadaIndex({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* US-WA-301 (ADR 0267) — painel Filas (Sheet CRUD, DB whatsapp_queues) */}
           <button
             type="button"
-            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
-            disabled
-            title="Configurar filas (em breve)"
+            onClick={() => setFilasOpen(true)}
+            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title="Configurar filas de atendimento"
             data-testid="caixa-unif-topnav-filas"
           >
             Filas
           </button>
-          <a
-            href={route('atendimento.channels.index')}
+          {/* US-WA-304 — vira drawer in-place (Sheet); página completa fica no link
+              "Gerenciar" dentro do drawer */}
+          <button
+            type="button"
+            onClick={() => setCanaisOpen(true)}
             className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-            title="Gerenciar canais"
+            title="Canais e contas (drawer)"
             data-testid="caixa-unif-topnav-canais"
           >
             Canais
-          </a>
+          </button>
+          {/* US-WA-306 — fase 1: pre-flight + rascunho (disparo = fase 2 ADR 0268) */}
           <button
             type="button"
-            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-45"
-            disabled
-            title="Broadcast cross-canal (em breve)"
+            onClick={() => setBroadcastOpen(true)}
+            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title="Broadcast cross-canal — audiência + rascunho (disparo na fase 2)"
             data-testid="caixa-unif-topnav-broadcast"
           >
             Broadcast
           </button>
+          {/* Guia (port inbox-cur) — troubleshooters + trilhas de onboarding */}
           <button
             type="button"
-            className="inline-flex items-center px-3 py-1.5 text-[11.5px] font-semibold bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-45"
-            disabled
-            title="Iniciar nova conversa (em breve)"
+            onClick={() => setGuiaOpen(true)}
+            className="inline-flex items-center px-2.5 py-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title="Guia — diagnóstico guiado de atendimento + trilhas de onboarding"
+            data-testid="caixa-unif-topnav-guia"
+          >
+            Guia
+          </button>
+          {/* US-WA-307 — abre dialog (find-or-create + thread aberta) */}
+          <button
+            type="button"
+            onClick={() => setNovaConvOpen(true)}
+            className="inline-flex items-center px-3 py-1.5 text-[11.5px] font-semibold bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+            title="Iniciar nova conversa"
             data-testid="caixa-unif-topnav-nova"
           >
             + Nova conversa
@@ -363,29 +441,18 @@ export default function CaixaUnificadaIndex({
         </div>
       </div>
 
-      {/* Chips horizontais de canais (filtro top) */}
-      <Deferred
-        data={['availableChannels', 'availableAccounts', 'conversations']}
-        fallback={(
-          <div className="border-b px-4 py-2 bg-muted/30 h-[42px] flex items-center">
-            <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
-              <Loader2 size={12} className="animate-spin" aria-hidden /> Carregando canais…
-            </span>
-          </div>
-        )}
-      >
-        <ChannelChipsRow
-          channels={availableChannels ?? []}
-          accounts={availableAccounts ?? []}
-          channelTypeFilter={channelTypeFilter}
-          accountFilter={accountFilter}
-          totalAll={conversations?.total ?? 0}
-        />
-      </Deferred>
+      {/* Polish V2 §5 — tabs mobile (abaixo de lg; desktop 3-col intacto) */}
+      <InboxMobileTabs
+        view={mobileView}
+        onChange={(v) => { if (v === 'context') { setCtxDrawerOpen(true); } else { setMobileView(v); } }}
+        hasThread={thread !== null}
+        unread={stats?.unread ?? 0}
+      />
 
-      {/* Shell 3-col */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[320px_1fr_300px] gap-0 min-h-0 overflow-hidden border rounded-md">
-        {/* Lista esquerda */}
+      {/* Shell 2-col ([W] 2026-06-19) — Contexto saiu da grade fixa e virou drawer */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-0 min-h-0 overflow-hidden border rounded-md">
+        {/* Lista esquerda — no mobile só aparece na tab Conversas */}
+        <div className={mobileView === 'list' ? 'min-h-0 h-full' : 'min-h-0 h-full hidden lg:block'}>
         <Deferred
           data={['conversations', 'stats']}
           fallback={(
@@ -414,6 +481,11 @@ export default function CaixaUnificadaIndex({
           <ConversationListV4
             conversations={conversations as Paginated<CaixaUnifConversation>}
             channels={availableChannels ?? []}
+            accounts={availableAccounts ?? []}
+            channelTypeFilter={channelTypeFilter}
+            accountFilter={accountFilter}
+            queues={queues}
+            queueFilter={queueFilter}
             stats={stats ?? null}
             selectedId={thread?.id ?? null}
             status={statusFilter}
@@ -426,17 +498,22 @@ export default function CaixaUnificadaIndex({
             orderBy={orderBy}
             availableTags={availableTags ?? []}
             activeTagIds={activeTagIds ?? []}
+            unhealthyChannels={unhealthyChannels ?? []}
+            canManageChannels={canManageQueues ?? false}
           />
         </Deferred>
+        </div>
 
-        {/* Thread central */}
-        <div className="min-w-0 min-h-0">
+        {/* Thread central — no mobile só aparece na tab Thread */}
+        <div className={mobileView === 'thread' ? 'min-w-0 min-h-0' : 'min-w-0 min-h-0 hidden lg:block'}>
           {thread && messages !== null ? (
             <ConversationThreadV4
               thread={thread}
               messages={messages}
               channels={availableChannels ?? []}
               onResolve={resolveThread}
+              onOpenContext={() => setCtxDrawerOpen(true)}
+              templates={availableTemplates ?? []}
             />
           ) : (
             <div className="h-full flex items-center justify-center bg-muted/15">
@@ -455,17 +532,77 @@ export default function CaixaUnificadaIndex({
         </div>
 
         {/* Sidebar direita — só quando thread aberta */}
-        {thread && (
-          <Deferred data="availableChannels" fallback={null}>
-            <ContextSidebarV4
-              thread={thread}
-              channels={availableChannels ?? []}
-              queues={queues}
-              availableTags={availableTags ?? []}
-            />
-          </Deferred>
-        )}
+        {/* US-WA-301 — painel Filas (Sheet CRUD whatsapp_queues) */}
+        <QueuesSheet
+          open={filasOpen}
+          onOpenChange={setFilasOpen}
+          queues={queuesAdmin ?? []}
+          availableTags={availableTags ?? []}
+          canManage={canManageQueues ?? false}
+        />
+
+        {/* US-WA-304 — drawer Canais e contas (reusa payloads já carregados) */}
+        <ChannelsDrawer
+          open={canaisOpen}
+          onOpenChange={setCanaisOpen}
+          channels={availableChannels ?? []}
+          accounts={availableAccounts ?? []}
+          canManageChannels={canManageQueues ?? false}
+        />
+
+        {/* US-WA-307 — + Nova conversa (find-or-create + abre thread) */}
+        <NewConversationDialog
+          open={novaConvOpen}
+          onOpenChange={setNovaConvOpen}
+          accounts={availableAccounts ?? []}
+        />
+
+        {/* US-WA-306 — broadcast fase 1 (ADR 0268) */}
+        <BroadcastSheet
+          open={broadcastOpen}
+          onOpenChange={setBroadcastOpen}
+          accounts={availableAccounts ?? []}
+          templates={availableTemplates ?? []}
+        />
+
       </div>
+
+      {/* Contexto-drawer ([W] 2026-06-19): some a coluna fixa; abre como overlay lateral
+          (botão "Contexto" na thread / tab mobile). ContextSidebarV4 renderiza dentro,
+          com open=true (cheio) e o ✕/recolher fechando o drawer. */}
+      {thread && ctxDrawerOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setCtxDrawerOpen(false)}
+            aria-hidden
+          />
+          <div
+            className="fixed top-0 right-0 bottom-0 z-50 w-[400px] max-w-[92vw] flex flex-col min-h-0 bg-card border-l shadow-xl"
+            role="dialog"
+            aria-label="Contexto da conversa"
+            data-testid="caixa-unif-ctx-drawer"
+          >
+            <Deferred data="availableChannels" fallback={null}>
+              <ContextSidebarV4
+                thread={thread}
+                customerContext={customerContext}
+                channels={availableChannels ?? []}
+                queues={queues}
+                availableTags={availableTags ?? []}
+                availableAssignees={availableAssignees ?? []}
+                open={true}
+                onToggle={() => setCtxDrawerOpen(false)}
+              />
+            </Deferred>
+          </div>
+        </>
+      )}
+
+      {/* Polish V2 §3 — cheat-sheet de atalhos ("?") */}
+      <InboxCheatSheet open={cheatOpen} onOpenChange={setCheatOpen} />
+      {/* Guia (port inbox-cur) — troubleshooters + trilhas */}
+      <InboxGuiaDialog open={guiaOpen} onOpenChange={setGuiaOpen} />
     </div>
   );
 }

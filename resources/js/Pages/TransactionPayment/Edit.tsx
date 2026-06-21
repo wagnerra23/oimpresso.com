@@ -199,7 +199,7 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
                     ))}
                   </SelectContent>
                 </Select>
-                {form.errors.method && <p className="text-xs text-red-600 mt-1">{form.errors.method}</p>}
+                {form.errors.method && <p className="text-xs text-destructive-fg mt-1">{form.errors.method}</p>}
               </div>
               <div>
                 <Label htmlFor="paid_on">Data *</Label>
@@ -210,7 +210,7 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
                   onChange={(e) => form.setData('paid_on', e.target.value)}
                   required
                 />
-                {form.errors.paid_on && <p className="text-xs text-red-600 mt-1">{form.errors.paid_on}</p>}
+                {form.errors.paid_on && <p className="text-xs text-destructive-fg mt-1">{form.errors.paid_on}</p>}
               </div>
               <div>
                 <Label htmlFor="amount">Valor (R$) *</Label>
@@ -223,7 +223,7 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
                   onChange={(e) => form.setData('amount', e.target.value)}
                   required
                 />
-                {form.errors.amount && <p className="text-xs text-red-600 mt-1">{form.errors.amount}</p>}
+                {form.errors.amount && <p className="text-xs text-destructive-fg mt-1">{form.errors.amount}</p>}
               </div>
             </div>
 

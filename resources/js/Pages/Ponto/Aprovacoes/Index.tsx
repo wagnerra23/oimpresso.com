@@ -384,7 +384,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
                           <td className="p-3 text-xs">
                             <div>{tipoLabel(a.tipo, tipos)}</div>
                             {a.impacta_apuracao && (
-                              <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                              <div className="text-[10px] text-warning-fg mt-0.5">
                                 impacta apuração
                               </div>
                             )}
@@ -479,7 +479,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
           size="sm"
           onClick={handleBulkApprove}
           disabled={processing}
-          className="bg-emerald-600 hover:bg-emerald-700"
+          className="bg-success text-white hover:bg-success/90"
         >
           <CheckCheck size={14} className="mr-1" />
           Aprovar selecionadas
@@ -491,13 +491,13 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Check size={16} className="text-emerald-600" /> Aprovar intercorrência
+              <Check size={16} className="text-success-fg" /> Aprovar intercorrência
             </AlertDialogTitle>
             <AlertDialogDescription>
               Confirma a aprovação de <strong>{approveTarget?.codigo}</strong> de{' '}
               <strong>{approveTarget?.colaborador.nome}</strong>?
               {approveTarget?.impacta_apuracao && (
-                <span className="block mt-2 text-xs text-amber-700 dark:text-amber-400">
+                <span className="block mt-2 text-xs text-warning-fg">
                   ⚠️ Esta intercorrência <strong>impacta a apuração</strong> — minutos de trabalho serão ajustados.
                 </span>
               )}

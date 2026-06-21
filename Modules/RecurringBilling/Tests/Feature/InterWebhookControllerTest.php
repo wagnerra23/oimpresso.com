@@ -25,6 +25,10 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     Schema::dropIfExists('pg_webhook_events');
     Schema::create('pg_webhook_events', function ($table) {
         $table->id();
@@ -51,8 +55,13 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('pg_webhook_events');
-    Schema::dropIfExists('rb_boleto_credentials');
+    // pg_webhook_events/rb_boleto_credentials são reais-migradas; o afterEach roda mesmo
+    // em teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las
+    // no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('pg_webhook_events');
+        Schema::dropIfExists('rb_boleto_credentials');
+    }
 });
 
 function seedInterCredential(int $businessId, string $secret = 'sek-abc'): void

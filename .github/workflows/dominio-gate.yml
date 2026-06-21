@@ -1,0 +1,58 @@
+name: Dominio-dict ratchet (coerência de domínio)
+
+# Gate G-4 da Governança executável (ADR 0264). O vocabulário de domínio declarado em
+# memory/dominio/<modulo>.md tem que bater com os enum() reais das migrations do módulo
+# E com os valores-literais usados no CÓDIGO de aplicação (Salto #3: where/whereIn/comparação
+# de campo/validação in: contra coluna governada). É a camada que a alucinação "locação de
+# caçamba" (ADR 0265) atravessou — nenhum gate pegava enum incoerente nem código morto que
+# ainda ramificava no valor erradicado. Ratchet: FALHA só em divergência NOVA vs baseline.
+#
+# FASE 2 (ADR 0264 + ADR 0261, flip [W] 2026-06-09): ALWAYS-RUN → required status check.
+# Ratchet node:fs puro (~12s), SEMPRE reporta verde quando nada regrediu → seguro como
+# `required` sem deadlock (ADR 0261 Alavanca 2). Tirar `paths:` é o flip. O baseline carrega
+# `order_type=locacao` como débito; o PR de erradicação (ADR 0265) zera a divergência.
+#
+# Node puro (node:fs), sem deps, sem npm ci. Comando local: npm run dominio:check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: dominio-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dominio-gate:
+    name: Dominio-dict · ratchet (enum ⇔ dicionário)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Relatório de dívida (informativo)
+        run: node scripts/domain-dict-guard.mjs --report
+
+      - name: Dominio ratchet (falha em divergência NOVA enum⇔dicionário)
+        run: node scripts/domain-dict-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Um enum de migration OU um valor-literal no código divergiu do dicionário (ADR 0264 G-4 + Salto #3)."
+          echo ""
+          echo "Fonte única: memory/dominio/<modulo>.md (bloco json). O enum() da migration E os valores"
+          echo "usados no código (where/comparação/in:) têm que bater com a lista canônica."
+          echo "Reintroduzir locacao/locada viola a ADR 0265 (proibicoes.md)."
+          echo ""
+          echo "  1. Local: npm run dominio:check   · vê as divergências novas"
+          echo "  2. Se a mudança de domínio é legítima: atualize o dicionário + npm run dominio:baseline:write"
+          echo ""
+          echo "Refs: ADR 0264 (G-4) · ADR 0265 (erradica locação) · ADR 0261 (enforcement faseado)"

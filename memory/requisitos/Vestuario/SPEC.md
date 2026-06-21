@@ -1,11 +1,24 @@
 ---
 module: Vestuario
-status: live (em produção via ROTA LIVRE biz=4 desde 2024-Q1)
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
+status_detalhe: "live em produção via ROTA LIVRE biz=4 desde 2024-Q1"
 piloto: ROTA LIVRE — LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
 piloto_inicio: 2024-Q1
 cnae_principal: "4781-4/00"
-related_adrs: [0121, 0094, 0093, 0035, 0066, 0089, 0105]
+related_adrs:
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0093-multi-tenant-isolation-tier-0
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - 0066-format-date-shift-3h-preservado-legacy-clientes
+  - 0089-capterra-driven-module-evolution
+  - 0105-cliente-como-sinal-guiar-sem-mandar
 ---
+<!-- schema-allowlist: US-VEST-* vivem sob "## 3. Capacidades em produção" e "## 4. Capacidades faltantes" (separação prod-vs-backlog deste módulo); headings não casam o gate "User stories" mas o conteúdo US existe e é canônico -->
+<!-- pii-allowlist: o único CNPJ literal do arquivo (seção 2 cliente piloto) foi trocado pelo CNPJ fake canônico 11.222.333/0001-81 -->
 
 # Especificação funcional — Modules/Vestuario
 
@@ -23,7 +36,7 @@ Módulo vertical pra **lojas de vestuário/moda brasileiras** (CNAE 4781-4/00). 
 | Campo | Valor |
 |-------|-------|
 | Razão social | LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME |
-| CNPJ | 73.306.573/0001-11 |
+| CNPJ | 11.222.333/0001-81 <!-- pii-allowlist: CNPJ fake canônico (era PII real do cliente piloto ROTA LIVRE) --> |
 | Endereço único | BL0001 "ROTA LIVRE" — Termas do Gravatal, Gravatal/SC, CEP 88735-0 |
 | Telefone | (48) 3626-4806 |
 | Timezone | `America/Sao_Paulo` |
@@ -157,7 +170,7 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 ### US-VEST-009 · Sidebar/topnav adaptado por monitor 1280px `live`
 
 > **Área:** UX
-> **Implementado em:** [`Modules/Vestuario/Http/Controllers/DataController.php`](../../../Modules/Vestuario/Http/Controllers/DataController.php) **(a criar — hoje hooks vivem em DataController genérico via session)**
+> **Implementado em:** [`Modules/Vestuario/Http/Controllers/DataController.php`](../../../Modules/Vestuario/Http/Controllers/DataController.php) · verificado@08c4a8f (2026-06-21)
 
 **Definition of Done (em prod, em forma genérica):**
 - [x] Locale pt-BR DataTables global

@@ -246,10 +246,9 @@ Quick-check resumido:
 |---|---|
 | `ui-lint.yml` (Onda 2.1) | Hex/RGB/HSL crua, FontAwesome, emoji em UI (ratchet vs baseline) |
 | `visual-regression.yml` ([ADR 0108](memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)) | Diff de screenshots Pest 4 Browser > threshold (atualmente INFRA-ONLY, ver [US-INFRA-012](memory/requisitos/Infra/SPEC.md)) |
-| `pr-ui-judge.yml` (Onda 4.1) | Claude Sonnet 4.5 avalia PR contra Constituição UI v2 — score 0-100 + 9 dimensões + sugestões cirúrgicas (~$3/mês a 100 PRs) |
-| `mwart-gate.yml` | `<tela>-visual-comparison.md` obrigatório se Page Inertia nova (ADR 0107 §F1.5) |
-| `charter-gate.yml` | `.charter.md` obrigatório ao lado de `.tsx` em paths MWART |
 | `module-grades-gate.yml` ([ADR 0155](memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) | Regressão de nota módulo vs baseline |
+
+> **Deletados na ADR 0271 onda 2 (2026-06-11):** `pr-ui-judge.yml` (kill-switch OFF/dormente — judge segue disponível manual via skill `pr-ui-judge-manual`), `mwart-gate.yml` (soft/teatro — cobertura migrou pro `casos-gate` required ADR 0264) e `charter-gate.yml` (régua migrou pro `casos-gate`).
 
 ---
 
@@ -368,7 +367,7 @@ Antes de criar componente custom, **buscar** em `resources/js/Components/`. Patt
 
 ### 16.8. Anti-padrões V2 (testes Pest CI varre)
 
-- ❌ `<AppShell>` sem V2 ([preferência](memory/claude/preference_persistent_layouts.md))
+- ❌ `<AppShell>` sem V2 (use o shell canônico [`AppShellV2.tsx`](resources/js/Layouts/AppShellV2.tsx))
 - ❌ `sessionStorage` (use `localStorage` com prefixo `oimpresso.`)
 - ❌ `bg-(gray|indigo|purple|pink|yellow|red|green)-[0-9]+`
 - ❌ `font-bold/extrabold/black` em h1-h3

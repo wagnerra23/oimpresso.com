@@ -28,7 +28,7 @@ FILES = [
     # feedback-cowork-bundle-aplicar-inteiro.md (Wagner autorizou bundle copy
     # após 3 tentativas falhas de cherry-pick de classes Cowork sharedas).
     Path("resources/css/cowork-canon-financeiro-bundle.css"),
-    Path("resources/css/cowork-financeiro-bundle.css"),
+    # cowork-financeiro-bundle.css REMOVIDO 2026-06-02 (dedup — só o canon- vive; PACOTE-Q9 PR-2)
     Path("resources/css/fin-curadoria.css"),
     Path("resources/css/fin-ia.css"),
     Path("resources/css/fin-output.css"),

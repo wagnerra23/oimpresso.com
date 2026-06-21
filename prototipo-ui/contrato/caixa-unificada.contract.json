@@ -1,0 +1,26 @@
+{
+  "_nota": "Primeiro contrato de tela ATIVO (piloto da catraca Contrato de Tela). Cobre o feature QR/Reconectar portado do design Cowork. Roda no CI advisory via contrato-de-tela.yml; promove a required quando estável. Ver RUNBOOK-contrato-de-tela.md.",
+  "tela": "Atendimento/CaixaUnificada",
+  "fonte": "prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx",
+  "alvo": ["resources/js/Pages/Atendimento/CaixaUnificada"],
+  "secoes": [
+    { "id": "reconnect-cta", "copy": ["Reconectar canal"] },
+    { "id": "reconnect-modal", "copy": ["Reconectar canal", "Ver todos os canais"] },
+    { "id": "reconnect-qr", "copy": ["Já escaneei"], "estados": ["loading", "qr", "pairing", "error"] },
+    { "id": "reconnect-meta", "copy": ["Canal via API oficial da Meta — sem QR", "Reautenticar"] },
+    { "id": "reconnect-ok", "copy": ["Canal reconectado!"] }
+  ],
+  "ordem": ["reconnect-cta", "reconnect-modal"],
+  "_nota_acordos": "Catraca SEMÂNTICA (ADR 0286 §5): cada `state` do vocabulário acordado tem de aparecer como literal nos DOIS lados — o backend que o emite e o frontend que o trata. Pega o bug paired≠connected (2026-06-18, #2984) que a catraca de presença deixou passar.",
+  "acordos_estado": [
+    {
+      "id": "sessao-ativa",
+      "verdict": "aprovado",
+      "escopo": "global",
+      "descricao": "Vocabulário de `state` que significa sessão JÁ ATIVA = sucesso, não erro. O connect (ChannelsController::whatsmeowPairedResponse) emite state:'paired'+paired:true; o status (statusWhatsmeow) emite state:'connected'. O ReconnectModal só tratava 'connected' → 'paired' caía no ramo de erro vermelho. Fix #2984 unificou no predicado isSessionActive. Ver ADR 0286 §5. Escopo global (vale a todo tenant) — default seguro do eixo D5.",
+      "valores": ["paired", "connected"],
+      "backend": "Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php",
+      "frontend": ["resources/js/Pages/Atendimento/CaixaUnificada/_components/reconnectState.ts"]
+    }
+  ]
+}

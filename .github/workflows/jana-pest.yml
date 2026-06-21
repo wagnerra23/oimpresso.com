@@ -1,0 +1,128 @@
+name: Jana · Pest (MySQL)
+
+# Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/Jana contra MySQL REAL.
+# Existe porque ci.yml e modules-pest.yml rodam SQLite :memory: — e os testes do
+# Jana que dependem de DDL MySQL-only (triggers BEFORE UPDATE/DELETE com SIGNAL
+# SQLSTATE '45000') dão markTestSkipped lá (falsa cobertura). Aqui executam de
+# verdade contra o schema baseline migrado.
+#
+# FURO #1 do handoff SDD Leva 1 (memory/handoffs/2026-06-15-2000-sdd-leva1-
+# coordenacao-duravel.md): ImmutabilityTriggersTest (PR #2790 — append-only de
+# mcp_task_events + mcp_audit_log) era MySQL-only e NÃO rodava em lane nenhuma
+# (só ci.yml=sqlite tocava Jana, e lá ela skipava). A própria migration de
+# triggers (2026_06_15_160000) nunca tinha rodado em CI. Esta lane fecha o gap e
+# vira o HOME do ratchet pra TODO teste/trigger/migration MySQL-only do Jana.
+# Refs: ADR 0278 (arquitetura durável) · ADR 0084 (triggers append-only).
+#
+# Reusa .github/actions/pest-mysql-setup (mesma do financeiro-pest, FV-F2):
+# PHP 8.4 + deps + .env MySQL + migrate (schema baseline 2026-06-04 + migrations
+# novas, INCLUI a migration de triggers) + seed mínimo biz=1 (o user semeado
+# satisfaz a FK NOT NULL mcp_audit_log.user_id que o teste exige).
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (required-readiness): pull_request SEM paths (always-run) pra
+  # ser promovível a required sem deadlock "Expected — waiting". O custo (MySQL +
+  # migrate + Pest) é evitado por skip-as-pass interno: dorny/paths-filter detecta
+  # se algo do Jana mudou; se não, pula o pesado e conclui verde. push segue
+  # path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Jana/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/jana-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: jana-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Jana · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Jana (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            jana:
+              - 'Modules/Jana/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/jana-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Jana mudou)
+        if: steps.changes.outputs.jana == 'false'
+        run: echo "✅ Sem mudanças no Modules/Jana — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # Setup canônico reusável (composite action). O service container MySQL fica
+      # DECLARADO ACIMA no job (composite action não pode declarar services).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.jana == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.jana == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Jana · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.jana == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — se não sobrescrever, os
+        # testes MySQL-only (triggers SIGNAL) SKIPam (a falsa cobertura). Exportar
+        # aqui faz rodar no MySQL real semeado.
+        #
+        # CATRACA: a lane roda só os arquivos comprovadamente verdes (MySQL-only do
+        # Jana). Cada novo teste MySQL-only do Jana é adicionado AQUI (ratchet up).
+        # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — eles dropam o
+        # schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-jana-junit.xml \
+            Modules/Jana/Tests/Feature/Mcp/ImmutabilityTriggersTest.php \
+            Modules/Jana/Tests/Feature/Memoria/BuscarHistoricoTest.php \
+            Modules/Jana/Tests/Feature/Memoria/SupersedeConsolidacaoTest.php
+
+      - name: Upload JUnit (Jana · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.jana == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-jana-junit
+          path: test-results/pest-jana-junit.xml
+          retention-days: 14

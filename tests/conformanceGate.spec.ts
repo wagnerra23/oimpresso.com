@@ -11,8 +11,8 @@
 // Refs: PROMPT_PARA_CODE_CONFORMANCE-GATE.md (Camada META) · ADR 0209 (ratchet gêmeo).
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { rawColorHits, accentHueViolations } from '../scripts/conformance-gate.mjs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { rawColorHits, accentHueViolations, tokenRoleViolations, fontRampHits, FS_RAMP } from '../scripts/conformance-gate.mjs';
 
 describe('conformance-gate — SENSIBILIDADE (injeta bug → conta sobe)', () => {
   it('cor crua oklch(<hue numérico>) NOVA em regra de tela é contada', () => {
@@ -80,5 +80,89 @@ describe('accent-hue guard — ESPECIFICIDADE (roxo canônico não acusa)', () =
   });
   it('o cockpit.css real (token canônico) está em roxo — 0 violações', () => {
     expect(accentHueViolations(readFileSync('resources/css/cockpit.css', 'utf8')).length).toBe(0);
+  });
+});
+
+// ── Papel de token (PACOTE-Q9 PR-3 · espelho estático do probe G3 do Cowork) ──────────────
+// -fg é texto/ícone, -bg é superfície. Inversão (-fg em background/fill, -bg em color/stroke)
+// foi a classe do erro 06-10a (barra de progresso marrom com --origin-MFG-fg de fill).
+// Controle-negativo (L-31): visto 🔴 no bug injetado E 🟢 no limpo.
+describe('token-role guard — SENSIBILIDADE (papel invertido é pego)', () => {
+  it('-fg como background é violação', () => {
+    expect(tokenRoleViolations(`.os-progress { background: var(--origin-MFG-fg); }`).length).toBe(1);
+  });
+  it('-fg como fill (SVG) é violação', () => {
+    expect(tokenRoleViolations(`.os-bar rect { fill: var(--accent-fg); }`).length).toBe(1);
+  });
+  it('-fg como background-color com fallback é violação', () => {
+    expect(tokenRoleViolations(`.vd-pill { background-color: var(--pos-fg, #fff); }`).length).toBe(1);
+  });
+  it('-bg como color é violação', () => {
+    expect(tokenRoleViolations(`.vd-label { color: var(--surface-bg); }`).length).toBe(1);
+  });
+  it('-bg como stroke é violação', () => {
+    expect(tokenRoleViolations(`.os-ring circle { stroke: var(--card-bg); }`).length).toBe(1);
+  });
+});
+
+describe('token-role guard — ESPECIFICIDADE (papel correto não acusa)', () => {
+  it('-fg em color (papel certo) = 0', () => {
+    expect(tokenRoleViolations(`.vd-kpi { color: var(--accent-fg); }`).length).toBe(0);
+  });
+  it('-bg em background (papel certo) = 0', () => {
+    expect(tokenRoleViolations(`.vd-card { background: var(--card-bg); }`).length).toBe(0);
+  });
+  it('token sem sufixo de papel (--accent/--pos) em qualquer propriedade = 0', () => {
+    expect(tokenRoleViolations(`.vd-btn { background: var(--accent); color: var(--pos); }`).length).toBe(0);
+  });
+  it('definição de token (--x-fg: ...) não é uso — 0', () => {
+    expect(tokenRoleViolations(`:root { --origin-MFG-fg: oklch(0.4 0.1 60); }`).length).toBe(0);
+  });
+});
+
+describe('token-role guard — repo LIMPO (invariante absoluto vale hoje)', () => {
+  it('todos os resources/css/*.css têm 0 inversões de papel', () => {
+    const files = readdirSync('resources/css').filter((n) => n.endsWith('.css'));
+    const hits = files.flatMap((f) => tokenRoleViolations(readFileSync(`resources/css/${f}`, 'utf8'), f));
+    expect(hits).toEqual([]);
+  });
+});
+
+// ── Type RAMP ratchet (F2 · [W] "vai" 2026-06-10) — controle-negativo (L-31) ──────────────
+// fontRampHits conta `font-size: <N>px` com N FORA dos 9 degraus --fs-1..9 (foundations.css).
+describe('fontramp guard — SENSIBILIDADE (px fora do ramp é pego)', () => {
+  it('font-size:13px (fora do ramp) conta', () => {
+    expect(fontRampHits(`.fin-x { font-size: 13px; }`).length).toBe(1);
+  });
+  it('font-size:16px e 14px (defaults Tailwind/browser fora do ramp) contam', () => {
+    expect(fontRampHits(`.a { font-size: 16px; } .b { font-size: 14px; }`).length).toBe(2);
+  });
+});
+
+describe('fontramp guard — ESPECIFICIDADE (não acusa inocente)', () => {
+  it('os 9 degraus do ramp NÃO contam', () => {
+    const css = FS_RAMP.map((v: number, i: number) => `.s${i} { font-size: ${v}px; }`).join('\n');
+    expect(fontRampHits(css).length).toBe(0);
+  });
+  it('consumo via var(--fs-N) NÃO conta', () => {
+    expect(fontRampHits(`.fin-x { font-size: var(--fs-4); }`).length).toBe(0);
+  });
+  it('definição do token (--fs-1: 10.5px) NÃO conta — propriedade não é font-size', () => {
+    expect(fontRampHits(`:root { --fs-1: 10.5px; --fs-9: 38px; }`).length).toBe(0);
+  });
+  it('font-size px dentro de comentário NÃO conta', () => {
+    expect(fontRampHits(`/* antes era font-size: 13px */ .x { color: var(--text); }`).length).toBe(0);
+  });
+  it('unidade relativa (rem/em) NÃO conta — ramp é âncora px', () => {
+    expect(fontRampHits(`.x { font-size: 1rem; } .y { font-size: 0.875em; }`).length).toBe(0);
+  });
+});
+
+describe('fontramp guard — foundations.css define o ramp completo', () => {
+  it('os 9 tokens --fs-1..9 existem com os valores canônicos', () => {
+    const css = readFileSync('resources/css/foundations.css', 'utf8');
+    FS_RAMP.forEach((v: number, i: number) => {
+      expect(css).toMatch(new RegExp(`--fs-${i + 1}:\\s*${String(v).replace('.', '\\.')}px`));
+    });
   });
 });

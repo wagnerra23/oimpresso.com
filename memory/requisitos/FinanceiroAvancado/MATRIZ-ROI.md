@@ -1,11 +1,11 @@
 ---
-title: MATRIZ-ROI Modules/FinanceiroAvancado
+title: MATRIZ-ROI FinanceiroAvancado (planejado — não existe)
 date: 2026-05-12
 related_spec: SPEC.md
 related_adr_proposal: financeiro-avancado-dre-fluxo-conciliacao.md
 ---
 
-# MATRIZ-ROI — Modules/FinanceiroAvancado vs concorrentes
+# MATRIZ-ROI — FinanceiroAvancado (planejado — não existe) vs concorrentes
 
 > Score 0-10 por feature. **R** = ROI estimado pra ROTA LIVRE + clientes legacy OfficeImpresso (4 candidatos R$ [redacted Tier 0]M receita combinada — ver `_ANALISE-FINANCEIRA-CROSS-CLIENTE.md`).
 > **C** = Custo construção (dias-IA-pair calibrado ADR 0106).

@@ -114,6 +114,23 @@
   cursor: not-allowed;
 }
 
+/* Espaço pros ícones overlay de um input cowork (lupa à esquerda, X/limpar à direita).
+ * Atômicas e componíveis: use `cw-input-icon-left` sozinha pra só-lupa, ou as duas
+ * juntas pra busca com botão limpar.
+ *
+ * Por que precisa existir: `.cw-input` usa `padding: 0 8px` (shorthand) e mora
+ * UNLAYERED (cowork-fields.css é @import sem @layer). No Tailwind v4 as utilitárias
+ * `pl-9`/`pr-9` vivem em `@layer utilities` — e, pela cascata de layers, estilo
+ * UNLAYERED sempre vence LAYERED, independente de especificidade/ordem. Resultado:
+ * `pl-9`/`pr-9` no <Input variant="cowork"> eram IGNORADOS, o texto começava em 8px
+ * e a lupa (left-3 = 12px) ficava "encavalada" sobre o placeholder.
+ *
+ * Fix: estas longhands, também unlayered e declaradas DEPOIS de `.cw-input`,
+ * sobrescrevem só o lado horizontal do shorthand. left-3(12px) + ícone 16px = 28px
+ * → 34px dá ~6px de respiro. Reportado por Wagner 2026-06-13 (lista de clientes). */
+.cw-input-icon-left  { padding-left: 34px; }
+.cw-input-icon-right { padding-right: 34px; }
+
 /* Textarea variant (auto-height) */
 .cw-input.cw-textarea {
   height: auto; padding: 6px 8px; line-height: 1.45;

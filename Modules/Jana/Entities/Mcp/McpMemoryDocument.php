@@ -143,7 +143,10 @@ class McpMemoryDocument extends Model
         $embedder = (string) config('copiloto.mcp_search.docs_embedder', 'qwen3_local');
         $ratio    = (float) config('copiloto.memoria.meilisearch.semantic_ratio', 0.6);
 
-        $filtros = ["status IN ['aceito','accepted','accepted-historical']"];
+        // `recusado` é terminal-mas-VISÍVEL (anti-relitígio) — simétrico ao scopePorStatusAtivo do
+        // caminho FULLTEXT. Sem isto, com docs_pipeline=true o recusado some da busca (índice tem,
+        // mas a query corta). shouldBeSearchable já NÃO exclui recusado do índice.
+        $filtros = ["status IN ['aceito','accepted','accepted-historical','recusado']"];
         if ($tipo !== null && $tipo !== '' && $tipo !== 'all') {
             $filtros[] = "type = '".addslashes($tipo)."'";
         }
@@ -192,10 +195,13 @@ class McpMemoryDocument extends Model
         return $query->where(function ($q) {
             $q->whereNull('metadata')
               ->orWhereRaw("JSON_EXTRACT(metadata, '$.status') IS NULL")
-              ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.status')) IN (?, ?, ?)", [
+              ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.status')) IN (?, ?, ?, ?)", [
                   'aceito',
                   'accepted',
                   'accepted-historical',
+                  // o NÃO é terminal-mas-VISÍVEL: `recusado` existe pra ser ACHADO (anti-relitígio),
+                  // senão a busca esconde a decisão que evita re-propor. Proposal recusado-com-motivo.
+                  'recusado',
               ]);
         });
     }

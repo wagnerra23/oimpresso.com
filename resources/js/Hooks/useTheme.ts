@@ -95,4 +95,11 @@ function applyClass(theme: 'light' | 'dark') {
   const el = document.documentElement;
   if (theme === 'dark') el.classList.add('dark');
   else el.classList.remove('dark');
+  // ADR 0281: o dark ativa por `.dark` OU `[data-theme="dark"]` (OR). O `data-theme`
+  // mora em DOIS lugares — `<html>` (anti-flash, inertia.blade) e `.cockpit`
+  // (AppShellV2, prop server-side que só muda no F5). Sem sincronizar AMBOS aqui, o
+  // `data-theme=dark` residual mantém a tela no tema antigo (o "precisa F5" da Caixa).
+  // Verificado em prod: setar data-theme nos dois + a classe → flip sem reload.
+  el.setAttribute('data-theme', theme);
+  document.querySelector('.cockpit')?.setAttribute('data-theme', theme);
 }

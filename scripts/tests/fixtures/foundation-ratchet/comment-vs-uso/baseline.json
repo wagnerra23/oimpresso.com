@@ -1,0 +1,8 @@
+{
+  "nota": "fixture comment-vs-uso (FV-Q1, ADR 0275): 2 arquivos contêm a palavra RefreshDatabase, mas só 1 APLICA o trait (uses(...::class)) — o outro só MENCIONA (docblock + string de skip). A contagem honesta é 1.",
+  "counters": {
+    "n_quarantine": 0,
+    "n_refresh_database": 1,
+    "n_business_first": 0
+  }
+}

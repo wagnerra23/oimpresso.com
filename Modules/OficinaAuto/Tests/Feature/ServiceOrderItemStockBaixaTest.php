@@ -82,9 +82,10 @@ function stockBaixa_resolveProdutoComEstoque(int $biz, float $min = 5.0): ?array
 
 function stockBaixa_criaOs(string $suffix, int $biz = BIZ_STOCK_BAIXA): ServiceOrder
 {
-    // contact_id vai no VEÍCULO: `ServiceOrder.$fillable` ainda não inclui contact_id
-    // (gap T9 levantamento 2026-05-26 — mass-assign dropa silenciosamente). O Observer
-    // resolve via fallback `$so->vehicle?->contact_id`, então ancoramos lá.
+    // contact_id ancorado no VEÍCULO de propósito: este teste exercita o FALLBACK
+    // do Observer `$so->vehicle?->contact_id` (OS sem contact_id próprio). Desde o
+    // sweep ADR 0265 (2026-06-09) `ServiceOrder.$fillable` JÁ inclui contact_id —
+    // mas aqui mantemos a âncora no veículo pra cobrir o caminho de resolução indireta.
     $contactId = Contact::withoutGlobalScopes()
         ->where('business_id', $biz)
         ->value('id') ?? 1;

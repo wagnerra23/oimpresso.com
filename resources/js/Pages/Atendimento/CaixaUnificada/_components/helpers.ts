@@ -59,6 +59,19 @@ export interface AccountItem {
 }
 
 /**
+ * US-WA-308 — canal ATIVO cuja sessão caiu (banner "religar" no topo da Caixa).
+ * Prop eager `unhealthyChannels` — health convergido pelo cron `whatsmeow:health-probe`.
+ */
+export interface UnhealthyChannel {
+  id: number;
+  label: string;
+  type: string;
+  channel_health: string;
+  last_health_message: string | null;
+  last_health_check_at: string | null;
+}
+
+/**
  * Fila — derivada (não persiste em DB). Heurística tag → fila no Controller.
  */
 export interface QueueDerived {
@@ -75,11 +88,39 @@ export interface QueueConfig {
   trigger_tags?: string[];
 }
 
+/**
+ * US-WA-301 (ADR 0267) — row completa de `whatsapp_queues` pro painel Filas
+ * (QueuesSheet CRUD). `dist`/`members` persistidos; roteamento automático é
+ * US futura.
+ */
+export interface QueueAdminItem {
+  id: number;
+  slug: string;
+  label: string;
+  hue: number;
+  sla_minutes: number | null;
+  sla: string | null;
+  dist: string;
+  trigger_tags: string[];
+  sort_order: number;
+  is_default: boolean;
+}
+
 export interface ConvTag {
   id: number;
   slug: string;
   label: string;
   color: string;
+}
+
+/**
+ * US-WA-302 — operador atribuível (assignee picker da sidebar).
+ * Payload `availableAssignees` do CaixaUnificadaController (Tier 0 — só
+ * users do business atual com acesso whatsapp).
+ */
+export interface AssigneeItem {
+  id: number;
+  name: string;
 }
 
 export interface CaixaUnifConversation {
@@ -114,11 +155,16 @@ export interface CaixaUnifThread {
   contact_name: string;
   status: string;
   is_blocked: boolean;
+  /** US-WA-302 — assignee picker (null = sem atribuição) */
+  assigned_user_id: number | null;
+  assigned_user_name: string | null;
   last_inbound_at: string | null;
   last_message_at: string | null;
   created_at: string | null;
   tags: ConvTag[];
   queue: QueueDerived;
+  /** US-WA-305 — true quando a fila vem de override manual (não da heurística). */
+  queue_is_override: boolean;
   preview_only: boolean;
 }
 
@@ -268,7 +314,119 @@ export const CU_LS = {
   QUEUE: 'oimpresso.caixa-unif.queue',
   SEARCH: 'oimpresso.caixa-unif.search',
   SIDEBAR_COLLAPSED: 'oimpresso.caixa-unif.sidebar_collapsed',
+  /** Polish V2 §6 — favoritos per-user per-browser (sem DB, sem leakage cross-tenant) */
+  FAVORITES: 'oimpresso.caixa-unif.favorites',
 } as const;
+
+/**
+ * Polish V2 §1 — inverso de WhatsappQueue::slaHuman ("1h"/"4h"/"45min"/"1h30" → minutos).
+ */
+export function parseSlaMinutes(sla: string | null | undefined): number | null {
+  if (!sla) return null;
+  const m = sla.trim().match(/^(?:(\d+)h)?(?:(\d+)(?:min)?)?$/);
+  if (!m) return null;
+  const minutes = (Number(m[1] ?? 0)) * 60 + Number(m[2] ?? 0);
+  return minutes > 0 ? minutes : null;
+}
+
+// Onda 2 — 4 níveis espelhando `.om-sla-pill` do protótipo (fresh/aging/late/expired).
+export type SlaState = 'fresh' | 'aging' | 'late' | 'expired' | null;
+
+/**
+ * Minutos que o cliente está esperando 1ª resposta. `null` quando não está
+ * esperando (atendente respondeu por último) ou sem timestamp inbound.
+ */
+export function slaWaitedMin(conv: {
+  last_message_direction: 'inbound' | 'outbound' | null;
+  last_inbound_at: string | null;
+}): number | null {
+  if (conv.last_message_direction !== 'inbound' || !conv.last_inbound_at) return null;
+  return (Date.now() - new Date(conv.last_inbound_at).getTime()) / 60000;
+}
+
+/** Duração compacta pra pill SLA: "12min" / "3h" / "2d". */
+export function slaWaitedShort(min: number): string {
+  if (min < 60) return `${Math.max(1, Math.round(min))}min`;
+  if (min < 1440) return `${Math.round(min / 60)}h`;
+  return `${Math.round(min / 1440)}d`;
+}
+
+/**
+ * Estado do SLA de 1ª resposta (4 níveis). Só conta enquanto o cliente espera
+ * (`last_message_direction === 'inbound'`) — quando o atendente responde, o
+ * relógio para. Limiares sobre o SLA da fila: fresh <60% · aging 60–90% ·
+ * late 90–100% · expired ≥100%.
+ */
+export function slaState(conv: {
+  last_message_direction: 'inbound' | 'outbound' | null;
+  last_inbound_at: string | null;
+  queue: { sla: string | null };
+}): SlaState {
+  const waitedMin = slaWaitedMin(conv);
+  if (waitedMin === null) return null;
+  const slaMin = parseSlaMinutes(conv.queue.sla);
+  if (slaMin === null) return null;
+  const pct = waitedMin / slaMin;
+  if (pct >= 1) return 'expired';
+  if (pct >= 0.9) return 'late';
+  if (pct >= 0.6) return 'aging';
+  return 'fresh';
+}
+
+/**
+ * Meta visual da pill SLA por estado — classes Tailwind dark-safe via tokens.
+ * `late` (laranja, hue 30) não tem token → oklch arbitrário dark-aware (flipa
+ * via ADR 0281); os demais usam success/warning/destructive. `pill` traz só
+ * bg+texto+cor-da-borda (o `border` em si vem no render).
+ */
+// `pill` = header (pastel SÓLIDO, canon `.om-sla-pill`); `pillSm` = lista
+// (SÓ contorno, sem fundo — canon `.om-list li .om-sla-pill.sm`). O `bg/15`
+// translúcido do expired deixava a pill lavada/"desfocada" na lista.
+export const SLA_META: Record<Exclude<SlaState, null>, { label: string; pill: string; pillSm: string; dot: string; pulse: boolean }> = {
+  fresh: {
+    label: 'no prazo',
+    pill: 'bg-success-soft text-success-fg border-success/40',
+    pillSm: 'text-success-fg border-success/50',
+    dot: 'bg-success',
+    pulse: false,
+  },
+  aging: {
+    label: 'atenção',
+    pill: 'bg-warning-soft text-warning-fg border-warning/40',
+    pillSm: 'text-warning-fg border-warning/50',
+    dot: 'bg-warning',
+    pulse: true,
+  },
+  late: {
+    label: 'atrasando',
+    pill: 'bg-[oklch(0.94_0.07_30)] text-[oklch(0.45_0.16_30)] border-[oklch(0.84_0.09_30)] dark:bg-[oklch(0.30_0.06_30)] dark:text-[oklch(0.82_0.13_30)] dark:border-[oklch(0.42_0.08_30)]',
+    pillSm: 'text-[oklch(0.45_0.16_30)] border-[oklch(0.80_0.12_30)] dark:text-[oklch(0.82_0.13_30)] dark:border-[oklch(0.45_0.10_30)]',
+    dot: 'bg-[oklch(0.62_0.18_30)]',
+    pulse: true,
+  },
+  expired: {
+    label: 'estourado',
+    pill: 'bg-destructive-soft text-destructive-fg border-destructive/40',
+    pillSm: 'text-destructive-fg border-destructive/50',
+    dot: 'bg-destructive',
+    pulse: true,
+  },
+};
+
+// Onda 3 — contexto comercial do cliente da conversa (Saldo + Histórico),
+// agregado server-side de `transactions` (CaixaUnificadaController). `linked`
+// false = conversa sem Contact CRM vinculado.
+export interface CustomerContext {
+  linked: boolean;
+  sells_count: number;
+  ltv: number;
+  saldo_aberto: number;
+}
+
+/** Formata BRL pt-BR sem centavos (valores agregados): 1420 → "R$ 1.420". */
+export function formatBRL(value: number): string {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+}
 
 export function cuLsGet(key: string, fallback = ''): string {
   if (typeof window === 'undefined') return fallback;

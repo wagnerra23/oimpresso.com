@@ -6,7 +6,8 @@ import { cn } from '@/Lib/utils';
 
 export interface ServiceOrderStatusBadgeProps {
   status: string;
-  orderType?: 'locacao' | 'manutencao' | null;
+  // ADR 0265: domínio = reparo — order_type ∈ {manutencao, mecanica}
+  orderType?: 'manutencao' | 'mecanica' | null;
   isOverdue?: boolean;
   className?: string;
 }
@@ -16,12 +17,12 @@ interface BadgeStyle {
   classes: string;
 }
 
-function resolveBadge({ status, orderType, isOverdue }: ServiceOrderStatusBadgeProps): BadgeStyle {
-  // Atrasada tem prioridade visual máxima.
-  if (isOverdue && orderType === 'locacao' && !['concluida', 'cancelada'].includes(status)) {
+function resolveBadge({ status, isOverdue }: ServiceOrderStatusBadgeProps): BadgeStyle {
+  // Atrasada tem prioridade visual máxima (qualquer tipo de reparo ativo).
+  if (isOverdue && !['concluida', 'cancelada', 'entregue'].includes(status)) {
     return {
-      label: 'Atrasada · cobrar',
-      classes: 'bg-rose-100 text-rose-700 border-rose-300',
+      label: 'Atrasada',
+      classes: 'bg-destructive-soft text-destructive-fg border-destructive/20',
     };
   }
 
@@ -35,7 +36,7 @@ function resolveBadge({ status, orderType, isOverdue }: ServiceOrderStatusBadgeP
   if (status === 'cancelada') {
     return {
       label: 'Cancelada',
-      classes: 'bg-slate-100 text-slate-600 border-slate-200',
+      classes: 'bg-muted text-muted-foreground border-border',
     };
   }
   if (status === 'entregue') {
@@ -45,20 +46,12 @@ function resolveBadge({ status, orderType, isOverdue }: ServiceOrderStatusBadgeP
     };
   }
 
-  // Estados ativos — combina com tipo.
-  if (orderType === 'locacao') {
-    return {
-      label: 'Em locação',
-      classes: 'bg-blue-50 text-blue-700 border-blue-200',
-    };
-  }
-
-  // Manutenção ou tipo desconhecido — diferencia pelo status.
+  // Estados ativos — diferencia pelo status (FSM reparo).
   switch (status) {
     case 'aberta':
       return {
         label: 'Aberta',
-        classes: 'bg-slate-50 text-slate-700 border-slate-200',
+        classes: 'bg-muted text-muted-foreground border-border',
       };
     case 'orcamento':
       return {
@@ -83,7 +76,7 @@ function resolveBadge({ status, orderType, isOverdue }: ServiceOrderStatusBadgeP
     default:
       return {
         label: status,
-        classes: 'bg-slate-100 text-slate-700 border-slate-200',
+        classes: 'bg-muted text-muted-foreground border-border',
       };
   }
 }

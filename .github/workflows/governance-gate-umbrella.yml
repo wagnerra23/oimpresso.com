@@ -39,3 +39,54 @@ jobs:
         run: node scripts/governance/memory-health.mjs
       - name: Meta-teste dos scripts de governança (controle-negativo)
         run: npm run test:adr-governance
+      - name: Meta-teste dos checks G/H/I do memory-health (Onda Q5 — controle-negativo)
+        run: npm run test:memory-health
+      - name: Teste canário do gerador de planos (controle-negativo · ADR 0294)
+        run: node scripts/governance/plans-index.test.mjs
+      - name: Índice de Planos em dia (advisory · ADR 0294 · nasce advisory ADR 0271)
+        continue-on-error: true
+        run: node scripts/governance/plans-index.mjs --check
+      # ADVISORY (GT-G5 · ledger §D): refutação adversarial de lote-IA de BRIEFINGs/SPECs
+      # (PROTOCOLO-REFUTADOR-BACKFILL). Sem --enforce → exit 0 sempre nesta fase; promover a
+      # required = adicionar --enforce após o protocolo assentar. Só em PR (precisa nº + base_ref).
+      - name: ledger-check — refutação de lote IA (advisory · GT-G5)
+        if: github.event_name == 'pull_request'
+        run: node scripts/governance/ledger-check.mjs --pr ${{ github.event.pull_request.number }} --base origin/${{ github.base_ref }} --head HEAD
+        continue-on-error: true
+      # ADVISORY (nasce sem morder — ONDAS-QUALIDADE regra 2): controle-negativo do
+      # auditor de corruptores SQLite (sensibilidade + especificidade). Promover a
+      # required = remover continue-on-error após 2 verdes. Ref: sessão 2026-06-15.
+      - name: Meta-teste do auditor de corruptores SQLite (advisory · 2 lados)
+        run: npm run test:sqlite-corruptors
+        continue-on-error: true
+      # ADVISORY (US-GOV-021 · nasce sem morder — ONDAS-QUALIDADE regra 2 + ADR 0275):
+      # roda o AUDITOR EM SI (`--strict`), não só o meta-teste do classifier. Hoje há
+      # 11 corruptores tier A restantes → exit 1; por isso continue-on-error pra não
+      # travar PR não-relacionado. Promover a REQUIRED (remover continue-on-error) só
+      # quando `corruptors=0` (todos os 18 isolados) + 2 verdes consecutivos. A partir
+      # daí, qualquer PR que reintroduza um drop não-guardado de tabela compartilhada
+      # → exit 1. Counterfactual provado em US-GOV-021 (Schema::drop('business') solto
+      # → corruptsOnMysql=true tier S; reverter → null/exit 0).
+      - name: Auditor de corruptores SQLite — gate (advisory · US-GOV-021 · promover a required em corruptors=0)
+        run: node scripts/audit/sqlite-test-corruptors.mjs --strict --tier=A
+        continue-on-error: true
+
+  # Segredo NOVO em QUALQUER arquivo do diff (API key, token, senha) — fecha o gap
+  # entre o memory-health (só memory/) e o secrets:audit (só scheduled, não barra PR).
+  # Job SEPARADO de propósito: check context próprio ("Secret scan ...") nasce
+  # ADVISORY (método faseado ADR 0271 — promover a required via gh api após ~2
+  # semanas sem falso-positivo). Always-run sem paths = required-ready desde já.
+  # gitleaks-action escaneia só os COMMITS do PR (linhas adicionadas) — segredos
+  # históricos já catalogados (incidente memory/claude) NÃO flagam a menos que o PR
+  # os toque. Falso-positivo (fixture fake etc) → allowlist em .gitleaks.toml na raiz.
+  # Licença: GITLEAKS_LICENSE só é exigida em repo de ORG — wagnerra23 é user account.
+  secret-scan:
+    name: Secret scan (gitleaks · só linhas novas do PR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

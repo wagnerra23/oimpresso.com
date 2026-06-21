@@ -25,6 +25,19 @@ declare(strict_types=1);
  *   - selectedIds reseta quando filtro muda
  *
  * Refs: ADR 0136 (Sells Grade Avançada toggle), ADR 0093 (multi-tenant Tier 0).
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() de frontend que
+ * leem `SellsBulkActionsBar.tsx` / `SellsGradeAvancada.tsx` (DELETADOS) e o markup
+ * de `Index.tsx` já refatorado (handlers `totals=`/`onToggleSelect=`/effect de
+ * reset removidos). file_get_contents num componente ausente falha; NÃO é bug de
+ * produto. Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * 🔴 Os it() de BACKEND (bulkPrint/bulkExport/totals) e ROTAS abaixo PERMANECEM
+ * ATIVOS — são guards Tier-0/segurança VIVOS que PASSAM HOJE: scope business_id
+ * ANTES do WHERE IN (cross-tenant fail-secure ADR 0093), permission gate abort(403),
+ * sanitização intval de IDs (anti-SQL-injection/type-juggling), whitelist de colunas,
+ * anti-DoS 200. Silenciá-los violaria "multi-tenant Tier 0 IRREVOGÁVEL".
  */
 
 const SELL_CONTROLLER_PATH_BULK = 'app/Http/Controllers/SellController.php';
@@ -45,12 +58,22 @@ function readRoutesBulk(): string
 
 function readBulkBar(): string
 {
-    return file_get_contents(base_path(BULK_BAR_PATH));
+    $path = base_path(BULK_BAR_PATH);
+    if (!file_exists($path)) {
+        test()->markTestSkipped('SellsBulkActionsBar.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readGradeAvancada(): string
 {
-    return file_get_contents(base_path(GRADE_PATH_BULK));
+    $path = base_path(GRADE_PATH_BULK);
+    if (!file_exists($path)) {
+        test()->markTestSkipped('SellsGradeAvancada.tsx não encontrado (legacy-quarantine: componente deletado)');
+    }
+
+    return (string) file_get_contents($path);
 }
 
 function readIndexBulk(): string
@@ -192,17 +215,20 @@ it('Route POST /sells/bulk-export registrada com nome canon', function () {
 
 it('SellsBulkActionsBar.tsx existe', function () {
     expect(file_exists(base_path(BULK_BAR_PATH)))->toBeTrue();
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar tem botão Imprimir seleção (PT-BR copy)', function () {
     $src = readBulkBar();
     expect($src)->toContain('Imprimir seleção');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar tem botão Exportar CSV (PT-BR copy)', function () {
     $src = readBulkBar();
     expect($src)->toContain('Exportar CSV');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar tem dropdown "Agrupar por…" HABILITADO via SellsGroupByDropdown (US-SELL-019)', function () {
     // Atualizado 2026-05-12 — US-SELL-019 substitui o botão disabled "P1 — em breve"
@@ -213,63 +239,74 @@ it('SellsBulkActionsBar tem dropdown "Agrupar por…" HABILITADO via SellsGroupB
     expect($src)->toContain('variant="bar"');
     // Garante que disabled "P1 — em breve" foi removido
     expect($src)->not->toContain('P1 — em breve');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar usa endpoint POST /sells/bulk-print', function () {
     $src = readBulkBar();
     expect($src)->toContain('/sells/bulk-print');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar usa endpoint POST /sells/bulk-export', function () {
     $src = readBulkBar();
     expect($src)->toContain('/sells/bulk-export');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar inclui CSRF token em requests', function () {
     $src = readBulkBar();
     expect($src)->toContain('csrf-token');
     expect($src)->toContain('X-CSRF-TOKEN');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsBulkActionsBar tem botão "Limpar" seleção', function () {
     $src = readBulkBar();
     expect($src)->toContain('Limpar');
     expect($src)->toContain('onClearSelection');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Frontend: SellsGradeAvancada.tsx (multiseleção + tfoot) ────────────────
 
 it('SellsGradeAvancada importa Checkbox shadcn', function () {
     $src = readGradeAvancada();
     expect($src)->toContain("from '@/Components/ui/checkbox'");
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada renderiza checkbox header (selecionar todas)', function () {
     $src = readGradeAvancada();
     expect($src)->toContain('onToggleSelectAll');
     expect($src)->toContain('Selecionar todas');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada renderiza checkbox por linha', function () {
     $src = readGradeAvancada();
     expect($src)->toContain('onToggleSelect');
     expect($src)->toMatch('/Selecionar venda/');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada importa SellsBulkActionsBar', function () {
     $src = readGradeAvancada();
     expect($src)->toContain("from './SellsBulkActionsBar'");
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada importa SellsTotalsRow (US-SELL-017)', function () {
     $src = readGradeAvancada();
     expect($src)->toContain("from './SellsTotalsRow'");
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('SellsGradeAvancada renderiza coluna A receber (4ª coluna money)', function () {
     $src = readGradeAvancada();
     expect($src)->toContain('A receber');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Frontend: Index.tsx (lift state up) ────────────────────────────────────
 
@@ -282,7 +319,8 @@ it('Index.tsx limpa selectedIds quando filtro/busca/date_field muda (anti-confus
     $src = readIndexBulk();
     // Pattern: useEffect(() => { setSelectedIds(new Set()); }, [statusFilter, search, dateField]);
     expect($src)->toMatch('/setSelectedIds\\(new\\s+Set\\(\\)\\)[\\s\\S]*?\\[statusFilter,\\s*search,\\s*dateField\\]/');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx passa props pra SellsGradeAvancada (rows, totals, selectedIds, handlers)', function () {
     $src = readIndexBulk();
@@ -290,7 +328,8 @@ it('Index.tsx passa props pra SellsGradeAvancada (rows, totals, selectedIds, han
     expect($src)->toContain('totals={totals}');
     expect($src)->toContain('onToggleSelect={handleToggleSelect}');
     expect($src)->toContain('onToggleSelectAll={handleToggleSelectAll}');
-});
+    // quarantine-reason: SellsBulkActionsBar.tsx/SellsGradeAvancada.tsx deletados + handlers totals=C:/Program Files/Git/onToggleSelect=/effect reset removidos do Index.tsx (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('Index.tsx captura totals do JSON response', function () {
     $src = readIndexBulk();

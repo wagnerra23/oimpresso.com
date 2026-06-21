@@ -1,9 +1,10 @@
 ---
-page: Admin/ScreenReview
+page: /admin/screen-review
+component: resources/js/Pages/Admin/ScreenReview.tsx
 controller: Modules\Admin\Http\Controllers\ScreenReviewController@index
 route: admin.screen-review
 status: draft
-owner: [W] Wagner
+owner: wagner
 persona_principal: Wagner / governance + PDCA loop visual telas (1440px desktop)
 persona_secundaria: Claude Code (lê reviews pra próximo round F1.5)
 charter_version: 1.0

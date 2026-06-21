@@ -1,6 +1,11 @@
 /node_modules
 /public/hot
 /public/storage
+
+# Estação de ingestão de design (plano vectorized-badger PR-2): staging volátil
+# do unzip + artefatos preparados (PLANO-MUDANCAS, SESSION). Read-view efêmera,
+# nunca canon — o que vira verdade entra via prototipos/<tela>/ sob gate Wagner.
+/prototipo-ui/_incoming/
 /storage/*.key
 /storage/
 /vendor
@@ -76,3 +81,21 @@ tests/eval/results/*.json
 # Cache/scratch local — NÃO versionar (design fetch + prancheta de design-grading)
 /_design_fetch/
 /_preview/
+
+# Test-results JUnit (Salto #2 / G-7) — efêmero; o manifesto derivado (scripts/casos-test-results.json) é o que se commita
+test-results/
+playwright-report/
+
+# Artefato transitório do validador de schema de memória — escrito no CWD por
+# .github/scripts/validate-memory-schema.sh; o workflow memory-schema-gate.yml
+# também o gera e faz upload como artefato CI-only. Não versionar.
+violations.json
+
+# Floor do nightly (ADR 0279 transporte Opção A): vive na branch órfã
+# governance/nightly-floor (escrito pelo write-side CT100); o scorecard o
+# MATERIALIZA no CWD em CI antes de medir. Nunca versionado no main.
+governance/nightly-floor.json
+
+# Scratch/runtime de sessao — nunca versionar (cleanup ds-rollout 2026-06-20)
+.claude/run/
+prototipo-ui/_inbox-onda2/

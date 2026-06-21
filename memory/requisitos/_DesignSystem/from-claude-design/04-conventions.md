@@ -69,7 +69,7 @@ morreu_porque: "Convenções importadas do projeto PontoWr2 legado; cita Laravel
 ## Testes
 
 - **PHPUnit** para unit e feature
-- Localização: `Modules/PontoWr2/Tests/{Unit,Feature}/`
+- Localização: `Modules/Ponto/Tests/{Unit,Feature}/`
 - Nome: `ApurarDiaTest.php`, métodos `test_apura_dia_sem_marcacoes_retorna_falta_integral`
 - Cobertura mínima obrigatória: regras CLT em `ApuracaoService`
 

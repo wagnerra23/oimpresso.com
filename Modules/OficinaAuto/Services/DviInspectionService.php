@@ -73,6 +73,8 @@ class DviInspectionService
             );
         }
 
+        // SUPERADMIN: Service não confia em session (defesa em profundidade) — cria com
+        // business_id explícito já validado contra a OS dona (Tier 0, ADR 0093).
         return OaInspectionItem::withoutGlobalScopes()->create([
             'business_id'        => $businessId,
             'service_order_id'   => $serviceOrderId,
@@ -126,6 +128,8 @@ class DviInspectionService
      */
     public function totalRecomendado(int $serviceOrderId): float
     {
+        // SUPERADMIN: agregado controlado por service_order_id (OS já é business-scoped
+        // pelo caller) — Service não depende de session (Tier 0, ADR 0093).
         $total = OaInspectionItem::withoutGlobalScopes()
             ->where('service_order_id', $serviceOrderId)
             ->whereIn('severity', OaInspectionItem::SEVERIDADES_RECOMENDAVEIS)
@@ -142,6 +146,8 @@ class DviInspectionService
      */
     public function listarOrdenado(int $serviceOrderId): Collection
     {
+        // SUPERADMIN: filtro estrito por service_order_id (OS já é business-scoped pelo
+        // caller) — Service não depende de session (Tier 0, ADR 0093).
         return OaInspectionItem::withoutGlobalScopes()
             ->where('service_order_id', $serviceOrderId)
             ->whereNull('deleted_at')

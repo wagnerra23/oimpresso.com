@@ -8,6 +8,7 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
+use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
@@ -23,6 +24,8 @@ use Modules\Jana\Services\TaskRegistry\TaskCrudService;
  */
 class TasksUpdateTool extends Tool
 {
+    use AuthorizesMcpMutation;
+
     protected string $name = 'tasks-update';
 
     protected string $title = 'Atualizar task (status/owner/sprint/priority)';
@@ -45,6 +48,8 @@ class TasksUpdateTool extends Tool
                 ->description('Nova prioridade: p0|p1|p2|p3'),
             'module' => $schema->string()
                 ->description('Mover task pra outro módulo (ex: COPI→JANA pós-rename ADR 0088). Use uppercase.'),
+            'acceptance_ref' => $schema->string()
+                ->description('Prova de DoD pra fechar a task (URL do PR / commit SHA / path de teste Pest / evidência smoke). Recomendado ao mover pra done — Fase 2 ADR 0278. Use "—" pra limpar.'),
             'author' => $schema->string()
                 ->description('Quem está fazendo a mudança (para audit log). Default: wagner.'),
         ];
@@ -59,8 +64,16 @@ class TasksUpdateTool extends Tool
 
         $author = trim((string) $request->get('author', 'wagner')) ?: 'wagner';
 
+        // A5 (ADR 0278): principal CONFIÁVEL = dono do token MCP (não o $author
+        // auto-declarado/spoofável). Alimenta o sinal de mutação claim-less no
+        // TaskCrudService. Mesmo idiom do TasksClaimTool (human_principal do lease).
+        $user = $request->user();
+        $principal = $user !== null
+            ? (string) ($user->username ?? $user->email ?? ('user#' . $user->getAuthIdentifier()))
+            : null;
+
         $campos = [];
-        foreach (['status', 'owner', 'sprint', 'priority', 'module'] as $field) {
+        foreach (['status', 'owner', 'sprint', 'priority', 'module', 'acceptance_ref'] as $field) {
             $val = $request->get($field);
             if ($val !== null) {
                 $v = trim((string) $val);
@@ -88,8 +101,20 @@ class TasksUpdateTool extends Tool
             return Response::text('❌ Priority inválida. Válidas: p0, p1, p2, p3.');
         }
 
+        // A3 (ADR 0070/0278) — scope FINO advance vs close. Fechar (status→done/
+        // cancelled) é transição terminal → exige jana.mcp.tasks.close; qualquer
+        // outra mutação → jana.mcp.tasks.advance. Backward-safe: o umbrella legado
+        // jana.mcp.tasks.write autoriza AMBOS (tokens existentes não quebram).
+        // Checado AQUI (não no topo) porque advance/close depende do status parseado.
+        $terminal = isset($campos['status']) && in_array($campos['status'], ['done', 'cancelled'], true);
+        $scope = $terminal ? 'jana.mcp.tasks.close' : 'jana.mcp.tasks.advance';
+        $deny = $this->authorizeMcpMutation($request, $scope);
+        if ($deny !== null && $this->authorizeMcpMutation($request, 'jana.mcp.tasks.write') !== null) {
+            return $deny; // sem o scope fino E sem o umbrella legado → nega
+        }
+
         try {
-            $result = app(TaskCrudService::class)->update($taskId, $campos, $author);
+            $result = app(TaskCrudService::class)->update($taskId, $campos, $author, $principal);
         } catch (\Throwable $e) {
             return Response::text('❌ ' . $e->getMessage());
         }

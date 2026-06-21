@@ -34,6 +34,20 @@ function field(fm, key) {
   const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'mi'));
   return m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
 }
+// Decodifica scalar YAML `!!binary <base64>` (PyYAML codificou ~56 titulos de ADR
+// legados, com chars especiais, como binario). Sem isto o indice mostra o base64 cru.
+// O byte-prefix corrompido (em-dash quebrado vira U+FFFD) e podado ate a 1a letra.
+function decodeBinaryScalar(val) {
+  const m = val.match(/^!!binary\s+(\S+)/);
+  if (!m) return val;
+  try {
+    const s = Buffer.from(m[1], 'base64').toString('utf8');
+    const clean = s.replace(/^[�‐-―\s]+/, '').trim();
+    return clean || val;
+  } catch {
+    return val;
+  }
+}
 function numbersFrom(fm, key) {
   // captura [0028] inline OU lista multilinha "- '0028'".
   // Pega só o nº do ITEM (após [ ou após -), ignorando comentários (#) e anos/hues
@@ -51,17 +65,19 @@ for (const file of readdirSync(join(ROOT, DIR)).sort()) {
   if (!m) continue;
   const [num, slug] = [m[1], `${m[1]}-${m[2]}`];
   const txt = readFileSync(join(ROOT, DIR, file), 'utf8');
-  let rec = { num, slug, title: '', status: '', lifecycle: '', kind: 'decision', supersedes: [], superseded_by: [], hasFrontmatter: false };
+  let rec = { num, slug, title: '', status: '', lifecycle: '', kind: 'decision', supersedes: [], superseded_by: [], rejected_at: '', rejected_reason: '', hasFrontmatter: false };
   if (txt.startsWith('---')) {
     const end = txt.indexOf('\n---', 3);
     const fm = end === -1 ? txt : txt.slice(0, end);
     rec.hasFrontmatter = true;
-    rec.title = field(fm, 'title');
+    rec.title = decodeBinaryScalar(field(fm, 'title'));
     rec.status = (field(fm, 'status') || '').toLowerCase();
     rec.lifecycle = (field(fm, 'lifecycle') || '').toLowerCase();
     rec.kind = (field(fm, 'kind') || 'decision').toLowerCase();
     rec.supersedes = numbersFrom(fm, 'supersedes');
     rec.superseded_by = numbersFrom(fm, 'superseded_by');
+    rec.rejected_at = field(fm, 'rejected_at'); // o NÃO consultável (proposal recusado-com-motivo, 2026-06-11)
+    rec.rejected_reason = field(fm, 'rejected_reason');
   } else {
     // ADR formato-tabela legado (sem YAML frontmatter)
     rec.title = (txt.match(/^#\s*(.+)$/m) || [])[1] || slug;
@@ -85,6 +101,8 @@ const byStatus = tally(adrs, 'statusN');
 const byLifecycle = tally(adrs, 'lifecycleN');
 const ativos = adrs.filter((a) => a.lifecycleN === 'ativo').length;
 const semFrontmatter = adrs.filter((a) => !a.hasFrontmatter);
+// Recusadas: o NÃO consultável (proposal recusado-com-motivo, 2026-06-11) — anti-relitígio.
+const recusadas = adrs.filter((a) => a.statusN === 'recusado');
 
 // integridade de supersessão
 const exists = (n) => !!byNum[n];
@@ -97,6 +115,14 @@ for (const a of adrs) {
   }
   if ((a.statusN === 'superseded' || a.lifecycleN === 'substituido') && a.superseded_by.length === 0)
     supWarn.push(`${a.num} é superseded mas sem superseded_by (órfã)`);
+}
+// double-supersede (adversário 2026-06-20): >1 ADR herdando o MESMO número = conflito
+// de herança — duas decisões reivindicam suceder a mesma, ramo de herança ambíguo. Como
+// supWarn é GATE DURO no --check (ADR 0258), bloqueia até consolidar numa sucessora só.
+const supersededBy = {};
+for (const a of adrs) for (const t of a.supersedes) (supersededBy[t] ??= new Set()).add(a.num);
+for (const [t, srcs] of Object.entries(supersededBy)) {
+  if (srcs.size > 1) supWarn.push(`ADR ${t} é supersedida por ${srcs.size} ADRs (${[...srcs].sort().join(', ')}) → conflito de herança (double-supersede); só 1 deve suceder — consolide.`);
 }
 
 // ── render ──────────────────────────────────────────────────────────────────
@@ -119,6 +145,9 @@ ${collisions.length ? collisions.map(([n, v]) => `- **${n}** ×${v.length}: ${v.
 
 ## Integridade de supersessão (${supWarn.length} alertas)
 ${supWarn.length ? supWarn.map((w) => `- ⚠️ ${w}`).join('\n') : '_(íntegra)_'}
+
+## Recusadas (${recusadas.length}) — o NÃO consultável
+${recusadas.length ? recusadas.map((a) => `- **${a.num}** ${(a.title || a.slug).replace(/\|/g, '/').slice(0, 80)}${a.rejected_at ? ` · recusada ${a.rejected_at}` : ''}${a.rejected_reason ? ` — ${a.rejected_reason.replace(/\|/g, '/').slice(0, 120)}` : ''}`).join('\n') : '_(nenhuma — nenhum pedido recusado catalogado ainda)_'}
 
 ## Todas as ADRs (${adrs.length})
 | Nº | Status | Lifecycle | Kind | Título |

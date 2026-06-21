@@ -15,7 +15,9 @@ declare(strict_types=1);
  *    multi-tenant Tier 0 scoped biz=1).
  *
  * Refs:
- *  - app/Http/Controllers/SellController.php::buildCoworkAggregates
+ *  - app/Services/Sells/SellsCockpitAggregator.php::buildCoworkAggregates
+ *    (extraído de SellController; controller agora injeta o aggregator e delega)
+ *  - app/Http/Controllers/SellController.php::index (wire Inertia::defer)
  *  - resources/js/Pages/Sells/Index.tsx (sparkData + deltaRevenue + topSeller)
  *  - memory/requisitos/_DesignSystem/RUNBOOK-onda-cowork.md F4
  *  - ADR 0093 multi-tenant Tier 0 + ADR 0101 tests biz=1 nunca cliente
@@ -25,14 +27,19 @@ declare(strict_types=1);
  * NOTA: Pest do oimpresso usa SQLite in-memory (phpunit.xml) e algumas migrations
  * UltimatePOS têm sintaxe MySQL-only (ALTER TABLE ... MODIFY COLUMN ENUM(...)).
  * Por isso o behavioral biz=1 cross-tenant é validado via SMOKE PROD (Brave) + via
- * o método `buildCoworkAggregates` ser inspecionado estruturalmente abaixo
- * (Tier 0 multi-tenant: cada query Transaction tem ->where('business_id', $business_id)).
+ * o método `buildCoworkAggregates` (em App\Services\Sells\SellsCockpitAggregator) ser
+ * inspecionado estruturalmente abaixo
+ * (Tier 0 multi-tenant: cada query Transaction tem ->where('business_id', $businessId)).
  * Padrão consistente com SellsOnda3CuradoriaTest e SellsOnda4DistribuicaoTest.
  */
 
 const R5_INDEX_PATH = 'resources/js/Pages/Sells/Index.tsx';
 const R5_CONTROLLER_PATH = 'app/Http/Controllers/SellController.php';
 const R5_CSS_PATH = 'resources/css/inertia.css';
+// buildCoworkAggregates() foi EXTRAÍDO verbatim de SellController para este service
+// (App\Services\Sells\SellsCockpitAggregator — reuso em /ia/dashboard Jana V2).
+// O controller agora injeta o aggregator e delega; a lógica vive aqui.
+const R5_AGGREGATOR_PATH = 'app/Services/Sells/SellsCockpitAggregator.php';
 
 function r5Read(string $rel): string
 {
@@ -41,27 +48,28 @@ function r5Read(string $rel): string
 
 // ─── Estrutura: backend + frontend wire ─────────────────────────────
 
-it('SellController.php tem método protected buildCoworkAggregates', function () {
-    $source = r5Read(R5_CONTROLLER_PATH);
+it('SellsCockpitAggregator tem método public buildCoworkAggregates', function () {
+    $source = r5Read(R5_AGGREGATOR_PATH);
     expect($source)
-        ->toContain('protected function buildCoworkAggregates(int $business_id): array')
+        ->toContain('public function buildCoworkAggregates(int $businessId): array')
         ->toContain("'sparkline' => \$sparkline")
         ->toContain("'deltaRevenueVsYesterday' => \$deltaRevenueVsYesterday")
         ->toContain("'deltaTicketVsLastWeek' => \$deltaTicketVsLastWeek")
         ->toContain("'topSeller' => \$topSeller");
 });
 
-it('SellController index() retorna coworkAggregates via Inertia::defer', function () {
+it('SellController index() retorna coworkAggregates via Inertia::defer delegando ao aggregator', function () {
     $source = r5Read(R5_CONTROLLER_PATH);
     expect($source)
-        ->toContain("'coworkAggregates' => \\Inertia\\Inertia::defer(fn () => \$this->buildCoworkAggregates(\$business_id))");
+        ->toContain("'coworkAggregates' => \\Inertia\\Inertia::defer(fn () => \$cockpitAggregator->buildCoworkAggregates(\$business_id))");
 });
 
 it('buildCoworkAggregates respeita business_id (Tier 0 multi-tenant)', function () {
-    $source = r5Read(R5_CONTROLLER_PATH);
-    // Confirma que TODA query do método tem ->where('business_id', $business_id) explícito.
-    // grep '->where' dentro do bloco do método entre suas keys-delimitadoras:
-    $start = strpos($source, 'protected function buildCoworkAggregates(');
+    $source = r5Read(R5_AGGREGATOR_PATH);
+    // Confirma que TODA query do método tem ->where('business_id', $businessId) explícito.
+    // grep '->where' dentro do bloco do método entre suas keys-delimitadoras.
+    // Parâmetro do aggregator é $businessId (não $business_id do controller legado).
+    $start = strpos($source, 'public function buildCoworkAggregates(');
     $end = strpos($source, "\n    }\n", $start);
     expect($start)->toBeGreaterThan(0);
     expect($end)->toBeGreaterThan($start);
@@ -69,10 +77,10 @@ it('buildCoworkAggregates respeita business_id (Tier 0 multi-tenant)', function 
 
     // Conta queries Transaction + checa business_id em cada uma
     $transactionCount = substr_count($body, '\App\Transaction::where(');
-    $businessIdCount = substr_count($body, "'business_id', \$business_id");
+    $businessIdCount = substr_count($body, "'business_id', \$businessId");
     expect($transactionCount)->toBeGreaterThanOrEqual(4);
     // Cada query deve aparear com business_id (pode ter tx.business_id ou business_id)
-    expect($businessIdCount + substr_count($body, "'transactions.business_id', \$business_id"))
+    expect($businessIdCount + substr_count($body, "'transactions.business_id', \$businessId"))
         ->toBeGreaterThanOrEqual($transactionCount);
 });
 
@@ -134,21 +142,21 @@ it('CSS vd-delta-dn variante negativa registrada', function () {
 // ─── Estrutural: buildCoworkAggregates calcula correto (review do código) ──
 
 it('buildCoworkAggregates calcula sparkline em ordem cronológica (29d→hoje)', function () {
-    $source = r5Read(R5_CONTROLLER_PATH);
+    $source = r5Read(R5_AGGREGATOR_PATH);
     expect($source)
         ->toContain('for ($i = 29; $i >= 0; $i--)')
         ->toContain('$sparkline[] = (float) ($sparkByDate[$date] ?? 0.0)');
 });
 
 it('buildCoworkAggregates retorna null quando ontem == 0 (sem divisão por zero)', function () {
-    $source = r5Read(R5_CONTROLLER_PATH);
+    $source = r5Read(R5_AGGREGATOR_PATH);
     expect($source)
         ->toContain('$deltaRevenueVsYesterday = $revYesterday > 0')
         ->toContain(': null;');
 });
 
 it('buildCoworkAggregates top vendedor: month range + commission_agent não-null + sort desc', function () {
-    $source = r5Read(R5_CONTROLLER_PATH);
+    $source = r5Read(R5_AGGREGATOR_PATH);
     expect($source)
         ->toContain('->startOfMonth()')
         ->toContain('->whereNotNull(\'transactions.commission_agent\')')
@@ -157,6 +165,6 @@ it('buildCoworkAggregates top vendedor: month range + commission_agent não-null
 });
 
 it('buildCoworkAggregates concatena first_name + last_name pra topSeller.name', function () {
-    $source = r5Read(R5_CONTROLLER_PATH);
+    $source = r5Read(R5_AGGREGATOR_PATH);
     expect($source)->toContain("CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, ''))");
 });

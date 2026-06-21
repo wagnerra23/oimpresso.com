@@ -78,7 +78,7 @@ Legenda células: ✅ entrega bem · 🟡 entrega parcial · ❌ não entrega ·
 | F | Decisão | Motivo |
 |---|---------|--------|
 | F9 | P2 — quando OficinaAuto entrar em produção (sem cliente Oficina ativo hoje — [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) | Sem sinal qualificado cliente |
-| F10 (marketplace) | P2 — dep externa Modules/Marketplaces ainda em backlog | Bloqueado por outro módulo |
+| F10 (marketplace) | P2 — dep externa módulo Marketplaces (planejado — não existe) ainda em backlog | Bloqueado por outro módulo |
 | F12 (mobile) | P2 — vendedor ROTA LIVRE é Larissa dona (não delegação) | Sem urgência piloto |
 | F13 (per produto) | P2 — schema já comporta (`applies_to_line_filter`); UI completa fica P2 | Schema entregue P0; UI low-prio |
 | F14 (origem) | P3 — backlog ADR feature-wish ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) | Sem sinal cliente |

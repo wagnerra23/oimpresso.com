@@ -2,7 +2,7 @@
 //
 // Mora num módulo SEM componente (só context + hook + tipos) pra o KanbanDndProvider
 // continuar exportando só o componente default — Fast Refresh feliz
-// (react-refresh/only-export-components). Consumido por CacambaKanbanColumn.
+// (react-refresh/only-export-components). Consumido por ServiceOrderKanbanColumn.
 
 import { createContext, useContext } from 'react';
 
@@ -12,7 +12,7 @@ import { createContext, useContext } from 'react';
 export type DropVerdict = 'advance' | 'confirm' | 'blocked';
 
 // Colunas tipadas como `string` pra manter o provider genérico — consumidores
-// concretos (ex.: CacambaStatus) são subtipos de string. Consumidores que não usam
+// concretos (stage keys do FSM) são subtipos de string. Consumidores que não usam
 // o feedback (ex.: ServiceOrders/Board) ignoram o context (verdictFor → null).
 export interface KanbanDragState {
   /** Coluna de origem do card em arrasto (null quando nada arrastando). */

@@ -127,7 +127,7 @@ export function FinAnexosPanel({ tituloId }: Props) {
       </div>
 
       {errorMsg && (
-        <div className="mb-2 text-[12px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1">
+        <div className="mb-2 text-[12px] text-destructive-fg bg-destructive-soft border border-destructive/20 rounded px-2 py-1">
           {errorMsg}
         </div>
       )}

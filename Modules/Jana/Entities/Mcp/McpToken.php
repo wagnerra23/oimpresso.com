@@ -3,6 +3,7 @@
 namespace Modules\Jana\Entities\Mcp;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -21,11 +22,18 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * e expiração — essencial pra responder LGPD Art. 9º (rastreabilidade de
  * tratamento por credenciais).
  *
+ * SOFT-DELETE (2026-06-14): rotate/revoke fazem soft-delete (`deleted_at`) em vez
+ * de hard-delete — a row sobrevive pra forense LGPD e `revoked_at`/`revoked_by`
+ * são gravados junto (quem/quando). O revoke do drill-down admin
+ * (`TeamController::revokeToken`) usa `revogar()` SEM delete: o token permanece
+ * visível como "Revogado" no histórico de governança.
+ *
  * SECURITY: sha256_token NUNCA logado (já marcado em $hidden).
  */
 class McpToken extends Model
 {
     use LogsActivity;
+    use SoftDeletes;
 
     protected $table = 'mcp_tokens';
 
@@ -40,6 +48,7 @@ class McpToken extends Model
         'last_used_at' => 'datetime',
         'expires_at'   => 'datetime',
         'revoked_at'   => 'datetime',
+        'deleted_at'   => 'datetime',
     ];
 
     protected $hidden = ['sha256_token'];

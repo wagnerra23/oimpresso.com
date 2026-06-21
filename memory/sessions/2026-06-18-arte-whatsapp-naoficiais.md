@@ -1,0 +1,184 @@
+---
+date: '2026-06-18'
+topic: "Estado da arte — libs WhatsApp não-oficiais (whatsmeow/WuzAPI vs Baileys/Evolution/WAHA) + decisão evoluir-vs-trocar"
+slug: arte-whatsapp-naoficiais
+title: "Estado da arte — libs WhatsApp não-oficiais (whatsmeow/WuzAPI vs Baileys vs Evolution vs WAHA) + decisão evoluir-vs-trocar"
+type: session
+authority: advisory
+lifecycle: ativo
+session_date: '2026-06-18'
+quarter: 2026-Q2
+related:
+  - '0286'  # channel_health corroborado por mensagem real (nosso fix)
+  - '0204'  # whatsmeow daemon (WuzAPI CT 100)
+  - '0202'  # Baileys descontinuado / whatsmeow in
+  - '0096'  # Meta Cloud API direto (default universal)
+  - '0268'  # broadcast opt-in/HSM (vetor de ban)
+pii: false
+---
+
+# Estado da arte — libs WhatsApp não-oficiais (2026-06)
+
+> **Doc VIVO.** A paisagem dessas libs muda rápido (Meta muda protocolo, libs
+> ganham/perdem manutenção). Revise a cada incidente relevante de canal ou ~trimestre.
+> Última revisão: **2026-06-18** (ver "Log de revisões" no fim).
+
+> Origem: incidente 2026-06-18 — banner "WhatsApp · Suporte fora do ar" falso na
+> Caixa/Atendimento. Verificação ao vivo no daemon CT 100 provou o canal **no ar**
+> (logado, ~48 msg/h, webhook 200). Disparou esta pesquisa: estamos no melhor stack
+> não-oficial? Ver [ADR 0286](../decisions/0286-channel-health-corroborado-por-mensagem-real.md).
+
+## Veredito
+
+**A base (whatsmeow) é a melhor entre as não-oficiais — a escolha está certa.** O elo
+fraco não é o whatsmeow, é o *wrapper* **WuzAPI** (asternic): simples, mantido por ~1
+dev, e — confirmado na doc — **não expõe o evento `LoggedOut`** (raiz do nosso falso
+"fora do ar"). O concorrente que resolve isso melhor é o **WAHA**, que roda o *mesmo*
+whatsmeow no motor GOWS, porém com API madura e multi-motor. Evolution/Baileys = mais
+instáveis e/ou maior risco — não são upgrade.
+
+## Tabela 1 — stacks não-oficiais
+
+| Stack | Base / protocolo | Ling. | Estabilidade sessão | REST pronto | Ponto fraco crítico | Ban (uso bulk) |
+|---|---|---|---|---|---|---|
+| **whatsmeow** (lib) | WA multidevice nativo | Go | ★★★★☆ a mais estável; pouco memory-leak/auto-logout | não (é lib) | exige tratar eventos você mesmo | 🔴 2–8 sem |
+| **WuzAPI** ← *nosso wrapper* | whatsmeow | Go | herda whatsmeow | sim (simples) | **não assina `LoggedOut`; sem "All"** → sessão zumbi invisível; manutenção 1-dev | 🔴 2–8 sem |
+| **Baileys** | WA multidevice (WebSocket) | TS/Node | ★★★☆☆ auto-logout + memory-leak a escala | não (lib) | menos estável que whatsmeow | 🔴 2–8 sem |
+| **Evolution API** | Baileys (+Cloud API opcional) | TS/Node | ★★☆☆☆ "instance stuck", sync perdido pós-reboot, erro 515 | sim (completo) | instabilidade recorrente; **PROIBIDO Tier 0** (ADR 0096) | 🔴 alta |
+| **WAHA** | 3 motores: **GOWS=whatsmeow** / NOWEB=Baileys / WEBJS=browser | Go+Node | ★★★★☆ (GOWS) | sim (Docker 1-click, polido) | **Core = 1 sessão só** (multi-sessão = Plus pago); +1 dependência | 🔴 alta (menor no WEBJS) |
+| **wppconnect / Venom** | WA Web (browser/puppeteer) | TS/Node | ★★★☆☆ | sim | pesado (Chromium/sessão) | 🟠 1–3 meses (browser dura+) |
+| **Cloud API (Meta)** | oficial | — | ★★★★★ | oficial | custo/conversa + verificação Business | 🟢 ~zero |
+
+## Tabela 2 — problemas × soluções
+
+| # | Problema | Camada | Causa raiz | Solução | Status oimpresso |
+|---|---|---|---|---|---|
+| 1 | Banner "fora do ar" falso | app | confia no `loggedIn` do WuzAPI | corroborar com **inbound real** | ✅ ADR 0286 / PR #2985 |
+| 2 | "Sessão ativa" pintado de erro | app | contrato `paired` ≠ `connected` | unificar vocabulário | ✅ PR #2984 (mergeado) |
+| 3 | **WuzAPI não repassa `LoggedOut`** | wrapper | só assina Message/ReadReceipt/HistorySync/ChatPresence (+Connected/Disconnected) | (a) probe periódico ✓ · (b) **WAHA-GOWS** · (c) fork WuzAPI add evento | 🟡 mitigado; raiz aberta |
+| 4 | Sessão zumbi (connected sem fluxo) | lib/protocolo | logout remoto não capturado | **health por mensagem real** | ✅ ADR 0286 |
+| 5 | Ban por bulk/uniforme | protocolo | detecção 4 camadas: fingerprint · cadência robótica · denúncia · IP | jitter humano + opt-in + HSM + não-bulk; volume crítico → Cloud API | 🟡 broadcast opt-in/HSM (ADR 0268); disparo fase 2 pendente |
+| 6 | Memory-leak / auto-logout | lib | conhecido no **Baileys** | já estamos no whatsmeow | ✅ N/A (escolha certa) |
+| 7 | Meta muda protocolo e quebra | protocolo | toda lib é reverse-eng | manter lib atualizada + **fallback Cloud API** | 🟡 roadmap US-WA-310 |
+| 8 | "Sua conta pode estar em risco" | protocolo | afeta whatsmeow **e** Baileys (é o método, não a lib) | reduzir sinais; contas críticas no oficial | 🟡 estratégico |
+
+## Evoluir vs Trocar — análise sincera
+
+**A pergunta certa não é "trocar de lib", é "trocar de wrapper".** A lib base
+(whatsmeow) é a *mesma* no WuzAPI e no WAHA-GOWS. Logo:
+- Trocar pra **Baileys/Evolution** = downgrade (menos estável, mesmo/maior ban; Evolution é Tier 0 proibido). **Descartado.**
+- Trocar pra **WAHA** = na real é trocar o **wrapper**, mantendo a base. Risco menor que trocar de lib, mas ainda é **reescrever a ponte** (driver + reconciler + ingestão de webhook + provisioning + QR + mapeamento multi-tenant).
+- **Evoluir** = manter WuzAPI + camada de app (dor aguda já resolvida) + opcional fechar a raiz.
+
+| Critério | Evoluir (WuzAPI + app) | Migrar wrapper (WAHA-GOWS) |
+|---|---|---|
+| Base / protocolo / ban | whatsmeow | whatsmeow — **zero ganho aqui** |
+| Dor aguda (falso fora do ar) | ✅ já resolvida no app | resolvida nativa |
+| Raiz `LoggedOut` | mitigada por probe; patch WuzAPI possível | **nativo (ganho real)** |
+| Multi-engine (WEBJS p/ ban) | ❌ não tem | ✅ hedge |
+| Sustentabilidade da dependência | WuzAPI = 1 dev, comunidade pequena (**risco**) | devlikeapro, backing comercial |
+| Custo | grátis | WAHA Plus pago (multi-sessão) |
+| Esforço de migração | ~0 (já investido) | **alto** (reescrever WhatsmeowDriver + Reconciler ADR 0206 + webhook + QR + Tier 0) |
+| Risco de migração | baixo | médio-alto (regredir a ponte que já funciona) |
+
+**Conclusão honesta: EVOLUIR agora; WAHA é plano B com POC time-boxed.** O que doeu
+(falso fora do ar) já foi corrigido no app, *independente* do wrapper. O ganho real do
+WAHA (LoggedOut nativo + multi-engine) não justifica, hoje, reescrever uma ponte que
+funciona. "Copiar WAHA" no bom sentido = adotar os **padrões** dele sem migrar: eventos
+de ciclo de sessão completos (incl. logout), endpoint de health, multi-engine como
+conceito — parte disso dá pra trazer pro WuzAPI/app sem trocar nada.
+
+### Quando trocar pra WAHA (gatilhos)
+Migra o wrapper SE/QUANDO:
+1. WuzAPI ficar **sem manutenção** > ~6 meses (risco de dependência morta); **ou**
+2. Gaps de ciclo de sessão custarem **> N incidentes** que o probe não cobre; **ou**
+3. Precisar do motor **WEBJS** (browser) pra contas ban-sensíveis.
+Senão → fica e evolui.
+
+### O hedge estratégico real não é o WAHA — é o Cloud API
+Para tenants **críticos / alto volume**, o caminho oficial (Meta Cloud, **US-WA-310**
+Embedded Signup) é o único **ban-zero**. Modelo certo: **não-oficial (whatsmeow) por
+custo/flexibilidade + oficial por criticidade**. Já é o default universal do app (ADR 0096).
+
+## Recomendação ranqueada (impacto × esforço)
+
+1. **✅ Feito** — corroboração no app (#2984/#2985). Alto impacto, baixo esforço.
+2. **🔬 POC WAHA-GOWS** (time-boxed, paralelo no CT 100, 1 canal de teste) — valida LoggedOut nativo + webhook + multi-sessão; de-risca a migração futura sem comprometer. Médio/médio.
+3. **🎯 Acelerar Cloud API (US-WA-310)** pra tenants críticos — único ban-zero. Alto impacto estratégico.
+4. **📉 Broadcast fase 2 com rate-limit + jitter humano** (ADR 0268) — maior vetor de ban; nascer com cadência humana.
+
+> **Nuance de ban:** os artigos gritam "2–8 semanas" pensando em **bulk/spam**. O uso
+> real do oimpresso — inbox **humano** + broadcast **opt-in/HSM** — é o cenário de
+> **menor** risco. O perigo mora no disparo em massa (fase 2), não no atendimento.
+
+## POC WAHA-GOWS — resultados ao vivo (2026-06-18)
+
+Container WAHA Core isolado no CT 100 (`localhost:3001`, engine GOWS, **zero** contato com o WuzAPI de produção ou número real); desmontado ao fim.
+
+**Confirmado ao vivo:**
+- ✅ **GOWS roda no WAHA Core (grátis)** — `{"version":"2026.5.1","engine":"GOWS","tier":"CORE"}`. Só features premium (envio de mídia, Postgres/S3) pedem Plus.
+- ✅ **Ciclo de sessão real e observável**: `STARTING → SCAN_QR_CODE`, QR gerado (HTTP 200). GOWS sobe a sessão de ponta a ponta.
+- ✅ **`session.status` com estado `FAILED` no logout/unpair** — **PROVADO end-to-end no Phase 2** (não mais só docs): payload real capturado no webhook. **Fecha exatamente o gap do WuzAPI** (que não repassa `LoggedOut`). O app saberia da queda na hora.
+
+**Pontos de atenção descobertos:**
+- ⚠️ **WAHA Core só permite 1 sessão (`'default'`)** — multi-sessão exige **WAHA Plus (pago)**. Confirmado live: `422 "WAHA Core support only 'default' session"`. Como o oimpresso é **multi-tenant** (vários números/canais), migrar significaria **Plus** ou 1 container por tenant (pesado). O WuzAPI faz multi-sessão **grátis** — é a maior vantagem dele hoje. **Isso eleva a barra pra migrar e reforça "evoluir agora".**
+- ⚠️ Contrato da API mudou entre versões (start = `POST /api/sessions/start`, não `/{name}/start`) — migração exige mapear o contrato com cuidado.
+- ✅ **Payload do webhook capturado no Phase 2** — a falha de captura do Phase 1 era só rede container→host + shape de config; resolvido com receptor em `0.0.0.0:3999` + URL `http://172.17.0.1:3999` (gateway do bridge docker) e **webhook global via env** (`WHATSAPP_HOOK_URL`/`WHATSAPP_HOOK_EVENTS`) em vez do config por-sessão.
+
+### Phase 2 — prova end-to-end (2026-06-18) ✅
+
+Número **dedicado da Jana** (não-cliente, conta "WR2 Sistemas") pareado na sessão WAHA-poc isolada; container WuzAPI de produção (`whatsapp-whatsmeow`) **intocado** o tempo todo (verificado `Up ... healthy` antes e depois). Sequência capturada **ao vivo no webhook**:
+
+`STARTING → SCAN_QR_CODE → WORKING → FAILED`
+
+Pareamento por **código de telefone** (`POST /api/{session}/auth/request-code`, 8 chars) — mais robusto que QR (o QR rotaciona a cada ~20s e a sessão dá timeout→`FAILED` em ~160s sem scan; o código vale minutos). Com a sessão `WORKING`, o **unpair de outro device** (celular → Aparelhos conectados → Desconectar) disparou o `session.status=FAILED` real:
+
+```json
+{
+  "event": "session.status",
+  "session": "default",
+  "me": { "id": "55XXXXXXXXXX@c.us", "pushName": "WR2 Sistemas" },
+  "payload": {
+    "status": "FAILED",
+    "statuses": [
+      { "status": "SCAN_QR_CODE", "timestamp": "..." },
+      { "status": "WORKING",      "timestamp": "..." },
+      { "status": "FAILED",       "timestamp": "..." }
+    ]
+  }
+}
+```
+
+O array `statuses` prova a linhagem **WORKING→FAILED** (logout remoto), **não** um timeout de QR. **Confirmado: o WAHA-GOWS emite o evento de `LoggedOut` que o WuzAPI não repassa** — exatamente o gap do falso "fora do ar" ([ADR 0286](../decisions/0286-channel-health-corroborado-por-mensagem-real.md)). Migrar pro WAHA-GOWS fecharia esse gap **nativamente**.
+
+**Aprendizados operacionais (pro plano B):**
+- Webhook por **env global** (`WHATSAPP_HOOK_URL` + `WHATSAPP_HOOK_EVENTS=session.status`) funcionou; o **config por-sessão via `POST /api/sessions` não aplicou** o webhook nessa versão (a sessão `default` é auto-provisionada → `create` vira `422`; exige `PUT` ou o env global).
+- Container (bridge) **não alcança `127.0.0.1` do host**: receptor bind em `0.0.0.0:3999`, URL `http://172.17.0.1:3999`.
+- Pareamento por **código > QR** pra fluxo assíncrono (QR vence em ~20s; código aguenta a coordenação humana).
+
+**Redeploy do POC (1 comando):**
+```
+docker run -d --name waha-poc -p 127.0.0.1:3001:3000 -e WHATSAPP_DEFAULT_ENGINE=GOWS -e WHATSAPP_API_KEY=<key> devlikeapro/waha:latest
+```
+(imagem 4GB já cacheada no CT 100; reclaim com `docker rmi devlikeapro/waha`.)
+
+**Veredito do POC:** WAHA-GOWS **fecha o gap do LoggedOut** (provado end-to-end no Phase 2) e é a base certa (mesmo whatsmeow), MAS o limite **1-sessão-no-Core** torna a migração mais cara do que parecia pro nosso multi-tenant (exigiria Plus). Confirma o plano: **evoluir o WuzAPI/app agora**; WAHA-Plus vira candidato real só se/quando os gatilhos baterem.
+
+## Como manter este doc vivo
+
+Revisar quando: (a) incidente de canal relevante; (b) WuzAPI/WAHA mudarem manutenção
+ou features; (c) ~trimestral. Em cada revisão, atualizar as tabelas + a data no topo +
+acrescentar linha no log abaixo.
+
+### Log de revisões
+- **2026-06-18** — criação. Pós-incidente falso "fora do ar"; veredito "evoluir, não trocar"; POC WAHA como plano B; Cloud API como hedge estratégico.
+- **2026-06-18 (POC)** — POC WAHA-GOWS rodado no CT 100 e desmontado. Confirmado: GOWS no Core grátis + `session.status=FAILED` fecha o gap do LoggedOut. Descoberto: **Core = 1 sessão só** (multi-tenant exigiria Plus pago) → eleva a barra pra migrar; reforça "evoluir agora".
+- **2026-06-18 (Phase 2)** — Prova end-to-end **capturada ao vivo**: número dedicado da Jana pareado (via código de telefone), unpair remoto disparou `session.status=FAILED` no webhook (linhagem `WORKING→FAILED`, não timeout de QR). Gap do `LoggedOut` confirmado fechável **nativamente** pelo WAHA-GOWS. Aprendizados: webhook por env global (config por-sessão não aplicou nessa versão), receptor em `172.17.0.1:3999` (bridge não alcança loopback do host), pareamento por código > QR. POC desmontado; WuzAPI prod intocado. **Não muda a decisão** (evoluir agora; WAHA-Plus só se gatilhos baterem) — só de-risca o plano B.
+
+## Fontes (2026-06)
+- whatsmeow — github.com/tulir/whatsmeow · disc #979 (whatsmeow > Baileys estabilidade) · issue #810 ("conta em risco" afeta ambos)
+- WuzAPI — github.com/asternic/wuzapi · API.md (eventos assináveis: Message/ReadReceipt/HistorySync/ChatPresence — **sem LoggedOut/All**)
+- Evolution API — github.com/EvolutionAPI/evolution-api · issues #1153 (instance stuck = zumbi), #2026 (sync lost pós-reboot)
+- WAHA — github.com/devlikeapro/waha · 3 motores (GOWS/NOWEB/WEBJS); WAHA 2025.3 GOWS 1.0
+- Ban risk 2026 — blog.kraya-ai.com/whatsapp-automation-ban-risk (tabela de risco + 4 camadas de detecção)
+- Alternativas 2026 — indiehackers (wppconnect/Venom posicionamento), apidog top-10

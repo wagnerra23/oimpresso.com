@@ -1,9 +1,20 @@
 ---
 module: Woocommerce
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
 na_justified:
   D5: "Gateway de integração WooCommerce webhook — não módulo cliente-facing direto. Integração técnica entre oimpresso e lojas WooCommerce externas (B2B2C). ADR 0121 §integrações + ADR 0105 §cliente como sinal qualificado: módulo dormente preservado pra futuro, sem cliente ativo reportando dor pra justificar UX investigation."
   D6.b: "Sync WooCommerce REST API depende de latência rede externa do site cliente — fora do controle oimpresso. p99 OTel <500ms N/A enquanto módulo dormante sem cliente ativo + instrumentação OTel project-wide pendente. ADR 0105 (cliente como sinal qualificado)."
-related_adrs: [0093, 0105, 0121, 0153, 0154, 0155, 0156]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0153-module-grade-rubrica-v1
+  - 0154-module-grade-v2-na-justificado
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
+  - 0156-module-grade-v3-errata-otel-helper-na-justified
 ---
 
 # SPEC — Modules/Woocommerce

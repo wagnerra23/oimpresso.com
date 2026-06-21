@@ -18,6 +18,18 @@ declare(strict_types=1);
  *  - resources/js/Pages/Sells/Show.tsx
  *  - resources/js/Pages/Sells/Show.charter.md
  *  - resources/css/inertia.css
+ *
+ * ── QUARENTENA GRANULAR legacy-quarantine (SDD F2b · 2026-06-13) ─────────────
+ * quarantine-reason: snapshot estrutural SUPERSEDED — só os it() cujos markers
+ * foram verificados AUSENTES: seletores CSS `.vds-header/.vds-fiscal/.vds-status-*`
+ * reescritos, `@media (max-width: 1024px)` removido, e o ADR `0104` do
+ * `Show.charter.md`. Triage: memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A.
+ *
+ * ✅ Os it() de FUNCIONALIDADE VIVA PERMANECEM ATIVOS — Show.tsx existe; cobertura
+ * que ainda passa: scope `.sells-cowork-show {`, tokens oklch, IBM Plex, wrapper
+ * `sells-cowork-show container mx-auto` (presente!), AppShellV2, KpiCard+Deferred,
+ * atalhos E/P/Esc + `permissions.edit/print`, anti-patterns (bg-blue-500 só em
+ * comentário CSS, removido pelo strip). Não silenciar cobertura viva.
  */
 
 const SHOW_TSX_PATH = 'resources/js/Pages/Sells/Show.tsx';
@@ -95,7 +107,8 @@ it('CSS sells-cowork-show.css cobre blocos essenciais (header/total/kpi/section/
         ->toContain('.sells-cowork-show .vds-section')
         ->toContain('.sells-cowork-show .vds-footer')
         ->toContain('.sells-cowork-show .vds-fiscal');
-});
+    // quarantine-reason: CSS .vds-*/badges/responsive reescritos no sells-cowork-show.css, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('CSS sells-cowork-show.css define badges status pgto (paid/due/partial — semantic)', function () {
     $source = showRead(SHOW_CSS_PATH);
@@ -103,14 +116,16 @@ it('CSS sells-cowork-show.css define badges status pgto (paid/due/partial — se
         ->toContain('.sells-cowork-show .vds-status-paid')
         ->toContain('.sells-cowork-show .vds-status-due')
         ->toContain('.sells-cowork-show .vds-status-partial');
-});
+    // quarantine-reason: CSS .vds-*/badges/responsive reescritos no sells-cowork-show.css, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 it('CSS sells-cowork-show.css tem responsive ≤1024px + print media', function () {
     $source = showRead(SHOW_CSS_PATH);
     expect($source)
         ->toContain('@media (max-width: 1024px)')
         ->toContain('@media print');
-});
+    // quarantine-reason: CSS .vds-*/badges/responsive reescritos no sells-cowork-show.css, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');
 
 // ─── Inertia.css importa ──────────────────────────────────────────────
 
@@ -189,4 +204,5 @@ it('Show.charter.md mantém parent_module + related_adrs 0104/0143/0093 (governa
         ->toContain('0104')
         ->toContain('0143')
         ->toContain('0093');
-});
+    // quarantine-reason: CSS .vds-*/badges/responsive reescritos no sells-cowork-show.css, charter sem ADR 0104 (ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-A)
+})->group('legacy-quarantine');

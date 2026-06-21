@@ -28,8 +28,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Badge } from '@/Components/ui/badge';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { BarChart3, ClipboardList, Package, Trash2 } from 'lucide-react';
 import PageHeader from '@/Components/shared/PageHeader';
+import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { toast } from 'sonner';
@@ -83,8 +85,10 @@ function fmtDate(iso: string | null): string {
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// G-DESIGN-04 — relativo PT-BR pra last_used_at no TokensListDialog
-function fmtRelative(iso: string | null): string {
+// G-DESIGN-04 — relativo PT-BR pra last_used_at no TokensListDialog.
+// Nome próprio (não `fmtRelative`): buckets meses/anos + null→'Nunca usado'
+// são contrato do charter (G-DESIGN-04), divergem do canônico @/Lib/datetime-br.
+function fmtLastUsed(iso: string | null): string {
   if (!iso) return 'Nunca usado';
   const d = new Date(iso).getTime();
   const diff = (Date.now() - d) / 1000;
@@ -121,18 +125,18 @@ function tokenStatus(t: TokenRow): { label: string; className: string } {
     if (days <= 7) {
       return {
         label: `Expira em ${days}d`,
-        className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        className: 'bg-warning-soft text-warning-fg',
       };
     }
   }
-  return { label: 'Ativo', className: 'bg-green-100 text-green-800' };
+  return { label: 'Ativo', className: 'bg-success/15 text-success-fg' };
 }
 
 function quotaBadge(pct: number, block: boolean): { className: string; label: string } {
-  if (pct >= 100) return { className: 'bg-red-100 text-red-800', label: block ? '🚫 BLOQUEADO' : '⚠️ excedido' };
-  if (pct >= 80)  return { className: 'bg-orange-100 text-orange-800', label: '⚠️ ' + pct + '%' };
-  if (pct >= 50)  return { className: 'bg-yellow-100 text-yellow-800', label: pct + '%' };
-  return { className: 'bg-green-100 text-green-800', label: pct + '%' };
+  if (pct >= 100) return { className: 'bg-destructive-soft text-destructive-fg', label: block ? '🚫 BLOQUEADO' : '⚠️ excedido' };
+  if (pct >= 80)  return { className: 'bg-warning-soft text-warning-fg', label: '⚠️ ' + pct + '%' };
+  if (pct >= 50)  return { className: 'bg-warning/15 text-warning-fg', label: pct + '%' };
+  return { className: 'bg-success/15 text-success-fg', label: pct + '%' };
 }
 
 function TeamIndex(props: Props) {
@@ -155,6 +159,10 @@ function TeamIndex(props: Props) {
     confirmLabel: string;
     onConfirm: () => void;
   } | null>(null);
+  // G-DESIGN-07 — Export CSV via Dialog (substitui prompt() nativo)
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [csvDe, setCsvDe] = useState('');
+  const [csvAte, setCsvAte] = useState('');
 
   function gerarToken(member: TeamMember) {
     setConfirmAction({
@@ -233,25 +241,23 @@ function TeamIndex(props: Props) {
   }
 
   function exportarCsv() {
-    const periodo = prompt('Período (de,ate em YYYY-MM-DD,YYYY-MM-DD ou ENTER pra mês corrente):', '');
     let url = '/team-mcp/team/export.csv';
-    if (periodo) {
-      const [de, ate] = periodo.split(',').map(s => s.trim());
-      if (de && ate) url += `?de=${de}&ate=${ate}`;
-    }
+    if (csvDe && csvAte) url += `?de=${csvDe}&ate=${csvAte}`;
     window.location.href = url;
+    setCsvOpen(false);
   }
 
   return (
     <>
+      <ForjaHub active="equipe" />
 
       <PageHeader
         icon="users"
-        title="Team Admin"
+        title="Time"
         description={`Equivalente self-host Anthropic Team plan — modelo ${pricing_config.modelo_default}, câmbio R$ ${pricing_config.cambio_brl_usd.toFixed(2)}`}
         action={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={exportarCsv}>
+            <Button variant="outline" size="sm" onClick={() => setCsvOpen(true)}>
               <BarChart3 className="h-3.5 w-3.5 mr-1" /> Export CSV
             </Button>
           </div>
@@ -346,7 +352,7 @@ function TeamIndex(props: Props) {
                       <button
                         type="button"
                         onClick={() => setTokensListUser(m)}
-                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 hover:bg-green-200 hover:underline disabled:opacity-60"
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-success/15 text-success-fg hover:bg-success/25 hover:underline disabled:opacity-60"
                         aria-label={`Ver ${m.tokens_ativos} tokens de ${m.nome}`}
                         title={m.tokens_ativos > 0
                           ? `Ver ${m.tokens_ativos} token${m.tokens_ativos > 1 ? 's' : ''} de ${m.nome}`
@@ -469,6 +475,30 @@ function TeamIndex(props: Props) {
               <ClipboardList className="h-4 w-4 mr-1" /> Copiar
             </Button>
             <Button variant="outline" onClick={() => setTokenGerado(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: export CSV (G-DESIGN-07 — substitui prompt() nativo) */}
+      <Dialog open={csvOpen} onOpenChange={setCsvOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Exportar CSV de uso MCP</DialogTitle>
+            <DialogDescription>Deixe em branco pra exportar o mês corrente.</DialogDescription>
+          </DialogHeader>
+          <div className="my-2 inline-grid w-full grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">De</Label>
+              <Input type="date" value={csvDe} onChange={(e) => setCsvDe(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Até</Label>
+              <Input type="date" value={csvAte} onChange={(e) => setCsvAte(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCsvOpen(false)}>Cancelar</Button>
+            <Button onClick={exportarCsv}>Exportar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -622,7 +652,7 @@ function TokensListDialog({
         </DialogHeader>
 
         {loading && <div className="py-6 text-sm text-muted-foreground">Carregando tokens…</div>}
-        {error && <div className="py-6 text-sm text-red-600">{error}</div>}
+        {error && <div className="py-6 text-sm text-destructive-fg">{error}</div>}
         {!loading && !error && tokens && tokens.length === 0 && (
           <div className="py-8 text-center text-sm text-muted-foreground">
             Nenhum token registrado pra esse dev ainda.
@@ -659,7 +689,7 @@ function TokensListDialog({
                         title={t.last_used_at ? new Date(t.last_used_at).toLocaleString('pt-BR') : ''}
                       >
                         {t.last_used_at
-                          ? fmtRelative(t.last_used_at)
+                          ? fmtLastUsed(t.last_used_at)
                           : <span className="text-muted-foreground">Nunca usado</span>}
                       </td>
                       <td className="py-2 px-2 font-mono text-xs">
@@ -779,11 +809,10 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
       </div>
 
       <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
+        <Checkbox
           id="block"
           checked={block}
-          onChange={(e) => setBlock(e.target.checked)}
+          onCheckedChange={(v) => setBlock(v === true)}
         />
         <Label htmlFor="block" className="cursor-pointer">
           Bloquear ao exceder (HTTP 429). Desmarcar = só alerta.
@@ -801,7 +830,7 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
 }
 
 TeamIndex.layout = (page: ReactNode) => (
-  <AppShellV2 title="Copiloto — Team Admin" breadcrumbItems={[{ label: 'Copiloto' }, { label: 'Team Admin' }]}>
+  <AppShellV2 title="Equipe — Forja" breadcrumbItems={[{ label: 'Forja' }, { label: 'Equipe' }]}>
     {page}
   </AppShellV2>
 );

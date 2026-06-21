@@ -12,6 +12,7 @@ use Laravel\Mcp\Server\Tool;
 use Modules\Jana\Entities\Mcp\McpCycle;
 use Modules\Jana\Entities\Mcp\McpCycleGoal;
 use Modules\Jana\Entities\Mcp\McpProject;
+use Modules\Jana\Mcp\Tools\Concerns\AuthorizesMcpMutation;
 
 /**
  * ADR 0070 — cria cycle novo (Linear-style) com goals opcionais em batch.
@@ -22,6 +23,8 @@ use Modules\Jana\Entities\Mcp\McpProject;
  */
 class CyclesCreateTool extends Tool
 {
+    use AuthorizesMcpMutation;
+
     protected string $name = 'cycles-create';
 
     protected string $title = 'Criar cycle (sprint)';
@@ -44,6 +47,10 @@ class CyclesCreateTool extends Tool
 
     public function handle(Request $request): Response
     {
+        if ($deny = $this->authorizeMcpMutation($request, 'jana.mcp.cycles.manage')) {
+            return $deny;
+        }
+
         $projectKey = strtoupper((string) $request->get('project', 'COPI'));
         $project = McpProject::where('key', $projectKey)->first();
         if (! $project) {

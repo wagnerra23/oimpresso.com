@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\Financeiro\Models\Titulo;
@@ -9,7 +10,7 @@ use Modules\Financeiro\Models\TituloBaixa;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\InterDriver;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-PG-008 — paymentgateway:inter-importar-recebimentos.
@@ -144,6 +145,9 @@ function itemCobranca(string $codigo, float $valor, string $seu = '', string $no
 }
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     session(['business.id' => 1]);
     pgImportEnsureSchema();
 });

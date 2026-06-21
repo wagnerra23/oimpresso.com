@@ -48,8 +48,23 @@ use Modules\Jana\Entities\Mcp\McpTask;
  */
 class TaskParserService
 {
-    /** Regex pra heading de US: ###(#)? US-XXX-NNN[N] · Título */
-    public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4})\s*[·\-:]?\s*(.*)$/m';
+    /**
+     * Regex pra heading de US: ###(#)? US-XXX-NNN[N][x] · Título
+     *
+     * O sufixo opcional `[a-z]?` captura o esquema de sub-letra (ex: US-WA-002b,
+     * US-WA-010b) como parte do task_id. Sem ele, `\d{3,4}` parava no dígito e
+     * `US-WA-002b` colapsava em `US-WA-002`, com o `b` vazando pro título
+     * (`b · …`) e sobrescrevendo o id-base canônico — origem das colisões
+     * WA-002/010/045 no spec_id_drift (incidente 2026-06-20). Só WhatsApp usa
+     * o esquema hoje; ids sem sufixo seguem inalterados.
+     *
+     * Flag `u` (UTF-8) é OBRIGATÓRIA: sem ela a classe `[·\-:]` é bytewise e
+     * casa só 1 dos 2 bytes do `·` (U+00B7 = C2 B7), deixando o B7 órfão grudar
+     * no começo do título → vira `?` ao gravar no MySQL. Era a RAIZ dos 751
+     * títulos `"? Listar Budget"` no cache `mcp_tasks` (incidente 2026-06-20).
+     * Com `u`, o `·` é consumido inteiro e o título sai limpo.
+     */
+    public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4}[a-z]?)\s*[·\-:]?\s*(.*)$/mu';
 
     /**
      * Campos de "estado vivo" — ADR 0144.
@@ -59,9 +74,17 @@ class TaskParserService
     public const LIVE_STATE_FIELDS = ['status', 'owner', 'sprint', 'priority'];
 
     /**
+     * Campos descritivos onde o git é canon (SPEC sobrescreve o DB no update).
+     * Divergência DB↔SPEC nestes campos é APENAS detectada e contabilizada
+     * (SDD C4) — git continua ganhando, sem mudar quem é canon. NÃO confundir
+     * com LIVE_STATE_FIELDS (DB canon, nunca sobrescrito — ADR 0144).
+     */
+    public const DESCRITIVOS_DETECTAVEIS = ['title', 'description'];
+
+    /**
      * Parser SPEC + sync DB. Retorna relatório por módulo.
      *
-     * @return array{tasks_processadas:int, inseridas:int, atualizadas:int, canceladas:int, modulos:array<string,int>}
+     * @return array{tasks_processadas:int, inseridas:int, atualizadas:int, canceladas:int, descritivos_divergentes:int, modulos:array<string,int>}
      */
     public function syncAll(?string $apenasModulo = null): array
     {
@@ -75,12 +98,13 @@ class TaskParserService
     {
         $base = base_path('memory/requisitos');
         if (! is_dir($base)) {
-            return $this->relatorio(0, 0, 0, 0, []);
+            return $this->relatorio(0, 0, 0, 0, 0, []);
         }
 
         $reportadasNoSync = [];
         $inseridas = 0;
         $atualizadas = 0;
+        $descritivosDivergentes = 0;
         $modulos = [];
 
         $iterator = new \DirectoryIterator($base);
@@ -109,6 +133,14 @@ class TaskParserService
                     McpTask::create($cand);
                     $inseridas++;
                 } elseif ($this->precisaAtualizar($existente, $cand)) {
+                    // SDD C4 — detectar (não resolver) divergência SPEC↔DB em
+                    // campos descritivos (title/description). git continua canon
+                    // (preserva ADR 0144 zero-regressão de estado vivo); aqui só
+                    // contabilizamos + logamos pra dar visibilidade ao drift.
+                    if ($this->detectarDivergenciaDescritiva($existente, $cand)) {
+                        $descritivosDivergentes++;
+                    }
+
                     // Task existente — ADR 0144 — só atualiza campos descritivos.
                     // Estado vivo (status/owner/sprint/priority) é canônico no DB,
                     // mudança via `tasks-update`. SPEC vira template descritivo.
@@ -148,9 +180,10 @@ class TaskParserService
             'inseridas' => $inseridas,
             'atualizadas' => $atualizadas,
             'canceladas' => $canceladas,
+            'descritivos_divergentes' => $descritivosDivergentes,
         ]);
 
-        return $this->relatorio(count($reportadasNoSync), $inseridas, $atualizadas, $canceladas, $modulos);
+        return $this->relatorio(count($reportadasNoSync), $inseridas, $atualizadas, $canceladas, $descritivosDivergentes, $modulos);
     }
 
     /**
@@ -467,6 +500,45 @@ class TaskParserService
         }
     }
 
+    /**
+     * Detecta (NÃO resolve) divergência DB↔SPEC em campos descritivos
+     * (title/description) — SDD C4.
+     *
+     * git continua canon: o update logo a seguir vai sobrescrever o DB com o
+     * valor do SPEC normalmente (não muda quem ganha, preserva ADR 0144 que só
+     * blinda estado vivo status/owner/sprint/priority). Esta verificação só dá
+     * VISIBILIDADE ao drift — loga + alimenta o contador `descritivos_divergentes`.
+     *
+     * @return bool true se title OU description divergem
+     */
+    protected function detectarDivergenciaDescritiva(McpTask $existente, array $cand): bool
+    {
+        $divergencias = [];
+        foreach (self::DESCRITIVOS_DETECTAVEIS as $field) {
+            $vDb = (string) ($existente->{$field} ?? '');
+            $vSpec = (string) ($cand[$field] ?? '');
+            if ($vDb !== $vSpec) {
+                $divergencias[$field] = [
+                    'db' => mb_substr($vDb, 0, 120),
+                    'spec' => mb_substr($vSpec, 0, 120),
+                ];
+            }
+        }
+
+        if (empty($divergencias)) {
+            return false;
+        }
+
+        Log::channel('copiloto-ai')->info('TaskParser detectou divergência descritiva SPEC↔DB (SDD C4)', [
+            'task_id' => $existente->task_id,
+            'campos' => array_keys($divergencias),
+            'divergencias' => $divergencias,
+            'canon' => 'git', // git vence o update — só registramos o drift
+        ]);
+
+        return true;
+    }
+
     /** Cache em-memória pra evitar query repetida no mesmo sync. */
     protected array $cacheProjetos = [];
     protected array $cacheEpics = [];
@@ -533,13 +605,14 @@ class TaskParserService
         return $head !== '' ? substr($head, 0, 40) : null;
     }
 
-    protected function relatorio(int $processadas, int $ins, int $upd, int $can, array $modulos): array
+    protected function relatorio(int $processadas, int $ins, int $upd, int $can, int $descritivosDivergentes, array $modulos): array
     {
         return [
             'tasks_processadas' => $processadas,
             'inseridas' => $ins,
             'atualizadas' => $upd,
             'canceladas' => $can,
+            'descritivos_divergentes' => $descritivosDivergentes,
             'modulos' => $modulos,
         ];
     }

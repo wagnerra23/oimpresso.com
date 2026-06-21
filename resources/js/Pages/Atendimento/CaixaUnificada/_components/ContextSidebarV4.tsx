@@ -18,39 +18,85 @@
 
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
-import { Ban, Check, Link as LinkIcon, Plus, UserPlus } from 'lucide-react';
+import { Ban, Check, Link as LinkIcon, Plus, Sparkles, UserMinus, UserPlus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/Components/ui/popover';
+import { Inline, Stack } from '@/Components/layout';
 import ContactPickerModal from '@/Pages/Whatsapp/_components/ContactPickerModal';
 import CustomerMemoryBlock from '@/Pages/Whatsapp/_components/CustomerMemoryBlock';
 import type {
+  AssigneeItem,
   CaixaUnifThread,
   ChannelCatalogItem,
   ConvTag,
   QueueConfig,
+  CustomerContext,
 } from './helpers';
-import { relativeTimeBR } from './helpers';
+import { avatarHue, formatBRL, initials, relativeTimeBR } from './helpers';
+import InboxAiDialog, { type InboxAiMode } from './InboxAiDialog';
 
 interface Props {
   thread: CaixaUnifThread;
   channels: ChannelCatalogItem[];
   queues: Record<string, QueueConfig>;
+  /** Onda 3 — contexto comercial do cliente (Saldo + Histórico). null = sem thread/contato. */
+  customerContext?: CustomerContext | null;
   /**
    * Wave 3 F1 (US-WA-095 paridade Inbox legacy): catálogo de tags do business
    * pro editor inline. Default [] quando deferred ainda não resolveu.
    */
   availableTags?: ConvTag[];
+  /**
+   * US-WA-302 — operadores atribuíveis (assignee picker section 2).
+   * Default [] enquanto deferred não resolveu.
+   */
+  availableAssignees?: AssigneeItem[];
+  /** Caixa Unificada — Contexto recolhível (canon Cowork `.om-ctx`). */
+  open?: boolean;
+  onToggle?: () => void;
 }
 
-export default function ContextSidebarV4({ thread, channels, queues, availableTags = [] }: Props) {
+export default function ContextSidebarV4({ thread, customerContext, channels, queues, availableTags = [], availableAssignees = [], open = true, onToggle }: Props) {
   const channel = channels.find(c => c.id === thread.channel_type);
   const queueCfg = queues[thread.queue.slug] ?? null;
   const isPreview = thread.preview_only;
   const activeTagIds = new Set(thread.tags.map(t => t.id));
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  // US-WA-305 — mover conversa entre filas (PATCH /atendimento/inbox/{id}/queue)
+  const [queuePopOpen, setQueuePopOpen] = useState(false);
+  function moveToQueue(slug: string | null) {
+    router.patch(
+      route('atendimento.inbox.move_queue', thread.id),
+      { queue_slug: slug },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'conversations', 'stats'],
+        onSuccess: () => setQueuePopOpen(false),
+      },
+    );
+  }
+
+  // US-WA-302 — atribuir/remover operador (PATCH /atendimento/inbox/{id}/assign)
+  const [assignPopOpen, setAssignPopOpen] = useState(false);
+  // T1 (handoff 2026-06-19) — IA movida do header da thread pra cá (seção Inteligência)
+  const [aiMode, setAiMode] = useState<InboxAiMode | null>(null);
+  function assignTo(assigneeId: number | null) {
+    router.patch(
+      route('atendimento.inbox.assign', thread.id),
+      { assigned_user_id: assigneeId },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['thread', 'conversations', 'stats'],
+        onSuccess: () => setAssignPopOpen(false),
+      },
+    );
+  }
 
   // Wave 3 F1 — toggle tag (PATCH /atendimento/inbox/{id}/tags)
   function toggleTag(tagId: number) {
@@ -111,8 +157,42 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
       className="flex flex-col bg-card border-l min-h-0 min-w-0"
       aria-label="Contexto da conversa"
     >
-      <div className="flex items-baseline gap-2 border-b px-3.5 pt-3 pb-2">
+      {/* Recolhido (canon Cowork `.om-ctx-expand`) — trilho 44px só no desktop;
+          no mobile a tab Contexto sempre mostra o painel cheio. */}
+      {!open && (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="hidden lg:block w-full h-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          title="Expandir contexto"
+          aria-label="Expandir contexto"
+          data-testid="caixa-unif-ctx-expand"
+        >
+          <Stack gap={2} align="center" justify="center" className="h-full py-3.5">
+            <span className="text-[15px] font-semibold leading-none" aria-hidden>‹</span>
+            <span
+              className="text-[10px] font-semibold uppercase tracking-[0.08em]"
+              style={{ writingMode: 'vertical-rl' }}
+            >
+              Contexto
+            </span>
+          </Stack>
+        </button>
+      )}
+
+      <Stack gap={0} className={`${open ? '' : 'lg:hidden'} flex-1 min-h-0 min-w-0`}>
+      <div className="flex items-center gap-2 border-b px-3.5 pt-3 pb-2">
         <b className="text-[13px] font-semibold text-foreground">Contexto</b>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="ml-auto hidden lg:block w-6 h-6 rounded-md border text-center text-[14px] leading-[20px] text-muted-foreground hover:text-foreground hover:border-muted-foreground transition-colors"
+          title="Recolher contexto"
+          aria-label="Recolher contexto"
+          data-testid="caixa-unif-ctx-toggle"
+        >
+          <span aria-hidden>›</span>
+        </button>
       </div>
 
       <div className="flex-1 overflow-auto px-4 py-3 flex flex-col gap-2.5">
@@ -125,11 +205,89 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           <CustomerMemoryBlock customerExternalId={thread.customer_external_id} />
         )}
 
-        {/* 1. Fila */}
+        {/* T1 — Inteligência (Resumir/Perguntar movidos do header da thread · protótipo .om-ctx-ai) */}
+        {!thread.preview_only && (
+          <Stack gap={1} className="pb-2.5 border-b border-border/50">
+            <span className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">Inteligência</span>
+            <button
+              type="button"
+              onClick={() => setAiMode('summarize')}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-transparent hover:bg-muted text-[12px] text-foreground transition-colors text-left"
+              data-testid="caixa-unif-thread-ai-summarize"
+            >
+              <Sparkles size={13} className="text-primary" aria-hidden /> Resumir conversa
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiMode('ask')}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md border border-transparent hover:bg-muted text-[12px] text-foreground transition-colors text-left"
+              data-testid="caixa-unif-thread-ai-ask"
+            >
+              <Sparkles size={13} className="text-primary" aria-hidden /> Perguntar ao histórico
+            </button>
+          </Stack>
+        )}
+
+        {/* 1. Fila — US-WA-305: select de override manual (vence heurística tag→fila) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
-            Fila
-          </small>
+          <Inline gap={0} align="center" justify="between">
+            <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
+              Fila
+            </small>
+            <Popover open={queuePopOpen} onOpenChange={setQueuePopOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  title="Mover conversa pra outra fila (override manual)"
+                  data-testid="caixa-unif-ctx-queue-move"
+                >
+                  <Plus size={11} aria-hidden /> mover
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60 p-1.5">
+                <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
+                  Mover pra fila
+                </div>
+                <ul className="max-h-64 overflow-auto">
+                  {Object.entries(queues).map(([slug, cfg]) => {
+                    const active = thread.queue.slug === slug;
+                    return (
+                      <li key={slug}>
+                        <button
+                          type="button"
+                          onClick={() => moveToQueue(slug)}
+                          data-testid={`caixa-unif-ctx-queue-pick-${slug}`}
+                          className="w-full inline-flex items-center justify-between gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
+                        >
+                          <span className="inline-flex items-center gap-1.5 min-w-0">
+                            <span
+                              className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ background: `oklch(0.55 0.13 ${cfg.hue})` }}
+                              aria-hidden
+                            />
+                            <span className="truncate">{cfg.label}</span>
+                            {cfg.sla && <small className="text-[10px] text-muted-foreground flex-shrink-0">SLA {cfg.sla}</small>}
+                          </span>
+                          {active && <Check size={13} className="text-primary flex-shrink-0" aria-label="Fila atual" />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {thread.queue_is_override && (
+                  <button
+                    type="button"
+                    onClick={() => moveToQueue(null)}
+                    data-testid="caixa-unif-ctx-queue-auto"
+                    className="w-full mt-1 px-2 py-1.5 text-[10.5px] text-muted-foreground hover:text-foreground hover:bg-muted rounded text-center transition-colors"
+                  >
+                    Voltar pra automática (heurística por tags)
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+          </Inline>
           <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium" data-testid="caixa-unif-ctx-queue">
             <span
               className="inline-block w-2 h-2 rounded-full flex-shrink-0"
@@ -137,6 +295,14 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
               aria-hidden
             />
             {thread.queue.label}
+            {thread.queue_is_override && (
+              <span
+                className="inline-flex text-[9px] font-medium text-muted-foreground bg-muted border rounded-full px-1.5 flex-shrink-0"
+                title="Fila definida manualmente — vence a heurística por tags"
+              >
+                manual
+              </span>
+            )}
           </b>
           {queueCfg?.sla && (
             <small className="text-[11px] text-muted-foreground mt-0.5">
@@ -145,16 +311,90 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           )}
         </div>
 
-        {/* 2. Atribuído — placeholder */}
-        <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
-          <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
-            Atribuído
-          </small>
-          <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-assignee">
-            — sem atribuição
-          </b>
-          {/* TODO US-WA-XXX: assignee picker (select operators) */}
-        </div>
+        {/* 2. Atribuído — US-WA-302 assignee picker (Popover, mesmo pattern do editor de tags) */}
+        <Stack gap={1} className="pb-2.5 border-b border-border/50">
+          <Inline gap={0} align="center" justify="between">
+            <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
+              Atribuído
+            </small>
+            <Popover open={assignPopOpen} onOpenChange={setAssignPopOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  title="Atribuir conversa a um operador"
+                  data-testid="caixa-unif-ctx-assignee-edit"
+                >
+                  <Plus size={11} aria-hidden /> {thread.assigned_user_id ? 'trocar' : 'atribuir'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60 p-1.5">
+                <div className="text-[10px] uppercase tracking-[0.06em] text-muted-foreground font-semibold px-2 pt-1 pb-1.5">
+                  Operadores do business
+                </div>
+                {availableAssignees.length === 0 ? (
+                  <div className="px-2 py-2 text-[11px] text-muted-foreground italic">
+                    Nenhum operador com acesso ao atendimento
+                  </div>
+                ) : (
+                  <ul className="max-h-64 overflow-auto">
+                    {availableAssignees.map(a => {
+                      const active = thread.assigned_user_id === a.id;
+                      return (
+                        <li key={a.id}>
+                          <button
+                            type="button"
+                            onClick={() => assignTo(active ? null : a.id)}
+                            data-testid={`caixa-unif-ctx-assignee-pick-${a.id}`}
+                            className="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-[11.5px] hover:bg-muted rounded text-left"
+                          >
+                            <span className="inline-flex items-center gap-1.5 min-w-0">
+                              <span
+                                className="inline-grid place-items-center w-5 h-5 rounded-full text-white text-[8.5px] font-bold flex-shrink-0"
+                                style={{ background: `oklch(0.60 0.12 ${avatarHue(a.name)})` }}
+                                aria-hidden
+                              >
+                                {initials(a.name)}
+                              </span>
+                              <span className="truncate">{a.name}</span>
+                            </span>
+                            {active && <Check size={13} className="text-primary flex-shrink-0" aria-label="Atribuído" />}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {thread.assigned_user_id !== null && (
+                  <button
+                    type="button"
+                    onClick={() => assignTo(null)}
+                    data-testid="caixa-unif-ctx-assignee-remove"
+                    className="w-full mt-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10.5px] text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded transition-colors"
+                  >
+                    <UserMinus size={11} aria-hidden /> Remover atribuição
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+          </Inline>
+          {thread.assigned_user_name ? (
+            <b className="inline-flex items-center gap-1.5 text-[12.5px] font-medium" data-testid="caixa-unif-ctx-assignee">
+              <span
+                className="inline-grid place-items-center w-5 h-5 rounded-full text-white text-[8.5px] font-bold flex-shrink-0"
+                style={{ background: `oklch(0.60 0.12 ${avatarHue(thread.assigned_user_name)})` }}
+                aria-hidden
+              >
+                {initials(thread.assigned_user_name)}
+              </span>
+              {thread.assigned_user_name}
+            </b>
+          ) : (
+            <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-assignee">
+              — sem atribuição
+            </b>
+          )}
+        </Stack>
 
         {/* 3. Canal · Conta */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
@@ -244,14 +484,12 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           {thread.tags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {thread.tags.map(t => (
-                // Cowork .om-tag — padding 1px 8px, font 10px mono, OKLCH §710
+                // Cowork .om-tag — âmbar-pastel. Dark-aware via warning-soft/warning
+                // (flipam no .dark); texto foreground mantém contraste nos 2 temas
+                // (antes: oklch claro cru → chip claro-no-claro no escuro).
                 <span
                   key={t.id}
-                  className="inline-block px-2 py-px text-[10px] font-mono rounded-full text-foreground"
-                  style={{
-                    background: 'oklch(0.94 0.03 80)',
-                    border: '1px solid oklch(0.86 0.06 80)',
-                  }}
+                  className="inline-block px-2 py-px text-[10px] font-mono rounded-full text-foreground bg-warning-soft border border-warning/30"
                   data-testid={`caixa-unif-ctx-tag-${t.slug}`}
                 >
                   {t.label}
@@ -274,26 +512,38 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           {/* TODO US-WA-XXX: linkar Modules/Repair JobSheet via repair_jobsheet_id na conversa */}
         </div>
 
-        {/* 6. Saldo cliente — placeholder */}
+        {/* 6. Saldo cliente — Onda 3: a receber em aberto (transactions UPOS, due/partial) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
           <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Saldo cliente
           </small>
-          <b className="text-[12.5px] font-medium text-muted-foreground italic">
-            —
-          </b>
-          {/* TODO US-WA-XXX: integrar Modules/Financeiro Titulo (sum tipo=receber) */}
+          {!customerContext?.linked ? (
+            <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-saldo">—</b>
+          ) : customerContext.saldo_aberto > 0 ? (
+            <b className="text-[12.5px] font-semibold text-destructive" data-testid="caixa-unif-ctx-saldo">
+              {formatBRL(customerContext.saldo_aberto)} a receber
+            </b>
+          ) : (
+            <b className="text-[12.5px] font-medium text-muted-foreground" data-testid="caixa-unif-ctx-saldo">
+              {formatBRL(0)} · em dia
+            </b>
+          )}
         </div>
 
-        {/* 7. Histórico — placeholder */}
+        {/* 7. Histórico — Onda 3: pedidos + LTV (transactions, status != draft) */}
         <div className="pb-2.5 border-b border-border/50 flex flex-col gap-0.5">
           <small className="text-[9.5px] uppercase tracking-[0.06em] text-muted-foreground font-semibold">
             Histórico
           </small>
-          <b className="text-[12.5px] font-medium text-muted-foreground italic">
-            —
-          </b>
-          {/* TODO US-WA-XXX: agregar Transaction.count + sum(final_total) por contact_id */}
+          {customerContext?.linked && customerContext.sells_count > 0 ? (
+            <b className="text-[12.5px] font-medium" data-testid="caixa-unif-ctx-historico">
+              {customerContext.sells_count} {customerContext.sells_count === 1 ? 'pedido' : 'pedidos'} · {formatBRL(customerContext.ltv)} LTV
+            </b>
+          ) : (
+            <b className="text-[12.5px] font-medium text-muted-foreground italic" data-testid="caixa-unif-ctx-historico">
+              {customerContext?.linked ? 'sem pedidos ainda' : '—'}
+            </b>
+          )}
         </div>
 
         {/* 8. Último contato */}
@@ -315,7 +565,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             onClick={() => setPickerOpen(true)}
             disabled={isPreview}
-            className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1.5 text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             data-testid="caixa-unif-ctx-link-contact"
             title="Buscar e vincular Contact CRM existente"
           >
@@ -326,7 +576,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             onClick={createContactFromPhone}
             disabled={isPreview}
-            className="inline-flex items-center gap-1.5 text-left text-[11.5px] px-2 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-1.5 text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             data-testid="caixa-unif-ctx-create-contact"
             title="Cria registro novo no CRM a partir do número de telefone"
           >
@@ -341,7 +591,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             disabled={isPreview}
             data-testid="caixa-unif-ctx-action-billing"
-            className="text-left text-[12px] px-2.5 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             title="Emitir cobrança (em breve)"
           >
             Emitir cobrança
@@ -352,7 +602,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             disabled={isPreview}
             data-testid="caixa-unif-ctx-action-arte"
-            className="text-left text-[12px] px-2.5 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             title="Enviar arte (em breve)"
           >
             Enviar arte
@@ -363,7 +613,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             disabled={isPreview}
             data-testid="caixa-unif-ctx-action-ligar"
-            className="text-left text-[12px] px-2.5 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
+            className="text-left text-[12.5px] font-medium px-3 py-1.5 bg-card border rounded hover:bg-muted disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
             title={`Ligar para ${thread.customer_external_id}`}
           >
             Ligar
@@ -375,7 +625,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
             type="button"
             onClick={toggleBlock}
             data-testid="caixa-unif-ctx-action-block"
-            className={`inline-flex items-center gap-1.5 text-left text-[12px] px-2.5 py-1.5 border rounded transition-colors mt-1 ${
+            className={`inline-flex items-center gap-1.5 text-left text-[12.5px] font-medium px-3 py-1.5 border rounded transition-colors mt-1 ${
               thread.is_blocked
                 ? 'bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/15'
                 : 'bg-card border-border text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/5'
@@ -387,6 +637,7 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
           </button>
         </div>
       </div>
+      </Stack>
 
       {/* Wave 3-B F1 — Contact CRM picker modal (reusa legacy Pages/Whatsapp) */}
       <ContactPickerModal
@@ -396,6 +647,16 @@ export default function ContextSidebarV4({ thread, channels, queues, availableTa
         onSelect={linkContact}
         customerPhone={thread.customer_external_id}
       />
+
+      {/* T1 — IA Resumir/Perguntar (movido do header da thread) */}
+      {aiMode !== null && (
+        <InboxAiDialog
+          open={aiMode !== null}
+          onOpenChange={(o) => { if (!o) setAiMode(null); }}
+          mode={aiMode}
+          conversationId={thread.id}
+        />
+      )}
     </aside>
   );
 }

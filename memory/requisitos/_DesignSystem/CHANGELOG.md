@@ -1,10 +1,136 @@
 ---
 status: ativo
-last_reviewed: "2026-06-06"
+last_reviewed: "2026-06-21"
 next_review: "2026-09-06"
 ---
 
 # Changelog · Design System
+
+> **Nota de backfill (2026-06-21):** as entradas **[0.6.15]–[0.7.3]** consolidam de uma vez o período **11→21/jun**, que ficou sem registro enquanto o changelog era atualizado à mão. Reconstruídas a partir dos PRs realmente mergeados (fonte: GitHub) — ~80 PRs de DS que tinham ficado invisíveis. O detalhe fino (Added/Changed por PR, "Não regrediu") pode ser enriquecido depois; o objetivo aqui é que **nenhum PR de DS fique fora do registro**.
+
+## [0.7.3] - 2026-06-21 · catracas visuais afinadas
+
+### Changed
+- `design-index-gate` always-run + short-circuit (required-readiness, ADR 0282) (#3114)
+- Comentário de regressão visual distingue enforcing × advisory (#3136)
+- `casos.md`: reconcilia 4 violações ratchet herdadas da branch feat (ADR 0264) (#3102)
+
+## [0.7.2] - 2026-06-17/19 · pipeline de design zero-paste + Contrato de Tela + mobile shell
+
+### Added
+- **Pipeline de handoff Cowork→git sem colar** (ADR 0283/0285): carteiro/publisher/inbox + write-path com review-gate (#2876 #2913 #2921 #2929 #2935)
+- **Ferramental de ingestão de design** (Jana): `design:dossie`, `design:ingest-zip`, `DesignIngestPlanner`, `design:mine-raw`, cowork-map (#3032 #3033 #3034 #3036 #3037 #3039 #3040 #3042)
+- **Catraca Contrato de Tela** — fidelidade visual + resolução de escopo + não-vazamento Tier 0 (ADR 0286) (#2973 #2986 #2992 #2993 #2999)
+- **Catraca Viva F1** — gate de tela órfã/morta (#2943)
+- **Design Request Ledger** + ADR 0293 (governança da decisão de design: responsável + registro + retorno) (#2980 #2988 #3043)
+
+### Changed
+- **Shell**: sidebar vira drawer flutuante no mobile ≤768px (#2887 #2889)
+- `font-ramp` migration — sells/cockpit/fiscal CSS (FORJA-140) (#2870)
+- Apaga `prototipo-ui/_BACKUP-NAO-USAR` (1082 arquivos, peso morto) (#2977)
+
+## [0.7.1] - 2026-06-16 · dark mode real + redesign fiel ao Cowork (Caixa / Forja / Financeiro)
+
+### Added
+- **Dark mode real** por `[data-theme=dark]` (não só `.dark`) (ADR 0281) (#2826 #2818 #2846 #3044)
+- **Caixa Unificada / Atendimento** — redesign fiel ao protótipo Cowork: bolhas/timestamp/fundo, SLA pill 4 estados + dot, Contexto recolhível (trilho 44px), composer discreto, Saldo+Histórico do cliente, reconectar canal via QR in-place, ChannelHealthBanner (#2818 #2822 #2838 #2839 #2841 #2845 #2849 #2850 #2852 #2858 #2859 #2860 #2963 #2974)
+- **Forja / TeamMcp** — hub único (fusão) + re-skin DS v6 conservador + 5 abas do cockpit (Tasks, CcSessions, Scorecard, Triagem) (#2819 #2821 #2823 #2824 #2840 #2843 #2848 #2853 #2857)
+
+### Changed
+- **Financeiro Unificado** bate pixel com o gabarito Cowork: hero KPI vira claro, header → `<PageHeader>` canon v3.8 + primary roxo, drawer F3 (#2584 #2844 #2851 #2856 #2863 #2947)
+- `reuse`: dedup `fmtRelative` canônico em `@/Lib/datetime-br` (#2831 #2832 #2835)
+
+## [0.7.0] - 2026-06-12/13 · Elevação do Design System (Onda M1)
+
+> Auditoria sênior graduou o DS em 61/100 (14 dimensões vs Linear/Stripe/Vercel/Radix/Polaris). Onda M1 = "consolidar a fundação".
+
+### Added
+- **Tokens oklch** extraídos da tela-ouro + unifica hsl→oklch nos neutros legacy (pixel-idêntico provado) (#2639 #2651)
+- **Tokens de motion** (`--duration-*` / `--ease-*`) (#2645)
+- **Camada canônica consome o DS** — badge/KpiCard/EmptyState/StatusBadge tokenizam status + catraca `ds-canon-color-guard` (#2641 #2643)
+- **DS Rollout + Ledger de Conformidade** (censo `ds-ledger.mjs`) (#2621)
+
+### Changed
+- **Adoção em massa**: 329 tokenizações verificadas por adversário (132 arquivos, 32 módulos) (#2666)
+- **Cliente "tela-linda"**: Pills tokeniza ESTADO preservando CATEGORIA + 9 componentes limpo-semânticos (#2655 #2660 #2626)
+
+## [0.6.15] - 2026-06-11 · fecho do thread "árvore de componentes" + casos-gate (Onda Q2)
+
+### Added
+- **ADR 0272 aceita** — árvore canônica de componentes (#2552)
+- **casos-gate**: ratchet só-desce do baseline de cobertura + manifestos de UC + runner parcial não apaga prova alheia (#2565 #2566 #2567 #2568)
+- **visual-regression** required-readiness (always-run + skip-as-pass) (#2553)
+
+## [0.6.14] - 2026-06-11 · DELETE shim MercosulPlate (ADR 0251 cumprida — fonte única shared/)
+
+- **DELETE** `Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate.tsx` (re-export shim de compat) — 3 consumidores (ServiceOrderRichSheet · Board · ServiceOrderKanbanCard) apontados direto pra `@/Components/shared/MercosulPlate`. Deleção amparada por ADR 0251 (shim era transitório) + ADR 0272 §roadmap (remoção pós-#2544). Última duplicata mecânica da auditoria 2026-06-11 fechada.
+
+## [0.6.13] - 2026-06-11 · renames de colisão de nome + catraca reuse apertada 25→21
+
+Auditoria de duplicatas ("tem arquivos duplicados ainda?"): `Fiscal/_components/ModuleTopNav` (44 linhas) e `kb/_components/CommandPalette` (162 linhas) NÃO são cópias dos homônimos shared/global — são implementações próprias dividindo o nome. O erro é a colisão (confunde reuso e polui o sinal do reuse-index), não o conteúdo.
+
+### Moved/Renamed
+
+- **RENAME** `Pages/Fiscal/_components/ModuleTopNav.tsx` → `FiscalModuleTopNav.tsx` (símbolos `FiscalModuleTopNav*`; consumidores Config/Dfe atualizados)
+- **RENAME** `Pages/kb/_components/CommandPalette.tsx` → `KbCommandPalette.tsx` (consumidor Index.v2 atualizado)
+- Baselines re-keyed: eslint (1 key) · layout (1 key)
+
+### Changed
+
+- **Catraca reuse apertada**: `reuse-duplicates-baseline.json` 25 → **21** (2 pares de colisão eliminados + 2 já resolvidos antes). Duplicatas restantes têm dono: atoms.tsx/cn → F5 (bundle Cobrança dissolve tela-a-tela) · MemCofre Pages → deleção verificada futura · MercosulPlate shim → remover pós-#2544 (ADR 0251 re-export, consumidores em edição na sessão irmã)
+
+## [0.6.12] - 2026-06-11 · shared/ flat (CHECK 3 no guard) + MOVE shared/ponto → Pages/Ponto/_components
+
+Furo achado HORAS depois do guard nascer: subpasta de domínio DENTRO de `shared/` (`shared/ponto/`) escapava do CHECK 1, que só valida o top-level de `Components/`. Regra nova simples e enforçável: **shared/ é flat** — composto cross-módulo é arquivo direto; domínio de 1 módulo vai pra `Pages/<Mod>/_components/`.
+
+### Moved
+
+- **MOVE** `Components/shared/ponto/{ActivityFeed,AlertInbox,MonthHeatmap,PresenceStrip}.tsx` → `Pages/Ponto/_components/` (consumidores: Ponto/Dashboard · Ponto/Espelho · _Showcase)
+- Baselines re-keyed (move puro): eslint · layout-primitives · ui-lint (escapado `\/`)
+
+### Added
+
+- `components-tree-guard.mjs` **CHECK 3**: subpasta dentro de `shared/` = fail (sem grandfather — a única existente foi movida neste PR)
+
+## [0.6.11] - 2026-06-11 · components-tree-guard + rule components.md + deprecação sinalizada do shared/PageHeader
+
+### Added
+
+- **`scripts/components-tree-guard.mjs`** + **`.github/workflows/components-tree-guard.yml`** + npm `components:check`: allowlist do top-level de `Components/` (8 pastas + 4 arquivos raiz justificados) — entrada nova exige editar o script no MESMO PR. CHECK 2: convenção `_components` (com underscore) sob Pages (4 pré-existentes grandfathered). Lei ADR 0240: derivado + enforcado sobrevive.
+- **`.claude/rules/components.md`** (path-scoped `Components/**` + `Pages/**/_components/**`): tabela "onde criar componente" + catracas ativas + pegadinha baselines path-keyed em moves.
+- **`memory/decisions/proposals/2026-06-11-arvore-componentes-canonica.md`**: formaliza árvore (camadas UI-0013 → pastas) + roadmap `patterns/ListPage` (PT-01 como código — exige ADR própria + piloto + gate visual; adiado conscientemente: Slot 1 do PT-01 referencia header legacy enquanto F4 migra).
+
+### Changed
+
+- **`shared/PageHeader.tsx`**: `@deprecated` JSDoc apontando canon `@/Components/PageHeader` v3.8 + política F4 (zero mudança de comportamento — só sinalização no editor/LSP).
+
+## [0.6.10] - 2026-06-11 · BR inputs canônicos em ui/ (NumericInputPtBR promovido + DocumentInput + PhoneInput)
+
+### Added
+
+- **`ui/document-input.tsx`** (`DocumentInput`): CPF/CNPJ com máscara progressiva + validação mod 11 UX-only (`valid: true|false|null` — null = incompleto, não acende erro). Compõe `Input` canon + `@/Lib/br-mask` + `br-validate`. `clampDigits` garante display === digits persistido. Backend `Rule\BR\CpfCnpj` segue a verdade (ADR 0093 Tier 0).
+- **`ui/phone-input.tsx`** (`PhoneInput`): telefone BR fixo/celular, pattern "9 separado" canon Cowork (aprovado Wagner sessão understand 2026-05-21). Emite `{ masked, digits }`.
+- **`tests/br-inputs.test.tsx`**: 11 testes — contratos de máscara/parse/valid + round-trip focus→edit→blur do numérico + axe runtime serious/critical=0 (idioma `a11y-primitives.test.tsx`).
+
+### Moved
+
+- **MOVE** `Pages/Sells/_components/NumericInputPtBR.tsx` → `Components/ui/numeric-input-ptbr.tsx` — promoção R-DS-001 (regra-de-2: PaymentRow + Sells/Create já consumiam). Named export adicionado; default preservado. Imports Sells atualizados.
+
+### Registry
+
+- `REGISTRY_DS_COMPONENTES.md` §Form controls: +3 linhas (NumericInputPtBR · DocumentInput · PhoneInput) — "se está aqui, não hand-rola".
+
+## [0.6.9] - 2026-06-11 · MOVE componentes de domínio single-módulo pra Pages/<Mod>/_components
+
+Camada 4 (Módulo · UI-0013) sai da pasta global `Components/` quando só 1 módulo consome — alinha com convenção `_components/` já vigente (Sells, CaixaUnificada, ServiceOrders). `Components/` global fica reservada a: `ui/` (primitivos) · `shared/` (compostos cross-módulo) · `layout/` (ADR 0253) · `PageHeader/` (canon v3.8) · `cockpit/` (Shell) · `board/` (cross-módulo OficinaAuto+ProjectMgmt) · `Site/` (surface pública) · `NfeBrasil/` (domínio fiscal consumido por Sells).
+
+### Moved
+
+- **MOVE** `Components/clientes/{ActiveChip,Avatar,KpiStripClickable,Pills}.tsx` → `Pages/Cliente/_components/`
+- **MOVE** `Components/ConsultaOs/{OsLookupForm,OsPipeline,OsResultCard,OsStageBadge}.tsx` → `Pages/ConsultaOs/_components/`
+- **MOVE** `Components/jana/AssistantUiChat.tsx` → `Pages/Jana/_components/`
+- Refs atualizadas: imports (Cliente/Index · ConsultaOs/Index · Jana/Chat) · `tests/Feature/Cliente/ClienteListagemTurbinadaTest.php` (GUARDs 1/2/3/13) · `config/eslint-baseline.json` (5 keys re-path) · `Cliente/Index.charter.md` (§Componentes) · docs vivos (Crm BRIEFING/RUNBOOK · REUSE_MAPPING · comentário ContactController)
+- Baselines re-keyed (move puro, sem regressão): `scripts/layout-primitives-baseline.json` (6 keys, counts idênticos) · eslint baseline absorve +6 `no-restricted-syntax` pré-existentes que ENTRARAM no escopo das regras DS (`files: Pages/**`) com o move — hand-roll antigo (rounded-xl ×3 AssistantUiChat · text-rose cru ×2 Pills [assertado por GUARD 2 Pest] · ×1 OsPipeline); catraca segue: PR novo que hand-rolar regride
 
 ## [0.6.8] - 2026-05-24 · Smoke real OpenAI · LLM judge funciona + pegou drift real
 

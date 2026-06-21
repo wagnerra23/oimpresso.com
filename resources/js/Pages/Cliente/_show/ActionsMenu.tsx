@@ -187,7 +187,7 @@ export default function ActionsMenu({
           {permissions.delete && (
             <DropdownMenuItem
               onClick={handleDelete}
-              className="text-rose-700 dark:text-rose-400 focus:text-rose-700 focus:bg-rose-50 dark:focus:bg-rose-950/40"
+              className="text-destructive-fg focus:text-destructive-fg focus:bg-destructive-soft"
               data-testid="actions-delete"
             >
               <Trash2 className="mr-2 h-4 w-4" aria-hidden />

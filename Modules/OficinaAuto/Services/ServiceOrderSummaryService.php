@@ -22,27 +22,19 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
 class ServiceOrderSummaryService
 {
     /**
-     * KPIs combinados (manutenção mecânica pesada predominante + locação preservada nullable) pra dashboard Martinho.
+     * KPIs de reparo (manutenção mecânica pesada) pra dashboard Martinho.
      *
-     * Pós-ADR 0194 (2026-05-26): Martinho biz=164 sub-vertical 4 mecânica pesada
-     * caminhão basculante CNAE 4520 — OS predominante `order_type='manutencao'`.
-     * KPI `locacao_ativa` reflete schema sub-vertical 3 hipotético preservado
-     * nullable (sem cliente real ancorado — retorna 0 sem erro).
+     * Pós-ADR 0265 (2026-06-09): locação ERRADICADA — Oficina = reparo, ponto.
+     * `order_type ∈ {manutencao, mecanica}`. O KPI de locação foi removido (a 0194
+     * preservava nullable; a 0265 apaga o resíduo).
      *
-     * @return array{locacao_ativa:int,manutencao_ativa:int,concluida_mes:int,atrasada:int}
+     * @return array{manutencao_ativa:int,concluida_mes:int,atrasada:int}
      */
     public function kpisDashboard(): array
     {
         return OtelHelper::spanBiz('oficinaauto.so.kpis_dashboard', function () {
             $hasOrderType = Schema::hasColumn('service_orders', 'order_type');
             $hasReturnDate = Schema::hasColumn('service_orders', 'expected_return_date');
-
-            $locacaoAtiva = $hasOrderType
-                ? ServiceOrder::query()
-                    ->where('order_type', 'locacao')
-                    ->whereIn('status', ['aberta', 'em_servico'])
-                    ->count()
-                : 0;
 
             $manutencaoAtiva = ServiceOrder::query()
                 ->when($hasOrderType, fn ($q) => $q->where('order_type', 'manutencao'))
@@ -63,7 +55,6 @@ class ServiceOrderSummaryService
                 : 0;
 
             return [
-                'locacao_ativa'   => $locacaoAtiva,
                 'manutencao_ativa' => $manutencaoAtiva,
                 'concluida_mes'   => $concluidaMes,
                 'atrasada'        => $atrasada,

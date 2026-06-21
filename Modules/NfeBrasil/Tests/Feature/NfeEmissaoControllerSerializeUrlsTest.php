@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\ArquivosService;
@@ -29,25 +30,35 @@ uses(Tests\TestCase::class);
 // ── schema setup ─────────────────────────────────────────────────────────────
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
+    // arquivos (create_arquivos_table) e nfe_emissoes (create_nfe_emissoes_table) têm
+    // migration real — dropá-las/recriá-las à mão corrompe o MySQL persistente. Só sqlite.
     Schema::dropIfExists('arquivos');
     Schema::dropIfExists('nfe_emissoes');
-    Schema::dropIfExists('activity_log');
 
+    // activity_log é CORE COMPARTILHADA — NUNCA dropar no MySQL persistente
+    // (destruiria o log de testes alheios → cascata "Base table not found").
+    // Cria só condicional: em sqlite fresco cria, em MySQL já-migrado vira no-op.
     // Spatie LogsActivity em NfeEmissao → INSERT em activity_log.
-    Schema::create('activity_log', function ($t) {
-        $t->bigIncrements('id');
-        $t->string('log_name')->nullable();
-        $t->text('description')->nullable();
-        $t->unsignedBigInteger('subject_id')->nullable();
-        $t->string('subject_type')->nullable();
-        $t->unsignedBigInteger('causer_id')->nullable();
-        $t->string('causer_type')->nullable();
-        $t->text('properties')->nullable();
-        $t->uuid('batch_uuid')->nullable();
-        $t->string('event')->nullable();
-        $t->unsignedInteger('business_id')->nullable();
-        $t->timestamps();
-    });
+    if (! Schema::hasTable('activity_log')) {
+        Schema::create('activity_log', function ($t) {
+            $t->bigIncrements('id');
+            $t->string('log_name')->nullable();
+            $t->text('description')->nullable();
+            $t->unsignedBigInteger('subject_id')->nullable();
+            $t->string('subject_type')->nullable();
+            $t->unsignedBigInteger('causer_id')->nullable();
+            $t->string('causer_type')->nullable();
+            $t->text('properties')->nullable();
+            $t->uuid('batch_uuid')->nullable();
+            $t->string('event')->nullable();
+            $t->unsignedInteger('business_id')->nullable();
+            $t->timestamps();
+        });
+    }
 
     Schema::create('nfe_emissoes', function ($t) {
         $t->id();
@@ -95,9 +106,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('arquivos');
-    Schema::dropIfExists('nfe_emissoes');
-    Schema::dropIfExists('activity_log');
+    // afterEach roda MESMO no teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.23) — guardar o DDL por driver. activity_log (CORE) NÃO é dropada.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('arquivos');
+        Schema::dropIfExists('nfe_emissoes');
+    }
 });
 
 // ── helpers ──────────────────────────────────────────────────────────────────

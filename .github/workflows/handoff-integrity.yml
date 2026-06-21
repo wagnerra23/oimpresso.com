@@ -1,0 +1,72 @@
+name: Handoff Integrity (advisory · fila ↔ prompts)
+
+# Catraca de Integridade do Handoff — PROCESSO_MEMORIA_CC.md §16 · IT8.
+# A fila (prototipo-ui/COWORK_NOTES.md, ACIMA da linha d'água) e os prompts duráveis
+# (prototipo-ui/PROMPT_PARA_CODE_*.md) têm que casar. Falha em NOVO órfão (prompt criado sem
+# citação → tarefa invisível) ou NOVA ref morta (citação pra prompt inexistente → [CL] erra o PR).
+# Baseline (config/handoff-integrity-baseline.json) congela a dívida atual; abaixo da linha = ignorado.
+#
+# ADVISORY de nascença (gates novos nunca nascem required — ADR 0271/0275): não está no branch
+# protection, nunca bloqueia merge. Promoção a required = decisão [W]. Node puro, sem deps/DB/rede.
+# Comando manual: npm run handoff:check  ·  auto-teste (controle-negativo): npm run handoff:selftest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prototipo-ui/COWORK_NOTES.md'
+      - 'prototipo-ui/PROMPT_PARA_CODE_*.md'
+      - 'config/handoff-integrity-baseline.json'
+      - 'scripts/handoff-integrity-guard.mjs'
+      - 'scripts/handoff-integrity-guard.test.mjs'
+      - 'package.json'
+      - '.github/workflows/handoff-integrity.yml'
+  pull_request:
+    paths:
+      - 'prototipo-ui/COWORK_NOTES.md'
+      - 'prototipo-ui/PROMPT_PARA_CODE_*.md'
+      - 'config/handoff-integrity-baseline.json'
+      - 'scripts/handoff-integrity-guard.mjs'
+      - 'scripts/handoff-integrity-guard.test.mjs'
+      - 'package.json'
+      - '.github/workflows/handoff-integrity.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: handoff-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  handoff:
+    name: handoff integrity (advisory · órfão/ref-morta só sobe = vermelho)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Selftest — fixtures boa/ruim provam que a catraca morde
+        run: node scripts/handoff-integrity-guard.test.mjs
+
+      - name: Catraca vs baseline (+ tabela no job summary)
+        run: node scripts/handoff-integrity-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Integridade do handoff quebrou (PROCESSO_MEMORIA_CC.md §16)."
+          echo ""
+          echo "ÓRFÃO     = PROMPT_PARA_CODE_*.md criado sem citação na fila ativa (acima da linha d'água) → tarefa invisível."
+          echo "REF MORTA = citação acima da linha pra um PROMPT_PARA_CODE_*.md que não existe → [CL] erra o PR."
+          echo ""
+          echo "Conserte: cite o prompt na fila ATIVA (COWORK_NOTES.md, acima de <!-- LINHA-DAGUA-HANDOFF -->)"
+          echo "OU crie/arquive o arquivo. Se a mudança muda a dívida legitimamente, no mesmo PR:"
+          echo "  npm run handoff:baseline:write"
+          echo ""
+          echo "Relatório local: npm run handoff:report  ·  Refs: PROCESSO_MEMORIA_CC.md §16 · IT8"

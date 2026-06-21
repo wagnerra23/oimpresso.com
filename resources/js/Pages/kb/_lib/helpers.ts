@@ -57,24 +57,11 @@ export function freshnessLevel(updatedAt: string | null): FreshnessInfo {
 
 // ──────────────────────────────────────────────────────────────────
 // fmtRelative — "agora", "5min atrás", "3h atrás", "2d atrás", data
+// Canônico mora em @/Lib/datetime-br (reuse > recria). Re-exportado aqui
+// pra preservar a ergonomia do barrel `_lib/helpers` dos componentes KB.
 // ──────────────────────────────────────────────────────────────────
 
-export function fmtRelative(iso: string | null): string {
-  if (!iso) return '—';
-  const d = new Date(iso).getTime();
-  if (Number.isNaN(d)) return iso; // já é relativo (compat seed)
-  const diffSec = (Date.now() - d) / 1000;
-  if (diffSec < 60) return 'agora';
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}min atrás`;
-  if (diffSec < 86_400) return `${Math.floor(diffSec / 3600)}h atrás`;
-  if (diffSec < 86_400 * 7) return `${Math.floor(diffSec / 86_400)}d atrás`;
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+export { fmtRelative } from '@/Lib/datetime-br';
 
 export const numBR = (v: number): string =>
   new Intl.NumberFormat('pt-BR').format(v ?? 0);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Wave C-BE (ADR 0179) -- 5 endpoints PATCH cadastrais autosave + lookups.
@@ -35,10 +36,7 @@ beforeEach(function () {
         $this->markTestSkipped('Migration 2026_05_22_000000 (Wave B drawer) ainda nao rodou neste ambiente.');
     }
 
-    $this->business = \App\Business::first();
-    if (! $this->business) {
-        $this->markTestSkipped('Sem business em DB.');
-    }
+    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
     $this->user = \App\User::where('business_id', $this->business->id)->first();
     if (! $this->user) {
         $this->markTestSkipped('Sem user no business.');
@@ -61,6 +59,15 @@ beforeEach(function () {
     // (canon UPOS -- pattern de tests/Feature/Cliente/RedirectLegacyContactsTest).
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id]);
+
+    // ClienteAutosaveController::locateContact() verifica customer.update / supplier.update.
+    // Seed não atribui permissões ao user seeded — precisa conceder aqui (RC-17).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    // givePermissionTo com STRING exige a permission pré-existente (Spatie v6) —
+    // garante que existam mesmo se o PermissionsTableSeeder não rodou neste DB (RC-25 completa RC-17).
+    Permission::findOrCreate('customer.update', 'web');
+    Permission::findOrCreate('supplier.update', 'web');
+    $this->user->givePermissionTo(['customer.update', 'supplier.update']);
 });
 
 // ---------------------------------------------------------------------

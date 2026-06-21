@@ -135,21 +135,61 @@ curl https://mcp.oimpresso.com/api/mcp/health/auth \
 
 Retorna info do user + count de docs acessíveis.
 
-## Atualização (depois do setup inicial)
+## Atualização — caminho main→CT100 (ADR 0062 + 0256)
 
-Workflow `compose-managed`: source-of-truth é o repo git.
+> O `deploy.yml` é **Hostinger-only** (ADR 0062 separa os runtimes), então NÃO há
+> CI publicando aqui. O caminho canônico é o host se **auto-atualizar** (GitOps pull)
+> por cron + uma **sentinela externa** que grita se isso parar.
+> Origem: incidente 2026-06-17 — ~17 dias de código velho servido em silêncio (dados
+> frescos da DB compartilhada mascaravam o drift do código).
+
+### Deploy (canônico — script versionado, não comando solto)
 
 ```bash
-ssh root@<ct-100-ip>
-cd /opt/oimpresso-mcp/code
-git pull origin main
-
-# Se mudou Dockerfile/compose: rebuild
-docker compose -f docker/oimpresso-mcp/docker-compose.yml build
-
-# Reload (rolling)
-docker compose -f docker/oimpresso-mcp/docker-compose.yml up -d
+tailscale ssh root@ct100-mcp
+bash /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh
 ```
+
+O `self-update.sh` é idempotente: `fetch` → se atrás de `origin/main`, faz backup dos
+dirty files → `reset --hard origin/main` → `composer install` (só se lock mudou) →
+rebuild (só se `docker/oimpresso-mcp/` mudou) → `up -d --force-recreate` → smoke.
+
+**Duas pegadinhas que o `git pull` solto NÃO resolve** (catalogadas no incidente):
+1. **`reset --hard origin/main`, não `git pull`** — main tem história reescrita; um
+   merge quebra com *"no common ancestor"*.
+2. **`--force-recreate` sempre** — `opcache.validate_timestamps=Off` no container;
+   sem recreate o código novo no bind-mount **não sobe** (drift silencioso).
+
+### Cron (instalar UMA vez no host — única config de host permitida)
+
+```bash
+# crontab -e (root no CT 100)
+# NÃO use `flock` aqui: o self-update.sh já tem flock interno no mesmo lockfile
+# (/tmp/mcp-self-update.lock); um flock externo colidiria e o script no-op-aria todo run.
+*/15 * * * * /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh >> /opt/oimpresso-mcp/logs/self-update.log 2>&1
+```
+
+### Sentinela de drift (sem tailscale)
+
+`.github/workflows/mcp-drift-sentinel.yml` roda no GitHub a cada 30min: compara o campo
+`commit` de **`/api/mcp/version`** com o HEAD de `main`. Esse endpoint é protegido por um
+token DEDICADO (`MCP_DRIFT_TOKEN`) checado direto no controller — **sem user, sem RBAC
+`jana.mcp.use`, sem query no DB**: se o token vazar, só revela o SHA do commit (blast
+radius zero). Por isso a sentinela usa ele, não o `/health/auth` (que carrega permissão
+de tool). Se servido ficar > 6h atrás (`MCP_DRIFT_MAX_LAG_HOURS`), **alarma**: workflow
+vermelho + issue `mcp-drift` (o "inbox ops"). O commit servido é escrito pelo
+`entrypoint-octane.sh` a cada boot (precisa de git na imagem — ver Dockerfile.octane).
+
+**Setup (uma vez):** gere o token, ponha no `.env` do host MCP e no secret do repo:
+```bash
+TOKEN=$(openssl rand -hex 32)
+# no host CT 100: adicionar ao .env do compose
+echo "MCP_DRIFT_TOKEN=$TOKEN" >> /opt/oimpresso-mcp/code/docker/oimpresso-mcp/.env
+gh secret set MCP_DRIFT_TOKEN --body "$TOKEN"
+# recriar o container pra o config:cache pegar o .env novo
+bash /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/self-update.sh   # ou docker compose up -d --force-recreate
+```
+Sem o secret a sentinela só emite `WARN` (não alarma) — graça de rollout.
 
 **NÃO usar Portainer Stacks** — Portainer fica só pra UI de logs/debug.
 Edição via UI gera divergência com o git (ver discussão sessão 29-abr-2026).

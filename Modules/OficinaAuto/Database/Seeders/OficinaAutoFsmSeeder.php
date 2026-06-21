@@ -25,7 +25,9 @@ use Spatie\Permission\Models\Role;
  *
  * Cria 2 processos FSM idempotentes per-business:
  *
- *  1) cacamba_locacao   — fluxo de locação caçamba (Vehicle.current_status sync)
+ *  1) cacamba_locacao   — processo LEGADO (keys preservadas Tier 0; labels já em
+ *     vocabulário de REPARO — ADR 0265). OS novas NUNCA entram aqui (mapa
+ *     ServiceOrderPipelineStarter não roteia pra este processo).
  *     Stages (4): disponivel (initial) → locada → recolhida (terminal)
  *                 lateral: manutencao
  *     Actions (4): iniciar_locacao | recolher | enviar_manutencao | voltar_disponivel
@@ -75,12 +77,18 @@ class OficinaAutoFsmSeeder extends Seeder
 
     // ----- Processo 1: cacamba_locacao ----------------------------------
 
-    /** @var array<string, string> stage_key → label PT-BR */
+    /**
+     * @var array<string, string> stage_key → label PT-BR.
+     *
+     * KEYS intocadas (compat backwards prod biz=164 + trava FSM); DISPLAY NAMES já em
+     * vocabulário de REPARO (ADR 0265 erradica locação — auditoria [CC] 2026-06-09). O dado
+     * em prod é renomeado pela migration 2026_06_09_000003_rename_cacamba_locacao_stage_labels.
+     */
     private const LOCACAO_STAGES = [
-        'disponivel' => 'Disponível',
-        'locada'     => 'Locada (com cliente)',
-        'recolhida'  => 'Recolhida',
-        'manutencao' => 'Em manutenção',
+        'disponivel' => 'Aguardando',
+        'locada'     => 'Em execução',
+        'recolhida'  => 'Pronto p/ retirar',
+        'manutencao' => 'Em diagnóstico',
     ];
 
     /** @var array<string, array{order:int, terminal?:bool, color:string, initial?:bool}> */
@@ -196,8 +204,8 @@ class OficinaAutoFsmSeeder extends Seeder
             $process = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->create([
                 'business_id'              => $businessId,
                 'key'                      => 'cacamba_locacao',
-                'name'                     => 'Caçamba — Locação',
-                'description'              => 'Pipeline FSM caso Martinho (key legacy preservada · vocabulário canon pós-ADR 0194 = sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520; pré-correção dizia "locação de caçamba avulsa estacionária")',
+                'name'                     => 'Fluxo legado — equipamento',
+                'description'              => 'Pipeline FSM caso Martinho (key legacy preservada · vocabulário canon pós-ADR 0194 = sub-vertical 4 mecânica pesada caminhão basculante CNAE 4520; nome user-facing em vocabulário de reparo — ADR 0265)',
                 'default_for_contact_type' => 'any',
                 'active'                   => true,
             ]);
@@ -206,15 +214,20 @@ class OficinaAutoFsmSeeder extends Seeder
         $stages = $this->ensureStages($process, self::LOCACAO_STAGES, self::LOCACAO_STAGE_META);
 
         // Definição das transições — [stage_origem, key, label, target_stage, roles[], is_critical, side_effect_fqcn]
+        // KEYS e side_effect_class INTOCADOS (Tier 0 — ADR 0143/0194, Martinho live);
+        // LABELS em vocabulário de REPARO (ADR 0265 erradica locação — evidência [W]
+        // 2026-06-10 OS-00004: checklist oferecia "Iniciar locação (entregar caçamba)").
+        // Dado em prod renomeado pela migration 2026_06_10_000002 (firstOrCreate não
+        // atualiza linha existente — seeder cobre só ambiente novo).
         $defs = [
-            ['disponivel', 'iniciar_locacao', 'Iniciar locação (entregar caçamba)', 'locada',     ['mecanico', 'gerente'], true,  'App\\Domain\\Fsm\\SideEffects\\IniciarLocacaoCacamba'],
-            ['locada',     'recolher',         'Recolher caçamba (devolução)',       'recolhida',  ['mecanico', 'gerente'], false, 'App\\Domain\\Fsm\\SideEffects\\RecolherCacamba'],
+            ['disponivel', 'iniciar_locacao', 'Iniciar execução',        'locada',     ['mecanico', 'gerente'], true,  'App\\Domain\\Fsm\\SideEffects\\IniciarLocacaoCacamba'],
+            ['locada',     'recolher',         'Concluir serviço',        'recolhida',  ['mecanico', 'gerente'], false, 'App\\Domain\\Fsm\\SideEffects\\RecolherCacamba'],
             // enviar_manutencao disponível de qualquer não-terminal não-manutencao
-            ['disponivel', 'enviar_manutencao', 'Enviar pra manutenção',             'manutencao', ['gerente'],            true,  'App\\Domain\\Fsm\\SideEffects\\EnviarCacambaManutencao'],
-            ['recolhida',  'enviar_manutencao', 'Enviar pra manutenção',             'manutencao', ['gerente'],            true,  'App\\Domain\\Fsm\\SideEffects\\EnviarCacambaManutencao'],
+            ['disponivel', 'enviar_manutencao', 'Enviar pra diagnóstico', 'manutencao', ['gerente'],            true,  'App\\Domain\\Fsm\\SideEffects\\EnviarCacambaManutencao'],
+            ['recolhida',  'enviar_manutencao', 'Enviar pra diagnóstico', 'manutencao', ['gerente'],            true,  'App\\Domain\\Fsm\\SideEffects\\EnviarCacambaManutencao'],
             // voltar_disponivel: de manutencao → disponivel; e de recolhida → disponivel
-            ['manutencao', 'voltar_disponivel', 'Liberar pra locação',               'disponivel', ['mecanico', 'gerente'], false, 'App\\Domain\\Fsm\\SideEffects\\VoltarCacambaDisponivel'],
-            ['recolhida',  'voltar_disponivel', 'Liberar pra locação',               'disponivel', ['mecanico', 'gerente'], false, 'App\\Domain\\Fsm\\SideEffects\\VoltarCacambaDisponivel'],
+            ['manutencao', 'voltar_disponivel', 'Voltar pra aguardando',  'disponivel', ['mecanico', 'gerente'], false, 'App\\Domain\\Fsm\\SideEffects\\VoltarCacambaDisponivel'],
+            ['recolhida',  'voltar_disponivel', 'Voltar pra aguardando',  'disponivel', ['mecanico', 'gerente'], false, 'App\\Domain\\Fsm\\SideEffects\\VoltarCacambaDisponivel'],
         ];
 
         $this->ensureActions($stages, $defs, $roleMap);

@@ -42,7 +42,7 @@ interface Props {
 function StatusBadge({ account }: { account: Account }) {
   if (!account.complemento_id) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200">
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-warning-soft text-warning-fg">
         <AlertTriangle className="h-3 w-3" /> Faltam dados
       </span>
     );
@@ -55,7 +55,7 @@ function StatusBadge({ account }: { account: Account }) {
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-200">
+    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-success-soft text-success-fg">
       <CheckCircle2 className="h-3 w-3" /> Ativo{account.carteira ? ` · Cart. ${account.carteira}` : ''}
     </span>
   );

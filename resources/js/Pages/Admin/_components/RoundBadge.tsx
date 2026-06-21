@@ -29,7 +29,7 @@ const STATUS_META: Record<
   },
   approved: {
     label: 'Aprovada',
-    cls: 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200',
+    cls: 'border-success/20 bg-success-soft text-success-fg',
     Icon: Check,
   },
   rejected: {
@@ -39,7 +39,7 @@ const STATUS_META: Record<
   },
   iterate: {
     label: 'Iterar',
-    cls: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
+    cls: 'border-warning/20 bg-warning-soft text-warning-fg',
     Icon: RefreshCw,
   },
 };

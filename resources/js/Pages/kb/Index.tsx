@@ -34,6 +34,7 @@ import { ScrollArea } from '@/Components/ui/scroll-area';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
+import { fmtRelative } from '@/Lib/datetime-br';
 import { toast } from 'sonner';
 import { Copy, Lock, Github, History, Trash2, BookOpen } from 'lucide-react';
 
@@ -99,24 +100,6 @@ interface DocDetail {
 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v ?? 0);
-
-function fmtDate(iso: string | null): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
-  });
-}
-
-function fmtRelative(iso: string | null): string {
-  if (!iso) return '—';
-  const d = new Date(iso).getTime();
-  const diffSec = (Date.now() - d) / 1000;
-  if (diffSec < 60) return 'agora';
-  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}min atrás`;
-  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h atrás`;
-  if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)}d atrás`;
-  return fmtDate(iso);
-}
 
 function fmtSize(chars: number): string {
   if (chars < 1024) return `${chars}c`;

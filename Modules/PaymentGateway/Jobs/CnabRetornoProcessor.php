@@ -80,6 +80,7 @@ class CnabRetornoProcessor implements ShouldQueue
         ];
         $erros = [];
 
+        // SUPERADMIN: queue worker sem session(); resolve a credencial pelo credentialId recebido no constructor e deriva business_id dela pra filtrar tudo a seguir.
         $cred = PaymentGatewayCredential::query()
             ->withoutGlobalScopes()
             ->find($this->credentialId);
@@ -189,6 +190,7 @@ class CnabRetornoProcessor implements ShouldQueue
 
         $tipo = (int) $detalhe->getOcorrenciaTipo();
 
+        // SUPERADMIN: job worker sem session(); casa o detalhe CNAB com a Cobranca filtrando pelo business_id da credencial do arquivo de retorno.
         $cobranca = Cobranca::query()
             ->withoutGlobalScopes() // ADR 0093 — Job worker sem session, filtra manualmente
             ->where('business_id', $cred->business_id) // Tier 0 explícito
@@ -336,6 +338,7 @@ class CnabRetornoProcessor implements ShouldQueue
         }
 
         try {
+            // SUPERADMIN: job worker sem session(); atualiza o registro de upload CNAB pelo uploadId recebido no constructor (mesmo tenant do arquivo).
             $upload = CnabRetornoUpload::query()->withoutGlobalScopes()->find($this->uploadId);
             if (! $upload) {
                 return;

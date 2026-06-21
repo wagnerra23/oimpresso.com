@@ -545,9 +545,11 @@ function SidebarShortcuts({
         </a>
       )}
       {showEquipe && (
-        <a href="/team-mcp/team" className="sb-shortcut">
+        // Fusão 2026-06-16: atalho topo é o hub ÚNICO "Forja" → /forja (cockpit
+        // do cowork loop que absorveu as telas do TeamMcp). Era "Equipe" → /team-mcp/team.
+        <a href="/forja" className="sb-shortcut">
           <Users size={13} />
-          <span className="label">Equipe</span>
+          <span className="label">Forja</span>
         </a>
       )}
       {showAtendimento && (

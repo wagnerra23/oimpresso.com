@@ -1,3 +1,10 @@
+---
+module: Repair
+owner: wagner
+version: "1.0"
+last_updated: "2026-06-13"
+---
+
 # Especificação funcional
 
 ## 3. User stories
@@ -13,7 +20,7 @@ _[TODO — escrever user stories no formato abaixo.]_
 **Quero** [ação]  
 **Para** [objetivo de negócio]
 
-**Implementado em:** _[path]_
+**Implementado em:** _pendente_ — US-REPA-001 não escrita (placeholder TODO)
 
 **Definition of Done:**
 - [ ] [critério]
@@ -108,7 +115,7 @@ Quando um IP faz mais de N requests/minuto
 Então recebe 429 Too Many Requests + log estruturado `repair.public_status.checked`
 ```
 
-**Implementação proposta (backlog Wave 4):** middleware `throttle:30,1` no grupo top-level que envolve `Route::get('/repair-status', ...)` e `Route::post('/post-repair-status', ...)` em [Modules/Repair/Routes/web.php](../../Modules/Repair/Routes/web.php) linhas 3-4. Hoje SEM throttle explícito — apenas throttle global Laravel via `RouteServiceProvider` (60 req/min padrão).
+**Implementação proposta (backlog Wave 4):** middleware `throttle:30,1` no grupo top-level que envolve `Route::get('/repair-status', ...)` e `Route::post('/post-repair-status', ...)` em [Modules/Repair/Routes/web.php](../../../Modules/Repair/Routes/web.php) linhas 3-4. Hoje SEM throttle explícito — apenas throttle global Laravel via `RouteServiceProvider` (60 req/min padrão).
 **Risco:** scraping massivo de OS expõe pattern de numeração + telefone redact incompleto.
 **Ver:** [PII-LGPD.md §"Pontos críticos"](PII-LGPD.md), [OBSERVABILITY.md §"repair_public_status_abuse"](OBSERVABILITY.md).
 **Testado em:** _(pendente — Pest test 31 requests retorna 429)_

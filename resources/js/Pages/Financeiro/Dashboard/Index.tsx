@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import StatusBadge from '@/Components/shared/StatusBadge';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 
 interface KpiAberto {
   valor: number;
@@ -152,23 +153,31 @@ function FinanceiroDashboard({
 
   return (
     <div className="fin-curadoria vendas-aplus">
-      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado (substitui PageHeader shared) */}
-      <header className="os-page-h fin-page-h">
-        <div className="os-page-h-l fin-page-h-l">
-          <h1>Financeiro <span className="fin-hero-title-sub">· Dashboard</span></h1>
-          <p>Visão geral das contas a pagar e a receber</p>
-        </div>
-        <div className="os-page-h-r fin-page-h-r">
-          <button
-            type="button"
-            className="os-btn ghost"
-            onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
-          >
-            Limpar filtros
-          </button>
-          <button type="button" className="os-btn primary">Novo título</button>
-        </div>
-      </header>
+      {/* Wave 4 (2026-06-16): migrado pra <PageHeader> canon v3.8 (ADR 0189/0190).
+          Primary `Novo título` antes era botão morto (.os-btn.primary sem handler) —
+          honest-button: aponta pro `/financeiro/unificado/novo` (capacidade real, mesma
+          rota usada por ContasPagar/Dre). Dashboard é o root `/financeiro`, sem ghost tab
+          próprio no menu (DataController) — por isso sem FinanceiroSubNav. */}
+      <PageHeader
+        title="Financeiro"
+        suffix=" · Dashboard"
+        subtitle={<>Visão geral das contas a pagar e a receber</>}
+        actions={
+          <>
+            <button
+              type="button"
+              className="os-btn ghost"
+              onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
+            >
+              Limpar filtros
+            </button>
+            <PageHeaderPrimary
+              label="Novo título"
+              onClick={() => router.visit('/financeiro/unificado/novo')}
+            />
+          </>
+        }
+      />
 
       {/* Onda 15 (2026-05-19) — KPI grid canon fin-stats (substitui KpiCard shadcn) */}
       <Deferred data="kpis" fallback={<KpiGridSkeleton />}>

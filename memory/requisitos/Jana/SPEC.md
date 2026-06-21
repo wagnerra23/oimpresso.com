@@ -439,11 +439,11 @@ Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash d
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 10/10
 > blocked_by: —
 
-Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por regex PII (CPF, CNPJ, email, cartão) e bloqueia se achar. Avisa ao Claude com mensagem "[PII detectada em path:line] — substitua por [REDACTED] ou fixture fake (ex.: 123.456.789-09)".
+Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por regex PII (CPF, CNPJ, email, cartão) e bloqueia se achar. Avisa ao Claude com mensagem "[PII detectada em path:line] — substitua por [REDACTED] ou fixture fake (ex.: 123.456.789-09)". <!-- pii-allowlist: CPF fake canônico (fixture de exemplo na doc do hook) -->
 
 **Por quê:** HOW_TO_ASK_CLAUDE §3.4. LGPD Art. 7º (princípio de minimização). Já houve incidente: log de prod com CPF real colado em prompt — risco de vazar em commit/transcript.
 
-**Acceptance:** `.claude/hooks/pii-redactor.ps1` testado · regex BR validados (CPF formato 000.000.000-00 e 00000000000; CNPJ idem; email RFC 5322 simplificado; cartão Luhn) · whitelist pra fixtures conhecidos (123.456.789-09, etc.) · documentação com lista de PIIs cobertos · zero falso-positivo em 50 commits validados.
+**Acceptance:** `.claude/hooks/pii-redactor.ps1` testado · regex BR validados (CPF formato 000.000.000-00 e 00000000000; CNPJ idem; email RFC 5322 simplificado; cartão Luhn) · whitelist pra fixtures conhecidos (123.456.789-09, etc.) · documentação com lista de PIIs cobertos · zero falso-positivo em 50 commits validados. <!-- pii-allowlist: placeholder 000.000.000-00 e CPF fake canônico 123.456.789-09 (fixtures de exemplo na doc do hook PII) -->
 
 ### US-COPI-087 · Sprint 9c — Cross-encoder reranker (qwen3-reranker ou bge-reranker-v2-m3)
 
@@ -943,7 +943,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** Langfuse v3 self-host em CT 100 (docker-compose: web + worker + ClickHouse + Postgres + Redis + MinIO) instrumentando 100% das chamadas LLM em prod (BriefDiarioAgent + kb-answer + recall + RAGAS gate)
 **Para** ter observability LLM real (trace + cost + latency + RAGAS metrics) — sem isso, claims de "95%+" são não-falsificáveis (princípio 4 Constituição v2). Destrava medição de R1 (reranker NDCG), K1 (time-decay impact), A1 (auto-summary ROI), RAGAS gate trend semanal
 
-**Implementado em:** `infra/ct100/langfuse/docker-compose.yml` (novo) + `Modules/Jana/Ai/Services/LangfuseClient.php` (já existe wrapper) instrumentado em `BriefDiarioAgent` + `KbAnswerService` + `MeilisearchDriver` + Console Command `jana:rag-eval` (RAGAS gate)
+**Implementado em:** _parcial_ · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · verificado@08c4a8f (2026-06-21) — wrapper + compose existem; falta instrumentar `BriefDiarioAgent`/`KbAnswerAgent`/`MeilisearchDriver` e subir stack CT 100 (DoD ainda aberto)
 
 **Definition of Done:**
 - [ ] Stack Langfuse v3 rodando CT 100 atrás Traefik HTTPS (subdomínio `langfuse.oimpresso.com` interno) — receita `proxmox-docker-host` skill
@@ -1004,7 +1004,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** `MeilisearchDriver` retornar score composto (relevance × 0.6 + recency × 0.3 com half-life 90d + importance × 0.1) com decay rate 0 pra ADR `lifecycle: accepted` e 0.5 pra `historical`/superseded
 **Para** documentos canônicos recentes vencerem antigos no recall — fechando gap Knowledge R5 (0%→75%) que hoje mistura regras vigentes com revogadas em queries multi-dia
 
-**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` — novo método `applyTemporalScoring()` aplicado após reranker (US-COPI-107) na chain hybrid recall
+**Implementado em:** _pendente_ — método `applyTemporalScoring()` ainda não existe no `MeilisearchDriver`; depende de US-COPI-107 (reranker) e US-COPI-108 (Langfuse) pra medir ganho NDCG (status todo)
 
 **Definition of Done:**
 - [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
@@ -1035,7 +1035,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** novo `Modules/Copiloto/Http/Controllers/Admin/RoadmapController.php` + `Modules/Copiloto/Http/Resources/RoadmapTaskResource.php` + `resources/js/Pages/Admin/Roadmap/Index.tsx` + `_components/RoadmapGantt.tsx` + `_components/SubIssuesPanel.tsx` + `Index.charter.md`
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `resources/js/Pages/ProjectMgmt/Roadmap/Index.tsx` · verificado@08c4a8f (2026-06-21) — controller + página existem; falta RoadmapTaskResource + componentes Gantt SVAR (RoadmapGantt, SubIssuesPanel) + charter (Gantt visual não construído)
 
 **Definition of Done:**
 - [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
@@ -1057,7 +1057,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 - ❌ Custom fields typed (JANA-10X-026 / Onda 6 P3)
 - ❌ Comentários inline timeline (next iter)
 
-**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-layout-v2-padrao.md)
+**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 
 ---
 
@@ -1070,7 +1070,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** tool MCP `handoff-draft` que lê `git log origin/main..HEAD` + `cycles-active` + `tasks-list status:doing` + `handoff-diff` (Onda 3) → 1 chamada `gpt-4o-mini` rascunha `.md` template canônico ADR 0130 que eu reviso + completo + Write final
 **Para** reduzir ~1h/dia que Wagner gasta escrevendo handoff manual (~10-20min × várias/dia) — fechar Handoff #4 auto-capture (30%→80%)
 
-**Implementado em:** novo `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (JSON-RPC schema: cycle_id?, since_hours? default 24, format? default md) + novo `Modules/Jana/Services/Handoff/HandoffDrafterService.php` + edit `Modules/Jana/Providers/OimpressoMcpServer.php` (registrar tool)
+**Implementado em:** `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` · `Modules/Jana/Mcp/OimpressoMcpServer.php` · `Modules/Jana/Tests/Feature/Mcp/HandoffDraftToolTest.php` · verificado@08c4a8f (2026-06-21)
 
 **Definition of Done:**
 - [ ] Tool MCP `handoff-draft` exposta com schema documentado
@@ -1104,7 +1104,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** workflow CI `memory-schema-lint.yml` matrix-strategy validando frontmatter de TODOS tipos `.md` canon (ADR + SPEC + RUNBOOK + session + handoff + charter) via JSON Schema 2020-12 + artisan command `jana:validate-memory` rodando daily 06:30 BRT pra detectar drift fora-de-PR
 **Para** fechar gap Knowledge S4 (40%→90%) — hoje só ADR é validado via `adr-lint.yml`; SPEC/RUNBOOK/session/handoff têm drift silencioso (ex: ADR sem `lifecycle:` passa, `decisions-search` devolve doc malformado)
 
-**Implementado em:** novos `memory/schemas/{adr,spec,runbook,session,handoff,charter}.schema.json` + `memory/schemas/README.md` + `.github/workflows/memory-schema-lint.yml` + `package.json` (root) com `remark-lint-frontmatter-schema` + novo `app/Console/Commands/Jana/ValidateMemorySchemas.php` artisan + edit `app/Console/Kernel.php` schedule
+**Implementado em:** `scripts/memory-schemas/adr.schema.json` · `scripts/memory-schemas/spec.schema.json` · `scripts/memory-schemas/runbook.schema.json` · `scripts/memory-schemas/session.schema.json` · `scripts/memory-schemas/handoff.schema.json` · `scripts/memory-schemas/charter.schema.json` · `scripts/memory-schemas/README.md` · `.github/workflows/memory-schema-gate.yml` · `Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php` · verificado@08c4a8f (2026-06-21)
 
 **Definition of Done:**
 - [ ] 6 JSON Schemas 2020-12 declarados em `memory/schemas/` (adr, spec, runbook, session, handoff, charter) — required minimalista (só `title`, `type`, `decided_at`/`last_updated`), demais opcionais com defaults documentados
@@ -1229,3 +1229,109 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ---
 
 **Última atualização:** 2026-06-01 — US-COPI-118 + US-COPI-119 apendadas (follow-ups do design:review #2078 MERGED: fix ui:lint Pro.tsx + Fase 2 juiz-LLM). Criadas via `tasks-create` MCP (US-COPI-118/119); este apend sincroniza pro DB via webhook no push.
+
+### US-COPI-123 · Remover startMockStream da rota live /ia/dashboard (Cockpit responde mock)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+> parent_plan: adr0270-cockpit-mock-kill
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 prod):** o Cockpit (`resources/js/Pages/Jana/Cockpit.tsx:705-780`) usa `startMockStream` numa rota **live** `/ia/dashboard` — responde dados mock em produção. Gap P0 do handoff 2026-06-11.
+
+**DoD:**
+- Remover `startMockStream` da rota live.
+- Plugar fonte de streaming real (Jana chat / SSE) com fallback.
+- Smoke browser MCP + Pest do payload real.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-124 · Escopar delete do ContentReconciler por business_id (healable=false, Tier-0)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+> parent_plan: content-reconciler-safe-heal
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 Tier-0):** `ContentReconciler` está `healable=false` porque o delete é **global, sem `business_id`** (comment no código: "delete global sem business_id — Tier-0-inseguro (ADR 0093)"). Risco de corrupção cross-tenant se reativado sem guard.
+
+**DoD:**
+- Escopar o delete por `business_id`.
+- Reativar `healable=true` só com o guard de tenant.
+- Teste de isolamento multi-tenant.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-125 · Adicionar kb_node_visibility + filtro ACL pre-retrieval no KbRagService (LGPD)
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: kb-acl-aware-rag
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 LGPD):** sem `kb_node_visibility` + ACL row-level no pre-retrieval, o RAG não pode ser liberado pro time MCP (risco de vazamento entre escopos). Bloqueante levantado pelo Agent D 2026-05-15.
+
+**DoD:**
+- Coluna/tabela `kb_node_visibility`.
+- Filtro ACL **antes** do retrieve (não pós-filtro).
+- Teste de isolamento de visibilidade.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-126 · Propagar renames Copiloto→Jana / MemCofre→SRS nos ~112 PHP em Modules/
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+> parent_plan: knowledge-drift-rename-propagation
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** drift de nomenclatura — `git grep` acha ~112 PHP em `Modules/` citando `Copiloto` + 27 citando `MemCofre` (renames Copiloto→Jana / MemCofre→SRS não propagados).
+
+**⚠️ Pré-condição:** CONFIRMAR primeiro se o módulo ainda é `Copiloto` no código (vs já renomeado pra Jana) antes de qualquer rename em massa — risco de quebrar referências.
+
+**DoD:**
+- Inventário grep atualizado (Copiloto + MemCofre).
+- Decidir canonical e propagar com segurança (namespaces, rotas, views).
+- Testes verdes pós-rename.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-127 · Criar view cliente /copiloto/decisoes/{id}/revisao (LGPD Art.20)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+> parent_plan: hitl-audit-card-ui-copiloto
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada — a UI admin do HITL existe, mas falta a view do **cliente-final** em `/copiloto/decisoes/{id}/revisao`.
+
+**DoD:**
+- Rota + página de revisão da decisão (cliente-final).
+- Permissions adequadas (cliente vê só as próprias).
+- Audit log da revisão.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-128 · Health-check multi_tenant_isolation cego a C3 — ler information_schema + probe cross-tenant READ
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial do ADR 0296 (achado S-1, critical). `HealthCheckCommand::checkMultiTenant()` (linha ~178) valida um array HARD-CODED de 3 tabelas Jana e só procura órfãos `business_id IS NULL` — nunca olha `mcp_dual_brain_decisions` (C3) nem faz cross-tenant READ. O critério de sucesso do cutover P1 do ADR 0296 ("isolamento idêntico antes/depois") é hoje **inverificável**.
+
+**Acceptance:**
+- [ ] Ler a lista de tabelas com `business_id` do `information_schema` (não array hard-coded) e cobrir todas C1/C3.
+- [ ] Adicionar probe de cross-tenant READ real: autentica biz=X, consulta C3 pelos MESMOS code-paths do app, afirma zero rows de biz≠X.
+- [ ] Tornar isso pré-requisito do gate de cutover P1 (INVARIANTE-TIER0-VERIFICADA do ADR 0296).
+
+Refs: ADR 0296 (S-1) · ADR 0093 · HealthCheckCommand.php:178.

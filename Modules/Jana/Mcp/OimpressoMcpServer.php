@@ -86,10 +86,21 @@ class OimpressoMcpServer extends Server
         // ─── PAGE 2 (cliente precisa paginar pra carregar) ───
         Tools\ClaudeCodeUsageSelfTool::class,
         Tools\MemoriaSearchTool::class,
+        // ADR 0295 (T4 slice 2) — time-travel bi-temporal: "o que valia em as_of?".
+        // Espelha memoria-search mas via Eloquent direto (HistoricoMemoriaService),
+        // pra alcançar fatos superseded que ficam fora do index Meilisearch.
+        Tools\MemoriaHistoricaTool::class,
         Tools\CcSearchTool::class,
         // ADR 0119 Tier 1 — coordenação entre sessões Claude (alerta passivo,
         // não lock). Agregação derivada de mcp_cc_sessions + mcp_cc_messages.
         Tools\WhatsActiveTool::class,
+        // ADR 0278 (D1, proposal #2766) Tier 2 — lease FORMAL de coordenação:
+        // compare-and-set real (no máx 1 por task, TTL 30min + heartbeat). O
+        // whats-active ALERTA; estes RESERVAM (mcp_work_leases). R3 anti-colisão
+        // + R4 estado canônico de quem-faz-o-quê (anti-vazamento).
+        Tools\TasksClaimTool::class,
+        Tools\TasksHeartbeatTool::class,
+        Tools\WhatsLockedTool::class,
         // ADR 0133 — System health audit canônico (5 dimensões: observability/evals/
         // ADR-stale/cost-agg/test-coverage). Wrapper sobre jana:system-audit --json.
         // Princípio 2 (tiered cost): SQL+FS only, ZERO LLM call.
@@ -146,6 +157,22 @@ class OimpressoMcpServer extends Server
         // ZERO LLM (varredura determinística). Fecha a simetria de governança:
         // decisões/tasks/skills/automações todos com registry MCP-queryable. Page 2.
         Tools\AutomationsListTool::class,
+        // PR-2 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — fila de design-handoffs
+        // Cowork→Code. handoff-pending puxa (stale/conflict guard A4/A5); handoff-ack
+        // fecha (gate verde A3 + scope jana.mcp.handoff.ack A7). Page 2+ (chamados após
+        // brief-fetch numa sessão de UI, fora dos 15 essenciais da página 1).
+        \Modules\TeamMcp\Mcp\Tools\HandoffPendingTool::class,
+        \Modules\TeamMcp\Mcp\Tools\HandoffAckTool::class,
+        // PR-6a Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — landing-pad HTTP
+        // assinado: a GitHub Action on-push assina (HMAC) e chama handoff-submit →
+        // pending, sem [W] no transporte. Scope fino jana.mcp.handoff.submit (A7);
+        // reusa HandoffIngestService (mesma validação do PR-1). Sem auto-merge.
+        \Modules\TeamMcp\Mcp\Tools\HandoffSubmitTool::class,
+        // PR-7 Loop de Handoff Zero-Paste (Fase 2 · ADR 0283) — liga as levers da
+        // fila (re-disparar/devolver/supersede) que o front só PINTA hoje. Mutação
+        // auditada+idempotente da fila cowork_handoffs; scope fino jana.mcp.handoff.lever.
+        // Sem auto-merge (o merge segue 1-clique do [W]).
+        \Modules\TeamMcp\Mcp\Tools\HandoffLeverTool::class,
     ];
 
     /** @var array<int, class-string<\Laravel\Mcp\Server\Resource>> */

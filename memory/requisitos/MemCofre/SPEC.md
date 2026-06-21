@@ -1,3 +1,14 @@
+---
+module: MemCofre
+slug: memcofre-spec
+title: "Especificação funcional · MemCofre"
+type: spec
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: arquivado
+---
+
 # Especificação funcional · MemCofre
 
 ## 1. Escopo
@@ -19,7 +30,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Link direto pra cada módulo
 - [x] Indicador de evidências pendentes no topo
 
-**Implementado em:** `Modules/MemCofre/Http/Controllers/DashboardController.php`
+**Implementado em:** `Modules/SRS/Http/Controllers/DashboardController.php`
 
 ### US-DOCVAULT-002 · Adicionar evidência
 
@@ -190,7 +201,7 @@ E não é aplicada automaticamente no SPEC.md
 
 **Por quê**: ruído não vira documentação. Requer curadoria humana.
 
-**Testado em:** `Modules/MemCofre/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
+**Testado em:** `Modules/SRS/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-002 · Uma fonte pode gerar múltiplas evidências
 
@@ -201,7 +212,7 @@ Então pode criar N DocEvidences apontando pra diferentes trechos
 E cada evidência tem seu próprio status/triagem
 ```
 
-**Testado em:** `Modules/MemCofre/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
+**Testado em:** `Modules/SRS/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-003 · business_id obrigatório
 
@@ -214,7 +225,7 @@ E tentativa de acessar business Y retorna 404
 
 **Por quê**: multi-tenancy (padrão UltimatePOS).
 
-**Testado em:** `Modules/MemCofre/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
+**Testado em:** `Modules/SRS/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-004 · Reader faz fallback de formato
 
@@ -232,7 +243,7 @@ E o módulo funciona normalmente com 3 tabs
 
 **Por quê**: migração gradual — não migrar os 29 de uma vez.
 
-**Testado em:** `Modules/MemCofre/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
+**Testado em:** `Modules/SRS/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
 
 ### R-DOCVAULT-005 · IA desligada por padrão
 
@@ -245,4 +256,4 @@ E deixa kind/module_target pra ser preenchido manualmente
 
 **Por quê**: evita custo/latência/alucinação em ambiente sem validação.
 
-**Testado em:** `Modules/MemCofre/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)
+**Testado em:** `Modules/SRS/Tests/Feature/InboxTest::test_rule_holds` (stub gerado por docvault:gen-test — implementar)

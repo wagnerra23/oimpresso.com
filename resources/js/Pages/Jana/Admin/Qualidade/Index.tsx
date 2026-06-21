@@ -99,8 +99,8 @@ function gateStatus(value: number | null, gate: Gate): { ok: boolean; emoji: str
   if (gate.op === '<=') ok = value <= gate.alvo;
   if (gate.op === '==') ok = value === gate.alvo;
   return ok
-    ? { ok: true, emoji: '✅', color: 'text-emerald-600 dark:text-emerald-400' }
-    : { ok: false, emoji: '🔴', color: 'text-red-600 dark:text-red-400' };
+    ? { ok: true, emoji: '✅', color: 'text-success-fg' }
+    : { ok: false, emoji: '🔴', color: 'text-destructive-fg' };
 }
 
 /**

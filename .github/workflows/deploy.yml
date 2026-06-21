@@ -1,8 +1,22 @@
 name: Deploy to Hostinger
 
-# Manual trigger only (workflow_dispatch) — evita deploy acidental em push.
-# Dispara via: github.com/wagnerra23/oimpresso.com/actions/workflows/deploy.yml → "Run workflow"
+# AUTOMÁTICO (ADR 0269) — merge na main publica sozinho.
+# Trigger:
+#  - push em main (exceto paths de docs/memória) → build no runner + deploy
+#  - workflow_dispatch → mesmo fluxo, com inputs de escape (skip backup/migrate, artisan extra)
+#
+# Política anterior (até 2026-06-10): deploy era 100% manual (workflow_dispatch) E
+# o JS buildava NO Hostinger (npm no shared host → hashes stale, incidente 20/05).
+# Agora: BUILD NO RUNNER (ubuntu, determinístico) + bundles publicados via tar/ssh
+# com swap atômico. Autorização Wagner 2026-06-10 ("automação máxima do deploy").
 on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'memory/**'
+      - '**.md'
+      - 'prototipo-ui/**'
+      - 'cowork-inbox/**'
   workflow_dispatch:
     inputs:
       skip_backup:
@@ -32,72 +46,188 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ── JOB 1: BUILD NO RUNNER ───────────────────────────────────────────────
+  # Builda os bundles Vite num ubuntu-latest determinístico (não no shared host).
+  # Causa raiz dos hashes stale de 20/05 era npm rodando no Hostinger. Wayfinder
+  # (vite.inertia.config.mjs) é auto-guardado: sem vendor/autoload.php no runner,
+  # o plugin pula (comentário no próprio config) — build JS-only funciona.
+  build:
+    name: Build Vite bundles (runner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      frontend_changed: ${{ steps.diff.outputs.frontend_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # precisa do commit `before` pra diff de frontend
+
+      - name: Detecta se resources/js|css mudou neste push
+        id: diff
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && \
+             [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- resources/js resources/css | grep -q .; then
+              echo "frontend_changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "frontend_changed=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "frontend_changed=unknown" >> "$GITHUB_OUTPUT"
+          fi
+          echo "frontend_changed = $(grep frontend_changed "$GITHUB_OUTPUT" | cut -d= -f2)"
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'   # casa com v24.15.0 que o Hostinger usava (build proven)
+          cache: 'npm'
+
+      - name: npm ci
+        run: npm ci --no-audit --no-fund
+
+      - name: Build Inertia bundles (public/build-inertia)
+        run: npm run build:inertia
+
+      - name: Build Tailwind/Blade legacy (public/css/tailwind.css)
+        run: npm run build
+
+      - name: Inventário pós-build
+        run: |
+          echo "=== public/build-inertia/assets ===" && ls -la public/build-inertia/assets 2>/dev/null | head -10 || echo '(vazio)'
+          echo "=== public/css ===" && ls -la public/css 2>/dev/null || echo '(vazio)'
+
+      - name: Upload artefato de build
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-build
+          # build:inertia → public/build-inertia/ (dir, com manifest); build → public/css/tailwind.css.
+          # Ambos gitignored (/public/build-inertia/ + /public/css/) → publicados pelo deploy.
+          path: |
+            public/build-inertia
+            public/css
+          retention-days: 2
+          if-no-files-found: error
+
+  # ── JOB 2: DEPLOY ────────────────────────────────────────────────────────
   deploy:
     name: Deploy L13 to Hostinger oimpresso.com
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      RDIR: /home/u906587222/domains/oimpresso.com/public_html
     steps:
+      - name: Baixa artefato de build (bundles do runner)
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: artifact
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          # `|| true`: ssh-keyscan falha intermitente (rede runner→Hostinger) NÃO pode
+          # matar o deploy sob `bash -e`. Host key já coberta por
+          # StrictHostKeyChecking=accept-new no SSH helper. Mesmo fix do quick-sync
+          # (#2162). Catalogado 2026-06-10: deploy 27293791287 morreu aqui 2× em 8s.
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: SSH helper
         run: |
           cat > /tmp/ssh_exec.sh <<'EOF'
           #!/bin/bash
-          ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+          # Flags canônicos Hostinger (memory/reference/hostinger.md §"SSH config robusto").
+          #  -4  IPv4 OBRIGATÓRIO — IPv6 falha e dá "Connection timed out".
+          #  BatchMode=yes falha rápido em prompt inesperado.
+          #  ControlMaster (multiplexing) NÃO é usado: falha "mux_client_request_session".
+          #  Uma conexão por comando é o caminho suportado.
+          #
+          # ⚠️ ConnectTimeout ALTO É CANON (2026-06-11): o manual diz textual
+          # "ConnectTimeout=900 (Hostinger leva minutos pra handshake)". Em 2026-06-11
+          # eu (CC) ENCURTEI pra 30s achando que ajudaria — fez o oposto: o SSH desistia
+          # ANTES do handshake lento do Hostinger completar, causando o "sempre quebra"
+          # pós-fix. Restaurado pro espírito do manual (timeout em MINUTOS), só bounded
+          # a 180s×3 (≤9min/invocação) pra caber no job timeout de 30min. ServerAlive
+          # 3/200 (manual) mantém a conexão viva durante comandos remotos longos
+          # (composer/migrate) — router intermediário derruba conexão ociosa sem keepalive.
+          # SEM retry-loop externo agressivo (Wagner "cuidado com hostinger" — não
+          # martelar/arriscar ban): o próprio ConnectionAttempts=3 do ssh é a resiliência.
+          ssh -4 \
+              -o BatchMode=yes \
               -o StrictHostKeyChecking=accept-new \
-              -o ConnectTimeout=20 \
+              -o ConnectTimeout=180 \
+              -o ConnectionAttempts=3 \
+              -o ServerAliveInterval=3 \
+              -o ServerAliveCountMax=200 \
+              -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
               "$@"
           EOF
           chmod +x /tmp/ssh_exec.sh
 
+      - name: Captura hash dos bundles ANTES (baseline pra smoke)
+        run: |
+          curl -s https://oimpresso.com/login \
+            | grep -oE '/assets/(inertia|app)-[a-zA-Z0-9_-]+\.(js|css)' \
+            | sort -u > /tmp/bundle_before.txt || true
+          echo "BEFORE:" && cat /tmp/bundle_before.txt || true
+
+      - name: Warm-up do caminho SSH (curl 5x + ssh true — Hostinger flaky, ver hostinger.md)
+        # Manual §"warm-up + retry": 5 hits curl IPv4 acordam a rota runner→Hostinger
+        # antes do 1º SSH. + 1 `ssh true` tolerante pra PAGAR o 1º connect lento
+        # (handshake "leva minutos" — manual) AQUI, fora do Pré-deploy check gated.
+        # O TCP probe `/dev/tcp` com `timeout 8` foi REMOVIDO (2026-06-11): com handshake
+        # de minutos, um probe de 8s sempre falha e só queima tempo/CI — quem espera o
+        # handshake lento é o ConnectTimeout=180 do ssh_exec.sh, não um probe curto.
+        run: |
+          for i in 1 2 3 4 5; do
+            curl -4 -s -o /dev/null -w "$i:%{http_code} " https://oimpresso.com/login --max-time 15 || true
+          done; echo
+          echo "=== ssh true (paga o 1º connect lento aqui, tolerante) ==="
+          /tmp/ssh_exec.sh "true" && echo "warm-up SSH OK" \
+            || echo "warm-up SSH ainda frio — o Pré-deploy check valida pra valer"
+
       - name: Pré-deploy check — server state
         run: |
           echo "=== PHP ==="
           /tmp/ssh_exec.sh "php -v | head -1"
-          echo "=== Path ==="
-          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && pwd && git branch --show-current"
-          echo "=== Laravel atual ==="
-          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && grep '\"laravel/framework\"' composer.json"
+          echo "=== Path + branch ==="
+          /tmp/ssh_exec.sh "cd $RDIR && pwd && git branch --show-current"
           echo "=== Disco livre ==="
           /tmp/ssh_exec.sh "df -h /home/u906587222 | tail -1"
-          echo "=== Maintenance status ==="
-          /tmp/ssh_exec.sh "ls -la /home/u906587222/domains/oimpresso.com/public_html/storage/framework/down 2>&1 || echo 'no down file'"
 
-      - name: Cleanup stale locks (git + maintenance órfãos de runs anteriores)
+      - name: Cleanup stale locks (git + maintenance órfãos)
         run: |
-          echo "=== Removendo .git/index.lock se existir ==="
-          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
-          echo "=== Forçando maintenance OFF caso preso de deploy anterior ==="
-          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up 2>&1 || rm -f storage/framework/down 2>&1; echo OK"
+          /tmp/ssh_exec.sh "cd $RDIR && rm -f .git/index.lock .git/refs/heads/main.lock 2>&1; echo OK"
+          /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down 2>&1; echo OK"
 
-      - name: Backup (arquivos + DB)
+      - name: Backup (arquivos + DB) com rotação (mantém 5 mais recentes)
         if: ${{ inputs.skip_backup != 'true' }}
         run: |
           TS=$(date +%Y%m%d-%H%M)
           /tmp/ssh_exec.sh "
-            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            cd $RDIR &&
             tar czf ~/backup-predeploy-${TS}.tar.gz \
               --exclude='node_modules' \
               --exclude='vendor' \
               --exclude='storage/logs' \
               . 2>&1 | tail -3 &&
-            ls -lh ~/backup-predeploy-${TS}.tar.gz
+            ls -lh ~/backup-predeploy-${TS}.tar.gz &&
+            echo '=== rotação: removendo backups além dos 5 mais recentes ===' &&
+            ls -t ~/backup-predeploy-*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -v || true
           "
-          echo "Backup arquivos feito: ~/backup-predeploy-${TS}.tar.gz"
 
       - name: Maintenance mode ON
-        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan down --retry=60 --refresh=60 || true"
+        id: maint_on
+        run: /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 || true"
 
-      - name: Git pull — branch main
+      - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
         run: |
           /tmp/ssh_exec.sh "
-            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            cd $RDIR &&
             git fetch origin &&
             git checkout main &&
             git reset --hard origin/main &&
@@ -105,50 +235,102 @@ jobs:
           "
 
       - name: Composer install (produção)
-        # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component"). Ver auto-mem reference_composer_install_obrigatorio_pos_deploy.md
-        # --ignore-platform-req=ext-opentelemetry: Hostinger shared NÃO tem ext-opentelemetry (PECL out/2025). OTel pacotes vivem em require-dev pós ADR 0166 (errata 0162) + OtelHelper é fail-safe (class_exists guard). Hostinger nunca emite spans em prod — só CT 100 emite (ADR 0062 Tier 0 IRREVOGÁVEL runtime).
-        # Incidente 2026-05-26 (PR #1691 quebrou /ia/dashboard com 500): dump-autoload mostrava HELP em vez de executar.
-        # Causa raiz descoberta na 2ª iteração: `composer dump-autoload` valida platform requirements e Hostinger NÃO
-        # tem ext-opentelemetry (OTel Laravel auto-instrument). Sem --ignore-platform-req, composer aborta com erro
-        # truncado ("emetry Laravel auto-instrumentation") e exibe help do dump-autoload (exit 1, classmap stale).
-        # Fix definitivo: passar --ignore-platform-req=ext-opentelemetry também no dump-autoload (igual ao install).
-        # set -o pipefail: sem ele, o exit code do pipeline `composer ... | tail` vira o
-        # do `tail` (sempre 0) → composer install/dump-autoload podia FALHAR em silêncio e
-        # o deploy seguia "verde" (risco de classmap stale / 500 no boot, vide incidente
-        # 2026-05-26). Remoto roda bash no Hostinger (composer/git/laravel exigem).
+        # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component").
+        # --ignore-platform-req=ext-opentelemetry: Hostinger shared NÃO tem ext-opentelemetry (PECL out/2025).
+        #   OTel pacotes vivem em require-dev (ADR 0166) + OtelHelper fail-safe. Hostinger nunca emite spans.
+        # set -o pipefail: sem ele o exit do pipeline `composer | tail` mascara falha do composer (deploy verde com
+        #   classmap stale → 500 no boot, incidente 2026-05-26).
         run: |
           /tmp/ssh_exec.sh "
             set -o pipefail &&
-            cd /home/u906587222/domains/oimpresso.com/public_html &&
-            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -20 &&
+            cd $RDIR &&
+            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
             echo '=== dump-autoload force ===' &&
-            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry 2>&1 | tail -10
+            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
           "
+
+      - name: Boot smoke CONSOLE — falha o deploy AGORA se o artisan não bootar (ADR 0216 + incidente 2026-06-17)
+        # Gate DURO logo após o composer/dump-autoload, AINDA em maintenance ON e ANTES do migrate.
+        # Pega o modo de falha que o smoke web /login NÃO vê: um ServiceProvider que registra
+        # commands() dentro de runningInConsole() (ex. TeamMcpServiceProvider → handoff:stale-alert,
+        # PR #2906) referencia uma classe nova; se ela ficou fora do classmap-authoritative, TODO
+        # `php artisan` crasha com BindingResolutionException — incl. o `schedule:run` que o cron do
+        # Hostinger dispara a cada minuto — enquanto a WEB segue 200 (boot() só registra o comando
+        # quando runningInConsole). Resultado: deploy "verde" sobre um scheduler 100% quebrado, downtime
+        # silencioso no console até o próximo deploy bem-sucedido (mesmo padrão da ADR 0216, que checava
+        # só a web via curl /). `php artisan about` constrói o console Application → dispara
+        # resolveCommands() → instancia cada comando registrado → reproduz o crash AQUI, no ato, falhando
+        # o deploy antes de expor o cron quebrado. set -o pipefail: senão o exit do `about` é mascarado
+        # pelo `| tail` e o gate fica decorativo.
+        run: /tmp/ssh_exec.sh "set -o pipefail && cd $RDIR && php artisan about 2>&1 | tail -40"
 
       - name: Artisan migrate (se necessário)
         if: ${{ inputs.skip_migrate != 'true' }}
-        # set -o pipefail: senão um `migrate --force` que falha (ex: migration quebrada)
-        # tem o exit code mascarado pelo `| tail` → deploy "verde" com schema drift.
-        run: /tmp/ssh_exec.sh "set -o pipefail && cd /home/u906587222/domains/oimpresso.com/public_html && php artisan migrate --force 2>&1 | tail -20"
+        # set -o pipefail: senão migrate --force que falha tem exit mascarado pelo | tail → deploy verde com schema drift.
+        run: /tmp/ssh_exec.sh "set -o pipefail && cd $RDIR && php artisan migrate --force 2>&1 | tail -20"
 
       - name: Artisan extra (input customizado)
         if: ${{ inputs.extra_artisan != '' }}
-        run: /tmp/ssh_exec.sh "set -o pipefail && cd /home/u906587222/domains/oimpresso.com/public_html && php artisan ${{ inputs.extra_artisan }} 2>&1 | tail -30"
+        run: /tmp/ssh_exec.sh "set -o pipefail && cd $RDIR && php artisan ${{ inputs.extra_artisan }} 2>&1 | tail -30"
 
-      - name: Clear caches + re-cache
-        # Wagner 2026-05-27 HOTFIX: removido `php artisan route:cache` — em prod o arquivo
-        # `bootstrap/cache/routes-v7.php` é gerado OK no deploy, smoke /login retorna 200,
-        # mas LOGO DEPOIS o arquivo SUMME (algum cron/job/shared-hosting cleanup destrói),
-        # quebrando TODA request autenticada subsequente com:
-        #   "Failed opening required '.../bootstrap/cache/routes-v7.php'
-        #    at RouteServiceProvider.php:150"
-        # Sintoma: Larissa @ Rota Livre travada em /ia/dashboard 500 (deploy 26512430704
-        # logo após hotfix #1716 que resolveu ClientFeedback bootstrap).
-        # Trade-off: routes resolvidas em runtime (latência ~10-30ms a mais por request),
-        # mas prod estável. Investigação root cause em PR separado (ver tail laravel.log).
+      - name: Publicar bundles buildados no runner (tar/ssh → swap atômico)
+        # Substitui o build-no-Hostinger (causa raiz dos hashes stale). Os artefatos
+        # chegam prontos do JOB build: build-inertia/ (dir Inertia com manifest) +
+        # css/ (só tailwind.css do build legado). tar-pipe usa só tar+ssh (sem
+        # dependência de rsync no servidor). build-inertia faz swap de DIRETÓRIO
+        # (mantém .old pra rollback); css é COPIADO por cima (public/css é gitignored
+        # e só recebe build, então não há arquivo estático pra preservar). Roda sob
+        # maintenance ON — janela de microssegundos do swap é invisível.
+        run: |
+          set -euo pipefail
+          test -d artifact/build-inertia
+          test -d artifact/css
+          tar -C artifact -czf - build-inertia css \
+            | /tmp/ssh_exec.sh "cd $RDIR/public && rm -rf .deploy_incoming && mkdir .deploy_incoming && tar -C .deploy_incoming -xzf - && echo UPLOAD_OK && ls .deploy_incoming"
+          /tmp/ssh_exec.sh "
+            cd $RDIR/public &&
+            if [ -d .deploy_incoming/build-inertia ]; then
+              rm -rf build-inertia.old
+              [ -d build-inertia ] && mv build-inertia build-inertia.old
+              mv .deploy_incoming/build-inertia build-inertia
+              echo 'swapped build-inertia'
+            fi &&
+            if [ -d .deploy_incoming/css ]; then
+              mkdir -p css
+              cp -af .deploy_incoming/css/. css/
+              echo 'published css'
+            fi &&
+            rm -rf .deploy_incoming &&
+            echo '=== manifest inertia ===' &&
+            head -c 200 build-inertia/manifest.json 2>/dev/null; echo
+          "
+
+      - name: Garante token de OPcache reset no servidor (fora do git/webroot)
+        # Endpoint _ops_opcache_reset.php lê o token deste arquivo (ADR 0269) porque
+        # script PHP cru NÃO lê o .env da app via getenv() no LSPHP. storage/app é
+        # gitignored e sobrevive a `git reset --hard`. Idempotente.
+        env:
+          OPCACHE_TOKEN: ${{ secrets.OPCACHE_RESET_TOKEN }}
+        run: |
+          if [ -z "$OPCACHE_TOKEN" ]; then
+            echo "::warning::OPCACHE_RESET_TOKEN secret ausente — pulando escrita do token."
+            exit 0
+          fi
+          /tmp/ssh_exec.sh "
+            cd $RDIR &&
+            mkdir -p storage/app &&
+            umask 077 &&
+            printf '%s' '$OPCACHE_TOKEN' > storage/app/opcache_reset_token &&
+            chmod 600 storage/app/opcache_reset_token &&
+            echo 'opcache token file ok'
+          "
+
+      - name: Clear caches + re-cache (sem route:cache — ver hotfix 2026-05-27)
+        # route:cache removido: em prod o bootstrap/cache/routes-v7.php some logo após
+        # gerado (cron/cleanup do shared host) → 500 em toda request autenticada.
         run: |
           /tmp/ssh_exec.sh "
-            cd /home/u906587222/domains/oimpresso.com/public_html &&
+            cd $RDIR &&
             php artisan config:clear &&
             php artisan route:clear &&
             php artisan view:clear &&
@@ -157,95 +339,122 @@ jobs:
           "
 
       - name: Package discover
-        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan package:discover --ansi 2>&1 | tail -10"
+        run: /tmp/ssh_exec.sh "cd $RDIR && php artisan package:discover --ansi 2>&1 | tail -10"
 
       - name: Permissions storage + bootstrap/cache
-        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
+        run: /tmp/ssh_exec.sh "cd $RDIR && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
 
-      - name: Force OPcache invalidate (composer dump-autoload + touch)
-        # Wagner/Eliana 2026-06-05: Hostinger LSPHP/LiteSpeed segura bytecode OPcache
-        # entre deploys, ignorando código novo do git pull até validate_timestamps expirar.
-        # Dois truques juntos forçam re-stat imediato:
-        # (1) composer dump-autoload --optimize regenera arquivos compilados, mtime muda
-        # (2) find ... -exec touch força mtime de todos os PHPs (LSPHP detecta em próximo request)
+      - name: Force OPcache invalidate (touch mtime — best-effort)
+        # LSPHP/LiteSpeed segura bytecode entre deploys. `find -exec touch` bump o mtime
+        # dos PHPs → LSPHP re-stata (validate_timestamps). `public` incluído pra recompilar
+        # o próprio _ops_opcache_reset.php antes do reset HTTP (senão o endpoint que vai
+        # resetar o OPcache poderia ser servido como bytecode velho — paradoxo de bootstrap).
+        # `-name '*.php'` mantém barato (ignora bundles .js/.css).
         #
-        # 2026-06-06 (fix deploy quebrado 5×): REMOVIDO --no-dev daqui. Causa raiz do
-        # `Class "Knuckles\Scribe\ScribeServiceProvider" not found` que quebrou os deploys
-        # de 2026-06-05: o `package:discover` (step acima) registra o provider do Scribe
-        # (require-dev, instalado pois o install NÃO usa --no-dev — Faker em prod), mas este
-        # dump-autoload --no-dev REMOVIA as classes dev do classmap → boot (php artisan up)
-        # tentava carregar o provider e não achava → 500. Agora alinhado com o dump-autoload
-        # principal (mantém dev + ignora platform-req ext-opentelemetry do Hostinger).
+        # NÃO roda `composer dump-autoload` aqui: o step "Composer install" já faz o
+        # dump-autoload canônico (-o --classmap-authoritative). Rodar de novo era redundante
+        # E flaky — em 2026-06-10 o `dump-autoload --optimize` standalone abortou com help/exit 1
+        # (platform-req), derrubando o deploy DEPOIS do publish. Best-effort (`|| true`): o
+        # reset real e confirmado é o step HTTP seguinte; o failsafe protege o site.
         run: |
-          /tmp/ssh_exec.sh "
-            set -o pipefail &&
-            cd /home/u906587222/domains/oimpresso.com/public_html &&
-            /usr/local/bin/composer dump-autoload --optimize --ignore-platform-req=ext-opentelemetry 2>&1 | tail -3 &&
-            find app bootstrap config routes -name '*.php' -exec touch {} + 2>&1 | tail -3
-          "
+          /tmp/ssh_exec.sh "cd $RDIR && find app bootstrap config routes public -name '*.php' -exec touch {} + 2>&1 | tail -3" || echo "::warning::touch best-effort falhou — seguindo (reset confirmado é via HTTP)"
 
       - name: Maintenance mode OFF
-        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan up"
+        run: /tmp/ssh_exec.sh "cd $RDIR && php artisan up"
 
-      - name: Reset OPcache via HTTP (LSPHP/LiteSpeed) — opcional
-        # Wagner/Eliana 2026-06-05: PR #2274 hotfix (ADR 0246) deploy success
-        # mas ContactController OPcache no LSPHP/LiteSpeed segurou bytecode antigo
-        # do whitelist `$types` (sem 'other') → aba "Outros" mostrava registros de
-        # Cliente. `php artisan config:clear` etc rodam em SAPI CLI, NÃO compartilham
-        # OPcache com FPM/LSPHP servindo HTTP. Solução: chamar opcache_reset() no
-        # MESMO contexto SAPI servindo o site = via HTTP request.
-        # Endpoint: public/_ops_opcache_reset.php (autenticado por env var
-        # OPCACHE_RESET_TOKEN configurado no .env do servidor).
+      - name: Reset OPcache via HTTP (LSPHP/LiteSpeed) — OBRIGATÓRIO
+        # ADR 0269: promovido de warning pra FALHA. opcache_reset() roda na MESMA SAPI
+        # FPM que serve o site (config:clear roda em CLI, não compartilha OPcache).
+        # Sem reset confirmado = deploy vermelho. Única tolerância: extensão opcache
+        # genuinamente ausente (OPCACHE_UNAVAILABLE), que não é misconfiguração nossa.
+        env:
+          OPCACHE_TOKEN: ${{ secrets.OPCACHE_RESET_TOKEN }}
         run: |
-          if [ -z "${{ secrets.OPCACHE_RESET_TOKEN }}" ]; then
-            echo "::warning::OPCACHE_RESET_TOKEN não configurado em GitHub Secrets — skip reset OPcache. Configurar pra ativar."
-            exit 0
+          if [ -z "$OPCACHE_TOKEN" ]; then
+            echo "::error::OPCACHE_RESET_TOKEN secret ausente — reset não pode ser confirmado. Deploy FALHA (ADR 0269)."
+            exit 1
           fi
-          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=${{ secrets.OPCACHE_RESET_TOKEN }}" || echo "FAIL_CURL")
+          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=$OPCACHE_TOKEN" || echo "FAIL_CURL")
           echo "OPcache reset response: $RESP"
           if echo "$RESP" | grep -q "OPCACHE_RESET_OK"; then
             echo "✅ OPcache resetado"
           elif echo "$RESP" | grep -q "OPCACHE_UNAVAILABLE"; then
-            echo "::warning::OPcache extension não disponível na SAPI — skip silencioso"
+            echo "::warning::opcache extension ausente nesta SAPI — tolerado (não é misconfiguração)."
           else
-            echo "::warning::Reset OPcache falhou ou retornou inesperado — investigar: $RESP"
+            echo "::error::Reset OPcache NÃO confirmado (resp: $RESP). Verificar token no servidor / endpoint 403/503. Deploy FALHA."
+            exit 1
           fi
 
-      - name: Smoke test — HTTPS home (strict)
+      - name: Smoke test — HTTPS /login + verificação de bundle hash
         id: smoke
+        env:
+          FRONTEND_CHANGED: ${{ needs.build.outputs.frontend_changed }}
         run: |
           set -uo pipefail
-          echo "=== curl https://oimpresso.com/login ==="
-          HTTP_CODE=$(curl -sL -o /tmp/smoke.html -w "%{http_code}|%{time_total}" https://oimpresso.com/login)
-          CODE="${HTTP_CODE%%|*}"
-          TIME="${HTTP_CODE##*|}"
-          echo "HTTP $CODE (${TIME}s)"
-          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "=== HTTP /login ==="
+          CODE=$(curl -sL -o /tmp/smoke.html -w "%{http_code}" https://oimpresso.com/login)
+          echo "HTTP $CODE"
+          AFTER=$(grep -oE '/assets/(inertia|app)-[a-zA-Z0-9_-]+\.(js|css)' /tmp/smoke.html | sort -u | tr '\n' ' ')
+          BEFORE=$(tr '\n' ' ' < /tmp/bundle_before.txt 2>/dev/null || true)
+          echo "BEFORE: $BEFORE"
+          echo "AFTER:  $AFTER"
           if [ "$CODE" != "200" ] && [ "$CODE" != "302" ]; then
-            echo "::error::Smoke test FAILED — HTTP $CODE pra /login (esperado 200 ou 302)"
+            echo "::error::Smoke FAILED — HTTP $CODE pra /login (esperado 200/302). Ver Tail laravel.log abaixo."
             echo "smoke_failed=true" >> "$GITHUB_OUTPUT"
-            exit 0   # NÃO falhar aqui — deixa Tail laravel.log rodar primeiro pra dar contexto
+            exit 0
           fi
-          # Validação de marker (warn-only)
-          grep -i "Login to your\|Bem-vindo\|Username" /tmp/smoke.html | head -3 || echo "⚠️  marker nao encontrado (pode ser redirect)"
+          # Gate de bundle: se o frontend mudou neste push mas o hash servido NÃO mudou,
+          # o build/rsync não publicou (regressão tipo hashes stale 20/05).
+          if [ "$FRONTEND_CHANGED" = "true" ] && [ -n "$AFTER" ] && [ "$BEFORE" = "$AFTER" ]; then
+            echo "::error::resources/js|css mudou neste push mas o hash dos bundles servidos é IDÊNTICO ($AFTER). Publicação não chegou ao prod. Deploy FALHA."
+            echo "smoke_failed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "✅ Smoke OK (frontend_changed=$FRONTEND_CHANGED)"
 
-      - name: Tail laravel.log (sempre — diagnose smoke + post-mortem)
-        if: always()
+      - name: Failsafe — site no ar SÓ se bootar; senão mantém maintenance (503 gracioso)
+        # Lição 2026-06-10: um step falhou entre `down` e `up`, deixando o site preso em 503
+        # até intervenção manual → invariante "nunca ficar preso em maintenance".
+        # Lição 2026-06-18: o failsafe forçava `up` INCONDICIONALMENTE, inclusive com código
+        # que NÃO boota — classmap autoritativo stale após deploy interrompido entre
+        # `git reset --hard` e `composer dump-autoload` → 500 em TODA rota por ~1h (web+console+cron),
+        # sem nada no laravel.log (falha antes do logger). Invariante corrigido: nunca preso em
+        # maintenance A MENOS que o código não boote — nesse caso 503 gracioso > 500, e o deploy
+        # falha (vermelho) + alerta pra investigar. `php artisan about` reproduz o boot do app
+        # (constrói o Handler + resolve binds) = mesmo gate do boot-smoke console.
+        # Lição #9 (2026-06-20 · deploy-recovery-patterns.md): gateado em `maint_on`. Se o
+        # Pré-deploy check flakou (rota SSH 65002 down), maintenance NUNCA ligou → o site já
+        # está up → não faz sentido SSHar aqui (route down faria pendurar ~30min). Quando o
+        # deploy entrou em maintenance de verdade, este step roda normal (invariante mantido).
+        if: always() && steps.maint_on.outcome == 'success'
         run: |
-          echo "=== Last 80 lines de storage/logs/laravel.log ==="
-          /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && tail -80 storage/logs/laravel.log 2>&1 || echo '(log vazio ou ausente)'"
+          if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
+            /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
+          else
+            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
+            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
+            exit 1
+          fi
 
-      - name: Falha smoke (após log já visível)
+      - name: Tail laravel.log (sempre que houve deploy real — diagnose + post-mortem)
+        # Lição #9: gateado em maint_on (igual ao Failsafe) — sem deploy real (pré-check
+        # flakou) não há o que tailar e a rota down penduraria o SSH.
+        if: always() && steps.maint_on.outcome == 'success'
+        run: |
+          echo "=== Last 80 lines storage/logs/laravel.log ==="
+          /tmp/ssh_exec.sh "cd $RDIR && tail -80 storage/logs/laravel.log 2>&1 || echo '(log vazio ou ausente)'"
+
+      - name: Falha smoke (após log visível)
         if: steps.smoke.outputs.smoke_failed == 'true'
         run: |
-          echo "::error::Smoke test FAILED — HTTP ${{ steps.smoke.outputs.code }}. Ver step 'Tail laravel.log' acima pra causa raiz."
+          echo "::error::Smoke test FAILED — ver step 'Tail laravel.log' acima pra causa raiz."
           exit 1
 
       - name: Verify Laravel version deployed
-        run: /tmp/ssh_exec.sh "cd /home/u906587222/domains/oimpresso.com/public_html && php artisan --version"
+        run: /tmp/ssh_exec.sh "cd $RDIR && php artisan --version"
 
       - name: Deploy SUCCESS
         run: |
-          echo "✅ Deploy concluído."
-          echo "📦 Backup: ~/backup-predeploy-*.tar.gz no servidor (se nao pulado)"
-          echo "🌐 Testar manualmente: https://oimpresso.com"
+          echo "✅ Deploy concluído (build no runner + bundles publicados + OPcache reset confirmado)."
+          echo "📦 Backups: ~/backup-predeploy-*.tar.gz (5 mais recentes)"
+          echo "🌐 https://oimpresso.com"

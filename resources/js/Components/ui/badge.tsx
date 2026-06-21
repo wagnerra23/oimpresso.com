@@ -18,16 +18,18 @@ const badgeVariants = cva(
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
-        // Status pills (tom soft) — Onda G. Espelham o STATUS_STYLE hand-rolled (migração 1:1).
-        // Distintos de `destructive` (sólido = AÇÃO destrutiva); estos são ESTADO.
+        // Status pills (tom soft) — ESTADO, não AÇÃO. Onda M1 (maturidade DS): tokenizado
+        // nos pares semânticos `-soft/-fg` (inertia.css). O token já carrega light+dark →
+        // sem `dark:` cru. Mata a autocontradição: a camada canônica agora consome o DS
+        // que ela mesma exige das Pages (regra ds/no-adhoc-status-text). Migração 1:1 visual.
         success:
-          "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300",
+          "bg-success-soft text-success-fg border-success/20",
         warning:
-          "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
+          "bg-warning-soft text-warning-fg border-warning/20",
         danger:
-          "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300",
+          "bg-destructive-soft text-destructive-fg border-destructive/20",
         info:
-          "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300",
+          "bg-info-soft text-info-fg border-info/20",
         neutral: "bg-muted text-muted-foreground border-border",
       },
     },

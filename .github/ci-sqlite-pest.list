@@ -1,0 +1,143 @@
+# Allowlist da lane sqlite per-PR — lida pelo job "PHP / Pest (Unit)" do
+# .github/workflows/ci.yml. 1 path por linha (arquivo OU diretório de teste).
+#
+# POR QUE UM ARQUIVO (e não a linha única do pest dentro do ci.yml): a linha
+# única era editada por TODO PR que adiciona um teste → todo par de PRs conflitava
+# (o "conflito de ci.yml lane de 1 linha" do handoff SDD Leva 1). Este arquivo é
+# marcado `merge=union` em .gitattributes → PRs concorrentes que adicionam linhas
+# são UNIDOS automaticamente pelo git, sem conflito. O runner faz `sort -u`, então
+# ordem e duplicatas não importam.
+#
+# REGRA: só testes SQLITE-SAFE (rodam em :memory: sem migrate completo). NÃO
+# adicionar testes com RefreshDatabase/migrate:fresh que puxem migration MySQL-only
+# (ex ALTER TABLE ... ENUM) — esses pertencem à lane MySQL (financeiro-pest /
+# jana-pest), não aqui. Testes MySQL-only que dão markTestSkipped em sqlite podem
+# ficar (viram skip-as-pass), mas o lar deles é a lane MySQL.
+#
+# Comentários começam com # e linhas em branco são ignoradas.
+Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php
+Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
+Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
+# Poda preventiva de mcp_memory_documents_history (incidente 2026-06-21 — 5 GB → cota → revogou escrita). Schema sintético, sqlite-safe.
+Modules/Jana/Tests/Feature/MemoryHistoryPruneCommandTest.php
+Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
+Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
+Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
+Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
+Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
+Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
+# Loop de Handoff Zero-Paste (ADR 0283): PR-6a submit (novo) + PR-1 ingest
+# (regressão do refactor que extraiu HandoffIngestService) + PR-7 levers
+# (re-disparar/devolver/supersede). Sintéticas em beforeEach → sqlite-safe.
+Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php
+Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php
+Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php
+# Forja aba MCP: projeção de cowork_handoffs + gate CONFLITO (ack verde × required
+# checks reais do PR via GitHub API mockada com Http::fake). Sqlite-safe: tabelas
+# sintéticas em beforeEach, sem rede. Gap 2 do adversário, ADR 0283 (follow-up #2921).
+Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php
+tests/Feature/Form
+tests/Feature/Services/FeatureFlagServiceTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
+Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
+# PR-7c — guard do fix de auth-manager resolver no McpAuthMiddleware (ADR 0283/0081).
+# Source-ratchet (sem DB) → sqlite-safe.
+Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
+Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
+# Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
+tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
+# Whatsapp — Caixa Unificada V4: schema sintético em beforeEach + markTestSkipped
+# fora de sqlite. Whatsapp NÃO está no modules-pest.yml, então esta é a única lane
+# que executa as guards R-WA-CAIXA-UNIF-001..013 (inclui a regressão -013 dos chips
+# de canal whatsmeow, #2822). Até aqui o suite nunca rodava em CI ("✅ GUARD" sem mordida).
+Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
+# Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
+Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
+Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php
+# ── Whatsapp sqlite-safe (auditoria cobertura-CI 2026-06-19) ──────────────────
+# Modules/Whatsapp tem 120 testes Feature mas só 2 rodavam em CI (CaixaUnificada +
+# WebhookCanary acima): os outros ~118 nunca eram exercidos em lane nenhuma
+# (Whatsapp NÃO está em modules-pest.yml e nenhum outro workflow roda esses pest).
+# Estes 33 montam schema sintético em beforeEach + markTestSkipped fora de sqlite
+# (mesmo idioma do CaixaUnificada) e passam verde local rodados juntos em 3 seeds
+# distintos (271 passed, 0 fail, 3 skip). AutoLinkContactTest ficou DE FORA: passa
+# isolado (17/17) mas R-WA-078-008 falha order-dependente em grupo (flaky → fix à parte).
+# Os ~84 restantes precisam de activity_log sintético (Spatie LogsActivity) ou do
+# schema MySQL real — ficam de fora desta lane até decisão (relatório da audit).
+Modules/Whatsapp/Tests/Feature/AutoPrefixSenderNameTest.php
+Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php
+Modules/Whatsapp/Tests/Feature/CentrifugoTokenIssuerTest.php
+Modules/Whatsapp/Tests/Feature/CustomerMemoryBackfillCommandTest.php
+Modules/Whatsapp/Tests/Feature/CustomerMemoryRebuilderTest.php
+Modules/Whatsapp/Tests/Feature/DispatchToJanaBotPiiRedactionTest.php
+Modules/Whatsapp/Tests/Feature/E2EJourneyBiz1Test.php
+Modules/Whatsapp/Tests/Feature/EmbeddedSignupFlowTest.php
+Modules/Whatsapp/Tests/Feature/FeedbackReindexCommandTest.php
+Modules/Whatsapp/Tests/Feature/FetchTemplatesTest.php
+Modules/Whatsapp/Tests/Feature/LegacyConversationsRemovedTest.php
+Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php
+Modules/Whatsapp/Tests/Feature/MessageHasArquivosTraitTest.php
+Modules/Whatsapp/Tests/Feature/MetricsSnapshotBuilderTest.php
+Modules/Whatsapp/Tests/Feature/ObservabilityTest.php
+Modules/Whatsapp/Tests/Feature/OfficeimpressoEnrichServiceTest.php
+Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php
+Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php
+Modules/Whatsapp/Tests/Feature/SidebarCountsTest.php
+Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave26WhatsappSaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave27WhatsappSaturationTest.php
+Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php
+Modules/Whatsapp/Tests/Feature/WebhookBackpressureTest.php
+Modules/Whatsapp/Tests/Feature/WebhookReplayProtectionTest.php
+Modules/Whatsapp/Tests/Feature/WebhookSignatureCheckerTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowAuthHeaderTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowChannelIsolationTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowHealthProbeDecisionTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowInboundTimezoneTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowReconcilerTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php
+# Observabilidade SLO/SLI canal (ADR 0288) — snapshot + alerta canal-down 3 sinks
+# (Log + Centrifugo + mcp_alertas_eventos). Adicionado na Fase 2: o teste existia
+# desde #3005 mas NÃO estava nesta lane, logo nunca rodava em CI ("suite mente").
+Modules/Whatsapp/Tests/Feature/ChannelHealthSnapshotCommandTest.php
+# ── Whatsapp LogsActivity sqlite-safe (auditoria cobertura-CI 2026-06-19) ─────
+# Estes 21 falhavam só por "no such table: activity_log" (models com Spatie
+# LogsActivity, 341 falhas na audit). O beforeEach scoped ao dir Whatsapp em
+# tests/Pest.php agora provisiona a tabela (idioma do bloco RecurringBilling).
+# Verde determinístico em 4 seeds rodados juntos (152 passed) + 3 seeds no
+# combinado dos 57 Whatsapp da lane (431 passed, 0 fail). FORA: DispatchToJanaBot
+# e PhoneResolutionWebhook (flaky order-dependente em grupo, fix à parte).
+Modules/Whatsapp/Tests/Feature/AuditChannelAccessCommandTest.php
+Modules/Whatsapp/Tests/Feature/ChannelBaileysInstanceIdHelperTest.php
+Modules/Whatsapp/Tests/Feature/ChannelBaileysWebhookIdempotencyTest.php
+Modules/Whatsapp/Tests/Feature/ChannelRequestUniqueIdentifierTest.php
+Modules/Whatsapp/Tests/Feature/ChannelUserAccessTest.php
+Modules/Whatsapp/Tests/Feature/CsatFlowTest.php
+Modules/Whatsapp/Tests/Feature/GuardiaoMidiaTest.php
+Modules/Whatsapp/Tests/Feature/HistorySyncQueueArchitectureTest.php
+Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php
+Modules/Whatsapp/Tests/Feature/InternalNoteTest.php
+Modules/Whatsapp/Tests/Feature/LastMessageDenormalizeTest.php
+Modules/Whatsapp/Tests/Feature/MacroVariantPickerTest.php
+Modules/Whatsapp/Tests/Feature/MediaMessageTest.php
+Modules/Whatsapp/Tests/Feature/MetricsAggregateCommandTest.php
+Modules/Whatsapp/Tests/Feature/PersistContactsFromHistorySyncJobTest.php
+Modules/Whatsapp/Tests/Feature/ReparseMediaFromPayloadCommandTest.php
+Modules/Whatsapp/Tests/Feature/SlaScanCommandTest.php
+Modules/Whatsapp/Tests/Feature/SlashConfigTest.php
+Modules/Whatsapp/Tests/Feature/WhatsappMessageObserverTest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowCicloE2ETest.php
+Modules/Whatsapp/Tests/Feature/WhatsmeowResubscribeEventsCommandTest.php
+# tasks-create não reusa task_id de row órfã no DB (incidente US-RB-052 · 2026-06-20).
+# Ambos bootstram um mcp_tasks mínimo (sem RefreshDatabase → sem migration ENUM
+# MySQL-only) → sqlite-safe. Provam max(DB,SPEC)+guarda de colisão e o detector
+# mcp:tasks:orphans. Antes a lógica usava SUBSTRING (MySQL-only) e Tests/Feature/
+# TaskRegistry não rodava em lane nenhuma.
+Modules/Jana/Tests/Feature/TaskRegistry/TaskCrudServiceCanonicalIdTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php

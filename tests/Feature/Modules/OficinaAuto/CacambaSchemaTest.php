@@ -145,7 +145,7 @@ it('ServiceOrder dias_locacao calcula dias decorridos desde entered_at', functio
     $os = ServiceOrder::create([
         'business_id'           => BIZ_WAGNER_CAC,
         'vehicle_id'            => $v->id,
-        'order_type'            => 'locacao',
+        'order_type'            => 'manutencao', // locação erradicada (ADR 0265); dias_locacao independe do tipo
         'status'                => 'aberta',
         'entered_at'            => now()->subDays(7),
         'expected_return_date'  => now()->addDays(3)->toDateString(),
@@ -173,7 +173,7 @@ it('ServiceOrder dias_locacao retorna 0 quando entered_at é null', function () 
     $os = ServiceOrder::create([
         'business_id' => BIZ_WAGNER_CAC,
         'vehicle_id'  => $v->id,
-        'order_type'  => 'locacao',
+        'order_type'  => 'manutencao', // locação erradicada (ADR 0265); dias_locacao independe do tipo
         'status'      => 'aberta',
         // entered_at NULL
     ]);
@@ -186,59 +186,11 @@ it('ServiceOrder dias_locacao retorna 0 quando entered_at é null', function () 
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC006')->forceDelete();
 });
 
-it('ServiceOrder is_overdue=true quando expected_return_date passou e status ativo', function () {
-    session(['user.business_id' => BIZ_WAGNER_CAC]);
-
-    $v = Vehicle::create([
-        'business_id'  => BIZ_WAGNER_CAC,
-        'plate'        => 'CAC007',
-        'vehicle_type' => 'cacamba_avulsa',
-    ]);
-
-    $os = ServiceOrder::create([
-        'business_id'          => BIZ_WAGNER_CAC,
-        'vehicle_id'           => $v->id,
-        'order_type'           => 'locacao',
-        'status'               => 'aberta',
-        'entered_at'           => now()->subDays(10),
-        'expected_return_date' => now()->subDays(3)->toDateString(), // venceu há 3 dias
-        'daily_rate'           => 50.00,
-    ]);
-
-    expect($os->is_overdue)->toBeTrue();
-})->afterEach(function () {
-    ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
-        $q->select('id')->from('vehicles')->where('plate', 'CAC007');
-    })->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'CAC007')->forceDelete();
-});
-
-it('ServiceOrder is_overdue=false quando status terminal (concluida)', function () {
-    session(['user.business_id' => BIZ_WAGNER_CAC]);
-
-    $v = Vehicle::create([
-        'business_id'  => BIZ_WAGNER_CAC,
-        'plate'        => 'CAC008',
-        'vehicle_type' => 'cacamba_avulsa',
-    ]);
-
-    $os = ServiceOrder::create([
-        'business_id'          => BIZ_WAGNER_CAC,
-        'vehicle_id'           => $v->id,
-        'order_type'           => 'locacao',
-        'status'               => 'concluida', // terminal
-        'entered_at'           => now()->subDays(10),
-        'expected_return_date' => now()->subDays(3)->toDateString(),
-        'daily_rate'           => 50.00,
-    ]);
-
-    expect($os->is_overdue)->toBeFalse();
-})->afterEach(function () {
-    ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
-        $q->select('id')->from('vehicles')->where('plate', 'CAC008');
-    })->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'CAC008')->forceDelete();
-});
+// Testes CAC007 (is_overdue=true em locação ativa) e CAC008 (is_overdue=false em
+// locação terminal) REMOVIDOS — locação erradicada (ADR 0265). O accessor `is_overdue`
+// agora é sempre false; a cobertura pós-erradicação (order_type=manutencao → false)
+// fica no teste CAC009 logo abaixo. Atraso de reparo vive no ServiceOrderController
+// via expected_completion; repontuar o kanban de Caçambas é dívida F3 charter v4.
 
 it('ServiceOrder is_overdue=false quando order_type=manutencao', function () {
     session(['user.business_id' => BIZ_WAGNER_CAC]);
@@ -266,33 +218,9 @@ it('ServiceOrder is_overdue=false quando order_type=manutencao', function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC009')->forceDelete();
 });
 
-it('ServiceOrder valor_receber = daily_rate × dias_locacao quando locação ativa', function () {
-    session(['user.business_id' => BIZ_WAGNER_CAC]);
-
-    $v = Vehicle::create([
-        'business_id'  => BIZ_WAGNER_CAC,
-        'plate'        => 'CAC010',
-        'vehicle_type' => 'cacamba_avulsa',
-    ]);
-
-    $os = ServiceOrder::create([
-        'business_id'          => BIZ_WAGNER_CAC,
-        'vehicle_id'           => $v->id,
-        'order_type'           => 'locacao',
-        'status'               => 'aberta',
-        'entered_at'           => now()->subDays(5),
-        'expected_return_date' => now()->addDays(2)->toDateString(),
-        'daily_rate'           => 80.00,
-    ]);
-
-    // 5 dias × R$ [redacted Tier 0] = R$ [redacted Tier 0]
-    expect($os->valor_receber)->toBe(400.00);
-})->afterEach(function () {
-    ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
-        $q->select('id')->from('vehicles')->where('plate', 'CAC010');
-    })->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'CAC010')->forceDelete();
-});
+// Teste CAC010 (valor_receber = daily_rate × dias_locacao em locação ativa) REMOVIDO —
+// locação erradicada (ADR 0265). O accessor `valor_receber` agora é sempre 0.0; a
+// cobertura pós-erradicação fica no teste CAC011 abaixo. Valor de reparo = total_items.
 
 it('ServiceOrder valor_receber = 0.0 quando manutencao (não cobra diária)', function () {
     session(['user.business_id' => BIZ_WAGNER_CAC]);
@@ -339,40 +267,6 @@ it('Vehicle cross-tenant: biz=99 NÃO vê vehicles biz=1 (Tier 0 — ADR 0093)',
     Vehicle::withoutGlobalScopes()->where('plate', 'CAC012')->forceDelete();
 });
 
-it('ServiceOrder scope rentalsAtivas filtra apenas locações não-terminais', function () {
-    session(['user.business_id' => BIZ_WAGNER_CAC]);
-
-    $v = Vehicle::create([
-        'business_id'  => BIZ_WAGNER_CAC,
-        'plate'        => 'CAC013',
-        'vehicle_type' => 'cacamba_avulsa',
-    ]);
-
-    // 3 OS: 2 ativas (aberta + em_servico), 1 concluida, 1 manutenção (deve excluir)
-    ServiceOrder::create([
-        'business_id' => BIZ_WAGNER_CAC, 'vehicle_id' => $v->id,
-        'order_type'  => 'locacao', 'status' => 'aberta',
-        'entered_at'  => now(), 'daily_rate' => 50.00,
-    ]);
-    ServiceOrder::create([
-        'business_id' => BIZ_WAGNER_CAC, 'vehicle_id' => $v->id,
-        'order_type'  => 'locacao', 'status' => 'concluida',
-        'entered_at'  => now()->subDays(20), 'daily_rate' => 50.00,
-    ]);
-    ServiceOrder::create([
-        'business_id' => BIZ_WAGNER_CAC, 'vehicle_id' => $v->id,
-        'order_type'  => 'manutencao', 'status' => 'aberta',
-        'entered_at'  => now(),
-    ]);
-
-    $ativas = ServiceOrder::rentalsAtivas()->where('vehicle_id', $v->id)->get();
-
-    expect($ativas)->toHaveCount(1); // apenas a aberta locacao
-    expect($ativas->first()->status)->toBe('aberta');
-    expect($ativas->first()->order_type)->toBe('locacao');
-})->afterEach(function () {
-    ServiceOrder::withoutGlobalScopes()->where('vehicle_id', function ($q) {
-        $q->select('id')->from('vehicles')->where('plate', 'CAC013');
-    })->forceDelete();
-    Vehicle::withoutGlobalScopes()->where('plate', 'CAC013')->forceDelete();
-});
+// Teste do scope `rentalsAtivas` REMOVIDO — o scope foi removido do ServiceOrder
+// (locação erradicada, ADR 0265; nenhum consumidor de produção). Locações ativas
+// não existem mais como conceito.

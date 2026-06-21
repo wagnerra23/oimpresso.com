@@ -34,11 +34,14 @@ interface Props {
    * Retornar Promise — quando resolve/reject, componente sai do uploading.
    */
   onSend: (blob: Blob, durationS: number) => Promise<void>;
+  /** Caixa Unificada V4 — botão idle discreto 24px alinhado aos demais do
+   *  composer (default false preserva o tamanho do Inbox legacy). */
+  compact?: boolean;
 }
 
 const MAX_DURATION_MS = 5 * 60 * 1000; // 5min — limite WhatsApp PTT
 
-export default function MicRecorder({ disabled, onSend }: Props) {
+export default function MicRecorder({ disabled, onSend, compact = false }: Props) {
   const [state, setState] = useState<'idle' | 'recording' | 'uploading'>('idle');
   const [elapsedMs, setElapsedMs] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -255,17 +258,17 @@ export default function MicRecorder({ disabled, onSend }: Props) {
         size="sm"
         onClick={startRecording}
         disabled={disabled || state === 'uploading'}
-        className="h-8 px-2"
+        className={compact ? 'h-6 w-6 p-0 opacity-70 hover:opacity-100' : 'h-8 px-2'}
         title={disabled ? 'Indisponível neste modo' : 'Gravar áudio (max 5min)'}
         aria-label="Gravar áudio"
         data-testid="composer-mic-start"
       >
         {state === 'uploading'
-          ? <Loader2 size={14} className="animate-spin" aria-hidden />
-          : <Mic size={14} aria-hidden />}
+          ? <Loader2 size={compact ? 12 : 14} className="animate-spin" aria-hidden />
+          : <Mic size={compact ? 12 : 14} aria-hidden />}
       </Button>
       {error && (
-        <span className="text-[10px] text-red-600 dark:text-red-400 max-w-[160px] truncate" title={error}>
+        <span className="text-[10px] text-destructive max-w-[160px] truncate" title={error}>
           {error}
         </span>
       )}

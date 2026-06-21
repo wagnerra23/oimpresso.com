@@ -110,7 +110,7 @@ export default function AddDiscountModal({
         <div className="p-5 space-y-3">
           <div>
             <label htmlFor="discount-date" className="text-xs font-medium text-muted-foreground mb-1.5 block">
-              Data <span className="text-rose-600">*</span>
+              Data <span className="text-destructive">*</span>
             </label>
             <Input
               id="discount-date"
@@ -123,7 +123,7 @@ export default function AddDiscountModal({
           </div>
           <div>
             <label htmlFor="discount-amount" className="text-xs font-medium text-muted-foreground mb-1.5 block">
-              Valor (R$) <span className="text-rose-600">*</span>
+              Valor (R$) <span className="text-destructive">*</span>
             </label>
             <Input
               id="discount-amount"
@@ -169,7 +169,7 @@ export default function AddDiscountModal({
             />
           </div>
           {error && (
-            <div className="rounded-md border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-800 dark:text-rose-200" role="alert">
+            <div className="rounded-md border border-destructive/20 bg-destructive-soft p-3 text-xs text-destructive-fg" role="alert">
               {error}
             </div>
           )}

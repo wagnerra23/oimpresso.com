@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\OficinaAuto\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * D8 Security Wave 15 — FormRequest extraído de ServiceOrderController::store.
@@ -37,9 +38,23 @@ class StoreServiceOrderRequest extends FormRequest
     {
         return [
             'vehicle_id'          => ['required', 'integer', 'exists:vehicles,id'],
+            // Cliente (dono do caminhão 3º) — sweep ADR 0265, combobox no Create.
+            // exists ESCOPADO por business (Tier 0 ADR 0093): impede vincular contact
+            // de outro tenant. nullable preserva OS sem cliente (manutenção interna).
+            'contact_id'          => [
+                'nullable',
+                'integer',
+                Rule::exists('contacts', 'id')->where(
+                    fn ($query) => $query->where(
+                        'business_id',
+                        (int) (session('user.business_id') ?? session('business.id') ?? 0)
+                    )
+                ),
+            ],
             // Tipo de OS — nullable preserva forms antigos (DB default 'manutencao').
             // 'mecanica' = fluxo real reparo caminhão (ADR 0194 · oficina_mecanica_os).
-            'order_type'          => ['nullable', 'string', 'in:locacao,manutencao,mecanica'],
+            // 'locacao' ERRADICADO (ADR 0265) — não aceito mais (bate com o enum estreitado).
+            'order_type'          => ['nullable', 'string', 'in:manutencao,mecanica'],
             'transaction_id'      => ['nullable', 'integer'],
             'mileage_at_service'  => ['nullable', 'integer', 'min:0'],
             // Check-in de entrada (US-OFICINA-038/039) — delta protótipo Cowork Nova OS

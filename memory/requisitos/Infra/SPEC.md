@@ -3,6 +3,7 @@ slug: infra
 title: "Especificação funcional — Infra (loop de governança fechado)"
 type: spec
 module: Infra
+project: COPI
 status: ativo
 owner: wagner
 version: "1.2"
@@ -689,7 +690,24 @@ Refs: ADR 0213 Mecanismo 5
 
 **Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251 · **US-FIN-053 / PR #2253** (precedente trabalhado: a lane `financeiro-pest.yml` resolveu esta mesma classe — `CaixaMovimentoFreshnessTest` migrado de `RefreshDatabase` → `DatabaseTransactions` + skip-guard contra MySQL real; o mesmo PR corrigiu 2 bugs de schema-drift `deleted_at`/`valor_baixa` no `FinanceiroHealthCommand`, instância do padrão #2 "schema drift").
 
+### US-INFRA-035 · Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18)
+
+> owner: claude · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Último item da revisão de gates (ADR 0271). NÃO executar antes de 2026-06-18 — deixar os 14 required + enforce_admins=true (flip 2026-06-11) assentarem 1 semana.
+
+Plano turnkey completo (com comandos gh api de swap e rollback) no handoff `memory/handoffs/2026-06-11-0930-gates-itens56-aplicados-item7-estruturado.md`:
+
+- **P1 (PR aditivo):** criar `color-canon-gate.yml` (job `Cor canon · ratchet unificado vs baseline`, always-run SEM `paths:`) consolidando conformance cor-crua + ui-lint + stylelint + CockpitAccentCanonTest com 1 baseline unificada. MANTER os 4 antigos rodando em paralelo. Paridade: mesmo veredito em ≥3 PRs reais + 1 violação proposital.
+- **P2 (PATCH swap):** trocar os 2 required de cor pelo unificado (14→13) — comando pronto no handoff.
+- **P3 (PR subtrativo):** deletar `conformance-gate.yml` + `ui-lint.yml` + `stylelint-gate.yml` + tirar CockpitAccentCanonTest do `ui-architecture-gate.yml` (teste continua na suíte Pest) + baselines antigas + anti-drift ADR 0270 nos docs.
+
+Cada passo é individualmente seguro — sem janela de deadlock "Expected — waiting". Rollback: re-PATCH pra lista de 14 do handoff.
+
 ---
+
+**Última atualização (US-INFRA-035):** 2026-06-11 — criada via `tasks-create` MCP na sessão de verificação dos itens 5/6 (handoff 2026-06-11-0930). Gate temporal: ≥2026-06-18.
 
 **Última atualização (US-INFRA-033):** 2026-06-04 — follow-up do PR #2251 (fix makeChannel): com as colisões globais resolvidas pro Whatsapp, a suíte roda no staging mas expõe ~493 falhas por testes fazerem Schema cru em tabelas compartilhadas vs clone MySQL. Item de harness de teste no CT 100.
 
@@ -698,3 +716,177 @@ Refs: ADR 0213 Mecanismo 5
 **Última atualização (US-INFRA-014..030):** 2026-05-28 — adicionadas 17 tasks Onda prevenção bugs MWART (ADRs 0208-0213 propostos no PR #1837). Atacam R7/R8/R9/R10-class via enforcement passivo (Larastan, Wayfinder, Zod, hooks audit-to-backlog).
 
 **Última atualização (US-INFRA-013):** 2026-05-27 — adicionada implementação contract-test-gate GH Action ADR 0207 (entrega da decisão promovida pela sessão 4 waves paralelas)
+
+### US-INFRA-036 · CSS hex drift fase 2 — tokenizar 61 valores hex crus restantes
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+> parent_plan: css-hex-drift-fase2
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** 61 valores hex crus restantes (fase 2 do drift de cor do DS).
+**Dedup:** distinto de US-INFRA-035 (fusão dos 4 gates de cor) e US-SELL-043 (CSS Cowork → tokens no Sells).
+
+**DoD:**
+- Substituir os 61 hex por tokens DS canônicos.
+- Gate de cor verde.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-037 · Roadmap redução de CSS manual (~28k → ~20k linhas)
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+> parent_plan: manual-css-js-roadmap
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** CSS manual ~28k linhas, meta ~20k (redução via tokens/DS).
+
+**DoD:**
+- Roadmap de redução por área (maiores ofensores primeiro).
+- Execução incremental + métrica de linhas trackada.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-038 · SDD: promover os 3 steps de continue-on-error a required (gate-required)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+> parent_plan: sdd-gate-required
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** 3 steps do gate SDD estão em `continue-on-error` (não mordem — "a suite mente").
+
+**DoD:**
+- Promover os 3 steps a required conforme calendário ADR 0275.
+- Baseline armado antes de morder (rodar `sdd-avaliar`).
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-039 · SDD KL E2/E3 — aplicar os 27 renames classe A
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+> parent_plan: sdd-kl-e2-e3
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** stream KL do SDD — 27 renames classe A pendentes (E2/E3).
+
+**DoD:**
+- Aplicar os 27 renames classe A.
+- Suíte Pest verde pós-rename.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-040 · SDD — burn-down dos 237 corruptores SQLite
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: sdd-sqlite-corruptors
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** 237 testes "corruptores" de SQLite a eliminar (burn-down do SDD).
+**Relacionado:** US-INFRA-031 (colisões const/function em tests/Feature que bloqueiam a suíte Pest).
+
+**DoD:**
+- Reduzir os 237 corruptores a 0 (burn-down trackado).
+- Suíte SQLite estável.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-041 · Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #0 — o mais grave). Afina/supersede o vago `INFRA-5` (INF-008 backup pré-deploy "formalizar").
+
+**Achado:** o passo `Backup (arquivos + DB)` do `deploy.yml` faz só `tar czf` e **NÃO contém nenhum `mysqldump`** (grep: zero no deploy inteiro). Grava no **mesmo host** Hostinger (`~/`), sem cópia off-host, com `skip_backup:true` disponível como input, e **sem nenhum teste de restore**. Houve **incidente de cota de disco em 2026-06-21**. Resultado: RPO desconhecido, RTO não testado — perda de dados é o único risco pior que vazamento cross-tenant.
+
+**Acceptance:**
+- `deploy.yml` faz `mysqldump` do banco antes do deploy.
+- Cópia do dump para fora do host (storage externo / bucket).
+- ≥1 restore testado e documentado (RUNBOOK).
+- RPO/RTO definidos por escrito.
+- Hostinger ≠ CT 100 respeitado (ADR 0062).
+
+### US-INFRA-042 · Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente)
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #1). Complementa `US-INFRA-011` (rotação senha MySQL) e os PRs #3148/#3151 (gitleaks full-history — que ESCANEIA, não rotaciona).
+
+**Achado:** o repo `wagnerra23/oimpresso.com` é **público**. A Meilisearch master key (controle admin total do search multi-tenant) está em arquivos rastreados no HEAD; o histórico append-only retém ela + token DNS Hostinger + os 12 segredos do incidente 2026-05-15. Editar o HEAD não resolve — git é append-only; a rotação é a única remediação real.
+
+**Acceptance:**
+- Rotacionar `MEILI_MASTER_KEY` no host + token DNS Hostinger + os 12 do incidente.
+- Atualizar status por item no `_INDEX-SECRETS.md`.
+- Avaliar tornar o repo privado.
+- Ativar `core.hooksPath .githooks` (pre-commit de segredos).
+
+
+### US-INFRA-043 · Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
+
+> owner: — · priority: p2 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #2 (verificação adversarial). Hoje nenhum gate flaga US `status=todo` + `cycle_id`/`owner` NULL; só o `triage` (não-bloqueante, afogado em ~40 itens). O `mcp:tasks:orphans` mede a direção oposta (DB sem SPEC).
+
+**Achado:** toda US criada por `tasks-create` nasce `todo`/`unowned`/sem-cycle → invisível no roadmap (Jana filtra por `cycle_id`, ProjectMgmt por `epic_id`) e nada cobra a triagem. Foi exatamente o que aconteceu com as 6 US desta auditoria (PR #3164).
+
+**Acceptance:**
+- Comando `mcp:tasks:unassigned` (espelha `mcp:tasks:orphans` + `plan-health.mjs`): lista US `status=todo` AND (`cycle_id IS NULL` OR `owner IS NULL`) há > N dias.
+- Saída `--json` pro Daily Brief.
+- Opção de virar ratchet (exit 1) quando estabilizar.
+
+### US-INFRA-044 · Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #3 (verificação adversarial). O `mcp:tasks:sync` é manual/server-side; nenhum workflow no CI o dispara. Resultado: drift SPEC↔DB real (ex.: US-GOV-001/005/006/007/008 com título "✅ DONE" mas status `todo` no DB).
+
+**Achado:** a cadeia SPEC→DB depende de sync no MCP server (CT 100) sem garantia/monitor no repo. O docblock do `McpTasksSyncCommand` diz "via webhook (futuro)".
+
+**Acceptance:**
+- Workflow `on: push: paths: 'memory/requisitos/**/SPEC.md'` que dispara `mcp:tasks:sync` (ou confirma/monitora o webhook server-side, como a mcp-drift-sentinel monitora código).
+- Rodar 1 `mcp:tasks:sync` full pra zerar o drift de status DONE/todo existente.
+
+
+### US-INFRA-045 · Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #6 (verificação adversarial, 2ª rodada).
+
+**Achado:** a cadeia tasks-create→SPEC→sync→roadmap tem 3 buracos:
+1. `TaskParserService::resolveCycleId/resolveEpicId` retornam NULL se o SPEC não tem `project:` no frontmatter (L208 + L571). 55 de 57 SPECs não tinham `project:` → US nasce com project_id/cycle_id/epic_id NULL e nunca entra no roadmap. (Mitigado nos 3 SPECs de saúde com `project: COPI`, mas é sistêmico.)
+2. Não há tool MCP pra atribuir cycle/epic a US existente (`tasks-update` não tem o campo; sem `tasks-move`).
+3. Roadmap Jana só mostra o cycle ATIVO; ProjectMgmt só mostra US com `epic_id`. US em cycle `planning` / sem epic ficam invisíveis.
+
+**Acceptance:**
+- Fallback de project default no parser (ex.: COPI) OU exigir `project:` em todo SPEC (gate de schema).
+- Tool/canal pra atribuir cycle/epic a US existente.
+- RUNBOOK do caminho canônico "US → roadmap".
+- Pareia com US-INFRA-043 (sentinela unassigned) + US-INFRA-044 (sync no CI).
+
+### US-INFRA-046 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial completa do ADR 0296 (PR #3153) — 24 riscos confirmados (7 critical), veredicto `nao-prova-de-falhas-ainda`. Gate p/ aceitar o plano de capacidade e rodar P1/P2. Detalhe dos bloqueadores e das 10 decisões do Wagner no ADR §RODADA ADVERSARIAL.
+
+Refs: ADR 0296 · PR #3153.

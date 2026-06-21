@@ -112,7 +112,7 @@ function ohcCreateOs(int $bizId): ServiceOrder
     return ServiceOrder::withoutGlobalScopes()->create([
         'business_id' => $bizId,
         'vehicle_id'  => $vehicle->id,
-        'order_type'  => 'locacao',
+        'order_type'  => 'manutencao', // locação erradicada (ADR 0265); incidental ao teste de histórico
         'status'      => 'aberta',
         'entered_at'  => now(),
         'daily_rate'  => '150.00',

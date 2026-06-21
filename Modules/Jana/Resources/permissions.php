@@ -69,6 +69,26 @@ return [
             'requires' => ['jana.mcp.use'],
         ],
         [
+            // Umbrella legado (backfill A3): existia no catálogo de scopes mas não
+            // em permissions.php. Autoriza advance + close (backward-safe).
+            'key'      => 'jana.mcp.tasks.write',
+            'label'    => 'MCP: criar/atualizar/comentar tasks (umbrella legado)',
+            'risk'     => 'medium',
+            'requires' => ['jana.mcp.use'],
+        ],
+        [
+            'key'      => 'jana.mcp.tasks.advance',
+            'label'    => 'MCP: avançar tasks (mutação não-terminal)',
+            'risk'     => 'medium',
+            'requires' => ['jana.mcp.use'],
+        ],
+        [
+            'key'      => 'jana.mcp.tasks.close',
+            'label'    => 'MCP: fechar tasks (done/cancelled — terminal)',
+            'risk'     => 'medium',
+            'requires' => ['jana.mcp.use'],
+        ],
+        [
             'key'      => 'jana.mcp.decisions.read',
             'label'    => 'MCP: ler ADRs (decisions)',
             'risk'     => 'low',

@@ -1,0 +1,45 @@
+/* ═══════════════════════════════════════════════════════════════════
+   FOUNDATIONS — Camada Fundações (Constituição UI v2 · ADR UI-0013)
+   Fonte ÚNICA de tokens de FUNDAÇÃO compartilhados entre Shell e telas.
+   Arquivo previsto pelo foundation-guard (TOKEN_DEF_ALLOW) desde o PACOTE-Q9;
+   nasce aqui com o Type RAMP (F2 Financeiro · autorizado [W] textual "vai"
+   2026-06-10 — Tier 0, registrado no PR).
+   Mudar token aqui = decisão de fundação (PR revisado), nunca css de tela.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Type RAMP (âncora única de tamanho · [W] "vai" 2026-06-10) ──
+     9 degraus; TODO font-size do sistema snapa aqui. Enforcement =
+     conformance-gate (ratchet only-down de font-size px fora do ramp,
+     espelho estático do G8 qa-conformance do Cowork).
+     Acabamento: pesos só 400/500/600/700 · lh 1 números · 1.2 títulos ·
+     1.45 corpo · caption uppercase +0.08em · números sempre mono tabular. */
+  --fs-1: 10.5px;  /* caption / eyebrow uppercase */
+  --fs-2: 11.5px;  /* label · chip · hint */
+  --fs-3: 12.5px;  /* corpo denso (células, drawer) */
+  --fs-4: 13.5px;  /* corpo padrão (= body) */
+  --fs-5: 15px;    /* título de seção/card */
+  --fs-6: 18px;    /* subtítulo de página */
+  --fs-7: 22px;    /* h1 de página · KPI médio */
+  --fs-8: 28px;    /* número grande */
+  --fs-9: 38px;    /* número hero */
+
+  /* ── TEMPERO ([W] 2026-06-10, mesma autorização do ramp · §TEMPERO gabarito ds-v6) ──
+     UMA fonte de luz (--sh-1/--sh-2), microfísica (--ease/--t-1/--t-2), atmosfera (--atmo,
+     par dark abaixo). Consumir via var(); redefinir em tela = espalhamento (foundation-guard). */
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);   /* card assentado */
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16); /* flutuante: drawer/modal/popover/cmdk */
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* desacelera como coisa física — curva única do ERP */
+  --t-1: .15s;  --t-2: .3s;
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);
+}
+
+/* TEMPERO · dark — data-theme mora no .cockpit; casar por [data-theme] (sem a classe)
+   mantém a Fundação desacoplada do Shell (ADR UI-0013) e casa no mesmo elemento. */
+[data-theme="dark"]{
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);
+}

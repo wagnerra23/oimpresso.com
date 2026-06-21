@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * US-FIN-044 PR4 — Onda 4f.sicoob_api webhook receiver.
@@ -16,7 +16,7 @@ uses(Tests\TestCase::class);
  *   3. Credential inexistente pra business_id → 404
  *   4. Credential sem webhook_secret cadastrado → 401 (fail-secure)
  *   5. Idempotência: 2x mesmo eventId → 1 linha só (UNIQUE)
- *   6. business_id isolado biz=4 vs biz=99 (multi-tenant Tier 0)
+ *   6. business_id isolado biz=98 vs biz=99 (multi-tenant Tier 0)
  *
  * Multi-tenant Tier 0: biz=1 padrão (ADR 0101 — nunca cliente real).
  */
@@ -122,22 +122,22 @@ it('idempotente — 2x mesmo eventId/nossoNumero NÃO duplica em DB', function (
     expect(GatewayWebhookEvent::query()->withoutGlobalScopes()->count())->toBe(1);
 });
 
-it('multi-tenant Tier 0: biz=4 e biz=99 webhooks ISOLADOS', function () {
-    $secret4 = 'secret-biz-4';
+it('multi-tenant Tier 0: biz=98 e biz=99 webhooks ISOLADOS', function () {
+    $secret98 = 'secret-biz-98';
     $secret99 = 'secret-biz-99';
 
     PaymentGatewayCredential::query()->create([
-        'business_id'  => 4,
+        'business_id'  => 98,
         'gateway_key'  => 'sicoob_api',
         'ambiente'     => 'sandbox',
         'ativo'        => true,
         'config_json'  => [
-            'client_id'         => 'c4',
-            'client_secret'     => 's4',
-            'numero_cliente'    => 4,
+            'client_id'         => 'c98',
+            'client_secret'     => 's98',
+            'numero_cliente'    => 98,
             'codigo_modalidade' => 1,
-            'numero_conta'      => 4,
-            'webhook_secret'    => $secret4,
+            'numero_conta'      => 98,
+            'webhook_secret'    => $secret98,
         ],
     ]);
     PaymentGatewayCredential::query()->create([
@@ -155,12 +155,12 @@ it('multi-tenant Tier 0: biz=4 e biz=99 webhooks ISOLADOS', function () {
         ],
     ]);
 
-    // biz=4 com secret correto → 200
-    postSicoobWebhookSigned($this, 4, ['evento' => 'x', 'nossoNumero' => 'biz4-001'], $secret4)
+    // biz=98 com secret correto → 200
+    postSicoobWebhookSigned($this, 98, ['evento' => 'x', 'nossoNumero' => 'biz98-001'], $secret98)
         ->assertStatus(200);
 
-    // biz=99 usando SECRET DO biz=4 → 401 (não vaza segredo entre tenants)
-    postSicoobWebhookSigned($this, 99, ['evento' => 'x', 'nossoNumero' => 'biz99-001'], $secret4)
+    // biz=99 usando SECRET DO biz=98 → 401 (não vaza segredo entre tenants)
+    postSicoobWebhookSigned($this, 99, ['evento' => 'x', 'nossoNumero' => 'biz99-001'], $secret98)
         ->assertStatus(401);
 
     // biz=99 com secret correto → 200
@@ -168,7 +168,7 @@ it('multi-tenant Tier 0: biz=4 e biz=99 webhooks ISOLADOS', function () {
         ->assertStatus(200);
 
     // Eventos separados por business_id
-    expect(GatewayWebhookEvent::query()->withoutGlobalScopes()->where('business_id', 4)->count())->toBe(1)
+    expect(GatewayWebhookEvent::query()->withoutGlobalScopes()->where('business_id', 98)->count())->toBe(1)
         ->and(GatewayWebhookEvent::query()->withoutGlobalScopes()->where('business_id', 99)->count())->toBe(1);
 });
 

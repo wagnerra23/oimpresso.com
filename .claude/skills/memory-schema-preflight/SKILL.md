@@ -1,10 +1,10 @@
 ---
 name: memory-schema-preflight
-description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
+description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Cobre também o campo anchor `**Implementado em:**` + key opcional `anchor_format` do fluxo novo de SPEC (ADR 0273, lint advisory `anchor-lint.mjs`). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
 tier: B
 trigger: description-matching
 parent_adr: 0094
-related_adrs: [0094, 0095]
+related_adrs: [0094, 0095, 0273]
 ---
 
 # memory-schema-preflight — Tier B auto-trigger
@@ -47,6 +47,7 @@ related_adrs:                       # LIST de slugs, NUNCA integers
 parent_adr: "NNNN-kebab-slug"       # opcional, mesmo pattern
 related_proposals:                  # opcional, lista de slugs proposal
   - "kebab-slug"
+anchor_format: "v1"                 # opcional (ADR 0273) — enum SÓ "v1"; SPEC novo nasce com ela; 57 legados sem a key OK (grace-period)
 ---
 ```
 
@@ -58,6 +59,20 @@ related_proposals:                  # opcional, lista de slugs proposal
 **Recomendadas** (warnings, não bloqueiam):
 - `## Histórico`
 - `## Referências`
+
+**Campo anchor `**Implementado em:**` (ADR 0273 · `anchor_format: "v1"`) — fluxo NOVO:**
+
+- A key `anchor_format: "v1"` no frontmatter é OPCIONAL (enum só `"v1"`). Grace-period: os 57 SPECs legados SEM a key continuam válidos (regra "campo novo opcional até backfill" do [README memory-schemas](../../../scripts/memory-schemas/README.md)). SPEC novo nasce com ela — já vem no [`_TEMPLATE_SPEC.md`](../../../memory/requisitos/_TEMPLATE_SPEC.md).
+- Toda US ganha **1 linha** `**Implementado em:**` no corpo — no mínimo `_pendente_` enquanto a tela não existe (sentinela de **1ª classe**, NÃO é dívida de anchor). Gramática quando construída:
+
+  ```
+  **Implementado em:** `path/relativo.tsx` [· `Símbolo@metodo`] · verificado@<sha7> (<YYYY-MM-DD>)
+  **Implementado em:** _parcial_ · `path` · verificado@<sha7> (<data>) — o que falta
+  **Implementado em:** _pendente_ — justificativa opcional
+  ```
+
+  `sha7` = commit de `origin/main` onde o path foi verificado (proveniência). NUNCA `_[TODO]_` / `_[path]_` / `(a criar)` — placeholder legado conta como **não-coberto**.
+- Divisão de responsabilidade: `spec.schema.json` valida só a **key** do frontmatter; o **corpo** (`**Implementado em:**`) é validado pelo `anchor-lint.mjs` (advisory na fase F1 — não bloqueia merge).
 
 ### RUNBOOK.md — `memory/requisitos/<Mod>/RUNBOOK*.md`
 
@@ -157,6 +172,8 @@ Seções obrigatórias: `## Mission`, `## Goals`, `## Non-Goals`, `## UX targets
 | `/ must have required property 'last_validated'` (RUNBOOK) | adicionar `last_validated: "YYYY-MM-DD"` |
 | SPEC sem `## User stories \| ## Backlog ativo \| ## US ativas` | renomear seção existente OU criar nova com `## User stories — <contexto>` |
 | SPEC sem `## Histórico` ou `## Referências` | warning, não bloqueia merge (mas adicionar é boa prática) |
+| `/anchor_format must be equal to one of the allowed values` | `anchor_format: v2` → `anchor_format: "v1"` (único valor; AST v2 é evolução futura do ADR 0273) |
+| anchor-lint `placeholder` / `anchored_dead` numa US | trocar `_[TODO]_` / path-morto por `_pendente_` (não construída) OU path real + `verificado@<sha7> (<data>)` — NUNCA inventar path (advisory, não bloqueia) |
 
 ## Validador local — rodar ANTES de commit
 
@@ -170,6 +187,9 @@ echo "memory/requisitos/<Mod>/SPEC.md" | xargs -r .github/scripts/validate-memor
 npx ajv validate -s scripts/memory-schemas/spec.schema.json -d memory/requisitos/<Mod>/SPEC.md
 npx ajv validate -s scripts/memory-schemas/runbook.schema.json -d memory/requisitos/<Mod>/RUNBOOK*.md
 npx ajv validate -s scripts/memory-schemas/adr.schema.json -d memory/decisions/NNNN-kebab.md
+
+# Anchor spec↔código (ADR 0273) — corpo `**Implementado em:**`, advisory, node puro <0.1s, sem deps
+node scripts/governance/anchor-lint.mjs memory/requisitos/<Mod>/SPEC.md   # diff-aware (só o SPEC passado)
 ```
 
 **Batch validar tudo modificado vs main antes de PR:**
@@ -298,6 +318,21 @@ E adicionar no corpo:
 - `.github/workflows/memory-schema-gate.yml` — CI gate principal (AJV)
 - `.github/workflows/memory-schema-gate-extended.yml` — CI gate extended (sections + filename)
 - `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections)
+- `scripts/governance/anchor-lint.mjs` — lint do corpo `**Implementado em:**` (advisory F1) + `.github/workflows/anchor-drift.yml`
 - Sessão 2026-05-25 — origem do skill (4 PRs blocked + batch fix)
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (memory artifacts canônicos)
 - [ADR 0095](../../../memory/decisions/0095-skills-tiers-convencao-interna.md) — Skills tiers convenção interna
+- [ADR 0273](../../../memory/decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md) — formato anchor spec↔código + sentinela `_pendente_` + key `anchor_format` (fluxo novo de SPEC)
+
+## Pegadinhas validadas em CI real (2026-06-11 — 2 handoffs mergeados com gate vermelho)
+
+Reds não-required que viram CRUFT permanente (append-only proíbe fix-forward de handoff mergeado):
+
+| Doc | Campo | Regra EXATA (ajv) | Erro real pego |
+|---|---|---|---|
+| handoff | `prs` | array de **INTEIROS** — `prs: [2547, 2549]`, NUNCA `["2547"]` | `/prs/0 must be integer` (handoff 14:30) |
+| handoff | `date`/`slug`/`tldr` | os 3 são `required` — `hour_brt`/`topic` NÃO substituem | handoff 12:05 sem slug/tldr |
+| runbook | `title`/`owner`/`last_validated` | required; `owner` enum `W/F/M/L/E`; `status` enum `rascunho/ativo/arquivado/historical` (`ready-for-execution` é INVÁLIDO) | RUNBOOK Crm no #2539 |
+| todos | datas | SEMPRE string quoted `"2026-06-11"` | — |
+
+**Regra de ouro:** handoff é append-only DEPOIS do merge — validar é ANTES do push ou nunca. O gate roda só em arquivos changed, então o red é 1× por PR, mas fica pra sempre no histórico do PR.

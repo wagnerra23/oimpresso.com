@@ -59,3 +59,43 @@ if ($rbFeatureDir !== false) {
         }
     })->in($rbFeatureDir);
 }
+
+// Whatsapp — mesma dor do RB: muitos models têm Spatie LogsActivity, mas os testes
+// montam schema sintético sem `activity_log` e quebram no 1º create logável
+// ("no such table: activity_log" — 341 das falhas na auditoria de cobertura-CI
+// 2026-06-19). Garante a tabela (idempotente) num beforeEach scoped ao dir.
+//
+// O dir Whatsapp é MISTO: tem testes de reflexão pura que NÃO bootam app completo
+// (ex MessageHasArquivosTraitTest, sem `uses(TestCase)`). Neles `DB::connection()`
+// estoura ("facade root not set" / config não carregado). Por isso envolvemos em
+// try/catch: provisionar a tabela é best-effort — se não há DB booted, no-op. Não
+// mascara nada: se um teste REAL precisar de activity_log e a criação falhar, ele
+// quebra sozinho no 1º create logável. Só toca sqlite (no MySQL real a migration
+// canônica já cria a tabela, então `hasTable` curto-circuita).
+$waFeatureDir = realpath(__DIR__ . '/../Modules/Whatsapp/Tests/Feature');
+if ($waFeatureDir !== false) {
+    uses()->beforeEach(function () {
+        try {
+            if (\Illuminate\Support\Facades\DB::connection()->getDriverName() !== 'sqlite') {
+                return;
+            }
+            if (! \Illuminate\Support\Facades\Schema::hasTable('activity_log')) {
+                \Illuminate\Support\Facades\Schema::create('activity_log', function ($t) {
+                    $t->id();
+                    $t->string('log_name')->nullable();
+                    $t->text('description')->nullable();
+                    $t->unsignedBigInteger('subject_id')->nullable();
+                    $t->string('subject_type')->nullable();
+                    $t->unsignedBigInteger('causer_id')->nullable();
+                    $t->string('causer_type')->nullable();
+                    $t->json('properties')->nullable();
+                    $t->string('event')->nullable();
+                    $t->uuid('batch_uuid')->nullable();
+                    $t->timestamps();
+                });
+            }
+        } catch (\Throwable $e) {
+            // teste sem app/DB booted (reflexão pura) — nada a provisionar
+        }
+    })->in($waFeatureDir);
+}

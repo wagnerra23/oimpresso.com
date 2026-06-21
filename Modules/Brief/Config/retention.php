@@ -112,4 +112,18 @@ return [
     | aplicável (time interno, ciência implícita via Termo de Uso).
     */
     'notice_period_days' => 0,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kill-switch C2+C3 (default ON) — bloco de leases ATIVOS no Daily Brief
+    |--------------------------------------------------------------------------
+    | SDD Leva 2 (ADR 0278). Quando true, LeaseBriefSectionService injeta sob
+    | `## EM VOO AGORA` a lista de leases de coordenação ativos + o nudge
+    | "claim antes de pegar". Desligar = override de config (runtime/deploy) pra
+    | false → o service devolve o brief intacto (zero bloco, zero query). SEM env()
+    | aqui: Larastan barra env() fora do config/ root (NoEnvCallsOutsideOfConfig);
+    | o toggle vive em config('brief.lease_section') com default ON.
+    | @see Modules\Brief\Services\LeaseBriefSectionService
+    */
+    'lease_section' => true,
 ];

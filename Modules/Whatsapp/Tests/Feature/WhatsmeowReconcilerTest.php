@@ -126,6 +126,28 @@ it('reconcile() retorna PAIRED quando Connected=true e LoggedIn=true', function 
     expect($state->isPaired())->toBeTrue();
 });
 
+it('reconcile() retorna PAIRED pela lista /admin/users mesmo sem token no DB (blindagem stale-token · Wagner 2026-06-18)', function () {
+    // A própria lista /admin/users traz connected/loggedIn por sessão. Quando
+    // ambos true, reconcile resolve PAIRED SEM depender do user_token salvo em
+    // config_json (que pode ter ficado stale e fazer /session/status dar 401,
+    // travando o fechamento automático da tela do QR).
+    Http::fake([
+        '*/admin/users' => Http::response([
+            'data' => [
+                ['name' => 'ch-aaaaaaaabbbbccccddddeeeeeeeeeeee', 'connected' => true, 'loggedIn' => true],
+            ],
+        ], 200),
+        // Guard: session/status NÃO deve decidir aqui (mesmo respondendo desconectado).
+        '*/session/status' => Http::response(['data' => ['Connected' => false, 'LoggedIn' => false]], 200),
+    ]);
+
+    $channel = whatsmeowChannelStub(['config_json' => []]); // token perdido no DB
+
+    $state = app(WhatsmeowReconciler::class)->reconcile($channel);
+
+    expect($state)->toBe(WhatsmeowState::PAIRED);
+});
+
 it('reconcile() retorna LOGGED_OUT quando channel era active e voltou pra Connected=true/LoggedIn=false', function () {
     Http::fake([
         '*/admin/users' => Http::response([

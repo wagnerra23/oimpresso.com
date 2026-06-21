@@ -24,6 +24,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * REPO-WIDE: ADR 0070 jira-style cross-tenant intencional — planejamento é da
  * plataforma. Sem `business_id` by design. Wave 25 SATURATION marker explícito
  * pra rubrica D1.c v3.2 hardened.
+ *
+ * @property string|null $acceptance_ref Prova de DoD pra fechar (Fase 2, ADR 0278).
+ *           Coluna adicionada via ALTER — declarada aqui pro Larastan reconhecer.
  */
 class McpTask extends Model
 {
@@ -57,6 +60,7 @@ class McpTask extends Model
         'labels',
         'custom_fields',
         'blocked_by',
+        'acceptance_ref',
         'source_path',
         'source_git_sha',
         'parsed_at',
@@ -82,6 +86,36 @@ class McpTask extends Model
 
     /** Status canônicos (ADR 0070 — backlog adicionado). */
     public const STATUSES = ['backlog', 'todo', 'doing', 'review', 'done', 'blocked', 'cancelled'];
+
+    /**
+     * FSM mcp_tasks — matriz de transições permitidas (single source-of-truth em código).
+     *
+     * Espelha EXATAMENTE o workflow default semeado em McpDefaultsSeeder::$defaultWorkflow
+     * ('transitions'). Antes a matriz só existia como dado de seed e tinha ZERO leitores —
+     * todo→done (teleport) passava silencioso. Agora o chokepoint applyLockedUpdate consulta
+     * esta const e rejeita transição ilegal (rollback automático dentro da DB::transaction).
+     *
+     * @var array<string, list<string>>
+     */
+    public const TRANSITIONS = [
+        'backlog'   => ['todo', 'cancelled'],
+        'todo'      => ['doing', 'blocked', 'cancelled'],
+        'doing'     => ['review', 'blocked', 'todo', 'cancelled'],
+        'review'    => ['done', 'doing', 'blocked'],
+        'blocked'   => ['todo', 'doing', 'cancelled'],
+        'done'      => ['review'],   // reabrir
+        'cancelled' => ['todo'],     // reabrir
+    ];
+
+    /**
+     * A transição $from → $to é permitida pela FSM?
+     *
+     * Estado desconhecido (fora de TRANSITIONS) => nenhuma transição permitida (fail-closed).
+     */
+    public static function canTransition(string $from, string $to): bool
+    {
+        return in_array($to, self::TRANSITIONS[$from] ?? [], true);
+    }
 
     /** Priorities canônicas. */
     public const PRIORITIES = ['p0', 'p1', 'p2', 'p3'];

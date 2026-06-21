@@ -1,0 +1,75 @@
+name: Casos-coverage ratchet (trio-de-tela + caso↔teste)
+
+# Gate G-1/G-2/G-5/G-6/G-7 da Governança executável (ADR 0264). Toda .tsx roteada precisa
+# do trio (charter.md + casos.md); todo UC-* precisa de >=1 teste citando o id (G-1/G-2);
+# metadata viva owner/last_run/Status (G-5); frescor via git (G-6); e o `Status: ✅` por UC
+# tem que bater com o veredito REAL do teste — manifesto scripts/casos-test-results.json
+# gerado por `npm run casos:results` (G-7, Salto #2). Ratchet: FALHA só se a contagem de
+# violações AUMENTAR vs baseline (legado absorvido; encolher é sempre OK).
+#
+# FASE 2 (ADR 0264 + ADR 0261, flip [W] 2026-06-09): ALWAYS-RUN → required status check.
+# O ratchet é node:fs puro (~12s) e SEMPRE reporta verde quando nada regrediu — por isso é
+# seguro como `required` sem deadlock (padrão ADR 0261 Alavanca 2: always-run > path-scoped
+# required). Tirar o filtro `paths:` é o flip: o check passa a reportar em TODO PR.
+#
+# Node puro (node:fs), sem deps, sem npm ci. Comando local: npm run casos:check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: casos-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  casos-gate:
+    name: Casos-coverage · ratchet (trio + rastreabilidade)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # G-6 frescor precisa do histórico (data do último commit do .tsx vs last_run)
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Relatório de dívida (informativo)
+        run: node scripts/casos-coverage-guard.mjs --report
+
+      - name: Casos ratchet (falha em violação NOVA de trio/rastreabilidade)
+        run: node scripts/casos-coverage-guard.mjs
+
+      # Onda Q2 (mandato ONDAS-QUALIDADE 2026-06-11) — ratchet SÓ-DESCE do arquivo de
+      # baseline: o ratchet acima pega violação nova no REPO, mas não impedia o próprio
+      # baseline commitado de CRESCER via `--write-baseline` (fotografar dívida nova).
+      # Crescimento consciente (refactor move tela com dívida legada) = label
+      # `casos-baseline-grow-approved` no PR (decisão visível, não default).
+      - name: Baseline só-desce (cobertura de casos nunca regride)
+        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'casos-baseline-grow-approved')
+        run: |
+          git fetch --no-tags origin main
+          if git show origin/main:scripts/casos-coverage-baseline.json > /tmp/casos-baseline-main.json 2>/dev/null; then
+            node scripts/casos-coverage-guard.mjs --check-baseline-shrink /tmp/casos-baseline-main.json
+          else
+            echo "baseline ausente no main (bootstrap) — skip"
+          fi
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Apareceu violação NOVA de trio-de-tela (G-1) ou rastreabilidade UC↔teste (G-2)."
+          echo ""
+          echo "Tela NOVA precisa do trio ao lado do .tsx:  <Nome>.charter.md + <Nome>.casos.md"
+          echo "UC NOVO (UC-XX no casos.md) precisa de >=1 teste citando o id (Tests/**, tests/**, e2e/**)."
+          echo ""
+          echo "  1. Local: npm run casos:check   · vê as violações novas"
+          echo "  2. Crie o charter/casos faltante (skill charter-write) ou o teste do UC."
+          echo "  3. Se for legado movido/refatorado conscientemente: npm run casos:baseline:write"
+          echo ""
+          echo "Refs: ADR 0264 (G-1/G-2) · ADR 0261 (enforcement faseado) · ADR 0256 (catraca)"

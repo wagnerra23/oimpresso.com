@@ -1,0 +1,180 @@
+# Composite action — setup canônico pra rodar Pest contra MySQL REAL.
+# Extraída de financeiro-pest.yml (FV-F2, plano SDD 2026-06-12) pra reuso
+# pelas lanes de burn-down por módulo (FV B1/B2/...) sem copy-paste.
+#
+# ⚠️ LIMITAÇÃO GitHub Actions: composite action NÃO pode declarar `services:`
+# (service containers são job-level). O JOB CONSUMIDOR DEVE declarar o service
+# mysql:8.0 com MYSQL_ROOT_PASSWORD/MYSQL_DATABASE compatíveis com os inputs
+# (ver .github/workflows/financeiro-pest.yml — bloco `services.mysql`).
+# Esta action cobre o resto: PHP + deps + .env + migrate + seed multi-tenant.
+#
+# Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql, gerado via schema:dump
+# da prod 2026-06-04 com as 820 migrations registradas). `migrate` carrega o
+# schema final num passo só + roda só as migrations novas → sem o problema de
+# fresh-install (FK ordering / type-mismatch) que as migrations legacy têm.
+
+name: 'Pest MySQL Setup'
+description: >-
+  PHP 8.4 + Composer + .env MySQL + migrate (schema baseline) + seed mínimo
+  multi-tenant: biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
+  Requer service container MySQL declarado no job consumidor.
+
+inputs:
+  php-version:
+    description: 'Versão do PHP'
+    required: false
+    default: '8.4'
+  db-host:
+    description: 'Host do MySQL (service container)'
+    required: false
+    default: '127.0.0.1'
+  db-port:
+    description: 'Porta do MySQL'
+    required: false
+    default: '3306'
+  db-database:
+    description: 'Database de teste'
+    required: false
+    default: 'oimpresso_test'
+  db-username:
+    description: 'Usuário do MySQL'
+    required: false
+    default: 'root'
+  db-password:
+    description: 'Senha do MySQL (a do service container CI, não-secreta)'
+    required: false
+    default: 'root'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_mysql, tokenizer, xml, zip, gd, opentelemetry
+        tools: composer:v2
+        coverage: none
+
+    - name: Cache Composer
+      uses: actions/cache@v4
+      with:
+        path: ~/.composer/cache
+        key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+        restore-keys: composer-${{ runner.os }}-
+
+    - name: Prepare dirs
+      shell: bash
+      run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+    - name: Install PHP deps
+      shell: bash
+      run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+    - name: Wait for MySQL
+      shell: bash
+      run: |
+        for i in $(seq 1 30); do
+          if mysqladmin ping -h${{ inputs.db-host }} -u${{ inputs.db-username }} -p${{ inputs.db-password }} --silent; then echo "MySQL up"; break; fi
+          echo "waiting mysql ($i)"; sleep 2
+        done
+
+    - name: Create .env (MySQL)
+      shell: bash
+      run: |
+        # ${{ inputs.* }} é substituído pelo runner ANTES do bash — heredoc quoted ok.
+        cat > .env <<'EOF'
+        APP_NAME=oimpresso-fin
+        APP_ENV=testing
+        APP_KEY=
+        APP_DEBUG=true
+        APP_URL=http://localhost
+        LOG_CHANNEL=stderr
+        DB_CONNECTION=mysql
+        DB_HOST=${{ inputs.db-host }}
+        DB_PORT=${{ inputs.db-port }}
+        DB_DATABASE=${{ inputs.db-database }}
+        DB_USERNAME=${{ inputs.db-username }}
+        DB_PASSWORD=${{ inputs.db-password }}
+        CACHE_DRIVER=array
+        QUEUE_CONNECTION=sync
+        SESSION_DRIVER=array
+        MAIL_MAILER=array
+        BCRYPT_ROUNDS=4
+        TELESCOPE_ENABLED=false
+        SCOUT_DRIVER=null
+        MCP_TOOLS_EXPOSED=false
+        EOF
+        php artisan key:generate --force
+        php artisan package:discover --ansi
+
+    - name: Strip prod DEFINER do schema baseline (triggers funcionam no MySQL do CI)
+      # O dump database/schema/mysql-schema.sql carrega objetos (triggers de
+      # imutabilidade append-only de mcp_audit_log / ponto_marcacoes / etc)
+      # carimbados com DEFINER=`u906587222_oimpresso`@`localhost` — o usuário da
+      # PROD Hostinger. Esse usuário NÃO existe no container MySQL do CI; quando um
+      # trigger BEFORE UPDATE/DELETE dispara, o MySQL falha a resolução do security
+      # context do definer e estoura SQLSTATE 'HY000' ANTES de chegar no corpo
+      # (SIGNAL '45000'). Resultado: na prod o trigger enforça (definer existe), mas
+      # no CI ele falha com o erro ERRADO — mascarando se o append-only morde.
+      # Sem DEFINER, o objeto é criado sob CURRENT_USER (root do CI) e o SIGNAL
+      # '45000' aflora corretamente. Exposto pela lane jana-pest (furo #1 SDD Leva
+      # 1): ImmutabilityTriggersTest mcp_audit_log UPDATE/DELETE.
+      shell: bash
+      run: |
+        sed -i -E 's/DEFINER=`[^`]+`@`[^`]+`//g' database/schema/mysql-schema.sql
+
+    - name: Migrate (carrega schema baseline + migrations novas)
+      # Com database/schema/mysql-schema.sql presente, o Laravel carrega o
+      # schema final + a tabela migrations (820 linhas) num passo, depois roda
+      # só as migrations posteriores ao dump. Sem replay fresh-install.
+      shell: bash
+      run: php artisan migrate --force
+
+    - name: Seed mínimo (biz=1 fixture completa + biz=2 Tier 0 cross-tenant)
+      # DummyBusinessSeeder é stale (insere colunas removidas do schema real, ex
+      # contacts.first_name). Em vez dele, semeamos o MÍNIMO que os testes precisam
+      # (Business::first() + um user + uma conta), com as colunas NOT NULL atuais do
+      # schema baseline, resolvendo o FK circular business.owner_id ↔ users.business_id.
+      #
+      # biz=2 (FV-F2 — Tier 0 cross-tenant): segundo tenant MÍNIMO (business + user,
+      # SEM conta/location/contact) pros testes de isolamento multi-tenant terem um
+      # segundo business real. Business::first() continua devolvendo biz=1.
+      shell: bash
+      run: |
+        php artisan db:seed --class="Database\\Seeders\\CurrenciesTableSeeder" --force || true
+        php artisan db:seed --class="Database\\Seeders\\PermissionsTableSeeder" --force || true
+        php artisan tinker --execute="
+          use Illuminate\\Support\\Facades\\DB;
+          \$curId = optional(DB::table('currencies')->first())->id ?? 1;
+          if (! DB::table('business')->where('id', 1)->exists()) {
+            \$uid = DB::table('users')->insertGetId(['first_name'=>'CI','username'=>'ci_admin','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+            \$bid = DB::table('business')->insertGetId(['name'=>'CI Biz','currency_id'=>\$curId,'owner_id'=>\$uid,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('users')->where('id', \$uid)->update(['business_id'=>\$bid]);
+            echo 'seed biz='.\$bid.' user='.\$uid.PHP_EOL;
+          }
+          if (! DB::table('business')->where('id', 2)->exists()) {
+            \$uid2 = DB::table('users')->insertGetId(['first_name'=>'CI Biz2','username'=>'ci_admin_b2','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('business')->insert(['id'=>2,'name'=>'CI Biz 2','currency_id'=>\$curId,'owner_id'=>\$uid2,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('users')->where('id', \$uid2)->update(['business_id'=>2]);
+            echo 'seed biz2=2 user='.\$uid2.PHP_EOL;
+          }
+          DB::statement('SET FOREIGN_KEY_CHECKS=0'); // conta usa account_id fake (sem row em accounts)
+          \$bizId = optional(DB::table('business')->first())->id;
+          if (\$bizId && ! \Modules\Financeiro\Models\ContaBancaria::query()->where('business_id',\$bizId)->exists()) {
+            \Modules\Financeiro\Models\ContaBancaria::create([
+              'business_id'=>\$bizId,'account_id'=>999001,'agencia'=>'0001','carteira'=>'0',
+              'beneficiario_documento'=>'00000000000000','beneficiario_razao_social'=>'CI Test','saldo_cached'=>0,
+            ]);
+            echo 'conta criada biz='.\$bizId.PHP_EOL;
+          }
+          // Onda Q2 — RetencaoLoopE2ETest (UC-F01..03) exige location + contact (type != lead).
+          if (\$bizId && ! DB::table('business_locations')->where('business_id',\$bizId)->exists()) {
+            DB::table('business_locations')->insert(['business_id'=>\$bizId,'name'=>'Matriz CI','country'=>'BR','state'=>'SP','city'=>'SP','zip_code'=>'0','created_at'=>now(),'updated_at'=>now()]);
+            echo 'location criada'.PHP_EOL;
+          }
+          if (\$bizId && ! DB::table('contacts')->where('business_id',\$bizId)->where('type','!=','lead')->exists()) {
+            DB::table('contacts')->insert(['business_id'=>\$bizId,'type'=>'customer','name'=>'Cliente CI','contact_id'=>'CO0001','created_by'=>1,'is_default'=>1,'created_at'=>now(),'updated_at'=>now()]);
+            echo 'contact criado'.PHP_EOL;
+          }
+        "

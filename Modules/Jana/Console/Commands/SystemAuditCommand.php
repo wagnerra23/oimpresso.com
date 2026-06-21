@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Checks (5 dimensões do audit paralelo 2026-05-10 que viraram US):
  *   1. observability_pipeline       — Langfuse health 200 + LANGFUSE_HOST env setado
- *   2. eval_ci_gate                  — .github/workflows/eval-recall-gate.yml exists (US-COPI-105 done)
+ *   2. eval_ci_gate                  — .github/workflows/jana-ragas-gate.yml exists (US-COPI-105 done)
  *   3. adr_stale_count               — ADRs canon citando tech abandonada (Vizra/old-Reverb/CURRENT.md/TASKS.md)
  *   4. cost_dashboard_aggregation    — mcp_usage_diaria populada nas últimas 24h
  *   5. test_coverage_gate            — modules-pest.yml ou ci.yml com pcov+coverage-clover
@@ -58,7 +58,7 @@ class SystemAuditCommand extends Command
             $this->checkTestCoverageGate(),
         ];
 
-        $allOk = collect($checks)->every(fn ($c) => $c['ok']);
+        $allOk = self::allChecksOk($checks);
 
         if ($this->option('json')) {
             $this->line(json_encode([
@@ -87,6 +87,17 @@ class SystemAuditCommand extends Command
         }
 
         return $allOk ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Veredito do gate: OK só se TODOS os checks têm ok=true (system-audit não tem
+     * advisory — todos os 5 são duros). Extraído pra ser testável SEM DB (bite-test
+     * SentinelBiteTest) — prova que o exit code RESPONDE ao estado, não é constante.
+     * Auditoria de sentinelas 2026-06-20 (o comando tinha ZERO testes).
+     */
+    public static function allChecksOk(array $checks): bool
+    {
+        return collect($checks)->every(fn ($c) => (bool) ($c['ok'] ?? false));
     }
 
     /**
@@ -149,18 +160,20 @@ class SystemAuditCommand extends Command
 
     /**
      * Check 2 — Eval CI gate (US-COPI-105 done).
-     * OK = .github/workflows/eval-recall-gate.yml exists.
+     * OK = .github/workflows/jana-ragas-gate.yml exists.
+     * (ADR 0271 onda 2 item 8: apontava pra eval-recall-gate.yml inexistente
+     *  → self-audit falso-verde. O gate real de eval é o jana-ragas-gate.yml.)
      */
     protected function checkEvalCiGate(): array
     {
-        $path = base_path('.github/workflows/eval-recall-gate.yml');
+        $path = base_path('.github/workflows/jana-ragas-gate.yml');
         $exists = File::exists($path);
 
         return [
             'name' => 'eval_ci_gate',
             'ok' => $exists,
-            'value' => $exists ? 'workflow eval-recall-gate.yml presente' : 'workflow ausente',
-            'threshold' => '.github/workflows/eval-recall-gate.yml exists',
+            'value' => $exists ? 'workflow jana-ragas-gate.yml presente' : 'workflow ausente',
+            'threshold' => '.github/workflows/jana-ragas-gate.yml exists',
             'remediation' => $exists ? null : 'Implementar US-COPI-105 — workflow CI gate Pest eval R@3≥0.70',
         ];
     }

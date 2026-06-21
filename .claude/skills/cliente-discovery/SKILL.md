@@ -1,6 +1,7 @@
 ---
 name: cliente-discovery
 description: ATIVAR quando Wagner pedir /cliente-discovery, "entrevistar cliente X", "fazer discovery do cliente Y", "criar persona pra <pessoa>", "vou visitar cliente <nome> amanhã", "ligar pra cliente <nome>", OU antes de qualquer sessão presencial/call com cliente real do oimpresso. Skill que apresenta script canônico de entrevista combinando The Mom Test (Rob Fitzpatrick) + Job-to-be-done (Christensen) + Day-in-the-life observation (IDEO). 12 perguntas estruturadas + checklist de captura raw + template de saída em memory/clientes/<cliente>/discovery-YYYY-MM-DD.md + draft de persona YAML pronto pra refinar. Refs ADR UI-0016, ADR 0105 (cliente-como-sinal). NÃO substitui visita real — orquestra o que perguntar e como capturar.
+tier: B
 ---
 
 # cliente-discovery — Entrevista canônica de cliente real

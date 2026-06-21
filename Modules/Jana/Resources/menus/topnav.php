@@ -29,9 +29,11 @@ return [
         // Link cross-module aqui pra continuidade visual.
         ['label' => 'KB →',                               'href' => '/kb',                      'icon' => 'BookOpen',        'can' => 'jana.mcp.memory.manage'],
         ['label' => 'Qualidade IA',                       'href' => '/ia/admin/qualidade',  'icon' => 'TrendingUp',      'can' => 'jana.mcp.usage.all'],
-        // Team MCP saiu do Copiloto e virou módulo próprio (split TeamMcp).
-        // Mantém entry como atalho cross-module pra Wagner.
-        ['label' => 'Team MCP →',                         'href' => '/team-mcp/team',           'icon' => 'Users',           'can' => 'jana.mcp.usage.all'],
+        // Fusão Forja↔TeamMcp (2026-06-16): o cross-link "Team MCP →" foi REMOVIDO
+        // daqui porque o item /team-mcp/team roubava o match de /team-mcp/* no
+        // useAutoModuleNav (este topnav vem antes da Forja no Object.values),
+        // fazendo as telas absorvidas mostrarem o nav do Copiloto em vez do hub
+        // Forja. Agora o hub Forja (core_topnavs['Forja']) é dono de /team-mcp/*.
         ['label' => 'copiloto::copiloto.menu.plataforma', 'href' => '/ia/superadmin/metas', 'icon' => 'Building2',       'can' => 'jana.superadmin'],
     ],
 ];

@@ -8,7 +8,7 @@
 //       memory/sessions/2026-05-20-arte-tela-fsm-workflow.md gap #1.
 
 import { useEffect, useState } from 'react';
-import { Clock, Loader2, User2, Zap, FileCheck2, ArrowRight, PlayCircle } from 'lucide-react';
+import { Loader2, Zap, FileCheck2, PlayCircle } from 'lucide-react';
 
 interface TimelineUser {
   id: number | null;
@@ -47,32 +47,13 @@ interface TimelineResponse {
 interface Props {
   serviceOrderId: number;
   enabled: boolean;
+  /**
+   * F3 OS-V2-4 — render alternativo quando o histórico FSM real está VAZIO (OS antiga
+   * sem transições registradas). O drawer passa a TimelineSkeleton derivada das datas
+   * (entered/prazo/completed) pra não deixar a seção careca.
+   */
+  fallback?: React.ReactNode;
 }
-
-const STAGE_COLOR_MAP: Record<string, string> = {
-  gray: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-  cyan: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300',
-  amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-  yellow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
-  violet: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
-  indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
-  emerald: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-  green: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-  red: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-  rose: 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-  slate: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-};
-
-const stageBadge = (stage: TimelineStage | null) => {
-  if (!stage) return null;
-  const classes = STAGE_COLOR_MAP[stage.color ?? 'gray'] ?? STAGE_COLOR_MAP.gray;
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${classes}`}>
-      {stage.name}
-    </span>
-  );
-};
 
 const formatDate = (iso: string | null) => {
   if (!iso) return '—';
@@ -86,7 +67,7 @@ const formatDate = (iso: string | null) => {
   }
 };
 
-export default function ServiceOrderTimeline({ serviceOrderId, enabled }: Props) {
+export default function ServiceOrderTimeline({ serviceOrderId, enabled, fallback }: Props) {
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -159,67 +140,69 @@ export default function ServiceOrderTimeline({ serviceOrderId, enabled }: Props)
   }
 
   if (items.length === 0) {
+    // F3 OS-V2-4 — OS antiga sem histórico FSM: cai pra timeline derivada (skeleton).
+    if (fallback) {
+      return <>{fallback}</>;
+    }
     return (
       <p className="text-xs text-muted-foreground">
         Nenhuma transição registrada ainda. Inicie o pipeline FSM ou execute uma
-        ação (iniciar locação, recolher caçamba, concluir) — aparecem aqui.
+        ação (iniciar diagnóstico, concluir serviço, entregar) — aparecem aqui.
       </p>
     );
   }
 
+  // Canon .ofc-timeline (protótipo Cowork oficina-page/oficina-fila): fio vertical
+  // + dot por evento + 3 linhas (quando · o quê · quem). As pills coloridas com
+  // seta saíram (polish canon Board 2026-06-11) — transição vira texto "De → Pra".
   return (
-    <ol className="relative space-y-3 border-l border-border pl-4">
+    <ol className="relative pl-4">
+      <span className="absolute left-1 top-1.5 bottom-1.5 w-px bg-border" aria-hidden="true" />
       {items.map((item) => {
         const motivo = (item.payload?.motivo as string | undefined) ?? null;
         const pipelineStarted = item.payload?.pipeline_started === true;
         return (
-          <li key={item.id} className="relative">
-            <span className="absolute -left-[21px] top-1 flex h-3 w-3 items-center justify-center rounded-full bg-background ring-2 ring-border">
-              <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
-            </span>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <Clock size={12} /> {formatDate(item.executed_at)}
+          <li key={item.id} className="relative pl-2 pb-3 text-[11.5px] last:pb-0">
+            <span
+              className="absolute -left-[10px] top-[5px] h-[7px] w-[7px] rounded-full border-[1.5px] border-success bg-success"
+              aria-hidden="true"
+            />
+            <div className="text-[10.5px] tabular-nums text-muted-foreground">
+              {formatDate(item.executed_at)}
+            </div>
+            <div className="flex flex-wrap items-center gap-x-1.5 text-foreground">
+              {pipelineStarted && !item.action ? (
+                <span className="inline-flex items-center gap-1">
+                  <PlayCircle size={11} className="text-emerald-600 dark:text-emerald-400" />
+                  Pipeline iniciado
                 </span>
-                {item.user.name && (
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <User2 size={12} /> {item.user.name}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5 text-sm">
-                {pipelineStarted && !item.action && (
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <PlayCircle size={12} className="text-emerald-600 dark:text-emerald-400" />
-                    Pipeline iniciado
-                  </span>
-                )}
-                {stageBadge(item.from_stage)}
-                {item.from_stage && item.to_stage && <ArrowRight size={12} className="text-muted-foreground" />}
-                {stageBadge(item.to_stage)}
-                {item.action && (
-                  <span className="text-xs text-muted-foreground">
-                    via <strong className="text-foreground">{item.action.label}</strong>
-                  </span>
-                )}
-                {item.action?.has_side_effect && (
-                  <span title="Side-effect disparado" className="inline-flex items-center text-amber-600 dark:text-amber-400">
-                    <Zap size={12} />
-                  </span>
-                )}
-                {item.action?.has_event && (
-                  <span title="Event disparado" className="inline-flex items-center text-blue-600 dark:text-blue-400">
-                    <FileCheck2 size={12} />
-                  </span>
-                )}
-              </div>
-              {motivo && (
-                <p className="text-xs italic text-muted-foreground">
-                  Motivo: {motivo}
-                </p>
+              ) : item.from_stage && item.to_stage ? (
+                <span>
+                  {item.from_stage.name} → <strong className="font-semibold">{item.to_stage.name}</strong>
+                </span>
+              ) : item.to_stage ? (
+                <strong className="font-semibold">{item.to_stage.name}</strong>
+              ) : null}
+              {item.action?.has_side_effect && (
+                <span title="Side-effect disparado" className="inline-flex items-center text-amber-600 dark:text-amber-400">
+                  <Zap size={11} />
+                </span>
+              )}
+              {item.action?.has_event && (
+                <span title="Event disparado" className="inline-flex items-center text-blue-600 dark:text-blue-400">
+                  <FileCheck2 size={11} />
+                </span>
               )}
             </div>
+            <div className="text-[10.5px] text-muted-foreground">
+              {item.user.name ?? '—'}
+              {item.action && <> · {item.action.label}</>}
+            </div>
+            {motivo && (
+              <p className="text-[10.5px] italic text-muted-foreground">
+                Motivo: {motivo}
+              </p>
+            )}
           </li>
         );
       })}

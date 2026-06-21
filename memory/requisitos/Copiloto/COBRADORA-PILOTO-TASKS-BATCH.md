@@ -164,7 +164,7 @@ Adicionar `cobranca_fatura` em `config/ads.php` com matriz HITL declarativa per-
 
 **Description:**
 
-Criar `Modules/Copiloto/Ai/Agents/CobradoraAgent.php` herdando padrão `LaravelAiSdkDriver` Agent ([ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)). 5 tools internas em `Modules/Copiloto/Ai/Tools/`.
+Criar `Modules/Jana/Ai/Agents/CobradoraAgent.php` herdando padrão `LaravelAiSdkDriver` Agent ([ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md)). 5 tools internas em `Modules/Jana/Ai/Tools/`.
 
 **5 tools obrigatórias:**
 
@@ -176,7 +176,7 @@ Criar `Modules/Copiloto/Ai/Agents/CobradoraAgent.php` herdando padrão `LaravelA
 
 **Acceptance criteria:**
 
-- [ ] Charter `Modules/Copiloto/Ai/Agents/CobradoraAgent.charter.md` (Mission/Goals/Non-Goals/UX targets/Anti-hooks) — skill `charter-write`
+- [ ] Charter `Modules/Jana/Ai/Agents/CobradoraAgent.charter.md` (Mission/Goals/Non-Goals/UX targets/Anti-hooks) — skill `charter-write`
 - [ ] Agent registra decisão em `mcp_dual_brain_decisions` com `agent_name='CobradoraAgent'` + `client_visible=true`
 - [ ] Pest cobertura ≥80% per tool + agent
 - [ ] Pest cross-tenant biz=1 vs biz=99 (agent de biz=4 NUNCA enxerga faturas biz=1)
@@ -195,7 +195,7 @@ Criar `Modules/Copiloto/Ai/Agents/CobradoraAgent.php` herdando padrão `LaravelA
 
 **Description:**
 
-Job assíncrono `Modules/Copiloto/Jobs/EnviarCobrancaJob.php` que recebe `business_id`, `contact_id`, `canal`, `mensagem`, `decisao_id` e dispara WhatsappJob OR Mail dispatch conforme `canal`.
+Job assíncrono `Modules/Jana/Jobs/EnviarCobrancaJob.php` que recebe `business_id`, `contact_id`, `canal`, `mensagem`, `decisao_id` e dispara WhatsappJob OR Mail dispatch conforme `canal`.
 
 **Acceptance criteria:**
 

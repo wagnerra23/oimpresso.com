@@ -3,7 +3,7 @@ page: /oficina-auto/service-orders/create
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-26"
+last_validated: "2026-06-09"
 parent_module: OficinaAuto
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
@@ -11,15 +11,18 @@ related_adrs:
   - 0110-tipografia-canon-h1-subtitle
   - 0171-oficinaauto-ativacao-piloto-martinho-faseada
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
+  - 0265-oficina-reparo-erradica-locacao
 tier: A
-charter_version: 2
+charter_version: 3
 ---
 
 # Page Charter — /oficina-auto/service-orders/create
 
-> **Status:** live (V0). Formulário de abertura de OS — `order_type` configurável.
+> **Status:** live (V0). Formulário de abertura de OS de reparo — `order_type ∈ {mecanica, manutencao}`.
 >
-> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** Martinho biz=164 LIVE prod usa principalmente `order_type='manutencao'` (sub-vertical 4 mecânica pesada caminhão basculante). Campos condicionais de locação (`daily_rate`/`expected_return_date`/`delivery_address`) preservados nullable como schema sub-vertical 3 hipotético sem cliente real ancorado. Toggle UI mantido por compat — review_trigger M6+ caso cliente real de locação container surgir.
+> **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** Martinho biz=164 LIVE prod usa principalmente reparo de caminhão basculante (sub-vertical 4 mecânica pesada).
+>
+> **Erradicação de locação ([ADR 0265](../../../../../memory/decisions/0265-oficina-reparo-erradica-locacao.md) — 2026-06-09):** o domínio de locação foi erradicado do backend (migration + validação `in:manutencao,mecanica` + KPI + menu). O toggle de locação na UI — que o charter v2 mantinha "por compat" — foi **removido** do Create (a opção quebrava o submit, pois o backend passou a rejeitar `locacao`). Status deixou de ser campo do form: nasce `aberta` e quem move é o FSM (canon GUARD — nunca setar estágio manualmente).
 
 ## Mission
 
@@ -27,16 +30,14 @@ Permitir abertura rápida de OS pelo atendente em ≤ 30s — escolher vehicle (
 
 ## Goals — Features (faz)
 
-- `<PageHeader>` h1 "Nova Ordem de Serviço" + back link
-- Toggle `order_type`: manutenção (default) vs locação (caçamba/equipamento)
-- Autocomplete vehicle por placa (Mercosul + legacy) — se não existe, botão "Criar veículo novo" abre drawer
-- Autocomplete contact (cliente) — required (Martinho atende caminhões basculantes de transportadoras/construtoras de terceiros — sub-vertical 4 mecânica pesada ADR 0194)
-- Campos condicionais por order_type:
-  - **Manutenção:** mileage_at_service, notes, expected_completion
-  - **Locação:** delivery_address, daily_rate, expected_return_date
-- Validação client-side: campos required por order_type
-- Submit → POST /oficina-auto/service-orders → redirect Show
-- Multi-tenant Tier 0 — vehicle_id deve pertencer ao business atual (server-side double-check)
+- Sheet lateral 720px (título "Nova Ordem de Serviço")
+- Select `order_type`: mecânica (default — caminhão, roda o pipeline FSM) vs manutenção simples — **sem locação** (ADR 0265)
+- Autocomplete vehicle por placa (Mercosul + legacy) — se não existe, link "Cadastrar veículo"
+- Combobox contact (cliente) — Martinho atende caminhões de terceiros (sub-vertical 4 ADR 0194); renderiza quando o controller envia a prop `contacts`. Submete `contact_id` (exists escopado por business — Tier 0)
+- Campos do trabalho: mileage_at_service, entered_at, expected_completion, notes + check-in de entrada (combustível/avarias)
+- Status **não** é campo do form — nasce `aberta`; quem move é o FSM (ADR 0265)
+- Submit → POST /oficina-auto/ordens-servico → redirect Show
+- Multi-tenant Tier 0 — vehicle_id e contact_id devem pertencer ao business atual (server-side double-check)
 
 ## Non-Goals — Features (NÃO faz)
 
@@ -75,3 +76,10 @@ Permitir abertura rápida de OS pelo atendente em ≤ 30s — escolher vehicle (
 > ✅ presente+travado (some o elemento = build vermelho) · 🟡 gap (acende no `protocol_freshness`).
 
 - ✅ **UC-01** (`uc-01`) — check-in do veículo: busca por placa, chassi/renavam/hodômetro/combustível, fotos de entrada + relato do diagnóstico (`EntryCheckinFields`).
+
+## Trilha do tempo
+
+> Append-only (L-22 — não reescrever histórico).
+
+- **2026-05-26** (v2) — refator Page fullscreen → Sheet 720px; toggle locação mantido "por compat".
+- **2026-06-09** (v3) — sweep ADR 0265 no front ([sessão](../../../../../memory/sessions/2026-06-09-sweep-os-front-adr0265.md) · [avaliação CC](../../../../../prototipo-ui/AVALIACAO_OS_GIT_2026-06-09.md)): opção **Locação removida** do select (backend rejeita `in:manutencao,mecanica`); **select de Status removido** (FSM manda, nasce `aberta`); **combobox Cliente** via prop `contacts` + submete `contact_id` escopado. Goal "toggle locação" aposentado.

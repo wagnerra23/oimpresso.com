@@ -79,10 +79,10 @@ const STATUS_LABEL: Record<StatusKey, string> = {
 };
 
 const STATUS_STYLE: Record<StatusKey, string> = {
-  active:       'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
-  inactive:     'bg-stone-50 text-stone-700 border-stone-200 dark:bg-stone-950/40 dark:text-stone-300',
-  errored:      'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
-  unregistered: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+  active:       'bg-success-soft text-success-fg border-success/20',
+  inactive:     'bg-muted text-muted-foreground border-border',
+  errored:      'bg-destructive-soft text-destructive-fg border-destructive/20',
+  unregistered: 'bg-warning-soft text-warning-fg border-warning/20',
 };
 
 function rowStatus(m: ModuleRow): StatusKey {
@@ -150,7 +150,7 @@ export default function ModulesIndex({ modules }: Props) {
   };
 
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
+    <div className="flex-1 bg-muted/30">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-7xl">
           <div className="flex items-start gap-4">
@@ -167,7 +167,7 @@ export default function ModulesIndex({ modules }: Props) {
                 {counts.errored > 0 && (
                   <>
                     {' · '}
-                    <span className="text-rose-700 dark:text-rose-400">
+                    <span className="text-destructive-fg">
                       {counts.errored} com erro
                     </span>
                   </>
@@ -309,7 +309,7 @@ export default function ModulesIndex({ modules }: Props) {
                             </div>
                           )}
                           {m.error && (
-                            <div className="text-[11px] text-rose-600 dark:text-rose-400 line-clamp-1 mt-0.5">
+                            <div className="text-[11px] text-destructive-fg line-clamp-1 mt-0.5">
                               {m.error}
                             </div>
                           )}
@@ -591,7 +591,7 @@ function StatCard({
 }) {
   const toneClasses: Record<typeof tone, string> = {
     muted:       'text-muted-foreground bg-muted',
-    success:     'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950',
+    success:     'text-success bg-success/10',
     destructive: 'text-destructive bg-destructive/10',
   };
   return (

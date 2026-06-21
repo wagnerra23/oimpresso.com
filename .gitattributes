@@ -1,1 +1,2 @@
 "* text=auto eol=lf" 
+.github/ci-sqlite-pest.list merge=union

@@ -8,6 +8,8 @@ use App\User;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
 /**
  * Pest GUARDs — GET /settings/payment-gateways/{id}/webhook-events (Onda 4e.UI #2).
  *

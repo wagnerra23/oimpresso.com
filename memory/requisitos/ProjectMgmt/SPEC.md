@@ -207,23 +207,29 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 
 ## Onda 2 — Triage + Inbox (US-TR-301..308 · SPEC-UI-FASE7)
 
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/TriageController.php` · `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
+
 > Superfícies humanas das tools MCP `triage` e `my-inbox`. Telas: `resources/js/Pages/ProjectMgmt/{Triage,Inbox}/Index.tsx`.
 > **PR #1940 — code-complete, segue DRAFT** aguardando gate visual do Wagner (ADR 0107/0114; Chrome MCP off).
 > Fonte funcional: [`TaskRegistry/SPEC-UI-FASE7.md`](../TaskRegistry/SPEC-UI-FASE7.md). RUNBOOK: [`RUNBOOK-index.md`](RUNBOOK-index.md). Visual: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status draft).
 
-### US-TR-301 · Triage — lista de tasks órfãs
+### US-TR-309 · Triage — lista de tasks órfãs
 
 > owner: wagner · priority: p1 · estimate: codável (fator 10x) · status: review · type: feature
 
 Como membro do time, vejo uma tela **Triage** (`/project-mgmt/triage`) com todas as tasks órfãs (sem owner OU sem prioridade OU em backlog). A lista = MESMO conjunto que a tool MCP `triage` (scope `McpTask::triage()`, exclui done/cancelled). Vazio → empty state **"Nada pra triar"** (sem emoji — AP). Implementado em [`Triage/Index.tsx`](../../../resources/js/Pages/ProjectMgmt/Triage/Index.tsx) + [`TriageController`](../../../Modules/ProjectMgmt/Http/Controllers/TriageController.php).
 
-### US-TR-302 · Triage — atribuir owner + prioridade inline
+### US-TR-310 · Triage — atribuir owner + prioridade inline
+
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/TriageController.php` · `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
 Na Triage, atribuo **owner + prioridade inline** sem abrir a task: select inline → `PATCH /triage/{taskId}/assign` (reusa `TaskCrudService::update`, mesma via da tool `tasks-update`) → UI otimista + rollback em erro; gera `mcp_task_events` + notifica o novo owner.
 
-### US-TR-303 · Triage — mover cycle/epic
+### US-TR-311 · Triage — mover cycle/epic
+
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/TriageController.php` · `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p2 · estimate: codável · status: review · type: feature
 
@@ -231,11 +237,15 @@ Na Triage, movo a task pra um **cycle/epic** opcionalmente (dropdowns na mesma l
 
 ### US-TR-304 · Inbox — lista de não-lidas
 
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/InboxController.php` · `resources/js/Pages/ProjectMgmt/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
+
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
 Como membro, vejo uma tela **Inbox** (`/project-mgmt/inbox`) com minhas notificações: lê `mcp_inbox_notifications WHERE user_id=me` (não-lidas por default), **agrupado por tipo**. Paridade com a tool MCP `my-inbox`. Implementado em [`Inbox/Index.tsx`](../../../resources/js/Pages/ProjectMgmt/Inbox/Index.tsx) + [`InboxController`](../../../Modules/ProjectMgmt/Http/Controllers/InboxController.php).
 
 ### US-TR-305 · Inbox — marcar lido (individual + todas)
+
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/InboxController.php` · `resources/js/Pages/ProjectMgmt/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
@@ -243,11 +253,15 @@ No Inbox, **marco como lido** individual (`PATCH /inbox/{id}/read`) e "marcar to
 
 ### US-TR-306 · Inbox — deep-link pra task/DetailSheet
 
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/InboxController.php` · `resources/js/Pages/ProjectMgmt/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
+
 > owner: wagner · priority: p1 · estimate: codável · status: review · type: feature
 
 No Inbox, clico (ou Enter) numa notificação e vou direto pra **task** no Board com o `DetailSheet` aberto (`/project-mgmt/board?task=ID`), marcando lido no caminho.
 
 ### US-TR-307 · Operador não-técnico usa sem treino
+
+**Implementado em:** `Modules/ProjectMgmt/Http/Controllers/BoardController.php` · `Modules/ProjectMgmt/Http/Controllers/TriageController.php` · `Modules/ProjectMgmt/Http/Controllers/InboxController.php` · `resources/js/Pages/ProjectMgmt/Board/Index.tsx` · `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` · `resources/js/Pages/ProjectMgmt/Inbox/Index.tsx` · verificado@98cae0a (2026-06-18)
 
 > owner: wagner · priority: p2 · estimate: codável · status: review · type: feature
 

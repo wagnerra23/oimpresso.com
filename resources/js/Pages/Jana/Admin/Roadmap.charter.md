@@ -3,10 +3,10 @@ page: /jana/admin/roadmap
 component: resources/js/Pages/Jana/Admin/Roadmap.tsx
 owner: wagner
 status: live
-last_validated: 2026-05-13
+last_validated: "2026-05-13"
 approved_by: wagner
 parent_module: Jana
-related_adrs: [0070, 0093, 0094, 0110]
+related_adrs: [70, 93, 94, 110]
 tier: B
 charter_version: 1
 ---

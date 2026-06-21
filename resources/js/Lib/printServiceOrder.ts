@@ -1,26 +1,23 @@
 // Helper compartilhado pra disparar impressão de OS (Ordem de Serviço) OficinaAuto.
 //
-// Gap 3 US-OFICINA-037 — espelha pattern printSaleReceipt.ts (Sells legacy):
-//   - GET /oficina-auto/ordens-servico/{id}/print só responde a requests AJAX
-//     (X-Requested-With: XMLHttpRequest); sem o header retorna 404 (Controller
-//     `ServiceOrderController::printInvoice` aborta — evita AppShellV2 vazado).
-//   - Devolve {success:1, receipt:{html_content,print_title}} com HTML
-//     auto-contido (CSS inline no <style> do Blade) — funciona em IFRAME
-//     cross-origin sem depender de stylesheets do parent.
-//   - Criamos um <iframe> oculto via srcdoc, e o HTML do template ja inclui
-//     `<style>` + `<script>` que dispara window.print() on-load.
-//   - Cleanup do IFRAME após delay (suficiente pro user fechar a janela nativa).
+// Gap 3 US-OFICINA-037 — GET {id}/print só responde AJAX (X-Requested-With);
+// devolve {success:1, receipt:{html_content,print_title}} com HTML auto-contido
+// (CSS inline no <style> do Blade).
 //
-// Diferença vs printSaleReceipt.ts: printSaleReceipt carrega /css/app.css legacy
-// dentro do IFRAME (Bootstrap 3 + invoice classes). Aqui o Blade já vem com TODO
-// CSS necessário inline — IFRAME 100% self-contained.
+// FIX 2026-06-09 (avaliação [CC] — "Imprimir OS sai feio/vazio"):
+// O mecanismo anterior usava IFRAME 0×0 com visibility:hidden e auto-window.print()
+// disparado por <script> injetado DENTRO do srcdoc. Chromium/Brave recentes
+// rasterizam iframe invisível como página em branco — ou escalam o print pro
+// frame pai (imprime o AppShellV2 inteiro = "sistema porco").
+// Novo mecanismo:
+//   1. IFRAME continua fora da vista (fixed, 0×0, sem visibility:hidden — isso
+//      é o que mata a rasterização), srcdoc com o doc completo do Blade.
+//   2. O PRINT é chamado PELO PARENT via iframe.contentWindow.print() após o
+//      load + fontes prontas — alvo do diálogo é garantidamente o documento da OS.
+//   3. Fallback: se contentWindow.print() falhar (política do browser), abre
+//      window.open dedicada com o mesmo HTML e imprime lá.
 //
-// V0 modo único "invoice" (A4 papel-balcão). +packing_slip / +delivery_note
-// em wave futura se necessário.
-//
-// Multi-tenant Tier 0 (ADR 0093): defesa server-side — frontend só precisa passar
-// a route correta. Controller faz defensive guard cross-business.
-//
+// Multi-tenant Tier 0 (ADR 0093): defesa server-side — frontend só passa a rota.
 // Uso em ServiceOrderRichSheet.tsx (drawer footer) + Show.tsx (PageHeader actions).
 
 export interface PrintServiceOrderOptions {
@@ -58,7 +55,7 @@ export async function printServiceOrder({
     (typeof payload?.receipt?.print_title === 'string' && payload.receipt.print_title) ||
     `OS ${osNumber ?? ''}`.trim();
 
-  await renderInHiddenIframe({ htmlContent, title });
+  await renderAndPrint({ htmlContent, title });
 }
 
 interface RenderArgs {
@@ -66,62 +63,113 @@ interface RenderArgs {
   title: string;
 }
 
-function renderInHiddenIframe({ htmlContent, title }: RenderArgs): Promise<void> {
-  return new Promise((resolve) => {
-    // Remove IFRAME anterior se houver (segurança contra duplo-click rapidíssimo).
-    const previous = document.getElementById('service-order-print-iframe');
-    if (previous) previous.remove();
+/**
+ * Mecanismo canônico de impressão de HTML auto-contido (iframe fora da vista +
+ * print pelo parent + fallback window.open). Exportado pra reuso por outros
+ * documentos da Oficina (ex.: printOficinaFila.ts) — estender, não recriar.
+ */
+export function printHtmlDocument(args: RenderArgs): Promise<void> {
+  return renderAndPrint(args);
+}
+
+const IFRAME_ID = 'service-order-print-iframe';
+
+function renderAndPrint({ htmlContent, title }: RenderArgs): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // Remove IFRAME anterior (proteção contra duplo-click).
+    document.getElementById(IFRAME_ID)?.remove();
 
     const iframe = document.createElement('iframe');
-    iframe.id = 'service-order-print-iframe';
+    iframe.id = IFRAME_ID;
     iframe.setAttribute('aria-hidden', 'true');
+    iframe.title = title;
+    // Fora da vista mas SEM visibility:hidden/display:none — Chromium precisa
+    // do frame "renderizável" pra rasterizar o conteúdo no print.
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
     iframe.style.bottom = '0';
     iframe.style.width = '0';
     iframe.style.height = '0';
     iframe.style.border = '0';
-    iframe.style.visibility = 'hidden';
+    iframe.style.overflow = 'hidden';
 
-    // O Blade já vem com TODO CSS necessário inline (não carrega /css/app.css).
-    // Só envelopamos o html_content (que é o <!DOCTYPE html>...</html> completo do
-    // template) e injetamos um <script> auto-print no final do <body>.
-    //
-    // htmlContent já é doc completo do Blade — só injetamos script de print antes
-    // de fechar </body>. Title já vem no <head> do template.
-    const printScript = `<script>
-(function(){
-  function go(){
-    try {
-      setTimeout(function(){ window.focus(); window.print(); }, 200);
-    } catch(e) { console.error('print error', e); }
-  }
-  if (document.readyState === 'complete') { go(); } else { window.addEventListener('load', go); }
-})();
-<\/script>`;
+    // htmlContent é o doc completo do Blade (CSS inline). NÃO injetamos mais
+    // <script> de auto-print — o parent dispara o print (ver abaixo).
+    iframe.srcdoc = htmlContent;
 
-    // Injeta script antes de </body> (template Blade já tem </body></html> bem-formado).
-    const srcdoc = htmlContent.replace(/<\/body>/i, `${printScript}</body>`);
+    const cleanup = () => {
+      try {
+        iframe.remove();
+      } catch {
+        /* noop */
+      }
+    };
 
-    iframe.srcdoc = srcdoc;
-    iframe.title = title;
     iframe.addEventListener(
       'load',
       () => {
-        // Resolve cedo — print() é disparado pelo script dentro do IFRAME.
-        // Limpa IFRAME ~30s depois (suficiente pro user fechar janela nativa).
-        setTimeout(() => {
+        const win = iframe.contentWindow;
+        if (!win) {
+          cleanup();
+          openPrintWindowFallback({ htmlContent, title }).then(resolve, reject);
+          return;
+        }
+        const doPrint = () => {
           try {
-            iframe.remove();
+            win.focus();
+            win.print();
+            // Não dá pra saber quando o diálogo fecha de forma confiável
+            // cross-browser — limpa após folga generosa.
+            setTimeout(cleanup, 60_000);
+            resolve();
           } catch {
-            /* noop */
+            cleanup();
+            openPrintWindowFallback({ htmlContent, title }).then(resolve, reject);
           }
-        }, 30000);
-        resolve();
+        };
+        // Espera fontes/imagens do doc interno antes de abrir o diálogo
+        // (evita print com layout em fallback de fonte).
+        const fonts = (win.document as Document & { fonts?: FontFaceSet }).fonts;
+        if (fonts?.ready) {
+          fonts.ready.then(() => setTimeout(doPrint, 150)).catch(() => doPrint());
+        } else {
+          setTimeout(doPrint, 250);
+        }
       },
       { once: true },
     );
 
     document.body.appendChild(iframe);
+  });
+}
+
+/**
+ * Fallback: janela dedicada. Mais intrusivo (abre tab/janela), mas funciona
+ * mesmo onde o browser bloqueia print() programático em iframe fora da vista.
+ */
+function openPrintWindowFallback({ htmlContent, title }: RenderArgs): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const win = window.open('', '_blank', 'noopener=no,width=900,height=1100');
+    if (!win) {
+      reject(new Error('Impressão bloqueada pelo navegador — permita pop-ups pra imprimir a OS.'));
+      return;
+    }
+    win.document.open();
+    win.document.write(htmlContent);
+    win.document.close();
+    win.document.title = title;
+    const doPrint = () => {
+      try {
+        win.focus();
+        win.print();
+      } finally {
+        resolve();
+      }
+    };
+    if (win.document.readyState === 'complete') {
+      setTimeout(doPrint, 250);
+    } else {
+      win.addEventListener('load', () => setTimeout(doPrint, 150), { once: true });
+    }
   });
 }

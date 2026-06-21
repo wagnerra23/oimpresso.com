@@ -24,6 +24,31 @@ Este documento é a **lei canônica** que enumera as regras que Wagner sempre so
 
 ---
 
+## ⭐ LEI DE UMA TELA — pré-voo de todo turno (acima de R1-R14)
+
+> **Status:** ✅ aprovada por Wagner 2026-06-08. Origem: auditoria Cowork `Auditoria CC - 2026-06-08`. ADR draft [`proposals/drafts/lei-de-uma-tela-pre-voo-verdade-proporcao.md`](../decisions/proposals/drafts/lei-de-uma-tela-pre-voo-verdade-proporcao.md) — **número a cravar no merge** (working-tree ia até 0250; main pode ter 0251-0256 de PRs recentes — evitar colisão).
+>
+> **Por que aqui em cima:** numa única sessão Claude afirmou/planejou/produziu 4× sobre premissa não-verificada (drag-drop "faltava" mas já existia; Sells "azul" mas já era roxo; convergência Oficina "falta" mas já mergeada PR #2417; Compras "última ilha" mas já aliasada). **Não foram 4 erros — foi 1 erro 4×: produzir antes de estabelecer a verdade viva.** A causa não foi falta de regra (R3/R14 já mandam "leia antes de afirmar") — foi **regra passiva que não trava no momento da ação**. Mesma doença que curamos no código (warning aspiracional → trava de CI). A cura é uma **sequência obrigatória**, não mais uma regra na lista. Esta Lei **reorganiza R1-R14 num trilho — não substitui o histórico**.
+
+**A Lei (cabe numa tela, roda ANTES de qualquer afirmação, plano ou arquivo):**
+
+### `VERDADE → PROPORÇÃO → MANDATO → PROVA`
+
+| # | Portão | Pergunta — passa só se… | Reorganiza |
+|---|---|---|---|
+| **1** | **VERDADE** | Eu li a fonte viva NESTE turno? Todo fato sobre o repo = lido de `@main` agora, com tag **✓lido** ou **⚠não-verifiquei**. Sem leitura viva, a única saída honesta é *"não verifiquei"* — jamais afirmação confiante. | R3 (pré-flight) · R14 (proxy ≠ verdade) |
+| **2** | **PROPORÇÃO** ⭐ | O tamanho do que vou produzir cabe na minha certeza? **Premissa não-✓lida → o menor sondador possível** (uma pergunta, um grep, um `read`). **Nenhum artefato maior que 1 arquivo sem ✓lido da premissa neste turno.** | **NOVO — não existia em R1-R14** |
+| **3** | **MANDATO** | Isto já foi decidido (contrato/Wagner)? Decidido → **EXECUTO**, não pergunto. "Quer que eu…?" sobre o já-decidido = desperdício do tempo do Wagner. Pergunto só em gosto/subjetivo ou Tier-0 genuinamente aberto. | R11 (até desfecho) · R13 (recomenda, não menu) |
+| **4** | **PROVA** | Vi 🔴 **e** 🟢, no escopo completo? Todo ✅ com número/screenshot no mesmo turno. Teste rodado em **tudo** que carrega antes de declarar — não declarar parcial e deixar o teste me corrigir. | R1 (smoke real) · R14 (jornada completa) |
+
+> ⛔ **A armadilha que pegou 3× (Portão 1):** arquivo LOCAL do Cowork / cópia em `resources/css/*`, `*.tsx`, cópia de charter é uma **fotocópia que envelhece** — visualmente idêntica ao git, mas meses atrasada. **Nunca citar cópia local como estado do repo.** Estado do repo = lido de `@main` agora.
+>
+> ⛔ **A catedral sobre areia (Portão 2):** sobre premissa errada Claude não fez uma nota — construiu Mapa de 6 fases + cronograma + censo. Quanto maior o artefato, mais ele *parecia* sólido e mais escondia que a fundação não fora verificada. Portão 2 é a trava direta disso.
+
+**Por que é melhor que só "mais uma regra":** (1) é **sequência**, não lista — não dá pra produzir no Portão 2 sem passar pelo 1; (2) tem o portão que faltava (**Proporção**); (3) é **barata** (`read` custa segundos, Mapa errado custa a sessão) — por isso sobrevive ao calor do momento; (4) aplica em Claude o que aplicamos no código: disciplina **mecânica**, não aspiracional. A rede final continua sendo os gates de CI do git — Claude reduz o erro, a máquina é a rede.
+
+---
+
 ## R1 — Smoke real obrigatório (não narração)
 
 **Quando:** após (a) merge de PR, (b) deploy SSH, (c) declarar "funcionando", (d) declarar "tela X tá ok visualmente", (e) edição em runtime crítico (.htaccess, middleware, routes, Inertia render, asset bundle), (f) **ANTES de abrir PR que toque shell-shared** (AppShellV2 / PageHeader / cockpit.css / qualquer Layout ou Component em `resources/js/Layouts/` e `resources/js/Components/shared/` que renderiza em N+ telas — Wagner 2026-05-17 *"conferiu as paginas? mais um erro de protocolo"*).
@@ -401,6 +426,7 @@ Declarei "no ar/funcionando" **2× em cima de prova PARCIAL** (1º `curl 302`; d
 
 Após cada turno, Claude se pergunta:
 
+- **⭐ LEI DE UMA TELA — rodei o pré-voo ANTES de afirmar/planejar/produzir? (1) VERDADE: todo fato sobre o repo lido de `@main` neste turno (`✓lido`), nunca cópia local? (2) PROPORÇÃO: não construí artefato >1 arquivo sobre premissa não-`✓lida`? (3) MANDATO: já-decidido → executei sem re-perguntar? (4) PROVA: vi 🔴 e 🟢 no escopo completo?**
 - Mexi em path que precisa pré-flight? ler `SPEC.md`+`RUNBOOK*.md`+`charter.md`+ADRs (R3 R7)
 - Mexi em Eloquent/Service/Job que toca dados? confer `business_id` scope (R4)
 - Estou em worktree? Edits foram pro path worktree, não main repo? (R8)

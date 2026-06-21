@@ -10,7 +10,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\Drivers\C6Driver;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 beforeEach(function () {
     session(['business.id' => 1]);

@@ -86,6 +86,7 @@ final class OnCobrancaPagaUpdateSubscription
         $subscription->save();
         // Spatie LogsActivity append-only registra mudança (LGPD D7.b CC Art. 206)
 
+        // SUPERADMIN: listener SaaS roda sem sessão de tenant; desbloqueia o Business do assinante pago cross-tenant
         $business = Business::withoutGlobalScopes()->find($subscription->business_id);
         if ($business && (bool) $business->officeimpresso_bloqueado === true) {
             $business->officeimpresso_bloqueado = false;

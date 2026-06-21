@@ -29,8 +29,29 @@ it('(a) decisão accepted ranka acima de superseded com relevância igual', func
     $superseded = $this->svc->pesoDecisao(80, 'superseded');
 
     expect($accepted)->toBe(80.0)            // 80 × 1.0
-        ->and($superseded)->toBe(8.0)        // 80 × 0.1
+        ->and($superseded)->toBe(24.0)       // 80 × 0.3 (KL-C1 — alinhado ao time_decay aprovado 2026-05-13)
         ->and($accepted)->toBeGreaterThan($superseded);
+});
+
+it('(a2) KL-C1 — vocabulário canônico real não cai mais no fallback 0.1', function () {
+    // status EN normalizado (SeedAdrsCommand::normalizeStatus) + frontmatter
+    // canônico (adr.schema.json): vigente=1.0 > historical=0.5 > superseded=0.3.
+    // ANTES deste fix, aceito/proposto/ativo/historical caíam TODOS em 0.1 —
+    // vigente pesava igual a morto (violava ADR 0270 D-4).
+    expect($this->svc->pesoDecisao(80, 'aceito'))->toBe(80.0)        // 80 × 1.0
+        ->and($this->svc->pesoDecisao(80, 'ativo'))->toBe(80.0)      // lifecycle vigente
+        ->and($this->svc->pesoDecisao(80, 'proposed'))->toBe(80.0)
+        ->and($this->svc->pesoDecisao(80, 'proposto'))->toBe(80.0)
+        ->and($this->svc->pesoDecisao(80, 'historical'))->toBe(40.0)  // 80 × 0.5
+        ->and($this->svc->pesoDecisao(80, 'substituido'))->toBe(24.0) // 80 × 0.3
+        ->and($this->svc->pesoDecisao(80, 'arquivado'))->toBe(24.0);  // 80 × 0.3
+
+    // Ordem D-4: vigente > historical > superseded — o morto não volta com o
+    // mesmo peso do vigente.
+    expect($this->svc->pesoDecisao(80, 'aceito'))
+        ->toBeGreaterThan($this->svc->pesoDecisao(80, 'historical'))
+        ->and($this->svc->pesoDecisao(80, 'historical'))
+        ->toBeGreaterThan($this->svc->pesoDecisao(80, 'superseded'));
 });
 
 it('(b) decisão NÃO muda com o tempo — peso é função só de relevância × lifecycle', function () {
@@ -179,7 +200,8 @@ it('(i) config ausente usa fallback hardcoded sem quebrar', function () {
     $svc = new PesoRealService();
 
     expect($svc->pesoDecisao(80, 'accepted'))->toBe(80.0)           // lifecycle fallback
-        ->and($svc->pesoDecisao(80, 'superseded'))->toBe(8.0)
+        ->and($svc->pesoDecisao(80, 'aceito'))->toBe(80.0)          // vocabulário canônico no fallback hardcoded também
+        ->and($svc->pesoDecisao(80, 'superseded'))->toBe(24.0)      // 80 × 0.3 (KL-C1)
         ->and($svc->pesoMemoria(90, diasDesde: 3650, critica: true))->toBe(45.0) // piso fallback 0.5
         ->and($svc->sinalCliente('paga_reporta'))->toBe(1.0)        // sinal fallback
         ->and($svc->timeCriticality('compliance'))->toBe(1.5);      // time_crit fallback

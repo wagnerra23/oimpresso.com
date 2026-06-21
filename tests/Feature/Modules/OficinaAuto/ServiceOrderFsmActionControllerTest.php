@@ -182,14 +182,17 @@ it('actions() retorna actions disponíveis pra OS locação stage disponivel', f
 
     $stage = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-A1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stage->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stage->id);
 
     $controller = app(ServiceOrderFsmActionController::class);
     $response = $controller->actions($order);
     $data = $response->getData(true);
 
     expect($data['service_order_id'])->toBe($order->id);
-    expect($data['process_key'])->toBe('cacamba_locacao');
+    // ADR 0265: 'locacao' não existe no mapa — order_type='manutencao' resolve
+    // cacamba_manutencao (a OS está propositalmente num stage do processo legado,
+    // estado de órfã; actions() lista pelas actions do STAGE atual mesmo assim).
+    expect($data['process_key'])->toBe('cacamba_manutencao');
     expect($data['in_pipeline'])->toBeTrue();
     expect($data['current_stage']['key'])->toBe('disponivel');
     expect(collect($data['actions'])->pluck('key')->all())
@@ -228,7 +231,7 @@ it('actions() retorna in_pipeline=false pra OS sem current_stage_id', function (
     session(['user.business_id' => BIZ_WAGNER_SOFAC]);
 
     $vehicle = makeVehicleSofac('SOFAC-C1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', null);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', null);
 
     $controller = app(ServiceOrderFsmActionController::class);
     $response = $controller->actions($order);
@@ -237,7 +240,8 @@ it('actions() retorna in_pipeline=false pra OS sem current_stage_id', function (
     expect($data['in_pipeline'])->toBeFalse();
     expect($data['current_stage'])->toBeNull();
     expect($data['actions'])->toBe([]);
-    expect($data['process_key'])->toBe('cacamba_locacao');
+    // ADR 0265: order_type='manutencao' → cacamba_manutencao (mapa ServiceOrderPipelineStarter)
+    expect($data['process_key'])->toBe('cacamba_manutencao');
 })->afterEach(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-C');
 });
@@ -251,7 +255,7 @@ it('execute() action recolher move stage + cria history entry', function () {
     $stageRecolhida = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'recolhida');
 
     $vehicle = makeVehicleSofac('SOFAC-D1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageLocada->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageLocada->id);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/execute', 'POST', [
         'action_key' => 'recolher',
@@ -297,7 +301,7 @@ it('execute() permission denied retorna 403', function () {
 
     $stageLocada = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'locada');
     $vehicle = makeVehicleSofac('SOFAC-E1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageLocada->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageLocada->id);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/execute', 'POST', [
         'action_key' => 'recolher',
@@ -325,7 +329,7 @@ it('execute() action invalida retorna 422', function () {
 
     $stageDisponivel = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-F1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageDisponivel->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageDisponivel->id);
 
     // 'concluir' não existe pro stage 'disponivel' do processo cacamba_locacao
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/execute', 'POST', [
@@ -348,7 +352,7 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
     session(['user.business_id' => BIZ_WAGNER_SOFAC]);
 
     $vehicle = makeVehicleSofac('SOFAC-G1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', null);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', null);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/start-pipeline', 'POST');
 
@@ -358,8 +362,9 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
 
     expect($response->getStatusCode())->toBe(200);
     expect($data['ok'])->toBeTrue();
-    expect($data['process_key'])->toBe('cacamba_locacao');
-    expect($data['stage']['key'])->toBe('disponivel');
+    // ADR 0265: order_type='manutencao' → cacamba_manutencao (stage inicial 'aberta')
+    expect($data['process_key'])->toBe('cacamba_manutencao');
+    expect($data['stage']['key'])->toBe('aberta');
 
     // OS deve ter current_stage_id setado
     $orderFresh = ServiceOrder::withoutGlobalScopes()->find($order->id);
@@ -373,7 +378,7 @@ it('startPipeline() cria entry sale_stage_history Pipeline iniciado', function (
         ->first();
     expect($history)->not->toBeNull();
     expect($history->payload_snapshot['pipeline_started'] ?? false)->toBeTrue();
-    expect($history->payload_snapshot['process_key'] ?? null)->toBe('cacamba_locacao');
+    expect($history->payload_snapshot['process_key'] ?? null)->toBe('cacamba_manutencao');
 })->afterEach(function () {
     cleanupSofac(BIZ_WAGNER_SOFAC, 'SOFAC-G');
 });
@@ -385,7 +390,7 @@ it('startPipeline() recusa OS já em pipeline (422)', function () {
 
     $stageDisponivel = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-H1', BIZ_WAGNER_SOFAC);
-    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stageDisponivel->id);
+    $order = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stageDisponivel->id);
 
     $request = Request::create('/oficina-auto/service-orders/'.$order->id.'/fsm/start-pipeline', 'POST');
 
@@ -403,7 +408,7 @@ it('cross-tenant biz=99 NÃO acessa OS biz=1 (Tier 0 ADR 0093)', function () {
     setupSofacBusiness(BIZ_WAGNER_SOFAC);
     $stage = getStageSofac(BIZ_WAGNER_SOFAC, 'cacamba_locacao', 'disponivel');
     $vehicle = makeVehicleSofac('SOFAC-I1', BIZ_WAGNER_SOFAC);
-    $orderBiz1 = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'locacao', $stage->id);
+    $orderBiz1 = makeOrderSofac(BIZ_WAGNER_SOFAC, $vehicle->id, 'manutencao', $stage->id);
 
     // Switch pra biz=99
     $userBiz99 = setupSofacBusiness(BIZ_FICTICIO_SOFAC);

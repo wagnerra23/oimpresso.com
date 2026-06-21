@@ -206,7 +206,7 @@ export default function ServiceOrderItemFormSheet({
                         'flex items-center gap-3 rounded-md border px-3 py-2 text-left transition-all ' +
                         (selected
                           ? 'border-foreground bg-foreground/5'
-                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50')
+                          : 'border-border hover:border-muted-foreground/40 hover:bg-muted')
                       }
                       aria-pressed={selected}
                     >
@@ -218,7 +218,7 @@ export default function ServiceOrderItemFormSheet({
                       <span
                         className={
                           'h-3.5 w-3.5 rounded-full border-2 shrink-0 ' +
-                          (selected ? 'border-foreground bg-foreground' : 'border-slate-300')
+                          (selected ? 'border-foreground bg-foreground' : 'border-border')
                         }
                         aria-hidden
                       />

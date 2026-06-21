@@ -62,7 +62,10 @@ $screens = [
     'Fiscal/Cockpit'       => ['/fiscal',                      'fiscal.cockpit.access',       'Notas Fiscais'],
     'Fiscal/NF-e'          => ['/fiscal/nfe',                  'fiscal.nfe.access',           'NF-e'],
     'Fiscal/NFS-e'         => ['/fiscal/nfse',                 'fiscal.nfse.access',          'NFS-e'],
-    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',     'Ordens'],
+    // Workspace unificado (#2544): âncora = H1 "Oficina Auto", que renderiza mesmo sem o
+    // processo FSM oficina_mecanica_os seedado (VisregTenantSeeder não traz o processo —
+    // o corpo cai no empty-state, mas o header monta sempre).
+    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',     'Oficina Auto'],
 ];
 
 foreach ($screens as $nome => [$rota, $permissao, $ancora]) {

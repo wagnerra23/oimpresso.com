@@ -61,6 +61,8 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\HealthCheckCommand::class,      // sentinela operacional 5 checks
                 \Modules\Jana\Console\Commands\SystemAuditCommand::class,      // ADR 0133 — 5 audits Constituição v2 (observ/evals/ADR-stale/cost/coverage)
                 \Modules\Jana\Console\Commands\McpTasksHealthCheckCommand::class, // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection
+                \Modules\Jana\Console\Commands\McpTasksOrphansCommand::class,  // incidente US-RB-052 2026-06-20 — triagem de US-* no DB ausentes do SPEC (órfãs)
+                \Modules\Jana\Console\Commands\PlanDriftCommand::class,        // ADR 0294 Onda 2 — drift status-do-plano ≠ realidade das tasks MCP (parent_plan)
                 \Modules\Jana\Console\Commands\JanaBacklinksSweepCommand::class, // Gap G5 P1 auditoria 2026-05-13 — backlinks ADR↔SPEC sweep
                 \Modules\Jana\Console\Commands\JanaRagasEvalCommand::class,    // ADR 0037 §GAP-2 — RAGAS gate (faithfulness/relevancy/precision/recall)
                 \Modules\Jana\Console\Commands\JanaRagasCiCommand::class,      // W28-2 — RAGAS CI gate BLOQUEANTE (golden set + JSON gh pr comment)
@@ -70,10 +72,17 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\FreshnessCheckCommand::class, // GAP D7 #2 auditoria 2026-05-15 — freshness pipeline (4 níveis + drift + alert + reindex)
                 \Modules\Jana\Console\Commands\JanaDriftSentinelCommand::class, // Wave 23 §G2 — canary semanal drift Jana (faithfulness vs baseline)
                 \Modules\Jana\Console\Commands\RetentionPurgeCommand::class, // G1 P0 AUDIT-SENIOR-2026-05-25 — D7.d LGPD purge (Art. 16 + Art. 18 §VI)
+                \Modules\Jana\Console\Commands\MemoryHistoryPruneCommand::class, // incidente 2026-06-21 — poda preventiva de mcp_memory_documents_history (inflou 5 GB → cota → revogou escrita)
                 \Modules\Jana\Console\Commands\IndexRegenCommand::class, // regressão 2026-05-29 — gate integridade/priorização memory/INDEX.md (Tier 0 + links + contagens)
                 \Modules\Jana\Console\Commands\MeilisearchIndexSetupCommand::class, // 2026-05-29 — config-as-code dos embedders Meilisearch (Sprint 9b se perdeu)
                 \Modules\Jana\Console\Commands\ReconcileCommand::class, // ADR 0237 — jana:reconcile loop único (orquestra Reconcilers index/settings/content/deploy/eval)
                 \Modules\Jana\Console\Commands\UiJudgeTrendCommand::class, // parecer PR #2270 — medição do PR UI Judge (trend score/verdict/custo)
+                \Modules\Jana\Console\Commands\JanaRecallEvalCommand::class, // KL-C2 SDD F1 — eval determinístico de recall (golden set expected/violations, ADR 0270 D-4/D-5 + 0274 + 0275)
+                \Modules\Jana\Console\Commands\DistillModuleTruthCommand::class, // ADR 0291 — distiller-módulo-verdade (diário→manual; reescreve BRIEFING.md)
+                \Modules\Jana\Console\Commands\DesignDossieCommand::class, // plano vectorized-badger PR-1 — dossiê de tela (read-view do curado, pré-aplicação)
+                \Modules\Jana\Console\Commands\DesignIngestZipCommand::class, // plano vectorized-badger PR-2 — ingestão de design-zip (prepare-only)
+                \Modules\Jana\Console\Commands\DesignMineRawCommand::class, // plano vectorized-badger PR-3 — minera raw→candidatos 🔍 (human-gated)
+                \Modules\Jana\Console\Commands\ProfileDistillCommand::class, // COPI-26 — job que faltava: regenera jana_business_profile (distiller nunca foi agendado; L-OP-002)
             ]);
         }
     }
@@ -265,6 +274,14 @@ class JanaServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../Config/retention.php',
             'jana.retention',
+        );
+
+        // ADR 0295 slice 3 — namespace jana.memoria.* (chaves novas no nome final).
+        // Habilita config('jana.memoria.supersede_detection.enabled', false) —
+        // flag OFF por default (SupersedeDetector / ExtrairFatosDaConversaJob).
+        $this->mergeConfigFrom(
+            __DIR__ . '/../Config/memoria.php',
+            'jana.memoria',
         );
     }
 

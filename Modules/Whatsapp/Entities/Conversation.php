@@ -30,6 +30,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property ?string $contact_name
  * @property string $status
  * @property ?int $assigned_user_id
+ * @property-read ?\App\User $assignedUser
+ * @property ?string $queue_override  US-WA-305: slug whatsapp_queues que vence heurística; NULL = automática
  * @property bool $bot_handling
  * @property ?\Carbon\CarbonImmutable $last_inbound_at
  * @property ?\Carbon\CarbonImmutable $last_outbound_at
@@ -81,7 +83,7 @@ class Conversation extends Model
     protected $fillable = [
         'business_id', 'channel_id', 'contact_id',
         'customer_external_id', 'contact_name',
-        'status', 'assigned_user_id', 'bot_handling',
+        'status', 'assigned_user_id', 'queue_override', 'bot_handling',
         'last_inbound_at', 'last_outbound_at', 'last_message_at',
         'unread_count', 'is_blocked',
         // US-WA-072 — denormalizado pra evitar N+1 em InboxController list
@@ -102,6 +104,17 @@ class Conversation extends Model
     public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
+    }
+
+    /**
+     * Operador atribuído à conversa (US-WA-302 — assignee picker).
+     *
+     * Tier 0 ADR 0093: assignment cross-tenant é bloqueado no
+     * InboxController::assign (target user precisa ser do mesmo business).
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(\App\User::class, 'assigned_user_id');
     }
 
     public function messages(): HasMany

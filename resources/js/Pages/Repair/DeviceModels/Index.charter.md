@@ -3,10 +3,10 @@ page: /repair/device-models
 component: resources/js/Pages/Repair/DeviceModels/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-17
+last_validated: "2026-05-17"
 parent_module: Repair
 parent_capterra: memory/requisitos/Repair/CAPTERRA-FICHA.md
-related_adrs: [0093, 0101, 0104, 0121]
+related_adrs: [93, 101, 104, 121]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:

@@ -301,6 +301,68 @@ it('7. smoke resiliente — fluxo feliz recepcao → pronto_retirada (5 transiç
     }
 })->afterEach(fn () => boardCleanup());
 
+it('8. Onda 1.5 — KPIs do protótipo (recepcao, em_diagnostico, valor_em_curso, boxes_total)', function () {
+    (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
+    session(['user.business_id' => BIZ_BOARD]);
+
+    $stages = boardStages(BIZ_BOARD);
+    // 2 em recepção, 1 em diagnóstico, 1 em execução — com valores pra somar.
+    boardOs(BIZ_BOARD, PLATE_PREFIX . '040', $stages['recepcao']->id)->update(['total_items' => 100]);
+    boardOs(BIZ_BOARD, PLATE_PREFIX . '041', $stages['recepcao']->id)->update(['total_items' => 200]);
+    boardOs(BIZ_BOARD, PLATE_PREFIX . '042', $stages['em_diagnostico']->id)->update(['total_items' => 300]);
+    boardOs(BIZ_BOARD, PLATE_PREFIX . '043', $stages['em_execucao']->id)->update(['total_items' => 400]);
+
+    $kpis = invokeBoard()['kpis'];
+
+    expect($kpis['recepcao'])->toBe(2);
+    expect($kpis['em_diagnostico'])->toBe(1);
+    expect($kpis['em_execucao'])->toBe(1);
+    // valor em curso = soma do total_items das OS não-terminais do quadro.
+    expect((float) $kpis['valor_em_curso'])->toBe(1000.0);
+    // chaves backward-compat continuam presentes
+    expect($kpis)->toHaveKeys(['total', 'aguardando_aprovacao', 'aguardando_pecas', 'pronto_retirada', 'atrasadas', 'boxes_total']);
+})->afterEach(fn () => boardCleanup());
+
+it('9. Onda 1.5 — card carrega km, progress e last_activity (dado real)', function () {
+    (new OficinaAutoFsmSeeder)->runForBusiness(BIZ_BOARD);
+    session(['user.business_id' => BIZ_BOARD]);
+
+    $stages = boardStages(BIZ_BOARD);
+    $v = boardVehicle(BIZ_BOARD, PLATE_PREFIX . '050');
+    $v->update(['mileage_at_entry' => 84220]);
+    $os = ServiceOrder::withoutGlobalScopes()->create([
+        'business_id' => BIZ_BOARD, 'vehicle_id' => $v->id, 'order_type' => 'mecanica',
+        'status' => 'aberta', 'current_stage_id' => $stages['em_diagnostico']->id,
+        'entered_at' => now()->subDay(),
+    ]);
+
+    // 1 transição auditada → last_activity preenchido (via execute real, dado honesto).
+    $action = SaleStageAction::where('stage_id', $stages['em_diagnostico']->id)
+        ->where('key', 'enviar_orcamento')->firstOrFail();
+    $u = boardUserForAction(BIZ_BOARD, $action);
+    (new ExecuteStageActionService)->execute($os, 'enviar_orcamento', $u);
+
+    // DVI 1 de 2 decidido → progress 50.
+    if (Schema::hasTable('oa_inspection_items')) {
+        \Modules\OficinaAuto\Entities\OaInspectionItem::withoutGlobalScopes()->insert([
+            ['business_id' => BIZ_BOARD, 'service_order_id' => $os->id, 'categoria' => 'freios', 'descricao' => 'A', 'severity' => 'ok', 'client_decision' => 'approved', 'sort_order' => 0, 'created_at' => now(), 'updated_at' => now()],
+            ['business_id' => BIZ_BOARD, 'service_order_id' => $os->id, 'categoria' => 'motor', 'descricao' => 'B', 'severity' => 'ok', 'client_decision' => 'pending', 'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+
+    // a OS agora está em aguardando_aprovacao (transicionou) — pega o card lá.
+    $cols = collect(invokeBoard()['columns']);
+    $card = $cols->firstWhere('key', 'aguardando_aprovacao')['cards'][0] ?? null;
+
+    expect($card)->not->toBeNull();
+    expect($card['km'])->toBe(84220);
+    if (Schema::hasTable('oa_inspection_items')) {
+        expect($card['progress'])->toBe(50);
+    }
+    expect($card['last_activity'])->not->toBeNull();
+    expect($card['last_activity']['label'])->toBeString();
+})->afterEach(fn () => boardCleanup());
+
 /**
  * Invoca ServiceOrderController@board e extrai os props do Inertia\Response
  * (header X-Inertia força resposta JSON — sem precisar do stack de middleware).

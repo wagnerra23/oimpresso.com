@@ -338,7 +338,7 @@ function PurchaseShow({ purchase, permissions }: Props) {
               <span className="font-semibold">Total geral</span>
               <span className="tabular-nums font-semibold text-[15px]">{brl(purchase.final_total)}</span>
             </div>
-            <div className="flex justify-between text-emerald-700">
+            <div className="flex justify-between text-success-fg">
               <span>Pago</span><span className="tabular-nums">{brl(purchase.amount_paid)}</span>
             </div>
             <div className="flex justify-between">

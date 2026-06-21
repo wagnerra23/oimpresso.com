@@ -25,7 +25,7 @@ uses(Tests\TestCase::class);
  * Validação direta na query — não roda HTTP middleware UltimatePOS.
  *
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php (método index + buildStagesPayload)
- * @see resources/js/Pages/OficinaAuto/ServiceOrders/Index.tsx (STAGE_PILLS UI)
+ * @see resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx (workspace unificado — etapa/KPIs)
  * @see memory/sessions/2026-05-20-arte-tela-fsm-workflow.md (Gap #3)
  */
 
@@ -88,7 +88,7 @@ function osfCreateOs(int $bizId, ?int $stageId = null): ServiceOrder
     return ServiceOrder::withoutGlobalScopes()->create([
         'business_id'      => $bizId,
         'vehicle_id'       => $vehicle->id,
-        'order_type'       => 'locacao',
+        'order_type'       => 'manutencao', // locação erradicada (ADR 0265); incidental — roteamento FSM é via current_stage_id
         'status'           => 'aberta',
         'entered_at'       => now(),
         'daily_rate'       => '150.00',

@@ -92,4 +92,30 @@ return [
             ],
         ],
     ],
+
+    // Forja — cockpit do cowork loop (Onda Forja PR-A). Raiz /forja é segmento
+    // PRÓPRIO de propósito: useAutoModuleNav() casa o topnav pelo 1º segmento da
+    // URL, então /team-mcp/* (hub Equipe) e /forja/* não se sobrepõem. Controller
+    // mora em Modules/TeamMcp (absorção, não módulo novo).
+    // Ref: memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md
+    'Forja' => [
+        'label' => 'Forja',
+        'icon'  => 'Hammer',
+        'items' => [
+            // Fusão 2026-06-16 (hub único): abas próprias da Forja (/forja/*) +
+            // telas TeamMcp absorvidas (/team-mcp/*). Como o topnav antigo do TeamMcp
+            // (Resources/menus/topnav.php) foi removido, este é o ÚNICO que casa
+            // /team-mcp/* no useAutoModuleNav — então a nav é a mesma em todo o hub.
+            // badge=3 ESTÁTICO (sementes FORJA); contador vivo via `triagemCount` na aba.
+            ['label' => 'Triagem',     'href' => '/forja',                'icon' => 'Inbox',         'can' => 'copiloto.mcp.usage.all', 'badge' => 3],
+            ['label' => 'Backlog',     'href' => '/forja/backlog',        'icon' => 'List',          'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Quadro',      'href' => '/forja/quadro',         'icon' => 'KanbanSquare',  'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Changelog',   'href' => '/forja/changelog',      'icon' => 'GitBranch',     'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'MCP',         'href' => '/forja/mcp',            'icon' => 'ShieldCheck',   'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Tarefas',     'href' => '/team-mcp/tasks',       'icon' => 'ClipboardList', 'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'Equipe',      'href' => '/team-mcp/team',        'icon' => 'Users',         'can' => 'copiloto.mcp.usage.all'],
+            ['label' => 'CC Sessions', 'href' => '/team-mcp/cc-sessions', 'icon' => 'MessageSquare', 'can' => 'copiloto.cc.read.team'],
+            ['label' => 'Saúde',       'href' => '/team-mcp/scorecard',   'icon' => 'Activity',      'can' => 'copiloto.mcp.usage.all'],
+        ],
+    ],
 ];

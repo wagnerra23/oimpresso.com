@@ -1,0 +1,129 @@
+name: SDD Scorecard (advisory)
+
+# Meta-catraca do scorecard SDD — GT-G3 do plano (memory/sessions/2026-06-12-
+# plano-reestruturacao-sdd-ondas-paralelas.md §2 GARANTIDA + §4 Semanas 1-2)
+# + ADR 0275 (regra de armamento §3, calendário de promoções §5 linha G3).
+#
+# 3 sinais sobre governance/sdd-scorecard.json + governance/sdd-scorecard-baseline.json:
+#   1. determinismo — 2 runs do agregador = output idêntico (diff vazio)
+#   2. staleness    — scorecard commitado ≠ medição atual (rodar e commitar)
+#   3. ratchet      — métrica ARMADA (armed:true no baseline) regrediu vs baseline
+#                     → piorar exige editar o baseline em diff visível no PR
+#
+# ADVISORY DE NASCENÇA (ADR 0261/0271/0275 — gate novo nunca nasce required):
+# os 3 sinais rodam com continue-on-error, então o WORKFLOW fica sempre verde
+# nesta fase; vermelho aparece como annotation no step + job summary. Promoção
+# a required SÓ via calendário do ADR 0275 §5 (linha G3: 7 execuções diárias
+# verdes + 0 falso-positivo em 14 dias) — no flip, remover os continue-on-error
+# é parte do PR de promoção (com required-checks-baseline.json, GT-G4).
+#
+# Cron diário 06:50 BRT (09:50 UTC) — pós-nightly: alimenta a sequência de
+# medições válidas que arma métricas (ADR 0275 §3).
+
+on:
+  pull_request:
+    branches: [main]
+    paths: # diff-aware: fontes vivas do scorecard
+      - 'memory/requisitos/**'        # SPECs (anchor_coverage) + BRIEFINGs/docs (ghost_count, front_door)
+      - 'Modules/*/module.json'       # criar/deletar módulo muda ghost_count/front_door_coverage
+      - 'scripts/governance/sdd-scorecard.mjs'
+      - 'scripts/governance/knowledge-drift.mjs'
+      - 'governance/sdd-scorecard.json'
+      - 'governance/sdd-scorecard-baseline.json'
+      - 'governance/nightly-floor.json'        # floor publicado pelo write-side CT100 (ADR 0279)
+      - 'governance/nightly-coverage.json'     # coverage publicado pelo write-side CT100 (SDD P07 · ADR 0275)
+      - 'scripts/governance/sdd-floor-read.test.mjs'
+      - 'scripts/governance/sdd-coverage-read.test.mjs'
+      - 'scripts/tests/floor-compute.mjs'
+      - 'scripts/tests/floor-compute.test.mjs'
+      - 'scripts/tests/coverage-compute.mjs'
+      - 'scripts/tests/coverage-compute.test.mjs'
+      - '.github/workflows/sdd-scorecard.yml'
+  schedule:
+    - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
+  workflow_dispatch:
+
+concurrency:
+  group: sdd-scorecard-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scorecard:
+    name: SDD scorecard meta-catraca (advisory · determinismo + staleness + ratchet)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
+        run: node scripts/governance/sdd-floor-read.test.mjs
+
+      - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
+        run: node scripts/tests/floor-compute.test.mjs
+
+      - name: Read-side do coverage — meta-teste (hard · SDD P07 · ADR 0275 §2)
+        # Counterfactual P07: prova que measureCoverage() NÃO mente 0 com arquivo
+        # ausente (DEVE dar exit 1 se alguém trocar o notYet por 0). Se ficar verde
+        # com o read-side mentindo, o teste não morde — reabrir.
+        run: node scripts/governance/sdd-coverage-read.test.mjs
+
+      - name: Write-side do coverage — meta-teste do compute (hard · SDD P07 · ADR 0275)
+        run: node scripts/tests/coverage-compute.test.mjs
+
+      - name: Materializa floor + coverage da branch governance/nightly-floor (ADR 0279 · SDD P07)
+        run: |
+          if git fetch origin governance/nightly-floor --depth 1 2>/dev/null; then
+            if git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json 2>/dev/null; then
+              echo "floor materializado da branch governance/nightly-floor:"; cat governance/nightly-floor.json
+            else
+              echo "floor ausente na branch — read-side de floor cai em not_yet_measured"
+            fi
+            if git show FETCH_HEAD:governance/nightly-coverage.json > governance/nightly-coverage.json 2>/dev/null; then
+              echo "coverage materializado da branch governance/nightly-floor:"; cat governance/nightly-coverage.json
+            else
+              echo "coverage ausente na branch — read-side de coverage cai em not_yet_measured (esperado até pcov na imagem CT100 + 1ª nightly)"
+            fi
+          else
+            echo "branch governance/nightly-floor ausente — floor+coverage caem em not_yet_measured (esperado até o 1º write-side do CT100)"
+          fi
+
+      - name: Medir — agregador escreve governance/sdd-scorecard.json
+        run: |
+          node scripts/governance/sdd-scorecard.mjs | tee /tmp/scorecard.txt
+          { echo '## SDD Scorecard (medição desta run)'; echo '```'; cat /tmp/scorecard.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Determinismo — 2ª run = diff vazio
+        continue-on-error: true
+        run: |
+          node scripts/governance/sdd-scorecard.mjs --json > /tmp/run2.json
+          if diff governance/sdd-scorecard.json /tmp/run2.json; then
+            echo "determinismo OK — 2 runs idênticas (diff vazio)"
+          else
+            echo "::warning::agregador NÃO determinístico — 2 runs divergem (viola contrato do sdd-scorecard.mjs)"
+            exit 1
+          fi
+
+      - name: Staleness — scorecard commitado bate com a medição atual?
+        continue-on-error: true
+        run: |
+          if git diff --exit-code governance/sdd-scorecard.json; then
+            echo "scorecard commitado em dia com a medição atual"
+          else
+            echo "::warning::governance/sdd-scorecard.json commitado está DEFASADO — rode 'node scripts/governance/sdd-scorecard.mjs' e commite o resultado"
+            exit 1
+          fi
+
+      - name: Ratchet — métrica ARMADA regrediu vs baseline? (ADR 0275 §3)
+        continue-on-error: true
+        run: |
+          set +e
+          node scripts/governance/sdd-scorecard.mjs --ratchet > /tmp/ratchet.txt 2>&1
+          rc=$?
+          cat /tmp/ratchet.txt
+          { echo '### Ratchet vs governance/sdd-scorecard-baseline.json'; echo '```'; cat /tmp/ratchet.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $rc

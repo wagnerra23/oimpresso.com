@@ -155,11 +155,11 @@ export default function SubscriptionsTab({ subscriptions: subsProp, contactId }:
                 <td className="px-4 py-3 text-xs text-right tabular-nums text-foreground">{s.generated_count}</td>
                 <td className="px-4 py-3 text-xs">
                   {isStopped ? (
-                    <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-700 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+                    <span className="inline-flex items-center rounded-full border border-warning/20 bg-warning-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-warning-fg">
                       Pausada
                     </span>
                   ) : (
-                    <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+                    <span className="inline-flex items-center rounded-full border border-success/20 bg-success-soft px-2 py-0.5 text-[10px] uppercase tracking-wider text-success-fg">
                       Ativa
                     </span>
                   )}

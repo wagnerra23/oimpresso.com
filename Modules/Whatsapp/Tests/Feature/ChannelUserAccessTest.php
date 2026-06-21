@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Whatsapp\Entities\Channel;
@@ -30,6 +31,10 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-068
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['channel_user_access', 'channels'] as $t) {
         Schema::dropIfExists($t);
     }
@@ -62,7 +67,8 @@ beforeEach(function () {
         $table->timestamps();
     });
 
-    // Espelha migration channel_user_access (US-WA-068)
+    // Espelha migration channel_user_access (US-WA-068) + correção
+    // 2026_06_13 (enforce 1 grant ativo via coluna gerada + UNIQUE).
     Schema::create('channel_user_access', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');
@@ -72,10 +78,17 @@ beforeEach(function () {
         $table->timestamp('granted_at');
         $table->timestamp('revoked_at')->nullable();
         $table->unsignedInteger('revoked_by_user_id')->nullable();
+        // Coluna gerada VIRTUAL: 1=ativo (revoked_at NULL), NULL=revogado.
+        // É o que faz o UNIQUE enforçar 1 ativo/(canal,user) — NULLs distintos
+        // deixam os revogados coexistirem (re-grant + history). Sem ela, dois
+        // grants ativos não colidiam (bug do UNIQUE com revoked_at NULL).
+        $table->integer('revoked_marker')
+            ->virtualAs('case when revoked_at is null then 1 else null end')
+            ->nullable();
         $table->timestamps();
         $table->unique(
-            ['channel_id', 'user_id', 'revoked_at'],
-            'cua_channel_user_unq'
+            ['channel_id', 'user_id', 'revoked_marker'],
+            'cua_active_grant_unq'
         );
         $table->index(['business_id', 'user_id'], 'cua_biz_user_idx');
     });

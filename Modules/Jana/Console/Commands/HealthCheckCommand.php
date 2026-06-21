@@ -18,6 +18,9 @@ use Modules\Jana\Services\CharterHealthChecker;
  *
  * Checks:
  *   1. Multi-tenant Tier 0 (ADR 0093) — orfãos business_id IS NULL
+ *   1b. Sells value sanity (incidente "Guilherme" 2026-06-05) — venda com
+ *       final_total > total_before_tax+tax+shipping = valor corrompido (num_uf).
+ *       Detecção-only; correção human-gated via sells:final-total-audit.
  *   2. Brief uptime (S1) — ≥1 brief gerado nas últimas 24h
  *   3. Custo Brain B 24h — alvo ≤ R$ [redacted Tier 0]/dia
  *   4. PII leak detection (COPI-43) — mensagens user com regex CPF/email
@@ -25,6 +28,13 @@ use Modules\Jana\Services\CharterHealthChecker;
  *   6. Procedure drift (US-COPI-092) — hash deployed vs migration canônica
  *   7. Spec ID drift (ADR 0134) — colisão DB↔SPEC.md (mesmo ID, title diferente)
  *   8. Whatsapp media pending 1h (Guardião 6 Camada 6) — mídia órfã > 1h
+ *   8b. Whatsapp inbound flow (sentinela de fluxo real · incidente 2026-06-16
+ *       #2726) — por canal ativo com histórico, último inbound > Nh em horário
+ *       comercial = ALERTA. Pega QUALQUER causa de silêncio no recebimento.
+ *   8c. Whatsapp inbound canary (auto-teste do alarme · Fase 1 perda-zero) — lê
+ *       o último tick do cron `whatsapp:webhook-canary`; stale/falha em horário
+ *       comercial = ALERTA. Prova que a VIA responde 200 E que o monitor não
+ *       apodreceu mentindo verde (raiz do #2726).
  *   9. MCP webhook 5xx 2h (US-FIN-043 incident 2026-05-21) — webhook GitHub
  *      retornando 5xx nas últimas 2h indica drift no DB sync (tasks/memory)
  *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
@@ -55,21 +65,54 @@ class HealthCheckCommand extends Command
                             {--json : Output JSON em vez de tabela}
                             {--notify : Loga ALERT em jana-health channel se algo falhou}';
 
-    protected $description = 'Health check diário Jana + Constituição v2 (10 checks SQL + ledger de lições + charter/loop advisory)';
+    protected $description = 'Health check diário Jana + Constituição v2 (12 checks DUROS incl. distiller_freshness + ledger de lições + charter/loop advisory)';
+
+    /**
+     * Margem de segurança da invariante de valor (check 1b). Desconto só REDUZ;
+     * acima de (total_before_tax + tax + shipping) × margem = valor corrompido.
+     * 1.5 evita falso-positivo por arredondamento/edge. Const compartilhada entre
+     * o SQL (whereRaw) e o predicado puro `valueExceedsCeiling` — não divergem.
+     */
+    public const VALUE_SANITY_MARGIN = 1.5;
+
+    /**
+     * Predicado puro da invariante de valor do check 1b (incidente "Guilherme").
+     * Fonte da verdade do contrato — o SQL do check espelha esta regra via a mesma
+     * const. Testável sem DB (contrato, não tautologia da implementação).
+     */
+    public static function valueExceedsCeiling(
+        float $finalTotal,
+        float $totalBeforeTax,
+        float $tax = 0.0,
+        float $shipping = 0.0,
+    ): bool {
+        if ($totalBeforeTax <= 0 || $finalTotal <= 0) {
+            return false;
+        }
+        $ceiling = ($totalBeforeTax + $tax + $shipping) * self::VALUE_SANITY_MARGIN;
+
+        return $finalTotal > $ceiling;
+    }
 
     public function handle(): int
     {
         $checks = [
             $this->checkMultiTenant(),
+            $this->checkSellsValueSanity(),
             $this->checkBriefUptime(),
             $this->checkCustoBrainB(),
             $this->checkPiiLeak(),
             $this->checkProfileDrift(),
+            $this->checkDistillerFreshness(),
             $this->checkProcedureDrift(),
             $this->checkSpecIdDrift(),
             $this->checkWhatsappMediaPending1h(),
+            $this->checkWhatsappInboundFlow(),
+            $this->checkWhatsappInboundCanary(),
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
+            $this->checkDbWriteCanary(),
+            $this->checkDbStorageQuota(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -79,7 +122,7 @@ class HealthCheckCommand extends Command
 
         // Advisory checks (charter) reportam mas não derrubam o exit code:
         // contam como "ok" pro gate enquanto não viram ratchet.
-        $allOk = collect($checks)->every(fn ($c) => $c['ok'] || ($c['advisory'] ?? false));
+        $allOk = self::allChecksOk($checks);
 
         if ($this->option('json')) {
             $this->line(json_encode([
@@ -115,6 +158,18 @@ class HealthCheckCommand extends Command
     }
 
     /**
+     * Veredito do gate: OK a menos que algum check NÃO-advisory tenha ok=false.
+     * Extraído pra ser testável SEM DB (bite-test SentinelBiteTest) — prova que o
+     * exit code RESPONDE ao estado dos checks, não é constante (auditoria de
+     * sentinelas 2026-06-20). A regra advisory é a parte sutil: advisory false NÃO
+     * derruba o gate; check duro false derruba.
+     */
+    public static function allChecksOk(array $checks): bool
+    {
+        return collect($checks)->every(fn ($c) => ($c['ok'] ?? false) || ($c['advisory'] ?? false));
+    }
+
+    /**
      * Check 1 — Multi-tenant Tier 0 (ADR 0093 IRREVOGÁVEL).
      * Vazar business_id é o pior bug possível. Tolerância: 0.
      */
@@ -145,6 +200,94 @@ class HealthCheckCommand extends Command
                 ? 'Zero órfãos business_id IS NULL'
                 : 'ALERTA Tier 0: ' . implode(' · ', $detalhes),
         ];
+    }
+
+    /**
+     * Check 1b — Sanidade de VALOR em vendas (sensor do incidente "Guilherme" 2026-06-05).
+     *
+     * Invariante dura: `final_total` NUNCA pode exceder
+     * `total_before_tax + tax_amount + shipping_charges` — desconto só REDUZ o total,
+     * jamais aumenta. Qualquer venda que viole isso tem valor corrompido (caso canônico:
+     * `Util::num_uf` strippando o ponto decimal de total fracionado → final_total inflado
+     * ~×100.000). Fator 1.5 de margem evita falso-positivo por arredondamento/edge.
+     *
+     * Por que existe: no incidente 2026-06-05 o erro só foi descoberto 8 dias depois,
+     * quando o cliente (Guilherme/Larissa) reportou no WhatsApp — apesar de a lógica de
+     * detecção JÁ existir no `App\Console\Commands\SellsFinalTotalAuditCommand` (Heurística A),
+     * que ninguém roda diariamente. Este check pluga essa detecção no sentinela 06:00 BRT:
+     * o valor corrompido se auto-identifica em ≤24h, ANTES do cliente perceber.
+     *
+     * DETECÇÃO-ONLY (read-only). A CORREÇÃO permanece human-gated per Regra Mestre Tier 0
+     * (`memory/proibicoes.md` §"CÁLCULO DE VALOR ou ESTOQUE") — via `sells:final-total-audit`
+     * com dupla confirmação + antes→depois + aprovação humana.
+     *
+     * @see app/Console/Commands/SellsFinalTotalAuditCommand.php (correção per-row)
+     * @see memory/sessions/2026-06-05-veiculo-na-venda-e-incidente-numuf-valor-inflado.md
+     */
+    protected function checkSellsValueSanity(): array
+    {
+        try {
+            $schema = \Illuminate\Support\Facades\Schema::class;
+            if (! $schema::hasTable('transactions') || ! $schema::hasColumn('transactions', 'final_total')) {
+                return [
+                    'name' => 'sells_value_sanity',
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 0,
+                    'message' => 'Tabela transactions ausente — UltimatePOS core não instalado',
+                ];
+            }
+
+            // Janela 48h pra cobrir vendas da véspera (cron 06:00). Invariante:
+            // final_total ≤ (total_before_tax + tax + shipping). Violação = corrupção.
+            $base = DB::table('transactions')
+                ->where('type', 'sell')
+                ->where('created_at', '>=', now()->subHours(48))
+                ->where('total_before_tax', '>', 0)
+                ->where('final_total', '>', 0)
+                ->whereRaw(
+                    'final_total > (total_before_tax + COALESCE(tax_amount, 0) + COALESCE(shipping_charges, 0)) * ?',
+                    [self::VALUE_SANITY_MARGIN],
+                );
+
+            $count = (int) (clone $base)->count();
+
+            if ($count === 0) {
+                return [
+                    'name' => 'sells_value_sanity',
+                    'ok' => true,
+                    'value' => 0,
+                    'threshold' => 0,
+                    'message' => 'Zero vendas com final_total acima do teto (invariante de desconto OK)',
+                ];
+            }
+
+            // Enriquecimento do alerta: quais businesses + pior exemplo (sem expor PII/valor literal).
+            $bizAfetados = (clone $base)
+                ->select('business_id', DB::raw('COUNT(*) as qtd'))
+                ->groupBy('business_id')
+                ->orderByDesc('qtd')
+                ->get()
+                ->map(fn ($r) => "biz={$r->business_id}({$r->qtd})")
+                ->implode(', ');
+
+            return [
+                'name' => 'sells_value_sanity',
+                'ok' => false,
+                'value' => $count,
+                'threshold' => 0,
+                'message' => "ALERTA Tier 0 VALOR: {$count} venda(s) 48h com final_total > teto — {$bizAfetados}. "
+                    . 'Rode `sells:final-total-audit --business=<id>` (DRY-RUN) p/ diagnóstico. Correção é human-gated (Regra Mestre).',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => 'sells_value_sanity',
+                'ok' => false,
+                'value' => null,
+                'threshold' => 0,
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
     }
 
     /**
@@ -292,6 +435,87 @@ class HealthCheckCommand extends Command
     }
 
     /**
+     * Check 5b — Distiller freshness (ADR 0291 D-D · peça 3 do keystone SDD×memória).
+     *
+     * Gêmeo DURO da métrica `distiller_freshness` do sdd-scorecard. Lá (commitado,
+     * determinístico) a staleness é medida contra a data-git do doc mais novo do
+     * módulo; AQUI (runtime, não-commitado) o alarme usa "hoje" — espelha
+     * checkProfileDrift (`gerado_em` < now()->subDays(7)). Conta portas
+     * memory/requisitos/<Mod>/BRIEFING.md cujo `distilled_at` ficou > 7d vs agora.
+     *
+     * Anti-stale: SKIP (ok) enquanto NENHUMA porta tiver `distilled_at` — o distiller
+     * (PR-C) só roda em prod sob gate Wagner/CT100; não acende vermelho antes do 1º
+     * carimbo. DURO (não-advisory): destilação que parou derruba o exit/cron (D-3).
+     *
+     * @see Modules/Jana/Services/Memoria/DistillerModuloVerdade.php (PR-C — escreve o carimbo)
+     */
+    protected function checkDistillerFreshness(): array
+    {
+        $name = 'distiller_freshness';
+        $reqDir = base_path('memory/requisitos');
+        if (! is_dir($reqDir)) {
+            return [
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d',
+                'message' => 'Skipped (memory/requisitos/ ausente)',
+            ];
+        }
+
+        $contents = array_map(
+            static fn ($f) => (string) @file_get_contents($f),
+            glob($reqDir . '/*/BRIEFING.md') ?: [],
+        );
+        $r = self::distillerFreshnessStats($contents, now()->toDateString());
+
+        if ($r['stamped'] === 0) {
+            return [
+                'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => '<= 7d',
+                'message' => 'Skipped (nenhuma porta com distilled_at — distiller não rodou; gate Wagner/CT100 · ADR 0291 D-D)',
+            ];
+        }
+
+        return [
+            'name' => $name,
+            'ok' => $r['stale'] === 0,
+            'value' => $r['stale'],
+            'threshold' => 0,
+            'message' => $r['stale'] === 0
+                ? "Todas as {$r['stamped']} portas destiladas frescas (<= 7d)"
+                : "STALE: {$r['stale']}/{$r['stamped']} portas com distilled_at > 7d (mais velha: {$r['stalest_days']}d) — rodar jana:distill-module-truth",
+        ];
+    }
+
+    /**
+     * Estatística pura de frescor das portas (testável sem filesystem — espelha
+     * parseLessonLedger). Parseia `distilled_at:` do frontmatter de cada conteúdo
+     * de BRIEFING e conta carimbadas + as que ficaram > $staleDays vs $now.
+     *
+     * @param  array<int, string>  $briefingContents  conteúdo de cada BRIEFING.md
+     * @return array{total:int, stamped:int, stale:int, stalest_days:int}
+     */
+    public static function distillerFreshnessStats(array $briefingContents, string $now, int $staleDays = 7): array
+    {
+        $reference = \Carbon\Carbon::parse($now);
+        $cutoff = $reference->copy()->subDays($staleDays);
+        $stamped = 0;
+        $stale = 0;
+        $stalestDays = 0;
+
+        foreach ($briefingContents as $content) {
+            if (! preg_match('/^distilled_at:\s*["\']?(\d{4}-\d{2}-\d{2})/m', (string) $content, $m)) {
+                continue;
+            }
+            $stamped++;
+            $date = \Carbon\Carbon::parse($m[1]);
+            if ($date->lt($cutoff)) {
+                $stale++;
+                $stalestDays = max($stalestDays, (int) $date->diffInDays($reference));
+            }
+        }
+
+        return ['total' => count($briefingContents), 'stamped' => $stamped, 'stale' => $stale, 'stalest_days' => $stalestDays];
+    }
+
+    /**
      * Check 6 — Procedure drift (US-COPI-092).
      * Compara hash do procedure deployed vs migration canônica.
      * Falha se alguém rodou DDL direto em prod sem migration (ADR 0094 §5 SoC brutal).
@@ -321,10 +545,21 @@ class HealthCheckCommand extends Command
             $rows = DB::select('SHOW CREATE PROCEDURE refresh_brief_inputs_cache');
             $deployedSql = $rows[0]->{'Create Procedure'} ?? '';
 
+            // MySQL's SHOW CREATE PROCEDURE backtick-quotes the routine name +
+            // identifiers (`CREATE ... PROCEDURE `refresh_brief_inputs_cache`()`),
+            // while the migration source declares them bare (`CREATE PROCEDURE
+            // refresh_brief_inputs_cache()`). Backtick quoting is never semantic, so
+            // strip DEFINER first (its regex anchors on backticks) THEN drop the
+            // remaining backticks on both sides — otherwise identical DDL reads as
+            // drift forever (false positive US-COPI-092, caught in prod 2026-06-20).
             $normalize = static fn (string $sql): string => preg_replace(
                 '/\s+/',
                 ' ',
-                strtolower(preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`\s*/i', '', trim($sql)))
+                strtolower(str_replace(
+                    '`',
+                    '',
+                    preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`\s*/i', '', trim($sql))
+                ))
             );
 
             $drifted = md5($normalize($canonicalSql)) !== md5($normalize($deployedSql));
@@ -396,7 +631,7 @@ class HealthCheckCommand extends Command
                     $taskId = "US-{$prefix}-" . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
 
                     $dbRow = DB::table('mcp_tasks')->where('task_id', $taskId)->first();
-                    if ($dbRow && trim((string) $dbRow->title) !== $specTitle) {
+                    if ($dbRow && self::titleDriftKey((string) $dbRow->title) !== self::titleDriftKey($specTitle)) {
                         $hardDrifts[] = "{$taskId}";
                     }
                 }
@@ -422,6 +657,27 @@ class HealthCheckCommand extends Command
                 'message' => 'ERRO: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Chave de comparação de title pro spec_id_drift.
+     *
+     * Tira o prefixo de não-letra/não-dígito (emoji de status, mid-dot `·`,
+     * pontuação) antes de comparar DB↔SPEC. Sem isso, 631/646 colisões eram
+     * falso-positivo: o título no `mcp_tasks` carrega um emoji de status no
+     * começo que o MySQL truncou pra `?` (coluna utf8mb3 × emoji 4-byte), e o
+     * parser do SPEC já come o emoji antes do `US-` — então `? Listar Budget`
+     * (DB) vs `Listar Budget` (SPEC) é a MESMA story, diferença só cosmética
+     * (incidente health-check 2026-06-20, prod = 646 alvo 0).
+     *
+     * Aplicado simetricamente nos dois lados: drift REAL difere no conteúdo
+     * alfanumérico (não só no enfeite inicial), então segue sendo pego — as 15
+     * colisões duras genuínas (RecurringBilling-001 ×9, TR-301..303, SELL-010,
+     * WA-002/010/045) continuam reportadas.
+     */
+    public static function titleDriftKey(string $title): string
+    {
+        return trim((string) preg_replace('/^[^\p{L}\p{N}]+/u', '', trim($title)));
     }
 
     /**
@@ -488,6 +744,226 @@ class HealthCheckCommand extends Command
                 'message' => 'ERRO: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Check 8b — Whatsapp INBOUND FLOW (sentinela de fluxo real · incidente 2026-06-16 #2726).
+     *
+     * O #2726 (hardening de auth do webhook) deixou o recebimento de WhatsApp MORTO
+     * por 3 dias SEM ninguém ver: todo monitor media degradação DENTRO de um fluxo
+     * vivo (mídia órfã, SLA, custo), nunca a AUSÊNCIA do fluxo. Com 401 antes do
+     * dispatch, zero rows nasciam → zero órfãs → tudo "verde"; channel_health dizia
+     * "paired" (proxy de conexão, não de recebimento).
+     *
+     * Este check mede o que importa e é DRIVER-AGNÓSTICO: por canal ATIVO com
+     * histórico de inbound, a última mensagem recebida não pode ser mais velha que
+     * o threshold em horário comercial. Pega QUALQUER causa de silêncio
+     * (auth/rota/worker/firewall/daemon/UUID), sem depender de saber a causa. Hard
+     * check — derruba o exit code + dispara o ALERT do cron.
+     *
+     * Baseline por canal: só vigia quem JÁ recebeu inbound algum dia (evita
+     * falso-positivo em linha quieta/recém-criada). Fora do horário comercial BRT
+     * não acende (canal quieto à noite/domingo é normal).
+     */
+    protected function checkWhatsappInboundFlow(): array
+    {
+        $name = 'whatsapp_inbound_flow';
+        $thresholdHours = (int) config('whatsapp.inbound_silence_alert_hours', 6);
+
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('channels')
+                || ! \Illuminate\Support\Facades\Schema::hasTable('conversations')
+                || ! \Illuminate\Support\Facades\Schema::hasTable('messages')) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => "<= {$thresholdHours}h",
+                    'message' => 'Tabelas de canal ausentes — módulo Whatsapp não instalado',
+                ];
+            }
+
+            $channels = DB::table('channels')
+                ->where('status', 'active')
+                ->get(['id', 'label', 'business_id'])
+                ->map(fn ($ch) => [
+                    'label' => $ch->label ?? "canal {$ch->id}",
+                    'business_id' => (int) $ch->business_id,
+                    'last_inbound' => DB::table('messages')
+                        ->join('conversations', 'conversations.id', '=', 'messages.conversation_id')
+                        ->where('conversations.channel_id', $ch->id)
+                        ->where('messages.direction', 'inbound')
+                        ->max('messages.created_at'),
+                ])
+                ->all();
+
+            $r = self::evaluateInboundFlow($channels, now()->setTimezone('America/Sao_Paulo'), $thresholdHours);
+
+            if ($r['fora_horario']) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => 'fora-horário',
+                    'threshold' => "<= {$thresholdHours}h",
+                    'message' => 'Fora do horário comercial BRT — silêncio de inbound não alarma agora',
+                ];
+            }
+
+            $count = count($r['mudos']);
+
+            return [
+                'name' => $name,
+                'ok' => $count === 0,
+                'value' => $count === 0 ? "{$r['vigiados']} canal(is) com fluxo" : $count,
+                'threshold' => "<= {$thresholdHours}h",
+                'message' => $count === 0
+                    ? "Todos os {$r['vigiados']} canais ativos receberam inbound nas últimas {$thresholdHours}h"
+                    : 'ALERTA recebimento parado: ' . implode(' · ', $r['mudos'])
+                        . ' — checar webhook/daemon/auth (classe do incidente #2726)',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => null,
+                'threshold' => "<= {$thresholdHours}h",
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Lógica pura da sentinela de inbound — pública e estática pra ser testável sem
+     * tocar DB nem o relógio real (mesmo padrão de parseLessonLedger).
+     *
+     * @param  array<int, array{label: string, business_id: int, last_inbound: ?string}>  $channels
+     * @return array{ok: bool, vigiados: int, mudos: list<string>, fora_horario: bool}
+     */
+    public static function evaluateInboundFlow(array $channels, \Illuminate\Support\Carbon $nowBrt, int $thresholdHours): array
+    {
+        // Janela comercial BRT (08–20, seg–sáb). Fora dela, silêncio é normal.
+        $horaComercial = $nowBrt->hour >= 8 && $nowBrt->hour < 20 && $nowBrt->dayOfWeek !== \Carbon\Carbon::SUNDAY;
+        if (! $horaComercial) {
+            return ['ok' => true, 'vigiados' => 0, 'mudos' => [], 'fora_horario' => true];
+        }
+
+        $mudos = [];
+        $vigiados = 0;
+        foreach ($channels as $ch) {
+            $last = $ch['last_inbound'] ?? null;
+            if ($last === null || $last === '') {
+                continue; // sem histórico → sem baseline, não vigia
+            }
+            $vigiados++;
+            $lastBrt = \Illuminate\Support\Carbon::parse((string) $last, 'America/Sao_Paulo');
+            if ($lastBrt->greaterThanOrEqualTo($nowBrt)) {
+                continue; // timestamp futuro (clock skew) → trata como fresco
+            }
+            $idade = (int) $lastBrt->diffInHours($nowBrt);
+            if ($idade > $thresholdHours) {
+                $mudos[] = "{$ch['label']} (biz {$ch['business_id']}): {$idade}h sem inbound";
+            }
+        }
+
+        return ['ok' => $mudos === [], 'vigiados' => $vigiados, 'mudos' => $mudos, 'fora_horario' => false];
+    }
+
+    /**
+     * Check 8c — Whatsapp INBOUND CANARY (auto-teste do alarme · camada 5 da
+     * proposta perda-zero · Fase 1).
+     *
+     * Onde o inbound_flow (8b) mede o RESULTADO (chegou mensagem?), este mede a
+     * VIA (o webhook responde 200?) — e, principalmente, prova que o próprio
+     * canário (`whatsapp:webhook-canary`, cron 5min) está VIVO. Sem isso o monitor
+     * pode apodrecer mentindo "verde" (a raiz do #2726: tudo verde com o
+     * recebimento morto). Lê o último tick do canário em cache:
+     *   - fresco + ok      → verde (caminho provado <maxAge)
+     *   - fresco + não-200 → ALERTA (webhook quebrado AGORA)
+     *   - velho (stale)    → ALERTA (cron do canário morreu = perdeu o sinal)
+     *   - cold (nunca rodou) → verde com grace (pós-deploy; o tick popula em ≤5min)
+     *
+     * Hard check em horário comercial BRT (mesma janela do canário); fora dela e
+     * em ambiente sem segredo (dev/CI) não acende.
+     */
+    protected function checkWhatsappInboundCanary(): array
+    {
+        $name = 'whatsapp_inbound_canary';
+        $maxAge = (int) config('whatsapp.canary.freshness_max_age_minutes', 15);
+        $configured = (bool) config('whatsapp.canary.enabled', true)
+            && (string) config('whatsapp.whatsmeow.webhook_url_secret', '') !== '';
+
+        try {
+            $last = \Illuminate\Support\Facades\Cache::get('whatsapp:webhook-canary:last');
+            $r = self::evaluateCanaryFreshness(
+                $configured,
+                is_array($last) ? $last : null,
+                now()->setTimezone('America/Sao_Paulo'),
+                $maxAge,
+            );
+
+            $messages = [
+                'nao-configurado' => 'Skipped (canário do webhook não configurado — dev/CI)',
+                'fora-horario' => 'Fora do horário comercial BRT — canário em pausa, não alarma agora',
+                'cold' => 'Canário ainda não reportou (cold-start pós-deploy — popula em ≤5min)',
+                'fresco' => "Webhook provado há {$r['age_min']}min (≤ {$maxAge}min) — caminho de recebimento vivo",
+                'stale' => "ALERTA: canário sem reportar há {$r['age_min']}min (> {$maxAge}min) — cron whatsapp:webhook-canary pode estar morto (sinal perdido, classe #2726)",
+                'falha' => 'ALERTA: último canário do webhook FALHOU — recebimento WhatsApp pode estar parado (classe #2726)',
+            ];
+
+            return [
+                'name' => $name,
+                'ok' => $r['ok'],
+                'value' => $r['age_min'] !== null ? "{$r['age_min']}min" : $r['state'],
+                'threshold' => "<= {$maxAge}min",
+                'message' => $messages[$r['state']] ?? $r['state'],
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => null,
+                'threshold' => "<= {$maxAge}min",
+                'message' => 'ERRO: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Lógica pura do frescor do canário — pública e estática pra ser testável sem
+     * cache nem relógio real (mesmo padrão de evaluateInboundFlow).
+     *
+     * @param  array{ok?: bool, status?: ?int, reason?: string, at?: string}|null  $last
+     * @return array{ok: bool, state: string, age_min: ?int}
+     */
+    public static function evaluateCanaryFreshness(bool $configured, ?array $last, \Illuminate\Support\Carbon $nowBrt, int $maxAgeMinutes): array
+    {
+        if (! $configured) {
+            return ['ok' => true, 'state' => 'nao-configurado', 'age_min' => null];
+        }
+
+        // Mesma janela do cron do canário (08–20, seg–sáb). Fora dela ele não roda.
+        $horaComercial = $nowBrt->hour >= 8 && $nowBrt->hour < 20 && $nowBrt->dayOfWeek !== \Carbon\Carbon::SUNDAY;
+        if (! $horaComercial) {
+            return ['ok' => true, 'state' => 'fora-horario', 'age_min' => null];
+        }
+
+        // Cold-start: chave ausente = canário nunca reportou (pós-deploy). Grace
+        // pra não falso-alarmar antes do primeiro tick (≤5min). O cenário de
+        // apodrecimento (cron morre DEPOIS de rodar) cai em 'stale', não aqui.
+        if ($last === null || empty($last['at'])) {
+            return ['ok' => true, 'state' => 'cold', 'age_min' => null];
+        }
+
+        $at = \Illuminate\Support\Carbon::parse((string) $last['at']);
+        $ageMin = (int) abs($at->diffInMinutes($nowBrt));
+        if ($ageMin > $maxAgeMinutes) {
+            return ['ok' => false, 'state' => 'stale', 'age_min' => $ageMin];
+        }
+        if (($last['ok'] ?? false) !== true) {
+            return ['ok' => false, 'state' => 'falha', 'age_min' => $ageMin];
+        }
+
+        return ['ok' => true, 'state' => 'fresco', 'age_min' => $ageMin];
     }
 
     /**
@@ -653,6 +1129,168 @@ class HealthCheckCommand extends Command
                     . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
         }
+    }
+
+    /** Tabela-alvo do write-canary (check 10b). @see migration create_jana_health_write_canary_table. */
+    public const WRITE_CANARY_TABLE = 'jana_health_write_canary';
+
+    /** Mensagem-sentinela que força o rollback da transação de prova (não é erro real). */
+    private const WRITE_CANARY_ROLLBACK = '__jana_write_canary_rollback__';
+
+    /**
+     * Check 10b — DB write canary (incidente 2026-06-21 · GRANT INSERT revogado).
+     *
+     * Prova que o usuário de DB consegue ESCREVER. Nenhum outro check faz isso — são
+     * SELECTs (multi-tenant, PII, drift) ou degradam gracioso. Quando o usuário de prod
+     * `u906587222_oimpresso` perdeu INSERT/UPDATE no Hostinger (20/jun ~22:50), os 17
+     * checks seguiram VERDES enquanto TODA gravação do app falhava com MySQL 1142
+     * (~8.9k erros em 2h) — o anti-padrão "a suíte mente" que a auditoria de sentinelas
+     * (2026-06-20) caça. Este check fecha esse buraco.
+     *
+     * Mecânica: INSERT de prova numa tabela-alvo dedicada DENTRO de uma transação
+     * SEMPRE revertida — prova o privilégio sem persistir linha, sem tocar tabela de
+     * negócio nem disparar Observer. Check DURO: escrita morta derruba o exit code e
+     * dispara o ALERT do cron 06:00 — exatamente o que faltou no incidente.
+     *
+     * Driver-agnóstico (MySQL prod + SQLite CI). Skip gracioso se a tabela ainda não
+     * existe (pré-migração/instalação nova — ela própria precisa de CREATE, que o
+     * mesmo GRANT revoga; por isso o fix do grant vem ANTES do deploy deste guard).
+     */
+    protected function checkDbWriteCanary(): array
+    {
+        $name = 'db_write_canary';
+
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable(self::WRITE_CANARY_TABLE)) {
+                return [
+                    'name' => $name,
+                    'ok' => true,
+                    'value' => 'n/a',
+                    'threshold' => 'writable',
+                    'message' => 'Skipped (tabela canário ausente — pré-migração/instalação nova)',
+                ];
+            }
+
+            try {
+                DB::transaction(function (): void {
+                    DB::table(self::WRITE_CANARY_TABLE)->insert([
+                        'probe' => self::WRITE_CANARY_ROLLBACK,
+                        'pinged_at' => now(),
+                    ]);
+
+                    // Rollback intencional: a prova é o INSERT ter sido ACEITO; a linha
+                    // nunca persiste. Sentinela revertida pelo próprio DB::transaction.
+                    throw new \RuntimeException(self::WRITE_CANARY_ROLLBACK);
+                });
+            } catch (\Throwable $e) {
+                if ($e->getMessage() !== self::WRITE_CANARY_ROLLBACK) {
+                    throw $e; // falha REAL de escrita — trata no catch externo
+                }
+                // INSERT aceito e revertido → escrita OK.
+            }
+
+            return [
+                'name' => $name,
+                'ok' => true,
+                'value' => 'writable',
+                'threshold' => 'writable',
+                'message' => 'INSERT de prova aceito (revertido) — usuário de DB pode escrever',
+            ];
+        } catch (\Throwable $e) {
+            $denied = self::isWriteDenied($e->getMessage());
+
+            return [
+                'name' => $name,
+                'ok' => false,
+                'value' => $denied ? 'denied' : 'error',
+                'threshold' => 'writable',
+                'message' => $denied
+                    ? 'ALERTA Tier 0 ESCRITA: INSERT negado (' . mb_substr($e->getMessage(), 0, 90)
+                        . ') — usuário de DB sem privilégio de escrita; toda gravação do app falha. Restaurar GRANT INSERT/UPDATE no hPanel Hostinger.'
+                    : 'ERRO no canário de escrita: ' . mb_substr($e->getMessage(), 0, 90),
+            ];
+        }
+    }
+
+    /**
+     * Predicado puro: a mensagem de erro indica negação de privilégio de escrita?
+     * MySQL reporta GRANT faltando como `SQLSTATE[42000] ... 1142 ... command denied`
+     * (mascarado como "Syntax error or access violation"). Público + estático pra ser
+     * testável sem DB (mesmo padrão de allChecksOk / evaluateInboundFlow).
+     */
+    public static function isWriteDenied(string $message): bool
+    {
+        return str_contains($message, '1142')
+            || stripos($message, 'command denied') !== false;
+    }
+
+    /** Cota de armazenamento do DB no plano (MB). Override via config jana.db_quota_mb. */
+    public const DB_QUOTA_MB_DEFAULT = 6144;
+
+    /**
+     * Check 10c — DB storage quota (a CAUSA do incidente 2026-06-21).
+     *
+     * O db_write_canary pega o SINTOMA (escrita morta); este pega a CAUSA antes dela
+     * acontecer. Ao bater a cota de disco do plano, o Hostinger AUTO-REVOGA
+     * INSERT/UPDATE/CREATE — toda escrita do ERP morre. Em 2026-06-21 a tabela
+     * mcp_memory_documents_history inflada (5 GB) levou o DB a 6180/6144 MB → escrita
+     * revogada por horas, com os 17 checks verdes. Este check acende ANTES (>= warnPct
+     * da cota), dando tempo de liberar espaço antes do provedor cortar.
+     *
+     * Mede só o DB da app — information_schema enxerga apenas as tabelas com
+     * privilégio; as bases legadas da conta (~300 MB estáticos) não entram, mas a app
+     * é a parte dominante e a que cresce. Cota/limiar via config (jana.db_quota_mb /
+     * jana.db_quota_warn_pct). Skip em não-MySQL (SQLite CI).
+     */
+    protected function checkDbStorageQuota(): array
+    {
+        $name = 'db_storage_quota';
+
+        if (DB::getDriverName() !== 'mysql') {
+            return [
+                'name' => $name, 'ok' => true, 'value' => 'n/a',
+                'threshold' => 'mysql only', 'message' => 'Skipped (driver não-MySQL)',
+            ];
+        }
+
+        try {
+            $quotaMb = (int) config('jana.db_quota_mb', self::DB_QUOTA_MB_DEFAULT);
+            $warnPct = (int) config('jana.db_quota_warn_pct', 90);
+            $usedMb = (float) (DB::selectOne(
+                'SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) mb
+                   FROM information_schema.tables WHERE table_schema = DATABASE()'
+            )->mb ?? 0);
+            $pct = $quotaMb > 0 ? (int) round($usedMb / $quotaMb * 100) : 0;
+            $exceeded = self::dbQuotaExceeded($usedMb, $quotaMb, $warnPct);
+
+            return [
+                'name' => $name,
+                'ok' => ! $exceeded,
+                'value' => "{$usedMb}MB ({$pct}%)",
+                'threshold' => "< {$warnPct}% de {$quotaMb}MB",
+                'message' => $exceeded
+                    ? "ALERTA cota: DB em {$usedMb}MB ({$pct}% de {$quotaMb}MB) — ao bater 100% o Hostinger REVOGA INSERT/UPDATE e a escrita morre (incidente 2026-06-21). Liberar espaço / mover histórico pro CT 100."
+                    : "DB em {$usedMb}MB ({$pct}% da cota {$quotaMb}MB)",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name, 'ok' => false, 'value' => null,
+                'threshold' => 'measurable', 'message' => 'ERRO: ' . mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * Predicado puro: o uso de disco do DB cruzou o limiar de alerta da cota?
+     * Testável sem DB (mesmo padrão de isWriteDenied / allChecksOk).
+     */
+    public static function dbQuotaExceeded(float $usedMb, int $quotaMb, int $warnPct = 90): bool
+    {
+        if ($quotaMb <= 0) {
+            return false;
+        }
+
+        return ($usedMb / $quotaMb * 100) >= $warnPct;
     }
 
     /**

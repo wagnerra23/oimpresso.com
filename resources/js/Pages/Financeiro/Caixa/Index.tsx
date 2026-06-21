@@ -109,7 +109,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
       </PageHeader>
 
       {/* Banner explicativo — esta tela é WRAPPER, não substitui POS */}
-      <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+      <div className="rounded-md border border-info/20 bg-info-soft px-4 py-3 text-sm text-info-fg">
         <strong>ℹ️ Por que essa tela existe?</strong>
         <span className="ml-1">
           Fluxo de Caixa (mensal) ≠ Caixa do turno (POS). Esta é uma vista do Financeiro pros

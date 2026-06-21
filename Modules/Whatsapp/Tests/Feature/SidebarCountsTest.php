@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\HandleInertiaRequests;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 uses(Tests\TestCase::class);
@@ -32,6 +33,10 @@ uses(Tests\TestCase::class);
  *   004. tabela ausente (módulo desinstalado) NÃO trava render — vira 0
  */
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     foreach (['conversations', 'channels', 'messages', 'mcp_tasks', 'mcp_actors', 'mcp_inbox_notifications'] as $t) {
         Schema::dropIfExists($t);
     }

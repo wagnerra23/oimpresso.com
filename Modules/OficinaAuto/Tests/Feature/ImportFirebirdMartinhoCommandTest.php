@@ -102,6 +102,9 @@ it('dry-run não modifica DB mesmo com payload válido', function () {
                 'ordem_id'    => 'FB-DRYRUN-001',
                 'placa'       => PLATE_W27_IMP_PREFIX . 'DRY',
                 'veiculo_id'  => '99',
+                // INPUT legado Firebird: 'locacao' é dado de ORIGEM (não enum do app). O importer
+                // normaliza via normalizeOrderType → 'manutencao' (ADR 0265). Mantido de propósito
+                // pra cobrir a tolerância a dado legado. Dry-run: nada é gravado no DB.
                 'order_type'  => 'locacao',
                 'status'      => 'concluida',
                 'entered_at'  => '2025-01-10 08:00:00',

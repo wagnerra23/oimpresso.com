@@ -1,7 +1,9 @@
 ---
-page_id: manufacturing/index
+page: /manufacturing/v2/production
+component: resources/js/Pages/Manufacturing/Index.tsx
+page_id: manufacturing-index
 status: draft
-owner: Wagner
+owner: wagner
 created: 2026-05-16
 wave: J
 ---

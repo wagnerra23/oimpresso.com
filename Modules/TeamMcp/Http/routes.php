@@ -51,6 +51,10 @@ Route::group(
         Route::patch('/tasks/{taskId}/status',       'TasksAdminController@updateStatus')
             ->where('taskId', '[A-Z0-9\-]+')
             ->name('team-mcp.tasks.update-status');
+        // Forja PR-1 — drawer de issue (read-only): situação + atividade + vínculos + subtasks
+        Route::get('/tasks/{taskId}/detail',         'TasksAdminController@show')
+            ->where('taskId', '[A-Za-z0-9_\-]+')
+            ->name('team-mcp.tasks.detail');
 
         // ---- MEM-CC-UI-1 (SPEC-cc-sessions) — KB sessões Claude Code do time ----
         Route::get('/cc-sessions',                   'CcSessionsController@index')
@@ -64,6 +68,47 @@ Route::group(
         // ---- G1 FICHA W22 (Wave 25 polish) — Scorecard Facts+Checks ----
         Route::get('/scorecard',                     'ScorecardController@index')
             ->name('team-mcp.scorecard.index');
+    }
+);
+
+// ===========================================================================
+// 1b) Forja — cockpit do cowork loop (Onda Forja). Prefixo /forja (segmento
+//     PRÓPRIO: useAutoModuleNav casa o topnav por 1º segmento, e /team-mcp já é
+//     do hub Equipe — colidiria). Controller mora aqui no TeamMcp (absorção, não
+//     módulo novo). Permissão copiloto.mcp.usage.all (superadmin), igual Scorecard.
+// ===========================================================================
+Route::group(
+    [
+        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
+        'prefix'     => 'forja',
+        'namespace'  => 'Modules\TeamMcp\Http\Controllers',
+    ],
+    function () {
+        Route::get('/',          'ForjaController@triagem')->name('forja.triagem');
+        Route::get('/backlog',   'ForjaController@backlog')->name('forja.backlog');
+        Route::get('/quadro',    'ForjaController@quadro')->name('forja.quadro');
+        Route::get('/changelog', 'ForjaController@changelog')->name('forja.changelog');
+        Route::get('/mcp',       'ForjaController@mcp')->name('forja.mcp');
+        // Saúde foi fundida no Scorecard real (/team-mcp/scorecard) — sem rota própria.
+
+        // PR-7b (ADR 0283 · Fase 2) — levers do loop de handoff (re-disparar/devolver/
+        // supersede) dos botões da aba MCP. Mesma mutação governada do tool MCP
+        // handoff-lever (HandoffLeverService é a fonte única). 3 segmentos → não
+        // colide com /{taskId}/* (2 segmentos).
+        Route::post('/handoff/{slug}/lever', 'ForjaController@handoffLever')
+            ->where('slug', '[A-Za-z0-9_\-]+')->name('forja.handoff.lever');
+
+        // Triagem (aba 1) — dossiê do Analista (read-only) + ações [W] aprova.
+        // Espelha /project-mgmt/triage/{id}/{dossier,aprovar,rejeitar,fundir} (PR-5a).
+        // taskId aceita FORJA-150/identifier ou US-XXX legacy.
+        Route::get('/{taskId}/dossier',   'ForjaController@dossier')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.dossier');
+        Route::post('/{taskId}/aprovar',  'ForjaController@aprovar')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.aprovar');
+        Route::post('/{taskId}/rejeitar', 'ForjaController@rejeitar')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.rejeitar');
+        Route::post('/{taskId}/fundir',   'ForjaController@fundir')
+            ->where('taskId', '[A-Za-z0-9_\-]+')->name('forja.fundir');
     }
 );
 

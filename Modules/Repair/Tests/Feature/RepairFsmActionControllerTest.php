@@ -8,6 +8,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageActionRole;
 use App\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Scopes\ScopeByBusiness;
 use Modules\Repair\Entities\JobSheet;
@@ -32,6 +33,10 @@ use Spatie\Permission\PermissionRegistrar;
 uses(Tests\TestCase::class);
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
+
     // JobSheet usa Spatie LogsActivity (FSM history + status). Sem `activity_log`
     // o teste explode em SQLSTATE 1. Schema espelha vendor/spatie/laravel-activitylog.
     Schema::create('activity_log', function (Blueprint $t) {
@@ -140,13 +145,18 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    Schema::dropIfExists('repair_job_sheets');
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12: $hasMetRequirements já é true antes do hook). DDL guardado por
+    // driver pra não dropar tabelas REAL-migradas/CORE no MySQL persistente do nightly.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        Schema::dropIfExists('repair_job_sheets');
 
-    foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
-        (require $f)->down();
-    }
-    foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users', 'business', 'activity_log'] as $tbl) {
-        Schema::dropIfExists($tbl);
+        foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
+            (require $f)->down();
+        }
+        foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users', 'business', 'activity_log'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
     }
 
     app(PermissionRegistrar::class)->forgetCachedPermissions();

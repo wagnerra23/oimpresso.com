@@ -2,12 +2,13 @@
 lifecycle: active
 owner: [W]
 module: Governance
+project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
-last_updated: "2026-05-25"
+last_updated: "2026-06-21"
 created_at: 2026-05-16
-updated_at: 2026-05-25
+updated_at: 2026-06-21
 related_adrs:
   - "0086-fase-5-mvp-governance-actiongate-warn"
   - "0094-constituicao-v2-7-camadas-8-principios"
@@ -285,3 +286,366 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 **NÃO é bloqueador de agora** — Wagner não está exposto no meio-tempo (UI-Judge cobre o net semântico). ~6-8h, pode virar toca-de-coelho (migration-order). Priorizar quando quiser investir.
 
 **Refs:** ADR 0108 (regressão visual Pest Browser Tier 2) · `.github/workflows/visual-regression.yml` (linhas 100-164, notas INFRA-ONLY) · UI-0013 (Constituição UI v2) · sessão 2026-06-04 (PRs #2209/#2210/#2212/#2216).
+
+### US-GOV-015 · Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído)
+
+> owner: claude · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Task-âncora do **Zelador** — reconciliador-agente diário (scheduled run 07:00 BRT na máquina do Wagner). Charter canônico: `scripts/governance/ZELADOR.md`. Origem: sessão 2026-06-11, Wagner "estou sofrendo com sistema burro" → "ótimo faça".
+
+**O que ele faz toda manhã:** (1) reconcilia estado declarado (my-work doing/review, HITL, next_steps dos 3 handoffs recentes) vs realidade (gh/git/MCP) — fecha com prova, rebaixa o apodrecido; (2) decide pelo trilho invariante→sinal→meta; só resíduo genuíno escala pro Wagner como draft de 1 OK (máx 3/dia); (3) propõe demote de 1 fonte de ruído/dia (bot/check que não mudou decisão em 30d); (4) roda knowledge-drift.mjs como insumo.
+
+**Relatório diário = comentário NESTA task** (formato fixo no charter, ≤15 linhas). Zero doc novo.
+
+**Métricas do piloto (kill-switch dia 14 — 2026-06-26):**
+- M1 itens/dia que chegam ao Wagner → tem que CAIR
+- M2 idade média de `doing` → de ~520h (baseline brief #203 2026-06-11) pra <48h
+
+Se M1 e M2 não caírem, o zelador recomenda a própria morte e Wagner decide.
+
+**Cláusula de evolução (loop duplo):** todo domingo o run é META — o zelador aplica o próprio trilho a si mesmo (fechamentos que reabriram, reversões humanas, drafts ignorados) e propõe exatamente 1 emenda/semana ao charter via PR, com viés de subtração; emenda que não melhorar M1/M2 é revertida na META seguinte. Núcleo imutável (NÃO PODE + trilho + kill-switch + a própria cláusula) só muda por decisão explícita do Wagner.
+
+**Poderes/limites:** herda matriz publication-policy (ADR 0040) — pode tasks-update/comment/branch própria/abrir PR; NUNCA mergeia main, não toca prod, não cria ADR/doc em memory/, não cria tasks novas.
+
+### US-GOV-016 · Reestruturação SDD — Semana 0 (12 frentes paralelas)
+
+> owner: wagner · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+GO Wagner 2026-06-12. Executar o lote 1 do plano `memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md` (PR #2586) via workflow `sdd-semana-0`:
+
+- 3 ADRs draft: formato anchor spec↔código · referência ADR por slug (13 colisões) · scorecard SDD 10 métricas + calendário de promoções
+- 9 implementações: fix artefato JUnit · composite action pest-mysql · catracas quarentena · hook red-first (WARN) · catraca anti-ghost · codemod ghost-fix (dry-run) · agregador sdd-scorecard.mjs · protocolo refutador de backfill · backfill frontmatter charters · tabela triagem identidade pastas órfãs
+
+**DoD:** 12 PRs draft abertos + auditor adversarial aprova partição/evidência + fila consolidada pro Wagner (decisões: tabela de renames, tabela de identidade, aceite dos 3 ADRs).
+Emenda CT 100: nightly full-suite via cron no CT 100 (16 vCPU/32 GB ociosos) — afeta fase 1-2, não este lote.
+
+### US-GOV-017 · Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down)
+
+> owner: wagner · priority: p1 · estimate: 40h · status: todo · type: story
+> blocked_by: —
+
+GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuação da US-GOV-016 (Semana 0, done).
+
+**Fase 1 (workflow sdd-fase-1, em execução):** anchor-lint + workflow advisory (gramática ADR 0273) · codemod --write dos 4 renames aprovados · infra nightly full-suite MySQL no CT 100 (cron + 1º run) · meta-catraca scorecard · gate-selftest com fixtures · fix peso_real flag-OFF (decay ADR 0270 D-4) · comando jana:recall-eval + golden set · RAGAS modo real destravado (aguarda secret).
+
+**Fase 2 (dispara automaticamente na sequência):** triage Q2 do 1º run CT 100 → quarentena em massa Q3 → backfill mecânico de anchors (SA-A4) → burn-down por módulo (B1 Financeiro, B2 NfeBrasil, B4 tests/ raiz; B3 mini-onda) → batch IA de anchors com refutador (SA-A5) → CT 100: re-seed + flag decay + recall-eval cron (C3-C5) → G4/G7/G8.
+
+**Gated em Wagner:** tabela _TRIAGEM-IDENTIDADE (trilha E) · secret OPENAI_API_KEY (RAGAS real) · skim das queries do golden set.
+
+---
+
+### US-GOV-018 · P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema"
+
+> owner: — · priority: p0 · estimate: 12h · status: review · type: story
+> blocked_by: —
+
+**Origem:** retest adversarial POR REPRODUÇÃO (2026-06-13, CT 100, DB scratch byte-a-byte) sobre o nightly full-suite MySQL (run `20260613-003042`, sha d14f5436). 3 skeptics reproduziram e refutaram 2 diagnoses anteriores. Substitui a estratégia "quarentena em massa" (revertida) E o P0 "completar schema" (refutado). C1 (#2632, mergeado) flipou a suite pra MySQL e expôs a causa real.
+
+## Número honesto (medido, não estimado)
+- **Floor determinístico = 1514** (interseção test-a-test dos 2 runs MySQL code-equivalentes). NÃO é 1636 nem 2075 — esses são pontos ruidosos de runs únicos.
+- **Banda de não-determinismo = 683** (561 só-num-run + 122 no-outro). Faixa real **1514–2197**. O eixo que oscila é ERROR (−420 entre runs), não FAILURE: ruído **infraestrutural** (estratégia de DB), confirmando a causa.
+
+## Causa-raiz REAL (reproduzida — NÃO "schema incompleto")
+O dump `database/schema/mysql-schema.sql` tem **364 CREATE TABLE** incl. `system`/`permissions`/`business`/`activity_log`/`users` — TODAS presentes. Baseline completo (dump+migrate+seed) ainda deixou ~56% da amostra vermelho. "Completar schema" conserta ZERO.
+
+## 3 FRENTES (com impacto medido)
+**Frente A — harness/imagem [~688 `Base table not found` (variável 529–688) + 254 testes 3730 + 72 `mysql: not found`; tudo eixo ERROR, banda 1514–2197, NÃO o floor de 1514]:** a imagem `oimpresso/mcp` **não tem o binário `mysql`/`mariadb`** → o `migrate:fresh`/`schema:load` do RefreshDatabase não reaplica o dump → tabelas core (`business`/`activity_log`/`permissions`) **somem mid-run**. ⚠️ **Refutação adversarial (ADR 0276): só instalar o client NÃO basta** — o `mysql … < dump` que o Laravel emite falha em TLS cert verify (`ERROR 2026`), pois o mariadb-client verifica TLS por default e o repo não seta `MYSQL_ATTR_SSL_VERIFY_SERVER_CERT`. Soma: teardown sem FK-off → "Cannot drop … referenced by FK" (**254 testes**; "508" eram menções raw 2×/testcase no junit). A 3ª sub-causa do brief (migrate PULA migrations PSR-4) foi **REFUTADA** — as skipadas são 100% pré-dump/registradas no INSERT, 0 nomeadas pós-cutoff → **no-op**. **DoD A (implementado em #2640):** `mariadb-client` na imagem (+ apk no harness como fallback) **+ `ssl-verify-server-cert=0`** no container do pest; ~~teardown com FK-off escopado ao nightly (`FULLSUITE_FK_OFF=1`)~~ (REVERTIDO — net-harmful, ver US-GOV-020 A.2; bloco removido do `Tests\TestCase` no ledger §E); ~~consertar PSR-4~~ (refutado, não fazer).
+
+**Frente B — código [212 falhas]:** `payment_gateway_credentials.config_json` declarado `json` (strict no MySQL 8) mas o Model casta `encrypted:array` (blob AES base64). SQLite TEXT aceitava; MySQL rejeita com SQLSTATE 3140 "Invalid JSON text". Reproduzido byte-a-byte; counterfactual `ALTER ... LONGTEXT/TEXT` aceita. **DoD B:** ALTER `config_json` pra TEXT alinhado ao cast `encrypted:array` (migration idempotente + down()).
+
+**Frente C — testes era-sqlite [parte do floor]:** 231-476 arquivos montam `Schema::create` próprio e rodam contra MySQL persistente sem rollback → UniqueConstraint 1062, unknown-column 1054. **DoD C:** trait de reset uniforme (DatabaseTransactions/RefreshDatabase consistente) OU isolamento por-arquivo — pode virar sub-onda mecânica.
+
+## Validação
+Re-rodar o nightly full após A+B+C e medir o novo floor (interseção de ≥2 runs com seed fixo). Meta: floor cai de 1514 pra a casa das centenas. **Atenção:** o 1514 é o baseline do estado **QUEBRADO** (nenhum dos runs medidos exercitou os fixes) — a redução é predição até um run validado. Frente A landed em **#2640** (par adversarial ADR 0276 corrigiu A.1 pra incluir TLS-off); Frente B em **#2636**; Frente C segue sub-onda.
+
+## FORA do escopo (backlog separado, não bloqueia)
+~385 ExpectationFailed (assertions reais) + ~105 app-bugs (ex `RetentionCleanupCommand.php:194 Undefined variable $businessId`) — dívida de teste/código genuína que NENHUM fix de harness toca.
+
+Ref: retest reproduzido na timeline US-GOV-017 (correção #2) · #2632 (C1) · triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md`.
+
+### US-GOV-019 · Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+Saída da re-triage 32-thread do eixo FAILURE determinístico (155 arquivos, 385 ExpectationFailed) com refutador adversarial ADR 0276. Doc: `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md`. **4 quick-wins já em PR** (ads:health #2649, superadmin:health #2647, macro_variant_id #2646, biz=4→1 fixtures #2652) — fora desta task.
+
+## 7 bugs confirmados que precisam de design (sobreviveram ao refutador)
+- [ ] **ChannelUserAccess** (Tier 0): `UNIQUE` em coluna nullable → invariante "1 grant ativo por (channel,user)" não enforced (`2026_05_12_160000_create_channel_user_access_table.php:55-58`; fix = generated column). Teste: `ChannelUserAccessTest` R-WA-068-005.
+- [ ] **CSAT**: `InboxController::updateStatus:1042-1071` não dispara `DispatchCsatJob` em open→resolved. Teste: `CsatFlowTest`.
+- [ ] **Vestuario DataController** (ADR 0024): criar `Modules/Vestuario/Http/Controllers/DataController.php` (etiquetas sem entrada no sidebar). Teste: `ModuleScaffoldingTest`.
+- [ ] **WithoutGlobalScopes** (Tier 0): bypass de business_id sem `// SUPERADMIN:` em `KbCorpusBuilder.php:164,190`, `TituloAutoService.php:690,709,727`, `NfeService.php:745,760,942`. Teste: `WithoutGlobalScopesCommentGuardTest`.
+- [ ] **NFSe cancelar()**: falta `OtelHelper::spanBiz` em `NfseEmissaoService.php:198` (confirmar se Wave 28 exige). Teste: `Wave28NfsePolishTest`.
+- [ ] **DESIGN.md**: link local quebrado (alvo movido). Teste: `DesignEntryPointAndTombstonesTest`.
+- [ ] **PhpunitTestAnnotationGuard**: migrar `/** @test */` → `#[Test]` nos flagrados. Teste: `PhpunitTestAnnotationGuardTest`.
+
+## 91 quarentena (teste stale, produto OK)
+`@group legacy-quarantine` com razão. tests/Feature 46 · Financeiro 14 · Whatsapp 11 · Governance 3 · Jana 3 · PaymentGateway 3 · Officeimpresso 2 · tests/Unit 2 · Vestuario 2 · Cms/Connector/ConsultaOs/OficinaAuto/Ponto 1. **Nuance:** alguns são test-FIX rápido (não quarentena cega) — ver doc.
+
+## 33 env-coupled → reconfirmar no floor do run limpo `20260613-100035`.
+
+## 11 unclear (decisão Wagner) — perguntas no doc.
+
+Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-positivos · ADR 0276.
+
+### US-GOV-020 · Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio)
+
+> owner: — · priority: p0 · estimate: 6h · status: review · type: story
+> blocked_by: —
+
+**Root cause PROVADO** (repro byte-level CT100, run `20260613-100035`). O `migrate:fresh` do RefreshDatabase carrega `database/schema/mysql-schema.sql`, cujos triggers têm **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
+
+## Fix (188→377 tabelas, 0→4 triggers)
+`ct100-fullsuite.sh` passo 3 (root): `SET GLOBAL log_bin_trust_function_creators=1` + `GRANT SET_USER_ID ON *.* TO <fullsuite>`. Provado isolado no CT100.
+
+## Por que re-landar (decisão Wagner 2026-06-14)
+O #2657 (grants + revert A.2) foi **fechado sem merge** quando se concluiu que Frente C "não é o lever" — o floor **não caiu** (1870→1928, run `20260613-115507`). **Mas o grant segue necessário**: sem ele o floor **não é reproduzível de clone limpo** (triggers DEFINER de prod + binlog ON abortam o `migrate:fresh`). Re-landado **nesta PR** sobre `origin/main` atual (cherry-pick de `98259e50f` + `7371db9ea`).
+
+## A.2 (FULLSUITE_FK_OFF) — REVERTIDO (resolvido)
+Reavaliação concluída: A.2 é **net-harmful** (run `20260613-115507`, floor 1928). O FK-off deixava ~30 testes era-sqlite **dropar tabela CORE compartilhada com sucesso** → cascata `Base table not found`. **DECISÃO: não ligar FK-off** — deixar o drop falhar-seguro (3730 só no teste ofensor; a tabela CORE sobrevive pro resto da suíte). Esta PR remove o `-e FULLSUITE_FK_OFF=1` do passo 6. (O bloco gated em `getenv` no `Tests\TestCase::setUp` — antes deixado inerte — foi REMOVIDO como dead-code no ledger §E, já que a flag nunca mais é setada.)
+
+## Lever real do floor
+**Não é harness** — é o isolamento dos ~19-30 testes "era-sqlite" que dropam tabela CORE numa base MySQL persistente compartilhada. Tratado em **US-GOV-021** (front-2). Frente C só torna o nightly **reproduzível**; não baixa o floor sozinha.
+
+Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 (closed) · #2640 (A.1/A.2 origem) · US-GOV-021.
+
+### US-GOV-021 · Isolar os corruptores era-sqlite (o lever REAL do floor)
+
+> owner: [W] · priority: p0 · status: doing · type: story
+> blocked_by: P04 (DoD item 2 — queda do floor só é observável com `governance/nightly-floor.json` no tree; sem P04 o read-side retorna `not_yet_measured`)
+> parent_plan: us-gov-021-isolamento-era-sqlite
+> related_adrs: [275, 276, 279, 283]
+
+**Implementado em:** _parcial_ · `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` · verificado@fed6848 (2026-06-21) — 7/18 corruptores isolados (cluster TeamMcp Handoff/Ingest) + gate advisory ligado; 11 restantes no body do PR
+
+**Root cause PROVADO** (referenciado em US-GOV-020 "Lever real do floor" `:408-409`): o nightly full-suite roda contra um MySQL **persistente compartilhado**. ~18 testes "era-sqlite" criam tabelas sintéticas via `Schema::create`/`Schema::drop` em `beforeEach`/`afterEach` SEM guarda de driver — projetados pra rodar no sqlite `:memory:`. No MySQL persistente o `Schema::drop` **dropa a tabela real** → o próximo teste na mesma conexão acha tabela ausente → cascata `Base table not found`. Esse isolamento é o **lever real** do floor — **não é tweak de harness** (a Frente C/A.2 de US-GOV-020 já provou que FK-off é net-harmful; falhar-seguro é melhor).
+
+**Fonte da verdade = comportamento, não literal-grep.** A lista canônica vem do auditor `scripts/audit/sqlite-test-corruptors.mjs --json` (classifica por `corruptsOnMysql`, não text-match — a v1 tinha ~48% FP, refutado em ADR 0276). **NÃO usar `git grep "Schema::drop"`** (super-conta: mistura guardados com corruptores).
+
+#### Os 18 corruptores (auditor `--json`, tier A · ANTES dos fixes)
+
+| Arquivo | tier | ação | status |
+|---|---|---|---|
+| `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+
+Ação canônica **GUARDAR-TEARDOWN** (preferida nos era-sqlite sintéticos — preserva cobertura no sqlite, neutro no MySQL): `if (config('database.default') !== 'sqlite') { $this->markTestSkipped(...) }` no topo do `beforeEach` + `if (config('database.default') !== 'sqlite') { return; }` no topo do `afterEach`. O auditor reconhece como `corruptsOnMysql=false, quarantined=true` (contrato travado em `tests/sqliteCorruptors.spec.ts:89-108`).
+
+#### DoD (4 itens — anti-trapaça embutido)
+
+1. **US escrita** com DoD, owner, anchor `**Implementado em:**`, e a lista canônica dos corruptores (fonte = auditor, NÃO literal-grep). ✅ (esta seção)
+2. **Floor cai de VERDADE** — 2 nightlies CT100 consecutivos: `floor_count` do `governance/nightly-floor.json` (ADR 0279) **diminui** vs baseline pré-fix, por **reduzir `errors`** da cascata "Base table not found", **NÃO** por inflar `skipped`. Anti-trapaça: `delta(errors)` ≥ nº de testes downstream que paravam de cascatear; `delta(skipped)` ≤ nº de corruptores legitimamente quarentenados. ⏳ `blocked_by: P04` (sem o floor no tree, não-observável — não fingir que mediu).
+3. **Gate liga:** `node scripts/audit/sqlite-test-corruptors.mjs --strict --tier=A` roda em workflow de PR. Nasce **advisory** (`continue-on-error: true` — há 11 corruptores ainda → exit 1; não travar PR não-relacionado). Promover a **required** (remover `continue-on-error`) só com `corruptors=0` + 2 verdes (ADR 0275). ✅ advisory ligado.
+4. **Contador:** `corruptors: 18 → 0` via `--json`. ⏳ 18 → 11 (parcial); restantes nos lotes 2-3.
+
+#### Counterfactual (prova de que o gate MORDE)
+
+`Schema::drop('business');` solto num corpo de teste sem guarda sqlite → classifier marca `corruptsOnMysql=true`, `highBlast=['business']`, score ≥80 tier S → `--strict` exit 1. Reverter → null (não-corruptor) → exit 0. Verificado in-memory via `classifySource` (US-GOV-021, 2026-06-21). Coberto em espírito por `tests/sqliteCorruptors.spec.ts:21-35` (SENSIBILIDADE).
+
+**Kill-criteria:** se o piloto (7 corruptores isolados) NÃO derrubar `errors` proporcionalmente no `nightly-floor.json` → o lever não é (só) era-sqlite. Parar escala, reabrir root-cause (precedente: o handoff errou previsão 2×; regra dura: MEDIR cada passo, nunca previsão-como-fato).
+
+Ref: plano `memory/requisitos/_Governanca/roadmap/P03-us-gov-021-isolamento-era-sqlite.md` · auditor `scripts/audit/sqlite-test-corruptors.mjs` · contrato `tests/sqliteCorruptors.spec.ts` · handoff `2026-06-13-1730-sdd-floor-frente-c-era-sqlite.md` · US-GOV-020 (lever) · ADR 0276 (refutador) · ADR 0279 (floor).
+
+### US-GOV-028 · Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+> parent_plan: governance-sprint-2-cleanup
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** pre-commit com 3 blocos legados pendentes de limpeza.
+
+**DoD:**
+- Remover/atualizar os 3 blocos legados do pre-commit.
+- Validar hook end-to-end.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-029 · IA-OS onda 2 — promover anchor-gate de advisory a required
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+> parent_plan: ia-os-onda2-endurecer
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** anchor-gate ainda advisory; endurecer pra required (onda 2 IA-OS).
+
+**DoD:**
+- Promover anchor-gate a required (após baseline limpo).
+- Confirmar que não há falsos-positivos pendentes antes de morder.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-030 · Screen-QA dim16 — adicionar workflow sentinela ausente no CI
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+> parent_plan: screen-qa-dim16-sentinela
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** o workflow sentinela da dimensão 16 do screen-grade está ausente no CI (catraca sem sentinela = pode regredir).
+
+**DoD:**
+- Criar o workflow sentinela dim16 no CI.
+- Advisory → required conforme cadência.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-031 · MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #3, ADR 0218). Distinto de `US-INFRA-032` (hardcodes business_id).
+
+**Achado:** o `MultiTenantScopeChecker` reporta `drift_count=0` por **bug de separador de path Windows-only** (`not_readable=217`). Não cega o CI Linux (`--diff-only` funciona lá), mas o daily `--all` que pegaria o backlog é não-bloqueante → backlog de models sem global scope fica invisível. Em paralelo, os guards Tier-0 (`WithoutGlobalScopes` + `business_id=4`) estavam **falhando no main** com `continue-on-error` (advisory reportando verde), e `business_id=4` (RotaLivre) reapareceu em fixtures.
+
+**Acceptance:**
+- Bug de path do checker corrigido (roda igual em Win/Linux).
+- Teste-canário anti-falso-clean: asserta `drift>0` contra fixture sem trait.
+- 4 violações dos guards corrigidas + `continue-on-error` removido (promover a required).
+- Triar models de tenant sem global scope (OficinaAuto/ComunicacaoVisual/Manufacturing/AssetManagement).
+
+### US-GOV-032 · Criar BRIEFING.md de memory/requisitos/_Governanca/ (front-door) antes de commitar o dir
+
+> owner: — · priority: p2 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (batedor de governança).
+
+**Achado:** `memory/requisitos/_Governanca/` (trabalho em andamento) tem ≥2 `.md` e **não tem `BRIEFING.md`**. Quando o dir for commitado, ele entra no censo de módulos do `knowledge-drift` sem front-door → `front_door_coverage` cai de 100 → 98.6 e a **catraca armada do sdd-scorecard morde** (🔴). Todos os outros meta-dirs `_*` (`_DesignSystem`, `_Ideias`, `_processo`…) têm BRIEFING.
+
+**Acceptance:**
+- Criar `memory/requisitos/_Governanca/BRIEFING.md` (front-door auto-contido) junto/antes de commitar o dir.
+- Regenerar `governance/sdd-scorecard.json` (`node scripts/governance/sdd-scorecard.mjs`).
+- `--ratchet` volta a verde.
+
+### US-GOV-033 · Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto)
+
+> owner: — · priority: p3 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (batedor de links). Os links seguros em rules/SPECs já foram corrigidos (#3147, #3152). Restou o que NÃO é auto-fixável:
+
+**Achado:**
+- Corpos de ADR (append-only — precisam de bênção): `0250` (3 slugs defasados), `0253:123` (link 0013 aponta pro ADR errado → deveria ser o caminho UI `_DesignSystem/adr/ui/0013-...`), `0254` (slug 0209).
+- Dead-links de alvo incerto: `NfeBrasil/SPEC.md` → `app/Manifesto.php` (inexistente); `.claude/rules/README.md:11` → session-log inexistente; `Connector/SPEC.md:124` → placeholder `0021-...` com "(se existir)".
+- `memory/decisions/0296-...` (untracked): 2 links (slugs 0053/0084) — corrigir quando commitar.
+
+**Acceptance:**
+- Decidir alvo correto de cada item e corrigir.
+- Fixes em corpos de ADR só com aprovação (política append-only ADR 0094).
+
+### US-GOV-034 · sqlite-test-corruptors --strict pega tier S (CORE-drop), não só tier A
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** verificação adversarial 2026-06-21 (PR #3145 · handoff 2026-06-21-1250).
+**Problema:** gate roda `--tier=A`; `view = real.filter(r => r.tier === TIER_FILTER)` (~L363) filtra só tier A. `Schema::drop('business')` reintroduzido classifica tier S (CORE-drop) → `view.length===0` → não dá exit 1. O gate não pega o pior caso que o próprio counterfactual promete.
+**Fix:** `r.tier === TIER_FILTER || r.tier === 'S'` (tier S sempre morde). Validar `tests/sqliteCorruptors.spec.ts`.
+**Acceptance:** counterfactual tier-S → exit 1; meta-teste vitest verde; fazer antes de promover US-GOV-021 a required. Refs: ROADMAP-SDD
+
+### US-GOV-035 · knowledge-drift: isentar _Governanca/roadmap/ (planos citam ghosts legitimamente)
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** red advisory do PR #3135 (anti-ghost).
+**Problema:** os planos do roadmap citam os módulos legados MemCofre/PontoWr2/Copiloto/DocVault (renomeados→SRS/Ponto/Jana ou removidos) em contexto de planejamento da remoção/rename → o detector os conta como ghost vivo. É falso-positivo.
+**Fix:** estender `scripts/governance/knowledge-drift.mjs` (já tocado pelo P11/#3155) pra isentar `_Governanca/roadmap/` como já isenta `adr/`.
+**Acceptance:** anchor-ghost verde no #3135; doc citando ghost em roadmap/ não dispara. Refs: ROADMAP-SDD
+
+### US-GOV-036 · Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** PR #3145 (US-GOV-021) isolou 7/18.
+**Problema:** restam 11 corruptores tier A (CoworkHandoffCrossTenant, Forja Backlog/Changelog/Mcp/Quadro Service, Claimless, FsmTransitionGuard, TaskUpdateAtomic, AcceptanceRef, WorkLease, LeaseBriefSection) que ainda dão exit 1 no auditor.
+**Fix:** mesma técnica do lote 1 (guard teardown sqlite-only, sem dropar tabela CORE).
+**Acceptance:** `sqlite-test-corruptors --strict --tier=A` corruptors=0; aí destrava promover o gate a required. Refs: ROADMAP-SDD
+
+### US-GOV-037 · Backfill related_us em 132 charters sem link (join US→tela do SA-A5)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** crítico de completude 2026-06-21 (PR #3157 declarou o campo + migrou 3 legacy).
+**Problema:** 132/148 charters sem `related_us` → o join US→tela que alimenta o batch SA-A5 (anchors por IA) ficou sem fonte.
+**Fix:** lote IA (Haiku) deriva related_us de SPEC/git/árvore Pages, com refutador G5 + 1 entry no ledger.
+**Acceptance:** charters_sem_us cai; lint conta; SA-A5 lê o join. Refs: ROADMAP-SDD
+
+### US-GOV-038 · Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: US-GOV-021
+
+**Origem:** PR #3158 entregou o tripwire advisory com alerta OFF.
+**Problema:** ligar o alerta (gh issue / mcp_alertas na `maybeAlert()`) antes do floor estabilizar alertaria ruído de ambiente.
+**Fix:** setar `NIGHTLY_DIFF_ALERT=1` + implementar o canal depois que P03/US-GOV-021 estabilizar o floor.
+**Acceptance:** classe de falha nova/arquivo novo no floor → 1 issue idempotente/dia; 2 noites iguais → no-op. Refs: ROADMAP-SDD
+
+### US-GOV-039 · TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d)
+
+> owner: — · priority: p3 · estimate: 4h · status: todo · type: story
+> blocked_by: US-GOV-011
+
+**Origem:** crítico de completude 2026-06-21 (ADIADO conscientemente).
+**Problema/PORQUÊ-ADIAR:** TDAD acelera o loop, mas o gargalo é o floor sujo (295 + 24% skip). Rodar "só impactados" sobre suíte que já falha mascara regressão. Prematuro até pcov medir (P07) e floor=0 (P04).
+**Fix:** test-map per-test via `--coverage-php` + comando `test:impacted` + gate sombra advisory 14d com fallback fail-safe pra suite completa.
+**Acceptance:** só DEPOIS de pcov measured + nightly verde. on-hold. Refs: ROADMAP-SDD
+
+### US-GOV-040 · Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md
+
+> owner: — · priority: p3 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** aterramento das ondas tardias 2026-06-21.
+**Problema:** o `_ROADMAP.md` (#3135) ainda diz que o read-side do floor "quase resolveu" — mas o HEAD commitado é `not_yet_measured` e o "274" é working-tree sujo do #3020. P02 deve congelar o **295 vivo**, não 274.
+**Fix:** corrigir a seção P01/P02 + adicionar entries P14/P15/P16-on-hold, após #3135 mergear.
+**Acceptance:** _ROADMAP.md reflete o estado real. Refs: ROADMAP-SDD
+
+### US-GOV-041 · Limpar governance/sdd-scorecard.json sujo (274 fantasma) no working-tree de main
+
+> owner: — · priority: p3 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** git status do checkout principal (não é desta sessão; último commit real #3020).
+**Problema:** `M governance/sdd-scorecard.json` não-commitado mostra full_suite=274 (engana a leitura; o HEAD diz not_yet_measured). Atrapalhou o planejamento desta sessão.
+**Fix:** quem é dono do working-tree decide: `git checkout` (descartar) OU commitar o valor correto via o job de P01/#3142. NÃO tocar cego.
+**Acceptance:** working-tree limpo ou o 274 reconciliado pelo commit-back. Refs: ROADMAP-SDD
+
+### US-GOV-042 · anchor-lint pula status:arquivado + decidir destino do SPEC duplicado MemCofre/SRS
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** sweep do mês 2026-06-21 (PR #3149, bloco "PR-B · MemCofre (10 dead)").
+**Problema:** `anchor-lint.mjs` não filtra specs `status: arquivado`; `memory/requisitos/MemCofre/SPEC.md` é duplicado do módulo renomeado MemCofre→SRS (em DEPRECATION-PLAN) → 10 anchors mortos perenes.
+**Fix:** lint pula `status: arquivado` (~3 linhas) + decisão de identidade sobre o SPEC duplicado (re-point pra SRS vs delete).
+**Acceptance:** `anchor-lint --json` não conta os 10 dead do MemCofre; SPEC duplicado resolvido. Refs: ROADMAP-SDD (sweep do mês)

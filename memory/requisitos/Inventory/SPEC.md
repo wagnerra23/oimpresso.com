@@ -1,10 +1,19 @@
 ---
-modulo: Inventory
-status: proposed
+module: Inventory
+version: "0.1.0"
+last_updated: "2026-05-12"
+status: rascunho
 owner: [W]
 prioridade: P0-P2 (faseado)
 related_modules: [Sells, Repair, OficinaAuto, ComunicacaoVisual, Vestuario, Autopecas, NfeBrasil, Marketplaces]
-related_adrs: [0093, 0094, 0105, 0106, 0121, 0129, 0143]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0129-state-machine-canonica-fsm-rbac
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 cnae_relacionados: [todos verticais]
 created_at: 2026-05-12
 ---
@@ -399,7 +408,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 
 **Fluxo proposto:**
 1. `stock_movements` insertion → event `StockMovedEvent` (já pattern UPos)
-2. Listener `SyncToMarketplacesListener` (futuro Modules/Marketplaces) consome event
+2. Listener `SyncToMarketplacesListener` (futuro módulo Marketplaces — *planejado, não existe*) consome event
 3. Calcula novo qty_available_consolidated = sum(variation_location_details.qty_available) − sum(stock_reservations.active.qty)
 4. POST API ML/Shopee atualiza listing
 5. Webhook ML PEDIDO criado → cria sell + reserva imediata (idempotente per ext_order_id)
@@ -408,7 +417,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 
 ---
 
-## §7 User Stories
+## 7. User Stories
 
 ### Fase 1 — Kits/BOM fundação
 
@@ -534,7 +543,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 - 🚫 Não removar `variations.combo_variations` JSON em V1 (compat legacy UPos POS Blade)
 - 🚫 Não permitir UPDATE/DELETE em `stock_movements` — triggers MySQL bloqueiam
 - 🚫 Não habilitar flags `enable_bom`/`enable_batch_tracking` em biz=4 (ROTA LIVRE) sem aviso prévio + canary 7d ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) cutover discipline)
-- 🚫 Não criar `Modules/Inventory` separado — Inventory é **camada cross-vertical** que vive em `app/Domain/Inventory/` (perto de `app/Domain/Fsm/`); módulos verticais USAM via service/contract
+- 🚫 Não criar um módulo `Inventory` separado em `Modules/` (*não existe — proibido por design*) — Inventory é **camada cross-vertical** que vive em `app/Domain/Inventory/` (perto de `app/Domain/Fsm/`); módulos verticais USAM via service/contract
 
 ---
 

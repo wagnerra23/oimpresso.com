@@ -76,10 +76,15 @@ jobs:
         run: |
           set -e
           # Outros módulos lendo array shape antigo $card['plate'] etc — quebraria pós-refactor.
+          # OficinaAuto é o vertical automotivo legítimo (PR #2642): plate/vehicle/km
+          # são vocabulário de DOMÍNIO correto ali, não regressão do shared Repair.
+          # --exclude-dir casa por basename do diretório (não por path), por isso
+          # 'Repair' e 'OficinaAuto' em vez de 'Modules/Repair'.
           MATCHES=$(grep -rnE "\\\$\\w+\\['(plate|vehicle|km|mecanico|aprovacao_pendente)'\\]" \
             --include='*.php' \
             --exclude='*Test.php' \
-            --exclude-dir='Modules/Repair' \
+            --exclude-dir='Repair' \
+            --exclude-dir='OficinaAuto' \
             Modules/ app/ 2>/dev/null || true)
           if [ -n "$MATCHES" ]; then
             echo "::error::Cross-module ainda lendo shape automotivo legacy (refactor incompleto?)"

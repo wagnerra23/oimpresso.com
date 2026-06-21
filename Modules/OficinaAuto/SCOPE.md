@@ -9,6 +9,7 @@ contains:
   - "ServiceOrderController — CRUD + printInvoice (Gap 3 US-OFICINA-037 · GET /ordens-servico/{order}/print AJAX-only · A4 nota-fiscal-like papel-balcão Martinho sub-vertical 4 CNAE 4520 · ADR 0194)."
   - "ServiceOrderItemController — CRUD HTTP de items lançados na OS (peça/mão-obra/serviço terceiro). Wave 1.3 US-OFICINA-027 — alimenta drawer ServiceOrderRichSheet seção PEÇAS & MÃO DE OBRA + Observer ::computeFinalTotal."
   - "DviInspectionController — CRUD HTTP de items DVI (Vistoria Digital · semáforo ok/atenção/crítico). Wave 3 US-OFICINA-035 — wedge competitivo vs RepairShopr/mHelpDesk."
+  - "ServiceOrderPhotoController — CRUD HTTP das fotos do laudo OS-level (Fotos & Laudo · F3 OS-V2-1). Anexo polimórfico da própria ServiceOrder via HasArquivos (distinto da foto POR item DVI em OaInspectionItem). Alimenta o drawer ServiceOrderRichSheet + seção 'Fotos da vistoria' no print A4."
   - "VehicleController"
   - "ServiceOrderFsmActionController (app/Http/Controllers — shared FSM canon, espelha SaleFsmActionController)"
 not_contains:

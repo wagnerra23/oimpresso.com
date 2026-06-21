@@ -96,6 +96,7 @@ class DemoSeedCommand extends Command
         // ----------------------------------------------------------------
         // 3. Garantir materiais seeded (≥ 5 para este business)
         // ----------------------------------------------------------------
+        // SUPERADMIN: CLI sem session HTTP; $bizId vem de --business validado (linhas 63-92).
         $totalMateriais = Material::withoutGlobalScopes()
             ->where('business_id', $bizId)
             ->count();
@@ -201,6 +202,7 @@ class DemoSeedCommand extends Command
         $calculado = $calc->calcular($payload);
 
         // Criar Orcamento via withoutGlobalScopes (CLI sem session real de HTTP)
+        // SUPERADMIN: CLI sem session; business_id => $bizId explícito (--business validado).
         $orcamento = Orcamento::withoutGlobalScopes()->create([
             'business_id'      => $bizId,
             'numero'           => $numOrc,
@@ -220,6 +222,7 @@ class DemoSeedCommand extends Command
 
         // Criar OrcamentoItens
         foreach ($calculado['itens'] as $ordem => $itemCalc) {
+            // SUPERADMIN: CLI sem session; business_id => $bizId explícito (--business validado).
             OrcamentoItem::withoutGlobalScopes()->create([
                 'orcamento_id'     => $orcamento->id,
                 'business_id'      => $bizId,
@@ -239,6 +242,7 @@ class DemoSeedCommand extends Command
         // ----------------------------------------------------------------
         // 8. Criar OS vinculada ao orçamento
         // ----------------------------------------------------------------
+        // SUPERADMIN: CLI sem session; business_id => $bizId explícito (--business validado).
         $os = Os::withoutGlobalScopes()->create([
             'business_id'  => $bizId,
             'orcamento_id' => $orcamento->id,
@@ -255,6 +259,7 @@ class DemoSeedCommand extends Command
         // 9. Criar Apontamento via ApontamentoTracker (90 min de produção)
         //    m2_produzido=4.5 (banner 3×1.5×1) — drift=0% contra m2_orcado=4.5
         // ----------------------------------------------------------------
+        // SUPERADMIN: CLI sem session; $orcamento já criado neste $bizId acima.
         $primeiroItem = OrcamentoItem::withoutGlobalScopes()
             ->where('orcamento_id', $orcamento->id)
             ->orderBy('ordem')
@@ -385,6 +390,7 @@ class DemoSeedCommand extends Command
      */
     private function buscarMaterial(int $bizId, string $nome): ?int
     {
+        // SUPERADMIN: CLI sem session; filtra por $bizId explícito (--business validado).
         return Material::withoutGlobalScopes()
             ->where('business_id', $bizId)
             ->where('nome', $nome)

@@ -20,8 +20,9 @@ namespace Modules\Jana\Services\Peso;
  *     scope — esta classe só recebe números já resolvidos.
  *   - Determinístico: mesma entrada → mesma saída. Testável sem fixtures de DB.
  *
- * Área A da Etapa 5 do IAOS — PROPOSTA, NÃO plugada (não toca MeilisearchDriver,
- * retrieval, settings nem prod). Ver ADR 0232 (status: proposto).
+ * Área A da Etapa 5 do IAOS — plugada no MeilisearchDriver::applyPesoReal SOB
+ * feature-flag `copiloto.peso_real.retrieval_enabled` (kill-switch, OFF por
+ * default: prod intocada). Ver ADR 0232 + ADR 0270 D-4 (decaimento no recall).
  *
  * Estado-da-arte que sustenta as fórmulas:
  *   - Iniciativas: WSJF / Cost of Delay (SAFe / Reinertsen) — value÷effort com
@@ -38,12 +39,28 @@ class PesoRealService
     /**
      * Defaults de fallback hardcoded — usados quando config('copiloto.peso_real.*')
      * está ausente. Garante que o service NUNCA quebra por config faltando.
+     *
+     * KL-C1 (2026-06-12): espelho da tabela `copiloto.peso_real.lifecycle_mult`,
+     * alinhada ao vocabulário REAL — status EN normalizado (accepted/proposed/
+     * historical/superseded) + frontmatter canônico PT (aceito/proposto; lifecycle
+     * ativo/arquivado/substituido/historical). Antes, só o vocabulário ADR 0232
+     * existia e todo doc real caía no fallback 0.1 (ADR 0270 D-4 violada).
      */
     private const FALLBACK_LIFECYCLE_MULT = [
+        // vigente — peso cheio
         'accepted'            => 1.0,
+        'aceito'              => 1.0,
+        'ativo'               => 1.0,
+        'proposed'            => 1.0,
+        'proposto'            => 1.0,
+        // morto — decai por lifecycle (nunca por idade)
+        'historical'          => 0.5,
+        'superseded'          => 0.3,
+        'substituido'         => 0.3,
+        'arquivado'           => 0.3,
+        // legacy ADR 0232 (back-compat com fatos antigos)
         'accepted-historical' => 0.8,
         'sunsetting'          => 0.4,
-        'superseded'          => 0.1,
         'deprecated'          => 0.1,
     ];
 
@@ -77,7 +94,9 @@ class PesoRealService
      * lifecycle não-mapeado não infla ranking.
      *
      * @param int    $relevanciaMeta 0-100 (clampado).
-     * @param string $lifecycle      accepted | accepted-historical | sunsetting | superseded | deprecated
+     * @param string $lifecycle      vigente (accepted|aceito|ativo|proposed|proposto) |
+     *                               historical | superseded|substituido|arquivado |
+     *                               legacy ADR 0232 (accepted-historical|sunsetting|deprecated)
      */
     public function pesoDecisao(int $relevanciaMeta, string $lifecycle): float
     {

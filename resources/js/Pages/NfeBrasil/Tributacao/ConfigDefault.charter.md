@@ -3,9 +3,9 @@ page: /nfe-brasil/tributacao/config-default
 component: resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-16
+last_validated: "2026-05-16"
 parent_module: NfeBrasil
-related_adrs: [0029, 0093, 0094]
+related_adrs: [29, 93, 94]
 related_us: [US-NFE-010]
 tier: A
 charter_version: 1

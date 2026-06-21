@@ -18,6 +18,13 @@ class Kernel extends ConsoleKernel
         $env = config('app.env');
         $email = config('mail.username');
 
+        // Erros (Fase 2 · E-2) — janela de decaimento: arquiva grupos de erro abertos
+        // sem ocorrência há N dias (config errors.group_decay_days). Plataforma, não
+        // business-scoped. @see prototipo-ui/handoffs/erros-dedup.md
+        $schedule->command('errors:archive-stale-groups')
+            ->dailyAt('04:00')
+            ->withoutOverlapping();
+
         if ($env === 'live') {
             //Scheduling backup, specify the time when the backup will get cleaned & time when it will run.
             
@@ -100,6 +107,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // PR-4 Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — anti feedback-void:
+        // handoffs de design pendentes > 3d alertam o inbox ops (Wagner) pra
+        // reauditar/aplicar ou rejeitar. Daily 08:30 BRT, idempotente (1 digest/dia).
+        $schedule->command('handoff:stale-alert')
+            ->dailyAt('08:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule handoff:stale-alert FALHOU — handoffs pendentes velhos não alertados'
+                );
+            });
+
         // MEM-MET-3 (ADRs 0050+0051) — apura 8 métricas obrigatórias + 3 RAGAS
         // por business + plataforma, gravando 1 linha/dia em
         // copiloto_memoria_metricas via upsert idempotente.
@@ -158,6 +179,78 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule jana:health-check FALHOU — investigar ' .
                     'storage/logs/laravel.log pra ALERT entries'
+                );
+            });
+
+        // Parte B do T7 (auditoria IA OS) — loop telemetria→tier de skills (ADR 0095).
+        // Trimestral: emite relatório APPEND-ONLY em memory/governance/skill-tier-review-AAAA-QN.md
+        // com sugestões de promoção/rebaixamento. NÃO auto-aplica (sem --apply-suggestions):
+        // B→A exige ADR, C→arquivar exige ADR HISTORICAL. quarterlyOn(1, '06:40') = 1º dia de
+        // cada trimestre, ancorado no eixo 06:00-06:50 BRT (após jana:health-check 06:00).
+        // Cross-tenant intencional (mcp_skill_telemetry é governança, sem business_id — ADR 0093).
+        // Hostinger ≠ CT 100 (ADR 0062): só artisan + schedule, sem daemon.
+        $schedule->command('skills:tier-review')
+            ->quarterlyOn(1, '06:40')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule skills:tier-review FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
+        // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
+        // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário).
+        // DESCOMENTADO em P11 (KL-E3): tira distiller_freshness de not_yet_measured —
+        // a 1ª destilação carimba `distilled_at:` num BRIEFING e measureDistillerFreshness()
+        // vira `measured` (ADR 0291 D-5 / 0279). A destilação chama LLM e MUTA memória canônica
+        // PÚBLICA, então o gate de supervisão Wagner/CT100 (smoke skim 10min/lote) é OBRIGATÓRIO
+        // ANTES de ligar em live: o comando roda manual primeiro (`php artisan
+        // jana:distill-module-truth --all --dry-run` → skim → `--all` real). Kill-switch = recomentar.
+        $schedule->command('jana:distill-module-truth --all')
+            ->dailyAt('05:30')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
+                );
+            });
+
+        // Sentinela de FLUXO de inbound WhatsApp — cadência HORÁRIA em horário
+        // comercial BRT (incidente 2026-06-16 #2726: recebimento morto 3 dias sem
+        // ninguém ver; o cron diário 06:00 só detectaria ~22h depois). Reusa o
+        // mesmo --notify/ALERT; o check whatsapp_inbound_flow só acende em horário
+        // comercial e ignora canal sem histórico de inbound (baseline por canal).
+        $schedule->command('jana:health-check --notify')
+            ->hourlyAt(7)
+            ->timezone('America/Sao_Paulo')
+            ->between('8:00', '20:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:health-check (horário · sentinela inbound) FALHOU'
+                );
+            });
+
+        // Canário do webhook WhatsApp — Fase 1 perda-zero (proposta
+        // whatsapp-ingestao-perda-zero.md, camadas 1+5). Posta um Presence
+        // sintético na URL pública com ?wh= e confere 200; não-200 → ALERT + exit≠0.
+        // Cadência 5min em horário comercial BRT: detecta a classe do incidente
+        // #2726 (webhook recusando, 3 dias mudo) em <5min — dentro da janela de
+        // retry do daemon (~10-15min), logo ANTES de qualquer mensagem ser perdida.
+        // Só OBSERVA a via (Presence ACKa 200 sem criar mensagem) — baixo risco.
+        $schedule->command('whatsapp:webhook-canary')
+            ->everyFiveMinutes()
+            ->timezone('America/Sao_Paulo')
+            ->between('8:00', '20:00')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:webhook-canary FALHOU — recebimento WhatsApp pode estar parado (classe #2726)'
                 );
             });
 
@@ -227,6 +320,24 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // GT-G7 (ADR 0275 §1) — snapshot diário do scorecard SDD em
+        // mcp_sdd_scorecard_history (composta v1 + alertas) via agregador node
+        // determinístico. 1 row/dia, re-run substitui. 07:10 BRT — 10min após
+        // governance:scorecard-snapshot (07:00) pra evitar disputa DB (mesmo
+        // precedente do stagger 06:05 do module:grade-snapshot). O brief das
+        // 07h pega o snapshot de ontem; o das 11h pega o de hoje (GT-G8).
+        $schedule->command('governance:sdd-scorecard-snapshot')
+            ->dailyAt('07:10')
+            ->timezone('America/Sao_Paulo')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:sdd-scorecard-snapshot FALHOU — histórico SDD defasado (GT-G7)'
+                );
+            });
+
         // Wave 28 Agent 1 (2026-05-17) — Initiatives Cortex-style.
         // Sync diário Initiatives ↔ scorecards: abre breach (rule abaixo target),
         // fecha recuperadas (score_after >= target), expira deadlines passadas.
@@ -272,6 +383,59 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule jana:system-audit FALHOU — investigar ' .
                     'storage/logs/laravel.log pra ALERT entries (ADR 0133)'
+                );
+            });
+
+        // Wave 23 — jana:drift-sentinel canary SEMANAL da Jana (dom 06:00 BRT).
+        // Compara faithfulness atual vs baseline canon; ALERT se >10% das perguntas
+        // divergirem. RELIGADO 2026-06-20 (auditoria de sentinelas): o docblock do
+        // comando afirmava "Schedule weekly Sun 06:00" mas NÃO existia entry aqui —
+        // ghost canary (existe + tem teste de mordida, nunca rodava).
+        //
+        // Skip-guard honesto (2026-06-20): SEM OPENAI_API_KEY o canary NÃO falha o
+        // cron toda semana (era ruído / falso "DRIFT 100%") — sai DORMANT (exit 0,
+        // status=dormant), visível como ⊘ no agregador governance-audit.mjs. O
+        // onFailure abaixo só dispara em drift REAL acima do threshold. Domingo cedo
+        // pra não disputar DB com os health-checks diários (06:00-06:30).
+        $schedule->command('jana:drift-sentinel')
+            ->weeklyOn(0, '06:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold. ' .
+                    'Ver storage/logs (canary sem OPENAI_API_KEY sai DORMANT, não falha).'
+                );
+            });
+
+        // P12 (roadmap SDD · decay-real-ragas-recall) — jana:recall-eval --mode=real
+        // SEMANAL (dom 06:30 BRT). Mede recall@K + a métrica recall_eval_violations
+        // (ADR 0275, meta → 0) consultando o índice Meilisearch read-only.
+        //
+        // PRONTO-PRA-LIGAR, mas o --mode=real só roda onde o índice
+        // `mcp_memory_documents` é alcançável (CT 100, fase 2 — JanaRecallEvalCommand
+        // linha 23/272). environments(['live']) já restringe ao runtime prod; o
+        // comando, se o Meilisearch estiver inacessível, registra o erro e sai com
+        // gate fail (exit 1), capturado pelo onFailure abaixo. ENQUANTO o índice não
+        // for alcançável do cron prod, este schedule fica dormente por construção
+        // (Meilisearch ausente → onFailure loga, NÃO derruba o scheduler). O gate
+        // BARATO de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
+        // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
+        // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
+        //
+        // Refs: ADR 0270 D-4/D-5 · ADR 0274 · ADR 0275 · plano P12
+        // memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md.
+        $schedule->command('jana:recall-eval --mode=real')
+            ->weeklyOn(0, '06:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:recall-eval (real) FALHOU — recall_eval_violations > 0 ' .
+                    'OU Meilisearch inacessível (modo real roda no CT 100, fase 2). ' .
+                    'Ver storage/logs. Gate barato de PR é o --mode=mock em CI.'
                 );
             });
 
@@ -484,6 +648,28 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Defesa em profundidade — poda preventiva de mcp_memory_documents_history.
+        // Incidente 2026-06-21: o history append-only (snapshot do content inteiro por
+        // mudança) inflou pra 5 GB, estourou a cota do Hostinger e o provedor REVOGOU a
+        // escrita do ERP. Este cron mantém a tabela pequena DESDE O INÍCIO: por
+        // document_id preserva as últimas 20 versões + janela de 90d; o resto é
+        // descartável (git é a fonte canônica — ADR 0061). Sem flag de gate: é seguro
+        // e idempotente (não toca history quente). 03:20 BRT — sem disputa com
+        // retention-purge (03:00).
+        $schedule->command('jana:memory-history-prune')
+            ->dailyAt('03:20')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-memory-history-prune-daily')
+            ->withoutOverlapping(60)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/jana-memory-history-prune.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:memory-history-prune FALHOU — mcp_memory_documents_history ' .
+                    'pode voltar a inflar (investigar storage/logs/jana-memory-history-prune.log)'
+                );
+            });
+
         // MEM-FASE8 — esquecimento semanal (domingo 03:00).
         // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
         // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
@@ -575,6 +761,31 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
                     'Schedule copiloto:seed-adrs FALHOU — fatos de ADR podem ficar STALE ' .
                     '(investigar storage/logs/copiloto-seed-adrs.log)'
+                );
+            });
+
+        // COPI-26 fix (incidente 2026-06-20) — ProfileDistiller NUNCA foi agendado:
+        // `->destilar()` tinha ZERO call sites, então jana_business_profile só tinha
+        // 3 seeds one-off (biz 1/4/164) que envelheceram >7d e acendiam o check
+        // `profile_distiller_drift` no jana:health-check (06:00). A sentinela
+        // (L-OP-002) estava CORRETA — vigiava um job de manutenção que nunca rodava.
+        // Este schedule é o job que faltava.
+        //
+        // 04:50 BRT: DEPOIS de copiloto:seed-adrs (04:45) e jana:freshness-check (04:30),
+        // ANTES do jana:health-check (06:00) reavaliar o check. Bem dentro da janela 7d.
+        // Multi-tenant Tier 0 (ADR 0093): o command itera business by business EXPLÍCITO.
+        // ~76 chamadas LLM/dia (~$0,02). withoutOverlapping(15) cobre run lento (76 × ~3s).
+        $schedule->command('jana:profile-distill')
+            ->dailyAt('04:50')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-profile-distill-daily')
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/jana-profile-distill.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:profile-distill FALHOU — jana_business_profile pode ficar ' .
+                    'STALE (profile_distiller_drift acende no jana:health-check 06:00)'
                 );
             });
 
@@ -675,18 +886,49 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // whatsmeow:health-probe (3 em 3 min) — fecha a lacuna que o reconciler
+        // Baileys-only NÃO cobre (incidente 2026-06-18, US-WA-308): canal whatsmeow
+        // "logged out from another device" sem webhook LoggedOut → channel_health
+        // ficava 'healthy' e a Caixa não avisava (linha caída ~3h sem ninguém ver).
+        // Probe consulta /session/status REAL e converge disconnected/banned/healthy.
+        $schedule->command('whatsmeow:health-probe')
+            ->everyThreeMinutes()
+            ->withoutOverlapping(3)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsmeow:health-probe FALHOU — queda de canal whatsmeow pode ficar invisível'
+                );
+            });
+
+        // whatsapp:channel-health-snapshot (5 em 5 min) — série temporal append-only de
+        // channel_health (ADR 0288): habilita uptime%/time-to-detect (SLIs) e ALERTA
+        // canal-down > N min (1× por streak). Fecha o pilar de observabilidade (não
+        // depende de ninguém olhar a tela).
+        $schedule->command('whatsapp:channel-health-snapshot')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:channel-health-snapshot FALHOU — observabilidade de canal pode estar cega'
+                );
+            });
+
         // Worker da fila `whatsapp-history` (Wagner request 2026-05-14 02h):
         // "recebe tudo de maneira rapida... depois sincroniza com o banco,
         // sempre guarda para não perder". Cron everyMinute pra processar
         // PersistHistorySyncBatchJob da tabela `jobs` (queue=database).
         //
-        // --max-time=55 sai antes do próximo tick. --stop-when-empty para
-        // quando fila vazia (não fica 55s ocioso). Pior caso: 1min latência
-        // pra primeira msg histórica aparecer no Inbox após pareamento.
+        // --max-time=55 sai antes do próximo tick. SEM --stop-when-empty
+        // (2026-06-19): o worker fica vivo os 55s pegando os batches em ~1-3s em
+        // vez de morrer assim que a fila esvazia (antes: até 1min de latência pra
+        // 1ª msg histórica aparecer pós-pareamento). withoutOverlapping(1) mantém
+        // 1 processo/fila (respeita o limite de LSPHP do shared hosting).
         //
         // Hostinger shared hosting sem supervisor — cron é o workaround
         // padrão pra rodar queue worker.
-        $schedule->command('queue:work database --queue=whatsapp-history --max-time=55 --stop-when-empty --tries=3')
+        $schedule->command('queue:work database --queue=whatsapp-history --max-time=55 --tries=3')
             ->everyMinute()
             ->withoutOverlapping(1)
             ->environments(['live'])
@@ -704,11 +946,15 @@ class Kernel extends ConsoleKernel
         // healthy e fix de código aplicado (PR #1825). Webhook chegava, job
         // enfileirado, ninguém executava. Worker manual processou 54 jobs em 2s.
         //
-        // Mesmo padrão Hostinger shared hosting cron-based: --max-time=55 +
-        // --stop-when-empty + everyMinute + runInBackground evita CPU ocioso
-        // e respeita limite de processos LSPHP. Tries=3 cobre retry transient
-        // (DB lock, OTel sidecar momentâneo).
-        $schedule->command('queue:work database --queue=whatsapp --max-time=55 --stop-when-empty --tries=3')
+        // Hostinger shared hosting cron-based (sem supervisor). SEM --stop-when-empty
+        // (2026-06-19): antes o worker morria assim que a fila esvaziava, deixando a
+        // maior parte do minuto SEM worker → a msg entrante esperava o próximo tick
+        // (0-60s, ~30s médio; reclamação real "~20s pra um oi" chegar na Caixa).
+        // Agora fica vivo os 55s do --max-time e pega o webhook em ~1-3s. Custo:
+        // poll leve do DB durante os 55s — limitado por --max-time=55 +
+        // withoutOverlapping(1) (1 processo/fila → respeita LSPHP). Tries=3 cobre
+        // retry transient (DB lock, OTel sidecar momentâneo).
+        $schedule->command('queue:work database --queue=whatsapp --max-time=55 --tries=3')
             ->everyMinute()
             ->withoutOverlapping(1)
             ->environments(['live'])

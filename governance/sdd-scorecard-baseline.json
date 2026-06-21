@@ -1,0 +1,103 @@
+{
+  "_meta": {
+    "baseline": "SDD scorecard baseline v1 — meta-catraca GT-G3 (plano 2026-06-12 §2 GARANTIDA + §4 Semanas 1-2)",
+    "adr": "memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md",
+    "capturado_de": "medição REAL de scripts/governance/sdd-scorecard.mjs em origin/main 50db89208 (2026-06-12) — nunca copiado de plano/ADR (regra anti-stale)",
+    "re_medido": "anchor_coverage (definição unificada→anchor-lint), ghost_count e front_door_coverage re-medidos live em origin/main 3b281d864 (2026-06-15) no PR do ledger §A/§B — provenance por métrica em nota_armamento",
+    "regra_armamento": "ADR 0275 §3 — métrica só ARMA (armed:true ⇒ --ratchet exit 1 na regressão) após 3 medições válidas consecutivas da fonte real (sem erro, não-mock, valor não-nulo); fonte parada >48h desarma até nova sequência de 3",
+    "regra_piora": "piorar value, desarmar métrica ou absorver regressão = SÓ via PR editando este arquivo (diff visível) citando ADR 0275 — exceção nunca é invisível",
+    "consumidores": [
+      ".github/workflows/sdd-scorecard.yml (advisory — continue-on-error nesta fase)",
+      "scripts/governance/sdd-scorecard.mjs --ratchet"
+    ]
+  },
+  "metrics": {
+    "anchor_coverage": {
+      "status": "measured",
+      "value": 5.4,
+      "unit": "%",
+      "direction": "up",
+      "armed": false,
+      "valid_measurements": 1,
+      "fonte": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2; sdd-scorecard.mjs só transporta)",
+      "nota_armamento": "DEFINIÇÃO UNIFICADA no PR do ledger §A: a série antiga (grep estrito próprio do sdd-scorecard, 2.8% / 2 medições) foi APOSENTADA — número não comparável. 1ª medição da nova fonte = 5.4% (anchor-lint live em origin/main 3b281d864, 2026-06-15). Re-mede 3× consecutivas da nova fonte pra armar (ADR 0275 §3)."
+    },
+    "full_suite_pass_rate": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "up",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "nightly MySQL diagnóstica (FV-F3) — baseline na 1ª medição real"
+    },
+    "n_quarantine": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "grep @group legacy-quarantine — grupo só passa a existir na quarentena FV-Q3"
+    },
+    "coverage_pct": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "up",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "pcov instrumentado em CI (P0-2) — hoje coverage: none"
+    },
+    "ghost_count": {
+      "status": "measured",
+      "value": 8,
+      "unit": "nomes distintos",
+      "direction": "down",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "scripts/governance/knowledge-drift.mjs --json",
+      "nota_armamento": "Piso DESCIDO 14→8 no PR P11 (KL-E2, ADR 0270/0291). Duas correções no MESMO PR derrubaram o número: (1) RECONCILIAÇÃO detector×corretor — knowledge-drift.mjs passou a PULAR adr/ na contagem de ghost (espelha ghost-fix.mjs:60-61), alinhando a métrica ao escopo corrigível; os 5 nomes que só sobreviviam como tombstone append-only em adr/ (Chat/Copiloto/DocVault/LaravelAI/PontoWr2) saíram da contagem 14→9 — não era drift VIVO, era FATO histórico (ADR 0094 Art.3). (2) codemod ghost-fix --write aplicou MemCofre→SRS nos 12 docs vivos, tirando MemCofre da contagem 9→8. Os 8 residuais (Accounting/CrmPipeline/IProduction/NfseBrasil/Pcp/Project/Sells/Vendor) são Classe B/C/AMBIGUO no ghost-rename-map.json (lápides/feature-wish/fila-humana) — não há rename 1:1 com evidência dura, ficam pra reescrita manual. Os 4 nomes Classe A (MemCofre/PontoWr2/Copiloto/DocVault) = 0 ghost vivo. Catraca DESCE o piso 14→8 (ADR 0275 §3); regressão >8 = exit 1."
+    },
+    "front_door_coverage": {
+      "status": "measured",
+      "value": 100,
+      "unit": "%",
+      "direction": "up",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
+      "nota_armamento": "Re-armado live em origin/main 3b281d864 (2026-06-15): a fonte agora mede 100% (69/69; era 63.9% = 39/61 na captura 2026-06-12 — portas BRIEFING criadas nas ondas E2). Catraca SOBE o piso 63.9→100 (stale absorvido, ADR 0275 §3); regressão <100 = exit 1."
+    },
+    "recall_eval_violations": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "golden set recall (KL-C2) — depende do alias map das 13 colisões ADR"
+    },
+    "ragas_real_uptime": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "up",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock"
+    },
+    "drift_alarms": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "protection-drift + watchdog de staleness (GT-G4)",
+      "nota_armamento": "NUNCA arma — alarme advisory perene, nunca required (ADR 0275 métrica 9)"
+    },
+    "backfill_error_rate": {
+      "status": "not_yet_measured",
+      "value": null,
+      "direction": "down",
+      "armed": false,
+      "valid_measurements": 0,
+      "fonte": "ledger do protocolo refutador G5 (governance/sdd-verification-ledger.json) — só existe após 1º lote IA refutado"
+    }
+  }
+}

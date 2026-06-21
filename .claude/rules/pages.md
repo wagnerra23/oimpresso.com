@@ -17,7 +17,7 @@ paths:
 4. **F3** — FRONTEND (este passo) — ler charter `<Tela>.charter.md` ao lado obrigatório
 5. **F4** — QA com smoke biz=1 ([ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md))
 
-**RUNBOOK obrigatório:** Edit em `.tsx` SEM `memory/requisitos/<Modulo>/RUNBOOK-<tela-kebab>.md` existir é BLOQUEADO pelo hook [`block-mwart-violation.ps1`](../hooks/block-mwart-violation.ps1) + CI workflow `mwart-gate.yml`. Override: `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`).
+**RUNBOOK obrigatório:** Edit em `.tsx` SEM `memory/requisitos/<Modulo>/RUNBOOK-<tela-kebab>.md` existir é BLOQUEADO pelo hook [`block-mwart-violation.ps1`](../hooks/block-mwart-violation.ps1) (enforcement runtime). A cobertura de tela no CI é do `casos-gate` (required, ADR 0264) — o antigo `mwart-gate.yml` foi deletado na ADR 0271 onda 2 (era soft/teatro). Override runtime: `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`).
 
 ## Loop Cowork ↔ Claude Code formalizado ([ADR 0114](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md))
 

@@ -1,7 +1,7 @@
 // Coluna do Kanban de OS de mecânica — data-driven pelas etapas reais do FSM
 // oficina_mecanica_os (port Cowork do carro · [W] 2026-06-02).
 //
-// Diferente da CacambaKanbanColumn (5 status fixos de caçamba): aqui a cor vem do
+// Coluna do kanban canônico de OS (ADR 0265 — colunas data-driven): a cor vem do
 // token `color` do SaleProcessStage (gray/blue/amber/violet/indigo/emerald/...),
 // então o quadro se adapta se o seeder mudar as etapas.
 //
@@ -9,7 +9,8 @@
 
 import { memo, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import ServiceOrderKanbanCard, { type ServiceOrderCardData } from './ServiceOrderKanbanCard';
+import { Inline } from '@/Components/layout';
+import ServiceOrderKanbanCard, { type BoardDensity, type ServiceOrderCardData } from './ServiceOrderKanbanCard';
 import { toneForColor, emphasisClass } from './boardTone';
 
 interface Props {
@@ -19,11 +20,24 @@ interface Props {
   cards: ServiceOrderCardData[];
   /** distingue visualmente a coluna de aguardando-aprovação × aguardando-peças ([W] mod #4) */
   emphasis?: 'aprovacao' | 'pecas' | null;
+  /** ocupação "x/y boxes" no header (coluna Em execução — Onda 1 paridade Cowork) */
+  capacity?: string | null;
+  /** densidade do menu Visão (repassada aos cards) */
+  density?: BoardDensity;
+  /** id do card com anel de foco da navegação por setas (D-07) */
+  focusedId?: number | null;
+  /** desliga o drag dos cards (foco Box/Mecânico — colunas não são etapas FSM) */
+  dragDisabled?: boolean;
+  /** rótulo da ação primária dos cards desta etapa (botão inline — paridade Cowork) */
+  primaryActionLabel?: string | null;
+  /** dispara a ação primária de um card (Board abre confirm FSM ou drawer) */
+  onCardAction?: (card: ServiceOrderCardData) => void;
   onCardClick: (card: ServiceOrderCardData) => void;
 }
 
-function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, onCardClick }: Props) {
+function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, capacity, density = 'padrao', focusedId, dragDisabled = false, primaryActionLabel = null, onCardAction, onCardClick }: Props) {
   const handleClick = useCallback((c: ServiceOrderCardData) => onCardClick(c), [onCardClick]);
+  const handleAction = useCallback((c: ServiceOrderCardData) => onCardAction?.(c), [onCardAction]);
 
   const { setNodeRef, isOver } = useDroppable({
     id: `column-${stageKey}`,
@@ -50,13 +64,24 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${tone.dot}`} />
           <h3 className="text-sm font-semibold text-foreground truncate">{name}</h3>
         </div>
-        <span
-          className={'text-xs px-1.5 py-0.5 rounded tabular-nums flex-shrink-0 font-semibold ' + tone.badge}
-          aria-label={`${cards.length} ${cards.length === 1 ? 'OS' : 'OS'}`}
-          data-testid={`board-count-${stageKey}`}
-        >
-          {cards.length}
-        </span>
+        <Inline gap={1} className="gap-1.5 flex-shrink-0">
+          {capacity ? (
+            <span
+              className="text-[10px] font-medium text-muted-foreground tabular-nums whitespace-nowrap"
+              title="Boxes ocupados / boxes da oficina"
+              data-testid={`board-capacity-${stageKey}`}
+            >
+              {capacity}
+            </span>
+          ) : null}
+          <span
+            className={'text-xs px-1.5 py-0.5 rounded tabular-nums flex-shrink-0 font-semibold ' + tone.badge}
+            aria-label={`${cards.length} ${cards.length === 1 ? 'OS' : 'OS'}`}
+            data-testid={`board-count-${stageKey}`}
+          >
+            {cards.length}
+          </span>
+        </Inline>
       </header>
 
       <div className="p-2 space-y-2 max-h-[calc(100vh-260px)] overflow-y-auto @[1280px]/board:max-h-[calc(100vh-300px)]" style={{ scrollbarWidth: 'thin' }}>
@@ -69,6 +94,11 @@ function ServiceOrderKanbanColumnImpl({ stageKey, name, color, cards, emphasis, 
               card={c}
               stageKey={stageKey}
               topBorderClass={tone.topBorder}
+              density={density}
+              focused={focusedId === c.id}
+              dragDisabled={dragDisabled}
+              primaryActionLabel={primaryActionLabel}
+              onPrimaryAction={handleAction}
               onClick={handleClick}
             />
           ))

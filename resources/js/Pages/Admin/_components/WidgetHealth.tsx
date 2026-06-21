@@ -21,10 +21,10 @@ interface Props {
 }
 
 const statusColor: Record<string, string> = {
-  green: 'bg-green-500',
-  yellow: 'bg-amber-500',
-  red: 'bg-red-500',
-  unknown: 'bg-gray-400',
+  green: 'bg-success',
+  yellow: 'bg-warning',
+  red: 'bg-destructive',
+  unknown: 'bg-muted-foreground',
 };
 
 const statusEmoji: Record<string, string> = {
@@ -38,8 +38,8 @@ export default function WidgetHealth({ data }: Props) {
   if (!data.available) {
     return (
       <div className="text-sm space-y-2">
-        <p className="text-gray-600">
-          Snapshot ausente. <code className="text-xs bg-gray-100 px-1 rounded">{data.reason}</code>
+        <p className="text-muted-foreground">
+          Snapshot ausente. <code className="text-xs bg-muted px-1 rounded">{data.reason}</code>
         </p>
         {data.instructions && (
           <p className="text-xs text-gray-500 font-mono">{data.instructions}</p>

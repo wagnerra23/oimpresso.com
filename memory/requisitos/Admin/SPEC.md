@@ -1,10 +1,15 @@
 ---
 module: Admin
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
 na_justified:
   D5: "Admin Center é Wagner-only no CT 100 via Tailscale (gate `is_wagner` + role `superadmin#1` + CIDR `100.99.0.0/16` whitelist — ADR 0122 Princípio 1+2). Cliente externo biz=4 ROTA LIVRE NÃO tem acesso por design — internet pública zera vetor de ataque. D5 cliente real não aplica."
   D4.b: "Admin Center é painel read-mostly que AGREGA visão de outros módulos (brief, health-check, cycles, ADRs) — sem state machine FSM própria. Não orquestra fluxo de negócio Eloquent; ações mutacionais limitadas a `apply` Curador, regenerate token, run-now health-check (ADR 0122 Princípio 4 read-mostly). D4.b FSM N/A."
-related_adrs: [0122, 0093, 0094, 0153, 0154]
+related_adrs: [0122-admin-center-ct100, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado]
 ---
+<!-- schema-allowlist: US ativas sob "## Sprint 1 — MVP..." / "## Sprint 2 — Curador..." (tabelas US-ADM-NNN por sprint); módulo a criar, backlog organizado por sprint em vez de heading canônico "## US ativas". -->
 
 # Admin Center — Centro de Operações @ CT 100
 

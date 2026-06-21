@@ -1,12 +1,18 @@
 ---
 module: ProductCatalogue
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
 na_justified:
   D6.b: "ProductCatalogue é catálogo público read-only — p99 OTel <500ms ainda não exportado (instrumentação OTel project-wide pendente). Performance dominada por queries simples em `App\\Product` com cache de imagens — sem otimização específica necessária no estado atual."
   D9.b: "ProductCatalogue é módulo read-only sem operações assíncronas — só renderização pública via Controller. Sem jobs/Horizon. failed_jobs N/A por design."
 na_justified_v3:
   D5: "ProductCatalogue é catálogo público QR/URL read-only acoplado a Modules/Vestuario (cliente real = Larissa ROTA LIVRE biz=4) e ao núcleo comum (App\\Product) — ADR 0094 §5 SoC brutal proíbe duplicar Models do core; ADR 0121 trata módulos verticais como produtos vendáveis com cliente próprio, mas catálogo é VIEW agregadora compartilhada entre todos os verticais (não tem cliente nominal próprio — herda do vertical que vende). ADR 0105 (cliente como sinal qualificado) descarta atribuir cliente fictício; D5 N/A justificado pois métrica adoção mora no vertical pai (Vestuario=biz_4_rota_livre_prod, ComunicacaoVisual=backlog_hipotese)."
-related_adrs: [0011, 0093, 0094, 0105, 0121, 0153, 0154, 0155, 0156]
+related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified]
 ---
+
+<!-- schema-allowlist: US sob "## Tabela de US"; heading legado UltimatePOS não casa "Backlog ativo"/"US ativas"/"User stories" — menos invasivo manter heading existente que renomear -->
 
 # SPEC — Modules/ProductCatalogue
 

@@ -17,17 +17,17 @@ const fmtBrl = (n: number): string =>
   `R$ ${n.toFixed(2).replace('.', ',')}`;
 
 const statusColor: Record<string, string> = {
-  green:   'text-green-700',
-  yellow:  'text-amber-700',
-  red:     'text-red-700',
-  unknown: 'text-gray-500',
+  green:   'text-success-fg',
+  yellow:  'text-warning-fg',
+  red:     'text-destructive-fg',
+  unknown: 'text-muted-foreground',
 };
 
 const statusBg: Record<string, string> = {
-  green:   'bg-green-100',
-  yellow:  'bg-amber-100',
-  red:     'bg-red-100',
-  unknown: 'bg-gray-100',
+  green:   'bg-success/10',
+  yellow:  'bg-warning/10',
+  red:     'bg-destructive/10',
+  unknown: 'bg-muted',
 };
 
 export default function WidgetBrainBCost({ data }: Props) {

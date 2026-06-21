@@ -12,6 +12,7 @@ use Modules\Jana\Entities\Mcp\McpCcBlob;
 use Modules\Jana\Entities\Mcp\McpCcMessage;
 use Modules\Jana\Entities\Mcp\McpCcSession;
 use Modules\Jana\Services\Privacy\PiiRedactor;
+use Modules\TeamMcp\Entities\McpIngestHeartbeat;
 
 /**
  * MEM-CC-1 — Endpoint POST /api/cc/ingest pra watcher local de cada dev
@@ -104,6 +105,13 @@ class CcIngestController extends Controller
                 'total_cost_usd' => (float) $session->messages()->sum('cost_usd'),
             ]);
 
+            // B-LIVE-HB (SDD · ADR 0278) — heartbeat do ingest (fim do SPOF).
+            // Upsert idempotente por host: bump last_ingest_at + last_session_uuid
+            // e acumula msgs_acc com o nº de mensagens efetivamente inseridas neste
+            // POST. NÃO conta duplicadas (re-envio idempotente não infla acumulador).
+            // Falha aqui NÃO derruba o ingest (heartbeat é sinal best-effort de infra).
+            $this->bumpHeartbeat($session->project_path ?? '', $session->session_uuid, $inserted);
+
             return response()->json([
                 'ok' => true,
                 'session_id' => $session->id,
@@ -126,6 +134,38 @@ class CcIngestController extends Controller
                 'error' => 'Internal',
                 'message' => $redactor->redact($e->getMessage()),
             ], 500);
+        }
+    }
+
+    /**
+     * B-LIVE-HB — Upsert idempotente do heartbeat de ingest por `host`.
+     *
+     * Cross-tenant (sem business_id — espelha mcp_cc_sessions). Chave de upsert é
+     * `host` (cwd/project_path do watcher). Re-envio do mesmo host atualiza a
+     * MESMA linha (UNIQUE host): 1 host = 1 linha. `msgs_acc` SOMA apenas as
+     * mensagens recém-inseridas ($inserted) — duplicadas não inflam o acumulador.
+     *
+     * Best-effort: erro aqui é logado mas NÃO falha o ingest (o reader/liveness
+     * — tarefa separada — apenas verá um heartbeat um pouco mais antigo).
+     */
+    protected function bumpHeartbeat(string $host, string $sessionUuid, int $inserted): void
+    {
+        if ($host === '') {
+            return;
+        }
+
+        try {
+            $hb = McpIngestHeartbeat::firstOrNew(['host' => $host]);
+            $hb->last_ingest_at = now();
+            $hb->last_session_uuid = $sessionUuid;
+            $hb->msgs_acc = (int) ($hb->msgs_acc ?? 0) + max(0, $inserted);
+            $hb->save();
+        } catch (\Throwable $e) {
+            $redactor = app(PiiRedactor::class);
+            Log::channel('copiloto-ai')->warning('CcIngest heartbeat falhou', [
+                'host_redacted' => $redactor->redact($host),
+                'error' => $redactor->redact($e->getMessage()),
+            ]);
         }
     }
 

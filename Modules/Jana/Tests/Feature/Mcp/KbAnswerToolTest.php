@@ -31,6 +31,13 @@ uses(Tests\TestCase::class);
  * Dual-mode pattern documentado em reference_tests_pest_canon.md.
  */
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Schema mínimo replicando mcp_memory_documents (sem FULLTEXT).
     Schema::dropIfExists('mcp_memory_documents');
     Schema::create('mcp_memory_documents', function (Blueprint $t) {
@@ -91,6 +98,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_memory_documents');
 });
 

@@ -1,8 +1,17 @@
+---
+module: Comissao
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: rascunho
+related_adrs: [0151-modules-comissao-feature-wish, 0105-cliente-como-sinal-guiar-sem-mandar, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
+---
+
 # SPEC — Comissão de Vendedores (cross-vertical)
 
 > ## ⛔ DORMENTE — feature-wish ([ADR 0151](../../decisions/0151-modules-comissao-feature-wish.md))
 >
-> **NÃO atribuir owner às US-COMM-* abaixo.** **NÃO scaffoldear código** em `Modules/Comissao/`.
+> **NÃO atribuir owner às US-COMM-* abaixo.** **NÃO scaffoldear código** em `Comissao` (planejado — não existe).
 >
 > Razão (ADR 0151): nenhum dos 5 verticais tem cliente pagante que reporta dor explícita de comissão hoje (Larissa opera com `commission_agent` UPos + planilha Eliana[E], ComVis/OficinaAuto/Autopecas inativos, Marketplaces inexistente). [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — sem sinal qualificado, sem código.
 >
@@ -10,7 +19,7 @@
 >
 > **SPEC abaixo permanece intacto como blueprint pré-pago** — quando trigger ativar, dev abre o SPEC e tem ~2 semanas de design já feito (mapping mercado, 6 schema tables, 5 cenários peculiares, 14 US, riscos catalogados).
 
-> **Módulo proposto:** `Modules/Comissao` (cross-vertical — consumido por Sells, ComVis, OficinaAuto, Autopecas, Marketplaces)
+> **Módulo proposto:** `Comissao` (planejado — não existe) (cross-vertical — consumido por Sells, ComVis, OficinaAuto, Autopecas, Marketplaces)
 > **Status:** **dormente** ([ADR 0151](../../decisions/0151-modules-comissao-feature-wish.md) — feature-wish, aguarda-sinal-qualificado)
 > **Convenção ID:** `US-COMM-NNN`
 > **Owner sugerido (ao ativar):** [W] + [E] (advogada + financeiro — afeta folha/CLT)
@@ -55,7 +64,7 @@
 | Aprovação manual / workflow / audit trail | ❌ | ❌ | 🟡 "reapuração permitida com motivo" | ❌ | ❌ | ❌ | 🟡 | ✅ | **Sim — construir (P1)** |
 | Mobile self-service (vendedor vê próprias comissões) | ❌ | ❌ | ❌ | 🟡 | 🟡 | 🟡 | 🟡 | ✅ "real-time earnings visibility" | **P2 — gap diferencial** |
 
-> **Princípio de não-duplicação:** o módulo `Modules/Comissao` **NÃO substitui** `transactions.commission_agent` nem `users.cmmsn_percent`. Eles continuam sendo os "valores semente" — o módulo novo lê e expande quando a policy exige multi-papel/tier/accelerator. Migração silenciosa: vendas legadas continuam funcionando com cálculo single-tier; vendas novas em verticais que adotam policy avançada usam o módulo novo.
+> **Princípio de não-duplicação:** o módulo `Comissao` (planejado — não existe) **NÃO substitui** `transactions.commission_agent` nem `users.cmmsn_percent`. Eles continuam sendo os "valores semente" — o módulo novo lê e expande quando a policy exige multi-papel/tier/accelerator. Migração silenciosa: vendas legadas continuam funcionando com cálculo single-tier; vendas novas em verticais que adotam policy avançada usam o módulo novo.
 
 ---
 
@@ -273,6 +282,10 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ---
 
+## US ativas
+
+> Backlog dormente (US-COMM-*) — blueprint pré-pago. Só ganha owner quando trigger de ativação do ADR 0151 for satisfeito + Wagner aprovar ADR de promoção. Detalhe das 14 US em §5 abaixo.
+
 ## §5 User Stories — US-COMM-001 a US-COMM-014
 
 ### US-COMM-001 · Schema base + migration + multi-tenant scope — **P0**
@@ -284,7 +297,7 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 **DoD:**
 - [ ] 6 migrations com `business_id` indexado + FK
 - [ ] 6 Eloquent Models com `HasBusinessScope` global scope
-- [ ] `Modules/Comissao/Database/Seeders/CommissionDefaultsSeeder` cria policy default per business existente (preserva backward-compat: rate=`users.cmmsn_percent`, trigger=`on_payment`, base=`gross_total`)
+- [ ] `Comissao/Database/Seeders/CommissionDefaultsSeeder` (módulo planejado — não existe) cria policy default per business existente (preserva backward-compat: rate=`users.cmmsn_percent`, trigger=`on_payment`, base=`gross_total`)
 - [ ] Pest: 1 teste `BusinessIdGuardTest` cross-tenant biz=1 vs biz=99
 - **Estimate:** 3d (recalibrado IA-pair fator 10x — [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md))
 
@@ -431,7 +444,7 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 ---
 
 ### US-COMM-011 · Comissão sobre líquido (após taxa marketplace) — **P2**
-> **blocked_by:** Modules/Marketplaces existir (não-construído ainda)
+> **blocked_by:** módulo Marketplaces (planejado — não existe)
 
 **Como** dono **quero** que vendas ML/iFood/Shopee usem base líquida (já descontada taxa marketplace) **para** comissão refletir margem real
 

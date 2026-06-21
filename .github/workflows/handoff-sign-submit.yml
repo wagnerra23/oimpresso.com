@@ -1,0 +1,116 @@
+name: Handoff Sign & Submit (on-push · loop zero-paste)
+
+# PR-6b Loop de Handoff Zero-Paste (Fase 0 · ADR 0283) — o TRANSPORTE.
+#
+# Fecha o "primeiro hop": um .md commitado em prototipo-ui/handoffs/ vira `pending`
+# SEM o [W] computar HMAC nem colar nada. Pra cada handoff novo/alterado no push,
+# a Action assina (sig = HMAC-SHA256(body, HANDOFF_SECRET), segredo SÓ no repo
+# secret) e chama o tool MCP handoff-submit (PR-6a) → pending → aparece na Forja.
+#
+# Por que on-push e não zero-toque puro: o Cowork é read-only no GitHub e não
+# expõe um endpoint estável de handoffs pendentes — então o 1º hop SEMPRE precisa
+# de um gatilho fora do Cowork. Isto é o piso real até existir um publisher
+# Cowork→repo (chip de follow-up). NÃO faz auto-merge (ADR 0283 — merge é o
+# 1-clique do [W]).
+#
+# ADVISORY de nascença (ADR 0271/0275): não está no branch protection. O job
+# `selftest` (controle-negativo do assinador) roda SEMPRE, sem segredo/rede/DB. O
+# job `submit` só roda no push pra main e degrada pra skip-as-pass se os secrets
+# ainda não existirem (o [W] os configura UMA vez).
+#
+# [W] faz UMA VEZ:
+#   - secret HANDOFF_SECRET   (= o do .env do servidor; o HMAC tem que bater)
+#   - secret HANDOFF_SUBMIT_TOKEN  (token MCP scope jana.mcp.handoff.submit via McpTokenIssuer)
+#   - (opcional) var MCP_ENDPOINT_URL  (default https://mcp.oimpresso.com/api/mcp)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'prototipo-ui/handoffs/*.md'
+  pull_request:
+    paths:
+      - 'bin/sign-handoff.php'
+      - '.github/workflows/handoff-sign-submit.yml'
+  workflow_dispatch:
+    inputs:
+      handoff:
+        description: '(Re)submeter UM handoff já pousado → pending na Forja (ex: prototipo-ui/handoffs/foo.md). Pra handoffs que aterrissaram sem o submit rodar — ADR 0283/0285.'
+        required: true
+        type: string
+
+concurrency:
+  group: handoff-sign-submit-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    name: sign-handoff self-test (controle-negativo · sem segredo/rede)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: O assinador morde? (determinismo · CRLF→LF · sig-bate · parse · envelope)
+        run: php bin/sign-handoff.php --self-test
+      - name: O transporte morde? (skip-as-pass · vazio · arquivo inexistente · sem rede)
+        run: bash bin/submit-handoff.sh --self-test
+
+  submit:
+    name: sign & submit handoffs alterados → pending
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # histórico pro diff before...after
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Assina e submete cada handoff novo/alterado
+        env:
+          HANDOFF_SECRET: ${{ secrets.HANDOFF_SECRET }}
+          SUBMIT_TOKEN: ${{ secrets.HANDOFF_SUBMIT_TOKEN }}
+          MCP_ENDPOINT: ${{ vars.MCP_ENDPOINT_URL || 'https://mcp.oimpresso.com/api/mcp' }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+          DISPATCH_HANDOFF: ${{ github.event.inputs.handoff }}
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            # Re-submit manual de UM handoff já pousado (input via env — sem injeção de shell).
+            FILES=( "${DISPATCH_HANDOFF}" )
+            [ -n "${FILES[0]}" ] || { echo "input 'handoff' vazio — nada a submeter."; exit 0; }
+            case "${FILES[0]}" in
+              prototipo-ui/handoffs/*.md) : ;;
+              *) echo "❌ 'handoff' tem que ser prototipo-ui/handoffs/*.md — recebi: ${FILES[0]}"; exit 1 ;;
+            esac
+            [ -f "${FILES[0]}" ] || { echo "❌ ${FILES[0]} não existe neste ref."; exit 1; }
+          else
+            # Diff do push. Primeiro push/force (before=000…) → compara com o pai.
+            BASE="${BEFORE_SHA}"
+            if [ -z "${BASE}" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+              BASE="${AFTER_SHA}^"
+            fi
+
+            # Só handoffs que AINDA existem (added/modified; deletados são ignorados).
+            mapfile -t FILES < <(git diff --name-only --diff-filter=AM "${BASE}" "${AFTER_SHA}" -- 'prototipo-ui/handoffs/*.md' | sort -u)
+          fi
+
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "Nenhum handoff novo/alterado neste push — nada a submeter."
+            exit 0
+          fi
+
+          # bin/submit-handoff.sh = fonte única do sign+POST (reusada pelo publisher
+          # cowork-inbox.yml, ADR 0285). Skip-as-pass interno se faltar secret.
+          bash bin/submit-handoff.sh "${FILES[@]}"

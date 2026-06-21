@@ -19,7 +19,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Plus, Eye, Edit, Trash2, Printer, RotateCcw, FileText } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Printer, RotateCcw, FileText, Barcode } from 'lucide-react';
 
 // ---------- Tipos ----------
 
@@ -280,7 +280,7 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
                   <td className="px-2"><PaymentPill s={r.payment_status} /></td>
                   <td className="px-2 text-right tabular-nums font-medium">{brl(r.final_total)}</td>
                   <td className="px-2 text-right tabular-nums">
-                    <span className={r.payment_due > 0 ? 'text-rose-700 font-medium' : 'text-stone-400'}>
+                    <span className={r.payment_due > 0 ? 'text-destructive-fg font-medium' : 'text-stone-400'}>
                       {brl(r.payment_due)}
                     </span>
                   </td>
@@ -296,13 +296,16 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
                           <Printer className="h-3.5 w-3.5" />
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/labels/show?purchase_id=${r.id}`, '_blank')} title="Imprimir etiquetas">
+                        <Barcode className="h-3.5 w-3.5" />
+                      </Button>
                       {permissions.update && (
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onEdit(r.id)} title="Editar">
                           <Edit className="h-3.5 w-3.5" />
                         </Button>
                       )}
                       {permissions.delete && (
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600" onClick={() => onDelete(r.id)} title="Excluir">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r.id)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}

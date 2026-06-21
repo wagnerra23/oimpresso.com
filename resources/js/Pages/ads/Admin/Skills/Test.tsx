@@ -71,7 +71,7 @@ const Test: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
       />
 
       {flash && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900">
+        <div className="rounded-md border border-success/20 bg-success-soft px-4 py-2 text-sm text-success-fg">
           {flash}
         </div>
       )}
@@ -175,7 +175,7 @@ const Test: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ skil
                     <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> {r.latency_ms ?? '?'}ms</span>
                     <span className="inline-flex items-center gap-1"><Hash className="w-3 h-3" /> {r.output_tokens ?? '?'} tokens</span>
                     {r.pii_count > 0 && (
-                      <span className="inline-flex items-center gap-1 text-amber-600">
+                      <span className="inline-flex items-center gap-1 text-warning-fg">
                         <ShieldAlert className="w-3 h-3" /> {r.pii_count} PII redactions
                       </span>
                     )}

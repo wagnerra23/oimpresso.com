@@ -1,3 +1,9 @@
+---
+page: /payments/v2/{id}/edit
+component: resources/js/Pages/TransactionPayment/Edit.tsx
+status: draft
+---
+
 # Charter — `TransactionPayment/Edit.tsx`
 
 > Rota Inertia: `/payments/v2/{id}/edit` · Controller: `TransactionPaymentController::editInertia` · Submit reusa `update($id)` legacy.

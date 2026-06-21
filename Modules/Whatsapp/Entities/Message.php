@@ -91,6 +91,8 @@ class Message extends Model
         'sender_user_id', 'sender_kind',
         'cost_centavos',
         'is_internal_note',
+        // US-WA-049 — A/B tracking de variante de macro (MacroExecutor grava macro_variant_id)
+        'macro_variant_id',
         // US-WA-072 — mídia
         'media_url', 'media_mime', 'media_size_bytes',
         'media_duration_s', 'media_thumbnail_url',

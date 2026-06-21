@@ -43,19 +43,27 @@ class McpTokenIssuer
     }
 
     /**
-     * Revoga (soft-delete + expires_at=now) um token existente.
+     * Revoga um token: grava `revoked_at`/`revoked_by` (audit LGPD completo) +
+     * `expires_at=now` e soft-delete (SoftDeletes — a row sobrevive pra forense).
      *
+     * @param  int       $tokenId   token a revogar
+     * @param  int|null  $byUserId  actor que revogou (default: o próprio dono — self-revoke)
      * @return bool true se revoke aplicado; false se token não existia.
      */
-    public function revoke(int $tokenId): bool
+    public function revoke(int $tokenId, ?int $byUserId = null): bool
     {
-        return OtelHelper::spanBiz('teammcp.token.revoke', function () use ($tokenId) {
+        return OtelHelper::spanBiz('teammcp.token.revoke', function () use ($tokenId, $byUserId) {
             $token = McpToken::find($tokenId);
             if ($token === null) {
                 return false;
             }
-            $token->update(['expires_at' => now()]);
-            $token->delete();
+            // Audit LGPD (ADR 0081): grava quem/quando ANTES do soft-delete.
+            $token->update([
+                'expires_at' => now(),
+                'revoked_at' => now(),
+                'revoked_by' => $byUserId ?? (int) $token->user_id,
+            ]);
+            $token->delete(); // soft-delete — preserva row pro audit trail
 
             return true;
         }, ['module' => 'TeamMcp', 'token_id' => $tokenId]);
@@ -109,8 +117,13 @@ class McpTokenIssuer
                 $defaultNote = 'Rotated em ' . now()->toDateString();
                 [$new, $raw] = McpToken::gerar($userId, $note ?: $defaultNote);
 
-                // Revoke old (expires_at=now + soft delete)
-                $old->update(['expires_at' => now()]);
+                // Revoke old: audit LGPD (revoked_at/revoked_by) + expires_at=now
+                // + soft-delete (a row sobrevive pra forense — ADR 0081).
+                $old->update([
+                    'expires_at' => now(),
+                    'revoked_at' => now(),
+                    'revoked_by' => $userId, // dono rotaciona o próprio token
+                ]);
                 $old->delete();
 
                 return [

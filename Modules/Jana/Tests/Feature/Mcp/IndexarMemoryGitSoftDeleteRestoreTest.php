@@ -31,6 +31,13 @@ uses(\Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // mcp_memory_documents (mesmo pattern do StalenessDetectorTest — manual create
     // pra rodar em sqlite :memory: do phpunit.xml).
     Schema::create('mcp_memory_documents', function (Blueprint $t) {
@@ -83,6 +90,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_memory_documents_history');
     Schema::dropIfExists('mcp_memory_documents');
 });

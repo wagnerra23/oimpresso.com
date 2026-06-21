@@ -1,15 +1,19 @@
 ---
-adr: 0124
-title: Curador — pipeline canônico de ingestão de conhecimento (computador → empresa → MCP)
-status: proposed
-date: 2026-05-09
-deciders: [Wagner]
+slug: 0124-curador-conhecimento-pipeline
+number: 124
+title: "Curador — pipeline canônico de ingestão de conhecimento (computador → empresa → MCP)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+decided_by: [W]
+decided_at: "2026-05-09"
+module: governance
 supersedes: []
-references:
-  - 0061-conhecimento-canonico-git-mcp-zero-automem.md
-  - 0094-constituicao-v2-7-camadas-8-principios.md
-  - 0105-cliente-como-sinal-guiar-sem-mandar.md
-lifecycle: active
+related:
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
 ---
 
 ## Contexto

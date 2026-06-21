@@ -215,7 +215,7 @@ export default function AcoesDropdown({
                   action.onClick();
                 }}
                 className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left hover:bg-stone-50 focus:bg-stone-50 focus:outline-none ${
-                  action.variant === 'danger' ? 'text-rose-700 hover:bg-rose-50' : 'text-stone-700'
+                  action.variant === 'danger' ? 'text-destructive-fg hover:bg-destructive-soft' : 'text-stone-700'
                 }`}
               >
                 <span className="w-4 text-center text-base">{action.icon}</span>

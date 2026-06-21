@@ -3,9 +3,9 @@ page: /produto/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
 owner: wagner
 status: draft
-last_validated: 2026-05-09
+last_validated: "2026-05-09"
 parent_module: Produto
-related_adrs: [0110, 0107, 0093, 0094]
+related_adrs: [110, 107, 93, 94]
 tier: A
 charter_version: 1
 ---

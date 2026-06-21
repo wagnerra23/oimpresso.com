@@ -15,6 +15,11 @@ WORKDIR /var/www/html
 # essas exts (composer install falhava com "ext-gd/soap/sockets/opentelemetry missing"
 # → bloqueava deploy do código novo no container, que ficou 1302 commits atrás).
 # Ver memory/reference/INFRA-ACESSO-CANON.md (deploy oimpresso-mcp).
+# pcov (SDD P07 — ADR 0275 coverage_pct): mede cobertura na nightly full-suite
+# CT100 (ct100-fullsuite.sh roda `pest --coverage-clover` com `-d pcov.enabled=1`).
+# install-php-extensions deixa pcov DESLIGADO por default (pcov.enabled=0), então
+# o runtime Octane de prod NÃO paga overhead — só liga sob a flag -d do nightly.
+# NUNCA é instrumentado no Hostinger (ADR 0062 — coverage vive só no CT100).
 RUN install-php-extensions \
         pdo_mysql \
         intl \
@@ -26,7 +31,14 @@ RUN install-php-extensions \
         gd \
         soap \
         sockets \
-        opentelemetry
+        opentelemetry \
+        pcov
+
+# git: o entrypoint-octane usa `git rev-parse HEAD` pra gravar o commit servido
+# (storage/app/deployed_commit.txt → /api/mcp/health/auth) — drift observability
+# (ADR 0256), lido pela sentinela mcp-drift-sentinel.yml. A base FrankenPHP-alpine
+# NÃO traz git; sem isto o entrypoint grava "unknown" → /health/auth sem commit.
+RUN apk add --no-cache git
 
 # OPcache + JIT em produção pra acelerar boot inicial e código quente
 COPY php.ini /usr/local/etc/php/conf.d/zz-mcp-overrides.ini

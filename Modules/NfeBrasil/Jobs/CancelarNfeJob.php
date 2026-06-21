@@ -53,6 +53,7 @@ class CancelarNfeJob implements ShouldQueue
     {
         // ── 1. Carregar TransactionDocument (sem global scope p/ cross-tenant
         //      guard explícito — defesa em profundidade ADR 0093) ────────────
+        // SUPERADMIN: job em fila não tem session; valida business_id explicitamente abaixo (linha ~66).
         $doc = TransactionDocument::withoutGlobalScopes()->find($this->transactionDocumentId);
 
         if (! $doc) {
@@ -105,6 +106,7 @@ class CancelarNfeJob implements ShouldQueue
             return;
         }
 
+        // SUPERADMIN: job em fila sem session; $doc já passou no guard de business_id (linha ~66).
         $emissao = NfeEmissao::withoutGlobalScopes()->find($doc->doc_id);
         if (! $emissao) {
             Log::warning('CancelarNfeJob: NfeEmissao não encontrada', [

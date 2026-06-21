@@ -3,6 +3,7 @@
 > **Versão:** 1.1 — reconciliada com o modelo **autônomo** de 2026-05-31 (ver overlay no §2 + [AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)). Formalizado em [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md).
 > **Documento mãe:** [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 > **Última revisão:** 2026-05-31 (reconciliação [CL] — conteúdo base 1.0 = 2026-05-09)
+> **🔁 v2 (colapso) — ratificado em [ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) (2026-06-17):** 6→2 papéis · 7→3 fases · memória=git SSOT · intake=Issues/`cowork-inbox` · gates=CI (a11y-axe required) · code write-path com review-gate. **O overlay autônomo do §2 é o modelo principal da v2.** v1 preservado (append-only — o histórico fica).
 
 ## 1. Os 6 papéis
 
@@ -255,3 +256,17 @@ O Claude Design oficial empacota o design num **bundle estruturado** (spec machi
 - [ADR 0104](../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — MWART process
 - [ADR 0110](../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md) — Cockpit V2
 - [Skill `mwart-comparative` V4](../.claude/skills/mwart-comparative/SKILL.md) — orquestrador
+
+---
+
+## Esteira ≠ armazém (régua 6 · memória de proveniência — 2026-06-18)
+
+O bundle do design é **esteira** (transitória, enxuta), o `memory/` do projeto é **armazém** (durável, padrão do projeto, sincronizado pro MCP). **Conhecimento ingerido = apagado do bundle.** Enforçado por `scripts/bundle-lint.mjs` (advisory).
+
+**O design (Cowork) limpa o bundle a cada export — 3 baldes:**
+
+| 🟢 MANTÉM (esteira) | 🟡 INGERE → memory/ → APAGA | 🔴 APAGA (resíduo) |
+|---|---|---|
+| app-vivo (`.jsx/.css` que `oimpresso.com.html` carrega) · `screenshots/` · `README/STATUS` · `COWORK_NOTES` (Pendentes) · `PROMPT_*` **não-processados** | planos de tela (`Plano de Transformacao`, `Provar Antes`, storyboards) · audits de conhecimento → viram `memory/requisitos/<Mod>/` **linkando o charter da tela** (vínculo MCP/RAGAS) | `Adversário*`/`Tribunal*`/`Avaliac*` · `_arquivo/`/`benchmark/`/`uploads/`/`.thumbnail` · `GAPS_v*`/`FORCE_*` · `PROMPT_*` **[PROCESSADO]** |
+
+**Por que MCP/RAGAS:** o que vai pro `memory/` no padrão do projeto é git-pushed → webhook sincroniza pro MCP server (time consulta via `memoria-search`) → entra no corpus RAG da Jana (`jana-ragas-gate` avalia recuperação). O **vínculo com a tela** = a cadeia de proveniência (doc → charter → contract → `fonte`). Por isso a ingestão SEMPRE linka o charter.

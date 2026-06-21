@@ -1,5 +1,22 @@
 # OficinaAuto — Changelog
 
+## [2026-06-09] Erradicação de "locação" — reparo é o único domínio (ADR 0265)
+
+### 🪦 Lápide — order_type=locacao é resíduo, não fluxo (append, não reescreve história · L-22)
+- Veredito de Wagner (soberano do domínio) 2026-06-09: locação de caçamba **não é processo que ele usa** — é alucinação herdada do legado WR Sistemas. A [ADR 0265](../../memory/decisions/0265-oficina-reparo-erradica-locacao.md) (errata que **fecha o resíduo** que a [ADR 0194](../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) deixou) decide: **Oficina = reparo, ponto.** `order_type ∈ {manutencao, mecanica}`. "Caçambas" sobrevive **só como nome comercial** do cliente Martinho.
+- **Anti-retorno (D-4) LANDADO + GATED:** linha em [`memory/proibicoes.md`](../../memory/proibicoes.md) + gate `dominio:check` ([ADR 0264](../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4) que **falha o CI** se `locacao` reaparecer num enum. A alucinação que nenhuma spec de tela pegava agora falha mecanicamente.
+- **Erradicação de schema/código LANDADA (CI-Pest verificado):**
+  - **Enum** `order_type` → `{manutencao, mecanica}` via migration `2026_06_09_000001` (data-fix `locacao`→`manutencao` ANTES de estreitar · idempotente · MySQL-guard · SHOW COLUMNS). **Prova de máquina:** `dominio:check` divergência `order_type:locacao` caiu **1→0**.
+  - **Importer** `normalizeOrderType` — removido o ramo `locacao` (cai no default `manutencao`).
+  - **KPI** `locacao_ativa` removido do `ServiceOrderSummaryService` (sem consumidor) + Wave25/26 ajustados.
+  - **Menu** `Caçambas`→`Veículos` · comentário de rota stale reescrito pra reparo.
+  - **Validação** `StoreServiceOrderRequest`: `order_type in:manutencao,mecanica` (não aceita mais `locacao` — bate com o enum, evita validar OK + falhar no insert MySQL).
+- **Resíduo remanescente (rastreado · dead-code/test-data, NÃO quebra prod):**
+  - `ServiceOrderController` (filtro `locacao_ativa` + `where('order_type','locacao')`) e `AprovacaoOsController` (ramo `order_type==='locacao'`) viraram **código morto** (queries retornam 0 linhas pós-erradicação). Limpeza acoplada aos testes de controller (`ServiceOrderIndexStageFilterTest`) = follow-up com Pest.
+  - Fixtures de teste FSM-roteadas (`FsmTransitionTest` etc.) ainda criam `order_type='locacao'` como dado (passam em SQLite=TEXT). Trocar exige Pest por-teste (acoplamento FSM) = follow-up.
+  - **Prova de máquina atual:** `dominio:check` (schema) = **0** divergência. Schema + caminho de escrita (validação/importer/KPI) = zero locacao.
+- **Preservado (charter v4 PR #2417):** FSM keys `disponivel/locada` + componentes `Cacamba*` = dívida F3 em ADR própria — **não tocados**. "Caçambas" como nome do cliente Martinho = ok.
+
 ## [W28 — 2026-06-03] Importer Firebird fino + reconciliação de domínio (ADR 0194)
 
 ### G4 Importer Firebird Martinho — mapping fino (sai do esqueleto W27)

@@ -18,19 +18,25 @@ import { cn } from "@/Lib/utils"
  *    @theme (inertia.css), não os nomes da régua CSS (`--pos/--neg`).
  *  • `size` sobe até `5xl` — o KPI canônico é `4xl/36px` (DESIGN.md §16.3),
  *    que a v1 (teto `3xl`) não expressava.
+ *
+ * Type RAMP (F2 Financeiro · [W] "vai" 2026-06-10): `size` consome a âncora
+ * única `--fs-1..9` de `resources/css/foundations.css` — UMA escala, não duas.
+ * Mapeamento 1:1 xs→fs-1 … 5xl→fs-9. Cada degrau carrega o leading default das
+ * regras de acabamento do ramp (1.45 corpo · 1.2 títulos · 1 números); a
+ * variant `leading` explícita sobrescreve (tailwind-merge resolve o conflito).
  */
 const textVariants = cva("", {
   variants: {
     size: {
-      xs: "text-xs",
-      sm: "text-sm",
-      base: "text-base",
-      lg: "text-lg",
-      xl: "text-xl",
-      "2xl": "text-2xl",
-      "3xl": "text-3xl",
-      "4xl": "text-4xl",
-      "5xl": "text-5xl",
+      xs: "text-[length:var(--fs-1)] leading-[1.45]",
+      sm: "text-[length:var(--fs-2)] leading-[1.45]",
+      base: "text-[length:var(--fs-3)] leading-[1.45]",
+      lg: "text-[length:var(--fs-4)] leading-[1.45]",
+      xl: "text-[length:var(--fs-5)] leading-[1.45]",
+      "2xl": "text-[length:var(--fs-6)] leading-[1.2]",
+      "3xl": "text-[length:var(--fs-7)] leading-[1.2]",
+      "4xl": "text-[length:var(--fs-8)] leading-none",
+      "5xl": "text-[length:var(--fs-9)] leading-none",
     },
     weight: {
       normal: "font-normal",

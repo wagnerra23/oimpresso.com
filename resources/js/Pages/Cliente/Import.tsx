@@ -50,7 +50,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
 
   if (!props.zip_available) {
     return (
-      <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
+      <div className="flex-1 bg-muted/30">
         <div className="container mx-auto px-8 py-12 max-w-2xl">
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-6 text-rose-700">
             <h2 className="font-semibold flex items-center gap-2">
@@ -68,7 +68,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
   }
 
   return (
-    <div className="-m-6 bg-muted/30 min-h-[calc(100vh-3rem)]">
+    <div className="flex-1 bg-muted/30">
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-8 pt-6 pb-4 max-w-3xl">
           <div className="flex items-center gap-3 mb-2">

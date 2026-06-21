@@ -1,6 +1,6 @@
 ---
 title: Index de Lifecycle das ADRs — pós-triagem 2026-05-06 (refresh 2026-05-09)
-description: Single source of truth pra status de lifecycle das ADRs canon (13 colisões de número — ver numbering_collisions + Bloco 12). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27; colisão 0235 + auditoria de 6 colisões históricas apendadas em 2026-05-30. Tool MCP `decisions-search` filtra por este index.
+description: Single source of truth pra status de lifecycle das ADRs canon (14 colisões de número — ver numbering_collisions + Bloco 13). Aprovado por Wagner em 2026-05-06; Bloco 8 apendado em 2026-05-09; entrada colisão 0195 apendada em 2026-05-27; colisão 0235 + auditoria de 6 colisões históricas apendadas em 2026-05-30. Tool MCP `decisions-search` filtra por este index.
 type: index
 status: aceito
 authority: [Wagner]
@@ -8,7 +8,7 @@ last_reviewed: 2026-05-09
 next_review: 2026-08-09  # trimestral
 total_adrs: 119
 unique_numbers: 116
-numbering_collisions: [0101, 0102, 0119, 0126, 0141, 0170, 0178, 0180, 0195, 0216, 0235, 0236, 0246]  # ADR 0028 não cumprido em 13 casos — pendente housekeeping (ADR 0120). 0195 add 2026-05-27 (PR #1714+#1736). 0235 add 2026-05-30 (PR #1963 roxo + PR #1973 staging; renumber PR #1995 bloqueado pelo gate append-only). 6 colisões históricas (0126/0141/0170×3/0178/0180/0216) surfaçadas + registradas 2026-05-30 pelo novo AdrNumberCollisionTest — ver Bloco 11. 0236 (×3) + 0246 (×2) add 2026-06-07 — surfaçadas pelo AdrNumberCollisionTest no housekeeping P3, ver Bloco 12.
+numbering_collisions: [0101, 0102, 0119, 0126, 0141, 0170, 0178, 0180, 0195, 0216, 0235, 0236, 0246, 0294]  # ADR 0028 não cumprido em 14 casos — pendente housekeeping (ADR 0120). 0195 add 2026-05-27 (PR #1714+#1736). 0235 add 2026-05-30 (PR #1963 roxo + PR #1973 staging; renumber PR #1995 bloqueado pelo gate append-only). 6 colisões históricas (0126/0141/0170×3/0178/0180/0216) surfaçadas + registradas 2026-05-30 pelo novo AdrNumberCollisionTest — ver Bloco 11. 0236 (×3) + 0246 (×2) add 2026-06-07 — surfaçadas pelo AdrNumberCollisionTest no housekeeping P3, ver Bloco 12. 0294 (×2) add 2026-06-20 (PR #3069 hash-chain T5 + #3068 dual-track; renumber bloqueado append-only) — ver Bloco 13.
 governance_principle: append-only — ADRs nunca deletadas; lifecycle reflete uso, não validade histórica
 ---
 
@@ -359,3 +359,16 @@ Housekeeping P3 de memória: o [`AdrNumberCollisionTest`](../../tests/Feature/Me
 | 0246b | A | **Tipo "Outros" default — migrações legacy** · slug `0246-tipo-outros-default-migracoes-legacy` · ⚠️ colisão com 0246a |
 
 **Causa:** PRs paralelos numeraram igual sem coordenação cross-branch (mesmo padrão de 0195/0235). **Renumber PROIBIDO** — append-only Tier 0 (Constituição Art. 3 + ADR 0094/0095/0180), gate `Append-only canon` bloqueia rename de ADR ratificada. **Resolução:** documentar, não mutar — coexistência tech-debt. Descoberta: referencie por slug; `decisions-search` retorna todos ao filtrar por number. Housekeeping eventual = ADR 0120.
+
+## Bloco 13 — Apendado 2026-06-20 — colisão 0294 (hash-chain + dual-track, Onda 1 IA OS)
+
+### Colisão 0294 (×2 arquivos)
+
+| Numero | Lifecycle | Notas |
+|---|---|---|
+| 0294a | A | **mcp_audit_log tamper-evident por hash-chain SHA-256** (T5, Onda 1 IA OS) (PR #3069 — 2026-06-20) · slug `0294-mcp-audit-log-hash-chain-tamper-evident` · ⚠️ colisão com 0294b |
+| 0294b | A | **Método dual-track Shape Up + catraca** (governança) (PR #3068 — 2026-06-20) · slug `0294-metodo-dual-track-shapeup-catraca` · ⚠️ colisão com 0294a |
+
+**Causa:** 2 streams paralelos do mesmo dia (2026-06-20) numeraram `0294` sem coordenação cross-branch — a branch de governança (#3068, dual-track) e a branch da Onda 1 IA OS (#3069, hash-chain). #3068 mergeou primeiro ("first wins"); o gate `Append-only canon` proíbe rename retroativo. Mesmo padrão de 0195/0235/0236/0246 — exatamente a falha que o [ADR 0180](0180-drift-numero-adr-0178-conflito-paralelo.md) cataloga.
+
+**Resolução:** documentar, não mutar — coexistência tech-debt registrada aqui (satisfaz `AdrNumberCollisionTest` + memory-health Check A). Descoberta: referencie por slug; `decisions-search` retorna ambos ao filtrar por number. ADRs internamente não se referenciam (temas distintos — forense de audit ≠ método de planejamento). Housekeeping eventual = ADR 0120.

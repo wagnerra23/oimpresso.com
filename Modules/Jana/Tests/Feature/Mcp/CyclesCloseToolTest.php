@@ -39,6 +39,13 @@ uses(Tests\TestCase::class);
  */
 
 beforeEach(function () {
+    // era-sqlite: cria schema mcp_*/jana_* manual (sqlite-friendly). No MySQL persistente
+    // do nightly isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é
+    // na lane sqlite (per-PR); pula no MySQL.
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
+    }
+
     // Schema minimal pra SQLite (mcp_cycles, mcp_projects, mcp_tasks, events, comments)
     Schema::dropIfExists('mcp_jira_projects');
     Schema::create('mcp_jira_projects', function (Blueprint $t) {
@@ -130,9 +137,60 @@ beforeEach(function () {
         $t->text('body');
         $t->timestamps();
     });
+
+    // A4 (SDD Leva 2): CyclesCloseTool agora exige scope jana.mcp.cycles.manage
+    // via trait AuthorizesMcpMutation. Os cenários abaixo são do caminho FELIZ —
+    // injeta um user autorizado no auth userResolver (mesmo canal que o
+    // McpAuthMiddleware povoa + que Laravel\Mcp\Request::user() lê). A cobertura
+    // da NEGAÇÃO vive em AuthorizesMcpMutationTest.
+    app('auth')->resolveUsersUsing(fn ($guard = null) => new class implements \Illuminate\Contracts\Auth\Authenticatable {
+        public function can($abilities, $arguments = []): bool
+        {
+            return true;
+        }
+
+        public function getAuthIdentifierName()
+        {
+            return 'id';
+        }
+
+        public function getAuthIdentifier()
+        {
+            return 42;
+        }
+
+        public function getAuthPasswordName()
+        {
+            return 'password';
+        }
+
+        public function getAuthPassword()
+        {
+            return '';
+        }
+
+        public function getRememberToken()
+        {
+            return '';
+        }
+
+        public function setRememberToken($value)
+        {
+            // no-op (stub)
+        }
+
+        public function getRememberTokenName()
+        {
+            return 'remember_token';
+        }
+    });
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return;
+    }
+
     Schema::dropIfExists('mcp_task_comments');
     Schema::dropIfExists('mcp_task_events');
     Schema::dropIfExists('mcp_tasks');

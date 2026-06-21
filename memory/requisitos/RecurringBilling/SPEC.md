@@ -1,3 +1,16 @@
+---
+module: RecurringBilling
+slug: recurring-billing-spec
+title: Especificação funcional — RecurringBilling
+type: spec
+version: "1.0"
+last_updated: "2026-06-13"
+owner: wagner
+status: ativo
+---
+
+<!-- schema-allowlist: US ativas sob "## 2. User stories" (US-RB-NNN canônicas, casa o gate); blocos stub legados §7-bis/§8 carregam ID auto-gerado malformado US-RECURRINGBILLING-001 (duplicatas das US-RB-040..044) — manter intacto evita restruturar corpo; IDs canônicos são os US-RB-NNN -->
+
 # Especificação funcional — RecurringBilling
 
 > Convenção do ID: `US-RB-NNN` para user stories, `R-RB-NNN` para regras Gherkin.
@@ -659,7 +672,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: criar credencial + cobrança avulsa mock + webhook idempotência + isolamento multi-tenant
 - **Pré-requisito de todos os outros escopos**
 
-### US-RECURRINGBILLING-001 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
+### US-RECURRINGBILLING-002 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
 
 > owner: wagner · priority: p0 · estimate: 32h · status: todo · type: story
 > blocked_by: —
@@ -673,7 +686,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: 100 contratos × 3 ciclos = 300 invoices sem dupla + isolamento
 - **Bloqueado por:** Escopo 0 (PaymentGateway)
 
-### US-RECURRINGBILLING-001 · Escopo 2 — Boleto impresso via Asaas
+### US-RECURRINGBILLING-003 · Escopo 2 — Boleto impresso via Asaas
 
 > owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -685,7 +698,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: gerar boleto mock + verificar url salva + email disparado
 - **Bloqueado por:** Escopo 1
 
-### US-RECURRINGBILLING-001 · Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter)
+### US-RECURRINGBILLING-004 · Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter)
 
 > owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
 > blocked_by: —
@@ -699,7 +712,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: listener disparado ao pagar + mock provider + status assíncrono + isolamento
 - **Bloqueado por:** Escopo 1
 
-### US-RECURRINGBILLING-001 · Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas)
+### US-RECURRINGBILLING-005 · Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas)
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -719,7 +732,7 @@ Origem: `/comparativo RecurringBilling` em 2026-05-06. Capacidade #1 da CAPTERRA
 - ADR tech/0007 (encryption pattern credenciais boleto)
 - CAPTERRA-INVENTARIO.md item #1
 
-### US-RECURRINGBILLING-001 · Test de retry idempotente do ProcessAsaasWebhookJob
+### US-RECURRINGBILLING-006 · Test de retry idempotente do ProcessAsaasWebhookJob
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > blocked_by: —
@@ -739,7 +752,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #2 🟡 — tabel
 - ProcessAsaasWebhookJob.php
 - CAPTERRA-INVENTARIO.md item #2
 
-### US-RECURRINGBILLING-001 · Completar cancelar() C6/Asaas + UI Cancelar título + audit log
+### US-RECURRINGBILLING-007 · Completar cancelar() C6/Asaas + UI Cancelar título + audit log
 
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
 > blocked_by: —
@@ -761,7 +774,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 🟡 — `Bole
 - InterDriver::cancelar() (referência)
 - CAPTERRA-INVENTARIO.md item #4
 
-### US-RECURRINGBILLING-001 · [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations
+### US-RECURRINGBILLING-008 · [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
@@ -788,7 +801,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 ❌ AUSENTE �
 - multi-tenant-patterns skill
 - CAPTERRA-INVENTARIO.md item #4
 
-### US-RECURRINGBILLING-001 · Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail
+### US-RECURRINGBILLING-009 · Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail
 
 > owner: — · priority: p1 · estimate: 12h · status: todo · type: story
 > blocked_by: —
@@ -973,3 +986,41 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 **Out of scope:** PIX automático JRC, PIX saída, dashboards de webhooks (futuro UI sob `recurringbilling.webhooks.view` perm — US-RB-049).
 
 **Refs:** ADR 0093 Multi-tenant Tier 0 · ADR 0094 §6 · pattern `Modules/RecurringBilling/Http/Controllers/AsaasWebhookController.php` · tabela `pg_webhook_events` (idempotência shared) · US-RB-044 listener NFe automática boleto pago (reusado).
+
+### US-RB-052 · Ativar gateway nas 109 assinaturas com gateway=NULL (cobranças dormentes)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: recurring-billing-gateway-ativacao
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** receita parada — 109 assinaturas ativas com `gateway=NULL` não geram cobrança (36 C6 + 51 Inter + 22 Cora). Maior ROI do batch.
+
+**DoD:**
+- Mapear as 109 subscriptions `gateway IS NULL` por business + provider preferencial.
+- Definir/atribuir gateway por assinatura (idempotente, com audit log).
+- Re-ativar a régua de cobrança das assinaturas destravadas; smoke de 1 ciclo.
+- Multi-tenant Tier 0: filtro `business_id` em toda query (ADR 0093).
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-RB-055 · Aplicar recalibração de pricing (setup · trial · anual) — 3 ajustes
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+> parent_plan: pricing-3-ajustes-urgentes
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** Martinho com compra ativa (cliente pagante) — recalibração de pricing em 3 eixos: setup, trial, anual.
+
+**⚠️ Módulo:** colocado em RecurringBilling (domínio de Plans/assinatura — US-RB-001/043). Se a recalibração for da **página pública de pricing** (cycle "pricing público no ar"), re-homear pra Grow/Infra.
+
+**DoD:**
+- Aplicar os 3 ajustes (setup, trial, anual) nos planos/config.
+- Validar reflexo na cobrança e na página de pricing.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

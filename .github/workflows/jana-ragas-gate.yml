@@ -1,13 +1,24 @@
 name: Jana RAGAS Eval Gate
 
-# W28-2 — RAGAS CI gate Jana BLOQUEANTE (paths trigger PR + weekly cron).
+# W28-2 — RAGAS CI gate Jana (paths trigger PR + weekly cron).
+# ⚠️ 2026-06-11 (ADR 0271): bloqueio só em RAGAS_MODE=real. Em mock (default) os scores
+# são fixos — gate era teatro (sempre verde). Mock agora é advisory.
 #
 # Diferença vs ragas-gate.yml (W22 MVP):
 #   - Aquele é workflow_dispatch + cron manual ALERTA (não bloqueia)
 #   - Este é PR paths-triggered + cron BLOQUEANTE (exit 1 abaixo threshold)
 #
 # Comando: `php artisan jana:ragas-ci-eval --json`
-# Modo: mock default (zero LLM cost CI). Real mode via secret RAGAS_MODE=real ($0.06/run).
+# Modo: mock default (zero LLM cost CI). Real mode via secret RAGAS_MODE=real (~$0.04/run,
+# re-derivado 2026-06-12: golden set 51 perguntas × 2 judge calls × $0.0004).
+#
+# SDD F1 KL-D1 (2026-06-12) — saída do mock-teatro:
+#   RAGAS_FORCE_MOCK no .env era hardcoded true; como JanaRagasCiCommand OR-eia
+#   `--mode` com env('RAGAS_FORCE_MOCK'), pedir real rodava MOCK silenciosamente.
+#   Agora step `mode` resolve modo EFETIVO (real exige secret OPENAI_API_KEY; sem
+#   secret → fallback mock + warning, nunca quebra) e o summary mostra em destaque
+#   qual modo RODOU (anti-teatro). PR/cron continuam mock até Wagner setar
+#   secret RAGAS_MODE=real (opt-in explícito — flip de PR gate não é automático).
 #
 # Thresholds W28 (calibrados pra Vellum 50-100 target W27):
 #   - faithfulness   ≥ 0.80
@@ -53,6 +64,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # KL-D1 anti-teatro — resolve modo EFETIVO. Real exige secret OPENAI_API_KEY;
+      # sem secret cai em mock com warning (nunca quebra). Diferente do canary, aqui
+      # o real NÃO flipa automático com o secret: exige RAGAS_MODE=real (opt-in),
+      # porque este gate BLOQUEIA merge em modo real — flip silencioso seria surpresa.
+      - name: Resolve modo efetivo (mock|real)
+        id: mode
+        env:
+          REQUESTED_MODE: ${{ github.event.inputs.mode || secrets.RAGAS_MODE || 'mock' }}
+          HAS_OPENAI_KEY: ${{ secrets.OPENAI_API_KEY != '' }}
+        run: |
+          effective="${REQUESTED_MODE}"
+          fallback=""
+          if [ "${effective}" = "real" ] && [ "${HAS_OPENAI_KEY}" != "true" ]; then
+            effective="mock"
+            fallback="modo real solicitado, mas secret OPENAI_API_KEY ausente no repo — fallback pra MOCK advisory (Settings → Secrets pra ligar)"
+            echo "::warning::RAGAS gate: ${fallback}"
+          fi
+          {
+            echo "requested=${REQUESTED_MODE}"
+            echo "effective=${effective}"
+            echo "fallback=${fallback}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Modo solicitado: ${REQUESTED_MODE} | efetivo: ${effective}"
+
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
@@ -76,8 +111,14 @@ jobs:
         # que precisa de realpath(storage/framework/views). Sem dir, throw "Please provide a valid cache path".
         run: mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/ragas bootstrap/cache
 
-      - name: Create .env (mock-safe)
+      # RAGAS_FORCE_MOCK condicional ao modo efetivo (KL-D1) — hardcoded true era o
+      # que tornava o modo real um teatro (JanaRagasCiCommand OR-eia com env).
+      - name: Create .env (RAGAS_FORCE_MOCK condicional ao modo efetivo)
+        env:
+          EFFECTIVE_MODE: ${{ steps.mode.outputs.effective }}
         run: |
+          force_mock=true
+          if [ "${EFFECTIVE_MODE}" = "real" ]; then force_mock=false; fi
           printf '%s\n' \
             'APP_NAME=oimpresso-jana-ragas-ci' \
             'APP_ENV=testing' \
@@ -95,15 +136,15 @@ jobs:
             'SCOUT_DRIVER=null' \
             'MCP_TOOLS_EXPOSED=false' \
             'RAGAS_ENABLED=true' \
-            'RAGAS_FORCE_MOCK=true' > .env
+            "RAGAS_FORCE_MOCK=${force_mock}" > .env
           php artisan key:generate
           php artisan package:discover --ansi
 
       - name: Run RAGAS CI eval (mock default — zero $)
         id: ragas
         env:
-          # Default mock — pra real mode crie secret RAGAS_MODE=real + OPENAI_API_KEY
-          RAGAS_MODE: ${{ github.event.inputs.mode || secrets.RAGAS_MODE || 'mock' }}
+          # Modo efetivo resolvido no step `mode` (real só com secret OPENAI_API_KEY presente)
+          RAGAS_MODE: ${{ steps.mode.outputs.effective }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           RAGAS_THRESHOLD_FAITHFULNESS: '0.80'
           RAGAS_THRESHOLD_RELEVANCY: '0.75'
@@ -122,6 +163,54 @@ jobs:
           name: jana-ragas-ci-result-${{ github.run_id }}
           path: ragas-result.json
           retention-days: 30
+
+      # KL-D1 anti-teatro: summary destaca o modo que RODOU (campo `mode` do report
+      # PHP = ground truth), não o que foi pedido — impossível confundir mock com real.
+      # python3 vem pré-instalado no ubuntu-latest (sem setup-python neste workflow).
+      - name: Render GITHUB_STEP_SUMMARY (modo em destaque)
+        if: always()
+        env:
+          REQUESTED_MODE: ${{ steps.mode.outputs.requested }}
+          MODE_FALLBACK: ${{ steps.mode.outputs.fallback }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          out = pathlib.Path('ragas-result.json')
+          requested = os.environ.get('REQUESTED_MODE', '?')
+          fallback = os.environ.get('MODE_FALLBACK', '')
+          lines = []
+          if not out.exists():
+              lines = ['# :x: Jana RAGAS Gate — eval falhou antes de gerar ragas-result.json']
+          else:
+              r = json.loads(out.read_text())
+              ran_mode = r.get('mode', 'unknown')
+              if ran_mode == 'real':
+                  banner = f"# :money_with_wings: MODO: REAL — LLM judge consumido (custo ${r.get('cost_usd', 0)}) — gate BLOQUEANTE"
+              else:
+                  banner = "# :performing_arts: MODO: MOCK — scores fixos, zero LLM (advisory, NÃO é avaliação real)"
+              gate = 'PASS' if r.get('gate_status') == 'pass' else 'FAIL'
+              icon = ':white_check_mark:' if gate == 'PASS' else ':x:'
+              lines = [
+                  banner,
+                  "",
+                  f"Solicitado: `{requested}` · Rodou: `{ran_mode}`",
+              ]
+              if fallback:
+                  lines += ["", f"> :warning: {fallback}"]
+              lines += [
+                  "",
+                  f"## {icon} Gate — {gate}",
+                  "",
+                  f"- faithfulness_avg: `{r.get('faithfulness_avg', 0):.4f}` (threshold 0.80)",
+                  f"- relevancy_avg: `{r.get('relevancy_avg', 0):.4f}` (threshold 0.75)",
+                  f"- Perguntas: `{r.get('n_passed', 0)}/{r.get('n_questions', 0)}` acima do threshold",
+              ]
+          summary = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary:
+              with open(summary, 'a', encoding='utf-8') as f:
+                  f.write('\n'.join(lines) + '\n')
+          print('\n'.join(lines))
+          PY
 
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()
@@ -152,11 +241,23 @@ jobs:
               body
             });
 
-      - name: Fail if gate did not pass
+      - name: Fail if gate did not pass (só modo REAL — mock é advisory)
+        env:
+          # KL-D1: usa modo EFETIVO — antes recomputava a expressão e podia tratar como
+          # "real" um run que de fato rodou mock (real pedido sem secret = teatro duplo).
+          RAGAS_MODE: ${{ steps.mode.outputs.effective }}
         run: |
           gate=$(php -r "echo json_decode(file_get_contents('ragas-result.json'), true)['gate_status'];")
+          # Auditoria 2026-06-11 (ADR 0271): em modo mock os scores são FIXOS
+          # (0.85/0.82 — JanaRagasCiCommand::enableMock) — "bloquear" sobre score mockado
+          # é gate de teatro (sempre verde, avalia nada).
+          # Mock = advisory (notice). Bloqueio só quando há evidência real (RAGAS_MODE=real).
+          if [ "$RAGAS_MODE" != "real" ]; then
+            echo "::notice::Jana RAGAS rodou em MOCK (scores fixos, zero LLM) — advisory, não bloqueia. Pra gate real: RAGAS_MODE=real."
+            exit 0
+          fi
           if [ "$gate" != "pass" ]; then
-            echo "::error::Jana RAGAS gate FAIL — faithfulness ou answer_relevancy abaixo threshold (0.80/0.75)"
+            echo "::error::Jana RAGAS gate FAIL (modo REAL) — faithfulness ou answer_relevancy abaixo threshold (0.80/0.75)"
             exit 1
           fi
-          echo "::notice::Jana RAGAS gate PASS"
+          echo "::notice::Jana RAGAS gate PASS (modo REAL)"

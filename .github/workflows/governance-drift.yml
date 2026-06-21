@@ -1,22 +1,16 @@
 name: Governance Drift Framework — ADR 0216
 
 # Generaliza secrets-governance.yml (ADR 0215) — orquestra TODOS DriftCheckers
-# via governance:audit. Canary 7d: roda em paralelo com secrets-governance.yml
-# legacy. PR cleanup remove o legacy depois.
+# via governance:audit. (secrets-governance.yml legacy foi consolidado aqui
+# na ADR 0271 onda 2 — canary ADR 0216 encerrado.)
 
 on:
+  # ADR 0271 onda 2 (follow-up B — required-readiness): pull_request SEM paths
+  # (always-run) pra promover "ADR 0216 PR scan" a required sem deadlock
+  # "Expected — waiting". O --diff-only passa trivial em diff fora de escopo;
+  # o custo fixo (composer+npm ~2-3min) foi aceito por Wagner 2026-06-11.
   pull_request:
     branches: [main]
-    paths:
-      - 'memory/**'
-      - 'config/**'
-      - 'Modules/**'
-      - 'app/**'
-      - 'composer.json'
-      - 'composer.lock'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.env.example'
   schedule:
     # Daily 06:35 BRT (09:35 UTC) — Camada 3 ADR 0216 health-check + auto-PR
     - cron: '35 9 * * *'
@@ -151,3 +145,58 @@ jobs:
           name: governance-drift-report-daily
           path: governance-drift-report.json
           retention-days: 30
+
+  # =====================================================================
+  # JOB 3 — secrets:audit --auto-pr (portado de secrets-governance.yml)
+  # ADR 0271 onda 2 (item F3): consolida o canary 7d da ADR 0216, nunca
+  # fechado. O secrets:scan de PR já é coberto por governance:audit (o
+  # SecretsDriftChecker roda dentro do --diff-only acima). O que faltava
+  # migrar era a Camada 3 de auto-PR de rotação — vive aqui agora.
+  # secrets-governance.yml foi deletado nesta mesma onda.
+  # =====================================================================
+  secrets-audit-autopr:
+    name: Secrets audit --auto-pr (Camada 3 · scheduled)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
+      - name: Install dependencies
+        # --no-scripts: pula o post-autoload-dump da OTel (_register.php) que
+        # THROW em CI (extension_loaded('opentelemetry') runtime check). Incident 2026-05-28.
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts
+      - name: Prepare storage dirs + .env mínimo
+        # secrets:audit boota o framework (AppServiceProvider → Blade) que exige
+        # config('view.compiled') válido. Sem .env/storage o boot dá "valid cache path".
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-secrets-audit
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          BCRYPT_ROUNDS=4
+          APP_KEY=
+          EOF
+          php artisan key:generate --force
+      - name: Run secrets:audit --auto-pr
+        run: |
+          git config user.name "secrets-governance-bot"
+          git config user.email "bot@oimpresso.com"
+          php artisan secrets:audit --auto-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

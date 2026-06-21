@@ -423,7 +423,7 @@ interface FieldStatusProps {
 function FieldStatus({ saving, saved, backendError }: FieldStatusProps) {
   if (backendError) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-rose-600" role="alert">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-destructive" role="alert">
         <AlertCircle size={11} aria-hidden /> {backendError}
       </p>
     );
@@ -437,7 +437,7 @@ function FieldStatus({ saving, saved, backendError }: FieldStatusProps) {
   }
   if (saved) {
     return (
-      <p className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-600" aria-live="polite">
+      <p className="mt-1 inline-flex items-center gap-1 text-xs text-success-fg" aria-live="polite">
         <CheckCircle2 size={11} aria-hidden /> Salvo
       </p>
     );

@@ -97,10 +97,10 @@ export default function DrawerCobranca({ cob, accounts, today, onClose }: Props)
 
           {cob.status === 'erro' && cob.erro_msg && (
             <div className="px-5 py-3 border-t border-stone-200">
-              <div className="text-[10px] uppercase tracking-widest text-rose-700 font-medium mb-2 flex items-center gap-1.5">
+              <div className="text-[10px] uppercase tracking-widest text-destructive-fg font-medium mb-2 flex items-center gap-1.5">
                 <AlertCircle className="h-3 w-3" />Erro do gateway
               </div>
-              <div className="bg-rose-50 border border-rose-200 rounded px-3 py-2 text-[11.5px] text-rose-900 font-mono">
+              <div className="bg-destructive-soft border border-destructive/20 rounded px-3 py-2 text-[11.5px] text-destructive-fg font-mono">
                 {cob.erro_msg}
               </div>
               {/* B6 "botões honestos" (2026-05-31): "Tentar reemitir" REMOVIDO —

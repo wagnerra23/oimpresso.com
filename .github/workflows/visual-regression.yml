@@ -3,19 +3,25 @@ name: Visual Regression (Pest 4 Browser)
 # ADR 0108 — Camada Tier 2 de validação visual.
 # Roda Pest browser snapshot tests em PRs que tocam Pages Inertia.
 # Falha se diff > 0.1% sem update-snapshots aprovado.
+#
+# REQUIRED-READINESS (2026-06-11, aprovação Wagner — padrão ADR 0271 onda 2 item 4,
+# idêntico ao financeiro-pest.yml): `pull_request` SEM paths (always-run) pra ser
+# promovível a required sem deadlock "Expected — waiting". O custo (PHP + composer +
+# playwright + migrate + Pest ~10min) é evitado por skip-as-pass interno: o step
+# dorny/paths-filter detecta se algo de UI mudou; se não, pula o pesado e conclui
+# verde (~1-2min, só checkout + boot do service).
 
 on:
   pull_request:
-    paths:
-      - 'resources/js/Pages/**/*.tsx'
-      - 'resources/js/Layouts/**/*.tsx'
-      - 'resources/js/Components/**/*.tsx'
-      - 'tests/Browser/**/*.php'
-      - '.github/workflows/visual-regression.yml'
+    branches: [main]
 
 permissions:
   contents: read
   pull-requests: write
+
+concurrency:
+  group: visual-regression-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   visual-regression:
@@ -41,7 +47,24 @@ jobs:
         with:
           lfs: true
 
+      - name: Detectar mudanças de UI (skip-as-pass — required-readiness)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ui:
+              - 'resources/js/Pages/**/*.tsx'
+              - 'resources/js/Layouts/**/*.tsx'
+              - 'resources/js/Components/**/*.tsx'
+              - 'tests/Browser/**/*.php'
+              - '.github/workflows/visual-regression.yml'
+
+      - name: Skip-as-pass (nada de UI mudou)
+        if: steps.changes.outputs.ui == 'false'
+        run: echo "✅ Sem mudanças de UI/Browser tests — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
+
       - name: Setup PHP
+        if: steps.changes.outputs.ui == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -53,6 +76,7 @@ jobs:
           coverage: none
 
       - name: Wait for MySQL ready
+        if: steps.changes.outputs.ui == 'true'
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
@@ -64,17 +88,20 @@ jobs:
           done
 
       - name: Setup Node
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
       - name: Cache Composer
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Cache Playwright browsers
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/cache@v4
         id: playwright-cache
         with:
@@ -82,15 +109,18 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
+        if: steps.changes.outputs.ui == 'true'
         # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
         # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
         # O pacote degrada gracioso sem a ext (hooks não registram).
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
+        if: steps.changes.outputs.ui == 'true'
         run: npm ci
 
       - name: Install Playwright npm client
+        if: steps.changes.outputs.ui == 'true'
         # `pestphp/pest-plugin-browser ^4.0` (composer.json) spawneia o cliente
         # JS `playwright` via stdio. `playwright` NÃO está em package.json
         # devDependencies (ainda), então `npm ci` não traz `node_modules/playwright/`.
@@ -101,10 +131,11 @@ jobs:
         run: npm install playwright --no-save
 
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.changes.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Setup Laravel
+        if: steps.changes.outputs.ui == 'true'
         # SCHEMA-SQUASH MODE (US-GOV-013, supersede INFRA-ONLY): `migrate` carrega
         # `database/schema/mysql-schema.sql` (squash do staging saudável, anonimizado)
         # ANTES de replayar — bypassa a podridão histórica de fresh-migrate (view×table
@@ -145,6 +176,7 @@ jobs:
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
       - name: Seed demo tenant (business + admin + role Admin#1)
+        if: steps.changes.outputs.ui == 'true'
         # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
         # precisam de um business + admin seedados.
         #
@@ -161,12 +193,14 @@ jobs:
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
 
       - name: Build Inertia bundles
+        if: steps.changes.outputs.ui == 'true'
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
         # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
         continue-on-error: true
         run: npm run build:inertia
 
       - name: Run Pest Browser tests
+        if: steps.changes.outputs.ui == 'true'
         id: pest-browser
         # GATE REAL — Fase A (públicas) + INÍCIO da Fase B (autenticadas).
         # 2026-06-06: destravado o auth cross-process via rota /_visreg-login/{id}?to=
@@ -179,7 +213,53 @@ jobs:
         # numa tela core (Financeiro/Unificado) pra pegar contraste/foco/ARIA-em-contexto
         # que o jsdom da Fase 2 não enxerga. Piso conservador: 0 violações CRITICAL (ratchet
         # level 0). Mesmo harness auth-bridge do AuthBridgeSmokeTest.
-        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php
+        #
+        # ConformanceProbesTest (PACOTE-Q9 PR-3): espelho CI da semântica G2/G3/G4 do
+        # qa-conformance.js v2 (Cowork) — computed-style no Chromium real, drawer Oficina
+        # com o estado "adicionando" ABERTO (o que vazava), controle-negativo embutido (L-31).
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php
+
+      # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
+      # FASE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing):
+      # `continue-on-error` SÓ neste step — o resto do job continua required-real.
+      # Promover = remover o continue-on-error (sem clique de branch protection: o
+      # check `visual-regression` já é required). Baseline = snapshot Pest COMMITADO
+      # (tests/.pest/snapshots), gerado NESTE runner (rendering determinístico) — a
+      # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
+      # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
+      - name: Pixel-diff núcleo-6 (ADVISORY — Onda Q4)
+        if: steps.changes.outputs.ui == 'true'
+        id: pixel-diff
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php
+
+      - name: Upload baseline/snapshots de pixel (sempre que rodou)
+        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-snapshots
+          path: tests/.pest/snapshots/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload diff views do pixel (quando o advisory falhou)
+        if: ${{ !cancelled() && steps.pixel-diff.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-diff-views
+          path: tests/Browser/Screenshots/ImageDiffView/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Veredito advisory do pixel-diff (visível no log)
+        if: steps.changes.outputs.ui == 'true'
+        run: |
+          if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
+            echo "🟡 PIXEL-DIFF ADVISORY FALHOU — diff > threshold contra baseline (ver artifact pixel-snapshots)."
+            echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing."
+          else
+            echo "✅ pixel-diff núcleo-6 OK (advisory)."
+          fi
 
       - name: Upload screenshots on failure
         if: failure() || steps.pest-browser.outputs.fail == '1'
@@ -197,20 +277,21 @@ jobs:
             const body = [
               '## 📸 Visual Regression Detected',
               '',
-              'Screenshots têm diff > threshold contra baseline.',
+              'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
+              '',
+              '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) é **ADVISORY** (`continue-on-error`) e **não bloqueia merge sozinho** — só vira enforcing após 2 verdes. Se a falha foi apenas dele, o veredito sai no log do step "Veredito advisory do pixel-diff", não neste comentário.',
               '',
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',
               '2. Comparar `actual.png` vs `expected.png` lado-a-lado',
-              '3. Se mudança intencional (refator visual aprovado em F1.5):',
+              '3. Se mudança intencional: **aprovação visual do Wagner (gate F1.5)** registrada no PR, e ATUALIZAR snapshots no mesmo PR:',
               '   ```bash',
               '   ./vendor/bin/pest tests/Browser/ --update-snapshots',
               '   git add tests/Browser/Screenshots/ && git commit',
               '   ```',
               '4. Se regressão não-intencional: revisar mudanças de código',
               '',
-              '### Override',
-              'Comentar `/mwart-override <razão>` se mudança visual é intencional mas baseline não foi atualizada.',
+              '(2026-06-11: removida a oferta de `/mwart-override` — nunca houve handler que a processasse; o único caminho real é atualizar snapshots com aprovação do Wagner.)',
               '',
               '_Ver [ADR 0108](../../memory/decisions/0108-regressao-visual-pest-browser-tier-2.md)._'
             ].join('\n');

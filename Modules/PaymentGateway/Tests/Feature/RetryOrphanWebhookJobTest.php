@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Modules\PaymentGateway\Events\CobrancaPaga;
@@ -10,7 +11,7 @@ use Modules\PaymentGateway\Jobs\RetryOrphanWebhookJob;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
 /**
  * Setup: cria SOMENTE `cobrancas` + `gateway_webhook_events` no SQLite in-memory.
@@ -88,9 +89,12 @@ function setupOrphanWebhookSchema(): void
 
 function teardownOrphanWebhookSchema(): void
 {
+    // Só tabelas do MÓDULO PaymentGateway (gateway_webhook_events) + cobrancas
+    // (tabela própria do módulo, sem prefixo de outro domínio). NÃO dropar
+    // `activity_log`: é CORE COMPARTILHADA (Spatie activitylog) — em MySQL
+    // persistente do nightly o drop destruiria o schema usado por outros testes.
     Schema::dropIfExists('gateway_webhook_events');
     Schema::dropIfExists('cobrancas');
-    Schema::dropIfExists('activity_log');
 }
 
 /**
@@ -107,12 +111,20 @@ function teardownOrphanWebhookSchema(): void
  */
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
+    }
     setupOrphanWebhookSchema();
     session(['business.id' => 1]);
 });
 
 afterEach(function () {
-    teardownOrphanWebhookSchema();
+    // afterEach roda MESMO em teste pulado por markTestSkipped no beforeEach
+    // (PHPUnit 12.5.x). Guardar o DDL por driver evita dropar as tabelas
+    // REAL-migradas (gateway_webhook_events, cobrancas) no MySQL persistente.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        teardownOrphanWebhookSchema();
+    }
 });
 
 it('GUARD 1: re-dispatcha CobrancaPaga quando órfão tem cobranca_id + evento paid', function () {
