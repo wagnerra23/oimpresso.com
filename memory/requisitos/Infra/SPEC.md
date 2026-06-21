@@ -803,7 +803,66 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
-### US-INFRA-042 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+### US-INFRA-041 · Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #0 — o mais grave). Afina/supersede o vago `INFRA-5` (INF-008 backup pré-deploy "formalizar").
+
+**Achado:** o passo `Backup (arquivos + DB)` do `deploy.yml` faz só `tar czf` e **NÃO contém nenhum `mysqldump`** (grep: zero no deploy inteiro). Grava no **mesmo host** Hostinger (`~/`), sem cópia off-host, com `skip_backup:true` disponível como input, e **sem nenhum teste de restore**. Houve **incidente de cota de disco em 2026-06-21**. Resultado: RPO desconhecido, RTO não testado — perda de dados é o único risco pior que vazamento cross-tenant.
+
+**Acceptance:**
+- `deploy.yml` faz `mysqldump` do banco antes do deploy.
+- Cópia do dump para fora do host (storage externo / bucket).
+- ≥1 restore testado e documentado (RUNBOOK).
+- RPO/RTO definidos por escrito.
+- Hostinger ≠ CT 100 respeitado (ADR 0062).
+
+### US-INFRA-042 · Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente)
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #1). Complementa `US-INFRA-011` (rotação senha MySQL) e os PRs #3148/#3151 (gitleaks full-history — que ESCANEIA, não rotaciona).
+
+**Achado:** o repo `wagnerra23/oimpresso.com` é **público**. A Meilisearch master key (controle admin total do search multi-tenant) está em arquivos rastreados no HEAD; o histórico append-only retém ela + token DNS Hostinger + os 12 segredos do incidente 2026-05-15. Editar o HEAD não resolve — git é append-only; a rotação é a única remediação real.
+
+**Acceptance:**
+- Rotacionar `MEILI_MASTER_KEY` no host + token DNS Hostinger + os 12 do incidente.
+- Atualizar status por item no `_INDEX-SECRETS.md`.
+- Avaliar tornar o repo privado.
+- Ativar `core.hooksPath .githooks` (pre-commit de segredos).
+
+
+### US-INFRA-043 · Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
+
+> owner: — · priority: p2 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #2 (verificação adversarial). Hoje nenhum gate flaga US `status=todo` + `cycle_id`/`owner` NULL; só o `triage` (não-bloqueante, afogado em ~40 itens). O `mcp:tasks:orphans` mede a direção oposta (DB sem SPEC).
+
+**Achado:** toda US criada por `tasks-create` nasce `todo`/`unowned`/sem-cycle → invisível no roadmap (Jana filtra por `cycle_id`, ProjectMgmt por `epic_id`) e nada cobra a triagem. Foi exatamente o que aconteceu com as 6 US desta auditoria (PR #3164).
+
+**Acceptance:**
+- Comando `mcp:tasks:unassigned` (espelha `mcp:tasks:orphans` + `plan-health.mjs`): lista US `status=todo` AND (`cycle_id IS NULL` OR `owner IS NULL`) há > N dias.
+- Saída `--json` pro Daily Brief.
+- Opção de virar ratchet (exit 1) quando estabilizar.
+
+### US-INFRA-044 · Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #3 (verificação adversarial). O `mcp:tasks:sync` é manual/server-side; nenhum workflow no CI o dispara. Resultado: drift SPEC↔DB real (ex.: US-GOV-001/005/006/007/008 com título "✅ DONE" mas status `todo` no DB).
+
+**Achado:** a cadeia SPEC→DB depende de sync no MCP server (CT 100) sem garantia/monitor no repo. O docblock do `McpTasksSyncCommand` diz "via webhook (futuro)".
+
+**Acceptance:**
+- Workflow `on: push: paths: 'memory/requisitos/**/SPEC.md'` que dispara `mcp:tasks:sync` (ou confirma/monitora o webhook server-side, como a mcp-drift-sentinel monitora código).
+- Rodar 1 `mcp:tasks:sync` full pra zerar o drift de status DONE/todo existente.
+
+### US-INFRA-044 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
