@@ -1848,3 +1848,19 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Dashboard VoC.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-WA-318 · DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** handoff `2026-06-19-0730-decisoes-pendentes-dns-midia-us-309.md` (Decisão 1) — deixado como decisão Wagner; agora autorizado ("faça sim", 2026-06-21).
+
+**Problema:** o endpoint `whatsapp-whatsmeow.oimpresso.com` não resolve (curl exit 6 no CT100) → download de mídia quebrado → backlog de **~48k mídias pending** desde ~12/jun. `US-WA-311` já estava tomado (por isso ficou sem número até agora).
+
+**Acceptance:**
+1. DNS de `whatsapp-whatsmeow.oimpresso.com` resolve (registro + verificação no CT100).
+2. Worker drena o dead-letter das ~48k mídias pending (idempotente, multi-tenant Tier 0).
+3. Reconciliar com os proposals existentes (`whatsapp-fila-inbound-worker-ct100.md` / `whatsapp-ingestao-perda-zero.md`) — esta US é a execução, não duplicar escopo.
+
+Refs: ROADMAP-SDD (sweep do mês)

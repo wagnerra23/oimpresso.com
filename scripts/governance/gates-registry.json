@@ -18,6 +18,10 @@
       "nome": "Jana audit-chain Pest (T5 · hash-chain mcp_audit_log lógica pura · ADR 0294)",
       "classe": "gate"
     },
+    "gitleaks-history.yml": {
+      "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
+      "classe": "automacao"
+    },
     "a11y-axe-gate.yml": {
       "nome": "A11y axe runtime (jsdom · componentes canon)",
       "classe": "gate"
@@ -196,6 +200,10 @@
     },
     "jana-ragas-gate.yml": {
       "nome": "Jana RAGAS Eval Gate",
+      "classe": "gate"
+    },
+    "jana-recall-eval.yml": {
+      "nome": "Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD)",
       "classe": "gate"
     },
     "jscpd-gate.yml": {

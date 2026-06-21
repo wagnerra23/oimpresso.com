@@ -2,6 +2,7 @@
 lifecycle: active
 owner: [W]
 module: Governance
+project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
@@ -513,3 +514,128 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Advisory → required conforme cadência.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-031 · MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (risco #3, ADR 0218). Distinto de `US-INFRA-032` (hardcodes business_id).
+
+**Achado:** o `MultiTenantScopeChecker` reporta `drift_count=0` por **bug de separador de path Windows-only** (`not_readable=217`). Não cega o CI Linux (`--diff-only` funciona lá), mas o daily `--all` que pegaria o backlog é não-bloqueante → backlog de models sem global scope fica invisível. Em paralelo, os guards Tier-0 (`WithoutGlobalScopes` + `business_id=4`) estavam **falhando no main** com `continue-on-error` (advisory reportando verde), e `business_id=4` (RotaLivre) reapareceu em fixtures.
+
+**Acceptance:**
+- Bug de path do checker corrigido (roda igual em Win/Linux).
+- Teste-canário anti-falso-clean: asserta `drift>0` contra fixture sem trait.
+- 4 violações dos guards corrigidas + `continue-on-error` removido (promover a required).
+- Triar models de tenant sem global scope (OficinaAuto/ComunicacaoVisual/Manufacturing/AssetManagement).
+
+### US-GOV-032 · Criar BRIEFING.md de memory/requisitos/_Governanca/ (front-door) antes de commitar o dir
+
+> owner: — · priority: p2 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (batedor de governança).
+
+**Achado:** `memory/requisitos/_Governanca/` (trabalho em andamento) tem ≥2 `.md` e **não tem `BRIEFING.md`**. Quando o dir for commitado, ele entra no censo de módulos do `knowledge-drift` sem front-door → `front_door_coverage` cai de 100 → 98.6 e a **catraca armada do sdd-scorecard morde** (🔴). Todos os outros meta-dirs `_*` (`_DesignSystem`, `_Ideias`, `_processo`…) têm BRIEFING.
+
+**Acceptance:**
+- Criar `memory/requisitos/_Governanca/BRIEFING.md` (front-door auto-contido) junto/antes de commitar o dir.
+- Regenerar `governance/sdd-scorecard.json` (`node scripts/governance/sdd-scorecard.mjs`).
+- `--ratchet` volta a verde.
+
+### US-GOV-033 · Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto)
+
+> owner: — · priority: p3 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 (batedor de links). Os links seguros em rules/SPECs já foram corrigidos (#3147, #3152). Restou o que NÃO é auto-fixável:
+
+**Achado:**
+- Corpos de ADR (append-only — precisam de bênção): `0250` (3 slugs defasados), `0253:123` (link 0013 aponta pro ADR errado → deveria ser o caminho UI `_DesignSystem/adr/ui/0013-...`), `0254` (slug 0209).
+- Dead-links de alvo incerto: `NfeBrasil/SPEC.md` → `app/Manifesto.php` (inexistente); `.claude/rules/README.md:11` → session-log inexistente; `Connector/SPEC.md:124` → placeholder `0021-...` com "(se existir)".
+- `memory/decisions/0296-...` (untracked): 2 links (slugs 0053/0084) — corrigir quando commitar.
+
+**Acceptance:**
+- Decidir alvo correto de cada item e corrigir.
+- Fixes em corpos de ADR só com aprovação (política append-only ADR 0094).
+
+### US-GOV-034 · sqlite-test-corruptors --strict pega tier S (CORE-drop), não só tier A
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** verificação adversarial 2026-06-21 (PR #3145 · handoff 2026-06-21-1250).
+**Problema:** gate roda `--tier=A`; `view = real.filter(r => r.tier === TIER_FILTER)` (~L363) filtra só tier A. `Schema::drop('business')` reintroduzido classifica tier S (CORE-drop) → `view.length===0` → não dá exit 1. O gate não pega o pior caso que o próprio counterfactual promete.
+**Fix:** `r.tier === TIER_FILTER || r.tier === 'S'` (tier S sempre morde). Validar `tests/sqliteCorruptors.spec.ts`.
+**Acceptance:** counterfactual tier-S → exit 1; meta-teste vitest verde; fazer antes de promover US-GOV-021 a required. Refs: ROADMAP-SDD
+
+### US-GOV-035 · knowledge-drift: isentar _Governanca/roadmap/ (planos citam ghosts legitimamente)
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** red advisory do PR #3135 (anti-ghost).
+**Problema:** os planos do roadmap citam `Modules/MemCofre/PontoWr2/Copiloto/DocVault` em contexto de planejamento da remoção/rename → o detector os conta como ghost vivo. É falso-positivo.
+**Fix:** estender `scripts/governance/knowledge-drift.mjs` (já tocado pelo P11/#3155) pra isentar `_Governanca/roadmap/` como já isenta `adr/`.
+**Acceptance:** anchor-ghost verde no #3135; doc citando ghost em roadmap/ não dispara. Refs: ROADMAP-SDD
+
+### US-GOV-036 · Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** PR #3145 (US-GOV-021) isolou 7/18.
+**Problema:** restam 11 corruptores tier A (CoworkHandoffCrossTenant, Forja Backlog/Changelog/Mcp/Quadro Service, Claimless, FsmTransitionGuard, TaskUpdateAtomic, AcceptanceRef, WorkLease, LeaseBriefSection) que ainda dão exit 1 no auditor.
+**Fix:** mesma técnica do lote 1 (guard teardown sqlite-only, sem dropar tabela CORE).
+**Acceptance:** `sqlite-test-corruptors --strict --tier=A` corruptors=0; aí destrava promover o gate a required. Refs: ROADMAP-SDD
+
+### US-GOV-037 · Backfill related_us em 132 charters sem link (join US→tela do SA-A5)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** crítico de completude 2026-06-21 (PR #3157 declarou o campo + migrou 3 legacy).
+**Problema:** 132/148 charters sem `related_us` → o join US→tela que alimenta o batch SA-A5 (anchors por IA) ficou sem fonte.
+**Fix:** lote IA (Haiku) deriva related_us de SPEC/git/árvore Pages, com refutador G5 + 1 entry no ledger.
+**Acceptance:** charters_sem_us cai; lint conta; SA-A5 lê o join. Refs: ROADMAP-SDD
+
+### US-GOV-038 · Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: US-GOV-021
+
+**Origem:** PR #3158 entregou o tripwire advisory com alerta OFF.
+**Problema:** ligar o alerta (gh issue / mcp_alertas na `maybeAlert()`) antes do floor estabilizar alertaria ruído de ambiente.
+**Fix:** setar `NIGHTLY_DIFF_ALERT=1` + implementar o canal depois que P03/US-GOV-021 estabilizar o floor.
+**Acceptance:** classe de falha nova/arquivo novo no floor → 1 issue idempotente/dia; 2 noites iguais → no-op. Refs: ROADMAP-SDD
+
+### US-GOV-039 · TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d)
+
+> owner: — · priority: p3 · estimate: 4h · status: todo · type: story
+> blocked_by: US-GOV-011
+
+**Origem:** crítico de completude 2026-06-21 (ADIADO conscientemente).
+**Problema/PORQUÊ-ADIAR:** TDAD acelera o loop, mas o gargalo é o floor sujo (295 + 24% skip). Rodar "só impactados" sobre suíte que já falha mascara regressão. Prematuro até pcov medir (P07) e floor=0 (P04).
+**Fix:** test-map per-test via `--coverage-php` + comando `test:impacted` + gate sombra advisory 14d com fallback fail-safe pra suite completa.
+**Acceptance:** só DEPOIS de pcov measured + nightly verde. on-hold. Refs: ROADMAP-SDD
+
+### US-GOV-040 · Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md
+
+> owner: — · priority: p3 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** aterramento das ondas tardias 2026-06-21.
+**Problema:** o `_ROADMAP.md` (#3135) ainda diz que o read-side do floor "quase resolveu" — mas o HEAD commitado é `not_yet_measured` e o "274" é working-tree sujo do #3020. P02 deve congelar o **295 vivo**, não 274.
+**Fix:** corrigir a seção P01/P02 + adicionar entries P14/P15/P16-on-hold, após #3135 mergear.
+**Acceptance:** _ROADMAP.md reflete o estado real. Refs: ROADMAP-SDD
+
+### US-GOV-041 · Limpar governance/sdd-scorecard.json sujo (274 fantasma) no working-tree de main
+
+> owner: — · priority: p3 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** git status do checkout principal (não é desta sessão; último commit real #3020).
+**Problema:** `M governance/sdd-scorecard.json` não-commitado mostra full_suite=274 (engana a leitura; o HEAD diz not_yet_measured). Atrapalhou o planejamento desta sessão.
+**Fix:** quem é dono do working-tree decide: `git checkout` (descartar) OU commitar o valor correto via o job de P01/#3142. NÃO tocar cego.
+**Acceptance:** working-tree limpo ou o 274 reconciliado pelo commit-back. Refs: ROADMAP-SDD

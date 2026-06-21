@@ -69,3 +69,18 @@ O ADS é agnóstico de domínio. Estes módulos submetem eventos a ele:
 | Decision Memory | Tabela `mcp_dual_brain_decisions` |
 | Learning Loop L1/L2 | Laravel Observer + Command semanal |
 | Learning Loop L3 | Command mensal usando Brain B |
+
+### US-ADS-001 · Audit Tier 0 — escopar os ~85 DB::table('mcp_*') crus por business_id
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial do ADR 0296 (achado S-2). O vazamento cross-tenant pontual em `ContextForTaskService::buildRecentDecisions` já foi corrigido (PR #3162), mas o adversário apontou ~85 `DB::table('mcp_*')` crus fora do global scope.
+
+**Acceptance:**
+- [ ] Inventariar todos os `DB::table('mcp_dual_brain_decisions')` e `DB::table('mcp_*')` (Grupo B / com business_id, ADR 0280) que leem/mutam sem `->where('business_id', …)`.
+- [ ] Classificar cada um: leak real (request per-tenant) vs by-id system worker (ok) vs admin-scoped.
+- [ ] Corrigir os leaks reais + teste cross-tenant POR call-site (exercitando o serviço, não só a query crua).
+- [ ] Lint/gate que reprova `DB::table('mcp_*')` sem filtro `business_id` em código novo.
+
+Refs: ADR 0093 (Tier 0 IRREVOGÁVEL) · ADR 0296 (S-2) · PR #3162 (fix pontual).

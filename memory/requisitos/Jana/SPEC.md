@@ -943,7 +943,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** Langfuse v3 self-host em CT 100 (docker-compose: web + worker + ClickHouse + Postgres + Redis + MinIO) instrumentando 100% das chamadas LLM em prod (BriefDiarioAgent + kb-answer + recall + RAGAS gate)
 **Para** ter observability LLM real (trace + cost + latency + RAGAS metrics) — sem isso, claims de "95%+" são não-falsificáveis (princípio 4 Constituição v2). Destrava medição de R1 (reranker NDCG), K1 (time-decay impact), A1 (auto-summary ROI), RAGAS gate trend semanal
 
-**Implementado em:** `infra/ct100/langfuse/docker-compose.yml` (novo) + `Modules/Jana/Ai/Services/LangfuseClient.php` (já existe wrapper) instrumentado em `BriefDiarioAgent` + `KbAnswerService` + `MeilisearchDriver` + Console Command `jana:rag-eval` (RAGAS gate)
+**Implementado em:** _parcial_ · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · verificado@08c4a8f (2026-06-21) — wrapper + compose existem; falta instrumentar `BriefDiarioAgent`/`KbAnswerAgent`/`MeilisearchDriver` e subir stack CT 100 (DoD ainda aberto)
 
 **Definition of Done:**
 - [ ] Stack Langfuse v3 rodando CT 100 atrás Traefik HTTPS (subdomínio `langfuse.oimpresso.com` interno) — receita `proxmox-docker-host` skill
@@ -1004,7 +1004,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** `MeilisearchDriver` retornar score composto (relevance × 0.6 + recency × 0.3 com half-life 90d + importance × 0.1) com decay rate 0 pra ADR `lifecycle: accepted` e 0.5 pra `historical`/superseded
 **Para** documentos canônicos recentes vencerem antigos no recall — fechando gap Knowledge R5 (0%→75%) que hoje mistura regras vigentes com revogadas em queries multi-dia
 
-**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` — novo método `applyTemporalScoring()` aplicado após reranker (US-COPI-107) na chain hybrid recall
+**Implementado em:** _pendente_ — método `applyTemporalScoring()` ainda não existe no `MeilisearchDriver`; depende de US-COPI-107 (reranker) e US-COPI-108 (Langfuse) pra medir ganho NDCG (status todo)
 
 **Definition of Done:**
 - [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
@@ -1035,7 +1035,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** novo `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` + `Modules/Jana/Http/Resources/RoadmapTaskResource.php` + `resources/js/Pages/Admin/Roadmap/Index.tsx` + `_components/RoadmapGantt.tsx` + `_components/SubIssuesPanel.tsx` + `Index.charter.md`
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `resources/js/Pages/ProjectMgmt/Roadmap/Index.tsx` · verificado@08c4a8f (2026-06-21) — controller + página existem; falta RoadmapTaskResource + componentes Gantt SVAR (RoadmapGantt, SubIssuesPanel) + charter (Gantt visual não construído)
 
 **Definition of Done:**
 - [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
@@ -1057,7 +1057,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 - ❌ Custom fields typed (JANA-10X-026 / Onda 6 P3)
 - ❌ Comentários inline timeline (next iter)
 
-**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-layout-v2-padrao.md)
+**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 
 ---
 
@@ -1070,7 +1070,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** tool MCP `handoff-draft` que lê `git log origin/main..HEAD` + `cycles-active` + `tasks-list status:doing` + `handoff-diff` (Onda 3) → 1 chamada `gpt-4o-mini` rascunha `.md` template canônico ADR 0130 que eu reviso + completo + Write final
 **Para** reduzir ~1h/dia que Wagner gasta escrevendo handoff manual (~10-20min × várias/dia) — fechar Handoff #4 auto-capture (30%→80%)
 
-**Implementado em:** novo `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (JSON-RPC schema: cycle_id?, since_hours? default 24, format? default md) + novo `Modules/Jana/Services/Handoff/HandoffDrafterService.php` + edit `Modules/Jana/Providers/OimpressoMcpServer.php` (registrar tool)
+**Implementado em:** `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` · `Modules/Jana/Mcp/OimpressoMcpServer.php` · `Modules/Jana/Tests/Feature/Mcp/HandoffDraftToolTest.php` · verificado@08c4a8f (2026-06-21)
 
 **Definition of Done:**
 - [ ] Tool MCP `handoff-draft` exposta com schema documentado
@@ -1104,7 +1104,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** workflow CI `memory-schema-lint.yml` matrix-strategy validando frontmatter de TODOS tipos `.md` canon (ADR + SPEC + RUNBOOK + session + handoff + charter) via JSON Schema 2020-12 + artisan command `jana:validate-memory` rodando daily 06:30 BRT pra detectar drift fora-de-PR
 **Para** fechar gap Knowledge S4 (40%→90%) — hoje só ADR é validado via `adr-lint.yml`; SPEC/RUNBOOK/session/handoff têm drift silencioso (ex: ADR sem `lifecycle:` passa, `decisions-search` devolve doc malformado)
 
-**Implementado em:** novos `memory/schemas/{adr,spec,runbook,session,handoff,charter}.schema.json` + `memory/schemas/README.md` + `.github/workflows/memory-schema-lint.yml` + `package.json` (root) com `remark-lint-frontmatter-schema` + novo `app/Console/Commands/Jana/ValidateMemorySchemas.php` artisan + edit `app/Console/Kernel.php` schedule
+**Implementado em:** `scripts/memory-schemas/adr.schema.json` · `scripts/memory-schemas/spec.schema.json` · `scripts/memory-schemas/runbook.schema.json` · `scripts/memory-schemas/session.schema.json` · `scripts/memory-schemas/handoff.schema.json` · `scripts/memory-schemas/charter.schema.json` · `scripts/memory-schemas/README.md` · `.github/workflows/memory-schema-gate.yml` · `Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php` · verificado@08c4a8f (2026-06-21)
 
 **Definition of Done:**
 - [ ] 6 JSON Schemas 2020-12 declarados em `memory/schemas/` (adr, spec, runbook, session, handoff, charter) — required minimalista (só `title`, `type`, `decided_at`/`last_updated`), demais opcionais com defaults documentados
@@ -1321,3 +1321,17 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Audit log da revisão.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-128 · Health-check multi_tenant_isolation cego a C3 — ler information_schema + probe cross-tenant READ
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial do ADR 0296 (achado S-1, critical). `HealthCheckCommand::checkMultiTenant()` (linha ~178) valida um array HARD-CODED de 3 tabelas Jana e só procura órfãos `business_id IS NULL` — nunca olha `mcp_dual_brain_decisions` (C3) nem faz cross-tenant READ. O critério de sucesso do cutover P1 do ADR 0296 ("isolamento idêntico antes/depois") é hoje **inverificável**.
+
+**Acceptance:**
+- [ ] Ler a lista de tabelas com `business_id` do `information_schema` (não array hard-coded) e cobrir todas C1/C3.
+- [ ] Adicionar probe de cross-tenant READ real: autentica biz=X, consulta C3 pelos MESMOS code-paths do app, afirma zero rows de biz≠X.
+- [ ] Tornar isso pré-requisito do gate de cutover P1 (INVARIANTE-TIER0-VERIFICADA do ADR 0296).
+
+Refs: ADR 0296 (S-1) · ADR 0093 · HealthCheckCommand.php:178.
