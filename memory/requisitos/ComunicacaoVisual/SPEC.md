@@ -1014,7 +1014,7 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 - [ ] Implementa interface `NfseDriver` em `Modules/NfeBrasil/Services/NfseDrivers/NfseDriverFloripa.php`
 - [ ] SOAP request ABRASF v2.04 → endpoint sandbox Floripa
 - [ ] Retry exponencial 24h se SEFAZ/prefeitura down
-- [ ] Cert A1 lido de `Modules/MemCofre`
+- [ ] Cert A1 lido de `Modules/SRS`
 - [ ] Pest: mock SOAP success path + 3 error paths (cert vencido, payload inválido, rejeitada)
 - [ ] Smoke biz=gold real (se SC) ou biz=99 sandbox
 
