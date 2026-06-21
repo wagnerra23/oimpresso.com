@@ -586,3 +586,45 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Problema:** `M governance/sdd-scorecard.json` não-commitado mostra full_suite=274 (engana a leitura; o HEAD diz not_yet_measured). Atrapalhou o planejamento desta sessão.
 **Fix:** quem é dono do working-tree decide: `git checkout` (descartar) OU commitar o valor correto via o job de P01/#3142. NÃO tocar cego.
 **Acceptance:** working-tree limpo ou o 274 reconciliado pelo commit-back. Refs: ROADMAP-SDD
+
+### US-GOV-042 · anchor-lint ignora SPECs status:arquivado (remove ruído de módulo deprecado)
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — triagem dos anchors dead (parte 2 do PR sdd-anchor).
+
+**Achado:** os 10 `anchored_dead` restantes são TODOS do MemCofre, que está `status: arquivado` (LÁPIDE, deprecação aprovada, código real em `Modules/SRS/`). O anchor-lint conta US de SPECs arquivados → ruído de "código não vinculado" num módulo que vai sair. Marcar `_pendente_` seria falso (o código existe); editar o cadáver é descartável.
+
+**Acceptance:**
+- `anchor-lint.mjs` pula SPECs com `status: arquivado`/`deprecated` no frontmatter (fora de `us_total` e de `dead`).
+- `sdd-scorecard.json` reflete a exclusão (regenerar + `--ratchet` verde).
+- Documentar a regra no header do anchor-lint + emenda ADR 0273.
+
+### US-GOV-043 · Campanha de cobertura de anchor spec↔código (7.5% → meta)
+
+> owner: — · priority: p2 · estimate: 12h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — anchor_coverage em 7.5% (748 de 843 US sem `**Implementado em:**`).
+
+**Achado:** o mecanismo SDD spec↔código FUNCIONA (validado: `anchored_ok` resolve pra código real; `dead` detecta mentira), mas a ADOÇÃO é baixa — a maioria das US implementadas nunca ganhou o anchor. O valor do SDD ("a spec não mente") só se realiza com cobertura.
+
+**Acceptance:**
+- Preencher `**Implementado em:**` nas US JÁ implementadas (priorizar módulos vivos de maior uso/nota), paths verificados (`anchored_ok`) + carimbo `verificado@<sha>`.
+- Subir `anchor_coverage` em ondas (ratchet up-only no sdd-scorecard).
+- Pareia com US-GOV-042 (excluir arquivados) e US-GOV-044 (F2).
+
+### US-GOV-044 · Promover anchor-lint a F2 (--check enforcing) após cobertura
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: US-GOV-043
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — gate `anchor-drift` é advisory (F1, ADR 0273 §4).
+
+**Achado:** hoje o anchor-lint MEDE e EXPÕE (advisory) mas não OBRIGA — anchor dead/placeholder não bloqueia merge. A fase F2 (`--check` exit 1 se dead>0) só faz sentido depois da cobertura subir e dos dead serem zerados/excluídos.
+
+**Acceptance:**
+- Promover `anchor-drift.yml` a required (remover advisory) com `anchor-lint --check`.
+- Pré-req: dead=0 (live) + arquivados excluídos (US-GOV-042) + cobertura em patamar acordado (US-GOV-043).
+- Seguir cadência de promoção de gate (ADR 0275).

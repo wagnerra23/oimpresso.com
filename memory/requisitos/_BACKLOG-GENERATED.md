@@ -2,21 +2,21 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **753 tarefas abertas** em **45 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **767 tarefas abertas** em **46 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
-| [`Jana`](#jana) | 58 | 2 | 0 | 0 | 55 |
+| [`Jana`](#jana) | 59 | 2 | 0 | 0 | 56 |
 | [`Financeiro`](#financeiro) | 49 | 0 | 1 | 0 | 47 |
 | [`OficinaAuto`](#oficinaauto) | 47 | 0 | 5 | 0 | 41 |
 | [`Whatsapp`](#whatsapp) | 47 | 1 | 2 | 0 | 44 |
-| [`Infra`](#infra) | 43 | 0 | 0 | 0 | 41 |
+| [`Infra`](#infra) | 44 | 0 | 0 | 0 | 42 |
 | [`Sells`](#sells) | 39 | 0 | 0 | 0 | 39 |
+| [`Governance`](#governance) | 36 | 0 | 2 | 0 | 34 |
 | [`RecurringBilling`](#recurringbilling) | 35 | 0 | 0 | 0 | 35 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
-| [`Governance`](#governance) | 25 | 0 | 2 | 0 | 23 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
@@ -50,6 +50,7 @@
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
+| [`ADS`](#ads) | 1 | 0 | 0 | 0 | 1 |
 | [`Manufacturing`](#manufacturing) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 | [`Repair`](#repair) | 1 | 0 | 0 | 0 | 1 |
@@ -87,6 +88,7 @@
 - **US-COPI-112** — Onda 5 H1 — Auto-skeleton handoff-draft (tool MCP) _(`p1` · @wagner · sprint pós-Onda 4)_
 - **US-COPI-113** — Onda 5 S1 — Schema rígido CI validation (SPEC/RUNBOOK/Session/Handoff/Charter) _(`p1` · @wagner · sprint pós-Onda 4)_
 - **US-COPI-118** — Tokenizar cores cruas do card-de-prova Pro.tsx (fix ui:lint R1 pré-existente) _(`p1`)_
+- **US-COPI-128** — Health-check multi_tenant_isolation cego a C3 — ler information_schema + probe cross-tenant READ _(`p1`)_
 - **US-COPI-080** — Buffer fix — corrigir o que demo Maiara encontrar _(`p2` · @wagner · sprint 2026-W19)_
 - **US-COPI-090** — BRIEF-A3 — ADR 0096 superseding parcial 0091 (model real gpt-4o-mini) _(`p2` · @wagner · sprint 2026-W20)_
 - **US-COPI-091** — BRIEF-A4 — Investigar baixa adoção brief-first (2 triggers em 7d) _(`p2` · @wagner · sprint 2026-W20)_
@@ -335,6 +337,7 @@
 - **US-INFRA-033** — Suíte Pest no staging falha em massa por testes fazerem Schema::create/dropIfExists cru em tabelas compartilhadas (vs clone MySQL) _(`p1`)_
 - **US-INFRA-041** — Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado _(`p1`)_
 - **US-INFRA-042** — Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente) _(`p1`)_
+- **US-INFRA-046** — ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito _(`p1`)_
 - **US-INFRA-004** — Detecção automática de desvio (cron diário) _(`p2` · @wagner)_
 - **US-INFRA-006** — Tool MCP `whats-active` — agregar sessões doing + paths tocados (Tier 1 ADR 0119) _(`p2` · @wagner)_
 - **US-INFRA-007** — Skill Tier A `session-start-check` — alertar paths overlapping (ADR 0119) _(`p2` · @wagner)_
@@ -406,6 +409,51 @@
 - **US-SELL-046** — Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada _(`p2`)_
 - **US-SELL-048** — Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gated no nº do nightly C1 _(`p2`)_
 - **US-SELL-025** — Botões agrupamento rápido (1-click) · **P3 confirmado** _(`p3`)_
+
+## Governance
+
+
+### review
+
+- **US-GOV-018** — P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema" _(`p0`)_
+- **US-GOV-020** — Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio) _(`p0`)_
+
+### todo
+
+- **US-GOV-011** — [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9) _(`p0`)_
+- **US-GOV-012** — Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real) _(`p1`)_
+- **US-GOV-015** — Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído) _(`p1` · @claude)_
+- **US-GOV-016** — Reestruturação SDD — Semana 0 (12 frentes paralelas) _(`p1` · @wagner)_
+- **US-GOV-017** — Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down) _(`p1` · @wagner)_
+- **US-GOV-019** — Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear _(`p1`)_
+- **US-GOV-031** — MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required _(`p1`)_
+- **US-GOV-034** — sqlite-test-corruptors --strict pega tier S (CORE-drop), não só tier A _(`p1`)_
+- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
+- **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
+- **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
+- **US-GOV-030** — Screen-QA dim16 — adicionar workflow sentinela ausente no CI _(`p2`)_
+- **US-GOV-032** — Criar BRIEFING.md de memory/requisitos/_Governanca/ (front-door) antes de commitar o dir _(`p2`)_
+- **US-GOV-035** — knowledge-drift: isentar _Governanca/roadmap/ (planos citam ghosts legitimamente) _(`p2`)_
+- **US-GOV-036** — Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18) _(`p2`)_
+- **US-GOV-037** — Backfill related_us em 132 charters sem link (join US→tela do SA-A5) _(`p2`)_
+- **US-GOV-038** — Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável _(`p2`)_
+- **US-GOV-042** — anchor-lint ignora SPECs status:arquivado (remove ruído de módulo deprecado) _(`p2`)_
+- **US-GOV-043** — Campanha de cobertura de anchor spec↔código (7.5% → meta) _(`p2`)_
+- **US-GOV-033** — Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto) _(`p3`)_
+- **US-GOV-039** — TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d) _(`p3`)_
+- **US-GOV-040** — Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md _(`p3`)_
+- **US-GOV-041** — Limpar governance/sdd-scorecard.json sujo (274 fantasma) no working-tree de main _(`p3`)_
+- **US-GOV-044** — Promover anchor-lint a F2 (--check enforcing) após cobertura _(`p3`)_
+- **US-GOV-001** — Dashboard consolidado `/governance` ✅ DONE
+- **US-GOV-002** — Policies listagem + toggle ativo/inativo 🟡 PARCIAL
+- **US-GOV-003** — Audit log drill-down filtrável 🟡 PARCIAL
+- **US-GOV-004** — Drift alerts (Module Charter Art. 7) 🟡 PARCIAL
+- **US-GOV-005** — ActionGate middleware (modo warn/strict) ✅ DONE (warn)
+- **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
+- **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
+- **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
+- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
+- **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
 
 ## RecurringBilling
 
@@ -484,40 +532,6 @@
 - **US-NFE-008** — Manifestar NF-e recebida (destinatário)
 - **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
 - **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
-
-## Governance
-
-
-### review
-
-- **US-GOV-018** — P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema" _(`p0`)_
-- **US-GOV-020** — Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio) _(`p0`)_
-
-### todo
-
-- **US-GOV-011** — [ROI alto] Carregar extension OTel no Herd dev (+2-3pp em 36 módulos D9) _(`p0`)_
-- **US-GOV-012** — Investigar ScopedScorecardEvaluator não captura SATURATION markers Jana (gap 25pp grade real) _(`p1`)_
-- **US-GOV-015** — Zelador diário — piloto 14d (reconciliação + triagem por âncora + subtração de ruído) _(`p1` · @claude)_
-- **US-GOV-016** — Reestruturação SDD — Semana 0 (12 frentes paralelas) _(`p1` · @wagner)_
-- **US-GOV-017** — Reestruturação SDD — Fase 1+2 (medição real, backfill, burn-down) _(`p1` · @wagner)_
-- **US-GOV-019** — Re-triage eixo-FAILURE: 7 bugs (design) + 91 quarentena + 11 unclear _(`p1`)_
-- **US-GOV-031** — MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required _(`p1`)_
-- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
-- **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
-- **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
-- **US-GOV-030** — Screen-QA dim16 — adicionar workflow sentinela ausente no CI _(`p2`)_
-- **US-GOV-032** — Criar BRIEFING.md de memory/requisitos/_Governanca/ (front-door) antes de commitar o dir _(`p2`)_
-- **US-GOV-033** — Corrigir links internos residuais (corpos de ADR append-only + dead-links de alvo incerto) _(`p3`)_
-- **US-GOV-001** — Dashboard consolidado `/governance` ✅ DONE
-- **US-GOV-002** — Policies listagem + toggle ativo/inativo 🟡 PARCIAL
-- **US-GOV-003** — Audit log drill-down filtrável 🟡 PARCIAL
-- **US-GOV-004** — Drift alerts (Module Charter Art. 7) 🟡 PARCIAL
-- **US-GOV-005** — ActionGate middleware (modo warn/strict) ✅ DONE (warn)
-- **US-GOV-006** — Module Grade Dashboard `/governance/module-grades` ✅ DONE
-- **US-GOV-007** — Module Grade Drill-down + botão Evoluir ✅ DONE
-- **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
-- **US-GOV-009** — Cron daily snapshot histórico 90d ❌ BACKLOG
-- **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
 
 ## Inventory
 
@@ -1107,6 +1121,13 @@
 ### todo
 
 - **US-ADM-001** — ..010
+
+## ADS
+
+
+### todo
+
+- **US-ADS-001** — Audit Tier 0 — escopar os ~85 DB::table('mcp_*') crus por business_id _(`p1`)_
 
 ## Manufacturing
 
