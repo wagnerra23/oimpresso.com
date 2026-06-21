@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **750 tarefas abertas** em **45 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **752 tarefas abertas** em **45 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -12,7 +12,7 @@
 | [`Financeiro`](#financeiro) | 49 | 0 | 1 | 0 | 47 |
 | [`OficinaAuto`](#oficinaauto) | 47 | 0 | 5 | 0 | 41 |
 | [`Whatsapp`](#whatsapp) | 47 | 1 | 2 | 0 | 44 |
-| [`Infra`](#infra) | 40 | 0 | 0 | 0 | 38 |
+| [`Infra`](#infra) | 42 | 0 | 0 | 0 | 40 |
 | [`Sells`](#sells) | 39 | 0 | 0 | 0 | 39 |
 | [`RecurringBilling`](#recurringbilling) | 35 | 0 | 0 | 0 | 35 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
@@ -350,6 +350,8 @@
 - **US-INFRA-038** — SDD: promover os 3 steps de continue-on-error a required (gate-required) _(`p2`)_
 - **US-INFRA-039** — SDD KL E2/E3 — aplicar os 27 renames classe A _(`p2`)_
 - **US-INFRA-040** — SDD — burn-down dos 237 corruptores SQLite _(`p2`)_
+- **US-INFRA-043** — Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap) _(`p2`)_
+- **US-INFRA-044** — Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB _(`p2`)_
 
 ### in-progress
 

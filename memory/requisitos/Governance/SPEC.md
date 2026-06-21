@@ -463,7 +463,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-GOV-031 · MultiTenantScopeChecker em falso-clean (path Windows) + canário anti-falso-clean + promover guards Tier-0 a required
 
-> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
 **Origem:** auditoria de saúde/integridade 2026-06-21 (risco #3, ADR 0218). Distinto de `US-INFRA-032` (hardcodes business_id).
