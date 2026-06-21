@@ -198,6 +198,10 @@
       "nome": "Jana RAGAS Eval Gate",
       "classe": "gate"
     },
+    "jana-recall-eval.yml": {
+      "nome": "Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD)",
+      "classe": "gate"
+    },
     "jscpd-gate.yml": {
       "nome": "jscpd ratchet (anti-duplicação de bloco copy-paste)",
       "classe": "gate"

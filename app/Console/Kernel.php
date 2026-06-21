@@ -407,6 +407,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // P12 (roadmap SDD · decay-real-ragas-recall) — jana:recall-eval --mode=real
+        // SEMANAL (dom 06:30 BRT). Mede recall@K + a métrica recall_eval_violations
+        // (ADR 0275, meta → 0) consultando o índice Meilisearch read-only.
+        //
+        // PRONTO-PRA-LIGAR, mas o --mode=real só roda onde o índice
+        // `mcp_memory_documents` é alcançável (CT 100, fase 2 — JanaRecallEvalCommand
+        // linha 23/272). environments(['live']) já restringe ao runtime prod; o
+        // comando, se o Meilisearch estiver inacessível, registra o erro e sai com
+        // gate fail (exit 1), capturado pelo onFailure abaixo. ENQUANTO o índice não
+        // for alcançável do cron prod, este schedule fica dormente por construção
+        // (Meilisearch ausente → onFailure loga, NÃO derruba o scheduler). O gate
+        // BARATO de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
+        // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
+        // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
+        //
+        // Refs: ADR 0270 D-4/D-5 · ADR 0274 · ADR 0275 · plano P12
+        // memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md.
+        $schedule->command('jana:recall-eval --mode=real')
+            ->weeklyOn(0, '06:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:recall-eval (real) FALHOU — recall_eval_violations > 0 ' .
+                    'OU Meilisearch inacessível (modo real roda no CT 100, fase 2). ' .
+                    'Ver storage/logs. Gate barato de PR é o --mode=mock em CI.'
+                );
+            });
+
         // Bug #4 BUGS-MCP-SYNC-2026-05-13 — mcp:tasks:health-check daily 06:20 BRT.
         // Flagga tasks dormentes em mcp_tasks (stale_todo >21d, stale_blocked >30d,
         // stale_doing >7d sem commit, stale_review >5d). Roda SEM --auto-comment
