@@ -62,6 +62,10 @@
     "0246": [
       { "slug": "0246-sessao-2026-05-30-ds-harmonizacao", "hint": "harmonização DS sem perder qualidade + caminho v4.2" },
       { "slug": "0246-tipo-outros-default-migracoes-legacy", "hint": "tipo 'Outros' como default em migrações legacy" }
+    ],
+    "0294": [
+      { "slug": "0294-mcp-audit-log-hash-chain-tamper-evident", "hint": "mcp_audit_log tamper-evident por hash-chain SHA-256 (emenda 0084, padrão Ponto)" },
+      { "slug": "0294-metodo-dual-track-shapeup-catraca", "hint": "método de planejamento: dual-track + Shape Up travado por catraca" }
     ]
   }
 }
