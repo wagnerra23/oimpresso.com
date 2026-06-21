@@ -3,6 +3,7 @@ slug: financeiro
 title: "Especificação funcional — Financeiro"
 type: spec
 module: Financeiro
+project: COPI
 status: ativo
 related_adrs:
   - 0154-rubrica-module-grade-v2
