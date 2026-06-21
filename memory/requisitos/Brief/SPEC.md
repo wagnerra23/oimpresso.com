@@ -48,4 +48,4 @@ BRIEFING.md mínimo existe como ponteiro pra ADR 0091 (cumpre regra Tier 0 "todo
 
 - **[ADR 0091](../../decisions/0091-daily-brief.md)** — Daily Brief (spec canônica, irreplaceable)
 - **[ADR 0153](../../decisions/0153-module-grade-rubrica-v1.md)** — Rubrica module-grade (origem do N/A justified)
-- **[ADR 0154](../../decisions/0154-na-justified-modules-infra.md)** — N/A justified em módulos de infra (limite 3 por módulo)
+- **[ADR 0154](../../decisions/0154-module-grade-v2-na-justificado.md)** — N/A justified em módulos de infra (limite 3 por módulo)
