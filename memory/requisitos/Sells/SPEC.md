@@ -214,7 +214,7 @@ last_updated: "2026-05-31"
 - [ ] biz=1 SEMPRE (NUNCA biz=4 — auto-mem `feedback_test_business_id_1_nunca_4`)
 - [ ] CI rodando em <60s (sem network, sem services externos)
 
-### US-SELL-010 · FieldError por campo + auto-open details em erro
+### US-SELL-053 · FieldError por campo + auto-open details em erro
 
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: design-arte-agent-2026-05-13 · closed: 2026-05-13
 > blocked_by: US-SELL-007
