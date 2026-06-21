@@ -37,6 +37,7 @@ const BATTERY = [
   { id: 'ds-guard',            runtime: 'node', kind: 'advisory', cmd: ['prototipo-ui/ds-guard.mjs', '--all'] },
   { id: 'plan-health',         runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/plan-health.mjs', '--json'] },
   // PHP health-checks: advisory aqui (dependem de infra prod) — enforcement = cron + Pest bite-tests.
+  { id: 'jana:plan-drift',     runtime: 'php',  kind: 'advisory', cmd: ['jana:plan-drift', '--json'] }, // ADR 0294 Onda 2 — drift status-do-plano ≠ tasks MCP (par do plan-health node)
   { id: 'jana:health-check',   runtime: 'php',  kind: 'advisory', cmd: ['jana:health-check', '--json'] },
   { id: 'jana:system-audit',   runtime: 'php',  kind: 'advisory', cmd: ['jana:system-audit', '--json'] },
   { id: 'jana:validate-memory',runtime: 'php',  kind: 'advisory', cmd: ['jana:validate-memory', '--json'] },
