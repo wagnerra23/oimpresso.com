@@ -112,8 +112,47 @@ jobs:
           echo "norm_ok=$ok" >> "$GITHUB_OUTPUT"
           if [ "$ok" = "1" ]; then echo "✓ Normalização cirúrgica validada (ADR 0257) — exceção aplicada."; fi
 
+      - name: Exceção — migração legacy→canônico de frontmatter de ADR (ADR 0297)
+        id: legacymig
+        if: steps.detect.outputs.adr_mod_count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Exceção append-only 0297 (emenda operacional de 0257): migração de
+          # frontmatter legacy→canônico (adr→slug/number/type, deciders→decided_by,
+          # date→decided_at, references→related, +authority). Protege a DECISÃO
+          # exigindo que o CORPO (tudo após o frontmatter) seja BYTE-IDÊNTICO.
+          # Sob label dedicado 'adr-legacy-schema-migration'.
+          labels=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels" --jq '.[].name' 2>/dev/null || echo "")
+          if ! echo "$labels" | grep -qFx "adr-legacy-schema-migration"; then
+            echo "legacymig_ok=0" >> "$GITHUB_OUTPUT"
+            echo "Label 'adr-legacy-schema-migration' ausente — exceção 0297 não aplica."
+            exit 0
+          fi
+          base_sha="${{ github.event.pull_request.base.sha }}"
+          # Corpo = tudo após o 2º fence '---' do frontmatter (preserva '---' do corpo).
+          body_of() { awk 'BEGIN{c=0} /^---$/ && c<2 {c++; next} c>=2 {print}' "$1"; }
+          ok=1
+          while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^M[[:space:]]+//')
+            [ -z "$file" ] && continue
+            if ! git show "$base_sha:$file" > /tmp/base_adr.md 2>/dev/null; then
+              echo "::warning::$file — sem versão na base; exceção 0297 é só pra migração de ADR existente."
+              ok=0; continue
+            fi
+            body_of /tmp/base_adr.md > /tmp/base_body.txt
+            body_of "$file" > /tmp/head_body.txt
+            if ! diff -q /tmp/base_body.txt /tmp/head_body.txt >/dev/null 2>&1; then
+              echo "::warning::$file — CORPO da decisão mudou; exceção 0297 exige corpo byte-idêntico (só frontmatter pode migrar)."
+              ok=0
+            fi
+          done < /tmp/adr_mod.txt
+          echo "legacymig_ok=$ok" >> "$GITHUB_OUTPUT"
+          if [ "$ok" = "1" ]; then echo "✓ Migração legacy→canônico validada (ADR 0297) — corpo intacto, exceção aplicada."; fi
+
       - name: Block ADR canon edits (append-only)
-        if: steps.detect.outputs.adr_renamed_count != '0' || (steps.detect.outputs.adr_mod_count != '0' && steps.norm.outputs.norm_ok != '1')
+        if: steps.detect.outputs.adr_renamed_count != '0' || (steps.detect.outputs.adr_mod_count != '0' && steps.norm.outputs.norm_ok != '1' && steps.legacymig.outputs.legacymig_ok != '1')
         run: |
           set -euo pipefail
           echo "::error::ADR CANON é append-only (Constituição Art. 3 + ADR 0095)."
