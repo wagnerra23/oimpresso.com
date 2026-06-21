@@ -58,6 +58,25 @@ test('system-audit veredito: qualquer check ok=false derruba (sem advisory)', fu
     ]))->toBeTrue();
 });
 
+// ── 1b. write-canary: predicado de PRIVILÉGIO DE ESCRITA (incidente 2026-06-21) ──
+//
+// O GRANT INSERT revogado no Hostinger deixou os 17 checks verdes com prod sem
+// conseguir escrever. isWriteDenied distingue "negado por privilégio" (MySQL 1142)
+// de erro benigno — é o que faz o check db_write_canary MORDER no caso certo.
+
+test('isWriteDenied: 1142 / command denied = negação de escrita', function () {
+    expect(HealthCheckCommand::isWriteDenied(
+        'SQLSTATE[42000]: Syntax error or access violation: 1142 INSERT command denied to user'
+    ))->toBeTrue();
+    expect(HealthCheckCommand::isWriteDenied('INSERT command denied to user foo'))->toBeTrue();
+});
+
+test('isWriteDenied: erro benigno / sentinela de rollback NÃO é negação', function () {
+    expect(HealthCheckCommand::isWriteDenied('SQLSTATE[HY000]: server has gone away'))->toBeFalse();
+    expect(HealthCheckCommand::isWriteDenied('__jana_write_canary_rollback__'))->toBeFalse();
+    expect(HealthCheckCommand::isWriteDenied(''))->toBeFalse();
+});
+
 // ── 2. INTEGRAÇÃO: exit code == veredito (prova que NÃO é constante) ──────────
 
 /** Extrai o bloco JSON do output do comando (pode haver linhas de debug antes). */
@@ -77,6 +96,20 @@ test('jana:health-check: exit code BATE com o veredito dos checks', function () 
         ->contains(fn ($c) => ! ($c['ok'] ?? false) && ! ($c['advisory'] ?? false));
 
     expect($exit)->toBe($esperaFalha ? 1 : 0);
+});
+
+test('db_write_canary: escrita OK no DB de teste e NÃO persiste linha', function () {
+    Artisan::call('jana:health-check', ['--json' => true]);
+    $json = biteJson(Artisan::output());
+
+    $canary = collect($json['checks'])->firstWhere('name', 'db_write_canary');
+    expect($canary)->not->toBeNull();
+    // Tabela existe no CI (migration roda) → o INSERT de prova passa e é revertido.
+    expect($canary['ok'])->toBeTrue();
+    expect($canary['value'])->toBe('writable');
+
+    // Rollback de verdade: a prova nunca deixa linha pra trás.
+    expect(\Illuminate\Support\Facades\DB::table(HealthCheckCommand::WRITE_CANARY_TABLE)->count())->toBe(0);
 });
 
 test('jana:system-audit: exit code BATE com o veredito dos checks', function () {
