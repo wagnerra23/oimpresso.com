@@ -3,6 +3,7 @@ slug: infra
 title: "Especificação funcional — Infra (loop de governança fechado)"
 type: spec
 module: Infra
+project: COPI
 status: ativo
 owner: wagner
 version: "1.2"
@@ -862,22 +863,30 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Workflow `on: push: paths: 'memory/requisitos/**/SPEC.md'` que dispara `mcp:tasks:sync` (ou confirma/monitora o webhook server-side, como a mcp-drift-sentinel monitora código).
 - Rodar 1 `mcp:tasks:sync` full pra zerar o drift de status DONE/todo existente.
 
-### US-INFRA-045 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+
+### US-INFRA-045 · Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #6 (verificação adversarial, 2ª rodada).
+
+**Achado:** a cadeia tasks-create→SPEC→sync→roadmap tem 3 buracos:
+1. `TaskParserService::resolveCycleId/resolveEpicId` retornam NULL se o SPEC não tem `project:` no frontmatter (L208 + L571). 55 de 57 SPECs não tinham `project:` → US nasce com project_id/cycle_id/epic_id NULL e nunca entra no roadmap. (Mitigado nos 3 SPECs de saúde com `project: COPI`, mas é sistêmico.)
+2. Não há tool MCP pra atribuir cycle/epic a US existente (`tasks-update` não tem o campo; sem `tasks-move`).
+3. Roadmap Jana só mostra o cycle ATIVO; ProjectMgmt só mostra US com `epic_id`. US em cycle `planning` / sem epic ficam invisíveis.
+
+**Acceptance:**
+- Fallback de project default no parser (ex.: COPI) OU exigir `project:` em todo SPEC (gate de schema).
+- Tool/canal pra atribuir cycle/epic a US existente.
+- RUNBOOK do caminho canônico "US → roadmap".
+- Pareia com US-INFRA-043 (sentinela unassigned) + US-INFRA-044 (sync no CI).
+
+### US-INFRA-046 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
-**Origem:** rodada adversarial completa do ADR 0296 (PR #3153) — 24 riscos confirmados (7 critical), veredicto `nao-prova-de-falhas-ainda`. Gate p/ aceitar o plano de capacidade e rodar P1/P2.
-
-**Emendas (12 bloqueadores — detalhe no ADR §RODADA ADVERSARIAL):**
-- [ ] Fila real antes de migrar (`QUEUE_CONNECTION=redis`+worker) — hoje `sync`, ADS grava síncrono no request path (quebra ERP-FIRST).
-- [ ] Alerta de cota/grant-torto OUT-OF-BAND (SMTP/HTTP) — `mcp_alertas` morre junto com o DB read-only.
-- [ ] Reclassificar `activity_log` C4→C6 (trilha forense/RevertService) — remover TTL 30-90d.
-- [ ] Mapa tabela→classe COMPLETO (369 tabelas via information_schema, fail-closed C1) — hoje cobre 54.
-- [ ] Remover P0.4 (particionar audit é impossível FK×InnoDB + desnecessário 2.9MB).
-- [ ] `PDO::ATTR_TIMEOUT`+TLS na conexão C1; circuit-breaker spec real; quota 75%+90% + config keys; poda só por allowlist (nunca por nome — `crm_call_logs` etc são C1).
-- [ ] Aplicar os 14 novos invariantes + corrigir as frases de honestidade (l.95/130/163).
-
-**10 decisões do Wagner** (no ADR): FK `business_id`, co-residência C2+C6, janela webhook, mandato LGPD/forense, custo+dono do DBaaS (P2), rede do C1, Redis de sessão, encerramento do incidente bridge-resync-biz4 (p/ DROP C7).
+**Origem:** rodada adversarial completa do ADR 0296 (PR #3153) — 24 riscos confirmados (7 critical), veredicto `nao-prova-de-falhas-ainda`. Gate p/ aceitar o plano de capacidade e rodar P1/P2. Detalhe dos bloqueadores e das 10 decisões do Wagner no ADR §RODADA ADVERSARIAL.
 
 Refs: ADR 0296 · PR #3153.
