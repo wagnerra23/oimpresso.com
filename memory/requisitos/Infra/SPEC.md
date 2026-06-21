@@ -3,6 +3,7 @@ slug: infra
 title: "Especificação funcional — Infra (loop de governança fechado)"
 type: spec
 module: Infra
+project: COPI
 status: ativo
 owner: wagner
 version: "1.2"
@@ -861,3 +862,22 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Acceptance:**
 - Workflow `on: push: paths: 'memory/requisitos/**/SPEC.md'` que dispara `mcp:tasks:sync` (ou confirma/monitora o webhook server-side, como a mcp-drift-sentinel monitora código).
 - Rodar 1 `mcp:tasks:sync` full pra zerar o drift de status DONE/todo existente.
+
+
+### US-INFRA-045 · Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
+> blocked_by: —
+
+**Origem:** auditoria de saúde/integridade 2026-06-21 — furo #6 (verificação adversarial, 2ª rodada).
+
+**Achado:** a cadeia tasks-create→SPEC→sync→roadmap tem 3 buracos:
+1. `TaskParserService::resolveCycleId/resolveEpicId` retornam NULL se o SPEC não tem `project:` no frontmatter (L208 + L571). 55 de 57 SPECs não tinham `project:` → US nasce com project_id/cycle_id/epic_id NULL e nunca entra no roadmap. (Mitigado nos 3 SPECs de saúde com `project: COPI`, mas é sistêmico.)
+2. Não há tool MCP pra atribuir cycle/epic a US existente (`tasks-update` não tem o campo; sem `tasks-move`).
+3. Roadmap Jana só mostra o cycle ATIVO; ProjectMgmt só mostra US com `epic_id`. US em cycle `planning` / sem epic ficam invisíveis.
+
+**Acceptance:**
+- Fallback de project default no parser (ex.: COPI) OU exigir `project:` em todo SPEC (gate de schema).
+- Tool/canal pra atribuir cycle/epic a US existente.
+- RUNBOOK do caminho canônico "US → roadmap".
+- Pareia com US-INFRA-043 (sentinela unassigned) + US-INFRA-044 (sync no CI).
