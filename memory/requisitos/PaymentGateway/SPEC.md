@@ -182,9 +182,10 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: —
+> parent_plan: paymentgateway-onda-5-dogfooding
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: paymentgateway-onda-5-dogfooding` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** código da Onda 5 já feito (PR #1148); restam pendências **humano-limitadas** (relógio do mundo real, ADR 0106): smoke biz=1 + canary Larissa biz=4.
 **Dedup:** distinto de US-PG-002/003 (SEC webhooks) e US-PG-005/006/007 (webhook Inter).

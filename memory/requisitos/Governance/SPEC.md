@@ -414,9 +414,10 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
+> parent_plan: governance-sprint-2-cleanup
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: governance-sprint-2-cleanup` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** pre-commit com 3 blocos legados pendentes de limpeza.
 
@@ -430,9 +431,10 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
+> parent_plan: ia-os-onda2-endurecer
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: ia-os-onda2-endurecer` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** anchor-gate ainda advisory; endurecer pra required (onda 2 IA-OS).
 
@@ -446,9 +448,10 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
+> parent_plan: screen-qa-dim16-sentinela
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: screen-qa-dim16-sentinela` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** o workflow sentinela da dimensão 16 do screen-grade está ausente no CI (catraca sem sentinela = pode regredir).
 
