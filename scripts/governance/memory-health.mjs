@@ -42,8 +42,9 @@ const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
 // acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
 const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
-const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {} };
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [] };
 let checkCByFile = {};
+let checkLSlugs = []; // Check L (ADR vivo-mas-proposto): slugs detectados nesta run
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -403,6 +404,47 @@ function checkSessionDecisionAnchor() {
   }
 }
 
+// ── Check L: ADR vivo-mas-proposto (proposto vs realizado) ──────────────────
+// "Declarado ≠ realizado": ADR com status proposto/rascunho cujo NÚMERO já é citado
+// por código que RODA (scripts/** ou .github/workflows/**) — o processo depende da
+// decisão, mas a metadata diz que ela não foi aceita. Ratchet (como Check C): os
+// offenders conhecidos ficam no baseline (.checkL); só ADR NOVO vivo-mas-proposto
+// acima do baseline 🔴 falha. Ratificar (proposto→aceito) tira do offender list
+// sozinho — o débito encolhe à vista. É o teste de integridade do proposto vs
+// realizado pedido por Wagner (2026-06-21). Refs: ADR 0256/0258.
+const UNRATIFIED_STATUS = new Set(['proposto', 'rascunho', 'proposed', 'draft']);
+function checkAdrVivoMasProposto() {
+  const dir = 'memory/decisions';
+  if (!exists(dir)) return;
+  // corpus = "código que roda". NÃO inclui memory/** (lá é doc, não execução) nem o
+  // próprio baseline (senão o grandfather vira citação circular auto-confirmante).
+  const isCode = (rel) => /\.(mjs|js|ts|php|json)$/.test(rel) && !rel.includes('.memory-health-baseline');
+  const corpusFiles = [
+    ...listFiles('scripts', isCode),
+    ...(exists('.github/workflows') ? listFiles('.github/workflows', (p) => /\.ya?ml$/.test(p)) : []),
+  ];
+  let corpus = '';
+  for (const f of corpusFiles) { try { corpus += '\n' + read(f); } catch {} }
+  for (const f of readdirSync(join(ROOT, dir))) {
+    const m = f.match(/^(\d{4})-.+\.md$/);
+    if (!m) continue;
+    const num = m[1];
+    let txt; try { txt = read(`${dir}/${f}`); } catch { continue; }
+    const st = (txt.match(/^status:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    if (!st || !UNRATIFIED_STATUS.has(st)) continue;
+    // citado como dependência viva: "ADR 0256" · "0256-slug" · "decisions/0256-"
+    const cited = new RegExp(`(ADR[ _-]?${num}\\b|\\b${num}-[a-z]|decisions/${num}-)`, 'i').test(corpus);
+    if (cited) checkLSlugs.push(f.replace(/\.md$/, ''));
+  }
+  if (UPDATE_BASELINE) return; // no modo update só capturamos; nada de fail
+  const grandfathered = new Set(baseline.checkL || []);
+  const novos = checkLSlugs.filter((slug) => !grandfathered.has(slug));
+  if (novos.length) {
+    fails.push({ check: 'L', kind: 'adr-vivo-mas-proposto', count: novos.length, sample: novos.slice(0, 15),
+      msg: `ADR(s) com status proposto/rascunho mas JÁ citado(s) por código que roda (scripts/** ou .github/workflows/**) — "proposto vs realizado": o processo já depende da decisão mas a metadata diz que não foi aceita. Ratifique (proposto→aceito via PR) ou corte a dependência. Se legítimo, rode --update-baseline. (ADR 0256 Check L · Wagner 2026-06-21)` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkScorecardFantasma();
@@ -413,12 +455,13 @@ checkAntiResurrection();
 checkGatesRegistry();
 checkLidoFreshness();
 checkLicaoSemAssercao();
+checkAdrVivoMasProposto(); // Check L (fail-class) — proposto vs realizado
 try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-health-error', msg: 'plan-health falhou (não bloqueia): ' + e.message }); }
 try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 
 if (UPDATE_BASELINE) {
-  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile }, null, 2) + '\n');
-  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (${Object.keys(checkCByFile).length} arquivos com Check C aceitos)`);
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort() }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto grandfathered)`);
   process.exit(0);
 }
 

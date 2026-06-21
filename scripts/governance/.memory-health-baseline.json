@@ -15,5 +15,19 @@
     "memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md": 1,
     "memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md": 1,
     "memory/research/clientes-legacy-officeimpresso/_COMO-ANALISAR.md": 1
-  }
+  },
+  "checkL": [
+    "0123-modules-arquivos-backbone",
+    "0124-curador-conhecimento-pipeline",
+    "0189-pageheader-canon-v3-1-cadastro-roxo",
+    "0236-scorecard-universal-entidade-arbitraria",
+    "0254-design-identity-grade-deterministico",
+    "0256-knowledge-survival-meia-vida-catraca-sentinela",
+    "0257-adr-status-lifecycle-kind-modelo-canonico",
+    "0258-processo-adr-estado-arte-indice-gerado-supersede-atomico",
+    "0286-channel-health-corroborado-por-mensagem-real",
+    "0291-distiller-modulo-verdade-contrato-emenda-0270-f3",
+    "0294-mcp-audit-log-hash-chain-tamper-evident",
+    "0295-bitemporal-event-time-memoria-jana"
+  ]
 }
