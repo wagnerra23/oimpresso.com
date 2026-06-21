@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Modules\Governance\Services\Concerns\PersistsDriftAlert;
 use Modules\Governance\Services\DriftFinding;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Escalonamento por persistência (Onda 1 — sentinela transporte) no trait
@@ -40,7 +40,9 @@ function findingHigh(): DriftFinding
 
 beforeEach(function () {
     config()->set('governance.drift_escalation_days', 3);
-    DB::table('mcp_alertas_eventos')->truncate();
+    // delete() (DML, transaction-safe) em vez de truncate() — TRUNCATE dá implicit
+    // commit no MySQL e quebraria a isolação do DatabaseTransactions.
+    DB::table('mcp_alertas_eventos')->delete();
 });
 
 it('alerta novo → severidade base, escalated=false', function () {
