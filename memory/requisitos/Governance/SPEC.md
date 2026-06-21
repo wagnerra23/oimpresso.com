@@ -576,7 +576,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > blocked_by: —
 
 **Origem:** red advisory do PR #3135 (anti-ghost).
-**Problema:** os planos do roadmap citam `Modules/MemCofre/PontoWr2/Copiloto/DocVault` em contexto de planejamento da remoção/rename → o detector os conta como ghost vivo. É falso-positivo.
+**Problema:** os planos do roadmap citam os módulos legados MemCofre/PontoWr2/Copiloto/DocVault (renomeados→SRS/Ponto/Jana ou removidos) em contexto de planejamento da remoção/rename → o detector os conta como ghost vivo. É falso-positivo.
 **Fix:** estender `scripts/governance/knowledge-drift.mjs` (já tocado pelo P11/#3155) pra isentar `_Governanca/roadmap/` como já isenta `adr/`.
 **Acceptance:** anchor-ghost verde no #3135; doc citando ghost em roadmap/ não dispara. Refs: ROADMAP-SDD
 
