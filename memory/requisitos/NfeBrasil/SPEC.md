@@ -37,7 +37,7 @@ na_justified:
 **Quero** subir certificado A1 (.pfx) com senha e o sistema validar + armazenar criptografado
 **Para** começar a emitir NFe sem expor cert na rede
 
-**Implementado em:** [`resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx`](../../../resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx) · [`Modules/NfeBrasil/Http/Controllers/CertificadoController.php`](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php) · [`Modules/NfeBrasil/Services/CertificadoService.php`](../../../Modules/NfeBrasil/Services/CertificadoService.php)
+**Implementado em:** _parcial_ · [`Modules/NfeBrasil/Http/Controllers/CertificadoController.php`](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php) · [`Modules/NfeBrasil/Services/CertificadoService.php`](../../../Modules/NfeBrasil/Services/CertificadoService.php) · verificado@08c4a8f (2026-06-21) — backend (upload + validação OpenSSL + cripto) pronto; falta a tela React de upload em Pages/NfeBrasil/Configuracao (não migrada)
 
 **Definition of Done:**
 - [x] FormRequest aceita `.pfx` ≤ 100KB + `senha` (não loga em audit log!)
@@ -60,7 +60,7 @@ na_justified:
 **Quero** clicar "Finalizar venda" no POS e o sistema emitir NFC-e em background, retornar DANFE imprimível em até 5s
 **Para** atender exigência fiscal sem fricção no balcão
 
-**Implementado em:** _[TODO — integração `/sells/create` finalizar + `resources/js/Pages/NfeBrasil/Emissao/Sucesso.tsx`]_
+**Implementado em:** _pendente_ — emissão NFC-e a partir de venda (job + listener) não construída; falta integração `/sells/create` + tela de sucesso em Pages/NfeBrasil/Emissao
 
 **Definition of Done:**
 - [ ] Listener escuta `App\Events\TransactionCompleted` (core) → dispatch job `EmitirNfceJob` na queue `nfe`
@@ -82,7 +82,7 @@ na_justified:
 **Quero** abrir nota emitida pela chave/número e baixar DANFE + XML
 **Para** reimprimir, enviar pra cliente, anexar em e-mail
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx`]_
+**Implementado em:** _pendente_ — tela de visualização/reimpressão (Pages/NfeBrasil/Emissoes/Show) não construída
 
 **Definition of Done:**
 - [ ] Mostra: chave acesso (44 dígitos formatado em 11 grupos), número, série, data emissão, valor, cStat, link DANFE PDF, link XML
@@ -101,7 +101,7 @@ na_justified:
 **Quero** cancelar uma NFC-e em até 24h ou NF-e em até 168h informando justificativa (15-255 chars)
 **Para** corrigir venda errada sem deixar rastro errado pra Receita
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão Cancelar)]_
+**Implementado em:** _pendente_ — cancelamento (serviço SEFAZ + botão na tela Emissoes/Show) não construído
 
 **Definition of Done:**
 - [ ] Valida prazo legal antes de chamar SEFAZ (NFC-e: 24h; NF-e: 168h)
@@ -122,7 +122,7 @@ na_justified:
 **Quero** enviar CCe pra corrigir erro não-monetário (ex: nome do destinatário errado, transportadora) sem cancelar e re-emitir
 **Para** evitar custo de re-emissão e manter histórico
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Emissoes/Show.tsx` (botão CCe)]_
+**Implementado em:** _pendente_ — Carta de Correção Eletrônica (serviço + botão CCe na tela Emissoes/Show) não construída
 
 **Definition of Done:**
 - [ ] Valida limite legal: máximo 20 CCe por NFe; correção 15-1000 chars; não permite mudar valor/quantidade/CNPJ
@@ -141,7 +141,7 @@ na_justified:
 **Quero** ativar contingência (EPEC pra NF-e, FS-DA pra NFC-e) e seguir vendendo offline
 **Para** não parar caixa quando SEFAZ está com problema
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Contingencia/Index.tsx`]_
+**Implementado em:** _pendente_ — modo contingência (EPEC/FS-DA + tela Pages/NfeBrasil/Contingencia) não construído
 
 **Definition of Done:**
 - [ ] Detecção automática: `SefazHealthCheck` ping a cada 30s → se 3 falhas seguidas, sugerir contingência
@@ -162,7 +162,7 @@ na_justified:
 **Quero** dashboard com KPIs (autorizadas hoje, rejeitadas, contingência ativa, cert vencendo) + lista de rejeições com cStat + sugestão de correção
 **Para** atacar rejeições antes de o cliente perceber
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Monitor/Index.tsx`]_
+**Implementado em:** _pendente_ — monitor de rejeições + status SEFAZ (tela Pages/NfeBrasil/Monitor) não construído
 
 **Definition of Done:**
 - [ ] KPIs: autorizadas (hoje/semana/mês), rejeitadas, em contingência, cert dias restantes
@@ -183,7 +183,7 @@ na_justified:
 **Quero** manifestar NFe recebida (Confirmação / Ciência / Desconhecimento / Operação não realizada)
 **Para** atender obrigação legal e gerar apropriação correta no DRE
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx`]_
+**Implementado em:** `Modules/NfeBrasil/Http/Controllers/ManifestacaoController.php` · `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` · `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` · `Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php` · verificado@08c4a8f (2026-06-21)
 
 **Definition of Done:**
 - [ ] Lista NFes destinadas (consulta `WS-NFeDistribuicaoDFe` periódica) com status manifestação
@@ -202,7 +202,7 @@ na_justified:
 **Quero** baixar arquivo SPED Fiscal pronto pra ECF do mês de competência
 **Para** entregar obrigação contábil sem ligar pra Larissa
 
-**Implementado em:** _[TODO — `resources/js/Pages/NfeBrasil/Sped/Index.tsx`]_
+**Implementado em:** _pendente_ — geração SPED Fiscal/EFD (tela Pages/NfeBrasil/Sped) não construída
 
 **Definition of Done:**
 - [ ] Geração assíncrona via job (volume grande); progresso via broadcast
