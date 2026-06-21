@@ -6,9 +6,11 @@ authors: [W, C]
 related_adrs:
   - 0062-separacao-runtime-hostinger-ct100
   - 0093-multi-tenant-isolation-tier-0
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
 outcomes:
-  - "Causa-raiz: usuário de DB de prod sem privilégio INSERT/UPDATE (MySQL 1142)"
-  - "Lacuna de detecção fechada: check db_write_canary (duro) no jana:health-check"
+  - "Causa-raiz: cota de disco do DB estourada (6180/6144 MB) → Hostinger auto-revogou INSERT/UPDATE"
+  - "Estouro por mcp_memory_documents_history (4.97 GB, over-versioning); dropada (git é canônico) → ALL PRIVILEGES auto-restaurado; DB 5788→816 MB"
+  - "Guards (PR #3125): db_write_canary + db_storage_quota (duros) no jana:health-check"
 ---
 
 # Incidente — GRANT INSERT/UPDATE revogado em prod (2026-06-21)
@@ -58,23 +60,51 @@ Os 17 checks do `jana:health-check` são **SELECTs** (multi-tenant, PII, drift) 
 escrita**. Resultado: tudo verde com prod meio-morto — o anti-padrão **"a suíte mente"**
 (mesma classe da auditoria de sentinelas de 20/jun: monitor verde com o fluxo morto).
 
-## Correção
+## Causa-raiz REAL (atualizado 2026-06-21)
 
-1. **Grant (P0 — humano, hPanel):** o usuário não tem `GRANT OPTION` e não há root
-   MySQL no shared hosting; **só dá pra restaurar no hPanel Hostinger** (MySQL Databases
-   → privilégios de `u906587222_oimpresso` → ALL, ou ao menos INSERT/UPDATE/CREATE/INDEX),
-   ou via ticket. Tudo a jusante (distiller, ledger ADS) **auto-cura** depois.
-2. **Guard (este PR):** check **`db_write_canary`** (DURO) no `jana:health-check` —
-   INSERT de prova numa tabela dedicada (`jana_health_write_canary`) dentro de uma
-   transação **sempre revertida** (não persiste linha, não toca tabela de negócio).
-   Escrita morta passa a **derrubar o exit code + ALERT do cron 06:00**. Predicado puro
-   `isWriteDenied()` (1142/command denied) + bite-test. **Ordem:** o fix do grant vem
-   ANTES do deploy deste guard (a própria migration precisa de `CREATE`, que o mesmo
-   grant revoga).
+O grant não foi "revogado por alguém" — foi **automático**. O DB bateu a **cota de disco
+do plano**: `6180 / 6144 MB` (100%+). Quando isso acontece, o **Hostinger auto-revoga
+INSERT/UPDATE/CREATE/INDEX** (deixa SELECT/DELETE/DROP pra dar como liberar espaço) e
+**re-restaura sozinho** assim que volta a ficar abaixo da cota.
+
+O que estourou a cota: **`mcp_memory_documents_history` = 4.97 GB** (296.586 linhas para
+1.042 docs atuais ≈ 285 versões/doc), inflada por over-versioning do sync git→MCP (grava
+snapshot a cada webhook). Sozinha era 85% do banco. Cada linha tem `git_sha` + `content_md`
+→ **redundante com o git**, fonte canônica das memórias ([ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)).
+
+## Resolução (2026-06-21 ~09h BRT)
+
+1. `DROP TABLE _bkp_fin_titulos_20260602` (backup datado do resync num_uf, ~80 MB).
+2. `SHOW CREATE TABLE` salvo → `DROP TABLE mcp_memory_documents_history` (0.2s, libera
+   ~4.97 GB). DB: **5788 → 816 MB**.
+3. Hostinger **auto-restaurou `ALL PRIVILEGES`** no ato (confirma a causa-raiz).
+4. Tabela recriada **vazia** (DDL idêntico + FK `ON DELETE CASCADE`).
+5. `jana:profile-distill --only-stale` → **76 ok / 0 falha**; health-check **`ok: true`**
+   (profile_distiller_drift e spec_id_drift zerados).
+
+## Guards adicionados (PR #3125)
+
+- **`db_write_canary`** (DURO) — INSERT de prova em tabela dedicada (`jana_health_write_canary`),
+  transação sempre revertida (não persiste linha, não toca negócio). Pega o SINTOMA
+  (escrita morta) no cron 06:00. Predicado puro `isWriteDenied()` (1142/command denied).
+- **`db_storage_quota`** (DURO) — alerta quando o DB passa de `jana.db_quota_warn_pct`
+  (90%) da cota (`jana.db_quota_mb`, default 6144). Pega a CAUSA **antes** do provedor
+  cortar. Predicado puro `dbQuotaExceeded()`. Ambos com bite-tests.
+
+## Fase 2 — mover memória do MCP pro CT 100 (planejado)
+
+Arquiteturalmente os `mcp_memory_documents*` são dados do MCP server (CT 100, [ADR 0062](../decisions/0062-separacao-runtime-hostinger-ct100.md)),
+hoje no MySQL do Hostinger só por conexão remota — foi esse acoplamento que deixou o bloat
+da memória derrubar o ERP. Plano:
+1. Subir DB no CT 100 (storage do Proxmox, sem a cota apertada de shared hosting).
+2. Repointar a config de memória do MCP pro DB do CT 100.
+3. Corrigir o over-versioning (só gravar histórico quando `content_md` muda de fato).
+4. Retenção (N versões/doc OU ≤90d; o git já é o histórico de longo prazo).
+
+Refill atual é lento (~170 MB/semana → **meses** até reincomodar), então não é urgente.
 
 ## Pendências
 
-- Reconciliar 3 IDs em `spec_id_drift` (US-WA-002/010/045 — título DB ≠ SPEC.md). **Bloqueado**
-  pelo grant (é `UPDATE mcp_tasks`) e precisa do MCP conectado. (US-RECURRINGBILLING-001 é
-  falso-positivo conhecido — `RecurringBilling/SPEC.md` linha 12 documenta o ID legado.)
-- Investigar **o que** revogou o grant ~22:50 (ação no hPanel? reset Hostinger? deploy?).
+- Fase 2 (acima) — quando der.
+- `spec_id_drift` zerou sozinho pós-fix (provável efeito do parser #3124 + sync voltando);
+  monitorar. (US-RECURRINGBILLING-001 segue falso-positivo conhecido documentado em `RecurringBilling/SPEC.md`.)

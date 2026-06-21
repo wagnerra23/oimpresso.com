@@ -77,6 +77,14 @@ test('isWriteDenied: erro benigno / sentinela de rollback NÃO é negação', fu
     expect(HealthCheckCommand::isWriteDenied(''))->toBeFalse();
 });
 
+// db_storage_quota: a CAUSA do incidente (Hostinger revoga escrita ao bater a cota).
+test('dbQuotaExceeded: >= warnPct acende; abaixo não', function () {
+    expect(HealthCheckCommand::dbQuotaExceeded(5530.0, 6144, 90))->toBeTrue();   // ~90%
+    expect(HealthCheckCommand::dbQuotaExceeded(6180.0, 6144, 90))->toBeTrue();   // estourado (incidente)
+    expect(HealthCheckCommand::dbQuotaExceeded(816.0, 6144, 90))->toBeFalse();   // ~13% (pós-fix)
+    expect(HealthCheckCommand::dbQuotaExceeded(100.0, 0, 90))->toBeFalse();      // cota desconhecida = não alarma
+});
+
 // ── 2. INTEGRAÇÃO: exit code == veredito (prova que NÃO é constante) ──────────
 
 /** Extrai o bloco JSON do output do comando (pode haver linhas de debug antes). */
