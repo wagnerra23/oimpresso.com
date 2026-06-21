@@ -862,7 +862,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Workflow `on: push: paths: 'memory/requisitos/**/SPEC.md'` que dispara `mcp:tasks:sync` (ou confirma/monitora o webhook server-side, como a mcp-drift-sentinel monitora código).
 - Rodar 1 `mcp:tasks:sync` full pra zerar o drift de status DONE/todo existente.
 
-### US-INFRA-044 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+### US-INFRA-045 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
