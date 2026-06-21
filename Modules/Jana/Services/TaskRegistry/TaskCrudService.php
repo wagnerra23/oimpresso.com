@@ -543,29 +543,63 @@ class TaskCrudService
         $prefix = $this->detectarPrefixoSpec($module);
         $prefixo = "US-{$prefix}-";
 
-        $ultimoDb = McpTask::where('task_id', 'LIKE', $prefixo . '%')
-            ->orderByRaw('CAST(SUBSTRING(task_id, ' . (strlen($prefixo) + 1) . ') AS UNSIGNED) DESC')
-            ->value('task_id');
-        $nDb = $ultimoDb ? (int) substr($ultimoDb, strlen($prefixo)) : 0;
+        // max(DB, SPEC) cobre os 2 sentidos de drift:
+        //   - DB ATRÁS do SPEC: webhook ainda não rodou pro último push, OU o
+        //     operador escreveu US-XX-NNN à mão no SPEC.
+        //   - DB À FRENTE do SPEC: row órfã criada direto no DB / ad-hoc que nunca
+        //     entrou no SPEC. Incidente US-RB-052 (2026-06-20): wagner criou a row
+        //     em 2026-05-16 fora do SPEC; reusar o 052 fez o webhook sync casar por
+        //     task_id e UPDATE-ar a órfã (ADR 0144), sobrescrevendo title/description
+        //     em silêncio. Triagem das órfãs já existentes: `mcp:tasks:orphans`.
+        $n = max($this->maiorSequencialNoDb($prefixo), $this->maiorSequencialNoSpec($module, $prefixo)) + 1;
 
-        // Cobre o caso DB out-of-sync: webhook ainda não rodou pro último push
-        // OU o operador escreveu US-RB-NNN à mão no SPEC. Pegamos max(DB, SPEC).
-        // Captura 2 formatos (ADR 0134):
-        //   1. "### US-XX-NNN ·" (story detalhada — section header)
-        //   2. "- US-XX-NNN —" (placeholder em out-of-scope ou backlog futuro)
-        // Antes só pegava headers → 2026-05-11 deu drift em US-WA-053 (placeholder
-        // bullet no SPEC.md Whatsapp linha 572 colidiu com tasks-create).
-        $nSpec = 0;
+        // Guarda final de colisão: garante por CONSTRUÇÃO que o ID gerado não existe
+        // no DB. A aritmética acima pode ser furada por buraco de numeração ou
+        // mismatch de prefixo, e confirmar é barato. Avança até achar um slot livre —
+        // IDs nunca são reciclados (nem de tasks cancelled/done).
+        do {
+            $taskId = $prefixo . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
+            $n++;
+        } while (McpTask::where('task_id', $taskId)->exists());
+
+        return $taskId;
+    }
+
+    /**
+     * Maior NNN já presente no DB pro prefixo — inclui rows órfãs criadas direto
+     * no DB / ad-hoc que nunca entraram no SPEC, e tasks cancelled/done (IDs não
+     * são reciclados). Calcula o max em PHP (não em SQL) pra ser portável entre
+     * MySQL e SQLite: o `CAST(SUBSTRING(...) AS UNSIGNED)` anterior era MySQL-only,
+     * o que deixava esta lógica sem cobertura de teste no CI sqlite.
+     */
+    protected function maiorSequencialNoDb(string $prefixo): int
+    {
+        $len = strlen($prefixo);
+
+        return (int) McpTask::where('task_id', 'LIKE', $prefixo . '%')
+            ->pluck('task_id')
+            ->map(fn (string $id): int => (int) substr($id, $len))
+            ->max();
+    }
+
+    /**
+     * Maior NNN declarado no SPEC.md pro prefixo. Captura 2 formatos (ADR 0134):
+     *   1. "### US-XX-NNN ·" (story detalhada — section header)
+     *   2. "- US-XX-NNN —"   (placeholder em out-of-scope ou backlog futuro)
+     * Antes só pegava headers → 2026-05-11 deu drift em US-WA-053 (placeholder
+     * bullet no SPEC.md Whatsapp colidiu com tasks-create).
+     */
+    protected function maiorSequencialNoSpec(string $module, string $prefixo): int
+    {
         $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
-        if (is_file($specPath)) {
-            $content = (string) @file_get_contents($specPath);
-            if (preg_match_all('/(?:^###|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
-                $nSpec = max(array_map('intval', $matches[1]));
-            }
+        if (! is_file($specPath)) {
+            return 0;
         }
-
-        $n = max($nDb, $nSpec) + 1;
-        return $prefixo . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
+        $content = (string) @file_get_contents($specPath);
+        if (preg_match_all('/(?:^###|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
+            return max(array_map('intval', $matches[1]));
+        }
+        return 0;
     }
 
     protected function stringValue(mixed $v): string
