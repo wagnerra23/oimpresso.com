@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **301** arquivos · **285** números únicos · máx **0295**
-- **ADRs ATIVOS (lifecycle ativo): 261** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 238 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 261 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **302** arquivos · **286** números únicos · máx **0297**
+- **ADRs ATIVOS (lifecycle ativo): 262** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 242 · proposto 33 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 262 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (301)
+## Todas as ADRs (302)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -158,8 +158,8 @@ _(íntegra)_
 | 0120 | aceito | ativo | decision | Supersession metadata housekeeping — fix 0079 + documenta drift de direção forwa |
 | 0121 | aceito | ativo | decision | oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Ver |
 | 0122 | proposto | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
-| 0123 | proposto | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
-| 0124 | proposto | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
+| 0123 | aceito | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
+| 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | historical | decision | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
 | 0126 | proposto | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
 | 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
@@ -226,7 +226,7 @@ _(íntegra)_
 | 0186 | aceito | ativo | decision | Chain de certificado A1 + SEFAZ ConsultaCadastro merge paralelo — IRREVOGÁVEL |
 | 0187 | aceito | ativo | decision | Constituição UI v2 — ponteiro canon (hierarquia 4 camadas + regra-mestre + PT-01 |
 | 0188 | aceito | ativo | decision | Contatos multi-type · flags aditivas is_customer/is_supplier/is_employee/is_repr |
-| 0189 | proposto | ativo | decision | PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo m |
+| 0189 | aceito | ativo | decision | PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo m |
 | 0190 | superseded | substituido | decision | Primary button interno = roxo médio universal oklch(0.55 0.15 295) — hue per gru |
 | 0191 | aceito | ativo | decision | Microsoft Clarity como ferramenta canon de session replay + heatmap LGPD-complia |
 | 0192 | aceito | ativo | decision | Auto-faturar OS → Venda via JobSheetObserver (Integração Vendas × Oficina A1 KB- |
@@ -337,3 +337,4 @@ _(íntegra)_
 | 0294 | aceito | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
 | 0295 | aceito | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
+| 0297 | aceito | ativo | meta | Exceção append-only: migração legacy→canônico de frontmatter de ADR sob label, c |
