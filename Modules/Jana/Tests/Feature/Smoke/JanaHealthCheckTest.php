@@ -173,3 +173,42 @@ test('ledger canônico Modules/Jana/LICOES-OPERACAO.md está todo graduado', fun
     expect($r['overdue'])->toBe([]);
     expect($r['malformed'])->toBe([]);
 });
+
+/**
+ * Check 7 — titleDriftKey: chave de comparação DB↔SPEC do spec_id_drift.
+ *
+ * Casos ancorados no CONTRATO (cosmético-inicial ≠ drift / divergência de
+ * conteúdo = drift) + nos dados REAIS do incidente prod 2026-06-20 (646 alvo 0),
+ * não derivados da implementação (anti-tautologia, proibicoes.md §5).
+ *
+ * @see Modules/Jana/Console/Commands/HealthCheckCommand::titleDriftKey
+ */
+test('titleDriftKey: emoji corrompido "? " no DB não conta como drift (631 falso-pos)', function () {
+    // Caso real: mcp_tasks.title trunca emoji 4-byte pra `?` (utf8mb3); SPEC limpo.
+    expect(HealthCheckCommand::titleDriftKey('? Listar Budget'))
+        ->toBe(HealthCheckCommand::titleDriftKey('Listar Budget'));
+    expect(HealthCheckCommand::titleDriftKey('? Criar Journal Entry'))
+        ->toBe(HealthCheckCommand::titleDriftKey('Criar Journal Entry'));
+    // Prefixo simétrico em ambos os lados também colapsa.
+    expect(HealthCheckCommand::titleDriftKey('? [Epic] Models + migrations'))
+        ->toBe(HealthCheckCommand::titleDriftKey('[Epic] Models + migrations'));
+});
+
+test('titleDriftKey: colisão dura genuína continua diferente (15 reais não somem)', function () {
+    // RecurringBilling-001: 9 headers no 001; DB tem o "Listener", SPEC pede "Escopo 0".
+    expect(HealthCheckCommand::titleDriftKey('? Listener InvoicePaid em NfeBrasil'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('Escopo 0 — PaymentGateway + adapter Asaas'));
+    // SELL-010 duplicado dentro do mesmo SPEC.
+    expect(HealthCheckCommand::titleDriftKey('? Investigar State Machines existentes'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('FieldError por campo + auto-open details em erro'));
+    // WA: sub-letra vazada no título do DB (`b · …`) vs header canônico.
+    expect(HealthCheckCommand::titleDriftKey('b · Receber webhook Z-API'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('Receber webhook Meta + assinatura HMAC'));
+});
+
+test('titleDriftKey: títulos idênticos e variações de espaço são iguais', function () {
+    expect(HealthCheckCommand::titleDriftKey('Listar Core'))->toBe('Listar Core');
+    expect(HealthCheckCommand::titleDriftKey('  Listar Core  '))->toBe('Listar Core');
+    expect(HealthCheckCommand::titleDriftKey('Listar Core'))
+        ->not->toBe(HealthCheckCommand::titleDriftKey('Criar Core'));
+});

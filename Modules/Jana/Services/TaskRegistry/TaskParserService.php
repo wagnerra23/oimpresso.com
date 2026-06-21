@@ -48,8 +48,17 @@ use Modules\Jana\Entities\Mcp\McpTask;
  */
 class TaskParserService
 {
-    /** Regex pra heading de US: ###(#)? US-XXX-NNN[N] · Título */
-    public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4})\s*[·\-:]?\s*(.*)$/m';
+    /**
+     * Regex pra heading de US: ###(#)? US-XXX-NNN[N][x] · Título
+     *
+     * O sufixo opcional `[a-z]?` captura o esquema de sub-letra (ex: US-WA-002b,
+     * US-WA-010b) como parte do task_id. Sem ele, `\d{3,4}` parava no dígito e
+     * `US-WA-002b` colapsava em `US-WA-002`, com o `b` vazando pro título
+     * (`b · …`) e sobrescrevendo o id-base canônico — origem das colisões
+     * WA-002/010/045 no spec_id_drift (incidente 2026-06-20). Só WhatsApp usa
+     * o esquema hoje; ids sem sufixo seguem inalterados.
+     */
+    public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4}[a-z]?)\s*[·\-:]?\s*(.*)$/m';
 
     /**
      * Campos de "estado vivo" — ADR 0144.

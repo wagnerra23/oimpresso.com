@@ -191,3 +191,28 @@ it('retorna empty se path nao existe', function () {
     $cand = $this->svc->parseSpec('/tmp/nao-existe-x99.md', 'X');
     expect($cand)->toHaveCount(0);
 });
+
+it('captura sub-letra como id distinto (US-WA-NNNx) — não colapsa no id-base', function () {
+    // Contrato: o esquema sub-letra do WhatsApp gera ids PRÓPRIOS, sem vazar a
+    // letra pro título. Antes da correção, US-WA-010b colapsava em US-WA-010 com
+    // título "b · Receber webhook Z-API" (colisão spec_id_drift 2026-06-20).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-WA-010 · Receber webhook Meta + assinatura HMAC
+
+    > owner: wagner · status: todo
+
+    canônica
+
+    ### US-WA-010b · Receber webhook Z-API
+
+    > owner: wagner · status: todo
+
+    variante
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'Whatsapp');
+    expect($cand)->toHaveCount(2)
+        ->and($cand->pluck('task_id')->all())->toBe(['US-WA-010', 'US-WA-010b'])
+        ->and($cand[0]['title'])->toBe('Receber webhook Meta + assinatura HMAC')
+        ->and($cand[1]['title'])->toBe('Receber webhook Z-API'); // sem "b · " vazado
+});
