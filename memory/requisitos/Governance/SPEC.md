@@ -5,9 +5,9 @@ module: Governance
 status: ativo
 authority: canonical
 version: "1.0"
-last_updated: "2026-05-25"
+last_updated: "2026-06-21"
 created_at: 2026-05-16
-updated_at: 2026-05-25
+updated_at: 2026-06-21
 related_adrs:
   - "0086-fase-5-mvp-governance-actiongate-warn"
   - "0094-constituicao-v2-7-camadas-8-principios"
@@ -409,6 +409,59 @@ Reavaliação concluída: A.2 é **net-harmful** (run `20260613-115507`, floor 1
 **Não é harness** — é o isolamento dos ~19-30 testes "era-sqlite" que dropam tabela CORE numa base MySQL persistente compartilhada. Tratado em **US-GOV-021** (front-2). Frente C só torna o nightly **reproduzível**; não baixa o floor sozinha.
 
 Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 (closed) · #2640 (A.1/A.2 origem) · US-GOV-021.
+
+### US-GOV-021 · Isolar os corruptores era-sqlite (o lever REAL do floor)
+
+> owner: [W] · priority: p0 · status: doing · type: story
+> blocked_by: P04 (DoD item 2 — queda do floor só é observável com `governance/nightly-floor.json` no tree; sem P04 o read-side retorna `not_yet_measured`)
+> parent_plan: us-gov-021-isolamento-era-sqlite
+> related_adrs: [275, 276, 279, 283]
+
+**Implementado em:** _parcial_ · `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` · verificado@fed6848 (2026-06-21) — 7/18 corruptores isolados (cluster TeamMcp Handoff/Ingest) + gate advisory ligado; 11 restantes no body do PR
+
+**Root cause PROVADO** (referenciado em US-GOV-020 "Lever real do floor" `:408-409`): o nightly full-suite roda contra um MySQL **persistente compartilhado**. ~18 testes "era-sqlite" criam tabelas sintéticas via `Schema::create`/`Schema::drop` em `beforeEach`/`afterEach` SEM guarda de driver — projetados pra rodar no sqlite `:memory:`. No MySQL persistente o `Schema::drop` **dropa a tabela real** → o próximo teste na mesma conexão acha tabela ausente → cascata `Base table not found`. Esse isolamento é o **lever real** do floor — **não é tweak de harness** (a Frente C/A.2 de US-GOV-020 já provou que FK-off é net-harmful; falhar-seguro é melhor).
+
+**Fonte da verdade = comportamento, não literal-grep.** A lista canônica vem do auditor `scripts/audit/sqlite-test-corruptors.mjs --json` (classifica por `corruptsOnMysql`, não text-match — a v1 tinha ~48% FP, refutado em ADR 0276). **NÃO usar `git grep "Schema::drop"`** (super-conta: mistura guardados com corruptores).
+
+#### Os 18 corruptores (auditor `--json`, tier A · ANTES dos fixes)
+
+| Arquivo | tier | ação | status |
+|---|---|---|---|
+| `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffIngestTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffLeverToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffStaleAlertTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+
+Ação canônica **GUARDAR-TEARDOWN** (preferida nos era-sqlite sintéticos — preserva cobertura no sqlite, neutro no MySQL): `if (config('database.default') !== 'sqlite') { $this->markTestSkipped(...) }` no topo do `beforeEach` + `if (config('database.default') !== 'sqlite') { return; }` no topo do `afterEach`. O auditor reconhece como `corruptsOnMysql=false, quarantined=true` (contrato travado em `tests/sqliteCorruptors.spec.ts:89-108`).
+
+#### DoD (4 itens — anti-trapaça embutido)
+
+1. **US escrita** com DoD, owner, anchor `**Implementado em:**`, e a lista canônica dos corruptores (fonte = auditor, NÃO literal-grep). ✅ (esta seção)
+2. **Floor cai de VERDADE** — 2 nightlies CT100 consecutivos: `floor_count` do `governance/nightly-floor.json` (ADR 0279) **diminui** vs baseline pré-fix, por **reduzir `errors`** da cascata "Base table not found", **NÃO** por inflar `skipped`. Anti-trapaça: `delta(errors)` ≥ nº de testes downstream que paravam de cascatear; `delta(skipped)` ≤ nº de corruptores legitimamente quarentenados. ⏳ `blocked_by: P04` (sem o floor no tree, não-observável — não fingir que mediu).
+3. **Gate liga:** `node scripts/audit/sqlite-test-corruptors.mjs --strict --tier=A` roda em workflow de PR. Nasce **advisory** (`continue-on-error: true` — há 11 corruptores ainda → exit 1; não travar PR não-relacionado). Promover a **required** (remover `continue-on-error`) só com `corruptors=0` + 2 verdes (ADR 0275). ✅ advisory ligado.
+4. **Contador:** `corruptors: 18 → 0` via `--json`. ⏳ 18 → 11 (parcial); restantes nos lotes 2-3.
+
+#### Counterfactual (prova de que o gate MORDE)
+
+`Schema::drop('business');` solto num corpo de teste sem guarda sqlite → classifier marca `corruptsOnMysql=true`, `highBlast=['business']`, score ≥80 tier S → `--strict` exit 1. Reverter → null (não-corruptor) → exit 0. Verificado in-memory via `classifySource` (US-GOV-021, 2026-06-21). Coberto em espírito por `tests/sqliteCorruptors.spec.ts:21-35` (SENSIBILIDADE).
+
+**Kill-criteria:** se o piloto (7 corruptores isolados) NÃO derrubar `errors` proporcionalmente no `nightly-floor.json` → o lever não é (só) era-sqlite. Parar escala, reabrir root-cause (precedente: o handoff errou previsão 2×; regra dura: MEDIR cada passo, nunca previsão-como-fato).
+
+Ref: plano `memory/requisitos/_Governanca/roadmap/P03-us-gov-021-isolamento-era-sqlite.md` · auditor `scripts/audit/sqlite-test-corruptors.mjs` · contrato `tests/sqliteCorruptors.spec.ts` · handoff `2026-06-13-1730-sdd-floor-frente-c-era-sqlite.md` · US-GOV-020 (lever) · ADR 0276 (refutador) · ADR 0279 (floor).
 
 ### US-GOV-028 · Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit
 
