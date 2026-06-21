@@ -707,6 +707,31 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // COPI-26 fix (incidente 2026-06-20) — ProfileDistiller NUNCA foi agendado:
+        // `->destilar()` tinha ZERO call sites, então jana_business_profile só tinha
+        // 3 seeds one-off (biz 1/4/164) que envelheceram >7d e acendiam o check
+        // `profile_distiller_drift` no jana:health-check (06:00). A sentinela
+        // (L-OP-002) estava CORRETA — vigiava um job de manutenção que nunca rodava.
+        // Este schedule é o job que faltava.
+        //
+        // 04:50 BRT: DEPOIS de copiloto:seed-adrs (04:45) e jana:freshness-check (04:30),
+        // ANTES do jana:health-check (06:00) reavaliar o check. Bem dentro da janela 7d.
+        // Multi-tenant Tier 0 (ADR 0093): o command itera business by business EXPLÍCITO.
+        // ~76 chamadas LLM/dia (~$0,02). withoutOverlapping(15) cobre run lento (76 × ~3s).
+        $schedule->command('jana:profile-distill')
+            ->dailyAt('04:50')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-profile-distill-daily')
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/jana-profile-distill.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:profile-distill FALHOU — jana_business_profile pode ficar ' .
+                    'STALE (profile_distiller_drift acende no jana:health-check 06:00)'
+                );
+            });
+
         // Sprint 1 — Daily Brief (ADR 0091, camada L7 da Constituição V2).
         // Gera o brief 6x/dia em horário comercial PT-BR (07/11/14/17/20/23h).
         // Custo médio: $0.05/run × 6 = $0.30/dia. Cap diário no command.
