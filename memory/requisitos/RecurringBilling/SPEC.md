@@ -672,7 +672,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: criar credencial + cobrança avulsa mock + webhook idempotência + isolamento multi-tenant
 - **Pré-requisito de todos os outros escopos**
 
-### US-RECURRINGBILLING-001 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
+### US-RECURRINGBILLING-002 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
 
 > owner: wagner · priority: p0 · estimate: 32h · status: todo · type: story
 > blocked_by: —
@@ -686,7 +686,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: 100 contratos × 3 ciclos = 300 invoices sem dupla + isolamento
 - **Bloqueado por:** Escopo 0 (PaymentGateway)
 
-### US-RECURRINGBILLING-001 · Escopo 2 — Boleto impresso via Asaas
+### US-RECURRINGBILLING-003 · Escopo 2 — Boleto impresso via Asaas
 
 > owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -698,7 +698,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: gerar boleto mock + verificar url salva + email disparado
 - **Bloqueado por:** Escopo 1
 
-### US-RECURRINGBILLING-001 · Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter)
+### US-RECURRINGBILLING-004 · Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter)
 
 > owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
 > blocked_by: —
@@ -712,7 +712,7 @@ Então NÃO cria revenue_event (sem take rate)
 - Test Feature: listener disparado ao pagar + mock provider + status assíncrono + isolamento
 - **Bloqueado por:** Escopo 1
 
-### US-RECURRINGBILLING-001 · Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas)
+### US-RECURRINGBILLING-005 · Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas)
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -732,7 +732,7 @@ Origem: `/comparativo RecurringBilling` em 2026-05-06. Capacidade #1 da CAPTERRA
 - ADR tech/0007 (encryption pattern credenciais boleto)
 - CAPTERRA-INVENTARIO.md item #1
 
-### US-RECURRINGBILLING-001 · Test de retry idempotente do ProcessAsaasWebhookJob
+### US-RECURRINGBILLING-006 · Test de retry idempotente do ProcessAsaasWebhookJob
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > blocked_by: —
@@ -752,7 +752,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #2 🟡 — tabel
 - ProcessAsaasWebhookJob.php
 - CAPTERRA-INVENTARIO.md item #2
 
-### US-RECURRINGBILLING-001 · Completar cancelar() C6/Asaas + UI Cancelar título + audit log
+### US-RECURRINGBILLING-007 · Completar cancelar() C6/Asaas + UI Cancelar título + audit log
 
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
 > blocked_by: —
@@ -774,7 +774,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 🟡 — `Bole
 - InterDriver::cancelar() (referência)
 - CAPTERRA-INVENTARIO.md item #4
 
-### US-RECURRINGBILLING-001 · [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations
+### US-RECURRINGBILLING-008 · [Epic] Models Subscription/Plan/Invoice/ChargeAttempt + migrations
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
@@ -801,7 +801,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 ❌ AUSENTE �
 - multi-tenant-patterns skill
 - CAPTERRA-INVENTARIO.md item #4
 
-### US-RECURRINGBILLING-001 · Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail
+### US-RECURRINGBILLING-009 · Listener InvoicePaid em NfeBrasil — emissão automática de NFe55 + DANFE + e-mail
 
 > owner: — · priority: p1 · estimate: 12h · status: todo · type: story
 > blocked_by: —

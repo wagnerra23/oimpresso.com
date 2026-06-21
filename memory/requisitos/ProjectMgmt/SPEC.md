@@ -213,13 +213,13 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 > **PR #1940 — code-complete, segue DRAFT** aguardando gate visual do Wagner (ADR 0107/0114; Chrome MCP off).
 > Fonte funcional: [`TaskRegistry/SPEC-UI-FASE7.md`](../TaskRegistry/SPEC-UI-FASE7.md). RUNBOOK: [`RUNBOOK-index.md`](RUNBOOK-index.md). Visual: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status draft).
 
-### US-TR-301 · Triage — lista de tasks órfãs
+### US-TR-309 · Triage — lista de tasks órfãs
 
 > owner: wagner · priority: p1 · estimate: codável (fator 10x) · status: review · type: feature
 
 Como membro do time, vejo uma tela **Triage** (`/project-mgmt/triage`) com todas as tasks órfãs (sem owner OU sem prioridade OU em backlog). A lista = MESMO conjunto que a tool MCP `triage` (scope `McpTask::triage()`, exclui done/cancelled). Vazio → empty state **"Nada pra triar"** (sem emoji — AP). Implementado em [`Triage/Index.tsx`](../../../resources/js/Pages/ProjectMgmt/Triage/Index.tsx) + [`TriageController`](../../../Modules/ProjectMgmt/Http/Controllers/TriageController.php).
 
-### US-TR-302 · Triage — atribuir owner + prioridade inline
+### US-TR-310 · Triage — atribuir owner + prioridade inline
 
 **Implementado em:** `Modules/ProjectMgmt/Http/Controllers/TriageController.php` · `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
@@ -227,7 +227,7 @@ Como membro do time, vejo uma tela **Triage** (`/project-mgmt/triage`) com todas
 
 Na Triage, atribuo **owner + prioridade inline** sem abrir a task: select inline → `PATCH /triage/{taskId}/assign` (reusa `TaskCrudService::update`, mesma via da tool `tasks-update`) → UI otimista + rollback em erro; gera `mcp_task_events` + notifica o novo owner.
 
-### US-TR-303 · Triage — mover cycle/epic
+### US-TR-311 · Triage — mover cycle/epic
 
 **Implementado em:** `Modules/ProjectMgmt/Http/Controllers/TriageController.php` · `resources/js/Pages/ProjectMgmt/Triage/Index.tsx` · verificado@98cae0a (2026-06-18)
 
