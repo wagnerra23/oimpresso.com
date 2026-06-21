@@ -47,4 +47,9 @@ jobs:
         with:
           node-version: '20'
       - name: plan-health --check (morde, mas advisory via continue-on-error)
+        # `continue-on-error` no step também: o `--check` sai 1 quando há achado,
+        # mas o check fica VERDE-advisory (achados visíveis no log) em vez de 🔴
+        # bloqueante — mesmo padrão de tier0-guards-advisory.yml. Promoção a
+        # required = remover ambos continue-on-error (calendário ADR 0275).
+        continue-on-error: true
         run: node scripts/governance/plan-health.mjs --check
