@@ -991,9 +991,10 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+> parent_plan: recurring-billing-gateway-ativacao
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: recurring-billing-gateway-ativacao` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** receita parada — 109 assinaturas ativas com `gateway=NULL` não geram cobrança (36 C6 + 51 Inter + 22 Cora). Maior ROI do batch.
 
@@ -1009,9 +1010,10 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: —
+> parent_plan: pricing-3-ajustes-urgentes
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: pricing-3-ajustes-urgentes` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** Martinho com compra ativa (cliente pagante) — recalibração de pricing em 3 eixos: setup, trial, anual.
 

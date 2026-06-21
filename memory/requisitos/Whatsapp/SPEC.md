@@ -1795,9 +1795,10 @@ parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+> parent_plan: whatsapp-channel-reliability-roadmap
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: whatsapp-channel-reliability-roadmap` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · P0 confiabilidade):** 7/10 gaps do channel-reliability fechados (probe #3055 nesta sessão). Restam #6 nonce/dedup-key, #9 failover, #10 circuit-breaker. Relacionado ADR 0288.
 **Dedup:** distinto de US-WA-058/059 (inbox omnichannel) e US-WA-078/079 (banDetector/SIGTERM).
@@ -1814,9 +1815,10 @@ parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../
 
 > owner: — · priority: p1 · estimate: 12h · status: todo · type: story
 > blocked_by: —
+> parent_plan: voz-cliente-5-ondas
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: voz-cliente-5-ondas` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** `customer_memory` shipou (onda 1). Ondas 2-5 abertas: Customer 360 sidebar + inferência IA.
 **⚠️ Dedup parcial:** `customer-360-sidebar` aparece como *done* na triagem — confirmar o que de fato resta antes de escopar.
@@ -1832,9 +1834,10 @@ parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../
 
 > owner: — · priority: p1 · estimate: 10h · status: todo · type: story
 > blocked_by: —
+> parent_plan: voc-omnichannel-gaps
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: voc-omnichannel-gaps` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** `whatsapp_consent` + `customer_memory` shipparam. Restam Gap#3 (ContactProfile acumulativo) + Gap#4 (auto-tag IA + dashboard VoC).
 **Relacionado:** US-WA-316 (voz-cliente ondas 2-5) — coordenar pra não duplicar.

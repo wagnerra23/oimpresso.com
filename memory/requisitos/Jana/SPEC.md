@@ -1234,9 +1234,10 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+> parent_plan: adr0270-cockpit-mock-kill
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: adr0270-cockpit-mock-kill` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · P0 prod):** o Cockpit (`resources/js/Pages/Jana/Cockpit.tsx:705-780`) usa `startMockStream` numa rota **live** `/ia/dashboard` — responde dados mock em produção. Gap P0 do handoff 2026-06-11.
 
@@ -1251,9 +1252,10 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+> parent_plan: content-reconciler-safe-heal
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: content-reconciler-safe-heal` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · P0 Tier-0):** `ContentReconciler` está `healable=false` porque o delete é **global, sem `business_id`** (comment no código: "delete global sem business_id — Tier-0-inseguro (ADR 0093)"). Risco de corrupção cross-tenant se reativado sem guard.
 
@@ -1268,9 +1270,10 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+> parent_plan: kb-acl-aware-rag
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: kb-acl-aware-rag` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · P0 LGPD):** sem `kb_node_visibility` + ACL row-level no pre-retrieval, o RAG não pode ser liberado pro time MCP (risco de vazamento entre escopos). Bloqueante levantado pelo Agent D 2026-05-15.
 
@@ -1285,9 +1288,10 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
 > blocked_by: —
+> parent_plan: knowledge-drift-rename-propagation
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: knowledge-drift-rename-propagation` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** drift de nomenclatura — `git grep` acha ~112 PHP em `Modules/` citando `Copiloto` + 27 citando `MemCofre` (renames Copiloto→Jana / MemCofre→SRS não propagados).
 
@@ -1304,9 +1308,10 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+> parent_plan: hitl-audit-card-ui-copiloto
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: hitl-audit-card-ui-copiloto` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada — a UI admin do HITL existe, mas falta a view do **cliente-final** em `/copiloto/decisoes/{id}/revisao`.
 

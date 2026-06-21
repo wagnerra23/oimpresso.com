@@ -1653,9 +1653,10 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+> parent_plan: migracao-firebird-boletos-contratos
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: migracao-firebird-boletos-contratos` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** handoff 2026-06-08 — 59 boletos órfãos + 3.372 `fin_titulos` com `origem_id` incorreto (resíduo da migração Firebird).
 **Dedup:** distinto de US-FIN-039 (vincular-baixas-sem-conta), US-FIN-040 (health-check) e US-FIN-042 (backfill cliente_descricao).
