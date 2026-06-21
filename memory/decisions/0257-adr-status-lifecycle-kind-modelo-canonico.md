@@ -3,7 +3,7 @@ slug: 0257-adr-status-lifecycle-kind-modelo-canonico
 number: 257
 title: "Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no append-only"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
