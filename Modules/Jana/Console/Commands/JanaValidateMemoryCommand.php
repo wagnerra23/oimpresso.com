@@ -16,8 +16,10 @@ use JsonSchema\Validator;
  * contra os JSON Schemas em scripts/memory-schemas/*.schema.json.
  *
  * Complementa o workflow CI (.github/workflows/memory-schema-gate.yml — gate A AJV).
- * Aqui é gate LOCAL pré-push + integra cron daily (~06:30 BRT) pra capturar
- * drift criado fora do PR (manual edit, ferramentas externas, etc).
+ * Aqui é gate LOCAL pré-push. NÃO está agendado no Kernel (auditoria de sentinelas
+ * 2026-06-20: o claim anterior "integra cron daily ~06:30 BRT" era FALSO — grep no
+ * Kernel.php não retorna este comando). Drift fora-do-PR (edit manual, SSH) depende
+ * de rodar local/CI; agendar com --strict é decisão pendente [W].
  *
  * Grace period 14d:
  *   - JANA_VALIDATE_MEMORY_STRICT=false (default) → warning + exit 0

@@ -58,7 +58,7 @@ class SystemAuditCommand extends Command
             $this->checkTestCoverageGate(),
         ];
 
-        $allOk = collect($checks)->every(fn ($c) => $c['ok']);
+        $allOk = self::allChecksOk($checks);
 
         if ($this->option('json')) {
             $this->line(json_encode([
@@ -87,6 +87,17 @@ class SystemAuditCommand extends Command
         }
 
         return $allOk ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Veredito do gate: OK só se TODOS os checks têm ok=true (system-audit não tem
+     * advisory — todos os 5 são duros). Extraído pra ser testável SEM DB (bite-test
+     * SentinelBiteTest) — prova que o exit code RESPONDE ao estado, não é constante.
+     * Auditoria de sentinelas 2026-06-20 (o comando tinha ZERO testes).
+     */
+    public static function allChecksOk(array $checks): bool
+    {
+        return collect($checks)->every(fn ($c) => (bool) ($c['ok'] ?? false));
     }
 
     /**
