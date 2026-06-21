@@ -310,6 +310,10 @@
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
     },
+    "sdd-scorecard-publish.yml": {
+      "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
+      "classe": "automacao"
+    },
     "sdd-scorecard.yml": {
       "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",
       "classe": "meta"
