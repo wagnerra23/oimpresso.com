@@ -408,7 +408,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 
 **Fluxo proposto:**
 1. `stock_movements` insertion → event `StockMovedEvent` (já pattern UPos)
-2. Listener `SyncToMarketplacesListener` (futuro Modules/Marketplaces) consome event
+2. Listener `SyncToMarketplacesListener` (futuro módulo `Marketplaces` — planejado, não existe) consome event
 3. Calcula novo qty_available_consolidated = sum(variation_location_details.qty_available) − sum(stock_reservations.active.qty)
 4. POST API ML/Shopee atualiza listing
 5. Webhook ML PEDIDO criado → cria sell + reserva imediata (idempotente per ext_order_id)
@@ -543,7 +543,7 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 - 🚫 Não removar `variations.combo_variations` JSON em V1 (compat legacy UPos POS Blade)
 - 🚫 Não permitir UPDATE/DELETE em `stock_movements` — triggers MySQL bloqueiam
 - 🚫 Não habilitar flags `enable_bom`/`enable_batch_tracking` em biz=4 (ROTA LIVRE) sem aviso prévio + canary 7d ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) cutover discipline)
-- 🚫 Não criar `Modules/Inventory` separado — Inventory é **camada cross-vertical** que vive em `app/Domain/Inventory/` (perto de `app/Domain/Fsm/`); módulos verticais USAM via service/contract
+- 🚫 Não criar um módulo `Inventory` separado em `Modules/` — Inventory é **camada cross-vertical** que vive em `app/Domain/Inventory/` (perto de `app/Domain/Fsm/`); módulos verticais USAM via service/contract
 
 ---
 
