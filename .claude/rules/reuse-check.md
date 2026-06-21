@@ -35,4 +35,4 @@ npm run reuse:check "<nome ou o que faz>"
 
 O gate `reuse-gate.yml` (CI) falha o PR em **duplicata NOVA** (ratchet, baseline em `scripts/reuse-duplicates-baseline.json`). Se a duplicata for legítima: `npm run reuse:baseline:write` consciente + justificativa no PR.
 
-Refs: `scripts/reuse-index.mjs` · MANUAL-CSS-JS #5 · [ADR 0240](../../memory/decisions/0240-task-ledger-evidencia-antifragilidade.md) (derivado>escrito).
+Refs: `scripts/reuse-index.mjs` · MANUAL-CSS-JS #5 · [ADR 0240](../../memory/decisions/0240-task-ledger-git-native-cowork-code.md) (derivado>escrito).

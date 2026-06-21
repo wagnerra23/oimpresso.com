@@ -36,9 +36,9 @@ Módulo de governança que reusa `spatie/laravel-activitylog` (já instalado) + 
 
 ## Stack
 
-- **`spatie/laravel-activitylog ^4.8`** — já em [composer.json:47](../../composer.json#L47)
+- **`spatie/laravel-activitylog ^4.8`** — já em [composer.json:47](../../../composer.json#L47)
 - Tabela `activity_log` — já existe + `business_id` (migrations 2019/2021/2023)
-- Padrão de configuração canônico do projeto: [Modules/Financeiro/Models/Titulo.php:28-35](../../Modules/Financeiro/Models/Titulo.php#L28) — `LogOptions::defaults()->logOnly([...])->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('domain.subdomain')`
+- Padrão de configuração canônico do projeto: [Modules/Financeiro/Models/Titulo.php:28-35](../../../Modules/Financeiro/Models/Titulo.php#L28) — `LogOptions::defaults()->logOnly([...])->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('domain.subdomain')`
 - Inertia v3 + React 19 (Pages padrão MWART, [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
 - Lib diff JSON: avaliar `react-diff-viewer-continued` na implementação (não decidido)
 
@@ -53,7 +53,7 @@ Backlog de user stories (US-AUDIT-*) organizado em 3 sub-sprints sequenciais.
 | US-AUDIT-001 | Trait `LogsActivity` em `App\Transaction` com `logOnly(['status','total_before_tax','final_total','contact_id','location_id','transaction_date','payment_status'])` + `useLogName('sales.transaction')`. Pest test: criar venda → entry em `activity_log` com `event=created` + `properties.attributes` preenchidas | p0 | 1.5h | — |
 | US-AUDIT-002 | Trait em `App\TransactionSellLine` + `App\TransactionPayment` (`logOnly` campos críticos: `quantity`, `unit_price_inc_tax`, `amount`, `method`). Pest: alterar pagamento → log com diff | p0 | 1h | US-AUDIT-001 |
 | US-AUDIT-003 | Trait em `App\Product` + `App\VariationLocationDetails` (estoque) — `logOnly(['sku','name','sell_price_inc_tax','enable_stock'])` no Product e `logOnly(['qty_available'])` no VLD. Pest: ajuste de estoque → log linha por VLD afetada | p1 | 1.5h | — |
-| US-AUDIT-004 | Trait em `App\Contact` com `logOnly(['name','email','mobile','contact_type','customer_group_id'])` — **`tax_number_1` NÃO entra** (PII LGPD). Pest assert: dump de log não contém CPF/CNPJ. Substitui `activity()->log('add_contact')` manual em [ContactController.php](../../app/Http/Controllers/ContactController.php) | p0 | 2h | — |
+| US-AUDIT-004 | Trait em `App\Contact` com `logOnly(['name','email','mobile','contact_type','customer_group_id'])` — **`tax_number_1` NÃO entra** (PII LGPD). Pest assert: dump de log não contém CPF/CNPJ. Substitui `activity()->log('add_contact')` manual em [ContactController.php](../../../app/Http/Controllers/ContactController.php) | p0 | 2h | — |
 
 **Subtotal Sprint 1 — ~6h IA-pair**
 
