@@ -16,7 +16,10 @@ use Modules\Jana\Services\Ragas\RagasJudgeService;
  * Compara respostas atuais vs baseline checked-in (baseline-responses.json).
  * Alerta se >10% das perguntas divergirem ≥ DRIFT_THRESHOLD do baseline.
  *
- * Schedule: weekly Sun 06:00 BRT (app/Console/Kernel.php).
+ * Schedule: weekly Sun 06:00 BRT (app/Console/Kernel.php) — RELIGADO 2026-06-20.
+ * Requer OPENAI_API_KEY no servidor pra rodar real; sem a chave o run falha e o
+ * onFailure registra (sinal honesto). --mock é só pra CI/teste (mock NÃO detecta
+ * drift real — faithfulness fixa em 0.85).
  *
  * Uso:
  *   php artisan jana:drift-sentinel                    # roda real (precisa OPENAI_API_KEY)

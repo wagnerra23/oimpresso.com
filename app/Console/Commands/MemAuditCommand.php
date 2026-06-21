@@ -42,9 +42,12 @@ class MemAuditCommand extends Command
         $automemDir = str_replace('\\', '/', $automemDir);
 
         if (! is_dir($automemDir)) {
-            $this->warn("Diretório auto-mem não encontrado: $automemDir");
+            // ADR 0061 descontinuou auto-mem privada — diretório AUSENTE é o estado
+            // DESEJADO, não falha. Antes retornava 1 (semântica invertida: "nada pra
+            // auditar" virava erro). Corrigido 2026-06-20 (auditoria de sentinelas).
+            $this->info("Sem diretório auto-mem ($automemDir) — estado esperado pós-ADR 0061.");
             $this->line('Use --automem-dir=PATH se ele estiver em outro local.');
-            return 1;
+            return 0;
         }
 
         $automems = glob("$automemDir/*.md") ?: [];
@@ -56,6 +59,7 @@ class MemAuditCommand extends Command
         }
 
         $rows = [];
+        $criticos = 0; // ❌ = auto-mem densa SEM ADR equivalente (forte candidato a promover)
         $candidatesOnly = (bool) $this->option('candidates-only');
 
         foreach ($automems as $autoPath) {
@@ -70,6 +74,10 @@ class MemAuditCommand extends Command
                 $match && $match['cobertura'] >= 0.3 => '⚠️',
                 default                              => '❌',
             };
+
+            if ($emoji === '❌') {
+                $criticos++;
+            }
 
             if ($candidatesOnly && $emoji === '✅') continue;
 
@@ -88,6 +96,15 @@ class MemAuditCommand extends Command
         }
 
         $this->table(['', 'auto-mem', 'ADR equivalente', 'cobertura', 'tamanho'], $rows);
+
+        // MORDE: ❌ = auto-mem densa sem ADR equivalente = conhecimento canônico que
+        // ficou de fora do git. Antes retornava SEMPRE 0 (teatro). Corrigido
+        // 2026-06-20 (auditoria de sentinelas) — exit 1 sinaliza pendência real.
+        if ($criticos > 0) {
+            $this->warn("$criticos auto-mem(s) ❌ sem ADR equivalente — promover pro git canônico (ADR 0061).");
+            return 1;
+        }
+
         return 0;
     }
 
