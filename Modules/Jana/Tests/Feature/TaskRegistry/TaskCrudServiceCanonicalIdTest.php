@@ -222,3 +222,17 @@ it('nunca devolve um task_id que já existe no DB (guarda de colisão)', functio
     expect($next)->toBe('US-ZZORPH-015')
         ->and(DB::table('mcp_tasks')->where('task_id', $next)->exists())->toBeFalse();
 });
+
+it('conta US declarada em heading #### (4 hashes), não só ### (ex: Cms)', function () {
+    // Cms/SPEC.md usa "#### US-CMS-NNN". O regex antigo (^###\s+) não casava ####
+    // → maiorSequencialNoSpec voltava 0 (mascarado pelo termo do DB). Agora #{2,4}.
+    tcWriteSpec('__TestCanonicalA', "# SPEC\n\n#### US-ZZHASH-007 — quatro hashes\n");
+
+    $svc = new TaskCrudService();
+    $reflect = (new ReflectionClass(TaskCrudService::class))
+        ->getMethod('gerarProximoIdCanonical');
+    $reflect->setAccessible(true);
+
+    // prefixo ZZHASH detectado no heading #### + nSpec=007 → 008.
+    expect($reflect->invoke($svc, '__TestCanonicalA'))->toBe('US-ZZHASH-008');
+});

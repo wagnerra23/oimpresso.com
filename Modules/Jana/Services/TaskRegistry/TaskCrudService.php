@@ -531,7 +531,9 @@ class TaskCrudService
         $specPath = base_path("memory/requisitos/{$module}/SPEC.md");
         if (is_file($specPath)) {
             $content = (string) @file_get_contents($specPath);
-            if (preg_match('/^###\s+US-([A-Z]+)-\d+/m', $content, $m)) {
+            // #{2,4}: SPECs variam entre ### e #### por US (Cms usa ####); o parser
+            // canônico (US_HEADING_REGEX) usa #{2,4}, então casamos igual.
+            if (preg_match('/^#{2,4}\s+US-([A-Z]+)-\d+/m', $content, $m)) {
                 return $m[1]; // ex: "RB", "NFE", "COPI"
             }
         }
@@ -596,7 +598,8 @@ class TaskCrudService
             return 0;
         }
         $content = (string) @file_get_contents($specPath);
-        if (preg_match_all('/(?:^###|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
+        // #{2,4} cobre ### E #### (Cms usa ####) — idem US_HEADING_REGEX do parser.
+        if (preg_match_all('/(?:^#{2,4}|^-)\s+(?:\S+\s+)?' . preg_quote($prefixo, '/') . '(\d+)/m', $content, $matches)) {
             return max(array_map('intval', $matches[1]));
         }
         return 0;
