@@ -802,3 +802,23 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Suíte SQLite estável.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-INFRA-042 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial completa do ADR 0296 (PR #3153) — 24 riscos confirmados (7 critical), veredicto `nao-prova-de-falhas-ainda`. Gate p/ aceitar o plano de capacidade e rodar P1/P2.
+
+**Emendas (12 bloqueadores — detalhe no ADR §RODADA ADVERSARIAL):**
+- [ ] Fila real antes de migrar (`QUEUE_CONNECTION=redis`+worker) — hoje `sync`, ADS grava síncrono no request path (quebra ERP-FIRST).
+- [ ] Alerta de cota/grant-torto OUT-OF-BAND (SMTP/HTTP) — `mcp_alertas` morre junto com o DB read-only.
+- [ ] Reclassificar `activity_log` C4→C6 (trilha forense/RevertService) — remover TTL 30-90d.
+- [ ] Mapa tabela→classe COMPLETO (369 tabelas via information_schema, fail-closed C1) — hoje cobre 54.
+- [ ] Remover P0.4 (particionar audit é impossível FK×InnoDB + desnecessário 2.9MB).
+- [ ] `PDO::ATTR_TIMEOUT`+TLS na conexão C1; circuit-breaker spec real; quota 75%+90% + config keys; poda só por allowlist (nunca por nome — `crm_call_logs` etc são C1).
+- [ ] Aplicar os 14 novos invariantes + corrigir as frases de honestidade (l.95/130/163).
+
+**10 decisões do Wagner** (no ADR): FK `business_id`, co-residência C2+C6, janela webhook, mandato LGPD/forense, custo+dono do DBaaS (P2), rede do C1, Redis de sessão, encerramento do incidente bridge-resync-biz4 (p/ DROP C7).
+
+Refs: ADR 0296 · PR #3153.
