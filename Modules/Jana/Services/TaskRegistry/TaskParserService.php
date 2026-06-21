@@ -57,8 +57,14 @@ class TaskParserService
      * (`b · …`) e sobrescrevendo o id-base canônico — origem das colisões
      * WA-002/010/045 no spec_id_drift (incidente 2026-06-20). Só WhatsApp usa
      * o esquema hoje; ids sem sufixo seguem inalterados.
+     *
+     * Flag `u` (UTF-8) é OBRIGATÓRIA: sem ela a classe `[·\-:]` é bytewise e
+     * casa só 1 dos 2 bytes do `·` (U+00B7 = C2 B7), deixando o B7 órfão grudar
+     * no começo do título → vira `?` ao gravar no MySQL. Era a RAIZ dos 751
+     * títulos `"? Listar Budget"` no cache `mcp_tasks` (incidente 2026-06-20).
+     * Com `u`, o `·` é consumido inteiro e o título sai limpo.
      */
-    public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4}[a-z]?)\s*[·\-:]?\s*(.*)$/m';
+    public const US_HEADING_REGEX = '/^#{2,4}\s+(US-[A-Z0-9]+-\d{3,4}[a-z]?)\s*[·\-:]?\s*(.*)$/mu';
 
     /**
      * Campos de "estado vivo" — ADR 0144.
