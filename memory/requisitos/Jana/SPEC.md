@@ -943,7 +943,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** Langfuse v3 self-host em CT 100 (docker-compose: web + worker + ClickHouse + Postgres + Redis + MinIO) instrumentando 100% das chamadas LLM em prod (BriefDiarioAgent + kb-answer + recall + RAGAS gate)
 **Para** ter observability LLM real (trace + cost + latency + RAGAS metrics) — sem isso, claims de "95%+" são não-falsificáveis (princípio 4 Constituição v2). Destrava medição de R1 (reranker NDCG), K1 (time-decay impact), A1 (auto-summary ROI), RAGAS gate trend semanal
 
-**Implementado em:** `infra/ct100/langfuse/docker-compose.yml` (novo) + `Modules/Jana/Ai/Services/LangfuseClient.php` (já existe wrapper) instrumentado em `BriefDiarioAgent` + `KbAnswerService` + `MeilisearchDriver` + Console Command `jana:rag-eval` (RAGAS gate)
+**Implementado em:** `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `Modules/Jana/Jobs/Telemetry/LangfuseTraceJob.php` · `config/langfuse.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Tests/Feature/Telemetry/LangfuseClientTest.php` · `tests/Feature/Modules/Copiloto/OtelGenAiEmissionTest.php` · verificado@65e5712 (2026-06-21)
 
 **Definition of Done:**
 - [ ] Stack Langfuse v3 rodando CT 100 atrás Traefik HTTPS (subdomínio `langfuse.oimpresso.com` interno) — receita `proxmox-docker-host` skill
@@ -1035,7 +1035,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** novo `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` + `Modules/Jana/Http/Resources/RoadmapTaskResource.php` + `resources/js/Pages/Admin/Roadmap/Index.tsx` + `_components/RoadmapGantt.tsx` + `_components/SubIssuesPanel.tsx` + `Index.charter.md`
+**Implementado em:** `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `resources/js/Pages/Jana/Admin/Roadmap.tsx` · `resources/js/Pages/Jana/Admin/Roadmap.charter.md` · `Modules/Jana/Tests/Feature/Roadmap/RoadmapControllerTest.php` · verificado@65e5712 (2026-06-21)
 
 **Definition of Done:**
 - [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
@@ -1070,7 +1070,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** tool MCP `handoff-draft` que lê `git log origin/main..HEAD` + `cycles-active` + `tasks-list status:doing` + `handoff-diff` (Onda 3) → 1 chamada `gpt-4o-mini` rascunha `.md` template canônico ADR 0130 que eu reviso + completo + Write final
 **Para** reduzir ~1h/dia que Wagner gasta escrevendo handoff manual (~10-20min × várias/dia) — fechar Handoff #4 auto-capture (30%→80%)
 
-**Implementado em:** novo `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` (JSON-RPC schema: cycle_id?, since_hours? default 24, format? default md) + novo `Modules/Jana/Services/Handoff/HandoffDrafterService.php` + edit `Modules/Jana/Providers/OimpressoMcpServer.php` (registrar tool)
+**Implementado em:** `Modules/Jana/Mcp/Tools/HandoffDraftTool.php` · `Modules/Jana/Mcp/OimpressoMcpServer.php` · `Modules/Jana/Tests/Feature/Mcp/HandoffDraftToolTest.php` · verificado@65e5712 (2026-06-21)
 
 **Definition of Done:**
 - [ ] Tool MCP `handoff-draft` exposta com schema documentado
@@ -1104,7 +1104,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** workflow CI `memory-schema-lint.yml` matrix-strategy validando frontmatter de TODOS tipos `.md` canon (ADR + SPEC + RUNBOOK + session + handoff + charter) via JSON Schema 2020-12 + artisan command `jana:validate-memory` rodando daily 06:30 BRT pra detectar drift fora-de-PR
 **Para** fechar gap Knowledge S4 (40%→90%) — hoje só ADR é validado via `adr-lint.yml`; SPEC/RUNBOOK/session/handoff têm drift silencioso (ex: ADR sem `lifecycle:` passa, `decisions-search` devolve doc malformado)
 
-**Implementado em:** novos `memory/schemas/{adr,spec,runbook,session,handoff,charter}.schema.json` + `memory/schemas/README.md` + `.github/workflows/memory-schema-lint.yml` + `package.json` (root) com `remark-lint-frontmatter-schema` + novo `app/Console/Commands/Jana/ValidateMemorySchemas.php` artisan + edit `app/Console/Kernel.php` schedule
+**Implementado em:** `scripts/memory-schemas/adr.schema.json` · `scripts/memory-schemas/spec.schema.json` · `scripts/memory-schemas/runbook.schema.json` · `scripts/memory-schemas/session.schema.json` · `scripts/memory-schemas/handoff.schema.json` · `scripts/memory-schemas/charter.schema.json` · `.github/workflows/memory-schema-gate.yml` · `Modules/Jana/Console/Commands/JanaValidateMemoryCommand.php` · `Modules/Jana/Tests/Feature/MemorySchema/JanaValidateMemoryCommandTest.php` · verificado@65e5712 (2026-06-21)
 
 **Definition of Done:**
 - [ ] 6 JSON Schemas 2020-12 declarados em `memory/schemas/` (adr, spec, runbook, session, handoff, charter) — required minimalista (só `title`, `type`, `decided_at`/`last_updated`), demais opcionais com defaults documentados

@@ -37,7 +37,7 @@ na_justified:
 **Quero** subir certificado A1 (.pfx) com senha e o sistema validar + armazenar criptografado
 **Para** começar a emitir NFe sem expor cert na rede
 
-**Implementado em:** [`resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx`](../../../resources/js/Pages/NfeBrasil/Configuracao/Certificado.tsx) · [`Modules/NfeBrasil/Http/Controllers/CertificadoController.php`](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php) · [`Modules/NfeBrasil/Services/CertificadoService.php`](../../../Modules/NfeBrasil/Services/CertificadoService.php)
+**Implementado em:** _parcial_ `Modules/NfeBrasil/Http/Controllers/CertificadoController.php` · `Modules/NfeBrasil/Services/CertificadoService.php` · `Modules/NfeBrasil/Http/Requests/UploadCertificadoRequest.php` · `Modules/NfeBrasil/Models/NfeCertificado.php` · `Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/CertificadoControllerTest.php` — UI Inertia da tela de certificado ainda pendente
 
 **Definition of Done:**
 - [x] FormRequest aceita `.pfx` ≤ 100KB + `senha` (não loga em audit log!)

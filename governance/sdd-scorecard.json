@@ -22,20 +22,20 @@
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
         "coverage_pct": 7.5,
-        "specs_total": 56,
-        "us_total": 775,
+        "specs_total": 57,
+        "us_total": 843,
         "anchor_coverage_pct": 7.5,
         "by_state": {
-          "sem_campo": 680,
+          "sem_campo": 748,
           "placeholder": 22,
           "pendente": 23,
-          "parcial": 0,
-          "anchored_ok": 35,
-          "anchored_dead": 15
+          "parcial": 1,
+          "anchored_ok": 39,
+          "anchored_dead": 10
         },
         "fields_total": 100,
         "fields_placeholder": 22,
-        "fields_grammar_ok": 44,
+        "fields_grammar_ok": 48,
         "orphan_fields": 5,
         "v1_files": 0,
         "v1_violations": "0"
@@ -80,7 +80,7 @@
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 24
+        "citing_modules": 25
       },
       "stream": "KL"
     },
@@ -92,8 +92,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 70,
-        "modules": 70
+        "with_door": 71,
+        "modules": 71
       },
       "stream": "MEM"
     },
