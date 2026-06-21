@@ -2,6 +2,7 @@
 lifecycle: active
 owner: [W]
 module: Governance
+project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
