@@ -29,6 +29,18 @@ class ContextController extends Controller
             'event_type'     => 'sometimes|nullable|string|max:80',
         ]);
 
+        // Tier 0 (ADR 0093): resolve o business_id do tenant pelo lado SERVIDOR (nunca
+        // do corpo da request — caller não escolhe tenant). Prefere o user autenticado;
+        // cai pra sessão; fail-safe = 1 (plataforma). Esta API é `ads.api` (token), então
+        // pode ser stateless — por isso o guard hasSession().
+        $businessId = 1;
+        if ($request->user() && ! empty($request->user()->business_id)) {
+            $businessId = (int) $request->user()->business_id;
+        } elseif ($request->hasSession()) {
+            $businessId = (int) $request->session()->get('user.business_id', 1);
+        }
+        $data['business_id'] = $businessId;
+
         $context = $service->buildContext($data);
 
         return response()->json($context);

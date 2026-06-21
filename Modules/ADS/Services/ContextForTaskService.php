@@ -46,6 +46,9 @@ class ContextForTaskService
         $domain = $input['domain'] ?? null;
         $filesPlanned = $input['files_planned'] ?? [];
         $eventType = $input['event_type'] ?? null;
+        // Tier 0 (ADR 0093): business_id do tenant do request (resolvido no controller
+        // via session('user.business_id')). Fail-safe = 1 (plataforma) — NUNCA null/all.
+        $businessId = isset($input['business_id']) ? (int) $input['business_id'] : 1;
 
         return [
             'meta'                       => $this->buildMeta($input),
@@ -54,7 +57,7 @@ class ContextForTaskService
             'applicable_adrs'            => $this->buildApplicableAdrs($intent, $domain, $eventType),
             'skills_with_confidence'     => $this->buildSkills($domain, $eventType),
             'active_meta_skills'         => $this->buildMetaSkills(),
-            'recent_decisions_same_domain' => $this->buildRecentDecisions($domain),
+            'recent_decisions_same_domain' => $this->buildRecentDecisions($domain, $businessId),
             'active_tasks_cycle'         => $this->buildActiveTasks($domain),
             'tool_recommendations'       => $this->buildToolRecommendations($input),
         ];
@@ -192,9 +195,13 @@ class ContextForTaskService
             ->all();
     }
 
-    private function buildRecentDecisions(?string $domain): array
+    private function buildRecentDecisions(?string $domain, int $businessId): array
     {
+        // Tier 0 (ADR 0093) — escopo OBRIGATÓRIO por business_id. mcp_dual_brain_decisions
+        // tem business_id (FK business, índice idx_dbd_biz_created). Sem este where, o
+        // contexto servido ao Brain vazava decisões/lições de QUALQUER tenant (cross-tenant).
         $query = DB::table('mcp_dual_brain_decisions')
+            ->where('business_id', $businessId)
             ->whereIn('outcome', ['success', 'wagner_modified', 'wagner_rejected'])
             ->where('created_at', '>=', now()->subDays(14));
 
