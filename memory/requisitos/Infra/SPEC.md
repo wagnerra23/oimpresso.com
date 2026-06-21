@@ -881,3 +881,12 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Tool/canal pra atribuir cycle/epic a US existente.
 - RUNBOOK do caminho canônico "US → roadmap".
 - Pareia com US-INFRA-043 (sentinela unassigned) + US-INFRA-044 (sync no CI).
+
+### US-INFRA-046 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial completa do ADR 0296 (PR #3153) — 24 riscos confirmados (7 critical), veredicto `nao-prova-de-falhas-ainda`. Gate p/ aceitar o plano de capacidade e rodar P1/P2. Detalhe dos bloqueadores e das 10 decisões do Wagner no ADR §RODADA ADVERSARIAL.
+
+Refs: ADR 0296 · PR #3153.
