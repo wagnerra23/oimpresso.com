@@ -41,8 +41,14 @@ RUN apk add --no-cache \
         opcache \
     && pecl install redis \
     && docker-php-ext-enable redis \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov \
     && apk del $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
+# pcov (SDD P07 — ADR 0275 coverage_pct): habilita medição de cobertura na nightly
+# full-suite CT100. docker-php-ext-enable deixa pcov DESLIGADO por default
+# (pcov.enabled=0) — runtime de prod não paga overhead; o nightly liga com
+# `-d pcov.enabled=1`. NUNCA no Hostinger (ADR 0062 — coverage só no CT100).
 
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

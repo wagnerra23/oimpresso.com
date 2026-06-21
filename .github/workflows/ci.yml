@@ -29,7 +29,14 @@ jobs:
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, intl, gd, pdo_mysql, zip, opentelemetry
-          coverage: none
+          # SDD P07 (ADR 0275 coverage_pct): pcov disponível no rail de CI (paridade
+          # com mutation-gate.yml). O scorecard NÃO mede coverage AQUI — o lane abaixo é
+          # um SUBCONJUNTO curado sqlite (.github/ci-sqlite-pest.list), e medir cobertura
+          # nele daria número falso-baixo ("métrica de forma" proibida — ADR 0275:68).
+          # A fonte HONESTA do coverage_pct é a suíte INTEIRA na nightly CT100
+          # (ct100-fullsuite.sh + governance/nightly-coverage.json). Por isso o pest
+          # abaixo mantém --no-coverage; pcov fica só disponível pra uso ad-hoc/local.
+          coverage: pcov
           tools: composer:v2
 
       - name: Validate composer.json + lock em sync (gate anti-drift)
@@ -107,6 +114,9 @@ jobs:
             echo "::error::.github/ci-sqlite-pest.list vazio — nenhum alvo de teste"; exit 1
           fi
           echo "Lane sqlite — ${#PEST_TARGETS[@]} alvos:"; printf '  %s\n' "${PEST_TARGETS[@]}"
+          # --no-coverage MANTIDO de propósito (SDD P07): mesmo com pcov disponível no
+          # setup-php acima, este lane é um subconjunto curado — coverage aqui = número
+          # falso-baixo. O coverage_pct honesto vem da suíte inteira na nightly CT100.
           vendor/bin/pest "${PEST_TARGETS[@]}" --no-coverage --log-junit test-results/junit.xml
 
       # FV-F1 (plano SDD 2026-06-12): coleta JUnit que SOBREVIVE a falha de teste.

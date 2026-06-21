@@ -220,7 +220,22 @@ for attempt in $(seq 1 12); do
       # efemero do nightly (encriptacao mantida; o config NAO entra na imagem de prod).
       mkdir -p /etc/my.cnf.d 2>/dev/null || true
       printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
-      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
+      # SDD P07 (ADR 0275 coverage_pct): mede cobertura SO se o driver pcov estiver
+      # na imagem (oimpresso/mcp ganhou pcov no Dockerfile, DESLIGADO por default).
+      # Coverage e ADITIVO — fail de coverage NAO derruba o diagnostico (mesma
+      # filosofia "fail e DADO" do floor). Antes do rebuild da imagem, pcov ausente
+      # => sem --coverage-clover => run identico ao de hoje (zero-risco). --log-junit
+      # SEMPRE presente (FV-F1 nao pode quebrar). pcov.directory=. instrumenta o repo
+      # inteiro (NUNCA o lane sqlite curado — fonte honesta e a suite inteira, ADR 0275:68).
+      COV_FLAGS=""
+      if php -m 2>/dev/null | grep -qi "^pcov$"; then
+        COV_FLAGS="-d pcov.enabled=1 -d pcov.directory=. -d pcov.exclude=~(vendor|node_modules|storage)~"
+        echo "[harness P07] pcov presente — medindo coverage (clover em /artifacts/clover.xml)"
+        exec php -d memory_limit=2G $COV_FLAGS vendor/bin/pest --log-junit /artifacts/junit.xml --coverage-clover /artifacts/clover.xml --colors=never
+      else
+        echo "[harness P07] pcov AUSENTE na imagem — sem coverage (rebuild da imagem CT100 pendente); run de diagnostico normal"
+        exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
+      fi
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   # Detector 1 — Pest loader: uses(TestCase) file-level dentro de pasta ja vinculada
@@ -278,13 +293,26 @@ if [ -f "$FLOOR_KEY" ]; then
   FLOORDIR="$(mktemp -d)"
   mkdir -p "$FLOORDIR/governance"
   if node "$CODE/scripts/tests/floor-compute.mjs" --runs "$RUNS" --window 3 --out "$FLOORDIR/governance/nightly-floor.json"; then
+    # SDD P07 (ADR 0275 coverage_pct): mesmo transporte do floor (branch orfa +
+    # deploy key + push [skip ci]). coverage-compute le os clover.xml das ultimas
+    # nightlies e escreve governance/nightly-coverage.json. Falha aqui NAO derruba
+    # o floor (a metrica viva) — se coverage-compute falhar (ex pcov ainda nao na
+    # imagem => sem clover), so o nightly-floor.json e commitado (read-side de
+    # coverage fica not_yet_measured, nunca mente 0).
+    if node "$CODE/scripts/tests/coverage-compute.mjs" --runs "$RUNS" --window 3 --out "$FLOORDIR/governance/nightly-coverage.json"; then
+      echo "[coverage] nightly-coverage.json computado"
+    else
+      echo "[coverage] coverage-compute falhou (clover ausente? pcov pendente no rebuild) — so o floor sera publicado"
+      rm -f "$FLOORDIR/governance/nightly-coverage.json"
+    fi
     ( cd "$FLOORDIR" \
       && git init -q \
       && git config core.sshCommand "ssh -i $FLOOR_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
       && git add governance/nightly-floor.json \
-      && git -c user.email=ct100-floor@oimpresso.local -c user.name="ct100-nightly-floor" commit -q -m "chore(sdd): nightly floor $TS [skip ci]" \
+      && { [ -f governance/nightly-coverage.json ] && git add governance/nightly-coverage.json || true; } \
+      && git -c user.email=ct100-floor@oimpresso.local -c user.name="ct100-nightly-floor" commit -q -m "chore(sdd): nightly floor+coverage $TS [skip ci]" \
       && git push -f git@github.com:wagnerra23/oimpresso.com.git HEAD:refs/heads/governance/nightly-floor 2>&1 | tail -2 ) \
-      && echo "[floor] publicado em governance/nightly-floor" \
+      && echo "[floor] publicado em governance/nightly-floor (+coverage se presente)" \
       || echo "[floor] push falhou (ver acima) — read-side fica notYet"
   else
     echo "[floor] floor-compute falhou — pulo publicacao"
