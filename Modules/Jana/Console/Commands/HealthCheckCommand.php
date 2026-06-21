@@ -112,6 +112,7 @@ class HealthCheckCommand extends Command
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
             $this->checkDbWriteCanary(),
+            $this->checkDbStorageQuota(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -1221,6 +1222,75 @@ class HealthCheckCommand extends Command
     {
         return str_contains($message, '1142')
             || stripos($message, 'command denied') !== false;
+    }
+
+    /** Cota de armazenamento do DB no plano (MB). Override via config jana.db_quota_mb. */
+    public const DB_QUOTA_MB_DEFAULT = 6144;
+
+    /**
+     * Check 10c — DB storage quota (a CAUSA do incidente 2026-06-21).
+     *
+     * O db_write_canary pega o SINTOMA (escrita morta); este pega a CAUSA antes dela
+     * acontecer. Ao bater a cota de disco do plano, o Hostinger AUTO-REVOGA
+     * INSERT/UPDATE/CREATE — toda escrita do ERP morre. Em 2026-06-21 a tabela
+     * mcp_memory_documents_history inflada (5 GB) levou o DB a 6180/6144 MB → escrita
+     * revogada por horas, com os 17 checks verdes. Este check acende ANTES (>= warnPct
+     * da cota), dando tempo de liberar espaço antes do provedor cortar.
+     *
+     * Mede só o DB da app — information_schema enxerga apenas as tabelas com
+     * privilégio; as bases legadas da conta (~300 MB estáticos) não entram, mas a app
+     * é a parte dominante e a que cresce. Cota/limiar via config (jana.db_quota_mb /
+     * jana.db_quota_warn_pct). Skip em não-MySQL (SQLite CI).
+     */
+    protected function checkDbStorageQuota(): array
+    {
+        $name = 'db_storage_quota';
+
+        if (DB::getDriverName() !== 'mysql') {
+            return [
+                'name' => $name, 'ok' => true, 'value' => 'n/a',
+                'threshold' => 'mysql only', 'message' => 'Skipped (driver não-MySQL)',
+            ];
+        }
+
+        try {
+            $quotaMb = (int) config('jana.db_quota_mb', self::DB_QUOTA_MB_DEFAULT);
+            $warnPct = (int) config('jana.db_quota_warn_pct', 90);
+            $usedMb = (float) (DB::selectOne(
+                'SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) mb
+                   FROM information_schema.tables WHERE table_schema = DATABASE()'
+            )->mb ?? 0);
+            $pct = $quotaMb > 0 ? (int) round($usedMb / $quotaMb * 100) : 0;
+            $exceeded = self::dbQuotaExceeded($usedMb, $quotaMb, $warnPct);
+
+            return [
+                'name' => $name,
+                'ok' => ! $exceeded,
+                'value' => "{$usedMb}MB ({$pct}%)",
+                'threshold' => "< {$warnPct}% de {$quotaMb}MB",
+                'message' => $exceeded
+                    ? "ALERTA cota: DB em {$usedMb}MB ({$pct}% de {$quotaMb}MB) — ao bater 100% o Hostinger REVOGA INSERT/UPDATE e a escrita morre (incidente 2026-06-21). Liberar espaço / mover histórico pro CT 100."
+                    : "DB em {$usedMb}MB ({$pct}% da cota {$quotaMb}MB)",
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name, 'ok' => false, 'value' => null,
+                'threshold' => 'measurable', 'message' => 'ERRO: ' . mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * Predicado puro: o uso de disco do DB cruzou o limiar de alerta da cota?
+     * Testável sem DB (mesmo padrão de isWriteDenied / allChecksOk).
+     */
+    public static function dbQuotaExceeded(float $usedMb, int $quotaMb, int $warnPct = 90): bool
+    {
+        if ($quotaMb <= 0) {
+            return false;
+        }
+
+        return ($usedMb / $quotaMb * 100) >= $warnPct;
     }
 
     /**
