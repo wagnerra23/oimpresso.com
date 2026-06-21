@@ -35,6 +35,7 @@ const BATTERY = [
   { id: 'integrity-check',     runtime: 'node', kind: 'advisory', cmd: ['prototipo-ui/integrity-check.mjs'] },
   { id: 'knowledge-drift',     runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/knowledge-drift.mjs', '--check'] },
   { id: 'ds-guard',            runtime: 'node', kind: 'advisory', cmd: ['prototipo-ui/ds-guard.mjs', '--all'] },
+  { id: 'plan-health',         runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/plan-health.mjs', '--json'] },
   // PHP health-checks: advisory aqui (dependem de infra prod) — enforcement = cron + Pest bite-tests.
   { id: 'jana:health-check',   runtime: 'php',  kind: 'advisory', cmd: ['jana:health-check', '--json'] },
   { id: 'jana:system-audit',   runtime: 'php',  kind: 'advisory', cmd: ['jana:system-audit', '--json'] },
@@ -79,6 +80,8 @@ function interpret(entry, r) {
       } else if (Array.isArray(j.checks)) {
         const bad = j.checks.filter((c) => !c.ok && !(c.advisory)).length;
         summary = `${j.checks.length} checks · ${bad} duros falhos`;
+      } else if (Array.isArray(j.findings)) {
+        summary = `${j.planos ?? '?'} planos · ${j.fail ?? 0} fail · ${j.warn ?? 0} warn`;
       }
     } catch { /* não era JSON — cai no fallback */ }
   }
