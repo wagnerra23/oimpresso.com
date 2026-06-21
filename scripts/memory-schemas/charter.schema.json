@@ -51,6 +51,16 @@
       "uniqueItems": true,
       "default": []
     },
+    "related_us": {
+      "type": "array",
+      "description": "Slugs de User Stories que esta tela atende — fonte do join US→tela (SA-A5/P10). CANÔNICO único (deprecou o `us:` ad-hoc de 3 charters legacy). OPCIONAL/grace-period: 132 charters ainda sem (backfill é lote IA futuro, roadmap SDD P10). Padrão alinhado a related_adrs: prefixo + cauda permissiva (tolera sufixos descritivos tipo -anexos/-aprovacao e variantes F3/CAIXA já em uso). Lint advisory de nascença via scripts/governance/charter-us-lint.mjs.",
+      "items": {
+        "type": "string",
+        "pattern": "^US-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
     "tier": {
       "type": "string",
       "enum": ["A", "B", "C"]
