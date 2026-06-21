@@ -1682,3 +1682,19 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Envolver as chamadas dos 2 Observers em try/catch que loga + `report()` e **nunca** propaga (espelhar o Listener do CashRegister).
 - Idealmente mover a sincronização para Job em fila `afterCommit`.
 - **Caveat antes de codar:** confirmar se o `save()` do core roda dentro de `DB::transaction` (se rodar, o rollback abrange o título e a severidade muda).
+
+### US-FIN-060 · Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** sweep de roadmap do mês 2026-06-21 (`memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md:19`, batch #2 — passou o filtro ADR-0105 mas não foi materializado no #3090).
+
+**Problema:** a chave/projeto OpenAI usada pelo `BoletoOcrService` não tem acesso ao modelo Vision (gpt-4o) → o OCR de boleto retorna **403 silencioso em prod**. Eliana usa o fluxo. A ação é no **dashboard OpenAI** (não-código), por isso escapou dos batches de PR.
+
+**Acceptance:**
+1. Confirmar que o 403 ainda ocorre em prod (smoke com 1 boleto real / Eliana) — pode ter sido resolvido fora do git.
+2. Reabilitar acesso ao gpt-4o no dashboard/projeto OpenAI.
+3. `BoletoOcrService::extract()` retorna JSON estruturado em prod, sem 403, validado com boleto real.
+
+Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
