@@ -3,7 +3,7 @@ slug: 0256-knowledge-survival-meia-vida-catraca-sentinela
 number: 256
 title: "Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentinela + gate + cadência"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

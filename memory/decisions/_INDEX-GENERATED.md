@@ -7,7 +7,7 @@
 ## Resumo
 - **301** arquivos · **285** números únicos · máx **0295**
 - **ADRs ATIVOS (lifecycle ativo): 261** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 229 · proposto 45 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 238 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 261 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -275,7 +275,7 @@ _(íntegra)_
 | 0235 | aceito | ativo | decision | Ambiente de Staging no CT 100 — clone anonimizado da produção |
 | 0236 | aceito | ativo | decision | Extrato bancário + Conciliação: modelo unificado (origem como atributo, concilia |
 | 0236 | aceito | ativo | decision | Governança de evolução da documentação de design — append-only + índice fonte-ún |
-| 0236 | proposto | ativo | decision | Scorecard Universal — entidade avaliável arbitrária (blueprint pattern): temas/c |
+| 0236 | aceito | ativo | decision | Scorecard Universal — entidade avaliável arbitrária (blueprint pattern): temas/c |
 | 0237 | aceito | ativo | decision | jana:reconcile — loop de reconciliação único (git == índice == MCP == settings = |
 | 0238 | aceito | ativo | decision | Soberania de [W] sobre a constituição — modificação autorizada e versionada |
 | 0239 | aceito | ativo | decision | Governança do Design System — git é fonte única; mudança flui Cowork→Code→git co |
@@ -294,11 +294,11 @@ _(íntegra)_
 | 0251 | aceito | ativo | decision | Veículo na venda direta de oficina (transactions.vehicle_id) — extensão da Integ |
 | 0252 | aceito | ativo | decision | Provider LLM default da camada A = OpenAI (gpt-4o-mini / gpt-4o) |
 | 0253 | aceito | ativo | decision | Primitivos de layout (Components/layout/): Box/Stack/Inline/Grid/Container/Text  |
-| 0254 | proposto | ativo | decision | Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (end |
+| 0254 | aceito | ativo | decision | Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (end |
 | 0255 | aceito | ativo | decision | Contrato de view determinístico: charter (intenção) + design-spec.json derivado  |
-| 0256 | proposto | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
-| 0257 | proposto | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
-| 0258 | proposto | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
+| 0256 | aceito | ativo | decision | Knowledge Survival — conhecimento tem meia-vida; sobrevive por catraca + sentine |
+| 0257 | aceito | ativo | decision | Modelo canônico de status/lifecycle/kind de ADR + exceção de normalização no app |
+| 0258 | aceito | ativo | decision | Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutá |
 | 0259 | aceito | ativo | errata | Errata 0091 — modelo do Brief é gpt-4o-mini (não Sonnet); §Geração superseded po |
 | 0260 | aceito | ativo | errata | Errata 0182 — cor primária do PageHeader é roxo universal 295 (não hue-per-grupo |
 | 0261 | aceito | ativo | decision | Enforcement faseado dos gates de CI: required-checks por níveis + skip-as-pass + |
@@ -326,14 +326,14 @@ _(íntegra)_
 | 0283 | aceito | ativo | decision | Loop de handoff zero-paste — repo fonte única, gate de conteúdo, sem auto-merge  |
 | 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
 | 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
-| 0286 | proposto | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
+| 0286 | aceito | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
 | 0287 | proposto | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
 | 0288 | proposto | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
 | 0289 | proposto | ativo | decision | failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficia |
 | 0290 | recusado | ativo | decision | v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  |
-| 0291 | proposto | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
+| 0291 | aceito | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
 | 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
 | 0293 | proposto | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
-| 0294 | proposto | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
+| 0294 | aceito | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
-| 0295 | proposto | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
+| 0295 | aceito | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |

@@ -3,7 +3,7 @@ slug: 0254-design-identity-grade-deterministico
 number: 254
 title: "Grade de identidade visual DETERMINÍSTICO — rubrica binária anti-alucinação (endurece SCREEN-GRADE §7 T1) + ratchet gate"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

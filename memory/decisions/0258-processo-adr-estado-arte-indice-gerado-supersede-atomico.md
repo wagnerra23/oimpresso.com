@@ -3,7 +3,7 @@ slug: 0258-processo-adr-estado-arte-indice-gerado-supersede-atomico
 number: 258
 title: "Processo de ADR estado-da-arte — índice gerado + supersede atômico + status-mutável (modelo Log4brains)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

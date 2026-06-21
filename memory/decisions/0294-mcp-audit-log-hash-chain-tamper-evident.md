@@ -3,7 +3,7 @@ slug: 0294-mcp-audit-log-hash-chain-tamper-evident
 number: 294
 title: "mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplante do padrao Ponto, emenda 0084"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

@@ -3,7 +3,7 @@ slug: 0291-distiller-modulo-verdade-contrato-emenda-0270-f3
 number: 291
 title: "Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + instrumentação distiller_freshness"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta

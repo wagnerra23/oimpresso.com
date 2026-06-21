@@ -3,7 +3,7 @@ slug: 0295-bitemporal-event-time-memoria-jana
 number: 295
 title: "aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0074) — slice 1: schema + predicado puro"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
