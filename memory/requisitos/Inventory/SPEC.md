@@ -1,10 +1,19 @@
 ---
-modulo: Inventory
-status: proposed
+module: Inventory
+version: "0.1.0"
+last_updated: "2026-05-12"
+status: rascunho
 owner: [W]
 prioridade: P0-P2 (faseado)
 related_modules: [Sells, Repair, OficinaAuto, ComunicacaoVisual, Vestuario, Autopecas, NfeBrasil, Marketplaces]
-related_adrs: [0093, 0094, 0105, 0106, 0121, 0129, 0143]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0129-state-machine-canonica-fsm-rbac
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 cnae_relacionados: [todos verticais]
 created_at: 2026-05-12
 ---
