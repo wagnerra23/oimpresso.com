@@ -95,10 +95,16 @@ jobs:
         # OpenAI; ex "mentira do Sonnet", parecer PR #2270). Modules/Jana nao
         # esta no modules-pest.yml, entao ancoramos a
         # catraca aqui pra ela rodar de fato em todo PR.
+        #
+        # TaskCrudServiceCanonicalIdTest + McpTasksOrphansCommandTest (incidente
+        # US-RB-052, 2026-06-20): bootstram um mcp_tasks minimo (sem RefreshDatabase,
+        # logo sem a migration ENUM MySQL-only) e provam que tasks-create nao reusa
+        # task_id de row orfa no DB. Antes ficavam dormentes — o alocador usava
+        # SUBSTRING (MySQL-only) e nenhum workflow rodava Tests/Feature/TaskRegistry.
         # FV-F1: --log-junit adicionado SEM mudar o subset de testes acima.
         run: |
           mkdir -p test-results
-          vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php --no-coverage --log-junit test-results/junit.xml
+          vendor/bin/pest tests/Feature/Form tests/Feature/Services/FeatureFlagServiceTest.php Modules/Jana/Tests/Feature/Ai/PrUiJudgeAgentTest.php Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php Modules/Jana/Tests/Feature/TaskRegistry/TaskCrudServiceCanonicalIdTest.php Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php --no-coverage --log-junit test-results/junit.xml
 
       # FV-F1 (plano SDD 2026-06-12): coleta JUnit que SOBREVIVE a falha de teste.
       # A tentativa anterior rendeu artefato 0 bytes porque nada validava o XML
