@@ -3,8 +3,8 @@
     "baseline": "Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA)",
     "adr": "memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md",
     "regra": "required que SUMIR do vivo = 🔴 drift (demoção SÓ via PR editando este arquivo + ADR — ADR 0275 §5); required NOVO no vivo = 🟡 aviso (entrar é permitido, abrir PR incorporando); promoção a required atualiza este arquivo no MESMO PR do flip",
-    "capturado_em": "2026-06-12",
-    "capturado_de_sha": "4804dde2c",
+    "capturado_em": "2026-06-20",
+    "capturado_de_sha": "e765b4a7f3",
     "fonte": "gh api repos/<repo>/branches/main (.protection) + repos/<repo>/rules/branches/main — rota admin não usada (404 pra não-admin)",
     "limitacao": "o resumo público da protection clássica não expõe o flag strict (só rulesets expõem) — strict clássico é verificado no flip R1 pelo humano (ADR 0275 §5)",
     "consumidores": [
@@ -18,6 +18,7 @@
     "contexts": [
       "ADR 0216 PR scan (governance:audit --diff-only)",
       "ADR frontmatter",
+      "A11y axe · runtime nos componentes canon",
       "Append-only canon (ADRs, handoffs, Constituição)",
       "Casos-coverage · ratchet (trio + rastreabilidade)",
       "Conformance · cor-crua ratchet vs baseline",
