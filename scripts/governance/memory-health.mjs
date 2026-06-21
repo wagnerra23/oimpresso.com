@@ -378,20 +378,28 @@ function checkSessionDecisionAnchor() {
       || /\bUS-[A-Z0-9]{2,}/.test(txt)
       || /\brollout\b/i.test(txt);
     if (!hasDecision) continue;
-    // idade: `date:` do frontmatter (quando a sessão ocorreu) → fallback git
-    const when = (txt.match(/^date:\s*["']?(\d{4}-\d{2}-\d{2})/mi) || [])[1] || gitLastDate(rel);
+    // idade: nome do arquivo `YYYY-MM-DD-…` é a fonte PRIMÁRIA — ~50% dos logs não têm
+    // `date:` no frontmatter, e `gitLastDate` "rejuvenesce" o doc no touch em massa
+    // (mascarava ~46 logs antigos como recentes). Ordem: slug → frontmatter `date:` → git.
+    const when = (rel.match(/(?:^|\/)(\d{4}-\d{2}-\d{2})-/) || [])[1]
+      || (txt.match(/^date:\s*["']?(\d{4}-\d{2}-\d{2})/mi) || [])[1]
+      || gitLastDate(rel);
     if (!when || when >= cutoffStr) continue; // só >30d
-    // âncora: referencia algum ADR ACEITO (nº existente + status aceito) OU um BRIEFING
+    // âncora ESTRUTURAL (não menção solta em prosa, que premiava name-dropping):
+    //   ADR aceito referenciado no FRONTMATTER (related_adrs/supersedes/superseded_by)
+    //   OU link `decisions/NNNN-…` no corpo  ·  BRIEFING pelo arquivo real (BRIEFING.md).
+    const fmEnd = txt.startsWith('---') ? txt.indexOf('\n---', 3) : -1;
+    const fm = fmEnd === -1 ? '' : txt.slice(0, fmEnd);
     const refs = new Set();
-    for (const m of txt.matchAll(/\bADR[\s-]*(\d{3,4})\b/gi)) refs.add(m[1].padStart(4, '0'));
-    for (const m of txt.matchAll(/\b(\d{4})-[a-z]{2,}/g)) refs.add(m[1]); // slug related_adrs / link decisions/NNNN
+    for (const m of fm.matchAll(/\b(\d{4})-[a-z]{2,}/g)) refs.add(m[1]);         // slug em related_adrs/supersedes
+    for (const m of txt.matchAll(/decisions\/(\d{4})-[a-z]/gi)) refs.add(m[1]);  // link pro arquivo do ADR
     const anchoredByAdr = [...refs].some((n) => accepted.has(n));
-    const anchoredByBriefing = /BRIEFING/i.test(txt);
+    const anchoredByBriefing = /BRIEFING\.md/i.test(txt);
     if (!anchoredByAdr && !anchoredByBriefing) lost.push(`${rel} (${when})`);
   }
   if (lost.length) {
     warns.push({ check: 'K', kind: 'session-decisao-sem-ancora', count: lost.length, sample: lost.slice(0, 12),
-      msg: `${lost.length} session log(s) >${SESSION_DECISION_STALE_DAYS}d com marcador de decisão (\`## Decisão\`/\`US-\`/\`rollout\`/\`### Passo\`) SEM link pra ADR aceito nem BRIEFING — os "planos perdidos" (adversário 2026-06-20). Triagem: promover a ADR/BRIEFING ou registrar resolução.` });
+      msg: `${lost.length} session log(s) >${SESSION_DECISION_STALE_DAYS}d com marcador de decisão (\`## Decisão\`/\`US-\`/\`rollout\`/\`### Passo\`) SEM âncora ESTRUTURAL (related_adrs/link decisions pra ADR aceito, ou BRIEFING.md) — os "planos perdidos" (adversário 2026-06-20). Triagem: promover a ADR/BRIEFING ou registrar resolução.` });
   }
 }
 
