@@ -14,6 +14,11 @@ on:
     branches: [main]
     paths:
       - 'scripts/governance/.memory-health-baseline.json'
+      - '.conformance-baseline.json'
+      - '.fontramp-baseline.json'
+      - '.foundation-guard-baseline.json'
+      - '.dsih-baseline.json'
+      - '.scheme-baseline.json'
       - 'scripts/governance/baseline-tamper-guard.mjs'
       - '.github/workflows/baseline-tamper-guard.yml'
 
