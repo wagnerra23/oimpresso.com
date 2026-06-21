@@ -80,6 +80,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\DesignDossieCommand::class, // plano vectorized-badger PR-1 — dossiê de tela (read-view do curado, pré-aplicação)
                 \Modules\Jana\Console\Commands\DesignIngestZipCommand::class, // plano vectorized-badger PR-2 — ingestão de design-zip (prepare-only)
                 \Modules\Jana\Console\Commands\DesignMineRawCommand::class, // plano vectorized-badger PR-3 — minera raw→candidatos 🔍 (human-gated)
+                \Modules\Jana\Console\Commands\ProfileDistillCommand::class, // COPI-26 — job que faltava: regenera jana_business_profile (distiller nunca foi agendado; L-OP-002)
             ]);
         }
     }
