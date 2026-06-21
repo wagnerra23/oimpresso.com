@@ -11,10 +11,12 @@
 // Catracas cobertas: knowledge-drift --check (anti-ghost) · foundation-ratchet
 // (quarentena/RefreshDatabase/Business::first — fixtures reusadas de
 // scripts/tests/fixtures/foundation-ratchet, já versionadas em main) · ledger-check
-// --enforce (protocolo refutador GT-G5) · sdd-scorecard --ratchet ARMADO (GT-G2).
+// --enforce (protocolo refutador GT-G5) · sdd-scorecard --ratchet ARMADO (GT-G2) ·
+// memory-health (Check A colisão ADR não-registrada — único .mjs que MORDE no merge
+// via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival).
 //
 // USO (na raiz do repo):
-//   node scripts/governance/gate-selftest.mjs              # 4 catracas × 2 fixtures
+//   node scripts/governance/gate-selftest.mjs              # 5 catracas × 2 fixtures
 //   node scripts/governance/gate-selftest.mjs --json
 //   node scripts/governance/gate-selftest.mjs --only ledger-check
 //   node scripts/governance/gate-selftest.mjs --script knowledge-drift=<path>
@@ -62,6 +64,21 @@ function runScorecard(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// memory-health varre process.cwd() (memory/decisions/ + _INDEX-LIFECYCLE.md) e lê o
+// baseline em scripts/governance/.memory-health-baseline.json → mesmo padrão sandbox:
+// fixture (só memory/decisions/ + baseline neutro) + o script REAL copiado por cima.
+// Fixture isola o Check A (colisão ADR) — sem memory/{requisitos,sessions,reference}
+// nem .github/workflows, as outras checagens nem disparam.
+function runMemoryHealth(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-memory-health-${kind}-`));
+  try {
+    cpSync(join(FIX, 'memory-health', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -89,6 +106,11 @@ const CATRACAS = [
     id: 'sdd-scorecard',
     run: runScorecard,
     expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): ghost_count/ },
+  },
+  {
+    id: 'memory-health',
+    run: runMemoryHealth,
+    expect: { good: /base de conhecimento saudável/, bad: /colidiu.*_INDEX-LIFECYCLE/ },
   },
 ];
 
