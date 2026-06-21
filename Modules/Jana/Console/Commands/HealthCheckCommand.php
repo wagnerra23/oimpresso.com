@@ -79,7 +79,7 @@ class HealthCheckCommand extends Command
 
         // Advisory checks (charter) reportam mas não derrubam o exit code:
         // contam como "ok" pro gate enquanto não viram ratchet.
-        $allOk = collect($checks)->every(fn ($c) => $c['ok'] || ($c['advisory'] ?? false));
+        $allOk = self::allChecksOk($checks);
 
         if ($this->option('json')) {
             $this->line(json_encode([
@@ -112,6 +112,18 @@ class HealthCheckCommand extends Command
         }
 
         return $allOk ? self::SUCCESS : self::FAILURE;
+    }
+
+    /**
+     * Veredito do gate: OK a menos que algum check NÃO-advisory tenha ok=false.
+     * Extraído pra ser testável SEM DB (bite-test SentinelBiteTest) — prova que o
+     * exit code RESPONDE ao estado dos checks, não é constante (auditoria de
+     * sentinelas 2026-06-20). A regra advisory é a parte sutil: advisory false NÃO
+     * derruba o gate; check duro false derruba.
+     */
+    public static function allChecksOk(array $checks): bool
+    {
+        return collect($checks)->every(fn ($c) => ($c['ok'] ?? false) || ($c['advisory'] ?? false));
     }
 
     /**
