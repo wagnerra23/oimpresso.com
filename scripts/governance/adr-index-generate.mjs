@@ -116,6 +116,14 @@ for (const a of adrs) {
   if ((a.statusN === 'superseded' || a.lifecycleN === 'substituido') && a.superseded_by.length === 0)
     supWarn.push(`${a.num} é superseded mas sem superseded_by (órfã)`);
 }
+// double-supersede (adversário 2026-06-20): >1 ADR herdando o MESMO número = conflito
+// de herança — duas decisões reivindicam suceder a mesma, ramo de herança ambíguo. Como
+// supWarn é GATE DURO no --check (ADR 0258), bloqueia até consolidar numa sucessora só.
+const supersededBy = {};
+for (const a of adrs) for (const t of a.supersedes) (supersededBy[t] ??= new Set()).add(a.num);
+for (const [t, srcs] of Object.entries(supersededBy)) {
+  if (srcs.size > 1) supWarn.push(`ADR ${t} é supersedida por ${srcs.size} ADRs (${[...srcs].sort().join(', ')}) → conflito de herança (double-supersede); só 1 deve suceder — consolide.`);
+}
 
 // ── render ──────────────────────────────────────────────────────────────────
 const fmtTally = (o) => Object.entries(o).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${k} ${v}`).join(' · ');
