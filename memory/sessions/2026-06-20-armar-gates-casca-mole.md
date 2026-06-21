@@ -30,8 +30,8 @@ Ambos: 1 PR = 1 intent, base `origin/main` atual, `meta-teste vitest` + `Governa
   (PRs #3058 registrou + #3065 endureceu: cobre `Bash`/`PowerShell`/`UserPromptSubmit`). O `settings.json`
   "sem o hook" que o adversário viu era a cópia stale de uma branch atrás de main. R10 morde hoje.
 - **Itens de promoção-a-required reservados pro Wagner** (rule d — convenção de governança via ADR + ok):
-  - **Item 2** anchor-lint→required: bloqueado por **15 anchors mortos** (full-tree) — flipar trava todos. Backfill SA-A4/A5 antes (calendário ADR 0273 §4 / 0275).
-  - **Item 3** SDD scorecard→required: só **2/3 métricas armadas**; falta a 3ª + janela 14d verde (ADR 0275 §5). É o mais perto do gatilho.
+  - **Item 2** anchor-lint→required: **15 anchors mortos** (full-tree). Bloqueador canônico = ADR 0275 §5 **A10** (`anchor_coverage` = 100% estrito + 14d advisory FP<5% ANTES do flip) — não "trava o CI" genérico: existe caminho seguro **diff-only** (lint só os SPECs tocados). Backfill SA-A4/A5 destrava.
+  - **Item 3** SDD scorecard→required: **2 métricas armadas** (próxima = `anchor_coverage`, faltam 2 medições válidas). ⚠️ **Correção pós-adversário 2026-06-20:** a regra de armamento é ADR 0275 **§3 (3 medições consecutivas POR métrica)**, NÃO "§5 ≥3 métricas armadas" — essa regra **não existe** no ADR (repeti do enunciado por engano). §5 é o calendário de gates **individuais** (R1/A10/…); a composta v2 só com 10/10 armadas. Não se "promove o scorecard" — promove-se cada gate pelo seu critério §5.
   - **Item 5** `strict=true` branch protection: confirmado `strict:false` (18 required). Muda merge global → precisa ADR + ok (risco de thrash de fila com sessões paralelas).
 - **Não duplicar item 7** (plans-index generator) — é o workstream ADR 0294 em voo (#3082).
 
