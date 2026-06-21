@@ -19,7 +19,7 @@ related_adrs: [0053-mcp-server-governanca-como-produto, 0081-identity-mesh-mcp-a
 
 ## Missão
 
-Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom ([ADR 0059](../../decisions/0059-self-host-team-plan-anthropic-rejeitado.md)). Concentra governança: tokens MCP do time, Identity Mesh (mcp_actors), audit log append-only, webhooks git→DB, ingest Claude Code sessions, tools registry, Kanban tasks/cycles.
+Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom ([ADR 0059](../../decisions/0059-governanca-memoria-estilo-anthropic-team.md)). Concentra governança: tokens MCP do time, Identity Mesh (mcp_actors), audit log append-only, webhooks git→DB, ingest Claude Code sessions, tools registry, Kanban tasks/cycles.
 
 ## Tabelas owned (DB)
 
