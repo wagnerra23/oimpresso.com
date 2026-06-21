@@ -6,7 +6,7 @@ project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
-last_updated: "2026-05-25"
+last_updated: "2026-06-21"
 created_at: 2026-05-16
 updated_at: 2026-05-25
 related_adrs:
@@ -506,3 +506,83 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Acceptance:**
 - Decidir alvo correto de cada item e corrigir.
 - Fixes em corpos de ADR só com aprovação (política append-only ADR 0094).
+
+### US-GOV-034 · sqlite-test-corruptors --strict pega tier S (CORE-drop), não só tier A
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** verificação adversarial 2026-06-21 (PR #3145 · handoff 2026-06-21-1250).
+**Problema:** gate roda `--tier=A`; `view = real.filter(r => r.tier === TIER_FILTER)` (~L363) filtra só tier A. `Schema::drop('business')` reintroduzido classifica tier S (CORE-drop) → `view.length===0` → não dá exit 1. O gate não pega o pior caso que o próprio counterfactual promete.
+**Fix:** `r.tier === TIER_FILTER || r.tier === 'S'` (tier S sempre morde). Validar `tests/sqliteCorruptors.spec.ts`.
+**Acceptance:** counterfactual tier-S → exit 1; meta-teste vitest verde; fazer antes de promover US-GOV-021 a required. Refs: ROADMAP-SDD
+
+### US-GOV-035 · knowledge-drift: isentar _Governanca/roadmap/ (planos citam ghosts legitimamente)
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** red advisory do PR #3135 (anti-ghost).
+**Problema:** os planos do roadmap citam `Modules/MemCofre/PontoWr2/Copiloto/DocVault` em contexto de planejamento da remoção/rename → o detector os conta como ghost vivo. É falso-positivo.
+**Fix:** estender `scripts/governance/knowledge-drift.mjs` (já tocado pelo P11/#3155) pra isentar `_Governanca/roadmap/` como já isenta `adr/`.
+**Acceptance:** anchor-ghost verde no #3135; doc citando ghost em roadmap/ não dispara. Refs: ROADMAP-SDD
+
+### US-GOV-036 · Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** PR #3145 (US-GOV-021) isolou 7/18.
+**Problema:** restam 11 corruptores tier A (CoworkHandoffCrossTenant, Forja Backlog/Changelog/Mcp/Quadro Service, Claimless, FsmTransitionGuard, TaskUpdateAtomic, AcceptanceRef, WorkLease, LeaseBriefSection) que ainda dão exit 1 no auditor.
+**Fix:** mesma técnica do lote 1 (guard teardown sqlite-only, sem dropar tabela CORE).
+**Acceptance:** `sqlite-test-corruptors --strict --tier=A` corruptors=0; aí destrava promover o gate a required. Refs: ROADMAP-SDD
+
+### US-GOV-037 · Backfill related_us em 132 charters sem link (join US→tela do SA-A5)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** crítico de completude 2026-06-21 (PR #3157 declarou o campo + migrou 3 legacy).
+**Problema:** 132/148 charters sem `related_us` → o join US→tela que alimenta o batch SA-A5 (anchors por IA) ficou sem fonte.
+**Fix:** lote IA (Haiku) deriva related_us de SPEC/git/árvore Pages, com refutador G5 + 1 entry no ledger.
+**Acceptance:** charters_sem_us cai; lint conta; SA-A5 lê o join. Refs: ROADMAP-SDD
+
+### US-GOV-038 · Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável
+
+> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> blocked_by: US-GOV-021
+
+**Origem:** PR #3158 entregou o tripwire advisory com alerta OFF.
+**Problema:** ligar o alerta (gh issue / mcp_alertas na `maybeAlert()`) antes do floor estabilizar alertaria ruído de ambiente.
+**Fix:** setar `NIGHTLY_DIFF_ALERT=1` + implementar o canal depois que P03/US-GOV-021 estabilizar o floor.
+**Acceptance:** classe de falha nova/arquivo novo no floor → 1 issue idempotente/dia; 2 noites iguais → no-op. Refs: ROADMAP-SDD
+
+### US-GOV-039 · TDAD-lite — lane de testes impactados no PR (test-map via pcov + sombra 14d)
+
+> owner: — · priority: p3 · estimate: 4h · status: todo · type: story
+> blocked_by: US-GOV-011
+
+**Origem:** crítico de completude 2026-06-21 (ADIADO conscientemente).
+**Problema/PORQUÊ-ADIAR:** TDAD acelera o loop, mas o gargalo é o floor sujo (295 + 24% skip). Rodar "só impactados" sobre suíte que já falha mascara regressão. Prematuro até pcov medir (P07) e floor=0 (P04).
+**Fix:** test-map per-test via `--coverage-php` + comando `test:impacted` + gate sombra advisory 14d com fallback fail-safe pra suite completa.
+**Acceptance:** só DEPOIS de pcov measured + nightly verde. on-hold. Refs: ROADMAP-SDD
+
+### US-GOV-040 · Roadmap-v2 — dobrar correção P01/P02 + entries P14/P15/P16 no _ROADMAP.md
+
+> owner: — · priority: p3 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** aterramento das ondas tardias 2026-06-21.
+**Problema:** o `_ROADMAP.md` (#3135) ainda diz que o read-side do floor "quase resolveu" — mas o HEAD commitado é `not_yet_measured` e o "274" é working-tree sujo do #3020. P02 deve congelar o **295 vivo**, não 274.
+**Fix:** corrigir a seção P01/P02 + adicionar entries P14/P15/P16-on-hold, após #3135 mergear.
+**Acceptance:** _ROADMAP.md reflete o estado real. Refs: ROADMAP-SDD
+
+### US-GOV-041 · Limpar governance/sdd-scorecard.json sujo (274 fantasma) no working-tree de main
+
+> owner: — · priority: p3 · estimate: 0.5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** git status do checkout principal (não é desta sessão; último commit real #3020).
+**Problema:** `M governance/sdd-scorecard.json` não-commitado mostra full_suite=274 (engana a leitura; o HEAD diz not_yet_measured). Atrapalhou o planejamento desta sessão.
+**Fix:** quem é dono do working-tree decide: `git checkout` (descartar) OU commitar o valor correto via o job de P01/#3142. NÃO tocar cego.
+**Acceptance:** working-tree limpo ou o 274 reconciliado pelo commit-back. Refs: ROADMAP-SDD
