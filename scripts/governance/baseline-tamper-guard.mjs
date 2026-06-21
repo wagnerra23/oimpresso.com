@@ -49,11 +49,31 @@ function detectMemoryHealth(base, head) {
   return out;
 }
 
+// Ratchet homogêneo { "path": <nº de violações toleradas> }: afrouxar = teto
+// subiu numa key existente OU key nova grandfatherada com tolerância > 0.
+// Compartilhado pelos baselines de mesmo schema (conformance cor-crua, fontramp,
+// foundation-guard, dsih, scheme). Key removida ou teto que baixou = melhora (ok).
+function detectCountRatchet(base, head) {
+  const out = [];
+  const b = base || {}, h = head || {};
+  for (const [f, n] of Object.entries(h)) {
+    if (typeof n !== 'number') continue;
+    const prev = typeof b[f] === 'number' ? b[f] : 0;
+    if (n > prev) out.push(`teto subiu: ${f} (${prev}→${n})`);
+  }
+  return out;
+}
+
 // Mapa path→detector. Estender = adicionar o baseline + seu detector aqui
 // (e o path no trigger do workflow). Só guarda o que tem detector de schema:
 // afrouxamento genérico em formato heterogêneo daria falso-positivo.
 const GUARDED = {
   'scripts/governance/.memory-health-baseline.json': detectMemoryHealth,
+  '.conformance-baseline.json': detectCountRatchet,
+  '.fontramp-baseline.json': detectCountRatchet,
+  '.foundation-guard-baseline.json': detectCountRatchet,
+  '.dsih-baseline.json': detectCountRatchet,
+  '.scheme-baseline.json': detectCountRatchet,
 };
 
 // ── resolver base do diff ─────────────────────────────────────────────────────

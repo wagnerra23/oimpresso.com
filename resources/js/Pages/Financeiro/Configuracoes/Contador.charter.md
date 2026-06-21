@@ -5,7 +5,7 @@ module: Financeiro
 controller: Modules\Financeiro\Http\Controllers\AdvisorAccessController
 status: draft
 owner: eliana
-us: US-FIN-037
+related_us: [US-FIN-037]
 created: 2026-05-31
 page: /financeiro/configuracoes/contador
 component: resources/js/Pages/Financeiro/Configuracoes/Contador.tsx
