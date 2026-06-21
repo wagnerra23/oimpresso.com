@@ -126,3 +126,27 @@ describe('GAP 2 — memory-health ENFORCE + baseline ratchet (Check C, ADR 0258)
     expect(out).toMatch(/0 .*fail|saudável|🩺/i);
   });
 });
+
+describe('double-supersede — >1 ADR herdando a mesma (adversário 2026-06-20, físico)', () => {
+  it('SENSIBILIDADE: 2 ADRs supersedem o MESMO número → --check FALHA citando conflito de herança', () => {
+    adr(tmp, '0930-target.md', 'slug: 0930-target\nnumber: 930\ntitle: "T"\ntype: adr\nstatus: superseded\nauthority: canonical\nlifecycle: substituido\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsuperseded_by: [\'0931-a\']');
+    adr(tmp, '0931-a.md', 'slug: 0931-a\nnumber: 931\ntitle: "A"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes: [\'0930-target\']');
+    adr(tmp, '0932-b.md', 'slug: 0932-b\nnumber: 932\ntitle: "B"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes: [\'0930-target\']');
+    run(`node "${GEN}" --write`);
+    let threw = false; let msg = '';
+    try { run(`node "${GEN}" --check`); }
+    catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
+    expect(threw).toBe(true);                          // double-supersede entra em supWarn → gate bloqueia
+    expect(msg).toMatch(/double-supersede|conflito de herança/i);
+    expect(msg).toMatch(/0930/);
+  });
+
+  it('ESPECIFICIDADE: supersede 1→1 (sucessora única) → sem conflito, --check passa', () => {
+    adr(tmp, '0940-old.md', 'slug: 0940-old\nnumber: 940\ntitle: "Old"\ntype: adr\nstatus: superseded\nauthority: canonical\nlifecycle: substituido\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsuperseded_by: [\'0941-new\']');
+    adr(tmp, '0941-new.md', 'slug: 0941-new\nnumber: 941\ntitle: "New"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsupersedes: [\'0940-old\']');
+    run(`node "${GEN}" --write`);
+    const out = run(`node "${GEN}" --check`); // exit 0 (não lança)
+    expect(out).not.toMatch(/double-supersede|conflito de herança/i);
+    expect(out).toMatch(/em dia|íntegra/i);
+  });
+});
