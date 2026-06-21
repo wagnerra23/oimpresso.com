@@ -5,6 +5,13 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Process;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 
+// EXPLÍCITO (não confiar só no Pest.php do módulo): quando ci.yml roda este
+// arquivo direto via .github/ci-sqlite-pest.list, o `uses(...)->in()` do
+// Modules/Governance/Tests/Pest.php pode não casar → sem TestCase, sem refresh
+// de app por teste → facades (Process/Config) vazam estado entre testes do
+// suite gigante (random order). Espelha LeaseBriefSectionServiceTest.
+uses(Tests\TestCase::class);
+
 /**
  * Tests da linha de saúde dos PLANOS no Daily Brief (ADR 0294 Onda 1).
  * A sentinela é Node (scripts/governance/plan-health.mjs --json); aqui o
@@ -85,7 +92,9 @@ it('índice vazio (0 planos) → null', function () {
 });
 
 it('JSON inválido (node quebrado/ausente) → null', function () {
-    Process::fake(['*plan-health.mjs*' => Process::result(output: 'node: not found', exitCode: 127)]);
+    // Catch-all '*' (mesma chave de fakePlanHealth): chaves consistentes entre
+    // testes evitam handlers acumulados/ambíguos no Process::fake.
+    Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
     expect((new PlanHealthBriefLineService())->line())->toBeNull();
 });
