@@ -388,10 +388,13 @@ class Kernel extends ConsoleKernel
         // Compara faithfulness atual vs baseline canon; ALERT se >10% das perguntas
         // divergirem. RELIGADO 2026-06-20 (auditoria de sentinelas): o docblock do
         // comando afirmava "Schedule weekly Sun 06:00" mas NÃO existia entry aqui —
-        // ghost canary (existe + tem teste de mordida, nunca rodava). Requer
-        // OPENAI_API_KEY no servidor; sem a chave o run falha e o onFailure registra
-        // (sinal honesto de "canary cego", não silêncio). Domingo cedo pra não
-        // disputar DB com os health-checks diários (06:00-06:30).
+        // ghost canary (existe + tem teste de mordida, nunca rodava).
+        //
+        // Skip-guard honesto (2026-06-20): SEM OPENAI_API_KEY o canary NÃO falha o
+        // cron toda semana (era ruído / falso "DRIFT 100%") — sai DORMANT (exit 0,
+        // status=dormant), visível como ⊘ no agregador governance-audit.mjs. O
+        // onFailure abaixo só dispara em drift REAL acima do threshold. Domingo cedo
+        // pra não disputar DB com os health-checks diários (06:00-06:30).
         $schedule->command('jana:drift-sentinel')
             ->weeklyOn(0, '06:00')
             ->timezone('America/Sao_Paulo')
@@ -399,8 +402,8 @@ class Kernel extends ConsoleKernel
             ->environments(['live'])
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
-                    'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold ' .
-                    'OU canary não rodou (checar OPENAI_API_KEY). Ver storage/logs.'
+                    'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold. ' .
+                    'Ver storage/logs (canary sem OPENAI_API_KEY sai DORMANT, não falha).'
                 );
             });
 
@@ -704,6 +707,31 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
                     'Schedule copiloto:seed-adrs FALHOU — fatos de ADR podem ficar STALE ' .
                     '(investigar storage/logs/copiloto-seed-adrs.log)'
+                );
+            });
+
+        // COPI-26 fix (incidente 2026-06-20) — ProfileDistiller NUNCA foi agendado:
+        // `->destilar()` tinha ZERO call sites, então jana_business_profile só tinha
+        // 3 seeds one-off (biz 1/4/164) que envelheceram >7d e acendiam o check
+        // `profile_distiller_drift` no jana:health-check (06:00). A sentinela
+        // (L-OP-002) estava CORRETA — vigiava um job de manutenção que nunca rodava.
+        // Este schedule é o job que faltava.
+        //
+        // 04:50 BRT: DEPOIS de copiloto:seed-adrs (04:45) e jana:freshness-check (04:30),
+        // ANTES do jana:health-check (06:00) reavaliar o check. Bem dentro da janela 7d.
+        // Multi-tenant Tier 0 (ADR 0093): o command itera business by business EXPLÍCITO.
+        // ~76 chamadas LLM/dia (~$0,02). withoutOverlapping(15) cobre run lento (76 × ~3s).
+        $schedule->command('jana:profile-distill')
+            ->dailyAt('04:50')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-profile-distill-daily')
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/jana-profile-distill.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:profile-distill FALHOU — jana_business_profile pode ficar ' .
+                    'STALE (profile_distiller_drift acende no jana:health-check 06:00)'
                 );
             });
 

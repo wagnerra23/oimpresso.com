@@ -126,4 +126,14 @@ return [
      * @see Modules\Governance\Services\SddBriefLineService
      */
     'sdd_brief_line' => env('GOVERNANCE_SDD_BRIEF_LINE', true),
+
+    /*
+     * Kill-switch ADR 0294 Onda 1 (default ON) — linha de saúde dos PLANOS no
+     * Daily Brief (shell-out de scripts/governance/plan-health.mjs --json).
+     * `GOVERNANCE_PLAN_HEALTH_BRIEF_LINE=false` no .env desliga o inject() sem
+     * deploy: PlanHealthBriefLineService devolve o brief intacto (zero linha,
+     * zero shell-out). Útil em host sem Node ou pra silenciar a linha.
+     * @see Modules\Governance\Services\PlanHealthBriefLineService
+     */
+    'plan_health_brief_line' => env('GOVERNANCE_PLAN_HEALTH_BRIEF_LINE', true),
 ];

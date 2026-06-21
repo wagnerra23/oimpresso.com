@@ -1030,9 +1030,10 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · revisão advers
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+> parent_plan: timezone-format-date-migracao
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: timezone-format-date-migracao` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** bug histórico preservado em ADR 0066 — migration de timezone/format de `transaction_date` nunca rodou; afeta cliente real ROTA LIVRE (biz=4).
 
@@ -1047,9 +1048,10 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · revisão advers
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+> parent_plan: sells-v2-paridade-blade-biz4
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: sells-v2-paridade-blade-biz4` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105):** Larissa biz=4; guard biz=4 já removido. Restam 3 features do Blade ausentes em V2: configure-search, quick-add, preço-diferenciado.
 **⚠️ Dedup parcial:** possível overlap com o epic MWART US-SELL-001..006 (migração /sells/create) — checar antes de abrir trabalho redundante.

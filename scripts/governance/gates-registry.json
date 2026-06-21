@@ -26,6 +26,10 @@
       "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
       "classe": "gate"
     },
+    "plan-health-gate.yml": {
+      "nome": "Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1)",
+      "classe": "gate"
+    },
     "adr-index-gate.yml": {
       "nome": "ADR Index Gate — ADR 0258",
       "classe": "gate"

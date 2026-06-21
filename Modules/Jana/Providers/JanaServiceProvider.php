@@ -61,6 +61,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\HealthCheckCommand::class,      // sentinela operacional 5 checks
                 \Modules\Jana\Console\Commands\SystemAuditCommand::class,      // ADR 0133 — 5 audits Constituição v2 (observ/evals/ADR-stale/cost/coverage)
                 \Modules\Jana\Console\Commands\McpTasksHealthCheckCommand::class, // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection
+                \Modules\Jana\Console\Commands\McpTasksOrphansCommand::class,  // incidente US-RB-052 2026-06-20 — triagem de US-* no DB ausentes do SPEC (órfãs)
                 \Modules\Jana\Console\Commands\PlanDriftCommand::class,        // ADR 0294 Onda 2 — drift status-do-plano ≠ realidade das tasks MCP (parent_plan)
                 \Modules\Jana\Console\Commands\JanaBacklinksSweepCommand::class, // Gap G5 P1 auditoria 2026-05-13 — backlinks ADR↔SPEC sweep
                 \Modules\Jana\Console\Commands\JanaRagasEvalCommand::class,    // ADR 0037 §GAP-2 — RAGAS gate (faithfulness/relevancy/precision/recall)
@@ -80,6 +81,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\DesignDossieCommand::class, // plano vectorized-badger PR-1 — dossiê de tela (read-view do curado, pré-aplicação)
                 \Modules\Jana\Console\Commands\DesignIngestZipCommand::class, // plano vectorized-badger PR-2 — ingestão de design-zip (prepare-only)
                 \Modules\Jana\Console\Commands\DesignMineRawCommand::class, // plano vectorized-badger PR-3 — minera raw→candidatos 🔍 (human-gated)
+                \Modules\Jana\Console\Commands\ProfileDistillCommand::class, // COPI-26 — job que faltava: regenera jana_business_profile (distiller nunca foi agendado; L-OP-002)
             ]);
         }
     }

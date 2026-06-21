@@ -17,18 +17,23 @@ use Modules\Jana\Services\Ragas\RagasJudgeService;
  * Alerta se >10% das perguntas divergirem ≥ DRIFT_THRESHOLD do baseline.
  *
  * Schedule: weekly Sun 06:00 BRT (app/Console/Kernel.php) — RELIGADO 2026-06-20.
- * Requer OPENAI_API_KEY no servidor pra rodar real; sem a chave o run falha e o
- * onFailure registra (sinal honesto). --mock é só pra CI/teste (mock NÃO detecta
- * drift real — faithfulness fixa em 0.85).
+ * Requer OPENAI_API_KEY no servidor pra rodar real. SEM a chave (e sem --mock) o
+ * canary entra em estado DORMANT honesto: exit 0 (não estoura o onFailure do cron
+ * toda semana) + status=dormant no JSON, que o agregador governance-audit.mjs
+ * mostra como ⊘ dormant (≠ silêncio, ≠ falso "DRIFT 100%"). Skip-guard adicionado
+ * 2026-06-20 (auditoria de sentinelas). --mock é só pra CI/teste (faithfulness
+ * fixa em 0.85 — NÃO detecta drift real).
  *
  * Uso:
  *   php artisan jana:drift-sentinel                    # roda real (precisa OPENAI_API_KEY)
  *   php artisan jana:drift-sentinel --mock              # mock-mode (CI safe)
+ *   php artisan jana:drift-sentinel --json              # só envelope JSON (agregador/Brief)
+ *   php artisan jana:drift-sentinel --status --json     # probe armed/dormant (sem custo/rede)
  *   php artisan jana:drift-sentinel --update-baseline   # regrava baseline (Wagner aprova)
  *   php artisan jana:drift-sentinel --detail            # log detalhado por pergunta
  *
  * Exit code:
- *   0 = drift dentro do aceitável (<10% perguntas divergiram)
+ *   0 = drift aceitável (<10%) OU dormant (sem OPENAI_API_KEY — não rodou)
  *   1 = drift acima do threshold — gera ALERT entry + retorna falha
  *
  * Custo aprox por run real (50 ex):
@@ -48,6 +53,8 @@ class JanaDriftSentinelCommand extends Command
                             {--mock : Usa RagasJudgeService em mock mode (CI safe)}
                             {--update-baseline : Regrava baseline-responses.json a partir do gold-set (Wagner aprova)}
                             {--detail : Log detalhado por pergunta}
+                            {--json : Emite só o envelope JSON (machine-readable; agregador/Brief)}
+                            {--status : Probe leve (sem custo/rede): só reporta armed vs dormant}
                             {--max-drift=10 : % perguntas divergentes acima disso → exit 1}
                             {--drift-threshold=0.25 : Δ faithfulness pra contar como divergência}';
 
@@ -62,6 +69,17 @@ class JanaDriftSentinelCommand extends Command
 
     private function doHandle(): int
     {
+        // Chave resolvida via config() — cache-safe (ver PEGADINHA no skip-guard abaixo).
+        $apiKey = config('openai.api_key') ?: config('services.openai.api_key');
+        $apiKey = is_string($apiKey) ? $apiKey : null;
+
+        // --status: probe leve consumido pelo agregador governance-audit.mjs. Responde
+        // "esse sentinela está vivo?" (armed=chave presente) SEM disparar o run pago
+        // real (que é o cron semanal). Sem custo, sem rede, sem DB.
+        if ($this->option('status')) {
+            return $this->reportStatus($apiKey);
+        }
+
         $goldPath = base_path('Modules/Jana/Tests/Feature/Ai/fixtures/jana-gold-set.json');
         $baselinePath = base_path('Modules/Jana/Tests/Feature/Ai/fixtures/baseline-responses.json');
 
@@ -84,6 +102,22 @@ class JanaDriftSentinelCommand extends Command
             // Mock mode: simula faithfulness alto (0.85±0.05) — CI safe.
             // Só ativa se NÃO estava em mock (preserva mocks customizados injetados via testing).
             $judge->enableMock(['faithfulness' => 0.85]);
+        }
+
+        // Skip-guard HONESTO (auditoria de sentinelas 2026-06-20): o run real precisa
+        // de OPENAI_API_KEY (RagasJudgeService chama a OpenAI). Sem mock e sem chave
+        // NÃO existe medição possível — em vez de pontuar 0.0 em tudo e gritar
+        // "DRIFT 100%" toda semana (falso-positivo) OU estourar o onFailure do cron
+        // (ruído), o canary entra em estado DORMANT explícito: exit 0 (não morde o
+        // cron) + status=dormant no JSON (agregador mostra ⊘, não silêncio).
+        //
+        // PEGADINHA: $apiKey acima é lido via config() (config/openai.php +
+        // config/services.php, ambos baked de OPENAI_API_KEY no config:cache) — NUNCA
+        // env() direto, que devolve null com config:cache ligado em prod e faria o
+        // guard pular SEMPRE (vira fantasma de novo). Mesma fonte que
+        // RagasJudgeService::callJudge().
+        if (self::isDormant($judge->isMockMode(), $apiKey)) {
+            return $this->reportDormant();
         }
 
         // Modo --update-baseline: regrava baseline atual (Wagner aprova caso a caso).
@@ -151,8 +185,12 @@ class JanaDriftSentinelCommand extends Command
 
         $driftPct = $total > 0 ? ($diverged / $total) * 100.0 : 0.0;
 
+        $isAlert = $driftPct > $maxDriftPct;
+
         $report = [
             'ran_at' => now()->toIso8601String(),
+            'status' => $isAlert ? 'drift' : 'ok',
+            'ok' => ! $isAlert,
             'total_questions' => $total,
             'diverged' => $diverged,
             'drift_pct' => round($driftPct, 2),
@@ -161,21 +199,101 @@ class JanaDriftSentinelCommand extends Command
             'mock_mode' => (bool) ($this->option('mock') || env('RAGAS_FORCE_MOCK', false)),
         ];
 
-        if ($this->option('detail')) {
+        if ($this->option('detail') && ! $this->option('json')) {
             $this->table(['#', 'Question', 'Baseline', 'Current', 'Δ', 'Drift'], $details);
         }
 
         $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-        if ($driftPct > $maxDriftPct) {
+        if ($isAlert) {
             Log::channel('copiloto-ai')->warning('[Jana drift-sentinel] ALERT drift acima do threshold', $report);
-            $this->error("DRIFT ALERT: {$diverged}/{$total} divergiram ({$driftPct}%) > {$maxDriftPct}%");
+            if (! $this->option('json')) {
+                $this->error("DRIFT ALERT: {$diverged}/{$total} divergiram ({$driftPct}%) > {$maxDriftPct}%");
+            }
 
             return self::FAILURE;
         }
 
         Log::channel('copiloto-ai')->info('[Jana drift-sentinel] OK', $report);
-        $this->info("OK: drift {$driftPct}% ≤ {$maxDriftPct}%");
+        if (! $this->option('json')) {
+            $this->info("OK: drift {$driftPct}% ≤ {$maxDriftPct}%");
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Veredito de dormência (testável sem DB): o canary só roda real com
+     * OPENAI_API_KEY. Sem mock E sem chave NÃO há medição possível — estado
+     * "dormant" honesto (≠ drift, ≠ ok). Espelha o padrão allChecksOk() das
+     * sentinelas health-check/system-audit (PR #3098).
+     *
+     * @param  bool         $mockMode  judge em mock (--mock / RAGAS_FORCE_MOCK / injetado em teste)
+     * @param  string|null  $apiKey    chave já resolvida via config() (cache-safe)
+     */
+    public static function isDormant(bool $mockMode, ?string $apiKey): bool
+    {
+        return ! $mockMode && ($apiKey === null || $apiKey === '');
+    }
+
+    /**
+     * --status: probe armed/dormant pro agregador (sem rodar scoring, sem custo/rede).
+     * `armed` = OPENAI_API_KEY presente (o cron semanal roda real); `dormant` = ausente.
+     */
+    private function reportStatus(?string $apiKey): int
+    {
+        $armed = ! ($apiKey === null || $apiKey === '');
+
+        $report = [
+            'ran_at' => now()->toIso8601String(),
+            'status' => $armed ? 'armed' : 'dormant',
+            'ok' => true,
+            'armed' => $armed,
+            'probe' => true,
+            'reason' => $armed
+                ? 'OPENAI_API_KEY presente — canary semanal roda real'
+                : 'OPENAI_API_KEY ausente — canary dormant (não roda até a chave existir)',
+        ];
+
+        $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        if (! $this->option('json')) {
+            if ($armed) {
+                $this->info('ARMED: OPENAI_API_KEY presente — canary semanal ativo.');
+            } else {
+                $this->warn('DORMANT: OPENAI_API_KEY ausente — canary não roda até a chave existir.');
+            }
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Emite o estado DORMANT: exit 0 (não morde o cron) + status=dormant no JSON
+     * (agregador/Brief mostram ⊘). Loga INFO (não warning/error) — dormência é
+     * estado conhecido e benigno, não falha.
+     */
+    private function reportDormant(): int
+    {
+        $report = [
+            'ran_at' => now()->toIso8601String(),
+            'status' => 'dormant',
+            'ok' => true,
+            'reason' => 'OPENAI_API_KEY ausente — canary cego, não rodou',
+            'mock_mode' => false,
+        ];
+
+        Log::channel('copiloto-ai')->info(
+            '[Jana drift-sentinel] DORMANT — sem OPENAI_API_KEY (canary não rodou; sem ruído semanal)',
+            $report
+        );
+
+        $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        if (! $this->option('json')) {
+            $this->warn(
+                'DORMANT: OPENAI_API_KEY ausente — canary não rodou. Defina a chave no '.
+                'ambiente live pra ativar o drift real (ou use --mock pra CI).'
+            );
+        }
 
         return self::SUCCESS;
     }

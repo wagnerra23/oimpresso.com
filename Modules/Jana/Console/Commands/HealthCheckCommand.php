@@ -543,10 +543,21 @@ class HealthCheckCommand extends Command
             $rows = DB::select('SHOW CREATE PROCEDURE refresh_brief_inputs_cache');
             $deployedSql = $rows[0]->{'Create Procedure'} ?? '';
 
+            // MySQL's SHOW CREATE PROCEDURE backtick-quotes the routine name +
+            // identifiers (`CREATE ... PROCEDURE `refresh_brief_inputs_cache`()`),
+            // while the migration source declares them bare (`CREATE PROCEDURE
+            // refresh_brief_inputs_cache()`). Backtick quoting is never semantic, so
+            // strip DEFINER first (its regex anchors on backticks) THEN drop the
+            // remaining backticks on both sides — otherwise identical DDL reads as
+            // drift forever (false positive US-COPI-092, caught in prod 2026-06-20).
             $normalize = static fn (string $sql): string => preg_replace(
                 '/\s+/',
                 ' ',
-                strtolower(preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`\s*/i', '', trim($sql)))
+                strtolower(str_replace(
+                    '`',
+                    '',
+                    preg_replace('/DEFINER\s*=\s*`[^`]*`@`[^`]*`\s*/i', '', trim($sql))
+                ))
             );
 
             $drifted = md5($normalize($canonicalSql)) !== md5($normalize($deployedSql));

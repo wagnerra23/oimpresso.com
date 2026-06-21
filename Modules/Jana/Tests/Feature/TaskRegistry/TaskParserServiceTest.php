@@ -105,6 +105,41 @@ it('aceita blocked_by com múltiplas tasks', function () {
     expect($cand->first()['blocked_by'])->toBe(['US-NFSE-001', 'US-NFSE-002']);
 });
 
+it('roteia parent_plan da meta-line > pra custom_fields (contrato plano-perdido · ADR 0294 Onda 2)', function () {
+    // Espelha o formato pós-edição dos 22 US plano-perdido: parent_plan numa
+    // meta-line `>` (chave não-canônica → custom_fields), labels seguem no corpo.
+    // Fecha a "ponte transitória" do regex-na-description (PlanDriftCommand::resolveParentPlan).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-PG-009 · Smoke humano-limitado Onda 5
+
+    > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+    > blocked_by: —
+    > parent_plan: paymentgateway-onda-5-dogfooding
+
+    **Iniciativa-plano perdida** recuperada pro backlog.
+    labels: `plano-perdido`, `backlog-2026-06-20`
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'PaymentGateway');
+    expect($cand)->toHaveCount(1)
+        ->and($cand->first()['custom_fields'])->toBe(['parent_plan' => 'paymentgateway-onda-5-dogfooding'])
+        // labels no corpo (não em meta-line `>`) NÃO viram custom field nem campo labels
+        ->and($cand->first()['labels'])->toBeNull();
+});
+
+it('aceita parent_plan com `=` e junto na meta-line de owner', function () {
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-X-009 · Variações de sintaxe
+
+    > owner: wagner · parent_plan = sells-v2-paridade-blade-biz4
+
+    desc
+    MD);
+
+    $cand = $this->svc->parseSpec($spec, 'X');
+    expect($cand->first()['custom_fields'])->toBe(['parent_plan' => 'sells-v2-paridade-blade-biz4']);
+});
+
 it('ignora valores —/- como vazios', function () {
     $spec = escreverSpec($this->tmp, <<<MD
     ### US-X-001 · Teste

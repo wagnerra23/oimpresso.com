@@ -720,9 +720,10 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+> parent_plan: css-hex-drift-fase2
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: css-hex-drift-fase2` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** 61 valores hex crus restantes (fase 2 do drift de cor do DS).
 **Dedup:** distinto de US-INFRA-035 (fusão dos 4 gates de cor) e US-SELL-043 (CSS Cowork → tokens no Sells).
@@ -737,9 +738,10 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
+> parent_plan: manual-css-js-roadmap
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: manual-css-js-roadmap` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** CSS manual ~28k linhas, meta ~20k (redução via tokens/DS).
 
@@ -753,9 +755,10 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
+> parent_plan: sdd-gate-required
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: sdd-gate-required` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** 3 steps do gate SDD estão em `continue-on-error` (não mordem — "a suite mente").
 
@@ -769,9 +772,10 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+> parent_plan: sdd-kl-e2-e3
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: sdd-kl-e2-e3` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** stream KL do SDD — 27 renames classe A pendentes (E2/E3).
 
@@ -785,9 +789,10 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+> parent_plan: sdd-sqlite-corruptors
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
-`parent_plan: sdd-sqlite-corruptors` · labels: `plano-perdido`, `backlog-2026-06-20`
+labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Sinal (ADR 0105 · métrica em drift):** 237 testes "corruptores" de SQLite a eliminar (burn-down do SDD).
 **Relacionado:** US-INFRA-031 (colisões const/function em tests/Feature que bloqueiam a suíte Pest).

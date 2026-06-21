@@ -44,6 +44,8 @@ Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
 # Source-ratchet (sem DB) → sqlite-safe.
 Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
 Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
+# Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
@@ -130,3 +132,10 @@ Modules/Whatsapp/Tests/Feature/SlashConfigTest.php
 Modules/Whatsapp/Tests/Feature/WhatsappMessageObserverTest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowCicloE2ETest.php
 Modules/Whatsapp/Tests/Feature/WhatsmeowResubscribeEventsCommandTest.php
+# tasks-create não reusa task_id de row órfã no DB (incidente US-RB-052 · 2026-06-20).
+# Ambos bootstram um mcp_tasks mínimo (sem RefreshDatabase → sem migration ENUM
+# MySQL-only) → sqlite-safe. Provam max(DB,SPEC)+guarda de colisão e o detector
+# mcp:tasks:orphans. Antes a lógica usava SUBSTRING (MySQL-only) e Tests/Feature/
+# TaskRegistry não rodava em lane nenhuma.
+Modules/Jana/Tests/Feature/TaskRegistry/TaskCrudServiceCanonicalIdTest.php
+Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php
