@@ -14,10 +14,12 @@
 // --enforce (protocolo refutador GT-G5) · sdd-scorecard --ratchet ARMADO (GT-G2) ·
 // memory-health (Check A colisão ADR não-registrada — único .mjs que MORDE no merge
 // via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival) ·
+// baseline-tamper-guard (anti-grandfather, vetor #2848: afrouxa baseline + toca código
+// no MESMO PR — sandbox git real, P05 fecha o grandfather dos baselines-ratchet) ·
 // anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08).
 //
 // USO (na raiz do repo):
-//   node scripts/governance/gate-selftest.mjs              # 6 catracas × 2 fixtures
+//   node scripts/governance/gate-selftest.mjs              # N catracas × 2 fixtures
 //   node scripts/governance/gate-selftest.mjs --json
 //   node scripts/governance/gate-selftest.mjs --only ledger-check
 //   node scripts/governance/gate-selftest.mjs --script knowledge-drift=<path>
@@ -26,7 +28,7 @@
 // Node puro (fs + spawnSync). Sem deps, sem DB, sem rede. Segundos.
 
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, cpSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -80,6 +82,37 @@ function runMemoryHealth(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// baseline-tamper-guard depende de HISTÓRIA git (diff/show/log BASE..HEAD), não só
+// de cwd como os outros. Por isso o runner monta um sandbox git de verdade:
+//   commit base  = baseline APERTADO (ghost_count armado) + o script REAL copiado;
+//   commit head  = baseline AFROUXADO (ghost_count desarmado) — good ISOLADO,
+//                  bad PAREADO com um arquivo de "código" dummy (sem BASELINE-ABSORB).
+// Roda o tamper-guard com --base <sha-base> dentro do sandbox. good → exit 0
+// (afrouxamento isolado = curadoria), bad → exit 1 (afrouxou + tocou código = vetor #2848).
+function runTamperGuard(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-tamper-${kind}-`));
+  const fx = join(FIX, 'baseline-tamper-guard');
+  const g = (cmd) => spawnSync('git', cmd, { cwd: sb, encoding: 'utf8', env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
+  try {
+    g(['init', '-q', '-b', 'main']);
+    g(['config', 'user.email', 'selftest@oimpresso.local']);
+    g(['config', 'user.name', 'gate-selftest']);
+    g(['config', 'commit.gpgsign', 'false']);
+    mkdirSync(join(sb, 'governance'), { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('baseline-tamper-guard', 'scripts/governance/baseline-tamper-guard.mjs'), join(sb, 'scripts', 'governance', 'baseline-tamper-guard.mjs'));
+    // commit base — baseline apertado
+    cpSync(join(fx, 'base', 'sdd-scorecard-baseline.json'), join(sb, 'governance', 'sdd-scorecard-baseline.json'));
+    g(['add', '-A']); g(['commit', '-q', '-m', 'base: baseline apertado + tamper-guard']);
+    const baseSha = g(['rev-parse', 'HEAD']).stdout.trim();
+    // commit head — baseline afrouxado (sob governance/) + código dummy só no caso bad
+    cpSync(join(fx, kind, 'sdd-scorecard-baseline.json'), join(sb, 'governance', 'sdd-scorecard-baseline.json'));
+    if (existsSync(join(fx, kind, 'code-touched.txt'))) cpSync(join(fx, kind, 'code-touched.txt'), join(sb, 'code-touched.txt'));
+    g(['add', '-A']); g(['commit', '-q', '-m', `head ${kind}: afrouxa ghost_count (armed:true->false)`]);
+    return runNode(join(sb, 'scripts', 'governance', 'baseline-tamper-guard.mjs'), ['--base', baseSha], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -112,6 +145,14 @@ const CATRACAS = [
     id: 'memory-health',
     run: runMemoryHealth,
     expect: { good: /base de conhecimento saudável/, bad: /colidiu.*_INDEX-LIFECYCLE/ },
+  },
+  {
+    id: 'baseline-tamper-guard',
+    run: runTamperGuard,
+    expect: {
+      good: /afrouxamento isolado|nenhum baseline guardado afrouxado/,
+      bad: /baseline AFROUXADO no mesmo PR que toca código/,
+    },
   },
   {
     // anchor-lint --check resolve segmento-paths contra process.cwd() (anchor-lint.mjs:33,72) →
