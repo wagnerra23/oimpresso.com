@@ -216,3 +216,21 @@ it('captura sub-letra como id distinto (US-WA-NNNx) — não colapsa no id-base'
         ->and($cand[0]['title'])->toBe('Receber webhook Meta + assinatura HMAC')
         ->and($cand[1]['title'])->toBe('Receber webhook Z-API'); // sem "b · " vazado
 });
+
+it('título não carrega byte órfão do separador `·` (raiz dos "? " no cache)', function () {
+    // Contrato: o `·` (U+00B7 = 2 bytes C2 B7) é consumido INTEIRO. Sem a flag
+    // `u`, a classe bytewise comia só 1 byte e o B7 órfão grudava no título →
+    // virava `? Listar Budget` ao gravar (751 títulos poluídos, incidente 2026-06-20).
+    $spec = escreverSpec($this->tmp, <<<MD
+    ### US-ACCO-001 · Listar Budget
+
+    > owner: wagner · status: todo
+
+    desc
+    MD);
+
+    $title = $this->svc->parseSpec($spec, 'Accounting')->first()['title'];
+    expect($title)->toBe('Listar Budget')
+        ->and(bin2hex($title))->toBe('4c697374617220427564676574') // sem prefixo b7
+        ->and(bin2hex($title))->not->toContain('b7');
+});
