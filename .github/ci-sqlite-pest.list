@@ -20,6 +20,7 @@ Modules/Jana/Tests/Feature/Ai/UiJudgeRunMeasurementTest.php
 Modules/Jana/Tests/Feature/Mcp/McpAuthCostEstimateTest.php
 Modules/Jana/Tests/Feature/Mcp/TaskParserDetectaDivergenciaDescritivaTest.php
 Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php
+Modules/Jana/Tests/Feature/Mcp/PlanDriftCommandTest.php
 Modules/Jana/Tests/Feature/Reconcile/TasksReconcilerTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php

@@ -11,7 +11,8 @@
 //   - superseded SEM ponteiro (verdade-viva → novo)
 //   - índice apontando pra arquivo inexistente (dangling)
 //   - plano registrado sem o bloco `## Status vivo`
-// (drift status≠tasks fica de fora: precisa do MCP — Onda 2.)
+// (drift status≠tasks NÃO mora aqui: precisa do MCP — vive no par PHP `jana:plan-drift`,
+//  ADR 0294 Onda 2; ambos entram no agregador governance-audit.)
 //
 // No-op gracioso se PLANS-INDEX.md ausente (ainda não mergeado no main) → exit 0.
 // Advisory por padrão (exit 0); --check morde (exit 1) pra virar ratchet depois.
