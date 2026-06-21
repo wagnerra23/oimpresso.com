@@ -1,0 +1,84 @@
+name: SDD Scorecard publish (commit-back do floor · ADR 0279)
+
+# Gap-1a do roadmap SDD (P01): ATERRISSAGEM do floor medido de volta no main.
+#
+# O elo MEDIR→GOVERNAR estava parcialmente reconectado:
+#   - write-side (CT100, ADR 0279 PR-2): publica governance/nightly-floor.json na
+#     branch órfã governance/nightly-floor via git-push [skip ci] (floor vivo = 295).
+#   - read-side (ADR 0279 PR-1 · US-GOV-023): sdd-scorecard.mjs lê esse arquivo e
+#     vira full_suite_pass_rate = measured.
+#   - materialização CI (sdd-scorecard.yml): durante o run, faz git fetch + git show
+#     da branch órfã → o scorecard ENXERGA o floor vivo.
+# MAS nenhum job COMMITAVA o valor de volta em governance/sdd-scorecard.json no main.
+# Resultado: o scorecard commitado fica DEFASADO (not_yet_measured/null) enquanto o
+# floor real já é 295. O número que o time enxerga no main MENTE por defasagem.
+#
+# Este workflow fecha esse elo: materializa o floor da branch órfã, roda o agregador
+# e COMMITA governance/sdd-scorecard.json no main quando (e só quando) o valor mudou.
+# Padrão ADR 0279 Opção A (repo = SSOT) + padrão de commit-back já usado neste repo
+# (phpstan-baseline-regen.yml): mensagem [skip ci] (não dispara a suíte), SEM
+# force-push, push direto via `git push origin HEAD` (não toca proteção de branch).
+#
+# ESCOPO P01: só ATERRISSA o número (mede honesto). NÃO arma o ratchet — armar o
+# baseline (armed:true após 3 medições válidas) é P02. Sem P02, o floor MEDE mas
+# ainda não GOVERNA; este workflow garante apenas que o número chega correto.
+#
+# Triggers: APENAS schedule + workflow_dispatch — NUNCA pull_request (evita recursão:
+# governance/sdd-scorecard.json está nos paths: do trigger de sdd-scorecard.yml, então
+# o commit-back podia disparar a suíte; o [skip ci] + ausência de trigger pull_request
+# aqui blindam isso). Cron 10:10 UTC (07:10 BRT) — depois da nightly CT100 (02:00 UTC)
+# e do scorecard advisory (09:50 UTC), pra commitar o floor já fresco do dia.
+
+on:
+  schedule:
+    - cron: '10 10 * * *' # 07:10 BRT diário (pós-nightly CT100 + pós-scorecard advisory)
+  workflow_dispatch:
+
+concurrency:
+  group: sdd-scorecard-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Commit-back do floor no main (ADR 0279 · só quando muda · [skip ci])
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
+        run: node scripts/governance/sdd-floor-read.test.mjs
+
+      - name: Materializa o floor da branch governance/nightly-floor (ADR 0279 transporte)
+        run: |
+          if git fetch origin governance/nightly-floor --depth 1 2>/dev/null \
+             && git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json 2>/dev/null; then
+            echo "floor materializado da branch governance/nightly-floor:"; cat governance/nightly-floor.json
+          else
+            echo "::warning::branch/arquivo de floor ausente — nada a aterrissar (read-side cai em not_yet_measured)"
+          fi
+
+      - name: Medir — agregador reescreve governance/sdd-scorecard.json
+        run: |
+          node scripts/governance/sdd-scorecard.mjs | tee /tmp/scorecard.txt
+          { echo '## SDD Scorecard publish (medição desta run)'; echo '```'; cat /tmp/scorecard.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit-back se o scorecard mudou ([skip ci] · sem force-push · ADR 0279)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # nightly-floor.json é gitignored (materialização runtime) → nunca entra no diff.
+          if git diff --quiet -- governance/sdd-scorecard.json; then
+            echo "scorecard já em dia com o floor vivo — nada a commitar."
+            exit 0
+          fi
+          FLOOR=$(node -e "const j=require('./governance/sdd-scorecard.json');console.log(j.metrics.full_suite_pass_rate.value)")
+          git add governance/sdd-scorecard.json
+          git commit -m "chore(governance): aterrissa floor do scorecard SDD (floor=${FLOOR} · ADR 0279 · P01) [skip ci]"
+          git push origin HEAD
+          { echo "### Commit-back"; echo "scorecard SDD aterrissado no main: full_suite_pass_rate.value = ${FLOOR}"; } >> "$GITHUB_STEP_SUMMARY"
