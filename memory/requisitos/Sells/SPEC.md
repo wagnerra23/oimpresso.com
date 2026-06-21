@@ -1025,3 +1025,39 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · revisão advers
 ---
 
 **Última atualização:** 2026-06-13 — US-SELL-045/046/047/048 adicionadas (revisão adversarial da triage Q2 Fase 2b SDD: 2 bugs de contrato órfão de backend [`totals` morto, `grade-avancada`], 1 US de teste de isolamento real, 1 US de higiene dos snapshots-grep — quarentena Q-A revertida). 2026-05-31 — US-SELL-041/042/043 adicionadas (benchmark `tela-venda-arte` 2026-05-31, gaps P1 — G5 NFC-e inline no Create / G4 batch price-group / G6 CSS Cowork→tokens no Index). 2026-05-15 — US-SELL-036 adicionada (goal #3 CYCLE-06 FSM rollout). 2026-05-12 — **discovery + spec executable Pipeline Vendas (7 GAPs)**. Wagner valida casos de uso + testes failing-first **antes** de implementar (estratégia: pagar custo agora com poucos clientes ativos vs. retrabalho exponencial com mais clientes). Antes era heatmap v3 → agora pipeline canon completo Orçamento→Produção→Venda→Faturamento. Total SPEC: **5 P0 + 5 P1 + 3 P2 + 1 P3 (US-015..028) + 4 P0 + 2 P1 + 1 P2 (US-029..035) + 1 P0 (US-036) = 22 US ativas**. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal qualificado pelo próprio Wagner — pain points reportados em sessão).
+
+### US-SELL-051 · Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: timezone-format-date-migracao` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** bug histórico preservado em ADR 0066 — migration de timezone/format de `transaction_date` nunca rodou; afeta cliente real ROTA LIVRE (biz=4).
+
+**DoD:**
+- Migration idempotente de backfill timezone/format.
+- Validar exibição pós-migração.
+- ⚠️ Confirmar módulo correto (Sells vs Financeiro) antes de codar — `transaction_date` é coluna core UltimatePOS.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-SELL-052 · Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: sells-v2-paridade-blade-biz4` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** Larissa biz=4; guard biz=4 já removido. Restam 3 features do Blade ausentes em V2: configure-search, quick-add, preço-diferenciado.
+**⚠️ Dedup parcial:** possível overlap com o epic MWART US-SELL-001..006 (migração /sells/create) — checar antes de abrir trabalho redundante.
+
+**DoD:**
+- configure-search em paridade.
+- quick-add em paridade.
+- preço-diferenciado em paridade.
+- Testes Pest.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
