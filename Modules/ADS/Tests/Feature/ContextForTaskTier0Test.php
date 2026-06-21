@@ -60,7 +60,7 @@ function buildRecentDecisionsDe(int $businessId): array
     $m = new ReflectionMethod($svc, 'buildRecentDecisions');
     $m->setAccessible(true);
 
-    return $m->invoke($svc, 'i18n', $businessId);
+    return (array) $m->invoke($svc, 'i18n', $businessId);
 }
 
 it('buildRecentDecisions NÃO retorna decisão de outro tenant (o vazamento corrigido)', function () {
