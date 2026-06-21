@@ -616,6 +616,28 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Defesa em profundidade — poda preventiva de mcp_memory_documents_history.
+        // Incidente 2026-06-21: o history append-only (snapshot do content inteiro por
+        // mudança) inflou pra 5 GB, estourou a cota do Hostinger e o provedor REVOGOU a
+        // escrita do ERP. Este cron mantém a tabela pequena DESDE O INÍCIO: por
+        // document_id preserva as últimas 20 versões + janela de 90d; o resto é
+        // descartável (git é a fonte canônica — ADR 0061). Sem flag de gate: é seguro
+        // e idempotente (não toca history quente). 03:20 BRT — sem disputa com
+        // retention-purge (03:00).
+        $schedule->command('jana:memory-history-prune')
+            ->dailyAt('03:20')
+            ->timezone('America/Sao_Paulo')
+            ->name('jana-memory-history-prune-daily')
+            ->withoutOverlapping(60)
+            ->environments(['live'])
+            ->appendOutputTo(storage_path('logs/jana-memory-history-prune.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:memory-history-prune FALHOU — mcp_memory_documents_history ' .
+                    'pode voltar a inflar (investigar storage/logs/jana-memory-history-prune.log)'
+                );
+            });
+
         // MEM-FASE8 — esquecimento semanal (domingo 03:00).
         // Remove bloat (hits=0, >30d) + expirados (valid_until >90d) + órfãos MCP.
         // Soft-delete por padrão. Hard-delete LGPD só via comando manual com --hard.
