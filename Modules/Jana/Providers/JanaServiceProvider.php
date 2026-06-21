@@ -62,6 +62,7 @@ class JanaServiceProvider extends ServiceProvider
                 \Modules\Jana\Console\Commands\SystemAuditCommand::class,      // ADR 0133 — 5 audits Constituição v2 (observ/evals/ADR-stale/cost/coverage)
                 \Modules\Jana\Console\Commands\McpTasksHealthCheckCommand::class, // Bug #4 BUGS-MCP-SYNC-2026-05-13 — staleness detection
                 \Modules\Jana\Console\Commands\McpTasksOrphansCommand::class,  // incidente US-RB-052 2026-06-20 — triagem de US-* no DB ausentes do SPEC (órfãs)
+                \Modules\Jana\Console\Commands\PlanDriftCommand::class,        // ADR 0294 Onda 2 — drift status-do-plano ≠ realidade das tasks MCP (parent_plan)
                 \Modules\Jana\Console\Commands\JanaBacklinksSweepCommand::class, // Gap G5 P1 auditoria 2026-05-13 — backlinks ADR↔SPEC sweep
                 \Modules\Jana\Console\Commands\JanaRagasEvalCommand::class,    // ADR 0037 §GAP-2 — RAGAS gate (faithfulness/relevancy/precision/recall)
                 \Modules\Jana\Console\Commands\JanaRagasCiCommand::class,      // W28-2 — RAGAS CI gate BLOQUEANTE (golden set + JSON gh pr comment)
