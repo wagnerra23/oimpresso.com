@@ -31,7 +31,7 @@ related:
 >
 > ⚠️ **Honestidade sobre a rodada adversarial:** este ADR foi consolidado a partir da FUNDAÇÃO (taxonomia desenhada + ancorada em ADRs reais). **As PARTES de adversários chegaram VAZIAS (`[]`)** — nenhum sketch nem veredito de adversário foi registrado para esta rodada. O Risk Register abaixo é derivado dos failure modes que a própria FUNDAÇÃO expõe + análise do incidente, **não** de veredictos adversariais verificados. **GATE-ADV (🔒):** rodar a rodada adversarial (mín. 1 skeptic por classe C1–C7 + 1 por fase P0/P1/P2) ANTES de promover este ADR de `proposed` → `aceito`. Não promover sem isso.
 >
-> ✅ **ATUALIZAÇÃO 2026-06-21 — GATE-ADV PARCIALMENTE EXECUTADO** (ver **§RODADA ADVERSARIAL** no fim do doc). Veredicto: **prova-de-falhas-COM-fixes**. Cobertura efetiva: **C2/C5/C6** (lente migração) + crítico de completude; o resto (C1/C3/C4/C7/P0/P1/P2 + transversais) ficou **bloqueado por overload sustentado da API** — pendente. **R-ADV permanece 🟠** até cobertura completa.
+> ✅ **ATUALIZAÇÃO 2026-06-21 — GATE-ADV EXECUTADO (cobertura completa)** (ver **§RODADA ADVERSARIAL** no fim do doc). Veredicto: **`nao-prova-de-falhas-ainda`** — **24 riscos confirmados (7 critical, 23 high)**, incl. um **vazamento Tier 0 LIVE em produção HOJE** (`ContextForTaskService` lê C3 sem `business_id`). A FUNDAÇÃO permanece sólida; **12 bloqueadores** a emendar + o fix P0 do vazamento Tier 0 **antes** de `proposed→aceito`.
 
 ## Contexto
 
@@ -172,7 +172,7 @@ Recupera quota e **fecha as torneiras sem teto** dentro do próprio Hostinger. Q
 | R-10 | **Latência Remote MySQL** (Hostinger↔DBaaS em P2) degrada UX do ERP. | 🟡 | P2 teste de latência antes do cutover; réplica + janela de validação; rollback de conexão. |
 | R-11 | **`reviewed_at` / placement-classe não atribuído** a tabela nova → bloat volta a furar. | 🟡 | Gate de migração: tabela nova nasce com classe ou reprova (ver INVARIANTE-CLASSE). |
 | R-CASA | **CT 100 não é datacenter** (energia/link). | 🟠 | Aceito como risco residual **só para ops/governança** (C2/C3/C5/C6), cuja indisponibilidade degrada governança/IA mas **não** o ERP. C1 vai pra DBaaS. |
-| R-ADV | **Rodada adversarial PARCIAL** (2026-06-21) — C2/C5/C6 + completude cobertos; C1/C3/C4/C7/P0/P1/P2/transversais pendentes (overload da API). Furos podem ter passado nas partes não-cobertas. | 🟠 | GATE-ADV: completar adversários das partes pendentes antes de `aceito` — ver §RODADA ADVERSARIAL. |
+| R-ADV | **Rodada adversarial EXECUTADA** (2026-06-21, cobertura completa C1-C7/P0-P2/transversais) — **24 riscos confirmados (7 critical)**, 12 bloqueadores; achou **vazamento Tier 0 LIVE** (C3). | 🔴→🟠 | Emendar os 12 bloqueadores + fix P0 do vazamento Tier 0 **antes** de `aceito` — ver §RODADA ADVERSARIAL. |
 
 ## REQUIRED FIXES aplicados no design
 
@@ -209,16 +209,32 @@ Recupera quota e **fecha as torneiras sem teto** dentro do próprio Hostinger. Q
 
 > **Método:** workflow multi-agente adversarial (adversário hostil por parte × lente diversa → cético-do-cético refuta cada achado → síntese → crítico de completude). 3 runs.
 >
-> ⚠️ **Cobertura limitada por força maior:** a API da Anthropic entrou em **overload sustentado server-side** (`"Server is temporarily limiting requests — not your usage limit"`) e derrubou **44 de 45 adversários em CADA run paralela**; a run sequencial (1-por-vez) travou no 1º. Os sobreviventes (1 por run) + o crítico de completude + a síntese ainda assim entregaram achados **verificados-no-código** de alto valor. **Cobertura efetiva:** classes **C2/C5/C6** sob a lente CORRETUDE-DE-MIGRAÇÃO + crítico de completude (superfícies transversais). **PENDENTE — não por desenho, por overload:** adversários dedicados de **C1/C3/C4/C7/P0/P1/P2 + placement/invariantes/monitor** sob suas lentes. Rodar quando a API normalizar (scripts versionados em `.claude/workflows/scripts/adr-0296-adversarial-*.js`).
+> **Cobertura: COMPLETA.** As 2 runs paralelas foram derrubadas por **overload sustentado da API** (44/45 adversários por run) — mas a run **SEQUENCIAL (1-adversário-por-vez) furou o overload** e cobriu TODAS as partes pendentes (C1/C3/C4/C7/P0/P1/P2 + placement/invariantes/monitor) com verificação no código (~49 min, 44 achados / 43 materiais). Somado às runs paralelas (C2/C5/C6) + crítico de completude, o **GATE-ADV está efetivamente executado** (≥1 skeptic por classe C1–C7 + por fase P0/P1/P2 + transversais). Scripts versionados em `.claude/workflows/scripts/adr-0296-adversarial-*.js`.
 
-### Veredicto: **prova-de-falhas-COM-FIXES**
+### Veredicto: **`nao-prova-de-falhas-ainda`** (escalou após a rodada sequencial)
 
-Direção sólida e honesta (o ADR já admitia PARTES vazias). **MAS ainda não é à prova de falhas como escrito**, por dois temas-raiz:
+A FUNDAÇÃO (taxonomia 7 classes + placement + roadmap faseado) é **sólida e o diagnóstico do incidente está correto**. MAS os adversários sequenciais — verificando o código — provaram que **várias invariantes que o ADR vende como "à prova de falhas" o código NÃO entrega**: "a suíte mente" reintroduzida pela própria mudança de topologia. **24 riscos confirmados (7 critical, 23 high).** Temas-raiz:
 
-1. As invariantes de migração (ZEROLOSS/REVERSIBILIDADE/AUDIT) são **cegas à realidade do schema** — FK cross-host, triggers append-only fora do C6, caches que nascem linhas após o snapshot.
-2. O plano resolve isolamento **lógico** (Tier 0) de forma exaustiva, mas é **silencioso sobre rede e confidencialidade do fio** — mover PII (C1) pra Remote MySQL pode trocar um problema de *capacidade* por um **MUITO pior de exposição (vazamento LGPD reportável)**.
+1. Invariantes de **migração** (ZEROLOSS/REVERSIBILIDADE/AUDIT) **cegas ao schema** (FK cross-host, append-only fora do C6, cache git-synced).
+2. Invariantes de **plataforma** (TIER0/MON/ERP-FIRST/degradação-graciosa) **AFIRMADAS mas NÃO implementadas** — gate cego, fila inexistente, alerta que não sai, monitor de 1 conexão só.
+3. Isolamento **lógico** resolvido com perfeição, mas **silêncio sobre rede/fio** (PII no Remote MySQL = exposição LGPD).
 
-**Nenhum achado bloqueia P0** (parar o sangramento). Vários bloqueiam o **cutover P1/P2** e a promoção `proposed→aceito`.
+**Nenhum achado bloqueia P0.1-P0.3/P0.5** (parar o sangramento — já rodando). **12 bloqueiam** `proposed→aceito`; o nº1 é um **vazamento Tier 0 que existe HOJE em produção** (abaixo) e precisa de fix P0 **antes de qualquer migração**.
+
+> 🔴 **ACHADO TIER 0 — LIVE EM PRODUÇÃO (verificado).** `Modules/ADS/Services/ContextForTaskService.php::buildRecentDecisions()` (l.197) lê `mcp_dual_brain_decisions` (C3 — **tem `business_id`**) filtrando só por `outcome`/`created_at`/`domain` — **ZERO `business_id`** → serve decisões/lições de IA de **qualquer tenant** no contexto do Brain. Idem `DecisoesController` (drill-down/approve/reject) e ~85 `DB::table('mcp_*')` crus fora do global scope. **Vazamento cross-tenant Tier 0 (ADR 0093) independente da migração** — o cutover pro CT 100 só transporta o bug. **Fix P0 imediato, antes de migrar host.**
+
+**Bloqueadores `critical` (verificados no código):**
+
+| # | Parte | Bloqueador | Evidência |
+|---|---|---|---|
+| S-1 | C3 | Gate `multi_tenant_isolation` é **cego a C3** (array hard-coded de 3 tabelas Jana; nunca olha `mcp_*` nem faz cross-tenant READ) → critério de sucesso de P1 **inverificável** | `HealthCheckCommand.php:178` |
+| S-2 | C3 | **Vazamento Tier 0 JÁ EXISTE** (callout acima) | `ContextForTaskService.php:197` |
+| S-3 | P1 | **Fila não existe** — `QUEUE_CONNECTION=sync` + ADS grava decisão **síncrona** no request path → mover C3 pro CT100 acopla o ERP à casa, quebra ERP-FIRST | `.env:26`, `DecisionRouter.php:126` |
+| S-4 | MON | **Alerta de grant-torto não sai** — `mcp_alertas` 0 refs no monitor + morreria junto (C3, mesmo DB read-only); laravel.log não notifica humano → reproduz o incidente (8.9k erros, ninguém viu) | `HealthCheckCommand.php` |
+| S-5 | C4 | **`activity_log` é trilha forense/legal** (RevertService faz undo por ela + Tier 0 + `properties.old`), mis-classificado C4 com TTL 30-90d → truncar quebra undo + destrói prova LGPD/trabalhista | `RevertService.php:82,178` |
+| S-6 | PLACEMENT | **Mapa tabela→classe cobre 54 de 369 (~14%)** — 317 sem classe = exatamente o vetor (uma `*_history` não-classificada) que **causou** o incidente | mapa l.81-88 |
+
+**+ 17 high/medium** (resumo): P0.4 particionar audit é **impossível** (InnoDB recusa FK+PARTITION) e desnecessário (2.9MB) · arquivar C6 frio **quebra a hash-chain** · sem `PDO::ATTR_TIMEOUT` um blip do DBaaS **pendura o pool PHP-FPM** · pruning C4 "por nome" trunca **dado de negócio** (`crm_call_logs`/`inter_webhook_log`/`woocommerce_sync_logs` são C1) · quota single-tier 90% sem 75% e config keys inexistentes · circuit-breaker/leitura-com-fallback **não existem** (fail-open silencioso) · `oauth:prune` pode revogar token **válido** · DROP C7 wildcard pega snapshot de recuperação **financeira do biz=4** · INVARIANTE-CLASSE/AUDIT sem enforcement rodante.
 
 ### Achados confirmados (verificados no código)
 
@@ -279,6 +295,22 @@ Direção sólida e honesta (o ADR já admitia PARTES vazias). **MAS ainda não 
 5. **Escopo do GATE-ADV:** promover com adversários só em C2/C5/C6 + completude, OU exigir a rodada completa (P0, C1/P2 rede+LGPD, C4) antes do aceite?
 6. **Rede do C1 (a mais perigosa):** mover C1/PII pra Remote MySQL aceita o risco de exposição (allowlist impossível no shared), ou repensar (túnel/VPN, ou manter C1 no Hostinger e mover só ops)?
 
+### Decisões adicionais da rodada sequencial (dependem do Wagner)
+
+7. **Vazamento Tier 0 LIVE (C3):** autoriza o **fix P0 imediato** de `ContextForTaskService`/`DecisoesController` (adicionar `business_id`) **antes** de qualquer migração? É o pior bug do projeto (0093) e existe HOJE.
+8. **`activity_log` → C6-domínio:** confirma reclassificar (retenção legal 5+ anos BR), **removendo** o TTL 30-90d (P0.3) e tratando bloat por particionamento+arquivo frio, não DELETE?
+9. **Custo P2:** aprovar DBaaS vs VPS vs status-quo+poda exige uma **tabela de custo** (R$/mês, GB, egress, break-even) que o ADR não tem. Qual orçamento mensal aceitável p/ C1? E **quem opera** o DBaaS 24/7 (sem DBA/plantão hoje)?
+10. **Redis de SESSION/CACHE:** onde mora HOJE (`REDIS_HOST`/`SESSION_DRIVER`)? Se for o CT100, **INVARIANTE-ERP-FIRST já está furada** antes de qualquer migração.
+
+### Novos invariantes / fixes obrigatórios (rodada sequencial — 14)
+
+`INVARIANTE-TIER0-VERIFICADA` (gate = varredura `information_schema` de TODAS C1/C3 + **probe cross-tenant READ** pelos code-paths, não array hard-coded; lint que reprova `DB::table('mcp_*')` sem `->where('business_id')`) · `INVARIANTE-ALERTA-OUT-OF-BAND` (alerta de grant-torto **não** pode depender de DB — SMTP `emailOutputOnFailure`/push HTTP externo) · `INVARIANTE-FILA-ANTES-DA-MIGRACAO` (`QUEUE_CONNECTION=redis`+worker async **antes** de mover escrita ops; Job `ShouldQueue` com replay idempotente) · `INVARIANTE-AUDIT-VERIFICADOR-RODANTE` (check `audit_chain_integrity` duro no health-check; C6 viva no Hostinger + CT100 cópia WORM assíncrona) · `INVARIANTE-MON-MULTI-CONEXAO` (write-canary+quota sobre TODAS as conexões; 75%+90%; config keys `jana.db_quota_mb`/`db_quota_warn_pct` que **não existem**; quota por CLASSE; taxa de crescimento persistida; skip=ALERTA não verde) · `INVARIANTE-MAPA-COMPLETO` (mapa cobre 369+ tabelas do `information_schema`, artefato versionado lido por máquina, default fail-closed C1; poda só por **allowlist** explícita, nunca por nome) · `INVARIANTE-NO-PARTITION-AUDIT` (remover P0.4; archival lógico mantendo FKs) · `INVARIANTE-C1-FAIL-FAST` (`PDO::ATTR_TIMEOUT` curto + TLS `MYSQL_ATTR_SSL_CA` obrigatório; session/cache no Hostinger) · `FIX-activity_log-C6-DOMINIO` · `FIX-dump-incondicional-validado` (C7) · `FIX-circuit-breaker-spec` (P1, por classe) · `FIX-passport-purge-policy` (C4) · `FIX-detectar-triggers-imutabilidade` · `FIX-poda-C5-ancorada` (preserva `git_sha IS NULL`).
+
+### Emendas ao plano (rodada sequencial — com nº de linha)
+
+REMOVER P0.4 (l.115/121/R-7) — particionar audit é impossível (FK×InnoDB) e desnecessário · RECLASSIFICAR `activity_log` p/ C6 (l.114/76/85/132); P1.4 vira 🔒 GATE · REMOVER as 4 alegações "alerta via `mcp_alertas`" (l.162/168/192/116) → canal out-of-band · `QUEUE_CONNECTION=redis`+circuit-breaker spec como pré-req DURO de P1.5 (l.133/135/182) · P1.2: corrigir o **vazamento JÁ EXISTENTE** + repontar os ~85 `DB::table(mcp_*)` (l.130/188/163) · mapa COMPLETO do `information_schema` com enforcement (l.81-88/69/171/194) · quota 75%+90%/config keys/taxa/multi-conexão (l.192/123) · gatilho P2 mensurável (l.146) · P2: tabela de custo + dono operacional + rollback `dump→restore` (réplica read-only é irrealizável no shared) + TLS (l.144/147/150/200); backup do deploy faz `mysqldump` validado (l.118) · C7: lista explícita + dump incondicional + bloquear DROP de origem C1/C6 (l.112/79/189) · `oauth:prune` `--revoked/--expired-com-carência` (l.114) · check `audit_chain_integrity` rodante + C6 viva no Hostinger (l.190/131/78).
+
 ### Status do GATE-ADV
 
-**PARCIAL.** Coberto: **C2/C5/C6 (lente CORRETUDE-DE-MIGRAÇÃO)** + **crítico de completude** (12 superfícies). **Pendente** p/ `proposed→aceito`: adversários de **C1, C3, C4, C7, P0, P1, P2, placement, invariantes, monitor** (bloqueados pelo overload — rodar quando normalizar). **R-ADV permanece 🟠.** **F-C5-1/2/3 + correções de honestidade (l.95/130/163)** são pré-condição trivial de aceitação.
+**EXECUTADO (cobertura completa).** A rodada (paralela C2/C5/C6 + completude + **sequencial C1-C7/P0-P2/transversais**, tudo verificado no código) satisfaz o GATE-ADV de "≥1 skeptic por classe + fase". **R-ADV → de "não executada" para "executada, 12 bloqueadores a emendar".**
+**NÃO promover `proposed→aceito` sem:** (a) emendar os **12 bloqueadores** `blocks_acceptance:true` (5 critical: gate-cego-C3, vazamento-C3-existente, fila-inexistente, alerta-não-sai, activity_log-forense, mapa-incompleto); (b) **implementar o fix P0 do vazamento Tier 0 (C3) ANTES de qualquer migração de host**; (c) as 10 decisões do Wagner. A FUNDAÇÃO permanece sólida — vira `prova-de-falhas-com-fixes` assim que os bloqueadores entrarem.
