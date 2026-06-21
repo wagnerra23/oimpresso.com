@@ -52,7 +52,7 @@ O workflow **em background que MUTA git deadlocou** nesta máquina (cap de conco
 | #3136 ✅merged | comentário do **visual-regression** distingue enforcing vs advisory | YAML válido (python); adversário confirmou as 4 afirmações vs `continue-on-error` real |
 | #3137 ✅merged | regenera **`_BACKLOG-GENERATED.md`** stale (696→744 abertas) | `--check` exit 1→0; adversário provou idempotência (SHA igual) + dados vs SPECs |
 | #3147 ✅merged | 5 links quebrados (rule + 2 SPECs: slug 0240 + profundidade `../../`→`../../../`) | todos resolvem; adversário confirmou link correto preservado, zero canon tocado |
-| #3152 🟢open | 12 links `decisions/` slug-drift em 5 SPECs | re-discovery 13→1 broken (1 placeholder excluído); adversário validou colisão 0119 + 77/77 links |
+| #3152 ✅merged | 12 links `decisions/` slug-drift em 5 SPECs | re-discovery 13→1 broken (1 placeholder excluído); adversário validou colisão 0119 + 77/77 links |
 
 **Princípio aplicado:** só conjunto auto-validável (governança/CI/JSON/texto) — nada de lógica PHP (php/composer não estão no PATH, não dá pra rodar Pest local). Sem merge forçado, sem segredos, sem prod, sem deletar worktrees alheias.
 
@@ -70,3 +70,10 @@ Varreram drift de artefatos gerados, texto desonesto em CI, JSON de governança 
 - **Re-verificar o ambiente do batedor:** o drift de `_INDEX-GENERATED.md` que um batedor reportou era do branch local `docs/blueprint`, não de `origin/main` (lá estava em dia) → sempre confirmar contra `origin/main` limpo antes de abrir PR.
 - **Worktree órfã `frosty-greider`:** nunca rodar git mutativo com cwd ali; sempre operar em worktree isolada de `origin/main` com `git -C`.
 - **Adversário por fix** (read-only, cético, default-reprovado) pegou nuances reais (ex.: o `adr-index-generate` não lê o alias-map; colisão 0119 mapeável só por contexto) — barato e de alto valor.
+
+## Pós-merge (estado final · 2026-06-21)
+Todos os **6 PRs da sessão mergeados**, zero falha de CI, `main` verde (adr-index · tasks-index · sdd-scorecard `--ratchet` OK; 359/360 links `decisions/` em SPECs resolvem — o 1 restante é o placeholder do `Connector:124`, deixado de propósito):
+
+- #3134 · #3136 · #3137 · #3147 · #3152 (15:43Z) · #3154 (15:47Z) — todos **merged** via auto-merge SQUASH.
+- **Time já agindo no residual #1:** PR #3148 `gitleaks full-history scan + .gitleaks.toml (Onda 1 · segredos)` mergeado no main — endereçando o risco de segredos do repo público apontado na Parte 1.
+- Residual restante (Parte 3): backup/DR, fixes PHP-runtime, itens canon/latentes — seguem dependendo do Wagner.
