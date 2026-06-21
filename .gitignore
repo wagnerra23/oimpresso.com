@@ -95,3 +95,7 @@ violations.json
 # governance/nightly-floor (escrito pelo write-side CT100); o scorecard o
 # MATERIALIZA no CWD em CI antes de medir. Nunca versionado no main.
 governance/nightly-floor.json
+
+# Scratch/runtime de sessao — nunca versionar (cleanup ds-rollout 2026-06-20)
+.claude/run/
+prototipo-ui/_inbox-onda2/
