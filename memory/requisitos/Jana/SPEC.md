@@ -1229,3 +1229,90 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ---
 
 **Última atualização:** 2026-06-01 — US-COPI-118 + US-COPI-119 apendadas (follow-ups do design:review #2078 MERGED: fix ui:lint Pro.tsx + Fase 2 juiz-LLM). Criadas via `tasks-create` MCP (US-COPI-118/119); este apend sincroniza pro DB via webhook no push.
+
+### US-COPI-123 · Remover startMockStream da rota live /ia/dashboard (Cockpit responde mock)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: adr0270-cockpit-mock-kill` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 prod):** o Cockpit (`resources/js/Pages/Jana/Cockpit.tsx:705-780`) usa `startMockStream` numa rota **live** `/ia/dashboard` — responde dados mock em produção. Gap P0 do handoff 2026-06-11.
+
+**DoD:**
+- Remover `startMockStream` da rota live.
+- Plugar fonte de streaming real (Jana chat / SSE) com fallback.
+- Smoke browser MCP + Pest do payload real.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-124 · Escopar delete do ContentReconciler por business_id (healable=false, Tier-0)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: content-reconciler-safe-heal` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 Tier-0):** `ContentReconciler` está `healable=false` porque o delete é **global, sem `business_id`** (comment no código: "delete global sem business_id — Tier-0-inseguro (ADR 0093)"). Risco de corrupção cross-tenant se reativado sem guard.
+
+**DoD:**
+- Escopar o delete por `business_id`.
+- Reativar `healable=true` só com o guard de tenant.
+- Teste de isolamento multi-tenant.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-125 · Adicionar kb_node_visibility + filtro ACL pre-retrieval no KbRagService (LGPD)
+
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: kb-acl-aware-rag` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · P0 LGPD):** sem `kb_node_visibility` + ACL row-level no pre-retrieval, o RAG não pode ser liberado pro time MCP (risco de vazamento entre escopos). Bloqueante levantado pelo Agent D 2026-05-15.
+
+**DoD:**
+- Coluna/tabela `kb_node_visibility`.
+- Filtro ACL **antes** do retrieve (não pós-filtro).
+- Teste de isolamento de visibilidade.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-126 · Propagar renames Copiloto→Jana / MemCofre→SRS nos ~112 PHP em Modules/
+
+> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: knowledge-drift-rename-propagation` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** drift de nomenclatura — `git grep` acha ~112 PHP em `Modules/` citando `Copiloto` + 27 citando `MemCofre` (renames Copiloto→Jana / MemCofre→SRS não propagados).
+
+**⚠️ Pré-condição:** CONFIRMAR primeiro se o módulo ainda é `Copiloto` no código (vs já renomeado pra Jana) antes de qualquer rename em massa — risco de quebrar referências.
+
+**DoD:**
+- Inventário grep atualizado (Copiloto + MemCofre).
+- Decidir canonical e propagar com segurança (namespaces, rotas, views).
+- Testes verdes pós-rename.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-127 · Criar view cliente /copiloto/decisoes/{id}/revisao (LGPD Art.20)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: hitl-audit-card-ui-copiloto` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · LGPD Art.20):** direito de revisão de decisão automatizada — a UI admin do HITL existe, mas falta a view do **cliente-final** em `/copiloto/decisoes/{id}/revisao`.
+
+**DoD:**
+- Rota + página de revisão da decisão (cliente-final).
+- Permissions adequadas (cliente vê só as próprias).
+- Audit log da revisão.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

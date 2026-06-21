@@ -409,3 +409,51 @@ Reavaliação concluída: A.2 é **net-harmful** (run `20260613-115507`, floor 1
 **Não é harness** — é o isolamento dos ~19-30 testes "era-sqlite" que dropam tabela CORE numa base MySQL persistente compartilhada. Tratado em **US-GOV-021** (front-2). Frente C só torna o nightly **reproduzível**; não baixa o floor sozinha.
 
 Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md` · #2657 (closed) · #2640 (A.1/A.2 origem) · US-GOV-021.
+
+### US-GOV-028 · Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: governance-sprint-2-cleanup` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** pre-commit com 3 blocos legados pendentes de limpeza.
+
+**DoD:**
+- Remover/atualizar os 3 blocos legados do pre-commit.
+- Validar hook end-to-end.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-029 · IA-OS onda 2 — promover anchor-gate de advisory a required
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: ia-os-onda2-endurecer` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** anchor-gate ainda advisory; endurecer pra required (onda 2 IA-OS).
+
+**DoD:**
+- Promover anchor-gate a required (após baseline limpo).
+- Confirmar que não há falsos-positivos pendentes antes de morder.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-030 · Screen-QA dim16 — adicionar workflow sentinela ausente no CI
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: screen-qa-dim16-sentinela` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105 · métrica em drift):** o workflow sentinela da dimensão 16 do screen-grade está ausente no CI (catraca sem sentinela = pode regredir).
+
+**DoD:**
+- Criar o workflow sentinela dim16 no CI.
+- Advisory → required conforme cadência.
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)

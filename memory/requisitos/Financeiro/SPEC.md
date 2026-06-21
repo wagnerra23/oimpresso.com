@@ -1648,3 +1648,21 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 **Validação obrigatória:** toca lógica financeira de produção → confirmar regra de negócio do parcial (Opção 1: `final_total − Σ pagamentos`) com Wagner/Eliana + validar no CT100 antes do merge. 1 PR = 1 intent. Worktree limpo off origin/main (não na branch governance). Não fazer merge sem CT100.
 
 **Refs:** PR #2744, SellController.php:523, chip CC task_6fb304ba.
+
+### US-FIN-058 · Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
+`parent_plan: migracao-firebird-boletos-contratos` · labels: `plano-perdido`, `backlog-2026-06-20`
+
+**Sinal (ADR 0105):** handoff 2026-06-08 — 59 boletos órfãos + 3.372 `fin_titulos` com `origem_id` incorreto (resíduo da migração Firebird).
+**Dedup:** distinto de US-FIN-039 (vincular-baixas-sem-conta), US-FIN-040 (health-check) e US-FIN-042 (backfill cliente_descricao).
+
+**DoD:**
+- Script idempotente de reparo dos 59 boletos + 3.372 origem_id.
+- Reconciliação + audit log.
+- Multi-tenant Tier 0: filtro `business_id` (ADR 0093).
+
+**Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
