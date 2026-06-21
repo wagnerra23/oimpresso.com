@@ -18,12 +18,12 @@
 │   Dashboard · Ingest · Inbox · Modulo · Memoria · Chat    │
 ├───────────────────────────────────────────────────────────┤
 │ HTTP (8 Controllers)                                      │
-│ Modules/MemCofre/Http/Controllers/                        │
+│ Modules/SRS/Http/Controllers/                        │
 │   Dashboard · Ingest · Inbox · Modulo · Memoria · Chat    │
 │   Data · Install                                          │
 ├───────────────────────────────────────────────────────────┤
 │ Console (7 Commands)                                      │
-│ Modules/MemCofre/Console/Commands/                        │
+│ Modules/SRS/Console/Commands/                        │
 │   SyncMemories · SyncPages · MigrateModule                │
 │   AuditModule · Validate · GenTest · InstallHooks         │
 ├───────────────────────────────────────────────────────────┤
@@ -75,7 +75,7 @@ Histórico de execuções do `DocValidator`. Colunas: `health_score`, `issues` J
 **Sincronização**: via `php artisan module:requirements` (regera o DB a partir dos arquivos).
 
 ### D2. Padrão UltimatePOS (não módulo stand-alone)
-**Decisão**: MemCofre vive em `Modules/MemCofre/` seguindo nwidart/laravel-modules.
+**Decisão**: MemCofre vive em `Modules/SRS/` seguindo nwidart/laravel-modules.
 
 **Por quê**: consistência com os outros 20+ módulos do projeto. Facilita ativar/desativar via `modules_statuses.json`.
 
