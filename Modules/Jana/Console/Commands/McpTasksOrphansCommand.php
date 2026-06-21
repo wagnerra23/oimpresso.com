@@ -141,7 +141,10 @@ class McpTasksOrphansCommand extends Command
                 continue;
             }
             $content = (string) @file_get_contents($spec);
-            if (preg_match_all('/(?:^###|^-)\s+(?:\S+\s+)?(US-[A-Z0-9]+-\d+)/m', $content, $m)) {
+            // #{2,4} cobre ### E #### (ex: Cms/SPEC.md usa ####) — idem ao
+            // US_HEADING_REGEX do parser. Sem isso, US declaradas em heading ####
+            // viram falso-positivo de "órfã" (70 falsos no 1º run, 2026-06-21).
+            if (preg_match_all('/(?:^#{2,4}|^-)\s+(?:\S+\s+)?(US-[A-Z0-9]+-\d+)/m', $content, $m)) {
                 foreach ($m[1] as $id) {
                     $ids[strtoupper($id)] = true;
                 }
