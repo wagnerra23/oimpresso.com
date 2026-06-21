@@ -88,12 +88,20 @@ function staleMkPending(string $slug, int $ageDays, string $status = 'pending'):
 const STALE_OPS_USER = 99;
 
 beforeEach(function () {
+    // era-sqlite: tabelas sintéticas só rodam no sqlite :memory:. No MySQL persistente
+    // do nightly o Schema::drop corromperia o schema compartilhado (US-GOV-021).
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabelas sintéticas cowork_handoffs/mcp_inbox só rodam no sqlite');
+    }
     staleMkCoworkTable();
     staleMkInboxTable();
     config(['admin.wagner_user_id' => STALE_OPS_USER]);
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // não dropar tabelas compartilhadas no MySQL persistente (US-GOV-021)
+    }
     foreach (['cowork_handoffs', 'mcp_inbox_notifications'] as $tbl) {
         if (Schema::hasTable($tbl)) {
             Schema::drop($tbl);

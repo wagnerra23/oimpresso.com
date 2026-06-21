@@ -135,10 +135,18 @@ function handoffRespArray(McpResponse $response): array
 }
 
 beforeEach(function () {
+    // era-sqlite: tabela sintética só roda no sqlite :memory:. No MySQL persistente
+    // do nightly o Schema::drop corromperia o schema compartilhado (US-GOV-021).
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabela sintética cowork_handoffs só roda no sqlite');
+    }
     mkCoworkHandoffsTable();
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
+    }
     app('auth')->resolveUsersUsing(fn ($guard = null) => null);
     if (Schema::hasTable('cowork_handoffs')) {
         Schema::drop('cowork_handoffs');
