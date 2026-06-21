@@ -3,7 +3,7 @@ slug: 0189-pageheader-canon-v3-1-cadastro-roxo
 number: 0189
 title: "PageHeader canon v3.1 — bloco fechado + KPI strip separado + ⋮ overflow + roxo médio cadastro"
 type: adr
-status: aceito
+status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
