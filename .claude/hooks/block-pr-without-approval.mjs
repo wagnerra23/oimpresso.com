@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // block-pr-without-approval.mjs — R10 enforcement POR MÁQUINA (cross-platform).
 //
-// PROPOSTA (2026-05-28) — ainda NÃO registrada em settings.json. Criar o arquivo
-// não ativa nada; só o registro ativa. Demo do padrão "regra → enforcement por
-// máquina" pedido por Wagner.
+// REGISTRADO em .claude/settings.json (PR #3058; endurecido #3065 + review adversarial
+// 2026-06-20) — em UserPromptSubmit + PreToolUse(Bash|PowerShell). Criar o arquivo não
+// ativa nada; o REGISTRO é o que ativa — scripts/governance/settings-r10-registration.test.mjs
+// guarda contra des-registro. Padrão "regra → enforcement por máquina" pedido por Wagner.
 //
 // Problema: R10 do PROTOCOLO-WAGNER-SEMPRE ("aprovação humana antes de
 // commit/push/merge/PR") era só ORIENTAÇÃO (skill wagner-protocol-enforce).
@@ -15,14 +16,20 @@
 //   1. UserPromptSubmit: se a mensagem do Wagner contém sinal de aprovação de
 //      PUBLICAÇÃO (pode fazer/pode pushar/merge/manda/aprovado...), grava flag
 //      com timestamp em tmpdir. TTL 15min.
-//   2. PreToolUse Bash: se o Claude tenta `gh pr create|merge` / `git push`,
-//      exige flag válida. Sem flag (ou expirada) → BLOQUEIA (exit 2).
-//      Com flag → permite e CONSOME (1 aprovação = 1 publicação).
+//   2. PreToolUse Bash/PowerShell: se o Claude tenta PUBLICAR — `gh pr create|merge`,
+//      `gh api` escrevendo em /pulls (criar PR) ou /pulls/N/merge, ou `git push`
+//      (inclusive `ENV=val git push` e `git -c k=v push`) — exige flag válida.
+//      Sem flag (ou expirada) → BLOQUEIA (exit 2). Com flag → permite e CONSOME.
 //
 // HONESTIDADE (limitações conhecidas):
 //   - Detecção por palavra-chave é uma REDE, não prova de escopo. Garante "houve
 //     sinal de aprovação recente", não "Wagner aprovou ESTE push específico".
-//   - Conservador: na dúvida, NÃO aprova (falso-negativo < falso-positivo).
+//   - Cobre gh pr create|merge, gh api escrevendo /pulls|/pulls/N/merge, e git push
+//     (+ env-prefix e flags `git -c`). NÃO cobre evasão deliberada exótica (alias
+//     custom, script intermediário). A defesa real de publicação é branch protection
+//     + enforce_admins (já ativos) — este hook é o PRIMEIRO filtro, não o último.
+//   - Conservador: na dúvida, NÃO aprova (falso-negativo < falso-positivo). Lê (GET)
+//     e comentários (/pulls/N/comments, /issues/N/comments) NÃO bloqueiam.
 //   - Escape valve: OIMPRESSO_PR_APPROVAL_OVERRIDE=1 (justificar no chat).
 //
 // Exit: 0 = continua | 2 = bloqueia (stderr vira razão pro Claude)
@@ -60,10 +67,21 @@ function isApproval(text) {
   return approvePatterns.some((r) => r.test(text));
 }
 
-// Ancorados no inicio efetivo do comando (apos ; & |) com limite de palavra —
-// evita falso-bloqueio quando a frase aparece dentro de string/comentario/arg de busca
-// (ex: rg 'git push', history | grep 'git push').
-const publishPatterns = [/(^|[;&|]\s*)gh\s+pr\s+(create|merge)(\s|$)/i, /(^|[;&|]\s*)git\s+push(\s|$)/i];
+// Ancorados no inicio efetivo do comando (apos ; & |) com limite de palavra — evita
+// falso-bloqueio quando a frase aparece dentro de string/comentario/arg de busca (ex:
+// rg 'git push', history | grep 'git push'). Cobre os bypasses do review adversarial
+// 2026-06-20: env-prefix, `git -c k=v push`, e `gh api` escrevendo em /pulls|/merge.
+const publishPatterns = [
+  /(^|[;&|]\s*)gh\s+pr\s+(create|merge)(\s|$)/i,
+  // git push — tolera prefixo de env (FOO=bar / FOO="a b") e flags do git antes de 'push'
+  /(^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*=(?:"[^"]*"|'[^']*'|\S+)\s+)*git(\s+-\S+(\s+\S+)?)*\s+push(\s|$)/i,
+  // gh api — fazer MERGE de PR (endpoint .../pulls/N/merge)
+  /(^|[;&|]\s*)gh\s+api\b[^;&|]*\/pulls\/\d+\/merge\b/i,
+  // gh api — CRIAR PR: escrita (POST/-f/-F/--field/--input) no coletivo /pulls.
+  // Lookaheads exigem /pulls "folha" (nao /pulls/N/comments) + marcador de escrita →
+  // NAO casa reads (GET) nem comentarios de PR.
+  /(^|[;&|]\s*)gh\s+api\b(?=[^;&|]*\/pulls(?=[\s?'"]|$))(?=[^;&|]*(?:-X\s+POST|--method\s+POST|-f\b|-F\b|--field\b|--raw-field\b|--input\b))/i,
+];
 function isPublish(cmd) {
   return !!cmd && publishPatterns.some((r) => r.test(cmd));
 }
