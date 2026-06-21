@@ -10,6 +10,10 @@
     }
   },
   "workflows": {
+    "baseline-tamper-guard.yml": {
+      "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
+      "classe": "gate"
+    },
     "jana-audit-chain-pest.yml": {
       "nome": "Jana audit-chain Pest (T5 · hash-chain mcp_audit_log lógica pura · ADR 0294)",
       "classe": "gate"

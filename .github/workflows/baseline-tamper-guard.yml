@@ -1,0 +1,34 @@
+name: Baseline tamper-guard (anti-grandfather)
+
+# Gap-2 do blueprint SDD (ADR 0256/0258). Impede AFROUXAR um baseline-ratchet
+# (subir teto / grandfatherar item) no MESMO PR que mete o código que o ratchet
+# deveria pegar — a regressão entraria verde (casos #2848, ghost 14→16).
+# Escape hatch consciente: `BASELINE-ABSORB: <motivo>` na mensagem de commit, OU
+# isolar a mudança de baseline num PR/commit só-de-baseline.
+#
+# Hoje guarda: scripts/governance/.memory-health-baseline.json (checkC + checkL).
+# Estender = adicionar o path + detector no GUARDED do script + o path neste trigger.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/governance/.memory-health-baseline.json'
+      - 'scripts/governance/baseline-tamper-guard.mjs'
+      - '.github/workflows/baseline-tamper-guard.yml'
+
+jobs:
+  guard:
+    name: baseline-tamper-guard (anti-grandfather)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # precisa da base p/ git show/diff/log do range do PR
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run baseline tamper-guard
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/governance/baseline-tamper-guard.mjs
