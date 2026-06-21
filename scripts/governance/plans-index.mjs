@@ -147,6 +147,11 @@ ${pending.length ? '| Plano | Módulo |\n|---|---|\n' + pending.map((p) => `| [$
 
 ${issues.length ? `## Inconsistências de schema (${issues.length})\n${issues.map((i) => `- ⚠️ ${i}`).join('\n')}\n` : ''}`;
 
+// deghost: índice DERIVADO não propaga citação `Modules/<X>` (vinda de título/gate de um
+// plano) — senão o knowledge-drift atribui o ghost ao próprio _processo. Mantém o nome do
+// módulo sem o path. (ADR 0274 — catraca anti-ghost por módulo.)
+md = md.replace(/Modules\/([A-Za-z0-9]+)/g, '$1');
+
 // ── saída ─────────────────────────────────────────────────────────────────────
 if (MODE === 'json') {
   console.log(JSON.stringify({ registered, pending, issues, counts: { registered: registered.length, pending: pending.length, withReviewed, withParent } }, null, 2));
