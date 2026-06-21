@@ -98,13 +98,28 @@ hoje no MySQL do Hostinger só por conexão remota — foi esse acoplamento que 
 da memória derrubar o ERP. Plano:
 1. Subir DB no CT 100 (storage do Proxmox, sem a cota apertada de shared hosting).
 2. Repointar a config de memória do MCP pro DB do CT 100.
-3. Corrigir o over-versioning (só gravar histórico quando `content_md` muda de fato).
-4. Retenção (N versões/doc OU ≤90d; o git já é o histórico de longo prazo).
+3. ~~Corrigir o over-versioning~~ → **NÃO há bug.** O sync (`IndexarMemoryGitParaDb`) já
+   deduplica por `content_md`, e `McpMemoryDocument::snapshotEAtualizar()` só grava em
+   mudança real. Era **falta de teto**, não escrita espúria. (verificado no código)
+4. Retenção (N versões/doc OU ≤90d) — **FEITO** ([PR #3130](https://github.com/wagnerra23/oimpresso.com/pull/3130)): comando
+   `jana:memory-history-prune` (diário 03:20 BRT, keep 20 + janela 90d, driver-agnóstico).
 
 Refill atual é lento (~170 MB/semana → **meses** até reincomodar), então não é urgente.
 
+## Update (fechamento da sessão — 2026-06-21 ~11:30 BRT)
+
+- A `mcp_memory_documents_history` refez ~120 MB / 8.400 linhas após o drop da manhã;
+  **re-truncada → 0** (DB voltou a ~816 MB). O `jana:memory-history-prune` (#3130) impede
+  reincidência. (O screenshot 6180/6144 que o [W] mandou era anterior ao drop da manhã.)
+- **Fase 2 mover pro CT 100** virou **proposta ADR gated** ([PR #3131](https://github.com/wagnerra23/oimpresso.com/pull/3131),
+  `memory/decisions/proposals/2026-06-21-mcp-memory-store-ct100.md`): opção (a) conexão
+  `memory_ct100` recomendada; runbook de cutover; emenda ao 0062; **aguarda decisão [W]**.
+
 ## Pendências
 
-- Fase 2 (acima) — quando der.
-- `spec_id_drift` zerou sozinho pós-fix (provável efeito do parser #3124 + sync voltando);
-  monitorar. (US-RECURRINGBILLING-001 segue falso-positivo conhecido documentado em `RecurringBilling/SPEC.md`.)
+- **Fase 2 CT 100** = decisão do Wagner na proposta #3131 (não-urgente; teto #3130 já segura).
+- **Headroom durável**: a conta tem 14 bancos; o oimpresso é só 937 MB do total — os ~5 GB
+  restantes estão em **bancos legados** que meu user SQL não enxerga (perfex/wr2/crm/…).
+  Limpar os defuntos no hPanel é o ganho real de espaço (decisão [W] — dados de outros sistemas).
+- `spec_id_drift` zerou sozinho pós-fix (parser #3124 + sync voltando); monitorar.
+  (US-RECURRINGBILLING-001 segue falso-positivo conhecido em `RecurringBilling/SPEC.md`.)
