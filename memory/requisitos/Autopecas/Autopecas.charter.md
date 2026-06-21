@@ -177,7 +177,7 @@ Validação: **Vargas é candidato piloto qualificado** mas charter antecipatór
 | `Modules/Whatsapp` | Webhook Meta Cloud API pra US-AP-011 + opt-in cliente | consome |
 | `Modules/OficinaAuto` | **Reuso futuro shared infra** — catálogo `pecas` + `aplicacoes` (chassis/ano/modelo) extraível como pacote shared quando OficinaAuto ativar | consome (futuro) |
 | `Modules/Vestuario` | **Reuso UI/Controller patterns** — venda balcão padrão, variação SKU multi-atributo (~30-40% reuso) | imita (não consome direto) |
-| `Modules/MemCofre` | Cofre senhas (cert digital, login fornecedor, API DETRAN se ativar) | consome opcional |
+| `Modules/SRS` | Cofre senhas (cert digital, login fornecedor, API DETRAN se ativar) | consome opcional |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, `products`, `contacts` | base |
 | API Bosch / Nakata / Fras-le (catálogo OEM) | Connector — sync periódico catálogo OEM open data ou parceria | externa (opcional fase 2) |
 

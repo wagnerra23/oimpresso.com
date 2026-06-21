@@ -48,13 +48,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 14,
+      "value": 8,
       "unit": "nomes distintos",
       "direction": "down",
       "armed": true,
       "valid_measurements": 3,
       "fonte": "scripts/governance/knowledge-drift.mjs --json",
-      "nota_armamento": "Re-armado live em origin/main 3b281d864 (2026-06-15): a fonte agora mede 14 (era 27 na captura 2026-06-12 — codemod #2603/#2693 derrubou nomes-fantasma). Catraca DESCE o piso 27→14 (stale absorvido, ADR 0275 §3); regressão >14 = exit 1."
+      "nota_armamento": "Piso DESCIDO 14→8 no PR P11 (KL-E2, ADR 0270/0291). Duas correções no MESMO PR derrubaram o número: (1) RECONCILIAÇÃO detector×corretor — knowledge-drift.mjs passou a PULAR adr/ na contagem de ghost (espelha ghost-fix.mjs:60-61), alinhando a métrica ao escopo corrigível; os 5 nomes que só sobreviviam como tombstone append-only em adr/ (Chat/Copiloto/DocVault/LaravelAI/PontoWr2) saíram da contagem 14→9 — não era drift VIVO, era FATO histórico (ADR 0094 Art.3). (2) codemod ghost-fix --write aplicou MemCofre→SRS nos 12 docs vivos, tirando MemCofre da contagem 9→8. Os 8 residuais (Accounting/CrmPipeline/IProduction/NfseBrasil/Pcp/Project/Sells/Vendor) são Classe B/C/AMBIGUO no ghost-rename-map.json (lápides/feature-wish/fila-humana) — não há rename 1:1 com evidência dura, ficam pra reescrita manual. Os 4 nomes Classe A (MemCofre/PontoWr2/Copiloto/DocVault) = 0 ghost vivo. Catraca DESCE o piso 14→8 (ADR 0275 §3); regressão >8 = exit 1."
     },
     "front_door_coverage": {
       "status": "measured",

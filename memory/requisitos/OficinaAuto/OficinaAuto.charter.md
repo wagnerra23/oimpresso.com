@@ -159,7 +159,7 @@ Validação: **NENHUM CLIENTE PILOTO** (charter antecipatório). Personas basead
 | `Modules/Financeiro` | Visão unificada AR/AP de OSs; DRE simplificado | consome |
 | `Modules/Jana` (Jana) | Chat contextual + alertas + brief diário | consome |
 | `Modules/RecurringBilling` | Plano mensal da oficina (assinatura oimpresso) — não OSs finais | consome |
-| `Modules/MemCofre` | Cofre senhas (cert digital, login fornecedor de peças, API DETRAN) | consome opcional |
+| `Modules/SRS` | Cofre senhas (cert digital, login fornecedor de peças, API DETRAN) | consome opcional |
 | Núcleo UltimatePOS | `business_id`, users, roles, locations, `transactions`, products, contacts | base |
 | API DETRAN/CRLV (externa) | Connector — consulta situação veicular sob opt-in cliente | externa |
 | Tabela Sindirepa (dataset) | Connector — tempária por serviço por região; sync periódico | externa |

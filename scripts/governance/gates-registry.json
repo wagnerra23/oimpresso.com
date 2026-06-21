@@ -202,6 +202,10 @@
       "nome": "Jana RAGAS Eval Gate",
       "classe": "gate"
     },
+    "jana-recall-eval.yml": {
+      "nome": "Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD)",
+      "classe": "gate"
+    },
     "jscpd-gate.yml": {
       "nome": "jscpd ratchet (anti-duplicação de bloco copy-paste)",
       "classe": "gate"
@@ -313,6 +317,10 @@
     "screen-coverage-gate.yml": {
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
+    },
+    "sdd-scorecard-publish.yml": {
+      "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
+      "classe": "automacao"
     },
     "sdd-scorecard.yml": {
       "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",

@@ -201,20 +201,22 @@ class Kernel extends ConsoleKernel
             });
 
         // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
-        // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário→manual).
-        // COMENTADO DE PROPÓSITO: D-E exige gate Wagner/CT100 (smoke skim 10min/lote) —
-        // a destilação chama LLM e MUTA memória canônica PÚBLICA; não pode auto-rodar sem
-        // supervisão. O comando existe e roda manual (`php artisan jana:distill-module-truth
-        // --all [--dry-run]`); o Wagner DESCOMENTA aqui quando o processo de skim estiver de pé.
-        // $schedule->command('jana:distill-module-truth --all')
-        //     ->dailyAt('05:30')
-        //     ->withoutOverlapping()
-        //     ->environments(['live'])
-        //     ->onFailure(function () {
-        //         \Illuminate\Support\Facades\Log::channel('single')->error(
-        //             'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
-        //         );
-        //     });
+        // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário).
+        // DESCOMENTADO em P11 (KL-E3): tira distiller_freshness de not_yet_measured —
+        // a 1ª destilação carimba `distilled_at:` num BRIEFING e measureDistillerFreshness()
+        // vira `measured` (ADR 0291 D-5 / 0279). A destilação chama LLM e MUTA memória canônica
+        // PÚBLICA, então o gate de supervisão Wagner/CT100 (smoke skim 10min/lote) é OBRIGATÓRIO
+        // ANTES de ligar em live: o comando roda manual primeiro (`php artisan
+        // jana:distill-module-truth --all --dry-run` → skim → `--all` real). Kill-switch = recomentar.
+        $schedule->command('jana:distill-module-truth --all')
+            ->dailyAt('05:30')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
+                );
+            });
 
         // Sentinela de FLUXO de inbound WhatsApp — cadência HORÁRIA em horário
         // comercial BRT (incidente 2026-06-16 #2726: recebimento morto 3 dias sem
@@ -404,6 +406,36 @@ class Kernel extends ConsoleKernel
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
                     'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold. ' .
                     'Ver storage/logs (canary sem OPENAI_API_KEY sai DORMANT, não falha).'
+                );
+            });
+
+        // P12 (roadmap SDD · decay-real-ragas-recall) — jana:recall-eval --mode=real
+        // SEMANAL (dom 06:30 BRT). Mede recall@K + a métrica recall_eval_violations
+        // (ADR 0275, meta → 0) consultando o índice Meilisearch read-only.
+        //
+        // PRONTO-PRA-LIGAR, mas o --mode=real só roda onde o índice
+        // `mcp_memory_documents` é alcançável (CT 100, fase 2 — JanaRecallEvalCommand
+        // linha 23/272). environments(['live']) já restringe ao runtime prod; o
+        // comando, se o Meilisearch estiver inacessível, registra o erro e sai com
+        // gate fail (exit 1), capturado pelo onFailure abaixo. ENQUANTO o índice não
+        // for alcançável do cron prod, este schedule fica dormente por construção
+        // (Meilisearch ausente → onFailure loga, NÃO derruba o scheduler). O gate
+        // BARATO de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
+        // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
+        // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
+        //
+        // Refs: ADR 0270 D-4/D-5 · ADR 0274 · ADR 0275 · plano P12
+        // memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md.
+        $schedule->command('jana:recall-eval --mode=real')
+            ->weeklyOn(0, '06:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:recall-eval (real) FALHOU — recall_eval_violations > 0 ' .
+                    'OU Meilisearch inacessível (modo real roda no CT 100, fase 2). ' .
+                    'Ver storage/logs. Gate barato de PR é o --mode=mock em CI.'
                 );
             });
 

@@ -10,7 +10,11 @@
 // MEDE, por módulo em memory/requisitos/<Mod>/:
 //   - read_path_hops : quantos docs se abre pra saber "a verdade atual" (meta: 1)
 //   - porta          : tem BRIEFING.md? é auto-contida ou um índice de links?
-//   - identity_drift : os docs citam Modules/<X>/ que NÃO existe no disco? (pegou o MemCofre)
+//   - identity_drift : os docs VIVOS citam Modules/<X>/ que NÃO existe no disco? (pegou o MemCofre)
+//                      RECONCILIAÇÃO P11 (KL-E2): a contagem de ghost PULA adr/ (append-only,
+//                      ADR 0094 Art.3), espelhando o escopo do corretor ghost-fix.mjs:60-61.
+//                      Antes o detector contava tombstones de ADR que o corretor NUNCA poderia
+//                      zerar → métrica de FORMA, não de correção. Agora mede só drift corrigível.
 //   - staleness      : a porta é mais velha (git) que o doc mais novo do módulo?
 //
 // NÃO recomenda ADICIONAR — toda nota ruim aponta pra DESTILAR/FUNDIR/APAGAR.
@@ -35,8 +39,33 @@ function allMd(dir) {
   const out = [];
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, e.name);
-    if (e.isDirectory()) out.push(...allMd(p));
+    if (e.isDirectory()) {
+      // US-GOV-035: planos do roadmap citam módulos legados/renomeados em
+      // contexto de planejamento (não são ghost vivo) — isenta _Governanca/roadmap/.
+      if (e.name === "roadmap" && p.includes("_Governanca")) continue;
+      out.push(...allMd(p));
+    }
     else if (e.name.endsWith('.md')) out.push(p);
+  }
+  return out;
+}
+
+// allMdLive — mesma varredura, mas PULA a subárvore adr/ (append-only, ADR 0094 Art.3).
+// RECONCILIAÇÃO detector×corretor (P11 KL-E2): o corretor ghost-fix.mjs:60-61 pula adr/
+// por design (um ADR de rename CITA o nome antigo como FATO histórico — não é drift vivo,
+// e não pode ser reescrito sem violar o Tier 0 que reprovou o commit d415b4a55e). O detector
+// CONTAVA esses tombstones como ghost, então a métrica ghost_count media nomes que o corretor
+// NUNCA poderia zerar — DoD "→0" estruturalmente impossível. Alinhando o ESCOPO DA CONTAGEM
+// DE GHOST ao do corretor, ghost_count passa a medir só drift VIVO (corrigível). Door/hops/
+// staleness seguem na varredura FULL (allMd) — semântica deles não depende deste argumento.
+function allMdLive(dir) {
+  const out = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) {
+      if (e.name === 'adr') continue; // hard-skip append-only — espelha ghost-fix.mjs:60-61
+      out.push(...allMdLive(p));
+    } else if (e.name.endsWith('.md')) out.push(p);
   }
   return out;
 }
@@ -75,7 +104,8 @@ function scanGhostsByModule() {
   for (const mod of readdirSync(REQ, { withFileTypes: true })) {
     if (!mod.isDirectory()) continue;
     const ghosts = new Set();
-    for (const d of allMd(join(REQ, mod.name))) {
+    // RECONCILIAÇÃO P11: allMdLive pula adr/ — só conta ghost VIVO (corrigível pelo codemod).
+    for (const d of allMdLive(join(REQ, mod.name))) {
       const txt = readFileSync(d, 'utf8');
       for (const m of txt.matchAll(MOD_REF_RE)) {
         if (!existsSync(join(ROOT, 'Modules', m[1]))) ghosts.add(m[1]);
@@ -109,7 +139,24 @@ if (WRITE_BASELINE) {
     }
     writeFileSync(join(BASELINE_DIR, `${mod}.json`), JSON.stringify({ module: mod, ghosts: frozen }) + '\n');
   }
-  console.log(`  Baseline anti-ghost escrito em ${BASELINE_DIR} — ${current.size} módulos citantes.`);
+  // Catraca também ENCOLHE baselines de módulos que ficaram 100% limpos (saíram de `current`).
+  // Sem isso, um módulo que zerou os ghosts deixava o baseline ANTIGO listando nomes-fantasma
+  // que não existem mais nos docs vivos (stale) — o --check só avisava, nunca limpava. A
+  // interseção old∩current=∅ é o encolhimento máximo (catraca só diminui, nunca cresce).
+  let pruned = 0;
+  if (existsSync(BASELINE_DIR)) {
+    for (const f of readdirSync(BASELINE_DIR)) {
+      if (!f.endsWith('.json')) continue;
+      const mod = f.slice(0, -5);
+      if (current.has(mod)) continue; // já reescrito acima
+      const old = readBaseline(mod);
+      if (old && old.length) {
+        writeFileSync(join(BASELINE_DIR, `${mod}.json`), JSON.stringify({ module: mod, ghosts: [] }) + '\n');
+        pruned++;
+      }
+    }
+  }
+  console.log(`  Baseline anti-ghost escrito em ${BASELINE_DIR} — ${current.size} módulos citantes${pruned ? `, ${pruned} módulos limpos zerados` : ''}.`);
   process.exit(refused ? 1 : 0);
 }
 
@@ -166,9 +213,11 @@ for (const mod of readdirSync(REQ, { withFileTypes: true })) {
   // read_path_hops
   const hops = !hasDoor ? docs.length : (indice ? 1 + competing : 1);
 
-  // identity drift: docs citam Modules/<X> inexistente?
+  // identity drift: docs VIVOS citam Modules/<X> inexistente?
+  // RECONCILIAÇÃO P11: usa allMdLive (pula adr/) — espelha o escopo do corretor ghost-fix.mjs.
+  // Citação de nome morto DENTRO de adr/ é tombstone append-only (FATO histórico), não drift.
   const ghosts = new Set();
-  for (const d of docs) {
+  for (const d of allMdLive(dir)) {
     const txt = readFileSync(d, 'utf8');
     for (const m of txt.matchAll(MOD_REF_RE)) {
       if (!existsSync(join(ROOT, 'Modules', m[1]))) ghosts.add(m[1]);

@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "baseline": "FIXTURE — head AFROUXADO do gate-selftest (ghost_count desarmado armed:true→false). Aqui ISOLADO (sem código no mesmo commit) → tamper-guard ACEITA (exit 0). Conteúdo fictício, zero PII."
+  },
+  "metrics": {
+    "ghost_count": {
+      "status": "measured",
+      "value": 14,
+      "unit": "nomes distintos",
+      "direction": "down",
+      "armed": false,
+      "valid_measurements": 3,
+      "fonte": "scripts/governance/knowledge-drift.mjs --json"
+    },
+    "front_door_coverage": {
+      "status": "measured",
+      "value": 100,
+      "unit": "%",
+      "direction": "up",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "scripts/governance/knowledge-drift.mjs --json"
+    }
+  }
+}
