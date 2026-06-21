@@ -2,7 +2,7 @@
 date: 2026-06-21
 time: "1250 BRT"
 slug: "sdd-roadmap-12-prs-enforcement"
-tldr: "Avaliação adversarial do SDD deu composto 60/100 (mede honesto, não governa — 0 dos ~18 required são SDD). Gerados roadmap + 13 planos verificados (#3135) e 12 PRs armando o Trilho A + lever do floor + 1º dente. Verificação adversarial: os 7 engines de gate MORDEM (rodados em sandbox); 5 são advisory-por-design (parede 14d/promoção), 2 mordem hard hoje (Pfr foundation-ratchet, P01 commit-back). 3 reds de CI eram mecânicos (opentelemetry, censo de gates, flake APP_KEY) — todos consertados. Resto é parede de relógio/humano: merges + secret + prod + 7 nightlies + janela 14d."
+tldr: "SDD avaliado em 60/100 (mede honesto, não governa — 0 dos ~18 required são SDD). Gerados roadmap + 13 planos (#3135) e 12 PRs armando o Trilho A + lever do floor + 1º dente. Verificação adversarial: os 7 engines de gate MORDEM (rodados em sandbox); o gap é só governança (parede 14d/promoção). 3 reds de CI eram mecânicos (opentelemetry/censo/flake APP_KEY) — consertados. Resto é parede de relógio/humano: merges + secret + prod + 7 nightlies + janela 14d."
 decided_by: [W]
 cycle: "CYCLE-08"
 prs: [3135, 3138, 3140, 3142, 3143, 3144, 3145, 3149, 3150, 3155, 3157, 3158]
