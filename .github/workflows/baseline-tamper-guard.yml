@@ -6,7 +6,9 @@ name: Baseline tamper-guard (anti-grandfather)
 # Escape hatch consciente: `BASELINE-ABSORB: <motivo>` na mensagem de commit, OU
 # isolar a mudança de baseline num PR/commit só-de-baseline.
 #
-# Hoje guarda: scripts/governance/.memory-health-baseline.json (checkC + checkL).
+# Hoje guarda os 4 baselines-ratchet do repo: memory-health (checkC + checkL),
+# sdd-scorecard (métricas armadas), required-checks (contexts) e knowledge-ghosts
+# (diretório <Mod>.json — vetor #2848: ghost grandfatherado).
 # Estender = adicionar o path + detector no GUARDED do script + o path neste trigger.
 
 on:
@@ -14,6 +16,9 @@ on:
     branches: [main]
     paths:
       - 'scripts/governance/.memory-health-baseline.json'
+      - 'governance/sdd-scorecard-baseline.json'
+      - 'governance/required-checks-baseline.json'
+      - 'governance/knowledge-ghosts-baseline/**'
       - 'scripts/governance/baseline-tamper-guard.mjs'
       - '.github/workflows/baseline-tamper-guard.yml'
 

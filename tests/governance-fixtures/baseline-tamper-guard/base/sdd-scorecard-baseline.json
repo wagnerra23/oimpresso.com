@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "baseline": "FIXTURE — base APERTADA do gate-selftest (ghost_count armado, teto 14). Conteúdo fictício, zero PII.",
+    "regra_armamento": "ADR 0275 §3 — só arma após 3 medições válidas consecutivas"
+  },
+  "metrics": {
+    "ghost_count": {
+      "status": "measured",
+      "value": 14,
+      "unit": "nomes distintos",
+      "direction": "down",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "scripts/governance/knowledge-drift.mjs --json"
+    },
+    "front_door_coverage": {
+      "status": "measured",
+      "value": 100,
+      "unit": "%",
+      "direction": "up",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "scripts/governance/knowledge-drift.mjs --json"
+    }
+  }
+}
