@@ -384,6 +384,26 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Wave 23 — jana:drift-sentinel canary SEMANAL da Jana (dom 06:00 BRT).
+        // Compara faithfulness atual vs baseline canon; ALERT se >10% das perguntas
+        // divergirem. RELIGADO 2026-06-20 (auditoria de sentinelas): o docblock do
+        // comando afirmava "Schedule weekly Sun 06:00" mas NÃO existia entry aqui —
+        // ghost canary (existe + tem teste de mordida, nunca rodava). Requer
+        // OPENAI_API_KEY no servidor; sem a chave o run falha e o onFailure registra
+        // (sinal honesto de "canary cego", não silêncio). Domingo cedo pra não
+        // disputar DB com os health-checks diários (06:00-06:30).
+        $schedule->command('jana:drift-sentinel')
+            ->weeklyOn(0, '06:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:drift-sentinel FALHOU — drift Jana acima do threshold ' .
+                    'OU canary não rodou (checar OPENAI_API_KEY). Ver storage/logs.'
+                );
+            });
+
         // Bug #4 BUGS-MCP-SYNC-2026-05-13 — mcp:tasks:health-check daily 06:20 BRT.
         // Flagga tasks dormentes em mcp_tasks (stale_todo >21d, stale_blocked >30d,
         // stale_doing >7d sem commit, stale_review >5d). Roda SEM --auto-comment
