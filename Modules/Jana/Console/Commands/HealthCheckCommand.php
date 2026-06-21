@@ -629,7 +629,7 @@ class HealthCheckCommand extends Command
                     $taskId = "US-{$prefix}-" . str_pad((string) $n, 3, '0', STR_PAD_LEFT);
 
                     $dbRow = DB::table('mcp_tasks')->where('task_id', $taskId)->first();
-                    if ($dbRow && trim((string) $dbRow->title) !== $specTitle) {
+                    if ($dbRow && self::titleDriftKey((string) $dbRow->title) !== self::titleDriftKey($specTitle)) {
                         $hardDrifts[] = "{$taskId}";
                     }
                 }
@@ -655,6 +655,27 @@ class HealthCheckCommand extends Command
                 'message' => 'ERRO: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Chave de comparação de title pro spec_id_drift.
+     *
+     * Tira o prefixo de não-letra/não-dígito (emoji de status, mid-dot `·`,
+     * pontuação) antes de comparar DB↔SPEC. Sem isso, 631/646 colisões eram
+     * falso-positivo: o título no `mcp_tasks` carrega um emoji de status no
+     * começo que o MySQL truncou pra `?` (coluna utf8mb3 × emoji 4-byte), e o
+     * parser do SPEC já come o emoji antes do `US-` — então `? Listar Budget`
+     * (DB) vs `Listar Budget` (SPEC) é a MESMA story, diferença só cosmética
+     * (incidente health-check 2026-06-20, prod = 646 alvo 0).
+     *
+     * Aplicado simetricamente nos dois lados: drift REAL difere no conteúdo
+     * alfanumérico (não só no enfeite inicial), então segue sendo pego — as 15
+     * colisões duras genuínas (RecurringBilling-001 ×9, TR-301..303, SELL-010,
+     * WA-002/010/045) continuam reportadas.
+     */
+    public static function titleDriftKey(string $title): string
+    {
+        return trim((string) preg_replace('/^[^\p{L}\p{N}]+/u', '', trim($title)));
     }
 
     /**
