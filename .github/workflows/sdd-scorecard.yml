@@ -31,9 +31,13 @@ on:
       - 'governance/sdd-scorecard.json'
       - 'governance/sdd-scorecard-baseline.json'
       - 'governance/nightly-floor.json'        # floor publicado pelo write-side CT100 (ADR 0279)
+      - 'governance/nightly-coverage.json'     # coverage publicado pelo write-side CT100 (SDD P07 · ADR 0275)
       - 'scripts/governance/sdd-floor-read.test.mjs'
+      - 'scripts/governance/sdd-coverage-read.test.mjs'
       - 'scripts/tests/floor-compute.mjs'
       - 'scripts/tests/floor-compute.test.mjs'
+      - 'scripts/tests/coverage-compute.mjs'
+      - 'scripts/tests/coverage-compute.test.mjs'
       - '.github/workflows/sdd-scorecard.yml'
   schedule:
     - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
@@ -62,13 +66,30 @@ jobs:
       - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
         run: node scripts/tests/floor-compute.test.mjs
 
-      - name: Materializa o floor da branch governance/nightly-floor (ADR 0279 transporte)
+      - name: Read-side do coverage — meta-teste (hard · SDD P07 · ADR 0275 §2)
+        # Counterfactual P07: prova que measureCoverage() NÃO mente 0 com arquivo
+        # ausente (DEVE dar exit 1 se alguém trocar o notYet por 0). Se ficar verde
+        # com o read-side mentindo, o teste não morde — reabrir.
+        run: node scripts/governance/sdd-coverage-read.test.mjs
+
+      - name: Write-side do coverage — meta-teste do compute (hard · SDD P07 · ADR 0275)
+        run: node scripts/tests/coverage-compute.test.mjs
+
+      - name: Materializa floor + coverage da branch governance/nightly-floor (ADR 0279 · SDD P07)
         run: |
-          if git fetch origin governance/nightly-floor --depth 1 2>/dev/null \
-             && git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json 2>/dev/null; then
-            echo "floor materializado da branch governance/nightly-floor:"; cat governance/nightly-floor.json
+          if git fetch origin governance/nightly-floor --depth 1 2>/dev/null; then
+            if git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json 2>/dev/null; then
+              echo "floor materializado da branch governance/nightly-floor:"; cat governance/nightly-floor.json
+            else
+              echo "floor ausente na branch — read-side de floor cai em not_yet_measured"
+            fi
+            if git show FETCH_HEAD:governance/nightly-coverage.json > governance/nightly-coverage.json 2>/dev/null; then
+              echo "coverage materializado da branch governance/nightly-floor:"; cat governance/nightly-coverage.json
+            else
+              echo "coverage ausente na branch — read-side de coverage cai em not_yet_measured (esperado até pcov na imagem CT100 + 1ª nightly)"
+            fi
           else
-            echo "branch/arquivo de floor ausente — read-side cai em not_yet_measured (esperado até o 1º write-side do CT100)"
+            echo "branch governance/nightly-floor ausente — floor+coverage caem em not_yet_measured (esperado até o 1º write-side do CT100)"
           fi
 
       - name: Medir — agregador escreve governance/sdd-scorecard.json

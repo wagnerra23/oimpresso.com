@@ -138,6 +138,39 @@ export function measureFullSuiteFloor(floorPath = join(ROOT, 'governance', 'nigh
   };
 }
 
+// ── fonte: coverage_pct do nightly CT100 (SDD P07 — ADR 0275 §2 catraca C2) ──
+// Read-side do coverage. ESPELHO EXATO de measureFullSuiteFloor: mesmo transporte
+// (governance/nightly-coverage.json publicado na branch órfã governance/nightly-floor
+// pelo write-side coverage-compute.mjs no CT100), mesmo fallback honesto (ausente /
+// JSON inválido / sem número → not_yet_measured, NUNCA mente 0). coverage_pct mede a
+// suíte INTEIRA (pcov na nightly CT100), nunca o lane sqlite curado — fonte honesta
+// é a suíte inteira (ADR 0275:68). "Só sobe" (catraca C2). Vira measured sozinha
+// quando o write-side publicar (após rebuild da imagem com pcov + ≥1 nightly).
+export function measureCoverage(coveragePath = join(ROOT, 'governance', 'nightly-coverage.json')) {
+  if (!existsSync(coveragePath)) {
+    return notYet('up', 'só sobe (catraca C2)',
+      'governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).');
+  }
+  let c;
+  try { c = JSON.parse(readFileSync(coveragePath, 'utf8')); }
+  catch { return notYet('up', 'só sobe (catraca C2)', 'governance/nightly-coverage.json presente mas JSON inválido — write-side corrige; fallback honesto.'); }
+  if (typeof c.coverage_pct !== 'number') {
+    return notYet('up', 'só sobe (catraca C2)', 'governance/nightly-coverage.json sem coverage_pct numérico (schema nightly-coverage/v1) — fallback honesto.');
+  }
+  return {
+    status: 'measured', value: c.coverage_pct, unit: '%',
+    direction: 'up', target: 'só sobe (catraca C2)',
+    source: 'governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)',
+    detail: {
+      covered: c.covered ?? null,
+      total: c.total ?? null,
+      runs: Array.isArray(c.runs) ? c.runs : [],
+      computed_at: c.computed_at ?? null,
+      measured_of: c.measured_of ?? null,
+    },
+  };
+}
+
 // ── fonte: distilled_at das portas BRIEFING (ADR 0291 D-D — peça 3 do keystone) ─
 // Lê o carimbo `distilled_at:` do frontmatter de cada memory/requisitos/<Mod>/BRIEFING.md
 // (o distiller-módulo-verdade — PR-C — escreve esse carimbo ao reescrever a porta).
@@ -252,8 +285,7 @@ function buildScorecard() {
         source: 'convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)',
         detail: { quarantined_files: q.files },
       },
-      coverage_pct: notYet('up', 'só sobe (catraca C2)',
-        'pcov instrumentado em CI (P0-2) — hoje coverage: none'),
+      coverage_pct: measureCoverage(),
       ghost_count: {
         status: 'measured', value: kd.ghost_count, unit: 'nomes distintos',
         direction: 'down', target: 0,
