@@ -69,14 +69,14 @@ related_adrs:
 
 ## 4. ADRs aplicáveis
 
-- [ADR 0053](../../decisions/0053-mcp-server-laravel-mcp.md) — MCP server laravel/mcp como entry point
+- [ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) — MCP server laravel/mcp como entry point
 - [ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md) — Jira-style tasks via tools MCP
 - [ADR 0091](../../decisions/0091-daily-brief.md) — Daily Brief (brief-fetch Tier A always-on)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 isolation
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (princípio 2 tiered cost)
 - [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) — whats-active Tier 1
 - [ADR 0130](../../decisions/0130-handoff-append-only-mcp-first.md) — handoff append-only (event stream)
-- [ADR 0133](../../decisions/0133-system-health-audit.md) — System health audit canônico
+- [ADR 0133](../../decisions/0133-system-health-audit-canonico.md) — System health audit canônico
 
 ## 5. Notas
 

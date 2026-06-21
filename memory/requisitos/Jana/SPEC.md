@@ -1057,7 +1057,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 - ❌ Custom fields typed (JANA-10X-026 / Onda 6 P3)
 - ❌ Comentários inline timeline (next iter)
 
-**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-layout-v2-padrao.md)
+**Refs:** [GAP-ANALYSIS §V1](GAP-ANALYSIS-91-100-2026-05-13.md) · [ONDA-5-DOSSIER §3](ONDA-5-DOSSIER-2026-05-13.md) · [SVAR React Gantt MIT](https://svar.dev/react/gantt/) · [SVAR Gantt 2.4 release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde) · [Linear roadmap timeline](https://linear.app/changelog/2021-05-27-linear-preview-roadmap-timeline) · [GitHub Projects Hierarchy GA mar/2026](https://github.blog/changelog/2026-03-19-hierarchy-view-in-github-projects-is-now-generally-available/) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0110](../../decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 
 ---
 
@@ -1321,3 +1321,17 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Audit log da revisão.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-COPI-128 · Health-check multi_tenant_isolation cego a C3 — ler information_schema + probe cross-tenant READ
+
+> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** rodada adversarial do ADR 0296 (achado S-1, critical). `HealthCheckCommand::checkMultiTenant()` (linha ~178) valida um array HARD-CODED de 3 tabelas Jana e só procura órfãos `business_id IS NULL` — nunca olha `mcp_dual_brain_decisions` (C3) nem faz cross-tenant READ. O critério de sucesso do cutover P1 do ADR 0296 ("isolamento idêntico antes/depois") é hoje **inverificável**.
+
+**Acceptance:**
+- [ ] Ler a lista de tabelas com `business_id` do `information_schema` (não array hard-coded) e cobrir todas C1/C3.
+- [ ] Adicionar probe de cross-tenant READ real: autentica biz=X, consulta C3 pelos MESMOS code-paths do app, afirma zero rows de biz≠X.
+- [ ] Tornar isso pré-requisito do gate de cutover P1 (INVARIANTE-TIER0-VERIFICADA do ADR 0296).
+
+Refs: ADR 0296 (S-1) · ADR 0093 · HealthCheckCommand.php:178.

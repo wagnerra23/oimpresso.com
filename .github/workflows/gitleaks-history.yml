@@ -1,0 +1,43 @@
+# Gitleaks — full git-history scan (4º portão do four-gate model · ADR 0215)
+#
+# O portão `secret-scan` (governance-gate-umbrella.yml) já cobre o DIFF do PR
+# (linhas novas). Este complementa com o **histórico completo** — pega segredo
+# que JÁ ESTÁ no git (dívida 2026-06-07: ~10 arquivos com valor em claro) e
+# qualquer um que tenha escapado antes do gate de PR existir.
+#
+# ADVISORY por design: `continue-on-error: true`. A dívida histórica não some
+# sem reescrever história (decisão do Wagner) — então a run NÃO fica vermelha
+# crônica; o relatório (step summary + artefato SARIF) é o sinal acionável.
+# Promoção a bloqueante/ratchet (falhar só em achado NOVO vs baseline) = follow-up.
+#
+# Config + allowlist: .gitleaks.toml na raiz (compartilhado com o scan de PR).
+
+name: Gitleaks — histórico completo (advisory)
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # toda segunda 09:00 UTC (06:00 BRT)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  history-scan:
+    name: gitleaks detect (histórico completo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # histórico inteiro (sem isto, scan parcial)
+
+      # Evento schedule/workflow_dispatch → gitleaks-action roda `detect` (full history).
+      # Lê .gitleaks.toml da raiz automaticamente. Licença não exigida (user account).
+      - name: Run gitleaks (full history detect)
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
+          GITLEAKS_ENABLE_SUMMARY: "true"
