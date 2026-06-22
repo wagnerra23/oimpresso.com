@@ -88,7 +88,7 @@ Detalhes em `memory/proibicoes.md`. Resumo:
 - ZERO auto-mem privada ([ADR 0061](memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md))
 - `laravel/octane` no Hostinger
 - **F3 (Cowork → Inertia/React):** ler [`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) antes de Edit/Write em `Modules/<Mod>/Http/Controllers/*.php` ou `resources/js/Pages/<Mod>/<Tela>.tsx` — 6 meta-anti-padrões + 15 técnicos catalogados (sessão 2026-05-09 batch Financeiro rejeitado)
-- **Fonte de design ≠ Figma** ([ADR 0298](memory/decisions/0298-figma-nao-e-fonte-de-design.md)): fonte = protótipo Cowork (`prototipo-ui/`) + Design System + charter. Figma/Notion/screenshot/link **só com Wagner explícito** ("figma") — bloqueado por `block-figma-without-optin` (PreToolUse fail-closed). Resolva a fonte em [INDEX-DESIGN-MEMORIAS.md §0](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)
+- **Fonte de design ≠ Figma** ([ADR 0299](memory/decisions/0299-figma-nao-e-fonte-de-design.md)): fonte = protótipo Cowork (`prototipo-ui/`) + Design System + charter. Figma/Notion/screenshot/link **só com Wagner explícito** ("figma") — bloqueado por `block-figma-without-optin` (PreToolUse fail-closed). Resolva a fonte em [INDEX-DESIGN-MEMORIAS.md §0](memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md)
 
 ## Métricas de saúde
 

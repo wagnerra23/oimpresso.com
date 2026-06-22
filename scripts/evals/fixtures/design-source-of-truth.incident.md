@@ -1,6 +1,6 @@
 # Fixture do incidente — "Figma virou fonte de design" (2026-06-22)
 
-> Fixture do baseline comportamental do [ADR 0298](../../../memory/decisions/0298-figma-nao-e-fonte-de-design.md) (L5).
+> Fixture do baseline comportamental do [ADR 0299](../../../memory/decisions/0299-figma-nao-e-fonte-de-design.md) (L5).
 > Usada por `scripts/evals/design-source-of-truth.eval.mjs` (cabeçalho: procedimento baseline/ratchet).
 
 ## O que aconteceu (n=1, capturado)

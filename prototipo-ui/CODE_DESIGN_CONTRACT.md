@@ -235,7 +235,7 @@ Tudo abaixo já apareceu no projeto e causou ruído. Não repetir:
 - ❌ **Redeclarar tokens** em CSS de módulo
 - ❌ **Redeclarar componentes** com mesma classe
 - ❌ **Inventar nome de classe novo** sem checar o DS
-- ❌ **Trazer visual de fonte não-canon** — Figma/Notion/screenshot/link **não** são fonte de design (só com Wagner explícito "figma"). Fonte = este DS + protótipo Cowork + charter ([ADR 0298](../memory/decisions/0298-figma-nao-e-fonte-de-design.md)). No lado Cowork **não há hook** que bloqueie — é disciplina sua.
+- ❌ **Trazer visual de fonte não-canon** — Figma/Notion/screenshot/link **não** são fonte de design (só com Wagner explícito "figma"). Fonte = este DS + protótipo Cowork + charter ([ADR 0299](../memory/decisions/0299-figma-nao-e-fonte-de-design.md)). No lado Cowork **não há hook** que bloqueie — é disciplina sua.
 
 ---
 

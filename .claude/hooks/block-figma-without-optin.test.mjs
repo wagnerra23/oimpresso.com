@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Teste da LÓGICA de block-figma-without-optin (ADR 0298). Importa as funções puras e
+// Teste da LÓGICA de block-figma-without-optin (ADR 0299). Importa as funções puras e
 // prova a classificação — incluindo os caminhos de fuga que o red-team adversarial achou
 // (search_design_system, get_figjam), UUID diferente (Felipe ≠ Wagner) e o sabor plugin.
 // Complementa settings-figma-registration.test.mjs (que prova que o hook está REGISTRADO).

@@ -6,7 +6,7 @@
 // o REGISTRO é o que ativa — scripts/governance/settings-figma-registration.test.mjs
 // guarda contra des-registro (mesmo padrão de block-pr-without-approval / R10).
 //
-// Documento-mãe: ADR 0298 (Figma não é fonte de design). Fonte de design canônica =
+// Documento-mãe: ADR 0299 (Figma não é fonte de design). Fonte de design canônica =
 // protótipo Cowork (prototipo-ui/) + Design System (tokens) + charter — versão atual do DS e
 // paths vivem só no INDEX-DESIGN-MEMORIAS.md §0 (este hook NÃO restata fato que apodrece).
 //
@@ -40,7 +40,7 @@
 //     e passa a gatear QUALQUER tool daquele servidor na sessão — fecha capabilities FUTURAS
 //     do mesmo servidor (must-fix do red-team: não enumerar só o que existe hoje).
 //
-// HONESTIDADE (limitações conhecidas — ADR 0298 §Gaps):
+// HONESTIDADE (limitações conhecidas — ADR 0299 §Gaps):
 //   - É denylist do atrator FIGMA. NÃO fecha a CLASSE inteira ("qualquer atrator não-canon
 //     vira fonte"): Notion, screenshot de Chrome/Windows-MCP, link externo NÃO são gateados
 //     aqui. Esses dependem do L0 (lista NÃO-fontes no INDEX, advisory). Fechar a classe com
@@ -173,7 +173,7 @@ function learnServer(server) {
 
 function denyMessage(server, cap) {
   return [
-    '[BLOCKED: Figma não é fonte de design no oimpresso (ADR 0298)]',
+    '[BLOCKED: Figma não é fonte de design no oimpresso (ADR 0299)]',
     '',
     `Tool: mcp__${server}__${cap}`,
     '',
@@ -182,7 +182,7 @@ function denyMessage(server, cap) {
     '  memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md (§0 · Fontes e NÃO-fontes)',
     '',
     'Pra a DIFF design→code: a skill mwart-comparative gera o comparativo a partir do',
-    'protótipo Cowork (um /design-diff determinístico está previsto no ADR 0298, ainda não existe).',
+    'protótipo Cowork (um /design-diff determinístico está previsto no ADR 0299, ainda não existe).',
     '',
     'Se você REALMENTE quer usar o Figma de propósito: diga "figma" explícito no chat',
     '(ou OIMPRESSO_FIGMA_OK=1, ou crie .figma-allow na raiz) e tente de novo.',

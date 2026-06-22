@@ -6,7 +6,7 @@
 > 2. **Cor = roxo** `primary` `oklch(0.55 0.15 295)` (ADR 0235). O §4 abaixo (shadcn genérico/stone-50, sem roxo) está defasado — **zero `blue-*` de marca**.
 > 3. **Posicionamento:** ERP **multi-vertical** (ADR 0121); **Larissa = vestuário**, não gráfica/comunicação visual. O §2 abaixo ("setor de comunicação visual") está errado.
 > 4. **Crie DENTRO do que existe:** copie o golden do arquétipo + rode o PRE-FLIGHT; nunca invente paleta/persona/componente (M-AP-6) nem repita anti-padrão F3.
-> 5. **Fonte de design = este projeto, NÃO Figma** ([ADR 0298](../memory/decisions/0298-figma-nao-e-fonte-de-design.md)): protótipo Cowork + Design System + charter. Figma/Notion/screenshot/link **não** são fonte (só com Wagner explícito). No lado Cowork não há hook que bloqueie — é disciplina sua.
+> 5. **Fonte de design = este projeto, NÃO Figma** ([ADR 0299](../memory/decisions/0299-figma-nao-e-fonte-de-design.md)): protótipo Cowork + Design System + charter. Figma/Notion/screenshot/link **não** são fonte (só com Wagner explícito). No lado Cowork não há hook que bloqueie — é disciplina sua.
 
 > Este arquivo te dá o contexto do oimpresso pra você produzir protótipo + crítica que **não invente paleta nem persona**.
 

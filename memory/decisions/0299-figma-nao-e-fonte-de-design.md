@@ -1,6 +1,6 @@
 ---
-slug: 0298-figma-nao-e-fonte-de-design
-number: 298
+slug: 0299-figma-nao-e-fonte-de-design
+number: 299
 title: "Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (Cowork + DS + charter)"
 type: adr
 status: proposto
@@ -17,7 +17,6 @@ related:
   - 0114-prototipo-ui-cowork-loop-formalizado
   - 0239-governanca-design-system-git-ssot-regressao-ia
   - 0249-ds-v6-naming-amends-0235
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware
   - 0235-ds-v4-accent-roxo-universal
   - 0094-constituicao-v2-7-camadas-8-principios
 pii: false
@@ -26,7 +25,7 @@ pii: false
 > **Proposta por [CL] (Claude Code) em 2026-06-22.** Ratificação formal = merge por [W].
 > Gatilho (Wagner, verbatim): *"por que não achou quando eu perguntei isso não pode acontecer, vai ter funcionários alterando tbm não pode ter falhas"* — após a IA tratar "design" como Figma e ir **perguntar** a fonte da verdade que já era canon.
 
-# ADR 0298 — Figma não é fonte de design (bloqueio determinístico do atrator)
+# ADR 0299 — Figma não é fonte de design (bloqueio determinístico do atrator)
 
 ## Contexto (verificado em `origin/main`)
 
