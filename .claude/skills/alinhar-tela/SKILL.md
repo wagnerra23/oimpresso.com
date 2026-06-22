@@ -71,6 +71,16 @@ for(const l of txt.split("\n").filter(l=>l.startsWith("**Implementado em:**"))){
 
 `<sha7>` = `git rev-parse --short=7 origin/main` (commit onde os paths foram verificados). Travessão `—` (U+2014), separador ` · ` (U+00B7) — literais, exigidos pela gramática.
 
+## Pré-voo estrutural (antes do push) — só pra mudança ESTRUTURAL
+
+Se a passagem **move arquivo, cria pasta de módulo (`memory/requisitos/<X>/`) ou toca `memory/decisions/`**, rode estas catracas LOCALMENTE antes do push (≈1 min). Senão o CI fica vermelho e você re-trabalha — lição da instância #1: `front_door` e `ghost` foram pegos no CI, não localmente (2-3 pushes a mais). Mudança **aditiva em caminho livre** (conteúdo/skill/requisitos não-crítico) pula isto — nasce verde e Claude mergeia sozinho.
+
+1. **Criou pasta de módulo?** → já inclua `BRIEFING.md` (a "porta" auto-contida, ≤15 links). Sem ela, `front_door_coverage` regride.
+2. `node scripts/governance/sdd-scorecard.mjs --ratchet` → precisa dizer "nenhuma regressão vs baseline". Pega front_door, ghost_count, anchor_coverage etc. **Nunca** bumpar `sdd-scorecard-baseline.json` pra mascarar — corrija a causa.
+3. `node scripts/governance/knowledge-drift.mjs` → 0 ghost novo. **Não escrever o literal `Modules/<X>` de módulo inexistente** (ex.: dizer "não existe `Modules/Cliente`" CRIA um ghost) — reformule sem o prefixo `Modules/`.
+4. anchor-lint + link-check (seção acima).
+5. **Tocou `memory/decisions/` ou caminho crítico** (Financeiro/NFe/RecurringBilling/Copiloto/segredos/infra — ver `.github/CODEOWNERS`)? → assuma que **precisa do Approve do Wagner**; NÃO use `gh pr merge --admin`.
+
 ## Pegadinhas (aprendidas na instância #1 — Cliente, 2026-06-22)
 
 - **`anchor-lint.mjs` só varre `SPEC.md`** (glob `memory/requisitos/*/SPEC.md`). Se a spec viva tem outro nome (ex. `SPEC-us-063-078.md`), a máquina **não lê** as âncoras → a spec precisa morar em `memory/requisitos/<Nome>/SPEC.md`. _Resolvido na instância #1: a spec do cadastro foi movida pra `memory/requisitos/Cliente/SPEC.md` (Wagner "contacts ≠ crm", 2026-06-22)._ Não mexer no tooling compartilhado sozinho.
