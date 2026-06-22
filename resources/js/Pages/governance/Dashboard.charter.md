@@ -65,13 +65,13 @@ Dashboard executivo de governança E saúde do ecossistema: visão consolidada d
 
 ## Tests anti-regressão
 
-- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (esta Page no canon target)
-- [tests/Feature/Design/CockpitTypographyConformanceTest.php](../../tests/Feature/Design/CockpitTypographyConformanceTest.php) — tipografia
+- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (esta Page no canon target)
+- [tests/Feature/Design/CockpitTypographyConformanceTest.php](../../../../tests/Feature/Design/CockpitTypographyConformanceTest.php) — tipografia
 
 ---
 
 ## Refs
 
-- [Design.md §16 Cockpit V2](../../../../Design.md)
+- [DESIGN.md §16 Cockpit V2](../../../../DESIGN.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0094 Constituição V2](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — checks de saúde

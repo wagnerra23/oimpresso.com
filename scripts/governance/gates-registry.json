@@ -54,9 +54,13 @@
       "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
       "classe": "gate"
     },
-    "casos-meta-gate.yml": {
-      "nome": "Casos-guard meta-teste (vitest)",
+    "guards-meta-gate.yml": {
+      "nome": "Guards meta-gate (vitest · casos + domínio · funde casos-meta + dominio-meta)",
       "classe": "meta"
+    },
+    "charter-refs-gate.yml": {
+      "nome": "Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256)",
+      "classe": "gate"
     },
     "ci.yml": {
       "nome": "CI",
@@ -125,10 +129,6 @@
     "dominio-gate.yml": {
       "nome": "Dominio-dict ratchet (coerência de domínio)",
       "classe": "gate"
-    },
-    "dominio-meta-gate.yml": {
-      "nome": "Dominio-guard meta-teste (vitest)",
-      "classe": "meta"
     },
     "e2e-gate.yml": {
       "nome": "E2E Playwright (UCs críticos) — G-3",
@@ -356,6 +356,10 @@
     },
     "shipped-log-gate.yml": {
       "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
+      "classe": "gate"
+    },
+    "dup-detector-gate.yml": {
+      "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
       "classe": "gate"
     }
   }

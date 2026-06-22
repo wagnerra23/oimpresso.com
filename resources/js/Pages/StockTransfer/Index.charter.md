@@ -4,7 +4,6 @@ component: resources/js/Pages/StockTransfer/Index.tsx
 tela: stock_transfers/index
 tipo: LIST
 modulo: Inventory / StockTransfer
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-transfer-index.md
 status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]

@@ -65,14 +65,14 @@ Mostrar a Wagner divergência entre intenção declarada (SCOPE.md de cada módu
 
 ## Tests anti-regressão
 
-- [bin/check-scope.php](../../bin/check-scope.php) — CLI equivalente (paridade lógica obrigatória)
-- [tests/Feature/Governance/DriftDetectionTest.php](../../tests/Feature/Governance/DriftDetectionTest.php) — módulo fixture com controller undeclared
+- [bin/check-scope.php](../../../../bin/check-scope.php) — CLI equivalente (paridade lógica obrigatória)
+- tests/Feature/Governance/DriftDetectionTest.php — módulo fixture com controller undeclared
 
 ---
 
 ## Refs
 
-- [ADR 0079 Constituição Governança](../../../../memory/decisions/0079-constituicao-governanca-7-artigos.md) Art. 7 (Module Charter)
-- [ADR 0086 Governance Fase 5 MVP](../../../../memory/decisions/0086-governance-fase-5-mvp.md)
+- [ADR 0079 Constituição Governança](../../../../memory/decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) Art. 7 (Module Charter)
+- [ADR 0086 Governance Fase 5 MVP](../../../../memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md)
 - [ADR 0094 Constituição V2](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — REGRA PRIMÁRIA "mexeu, registra"
 - [Proibições — REGRA PRIMÁRIA](../../../../memory/proibicoes.md)

@@ -138,16 +138,16 @@ it('all 5 heavy props use Inertia::defer (modules, scorecards, drifts, initiativ
 
 - Blueprint canônico tri-pane: [`resources/js/Pages/kb/Index.v2.tsx`](../kb/Index.v2.tsx) (validado Wagner ONDA 2)
 - Charter blueprint: [`kb/Index.v2.charter.md`](../kb/Index.v2.charter.md)
-- [ADR 0160 — Governance v4 scoped scorecards + buckets](../../../memory/decisions/0160-governance-v4-scoped-scorecards-buckets.md)
-- [ADR 0161 — Aposentar hacks 0159 redundantes](../../../memory/decisions/0161-governance-v4-aposentar-hacks-0159-redundantes.md)
-- [ADR 0162 — OTel collector prod observability](../../../memory/decisions/0162-otel-collector-prod-observability.md)
-- [ADR 0163 — Metas alcançadas ondas 19-28](../../../memory/decisions/0163-governance-v4-metas-alcancadas-ondas-19-28.md)
-- [ADR 0039 — UI Chat Cockpit Padrão](../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)
-- [ADR 0104 — Processo MWART canônico](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0110 — Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- BRIEFING: [`memory/requisitos/Governance/BRIEFING.md`](../../../memory/requisitos/Governance/BRIEFING.md)
+- [ADR 0160 — Governance v4 scoped scorecards + buckets](../../../../memory/decisions/0160-governance-v4-scoped-scorecards-buckets.md)
+- [ADR 0161 — Aposentar hacks 0159 redundantes](../../../../memory/decisions/0161-governance-v4-aposentar-hacks-0159-redundantes.md)
+- [ADR 0162 — OTel collector prod observability](../../../../memory/decisions/0162-otel-collector-prod-observability.md)
+- [ADR 0163 — Metas alcançadas ondas 19-28](../../../../memory/decisions/0163-governance-v4-metas-alcancadas-ondas-19-28.md)
+- [ADR 0039 — UI Chat Cockpit Padrão](../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)
+- [ADR 0104 — Processo MWART canônico](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- BRIEFING: [`memory/requisitos/Governance/BRIEFING.md`](../../../../memory/requisitos/Governance/BRIEFING.md)
 - Backend: `Modules/Admin/Http/Controllers/GovernanceV4DashboardController.php` (indexV2 pendente W29-B)
-- RUNBOOK Inertia::defer: [`memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md`](../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
+- RUNBOOK Inertia::defer: [`memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md`](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 
 ## Histórico
 

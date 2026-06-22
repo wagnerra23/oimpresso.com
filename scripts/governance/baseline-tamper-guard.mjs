@@ -132,6 +132,8 @@ const GUARDED = {
   '.foundation-guard-baseline.json': detectCountRatchet,
   '.dsih-baseline.json': detectCountRatchet,
   '.scheme-baseline.json': detectCountRatchet,
+  // catraca de refs de Page Charter (ceiling único → ratchet homogêneo)
+  'governance/charter-refs-baseline.json': detectCountRatchet,
 };
 
 // ── resolver base do diff ─────────────────────────────────────────────────────

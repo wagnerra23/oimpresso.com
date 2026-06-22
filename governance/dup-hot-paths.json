@@ -1,0 +1,17 @@
+{
+  "_meta": "Hot-paths da trava anti-duplicação L3 (proposta anti-duplicacao-work-claim-gate). 2 PRs abertos tocando o MESMO arquivo (path exato) sob um destes prefixos = provável duplicação de trabalho entre sessões paralelas → exige `Dedup-ack:` no corpo. `exclude` = arquivos compartilhados-por-natureza que QUASE TODO PR toca (não são sinal de dup). Calibrar a cada 7 PRs barrados (cláusula ZELADOR).",
+  "hot": [
+    "scripts/governance/",
+    ".github/workflows/",
+    "memory/decisions/",
+    "Modules/Governance/Services/",
+    "governance/"
+  ],
+  "exclude": [
+    "scripts/governance/gates-registry.json",
+    "governance/required-checks-baseline.json",
+    "governance/dup-hot-paths.json",
+    "memory/08-handoff.md",
+    "memory/decisions/_INDEX-GENERATED.md"
+  ]
+}

@@ -20,11 +20,13 @@
  *   (default) dry-run no stdout
  *   --write   grava memory/governance/shipped/<CYCLE>.md
  *   --check   gate CI: falha (exit 1) se algum shipped-log versionado está STALE (> FRESH_DAYS desde `generated`)
+ *   --json    saúde do registro em JSON (pro Daily Brief / ShippedLogBriefLineService) — {ok,cycles,stale,findings}
  *
  * Uso:
  *   node scripts/governance/shipped-log-generate.mjs --since=2026-05-31 --until=2026-06-22 --cycle=CYCLE-08 [--write]
  *   node scripts/governance/shipped-log-generate.mjs --days=14 --cycle=CYCLE-08 --write     (modo cron)
  *   node scripts/governance/shipped-log-generate.mjs --check                                 (gate CI)
+ *   node scripts/governance/shipped-log-generate.mjs --json                                  (linha do Brief)
  *
  * Refs: ADR 0294 (loop) · 0256 (fonte única gerada/catraca) · 0070 (tasks MCP) · 0226 (Daily Brief).
  */
@@ -170,6 +172,20 @@ export function inBrtRange(mergedAtIso, since, until) {
   return t >= lo && t <= hi;
 }
 
+/** Saúde do registro versionado (pura): findings de freshness por arquivo. */
+export function evalShippedHealth(files, today) {
+  const findings = [];
+  for (const { name, text } of files) {
+    const mGen = text.match(/^generated:\s*"?(\d{4}-\d{2}-\d{2})"?/m);
+    const mStatus = text.match(/^status:\s*(\w+)/m);
+    if (!mGen) { findings.push({ cycle: name, issue: 'sem campo generated', level: 'fail' }); continue; }
+    if (mStatus && mStatus[1] === 'parcial') continue; // parcial é regenerado por cron; não morde
+    const ageDays = Math.round((today - Date.parse(mGen[1] + 'T00:00:00Z')) / 86400000);
+    if (ageDays > FRESH_DAYS) findings.push({ cycle: name, issue: `generated há ${ageDays}d (> ${FRESH_DAYS}d) — STALE`, level: 'fail' });
+  }
+  return findings;
+}
+
 // ── coleta (impura — gh) ────────────────────────────────────────────────────────
 function gh(args) { return execFileSync('gh', args, { encoding: 'utf8', shell: false, maxBuffer: 96 * 1024 * 1024 }); }
 
@@ -184,7 +200,6 @@ function collectPRs(repoArgs, since, until) {
   }
   const all = [...seen.values()];
   const inWindow = all.filter((p) => inBrtRange(p.mergedAt, since, until)).sort((a, b) => (a.mergedAt < b.mergedAt ? -1 : a.mergedAt > b.mergedAt ? 1 : a.number - b.number));
-  // pro cross-check: contagem na MESMA definição UTC do Search (merged:since..until, base main)
   const inUtc = all.filter((p) => { const t = Date.parse(p.mergedAt); return t >= Date.parse(since + 'T00:00:00Z') && t <= Date.parse(until + 'T23:59:59Z'); }).length;
   return { inWindow, inUtc, anyDayHitCap };
 }
@@ -209,29 +224,27 @@ function resolveRepo(repoArg) {
   try { return gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim(); } catch { return ''; }
 }
 
-// ── --check (gate CI): nenhum shipped-log versionado pode estar stale ────────────
-function runCheck(root) {
+// ── --check (gate CI) / --json (Brief): nenhum shipped-log versionado pode estar stale ──
+function runHealth(root, jsonOut) {
   const dir = join(root, SHIPPED_DIR);
-  if (!existsSync(dir)) { console.log(`ℹ️  ${SHIPPED_DIR}/ ainda não existe — nada a checar.`); return 0; }
-  const files = readdirSync(dir).filter((f) => f.endsWith('.md'));
-  const today = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
-  const stale = [];
-  for (const f of files) {
-    const txt = readFileSync(join(dir, f), 'utf8');
-    const mGen = txt.match(/^generated:\s*"?(\d{4}-\d{2}-\d{2})"?/m);
-    const mStatus = txt.match(/^status:\s*(\w+)/m);
-    if (!mGen) { stale.push(`${f}: sem campo generated`); continue; }
-    if (mStatus && mStatus[1] === 'parcial') continue; // parcial é regenerado por cron; não morde
-    const ageDays = Math.round((today - Date.parse(mGen[1] + 'T00:00:00Z')) / 86400000);
-    if (ageDays > FRESH_DAYS) stale.push(`${f}: generated há ${ageDays}d (> ${FRESH_DAYS}d) — STALE`);
+  if (!existsSync(dir)) {
+    if (jsonOut) { console.log(JSON.stringify({ ok: true, skipped: true, cycles: 0, stale: 0, findings: [] })); return 0; }
+    console.log(`ℹ️  ${SHIPPED_DIR}/ ainda não existe — nada a checar.`); return 0;
   }
-  if (stale.length) {
+  const names = readdirSync(dir).filter((f) => f.endsWith('.md'));
+  const files = names.map((name) => ({ name, text: readFileSync(join(dir, name), 'utf8') }));
+  const today = Date.parse(new Date().toISOString().slice(0, 10) + 'T00:00:00Z');
+  const findings = evalShippedHealth(files, today);
+  const stale = findings.length;
+  const ok = stale === 0;
+  if (jsonOut) { console.log(JSON.stringify({ ok, cycles: names.length, stale, findings })); return ok ? 0 : 1; }
+  if (!ok) {
     console.error(`✗ shipped-log STALE — o cron/auto-PR não está mantendo o registro fresco:`);
-    for (const s of stale) console.error(`  - ${s}`);
+    for (const f of findings) console.error(`  - ${f.cycle}: ${f.issue}`);
     console.error(`Conserto: rode o gerador --write (ou destrave o cron shipped-log-cron.yml).`);
     return 1;
   }
-  console.log(`✓ shipped-log fresco (${files.length} cycle(s), todos ≤ ${FRESH_DAYS}d ou parciais).`);
+  console.log(`✓ shipped-log fresco (${names.length} cycle(s), todos ≤ ${FRESH_DAYS}d ou parciais).`);
   return 0;
 }
 
@@ -240,7 +253,8 @@ function arg(name, def = '') { const h = process.argv.find((a) => a.startsWith(`
 
 function main() {
   const ROOT = process.cwd();
-  if (process.argv.includes('--check')) process.exit(runCheck(ROOT));
+  const JSON_OUT = process.argv.includes('--json');
+  if (process.argv.includes('--check') || JSON_OUT) process.exit(runHealth(ROOT, JSON_OUT));
 
   let since = arg('since'), until = arg('until');
   const days = arg('days'), cycle = arg('cycle', 'sem-cycle'), repoArg = arg('repo');
@@ -250,7 +264,7 @@ function main() {
     const d = new Date(todayStr + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - Number(days));
     since = d.toISOString().slice(0, 10); until = todayStr;
   }
-  if (!since || !until) { console.error('uso: --since=YYYY-MM-DD --until=YYYY-MM-DD [--cycle=CYCLE-NN] [--write] | --days=N | --check'); process.exit(2); }
+  if (!since || !until) { console.error('uso: --since=YYYY-MM-DD --until=YYYY-MM-DD [--cycle=CYCLE-NN] [--write] | --days=N | --check | --json'); process.exit(2); }
   const partial = until >= todayStr;
 
   const repo = resolveRepo(repoArg);

@@ -9,6 +9,7 @@ use Modules\Brief\Services\BriefGeneratorService;
 use Modules\Brief\Services\BriefValidator;
 use Modules\Brief\Services\LeaseBriefSectionService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
+use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
 use Throwable;
 
@@ -58,6 +59,12 @@ final class GenerateBriefCommand extends Command
         // ausente / índice não-deployado → brief intacto. Catraca-irmã do gate CI
         // plan-health-gate.yml (PLANS-INDEX §"Como manter vivo" item 2).
         $content = app(PlanHealthBriefLineService::class)->inject($content);
+
+        // Porta de saída do loop (ADR 0294 ext) — linha de SAÚDE DO SHIPPED-LOG
+        // (pós-LLM, determinística) na seção FLAGS: shell-out de
+        // shipped-log-generate.mjs --json. Best-effort: node ausente / registro
+        // não-deployado → brief intacto. Catraca-irmã do gate shipped-log-gate.yml.
+        $content = app(ShippedLogBriefLineService::class)->inject($content);
 
         // C2+C3 (SDD Leva 2, ADR 0278) — bloco de leases ATIVOS + nudge "claim
         // antes de pegar", injetado sob `## EM VOO AGORA`. Best-effort (pós-LLM):

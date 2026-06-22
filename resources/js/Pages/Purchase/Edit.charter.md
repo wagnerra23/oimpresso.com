@@ -4,7 +4,6 @@ component: resources/js/Pages/Purchase/Edit.tsx
 tela: purchase/edit
 tipo: FORM (EDIT)
 modulo: Purchase
-runbook: memory/requisitos/Inventory/RUNBOOK-purchase-edit.md
 status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]
