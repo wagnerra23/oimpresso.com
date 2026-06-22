@@ -6,7 +6,7 @@ status: planejado
 data: "2026-06-22"
 gerado_por: agente deprecar-modulo
 owner: W
-related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0179-cliente-drawer-760px-substitui-show-fullpage]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0179-cliente-drawer-760px-substitui-show-fullpage, 0301-separar-cliente-deprecar-crm-pipeline]
 ---
 
 # DEPRECATION-PLAN — Pipeline CRM pré-venda (Modules/Crm parte B)
