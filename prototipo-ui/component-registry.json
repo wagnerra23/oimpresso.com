@@ -1,0 +1,482 @@
+{
+  "version": "1",
+  "_doc": "REGISTRO MÁQUINA-LEGÍVEL bloco-de-protótipo → componente React REAL (Onda O2). Tira a re-tradução manual bloco→componente que gera regressão no handoff Cowork. Cada entrada mapeia um BLOCO do protótipo (classe CSS .cw-*/.os-*/nome de bloco) → o componente React canônico que o substitui (lido de resources/js/Components/ui/* @ branch feat/onda-component-registry). REGRA DURA: toda entrada com status 'mapped' bate com um arquivo REAL lido (import_path + export verificados). Blocos do protótipo SEM componente React equivalente entram como status 'gap' (não fabricar). Sentinela de drift: scripts/governance/component-registry-check.mjs (advisory) valida que cada import_path existe e exporta o componente. Fonte da prosa: prototipo-ui/REGISTRY_DS_COMPONENTES.md. Roteamento de ARQUIVOS por glob: prototipo-ui/cowork-map.json (complementar — aquele roteia files, este mapeia componentes).",
+  "_schema": {
+    "bloco_prototipo": "classe CSS (.cw-input/.cw-btn-primary/.cw-segmented) ou nome do bloco no protótipo Cowork/REGISTRY",
+    "componente_react": "nome do símbolo exportado (ex 'Button'); pra blocos compostos, o componente raiz",
+    "import_path": "alias de import real (ex '@/Components/ui/button')",
+    "file": "caminho repo-relative do arquivo .tsx que o check parseia",
+    "exports": "lista de símbolos exportados que cobrem o bloco (verificados no arquivo)",
+    "props": "props relevantes pra tradução do bloco (não exaustivo de HTML attrs)",
+    "variant_map": "bloco/estado do protótipo → prop=valor do componente React",
+    "status": "mapped (componente existe) | gap (bloco do protótipo sem React equivalente — NÃO fabricar)"
+  },
+  "entries": [
+    {
+      "bloco_prototipo": ".cw-btn-primary / .cw-btn-ghost / botão de ação",
+      "componente_react": "Button",
+      "import_path": "@/Components/ui/button",
+      "file": "resources/js/Components/ui/button.tsx",
+      "exports": ["Button", "buttonVariants"],
+      "props": ["variant", "size", "asChild", "disabled"],
+      "variant_map": {
+        ".cw-btn-primary": "variant=cowork-primary",
+        ".cw-btn-ghost": "variant=cowork-ghost",
+        "primary": "variant=default",
+        "destructive / perigo": "variant=destructive",
+        "outline": "variant=outline",
+        "ghost": "variant=ghost",
+        "link": "variant=link",
+        "compacto (h-30px Cowork)": "size=cowork",
+        "ícone": "size=icon"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".badge / pílula de status / .os-badge",
+      "componente_react": "Badge",
+      "import_path": "@/Components/ui/badge",
+      "file": "resources/js/Components/ui/badge.tsx",
+      "exports": ["Badge", "badgeVariants"],
+      "props": ["variant", "asChild"],
+      "variant_map": {
+        "default (marca)": "variant=default",
+        "secundário": "variant=secondary",
+        "outline": "variant=outline",
+        "sucesso / pago / ok (verde)": "variant=success",
+        "aviso / pendente (amarelo)": "variant=warning",
+        "perigo / atrasado / erro (vermelho)": "variant=danger",
+        "info (azul)": "variant=info",
+        "neutro / rascunho (cinza)": "variant=neutral"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".cw-input / campo de texto",
+      "componente_react": "Input",
+      "import_path": "@/Components/ui/input",
+      "file": "resources/js/Components/ui/input.tsx",
+      "exports": ["Input"],
+      "props": ["variant", "type", "placeholder", "value", "onChange", "disabled"],
+      "variant_map": {
+        ".cw-input (default Cowork)": "variant=cowork",
+        "shadcn legacy (container escuro)": "variant=shadcn"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".cw-input.cw-textarea / área de texto",
+      "componente_react": "Textarea",
+      "import_path": "@/Components/ui/textarea",
+      "file": "resources/js/Components/ui/textarea.tsx",
+      "exports": ["Textarea"],
+      "props": ["variant", "placeholder", "value", "onChange", "rows"],
+      "variant_map": {
+        ".cw-input.cw-textarea (default)": "variant=cowork",
+        "shadcn legacy": "variant=shadcn"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "select / dropdown nativo / .cw-input em select",
+      "componente_react": "Select",
+      "import_path": "@/Components/ui/select",
+      "file": "resources/js/Components/ui/select.tsx",
+      "exports": ["Select", "SelectContent", "SelectGroup", "SelectItem", "SelectLabel", "SelectScrollDownButton", "SelectScrollUpButton", "SelectSeparator", "SelectTrigger", "SelectValue"],
+      "props": ["value", "onValueChange", "size (no SelectTrigger)", "variant (no SelectTrigger)"],
+      "variant_map": {
+        ".cw-input (default no SelectTrigger)": "variant=cowork",
+        "shadcn legacy": "variant=shadcn"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "input type=radio nativo / grupo de rádio",
+      "componente_react": "RadioGroup",
+      "import_path": "@/Components/ui/radio-group",
+      "file": "resources/js/Components/ui/radio-group.tsx",
+      "exports": ["RadioGroup", "RadioGroupItem"],
+      "props": ["value", "onValueChange", "disabled"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "input type=checkbox nativo",
+      "componente_react": "Checkbox",
+      "import_path": "@/Components/ui/checkbox",
+      "file": "resources/js/Components/ui/checkbox.tsx",
+      "exports": ["Checkbox"],
+      "props": ["checked", "onCheckedChange", "disabled"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".cw-switch / toggle de booleano (setting)",
+      "componente_react": "Switch",
+      "import_path": "@/Components/ui/switch",
+      "file": "resources/js/Components/ui/switch.tsx",
+      "exports": ["Switch"],
+      "props": ["checked", "onCheckedChange", "size", "variant", "disabled"],
+      "variant_map": {
+        ".cw-switch (Cowork)": "variant=cowork",
+        "shadcn (default legacy)": "variant=shadcn"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".cw-label / rótulo de campo",
+      "componente_react": "Label",
+      "import_path": "@/Components/ui/label",
+      "file": "resources/js/Components/ui/label.tsx",
+      "exports": ["Label"],
+      "props": ["variant", "htmlFor"],
+      "variant_map": {
+        ".cw-label (default Cowork)": "variant=cowork",
+        "shadcn (preto principal)": "variant=shadcn"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "campo de moeda / decimal R$ (input numérico pt-BR)",
+      "componente_react": "NumericInputPtBR",
+      "import_path": "@/Components/ui/numeric-input-ptbr",
+      "file": "resources/js/Components/ui/numeric-input-ptbr.tsx",
+      "exports": ["NumericInputPtBR", "default"],
+      "props": ["value", "onValueChange"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "campo CPF/CNPJ (com máscara/validação)",
+      "componente_react": "DocumentInput",
+      "import_path": "@/Components/ui/document-input",
+      "file": "resources/js/Components/ui/document-input.tsx",
+      "exports": ["DocumentInput"],
+      "props": ["value", "onValueChange", "tipo"],
+      "variant_map": {
+        "auto (detecta CPF vs CNPJ)": "tipo=auto",
+        "CPF fixo": "tipo=cpf",
+        "CNPJ fixo": "tipo=cnpj"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "campo telefone BR (com máscara)",
+      "componente_react": "PhoneInput",
+      "import_path": "@/Components/ui/phone-input",
+      "file": "resources/js/Components/ui/phone-input.tsx",
+      "exports": ["PhoneInput"],
+      "props": ["value", "onValueChange"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "modal hand-rolled (fixed inset-0)",
+      "componente_react": "Dialog",
+      "import_path": "@/Components/ui/dialog",
+      "file": "resources/js/Components/ui/dialog.tsx",
+      "exports": ["Dialog", "DialogClose", "DialogContent", "DialogDescription", "DialogFooter", "DialogHeader", "DialogOverlay", "DialogPortal", "DialogTitle", "DialogTrigger"],
+      "props": ["open", "onOpenChange"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "modal de confirmação caseiro / confirm()",
+      "componente_react": "AlertDialog",
+      "import_path": "@/Components/ui/alert-dialog",
+      "file": "resources/js/Components/ui/alert-dialog.tsx",
+      "exports": ["AlertDialog", "AlertDialogAction", "AlertDialogCancel", "AlertDialogContent", "AlertDialogDescription", "AlertDialogFooter", "AlertDialogHeader", "AlertDialogMedia", "AlertDialogOverlay", "AlertDialogPortal", "AlertDialogTitle", "AlertDialogTrigger"],
+      "props": ["open", "onOpenChange"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".os-drawer / drawer lateral hand-rolled",
+      "componente_react": "Sheet",
+      "import_path": "@/Components/ui/sheet",
+      "file": "resources/js/Components/ui/sheet.tsx",
+      "exports": ["Sheet", "SheetTrigger", "SheetClose", "SheetContent", "SheetHeader", "SheetFooter", "SheetTitle", "SheetDescription"],
+      "props": ["open", "onOpenChange", "side (no SheetContent)"],
+      "variant_map": {
+        "drawer direito": "side=right",
+        "drawer esquerdo": "side=left"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "dropdown posicionado na mão / .os-pop",
+      "componente_react": "Popover",
+      "import_path": "@/Components/ui/popover",
+      "file": "resources/js/Components/ui/popover.tsx",
+      "exports": ["Popover", "PopoverTrigger", "PopoverContent", "PopoverAnchor"],
+      "props": ["open", "onOpenChange"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "menu kebab caseiro / .icon-btn de ações",
+      "componente_react": "DropdownMenu",
+      "import_path": "@/Components/ui/dropdown-menu",
+      "file": "resources/js/Components/ui/dropdown-menu.tsx",
+      "exports": ["DropdownMenu", "DropdownMenuPortal", "DropdownMenuTrigger", "DropdownMenuContent", "DropdownMenuGroup", "DropdownMenuLabel", "DropdownMenuItem", "DropdownMenuCheckboxItem", "DropdownMenuRadioGroup", "DropdownMenuRadioItem", "DropdownMenuSeparator", "DropdownMenuShortcut", "DropdownMenuSub", "DropdownMenuSubTrigger", "DropdownMenuSubContent"],
+      "props": ["open", "onOpenChange"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "title=\"\" / tooltip CSS ad-hoc",
+      "componente_react": "Tooltip",
+      "import_path": "@/Components/ui/tooltip",
+      "file": "resources/js/Components/ui/tooltip.tsx",
+      "exports": ["Tooltip", "TooltipTrigger", "TooltipContent", "TooltipProvider"],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "palette hand-rolled (⌘K)",
+      "componente_react": "Command",
+      "import_path": "@/Components/ui/command",
+      "file": "resources/js/Components/ui/command.tsx",
+      "exports": ["Command", "CommandDialog", "CommandInput", "CommandList", "CommandEmpty", "CommandGroup", "CommandItem", "CommandShortcut", "CommandSeparator"],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "banner bg-red-50 border / aviso inline",
+      "componente_react": "Alert",
+      "import_path": "@/Components/ui/alert",
+      "file": "resources/js/Components/ui/alert.tsx",
+      "exports": ["Alert", "AlertTitle", "AlertDescription"],
+      "props": ["variant"],
+      "variant_map": {
+        "neutro / info": "variant=default",
+        "erro / perigo": "variant=destructive"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "inicial em div redondo / .os-avatar",
+      "componente_react": "Avatar",
+      "import_path": "@/Components/ui/avatar",
+      "file": "resources/js/Components/ui/avatar.tsx",
+      "exports": ["Avatar", "AvatarImage", "AvatarFallback", "AvatarBadge", "AvatarGroup", "AvatarGroupCount"],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".os-card / div.rounded-lg.border.bg-card",
+      "componente_react": "Card",
+      "import_path": "@/Components/ui/card",
+      "file": "resources/js/Components/ui/card.tsx",
+      "exports": ["Card", "CardHeader", "CardFooter", "CardTitle", "CardAction", "CardDescription", "CardContent"],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "animate-pulse bg-muted / placeholder de carregamento",
+      "componente_react": "Skeleton",
+      "import_path": "@/Components/ui/skeleton",
+      "file": "resources/js/Components/ui/skeleton.tsx",
+      "exports": ["Skeleton"],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "hr / border-t / divisor",
+      "componente_react": "Separator",
+      "import_path": "@/Components/ui/separator",
+      "file": "resources/js/Components/ui/separator.tsx",
+      "exports": ["Separator"],
+      "props": ["orientation"],
+      "variant_map": {
+        "horizontal": "orientation=horizontal",
+        "vertical": "orientation=vertical"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "área scrollável estilizada",
+      "componente_react": "ScrollArea",
+      "import_path": "@/Components/ui/scroll-area",
+      "file": "resources/js/Components/ui/scroll-area.tsx",
+      "exports": ["ScrollArea"],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "painel redimensionável (split view)",
+      "componente_react": "ResizablePanelGroup",
+      "import_path": "@/Components/ui/resizable",
+      "file": "resources/js/Components/ui/resizable.tsx",
+      "exports": ["ResizablePanelGroup", "ResizablePanel", "ResizableHandle"],
+      "props": ["direction (no ResizablePanelGroup)"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "import solto de lucide-react / ícone fora do registry",
+      "componente_react": "icon-registry",
+      "import_path": "@/Components/ui/icon-registry",
+      "file": "resources/js/Components/ui/icon-registry.ts",
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "mapped",
+      "_nota": "Barril de ícones (re-exporta lucide curado). Não é componente único — o check valida só a existência do arquivo + que tem export."
+    },
+    {
+      "bloco_prototipo": ".cw-segmented / toggle PF/PJ · Cliente/Fornecedor (radio de 2-3 opções)",
+      "componente_react": "Segmented",
+      "import_path": "@/Components/ui/segmented",
+      "file": "resources/js/Components/ui/segmented.tsx",
+      "exports": ["Segmented"],
+      "props": ["value", "onValueChange", "options", "accent"],
+      "variant_map": {
+        ".cw-segmented (neutro)": "accent=false",
+        ".cw-segmented.cw-accent (roxo de marca)": "accent=true"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".form-section / section.rounded-lg.border (grupo de campos)",
+      "componente_react": "FormSection",
+      "import_path": "@/Components/ui/form-section",
+      "file": "resources/js/Components/ui/form-section.tsx",
+      "exports": ["FormSection", "FormGrid"],
+      "props": [],
+      "variant_map": {
+        ".form-section": "FormSection",
+        ".form-grid (grid de campos dentro da section)": "FormGrid"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".input-group + .ig-btn/.ig-addon (input + botão Buscar CNPJ / addon R$/%)",
+      "componente_react": "InputGroup",
+      "import_path": "@/Components/ui/input-group",
+      "file": "resources/js/Components/ui/input-group.tsx",
+      "exports": ["InputGroup", "InputGroupButton", "InputGroupAddon"],
+      "props": [],
+      "variant_map": {
+        ".input-group": "InputGroup",
+        ".ig-btn (botão acoplado)": "InputGroupButton",
+        ".ig-addon (R$/% prefixo)": "InputGroupAddon"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": ".field-error/.field-success/.field-validating/.req (estado de validação de campo)",
+      "componente_react": "FieldError",
+      "import_path": "@/Components/ui/field-state",
+      "file": "resources/js/Components/ui/field-state.tsx",
+      "exports": ["FieldError", "FieldSuccess", "FieldValidating", "RequiredMark"],
+      "props": [],
+      "variant_map": {
+        ".field-error (erro)": "FieldError",
+        ".field-success (ok verde)": "FieldSuccess",
+        ".field-validating (carregando)": "FieldValidating",
+        ".req (asterisco obrigatório)": "RequiredMark"
+      },
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "Box (container neutro c/ espaço/cor via token)",
+      "componente_react": "Box",
+      "import_path": "@/Components/layout",
+      "file": "resources/js/Components/layout/index.ts",
+      "exports": ["Box"],
+      "props": ["p", "bg", "rounded"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "div.flex.flex-col.gap-N solto (empilhamento vertical)",
+      "componente_react": "Stack",
+      "import_path": "@/Components/layout",
+      "file": "resources/js/Components/layout/index.ts",
+      "exports": ["Stack"],
+      "props": ["gap", "align"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "div.flex.items-center.gap-N solto (alinhamento horizontal)",
+      "componente_react": "Inline",
+      "import_path": "@/Components/layout",
+      "file": "resources/js/Components/layout/index.ts",
+      "exports": ["Inline"],
+      "props": ["gap", "align", "wrap"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "div.grid.grid-cols-N solto (grid responsivo)",
+      "componente_react": "Grid",
+      "import_path": "@/Components/layout",
+      "file": "resources/js/Components/layout/index.ts",
+      "exports": ["Grid"],
+      "props": ["cols", "gap"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "wrapper de largura máx + padding de página",
+      "componente_react": "Container",
+      "import_path": "@/Components/layout",
+      "file": "resources/js/Components/layout/index.ts",
+      "exports": ["Container"],
+      "props": ["size"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "text-[Npx] literal solto (tipografia)",
+      "componente_react": "Text",
+      "import_path": "@/Components/layout",
+      "file": "resources/js/Components/layout/index.ts",
+      "exports": ["Text"],
+      "props": ["size", "weight", "color"],
+      "variant_map": {},
+      "status": "mapped"
+    },
+    {
+      "bloco_prototipo": "c-id / ficha-360 (DS v6 kit) — bloco de identificação 360°",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS (Tier-0) declarado em REGISTRY_DS_COMPONENTES.md (ds-v6/REUSE_MAPPING.md). Nasce na 1ª tela que o consome — NÃO fabricar componente. Hand-roll permitido até promover."
+    },
+    {
+      "bloco_prototipo": "c-tl / timeline unificada (DS v6 kit)",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS (Tier-0) — sem impl React. Nasce na 1ª tela consumidora. NÃO fabricar."
+    },
+    {
+      "bloco_prototipo": "c-nba / next-best-action (DS v6 kit)",
+      "componente_react": null,
+      "import_path": null,
+      "file": null,
+      "exports": [],
+      "props": [],
+      "variant_map": {},
+      "status": "gap",
+      "_nota": "Buraco do DS (Tier-0) — sem impl React. Nasce na 1ª tela consumidora. NÃO fabricar."
+    }
+  ]
+}

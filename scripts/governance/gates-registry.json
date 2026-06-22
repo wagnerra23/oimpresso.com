@@ -19,6 +19,13 @@
       "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
       "classe": "gate"
     },
+    "component-registry.yml": {
+      "nome": "Component Registry Drift (Onda O2 · sentinela bloco-de-protótipo → componente React · prototipo-ui/component-registry.json · self-test obrigatório + drift advisory)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Onda O2 (registro de componentes máquina-legível) · custo: re-tradução manual bloco→componente no handoff Cowork gera regressão (M-AP-6 / LICOES_F3)",
+      "promote_by": "2026-07-06"
+    },
     "gitleaks-history.yml": {
       "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
       "classe": "automacao"
@@ -357,6 +364,13 @@
       "terminal": "advisory",
       "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
       "promote_by": "2026-09-30"
+    },
+    "design-memory-gates.yml": {
+      "nome": "Design-memory gates (advisory · ds-guard §8 nos arquivos tocados + relatório de dívida + integrity-check §15 da espinha · wire dos gates de design-memory no CI)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 + auditoria IA OS (buraco confessado: ds-guard.mjs e integrity-check.mjs rodavam em NENHUM workflow, dependiam do humano lembrar)",
+      "promote_by": "2026-07-06"
     }
   }
 }

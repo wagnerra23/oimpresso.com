@@ -1,0 +1,52 @@
+name: Component Registry Drift (advisory)
+
+# Onda O2 — sentinela de drift do registro máquina-legível bloco-de-protótipo →
+# componente React (prototipo-ui/component-registry.json). O handoff Cowork → Inertia
+# consome o registry pra traduzir bloco→componente; se o registry aponta pra
+# componente/import/export que não existe mais no código, a tradução regride. Este gate
+# pega esse drift no PR.
+#
+# ADVISORY (gate novo nasce advisory — ADR 0271/0275): o job da sentinela roda em modo
+# REPORT via `continue-on-error: true` (não bloqueia o merge). O self-test (.test.mjs)
+# roda SEM continue-on-error — se o próprio check quebrar, isso é falha real (precedente
+# guards-meta: a suite que valida o gate não pode mentir). Promoção a required só via
+# calendário ADR 0275, nunca neste arquivo direto.
+#
+# Dispara quando os componentes UI/layout ou o registry/sentinela mudam — é exatamente aí
+# que o drift nasce (componente renomeado/movido/deletado sem atualizar o registry).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/ui/**'
+      - 'resources/js/Components/layout/**'
+      - 'prototipo-ui/component-registry.json'
+      - 'scripts/governance/component-registry-check.mjs'
+      - 'scripts/governance/component-registry-check.test.mjs'
+      - '.github/workflows/component-registry.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: component-registry-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  registry-check:
+    name: component-registry drift (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # self-test do próprio gate PRIMEIRO — prova que a sentinela morde/libera (sem máscara)
+      - name: self-test da sentinela (.test.mjs · bloqueia se o gate mentir)
+        run: node scripts/governance/component-registry-check.test.mjs
+      # drift do registry real — advisory (não bloqueia)
+      - name: component-registry-check (advisory · report-only)
+        continue-on-error: true
+        run: node scripts/governance/component-registry-check.mjs --check --strict
