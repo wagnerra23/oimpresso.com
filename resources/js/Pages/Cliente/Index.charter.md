@@ -181,7 +181,7 @@ CREATE INDEX idx_contacts_biz_customer ON contacts(business_id, is_customer);
 1. `type` enum **permanece** (UPOS legacy 200+ telas Blade)
 2. Backfill **one-way** `type=X` → `is_X=1` (idempotente)
 3. Flags **aditivas, nunca exclusivas** — Wagner Rocha cliente+representante = `is_customer=1 AND is_representative=1` (mesma row)
-4. Índices compostos `(business_id, is_X)` — multi-tenant Tier 0 IRREVOGÁVEL [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+4. Índices compostos `(business_id, is_X)` — multi-tenant Tier 0 IRREVOGÁVEL [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 5. Slot 2 `?type=all` é **leitura agregada** — CTA "Novo" não renderiza (Wagner escolhe papel explícito)
 
 ### Non-Goals v7
@@ -193,11 +193,11 @@ CREATE INDEX idx_contacts_biz_customer ON contacts(business_id, is_customer);
 
 ### Refs v7
 
-- [ADR 0188 · Contatos multi-type · flags aditivas](../../../memory/decisions/0188-contacts-multi-type-flag-aditiva.md) (canonical, aceita Wagner 2026-05-24)
-- [Migration `2026_05_24_200000_add_role_flags_to_contacts.php`](../../../database/migrations/2026_05_24_200000_add_role_flags_to_contacts.php)
-- [ADR UI-0013 · Constituição UI v2 · 4 camadas](../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) (Slot 2 PT-01 canônico)
-- [PT-01 · Lista canônica](../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)
-- [ADR 0040 · ModuleTopNav sub-tabs ghost](../../../memory/decisions/0040-moduletopnav-subtabs-ghost.md)
+- [ADR 0188 · Contatos multi-type · flags aditivas](../../../../memory/decisions/0188-contacts-multi-type-flag-aditiva.md) (canonical, aceita Wagner 2026-05-24)
+- [Migration `2026_05_24_200000_add_role_flags_to_contacts.php`](../../../../database/migrations/2026_05_24_200000_add_role_flags_to_contacts.php)
+- [ADR UI-0013 · Constituição UI v2 · 4 camadas](../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) (Slot 2 PT-01 canônico)
+- [PT-01 · Lista canônica](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)
+- ADR 0040 · ModuleTopNav sub-tabs ghost
 - Delphi WR Comercial · flags bool por papel (pattern legacy 15 anos)
 - HANDOFF_CLIENTES.md (Cowork chat1 + validação produção Wagner 2026-05-24)
 
@@ -231,7 +231,7 @@ Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importe
 
 1. `type` enum **permanece** (UPOS legacy)
 2. Flags **aditivas, nunca exclusivas** — `is_customer=1 AND is_other=1` permitido (prospect promovido a cliente mantém histórico)
-3. Índice composto `(business_id, is_other)` — multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+3. Índice composto `(business_id, is_other)` — multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 4. Slot 2 `?type=other` é leitura agregada · CTA "Novo outros" cadastra com `is_other=1` default
 5. Conversão `Outros → Cliente/Fornecedor/etc` é toggle chip (não tela dedicada)
 
@@ -244,9 +244,9 @@ Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importe
 
 ### Refs v8
 
-- [ADR 0246 · Tipo "Outros" como categoria default em migrações legacy](../../../memory/decisions/0246-tipo-outros-default-migracoes-legacy.md)
-- [Migration `2026_06_03_120000_add_is_other_flag_to_contacts.php`](../../../database/migrations/2026_06_03_120000_add_is_other_flag_to_contacts.php)
-- [memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md](../../../memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md) — profile WR2 motivador
+- [ADR 0246 · Tipo "Outros" como categoria default em migrações legacy](../../../../memory/decisions/0246-tipo-outros-default-migracoes-legacy.md)
+- [Migration `2026_06_03_120000_add_is_other_flag_to_contacts.php`](../../../../database/migrations/2026_06_03_120000_add_is_other_flag_to_contacts.php)
+- [memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md](../../../../memory/research/clientes-legacy-officeimpresso/01-wr-sistemas/02-schema-real-2026-06-03.md) — profile WR2 motivador
 - Conversa Wagner 2026-06-03: insight "aba Classificação já tem isso pronto, só falta o chip Outros"
 
 ---
@@ -268,7 +268,7 @@ Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importe
 
 1. Exclusão é **soft delete** (Contact `use SoftDeletes`) — reversível, LGPD-friendly.
 2. `destroy()` **bloqueia** se houver qualquer `Transaction` do contato (venda/compra/OS) — devolve `success:false` + msg; nada é apagado.
-3. Escopo `business_id` em todas as queries de exclusão — multi-tenant Tier 0 ([ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+3. Escopo `business_id` em todas as queries de exclusão — multi-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
 4. `is_default` (walk-in) **nunca** é excluído.
 5. Toda exclusão grava `ActivityLog` `contact_deleted` (LGPD Art. 18) + desabilita login de usuários associados (`allow_login=0`).
 

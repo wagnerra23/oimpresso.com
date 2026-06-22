@@ -113,12 +113,12 @@ it('rejects body_blocks payload when is_editable=false on store')
 
 ## Refs
 
-- Backend: [`Modules/KB/Http/Controllers/KbNodeController.php`](../../../Modules/KB/Http/Controllers/KbNodeController.php)
-- Service: [`Modules/KB/Services/KbArticleService.php`](../../../Modules/KB/Services/KbArticleService.php) (criado Wave J 2026-05-16)
-- Entity: [`Modules/KB/Entities/KbNode.php`](../../../Modules/KB/Entities/KbNode.php)
-- [SCHEMA-DB-V1 §3 + §11](../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0061 — Zero auto-mem privada](../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)
+- Backend: [`Modules/KB/Http/Controllers/KbNodeController.php`](../../../../Modules/KB/Http/Controllers/KbNodeController.php)
+- Service: [`Modules/KB/Services/KbArticleService.php`](../../../../Modules/KB/Services/KbArticleService.php) (criado Wave J 2026-05-16)
+- Entity: [`Modules/KB/Entities/KbNode.php`](../../../../Modules/KB/Entities/KbNode.php)
+- [SCHEMA-DB-V1 §3 + §11](../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0061 — Zero auto-mem privada](../../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)
 
 ## Histórico
 

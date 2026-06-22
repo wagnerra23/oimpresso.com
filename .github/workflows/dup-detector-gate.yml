@@ -1,0 +1,37 @@
+name: Dup detector (advisory)
+
+# L3 (keystone) da trava anti-duplicação de trabalho entre sessões paralelas
+# (proposta anti-duplicacao-work-claim-gate). Sinaliza quando o PR toca um arquivo
+# HOT-PATH (governance/dup-hot-paths.json) já tocado por outro PR ABERTO, sem
+# marcador `Dedup-ack:` no corpo. Pega o caso reincidente: 2 sessões no mesmo arquivo.
+#
+# Advisory de nascença (ADR 0271/0275) — NÃO entra em branch protection; o check fica
+# vermelho/visível mas não bloqueia o merge. Promove a required pelo calendário de 14d
+# + 0 falso-positivo. Meta-teste: dup-detector.test.mjs no governance-script-tests.yml.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'Número do PR pra checar (manual)'
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  detect:
+    name: dup-detector (advisory)
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Detecta duplicação de trabalho (arquivo hot-path em PR aberto)
+        run: node scripts/governance/dup-detector.mjs --pr=${{ github.event.pull_request.number || inputs.pr }}

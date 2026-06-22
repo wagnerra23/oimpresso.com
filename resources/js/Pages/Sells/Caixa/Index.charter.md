@@ -19,7 +19,7 @@ canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — 
 >
 > **Histórico:** v1 (este — Onda 6 Cowork canon · 2026-05-25).
 >
-> **Visual source:** Cowork `prototipo-ui/vendas-extras.jsx` `VendasCaixaPage` (linhas 123-354). Visual comparison: [`Caixa-r1-visual-comparison.md`](../../../../memory/requisitos/Sells/Caixa-r1-visual-comparison.md).
+> **Visual source:** Cowork `prototipo-ui/vendas-extras.jsx` `VendasCaixaPage` (linhas 123-354). Visual comparison: [`Caixa-r1-visual-comparison.md`](../../../../../memory/requisitos/Sells/Caixa-r1-visual-comparison.md).
 
 ---
 

@@ -36,3 +36,5 @@ jobs:
         run: node scripts/governance/settings-r10-registration.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         run: node scripts/governance/shipped-log-generate.test.mjs
+      - name: Dup-detector L3 (overlap/ack/exclude)
+        run: node scripts/governance/dup-detector.test.mjs

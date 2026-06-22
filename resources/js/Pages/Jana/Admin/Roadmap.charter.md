@@ -156,11 +156,11 @@ it('does not call external MCP server on render')             // GUARD anti-hook
 
 ## Refs
 
-- [ONDA-5-DOSSIER §V1](../../../memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md)
-- [ADR 0070 Jira-style tasks](../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
-- [ADR 0093 Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0094 Constituição V2](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)
-- [ADR 0110 Cockpit V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ONDA-5-DOSSIER §V1](../../../../../memory/requisitos/Jana/ONDA-5-DOSSIER-2026-05-13.md)
+- [ADR 0070 Jira-style tasks](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0094 Constituição V2](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)
+- [ADR 0110 Cockpit V2](../../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [SVAR Gantt 2.4 MIT release](https://medium.com/@SvarWidgets/svar-gantt-2-4-a-modern-gantt-chart-library-for-react-svelte-under-the-mit-license-ae62f36a5dde)
 
 ---

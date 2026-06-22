@@ -17,9 +17,9 @@ mwart_pattern_reuse:
 
 # Page Charter — /products (DRAFT — Wave 2 B4 Produto pattern reuse)
 
-> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: [`prototipo-ui/prototipos/produto-cockpit/`](../../../prototipo-ui/prototipos/produto-cockpit/) (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
+> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: `prototipo-ui/prototipos/produto-cockpit/` (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
 >
-> Versão v1 (2026-05-09) referenciava [`prod-page.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
+> Versão v1 (2026-05-09) referenciava `prod-page.jsx` (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
 > ⚠️ **Relação com `/produto/unificado`:** essa Page é a versão SIMPLES (catálogo grid only). `/produto/unificado` é a versão DENSA (5 sub-views). Wagner decide na aprovação se mantém ambas ou unifica em uma só. Backend canon: `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` direto em `app/`, **NÃO** em `Modules\Produto\`.
 
@@ -142,12 +142,12 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 
 ## Refs
 
-- Material visual: [`ui_kits/cowork-2026-05-09/prod-page.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB)
-- Canon visual: [ADR ui/0012](../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
+- Material visual: `ui_kits/cowork-2026-05-09/prod-page.jsx` (6.5 KB)
+- Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
 - Charter relacionado: [`/produto/unificado`](Unificado/Index.charter.md) — versão densa
-- [ADR 0110 — Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório
+- [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório
 - Backend: `app/Http/Controllers/ProductController.php` (UPOS canon)
 
 ---

@@ -51,7 +51,7 @@ Organizar **manuais, procedimentos e artigos internos** em estrutura hierárquic
 
 - Grid colapsa elegante 3 → 2 → 1 cols (md/lg breakpoints)
 - Collapse de seção via state local (não re-renderiza página inteira)
-- Defer eager-load `books` (eager-load 2 níveis children + ACL where + map recursivo) ([RUNBOOK-inertia-defer-pattern.md](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md))
+- Defer eager-load `books` (eager-load 2 níveis children + ACL where + map recursivo) ([RUNBOOK-inertia-defer-pattern.md](../../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md))
 - Toast Sonner em delete
 - Mobile: 1 col, scroll vertical
 
@@ -62,7 +62,7 @@ Organizar **manuais, procedimentos e artigos internos** em estrutura hierárquic
 - `KnowledgeBaseController@index` retorna `{ books: Book[] (defer) }`
 - `Book` shape: `{ id, title, content, kb_type, share_with, children: Section[] }` onde Section tem `children: Article[]`
 - POST/PUT/DELETE `/essentials/knowledge-base/{id?}`
-- Multi-tenant Tier 0: `KnowledgeBase` Entity tem `HasBusinessScope` ([HasBusinessScopeAdoptionTest](../../../../Modules/Essentials/Tests/Feature/HasBusinessScopeAdoptionTest.php))
+- Multi-tenant Tier 0: `KnowledgeBase` Entity tem `HasBusinessScope` ([HasBusinessScopeAdoptionTest](../../../../../Modules/Essentials/Tests/Feature/HasBusinessScopeAdoptionTest.php))
 
 ---
 
