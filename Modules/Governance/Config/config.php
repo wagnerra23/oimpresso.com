@@ -180,4 +180,14 @@ return [
      * @see Modules\Governance\Services\PlanHealthBriefLineService
      */
     'plan_health_brief_line' => env('GOVERNANCE_PLAN_HEALTH_BRIEF_LINE', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Linha de saúde do SHIPPED-LOG no Daily Brief (porta de saída, ADR 0294 ext)
+    |--------------------------------------------------------------------------
+    | Kill-switch do ShippedLogBriefLineService. Default ON.
+    |
+    | @see Modules\Governance\Services\ShippedLogBriefLineService
+    */
+    'shipped_log_brief_line' => env('GOVERNANCE_SHIPPED_LOG_BRIEF_LINE', true),
 ];
