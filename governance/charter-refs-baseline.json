@@ -1,0 +1,8 @@
+{
+  "ceiling": 64,
+  "metric": "charter_refs_broken",
+  "source_of_truth": "scripts/governance/charter-refs.mjs --check (espelha Modules/Jana/Services/CharterHealthChecker.php)",
+  "established_at_commit": "ee798b6899",
+  "note": "Teto de refs quebradas em Page Charters. Catraca de mão única: cada PR de limpeza ABAIXA o ceiling; subir exige commit só-baseline OU `BASELINE-ABSORB:` (baseline-tamper-guard). Era 279 antes do fix a1f0fc0724. Próximo alvo: 0.",
+  "remaining_breakdown": "49 links corpo (alvo morto) + 15 frontmatter (7 parent_capterra, 6 runbook, 2 component) — triagem em US-GOV-043"
+}

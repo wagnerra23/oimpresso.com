@@ -49,11 +49,19 @@ function detectMemoryHealth(base, head) {
   return out;
 }
 
+// charter-refs-baseline.json: { ceiling: N }. Afrouxar = subir o teto.
+function detectCharterRefs(base, head) {
+  const prev = (base || {}).ceiling ?? 0;
+  const now = (head || {}).ceiling ?? 0;
+  return now > prev ? [`charter_refs_broken teto subiu: ${prev}→${now}`] : [];
+}
+
 // Mapa path→detector. Estender = adicionar o baseline + seu detector aqui
 // (e o path no trigger do workflow). Só guarda o que tem detector de schema:
 // afrouxamento genérico em formato heterogêneo daria falso-positivo.
 const GUARDED = {
   'scripts/governance/.memory-health-baseline.json': detectMemoryHealth,
+  'governance/charter-refs-baseline.json': detectCharterRefs,
 };
 
 // ── resolver base do diff ─────────────────────────────────────────────────────
