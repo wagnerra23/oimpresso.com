@@ -443,6 +443,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/purchases/get_suppliers', [PurchaseController::class, 'getSuppliers']);
     Route::post('/purchases/get_purchase_entry_row', [PurchaseController::class, 'getPurchaseEntryRow']);
     Route::post('/purchases/check_ref_number', [PurchaseController::class, 'checkRefNumber']);
+    // US-COM-005 — layout da grade tam×cor pra produto variável (Tier 0 via business_id da sessão).
+    Route::get('/purchases/grade-matrix', [PurchaseController::class, 'gradeMatrix'])->name('purchases.grade-matrix');
     Route::resource('purchases', PurchaseController::class)->except(['show']);
 
     // As rotas /sells (subscriptions, drafts, quotations, duplicate, convert-to-draft,

@@ -6,9 +6,10 @@
 //   adrs: 0104 (MWART), 0093 (Tier 0), 0114 (gate visual), 0149 (pattern reuse)
 //
 // Origem: Cowork "Compras" (prototipo-ui/prototipos/compras/visual-source.html).
-// Runbook: memory/requisitos/Inventory/RUNBOOK-purchase-create.md
+// Runbook: memory/requisitos/Purchase/RUNBOOK-create.md
 // Charter: ./Create.charter.md
 // MVP1: dados gerais + itens (busca + tabela) + desconto/frete + total + notas. Pagamento V2.
+// US-COM-005: modo grade tam×cor pra produto variável (combobox → GradeMatrixInput → linhas).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -20,7 +21,10 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save } from 'lucide-react';
+import { FieldError } from '@/Components/ui/field-state';
+import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
+import GradeMatrixInput, { type GradeCell } from '@/Components/purchase/GradeMatrixInput';
+import GradeProductCombobox, { type PickedProduct } from '@/Components/purchase/GradeProductCombobox';
 
 // ---------- Tipos ----------
 
@@ -81,6 +85,18 @@ export interface PurchaseCreatePageProps {
   common_settings: Record<string, unknown>;
 }
 
+// Layout da grade vindo de GET /purchases/grade-matrix (US-COM-005).
+type GradeLayout = {
+  product_id: number;
+  product_name: string;
+  type: string;
+  mode: '2d' | 'matrix-1d' | 'single';
+  rows: { id: string | number; label: string }[];
+  cols: { id: string | number; label: string }[];
+  cellVariationMap: Record<string, number>;
+  unit_cost: number;
+};
+
 // ---------- Helpers ----------
 
 const brl = (v: number) =>
@@ -99,6 +115,13 @@ function PurchaseCreate({
 }: PurchaseCreatePageProps) {
   const [busca, setBusca] = useState('');
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>([]);
+
+  // Modo grade tam×cor (US-COM-005) — alimenta o MESMO `linhas` que o POST já envia.
+  const [grade, setGrade] = useState<GradeLayout | null>(null);
+  const [gradeCells, setGradeCells] = useState<GradeCell[]>([]);
+  const [gradeUnitCost, setGradeUnitCost] = useState(0);
+  const [gradeLoading, setGradeLoading] = useState(false);
+  const [gradeErro, setGradeErro] = useState<string | null>(null);
 
   const form = useForm({
     ref_no: '' as string,
@@ -186,11 +209,92 @@ function PurchaseCreate({
     );
   };
 
+  // ---------- Modo grade tam×cor (US-COM-005) ----------
+  const locationId = form.data.location_id ? Number(form.data.location_id) : null;
+
+  // Expande células da grade (ou item simples) em PurchaseLineDraft e acumula em `linhas`.
+  const adicionarLinhasGrade = (
+    items: { variation_id: number | null; qty: number; sufixo: string }[],
+    layout: GradeLayout,
+    unitCost: number
+  ) => {
+    const novos: PurchaseLineDraft[] = items
+      .filter((i) => i.qty > 0 && i.variation_id != null)
+      .map((i) => ({
+        product_name: `${layout.product_name}${i.sufixo ? ' ' + i.sufixo : ''}`,
+        product_id: layout.product_id,
+        variation_id: i.variation_id,
+        unit_id: null,
+        unit_name: 'un',
+        quantity: i.qty,
+        pp_without_discount: unitCost,
+        discount_percent: 0,
+        item_tax: 0,
+        tax_id: null,
+        purchase_price: unitCost,
+        purchase_price_inc_tax: unitCost,
+      }));
+    if (novos.length) setLinhas((prev) => [...prev, ...novos]);
+  };
+
+  const fecharGrade = () => {
+    setGrade(null);
+    setGradeCells([]);
+    setGradeErro(null);
+  };
+
+  const escolherProduto = async (p: PickedProduct) => {
+    fecharGrade();
+    setGradeLoading(true);
+    try {
+      const params = new URLSearchParams({ product_id: String(p.product_id) });
+      if (locationId) params.set('location_id', String(locationId));
+      const res = await fetch(`/purchases/grade-matrix?${params.toString()}`, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        setGradeErro('Não foi possível carregar a grade deste produto.');
+        return;
+      }
+      const data = (await res.json()) as GradeLayout;
+      const custo = Number(data.unit_cost) || 0;
+      setGradeUnitCost(custo);
+      if (data.mode === 'single') {
+        // Item simples — adiciona 1 linha direto, sem abrir a matriz.
+        const vid = data.cellVariationMap['single__qtd'] ?? null;
+        adicionarLinhasGrade([{ variation_id: vid, qty: 1, sufixo: '' }], data, custo);
+        return;
+      }
+      setGrade(data);
+    } catch {
+      setGradeErro('Erro ao carregar a grade.');
+    } finally {
+      setGradeLoading(false);
+    }
+  };
+
+  const totalGrade = gradeCells.reduce((s, c) => s + c.qty, 0);
+
+  const adicionarGradeACompra = () => {
+    if (!grade) return;
+    const items = gradeCells.map((c) => {
+      const rl = grade.rows.find((r) => String(r.id) === String(c.rowId))?.label ?? '';
+      const cl = grade.cols.find((co) => String(co.id) === String(c.colId))?.label ?? '';
+      const sufixo = grade.mode === '2d' ? `${rl}/${cl}` : rl;
+      return { variation_id: c.variationId, qty: c.qty, sufixo };
+    });
+    adicionarLinhasGrade(items, grade, gradeUnitCost);
+    fecharGrade();
+  };
+
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
     form.transform((dados) => ({
       ...dados,
-      purchases: linhas,
+      // createOrUpdatePurchaseLines lê `purchase_line_tax_id` (não `tax_id`) sem isset →
+      // a chave precisa existir em TODA linha (manual + grade), senão o warning vira 500.
+      purchases: linhas.map((l) => ({ ...l, purchase_line_tax_id: l.tax_id ?? '' })),
       total_before_tax: totais.subtotal,
       final_total: totais.final,
     }));
@@ -313,6 +417,57 @@ function PurchaseCreate({
           <span className="text-[11px] text-stone-500">{linhas.length} {linhas.length === 1 ? 'item' : 'itens'}</span>
         </CardHeader>
         <CardContent className="px-4 pb-4">
+          {/* Modo grade tam×cor (US-COM-005) — produto variável → matriz → linhas */}
+          <div className="mb-3 rounded-lg border border-stone-200 bg-stone-50/40 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <LayoutGrid className="h-3.5 w-3.5 text-stone-500" />
+              <span className="text-[11px] uppercase tracking-widest text-stone-500 font-medium flex-1">
+                Adicionar por grade (tam × cor)
+              </span>
+            </div>
+            {!grade ? (
+              <>
+                <GradeProductCombobox locationId={locationId} onPick={escolherProduto} disabled={form.processing} />
+                {gradeLoading && <p className="text-[12px] text-stone-500 mt-2">Carregando grade…</p>}
+                <FieldError className="mt-2">{gradeErro}</FieldError>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="text-[13px] font-medium text-stone-700">{grade.product_name}</div>
+                  <div className="flex items-center gap-1.5">
+                    <Label className="text-[11px] text-stone-500">Custo unit. (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={gradeUnitCost}
+                      onChange={(e) => setGradeUnitCost(Number(e.target.value) || 0)}
+                      className="h-8 w-24 text-[12.5px] text-right tabular-nums"
+                      aria-label="Custo unitário da grade"
+                    />
+                  </div>
+                  <div className="flex-1" />
+                  <Button type="button" size="sm" variant="ghost" onClick={fecharGrade}>
+                    Cancelar
+                  </Button>
+                  <Button type="button" size="sm" onClick={adicionarGradeACompra} disabled={totalGrade === 0}>
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar à compra
+                    {totalGrade > 0 && <span className="ml-1 tabular-nums">({totalGrade} un)</span>}
+                  </Button>
+                </div>
+                <GradeMatrixInput
+                  rows={grade.rows}
+                  cols={grade.cols}
+                  cellVariationMap={grade.cellVariationMap}
+                  unitCost={gradeUnitCost}
+                  onChange={setGradeCells}
+                  onCancel={fecharGrade}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-2 items-center mb-3">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />

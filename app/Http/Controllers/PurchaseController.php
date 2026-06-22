@@ -16,6 +16,7 @@ use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
+use App\Services\Purchase\GradeLayoutBuilder;
 use App\Variation;
 use Excel;
 use Illuminate\Http\Request;
@@ -477,6 +478,11 @@ class PurchaseController extends Controller
         if (! auth()->user()->can('purchase.create')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Tier 0 (ADR 0093) — valida ownership das variations ANTES de qualquer escrita.
+        // store() é compartilhado Blade+Inertia; bloqueia payload forjado cross-tenant.
+        // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
+        $this->assertPurchaseVariationsOwnership($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -1423,6 +1429,90 @@ class PurchaseController extends Controller
 
             return json_encode($result);
         }
+    }
+
+    /**
+     * Tier 0 (ADR 0093) — garante que toda linha de compra referencia uma variation
+     * de produto do business_id da sessão. Defesa contra payload forjado cross-tenant
+     * (store() é compartilhado Blade legacy + Inertia + modo grade). No-op pro fluxo
+     * manual MVP1 (variation_id null → nada a validar).
+     */
+    private function assertPurchaseVariationsOwnership(Request $request): void
+    {
+        $business_id = $request->session()->get('user.business_id');
+
+        $variation_ids = collect($request->input('purchases', []))
+            ->pluck('variation_id')
+            ->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($variation_ids->isEmpty()) {
+            return;
+        }
+
+        $valid_count = Variation::whereIn('variations.id', $variation_ids->all())
+            ->whereHas('product', fn ($q) => $q->where('business_id', $business_id))
+            ->count();
+
+        abort_if(
+            $valid_count !== $variation_ids->count(),
+            422,
+            'Variação de produto inválida para este negócio.'
+        );
+    }
+
+    /**
+     * MWART US-COM-005 — Layout da grade tam×cor pra um produto variável.
+     *
+     * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): o produto é resolvido com scope
+     * business_id da sessão (firstOrFail → 404 cross-tenant). UltimatePOS guarda
+     * variação em 1 eixo (variation.name = 1 valor); este endpoint AUTO-DETECTA 2D
+     * (nomes compostos parseáveis tipo "P/Preto") e cai pra grade de 1 eixo quando
+     * não dá. NUNCA fallback silencioso — loga o modo detectado (AP-18).
+     *
+     * Resposta casa 1:1 com GradeMatrixInputProps (rows/cols = {id,label};
+     * cellVariationMap keyed `${rowId}__${colId}` igual ao cellKey do componente).
+     */
+    public function gradeMatrix(Request $request)
+    {
+        if (! auth()->user()->can('purchase.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = $request->session()->get('user.business_id');
+        $product_id = (int) $request->input('product_id');
+
+        // Tier 0: produto precisa ser do business da sessão (cross-tenant → 404).
+        $product = Product::where('business_id', $business_id)
+            ->where('id', $product_id)
+            ->firstOrFail();
+
+        $variations = Variation::where('product_id', $product->id)
+            ->whereNull('deleted_at')
+            ->with('product_variation')
+            ->orderBy('id')
+            ->get();
+
+        $layout = (new GradeLayoutBuilder())->build(
+            (string) $product->type,
+            $variations->map(fn ($v) => ['id' => (int) $v->id, 'name' => (string) $v->name])->all()
+        );
+
+        \Log::info('purchase.grade_matrix.detect', [
+            'business_id' => $business_id,
+            'product_id' => $product->id,
+            'mode' => $layout['mode'],
+            'n_variations' => $variations->count(),
+        ]);
+
+        return response()->json(array_merge([
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'type' => $product->type,
+            'unit_cost' => (float) (optional($variations->first())->default_purchase_price ?? 0),
+        ], $layout));
     }
 
     /**

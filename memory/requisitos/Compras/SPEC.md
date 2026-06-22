@@ -139,11 +139,14 @@ Como Wagner, quero `/purchases/*` (Inertia React MWART Wave 2 B5) e `/compras` (
 
 ### US-COM-005 — Entrada matricial tam×cor (GradeMatrixInput)
 
-**Status:** pending (Wave 4.5)
+**Status:** in_progress (Wave 4.5 — modo grade plugado, aguarda smoke/canary)
 **Persona:** Larissa @ ROTA LIVRE biz=4 vestuário (validação canary)
 **Esforço:** ~6-8h IA-pair (referência [arte 2026-05-21](../../sessions/2026-05-21-arte-grade-matrix-input-vestuario.md))
+**Implementado em:** `resources/js/Pages/Purchase/Create.tsx` (modo grade) + `PurchaseController::gradeMatrix` + `resources/js/Components/purchase/GradeMatrixInput.tsx` · 2026-06-22
 
-Como Larissa criando compra de modelo `type='variable'` no `/compras/create`, quero selecionar produto pai e abrir grade visual onde linhas = tamanhos (PMGG) e colunas = cores (Preto/Branco/...), digitar qty por célula com Tab/Enter, ver totais por linha/coluna/grand on-the-fly e salvar tudo de uma vez, sem precisar adicionar SKU filho um por vez.
+> **Placement C1 (2026-06-22):** a grade entra em `Pages/Purchase/Create.tsx` (não `/compras/create`) — convergência C1. **Modelo 2D auto-detectado:** UltimatePOS guarda variação em 1 eixo; o backend monta 2D quando os nomes de variação são compostos e parseáveis, senão cai pra grade de 1 eixo (linhas = variações reais). Nunca grade vazia silenciosa (loga o `mode`). R-COM-405 ajustado: o caller expande as células em `purchases[]` (1 célula = 1 `variation_id`) e POSTa via `form.post('/purchases')`.
+
+Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, quero selecionar produto pai e abrir grade visual onde linhas = tamanhos (PMGG) e colunas = cores (Preto/Branco/...), digitar qty por célula com Tab/Enter, ver totais por linha/coluna/grand on-the-fly e salvar tudo de uma vez, sem precisar adicionar SKU filho um por vez.
 
 **Regras:**
 
