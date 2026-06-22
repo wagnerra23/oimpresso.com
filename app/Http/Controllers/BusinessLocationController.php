@@ -146,8 +146,11 @@ class BusinessLocationController extends Controller
     /**
      * Store a newly created resource in storage.
      *
+     * Devolve um array AJAX (`['success' => bool, 'msg' => string]`) no caminho
+     * normal/validação e um Response (quota/expirado) nos guards de assinatura.
+     *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|array
      */
     public function store(Request $request)
     {
@@ -309,9 +312,12 @@ class BusinessLocationController extends Controller
     /**
      * Update the specified resource in storage.
      *
+     * Devolve um array AJAX (`['success' => bool, 'msg' => string]`) no caminho
+     * normal/validação e um Response (quota/expirado) nos guards de assinatura.
+     *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\StoreFront  $storeFront
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|array
      */
     public function update(Request $request, $id)
     {
