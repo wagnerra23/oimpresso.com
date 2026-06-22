@@ -565,12 +565,19 @@ class AccountController extends Controller
             try {
                 $business_id = request()->session()->get('user.business_id');
 
-                $account_transaction = AccountTransaction::findOrFail($id);
+                // Tier 0 (ADR 0093): account_transactions não tem business_id — escopa
+                // via account_id -> accounts.business_id ANTES do findOrFail pra impedir
+                // DELETE financeiro cross-tenant (IDOR).
+                $account_transaction = AccountTransaction::whereHas('account', function ($q) use ($business_id) {
+                    $q->where('business_id', $business_id);
+                })->findOrFail($id);
 
                 if (in_array($account_transaction->sub_type, ['fund_transfer', 'deposit'])) {
                     //Delete transfer transaction for fund transfer
                     if (! empty($account_transaction->transfer_transaction_id)) {
-                        $transfer_transaction = AccountTransaction::findOrFail($account_transaction->transfer_transaction_id);
+                        $transfer_transaction = AccountTransaction::whereHas('account', function ($q) use ($business_id) {
+                            $q->where('business_id', $business_id);
+                        })->findOrFail($account_transaction->transfer_transaction_id);
                         $transfer_transaction->delete();
                     }
                     $account_transaction->delete();
@@ -1239,7 +1246,13 @@ class AccountController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        $account_transaction = AccountTransaction::with(['account', 'transfer_transaction'])->findOrFail($id);
+
+        // Tier 0 (ADR 0093): account_transactions não tem business_id — o isolamento
+        // é via account_id -> accounts.business_id. Escopa pelo tenant ANTES do
+        // findOrFail pra impedir leitura cross-tenant (IDOR).
+        $account_transaction = AccountTransaction::whereHas('account', function ($q) use ($business_id) {
+            $q->where('business_id', $business_id);
+        })->with(['account', 'transfer_transaction'])->findOrFail($id);
 
         $accounts = Account::where('business_id', $business_id)
                         ->NotClosed()
@@ -1258,7 +1271,14 @@ class AccountController extends Controller
         try {
             DB::beginTransaction();
 
-            $account_transaction = AccountTransaction::with(['transfer_transaction'])->findOrFail($id);
+            $business_id = $request->session()->get('user.business_id');
+
+            // Tier 0 (ADR 0093): account_transactions não tem business_id — escopa
+            // via account_id -> accounts.business_id ANTES do findOrFail pra impedir
+            // ESCRITA financeira cross-tenant (IDOR).
+            $account_transaction = AccountTransaction::whereHas('account', function ($q) use ($business_id) {
+                $q->where('business_id', $business_id);
+            })->with(['transfer_transaction'])->findOrFail($id);
 
             $amount = $this->commonUtil->num_uf($request->input('amount'));
             $note = $request->input('note');
@@ -1269,8 +1289,13 @@ class AccountController extends Controller
 
             if($request->input('account_id'))
             {
+                // Tier 0: valida que o account_id RECEBIDO pertence ao tenant antes
+                // de re-apontar a transação — mata mass-assignment re-pointing
+                // (re-aponta tx da vítima pra account arbitrário de outro business).
+                Account::where('business_id', $business_id)->findOrFail($request->input('account_id'));
+
                 $account_transaction->account_id = $request->input('account_id');
-            }            
+            }
 
             $account_transaction->save();
 
