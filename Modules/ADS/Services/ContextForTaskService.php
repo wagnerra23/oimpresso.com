@@ -37,7 +37,7 @@ class ContextForTaskService
     /**
      * Monta o pacote completo de contexto.
      *
-     * @param array{user_id?:int, intent:string, domain?:?string, files_planned?:array, event_type?:?string} $input
+     * @param array{user_id?:int, intent:string, domain?:?string, files_planned?:array, event_type?:?string, business_id?:int} $input
      */
     public function buildContext(array $input): array
     {
