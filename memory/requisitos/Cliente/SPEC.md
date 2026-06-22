@@ -1,6 +1,6 @@
 ---
 module: Cliente
-version: "2.1"
+version: "2.2"
 status: ativo
 owners: [W]
 last_updated: "2026-06-22"
@@ -12,9 +12,11 @@ related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-
 
 # SPEC — Cliente
 
-> **Convenção de naming:** módulo canônico é `Modules/Crm/` (UPOS legacy contacts) — ADR 0149 (pattern reuse). As Pages Inertia vivem em `resources/js/Pages/Cliente/` (rota PT-BR `/cliente`). Este SPEC consolida as US tocadas pelas Pages `Cliente/{Index,Create,Edit,Show}.tsx` durante 2026-04 → 2026-05.
+> 🪪 **Cliente ≠ CRM (Wagner 2026-06-22):** este é o SPEC **canônico do cadastro de Cliente / contatos** — separado do *pipeline CRM* (leads/propostas/campanhas), que está em **depreciação**. O código ainda vive fisicamente em `Modules/Crm/` (rename de módulo não feito ainda), mas o canon do cadastro mora aqui em `memory/requisitos/Cliente/`. Renomeado de `Crm/SPEC-us-063-078.md` em 2026-06-22. Ver [doc de desambiguação](../../reference/crm-e-o-modulo-de-cliente.md) + plano de depreciação do pipeline.
 
-> 🔗 **Âncoras spec↔código (ADR 0273, `anchor_format: v1`):** cada US abaixo carrega `**Implementado em:**` apontando o arquivo real, verificado por `existsSync` em `origin/main@3cf2b52` (2026-06-22). ⚠️ A `anchor-lint.mjs` só varre arquivos chamados `SPEC.md` — este arquivo é `SPEC-us-063-078.md`, então **a máquina ainda não lê estas âncoras** (decisão estrutural pendente — ver [relatório de alinhamento](audits/ALINHAMENTO-cliente-2026-06-22.md) §"Ligar a máquina").
+> **Naming técnico:** as Pages Inertia vivem em `resources/js/Pages/Cliente/` (rota PT-BR `/cliente`); o código backend ainda em `Modules/Crm/` (UPOS legacy contacts, ADR 0149). Este SPEC consolida as US tocadas pelas Pages `Cliente/{Index,Create,Edit,Show}.tsx` durante 2026-04 → 2026-05.
+
+> 🔗 **Âncoras spec↔código (ADR 0273, `anchor_format: v1`):** cada US abaixo carrega `**Implementado em:**` apontando o arquivo real, verificado por `existsSync` em `origin/main@3cf2b52` (2026-06-22). ✅ Como este arquivo agora é `Cliente/SPEC.md`, **o `anchor-lint.mjs` passa a lê-lo** (a máquina está ligada para o cadastro). Relatório: [audits/ALINHAMENTO-cliente-2026-06-22.md](audits/ALINHAMENTO-cliente-2026-06-22.md).
 
 ## Missão
 
@@ -29,10 +31,12 @@ Gerenciar cadastro de clientes (PF e PJ) com canon BR completo (fiscais + endere
 
 | Page Inertia | Rota | Charter | RUNBOOK | visual-comparison |
 |---|---|---|---|---|
-| Cliente/Index | `/cliente` | [`Index.charter.md`](../../../resources/js/Pages/Cliente/Index.charter.md) (live) | [RUNBOOK-cliente-index.md](RUNBOOK-cliente-index.md) | [cliente-index-visual-comparison.md](cliente-index-visual-comparison.md) |
-| Cliente/Create | `/contacts/create` | [`Create.charter.md`](../../../resources/js/Pages/Cliente/Create.charter.md) (draft) | [RUNBOOK-cliente-create.md](RUNBOOK-cliente-create.md) | [cliente-create-visual-comparison.md](cliente-create-visual-comparison.md) |
-| Cliente/Edit | `/contacts/{id}/edit` | [`Edit.charter.md`](../../../resources/js/Pages/Cliente/Edit.charter.md) (draft) | [RUNBOOK-cliente-edit.md](RUNBOOK-cliente-edit.md) | [cliente-edit-visual-comparison.md](cliente-edit-visual-comparison.md) |
-| Cliente/Show | `/cliente/{id}` (canon) · `/contacts/{id}` (dual-render) | [`Show.charter.md`](../../../resources/js/Pages/Cliente/Show.charter.md) (**superseded** → drawer 760px, [ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)) | [RUNBOOK-cliente-show.md](RUNBOOK-cliente-show.md) | [cliente-show-visual-comparison.md](cliente-show-visual-comparison.md) |
+| Cliente/Index | `/cliente` | [`Index.charter.md`](../../../resources/js/Pages/Cliente/Index.charter.md) (live) | [RUNBOOK-cliente-index.md](../Crm/RUNBOOK-cliente-index.md) | [cliente-index-visual-comparison.md](../Crm/cliente-index-visual-comparison.md) |
+| Cliente/Create | `/contacts/create` | [`Create.charter.md`](../../../resources/js/Pages/Cliente/Create.charter.md) (draft) | [RUNBOOK-cliente-create.md](../Crm/RUNBOOK-cliente-create.md) | [cliente-create-visual-comparison.md](../Crm/cliente-create-visual-comparison.md) |
+| Cliente/Edit | `/contacts/{id}/edit` | [`Edit.charter.md`](../../../resources/js/Pages/Cliente/Edit.charter.md) (draft) | [RUNBOOK-cliente-edit.md](../Crm/RUNBOOK-cliente-edit.md) | [cliente-edit-visual-comparison.md](../Crm/cliente-edit-visual-comparison.md) |
+| Cliente/Show | `/cliente/{id}` (canon) · `/contacts/{id}` (dual-render) | [`Show.charter.md`](../../../resources/js/Pages/Cliente/Show.charter.md) (**superseded** → drawer 760px, [ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)) | [RUNBOOK-cliente-show.md](../Crm/RUNBOOK-cliente-show.md) | [cliente-show-visual-comparison.md](../Crm/cliente-show-visual-comparison.md) |
+
+> ℹ️ RUNBOOKs e visual-comparisons do cadastro ainda residem em `memory/requisitos/Crm/` (links `../Crm/`) — serão movidos pra `Cliente/` na execução do plano de separação.
 
 > **Nota de fidelidade (alinhamento 2026-06-22):** a superfície de detalhe **viva** é o **drawer 760px** aberto do `Index` (ADR 0179) — `Show.tsx` segue só como dual-render legado (charter `superseded`). Além das 4 Pages acima, existem em produção `Cliente/{Import,Ledger,Map}.tsx` (charters `draft`) não listadas nesta tabela. Os charters `Create/Edit/Ledger/Map` estão `draft` apesar das telas estarem em uso — **status-truth a reconciliar**. Relatório completo: [audits/ALINHAMENTO-cliente-2026-06-22.md](audits/ALINHAMENTO-cliente-2026-06-22.md).
 
@@ -231,7 +235,8 @@ Pest cross-tenant antes/depois. **PR ≤300 linhas** (faseado PR1/PR2/PR3).
 | 2026-05-21 | #1316 | W | Slices 2+3 UI BR Create/Edit + bloco fiscal Show (US-CRM-073) |
 | 2026-05-21 | #1319 | W | Slice 4 comando backfill cpf_cnpj (US-CRM-074) |
 | 2026-06-01 | — | W+Claude | US-CRM-078 PR1 — migration `contact_addresses` + `ContactAddress` model + Pest cross-tenant |
-| 2026-06-22 | (alinhar-tela) | W+Claude | **Alinhamento de fidelidade #1** — âncoras ADR 0273 em todas as US + correção de 5 drifts: Show `superseded`→drawer; US-075/076 já estavam `done` no código (spec dizia backlog); US-078 reclassificada (PR1+PR2 done, PR3 pendente); US-077 inexistente; pages Import/Ledger/Map não listadas. Relatório: [audits/ALINHAMENTO-cliente-2026-06-22.md](audits/ALINHAMENTO-cliente-2026-06-22.md) |
+| 2026-06-22 | #3221 | W+Claude | **Alinhamento de fidelidade #1** — âncoras ADR 0273 em todas as US + correção de 6 drifts: Show `superseded`→drawer; US-075/076 já estavam `done` no código (spec dizia backlog); US-078 reclassificada (PR1+PR2 done, PR3 pendente); US-077 inexistente; pages Import/Ledger/Map não listadas; 8 links de doc quebrados. Relatório: [audits/ALINHAMENTO-cliente-2026-06-22.md](audits/ALINHAMENTO-cliente-2026-06-22.md) |
+| 2026-06-22 | (separar-cliente) | W+Claude | **Separação Cliente ≠ CRM** — `Crm/SPEC-us-063-078.md` → `Cliente/SPEC.md` (máquina passa a ler via `anchor-lint`); pipeline CRM (leads/propostas/campanhas) entra em depreciação (plano à parte). Doc de desambiguação atualizado. |
 
 ## §7 — Referências
 

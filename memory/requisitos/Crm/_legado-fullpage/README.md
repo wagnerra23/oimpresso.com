@@ -6,4 +6,4 @@
 
 Conteúdo: `RUNBOOK-{create,edit,index,show}-fullpage.md` + `{create,edit,index,show}-visual-comparison.md`.
 
-> As **specs** (US-CRM-063 a 078) e o **UI-CATALOG** foram promovidos pro topo de `Crm/` (`../SPEC-us-063-078.md`, `../UI-CATALOG.md`) — são atuais, não legado.
+> As **specs** (US-CRM-063 a 078) foram movidas pra [`memory/requisitos/Cliente/SPEC.md`](../../Cliente/SPEC.md) (separação Cliente ≠ CRM, 2026-06-22). O **UI-CATALOG** segue em `../UI-CATALOG.md` — são atuais, não legado.

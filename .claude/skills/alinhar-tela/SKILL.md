@@ -73,7 +73,7 @@ for(const l of txt.split("\n").filter(l=>l.startsWith("**Implementado em:**"))){
 
 ## Pegadinhas (aprendidas na instância #1 — Cliente, 2026-06-22)
 
-- **`anchor-lint.mjs` só varre `SPEC.md`** (glob `memory/requisitos/*/SPEC.md`). Se a spec viva tem outro nome (ex. `SPEC-us-063-078.md`), a máquina **não lê** as âncoras — decida com Wagner renomear/consolidar (não mexer no tooling compartilhado sozinho).
+- **`anchor-lint.mjs` só varre `SPEC.md`** (glob `memory/requisitos/*/SPEC.md`). Se a spec viva tem outro nome (ex. `SPEC-us-063-078.md`), a máquina **não lê** as âncoras → a spec precisa morar em `memory/requisitos/<Nome>/SPEC.md`. _Resolvido na instância #1: a spec do cadastro foi movida pra `memory/requisitos/Cliente/SPEC.md` (Wagner "contacts ≠ crm", 2026-06-22)._ Não mexer no tooling compartilhado sozinho.
 - **Backtick com `/` em nota de âncora vira path-morto** — o lint parseia `\`Sells/Create\`` como path. Em notas pós-`—`, escrever sem backtick.
 - **Módulo silenciado** (banner no BRIEFING/reference) = só agir com OK explícito do Wagner.
 - **Multi-tenant Tier 0** — não relaxar `business_id` ao verificar/editar (ADR 0093).
