@@ -16,7 +16,8 @@
 // via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival) ·
 // baseline-tamper-guard (anti-grandfather, vetor #2848: afrouxa baseline + toca código
 // no MESMO PR — sandbox git real, P05 fecha o grandfather dos baselines-ratchet) ·
-// anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08).
+// anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08) ·
+// doneness-lint --check (conflito status:×âncora — done-sem-âncora / aberto-com-âncora · ADR 0298).
 //
 // USO (na raiz do repo):
 //   node scripts/governance/gate-selftest.mjs              # N catracas × 2 fixtures
@@ -163,6 +164,16 @@ const CATRACAS = [
     id: 'anchor-lint',
     run: (kind) => runNode(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), ['--check'], join(FIX, 'anchor-lint', kind)),
     expect: { good: /ANCHOR COVERAGE GLOBAL/, bad: /💀 US-DA-001/ },
+  },
+  {
+    // doneness-lint --check resolve âncora-paths contra process.cwd() (igual anchor-lint) →
+    // sandbox por cwd. good = status×âncora consistentes + zona-cinza TOLERADA (exit 0, imprime
+    // "CONFLITOS (mordem em --check): 0"); bad = status=done sem âncora viva → conflito_done_sem_ancora
+    // (exit 1 · ADR 0298). bad regex = a acusação da US morta (a linha-resumo "CONFLITOS … : N" sai
+    // nos dois; a ⚠️ da US específica só no conflito).
+    id: 'doneness-lint',
+    run: (kind) => runNode(script('doneness-lint', 'scripts/governance/doneness-lint.mjs'), ['--check'], join(FIX, 'doneness', kind)),
+    expect: { good: /CONFLITOS \(mordem em --check\): 0/, bad: /US-DD-001.*conflito_done_sem_ancora/ },
   },
 ];
 
