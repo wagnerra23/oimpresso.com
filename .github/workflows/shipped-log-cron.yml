@@ -52,6 +52,14 @@ jobs:
           set -e
           CYCLE="${{ inputs.cycle }}"
           SINCE="${{ inputs.since }}"
+          # G6: cycle ATIVO via /api/mcp/cycle-active — não depende do shipped-log anterior
+          # (que falha na transição de cycle). Degrada pro fallback abaixo se indisponível.
+          if [ -z "$CYCLE" ] && [ -n "${MCP_DRIFT_TOKEN:-}" ]; then
+            RESP=$(curl -s -m 12 -H "Authorization: Bearer $MCP_DRIFT_TOKEN" "https://mcp.oimpresso.com/api/mcp/cycle-active" || true)
+            CYCLE=$(echo "$RESP" | jq -r '.cycle.key // empty' 2>/dev/null || true)
+            SINCE=$(echo "$RESP" | jq -r '.cycle.start_date // empty' 2>/dev/null || true)
+            [ -n "$CYCLE" ] && echo "→ via endpoint MCP cycle-active: cycle=$CYCLE since=$SINCE"
+          fi
           LATEST=$(ls -t memory/governance/shipped/*.md 2>/dev/null | head -1 || true)
           if [ -z "$CYCLE" ] && [ -n "$LATEST" ]; then
             CYCLE=$(sed -n 's/^cycle:[[:space:]]*//p' "$LATEST" | head -1)
