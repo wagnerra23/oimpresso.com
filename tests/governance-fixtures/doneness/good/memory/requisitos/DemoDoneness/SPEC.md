@@ -1,4 +1,4 @@
-# SPEC — DemoDoneness (fixture BOA do gate-selftest GT-G6 · catraca doneness-lint · ADR 0298)
+# SPEC — DemoDoneness (fixture BOA do gate-selftest GT-G6 · catraca doneness-lint · ADR 0302)
 
 ### US-DD-001 · Done coerente (status=done + âncora viva)
 

@@ -15,7 +15,7 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 | `memory-health` | `memory-health/{good,bad}/` (sandbox temp + script real copiado) — Check A colisão ADR não-registrada |
 | `baseline-tamper-guard` | `baseline-tamper-guard/{base,good,bad}/` (sandbox **git** real: commit base apertado → commit head afrouxado; bad pareia com `code-touched.txt`) — anti-grandfather, vetor #2848 |
 | `anchor-lint --check` | `anchor-lint/{good,bad}/` (sandbox via cwd) — good = anchor p/ path existente (anchored_ok); bad = anchor p/ path morto (anchored_dead · ADR 0273 §2 · P08) |
-| `doneness-lint --check` | `doneness/{good,bad}/` (sandbox via cwd) — good = status×âncora consistentes + zona-cinza tolerada (exit 0); bad = `status=done` sem âncora viva + `status=todo` com âncora viva (conflito status:×âncora · ADR 0298) |
+| `doneness-lint --check` | `doneness/{good,bad}/` (sandbox via cwd) — good = status×âncora consistentes + zona-cinza tolerada (exit 0); bad = `status=done` sem âncora viva + `status=todo` com âncora viva (conflito status:×âncora · ADR 0302) |
 
 REGRA DURA: NENHUM `.php` aqui — o foundation-ratchet real varre `tests/`
 recursivamente e contaria fixture como teste do repo (poluiria os contadores).

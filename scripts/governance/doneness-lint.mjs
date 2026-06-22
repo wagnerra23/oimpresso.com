@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// doneness-lint.mjs — catraca de fonte-única do "done-ness" de US (ADR 0298).
+// doneness-lint.mjs — catraca de fonte-única do "done-ness" de US (ADR 0302).
 //
 // POR QUE EXISTE: as SPECs têm DOIS campos que declaram se uma US está pronta, e eles
 // drifam (dual-source-of-truth — a mesma doença dos 4 índices de ADR que viraram 1 fonte
@@ -8,7 +8,7 @@
 //      digitado à mão, governado por NENHUM gate.
 //   2. `**Implementado em:**` — âncora spec↔código verificável contra o disco (ADR 0273),
 //      já parseada por anchor-lint.mjs.
-// A ADR 0298 elege a ÂNCORA como fonte única de done-ness; o `status:` passa a ser
+// A ADR 0302 elege a ÂNCORA como fonte única de done-ness; o `status:` passa a ser
 // derivado/aposentado. Este lint detecta o CONFLITO entre os dois — não a saúde do anchor
 // (isso é anchor-lint.mjs, concern separado · SoC). Reusa a gramática/classify da ADR 0273.
 //
@@ -163,7 +163,7 @@ for (const m of modules) {
 
 const report = {
   _meta: {
-    lint: 'doneness fonte-única — conflito status:×âncora (ADR 0298). Âncora = fonte única (ADR 0273); status: legado derivado/aposentado.',
+    lint: 'doneness fonte-única — conflito status:×âncora (ADR 0302). Âncora = fonte única (ADR 0273); status: legado derivado/aposentado.',
     generator: 'scripts/governance/doneness-lint.mjs',
     regra: 'CONFLITO = (status=done sem âncora viva) + (status=aberto com âncora viva). zona-cinza (aberto sem âncora) é advisory, NÃO conta como conflito.',
     ancora_viva: 'anchored_ok | parcial (paths existem no disco · ADR 0273 §2). _pendente_ NÃO é viva (tela não construída).',
@@ -185,7 +185,7 @@ const report = {
 
 if (JSON_OUT) { process.stdout.write(JSON.stringify(report, null, 2) + '\n'); process.exit(0); }
 
-console.log(`\n  DONENESS LINT — fonte-única status:×âncora (ADR 0298) · ${modules.length} SPECs · escopo: ${report._meta.scope}\n`);
+console.log(`\n  DONENESS LINT — fonte-única status:×âncora (ADR 0302) · ${modules.length} SPECs · escopo: ${report._meta.scope}\n`);
 console.log(`  ${'MÓDULO'.padEnd(20)} ${'US'.padStart(4)} ${'c/st'.padStart(5)} ${'done✗'.padStart(6)} ${'abrt✗'.padStart(6)} ${'cinza'.padStart(6)} ${'ok'.padStart(4)}`);
 console.log('  ' + '─'.repeat(64));
 for (const m of modules) {
@@ -200,7 +200,7 @@ console.log(`\n  US: ${usTotal} total · ${withStatus} com status: (superfície 
 console.log(`  CONFLITOS (mordem em --check): ${conflictsTotal}  = ${byRecon.conflito_done_sem_ancora} done-sem-âncora + ${byRecon.conflito_aberto_com_ancora} aberto-com-âncora`);
 console.log(`  Zona-cinza (advisory, NÃO morde): ${byRecon.zona_cinza_aberto_sem_anc} aberto-sem-âncora (ingovernável até backfill)`);
 console.log(`  Consistentes: ${byRecon.consistente_done} done+âncora · ${byRecon.consistente_aberto} aberto+pendente · terminal ${byRecon.terminal} · outro ${byRecon.outro}`);
-console.log(`\n  Fonte única de done-ness = **Implementado em:** (ADR 0273). status: é legado derivado/aposentado (ADR 0298).\n`);
+console.log(`\n  Fonte única de done-ness = **Implementado em:** (ADR 0273). status: é legado derivado/aposentado (ADR 0302).\n`);
 
 if (CHECK && conflictsTotal > 0) process.exit(1);
 process.exit(0);

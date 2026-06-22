@@ -17,7 +17,7 @@
 // baseline-tamper-guard (anti-grandfather, vetor #2848: afrouxa baseline + toca código
 // no MESMO PR — sandbox git real, P05 fecha o grandfather dos baselines-ratchet) ·
 // anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08) ·
-// doneness-lint --check (conflito status:×âncora — done-sem-âncora / aberto-com-âncora · ADR 0298).
+// doneness-lint --check (conflito status:×âncora — done-sem-âncora / aberto-com-âncora · ADR 0302).
 //
 // USO (na raiz do repo):
 //   node scripts/governance/gate-selftest.mjs              # N catracas × 2 fixtures
@@ -169,7 +169,7 @@ const CATRACAS = [
     // doneness-lint --check resolve âncora-paths contra process.cwd() (igual anchor-lint) →
     // sandbox por cwd. good = status×âncora consistentes + zona-cinza TOLERADA (exit 0, imprime
     // "CONFLITOS (mordem em --check): 0"); bad = status=done sem âncora viva → conflito_done_sem_ancora
-    // (exit 1 · ADR 0298). bad regex = a acusação da US morta (a linha-resumo "CONFLITOS … : N" sai
+    // (exit 1 · ADR 0302). bad regex = a acusação da US morta (a linha-resumo "CONFLITOS … : N" sai
     // nos dois; a ⚠️ da US específica só no conflito).
     id: 'doneness-lint',
     run: (kind) => runNode(script('doneness-lint', 'scripts/governance/doneness-lint.mjs'), ['--check'], join(FIX, 'doneness', kind)),
