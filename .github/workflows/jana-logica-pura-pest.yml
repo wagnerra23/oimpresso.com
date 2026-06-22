@@ -1,24 +1,37 @@
-name: Jana audit-chain Pest (T5)
+name: Jana lógica pura Pest (event-time + histórico + audit-chain)
 
-# ADR 0294 — verifica a LOGICA pura do hash-chain do mcp_audit_log no CI.
-# Escopo ESTREITO de proposito: roda SO o AuditChainServiceTest (pura-logica,
-# sem DB), NAO o modulo Jana inteiro — Jana nunca esteve no CI e jogar tudo de
-# uma vez exporia debito pre-existente que nao e deste PR. Cobertura CI completa
-# de Jana fica como follow-up. O trigger MySQL real (append-only) roda no CT 100.
+# Funde jana-bitemporal-pest.yml + jana-bitemporal-slice2-pest.yml + jana-audit-chain-pest.yml
+# (poda Movimento 1 — consolidação de irmãos). Os três eram lanes de LÓGICA PURA idênticas
+# (SQLite :memory:, mesmo setup PHP 8.4 + composer + .env), só mudavam os arquivos de teste.
+# Agora 1 job faz composer install UMA vez e roda as 4 suites Unit num único Pest invoke
+# -> 1 runner + 1 composer install em vez de 3. Cobertura preservada (4 testes, ADR 0294/0295).
+#
+# jana-pest.yml (MySQL real, skip-as-pass, required-ready ADR 0271) fica SEPARADO de propósito:
+# tem service container MySQL e always-run — natureza diferente, não funde aqui.
 
 on:
   pull_request:
     branches: [main]
     paths:
+      - 'Modules/Jana/Services/Memoria/BiTemporalResolver.php'
+      - 'Modules/Jana/Services/Memoria/SupersedeDetector.php'
+      - 'Modules/Jana/Services/Memoria/HistoricoMemoriaService.php'
       - 'Modules/Jana/Services/Mcp/AuditChainService.php'
+      - 'Modules/Jana/Ai/Agents/DetectarSupersedeAgent.php'
       - 'Modules/Jana/Entities/Mcp/McpAuditLog.php'
+      - 'Modules/Jana/Mcp/Tools/MemoriaHistoricaTool.php'
+      - 'Modules/Jana/Config/memoria.php'
+      - 'Modules/Jana/Tests/Unit/BiTemporalResolverTest.php'
+      - 'Modules/Jana/Tests/Unit/SupersedeDetectorTest.php'
+      - 'Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php'
       - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
+      - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
       - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
-      - '.github/workflows/jana-audit-chain-pest.yml'
+      - '.github/workflows/jana-logica-pura-pest.yml'
   workflow_dispatch:
 
 concurrency:
-  group: jana-audit-chain-${{ github.ref }}
+  group: jana-logica-pura-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -26,7 +39,7 @@ permissions:
 
 jobs:
   pest:
-    name: Pest AuditChainService (logica pura)
+    name: Pest Jana lógica pura (event-time + histórico + audit-chain)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +86,7 @@ jobs:
           php artisan key:generate
           php artisan package:discover --ansi
 
-      - name: Run Pest (AuditChainService)
+      - name: Run Pest (Jana lógica pura — 4 suites Unit)
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
@@ -82,6 +95,10 @@ jobs:
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
         run: |
-          vendor/bin/pest Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
+          vendor/bin/pest \
+            Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
+            Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
+            Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
+            Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
             --no-coverage \
             --colors=always
