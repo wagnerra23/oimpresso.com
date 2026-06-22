@@ -9,11 +9,35 @@
 import assert from 'node:assert/strict';
 import {
   parseTitle, normScope, isDS, reconcileReverts, groupByArea,
-  crossCheck, dayList, inBrtRange,
+  crossCheck, dayList, inBrtRange, markDeployed,
 } from './shipped-log-generate.mjs';
 
 const tests = [];
 const t = (name, fn) => tests.push([name, fn]);
+
+// ── markDeployed (G8 — merge ≠ deploy) ──
+t('markDeployed: PR antes do deploy → no ar; depois → aguardando', () => {
+  const prs = [
+    { number: 1, mergedAt: '2026-06-20T10:00:00Z' },
+    { number: 2, mergedAt: '2026-06-22T10:00:00Z' },
+  ];
+  const { onAir, waiting } = markDeployed(prs, '2026-06-21T00:00:00Z');
+  assert.equal(prs[0]._deployed, true);
+  assert.equal(prs[1]._deployed, false);
+  assert.equal(onAir, 1); assert.equal(waiting, 1);
+});
+t('markDeployed: sem deploy_at → _deployed null, contagem null (degrada)', () => {
+  const prs = [{ number: 1, mergedAt: '2026-06-20T10:00:00Z' }];
+  const { onAir, waiting } = markDeployed(prs, null);
+  assert.equal(prs[0]._deployed, null);
+  assert.equal(onAir, null); assert.equal(waiting, null);
+});
+t('markDeployed: groupByArea propaga deployed pro row', () => {
+  const prs = [{ number: 9, title: 'feat(x): y', mergedAt: '2026-06-20T10:00:00Z' }];
+  markDeployed(prs, '2026-06-21T00:00:00Z');
+  const { sorted } = groupByArea(prs);
+  assert.equal(sorted.find(([a]) => a === 'x')[1].meaningful[0].deployed, true);
+});
 
 // ── parseTitle / normScope ──
 t('parseTitle conventional simples', () => {
