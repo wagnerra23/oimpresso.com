@@ -649,3 +649,28 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Problema:** `anchor-lint.mjs` não filtra specs `status: arquivado`; `memory/requisitos/MemCofre/SPEC.md` é duplicado do módulo renomeado MemCofre→SRS (em DEPRECATION-PLAN) → 10 anchors mortos perenes.
 **Fix:** lint pula `status: arquivado` (~3 linhas) + decisão de identidade sobre o SPEC duplicado (re-point pra SRS vs delete).
 **Acceptance:** `anchor-lint --json` não conta os 10 dead do MemCofre; SPEC duplicado resolvido. Refs: ROADMAP-SDD (sweep do mês)
+
+### US-GOV-044 · Reconciliar dívida anchor-fidelity residual na main (pós-ADR 0303)
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Reconciliar a dívida de fidelidade spec↔código que o lint SA-A2-bis (ADR 0303, [PR #3240](https://github.com/wagnerra23/oimpresso.com/pull/3240)) tornou visível na main, hoje **grandfathered** (gate advisory + diff-aware → não avermelha). É a reconciliação que a onda-0 fez mas cujos commits nunca chegaram na main (a branch derivou 93 atrás).
+
+**Medição full-tree** (origin/main @2e4552a789 · `node scripts/governance/anchor-lint.mjs --json` → `.modules[].{zombie,dead,dead_tests}`):
+
+- **1 anchored_zombie** — Financeiro `US-FIN-013` → `resources/js/Pages/Financeiro/Dashboard/Index.tsx` (tela deprecada/redirect; corrigir a âncora).
+- **9 anchored_dead** — MemCofre `US-DOCVAULT-002..011` (SPEC `status: arquivado`, duplicado MemCofre→SRS). **Já coberto por US-GOV-042** (lint pular `arquivado`) — não duplicar aqui.
+- **76 dead_tests** (`Testado em:` → teste-fantasma) — Financeiro 14 · NfeBrasil 13 · RecurringBilling 12 · LaravelAI 9 · Accounting 7 · Essentials 7 · Repair 7 · Manufacturing 5 · Crm 1 · _DesignSystem 1.
+
+**Escopo acionável** (descontando MemCofre→042): o 1 zombie + os 76 dead_tests.
+
+**Como fazer:** re-derivar contra a main ATUAL (não copiar os edits antigos da onda-0 — SPECs divergiram). Idealmente 1 PR por módulo (commit-discipline).
+
+**Coordenar:** SPECs com WIP de sessões paralelas (ex: `governance/sdd-scorecard.json` sujo — US-GOV-041). Cruzar antes de tocar.
+
+**Não confundir com:** US-GOV-029 (promover anchor-gate a required = ato pós-merge) nem com o re-arm do baseline do scorecard (ADR 0275 §3 · `anchor_coverage` hoje `armed:false`).
+
+> _ID: o MCP `tasks-create` sugeriu US-GOV-043, mas 043 já é o `charter_refs_broken` da onda-0 (unmerged) — usado **044** pra não forçar renumeração quando o charter-refs landar._
+
+**Acceptance:** `anchor-lint --json` (descontando specs `arquivado`) reporta 0 zombie + 0 dead_tests. Refs: ADR 0303 · ADR 0273 · US-GOV-042 · US-GOV-041
