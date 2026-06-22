@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **305** arquivos · **289** números únicos · máx **0299**
-- **ADRs ATIVOS (lifecycle ativo): 265** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 243 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 265 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **306** arquivos · **290** números únicos · máx **0300**
+- **ADRs ATIVOS (lifecycle ativo): 266** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 243 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 266 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (305)
+## Todas as ADRs (306)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -341,3 +341,4 @@ _(íntegra)_
 | 0297 | aceito | ativo | meta | Exceção append-only: migração legacy→canônico de frontmatter de ADR sob label, c |
 | 0298 | aceito | ativo | meta | Teto de governança — todo workflow novo nasce com classe terminal e âncora de cu |
 | 0299 | proposto | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
+| 0300 | proposto | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
