@@ -39,21 +39,38 @@ class DataController extends Controller
                 'label' => __('officeimpresso::lang.officeimpresso_module'),
                 'default' => false,
             ],
+            [
+                // Delegável a um login próprio de funcionário SEM abrir o
+                // Financeiro (gated por `superadmin`). Cobre ver a lista e
+                // criar/liberar a credencial OAuth do Delphi. ClientController
+                // destroy()/regenerate() seguem superadmin-only.
+                'value' => 'officeimpresso.clientes.liberar',
+                'label' => 'Office Impresso: liberar clientes (credenciais Delphi)',
+                'default' => false,
+            ],
         ];
     }
 
     /**
      * Adds Officeimpresso menus a sidebar admin.
      *
-     * Apenas superadmin vê o menu — Officeimpresso é ferramenta interna
-     * de gestão de licenças desktop. Ordem 2 (logo depois de Superadmin
-     * que tem order 1).
+     * Superadmin vê a gestão completa (Computadores + Clientes + Licenças +
+     * Logs). Quem tem só a permissão delegada `officeimpresso.clientes.liberar`
+     * (ex.: atendente com login próprio) vê APENAS o atalho de Clientes — sem
+     * abrir o Financeiro. Ordem 2 (logo depois de Superadmin order 1).
      *
      * @return null
      */
     public function modifyAdminMenu()
     {
-        if (! auth()->check() || ! auth()->user()->can('superadmin')) {
+        if (! auth()->check()) {
+            return;
+        }
+
+        $isSuperadmin = auth()->user()->can('superadmin');
+        $canLiberarClientes = auth()->user()->can('officeimpresso.clientes.liberar');
+
+        if (! $isSuperadmin && ! $canLiberarClientes) {
             return;
         }
 
@@ -62,15 +79,27 @@ class DataController extends Controller
             return;
         }
 
-        Menu::modify('admin-sidebar-menu', function ($menu) {
-            // ADR 0180 Fase 4 Wave E — Officeimpresso é ghost virtual de
-            // Plataforma no grupo canon `sistema` v3. Superadmin-only (gestão
-            // de licenças desktop WR Comercial). Sem `shortcut` (acoplado em
-            // Governança); `primary` = "Novo cliente" (criação via
-            // ClientController create); `ghosts` = Computadores + Clientes
-            // + Logs (sub-views gestão de licenças).
+        // ADR 0180 Fase 4 Wave E — Officeimpresso é ghost virtual de Plataforma
+        // no grupo canon `sistema` v3. `primary` = "Novo cliente"; os `ghosts`
+        // variam por nível: superadmin vê tudo, delegado vê só Clientes.
+        if ($isSuperadmin) {
+            $baseUrl = action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']);
+            $ghosts = [
+                ['key' => 'computadores',       'label' => 'Computadores', 'href' => '/officeimpresso/computadores'],
+                ['key' => 'client',             'label' => 'Clientes',     'href' => '/officeimpresso/client'],
+                ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'],
+                ['key' => 'licenca_log',        'label' => 'Logs',         'href' => '/officeimpresso/licenca_log'],
+            ];
+        } else {
+            $baseUrl = '/officeimpresso/client';
+            $ghosts = [
+                ['key' => 'client', 'label' => 'Clientes', 'href' => '/officeimpresso/client'],
+            ];
+        }
+
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($baseUrl, $ghosts) {
             $menu->url(
-                action([\Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::class, 'computadores']),
+                $baseUrl,
                 __('officeimpresso::lang.officeimpresso'),
                 [
                     'icon'    => 'fa fas fa-plug',
@@ -80,12 +109,7 @@ class DataController extends Controller
                         'href'     => '/officeimpresso/client/create',
                         'shortcut' => 'N',
                     ],
-                    'ghosts'  => [
-                        ['key' => 'computadores',       'label' => 'Computadores', 'href' => '/officeimpresso/computadores'],
-                        ['key' => 'client',             'label' => 'Clientes',     'href' => '/officeimpresso/client'],
-                        ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'],
-                        ['key' => 'licenca_log',        'label' => 'Logs',         'href' => '/officeimpresso/licenca_log'],
-                    ],
+                    'ghosts'  => $ghosts,
                 ]
             )->order(2);
         });

@@ -18,14 +18,32 @@ class ClientController extends Controller
     }
 
     /**
+     * Autoriza as ações de "liberar cliente" — ver a lista + criar a credencial
+     * OAuth (password grant) que cada Delphi usa pra autenticar.
+     *
+     * Aceita o `superadmin` (acesso histórico) OU a permissão delegável
+     * `officeimpresso.clientes.liberar`, que pode ser concedida a um login
+     * próprio de funcionário SEM abrir o Financeiro (gated por `superadmin`).
+     * destroy()/regenerate() seguem superadmin-only — são destrutivos
+     * (apagam credencial / derrubam TODOS os Delphi via passport:install).
+     */
+    private function authorizeLiberar(): void
+    {
+        abort_unless(
+            auth()->user()->can('superadmin')
+            || auth()->user()->can('officeimpresso.clientes.liberar'),
+            403,
+            'Unauthorized action.'
+        );
+    }
+
+    /**
      * Display a listing of the resource.
      * @return Response
      */
     public function index()
     {
-        if (!auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeLiberar();
 
         $is_demo = (config('app.env') == 'demo');
 
@@ -47,6 +65,8 @@ class ClientController extends Controller
      */
     public function create()
     {
+        $this->authorizeLiberar();
+
         return view('officeimpresso::create');
     }
 
@@ -57,9 +77,7 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeLiberar();
 
         try {
             $client = Passport::client()->forceFill([
