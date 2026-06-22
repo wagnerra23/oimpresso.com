@@ -1,7 +1,8 @@
 {
   "_meta": {
-    "gate": "memory-health Check G (Onda Q5 — registry canonico de gates, ADR 0256)",
+    "gate": "memory-health Check G (Onda Q5 — registry canonico de gates, ADR 0256) + Check M (teto de governanca, ADR 0298)",
     "nota": "TODO workflow em .github/workflows DEVE estar registrado aqui (nome + classe + proposito). Workflow novo fora do registry = FAIL no memory-health (umbrella, todo PR). Tirar workflow = remover a entrada junto (entrada orfa = warn).",
+    "teto": "ADR 0298 (Check M — teto de governanca): workflow NOVO (fora do baseline grandfather .memory-health-baseline.json checkM) DEVE declarar `terminal` (required|cron|automacao|advisory) + `anchor` (ADR/incidente/PR de custo); advisory exige `promote_by` (data — vencimento <=14d cobrado pelo ZELADOR, nao pelo gate). Gate nasce required-ou-cron, nunca advisory eterno. So nasce com sinal de custo. ADR 0105 aplicado a gates. Os gates pre-existentes ficam isentos via baseline (ratchet).",
     "classes": {
       "gate": "bloqueia/valida PR",
       "meta": "testa os proprios gates",
