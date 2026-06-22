@@ -143,11 +143,11 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 ## Refs
 
 - Material visual: [`ui_kits/cowork-2026-05-09/prod-page.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/prod-page.jsx) (6.5 KB)
-- Canon visual: [ADR ui/0012](../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
+- Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
 - Charter relacionado: [`/produto/unificado`](Unificado/Index.charter.md) — versão densa
-- [ADR 0110 — Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório
+- [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório
 - Backend: `app/Http/Controllers/ProductController.php` (UPOS canon)
 
 ---

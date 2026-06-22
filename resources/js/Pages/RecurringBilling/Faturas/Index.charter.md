@@ -15,7 +15,7 @@ sidebar_group: fin (FINANCEIRO)
 
 # Page Charter — /recurring-billing/faturas (Faturas · cobrança recorrente · v1 Cowork Onda 7)
 
-> **Status:** live · Onda 7 v9,75 do plano [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) linha 113.
+> **Status:** live · Onda 7 v9,75 do plano [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) linha 113.
 >
 > **Origem visual:** mesma família visual Cowork da Page principal (4 KPIs + filter bar + tabela), mas com semântica diferente — Faturas individuais (rb_invoices) em vez de Subscriptions.
 
@@ -96,7 +96,7 @@ Listar **faturas individuais** (`rb_invoices`) com filtros por status (open/paid
 
 ## Tests anti-regressão
 
-- [Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php](../../../../Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php) — 5 cenários mínimos:
+- [Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php](../../../../../Modules/RecurringBilling/Tests/Feature/Wave7FaturasIndexTest.php) — 5 cenários mínimos:
   1. `/recurring-billing/faturas` retorna Inertia render correto biz=1 autenticado
   2. Filtros aplicam (status=paid, gateway=inter, periodo=atrasados, busca=cliente)
   3. Cross-tenant isolation: invoice biz=1 NÃO aparece quando user biz=99
@@ -107,11 +107,11 @@ Listar **faturas individuais** (`rb_invoices`) com filtros por status (open/paid
 
 ## Refs
 
-- [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — plano canônico das ondas
-- [BRIEFING.md](../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado
-- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
-- [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0114 Prototipo-ui Cowork loop](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
+- [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — plano canônico das ondas
+- [BRIEFING.md](../../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0104 MWART](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0114 Prototipo-ui Cowork loop](../../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
 - Charter da Page principal: [../Index.charter.md](../Index.charter.md)
-- Skill [inertia-defer-default](../../../../.claude/skills/inertia-defer-default/SKILL.md)
+- Skill [inertia-defer-default](../../../../../.claude/skills/inertia-defer-default/SKILL.md)

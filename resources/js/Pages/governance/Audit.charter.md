@@ -65,7 +65,7 @@ Permitir a Wagner (operador sênior) investigar atividade do MCP server `mcp.oim
 
 ## Tests anti-regressão
 
-- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico
+- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico
 - [tests/Feature/Governance/AuditAppendOnlyTest.php](../../tests/Feature/Governance/AuditAppendOnlyTest.php) — trigger MySQL bloqueia UPDATE/DELETE
 
 ---

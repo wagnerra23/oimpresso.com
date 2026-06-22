@@ -62,7 +62,7 @@ Larissa usa a MESMA tela a partir da ONDA 6 (mudando seed/permissions), com trou
   - First Contentful Paint <800ms (lista + 1ª prop não-defer)
   - Tempo até interativo <1.5s (defer carrega resto)
   - Switch de nó na lista <100ms (preview cached client-side dos últimos 20 abertos)
-- **Acessibilidade WCAG 2.1 AA ([ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §5):**
+- **Acessibilidade WCAG 2.1 AA ([ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §5):**
   - Tab navegável (cada elemento focável tem outline visível 2px accent)
   - Contrast ratio >=4.5:1 em todo texto principal
   - aria-pressed nas pílulas de filtro
@@ -75,7 +75,7 @@ Larissa usa a MESMA tela a partir da ONDA 6 (mudando seed/permissions), com trou
 
 ## Anti-padrões / Proibições visuais (tokens canon)
 
-Conforme [`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`](../../../prototipo-ui/CLAUDE_DESIGN_BRIEFING.md) §4:
+Conforme [`prototipo-ui/CLAUDE_DESIGN_BRIEFING.md`](../../../../prototipo-ui/CLAUDE_DESIGN_BRIEFING.md) §4:
 
 - ❌ `rounded-xl+` (Larissa balcão) — usar `rounded-md` máximo, `rounded-sm` preferido
 - ❌ Cores fora dos tokens OKLCH (`--accent`, `--bg`, `--surface`, hue 240 PROJETOS pra KB)
@@ -100,11 +100,11 @@ A tela emite eventos via tela mãe ou pode disparar:
 
 ## Restrições Tier 0 IRREVOGÁVEIS
 
-- `business_id` global scope na query do Controller (multi-tenant Tier 0 — [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
-- `Inertia::defer()` em props com SQL pesado (`paginate()`, `count()` aggregated) — [RUNBOOK-inertia-defer-pattern](../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
-- F3 MWART canônico 5 fases — [ADR 0104](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- Gate visual screenshot Wagner antes de F4 merge — [ADR 0114](../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
-- Pest tests biz=1 + cross-tenant biz=99 — [ADR 0101](../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- `business_id` global scope na query do Controller (multi-tenant Tier 0 — [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- `Inertia::defer()` em props com SQL pesado (`paginate()`, `count()` aggregated) — [RUNBOOK-inertia-defer-pattern](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
+- F3 MWART canônico 5 fases — [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- Gate visual screenshot Wagner antes de F4 merge — [ADR 0114](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
+- Pest tests biz=1 + cross-tenant biz=99 — [ADR 0101](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
 
 ## Versionamento desta charter
 

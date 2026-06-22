@@ -15,7 +15,7 @@ sidebar_group: fin (FINANCEIRO)
 
 # Page Charter — /recurring-billing/planos (Planos · v1 Cowork)
 
-> **Status:** live · Onda 6 do plano [Index-visual-comparison.md](../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md).
+> **Status:** live · Onda 6 do plano [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md).
 >
 > **Origem visual:** mesma família visual da Page /recurring-billing — tabela canônica + 4 KPIs + Tailwind 4 puro (sem `.rec-*` CSS).
 
@@ -94,7 +94,7 @@ Listar planos de assinatura recorrente do business, com criação/edição/exclu
 
 ## Tests anti-regressão
 
-- [Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php](../../../../Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php) — 5+ cenários:
+- [Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php](../../../../../Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php) — 5+ cenários:
   1. store() cria plano biz=1 com slug auto-gerado
   2. update() atualiza campos preservando slug se enviado igual
   3. destroy() soft-deleta plano sem assinatura ativa
@@ -106,9 +106,9 @@ Listar planos de assinatura recorrente do business, com criação/edição/exclu
 ## Refs
 
 - [Index.charter.md](../Index.charter.md) — charter Page Cobrança Recorrente parent
-- [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — visual canon Onda 6 linha 112
-- [SPEC.md US-RB-001](../../../../memory/requisitos/RecurringBilling/SPEC.md) — DoD cadastrar plano
-- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
-- [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- Skill [inertia-defer-default](../../../../.claude/skills/inertia-defer-default/SKILL.md)
+- [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — visual canon Onda 6 linha 112
+- [SPEC.md US-RB-001](../../../../../memory/requisitos/RecurringBilling/SPEC.md) — DoD cadastrar plano
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0104 MWART](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- Skill [inertia-defer-default](../../../../../.claude/skills/inertia-defer-default/SKILL.md)

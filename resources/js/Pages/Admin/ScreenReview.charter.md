@@ -127,11 +127,11 @@ it('respects IsWagner for screen-review repo-wide')
 
 - Blueprint canônico tri-pane: [`resources/js/Pages/kb/Index.v2.tsx`](../kb/Index.v2.tsx) (validado Wagner ONDA 2)
 - Sibling: [`Admin/GovernanceV4.tsx`](./GovernanceV4.tsx)
-- [ADR 0104 — Processo MWART canônico](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0107 — Visual comparison gate F3](../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
-- [ADR 0114 — Protótipo UI Cowork loop formalizado](../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
-- [ADR 0122 — Admin Center @ CT 100](../../../memory/decisions/0122-admin-center-ct100.md)
-- RUNBOOK Inertia::defer: [`memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md`](../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
+- [ADR 0104 — Processo MWART canônico](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0107 — Visual comparison gate F3](../../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
+- [ADR 0114 — Protótipo UI Cowork loop formalizado](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
+- [ADR 0122 — Admin Center @ CT 100](../../../../memory/decisions/0122-admin-center-ct100.md)
+- RUNBOOK Inertia::defer: [`memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md`](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)
 
 ## Histórico
 

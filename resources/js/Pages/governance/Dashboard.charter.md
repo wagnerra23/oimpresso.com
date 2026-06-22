@@ -65,8 +65,8 @@ Dashboard executivo de governança E saúde do ecossistema: visão consolidada d
 
 ## Tests anti-regressão
 
-- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (esta Page no canon target)
-- [tests/Feature/Design/CockpitTypographyConformanceTest.php](../../tests/Feature/Design/CockpitTypographyConformanceTest.php) — tipografia
+- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (esta Page no canon target)
+- [tests/Feature/Design/CockpitTypographyConformanceTest.php](../../../../tests/Feature/Design/CockpitTypographyConformanceTest.php) — tipografia
 
 ---
 

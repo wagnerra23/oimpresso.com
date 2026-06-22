@@ -23,7 +23,7 @@ charter_version: 2
 
 ## Mission
 
-Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (sem SubNav) — atendente registra identificacao (placa Mercosul principal + secundaria, chassi principal + secundario, tipo, ano fabricacao/modelo, RENAVAM, motor, KM entrada, combustivel, cor) + notes antes de abrir OS. Save unico via `useForm.post()` Inertia retornando pro Show do veiculo criado. Suporta sub-vertical 4 caminhao basculante ([ADR 0194](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)) com campos `secondary_plate` + `secondary_chassis` (caminhao + carreta).
+Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (sem SubNav) — atendente registra identificacao (placa Mercosul principal + secundaria, chassi principal + secundario, tipo, ano fabricacao/modelo, RENAVAM, motor, KM entrada, combustivel, cor) + notes antes de abrir OS. Save unico via `useForm.post()` Inertia retornando pro Show do veiculo criado. Suporta sub-vertical 4 caminhao basculante ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)) com campos `secondary_plate` + `secondary_chassis` (caminhao + carreta).
 
 ## Goals
 
@@ -51,7 +51,7 @@ Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (s
 - NAO persistir resultado da consulta automaticamente — auto-preenche o form e o operador confere/salva (Save unico continua sendo a fonte da verdade).
 - NAO permitir upload de foto do veiculo no Create V0 — Gap futuro via `HasArquivos` trait.
 - NAO vincular contact (dono) inline no Create V0 — relacao tratada em fluxo proprio.
-- NAO setar `business_id` no frontend — Model::creating hook seta automaticamente (Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- NAO setar `business_id` no frontend — Model::creating hook seta automaticamente (Tier 0 [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
 
 ## UX Targets
 
@@ -63,7 +63,7 @@ Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (s
 
 ## Automation Anti-hooks
 
-- NAO cria veiculo em outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Model::creating hook + global scope enforce). Cache da consulta de placa e namespeada por `business_id` (um tenant nunca ve resultado cacheado de outro).
+- NAO cria veiculo em outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Model::creating hook + global scope enforce). Cache da consulta de placa e namespeada por `business_id` (um tenant nunca ve resultado cacheado de outro).
 - A consulta de placa (v2) NAO traz proprietario (PII de terceiro) — so dados tecnicos (decisao Wagner 2026-06-09). Custo externo e opt-in (driver `stub` default sem rede; `http` so quando fornecedor plugado via .env, key no Vaultwarden).
 - NAO loggar a placa em claro nem payload `notes`/`chassis`/`renavam` em telemetria (PII — span Otel so com `plate_prefix` 3 chars; excecoes redacionadas via PiiRedactor).
 - NAO redireciona pra rota fora `/oficina-auto/veiculos/{id}` apos Save (Inertia `post` retorna pro Show via controller `store`).
@@ -78,10 +78,10 @@ Cadastrar novo veiculo (scaffold V0 US-OFICINA-001) em form simples modo FOCO (s
 
 ## Refs
 
-- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0104 MWART canonico unico caminho](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0137 Modules OficinaAuto qualificada](../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
-- [ADR 0194 Dominio Martinho mecanica pesada](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0104 MWART canonico unico caminho](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0137 Modules OficinaAuto qualificada](../../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
+- [ADR 0194 Dominio Martinho mecanica pesada](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
 - RUNBOOK: `memory/requisitos/OficinaAuto/RUNBOOK-create.md` (compartilhado com ServiceOrders create — pode separar futuro)
 - Charter gemeo: `resources/js/Pages/OficinaAuto/Vehicles/Edit.charter.md` (mesmo conjunto de 13 campos)
 

@@ -15,7 +15,7 @@ sidebar_group: fin (FINANCEIRO)
 
 # Page Charter — /recurring-billing (Cobrança Recorrente · v1 Cowork)
 
-> **Status:** live · primeiro PR de UI Inertia (Ondas 3+4+5 do plano [Index-visual-comparison.md](../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md)).
+> **Status:** live · primeiro PR de UI Inertia (Ondas 3+4+5 do plano [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md)).
 >
 > **Origem visual:** prototipo Cowork canônico `recurring-page.jsx` (1.637 linhas IIFE) + `recurring-data.jsx` (18 subs · 5 planos) — REFINO #1 (3-col base) implementado neste PR. Refinos #2/#3/#4 (Modo apresentação · Tour · Troubleshooters · Print · CmdPalette IA) ficam pra PRs futuros.
 
@@ -88,7 +88,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 - ❌ Cor crua Tailwind dentro do TSX (canon = classes `.rec-*` escopadas em `.rec-cowork`)
 - ❌ Modal/Dialog pra detalhe de linha (canon = drawer 3ª coluna sempre visível desktop ≥1100px, tab mobile <1100px)
-- ❌ Adaptar peça-a-peça desfazendo coesão visual do prototipo (ver [feedback-design-literal-copy-quando-aprovado.md](../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md))
+- ❌ Adaptar peça-a-peça desfazendo coesão visual do prototipo (ver [feedback-design-literal-copy-quando-aprovado.md](../../../../memory/reference/feedback-design-literal-copy-quando-aprovado.md))
 - ❌ `font-bold` em h1 (canon Cowork = `font-weight: 700` mas tipografia já é display)
 - ❌ `sessionStorage` (canon = `localStorage` com prefix `oimpresso.rec.`)
 - ❌ Inflar Page Inertia com lógica de cobrança/dunning (canon = chama Repository/Service)
@@ -122,13 +122,13 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 ## Refs
 
-- [Index-visual-comparison.md](../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — visual canon mapeado pixel-perfect Onda 0
-- [BRIEFING.md](../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado RecurringBilling (atualizar pós-merge via skill brief-update)
-- [ADR 0093 Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
-- [ADR 0104 MWART](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0107 Visual comparison gate](../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
-- [ADR 0110 Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0114 Prototipo-ui Cowork loop](../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
-- Skill [sidebar-menu-arch](../../../.claude/skills/sidebar-menu-arch/SKILL.md) — pattern DataController + SIDEBAR_GROUPS
-- Skill [inertia-defer-default](../../../.claude/skills/inertia-defer-default/SKILL.md) — props caras com defer
+- [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) — visual canon mapeado pixel-perfect Onda 0
+- [BRIEFING.md](../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado RecurringBilling (atualizar pós-merge via skill brief-update)
+- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0101 Tests biz=1](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0107 Visual comparison gate](../../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
+- [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ADR 0114 Prototipo-ui Cowork loop](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
+- Skill [sidebar-menu-arch](../../../../.claude/skills/sidebar-menu-arch/SKILL.md) — pattern DataController + SIDEBAR_GROUPS
+- Skill [inertia-defer-default](../../../../.claude/skills/inertia-defer-default/SKILL.md) — props caras com defer

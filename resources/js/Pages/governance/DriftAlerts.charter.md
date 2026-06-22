@@ -65,7 +65,7 @@ Mostrar a Wagner divergência entre intenção declarada (SCOPE.md de cada módu
 
 ## Tests anti-regressão
 
-- [bin/check-scope.php](../../bin/check-scope.php) — CLI equivalente (paridade lógica obrigatória)
+- [bin/check-scope.php](../../../../bin/check-scope.php) — CLI equivalente (paridade lógica obrigatória)
 - [tests/Feature/Governance/DriftDetectionTest.php](../../tests/Feature/Governance/DriftDetectionTest.php) — módulo fixture com controller undeclared
 
 ---

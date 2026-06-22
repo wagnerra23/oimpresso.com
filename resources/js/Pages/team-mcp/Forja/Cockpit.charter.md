@@ -17,7 +17,7 @@ charter_version: 1
 
 # Page Charter — `/forja` cockpit (DRAFT · Onda Forja · 6 abas reais)
 
-> Cockpit do cowork loop (humano ↔ agente) — **as 6 abas são reais**: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
+> Cockpit do cowork loop (humano ↔ agente) — **as 6 abas são reais**: Triagem (proposta + dossiê), Backlog (agrupável Onda/Fase/Papel/Prioridade/Módulo), Quadro (board F0→F3.5), Changelog (PRs/ADRs/sessões), MCP (contrato/tokens/auditoria — **MOCKADO por design**), Saúde (KPIs + WIP por fase + automação). Cada aba projeta `mcp_tasks` project=FORJA + git/ADR/sessão + gates (`ScorecardBuilderService`) — **sem dado fantasma**. **Absorção em TeamMcp** (não é módulo novo). Backend: `ForjaController` + `Modules/TeamMcp/Services/Forja/*Service`. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Ref: [forja-cockpit-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md).
 
 ## Mission
 

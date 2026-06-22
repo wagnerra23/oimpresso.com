@@ -106,10 +106,10 @@ it('PathsDialog opens in <200ms with deferred prop')
 
 ## Refs
 
-- Backend: [`Modules/KB/Http/Controllers/KbPathController.php`](../../../Modules/KB/Http/Controllers/KbPathController.php)
+- Backend: [`Modules/KB/Http/Controllers/KbPathController.php`](../../../../Modules/KB/Http/Controllers/KbPathController.php)
 - Component: [`PathsDialog.tsx`](_components/PathsDialog.tsx)
-- [SCHEMA-DB-V1 §11](../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [SCHEMA-DB-V1 §11](../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ## Histórico
 

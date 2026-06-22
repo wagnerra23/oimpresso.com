@@ -206,7 +206,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 | Mobile responsive | Desktop only | Eliana persona desktop |
 | `delta_pct` (+12% vs mês anterior) | Não calcula | F1 simplifica; comparativo é US futura |
 
-**Apend a [ADR ui/0002](../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) ou nova ADR superseding** quando próxima sessão tocar — formaliza divergência.
+**Apend a [ADR ui/0002](../../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) ou nova ADR superseding** quando próxima sessão tocar — formaliza divergência.
 
 ---
 
@@ -227,4 +227,4 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ## Refs ADR
 
 - **`related_adrs` (frontmatter):** `0093` (multi-tenant Tier 0) · `0094` (Constituição V2).
-- **ADRs namespaced** (fora do `related_adrs` — o schema canônico `scripts/memory-schemas/charter.schema.json` só aceita ADR top-level integer/slug): [arq/0005 — Financeiro vs Accounting paralelo](../../../../memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md) · [ui/0002 — dashboard unificado 4 estados](../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) · ui/0114 — gate visual F1.5 / mwart-comparative.
+- **ADRs namespaced** (fora do `related_adrs` — o schema canônico `scripts/memory-schemas/charter.schema.json` só aceita ADR top-level integer/slug): [arq/0005 — Financeiro vs Accounting paralelo](../../../../../memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md) · [ui/0002 — dashboard unificado 4 estados](../../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) · ui/0114 — gate visual F1.5 / mwart-comparative.

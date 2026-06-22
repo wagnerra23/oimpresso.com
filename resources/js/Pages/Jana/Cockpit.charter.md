@@ -162,7 +162,7 @@ Substitui `Cockpit.tsx` atual que erroneamente implementou um chat WhatsApp-styl
 
 ## Automation Hooks
 
-- **Backend**: `ChatController::sendStream($id)` em [Modules/Jana/Http/Controllers/ChatController.php:276](../../../Modules/Jana/Http/Controllers/ChatController.php) já existe — reusar.
+- **Backend**: `ChatController::sendStream($id)` em [Modules/Jana/Http/Controllers/ChatController.php:276](../../../../Modules/Jana/Http/Controllers/ChatController.php) já existe — reusar.
 - **Centrifugo subscribe**: `jana:thread:{business_id}:{thread_id}` no `useEffect` da tab IA · cleanup no unmount + pausa visibilityState.
 - **Token Centrifugo**: backend emite via `CentrifugoTokenIssuer::issue` em cada `Inertia::render` (mesmo padrão `/atendimento/caixa-unificada`).
 - **HITL action confirm**: `<ActionCardBubble onConfirm>` → POST `/jana/sugestoes/{id}/escolher` · `onCancel` → POST `/jana/sugestoes/{id}/rejeitar` (rotas já existem em `Modules/Jana/Http/routes.php:40-41`).

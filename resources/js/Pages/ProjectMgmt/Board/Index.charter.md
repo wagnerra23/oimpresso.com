@@ -83,7 +83,7 @@ DetailSheet aqui foi a primeira implementação do drawer canon. SaleSheet (Sell
 
 ## Tests anti-regressão
 
-- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (canon target)
+- [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico (canon target)
 
 ---
 
