@@ -12,12 +12,12 @@ tier: B
 ## Regra de ouro (por que este método)
 Separar os dois custos opostos:
 - **Análise** = barata, read-only, **1x**, precisa ver o todo → faz em **paralelo** (1 agente read-only por tela).
-- **Aplicação** = cara, escreve código, **por tela**, precisa ver **só 1 tela** → faz em **sessão LIMPA por tela** (não arrasta a análise das outras = economia de token) + **worktree isolada** (zero conflito).
+- **Aplicação** = cara, escreve código, **por tela**, precisa ver **só 1 tela** → faz em **sessão LIMPA por tela** (não arrasta a análise das outras = economia **O(1) vs O(N) telas**) + **worktree isolada** (isolamento **PARCIAL** — DS compartilhado + `config/*baseline*.json` saem do paralelo, viram PR de fundação sequencial antes; ver Fase 4).
 
 Nunca aplicar às cegas: **mapa read-only primeiro**.
 
 ## As 6 fases (resumo — detalhe no RUNBOOK)
-0. **Detectar** — `git diff` de `prototipo-ui/prototipos/` desde o sha do `SYNC_LOG.md`; sem mudança no git, o protótipo É o alvo (compara vs tela viva). Entrada nova = Issue `cowork-intake` (ADR 0282).
+0. **Detectar** — referência por tela = `git log -1 --format=%H -- prototipo-ui/prototipos/<dir>/` (o SYNC_LOG NÃO guarda sha por tela). Mapa nome↔Page NÃO é 1:1 (crm→Cliente, vendas só charter). Sem mudança/vazio, o protótipo É o alvo. Intake canônico = Issue `cowork-intake` (ADR 0282), mas adoção ainda zero → hoje é handoff/bundle; trate ambos.
 1. **Mapear** — 1 agente `general-purpose` READ-ONLY por tela, em paralelo. Divide a tela em PARTES (header/KPIs/filtros/lista/drawer/footer), por parte: o quê mudou/falta + **POR QUÊ** + esforço(P/M/G) + risco. Grava `memory/requisitos/<Mod>/<tela>-gap.md`.
 2. **Consolidar + decidir [W]** — tabela mestre + **flags de governança que PARAM**: módulo silenciado (BRIEFING), Tier 0 (ADR 0093), tela "ouro"/`contrato-de-tela`, ADR-mãe não aprovada, cliente-sinal (ADR 0105). Wagner aprova ordem das ondas.
 3. **Registrar** — `tasks-create` (MCP) com o GAP-SPEC embutido + CHANGELOG da tela (o quê+porquê por parte) + SPEC (US + `**Implementado em:**`).
@@ -25,7 +25,7 @@ Nunca aplicar às cegas: **mapa read-only primeiro**.
 5. **Fechar** — `SYNC_LOG` append + charter status/version + `anchor-lint --check` (fidelidade spec↔código, ADR 0297) + `brief-update`.
 
 ## Anti-padrões (PARA)
-- Aplicar sem mapa read-only. · Carregar a análise das 6 telas dentro da sessão de aplicação de 1 tela (queima token). · Aplicar em tela silenciada/Tier-0/contract-locked sem OK [W]. · Inventar path/feature: gap incerto = `_pendente_`/pergunta (LICOES_F3). · Aprovar por tabela em vez de screenshot.
+- Aplicar sem mapa read-only. · Carregar a análise das N telas dentro da sessão de aplicação de 1 tela (queima token). · Aplicar em tela silenciada/Tier-0/contract-locked sem OK [W]. · Inventar path/feature: gap incerto = `_pendente_`/pergunta (LICOES_F3). · Aprovar por tabela em vez de screenshot. · **Paralelizar telas que tocam o MESMO DS component ou rebaselinam o MESMO `config/*baseline*.json`** (conflito determinístico — serialize a fundação antes, incidente #2495). · Confiar no SYNC_LOG pra sha de diff (não tem). · Regredir tela que já está à frente do protótipo.
 
 ## Pareada com
 - `cowork-prototype-replication` (mecânica F0–F7 de UMA tela) · `mwart-process` (5 fases backend→cutover) · `coordenador-paralelo` (spawna as sessões limpas) · `anchor-lint` (fecha a fidelidade da SPEC).
