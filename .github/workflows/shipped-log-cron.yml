@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+      MCP_DRIFT_TOKEN: ${{ secrets.MCP_DRIFT_TOKEN }}   # G8: SHA/data do deploy de produção (/api/mcp/version)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
