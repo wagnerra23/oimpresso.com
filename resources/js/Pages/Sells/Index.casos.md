@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-11"
+last_run: "2026-06-22"
 ---
 
 # Casos de Uso & Aceite — Lista de vendas
@@ -19,7 +19,7 @@ last_run: "2026-06-11"
 - **Persona:** Larissa / Kamila — "quem está devendo?" sem montar relatório.
 - **Aceite:** Dado a tela carregada · Então o título **Vendas** renderiza e as pílulas de status por pagamento aparecem (default **Todas**; pagas/a-receber derivadas de `payment_status`).
 - **Teste:** `e2e/sells-index.spec.ts` (Playwright, harness G-3 e2e-gate).
-- **Status: ✅**
+- **Status: 🧪** — prova de 2026-06-11 ficou stale após a mudança de navegação de 2026-06-22 (link "Caixa do dia" no dropdown Visões). O comportamento de UC-S10 (título **Vendas** + pílulas de pagamento) **não** foi tocado; rebaixado honestamente por G-7 (ADR 0264) até `npm run e2e:check` + `npm run casos:results` no harness CI regravarem o manifesto e devolverem o ✅. Sem fingir prova, sem `casos:baseline:write`.
 
 ---
 
@@ -37,3 +37,4 @@ last_run: "2026-06-11"
 
 ## Trilha do tempo
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S10 + spec `sells-index.spec.ts`.
+- 2026-06-22 · [CL] link "Caixa do dia" (`/vendas/caixa`) adicionado ao dropdown Visões de `Index.tsx` (tela viva órfã de navegação — `SellController@inertiaCaixa` → `Sells/Caixa/Index`, ADR 0192 Onda 6). `last_run` bumpado e UC-S10 rebaixado ✅→🧪 (G-7: prova e2e stale, não re-rodável fora do harness CI). Refs ADR 0264, ADR 0192.
