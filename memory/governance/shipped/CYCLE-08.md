@@ -1,30 +1,33 @@
-<!-- GERADO por método one-shot validado na sessão 2026-06-22 (fonte completa). NÃO é o shipped-log-generate.mjs v1 (reprovado). -->
+<!-- GERADO por scripts/governance/shipped-log-generate.mjs (v2, fonte completa). NÃO editar à mão. Rode --write. -->
 ---
 status: parcial
 cycle: CYCLE-08
+window: "2026-05-31..2026-06-22"
 generated: "2026-06-22"
 ---
 
 # Shipped log (PARCIAL) · CYCLE-08
 
-> ⚠️ **PARCIAL** — cycle aberto (`2026-05-31 → 2026-06-28`); janela coberta `2026-05-31..2026-06-22`. Regenerar ao fechar.
-> **Rótulo honesto:** lista o que foi **mergeado em `main`** na janela. Merge ≠ deploy ≠ funciona em produção. Reverts riscados abaixo.
-> Fonte: REST por sub-janela de dia (sem teto de 1000 da Search API) + API `/commits` pra push-direto. **Não** depende de `Refs: US-XXX` (cycle drift conhecido).
+> ⚠️ **PARCIAL** — janela ainda aberta. Regenerar ao fechar o cycle.
+> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-06-22` (BRT). Merge ≠ deploy ≠ funciona em produção.
+> Fonte: REST por sub-janela de dia (sem teto da Search API) + API `/commits` pra push-direto + revert reconciliado. **Não** depende de `Refs: US-XXX`.
+> Limites: área = scope do conventional-commit (PR multi-área cai na área do título); deploy real fora de escopo (G8).
 
 ## Contagem
 
-- **1073 PRs** mergeados em `main` na janela · 618 de produto (feat/fix/refactor/perf/style) · 455 de manutenção (docs/chore/test/ci/build)
+- **1073 PRs** mergeados em `main` · 616 de produto · 457 de manutenção (docs/chore/test/ci/build)
 - **33 entregas push-direto** (commits sem objeto-PR — invisíveis a query de PR)
-- **1 revert reconciliado** (par riscado — entrega líquida zero)
-- **200 tocam Design System** (já no CHANGELOG.md do DS, backfill #3167)
+- **2 revert reconciliado** (par riscado — entrega líquida zero)
+- **196 tocam Design System**
 
 ## Reconciliação — merge ≠ entrega
 
-- ⚠️ **#2104 revertido por #2107** — conta como entrega líquida **zero**, não +1 feature.
+- ⚠️ **#2104 revertido por #2107** — entrega líquida **zero**.
+- ⚠️ **#3150 revertido por #3184** — entrega líquida **zero**.
 
 ## Entregas push-direto na main (sem PR)
 
-> Classe inteira que o gerador via-PR nunca vê. Inclui produto real (multi-tenant, cliente, oficina, cockpit).
+> Classe que o registro via-PR nunca vê.
 
 - fix(main): restaura codebase apagado pelo squash do #2413
 - docs(audit): auditoria IA OS 2026-06-06 — 79/100 (era 68 em maio)
@@ -62,7 +65,7 @@ generated: "2026-06-22"
 
 ## Por área (PRs mergeados)
 
-### governance — 94 (+78 manutenção)
+### governance — 95 (+81 manutenção)
 - fix: guard automático de base STALE vs origin/main + PROTOCOL §10.4 Passo 0 (#2033)
 - feat: G4 retorno automático §10.2 — design_return_skipped + workflow pós-merge (#2064)
 - feat: governanca:scorecard — placar [CC]×Jana mecanizado (graduação de lições) (#2151)
@@ -152,11 +155,12 @@ generated: "2026-06-22"
 - feat: US-GOV-042 — anchor-lint status:arquivado + MemCofre/SRS (A3 do sweep) (#3169)
 - feat: reconcilia detector×corretor ghost + renames Classe A + cron distiller (P11 KL-E2/E3) (#3155)
 - feat: commit-back do floor SDD pra main (scorecard não-stale · P01/Gap-1a) (#3142)
-- feat: instrumenta pcov no CT100 + measureCoverage no scorecard (SDD P07) (#3150)
+- feat: instrumenta pcov no CT100 + measureCoverage no scorecard (SDD P07) (#3150) — ⚠️ REVERTIDO por #3184 (líquido 0)
 - fix: isenta _Governanca/roadmap/ no anti-ghost (fecha US-GOV-035 + o vermelho) (#3175)
 - feat: tamper-guard fecha grandfather dos 4 baselines (P05 · vetor #2848) (#3144)
 - fix: isenção roadmap no allMdLive — fecha o anti-ghost vermelho (de verdade) (#3176)
 - feat: 2º dente SDD — SDD scorecard ratchet (GT-G3) required-candidate [DRAFT] (#3181)
+- fix: shipped-log gerador honesto v2 + test (fonte completa) (#3188)
 
 ### jana — 61 (+7 manutenção)
 - feat: health-check de charter (advisory) no jana:health-check (#2055)
@@ -374,33 +378,6 @@ generated: "2026-06-22"
 - fix: lupa da busca não encavala + Auditoria entra em Operações (#2685)
 - fix: encaixa atalhos de teclado no rodapé (remove FAB flutuante) (#2778)
 
-### ds — 25 (+6 manutenção)
-- feat: cartao de evidencia ds:report --module --json (F1 do ADR 0240) (#2023) · `DS`
-- refactor: migra controles + FieldSuccess T1 do Sells -> DS (#2026) · `DS`
-- refactor: migra controles RecurringBilling -> DS (baixa baseline) (#1988) · `DS`
-- fix: T0-A — --bubble-me azul → roxo canon (último drift de cor) (#2128) · `DS`
-- feat: DS v6 — tokens de fundação --stage-* (PR1 token delta) (#2170) · `DS`
-- feat: DS v6 — tokens semânticas --pos/--neg/--warn(+soft) + gate /sells (PR3 kickoff) (#2184) · `DS`
-- feat: DS v6 PR3 slice 1 — status pills /sells → tokens semânticos [DRAFT · gate] (#2186) · `DS`
-- feat: DS v6 PR3 slice 2 — camada --vd-* do /sells → tokens canônicos (#2187) · `DS`
-- feat: DS v6 PR3 slice 3 — origem /sells → --origin-* (recolor gabarito) (#2190) · `DS`
-- feat: DS v6 PR3 slice 4 — pipeline FSM dots /sells → --stage-* (#2191) · `DS`
-- feat: DS v6 PR3 slice 5 — fiscal badges /sells fg → token (#2193) · `DS`
-- refactor: higiene token /sells — danger-red oklch → var(--neg) (-16) (#2194) · `DS`
-- feat: refino v2 dos primitivos de layout (ADR 0253) — cobertura ERP real (#2371) · `DS`
-- feat: gate de enforcement anti-flex-solto (ADR 0253 follow-up) (#2373) · `DS`
-- feat: paleta de cor oficial auto-gerada do cockpit.css (#2443) · `DS`
-- feat: Type ramp --fs-1..9 — ancora unica tipografica (fundacao + gate) [F2 PR-4] (#2493) · `DS`
-- feat: eleva o Design System — tokens oklch extraídos da tela-ouro (Passo 1) (#2639) · `DS`
-- fix: camada canônica consome o DS — badge/KpiCard/EmptyState tokenizam status (Onda M1) (#2641) · `DS`
-- fix: StatusBadge consome o DS — mapa de status app-wide tokenizado (Onda M1) (#2643) · `DS`
-- feat: catraca trava a camada canônica em 0 paleta crua (Onda M1 · keystone) (#2644) · `DS`
-- feat: tokens de motion — vocabulário de duração + easing (Onda M1 · D8) (#2645) · `DS`
-- refactor: unifica tokens de cor em oklch — fim da mistura hsl/oklch (Onda M1 · D1) (#2651) · `DS`
-- feat: adoção em massa do DS — 329 tokenizações verificadas por adversário (132 arquivos, 32 módulos) (#2666) · `DS`
-- refactor: font-ramp migration — sells/cockpit/fiscal CSS (FORJA-140) (#2870) · `DS`
-- refactor: font-ramp — snap dos 15 off-ramp restantes (FORJA-140) (#2873) · `DS`
-
 ### oficina — 25 (+9 manutenção)
 - feat: handoff design Produção — charter v3 + drawer Vendas×Oficina + arrasto preditivo (#2228) · `DS`
 - feat: re-tokeniza Kanban Oficina → família stage DS (UI-Lint #2228) (#2234) · `DS`
@@ -427,6 +404,31 @@ generated: "2026-06-22"
 - feat: Onda 2 — Fila com detalhe RICO inline (mesmo corpo do drawer, zero duplicação) (#2548) · `DS`
 - fix: workspace preenche o shell — chrome fixo, só o conteúdo rola (corta ao rolar) (#2551)
 - refactor: remove shim MercosulPlate — fonte unica shared/ (ADR 0251 cumprida) (#2555)
+
+### ds — 23 (+5 manutenção)
+- refactor: migra controles RecurringBilling -> DS (baixa baseline) (#1988) · `DS`
+- fix: T0-A — --bubble-me azul → roxo canon (último drift de cor) (#2128) · `DS`
+- feat: DS v6 — tokens de fundação --stage-* (PR1 token delta) (#2170) · `DS`
+- feat: DS v6 — tokens semânticas --pos/--neg/--warn(+soft) + gate /sells (PR3 kickoff) (#2184) · `DS`
+- feat: DS v6 PR3 slice 1 — status pills /sells → tokens semânticos [DRAFT · gate] (#2186) · `DS`
+- feat: DS v6 PR3 slice 2 — camada --vd-* do /sells → tokens canônicos (#2187) · `DS`
+- feat: DS v6 PR3 slice 3 — origem /sells → --origin-* (recolor gabarito) (#2190) · `DS`
+- feat: DS v6 PR3 slice 4 — pipeline FSM dots /sells → --stage-* (#2191) · `DS`
+- feat: DS v6 PR3 slice 5 — fiscal badges /sells fg → token (#2193) · `DS`
+- refactor: higiene token /sells — danger-red oklch → var(--neg) (-16) (#2194) · `DS`
+- feat: refino v2 dos primitivos de layout (ADR 0253) — cobertura ERP real (#2371) · `DS`
+- feat: gate de enforcement anti-flex-solto (ADR 0253 follow-up) (#2373) · `DS`
+- feat: paleta de cor oficial auto-gerada do cockpit.css (#2443) · `DS`
+- feat: Type ramp --fs-1..9 — ancora unica tipografica (fundacao + gate) [F2 PR-4] (#2493) · `DS`
+- feat: eleva o Design System — tokens oklch extraídos da tela-ouro (Passo 1) (#2639) · `DS`
+- fix: camada canônica consome o DS — badge/KpiCard/EmptyState tokenizam status (Onda M1) (#2641) · `DS`
+- fix: StatusBadge consome o DS — mapa de status app-wide tokenizado (Onda M1) (#2643) · `DS`
+- feat: catraca trava a camada canônica em 0 paleta crua (Onda M1 · keystone) (#2644) · `DS`
+- feat: tokens de motion — vocabulário de duração + easing (Onda M1 · D8) (#2645) · `DS`
+- refactor: unifica tokens de cor em oklch — fim da mistura hsl/oklch (Onda M1 · D1) (#2651) · `DS`
+- feat: adoção em massa do DS — 329 tokenizações verificadas por adversário (132 arquivos, 32 módulos) (#2666) · `DS`
+- refactor: font-ramp migration — sells/cockpit/fiscal CSS (FORJA-140) (#2870) · `DS`
+- refactor: font-ramp — snap dos 15 off-ramp restantes (FORJA-140) (#2873) · `DS`
 
 ### ci — 22 (+5 manutenção)
 - feat: stylelint ratchet anti-drift CSS (fecha G5 · ADR 0209) (#2054)
@@ -582,13 +584,6 @@ generated: "2026-06-22"
 - feat: paridade Edit — desconto per-linha R$/% (line discount_type) (#2242)
 - feat: paridade Edit — IMEI/serial inline por linha (imei_number) (#2243)
 
-### ui — 5 (+1 manutenção)
-- feat: Onda G — badge variants semânticas (status pills) (#2025) · `DS`
-- feat: F4 — congela PageHeader antigo (ratchet) + política incremental (#2330) · `DS`
-- fix: corrige casing import @/Lib/utils em resizable.tsx (TS1149) (#2334) · `DS`
-- feat: BR inputs canonicos — NumericInputPtBR promovido + DocumentInput + PhoneInput (#2540) · `DS`
-- fix: dark mode real — ativa por [data-theme=dark], não só .dark (ADR 0281) (#2826) · `DS`
-
 ### brief — 4
 - fix: detector de cycle drift distingue 3 causas (honesto, não cala) (#2410)
 - feat: linha SDD + kill-switch GOVERNANCE_SDD_BRIEF_LINE no Daily Brief (GT-G8) (#2630)
@@ -636,6 +631,12 @@ generated: "2026-06-22"
 - fix: eliminate const-collision warnings (+ divergent-value bug) in full-suite Pest discovery (#2266)
 - fix: guard FIN_* const collision dos novos Unificado*Test (#2269)
 - fix: Ponto CLT roda de fato (#[Test] + registra Tests/Unit) + endurece guard @test (#2768)
+
+### ui — 4 (+1 manutenção)
+- feat: F4 — congela PageHeader antigo (ratchet) + política incremental (#2330) · `DS`
+- fix: corrige casing import @/Lib/utils em resizable.tsx (TS1149) (#2334) · `DS`
+- feat: BR inputs canonicos — NumericInputPtBR promovido + DocumentInput + PhoneInput (#2540) · `DS`
+- fix: dark mode real — ativa por [data-theme=dark], não só .dark (ADR 0281) (#2826) · `DS`
 
 ### visreg — 4 (+1 manutenção)
 - feat: auth bridge cross-process — destrava smoke das telas autenticadas (Fase B) (#2317)
@@ -750,11 +751,12 @@ generated: "2026-06-22"
 - feat: especialista de tela + catraca de cobertura sustentável (proposta) (#2215)
 - feat: screen-grade enforcement — seed 222 scorecards + catraca anti-regressão (#2223)
 
+### revert — 2
+- revert: PR2 endereço na venda (#2104) — incidente regressão cliente pós-merge (#2107)
+- revert: remove coverage.yml (Brick B) — duplicava #3150 (#3184)
+
 ### a11y — 1 (+2 manutenção)
 - feat: Fase 2 — axe-core runtime (jsdom) nos componentes canon (#2361)
-
-### adr — 1 (+26 manutenção)
-- feat: ADR 0240 task ledger git-native + antifragilidade (aceito) (#2022)
 
 ### atendimento — 1
 - fix: dark flipa sem F5 (toggle sincroniza data-theme) + thread usa token (#3044)
@@ -834,9 +836,6 @@ generated: "2026-06-22"
 ### repair — 1
 - fix: resolve conflito de merge commitado no CHANGELOG.md (#2807)
 
-### revert — 1
-- revert: PR2 endereço na venda (#2104) — incidente regressão cliente pós-merge (#2107)
-
 ### roadmap — 1 (+2 manutenção)
 - fix: project: COPI nos 3 SPECs — destrava cycle_id (fecha furo #6 do pipeline) (#3166)
 
@@ -869,6 +868,8 @@ generated: "2026-06-22"
 
 ### xss — 1
 - fix: dangerouslySetInnerHTML em campos de dado (Todo description + contact_address) (#2893)
+
+### adr — 0 (+26 manutenção)
 
 ### adr-0296 — 0 (+1 manutenção)
 
