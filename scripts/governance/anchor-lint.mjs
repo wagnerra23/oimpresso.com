@@ -151,8 +151,12 @@ function deadTestRefs(rest, specDir) {
   }
   for (const m of remaining.matchAll(/`([^`]+)`/g)) {
     const seg = m[1].replace(/[.,;:]+$/, '');
-    if (seg.includes('/')) { if (seg.endsWith('.php') && !existsSync(resolve(ROOT, seg))) out.push(seg); }
-    else if (/Test$/.test(seg) && !testBasenames().has(seg)) out.push(seg);
+    if (seg.includes('/')) {
+      // path-like: vale .php OU basename ...Test (sem sufixo) — antes só .php escapava
+      // (falso-negativo: `Modules/.../AuditLogMutacoesTest` passava batido)
+      const base = seg.split('/').pop();
+      if ((seg.endsWith('.php') || /Test$/.test(base)) && !existsSync(resolve(ROOT, seg)) && !existsSync(resolve(ROOT, `${seg}.php`))) out.push(seg);
+    } else if (/Test$/.test(seg) && !testBasenames().has(seg)) out.push(seg);
   }
   return out;
 }
