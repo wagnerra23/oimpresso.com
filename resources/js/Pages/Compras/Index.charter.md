@@ -18,7 +18,7 @@ related_proposals:
 
 # Page Charter — /compras (cockpit · v2 C1 convergência)
 
-> **Status v2 (2026-05-25):** mantém Wave 1+2+3+4 visual scaffold mas pivota Non-Goals + Anti-hooks via convergência C1 — cockpit `/compras` delega CRUD pra trilho A `Pages/Purchase/*` Inertia (Wave 2 B5 piloto MWART · ADR 0141). Botão "+ Nova compra" deixa de prometer Wave 8 com `/compras/create` e passa a `router.visit('/purchases/create')`. Ver ADR proposta [`compras-purchase-convergencia-c1`](../../../memory/decisions/proposals/compras-purchase-convergencia-c1.md).
+> **Status v2 (2026-05-25):** mantém Wave 1+2+3+4 visual scaffold mas pivota Non-Goals + Anti-hooks via convergência C1 — cockpit `/compras` delega CRUD pra trilho A `Pages/Purchase/*` Inertia (Wave 2 B5 piloto MWART · ADR 0141). Botão "+ Nova compra" deixa de prometer Wave 8 com `/compras/create` e passa a `router.visit('/purchases/create')`. Ver ADR proposta [`compras-purchase-convergencia-c1`](../../../../memory/decisions/proposals/compras-purchase-convergencia-c1.md).
 >
 > **Status v1 original (2026-05-21):** F1 pin literal do protótipo Cowork canônico (`compras-page.jsx`).
 >
@@ -119,15 +119,15 @@ Wave 7 adicionará:
 
 ## Refs
 
-- [memory/requisitos/Compras/SPEC.md](../../../memory/requisitos/Compras/SPEC.md) — US-COM-001
-- [memory/requisitos/Compras/RUNBOOK-compras-index.md](../../../memory/requisitos/Compras/RUNBOOK-compras-index.md)
-- [memory/requisitos/Compras/BRIEFING.md](../../../memory/requisitos/Compras/BRIEFING.md)
-- [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
-- [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0104](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
-- [ADR proposta compras-modulo-greenfield-hibrido](../../../memory/decisions/proposals/compras-modulo-greenfield-hibrido.md) — supersedes_partially por C1 (Wave 8 cancelled)
-- [ADR proposta compras-purchase-convergencia-c1](../../../memory/decisions/proposals/compras-purchase-convergencia-c1.md) — **C1 vigente nesta charter v2**
-- [ADR 0141 skill migracao-blade-react](../../../memory/decisions/0141-skill-migracao-blade-react.md) — piloto Wave 2 B5 do trilho A Purchase
+- [memory/requisitos/Compras/SPEC.md](../../../../memory/requisitos/Compras/SPEC.md) — US-COM-001
+- [memory/requisitos/Compras/RUNBOOK-compras-index.md](../../../../memory/requisitos/Compras/RUNBOOK-compras-index.md)
+- [memory/requisitos/Compras/BRIEFING.md](../../../../memory/requisitos/Compras/BRIEFING.md)
+- [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
+- [ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
+- [ADR proposta compras-modulo-greenfield-hibrido](../../../../memory/decisions/proposals/compras-modulo-greenfield-hibrido.md) — supersedes_partially por C1 (Wave 8 cancelled)
+- [ADR proposta compras-purchase-convergencia-c1](../../../../memory/decisions/proposals/compras-purchase-convergencia-c1.md) — **C1 vigente nesta charter v2**
+- [ADR 0141 skill migracao-blade-react](../../../../memory/decisions/0141-skill-migracao-blade-react.md) — piloto Wave 2 B5 do trilho A Purchase
 - [Pages/Purchase/Create.charter.md](../Purchase/Create.charter.md) — Tier A ★ intocado por C1
 - Pattern Soft wrapper precedente: PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288) + PR [#1297 Home](https://github.com/wagnerra23/oimpresso.com/pull/1297)
 - Protótipo canon: `public/cowork-preview/erp-shell-v2/compras-page.{jsx,css}`

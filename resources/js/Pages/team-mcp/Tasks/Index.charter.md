@@ -19,11 +19,11 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/tasks` (DRAFT)
 
-> Criado no PR **Forja PR-1** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] + time MCP (Felipe/Maiara/Eliana/Luiz), desktop, superadmin `copiloto.mcp.usage.all`. Backend: `Modules/TeamMcp/Http/Controllers/TasksAdminController.php` (Inertia::defer). Referência visual aprovada: [tasks-visual-comparison.md](../../../../memory/requisitos/TeamMcp/tasks-visual-comparison.md).
+> Criado no PR **Forja PR-1** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] + time MCP (Felipe/Maiara/Eliana/Luiz), desktop, superadmin `copiloto.mcp.usage.all`. Backend: `Modules/TeamMcp/Http/Controllers/TasksAdminController.php` (Inertia::defer). Referência visual aprovada: [tasks-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/tasks-visual-comparison.md).
 
 ## Mission
 
-Painel **read + drag** de governança de tasks MCP (Jira-style, [ADR 0070](../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)): backlog denso agrupável + quadro kanban, na gramática Forja sob DS v6. Projeção fiel de `mcp_tasks` — **sem dado fantasma**. Operação primária: enxergar/triar o backlog e mover status (drag/bulk), com drawer de issue (situação + atividade real + vínculos + subtasks).
+Painel **read + drag** de governança de tasks MCP (Jira-style, [ADR 0070](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)): backlog denso agrupável + quadro kanban, na gramática Forja sob DS v6. Projeção fiel de `mcp_tasks` — **sem dado fantasma**. Operação primária: enxergar/triar o backlog e mover status (drag/bulk), com drawer de issue (situação + atividade real + vínculos + subtasks).
 
 ## Goals — Features (faz)
 
@@ -49,7 +49,7 @@ Painel **read + drag** de governança de tasks MCP (Jira-style, [ADR 0070](../..
 ## UX targets
 
 - DS v6: tokens semânticos (roxo 295 `primary`), status Stripe-**dot** (sem bg-fill), **sem cor crua**, **sem `rounded-xl+`**, ramp `--fs-*`.
-- Drawer **560px** (issue ≠ cadastro 760px [ADR 0185](../../../../memory/decisions/0185-drawer-760-canon-entidades-cadastrais.md) — exceção registrada no visual-comparison).
+- Drawer **560px** (issue ≠ cadastro 760px [ADR 0185](../../../../../memory/decisions/0185-drawer-760-canon-entidades-cadastrais.md) — exceção registrada no visual-comparison).
 - Loading skeleton enquanto `Inertia::defer` resolve. Empty states (vazio / busca-sem-resultado).
 - `tabular-nums` em IDs/contagens/horas. Locators `data-testid` (NÚCLEO #7 anti-quebra-silenciosa).
 
@@ -63,7 +63,7 @@ Painel **read + drag** de governança de tasks MCP (Jira-style, [ADR 0070](../..
 ## Restrições Tier 0
 
 - Permissão `copiloto.mcp.usage.all` no construtor (todas as ações, incl. `show`).
-- `mcp_tasks`/`mcp_task_events` são **repo-wide cross-tenant INTENCIONAL** ([ADR 0070](../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)) — governança da plataforma, sem `business_id` by design. (Não é dado de negócio.)
+- `mcp_tasks`/`mcp_task_events` são **repo-wide cross-tenant INTENCIONAL** ([ADR 0070](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)) — governança da plataforma, sem `business_id` by design. (Não é dado de negócio.)
 - `mcp_task_events` append-only (read no `show()`).
 
 ## Métricas de sucesso (validação Wagner)

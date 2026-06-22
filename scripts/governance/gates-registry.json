@@ -58,6 +58,10 @@
       "nome": "Casos-guard meta-teste (vitest)",
       "classe": "meta"
     },
+    "charter-refs-gate.yml": {
+      "nome": "Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256)",
+      "classe": "gate"
+    },
     "ci.yml": {
       "nome": "CI",
       "classe": "gate"

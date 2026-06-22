@@ -12,7 +12,7 @@ charter_version: 1
 
 # Page Charter — /admin (DRAFT)
 
-> **Status:** draft criado em Sprint 1 dia 3-4 a partir do [ADR 0122](../../../memory/decisions/0122-admin-center-ct100.md). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
+> **Status:** draft criado em Sprint 1 dia 3-4 a partir do [ADR 0122](../../../../memory/decisions/0122-admin-center-ct100.md). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/Admin/Http/Controllers/IndexController.php` invoca 4 adapters Service (Brief, Health, Cycles, AdrAlert). Não substitui Officeimpresso superadmin nem `/copiloto/admin/team`.
 

@@ -87,7 +87,7 @@ Listar e filtrar Ordens de Serviço por status, cliente, equipe e local — pont
 - ❌ Não escreve no banco
 - ❌ Não roda jobs em fila ao abrir
 - ❌ Não chama Brain B/Sonnet
-- ❌ Não acessa OS de outro `business_id` (multi-tenant Tier 0 — [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- ❌ Não acessa OS de outro `business_id` (multi-tenant Tier 0 — [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 
 ---
 

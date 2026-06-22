@@ -92,6 +92,22 @@ charter_version: 1
 ---
 ```
 
+### 4b. Integridade de refs (catraca `charter_refs_broken`)
+
+Charter linka pra docs do repo. Há **dois esquemas** — não misturar:
+
+- **Frontmatter** (`component`/`runbook`/`parent_capterra`): caminho **repo-relative** (da raiz), ex `memory/requisitos/X/CAPTERRA-INVENTARIO.md`. **Sem `../`.**
+- **Links de body** (`[txt](../...)`): **relativo ao charter**. Profundidade = nº de pastas do charter até a raiz. Charter em `resources/js/Pages/<A>/Index.charter.md` → **4** `../`; cada subpasta a mais → +1 (`<A>/<B>/` → 5).
+
+**NÃO conte `../` no olho** (foi a fonte de 215 links mortos por off-by-one). Antes de apresentar/commitar o draft, rode a garantia mecânica:
+
+```
+node scripts/governance/charter-refs.mjs --fix    # corrige profundidade off-by-one sozinho
+node scripts/governance/charter-refs.mjs --check   # falha se > teto (gate charter-refs-gate.yml)
+```
+
+`--fix` só reescreve link cujo alvo existe na profundidade certa (seguro). Se sobrar quebrada, o alvo mudou de nome (repath) ou morreu (remova a ref).
+
 ### 5. Apresentar pra Wagner
 
 Mostrar pro Wagner em texto curto:
@@ -130,6 +146,7 @@ Se Wagner mandar Non-Goals + Anti-hooks:
 - ❌ Criar charter pra tela Blade (escopo Tier C, futuro)
 - ❌ Criar charter sem `parent_module` (FK pra Modules/)
 - ❌ Pular validação pré-condições
+- ❌ Contar `../` no olho nos links de body — rode `charter-refs.mjs --fix` (§4b)
 
 ## Critério de validação ROI
 

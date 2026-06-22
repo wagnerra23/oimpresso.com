@@ -61,7 +61,7 @@ Permitir que cada usuário cadastre **avisos pessoais** (data + hora + repetiç�
 - POST `/essentials/reminder` (StoreReminderRequest)
 - PUT `/essentials/reminder/{id}` (UpdateReminderRequest)
 - DELETE `/essentials/reminder/{id}`
-- Multi-tenant Tier 0: `Reminder` Entity tem `HasBusinessScope` ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- Multi-tenant Tier 0: `Reminder` Entity tem `HasBusinessScope` ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 
 ---
 

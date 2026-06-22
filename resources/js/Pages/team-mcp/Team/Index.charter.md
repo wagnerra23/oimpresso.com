@@ -22,7 +22,7 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/team` (DRAFT)
 
-> **Status:** draft criado em 2026-05-25 junto com o PR `feat(team-mcp): drill-down tokens individuais + revoke por token + audit IP/last-used` a partir da [FICHA CAPTERRA](../../../../memory/requisitos/TeamMcp/CAPTERRA-DESIGN-FICHA.md). Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
+> **Status:** draft criado em 2026-05-25 junto com o PR `feat(team-mcp): drill-down tokens individuais + revoke por token + audit IP/last-used` a partir da [FICHA CAPTERRA](../../../../../memory/requisitos/TeamMcp/CAPTERRA-DESIGN-FICHA.md). Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/TeamMcp/Http/Controllers/TeamController.php` (Inertia::defer dupla — team rows + stats_globais).
 > Persona ÚNICA: Wagner [W] @ biz=1 (superadmin com `copiloto.mcp.usage.all`). Felipe/Maiara/Eliana/Luiz NÃO usam a tela (consomem MCP, não geram).
@@ -55,7 +55,7 @@ Console superadmin Wagner-only de **governança de credenciais MCP Tier 0**: emi
 
 - ❌ NÃO permite **self-service** token-by-dev (Cycle 02 ADR 0057 §C — Wagner solo emite)
 - ❌ NÃO mostra raw de token previamente emitido — apenas hash (ADR 0057 §2, reveal-once IRREVOGÁVEL)
-- ❌ NÃO permite revogar token cross-tenant — backend força `where business_id = session business_id` ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- ❌ NÃO permite revogar token cross-tenant — backend força `where business_id = session business_id` ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 - ❌ NÃO faz 2FA / step-up auth ainda (G-DESIGN-10 backlog — sinal Vercel breach 2026)
 - ❌ NÃO mostra chart de evolução custo (Cycle 03 dataviz)
 - ❌ NÃO mostra audit log inline por user (G-DESIGN-08 PR seguinte)
@@ -103,9 +103,9 @@ Console superadmin Wagner-only de **governança de credenciais MCP Tier 0**: emi
 
 ## Restrições Tier 0 IRREVOGÁVEIS
 
-- **Multi-tenant ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)):** toda query `mcp_tokens` filtra pelo `user.business_id == session business_id`. Endpoints novos `listTokens` e `revokeToken` fazem `User::where('id', userId)->where('business_id', $sessionBusinessId)->firstOrFail()` ANTES de tocar token.
-- **Reveal-once ([ADR 0057](../../../../memory/decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md) §2):** raw mostrado 1× só no `gerarToken` response. `listTokens` retorna SOMENTE metadados (sem `sha256_token`, sem raw).
-- **Soft-delete em revoke ([ADR 0057](../../../../memory/decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md) §6):** `$token->revogar($byUserId)` grava `revoked_at` + `revoked_by` + log Spatie. Nunca forceDelete.
+- **Multi-tenant ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)):** toda query `mcp_tokens` filtra pelo `user.business_id == session business_id`. Endpoints novos `listTokens` e `revokeToken` fazem `User::where('id', userId)->where('business_id', $sessionBusinessId)->firstOrFail()` ANTES de tocar token.
+- **Reveal-once ([ADR 0057](../../../../../memory/decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md) §2):** raw mostrado 1× só no `gerarToken` response. `listTokens` retorna SOMENTE metadados (sem `sha256_token`, sem raw).
+- **Soft-delete em revoke ([ADR 0057](../../../../../memory/decisions/0057-tela-team-admin-regras-governanca-tokens-mcp.md) §6):** `$token->revogar($byUserId)` grava `revoked_at` + `revoked_by` + log Spatie. Nunca forceDelete.
 - **PageHeader canon roxo 295 (Camada Shell — Constituição UI v2):** imutável via ADR. Este PR não toca PageHeader.
 
 ---
