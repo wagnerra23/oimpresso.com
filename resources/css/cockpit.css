@@ -92,15 +92,15 @@
 
 .cockpit[data-theme="dark"]{
   /* Surface — cinza-azul profundo (não preto puro) pra ficar elegante */
-  --bg:        oklch(0.22 0.006 240);
-  --bg-2:      oklch(0.19 0.006 240);
-  --surface:   oklch(0.26 0.008 240);
-  --border:    oklch(0.30 0.008 240);
-  --border-2:  oklch(0.27 0.008 240);
+  --bg:        oklch(0.26 0.006 240);
+  --bg-2:      oklch(0.23 0.006 240);
+  --surface:   oklch(0.30 0.008 240);
+  --border:    oklch(0.34 0.008 240);
+  --border-2:  oklch(0.31 0.008 240);
   --text:      oklch(0.94 0.005 90);
   --text-dim:  oklch(0.72 0.005 90);
   --text-mute: oklch(0.58 0.005 90);
-  --bubble-them: oklch(0.28 0.008 240);
+  --bubble-them: oklch(0.32 0.008 240);
   --accent-soft: oklch(0.32 0.06 295);
 
   /* DS v6 — cores semânticas (variante dark) */
@@ -108,8 +108,8 @@
   --neg:       oklch(0.72 0.16 25);   --neg-soft:  oklch(0.32 0.09 25);
   --warn:      oklch(0.80 0.13 75);   --warn-soft: oklch(0.32 0.085 70);
 
-  --thread-bg-from: oklch(0.20 0.008 240 / 0.35);
-  --thread-bg-to:   oklch(0.20 0.008 240 / 0.20);
+  --thread-bg-from: oklch(0.24 0.008 240 / 0.35);
+  --thread-bg-to:   oklch(0.24 0.008 240 / 0.20);
 
   /* Sidebar dark — um pouco mais escura que o main (hierarquia visual) */
   --sb-bg:          oklch(0.18 0.006 240);
