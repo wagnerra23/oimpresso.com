@@ -109,90 +109,13 @@
 /* PaymentGateway UI F3 Cowork (Cobrança + Settings/Gateways + Sells drawer chip) — escopado em .pg-shell-scope */
 @import "./cowork-payment-gateway-bundle.css";
 
-@theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-
-  /* Light (default) — DS harmonizado 2026-06-13: borda warm hue 90 extraída da
-     tela-ouro Cliente (era slate frio shadcn). Casa com --color-page-cream. */
-  --color-border: oklch(0.92 0.006 90);
-  --color-input: oklch(0.92 0.006 90);
-  --color-ring: oklch(0.137 0.036 258.5);
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.137 0.036 258.5);
-
-  /* canon v3.4 (Wagner 2026-05-25): fundo cream warm hue 90 pra Index canon v3.x.
-     Espelha `.cockpit` em /sells (Cowork canon · oklch(0.985 0.003 90)).
-     Substitui `bg-slate-50` cool hue 248. Cria afinidade visual com cards brancos
-     (mesma família temperatura) sem competir com filtros coloridos.
-     Gera utility `bg-page-cream` automaticamente via Tailwind v4. */
-  --color-page-cream: oklch(0.985 0.003 90);
-
-  /* DS v4 — primary universal ROXO (era hsl(221) azul). Canon ADR 0190: oklch(0.55 0.15 295).
-     `bg-primary`/`text-primary`/`border-primary` em todas as Pages Inertia (inclusive OS) seguem este token. */
-  --color-primary: oklch(0.55 0.15 295);
-  --color-primary-foreground: oklch(0.984 0.003 247.9);
-  --color-secondary: oklch(0.968 0.007 247.9);
-  --color-secondary-foreground: oklch(0.208 0.04 265.7);
-  --color-muted: oklch(0.97 0.004 90);
-  --color-muted-foreground: oklch(0.55 0.012 90);
-  --color-accent: oklch(0.968 0.007 247.9);
-  --color-accent-foreground: oklch(0.208 0.04 265.7);
-  --color-destructive: oklch(0.58 0.20 18);
-  --color-destructive-foreground: oklch(0.984 0.003 247.9);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.137 0.036 258.5);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.137 0.036 258.5);
-
-  /* Semantic status tokens — adicionados 2026-05-27 pra ADR 0202 Settings WhatsApp
-     + qualquer Page que precise green/yellow/red sem cair em violação UI lint R1.
-     Constituição UI v2 ([ADR UI-0013]) — tokens semânticos > cores hardcoded.
-     Geram utilities `bg-success`, `text-success-foreground`, `bg-warning`, etc
-     via Tailwind v4 (@theme directive). */
-  --color-success: oklch(0.62 0.13 162);
-  --color-success-foreground: oklch(0.51 0.12 162);
-  --color-warning: oklch(0.70 0.13 75);
-  --color-warning-foreground: oklch(0.55 0.12 75);
-
-  /* ── DS harmonizado 2026-06-13 — pares soft(fundo)+fg(texto) extraídos da
-     tela-ouro Cliente (Pills -50/-700) + token `info` novo (preenche o gap azul)
-     + `page` oficial. Filosofia "extrair, não repintar" (DsRollout). Permite
-     tokenizar status (bg-success-soft text-success-fg) sem cor crua, mantendo a
-     beleza. Geram utilities bg/text/border-{success,warning,destructive,info}-{soft,fg}. */
-  --color-destructive-soft: oklch(0.97 0.02 18);
-  --color-destructive-fg: oklch(0.51 0.19 18);
-  --color-success-soft: oklch(0.97 0.02 162);
-  --color-success-fg: oklch(0.51 0.12 162);
-  --color-warning-soft: oklch(0.97 0.03 75);
-  --color-warning-fg: oklch(0.55 0.12 75);
-  --color-info: oklch(0.58 0.13 244);
-  --color-info-foreground: oklch(0.98 0 0);
-  --color-info-soft: oklch(0.97 0.02 244);
-  --color-info-fg: oklch(0.50 0.13 244);
-  --color-page: oklch(0.985 0.003 90);
-
-  /* Brand Meta (Facebook OAuth) — token específico do botão "Conectar com Meta"
-     no Embedded Signup v4. Cor oficial Facebook (#1877F2 hover #166FE5)
-     mantida cross-theme porque é cor de identidade Meta (não muda em dark). */
-  --color-brand-meta: hsl(215 89% 53%);
-  --color-brand-meta-hover: hsl(215 89% 48%);
-
-  --radius-lg: 0.5rem;
-  --radius-md: calc(0.5rem - 2px);
-  --radius-sm: calc(0.5rem - 4px);
-
-  /* Motion — Onda M1 (maturidade DS · dimensão D8). Vocabulário nomeado de duração
-     + easing. Antes: durations cruas espalhadas (150ms, .12s) sem easing nomeado.
-     Princípios: micro-interação (hover/focus/toggle) 120–150ms · overlay/sheet 240ms ·
-     nada acima de 360ms. Consumidor deve respeitar prefers-reduced-motion (M4 a11y). */
-  --duration-fast: 120ms;
-  --duration-base: 150ms;
-  --duration-slow: 240ms;
-  --duration-slower: 360ms;
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);   /* default — entra e sai */
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);         /* entrada (aparecer/expandir) */
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);          /* saída (sumir/recolher) */
-}
+/* CAMADA DE TOKEN (inertia @theme light) — onda DTCG ATIVADA (feat/onda-dtcg-ativar).
+   As 48 vars Tailwind @theme (cores, radius, motion, fontes) agora são SAÍDA do
+   Style Dictionary a partir de resources/css/tokens/*.tokens.json. O Tailwind v4
+   processa @theme a partir deste @import (inline na compilação). Editar token =
+   editar o JSON portável; o CSS é saída. Equivalência byte-a-byte provada:
+   scripts/governance/dtcg-equivalence.mjs. */
+@import "./tokens/_generated-inertia-theme.css";
 
 /* ==========================================================================
    Dark mode — ativa por `.dark` (classe legado shadcn) OU `[data-theme="dark"]`.
@@ -204,58 +127,12 @@
    Anti-flash: script inline em layouts/inertia.blade.php aplica o tema
    ANTES do React hidratar, evitando "piscar" branco-para-escuro.
    ========================================================================== */
-.dark,
-[data-theme="dark"] {
-  /* DS harmonizado 2026-06-13: dark fica COOL neutro (cream warm não inverte
-     coerente — a tela já decidiu isso); só refina a neutralidade da borda. */
-  --color-border: oklch(0.27 0.006 250);
-  --color-input: oklch(0.27 0.006 250);
-  --color-ring: oklch(0.869 0.02 252.8);
-  --color-background: oklch(0.137 0.036 258.5);
-  --color-foreground: oklch(0.984 0.003 247.9);
-
-  /* canon v3.4 dark mode: cream warm não inverte coerente — usa slate-950 neutro */
-  --color-page-cream: oklch(0.137 0.036 258.5);
-
-  /* DS v4 — primary ROXO dark (era hsl(217) azul). Mais claro que o light pra contraste em fundo escuro. */
-  --color-primary: oklch(0.62 0.15 295);
-  --color-primary-foreground: oklch(0.208 0.04 265.7);
-  --color-secondary: oklch(0.28 0.037 260);
-  --color-secondary-foreground: oklch(0.984 0.003 247.9);
-  --color-muted: oklch(0.28 0.037 260);
-  --color-muted-foreground: oklch(0.68 0.01 250);
-  --color-accent: oklch(0.28 0.037 260);
-  --color-accent-foreground: oklch(0.984 0.003 247.9);
-  --color-destructive: oklch(0.55 0.17 18);
-  --color-destructive-foreground: oklch(0.984 0.003 247.9);
-  --color-card: oklch(0.208 0.04 265.7);
-  --color-card-foreground: oklch(0.984 0.003 247.9);
-  --color-popover: oklch(0.137 0.036 258.5);
-  --color-popover-foreground: oklch(0.984 0.003 247.9);
-
-  /* Semantic status tokens — dark mode (mais saturado pra contraste em fundo escuro) */
-  --color-success: oklch(0.68 0.13 162);
-  --color-success-foreground: oklch(0.78 0.11 162);
-  --color-warning: oklch(0.74 0.13 75);
-  --color-warning-foreground: oklch(0.80 0.10 75);
-
-  /* DS harmonizado 2026-06-13 — pares soft/fg dark: soft = L baixo (~0.27, o -950/40
-     da tela), fg = L alto (~0.78, o -300). Hue idêntico ao light. + info dark. */
-  --color-destructive-soft: oklch(0.26 0.07 18);
-  --color-destructive-fg: oklch(0.74 0.13 18);
-  --color-success-soft: oklch(0.27 0.06 162);
-  --color-success-fg: oklch(0.78 0.11 162);
-  --color-warning-soft: oklch(0.27 0.06 75);
-  --color-warning-fg: oklch(0.80 0.10 75);
-  --color-info: oklch(0.66 0.13 244);
-  --color-info-foreground: oklch(0.20 0.02 244);
-  --color-info-soft: oklch(0.27 0.05 244);
-  --color-info-fg: oklch(0.78 0.11 244);
-
-  /* Brand Meta — mantém Facebook color cross-theme (identidade visível em ambos) */
-  --color-brand-meta: hsl(215 89% 53%);
-  --color-brand-meta-hover: hsl(215 89% 48%);
-}
+/* CAMADA DE TOKEN (inertia dark — .dark / [data-theme="dark"]) — onda DTCG ATIVADA.
+   As 36 vars --color-* dark agora são SAÍDA do Style Dictionary. O @import fica
+   logo após o @import do @theme (light) — preservando a ORDEM de cascata (dark
+   sobrepõe light por source-order, mesma especificidade). SAÍDA: o token vive no
+   JSON portável. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
+@import "./tokens/_generated-inertia-dark.css";
 
 @layer base {
   html {

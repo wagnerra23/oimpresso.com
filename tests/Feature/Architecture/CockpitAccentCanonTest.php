@@ -46,8 +46,13 @@ it('Sidebar vibeAccent(workspace) é roxo 295, não azul 220', function () {
         ->and($src)->not->toContain('oklch(0.58 0.09 220)');
 });
 
-it('cockpit.css ancora o --accent canon em hue 295 (fonte da verdade ADR 0190)', function () {
-    $css = file_get_contents(accentRepoRoot().'/resources/css/cockpit.css');
+it('o --accent canon (hue 295) está ancorado na fonte de token DTCG (ADR 0190)', function () {
+    // Pós-ativação DTCG (#3230): a definição de token saiu do cockpit.css — que agora
+    // @importa o CSS gerado — e a FONTE canônica do accent passou a ser
+    // resources/css/tokens/semantic.tokens.json (Style Dictionary emite o CSS a partir
+    // daqui). O canon continua 295 roxo; só mudou de arquivo. Protege igual contra o 220.
+    $json = file_get_contents(accentRepoRoot().'/resources/css/tokens/semantic.tokens.json');
 
-    expect($css)->toContain('--accent:       oklch(0.55 0.15 295)');
+    expect($json)->toMatch('/"accent":\s*\{\s*"\$value":\s*"oklch\(0\.55 0\.15 295\)"/')
+        ->and($json)->not->toContain('oklch(0.58 0.09 220)'); // azul antigo off-canon
 });

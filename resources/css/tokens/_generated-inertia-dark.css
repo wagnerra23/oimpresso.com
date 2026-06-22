@@ -1,0 +1,44 @@
+/* GERADO por Style Dictionary v4 a partir de resources/css/tokens/*.tokens.json (DTCG).
+   NÃO EDITAR À MÃO — rode `npm run tokens:build` (ou `node resources/css/tokens/style-dictionary.config.mjs`).
+   ATIVAÇÃO (feat/onda-dtcg-ativar): este arquivo é a CAMADA DE TOKEN consumida pelo build.
+   Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
+
+.dark,
+[data-theme="dark"] {
+  --color-border: oklch(0.27 0.006 250);
+  --color-input: oklch(0.27 0.006 250);
+  --color-ring: oklch(0.869 0.02 252.8);
+  --color-background: oklch(0.137 0.036 258.5);
+  --color-foreground: oklch(0.984 0.003 247.9);
+  --color-page-cream: oklch(0.137 0.036 258.5);
+  --color-primary: oklch(0.62 0.15 295);
+  --color-primary-foreground: oklch(0.208 0.04 265.7);
+  --color-secondary: oklch(0.28 0.037 260);
+  --color-secondary-foreground: oklch(0.984 0.003 247.9);
+  --color-muted: oklch(0.28 0.037 260);
+  --color-muted-foreground: oklch(0.68 0.01 250);
+  --color-accent: oklch(0.28 0.037 260);
+  --color-accent-foreground: oklch(0.984 0.003 247.9);
+  --color-destructive: oklch(0.55 0.17 18);
+  --color-destructive-foreground: oklch(0.984 0.003 247.9);
+  --color-card: oklch(0.208 0.04 265.7);
+  --color-card-foreground: oklch(0.984 0.003 247.9);
+  --color-popover: oklch(0.137 0.036 258.5);
+  --color-popover-foreground: oklch(0.984 0.003 247.9);
+  --color-success: oklch(0.68 0.13 162);
+  --color-success-foreground: oklch(0.78 0.11 162);
+  --color-warning: oklch(0.74 0.13 75);
+  --color-warning-foreground: oklch(0.80 0.10 75);
+  --color-destructive-soft: oklch(0.26 0.07 18);
+  --color-destructive-fg: oklch(0.74 0.13 18);
+  --color-success-soft: oklch(0.27 0.06 162);
+  --color-success-fg: oklch(0.78 0.11 162);
+  --color-warning-soft: oklch(0.27 0.06 75);
+  --color-warning-fg: oklch(0.80 0.10 75);
+  --color-info: oklch(0.66 0.13 244);
+  --color-info-foreground: oklch(0.20 0.02 244);
+  --color-info-soft: oklch(0.27 0.05 244);
+  --color-info-fg: oklch(0.78 0.11 244);
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
+}

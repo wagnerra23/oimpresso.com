@@ -1,143 +1,22 @@
+/* ───────────────────── Oimpresso ERP — Chat v2 ───────────────────── */
+/* CAMADA DE TOKEN (.cockpit light + dark) — onda DTCG ATIVADA (feat/onda-dtcg-ativar).
+   As 61 vars light + 45 dark deste escopo agora são SAÍDA do Style Dictionary a
+   partir de resources/css/tokens/*.tokens.json. Editar token = editar o JSON
+   portável; o CSS é saída. Equivalência byte-a-byte provada:
+   scripts/governance/dtcg-equivalence.mjs (208 fiéis). Os @import ficam no TOPO
+   do arquivo (regra CSS: @import precede regras de estilo) — a cascata é
+   preservada (sem redefinição intra-arquivo dos mesmos tokens; --row-h é
+   sobreposto por .cockpit[data-density] via especificidade, não ordem).
+   Dark inclui os neutros do shell reconciliados com o PR #3227 (+0.04 L). */
+@import "./tokens/_generated-cockpit-light.css";
+@import "./tokens/_generated-cockpit-dark.css";
+
 .cockpit *,
 .cockpit *::before,
 .cockpit *::after { box-sizing: border-box; }
 
-/* ───────────────────── Oimpresso ERP — Chat v2 ───────────────────── */
-.cockpit{
-  /* Sidebar light — espelha protótipo Claude Design (Cowork "Oimpresso ERP")
-     Mantém continuidade visual com o main (creme quente) e contraste suave
-     no item ativo / hover. Variante dark abaixo em [data-theme="dark"]. */
-  --sb-bg:          oklch(0.985 0.003 90);
-  --sb-bg-2:        oklch(0.96 0.004 90);
-  --sb-border:      oklch(0.90 0.004 90);
-  --sb-text:        oklch(0.34 0.01 80);
-  --sb-text-dim:    oklch(0.55 0.01 80);
-  --sb-text-hi:     oklch(0.18 0.01 80);
-  --sb-hover:       oklch(0.94 0.005 80);
-  --sb-active:      oklch(0.91 0.006 80);
-  --sb-scroll:      oklch(0.82 0.005 80);
-  --sb-bullet-out:  oklch(0.70 0.005 80);
-
-  /* Surface */
-  --bg:           oklch(0.985 0.003 90);
-  --bg-2:         oklch(0.965 0.004 90);
-  --surface:      #ffffff;
-  --border:       oklch(0.90 0.004 90);
-  --border-2:     oklch(0.93 0.004 90);
-  --text:         oklch(0.22 0.01 80);
-  --text-dim:     oklch(0.50 0.01 80);
-  --text-mute:    oklch(0.65 0.01 80);
-
-  /* DS v4 — accent ROXO do shell cockpit (era 220 azul). Canon ADR 0190 hue 295. */
-  --accent:       oklch(0.55 0.15 295);
-  --accent-2:     oklch(0.62 0.15 295);
-  --accent-soft:  oklch(0.95 0.04 295);
-  --accent-fg:    #ffffff;
-
-  /* DS v6 — cores semânticas (positivo/negativo/aviso) + variante -soft. Aditivo:
-     o app hardcodava oklch escopado (classes .vd- e .os-); estas tornam canônico o modelo
-     do gabarito DS v6, com flip claro/escuro de fábrica. (DS v6 · [W] 2026-06-03) */
-  --pos:       oklch(0.50 0.12 150);  --pos-soft:  oklch(0.95 0.075 150);
-  --neg:       oklch(0.55 0.18 25);   --neg-soft:  oklch(0.955 0.055 25);
-  --warn:      oklch(0.58 0.12 70);   --warn-soft: oklch(0.955 0.072 75);
-
-  --bubble-me:    var(--accent);
-  --bubble-me-fg: #ffffff;
-  --bubble-them:  oklch(0.96 0.003 90);
-  --bubble-them-fg: var(--text);
-
-  /* Thread background — gradient sutil pra distinguir área de mensagens */
-  --thread-bg-from: oklch(0.94 0.01 90 / 0.35);
-  --thread-bg-to:   oklch(0.94 0.01 90 / 0.20);
-
-  /* Origens (módulos que geram tarefas) */
-  --origin-OS-bg:  oklch(0.93 0.07 70);   --origin-OS-fg:  oklch(0.40 0.10 60);
-  --origin-CRM-bg: oklch(0.92 0.06 220);  --origin-CRM-fg: oklch(0.40 0.10 220);
-  --origin-FIN-bg: oklch(0.93 0.07 145);  --origin-FIN-fg: oklch(0.36 0.10 145);
-  --origin-PNT-bg: oklch(0.93 0.06 295);  --origin-PNT-fg: oklch(0.40 0.10 295);
-  --origin-MFG-bg: oklch(0.93 0.05 30);   --origin-MFG-fg: oklch(0.40 0.10 30);
-
-  /* Pipeline / etapas — escala categórica (Recepção→Pronto). Aditivo, reusável
-     por qualquer kanban/FSM. Roxo canon (--accent 295) intocado. (DS v6 · [W] 2026-06-03)
-     +blue/violet: kanban caçamba (Oficina) precisa 5 matizes distintos simultâneos —
-     blue=locada, violet=manutenção; calibrados à paleta calma, longe do roxo marca. (2026-06-04) */
-  --stage-slate:   oklch(0.58 0.025 250);
-  --stage-blue:    oklch(0.58 0.13 252);
-  --stage-indigo:  oklch(0.55 0.16 270);
-  --stage-violet:  oklch(0.54 0.15 288);
-  --stage-rose:    oklch(0.62 0.16 20);
-  --stage-emerald: oklch(0.60 0.13 155);
-  --stage-green:   oklch(0.66 0.15 145);
-
-  /* Placa Mercosul — skeuomórfico: SEMPRE escuro-sobre-branco em ambos os temas
-     (não inverte no dark, por isso definido só aqui e não no .cockpit[data-theme=dark]).
-     Token nomeado + oklch (não hex, color-no-hex) pra satisfazer AP1 (Constituição UI v2). */
-  --plate-frame:  oklch(0.372 0.044 257.287);  /* moldura = slate-700 */
-  --plate-ink:    oklch(0.208 0.042 265.755);  /* número = slate-900 */
-
-  --radius:       8px;
-  --radius-sm:    6px;
-  --radius-lg:    12px;
-
-  --shadow-pop:   0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
-  --shadow-soft:  0 1px 2px rgba(0,0,0,.04);
-
-  --row-h:        30px;
-  --font-sans:    "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-}
-
 .cockpit[data-density="compact"]{ --row-h: 26px; }
 .cockpit[data-density="comfy"]{   --row-h: 34px; }
-
-.cockpit[data-theme="dark"]{
-  /* Surface — cinza-azul profundo (não preto puro) pra ficar elegante */
-  --bg:        oklch(0.26 0.006 240);
-  --bg-2:      oklch(0.23 0.006 240);
-  --surface:   oklch(0.30 0.008 240);
-  --border:    oklch(0.34 0.008 240);
-  --border-2:  oklch(0.31 0.008 240);
-  --text:      oklch(0.94 0.005 90);
-  --text-dim:  oklch(0.72 0.005 90);
-  --text-mute: oklch(0.58 0.005 90);
-  --bubble-them: oklch(0.32 0.008 240);
-  --accent-soft: oklch(0.32 0.06 295);
-
-  /* DS v6 — cores semânticas (variante dark) */
-  --pos:       oklch(0.74 0.14 150);  --pos-soft:  oklch(0.30 0.085 150);
-  --neg:       oklch(0.72 0.16 25);   --neg-soft:  oklch(0.32 0.09 25);
-  --warn:      oklch(0.80 0.13 75);   --warn-soft: oklch(0.32 0.085 70);
-
-  --thread-bg-from: oklch(0.24 0.008 240 / 0.35);
-  --thread-bg-to:   oklch(0.24 0.008 240 / 0.20);
-
-  /* Sidebar dark — um pouco mais escura que o main (hierarquia visual) */
-  --sb-bg:          oklch(0.18 0.006 240);
-  --sb-bg-2:        oklch(0.16 0.006 240);
-  --sb-border:      oklch(0.28 0.008 240);
-  --sb-text:        oklch(0.78 0.005 90);
-  --sb-text-dim:    oklch(0.58 0.005 90);
-  --sb-text-hi:     oklch(0.96 0.005 90);
-  --sb-hover:       oklch(0.24 0.008 240);
-  --sb-active:      oklch(0.30 0.01 220);
-  --sb-scroll:      oklch(0.36 0.008 240);
-  --sb-bullet-out:  oklch(0.46 0.008 240);
-
-  --origin-OS-bg:  oklch(0.30 0.07 60);   --origin-OS-fg:  oklch(0.85 0.07 60);
-  --origin-CRM-bg: oklch(0.30 0.07 220);  --origin-CRM-fg: oklch(0.85 0.07 220);
-  --origin-FIN-bg: oklch(0.30 0.07 145);  --origin-FIN-fg: oklch(0.85 0.07 145);
-  --origin-PNT-bg: oklch(0.30 0.07 295);  --origin-PNT-fg: oklch(0.85 0.07 295);
-  --origin-MFG-bg: oklch(0.30 0.07 30);   --origin-MFG-fg: oklch(0.85 0.07 30);
-
-  /* Pipeline / etapas — variante dark (DS v6 · [W] 2026-06-03 · +blue/violet 2026-06-04) */
-  --stage-slate:   oklch(0.66 0.03 250);
-  --stage-blue:    oklch(0.68 0.13 252);
-  --stage-indigo:  oklch(0.66 0.16 270);
-  --stage-violet:  oklch(0.66 0.15 288);
-  --stage-rose:    oklch(0.68 0.16 20);
-  --stage-emerald: oklch(0.68 0.14 155);
-  --stage-green:   oklch(0.74 0.15 145);
-}
 
 .cockpit *{ box-sizing: border-box; }
 

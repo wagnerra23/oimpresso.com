@@ -16,7 +16,9 @@
 // via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival) ·
 // baseline-tamper-guard (anti-grandfather, vetor #2848: afrouxa baseline + toca código
 // no MESMO PR — sandbox git real, P05 fecha o grandfather dos baselines-ratchet) ·
-// anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08).
+// anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08) ·
+// doneness-lint --check (conflito status:×âncora — done-sem-âncora / aberto-com-âncora · ADR 0302) ·
+// anchor-lint-wired --check (wired/zombie + testado-fantasma · ADR 0303 SA-A2-bis: existir ≠ estar vivo).
 //
 // USO (na raiz do repo):
 //   node scripts/governance/gate-selftest.mjs              # N catracas × 2 fixtures
@@ -113,6 +115,21 @@ function runTamperGuard(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// anchor-lint --check SA-A2-bis (ADR 0303): existir ≠ estar vivo. Sandbox por cwd (igual
+// knowledge-drift) + o script REAL copiado por cima. good = tela VIVA (controller referenciado
+// nas rotas + teste existente) → exit 0; bad = tela ZUMBI (controller fora das rotas) +
+// teste-fantasma → exit 1, acusação "tela DESLIGADA". Dir de fixture ISOLADO de anchor-lint/
+// (DemoAnchor/anchored_dead) — a catraca anchor-lint varre sem-path o cwd, então não cruzam.
+function runAnchorLintWired(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-wired-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-wired', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check', 'memory/requisitos/SelftestAnchor/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -163,6 +180,24 @@ const CATRACAS = [
     id: 'anchor-lint',
     run: (kind) => runNode(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), ['--check'], join(FIX, 'anchor-lint', kind)),
     expect: { good: /ANCHOR COVERAGE GLOBAL/, bad: /💀 US-DA-001/ },
+  },
+  {
+    // doneness-lint --check resolve âncora-paths contra process.cwd() (igual anchor-lint) →
+    // sandbox por cwd. good = status×âncora consistentes + zona-cinza TOLERADA (exit 0, imprime
+    // "CONFLITOS (mordem em --check): 0"); bad = status=done sem âncora viva → conflito_done_sem_ancora
+    // (exit 1 · ADR 0302). bad regex = a acusação da US morta (a linha-resumo "CONFLITOS … : N" sai
+    // nos dois; a ⚠️ da US específica só no conflito).
+    id: 'doneness-lint',
+    run: (kind) => runNode(script('doneness-lint', 'scripts/governance/doneness-lint.mjs'), ['--check'], join(FIX, 'doneness', kind)),
+    expect: { good: /CONFLITOS \(mordem em --check\): 0/, bad: /US-DD-001.*conflito_done_sem_ancora/ },
+  },
+  {
+    // SA-A2-bis (ADR 0303): existir ≠ estar vivo. good = tela VIVA; bad = tela ZUMBI
+    // (controller fora das rotas) + teste-fantasma → exit 1 "tela DESLIGADA". COMPLEMENTA
+    // a catraca anchor-lint (anchored_dead · ADR 0273 §2 · P08), não a substitui.
+    id: 'anchor-lint-wired',
+    run: runAnchorLintWired,
+    expect: { good: /ANCHOR COVERAGE GLOBAL/, bad: /tela DESLIGADA/ },
   },
 ];
 

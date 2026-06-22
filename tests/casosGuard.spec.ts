@@ -248,6 +248,23 @@ describe('casos:check — G-7 status derivado do verde (físico)', () => {
     expect(out).not.toMatch(/status:/);
   });
 
+  it('ESPECIFICIDADE (regressão): 🧪 com ✅ na PROSA da mesma linha resolve testing, não green', () => {
+    // Repro PR #3234 (commit 51a4a2b4ab): `- **Status: 🧪** … devolverem o ✅` fazia o
+    // ✅-primeiro ler 'green' e emitir status:stale-results/unverified contra um status que
+    // o autor honestamente rebaixou. O glyph declarado é o PRIMEIRO da linha; o resto é prosa.
+    write(page('W'), 'x');
+    write('resources/js/Pages/W/Index.charter.md', '# c');
+    write(
+      'resources/js/Pages/W/Index.casos.md',
+      '---\nowner: w\nlast_run: "2026-06-09"\n---\n## UC-01 · caso\n- **Status: 🧪** _(volta a ✅ quando o teste passar)_',
+    );
+    write('tests/WTest.php', '<?php // UC-01');
+    manifest({}); // sem prova nenhuma — se lesse 'green', emitiria status:unverified
+    const out = run('--json');
+    expect(out).toMatch(/"ok": true/);
+    expect(out).not.toMatch(/status:/);
+  });
+
   it('GRACIOSO: sem manifesto (bootstrap) → G-7 dorme mesmo com ✅ sem prova', () => {
     compliant('S', 'UC-01', '✅');
     // sem manifest() → arquivo ausente → G-7 não roda.

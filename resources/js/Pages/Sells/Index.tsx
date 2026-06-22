@@ -1252,6 +1252,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                     <span className="vd-visoes-here">aqui</span>
                   </div>
                   {[
+                    { id: 'caixa',      label: 'Caixa do dia', href: '/vendas/caixa' },
                     { id: 'quotations', label: 'Orçamentos', href: '/sells/quotations' },
                     { id: 'drafts',     label: 'Rascunhos',  href: '/sells/drafts' },
                     { id: 'subs',       label: 'Assinaturas',href: '/sells/subscriptions' },
