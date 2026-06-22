@@ -11,13 +11,12 @@ name: Charter refs (catraca de integridade — advisory na adoção)
 # Afrouxar o teto é coberto pelo baseline-tamper-guard.yml (anti-grandfather).
 
 on:
+  # SEM paths-filter de propósito (require-safe): GitHub TRAVA um required check que
+  # não reporta. Path-filtrado + required = PRs que não tocam charter ficam "Expected —
+  # waiting for status" pra sempre. O `--check` é ~1s (scan filesystem), roda barato em
+  # TODO PR e fica verde quando o count não muda. Rodar em todo PR também alimenta o
+  # soak de falso-positivo (regra anti-teatro: advisory até FP=0 por 1-2 semanas).
   pull_request:
-    paths:
-      - 'resources/js/Pages/**/*.charter.md'
-      - 'scripts/governance/charter-refs.mjs'
-      - 'scripts/governance/charter-refs.test.mjs'
-      - 'governance/charter-refs-baseline.json'
-      - '.github/workflows/charter-refs-gate.yml'
 
 permissions:
   contents: read
