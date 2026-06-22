@@ -1,0 +1,44 @@
+name: SDD Scorecard Ratchet
+
+# 2º dente SDD (GT-G3 · ADR 0275 §3). O sinal RATCHET do scorecard isolado num
+# workflow PRÓPRIO, HARD (sem continue-on-error), pra ser promovível a required.
+#
+# Por que separado do sdd-scorecard.yml (advisory):
+#  - O sdd-scorecard.yml roda com `paths:` filtrado → NÃO dispara em todo PR →
+#    promover um job dele a required daria DEADLOCK ("Expected — waiting").
+#  - Os outros 2 sinais de lá (determinismo, staleness) são hygiene: a STALENESS
+#    fica advisory (o scorecard commitado defasa a cada mudança do repo — vira
+#    gate-que-grita-lobo se required; o lugar dela é um bot de auto-sync, não
+#    bloquear PR humano).
+#  - Aqui SÓ o ratchet: determinístico, verde, e o que de fato MORDE — bloqueia o
+#    PR que regredir uma métrica ARMADA vs governance/sdd-scorecard-baseline.json.
+#
+# always-run (sem `paths:`) pra ser promovível a required sem deadlock.
+# Flip (Wagner-only, ADR 0275 §5): adicionar o context do job aos
+# required_status_checks do main + entry no required-checks-baseline (já incluso
+# neste PR). Counterfactual: gate-selftest prova que o ratchet sai 1 quando uma
+# métrica armada regride (catraca `sdd-scorecard`).
+
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: sdd-scorecard-ratchet-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ratchet:
+    name: SDD scorecard ratchet (métrica armada não regride · GT-G3)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ratchet — nenhuma métrica ARMADA regrediu vs baseline (ADR 0275 §3)
+        run: node scripts/governance/sdd-scorecard.mjs --ratchet
