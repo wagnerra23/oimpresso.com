@@ -21,7 +21,7 @@ charter_version: 1
 
 ## Mission
 
-Editar dados de veiculo cadastrado (scaffold V0 US-OFICINA-001) em form simples modo FOCO (sem SubNav) — usuario atualiza identificacao (placa Mercosul principal + secundaria, chassi principal + secundario, tipo, ano fabricacao/modelo, RENAVAM, motor, KM entrada, combustivel, cor) + notes. Save unico via `useForm.put()` Inertia retornando pro Show. Suporta sub-vertical 4 caminhao basculante ([ADR 0194](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)) com campos `secondary_plate` + `secondary_chassis` (caminhao + carreta).
+Editar dados de veiculo cadastrado (scaffold V0 US-OFICINA-001) em form simples modo FOCO (sem SubNav) — usuario atualiza identificacao (placa Mercosul principal + secundaria, chassi principal + secundario, tipo, ano fabricacao/modelo, RENAVAM, motor, KM entrada, combustivel, cor) + notes. Save unico via `useForm.put()` Inertia retornando pro Show. Suporta sub-vertical 4 caminhao basculante ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)) com campos `secondary_plate` + `secondary_chassis` (caminhao + carreta).
 
 ## Goals
 
@@ -48,7 +48,7 @@ Editar dados de veiculo cadastrado (scaffold V0 US-OFICINA-001) em form simples 
 - NAO consultar APIs externas (DENATRAN/Senatran/Sintegra) pra preenchimento automatico — feature pos-V0.
 - NAO permitir upload de foto do veiculo no Edit V0 — Gap 1 futuro via `HasArquivos` trait.
 - NAO incluir historico de OS do veiculo inline — historico vive no Show via tab/section.
-- NAO permitir mudanca de `business_id` em hipotese alguma (Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- NAO permitir mudanca de `business_id` em hipotese alguma (Tier 0 [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
 
 ## UX Targets
 
@@ -59,7 +59,7 @@ Editar dados de veiculo cadastrado (scaffold V0 US-OFICINA-001) em form simples 
 
 ## Automation Anti-hooks
 
-- NAO acessa veiculo de outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — global scope `Vehicle` model enforce).
+- NAO acessa veiculo de outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — global scope `Vehicle` model enforce).
 - NAO consulta APIs externas (DENATRAN/Senatran) — sem custo externo, sem LGPD-extra-scope.
 - NAO dispara recalculo de OS abertas em background ao mudar `mileage_at_entry`.
 - NAO loggar payload `notes` em telemetria (texto livre, pode conter info sensivel cliente).
@@ -73,10 +73,10 @@ Editar dados de veiculo cadastrado (scaffold V0 US-OFICINA-001) em form simples 
 
 ## Refs
 
-- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0104 MWART canonico unico caminho](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0137 Modules OficinaAuto qualificada](../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
-- [ADR 0194 Dominio Martinho mecanica pesada](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0104 MWART canonico unico caminho](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0137 Modules OficinaAuto qualificada](../../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
+- [ADR 0194 Dominio Martinho mecanica pesada](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
 - RUNBOOK: `memory/requisitos/OficinaAuto/RUNBOOK-edit.md` (compartilhado com ServiceOrders edit — pode separar futuro)
 - Charter sibling: `resources/js/Pages/OficinaAuto/ServiceOrders/Edit.charter.md` (Tier A live)
 

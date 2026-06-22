@@ -4,7 +4,6 @@ component: resources/js/Pages/Purchase/Create.tsx
 tela: purchase/create
 tipo: FORM (CREATE)
 modulo: Purchase
-runbook: memory/requisitos/Inventory/RUNBOOK-purchase-create.md
 status: draft
 status_note: "F3 implementado (aguarda smoke Wagner)"
 adr_refs: [0104, 0093, 0114, 0149]

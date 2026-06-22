@@ -19,7 +19,7 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "tab-based content area (não no blueprint Cowork original)"
 ---
 
-> **⚠️ CHARTER SUPERSEDED 2026-05-21** — Esta versão v2 é mantida pra histórico append-only. O paradigma de detalhe de Cliente foi invertido pela [ADR 0179](../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md): de página full-page para drawer lateral 760px abrindo de `Index.tsx`. Charter ativo agora é [`Index.charter.md`](Index.charter.md) v3.
+> **⚠️ CHARTER SUPERSEDED 2026-05-21** — Esta versão v2 é mantida pra histórico append-only. O paradigma de detalhe de Cliente foi invertido pela [ADR 0179](../../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md): de página full-page para drawer lateral 760px abrindo de `Index.tsx`. Charter ativo agora é [`Index.charter.md`](Index.charter.md) v3.
 
 # Page Charter — /cliente/{id}
 

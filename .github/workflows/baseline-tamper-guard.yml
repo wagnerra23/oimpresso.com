@@ -7,9 +7,9 @@ name: Baseline tamper-guard (anti-grandfather)
 # isolar a mudança de baseline num PR/commit só-de-baseline.
 #
 # Hoje guarda os baselines-ratchet do repo: memory-health (checkC + checkL),
-# sdd-scorecard (métricas armadas), required-checks (contexts) e knowledge-ghosts
-# (diretório <Mod>.json — vetor #2848: ghost grandfatherado), MAIS os ratchets de
-# UI/cor-crua homogêneos (conformance, fontramp, foundation-guard, dsih, scheme).
+# sdd-scorecard (métricas armadas), required-checks (contexts), knowledge-ghosts
+# (diretório <Mod>.json — vetor #2848: ghost grandfatherado), charter-refs (ceiling),
+# MAIS os ratchets de UI/cor-crua homogêneos (conformance, fontramp, foundation-guard, dsih, scheme).
 # Estender = adicionar o path + detector no GUARDED do script + o path neste trigger.
 
 on:
@@ -25,6 +25,7 @@ on:
       - '.foundation-guard-baseline.json'
       - '.dsih-baseline.json'
       - '.scheme-baseline.json'
+      - 'governance/charter-refs-baseline.json'
       - 'scripts/governance/baseline-tamper-guard.mjs'
       - '.github/workflows/baseline-tamper-guard.yml'
 

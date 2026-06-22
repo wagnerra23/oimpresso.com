@@ -14,7 +14,7 @@ charter_version: 1
 # Page Charter — /financeiro/conciliacao
 
 > **Status:** live (Onda 19, 2026-05-19 #49 — Conciliação OFX MVP).
-> Charter criado retroativamente na Fase 1 da [ADR 0236](../../../../memory/decisions/0236-extrato-conciliacao-modelo-unificado.md)
+> Charter criado retroativamente na Fase 1 da [ADR 0236](../../../../../memory/decisions/0236-extrato-conciliacao-modelo-unificado.md)
 > (2026-05-31), quando a tela passou a enxergar TAMBÉM o extrato sincronizado
 > via API do banco (`fin_extrato_lancamentos`), além do upload OFX.
 

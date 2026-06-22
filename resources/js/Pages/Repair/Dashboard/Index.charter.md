@@ -12,7 +12,7 @@ tier: A
 
 # Page Charter — /repair/dashboard
 
-> **Status:** rascunho exemplo (gerado junto a [ADR 0101](../../../../memory/decisions/0101-sistema-charter-capterra-governanca-escopo.md) §Implementação). NÃO enforced ainda — vira contrato vivo após Sprint S6 F1.
+> **Status:** rascunho exemplo (gerado junto a [ADR 0101](../../../../../memory/decisions/0101-sistema-charter-capterra-governanca-escopo.md) §Implementação). NÃO enforced ainda — vira contrato vivo após Sprint S6 F1.
 >
 > Esse charter foi extraído da tela atual em prod (`Index.tsx` 100 linhas, sprint 2.5/MWART-0002, 5 painéis em cockpit pattern).
 

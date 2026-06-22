@@ -152,7 +152,7 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 - **Visual comparison:** [`Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md`](../../../../memory/requisitos/Sells/Sells-r4-cowork-kb975-2026-05-26-visual-comparison.md) (r4 delta vs main)
 - **Sister charter:** [`Pages/Sells/Edit.charter.md`](Edit.charter.md) (PR #1647)
 - **Sister RUNBOOKs:** [`RUNBOOK-create.md`](../../../../memory/requisitos/Sells/RUNBOOK-create.md)
-- **Dossiê wagner-understand:** [`memory/sessions/2026-05-21-understand-sells-unificar-lista-grade.md`](../../../../memory/sessions/2026-05-21-understand-sells-unificar-lista-grade.md) (matriz 26 dimensões + 6 PRs atômicos)
+- **Dossiê wagner-understand:** `memory/sessions/2026-05-21-understand-sells-unificar-lista-grade.md` (matriz 26 dimensões + 6 PRs atômicos)
 
 ---
 

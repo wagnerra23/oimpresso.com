@@ -97,10 +97,10 @@ confiança, e uma só ação primária — **Ativar Jana Pro**. Persona-alvo: La
 
 - Design Cowork aprovado: `Jana Pro - Paywall CC.html` + `prototipos/jana-pro/`
   (`COMPARISON.md` 15 dimensões, `critique-score.json` gate 90).
-- [ADR 0140](../../../memory/decisions/0140-jana-pro-produto-comercial-saas.md) — Jana Pro SaaS / pricing / roadmap (Sprint A-D).
-- [ADR 0110](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md) — Cockpit V2.
-- [ADR 0190](../../../memory/decisions/0190-primary-button-roxo-universal-295.md) — primary roxo universal.
-- [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0.
+- [ADR 0140](../../../../memory/decisions/0140-jana-pro-produto-comercial-saas.md) — Jana Pro SaaS / pricing / roadmap (Sprint A-D).
+- [ADR 0110](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md) — Cockpit V2.
+- [ADR 0190](../../../../memory/decisions/0190-primary-button-roxo-universal-295.md) — primary roxo universal.
+- [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0.
 
 ---
 

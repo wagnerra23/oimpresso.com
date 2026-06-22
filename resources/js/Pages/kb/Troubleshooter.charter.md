@@ -110,10 +110,10 @@ it('rejects fix_node_id pointing to soft-deleted kb_node')
 
 ## Refs
 
-- Backend: [`Modules/KB/Http/Controllers/KbDecisionTreeController.php`](../../../Modules/KB/Http/Controllers/KbDecisionTreeController.php)
+- Backend: [`Modules/KB/Http/Controllers/KbDecisionTreeController.php`](../../../../Modules/KB/Http/Controllers/KbDecisionTreeController.php)
 - Component: [`TroubleshooterDialog.tsx`](_components/TroubleshooterDialog.tsx)
-- [SCHEMA-DB-V1 §11](../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [SCHEMA-DB-V1 §11](../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ## Histórico
 

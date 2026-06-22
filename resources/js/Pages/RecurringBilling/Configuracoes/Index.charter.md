@@ -15,7 +15,7 @@ sidebar_group: fin (FINANCEIRO)
 
 # Page Charter — /recurring-billing/configuracoes (Configurações · v1 read-only)
 
-> **Status:** live · Onda 8 do plano [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md).
+> **Status:** live · Onda 8 do plano [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md).
 >
 > **Read-only stub v1.** Exibe gateways cadastrados, régua de dunning canônica (hardcoded), NFe auto (US-RB-044 status), webhooks com botão copy. Ondas futuras tornam editável.
 
@@ -85,7 +85,7 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 
 ## Tests anti-regressão
 
-- [Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php](../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php) — 4+ cenários:
+- [Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php](../../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php) — 4+ cenários:
   1. `/recurring-billing/configuracoes` retorna Inertia render correto biz=1 com props canônicas
   2. Cross-tenant isolation: BoletoCredential biz=1 NÃO aparece quando user biz=99
   3. Webhooks URLs corretas e por business_id (Asaas + Inter PJ)
@@ -95,11 +95,11 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 
 ## Refs
 
-- [Index-visual-comparison.md](../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) linha 114 — Onda 8 plano
-- [BRIEFING.md](../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado RecurringBilling
-- [RUNBOOK-inter-pj.md](../../../../memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md) — onboarding Inter PJ inclui colar webhook
-- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1](../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
-- [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- Skill [inertia-defer-default](../../../../.claude/skills/inertia-defer-default/SKILL.md) — gateways DB query
-- Skill [sidebar-menu-arch](../../../../.claude/skills/sidebar-menu-arch/SKILL.md)
+- [Index-visual-comparison.md](../../../../../memory/requisitos/RecurringBilling/Index-visual-comparison.md) linha 114 — Onda 8 plano
+- [BRIEFING.md](../../../../../memory/requisitos/RecurringBilling/BRIEFING.md) — estado consolidado RecurringBilling
+- [RUNBOOK-inter-pj.md](../../../../../memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md) — onboarding Inter PJ inclui colar webhook
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0101 Tests biz=1](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0104 MWART](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- Skill [inertia-defer-default](../../../../../.claude/skills/inertia-defer-default/SKILL.md) — gateways DB query
+- Skill [sidebar-menu-arch](../../../../../.claude/skills/sidebar-menu-arch/SKILL.md)

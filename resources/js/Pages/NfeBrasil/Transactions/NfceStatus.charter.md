@@ -131,14 +131,14 @@ it('does not redirect after authorization (user decides)')
 
 ## Refs
 
-- [US-NFE-002](../../../../memory/requisitos/NfeBrasil/SPEC.md) — Emissão NFC-e + status pós-venda
-- [ADR 0029](../../../../memory/decisions/0029-inertia-upos.md) — Inertia + UltimatePOS
-- [ADR 0058](../../../../memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) — Centrifugo CT 100 (transport futuro)
-- [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md) — Hostinger sem daemons
-- [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
-- [ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0143](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM Pipeline (cancel cascade flow)
-- [BRIEFING.md](../../../../memory/requisitos/NfeBrasil/BRIEFING.md) — estado consolidado módulo
+- [US-NFE-002](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — Emissão NFC-e + status pós-venda
+- [ADR 0029](../../../../../memory/decisions/0029-padrao-inertia-react-ultimatepos.md) — Inertia + UltimatePOS
+- [ADR 0058](../../../../../memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) — Centrifugo CT 100 (transport futuro)
+- [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md) — Hostinger sem daemons
+- [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
+- [ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0143](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM Pipeline (cancel cascade flow)
+- [BRIEFING.md](../../../../../memory/requisitos/NfeBrasil/BRIEFING.md) — estado consolidado módulo
 
 ---
 

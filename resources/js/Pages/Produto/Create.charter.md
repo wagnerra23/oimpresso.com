@@ -88,9 +88,9 @@ it('Cross-tenant biz=99 não acessa dropdowns biz=1')
 
 ## Refs
 
-- Blueprint: [`produto-cockpit/produto-cockpit-page.jsx`](../../../prototipo-ui/prototipos/produto-cockpit/produto-cockpit-page.jsx)
-- RUNBOOK: [`memory/requisitos/Inventory/RUNBOOK-produto-create.md`](../../../memory/requisitos/Inventory/RUNBOOK-produto-create.md)
-- Visual comparison: [`memory/requisitos/Inventory/produto-create-visual-comparison.md`](../../../memory/requisitos/Inventory/produto-create-visual-comparison.md)
+- Blueprint: `produto-cockpit/produto-cockpit-page.jsx`
+- RUNBOOK: `memory/requisitos/Inventory/RUNBOOK-produto-create.md`
+- Visual comparison: `memory/requisitos/Inventory/produto-create-visual-comparison.md`
 - ADR 0149 screen-pattern reuse
 
 ## Histórico

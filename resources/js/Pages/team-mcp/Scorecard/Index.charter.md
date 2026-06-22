@@ -18,7 +18,7 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/scorecard` (DRAFT)
 
-> Criado no PR **Forja PR-3** (2026-06-16). **A Page não existia** — `ScorecardController@index` renderizava `team-mcp/Scorecard/Index` sem componente correspondente (rota quebrada). Este PR cria a Page em DS v6. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Backend: `ScorecardController` + `ScorecardBuilderService` (Inertia::defer facts/checks). Ref: [scorecard-visual-comparison.md](../../../../memory/requisitos/TeamMcp/scorecard-visual-comparison.md).
+> Criado no PR **Forja PR-3** (2026-06-16). **A Page não existia** — `ScorecardController@index` renderizava `team-mcp/Scorecard/Index` sem componente correspondente (rota quebrada). Este PR cria a Page em DS v6. Persona: Wagner [W] (superadmin, `copiloto.mcp.usage.all`). Backend: `ScorecardController` + `ScorecardBuilderService` (Inertia::defer facts/checks). Ref: [scorecard-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/scorecard-visual-comparison.md).
 
 ## Mission
 

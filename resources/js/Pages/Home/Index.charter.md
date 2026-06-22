@@ -108,12 +108,12 @@ Cobertos em `tests/Feature/Home/HomeIndexInertiaTest.php`:
 
 ## Refs
 
-- [memory/requisitos/Dashboard/SPEC.md](../../../memory/requisitos/Dashboard/SPEC.md) — US-DASH-001
-- [memory/requisitos/Dashboard/RUNBOOK-home-index.md](../../../memory/requisitos/Dashboard/RUNBOOK-home-index.md)
-- [memory/requisitos/Dashboard/BRIEFING.md](../../../memory/requisitos/Dashboard/BRIEFING.md)
-- [ADR 0093](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
-- [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0104](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
+- [memory/requisitos/Dashboard/SPEC.md](../../../../memory/requisitos/Dashboard/SPEC.md) — US-DASH-001
+- [memory/requisitos/Dashboard/RUNBOOK-home-index.md](../../../../memory/requisitos/Dashboard/RUNBOOK-home-index.md)
+- [memory/requisitos/Dashboard/BRIEFING.md](../../../../memory/requisitos/Dashboard/BRIEFING.md)
+- [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
+- [ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
 - Pattern Soft wrapper precedente: PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288)
 - `app/Http/Controllers/HomeController.php` — Controller adaptado
 - `resources/views/home/index.blade.php` — Blade legacy preservado (fallback `?legacy=1`)
