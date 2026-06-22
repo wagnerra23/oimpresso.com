@@ -1,6 +1,8 @@
 ---
 date: "2026-06-22"
-hour: "08:50 BRT"
+time: "08:50 BRT"
+slug: shipped-log-porta-saida
+tldr: "Automatizei a porta de saida do loop (shipped-log): gerador honesto #3188 + cron auto-PR/gate/test #3189; cron provado end-to-end #3191. Residuos fase 2: G8 deploy real, linha no Brief, G6 dispatch por cycle novo."
 topic: "Shipped-log: porta de saída do loop automatizada (espinha 5-gaps)"
 duration: "~2h"
 authors: [Wagner, Claude Code]
