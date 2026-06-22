@@ -460,3 +460,22 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Advisory → required conforme cadência.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-GOV-043 · Catraca charter_refs_broken — triagem dos 64 + gate ratchet + fix da fonte
+
+> owner: claude · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Contexto:** `jana:health-check` advisory `charter_refs_broken` caiu 279→64 (commit `a1f0fc0724`, branch `docs/onda-0-rede-seguranca`) ao corrigir off-by-one sistemático de profundidade `../` em 215 links de 55 charters. Bug latente do template, não regressão de runtime. Fix SEM catraca = vai reapodrecer (advisory já subiu 279→282 sozinho). Estruturar no padrão ADR 0256 (catraca+sentinela+gate+cadência) + regra anti-teatro do `contrato-de-tela.yml`.
+
+**Acceptance criteria (4 camadas):**
+
+1. **Triagem dos 64 dead refs restantes** (alvo some em qualquer profundidade): 49 links corpo + 15 frontmatter (7 `parent_capterra` + 6 `runbook` + 2 `component`). Pra cada: achar sucessor renomeado (ex `0029-inertia-upos.md`, `0040-moduletopnav-subtabs-ghost.md`) OU remover ref morta (ex `../Boletos/Index.charter.md` já superseded). Lista completa no commit/sessão.
+
+2. **Catraca (não-regredir):** `governance/charter-refs-baseline.json` (floor atual) + `scripts/governance/charter-refs.mjs` (`--check` falha se > baseline; `--fix` aplica só correções seguras) + `scripts/governance/charter-refs.test.mjs` (self-test: o gate morde). Baseline protegido pelo `baseline-tamper-guard` (anti-grandfather).
+
+3. **Fonte (não-nascer-quebrado):** skill `charter-write` calcula profundidade `../` certa a partir do path do charter + lint PR-time nos charters TOCADOS no diff (bloqueia ANTES do merge — gêmeo do `design-return-gate.yml`, não advisory 24h depois).
+
+4. **Promoção a required** (enforce_admins) = decisão Wagner, quando falso-positivo medido = 0 por 1-2 semanas (regra `contrato-de-tela.yml` §3). NÃO auto-flipar.
+
+**Dono natural:** piloto Zelador diário (claude @ Governance). **Não-bloqueia** CYCLE-08 (receita) — advisory.
