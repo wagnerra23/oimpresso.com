@@ -5,7 +5,9 @@ namespace Modules\TeamMcp\Http\Controllers\Mcp;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Jana\Entities\Mcp\McpCycle;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Entities\Mcp\McpProject;
 
 /**
  * MEM-MCP-1.b (ADR 0053) — Endpoint de health do MCP server.
@@ -90,6 +92,42 @@ class HealthController extends Controller
         return response()->json([
             'service' => 'oimpresso-mcp',
             ...$this->deployedCommit(),
+            'ts' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * G6 (porta de saída do loop) — cycle ATIVO do projeto, pro cron do shipped-log
+     * descobrir cycle+janela SEM depender do shipped-log anterior (que falha na
+     * transição de cycle). Mesmo auth do /version (MCP_DRIFT_TOKEN dedicado, sem RBAC):
+     * vazar revela só metadado do cycle, não dado de negócio.
+     */
+    public function cicloAtivo(Request $request): JsonResponse
+    {
+        $expected = (string) config('copiloto.mcp.drift_token', '');
+        if ($expected === '') {
+            return response()->json(['error' => 'Misconfigured'], 500);
+        }
+        $provided = (string) $request->bearerToken();
+        if ($provided === '' || ! hash_equals($expected, $provided)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $projectKey = strtoupper((string) $request->query('project', 'COPI'));
+        $project = McpProject::where('key', $projectKey)->first();
+        $cycle = $project
+            ? McpCycle::where('project_id', $project->id)->where('status', 'active')->first()
+            : null;
+
+        return response()->json([
+            'service' => 'oimpresso-mcp',
+            'project' => $projectKey,
+            'cycle' => $cycle ? [
+                'key' => $cycle->key,
+                'name' => $cycle->name,
+                'start_date' => $cycle->start_date->toDateString(),
+                'end_date' => $cycle->end_date->toDateString(),
+            ] : null,
             'ts' => now()->toIso8601String(),
         ]);
     }
