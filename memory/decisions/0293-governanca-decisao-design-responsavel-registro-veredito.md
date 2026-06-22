@@ -3,7 +3,7 @@ slug: 0293-governanca-decisao-design-responsavel-registro-veredito
 number: 293
 title: "Governança da decisão de design: responsável por etapa do ciclo + Decision Register por tela + ledger de vereditos pro Cowork"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
