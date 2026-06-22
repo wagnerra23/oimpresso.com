@@ -4,7 +4,6 @@ component: resources/js/Pages/StockAdjustment/Create.tsx
 tela: stock_adjustment/create
 tipo: FORM CREATE
 modulo: Inventory / StockAdjustment
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-adjustment-create.md
 status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]

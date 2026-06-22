@@ -12,7 +12,7 @@ charter_version: 1
 
 # Page Charter — /governance/audit
 
-> **Status:** live. Drill-down forense do `mcp_audit_log` (Constituição Art. 9). Append-only enforced via trigger MySQL ([ADR 0084](../../../../memory/decisions/0084-mcp-audit-log-append-only-trigger.md)) — modificação de entry é incidente P0.
+> **Status:** live. Drill-down forense do `mcp_audit_log` (Constituição Art. 9). Append-only enforced via trigger MySQL ([ADR 0084](../../../../memory/decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md)) — modificação de entry é incidente P0.
 
 ---
 
@@ -66,13 +66,13 @@ Permitir a Wagner (operador sênior) investigar atividade do MCP server `mcp.oim
 ## Tests anti-regressão
 
 - [tests/Feature/Design/CockpitPatternConformanceTest.php](../../../../tests/Feature/Design/CockpitPatternConformanceTest.php) — sistêmico
-- [tests/Feature/Governance/AuditAppendOnlyTest.php](../../tests/Feature/Governance/AuditAppendOnlyTest.php) — trigger MySQL bloqueia UPDATE/DELETE
+- tests/Feature/Governance/AuditAppendOnlyTest.php — trigger MySQL bloqueia UPDATE/DELETE
 
 ---
 
 ## Refs
 
-- [ADR 0079 Constituição Governança](../../../../memory/decisions/0079-constituicao-governanca-7-artigos.md) Art. 9 (Auditoria)
-- [ADR 0084 mcp_audit_log append-only trigger](../../../../memory/decisions/0084-mcp-audit-log-append-only-trigger.md)
-- [ADR 0086 Governance Fase 5 MVP](../../../../memory/decisions/0086-governance-fase-5-mvp.md)
+- [ADR 0079 Constituição Governança](../../../../memory/decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) Art. 9 (Auditoria)
+- [ADR 0084 mcp_audit_log append-only trigger](../../../../memory/decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md)
+- [ADR 0086 Governance Fase 5 MVP](../../../../memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md)
 - [ADR 0094 Constituição V2](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)

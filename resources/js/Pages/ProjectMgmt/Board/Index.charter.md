@@ -89,8 +89,8 @@ DetailSheet aqui foi a primeira implementação do drawer canon. SaleSheet (Sell
 
 ## Refs
 
-- [Design.md §16 Cockpit V2](../../../../../Design.md)
+- [DESIGN.md §16 Cockpit V2](../../../../../DESIGN.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0070 Jira-style PM](../../../../../memory/decisions/0070-jira-style-pm.md)
-- [ADR 0100 PMG fase 2 specs](../../../../../memory/decisions/0100-pmg-fase-2.md)
+- [ADR 0070 Jira-style PM](../../../../../memory/decisions/0070-jira-style-task-management-current-md-removed.md)
+- [ADR 0100 PMG fase 2 specs](../../../../../memory/decisions/0100-projectmgmt-ui-redesign.md)
 - [ADR 0039 Cockpit layout-mãe](../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)

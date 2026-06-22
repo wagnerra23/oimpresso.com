@@ -132,10 +132,10 @@ it('não dispara mutação em GET /settings/payment-gateways (read-only puro)')
 ## Refs
 
 - [RUNBOOK Settings Gateways](../../../../../memory/requisitos/PaymentGateway/RUNBOOK-settings-gateways.md)
-- [Cowork F1 components](../../../../prototipo-ui/prototipos/payment-gateway-ui/components/)
-- [Cowork F1.5 critique](../../../../prototipo-ui/prototipos/payment-gateway-ui/critiques/payment-gateways-critique-score.json)
+- Cowork F1 components
+- Cowork F1.5 critique
 - [Charter irmão — /financeiro/cobranca](../../Financeiro/Cobranca/Index.charter.md)
-- [ADR 0170 — PaymentGateway module](../../../../memory/decisions/0170-paymentgateway-module-extraction.md)
+- [ADR 0170 — PaymentGateway module](../../../../../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md)
 
 ---
 

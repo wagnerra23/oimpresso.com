@@ -110,7 +110,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 ## Tests anti-regressão
 
-- [Modules/RecurringBilling/Tests/Feature/Wave4PagesIndexTest.php](../../../Modules/RecurringBilling/Tests/Feature/Wave4PagesIndexTest.php) — 5 cenários:
+- Modules/RecurringBilling/Tests/Feature/Wave4PagesIndexTest.php — 5 cenários:
   1. `/recurring-billing` retorna 200 + Inertia render correto biz=1 autenticado com permission `recurringbilling.access`
   2. Cross-tenant isolation: subscription biz=1 NÃO aparece quando user biz=99
   3. `Inertia::defer` partial reload `only:[subscriptions]` returna só esse prop

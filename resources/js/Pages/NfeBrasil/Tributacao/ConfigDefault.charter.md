@@ -135,7 +135,7 @@ it('wizard preview shows REGIME_DEFAULTS before apply')
 ## Refs
 
 - [US-NFE-010](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — Tributação + cascata defaults
-- [ADR 0029](../../../../memory/decisions/0029-inertia-upos.md) — Inertia + UltimatePOS
+- [ADR 0029](../../../../../memory/decisions/0029-padrao-inertia-react-ultimatepos.md) — Inertia + UltimatePOS
 - [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
 - [ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
 - ADR satélite `Modules/NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto` — cascata 4 níveis (business → NCM → UF → produto)

@@ -132,7 +132,7 @@ it('does not redirect after authorization (user decides)')
 ## Refs
 
 - [US-NFE-002](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — Emissão NFC-e + status pós-venda
-- [ADR 0029](../../../../memory/decisions/0029-inertia-upos.md) — Inertia + UltimatePOS
+- [ADR 0029](../../../../../memory/decisions/0029-padrao-inertia-react-ultimatepos.md) — Inertia + UltimatePOS
 - [ADR 0058](../../../../../memory/decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) — Centrifugo CT 100 (transport futuro)
 - [ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md) — Hostinger sem daemons
 - [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0

@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-19"
 parent_module: Financeiro
-parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
+parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [101, 144, 170]
 tier: A
 charter_version: 2

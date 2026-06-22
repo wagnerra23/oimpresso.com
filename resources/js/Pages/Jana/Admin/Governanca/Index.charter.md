@@ -51,7 +51,7 @@ Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quand
 
 ## UX targets
 
-- Padrão Chat Cockpit V2 ([ADR 0039](../../../../../memory/decisions/0039-cockpit-pattern-canon.md)) — shared components (`KpiGrid`, `KpiCard`, `StatusBadge`, `EmptyState`, `SubNav`, `PageHeader`)
+- Padrão Chat Cockpit V2 ([ADR 0039](../../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)) — shared components (`KpiGrid`, `KpiCard`, `StatusBadge`, `EmptyState`, `SubNav`, `PageHeader`)
 - LocalStorage persiste preset filtros + seção ativa (`LS_PRESET_KEY`, `LS_SECAO_KEY`)
 - Render < 300ms p95 com `Inertia::defer()` em audit log paginated
 - Dark mode obrigatório
