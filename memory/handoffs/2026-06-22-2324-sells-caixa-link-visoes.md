@@ -1,8 +1,8 @@
 ---
-date: 2026-06-22
+date: "2026-06-22"
 time: "2324 BRT"
 slug: "sells-caixa-link-visoes"
-tldr: "1a fatia da tela de Vendas pelo fluxo aplicar-prototipo: link 'Caixa do dia' -> /vendas/caixa adicionado ao dropdown Visoes de Sells/Index (tela viva mas orfa de navegacao, ADR 0192 Onda 6). Refaz o PR #3231 (fechado por base stale + casos stale) corretamente: branch fresh off origin/main + casos-gate honesto (last_run->06-22, UC-S10 OK->testing). PR #3234 MERGED (c200fb0184), deployado, verificado ao vivo na prod (dropdown + rota). Footgun do casos-guard (glifo em prosa flipava testing->green) ja consertado em main por #3241."
+tldr: "1a fatia da tela de Vendas (fluxo aplicar-prototipo): link 'Caixa do dia' -> /vendas/caixa no dropdown Visoes de Sells/Index (tela viva mas orfa de navegacao, ADR 0192). Refaz o #3231 correto: branch fresh off origin/main + casos-gate honesto (last_run->06-22, UC-S10 verde->testing). PR #3234 MERGED (c200fb0184), deployado, verificado ao vivo. Footgun do casos-guard ja consertado em main por #3241."
 decided_by: [W]
 cycle: "CYCLE-08"
 prs: [3234]
