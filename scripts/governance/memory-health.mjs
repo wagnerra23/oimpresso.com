@@ -281,7 +281,7 @@ function checkGovernanceCeiling() {
   const violacoes = [];
   for (const [wf, meta] of Object.entries(reg)) {
     if (grandfathered.has(wf)) continue; // gate pré-existente — isento (ratchet)
-    const t = String(meta.terminal || '').toLowerCase();
+    const t = String(meta.terminal || '').trim().toLowerCase();
     const faltas = [];
     if (!TERMINAL_VALIDO.has(t)) faltas.push(`terminal∈{required,cron,automacao,advisory} (tem: ${meta.terminal ?? '—'})`);
     if (!meta.anchor || !String(meta.anchor).trim()) faltas.push('anchor (ADR/incidente/PR de custo)');
