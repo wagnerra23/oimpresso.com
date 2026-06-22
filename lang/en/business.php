@@ -106,4 +106,5 @@ return [
     'tax_number2' => 'Tax Number 2',
     'is_active' => 'Active',
     'created_by' => 'Created By',
+    'select_invoice_scheme_and_layout' => 'Select the invoice scheme and layout (required) before saving the location.',
 ];
