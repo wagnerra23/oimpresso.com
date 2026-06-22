@@ -1,0 +1,68 @@
+/* GERADO por Style Dictionary v4 a partir de resources/css/tokens/*.tokens.json (DTCG).
+   NÃO EDITAR À MÃO — rode `npm run tokens:build` (ou `node resources/css/tokens/style-dictionary.config.mjs`).
+   ATIVAÇÃO (feat/onda-dtcg-ativar): este arquivo é a CAMADA DE TOKEN consumida pelo build.
+   Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
+
+.cockpit {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sb-bg: oklch(0.985 0.003 90);
+  --sb-bg-2: oklch(0.96 0.004 90);
+  --sb-border: oklch(0.90 0.004 90);
+  --sb-text: oklch(0.34 0.01 80);
+  --sb-text-dim: oklch(0.55 0.01 80);
+  --sb-text-hi: oklch(0.18 0.01 80);
+  --sb-hover: oklch(0.94 0.005 80);
+  --sb-active: oklch(0.91 0.006 80);
+  --sb-scroll: oklch(0.82 0.005 80);
+  --sb-bullet-out: oklch(0.70 0.005 80);
+  --bg: oklch(0.985 0.003 90);
+  --bg-2: oklch(0.965 0.004 90);
+  --surface: #ffffff;
+  --border: oklch(0.90 0.004 90);
+  --border-2: oklch(0.93 0.004 90);
+  --text: oklch(0.22 0.01 80);
+  --text-dim: oklch(0.50 0.01 80);
+  --text-mute: oklch(0.65 0.01 80);
+  --accent: oklch(0.55 0.15 295);
+  --accent-2: oklch(0.62 0.15 295);
+  --accent-soft: oklch(0.95 0.04 295);
+  --accent-fg: #ffffff;
+  --pos: oklch(0.50 0.12 150);
+  --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);
+  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.58 0.12 70);
+  --warn-soft: oklch(0.955 0.072 75);
+  --bubble-me: var(--accent);
+  --bubble-me-fg: #ffffff;
+  --bubble-them: oklch(0.96 0.003 90);
+  --bubble-them-fg: var(--text);
+  --thread-bg-from: oklch(0.94 0.01 90 / 0.35);
+  --thread-bg-to: oklch(0.94 0.01 90 / 0.20);
+  --origin-OS-bg: oklch(0.93 0.07 70);
+  --origin-OS-fg: oklch(0.40 0.10 60);
+  --origin-CRM-bg: oklch(0.92 0.06 220);
+  --origin-CRM-fg: oklch(0.40 0.10 220);
+  --origin-FIN-bg: oklch(0.93 0.07 145);
+  --origin-FIN-fg: oklch(0.36 0.10 145);
+  --origin-PNT-bg: oklch(0.93 0.06 295);
+  --origin-PNT-fg: oklch(0.40 0.10 295);
+  --origin-MFG-bg: oklch(0.93 0.05 30);
+  --origin-MFG-fg: oklch(0.40 0.10 30);
+  --stage-slate: oklch(0.58 0.025 250);
+  --stage-blue: oklch(0.58 0.13 252);
+  --stage-indigo: oklch(0.55 0.16 270);
+  --stage-violet: oklch(0.54 0.15 288);
+  --stage-rose: oklch(0.62 0.16 20);
+  --stage-emerald: oklch(0.60 0.13 155);
+  --stage-green: oklch(0.66 0.15 145);
+  --plate-frame: oklch(0.372 0.044 257.287);
+  --plate-ink: oklch(0.208 0.042 265.755);
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --row-h: 30px;
+  --shadow-pop: 0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.04);
+}

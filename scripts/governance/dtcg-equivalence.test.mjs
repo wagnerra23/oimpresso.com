@@ -67,14 +67,22 @@ console.log('\n[2] fixture ruim (1 token DTCG divergente) → deve FALHAR (rc1)'
     mkdirSync(join(sandbox, 'resources', 'css', 'tokens'), { recursive: true });
     const sandboxCheck = join(sandbox, 'scripts', 'governance', 'dtcg-equivalence.mjs');
     cpSync(CHECK, sandboxCheck);
-    for (const css of ['inertia.css', 'foundations.css', 'cockpit.css']) {
-      cpSync(join(ROOT, 'resources', 'css', css), join(sandbox, 'resources', 'css', css));
+    // Pós-ativação o check lê os _generated-*.css (SAÍDA do Style Dictionary, o
+    // CSS que o build consome), não mais os blocos inline dos .css canônicos.
+    // Copiamos os gerados reais pro sandbox; adulteramos só o $value no JSON →
+    // JSON diverge do gerado (não-regenerado) → o check deve pegar.
+    for (const gen of [
+      '_generated-inertia-theme.css', '_generated-inertia-dark.css',
+      '_generated-foundations-light.css', '_generated-foundations-dark.css',
+      '_generated-cockpit-light.css', '_generated-cockpit-dark.css',
+    ]) {
+      cpSync(join(ROOT, 'resources', 'css', 'tokens', gen), join(sandbox, 'resources', 'css', 'tokens', gen));
     }
     for (const tj of ['base.tokens.json', 'semantic.tokens.json']) {
       cpSync(join(ROOT, 'resources', 'css', 'tokens', tj), join(sandbox, 'resources', 'css', 'tokens', tj));
     }
-    // Adultera UM $value conhecido (color.primary roxo) pra um valor impossível.
-    // Mutação via parse → set → stringify (inequívoco; não casa texto de comentário).
+    // Adultera UM $value conhecido (color.primary roxo) pra um valor impossível,
+    // SEM regenerar o gerado → o JSON deixa de bater com o _generated-inertia-theme.css.
     const semPath = join(sandbox, 'resources', 'css', 'tokens', 'semantic.tokens.json');
     const sem = JSON.parse(readFileSync(semPath, 'utf8'));
     sem.color.primary.$value = 'oklch(0.01 0.99 7)';

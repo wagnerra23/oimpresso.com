@@ -1,0 +1,22 @@
+/* GERADO por Style Dictionary v4 a partir de resources/css/tokens/*.tokens.json (DTCG).
+   NÃO EDITAR À MÃO — rode `npm run tokens:build` (ou `node resources/css/tokens/style-dictionary.config.mjs`).
+   ATIVAÇÃO (feat/onda-dtcg-ativar): este arquivo é a CAMADA DE TOKEN consumida pelo build.
+   Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
+
+:root {
+  --fs-1: 10.5px;
+  --fs-2: 11.5px;
+  --fs-3: 12.5px;
+  --fs-4: 13.5px;
+  --fs-5: 15px;
+  --fs-6: 18px;
+  --fs-7: 22px;
+  --fs-8: 28px;
+  --fs-9: 38px;
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16);
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --t-1: .15s;
+  --t-2: .3s;
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%), radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);
+}
