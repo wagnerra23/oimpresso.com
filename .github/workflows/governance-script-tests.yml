@@ -38,3 +38,5 @@ jobs:
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
         run: node scripts/governance/dup-detector.test.mjs
+      - name: Design-memory gates wired no CI (Onda O3)
+        run: node scripts/governance/design-memory-gates.test.mjs

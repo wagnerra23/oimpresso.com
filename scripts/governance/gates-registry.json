@@ -350,6 +350,13 @@
     "dup-detector-gate.yml": {
       "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
       "classe": "gate"
+    },
+    "design-memory-gates.yml": {
+      "nome": "Design-memory gates (advisory · ds-guard §8 nos arquivos tocados + relatório de dívida + integrity-check §15 da espinha · wire dos gates de design-memory no CI)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 + auditoria IA OS (buraco confessado: ds-guard.mjs e integrity-check.mjs rodavam em NENHUM workflow, dependiam do humano lembrar)",
+      "promote_by": "2026-07-06"
     }
   }
 }
