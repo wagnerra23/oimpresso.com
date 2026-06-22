@@ -30,7 +30,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Link direto pra cada módulo
 - [x] Indicador de evidências pendentes no topo
 
-**Implementado em:** `Modules/MemCofre/Http/Controllers/DashboardController.php`
+**Implementado em:** `Modules/SRS/Http/Controllers/DashboardController.php` · verificado@1939ebd (2026-06-22) — módulo MemCofre vive no código como `Modules/SRS/` (mesma feature DocVault; SPEC dir e Pages/MemCofre/ mantêm o nome MemCofre)
 
 ### US-DOCVAULT-002 · Adicionar evidência
 
@@ -47,7 +47,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Cria DocSource + DocEvidence com status=pending
 - [ ] IA sugere automaticamente módulo+tipo+story (Fase 3)
 
-**Implementado em:** `IngestController.php`
+**Implementado em:** `Modules/SRS/Http/Controllers/IngestController.php` · verificado@1939ebd (2026-06-22) — campo antes malformado (sem segmento-path); reaponta pro path real sob `Modules/SRS/`
 
 ### US-DOCVAULT-003 · Triar evidências pendentes
 
@@ -64,7 +64,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Deletar evidência
 - [ ] Botão "Apply" regrava automaticamente o SPEC.md (Fase 3)
 
-**Implementado em:** `InboxController.php`
+**Implementado em:** `Modules/SRS/Http/Controllers/InboxController.php` · verificado@1939ebd (2026-06-22) — campo antes malformado (sem segmento-path); reaponta pro path real sob `Modules/SRS/`
 
 ### US-DOCVAULT-004 · Ver detalhes de um módulo
 
@@ -81,7 +81,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Tab Markdown bruto
 - [ ] Tab Evidências com fontes rastreáveis (Fase 3)
 
-**Implementado em:** `ModuloController.php`
+**Implementado em:** `Modules/SRS/Http/Controllers/ModuloController.php` · verificado@1939ebd (2026-06-22) — campo antes malformado (sem segmento-path); reaponta pro path real sob `Modules/SRS/`
 
 ### US-DOCVAULT-005 · Chat com o conhecimento
 
@@ -111,7 +111,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Whitelist de extensões (`md`, `txt`, `json`, `yaml`, `yml`) — bloqueia binário
 - [x] Fallback gracioso quando diretório Claude não existe (usuário nunca escreveu memória)
 
-**Implementado em:** `MemoriaController.php` + `Services/MemoryReader.php` + `resources/js/Pages/MemCofre/Memoria.tsx`.
+**Implementado em:** `Modules/SRS/Http/Controllers/MemoriaController.php` · `Modules/SRS/Services/MemoryReader.php` · `resources/js/Pages/MemCofre/Memoria.tsx` · verificado@1939ebd (2026-06-22) — paths reaponta pro módulo real `Modules/SRS/`; frontend mantém o nome MemCofre
 
 ### US-DOCVAULT-007 · Migrar módulo plano → pasta
 
@@ -127,7 +127,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Idempotente: rodar duas vezes não duplica conteúdo
 - [x] Testado em PontoWr2 (12 stories + 6 regras) e Essentials (1 story + 7 regras)
 
-**Implementado em:** `Console/Commands/MigrateModuleCommand.php`.
+**Implementado em:** `Modules/SRS/Console/Commands/MigrateModuleCommand.php` · verificado@1939ebd (2026-06-22) — reaponta pro path real sob `Modules/SRS/`
 
 ### US-DOCVAULT-008 · Declarar stories/regras na tela via `@docvault`
 
@@ -142,7 +142,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] `DocValidator::STORY_ORPHAN` e `PAGE_NO_META` usam essa tabela
 - [x] Validação rejeita `@docvault` malformado com mensagem clara (ver RUNBOOK)
 
-**Implementado em:** `Console/Commands/SyncPagesCommand.php` + `Entities/DocPage.php`.
+**Implementado em:** `Modules/SRS/Console/Commands/SyncPagesCommand.php` · `Modules/SRS/Entities/DocPage.php` · verificado@1939ebd (2026-06-22) — reaponta pros paths reais sob `Modules/SRS/`
 
 ### US-DOCVAULT-009 · Auditar qualidade de um módulo
 
@@ -157,7 +157,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Output legível pra humano (tabela markdown) + JSON pra CI
 - [x] MemCofre audita a si mesmo sem loop
 
-**Implementado em:** `Console/Commands/AuditModuleCommand.php` + `Services/ModuleAuditor.php`.
+**Implementado em:** `Modules/SRS/Console/Commands/AuditModuleCommand.php` · `Modules/SRS/Services/ModuleAuditor.php` · verificado@1939ebd (2026-06-22) — reaponta pros paths reais sob `Modules/SRS/`
 
 ### US-DOCVAULT-010 · Validar integridade global da documentação
 
@@ -172,7 +172,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Exit code ≠ 0 quando score abaixo de threshold (usável em pre-commit/CI)
 - [x] Hooks de pre-commit opcionais via `docvault:install-hooks`
 
-**Implementado em:** `Console/Commands/ValidateCommand.php` + `Services/DocValidator.php` + `Console/Commands/InstallHooksCommand.php` + `Entities/DocValidationRun.php`.
+**Implementado em:** `Modules/SRS/Console/Commands/ValidateCommand.php` · `Modules/SRS/Services/DocValidator.php` · `Modules/SRS/Console/Commands/InstallHooksCommand.php` · `Modules/SRS/Entities/DocValidationRun.php` · verificado@1939ebd (2026-06-22) — reaponta pros paths reais sob `Modules/SRS/`
 
 ### US-DOCVAULT-011 · Gerar stub de teste a partir de regra Gherkin
 
@@ -186,7 +186,7 @@ Cofre de documentação viva. Ingere evidências (screenshots, chat logs, erros,
 - [x] Preenche "Testado em:" no SPEC.md apontando para o teste criado
 - [x] Marca o teste como `@todo` — não roda verde falsamente
 
-**Implementado em:** `Console/Commands/GenTestCommand.php`.
+**Implementado em:** `Modules/SRS/Console/Commands/GenTestCommand.php` · verificado@1939ebd (2026-06-22) — reaponta pro path real sob `Modules/SRS/`
 
 ## 3. Regras
 

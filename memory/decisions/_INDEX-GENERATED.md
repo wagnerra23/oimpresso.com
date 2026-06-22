@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **301** arquivos · **285** números únicos · máx **0295**
-- **ADRs ATIVOS (lifecycle ativo): 261** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 229 · proposto 45 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 261 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **302** arquivos · **286** números únicos · máx **0297**
+- **ADRs ATIVOS (lifecycle ativo): 262** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 230 · proposto 45 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 262 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (301)
+## Todas as ADRs (302)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -337,3 +337,4 @@ _(íntegra)_
 | 0294 | proposto | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
 | 0295 | proposto | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
+| 0297 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |

@@ -480,7 +480,7 @@ Então só vê contacts.type='lead' WHERE business_id=1
 E nunca vê contacts de business 4 (ROTA LIVRE)
 ```
 
-**Testado em:** `Modules/Crm/Tests/Feature/CrmLeadCrossTenantTest` (Pest, biz=1 + biz=99 — convenção ADR refinada).
+**Testado em:** `Modules/Crm/Tests/Feature/MultiTenantIsolationTest.php` (Pest, biz=1 + biz=99 — isolamento cross-tenant de Schedule/Campaign + pivot `crm_lead_users` herda `business_id` via `contacts`).
 
 ### R-CRM-002 · Lead via WhatsApp exige LGPD opt-in registrado
 

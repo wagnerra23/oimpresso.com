@@ -13,7 +13,8 @@
 // scripts/tests/fixtures/foundation-ratchet, já versionadas em main) · ledger-check
 // --enforce (protocolo refutador GT-G5) · sdd-scorecard --ratchet ARMADO (GT-G2) ·
 // memory-health (Check A colisão ADR não-registrada — único .mjs que MORDE no merge
-// via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival).
+// via governance-gate-umbrella, antes fora do selftest · ADR 0256 Knowledge Survival) ·
+// anchor-lint --check (wired/zombie + testado-fantasma · ADR 0297 SA-A2-bis).
 //
 // USO (na raiz do repo):
 //   node scripts/governance/gate-selftest.mjs              # 5 catracas × 2 fixtures
@@ -79,6 +80,19 @@ function runMemoryHealth(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// anchor-lint --check sandbox: mini-repo (memory/requisitos + resources/js/Pages +
+// Modules) por kind + o script REAL copiado por cima. good = tela viva → exit 0;
+// bad = tela ZUMBI (controller fora das rotas) + teste-fantasma → exit 1 (ADR 0297).
+function runAnchorLint(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check', 'memory/requisitos/SelftestAnchor/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -111,6 +125,11 @@ const CATRACAS = [
     id: 'memory-health',
     run: runMemoryHealth,
     expect: { good: /base de conhecimento saudável/, bad: /colidiu.*_INDEX-LIFECYCLE/ },
+  },
+  {
+    id: 'anchor-lint',
+    run: runAnchorLint,
+    expect: { good: /ANCHOR COVERAGE GLOBAL/, bad: /tela DESLIGADA/ },
   },
 ];
 

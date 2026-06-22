@@ -288,7 +288,7 @@ Quando o job InvoiceGenerator roda 2x no mesmo dia
 Então apenas 1 fatura é criada para a competência 2026-05
 ```
 **Implementação:** UNIQUE `(contract_id, competencia_yyyy_mm)` em `rb_invoices`.
-**Testado em:** `InvoiceGeneratorIdempotenciaTest`.
+**Testado em:** `InvoiceGeneratorServiceTest` (cenário "2x run() nao duplica invoice").
 
 ### R-RB-004 · Webhook idempotente por event_id
 ```gherkin
@@ -297,7 +297,7 @@ Quando chega de novo (at-least-once)
 Então o segundo é descartado (200 OK sem efeito)
 ```
 **Implementação:** UNIQUE `(provider, event_id)` em `pg_webhook_events`.
-**Testado em:** `WebhookIdempotenciaTest`.
+**Testado em:** `AsaasWebhookIdempotencyTest` (US-RB-041 — 2ª chamada com mesmo `event_id` retorna 200 `skipped:duplicate`).
 
 ### R-RB-005 · Charge attempt idempotente
 ```gherkin
@@ -306,7 +306,7 @@ Quando outro charge attempt chega com mesmo (invoice_id, attempt_number)
 Então é descartado
 ```
 **Implementação:** UNIQUE em `pg_charge_attempts`.
-**Testado em:** `ChargeIdempotenciaTest`.
+**Testado em:** `DomainModelsTest` (cenário "Invoice rastreia ChargeAttempts com unique (invoice_id, attempt_n)" — 2ª inserção com mesmo `attempt_n` lança `QueryException`).
 
 ### R-RB-006 · Reajuste no aniversário
 ```gherkin
@@ -316,7 +316,7 @@ Então o valor é reajustado conforme IPCA acumulado
 E aparece em `rb_proration_events` como tipo `reajuste_aniversario`
 ```
 **Implementação:** `ReajusteService` consulta IPCA via API BCB; cache 24h.
-**Testado em:** `ReajusteAniversarioTest`.
+**Testado em:** _lacuna — ReajusteAniversarioTest não existe; reajuste IPCA/IGP-M no aniversário ainda sem cobertura Pest (ReajusteService não implementado)._
 
 ### R-RB-007 · NFSe assíncrona não trava billing
 ```gherkin
@@ -327,7 +327,7 @@ E NFSe entra em fila de retentativa
 E nenhuma cobrança seguinte é bloqueada
 ```
 **Implementação:** Sub-módulo NFSe em queue separada; falhas viram `nfse_emissoes.status=failed` com retentativa 5x.
-**Testado em:** `NfseAssincronaTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/EmitirNFeAoReceberPagamentoTest.php` (US-RB-044 — listener `InvoicePaid` em fila `nfe`, `ShouldQueue` + tries=3 + backoff=60; falha SEFAZ não derruba pagamento).
 
 ### R-RB-008 · Cancelamento `fim_ciclo` cobra ciclo restante
 ```gherkin
@@ -337,7 +337,7 @@ Quando geramos fatura
 Então a fatura de 2026-04 é gerada normalmente (cliente paga até 30/04)
 E em 01/05, status muda pra canceled (sem nova fatura)
 ```
-**Testado em:** `CancelamentoFimCicloTest`.
+**Testado em:** `AssinaturaServiceWave18Test` (cobre `cancelar()` → status=canceled + churn_reason + idempotência + cross-tenant 404; _parcial — semântica `fim_ciclo` cobrar ciclo restante ainda sem cenário dedicado_).
 
 ### R-RB-009 · Hard decline = não retentar
 ```gherkin
@@ -347,7 +347,7 @@ Então não agenda retry
 E dispara InvoiceFailed para Dunning
 ```
 **Implementação:** Switch em `decline_type` retornado pelo adapter; mapping per-provider.
-**Testado em:** `HardDeclineNoRetryTest`.
+**Testado em:** _lacuna — HardDeclineNoRetryTest não existe; SmartRetryScheduler e classificação soft/hard decline ainda não implementados._
 
 ### R-RB-010 · Pix Automático autorização expirada
 ```gherkin
@@ -356,7 +356,7 @@ Quando tentamos cobrar
 Então charge attempt falha imediatamente (sem chamar PSP)
 E dispara InvoiceFailed
 ```
-**Testado em:** `PixAutorizacaoExpiradaTest`.
+**Testado em:** _lacuna — PixAutorizacaoExpiradaTest não existe; sub-módulo PixAutomatico (pa_authorizations) ainda não implementado._
 
 ### R-RB-011 · Pagamento durante campanha encerra dunning
 ```gherkin
@@ -365,7 +365,7 @@ Quando InvoicePaid é disparado
 Então campanha vira status=resolved
 E steps futuros são cancelados
 ```
-**Testado em:** `DunningResolvidaPorPagamentoTest`.
+**Testado em:** _lacuna — DunningResolvidaPorPagamentoTest não existe; módulo Dunning (dun_campaigns) ainda não foi criado._
 
 ### R-RB-012 · PCI compliance — não armazenar PAN/CVV
 ```gherkin
@@ -375,7 +375,7 @@ Então NÃO armazena `pan` ou `cvv`
 E só guarda `gateway_card_token`, `last_4`, `brand`
 ```
 **Implementação:** FormRequest rejeita `pan`/`cvv` se chegarem (defesa em profundidade); checkout via iframe hosted ou redirecionamento.
-**Testado em:** `PciNaoArmazenaPanTest`.
+**Testado em:** _lacuna — PciNaoArmazenaPanTest não existe; sub-módulo Cards (tokenização gateway_card_token) ainda não implementado._
 
 ### R-RB-013 · Audit log Spatie em mutações críticas
 
@@ -386,7 +386,7 @@ Então existe row em activity_log com causer + subject + properties (valor, stat
 ```
 
 **Implementação:** Trait `LogsActivity` em `Plan`, `Contract`, `Invoice`, `ChargeAttempt`, `Authorization`, `Campaign`.
-**Testado em:** `Modules/RecurringBilling/Tests/Feature/AuditLogMutacoesTest` — 6 modelos × create/update/delete = 18 asserts.
+**Testado em:** _lacuna — AuditLogMutacoesTest (6 modelos × create/update/delete asserindo rows em activity_log) não existe (2026-06-22); cobertura real parcial em LgpdComplianceTest (só verifica presença do trait LogsActivity em Plan/Invoice/ChargeAttempt/Subscription/BoletoCredential, não a escrita por mutação em Contract/Authorization/Campaign)._
 
 ### R-RB-014 · Take rate calculado só se gateway próprio
 ```gherkin
@@ -398,7 +398,7 @@ Dado uma cobrança via merchant-of-record do cliente (gateway com credencial do 
 Então NÃO cria revenue_event (sem take rate)
 ```
 **Implementação:** Verifica `pg_credentials.owner` em listener do `InvoicePaid`.
-**Testado em:** `TakeRateMorVsGatewayTest`.
+**Testado em:** _lacuna — TakeRateMorVsGatewayTest não existe; take rate / revenue_event MoR-vs-gateway ainda sem implementação nem cobertura._
 
 ## 7. Decisões pendentes
 

@@ -3,16 +3,16 @@ name: Anchor Drift (advisory)
 # Lint do anchor spec↔código — SA-A3 do plano SDD (memory/sessions/2026-06-12-
 # plano-reestruturacao-sdd-ondas-paralelas.md, frente SA) · gramática ADR 0273.
 #
-# ADVISORY (fase F1 do ratchet, ADR 0273 §4): nasce fora dos required (regra do
-# projeto: gate novo nunca nasce required). O lint roda em modo REPORT (exit 0
-# sempre) — vermelho aqui só se o script quebrar (precedente mutation-gate: sem
-# mascara de erro; advisory porque NAO e required, nao porque se esconde).
-# Promoção F2 (diff-only required) / F3 (full-tree) via calendario de promocoes
-# do ADR 0275 — nunca neste arquivo direto.
+# SA-A2-bis (ADR 0297): o passo DIFF-AWARE dos PRs roda --check (exit 1) só nos
+# SPECs TOCADOS — proíbe mentira NOVA (dead/zombie/teste-fantasma) sem travar a
+# dívida legada (grandfathering por não-toque). NÃO é required ainda: vermelho
+# aqui sinaliza; branch protection é flip do Wagner (ADR 0275 §5 · calendário).
+# CRON semanal e o fallback full-tree seguem REPORT (exit 0) — a dívida dos
+# legados não pode avermelhar o cron antes de reconciliada.
 #
-# DIFF-AWARE nos PRs: linta só os SPECs tocados (args posicionais do lint).
-# CRON semanal: full-tree (anchor morre quando CÓDIGO move sem o SPEC mudar —
-# só o full-tree periódico pega esse drift).
+# DIFF-AWARE nos PRs: --check só nos SPECs tocados (args posicionais do lint).
+# CRON semanal: full-tree REPORT (anchor morre quando CÓDIGO move sem o SPEC
+# mudar — só o full-tree periódico pega esse drift; report pra não travar legado).
 
 on:
   pull_request:
@@ -48,9 +48,9 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'memory/requisitos/*/SPEC.md')
             if [ -n "$CHANGED" ]; then
-              echo "SPECs tocados no PR:"; echo "$CHANGED"
+              echo "SPECs tocados no PR (--check: no-new-lies SA-A2-bis · ADR 0297):"; echo "$CHANGED"
               # shellcheck disable=SC2086
-              node scripts/governance/anchor-lint.mjs $CHANGED
+              node scripts/governance/anchor-lint.mjs --check $CHANGED
             else
               echo "Nenhum SPEC tocado (PR mudou lint/workflow) — full-tree:"
               node scripts/governance/anchor-lint.mjs

@@ -27,7 +27,7 @@
       "classe": "gate"
     },
     "anchor-drift.yml": {
-      "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
+      "nome": "Anchor Drift — lint spec↔código ADR 0273+0297 (diff-aware --check no PR = no-new-lies + cron full-tree REPORT · wired/zombie + testado · SA-A2-bis)",
       "classe": "gate"
     },
     "plan-health-gate.yml": {
@@ -172,6 +172,14 @@
     },
     "governance-script-tests.yml": {
       "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
+      "classe": "gate"
+    },
+    "shipped-log-cron.yml": {
+      "nome": "Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294)",
+      "classe": "automacao"
+    },
+    "shipped-log-gate.yml": {
+      "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
       "classe": "gate"
     },
     "infra-contract-required.yml": {
