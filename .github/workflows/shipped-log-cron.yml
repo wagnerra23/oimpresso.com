@@ -24,6 +24,11 @@ on:
         required: false
         default: ''
 
+# 1 run por vez: dispatch manual + schedule não rodam concorrentes (anti-PR-duplicado).
+concurrency:
+  group: shipped-log-cron
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -81,7 +86,7 @@ jobs:
         with:
           token: ${{ secrets.COWORK_BOT_PAT }}
           base: main
-          branch: chore/shipped-log-${{ steps.win.outputs.cycle }}-${{ github.run_id }}
+          branch: chore/shipped-log-${{ steps.win.outputs.cycle }}
           commit-message: |
             docs(governance): atualiza shipped-log ${{ steps.win.outputs.cycle }} (cron)
 
