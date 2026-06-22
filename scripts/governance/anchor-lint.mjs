@@ -77,21 +77,28 @@ function listPhp(dir, acc = []) {
   }
   return acc;
 }
-function readPhpConcat(dir) {
-  return listPhp(dir).map((f) => readFileSync(f, 'utf8')).join('\n');
-}
 // grafo de render por módulo: { allRendered:Set, liveRendered:Set } ou null (indeterminável)
 function renderGraph(mod) {
   if (_graphCache.has(mod)) return _graphCache.get(mod);
   const modDir = join(ROOT, 'Modules', mod);
   const ctrlDir = join(modDir, 'Http', 'Controllers');
   if (!existsSync(ctrlDir)) { _graphCache.set(mod, null); return null; }
-  const routeTxt = readPhpConcat(join(modDir, 'Routes')) + '\n' + readPhpConcat(join(modDir, 'routes'));
-  // controllers VIVOS = importados (use …\XController;) ou usados com ::class nas rotas.
-  // Comentário (// DashboardController …) NÃO casa nenhum dos dois → não vira vivo.
+  // rotas podem viver em Routes/, routes/, Http/routes.php, Http/Routes/ — varre
+  // qualquer .php cujo path tenha um segmento `route(s)` (exclui *RoutesTest.php,
+  // pois "Routes" ali não vem após '/' nem início). Anti-falso-positivo: módulo
+  // que registra rota fora desses lugares ficaria over-flagado.
+  let routeTxt = '';
+  for (const f of listPhp(modDir)) {
+    const rel = f.slice(modDir.length).replace(/\\/g, '/');
+    if (/(^|\/)routes?(\/|\.php$)/i.test(rel)) routeTxt += readFileSync(f, 'utf8') + '\n';
+  }
+  // controllers VIVOS = referenciados nas rotas por use/::class OU string-syntax
+  // ('XController@metodo' — UltimatePOS/nWidart legado). Comentário (// DashboardController)
+  // NÃO casa nenhum dos três → não vira vivo (mantém o zumbi real detectável).
   const live = new Set();
   for (const m of routeTxt.matchAll(/use\s+[\w\\]+\\([A-Za-z0-9_]+Controller)\s*;/g)) live.add(m[1]);
-  for (const m of routeTxt.matchAll(/([A-Za-z0-9_]+)::class/g)) live.add(m[1]);
+  for (const m of routeTxt.matchAll(/([A-Za-z0-9_]+Controller)::class/g)) live.add(m[1]);
+  for (const m of routeTxt.matchAll(/['"][\w\\]*?([A-Za-z0-9_]+Controller)(?:@\w+)?['"]/g)) live.add(m[1]);
   const allRendered = new Set(), liveRendered = new Set();
   for (const f of listPhp(ctrlDir)) {
     const base = f.split(/[\\/]/).pop().replace(/\.php$/, '');
