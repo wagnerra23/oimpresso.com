@@ -2,9 +2,9 @@
 date: 2026-06-22
 time: "0800 BRT"
 slug: "onda0-deconflict-antidup"
-tldr: "Wagner pediu 'refazer com SDD' → virou a Onda 0 (rede anti-quebra) do blueprint #3129. Executei 4 bricks (A sentinela format_date #3178, B pcov #3182, C migration scorecard aplicada em prod via SSH, D ratchet→required agendado). A reconferência ('tem outro fazendo isso?') destapou DUPLICAÇÃO MASSIVA com um programa SDD paralelo mais adiantado: #3150=meu Brick B, #3181/#3143=meu Brick D. De-confliction: revertido B (#3184), cancelado o agendamento, nota no #3177, e proposta a TRAVA anti-duplicação (#3186, gate dup-detector). Lição-mãe: disciplina não impede duplicação (3ª reincidência apesar do #3092) — precisa de gate mecânico."
+tldr: "Onda 0 (rede anti-quebra SDD, blueprint #3129): 4 bricks — A sentinela format_date #3178; B pcov #3182; C migration scorecard aplicada em prod via SSH; D ratchet→required agendado. Reconferência achou DUPLICAÇÃO com programa SDD paralelo mais adiantado (#3150=B, #3181/#3143=D) → revertido B #3184, cancelado agendamento, proposta trava anti-dup #3186 (gate dup-detector). Lição-mãe: disciplina não impede duplicação (3ª reincidência) — precisa de gate mecânico."
 decided_by: [W]
-cycle: "CYCLE-08 (off-cycle — governança SDD, ortogonal à Onda A de receita)"
+cycle: "CYCLE-08"
 prs: [3129, 3178, 3177, 3182, 3184, 3186]
 next_steps:
   - "[W] decide dono + escopo da proposta anti-dup (anti-duplicacao-work-claim-gate.md) — recomendação L3-MVP (gate dup-detector no CI)"
