@@ -177,7 +177,8 @@ class CyclesCreateTool extends Tool
         $md = "## 📋 Candidatos do backlog (corte por prioridade — G18)\n\n";
         $md .= "_Top {$candidatos->count()} de backlog do {$projectKey} sem cycle, por prioridade. **Read-only** (não atribuídos) — puxe pro cycle com `tasks-update task_id:X cycle:{$projectKey}-...`._\n\n";
         foreach ($candidatos as $c) {
-            $p = $c->priority ? "`{$c->priority}`" : '`—`';
+            $prio = trim((string) ($c->priority ?? ''));
+            $p = $prio !== '' ? "`{$prio}`" : '`—`';
             $md .= "- {$p} **{$c->task_id}** {$c->title} ({$c->module})\n";
         }
 
