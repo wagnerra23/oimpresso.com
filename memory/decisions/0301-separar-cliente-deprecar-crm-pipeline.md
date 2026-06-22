@@ -9,7 +9,7 @@ lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-06-22"
-module: Crm
+module: crm
 tags: [cliente, crm, deprecação, separação, spec-anchored, contacts]
 supersedes: []
 related: ["0093-multi-tenant-isolation-tier-0", "0094-constituicao-v2-7-camadas-8-principios", "0105-cliente-como-sinal-guiar-sem-mandar", "0179-cliente-drawer-760px-substitui-show-fullpage", "0273-anchor-spec-codigo-formato-canonico-fluxo-novo"]
