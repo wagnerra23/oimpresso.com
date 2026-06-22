@@ -1,4 +1,4 @@
-# SPEC — DemoDoneness (fixture RUIM do gate-selftest GT-G6 · catraca doneness-lint · ADR 0298)
+# SPEC — DemoDoneness (fixture RUIM do gate-selftest GT-G6 · catraca doneness-lint · ADR 0302)
 
 ### US-DD-001 · "diz pronto, zero prova" (status=done SEM âncora)
 
