@@ -1,0 +1,171 @@
+{
+  "$description": "DTCG semantic tokens — extraídos verbatim da fonte canônica do build (ADR 0300). $value = valor LIGHT (default). Quando a fonte define variante dark ([data-theme=dark] / .dark / .cockpit[data-theme=dark]), ela vai em $extensions.com.oimpresso.dark. NADA inventado: cada valor cita sua origem. Camada semantic herda da base (foundations) e nunca contradiz (Constituição UI v2 · UI-0013).",
+  "$extensions": {
+    "com.oimpresso.dtcg": {
+      "spec": "W3C Design Tokens Community Group (application/design-tokens+json)",
+      "layer": "semantic",
+      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)"],
+      "build_consumes_this": false,
+      "color_notes": "Cores OKLCH armazenadas como string CSS literal (ex 'oklch(0.55 0.15 295)'). DTCG color-as-string para fidelidade 1:1 com o CSS — o build NÃO consome este JSON, então não há reparse de cor. brand-meta usa hsl() (cor de identidade Meta cross-theme)."
+    }
+  },
+  "color": {
+    "$type": "color",
+    "$description": "Tokens de cor Tailwind @theme (inertia.css) — geram utilities bg-/text-/border-. Variante dark em .dark, [data-theme=\"dark\"].",
+    "border":               { "$value": "oklch(0.92 0.006 90)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-border", "com.oimpresso.dark": "oklch(0.27 0.006 250)" } },
+    "input":                { "$value": "oklch(0.92 0.006 90)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-input", "com.oimpresso.dark": "oklch(0.27 0.006 250)" } },
+    "ring":                 { "$value": "oklch(0.137 0.036 258.5)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-ring", "com.oimpresso.dark": "oklch(0.869 0.02 252.8)" } },
+    "background":           { "$value": "oklch(1 0 0)",           "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-background", "com.oimpresso.dark": "oklch(0.137 0.036 258.5)" } },
+    "foreground":           { "$value": "oklch(0.137 0.036 258.5)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-foreground", "com.oimpresso.dark": "oklch(0.984 0.003 247.9)" } },
+    "page-cream":           { "$value": "oklch(0.985 0.003 90)",  "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-page-cream", "com.oimpresso.dark": "oklch(0.137 0.036 258.5)" } },
+    "primary":              { "$value": "oklch(0.55 0.15 295)",   "$description": "DS v4 primary universal ROXO (ADR 0190).", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-primary", "com.oimpresso.dark": "oklch(0.62 0.15 295)" } },
+    "primary-foreground":   { "$value": "oklch(0.984 0.003 247.9)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-primary-foreground", "com.oimpresso.dark": "oklch(0.208 0.04 265.7)" } },
+    "secondary":            { "$value": "oklch(0.968 0.007 247.9)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-secondary", "com.oimpresso.dark": "oklch(0.28 0.037 260)" } },
+    "secondary-foreground": { "$value": "oklch(0.208 0.04 265.7)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-secondary-foreground", "com.oimpresso.dark": "oklch(0.984 0.003 247.9)" } },
+    "muted":                { "$value": "oklch(0.97 0.004 90)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-muted", "com.oimpresso.dark": "oklch(0.28 0.037 260)" } },
+    "muted-foreground":     { "$value": "oklch(0.55 0.012 90)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-muted-foreground", "com.oimpresso.dark": "oklch(0.68 0.01 250)" } },
+    "accent":               { "$value": "oklch(0.968 0.007 247.9)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-accent", "com.oimpresso.dark": "oklch(0.28 0.037 260)" } },
+    "accent-foreground":    { "$value": "oklch(0.208 0.04 265.7)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-accent-foreground", "com.oimpresso.dark": "oklch(0.984 0.003 247.9)" } },
+    "destructive":          { "$value": "oklch(0.58 0.20 18)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-destructive", "com.oimpresso.dark": "oklch(0.55 0.17 18)" } },
+    "destructive-foreground": { "$value": "oklch(0.984 0.003 247.9)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-destructive-foreground", "com.oimpresso.dark": "oklch(0.984 0.003 247.9)" } },
+    "card":                 { "$value": "oklch(1 0 0)",           "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-card", "com.oimpresso.dark": "oklch(0.208 0.04 265.7)" } },
+    "card-foreground":      { "$value": "oklch(0.137 0.036 258.5)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-card-foreground", "com.oimpresso.dark": "oklch(0.984 0.003 247.9)" } },
+    "popover":              { "$value": "oklch(1 0 0)",           "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-popover", "com.oimpresso.dark": "oklch(0.137 0.036 258.5)" } },
+    "popover-foreground":   { "$value": "oklch(0.137 0.036 258.5)", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-popover-foreground", "com.oimpresso.dark": "oklch(0.984 0.003 247.9)" } },
+    "success":              { "$value": "oklch(0.62 0.13 162)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-success", "com.oimpresso.dark": "oklch(0.68 0.13 162)" } },
+    "success-foreground":   { "$value": "oklch(0.51 0.12 162)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-success-foreground", "com.oimpresso.dark": "oklch(0.78 0.11 162)" } },
+    "warning":              { "$value": "oklch(0.70 0.13 75)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-warning", "com.oimpresso.dark": "oklch(0.74 0.13 75)" } },
+    "warning-foreground":   { "$value": "oklch(0.55 0.12 75)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-warning-foreground", "com.oimpresso.dark": "oklch(0.80 0.10 75)" } },
+    "destructive-soft":     { "$value": "oklch(0.97 0.02 18)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-destructive-soft", "com.oimpresso.dark": "oklch(0.26 0.07 18)" } },
+    "destructive-fg":       { "$value": "oklch(0.51 0.19 18)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-destructive-fg", "com.oimpresso.dark": "oklch(0.74 0.13 18)" } },
+    "success-soft":         { "$value": "oklch(0.97 0.02 162)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-success-soft", "com.oimpresso.dark": "oklch(0.27 0.06 162)" } },
+    "success-fg":           { "$value": "oklch(0.51 0.12 162)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-success-fg", "com.oimpresso.dark": "oklch(0.78 0.11 162)" } },
+    "warning-soft":         { "$value": "oklch(0.97 0.03 75)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-warning-soft", "com.oimpresso.dark": "oklch(0.27 0.06 75)" } },
+    "warning-fg":           { "$value": "oklch(0.55 0.12 75)",    "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-warning-fg", "com.oimpresso.dark": "oklch(0.80 0.10 75)" } },
+    "info":                 { "$value": "oklch(0.58 0.13 244)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-info", "com.oimpresso.dark": "oklch(0.66 0.13 244)" } },
+    "info-foreground":      { "$value": "oklch(0.98 0 0)",        "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-info-foreground", "com.oimpresso.dark": "oklch(0.20 0.02 244)" } },
+    "info-soft":            { "$value": "oklch(0.97 0.02 244)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-info-soft", "com.oimpresso.dark": "oklch(0.27 0.05 244)" } },
+    "info-fg":              { "$value": "oklch(0.50 0.13 244)",   "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-info-fg", "com.oimpresso.dark": "oklch(0.78 0.11 244)" } },
+    "page":                 { "$value": "oklch(0.985 0.003 90)",  "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-page", "com.oimpresso.dark_absent": "token --color-page não é redefinido no bloco dark — herda o light" } },
+    "brand-meta":           { "$value": "hsl(215 89% 53%)",       "$description": "Cor oficial Facebook cross-theme (não inverte no dark).", "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-brand-meta", "com.oimpresso.dark": "hsl(215 89% 53%)" } },
+    "brand-meta-hover":     { "$value": "hsl(215 89% 48%)",       "$extensions": { "com.oimpresso.source": "inertia.css @theme --color-brand-meta-hover", "com.oimpresso.dark": "hsl(215 89% 48%)" } }
+  },
+  "cockpit": {
+    "$description": "Tokens do shell .cockpit (cockpit.css). Surface/text/accent/bubbles/origins/stages + radius e fontes próprias. Variante dark em .cockpit[data-theme=\"dark\"].",
+    "surface": {
+      "$type": "color",
+      "sb-bg":         { "$value": "oklch(0.985 0.003 90)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-bg", "com.oimpresso.dark": "oklch(0.18 0.006 240)" } },
+      "sb-bg-2":       { "$value": "oklch(0.96 0.004 90)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-bg-2", "com.oimpresso.dark": "oklch(0.16 0.006 240)" } },
+      "sb-border":     { "$value": "oklch(0.90 0.004 90)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-border", "com.oimpresso.dark": "oklch(0.28 0.008 240)" } },
+      "sb-text":       { "$value": "oklch(0.34 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-text", "com.oimpresso.dark": "oklch(0.78 0.005 90)" } },
+      "sb-text-dim":   { "$value": "oklch(0.55 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-text-dim", "com.oimpresso.dark": "oklch(0.58 0.005 90)" } },
+      "sb-text-hi":    { "$value": "oklch(0.18 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-text-hi", "com.oimpresso.dark": "oklch(0.96 0.005 90)" } },
+      "sb-hover":      { "$value": "oklch(0.94 0.005 80)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-hover", "com.oimpresso.dark": "oklch(0.24 0.008 240)" } },
+      "sb-active":     { "$value": "oklch(0.91 0.006 80)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-active", "com.oimpresso.dark": "oklch(0.30 0.01 220)" } },
+      "sb-scroll":     { "$value": "oklch(0.82 0.005 80)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-scroll", "com.oimpresso.dark": "oklch(0.36 0.008 240)" } },
+      "sb-bullet-out": { "$value": "oklch(0.70 0.005 80)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sb-bullet-out", "com.oimpresso.dark": "oklch(0.46 0.008 240)" } },
+      "bg":            { "$value": "oklch(0.985 0.003 90)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bg", "com.oimpresso.dark": "oklch(0.22 0.006 240)" } },
+      "bg-2":          { "$value": "oklch(0.965 0.004 90)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bg-2", "com.oimpresso.dark": "oklch(0.19 0.006 240)" } },
+      "surface":       { "$value": "#ffffff",               "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --surface", "com.oimpresso.dark": "oklch(0.26 0.008 240)" } },
+      "border":        { "$value": "oklch(0.90 0.004 90)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --border", "com.oimpresso.dark": "oklch(0.30 0.008 240)" } },
+      "border-2":      { "$value": "oklch(0.93 0.004 90)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --border-2", "com.oimpresso.dark": "oklch(0.27 0.008 240)" } },
+      "text":          { "$value": "oklch(0.22 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text", "com.oimpresso.dark": "oklch(0.94 0.005 90)" } },
+      "text-dim":      { "$value": "oklch(0.50 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-dim", "com.oimpresso.dark": "oklch(0.72 0.005 90)" } },
+      "text-mute":     { "$value": "oklch(0.65 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-mute", "com.oimpresso.dark": "oklch(0.58 0.005 90)" } }
+    },
+    "accent": {
+      "$type": "color",
+      "accent":      { "$value": "oklch(0.55 0.15 295)",  "$description": "DS v4 accent ROXO do shell (ADR 0190).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent", "com.oimpresso.dark_absent": "--accent não é redefinido no dark — herda light" } },
+      "accent-2":    { "$value": "oklch(0.62 0.15 295)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-2", "com.oimpresso.dark_absent": "herda light" } },
+      "accent-soft": { "$value": "oklch(0.95 0.04 295)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-soft", "com.oimpresso.dark": "oklch(0.32 0.06 295)" } },
+      "accent-fg":   { "$value": "#ffffff",               "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --accent-fg", "com.oimpresso.dark_absent": "herda light" } }
+    },
+    "semantic": {
+      "$type": "color",
+      "$description": "DS v6 cores semânticas pos/neg/warn + -soft (ADR 0249 · [W] 2026-06-03).",
+      "pos":       { "$value": "oklch(0.50 0.12 150)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos", "com.oimpresso.dark": "oklch(0.74 0.14 150)" } },
+      "pos-soft":  { "$value": "oklch(0.95 0.075 150)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos-soft", "com.oimpresso.dark": "oklch(0.30 0.085 150)" } },
+      "neg":       { "$value": "oklch(0.55 0.18 25)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg", "com.oimpresso.dark": "oklch(0.72 0.16 25)" } },
+      "neg-soft":  { "$value": "oklch(0.955 0.055 25)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg-soft", "com.oimpresso.dark": "oklch(0.32 0.09 25)" } },
+      "warn":      { "$value": "oklch(0.58 0.12 70)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn", "com.oimpresso.dark": "oklch(0.80 0.13 75)" } },
+      "warn-soft": { "$value": "oklch(0.955 0.072 75)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn-soft", "com.oimpresso.dark": "oklch(0.32 0.085 70)" } }
+    },
+    "bubble": {
+      "$type": "color",
+      "bubble-me":      { "$value": "var(--accent)",        "$description": "Alias CSS literal pra --accent (var-ref preservado verbatim pra equivalência byte-a-byte; não resolver).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-me", "com.oimpresso.alias_of": "cockpit.accent.accent", "com.oimpresso.dark_absent": "herda light" } },
+      "bubble-me-fg":   { "$value": "#ffffff",              "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-me-fg", "com.oimpresso.dark_absent": "herda light" } },
+      "bubble-them":    { "$value": "oklch(0.96 0.003 90)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-them", "com.oimpresso.dark": "oklch(0.28 0.008 240)" } },
+      "bubble-them-fg": { "$value": "var(--text)",          "$description": "Alias CSS literal pra --text (var-ref preservado verbatim).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --bubble-them-fg", "com.oimpresso.alias_of": "cockpit.surface.text", "com.oimpresso.dark_absent": "herda light" } }
+    },
+    "thread": {
+      "$type": "color",
+      "thread-bg-from": { "$value": "oklch(0.94 0.01 90 / 0.35)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --thread-bg-from", "com.oimpresso.dark": "oklch(0.20 0.008 240 / 0.35)" } },
+      "thread-bg-to":   { "$value": "oklch(0.94 0.01 90 / 0.20)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --thread-bg-to", "com.oimpresso.dark": "oklch(0.20 0.008 240 / 0.20)" } }
+    },
+    "origin": {
+      "$type": "color",
+      "$description": "Origens (módulos que geram tarefas) — pares bg/fg.",
+      "OS-bg":  { "$value": "oklch(0.93 0.07 70)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-OS-bg", "com.oimpresso.dark": "oklch(0.30 0.07 60)" } },
+      "OS-fg":  { "$value": "oklch(0.40 0.10 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-OS-fg", "com.oimpresso.dark": "oklch(0.85 0.07 60)" } },
+      "CRM-bg": { "$value": "oklch(0.92 0.06 220)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-CRM-bg", "com.oimpresso.dark": "oklch(0.30 0.07 220)" } },
+      "CRM-fg": { "$value": "oklch(0.40 0.10 220)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-CRM-fg", "com.oimpresso.dark": "oklch(0.85 0.07 220)" } },
+      "FIN-bg": { "$value": "oklch(0.93 0.07 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-FIN-bg", "com.oimpresso.dark": "oklch(0.30 0.07 145)" } },
+      "FIN-fg": { "$value": "oklch(0.36 0.10 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-FIN-fg", "com.oimpresso.dark": "oklch(0.85 0.07 145)" } },
+      "PNT-bg": { "$value": "oklch(0.93 0.06 295)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-PNT-bg", "com.oimpresso.dark": "oklch(0.30 0.07 295)" } },
+      "PNT-fg": { "$value": "oklch(0.40 0.10 295)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-PNT-fg", "com.oimpresso.dark": "oklch(0.85 0.07 295)" } },
+      "MFG-bg": { "$value": "oklch(0.93 0.05 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-MFG-bg", "com.oimpresso.dark": "oklch(0.30 0.07 30)" } },
+      "MFG-fg": { "$value": "oklch(0.40 0.10 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --origin-MFG-fg", "com.oimpresso.dark": "oklch(0.85 0.07 30)" } }
+    },
+    "stage": {
+      "$type": "color",
+      "$description": "Pipeline / etapas — escala categórica (DS v6 · [W] 2026-06-03 · +blue/violet 2026-06-04).",
+      "slate":   { "$value": "oklch(0.58 0.025 250)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-slate", "com.oimpresso.dark": "oklch(0.66 0.03 250)" } },
+      "blue":    { "$value": "oklch(0.58 0.13 252)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-blue", "com.oimpresso.dark": "oklch(0.68 0.13 252)" } },
+      "indigo":  { "$value": "oklch(0.55 0.16 270)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-indigo", "com.oimpresso.dark": "oklch(0.66 0.16 270)" } },
+      "violet":  { "$value": "oklch(0.54 0.15 288)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-violet", "com.oimpresso.dark": "oklch(0.66 0.15 288)" } },
+      "rose":    { "$value": "oklch(0.62 0.16 20)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-rose", "com.oimpresso.dark": "oklch(0.68 0.16 20)" } },
+      "emerald": { "$value": "oklch(0.60 0.13 155)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-emerald", "com.oimpresso.dark": "oklch(0.68 0.14 155)" } },
+      "green":   { "$value": "oklch(0.66 0.15 145)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --stage-green", "com.oimpresso.dark": "oklch(0.74 0.15 145)" } }
+    },
+    "plate": {
+      "$type": "color",
+      "$description": "Placa Mercosul skeuomórfica — SEMPRE escuro-sobre-branco (não inverte no dark).",
+      "frame": { "$value": "oklch(0.372 0.044 257.287)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --plate-frame", "com.oimpresso.dark_absent": "não inverte — definido só no light" } },
+      "ink":   { "$value": "oklch(0.208 0.042 265.755)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --plate-ink", "com.oimpresso.dark_absent": "não inverte" } }
+    },
+    "radius": {
+      "$type": "dimension",
+      "$description": "Escala de radius do shell cockpit (px, distinta do @theme rem).",
+      "radius":    { "$value": "8px",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --radius" } },
+      "radius-sm": { "$value": "6px",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --radius-sm" } },
+      "radius-lg": { "$value": "12px", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --radius-lg" } }
+    },
+    "size": {
+      "$type": "dimension",
+      "row-h": { "$value": "30px", "$description": "Altura de linha base (compact=26px, comfy=34px via data-density).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --row-h" } }
+    },
+    "shadow": {
+      "$type": "shadow",
+      "$description": "Sombras do shell cockpit (rgba, multi-layer string). Distintas das --sh-1/--sh-2 do TEMPERO (foundations).",
+      "shadow-pop":  { "$value": "0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --shadow-pop" } },
+      "shadow-soft": { "$value": "0 1px 2px rgba(0,0,0,.04)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --shadow-soft" } }
+    }
+  },
+  "tempero": {
+    "$description": "TEMPERO (foundations.css) — UMA fonte de luz (sombras), microfísica (ease/transition), atmosfera. [W] 2026-06-10. Variante dark em [data-theme=\"dark\"].",
+    "shadow": {
+      "$type": "shadow",
+      "$description": "Sombras compostas armazenadas como string CSS (multi-layer). DTCG shadow-as-string para fidelidade 1:1.",
+      "sh-1": { "$value": "0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07)", "$description": "card assentado", "$extensions": { "com.oimpresso.source": "foundations.css :root --sh-1", "com.oimpresso.dark": "0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3)" } },
+      "sh-2": { "$value": "0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16)", "$description": "flutuante: drawer/modal/popover/cmdk", "$extensions": { "com.oimpresso.source": "foundations.css :root --sh-2", "com.oimpresso.dark": "0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4)" } }
+    },
+    "motion": {
+      "ease": { "$type": "cubicBezier", "$value": "cubic-bezier(.22, 1, .36, 1)", "$description": "curva única do ERP — desacelera como coisa física", "$extensions": { "com.oimpresso.source": "foundations.css :root --ease" } },
+      "t-1":  { "$type": "duration", "$value": ".15s", "$extensions": { "com.oimpresso.source": "foundations.css :root --t-1" } },
+      "t-2":  { "$type": "duration", "$value": ".3s",  "$extensions": { "com.oimpresso.source": "foundations.css :root --t-2" } }
+    },
+    "atmosphere": {
+      "atmo": { "$type": "other", "$value": "radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%), radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%)", "$description": "atmosfera do ERP (gradient composto). $type=other — não é cor única.", "$extensions": { "com.oimpresso.source": "foundations.css :root --atmo", "com.oimpresso.dark": "radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%), radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%)" } }
+    }
+  }
+}
