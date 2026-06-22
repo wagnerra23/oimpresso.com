@@ -6,7 +6,7 @@ name: Dup detector (advisory)
 # marcador `Dedup-ack:` no corpo. Pega o caso reincidente: 2 sessões no mesmo arquivo.
 #
 # Advisory de nascença (ADR 0271/0275) — NÃO entra em branch protection; o check fica
-# vermelho/visível mas não bloqueia o merge. Promove a required pelo calendário de 14d
+# vermelho/visível mas não bloqueia o merge. Promove a required após 3 dias verdes (Wagner 2026-06-22, ritmo IA-pair; sobe a 7d depois)
 # + 0 falso-positivo. Meta-teste: dup-detector.test.mjs no governance-script-tests.yml.
 
 on:
