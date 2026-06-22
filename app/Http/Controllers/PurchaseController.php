@@ -1045,16 +1045,22 @@ class PurchaseController extends Controller
         }
 
         try {
-            $transaction = Transaction::findOrFail($id);
+            $business_id = request()->session()->get('user.business_id');
+
+            //Scope by business_id to prevent cross-tenant IDOR (matches edit()/destroy())
+            $transaction = Transaction::where('business_id', $business_id)
+                                ->where('id', $id)
+                                ->firstOrFail();
 
             //Validate document size
             $request->validate([
                 'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
             ]);
 
-            $transaction = Transaction::findOrFail($id);
+            $transaction = Transaction::where('business_id', $business_id)
+                                ->where('id', $id)
+                                ->firstOrFail();
             $before_status = $transaction->status;
-            $business_id = request()->session()->get('user.business_id');
             $enable_product_editing = $request->session()->get('business.enable_editing_product_from_purchase');
 
             $transaction_before = $transaction->replicate();
