@@ -120,7 +120,7 @@ Então NUNCA retorna resultados de business B
 E mesmo se a pergunta tentar bypassar ("ignore o tenant"), scope é forçado no banco
 ```
 **Implementação:** GraphService aplica `WHERE business_id = ?` em **toda** query; agente NÃO pode override (validação na camada de service, não confiar em prompt).
-**Testado em:** `IsolamentoMultiTenantAITest`.
+**Testado em:** _lacuna — IsolamentoMultiTenantAITest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-002 · Resposta SEMPRE cita fonte
 ```gherkin
@@ -130,7 +130,7 @@ Então resposta tem campo `citations` populado (≥1 citação)
 E pergunta sem dados disponíveis retorna "não encontrei informação suficiente" (sem alucinar)
 ```
 **Implementação:** Prompt do agente inclui regra "SEMPRE cite. Se não tem dados, diga 'não encontrei'."
-**Testado em:** `CitacaoSempreTest`.
+**Testado em:** _lacuna — CitacaoSempreTest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-003 · Quota de queries
 ```gherkin
@@ -139,7 +139,7 @@ Quando user 1.001ª chega no mês corrente
 Então retorna 429 Too Many Requests com mensagem "quota excedida; faça upgrade ou aguarde próximo ciclo"
 ```
 **Implementação:** Counter `ai_queries_used` por `(business_id, mes_competencia)` increment atômico.
-**Testado em:** `QuotaExcedidaTest`.
+**Testado em:** _lacuna — QuotaExcedidaTest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-004 · PII filtrada antes de enviar pro LLM
 ```gherkin
@@ -149,7 +149,7 @@ Então PII é mascarada (`***.***.***-**`) antes de enviar
 E logs locais SIM contêm PII (audit), só prompt externo é mascarado
 ```
 **Implementação:** `PiiMaskService::mask()` aplicado em prompt; logs internos via Spatie sem mask.
-**Testado em:** `PiiMaskingTest`.
+**Testado em:** _lacuna — PiiMaskingTest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-005 · Embeddings sincronizados com mudanças
 ```gherkin
@@ -159,7 +159,7 @@ Então embedding de X é regenerado e atualizado em kg_entities
 E busca semântica reflete novo conteúdo no próximo ciclo
 ```
 **Implementação:** Watcher filesystem (Laravel) ou cron diário re-indexa ADRs alterados via hash do arquivo.
-**Testado em:** `EmbeddingsSyncTest`.
+**Testado em:** _lacuna — EmbeddingsSyncTest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-006 · Cache invalidação por mutações relevantes
 ```gherkin
@@ -169,7 +169,7 @@ Então cache da pergunta é invalidado
 E próxima query gera resposta atualizada
 ```
 **Implementação:** Listener em `Spatie\Permission\Events\PermissionAttached` invalida tag de cache `business:{id}:permissions`.
-**Testado em:** `CacheInvalidacaoTest`.
+**Testado em:** _lacuna — CacheInvalidacaoTest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-007 · Permissão Spatie obrigatória
 ```gherkin
@@ -188,7 +188,7 @@ Então row em `ai_query_log` registra (business, user, question, response_summar
 E PII na pergunta é mascarado também no log (não logar PII bruto)
 ```
 **Implementação:** Middleware grava no after.
-**Testado em:** `AiQueryAuditTest`.
+**Testado em:** _lacuna — AiQueryAuditTest não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-009 · Rate limit por user (anti-abuso)
 ```gherkin
@@ -207,7 +207,7 @@ Então fallback pra Anthropic Claude (config tenant)
 E user vê resposta normal (transparência opcional via debug=true)
 ```
 **Implementação:** Circuit breaker com fallback configurável.
-**Testado em:** `ProviderFallbackTest`.
+**Testado em:** _lacuna — ProviderFallbackTest não existe (Modules/LaravelAI não implementado)_.
 
 ## 4. Decisões pendentes
 
