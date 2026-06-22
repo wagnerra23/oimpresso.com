@@ -157,15 +157,15 @@ it('logs activity on each manifestation event with business_id')
 
 ## Refs
 
-- [US-NFE-052](../../../../memory/requisitos/NfeBrasil/SPEC.md) — Manifestação Destinatário UI
+- [US-NFE-052](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — Manifestação Destinatário UI
 - [ADR 0116](../../../../memory/decisions/0116-caso-gold-manifestacao.md) — caso Gold (origem)
 - [ADR 0029](../../../../memory/decisions/0029-inertia-upos.md) — Inertia + UltimatePOS
-- [ADR 0039](../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md) — Cockpit pattern (list+detail base)
-- [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
-- [ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0110](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md) — Cockpit V2 canon
-- [RUNBOOK-manifestacao.md](../../../../memory/requisitos/NfeBrasil/RUNBOOK-manifestacao.md) — playbook operacional
-- [manifestacao-visual-comparison.md](../../../../memory/requisitos/NfeBrasil/manifestacao-visual-comparison.md) — comparativo visual approved 2026-05-09
+- [ADR 0039](../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md) — Cockpit pattern (list+detail base)
+- [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
+- [ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0110](../../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md) — Cockpit V2 canon
+- [RUNBOOK-manifestacao.md](../../../../../memory/requisitos/NfeBrasil/RUNBOOK-manifestacao.md) — playbook operacional
+- [manifestacao-visual-comparison.md](../../../../../memory/requisitos/NfeBrasil/manifestacao-visual-comparison.md) — comparativo visual approved 2026-05-09
 
 ---
 

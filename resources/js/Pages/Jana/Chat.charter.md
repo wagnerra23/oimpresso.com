@@ -148,11 +148,11 @@ it('pauses auto-scroll when user scrolls up mid-stream')
 
 ## Refs
 
-- [Design.md §16 Cockpit V2](../../../Design.md)
-- [ADR 0110 Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0094 Constituição V2](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — IA + audit
-- [ADR 0107 Visual gate F1.5](../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
-- [prototipo-ui/CLAUDE_DESIGN_BRIEFING.md §7 proibições](../../../prototipo-ui/CLAUDE_DESIGN_BRIEFING.md)
+- [Design.md §16 Cockpit V2](../../../../Design.md)
+- [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ADR 0094 Constituição V2](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — IA + audit
+- [ADR 0107 Visual gate F1.5](../../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
+- [prototipo-ui/CLAUDE_DESIGN_BRIEFING.md §7 proibições](../../../../prototipo-ui/CLAUDE_DESIGN_BRIEFING.md)
 
 ---
 

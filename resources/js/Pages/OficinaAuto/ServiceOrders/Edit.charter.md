@@ -22,13 +22,13 @@ charter_version: 1
 
 # Page Charter — /oficina-auto/ordens-servico/{id}/edit
 
-> **Contexto sub-vertical 4 ([ADR 0194](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** edicao de OS de **mecanica pesada caminhao basculante** (sub-vertical 4 Martinho LIVE prod biz=164). Schema OS generico (manutencao OR locacao preservado nullable).
+> **Contexto sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** edicao de OS de **mecanica pesada caminhao basculante** (sub-vertical 4 Martinho LIVE prod biz=164). Schema OS generico (manutencao OR locacao preservado nullable).
 >
 > **Charter retroativo Gap 5 (2026-05-26):** v1 baseline espelha codigo EXISTENTE de `Edit.tsx` apos Wave 5 PR #1631 introduzir section inline "Itens da OS" embedded modo FOCO. Append-only — mudancas futuras viram v2.
 
 ## Mission
 
-Editar Ordem de Servico existente em **modo FOCO** (sem SubNav, Wave 5 PR #1631 skill `pageheader-canon` Fase 4-bis) — usuario foca em 9 campos basicos do form (veiculo, status, mileage, 4 datetimes, notes) **+** section inline "Itens da OS" embutida (NAO modal) com row clicavel + Sheet shadcn 480px lateral pra editar/criar item. Save unico via `useForm.put()` Inertia retornando pro Show. Status segue FSM canonico ([ADR 0143](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)).
+Editar Ordem de Servico existente em **modo FOCO** (sem SubNav, Wave 5 PR #1631 skill `pageheader-canon` Fase 4-bis) — usuario foca em 9 campos basicos do form (veiculo, status, mileage, 4 datetimes, notes) **+** section inline "Itens da OS" embutida (NAO modal) com row clicavel + Sheet shadcn 480px lateral pra editar/criar item. Save unico via `useForm.put()` Inertia retornando pro Show. Status segue FSM canonico ([ADR 0143](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)).
 
 ## Goals
 
@@ -54,7 +54,7 @@ Editar Ordem de Servico existente em **modo FOCO** (sem SubNav, Wave 5 PR #1631 
 - NAO editar items em batch — uma operacao por vez via Sheet.
 - NAO mudar `vehicle_id` apos OS ter `started_at` registrado (FSM lock — validado server-side, Edit nao impede mas backend rejeita).
 - NAO editar FSM `status` fora do `PipelineStage` (este Edit eh status livre legacy V0 — opera com `statuses` prop generica, nao com FSM transitions oficiais ADR 0143).
-- NAO editar `transaction_id` — read-only, auto-faturado pelo `ServiceOrderObserver` ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)).
+- NAO editar `transaction_id` — read-only, auto-faturado pelo `ServiceOrderObserver` ([ADR 0192](../../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)).
 - NAO adicionar DVI (Digital Vehicle Inspection) inline — DVI vive no drawer `ProducaoOficina`, nao no Edit fullpage.
 - NAO permitir upload de fotos no Edit fullpage — Gap 1 futuro via `HasArquivos` trait dentro do drawer.
 - NAO recalcular `final_total` no client — `Observer` faz server-side ao detectar mudanca de `status`.
@@ -70,9 +70,9 @@ Editar Ordem de Servico existente em **modo FOCO** (sem SubNav, Wave 5 PR #1631 
 
 ## Automation Anti-hooks
 
-- NAO dispara `EnviarLinkAprovacaoWhatsappJob` direto do Edit — Job dispatcha quando `ServiceOrderObserver::updated()` detecta `status` mudou pra `orcamento` ([ADR 0192](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) + charter `AprovacaoPublica`).
+- NAO dispara `EnviarLinkAprovacaoWhatsappJob` direto do Edit — Job dispatcha quando `ServiceOrderObserver::updated()` detecta `status` mudou pra `orcamento` ([ADR 0192](../../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md) + charter `AprovacaoPublica`).
 - NAO auto-recalcula `final_total` no client (`useMemo totalOs` eh display-only — Observer recalcula server-side ao Save).
-- NAO acessa OS de outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — global scope `ServiceOrder` model enforce).
+- NAO acessa OS de outro `business_id` (multi-tenant Tier 0 [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — global scope `ServiceOrder` model enforce).
 - NAO permite delete batch items via Edit — operacao 1-by-1 com `confirm()`.
 - NAO redireciona pra rota fora `/oficina-auto/ordens-servico/{id}` apos Save (Inertia `put` retorna pro Show via controller `redirect()`).
 - NAO loggar payload `notes` em telemetria (pode conter PII do cliente final — texto livre).
@@ -87,15 +87,15 @@ Editar Ordem de Servico existente em **modo FOCO** (sem SubNav, Wave 5 PR #1631 
 
 ## Refs
 
-- [ADR 0093 Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0094 Constituicao v2 7 camadas](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)
-- [ADR 0104 MWART canonico unico caminho](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- [ADR 0137 Modules OficinaAuto qualificada](../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
-- [ADR 0143 FSM pipeline canon](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
-- [ADR 0182 PageHeaderTabs canon pattern](../../../../memory/decisions/0182-pageheadertabs-canon-pattern-telas.md)
-- [ADR 0190 Primary button roxo universal 295](../../../../memory/decisions/0190-primary-button-roxo-universal-295.md)
-- [ADR 0192 Auto-faturar OS-Venda Observer](../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)
-- [ADR 0194 Dominio Martinho mecanica pesada](../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
+- [ADR 0093 Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0094 Constituicao v2 7 camadas](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)
+- [ADR 0104 MWART canonico unico caminho](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [ADR 0137 Modules OficinaAuto qualificada](../../../../../memory/decisions/0137-modules-oficinaauto-qualificada.md)
+- [ADR 0143 FSM pipeline canon](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
+- [ADR 0182 PageHeaderTabs canon pattern](../../../../../memory/decisions/0182-pageheadertabs-canon-pattern-telas.md)
+- [ADR 0190 Primary button roxo universal 295](../../../../../memory/decisions/0190-primary-button-roxo-universal-295.md)
+- [ADR 0192 Auto-faturar OS-Venda Observer](../../../../../memory/decisions/0192-auto-faturar-os-venda-jobsheet-observer.md)
+- [ADR 0194 Dominio Martinho mecanica pesada](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)
 - PR #1631 Wave 5 US-OFICINA-005-bis (section inline items embedded)
 - RUNBOOK: `memory/requisitos/OficinaAuto/RUNBOOK-edit.md`
 - Charter sibling: `resources/js/Pages/OficinaAuto/AprovacaoPublica.charter.md` (Tier A live)

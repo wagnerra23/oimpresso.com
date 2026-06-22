@@ -104,9 +104,9 @@ Cobertos em `Modules/Financeiro/Tests/Feature/CaixaControllerTest.php` (6 cases)
 
 ## Refs
 
-- [memory/requisitos/Financeiro/caixa-visual-comparison.md](../../../../memory/requisitos/Financeiro/caixa-visual-comparison.md) — visual-comparison F6 Soft
-- [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
-- [ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
-- [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
+- [memory/requisitos/Financeiro/caixa-visual-comparison.md](../../../../../memory/requisitos/Financeiro/caixa-visual-comparison.md) — visual-comparison F6 Soft
+- [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
+- [ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
+- [ADR 0104](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) — Processo MWART canônico
 - `app/Http/Controllers/CashRegisterController.php` — Controller core (lifecycle abrir/fechar — não tocado)
 - `database/migrations/2018_01_30_181442_create_cash_registers_table.php` — schema `cash_registers`

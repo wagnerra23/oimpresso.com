@@ -46,7 +46,7 @@ Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPa
 - **Health check on-demand**: botão "Rodar agora" + "Testar todos"
 - **CheatSheet** overlay `?` — atalhos teclado (N nova, J/K nav, Enter abre)
 - **KB-9.75 atalhos**: `N` nova, `J/K/↓↑` nav rows, `Enter` abre drawer, `Esc` fecha, `?` cheat
-- **Multi-tenant Tier 0** ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- **Multi-tenant Tier 0** ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 
 ---
 
@@ -131,7 +131,7 @@ it('não dispara mutação em GET /settings/payment-gateways (read-only puro)')
 
 ## Refs
 
-- [RUNBOOK Settings Gateways](../../../../memory/requisitos/PaymentGateway/RUNBOOK-settings-gateways.md)
+- [RUNBOOK Settings Gateways](../../../../../memory/requisitos/PaymentGateway/RUNBOOK-settings-gateways.md)
 - [Cowork F1 components](../../../../prototipo-ui/prototipos/payment-gateway-ui/components/)
 - [Cowork F1.5 critique](../../../../prototipo-ui/prototipos/payment-gateway-ui/critiques/payment-gateways-critique-score.json)
 - [Charter irmão — /financeiro/cobranca](../../Financeiro/Cobranca/Index.charter.md)

@@ -32,7 +32,7 @@ UNREVERTIBLE com badge vermelho.
 - `AuditoriaController@show($id)` → `AuditEntryService::find($businessId, $id)`
 - `AuditoriaController@revert($id)` → `RevertService::revert($activity, $by, $reason)`
 
-**Inertia::defer DEFAULT** ([RUNBOOK-inertia-defer-pattern.md](../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)):
+**Inertia::defer DEFAULT** ([RUNBOOK-inertia-defer-pattern.md](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md)):
 - `activities` = `LengthAwarePaginator` → deferred (queries paginadas custam 100-400ms)
 - `activity` (Show) = single + properties JSON → deferred
 - `filters` = state UI ≤1ms → eager
@@ -141,7 +141,7 @@ Quando user marca ≥2 checkboxes na table, aparece sticky panel:
 
 ## Anti-padrões catalogados
 
-[`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md):
+[`prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md`](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md):
 - ❌ Filter bar full-width que empurra table — usar Cards laterais (160-200px)
 - ❌ Action button "Reverter" sem confirm modal (precisa double-confirm + reason)
 - ❌ Sem `<Deferred>` wrap = página carrega lenta mesmo com defer no controller

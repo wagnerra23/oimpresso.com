@@ -152,10 +152,10 @@ it('uses localStorage prefix oimpresso.orcamento.*')
 ## Refs
 
 - Material visual: [`ui_kits/cowork-2026-05-09/orc-page.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/orc-page.jsx) (6.3 KB) + [`data-orc-prod.jsx`](../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/data-orc-prod.jsx)
-- Canon visual: [ADR ui/0012](../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
-- [ADR 0110 — Cockpit Pattern V2](../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório (NÃO inventar `App\Quotation`)
+- Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
+- [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório (NÃO inventar `App\Quotation`)
 - Backend: a confirmar entre `App\Transaction` (`type: quotation`) ou model dedicado
 
 ---

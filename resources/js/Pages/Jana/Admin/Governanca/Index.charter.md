@@ -27,7 +27,7 @@ superadmin_only: true
 
 ## Mission
 
-Cockpit de **governança do MCP server** ([ADR 0053](../../../../../memory/decisions/0053-mcp-server-governanca-como-produto.md)) — único ERP BR com MCP exposto como produto. Wagner monitora: quem usa, quanto custa, quais docs sincronizam, quais tokens estão ativos, quais skills foram publicadas.
+Cockpit de **governança do MCP server** ([ADR 0053](../../../../../../memory/decisions/0053-mcp-server-governanca-como-produto.md)) — único ERP BR com MCP exposto como produto. Wagner monitora: quem usa, quanto custa, quais docs sincronizam, quais tokens estão ativos, quais skills foram publicadas.
 
 Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quando promovido. Larissa NÃO acessa (sem permissão `copiloto.mcp.usage.all`).
 

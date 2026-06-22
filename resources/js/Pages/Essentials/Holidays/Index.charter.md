@@ -46,7 +46,7 @@ Cadastro de **feriados do business** opcionalmente escopados por `business_locat
 ## UX targets
 
 - Filtros reativos via `router.get` com `preserveState + preserveScroll + replace`
-- Defer eager-load `holidays` (com `location:id,name`) + `locations` dropdown ([RUNBOOK-inertia-defer-pattern.md](../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md))
+- Defer eager-load `holidays` (com `location:id,name`) + `locations` dropdown ([RUNBOOK-inertia-defer-pattern.md](../../../../../memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md))
 - `filtros` + `can_manage` props eager (UI state + bool — defer não vale a pena)
 - Mobile responsive (max-w-6xl + tabela overflow-x-auto)
 - Toast Sonner em CRUD
@@ -59,7 +59,7 @@ Cadastro de **feriados do business** opcionalmente escopados por `business_locat
 - `Holiday` shape: `{ id, name, start_date, end_date, days, location_id, location_name, note }`
 - POST `/hrm/holiday` (admin-only — `authorizeAdmin`)
 - PUT/DELETE `/hrm/holiday/{id}` (admin-only)
-- Multi-tenant Tier 0: `EssentialsHoliday` Entity tem `HasBusinessScope` ([Wave 18 SATURATION](../../../../Modules/Essentials/Tests/Feature/Wave18SaturationTest.php))
+- Multi-tenant Tier 0: `EssentialsHoliday` Entity tem `HasBusinessScope` ([Wave 18 SATURATION](../../../../../Modules/Essentials/Tests/Feature/Wave18SaturationTest.php))
 
 ---
 
